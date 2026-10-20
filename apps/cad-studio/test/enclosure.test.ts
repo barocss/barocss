@@ -325,3 +325,37 @@ test('R6b.6 living hinge: a groove across a PP plate leaving its thickness — t
   assert.ok((hinge('pp', pl, { th: 0.8 }) as { node: LibraryNode }).node.warnings.some(w => /^thickness: .* \(0\.8\)$/.test(w)));
   assert.match((hinge('pp', pl, { th: 1.9 }) as { error: string }).error, /thins: the hinge is not thinner than the plate/);
 });
+
+test('O72: a snap hook in a part whose brief states its material takes strain and yield from it — no context numbers; an assumed brief material, none; the body\'s own material first', async () => {
+  const { dispatchTool } = await import('../src/chat/tools'), { withLook } = await import('../src/app/bodies');
+  const stated = (value: string, basis: 'stated' | 'assumed' = 'stated'): StudioDoc => ({ ...plate(3), brief: { version: 1, material: { value, basis, ...(basis === 'stated' ? { source: value } : { why: 'a guess' }) } } as never });
+  type Hook = { doc: StudioDoc; node: { context?: Record<string, number>; warnings: string[] } };
+  const abs = addLibraryPartToBody(stated('abs'), 'enclosure', 'snap-hook', {}, top(3, 30, 20)) as Hook;
+  assert.deepEqual([abs.node.context!.epsAllow, abs.node.context!.E, abs.node.context!.ys, abs.node.context!.mu], [0.025, 2200, 40, 0.5]);
+  assert.ok(!abs.node.warnings.some(w => /material is not set|^strain: unknown|^yield: unknown/.test(w)), abs.node.warnings.join(' | '));
+  // (Assumed, not stated: no material — said, as before.)
+  const guess = addLibraryPartToBody(stated('abs', 'assumed'), 'enclosure', 'snap-hook', {}, top(3, 30, 20)) as Hook;
+  assert.ok(guess.node.warnings.includes("context epsAllow: the body's material is not set"), guess.node.warnings.join(' | '));
+  // (The body's own material before the brief's: PLA set on it, ABS in the brief — PLA's allowable strain.)
+  const own = addLibraryPartToBody(withLook(stated('abs'), bodies(stated('abs'))[0], { material: 'pla' }), 'enclosure', 'snap-hook', {}, top(3, 30, 20)) as Hook;
+  assert.equal(own.node.context!.epsAllow, 0.015);
+  // (And through the agent's tools: set_brief with the user's words, then add_library_part — no context passed.)
+  const ev = async (d: StudioDoc) => evaluateDoc(d, 1);
+  let s = { doc: plate(3), bodies: bodies(plate(3)), turns: ['a clip in ABS'] } as never as Parameters<typeof dispatchTool>[0];
+  let r = await dispatchTool(s, 'set_brief', { fields: { purpose: { value: 'a clip', basis: 'stated', source: 'a clip' }, process: { value: 'fdm', basis: 'stated', source: 'in ABS' }, material: { value: 'abs', basis: 'stated', source: 'ABS' } } }, ev); assert.ok(!r.isError, r.content); s = r.state;
+  r = await dispatchTool(s, 'add_library_part', { library: 'enclosure', part: 'snap-hook', face: 'n1.top', point: [30, 20, 3] }, ev); assert.ok(!r.isError, r.content);
+  const node = r.state.doc.nodes.at(-1) as { context?: Record<string, number> };
+  assert.equal(node.context!.epsAllow, 0.025);
+});
+
+test('O72: two library parts in one turn through the agent\'s tools — the second finds the body the first was united into (the state\'s bodies re-evaluated)', async () => {
+  const { dispatchTool } = await import('../src/chat/tools'), { emptyDoc } = await import('../src/engine/doc');
+  const ev = async (d: StudioDoc) => evaluateDoc(d, 1);
+  let s = { doc: emptyDoc(), bodies: [], turnBase: emptyDoc() } as never as Parameters<typeof dispatchTool>[0];
+  for (const [tool, args] of [['run_command', { command: 'box', values: { w: 100, d: 70, h: 30, x: 0, y: 0, z: 0 } }], ['run_command', { command: 'shell', values: { t: 2 }, faces: ['n1.top'] }],
+    ...[[20, 20], [80, 20], [80, 50], [20, 50]].map(([x, y]) => ['add_library_part', { library: 'enclosure', part: 'pcb-standoff', variant: 'M2.5', params: { h: 6 }, face: 'n2.floor', point: [x, y, 2] }])] as [string, Record<string, unknown>][]) {
+    const r = await dispatchTool(s, tool, args, ev); assert.ok(!r.isError, `${tool}: ${r.content}`); s = r.state;
+  }
+  assert.equal(s.doc.nodes.filter(n => n.kind === 'library').length, 4);
+  assert.equal(s.bodies.length, 1); assert.equal(s.bodies[0].ref!.node, s.doc.nodes.length - 1, 'the state\'s body is the last union\'s');
+});

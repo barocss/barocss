@@ -72,7 +72,7 @@
    ],
    "refused": [],
    "calls": 2,
-   "wallMs": 35
+   "wallMs": 34
   },
   {
    "rung": "block-hole",
@@ -440,7 +440,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 8
+   "wallMs": 9
   },
   {
    "rung": "washer",
@@ -668,7 +668,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 11
+   "wallMs": 9
   },
   {
    "rung": "washer",
@@ -744,7 +744,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 9
+   "wallMs": 10
   },
   {
    "rung": "phone-stand",
@@ -872,7 +872,7 @@
    ],
    "refused": [],
    "calls": 5,
-   "wallMs": 15
+   "wallMs": 14
   },
   {
    "rung": "phone-stand",
@@ -936,7 +936,7 @@
    ],
    "refused": [],
    "calls": 5,
-   "wallMs": 14
+   "wallMs": 15
   },
   {
    "rung": "phone-stand",
@@ -1064,7 +1064,7 @@
    ],
    "refused": [],
    "calls": 5,
-   "wallMs": 14
+   "wallMs": 13
   },
   {
    "rung": "sheet-l-bracket",
@@ -1143,7 +1143,7 @@
    ],
    "refused": [],
    "calls": 2,
-   "wallMs": 74
+   "wallMs": 72
   },
   {
    "rung": "sheet-l-bracket",
@@ -1301,7 +1301,7 @@
    ],
    "refused": [],
    "calls": 2,
-   "wallMs": 42
+   "wallMs": 41
   },
   {
    "rung": "sheet-l-bracket",
@@ -1380,7 +1380,7 @@
    ],
    "refused": [],
    "calls": 2,
-   "wallMs": 41
+   "wallMs": 39
   },
   {
    "rung": "sheet-l-bracket",
@@ -1459,7 +1459,1142 @@
    ],
    "refused": [],
    "calls": 2,
-   "wallMs": 41
+   "wallMs": 39
+  },
+  {
+   "rung": "snap-fit-box",
+   "trial": 0,
+   "seed": 2026,
+   "params": {
+    "W": 60,
+    "D": 40,
+    "H": 25,
+    "s": 1.5,
+    "tl": 2,
+    "m": "abs",
+    "nh": 2,
+    "tb": 1.2,
+    "y": 0.6,
+    "b": 5,
+    "L": 9
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       60,
+       40,
+       27
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 60 × 40 × 27 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "two solids: the box and its lid"
+    },
+    {
+     "id": "hooks",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "2 snap hooks"
+    },
+    {
+     "id": "flex",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       "n5.strain",
+       0.5333
+      ],
+      [
+       "n5.yield",
+       0.7333
+      ],
+      [
+       "n6.strain",
+       0.5333
+      ],
+      [
+       "n6.yield",
+       0.7333
+      ]
+     ],
+     "expected": "each hook's root strain within the material's allowable strain and yield (the brief's material)"
+    },
+    {
+     "id": "latched",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      1.4999961853027344,
+      1.499999761581421
+     ],
+     "expected": "each hook's catch under a ledge, ≥ 1.499 mm² overlapping within 0.6 mm"
+    },
+    {
+     "id": "clearance",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      0.3,
+      0.3
+     ],
+     "expected": "each hook ≥ 0.3 mm (the FDM fit gap) from the box"
+    },
+    {
+     "id": "fits",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      {
+       "a": "b6",
+       "b": "b8",
+       "clearance_mm": 0,
+       "near": [
+        0,
+        0,
+        25
+       ]
+      }
+     ],
+     "expected": "the lid and the box do not overlap"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 126
+  },
+  {
+   "rung": "snap-fit-box",
+   "trial": 1,
+   "seed": 2026,
+   "params": {
+    "W": 120,
+    "D": 80,
+    "H": 40,
+    "s": 3,
+    "tl": 3,
+    "m": "petg",
+    "nh": 4,
+    "tb": 2,
+    "y": 1.2,
+    "b": 10,
+    "L": 31
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       120,
+       80,
+       43
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 120 × 80 × 43 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "two solids: the box and its lid"
+    },
+    {
+     "id": "hooks",
+     "hard": true,
+     "pass": true,
+     "measured": 4,
+     "expected": "4 snap hooks"
+    },
+    {
+     "id": "flex",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       "n5.strain",
+       0.1249
+      ],
+      [
+       "n5.yield",
+       0.1573
+      ],
+      [
+       "n6.strain",
+       0.1249
+      ],
+      [
+       "n6.yield",
+       0.1573
+      ],
+      [
+       "n7.strain",
+       0.1249
+      ],
+      [
+       "n7.yield",
+       0.1573
+      ],
+      [
+       "n8.strain",
+       0.1249
+      ],
+      [
+       "n8.yield",
+       0.1573
+      ]
+     ],
+     "expected": "each hook's root strain within the material's allowable strain and yield (the brief's material)"
+    },
+    {
+     "id": "latched",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      8.99993896484375,
+      8.99993896484375,
+      8.999998569488525,
+      8.999998569488525
+     ],
+     "expected": "each hook's catch under a ledge, ≥ 8.999 mm² overlapping within 0.6 mm"
+    },
+    {
+     "id": "clearance",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      0.3,
+      0.3,
+      0.3,
+      0.3
+     ],
+     "expected": "each hook ≥ 0.3 mm (the FDM fit gap) from the box"
+    },
+    {
+     "id": "fits",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      {
+       "a": "b8",
+       "b": "b12",
+       "clearance_mm": 0,
+       "near": [
+        0,
+        0,
+        40
+       ]
+      }
+     ],
+     "expected": "the lid and the box do not overlap"
+    }
+   ],
+   "refused": [],
+   "calls": 12,
+   "wallMs": 205
+  },
+  {
+   "rung": "snap-fit-box",
+   "trial": 2,
+   "seed": 2026,
+   "params": {
+    "W": 60,
+    "D": 80,
+    "H": 25,
+    "s": 3,
+    "tl": 2,
+    "m": "petg",
+    "nh": 2,
+    "tb": 2,
+    "y": 0.6,
+    "b": 10,
+    "L": 11
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       60,
+       80,
+       27
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 60 × 80 × 27 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "two solids: the box and its lid"
+    },
+    {
+     "id": "hooks",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "2 snap hooks"
+    },
+    {
+     "id": "flex",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       "n5.strain",
+       0.4959
+      ],
+      [
+       "n5.yield",
+       0.6248
+      ],
+      [
+       "n6.strain",
+       0.4959
+      ],
+      [
+       "n6.yield",
+       0.6248
+      ]
+     ],
+     "expected": "each hook's root strain within the material's allowable strain and yield (the brief's material)"
+    },
+    {
+     "id": "latched",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      2.9999923706054688,
+      2.999999523162842
+     ],
+     "expected": "each hook's catch under a ledge, ≥ 2.999 mm² overlapping within 0.6 mm"
+    },
+    {
+     "id": "clearance",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      0.3,
+      0.3
+     ],
+     "expected": "each hook ≥ 0.3 mm (the FDM fit gap) from the box"
+    },
+    {
+     "id": "fits",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      {
+       "a": "b6",
+       "b": "b8",
+       "clearance_mm": 0,
+       "near": [
+        0,
+        0,
+        25
+       ]
+      }
+     ],
+     "expected": "the lid and the box do not overlap"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 96
+  },
+  {
+   "rung": "snap-fit-box",
+   "trial": 3,
+   "seed": 2026,
+   "params": {
+    "W": 120,
+    "D": 40,
+    "H": 40,
+    "s": 1.5,
+    "tl": 3,
+    "m": "abs",
+    "nh": 4,
+    "tb": 1.2,
+    "y": 1.2,
+    "b": 5,
+    "L": 32
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       120,
+       40,
+       43
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 120 × 40 × 43 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "two solids: the box and its lid"
+    },
+    {
+     "id": "hooks",
+     "hard": true,
+     "pass": true,
+     "measured": 4,
+     "expected": "4 snap hooks"
+    },
+    {
+     "id": "flex",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       "n5.strain",
+       0.0844
+      ],
+      [
+       "n5.yield",
+       0.116
+      ],
+      [
+       "n6.strain",
+       0.0844
+      ],
+      [
+       "n6.yield",
+       0.116
+      ],
+      [
+       "n7.strain",
+       0.0844
+      ],
+      [
+       "n7.yield",
+       0.116
+      ],
+      [
+       "n8.strain",
+       0.0844
+      ],
+      [
+       "n8.yield",
+       0.116
+      ]
+     ],
+     "expected": "each hook's root strain within the material's allowable strain and yield (the brief's material)"
+    },
+    {
+     "id": "latched",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      4.499969482421875,
+      4.499969482421875,
+      4.500000476837158,
+      4.500000476837158
+     ],
+     "expected": "each hook's catch under a ledge, ≥ 4.499 mm² overlapping within 0.6 mm"
+    },
+    {
+     "id": "clearance",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      0.3,
+      0.3,
+      0.3,
+      0.3
+     ],
+     "expected": "each hook ≥ 0.3 mm (the FDM fit gap) from the box"
+    },
+    {
+     "id": "fits",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      {
+       "a": "b8",
+       "b": "b12",
+       "clearance_mm": 0,
+       "near": [
+        0,
+        0,
+        40
+       ]
+      }
+     ],
+     "expected": "the lid and the box do not overlap"
+    }
+   ],
+   "refused": [],
+   "calls": 12,
+   "wallMs": 190
+  },
+  {
+   "rung": "snap-fit-box",
+   "trial": 4,
+   "seed": 2026,
+   "params": {
+    "W": 76,
+    "D": 59,
+    "H": 38,
+    "s": 2.5,
+    "tl": 2.5,
+    "m": "abs",
+    "nh": 4,
+    "tb": 1.5,
+    "y": 1.1,
+    "b": 9,
+    "L": 16
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       76,
+       59,
+       40.5
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 76 × 59 × 40.5 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "two solids: the box and its lid"
+    },
+    {
+     "id": "hooks",
+     "hard": true,
+     "pass": true,
+     "measured": 4,
+     "expected": "4 snap hooks"
+    },
+    {
+     "id": "flex",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       "n5.strain",
+       0.3867
+      ],
+      [
+       "n5.yield",
+       0.5317
+      ],
+      [
+       "n6.strain",
+       0.3867
+      ],
+      [
+       "n6.yield",
+       0.5317
+      ],
+      [
+       "n7.strain",
+       0.3867
+      ],
+      [
+       "n7.yield",
+       0.5317
+      ],
+      [
+       "n8.strain",
+       0.3867
+      ],
+      [
+       "n8.yield",
+       0.5317
+      ]
+     ],
+     "expected": "each hook's root strain within the material's allowable strain and yield (the brief's material)"
+    },
+    {
+     "id": "latched",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      7.199958801269531,
+      7.199958801269531,
+      7.199999570846558,
+      7.199999570846558
+     ],
+     "expected": "each hook's catch under a ledge, ≥ 7.199 mm² overlapping within 0.6 mm"
+    },
+    {
+     "id": "clearance",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      0.3,
+      0.3,
+      0.3,
+      0.3
+     ],
+     "expected": "each hook ≥ 0.3 mm (the FDM fit gap) from the box"
+    },
+    {
+     "id": "fits",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      {
+       "a": "b8",
+       "b": "b12",
+       "clearance_mm": 0,
+       "near": [
+        0,
+        0,
+        38
+       ]
+      }
+     ],
+     "expected": "the lid and the box do not overlap"
+    }
+   ],
+   "refused": [],
+   "calls": 12,
+   "wallMs": 196
+  },
+  {
+   "rung": "pcb-enclosure",
+   "trial": 0,
+   "seed": 2026,
+   "params": {
+    "w": 90,
+    "d": 60,
+    "h": 25,
+    "t": 2,
+    "a": 40,
+    "b": 30,
+    "i": 3.5,
+    "v": "M2.5",
+    "hs": 5,
+    "c": 3,
+    "n": 3,
+    "sl": 8
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       90,
+       60,
+       25
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 90 × 60 × 25 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 1,
+     "expected": "one solid"
+    },
+    {
+     "id": "standoffs",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "expected": "four Ø6.2 standoffs 5 tall on the board's holes"
+    },
+    {
+     "id": "components",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       "clear",
+       1.60000038147
+      ]
+     ],
+     "expected": "the board's component space clear by 1 mm"
+    },
+    {
+     "id": "cable",
+     "hard": true,
+     "pass": true,
+     "measured": null,
+     "expected": "a Ø8 hole through the front wall at its middle, 12 up"
+    },
+    {
+     "id": "vents",
+     "hard": true,
+     "pass": true,
+     "measured": 36,
+     "expected": "3 slots through the right wall (34.55 … 36.00 mm² cut)"
+    },
+    {
+     "id": "min-wall",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "FDM walls ≥ 0.8 mm"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 728
+  },
+  {
+   "rung": "pcb-enclosure",
+   "trial": 1,
+   "seed": 2026,
+   "params": {
+    "w": 140,
+    "d": 100,
+    "h": 40,
+    "t": 3,
+    "a": 104,
+    "b": 64,
+    "i": 5,
+    "v": "M3",
+    "hs": 10,
+    "c": 23,
+    "n": 8,
+    "sl": 15
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       140,
+       100,
+       40
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 140 × 100 × 40 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 1,
+     "expected": "one solid"
+    },
+    {
+     "id": "standoffs",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "expected": "four Ø7.2 standoffs 10 tall on the board's holes"
+    },
+    {
+     "id": "components",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       "clear",
+       1.60000038147
+      ]
+     ],
+     "expected": "the board's component space clear by 1 mm"
+    },
+    {
+     "id": "cable",
+     "hard": true,
+     "pass": true,
+     "measured": null,
+     "expected": "a Ø8 hole through the front wall at its middle, 12 up"
+    },
+    {
+     "id": "vents",
+     "hard": true,
+     "pass": true,
+     "measured": 180,
+     "expected": "8 slots through the right wall (176.14 … 180.00 mm² cut)"
+    },
+    {
+     "id": "min-wall",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "FDM walls ≥ 0.8 mm"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 800
+  },
+  {
+   "rung": "pcb-enclosure",
+   "trial": 2,
+   "seed": 2026,
+   "params": {
+    "w": 90,
+    "d": 100,
+    "h": 25,
+    "t": 3,
+    "a": 40,
+    "b": 64,
+    "i": 3.5,
+    "v": "M3",
+    "hs": 5,
+    "c": 13,
+    "n": 3,
+    "sl": 15
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       90,
+       100,
+       25
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 90 × 100 × 25 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 1,
+     "expected": "one solid"
+    },
+    {
+     "id": "standoffs",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "expected": "four Ø7.2 standoffs 5 tall on the board's holes"
+    },
+    {
+     "id": "components",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       "clear",
+       1.60000038147
+      ]
+     ],
+     "expected": "the board's component space clear by 1 mm"
+    },
+    {
+     "id": "cable",
+     "hard": true,
+     "pass": true,
+     "measured": null,
+     "expected": "a Ø8 hole through the front wall at its middle, 12 up"
+    },
+    {
+     "id": "vents",
+     "hard": true,
+     "pass": true,
+     "measured": 67.5,
+     "expected": "3 slots through the right wall (66.05 … 67.50 mm² cut)"
+    },
+    {
+     "id": "min-wall",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "FDM walls ≥ 0.8 mm"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 684
+  },
+  {
+   "rung": "pcb-enclosure",
+   "trial": 3,
+   "seed": 2026,
+   "params": {
+    "w": 140,
+    "d": 60,
+    "h": 40,
+    "t": 2,
+    "a": 106,
+    "b": 30,
+    "i": 5,
+    "v": "M2.5",
+    "hs": 10,
+    "c": 3,
+    "n": 8,
+    "sl": 8
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       140,
+       60,
+       40
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 140 × 60 × 40 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 1,
+     "expected": "one solid"
+    },
+    {
+     "id": "standoffs",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "expected": "four Ø6.2 standoffs 10 tall on the board's holes"
+    },
+    {
+     "id": "components",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       "clear",
+       1.60000038147
+      ]
+     ],
+     "expected": "the board's component space clear by 1 mm"
+    },
+    {
+     "id": "cable",
+     "hard": true,
+     "pass": true,
+     "measured": null,
+     "expected": "a Ø8 hole through the front wall at its middle, 12 up"
+    },
+    {
+     "id": "vents",
+     "hard": true,
+     "pass": true,
+     "measured": 96,
+     "expected": "8 slots through the right wall (92.14 … 96.00 mm² cut)"
+    },
+    {
+     "id": "min-wall",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "FDM walls ≥ 0.8 mm"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 788
+  },
+  {
+   "rung": "pcb-enclosure",
+   "trial": 4,
+   "seed": 2026,
+   "params": {
+    "w": 103,
+    "d": 79,
+    "h": 38,
+    "t": 3,
+    "a": 50,
+    "b": 33,
+    "i": 4.5,
+    "v": "M2.5",
+    "hs": 8.5,
+    "c": 18,
+    "n": 4,
+    "sl": 12
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "box",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "size": [
+       103,
+       79,
+       38
+      ],
+      "min": [
+       0,
+       0,
+       0
+      ]
+     },
+     "expected": "size 103 × 79 × 38 at 0, 0, 0 ± 0.0001"
+    },
+    {
+     "id": "solids",
+     "hard": true,
+     "pass": true,
+     "measured": 1,
+     "expected": "one solid"
+    },
+    {
+     "id": "standoffs",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "expected": "four Ø6.2 standoffs 8.5 tall on the board's holes"
+    },
+    {
+     "id": "components",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      [
+       "clear",
+       1.60000038147
+      ]
+     ],
+     "expected": "the board's component space clear by 1 mm"
+    },
+    {
+     "id": "cable",
+     "hard": true,
+     "pass": true,
+     "measured": null,
+     "expected": "a Ø8 hole through the front wall at its middle, 12 up"
+    },
+    {
+     "id": "vents",
+     "hard": true,
+     "pass": true,
+     "measured": 72,
+     "expected": "4 slots through the right wall (70.07 … 72.00 mm² cut)"
+    },
+    {
+     "id": "min-wall",
+     "hard": true,
+     "pass": true,
+     "measured": 2,
+     "expected": "FDM walls ≥ 0.8 mm"
+    }
+   ],
+   "refused": [],
+   "calls": 8,
+   "wallMs": 707
   },
   {
    "rung": "sheet-pcb-enclosure",
@@ -1565,7 +2700,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 251
+   "wallMs": 233
   },
   {
    "rung": "sheet-pcb-enclosure",
@@ -1671,7 +2806,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 227
+   "wallMs": 214
   },
   {
    "rung": "sheet-pcb-enclosure",
@@ -1777,7 +2912,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 226
+   "wallMs": 216
   },
   {
    "rung": "sheet-pcb-enclosure",
@@ -1883,7 +3018,7 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 209
+   "wallMs": 205
   },
   {
    "rung": "sheet-pcb-enclosure",
@@ -1989,7 +3124,482 @@
    ],
    "refused": [],
    "calls": 1,
-   "wallMs": 212
+   "wallMs": 204
+  },
+  {
+   "rung": "five-part-assembly",
+   "trial": 0,
+   "seed": 2026,
+   "params": {
+    "P": 100,
+    "Q": 50,
+    "tb": 4,
+    "bw": 8,
+    "bd": 20,
+    "bh": 30,
+    "ds": 6,
+    "c": 12,
+    "zc": 7,
+    "ct": 3,
+    "xa": 5,
+    "xb": 60
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "parts",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      5,
+      5
+     ],
+     "expected": "five parts, five BOM rows with their masses"
+    },
+    {
+     "id": "placed",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "base": "p1",
+      "bracket A": "p2",
+      "bracket B": "p3",
+      "cap": "p4",
+      "shaft": "p5"
+     },
+     "expected": "every part where the brief puts it (its box to 1e-4)"
+    },
+    {
+     "id": "freedoms",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "fixed"
+       ],
+       [
+        "p1~p2",
+        "fixed"
+       ],
+       [
+        "p1~p3",
+        "fixed"
+       ],
+       [
+        "p3~p4",
+        "fixed"
+       ],
+       [
+        "p2~p5",
+        "continuous"
+       ]
+      ],
+      "problems": [],
+      "loops": 0
+     },
+     "expected": "one turn, the shaft's about the bore axis; every other part fixed"
+    },
+    {
+     "id": "contacts",
+     "hard": true,
+     "pass": true,
+     "measured": [],
+     "expected": "no parts meeting; only the mates' contacts"
+    },
+    {
+     "id": "mass",
+     "hard": true,
+     "pass": true,
+     "measured": 84.38499999999999,
+     "expected": "84.38601476406537 ± 0.005"
+    }
+   ],
+   "refused": [],
+   "calls": 21,
+   "wallMs": 86
+  },
+  {
+   "rung": "five-part-assembly",
+   "trial": 1,
+   "seed": 2026,
+   "params": {
+    "P": 200,
+    "Q": 100,
+    "tb": 10,
+    "bw": 15,
+    "bd": 40,
+    "bh": 60,
+    "ds": 12,
+    "c": 40,
+    "zc": 40,
+    "ct": 6,
+    "xa": 75,
+    "xb": 174
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "parts",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      5,
+      5
+     ],
+     "expected": "five parts, five BOM rows with their masses"
+    },
+    {
+     "id": "placed",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "base": "p1",
+      "bracket A": "p2",
+      "bracket B": "p3",
+      "cap": "p4",
+      "shaft": "p5"
+     },
+     "expected": "every part where the brief puts it (its box to 1e-4)"
+    },
+    {
+     "id": "freedoms",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "fixed"
+       ],
+       [
+        "p1~p2",
+        "fixed"
+       ],
+       [
+        "p1~p3",
+        "fixed"
+       ],
+       [
+        "p3~p4",
+        "fixed"
+       ],
+       [
+        "p2~p5",
+        "continuous"
+       ]
+      ],
+      "problems": [],
+      "loops": 0
+     },
+     "expected": "one turn, the shaft's about the bore axis; every other part fixed"
+    },
+    {
+     "id": "contacts",
+     "hard": true,
+     "pass": true,
+     "measured": [],
+     "expected": "no parts meeting; only the mates' contacts"
+    },
+    {
+     "id": "mass",
+     "hard": true,
+     "pass": true,
+     "measured": 784.886,
+     "expected": "784.88580156447 ± 0.005"
+    }
+   ],
+   "refused": [],
+   "calls": 21,
+   "wallMs": 76
+  },
+  {
+   "rung": "five-part-assembly",
+   "trial": 2,
+   "seed": 2026,
+   "params": {
+    "P": 100,
+    "Q": 100,
+    "tb": 4,
+    "bw": 15,
+    "bd": 20,
+    "bh": 60,
+    "ds": 6,
+    "c": 20,
+    "zc": 11,
+    "ct": 6,
+    "xa": 5,
+    "xb": 74
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "parts",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      5,
+      5
+     ],
+     "expected": "five parts, five BOM rows with their masses"
+    },
+    {
+     "id": "placed",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "base": "p1",
+      "bracket A": "p2",
+      "bracket B": "p3",
+      "cap": "p4",
+      "shaft": "p5"
+     },
+     "expected": "every part where the brief puts it (its box to 1e-4)"
+    },
+    {
+     "id": "freedoms",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "fixed"
+       ],
+       [
+        "p1~p2",
+        "fixed"
+       ],
+       [
+        "p1~p3",
+        "fixed"
+       ],
+       [
+        "p3~p4",
+        "fixed"
+       ],
+       [
+        "p2~p5",
+        "continuous"
+       ]
+      ],
+      "problems": [],
+      "loops": 0
+     },
+     "expected": "one turn, the shaft's about the bore axis; every other part fixed"
+    },
+    {
+     "id": "contacts",
+     "hard": true,
+     "pass": true,
+     "measured": [],
+     "expected": "no parts meeting; only the mates' contacts"
+    },
+    {
+     "id": "mass",
+     "hard": true,
+     "pass": true,
+     "measured": 215.328,
+     "expected": "215.32844935833836 ± 0.005"
+    }
+   ],
+   "refused": [],
+   "calls": 21,
+   "wallMs": 73
+  },
+  {
+   "rung": "five-part-assembly",
+   "trial": 3,
+   "seed": 2026,
+   "params": {
+    "P": 200,
+    "Q": 50,
+    "tb": 10,
+    "bw": 8,
+    "bd": 40,
+    "bh": 30,
+    "ds": 12,
+    "c": 18,
+    "zc": 21,
+    "ct": 3,
+    "xa": 82,
+    "xb": 110
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "parts",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      5,
+      5
+     ],
+     "expected": "five parts, five BOM rows with their masses"
+    },
+    {
+     "id": "placed",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "base": "p1",
+      "bracket A": "p2",
+      "bracket B": "p3",
+      "cap": "p4",
+      "shaft": "p5"
+     },
+     "expected": "every part where the brief puts it (its box to 1e-4)"
+    },
+    {
+     "id": "freedoms",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "fixed"
+       ],
+       [
+        "p1~p2",
+        "fixed"
+       ],
+       [
+        "p1~p3",
+        "fixed"
+       ],
+       [
+        "p3~p4",
+        "fixed"
+       ],
+       [
+        "p2~p5",
+        "continuous"
+       ]
+      ],
+      "problems": [],
+      "loops": 0
+     },
+     "expected": "one turn, the shaft's about the bore axis; every other part fixed"
+    },
+    {
+     "id": "contacts",
+     "hard": true,
+     "pass": true,
+     "measured": [],
+     "expected": "no parts meeting; only the mates' contacts"
+    },
+    {
+     "id": "mass",
+     "hard": true,
+     "pass": true,
+     "measured": 329.85,
+     "expected": "329.85066060457973 ± 0.005"
+    }
+   ],
+   "refused": [],
+   "calls": 21,
+   "wallMs": 73
+  },
+  {
+   "rung": "five-part-assembly",
+   "trial": 4,
+   "seed": 2026,
+   "params": {
+    "P": 125,
+    "Q": 75,
+    "tb": 9,
+    "bw": 13,
+    "bd": 28,
+    "bh": 36,
+    "ds": 9,
+    "c": 20,
+    "zc": 22,
+    "ct": 6,
+    "xa": 11,
+    "xb": 86.5
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "parts",
+     "hard": true,
+     "pass": true,
+     "measured": [
+      5,
+      5
+     ],
+     "expected": "five parts, five BOM rows with their masses"
+    },
+    {
+     "id": "placed",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "base": "p1",
+      "bracket A": "p2",
+      "bracket B": "p3",
+      "cap": "p4",
+      "shaft": "p5"
+     },
+     "expected": "every part where the brief puts it (its box to 1e-4)"
+    },
+    {
+     "id": "freedoms",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "fixed"
+       ],
+       [
+        "p1~p2",
+        "fixed"
+       ],
+       [
+        "p1~p3",
+        "fixed"
+       ],
+       [
+        "p3~p4",
+        "fixed"
+       ],
+       [
+        "p2~p5",
+        "continuous"
+       ]
+      ],
+      "problems": [],
+      "loops": 0
+     },
+     "expected": "one turn, the shaft's about the bore axis; every other part fixed"
+    },
+    {
+     "id": "contacts",
+     "hard": true,
+     "pass": true,
+     "measured": [],
+     "expected": "no parts meeting; only the mates' contacts"
+    },
+    {
+     "id": "mass",
+     "hard": true,
+     "pass": true,
+     "measured": 315.10900000000004,
+     "expected": "315.1077462702017 ± 0.005"
+    }
+   ],
+   "refused": [],
+   "calls": 21,
+   "wallMs": 74
   },
   {
    "rung": "product-brief",
@@ -2070,7 +3680,7 @@
    ],
    "refused": [],
    "calls": 6,
-   "wallMs": 191
+   "wallMs": 184
   },
   {
    "rung": "product-brief",
@@ -2141,7 +3751,7 @@
    ],
    "refused": [],
    "calls": 8,
-   "wallMs": 46
+   "wallMs": 41
   },
   {
    "rung": "product-brief",
@@ -2222,7 +3832,7 @@
    ],
    "refused": [],
    "calls": 6,
-   "wallMs": 296
+   "wallMs": 306
   },
   {
    "rung": "product-brief",
@@ -2293,7 +3903,7 @@
    ],
    "refused": [],
    "calls": 8,
-   "wallMs": 42
+   "wallMs": 47
   },
   {
    "rung": "product-brief",
@@ -2374,7 +3984,402 @@
    ],
    "refused": [],
    "calls": 6,
-   "wallMs": 75
+   "wallMs": 77
+  },
+  {
+   "rung": "two-axis-arm",
+   "trial": 0,
+   "seed": 2026,
+   "params": {
+    "l1": 80,
+    "l2": 80,
+    "m": 0.1,
+    "R": 110,
+    "q1": 0.5,
+    "q2": -2,
+    "v": 1,
+    "acc": 5
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "joints",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "revolute"
+       ],
+       [
+        "p1~p2",
+        "revolute"
+       ],
+       [
+        "p2~p3",
+        "fixed"
+       ]
+      ],
+      "problems": []
+     },
+     "expected": "two revolute joints about vertical axes, 80 mm apart"
+    },
+    {
+     "id": "reach",
+     "hard": true,
+     "pass": true,
+     "measured": 159.99997386560597,
+     "expected": "the far bore reaches ≥ 110 mm (RM9b's map, 2000 poses)"
+    },
+    {
+     "id": "margins",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "least": {
+       "check": "joint range",
+       "joint": "p1~p2",
+       "move": 0,
+       "margin": 0.1
+      },
+      "unknowns": []
+     },
+     "expected": "every RD9 margin above 0 at the duty, an RD3 pair on each joint"
+    },
+    {
+     "id": "urdf",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "ok": true,
+      "issues": [],
+      "fk": 7.37257477290143e-17,
+      "inertia": 8.511123002852716e-19
+     },
+     "expected": "the URDF exports clean; its FK equals RM2's to 1e-9 at 20 poses, its inertials RM3's to 1e-12"
+    }
+   ],
+   "refused": [],
+   "calls": 20,
+   "wallMs": 259
+  },
+  {
+   "rung": "two-axis-arm",
+   "trial": 1,
+   "seed": 2026,
+   "params": {
+    "l1": 250,
+    "l2": 250,
+    "m": 1,
+    "R": 490,
+    "q1": 1.5,
+    "q2": -0.5,
+    "v": 3,
+    "acc": 20
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "joints",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "revolute"
+       ],
+       [
+        "p1~p2",
+        "revolute"
+       ],
+       [
+        "p2~p3",
+        "fixed"
+       ]
+      ],
+      "problems": []
+     },
+     "expected": "two revolute joints about vertical axes, 250 mm apart"
+    },
+    {
+     "id": "reach",
+     "hard": true,
+     "pass": true,
+     "measured": 499.9999183300186,
+     "expected": "the far bore reaches ≥ 490 mm (RM9b's map, 2000 poses)"
+    },
+    {
+     "id": "margins",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "least": {
+       "check": "joint range",
+       "joint": "base~p1",
+       "move": 0,
+       "margin": 0.2
+      },
+      "unknowns": []
+     },
+     "expected": "every RD9 margin above 0 at the duty, an RD3 pair on each joint"
+    },
+    {
+     "id": "urdf",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "ok": true,
+      "issues": [],
+      "fk": 1.1102230246251565e-16,
+      "inertia": 8.511123002852716e-19
+     },
+     "expected": "the URDF exports clean; its FK equals RM2's to 1e-9 at 20 poses, its inertials RM3's to 1e-12"
+    }
+   ],
+   "refused": [],
+   "calls": 20,
+   "wallMs": 224
+  },
+  {
+   "rung": "two-axis-arm",
+   "trial": 2,
+   "seed": 2026,
+   "params": {
+    "l1": 80,
+    "l2": 250,
+    "m": 0.1,
+    "R": 320,
+    "q1": 0.5,
+    "q2": -0.5,
+    "v": 1,
+    "acc": 20
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "joints",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "revolute"
+       ],
+       [
+        "p1~p2",
+        "revolute"
+       ],
+       [
+        "p2~p3",
+        "fixed"
+       ]
+      ],
+      "problems": []
+     },
+     "expected": "two revolute joints about vertical axes, 80 mm apart"
+    },
+    {
+     "id": "reach",
+     "hard": true,
+     "pass": true,
+     "measured": 329.9999604024341,
+     "expected": "the far bore reaches ≥ 320 mm (RM9b's map, 2000 poses)"
+    },
+    {
+     "id": "margins",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "least": {
+       "check": "joint range",
+       "joint": "base~p1",
+       "move": 0,
+       "margin": 0.4
+      },
+      "unknowns": []
+     },
+     "expected": "every RD9 margin above 0 at the duty, an RD3 pair on each joint"
+    },
+    {
+     "id": "urdf",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "ok": true,
+      "issues": [],
+      "fk": 8.326672684688674e-17,
+      "inertia": 8.511123002852716e-19
+     },
+     "expected": "the URDF exports clean; its FK equals RM2's to 1e-9 at 20 poses, its inertials RM3's to 1e-12"
+    }
+   ],
+   "refused": [],
+   "calls": 20,
+   "wallMs": 287
+  },
+  {
+   "rung": "two-axis-arm",
+   "trial": 3,
+   "seed": 2026,
+   "params": {
+    "l1": 250,
+    "l2": 80,
+    "m": 1,
+    "R": 280,
+    "q1": 1.5,
+    "q2": -2,
+    "v": 3,
+    "acc": 5
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "joints",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "revolute"
+       ],
+       [
+        "p1~p2",
+        "revolute"
+       ],
+       [
+        "p2~p3",
+        "fixed"
+       ]
+      ],
+      "problems": []
+     },
+     "expected": "two revolute joints about vertical axes, 250 mm apart"
+    },
+    {
+     "id": "reach",
+     "hard": true,
+     "pass": true,
+     "measured": 329.99996040243417,
+     "expected": "the far bore reaches ≥ 280 mm (RM9b's map, 2000 poses)"
+    },
+    {
+     "id": "margins",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "least": {
+       "check": "joint range",
+       "joint": "p1~p2",
+       "move": 0,
+       "margin": 0.1
+      },
+      "unknowns": []
+     },
+     "expected": "every RD9 margin above 0 at the duty, an RD3 pair on each joint"
+    },
+    {
+     "id": "urdf",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "ok": true,
+      "issues": [],
+      "fk": 8.326672684688674e-17,
+      "inertia": 8.511123002852716e-19
+     },
+     "expected": "the URDF exports clean; its FK equals RM2's to 1e-9 at 20 poses, its inertials RM3's to 1e-12"
+    }
+   ],
+   "refused": [],
+   "calls": 20,
+   "wallMs": 283
+  },
+  {
+   "rung": "two-axis-arm",
+   "trial": 4,
+   "seed": 2026,
+   "params": {
+    "l1": 125,
+    "l2": 160,
+    "m": 0.9,
+    "R": 248,
+    "q1": 0.9,
+    "q2": -1.7,
+    "v": 2,
+    "acc": 11
+   },
+   "pass": true,
+   "rs": 1,
+   "outcomes": [
+    {
+     "id": "joints",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "joints": [
+       [
+        "base~p1",
+        "revolute"
+       ],
+       [
+        "p1~p2",
+        "revolute"
+       ],
+       [
+        "p2~p3",
+        "fixed"
+       ]
+      ],
+      "problems": []
+     },
+     "expected": "two revolute joints about vertical axes, 125 mm apart"
+    },
+    {
+     "id": "reach",
+     "hard": true,
+     "pass": true,
+     "measured": 284.99995415018594,
+     "expected": "the far bore reaches ≥ 248 mm (RM9b's map, 2000 poses)"
+    },
+    {
+     "id": "margins",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "least": {
+       "check": "joint range",
+       "joint": "p1~p2",
+       "move": 0,
+       "margin": 0.16
+      },
+      "unknowns": []
+     },
+     "expected": "every RD9 margin above 0 at the duty, an RD3 pair on each joint"
+    },
+    {
+     "id": "urdf",
+     "hard": true,
+     "pass": true,
+     "measured": {
+      "ok": true,
+      "issues": [],
+      "fk": 5.551115123125783e-17,
+      "inertia": 8.511123002852716e-19
+     },
+     "expected": "the URDF exports clean; its FK equals RM2's to 1e-9 at 20 poses, its inertials RM3's to 1e-12"
+    }
+   ],
+   "refused": [],
+   "calls": 20,
+   "wallMs": 287
   }
  ],
  "mutants": [
@@ -3294,6 +5299,824 @@
    }
   },
   {
+   "rung": "snap-fit-box",
+   "mutant": "no-material@0",
+   "target": "flex",
+   "why": "the brief without the stated material: the hooks' strain unknown",
+   "killed": true,
+   "failed": [
+    "flex"
+   ],
+   "params": {
+    "W": 60,
+    "D": 40,
+    "H": 25,
+    "s": 1.5,
+    "tl": 2,
+    "m": "abs",
+    "nh": 2,
+    "tb": 1.2,
+    "y": 0.6,
+    "b": 5,
+    "L": 9
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "no-material@1",
+   "target": "flex",
+   "why": "the brief without the stated material: the hooks' strain unknown",
+   "killed": true,
+   "failed": [
+    "flex"
+   ],
+   "params": {
+    "W": 120,
+    "D": 80,
+    "H": 40,
+    "s": 3,
+    "tl": 3,
+    "m": "petg",
+    "nh": 4,
+    "tb": 2,
+    "y": 1.2,
+    "b": 10,
+    "L": 31
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "hook-short@0",
+   "target": "hooks",
+   "why": "one hook fewer than asked",
+   "killed": true,
+   "failed": [
+    "hooks"
+   ],
+   "params": {
+    "W": 60,
+    "D": 40,
+    "H": 25,
+    "s": 1.5,
+    "tl": 2,
+    "m": "abs",
+    "nh": 2,
+    "tb": 1.2,
+    "y": 0.6,
+    "b": 5,
+    "L": 9
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "hook-short@1",
+   "target": "hooks",
+   "why": "one hook fewer than asked",
+   "killed": true,
+   "failed": [
+    "hooks"
+   ],
+   "params": {
+    "W": 120,
+    "D": 80,
+    "H": 40,
+    "s": 3,
+    "tl": 3,
+    "m": "petg",
+    "nh": 4,
+    "tb": 2,
+    "y": 1.2,
+    "b": 10,
+    "L": 31
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "no-ledge@0",
+   "target": "latched",
+   "why": "one hook with no ledge",
+   "killed": true,
+   "failed": [
+    "latched"
+   ],
+   "params": {
+    "W": 60,
+    "D": 40,
+    "H": 25,
+    "s": 1.5,
+    "tl": 2,
+    "m": "abs",
+    "nh": 2,
+    "tb": 1.2,
+    "y": 0.6,
+    "b": 5,
+    "L": 9
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "no-ledge@1",
+   "target": "latched",
+   "why": "one hook with no ledge",
+   "killed": true,
+   "failed": [
+    "latched"
+   ],
+   "params": {
+    "W": 120,
+    "D": 80,
+    "H": 40,
+    "s": 3,
+    "tl": 3,
+    "m": "petg",
+    "nh": 4,
+    "tb": 2,
+    "y": 1.2,
+    "b": 10,
+    "L": 31
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "ledge-moved@0",
+   "target": "latched",
+   "why": "the ledges 2 mm along their walls",
+   "killed": true,
+   "failed": [
+    "latched"
+   ],
+   "params": {
+    "W": 60,
+    "D": 40,
+    "H": 25,
+    "s": 1.5,
+    "tl": 2,
+    "m": "abs",
+    "nh": 2,
+    "tb": 1.2,
+    "y": 0.6,
+    "b": 5,
+    "L": 9
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "ledge-moved@1",
+   "target": "latched",
+   "why": "the ledges 2 mm along their walls",
+   "killed": true,
+   "failed": [
+    "latched"
+   ],
+   "params": {
+    "W": 120,
+    "D": 80,
+    "H": 40,
+    "s": 3,
+    "tl": 3,
+    "m": "petg",
+    "nh": 4,
+    "tb": 2,
+    "y": 1.2,
+    "b": 10,
+    "L": 31
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "tight@0",
+   "target": "clearance",
+   "why": "the ledges down on the catches: no fit gap",
+   "killed": true,
+   "failed": [
+    "clearance"
+   ],
+   "params": {
+    "W": 60,
+    "D": 40,
+    "H": 25,
+    "s": 1.5,
+    "tl": 2,
+    "m": "abs",
+    "nh": 2,
+    "tb": 1.2,
+    "y": 0.6,
+    "b": 5,
+    "L": 9
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "tight@1",
+   "target": "clearance",
+   "why": "the ledges down on the catches: no fit gap",
+   "killed": true,
+   "failed": [
+    "clearance"
+   ],
+   "params": {
+    "W": 120,
+    "D": 80,
+    "H": 40,
+    "s": 3,
+    "tl": 3,
+    "m": "petg",
+    "nh": 4,
+    "tb": 2,
+    "y": 1.2,
+    "b": 10,
+    "L": 31
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "shallow@0",
+   "target": "latched",
+   "why": "ledges 0.15 deep: the catch misses them",
+   "killed": true,
+   "failed": [
+    "latched"
+   ],
+   "params": {
+    "W": 60,
+    "D": 40,
+    "H": 25,
+    "s": 1.5,
+    "tl": 2,
+    "m": "abs",
+    "nh": 2,
+    "tb": 1.2,
+    "y": 0.6,
+    "b": 5,
+    "L": 9
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "shallow@1",
+   "target": "latched",
+   "why": "ledges 0.15 deep: the catch misses them",
+   "killed": true,
+   "failed": [
+    "latched"
+   ],
+   "params": {
+    "W": 120,
+    "D": 80,
+    "H": 40,
+    "s": 3,
+    "tl": 3,
+    "m": "petg",
+    "nh": 4,
+    "tb": 2,
+    "y": 1.2,
+    "b": 10,
+    "L": 31
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "low@0",
+   "target": "fits",
+   "why": "ledges 0.6 lower, through the catches",
+   "killed": true,
+   "failed": [
+    "latched",
+    "clearance",
+    "fits"
+   ],
+   "params": {
+    "W": 60,
+    "D": 40,
+    "H": 25,
+    "s": 1.5,
+    "tl": 2,
+    "m": "abs",
+    "nh": 2,
+    "tb": 1.2,
+    "y": 0.6,
+    "b": 5,
+    "L": 9
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "low@1",
+   "target": "fits",
+   "why": "ledges 0.6 lower, through the catches",
+   "killed": true,
+   "failed": [
+    "latched",
+    "clearance",
+    "fits"
+   ],
+   "params": {
+    "W": 120,
+    "D": 80,
+    "H": 40,
+    "s": 3,
+    "tl": 3,
+    "m": "petg",
+    "nh": 4,
+    "tb": 2,
+    "y": 1.2,
+    "b": 10,
+    "L": 31
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "into-wall@0",
+   "target": "fits",
+   "why": "hooks 1 mm outward, into their walls",
+   "killed": true,
+   "failed": [
+    "latched",
+    "clearance",
+    "fits"
+   ],
+   "params": {
+    "W": 60,
+    "D": 40,
+    "H": 25,
+    "s": 1.5,
+    "tl": 2,
+    "m": "abs",
+    "nh": 2,
+    "tb": 1.2,
+    "y": 0.6,
+    "b": 5,
+    "L": 9
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "into-wall@1",
+   "target": "fits",
+   "why": "hooks 1 mm outward, into their walls",
+   "killed": true,
+   "failed": [
+    "latched",
+    "clearance",
+    "fits"
+   ],
+   "params": {
+    "W": 120,
+    "D": 80,
+    "H": 40,
+    "s": 3,
+    "tl": 3,
+    "m": "petg",
+    "nh": 4,
+    "tb": 2,
+    "y": 1.2,
+    "b": 10,
+    "L": 31
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "loose@0",
+   "target": "solids",
+   "why": "a loose piece beside it",
+   "killed": true,
+   "failed": [
+    "box",
+    "solids"
+   ],
+   "params": {
+    "W": 60,
+    "D": 40,
+    "H": 25,
+    "s": 1.5,
+    "tl": 2,
+    "m": "abs",
+    "nh": 2,
+    "tb": 1.2,
+    "y": 0.6,
+    "b": 5,
+    "L": 9
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "loose@1",
+   "target": "solids",
+   "why": "a loose piece beside it",
+   "killed": true,
+   "failed": [
+    "box",
+    "solids"
+   ],
+   "params": {
+    "W": 120,
+    "D": 80,
+    "H": 40,
+    "s": 3,
+    "tl": 3,
+    "m": "petg",
+    "nh": 4,
+    "tb": 2,
+    "y": 1.2,
+    "b": 10,
+    "L": 31
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "wide@0",
+   "target": "box",
+   "why": "the box and lid 5 mm wider than asked",
+   "killed": true,
+   "failed": [
+    "box"
+   ],
+   "params": {
+    "W": 60,
+    "D": 40,
+    "H": 25,
+    "s": 1.5,
+    "tl": 2,
+    "m": "abs",
+    "nh": 2,
+    "tb": 1.2,
+    "y": 0.6,
+    "b": 5,
+    "L": 9
+   }
+  },
+  {
+   "rung": "snap-fit-box",
+   "mutant": "wide@1",
+   "target": "box",
+   "why": "the box and lid 5 mm wider than asked",
+   "killed": true,
+   "failed": [
+    "box"
+   ],
+   "params": {
+    "W": 120,
+    "D": 80,
+    "H": 40,
+    "s": 3,
+    "tl": 3,
+    "m": "petg",
+    "nh": 4,
+    "tb": 2,
+    "y": 1.2,
+    "b": 10,
+    "L": 31
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "moved@0",
+   "target": "standoffs",
+   "why": "a standoff 1 mm off its hole",
+   "killed": true,
+   "failed": [
+    "standoffs"
+   ],
+   "params": {
+    "w": 90,
+    "d": 60,
+    "h": 25,
+    "t": 2,
+    "a": 40,
+    "b": 30,
+    "i": 3.5,
+    "v": "M2.5",
+    "hs": 5,
+    "c": 3,
+    "n": 3,
+    "sl": 8
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "moved@1",
+   "target": "standoffs",
+   "why": "a standoff 1 mm off its hole",
+   "killed": true,
+   "failed": [
+    "standoffs"
+   ],
+   "params": {
+    "w": 140,
+    "d": 100,
+    "h": 40,
+    "t": 3,
+    "a": 104,
+    "b": 64,
+    "i": 5,
+    "v": "M3",
+    "hs": 10,
+    "c": 23,
+    "n": 8,
+    "sl": 15
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "tall@0",
+   "target": "components",
+   "why": "the standoffs 3 mm taller, into the components",
+   "killed": true,
+   "failed": [
+    "standoffs",
+    "components"
+   ],
+   "params": {
+    "w": 90,
+    "d": 60,
+    "h": 25,
+    "t": 2,
+    "a": 40,
+    "b": 30,
+    "i": 3.5,
+    "v": "M2.5",
+    "hs": 5,
+    "c": 3,
+    "n": 3,
+    "sl": 8
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "tall@1",
+   "target": "components",
+   "why": "the standoffs 3 mm taller, into the components",
+   "killed": true,
+   "failed": [
+    "standoffs",
+    "components"
+   ],
+   "params": {
+    "w": 140,
+    "d": 100,
+    "h": 40,
+    "t": 3,
+    "a": 104,
+    "b": 64,
+    "i": 5,
+    "v": "M3",
+    "hs": 10,
+    "c": 23,
+    "n": 8,
+    "sl": 15
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "no-cable@0",
+   "target": "cable",
+   "why": "no cable hole",
+   "killed": true,
+   "failed": [
+    "cable"
+   ],
+   "params": {
+    "w": 90,
+    "d": 60,
+    "h": 25,
+    "t": 2,
+    "a": 40,
+    "b": 30,
+    "i": 3.5,
+    "v": "M2.5",
+    "hs": 5,
+    "c": 3,
+    "n": 3,
+    "sl": 8
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "no-cable@1",
+   "target": "cable",
+   "why": "no cable hole",
+   "killed": true,
+   "failed": [
+    "cable"
+   ],
+   "params": {
+    "w": 140,
+    "d": 100,
+    "h": 40,
+    "t": 3,
+    "a": 104,
+    "b": 64,
+    "i": 5,
+    "v": "M3",
+    "hs": 10,
+    "c": 23,
+    "n": 8,
+    "sl": 15
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "no-vent@0",
+   "target": "vents",
+   "why": "no vent",
+   "killed": true,
+   "failed": [
+    "vents"
+   ],
+   "params": {
+    "w": 90,
+    "d": 60,
+    "h": 25,
+    "t": 2,
+    "a": 40,
+    "b": 30,
+    "i": 3.5,
+    "v": "M2.5",
+    "hs": 5,
+    "c": 3,
+    "n": 3,
+    "sl": 8
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "no-vent@1",
+   "target": "vents",
+   "why": "no vent",
+   "killed": true,
+   "failed": [
+    "vents"
+   ],
+   "params": {
+    "w": 140,
+    "d": 100,
+    "h": 40,
+    "t": 3,
+    "a": 104,
+    "b": 64,
+    "i": 5,
+    "v": "M3",
+    "hs": 10,
+    "c": 23,
+    "n": 8,
+    "sl": 15
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "thin@0",
+   "target": "min-wall",
+   "why": "walls 0.6",
+   "killed": true,
+   "failed": [
+    "cable",
+    "vents",
+    "min-wall"
+   ],
+   "params": {
+    "w": 90,
+    "d": 60,
+    "h": 25,
+    "t": 2,
+    "a": 40,
+    "b": 30,
+    "i": 3.5,
+    "v": "M2.5",
+    "hs": 5,
+    "c": 3,
+    "n": 3,
+    "sl": 8
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "thin@1",
+   "target": "min-wall",
+   "why": "walls 0.6",
+   "killed": true,
+   "failed": [
+    "cable",
+    "vents",
+    "min-wall"
+   ],
+   "params": {
+    "w": 140,
+    "d": 100,
+    "h": 40,
+    "t": 3,
+    "a": 104,
+    "b": 64,
+    "i": 5,
+    "v": "M3",
+    "hs": 10,
+    "c": 23,
+    "n": 8,
+    "sl": 15
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "loose@0",
+   "target": "solids",
+   "why": "a loose piece beside it",
+   "killed": true,
+   "failed": [
+    "box",
+    "solids"
+   ],
+   "params": {
+    "w": 90,
+    "d": 60,
+    "h": 25,
+    "t": 2,
+    "a": 40,
+    "b": 30,
+    "i": 3.5,
+    "v": "M2.5",
+    "hs": 5,
+    "c": 3,
+    "n": 3,
+    "sl": 8
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "loose@1",
+   "target": "solids",
+   "why": "a loose piece beside it",
+   "killed": true,
+   "failed": [
+    "box",
+    "solids"
+   ],
+   "params": {
+    "w": 140,
+    "d": 100,
+    "h": 40,
+    "t": 3,
+    "a": 104,
+    "b": 64,
+    "i": 5,
+    "v": "M3",
+    "hs": 10,
+    "c": 23,
+    "n": 8,
+    "sl": 15
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "wide@0",
+   "target": "box",
+   "why": "5 mm too wide",
+   "killed": true,
+   "failed": [
+    "box",
+    "cable",
+    "vents"
+   ],
+   "params": {
+    "w": 90,
+    "d": 60,
+    "h": 25,
+    "t": 2,
+    "a": 40,
+    "b": 30,
+    "i": 3.5,
+    "v": "M2.5",
+    "hs": 5,
+    "c": 3,
+    "n": 3,
+    "sl": 8
+   }
+  },
+  {
+   "rung": "pcb-enclosure",
+   "mutant": "wide@1",
+   "target": "box",
+   "why": "5 mm too wide",
+   "killed": true,
+   "failed": [
+    "box",
+    "cable",
+    "vents"
+   ],
+   "params": {
+    "w": 140,
+    "d": 100,
+    "h": 40,
+    "t": 3,
+    "a": 104,
+    "b": 64,
+    "i": 5,
+    "v": "M3",
+    "hs": 10,
+    "c": 23,
+    "n": 8,
+    "sl": 15
+   }
+  },
+  {
    "rung": "sheet-pcb-enclosure",
    "mutant": "k-off@0",
    "target": "flat-length",
@@ -3680,6 +6503,266 @@
    }
   },
   {
+   "rung": "five-part-assembly",
+   "mutant": "unmated@0",
+   "target": "freedoms",
+   "why": "the shaft with no axial mate: it slides too",
+   "killed": true,
+   "failed": [
+    "placed",
+    "freedoms"
+   ],
+   "params": {
+    "P": 100,
+    "Q": 50,
+    "tb": 4,
+    "bw": 8,
+    "bd": 20,
+    "bh": 30,
+    "ds": 6,
+    "c": 12,
+    "zc": 7,
+    "ct": 3,
+    "xa": 5,
+    "xb": 60
+   }
+  },
+  {
+   "rung": "five-part-assembly",
+   "mutant": "unmated@1",
+   "target": "freedoms",
+   "why": "the shaft with no axial mate: it slides too",
+   "killed": true,
+   "failed": [
+    "placed",
+    "freedoms"
+   ],
+   "params": {
+    "P": 200,
+    "Q": 100,
+    "tb": 10,
+    "bw": 15,
+    "bd": 40,
+    "bh": 60,
+    "ds": 12,
+    "c": 40,
+    "zc": 40,
+    "ct": 6,
+    "xa": 75,
+    "xb": 174
+   }
+  },
+  {
+   "rung": "five-part-assembly",
+   "mutant": "meet@0",
+   "target": "contacts",
+   "why": "the shaft 1 mm over the bore",
+   "killed": true,
+   "failed": [
+    "placed",
+    "freedoms",
+    "contacts",
+    "mass"
+   ],
+   "params": {
+    "P": 100,
+    "Q": 50,
+    "tb": 4,
+    "bw": 8,
+    "bd": 20,
+    "bh": 30,
+    "ds": 6,
+    "c": 12,
+    "zc": 7,
+    "ct": 3,
+    "xa": 5,
+    "xb": 60
+   }
+  },
+  {
+   "rung": "five-part-assembly",
+   "mutant": "meet@1",
+   "target": "contacts",
+   "why": "the shaft 1 mm over the bore",
+   "killed": true,
+   "failed": [
+    "placed",
+    "freedoms",
+    "contacts",
+    "mass"
+   ],
+   "params": {
+    "P": 200,
+    "Q": 100,
+    "tb": 10,
+    "bw": 15,
+    "bd": 40,
+    "bh": 60,
+    "ds": 12,
+    "c": 40,
+    "zc": 40,
+    "ct": 6,
+    "xa": 75,
+    "xb": 174
+   }
+  },
+  {
+   "rung": "five-part-assembly",
+   "mutant": "missing@0",
+   "target": "parts",
+   "why": "no cap",
+   "killed": true,
+   "failed": [
+    "parts",
+    "placed",
+    "mass"
+   ],
+   "params": {
+    "P": 100,
+    "Q": 50,
+    "tb": 4,
+    "bw": 8,
+    "bd": 20,
+    "bh": 30,
+    "ds": 6,
+    "c": 12,
+    "zc": 7,
+    "ct": 3,
+    "xa": 5,
+    "xb": 60
+   }
+  },
+  {
+   "rung": "five-part-assembly",
+   "mutant": "missing@1",
+   "target": "parts",
+   "why": "no cap",
+   "killed": true,
+   "failed": [
+    "parts",
+    "placed",
+    "mass"
+   ],
+   "params": {
+    "P": 200,
+    "Q": 100,
+    "tb": 10,
+    "bw": 15,
+    "bd": 40,
+    "bh": 60,
+    "ds": 12,
+    "c": 40,
+    "zc": 40,
+    "ct": 6,
+    "xa": 75,
+    "xb": 174
+   }
+  },
+  {
+   "rung": "five-part-assembly",
+   "mutant": "thick@0",
+   "target": "mass",
+   "why": "the brackets 2 mm thicker",
+   "killed": true,
+   "failed": [
+    "placed",
+    "freedoms",
+    "mass"
+   ],
+   "params": {
+    "P": 100,
+    "Q": 50,
+    "tb": 4,
+    "bw": 8,
+    "bd": 20,
+    "bh": 30,
+    "ds": 6,
+    "c": 12,
+    "zc": 7,
+    "ct": 3,
+    "xa": 5,
+    "xb": 60
+   }
+  },
+  {
+   "rung": "five-part-assembly",
+   "mutant": "thick@1",
+   "target": "mass",
+   "why": "the brackets 2 mm thicker",
+   "killed": true,
+   "failed": [
+    "placed",
+    "freedoms",
+    "mass"
+   ],
+   "params": {
+    "P": 200,
+    "Q": 100,
+    "tb": 10,
+    "bw": 15,
+    "bd": 40,
+    "bh": 60,
+    "ds": 12,
+    "c": 40,
+    "zc": 40,
+    "ct": 6,
+    "xa": 75,
+    "xb": 174
+   }
+  },
+  {
+   "rung": "five-part-assembly",
+   "mutant": "moved@0",
+   "target": "placed",
+   "why": "bracket B 5 mm further along",
+   "killed": true,
+   "failed": [
+    "placed",
+    "freedoms",
+    "mass"
+   ],
+   "params": {
+    "P": 100,
+    "Q": 50,
+    "tb": 4,
+    "bw": 8,
+    "bd": 20,
+    "bh": 30,
+    "ds": 6,
+    "c": 12,
+    "zc": 7,
+    "ct": 3,
+    "xa": 5,
+    "xb": 60
+   }
+  },
+  {
+   "rung": "five-part-assembly",
+   "mutant": "moved@1",
+   "target": "placed",
+   "why": "bracket B 5 mm further along",
+   "killed": true,
+   "failed": [
+    "placed",
+    "freedoms",
+    "mass"
+   ],
+   "params": {
+    "P": 200,
+    "Q": 100,
+    "tb": 10,
+    "bw": 15,
+    "bd": 40,
+    "bh": 60,
+    "ds": 12,
+    "c": 40,
+    "zc": 40,
+    "ct": 6,
+    "xa": 75,
+    "xb": 174
+   }
+  },
+  {
    "rung": "product-brief",
    "mutant": "bore@0",
    "target": "bore",
@@ -3918,6 +7001,214 @@
     "a": 50,
     "l": 20
    }
+  },
+  {
+   "rung": "two-axis-arm",
+   "mutant": "short@0",
+   "target": "reach",
+   "why": "the forearm too short for the reach",
+   "killed": true,
+   "failed": [
+    "reach"
+   ],
+   "params": {
+    "l1": 80,
+    "l2": 80,
+    "m": 0.1,
+    "R": 110,
+    "q1": 0.5,
+    "q2": -2,
+    "v": 1,
+    "acc": 5
+   }
+  },
+  {
+   "rung": "two-axis-arm",
+   "mutant": "short@1",
+   "target": "reach",
+   "why": "the forearm too short for the reach",
+   "killed": true,
+   "failed": [
+    "reach"
+   ],
+   "params": {
+    "l1": 250,
+    "l2": 250,
+    "m": 1,
+    "R": 490,
+    "q1": 1.5,
+    "q2": -0.5,
+    "v": 3,
+    "acc": 20
+   }
+  },
+  {
+   "rung": "two-axis-arm",
+   "mutant": "weak@0",
+   "target": "margins",
+   "why": "the joints rated 0.001 N·m: the motors too small for the move",
+   "killed": true,
+   "failed": [
+    "margins"
+   ],
+   "params": {
+    "l1": 80,
+    "l2": 80,
+    "m": 0.1,
+    "R": 110,
+    "q1": 0.5,
+    "q2": -2,
+    "v": 1,
+    "acc": 5
+   }
+  },
+  {
+   "rung": "two-axis-arm",
+   "mutant": "weak@1",
+   "target": "margins",
+   "why": "the joints rated 0.001 N·m: the motors too small for the move",
+   "killed": true,
+   "failed": [
+    "margins"
+   ],
+   "params": {
+    "l1": 250,
+    "l2": 250,
+    "m": 1,
+    "R": 490,
+    "q1": 1.5,
+    "q2": -0.5,
+    "v": 3,
+    "acc": 20
+   }
+  },
+  {
+   "rung": "two-axis-arm",
+   "mutant": "elbow-fixed@0",
+   "target": "joints",
+   "why": "the elbow held by an angle mate",
+   "killed": true,
+   "failed": [
+    "joints",
+    "reach",
+    "margins"
+   ],
+   "params": {
+    "l1": 80,
+    "l2": 80,
+    "m": 0.1,
+    "R": 110,
+    "q1": 0.5,
+    "q2": -2,
+    "v": 1,
+    "acc": 5
+   }
+  },
+  {
+   "rung": "two-axis-arm",
+   "mutant": "elbow-fixed@1",
+   "target": "joints",
+   "why": "the elbow held by an angle mate",
+   "killed": true,
+   "failed": [
+    "joints",
+    "reach",
+    "margins"
+   ],
+   "params": {
+    "l1": 250,
+    "l2": 250,
+    "m": 1,
+    "R": 490,
+    "q1": 1.5,
+    "q2": -0.5,
+    "v": 3,
+    "acc": 20
+   }
+  },
+  {
+   "rung": "two-axis-arm",
+   "mutant": "loose-payload@0",
+   "target": "joints",
+   "why": "the payload unmated: a part not connected",
+   "killed": true,
+   "failed": [
+    "joints",
+    "reach"
+   ],
+   "params": {
+    "l1": 80,
+    "l2": 80,
+    "m": 0.1,
+    "R": 110,
+    "q1": 0.5,
+    "q2": -2,
+    "v": 1,
+    "acc": 5
+   }
+  },
+  {
+   "rung": "two-axis-arm",
+   "mutant": "loose-payload@1",
+   "target": "joints",
+   "why": "the payload unmated: a part not connected",
+   "killed": true,
+   "failed": [
+    "joints",
+    "reach"
+   ],
+   "params": {
+    "l1": 250,
+    "l2": 250,
+    "m": 1,
+    "R": 490,
+    "q1": 1.5,
+    "q2": -0.5,
+    "v": 3,
+    "acc": 20
+   }
+  },
+  {
+   "rung": "two-axis-arm",
+   "mutant": "unrated@0",
+   "target": "urdf",
+   "why": "the joints' range set, their effort and velocity not: the URDF needs them",
+   "killed": true,
+   "failed": [
+    "margins",
+    "urdf"
+   ],
+   "params": {
+    "l1": 80,
+    "l2": 80,
+    "m": 0.1,
+    "R": 110,
+    "q1": 0.5,
+    "q2": -2,
+    "v": 1,
+    "acc": 5
+   }
+  },
+  {
+   "rung": "two-axis-arm",
+   "mutant": "unrated@1",
+   "target": "urdf",
+   "why": "the joints' range set, their effort and velocity not: the URDF needs them",
+   "killed": true,
+   "failed": [
+    "margins",
+    "urdf"
+   ],
+   "params": {
+    "l1": 250,
+    "l2": 250,
+    "m": 1,
+    "R": 490,
+    "q1": 1.5,
+    "q2": -0.5,
+    "v": 3,
+    "acc": 20
+   }
   }
  ],
  "summaries": [
@@ -4009,6 +7300,52 @@
    "unkilled": []
   },
   {
+   "rung": "snap-fit-box",
+   "n": 8,
+   "title": "snap-fit box",
+   "trials": 5,
+   "passed": 5,
+   "pass1": 1,
+   "passAtK": true,
+   "passPowK": true,
+   "rs": 1,
+   "mutants": 20,
+   "killed": 20,
+   "predicates": [
+    "box",
+    "solids",
+    "hooks",
+    "flex",
+    "latched",
+    "clearance",
+    "fits"
+   ],
+   "unkilled": []
+  },
+  {
+   "rung": "pcb-enclosure",
+   "n": 9,
+   "title": "PCB enclosure",
+   "trials": 5,
+   "passed": 5,
+   "pass1": 1,
+   "passAtK": true,
+   "passPowK": true,
+   "rs": 1,
+   "mutants": 14,
+   "killed": 14,
+   "predicates": [
+    "box",
+    "solids",
+    "standoffs",
+    "components",
+    "cable",
+    "vents",
+    "min-wall"
+   ],
+   "unkilled": []
+  },
+  {
    "rung": "sheet-pcb-enclosure",
    "n": 10,
    "title": "sheet-metal PCB enclosure",
@@ -4033,6 +7370,27 @@
    "unkilled": []
   },
   {
+   "rung": "five-part-assembly",
+   "n": 12,
+   "title": "5-part assembly",
+   "trials": 5,
+   "passed": 5,
+   "pass1": 1,
+   "passAtK": true,
+   "passPowK": true,
+   "rs": 1,
+   "mutants": 10,
+   "killed": 10,
+   "predicates": [
+    "parts",
+    "placed",
+    "freedoms",
+    "contacts",
+    "mass"
+   ],
+   "unkilled": []
+  },
+  {
    "rung": "product-brief",
    "n": 13,
    "title": "product from a brief",
@@ -4052,6 +7410,26 @@
     "flat",
     "brief",
     "screw-holes"
+   ],
+   "unkilled": []
+  },
+  {
+   "rung": "two-axis-arm",
+   "n": 14,
+   "title": "2-axis robot arm",
+   "trials": 5,
+   "passed": 5,
+   "pass1": 1,
+   "passAtK": true,
+   "passPowK": true,
+   "rs": 1,
+   "mutants": 10,
+   "killed": 10,
+   "predicates": [
+    "joints",
+    "reach",
+    "margins",
+    "urdf"
    ],
    "unkilled": []
   }

@@ -13,7 +13,7 @@ import tslot20 from './builtin/tslot-20.json';
 import enclosure from './builtin/enclosure.json';
 import { checkLibraryForSharing, estimateCount, licenseOf, sharingRefusal, type LibraryCheck } from './sharing';
 import { materialContext, materialData, processProfile } from './materials';
-import { lookOf } from '../app/bodies';
+import { materialIdOf } from '../app/bodies';
 
 /** Where a library comes from: built into the studio, shared by a team, or the user's own. */
 export type LibrarySource = 'built-in' | 'team' | 'user';
@@ -232,9 +232,10 @@ export function addLibraryPartToBody(doc: StudioDoc, libraryId: string, part: st
   const side = perpendicular(n), at0 = rim ? [at.point[0] + rim * side[0], at.point[1] + rim * side[1], at.point[2] + rim * side[2]] : at.point;
   const inward = thicknessAt(target.mesh, at0, n);
   for (const k of ['wall', 'depth'] as const) if (k in declared && context[k] === undefined && inward !== null) context[k] = +inward.toFixed(6);
-  // (Material and process values: the body's material — set, not assumed — and the document's process.)
+  // (Material and process values: the body's material — its own, else the brief's stated one (O72: as its mass reads it),
+  // never an assumed one — and the document's process.)
   const unresolved: string[] = [];
-  const material = materialData(lookOf(doc, target).material), profile = processProfile(doc.process);
+  const material = materialData(materialIdOf(doc, target)), profile = processProfile(doc.process);
   for (const [k, c] of Object.entries(declared)) {
     if (context[k] !== undefined) continue;
     const paths = (c.from ?? []).filter(f => f.startsWith('material.') || f.startsWith('profile.') || f.startsWith('print.'));

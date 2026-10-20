@@ -40,6 +40,17 @@ export function distinctCylinders(cs: readonly Cylinder[]): Cylinder[] {
   }
   return out;
 }
+/** A named face's exact plane and its box (its mesh's vertices), on whichever body has it; null when none does. */
+export function planeFace(bodies: readonly BodyResult[], name: string): { o: Vec3; n: Vec3; min: Vec3; max: Vec3 } | null {
+  for (const b of bodies) {
+    const m = b.mesh, f = m.faces.find(x => x.name.replace(/#\d+$/, '') === name), e = f?.exact;
+    if (!f || e?.kind !== 'plane') continue;
+    const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
+    for (let v = 0; v < m.faceOfVertex.length; v++) if (m.faceOfVertex[v] === f.index) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], m.positions[v * 3 + k]); max[k] = Math.max(max[k], m.positions[v * 3 + k]); }
+    return { o: e.o, n: e.n, min, max };
+  }
+  return null;
+}
 /** A point's distance from a cylinder's axis line. */
 export function axisDistance(c: Cylinder, p: readonly number[]): number {
   const d = [p[0] - c.c[0], p[1] - c.c[1], p[2] - c.c[2]], s = d[0] * c.a[0] + d[1] * c.a[1] + d[2] * c.a[2];

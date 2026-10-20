@@ -369,7 +369,10 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
   }
   if (ASSEMBLY_TOOL_NAMES.has(name)) {
     const out = await runAssemblyTool(state, name, args, evaluate);
-    return { state: { ...state, doc: out.doc }, content: out.content, isError: out.isError, changed: out.changed, summary: out.summary };
+    // (O72: a change re-evaluates the part, so the state's bodies are its own — add_library_part unites into a body, and
+    // the next call in the turn finds that body by its face, not the one before the union.)
+    const e = out.changed && !out.isError ? await evaluate(out.doc) : null;
+    return { state: { ...state, doc: out.doc, ...(e?.ok ? { bodies: e.bodies } : {}) }, content: out.content, isError: out.isError, changed: out.changed, summary: out.summary };
   }
   const { part, ...rest } = args;
   if (part === undefined || part === 'base') {
