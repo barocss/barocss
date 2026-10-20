@@ -2941,3 +2941,17 @@ The same model as URDF and MJCF (RM4, RM5): links with RM3's inertia about the c
 - **Where**: "Export SDF" and "Export USD" beside URDF/MJCF in the Joints card, as files (with their STLs, or as a zip, as the URDF export does).
 
 **Order and checkpoints**: RM9a, then RM9b, then RM9c (ours), then RM9c (external) on the owner's go-ahead. Each one is checkpointed with the kernel conformance count, the studio count with test names compared, and the flow count.
+
+## O63 — a DWG refused, typed, with its routes (2026-10-20)
+
+The coordinator's pick of O61's two cheaper items. The DXF underlay waits for its own S0.
+
+- **Content, not the filename.** `readDxfSketch` checks the first six bytes for AutoCAD's version tag (`AC10xx`) and refuses with `DWG_NOT_READ`. The message names the release (AC1009 R11/R12 … AC1032 2018, otherwise the tag) and the two routes:
+  - Save As → DXF from the program that made it;
+  - the free ODA File Converter (one file or a folder at once), then add the DXF.
+- This covers the Drafts panel's "Add drawing" (it now also accepts `.dwg`, so the refusal is reached), the agent's `import_drawing`, and the CLI.
+- **Opening a `.dwg` as a model** gives the same refusal in a toast, and the part is unchanged.
+- **Test** (`drafts.test.ts`):
+  - a DWG header is refused `DWG_NOT_READ` with "AutoCAD 2018", "Save As → DXF" and "ODA File Converter", and the state is unchanged;
+  - the release lookup works, including an unknown tag;
+  - a DXF is never mistaken for a DWG.

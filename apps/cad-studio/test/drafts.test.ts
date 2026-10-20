@@ -6,7 +6,7 @@ import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type SketchNode, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { confirmDimension, draftWarning, readDrafts, unconfirmed } from '../src/chat/drafts';
-import { readDxfSketch } from '../src/sketch/dxfRead';
+import { dwgRelease, readDxfSketch } from '../src/sketch/dxfRead';
 import { sketchDxf } from '../src/sketch/dxf';
 import { traceImage } from '../src/chat/trace';
 import { answerBatch } from '../src/chat/questions';
@@ -80,6 +80,16 @@ test('drawings refused, typed: a spline, a gap, a loop in a hole, nothing to rea
     assert.equal(code(r.content), want, `${file}: ${r.content}`); assert.equal(r.state, s);
   }
   assert.match((await call({ doc: emptyDoc(), bodies: [] }, 'import_drawing', { dxf: readFileSync(join(CASES, 'refuse-open.dxf'), 'utf8') })).content, /not closed at \(0\.00000, 10\.0000\) mm/);
+});
+
+test('a DWG is refused, typed (O61): its release named and the routes — DXF from its program, or the ODA File Converter', async () => {
+  // (A DWG's first bytes are its version tag; the rest binary. Read as text, as a browser's File.text() gives it.)
+  const dwg = 'AC1032\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u00e9\u0001', s: ChatState = { doc: emptyDoc(), bodies: [] }, r = await call(s, 'import_drawing', { dxf: dwg });
+  assert.equal(code(r.content), 'DWG_NOT_READ', r.content); assert.equal(r.state, s);
+  assert.match(r.content, /DWG file \(AutoCAD 2018\)/); assert.match(r.content, /Save As → DXF/); assert.match(r.content, /ODA File Converter/);
+  assert.equal(dwgRelease('AC1015xyz'), '2000'); assert.equal(dwgRelease('AC1099'), 'version AC1099'); assert.equal(dwgRelease('  0\nSECTION'), null);
+  // (A DXF is not mistaken for one: its first group code.)
+  assert.notEqual(code((await call(s, 'import_drawing', { dxf: readFileSync(join(CASES, 'refuse-open.dxf'), 'utf8') })).content), 'DWG_NOT_READ');
 });
 
 test('a dimension confirmed at another value re-drives the features: the drawing scaled (its holes with it, unconfirmed again), one hole alone', async () => {
