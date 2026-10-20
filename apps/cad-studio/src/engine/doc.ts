@@ -179,7 +179,8 @@ type ModelNodeBase = SketchNode
    * (kept with the document). With `mesh` (R6a.4b, D56) it meshes with an earlier gear (node `mesh.gear`): beside it
    * along `direction` (degrees from +X) at `centerDistance` (default the nominal m(z1 + z2)/2), turned to mesh (plus
    * `phase` degrees) and following its turn by −z1/z2 — its own centre, `from` and rotation then unused. The gear it
-   * meshes with is referenced, not consumed (both stay bodies): `usesOf`, not `parentsOf`.
+   * meshes with is referenced, not consumed (both stay bodies): `usesOf`, not `parentsOf`. `spur-gear@1` (R12b.1a, D130):
+   * the root the basic rack generates, its tip radius `toolTipRadius` (default 0.38 m) — spur gears; `@0` the schematic root.
    */
   /**
    * A rack (R6a.5b, D58): its pitch line from `origin` along `angle` degrees, teeth to its left, the back `height`
@@ -206,7 +207,7 @@ type ModelNodeBase = SketchNode
   | { kind: 'rack'; module: Dim; teeth: number; faceWidth: Dim; height: Dim; thicknessReduction?: Dim; origin: [number, number]; angle?: number; from?: number; mesh?: RackMesh; generator: 'spur-rack@0' }
   | { kind: 'gear';
     /** The module; a helical gear's normal module m_n (R6a.5c: `helixAngle` degrees and `hand`; a meshing gear takes the other's angle, opposite hand). */
-    module: Dim; helixAngle?: number; hand?: 'right' | 'left'; teeth: number; faceWidth: Dim; profileShift?: number; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: GearMesh; generator: 'spur-gear@0' }
+    module: Dim; helixAngle?: number; hand?: 'right' | 'left'; teeth: number; faceWidth: Dim; profileShift?: number; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: GearMesh; generator: 'spur-gear@0' | 'spur-gear@1'; toolTipRadius?: Dim }
   /**
    * A SubD cage (SD1, D51): quads counter-clockwise from outside, optional infinitely sharp creases (pairs of vertex
    * numbers); the body is its exact limit surface, bicubic B-spline faces `<id>.patch<k>` (a sheet when the cage has a boundary).

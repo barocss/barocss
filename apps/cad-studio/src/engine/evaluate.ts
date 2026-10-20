@@ -30,7 +30,7 @@ export interface BodyResult {
   inertia?: number[][];
   /** A body in several separate pieces (a cut right through it): how many. */
   pieces?: number;
-  /** What a generator says of the body (a gear: its dimensions, its flank fit, its schematic root). */
+  /** What a generator says of the body (a gear: its dimensions, its flank fit, its root). */
   notes?: { text: string; warning?: boolean }[];
   /** Enclosed voids, exactly: the B-rep's inner shells (a solid's shells past its first; AM3 cavities). */
   innerShells?: number;
@@ -391,6 +391,8 @@ function gearNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['gear']>): 
     { text: `${g.profileShift ? `Profile shift x ${g.profileShift}: ` : ''}Reference Ø${mm(d.referenceDiameterMM)}, tip Ø${mm(d.tipDiameterMM)}, root Ø${mm(d.rootDiameterMM)}, base Ø${mm(d.baseDiameterMM)} mm; tooth ${mm(d.toothThicknessMM)} mm at the reference circle` },
     ...(g.helix ? [{ text: `Helical β ${g.helix.helixAngleDeg}° ${g.helix.hand} hand: normal module ${mm(g.helix.normalModuleMM)}, transverse ${mm(g.helix.transverseModuleMM)} mm at α_t ${g.helix.transversePressureAngleDeg.toFixed(3)}°; lead ${mm(g.helix.leadMM)} mm, ${mm(g.helix.twistDegrees)}° over the face, the twist within ${g.helix.twistDeviationMM.toExponential(1)} mm${g.helix.axialSegments > 1 ? ` (${g.helix.axialSegments} axial segments)` : ''}` }] : []),
     { text: `Flanks within ${g.profileDeviationMM.toExponential(1)} mm of the involute (${g.flankPieces} cubic piece${g.flankPieces > 1 ? 's' : ''}; asked ${g.profileToleranceMM.toExponential(1)})` },
+    // (R12b.1a, D130: the root the basic rack cuts.)
+    ...(g.generatedRoot ? [{ text: `Root cut by the basic rack (tip radius ${mm(g.generatedRoot.toolTipRadiusMM)} mm): the involute from Ø${mm(g.generatedRoot.formDiameterMM)}${g.generatedRoot.undercut ? ' (undercut)' : ' (the form circle)'}; fillets within ${g.generatedRoot.filletDeviationMM.toExponential(1)} mm of the tool's envelope (${g.generatedRoot.filletPieces} cubic pieces). Not validated for manufacturing` }] : []),
     ...g.diagnostics.map(x => ({ text: x.code === 'ROOT_TRANSITION_UNVALIDATED' ? 'Schematic root: not the cutting tool\'s, not validated for manufacturing' : x.message, warning: x.severity === 'warning' })),
   ];
 }

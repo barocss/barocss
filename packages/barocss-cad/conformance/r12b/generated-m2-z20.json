@@ -1,0 +1,58 @@
+{
+  "id": "r12b-generated-m2-z20",
+  "step": "R12b",
+  "decisions": [
+    "D129",
+    "D130"
+  ],
+  "about": "A spur gear m 2, z 20, 10 wide with a Ø8 bore, its root the one the basic rack cuts (spur-gear@1, tip radius 0.38 m): the fillets the envelope of the tool's tip round up to the form circle Ø37.6401; the volume the exact generated profile's area × the width less the bore, within the measured flank and fillet fits.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 20,
+          "faceWidth": 10,
+          "bore": 8,
+          "generator": "spur-gear@1"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 11869.314,
+          "relTol": 3e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^g\\.(filletL|filletR|flankL|flankR|tip|root|bore|face0|face1)(#\\d+\\.\\d)?$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "the area by Green's theorem over the envelope and involute built in test/gear-generated-root.test.mjs (generatedArea), apart from gear.ts; the boundary checked there against the tool's signed distance over its travel"
+}

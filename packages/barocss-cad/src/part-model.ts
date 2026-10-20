@@ -198,7 +198,11 @@ export type CadPartFeature = Base & (
      * `center`, `from` and `rotation` are then not used.
      */
     readonly mesh?: { readonly gear: string; readonly direction?: number; readonly centerDistance?: CadPartDim; readonly phase?: number };
-    readonly generator?: 'spur-gear@0' }
+    /**
+     * The generator version: 'spur-gear@0' (the default) the schematic root; 'spur-gear@1' (R12b.1a, D130) the root the
+     * basic rack generates, its tip radius `toolTipRadius` (default 0.38 m) — spur gears only, undercut taken as cut.
+     */
+    readonly generator?: 'spur-gear@0' | 'spur-gear@1'; readonly toolTipRadius?: CadPartDim }
   /**
    * A rack (R6a.5b, D58): its pitch line from `origin` along `angle` degrees (teeth to its left, the back `height` below
    * the line), standing on z `from`; or, with `mesh`, under a spur gear — its pitch line `centerDistance` from the gear's
@@ -462,7 +466,7 @@ export interface GearPlacement {
   readonly meshesWith?: string; readonly driver?: GearPlacement;
 }
 /** Gear diagnostics as the part model's codes (the gear's own code kept in the message). */
-const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_PROFILE_SHIFT: 'CAPABILITY', UNSUPPORTED_GEAR_KIND: 'CAPABILITY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', SELF_INTERSECTION: 'GEOMETRY', ROOT_TRANSITION_UNVALIDATED: 'GEOMETRY', BORE_INTERSECTION: 'GEOMETRY', MATE_INCOMPATIBLE: 'INPUT' };
+const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_PROFILE_SHIFT: 'CAPABILITY', UNSUPPORTED_GEAR_KIND: 'CAPABILITY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', SELF_INTERSECTION: 'GEOMETRY', ROOT_TRANSITION_UNVALIDATED: 'GEOMETRY', BORE_INTERSECTION: 'GEOMETRY', MATE_INCOMPATIBLE: 'INPUT', UNDERCUT: 'GEOMETRY' };
 type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
 /** x ↦ m·x + o from a sketch's own XY (Z along its normal) into the part. */
 type Frame = { readonly m: BrepAffine['matrix']; readonly o: Point };
@@ -1383,7 +1387,10 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       };
     }
     case 'spur-gear': {
-      if (f.generator !== undefined && f.generator !== 'spur-gear@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      if (f.generator !== undefined && f.generator !== 'spur-gear@0' && f.generator !== 'spur-gear@1') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      // (@1: the generated root; @0 and none: the schematic one, as documents written with it rebuild.)
+      const generatedRoot = f.generator === 'spur-gear@1';
+      if (!generatedRoot && f.toolTipRadius !== undefined) fail('INPUT', "toolTipRadius belongs to a generated root (generator 'spur-gear@1')");
       // (Helical: the normal module, named so; the kernel refuses a module with a helix angle.)
       const helical = f.helixAngle !== undefined && f.helixAngle !== 0;
       if (helical && f.module !== undefined) fail('INPUT', 'a helical gear takes normalModule (the normal module), not module');
@@ -1392,7 +1399,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
       if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
       const spec: SpurGearSpec = { ...(helical ? { normalModuleMM: m, helixAngleDeg: f.helixAngle as number, hand: f.hand as 'right' | 'left' } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red,
-        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }),
+        ...(generatedRoot ? { rootPolicy: 'generated' as const, ...(f.toolTipRadius === undefined ? {} : { toolTipRadiusMM: dim(f.toolTipRadius as CadPartDim, 'toolTipRadius', true) }) } : {}) };
       // Where it stands: its own centre, plane and turn, or beside the gear it meshes with.
       let place: GearPlacement;
       const mesh = f.mesh as Record<string, unknown> | undefined;

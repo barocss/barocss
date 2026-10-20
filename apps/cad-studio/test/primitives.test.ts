@@ -105,23 +105,40 @@ test('SubD torus (SD1, D51): a subd node from a regular cage — a smooth ring n
   assert.throws(() => cmd.build!(ctx, { ...cmd.defaults!(ctx), R: 5, r: 6 }), /smaller/);
 });
 
-test('Spur gear (R6a, issue #2167, D54): a gear node from the command — the volume of the exact profile, faces named per tooth, its report as notes (the schematic root said); edited to more teeth', () => {
+test('Spur gear (R6a, issue #2167, D54; R12b.1a, D130): a gear node from the command — the root the rack cuts (spur-gear@1), the volume of the exact generated profile, faces named per tooth, its report as notes; edited to more teeth; the schematic root by the Root field; an undercut pinion', async () => {
+  const { editFields } = await import('../src/app/editFields');
   const cmd = commands.find(c => c.id === 'gear')!, doc = cmd.build!(ctx, { ...cmd.defaults!(ctx), m: 2, teeth: 20, b: 10, bore: 8, x: 0, y: 0, z: 0 });
   const node = doc.nodes[0] as Extract<ModelNode, { kind: 'gear' }>;
-  assert.deepEqual([node.kind, node.module, node.teeth, node.faceWidth, node.bore, node.generator], ['gear', 2, 20, 10, 8, 'spur-gear@0']);
+  assert.deepEqual([node.kind, node.module, node.teeth, node.faceWidth, node.bore, node.generator], ['gear', 2, 20, 10, 8, 'spur-gear@1']);
   const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.hint);
   const g = r.bodies[0];
-  // (The m 2 z 20 profile's exact area, 1226.1057 mm², × 10, less the Ø8 bore.)
-  assert.ok(Math.abs(g.volumeMM3! - (12261.057 - Math.PI * 16 * 10)) < 0.05, String(g.volumeMM3));
-  // (The display names faces by their base names: 20 tips, 20 left flanks.)
+  // (The m 2 z 20 generated profile's exact area, 1237.1969 mm² — by the kernel test's own envelope and involute,
+  // test/gear-generated-root.test.mjs — × 10, less the Ø8 bore; within what the measured fits allow, 40 flanks and
+  // fillets each moved by at most its deviation (1.4e-4 and 1.5e-4 mm) over its length (2.5m, 3m) × 10: 0.32 mm³.)
+  assert.ok(Math.abs(g.volumeMM3! - (12371.969 - Math.PI * 16 * 10)) < 0.32, String(g.volumeMM3));
+  // (The display names faces by their base names: 20 tips, 20 left flanks, the fillets.)
   assert.equal(g.mesh.faces.filter(f => f.name === 'n0.tip').length, 20); assert.equal(g.mesh.faces.filter(f => f.name === 'n0.flankL').length, 20);
+  assert.ok(g.mesh.faces.some(f => f.name === 'n0.filletL') && !g.mesh.faces.some(f => f.name === 'n0.rootL'));
   assert.ok(g.notes?.some(n => /Reference Ø40, tip Ø44, root Ø35/.test(n.text)), JSON.stringify(g.notes));
-  assert.ok(g.notes?.some(n => n.warning && /Schematic root: not the cutting tool's, not validated for manufacturing/.test(n.text)));
+  assert.ok(g.notes?.some(n => /Root cut by the basic rack \(tip radius 0\.76 mm\): the involute from Ø37\.6401 \(the form circle\)/.test(n.text)), JSON.stringify(g.notes));
+  assert.ok(!g.notes?.some(n => /Schematic root/.test(n.text)));
   const more = evaluateDoc({ ...doc, nodes: [{ ...node, teeth: 30 }] }, 2); assert.ok(more.ok);
   assert.ok(more.ok && more.bodies[0].mesh.faces.filter(f => f.name === 'n0.tip').length === 30, 'thirty tips');
-  // Refusals in the studio's words, the part unchanged.
-  const bad = evaluateDoc({ ...doc, nodes: [{ ...node, teeth: 12 }] }, 3);
+  // The Root field: the schematic root (spur-gear@0) as R6a made it — its volume and its warning.
+  const fields = editFields(doc.nodes, 0), root = fields.find(f => f.key === 'root')!, rho = fields.find(f => f.key === 'rho')!;
+  assert.ok(root && rho && root.kind === 'choice' && rho.kind === 'number');
+  assert.equal(rho.kind === 'number' && rho.get(doc.nodes), 0.76);
+  const schematic = root.kind === 'choice' ? root.set(doc.nodes, 'spur-gear@0') : doc.nodes, s = evaluateDoc({ ...doc, nodes: schematic }, 4);
+  assert.ok(s.ok && Math.abs(s.bodies[0].volumeMM3! - (12261.057 - Math.PI * 16 * 10)) < 0.05);
+  assert.ok(s.ok && s.bodies[0].notes?.some(n => n.warning && /Schematic root: not the cutting tool's, not validated for manufacturing/.test(n.text)));
+  // An undercut pinion (12 teeth): built as the rack cuts it, said so; the schematic root refuses it, naming the shift.
+  const twelve = evaluateDoc({ ...doc, nodes: [{ ...node, teeth: 12 }] }, 3);
+  assert.ok(twelve.ok && twelve.bodies[0].notes?.some(n => n.warning && /undercut: the tool's tip cuts the involute away below Ø22\.6054/.test(n.text)), JSON.stringify(twelve.ok && twelve.bodies[0].notes));
+  const bad = evaluateDoc({ ...doc, nodes: [{ ...node, teeth: 12, generator: 'spur-gear@0' }] }, 3);
   assert.ok(!bad.ok && /x = 0\.298/.test(bad.error.detail + bad.error.hint), JSON.stringify(!bad.ok && bad.error));
+  // A helix on it: the helical gear's root is schematic in this stage (spur-gear@0).
+  const helix = fields.find(f => f.key === 'helix')!, turned = helix.kind === 'number' ? helix.set(doc.nodes, 15) : doc.nodes;
+  assert.equal((turned[0] as typeof node).generator, 'spur-gear@0'); assert.ok(evaluateDoc({ ...doc, nodes: turned }, 5).ok);
 });
 
 test('Meshing gear (R6a.4b, D56): beside the selected gear at the centre distance, turned to mesh — the pair\'s verdict in the panel; turning the driver turns it (clear still); a phase off, the teeth cross; the driver cannot go first or be deleted from under it', async () => {

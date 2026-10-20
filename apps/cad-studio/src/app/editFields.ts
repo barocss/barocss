@@ -183,7 +183,8 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       number('m', helix ? 'Normal module' : 'Module', 'mm', n => num(g(n).module), (n, v) => ({ ...g(n), module: v }));
       // A helical gear's helix angle and hand (a meshing gear takes the other's, opposite hand).
       if (!node.mesh) {
-        number('helix', 'Helix angle β', '°', n => g(n).helixAngle ?? 0, (n, v) => { const next = { ...g(n) }; if (v) { next.helixAngle = v; next.hand ??= 'right'; } else { delete next.helixAngle; delete next.hand; } return next; });
+        // (A helical gear's root is schematic in this stage: a helix turns a generated root's gear to spur-gear@0.)
+        number('helix', 'Helix angle β', '°', n => g(n).helixAngle ?? 0, (n, v) => { const next = { ...g(n) }; if (v) { next.helixAngle = v; next.hand ??= 'right'; if (next.generator === 'spur-gear@1') { next.generator = 'spur-gear@0'; delete next.toolTipRadius; } } else { delete next.helixAngle; delete next.hand; } return next; });
         if (node.helixAngle) out.push({ kind: 'choice', key: 'hand', label: 'Hand', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }], get: n => self<typeof node>(n).hand ?? 'right', set: (n, v) => replace(n, i, { ...self<typeof node>(n), hand: v as 'right' | 'left' }) });
       }
       number('z', 'Teeth', undefined, n => g(n).teeth, (n, v) => ({ ...g(n), teeth: Math.round(v) }));
@@ -191,6 +192,12 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       number('shift', 'Profile shift x', undefined, n => g(n).profileShift ?? 0, (n, v) => { const next = { ...g(n) }; if (v) next.profileShift = v; else delete next.profileShift; return next; });
       number('bore', 'Bore', 'mm', n => num(g(n).bore ?? 0), (n, v) => ({ ...g(n), bore: v }));
       number('ds', 'Thinner by', 'mm', n => num(g(n).thicknessReduction ?? 0), (n, v) => ({ ...g(n), thicknessReduction: v }));
+      // The root (R12b.1a, D130): the one the basic rack cuts (spur-gear@1) or the schematic one (@0); a spur gear's choice.
+      if (!helix) {
+        out.push({ kind: 'choice', key: 'root', label: 'Root', options: [{ value: 'spur-gear@1', label: 'Cut by the rack' }, { value: 'spur-gear@0', label: 'Schematic' }], get: n => self<typeof node>(n).generator,
+          set: (n, v) => { const next = { ...self<typeof node>(n), generator: v as 'spur-gear@0' | 'spur-gear@1' }; if (v !== 'spur-gear@1') delete next.toolTipRadius; return replace(n, i, next); } });
+        if (node.generator === 'spur-gear@1') number('rho', 'Tool tip radius', 'mm', n => num(g(n).toolTipRadius ?? 0.38 * num(g(n).module)), (n, v) => { const next = { ...g(n) }; if (Math.abs(v - 0.38 * num(next.module)) < 1e-12) delete next.toolTipRadius; else next.toolTipRadius = v; return next; });
+      }
       // Its turn (a meshing gear: where it stands beside the other gear, and its phase; its turn follows the other's).
       if (!node.mesh) number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
       else {
