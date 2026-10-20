@@ -1,0 +1,42 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "p",
+      "kind": "bevel-gear",
+      "module": 3,
+      "teeth": 20,
+      "mateTeeth": 40,
+      "faceWidth": 20,
+      "bore": 10,
+      "spiral": {
+        "angle": 35,
+        "hand": "left",
+        "cutterRadius": 60
+      },
+      "thicknessReduction": 0.05
+    },
+    {
+      "id": "w",
+      "kind": "bevel-gear",
+      "module": 3,
+      "teeth": 40,
+      "mateTeeth": 20,
+      "faceWidth": 20,
+      "bore": 20,
+      "spiral": {
+        "angle": 35,
+        "hand": "right",
+        "cutterRadius": 60
+      },
+      "mesh": {
+        "gear": "p",
+        "direction": 40
+      },
+      "thicknessReduction": 0.05
+    }
+  ]
+}

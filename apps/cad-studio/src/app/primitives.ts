@@ -167,18 +167,23 @@ export const primitives: Command[] = [
     },
   },
   {
-    id: 'bevel-gear', label: 'Bevel gear', icon: 'cad-gear', hint: 'A straight bevel gear by module (at the heel), teeth, its mate\'s teeth, shaft angle and face width: the exact spherical involute, standard proportions (the cones through the apex), spherical ends (20°). Its root is schematic. Not validated for manufacturing. Select it and add a Meshing gear for its mate', group: 'create', keywords: 'bevel gear conical miter mitre right angle crown pinion spherical involute',
+    id: 'bevel-gear', label: 'Bevel gear', icon: 'cad-gear', hint: 'A straight or spiral bevel gear by module (at the heel), teeth, its mate\'s teeth, shaft angle and face width: the exact spherical involute, standard proportions (the cones through the apex), spherical ends (20°). A spiral one (a spiral angle above 0) is the ideal conjugate — line contact, not a face-milled or face-hobbed tooth: an ideal model. Its root is schematic. Not validated for manufacturing. Select it and add a Meshing gear for its mate', group: 'create', keywords: 'bevel gear conical miter mitre right angle crown pinion spherical involute spiral',
     available: () => ok,
     fields: () => [{ key: 'm', label: 'Module (heel)', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 5, max: 200 }, { key: 'mate', label: 'Mate\'s teeth', kind: 'count', min: 5, max: 200 }, { key: 'sigma', label: 'Shaft angle Σ', kind: 'deg', min: 1, max: 179 },
-      { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }, ...at],
-    defaults: ctx => ({ m: 2, teeth: 20, mate: 40, sigma: 90, b: 10, bore: 8, ...beside(ctx, 30) }),
+      { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 },
+      // (R12b.4, D135: a spiral one, the ideal conjugate; its cutter radius the shop's — 0 takes the mean cone distance, an estimate.)
+      { key: 'spiral', label: 'Spiral angle β (0 straight; above 0: an ideal model)', kind: 'deg', min: 0, max: 45 }, { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }], when: v => Number(v.spiral) > 0 },
+      { key: 'rc', label: 'Cutter radius (0: the mean cone distance, an estimate)', kind: 'mm', min: 0, when: v => Number(v.spiral) > 0 }, ...at],
+    defaults: ctx => ({ m: 2, teeth: 20, mate: 40, sigma: 90, b: 10, bore: 8, spiral: 0, hand: 'left', rc: 0, ...beside(ctx, 30) }),
     place: centred,
     handles: (_, v) => { const [m, z, x, y, zz] = n(v, 'm', 'teeth', 'x', 'y', 'z'); return [puck([x, y, zz]), arrow('b', [x + m * z / 2, y, zz], X)]; },
     build: (ctx, v) => {
-      const [m, z, zm, sigma, b, bore, x, y, zz] = n(v, 'm', 'teeth', 'mate', 'sigma', 'b', 'bore', 'x', 'y', 'z');
+      const [m, z, zm, sigma, b, bore, x, y, zz, beta, rc] = n(v, 'm', 'teeth', 'mate', 'sigma', 'b', 'bore', 'x', 'y', 'z', 'spiral', 'rc');
       // (Standing on At Z: its apex below by the toe's lowest point, Ri cos(δ + θa), the teeth above it.)
       const spec = { moduleMM: m, teeth: Math.round(z), mateTeeth: Math.round(zm), shaftAngleDeg: sigma, faceWidthMM: b }, g = bevelGearDimensions(spec), low = g.Ri * Math.cos(g.tipPolar);
-      return withNode(ctx.doc, { kind: 'bevel-gear', module: m, teeth: Math.round(z), mateTeeth: Math.round(zm), ...(sigma !== 90 ? { shaftAngle: sigma } : {}), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], from: zz - low, generator: 'bevel-gear@0' });
+      // (A spiral one's cutter radius left 0: the mean cone distance, said to be an estimate.)
+      const spiral = beta > 0 ? { angle: beta, hand: v.hand === 'right' ? 'right' as const : 'left' as const, cutterRadius: rc > 0 ? rc : +((g.Re + g.Ri) / 2).toFixed(3), ...(rc > 0 ? {} : { cutterEstimate: true }) } : undefined;
+      return withNode(ctx.doc, { kind: 'bevel-gear', module: m, teeth: Math.round(z), mateTeeth: Math.round(zm), ...(sigma !== 90 ? { shaftAngle: sigma } : {}), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], from: zz - low, generator: 'bevel-gear@0', ...(spiral ? { spiral } : {}) });
     },
   },
   {

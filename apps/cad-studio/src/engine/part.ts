@@ -5,7 +5,7 @@
 import { getBlob } from './blobs';
 import { mirrorCage } from '@barocss/cad';
 import type { BendTable, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartSection } from '@barocss/cad';
-import { holeCentres, type BodyRef, type FrameOverride, type MemberSection, type ModelNode, type StudioDoc } from './doc';
+import { holeCentres, bevelSpiral, type BodyRef, type FrameOverride, type MemberSection, type ModelNode, type StudioDoc } from './doc';
 import { featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { rotationSteps } from '../assembly/mates';
 
@@ -85,8 +85,8 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       const d = node.mesh ? (nodes ?? current)[node.mesh.gear] : undefined, drv = d?.kind === 'bevel-gear' ? d : undefined;
       const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction ? { direction: node.mesh.direction } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }
         : { center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}) };
-      const shaft = drv ? drv.shaftAngle : node.shaftAngle;
-      return { ...at, kind: 'bevel-gear', module: drv ? drv.module : node.module, teeth: drv ? drv.mateTeeth : node.teeth, mateTeeth: drv ? drv.teeth : node.mateTeeth, ...(shaft !== undefined ? { shaftAngle: shaft } : {}), faceWidth: node.faceWidth, generator: node.generator, ...own,
+      const shaft = drv ? drv.shaftAngle : node.shaftAngle, spiral = bevelSpiral(node, nodes ?? current);
+      return { ...at, kind: 'bevel-gear', ...(spiral ? { spiral: { angle: spiral.angle, hand: spiral.hand, cutterRadius: spiral.cutterRadius } } : {}), module: drv ? drv.module : node.module, teeth: drv ? drv.mateTeeth : node.teeth, mateTeeth: drv ? drv.teeth : node.mateTeeth, ...(shaft !== undefined ? { shaftAngle: shaft } : {}), faceWidth: node.faceWidth, generator: node.generator, ...own,
         ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
     case 'gear': {

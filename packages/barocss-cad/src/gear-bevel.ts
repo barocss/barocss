@@ -18,9 +18,18 @@
 // biquadratic in two Bézier spans a direction: its weights 1 + u² + v² never below 1), the bore a cylinder.
 //
 // Tredgold's back-cone approximation (the virtual spur gear z_v = z / cos δ) is reported only as the estimate it is.
+//
+// R12b.4 (D135): spiral bevel gears, the ideal conjugate (D129) — said so wherever a user meets one (`idealModel`, the
+// IDEAL_MODEL warning): on every sphere about the apex the section is the straight gear's spherical involute (of the
+// transverse pressure angle tan α_t = tan α_n / cos β_m), turned along the cone distance by φ(R) = ±ψ(R) / sin δ, ψ(R)
+// the crown-plane angle of a circular tooth trace (the cutter's radius r_c, through the mean point at the mean spiral
+// angle β_m). A mate of the other hand turns by −φ z1/z2, so every sphere's pair stays a meshing pair: line contact,
+// no crowning, no machine settings — not a face-milled or face-hobbed tooth. The faces are the sections swept by
+// R e^{iφ(R)}, a cubic Hermite fit along the cone distance (exact at its knots, its deviation measured), as a helical
+// gear's twist.
 import { buildBrep, type Brep, type BrepFaceInput } from './brep-core.js';
 import type { Curve, Point, Surface } from './types.js';
-import { GearError, arcCurve, reversed, safeId, segmentsCross, orient, pointSegment, type GearDiagnostic } from './gear.js';
+import { GearError, arcCurve, reversed, safeId, segmentsCross, orient, pointSegment, bezierKnots, type GearDiagnostic } from './gear.js';
 
 /** Version 0 of the straight bevel gear's inputs (lengths in mm, at the heel). */
 export interface BevelGearSpec {
@@ -47,11 +56,20 @@ export interface BevelGearSpec {
   readonly toothThicknessReductionMM?: number;
   /** The flank fit's largest distance from the spherical involute at the heel; 1e-4 m by default. */
   readonly profileToleranceMM?: number;
+  /**
+   * A spiral bevel gear (R12b.4, D135), the ideal conjugate: its mean spiral angle (above 0, at most 45°), its hand
+   * (right: seen from its apex along its axis, the tooth turns clockwise from the toe to the heel) and the radius of
+   * the circular tooth trace (the face-mill cutter's). The module is then transverse, at the heel; the pressure angle
+   * normal at the mean point. 'epicycloidal' (face-hobbed) traces are refused.
+   */
+  readonly spiral?: { readonly angleDeg: number; readonly hand: 'right' | 'left'; readonly cutterRadiusMM: number; readonly trace?: 'circular' | 'epicycloidal' };
+  /** A hypoid offset: 0 only. */
+  readonly offsetMM?: number;
 }
 
 export interface BevelGearReport {
   readonly generator: 'bevel-gear@0';
-  readonly kind: 'straight'; readonly system: 'standard'; readonly profile: 'spherical-involute'; readonly ends: 'spherical';
+  readonly kind: 'straight' | 'spiral'; readonly system: 'standard'; readonly profile: 'spherical-involute'; readonly ends: 'spherical';
   readonly dimensions: {
     readonly referenceDiameterMM: number; readonly shaftAngleDeg: number; readonly pitchAngleDeg: number; readonly baseConeAngleDeg: number;
     readonly addendumAngleDeg: number; readonly dedendumAngleDeg: number; readonly tipAngleDeg: number; readonly rootAngleDeg: number;
@@ -66,10 +84,21 @@ export interface BevelGearReport {
   readonly virtualTeeth: number;
   readonly flankPieces: number; readonly flankFaces: number; readonly profileDeviationMM: number; readonly profileToleranceMM: number;
   readonly rootPolicy: 'schematic-meridian'; readonly manufacturingValidated: false;
+  /** True for a spiral bevel gear (R12b.4): the ideal conjugate, line contact, not a cut tooth (the IDEAL_MODEL warning says so). */
+  readonly idealModel: boolean;
+  /** A spiral bevel gear's trace and twist. */
+  readonly spiral?: {
+    readonly meanSpiralAngleDeg: number; readonly hand: 'right' | 'left'; readonly cutterRadiusMM: number; readonly trace: 'circular'; readonly meanConeDistanceMM: number;
+    readonly spiralAngleAtToeDeg: number; readonly spiralAngleAtHeelDeg: number;
+    /** The section's (on every sphere) and the normal one it gives at the toe and the heel (tan α_n = tan α_t cos β). */
+    readonly transversePressureAngleDeg: number; readonly normalPressureAngleAtToeDeg: number; readonly normalPressureAngleAtHeelDeg: number;
+    /** The section's turn from the toe to the heel, φ(Re) − φ(Ri); its fit (cubic pieces along the cone, in axial segments) and the fit's largest distance. */
+    readonly twistDeg: number; readonly twistPieces: number; readonly axialSegments: number; readonly twistDeviationMM: number;
+  };
   readonly diagnostics: readonly GearDiagnostic[];
 }
 
-const ALPHA = 20 * Math.PI / 180, MAX_PIECES = 6, PIECES_PER_FACE = 3, MAX_TEETH = 200, MIN_TEETH = 5;
+const ALPHA = 20 * Math.PI / 180, MAX_PIECES = 6, PIECES_PER_FACE = 3, MAX_TEETH = 200, MIN_TEETH = 5, MAX_TWIST_PER_SEGMENT = 5, MAX_SEGMENTS = 16;
 
 /** The roll at which the base cone δb's spherical involute reaches polar angle θ. */
 const rollAt = (cb: number, sb: number, th: number) => Math.acos(Math.min(1, Math.cos(th) / cb)) / sb;
@@ -194,18 +223,28 @@ export function bevelGearDimensions(spec: BevelGearSpec) {
   if ((spec.pressureAngleDeg ?? 20) !== 20) throw new GearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${spec.pressureAngleDeg}°: only 20° in this stage`);
   if (spec.system !== undefined && spec.system !== 'standard') throw new GearError('UNSUPPORTED_GEAR_KIND', `the ${String(spec.system)} system: only the standard proportions (addendum m, dedendum 1.25 m, the cones through the apex) in this stage — the Gleason uniform-clearance system and its shifts are not built`);
   if ((spec.profileShiftCoefficient ?? 0) !== 0) throw new GearError('UNSUPPORTED_GEAR_KIND', `profile shift ${spec.profileShiftCoefficient}: a bevel gear's shifts belong to the Gleason system, not built in this stage`);
+  if ((spec.offsetMM ?? 0) !== 0) throw new GearError('UNSUPPORTED_GEAR_KIND', `an offset of ${spec.offsetMM} mm makes a hypoid pair: not built in this stage`);
+  const sp = spec.spiral;
+  if (sp !== undefined) {
+    if (sp.trace !== undefined && sp.trace !== 'circular') throw new GearError('UNSUPPORTED_GEAR_KIND', `a${sp.trace === 'epicycloidal' ? 'n epicycloidal (face-hobbed)' : ` ${String(sp.trace)}`} tooth trace: only the circular (face-milled) one in this stage`);
+    if (!(Number.isFinite(sp.angleDeg) && sp.angleDeg > 0 && sp.angleDeg <= 45)) throw new GearError('INVALID_INPUT', `spiral angle ${sp.angleDeg}°: above 0, at most 45° in this stage`);
+    if (sp.hand !== 'right' && sp.hand !== 'left') throw new GearError('INVALID_INPUT', "a spiral bevel gear needs its hand, 'right' or 'left'");
+    if (!(Number.isFinite(sp.cutterRadiusMM) && sp.cutterRadiusMM > 0)) throw new GearError('INVALID_INPUT', 'the spiral\'s cutterRadiusMM must be a number of mm above 0');
+  }
+  // (Spiral: the section's pressure angle is the transverse one at the mean point.)
+  const betaM = sp ? sp.angleDeg * Math.PI / 180 : 0, alpha = sp ? Math.atan(Math.tan(ALPHA) / Math.cos(betaM)) : ALPHA;
   const Sigma = SigmaDeg * Math.PI / 180, delta = Math.atan2(Math.sin(Sigma), zm / z + Math.cos(Sigma));
   if (!(delta < Math.PI / 2 - 1e-9)) throw new GearError('UNSUPPORTED_GEAR_KIND', `a pitch angle of ${(delta * 180 / Math.PI).toFixed(4)}°: ${delta < Math.PI / 2 + 1e-9 ? 'a crown gear' : 'an internal bevel gear'} is not built in this stage (below 90° only)`);
   const Re = m * z / (2 * Math.sin(delta));
   if (!(Number.isFinite(b) && b > 0 && b < Re)) throw new GearError('INVALID_INPUT', `faceWidthMM must be above 0 and below the cone distance ${Re.toFixed(4)} mm`);
   const Ri = Re - b, thA = Math.atan(m / Re), thF = Math.atan(1.25 * m / Re), tipPolar = delta + thA, rootPolar = delta - thF;
   if (!(rootPolar > 0)) throw new GearError('SELF_INTERSECTION', `the root cone (${(rootPolar * 180 / Math.PI).toFixed(4)}°) reaches past the axis`);
-  const sb = Math.sin(delta) * Math.cos(ALPHA), deltaB = Math.asin(sb), cb = Math.cos(deltaB);
+  const sb = Math.sin(delta) * Math.cos(alpha), deltaB = Math.asin(sb), cb = Math.cos(deltaB);
   // Undercut, by the exact spherical condition (derived here, D134): the generating crown gear (δ = 90°, its base cone
   // 90° − α) reaches from the pitch point along the great circle of action by asin(sin θa / sin α) (its tip cone at
   // 90° + θa, θa = atan(m/Re), its working depth m as the basic rack's); undercut when that passes the gear's base-cone
   // tangent point, acos(cos δ / cos δb) from the pitch point.
-  const toBase = Math.acos(Math.min(1, Math.cos(delta) / cb)), reach = Math.asin(Math.min(1, Math.sin(thA) / Math.sin(ALPHA))), zv = z / Math.cos(delta);
+  const toBase = Math.acos(Math.min(1, Math.cos(delta) / cb)), reach = Math.asin(Math.min(1, Math.sin(thA) / Math.sin(alpha))), zv = z / Math.cos(delta);
   if (reach > toBase + 1e-12) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `${z} teeth on a ${(delta * 180 / Math.PI).toFixed(4)}° pitch cone are undercut by the generating crown gear (exact spherical condition: it reaches ${(reach * Re).toFixed(4)} mm along the line of action at the heel, the base cone is ${(toBase * Re).toFixed(4)} mm away); Tredgold's virtual spur gear has ${zv.toFixed(2)} teeth (an estimate: 17.1 and fewer are undercut). A shift (the Gleason system) is not built in this stage: more teeth on this gear, or fewer on its mate`);
   const red = spec.toothThicknessReductionMM ?? 0;
   if (!(Number.isFinite(red) && red >= 0)) throw new GearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
@@ -222,7 +261,68 @@ export function bevelGearDimensions(spec: BevelGearSpec) {
   // (The bore within the root cone at the toe, less the rim: the cylinder then meets only the two end spheres.)
   const boreMax = 2 * (Ri * Math.sin(rootPolar) - rim);
   if (bd > 0 && !(bd <= boreMax)) throw new GearError('BORE_INTERSECTION', `a bore of ${bd} mm leaves less than the ${rim} mm rim below the root cone at the toe (Ø${(2 * Ri * Math.sin(rootPolar)).toFixed(3)} mm there): at most Ø${Math.max(0, boreMax).toFixed(3)} (a geometric margin, not a strength check)`);
-  return { m, z, zm, b, Sigma, delta, deltaB, sb, cb, Re, Ri, thA, thF, tipPolar, rootPolar, startPolar, psiB, tipHalf, rootHalf, step, red, s, zv, bore: bd / 2, toBase };
+  const trace = sp ? spiralTrace(Re, Ri, betaM, sp.cutterRadiusMM, sp.hand === 'right' ? 1 : -1, delta) : null;
+  return { m, z, zm, b, Sigma, delta, deltaB, sb, cb, Re, Ri, thA, thF, tipPolar, rootPolar, startPolar, psiB, tipHalf, rootHalf, step, red, s, zv, bore: bd / 2, toBase, alpha, trace };
+}
+
+/**
+ * A circular tooth trace on the crown plane (R12b.4): the apex at the origin, the mean point M at (Rm, 0), the trace
+ * through it at the spiral angle β_m to the cone element (its tangent (cos β_m, sin β_m)), its centre C = M + r_c (−sin
+ * β_m, cos β_m), the side the trace turns toward — q = |C| from the apex, q² = Rm² + r_c² − 2 Rm r_c sin β_m — so
+ * sin β(R) = (R² + r_c² − q²) / (2 R r_c) = (R² − Rm²) / (2 R r_c) + (Rm / R) sin β_m (growing toward the heel on a small
+ * cutter, falling on a large one). ψ(R) is the trace's crown angle at the cone distance R (0 at Rm), the branch
+ * through M; the gear's section turns by φ(R) = h ψ(R) / sin δ (h +1 right-hand).
+ */
+export interface SpiralTrace { readonly Rm: number; readonly rc: number; readonly q: number; readonly omegaC: number; readonly branch: number; readonly h: number; readonly sinDelta: number; readonly betaM: number }
+function spiralTrace(Re: number, Ri: number, betaM: number, rc: number, h: number, delta: number): SpiralTrace {
+  const Rm = (Re + Ri) / 2, Cx = Rm - rc * Math.sin(betaM), Cy = rc * Math.cos(betaM), q = Math.hypot(Cx, Cy), omegaC = Math.atan2(Cy, Cx);
+  // (M is at the circle's angle ω_M with (cos, sin) = (sin β_m, −cos β_m); the branch is the side of ω_C it lies on.)
+  let d = Math.atan2(-Math.cos(betaM), Math.sin(betaM)) - omegaC; d -= 2 * Math.PI * Math.round(d / (2 * Math.PI));
+  const T: SpiralTrace = { Rm, rc, q, omegaC, branch: d >= 0 ? 1 : -1, h, sinDelta: Math.sin(delta), betaM };
+  // (The spiral angle within (0°, 90°) over the whole face, sampled — else the trace turns back or runs along a circle.)
+  for (let i = 0; i <= 32; i++) {
+    const R = Ri + (Re - Ri) * i / 32, sb = spiralSin(T, R);
+    if (!(sb > 1e-6 && sb < 1 - 1e-6)) throw new GearError('INVALID_INPUT', `a cutter radius of ${rc} mm takes the spiral angle to ${sb >= 1 ? '90°' : '0°'} or past it within the face (at ${R.toFixed(4)} mm from the apex): ${sb >= 1 ? 'a larger' : 'another'} cutter radius, or a smaller spiral angle`);
+  }
+  return T;
+}
+const spiralSin = (T: SpiralTrace, R: number) => (R * R + T.rc * T.rc - T.q * T.q) / (2 * R * T.rc);
+/** The trace's crown angle ψ(R) (0 at the mean point). */
+function spiralPsi(T: SpiralTrace, R: number): number {
+  const c = Math.max(-1, Math.min(1, (R * R - T.q * T.q - T.rc * T.rc) / (2 * T.rc * T.q))), w = T.omegaC + T.branch * Math.acos(c);
+  const x = T.q * Math.cos(T.omegaC) + T.rc * Math.cos(w), y = T.q * Math.sin(T.omegaC) + T.rc * Math.sin(w);
+  return Math.atan2(y, x);
+}
+/** The section's turn φ(R) = h ψ(R) / sin δ and its rate dφ/dR = h tan β(R) / (R sin δ). */
+const spiralPhi = (T: SpiralTrace, R: number) => T.h * spiralPsi(T, R) / T.sinDelta;
+function spiralPhiRate(T: SpiralTrace, R: number): number { const sb = spiralSin(T, R); return T.h * sb / Math.sqrt(1 - sb * sb) / (R * T.sinDelta); }
+
+/**
+ * G(R) = R e^{iφ(R)} as cubic Hermite pieces over [R0, R1] (N pieces): 3N + 1 complex poles [x, y] (G' = e^{iφ}(1 + i R φ')),
+ * exact at the piece ends.
+ */
+function twistPoles(T: SpiralTrace, R0: number, R1: number, N: number): [number, number][] {
+  const out: [number, number][] = [];
+  for (let k = 0; k < N; k++) {
+    const ra = R0 + (R1 - R0) * k / N, rb = R0 + (R1 - R0) * (k + 1) / N, h = (rb - ra) / 3;
+    const pa = spiralPhi(T, ra), pb = spiralPhi(T, rb), ka = ra * spiralPhiRate(T, ra), kb = rb * spiralPhiRate(T, rb);
+    const ca = Math.cos(pa), sa = Math.sin(pa), cb = Math.cos(pb), sb = Math.sin(pb);
+    if (k === 0) out.push([ra * ca, ra * sa]);
+    // e^{iφ}(1 + iκ): (cos − κ sin, sin + κ cos).
+    out.push([ra * ca + h * (ca - ka * sa), ra * sa + h * (sa + ka * ca)], [rb * cb - h * (cb - kb * sb), rb * sb - h * (sb + kb * cb)], [rb * cb, rb * sb]);
+  }
+  return out;
+}
+/** The fit's largest distance from R e^{iφ(R)} (the points it moves lie within the unit circle's span: a bound on the faces' distance). */
+function twistDeviation(T: SpiralTrace, R0: number, R1: number, N: number): number {
+  const G = twistPoles(T, R0, R1, N);
+  let worst = 0;
+  for (let k = 0; k < N; k++) for (let i = 0; i <= 32; i++) {
+    const s = i / 32, u = 1 - s, a = G[3 * k], b = G[3 * k + 1], c = G[3 * k + 2], d = G[3 * k + 3], R = R0 + (R1 - R0) * (k + s) / N, ph = spiralPhi(T, R);
+    const x = u * u * u * a[0] + 3 * u * u * s * b[0] + 3 * u * s * s * c[0] + s * s * s * d[0], y = u * u * u * a[1] + 3 * u * u * s * b[1] + 3 * u * s * s * c[1] + s * s * s * d[1];
+    worst = Math.max(worst, Math.hypot(x - R * Math.cos(ph), y - R * Math.sin(ph)));
+  }
+  return worst;
 }
 export type BevelGearDimensions = ReturnType<typeof bevelGearDimensions>;
 
@@ -257,6 +357,42 @@ function sideRing(id: string, tag: string, list: readonly Side[], toe: Level, he
 }
 
 /**
+ * One loop's side faces turned along the cone (R12b.4): in `S` segments between the levels R_j (Ri … Re), each face the
+ * loop's unit-sphere curve swept by G(R) = R e^{iφ(R)} — (Re G p̂, Im G p̂, R p_z), p̂ = p_x + i p_y — G a cubic Hermite
+ * fit of `N` pieces a segment (exact at the levels, so the faces of neighbouring segments meet on the exactly turned
+ * curve, and the ends lie on their spheres exactly). Segment j's faces are named `.<j + 1>` after the first, as a helical
+ * gear's.
+ */
+function twistedRing(id: string, tag: string, list: readonly Side[], T: SpiralTrace, Ri: number, Re: number, S: number, N: number, vertices: { id: string; point: Point }[], edges: { id: string; curve: Curve; vertices: [string, string] }[], faces: BrepFaceInput[]): { toe: string[]; heel: string[] } {
+  const n = list.length, levels: string[][] = [], Rj = (j: number) => Ri + (Re - Ri) * j / S;
+  const V = (i: number, j: number) => `${id}_${tag}${i}${j === 0 ? 't' : j === S ? 'h' : `l${j}`}`;
+  for (let j = 0; j <= S; j++) {
+    const R = Rj(j), ph = spiralPhi(T, R), c = Math.cos(ph), sn = Math.sin(ph), level: string[] = [];
+    list.forEach((p, i) => vertices.push({ id: V(i, j), point: turnedAt(p.curve.controlPoints[0], c, sn, R) }));
+    list.forEach((p, i) => {
+      const eid = j === 0 ? `${id}_${tag}${i}et` : j === S ? `${id}_${tag}${i}eh` : `${id}_${tag}${i}el${j}`;
+      edges.push({ id: eid, curve: { ...p.curve, id: `${eid}c`, controlPoints: p.curve.controlPoints.map(q => turnedAt(q, c, sn, R)) }, vertices: [V(i, j), V((i + 1) % n, j)] });
+      level.push(eid);
+    });
+    levels.push(level);
+  }
+  for (let j = 0; j < S; j++) {
+    const G = twistPoles(T, Rj(j), Rj(j + 1), N), H = G.map((_, k) => Rj(j) + (Rj(j + 1) - Rj(j)) * k / (G.length - 1)), knotsV = bezierKnots(N);
+    const ev = (i: number) => S === 1 ? `${id}_${tag}${i}ev` : `${id}_${tag}${i}ev${j}`;
+    list.forEach((p, i) => { const p0 = p.curve.controlPoints[0]; edges.push({ id: ev(i), curve: { kind: 'curve', id: `${ev(i)}c`, degree: 3, knots: knotsV, controlPoints: G.map((g, k) => swept(p0, g, H[k])), weights: G.map(() => 1) }, vertices: [V(i, j), V(i, j + 1)] }); });
+    list.forEach((p, i) => {
+      faces.push({ id: S === 1 ? `${id}_${tag}f${i}` : `${id}_${tag}f${i}_${j}`, name: j === 0 ? p.name : `${p.name}.${j + 1}`, sense: 'forward',
+        surface: { kind: 'surface', id: S === 1 ? `${id}_${tag}s${i}` : `${id}_${tag}s${i}_${j}`, degreeU: p.curve.degree, degreeV: 3, knotsU: [...p.curve.knots], knotsV,
+          controlPoints: p.curve.controlPoints.map(q => G.map((g, k) => swept(q, g, H[k]))), weights: p.curve.weights.map(w => G.map(() => w)) },
+        loops: [{ kind: 'outer', uses: [{ edge: levels[j][i], sense: 'forward' }, { edge: ev((i + 1) % n), sense: 'forward' }, { edge: levels[j + 1][i], sense: 'reversed' }, { edge: ev(i), sense: 'reversed' }] }] });
+    });
+  }
+  return { toe: levels[0], heel: levels[S] };
+}
+const turnedAt = (p: Point, c: number, s: number, R: number): Point => [R * (c * p[0] - s * p[1]), R * (s * p[0] + c * p[1]), R * p[2]];
+const swept = (p: Point, g: readonly number[], H: number): Point => [g[0] * p[0] - g[1] * p[1], g[1] * p[0] + g[0] * p[1], H * p[2]];
+
+/**
  * A straight bevel gear (R12b.3, D134) as a solid in its own frame (apex at the origin, axis +Z, tooth 1 on +X). Faces
  * `<id>.flankL#k`, `.flankR#k` (a flank of more than three pieces on more faces, root outward: `.flankL2#k` …), `.tip#k`,
  * `.root#k` (the space after tooth k), `.rootL#k`/`.rootR#k` (the schematic meridian joins, when the root is under the
@@ -265,10 +401,20 @@ function sideRing(id: string, tag: string, list: readonly Side[], toe: Level, he
 export function bevelGear(spec: BevelGearSpec, options: { readonly id?: string } = {}): { brep: Brep; report: BevelGearReport } {
   const id = safeId(options.id ?? 'bevel'), g = bevelGearDimensions(spec), tol = spec.profileToleranceMM ?? 1e-4 * g.m;
   if (!(Number.isFinite(tol) && tol > 0)) throw new GearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  // (A spiral gear's tolerance is shared: three quarters the section's fit, a quarter the twist's — their sum within it.)
+  const T = g.trace, secTol = T ? 0.75 * tol : tol, twistTol = tol - secTol;
   const t0 = g.startPolar > g.deltaB ? rollAt(g.cb, g.sb, g.startPolar) : 0, t1 = rollAt(g.cb, g.sb, g.tipPolar);
   let N = 1, P = conicPieces(g.cb, g.sb, t0, t1, 1), dev = conicDeviation(g.cb, g.sb, P, g.Re);
-  while (dev > tol && N < MAX_PIECES) { P = conicPieces(g.cb, g.sb, t0, t1, ++N); dev = conicDeviation(g.cb, g.sb, P, g.Re); }
-  if (dev > tol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `a flank within ${tol} mm of the spherical involute needs more than ${MAX_PIECES} conic pieces (${MAX_PIECES} come to ${dev.toExponential(2)} mm)`);
+  while (dev > secTol && N < MAX_PIECES) { P = conicPieces(g.cb, g.sb, t0, t1, ++N); dev = conicDeviation(g.cb, g.sb, P, g.Re); }
+  if (dev > secTol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `a flank within ${secTol} mm of the spherical involute needs more than ${MAX_PIECES} conic pieces (${MAX_PIECES} come to ${dev.toExponential(2)} mm)`);
+  // The twist (spiral): as few cubic pieces along the cone as keep G within its share, at most five to an axial segment.
+  let K = 0, Sg = 1, Nt = 1, twistDev = 0;
+  if (T) {
+    K = 1; while (twistDeviation(T, g.Ri, g.Re, K) > twistTol && K < MAX_TWIST_PER_SEGMENT * MAX_SEGMENTS) K++;
+    Sg = Math.ceil(K / MAX_TWIST_PER_SEGMENT); Nt = Math.ceil(K / Sg);
+    for (let j = 0; j < Sg; j++) twistDev = Math.max(twistDev, twistDeviation(T, g.Ri + (g.Re - g.Ri) * j / Sg, g.Ri + (g.Re - g.Ri) * (j + 1) / Sg, Nt));
+    if (twistDev > twistTol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `the spiral's twist within ${twistTol.toExponential(2)} mm needs more than ${MAX_SEGMENTS} axial segments of ${MAX_TWIST_PER_SEGMENT} cubic pieces`);
+  }
   // (Degree 4 a piece on the sphere: at most three pieces, 13 poles, to a face.)
   const F = Math.ceil(N / PIECES_PER_FACE), meridian = g.rootPolar < g.deltaB, list: Side[] = [];
   for (let k = 0; k < g.z; k++) {
@@ -281,7 +427,7 @@ export function bevelGear(spec: BevelGearSpec, options: { readonly id?: string }
     list.push({ name: `${id}.root#${n}`, curve: latitudeArc(g.rootPolar, gam + g.rootHalf, g.step - 2 * g.rootHalf) });
   }
   const vertices: { id: string; point: Point }[] = [], edges: { id: string; curve: Curve; vertices: [string, string] }[] = [], faces: BrepFaceInput[] = [];
-  const outer = sideRing(id, 'o', list, { scale: g.Ri, z: null }, { scale: g.Re, z: null }, vertices, edges, faces);
+  const outer = T ? twistedRing(id, 'o', list, T, g.Ri, g.Re, Sg, Nt, vertices, edges, faces) : sideRing(id, 'o', list, { scale: g.Ri, z: null }, { scale: g.Re, z: null }, vertices, edges, faces);
   const zt = Math.sqrt(g.Ri * g.Ri - g.bore * g.bore), zh = Math.sqrt(g.Re * g.Re - g.bore * g.bore);
   const hole = g.bore > 0 ? sideRing(id, 'h', [{ name: `${id}.bore#1`, curve: arcCurve('b', g.bore, 0, -Math.PI) }, { name: `${id}.bore#2`, curve: arcCurve('b', g.bore, -Math.PI, -Math.PI) }], { scale: 1, z: zt }, { scale: 1, z: zh }, vertices, edges, faces) : null;
   // The ends: the spheres Re and Ri, the square's half-width past the tip circle's image tan(θ/2).
@@ -292,12 +438,19 @@ export function bevelGear(spec: BevelGearSpec, options: { readonly id?: string }
   const brep = buildBrep({ source: { family: 'gear', id }, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces, closed: true }] }] });
   const deg = (x: number) => x * 180 / Math.PI, diagnostics: GearDiagnostic[] = [];
   diagnostics.push({ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: meridian ? 'the flanks meet the root cone by meridian faces from the base cone: a schematic root, not the one the generating tool cuts' : 'the flanks meet the root cone at a corner: a schematic root, not the one the generating tool cuts' });
+  if (T) diagnostics.push({ code: 'IDEAL_MODEL', severity: 'warning', message: 'an ideal spiral bevel gear (line contact): the conjugate of its mate on every sphere about the apex, not a face-milled or face-hobbed tooth — no crowning, no machine settings' });
   if (g.b > g.Re / 3) diagnostics.push({ code: 'INVALID_INPUT', severity: 'warning', message: `the face width ${g.b} mm is over a third of the cone distance (${(g.Re / 3).toFixed(4)} mm), the usual limit of proportion: the toe's teeth are small` });
-  return { brep, report: { generator: 'bevel-gear@0', kind: 'straight', system: 'standard', profile: 'spherical-involute', ends: 'spherical',
+  const spiral = T ? (() => {
+    const bT = Math.asin(spiralSin(T, g.Ri)), bH = Math.asin(spiralSin(T, g.Re));
+    return { meanSpiralAngleDeg: deg(T.betaM), hand: T.h > 0 ? 'right' as const : 'left' as const, cutterRadiusMM: T.rc, trace: 'circular' as const, meanConeDistanceMM: T.Rm, spiralAngleAtToeDeg: deg(bT), spiralAngleAtHeelDeg: deg(bH),
+      transversePressureAngleDeg: deg(g.alpha), normalPressureAngleAtToeDeg: deg(Math.atan(Math.tan(g.alpha) * Math.cos(bT))), normalPressureAngleAtHeelDeg: deg(Math.atan(Math.tan(g.alpha) * Math.cos(bH))),
+      twistDeg: deg(spiralPhi(T, g.Re) - spiralPhi(T, g.Ri)), twistPieces: Sg * Nt, axialSegments: Sg, twistDeviationMM: twistDev };
+  })() : undefined;
+  return { brep, report: { generator: 'bevel-gear@0', kind: T ? 'spiral' : 'straight', system: 'standard', profile: 'spherical-involute', ends: 'spherical',
     dimensions: { referenceDiameterMM: g.m * g.z, shaftAngleDeg: deg(g.Sigma), pitchAngleDeg: deg(g.delta), baseConeAngleDeg: deg(g.deltaB), addendumAngleDeg: deg(g.thA), dedendumAngleDeg: deg(g.thF), tipAngleDeg: deg(g.tipPolar), rootAngleDeg: deg(g.rootPolar),
       coneDistanceMM: g.Re, innerConeDistanceMM: g.Ri, faceWidthMM: g.b, tipDiameterAtHeelMM: 2 * g.Re * Math.sin(g.tipPolar), rootDiameterAtHeelMM: 2 * g.Re * Math.sin(g.rootPolar), circularPitchMM: Math.PI * g.m, toothThicknessMM: g.s,
       axialExtentMM: [g.Ri * Math.cos(g.tipPolar), g.bore > 0 ? zh : g.Re] },
-    virtualTeeth: g.zv, flankPieces: N, flankFaces: F, profileDeviationMM: dev, profileToleranceMM: tol, rootPolicy: 'schematic-meridian', manufacturingValidated: false, diagnostics } };
+    virtualTeeth: g.zv, flankPieces: N, flankFaces: F, profileDeviationMM: dev, profileToleranceMM: tol, rootPolicy: 'schematic-meridian', manufacturingValidated: false, idealModel: !!T, ...(spiral ? { spiral } : {}), diagnostics } };
 }
 
 // ——— The pair ———
@@ -322,6 +475,16 @@ export interface BevelGearPairCheck {
    * the true one by up to `chordSagMM`, the two outlines' largest chord sag at the heel — never smaller.
    */
   readonly sweep: { readonly samples: number; readonly minimumClearanceMM: number; readonly atDegrees: number; readonly interference: boolean; readonly converged: boolean; readonly coarseMinimumMM: number; readonly chordSagMM: number };
+  /**
+   * A spiral pair (R12b.4): the same sweep on five spheres from the toe to the heel, each section turned by its gear's
+   * φ(R) (an ideal pair: the same on every sphere, its clearance scaled by R; the heel's refined, the others the least of
+   * `samples`); the face contact ratio |ψ(Re) − ψ(Ri)|
+   * over the crown pitch 2π sin δ1 / z1, and the total with the transverse one.
+   */
+  readonly spheres?: readonly { readonly coneDistanceMM: number; readonly minimumClearanceMM: number; readonly interference: boolean }[];
+  readonly faceContactRatio?: number; readonly totalContactRatio?: number;
+  /** Which way each gear is pushed along its axis, gear 1 driving either way (a direction, no load). */
+  readonly axialThrust: string;
   readonly diagnostics: readonly GearDiagnostic[];
 }
 
@@ -329,6 +492,14 @@ function compatible(g1: BevelGearSpec, g2: BevelGearSpec, a: BevelGearDimensions
   if (a.m !== b.m) throw new GearError('MATE_INCOMPATIBLE', `the modules differ (${a.m} and ${b.m} mm)`);
   if (a.Sigma !== b.Sigma) throw new GearError('MATE_INCOMPATIBLE', `the shaft angles differ (${(a.Sigma * 180 / Math.PI)}° and ${(b.Sigma * 180 / Math.PI)}°)`);
   if (g1.mateTeeth !== g2.teeth || g2.mateTeeth !== g1.teeth) throw new GearError('MATE_INCOMPATIBLE', `each gear's mateTeeth must be the other's teeth (${g1.teeth} with mate ${g1.mateTeeth}, ${g2.teeth} with mate ${g2.mateTeeth}): their pitch cones are another pair's`);
+  // (A spiral pair shares its tooth trace: one spiral angle, cutter radius and face width, the hands opposite.)
+  const s1 = g1.spiral, s2 = g2.spiral;
+  if (!!s1 !== !!s2) throw new GearError('MATE_INCOMPATIBLE', 'a spiral bevel gear meshes with a spiral one, a straight with a straight');
+  if (s1 && s2) {
+    if (s1.hand === s2.hand) throw new GearError('MATE_INCOMPATIBLE', `both are ${s1.hand}-handed: a spiral bevel pair is of opposite hands`);
+    if (s1.angleDeg !== s2.angleDeg || s1.cutterRadiusMM !== s2.cutterRadiusMM) throw new GearError('MATE_INCOMPATIBLE', `the spirals differ (${s1.angleDeg}° on r_c ${s1.cutterRadiusMM} mm and ${s2.angleDeg}° on ${s2.cutterRadiusMM} mm): a pair shares its tooth trace`);
+    if (a.b !== b.b) throw new GearError('MATE_INCOMPATIBLE', `the face widths differ (${a.b} and ${b.b} mm): a spiral pair shares its tooth trace, through the mean point`);
+  }
 }
 
 /**
@@ -472,31 +643,77 @@ function pairCheck(g1: BevelGearSpec, g2: BevelGearSpec, options: BevelGearPairO
   const L = a1.toBase + a2.toBase, hi1 = arc(a1, a1.tipPolar), hi2 = arc(a2, a2.tipPolar), lo1 = a1.startPolar > a1.deltaB ? arc(a1, a1.startPolar) : 0, lo2 = a2.startPolar > a2.deltaB ? arc(a2, a2.startPolar) : 0;
   const ideal = (hi1 + hi2 - L) / pb, usable = Math.max(0, Math.min(hi1, L - lo2) - Math.max(lo1, L - hi2)) / pb;
   // Tredgold's: the virtual spur gears on the back cones, radii Re tan δ.
-  const rv1 = Re * Math.tan(a1.delta), rv2 = Re * Math.tan(a2.delta), ca = Math.cos(ALPHA);
-  const tredgold = (Math.sqrt((rv1 + m) ** 2 - (rv1 * ca) ** 2) + Math.sqrt((rv2 + m) ** 2 - (rv2 * ca) ** 2) - (rv1 + rv2) * Math.sin(ALPHA)) / (Math.PI * m * ca);
+  const rv1 = Re * Math.tan(a1.delta), rv2 = Re * Math.tan(a2.delta), ca = Math.cos(a1.alpha);
+  const tredgold = (Math.sqrt((rv1 + m) ** 2 - (rv1 * ca) ** 2) + Math.sqrt((rv2 + m) ** 2 - (rv2 * ca) ** 2) - (rv1 + rv2) * Math.sin(a1.alpha)) / (Math.PI * m * ca);
   const tips: [number, number] = [Re * (a2.thF - a1.thA), Re * (a1.thF - a2.thA)];
   const sag = Re * (flankSag(a1, a1.startPolar > a1.deltaB ? rollAt(a1.cb, a1.sb, a1.startPolar) : 0, rollAt(a1.cb, a1.sb, a1.tipPolar), 150) + flankSag(a2, a2.startPolar > a2.deltaB ? rollAt(a2.cb, a2.sb, a2.startPolar) : 0, rollAt(a2.cb, a2.sb, a2.tipPolar), 150));
-  const T1 = exactOutline(a1), T2 = exactOutline(a2), S = sweepFrame(a1, a2), phase = (options.relativePhaseDeg ?? 0) * Math.PI / 180, base2 = Math.PI / z2 + phase;
-  const verdict = options.mode === 'verdict', period = 2 * Math.PI / z1, N = Math.max(16, options.samples ?? 64);
-  const at = (th: number) => Re * sphereClearance(T1, z1, th, T2, z2, base2 - th * z1 / z2, S, verdict);
-  const head = { shaftAngleDeg: a1.Sigma * 180 / Math.PI, pitchAnglesDeg: [a1.delta * 180 / Math.PI, a2.delta * 180 / Math.PI] as const, coneDistanceMM: Re, speedRatio: z2 / z1, backlashMM: a1.red + a2.red, tipClearancesMM: tips, idealContactRatio: ideal, usableContactRatio: usable, tredgoldContactRatio: tredgold };
-  if (verdict) {
-    let least = Infinity, tAt = 0;
-    for (let i = 0; i < N; i++) { const t = period * i / N, d = at(t); if (d < least) { least = d; tAt = t; } if (d < 0) break; }
-    const crossed = least < 0, diagnostics: GearDiagnostic[] = crossed ? [{ code: 'SELF_INTERSECTION', severity: 'error', message: `the teeth cross at ${(tAt * 180 / Math.PI).toFixed(4)}° of gear 1 (the depth: a report)` }] : [];
-    return { ...head, sweep: { samples: N, minimumClearanceMM: crossed ? -0 : least, atDegrees: tAt * 180 / Math.PI, interference: crossed, converged: false, coarseMinimumMM: least, chordSagMM: sag }, diagnostics };
+  const T1 = exactOutline(a1), T2 = exactOutline(a2), S = sweepFrame(a1, a2), phase = (options.relativePhaseDeg ?? 0) * Math.PI / 180;
+  const verdict = options.mode === 'verdict', N = Math.max(16, options.samples ?? 64), W: SweepWork = { T1, T2, z1, z2, S, verdict, N, m };
+  const tr = a1.trace, tr2 = a2.trace;
+  // (Spiral: Δψ over the face, in crown pitches.)
+  const faceRatio = tr ? Math.abs(spiralPsi(tr, a1.Re) - spiralPsi(tr, a1.Ri)) * z1 / (2 * Math.PI * Math.sin(a1.delta)) : 0;
+  const head = { shaftAngleDeg: a1.Sigma * 180 / Math.PI, pitchAnglesDeg: [a1.delta * 180 / Math.PI, a2.delta * 180 / Math.PI] as const, coneDistanceMM: Re, speedRatio: z2 / z1, backlashMM: a1.red + a2.red, tipClearancesMM: tips, idealContactRatio: ideal, usableContactRatio: usable, tredgoldContactRatio: tredgold,
+    ...(tr ? { faceContactRatio: faceRatio, totalContactRatio: usable + faceRatio } : {}), axialThrust: thrustWords(a1, a2) };
+  // The heel's sweep; a spiral pair's on five spheres, each section turned by its own φ(R) (the heel's the last).
+  const heel = sweepOn(W, Re, tr ? spiralPhi(tr, Re) : 0, phase + (tr2 ? spiralPhi(tr2, Re) : 0));
+  const spheres = tr && tr2 ? [0, 1, 2, 3].map(k => { const R = a1.Ri + (Re - a1.Ri) * k / 4, r = sweepOn(W, R, spiralPhi(tr, R), phase + spiralPhi(tr2, R), false); return { coneDistanceMM: R, minimumClearanceMM: r.least, interference: r.least < 0 }; }).concat([{ coneDistanceMM: Re, minimumClearanceMM: heel.least, interference: heel.least < 0 }]) : undefined;
+  const diagnostics: GearDiagnostic[] = [], crossedOn = spheres ? spheres.filter(x => x.interference) : heel.least < 0 ? [{ coneDistanceMM: Re }] : [];
+  if (crossedOn.length) diagnostics.push({ code: 'SELF_INTERSECTION', severity: 'error', message: verdict ? `the teeth cross at ${(heel.at * 180 / Math.PI).toFixed(4)}° of gear 1 (the depth: a report)` : `the teeth cross${heel.least < 0 ? ` by ${(-heel.least).toFixed(6)} mm at the heel, at ${(heel.at * 180 / Math.PI).toFixed(4)}° of gear 1` : ''}${spheres ? ` (on the spheres at ${crossedOn.map(x => x.coneDistanceMM.toFixed(3)).join(', ')} mm)` : ''}` });
+  if (!verdict && !heel.converged) diagnostics.push({ code: 'INVALID_INPUT', severity: 'warning', message: `the sweep did not settle (${N} samples: ${heel.coarse.toExponential(3)}, ${2 * N}: ${heel.fine.toExponential(3)} mm): more samples are needed` });
+  if (!verdict && usable + 1e-12 < ideal) diagnostics.push({ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: `the usable flanks give a contact ratio of ${usable.toFixed(4)}, below the ideal ${ideal.toFixed(4)}` });
+  return { ...head, sweep: { samples: N, minimumClearanceMM: verdict && heel.least < 0 ? -0 : heel.least, atDegrees: heel.at * 180 / Math.PI, interference: crossedOn.length > 0, converged: !verdict && heel.converged, coarseMinimumMM: heel.coarse, chordSagMM: sag }, ...(spheres ? { spheres } : {}), diagnostics };
+}
+interface SweepWork { readonly T1: Float64Array; readonly T2: Float64Array; readonly z1: number; readonly z2: number; readonly S: SweepFrame; readonly verdict: boolean; readonly N: number; readonly m: number }
+/** The clearance on the sphere R (mm there), gear 1 turned θ + off1, gear 2 π/z2 − θ z1/z2 + off2. */
+const clearanceOn = (W: SweepWork, R: number, off1: number, off2: number, th: number) => R * sphereClearance(W.T1, W.z1, th + off1, W.T2, W.z2, Math.PI / W.z2 - th * W.z1 / W.z2 + off2, W.S, W.verdict);
+/**
+ * One tooth period of gear 1 on the sphere R: verdict, one scan stopping at the first crossing; report, `N` samples
+ * and twice as many, golden section about the least (as D55).
+ */
+function sweepOn(W: SweepWork, R: number, off1: number, off2: number, refine = true): { least: number; at: number; coarse: number; fine: number; converged: boolean } {
+  const period = 2 * Math.PI / W.z1, N = W.N;
+  // (`refine` false — a spiral pair's spheres before the heel: one scan of N samples, not refined; the heel's is.)
+  if (W.verdict || !refine) {
+    let least = Infinity, at = 0;
+    for (let i = 0; i < N; i++) { const t = period * i / N, d = clearanceOn(W, R, off1, off2, t); if (d < least) { least = d; at = t; } if (d < 0 && W.verdict) break; }
+    return { least, at, coarse: least, fine: least, converged: false };
   }
-  const scan = (n: number) => { let best = { d: Infinity, t: 0 }; for (let i = 0; i < n; i++) { const t = period * i / n, d = at(t); if (d < best.d) best = { d, t }; } return best; };
-  const coarse = scan(N), fine = scan(2 * N), seed = fine.d < coarse.d ? fine : coarse;
-  let lo = seed.t - period / N, hi = seed.t + period / N, x1 = hi - 0.618033988749895 * (hi - lo), x2 = lo + 0.618033988749895 * (hi - lo), f1 = at(x1), f2 = at(x2);
-  for (let it = 0; it < 60 && hi - lo > 1e-9; it++) { if (f1 < f2) { hi = x2; x2 = x1; f2 = f1; x1 = hi - 0.618033988749895 * (hi - lo); f1 = at(x1); } else { lo = x1; x1 = x2; f1 = f2; x2 = lo + 0.618033988749895 * (hi - lo); f2 = at(x2); } }
-  const refined = Math.min(seed.d, f1, f2), tAt = f1 < f2 ? x1 : x2;
-  const converged = Math.abs(coarse.d - fine.d) <= Math.max(1e-6 * m, 0.02 * Math.abs(refined));
-  const diagnostics: GearDiagnostic[] = [];
-  if (refined < 0) diagnostics.push({ code: 'SELF_INTERSECTION', severity: 'error', message: `the teeth cross by ${(-refined).toFixed(6)} mm at the heel, at ${(tAt * 180 / Math.PI).toFixed(4)}° of gear 1` });
-  if (!converged) diagnostics.push({ code: 'INVALID_INPUT', severity: 'warning', message: `the sweep did not settle (${N} samples: ${coarse.d.toExponential(3)}, ${2 * N}: ${fine.d.toExponential(3)} mm): more samples are needed` });
-  if (usable + 1e-12 < ideal) diagnostics.push({ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: `the usable flanks give a contact ratio of ${usable.toFixed(4)}, below the ideal ${ideal.toFixed(4)}` });
-  return { ...head, sweep: { samples: N, minimumClearanceMM: refined, atDegrees: tAt * 180 / Math.PI, interference: refined < 0, converged, coarseMinimumMM: coarse.d, chordSagMM: sag }, diagnostics };
+  let cd = Infinity, ct = 0, fd = Infinity, ft = 0;
+  for (let i = 0; i < N; i++) { const t = period * i / N, d = clearanceOn(W, R, off1, off2, t); if (d < cd) { cd = d; ct = t; } }
+  for (let i = 0; i < 2 * N; i++) { const t = period * i / (2 * N), d = clearanceOn(W, R, off1, off2, t); if (d < fd) { fd = d; ft = t; } }
+  const seedD = fd < cd ? fd : cd, seedT = fd < cd ? ft : ct;
+  let lo = seedT - period / N, hi = seedT + period / N, x1 = hi - 0.618033988749895 * (hi - lo), x2 = lo + 0.618033988749895 * (hi - lo), f1 = clearanceOn(W, R, off1, off2, x1), f2 = clearanceOn(W, R, off1, off2, x2);
+  for (let it = 0; it < 60 && hi - lo > 1e-9; it++) { if (f1 < f2) { hi = x2; x2 = x1; f2 = f1; x1 = hi - 0.618033988749895 * (hi - lo); f1 = clearanceOn(W, R, off1, off2, x1); } else { lo = x1; x1 = x2; f1 = f2; x2 = lo + 0.618033988749895 * (hi - lo); f2 = clearanceOn(W, R, off1, off2, x2); } }
+  const least = Math.min(seedD, f1, f2);
+  return { least, at: f1 < f2 ? x1 : x2, coarse: cd, fine: fd, converged: Math.abs(cd - fd) <= Math.max(1e-6 * W.m, 0.02 * Math.abs(least)) };
+}
+
+/** A flank's point (gear frame, unit sphere × R) at polar θ and cone distance R: `side` +1 the tooth's higher-azimuth flank (R), −1 the other (L). */
+function flankAt(g: BevelGearDimensions, side: number, th: number, R: number): Point {
+  const az = side * (g.psiB - involuteAzimuth(g.cb, g.sb, th)) + (g.trace ? spiralPhi(g.trace, R) : 0);
+  return [R * Math.sin(th) * Math.cos(az), R * Math.sin(th) * Math.sin(az), R * Math.cos(th)];
+}
+/**
+ * Which way the tooth force pushes each gear along its axis (R12b.4; a straight pair's too): at the mean point on the
+ * pitch cone the driver's working flank's outward normal n (the leading flank: R turning clockwise seen from its apex,
+ * L the other way); the driver takes −n, the driven +n, read along each axis (toward the teeth from the apex: away from
+ * the apex). A direction, no load.
+ */
+function thrustWords(a1: BevelGearDimensions, a2: BevelGearDimensions): string {
+  const Rm = (a1.Re + a1.Ri) / 2, h = 1e-6, out: string[] = [];
+  for (const side of [1, -1]) {
+    const th = a1.delta, p = flankAt(a1, side, th, Rm), pa = flankAt(a1, side, th + h, Rm), pb = flankAt(a1, side, th - h, Rm), ra = flankAt(a1, side, th, Rm * (1 + h)), rb = flankAt(a1, side, th, Rm * (1 - h));
+    let n = cross3([pa[0] - pb[0], pa[1] - pb[1], pa[2] - pb[2]], [ra[0] - rb[0], ra[1] - rb[1], ra[2] - rb[2]]);
+    // (Outward: along +e_φ on the R flank, −e_φ on the L.)
+    const az = Math.atan2(p[1], p[0]), ephi = [-Math.sin(az), Math.cos(az), 0];
+    if (Math.sign(dot3(n, ephi)) !== side) n = [-n[0], -n[1], -n[2]];
+    // (Turned so the point sits on the pitch line, gear 2's axis then (sin Σ, 0, cos Σ).)
+    const c = Math.cos(-az), s = Math.sin(-az), nr = [c * n[0] - s * n[1], s * n[0] + c * n[1], n[2]];
+    const on1 = -n[2], on2 = nr[0] * Math.sin(a1.Sigma) + nr[2] * Math.cos(a1.Sigma);
+    out.push(`gear 1 driving ${side > 0 ? 'clockwise' : 'counter-clockwise'} seen from its apex is pushed ${on1 > 0 ? 'away from' : 'toward'} its apex, gear 2 ${on2 > 0 ? 'away from' : 'toward'} its own`);
+  }
+  void a2;
+  return `${out.join('; ')} (directions, no load)`;
 }
 
 // ——— Placed ———

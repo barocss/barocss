@@ -223,7 +223,13 @@ type ModelNodeBase = SketchNode
    * `direction`, a space facing the other's tooth plus `phase` degrees. A meshing gear's module, teeth, mate and shaft
    * angle are its driver's (kept in step: the driver's mate is this one).
    */
-  | { kind: 'bevel-gear'; module: Dim; teeth: number; mateTeeth: number; shaftAngle?: number; faceWidth: Dim; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: BevelMesh; generator: 'bevel-gear@0' }
+  | { kind: 'bevel-gear'; module: Dim; teeth: number; mateTeeth: number; shaftAngle?: number; faceWidth: Dim; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: BevelMesh; generator: 'bevel-gear@0';
+    /**
+     * A spiral bevel gear (R12b.4, D135), the ideal conjugate (flagged as an ideal model): mean spiral angle, hand, the
+     * circular trace's cutter radius (`cutterEstimate`: the command's default, the mean cone distance — an estimate). A
+     * meshing gear's is its driver's, the other hand.
+     */
+    spiral?: { angle: number; hand: 'right' | 'left'; cutterRadius: Dim; cutterEstimate?: boolean } }
   | { kind: 'gear';
     /** The module; a helical gear's normal module m_n (R6a.5c: `helixAngle` degrees and `hand`; a meshing gear takes the other's angle, opposite hand). */
     module: Dim; helixAngle?: number; hand?: 'right' | 'left'; teeth: number; faceWidth: Dim; profileShift?: number; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: GearMesh; generator: 'spur-gear@0' | 'spur-gear@1'; toolTipRadius?: Dim }
@@ -634,7 +640,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'subd': return `SubD ${node.name} (${node.cage.faces.length} ${node.cage.faces.every(f => f.length === 4) ? 'quads' : 'faces'})`;
     case 'library': return node.name;
     case 'rack': return `Rack m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} × ${node.teeth}`;
-    case 'bevel-gear': { const t = bevelTeeth(node, nodes); return `Bevel gear m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${t.teeth}/${t.mateTeeth}`; }
+    case 'bevel-gear': { const t = bevelTeeth(node, nodes), spiral = bevelSpiral(node, nodes); return `${spiral ? 'Spiral bevel gear' : 'Bevel gear'} m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${t.teeth}/${t.mateTeeth}${spiral ? ' (ideal model)' : ''}`; }
     case 'internal-gear': return `${node.helixAngle ? 'Helical internal gear mn' : 'Internal gear m'}${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;
     case 'gear': return `${node.helixAngle || (node.mesh && nodes && helical(nodes, node.mesh.gear)) ? 'Helical gear mn' : 'Spur gear m'}${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;
     case 'thread': return node.hex?.internal ? `Nut M${fmt(node.diameter)}×${fmt(node.pitch)}` : `${node.hex ? 'Bolt' : 'Threaded rod'} M${fmt(node.diameter)}×${fmt(node.pitch)} × ${fmt(node.length ?? 0)}`;
@@ -669,6 +675,13 @@ export function starterDoc(): StudioDoc {
 export function bevelTeeth(node: Extract<ModelNode, { kind: 'bevel-gear' }>, nodes?: readonly ModelNode[]): { teeth: number; mateTeeth: number } {
   const d = node.mesh && nodes ? nodes[node.mesh.gear] : undefined;
   return d?.kind === 'bevel-gear' && d !== node ? { teeth: d.mateTeeth, mateTeeth: d.teeth } : { teeth: node.teeth, mateTeeth: node.mateTeeth };
+}
+
+/** A bevel gear's spiral (R12b.4): its own, or — meshing — its driver's of the other hand. None: straight. */
+export function bevelSpiral(node: Extract<ModelNode, { kind: 'bevel-gear' }>, nodes?: readonly ModelNode[]): Extract<ModelNode, { kind: 'bevel-gear' }>['spiral'] {
+  const d = node.mesh && nodes ? nodes[node.mesh.gear] : undefined;
+  if (d?.kind === 'bevel-gear' && d !== node) return d.spiral ? { ...d.spiral, hand: d.spiral.hand === 'right' ? 'left' : 'right' } : undefined;
+  return node.spiral;
 }
 
 /** Whether gear node `i` is helical: its own helix angle, or that of the gear it meshes with (a ring's own, R12b.2a). */

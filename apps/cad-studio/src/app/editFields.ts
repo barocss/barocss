@@ -4,7 +4,7 @@
 import type { Axis, Dim, ModelNode, SketchNode } from '../engine/doc';
 import { outlineFields } from '../sketch/outlineFields';
 import { helixOf } from '../engine/part';
-import { spurGearCenterDistance, internalGearCenterDistance } from '@barocss/cad';
+import { spurGearCenterDistance, internalGearCenterDistance, bevelGearDimensions } from '@barocss/cad';
 
 type Nodes = readonly ModelNode[];
 export type EditField =
@@ -215,6 +215,12 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
         number('z', 'Teeth', undefined, n => g(n).teeth, (n, v) => ({ ...g(n), teeth: Math.round(v) }));
         number('zm', 'Mate\'s teeth', undefined, n => g(n).mateTeeth, (n, v) => ({ ...g(n), mateTeeth: Math.round(v) }));
         number('sigma', 'Shaft angle Σ', '°', n => g(n).shaftAngle ?? 90, (n, v) => { const next = { ...g(n) }; if (v === 90) delete next.shaftAngle; else next.shaftAngle = v; return next; });
+        // (R12b.4, D135: the spiral — 0 straight; a cutter radius given is the user's own, the estimate's flag goes.)
+        number('beta', 'Spiral angle β', '°', n => g(n).spiral?.angle ?? 0, (n, v) => { const next = { ...g(n) }; if (v > 0) next.spiral = { hand: 'left', cutterRadius: meanConeDistance(next), cutterEstimate: true, ...next.spiral, angle: v }; else delete next.spiral; return next; });
+        if (node.spiral) {
+          out.push({ kind: 'choice', key: 'hand', label: 'Hand', options: [{ value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }], get: n => self<typeof node>(n).spiral?.hand ?? 'left', set: (n, v) => replace(n, i, { ...self<typeof node>(n), spiral: { ...self<typeof node>(n).spiral!, hand: v as 'right' | 'left' } }) });
+          number('rc', 'Cutter radius', 'mm', n => num(g(n).spiral!.cutterRadius), (n, v) => { const s = { ...g(n).spiral!, cutterRadius: v }; delete s.cutterEstimate; return { ...g(n), spiral: s }; });
+        }
       }
       number('b', 'Face width', 'mm', n => num(g(n).faceWidth), (n, v) => ({ ...g(n), faceWidth: v }));
       number('bore', 'Bore', 'mm', n => num(g(n).bore ?? 0), (n, v) => ({ ...g(n), bore: v }));
@@ -377,6 +383,10 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
 
 /** The centre distance two gear nodes mesh at without backlash (the kernel's: shifted and helical pairs too); 0 when they do not mesh. */
 /** A pinion's working distance inside a ring (R12b.2a). */
+/** A bevel gear's mean cone distance R − b/2 (R12b.4: a spiral one's cutter radius by default, an estimate); 0 where the kernel refuses the gear. */
+function meanConeDistance(b: Extract<ModelNode, { kind: 'bevel-gear' }>): number {
+  try { const d = bevelGearDimensions({ moduleMM: num(b.module), teeth: b.teeth, mateTeeth: b.mateTeeth, shaftAngleDeg: b.shaftAngle ?? 90, faceWidthMM: num(b.faceWidth) }); return +((d.Re + d.Ri) / 2).toFixed(3); } catch { return 0; }
+}
 function insideDistance(ring: Extract<ModelNode, { kind: 'internal-gear' }>, b: Extract<ModelNode, { kind: 'gear' }>, nodes: Nodes): number {
   try {
     const h = helixOf(b, nodes), m = num(ring.module), mod = h ? { normalModuleMM: m, helixAngleDeg: h.angle, hand: h.hand } : { moduleMM: m };

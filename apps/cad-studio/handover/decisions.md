@@ -7226,3 +7226,111 @@ Next: R12b.3 — the straight bevel gear (spherical involute).
 - spiral bevels (R12b.4).
 
 Next: R12b.4 — spiral bevel gears (the ideal conjugate, flagged as an ideal model in notes, report and agent output).
+
+## D135 — R12b.4: spiral bevel gears — the ideal conjugate, flagged as an ideal model (bevel-gear@0 with `spiral`) (2026-10-21)
+
+**Decision** (`gear-bevel.ts`: `spiral` on `BevelGearSpec`, `spiralTrace`, `twistedRing`, the pair's five spheres, `thrustWords`; the part model's `bevel-gear.spiral`; the studio's Bevel gear command, notes and agent output). As D129 froze it, on the owner's word that the stage stays, clearly marked as an ideal model:
+- **The model:** on every sphere about the apex, the section is R12b.3's spherical involute, of the transverse pressure angle tan α_t = tan α_n / cos β_m (α_n 20°). It is turned along the cone distance by φ(R) = h ψ(R) / sin δ (h +1 right-hand), ψ(R) being the crown-plane angle of the tooth trace.
+  - A mate of the other hand turns by −φ z1/z2, so every sphere's pair stays a meshing pair.
+  - This is the ideal conjugate: line contact, no crowning, no machine settings — not a face-milled or face-hobbed tooth.
+- **The trace:** a circle of the cutter's radius r_c on the crown plane through the mean point (Rm = R − b/2) at the mean spiral angle β_m, its centre on the side the trace turns toward (q² = Rm² + r_c² − 2 Rm r_c sin β_m from the apex).
+  - sin β(R) = (R² − Rm²)/(2 R r_c) + (Rm/R) sin β_m. It grows toward the heel on a small cutter and falls on a large one: K1's pinion goes 30.73° → 39.96° on r_c 60, and 42.3° → 30.4° on r_c 500.
+  - ψ(R) is closed form (the circle's branch through M).
+  - Refused when β leaves (0°, 90°) within the face (`INVALID_INPUT`, naming where and which way).
+- **The hand:** right means that, seen from the gear's apex along its axis, the tooth turns clockwise from the toe to the heel (in its frame, the azimuth grows toward the heel). A pair is of opposite hands.
+- **The faces:** each side face is the section's curve swept by G(R) = R e^{iφ(R)}: (Re G p̂, Im G p̂, R p_z), p̂ = p_x + i p_y.
+  - G is a cubic Hermite fit (G' = e^{iφ}(1 + i R φ')), exact at its knots. So the levels' edges are the exactly turned curves, and the heel and toe edges lie on their spheres exactly; the heel and toe stay R12b.3's stereographic patches.
+  - At most five pieces to an axial segment (16 poles), at most 16 segments; faces after the first segment are named `.2` … as a helical gear's.
+  - The flank tolerance is shared: three quarters for the section's conic fit, a quarter for the twist, the sum within 1e-4·m. A budget past that is `PROFILE_BUDGET_EXCEEDED`.
+  - Observed: twists of 14.8°–31.7° in 3–5 pieces and one segment, within 2.5e-5 to 6.4e-5 mm.
+- **The flag**, wherever a user meets the gear:
+  - **The kernel's report:** `idealModel: true` and `kind: 'spiral'`. The warning `IDEAL_MODEL` (a new `GearDiagnosticCode`, an API addition) reads "an ideal spiral bevel gear (line contact): the conjugate of its mate on every sphere about the apex, not a face-milled or face-hobbed tooth — no crowning, no machine settings". Straight gears report `idealModel: false`.
+  - **The body's notes:** the first line, a warning, is "Ideal model: a spiral bevel gear in line contact — …".
+  - **The label** (history, outliner and the agent's `made_by`): "Spiral bevel gear m3 z20/40 (ideal model)".
+  - **The agent's body list:** an `ideal_model` field with the kernel's warning; the `bevel-gear` command doc says "an IDEAL MODEL … say so to the user".
+- **The report** (`spiral`): β_m, hand, r_c, Rm, β at the toe and heel, α_t, and the normal pressure angle it gives at the toe and heel (tan α_n = tan α_t cos β). The ideal model keeps α_t on every sphere; a cut gear keeps α_n. It also gives the twist, its pieces, segments and deviation.
+- **Refusals:**
+  - an epicycloidal (face-hobbed) trace, a hypoid offset: `UNSUPPORTED_GEAR_KIND`;
+  - β_m outside (0°, 45°], a missing hand, a cutter radius ≤ 0: `INVALID_INPUT`.
+- **The pair:**
+  - **Compatibility:** both spiral or both straight; opposite hands; one β_m and r_c; one face width (a pair shares its trace through the mean point). Else `MATE_INCOMPATIBLE`.
+  - **Five spheres:** the R12b.3 sweep on five spheres from the toe to the heel, each section turned by its own φ(R). The heel's is refined; the others are the least of `samples`.
+  - **Contact ratios:** the face ratio |ψ(Re) − ψ(Ri)| over the crown pitch 2π sin δ1 / z1, and the total with the transverse one.
+- **The thrust** (`axialThrust`, a straight pair's too):
+  - Computed at the mean point on the pitch cone, from the driver's leading flank's outward normal n (R turning clockwise seen from its apex, L the other way). The driver takes −n and the driven +n, each read along its axis: "pushed away from / toward its apex". A direction, no load.
+  - For a straight pair it gives the textbook "away from the apex" both ways.
+- **Placed:** unchanged. The tooth is centred at the mean cone distance (φ(Rm) = 0), so `bevelMatePlacement` and `checkPlacedBevelGears` hold.
+- **Part model:** `bevel-gear.spiral: { angle, hand, cutterRadius }` (the radius a length; a mate gives its own, the other hand).
+- **Studio:**
+  - **The Bevel gear command:** "Spiral angle β (0 straight; above 0: an ideal model)", Hand, "Cutter radius (0: the mean cone distance, an estimate)". Left 0, the node keeps `cutterEstimate` and the note says "(an estimate: the mean cone distance; give the shop's)" as a warning.
+  - **A mate by Meshing gear** takes the driver's spiral, the other hand, kept in step as R12b.3's module and teeth.
+  - **Edit fields:** spiral angle, hand, cutter radius (a radius given drops the estimate flag).
+  - **Mesh notes:** "+ face … = …", "Clear over a full tooth period on 5 spheres from the toe to the heel", "Axial thrust: n0 driving clockwise seen from its apex is pushed toward its apex, this gear away from its own; …".
+  - **Tool contract:** `tools-v1.json` and v2 unchanged (the command's values docs are not in the contract).
+- **The coordinator's timing note** (one Boolean per gear kind in the default suite):
+  - The bevel kind's default Boolean is now a small meshed pair, 13/13 4 wide (11 s against the 16/20 pair's 20 s). The 16/20 pair and its phase-off case moved to `GEAR_SURVEY=1`.
+  - The spiral pair's Boolean is in the survey. By default, the spiral pair is checked by cutting both B-reps with spheres (below), which is faster and measures more.
+
+**Found:**
+- **The B-reps mesh on every sphere, as built.** K1's spiral pair (j 0.1) is placed by `mesh`, and both B-reps are cut by five spheres about the shared apex, the sections made from the faces' own surfaces. They are clear by j R/Re cos α_t / 2: at the heel 0.04573 against 0.045693, at the toe 0.03214 against 0.032070, within the fits. This holds at two turns (three in the survey); 4° off they cross. So the hands, the turn's sign and the −z1/z2 law hold on the solids, not only in the formula.
+- **The thrust** of K1's pair: the left-hand pinion driving clockwise seen from its apex is pushed toward its apex and the mate away from its own; counter-clockwise, both are pushed away. The B-rep's own flank normal agrees with the first clause.
+- **Contact ratios,** K1's pair: ε_α 1.54411 (Tredgold 1.54333), ε_β 1.75989, ε_γ 3.30400.
+- **The ideal model's normal pressure angle varies along the face:** 20.90° at the toe and 18.81° at the heel for K1's pinion, against the 20° a cutter gives everywhere. This is one measure of what "ideal" leaves out.
+- **Timings:**
+  - a spiral gear 2–7 ms; its mass about 0.6 s;
+  - a pair's report about 3.9 s (five spheres; the heel refined), its verdict less;
+  - `gear-bevel-spiral.test.mjs` 16 s by default, 50 s with `GEAR_SURVEY=1`;
+  - `gear-bevel.test.mjs` 21 s (D134's 29 s) by default, 70 s in the survey;
+  - the kernel suite's wall time 244 s (D134's 259 s).
+
+**Evidence:**
+- **Kernel** `test/gear-bevel-spiral.test.mjs`, 4/4, its oracles written there apart from `gear-bevel.ts`. The first test fails on ebdecdb01 (no spiral).
+  - **Gears** (K1's m 3 z 20/40 left with a bore, and its z 40/20 right; m 2 z 16/24 Σ 60° β 25°; the survey four more, β 20°–45°):
+    - valid; the ideal-model flag and its warning;
+    - α_t and δb by the test's own formulas; K1's α_t 23.95680°, R 67.08204 and Rm 57.08204 to 5e-6;
+    - the trace built in the test (bisection along the cutter's circle): β at the toe and heel and the twist to 1e-9, ψ' = tan β / R;
+    - every face sampled: the levels' radii to 1e-9·R; the flanks against the section turned by the test's φ(R), within the section's fit plus the twist's; tips and roots off their cones by no more than the twist's fit; the ends on their spheres;
+    - the hand by the B-rep's toe and heel azimuths;
+    - the volume against the α_t section's area on the sphere × (R³ − Ri³)/3 less the bore (a turn keeps every sphere's area): 2.5e-7 to 6.5e-7 relative, within perimeter × b × the fits.
+  - **Refusals and `MATE_INCOMPATIBLE`,** each with its code.
+  - **The pair:**
+    - five spheres, each within [j R/Re cos α_t/2, + its sag]; a phase a third of a pitch off crosses;
+    - ε_α by the great circle of action built in space to 1e-9, ε_β by the test's trace to 1e-9;
+    - the thrust's first clause by the B-rep's own flankR#1 normal at the mean point (Newton on the face's surface);
+    - the straight pair's thrust, both away.
+  - **The part model:**
+    - the B-rep sphere sections as above;
+    - `checkPlacedBevelGears` phase 0 and clear;
+    - refusals (the same hand, a missing hand);
+    - a STEP round trip (volume 1e-6, names, valid);
+    - the exact Boolean empty when meshed (survey).
+- **`test/gear-bevel.test.mjs`:** the default Boolean on the 13/13 pair, the 16/20 pair and the phase-off case in the survey.
+- **Conformance** `r12b/`, 18 (192 overall):
+  - `spiral-khk-pair` (41367.3882 and 221439.7348 by the α_t section's area, centroids on their axes by its first moment, relTol 1e-6);
+  - `spiral-same-hand-refused`;
+  - `spiral-cutter-refused` (r_c 16: "takes the spiral angle to 90°").
+- **RB seeds,** every stage OK: `gear-bevel-spiral-khk-pinion`, `gear-bevel-spiral-pair`, `gear-bevel-spiral-sigma60`.
+- **Studio** `primitives.test.ts` "Spiral bevel gear":
+  - K1's pinion from the command: its label "… (ideal model)", the ideal-model warning first, the spiral note, `idealModel` on the body, and in `describeBodies` both the `made_by` label and `ideal_model`;
+  - the volume against 41367.3882 (within 0.05);
+  - its mate by Meshing gear: the other hand, "contact ratio 1.544 (spherical; Tredgold's estimate 1.543) + face 1.760 = 3.304", clear on 5 spheres, the thrust; its volume 221439.7348 (within 0.2);
+  - the cutter radius left 0: 57.082 and the estimate's warning.
+- **Browser flow:** a new step "Spiral bevel gear (R12b.4, D135)": from the palette with β 35° on r_c 40, the history's "(ideal model)" label, "Ideal model: …" first in its notes; its mate's other hand, five spheres clear, the thrust.
+
+**Checks:**
+- Kernel 1345/1350 (4 skipped; +7: the 4 tests and 3 conformance cases). The names against D134's run: none missing — one renamed, the straight part-model test's title (its Boolean's pair). The env-only "actual native Split source…" fails.
+- Conformance 192/192. Kernel lint clean, type-check clean.
+- Studio 704/705 with the one known todo (the hole-after-union repro, O80), 0 fail (+1 test). Studio lint 0 errors (119 warnings, as before), type-check clean.
+- The full flow 202/202 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** the tolerance's three-to-one split (section, twist); the studio's default cutter radius (the mean cone distance, an estimate, flagged).
+
+**Not in this stage:**
+- face-milled or face-hobbed tooth generation (machine settings, crowning, the Gleason system);
+- epicycloidal traces; hypoid offsets;
+- Zerol (β_m 0 with a curved trace);
+- spiral angles over 45°;
+- a mate of another face width.
+
+Next: R12b.5 — ZI and ZA worms and their cylindrical wheel.

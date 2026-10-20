@@ -2551,6 +2551,33 @@ try {
     await snap('bevel-pair');
   });
 
+  await check('Spiral bevel gear (R12b.4, D135): from the palette with a spiral angle — labelled and noted an ideal model; its mate by Meshing gear — the other hand, clear on five spheres, the thrust said', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('bevel gear'); await press('Enter'); await hudReady();
+    await field('Spiral angle β (0 straight; above 0: an ideal model)').fill('35'); await hudReady();
+    await field('Cutter radius (0: the mean cone distance, an estimate)').fill('40'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'bevel-gear' && window.__studioDoc.nodes[0].spiral?.angle === 35 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    assert.match(await page.textContent('.history'), /Spiral bevel gear m2 z20\/40 \(ideal model\)/);
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    // (A warning note's text begins with its icon's name.)
+    assert.ok(/^(warning )?Ideal model: a spiral bevel gear in line contact/.test(notes[0]) && notes.some(t => /^Spiral β_m 35° left hand on a 40 mm cutter radius/.test(t)), notes.join(' | '));
+    await press(' '); await page.locator('.palette input').fill('meshing gear'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[1]?.kind === 'bevel-gear' && window.__studioDoc.nodes[1].mesh?.gear === 0 && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    assert.match(await page.textContent('.history'), /Spiral bevel gear m2 z40\/20 \(ideal model\)/);
+    await page.locator('.outliner .ol').nth(1).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(n => /Meshes with n0/.test(n.textContent ?? '')), null, { timeout: 30000 });
+    const mate = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(mate.some(t => /^Spiral β_m 35° right hand/.test(t)) && mate.some(t => /^Clear over a full tooth period on 5 spheres from the toe to the heel/.test(t)) && mate.some(t => /^Axial thrust: n0 driving clockwise seen from its apex/.test(t)), mate.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('spiral-bevel-pair');
+  });
+
   await check('Library (LIB4): the T-slot 20 series with its licence and estimates; a 20×20 profile inserted into the part, its notes from the library; a slot nut placed as a part', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Library"]');
