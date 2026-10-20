@@ -20,7 +20,7 @@
 import { buildBrep, type Brep, type BrepFaceInput } from './brep-core.js';
 import type { Curve, Point, Surface } from './types.js';
 
-export type GearDiagnosticCode = 'INVALID_INPUT' | 'UNSUPPORTED_PROFILE_SHIFT' | 'UNSUPPORTED_GEAR_KIND' | 'PROFILE_BUDGET_EXCEEDED' | 'SELF_INTERSECTION' | 'ROOT_TRANSITION_UNVALIDATED' | 'BORE_INTERSECTION' | 'MATE_INCOMPATIBLE' | 'UNDERCUT' | 'INVOLUTE_INTERFERENCE' | 'TROCHOID_INTERFERENCE' | 'TRIMMING_INTERFERENCE' | 'RIM_INTERSECTION';
+export type GearDiagnosticCode = 'INVALID_INPUT' | 'UNSUPPORTED_PROFILE_SHIFT' | 'UNSUPPORTED_GEAR_KIND' | 'PROFILE_BUDGET_EXCEEDED' | 'SELF_INTERSECTION' | 'ROOT_TRANSITION_UNVALIDATED' | 'BORE_INTERSECTION' | 'MATE_INCOMPATIBLE' | 'UNDERCUT' | 'INVOLUTE_INTERFERENCE' | 'TROCHOID_INTERFERENCE' | 'TRIMMING_INTERFERENCE' | 'RIM_INTERSECTION' | 'IDEAL_MODEL';
 export interface GearDiagnostic { readonly code: GearDiagnosticCode; readonly severity: 'error' | 'warning'; readonly message: string }
 export class GearError extends Error {
   constructor(readonly code: GearDiagnosticCode, detail: string) { super(`gear: ${detail}`); this.name = 'GearError'; }

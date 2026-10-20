@@ -241,7 +241,13 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'bevel-gear'; readonly module: CadPartDim; readonly teeth: number; readonly mateTeeth: number; readonly shaftAngle?: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number;
     readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
     readonly mesh?: { readonly gear: string; readonly direction?: number; readonly phase?: number };
-    /** 'bevel-gear@0' (the default): straight, standard, spherical involute, schematic meridian root. */
+    /**
+     * A spiral bevel gear (R12b.4, D135), the ideal conjugate (flagged as an ideal model): its mean spiral angle (degrees,
+     * at most 45), hand (right: seen from its apex, the tooth turns clockwise from the toe to the heel) and the circular
+     * trace's cutter radius. A mate takes the same angle and radius, the other hand, the same face width.
+     */
+    readonly spiral?: { readonly angle: number; readonly hand: 'right' | 'left'; readonly cutterRadius: CadPartDim };
+    /** 'bevel-gear@0' (the default): straight or spiral, standard, spherical involute, schematic meridian root. */
     readonly generator?: 'bevel-gear@0' }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
     /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
@@ -509,7 +515,7 @@ export interface GearPlacement {
 /** A bevel gear as placed (R12b.3): its apex, axis and turn; the bevel gear it meshes with and that one's placement. */
 export interface BevelGearPlacement extends PlacedBevelGear { readonly meshesWith?: string; readonly driver?: BevelGearPlacement }
 /** Gear diagnostics as the part model's codes (the gear's own code kept in the message). */
-const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_PROFILE_SHIFT: 'CAPABILITY', UNSUPPORTED_GEAR_KIND: 'CAPABILITY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', SELF_INTERSECTION: 'GEOMETRY', ROOT_TRANSITION_UNVALIDATED: 'GEOMETRY', BORE_INTERSECTION: 'GEOMETRY', MATE_INCOMPATIBLE: 'INPUT', UNDERCUT: 'GEOMETRY', INVOLUTE_INTERFERENCE: 'GEOMETRY', TROCHOID_INTERFERENCE: 'GEOMETRY', TRIMMING_INTERFERENCE: 'GEOMETRY', RIM_INTERSECTION: 'GEOMETRY' };
+const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_PROFILE_SHIFT: 'CAPABILITY', UNSUPPORTED_GEAR_KIND: 'CAPABILITY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', SELF_INTERSECTION: 'GEOMETRY', ROOT_TRANSITION_UNVALIDATED: 'GEOMETRY', BORE_INTERSECTION: 'GEOMETRY', MATE_INCOMPATIBLE: 'INPUT', UNDERCUT: 'GEOMETRY', INVOLUTE_INTERFERENCE: 'GEOMETRY', TROCHOID_INTERFERENCE: 'GEOMETRY', TRIMMING_INTERFERENCE: 'GEOMETRY', RIM_INTERSECTION: 'GEOMETRY', IDEAL_MODEL: 'GEOMETRY' };
 type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
 /** x ↦ m·x + o from a sketch's own XY (Z along its normal) into the part. */
 type Frame = { readonly m: BrepAffine['matrix']; readonly o: Point };
@@ -1524,8 +1530,12 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
       if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
       if (f.shaftAngle !== undefined && !(typeof f.shaftAngle === 'number' && Number.isFinite(f.shaftAngle))) fail('INPUT', 'shaftAngle must be a number of degrees');
+      // (A spiral one, R12b.4: its angle and hand as given — the kernel refuses what it cannot take — its cutter radius a length.)
+      const spr = f.spiral as Record<string, unknown> | undefined;
+      if (spr !== undefined && !isRecord(spr)) fail('INPUT', 'spiral must be { angle, hand, cutterRadius }');
       const spec: BevelGearSpec = { moduleMM: m, teeth: f.teeth as number, mateTeeth: f.mateTeeth as number, ...(f.shaftAngle === undefined ? {} : { shaftAngleDeg: f.shaftAngle as number }), faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red,
-        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }),
+        ...(spr === undefined ? {} : { spiral: { angleDeg: spr.angle as number, hand: spr.hand as 'right' | 'left', cutterRadiusMM: dim(spr.cutterRadius as CadPartDim, 'spiral.cutterRadius', true) } }) };
       const mesh = f.mesh as Record<string, unknown> | undefined;
       let place: BevelGearPlacement;
       if (mesh !== undefined) {

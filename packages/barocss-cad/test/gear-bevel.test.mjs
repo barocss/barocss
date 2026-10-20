@@ -230,7 +230,7 @@ test('the pair on the heel sphere: the product\'s sweep against the sweep writte
   }
 });
 
-test('the part model: a pinion and its mate by mesh — the same apex, the axes at Σ, the mate turning by −z1/z2 (this file\'s formula), phase 0 and clear by checkPlacedBevelGears; the exact Boolean intersection empty when meshed (a phase off overlapping in the survey); refusals; STEP', () => {
+test('the part model: a pinion and its mate by mesh — the same apex, the axes at Σ, the mate turning by −z1/z2 (this file\'s formula), phase 0 and clear by checkPlacedBevelGears; the exact Boolean intersection empty when meshed (a small pair; the 16/20 pair and a phase off overlapping in the survey); refusals; STEP', () => {
   const base = (dir, rot, phase = 0) => [{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 16, mateTeeth: 20, faceWidth: 6, thicknessReduction: 0.05, rotation: rot, center: [5, -3], from: 2 }, { id: 'w', kind: 'bevel-gear', module: 2, teeth: 20, mateTeeth: 16, faceWidth: 6, thicknessReduction: 0.05, mesh: { gear: 'p', direction: dir, phase } }];
   for (const [dir, rot] of [[0, 0], [30, 7], [200, -13]]) {
     const P = evaluateCadPart(D(base(dir, rot))), a = P.output('p'), b = P.output('w'), pa = a.bevelGearPlacement, pb = b.bevelGearPlacement;
@@ -243,9 +243,15 @@ test('the part model: a pinion and its mate by mesh — the same apex, the axes 
     // The mate's teeth stand where the sweep put them: its heel points at the cone distance from the shared apex.
     for (const f of b.brep.faces.filter(f => f.name === 'w.heel')) { const p = evaluateSurface(f.surface, 0.5, 0.5); close(Math.hypot(p[0] - 5, p[1] + 3, p[2] - 2), bevelGearDimensions({ moduleMM: 2, teeth: 20, mateTeeth: 16, faceWidthMM: 6 }).Re, 1e-9, 'heel about the apex'); }
   }
-  assert.throws(() => evaluateCadPart(D([...base(0, 0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
-  // (4° off: at 6° the analytic Boolean itself fails — a non-manifold result where the inputs touch along an edge, D134.)
-  if (SURVEY) { const off = evaluateCadPart(D([...base(0, 0, 4), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'); assert.ok(brepMassProperties(off.brep, 1).volumeMM3 > 1, 'a phase off: the teeth overlap'); }
+  // The exact Boolean, apart from the sweep — the one Boolean the default suite keeps for bevel gears (a small pair, 13/13
+  // 4 wide: about 11 s, the 16/20 pair's 20 s in the survey, D135).
+  const small = phase => [{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 13, mateTeeth: 13, faceWidth: 4, thicknessReduction: 0.05 }, { id: 'w', kind: 'bevel-gear', module: 2, teeth: 13, mateTeeth: 13, faceWidth: 4, thicknessReduction: 0.05, mesh: { gear: 'p', phase } }];
+  assert.throws(() => evaluateCadPart(D([...small(0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+  if (SURVEY) {
+    assert.throws(() => evaluateCadPart(D([...base(0, 0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+    // (4° off: at 6° the analytic Boolean itself fails — a non-manifold result where the inputs touch along an edge, D134.)
+    const off = evaluateCadPart(D([...base(0, 0, 4), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'); assert.ok(brepMassProperties(off.brep, 1).volumeMM3 > 1, 'a phase off: the teeth overlap');
+  }
   // Refusals in the part model.
   assert.throws(() => evaluateCadPart(D([base(0, 0)[0], { ...base(0, 0)[1], mateTeeth: 17 }])).output('w'), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
   assert.throws(() => evaluateCadPart(D([{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 12, mateTeeth: 40, faceWidth: 6 }])).output('p'), e => e.code === 'CAPABILITY' && /undercut/.test(e.message));

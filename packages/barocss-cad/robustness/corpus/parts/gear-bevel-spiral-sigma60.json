@@ -1,0 +1,23 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "s",
+      "kind": "bevel-gear",
+      "module": 2,
+      "teeth": 16,
+      "mateTeeth": 24,
+      "shaftAngle": 60,
+      "faceWidth": 8,
+      "spiral": {
+        "angle": 25,
+        "hand": "right",
+        "cutterRadius": 30
+      },
+      "rotation": 7
+    }
+  ]
+}

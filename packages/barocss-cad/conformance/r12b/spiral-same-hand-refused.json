@@ -1,0 +1,55 @@
+{
+  "id": "r12b-spiral-same-hand-refused",
+  "step": "R12b",
+  "decisions": [
+    "D135"
+  ],
+  "about": "A spiral bevel mate of the pinion's own hand: refused — a spiral pair is of opposite hands.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "bevel-gear",
+          "module": 3,
+          "teeth": 20,
+          "mateTeeth": 40,
+          "faceWidth": 20,
+          "bore": 10,
+          "spiral": {
+            "angle": 35,
+            "hand": "left",
+            "cutterRadius": 60
+          }
+        },
+        {
+          "id": "w",
+          "kind": "bevel-gear",
+          "module": 3,
+          "teeth": 40,
+          "mateTeeth": 20,
+          "faceWidth": 20,
+          "bore": 20,
+          "spiral": {
+            "angle": 35,
+            "hand": "left",
+            "cutterRadius": 60
+          },
+          "mesh": {
+            "gear": "p"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "INPUT",
+      "messageIncludes": "opposite hands"
+    }
+  }
+}

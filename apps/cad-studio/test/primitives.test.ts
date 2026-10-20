@@ -279,6 +279,39 @@ test('Bevel gear (R12b.3, D134): a straight bevel pinion from the command (m 2, 
   assert.match((deleteFeature(two, 0) as { error: string }).error, /used by feature 1/);
 });
 
+test('Spiral bevel gear (R12b.4, D135): an ideal model, said so — K1\'s spiral pinion from the command (m 3, z 20 for 40, β_m 35° left, r_c 60): its label, the ideal-model warning first in its notes, ideal_model in the agent\'s body list; its volume; its mate by Meshing gear — the other hand, five spheres clear, the face contact ratio, the thrust; the cutter radius left 0 an estimate', async () => {
+  const { describeBodies } = await import('../src/chat/tools');
+  const { featureLabel } = await import('../src/engine/doc');
+  const cmd = commands.find(c => c.id === 'bevel-gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!;
+  const one = cmd.build!(ctx, { ...cmd.defaults!(ctx), m: 3, teeth: 20, mate: 40, b: 20, bore: 10, spiral: 35, hand: 'left', rc: 60, x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 1);
+  assert.ok(r1.ok, r1.ok ? '' : r1.error.hint);
+  const node = one.nodes[0] as Extract<ModelNode, { kind: 'bevel-gear' }>;
+  assert.deepEqual(node.spiral, { angle: 35, hand: 'left', cutterRadius: 60 });
+  assert.equal(featureLabel(node, 0, one.nodes), 'Spiral bevel gear m3 z20/40 (ideal model)');
+  const g = r1.ok ? r1.bodies[0] : null!;
+  // (41367.3882 mm³ by the kernel test's construction, test/gear-bevel-spiral.test.mjs: the α_t section's area — a turn keeps it on every sphere.)
+  assert.ok(Math.abs(g.volumeMM3! - 41367.3882) < 0.05, String(g.volumeMM3));
+  assert.ok(g.notes![0].warning && /^Ideal model: a spiral bevel gear in line contact — the conjugate of its mate on every sphere about the apex, not a face-milled or face-hobbed tooth \(no crowning, no machine settings\)/.test(g.notes![0].text), JSON.stringify(g.notes));
+  assert.ok(g.notes!.some(n => /^Spiral β_m 35° left hand on a 60 mm cutter radius: β 30\.7328° at the toe to 39\.9648° at the heel; transverse α_t 23\.9568°/.test(n.text)) && g.notes!.some(n => /^Spiral bevel, spherical involute/.test(n.text)), JSON.stringify(g.notes));
+  assert.match(g.idealModel!, /ideal spiral bevel gear \(line contact\)/);
+  const listed = describeBodies(one, r1.ok ? r1.bodies : [], false)[0];
+  assert.equal(listed.made_by, '0: Spiral bevel gear m3 z20/40 (ideal model)'); assert.match(String(listed.ideal_model), /not a face-milled or face-hobbed tooth/);
+  // Its mate: the other hand, from the driver.
+  const picked: Ctx = { doc: one, bodies: r1.ok ? r1.bodies : [], selection: { faces: [], edges: [], bodies: [0] } };
+  const two = mesh.build!(picked, { ...mesh.defaults!(picked), bore: 20 }), r2 = evaluateDoc(two, 2);
+  assert.ok(r2.ok, r2.ok ? '' : r2.error.hint);
+  assert.equal(featureLabel(two.nodes[1], 1, two.nodes), 'Spiral bevel gear m3 z40/20 (ideal model)');
+  const k = r2.ok ? r2.bodies.find(b => b.ref?.node === 1)! : null!;
+  assert.ok(k.notes!.some(n => /^Spiral β_m 35° right hand on a 60 mm cutter radius/.test(n.text)) && k.notes!.some(n => /contact ratio 1\.544 \(spherical; Tredgold's estimate 1\.543\) \+ face 1\.760 = 3\.304/.test(n.text))
+    && k.notes!.some(n => /^Clear over a full tooth period on 5 spheres from the toe to the heel/.test(n.text)) && k.notes!.some(n => /^Axial thrust: n0 driving clockwise seen from its apex is pushed toward its apex, this gear away from its own/.test(n.text)), JSON.stringify(k.notes));
+  // (221439.7348 mm³ by the same construction for the z 40 gear with its Ø20 bore.)
+  assert.ok(Math.abs(k.volumeMM3! - 221439.7348) < 0.2, String(k.volumeMM3));
+  // The cutter radius left 0: the mean cone distance, an estimate — said so.
+  const est = cmd.build!(ctx, { ...cmd.defaults!(ctx), m: 3, teeth: 20, mate: 40, b: 20, bore: 10, spiral: 35, hand: 'left', rc: 0, x: 0, y: 0, z: 0 }), r3 = evaluateDoc(est, 3);
+  assert.deepEqual((est.nodes[0] as typeof node).spiral, { angle: 35, hand: 'left', cutterRadius: 57.082, cutterEstimate: true });
+  assert.ok(r3.ok && r3.bodies[0].notes!.some(n => n.warning && /on a 57\.082 mm cutter radius \(an estimate: the mean cone distance; give the shop's\)/.test(n.text)));
+});
+
 test('Gear rack (R6a.5b, D58): on its own (the basic rack on a bar, its exact volume); meshing with the selected gear — under it, the verdict in its notes, travelling as the gear turns; a slide off its place crosses; gear queries on the pair', async () => {
   const { editFields } = await import('../src/app/editFields');
   const { runCheck } = await import('../src/chat/spec');

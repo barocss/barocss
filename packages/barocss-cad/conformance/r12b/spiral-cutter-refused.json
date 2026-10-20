@@ -1,0 +1,38 @@
+{
+  "id": "r12b-spiral-cutter-refused",
+  "step": "R12b",
+  "decisions": [
+    "D135"
+  ],
+  "about": "K1's pinion on a 16 mm cutter radius: the trace's spiral angle reaches 90° within the face — refused, naming where.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "bevel-gear",
+          "module": 3,
+          "teeth": 20,
+          "mateTeeth": 40,
+          "faceWidth": 20,
+          "bore": 10,
+          "spiral": {
+            "angle": 35,
+            "hand": "left",
+            "cutterRadius": 16
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "INPUT",
+      "messageIncludes": "takes the spiral angle to 90°"
+    }
+  }
+}
