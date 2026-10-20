@@ -7,7 +7,19 @@
 // What it gives is a draft: its dimensions read from the drawing are the user's to confirm (drafts.ts).
 import type { LoopSegment } from '../engine/doc';
 
-export type DxfReadCode = 'DXF_MALFORMED' | 'DXF_UNSUPPORTED' | 'DXF_OPEN' | 'DXF_NESTED' | 'DXF_EMPTY';
+export type DxfReadCode = 'DXF_MALFORMED' | 'DXF_UNSUPPORTED' | 'DXF_OPEN' | 'DXF_NESTED' | 'DXF_EMPTY' | 'DWG_NOT_READ';
+/** AutoCAD's DWG version tags (the file's first six bytes) and their releases. */
+const DWG_RELEASES: Record<string, string> = { AC1009: 'R11/R12', AC1012: 'R13', AC1014: 'R14', AC1015: '2000', AC1018: '2004', AC1021: '2007', AC1024: '2010', AC1027: '2013', AC1032: '2018' };
+/** The release of a DWG file from its first bytes (`AC10xx`), or null when it is not one. */
+export function dwgRelease(head: string): string | null {
+  const m = /^AC10\d\d/.exec(head); return m ? DWG_RELEASES[m[0]] ?? `version ${m[0]}` : null;
+}
+/** What to do with a DWG (O61: DWG is not read; every producer saves DXF). */
+export const DWG_ROUTES = 'Save it as DXF from the program that made it (AutoCAD and its family: Save As → DXF), or convert it with the free ODA File Converter (DWG to DXF, one file or a folder at once), then add the DXF.';
+/** The refusal for a DWG file, typed (O61). */
+export function dwgRefusal(head: string): DxfReadError | null {
+  const r = dwgRelease(head); return r ? new DxfReadError('DWG_NOT_READ', `this is a DWG file (AutoCAD ${r}), and the studio reads DXF, not DWG. ${DWG_ROUTES}`) : null;
+}
 export class DxfReadError extends Error { constructor(public code: DxfReadCode, message: string) { super(`[${code}] ${message}`); this.name = 'DxfReadError'; } }
 type P = [number, number];
 /** An edge: a line, or an arc from a to b about c, counter-clockwise when ccw. */
@@ -137,6 +149,7 @@ const toSegments = (edges: readonly Edge[]): LoopSegment[] => edges.map(e => (e.
 
 /** A DXF drawing's profile: its regions and holes, in mm. */
 export function readDxfSketch(text: string): DxfSketch {
+  const dwg = dwgRefusal(text.slice(0, 6)); if (dwg) throw dwg;
   const { edges, circles, unit, ignored, entities } = readEntities(pairsOf(text));
   if (!edges.length && !circles.length) throw new DxfReadError('DXF_EMPTY', `no profile geometry (${entities} entities${Object.keys(ignored).length ? `, left out: ${Object.entries(ignored).map(([t, n]) => `${n} ${t}`).join(', ')}` : ''})`);
   let size = 0; for (const e of edges) size = Math.max(size, Math.abs(e.a[0]), Math.abs(e.a[1]), Math.abs(e.b[0]), Math.abs(e.b[1])); for (const c of circles) size = Math.max(size, Math.abs(c.c[0]) + c.r, Math.abs(c.c[1]) + c.r);

@@ -184,3 +184,28 @@ export function jacobianConditioning(tree: JointTree, link: string, q: Readonly<
   evaluateAt(p, q, true); const [smin, smax] = singularValues(keys.length, p.rows);
   return { sigmaMin: smin, sigmaMax: smax, singular: !(smax > 0) || smin / smax < SINGULAR_RATIO };
 }
+
+/** A tool point's probe for many poses (RM9b): its path and Jacobian set up once. */
+export interface ToolProbe { problem: Problem; n: number }
+export function toolProbe(tree: JointTree, link: string, tool?: readonly number[]): ToolProbe {
+  const path = pathTo(tree, link), keys = unknownsOf(path);
+  if (!keys.length) throw new IkError('NO_JOINTS', `nothing moves link ${link}`);
+  const t = tool ?? path[path.length - 1].origin, D = forwardKinematics(tree, {}).motions.get(link)!;
+  return { problem: { tree, path, keys, link, tool: t, target: D, xs: [0, 0, 0], rows: 3 }, n: keys.length };
+}
+/**
+ * The tool point (world, mm, into `x`) and its manipulability at q: w = √det(J Jᵀ) of the position Jacobian (m per rad or
+ * m per m), or √det(Jᵀ J) when fewer joints than its three rows — the product of J's singular values (Yoshikawa).
+ */
+export function probeAt(pr: ToolProbe, q: Readonly<Record<string, number>>, x: Float64Array): number {
+  const p = pr.problem, n = pr.n, m = Math.min(3, n);
+  evaluateAt(p, q, true);
+  // (evaluateAt measured the error from xs = 0: the tool point is −ERR × 1000.)
+  x[0] = -ERR[0] * 1000; x[1] = -ERR[1] * 1000; x[2] = -ERR[2] * 1000;
+  if (n >= 3) { for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { let s = 0; for (let k = 0; k < n; k++) s += J[i * n + k] * J[j * n + k]; E[i * 3 + j] = s; } }
+  else for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { let s = 0; for (let k = 0; k < 3; k++) s += J[k * n + i] * J[k * n + j]; E[i * n + j] = s; }
+  // (Its determinant directly: m ≤ 3.)
+  const d = m === 1 ? E[0] : m === 2 ? E[0] * E[3] - E[1] * E[2]
+    : E[0] * (E[4] * E[8] - E[5] * E[7]) - E[1] * (E[3] * E[8] - E[5] * E[6]) + E[2] * (E[3] * E[7] - E[4] * E[6]);
+  return Math.sqrt(Math.max(0, d));
+}

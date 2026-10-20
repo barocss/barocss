@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!-- barocss-mjcf-v1: barocss CAD Studio. SI units; each body at its link frame (at its joint, Z on the axis); joint values 0 at the pose the mates solve to; a passive model (no damping, friction or actuators). -->
+<mujoco model="arm">
+  <compiler angle="radian" meshdir="meshes" autolimits="true"/>
+  <option gravity="0 0 -9.81"/>
+  <asset>
+    <mesh name="base" file="base.stl"/>
+    <mesh name="base_collision" file="base_collision.stl"/>
+    <mesh name="post" file="post.stl"/>
+    <mesh name="post_collision" file="post_collision.stl"/>
+    <mesh name="a" file="a.stl"/>
+    <mesh name="a_collision" file="a_collision.stl"/>
+    <mesh name="b" file="b.stl"/>
+    <mesh name="b_collision" file="b_collision.stl"/>
+  </asset>
+  <worldbody>
+    <body name="base" pos="0 0 0" quat="1 0 0 0">
+      <inertial pos="0.049999999999999954 0.01999999999999998 0.005" mass="0.10375884991765376" fullinertia="0.000015238149894632589 0.00008702111482052155 0.0001005299505498599 0 0 0"/>
+      <geom name="base_visual" type="mesh" mesh="base" contype="0" conaffinity="0" group="1"/>
+      <geom name="base_collision" type="mesh" mesh="base_collision" group="3"/>
+      <body name="post" pos="0.03 0.06 0" quat="1 0 0 0">
+        <inertial pos="0.004999999999999999 0.004999999999999999 0.015" mass="0.008100000000000001" fullinertia="6.750000000000001e-7 6.750000000000001e-7 1.3500000000000016e-7 0 0 0"/>
+        <geom name="post_visual" type="mesh" mesh="post" contype="0" conaffinity="0" group="1"/>
+        <geom name="post_collision" type="mesh" mesh="post_collision" group="3"/>
+      </body>
+      <body name="a" pos="0.02 0.020000000000000004 0.01" quat="1 0 0 0">
+        <inertial pos="0.020000000000000028 0 0.0025" mass="0.01407942495882689" fullinertia="5.560785413235568e-7 0.000004027848524854294 0.000004525262795516072 0 0 0"/>
+        <joint name="base_to_a" type="hinge" pos="0 0 0" axis="0 0 1"/>
+        <geom name="a_visual" type="mesh" mesh="a" contype="0" conaffinity="0" group="1"/>
+        <geom name="a_collision" type="mesh" mesh="a_collision" group="3"/>
+        <body name="b" pos="0.040000000000000015 0 0.005" quat="1 0 0 0">
+          <inertial pos="0.020000000000000014 0 0.0025" mass="0.01407942495882689" fullinertia="5.560785413235568e-7 0.000004027848524854294 0.000004525262795516072 0 0 0"/>
+          <joint name="a_to_b" type="hinge" pos="0 0 0" axis="0 0 1"/>
+          <geom name="b_visual" type="mesh" mesh="b" contype="0" conaffinity="0" group="1"/>
+          <geom name="b_collision" type="mesh" mesh="b_collision" group="3"/>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

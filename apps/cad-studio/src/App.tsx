@@ -50,8 +50,13 @@ import { posedInstances } from './robot/preview';
 import { treeInertia } from './robot/inertia';
 import { gravityTorques, linkMasses } from './robot/dynamics';
 import { exportUrdf } from './robot/urdf';
-import { exportMjcf } from './robot/mjcf';
-import { sweepLinks, sweepPath } from './robot/sweep';
+import { exportMjcf, type MjcfClosure } from './robot/mjcf';
+import { sweepLinks } from './robot/sweep';
+import { sweepTimed, type JointLimits } from './robot/ccd';
+import { workspaceMap, type WorkspaceMap } from './robot/workspace';
+import { exportSdf } from './robot/sdf';
+import { exportUsd } from './robot/usd';
+import { closureOfDoc } from './robot/loop';
 import { convexHull } from './robot/hull';
 import { writeZip } from './io/zip';
 import { useAssembly } from './assembly/useAssembly';
@@ -95,6 +100,7 @@ import { downloadBytes, meshToStl } from './ui/files';
 import { write3mf } from './print/threemf';
 import { threeMfModelOf } from './print/export3mf';
 import { sketchDxf } from './sketch/dxf';
+import { DWG_ROUTES, dwgRefusal } from './sketch/dxfRead';
 import { settleShape } from './sketch/settle';
 import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, xyPlane, type SketchPlane } from './sketch/plane';
 import { profileOf, shapeNode } from './sketch/loops';
@@ -560,8 +566,18 @@ export function App() {
   const [jointValues, setJointValues] = useState<Record<string, number>>({});
   const [jointPlaying, setJointPlaying] = useState<string | null>(null);
   const [pathCheck, setPathCheck] = useState<{ text: string; contact: boolean } | null>(null);
+  // (RM9a: the waypoints recorded for Check path, a preview like the pose; nothing saved.)
+  const [jointWaypoints, setJointWaypoints] = useState<Record<string, number>[]>([]);
+  // (RM9b: the workspace map shown, a preview; nothing saved.)
+  const [workspace, setWorkspace] = useState<WorkspaceMap | null>(null);
+  /** A robot part for the exports (RM4–RM9c): the bodies as placed, so each part's placement is the identity here. */
+  const robotPartOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; };
+  /** The tree's planar loops closed at their pins (RM8), those that are not left out (the exports note them). */
+  const robotClosures = (): MjcfClosure[] => { const out: MjcfClosure[] = []; if (jointTree) for (const l of jointTree.loops) { try { out.push(closureOfDoc(doc, jointTree, l)); } catch { /* not planar: noted */ } } return out; };
+  const workspaceCloud = useMemo(() => { if (!workspace) return null; const best = Math.max(0, ...workspace.voxels.map(v => v.w)); return workspace.voxels.map(v => ({ at: v.c as Vec3, t: best > 0 ? v.w / best : 0 })); }, [workspace]);
   // (A path checked is for the pose it was checked to: moving a joint clears it.)
   useEffect(() => setPathCheck(null), [jointValues, jointTree]);
+  useEffect(() => { setJointWaypoints([]); setWorkspace(null); }, [jointTree]);
   const jointFk = useMemo(() => jointTree && Object.values(jointValues).some(v => v !== 0) ? forwardKinematics(jointTree, jointValues) : null, [jointTree, jointValues]);
   const gearLines = useMemo(() => (jointTree?.couplings ?? []).map(c => { const at = gearPairAt(c, jointFk?.values ?? {}), home = gearPairAt(c, {}), d = Math.abs(at.phaseDeg - home.phaseDeg); return { leader: c.leader, follower: c.follower, multiplier: c.multiplier, held: Math.min(d, 360 / c.g2.spec.teeth - d) < 1e-6, backlashMM: at.backlashMM }; }), [jointTree, jointFk]);
   // (Joints gone from the tree lose their values; a joint played swings through its range, a period of 4 s.)
@@ -1209,6 +1225,8 @@ export function App() {
   };
   const open = async (file: File) => {
     try {
+      // A DWG is not read (O61): its routes named, the part unchanged.
+      if (/\.dwg$/i.test(file.name)) { const e = dwgRefusal(new TextDecoder('latin1').decode(new Uint8Array(await file.slice(0, 6).arrayBuffer()))); setToast({ title: 'DWG files are not read', hint: e ? e.message.replace(/^\[[A-Z_]+\] /, '') : `This is not a DWG file the studio knows. ${DWG_ROUTES}`, detail: '' }); return; }
       // A STEP file starts a new part from its solids.
       if (/\.(step|stp)$/i.test(file.name)) {
         const name = file.name.replace(/\.(step|stp)$/i, ''), step = await file.text();
@@ -1763,7 +1781,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={workspaceCloud} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
@@ -1835,7 +1853,7 @@ export function App() {
         }}><Icon name="polyline" /></button>}
         <button className="tool" aria-label="Insert part" data-tip="Insert part" data-tip-desc="Another part (.bcad) as an instance" onClick={() => partInput.current?.click()}><Icon name="add_to_photos" /></button>
         <input ref={partInput} type="file" accept=".bcad,.json" hidden aria-label="Part file" onChange={e => { const f = e.target.files?.[0]; if (f) insertPart(f); e.target.value = ''; }} />
-        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.cad" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
+        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.cad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header>
 
       <TooltipLayer />
@@ -2017,19 +2035,53 @@ export function App() {
           void writeZip([{ name: 'robot.urdf', data: new TextEncoder().encode(r.urdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-urdf.zip`, 'application/zip'));
           if (r.notes.length) setToast({ title: 'URDF written', hint: r.notes.join(' '), detail: '' });
         }}
+        waypoints={jointWaypoints.length} onAddWaypoint={() => setJointWaypoints(w => [...w, { ...(jointFk?.values ?? jointValues) }])} onClearWaypoints={() => { setJointWaypoints([]); setPathCheck(null); }}
+        onWorkspace={(n, h, free) => {
+          // (RM9b: the deepest link's joint point over the joints' ranges; a slide without limits refused, said so.)
+          const depth = (l: string): number => { const j = jointTree.joints.find(x => x.child === l); return j ? 1 + depth(j.parent) : 0; }, end = jointTree.links.reduce((b, l) => depth(l.id) > depth(b.id) ? l : b, jointTree.links[0]).id;
+          try {
+            // (The tool point: the end link's farthest hull point from its joint at the solved pose — its tip.)
+            const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions), own = jointTree.joints.find(j => j.child === end)?.origin ?? [0, 0, 0];
+            const hull = links.find(l => l.link === end)?.hull; let tool: number[] | undefined, far = -1;
+            if (hull) for (let i = 0; i < hull.length; i += 3) { const d = Math.hypot(hull[i] - own[0], hull[i + 1] - own[1], hull[i + 2] - own[2]); if (d > far) { far = d; tool = [hull[i], hull[i + 1], hull[i + 2]]; } }
+            setWorkspace(workspaceMap(jointTree, { link: end, samples: n, h, ...(tool ? { tool } : {}), ...(free ? { links } : {}) }));
+          } catch (e) { setToast({ title: 'Workspace not mapped', hint: e instanceof Error ? e.message.replace(/^\[[A-Z_]+\] /, '') : String(e), detail: '' }); }
+        }}
+        workspace={workspace ? `Workspace of ${workspace.samples} poses${workspace.excluded ? ` (${workspace.excluded} in self-contact left out)` : ''}: ${workspace.voxels.length} voxels of ${workspace.h} mm, reach ${workspace.reach.toFixed(1)} mm, best manipulability ${Math.max(0, ...workspace.voxels.map(v => v.w)).toExponential(3)}` : null}
+        onWorkspaceDownload={() => workspace && downloadBytes(new TextEncoder().encode(JSON.stringify(workspace)), `${fileName}-workspace.json`, 'application/json')}
+        onWorkspaceHide={() => setWorkspace(null)}
         path={pathCheck} ready={robotReady} holding={jointMasses && jointTree ? gravityTorques(jointTree, jointMasses, jointFk?.values ?? jointValues).torques : undefined}
         onCheckPath={() => {
-          // (RM6: the move from the solved pose to the sliders', the links as placed; the whole path certified.)
-          const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions), r = sweepPath(jointTree, links, {}, jointValues);
-          const name = (l: string) => jointTree.links.find(x => x.id === l)?.name ?? l;
-          setPathCheck(r.contact ? { contact: true, text: `Contact ${name(r.contact.links[0])} – ${name(r.contact.links[1])} at ${(r.contact.s * 100).toFixed(1)} % of the move (${r.samples} steps)` }
-            : { contact: false, text: `Clear: the whole move certified (${r.samples} steps)${r.minClearance ? `; least clearance ${r.minClearance.mm.toFixed(2)} mm, ${name(r.minClearance.links[0])} – ${name(r.minClearance.links[1])}` : ''}` });
+          // (RM6, RM9a: the timed path from the solved pose through the waypoints to the sliders', the links as placed; each
+          // segment a trapezoid within the joints' velocity limits — 1 rad/s or 100 mm/s where none is set — and twice that
+          // per second's acceleration; the whole path certified, or its time of impact.)
+          const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions);
+          const limits: Record<string, JointLimits> = {}, assumed: string[] = [];
+          for (const j of jointTree.joints) { if (j.type === 'fixed' || j.mimic) continue; const v = j.limit?.velocity ?? (j.type === 'prismatic' ? 100 : 1); if (j.limit?.velocity === undefined) assumed.push(j.key); limits[j.key] = { v, a: 2 * v }; }
+          const r = sweepTimed(jointTree, links, { waypoints: [{}, ...jointWaypoints, jointValues], profile: 'trapezoid', limits });
+          const name = (l: string) => jointTree.links.find(x => x.id === l)?.name ?? l, total = r.segments.reduce((t, g) => t + g.duration, 0), n = r.segments.length;
+          const note = assumed.length ? `; no velocity limit on ${assumed.join(', ')}: 1 rad/s (100 mm/s) taken` : '';
+          setPathCheck(r.toi !== undefined ? { contact: true, text: `Contact ${name(r.links![0])} – ${name(r.links![1])} at ${(total > 0 ? r.toi / total * 100 : 0).toFixed(1)} % of the move, t ${r.toi.toFixed(3)} s${n > 1 ? ` (segment ${r.segment! + 1} of ${n})` : ''} (${r.samples} steps${note})` }
+            : { contact: false, text: `Clear: the whole move certified, ${total.toFixed(3)} s${n > 1 ? ` over ${n} segments` : ''} (${r.samples} steps${note})${r.minClearance ? `; least clearance ${r.minClearance.mm.toFixed(2)} mm at t ${r.minClearance.t.toFixed(3)} s, ${name(r.minClearance.links[0])} – ${name(r.minClearance.links[1])}` : ''}` });
         }}
         onExportMjcf={() => {
           // (RM5: as the URDF, the same parts; robot.xml and its meshes.)
           const r = exportMjcf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
           if (!r.ok) { setToast({ title: 'MJCF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
           void writeZip([{ name: 'robot.xml', data: new TextEncoder().encode(r.xml), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-mjcf.zip`, 'application/zip'));
+        }}
+        onExportSdf={() => {
+          // (RM9c: as the URDF and MJCF, the same parts; each planar loop closed at its pin, RM8.)
+          const r = exportSdf(jointTree, robotPartOf, fileName, robotClosures());
+          if (!r.ok) { setToast({ title: 'SDF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
+          void writeZip([{ name: 'robot.sdf', data: new TextEncoder().encode(r.sdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-sdf.zip`, 'application/zip'));
+          if (r.notes.length) setToast({ title: 'SDF written', hint: r.notes.join(' '), detail: '' });
+        }}
+        onExportUsd={() => {
+          const r = exportUsd(jointTree, robotPartOf, fileName, robotClosures());
+          if (!r.ok) { setToast({ title: 'USD refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
+          downloadBytes(new TextEncoder().encode(r.usda), `${fileName}.usda`, 'model/vnd.usda');
+          if (r.notes.length) setToast({ title: 'USD written', hint: r.notes.join(' '), detail: '' });
         }}
         onBase={b => { pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) }; if (b === BASE) delete robot.base; else robot.base = b; setDoc({ ...doc, robot }); setDirty(true); }} />}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}

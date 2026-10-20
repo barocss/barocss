@@ -2941,3 +2941,141 @@ The same model as URDF and MJCF (RM4, RM5): links with RM3's inertia about the c
 - **Where**: "Export SDF" and "Export USD" beside URDF/MJCF in the Joints card, as files (with their STLs, or as a zip, as the URDF export does).
 
 **Order and checkpoints**: RM9a, then RM9b, then RM9c (ours), then RM9c (external) on the owner's go-ahead. Each one is checkpointed with the kernel conformance count, the studio count with test names compared, and the flow count.
+
+## O63 — a DWG refused, typed, with its routes (2026-10-20)
+
+The coordinator's pick of O61's two cheaper items. The DXF underlay waits for its own S0.
+
+- **Content, not the filename.** `readDxfSketch` checks the first six bytes for AutoCAD's version tag (`AC10xx`) and refuses with `DWG_NOT_READ`. The message names the release (AC1009 R11/R12 … AC1032 2018, otherwise the tag) and the two routes:
+  - Save As → DXF from the program that made it;
+  - the free ODA File Converter (one file or a folder at once), then add the DXF.
+- This covers the Drafts panel's "Add drawing" (it now also accepts `.dwg`, so the refusal is reached), the agent's `import_drawing`, and the CLI.
+- **Opening a `.dwg` as a model** gives the same refusal in a toast, and the part is unchanged.
+- **Test** (`drafts.test.ts`):
+  - a DWG header is refused `DWG_NOT_READ` with "AutoCAD 2018", "Save As → DXF" and "ODA File Converter", and the state is unchanged;
+  - the release lookup works, including an unknown tag;
+  - a DXF is never mistaken for a DWG.
+
+## O64 — RM9a: continuous collision along a timed, multi-segment path; the time of impact to 1e-11 s (2026-10-20)
+
+Built as O62 froze it (`src/robot/ccd.ts`, on RM6's `sweepPath`).
+
+- **Timing**:
+  - each segment is straight in joint space and runs one normalised profile u(t) over distance 1. Its limits are the tightest joint's: v′ = minᵢ vᵢ/|Δqᵢ|, a′ likewise, and j′ for the S-curve. Every joint starts and stops together, and none passes its own limit;
+  - u is monotone, so a segment's path in s = u(t) is RM6's straight move;
+  - `timeAt` inverts u by bisection to the double's precision (checked against the trapezoid's own closed-form inverse to 1e-12).
+- **The time of impact**:
+  - `sweepPath` takes a `tolerance` (RM6's default stays 1e-6 mm); RM9a uses 1e-9 mm;
+  - each advancement step keeps the clearance at or above it, so the first sample where it is reached *is* the first time it is, to the step's 1e-12 in s. That s maps to time.
+  - The bisection the S0 planned is not needed: the advancement already brackets the contact from below.
+  - Also returned: the clearance profile [t, mm] (from `sweepPath`'s new `trace`), the least clearance with its time, and the segments' timing.
+- **Found and fixed (RM6 too)**:
+  - `meshDistance` measured every triangle pair, though its comment said "boxes first". At the tight tolerance, the contact pair's last steps are each a full mesh distance (about 60 ms on the 6R): 2.25× RM6's time with the same 45 samples.
+  - A pair whose boxes are as far apart as the best found is now skipped. A box gap is never more than its triangles' distance, so the results are identical.
+  - RM6's 6R fold went from 232 ms to **6 ms**, with the same contact s, and RM9a's takes **13 ms**.
+- **Evidence** (`test/robot-ccd.test.ts`, 5 tests; `conformance/rm/ccd-post`):
+  - **2R into the post on a trapezoid** (v 1, a 2): the TOI is 1.131635311870 s against the separating-axis angle through the trapezoid's closed form, 1.131635311896 s, |Δ| **2.6e-11 s**. Every earlier clearance is above the tolerance.
+  - **Two segments** (out −π/2, then to 2 rad): the contact is on segment 2 at the oracle's 4.773227965 s, within 1e-9. Segment 1's least clearance, 5.000000 mm, equals a 400-sample dense exact one over the same pairs.
+  - **MuJoCo 3.3.0** (`scripts/ccd-oracle.py`, kinematic replay of its own closed-form trapezoid, ccd_tolerance 1e-12, a scan every 1e-4 s then bisection): first contact `post_collision–a_collision` at 1.1316353212 s against ours 1.1316353119 s, |Δ| **9.3e-9 s** (acceptance 1e-6). The reading is committed as `oracle.mujoco-3.3.0.json`.
+  - **6R folding on an S-curve**: the TOI's s equals RM6's contact within 1e-4. No contact appears in 2000 exact samples before it, and the meshes are within 1e-6 mm at it. 13 ms against the S0's budget of 2 × 225 ms.
+- **Where**:
+  - the Joints card gets **Add waypoint** and **Clear waypoints**;
+  - **Check path** runs the timed path from the solved pose through the waypoints to the sliders'. Each joint's velocity limit is used where set, else 1 rad/s or 100 mm/s, and that is said. Acceleration is twice that per second.
+  - It shows "Contact A – B at N % of the move, t T s (segment k of n)", or "Clear: the whole move certified, T s …; least clearance … at t …". RM6's wording is kept, and its flow step is unchanged.
+  - The `sweep_path` tool is unchanged (RM6's straight move); `tools/list` is unchanged.
+- **Flow**: a step "RM9a" just before the last. The ccd-post arm is moved out to a −90° waypoint and then to 2 rad, and Check path reports the contact with the post at t 4.773 s on segment 2 of 2.
+
+## O65 — RM9b: a workspace map — the 2R annulus by exact set relations, the 6R's reach, the contact filter agreeing with RM6 (2026-10-20)
+
+Built as O62 froze it (`src/robot/workspace.ts`; `toolProbe`/`probeAt` added to `src/robot/ik.ts`).
+
+- **Sampling**:
+  - joint values from a Halton sequence (the first primes as bases), over each joint's limits, else [−π, π] for a turn. A slide without limits is refused `NO_RANGE`, and bad values `BAD_VALUES`;
+  - the tool point by FK into voxels of h, each with its count and best manipulability;
+  - the farthest reach is measured from the first moving joint's axis point;
+  - voxels are sorted by position, so the same inputs give the same map byte for byte.
+- **Manipulability**:
+  - w = √det(J Jᵀ) of RM7's position Jacobian (m per rad), or √det(Jᵀ J) when fewer joints than its three rows, so a planar 2R gives l₁l₂|sin θ₂|;
+  - the 2×2 or 3×3 determinant is taken directly, not as a product of Jacobi eigenvalues, for accuracy near singular poses.
+- **Self-contact filter** (optional): a pose is left out when two links (not parent and child, through RM6's `partParent`) interpenetrate, by GJK on the hulls, then RM6's exact `meshesMeet`.
+- **Evidence** (`test/robot-workspace.test.ts`, 4 tests):
+  - **planar 2R** (80, 50; 10⁵ samples, h 5), against the annulus 30 ≤ r ≤ 130:
+    - every occupied cell meets it, every cell wholly inside is occupied, so inside 1884 ≤ occupied 2123 ≤ meeting 2140;
+    - each occupied centre is within h√3/2 of it;
+    - the occupied area is within the boundary band of π(130² − 30²);
+    - the least expected count per cell is 31.7, so random sampling would miss a cell with chance e^−31.7 ≈ 2e-14, and Halton missed none;
+    - the reach is 130 to 1e-9;
+    - w equals 0.08·0.05·|sin θ₂| m² to 1e-9 relative, and r equals the law of cosines, at 200 poses;
+  - **the elbow limited to [0, π/2]**: its annulus √(80² + 50²) ≤ r ≤ 130 by the same relations (832 ≤ 1168 ≤ 1192). Refusals typed;
+  - **6R (arm-6r)**, 20 000 samples, h 20:
+    - reach 285.0 mm against the straight arm's 286.4, within h, and nothing past it;
+    - w at the straight pose 1e-34;
+    - deterministic;
+  - **the filter on the 6R** (300 poses): 143 left out, exactly the poses RM6's mesh test, run pair by pair, finds in contact.
+- **Where**:
+  - the Joints card gets **Workspace** (N 20 000, h 10 mm, "contact-free" optional). The tool point is the end link's tip: its farthest hull point from its joint at the solved pose;
+  - a summary line (poses, voxels, reach, best w), **JSON** download and **Hide**;
+  - the viewport draws the voxels as small squares in eight bands of w (blue low, red high), one SVG path a band;
+  - `tools/list` is unchanged.
+- **Flow**: a step "RM9b" just before the last. The RM9a arm's workspace is mapped from the card, its summary read, the bands drawn, then hidden.
+- **Flakes seen in this checkpoint's runs** (the machine at load average 36–37 from other sessions):
+  - `hollow.test.ts` "a curved body refused at once" missed its 1 s wall-clock guard once in the full suite (649/650). Rerun alone it passes (4/4). The guard is a proxy for "no mesher ran"; it is left as is and recorded here.
+  - One flow run died on a screenshot timeout at step 1531 while the UI sources were being edited (a dev-server reload). The clean rerun passes, 187/187.
+  - The render-source cascade (steps 48–55) did not recur.
+
+## O66 — RM9c: SDF 1.11 and USD (UsdPhysics) export; our readers and the four formats agree; external validators pending (2026-10-20)
+
+Built as O62 froze it (`src/robot/sdf.ts`, `src/robot/usd.ts`, readers in `src/robot/modelCheck.ts`), on the same parts as URDF and MJCF (`robotParts`). URDF and MJCF themselves are unchanged.
+
+- **SDF**:
+  - each `<link>` has its pose `relative_to="__model__"` (x y z and URDF's rpy), `<inertial>` with the centre of mass as its pose, the tensor in the link frame, and the mesh and hull as STL `<uri>`;
+  - each `<joint>` is at its child's frame (`<pose>0 0 0 0 0 0</pose>`), its axis in the child frame, limits in rad or m;
+  - a gear follower is `<axis><mimic joint>` with multiplier, offset and reference 0 (SDF 1.11, follower = m·(leader − ref) + offset, read from sdformat.org's HTML);
+  - RM8's loop is a `ball` joint between its two links at the pin, since SDF allows a graph.
+- **USD** (`.usda`):
+  - the root Xform has `PhysicsArticulationRootAPI`;
+  - each link is an Xform beneath it (flat: each its own rigid body) with `PhysicsRigidBodyAPI` and `PhysicsMassAPI`: mass, `centerOfMass`, and `diagonalInertia` about `principalAxes`, the eigen-decomposition of RM3's tensor made right-handed;
+  - its frame is a `matrix4d xformOp:transform` (USD's row vectors);
+  - its mesh is a `Mesh`, and its hull a `Mesh` with `PhysicsCollisionAPI` (approximation `convexHull`, purpose guide);
+  - each joint is a `PhysicsRevoluteJoint`, `PhysicsPrismaticJoint` or `PhysicsFixedJoint` (body0 the parent, body1 the child, localPos0/localRot0 the child's frame in the parent's, axis "Z"), with limits in degrees or metres;
+  - a loop is a `PhysicsSphericalJoint` excluded from the articulation.
+  - What UsdPhysics has no attribute for (a gear coupling, effort and velocity limits) is kept as `barocss:` custom attributes, and the notes say so.
+  - **One change from the S0**: `metersPerUnit = 1` (SI, as the other three formats), not 0.001, so all four carry the same numbers without a conversion.
+- **Our readers**: `readSdf` (`parseXml` gained `{ text: true }`, since SDF keeps its values in element text) and `readUsda` (the prims RM9c writes). They feed one model and its FK, which composes each child at its parent's pose with their home relative frame and then its motion about its axis. That is a different composition from RM2's.
+- **Evidence** (`test/robot-sdf-usd.test.ts`, 3 tests):
+  - **arm-6r**:
+    - both read back to the same links and joints (names, types, parents, children);
+    - URDF, MJCF, SDF and USD agree on every link's mass, centre and inertia to **1.9e-16** (USD's tensor rebuilt from its principal frame), and on every axis and limit;
+    - the MJCF is byte-identical to the frozen `conformance/rm/arm-6r/robot.xml`.
+  - **FK at 100 poses**:
+    - arm-6r: SDF 2.2e-13 mm, USD 1.4e-13 mm;
+    - the gear pair (SDF's `<mimic>`, USD's custom attributes, noted): 2.8e-14;
+    - the slide chain: 7.1e-15 (`prismatic`, limits ±0.02 m).
+    - All are within the acceptance of 1e-9 mm.
+  - **The four-bar**:
+    - its loop is one ball joint (SDF) and one spherical joint outside the articulation (USD);
+    - the pin's local points in both links equal RM8's pin to 1e-12;
+    - the loop is not noted as left out;
+    - the tree's FK is unchanged.
+- **Where**: **Export SDF** (a zip of robot.sdf and its meshes) and **Export USD** (one .usda) in the Joints card. Both close each planar loop at its pin, as the chat's MJCF does. `tools/list` is unchanged.
+- **External validators.** The owner's go-ahead was relayed on 2026-10-20: "RM9c 검증용으로 usd-core와 SDFormat 검사기를 ~/.cache 검증용 가상환경에만 설치해도 돼. 제품 의존성으로는 쓰지 말고."
+  - **USD: usd-core 26.8**, in its own venv `~/.cache/barocss-usd` (uv, Python 3.12.9), installed `--require-hashes` from `requirements.txt` there.
+    - The wheel is `usd_core-26.8-cp312-none-macosx_10_15_universal2.whl`, sha256 `aaf1a68bf4c7ab959b9f4d3a6e0ef9347ff6135a1452676bb40916060146c53e` (PyPI's published digest). No transitive dependency landed (`uv pip freeze`: usd-core==26.8 alone). Its licence is Pixar's TOST-1.0.
+    - Nothing went into the repo, the system Python or Homebrew. It is run `python -I` with the file as an argument.
+    - `scripts/usd-oracle.py` opens each frozen stage (`conformance/rm/arm-6r/robot.usda`, `four-bar/robot.usda`) with OpenUSD (no composition errors) and reads it with UsdPhysics' own parser (`LoadUsdPhysicsFromRange`) and MassAPI.
+    - The readings are committed as `oracle.usd-core-26.8.json`. The frozen `robot.sdf` files sit beside them, for the SDF check.
+    - **Compared** (`robot-sdf-usd.test.ts`, test 4):
+      - arm-6r: 7 rigid bodies and 6 revolute joints, body0/body1, axis Z, one articulation 7/6. Frames to **8.3e-9 m** and mass properties to **4.0e-8** relative.
+      - four-bar: 4 bodies, 3 revolute joints and the loop as a `SphericalJoint` excluded from the articulation. Frames to 3.7e-8 and mass properties to 3.9e-8.
+      - SI metadata, Z up.
+      - The frame bound is 1e-7. UsdPhysics' descriptors are single precision (GfVec3f, GfQuatf) though the file's matrix4d is double: 2⁻²⁴ of 0.3 m is 2e-8.
+  - **SDF: libsdformat is not on PyPI.** The package named `sdformat` there (0.23.2, GPL) is a third-party interface, and sdformat.org's XSDs are unversioned, so neither is a 1.11 check. libsdformat ships via conda-forge, Homebrew's osrf tap or apt. **External SDFormat validation: declined by the owner** (relayed 2026-10-20): "SDFormat은 micromamba로 설치하지 말고 자체 리더와 구조 검사로만 검증해." RM9c's SDF acceptance is therefore our reader's round trip, FK at 100 poses, and the four formats agreeing. The third-party PyPI `sdformat` and the unversioned XSDs are not used as a stand-in.
+    - **Historical note only**: the micromamba route that was asked about and declined. It was never run, and its conda-forge names and pins were never confirmed.
+
+          mkdir -p ~/.cache/barocss-micromamba
+          curl -Ls https://micro.mamba.pm/api/micromamba/osx-arm64/latest | tar -xj -C ~/.cache/barocss-micromamba bin/micromamba
+          MAMBA_ROOT_PREFIX=~/.cache/barocss-micromamba ~/.cache/barocss-micromamba/bin/micromamba create -y -p ~/.cache/barocss-sdformat -c conda-forge --override-channels python=3.12 libsdformat15=<pin>
+          ~/.cache/barocss-sdformat/bin/gz sdf -k packages/barocss-cad/conformance/rm/arm-6r/robot.sdf   # (or the bindings' parser, python -I)
+
+      (Declined: nothing installed, no reading.)
+- **Flow**: a step "RM9c" just before the last. The ccd-post arm is exported as SDF (the zip holds robot.sdf and the meshes, and python's zipfile reads the SDF: version 1.11, base_to_a continuous) and as USD (the articulation root, base_to_a a revolute joint, the post an Xform).

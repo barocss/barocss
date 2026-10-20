@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { PartInstance } from '../engine/doc';
 import { BASE } from '../assembly/mates';
 import type { JointTree, JointType } from '../robot/joints';
@@ -21,7 +22,7 @@ const mm1 = (v: number) => { const t = v.toFixed(1); return t === '-0.0' ? '0.0'
  * and (RM2) a slider a moving joint to pose it — degrees for a turn, mm for a slide — Home, and one joint played back
  * and forth. A follower moves with its leader (no slider of its own). The pose is a preview: nothing is saved.
  */
-export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, links, onExportUrdf, onExportMjcf, onCheckPath, path, ready = true, holding }: {
+export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, links, onExportUrdf, onExportMjcf, onCheckPath, path, ready = true, holding, waypoints = 0, onAddWaypoint, onClearWaypoints, onWorkspace, workspace, onWorkspaceDownload, onWorkspaceHide, onExportSdf, onExportUsd }: {
   tree: JointTree; instances: PartInstance[]; onBase(base: string): void;
   values: Record<string, number>; onValue(key: string, v: number): void; onHome(): void; playing: string | null; onPlay(key: string | null): void; gears: GearLine[];
   /** Each link's mass properties (RM3), in its link frame. */
@@ -30,14 +31,21 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
   onExportUrdf?(): void;
   /** Writes the robot as a MuJoCo MJCF model (RM5), a zip of robot.xml and its meshes. */
   onExportMjcf?(): void;
-  /** Sweeps the move from the solved pose to the sliders' (RM6); the result to show. */
+  /** Writes the robot as SDF 1.11 (RM9c), a zip of robot.sdf and its meshes; and as a USD stage (UsdPhysics), one .usda. */
+  onExportSdf?(): void; onExportUsd?(): void;
+  /** Sweeps the path from the solved pose through the waypoints to the sliders' (RM6, RM9a: timed, its time of impact); the result to show. */
   onCheckPath?(): void;
+  /** The waypoints recorded (RM9a), and recording one at the pose shown, or clearing them. */
+  waypoints?: number; onAddWaypoint?(): void; onClearWaypoints?(): void;
+  /** Maps the end link's workspace (RM9b): N samples, voxels of h mm, poses in self-contact left out when asked; its summary, download and hide. */
+  onWorkspace?(samples: number, h: number, contactFree: boolean): void; workspace?: string | null; onWorkspaceDownload?(): void; onWorkspaceHide?(): void;
   path?: { text: string; contact: boolean } | null;
   /** Every part evaluated: the masses, exports and the path check wait until then. */
   ready?: boolean;
   /** Each joint's static gravity torque (N·m) or force (N) at the pose shown (RD1). */
   holding?: Record<string, number>;
 }) {
+  const [wsN, setWsN] = useState(20000), [wsH, setWsH] = useState(10), [wsFree, setWsFree] = useState(false);
   const name = (link: string) => tree.links.find(l => l.id === link)?.name ?? (link === BASE ? 'Base part' : instances.find(i => i.id === link)?.name ?? link);
   return (
     <aside className="card props" aria-label="Joints">
@@ -66,10 +74,20 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
       })}
       {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlashMM.toFixed(3)} mm</span></div>)}
       {path && <div className={path.contact ? 'hud-error' : 'kv muted'} role="status" aria-label="Path check">{path.text}</div>}
+      {onWorkspace && tree.joints.some(j => j.type !== 'fixed') && <div className="kv" aria-label="Workspace">
+        <label>N <input type="number" aria-label="Workspace samples" min={100} max={200000} step={1000} value={wsN} onChange={e => setWsN(Number(e.target.value))} style={{ width: 70 }} /></label>
+        <label> h <input type="number" aria-label="Workspace voxel" min={0.5} step={1} value={wsH} onChange={e => setWsH(Number(e.target.value))} style={{ width: 48 }} /> mm</label>
+        <label title="Leave out poses where two links interpenetrate (RM6's exact test): slower"> <input type="checkbox" aria-label="Workspace contact-free" checked={wsFree} onChange={e => setWsFree(e.target.checked)} /> contact-free</label>
+        <button className="ghost" aria-label="Map workspace" disabled={!ready || !(wsN >= 1 && wsH > 0)} title="The positions the end link's joint point reaches over the joints' ranges, coloured by manipulability" onClick={() => onWorkspace(wsN, wsH, wsFree)}>Workspace</button></div>}
+      {workspace && <div className="kv muted" role="status" aria-label="Workspace summary">{workspace} {onWorkspaceDownload && <button className="ghost small" aria-label="Download workspace" onClick={onWorkspaceDownload}>JSON</button>}{onWorkspaceHide && <button className="ghost small" aria-label="Hide workspace" onClick={onWorkspaceHide}>Hide</button>}</div>}
       <div className="row-actions">{tree.joints.some(j => j.type !== 'fixed') && <button className="ghost" aria-label="Joints home" onClick={onHome}>Home</button>}
-        {onCheckPath && Object.values(values).some(v => v !== 0) && <button className="ghost" aria-label="Check path" disabled={!ready} title="Sweep the move from the solved pose to this one for collisions between links" onClick={onCheckPath}>Check path</button>}
+        {onAddWaypoint && Object.values(values).some(v => v !== 0) && <button className="ghost" aria-label="Add waypoint" title="Record this pose as a waypoint: Check path goes through the waypoints in order, then to the pose shown" onClick={onAddWaypoint}>Add waypoint</button>}
+        {onClearWaypoints && waypoints > 0 && <button className="ghost" aria-label="Clear waypoints" onClick={onClearWaypoints}>Clear {waypoints} waypoint{waypoints === 1 ? '' : 's'}</button>}
+        {onCheckPath && (waypoints > 0 || Object.values(values).some(v => v !== 0)) && <button className="ghost" aria-label="Check path" disabled={!ready} title="Sweep the timed path from the solved pose (through the waypoints) to this one for collisions between links: the time of impact, or the whole path certified" onClick={onCheckPath}>Check path</button>}
         {onExportUrdf && <button className="ghost" aria-label="Export URDF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportUrdf}>Export URDF</button>}
-        {onExportMjcf && <button className="ghost" aria-label="Export MJCF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportMjcf}>Export MJCF</button>}</div>
+        {onExportMjcf && <button className="ghost" aria-label="Export MJCF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportMjcf}>Export MJCF</button>}
+        {onExportSdf && <button className="ghost" aria-label="Export SDF" disabled={!ready} title={ready ? 'SDFormat 1.11 (Gazebo): links, inertia, meshes, joints, a loop as a ball joint' : 'The parts are still being evaluated'} onClick={onExportSdf}>Export SDF</button>}
+        {onExportUsd && <button className="ghost" aria-label="Export USD" disabled={!ready} title={ready ? 'A USD stage (.usda) with UsdPhysics rigid bodies and joints' : 'The parts are still being evaluated'} onClick={onExportUsd}>Export USD</button>}</div>
       {links?.filter(l => l.part !== null).map(l => {
         const bad = l.issues.filter(i => i.code !== 'MATERIAL_ASSUMED'), assumed = l.issues.some(i => i.code === 'MATERIAL_ASSUMED');
         return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (kg·m²): ${l.principal.moments.map(m => m.toExponential(3)).join(', ')} principal`}>
