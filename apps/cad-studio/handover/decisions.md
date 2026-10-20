@@ -6251,3 +6251,105 @@ The third FR stage frozen in D122: first the defect S0 found, then the corners w
 | Properties | 11/11, no failures |
 
 RB rows are in the next commit.
+
+## D126 — FR3b: ordered trims, copes and envelope trims, T-joints, trims to a plane or a body; the two hardening points (2026-10-20)
+
+The fourth FR stage frozen in D122, and first the two points from FR3a's review.
+
+**The hardening points** (both with tests failing on `bbc642572`, rebuilt from its sources):
+- **The planar fallback reads a typed reason, not the words.**
+  - `BrepError` gains an optional `reason` (`BrepErrorReason`). The polyhedral Boolean's refusal of a face coplanar only within binary64 carries `NOT_PLANAR_WITHIN_FLOAT`.
+  - `planarBoolean` dispatches on it.
+  - The test calls `booleanPolyhedra` on two oblique sharp tubes and requires the reason, then unites them through the part.
+- **A butt never leaves a silent gap.**
+  - A butt on the through member's box face must land on material: the side's straight segments of its outer loop, merged into spans along the section's other axis, must cover the butting member's end there.
+  - Else it is refused `BUTT_ON_OPEN_SIDE`, naming the side (`+x` …), the end's span and the material's spans, and pointing to a trim to the envelope or a cope.
+  - It covers an angle's leg end (material only below the toe's round, 0 to 3), a round tube (none) and a round-cornered tube (its flat side −14 to 14 against a 40-wide end).
+  - On an angle's back (0 to 60) the butt builds.
+  - D125's butts were all on sharp tubes or a sketch rectangle, so none of its cases changes.
+
+**FR3b** (the `frame` feature's `corners` and `trims`):
+- **A joint is a place** where members end, and where a member's line passes through inside its length (a T-joint).
+  - Two members passing through one place, or two lines crossing inside both their lengths, are refused `MEMBERS_CLASH` (split one at the crossing to make a joint).
+- **Settings, all opt-in** (`corners` left out builds an FR2 frame; FR3a's documents keep their meaning):
+  - `default` for two-member corners;
+  - `multi: 'order' | 'none'` (three or more ends; default none, FR3a's "left square");
+  - `tee: 'butt' | 'cope' | 'none'` (T-joints; default none);
+  - `at` kinds now also `cope`, `order` (with `order`: the members, the first running through) and `trim: 'face' | 'envelope'` on a butt.
+  - A setting that does not fit its joint (an order at two members, a mitre at a T-joint) is `CORNER_NOT_A_JOINT`.
+- **Ordered trim**:
+  - the first (by `order`, else the larger section, then the lower index) runs on to cover the others' sections there;
+  - each next is run on into the joint and trimmed to the earlier members' envelopes, each envelope as trimmed itself (its own envelope less those before it, the piece reaching its own way kept). So the tool is exactly the space the earlier members take.
+  - The first build trimmed to the earlier envelopes untrimmed. On a round-cornered table that over-trimmed the third member by a leg's round sliver (227.6 mm³ at each such corner): a gap. The trimmed envelopes fixed it before commit.
+  - The report: `trim`, its rank and the members it is trimmed to.
+- **Cope / envelope butt**: the ending member run on through the other and less its envelope; of the pieces, the one reaching its own way is kept (a stub out the far side dropped). The report: `cope`.
+- **T-joints**: each member ending on another's length, butted on its face (the open-side check holds) or coped; the member passing through is untouched.
+- **`trims: [{ member, end, plane: { origin, normal } } | { member, end, body }]`**, on ends no joint finishes (else INPUT):
+  - **A plane**: the member run on to meet it (its line's crossing, its section's reach past it), cut keeping its other end's side. Refused `TRIM_PARALLEL` (the line along the plane) and `TRIM_EMPTY` (the plane at or past the other end).
+  - **A body** (an earlier feature, referenced and not consumed, so it stays a body): taken from the member, the piece holding its other end kept. Refused `TRIM_MISSES` when nothing is taken, `TRIM_EMPTY` when nothing is left.
+- **The member report's `ends` kinds** now also `cope` and `trim` (with `rank`, `against`).
+
+**Oracles** (`test/fr-3b.test.mjs`, 8 tests; closed forms and S0's quadratures written there):
+- The two hardening tests (above).
+- **To the envelope**:
+  - a 40 × 40 round-cornered tube butted to the other's envelope reaches into its rounds: A·280 + 2∫[w_o − w_i](6 − √(36 − s²))ds to 1e-9 (S0's quadrature);
+  - the through member A·320; welded, one body and their sum.
+- **A fish-mouth cope at a T-joint** (Ø25 × 2 onto the middle of Ø50 × 2): A·150 less the two-cylinder overlap ∫2r²cos²u √(R² − r²sin²u) du to 1e-9; the through tube untouched.
+- **A T-joint butt**: a rail on a post's middle, A·480; the post A·800; welded, their sum. Without `tee`, left square.
+- **Ordered trims**:
+  - three at a corner: X A(L + 20), Y and Z A(L − 20), welded to one body and their sum;
+  - a table of sharp tubes: legs A·720, rails A·560 and A·360, welded to their sum, in under 10 s;
+  - an order given (Z first).
+- **Round-cornered ordered table**: legs A·720 exactly; each rail between A(L − 40) and that plus two rounds' reach; welded, one body and their sum to 1e-9. No overlap is proven; no gap holds by construction. 7.5 s (below).
+- **Trims to a plane**:
+  - an inclined floor z = 0.2x + 10, A·490, its angle atan 0.2;
+  - a plane below the start: run on, A·520.
+- **Trims to a body**: a base plate, A·490, and the plate still a body. TRIM_PARALLEL, TRIM_EMPTY, TRIM_MISSES.
+- **Refusals**: MEMBERS_CLASH (crossing, and two through one point), CORNER_NOT_A_JOINT (an order at two, a mitre at a T-joint), a wrong order, a trim with both a plane and a body, a trim on a finished end, an unknown corners field.
+- **Conformance** `conformance/fr/` (+5; generator `scripts/fr3b-conformance.mjs`, closed forms only):
+  - the ordered three-member corner (each centroid at its line's middle);
+  - the T-joint butt;
+  - the inclined-floor trim (the cut prism's x̄ = −0.2I/V, z̄ = (A(500² − 10²) − 0.04I)/(2V));
+  - `refuse-butt-on-open-side`;
+  - `refuse-members-clash`.
+
+**Studio**:
+- **The frame node** gains `corners.multi`, `corners.tee`, the new `at` kinds and `trims` (plane, or a body by its `BodyRef`). The body trims are in `usesOf`, not `parentsOf`, so a member's body is never named after the plate it is trimmed to. Flatten shifts them.
+- **"Frame" in the palette**: Three or more members (Ordered trim, the default for new frames, or None) and T-joints (Butt, the default, Cope or None). The palette's table now has its legs through and its rails between.
+- **The feature editor**: the frame's Three or more members and T-joints, and each two-member point's choices including Cope with either member through.
+- **The body's panel**: the ends read "trimmed to members 1, 5 (3 in order)", "coped to member 2" and "trimmed to a plane (11.31° from square)". The three-member warning now says to set "Three or more members" to an ordered trim.
+- **The agent**:
+  - `corners` (multi, tee, the new kinds and fields) and `trims` (plane, or a body Ref) are checked in `add_features`;
+  - the kernel's refusals come back by name;
+  - `run_command frame` documents multi and tee.
+  - The tool contract is unchanged.
+- **Studio tests**: `test/frame.test.ts` (+1): the palette's ordered table of sharp tubes (A·720, A·560, A·360, the order in the notes, no warning), the editor's joint fields, and the agent's T-joint with a plane trim and its refusals (BUTT_ON_OPEN_SIDE, a trim without plane or body, a bad tee). FR2's and FR3a's tests now ask for `multi: 'none'` where they test what those stages built.
+- **Flow**:
+  - FR2's step reads its leg at A·720 (the palette's ordered trim);
+  - FR3a's step reads its corners with multi and tee;
+  - a new step (`fr3b-ordered-table`): the palette's table of sharp tubes, the leg A·720, the first rail A·560, its order in the notes.
+
+**Cost:**
+- A table of sharp tubes trims in order in well under a second.
+- A round-cornered table takes 7.5 s, against 1.9 s before the trimmed envelopes. The envelopes' Booleans on curved tubes (the analytic route) are the cost, and the studio's prefill tube is round-cornered.
+- Candidates: trimmed envelopes shared across a joint, cheaper envelopes (a box where the section's own rounds do not matter), or the analytic Boolean's speed itself.
+
+**Judgement calls**:
+- **Refuse, not report, the open-side butt**: the coordinator gave the choice. A refusal names the side and the spans and points to the envelope trim, which FR3b adds, so no butt leaves a gap and there is always a way to build it.
+- **Trimmed envelopes, not untrimmed**: exact by construction, at the Booleans' cost above.
+- **Joints of three or more and T-joints stay off unless asked** (`multi`, `tee`). The studio turns them on for new frames, so saved FR2 and FR3a documents build as they did.
+- **No pairwise overlap check of all members** (a Boolean per pair is seconds on round tubes). Overlaps are prevented by construction at every finished joint and refused where lines cross; tests prove no overlap by welding.
+
+**Not in FR3b** (the owner may place them; FR5/FR6 as D122): end gaps for welds, notches other than a full cope, members along arcs, a joint of members passing through each other (refused).
+
+**Checks** on bbc642572 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; studio `eslint src test` 0 errors, 119 warnings as before; studio type-check) |
+| Kernel | 1281/1286 (4 skipped; +13: 8 fr-3b tests, 5 conformance cases; names compared, none missing); only the env-only "actual native Split source…" fails |
+| Conformance | 170/170 |
+| Studio | 635/635 (+1 of FR3b, +6 from the merged AM7a/A6.3; names compared, none missing) |
+| Full flow | 184/184, run on its own; the new step included |
+
+RB rows are in the next commit.

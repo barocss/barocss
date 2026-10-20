@@ -1,0 +1,72 @@
+{
+  "id": "fr-refuse-butt-on-open-side",
+  "step": "FR",
+  "decisions": [
+    "D126"
+  ],
+  "about": "FR3b: a tube butted on a round-cornered tube's face is refused by name: its end spans 40, the face's flat only 28 (a gap at the rounds; trim it to the envelope instead).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              400,
+              0,
+              0
+            ],
+            [
+              400,
+              300,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 6
+          },
+          "corners": {
+            "at": [
+              {
+                "point": 1,
+                "kind": "butt",
+                "through": 0
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[BUTT_ON_OPEN_SIDE] point 1: member 1 meets member 0: its end spans -20 to 20"
+    }
+  },
+  "oracle": "By construction: the flat side from −14 to 14."
+}

@@ -259,7 +259,7 @@ export type CadPartFeature = Base & (
    * segments on the same two points), `SKELETON_OVERLAP` (two on one line sharing a length), and the sections'
    * `SECTION_DIMENSIONS`.
    */
-  | { readonly kind: 'frame'; readonly points: readonly CadPartPoint3[]; readonly segments: readonly (readonly [number, number])[]; readonly section: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean; readonly up?: CadPartPoint3; readonly overrides?: readonly CadPartFrameOverride[]; readonly corners?: CadPartFrameCorners }
+  | { readonly kind: 'frame'; readonly points: readonly CadPartPoint3[]; readonly segments: readonly (readonly [number, number])[]; readonly section: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean; readonly up?: CadPartPoint3; readonly overrides?: readonly CadPartFrameOverride[]; readonly corners?: CadPartFrameCorners; readonly trims?: readonly CadPartFrameTrim[] }
   | { readonly kind: 'frame-member'; readonly section: CadPartSection; readonly start: CadPartPoint3; readonly end: CadPartPoint3; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly up?: CadPartPoint3 }
   /**
    * An edge flange (R12.3, D118) on a sheet (its rules from its report): on a straight `edge` between a planar skin face
@@ -320,7 +320,17 @@ export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: Cad
  * FR2 frame as it was).
  * Points where three or more members end are left as they are (an ordered trim, FR3b) and reported square.
  */
-export interface CadPartFrameCorners { readonly default?: 'mitre' | 'butt' | 'none'; readonly at?: readonly { readonly point: number; readonly kind: 'mitre' | 'butt' | 'none'; readonly through?: number }[] }
+export interface CadPartFrameCorners {
+  readonly default?: 'mitre' | 'butt' | 'none';
+  /** Where three or more members end (FR3b, D126): `order` (an ordered trim: the larger sections first, then the lower index) or `none` (the default: left square). */
+  readonly multi?: 'order' | 'none';
+  /** Where members end on another's length — a T-joint (FR3b): `butt` (on its box face), `cope` (to its envelope) or `none` (the default). */
+  readonly tee?: 'butt' | 'cope' | 'none';
+  /** A point set apart: `through` at a butt or cope; `trim` at a butt (`face`, the default, or `envelope`); `order` at an ordered trim (its members, the first running through). */
+  readonly at?: readonly { readonly point: number; readonly kind: 'mitre' | 'butt' | 'cope' | 'order' | 'none'; readonly through?: number; readonly trim?: 'face' | 'envelope'; readonly order?: readonly number[] }[];
+}
+/** A member's end trimmed to a plane (the side holding its other end kept) or to an earlier body (FR3b, D126). */
+export type CadPartFrameTrim = { readonly member: number; readonly end: 'start' | 'end' } & ({ readonly plane: { readonly origin: CadPartPoint3; readonly normal: CadPartPoint3 } } | { readonly body: string });
 /** One member of a frame set apart (FR2, D124): its own section, anchor, offset, roll or mirror. */
 export interface CadPartFrameOverride { readonly member: number; readonly section?: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean }
 /** A member's section (FR1, D123): a kind and its dimensions, or a closed sketch. */
@@ -1125,12 +1135,14 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           per[k] = { look, shape: r.section === undefined ? base.shape : memberShape(r.section, `overrides[${n}].section`, { ref, dim, integer, fail }) };
         });
       }
-      const corners = frameCorners(f.corners, points, pairs, integer, fail);
+      const corners = frameCorners(f.corners, points, pairs, integer, fail), trims = frameTrims(f.trims, pairs.length, { ref, xyz, integer, fail });
       return () => {
         const places = pairs.map(([i, j], k) => placeMember(per[k].shape, { start: points[i], end: points[j], L: lengths[k], ...per[k].look, up }));
-        const ends = corners ? planCorners(corners, points, pairs, places, fail) : null, parts: Part[] = [];
+        const plan = corners || trims.length ? (corners ? planCorners(corners, points, pairs, lengths, places, at, fail) : emptyPlan(pairs.length)) : null, parts: Part[] = [];
+        if (plan) planTrims(plan, trims, points, pairs, lengths, places, fail);
         for (let k = 0; k < pairs.length; k++) {
-          const [i, j] = pairs[k], r = buildMember(per[k].shape, { start: points[i], end: points[j], L: lengths[k], ...per[k].look, up, at: `${at}.m${k}`, frame: { member: k, from: i, to: j }, ...(ends ? { ends: ends[k] } : {}) }) as Extract<Result, { kind: 'solid' }>;
+          const [i, j] = pairs[k], ends = plan ? { extend: plan.extend[k], cuts: plan.cuts[k], subtract: plan.subtract[k], report: [...plan.report[k]].sort((a, b) => a.end < b.end ? 1 : a.end > b.end ? -1 : 0) } : undefined;
+          const r = buildMember(per[k].shape, { start: points[i], end: points[j], L: lengths[k], ...per[k].look, up, at: `${at}.m${k}`, frame: { member: k, from: i, to: j }, ...(ends ? { ends } : {}) }) as Extract<Result, { kind: 'solid' }>;
           parts.push(...r.parts);
         }
         return { kind: 'solid', parts };
@@ -1684,12 +1696,12 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
 /**
  * Two bodies of planes only: the exact rational polyhedral Boolean. It needs each face's vertices exactly coplanar; a
  * body off the axes (a member on an oblique line, a split's slanted cut) has them so only to binary64 (~1e-15), and the
- * polyhedral route refuses the face as "not planar". Then the analytic Boolean, which works on the planes in binary64,
+ * polyhedral route refuses the face (reason `NOT_PLANAR_WITHIN_FLOAT`, D126). Then the analytic Boolean, which works on the planes in binary64,
  * takes the pair (FR3a, D125: a mitred sharp tube on a 120° or 3D corner, and two such tubes welded, were refused).
  */
 function planarBoolean(a: Brep, b: Brep, op: 'union' | 'difference' | 'intersection', at: string): Brep {
   try { return booleanPolyhedra(a, b, op, { id: at }); }
-  catch (cause) { if (!(cause instanceof BrepError && /polyhedral Boolean: face .* is not planar/.test(cause.message))) throw cause; }
+  catch (cause) { if (!(cause instanceof BrepError && cause.reason === 'NOT_PLANAR_WITHIN_FLOAT')) throw cause; }
   return booleanAnalytic(a, b, op, { id: at });
 }
 /**
@@ -1854,27 +1866,38 @@ function memberFrame(u: Point, up: Point, rollDegrees: number): { x: Point; y: P
 /** The point (sx, sy) of a section in its frame, from `base`. */
 const sectionPoint = (F: { x: Point; y: Point }, sx: number, sy: number, base: Point): Point => add(base, add(scale(F.x, sx), scale(F.y, sy)));
 /** A member built: its section extruded L in its own XY (ends `.start`, `.end`), moved onto its line, its report on it. */
-type CornerSpec = { readonly fallback: 'mitre' | 'butt' | 'none'; readonly at: ReadonlyMap<number, { readonly kind: 'mitre' | 'butt' | 'none'; readonly through?: number }> };
+type JointKind = 'mitre' | 'butt' | 'cope' | 'order' | 'none';
+type CornerAt = { readonly kind: JointKind; readonly through?: number; readonly trim?: 'face' | 'envelope'; readonly order?: readonly number[] };
+type CornerSpec = { readonly fallback: 'mitre' | 'butt' | 'none'; readonly multi: 'order' | 'none'; readonly tee: 'butt' | 'cope' | 'none'; readonly at: ReadonlyMap<number, CornerAt> };
 /** A frame's `corners` checked (their points as the first point at the same place), or null when it has none. */
 function frameCorners(v: unknown, points: readonly Point[], pairs: readonly (readonly [number, number])[], integer: Tools['integer'], fail: Tools['fail']): CornerSpec | null {
   if (v === undefined) return null;
-  if (!isRecord(v)) fail('INPUT', 'corners must be { default?, at? }');
-  const c = v as Record<string, unknown>, kinds = ['mitre', 'butt', 'none'];
-  if (c.default !== undefined && !kinds.includes(c.default as string)) fail('INPUT', 'corners.default must be mitre, butt or none');
-  const at = new Map<number, { kind: 'mitre' | 'butt' | 'none'; through?: number }>();
+  if (!isRecord(v)) fail('INPUT', 'corners must be { default?, multi?, tee?, at? }');
+  const c = v as Record<string, unknown>;
+  const pick = <T extends string>(key: string, kinds: readonly T[], dflt: T): T => { if (c[key] !== undefined && !kinds.includes(c[key] as T)) fail('INPUT', `corners.${key} must be ${kinds.slice(0, -1).join(', ')} or ${kinds[kinds.length - 1]}`); return (c[key] as T | undefined) ?? dflt; };
+  const fallback = pick('default', ['mitre', 'butt', 'none'] as const, 'mitre'), multi = pick('multi', ['order', 'none'] as const, 'none'), tee = pick('tee', ['butt', 'cope', 'none'] as const, 'none');
+  const extra = Object.keys(c).find(k => !['default', 'multi', 'tee', 'at'].includes(k));
+  if (extra) fail('INPUT', `corners has no ${extra}`);
+  const at = new Map<number, CornerAt>();
   if (c.at !== undefined) {
-    if (!Array.isArray(c.at) || c.at.length > CadPartLimits.points) fail('INPUT', 'corners.at must list { point, kind, through? }');
+    if (!Array.isArray(c.at) || c.at.length > CadPartLimits.points) fail('INPUT', 'corners.at must list { point, kind, through?, trim?, order? }');
     (c.at as unknown[]).forEach((e, n) => {
-      if (!isRecord(e)) fail('INPUT', `corners.at[${n}] must be { point, kind, through? }`);
+      if (!isRecord(e)) fail('INPUT', `corners.at[${n}] must be { point, kind, through?, trim?, order? }`);
       const r = e as Record<string, unknown>, p = canonicalPoint(points, integer(r.point, `corners.at[${n}].point`, 0, points.length - 1));
-      if (!kinds.includes(r.kind as string)) fail('INPUT', `corners.at[${n}].kind must be mitre, butt or none`);
+      if (!['mitre', 'butt', 'cope', 'order', 'none'].includes(r.kind as string)) fail('INPUT', `corners.at[${n}].kind must be mitre, butt, cope, order or none`);
       if (at.has(p)) fail('INPUT', `corners.at[${n}]: point ${r.point} is set twice`);
       const through = r.through === undefined ? undefined : integer(r.through, `corners.at[${n}].through`, 0, pairs.length - 1);
-      if (through !== undefined && r.kind !== 'butt') fail('INPUT', `corners.at[${n}]: through belongs to a butt`);
-      at.set(p, { kind: r.kind as 'mitre' | 'butt' | 'none', ...(through !== undefined ? { through } : {}) });
+      if (through !== undefined && r.kind !== 'butt' && r.kind !== 'cope') fail('INPUT', `corners.at[${n}]: through belongs to a butt or a cope`);
+      if (r.trim !== undefined && (r.kind !== 'butt' || (r.trim !== 'face' && r.trim !== 'envelope'))) fail('INPUT', `corners.at[${n}]: trim (face or envelope) belongs to a butt`);
+      let order: number[] | undefined;
+      if (r.order !== undefined) {
+        if (r.kind !== 'order' || !Array.isArray(r.order)) fail('INPUT', `corners.at[${n}]: order (a list of members) belongs to an ordered trim`);
+        order = (r.order as unknown[]).map((m, i) => integer(m, `corners.at[${n}].order[${i}]`, 0, pairs.length - 1));
+      }
+      at.set(p, { kind: r.kind as JointKind, ...(through !== undefined ? { through } : {}), ...(r.trim !== undefined ? { trim: r.trim as 'face' | 'envelope' } : {}), ...(order ? { order } : {}) });
     });
   }
-  return { fallback: (c.default as 'mitre' | 'butt' | 'none' | undefined) ?? 'mitre', at };
+  return { fallback, multi, tee, at };
 }
 /** The first point at the same place as point i (within 1e-6 mm): a joint is a place, not an index. */
 function canonicalPoint(points: readonly Point[], i: number): number {
@@ -1899,63 +1922,249 @@ function samePoints(a: readonly Point[], b: readonly Point[], tol: number): bool
   return true;
 }
 const reflect = (v: Point, m: Point): Point => sub(v, scale(m, 2 * dot(v, m)));
+/** A member's end trimmed to a plane (kept on its own side) or to an earlier body (FR3b, D126). */
+type FrameTrim = { readonly member: number; readonly end: 0 | 1; readonly plane?: { readonly o: Point; readonly n: Point }; readonly body?: readonly Solid[] };
+/** A frame's `trims`: each `{ member, end, plane: { origin, normal } }` or `{ member, end, body }` (an earlier feature, not consumed). */
+function frameTrims(v: unknown, members: number, t: Pick<Tools, 'ref' | 'xyz' | 'integer' | 'fail'>): FrameTrim[] {
+  if (v === undefined) return [];
+  if (!Array.isArray(v) || v.length > 2 * members) t.fail('INPUT', 'trims must list { member, end, plane | body } (two at most a member)');
+  const seen = new Set<string>();
+  return (v as unknown[]).map((e, n) => {
+    if (!isRecord(e)) t.fail('INPUT', `trims[${n}] must be { member, end, plane | body }`);
+    const r = e as Record<string, unknown>, member = t.integer(r.member, `trims[${n}].member`, 0, members - 1);
+    if (r.end !== 'start' && r.end !== 'end') t.fail('INPUT', `trims[${n}].end must be start or end`);
+    const end = r.end === 'end' ? 1 : 0, key = `${member}:${end}`;
+    if (seen.has(key)) t.fail('INPUT', `trims[${n}]: member ${member}'s ${r.end} is trimmed twice`);
+    seen.add(key);
+    if ((r.plane === undefined) === (r.body === undefined)) t.fail('INPUT', `trims[${n}] takes a plane or a body (one of them)`);
+    if (r.plane !== undefined) {
+      if (!isRecord(r.plane)) t.fail('INPUT', `trims[${n}].plane must be { origin, normal }`);
+      const pl = r.plane as Record<string, unknown>, n3 = t.xyz(pl.normal as CadPartPoint3, `trims[${n}].plane.normal`);
+      if (!(len(n3) > 1e-12)) t.fail('INPUT', `trims[${n}].plane.normal must not be zero`);
+      return { member, end, plane: { o: t.xyz(pl.origin as CadPartPoint3, `trims[${n}].plane.origin`), n: unit(n3) } } as FrameTrim;
+    }
+    const { part, result } = t.ref(r.body, `trims[${n}].body`);
+    if (result.kind !== 'solid') t.fail('REFERENCE', `trims[${n}].body: ${String(r.body)} is a sketch, not a body`);
+    const parts = (result as Extract<Result, { kind: 'solid' }>).parts;
+    return { member, end, body: (part === null ? parts : [parts[part]]).map(q => q.solid) } as FrameTrim;
+  });
+}
+const emptyPlan = (n: number): EndsPlan => ({ extend: Array.from({ length: n }, () => [0, 0] as [number, number]), cuts: Array.from({ length: n }, () => []), subtract: Array.from({ length: n }, () => []), report: Array.from({ length: n }, () => []) });
 /**
- * Each member's ends at the frame's corners (FR3a, D125). At a place where exactly two members end:
- * - a mitre cuts both on the plane through the point square to u1 + u2 (u1 into the point, u2 out), each run on past
- *   the point far enough to fill it — refused unless the second's section is the first's reflected in that plane
- *   (`MITRE_SECTIONS_DIFFER`: their cut faces would not meet face to face);
- * - a butt runs one member (`through`) on to cover the other's section, square, and ends the other on the plane of the
- *   through member's section box facing it — refused when that side is no face of the box (`BUTT_NOT_ON_A_FACE`);
- * - members in line or folded back have no corner (`CORNER_ANGLE`); a point set apart without exactly two members ending
- *   there is `CORNER_NOT_A_JOINT`.
+ * Trims to a plane or a body (FR3b, D126), on ends no joint finishes. A plane: the member run on to meet it (the line's
+ * crossing, its section's reach past it), cut keeping its other end's side; `TRIM_PARALLEL` along it, `TRIM_EMPTY` where the
+ * plane lies past the member's other end. A body: taken from the member, the piece holding its other end kept; nothing
+ * taken is `TRIM_MISSES`.
  */
-function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly (readonly [number, number])[], places: readonly MemberPlace[], fail: Tools['fail']): MemberEnds[] {
-  const extend = pairs.map(() => [0, 0] as [number, number]), cuts: { o: Point; n: Point; name: string }[][] = pairs.map(() => []), report: FrameEndReport[][] = pairs.map(() => []);
-  const joints = new Map<number, { member: number; end: 0 | 1 }[]>();
-  pairs.forEach(([i, j], k) => ([[i, 0], [j, 1]] as const).forEach(([p, end]) => { const c = canonicalPoint(points, p); if (!joints.has(c)) joints.set(c, []); joints.get(c)!.push({ member: k, end }); }));
-  for (const p of spec.at.keys()) if ((joints.get(p)?.length ?? 0) !== 2 && spec.at.get(p)!.kind !== 'none') fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: ${joints.get(p)?.length ?? 0} member ends meet there, a corner joins two (three or more: an ordered trim, FR3b)`);
-  for (const [p, list] of joints) {
-    const want = spec.at.get(p) ?? { kind: list.length === 2 ? spec.fallback : 'none' as const };
-    if (list.length !== 2 || want.kind === 'none') { for (const e of list) report[e.member].push({ end: e.end ? 'end' : 'start', point: p, kind: 'square' }); continue; }
-    const at = points[p], [A, B] = list, PA = places[A.member], PB = places[B.member];
-    // Each member's direction into the point.
-    const inA = A.end ? PA.u : scale(PA.u, -1), inB = B.end ? PB.u : scale(PB.u, -1), c = dot(inA, inB);
-    if (c < -1 + 1e-12) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: members ${A.member} and ${B.member} are in line, no corner to finish`);
-    if (c > 1 - 1e-12) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: members ${A.member} and ${B.member} fold back on each other`);
-    if (want.kind === 'mitre') {
-      // u1 into the point (A), u2 out of it (B): the plane's normal u1 + u2; A's material below it, B's above.
-      const u2 = scale(inB, -1), m = unit(add(inA, u2)), cos = dot(inA, m), tan = Math.sqrt(1 - cos * cos) / cos;
-      const vA = sectionVertices(PA, at).map(v => add(at, reflect(sub(v, at), m))), vB = sectionVertices(PB, at);
-      const size = Math.max(1, ...vB.map(v => len(sub(v, at))));
-      if (!samePoints(vA, vB, 1e-9 * size)) fail('PARAMETER', `[MITRE_SECTIONS_DIFFER] point ${p}: members ${A.member} and ${B.member} would not meet face to face on the mitre (different sections, or turned differently); give a butt`);
-      const deg = Math.acos(Math.min(1, cos)) * 180 / Math.PI;
-      for (const [E, n, P] of [[A, m, PA], [B, scale(m, -1), PB]] as const) {
-        const reach = Math.max(...boxCorners(P, at).map(v => len(sub(v, at))));
-        extend[E.member][E.end] = reach * tan + reach + 1;
-        cuts[E.member].push({ o: at, n, name: `${E.end ? 'end' : 'start'}.mitre` });
-        report[E.member].push({ end: E.end ? 'end' : 'start', point: p, kind: 'mitre', with: E === A ? B.member : A.member, angleDegrees: deg, plane: { origin: at, normal: n } });
+function planTrims(plan: EndsPlan, trims: readonly FrameTrim[], points: readonly Point[], pairs: readonly (readonly [number, number])[], lengths: readonly number[], places: readonly MemberPlace[], fail: Tools['fail']): void {
+  for (const tr of trims) {
+    const k = tr.member, P = places[k], a = points[pairs[k][0]], b = points[pairs[k][1]], here = tr.end ? b : a, away = tr.end ? scale(P.u, -1) : P.u;
+    if (plan.report[k].some(e => e.end === endName(tr.end) && e.kind !== 'square')) fail('INPUT', `trims: member ${k}'s ${endName(tr.end)} is finished by its joint already`);
+    if (tr.plane) {
+      const nu = dot(tr.plane.n, P.u);
+      if (Math.abs(nu) < 1e-9) fail('PARAMETER', `[TRIM_PARALLEL] member ${k} runs along the plane it is trimmed to`);
+      // The line's crossing, as a distance from this end towards the other (positive: inside the member).
+      const s = dot(tr.plane.n, sub(tr.plane.o, a)) / nu, inside = tr.end ? lengths[k] - s : s;
+      if (inside >= lengths[k] - MEMBER_MIN_MM) fail('PARAMETER', `[TRIM_EMPTY] member ${k}: the plane lies at or past its other end`);
+      const cos = Math.abs(nu), reach = reachOf(P, here);
+      plan.extend[k][tr.end] = Math.max(0, -inside) + reach * Math.sqrt(1 - cos * cos) / cos + reach + 1;
+      // Kept: the other end's side (n·x < n·o there).
+      const n = dot(tr.plane.n, sub(tr.end ? a : b, tr.plane.o)) < 0 ? tr.plane.n : scale(tr.plane.n, -1);
+      plan.cuts[k].push({ o: tr.plane.o, n, name: `${endName(tr.end)}.trim` });
+      plan.report[k] = plan.report[k].filter(e => e.end !== endName(tr.end));
+      plan.report[k].push({ end: endName(tr.end), point: pairs[k][tr.end], kind: 'trim', angleDegrees: Math.acos(Math.min(1, cos)) * 180 / Math.PI, plane: { origin: tr.plane.o, normal: n } });
+      continue;
+    }
+    for (const body of tr.body!) plan.subtract[k].push({ solid: body, name: `${endName(tr.end)}.trim`, keepFrom: here, toward: away, mustTouch: true });
+    plan.report[k] = plan.report[k].filter(e => e.end !== endName(tr.end));
+    plan.report[k].push({ end: endName(tr.end), point: pairs[k][tr.end], kind: 'trim' });
+  }
+}
+/** One member end meeting at a place: the member and which end. */
+type JointEnd = { readonly member: number; readonly end: 0 | 1 };
+/** Where one member's line passes through a place inside its length (a T-joint's through member). */
+type JointPass = { readonly member: number; readonly s: number };
+/** Per member, as planned: how far each end runs on, its plane cuts, the solids taken from it, what each end is. */
+type EndsPlan = { extend: [number, number][]; cuts: { o: Point; n: Point; name: string }[][]; subtract: MemberSubtract[][]; report: FrameEndReport[][] };
+const endName = (e: 0 | 1) => e ? 'end' : 'start';
+/** A member's envelope (its outer loop filled, no bore) along its line from `from` to `to` mm past its start: what other members are trimmed to. */
+function envelopeOf(P: MemberPlace, start: Point, from: number, to: number, name: string): Solid {
+  const solid = prismaticFromProfile({ outer: P.shape.outer, heightMM: to - from, fromMM: from, tag: name, names: { outer: P.shape.outer.map(() => name), bottom: name, top: name } });
+  const m: BrepAffine['matrix'] = [P.F.x[0], P.F.y[0], P.u[0], P.F.x[1], P.F.y[1], P.u[1], P.F.x[2], P.F.y[2], P.u[2]];
+  return (moveAll([{ solid: { kind: 'upright', solid } }], m, sectionPoint(P.F, -P.q[0], -P.q[1], start)) as Extract<Result, { kind: 'solid' }>).parts[0].solid;
+}
+/** The half-diagonal of a member's section box from its line: how far its section reaches from its line. */
+const reachOf = (P: MemberPlace, at: Point): number => Math.max(...boxCorners(P, at).map(v => len(sub(v, at))));
+/**
+ * Where a box side of T's section has material: the spans, along T's other section axis, of its outer loop's straight
+ * segments lying on that side (merged). A butt on the face may only land within them (FR3b, D126: no silent gap).
+ */
+function sideContact(P: MemberPlace, axis: 0 | 1, at: number): [number, number][] {
+  const loop = P.shape.outer, spans: [number, number][] = [], other = 1 - axis, tol = 1e-9 * Math.max(1, P.box.max[0] - P.box.min[0], P.box.max[1] - P.box.min[1]);
+  for (let i = 0; i < loop.length; i++) {
+    const g = loop[i], e = loop[(i + 1) % loop.length].start;
+    if (g.kind === 'line' && Math.abs(g.start[axis] - at) <= tol && Math.abs(e[axis] - at) <= tol) spans.push([Math.min(g.start[other], e[other]), Math.max(g.start[other], e[other])]);
+  }
+  spans.sort((a, b) => a[0] - b[0]);
+  const merged: [number, number][] = [];
+  for (const sp of spans) { const last = merged[merged.length - 1]; if (last && sp[0] <= last[1] + tol) last[1] = Math.max(last[1], sp[1]); else merged.push([sp[0], sp[1]]); }
+  return merged;
+}
+/**
+ * A butt of O on T's box face facing it, at `at` (O's end there): the face plane, the cut, how far O runs on into T, O's
+ * angle from square; refused where the side is no face of T's box (`BUTT_NOT_ON_A_FACE`) or where O's end would reach past
+ * the material on that side (`BUTT_ON_OPEN_SIDE`: an angle's or a channel's open side, a round tube, a round corner).
+ */
+function faceButt(PT: MemberPlace, PO: MemberPlace, inT: Point | null, inO: Point, at: Point, where: string, fail: Tools['fail']): { face: Point; w: Point; side: number; runO: number; deg: number } {
+  // The side of T that O comes from, square to T's line, in T's section axes.
+  const tAxis = inT ?? PT.u, w0 = sub(scale(inO, -1), scale(tAxis, dot(scale(inO, -1), tAxis))), wl = len(w0), w = scale(w0, 1 / wl), wx = dot(w, PT.F.x), wy = dot(w, PT.F.y);
+  const found: 0 | 1 | -1 = Math.abs(Math.abs(wx) - 1) < 1e-9 ? 0 : Math.abs(Math.abs(wy) - 1) < 1e-9 ? 1 : -1;
+  if (found < 0) return fail('PARAMETER', `[BUTT_NOT_ON_A_FACE] ${where} at an edge of its section, not a face (turn one, or mitre)`);
+  const axis = found as 0 | 1;
+  const sign = (axis === 0 ? wx : wy) > 0 ? 1 : -1, boxAt = sign > 0 ? PT.box.max[axis] : PT.box.min[axis], side = sign * (boxAt - PT.q[axis]);
+  // O's end spans, along T's other section axis (in T's section coordinates), what must all land on T's material there.
+  const otherDir = axis === 0 ? PT.F.y : PT.F.x, other = 1 - axis, ext = boxCorners(PO, at).map(v => dot(sub(v, at), otherDir) + PT.q[other]);
+  const lo = Math.min(...ext), hi = Math.max(...ext), contact = sideContact(PT, axis, boxAt), tol = 1e-9 * Math.max(1, hi - lo);
+  if (!contact.some(([a, b]) => a <= lo + tol && b >= hi - tol)) {
+    const names = ['x', 'y'], spans = contact.length ? contact.map(([a, b]) => `${+a.toFixed(3)} to ${+b.toFixed(3)}`).join(', ') : 'none';
+    fail('PARAMETER', `[BUTT_ON_OPEN_SIDE] ${where}: its end spans ${+lo.toFixed(3)} to ${+hi.toFixed(3)} mm along the through member's section ${names[other]}, but the side ${sign > 0 ? '+' : '−'}${names[axis]} of that section has material only at ${spans}: a gap would be left (trim it to the envelope, or cope it)`);
+  }
+  const sO = Math.max(...boxCorners(PO, at).map(v => dot(sub(v, at), w)));
+  return { face: add(at, scale(w, side)), w, side, runO: Math.max(0, (sO - side) / wl) + reachOf(PO, at) + 1, deg: Math.acos(Math.min(1, Math.abs(dot(inO, w)))) * 180 / Math.PI };
+}
+/** The part of T's line around a place: its envelope from E before to `on` past, along its own direction from its start (a pass: around s). */
+function envelopeAround(PT: MemberPlace, start: Point, L: number, at: { end?: 0 | 1; s?: number }, on: number, E: number, name: string): Solid {
+  if (at.s !== undefined) return envelopeOf(PT, start, Math.max(0, at.s - E), Math.min(L, at.s + E), name);
+  return at.end ? envelopeOf(PT, start, Math.max(0, L - E), L + on, name) : envelopeOf(PT, start, -on, Math.min(L, E), name);
+}
+/**
+ * Each member's ends at the frame's joints (FR3a D125, FR3b D126). A joint is a place (points within 1e-6 mm): the member
+ * ends there, and the members whose line passes through it inside its length.
+ * - Two ends, no pass: a corner — `mitre` (both on the plane square to u1 + u2; `MITRE_SECTIONS_DIFFER` unless the second
+ *   section is the first reflected in it), `butt` (`through` runs on to cover; the other ends on its box face, `trim:
+ *   'face'`, or on its envelope, `'envelope'`), `cope` (a butt to the envelope), `none`. `CORNER_ANGLE` in line or folded.
+ * - Three or more ends, no pass: an ordered trim (`order`, by default the larger sections first, then the lower index):
+ *   the first runs on to cover the rest, each next is trimmed to the envelopes of all before it.
+ * - Ends on a pass: a T-joint — each ending member butted (face or envelope) or coped to the member passing through;
+ *   two passes through one place cross (`MEMBERS_CLASH`).
+ * A setting that does not fit its joint is `CORNER_NOT_A_JOINT`.
+ */
+function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly (readonly [number, number])[], lengths: readonly number[], places: readonly MemberPlace[], at: string, fail: Tools['fail']): EndsPlan {
+  const plan: EndsPlan = { extend: pairs.map(() => [0, 0]), cuts: pairs.map(() => []), subtract: pairs.map(() => []), report: pairs.map(() => []) };
+  const ends = new Map<number, JointEnd[]>();
+  pairs.forEach(([i, j], k) => ([[i, 0], [j, 1]] as const).forEach(([p, end]) => { const c = canonicalPoint(points, p); if (!ends.has(c)) ends.set(c, []); ends.get(c)!.push({ member: k, end }); }));
+  // Members passing through each place inside their length; two crossing inside both: a clash.
+  const passes = new Map<number, JointPass[]>();
+  for (const p of ends.keys()) for (let k = 0; k < pairs.length; k++) {
+    const a = points[pairs[k][0]], s = dot(sub(points[p], a), places[k].u);
+    if (s > MEMBER_MIN_MM && s < lengths[k] - MEMBER_MIN_MM && len(sub(points[p], add(a, scale(places[k].u, s)))) <= MEMBER_MIN_MM) { if (!passes.has(p)) passes.set(p, []); passes.get(p)!.push({ member: k, s }); }
+  }
+  const clash = crossingMembers(points, pairs, lengths, places);
+  if (clash) fail('PARAMETER', clash);
+  for (const [p, list] of passes) if (list.length > 1) fail('PARAMETER', `[MEMBERS_CLASH] members ${list[0].member} and ${list[1].member} both run through point ${p}`);
+  for (const p of spec.at.keys()) if (!ends.has(p)) fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: no member ends there`);
+  const Rmax = Math.max(...places.map((P, k) => reachOf(P, points[pairs[k][0]])));
+  for (const [p, list] of ends) {
+    const there = points[p], pass = passes.get(p)?.[0], set = spec.at.get(p);
+    if (pass) {
+      // A T-joint: each member ending here meets the one passing through.
+      const kind = set?.kind ?? spec.tee;
+      if (kind !== 'butt' && kind !== 'cope' && kind !== 'none') fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: a T-joint (member ${pass.member} runs through) takes butt, cope or none, not ${kind}`);
+      if (kind === 'none') { squareEnds(plan, list, p); continue; }
+      const PT = places[pass.member], T0 = points[pairs[pass.member][0]];
+      for (const O of list) {
+        const PO = places[O.member], inO = O.end ? PO.u : scale(PO.u, -1);
+        if (len(cross(inO, PT.u)) < 1e-9) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: member ${O.member} runs along member ${pass.member}`);
+        teeOrButt(plan, kind === 'cope' || set?.trim === 'envelope', PT, PO, null, inO, there, O, pass.member, p, T0, lengths[pass.member], { s: pass.s }, 0, Rmax, at, fail);
       }
       continue;
     }
-    // A butt: T runs through, O ends on T's box face facing it.
-    const through = want.through ?? (PA.area > PB.area + 1e-9 ? A.member : PB.area > PA.area + 1e-9 ? B.member : Math.min(A.member, B.member));
-    if (through !== A.member && through !== B.member) fail('INPUT', `corners at point ${p}: through must be member ${A.member} or ${B.member}`);
-    const [T, O] = through === A.member ? [A, B] : [B, A], PT = places[T.member], PO = places[O.member];
-    const inT = T === A ? inA : inB, inO = T === A ? inB : inA;
-    // The side of T that O comes from, square to T's line, in T's section axes.
-    const w0 = sub(scale(inO, -1), scale(inT, dot(scale(inO, -1), inT))), wl = len(w0), w = scale(w0, 1 / wl), wx = dot(w, PT.F.x), wy = dot(w, PT.F.y);
-    const side = Math.abs(Math.abs(wx) - 1) < 1e-9 ? (wx > 0 ? PT.box.max[0] - PT.q[0] : PT.q[0] - PT.box.min[0]) : Math.abs(Math.abs(wy) - 1) < 1e-9 ? (wy > 0 ? PT.box.max[1] - PT.q[1] : PT.q[1] - PT.box.min[1]) : NaN;
-    if (Number.isNaN(side)) fail('PARAMETER', `[BUTT_NOT_ON_A_FACE] point ${p}: member ${O.member} meets member ${T.member} at an edge of its section, not a face (turn one, or mitre)`);
-    const face = add(at, scale(w, side));
-    // T runs on past the point to cover O's section there; O runs on into T far enough that its whole end lies past the face.
-    const runT = Math.max(0, ...boxCorners(PO, at).map(v => dot(sub(v, at), inT))), sO = Math.max(...boxCorners(PO, at).map(v => dot(sub(v, at), w)));
-    extend[T.member][T.end] = runT;
-    extend[O.member][O.end] = Math.max(0, (sO - side) / wl) + Math.max(...boxCorners(PO, at).map(v => len(sub(v, at)))) + 1;
-    cuts[O.member].push({ o: face, n: scale(w, -1), name: `${O.end ? 'end' : 'start'}.butt` });
-    report[T.member].push({ end: T.end ? 'end' : 'start', point: p, kind: 'through', with: O.member, extendedMM: runT });
-    report[O.member].push({ end: O.end ? 'end' : 'start', point: p, kind: 'butt', with: T.member, angleDegrees: Math.acos(Math.min(1, Math.abs(dot(inO, w)))) * 180 / Math.PI, plane: { origin: face, normal: scale(w, -1) } });
+    if (list.length === 1) { squareEnds(plan, list, p); continue; }
+    if (list.length === 2) {
+      const kind = set?.kind ?? spec.fallback;
+      if (kind === 'order') fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: two members meet there; an ordered trim joins three or more`);
+      if (kind === 'none') { squareEnds(plan, list, p); continue; }
+      const [A, B] = list, PA = places[A.member], PB = places[B.member], inA = A.end ? PA.u : scale(PA.u, -1), inB = B.end ? PB.u : scale(PB.u, -1), c = dot(inA, inB);
+      if (c < -1 + 1e-12) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: members ${A.member} and ${B.member} are in line, no corner to finish`);
+      if (c > 1 - 1e-12) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: members ${A.member} and ${B.member} fold back on each other`);
+      if (kind === 'mitre') { mitre(plan, A, B, PA, PB, inA, inB, there, p, fail); continue; }
+      const through = set?.through ?? (PA.area > PB.area + 1e-9 ? A.member : PB.area > PA.area + 1e-9 ? B.member : Math.min(A.member, B.member));
+      if (through !== A.member && through !== B.member) fail('INPUT', `corners at point ${p}: through must be member ${A.member} or ${B.member}`);
+      const [T, O] = through === A.member ? [A, B] : [B, A], PT = places[T.member], PO = places[O.member], inT = T === A ? inA : inB, inO = T === A ? inB : inA;
+      // T runs on past the point to cover O's section there.
+      const runT = Math.max(0, ...boxCorners(PO, there).map(v => dot(sub(v, there), inT)));
+      plan.extend[T.member][T.end] = runT;
+      plan.report[T.member].push({ end: endName(T.end), point: p, kind: 'through', with: O.member, extendedMM: runT });
+      teeOrButt(plan, kind === 'cope' || set?.trim === 'envelope', PT, PO, inT, inO, there, O, T.member, p, points[pairs[T.member][0]], lengths[T.member], { end: T.end }, runT, Rmax, at, fail);
+      continue;
+    }
+    // Three or more: an ordered trim, the first running through.
+    const kind = set?.kind ?? spec.multi;
+    if (kind === 'none') { squareEnds(plan, list, p); continue; }
+    if (kind !== 'order') fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: ${list.length} member ends meet there; a ${kind} joins two (an ordered trim joins three or more)`);
+    const members = list.map(e => e.member), order = set?.order ?? [...members].sort((a, b) => (places[b].area - places[a].area) || a - b);
+    if (order.length !== members.length || !members.every(m => order.includes(m))) fail('INPUT', `corners at point ${p}: order must list members ${members.join(', ')}, each once`);
+    const byMember = new Map(list.map(e => [e.member, e])), first = byMember.get(order[0])!, P0 = places[first.member], in0 = first.end ? P0.u : scale(P0.u, -1);
+    const run0 = Math.max(0, ...order.slice(1).flatMap(m => boxCorners(places[m], there).map(v => dot(sub(v, there), in0))));
+    plan.extend[first.member][first.end] = run0;
+    plan.report[first.member].push({ end: endName(first.end), point: p, kind: 'through', with: order[1], extendedMM: run0 });
+    // Each next member is trimmed to the envelopes of all before it, each as trimmed itself (its own envelope less the
+    // earlier ones, the piece reaching its own way kept): exactly the space the earlier members take, no more.
+    const E = 3 * Rmax + 1, taken: Solid[] = [envelopeAround(P0, points[pairs[first.member][0]], lengths[first.member], { end: first.end }, run0, E, `${at}_env${first.member}`)];
+    order.slice(1).forEach((m, r) => {
+      const e = byMember.get(m)!, inE = e.end ? places[m].u : scale(places[m].u, -1), away = scale(inE, -1);
+      plan.extend[m][e.end] = 2 * Rmax + 1;
+      for (const solid of taken) plan.subtract[m].push({ solid, name: `${endName(e.end)}.trim`, keepFrom: there, toward: away });
+      plan.report[m].push({ end: endName(e.end), point: p, kind: 'trim', with: order[r], rank: r + 1, against: order.slice(0, r + 1) });
+      if (r + 2 < order.length) {
+        let env = envelopeAround(places[m], points[pairs[m][0]], lengths[m], { end: e.end }, plan.extend[m][e.end], E, `${at}_env${m}`);
+        for (const solid of taken) env = keepFarthest(boolean(env, solid, 'difference', `${at}_env${m}`), there, away);
+        taken.push(env);
+      }
+    });
   }
-  return pairs.map((_, k) => ({ extend: extend[k], cuts: cuts[k], report: report[k].sort((a, b) => a.end < b.end ? 1 : a.end > b.end ? -1 : 0) }));
+  return plan;
+}
+/** Ends left square at a place. */
+function squareEnds(plan: EndsPlan, list: readonly JointEnd[], p: number): void { for (const e of list) plan.report[e.member].push({ end: endName(e.end), point: p, kind: 'square' }); }
+/** A mitre between A (into the point) and B (out of it). */
+function mitre(plan: EndsPlan, A: JointEnd, B: JointEnd, PA: MemberPlace, PB: MemberPlace, inA: Point, inB: Point, at: Point, p: number, fail: Tools['fail']): void {
+  const u2 = scale(inB, -1), m = unit(add(inA, u2)), cos = dot(inA, m), tan = Math.sqrt(1 - cos * cos) / cos;
+  const vA = sectionVertices(PA, at).map(v => add(at, reflect(sub(v, at), m))), vB = sectionVertices(PB, at);
+  const size = Math.max(1, ...vB.map(v => len(sub(v, at))));
+  if (!samePoints(vA, vB, 1e-9 * size)) fail('PARAMETER', `[MITRE_SECTIONS_DIFFER] point ${p}: members ${A.member} and ${B.member} would not meet face to face on the mitre (different sections, or turned differently); give a butt`);
+  const deg = Math.acos(Math.min(1, cos)) * 180 / Math.PI;
+  for (const [E, n, P] of [[A, m, PA], [B, scale(m, -1), PB]] as const) {
+    const reach = reachOf(P, at);
+    plan.extend[E.member][E.end] = reach * tan + reach + 1;
+    plan.cuts[E.member].push({ o: at, n, name: `${endName(E.end)}.mitre` });
+    plan.report[E.member].push({ end: endName(E.end), point: p, kind: 'mitre', with: E === A ? B.member : A.member, angleDegrees: deg, plane: { origin: at, normal: n } });
+  }
+}
+/** O's end on T at a corner (T running on `on` past it) or a T-joint (T passing through): on T's box face, or to its envelope (a cope). */
+function teeOrButt(plan: EndsPlan, envelope: boolean, PT: MemberPlace, PO: MemberPlace, inT: Point | null, inO: Point, at: Point, O: JointEnd, T: number, p: number, T0: Point, LT: number, where: { end?: 0 | 1; s?: number }, on: number, Rmax: number, id: string, fail: Tools['fail']): void {
+  if (envelope) {
+    plan.extend[O.member][O.end] = 2 * Rmax + 1;
+    plan.subtract[O.member].push({ solid: envelopeAround(PT, T0, LT, where, on, 3 * Rmax + 1, `${id}_m${O.member}_on${T}`), name: `${endName(O.end)}.cope`, keepFrom: at, toward: scale(inO, -1) });
+    plan.report[O.member].push({ end: endName(O.end), point: p, kind: 'cope', with: T });
+    return;
+  }
+  const b = faceButt(PT, PO, inT, inO, at, `point ${p}: member ${O.member} meets member ${T}`, fail);
+  plan.extend[O.member][O.end] = b.runO;
+  plan.cuts[O.member].push({ o: b.face, n: scale(b.w, -1), name: `${endName(O.end)}.butt` });
+  plan.report[O.member].push({ end: endName(O.end), point: p, kind: 'butt', with: T, angleDegrees: b.deg, plane: { origin: b.face, normal: scale(b.w, -1) } });
+}
+/** Two members whose lines cross inside both their lengths (not at a joint): `MEMBERS_CLASH` — one would run through the other. */
+function crossingMembers(points: readonly Point[], pairs: readonly (readonly [number, number])[], lengths: readonly number[], places: readonly MemberPlace[]): string | null {
+  for (let a = 0; a < pairs.length; a++) for (let b = a + 1; b < pairs.length; b++) {
+    const pa = points[pairs[a][0]], pb = points[pairs[b][0]], ua = places[a].u, ub = places[b].u, w0 = sub(pa, pb);
+    const B = dot(ua, ub), d = dot(ua, w0), e = dot(ub, w0), den = 1 - B * B;
+    if (den < 1e-12) continue;
+    const s = (B * e - d) / den, t = (e - B * d) / den;
+    if (s <= MEMBER_MIN_MM || s >= lengths[a] - MEMBER_MIN_MM || t <= MEMBER_MIN_MM || t >= lengths[b] - MEMBER_MIN_MM) continue;
+    if (len(sub(add(pa, scale(ua, s)), add(pb, scale(ub, t)))) <= MEMBER_MIN_MM) return `[MEMBERS_CLASH] members ${a} and ${b} cross inside both their lengths (split one at the crossing to make a joint)`;
+  }
+  return null;
 }
 /** A member's section placed on its line: the (mirrored) shape, area, centroid, box, the line's direction, the frame, the line's section point. */
 type MemberPlace = { readonly shape: MemberShape; readonly area: number; readonly centroid: XY; readonly box: { readonly min: XY; readonly max: XY }; readonly u: Point; readonly F: { x: Point; y: Point; fallback?: Point }; readonly q: XY };
@@ -1973,7 +2182,25 @@ function placeMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
   return { shape, area, centroid, box, u, F, q: [p[0] - o.offset[0], p[1] - o.offset[1]] };
 }
 /** How a member's ends are finished at its frame's corners (FR3a, D125): how far each end runs on, the planes it is cut by (keeping n·x < n·o), what each end is. */
-type MemberEnds = { readonly extend: readonly [number, number]; readonly cuts: readonly { readonly o: Point; readonly n: Point; readonly name: string }[]; readonly report: readonly FrameEndReport[] };
+type MemberEnds = { readonly extend: readonly [number, number]; readonly cuts: readonly { readonly o: Point; readonly n: Point; readonly name: string }[]; readonly subtract: readonly MemberSubtract[]; readonly report: readonly FrameEndReport[] };
+/**
+ * A solid taken from a member at one end (an envelope it is trimmed or coped to, a body it is trimmed to): of the pieces
+ * left, the one reaching farthest from `keepFrom` along `toward` (its own length's way) is kept. `mustTouch`: refused
+ * `TRIM_MISSES` when nothing is taken.
+ */
+type MemberSubtract = { readonly solid: Solid; readonly name: string; readonly keepFrom: Point; readonly toward: Point; readonly mustTouch?: boolean };
+/** A solid in several pieces: the one reaching farthest from `from` along `toward` (one piece: itself). */
+function keepFarthest(s: Solid, from: Point, toward: Point): Solid {
+  if (s.kind !== 'brep') return s;
+  const pieces = splitBodies(s.brep);
+  return pieces.length > 1 ? { kind: 'brep', brep: farthestPiece(pieces, from, toward) } : s;
+}
+/** Of a member's pieces, the one whose points reach farthest from `from` along `toward`. */
+function farthestPiece(pieces: readonly Brep[], from: Point, toward: Point): Brep {
+  let best = pieces[0], reach = -Infinity;
+  for (const b of pieces) { let r = -Infinity; for (const v of b.vertices) r = Math.max(r, dot(sub(v.point, from), toward)); if (r > reach) { reach = r; best = b; } }
+  return best;
+}
 /** A member built: its section extruded along its line (run on past an end where a corner needs it, ends `.start`, `.end`), moved onto its line, cut at its corners, its report on it. */
 function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Point; L: number; up: Point; at: string; frame?: { member: number; from: number; to: number }; ends?: MemberEnds }): Result {
   const P = placeMember(given, o), { shape, area, centroid, u, F, q } = P, pre = (n: string) => `${o.at}.${n}`, e0 = o.ends?.extend[0] ?? 0, e1 = o.ends?.extend[1] ?? 0;
@@ -1985,7 +2212,7 @@ function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
     centroidLine: { start: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.start), end: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.end) },
     ...(o.ends ? { ends: o.ends.report } : {}) };
   const r = moveAll([{ solid: { kind: 'upright', solid } }], m, origin) as Extract<Result, { kind: 'solid' }>;
-  if (!o.ends?.cuts.length) return { kind: 'solid', parts: r.parts.map(part => ({ ...part, member })) };
+  if (!o.ends?.cuts.length && !o.ends?.subtract.length) return { kind: 'solid', parts: r.parts.map(part => ({ ...part, member })) };
   // Cut at its corners: each plane keeps the member's side (n·x < n·o); a half-space round it, R past every point of it.
   let cut = r.parts[0].solid;
   const R = o.L + e0 + e1 + 2 * Math.hypot(P.box.max[0] - P.box.min[0], P.box.max[1] - P.box.min[1]) + 1;
@@ -1995,6 +2222,14 @@ function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
     cut = boolean(cut, obliqueHalf(c.o, c.n, x, y, R, true, `${o.at}_${c.name}`.replace(/\./g, '_'), `${o.at}.${c.name}`), 'intersection', o.at.replace(/\./g, '_'));
   }
   if (cut.kind === 'brep' && cut.brep.bodies.length !== 1) throw new CadPartError('GEOMETRY', o.at, `[TRIM_LEAVES_PIECES] cut at its corners, member ${o.frame?.member ?? ''} is in ${cut.brep.bodies.length} pieces`);
+  // Then the solids taken from it (envelopes, bodies): of the pieces left, the one reaching farthest its own way is kept.
+  for (const t of o.ends.subtract) {
+    const before = t.mustTouch ? volumeOfSolid(cut) : 0, next = boolean(cut, t.solid, 'difference', `${o.at}_${t.name}`.replace(/\./g, '_'));
+    if (empty(next)) throw new CadPartError('PARAMETER', o.at, `[TRIM_EMPTY] member ${o.frame?.member ?? ''}: nothing is left of it`);
+    const pieces = next.kind === 'brep' ? splitBodies(next.brep) : null;
+    cut = pieces && pieces.length > 1 ? { kind: 'brep', brep: farthestPiece(pieces, t.keepFrom, t.toward) } : next;
+    if (t.mustTouch && Math.abs(volumeOfSolid(cut) - before) <= 1e-9 * Math.max(1, before)) throw new CadPartError('PARAMETER', o.at, `[TRIM_MISSES] member ${o.frame?.member ?? ''} does not reach the body it is trimmed to`);
+  }
   return { kind: 'solid', parts: [{ solid: cut, member }] };
 }
 function moveAll(parts: readonly Part[], m: BrepAffine['matrix'], o: Point): Result {

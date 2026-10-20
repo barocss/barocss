@@ -71,7 +71,7 @@ function facesOf(brep: Brep, solid: 0 | 1): PFace[] {
     // Exact Newell normal of the outer loop: points out of the solid (loops run counter-clockwise about it).
     const ring = rings[0], normal = newellNormal(rings);
     if (!normal) throw new BrepError('GEOMETRY', `polyhedral Boolean: face ${f.id} has no area`);
-    if (normal === 'bent') throw new BrepError('GEOMETRY', `polyhedral Boolean: face ${f.id} is not planar`);
+    if (normal === 'bent') throw new BrepError('GEOMETRY', `polyhedral Boolean: face ${f.id} is not planar`, undefined, 'NOT_PLANAR_WITHIN_FLOAT');
     const mag = normal.map(x => Math.abs(num(x))), axis = (mag[0] >= mag[1] && mag[0] >= mag[2] ? 0 : mag[1] >= mag[2] ? 1 : 2) as 0 | 1 | 2;
     let i = ((axis + 1) % 3) as 0 | 1 | 2, j = ((axis + 2) % 3) as 0 | 1 | 2; if (sgn(normal[axis]) < 0) [i, j] = [j, i];
     const flat = rings.flat().map(vnum), min = [0, 1, 2].map(k => Math.min(...flat.map(p => p[k]))) as Point, max = [0, 1, 2].map(k => Math.max(...flat.map(p => p[k]))) as Point;

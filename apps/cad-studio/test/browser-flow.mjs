@@ -3219,9 +3219,10 @@ try {
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'frame', null, { timeout: 30000 });
     await page.waitForFunction(() => /8 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
-    // The first body: a leg, 700 mm of the 40 × 40 × 3 tube (A 420.823 mm²): 294 576 mm³.
+    // The first body: a leg, 700 mm of the 40 × 40 × 3 tube (A 420.823 mm²) — run on 20 over the rails since FR3b's ordered
+    // trim became the palette's default (D126): 302 993 mm³.
     const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), vol = await bodyVolume();
-    assert.ok(Math.abs(vol - A * 700) <= 1, `${vol} vs ${A * 700}`);
+    assert.ok(Math.abs(vol - A * 720) <= 1, `${vol} vs ${A * 720}`);
     const props = await page.textContent('.props');
     assert.match(props, /Frame member 1 of 8: point 1 → point 5/);
     assert.match(props, /the line runs along up, so y follows \+X/);
@@ -3243,13 +3244,35 @@ try {
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'frame', null, { timeout: 30000 });
     await page.waitForFunction(() => /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
-    assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.at(-1).corners), { default: 'mitre' });
+    assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.at(-1).corners), { default: 'mitre', multi: 'order', tee: 'butt' });
     // The first member: 600 mm of a sharp 40 × 40 × 3 tube (A 444 mm²), mitred at both ends: 266 400 mm³.
     const vol = await bodyVolume();
     assert.ok(Math.abs(vol - 444 * 600) <= 1, `${vol}`);
     assert.match(await page.textContent('.props'), /Ends: start mitre 45° with member 4; end mitre 45° with member 2/);
     await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('fr3a-mitred-rectangle');
+  });
+
+  await check('FR3b a table of sharp tubes from the palette, its corners trimmed in order: legs through (A·720), rails between them (A·560, A·360), the order in the notes (new in D126)', async () => {
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await press(' '); await page.locator('.palette input').fill('skeleton'); await press('Enter'); await hudReady();
+    await field('Outer corner radius (estimate)').fill('0'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'frame', null, { timeout: 30000 });
+    await page.waitForFunction(() => /8 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.at(-1).corners), { default: 'mitre', multi: 'order', tee: 'butt' });
+    const leg = await bodyVolume();
+    assert.ok(Math.abs(leg - 444 * 720) <= 1, `leg ${leg}`);
+    // The fifth body: the first top rail, 600 between the legs' faces: 444 × 560.
+    await page.locator('.outliner .ol').nth(4).click();
+    await page.waitForFunction(() => /Frame member 5 of 8/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    const props = await page.textContent('.props'), rail = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
+    assert.ok(Math.abs(rail - 444 * 560) <= 1, `rail ${rail}`);
+    assert.match(props, /Ends: start trimmed to member 1 \(2 in order\); end trimmed to member 2 \(2 in order\)/);
+    await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('fr3b-ordered-table');
   });
 
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {

@@ -1,0 +1,202 @@
+{
+  "id": "fr-frame-ordered-corner",
+  "step": "FR",
+  "decisions": [
+    "D126"
+  ],
+  "about": "FR3b: three sharp tubes ending at one corner, an ordered trim (the same section: by index) — X runs on 20 to cover the others, Y is trimmed to X's envelope, Z to X's and Y's: square ends, A·L each by its centroidal line.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              300,
+              0,
+              0
+            ],
+            [
+              0,
+              300,
+              0
+            ],
+            [
+              0,
+              0,
+              300
+            ]
+          ],
+          "segments": [
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "multi": "order"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 142080,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            140,
+            0,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 300,
+          "centroid": [
+            0,
+            0
+          ],
+          "ends": [
+            {
+              "end": "start",
+              "kind": "square",
+              "point": 1
+            },
+            {
+              "end": "end",
+              "kind": "through",
+              "point": 0
+            }
+          ],
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 124320,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            160,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 300,
+          "centroid": [
+            0,
+            0
+          ],
+          "ends": [
+            {
+              "end": "start",
+              "kind": "square",
+              "point": 2
+            },
+            {
+              "end": "end",
+              "kind": "trim",
+              "point": 0
+            }
+          ],
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 124320,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            160
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 300,
+          "centroid": [
+            0,
+            0
+          ],
+          "ends": [
+            {
+              "end": "start",
+              "kind": "square",
+              "point": 3
+            },
+            {
+              "end": "end",
+              "kind": "trim",
+              "point": 0
+            }
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: X from −20 to 300, Y and Z from 20 to 300 — square ends, so A·L and the centroids the lines' midpoints."
+}

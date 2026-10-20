@@ -228,15 +228,20 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       out.push({ kind: 'choice', key: 'corners', label: 'Corners', options: [{ value: 'mitre', label: 'Mitre' }, { value: 'butt', label: 'Butt' }, { value: 'none', label: 'None (overlap)' }],
         get: n => { const c = self<F>(n).corners; return c ? c.default ?? 'mitre' : 'none'; },
         set: (n, v) => { const f = self<F>(n); return replace(n, i, { ...f, corners: { ...f.corners, default: v as 'mitre' | 'butt' | 'none' } }); } });
+      // (FR3b, D126: joints of three or more, and T-joints, for the whole frame.)
+      out.push({ kind: 'choice', key: 'multi', label: 'Three or more members', options: [{ value: 'order', label: 'Ordered trim' }, { value: 'none', label: 'None (overlap)' }],
+        get: n => self<F>(n).corners?.multi ?? 'none', set: (n, v) => { const f = self<F>(n); return replace(n, i, { ...f, corners: { ...f.corners, multi: v as 'order' | 'none' } }); } });
+      out.push({ kind: 'choice', key: 'tee', label: 'T-joints', options: [{ value: 'butt', label: 'Butt' }, { value: 'cope', label: 'Cope' }, { value: 'none', label: 'None (overlap)' }],
+        get: n => self<F>(n).corners?.tee ?? 'none', set: (n, v) => { const f = self<F>(n); return replace(n, i, { ...f, corners: { ...f.corners, tee: v as 'butt' | 'cope' | 'none' } }); } });
       node.points.forEach((_, p) => {
         const meet = node.segments.flatMap((g, k) => g[0] === p || g[1] === p ? [k] : []);
         if (meet.length !== 2) return;
-        const options = [{ value: 'default', label: 'As the frame' }, { value: 'mitre', label: 'Mitre' }, ...meet.map(k => ({ value: `butt:${k}`, label: `Butt, member ${k + 1} through` })), { value: 'none', label: 'None (overlap)' }];
+        const options = [{ value: 'default', label: 'As the frame' }, { value: 'mitre', label: 'Mitre' }, ...meet.map(k => ({ value: `butt:${k}`, label: `Butt, member ${k + 1} through` })), ...meet.map(k => ({ value: `cope:${k}`, label: `Cope, member ${k + 1} through` })), { value: 'none', label: 'None (overlap)' }];
         out.push({ kind: 'choice', key: `corner${p}`, label: `Corner at point ${p + 1}`, options,
-          get: n => { const e = self<F>(n).corners?.at?.find(x => x.point === p); return !e ? 'default' : e.kind === 'butt' ? `butt:${e.through ?? meet[0]}` : e.kind; },
+          get: n => { const e = self<F>(n).corners?.at?.find(x => x.point === p); return !e ? 'default' : e.kind === 'butt' || e.kind === 'cope' ? `${e.kind}:${e.through ?? meet[0]}` : e.kind; },
           set: (n, v) => {
             const f = self<F>(n), rest = (f.corners?.at ?? []).filter(x => x.point !== p);
-            const entry = v === 'default' ? [] : v.startsWith('butt:') ? [{ point: p, kind: 'butt' as const, through: Number(v.slice(5)) }] : [{ point: p, kind: v as 'mitre' | 'none' }];
+            const entry = v === 'default' ? [] : v.startsWith('butt:') || v.startsWith('cope:') ? [{ point: p, kind: v.slice(0, 4) as 'butt' | 'cope', through: Number(v.slice(5)) }] : [{ point: p, kind: v as 'mitre' | 'none' }];
             const at = [...rest, ...entry], corners = { ...(f.corners ?? {}), ...(at.length ? { at } : {}) };
             if (!at.length) delete corners.at;
             return replace(n, i, { ...f, corners });
