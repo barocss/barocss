@@ -3158,6 +3158,8 @@ try {
         const vol = await bodyVolume();
         assert.ok(Math.abs(vol - want) <= 1, `${name}: ${vol} vs ${want}`);
         await page.waitForFunction(re => new RegExp(`Flat pattern ${re}`).test(document.querySelector('.props')?.textContent ?? ''), flat, { timeout: 15000 });
+        // (The enclosure's four flanges' bends read apart, each by its feature, D122.)
+        if (name === 'pcb-enclosure') assert.equal(new Set((await page.locator('.props').textContent()).match(/n\d+\.bend(?=: )/g)).size, 4);
         await page.click('[aria-label="Show the flat pattern"]');
         await page.waitForSelector('[aria-label="Flat pattern"]');
         assert.equal(await page.locator(`[aria-label="Flat pattern drawing"] [aria-label="Bend ${bends[0]}"]`).count(), bends[1]);

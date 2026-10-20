@@ -79,7 +79,7 @@ test('an agent writes a library as data: checked at once (builds in each variant
   s = { ...s, doc: confirmDocLibrary(s.doc, 'agent-spacers') };
   assert.equal(s.doc.libraries![0].confirmed, true); assert.equal(libraryEntry('agent-spacers')!.confirmed, true); assert.equal(shareRefusal('agent-spacers'), null);
   // Without a licence: loads, private use only, never shared.
-  const { license: _l, ...unlicensed } = { ...SPACER, id: 'agent-unlicensed' };
+  const unlicensed: Record<string, unknown> = { ...SPACER, id: 'agent-unlicensed' }; delete unlicensed.license;
   r = await runTool(s, 'add_library', { library: unlicensed }, evaluate); assert.ok(!r.isError, r.content);
   assert.equal(parse(r.content).license, UNLICENSED); assert.match(shareRefusal('agent-unlicensed')!, /no licence: unlicensed — private use only/);
   // A library whose part does not build fails its check (said), and so is never shared.

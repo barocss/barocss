@@ -161,6 +161,19 @@ test('D119 Corner relief: on a sheet plate\'s corner edge, square or round, its 
   const read = readStudioDoc(JSON.stringify(both)); assert.ok('doc' in read, JSON.stringify(read)); assert.equal(read.doc.nodes[2].kind, 'sheet-corner-relief');
 });
 
+test('D122 a sheet\'s bends from several flanges read apart in its notes (each by its feature, n3.bend and n4.bend), a contour\'s by their short names', () => {
+  let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [80, 50] });
+  doc = withNode(doc, { kind: 'sheet-base', sketch: 0, thickness: 1.5, bendRadius: 1.5, kFactor: 0.44 });
+  doc = withNode(doc, { kind: 'sheet-corner-relief', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.side1'], shape: 'square', size: 3 });
+  doc = withNode(doc, { kind: 'sheet-flange', parent: { node: 2, side: 'solid' }, edges: ['n1.side0|n1.top'], length: 20 });
+  doc = withNode(doc, { kind: 'sheet-flange', parent: { node: 3, side: 'solid' }, edges: ['n1.side1|n1.top'], length: 20 });
+  const bends = bodiesOf(doc)[0].notes!.map(n => n.text).filter(t => /^n\d+\.bend\d*: /.test(t));
+  assert.deepEqual(bends.map(t => t.slice(0, t.indexOf(':'))), ['n3.bend', 'n4.bend']);
+  // (One flange: its bend by the short name, as a contour's are.)
+  const one = { ...doc, nodes: doc.nodes.slice(0, 4) };
+  assert.ok(bodiesOf(one)[0].notes!.some(n => /^bend: 90°/.test(n.text)), JSON.stringify(bodiesOf(one)[0].notes));
+});
+
 test('D120 a sheet on a bend table: its notes name the table and each bend\'s rows (an estimate among them a warning); the flat honours the row\'s deduction; no K field; the agent\'s raw node', async () => {
   const table = { id: 'shop-2mm', sources: [{ id: 'shop', label: 'the shop\'s test bends' }], rows: [
     { thicknessMM: 2, radiusMM: 3, angleDegrees: 90, deductionMM: 4.2, source: 'shop' }, { thicknessMM: 2, radiusMM: 3, angleDegrees: 120, kFactor: 0.42, estimate: true }] };
