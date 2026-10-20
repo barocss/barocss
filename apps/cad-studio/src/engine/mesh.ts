@@ -10,7 +10,9 @@ import { sub, cross, dot, len, unit as norm } from './vec3';
 export type Vec3 = [number, number, number];
 
 /** `radius`: a cylinder's or a sphere's. */
-export interface DisplayFace { index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; areaMM2: number; radius?: number }
+export interface DisplayFace { index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; areaMM2: number; radius?: number; /** A mesh region (its triangles are the surface: no chord error, A6.3). */ facet?: true;
+  /** The face's exact surface where the kernel knows it (A6.3: datums and measures to rounding, not to the Float32 mesh): a plane (a point, the normal out of the face) or a cylinder (a point on the axis, its direction, the radius). */
+  exact?: { kind: 'plane'; o: Vec3; n: Vec3 } | { kind: 'cylinder'; c: Vec3; a: Vec3; r: number } }
 export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[] }
 export interface DisplayMesh {
   positions: Float32Array; normals: Float32Array; faceOfVertex: Float32Array; indices: Uint32Array;
@@ -84,11 +86,18 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
     // (A mesh region that is flat shows as a plane: sketches and mates take it; a curved one as curved, no radius.)
     const rootKind = meshFace.get(root)!.kind, flatRegion = rootKind === 'facet' && faceGeometry(faceById.get(root)!).kind === 'plane';
     addFace(b, root, names.length === 1 ? names[0] : members.map(m => nameOf.get(m)!).join('+'), rootKind === 'planar' || flatRegion ? 'plane' : 'curved', pos, nor, idx);
+    if (rootKind === 'facet') b.faces[b.faces.length - 1].facet = true;
+    else if (rootKind === 'planar') {
+      // (The exact plane, A6.3, from the face's own control points — cheap, no surface recognition: a point, and the
+      // normal of the widest triangle of them, turned out of the face as the display normal is.)
+      const sf = faceById.get(root)!.surface, df = b.faces[b.faces.length - 1];
+      if (sf.kind === 'surface') { const pl = planeOfPoints(sf.controlPoints); if (pl) { const sg = pl.n[0] * df.normal[0] + pl.n[1] * df.normal[1] + pl.n[2] * df.normal[2] < 0 ? -1 : 1; df.exact = { kind: 'plane', o: pl.o, n: [pl.n[0] * sg, pl.n[1] * sg, pl.n[2] * sg] }; } }
+    }
     if (rootKind !== 'planar' && rootKind !== 'facet') {
       // A round face's radius: a cylinder's, or a sphere's (a profile arc centred on its axis).
       const face = faceById.get(root)!;
       let radius: number | undefined;
-      try { const g = faceGeometry(face); if (g.kind === 'cylinder') radius = g.r; } catch { /* a general surface */ }
+      try { const g = faceGeometry(face); if (g.kind === 'cylinder') { radius = g.r; b.faces[b.faces.length - 1].exact = { kind: 'cylinder', c: [g.c[0], g.c[1], g.c[2]], a: [g.a[0], g.a[1], g.a[2]], r: g.r }; } } catch { /* a general surface */ }
       if (radius === undefined && face.surface.kind === 'surface') { const r = revolutionOf(face.surface, 100); if (r?.profile.kind === 'arc' && Math.abs(r.profile.c[0]) < 1e-9 * (1 + r.profile.r)) radius = r.profile.r; }
       if (radius !== undefined) b.faces[b.faces.length - 1].radius = radius;
     }
@@ -165,4 +174,18 @@ export function triangleMesh(positions: ArrayLike<number>, indices: ArrayLike<nu
   const P = new Float32Array(b.p), min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (let v = 0; v < P.length; v += 3) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], P[v + k]); max[k] = Math.max(max[k], P[v + k]); }
   return { positions: P, normals: new Float32Array(b.n), faceOfVertex: new Float32Array(b.f), indices: new Uint32Array(b.i), faces: b.faces, edgeLines: new Float32Array(0), edgeOfSegment: new Float32Array(0), edges: [], bounds: { min, max } };
+}
+
+/** A plane through a planar face's control points (A6.3): the first point, and the unit normal of the widest triangle
+ * it makes with two others (the farthest point, then the one farthest from that line); null if they are collinear. */
+function planeOfPoints(grid: readonly (readonly (readonly number[])[])[]): { o: Vec3; n: Vec3 } | null {
+  const o = grid[0]?.[0]; if (!o) return null;
+  let a: readonly number[] | null = null, best = 0;
+  for (const row of grid) for (const p of row) { const d = (p[0] - o[0]) ** 2 + (p[1] - o[1]) ** 2 + (p[2] - o[2]) ** 2; if (d > best) { best = d; a = p; } }
+  if (!a) return null;
+  const u0 = a[0] - o[0], u1 = a[1] - o[1], u2 = a[2] - o[2];
+  let n0 = 0, n1 = 0, n2 = 0, area = 0;
+  for (const row of grid) for (const p of row) { const v0 = p[0] - o[0], v1 = p[1] - o[1], v2 = p[2] - o[2], c0 = u1 * v2 - u2 * v1, c1 = u2 * v0 - u0 * v2, c2 = u0 * v1 - u1 * v0, k = c0 * c0 + c1 * c1 + c2 * c2; if (k > area) { area = k; n0 = c0; n1 = c1; n2 = c2; } }
+  const l = Math.sqrt(area); if (!(l > 0)) return null;
+  return { o: [o[0], o[1], o[2]], n: [n0 / l, n1 / l, n2 / l] };
 }

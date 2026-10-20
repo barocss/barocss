@@ -46,7 +46,9 @@ export function listed(t: ToolDefinition) {
   // (A6.2: a read tool lists readOnlyHint without destructiveHint and idempotentHint, which MCP defines as meaningful only
   // when readOnlyHint is false — the list had grown past that guard again.)
   const { title, ...all } = annotationsOf(t.name), out = outputSchemaOf(t.name);
-  const hints = all.readOnlyHint ? { readOnlyHint: true, openWorldHint: all.openWorldHint } : all;
+  // (A6.4: readOnlyHint always said; destructiveHint and idempotentHint left out at MCP's defaults (true, false); openWorldHint
+  // false always said, its default being true. The internal annotations and the frozen contract keep every hint.)
+  const hints = all.readOnlyHint ? { readOnlyHint: true, openWorldHint: all.openWorldHint } : { readOnlyHint: false, ...(all.destructiveHint ? {} : { destructiveHint: false }), ...(all.idempotentHint ? { idempotentHint: true } : {}), openWorldHint: all.openWorldHint };
   return { name: t.name, title, description: t.description, inputSchema: t.input_schema, ...(out ? { outputSchema: out } : {}), annotations: hints };
 }
 /** The JSON-only arm: the v1 tools but run_script, the prompt without its paragraph. */

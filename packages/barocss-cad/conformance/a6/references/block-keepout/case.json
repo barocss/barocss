@@ -1,0 +1,42 @@
+{
+ "case": "block-keepout",
+ "step": "A6.3",
+ "note": "A 10 mm cube; the studio's 40 × 30 × 10 block with a Ø8 hole (block.step) as a locked reference at z 30. Closed forms: the underside datum plane at z 30, normal −Z (20 mm from the cube's top); the block's envelope grown 2 mm starts at z 28, 18 mm from the cube (flat faces both: chord 0), so a 3 mm clearance is clear; a sketch on the datum lies at z 30.",
+ "input": {
+  "part": "box 10 × 10 × 10 at the origin",
+  "reference": {
+   "file": "block.step",
+   "at": {
+    "position": [
+     0,
+     0,
+     30
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "datum": "the reference face with normal −Z, as a plane",
+  "keepout": {
+   "around": "ref1",
+   "offset": 2,
+   "shape": "box",
+   "clearance": 3
+  }
+ },
+ "expect": {
+  "datum_origin_z": 30,
+  "datum_normal": [
+   0,
+   0,
+   -1
+  ],
+  "keepout_clearance_mm": 18,
+  "verdict": "clear",
+  "chord_tolerance_mm": 0,
+  "tol": 1e-9
+ }
+}

@@ -4173,6 +4173,51 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- A6.3 (O26): a locked reference body, datums and keep-outs -----------------------------------------------------
+  await check('A6.3: a STEP block added as a locked reference (ghosted, not a body of the part); a datum from its underside; an envelope keep-out clear, then violated as the part grows into it', async () => {
+    const fs = await import('node:fs');
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/a6/references/block-keepout/case.json'), 'utf8'));
+    // (The case's part: a 10 mm cube at the origin.)
+    const cubeFile = join(out, 'cube-10.bcad');
+    fs.writeFileSync(cubeFile, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }] }));
+    await page.setInputFiles('input[aria-label="Model file"]', cubeFile);
+    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 2 && !window.__studioDoc.references && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    await page.setInputFiles('input[aria-label="Add reference"]', join(root, '../../packages/barocss-cad/conformance/a6/references/block-keepout/block.step'));
+    await page.waitForFunction(() => window.__studioDoc?.references?.references?.length === 1, null, { timeout: 30000 });
+    await page.waitForSelector('[aria-label="Reference ref1"]', { timeout: 15000 });
+    // (Placed at z 30, as the case: the Z position typed and entered.)
+    await page.fill('[aria-label="ref1 position z"]', '30'); await page.locator('[aria-label="ref1 position z"]').press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.references.references[0].at.position[2] === 30, null, { timeout: 10000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.nodes.length), 2, 'not a node of the part');
+    assert.match(await page.locator('.outliner').innerText(), /1 body/, 'not a body of the part');
+    // (A datum plane from the face facing down.)
+    const faceName = await page.evaluate(() => [...document.querySelectorAll('[aria-label="ref1 datum face"] option')].map(o => o.value).filter(Boolean));
+    assert.ok(faceName.length >= 7, faceName.join());
+    let made = false;
+    for (const f of faceName) {
+      await page.selectOption('[aria-label="ref1 datum face"]', f); await page.click('[aria-label="ref1 add datum"]');
+      await page.waitForTimeout(300);
+      const n = await page.evaluate(() => window.__studioDoc.references.datums.at(-1)?.normal);
+      if (n && Math.abs(n[2] + 1) < 1e-9) { made = true; break; }
+      if (n) await page.click(`[aria-label="Remove ${await page.evaluate(() => window.__studioDoc.references.datums.at(-1).id)}"]`);
+      await page.waitForTimeout(200);
+    }
+    assert.ok(made, 'a datum plane facing down');
+    // (The envelope grown 2 mm: clear of the 10 mm cube, 18 mm away; flat faces, chord 0.)
+    await page.fill('[aria-label="ref1 envelope offset"]', '2'); await page.click('[aria-label="ref1 add keep-out"]');
+    await page.waitForFunction(() => /✓/.test(document.querySelector('[aria-label="Keep-out K1"]')?.textContent ?? ''), null, { timeout: 30000 });
+    const k1 = await page.locator('[aria-label="Keep-out K1"]').innerText();
+    assert.match(k1, new RegExp(`clear, ${c.expect.keepout_clearance_mm} mm`), k1);
+    await snap('a6-3-reference');
+    // (The part grown into it — the same document with the box 35 tall, saved and opened — enters the envelope: violated.)
+    const doc = await page.evaluate(() => window.__studioDoc), file = join(out, 'grown.bcad');
+    doc.nodes[1].height = 35;
+    fs.writeFileSync(file, JSON.stringify(doc));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => /✗/.test(document.querySelector('[aria-label="Keep-out K1"]')?.textContent ?? ''), null, { timeout: 30000 });
+    assert.match(await page.locator('[aria-label="Keep-out K1"]').innerText(), /violated/);
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

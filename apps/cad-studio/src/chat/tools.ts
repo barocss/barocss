@@ -15,6 +15,7 @@ import { GROUPS, v1Call, viaV2 } from './groups';
 import { ROBOT_TOOL_NAMES, ROBOT_TOOLS, runRobotTool } from './robot';
 import { BRIEF_TOOL_NAMES, BRIEF_TOOLS, runBriefTool, saidIn } from './brief';
 import { QUESTION_TOOL_NAMES, QUESTION_TOOLS, runQuestionTool } from './questions';
+import { datumPlane, datumToFace, datumWorld, readReferences, REFERENCE_TOOL_NAMES, REFERENCE_TOOLS, referenceNameIn, ReferenceError, runReferenceTool } from './references';
 import { parse, runScript, SCRIPT_VERSION, ScriptError, type ScriptHost, type ScriptRun } from './script';
 import { checkNode, deleteFeature, deleteFeatures, featureDependents, renumber } from './features';
 import type { ImageTrace, Pt } from './trace';
@@ -315,6 +316,16 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
   if (name === 'describe') { const d = describe(isObj(input) ? input : {}); return 'error' in d ? fail(state, String(d.error)) : { state, content: json(d), isError: false, changed: false, summary: 'described' }; }
   const args = isObj(input) ? input : {};
   // (The robot, RM1: the assembly's joint tree and its settings.)
+  // (A locked reference, A6.3: no part or assembly change may use its faces, edges or body.)
+  if ((MUTATORS.has(name) || BATCHABLE.has(name) || ASSEMBLY_CHANGES.has(name)) && name !== 'apply_ops' && name !== 'run_script') {
+    const ref = referenceNameIn(args);
+    if (ref) return fail(state, `[REFERENCE_LOCKED] ${ref} belongs to a locked reference: no feature may use it. Take a datum from it (add_datum) and build on that, or keep the part clear of it (add_keepout).`);
+  }
+  if (REFERENCE_TOOL_NAMES.has(name)) {
+    const out = await runReferenceTool(state.doc, state.bodies, name, args, evaluate);
+    if ('error' in out) return fail(state, out.error);
+    return { state: out.changed ? { ...state, doc: out.doc } : state, content: json(out.content), isError: false, changed: out.changed, summary: out.summary };
+  }
   // (The brief, A6.1: the part's intent, its required fields and gaps.)
   if (BRIEF_TOOL_NAMES.has(name) || QUESTION_TOOL_NAMES.has(name)) {
     const out = QUESTION_TOOL_NAMES.has(name) ? runQuestionTool(state.doc, args) : runBriefTool(state.doc, name, args, state.turns);
@@ -690,6 +701,11 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const list = Array.isArray(args.features) ? args.features : null;
       if (!list?.length) return fail(state, '"features" is a non-empty list of feature nodes.');
       let doc = state.doc;
+      // (A sketch on a datum plane, A6.3: "plane": {"datum": id} is that plane, in the part's coordinates.)
+      for (const [k, node] of list.entries()) {
+        const pl = isObj(node) ? (node as Record<string, unknown>).plane : undefined;
+        if (isObj(pl) && typeof pl.datum === 'string') { try { list[k] = { ...(node as object), plane: datumPlane(readReferences(doc.references), pl.datum) }; } catch (e) { return fail(state, e instanceof ReferenceError ? e.message : String(e)); } }
+      }
       for (const [k, node] of list.entries()) {
         const why = checkNode(node, doc.nodes, doc.parameters);
         if (why) return fail(state, `Feature ${k + 1} of ${list.length} (would be index ${doc.nodes.length}): ${why}`, { kept: 'nothing was added' });
@@ -801,6 +817,18 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         { ...(skipped.length ? { skipped } : {}), note: mode === 'body' ? `the body spans ${-depth / 2}…${depth / 2} about its mid plane` : 'bumps are separate bodies sunk into the surface; union them only if one solid is needed (each union is slow)' });
     }
     case 'measure': {
+      // (A datum against a face, A6.3: "a" a datum id, "b" a face of the part.)
+      if (typeof args.a === 'string' && /^D\d+$/.test(args.a)) {
+        const set = readReferences(state.doc.references), d0 = set.datums.find(x => x.id === args.a);
+        if (!d0) return fail(state, `No datum ${args.a}; datums: ${set.datums.map(x => x.id).join(', ') || 'none'}.`);
+        const r = args.b === undefined ? 'measure takes the datum and a face of the part ("b")' : resolveFace(state.doc.nodes, state.bodies, args.b);
+        if (typeof r === 'string') return fail(state, r);
+        if (r.length !== 1) return fail(state, `${JSON.stringify(args.b)} is ${r.length} faces; measure takes one.`);
+        const f = resolveNames(state.bodies, { faces: [r[0]] }).selection.faces[0];
+        if (!f) return fail(state, `No face ${r[0]} on the part.`);
+        const m = datumToFace(datumWorld(set, d0), state.bodies[f.body].mesh, f.face);
+        return { state, content: json({ label: `${args.a} to ${r[0]}`, distance: Number(m.distanceMM.toPrecision(12)), ...(m.angleDeg !== null ? { angle_deg: Number(m.angleDeg.toPrecision(9)) } : {}), what: m.what }), isError: false, changed: false, summary: `${args.a} to ${r[0]}` };
+      }
       const names: string[] = [], resolved: Resolved[] = [];
       for (const s of [args.a ?? '', ...(args.b === undefined ? [] : [args.b])]) {
         const r = isObj(s) && 'between' in s ? resolveEdge(state.doc.nodes, state.bodies, s) : resolveFace(state.doc.nodes, state.bodies, typeof s === 'string' || isObj(s) ? s : String(s));
@@ -1241,13 +1269,14 @@ export const TOOLS: ToolDefinition[] = [
   ...ROBOT_TOOLS,
   ...BRIEF_TOOLS,
   ...QUESTION_TOOLS,
+  ...REFERENCE_TOOLS,
 ];
 
 export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD Studio, a parametric part modeler. The user describes a part or a change; you build it with the tools, which edit the part's feature tree exactly like the studio's own commands. Every change you make is evaluated by the geometry kernel and the result (bodies, volumes, bounds, face and edge names, or the exact refusal) comes back to you.
 
 Conventions: millimetres; Z is up; sketches and boxes start on the XY plane at Z 0 unless placed otherwise; a box's x, y are its minimum corner. Holes go through the whole body by default. Faces and edges are referred to by their persistent names from results (e.g. the top face of the first extrude is "n1.top", a vertical corner edge "n1.side0|n1.side1"); vertical edges are the straight edges "along z". Instead of a name, a face or edge may be a selector — {"feature": 1, "role": "top"}, {"normal": [0, 0, 1], "pick": "max"}, {"between": [face, face]}: the result reports the name it resolved to (use that name afterwards), and one that fits several faces is refused with the candidates. Names keep their feature id when features are added, moved or deleted.
 
-Start from the brief: set_brief with its purpose, process and material (required) and what else the user said — stated with their words quoted, everything you chose yourself assumed with why, never stated; get_brief lists the gaps. Then write the requirements.
+Start from the brief: set_brief with its purpose, process and material (required) and what else the user said — stated with their words quoted, everything you chose yourself assumed with why, never stated; get_brief lists the gaps. Then write the requirements. A part built to fit something (get_references: locked reference bodies) is built on their datums (add_datum; a sketch on {"datum": id}) and kept out of their keep-outs (add_keepout, check_keepouts) — never on their faces, which no feature may use.
 
 Work like an engineer: prefer the commands (box, cylinder, hole, fillet, chamfer, shell, patterns, Booleans) and use add_features for profiles and solids no command makes. Make each change, read the result — its facts (solids, volume, mass, centroid, box, face/edge/vertex counts) and change (what moved since the last step) — and correct yourself when a tool refuses or a volume or bound is not what the request implies; inspect gives a face's or edge's detail (neighbours, the feature that made it). A mass is only a fact once the body's material is set: facts say mass_assumed when a body has none (aluminium taken); set the material, or state the assumption, before checking a mass against a requirement. mass_properties, interference (overlap and clearance), section, wall_thickness and draft analyse the part without changing it. When the user asks for options or a review, or a change is risky, propose it (propose) instead of making it: the user accepts or rejects it. Each message says your autonomy level: at L1 propose every change; at L2 (the default) change values of one feature or of parameters directly — anything more in a turn (several features; adding, deleting or moving features; what a feature is built on) you propose, except on an empty part, whose first build you make directly; at L3 and L4 you may accept proposals yourself (accept_proposal) within its limits. Before modelling a brief, write its requirements with set_requirements (quote the words; say what you assumed), and run check_spec after changes and before saying you are done. Ask only what blocks the design — ask_user, at most 5 questions a batch and 2 batches, each naming the gap it settles (a required brief field, or a hard requirement whose value you assumed); assume everything else, with why, and say what you chose: nothing waits on the answers. When the user attaches images (a sketch, a photo, a dimensioned drawing), model the part they show: take dimensions written on a drawing as given; read views (top, front, side) together; for a photo or an undimensioned sketch, estimate proportions from the picture and scale them by any one known size, and if no size is given or implied, ask for one key dimension (ask_user, within the batches) and build at an assumed size meanwhile, said so. Always say which dimensions you read and which you assumed.
 
