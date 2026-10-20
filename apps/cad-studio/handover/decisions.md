@@ -6073,5 +6073,7 @@ The first FR stage frozen in D122: section kinds in the kernel, and one straight
 | Conformance | 157/157 |
 | Studio | 609/609 (+2 of FR1, +4 from the merged RM8 step; test names compared, none missing) |
 | Full flow | 178/178, run on its own; the new step included |
+| RB | 299 cases (+8: the fr cases), 0 new, the 8 known TODOs (after the fix commit `ed76a9921`) |
+| Properties | 11/11, no failures |
 
-RB rows are in the next commit.
+RB rows are in the commit after the fix.
