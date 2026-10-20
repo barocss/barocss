@@ -1093,6 +1093,9 @@ gear crank.
   - RM9 SDF/USD, CCD, workspace map. **S0 (O62)**: RM9a timed multi-segment CCD with a TOI to 1e-9 s (MuJoCo on the boxes case),
     RM9b a Halton workspace map against the 2R annulus and manipulability, RM9c SDF 1.11 / UsdPhysics export (ours now; the
     usd-core and libsdformat checks wait for the owner's install go-ahead).
+    - **RM9 done (O64–O66)**: RM9a TOI to 2.6e-11 s (MuJoCo 9.3e-9 s); RM9b the 2R annulus by exact set relations, the 6R
+      reach; RM9c SDF 1.11 and USD, the four formats agreeing to 1.9e-16, FK to 2.2e-13 mm, usd-core 26.8's UsdPhysics reading
+      matching; SDF checked by our reader only (the owner declined an SDFormat install).
 
 **RD — dynamics, actuators, FEA** (maxon and Harmonic Drive sizing; NAFEMS):
 - RD1: static gravity torques; planar 2R and 3R closed forms to 1e-9.

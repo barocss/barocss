@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!-- barocss-sdf-v1: barocss CAD Studio. SI units; each link's frame at its joint, Z on the axis; joint values 0 at the pose the mates solve to. -->
+<sdf version="1.11">
+  <model name="robot">
+    <link name="base">
+      <pose relative_to="__model__">0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0.050000000000000086 0.020000000000000018 0.005 0 0 0</pose>
+        <mass>0.10693971247941346</mass>
+        <inertia><ixx>0.000015289507571410617</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00008993524880288187</iyy><iyz>0</iyz><izz>0.00010344242783296894</izz></inertia>
+      </inertial>
+      <visual name="visual"><geometry><mesh><uri>meshes/base.stl</uri></mesh></geometry></visual>
+      <collision name="collision"><geometry><mesh><uri>meshes/base_collision.stl</uri></mesh></geometry></collision>
+    </link>
+    <link name="crank">
+      <pose relative_to="__model__">0.019999999999999997 0.019999999999999997 0.01 0 0 1.0471975511965976</pose>
+      <inertial>
+        <pose>0.010000000000000018 0 0.0025 0 0 0</pose>
+        <mass>0.0035198562397067224</mass>
+        <inertia><ixx>4.025468420726405e-8</ixx><ixy>0</ixy><ixz>0</ixz><iyy>2.5724030817793515e-7</iyy><iyz>0</iyz><izz>2.828289247197545e-7</izz></inertia>
+      </inertial>
+      <visual name="visual"><geometry><mesh><uri>meshes/crank.stl</uri></mesh></geometry></visual>
+      <collision name="collision"><geometry><mesh><uri>meshes/crank_collision.stl</uri></mesh></geometry></collision>
+    </link>
+    <link name="coupler">
+      <pose relative_to="__model__">0.03 0.037320508075688756 0.015 0 0 0.459213879042623</pose>
+      <inertial>
+        <pose>0.03499999999999999 0 0.0025000000000000005 0 0 0</pose>
+        <mass>0.010269856239706717</mass>
+        <inertia><ixx>1.1056718420726476e-7</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.000005131141077848024</iyy><iyz>0</iyz><izz>0.000005198917194389843</izz></inertia>
+      </inertial>
+      <visual name="visual"><geometry><mesh><uri>meshes/coupler.stl</uri></mesh></geometry></visual>
+      <collision name="collision"><geometry><mesh><uri>meshes/coupler_collision.stl</uri></mesh></geometry></collision>
+    </link>
+    <link name="rocker">
+      <pose relative_to="__model__">0.07999999999999995 0.02 0.01 0 0 1.312988228135458</pose>
+      <inertial>
+        <pose>0.025000000000000012 0 0.0024999999999999996 0 0 0</pose>
+        <mass>0.007569856239706716</mass>
+        <inertia><ixx>8.244218420726458e-8</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.000002113602334023971</iyy><iyz>0</iyz><izz>0.0000021645034505657903</izz></inertia>
+      </inertial>
+      <visual name="visual"><geometry><mesh><uri>meshes/rocker.stl</uri></mesh></geometry></visual>
+      <collision name="collision"><geometry><mesh><uri>meshes/rocker_collision.stl</uri></mesh></geometry></collision>
+    </link>
+    <joint name="base_to_crank" type="continuous">
+      <parent>base</parent>
+      <child>crank</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis><xyz>0 0 1</xyz><limit></limit></axis>
+    </joint>
+    <joint name="crank_to_coupler" type="continuous">
+      <parent>crank</parent>
+      <child>coupler</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis><xyz>0 0 1</xyz><limit></limit></axis>
+    </joint>
+    <joint name="base_to_rocker" type="continuous">
+      <parent>base</parent>
+      <child>rocker</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis><xyz>0 0 1</xyz><limit></limit></axis>
+    </joint>
+    <joint name="loop_coupler_rocker" type="ball">
+      <parent>coupler</parent>
+      <child>rocker</child>
+      <pose>0.05000000000000002 0 0.005 0 0 0</pose>
+    </joint>
+  </model>
+</sdf>

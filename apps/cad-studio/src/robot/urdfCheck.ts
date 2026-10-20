@@ -5,7 +5,7 @@
 // External checkers (check_urdf, MuJoCo, PyBullet) are test oracles outside the product (scripts/urdf-oracle.py).
 
 export class XmlError extends Error { constructor(message: string, readonly at: number) { super(`XML at ${at}: ${message}`); this.name = 'XmlError'; } }
-export interface XmlNode { name: string; attrs: Record<string, string>; children: XmlNode[] }
+export interface XmlNode { name: string; attrs: Record<string, string>; children: XmlNode[]; /** Its text, trimmed (with `{ text: true }`: SDF keeps its values there). */ text?: string }
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
 const unescape = (s: string, at: number) => s.replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (_, e: string) => {
   if (e[0] === '#') return String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10));
@@ -13,8 +13,9 @@ const unescape = (s: string, at: number) => s.replace(/&(#x[0-9a-f]+|#\d+|\w+);/
   return ENTITIES[e];
 });
 
-/** The document's root element (text between elements is ignored: URDF keeps everything in attributes). */
-export function parseXml(text: string): XmlNode {
+/** The document's root element (text between elements is ignored: URDF keeps everything in attributes; `{ text: true }`
+ * keeps each element's own text, trimmed, entities resolved — RM9c's SDF reader). */
+export function parseXml(text: string, o: { text?: boolean } = {}): XmlNode {
   let i = 0;
   const stack: XmlNode[] = [], top: XmlNode = { name: '#document', attrs: {}, children: [] };
   stack.push(top);
@@ -22,6 +23,7 @@ export function parseXml(text: string): XmlNode {
     const lt = text.indexOf('<', i);
     if (lt < 0) break;
     if (text.slice(i, lt).trim() && stack.length === 1) throw new XmlError('text outside the root element', i);
+    if (o.text && stack.length > 1) { const t = text.slice(i, lt).trim(); if (t) { const n = stack[stack.length - 1]; n.text = (n.text ?? '') + unescape(t, i); } }
     i = lt;
     if (text.startsWith('<!--', i)) { const e = text.indexOf('-->', i + 4); if (e < 0) throw new XmlError('a comment is not closed', i); i = e + 3; continue; }
     if (text.startsWith('<?', i)) { const e = text.indexOf('?>', i + 2); if (e < 0) throw new XmlError('a declaration is not closed', i); i = e + 2; continue; }

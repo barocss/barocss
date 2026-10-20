@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<!-- barocss-sdf-v1: barocss CAD Studio. SI units; each link's frame at its joint, Z on the axis; joint values 0 at the pose the mates solve to. -->
+<sdf version="1.11">
+  <model name="robot">
+    <link name="base">
+      <pose relative_to="__model__">0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0.04999999999999991 0.04999999999999991 0.005 0 0 0</pose>
+        <mass>0.2686428319736498</mass>
+        <inertia><ixx>0.0002272332615943428</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.0002272332615943428</iyy><iyz>0</iyz><izz>0.00044998914265579145</izz></inertia>
+      </inertial>
+      <visual name="visual"><geometry><mesh><uri>meshes/base.stl</uri></mesh></geometry></visual>
+      <collision name="collision"><geometry><mesh><uri>meshes/base_collision.stl</uri></mesh></geometry></collision>
+    </link>
+    <link name="l1">
+      <pose relative_to="__model__">0.05000000000000001 0.05000000000000001 0.01 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0.040000000000000015 0 0 0</pose>
+        <mass>0.07879985905243286</mass>
+        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.000043910611119220554</iyy><iyz>0</iyz><izz>0.0000055399578241395984</izz></inertia>
+      </inertial>
+      <visual name="visual"><geometry><mesh><uri>meshes/l1.stl</uri></mesh></geometry></visual>
+      <collision name="collision"><geometry><mesh><uri>meshes/l1_collision.stl</uri></mesh></geometry></collision>
+    </link>
+    <link name="l2">
+      <pose relative_to="__model__">0.05 0.06 0.06999999999999998 -1.5707963267948966 0 0</pose>
+      <inertial>
+        <pose>0 -0.020000000000000028 0.01 0 0 0</pose>
+        <mass>0.07879985905243286</mass>
+        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.0000055399578241395984</iyy><iyz>0</iyz><izz>0.000043910611119220554</izz></inertia>
+      </inertial>
+      <visual name="visual"><geometry><mesh><uri>meshes/l2.stl</uri></mesh></geometry></visual>
+      <collision name="collision"><geometry><mesh><uri>meshes/l2_collision.stl</uri></mesh></geometry></collision>
+    </link>
+    <link name="l3">
+      <pose relative_to="__model__">0.049999999999999996 0.08 0.10999999999999996 -1.5707963267948966 0 0</pose>
+      <inertial>
+        <pose>0 -0.020000000000000056 0.01 0 0 0</pose>
+        <mass>0.07879985905243286</mass>
+        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.0000055399578241395984</iyy><iyz>0</iyz><izz>0.000043910611119220554</izz></inertia>
+      </inertial>
+      <visual name="visual"><geometry><mesh><uri>meshes/l3.stl</uri></mesh></geometry></visual>
+      <collision name="collision"><geometry><mesh><uri>meshes/l3_collision.stl</uri></mesh></geometry></collision>
+    </link>
+    <link name="l4">
+      <pose relative_to="__model__">0.05 0.08999999999999998 0.17 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0.040000000000000015 0 0 0</pose>
+        <mass>0.07879985905243286</mass>
+        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.000043910611119220554</iyy><iyz>0</iyz><izz>0.0000055399578241395984</izz></inertia>
+      </inertial>
+      <visual name="visual"><geometry><mesh><uri>meshes/l4.stl</uri></mesh></geometry></visual>
+      <collision name="collision"><geometry><mesh><uri>meshes/l4_collision.stl</uri></mesh></geometry></collision>
+    </link>
+    <link name="l5">
+      <pose relative_to="__model__">0.05000000000000001 0.1 0.23000000000000007 -1.5707963267948966 0 0</pose>
+      <inertial>
+        <pose>0 -0.01999999999999996 0.01 0 0 0</pose>
+        <mass>0.07879985905243286</mass>
+        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.0000055399578241395984</iyy><iyz>0</iyz><izz>0.000043910611119220554</izz></inertia>
+      </inertial>
+      <visual name="visual"><geometry><mesh><uri>meshes/l5.stl</uri></mesh></geometry></visual>
+      <collision name="collision"><geometry><mesh><uri>meshes/l5_collision.stl</uri></mesh></geometry></collision>
+    </link>
+    <link name="l6">
+      <pose relative_to="__model__">0.04999999999999999 0.10999999999999999 0.29 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0.040000000000000015 0 0 0</pose>
+        <mass>0.07879985905243286</mass>
+        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.000043910611119220554</iyy><iyz>0</iyz><izz>0.0000055399578241395984</izz></inertia>
+      </inertial>
+      <visual name="visual"><geometry><mesh><uri>meshes/l6.stl</uri></mesh></geometry></visual>
+      <collision name="collision"><geometry><mesh><uri>meshes/l6_collision.stl</uri></mesh></geometry></collision>
+    </link>
+    <joint name="base_to_l1" type="continuous">
+      <parent>base</parent>
+      <child>l1</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis><xyz>0 0 1</xyz><limit></limit></axis>
+    </joint>
+    <joint name="l1_to_l2" type="continuous">
+      <parent>l1</parent>
+      <child>l2</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis><xyz>0 0 1</xyz><limit></limit></axis>
+    </joint>
+    <joint name="l2_to_l3" type="continuous">
+      <parent>l2</parent>
+      <child>l3</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis><xyz>0 0 1</xyz><limit></limit></axis>
+    </joint>
+    <joint name="l3_to_l4" type="continuous">
+      <parent>l3</parent>
+      <child>l4</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis><xyz>0 0 1</xyz><limit></limit></axis>
+    </joint>
+    <joint name="l4_to_l5" type="continuous">
+      <parent>l4</parent>
+      <child>l5</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis><xyz>0 0 1</xyz><limit></limit></axis>
+    </joint>
+    <joint name="l5_to_l6" type="continuous">
+      <parent>l5</parent>
+      <child>l6</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis><xyz>0 0 1</xyz><limit></limit></axis>
+    </joint>
+  </model>
+</sdf>

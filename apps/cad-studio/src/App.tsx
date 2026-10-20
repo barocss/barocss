@@ -50,10 +50,13 @@ import { posedInstances } from './robot/preview';
 import { treeInertia } from './robot/inertia';
 import { gravityTorques, linkMasses } from './robot/dynamics';
 import { exportUrdf } from './robot/urdf';
-import { exportMjcf } from './robot/mjcf';
+import { exportMjcf, type MjcfClosure } from './robot/mjcf';
 import { sweepLinks } from './robot/sweep';
 import { sweepTimed, type JointLimits } from './robot/ccd';
 import { workspaceMap, type WorkspaceMap } from './robot/workspace';
+import { exportSdf } from './robot/sdf';
+import { exportUsd } from './robot/usd';
+import { closureOfDoc } from './robot/loop';
 import { convexHull } from './robot/hull';
 import { writeZip } from './io/zip';
 import { useAssembly } from './assembly/useAssembly';
@@ -567,6 +570,10 @@ export function App() {
   const [jointWaypoints, setJointWaypoints] = useState<Record<string, number>[]>([]);
   // (RM9b: the workspace map shown, a preview; nothing saved.)
   const [workspace, setWorkspace] = useState<WorkspaceMap | null>(null);
+  /** A robot part for the exports (RM4–RM9c): the bodies as placed, so each part's placement is the identity here. */
+  const robotPartOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; };
+  /** The tree's planar loops closed at their pins (RM8), those that are not left out (the exports note them). */
+  const robotClosures = (): MjcfClosure[] => { const out: MjcfClosure[] = []; if (jointTree) for (const l of jointTree.loops) { try { out.push(closureOfDoc(doc, jointTree, l)); } catch { /* not planar: noted */ } } return out; };
   const workspaceCloud = useMemo(() => { if (!workspace) return null; const best = Math.max(0, ...workspace.voxels.map(v => v.w)); return workspace.voxels.map(v => ({ at: v.c as Vec3, t: best > 0 ? v.w / best : 0 })); }, [workspace]);
   // (A path checked is for the pose it was checked to: moving a joint clears it.)
   useEffect(() => setPathCheck(null), [jointValues, jointTree]);
@@ -2062,6 +2069,19 @@ export function App() {
           const r = exportMjcf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
           if (!r.ok) { setToast({ title: 'MJCF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
           void writeZip([{ name: 'robot.xml', data: new TextEncoder().encode(r.xml), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-mjcf.zip`, 'application/zip'));
+        }}
+        onExportSdf={() => {
+          // (RM9c: as the URDF and MJCF, the same parts; each planar loop closed at its pin, RM8.)
+          const r = exportSdf(jointTree, robotPartOf, fileName, robotClosures());
+          if (!r.ok) { setToast({ title: 'SDF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
+          void writeZip([{ name: 'robot.sdf', data: new TextEncoder().encode(r.sdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-sdf.zip`, 'application/zip'));
+          if (r.notes.length) setToast({ title: 'SDF written', hint: r.notes.join(' '), detail: '' });
+        }}
+        onExportUsd={() => {
+          const r = exportUsd(jointTree, robotPartOf, fileName, robotClosures());
+          if (!r.ok) { setToast({ title: 'USD refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
+          downloadBytes(new TextEncoder().encode(r.usda), `${fileName}.usda`, 'model/vnd.usda');
+          if (r.notes.length) setToast({ title: 'USD written', hint: r.notes.join(' '), detail: '' });
         }}
         onBase={b => { pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) }; if (b === BASE) delete robot.base; else robot.base = b; setDoc({ ...doc, robot }); setDirty(true); }} />}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}

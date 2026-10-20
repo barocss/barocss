@@ -3022,3 +3022,60 @@ Built as O62 froze it (`src/robot/workspace.ts`; `toolProbe`/`probeAt` added to 
   - `hollow.test.ts` "a curved body refused at once" missed its 1 s wall-clock guard once in the full suite (649/650). Rerun alone it passes (4/4). The guard is a proxy for "no mesher ran"; it is left as is and recorded here.
   - One flow run died on a screenshot timeout at step 1531 while the UI sources were being edited (a dev-server reload). The clean rerun passes, 187/187.
   - The render-source cascade (steps 48–55) did not recur.
+
+## O66 — RM9c: SDF 1.11 and USD (UsdPhysics) export; our readers and the four formats agree; external validators pending (2026-10-20)
+
+Built as O62 froze it (`src/robot/sdf.ts`, `src/robot/usd.ts`, readers in `src/robot/modelCheck.ts`), on the same parts as URDF and MJCF (`robotParts`). URDF and MJCF themselves are unchanged.
+
+- **SDF**:
+  - each `<link>` has its pose `relative_to="__model__"` (x y z and URDF's rpy), `<inertial>` with the centre of mass as its pose, the tensor in the link frame, and the mesh and hull as STL `<uri>`;
+  - each `<joint>` is at its child's frame (`<pose>0 0 0 0 0 0</pose>`), its axis in the child frame, limits in rad or m;
+  - a gear follower is `<axis><mimic joint>` with multiplier, offset and reference 0 (SDF 1.11, follower = m·(leader − ref) + offset, read from sdformat.org's HTML);
+  - RM8's loop is a `ball` joint between its two links at the pin, since SDF allows a graph.
+- **USD** (`.usda`):
+  - the root Xform has `PhysicsArticulationRootAPI`;
+  - each link is an Xform beneath it (flat: each its own rigid body) with `PhysicsRigidBodyAPI` and `PhysicsMassAPI`: mass, `centerOfMass`, and `diagonalInertia` about `principalAxes`, the eigen-decomposition of RM3's tensor made right-handed;
+  - its frame is a `matrix4d xformOp:transform` (USD's row vectors);
+  - its mesh is a `Mesh`, and its hull a `Mesh` with `PhysicsCollisionAPI` (approximation `convexHull`, purpose guide);
+  - each joint is a `PhysicsRevoluteJoint`, `PhysicsPrismaticJoint` or `PhysicsFixedJoint` (body0 the parent, body1 the child, localPos0/localRot0 the child's frame in the parent's, axis "Z"), with limits in degrees or metres;
+  - a loop is a `PhysicsSphericalJoint` excluded from the articulation.
+  - What UsdPhysics has no attribute for (a gear coupling, effort and velocity limits) is kept as `barocss:` custom attributes, and the notes say so.
+  - **One change from the S0**: `metersPerUnit = 1` (SI, as the other three formats), not 0.001, so all four carry the same numbers without a conversion.
+- **Our readers**: `readSdf` (`parseXml` gained `{ text: true }`, since SDF keeps its values in element text) and `readUsda` (the prims RM9c writes). They feed one model and its FK, which composes each child at its parent's pose with their home relative frame and then its motion about its axis. That is a different composition from RM2's.
+- **Evidence** (`test/robot-sdf-usd.test.ts`, 3 tests):
+  - **arm-6r**:
+    - both read back to the same links and joints (names, types, parents, children);
+    - URDF, MJCF, SDF and USD agree on every link's mass, centre and inertia to **1.9e-16** (USD's tensor rebuilt from its principal frame), and on every axis and limit;
+    - the MJCF is byte-identical to the frozen `conformance/rm/arm-6r/robot.xml`.
+  - **FK at 100 poses**:
+    - arm-6r: SDF 2.2e-13 mm, USD 1.4e-13 mm;
+    - the gear pair (SDF's `<mimic>`, USD's custom attributes, noted): 2.8e-14;
+    - the slide chain: 7.1e-15 (`prismatic`, limits ±0.02 m).
+    - All are within the acceptance of 1e-9 mm.
+  - **The four-bar**:
+    - its loop is one ball joint (SDF) and one spherical joint outside the articulation (USD);
+    - the pin's local points in both links equal RM8's pin to 1e-12;
+    - the loop is not noted as left out;
+    - the tree's FK is unchanged.
+- **Where**: **Export SDF** (a zip of robot.sdf and its meshes) and **Export USD** (one .usda) in the Joints card. Both close each planar loop at its pin, as the chat's MJCF does. `tools/list` is unchanged.
+- **External validators.** The owner's go-ahead was relayed on 2026-10-20: "RM9c 검증용으로 usd-core와 SDFormat 검사기를 ~/.cache 검증용 가상환경에만 설치해도 돼. 제품 의존성으로는 쓰지 말고."
+  - **USD: usd-core 26.8**, in its own venv `~/.cache/barocss-usd` (uv, Python 3.12.9), installed `--require-hashes` from `requirements.txt` there.
+    - The wheel is `usd_core-26.8-cp312-none-macosx_10_15_universal2.whl`, sha256 `aaf1a68bf4c7ab959b9f4d3a6e0ef9347ff6135a1452676bb40916060146c53e` (PyPI's published digest). No transitive dependency landed (`uv pip freeze`: usd-core==26.8 alone). Its licence is Pixar's TOST-1.0.
+    - Nothing went into the repo, the system Python or Homebrew. It is run `python -I` with the file as an argument.
+    - `scripts/usd-oracle.py` opens each frozen stage (`conformance/rm/arm-6r/robot.usda`, `four-bar/robot.usda`) with OpenUSD (no composition errors) and reads it with UsdPhysics' own parser (`LoadUsdPhysicsFromRange`) and MassAPI.
+    - The readings are committed as `oracle.usd-core-26.8.json`. The frozen `robot.sdf` files sit beside them, for the SDF check.
+    - **Compared** (`robot-sdf-usd.test.ts`, test 4):
+      - arm-6r: 7 rigid bodies and 6 revolute joints, body0/body1, axis Z, one articulation 7/6. Frames to **8.3e-9 m** and mass properties to **4.0e-8** relative.
+      - four-bar: 4 bodies, 3 revolute joints and the loop as a `SphericalJoint` excluded from the articulation. Frames to 3.7e-8 and mass properties to 3.9e-8.
+      - SI metadata, Z up.
+      - The frame bound is 1e-7. UsdPhysics' descriptors are single precision (GfVec3f, GfQuatf) though the file's matrix4d is double: 2⁻²⁴ of 0.3 m is 2e-8.
+  - **SDF: libsdformat is not on PyPI.** The package named `sdformat` there (0.23.2, GPL) is a third-party interface, and sdformat.org's XSDs are unversioned, so neither is a 1.11 check. libsdformat ships via conda-forge, Homebrew's osrf tap or apt. **External SDFormat validation: declined by the owner** (relayed 2026-10-20): "SDFormat은 micromamba로 설치하지 말고 자체 리더와 구조 검사로만 검증해." RM9c's SDF acceptance is therefore our reader's round trip, FK at 100 poses, and the four formats agreeing. The third-party PyPI `sdformat` and the unversioned XSDs are not used as a stand-in.
+    - **Historical note only**: the micromamba route that was asked about and declined. It was never run, and its conda-forge names and pins were never confirmed.
+
+          mkdir -p ~/.cache/barocss-micromamba
+          curl -Ls https://micro.mamba.pm/api/micromamba/osx-arm64/latest | tar -xj -C ~/.cache/barocss-micromamba bin/micromamba
+          MAMBA_ROOT_PREFIX=~/.cache/barocss-micromamba ~/.cache/barocss-micromamba/bin/micromamba create -y -p ~/.cache/barocss-sdformat -c conda-forge --override-channels python=3.12 libsdformat15=<pin>
+          ~/.cache/barocss-sdformat/bin/gz sdf -k packages/barocss-cad/conformance/rm/arm-6r/robot.sdf   # (or the bindings' parser, python -I)
+
+      (Declined: nothing installed, no reading.)
+- **Flow**: a step "RM9c" just before the last. The ccd-post arm is exported as SDF (the zip holds robot.sdf and the meshes, and python's zipfile reads the SDF: version 1.11, base_to_a continuous) and as USD (the articulation root, base_to_a a revolute joint, the post an Xform).

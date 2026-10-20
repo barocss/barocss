@@ -1,0 +1,283 @@
+{
+ "articulations": [
+  {
+   "bodies": 4,
+   "joints": 4,
+   "root": "/robot"
+  }
+ ],
+ "bodies": {
+  "base": {
+   "centerOfMass": [
+    0.05000000074505806,
+    0.019999999552965164,
+    0.004999999888241291
+   ],
+   "diagonalInertia": [
+    1.5289508155547082e-05,
+    8.993524534162134e-05,
+    0.00010344242764404044
+   ],
+   "mass": 0.10693971067667007,
+   "position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "principalAxes": [
+    1.0,
+    0.0,
+    0.0,
+    -1.6169630264188835e-15
+   ],
+   "rotation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "coupler": {
+   "centerOfMass": [
+    0.03500000014901161,
+    0.0,
+    0.0024999999441206455
+   ],
+   "diagonalInertia": [
+    1.105671856294066e-07,
+    5.131141278980067e-06,
+    5.1989172789035365e-06
+   ],
+   "mass": 0.010269856080412865,
+   "position": [
+    0.029999999329447746,
+    0.03732050955295563,
+    0.014999999664723873
+   ],
+   "principalAxes": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation": [
+    0.973755955696106,
+    0.0,
+    0.0,
+    0.227594792842865
+   ]
+  },
+  "crank": {
+   "centerOfMass": [
+    0.009999999776482582,
+    0.0,
+    0.0024999999441206455
+   ],
+   "diagonalInertia": [
+    4.025468314239333e-08,
+    2.572403161593684e-07,
+    2.828289211720403e-07
+   ],
+   "mass": 0.0035198561381548643,
+   "position": [
+    0.019999999552965164,
+    0.019999999552965164,
+    0.009999999776482582
+   ],
+   "principalAxes": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation": [
+    0.8660253882408142,
+    0.0,
+    0.0,
+    0.5
+   ]
+  },
+  "rocker": {
+   "centerOfMass": [
+    0.02500000037252903,
+    0.0,
+    0.0024999999441206455
+   ],
+   "diagonalInertia": [
+    8.244218463460129e-08,
+    2.1136022496648366e-06,
+    2.164503484891611e-06
+   ],
+   "mass": 0.007569856010377407,
+   "position": [
+    0.07999999821186066,
+    0.019999999552965164,
+    0.009999999776482582
+   ],
+   "principalAxes": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation": [
+    0.7921369075775146,
+    0.0,
+    0.0,
+    0.6103434562683105
+   ]
+  }
+ },
+ "composition_errors": [],
+ "file": "robot.usda",
+ "joints": {
+  "base_to_crank": {
+   "axis": "Z",
+   "body0": "base",
+   "body1": "crank",
+   "excludeFromArticulation": false,
+   "limit": {
+    "enabled": false,
+    "lower": null,
+    "upper": null
+   },
+   "localPose0Orientation": [
+    0.8660253882408142,
+    0.0,
+    0.0,
+    0.5
+   ],
+   "localPose0Position": [
+    0.019999999552965164,
+    0.019999999552965164,
+    0.009999999776482582
+   ],
+   "localPose1Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose1Position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "type": "RevoluteJoint"
+  },
+  "base_to_rocker": {
+   "axis": "Z",
+   "body0": "base",
+   "body1": "rocker",
+   "excludeFromArticulation": false,
+   "limit": {
+    "enabled": false,
+    "lower": null,
+    "upper": null
+   },
+   "localPose0Orientation": [
+    0.7921369075775146,
+    0.0,
+    0.0,
+    0.6103434562683105
+   ],
+   "localPose0Position": [
+    0.07999999821186066,
+    0.019999999552965164,
+    0.009999999776482582
+   ],
+   "localPose1Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose1Position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "type": "RevoluteJoint"
+  },
+  "crank_to_coupler": {
+   "axis": "Z",
+   "body0": "crank",
+   "body1": "coupler",
+   "excludeFromArticulation": false,
+   "limit": {
+    "enabled": false,
+    "lower": null,
+    "upper": null
+   },
+   "localPose0Orientation": [
+    0.9570947885513306,
+    0.0,
+    0.0,
+    -0.2897751033306122
+   ],
+   "localPose0Position": [
+    0.019999999552965164,
+    0.0,
+    0.004999999888241291
+   ],
+   "localPose1Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose1Position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "type": "RevoluteJoint"
+  },
+  "loop_coupler_rocker": {
+   "axis": "X",
+   "body0": "coupler",
+   "body1": "rocker",
+   "excludeFromArticulation": true,
+   "limit": {
+    "enabled": false,
+    "lower": -1.0,
+    "upper": -1.0
+   },
+   "localPose0Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose0Position": [
+    0.07000000029802322,
+    0.0,
+    0.0
+   ],
+   "localPose1Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose1Position": [
+    0.05000000074505806,
+    0.0,
+    0.004999999888241291
+   ],
+   "type": "SphericalJoint"
+  }
+ },
+ "kilogramsPerUnit": 1.0,
+ "metersPerUnit": 1.0,
+ "other": {
+  "MeshShape": [
+   "/robot/base/collision",
+   "/robot/crank/collision",
+   "/robot/coupler/collision",
+   "/robot/rocker/collision"
+  ]
+ },
+ "upAxis": "Z",
+ "usd": "0.26.8"
+}

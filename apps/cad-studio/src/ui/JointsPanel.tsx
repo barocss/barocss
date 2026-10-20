@@ -22,7 +22,7 @@ const mm1 = (v: number) => { const t = v.toFixed(1); return t === '-0.0' ? '0.0'
  * and (RM2) a slider a moving joint to pose it — degrees for a turn, mm for a slide — Home, and one joint played back
  * and forth. A follower moves with its leader (no slider of its own). The pose is a preview: nothing is saved.
  */
-export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, links, onExportUrdf, onExportMjcf, onCheckPath, path, ready = true, holding, waypoints = 0, onAddWaypoint, onClearWaypoints, onWorkspace, workspace, onWorkspaceDownload, onWorkspaceHide }: {
+export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, links, onExportUrdf, onExportMjcf, onCheckPath, path, ready = true, holding, waypoints = 0, onAddWaypoint, onClearWaypoints, onWorkspace, workspace, onWorkspaceDownload, onWorkspaceHide, onExportSdf, onExportUsd }: {
   tree: JointTree; instances: PartInstance[]; onBase(base: string): void;
   values: Record<string, number>; onValue(key: string, v: number): void; onHome(): void; playing: string | null; onPlay(key: string | null): void; gears: GearLine[];
   /** Each link's mass properties (RM3), in its link frame. */
@@ -31,6 +31,8 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
   onExportUrdf?(): void;
   /** Writes the robot as a MuJoCo MJCF model (RM5), a zip of robot.xml and its meshes. */
   onExportMjcf?(): void;
+  /** Writes the robot as SDF 1.11 (RM9c), a zip of robot.sdf and its meshes; and as a USD stage (UsdPhysics), one .usda. */
+  onExportSdf?(): void; onExportUsd?(): void;
   /** Sweeps the path from the solved pose through the waypoints to the sliders' (RM6, RM9a: timed, its time of impact); the result to show. */
   onCheckPath?(): void;
   /** The waypoints recorded (RM9a), and recording one at the pose shown, or clearing them. */
@@ -83,7 +85,9 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
         {onClearWaypoints && waypoints > 0 && <button className="ghost" aria-label="Clear waypoints" onClick={onClearWaypoints}>Clear {waypoints} waypoint{waypoints === 1 ? '' : 's'}</button>}
         {onCheckPath && (waypoints > 0 || Object.values(values).some(v => v !== 0)) && <button className="ghost" aria-label="Check path" disabled={!ready} title="Sweep the timed path from the solved pose (through the waypoints) to this one for collisions between links: the time of impact, or the whole path certified" onClick={onCheckPath}>Check path</button>}
         {onExportUrdf && <button className="ghost" aria-label="Export URDF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportUrdf}>Export URDF</button>}
-        {onExportMjcf && <button className="ghost" aria-label="Export MJCF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportMjcf}>Export MJCF</button>}</div>
+        {onExportMjcf && <button className="ghost" aria-label="Export MJCF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportMjcf}>Export MJCF</button>}
+        {onExportSdf && <button className="ghost" aria-label="Export SDF" disabled={!ready} title={ready ? 'SDFormat 1.11 (Gazebo): links, inertia, meshes, joints, a loop as a ball joint' : 'The parts are still being evaluated'} onClick={onExportSdf}>Export SDF</button>}
+        {onExportUsd && <button className="ghost" aria-label="Export USD" disabled={!ready} title={ready ? 'A USD stage (.usda) with UsdPhysics rigid bodies and joints' : 'The parts are still being evaluated'} onClick={onExportUsd}>Export USD</button>}</div>
       {links?.filter(l => l.part !== null).map(l => {
         const bad = l.issues.filter(i => i.code !== 'MATERIAL_ASSUMED'), assumed = l.issues.some(i => i.code === 'MATERIAL_ASSUMED');
         return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (kg·m²): ${l.principal.moments.map(m => m.toExponential(3)).join(', ')} principal`}>

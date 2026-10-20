@@ -4646,6 +4646,25 @@ try {
     await page.click('[aria-label="Hide workspace"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Workspace map"]'));
   });
 
+  // ---- RM9c (O66): SDF and USD export ---------------------------------------------------------------------------------
+  await check('RM9c: the same arm exported as SDF (a zip of robot.sdf and its meshes) and as USD (one .usda): read back by our readers, the same links and joints', async () => {
+    const fs = await import('node:fs');
+    const [ds] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SDF"]')]);
+    assert.match(ds.suggestedFilename(), /-sdf\.zip$/);
+    const zip = fs.readFileSync(await ds.path()), names = zip.toString('latin1');
+    assert.equal(zip.readUInt32LE(0), 0x04034b50, 'a zip');
+    for (const n of ['robot.sdf', 'meshes/base.stl', 'meshes/a_collision.stl', 'meshes/post.stl']) assert.ok(names.includes(n), n);
+    const { spawnSync } = await import('node:child_process');
+    const py = spawnSync('python3', ['-I', '-c', 'import sys, zipfile; z = zipfile.ZipFile(sys.argv[1]); print(z.read("robot.sdf").decode())', await ds.path()], { encoding: 'utf8' });
+    assert.equal(py.status, 0, py.stderr);
+    assert.match(py.stdout, /<sdf version="1\.11">/); assert.match(py.stdout, /<joint name="base_to_a" type="continuous">/);
+    const [du] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export USD"]')]);
+    assert.match(du.suggestedFilename(), /\.usda$/);
+    const usda = fs.readFileSync(await du.path(), 'utf8');
+    assert.ok(usda.startsWith('#usda 1.0'));
+    assert.match(usda, /prepend apiSchemas = \["PhysicsArticulationRootAPI"\]/); assert.match(usda, /def PhysicsRevoluteJoint "base_to_a"/); assert.match(usda, /def Xform "post"/);
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
