@@ -205,6 +205,14 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       if (node.kind === 'sheet-contour') number('w', 'Width', 'mm', n => num((n as Extract<ModelNode, { kind: 'sheet-contour' }>).width), (n, v) => ({ ...(n as Extract<ModelNode, { kind: 'sheet-contour' }>), width: v }));
       break;
     }
+    case 'sheet-flange': {
+      // (R12.3, D118: its length, angle, own radius and offsets.)
+      type F = Extract<ModelNode, { kind: 'sheet-flange' }>;
+      number('length', 'Length', 'mm', n => num((n as F).length), (n, v) => ({ ...(n as F), length: v }));
+      number('angle', 'Angle', '°', n => (n as F).angleDegrees ?? 90, (n, v) => ({ ...(n as F), angleDegrees: v }));
+      if (node.offsets) [0, 1].forEach(k => number('o' + k, k ? 'Offset at end' : 'Offset at start', 'mm', n => num((n as F).offsets![k]), (n, v) => { const o = [...(n as F).offsets!] as [Dim, Dim]; o[k] = v; return { ...(n as F), offsets: o }; }));
+      break;
+    }
     case 'thicken': number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;
     case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; if (v > 0) next.tolerance = Math.min(1, v); else delete next.tolerance; return next; }); break;
     case 'draft': number('deg', 'Angle', '°', n => (n as typeof node).angleDegrees, (n, v) => ({ ...(n as typeof node), angleDegrees: v })); break;

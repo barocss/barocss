@@ -65,9 +65,13 @@ test('tool schemas: every buildable command is exposed and documented with the H
   // Simplify mesh takes a mesh body (facet faces): a box of 12 triangles.
   const meshed = await stateOf(withNode(emptyDoc(), { kind: 'mesh', name: 'cube', unit: 'mm', representation: 'facets', positions: [0, 0, 0, 10, 0, 0, 10, 10, 0, 0, 10, 0, 0, 0, 10, 10, 0, 10, 10, 10, 10, 0, 10, 10],
     indices: [0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7] }));
+  // A flange takes a straight edge of a sheet (R12.3): a sheet plate's top edge.
+  const sheet = await stateOf(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }), { kind: 'sheet-base', sketch: 0, thickness: 1.5, bendRadius: 1.5, kFactor: 0.5 }));
+  const sheetEdge = sheet.bodies[0].mesh.edges.findIndex(e => e.names.includes('n1.side1|n1.top'));
   for (const id of CHAT_COMMANDS) {
     const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
-    const ctx: Ctx = id === 'gear-mesh' ? { doc: geared.doc, bodies: geared.bodies, selection: sel({ bodies: [0] }) } : id === 'decimate' ? { doc: meshed.doc, bodies: meshed.bodies, selection: sel({ bodies: [0] }) } : { doc: profile ? sketched : s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };
+    const ctx: Ctx = id === 'gear-mesh' ? { doc: geared.doc, bodies: geared.bodies, selection: sel({ bodies: [0] }) } : id === 'decimate' ? { doc: meshed.doc, bodies: meshed.bodies, selection: sel({ bodies: [0] }) }
+      : id === 'sheet-flange' ? { doc: sheet.doc, bodies: sheet.bodies, selection: sel({ edges: [{ body: 0, edge: sheetEdge }] }) } : { doc: profile ? sketched : s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };
     const cmd = commandById(id)!;
     assert.ok(cmd.available(ctx).ok, id);
     assert.deepEqual(new Set((cmd.fields?.(ctx) ?? []).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);

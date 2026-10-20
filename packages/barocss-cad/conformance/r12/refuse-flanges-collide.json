@@ -1,0 +1,62 @@
+{
+  "id": "r12-refuse-flanges-collide",
+  "step": "R12",
+  "decisions": [
+    "D118"
+  ],
+  "about": "R12.3a: two neighbouring flanges leaning in at 135° cross above the corner (D115's silent union): refused by name.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            80,
+            50
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "sheet-base",
+          "sketch": "s",
+          "thickness": 1.5,
+          "bendRadius": 1.5,
+          "kFactor": 0.44
+        },
+        {
+          "id": "f1",
+          "kind": "sheet-flange",
+          "target": "b",
+          "edge": "b.side0|b.top",
+          "angleDegrees": 135,
+          "length": 30
+        },
+        {
+          "id": "f2",
+          "kind": "sheet-flange",
+          "target": "f1",
+          "edge": "b.side1|b.top",
+          "angleDegrees": 135,
+          "length": 30
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "[FLANGES_COLLIDE] the flange on b.side1|b.top runs into the sheet"
+    }
+  },
+  "oracle": "By construction: the overlap is the union's volume short of its parts'."
+}

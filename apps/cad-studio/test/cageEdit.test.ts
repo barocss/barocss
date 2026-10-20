@@ -78,9 +78,13 @@ test('PERF3 C16: an extrusion dragged validates its cage once — the same valid
   s = { ...select({ ...s, mode: 'face' }, { kind: 'face', f: 7 }, false) };
   const steps = [1, 2, 3, 4, 5].map(k => ({ ...s, ...dragged(s, [0, 0, 0.5 * k], true) }));
   const t0 = performance.now(), first = validationOf(steps[0]), cold = performance.now() - t0;
-  let warm = 0;
-  for (const st of steps.slice(1)) { const t1 = performance.now(), v = validationOf(st); warm = Math.max(warm, performance.now() - t1); assert.equal(v, first); assert.deepEqual(v, validateCage(fullCage(st))); }
-  assert.ok(warm < 0.5 * cold, `${warm.toFixed(2)} ms a step against ${cold.toFixed(2)} ms`);
+  // (The warm steps' median: one sub-millisecond sample caught by a stall of the loaded machine failed the max about once
+  // a full suite — 0.25–0.28 ms warm against 9–12 ms cold, the outer lane's measure; the 0.5 limit stays.)
+  const warmTimes: number[] = [];
+  for (const st of steps.slice(1)) { const t1 = performance.now(), v = validationOf(st); warmTimes.push(performance.now() - t1); assert.equal(v, first); assert.deepEqual(v, validateCage(fullCage(st))); }
+  warmTimes.sort((a, b) => a - b);
+  const warm = (warmTimes[1] + warmTimes[2]) / 2;
+  assert.ok(warm < 0.5 * cold, `${warm.toFixed(2)} ms a step (median of ${warmTimes.map(t => t.toFixed(2)).join(', ')}) against ${cold.toFixed(2)} ms`);
   // Another topology (the session before extruding): validated anew, and right.
   assert.deepEqual(validationOf(s), validateCage(fullCage(s)));
   assert.notEqual(validationOf(s), first);

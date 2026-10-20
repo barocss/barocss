@@ -3069,6 +3069,26 @@ try {
     await page.click('[aria-label="Close the flat pattern"]');
   });
 
+  await check('R12.3a a flange bent up from a sheet plate\'s edge, picked by its name, from the palette: the textbook volume and flat (new in D118)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'sheet-plate.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [80, 50] }, { id: 'n1', kind: 'sheet-base', sketch: 0, thickness: 1.5, bendRadius: 1.5, kFactor: 0.44 }] }));
+    await openModel(file, 2, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    assert.ok(await page.waitForFunction(() => window.__studioPickEdge('n1.side1|n1.top'), null, { timeout: 15000 }));
+    await press(' '); await page.locator('.palette input').fill('flange'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'sheet-flange', null, { timeout: 30000 }); await idle();
+    // The plate less the trim (R + T), plus the bend and a 17 mm leg, times 50: 7315.07 mm³; its flat 80 + 20 − BD = 97.393 mm.
+    const vol = await bodyVolume();
+    assert.ok(Math.abs(vol - 7315.07) <= 1, `${vol}`);
+    await page.waitForFunction(() => /Flat pattern 97\.393 × 50 mm, 1 bend/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.match(await page.textContent('.history'), /Flange 20 · 90°/);
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('r12-3a-flange');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

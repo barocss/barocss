@@ -1,0 +1,122 @@
+{
+  "id": "r12-flange-material-inside-120",
+  "step": "R12",
+  "decisions": [
+    "D118"
+  ],
+  "about": "R12.3a: an edge flange bent 120°, 20 to its outer virtual sharp, the plate trimmed (R + T)·tan 60° so that sharp lies on the edge: its volume and its flat by the textbook.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            80,
+            50
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "sheet-base",
+          "sketch": "s",
+          "thickness": 1.5,
+          "bendRadius": 1.5,
+          "kFactor": 0.44
+        },
+        {
+          "id": "fl",
+          "kind": "sheet-flange",
+          "target": "b",
+          "edge": "b.side1|b.top",
+          "length": 20,
+          "angleDegrees": 120
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 7074.006310122857,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            44.94938800369294,
+            25,
+            2.3500372826362934
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "b.bottom",
+          "b.side0",
+          "b.side2",
+          "b.side3",
+          "b.top",
+          "fl.bend.inner",
+          "fl.bend.outer",
+          "fl.leg.inner",
+          "fl.leg.outer",
+          "fl.tip"
+        ],
+        "sheet": {
+          "thicknessMM": 1.5,
+          "bendRadiusMM": 1.5,
+          "kFactor": 0.44,
+          "absTol": 1e-9,
+          "bends": [
+            {
+              "name": "fl.bend",
+              "angleDegrees": 120,
+              "allowanceMM": 4.523893421169302
+            }
+          ]
+        },
+        "flat": {
+          "areaMM2": {
+            "value": 4706.579428787802,
+            "relTol": 1e-12
+          },
+          "box": {
+            "value": [
+              94.13158857575604,
+              50
+            ],
+            "absTol": 1e-9
+          },
+          "loops": 1,
+          "bends": [
+            {
+              "name": "fl.bend",
+              "direction": "up",
+              "angleDegrees": 120
+            }
+          ]
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: the plate less the trim, plus the section θ·T(R + T/2) + T × (20 − (R + T)·tan 60°), times 50; the flat 80 + 20 − BD by 50. Centroid by this kernel."
+}
