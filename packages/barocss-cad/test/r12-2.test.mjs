@@ -132,7 +132,7 @@ test('R12.2 the flat DXF cases (conformance/r12/flat-dxf): the writer reproduces
   const { readdirSync, readFileSync, existsSync } = await import('node:fs'), { join, resolve } = await import('node:path'), { flatDxfOfCase } = await import('./flat-dxf-cases.mjs');
   const root = resolve(import.meta.dirname, '../conformance/r12/flat-dxf'), near = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) <= 1e-9;
   const names = readdirSync(root).filter(n => existsSync(join(root, n, 'case.json')));
-  assert.deepEqual(names.sort(), ['channel-hole', 'tray-holes']);
+  assert.deepEqual(names.sort(), ['channel-hole', 'pcb-enclosure', 'tray-holes']);
   for (const name of names) {
     const dir = join(root, name), c = JSON.parse(readFileSync(join(dir, 'case.json'), 'utf8')), doc = flatDxfOfCase(c);
     assert.equal(c.id, `r12-flat-dxf-${name}`);
