@@ -227,7 +227,7 @@ function compatible(w: WormDimensions, wheel: SpurGearSpec, d2: ReturnType<typeo
  * The worm's exact transverse outline, all its threads (thread 1 centred on angle 0), from the first space's middle
  * round to it again: (ρ, φ) pairs, φ unwrapped (rising by 2π over the loop).
  */
-function wormOutline(g: WormDimensions): Float64Array {
+export function wormOutline(g: WormDimensions): Float64Array {
   const F = 200, A = 24, step = 2 * Math.PI / g.z1, pts: number[] = [], psi0 = g.psiAt(g.r0), psiTip = g.psiAt(g.ra), psiBase = g.psiRef + inv(g.alphaT);
   let j = 0;
   const polar = (r: number, a: number) => { pts.push(r, a + j * step); };
@@ -265,10 +265,12 @@ function chordSags(g: WormDimensions, d2: ReturnType<typeof spurGearDimensions>)
  * mid-plane, at x = −θ p / h; the wheel's tooth k in the mid-plane at −π/2 − π/z2 − h θ z1/z2 + 2πk/z2 + phase (a space
  * facing the thread), each turning so their pitch points travel together.
  */
+/** What the worm's section in a plane needs (R12b.6 cuts a throated wheel's by it too): its dimensions and outline, the centre distance, the mesh band. */
+export interface WormSectionWork { readonly w: WormDimensions; readonly W: Float64Array; readonly a: number; readonly reach: number; readonly yLo: number; readonly yHi: number }
 interface PairWork { readonly yLo: number; readonly yHi: number; readonly w: WormDimensions; readonly W: Float64Array; readonly G: { tooth: Float64Array; z: number }; readonly a: number; readonly r2: number; readonly ra2: number; readonly z2: number; readonly twist2: number; readonly verdict: boolean; readonly N: number; readonly phase: number; readonly reach: number }
 
 /** The worm's section by the plane z = c, turned θ: each outline point (ρ, φ0) where its helix crosses the plane on the wheel's side, the copies a lead apart within ±reach of x 0 (segments x0 y0 x1 y1). */
-function wormSection(P: PairWork, c: number, theta: number): Float64Array {
+export function wormSection(P: WormSectionWork, c: number, theta: number): Float64Array {
   const w = P.w, T = P.W, lead = 2 * Math.PI * w.p, out: number[] = [], n = T.length / 2;
   const kLo = Math.floor(-P.reach / lead) - 2, kHi = Math.ceil(P.reach / lead) + 2;
   for (let k = kLo; k <= kHi; k++) {
@@ -306,7 +308,7 @@ function wheelSection(P: PairWork, c: number, angle: number): Float64Array {
  * backlash a ZA worm's mid-plane section and the wheel's touch along the line of action, and rounding makes them cross
  * by 1e-15 mm.
  */
-function planeClearance(A: Float64Array, B: Float64Array, touch: number, h: number): number {
+export function planeClearance(A: Float64Array, B: Float64Array, touch: number, h: number): number {
   // (B's segments in a grid of cell h: an A segment meets only those in the cells about its box; nearer than h is all
   // the sweep asks — a clearance past h comes back as h, a module or more, which no meshing pair has.)
   const grid = new Map<number, number[]>();

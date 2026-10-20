@@ -207,6 +207,20 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       }
       break;
     }
+    case 'worm-wheel': {
+      // (R12b.6, D137: the throated wheel and the worm it is cut for; its worm follows.)
+      const g = (n: ModelNode) => n as typeof node;
+      number('m', 'Axial module', 'mm', n => num(g(n).module), (n, v) => ({ ...g(n), module: v }));
+      number('starts', 'Worm starts', undefined, n => g(n).starts, (n, v) => ({ ...g(n), starts: Math.max(1, Math.min(4, Math.round(v))) }));
+      number('d1', 'Worm reference Ø', 'mm', n => num(g(n).diameter), (n, v) => ({ ...g(n), diameter: v }));
+      out.push({ kind: 'choice', key: 'hand', label: 'Hand', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }], get: n => self<typeof node>(n).hand, set: (n, v) => replace(n, i, { ...self<typeof node>(n), hand: v as 'right' | 'left' }) });
+      number('z', 'Teeth', undefined, n => g(n).teeth, (n, v) => ({ ...g(n), teeth: Math.round(v) }));
+      number('b', 'Face width', 'mm', n => num(g(n).faceWidth), (n, v) => ({ ...g(n), faceWidth: v }));
+      number('bore', 'Bore', 'mm', n => num(g(n).bore ?? 0), (n, v) => ({ ...g(n), bore: v }));
+      number('ds', 'Spaces wider by', 'mm', n => num(g(n).thicknessReduction ?? 0), (n, v) => ({ ...g(n), thicknessReduction: v }));
+      number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
+      break;
+    }
     case 'worm': {
       // (R12b.5, D136: its module, diameter and hand are the wheel's — edit the wheel; its own here.)
       const g = (n: ModelNode) => n as typeof node;

@@ -337,6 +337,21 @@ test('Worm gear pair (R12b.5, D136): K1\'s pair from the command (m_x 3, double 
   assert.match((deleteFeature(doc, 0) as { error: string }).error, /used by feature 1/);
 });
 
+test('Throated worm wheel (R12b.6, D137): K1\'s pair from the Worm gear pair command with a throated wheel — the wheel cut by a hob of its ZA worm, the worm meshing with it; the wheel\'s volume and notes, the pair in contact along lines', async () => {
+  const { featureLabel } = await import('../src/engine/doc');
+  const cmd = commands.find(c => c.id === 'worm-pair')!;
+  const doc = cmd.build!(ctx, { ...cmd.defaults!(ctx), wheel: 'throated', x: 0, y: 0, z: 0 }), r = evaluateDoc(doc, 1);
+  assert.ok(r.ok, r.ok ? '' : r.error.hint);
+  const wheel = doc.nodes[0] as Extract<ModelNode, { kind: 'worm-wheel' }>, worm = doc.nodes[1] as Extract<ModelNode, { kind: 'worm' }>;
+  assert.deepEqual([wheel.kind, wheel.module, wheel.starts, wheel.diameter, wheel.hand, wheel.teeth, wheel.faceWidth, worm.form, worm.mesh.gear], ['worm-wheel', 3, 2, 44, 'right', 30, 20, 'ZA', 0]);
+  assert.equal(featureLabel(wheel, 0, doc.nodes), 'Throated worm wheel m_x3 z30'); assert.equal(featureLabel(worm, 1, doc.nodes), 'Worm ZA m_x3 ×2 Ø44');
+  const g = r.ok ? r.bodies.find(b => b.ref?.node === 0)! : null!, w = r.ok ? r.bodies.find(b => b.ref?.node === 1)! : null!;
+  // (123789.333 mm³ by the kernel test's construction, test/gear-worm-wheel.test.mjs: its sections' areas integrated along the face, less the Ø20 bore.)
+  assert.ok(Math.abs(g.volumeMM3! - 123789.333) < 0.3, String(g.volumeMM3));
+  assert.ok(g.notes!.some(n => /^Throated worm wheel, cut by a hob of its ZA worm's thread: reference Ø90, throat Ø96 \(its surface radius 19\), root Ø82\.5, centre distance 67 mm/.test(n.text)), JSON.stringify(g.notes));
+  assert.ok(w.notes!.some(n => /^Meshes with n0, enveloping it: crossed at 90°, centre distance 67 mm, ratio 30:2 \(15:1\)/.test(n.text)) && w.notes!.some(n => /^In contact along lines across the face/.test(n.text)), JSON.stringify(w.notes));
+});
+
 test('Gear rack (R6a.5b, D58): on its own (the basic rack on a bar, its exact volume); meshing with the selected gear — under it, the verdict in its notes, travelling as the gear turns; a slide off its place crosses; gear queries on the pair', async () => {
   const { editFields } = await import('../src/app/editFields');
   const { runCheck } = await import('../src/chat/spec');

@@ -1,0 +1,58 @@
+{
+  "id": "r12b-worm-wheel-khk",
+  "step": "R12b",
+  "decisions": [
+    "D137"
+  ],
+  "about": "K1's axial-module example's throated wheel (Table 4.23: m_x 3, α_n 20°, double thread right-hand, z2 30 — throat Ø96, throat surface radius 19, root Ø82.5, a 67), 20 wide with a Ø20 bore: cut by a hob of its ZA worm's thread (the crest raised by 0.25 m_x); its tips on the throat torus, its roots on the hob crest's; the volume its sections' areas integrated along the face.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "worm-wheel",
+          "worm": {
+            "axialModule": 3,
+            "starts": 2,
+            "diameter": 44,
+            "hand": "right"
+          },
+          "teeth": 30,
+          "faceWidth": 20,
+          "bore": 20
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 123789.333,
+          "relTol": 2e-06
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            10
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^g\\.(filletL\\d?|filletR\\d?|flankL\\d?|flankR\\d?|tip|root|face0|face1|bore)(#\\d+\\.\\d+)?$"
+      }
+    ]
+  },
+  "oracle": "test/gear-worm-wheel.test.mjs sectionArea (the hob's rack envelope, ½∮ r² dφ) by Simpson along the face (40 planes, 3000 points a side), less the bore; K1 Table 4.23 (retrieved 2026-10-20, re-read 2026-10-21) for the throat and root"
+}

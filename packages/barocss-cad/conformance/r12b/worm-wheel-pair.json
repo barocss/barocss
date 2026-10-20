@@ -1,0 +1,89 @@
+{
+  "id": "r12b-worm-wheel-pair",
+  "step": "R12b",
+  "decisions": [
+    "D137"
+  ],
+  "about": "K1's throated wheel and its ZA worm by mesh (60 long, a Ø12 bore): the worm takes the wheel's — m_x 3, two starts, d1 44, right hand — square to it at 67 mm along +X in its mid-plane, turned to mesh as the hob did.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "worm-wheel",
+          "worm": {
+            "axialModule": 3,
+            "starts": 2,
+            "diameter": 44,
+            "hand": "right"
+          },
+          "teeth": 30,
+          "faceWidth": 20,
+          "bore": 20
+        },
+        {
+          "id": "w",
+          "kind": "worm",
+          "starts": 2,
+          "length": 60,
+          "form": "ZA",
+          "bore": 12,
+          "mesh": {
+            "gear": "g"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 123789.333,
+          "relTol": 2e-06
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            10
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 84364.8631,
+          "relTol": 2e-05
+        },
+        "centroidMM": {
+          "value": [
+            67,
+            0,
+            10
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "the wheel as r12b-worm-wheel-khk; the worm's (π rf² + z1 ∫ 2ψ r dr − π 6²) × 60 (test/gear-worm.test.mjs sectionArea, ZA)"
+}
