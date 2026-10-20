@@ -637,6 +637,7 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   ```
 
   The same applies to `urdf-gears`. `check_urdf` (ROS urdfdom, not on PyPI) runs where a ROS install is at hand. Until then the acceptance rests on our own checks below.
+- **Run (O38, 2026-10-20)**: MuJoCo 3.3.0 (`mujoco-3.3.0-cp312-cp312-macosx_11_0_arm64.whl`, sha256 `2f435f34…d8710`). `urdf-2r` worst 1.1e-16, `urdf-gears` 2.2e-16, 21 rows each, against 1e-6. **The external check is closed.**
 - **Evidence**: `test/robot-urdf.test.ts` (8 tests).
   - The hull:
     - a cube with points inside: 12 triangles, volume 1 to 1e-12, closed and oriented;
@@ -697,6 +698,7 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
     ```
 
   - **RM5 is not accepted without that run**: the writer, its checks and the arm are this checkpoint.
+- **Run (O38, 2026-10-20)**: MuJoCo 3.3.0. It passed after two causes were found, with the tolerances unchanged: the upright equilibrium start (now RD1's gravity torques compared, to 4.4e-14, and the hang from a second pose), and contacts dissipating the energy (the hang now runs contacts off, the passive run at 0.1 ms). Passive drift 1.02e-6; damped settled at 8.8e-13 rad/s with the centre of mass fallen. **RM5 is accepted.**
 - **Sizes**: v1 64 tools, tools/list 85 327 characters; v2 11 536.
 - **Evidence**: `test/robot-mjcf.test.ts` (5 tests).
   - Quaternions: 300 rotations, near a half turn too, unit with w ≥ 0, back to the same matrix to 1e-12.
@@ -1722,3 +1724,39 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - The kernel's conformance runner (`packages/barocss-cad/test/conformance.test.mjs`, the kernel lane's file, unchanged) reads every `conformance/<step>/*.json` as a kernel case, so the integration merge failed 28 cases.
   - They are now in `conformance/a7/scenarios/` and `conformance/a8/scenarios/`, as A6's fixtures are in subfolders, and the studio tests and CLI paths follow.
   - Kernel conformance 145/145. From now on every checkpoint gives it beside the studio suite and the flow.
+
+## O38 — MuJoCo 3.3.0 run: RM4's external check and RM5's acceptance closed (2026-10-20)
+
+- **The owner's go-ahead**, relayed by the coordinator: "좋아 진행해줘", in reply to the coordinator's explanation that MuJoCo is test-only.
+  - Its place: a venv at `~/.cache/barocss-mujoco`, outside the repo, not a product dependency, imported by no package, never shipped.
+  - Its scope: exactly `mujoco==3.3.0` from PyPI. Nothing else in the repo or the system Python. RD3's PDFs and the live model runs still wait.
+- **Installed** with O17's commands: `uv venv ~/.cache/barocss-mujoco --python 3.12 && VIRTUAL_ENV=~/.cache/barocss-mujoco uv pip install mujoco==3.3.0`.
+  - Python 3.12.9; `mujoco.__version__` is 3.3.0.
+  - **The wheel**: `mujoco-3.3.0-cp312-cp312-macosx_11_0_arm64.whl` (the installed `WHEEL` tag `cp312-cp312-macosx_11_0_arm64`), 6 493 393 bytes, **sha256 `2f435f34ea8c41711e68c635ada89c7347e9d53a330c2ff748723a96495d8710`**. That is the digest PyPI publishes for that file, read from its JSON metadata. uv keeps the wheel unpacked, so the cached archive's own hash could not be taken.
+  - mujoco's own dependencies came with it, into the same venv: numpy 2.5.4, glfw 2.11.0, pyopengl 3.1.10, absl-py 2.5.1, etils 1.14.0, fsspec, typing-extensions and zipp.
+- **Each oracle ran with `python -I`**, its files passed as arguments (`packages/barocss-cad/scripts/urdf-oracle.py` and `mjcf-oracle.py`). Its reading is committed as data beside each case (`conformance/rm/<case>/oracle.mujoco-3.3.0.json`), as ezdxf's are (O1).
+- **RM4, the URDF oracle: passed.** Masses, centres, principal inertia and link frames at sampled values, against `expect.json`, tolerance 1e-6:
+  - `urdf-2r`: 21 rows, worst 1.1e-16;
+  - `urdf-gears`: 21 rows, worst 2.2e-16.
+  - MuJoCo warned of unnamed geoms; URDF allows a visual or collision without a name.
+  - **RM4's external check is closed.** `check_urdf` (ROS urdfdom, not on PyPI) stays a check for a ROS install.
+- **RM5, the MJCF oracle on arm-6r: passed after two causes were found.** The tolerances are unchanged.
+  - **First run: failed.** The bodies and frames matched (49 rows, worst 5.6e-16), but in both hangs nothing moved: qvel 0, the energy and the centre of mass unchanged.
+    - **The cause:** the pose the mates solve to is an upright **gravity equilibrium**. MuJoCo's bias there (`qfrc_bias`) is 0 on every joint, so nothing could fall, and "the centre of mass below its start" could not hold. The export was not at fault.
+    - **The fix, which strengthens the check:**
+      - `expect.json` now holds **RD1's gravity torques** at both poses (at MJCF's 9.81), and the oracle compares MuJoCo's bias at rest with them: 2.2e-17 at the upright pose, 4.4e-14 at the second;
+      - the hang starts from the second pose (`hang.from`), where gravity acts.
+  - **Second run: failed.** The passive run lost 88 % of its energy in 5 s.
+    - **The cause:** contacts. Folding under gravity, the links' collision hulls touch (6 contacts), and contact dissipates energy.
+    - With contacts off, the drift was 3.8e-4. The remaining drift was RK4's error at 0.5 ms on a chain spinning at up to 47 rad/s (74 at 0.1 ms).
+    - **The fix:**
+      - the hang runs with contacts off, since it checks the exported inertia and gravity — a frictionless chain — not contact;
+      - the passive run steps at 0.1 ms, which tightens the integration;
+      - the 1e-4 bound stays.
+  - **Third run: passed.**
+    - 51 rows (masses, centres, principal inertia, frames at two poses, gravity torques at two poses), worst 4.4e-14 against 1e-6.
+    - **Passive, 5 s at 0.1 ms**: energy drift 1.02e-6 (bound 1e-4), no warnings.
+    - **Damped, 0.002 N·m·s/rad, 30 s at 0.5 ms**: the energy never rises (largest rise 5.3e-16, bound 1e-9); every |qvel| at 8.8e-13 rad/s at the end (bound 1e-3); the centre of mass from 0.100 m to −0.026 m.
+  - **RM5 is accepted.**
+- **Tests**: the committed readings are held to their criteria: `test/robot-urdf.test.ts` and `test/robot-mjcf.test.ts`, a test each. The frozen exports are the files the oracle loaded, and a change to them shows there until MuJoCo is run again.
+- **Not closed by this run**: contact behaviour (self-collision as the arm folds is RM6's sweep). A collision-on hang would test the contact model, not the export.

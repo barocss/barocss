@@ -404,7 +404,7 @@ stays out of the kernel's core files (requests for them go through the coordinat
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 - Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
-- Waiting for the owner: installing MuJoCo as the test oracle of RM4 (O17) and RM5's gravity hang (O18); the commands are there.
+- MuJoCo 3.3.0 run (O38, the owner's go-ahead): RM4's URDF oracle passed (worst 2.2e-16), RM5's MJCF oracle passed after the equilibrium start and the contacts were found (gravity torques against RD1's to 4.4e-14; passive energy 1.0e-6; the damped hang settled, 8.8e-13 rad/s). RM4's external check and RM5's acceptance are closed.
 - Waiting for the owner: A7's live single-versus-multi comparison (O30: tasks, equal token budget, metrics, 10 runs a task an arm).
 - Waiting for the owner: the legal review of the standards-derived data and the material library before release (A6.5, O29).
 - Waiting for the owner: RD3's published worked examples and the catalogue values the HTML pages lack (O22). Both are
