@@ -2668,3 +2668,50 @@ Assigned by the coordinator after AM6. **No kernel-core change is needed**, and 
 - **Waiting:**
   - **curved bodies**, for the kernel's mesh Booleans (F3), or for a decision to mesh the whole part in their case, its outside then approximated;
   - **AM7b (lattices)**, an S0 of its own after this.
+
+## O55 — A6.3's chord tolerance bounded in both directions: a safety fix (2026-10-20)
+
+- **The bug** (found by AM7, O54). A6.3's `chordOf` was an edge's sagitta at a curved face's radius, r(1 − cos π/32). On a doubly curved face, a triangle's middle sits about twice that below the surface.
+  - On the R 15 sphere: 0.0722 mm against the mesh's true 0.1438.
+  - So the keep-out band was half too narrow. A keep-out could be called **clear** that the true sphere **violates**.
+  - A face with no radius, such as a torus, was unbounded: always undecided.
+- **The fix** (`src/chat/references.ts`, `chordOf`), bounded from the tessellation's own steps in both directions. The mesh's vertex normals are the surface's.
+  - **Each edge's sag** is |c·(nᵢ − nⱼ)| / (4(1 + cos(θ/2))), with θ the angle between its normals. That is exact for a circular arc, and for a cylinder's diagonal, whose axial run adds nothing.
+  - **Each triangle's worst depth** is the maximum over the triangle of the quadratic patch 4(λ₁λ₂s₁₂ + λ₂λ₃s₂₃ + λ₃λ₁s₃₁): an edge's middle, or the interior stationary point, from a 2 × 2 solve.
+  - The body's δ is the largest over its curved faces' triangles, cached per mesh. A curved face without normals is unbounded. `SEGMENTS_PER_QUARTER` is gone.
+- **Tests** (`test/chord.test.ts`, 2), against the exact surfaces, the mesh sampled at 45 points a triangle:
+  - **The sphere R 15:** true depth 0.14377; old δ 0.07223, under it; new δ 0.14387, at least the true depth and within 1.5× of it.
+    - A keep-out face is placed square to the deepest point's direction, 2 mm off the true sphere. The mesh's gap lies between 2 and 2 + δ.
+    - With the required clearance halfway between the old and new δ below the mesh's gap, **the old δ says clear while the true sphere is under the clearance**. The new δ says undecided.
+  - **The torus** (R 20, r 5), unbounded before: true depth 0.15004, new δ 0.15008.
+    - A box 2 mm above the tube, asking 1 mm, is **clear** (before: undecided).
+    - Asking 2 mm, it is undecided.
+- **Re-checked:**
+  - A6.3's keep-out test (`reference-bodies`): the cylinder's δ is now from its own normals, 0.0240634 against r(1 − cos π/32) = 0.0240766, to 1e-4. The test asserted the old formula to 1e-12 and now asserts the bound. It is still undecided at 5 mm.
+  - A8.4's PARTS_TOUCH and EXPECTED_CONTACT (`team-assembly`): unchanged, since boxes and the cylinders' bands are as before.
+  - AM7's sphere check now reads 0.1439 from `chordOf` itself.
+
+## O56 — AM7a's exact route first: the kernel's closed shell; the voxel cavity only when it refuses (2026-10-20)
+
+- **The coordinator's design point, adopted:** the outer skin stays exact, and hollowing never turns a B-rep part into a voxel mesh.
+- **The route** (`planHollow`, `route: 'auto'` by default):
+  - first the kernel's exact closed shell (R11: a `shell` feature of thickness t with nothing opened, shellPart's general shell and offsets). Taken when the result is one body with at least one cavity;
+  - else the voxel cavity (O53/O54), with `why` saying what the shell said;
+  - **a curved body the shell refuses** is `CURVED_BODY`, the shell's reason attached. It waits on the kernel's mixed facet–analytic Booleans (F3), not on the outer lane;
+  - `route: 'voxel'` asks for the voxel cavity; on a curved body it is `CURVED_BODY` at once.
+  - The voxel field still places the drains on both routes: a node with φ > 0 is deeper than t, inside the exact cavity too.
+- **The report** says the route, `why`, and **the wall measured against t** (`wallOf`, R11.3's way).
+  - It is measured from up to about 400 outer-face triangle centroids, inward along the face normal to the next surface, on the hollowed part before the drains, since a drain's wall is not the shell's.
+  - On the voxel route the bounds (O53) say the voxel size's effect: t − h − e at worst, t on planar walls.
+- **Probes:**
+  - the shell takes a box (12 576 = 24 000 − 34·24·14), a sphere (6898.94 = 4/3·π(15³ − 12³)), a torus (8290.47 = 2π²·20·21) and a cylinder with a 1 mm fillet under a 3 mm wall;
+  - it refuses a pipe bent at its end: "a closed end of a swept body must be a straight run longer than the wall yet".
+- **Tests** (`test/hollow.test.ts`, now 4):
+  - **The exact route:**
+    - the box is exact: 24 000 − 34·24·14 − π·2²·3 to 1e-9, wall 3 to 1e-5, drained;
+    - the sphere's shell is 4/3·π(15³ − 12³) to 1e-9, drained, its wall within 2δ of t;
+    - the bent pipe is `CURVED_BODY`, with "the kernel's exact shell refused it: a closed end of a swept body …".
+  - **The voxel route, asked:** the box keeps O54's checks, with the route and why reported.
+  - **The dumbbell** now takes the exact route: two cavities drained, the wall 2.5 (and 4 across the bar, too thin to hollow).
+- **Flow step:** the block now goes shell then hole, its volume the closed form 9000.87 to the panel's 1 mm³.
+- **What remains** for the kernel lane's F3, not an outer-lane item: a curved body the shell refuses (a mesh cavity in it needs mixed facet–analytic Booleans).

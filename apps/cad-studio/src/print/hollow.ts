@@ -13,8 +13,10 @@ import { sha256Hex } from '../team/sha256';
 
 export type HollowCode = 'CURVED_BODY' | 'ONE_BODY' | 'DIRECTION_NOT_AXIS' | 'NOTHING_TO_HOLLOW' | 'GRID_TOO_FINE' | 'BAD_VALUES' | 'DRAIN_NO_ROOM' | 'BOOLEAN_REFUSED';
 export class HollowError extends Error { constructor(public code: HollowCode, message: string) { super(`[${code}] ${message}`); this.name = 'HollowError'; } }
-export interface HollowOptions { t: number; h?: number; drain?: number }
-export interface HollowReport { t: number; h: number; drain: number; nodes: number; /** The cavity's simplification bound (mm). */ error: number; cavities: { nodes: number; lowest: Vec3 }[]; cavityTriangles: number; drains: { at: Vec3; depth: number }[] }
+/** `route`: 'auto' (the kernel's exact closed shell first, the voxel cavity when it refuses) or 'voxel' (the voxel cavity only). */
+export interface HollowOptions { t: number; h?: number; drain?: number; route?: 'auto' | 'voxel' }
+/** `route`: which made the cavity — the kernel's exact shell (R11), or the voxel cavity — and `why` the voxel route ran. `wall`: measured against t. */
+export interface HollowReport { route: 'exact' | 'voxel'; why?: string; wall: Wall; t: number; h: number; drain: number; nodes: number; /** The voxel cavity's simplification bound (mm; 0 on the exact route). */ error: number; cavities: { nodes: number; lowest: Vec3 }[]; drains: { at: Vec3; depth: number }[] }
 
 export const MAX_NODES = 4e6;
 /** The grid's offset per axis, a different irrational fraction of h each: equal ones put every row with j = k on the plane
@@ -180,6 +182,45 @@ export function meshPieces(m: { positions: number[]; indices: number[] }): { pos
 function root(p: Int32Array, v: number): number { while (p[v] !== v) { p[v] = p[p[v]]; v = p[v]; } return v; }
 function union(p: Int32Array, a: number, b: number): void { const ra = root(p, a), rb = root(p, b); if (ra !== rb) p[rb] = ra; }
 
+/** The wall as measured (R11.3's way): from each outer face's triangle centroids inward along the face's normal to the next surface. */
+export interface Wall { samples: number; min: number; max: number; median: number }
+export function wallOf(m: DisplayMesh, target: number): Wall {
+  // (The outer surface: the faces a ray from outside meets; inward from a centroid, the first other surface is the wall's inside.
+  // Rays leaving through a drain, or crossing much more than the target, are not a wall.)
+  // (At most about 400 triangles sampled, evenly through the mesh: each sample casts rays against every triangle.)
+  const out: number[] = [], P = m.positions, I = m.indices, stride = 3 * Math.max(1, Math.ceil(I.length / 3 / 400));
+  for (let t = 0; t < I.length; t += stride) {
+    const a = I[t] * 3, b = I[t + 1] * 3, c = I[t + 2] * 3, ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
+    let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; const L = Math.hypot(nx, ny, nz); if (L < 1e-12) continue; nx /= L; ny /= L; nz /= L;
+    const ox = (P[a] + P[b] + P[c]) / 3, oy = (P[a + 1] + P[b + 1] + P[c + 1]) / 3, oz = (P[a + 2] + P[b + 2] + P[c + 2]) / 3;
+    if (!onOuter(m, ox, oy, oz)) continue;
+    const d = rayHit(m, ox, oy, oz, -nx, -ny, -nz, t);
+    if (d > 1e-6 && d < 3 * target) out.push(d);
+  }
+  out.sort((x, y) => x - y);
+  return { samples: out.length, min: out[0] ?? NaN, max: out[out.length - 1] ?? NaN, median: out[out.length >> 1] ?? NaN };
+}
+/** Whether a point on the mesh is on its outer surface: on the bounding box's hull side by a ray to +X meeting nothing else. */
+function onOuter(m: DisplayMesh, x: number, y: number, z: number): boolean {
+  for (const [dx, dy, dz] of OUT_DIRS) if (rayHit(m, x + dx * 1e-6, y + dy * 1e-6, z + dz * 1e-6, dx, dy, dz, -1) === Infinity) return true;
+  return false;
+}
+const OUT_DIRS: readonly [number, number, number][] = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+/** The distance along a ray to the nearest triangle (Möller–Trumbore), skipping one; Infinity when none. */
+function rayHit(m: DisplayMesh, ox: number, oy: number, oz: number, dx: number, dy: number, dz: number, skip: number): number {
+  const P = m.positions, I = m.indices; let best = Infinity;
+  for (let t = 0; t < I.length; t += 3) {
+    if (t === skip) continue;
+    const a = I[t] * 3, b = I[t + 1] * 3, c = I[t + 2] * 3, e1x = P[b] - P[a], e1y = P[b + 1] - P[a + 1], e1z = P[b + 2] - P[a + 2], e2x = P[c] - P[a], e2y = P[c + 1] - P[a + 1], e2z = P[c + 2] - P[a + 2];
+    const px = dy * e2z - dz * e2y, py = dz * e2x - dx * e2z, pz = dx * e2y - dy * e2x, det = e1x * px + e1y * py + e1z * pz; if (Math.abs(det) < 1e-14) continue;
+    const inv = 1 / det, tx = ox - P[a], ty = oy - P[a + 1], tz = oz - P[a + 2], u = (tx * px + ty * py + tz * pz) * inv; if (u < 0 || u > 1) continue;
+    const qx = ty * e1z - tz * e1y, qy = tz * e1x - tx * e1z, qz = tx * e1y - ty * e1x, v = (dx * qx + dy * qy + dz * qz) * inv; if (v < 0 || u + v > 1) continue;
+    const d = (e2x * qx + e2y * qy + e2z * qz) * inv; if (d > 1e-7 && d < best) best = d;
+  }
+  return best;
+}
+const refusalOf = (e: unknown) => { const x = e as { detail?: string; title?: string } | string; return typeof x === 'string' ? x : x?.detail ?? x?.title ?? JSON.stringify(x); };
+
 /** A blob put by its SHA-256 at once (the command's build is synchronous): the hash the store's own would give. */
 function putNow(a: BlobArray): string { const h = sha256Hex(new Uint8Array(a.buffer, a.byteOffset, a.byteLength)); putKnownBlob(h, a); return h; }
 
@@ -190,13 +231,9 @@ export function planHollow(doc: StudioDoc, bodies: readonly BodyResult[], o: Hol
   if (!(t > 0 && h > 0 && h <= t / 2 + 1e-12 && drain > 0)) throw new HollowError('BAD_VALUES', `a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t ${t}, h ${h}, drain ${drain})`);
   const d = doc.print?.direction ?? [0, 0, 1], up = d.findIndex(x => Math.abs(x) > 1e-9);
   if (up < 0 || d.some((x, i) => i !== up && Math.abs(x) > 1e-9)) throw new HollowError('DIRECTION_NOT_AXIS', `the print direction (${d.join(', ')}) is not along X, Y or Z`);
-  // (A curved body less a facet mesh goes through the kernel's analytic Boolean, which does not join them yet: F3, the
-  // kernel lane's. Refused at once rather than after minutes; planar-faced parts take the polyhedral path, exactly.)
-  const body = bodies[0], curved = body.mesh.faces.filter(f => f.kind === 'curved' && !f.facet).length;
-  if (curved) throw new HollowError('CURVED_BODY', `the part has ${curved} curved face${curved > 1 ? 's' : ''}: taking a mesh cavity out of a curved body needs the kernel's mesh Booleans (F3); planar-faced parts only for now`);
+  const body = bodies[0];
   const g = cavityField(body.mesh, t, h), comps = cavityComponents(g, up);
   if (!comps.length) throw new HollowError('NOTHING_TO_HOLLOW', `no point of the part is deeper than the wall (${t} mm): it is thinner than ${2 * t} mm everywhere`);
-  const cavity = marchingTetrahedra(g);
   // (The drains: from the part's bottom (min along up) to each cavity's lowest node, its column inside the bottom.)
   const [a, b] = [0, 1, 2].filter(x => x !== up), floor = body.mesh.bounds.min[up], drains: HollowReport['drains'] = [];
   for (const c of comps) {
@@ -204,11 +241,22 @@ export function planHollow(doc: StudioDoc, bodies: readonly BodyResult[], o: Hol
     if (!inFoot) throw new HollowError('DRAIN_NO_ROOM', `a drain of Ø${drain} at (${p.map(v => +v.toFixed(2)).join(', ')}) does not fit inside the part's bottom`);
     drains.push({ at: [p[0], p[1], p[2]], depth: p[up] - floor });
   }
+  // (The route: the kernel's exact closed shell (R11: shellPart, its general shell and offsets, nothing opened) first — the
+  // outside and the inside both exact, curved faces too; the voxel cavity only when it refuses, said why. A curved body
+  // the shell refuses waits for the kernel's mixed facet–analytic Booleans (F3): refused with the shell's reason.)
+  let out: StudioDoc = doc, error = 0, ref: BodyRef = refOf(body), route: 'exact' | 'voxel' = 'voxel', why: string | undefined;
+  if ((o.route ?? 'auto') === 'auto') {
+    const shelled = withNode(doc, { kind: 'shell', parent: refOf(body), thickness: t, open: [] } as ModelNode), r = evaluatePart(shelled, 0);
+    if (r.ok && r.bodies.length === 1 && (r.bodies[0].innerShells ?? 0) >= 1) { out = shelled; ref = { node: shelled.nodes.length - 1, side: 'solid' }; route = 'exact'; }
+    else why = `the kernel's exact shell refused it: ${r.ok ? `it gave ${r.bodies.length} bod${r.bodies.length === 1 ? 'y' : 'ies'} with ${r.bodies[0]?.innerShells ?? 0} cavities` : refusalOf(r.error)}`;
+  } else why = 'the voxel route was asked for';
+  if (route === 'voxel') {
+    const curved = body.mesh.faces.filter(f => f.kind === 'curved' && !f.facet).length;
+    if (curved) throw new HollowError('CURVED_BODY', `the part has ${curved} curved face${curved > 1 ? 's' : ''} and ${why}: a mesh cavity in a curved body needs the kernel's mixed facet–analytic Booleans (F3)`);
   // (The kernel's mesh Boolean takes up to 16 000 triangles until F3: each cavity piece simplified first (R9's decimate),
   // within e = h/50 of itself; a result the Boolean refuses as touching, at h/20 then h/10 — e goes into the bounds. A
   // mesh is one closed piece: one mesh node a cavity, each taken from the part in turn.)
-  let out: StudioDoc = doc, error = 0, ref: BodyRef = refOf(body);
-  for (const piece of meshPieces(cavity)) {
+  for (const piece of meshPieces(marchingTetrahedra(g))) {
     const P = positionsArray(piece.positions), I = Uint32Array.from(piece.indices), withMesh = withNode(out, { kind: 'mesh', name: 'cavity', unit: 'mm', representation: 'facets', blob: { positions: putNow(P), indices: putNow(I) } } as ModelNode);
     let done: StudioDoc | null = null, why = '';
     for (const e of [h / 50, h / 20, h / 10]) {
@@ -221,9 +269,12 @@ export function planHollow(doc: StudioDoc, bodies: readonly BodyResult[], o: Hol
     if (!done) throw new HollowError('BOOLEAN_REFUSED', `a cavity (${piece.indices.length / 3} triangles) could not be taken from the part even simplified to h/10: ${why}; a coarser h makes a smaller cavity mesh`);
     out = done; ref = { node: out.nodes.length - 1, side: 'solid' };
   }
+  }
+  // (The wall measured on the hollowed part before its drains: a drain's own wall is not the shell's.)
+  const hollowed = evaluatePart(out, 0), wall = hollowed.ok ? wallOf(hollowed.bodies[0].mesh, t) : { samples: 0, min: NaN, max: NaN, median: NaN };
   const axis = (['x', 'y', 'z'] as const)[up];
   for (const dr of drains) { out = withNode(out, { kind: 'hole', parent: ref, center: [dr.at[a], dr.at[b]], radius: drain / 2, axis, side: 'min', depth: dr.depth } as ModelNode); ref = { node: out.nodes.length - 1, side: 'solid' }; }
-  return { doc: out, report: { t, h, drain, nodes: g.phi.length, error, cavities: comps.map(c => ({ nodes: c.nodes, lowest: nodeAt(g, c.lowest) })), cavityTriangles: cavity.indices.length / 3, drains } };
+  return { doc: out, report: { route, ...(why ? { why } : {}), wall, t, h, drain, nodes: g.phi.length, error, cavities: comps.map(c => ({ nodes: c.nodes, lowest: nodeAt(g, c.lowest) })), drains } };
 }
 
 /** Enclosed voids of a body by flood fill: its empty nodes on a grid of spacing hc not reached from outside (6-connected). */

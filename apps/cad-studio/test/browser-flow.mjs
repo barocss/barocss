@@ -4481,7 +4481,7 @@ try {
   });
 
   // ---- AM7a (O53): hollowing for printing -------------------------------------------------------------------------
-  await check('AM7a: a 40 × 30 × 20 block hollowed for printing from the palette: one body, its cavity drained, the mass by the closed form', async () => {
+  await check('AM7a: a 40 × 30 × 20 block hollowed for printing from the palette by the kernel\'s exact shell: one body, its cavity drained, the mass the closed form', async () => {
     const fs = await import('node:fs'), file = join(out, 'block.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 20 }] }));
@@ -4490,12 +4490,13 @@ try {
     await press(' '); await page.locator('.palette input').fill('hollow for printing'); await press('Enter'); await hudReady();
     assert.equal(await field('Wall').inputValue(), '2');
     await page.waitForTimeout(300); await press('Enter');
-    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'mesh') && window.__studioDoc.nodes.at(-1).kind === 'hole', null, { timeout: 60000 }); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 60000 }); await idle();
     const kinds = (await doc()).nodes.map(n => n.kind);
-    assert.deepEqual(kinds.slice(-4), ['mesh', 'decimate', 'difference', 'hole']);
-    // (abc − (a−4)(b−4)(c−4) − π·2²·2 = 24000 − 36·26·16 − 8π ≈ 9000.9, within the S0's bound of a few hundred mm³.)
+    // (The exact route: the kernel's closed shell, then the drain.)
+    assert.deepEqual(kinds.slice(-2), ['shell', 'hole']);
+    // (abc − (a−4)(b−4)(c−4) − π·2²·2 = 24000 − 36·26·16 − 8π = 9000.87: exact; the panel rounds to 1 mm³.)
     const vol = await bodyVolume();
-    assert.ok(Math.abs(vol - (24000 - 36 * 26 * 16 - 8 * Math.PI)) <= 300, String(vol));
+    assert.ok(Math.abs(vol - (24000 - 36 * 26 * 16 - 8 * Math.PI)) <= 1, String(vol));
     await snap('am7a-hollow');
   });
 

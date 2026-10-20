@@ -668,8 +668,8 @@ const allCommands: Command[] = [
     },
   },
   {
-    // AM7a (O53): a part hollowed for printing — an SDF voxel cavity at the wall, drained from the bottom (planar-faced parts).
-    id: 'hollow', label: 'Hollow for printing', icon: 'cad-shell', hint: 'Hollow a solid part to a wall thickness, with a drain hole into each cavity (planar-faced parts)', group: 'modify', keywords: 'print hollow shell wall cavity drain resin save material voxel sdf',
+    // AM7a (O53, O56): a part hollowed for printing — the kernel's exact closed shell, else an SDF voxel cavity — drained from the bottom.
+    id: 'hollow', label: 'Hollow for printing', icon: 'cad-shell', hint: 'Hollow a solid part to a wall thickness, its outside kept exact, with a drain hole into each cavity', group: 'modify', keywords: 'print hollow shell wall cavity drain resin save material voxel sdf',
     available: ctx => ctx.bodies.length === 1 ? ok : no(ctx.bodies.length ? 'The part has several bodies: hollowing takes one.' : 'There is no body to hollow.'),
     fields: () => [{ key: 't', label: 'Wall', kind: 'mm' }, { key: 'h', label: 'Voxel', kind: 'mm' }, { key: 'drain', label: 'Drain Ø', kind: 'mm' }],
     defaults: () => ({ t: 2, h: 0.5, drain: 4 }),
