@@ -11,6 +11,8 @@ import { leafBodies, planeText, withNode, type Axis, type FilletSection, type Ho
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayEdge } from '../engine/mesh';
 import { refOf } from './bodyRef';
+import { planBedSplit } from '../print/splitBed';
+import { printerProfile, processProfile } from '../library/materials';
 import { featureId } from '../engine/ids';
 
 export interface FaceSel { body: number; face: number }
@@ -663,6 +665,16 @@ const allCommands: Command[] = [
       const n = splitNormal(v); if (!n) throw new Error('Give the plane a direction: its normal must not be zero.');
       return withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: 'x', normal: n, at: Number(v.at) });
     },
+  },
+  {
+    // AM6 (O51): a part too big for the printer's bed, cut into the fewest even pieces that fit, with dowels or plugs.
+    id: 'split-bed', label: 'Split to fit the bed', icon: 'cad-split', hint: 'Cut a part too big for the printer into pieces that fit, joined by dowels or plugs at the printing fit', group: 'modify', keywords: 'print bed build volume too big pieces dowel plug pin connector join large',
+    available: ctx => ctx.bodies.length === 1 ? ok : no(ctx.bodies.length ? 'The part has several bodies: split for the bed takes one.' : 'There is no body to split.'),
+    fields: () => [{ key: 'connector', label: 'Connector', kind: 'choice', options: [{ value: 'dowel', label: 'Dowel (a separate pin)' }, { value: 'plug', label: 'Plug (a pin on one piece)' }] },
+      { key: 'd', label: 'Pin Ø', kind: 'mm' }, { key: 'length', label: 'Pin length', kind: 'mm' }, { key: 'count', label: 'Per cut', kind: 'count', min: 1, max: 8 },
+      { key: 'fit', label: 'Fit (radial)', kind: 'mm' }, { key: 'wall', label: 'Wall round a bore', kind: 'mm' }],
+    defaults: ctx => ({ connector: 'dowel', d: 6, length: 20, count: 2, fit: processProfile(ctx.doc.process ?? printerProfile(ctx.doc.printer)?.process)?.thresholds.fitGap?.value ?? 0.3, wall: 2 }),
+    build: (ctx, v) => planBedSplit(ctx.doc, ctx.bodies, { connector: v.connector === 'plug' ? 'plug' : 'dowel', d: Number(v.d), length: Number(v.length), count: Number(v.count), fit: Number(v.fit), wall: Number(v.wall) }).doc,
   },
   ...(['union', 'difference', 'intersect'] as const).map((kind): Command => ({
     id: kind, label: kind === 'union' ? 'Union' : kind === 'difference' ? 'Subtract' : 'Intersect',

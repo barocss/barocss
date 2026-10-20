@@ -2487,3 +2487,97 @@ The kernel lane writes FR4b's function returning `TableContent`. Registering it 
 - **Found by the full suite:** the case first sat at `r14/table-bends/case.json`, and the studio's own R14 test (`test/drawing-issues.test.ts`) reads every `r14/<case>/case.json` as a drawing case. It moved one level down, to `r14/tables/bends/`.
 - **Flow step** (before the last): a sheet L (K 0.4) in the Drawing workspace with the checkbox ticked. The table is placed with no table issue, and the SVG, PDF and DXF exports each contain `BEND TABLE`, `5.969` and `4.031` (BA and BD at R 3, T 2, K 0.4).
 - **For FR4b**: the `'cut-list'` source is the one line to add once the kernel lane's function exists. The test above shows what an unregistered source does.
+
+## O51 — AM6 S0: split a part too big for the bed, with dowel or plug connectors — scope and acceptance frozen (2026-10-20)
+
+Assigned by the coordinator after the drawing table. It uses what exists:
+- the `split` feature (cut faces named `<id>.cut`);
+- `hole`, its centre in the other two axes in order, entering from the target's own bounding face on `side`;
+- `difference` and `union`;
+- sketches and extrudes for pins;
+- the printer profiles (`buildMM`), AM1's `fitGap`, and AM4's print direction;
+- the kernel's exact intersection, as the `interference` tool measures it.
+- **No kernel-core change is needed.** If one turns out to be, it stops and goes to the coordinator.
+
+**The command `split-bed`** ("Split to fit the bed", `src/print/splitBed.ts`, in the palette and through `run_command`) appends features to the part as one change, so it is undone as one.
+- **Its values:**
+  - `connector`: `dowel` (a separate pin, a bore in both pieces) or `plug` (a pin made one with the lower piece, a bore in the upper);
+  - `d`: the pin's diameter;
+  - `length`: the pin's length;
+  - `count`: connectors per cut, default 2;
+  - `fit`: the radial clearance; default the printing profile's `fitGap`, the gap that does not fuse;
+  - `wall`: the least material round a bore, default 2 mm.
+- **Its scope:**
+  - **one body**, else refused `ONE_BODY`;
+  - **an axis-aligned print direction**, `doc.print.direction` or +Z, else `DIRECTION_NOT_AXIS`;
+  - **the document's printer**, else `NO_PRINTER`.
+  - A piece fits when its height along the build direction is within the build height and its two other extents, sorted, are within the bed's, sorted: AM1's bed-fit, an in-plane turn allowed.
+- **The split:**
+  - along the one axis that needs it: the build axis when the part is too tall, else the longer in-plane axis;
+  - into the fewest even pieces (2–20) that each fit;
+  - typed refusals: `NOT_NEEDED` when the whole part fits; `TOO_BIG_TWO_WAYS` when no single-axis split fits, two axes being later scope.
+  - The cuts are a chain: each split's upper side is split again.
+- **The connectors, on each cut face:**
+  - `count` points along the face's longer in-plane extent, evenly spread;
+  - each at least `d/2 + fit + wall` inside the face's boundary, measured on the face's triangles;
+  - none that far in: `NO_ROOM`, with the room there is.
+  - **For each point:**
+    - **dowel**: a bore Ø `d + 2·fit`, `length/2 + fit` deep, in both pieces (`hole` from the cut side); the pin is a separate body, a sketch circle on a plane `length/2` below the cut, extruded `length`;
+    - **plug**: the pin is made one with the lower piece (`union`); the bore is in the upper piece only.
+  - Bad values (`d`, `length` or `fit` ≤ 0, `count` outside 1–8): `BAD_CONNECTOR`.
+- **The report** (the command's note; `bedSplit(doc, bodies)` for tests): the cuts, each piece's body key, box and fit, and each connector's position and radii.
+
+**Acceptance:**
+- **Volumes**: the pieces before connectors sum to the original to 1e-9 relative. After them:
+  - Σ pieces + Σ dowels = original − Σ bores + Σ dowels, closed form π r² h;
+  - a plug's pieces sum to original + the pins' protruding volume − the bores.
+- **Fit**: each piece fits the bed by AM1's bed-fit rule. A 300 mm part on the 256 mm FDM printer gives 2 pieces; 600 mm gives 3.
+- **At the given fit**: each bore's exact cylinder radius minus its pin's is `fit`, to 1e-9.
+- **Interference, exact**: the assembled pieces and pins, every pair, have no overlap volume by the kernel's intersection. The cut faces touch, never overlap.
+- **Refusals**: `NOT_NEEDED`, `ONE_BODY`, `NO_PRINTER`, `DIRECTION_NOT_AXIS`, `TOO_BIG_TWO_WAYS`, `NO_ROOM` (a cut face too thin for the bore and wall) and `BAD_CONNECTOR`, each typed.
+- **Exposure**: the palette command and `run_command` (the tool contract regenerated, its overhead checked); a flow step before the last.
+
+## O52 — AM6: split to fit the bed, with dowels or plugs (2026-10-20)
+
+- **`src/print/splitBed.ts`**: `planBedSplit(doc, bodies, {connector, d, length, count?, fit?, wall?})` → `{doc, report}`, and `fitsBed`, AM1's bed-fit rule.
+  - **The split**, following O51:
+    - the axis that needs it;
+    - the fewest even pieces (2–20);
+    - the cuts as a chain of `split` features.
+  - **The connector points.** The cuts are evaluated once first. On each lower piece's `<id>.cut` face, its triangles and boundary are taken in the plane, and `count` points are spread along its longer extent through its middle. A point not `d/2 + fit + wall` inside is looked for across the face in 1 mm steps.
+  - **Then the features again, with the connectors:**
+    - dowel bores in both pieces (`hole` from the cut side, Ø d + 2·fit, depth length/2 + fit);
+    - a pin per point: a sketch circle on a plane length/2 below the cut, its centre projected into the plane's own frame (for Y, v = normal × xAxis is −Z), extruded `length`;
+    - plugs: `union` with the lower piece and a bore in the upper only.
+  - **`NO_ROOM`** names the cut, the bore and the room the face has: its deepest point on a 0.25 mm grid. The first message gave the depth at the failing spot, which read as "the face has 2.67 mm" for an 8 × 8 face whose centre has 4.
+- **The command `split-bed`** ("Split to fit the bed", modify group) is built from the planner and undone as one change. Its defaults: dowel, Ø6, 20 long, 2 a cut, the process's fit gap (FDM 0.3 mm) and a 2 mm wall.
+  - It reaches the agent through `run_command`: `COMMAND_DOCS` has its values, and `tools-v1.json` is regenerated (one line, the command's id; the overhead check passes).
+- **Tests** (`test/split-bed.test.ts`, 3), on FDM's 256 mm bed:
+  - **The 300 × 40 × 20 bar:**
+    - cut at x = 150 into two pieces, each within the bed;
+    - connectors at (150, 13.33, 10) and (150, 26.67, 10);
+    - **volumes**: the pins π·3²·20 each, to 1e-9; the pieces equal the bar less four bores π(3.3)²(10.3), to 1e-9; the cut alone sums to the bar, to 1e-9;
+    - **fit**: every bore face's exact cylinder radius is 3.3 and every pin's 3, so the difference is the fit, 0.3, to 1e-9;
+    - **interference**: all six pairs of the two pieces and two pins have no overlap volume by the kernel's intersection.
+  - **The fewest pieces, the build axis and plugs:**
+    - a 600 mm bar goes into 3 pieces (cuts 200 and 400);
+    - a 300 mm tall part is cut along z;
+    - **plugs**: two bodies, their volume the bar + 2(π·9·10 − π·3.3²·10.3), to 1e-9, with no overlap.
+  - **Refusals:**
+    - a 100 mm part: `NOT_NEEDED`;
+    - two bodies: `ONE_BODY`;
+    - no printer: `NO_PRINTER`;
+    - direction (1, 0, 1): `DIRECTION_NOT_AXIS`;
+    - a 300 × 300 plate: `TOO_BIG_TWO_WAYS`;
+    - an 8 × 8 bar: `NO_ROOM`, "needs 5.3 mm … it has 4";
+    - d 0, length −1, count 9, fit 0: `BAD_CONNECTOR`.
+- **Found by the full suite:** `test/chat.test.ts` runs every buildable command in a shared two-body context. `split-bed` takes one body, so it gets its own context there: a 300 mm bar on the FDM printer, as `gear-mesh` and `decimate` have theirs.
+- **Flow step** (before the last):
+  - a 300 mm bar file with the FDM printer, "fit the bed" from the palette, dowel by default;
+  - four bodies, the features split, 4 holes and 2 sketch + extrude pairs, the cut at 150;
+  - one undo returns the bar.
+- **Not in AM6:**
+  - splitting two ways;
+  - tilted print directions;
+  - several bodies;
+  - choosing cut positions by feature (the cuts are even).

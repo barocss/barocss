@@ -4459,6 +4459,27 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
+  // ---- AM6 (O51): a part too big for the bed split, with dowels -------------------------------------------------------
+  await check('AM6: a 300 mm bar on the 256 mm FDM printer split to fit the bed from the palette: two pieces and two dowels, undone as one change', async () => {
+    const fs = await import('node:fs'), file = join(out, 'long-bar.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, printer: 'fdm-256', process: 'fdm', nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [300, 40] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 20 }] }));
+    await openModel(file, 2, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await press(' '); await page.locator('.palette input').fill('fit the bed'); await press('Enter'); await hudReady();
+    assert.equal(await field('Connector').inputValue(), 'dowel');
+    await page.waitForTimeout(300); await press('Enter');
+    // (Two pieces and two dowels: four bodies.)
+    await page.waitForFunction(() => /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    const d = await doc();
+    assert.deepEqual(d.nodes.slice(2).map(n => n.kind), ['split', 'hole', 'hole', 'hole', 'hole', 'sketch', 'extrude', 'sketch', 'extrude']);
+    assert.equal(d.nodes[2].at, 150);
+    await iso(); await snap('am6-split-bed');
+    // (Undone as one change: back to the bar.)
+    await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 15000 });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
