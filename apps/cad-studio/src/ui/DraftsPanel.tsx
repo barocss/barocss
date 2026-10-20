@@ -10,6 +10,7 @@ export function DraftsPanel({ drafts, onAddDrawing, onConfirm }: { drafts: reado
       <label className="tool tiny" data-tip="Add a drawing (DXF) as a sketch draft"><input type="file" aria-label="Add drawing" accept=".dxf" hidden onChange={e => { const f = e.target.files?.[0]; if (f) onAddDrawing(f); e.target.value = ''; }} />＋</label></div>
     {drafts.map(d => <div key={d.id} className="req" role="listitem" aria-label={`Draft ${d.id}`}>
       <span className="req-row" title={d.note ?? ''}><span className="req-mark">✎</span><b>{d.id}</b> {'image' in d.from ? d.from.image : d.from.drawing} <span className="muted">· {'image' in d.from ? 'from an image' : 'from a drawing'} · {d.nodes.length} feature{d.nodes.length === 1 ? '' : 's'}</span></span>
+      {d.unitAssumed && d.dims.some(x => !x.confirmed) && <span className="req-edit" aria-label={`${d.id} unit assumed`}><span className="muted">⚠ units assumed mm: the drawing declares none</span></span>}
       {d.dims.map(x => { const key = `${d.id}.${x.name}`; return <span key={key} className="req-edit" aria-label={`Dimension ${key}`}>
         <span className="muted ref-at-label">{x.name}</span>
         <input aria-label={`${key} value`} type="number" step="any" defaultValue={x.value} key={`${key}:${x.value}`} onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter') onConfirm(key, Number(e.currentTarget.value)); }} />

@@ -49,7 +49,7 @@ const READ: Record<string, JsonSchema | null> = {
   size_actuators: o({ profile: str, move_s: num, cycle_s: num, joints: arr, skipped: arr, model: str, sampling: str, pending_worked_examples: arr }, ['profile', 'move_s', 'cycle_s', 'joints', 'skipped', 'model', 'sampling', 'pending_worked_examples']),
   get_brief: o({ brief: objOrNull, gaps: arr, complete: bool, unverified: arr, asked: obj, process: objOrNull, material: objOrNull }, ['brief', 'gaps', 'complete', 'unverified', 'asked', 'process', 'material']),
   get_references: o({ references: arr, datums: arr, keepouts: arr, problems: arr }, ['references', 'datums', 'keepouts']),
-  get_drafts: o({ drafts: arr, unconfirmed: arr, note: str }, ['drafts', 'unconfirmed', 'note']),
+  get_drafts: o({ drafts: arr, unconfirmed: arr, assumptions: arr, note: str }, ['drafts', 'unconfirmed', 'assumptions', 'note']),
   check_keepouts: o({ results: arr, clear: num, violated: num, undecided: num }, ['results', 'clear', 'violated', 'undecided']),
   gravity_torques: o({ torques: obj, generalized: obj, units: obj, gravity_m_s2: num }, ['torques', 'generalized', 'units', 'gravity_m_s2']),
   sweep_path: o({ clear: bool, contact: obj, min_clearance: { type: ['object', 'null'] }, samples: num, pairs: num, skipped: arr }, ['clear', 'samples', 'pairs', 'skipped']),

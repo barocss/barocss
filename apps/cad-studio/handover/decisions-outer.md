@@ -1269,3 +1269,8 @@ Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 �
     - extruded and opened, then Export STL, whose toast says "This part is a draft: 1 dimension".
   - Studio 554/554. The test names were compared with the A6.3 run, and none is missing. Bench: every row within budget. Lint and type-check clean.
 - **Next**: A6.5, standards data with provenance.
+- **Added on acceptance (coordinator, 2026-10-20):** a drawing that declares no `$INSUNITS` is read as mm, and that is now an **assumption shown beside its dimensions**, not only in the import result.
+  - It appears in `get_drafts.assumptions` ("F1: units assumed mm — the drawing declares none (were it inches, every size would be 25.4 times this)"), as a `check_spec` unknown `draft:F1.units`, and as a ⚠ line in the Drafts list.
+  - It is listed while any of the drawing's dimensions is unconfirmed: confirming them is the user's acceptance of the sizes.
+  - A declared unit is no assumption.
+  - Test: the inches fixture with its `$INSUNITS` removed reads as 4 (not 101.6), the assumption listed in both places, then gone once all three are confirmed. Drafts tests 6/6.

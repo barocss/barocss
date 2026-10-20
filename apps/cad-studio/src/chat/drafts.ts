@@ -12,7 +12,7 @@ import { DxfReadError, readDxfSketch, type DxfLoop } from '../sketch/dxfRead';
 
 export type Drive = { kind: 'scale'; nodes: string[]; about: [number, number] } | { kind: 'height'; nodes: string[] } | { kind: 'depth'; nodes: string[] } | { kind: 'hole'; node: string; hole: number; center: [number, number] };
 export interface DraftDim { name: string; label: string; value: number; basis: 'scaled' | 'from-drawing'; confirmed?: { by: 'user'; at: string }; drive: Drive }
-export interface Draft { id: string; from: { image: string } | { drawing: string }; nodes: string[]; dims: DraftDim[]; note?: string }
+export interface Draft { id: string; from: { image: string } | { drawing: string }; nodes: string[]; dims: DraftDim[]; note?: string; /** A drawing that declares no unit, read as mm (every size ×25.4 off if it was inches): an assumption, shown beside the dimensions. */ unitAssumed?: true }
 export interface DraftSet { version: 1; drafts: Draft[] }
 export class DraftError extends Error { constructor(public code: 'NO_DRAFT' | 'BAD_VALUE' | 'BOUND' | 'GONE', message: string) { super(`[${code}] ${message}`); this.name = 'DraftError'; } }
 
@@ -51,7 +51,7 @@ export function withDrawingDraft(doc: StudioDoc, text: string, name: string, pla
     { name: 'height', label: 'the overall height (Y)', value: r6(box[3] - box[1]), basis: 'from-drawing', drive: { kind: 'scale', nodes: [id], about: [r6(box[0]), r6(box[1])] } },
     ...s.holes.flatMap((h, i) => (h.circle ? [{ name: `d${i + 1}`, label: `hole ${i + 1}'s diameter`, value: r6(2 * h.circle.radius), basis: 'from-drawing' as const, drive: { kind: 'hole' as const, node: id, hole: i, center: [r6(h.circle.center[0]), r6(h.circle.center[1])] as [number, number] } }] : [])),
   ];
-  const draft: Draft = { id: nextDraftId(set), from: { drawing: name }, nodes: [id], dims, note: `read from ${name} in ${s.unit.name}${s.unit.declared ? '' : ' (the file declares no unit)'}` };
+  const draft: Draft = { id: nextDraftId(set), from: { drawing: name }, nodes: [id], dims, note: `read from ${name} in ${s.unit.name}${s.unit.declared ? '' : ' (the file declares no unit)'}`, ...(s.unit.declared ? {} : { unitAssumed: true as const }) };
   return { doc: { ...next, drafts: { version: 1, drafts: [...set.drafts, draft] } }, draft, ignored: s.ignored, unit: s.unit.name };
 }
 
@@ -105,8 +105,13 @@ export function draftsReport(doc: StudioDoc) {
   return {
     drafts: liveDrafts(doc).map(d => ({ id: d.id, from: d.from, features: d.nodes, ...(d.note ? { note: d.note } : {}), dims: d.dims.map(x => ({ key: `${d.id}.${x.name}`, label: x.label, value_mm: x.value, basis: x.basis, confirmed: !!x.confirmed })) })),
     unconfirmed: open.map(u => u.key),
+    assumptions: unitAssumptions(doc),
     note: open.length ? `a draft: ${open.length} dimension${open.length === 1 ? '' : 's'} not confirmed by the user — ask about the ones that matter (ask_user, blocks {dimension}), or say they are assumed` : 'every draft dimension is confirmed',
   };
+}
+/** The drawings read as mm because they declare no unit, while any of their dimensions is unconfirmed (A6.4). */
+export function unitAssumptions(doc: StudioDoc): string[] {
+  return liveDrafts(doc).filter(d => d.unitAssumed && d.dims.some(x => !x.confirmed)).map(d => `${d.id}: units assumed mm — the drawing declares none (were it inches, every size would be 25.4 times this)`);
 }
 /** The export warning, or null. */
 export function draftWarning(doc: StudioDoc): string | null {

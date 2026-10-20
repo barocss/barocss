@@ -1493,6 +1493,9 @@
    },
    "output": {
     "properties": {
+     "assumptions": {
+      "type": "array"
+     },
      "drafts": {
       "type": "array"
      },
@@ -1506,6 +1509,7 @@
     "required": [
      "drafts",
      "unconfirmed",
+     "assumptions",
      "note"
     ],
     "type": "object"

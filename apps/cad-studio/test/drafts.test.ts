@@ -59,6 +59,21 @@ test('a hand-written DXF in inches (LINE, ARC, CIRCLE, with text and a dimension
   assert.ok(near(dims.width, 4 * 25.4, 1e-9) && near(dims.height, 2 * 25.4, 1e-9) && near(dims.d1, 0.5 * 25.4, 1e-9), JSON.stringify(dims));
 });
 
+test('a drawing that declares no unit: read as mm, said as an assumption beside its dimensions (get_drafts, check_spec) until they are confirmed', async () => {
+  const text = readFileSync(join(CASES, 'by-hand-inches.dxf'), 'utf8').replace(/9\n\$INSUNITS\n70\n1\n/, '');
+  let s = (await ok({ doc: emptyDoc(), bodies: [] }, 'import_drawing', { dxf: text, name: 'no unit' })).state;
+  const g = JSON.parse((await ok(s, 'get_drafts', {})).content);
+  assert.equal(g.assumptions.length, 1); assert.match(g.assumptions[0], /^F1: units assumed mm/);
+  assert.ok(Math.abs(g.drafts[0].dims[0].value_mm - 4) < 1e-9, 'read as mm: 4, not 101.6');
+  s = (await ok(s, 'set_requirements', { requirements: [{ id: 'R1', source: 'x', hard: false, basis: 'assumed', check: { op: '>=', query: { fn: 'count_solids' }, value: 0 } }] })).state;
+  assert.ok(JSON.parse((await ok(s, 'check_spec', {})).content).unknowns.some((u: { req_id: string; why: string }) => u.req_id === 'draft:F1.units' && /25\.4/.test(u.why)));
+  // (Every dimension confirmed: the assumption is the user's, no longer listed. A declared unit is no assumption.)
+  let doc = s.doc; for (const k of ['F1.width', 'F1.height', 'F1.d1']) doc = confirmDimension(doc, k, undefined, 'now');
+  assert.deepEqual(JSON.parse((await ok({ ...s, doc }, 'get_drafts', {})).content).assumptions, []);
+  const inches = (await ok({ doc: emptyDoc(), bodies: [] }, 'import_drawing', { dxf: readFileSync(join(CASES, 'by-hand-inches.dxf'), 'utf8') })).state;
+  assert.deepEqual(JSON.parse((await ok(inches, 'get_drafts', {})).content).assumptions, []);
+});
+
 test('drawings refused, typed: a spline, a gap, a loop in a hole, nothing to read, a malformed file, a line off the XY plane', async () => {
   for (const [file, want] of [['refuse-spline.dxf', 'DXF_UNSUPPORTED'], ['refuse-open.dxf', 'DXF_OPEN'], ['refuse-nested.dxf', 'DXF_NESTED'], ['refuse-empty.dxf', 'DXF_EMPTY'], ['refuse-malformed.dxf', 'DXF_MALFORMED'], ['refuse-3d.dxf', 'DXF_UNSUPPORTED']] as const) {
     const s: ChatState = { doc: emptyDoc(), bodies: [] }, r = await call(s, 'import_drawing', { dxf: readFileSync(join(CASES, file), 'utf8') });
