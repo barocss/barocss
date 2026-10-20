@@ -49,7 +49,7 @@ export const GROUPS: Record<string, Group> = {
   requirements: {
     title: 'Requirements',
     about: 'The brief (the part\'s intent), the locked reference bodies it must fit (datums, keep-outs), and the checks the kernel runs.',
-    actions: { set: ['set_requirements', 'requirements: [{id, source, hard?, check}], replace?'], check: ['check_spec', 'validate? — every check against the part'], brief: ['set_brief', 'fields: {purpose | process | material | …: {value, basis, source?, why?} | null} — the intent, before the checks'], gaps: ['get_brief', '— the brief, its gaps and what it applies'], references: ['get_references', '— the locked reference bodies, their faces, datums and keep-outs'], reference: ['add_reference', 'name, step | mesh, at? — a locked reference body'], datum: ['add_datum', 'reference + face + kind | reference + vertex | kind + origin + normal | direction'], keepout: ['add_keepout', 'box | cylinder | around + offset, clearance?'], unref: ['delete_reference_item', 'id — a datum or keep-out'], keepouts: ['check_keepouts', 'keepout?, body? — clear, violated or undecided, the chord tolerance stated'], ask: ['ask_user', 'questions: [{id, text, kind, options?, unit?, blocks: {field} | {requirement}}] — only what blocks, ≤ 5, ≤ 2 batches'] },
+    actions: { set: ['set_requirements', 'requirements: [{id, source, hard?, check}], replace?'], check: ['check_spec', 'validate? — every check against the part'], brief: ['set_brief', 'fields: {purpose | process | material | …: {value, basis, source?, why?} | null} — the intent, before the checks'], gaps: ['get_brief', '— the brief, its gaps and what it applies'], references: ['get_references', '— the locked reference bodies, their faces, datums and keep-outs'], reference: ['add_reference', 'name, step | mesh, at? — a locked reference body'], datum: ['add_datum', 'reference + face + kind | reference + vertex | kind + origin + normal | direction'], keepout: ['add_keepout', 'box | cylinder | around + offset, clearance?'], drafts: ['get_drafts', '— features from an image or drawing and their dimensions to confirm'], drawing: ['import_drawing', 'dxf, name?, plane? — a DXF profile as a sketch draft'], unref: ['delete_reference_item', 'id — a datum or keep-out'], keepouts: ['check_keepouts', 'keepout?, body? — clear, violated or undecided, the chord tolerance stated'], ask: ['ask_user', 'questions: [{id, text, kind, options?, unit?, blocks: {field} | {requirement}}] — only what blocks, ≤ 5, ≤ 2 batches'] },
   },
   proposals: {
     title: 'Proposals',
@@ -69,7 +69,7 @@ export const GROUPS: Record<string, Group> = {
   library: {
     title: 'Library',
     about: 'Standard and team parts.',
-    actions: { list: ['list_library', 'library?'], add: ['add_library', 'library — a library document'], add_part: ['add_library_part', 'library, part, face, point, variant?, params?, x_direction?, context?'] },
+    actions: { standards: ['standards_lookup', 'table?, row?, field? — a standards-derived value and its source'], list: ['list_library', 'library?'], add: ['add_library', 'library — a library document'], add_part: ['add_library_part', 'library, part, face, point, variant?, params?, x_direction?, context?'] },
   },
   print: { title: '3D print', about: 'Printability on an FDM printer.', actions: { check: ['check_printability', 'direction?'], orient: ['orient_for_print', 'apply?'] } },
   drawing: {

@@ -194,6 +194,7 @@
     "properties": {
      "action": {
       "enum": [
+       "standards",
        "list",
        "add",
        "add_part"
@@ -350,6 +351,8 @@
        "reference",
        "datum",
        "keepout",
+       "drafts",
+       "drawing",
        "unref",
        "keepouts",
        "ask"

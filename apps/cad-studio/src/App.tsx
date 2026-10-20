@@ -72,6 +72,8 @@ import { SpecifyPanel } from './ui/SpecifyPanel';
 import { ReferencesPanel } from './ui/ReferencesPanel';
 import { checkKeepouts, placeReference, readReferences, referenceLocal, runReferenceTool, withKeepout, type KeepoutResult, type Placement } from './chat/references';
 import { acceptAssumptions, answerBatch } from './chat/questions';
+import { confirmDimension, draftWarning, liveDrafts, runDraftTool } from './chat/drafts';
+import { DraftsPanel } from './ui/DraftsPanel';
 import { extrudeProfile } from './app/profileCommands';
 import { editCommand, featureOfPick } from './app/editCommand';
 import { explodeOffsets, movedBody } from './assembly/explode';
@@ -1375,6 +1377,14 @@ export function App() {
     if ('error' in out) { setToast({ title: 'Reference not changed', hint: out.error.replace(/^\[[A-Z_]+\] /, ''), detail: out.error }); return; }
     if (out.changed) commit(out.doc, false);
   };
+  /** A DXF drawing added to the part as a sketch draft (A6.4): its dimensions the user's to confirm. */
+  const addDrawingFile = async (file: File) => {
+    const out = runDraftTool(doc, 'import_drawing', { dxf: await file.text(), name: file.name.replace(/\.dxf$/i, '') });
+    if ('error' in out) { setToast({ title: 'Could not read this drawing', hint: out.error.replace(/^\[[A-Z_]+\] /, ''), detail: out.error }); return; }
+    commit(out.doc);
+    const c = out.content as { dims: { key: string }[]; unit: string; left_out?: Record<string, number> };
+    setToast({ title: 'Drawing added as a draft', hint: `A sketch in ${c.unit}; ${c.dims.length} dimensions to confirm in Drafts.${c.left_out ? ` Left out: ${Object.entries(c.left_out).map(([t, n]) => `${n} ${t}`).join(', ')}.` : ''}`, detail: '' });
+  };
   const addReferenceFile = async (file: File) => {
     const name = file.name.replace(/\.[^.]+$/, '');
     if (/\.(step|stp)$/i.test(file.name)) return refTool('add_reference', { name, step: await file.text() });
@@ -1423,7 +1433,7 @@ export function App() {
     if (meshes) { try { localStorage.setItem('studio.stepMeshes', meshes); } catch { /* private mode */ } }
     // (The evaluated model, with the instances placed beside it now.)
     const r = await engine.step({ ...evaluated, instances: doc.instances }, fileName, meshes);
-    if ('text' in r) downloadBytes(new TextEncoder().encode(r.text), `${fileName}.step`, 'model/step');
+    if ('text' in r) { downloadBytes(new TextEncoder().encode(r.text), `${fileName}.step`, 'model/step'); const w = draftWarning(doc); if (w) setToast({ title: 'STEP written as a draft', hint: w, detail: '' }); }
     else setToast({ title: 'Could not write STEP', hint: 'Fix the model’s errors first, then export again.', detail: r.error });
   };
   const exportStl = async () => {
@@ -1435,7 +1445,7 @@ export function App() {
       downloadBytes(kernel ?? meshToStl(body.mesh, body.key), `${fileName}-${body.key}.stl`, 'model/stl');
     }
     // (STL is facets only: no units, colours or exact curves; say when the display mesh had to stand in.)
-    setToast({ title: `STL written: ${bodies.length} file${bodies.length === 1 ? '' : 's'}`, hint: `Triangles in millimetres, one file per body; no colours, names or exact curves.${fallback.length ? ` ${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : ''}`, detail: '' });
+    setToast({ title: `STL written: ${bodies.length} file${bodies.length === 1 ? '' : 's'}`, hint: `${draftWarning(doc) ? `${draftWarning(doc)} ` : ''}Triangles in millimetres, one file per body; no colours, names or exact curves.${fallback.length ? ` ${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : ''}`, detail: '' });
   };
 
   /** 3MF (AM5, D76): every shown body and instance, its material and colours, turned the way it prints when chosen. */
@@ -1447,7 +1457,7 @@ export function App() {
     if ('error' in r) { setToast({ title: 'Could not write 3MF', hint: r.error, detail: '' }); return; }
     downloadBytes(r.bytes, `${fileName}.3mf`, 'model/3mf');
     const s = r.stats, open = s.openEdges + s.repeatedEdges;
-    setToast({ title: `3MF written: ${s.objects} bod${s.objects === 1 ? 'y' : 'ies'}, ${s.triangles.toLocaleString()} triangles`, hint: `${doc.print ? 'Turned the way it prints and set on the bed. ' : 'As modelled (choose a print direction to have it turned for printing). '}The on-screen mesh, in millimetres, with materials and colours.${open ? ` ${open} edges are not closed: the slicer may repair it.` : ''}`, detail: '' });
+    setToast({ title: `3MF written: ${s.objects} bod${s.objects === 1 ? 'y' : 'ies'}, ${s.triangles.toLocaleString()} triangles`, hint: `${draftWarning(doc) ? `${draftWarning(doc)} ` : ''}${doc.print ? 'Turned the way it prints and set on the bed. ' : 'As modelled (choose a print direction to have it turned for printing). '}The on-screen mesh, in millimetres, with materials and colours.${open ? ` ${open} edges are not closed: the slicer may repair it.` : ''}`, detail: '' });
   };
 
   // Keyboard: Space palette, Enter apply, Esc cancel, letters run commands, F frames. The listener is
@@ -1876,6 +1886,7 @@ export function App() {
           }}><Icon name={o.hidden ? 'visibility_off' : 'gesture'} small />{o.name}</button>)}
         {!!doc.direct?.objects.length && viewport.current?.backend === 'webgl2' && <div className="empty">Curves and surfaces show in browsers with WebGPU.</div>}
         <SpecifyPanel doc={doc} onAnswer={answerQuestions} onAcceptAll={acceptAll} />
+        <DraftsPanel drafts={liveDrafts(doc)} onAddDrawing={f => void addDrawingFile(f)} onConfirm={(key, value) => { try { commit(confirmDimension(doc, key, value, new Date().toISOString())); } catch (e) { setToast({ title: 'Dimension not changed', hint: e instanceof Error ? e.message.replace(/^\[[A-Z_]+\] /, '') : String(e), detail: '' }); } }} />
         <ReferencesPanel set={readReferences(doc.references)} local={refLocal} verdicts={keepoutVerdicts} onAddFile={f => void addReferenceFile(f)} onPlace={placeRef}
           onDatum={(reference, face, kind) => void refTool('add_datum', { reference, face, kind })} onEnvelope={(reference, offset, clearance) => void refTool('add_keepout', { around: reference, offset, shape: 'box', clearance })} onRemove={removeRef} />
         {(() => { const b = readBrief(doc.brief); return b ? <BriefPanel brief={b} onConfirm={confirmBrief} /> : null; })()}

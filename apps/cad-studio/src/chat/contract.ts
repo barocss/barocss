@@ -49,6 +49,8 @@ const READ: Record<string, JsonSchema | null> = {
   size_actuators: o({ profile: str, move_s: num, cycle_s: num, joints: arr, skipped: arr, model: str, sampling: str, pending_worked_examples: arr }, ['profile', 'move_s', 'cycle_s', 'joints', 'skipped', 'model', 'sampling', 'pending_worked_examples']),
   get_brief: o({ brief: objOrNull, gaps: arr, complete: bool, unverified: arr, asked: obj, process: objOrNull, material: objOrNull }, ['brief', 'gaps', 'complete', 'unverified', 'asked', 'process', 'material']),
   get_references: o({ references: arr, datums: arr, keepouts: arr, problems: arr }, ['references', 'datums', 'keepouts']),
+  standards_lookup: o({ tables: arr, table: str, row: str, unit: str, standards: arr, values: obj, sources: obj }),
+  get_drafts: o({ drafts: arr, unconfirmed: arr, assumptions: arr, note: str }, ['drafts', 'unconfirmed', 'assumptions', 'note']),
   check_keepouts: o({ results: arr, clear: num, violated: num, undecided: num }, ['results', 'clear', 'violated', 'undecided']),
   gravity_torques: o({ torques: obj, generalized: obj, units: obj, gravity_m_s2: num }, ['torques', 'generalized', 'units', 'gravity_m_s2']),
   sweep_path: o({ clear: bool, contact: obj, min_clearance: { type: ['object', 'null'] }, samples: num, pairs: num, skipped: arr }, ['clear', 'samples', 'pairs', 'skipped']),
@@ -61,7 +63,7 @@ const READ: Record<string, JsonSchema | null> = {
 const ADDS = new Set(['run_command', 'add_features', 'extrude_image_layer', 'inflate_image_layer', 'add_part', 'add_mate', 'insert_part', 'add_library', 'add_library_part', 'propose']);
 /** Changes that may alter or remove what is there; `true`: the same call twice has no further effect. */
 const ALTERS: Record<string, boolean> = {
-  edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, set_brief: true, ask_user: false, add_reference: false, add_datum: false, add_keepout: false, delete_reference_item: true, accept_proposal: true,
+  edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, set_brief: true, ask_user: false, add_reference: false, add_datum: false, add_keepout: false, delete_reference_item: true, import_drawing: false, accept_proposal: true,
   subd_move: false, subd_extrude: false, subd_insert_loop: false, subd_bridge: false, subd_fill: false, subd_weld: false, subd_crease: true, subd_delete: false,
   place_part: true, delete_part: true, edit_mate: true, delete_mate: true, snap_part: true, orient_for_print: true,
   auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true, set_joints: true,

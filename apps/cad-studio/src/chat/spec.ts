@@ -19,6 +19,7 @@ import { printability, type PrintabilityReport } from '../print/rules';
 import { processProfile } from '../library/materials';
 import { faceTableOf } from '../assembly/faces';
 import { checkKeepouts, datumToFace, datumWorld, readReferences } from './references';
+import { unconfirmed, unitAssumptions } from './drafts';
 
 /** What is measured. Subjects (`a`, `b`, `face`) are face or edge names or selectors; `body` a body key (none: the part). */
 export type Query =
@@ -284,6 +285,9 @@ export async function checkSpec(doc: StudioDoc, bodies: readonly BodyResult[], e
     failures.push({ req_id: req.id, check: req.check.query.fn, measured: o.measured, expected: expectedOf(req.check), ...(o.delta !== undefined ? { delta: o.delta } : {}),
       ...(o.entities?.length ? { entities: o.entities } : {}), ...(feature ? { feature } : {}), hint: `${o.hint ? `${o.hint}; ` : ''}${req.hard ? 'hard' : 'soft'}: "${req.source}"` });
   }
+  // (A draft's dimensions not yet confirmed by the user, A6.4: unknowns too, said so.)
+  for (const a of unitAssumptions(doc)) unknowns.push({ req_id: `draft:${a.split(':')[0]}.units`, why: a.slice(a.indexOf(':') + 2) });
+  for (const u of unconfirmed(doc)) unknowns.push({ req_id: `draft:${u.key}`, why: `${u.dim.label}, ${u.dim.value} mm, ${u.dim.basis === 'scaled' ? 'scaled from an image' : 'read from a drawing'}: not confirmed by the user` });
   return { model_hash: modelHash(doc), summary: { pass, fail: failures.length, unknown: unknowns.length, hard_failing: hard }, failures, unknowns, outcomes };
 }
 

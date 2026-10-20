@@ -1207,3 +1207,175 @@ Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 �
   - Measured since, with a scratch copy that prints them: warm 0.25–0.28 ms against cold 9.3–12.2 ms, a ratio of 0.022–0.028 against the 0.5 limit, with the bench running alongside or not.
   - `warm` is the largest single step, a sub-millisecond measurement, so one GC pause or preemption of about 5 ms during the full suite's load fails it. Logged as a known flaky timing check in README §0's outer-lane follow-ups.
 - **The checkpoint routine** keeps the coordinator's habit: the full suite's test names are compared with the last commit's run, so a test that disappears is found even when nothing fails.
+
+## O28 — A6.4: images and drawings give drafts only; their dimensions confirmed by the user (2026-10-20)
+
+- **Drafts** (`doc.drafts`, version 1, `src/chat/drafts.ts`): the features an image or a drawing made, by feature id, with the dimensions they were made at.
+  - Each dimension records its value, its basis (`scaled` from an image, `from-drawing`), what it drives, and `confirmed: {by: 'user', at}` once confirmed.
+  - A draft goes with its features: one whose features are deleted is no longer listed.
+  - **Images**: `extrude_image_layer` records the silhouette's width, which scales its sketches about the image's corner, and the thickness, which is the extrusions' height. `inflate_image_layer` records the width and the depth, which scales the lofts' sections.
+  - **Drawings**: `import_drawing` (or the Drafts list's "Add drawing") records the overall width and height, which scale the sketch about its corner, and each round hole's diameter, which scales that hole about its centre.
+- **Confirming** (the studio's Drafts list, by Enter or Confirm; or the user's answer to a question about it):
+  - at its value, it is confirmed as it is, and nothing moves;
+  - **at another value, the features are re-driven**: sketches scaled, heights set, loft depths scaled;
+  - the draft's other dimensions that the change moves follow it — a scale moves its holes and the other size — and are unconfirmed again;
+  - a value bound to a parameter is refused (`BOUND`), as are a size of 0 or less (`BAD_VALUE`) and an unknown dimension (`NO_DRAFT`).
+  - **Only the user confirms**: the tools report drafts (`get_drafts`) and never confirm one.
+- **Where unconfirmed dimensions show**:
+  - in `check_spec`'s unknowns (`draft:F1.width`, with what it is and its basis);
+  - in `get_drafts` (with a note on what to do);
+  - in every export: STEP writes it in a toast, and the STL and 3MF toasts say "This part is a draft: N dimensions … not confirmed (…)".
+  - **A6.2's questions** may ask about one: `blocks {dimension: key}`, asked as a number. The answer confirms it and re-drives the features. A confirmed dimension blocks nothing.
+- **Our own DXF reader** (`src/sketch/dxfRead.ts`):
+  - It reads LINE, ARC, CIRCLE, LWPOLYLINE with bulges as arcs, and POLYLINE/VERTEX, which AC1009 writes, ours included. `$INSUNITS` is scaled to mm (inches, feet, cm, m; none declared is read as mm, said so).
+  - The edges are chained end to end into closed loops (walked backwards where needed, a reversed arc turning the other way) within 1e-6 of the drawing's size.
+  - A loop of arcs on one centre and radius is a circle, which is how a polyline of bulges writes one.
+  - The largest loop and those beside it are regions; a loop inside one is a hole.
+  - Text, dimensions, hatches and points are annotation: left out and listed.
+  - Refused, typed: `DXF_UNSUPPORTED` (splines, ellipses, blocks, 3D, off the XY plane), `DXF_OPEN` (where the gap is), `DXF_NESTED` (an island in a hole), `DXF_EMPTY` and `DXF_MALFORMED`.
+  - The result is a `loop` sketch with its regions and holes, on the XY plane, on a datum (`plane: {datum}`, A6.3) or on a given plane.
+- **Not in A6.4**:
+  - **PDF drawings**: reading a PDF needs a PDF renderer (a new dependency), and the image path takes raster files only. A drawing as a PNG or JPEG goes through the image path, whose result is a draft as above.
+  - Dimension *text* in a DXF is left out, not used. The sizes come from the geometry, and the user confirms them.
+- **The tool contract**: `get_drafts` (read, with an output schema) and `import_drawing` (alters, batchable, refused on a reference's names like any part change). v2: `requirements.drafts` and `requirements.drawing`. The overhead is 13 806 of 15 000.
+- **Evidence**: `test/drafts.test.ts` (5 tests). Its name was checked free first.
+  - **Our writer's files read back**, AC1015 (LWPOLYLINE with bulges) and AC1009 (POLYLINE/VERTEX), both written by the R11b writer from a 60 × 40 plate with two Ø8 holes:
+    - one region and two holes, radius 4 to 1e-9;
+    - extruded 5, its volume (60·40 − 2π·16)·5 to 1e-6;
+    - dimensions width 60, height 40, d1 8, d2 8.
+  - **A hand-written file in inches** (LINE, an ARC end, a CIRCLE, a TEXT and a DIMENSION):
+    - to mm ×25.4;
+    - the TEXT and DIMENSION left out and listed;
+    - area (3·2 + π/2 − π/16) in², volume to 1e-6;
+    - width 101.6, height 50.8, d1 12.7.
+  - **Refusals**: spline, gap (located at (0, 10) mm), nested, empty, malformed, 3D, each typed with the state unchanged.
+  - **Re-driven**:
+    - confirmed as it is, nothing moves;
+    - the width at 120 scales the plate ×2: the volume ×4 to 1e-6, the height becomes 80 and the holes 16, each unconfirmed again;
+    - one hole at 10 changes only that loop: volume (120·80 − 25π − 64π)·5;
+    - a value ≤ 0 and an unknown key are refused.
+  - **An image draft** (a traced square):
+    - width and thickness recorded;
+    - the export warning's text;
+    - `check_spec`'s unknowns `draft:F1.width` and `draft:F1.thickness`;
+    - a question about the width asked as text is refused; asked as a number it is accepted, and answered 40 it re-drives the relief: volume ×4 against the traced area (the trace simplifies the square's corners, so the closed form is the ratio);
+    - the thickness at 6 gives ×2 again;
+    - then no warning, and a confirmed dimension blocks nothing.
+  - The fixtures in `conformance/a6/drawings`: our writer's two files, the hand-written one, and six refusals.
+  - Browser flow 171/171, with a step "A6.4" before the last:
+    - the inches file added through "Add drawing": "3 to confirm", width 101.6;
+    - the width confirmed as it is;
+    - the hole entered as 15, which re-drives it (radius 7.5) and confirms it: "1 to confirm";
+    - extruded and opened, then Export STL, whose toast says "This part is a draft: 1 dimension".
+  - Studio 554/554. The test names were compared with the A6.3 run, and none is missing. Bench: every row within budget. Lint and type-check clean.
+- **Next**: A6.5, standards data with provenance.
+- **Added on acceptance (coordinator, 2026-10-20):** a drawing that declares no `$INSUNITS` is read as mm, and that is now an **assumption shown beside its dimensions**, not only in the import result.
+  - It appears in `get_drafts.assumptions` ("F1: units assumed mm — the drawing declares none (were it inches, every size would be 25.4 times this)"), as a `check_spec` unknown `draft:F1.units`, and as a ⚠ line in the Drafts list.
+  - It is listed while any of the drawing's dimensions is unconfirmed: confirming them is the user's acceptance of the sizes.
+  - A declared unit is no assumption.
+  - Test: the inches fixture with its `$INSUNITS` removed reads as 4 (not 101.6), the assumption listed in both places, then gone once all three are confirmed. Drafts tests 6/6.
+
+## O29 — A6.5: standards data with provenance (2026-10-20)
+
+- **One provenance format** for the studio's standards-derived tables (`src/standards/provenance.ts`):
+  - **sources**: `{id, kind: page | standard | derived | estimate | own, where, read?, licence, unverified?}`;
+  - **tables**: `{id, title, unit, standards (by number only), rows, fieldSources, rowSources}`. Each value's source is its field's, or its row's where that differs.
+  - **Licences a table may carry**:
+    - `facts`: the standards' or a page's numbers as read; no table layout, prose or notes copied;
+    - `own`: written for BaroCSS;
+    - `CC0-1.0`, `CC-BY-4.0`, `public-domain` and `MIT`.
+    - Anything else is refused, typed `LICENCE`: GPL and LGPL, share-alike, non-commercial, unknown. A value without a source is refused `NO_SOURCE`.
+- **The tables registered**:
+  - **The metric coarse fasteners**, M3–M12, migrated from the one `CATALOGUE` list to a source per field, with no value changed. A snapshot fixture holds the values (`conformance/a6/standards/fasteners-values.json`), and `src/app/fasteners.ts` is unchanged. The sources:
+    - the nominal sizes (pitches, heads, nuts, washers; `FAST-NOM`): facts, the cross-check recorded without an address, so **unverified**;
+    - the ISO 4762 and ISO 4017 lengths: pages with their addresses, read 2026-10-17;
+    - **row by row, the ISO 4017 lengths not cross-checked**: the 2d … 10d rule, unverified;
+    - ISO 10642: the nominal relations, not cross-checked, unverified;
+    - ISO 273 clearances: as suppliers give them, no single source, unverified;
+    - tap drills: derived, d − P.
+  - **The drawing's general tolerances**: estimates, as they were.
+  - **The material densities**: the material library's own sources, licensed CC0-1.0 by the file.
+- **The lookup**: tool `standards_lookup {table?, row?, field?}` (read, with an output schema; v2 `library.standards`) gives a value or a row with each value's source. Without a table it lists the tables. `NO_TABLE` and `NO_ROW` are typed.
+- **Prompts and tool descriptions name standards only by number.** A test lists every standard number in the system prompts (v1, v2), the tool descriptions (v1, v2) and the groups' texts. Each must be in `NAMED_STANDARDS`, the tables' standards and ISO 68-1. The test also refuses a quoted passage of six words or more within 80 characters of a standard's number. There is no RAG.
+- **The legal review before release is the owner's step**, recorded in README §0 and not done here. The material library's own licence line also says so.
+- **The tool contract**: 14 169 of 15 000 (`standards_lookup` with its output schema); 831 left.
+- **Evidence**: `test/standards.test.ts` (5 tests). Its name was checked free first.
+  - Every value of every table, 149 of them, has a source. Every source carries an allowed licence, and every page source has an address. The ISO 4017 lengths not cross-checked are said so, row by row.
+  - A table under GPL-3.0, LGPL-2.1, CC-BY-SA-4.0, CC-BY-NC-4.0 or unknown is refused `LICENCE`, and an unsourced value `NO_SOURCE`.
+  - The fastener values equal the snapshot, and the table holds them as they are.
+  - The lookup: M6's tap drill 5 with its source (derived), M8's row with its page and its unverified relations, the tables listed, refusals typed.
+  - The allowlist: the standards named are ISO 4017, 4762, 10642, 4032, 7089 and 68-1, and there is no quote near one.
+  - Browser flow 173/173, with a step "A6.5" before the last: `standards_lookup` through the real chat and tool servers. Studio 561/561. The test names were compared with the last run, and none is missing. Lint and type-check clean.
+- **A6 is done**: A6.1–A6.5 (O24–O29).
+
+## O30 — A7 S0: multi-agent v1, the deterministic core — scope, acceptance, exposure; the live comparison pending (2026-10-20)
+
+Assigned by the coordinator after A6. Build the parts that need no model now, and drive them with scripted roles and seeded defects. Anything that needs a live model waits for the owner, with its protocol written here.
+
+**What is already there:** op lists (`apply_ops`, all or nothing, op ids, dry runs; A4), proposals with risk and rebasing (D41), `modelHash` (a 32-bit FNV, for staleness), interference and clearance, keep-outs (A6.3), printability rules (AM), `check_spec` (A3), references verified after edits.
+
+### A7.1 — patches against a base revision
+- **A revision** (`revisionOf(doc)`) is a 64-bit FNV-1a over the canonical JSON (sorted keys) of what a patch may change or depend on: nodes, parameters, bodies' looks, requirements, brief, references (datums, keep-outs), process. `modelHash` is too weak to name a base.
+- **A patch** is `{id, by: role, base: revision, ops: Op[] (A4's ops), rationale}`.
+- A patch whose base is not the current revision is refused, typed **`STALE_BASE`**, naming the current revision.
+- **Rebasing is explicit**: `rebase(patch, revision)` makes a new patch on the given revision, its trace naming the old base. Rebasing is never automatic.
+
+### A7.2 — the deterministic Integrator: serial gates, typed verdicts, a trace per patch
+- Patches go one at a time. Each is dry-run on its base: A4's `apply_ops` on a copy of the state, nothing committed.
+- **The gates, in order**, each giving `{gate, verdict: pass | fail | undecided | skipped, findings: [{code, message, entities?}]}`. The first fail stops the rest, which are marked skipped "not reached".
+  1. **validity**: every op applied; the part evaluates; at least one solid; no reference broken.
+  2. **interference/clearance**: no two bodies of the part overlap that did not before (the kernel's intersection); every keep-out clear (A6.3; undecided within the chord tolerance).
+  3. **interfaces**: the patch leaves the contracts alone — references, datums, keep-outs, the brief, the requirements and the process are the Requirements role's and the user's, not the Designer's (typed `CONTRACT_CHANGED`) — and every hard interface requirement (`keepout`, `datum_distance`, `clearance`, `hole_alignment`) passes.
+  4. **DFM**: the printability rules of the brief's (or the part's) process. Skipped, said so, when there is none, or for a process with no checks yet (CNC, sheet metal).
+  5. **analysis**: every hard requirement passes (`check_spec`). An unknown hard requirement is undecided.
+- **The decision**:
+  - **applied**: every gate passes or is skipped, and the Verifier accepts;
+  - **rejected**: a gate fails, or the Verifier rejects with findings;
+  - **held**: a gate is undecided. Held patches are the user's to decide.
+  - **stale**: the base is not current.
+- **The trace** (one per patch): the patch, its base (and rebased-from), the dry run's diff, each gate's verdict and findings, the Verifier's review, the decision, the revision after. A logical sequence number replaces wall time, so a run is reproducible to the byte.
+
+### A7.3 — roles as interfaces; the Verifier sees only artifacts and requirements
+- **Roles** are TypeScript interfaces with no chat tools:
+  - `RequirementsRole.brief(input) → { brief fields, requirements }`;
+  - `DesignerRole.propose(view) → Patch | 'done'`;
+  - `VerifierRole.review(view) → { accept, findings }`.
+  - Each role has a `model` field (recorded; a stronger or different model for the Verifier is the protocol's choice).
+- **The Verifier's view is built, not prompted**. `verifierView(doc, bodies)` gives only:
+  - the artifacts: facts, mass properties, each body's box, keep-out results, the printability report, the `check_spec` report;
+  - the requirements and the brief.
+  - It does not give the ops, the Designer's rationale or any chat.
+  - It is a frozen plain object of a fixed key set, checked in a test, so a role cannot see more than it is given.
+- **The run** (`runTeam`): the Requirements role sets the brief and requirements, applied and traced. The Designer proposes patches, the Integrator gates them, and the Verifier reviews each that passes. It ends when the Designer says done or a patch budget is reached.
+- It logs per patch and per run the tokens each role reports (0 for scripted roles), the patches tried and accepted, and the cost per accepted design.
+
+### A7.4 — exposure: no new chat tools
+- The contract has 831 characters of room, and the roles need no chat tools.
+- **The internal API** is `src/team/`. **`cad-cli team <scenario.json>`** runs a scripted team from a scenario file (the brief, the roles' patches and reviews) and prints the traces as JSON.
+- `tools/list` is unchanged, and so is the guard.
+
+### Acceptance (deterministic: scripted roles, seeded-defect fixtures in `conformance/a7/`)
+- The scripted Requirements, Designer and Verifier roles replay fixtures.
+- **The seeded defects**, one a fixture, each caught by the gate (or the Verifier) named, with its typed verdict:
+  - an op that does not apply (validity);
+  - two bodies made to overlap (interference);
+  - a body into a keep-out (interference);
+  - a patch that edits a keep-out or a requirement (`CONTRACT_CHANGED`, interfaces);
+  - a wall under the FDM minimum (DFM);
+  - a hard requirement broken (analysis);
+  - a stale base (`STALE_BASE`), then the same patch rebased and applied;
+  - a defect no gate sees but the Verifier's deterministic check does (its findings);
+  - a near-limit keep-out (held).
+- **A clean run**: a brief to an accepted design in N patches, every trace complete, the result byte-identical on a rerun.
+- **The Verifier's isolation**: its view's keys exactly the fixed set; no op, rationale or chat text in it (searched for the Designer's rationale string).
+- Tests and conformance fixtures; `cad-cli team` on a fixture (byte-identical output twice). No browser step is needed: no UI changes.
+
+### Pending until the owner: the live comparison (exact protocol)
+- **Arms**: (a) one agent (the studio's chat agent, today's tools); (b) the team — Requirements, Designer, a Verifier on a stronger model, the deterministic Integrator — through `runTeam` with live role adapters.
+- **Tasks**: A5.5's briefs (block-hole, washer, phone-stand and the rest of `server/ab/briefs.ts`), plus two with references and keep-outs (A6.3) and one from a drawing (A6.4).
+- **Budget**: the same token budget per task for both arms, the sum over every model call: the single agent's turns against the team's roles.
+- **Metrics**: accepted designs (every hard requirement passing; the Verifier's acceptance for the team), the hard-requirement pass rate, iterations, tokens and cost per accepted design. On the seeded-defect set, the Verifier's precision and recall.
+- **Runs**: 10 per task per arm, at fixed model versions, recorded.
+- **Needs**: the owner's OK for live runs and their cost, and the A5.5 A/B question that is open with them. The cost is estimated from A5.5's per-turn figures.
+
+**Not in A7**: A8 (parallel reviewers, the Architect, leases, ECRs), and any UI for the team.

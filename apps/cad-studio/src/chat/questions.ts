@@ -6,23 +6,25 @@
 import type { StudioDoc } from '../engine/doc';
 import { badValue, briefGaps, BRIEF_FIELDS, PROCESSES, readBrief, REQUIRED, type Brief, type BriefKey, type Field } from './brief';
 import type { Requirement } from './spec';
+import { confirmDimension, DraftError, unconfirmed } from './drafts';
 
 export const MAX_QUESTIONS = 5, MAX_BATCHES = 2;
-export type Blocks = { field: BriefKey } | { requirement: string };
+export type Blocks = { field: BriefKey } | { requirement: string } | { dimension: string };
 export interface Question { id: string; text: string; kind: 'choice' | 'number' | 'text'; options?: string[]; unit?: string; blocks: Blocks }
 export interface Batch { n: number; questions: Question[]; status: 'open' | 'answered' | 'skipped'; /** Each question's answer as the user gave it, or null where skipped. */ answers?: Record<string, string | number | null>; at?: string }
 export interface QuestionLog { version: 1; batches: Batch[] }
 export type AskCode = 'TOO_MANY' | 'NOT_BLOCKING' | 'BATCHES_USED' | 'OPEN_BATCH' | 'BAD_QUESTION';
 
 export const readQuestions = (raw: unknown): QuestionLog => (raw && typeof raw === 'object' && (raw as QuestionLog).version === 1 && Array.isArray((raw as QuestionLog).batches) ? raw as QuestionLog : { version: 1, batches: [] });
-const blocksKey = (b: Blocks) => ('field' in b ? `field:${b.field}` : `requirement:${b.requirement}`);
+const blocksKey = (b: Blocks) => ('field' in b ? `field:${b.field}` : 'requirement' in b ? `requirement:${b.requirement}` : `dimension:${b.dimension}`);
 /** A hard requirement whose value the user has not given: assumed or ambiguous, and not confirmed. */
 const openHard = (r: Requirement) => r.hard && (r.basis === 'assumed' || r.basis === 'ambiguous') && !r.confirmed;
 
 /** What a question may settle now: the required brief fields get_brief reports as gaps, and the open hard requirements. */
 export function blockingTargets(doc: StudioDoc): Blocks[] {
   const fields = briefGaps(readBrief(doc.brief)).filter(g => REQUIRED.includes(g.field)).map(g => ({ field: g.field }));
-  return [...fields, ...(doc.requirements ?? []).filter(openHard).map(r => ({ requirement: r.id }))];
+  // (A6.4: a draft's dimension not yet confirmed — from an image or a drawing — may be asked about too.)
+  return [...fields, ...(doc.requirements ?? []).filter(openHard).map(r => ({ requirement: r.id })), ...unconfirmed(doc).map(u => ({ dimension: u.key }))];
 }
 
 /** Why a batch may not be asked (typed), or null. */
@@ -42,14 +44,14 @@ export function checkBatch(doc: StudioDoc, raw: unknown): { code: AskCode; messa
     if (q.kind === 'choice' && (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 8 || q.options.some(o => typeof o !== 'string' || !o.trim() || o.length > 80))) return { code: 'BAD_QUESTION', message: `${q.id}: a choice has 2–8 options of at most 80 characters.` };
     if (q.unit !== undefined && (typeof q.unit !== 'string' || q.unit.length > 20)) return { code: 'BAD_QUESTION', message: `${q.id}: unit is a short text.` };
     const b = q.blocks as Record<string, unknown> | undefined;
-    const valid = !!b && typeof b === 'object' && Object.keys(b).length === 1 && (typeof b.field === 'string' || typeof b.requirement === 'string');
-    if (!valid) return { code: 'BAD_QUESTION', message: `${q.id}: "blocks" is {field: a brief field} or {requirement: a requirement id} — what the design cannot go on without.` };
+    const valid = !!b && typeof b === 'object' && Object.keys(b).length === 1 && (typeof b.field === 'string' || typeof b.requirement === 'string' || typeof b.dimension === 'string');
+    if (!valid) return { code: 'BAD_QUESTION', message: `${q.id}: "blocks" is {field: a brief field}, {requirement: a requirement id} or {dimension: a draft dimension F<k>.<name>} — what the design cannot go on without.` };
     const key = blocksKey(b as Blocks);
-    if (!targets.has(key)) return { code: 'NOT_BLOCKING', message: `${q.id}: ${'field' in (b as object) ? `the brief's ${String(b.field)} is ${(BRIEF_FIELDS as readonly string[]).includes(String(b.field)) ? (REQUIRED.includes(b.field as BriefKey) ? 'already stated' : 'not a required field') : 'not a field'}` : `${String(b.requirement)} is not a hard requirement with an assumed value`}, so it blocks nothing: make it an assumption (set_brief or set_requirements, basis assumed, say why). What may be asked now: ${[...targets].join(', ') || 'nothing'}.` };
+    if (!targets.has(key)) return { code: 'NOT_BLOCKING', message: `${q.id}: ${'dimension' in (b as object) ? `the draft dimension ${String(b.dimension)} is not an unconfirmed one` : 'field' in (b as object) ? `the brief's ${String(b.field)} is ${(BRIEF_FIELDS as readonly string[]).includes(String(b.field)) ? (REQUIRED.includes(b.field as BriefKey) ? 'already stated' : 'not a required field') : 'not a field'}` : `${String(b.requirement)} is not a hard requirement with an assumed value`}, so it blocks nothing: make it an assumption (set_brief or set_requirements, basis assumed, say why). What may be asked now: ${[...targets].join(', ') || 'nothing'}.` };
     if (seen.has(key)) return { code: 'BAD_QUESTION', message: `${q.id}: another question already settles ${key}.` };
     seen.add(key);
     if ('field' in (b as object) && b.field === 'process' && q.kind === 'choice' && (q.options as string[]).some(o => !(PROCESSES as readonly string[]).includes(o))) return { code: 'BAD_QUESTION', message: `${q.id}: the process options are among ${PROCESSES.join(', ')}.` };
-    if ('requirement' in (b as object) && q.kind !== 'number') return { code: 'BAD_QUESTION', message: `${q.id}: a requirement's value is asked as a number.` };
+    if (('requirement' in (b as object) || 'dimension' in (b as object)) && q.kind !== 'number') return { code: 'BAD_QUESTION', message: `${q.id}: a ${'dimension' in (b as object) ? 'dimension' : 'requirement\'s value'} is asked as a number.` };
   }
   return null;
 }
@@ -84,13 +86,17 @@ const userField = (f: Field<unknown> | undefined, value: unknown, words: string,
 export function answerBatch(doc: StudioDoc, answers: Record<string, string | number | null>, at: string): { doc: StudioDoc; message: string } | { error: string } {
   const log = readQuestions(doc.questions), open = log.batches.find(b => b.status === 'open');
   if (!open) return { error: 'No questions are open.' };
-  let brief: Brief | undefined = readBrief(doc.brief), reqs = doc.requirements ?? [];
+  let brief: Brief | undefined = readBrief(doc.brief), reqs = doc.requirements ?? [], reqDoc = doc;
   const lines: string[] = [];
   for (const q of open.questions) {
     const a = answers[q.id];
     if (a === null || a === undefined || (typeof a === 'string' && !a.trim())) { lines.push(`- ${q.text} → (skipped: carry on with your assumption)`); continue; }
     const words = String(a).trim();
-    if ('field' in q.blocks) {
+    if ('dimension' in q.blocks) {
+      // (A draft's dimension, A6.4: confirmed at the answer, its features re-driven.)
+      const v = typeof a === 'number' ? a : Number(words);
+      try { reqDoc = confirmDimension(reqDoc, q.blocks.dimension, v, at); } catch (e) { return { error: `${q.text}: ${e instanceof DraftError ? e.message.replace(/^\[[A-Z_]+\] /, '') : String(e)}` }; }
+    } else if ('field' in q.blocks) {
       const key = q.blocks.field, v = fieldValue(key, a), bad = badValue(key, v);
       if (bad) return { error: `${q.text}: the answer is ${bad}.` };
       brief = { ...(brief ?? { version: 1 }), [key]: userField(brief?.[key] as Field<unknown> | undefined, v, words, at) } as Brief;
@@ -104,7 +110,7 @@ export function answerBatch(doc: StudioDoc, answers: Record<string, string | num
   }
   const skipped = open.questions.every(q => answers[q.id] === null || answers[q.id] === undefined || (typeof answers[q.id] === 'string' && !(answers[q.id] as string).trim()));
   const batches = log.batches.map(b => (b !== open ? b : { ...b, status: skipped ? 'skipped' as const : 'answered' as const, answers: Object.fromEntries(open.questions.map(q => [q.id, answers[q.id] ?? null])), at }));
-  const out: StudioDoc = { ...doc, questions: { version: 1, batches }, ...(reqs.length ? { requirements: reqs } : {}) };
+  const out: StudioDoc = { ...reqDoc, questions: { version: 1, batches }, ...(reqs.length ? { requirements: reqs } : {}) };
   if (brief) out.brief = brief;
   return { doc: out, message: `${skipped ? 'I skipped your questions' : 'My answers to your questions'} (batch ${open.n}):\n${lines.join('\n')}` };
 }
@@ -126,7 +132,7 @@ export function acceptAssumptions(doc: StudioDoc, at: string): { doc: StudioDoc;
 export const QUESTION_TOOL_NAMES = new Set(['ask_user']);
 export const QUESTION_TOOLS = [{
   name: 'ask_user',
-  description: `Asks the user what blocks the design, in the studio's Specify panel: at most ${MAX_QUESTIONS} questions a batch, at most ${MAX_BATCHES} batches a brief, one batch open at a time. Each question {id, text, kind: choice | number | text, options? (a choice's 2–8), unit?, blocks} names what it settles in "blocks": {field: a required brief field get_brief reports as a gap (purpose, process, material missing, assumed or ambiguous)} or {requirement: a hard requirement whose value you assumed}. Anything else blocks nothing and is refused (NOT_BLOCKING): assume it (set_brief or set_requirements, basis assumed, with why) and say so — the user sees every assumption and can change it. Also refused: TOO_MANY, BATCHES_USED, OPEN_BATCH, BAD_QUESTION. Nothing waits on the answers: carry on with your assumptions said; the user's answers come back as their message, written into the brief and requirements as stated and confirmed.`,
+  description: `Asks the user what blocks the design, in the studio's Specify panel: at most ${MAX_QUESTIONS} questions a batch, at most ${MAX_BATCHES} batches a brief, one batch open at a time. Each question {id, text, kind: choice | number | text, options? (a choice's 2–8), unit?, blocks} names what it settles in "blocks": {field: a required brief field get_brief reports as a gap (purpose, process, material missing, assumed or ambiguous)} or {requirement: a hard requirement whose value you assumed} or {dimension: a draft dimension not yet confirmed (get_drafts), asked as a number}. Anything else blocks nothing and is refused (NOT_BLOCKING): assume it (set_brief or set_requirements, basis assumed, with why) and say so — the user sees every assumption and can change it. Also refused: TOO_MANY, BATCHES_USED, OPEN_BATCH, BAD_QUESTION. Nothing waits on the answers: carry on with your assumptions said; the user's answers come back as their message, written into the brief and requirements as stated and confirmed.`,
   input_schema: { type: 'object', properties: { questions: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, text: { type: 'string' }, kind: { type: 'string', enum: ['choice', 'number', 'text'] }, options: { type: 'array', items: { type: 'string' } }, unit: { type: 'string' }, blocks: { type: 'object', properties: { field: { type: 'string' }, requirement: { type: 'string' } } } }, required: ['id', 'text', 'kind', 'blocks'] } } }, required: ['questions'], additionalProperties: false },
 }];
 /** Runs ask_user on the document. */

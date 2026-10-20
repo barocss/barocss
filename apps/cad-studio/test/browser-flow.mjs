@@ -4238,6 +4238,52 @@ try {
     assert.match(await page.locator('[aria-label="Keep-out K1"]').innerText(), /violated/);
   });
 
+  // ---- A6.4 (O28): drawings and images give drafts --------------------------------------------------------------------
+  await check('A6.4: a hand-written DXF in inches added as a sketch draft (3 dimensions to confirm); one confirmed as it is, a hole re-driven to another diameter; an export says it is a draft', async () => {
+    const fs = await import('node:fs'), dir = join(root, '../../packages/barocss-cad/conformance/a6/drawings');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Add drawing"]', join(dir, 'by-hand-inches.dxf'));
+    await page.waitForFunction(() => window.__studioDoc?.drafts?.drafts?.length === 1 && window.__studioDoc.nodes.length === 1, null, { timeout: 15000 });
+    assert.match(await page.locator('[aria-label="Drafts summary"]').innerText(), /^3 to confirm$/i);
+    assert.ok(Math.abs(Number(await page.inputValue('[aria-label="F1.width value"]')) - 101.6) < 1e-9);
+    // (The width confirmed as it is; the hole set to 15 mm: re-driven, confirmed.)
+    await page.click('[aria-label="Confirm F1.width"]');
+    await page.waitForFunction(() => window.__studioDoc.drafts.drafts[0].dims[0].confirmed?.by === 'user', null, { timeout: 10000 });
+    await page.fill('[aria-label="F1.d1 value"]', '15'); await page.locator('[aria-label="F1.d1 value"]').press('Enter');
+    await page.waitForFunction(() => { const d = window.__studioDoc.drafts.drafts[0].dims.find(x => x.name === 'd1'); return d.value === 15 && d.confirmed; }, null, { timeout: 10000 });
+    const hole = await page.evaluate(() => window.__studioDoc.nodes[0].holes[0]);
+    const r = Math.hypot(hole[0].start[0] - hole[0].center[0], hole[0].start[1] - hole[0].center[1]);
+    assert.ok(Math.abs(r - 7.5) < 1e-6, `the hole's radius ${r}`);
+    assert.match(await page.locator('[aria-label="Drafts summary"]').innerText(), /^1 to confirm$/i);
+    // (Extruded and exported: the STL's note says it is a draft, height unconfirmed.)
+    const doc = await page.evaluate(() => window.__studioDoc), file = join(out, 'draft-plate.bcad');
+    doc.nodes.push({ id: 'n1', kind: 'extrude', sketch: 0, height: 5 }); doc.nextId = 2;
+    fs.writeFileSync(file, JSON.stringify(doc));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    await snap('a6-4-drafts');
+    const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Export STL"]')]);
+    await dl.cancel().catch(() => {});
+    await page.waitForFunction(() => /This part is a draft: 1 dimension/.test(document.querySelector('.toast[role="alert"]')?.textContent ?? ''), null, { timeout: 10000 });
+  });
+
+  // ---- A6.5 (O29): standards data with provenance -------------------------------------------------------------------
+  await check('A6.5: standards_lookup through the real chat and tool servers — M6\'s tap drill with its source (derived: d − P)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'standards_lookup', args: { table: 'fasteners-metric-coarse', row: 'M6', field: 'tap' } }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      const line = await page.locator('.chat-tool').last().innerText();
+      assert.ok(line.includes('"table":"fasteners-metric-coarse","row":"M6"'), line);
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
