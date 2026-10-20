@@ -35,8 +35,8 @@ R11 → R12 block below is kept as history.
   | Conformance | 149/149 |
   | Studio | 586/586 |
   | Full browser flow, run on its own | 177/177 |
-  | RB | see the RB-rows commit after this one |
-  | Properties | see the RB-rows commit after this one |
+  | RB | 291 cases (+3: the two accept cases, the enclosure's DXF case), 0 new, the 8 known TODOs |
+  | Properties | 11/11, no failures |
 
 - The tree is clean, apart from the earlier review session's untracked drafts (see "Where the work is").
 
