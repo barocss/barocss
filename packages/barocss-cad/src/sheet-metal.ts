@@ -26,6 +26,8 @@ export interface SheetBendReport {
 /** A sheet-metal body's rules and bends (R12.1, D116). */
 export interface SheetReport {
   readonly thicknessMM: number; readonly bendRadiusMM: number; readonly kFactor: number;
+  /** The face its flat lies in by default (R12.2): a plate's `top`, a profile's `leg0.a`. */
+  readonly fixedFace: string;
   readonly bends: readonly SheetBendReport[];
 }
 

@@ -1,0 +1,119 @@
+{
+  "id": "r12-refuse-flat-non-normal-cut",
+  "step": "R12",
+  "decisions": [
+    "D117"
+  ],
+  "about": "R12.2: a plate with a hole drilled 16.7° off its normal: the hole's wall meets the sheet off square, so it does not unfold.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            80,
+            50
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "sheet-base",
+          "sketch": "s",
+          "thickness": 2,
+          "bendRadius": 2,
+          "kFactor": 0.44
+        },
+        {
+          "id": "h",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 4,
+          "plane": {
+            "origin": [
+              40,
+              25,
+              -5
+            ],
+            "normal": [
+              0.3,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              -0.3
+            ]
+          }
+        },
+        {
+          "id": "he",
+          "kind": "extrude",
+          "sketch": "h",
+          "height": 12
+        },
+        {
+          "id": "d",
+          "kind": "difference",
+          "target": "b",
+          "tool": "he"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 7895.042591337821,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            39.97607063756656,
+            25.00000000000082,
+            1.0000000000000042
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "b.bottom",
+          "b.side0",
+          "b.side1",
+          "b.side2",
+          "b.side3",
+          "b.top",
+          "he.side0"
+        ],
+        "flat": {
+          "error": {
+            "code": "GEOMETRY",
+            "messageIncludes": "[NON_NORMAL_CUT]"
+          }
+        }
+      }
+    ]
+  },
+  "oracle": "By construction (the wall's normal against the skin's); volume and centroid by this kernel."
+}

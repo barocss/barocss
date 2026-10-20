@@ -1,0 +1,192 @@
+{
+ "audit": {
+  "errors": [],
+  "fixes": []
+ },
+ "blocks": {},
+ "dxfversion": "AC1015",
+ "ezdxf": "1.4.5",
+ "insunits": 4,
+ "layers": [
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": -3,
+   "name": "0"
+  },
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": -3,
+   "name": "OUTLINE"
+  },
+  {
+   "color": 3,
+   "linetype": "DASHED",
+   "lineweight": -3,
+   "name": "BEND_UP"
+  },
+  {
+   "color": 1,
+   "linetype": "DASHED",
+   "lineweight": -3,
+   "name": "BEND_DOWN"
+  },
+  {
+   "color": 2,
+   "linetype": "Continuous",
+   "lineweight": -3,
+   "name": "BEND_NOTES"
+  },
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": null,
+   "name": "Defpoints"
+  }
+ ],
+ "linetypes": [
+  {
+   "name": "ByBlock",
+   "pattern": []
+  },
+  {
+   "name": "ByLayer",
+   "pattern": []
+  },
+  {
+   "name": "Continuous",
+   "pattern": []
+  },
+  {
+   "name": "DASHED",
+   "pattern": [
+    5.0,
+    -2.5
+   ]
+  }
+ ],
+ "modelspace": [
+  {
+   "a": [
+    94.35663645854885,
+    25.0
+   ],
+   "b": [
+    0.0,
+    25.000000000000004
+   ],
+   "layer": "OUTLINE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    0.0,
+    25.000000000000004
+   ],
+   "b": [
+    0.0,
+    0.0
+   ],
+   "layer": "OUTLINE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    0.0,
+    0.0
+   ],
+   "b": [
+    94.35663645854885,
+    0.0
+   ],
+   "layer": "OUTLINE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    94.35663645854885,
+    0.0
+   ],
+   "b": [
+    94.35663645854885,
+    25.0
+   ],
+   "layer": "OUTLINE",
+   "type": "LINE"
+  },
+  {
+   "center": [
+    47.17831822927444,
+    12.499999999999961
+   ],
+   "layer": "OUTLINE",
+   "radius": 4.000000000000014,
+   "type": "CIRCLE"
+  },
+  {
+   "a": [
+    65.76747734391162,
+    25.0
+   ],
+   "b": [
+    65.76747734391162,
+    0.0
+   ],
+   "layer": "BEND_DOWN",
+   "type": "LINE"
+  },
+  {
+   "alignAt": [
+    65.76747734391162,
+    12.5
+   ],
+   "at": [
+    65.76747734391162,
+    12.5
+   ],
+   "halign": 1,
+   "height": 2.5,
+   "layer": "BEND_NOTES",
+   "rotationDeg": 90.0,
+   "style": "Standard",
+   "text": "DOWN 90\u00b0 R2",
+   "type": "TEXT"
+  },
+  {
+   "a": [
+    28.589159114637198,
+    25.0
+   ],
+   "b": [
+    28.589159114637198,
+    0.0
+   ],
+   "layer": "BEND_DOWN",
+   "type": "LINE"
+  },
+  {
+   "alignAt": [
+    28.589159114637198,
+    12.5
+   ],
+   "at": [
+    28.589159114637198,
+    12.5
+   ],
+   "halign": 1,
+   "height": 2.5,
+   "layer": "BEND_NOTES",
+   "rotationDeg": 90.0,
+   "style": "Standard",
+   "text": "DOWN 90\u00b0 R2",
+   "type": "TEXT"
+  }
+ ],
+ "styles": [
+  {
+   "font": "txt",
+   "name": "Standard"
+  }
+ ]
+}

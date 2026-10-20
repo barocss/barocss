@@ -1,0 +1,214 @@
+{
+  "id": "r12-refuse-flat-overlaps",
+  "step": "R12",
+  "decisions": [
+    "D117"
+  ],
+  "about": "R12.2: a 20 mm window with a flange on its edge 30 mm tall: unfolded (T and K given), the tab runs past the window onto the plate.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            80,
+            50
+          ],
+          "holes": [
+            [
+              {
+                "kind": "line",
+                "start": [
+                  30,
+                  10
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  50,
+                  10
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  50,
+                  40
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  30,
+                  40
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "sheet-base",
+          "sketch": "s",
+          "thickness": 2,
+          "bendRadius": 2,
+          "kFactor": 0.44
+        },
+        {
+          "id": "f",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                0
+              ]
+            },
+            {
+              "kind": "arc",
+              "start": [
+                0,
+                2
+              ],
+              "center": [
+                0,
+                4
+              ],
+              "direction": "cw"
+            },
+            {
+              "kind": "line",
+              "start": [
+                -2,
+                4
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                -2,
+                34
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                -4,
+                34
+              ]
+            },
+            {
+              "kind": "arc",
+              "start": [
+                -4,
+                4
+              ],
+              "center": [
+                0,
+                4
+              ],
+              "direction": "ccw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              30,
+              12,
+              0
+            ],
+            "normal": [
+              0,
+              1,
+              0
+            ],
+            "xAxis": [
+              -1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "fe",
+          "kind": "extrude",
+          "sketch": "f",
+          "height": 26
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "b",
+          "tool": "fe"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 8605.044226976348,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            38.50260979527409,
+            25,
+            4.292231695795406
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "b.bottom",
+          "b.hole0.side0",
+          "b.hole0.side1",
+          "b.hole0.side2",
+          "b.hole0.side3",
+          "b.side0",
+          "b.side1",
+          "b.side2",
+          "b.side3",
+          "b.top",
+          "fe.bottom",
+          "fe.side1",
+          "fe.side2",
+          "fe.side3",
+          "fe.side4",
+          "fe.side5",
+          "fe.top"
+        ],
+        "flat": {
+          "options": {
+            "thicknessMM": 2,
+            "kFactor": 0.44
+          },
+          "error": {
+            "code": "FLAT_OVERLAPS",
+            "messageIncludes": "the flat covers itself"
+          }
+        }
+      }
+    ]
+  },
+  "oracle": "By construction: the tab's flat length 30 + BA past a 20 mm window; volume and centroid by this kernel."
+}

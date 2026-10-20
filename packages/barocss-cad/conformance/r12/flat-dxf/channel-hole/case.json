@@ -1,0 +1,89 @@
+{
+  "id": "r12-flat-dxf-channel-hole",
+  "step": "R12",
+  "decisions": [
+    "D117"
+  ],
+  "about": "R12.2: a channel (two 90° bends, the path outside both) with a hole through its base: its flat as DXF — the outline (four lines, a circle), two dashed centre lines on BEND_DOWN, their notes.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "sheet-contour",
+          "path": [
+            [
+              0,
+              30
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              40,
+              30
+            ]
+          ],
+          "side": "left",
+          "width": 25,
+          "thickness": 1.5,
+          "bendRadius": 2,
+          "kFactor": 0.44
+        },
+        {
+          "id": "h",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            20,
+            -12.5
+          ],
+          "radius": 4,
+          "plane": {
+            "origin": [
+              0,
+              -1,
+              0
+            ],
+            "normal": [
+              0,
+              1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "he",
+          "kind": "extrude",
+          "sketch": "h",
+          "height": 3.5
+        },
+        {
+          "id": "d",
+          "kind": "difference",
+          "target": "c",
+          "tool": "he"
+        }
+      ]
+    },
+    "versions": [
+      "AC1015",
+      "AC1009"
+    ]
+  },
+  "oracle": "ezdxf 1.4.5 (MIT), run outside the product (scripts/dxf-oracle.py): every file audits clean; its reading is compared with the flat (test/r12-2.test.mjs). The flat length 100 − 2·BD and width 25 are the textbook values."
+}

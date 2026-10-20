@@ -96,7 +96,7 @@ test('R12.1 base flange: a plate from a closed sketch, holes kept, T thick eithe
     assert.ok(Math.abs(m.volumeMM3 / ((4000 - 25 * Math.PI) * T) - 1) < 1e-12);
     assert.ok(Math.abs(m.centroidMM[2] - (reverse ? -T / 2 : T / 2)) < 1e-12);
     assert.deepEqual([...new Set(o.brep.faces.map(f => f.name.replace(/#\d+$/, '')))].sort(), ['b.bottom', 'b.hole0.side0', 'b.side0', 'b.side1', 'b.side2', 'b.side3', 'b.top']);
-    assert.deepEqual(o.sheet, { thicknessMM: T, bendRadiusMM: 1.2, kFactor: 0.45, bends: [] });
+    assert.deepEqual(o.sheet, { thicknessMM: T, bendRadiusMM: 1.2, kFactor: 0.45, fixedFace: 'b.top', bends: [] });
   }
 });
 

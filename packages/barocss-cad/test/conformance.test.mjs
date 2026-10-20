@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluateCadPart, tessellateBrep, exportStep, importStep, checkBrep, brepMassProperties, brepSurfaceArea, subdReport } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, exportStep, importStep, checkBrep, brepMassProperties, brepSurfaceArea, subdReport, flatPattern } from '../dist/index.js';
 import { openEdges } from '../scripts/rb/stages.mjs';
 
 // Every conformance case (conformance/<step>/*.json) against this kernel: see conformance/README.md.
@@ -47,6 +47,19 @@ for (const file of cases) {
           assert.equal(r.bends[i].name, b.name);
           assert.ok(Math.abs(r.bends[i].angleDegrees - b.angleDegrees) <= w.absTol && Math.abs(r.bends[i].allowanceMM - b.allowanceMM) <= w.absTol, `output ${k} ${b.name}: ${r.bends[i].angleDegrees}°, BA ${r.bends[i].allowanceMM}`);
         });
+      }
+      if (want.flat) {
+        // A sheet's flat pattern (R12.2, D117): by the output's own rules, or with T and K given (`options.thicknessMM`).
+        const w = want.flat, opts = w.options ?? {}, make = () => opts.thicknessMM !== undefined ? flatPattern(o.brep, opts) : o.flatPattern(opts);
+        if (w.error) assert.throws(make, e => e.code === w.error.code && e.message.includes(w.error.messageIncludes), `output ${k} flat refused`);
+        else {
+          const f = make();
+          assert.ok(Math.abs(f.areaMM2 - w.areaMM2.value) <= w.areaMM2.relTol * w.areaMM2.value, `output ${k} flat area ${f.areaMM2} vs ${w.areaMM2.value}`);
+          if (w.box) f.box.max.forEach((x, i) => assert.ok(Math.abs(x - w.box.value[i]) <= w.box.absTol, `output ${k} flat box ${f.box.max} vs ${w.box.value}`));
+          if (w.loops !== undefined) assert.equal(f.loops.length, w.loops, `output ${k} flat loops`);
+          assert.deepEqual(f.bends.map(b => ({ name: b.name, direction: b.direction })).sort((a, b) => a.name < b.name ? -1 : 1), w.bends.map(b => ({ name: b.name, direction: b.direction })), `output ${k} flat bends`);
+          w.bends.forEach(b => assert.ok(Math.abs(f.bends.find(x => x.name === b.name).angleDegrees - b.angleDegrees) <= 1e-9, `output ${k} ${b.name} angle`));
+        }
       }
       if (want.tessellation?.watertight) { const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: want.tessellation.segmentsPerQuarter }); assert.equal(openEdges(mesh.positionsMM, mesh.indices), 0, `output ${k} tessellation watertight`); }
     });
