@@ -1,0 +1,132 @@
+{
+ "case": "reviewer-skipped",
+ "step": "A8.1",
+ "note": "A process the DFM reviewer cannot check (CNC milling, recorded as intent): its review is skipped with its reason, and the patch held — never a pass.",
+ "requirements": {
+  "ops": [
+   {
+    "tool": "set_brief",
+    "args": {
+     "fields": {
+      "purpose": {
+       "value": "a 40 mm block",
+       "basis": "stated",
+       "source": "a 40 mm block"
+      },
+      "process": {
+       "value": "cnc-milling",
+       "basis": "stated",
+       "source": "machined"
+      },
+      "material": {
+       "value": "al6061",
+       "basis": "stated",
+       "source": "6061"
+      }
+     }
+    }
+   },
+   {
+    "tool": "set_requirements",
+    "args": {
+     "requirements": [
+      {
+       "id": "W",
+       "source": "40 wide",
+       "hard": true,
+       "check": {
+        "op": "==",
+        "query": {
+         "fn": "bbox",
+         "axis": "x"
+        },
+        "value": 40,
+        "tol": 0.1
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "designer": [
+  {
+   "patch": {
+    "id": "p1",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 40,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     }
+    ]
+   }
+  },
+  "done"
+ ],
+ "reviewers": [
+  {
+   "name": "dfm",
+   "rules": [
+    {
+     "kind": "print_rule",
+     "rule": "wall-rec",
+     "status": "warn"
+    }
+   ]
+  },
+  {
+   "name": "analysis",
+   "rules": [
+    {
+     "kind": "soft_failing"
+    },
+    {
+     "kind": "soft_unknown"
+    }
+   ]
+  }
+ ],
+ "expect": {
+  "decisions": [
+   "applied",
+   "held"
+  ],
+  "stops": [
+   null,
+   null
+  ],
+  "reviews": [
+   null,
+   [
+    [
+     "analysis",
+     "accept",
+     []
+    ],
+    [
+     "dfm",
+     "skipped",
+     [
+      "NOT_CHECKED"
+     ]
+    ]
+   ]
+  ],
+  "accepted": 0,
+  "ended": "done",
+  "seeded": [
+   null,
+   "reviewer-dfm"
+  ]
+ }
+}

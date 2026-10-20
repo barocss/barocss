@@ -637,6 +637,7 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
   ```
 
   The same applies to `urdf-gears`. `check_urdf` (ROS urdfdom, not on PyPI) runs where a ROS install is at hand. Until then the acceptance rests on our own checks below.
+- **Run (O38, 2026-10-20)**: MuJoCo 3.3.0 (`mujoco-3.3.0-cp312-cp312-macosx_11_0_arm64.whl`, sha256 `2f435f34…d8710`). `urdf-2r` worst 1.1e-16, `urdf-gears` 2.2e-16, 21 rows each, against 1e-6. **The external check is closed.**
 - **Evidence**: `test/robot-urdf.test.ts` (8 tests).
   - The hull:
     - a cube with points inside: 12 triangles, volume 1 to 1e-12, closed and oriented;
@@ -697,6 +698,7 @@ Conformance cases: `packages/barocss-cad/conformance/r11b/`, `r14/`, `a5/`, `rm/
     ```
 
   - **RM5 is not accepted without that run**: the writer, its checks and the arm are this checkpoint.
+- **Run (O38, 2026-10-20)**: MuJoCo 3.3.0. It passed after two causes were found, with the tolerances unchanged: the upright equilibrium start (now RD1's gravity torques compared, to 4.4e-14, and the hang from a second pose), and contacts dissipating the energy (the hang now runs contacts off, the passive run at 0.1 ms). Passive drift 1.02e-6; damped settled at 8.8e-13 rad/s with the centre of mass fallen. **RM5 is accepted.**
 - **Sizes**: v1 64 tools, tools/list 85 327 characters; v2 11 536.
 - **Evidence**: `test/robot-mjcf.test.ts` (5 tests).
   - Quaternions: 300 rotations, near a half turn too, unit with w ≥ 0, back to the same matrix to 1e-12.
@@ -1354,7 +1356,7 @@ Assigned by the coordinator after A6. Build the parts that need no model now, an
 - **The internal API** is `src/team/`. **`cad-cli team <scenario.json>`** runs a scripted team from a scenario file (the brief, the roles' patches and reviews) and prints the traces as JSON.
 - `tools/list` is unchanged, and so is the guard.
 
-### Acceptance (deterministic: scripted roles, seeded-defect fixtures in `conformance/a7/`)
+### Acceptance (deterministic: scripted roles, seeded-defect fixtures in `conformance/a7/scenarios/`)
 - The scripted Requirements, Designer and Verifier roles replay fixtures.
 - **The seeded defects**, one a fixture, each caught by the gate (or the Verifier) named, with its typed verdict:
   - an op that does not apply (validity);
@@ -1413,7 +1415,7 @@ Assigned by the coordinator after A6. Build the parts that need no model now, an
   - `add_keepout` and `add_datum` are batchable, so the Requirements role's ops can set the contracts in one `apply_ops`.
   - The REFERENCE_LOCKED guard (O26) exempts the reference tools. Making `add_datum` batchable had put it under the guard, and its own reference arguments were refused. The A6.3 tests failed, and the test-name comparison showed which.
 - **Evidence**: `test/team.test.ts` (4 tests). Its name was checked free first.
-  - **The ten scenarios** in `conformance/a7/` are hand-written with their expected decisions and stops, and **byte-identical on a rerun**:
+  - **The ten scenarios** in `conformance/a7/scenarios/` are hand-written with their expected decisions and stops, and **byte-identical on a rerun**:
 
     | scenario | what happens |
     |---|---|
@@ -1450,7 +1452,7 @@ Assigned by the coordinator after A6. Build the parts that need no model now, an
 Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revisions, patches, the Integrator's gates, built views, scripted roles, `cad-cli team`).
 
 **Limits on every step:**
-- Deterministic and scripted, with seeded-defect fixtures in `conformance/a8/`. No live model: the live numbers wait for the owner, as A7's comparison does (O30).
+- Deterministic and scripted, with seeded-defect fixtures in `conformance/a8/scenarios/`. No live model: the live numbers wait for the owner, as A7's comparison does (O30).
 - No chat tools: A8 adds none, and `tools/list` is unchanged. Exposure is `src/team/` and `cad-cli team` (scenario kinds v2 and v3).
 - A step needing a kernel-core change stops and goes to the coordinator.
 - The test names are compared at every checkpoint.
@@ -1543,7 +1545,7 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - the Analysis reviewer flags failing soft requirements, which the analysis gate does not hold;
   - the drafting agent replays drawing patches, with a stale base when the fixture says so.
 - **Evidence**: `test/team-v2.test.ts` (2 tests). Its name was checked free first.
-  - **Six scenarios** in `conformance/a8/` (`step: A8.1`), byte-identical on a rerun:
+  - **Six scenarios** in `conformance/a8/scenarios/` (`step: A8.1`), byte-identical on a rerun:
 
     | scenario | what happens |
     |---|---|
@@ -1594,7 +1596,7 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
 - **The run** (`runParts`): the Architect's plan, then the Part agents take turns, one patch a turn, until all are done or the rounds run out.
 - **Scripted**: the Architect replays its setup, interfaces and leases. Part agents replay patches, on a stale contract or another part when the fixture says so.
 - **Evidence**: `test/team-v3.test.ts` (2 tests). Its name was checked free first.
-  - **Eight scenarios** in `conformance/a8/` (step A8.2), byte-identical on a rerun, each refusal at its gate with the rest skipped:
+  - **Eight scenarios** in `conformance/a8/scenarios/` (step A8.2), byte-identical on a rerun, each refusal at its gate with the rest skipped:
 
     | scenario | what happens |
     |---|---|
@@ -1631,7 +1633,7 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - Refused: deciding twice (`DECIDED`); approving an ECR opened on interfaces that have moved since (`STALE_ECR`: open it again); opening one that changes nothing (`NO_CHANGE`).
 - A7's `CONTRACT_CHANGED` hold covers the interfaces too, since no op edits them. The ECR is the only way they change, and it comes from the Architect or a Part agent through the team API, decided by the user.
 - **Evidence**: `test/team-ecr.test.ts` (2 tests). Its name was checked free first.
-  - **The fixture** `conformance/a8/ecr-move-pattern.json`: after parts-clean, H1 is moved 2 mm along X.
+  - **The fixture** `conformance/a8/scenarios/ecr-move-pattern.json`: after parts-clean, H1 is moved 2 mm along X.
     - Its change and impact exactly as the fixture says: both parts, the board's open patch made on the old contract, both leases, no requirements.
     - Opening it changes nothing yet; an agent's approval is refused.
     - The user's approval moves the interfaces and leaves both leases on the old contract.
@@ -1645,3 +1647,116 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - Studio 574/574, with no test name missing against the last run. Lint and type-check clean.
 - **For A8.4** (coordinator): the mass budget shared by parts is checked per patch (each part's share, A8.2) **and on the whole assembly**, so parts under their shares cannot sum past the total unnoticed.
 - **Next**: A8.4, the Assembly integrator and the BOM agent.
+- **Added on acceptance (coordinator, 2026-10-20): "the user" is the channel, not a claim.**
+  - `decideEcr` takes only a **minted user token** (`userToken(at)`), kept in a module-private `WeakSet`. The studio UI and the CLI scenario runner mint it, from its top-level user decisions, never from a role's output.
+  - A role's output is data. `{by: "user"}`, a frozen look-alike, a JSON copy of a real token, or another role's name: each is refused `APPROVAL_IS_THE_USERS`.
+  - Test: `test/team-ecr.test.ts`, 3/3.
+
+## O36 — A8.4: the Assembly integrator and the BOM agent (2026-10-20)
+
+- **The Assembly integrator's gate** (`checkAssembly`, `src/team/assembly.ts`) is a fourth gate after a part's own three (A8.2). It checks the whole assembly with the part as it would be:
+  - **`PARTS_MEET`**: no two parts' placed bodies interpenetrate (RM6's exact mesh test, after a box reject widened by their chord);
+  - **`PARTS_TOUCH`**: within the meshes' chord tolerance of touching is **undecided**, so the patch is held, never passed. Two parts face to face at distance 0 come back so;
+  - **`PATTERN_MISALIGNED`**: every hole pattern is on every built part that shares it, so a part moved after its acceptance is caught;
+  - **`OVER_TOTAL_BUDGET`**: the whole assembly within the total mass budget (the coordinator's point). Parts each under a share that is not fixed cannot sum past the total unnoticed.
+  - A fail rejects, an undecided holds, and the assembly is unchanged unless applied. An earlier gate's fail leaves this one "not reached".
+- **The BOM agent is read-only.**
+  - `bomView` is a plain JSON view: each instance's id, name, material, mass, library origin and shape fingerprint, nothing callable.
+  - `deriveBom` puts identical parts (the same shape and material) on one line, in first-seen order, and names a library part's source (`tslot-20@0.1.0/profile:2020`).
+  - `checkBom` checks a BOM against the assembly: every instance on one line once, each line's quantity its parts, the total quantity and mass, a library line's source.
+- **Evidence**:
+  - **The v3 scenarios** (`test/team-v3.test.ts`, now ten):
+    - `assembly-interfere`: a clip inside its own envelope, over the bracket's end, passes its contract and is refused `PARTS_MEET` at the assembly gate;
+    - `assembly-total-budget`: shares 80 g and 20 g with a 70 g total. The bracket (64.8 g) is applied; the board (13 g, under its share) takes the whole to 77.8 g and is refused `OVER_TOTAL_BUDGET`.
+  - **`test/team-assembly.test.ts`** (2 tests; its name was checked free first):
+    - the clean assembly passes, its mass against the closed form (two aluminium plates less their holes; grams to 3 decimals);
+    - the board moved 2 mm after acceptance gives `PATTERN_MISALIGNED`;
+    - set face to face on the bracket, it gives `PARTS_TOUCH` (undecided);
+    - the BOM of bracket and two boards: lines [bracket ×1, board ×2], checked clean;
+    - seeded BOM defects, each refused: a part dropped, a quantity wrong, a part twice, a total off;
+    - a library part's line names its source, and a BOM without it is refused.
+  - Studio 577/577, with no test name missing against the last run. Lint and type-check clean.
+- **Correction (coordinator)**: the merge 2adc9dc52 brought the kernel lane's **R12.3b** (corner reliefs, ea8c877ae), not R12.4 as the A8.4 checkpoint said. R12.4 has not started.
+- **Next**: A8.5, per-role precision and recall on the seeded defects.
+
+## O37 — A8.5: per-role precision and recall on the seeded defects; declared contact passes (2026-10-20)
+
+- **Declared contact (coordinator)**: face-to-face contact is the normal state of an assembly.
+  - Two parts touching, with no interpenetration and within their chord tolerance, **pass as `EXPECTED_CONTACT`**, named in the trace with what declares it, when a declared interface or mate puts them together: a hole pattern both share (its mating faces), or a mate between them.
+  - Only undeclared touching is held, as `PARTS_TOUCH`. Interpenetration (`PARTS_MEET`) fails either way.
+  - Declaration is checked at the level of the pair: the shared pattern or the mate, not the particular faces in contact.
+  - Tests (`test/team-assembly.test.ts`):
+    - the board set on the bracket passes ("as the hole pattern H1 puts them together");
+    - a lid resting on the board with nothing declared is held;
+    - with a coincident mate, it passes ("the mate m1").
+- **Labels**: every scenario with decisions (29: A7's ten, A8's nineteen) labels each patch with the detector its seeded defect is for, or none (`expect.seeded`). A patch may carry two labels (both reviewers). The labels sit in the fixtures beside the expected decisions.
+- **The metric** (`src/team/metrics.ts`):
+  - a detector (each gate, the Verifier, each reviewer, a part's lease, contract and assembly gates) **flags** a patch when it fails or cannot decide it (undecided, or a review skipped);
+  - it is **clear** when it passes;
+  - it **did not run** when an earlier gate stopped the patch or it had nothing to check (a skipped gate). It is then not counted for that patch, except that a labelled defect that went past a detector which never ran is a **miss**.
+  - Over every patch it ran on, it reports true and false positives and negatives, precision and recall, and where it missed and where it raised false alarms. The Requirements role's own patches are left out.
+- **`cad-cli team --metrics <folders>`** runs every labelled scenario and prints the table.
+- **The scripted roles' numbers**: every detector at **precision 1 and recall 1**. TP / FP / FN / TN:
+
+  | detector | TP | FP | FN | TN |
+  |---|---|---|---|---|
+  | analysis | 2 | 0 | 0 | 17 |
+  | assembly | 2 | 0 | 0 | 5 |
+  | contract | 3 | 0 | 0 | 7 |
+  | dfm | 1 | 0 | 0 | 23 |
+  | interfaces | 1 | 0 | 0 | 24 |
+  | interference | 3 | 0 | 0 | 24 |
+  | lease | 5 | 0 | 0 | 10 |
+  | reviewer-analysis | 3 | 0 | 0 | 6 |
+  | reviewer-dfm | 5 | 0 | 0 | 4 |
+  | validity | 4 | 0 | 0 | 38 |
+  | verifier | 1 | 0 | 0 | 2 |
+
+  - These say the scripted roles and gates do what their fixtures were written for. They are **not evidence of a live model's quality**: that report, with live roles, waits for the owner (O30's protocol).
+- **The metric itself is checked** (`test/team-metrics.test.ts`, 3 tests; its name was checked free first):
+  - a clean patch mislabelled as an interference is a miss: recall 0.75, the miss named;
+  - a defect labelled for the analysis gate, which a validity fail never let it reach, is a miss "(not run)", and validity's flag a false alarm;
+  - a Verifier rejecting everything raises false alarms (precision below 1);
+  - the CLI prints the same table.
+- Studio 581/581 (53 s), with no test name missing against the last run. Lint and type-check clean.
+- **A8 is done**: A8.1–A8.5 (O33–O37). Pending the owner: the live comparison and live per-role metrics (O30).
+- **Fixed (coordinator, 2026-10-20)**: the team scenarios sat at `conformance/a7/*.json` and `conformance/a8/*.json`.
+  - The kernel's conformance runner (`packages/barocss-cad/test/conformance.test.mjs`, the kernel lane's file, unchanged) reads every `conformance/<step>/*.json` as a kernel case, so the integration merge failed 28 cases.
+  - They are now in `conformance/a7/scenarios/` and `conformance/a8/scenarios/`, as A6's fixtures are in subfolders, and the studio tests and CLI paths follow.
+  - Kernel conformance 145/145. From now on every checkpoint gives it beside the studio suite and the flow.
+
+## O38 — MuJoCo 3.3.0 run: RM4's external check and RM5's acceptance closed (2026-10-20)
+
+- **The owner's go-ahead**, relayed by the coordinator: "좋아 진행해줘", in reply to the coordinator's explanation that MuJoCo is test-only.
+  - Its place: a venv at `~/.cache/barocss-mujoco`, outside the repo, not a product dependency, imported by no package, never shipped.
+  - Its scope: exactly `mujoco==3.3.0` from PyPI. Nothing else in the repo or the system Python. RD3's PDFs and the live model runs still wait.
+- **Installed** with O17's commands: `uv venv ~/.cache/barocss-mujoco --python 3.12 && VIRTUAL_ENV=~/.cache/barocss-mujoco uv pip install mujoco==3.3.0`.
+  - Python 3.12.9; `mujoco.__version__` is 3.3.0.
+  - **The wheel**: `mujoco-3.3.0-cp312-cp312-macosx_11_0_arm64.whl` (the installed `WHEEL` tag `cp312-cp312-macosx_11_0_arm64`), 6 493 393 bytes, **sha256 `2f435f34ea8c41711e68c635ada89c7347e9d53a330c2ff748723a96495d8710`**. That is the digest PyPI publishes for that file, read from its JSON metadata. uv keeps the wheel unpacked, so the cached archive's own hash could not be taken.
+  - mujoco's own dependencies came with it, into the same venv: numpy 2.5.4, glfw 2.11.0, pyopengl 3.1.10, absl-py 2.5.1, etils 1.14.0, fsspec, typing-extensions and zipp.
+- **Each oracle ran with `python -I`**, its files passed as arguments (`packages/barocss-cad/scripts/urdf-oracle.py` and `mjcf-oracle.py`). Its reading is committed as data beside each case (`conformance/rm/<case>/oracle.mujoco-3.3.0.json`), as ezdxf's are (O1).
+- **RM4, the URDF oracle: passed.** Masses, centres, principal inertia and link frames at sampled values, against `expect.json`, tolerance 1e-6:
+  - `urdf-2r`: 21 rows, worst 1.1e-16;
+  - `urdf-gears`: 21 rows, worst 2.2e-16.
+  - MuJoCo warned of unnamed geoms; URDF allows a visual or collision without a name.
+  - **RM4's external check is closed.** `check_urdf` (ROS urdfdom, not on PyPI) stays a check for a ROS install.
+- **RM5, the MJCF oracle on arm-6r: passed after two causes were found.** The tolerances are unchanged.
+  - **First run: failed.** The bodies and frames matched (49 rows, worst 5.6e-16), but in both hangs nothing moved: qvel 0, the energy and the centre of mass unchanged.
+    - **The cause:** the pose the mates solve to is an upright **gravity equilibrium**. MuJoCo's bias there (`qfrc_bias`) is 0 on every joint, so nothing could fall, and "the centre of mass below its start" could not hold. The export was not at fault.
+    - **The fix, which strengthens the check:**
+      - `expect.json` now holds **RD1's gravity torques** at both poses (at MJCF's 9.81), and the oracle compares MuJoCo's bias at rest with them: 2.2e-17 at the upright pose, 4.4e-14 at the second;
+      - the hang starts from the second pose (`hang.from`), where gravity acts.
+  - **Second run: failed.** The passive run lost 88 % of its energy in 5 s.
+    - **The cause:** contacts. Folding under gravity, the links' collision hulls touch (6 contacts), and contact dissipates energy.
+    - With contacts off, the drift was 3.8e-4. The remaining drift was RK4's error at 0.5 ms on a chain spinning at up to 47 rad/s (74 at 0.1 ms).
+    - **The fix:**
+      - the hang runs with contacts off, since it checks the exported inertia and gravity — a frictionless chain — not contact;
+      - the passive run steps at 0.1 ms, which tightens the integration;
+      - the 1e-4 bound stays.
+  - **Third run: passed.**
+    - 51 rows (masses, centres, principal inertia, frames at two poses, gravity torques at two poses), worst 4.4e-14 against 1e-6.
+    - **Passive, 5 s at 0.1 ms**: energy drift 1.02e-6 (bound 1e-4), no warnings.
+    - **Damped, 0.002 N·m·s/rad, 30 s at 0.5 ms**: the energy never rises (largest rise 5.3e-16, bound 1e-9); every |qvel| at 8.8e-13 rad/s at the end (bound 1e-3); the centre of mass from 0.100 m to −0.026 m.
+  - **RM5 is accepted.**
+- **Tests**: the committed readings are held to their criteria: `test/robot-urdf.test.ts` and `test/robot-mjcf.test.ts`, a test each. The frozen exports are the files the oracle loaded, and a change to them shows there until MuJoCo is run again.
+- **Not closed by this run**: contact behaviour (self-collision as the arm folds is RM6's sweep). A collision-on hang would test the contact model, not the export.

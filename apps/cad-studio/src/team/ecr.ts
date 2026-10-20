@@ -15,6 +15,15 @@ export interface EcrLog { version: 1; ecrs: Ecr[] }
 export type EcrCode = 'NO_CHANGE' | 'STALE_ECR' | 'NO_ECR' | 'DECIDED' | 'APPROVAL_IS_THE_USERS';
 export class EcrError extends Error { constructor(public code: EcrCode, message: string) { super(`[${code}] ${message}`); this.name = 'EcrError'; } }
 
+// ——— the user's channel: decisions no role can write
+/** A user decision: minted only by the studio's UI and the CLI scenario runner (from its top-level user decisions), kept
+ * in a module-private set — a role's output is data, and data (an object saying {by: "user"}, a JSON copy of a token)
+ * is never one. */
+export interface UserToken { readonly by: 'user'; readonly at: string }
+const MINTED = new WeakSet<object>();
+/** Mints a user decision (the studio UI, the CLI runner): never called on a role's output. */
+export function userToken(at: string): UserToken { const t = Object.freeze({ by: 'user' as const, at }); MINTED.add(t); return t; }
+export const isUserToken = (x: unknown): x is UserToken => !!x && typeof x === 'object' && MINTED.has(x as object);
 export const readEcrs = (raw: unknown): EcrLog => { const r = raw as EcrLog | undefined; return r && r.version === 1 && Array.isArray(r.ecrs) ? r : { version: 1, ecrs: [] }; };
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 const uniq = (xs: readonly string[]) => [...new Set(xs)].sort();
@@ -58,8 +67,9 @@ export function openEcr(doc: StudioDoc, by: string, next: Interfaces, o: { open?
 }
 
 /** The user decides an ECR. Approved: the interfaces become its proposal and the leases it touches expire. Rejected: nothing changes. Anyone else: refused. */
-export function decideEcr(doc: StudioDoc, id: string, approve: boolean, who: { by: string; at: string }, leases: ReadonlyMap<string, Lease>): { doc: StudioDoc; leases: Map<string, Lease>; ecr: Ecr } {
-  if (who.by !== 'user') throw new EcrError('APPROVAL_IS_THE_USERS', `${who.by} may open an ECR, not decide one: the user approves or rejects it`);
+export function decideEcr(doc: StudioDoc, id: string, approve: boolean, who: UserToken | { by: string; at: string }, leases: ReadonlyMap<string, Lease>): { doc: StudioDoc; leases: Map<string, Lease>; ecr: Ecr } {
+  // (The user is who the channel says, not who a value claims: a role's {by: "user"} is refused.)
+  if (!isUserToken(who)) throw new EcrError('APPROVAL_IS_THE_USERS', `${who.by === 'user' ? 'a decision claiming to be the user\'s, not from the user\'s channel (the studio, the CLI\'s user decisions)' : who.by}: only the user decides an ECR`);
   const log = readEcrs(doc.ecrs), ecr = log.ecrs.find(e => e.id === id);
   if (!ecr) throw new EcrError('NO_ECR', `no ECR ${id}; ECRs: ${log.ecrs.map(e => `${e.id} (${e.status})`).join(', ') || 'none'}`);
   if (ecr.status !== 'open') throw new EcrError('DECIDED', `${id} is already ${ecr.status}`);

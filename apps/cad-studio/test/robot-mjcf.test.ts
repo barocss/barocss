@@ -17,7 +17,8 @@ import { cliMain } from '../server/cadCli';
 
 // RM5 (O18): MJCF export — the 6R arm built from its mates, its model read back against MuJoCo's structure, FK in
 // MuJoCo's composition against RM2's and against the URDF's, quaternions, the checker's catches, the tool and the CLI.
-// The gravity run (the arm hanging stably) is pending: scripts/mjcf-oracle.py, with conformance/rm/arm-6r/expect.json.
+// MuJoCo 3.3.0's reading (scripts/mjcf-oracle.py, run outside the product, O18) is committed beside the case: its gravity
+// torques against RD1's, the arm hanging passive and damped; the last test holds the frozen export to it.
 
 const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/rm');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
@@ -129,7 +130,15 @@ test('the export_mjcf tool and cad-cli mjcf; the arm-6r conformance case with wh
     const fk = samples.map(s => { const v = Object.fromEntries(Object.entries(forwardKinematics(tree, s).values).map(([k, x]) => [r.names.joints[k], x])); return { values: v, links: Object.fromEntries([...mjcfFk(model, v)].map(([n, p]) => [n, { position: p.t, rotation: p.R }])) }; });
     writeFileSync(join(dir, 'case.json'), JSON.stringify({ case: 'arm-6r', step: 'RM5', note: 'A 6R arm (axes Z, Y, Y, Z, Y, Z) of six 20 × 20 × 80 aluminium blocks on a base plate, from its mates. robot.xml is its MJCF (frozen); expect.json is what scripts/mjcf-oracle.py checks in MuJoCo: masses, centres, principal inertia, body frames at two poses, and the arm hanging under gravity (pending the owner\'s go-ahead, O18).' }, null, 1) + '\n');
     writeFileSync(join(dir, 'robot.xml'), r.xml);
-    writeFileSync(join(dir, 'expect.json'), JSON.stringify({ tol: 1e-6, links, fk, hang: { passive_seconds: 5, damped_seconds: 30, damping: 0.002 } }, null, 1) + '\n');
+    // (The gravity torques MuJoCo's bias must equal at each pose — RD1's, at MJCF's 9.81 — and the hang from the second pose:
+    // the pose the mates solve to is an upright equilibrium, every torque 0, from which nothing would fall, O18.)
+    const gravity = [];
+    for (const v of fk.map(f => f.values)) {
+      const back = Object.fromEntries(Object.entries(v).map(([n, x]) => [Object.entries(r.names.joints).find(([, m]) => m === n)![0], x]));
+      const g = JSON.parse((await dispatchTool({ doc, bodies: await bodiesOf(doc) }, 'gravity_torques', { values: back, g: [0, 0, -9.81] }, evaluate)).content);
+      gravity.push({ values: v, torques: Object.fromEntries(Object.entries(g.torques as Record<string, number>).map(([k, t]) => [r.names.joints[k], t])) });
+    }
+    writeFileSync(join(dir, 'expect.json'), JSON.stringify({ tol: 1e-6, links, fk, gravity, hang: { from: fk[1].values, passive_seconds: 5, damped_seconds: 30, damping: 0.002 } }, null, 1) + '\n');
   }
   assert.equal(r.xml, readFileSync(join(dir, 'robot.xml'), 'utf8'), 'the MJCF as frozen');
   assert.ok(existsSync(join(dir, 'expect.json')));
@@ -139,3 +148,14 @@ test('the export_mjcf tool and cad-cli mjcf; the arm-6r conformance case with wh
   assert.deepEqual([JSON.parse(printed).check, JSON.parse(printed).bodies], [[], 7]);
   assert.equal(readFileSync(join(tmp, 'robot.xml'), 'utf8'), r.xml);
 });
+
+test('MuJoCo 3.3.0\'s reading of the frozen arm-6r export (O18): bodies, frames and gravity torques to 1e-6; passive energy to 1e-4; the damped hang settles and falls', () => {
+  const dir = join(CASES, 'arm-6r'), o = JSON.parse(readFileSync(join(dir, 'oracle.mujoco-3.3.0.json'), 'utf8'));
+  assert.equal(o.oracle, 'mujoco 3.3.0'); assert.equal(o.ok, true);
+  assert.ok(o.worst <= 1e-6 && o.rows.length === 51 && o.rows.filter((r: { what: string }) => r.what.startsWith('gravity')).length === 2, String(o.worst));
+  assert.ok(o.hang.passive.energy_drift < 1e-4 && o.hang.passive.warnings === 0, JSON.stringify(o.hang.passive));
+  assert.ok(o.hang.damped.energy_rise < 1e-9 && o.hang.damped.qvel_max < 1e-3 && o.hang.damped.com_height_end < o.hang.damped.com_height_start, JSON.stringify(o.hang.damped));
+  // (The reading is of this export: the frozen robot.xml the oracle loaded, its expectations the same file.)
+  assert.ok(readFileSync(join(dir, 'robot.xml'), 'utf8').length > 0 && JSON.parse(readFileSync(join(dir, 'expect.json'), 'utf8')).gravity.length === 2);
+});
+

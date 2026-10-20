@@ -12,6 +12,7 @@ import type { Op } from '../chat/proposals';
 import { rotationMatrix } from '../assembly/mates';
 import { massProperties } from '../chat/analysis';
 import { revisionOf, type Decision, type GateResult, type RoleReport } from './team';
+import { checkAssembly } from './assembly';
 
 export interface HolePattern { id: string; positions: [number, number, number][]; diameter: number; /** The direction the holes run (the assembly's frame). */ axis: [number, number, number]; parts: string[] }
 export interface Envelope { id: string; part: string; min: [number, number, number]; max: [number, number, number] }
@@ -25,8 +26,8 @@ export const interfacesRevision = (doc: StudioDoc) => revisionOf({ nodes: [], pa
 
 export interface Lease { part: string; holder: string; contract: string; until: number; /** The ECR whose approval left it on the old contract (A8.3): renewed by the Architect. */ expiredBy?: string }
 export interface PartPatch { id: string; by: string; part: string; contract: string; ops: Op[] }
-export type PartCode = 'NO_LEASE' | 'LEASE_EXPIRED' | 'CONTRACT_MOVED' | 'OUT_OF_PART' | 'OP_REFUSED' | 'NOT_EVALUATED' | 'OUT_OF_ENVELOPE' | 'HOLE_OFF_PATTERN' | 'OVER_BUDGET';
-export interface PartTrace { seq: number; patch: PartPatch; decision: Decision; gates: (Omit<GateResult, 'gate' | 'findings'> & { gate: 'lease' | 'validity' | 'contract'; findings: { code: PartCode | 'NOT_REACHED'; message: string; entities?: string[] }[] })[]; revisionAfter: string | null }
+export type PartCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'NO_LEASE' | 'LEASE_EXPIRED' | 'CONTRACT_MOVED' | 'OUT_OF_PART' | 'OP_REFUSED' | 'NOT_EVALUATED' | 'OUT_OF_ENVELOPE' | 'HOLE_OFF_PATTERN' | 'OVER_BUDGET';
+export interface PartTrace { seq: number; patch: PartPatch; decision: Decision; gates: (Omit<GateResult, 'gate' | 'findings'> & { gate: 'lease' | 'validity' | 'contract' | 'assembly'; findings: { code: PartCode | 'NOT_REACHED'; message: string; entities?: string[] }[] })[]; revisionAfter: string | null }
 
 /** The tools that change the assembly itself, not a part: a Part agent may not use them. */
 const ASSEMBLY_OPS = new Set(['add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'set_joints']);
@@ -52,9 +53,9 @@ export function holesOff(bodies: readonly BodyResult[], p: HolePattern): [number
 /** The part Integrator: a Part agent's patch under its lease, on its part only, against its contract. */
 export async function integratePart(state: ChatState, patch: PartPatch, leases: ReadonlyMap<string, Lease>, evaluate: Evaluate, seq: number): Promise<{ state: ChatState; trace: PartTrace }> {
   const gates: PartTrace['gates'] = [], done = (decision: Decision, s = state) => ({ state: s, trace: { seq, patch, decision, gates, revisionAfter: decision === 'applied' ? revisionOf(s.doc) : null } });
-  const stop = (gate: 'lease' | 'validity' | 'contract', code: PartCode, message: string, entities?: string[]) => {
+  const stop = (gate: 'lease' | 'validity' | 'contract' | 'assembly', code: PartCode, message: string, entities?: string[]) => {
     gates.push({ gate, verdict: 'fail', findings: [{ code, message, ...(entities ? { entities } : {}) }] });
-    for (const g of ['lease', 'validity', 'contract'] as const) if (!gates.some(x => x.gate === g)) gates.push({ gate: g, verdict: 'skipped', findings: [{ code: 'NOT_REACHED', message: 'not reached: an earlier gate failed' }] });
+    for (const g of ['lease', 'validity', 'contract', 'assembly'] as const) if (!gates.some(x => x.gate === g)) gates.push({ gate: g, verdict: 'skipped', findings: [{ code: 'NOT_REACHED', message: 'not reached: an earlier gate failed' }] });
     return done(gate === 'lease' && (code === 'CONTRACT_MOVED' || code === 'LEASE_EXPIRED') ? 'stale' : 'rejected');
   };
   // (The lease: the holder's, in time, on the contract as it stands.)
@@ -82,7 +83,11 @@ export async function integratePart(state: ChatState, patch: PartPatch, leases: 
   const budget = ifc.budgets.parts?.[patch.part];
   if (budget !== undefined) { const g = (massProperties(inst.doc, bodies) as { mass_g: number }[]).reduce((s, x) => s + x.mass_g, 0); if (g > budget + 1e-9) findings.push({ code: 'OVER_BUDGET', message: `${patch.part} weighs ${Number(g.toPrecision(6))} g, over its ${budget} g` }); }
   gates.push({ gate: 'contract', verdict: findings.length ? 'fail' : 'pass', findings });
-  return findings.length ? done('rejected') : done('applied', r.state);
+  if (findings.length) { gates.push({ gate: 'assembly', verdict: 'skipped', findings: [{ code: 'NOT_REACHED', message: 'not reached: an earlier gate failed' }] }); return done('rejected'); }
+  // (The Assembly integrator, A8.4: the whole assembly with this part as it would be — parts meeting, every pattern on every built part, the total mass.)
+  const whole = await checkAssembly(r.state.doc, evaluate);
+  gates.push({ gate: 'assembly', verdict: whole.verdict, findings: whole.findings });
+  return whole.verdict === 'fail' ? done('rejected') : whole.verdict === 'undecided' ? done('held') : done('applied', r.state);
 }
 
 // ——— roles and the run

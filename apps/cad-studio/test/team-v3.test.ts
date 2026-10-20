@@ -12,7 +12,7 @@ import { partsSummary, runPartsScenario, type PartsScenario } from '../src/team/
 // HOLE_OFF_PATTERN, OVER_BUDGET) — the clean run applied; byte-identical on a rerun. The hole-pattern check against
 // the exact cylinders, placed.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8');
+const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 type Expect = { decisions: string[]; stops: ([string, string] | null)[] };
 const load = (f: string) => JSON.parse(readFileSync(join(CASES, f), 'utf8')) as PartsScenario & { expect: Expect };

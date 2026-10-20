@@ -6,7 +6,7 @@ import { evaluatePart } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
 import type { ChatState } from '../src/chat/tools';
 import { integratePart, interfacesRevision, readInterfaces, type Interfaces, type Lease, type PartPatch } from '../src/team/parts';
-import { decideEcr, openEcr, readEcrs, renewLeases } from '../src/team/ecr';
+import { decideEcr, openEcr, readEcrs, renewLeases, userToken } from '../src/team/ecr';
 import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 
 // A8.3 (O35): ECRs. A change to the interfaces is an ECR whose impact is computed — the parts, the requirements on a
@@ -14,7 +14,7 @@ import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 // approved, the interfaces move and the touched leases expire (the open patch is then refused CONTRACT_MOVED, until
 // the Architect renews); rejected, nothing changes; an agent's decision refused.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8');
+const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const fixture = JSON.parse(readFileSync(join(CASES, 'ecr-move-pattern.json'), 'utf8'));
 
@@ -35,10 +35,10 @@ test('an ECR\'s changes and impact computed (the fixture\'s: both parts, the ope
   assert.equal(ecr.status, 'open'); assert.equal(interfacesRevision(doc), before, 'opening changes nothing yet');
   // (An agent may open one, not decide it.)
   assert.throws(() => decideEcr(doc, ecr.id, true, { by: 'architect', at: 't' }, leases), /APPROVAL_IS_THE_USERS/);
-  const ok = decideEcr(doc, ecr.id, true, { by: 'user', at: '2026-10-20T12:00:00Z' }, leases);
+  const ok = decideEcr(doc, ecr.id, true, userToken('2026-10-20T12:00:00Z'), leases);
   assert.notEqual(interfacesRevision(ok.doc), before); assert.deepEqual(readInterfaces(ok.doc.interfaces), moved);
   assert.ok([...ok.leases.values()].every(l => l.expiredBy === ecr.id && l.contract === before), 'both leases left on the old contract');
-  assert.deepEqual(readEcrs(ok.doc.ecrs).ecrs[0].decided, { by: 'user', at: '2026-10-20T12:00:00Z' });
+  assert.deepEqual(readEcrs(ok.doc.ecrs).ecrs[0].decided, userToken('2026-10-20T12:00:00Z'));
   // (The open patch, made on the old contract: refused.)
   const st: ChatState = { ...state, doc: ok.doc }, r = await integratePart(st, open, ok.leases, evaluate, 5);
   assert.equal(r.trace.decision, fixture.expect.after_approval.open_patch);
@@ -46,23 +46,31 @@ test('an ECR\'s changes and impact computed (the fixture\'s: both parts, the ope
   // (Renewed on the new contract, a patch on it: the board's holes are now off the moved pattern — the part must follow.)
   const renewed = renewLeases(ok.doc, ok.leases, 99), again = await integratePart(st, { ...open, contract: interfacesRevision(ok.doc) }, renewed, evaluate, 6);
   assert.equal(again.trace.decision, 'rejected'); assert.ok(again.trace.gates.find(g => g.gate === 'contract')!.findings.some(f => f.code === 'HOLE_OFF_PATTERN'));
-  assert.throws(() => decideEcr(ok.doc, ecr.id, false, { by: 'user', at: 't' }, leases), /DECIDED/);
+  assert.throws(() => decideEcr(ok.doc, ecr.id, false, userToken('t'), leases), /DECIDED/);
+});
+
+test('"the user" is the channel, not a claim: a role\'s {by: "user"} and a JSON copy of a real token are refused (APPROVAL_IS_THE_USERS); only a minted token decides', async () => {
+  const { state, leases, moved } = await afterClean(), { doc, ecr } = openEcr(state.doc, 'architect', moved, { leases });
+  // (What a role could return: plain data, however it is labelled.)
+  for (const forged of [{ by: 'user', at: 't' }, JSON.parse(JSON.stringify(userToken('t'))), Object.freeze({ by: 'user' as const, at: 't' }), { by: 'architect', at: 't' }])
+    assert.throws(() => decideEcr(doc, ecr.id, true, forged, leases), /APPROVAL_IS_THE_USERS/, JSON.stringify(forged));
+  assert.equal(decideEcr(doc, ecr.id, true, userToken('t'), leases).ecr.status, 'approved');
 });
 
 test('rejected, nothing changes; a stale ECR cannot be approved; an ECR with no change refused; the total budget touches every part, a removed keep-out its requirements', async () => {
   const { state, leases, moved } = await afterClean(), before = interfacesRevision(state.doc);
   const { doc, ecr } = openEcr(state.doc, 'architect', moved, { leases });
-  const no = decideEcr(doc, ecr.id, false, { by: 'user', at: 't' }, leases);
+  const no = decideEcr(doc, ecr.id, false, userToken('t'), leases);
   assert.equal(interfacesRevision(no.doc), before); assert.deepEqual([...no.leases.values()], [...leases.values()]); assert.equal(readEcrs(no.doc.ecrs).ecrs[0].status, 'rejected');
   assert.throws(() => openEcr(state.doc, 'architect', readInterfaces(state.doc.interfaces)), /NO_CHANGE/);
   // (Two ECRs on one base: the second goes stale once the first is approved.)
   const a = openEcr(state.doc, 'architect', moved, { leases }), b = openEcr(a.doc, 'p1-agent', { ...readInterfaces(state.doc.interfaces), budgets: { ...readInterfaces(state.doc.interfaces).budgets, massG: 70 } }, { leases });
   assert.deepEqual(b.ecr.impact.parts, ['p1', 'p2'], 'the total budget touches every part');
-  const first = decideEcr(b.doc, a.ecr.id, true, { by: 'user', at: 't' }, leases);
-  assert.throws(() => decideEcr(first.doc, b.ecr.id, true, { by: 'user', at: 't' }, first.leases), /STALE_ECR/);
+  const first = decideEcr(b.doc, a.ecr.id, true, userToken('t'), leases);
+  assert.throws(() => decideEcr(first.doc, b.ecr.id, true, userToken('t'), first.leases), /STALE_ECR/);
   // (An ECR on one part's envelope only: that lease left behind, the other moved to the new revision.)
   const env = readInterfaces(state.doc.interfaces), one = openEcr(state.doc, 'architect', { ...env, envelopes: env.envelopes.map(e => (e.part === 'p1' ? { ...e, max: [61, 40, 10] as [number, number, number] } : e)) }, { leases });
-  const d1 = decideEcr(one.doc, one.ecr.id, true, { by: 'user', at: 't' }, leases);
+  const d1 = decideEcr(one.doc, one.ecr.id, true, userToken('t'), leases);
   assert.equal(d1.leases.get('p1')!.contract, before); assert.equal(d1.leases.get('p2')!.contract, interfacesRevision(d1.doc));
   // (A keep-out taken out of the interfaces: the requirements that check it are impacted.)
   const withK: StudioDoc = { ...state.doc, interfaces: { ...readInterfaces(state.doc.interfaces), keepouts: ['K1'] }, requirements: [{ id: 'KR', source: 'clear of the lid', hard: true, check: { op: '>=', query: { fn: 'keepout', keepout: 'K1' }, value: 0 } }] };

@@ -1,0 +1,120 @@
+{
+ "case": "contract",
+ "step": "A7",
+ "note": "A Designer patch that rewrites a requirement: the interfaces gate is undecided (CONTRACT_CHANGED, the changed fields listed) and the patch is held for the user — a contract change is theirs to approve (A8's ECR later), not a plain reject.",
+ "requirements": {
+  "ops": [
+   {
+    "tool": "set_brief",
+    "args": {
+     "fields": {
+      "purpose": {
+       "value": "a 40 mm spacer block",
+       "basis": "stated",
+       "source": "a 40 mm spacer block"
+      },
+      "process": {
+       "value": "fdm",
+       "basis": "stated",
+       "source": "printed"
+      },
+      "material": {
+       "value": "pla",
+       "basis": "stated",
+       "source": "in PLA"
+      }
+     }
+    }
+   },
+   {
+    "tool": "set_requirements",
+    "args": {
+     "requirements": [
+      {
+       "id": "W",
+       "source": "40 wide",
+       "hard": true,
+       "check": {
+        "op": "==",
+        "query": {
+         "fn": "bbox",
+         "axis": "x"
+        },
+        "value": 40,
+        "tol": 0.1
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "designer": [
+  {
+   "patch": {
+    "id": "p1",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 50,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     },
+     {
+      "tool": "set_requirements",
+      "args": {
+       "requirements": [
+        {
+         "id": "W",
+         "source": "40 wide",
+         "hard": true,
+         "check": {
+          "op": "==",
+          "query": {
+           "fn": "bbox",
+           "axis": "x"
+          },
+          "value": 50,
+          "tol": 0.1
+         }
+        }
+       ]
+      }
+     }
+    ],
+    "rationale": "make it 50 and say so"
+   }
+  },
+  "done"
+ ],
+ "expect": {
+  "decisions": [
+   "applied",
+   "held"
+  ],
+  "stops": [
+   null,
+   [
+    "interfaces",
+    "CONTRACT_CHANGED"
+   ]
+  ],
+  "accepted": 0,
+  "ended": "done",
+  "contract_changes": [
+   "requirements"
+  ],
+  "seeded": [
+   null,
+   "interfaces"
+  ]
+ }
+}

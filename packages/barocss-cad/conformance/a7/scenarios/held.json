@@ -1,0 +1,102 @@
+{
+ "case": "held",
+ "step": "A7",
+ "note": "A round keep-out 5 mm from the block, asking for 5 mm: within its mesh's chord tolerance — undecided, the patch held for the user.",
+ "requirements": {
+  "ops": [
+   {
+    "tool": "set_brief",
+    "args": {
+     "fields": {
+      "purpose": {
+       "value": "a 40 mm spacer block",
+       "basis": "stated",
+       "source": "a 40 mm spacer block"
+      },
+      "process": {
+       "value": "fdm",
+       "basis": "stated",
+       "source": "printed"
+      },
+      "material": {
+       "value": "pla",
+       "basis": "stated",
+       "source": "in PLA"
+      }
+     }
+    }
+   },
+   {
+    "tool": "add_keepout",
+    "args": {
+     "name": "post",
+     "cylinder": {
+      "frame": {
+       "origin": [
+        55,
+        15,
+        0
+       ],
+       "normal": [
+        0,
+        0,
+        1
+       ],
+       "xAxis": [
+        1,
+        0,
+        0
+       ]
+      },
+      "radius": 10,
+      "height": 10
+     },
+     "clearance": 5
+    }
+   }
+  ]
+ },
+ "designer": [
+  {
+   "patch": {
+    "id": "p1",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 40,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     }
+    ]
+   }
+  },
+  "done"
+ ],
+ "expect": {
+  "decisions": [
+   "applied",
+   "held"
+  ],
+  "stops": [
+   null,
+   [
+    "interference",
+    "KEEPOUT_UNDECIDED"
+   ]
+  ],
+  "accepted": 0,
+  "ended": "done",
+  "seeded": [
+   null,
+   "interference"
+  ]
+ }
+}

@@ -377,7 +377,7 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **A7.1–A7.4** (O31): done. `src/team/`: revisions (64-bit, canonical), patches (STALE_BASE, explicit rebase), the
     Integrator's serial gates with typed verdicts (applied, rejected, held, stale) and a byte-reproducible trace;
     roles as interfaces; the Verifier's built, frozen view; scripted roles; `cad-cli team`. Ten seeded-defect
-    scenarios in `conformance/a7`. No new chat tools. The live comparison waits for the owner (O30).
+    scenarios in `conformance/a7/scenarios`. No new chat tools. The live comparison waits for the owner (O30).
 - **A8** multi-agent v2 and v3 (coordinator, 2026-10-20):
   - **A8 S0** (O32): done. A8.1 parallel read-only DFM and Analysis reviewers, and a Drafting agent on a frozen
     revision; A8.2 the Architect's interfaces, Part agents with leases; A8.3 ECRs with impact and the user's approval;
@@ -385,21 +385,28 @@ stays out of the kernel's core files (requests for them go through the coordinat
     new chat tools; live numbers pending (O30).
   - **A8.1** (O33): done. Parallel read-only DFM and Analysis reviewers on their own frozen views, joined by role name;
     a Drafting agent with drawing ops only on a frozen revision (STALE_BASE, NOT_A_DRAWING_OP, DRAWING_ISSUES).
-    Six scenarios in `conformance/a8`.
+    Six scenarios in `conformance/a8/scenarios`.
   - **A8.2** (O34): done. The Architect's interfaces (`doc.interfaces`: hole patterns, envelopes, budgets, datums,
     keep-outs; their own revision); leases; Part agents' patches checked: lease (NO_LEASE, LEASE_EXPIRED,
     CONTRACT_MOVED, OUT_OF_PART), validity, contract (OUT_OF_ENVELOPE, HOLE_OFF_PATTERN on the exact cylinders,
-    OVER_BUDGET). Eight scenarios in `conformance/a8`.
+    OVER_BUDGET). Eight scenarios in `conformance/a8/scenarios`.
   - **A8.3** (O35): done. ECRs (`doc.ecrs`): changes and impact computed (parts, requirements, open patches,
     leases); only the user decides (APPROVAL_IS_THE_USERS); approved, the interfaces move, the touched leases stay on
     the old contract (CONTRACT_MOVED until renewed), the untouched ones move; rejected, nothing changes; STALE_ECR,
-    DECIDED, NO_CHANGE. Fixture `conformance/a8/ecr-move-pattern.json`.
-  - A8.4 (next) → A8.5.
+    DECIDED, NO_CHANGE. Fixture `conformance/a8/scenarios/ecr-move-pattern.json`.
+  - **A8.4** (O36): done. The Assembly integrator's gate after each part (PARTS_MEET; PARTS_TOUCH undecided;
+    PATTERN_MISALIGNED on every built part; OVER_TOTAL_BUDGET on the whole); the read-only BOM agent (derived lines,
+    checked against the assembly, library sources). ECR decisions only through a minted user token.
+  - **A8.5** (O37): done. Per-role precision and recall on the seeded defects (29 labelled scenarios; `cad-cli team
+    --metrics`): the scripted roles at 1 and 1, with the confusion counts; the metric checked on mislabels and on a
+    Verifier that rejects all. Declared contact (a shared pattern or a mate) passes as EXPECTED_CONTACT; undeclared
+    touching is held.
+  - **A8 done** (O32–O37). Live numbers pending the owner (O30).
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 - Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
-- Waiting for the owner: installing MuJoCo as the test oracle of RM4 (O17) and RM5's gravity hang (O18); the commands are there.
+- MuJoCo 3.3.0 run (O38, the owner's go-ahead): RM4's URDF oracle passed (worst 2.2e-16), RM5's MJCF oracle passed after the equilibrium start and the contacts were found (gravity torques against RD1's to 4.4e-14; passive energy 1.0e-6; the damped hang settled, 8.8e-13 rad/s). RM4's external check and RM5's acceptance are closed.
 - Waiting for the owner: A7's live single-versus-multi comparison (O30: tasks, equal token budget, metrics, 10 runs a task an arm).
 - Waiting for the owner: the legal review of the standards-derived data and the material library before release (A6.5, O29).
 - Waiting for the owner: RD3's published worked examples and the catalogue values the HTML pages lack (O22). Both are

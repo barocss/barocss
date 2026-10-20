@@ -16,7 +16,8 @@ import { cliMain } from '../server/cadCli';
 
 // RM4 (O17): URDF export — its convex hulls, our XML reader, the structural rules of the URDF spec, forward kinematics
 // read back from the URDF (URDF's own composition) against RM2's, inertials against RM3's, the refusals, the tool and
-// the CLI. MuJoCo/PyBullet and check_urdf are pending (scripts/urdf-oracle.py; expect.json files written here).
+// the CLI. MuJoCo 3.3.0's reading (scripts/urdf-oracle.py, O17) is committed beside each case; check_urdf (ROS, not on
+// PyPI) is still to run where a ROS install is at hand.
 
 const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/rm');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
@@ -190,3 +191,11 @@ test('the export_urdf tool and cad-cli urdf; the conformance cases with what the
   assert.equal(readFileSync(join(tmp, 'robot.urdf'), 'utf8'), readFileSync(join(CASES, 'urdf-2r', 'robot.urdf'), 'utf8'));
   assert.ok(existsSync(join(tmp, 'meshes', 'a_collision.stl')));
 });
+
+test('MuJoCo 3.3.0\'s reading of the frozen URDF exports (O17): masses, centres, principal inertia and link frames to 1e-6', () => {
+  for (const name of ['urdf-2r', 'urdf-gears']) {
+    const o = JSON.parse(readFileSync(join(CASES, name, 'oracle.mujoco-3.3.0.json'), 'utf8'));
+    assert.equal(o.oracle, 'mujoco 3.3.0', name); assert.ok(o.worst <= 1e-6 && o.rows.length === 21, `${name}: ${o.worst}`);
+  }
+});
+
