@@ -1,6 +1,7 @@
 // Primitive solids beside Box and Cylinder, each a sketch and one extrude or revolve (so they edit like any
 // feature): sphere, cone (or frustum), torus, tube, wedge and regular polygon prism. They stand on Z = At Z
 // at the given X, Y, to the right of what is there by default.
+import { bevelGearDimensions } from '@barocss/cad';
 import { withNode, type LoopSegment, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { Command, Ctx, HandleSpec, Values } from './commands';
 
@@ -85,13 +86,14 @@ function gearPicked(ctx: Ctx): { node: Extract<ModelNode, { kind: 'gear' }>; ind
   const p = pickedGearNode(ctx);
   return p && p.node.kind === 'gear' ? { node: p.node, index: p.index } : null;
 }
-/** The one gear or internal gear (as made) the selection picks (R12b.2a: a pinion meshes inside a ring). */
-function pickedGearNode(ctx: Ctx): { node: Extract<ModelNode, { kind: 'gear' | 'internal-gear' }>; index: number } | null {
+/** The one gear, internal gear or bevel gear (as made) the selection picks (R12b.2a: a pinion meshes inside a ring; R12b.3: a bevel gear's mate). */
+function pickedGearNode(ctx: Ctx): { node: Extract<ModelNode, { kind: 'gear' | 'internal-gear' | 'bevel-gear' }>; index: number } | null {
   const picked = new Set<number>(ctx.selection.bodies); ctx.selection.faces.forEach(f => picked.add(f.body)); ctx.selection.edges.forEach(e => picked.add(e.body));
   if (picked.size !== 1) return null;
   const body = ctx.bodies[[...picked][0]], ref = body?.ref, node = ref ? ctx.doc.nodes[ref.node] : undefined;
-  return (node?.kind === 'gear' || node?.kind === 'internal-gear') && ref!.side === 'solid' ? { node, index: ref!.node } : null;
+  return (node?.kind === 'gear' || node?.kind === 'internal-gear' || node?.kind === 'bevel-gear') && ref!.side === 'solid' ? { node, index: ref!.node } : null;
 }
+const bevelPicked = (ctx: Ctx) => { const p = pickedGearNode(ctx); return p && p.node.kind === 'bevel-gear' ? { node: p.node, index: p.index } : null; };
 
 /** Placed with its centre (axis) at the pointer. */
 const centred = (v: Values, [x, y, z]: [number, number, number]): Values => ({ ...v, x, y, z });
@@ -165,12 +167,33 @@ export const primitives: Command[] = [
     },
   },
   {
-    id: 'gear-mesh', label: 'Meshing gear', icon: 'cad-gear', hint: 'A spur gear meshing with the selected one: beside it at the centre distance, turned to mesh, following its turn — or, with an internal gear selected, a pinion inside it', group: 'create', keywords: 'gear mesh mate pair wheel pinion train ratio planet internal ring',
-    available: ctx => pickedGearNode(ctx) !== null ? ok : { ok: false as const, reason: 'Select one spur gear or internal gear to mesh with.' },
-    fields: () => [{ key: 'teeth', label: 'Teeth', kind: 'count', min: 6, max: 200 }, { key: 'dir', label: 'Direction', kind: 'deg' }, { key: 'shift', label: 'Profile shift x', kind: 'number', min: -0.5, max: 1, step: 0.05 }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }],
-    // (Inside a ring: 2/5 of its teeth by default — 24 in 60, clear of the interference conditions.)
-    defaults: ctx => { const p = pickedGearNode(ctx); return { teeth: p ? p.node.kind === 'internal-gear' ? Math.max(6, Math.round(0.4 * p.node.teeth)) : Math.min(200, 2 * p.node.teeth) : 40, dir: 0, shift: 0, bore: 8 }; },
+    id: 'bevel-gear', label: 'Bevel gear', icon: 'cad-gear', hint: 'A straight bevel gear by module (at the heel), teeth, its mate\'s teeth, shaft angle and face width: the exact spherical involute, standard proportions (the cones through the apex), spherical ends (20°). Its root is schematic. Not validated for manufacturing. Select it and add a Meshing gear for its mate', group: 'create', keywords: 'bevel gear conical miter mitre right angle crown pinion spherical involute',
+    available: () => ok,
+    fields: () => [{ key: 'm', label: 'Module (heel)', kind: 'mm', min: 0.2 }, { key: 'teeth', label: 'Teeth', kind: 'count', min: 5, max: 200 }, { key: 'mate', label: 'Mate\'s teeth', kind: 'count', min: 5, max: 200 }, { key: 'sigma', label: 'Shaft angle Σ', kind: 'deg', min: 1, max: 179 },
+      { key: 'b', label: 'Face width', kind: 'mm', min: 0.5 }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }, ...at],
+    defaults: ctx => ({ m: 2, teeth: 20, mate: 40, sigma: 90, b: 10, bore: 8, ...beside(ctx, 30) }),
+    place: centred,
+    handles: (_, v) => { const [m, z, x, y, zz] = n(v, 'm', 'teeth', 'x', 'y', 'z'); return [puck([x, y, zz]), arrow('b', [x + m * z / 2, y, zz], X)]; },
     build: (ctx, v) => {
+      const [m, z, zm, sigma, b, bore, x, y, zz] = n(v, 'm', 'teeth', 'mate', 'sigma', 'b', 'bore', 'x', 'y', 'z');
+      // (Standing on At Z: its apex below by the toe's lowest point, Ri cos(δ + θa), the teeth above it.)
+      const spec = { moduleMM: m, teeth: Math.round(z), mateTeeth: Math.round(zm), shaftAngleDeg: sigma, faceWidthMM: b }, g = bevelGearDimensions(spec), low = g.Ri * Math.cos(g.tipPolar);
+      return withNode(ctx.doc, { kind: 'bevel-gear', module: m, teeth: Math.round(z), mateTeeth: Math.round(zm), ...(sigma !== 90 ? { shaftAngle: sigma } : {}), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], from: zz - low, generator: 'bevel-gear@0' });
+    },
+  },
+  {
+    id: 'gear-mesh', label: 'Meshing gear', icon: 'cad-gear', hint: 'A spur gear meshing with the selected one: beside it at the centre distance, turned to mesh, following its turn — or, with an internal gear selected, a pinion inside it; with a bevel gear selected, its mate (the same apex, the shaft angle toward the direction)', group: 'create', keywords: 'gear mesh mate pair wheel pinion train ratio planet internal ring bevel',
+    available: ctx => pickedGearNode(ctx) !== null ? ok : { ok: false as const, reason: 'Select one spur, internal or bevel gear to mesh with.' },
+    // (A bevel gear's mate: its teeth are the selected gear's mate's — the direction and bore only.)
+    fields: ctx => bevelPicked(ctx) ? [{ key: 'dir', label: 'Direction', kind: 'deg' }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }] : [{ key: 'teeth', label: 'Teeth', kind: 'count', min: 6, max: 200 }, { key: 'dir', label: 'Direction', kind: 'deg' }, { key: 'shift', label: 'Profile shift x', kind: 'number', min: -0.5, max: 1, step: 0.05 }, { key: 'bore', label: 'Bore', kind: 'mm', min: 0 }],
+    // (Inside a ring: 2/5 of its teeth by default — 24 in 60, clear of the interference conditions.)
+    defaults: (ctx): Values => { const p = pickedGearNode(ctx); if (p?.node.kind === 'bevel-gear') return { dir: 0, bore: 8 }; return { teeth: p ? p.node.kind === 'internal-gear' ? Math.max(6, Math.round(0.4 * p.node.teeth)) : Math.min(200, 2 * p.node.teeth) : 40, dir: 0, shift: 0, bore: 8 }; },
+    build: (ctx, v) => {
+      const bevel = bevelPicked(ctx);
+      if (bevel) {
+        const [dir, bore] = n(v, 'dir', 'bore'), g = bevel.node;
+        return withNode(ctx.doc, { kind: 'bevel-gear', module: g.module, teeth: g.mateTeeth, mateTeeth: g.teeth, ...(g.shaftAngle !== undefined ? { shaftAngle: g.shaftAngle } : {}), faceWidth: g.faceWidth, ...(bore > 0 ? { bore } : {}), ...(g.thicknessReduction !== undefined ? { thicknessReduction: g.thicknessReduction } : {}), center: [0, 0], mesh: { gear: bevel.index, ...(dir ? { direction: dir } : {}) }, generator: 'bevel-gear@0' });
+      }
       const ring = pickedGearNode(ctx);
       if (ring && ring.node.kind === 'internal-gear') {
         const [z, dir, bore, shift] = n(v, 'teeth', 'dir', 'bore', 'shift');

@@ -215,6 +215,15 @@ type ModelNodeBase = SketchNode
     shiftDefault?: boolean;
     /** `internal-gear@1` (R12b.2b, D133): the pinion-type cutter that cuts its root — teeth, shift, tip radius (the default an estimate). */
     cutter?: { teeth: number; shift?: number; tipRadius?: Dim } }
+  /**
+   * A straight bevel gear (R12b.3, D134): the spherical involute, standard proportions, spherical ends. Module at the
+   * heel, teeth, its mate's teeth and the shaft angle (90° by default) fix its pitch cone; face width along the cone;
+   * a bore, a thickness reduction. Its apex at (`center`, `from`), its axis +Z (the teeth above the apex), turned
+   * `rotation` degrees; or meshing with another bevel gear by `mesh` — the same apex, its axis at the shaft angle toward
+   * `direction`, a space facing the other's tooth plus `phase` degrees. A meshing gear's module, teeth, mate and shaft
+   * angle are its driver's (kept in step: the driver's mate is this one).
+   */
+  | { kind: 'bevel-gear'; module: Dim; teeth: number; mateTeeth: number; shaftAngle?: number; faceWidth: Dim; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: BevelMesh; generator: 'bevel-gear@0' }
   | { kind: 'gear';
     /** The module; a helical gear's normal module m_n (R6a.5c: `helixAngle` degrees and `hand`; a meshing gear takes the other's angle, opposite hand). */
     module: Dim; helixAngle?: number; hand?: 'right' | 'left'; teeth: number; faceWidth: Dim; profileShift?: number; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; mesh?: GearMesh; generator: 'spur-gear@0' | 'spur-gear@1'; toolTipRadius?: Dim }
@@ -450,6 +459,8 @@ export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch';
 
 /** A gear meshing with an earlier one (node `gear`). */
 export interface GearMesh { gear: number; direction?: number; centerDistance?: Dim; phase?: number }
+/** A bevel gear meshing with another (R12b.3): the gear, the direction about its axis (degrees), the phase. */
+export interface BevelMesh { gear: number; direction?: number; phase?: number }
 /** A rack meshing with an earlier spur gear (node `gear`); `phase` in mm along the rack. */
 export interface RackMesh { gear: number; direction?: number; centerDistance?: Dim; phase?: number }
 
@@ -457,7 +468,7 @@ export interface RackMesh { gear: number; direction?: number; centerDistance?: D
  * What a node depends on: what it is built on (`parentsOf`), and what it only refers to — a meshing gear's other
  * gear. Deleting and moving features keep to these; a body's own line (its look, its steps) follows `parentsOf`.
  */
-export const usesOf = (node: ModelNode): number[] => (node.kind === 'gear' || node.kind === 'rack') && node.mesh ? [node.mesh.gear]
+export const usesOf = (node: ModelNode): number[] => (node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear') && node.mesh ? [node.mesh.gear]
   // (A frame refers to the bodies its members are trimmed to, FR3b: not built on them.)
   : node.kind === 'frame' && node.trims?.some(t => 'body' in t) ? [...parentsOf(node), ...node.trims.flatMap(t => 'body' in t ? [t.body.node] : [])] : parentsOf(node);
 
@@ -467,7 +478,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'rack': case 'sheet-contour': return [];
+    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'rack': case 'sheet-contour': return [];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
     case 'frame': return [node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : []);
     case 'union': case 'intersect': return [node.left.node, node.right.node];
@@ -484,7 +495,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -623,6 +634,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'subd': return `SubD ${node.name} (${node.cage.faces.length} ${node.cage.faces.every(f => f.length === 4) ? 'quads' : 'faces'})`;
     case 'library': return node.name;
     case 'rack': return `Rack m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} × ${node.teeth}`;
+    case 'bevel-gear': { const t = bevelTeeth(node, nodes); return `Bevel gear m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${t.teeth}/${t.mateTeeth}`; }
     case 'internal-gear': return `${node.helixAngle ? 'Helical internal gear mn' : 'Internal gear m'}${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;
     case 'gear': return `${node.helixAngle || (node.mesh && nodes && helical(nodes, node.mesh.gear)) ? 'Helical gear mn' : 'Spur gear m'}${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;
     case 'thread': return node.hex?.internal ? `Nut M${fmt(node.diameter)}×${fmt(node.pitch)}` : `${node.hex ? 'Bolt' : 'Threaded rod'} M${fmt(node.diameter)}×${fmt(node.pitch)} × ${fmt(node.length ?? 0)}`;
@@ -651,6 +663,12 @@ export function cylinderPart(radius: number, height: number): StudioDoc {
 export function starterDoc(): StudioDoc {
   const doc = rectanglePart(64, 32, 8);
   return withNode(doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [32, 16], radius: 4 });
+}
+
+/** A bevel gear's teeth and its mate's: its own, or — meshing — its driver's the other way round (R12b.3). */
+export function bevelTeeth(node: Extract<ModelNode, { kind: 'bevel-gear' }>, nodes?: readonly ModelNode[]): { teeth: number; mateTeeth: number } {
+  const d = node.mesh && nodes ? nodes[node.mesh.gear] : undefined;
+  return d?.kind === 'bevel-gear' && d !== node ? { teeth: d.mateTeeth, mateTeeth: d.teeth } : { teeth: node.teeth, mateTeeth: node.mateTeeth };
 }
 
 /** Whether gear node `i` is helical: its own helix angle, or that of the gear it meshes with (a ring's own, R12b.2a). */

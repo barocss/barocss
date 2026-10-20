@@ -1,0 +1,32 @@
+{
+  "id": "r12b-bevel-undercut-refused",
+  "step": "R12b",
+  "decisions": [
+    "D134"
+  ],
+  "about": "A 16-tooth pinion for a 40-tooth mate at Σ 90°: Tredgold's virtual spur gear has 17.23 teeth (clear by the textbook estimate), but by the exact spherical condition the generating crown gear reaches past the base cone (5.8594 against 5.8575 mm at the heel): refused, the estimate named.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "bevel-gear",
+          "module": 2,
+          "teeth": 16,
+          "mateTeeth": 40,
+          "faceWidth": 8
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "virtual spur gear has 17.23 teeth"
+    }
+  }
+}

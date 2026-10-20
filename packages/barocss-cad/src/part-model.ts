@@ -41,6 +41,7 @@ import { SIDE_TAG, type SideTags } from './side-names.js';
 import { spurRack, type SpurRackReport, type SpurRackSpec } from './gear-rack.js';
 import { spurGear, spurGearCenterDistance, spurGearDimensions, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
 import { internalGear, internalGearCenterDistance, pinionTurnInside, type InternalGearReport, type InternalGearSpec, type PlacedInternalGear } from './gear-internal.js';
+import { bevelGear, bevelMatePlacement, bevelGearMatrix, type BevelGearReport, type BevelGearSpec, type PlacedBevelGear } from './gear-bevel.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -227,6 +228,21 @@ export type CadPartFeature = Base & (
     readonly pressureAngle?: number; readonly profileShift?: number; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
     /** 'internal-gear@0' (the default) the schematic root; 'internal-gear@1' (R12b.2b, D133) the root a pinion-type `cutter` cuts (its teeth, shift, tip radius). */
     readonly generator?: 'internal-gear@0' | 'internal-gear@1'; readonly cutter?: { readonly teeth: number; readonly shift?: number; readonly tipRadius?: CadPartDim } }
+  /**
+   * A straight bevel gear (R12b.3, D134): the spherical involute, standard proportions (addendum m, dedendum 1.25 m at
+   * the heel, the cones through the apex), spherical ends. Its module and teeth, its mate's teeth `mateTeeth` and the
+   * shaft angle (90° by default) fix its pitch cone; face width along the cone; a bore, a thickness reduction. Its apex
+   * at (`center`, `from`), its axis +Z (the teeth above the apex), turned `rotation` degrees (tooth 1 on +X at 0); or,
+   * with `mesh`, beside the bevel gear it meshes with — the same apex, its axis at the shaft angle toward `direction`
+   * (degrees about the other's axis from its X), a space facing the other's tooth on the pitch line (plus `phase`
+   * degrees), following its turn by −z1/z2. Faces `<id>.flankL#k`, `.flankR#k` (`.flankL2#k` … root outward),
+   * `.tip#k`, `.root#k`, `.rootL#k`/`.rootR#k`, `.heel`, `.toe`, `.bore#1/2`.
+   */
+  | { readonly kind: 'bevel-gear'; readonly module: CadPartDim; readonly teeth: number; readonly mateTeeth: number; readonly shaftAngle?: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number;
+    readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
+    readonly mesh?: { readonly gear: string; readonly direction?: number; readonly phase?: number };
+    /** 'bevel-gear@0' (the default): straight, standard, spherical involute, schematic meridian root. */
+    readonly generator?: 'bevel-gear@0' }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
     /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
     readonly form?: 'faceted' | 'helical' }
@@ -391,6 +407,9 @@ export interface CadPartOutput {
   /** An internal gear's report and placement (R12b.2a). */
   readonly internalGear?: InternalGearReport;
   readonly internalGearPlacement?: PlacedInternalGear;
+  /** A bevel gear's report and placement (R12b.3). */
+  readonly bevelGear?: BevelGearReport;
+  readonly bevelGearPlacement?: BevelGearPlacement;
   /** A SubD body's make-up: steps, caps and their distance from the limit surface (R7, D79). */
   readonly subd?: SubdSummary;
   /** A decimated mesh's report: triangles before and after, why it stopped, the measured distance both ways (R9, D85). */
@@ -468,6 +487,8 @@ interface Part {
   /** An internal gear's report and placement (R12b.2a). */
   readonly internalGear?: InternalGearReport;
   readonly internalPlace?: PlacedInternalGear;
+  readonly bevelGear?: BevelGearReport;
+  readonly bevelPlace?: BevelGearPlacement;
   readonly subd?: SubdSummary;
   readonly decimate?: DecimateReport;
   readonly fillet?: readonly FilletReport[];
@@ -485,6 +506,8 @@ export interface GearPlacement {
   /** A pinion meshing inside a ring (R12b.2a): the ring's placement (checkPlacedInternalGears). */
   readonly ring?: PlacedInternalGear;
 }
+/** A bevel gear as placed (R12b.3): its apex, axis and turn; the bevel gear it meshes with and that one's placement. */
+export interface BevelGearPlacement extends PlacedBevelGear { readonly meshesWith?: string; readonly driver?: BevelGearPlacement }
 /** Gear diagnostics as the part model's codes (the gear's own code kept in the message). */
 const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_PROFILE_SHIFT: 'CAPABILITY', UNSUPPORTED_GEAR_KIND: 'CAPABILITY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', SELF_INTERSECTION: 'GEOMETRY', ROOT_TRANSITION_UNVALIDATED: 'GEOMETRY', BORE_INTERSECTION: 'GEOMETRY', MATE_INCOMPATIBLE: 'INPUT', UNDERCUT: 'GEOMETRY', INVOLUTE_INTERFERENCE: 'GEOMETRY', TROCHOID_INTERFERENCE: 'GEOMETRY', TRIMMING_INTERFERENCE: 'GEOMETRY', RIM_INTERSECTION: 'GEOMETRY' };
 type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
@@ -1493,6 +1516,40 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
         const brep = place.rotation || place.center[0] || place.center[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, internalGear: made!.report, internalPlace: place }] };
+      };
+    }
+    case 'bevel-gear': {
+      if (f.generator !== undefined && f.generator !== 'bevel-gear@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const m = dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true);
+      const bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
+      if (f.shaftAngle !== undefined && !(typeof f.shaftAngle === 'number' && Number.isFinite(f.shaftAngle))) fail('INPUT', 'shaftAngle must be a number of degrees');
+      const spec: BevelGearSpec = { moduleMM: m, teeth: f.teeth as number, mateTeeth: f.mateTeeth as number, ...(f.shaftAngle === undefined ? {} : { shaftAngleDeg: f.shaftAngle as number }), faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red,
+        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+      const mesh = f.mesh as Record<string, unknown> | undefined;
+      let place: BevelGearPlacement;
+      if (mesh !== undefined) {
+        if (!isRecord(mesh) || typeof mesh.gear !== 'string') fail('INPUT', 'mesh must be { gear, direction?, phase? }');
+        const other = ref(mesh!.gear, 'mesh.gear').result;
+        const driver = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].bevelPlace : undefined;
+        if (!driver) fail('REFERENCE', `${String(mesh!.gear)} is not a bevel gear`);
+        const dirDeg = mesh!.direction ?? 0, phaseDeg = mesh!.phase ?? 0;
+        if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg)) || !(typeof phaseDeg === 'number' && Number.isFinite(phaseDeg))) fail('INPUT', 'mesh.direction and mesh.phase must be numbers of degrees');
+        let at2: PlacedBevelGear;
+        try { at2 = bevelMatePlacement(driver!, spec, (dirDeg as number) * Math.PI / 180, (phaseDeg as number) * Math.PI / 180); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
+        place = { ...at2!, meshesWith: String(mesh!.gear), driver: driver! };
+      } else {
+        const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center');
+        place = { spec, apex: [c[0], c[1], f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from')], axis: [0, 0, 1], xAxis: [1, 0, 0], rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
+      }
+      return () => {
+        let made: ReturnType<typeof bevelGear>;
+        try { made = bevelGear(spec, { id: at }); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        const T = bevelGearMatrix(place), moved = T.matrix.some((x, i) => x !== [1, 0, 0, 0, 1, 0, 0, 0, 1][i]) || T.offset.some(x => x !== 0);
+        const brep = moved ? transformBrep(made!.brep, T) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, bevelGear: made!.report, bevelPlace: place }] };
       };
     }
     case 'spur-rack': {
@@ -2857,7 +2914,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   let validated: BrepCheckReport | undefined, area: number | undefined;
   const flats = new Map<string, FlatPattern>();
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

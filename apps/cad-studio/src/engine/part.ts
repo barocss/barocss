@@ -80,6 +80,15 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       const modules = node.helixAngle ? { normalModule: node.module, helixAngle: node.helixAngle, hand: node.hand ?? 'right' } : { module: node.module };
       return { ...at, kind: 'internal-gear', ...modules, teeth: node.teeth, faceWidth: node.faceWidth, rim: node.rim, generator: node.generator, ...(node.cutter ? { cutter: node.cutter } : {}), ...own, ...(node.profileShift ? { profileShift: node.profileShift } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
+    case 'bevel-gear': {
+      // (R12b.3, D134: a meshing bevel gear's module, teeth, mate and shaft angle are its driver's — kept in step.)
+      const d = node.mesh ? (nodes ?? current)[node.mesh.gear] : undefined, drv = d?.kind === 'bevel-gear' ? d : undefined;
+      const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction ? { direction: node.mesh.direction } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }
+        : { center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}) };
+      const shaft = drv ? drv.shaftAngle : node.shaftAngle;
+      return { ...at, kind: 'bevel-gear', module: drv ? drv.module : node.module, teeth: drv ? drv.mateTeeth : node.teeth, mateTeeth: drv ? drv.teeth : node.mateTeeth, ...(shaft !== undefined ? { shaftAngle: shaft } : {}), faceWidth: node.faceWidth, generator: node.generator, ...own,
+        ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
+    }
     case 'gear': {
       const own = node.mesh ? { mesh: { gear: id(node.mesh.gear), ...(node.mesh.direction ? { direction: node.mesh.direction } : {}), ...(node.mesh.centerDistance !== undefined ? { centerDistance: node.mesh.centerDistance } : {}), ...(node.mesh.phase ? { phase: node.mesh.phase } : {}) } }
         : { center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}) };
@@ -114,7 +123,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
     if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
-    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
+    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);
@@ -129,7 +138,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
     if (makes) {
       // (A library part added to a body, suppressed or its body gone: the body passes on as it was, or is gone.)
       if (node.kind === 'library' && node.addTo) { if (gone.has(node.addTo.node)) { gone.add(i); return; } if (node.suppressed) { pass(i, node.addTo); return; } features.push(...featuresOf(node, i)); return; }
-      if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || ((node.kind === 'gear' || node.kind === 'rack') && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
+      if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || ((node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear') && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
       features.push(...featuresOf(node, i)); return;
     }
     const parent = (node as { parent: BodyRef }).parent;

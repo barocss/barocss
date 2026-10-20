@@ -1,0 +1,32 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "p",
+      "kind": "bevel-gear",
+      "module": 2,
+      "teeth": 16,
+      "mateTeeth": 24,
+      "shaftAngle": 60,
+      "faceWidth": 8,
+      "thicknessReduction": 0.05
+    },
+    {
+      "id": "w",
+      "kind": "bevel-gear",
+      "module": 2,
+      "teeth": 24,
+      "mateTeeth": 16,
+      "shaftAngle": 60,
+      "faceWidth": 8,
+      "thicknessReduction": 0.05,
+      "mesh": {
+        "gear": "p",
+        "direction": 30
+      }
+    }
+  ]
+}

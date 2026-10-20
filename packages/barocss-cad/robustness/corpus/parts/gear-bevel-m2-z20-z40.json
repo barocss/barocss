@@ -1,0 +1,17 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "p",
+      "kind": "bevel-gear",
+      "module": 2,
+      "teeth": 20,
+      "mateTeeth": 40,
+      "faceWidth": 10,
+      "bore": 8
+    }
+  ]
+}

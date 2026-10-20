@@ -2627,6 +2627,7 @@
        "torus",
        "gear",
        "internal-gear",
+       "bevel-gear",
        "gear-mesh",
        "gear-rack",
        "subd-torus",

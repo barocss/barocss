@@ -2527,6 +2527,30 @@ try {
     await snap('internal-gear-pinion');
   });
 
+  await check('Bevel gear (R12b.3, D134): a straight bevel pinion from the palette (spherical involute, z 20 for 40, Σ 90°); its mate by Meshing gear with it selected — the same apex, ratio 20:40, clear on the heel sphere', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('bevel gear'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'bevel-gear' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    assert.match(await page.textContent('.history'), /Bevel gear m2 z20\/40/);
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(notes.some(t => /^Straight bevel, spherical involute: reference Ø40 at the heel, pitch cone 26\.5651°/.test(t)) && notes.some(t => /^Tredgold's virtual spur gear: 22\.36 teeth \(an estimate/.test(t)), notes.join(' | '));
+    await press(' '); await page.locator('.palette input').fill('meshing gear'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[1]?.kind === 'bevel-gear' && window.__studioDoc.nodes[1].mesh?.gear === 0 && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    assert.match(await page.textContent('.history'), /Bevel gear m2 z40\/20/);
+    await page.locator('.outliner .ol').nth(1).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(n => /Meshes with n0/.test(n.textContent ?? '')), null, { timeout: 30000 });
+    const mate = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(mate.some(t => /^Meshes with n0: the same apex, shaft angle 90°, ratio 20:40/.test(t)) && mate.some(t => /^Clear over a full tooth period on the heel sphere/.test(t)), mate.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('bevel-pair');
+  });
+
   await check('Library (LIB4): the T-slot 20 series with its licence and estimates; a 20×20 profile inserted into the part, its notes from the library; a slot nut placed as a part', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Library"]');
