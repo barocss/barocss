@@ -2715,3 +2715,34 @@ Assigned by the coordinator after AM6. **No kernel-core change is needed**, and 
   - **The dumbbell** now takes the exact route: two cavities drained, the wall 2.5 (and 4 across the bar, too thin to hollow).
 - **Flow step:** the block now goes shell then hole, its volume the closed form 9000.87 to the panel's 1 mm³.
 - **What remains** for the kernel lane's F3, not an outer-lane item: a curved body the shell refuses (a mesh cavity in it needs mixed facet–analytic Booleans).
+
+## O57 — AM7b S0: a gyroid lattice infill — scope, bounds and acceptance frozen (2026-10-20)
+
+Following the coordinator's points: the skin stays exact, the lattice only inside, the bounds derived in advance. **Option B** (the coordinator's): the lattice is a separate mesh "infill" body, and the shell's B-rep is unchanged. A lattice mesh is far past the kernel's 16 000-triangle mesh Boolean, so it cannot be joined to the B-rep. **No kernel change.**
+
+- **The command `lattice`** ("Fill with a lattice", `src/print/lattice.ts`) applies to a part hollowed by `hollow` (O54/O56); otherwise it is `NOT_HOLLOW`.
+  - **Its values:** `cell` L (the gyroid's period), `thickness` k (the level band, |G| ≤ k, 0 < k < 1.5) and `h` (the voxel, default L/12).
+- **The field:**
+  - G(p) = sin X cos Y + sin Y cos Z + sin Z cos X, with (X, Y, Z) = ω(p − o), ω = 2π/L, and o the cavity's lowest corner (its phase);
+  - the lattice region is ψ = min(k − |G|, φ_c, ρ_d) > 0, where:
+    - φ_c = depth − t is the cavity (O53's field, the exact cavity's depth on both routes);
+    - ρ_d = (distance to each drain's axis) − r is the drains, carved from the lattice too so they stay open;
+  - it is meshed by marching tetrahedra (O54's).
+- **Pieces:** a piece of the lattice not touching the cavity's wall (a loose fragment) is dropped, and the report says how many and how much.
+- **The body:** the remaining lattice is a facet `mesh` node named `lattice` (blobs).
+  - It is in the part's mass and in its 3MF.
+  - It is left out of STEP, which stays the exact part. If that needs more than the export's own body filter, it stops and goes to the coordinator.
+- **New drains**: the space left in the cavity (φ_c > 0 and ψ ≤ 0) is flood-filled. A sheet gyroid splits it into two interpenetrating labyrinths. **Each empty component gets a drain** (O54's placement), carved from the lattice and cut as a `hole` in the B-rep.
+
+**Acceptance:**
+- **Connected:** the solid (the shell's voxels ∪ the lattice's) is one 6-connected component, and no lattice piece is loose.
+- **Drained:** the empty voxels inside the part's box all reach the outside (flood fill), with no inner shell in the B-rep.
+- **The solid fraction against the gyroid's own:**
+  - f(k) is the fraction of a unit cell where |G| ≤ k, by 10⁶ Halton points (σ ≤ 5·10⁻⁴);
+  - on a cavity spanning whole cells (a 30 × 30 × 18 box, t 3, L 6: a 24 × 24 × 12 cavity, 4 × 4 × 2 cells), with no drains, the lattice's volume over the cavity's is f(k) within ε_MT + ε_clip + 4σ;
+  - **ε_MT = A·3Hh²/(8·g·V)**: linear interpolation on a Kuhn tetrahedron (circumradius √3h/2) errs by at most H·r²/2 = 3Hh²/8 in the field, H = 3ω² bounds the Hessian of G, and g is the least |∇G| on the surface |G| = k, sampled. A is the lattice's area;
+  - **ε_clip = ℓ·h²/V**: ℓ is the length of the lattice's kink against the cavity walls, the edges between its wall triangles and its gyroid triangles, measured on the mesh;
+  - with drains, the lattice's volume is less than without, by no more than Σ π r²·(cavity height).
+- **Mass:** the part's mass is the shell's B-rep volume plus the lattice body's, with no overlap (the lattice is inside φ_c > 0). It is checked against the kernel's intersection on a coarse case.
+- **Refusals, typed:** `NOT_HOLLOW`; `BAD_VALUES` (L ≤ 0, k outside (0, 1.5), h > L/4); `GRID_TOO_FINE` (O53's).
+- **Exposure:** the command in the palette and `run_command` (the contract regenerated); a flow step before the last.
