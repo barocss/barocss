@@ -7044,3 +7044,74 @@ Next: R12b.2a — internal gears and their pair checks.
 - the pinion's tip relief.
 
 Next: R12b.2b — the shaper-cut internal root.
+
+## D133 — R12b.2b: the shaper-cut internal root (internal-gear@1), K1 Table 4.8 reproduced, trimming by condition or insertion (2026-10-21)
+
+**Decision** (`gear-internal.ts`: `ShaperRoot`, `shaperOf`, `shaperCutRing`; `gear.ts`'s shared `Envelope` fit; the part model's `internal-gear@1` with `cutter`; the studio's Internal gear command, Root and Cutter fields, notes):
+- **The ring's root as a pinion-type cutter cuts it** (`rootPolicy: 'shaper-cut'`, `cutter: { teeth, profileShiftCoefficient?, tipRadiusMM? }`; generator `internal-gear@1`):
+  - **The cutter:** z0 teeth, shift x0, addendum 1.25 m + x0 m, tooth m(π/2 + 2 x0 tan α), a tip round of radius ρ0.
+  - **Where it cuts:** rolling inside the ring at a_c, inv α_c = (z2 ψ_s − z0 ψ0)/(z2 − z0) (the internal working distance with the ring's space and the cutter's tooth, no backlash), Newton on inv.
+  - **The root circle:** a_c + ra0 (replacing the schematic r + (1.25 + x2)m; equal when x0 = 0 and α_c = α).
+  - **The fillets:** the envelope of the cutter's tip round, closed form (`ShaperRoot.point`/`derivative`; the contact on the line from the round's centre away from the pitch point; φ at the root (π/2 − χ)·z0/z2), from the root circle to where it meets the ring's involute tangentially (the form circle) or crosses it (`crossing`).
+  - **The fit:** D130's C¹ Hermite pieces on φ at breaks of equal turning (`envelopeBreaks`/`envelopePoles`/`envelopeDeviation`, shared with `gear.ts`), as few as the profile tolerance (1e-4 m) asks, at most five a face, at most 15. Observed 6–7 pieces, 1.6e-4 to 1.7e-4 mm at m 2 (tolerance 2e-4).
+  - **The pieces of a space,** built in a +Y frame and turned: involute (flank fit), fillet, root arc (exact), the mirrors, the tip arc. Names as R12b.2a's plus `filletR#k`/`filletL#k` (more faces `filletR2#k`… when the fillet takes more than five pieces).
+  - **The sweep's outline** of a shaper-cut ring is its own (`shaperOutline`), so pairs with an `@1` ring check its real root.
+- **The default tip radius is an estimate,** flagged on the ring: min(0.38 m, 0.8 × the largest the cutter's tooth holds). Diagnostic: "the cutter's tip radius … mm is an estimate for a pinion-type cutter's (the basic rack's 0.38 m, or 80% of the largest its tooth holds): give the toolmaker's". The basic rack's 0.38 m alone did not fit small cutters (their tips are narrower than the rack's).
+- **Refusals** (typed, no silent geometry):
+  - cutter teeth outside 8 … z2 − 4, or its shift outside −0.5 … 0.75: `INVALID_INPUT` / `UNSUPPORTED_PROFILE_SHIFT`;
+  - **trimming when fed in:** the trimming condition θ1 + inv α_a1 − inv α_w ≥ (z2/z1)(θ2 + inv α_a2 − inv α_w) with the cutter as the pinion, at the cutting distance: `TRIMMING_INTERFERENCE`, citing K1 Table 4.8 ("a cutter of fewer teeth, or more ring teeth");
+  - **the cutter's involute interference:** `INVOLUTE_INTERFERENCE` (the ring's tips below the cutter's base circle), naming "a ring shift x2 > 0" as the remedy;
+  - a tip radius the cutter cannot hold: `INVALID_INPUT`, naming the most;
+  - fillets crossing the tip or each other: `SELF_INTERSECTION`;
+  - a helical shaper-cut ring (a helical cutter is not modelled): `UNSUPPORTED_GEAR_KIND`; a `cutter` without the policy (or without `@1`): `INVALID_INPUT`, "a shaper-cut internal gear needs its cutter".
+- **Trimming in a pair is now either verdict** (revises D132): `interference.trimming.interference` is the radial-insertion sweep's crossing **or** the condition's margin < 0. The report keeps both (`sweepInterference`, `conditionMargin`); a condition-only verdict gets its own diagnostic, saying the straight insertion clears.
+  - **Why:** D132 took the insertion as the authority because the condition was recalled, not sourced. K1 Table 4.8(1) (sourced, below) is reproduced by the condition, row for row, and where the two disagree (small cutters, below) the table sides with the condition. A straight radial path is not the only one a gear or cutter takes (a shaper's infeed, an assembly's), so a crossing the straight path misses is not proof of clearance.
+  - **Effect:** 24/40 and 25/40 at zero backlash, clear in D132, are now flagged (margins −0.00058, −0.0029).
+- **Part model:** `internal-gear` with `generator: 'internal-gear@1'` and `cutter: { teeth, shift?, tipRadius? }`; `@1` without a cutter is refused, a cutter on `@0` too. `@0` is unchanged bit for bit.
+- **Studio:**
+  - **The Internal gear command** builds `@1` with a 24-tooth cutter by default (field "Cutter teeth (estimate: the shop's; 0 schematic)"); helical rings and 0 build `@0`.
+  - **The x2 0.5 default is visible** (coordinator's note 1): the command's field "Profile shift x (default 0.5: clears rack-cut pinions, D132)", and while the shift is the default the node carries `shiftDefault` and its notes begin "Profile shift 0.5 (default: clears rack-cut pinions; see D132)", flagged as the estimates are. Editing the shift removes the flag.
+  - **Edit fields:** Root (Cut by a pinion-type cutter / Schematic), Cutter teeth, Cutter shift, Cutter tip radius.
+  - **Notes:** "Root cut by a N-tooth pinion-type cutter (shift …), tip radius … mm, at … mm: the involute to Ø…; fillets within … mm", and the ring's diagnostics (the tip radius estimate); the schematic warning only on `@0`.
+  - **The agent:** `internal-gear`'s docs gain `cutter` (no tool-contract line change: the command list is unchanged).
+- **The gear survey behind a flag** (coordinator's note 2): `GEAR_SURVEY=1` runs every pair and row; the default suite keeps a representative subset (clear, crossing and trimming cases, one helical, the K1 rows 24/42, 30/48, 40/58, 60/78). Run the survey at track boundaries and with RB.
+
+**Found:**
+- **K1 Table 4.8(1) reproduced** (the least ring for a cutter, x0 = x2 = 0, radial infeed): for every row surveyed (cutters 24–60; 18 rows) the table's z2 builds and z2 − 1 is refused by the trimming condition.
+- **The straight insertion against the table:** the cutter-shaped pinion (addendum 1.25 m, tooth πm/2) moved straight in crosses exactly where the table says for cutters of 27 teeth and more (9 rows, up to 100/118). For 24/41 and 25/42 the straight path clears one ring tooth below the table; the condition flags them, as the table does. Hence the combined verdict.
+- **Involute interference of small cutters:** a 20-tooth cutter in an unshifted 60-tooth ring is refused (K1 notes cutters of 15–22 teeth cause it); the same ring at x2 0.5 builds.
+- **The cutter's tip round** does not fit small cutters at 0.38 m (the default above).
+- **`a_c` equals the pinion's internal distance** when x0 = x1 and the pinion is rack-cut: the studio's 24 in 60 at x2 0.5 shows 36.9185 mm for both.
+- **Timings:**
+  - a shaper-cut ring 8–13 ms at m 2 (the schematic 1–5 ms);
+  - `gear-internal.test.mjs` 78 s by default, 167 s with `GEAR_SURVEY=1` (173 s before the split);
+  - `gear-internal-shaper.test.mjs` about 6 s by default, 36 s with `GEAR_SURVEY=1`;
+  - the kernel suite's wall time 223 s.
+
+**Evidence:**
+- **Kernel** `test/gear-internal-shaper.test.mjs`, 4/4, its oracles written there apart from `gear.ts`/`gear-internal.ts`. The first test fails on 3e92e74a6 (no shaper-cut root).
+  - **Rings** (m 2: z60 x2 0.5 cutter 24; z48 cutter 30; z80 x2 0.25 cutter 30 x0 0.2; the survey more): valid, one body; a_c by the test's own `cutting()` to 1e-9; the root circle a_c + ra0; every fillet, root and flank curve of the B-rep against the cutter's own signed distance over its travel (`cutterDistance`, `maxPenetration`): fillets within their fits, the root arc to 1e-9·m, the flanks within the flank fit.
+  - **K1 Table 4.8(1)** as above; the involute refusal and its x2 0.5 clearance.
+  - **The straight insertion** as above (the default suite 27/45 and 40/58; 24/41 and 25/42 asserted: `sweepInterference` false, `conditionMargin` < 0, `interference` true).
+  - **Volume** (z48 cutter 30): against (πR² − the spaces' area by this file's own envelope and Green's area) × b, within the fits; the fillet's end by its own tangency condition; refusals; the part model's `@1` and a pinion inside it; STEP round trip (volume, names).
+- **`test/gear-internal.test.mjs`:** the survey split; `internal-gear@2` now the unknown generator; the disagreement block asserts the sweep's verdict, the condition's margin and the combined verdict.
+- **Conformance** `r12b/`, 12 (186 overall): `shaper-m2-z48-c30` (V 52090.336, relTol 3e-5), `shaper-trimming-refused`, `shaper-involute-refused`.
+- **RB seeds**, every stage OK: `gear-internal-shaper-m2-z60-c24`, `gear-internal-shaper-m2-z48-c30`, `gear-internal-shaper-pinion-inside`.
+- **Studio** `primitives.test.ts` "Internal gear": the command's node `@1` with `cutter {teeth: 24}` and `shiftDefault`; volume 36927.4805 within 1.04 mm³; notes "Profile shift 0.5 (default: …; see D132)", root Ø126.837, "Root cut by a 24-tooth pinion-type cutter, tip radius 0.5895 mm, at 36.9185 mm"; Root → Schematic gives 36845.980 (D132's) within 0.6; the shift edit drops the flag; tight and helical variants `@0` without a cutter.
+- **Browser flow:** the step "Internal gear (R12b.2a, D132; R12b.2b, D133)" expects the visible default and "Root cut by a 24-tooth pinion-type cutter".
+
+**Checks:**
+- Kernel 1330/1335 (4 skipped; +7: the 4 tests and 3 conformance cases; the names against D132's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 186/186. Kernel lint clean, type-check clean.
+- Studio 678/678 (the names: none missing). Studio lint 0 errors, type-check clean. `tools-v1.json`, `tools-v2.json` unchanged.
+- The full flow 195/195 on its own.
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** the default cutter tip radius (an estimate, flagged); the studio's default 24-tooth cutter (an estimate, flagged in its field); the combined trimming verdict (back to the insertion alone if a sourced reason appears).
+
+**Not in this stage:**
+- helical shaper-cut rings (a helical cutter);
+- the cutter's own wear, protuberance or chamfer;
+- a pinion cut by a shaper (pinions stay rack-cut).
+
+Next: R12b.3 — the straight bevel gear (spherical involute).

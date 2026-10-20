@@ -303,6 +303,53 @@ function filletDeviation(R: RackRoot, phis: readonly number[]): number {
   return worst;
 }
 
+/**
+ * A root fillet as any tool generates it (R12b.2b: a shaper cutter's tip round, D133): its point and derivative at the
+ * tool's turn φ in its own frame, run from `phiRoot` (the root side) to `phiEnd` (where it meets the involute), the
+ * tool's tip radius `rho`. The fit below is the rack's (D130), on this interface.
+ */
+export interface Envelope { point(phi: number): [number, number]; derivative(phi: number): [number, number]; readonly phiRoot: number; readonly phiEnd: number; readonly rho: number }
+/** An envelope's breaks for N pieces, at equal tangent turning (as `filletBreaks`). */
+export function envelopeBreaks(E: Envelope, N: number): number[] {
+  const M = 256, cum = new Float64Array(M + 1), span = E.phiEnd - E.phiRoot;
+  let prev = 0;
+  for (let i = 0; i <= M; i++) {
+    const d = E.derivative(E.phiRoot + span * i / M), t = Math.atan2(d[1], d[0]);
+    if (i > 0) { let dt = t - prev; dt -= 2 * Math.PI * Math.round(dt / (2 * Math.PI)); cum[i] = cum[i - 1] + Math.abs(dt) + 0.05 * Math.hypot(d[0], d[1]) * Math.abs(span) / M / E.rho; }
+    prev = t;
+  }
+  const out = [E.phiRoot];
+  for (let k = 1, i = 1; k < N; k++) {
+    const target = cum[M] * k / N;
+    while (cum[i] < target) i++;
+    out.push(E.phiRoot + span * (i - 1 + (target - cum[i - 1]) / (cum[i] - cum[i - 1])) / M);
+  }
+  out.push(E.phiEnd);
+  return out;
+}
+/** An envelope's C¹ Hermite Bézier poles over the breaks phis[j0] → phis[j1], in its own frame (z 0). */
+export function envelopePoles(E: Envelope, phis: readonly number[], j0: number, j1: number): Point[] {
+  const out: Point[] = [];
+  for (let k = j0; k < j1; k++) {
+    const pa = phis[k], pb = phis[k + 1], h = pb - pa, A = E.point(pa), B = E.point(pb), DA = E.derivative(pa), DB = E.derivative(pb);
+    if (k === j0) out.push([A[0], A[1], 0]);
+    out.push([A[0] + h / 3 * DA[0], A[1] + h / 3 * DA[1], 0], [B[0] - h / 3 * DB[0], B[1] - h / 3 * DB[1], 0], [B[0], B[1], 0]);
+  }
+  return out;
+}
+/** The largest distance of an envelope's fit over `phis` from the envelope at the same φ (a bound). */
+export function envelopeDeviation(E: Envelope, phis: readonly number[]): number {
+  const N = phis.length - 1, P = envelopePoles(E, phis, 0, N);
+  let worst = 0;
+  for (let k = 0; k < N; k++) for (let i = 0; i <= 64; i++) {
+    const t = i / 64, u = 1 - t, a = P[3 * k], b = P[3 * k + 1], cc = P[3 * k + 2], d = P[3 * k + 3];
+    const x = u * u * u * a[0] + 3 * u * u * t * b[0] + 3 * u * t * t * cc[0] + t * t * t * d[0], y = u * u * u * a[1] + 3 * u * u * t * b[1] + 3 * u * t * t * cc[1] + t * t * t * d[1];
+    const q = E.point(phis[k] + (phis[k + 1] - phis[k]) * t);
+    worst = Math.max(worst, Math.hypot(x - q[0], y - q[1]));
+  }
+  return worst;
+}
+
 /** The involute point at roll t (from the base circle at angle 0, unwinding counter-clockwise) and its derivative. */
 const involute = (rb: number, t: number): [number, number] => [rb * (Math.cos(t) + t * Math.sin(t)), rb * (Math.sin(t) - t * Math.cos(t))];
 const involuteD = (rb: number, t: number): [number, number] => [rb * t * Math.cos(t), rb * t * Math.sin(t)];
@@ -311,7 +358,7 @@ const involuteD = (rb: number, t: number): [number, number] => [rb * t * Math.co
  * One flank's Bézier control points (3N + 1, z 0) in the tooth's frame, over the roll t0 → t1, N C¹ Hermite pieces:
  * the involute turned by `turn`, mirrored in its x axis first when `mirror`.
  */
-function flankPoles(rb: number, t0: number, t1: number, N: number, turn: number, mirror: boolean): Point[] {
+export function flankPoles(rb: number, t0: number, t1: number, N: number, turn: number, mirror: boolean): Point[] {
   const c = Math.cos(turn), s = Math.sin(turn), out: Point[] = [];
   const put = (p: [number, number]) => { const y = mirror ? -p[1] : p[1]; out.push([c * p[0] - s * y, s * p[0] + c * y, 0]); };
   for (let k = 0; k < N; k++) {
@@ -322,7 +369,7 @@ function flankPoles(rb: number, t0: number, t1: number, N: number, turn: number,
   return out;
 }
 /** The largest distance of a Hermite-fitted involute (N pieces, unturned) from the involute: along the circle at each radius (a bound). */
-function flankDeviation(rb: number, t0: number, t1: number, N: number): number {
+export function flankDeviation(rb: number, t0: number, t1: number, N: number): number {
   const P = flankPoles(rb, t0, t1, N, 0, false);
   let worst = 0;
   for (let k = 0; k < N; k++) for (let i = 0; i <= 64; i++) {
@@ -334,7 +381,7 @@ function flankDeviation(rb: number, t0: number, t1: number, N: number): number {
   }
   return worst;
 }
-const bezierKnots = (N: number) => { const k = [0, 0, 0, 0]; for (let i = 1; i < N; i++) k.push(i, i, i); k.push(N, N, N, N); return k; };
+export const bezierKnots = (N: number) => { const k = [0, 0, 0, 0]; for (let i = 1; i < N; i++) k.push(i, i, i); k.push(N, N, N, N); return k; };
 export const lineCurve = (id: string, a: Point, b: Point): Curve => ({ kind: 'curve', id, degree: 1, knots: [0, 0, 1, 1], controlPoints: [a, b], weights: [1, 1] });
 /** A circular arc about the origin, radius r, from angle a0 counter-clockwise by sweep (> 0; spans of at most 90°), or clockwise when sweep < 0. */
 export function arcCurve(id: string, r: number, a0: number, sweep: number): Curve {

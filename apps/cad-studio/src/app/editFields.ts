@@ -191,9 +191,20 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       number('z', 'Teeth', undefined, n => g(n).teeth, (n, v) => ({ ...g(n), teeth: Math.round(v) }));
       number('b', 'Face width', 'mm', n => num(g(n).faceWidth), (n, v) => ({ ...g(n), faceWidth: v }));
       number('rim', 'Rim Ø', 'mm', n => num(g(n).rim), (n, v) => ({ ...g(n), rim: v }));
-      number('shift', 'Profile shift x', undefined, n => g(n).profileShift ?? 0, (n, v) => { const next = { ...g(n) }; if (v) next.profileShift = v; else delete next.profileShift; return next; });
+      // (A shift given here is the user's own: the default's flag goes.)
+      number('shift', 'Profile shift x', undefined, n => g(n).profileShift ?? 0, (n, v) => { const next = { ...g(n) }; delete next.shiftDefault; if (v) next.profileShift = v; else delete next.profileShift; return next; });
       number('ds', 'Thinner by', 'mm', n => num(g(n).thicknessReduction ?? 0), (n, v) => ({ ...g(n), thicknessReduction: v }));
       number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
+      // The root (R12b.2b, D133): the one a pinion-type cutter cuts (internal-gear@1) or the schematic one; a straight ring's choice.
+      if (!node.helixAngle) {
+        out.push({ kind: 'choice', key: 'root', label: 'Root', options: [{ value: 'internal-gear@1', label: 'Cut by a pinion-type cutter' }, { value: 'internal-gear@0', label: 'Schematic' }], get: n => self<typeof node>(n).generator,
+          set: (n, v) => { const next = { ...self<typeof node>(n), generator: v as 'internal-gear@0' | 'internal-gear@1' }; if (v === 'internal-gear@1') next.cutter ??= { teeth: 24 }; else delete next.cutter; return replace(n, i, next); } });
+        if (node.cutter) {
+          number('cz', 'Cutter teeth', undefined, n => g(n).cutter?.teeth ?? 24, (n, v) => ({ ...g(n), cutter: { ...g(n).cutter!, teeth: Math.round(v) } }));
+          number('cx', 'Cutter shift x0', undefined, n => g(n).cutter?.shift ?? 0, (n, v) => { const c = { ...g(n).cutter! }; if (v) c.shift = v; else delete c.shift; return { ...g(n), cutter: c }; });
+          number('cr', 'Cutter tip radius (0: the estimate)', 'mm', n => num(g(n).cutter?.tipRadius ?? 0), (n, v) => { const c = { ...g(n).cutter! }; if (v) c.tipRadius = v; else delete c.tipRadius; return { ...g(n), cutter: c }; });
+        }
+      }
       break;
     }
     case 'gear': {

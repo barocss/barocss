@@ -195,13 +195,23 @@ test('Internal gear (R12b.2a, D132): a ring from the command (x2 0.5 by default)
   const one = cmd.build!(ctx, { ...cmd.defaults!(ctx), x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 1);
   assert.ok(r1.ok, r1.ok ? '' : r1.error.hint);
   const node = one.nodes[0] as Extract<ModelNode, { kind: 'internal-gear' }>;
-  assert.deepEqual([node.kind, node.module, node.teeth, node.faceWidth, node.rim, node.profileShift, node.generator], ['internal-gear', 2, 60, 10, 140, 0.5, 'internal-gear@0']);
+  assert.deepEqual([node.kind, node.module, node.teeth, node.faceWidth, node.rim, node.profileShift, node.generator, node.shiftDefault, node.cutter], ['internal-gear', 2, 60, 10, 140, 0.5, 'internal-gear@1', true, { teeth: 24 }]);
   const g = r1.ok ? r1.bodies[0] : null!;
-  // (The m 2 z 60 ring at x2 0.5 in Ø140 × 10: πR² less its 60 spaces by the analytic involute, 3684.5980 mm² — the
-  // kernel test's own outline, test/gear-internal.test.mjs — within what the flank fits allow, 120 flanks × 1e-4 × 4.5 × 10.)
-  assert.ok(Math.abs(g.volumeMM3! - 36845.980) < 0.6, String(g.volumeMM3));
-  assert.ok(g.notes?.some(n => /^Profile shift x 0\.5: Internal: reference Ø120, tip Ø118 \(inside\), root Ø127, base Ø112\.7631, rim Ø140 mm/.test(n.text)) && g.notes?.some(n => n.warning && /Schematic root: not the cutting tool's \(a pinion-type cutter\)/.test(n.text)), JSON.stringify(g.notes));
+  // (R12b.2b, D133: cut by a 24-tooth pinion-type cutter. The m 2 z 60 ring at x2 0.5 in Ø140 × 10: πR² less its 60
+  // spaces — the involute, the cutter round's envelope, the root a_c + ra0 — by the kernel test's own construction,
+  // test/gear-internal-shaper.test.mjs: 36927.4805 mm³, within what the flank and fillet fits allow, 1.04 mm³.)
+  assert.ok(Math.abs(g.volumeMM3! - 36927.4805) < 1.04, String(g.volumeMM3));
+  // (The default shift said as one: not a standard, D132.)
+  assert.ok(g.notes?.some(n => /^Profile shift 0\.5 \(default: clears rack-cut pinions; see D132\): Internal: reference Ø120, tip Ø118 \(inside\), root Ø126\.837, base Ø112\.7631, rim Ø140 mm/.test(n.text)) && g.notes?.some(n => /^Root cut by a 24-tooth pinion-type cutter, tip radius 0\.5895 mm, at 36\.9185 mm/.test(n.text)) && g.notes?.some(n => n.warning && /estimate for a pinion-type cutter/.test(n.text)), JSON.stringify(g.notes));
+  // The Root field to Schematic: the R12b.2a ring, its volume (3684.5980 mm² × 10 by the kernel test's own outline) and warning.
+  const rf = editFields(one.nodes, 0).find(f => f.key === 'root')!, sch = rf.kind === 'choice' ? rf.set(one.nodes, 'internal-gear@0') : one.nodes, rs = evaluateDoc({ ...one, nodes: sch }, 8);
+  assert.equal((sch[0] as typeof node).cutter, undefined);
+  assert.ok(rs.ok && Math.abs(rs.bodies[0].volumeMM3! - 36845.980) < 0.6 && rs.bodies[0].notes?.some(n => n.warning && /Schematic root/.test(n.text)));
   assert.equal(g.mesh.faces.filter(f => f.name === 'n0.tip').length, 60);
+  // A shift given in the editor is the user's own: the default's flag goes, the note says it plainly.
+  const sf = editFields(one.nodes, 0).find(f => f.key === 'shift')!, own = sf.kind === 'number' ? sf.set(one.nodes, 0.3) : one.nodes, ro = evaluateDoc({ ...one, nodes: own }, 7);
+  assert.equal((own[0] as typeof node).shiftDefault, undefined);
+  assert.ok(ro.ok && ro.bodies[0].notes?.some(n => /^Profile shift x 0\.3: Internal:/.test(n.text)) && !ro.bodies[0].notes?.some(n => /default: clears/.test(n.text)));
   // A pinion inside it.
   assert.equal(mesh.available(ctx).ok, false);
   const picked: Ctx = { doc: one, bodies: r1.ok ? r1.bodies : [], selection: { faces: [], edges: [], bodies: [0] } };
@@ -217,12 +227,13 @@ test('Internal gear (R12b.2a, D132): a ring from the command (x2 0.5 by default)
   const a = editFields(two.nodes, 1).find(f => f.key === 'a')!;
   assert.ok(a.kind === 'number' && Math.abs(Number(a.get(two.nodes)) - 36.91848518) < 1e-6);
   // A ring of 40 with a 36-tooth pinion: its tip circle does not fit inside — radial assembly impossible, said; the teeth cross.
-  const tight = { ...two, nodes: [{ ...node, teeth: 40, rim: 100, profileShift: 0 }, { ...p, teeth: 36 }] }, r3 = evaluateDoc(tight, 3);
+  const tight = { ...two, nodes: [{ ...node, teeth: 40, rim: 100, profileShift: 0, generator: 'internal-gear@0' as const, cutter: undefined }, { ...p, teeth: 36 }] }, r3 = evaluateDoc(tight, 3);
   assert.ok(r3.ok && r3.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => n.warning && /Radial assembly impossible/.test(n.text)));
   // The ring is used by the pinion: it cannot be deleted from under it.
   assert.match((deleteFeature(two, 0) as { error: string }).error, /used by feature 1/);
   // A helical ring: its pinion takes the same hand.
-  const hr = { ...two, nodes: [{ ...node, helixAngle: 15, hand: 'right' as const }, p] }, r4 = evaluateDoc(hr, 4);
+  // (A helical ring's root is schematic in this stage: internal-gear@0.)
+  const hr = { ...two, nodes: [{ ...node, helixAngle: 15, hand: 'right' as const, generator: 'internal-gear@0' as const, cutter: undefined }, p] }, r4 = evaluateDoc(hr, 4);
   assert.ok(r4.ok, r4.ok ? '' : r4.error.hint);
   assert.ok(r4.ok && r4.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /^Helical β 15° right hand/.test(n.text)) && r4.bodies.find(b => b.ref?.node === 1)!.notes!.some(n => /^Clear over/.test(n.text)), JSON.stringify(r4.ok && r4.bodies.find(b => b.ref?.node === 1)!.notes));
 });

@@ -1,0 +1,60 @@
+{
+  "id": "r12b-shaper-m2-z48-c30",
+  "step": "R12b",
+  "decisions": [
+    "D133"
+  ],
+  "about": "An internal gear m 2, z 48, 10 wide in a Ø126 rim, its root cut by a 30-tooth pinion-type cutter (internal-gear@1; K1 Table 4.8(1): 30 → 48 the least): the root Ø101 (a_c 18 + the cutter's tip 26.5), the fillets the cutter round's envelope; the volume (πR² − the spaces' area) × the width within the fits.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "r",
+          "kind": "internal-gear",
+          "module": 2,
+          "teeth": 48,
+          "faceWidth": 10,
+          "rim": 126,
+          "generator": "internal-gear@1",
+          "cutter": {
+            "teeth": 30
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 52090.336,
+          "relTol": 3e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^r\\.(filletL\\d?|filletR\\d?|flankL|flankR|tip|root|rim|face0|face1)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "the spaces' area by the shoelace formula over the involute, the cutter round's envelope (this file's construction) and the arcs (test/gear-internal-shaper.test.mjs), apart from gear-internal.ts"
+}

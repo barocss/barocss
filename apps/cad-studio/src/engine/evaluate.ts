@@ -82,7 +82,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined)), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
+  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear, at.ref ? doc.nodes[at.ref.node] : undefined) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined)), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
 }
 
 const AXES: [string, number[]][] = [['+X', [1, 0, 0]], ['−X', [-1, 0, 0]], ['+Y', [0, 1, 0]], ['−Y', [0, -1, 0]], ['+Z', [0, 0, 1]], ['−Z', [0, 0, -1]]];
@@ -418,13 +418,18 @@ function meshNotes(g: GearPlacement | undefined): { text: string; warning?: bool
 }
 
 /** An internal gear's report as lines for the body's panel (R12b.2a, D132). */
-function internalGearNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['internalGear']>): { text: string; warning?: boolean }[] {
+function internalGearNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['internalGear']>, node?: ModelNode): { text: string; warning?: boolean }[] {
   const d = g.dimensions, mm = (x: number) => +x.toFixed(4);
+  // (The command's default shift said as one, D132: not a standard.)
+  const shift = node?.kind === 'internal-gear' && node.shiftDefault ? `Profile shift ${g.profileShift} (default: clears rack-cut pinions; see D132): ` : g.profileShift ? `Profile shift x ${g.profileShift}: ` : '';
   return [
-    { text: `${g.profileShift ? `Profile shift x ${g.profileShift}: ` : ''}Internal: reference Ø${mm(d.referenceDiameterMM)}, tip Ø${mm(d.tipDiameterMM)} (inside), root Ø${mm(d.rootDiameterMM)}, base Ø${mm(d.baseDiameterMM)}, rim Ø${mm(d.rimDiameterMM)} mm; space ${mm(d.spaceWidthMM)} mm at the reference circle` },
+    { text: `${shift}Internal: reference Ø${mm(d.referenceDiameterMM)}, tip Ø${mm(d.tipDiameterMM)} (inside), root Ø${mm(d.rootDiameterMM)}, base Ø${mm(d.baseDiameterMM)}, rim Ø${mm(d.rimDiameterMM)} mm; space ${mm(d.spaceWidthMM)} mm at the reference circle` },
     ...(g.helix ? [{ text: `Helical β ${g.helix.helixAngleDeg}° ${g.helix.hand} hand: normal module ${mm(g.helix.normalModuleMM)}, transverse ${mm(g.helix.transverseModuleMM)} mm; its pinion takes the same hand` }] : []),
     { text: `Flanks within ${g.profileDeviationMM.toExponential(1)} mm of the involute (${g.flankPieces} cubic piece${g.flankPieces > 1 ? 's' : ''}; asked ${g.profileToleranceMM.toExponential(1)})` },
-    { text: 'Schematic root: not the cutting tool\'s (a pinion-type cutter), not validated for manufacturing', warning: true },
+    // (R12b.2b, D133: the root a pinion-type cutter cuts, or the schematic one.)
+    ...(g.shaperRoot ? [{ text: `Root cut by a ${g.shaperRoot.cutterTeeth}-tooth pinion-type cutter${g.shaperRoot.cutterShift ? ` (x0 ${g.shaperRoot.cutterShift})` : ''}, tip radius ${mm(g.shaperRoot.cutterTipRadiusMM)} mm, at ${mm(g.shaperRoot.cuttingCenterDistanceMM)} mm: the involute to Ø${mm(g.shaperRoot.formDiameterMM)}; fillets within ${g.shaperRoot.filletDeviationMM.toExponential(1)} mm of its envelope (${g.shaperRoot.filletPieces} cubic pieces). Not validated for manufacturing` },
+      ...g.diagnostics.map(x => ({ text: x.message, warning: x.severity === 'warning' }))]
+      : [{ text: 'Schematic root: not the cutting tool\'s (a pinion-type cutter), not validated for manufacturing', warning: true }]),
   ];
 }
 /**
