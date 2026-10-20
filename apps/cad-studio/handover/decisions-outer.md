@@ -1307,3 +1307,75 @@ Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 �
   - The allowlist: the standards named are ISO 4017, 4762, 10642, 4032, 7089 and 68-1, and there is no quote near one.
   - Browser flow 173/173, with a step "A6.5" before the last: `standards_lookup` through the real chat and tool servers. Studio 561/561. The test names were compared with the last run, and none is missing. Lint and type-check clean.
 - **A6 is done**: A6.1–A6.5 (O24–O29).
+
+## O30 — A7 S0: multi-agent v1, the deterministic core — scope, acceptance, exposure; the live comparison pending (2026-10-20)
+
+Assigned by the coordinator after A6. Build the parts that need no model now, and drive them with scripted roles and seeded defects. Anything that needs a live model waits for the owner, with its protocol written here.
+
+**What is already there:** op lists (`apply_ops`, all or nothing, op ids, dry runs; A4), proposals with risk and rebasing (D41), `modelHash` (a 32-bit FNV, for staleness), interference and clearance, keep-outs (A6.3), printability rules (AM), `check_spec` (A3), references verified after edits.
+
+### A7.1 — patches against a base revision
+- **A revision** (`revisionOf(doc)`) is a 64-bit FNV-1a over the canonical JSON (sorted keys) of what a patch may change or depend on: nodes, parameters, bodies' looks, requirements, brief, references (datums, keep-outs), process. `modelHash` is too weak to name a base.
+- **A patch** is `{id, by: role, base: revision, ops: Op[] (A4's ops), rationale}`.
+- A patch whose base is not the current revision is refused, typed **`STALE_BASE`**, naming the current revision.
+- **Rebasing is explicit**: `rebase(patch, revision)` makes a new patch on the given revision, its trace naming the old base. Rebasing is never automatic.
+
+### A7.2 — the deterministic Integrator: serial gates, typed verdicts, a trace per patch
+- Patches go one at a time. Each is dry-run on its base: A4's `apply_ops` on a copy of the state, nothing committed.
+- **The gates, in order**, each giving `{gate, verdict: pass | fail | undecided | skipped, findings: [{code, message, entities?}]}`. The first fail stops the rest, which are marked skipped "not reached".
+  1. **validity**: every op applied; the part evaluates; at least one solid; no reference broken.
+  2. **interference/clearance**: no two bodies of the part overlap that did not before (the kernel's intersection); every keep-out clear (A6.3; undecided within the chord tolerance).
+  3. **interfaces**: the patch leaves the contracts alone — references, datums, keep-outs, the brief, the requirements and the process are the Requirements role's and the user's, not the Designer's (typed `CONTRACT_CHANGED`) — and every hard interface requirement (`keepout`, `datum_distance`, `clearance`, `hole_alignment`) passes.
+  4. **DFM**: the printability rules of the brief's (or the part's) process. Skipped, said so, when there is none, or for a process with no checks yet (CNC, sheet metal).
+  5. **analysis**: every hard requirement passes (`check_spec`). An unknown hard requirement is undecided.
+- **The decision**:
+  - **applied**: every gate passes or is skipped, and the Verifier accepts;
+  - **rejected**: a gate fails, or the Verifier rejects with findings;
+  - **held**: a gate is undecided. Held patches are the user's to decide.
+  - **stale**: the base is not current.
+- **The trace** (one per patch): the patch, its base (and rebased-from), the dry run's diff, each gate's verdict and findings, the Verifier's review, the decision, the revision after. A logical sequence number replaces wall time, so a run is reproducible to the byte.
+
+### A7.3 — roles as interfaces; the Verifier sees only artifacts and requirements
+- **Roles** are TypeScript interfaces with no chat tools:
+  - `RequirementsRole.brief(input) → { brief fields, requirements }`;
+  - `DesignerRole.propose(view) → Patch | 'done'`;
+  - `VerifierRole.review(view) → { accept, findings }`.
+  - Each role has a `model` field (recorded; a stronger or different model for the Verifier is the protocol's choice).
+- **The Verifier's view is built, not prompted**. `verifierView(doc, bodies)` gives only:
+  - the artifacts: facts, mass properties, each body's box, keep-out results, the printability report, the `check_spec` report;
+  - the requirements and the brief.
+  - It does not give the ops, the Designer's rationale or any chat.
+  - It is a frozen plain object of a fixed key set, checked in a test, so a role cannot see more than it is given.
+- **The run** (`runTeam`): the Requirements role sets the brief and requirements, applied and traced. The Designer proposes patches, the Integrator gates them, and the Verifier reviews each that passes. It ends when the Designer says done or a patch budget is reached.
+- It logs per patch and per run the tokens each role reports (0 for scripted roles), the patches tried and accepted, and the cost per accepted design.
+
+### A7.4 — exposure: no new chat tools
+- The contract has 831 characters of room, and the roles need no chat tools.
+- **The internal API** is `src/team/`. **`cad-cli team <scenario.json>`** runs a scripted team from a scenario file (the brief, the roles' patches and reviews) and prints the traces as JSON.
+- `tools/list` is unchanged, and so is the guard.
+
+### Acceptance (deterministic: scripted roles, seeded-defect fixtures in `conformance/a7/`)
+- The scripted Requirements, Designer and Verifier roles replay fixtures.
+- **The seeded defects**, one a fixture, each caught by the gate (or the Verifier) named, with its typed verdict:
+  - an op that does not apply (validity);
+  - two bodies made to overlap (interference);
+  - a body into a keep-out (interference);
+  - a patch that edits a keep-out or a requirement (`CONTRACT_CHANGED`, interfaces);
+  - a wall under the FDM minimum (DFM);
+  - a hard requirement broken (analysis);
+  - a stale base (`STALE_BASE`), then the same patch rebased and applied;
+  - a defect no gate sees but the Verifier's deterministic check does (its findings);
+  - a near-limit keep-out (held).
+- **A clean run**: a brief to an accepted design in N patches, every trace complete, the result byte-identical on a rerun.
+- **The Verifier's isolation**: its view's keys exactly the fixed set; no op, rationale or chat text in it (searched for the Designer's rationale string).
+- Tests and conformance fixtures; `cad-cli team` on a fixture (byte-identical output twice). No browser step is needed: no UI changes.
+
+### Pending until the owner: the live comparison (exact protocol)
+- **Arms**: (a) one agent (the studio's chat agent, today's tools); (b) the team — Requirements, Designer, a Verifier on a stronger model, the deterministic Integrator — through `runTeam` with live role adapters.
+- **Tasks**: A5.5's briefs (block-hole, washer, phone-stand and the rest of `server/ab/briefs.ts`), plus two with references and keep-outs (A6.3) and one from a drawing (A6.4).
+- **Budget**: the same token budget per task for both arms, the sum over every model call: the single agent's turns against the team's roles.
+- **Metrics**: accepted designs (every hard requirement passing; the Verifier's acceptance for the team), the hard-requirement pass rate, iterations, tokens and cost per accepted design. On the seeded-defect set, the Verifier's precision and recall.
+- **Runs**: 10 per task per arm, at fixed model versions, recorded.
+- **Needs**: the owner's OK for live runs and their cost, and the A5.5 A/B question that is open with them. The cost is estimated from A5.5's per-turn figures.
+
+**Not in A7**: A8 (parallel reviewers, the Architect, leases, ECRs), and any UI for the team.

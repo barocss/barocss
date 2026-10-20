@@ -364,11 +364,18 @@ stays out of the kernel's core files (requests for them go through the coordinat
     numbers from an allowlist, with no quotes. Conformance `conformance/a6/standards`.
   - **A6 done** (O23–O29). Next per the coordinator: A7 (its single-versus-multi comparison needs live runs: the
     owner's OK).
+- **A7** multi-agent v1 (coordinator, 2026-10-20):
+  - **A7 S0** (O30): done. The deterministic core frozen: patches on a base revision (STALE_BASE, explicit rebase); the
+    Integrator's serial gates (validity → interference/clearance → interfaces → DFM → analysis), typed verdicts, a
+    trace per patch; roles as interfaces, the Verifier given artifacts and requirements only; exposed as `src/team/`
+    and `cad-cli team`, no new chat tools. The live single-versus-multi comparison pending with its protocol.
+  - A7.1–A7.4 (next).
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.
 - Waiting for the owner: A5.5's live A/B runs (O13; the cost estimate there).
 - Waiting for the owner: installing MuJoCo as the test oracle of RM4 (O17) and RM5's gravity hang (O18); the commands are there.
+- Waiting for the owner: A7's live single-versus-multi comparison (O30: tasks, equal token budget, metrics, 10 runs a task an arm).
 - Waiting for the owner: the legal review of the standards-derived data and the material library before release (A6.5, O29).
 - Waiting for the owner: RD3's published worked examples and the catalogue values the HTML pages lack (O22). Both are
   PDFs, and opening one is a download: the Harmonic Drive CSG-2A / CSF catalogue and the maxon motor catalogue.
