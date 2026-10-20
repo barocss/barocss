@@ -3626,3 +3626,32 @@ The coordinator accepted IM1 and flagged one point: PA12 uses the page's generic
 
   `test/mould.test.ts`'s box is now warned for its undrafted walls, with PA12's note asserted. The type errors in that test from IM1 (`delete` on a read-only value; `null` for the mould argument) are fixed: `tsc` covers the tests, and IM1's run had only bundled them.
 - **Flow**: an IM2 step through the real chat and tool servers. A drafted cone loaded with its mould settings: `draft` says `n1.side0` is 3°, drafted, and the report judges the part as injection moulding.
+
+## O79 — IM3: undercuts by ±d visibility, with side actions (2026-10-21)
+
+The coordinator accepted IM2 and ordered IM3.
+
+- **What is an undercut** (`src/mould/undercut.ts`). The mould opens along the pull d: the half moving along +d frees what it sees along +d, and the other half what it sees along −d. A point that neither sees is an undercut.
+- **Sampling**. Each display triangle is split into n² equal sub-triangles. n is the triangle's longest edge over the sampling step (the part's diagonal / 400, at least 0.05 mm), at most 64. Each sub-triangle's centre is moved 0.01 mm off the triangle along its normal, and a ray is cast along +d and along −d through the studio's triangle BVH (`print/orient.ts`, AM4). A sample hidden both ways is an undercut, and carries its share of the triangle's area.
+  - The first version sampled only each triangle's centre. It missed the plate under a snap hook's latch: a big flat face shadowed by a small overhang has its centre in the open. Hence the sub-grid.
+  - A 0.1 mm latch over a 44 mm triangle is still under the cap's step (0.7 mm). The method states the step it used.
+- **Regions**: triangles with hidden samples, joined at shared positions.
+- **Side actions**: for each region, the two axes across d are tried both ways (±X and ±Y for a pull along Z). The side action is the direction whose rays free every hidden sample, counted rather than summed: a float sum of areas came to 0.9999999999987 on an exact case. If no direction frees them all, the best direction is reported with its share.
+- **In the report**, the moulding rule `undercut` is:
+  - **pass**: no region;
+  - **warn**: every region freed by a side action, each named;
+  - **fail**: some region freed by no straight action across the pull ("a collapsing core, a lifter or a redesign");
+  - **unknown**: no pull.
+
+  `mould.undercuts` lists each region's faces, area, centre, side action and best share.
+- **The chat** now summarises `check_printability` as its process and each rule's status ("injection: pull pass, …, undercut warn"). The whole JSON runs past the chat's 160-character line.
+- **Tests** (`test/mould-undercut.test.ts`, 4, constructed oracles):
+  - **A block with a hole along the pull and one across it**: the side hole's bore is the one region, its area the bore's mesh area to 1e-9, freed along its own axis (±Y). Pulled along Y instead, the vertical hole is the one region, freed along Z.
+  - **A snap hook standing on a plate** (latch 1 mm): one region of three parts — the catch (1 × 6), the beam's face under the latch (12 × 6) and the plate under it (1 × 6). Its area is 84 to within 1 mm² (the step), and it is freed by a side action along +X, the latch's way. A plain post in the hook's place (the mutant) has none.
+  - **An internal groove in a bore along the pull**: hidden both ways, and no side action frees it (best share under 1). Its regions' centres are within the groove's height.
+  - **The report**: the side hole is warned with its side action named; the groove fails; a plain box passes; no pull is unknown. The chat's summary is checked.
+
+  `test/mould.test.ts` now expects the IM1 box to pass on undercuts, with an empty list.
+- **Flow**:
+  - IM2's step now reads the report through the chat's summary: draft pass, undercut pass;
+  - a new IM3 step through the real chat and tool servers: a block with a side hole, with the process set in the Library panel and the report run, ends in "undercut warn".

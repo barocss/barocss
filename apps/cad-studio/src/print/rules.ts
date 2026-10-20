@@ -11,6 +11,7 @@ import { materialIdOf } from '../app/bodies';
 import { materialData, printerProfile, processProfile, type MouldFinish, type ProcessProfile } from '../library/materials';
 import { overhangOf, type Vec3 } from './overhang';
 import { draftField, type DraftFace } from '../mould/draft';
+import { undercuts, type UndercutRegion } from '../mould/undercut';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
 export interface PrintRule {
@@ -26,7 +27,9 @@ export interface PrintabilityReport {
   readonly process: string | null; readonly printer?: string; readonly direction: Vec3 | null; readonly rules: readonly PrintRule[];
   readonly mould?: { readonly finish: string | null; readonly minDraftDeg: number | null; readonly recDraftDeg: number | null; readonly bodies: readonly { body: string; material: string | null; wallMM: readonly [number, number] | null; wallNote?: string; shrink: number | null }[];
     /** IM2: each face's exact draft and class (with a pull and a finish). */
-    readonly draft?: readonly { body: string; face: string; cls: string; min_deg: number; max_deg: number; steepest_deg: number; side: string; below_mm2: number; area_mm2: number; isocline_points?: number }[] };
+    readonly draft?: readonly { body: string; face: string; cls: string; min_deg: number; max_deg: number; steepest_deg: number; side: string; below_mm2: number; area_mm2: number; isocline_points?: number }[];
+    /** IM3: the undercut regions (with a pull): their faces, area, centre and the side action that frees each (null: none). */
+    readonly undercuts?: readonly { body: string; faces: string[]; area_mm2: number; centroid: Vec3; side_action: Vec3 | null; best_share: number }[] };
 }
 type Evaluate = (doc: StudioDoc) => Promise<{ ok: boolean } | null>;
 
@@ -173,8 +176,18 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
       message: `every face's draft (its exact normal) against ${finish.label}'s least, ${finish.draftMinDeg}°${steep.length ? `: ${steep.length} too steep` : ''}${straddle.length ? `; ${straddle.length} straddle the pull (n·d takes both signs: a parting line crosses them, IM5)` : ''}`,
       value: steep.length ? Math.min(...steep.map(f => f.steepestDeg)) : Math.min(...field.map(f => f.steepestDeg)), limit: finish.draftMinDeg, unit: 'deg', source: finish.source, entities: [...steep, ...straddle].map(f => f.face).slice(0, 40) });
   }
-  rules.push({ id: 'undercut', level: 'feasible', status: 'unknown', message: 'undercuts against the pull', why: 'undercuts by visibility along the pull (IM3) are not built yet' });
+  // IM3 (O79): what neither half sees along the pull; freed by a side action across it (warned), or by none (fails).
+  let regions: UndercutRegion[] | null = null;
+  if (!pull) rules.push({ id: 'undercut', level: 'feasible', status: 'unknown', message: 'undercuts against the pull', why: 'no pull direction: undercuts are what neither half sees along it' });
+  else {
+    regions = undercuts(bodies, pull).regions;
+    const stuck = regions.filter(r => !r.sideAction), sided = regions.filter(r => r.sideAction), dirName = (v: readonly number[]) => v.map(x => +x.toFixed(6)).join(', ');
+    rules.push({ id: 'undercut', level: 'feasible', status: stuck.length ? 'fail' : sided.length ? 'warn' : 'pass',
+      message: !regions.length ? 'no undercut: every face seen along the pull one way or the other' : `${regions.length} undercut region${regions.length > 1 ? 's' : ''} (${+regions.reduce((a, r) => a + r.areaMM2, 0).toFixed(3)} mm²): ${sided.length ? `${sided.length} freed by a side action (${sided.map(r => `[${dirName(r.sideAction!)}]`).join(', ')})` : ''}${sided.length && stuck.length ? '; ' : ''}${stuck.length ? `${stuck.length} freed by no straight action across the pull (a collapsing core, a lifter or a redesign)` : ''}`,
+      value: regions.reduce((a, r) => a + r.areaMM2, 0), unit: 'mm²', entities: [...new Set(regions.flatMap(r => r.faces))].slice(0, 40) });
+  }
   return { process: profile.id, direction: pull, rules, mould: { finish: finish?.id ?? null, minDraftDeg: finish?.draftMinDeg ?? null, recDraftDeg: finish ? finish.draftRecDeg ?? finish.draftMinDeg : null, bodies: per.map(x => ({ body: x.key, material: x.material, wallMM: x.range, ...(x.note ? { wallNote: x.note } : {}), shrink: x.shrink })),
+    ...(regions ? { undercuts: regions.map(r => ({ body: r.body, faces: r.faces, area_mm2: r6(r.areaMM2), centroid: r.centroid.map(r6) as Vec3, side_action: r.sideAction, best_share: r6(r.best.clearShare) })) } : {}),
     ...(field ? { draft: field.map(f => ({ body: f.body, face: f.face, cls: f.cls, min_deg: r6(f.minDeg), max_deg: r6(f.maxDeg), steepest_deg: r6(f.steepestDeg), side: f.side, below_mm2: r6(f.belowMM2), area_mm2: r6(f.areaMM2), ...(f.isocline ? { isocline_points: f.isocline.length } : {}) })) } : {}) } };
 }
 

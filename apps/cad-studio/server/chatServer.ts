@@ -113,6 +113,8 @@ export function summarize(name: string, text: string, isError: boolean): string 
   try { j = JSON.parse(text); } catch { return text.slice(0, 160); }
   if (isError || j.ok === false) return String(j.error ?? text);
   if (name === 'get_part_summary') return `${j.feature_count} features, ${j.bodies?.length ?? 0} bodies`;
+  // (O79: the manufacturability report as its process and each rule's status — the whole JSON is past 160 characters.)
+  if (name === 'check_printability' && Array.isArray(j.rules)) return `${j.process ?? 'no process'}: ${j.rules.map((r: { id: string; status: string }) => `${r.id} ${r.status}`).join(', ')}`;
   if (name === 'select') return `selected ${[...(j.selected?.faces ?? []), ...(j.selected?.edges ?? []), ...(j.selected?.bodies ?? [])].length}`;
   if (name === 'get_assembly') return `${(j.instances?.length ?? 0) + 1} parts, ${j.mates?.length ?? 0} mates${j.problems?.length ? `, ${j.problems.length} unmet` : ''}`;
   if (typeof j.did === 'string' && !Array.isArray(j.bodies)) return `${j.did}${j.unmet_mates?.length ? ` (${j.unmet_mates.length} unmet mate${j.unmet_mates.length > 1 ? 's' : ''})` : ''}`;
