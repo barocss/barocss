@@ -5019,7 +5019,7 @@ try {
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), report = lines[lines.length - 1];
-      assert.match(report, /cnc-milling: material pass, wall pass, size pass, hole-depth pass, hole-size pass, thread pass, corners pass, pocket pass, feature pass, tall pass, text pass, access pass, setups pass, drawing unknown/, report);
+      assert.match(report, /cnc-milling: material pass, wall pass, size pass, hole-depth pass, hole-size pass, thread pass, corners pass, pocket pass, feature pass, tall pass, text pass, access pass, setups pass, drawing pass/, report);
       await snap('cnc1-milling');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
@@ -5108,6 +5108,37 @@ try {
       assert.match(report, /access warn, setups pass/, report);
       await snap('cnc4-access');
       await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
+  // ---- CNC5 (O88): the drawing a machined part goes with, through the real chat and tool servers -----------------
+  await check('CNC5: a milled plate with an M6 tapped hole and no drawing — the drawing failed (threads go on one); Auto-dimension in the Drawing workspace — warned now (no general note, title or material), the thread called out', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Close library"]');
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      const run = async calls => {
+        await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+        const n = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+        const out = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /cnc-milling:/.test(x)).pop(); await page.click('[aria-label="Close chat"]'); return out;
+      };
+      let report = await run([{ tool: 'run_command', args: { command: 'box', values: { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 } } },
+        { tool: 'run_command', args: { command: 'hole', values: { type: 'tapped', thread: 'M6', tend: 'blind', depth: 12, x: 45, y: 20 }, faces: ['n1.top'] } },
+        { tool: 'set_material', args: { material: 'al6061' } }, { tool: 'check_printability', args: {} }]);
+      assert.match(report, /drawing fail/, report);
+      try {
+        await page.click('.mode button:text-is("Drawing")');
+        await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+        await page.click('[aria-label="Auto-dimension"]');
+        await page.waitForFunction(() => window.__studioDrawing().dimensions.some(d => /M6×1/.test(d.text)), null, { timeout: 5000 });
+        await snap('cnc5-drawing');
+      } finally { await page.click('.mode button:text-is("Model")'); }
+      report = await run([{ tool: 'check_printability', args: {} }]);
+      assert.match(report, /drawing warn/, report);
     } finally { chat.kill(); }
   });
 

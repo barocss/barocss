@@ -3968,3 +3968,46 @@ The coordinator accepted CNC2 with one flag. Drill sizes "read as a pattern" are
 - **Flow**:
   - CNC1's step now reads "… access pass, setups pass, drawing unknown";
   - a new CNC4 step, through the real chat and tool servers: a side slot open to +X reads "access pass, setups pass"; the slot sealed reads "access warn".
+
+## O88 — CNC5: the drawing a machined part goes with, on R14's drawing; AP242 semantic PMI left to the kernel lane (2026-10-21)
+
+The coordinator's rule: stop before any AP242 semantic PMI in the STEP writer. CNC5 checks the studio's own drawing, which is the document a shop quotes and machines from. The STEP writer is not touched. Semantic PMI stays the kernel lane's queued request (flagged in O83).
+
+- **Sources** (public HTML, read-only, 2026-10-21), each item naming its page and the page's words (`DRAWING_PAGES`):
+  - Hubs' CNC guide:
+    - "A technical drawing is required … When feature tolerances are required";
+    - "If no tolerance is specified in the technical drawing, then the standard ± 0.125 mm will be held";
+    - "The standard surface roughness of as-machined parts is 3.2 μm".
+  - Hubs' technical-drawing page (`hubs.com/knowledge-base/how-prepare-technical-drawing-cnc-machining/`):
+    - the title block's "part name, material, finish and color …", and "the standards used for dimensioning and tolerancing";
+    - "Include one or more 3D pictorial views", with two or three orthographic views sufficient;
+    - "dimensioning all critical features";
+    - "Specify the location, size, and length of all threads";
+    - finishing requirements annotated, the standard "Ra 3.2 μm".
+- **The check** (`src/machining/drawing.ts`, `drawingCheck`; the report's `drawing` rule for milling and turning alike, its items in `machining.drawing`):
+  - **Is a drawing needed?** Threads go on a drawing: with a tapped hole and no drawing, the rule fails. With neither threads nor a drawing, it passes: the standard ±0.125 mm holds. The studio states no tolerance tighter than standard outside the drawing.
+  - **On the drawing** (`drawingInputs` and R14's `issueContext`):
+    - **views**: a pictorial (iso) one among those shown, else warned. A drawing with no views chosen shows all four;
+    - **dimensions**: R14's errors (lost dimensions, datums or frames, overlaps and the like) fail, because the sheet is wrong. Its warnings that leave a size or position unsaid (HOLE_SIZE_MISSING, HOLE_NOT_LOCATED, STEP_NOT_LOCATED, OVERALL_MISSING, VIEW_NEEDED) are warned;
+    - **threads**: each tapped hole's designation is in a callout on the sheet (its size, and its length as THRU or DEEP);
+    - **tolerance**: a general note ("UNLESS OTHERWISE STATED …", R14's own, or one naming ISO 2768);
+    - **title**: the title block names the part (not the default "part");
+    - **material**: a note names the part's material, by its library label or id. With no material set, or bodies that differ, it is unknown;
+    - **finish**: when the brief states a finish, a note names it or gives an Ra. With none stated, it is as machined (Ra 3.2, the standard) and passes.
+  - The rule takes the worst item and says how many are in order. The title block has no material or finish cell, so a note carries them; a title-block cell would be an R14 layout change, left as a follow-up.
+- **RB9 rung 4**: `machinable` already left out the stages not built yet. The drawing is now built, so it is judged. The plate has no threads and no drawing, so it passes.
+- **Tests** (`test/cnc-drawing.test.ts`, 4):
+  - every item has its page;
+  - no drawing:
+    - a plain block passes, ±0.125 holding;
+    - with an M6 tapped hole it fails, "no drawing, but 1 tapped hole (M6×1)";
+    - the mutant, its thread taken off, passes;
+  - a drawing made complete, through the agent's Auto-dimension, the four views, a title, the general note and the material note:
+    - every item passes, "7 of 7 items in order";
+    - each one taken away is the item warned. For views, title, tolerance and material it is the only item warned; dimensions and threads move together, because the callout is a dimension;
+    - a dimension on an edge the part does not have fails (R14's error);
+  - the finish: the brief states "bead blasted", so the drawing without it is warned and a note naming it passes. With no material set, material is unknown.
+  - CNC1's block test expects the drawing to pass, needing none.
+- **Flow**:
+  - CNC1's step now reads "… drawing pass";
+  - a new CNC5 step, through the real chat and tool servers: a plate with an M6 tapped hole and no drawing reads "drawing fail". After Auto-dimension in the Drawing workspace the M6×1 callout is on the sheet, and it reads "drawing warn": no general note, title or material yet.

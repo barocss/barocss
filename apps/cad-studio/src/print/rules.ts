@@ -17,6 +17,7 @@ import { partingLine, type Half, type PartingReport } from '../mould/parting';
 import type { Hole, TappedHole } from '../machining/holes';
 import type { Cavities } from '../machining/cavities';
 import type { Access } from '../machining/access';
+import type { DrawingCheck } from '../machining/drawing';
 import { machinability } from '../machining/report';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
@@ -38,7 +39,9 @@ export interface PrintabilityReport {
     /** CNC3 (O86): the inside corners, sharp edges, cavity floors and thin standing walls. */
     readonly cavities?: Cavities;
     /** CNC4 (O87): the area each set of the six directions reaches, what none does, and the greedy setups. */
-    readonly access?: Access };
+    readonly access?: Access;
+    /** CNC5 (O88): the drawing — needed, present, and its items each with its page. */
+    readonly drawing?: DrawingCheck };
   readonly mould?: { readonly finish: string | null; readonly minDraftDeg: number | null; readonly recDraftDeg: number | null; readonly bodies: readonly { body: string; material: string | null; wallMM: readonly [number, number] | null; wallNote?: string; shrink: number | null }[];
     /** IM2: each face's exact draft and class (with a pull and a finish). */
     readonly draft?: readonly { body: string; face: string; cls: string; min_deg: number; max_deg: number; steepest_deg: number; side: string; below_mm2: number; area_mm2: number; isocline_points?: number }[];

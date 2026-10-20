@@ -1,9 +1,10 @@
 // CNC1 (O84): machining's process rule in the manufacturability report — the material's family (metal or plastic, the
 // library's own field) choosing the wall limits and the general tolerance class, the thinnest wall against them
-// (recommended: warned; feasible: failed), the part against the machine's envelope, every limit with its page. The
-// later stages are said to come, not guessed: the drawing and PMI (CNC5), turning's own rules (CNC6). CNC2 (O85): holes and threads — each step's depth over its diameter from its reach, the drill table, a tapped
-// hole's tap drill, size and length. CNC3 (O86): inside corners against ⅓ of their depth, cavities' depth over width,
-// small features, tall thin walls, text. CNC4 (O87): access from the six directions with the tool's side, and setups.
+// (recommended: warned; feasible: failed), the part against the machine's envelope, every limit with its page. CNC2
+// (O85): holes and threads — each step's depth over its diameter from its reach, the drill table, a tapped hole's tap
+// drill, size and length. CNC3 (O86): inside corners against ⅓ of their depth, cavities' depth over width, small
+// features, tall thin walls, text. CNC4 (O87): access from the six directions with the tool's side, and setups. CNC5
+// (O88): the drawing a shop machines from (milling and turning alike). Turning's own rules are said to come (CNC6).
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { materialIdOf } from '../app/bodies';
@@ -11,14 +12,12 @@ import { materialData, type ProcessProfile } from '../library/materials';
 import { wallsOf } from '../mould/walls';
 import { accessOf, type Access } from './access';
 import { cavitiesOf, type Cavities } from './cavities';
+import { drawingCheck, type DrawingCheck } from './drawing';
 import { holesOf, nearestDrills, onDrillTable, tappedHoles, type Hole, type TappedHole } from './holes';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
 
 export type Family = 'metal' | 'plastic';
 const r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0;
-const LATER: readonly [string, string, string][] = [
-  ['drawing', 'the drawing\'s minimum: views, callouts, datums, tolerance note, material, Ra', 'CNC5'],
-];
 
 /** The machining report for a milling or turning profile. */
 export function machinability(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile): PrintabilityReport {
@@ -50,11 +49,11 @@ export function machinability(doc: StudioDoc, bodies: readonly BodyResult[], pro
   else rules.push({ id: 'holes', level: 'recommended', status: 'unknown', message: 'holes on and off the turning axis', why: 'turning\'s holes come with its rules (CNC6)' },
     { id: 'corners', level: 'recommended', status: 'unknown', message: 'inside corners, grooves and features against the turning tools', why: 'turning\'s tools come with its rules (CNC6)' },
     { id: 'access', level: 'recommended', status: 'unknown', message: 'access on the lathe (from the tailstock end, radially)', why: 'turning\'s access comes with its rules (CNC6)' });
-  for (const [id, message, stage] of LATER) rules.push({ id, level: 'recommended', status: 'unknown', message, why: `${stage} is not built yet` });
+  const drawing = drawingRule(doc, bodies, rules);
   if (profile.id === 'cnc-turning') rules.push({ id: 'turning', level: 'feasible', status: 'unknown', message: 'axisymmetry, grooves, thread relief, length over diameter', why: 'CNC6 is not built yet' });
   const classes = profile.toleranceClasses;
   return { process: profile.id, direction: null, rules, machining: { family, material: id, tolerance: { mm: t('tolMM').value, feasibleMM: t('tolFeasibleMM').value, source: t('tolMM').page?.url ?? t('tolMM').source },
-    toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null, holes, tapped, ...(cavities ? { cavities } : {}), ...(access ? { access } : {}) } };
+    toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null, holes, tapped, ...(cavities ? { cavities } : {}), ...(access ? { access } : {}), drawing } };
 }
 
 const worst = (xs: readonly PrintRule['status'][]): PrintRule['status'] => xs.includes('fail') ? 'fail' : xs.includes('warn') ? 'warn' : xs.includes('unknown') ? 'unknown' : 'pass';
@@ -160,4 +159,13 @@ function accessRules(bodies: readonly BodyResult[], rules: PrintRule[]): Access 
     : { id: 'access', level: 'recommended', status: 'pass', message: 'every surface reached from one of ±X, ±Y, ±Z (the tool from its side)' });
   rules.push({ id: 'setups', level: 'recommended', status: 'pass', message: `${a.setups.length} setup${a.setups.length === 1 ? '' : 's'} (${a.setups.map(x => x.direction).join(', ')}), counted greedily by the area each adds`, value: a.setups.length, unit: 'setups' });
   return a;
+}
+
+/** CNC5's rule: the drawing — needed or not, and on it each item a shop needs (the worst of them; each item in `machining.drawing`). */
+function drawingRule(doc: StudioDoc, bodies: readonly BodyResult[], rules: PrintRule[]): DrawingCheck {
+  const d = drawingCheck(doc, bodies), status = worst(d.items.map(x => x.status)), bad = d.items.filter(x => x.status === status && status !== 'pass');
+  rules.push({ id: 'drawing', level: status === 'fail' ? 'feasible' : 'recommended', status,
+    message: d.present ? `the drawing: ${d.items.filter(x => x.status === 'pass').length} of ${d.items.length} items in order${bad.length ? `; ${bad.map(x => `${x.id}: ${x.message}`).join('; ')}` : ''}` : d.items[0].message,
+    source: (bad[0] ?? d.items[0]).source, ...(status === 'unknown' ? { why: bad[0].message } : {}) });
+  return d;
 }
