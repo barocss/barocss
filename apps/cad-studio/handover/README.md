@@ -66,7 +66,7 @@ and worm gears, and the trochoid root moved there from R6a.6. The R12 → FR blo
 - The analytic Boolean's one union order (D107/D108), the region route's refusals (D113), the offset route's limits (D112), mesh shells' limits (D114): as in the R11 → R12 block below.
 - R12.5's and FR4b's agents are the scripted one (L2). A live model building them needs the owner's OK.
 - Run the full flow on its own (beside the kernel suite some drawing and A5 steps time out). B9's known flake keeps its budget.
-- **Kernel-lane request (O75, low priority):** export `bvhOfTriangles(positions, indices)` from `facet-bvh.ts` (the same `FacetBvh` over raw triangles), for RM6's `meshDistance` and A6.3's keep-out clearance. Box pruning covers today's cases; the coordinator queues it at a track boundary.
+- ~~Kernel-lane request (O75): `bvhOfTriangles` from `facet-bvh.ts`~~ — **withdrawn** (coordinator, 2026-10-21): the outer lane builds RM6's mesh distance on a dual-tree traversal over the studio's own triangle BVH (`print/orient.ts`), after IM.
 
 **How to resume**
 1. Read this block, then D122–D128 in `decisions.md` (for the frame model), then §4's R12b item and D53–D60 (R6a gears).
@@ -1495,6 +1495,7 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
     - **Follow-ups (O75)**: Joints masses collapsed; `look-` appearance ids; RD3 stop check (`estop_rad_s2`) and coupled sizing;
       datums as mate targets; the R3.2 BVH under RM6 skipped (needs a kernel export).
 - **IM — injection moulding (outer lane from 2026-10-21)**: S0 done (O76) — exact draft on curved faces by projection onto the B-rep's NURBS (a 3° cone to 5.8e-15°; the mesh normal off by 0.014°), straddle by n·d's sign, undercuts by ±d triangle visibility (side hole 0/64), walls by rays; Protolabs' guide readable; IM rules proposed inside `check_printability` (no contract overhead). Next IM1.
+  - **IM1 done (O77)**: the injection profile sourced page by page (Protolabs: wall by material, finishes PM-T1 3° / PM-T2 5° / smooth 0.5°, largest part 751 × 480 × 203, ±0.08 mm + 0.002 mm/mm, shrink ABS/PC 0.002); `doc.mould` {pull, finish}; `check_printability` = the manufacturability report naming its process (v2 `query.manufacturability`, `print.check` an alias); pull and finish in the Library panel. Next IM2.
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):

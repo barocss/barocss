@@ -3556,3 +3556,42 @@ On 2026-10-21 the coordinator moved IM1–IM6 and CNC1–CNC6 from the kernel la
   - **IM6**: the quote package: STEP, the DFM report (JSON and Markdown), the material, finish, pull and quantity, in one zip, like A8.5's bundle.
   - Later, after IM6: an RB9 rung for a moulded part.
 - **No kernel-core change is needed for IM1–IM4 and IM6.** IM5's straddle-face split may need one, and it will be asked for when reached.
+
+## O77 — IM1: injection moulding's process rule, sourced page by page; the manufacturability report names its process (2026-10-21)
+
+The coordinator accepted O76 and approved the proposal, with additions: v1 keeps `check_printability`'s name; v2 names the action `query.manufacturability`, with `print.check` kept as its alias; and the report names the process it judged by, saying so when none is chosen rather than assuming one.
+
+- **The data** (`materials.json`). A new source, **W-WEB**: a public page read only, each value as printed there, naming its page (`url`, `read`, `label`). `checkMaterials` refuses a web value without its page. All from Protolabs, read 2026-10-21:
+  - **Wall by material** (*Solving Wall Thickness Issues in Molded Parts*, "Wall Thickness by Material"), with the page's millimetres kept:
+    - ABS 1.143–3.556;
+    - acetal (pom) 0.762–3.048;
+    - polycarbonate 1.016–3.81;
+    - polypropylene 0.635–3.81;
+    - nylon (pa12, the page's "Nylon" family row) 0.762–2.921.
+    These replace the injection ranges of the earlier S-TYP estimates; each material's own source key is `wallMM.injection`. PETG, PLA and the resin have no row there, so no moulding range: a rule on them says so.
+  - **Shrink**: ABS and PC 0.002 ("shrink ranges from 0.002 in./in. for stable resins like ABS and polycarbonate", the injection moulding guide), as `mouldShrink`. The generic `shrink` stays the family's estimate.
+  - **Finishes** (a new profile field): smooth at least 0.5° ("AT LEAST 0.5 degrees of draft on all vertical faces"), 1° recommended ("We suggest a minimum of 1 degree draft"); PM-T1 at least 3°; PM-T2 5° (the guide).
+  - **Thresholds**:
+    - `draftRecDeg` 1 and `ribRec` 0.6 now carry pages ("around 60 percent");
+    - new: the largest part 751 × 480 × 203 mm, and ±0.08 mm with the resin's ±0.002 mm/mm (the services page).
+    - `minWall` 0.6 and `minWallRec` 1.0 stay the flagged P-INJ rule of thumb: no page gives one number for every material.
+- **The document**: `mould: {version: 1, pull?, finish?}` (versioned; a doc field like `print`). The Library panel shows Pull (±X, ±Y, ±Z) and Finish (with "≥ n°") when the process has finishes. Clearing both removes the block.
+- **The report** (`print/rules.ts`). `check_printability` is now the manufacturability report for the part's process. It names its `process`, null when none is chosen, and then every rule is unknown with "no process is chosen … none is assumed". Moulding's rules:
+  - **pull**: the direction given, else the document's; none, unknown;
+  - **finish**: its least draft and source; unknown when none is set or the id is unknown (listing the ids);
+  - **wall**: the thinnest against what fills (feasible);
+  - **wall-material**: each body's thinnest wall, and its thick sections, against the material's moulding range. The thick sections are a new `thick95_mm` from `wallThickness`: the inward-ray depth that 95 % of the surface's area is within, so an open rim's ray down its own wall is left out. The material is the look's, else the brief's stated one (`materialIdOf`, O72);
+  - **size**: the extents across the pull, either way round, and the depth along it, within the largest part. Without a pull, the sorted sides pass if they fit any way; otherwise the rule is unknown and asks for the pull;
+  - **draft** and **undercut**: unknown, naming IM2 and IM3.
+
+  `mould` adds the finish, its least and recommended draft, and each body's material, range and shrink. Warp on printing now reads the material through `materialIdOf` too, the same O72 fix. The `print_rule` cache key includes the mould settings and the brief's material.
+- **The tools**: the description says "the manufacturability report for the part's process (printing, injection moulding, machining)", and `finish` is a new argument. v2 adds `query.manufacturability`; `print.check` is kept and declared in `V2_ALIASES`. `V2_OF` maps the tool to its canonical action, so the v2 prompt and `viaV2` say `query.manufacturability`. The contract overhead is unchanged at 14 544 (tools/list 114 367, 99 823 plain); both frozen files are updated as compatible changes.
+- **Tests**:
+  - `test/mould.test.ts` (5): the data and its page check; a shelled ABS box (1.8 walls, +Z, PM-T1) passes every IM1 rule, with 3°, ABS's shrink, and its size ratio exactly max(60/751, 40/480, 25/203);
+  - walls: 0.9 in ABS is warned, in acetal it passes; a solid 20 mm block's section is warned; 0.5 fails;
+  - nothing assumed: no pull, too long for any press, an unknown finish, no material, no process;
+  - through the agent's tools: the brief states injection and ABS, and v1 and v2 give the same report;
+  - `printing.test.ts`: moulding is judged by its own rules now;
+  - `toolset.test.ts`: aliases are declared, and the canonical action is `query.manufacturability`;
+  - a flow step: the Library panel's pull and finish kept on the document and cleared.
+- **BVH**: the kernel request is withdrawn (README §0). The outer lane builds RM6's mesh distance on a dual-tree traversal over the studio's own triangle BVH, after IM.

@@ -76,7 +76,7 @@ const evaluate = async (d: StudioDoc) => evaluateDoc(d, 1);
 const report = async (doc: StudioDoc, direction?: [number, number, number]) => { const r = await printability(doc, bodiesOf(doc), evaluate, direction ? { direction } : {}); return Object.fromEntries(r.rules.map(x => [x.id, x])); };
 const printed = (doc: StudioDoc, process = 'fdm', printer: string | undefined = 'fdm-256', material = 'abs') => { const d = { ...doc, process, ...(printer ? { printer } : {}) }; return withLook(d, bodiesOf(d)[0], { material }); };
 
-test('AM3 printability on an ABS plate printed flat (FDM 256³): every rule passes; warp is the heuristic warpRisk × (60/100) × 1 = 0.48; a 100 mm plate 0.8 — warned; 300 mm long — off the bed; no orientation — the orientation\'s rules unknown, said; moulding — all unknown', async () => {
+test('AM3 printability on an ABS plate printed flat (FDM 256³): every rule passes; warp is the heuristic warpRisk × (60/100) × 1 = 0.48; a 100 mm plate 0.8 — warned; 300 mm long — off the bed; no orientation — the orientation\'s rules unknown, said; moulding — its own rules (O77)', async () => {
   let r = await report(printed(rectanglePart(60, 40, 2)), [0, 0, 1]);
   for (const id of ['wall', 'wall-rec', 'hole', 'horizontal-hole', 'cavity', 'bed-fit', 'overhang', 'warp', 'tip']) assert.equal(r[id].status, 'pass', `${id}: ${JSON.stringify(r[id])}`);
   assert.equal(r.gap.status, 'n/a');
@@ -88,8 +88,9 @@ test('AM3 printability on an ABS plate printed flat (FDM 256³): every rule pass
   r = await report(printed(rectanglePart(60, 40, 2)));
   for (const id of ['bed-fit', 'overhang', 'warp', 'tip', 'horizontal-hole']) assert.equal(r[id].status, 'unknown', id);
   assert.match(r.warp.why!, /no orientation/);
+  // (O77: moulding has its own rules now — test/mould.test.ts; here only that it is judged as moulding, not printing.)
   r = await report({ ...rectanglePart(60, 40, 2), process: 'injection' });
-  assert.ok(Object.values(r).every(x => x.status === 'unknown' && /Injection moulding is not printing/.test(x.why!)));
+  assert.deepEqual(Object.keys(r), ['pull', 'finish', 'wall', 'wall-material', 'size', 'draft', 'undercut']);
 });
 
 test('AM3 rules that fail or warn: a hole too small to print open; a horizontal hole over 6 mm sags (warned) — built along its axis it does not; a tall pin tips; an enclosed cavity traps powder (SLS fails) where FDM fills it; SLS does not tip (n/a); bodies 0.1 mm apart may fuse; the gap rule as a requirement', async () => {

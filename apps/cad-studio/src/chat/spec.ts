@@ -127,7 +127,7 @@ const bodiesOf = (bodies: readonly BodyResult[], key?: string) => key ? bodies.f
 // check run reads the same one (it measured every rule each time, PERF3 A1).
 const printReports = new WeakMap<readonly BodyResult[], Map<string, Promise<PrintabilityReport>>>();
 function printabilityOf(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, direction?: readonly number[]): Promise<PrintabilityReport> {
-  const key = JSON.stringify([doc.process, doc.printer, direction ?? doc.print?.direction ?? null, doc.bodies ?? null]);
+  const key = JSON.stringify([doc.process, doc.printer, direction ?? doc.print?.direction ?? null, doc.bodies ?? null, doc.mould ?? null, doc.brief?.material ?? null]);
   let byKey = printReports.get(bodies); if (!byKey) { byKey = new Map(); printReports.set(bodies, byKey); }
   let r = byKey.get(key); if (!r) { r = printability(doc, bodies, evaluate, direction ? { direction } : {}); byKey.set(key, r); }
   return r;

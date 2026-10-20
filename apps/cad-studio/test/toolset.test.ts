@@ -7,7 +7,7 @@ import { PassThrough } from 'node:stream';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, starterDoc, type StudioDoc } from '../src/engine/doc';
 import { acceptProposal, dispatchTool, runTool, SYSTEM_PROMPT, TOOLS, type ChatState } from '../src/chat/tools';
-import { GROUPS, V1_OF, V2_OF, v1Call, viaV2 } from '../src/chat/groups';
+import { GROUPS, V1_OF, V2_ALIASES, V2_OF, v1Call, viaV2 } from '../src/chat/groups';
 import { listed, SYSTEM_PROMPT_V2, TOOLS_V2, toolsetOf } from '../src/chat/toolset';
 import { TOOL_CONTRACT_V2, breakingChanges, contractOf, validate, outputSchemaOf, type ContractEntry } from '../src/chat/contract';
 import { serveMcp, TOOLS_LISTED } from '../server/cadMcp';
@@ -32,7 +32,10 @@ test('what a model reads every turn: v2 at most 15k characters, against v1; both
 
 test('every v1 tool is exactly one v2 action, and the v2 prompt names only v2 tools', () => {
   assert.deepEqual([...V2_OF.keys()].sort(), TOOLS.map(t => t.name).sort());
-  assert.equal(V1_OF.size, TOOLS.length);
+  // (Each alias names a tool another action stands for: print.check is query.manufacturability's, O77.)
+  assert.equal(V1_OF.size, TOOLS.length + V2_ALIASES.size);
+  for (const a of V2_ALIASES) assert.ok(V1_OF.has(a) && V2_OF.get(V1_OF.get(a)!) !== a, a);
+  assert.equal(V2_OF.get('check_printability'), 'query.manufacturability');
   for (const name of Object.keys(GROUPS)) assert.ok(!TOOLS.some(t => t.name === name), `${name} is not also a v1 name`);
   // (No v1 name with an underscore is left in the v2 prompt, and every group.action it names exists.)
   assert.deepEqual(SYSTEM_PROMPT_V2.match(/(?<![.\w])[a-z]+(?:_[a-z]+)+\b/g)?.filter(w => V2_OF.has(w)) ?? [], []);

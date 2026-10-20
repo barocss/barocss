@@ -4790,6 +4790,26 @@ try {
     await page.click('[aria-label="Show underlay U1"]'); await page.waitForSelector('[aria-label="Underlay drawing U1"] path', { timeout: 10000 });
   });
 
+  // ---- IM1 (O77): moulding's process rule -----------------------------------------------------------------------
+  await check('IM1: injection moulding chosen in the Library panel — the pull and the finish beside it, the finish with its least draft; kept on the document, cleared again', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]');
+    await page.selectOption('[aria-label="Process"]', 'injection');
+    await page.waitForSelector('[aria-label="Mould finish"]', { timeout: 5000 });
+    const finishes = await page.locator('[aria-label="Mould finish"] option').allInnerTexts();
+    assert.deepEqual(finishes, ['Not set', 'Smooth (no texture) · ≥ 0.5°', 'Light bead blast (PM-T1) · ≥ 3°', 'Medium bead blast (PM-T2) · ≥ 5°']);
+    await page.selectOption('[aria-label="Pull direction"]', '+Z');
+    await page.selectOption('[aria-label="Mould finish"]', 'pm-t1');
+    await page.waitForFunction(() => JSON.stringify(window.__studioDoc.mould) === JSON.stringify({ version: 1, pull: [0, 0, 1], finish: 'pm-t1' }), null, { timeout: 5000 });
+    await snap('im1-mould');
+    await page.selectOption('[aria-label="Pull direction"]', ''); await page.selectOption('[aria-label="Mould finish"]', '');
+    await page.waitForFunction(() => window.__studioDoc.mould === undefined, null, { timeout: 5000 });
+    // (Another process: no moulding settings shown.)
+    await page.selectOption('[aria-label="Process"]', 'fdm');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Mould finish"]'), null, { timeout: 5000 });
+    await page.click('[aria-label="Close library"]');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
