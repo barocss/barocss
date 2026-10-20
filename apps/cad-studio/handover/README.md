@@ -580,6 +580,7 @@ stays out of the kernel's core files (requests for them go through the coordinat
   PDFs, and opening one is a download: the Harmonic Drive CSG-2A / CSF catalogue and the maxon motor catalogue.
 - Outer-lane follow-ups (logged, not scheduled):
   - Done in O75: the Joints card's masses collapsed; the look- ids; RD3's stop check and coupled sizing; datums as mate targets.
+  - A `hole` on a cylinder's top face after the cylinder was united into a shell is refused ("misses the target") though the face is there (O80): drill before the union until fixed.
   - RM6's mesh distance where hulls meet is box-pruned, not a BVH: the R3.2 BVH needs a kernel export over raw triangles
     (`bvhOfTriangles`), a kernel-core change (O75: skipped, listed for the coordinator).
   - RD3's refinement is most of its 735 ms (an RNEA per probe for one joint); coupled sizing (O75) runs it once a round.
@@ -1499,7 +1500,8 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
 - **IM — injection moulding (outer lane from 2026-10-21)**: S0 done (O76) — exact draft on curved faces by projection onto the B-rep's NURBS (a 3° cone to 5.8e-15°; the mesh normal off by 0.014°), straddle by n·d's sign, undercuts by ±d triangle visibility (side hole 0/64), walls by rays; Protolabs' guide readable; IM rules proposed inside `check_printability` (no contract overhead). Next IM1.
   - **IM1 done (O77)**: the injection profile sourced page by page (Protolabs: wall by material, finishes PM-T1 3° / PM-T2 5° / smooth 0.5°, largest part 751 × 480 × 203, ±0.08 mm + 0.002 mm/mm, shrink ABS/PC 0.002); `doc.mould` {pull, finish}; `check_printability` = the manufacturability report naming its process (v2 `query.manufacturability`, `print.check` an alias); pull and finish in the Library panel.
   - **IM2 done (O78)**: the draft field from exact normals (planes, cylinders, NURBS by projection, facets) — drafted / steep / straddle with isocline points on the exact surface; the report's draft rule, `query.draft` and `draft_min` on it; a 3° cone 3° to 1e-9.
-  - **IM3 done (O79)**: undercuts by ±d visibility on a sub-triangle grid (the step stated), regions with their side action across the pull (counted, exact); the report's undercut rule (warn with a side action, fail with none); a side hole, a snap latch, an internal groove. Next IM4.
+  - **IM3 done (O79)**: undercuts by ±d visibility on a sub-triangle grid (the step stated), regions with their side action across the pull (counted, exact); the report's undercut rule (warn with a side action, fail with none); a side hole, a snap latch, an internal groove.
+  - **IM4 done (O80)**: walls by the inscribed sphere at each inward ray's middle (the nominal their median), ribs (inside plates), bosses (coaxial cylinders), inside corners (concave fillets, sharp concave edges), thick sections; five rules against Protolabs' 0.6 and Hubs' 0.5 t; the undercut message states its sampling limit. Next IM5.
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):

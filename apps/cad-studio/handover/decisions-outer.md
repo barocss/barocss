@@ -3655,3 +3655,39 @@ The coordinator accepted IM2 and ordered IM3.
 - **Flow**:
   - IM2's step now reads the report through the chat's summary: draft pass, undercut pass;
   - a new IM3 step through the real chat and tool servers: a block with a side hole, with the process set in the Library panel and the report run, ends in "undercut warn".
+
+## O80 — IM4: walls, ribs, bosses, inside corners and sink; the undercut rule states its sampling limit (2026-10-21)
+
+The coordinator accepted IM3 and asked for one addition, folded in here: when the step is capped, the undercut rule's message must itself say so ("may be missed below <step> mm"), not only its `method`.
+
+- **The undercut rule's limit**. `undercuts` now returns `coarsestMM`: the largest sample spacing used, more than the step where a large triangle's n was capped at 64. Every undercut message, a pass included, ends with "(sampled every ≤ C mm: an undercut smaller than that may be missed)". On a 40 × 30 box, C is 0.781: the 50 mm diagonal over 64.
+- **Local thickness** (`chat/analysis.ts wallSamples`). At each display triangle: the inward ray's depth, then twice the distance from the ray's middle to the nearest surface (capped at the depth), which is the inscribed sphere there. A rim's ray runs down its wall's length, but the sphere at its middle touches the wall's two faces, so the rim reads its wall. The nearest-surface query goes through the analysis grid's cells. The **thinnest** stays the ray depth, because the sphere reads low near a concave corner, where its middle is nearer the next wall. That only lowers thick sections, so they still use the sphere.
+- **Sources** (`materials.json`, W-WEB, read 2026-10-21):
+  - `adjacentWallRatio` 0.6, from Protolabs: "adjacent walls should stay within 40% to 60% of each other's thickness". The page's range is read as a thickness ratio of at least 0.6, its stricter end, and the value's note says so;
+  - `insideRadiusRatio` 0.5, from Hubs: "a fillet equal to 0.5x the wall thickness to internal corners";
+  - `ribHeightRatio` 3, from Hubs: "max. height equal to 3x the wall thickness". Recorded for later; rib height is not judged yet;
+  - the boss wall range 0.6–1.0 stays the flagged P-INJ rule of thumb, with no page.
+- **The analysis** (`src/mould/walls.ts`), per body:
+  - **nominal**: the local thickness's area-weighted median, with the thinnest and the 95th percentile beside it;
+  - **ribs**: two exact planes facing opposite ways, the nearest behind each within 3 × nominal, their boxes overlapping across the normal, and a ray out of either side hits the body. The ray test is what separates a box's own walls from a rib: an outer face sees out;
+  - **bosses**: an outer and an inner exact cylinder on one axis (the part's face table); the boss wall is R − r;
+  - **inside corners**: concave fillets are exact cylinders that face their axis and turn less than half a revolution, counting every display piece of the face, since a split hole's half spans under 180°. Sharp concave corners are straight edges between exact planes where the second face, just off the edge, lies on the first's outer side. "Just off the edge" means its triangle on the edge, not its centroid, which an annulus such as an open box's rim has in its hole.
+  - **thick sections**: where the local thickness passes nominal / adjacentWallRatio.
+- **The rules** (all recommended level):
+  - `wall-uniform`: the thinnest over the nominal and the nominal over the 95th percentile, both at least 0.6;
+  - `rib`: thickness at most 0.6 × nominal, warned with "sink on the face opposite"; n/a with no rib;
+  - `boss`: wall within 0.6 … 1.0 × nominal; n/a with none;
+  - `inside-radius`: no sharp corner, and every fillet at least 0.5 × nominal;
+  - `sink`: no thick section, warned with "core them out".
+
+  `wall-material` now uses the same local thickness. `mould.walls` lists each body's nominal, thinnest, thick95, ribs, bosses, fillets, sharp-corner count and thick section.
+- **Tests** (`test/mould-walls.test.ts`, 5, analytic and constructed oracles):
+  - a shelled box (t 2): nominal, thinnest and thick95 all 2 to 1e-6; no rib, boss or thick section; its eight inside corners sharp, with lengths 56, 56, 36, 36 and 23 × 4;
+  - a rib inside it: found at 1.2 to 1e-9, passing as 0.6 t; at 2 (the mutant), warned;
+  - bosses: R 3 with a Ø2.5 bore has a wall of 1.75 to 1e-9 and passes; R 5 is warned; R 5 solid has no boss, and a thick section on its side, between 2/0.6 and its diameter 10;
+  - an L bracket (t 3): a fillet of 2 is found with its exact radius and passes; 1 is warned; with none, one sharp corner 20 long;
+  - a floor made 5 mm thick in a 2 mm box: nominal 2, thick95 5, `wall-uniform` warned at 0.4, `sink` warned.
+
+  The IM1 and AM3 tests are updated for the longer rule list.
+- **Flow**: IM2's chat-summary match includes the new rules. A new IM4 step through the real chat and tool servers builds a shelled box with a 2 mm rib: "rib warn, boss n/a, inside-radius warn, sink pass".
+- **Found, not fixed (follow-up)**: a `hole` on a cylinder's top face after that cylinder was united into a shell is refused with "the hole at (15, 20) along z misses the target", although the face is there. The tests drill the boss before the union.

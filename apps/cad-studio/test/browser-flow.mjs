@@ -4851,7 +4851,7 @@ try {
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), draft = lines[lines.length - 2], report = lines[lines.length - 1];
       assert.ok(draft.includes('"face":"n1.side0","draft_deg":3,"min_deg":3,"max_deg":3,"class":"drafted"'), draft);
-      assert.match(report, /check_printability\s*injection: pull pass, finish pass, wall pass, wall-material \w+, size pass, draft pass, undercut pass/, report);
+      assert.match(report, /check_printability\s*injection: pull pass, finish pass, wall pass, wall-material \w+, wall-uniform \w+, rib [\w/]+, boss [\w/]+, inside-radius \w+, sink \w+, size pass, draft pass, undercut pass/, report);
       await snap('im2-cone');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
@@ -4877,6 +4877,31 @@ try {
       const lines = await page.locator('.chat-tool').allInnerTexts(), report = lines[lines.length - 1];
       assert.match(report, /injection: .*undercut warn/, report);
       await snap('im3-side-hole');
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
+  // ---- IM4 (O80): walls and ribs, through the real chat and tool servers ------------------------------------------
+  await check('IM4: a shelled box with a 2 mm rib inside it (as thick as its walls), moulded, through the real chat and tool servers — the report warns the rib and the sharp inside corners', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'injection'); await page.click('[aria-label="Close library"]');
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [
+        { tool: 'run_command', args: { command: 'box', values: { w: 60, d: 40, h: 25, x: 0, y: 0, z: 0 } } },
+        { tool: 'run_command', args: { command: 'shell', values: { t: 2 }, faces: ['n1.top'] } },
+        { tool: 'run_command', args: { command: 'box', values: { w: 2, d: 36, h: 15, x: 30, y: 2, z: 2 } } },
+        { tool: 'run_command', args: { command: 'union', values: {}, bodies: ['b2', 'b4'] } },
+        { tool: 'check_printability', args: { direction: [0, 0, 1], finish: 'smooth' } }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      const lines = await page.locator('.chat-tool').allInnerTexts(), report = lines[lines.length - 1];
+      assert.match(report, /injection: .*wall-uniform pass, rib warn, boss n\/a, inside-radius warn, sink pass/, report);
+      await snap('im4-rib');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
   });

@@ -12,6 +12,7 @@ import { materialData, printerProfile, processProfile, type MouldFinish, type Pr
 import { overhangOf, type Vec3 } from './overhang';
 import { draftField, type DraftFace } from '../mould/draft';
 import { undercuts, type UndercutRegion } from '../mould/undercut';
+import { wallsOf, type WallReport } from '../mould/walls';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
 export interface PrintRule {
@@ -28,6 +29,8 @@ export interface PrintabilityReport {
   readonly mould?: { readonly finish: string | null; readonly minDraftDeg: number | null; readonly recDraftDeg: number | null; readonly bodies: readonly { body: string; material: string | null; wallMM: readonly [number, number] | null; wallNote?: string; shrink: number | null }[];
     /** IM2: each face's exact draft and class (with a pull and a finish). */
     readonly draft?: readonly { body: string; face: string; cls: string; min_deg: number; max_deg: number; steepest_deg: number; side: string; below_mm2: number; area_mm2: number; isocline_points?: number }[];
+    /** IM4: each body's walls — the nominal, the thinnest and thick sections, ribs, bosses, fillets, sharp inside corners. */
+    readonly walls?: readonly Record<string, unknown>[];
     /** IM3: the undercut regions (with a pull): their faces, area, centre and the side action that frees each (null: none). */
     readonly undercuts?: readonly { body: string; faces: string[]; area_mm2: number; centroid: Vec3; side_action: Vec3 | null; best_share: number }[] };
 }
@@ -139,8 +142,10 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
   rules.push(finish ? { id: 'finish', level: 'recommended', status: 'pass', message: `${finish.label}: at least ${finish.draftMinDeg}° of draft${finish.draftRecDeg !== undefined ? `, ${finish.draftRecDeg}° recommended` : ''}`, value: finish.draftMinDeg, unit: 'deg', source: finish.source }
     : { id: 'finish', level: 'recommended', status: 'unknown', message: 'the surface finish (its least draft)', why: finishId ? `"${finishId}" is not a finish here: ${(profile.finishes ?? []).map(f => f.id).join(', ')}` : 'no surface finish is set' });
   // Walls: the thinnest against the process, and each body's thinnest and thick sections against its material's range.
-  const per = bodies.map(x => { const w = wallThickness(x) as { thinnest_mm: number | null; thick95_mm?: number }, id = materialIdOf(doc, x) ?? null, m = id ? materialData(id) : undefined;
-    return { key: x.key, thin: w.thinnest_mm, thick: w.thick95_mm ?? null, material: id, range: (m?.wallMM?.injection ?? null) as readonly [number, number] | null, rangeSource: m ? m.sources['wallMM.injection'] ?? m.sources.wallMM : undefined, note: m?.pages?.['wallMM.injection']?.note, shrink: m?.mouldShrink ?? null }; });
+  // (IM4, O80: the walls by the local thickness — the inscribed sphere at each inward ray's middle — and the thinnest by the ray.)
+  const wr: WallReport[] = wallsOf(doc, bodies, t('adjacentWallRatio')?.value ?? 0.6);
+  const per = bodies.map((x, k) => { const w = wr[k], id = materialIdOf(doc, x) ?? null, m = id ? materialData(id) : undefined;
+    return { key: x.key, thin: w.thinnestMM === null ? null : r3(w.thinnestMM), thick: w.thick95MM === null ? null : r3(w.thick95MM), material: id, range: (m?.wallMM?.injection ?? null) as readonly [number, number] | null, rangeSource: m ? m.sources['wallMM.injection'] ?? m.sources.wallMM : undefined, note: m?.pages?.['wallMM.injection']?.note, shrink: m?.mouldShrink ?? null }; });
   const thin = per.filter(x => x.thin !== null).sort((a, c) => a.thin! - c.thin!)[0];
   rules.push(thin ? rule('wall', 'feasible', thin.thin! >= t('minWall').value, 'the thinnest wall, against the thinnest that fills', thin.thin!, t('minWall').value, 'mm', t('minWall').source, [thin.key])
     : { id: 'wall', level: 'feasible', status: 'unknown', message: 'the thinnest wall', why: 'no wall measured' });
@@ -151,6 +156,23 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
     rules.push({ id: 'wall-material', level: 'recommended', status: out.length ? 'warn' : unranged.length ? 'unknown' : 'pass',
       message: `the walls (the thinnest, and the thick sections: the depth 95 % of the surface is within) against the material's moulding range: ${worst.key} ${worst.thin} … ${worst.thick ?? '?'} mm in ${worst.range![0]} … ${worst.range![1]} mm${worst.note ? ` (${worst.note})` : ''}`,
       value: worst.thick ?? worst.thin!, limit: worst.range![1], unit: 'mm', source: worst.rangeSource, entities: (out.length ? out : ranged).map(x => x.key), ...(unranged.length && !out.length ? { why: `${unranged.map(x => x.key).join(', ')}: no moulding range` } : {}) });
+  }
+  // IM4 (O80): walls even, ribs thin enough, bosses' walls, inside corners rounded, no thick sections — against the nominal wall.
+  const ratio = t('adjacentWallRatio'), ribRec = t('ribRec'), bMin = t('bossWallMin'), bMax = t('bossWallMax'), rIn = t('insideRadiusRatio'), named = wr.filter(w => w.nominalMM !== null);
+  if (!named.length) for (const id of ['wall-uniform', 'rib', 'boss', 'inside-radius', 'sink']) rules.push({ id, level: 'recommended', status: 'unknown', message: id, why: 'no wall measured' });
+  else {
+    const uneven = named.map(w => ({ w, r: Math.min(w.thinnestMM! / w.nominalMM!, w.nominalMM! / (w.thick95MM ?? w.nominalMM!)) })).sort((a, b) => a.r - b.r)[0];
+    rules.push({ id: 'wall-uniform', level: 'recommended', status: uneven.r >= ratio.value - 1e-9 ? 'pass' : 'warn', message: `the walls even: the thinnest and the thick sections against the nominal ${r3(uneven.w.nominalMM!)} mm (${uneven.w.body}: ${r3(uneven.w.thinnestMM!)} … ${r3(uneven.w.thick95MM ?? uneven.w.nominalMM!)} mm)`, value: r3(uneven.r), limit: ratio.value, unit: 'ratio', source: ratio.source, entities: [uneven.w.body] });
+    const ribs = named.flatMap(w => w.ribs.map(r => ({ r, k: r.thicknessMM / w.nominalMM! }))), thickRibs = ribs.filter(x => x.k > ribRec.value + 1e-9);
+    rules.push(!ribs.length ? { id: 'rib', level: 'recommended', status: 'n/a', message: 'no rib: no plate inside the part between two close opposite faces' }
+      : { id: 'rib', level: 'recommended', status: thickRibs.length ? 'warn' : 'pass', message: `${ribs.length} rib${ribs.length > 1 ? 's' : ''}, the thickest ${r3(Math.max(...ribs.map(x => x.r.thicknessMM)))} mm against ${ribRec.value} × the nominal wall${thickRibs.length ? ` (${thickRibs.length} thicker: sink on the face opposite)` : ''}`, value: r3(Math.max(...ribs.map(x => x.k))), limit: ribRec.value, unit: 'ratio', source: ribRec.source, entities: (thickRibs.length ? thickRibs : ribs).flatMap(x => x.r.faces) });
+    const nominal = named[0].nominalMM!, bosses = named.flatMap(w => w.bosses), off = bosses.filter(b => b.wallMM / nominal < bMin.value - 1e-9 || b.wallMM / nominal > bMax.value + 1e-9);
+    rules.push(!bosses.length ? { id: 'boss', level: 'recommended', status: 'n/a', message: 'no boss: no outer cylinder with a bore on its axis' }
+      : { id: 'boss', level: 'recommended', status: off.length ? 'warn' : 'pass', message: `${bosses.length} boss${bosses.length > 1 ? 'es' : ''}: the wall round the bore against ${bMin.value} … ${bMax.value} × the nominal wall (${bosses.map(b => `${b.outer} ${r3(b.wallMM)} mm`).join(', ')})`, value: r3(Math.max(...bosses.map(b => Math.abs(b.wallMM / nominal - (bMin.value + bMax.value) / 2)))), unit: 'ratio', source: bMin.source, entities: (off.length ? off : bosses).flatMap(b => [b.outer, b.inner]) });
+    const sharp = named.flatMap(w => w.sharp), small = named.flatMap(w => w.fillets.filter(f => f.radiusMM < rIn.value * w.nominalMM! - 1e-9)), least = Math.min(...named.flatMap(w => w.fillets.map(f => f.radiusMM)), sharp.length ? 0 : Infinity);
+    rules.push({ id: 'inside-radius', level: 'recommended', status: sharp.length || small.length ? 'warn' : 'pass', message: `inside corners rounded at least ${rIn.value} × the nominal wall (${r3(rIn.value * nominal)} mm)${sharp.length ? `: ${sharp.length} sharp` : ''}${small.length ? `${sharp.length ? ',' : ':'} ${small.length} rounded less` : ''}`, ...(Number.isFinite(least) ? { value: r3(least) } : {}), limit: r3(rIn.value * nominal), unit: 'mm', source: rIn.source, entities: [...sharp.flatMap(c => c.faces), ...small.map(f => f.face)].slice(0, 40) });
+    const thick = named.flatMap(w => (w.thick ? [w.thick] : []));
+    rules.push({ id: 'sink', level: 'recommended', status: thick.length ? 'warn' : 'pass', message: thick.length ? `thick sections past the nominal over ${ratio.value} (${thick.map(x => `${x.body}: ${r3(x.areaMM2)} mm², up to ${r3(x.maxMM)} mm`).join('; ')}): sink marks and voids — core them out` : 'no section thicker than the nominal wall over the adjacent-wall ratio', ...(thick.length ? { value: r3(Math.max(...thick.map(x => x.maxMM))) } : {}), limit: r3(nominal / ratio.value), unit: 'mm', source: ratio.source, entities: thick.flatMap(x => x.faces).slice(0, 40) });
   }
   // Size: the part's extents — its depth along the pull, the two across it either way round — within the largest part.
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
@@ -180,18 +202,21 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
   let regions: UndercutRegion[] | null = null;
   if (!pull) rules.push({ id: 'undercut', level: 'feasible', status: 'unknown', message: 'undercuts against the pull', why: 'no pull direction: undercuts are what neither half sees along it' });
   else {
-    regions = undercuts(bodies, pull).regions;
+    const uc = undercuts(bodies, pull); regions = uc.regions;
+    // (O80: the sampling's limit in the message itself — a pass is only as fine as the samples.)
+    const limit = `sampled every ≤ ${+uc.coarsestMM.toFixed(3)} mm: an undercut smaller than that may be missed`;
     const stuck = regions.filter(r => !r.sideAction), sided = regions.filter(r => r.sideAction), dirName = (v: readonly number[]) => v.map(x => +x.toFixed(6)).join(', ');
     rules.push({ id: 'undercut', level: 'feasible', status: stuck.length ? 'fail' : sided.length ? 'warn' : 'pass',
-      message: !regions.length ? 'no undercut: every face seen along the pull one way or the other' : `${regions.length} undercut region${regions.length > 1 ? 's' : ''} (${+regions.reduce((a, r) => a + r.areaMM2, 0).toFixed(3)} mm²): ${sided.length ? `${sided.length} freed by a side action (${sided.map(r => `[${dirName(r.sideAction!)}]`).join(', ')})` : ''}${sided.length && stuck.length ? '; ' : ''}${stuck.length ? `${stuck.length} freed by no straight action across the pull (a collapsing core, a lifter or a redesign)` : ''}`,
+      message: (!regions.length ? 'no undercut: every face seen along the pull one way or the other' : `${regions.length} undercut region${regions.length > 1 ? 's' : ''} (${+regions.reduce((a, r) => a + r.areaMM2, 0).toFixed(3)} mm²): ${sided.length ? `${sided.length} freed by a side action (${sided.map(r => `[${dirName(r.sideAction!)}]`).join(', ')})` : ''}${sided.length && stuck.length ? '; ' : ''}${stuck.length ? `${stuck.length} freed by no straight action across the pull (a collapsing core, a lifter or a redesign)` : ''}`) + ` (${limit})`,
       value: regions.reduce((a, r) => a + r.areaMM2, 0), unit: 'mm²', entities: [...new Set(regions.flatMap(r => r.faces))].slice(0, 40) });
   }
   return { process: profile.id, direction: pull, rules, mould: { finish: finish?.id ?? null, minDraftDeg: finish?.draftMinDeg ?? null, recDraftDeg: finish ? finish.draftRecDeg ?? finish.draftMinDeg : null, bodies: per.map(x => ({ body: x.key, material: x.material, wallMM: x.range, ...(x.note ? { wallNote: x.note } : {}), shrink: x.shrink })),
+    walls: wr.map(w => ({ body: w.body, nominal_mm: w.nominalMM === null ? null : r6(w.nominalMM), thinnest_mm: w.thinnestMM === null ? null : r6(w.thinnestMM), thick95_mm: w.thick95MM === null ? null : r6(w.thick95MM), ribs: w.ribs.map(r => ({ faces: r.faces, thickness_mm: r6(r.thicknessMM) })), bosses: w.bosses.map(b => ({ outer: b.outer, inner: b.inner, wall_mm: r6(b.wallMM) })), fillets: w.fillets.map(f => ({ face: f.face, radius_mm: r6(f.radiusMM) })), sharp_corners: w.sharp.length, thick: w.thick ? { faces: w.thick.faces, area_mm2: r6(w.thick.areaMM2), max_mm: r6(w.thick.maxMM) } : null })),
     ...(regions ? { undercuts: regions.map(r => ({ body: r.body, faces: r.faces, area_mm2: r6(r.areaMM2), centroid: r.centroid.map(r6) as Vec3, side_action: r.sideAction, best_share: r6(r.best.clearShare) })) } : {}),
     ...(field ? { draft: field.map(f => ({ body: f.body, face: f.face, cls: f.cls, min_deg: r6(f.minDeg), max_deg: r6(f.maxDeg), steepest_deg: r6(f.steepestDeg), side: f.side, below_mm2: r6(f.belowMM2), area_mm2: r6(f.areaMM2), ...(f.isocline ? { isocline_points: f.isocline.length } : {}) })) } : {}) } };
 }
 
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
+const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0, r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0;
 function rule(id: string, level: 'feasible' | 'recommended', met: boolean, message: string, value: number, limit: number, unitName: string, source: string, entities?: string[]): PrintRule {
   return { id, level, status: met ? 'pass' : level === 'feasible' ? 'fail' : 'warn', message, value, limit, unit: unitName, source, ...(entities ? { entities } : {}) };
 }

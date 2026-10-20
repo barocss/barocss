@@ -599,6 +599,40 @@
       "read": "2026-10-21",
       "label": "resin tolerance no less than +/- 0.002 in./in."
      }
+    },
+    "adjacentWallRatio": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a wall's thickness over its neighbour's, at least (the stricter end of the page's range)",
+     "page": {
+      "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+      "read": "2026-10-21",
+      "label": "Keep wall thickness consistent: adjacent walls should stay within 40% to 60% of each other's thickness",
+      "note": "read as a thickness ratio of at least 0.6, the range's stricter end"
+     }
+    },
+    "insideRadiusRatio": {
+     "value": 0.5,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "an inside corner's radius over the wall, at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/injection-molding/",
+      "read": "2026-10-21",
+      "label": "a fillet equal to 0.5x the wall thickness to internal corners"
+     }
+    },
+    "ribHeightRatio": {
+     "value": 3.0,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a rib's height over the wall, at most",
+     "page": {
+      "url": "https://www.hubs.com/guides/injection-molding/",
+      "read": "2026-10-21",
+      "label": "max. height equal to 3x the wall thickness"
+     }
     }
    },
    "finishes": [
