@@ -4,7 +4,7 @@
 import type { Axis, Dim, ModelNode, SketchNode } from '../engine/doc';
 import { outlineFields } from '../sketch/outlineFields';
 import { helixOf } from '../engine/part';
-import { spurGearCenterDistance } from '@barocss/cad';
+import { spurGearCenterDistance, internalGearCenterDistance } from '@barocss/cad';
 
 type Nodes = readonly ModelNode[];
 export type EditField =
@@ -182,6 +182,20 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       }
       break;
     }
+    case 'internal-gear': {
+      // (R12b.2a, D132.)
+      const g = (n: ModelNode) => n as typeof node;
+      number('m', node.helixAngle ? 'Normal module' : 'Module', 'mm', n => num(g(n).module), (n, v) => ({ ...g(n), module: v }));
+      number('helix', 'Helix angle β', '°', n => g(n).helixAngle ?? 0, (n, v) => { const next = { ...g(n) }; if (v) { next.helixAngle = v; next.hand ??= 'right'; } else { delete next.helixAngle; delete next.hand; } return next; });
+      if (node.helixAngle) out.push({ kind: 'choice', key: 'hand', label: 'Hand', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }], get: n => self<typeof node>(n).hand ?? 'right', set: (n, v) => replace(n, i, { ...self<typeof node>(n), hand: v as 'right' | 'left' }) });
+      number('z', 'Teeth', undefined, n => g(n).teeth, (n, v) => ({ ...g(n), teeth: Math.round(v) }));
+      number('b', 'Face width', 'mm', n => num(g(n).faceWidth), (n, v) => ({ ...g(n), faceWidth: v }));
+      number('rim', 'Rim Ø', 'mm', n => num(g(n).rim), (n, v) => ({ ...g(n), rim: v }));
+      number('shift', 'Profile shift x', undefined, n => g(n).profileShift ?? 0, (n, v) => { const next = { ...g(n) }; if (v) next.profileShift = v; else delete next.profileShift; return next; });
+      number('ds', 'Thinner by', 'mm', n => num(g(n).thicknessReduction ?? 0), (n, v) => ({ ...g(n), thicknessReduction: v }));
+      number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
+      break;
+    }
     case 'gear': {
       const g = (n: ModelNode) => n as typeof node, helix = helixOf(node, nodes);
       number('m', helix ? 'Normal module' : 'Module', 'mm', n => num(g(n).module), (n, v) => ({ ...g(n), module: v }));
@@ -204,7 +218,7 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       // Its turn (a meshing gear: where it stands beside the other gear, and its phase; its turn follows the other's).
       if (!node.mesh) number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
       else {
-        const other = nodes[node.mesh.gear], nominal = (n: ModelNode) => other?.kind === 'gear' ? meshDistance(other, g(n), nodes) : 0;
+        const other = nodes[node.mesh.gear], nominal = (n: ModelNode) => other?.kind === 'gear' ? meshDistance(other, g(n), nodes) : other?.kind === 'internal-gear' ? insideDistance(other, g(n), nodes) : 0;
         number('dir', 'Direction', '°', n => g(n).mesh!.direction ?? 0, (n, v) => ({ ...g(n), mesh: { ...g(n).mesh!, direction: v } }));
         number('a', 'Centre distance', 'mm', n => num(g(n).mesh!.centerDistance ?? nominal(n)), (n, v) => { const mesh = { ...g(n).mesh! }; if (Math.abs(v - nominal(n)) < 1e-9) delete mesh.centerDistance; else mesh.centerDistance = v; return { ...g(n), mesh }; });
         number('ph', 'Phase', '°', n => g(n).mesh!.phase ?? 0, (n, v) => ({ ...g(n), mesh: { ...g(n).mesh!, phase: v } }));
@@ -332,6 +346,14 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
 }
 
 /** The centre distance two gear nodes mesh at without backlash (the kernel's: shifted and helical pairs too); 0 when they do not mesh. */
+/** A pinion's working distance inside a ring (R12b.2a). */
+function insideDistance(ring: Extract<ModelNode, { kind: 'internal-gear' }>, b: Extract<ModelNode, { kind: 'gear' }>, nodes: Nodes): number {
+  try {
+    const h = helixOf(b, nodes), m = num(ring.module), mod = h ? { normalModuleMM: m, helixAngleDeg: h.angle, hand: h.hand } : { moduleMM: m };
+    return internalGearCenterDistance({ ...mod, teeth: b.teeth, faceWidthMM: num(b.faceWidth), ...(b.profileShift ? { profileShiftCoefficient: b.profileShift } : {}), ...(b.generator === 'spur-gear@1' ? { rootPolicy: 'generated' as const } : {}) },
+      { ...(ring.helixAngle ? { normalModuleMM: m, helixAngleDeg: ring.helixAngle, hand: ring.hand ?? 'right' } : { moduleMM: m }), teeth: ring.teeth, faceWidthMM: num(ring.faceWidth), rimDiameterMM: num(ring.rim), ...(ring.profileShift ? { profileShiftCoefficient: ring.profileShift } : {}) });
+  } catch { return 0; }
+}
 function meshDistance(a: Extract<ModelNode, { kind: 'gear' }>, b: Extract<ModelNode, { kind: 'gear' }>, nodes: Nodes): number {
   const spec = (n: Extract<ModelNode, { kind: 'gear' }>) => {
     const h = helixOf(n, nodes);

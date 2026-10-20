@@ -6906,3 +6906,141 @@ Next: R12b.1b — the helical gears' generated root (the elliptical transverse t
 **Not in this stage:** the shaper-cut root (R12b.2b); tip relief; manufacturing validation.
 
 Next: R12b.2a — internal gears and their pair checks.
+
+## D132 — R12b.2a: internal gears built directly, and the internal pair's checks, the radial insertion for trimming (2026-10-21)
+
+**Decision** (`gear-internal.ts`: `internalGear`, `internalGearDimensions`, `internalGearCenterDistance`, `checkInternalGearPair`, `checkPlacedInternalGears`, `pinionTurnInside`; the part model's `internal-gear` and a `spur-gear` meshing inside it; the studio's Internal gear command and node):
+- **The ring is built directly,** as D129 found, not by a Boolean.
+  - **Its spaces** are the teeth of a "space gear": the spur machinery's gear at x2 + 0.25, its tooth thickened to the ring's space m_t(π/2 + 2 x2 tan α_n) + j.
+  - **Its dimensions:** tip r − (1 − x2)m inside, root r + (1.25 + x2)m outside — K1's internal addendum (1 − x2)m and depth 2.25 m.
+  - **Its profile:** the space gear's, turned by −π/z so the ring's tooth 1 stands on +X, reversed into the clockwise hole of `extrudedProfile` inside a plain rim.
+  - **Helical:** a helical ring's hole turns along its helix (`extrudedProfile`'s new `twistHole`; the twist code shared as `helixTwist`).
+  - **Speed:** 1–5 ms against S0's 14.7 s Boolean, the same volume to 6e-4.
+- **Names:** `.flankL#k`, `.flankR#k` (tooth k's), `.tip#k` (inside), `.root#k` (the space before tooth k), `.rim#1/#2`, `.face0/.face1`; a helical ring's along the axis as a helical gear's.
+- **The root:** schematic (the flank meets the root arc at a corner; a pinion-type cutter would round it, R12b.2b), flagged `ROOT_TRANSITION_UNVALIDATED`, `manufacturingValidated: false`.
+- **Refusals:**
+  - teeth outside 8–200: `INVALID_INPUT`;
+  - x2 outside −0.5–0.75: `UNSUPPORTED_PROFILE_SHIFT`;
+  - a reduction past 0.5 m_t tan α_n: `INVALID_INPUT`, naming it;
+  - **the tip inside its base circle** (K1: z2 > 34 unshifted): `UNSUPPORTED_PROFILE_SHIFT`, naming the least x2 = 1 − (r − rb)/m;
+  - a rim thinner than a module beyond the root: the new `RIM_INTERSECTION`, naming the least diameter;
+  - spaces or teeth coming to a point: `SELF_INTERSECTION`, in the ring's words.
+- **The internal pair:**
+  - **Compatibility:** the same module and pressure angle, both straight or **both helical of one hand** (an internal pair), else `MATE_INCOMPATIBLE`; a pinion as large as the ring "does not fit".
+  - **The centre distance:** m_t(z2 − z1)/2, or with shifts from inv α_w = 2 tan α_n (x2 − x1)/(z2 − z1) + inv α_t (K1's form, verified by its numbers), Newton on inv.
+  - **Ratio** +z1/z2, the same way.
+  - **Backlash** on the working pitch circles: the ring's space 2 rw2(ψ_s − inv α_w) less the pinion's tooth.
+  - **Tip clearances:** rf2 − a − ra1 and ra2 − a − rf1.
+  - **The contact ratio:** the ideal [√(ra1² − rb1²) − √(ra2² − rb2²) + a sin α_w]/(π m_t cos α_t), and the usable one from where the pinion's involute starts.
+  - **The sweep:** the two exact outlines (the pinion's and the space gear's), the ring turning θ z1/z2 the same way, one pinion tooth period, converged and refined as D55; only what can meet (the pinion beyond the ring's tip circle, the ring within the pinion's tip circle); distances by a uniform grid (cell m/4).
+  - **The conditions,** derived (K1's are images; D129) and checked against the sweep, as margins and error diagnostics:
+    - `INVOLUTE_INTERFERENCE`: z1/z2 − (1 − tan α_a2/tan α_w);
+    - `TROCHOID_INTERFERENCE`: θ1 z1/z2 + inv α_w − inv α_a2 − θ2;
+    - `formMargin`, informational: the ring's tip against where the pinion's involute starts, along the line of action (below).
+  - **Trimming,** by a radial-insertion sweep:
+    - the pinion moved from the ring's centre to a along the line of centres, in its meshing phase, not turning, 96 offsets with every local least refined;
+    - a crossing deeper than contact before the working distance is `TRIMMING_INTERFERENCE`;
+    - a pinion whose tip circle does not fit inside the ring's cannot start concentric: "radial assembly impossible — assemble it axially".
+  - **Placed** (`checkPlacedInternalGears`): the distance and phase from where they stand, both taken at the height where their faces begin to overlap.
+- **Touching is not crossing.** The ring's outline is chords of its involutes, which stand into its spaces by up to their sag (rb t δt²/8). So at contact a pinion on the true involute can seem that far into the ring. A crossing no deeper than that bound is contact.
+- **The depth of a crossing** (both modes: only the depth tells contact from crossing):
+  - **Inside or not:** by the ray from the gear's centre against its star-shaped outline (each tooth's polar angle rises along it). Undercut teeth, which are not star-shaped, fall back to the nearest segment's side, at a shared vertex by the pseudo-normal.
+  - **How deep:** to the other's nearest segment among a set a module wider than the clearance's.
+- **Part model:**
+  - `internal-gear` (module or normalModule/helixAngle/hand, teeth, faceWidth, rim, profileShift, thicknessReduction, center, from, rotation; generator `internal-gear@0`); its output carries `internalGear` and `internalGearPlacement`.
+  - A `spur-gear` whose `mesh.gear` is an internal gear stands inside it: at the internal distance along the direction from the ring's centre, a tooth in the ring's space there, turning with the ring by z2/z1 the same way plus `phase` (`pinionTurnInside`). Its placement carries `ring`.
+- **Studio:**
+  - **Nodes and commands:** an `internal-gear` node and Internal gear command (module, teeth, face width, rim Ø, shift, helix, hand, position); its label "Internal gear m… z…".
+  - **Meshing gear:** with an internal gear selected, a pinion inside it (2/5 of its teeth by default, `spur-gear@1`); a helical ring's pinion takes the same hand (`helixOf`).
+  - **Edit fields:** the ring's; the pinion's Centre distance nominal is the internal one.
+  - **Notes:**
+    - the ring's dimensions, the flank fit and the schematic root;
+    - the pinion's "Meshes inside n0: centre distance …, ratio +z1:z2 (the same way), backlash, contact ratio";
+    - the verdict;
+    - "Radial assembly clear" or its warning;
+    - the conditions' errors.
+  - **Lists:** migrate, flatten (the assembly's node switch: the one line, declared), `parentsOf`.
+  - **The agent:** the command docs for `internal-gear`, and `gear-mesh`'s new selection, so `tools-v1.json` gains the command by `UPDATE_TOOL_CONTRACT=1` (one line; v2 unchanged).
+- **The studio's Internal gear command defaults to x2 0.5** (reversible, below). The kernel's default x2 stays 0.
+
+**Found:**
+- **A rack-cut pinion inside an unshifted ring, at no backlash, interferes.**
+  - **What happens:** the ring's tooth-tip corners sweep deeper into the pinion than an external mate's tip; they cut the pinion's generated fillet, which stands where the schematic root was cut away.
+  - **Measured at zero backlash:**
+    - 24 in 60: 0.026 mm (0.0218 with 0.01 backlash, 0.0044 with 0.05, clear with 0.1);
+    - 24 in 40 at x2 0.25: 0.0118 mm.
+  - **The exact Boolean confirms it, apart from the sweep:** the solids turned to the sweep's pose overlap by 1.68e-3 mm³; at x2 0.5 or with 0.05 + 0.05, the intersection is empty.
+  - **The schematic pinion clears.**
+  - **x2 0.5 clears every pair surveyed at no backlash:** 24/60, 20/60, 30/80, 16/40, 40/100, 12/30. K1's text points the same way: internal gears are shifted positive. Hence the studio's default.
+- **`formMargin` is no verdict.** The ring's tip often runs below the pinion's form circle and passes the fillet clear (24 in 60: −1.07 mm along the line of action, clear at 0.1 backlash). It stays in the report; the contact ratio already ends there; the sweep decides.
+- **The trimming condition against the exact radial insertion** (zero backlash) agrees on 21 of 23 pairs:
+  - rings of 40, 60 and 80; at 60 and 80 the boundary falls where the condition's margin crosses 0 (44/60 at −1e-5, 64/80 at +5e-5);
+  - **24/40 and 25/40:** the condition says slight interference (−0.00058, −0.0029); the insertion finds them clear. So does this test's own polyline insertion (100 offsets, its own outlines), and the product's at 3000 offsets.
+  - The condition is recalled, not sourced, so the exact insertion is the authority. The two are recorded and asserted as such.
+- **The involute and trochoid conditions against the sweep** agree on D129's nine pairs (in the product now).
+- **K1 Table 4.6:** d2 72, db2 67.658, da2 69.096, df2 82.596, inv α_w 0.061857 (5e-7), a 13.19995 against K1's 13.2 (its y rounded to 0.4000). K1's α_w 31.321258° follows from that rounded a; the exact a gives 31.32092°.
+- **Four defects in the sweep, found and fixed in this stage before the commit:**
+  - a point's side by its nearest segment misled at a shared vertex (now the pseudo-normal);
+  - the depth's nearest segment taken from a filtered set (now a module wider);
+  - the ring's chords' sag read as crossings at zero backlash (now the computed touch bound);
+  - a narrow trimming dip between insertion samples (now every local least refined).
+- **Timings** (m 2):
+  - a ring 1–5 ms;
+  - a pair's verdict 0.4–0.8 s clean (the radial insertion included);
+  - a report 1.5 s clean, about 6 s crossing (the depth at every sample), as D55's external crossing reports took seconds.
+
+**Evidence:**
+- **Kernel** `test/gear-internal.test.mjs`, 5/5, the oracles written there apart from `gear.ts`/`gear-internal.ts`. The first test fails on 3057e8275: no `internalGear`.
+  - **Rings** (z 40, z 60 with a reduction, K1's z 24 at x2 0.516, a helical z 50 at β 20°): valid, one body.
+    - The volume against (πR² − the spaces' area by the shoelace formula over the analytic involute, 1500 points a flank) × b, within the flank fit (and the twist's): observed 3e-6 to 9e-6.
+    - Tip, root and space by K1's formulas to 1e-12; names; tooth 1's tip arc centred on +X at the tip radius.
+    - K1's dimensions as above.
+  - **Refusals:**
+    - the tip inside its base circle names x = 0.095 (1 − 30(1 − cos 20°)/2 to 1e-3), and x + 1e-3 builds;
+    - the rim (Ø129.000 named);
+    - the shift, the reduction (0.36397 named), the teeth;
+    - another module, a pinion as large, the hand (one hand), a spur pinion in a helical ring.
+  - **The pair:**
+    - z 24 in z 60 with j 0.1: a 36, ratio 0.4, α_w 20°, backlash 0.1, tip clearances 0.5 and 0.5, εα by the formula to 1e-12, the sweep's least 0.1 cos α/2 to 1e-5, no diagnostics;
+    - K1's shifted pair at its working distance without backlash: touching (|c| < 2e-5), clear;
+    - a helical pair (β 15°, both right): a by m_t(z2 − z1)/2, j cos α_t/2, εβ by its formula.
+  - **The conditions:** the product's margins equal the test's to 1e-12; the sweep's breach equals the conditions' on the nine pairs; the radial insertion equals the trimming condition on 14 pairs (rings 40, 60, 80), the two disagreements as above, the test's own insertion with the product's; a 36 in 40 "impossible".
+  - **Placed** (the part model's z 40 ring at x2 0.25 and a z 24 `@1` pinion, 0.05 + 0.05):
+    - the centre at a by the test's own Newton, along each direction (0°, 30°, 200°);
+    - phase 0, clear; the pinion turning 40/24 of the ring's turn, the same way;
+    - the exact Boolean intersection empty when meshed, 1 mm³ and more 9° off (and the placed check crossing);
+    - the unshifted ring crossing, and the Boolean overlap at the sweep's pose, as above;
+    - refusals in the part model;
+    - a helical ring and pinion of one hand, clear;
+    - STEP round trips of a ring and a helical ring (volume 1e-6, names).
+- **Conformance** `r12b/`, 9 (183 overall):
+  - `internal-m2-z40` (V 28083.5838 by the spaces' area, relTol 2e-5; genus 1);
+  - `internal-khk-pair` (the ring 34372.8886; the `@1` pinion 17719.8777 by R12b.1a's generated area, at [13.19995, 0, 5]);
+  - `internal-tip-refused` (x = 0.095).
+- **RB seeds**, every stage OK: `gear-internal-m2-z60`, `gear-internal-helical-m2-z50`, `gear-internal-pinion-inside`, `gear-internal-m2-z40-bolt-holes` (a Boolean through the rim).
+- **Studio** `primitives.test.ts` "Internal gear":
+  - the command's node (x2 0.5);
+  - its volume against 3684.5980 mm² × 10 by the kernel test's own outline, within the fits' 0.6 mm³;
+  - its notes and 60 tips;
+  - Meshing gear with the ring selected: 24 teeth, `@1`, "Meshes inside n0: centre distance 36.9185 mm, ratio +24:60 (the same way), backlash 0 mm", clear, "Radial assembly clear"; the Centre distance field 36.91848518 (K1's form, the test's Newton);
+  - a 36 in a 40 ring "Radial assembly impossible";
+  - the ring guarded from deletion ("used by feature 1");
+  - a helical ring's pinion of the same hand, clear.
+- **Browser flow:** a new step "Internal gear (R12b.2a, D132)": a ring from the palette (x2 0.5, its notes); Meshing gear with it selected adds "Spur gear m2 z24" inside, its notes "Meshes inside n0: centre distance 36.9185 mm, ratio +24:60 (the same way)", clear, "Radial assembly clear".
+
+**Checks:**
+- Kernel 1323/1328 (4 skipped; +8: the 5 tests and 3 conformance cases; the names against D131's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 183/183. Kernel lint clean, type-check clean.
+- Studio 669/669 (+1; the names: none missing, the new test and the merged O72's). Studio lint 0 errors, type-check clean. `tools-v1.json` +1 line by `UPDATE_TOOL_CONTRACT=1`.
+- The full flow 195/195 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** the studio ring's default x2 0.5 (a remedy for its tips against rack-cut pinions; the kernel's default stays 0).
+
+**Not in this stage:**
+- the shaper-cut ring root (R12b.2b);
+- a ring placed round an existing pinion (the mesh goes pinion → ring only);
+- planetary sets with a carrier (R12b.7's acceptance);
+- the pinion's tip relief.
+
+Next: R12b.2b — the shaper-cut internal root.

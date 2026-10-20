@@ -1,6 +1,6 @@
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import type { FaceTable } from '../assembly/mates';
-import { cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
+import { cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
@@ -82,7 +82,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined)), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
+  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined)), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
 }
 
 const AXES: [string, number[]][] = [['+X', [1, 0, 0]], ['−X', [-1, 0, 0]], ['+Y', [0, 1, 0]], ['−Y', [0, -1, 0]], ['+Z', [0, 0, 1]], ['−Z', [0, 0, -1]]];
@@ -402,6 +402,7 @@ function gearNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['gear']>): 
  * (stopping at the first crossing; the kernel caches it by both gears, the centre distance and the phase), its time.
  */
 function meshNotes(g: GearPlacement | undefined): { text: string; warning?: boolean }[] {
+  if (g?.ring) return insideNotes(g);
   if (!g?.driver) return [];
   const t0 = performance.now();
   let c: ReturnType<typeof checkPlacedSpurGears>;
@@ -414,6 +415,34 @@ function meshNotes(g: GearPlacement | undefined): { text: string; warning?: bool
       : { text: `Clear over a full tooth period (checked in ${ms.toFixed(0)} ms)` },
     ...(c.axialThrust ? [{ text: `Axial thrust: ${c.axialThrust.replace(/^gear 1/, g.meshesWith ?? 'gear 1').replace('gear 2', 'this gear')}` }] : []),
     ...c.diagnostics.filter(x => x.code !== 'SELF_INTERSECTION' && x.code !== 'ROOT_TRANSITION_UNVALIDATED').map(x => ({ text: x.message, warning: x.severity === 'warning' }))];
+}
+
+/** An internal gear's report as lines for the body's panel (R12b.2a, D132). */
+function internalGearNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['internalGear']>): { text: string; warning?: boolean }[] {
+  const d = g.dimensions, mm = (x: number) => +x.toFixed(4);
+  return [
+    { text: `${g.profileShift ? `Profile shift x ${g.profileShift}: ` : ''}Internal: reference Ø${mm(d.referenceDiameterMM)}, tip Ø${mm(d.tipDiameterMM)} (inside), root Ø${mm(d.rootDiameterMM)}, base Ø${mm(d.baseDiameterMM)}, rim Ø${mm(d.rimDiameterMM)} mm; space ${mm(d.spaceWidthMM)} mm at the reference circle` },
+    ...(g.helix ? [{ text: `Helical β ${g.helix.helixAngleDeg}° ${g.helix.hand} hand: normal module ${mm(g.helix.normalModuleMM)}, transverse ${mm(g.helix.transverseModuleMM)} mm; its pinion takes the same hand` }] : []),
+    { text: `Flanks within ${g.profileDeviationMM.toExponential(1)} mm of the involute (${g.flankPieces} cubic piece${g.flankPieces > 1 ? 's' : ''}; asked ${g.profileToleranceMM.toExponential(1)})` },
+    { text: 'Schematic root: not the cutting tool\'s (a pinion-type cutter), not validated for manufacturing', warning: true },
+  ];
+}
+/**
+ * A pinion inside a ring: the pair's check in verdict mode (R12b.2a, D132) — the centre distance, ratio +z1:z2,
+ * backlash, contact ratio, the verdict, and the interference conditions and the radial assembly as warnings.
+ */
+function insideNotes(g: GearPlacement): { text: string; warning?: boolean }[] {
+  const t0 = performance.now();
+  let c: ReturnType<typeof checkPlacedInternalGears>;
+  try { c = checkPlacedInternalGears(g.ring!, g, { mode: 'verdict' }); }
+  catch (cause) { return [{ text: `Does not mesh inside ${g.meshesWith}: ${cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause)}`, warning: true }]; }
+  const ms = performance.now() - t0, mm = (x: number) => +x.toFixed(4);
+  return [{ text: `Meshes inside ${g.meshesWith}: centre distance ${mm(c.centerDistanceMM)} mm, ratio +${g.spec.teeth}:${g.ring!.spec.teeth} (the same way), backlash ${mm(c.backlashMM)} mm, contact ratio ${c.usableContactRatio.toFixed(3)}${c.axialContactRatio ? ` + overlap ${c.axialContactRatio.toFixed(3)} = ${c.totalContactRatio.toFixed(3)}` : ''}` },
+    c.sweep.interference ? { text: `The teeth cross at ${c.sweep.atDegrees.toFixed(2)}° of this gear (phase ${c.relativePhaseDeg.toFixed(2)}°): interference (${ms.toFixed(0)} ms)`, warning: true }
+      : { text: `Clear over a full tooth period (checked in ${ms.toFixed(0)} ms)` },
+    c.interference.trimming.interference ? { text: c.interference.trimming.possible ? `Radial assembly: the teeth cross moving in ${mm(c.interference.trimming.atOffsetMM)} mm from the ring's centre — assemble it axially` : 'Radial assembly impossible: its tip circle does not fit inside the ring\'s — assemble it axially', warning: true }
+      : { text: 'Radial assembly clear: it can be moved in from the ring\'s centre' },
+    ...c.diagnostics.filter(x => x.code === 'INVOLUTE_INTERFERENCE' || x.code === 'TROCHOID_INTERFERENCE').map(x => ({ text: x.message, warning: true }))];
 }
 
 /** A rack's report as lines for the body's panel (R6a.5b, D58). */

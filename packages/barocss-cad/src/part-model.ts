@@ -40,6 +40,7 @@ import type { FilletReport } from './rolling-ball.js';
 import { SIDE_TAG, type SideTags } from './side-names.js';
 import { spurRack, type SpurRackReport, type SpurRackSpec } from './gear-rack.js';
 import { spurGear, spurGearCenterDistance, spurGearDimensions, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
+import { internalGear, internalGearCenterDistance, pinionTurnInside, type InternalGearReport, type InternalGearSpec, type PlacedInternalGear } from './gear-internal.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -216,6 +217,14 @@ export type CadPartFeature = Base & (
     readonly mesh?: { readonly gear: string; readonly direction?: number; readonly centerDistance?: CadPartDim; readonly phase?: CadPartDim };
     /** 'spur-rack@0' (the default) the schematic root corner; 'spur-rack@1' (R12b.1b, D131) the basic rack's root fillet, radius `rootFillet` (default 0.38 m). */
     readonly generator?: 'spur-rack@0' | 'spur-rack@1'; readonly rootFillet?: CadPartDim }
+  /**
+   * An internal (ring) gear (R12b.2a, D132): module (a helical one's normalModule, helixAngle and hand — its pinion's
+   * hand), teeth, face width and the rim's outer diameter `rim`; profile shift x2 (−0.5 to 0.75), thickness reduction;
+   * standing on z `from` about `center`, turned `rotation` degrees (tooth 1 on +X at 0). A spur gear meshes inside it by
+   * its `mesh: { gear: <this> }`.
+   */
+  | { readonly kind: 'internal-gear'; readonly module?: CadPartDim; readonly normalModule?: CadPartDim; readonly helixAngle?: number; readonly hand?: 'right' | 'left'; readonly teeth: number; readonly faceWidth: CadPartDim; readonly rim: CadPartDim;
+    readonly pressureAngle?: number; readonly profileShift?: number; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'internal-gear@0' }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
     /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
     readonly form?: 'faceted' | 'helical' }
@@ -377,6 +386,9 @@ export interface CadPartOutput {
   /** A rack's report and placement (R6a.5b). */
   readonly rack?: SpurRackReport;
   readonly rackPlacement?: RackPlacement;
+  /** An internal gear's report and placement (R12b.2a). */
+  readonly internalGear?: InternalGearReport;
+  readonly internalGearPlacement?: PlacedInternalGear;
   /** A SubD body's make-up: steps, caps and their distance from the limit surface (R7, D79). */
   readonly subd?: SubdSummary;
   /** A decimated mesh's report: triangles before and after, why it stopped, the measured distance both ways (R9, D85). */
@@ -451,6 +463,9 @@ interface Part {
   /** A generated rack's report and placement (R6a.5b). */
   readonly rack?: SpurRackReport;
   readonly rackPlace?: RackPlacement;
+  /** An internal gear's report and placement (R12b.2a). */
+  readonly internalGear?: InternalGearReport;
+  readonly internalPlace?: PlacedInternalGear;
   readonly subd?: SubdSummary;
   readonly decimate?: DecimateReport;
   readonly fillet?: readonly FilletReport[];
@@ -465,9 +480,11 @@ export interface GearPlacement {
   readonly spec: SpurGearSpec; readonly center: XY; readonly from: number; readonly rotation: number;
   /** A meshing gear: the feature it meshes with, and that gear's placement (for the pair checks, checkPlacedSpurGears). */
   readonly meshesWith?: string; readonly driver?: GearPlacement;
+  /** A pinion meshing inside a ring (R12b.2a): the ring's placement (checkPlacedInternalGears). */
+  readonly ring?: PlacedInternalGear;
 }
 /** Gear diagnostics as the part model's codes (the gear's own code kept in the message). */
-const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_PROFILE_SHIFT: 'CAPABILITY', UNSUPPORTED_GEAR_KIND: 'CAPABILITY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', SELF_INTERSECTION: 'GEOMETRY', ROOT_TRANSITION_UNVALIDATED: 'GEOMETRY', BORE_INTERSECTION: 'GEOMETRY', MATE_INCOMPATIBLE: 'INPUT', UNDERCUT: 'GEOMETRY' };
+const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_PROFILE_SHIFT: 'CAPABILITY', UNSUPPORTED_GEAR_KIND: 'CAPABILITY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', SELF_INTERSECTION: 'GEOMETRY', ROOT_TRANSITION_UNVALIDATED: 'GEOMETRY', BORE_INTERSECTION: 'GEOMETRY', MATE_INCOMPATIBLE: 'INPUT', UNDERCUT: 'GEOMETRY', INVOLUTE_INTERFERENCE: 'GEOMETRY', TROCHOID_INTERFERENCE: 'GEOMETRY', TRIMMING_INTERFERENCE: 'GEOMETRY', RIM_INTERSECTION: 'GEOMETRY' };
 type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
 /** x ↦ m·x + o from a sketch's own XY (Z along its normal) into the part. */
 type Frame = { readonly m: BrepAffine['matrix']; readonly o: Point };
@@ -1410,9 +1427,27 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         // (Referenced, not consumed: the gear it meshes with stays an output of its own.)
         const other = ref(mesh!.gear, 'mesh.gear').result;
         const driver = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].gearPlace : undefined;
-        if (!driver) fail('REFERENCE', `${String(mesh!.gear)} is not a spur gear`);
+        const ringPlace = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].internalPlace : undefined;
+        if (!driver && !ringPlace) fail('REFERENCE', `${String(mesh!.gear)} is not a spur gear or an internal gear`);
         const dirDeg = mesh!.direction ?? 0, phaseDeg = mesh!.phase ?? 0;
         if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg)) || !(typeof phaseDeg === 'number' && Number.isFinite(phaseDeg))) fail('INPUT', 'mesh.direction and mesh.phase must be numbers of degrees');
+        if (ringPlace) {
+          // Inside a ring (R12b.2a): at the internal pair's distance along the direction from the ring's centre, a tooth in
+          // the ring's space there, turning with the ring by z2/z1 the same way.
+          let a = 0;
+          try { a = internalGearCenterDistance(spec, ringPlace.spec); } catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing inside ${String(mesh!.gear)})` : ''}`); throw cause; }
+          if (mesh!.centerDistance !== undefined) a = dim(mesh!.centerDistance as CadPartDim, 'mesh.centerDistance', true);
+          const phi = (dirDeg as number) * Math.PI / 180;
+          place = { spec, center: [ringPlace.center[0] + a * Math.cos(phi), ringPlace.center[1] + a * Math.sin(phi)], from: ringPlace.from, rotation: pinionTurnInside(ringPlace, f.teeth as number, phi, (phaseDeg as number) * Math.PI / 180), meshesWith: String(mesh!.gear), ring: ringPlace };
+          return () => {
+            let made: ReturnType<typeof spurGear>;
+            try { made = spurGear(spec, { id: at }); }
+            catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+            const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
+            const brep = transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] });
+            return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, gear: made!.report, gearPlace: place }] };
+          };
+        }
         const z1 = driver!.spec.teeth, z2 = f.teeth as number;
         // (Whether they mesh at all — module, pressure angle, helix angle and hands — before where.)
         let a = 0;
@@ -1431,6 +1466,26 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
         const brep = place.rotation || place.center[0] || place.center[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, gear: made!.report, gearPlace: place }] };
+      };
+    }
+    case 'internal-gear': {
+      if (f.generator !== undefined && f.generator !== 'internal-gear@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const helical = f.helixAngle !== undefined && f.helixAngle !== 0;
+      if (helical && f.module !== undefined) fail('INPUT', 'a helical internal gear takes normalModule (the normal module), not module');
+      if (!helical && (f.normalModule !== undefined || f.hand !== undefined)) fail('INPUT', 'normalModule and hand belong to a helical internal gear: give helixAngle too (a straight one takes module)');
+      const m = helical ? dim(f.normalModule as CadPartDim, 'normalModule', true) : dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), rim = dim(f.rim as CadPartDim, 'rim', true);
+      const red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
+      const spec: InternalGearSpec = { ...(helical ? { normalModuleMM: m, helixAngleDeg: f.helixAngle as number, hand: f.hand as 'right' | 'left' } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, rimDiameterMM: rim, toothThicknessReductionMM: red,
+        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+      const place: PlacedInternalGear = { spec, center: f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), from: f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
+      return () => {
+        let made: ReturnType<typeof internalGear>;
+        try { made = internalGear(spec, { id: at }); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
+        const brep = place.rotation || place.center[0] || place.center[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, internalGear: made!.report, internalPlace: place }] };
       };
     }
     case 'spur-rack': {
@@ -2795,7 +2850,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   let validated: BrepCheckReport | undefined, area: number | undefined;
   const flats = new Map<string, FlatPattern>();
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

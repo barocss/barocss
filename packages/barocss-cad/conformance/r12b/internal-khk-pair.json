@@ -1,0 +1,90 @@
+{
+  "id": "r12b-internal-khk-pair",
+  "step": "R12b",
+  "decisions": [
+    "D132"
+  ],
+  "about": "K1's internal example (Table 4.6): m 3, a rack-cut z 16 pinion inside a z 24 ring at x2 0.516, 10 wide, in a Ø100 rim: the pinion at the working distance 13.19995 mm (K1 13.2, its y rounded); each volume its exact profile's area × the width within the fits.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "r",
+          "kind": "internal-gear",
+          "module": 3,
+          "teeth": 24,
+          "faceWidth": 10,
+          "rim": 100,
+          "profileShift": 0.516
+        },
+        {
+          "id": "p",
+          "kind": "spur-gear",
+          "module": 3,
+          "teeth": 16,
+          "faceWidth": 10,
+          "mesh": {
+            "gear": "r"
+          },
+          "generator": "spur-gear@1"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 34372.8886,
+          "relTol": 2e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^r\\.(flankL|flankR|tip|root|rim|face0|face1)$"
+      },
+      {
+        "volumeMM3": {
+          "value": 17719.8777,
+          "relTol": 3e-05
+        },
+        "centroidMM": {
+          "value": [
+            13.19995,
+            0,
+            5
+          ],
+          "absTol": 1e-05
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^p\\.(filletL\\d?|filletR\\d?|flankL|flankR|tip|root|face0|face1)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "centre distance: K1 Table 4.6 (inv α_w = 2 tan α (x2 − x1)/(z2 − z1) + inv α); the ring's area as r12b-internal-m2-z40; the pinion's by test/gear-generated-root.test.mjs generatedArea"
+}

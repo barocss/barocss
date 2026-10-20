@@ -2613,6 +2613,7 @@
        "cone",
        "torus",
        "gear",
+       "internal-gear",
        "gear-mesh",
        "gear-rack",
        "subd-torus",
