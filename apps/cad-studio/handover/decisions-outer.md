@@ -4087,3 +4087,21 @@ The coordinator accepted CNC5 and ordered CNC6, which closes the CNC track. Its 
 - **For the kernel lane**: AP242 semantic PMI in the STEP writer (CNC5 stopped before it); the hole-after-union refusal (still the one todo); the triangle-BVH consolidation (track K).
 - **Not built**: the title block's material and finish cells (an R14 layout change; notes carry them); 5-axis and undercut cutters (access only warns); a price or a quote package for machining (IM6's pattern, if wanted); L/D and thread relief rules (no source).
 - **Counts across the track**: 34 studio tests added (S0 4, CNC1 5, CNC2 6, CNC3 7, CNC4 4, CNC5 4, CNC6 4), 6 flow steps (CNC1–CNC6), and 2 RB9 mutants. The contract overhead is unchanged: no tool text changed.
+
+## O90 — the top bar's shapes strip: a More menu, never a sideways page (2026-10-21)
+
+The kernel lane found the strip full at 1440 px. One more placed command (worm-pair) shifted the page sideways and broke flow step 72, so they put that command in the side toolbar. The coordinator asked for the strip to handle overflow, with a flow assertion that the page does not scroll sideways.
+
+- **Measured**: at 1440 the strip's 15 shapes never fitted. The bar's other controls (852 px), its gaps and padding left room for 12. Before this change the bar ran about 25 px over and squeezed its other children.
+- **`src/ui/ShapesStrip.tsx`**:
+  - It shows as many shapes as the bar has room for. The room is the bar's width less its other laid-out children, gaps and padding, leaving out the two `.grow` spacers. A child hidden with `display: none` takes no gap.
+  - When not every shape fits, a **More shapes** button holds the rest in a grid menu. The menu closes on a pick, a click outside it, or Escape.
+  - The room is measured again whenever the bar or any of its children changes size (ResizeObserver; the browser API stays inside `ui/`, the PKG rule).
+  - `App.tsx` passes the same tool buttons as before, so drag-to-place, tips and the lit active command are unchanged. Everything goes through one component.
+- **CSS**:
+  - `.shapes` may shrink (`flex: 0 1 auto; min-width: 0`);
+  - `.topbar` clips sideways (`overflow-x: clip`, the vertical axis left visible for its dropdowns), so nothing in it can widen the page.
+- **Flow**:
+  - a new step checks 1440, 1100 and 860. The page never scrolls sideways (scrollWidth and scrollLeft). The whole bar fits down to 1100. Shown plus in the menu stays the same total (11 + 4, 0 + 15, 0 + 15), and no more are shown as the window narrows. A shape picked from the menu starts its command, its button lit, and the menu closes;
+  - the five steps that clicked Fastener, and one that clicked Cylinder, use a `shape(label)` helper that opens More when the strip has no room for it.
+- **Follow-up, beyond the strip**: below about 1100 px the bar's other controls alone are wider than the window. The mode group and the right-hand tools are clipped at its edge rather than shifting the page. A narrow-window layout for the whole bar is its own piece of work.

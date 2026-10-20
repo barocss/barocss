@@ -21,6 +21,7 @@ import { CutListDialog } from './ui/CutListDialog';
 import { partCutList } from './app/cutList';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
+import { ShapesStrip } from './ui/ShapesStrip';
 import { ContextMenu } from './ui/ContextMenu';
 import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
@@ -1836,7 +1837,7 @@ export function App() {
           <input value={fileName} onChange={e => setFileName(e.target.value)} size={Math.max(8, fileName.length)} />
           {dirty && <span className="dot" aria-label="Unsaved changes" />}</label>
         {/* Shapes: click one and place it with the pointer, or drag it onto the model. */}
-        {!sketch && !rendering && !drawing && <div className="shapes" role="toolbar" aria-label="Shapes">{commands.filter(c => c.place).map(toolButton)}</div>}
+        {!sketch && !rendering && !drawing && <ShapesStrip buttons={commands.filter(c => c.place).map(toolButton)} />}
         <div className="grow" />
         <div className="mode" role="group" aria-label="Mode">
           <button className={!sketch && !rendering && !drawing ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); setDrawing(false); }}>Model</button>
