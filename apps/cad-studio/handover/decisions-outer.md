@@ -1207,3 +1207,65 @@ Assigned by the coordinator after RM1–RM6 + RD1–RD3. Order: A6.1 → A6.2 �
   - Measured since, with a scratch copy that prints them: warm 0.25–0.28 ms against cold 9.3–12.2 ms, a ratio of 0.022–0.028 against the 0.5 limit, with the bench running alongside or not.
   - `warm` is the largest single step, a sub-millisecond measurement, so one GC pause or preemption of about 5 ms during the full suite's load fails it. Logged as a known flaky timing check in README §0's outer-lane follow-ups.
 - **The checkpoint routine** keeps the coordinator's habit: the full suite's test names are compared with the last commit's run, so a test that disappears is found even when nothing fails.
+
+## O28 — A6.4: images and drawings give drafts only; their dimensions confirmed by the user (2026-10-20)
+
+- **Drafts** (`doc.drafts`, version 1, `src/chat/drafts.ts`): the features an image or a drawing made, by feature id, with the dimensions they were made at.
+  - Each dimension records its value, its basis (`scaled` from an image, `from-drawing`), what it drives, and `confirmed: {by: 'user', at}` once confirmed.
+  - A draft goes with its features: one whose features are deleted is no longer listed.
+  - **Images**: `extrude_image_layer` records the silhouette's width, which scales its sketches about the image's corner, and the thickness, which is the extrusions' height. `inflate_image_layer` records the width and the depth, which scales the lofts' sections.
+  - **Drawings**: `import_drawing` (or the Drafts list's "Add drawing") records the overall width and height, which scale the sketch about its corner, and each round hole's diameter, which scales that hole about its centre.
+- **Confirming** (the studio's Drafts list, by Enter or Confirm; or the user's answer to a question about it):
+  - at its value, it is confirmed as it is, and nothing moves;
+  - **at another value, the features are re-driven**: sketches scaled, heights set, loft depths scaled;
+  - the draft's other dimensions that the change moves follow it — a scale moves its holes and the other size — and are unconfirmed again;
+  - a value bound to a parameter is refused (`BOUND`), as are a size of 0 or less (`BAD_VALUE`) and an unknown dimension (`NO_DRAFT`).
+  - **Only the user confirms**: the tools report drafts (`get_drafts`) and never confirm one.
+- **Where unconfirmed dimensions show**:
+  - in `check_spec`'s unknowns (`draft:F1.width`, with what it is and its basis);
+  - in `get_drafts` (with a note on what to do);
+  - in every export: STEP writes it in a toast, and the STL and 3MF toasts say "This part is a draft: N dimensions … not confirmed (…)".
+  - **A6.2's questions** may ask about one: `blocks {dimension: key}`, asked as a number. The answer confirms it and re-drives the features. A confirmed dimension blocks nothing.
+- **Our own DXF reader** (`src/sketch/dxfRead.ts`):
+  - It reads LINE, ARC, CIRCLE, LWPOLYLINE with bulges as arcs, and POLYLINE/VERTEX, which AC1009 writes, ours included. `$INSUNITS` is scaled to mm (inches, feet, cm, m; none declared is read as mm, said so).
+  - The edges are chained end to end into closed loops (walked backwards where needed, a reversed arc turning the other way) within 1e-6 of the drawing's size.
+  - A loop of arcs on one centre and radius is a circle, which is how a polyline of bulges writes one.
+  - The largest loop and those beside it are regions; a loop inside one is a hole.
+  - Text, dimensions, hatches and points are annotation: left out and listed.
+  - Refused, typed: `DXF_UNSUPPORTED` (splines, ellipses, blocks, 3D, off the XY plane), `DXF_OPEN` (where the gap is), `DXF_NESTED` (an island in a hole), `DXF_EMPTY` and `DXF_MALFORMED`.
+  - The result is a `loop` sketch with its regions and holes, on the XY plane, on a datum (`plane: {datum}`, A6.3) or on a given plane.
+- **Not in A6.4**:
+  - **PDF drawings**: reading a PDF needs a PDF renderer (a new dependency), and the image path takes raster files only. A drawing as a PNG or JPEG goes through the image path, whose result is a draft as above.
+  - Dimension *text* in a DXF is left out, not used. The sizes come from the geometry, and the user confirms them.
+- **The tool contract**: `get_drafts` (read, with an output schema) and `import_drawing` (alters, batchable, refused on a reference's names like any part change). v2: `requirements.drafts` and `requirements.drawing`. The overhead is 13 806 of 15 000.
+- **Evidence**: `test/drafts.test.ts` (5 tests). Its name was checked free first.
+  - **Our writer's files read back**, AC1015 (LWPOLYLINE with bulges) and AC1009 (POLYLINE/VERTEX), both written by the R11b writer from a 60 × 40 plate with two Ø8 holes:
+    - one region and two holes, radius 4 to 1e-9;
+    - extruded 5, its volume (60·40 − 2π·16)·5 to 1e-6;
+    - dimensions width 60, height 40, d1 8, d2 8.
+  - **A hand-written file in inches** (LINE, an ARC end, a CIRCLE, a TEXT and a DIMENSION):
+    - to mm ×25.4;
+    - the TEXT and DIMENSION left out and listed;
+    - area (3·2 + π/2 − π/16) in², volume to 1e-6;
+    - width 101.6, height 50.8, d1 12.7.
+  - **Refusals**: spline, gap (located at (0, 10) mm), nested, empty, malformed, 3D, each typed with the state unchanged.
+  - **Re-driven**:
+    - confirmed as it is, nothing moves;
+    - the width at 120 scales the plate ×2: the volume ×4 to 1e-6, the height becomes 80 and the holes 16, each unconfirmed again;
+    - one hole at 10 changes only that loop: volume (120·80 − 25π − 64π)·5;
+    - a value ≤ 0 and an unknown key are refused.
+  - **An image draft** (a traced square):
+    - width and thickness recorded;
+    - the export warning's text;
+    - `check_spec`'s unknowns `draft:F1.width` and `draft:F1.thickness`;
+    - a question about the width asked as text is refused; asked as a number it is accepted, and answered 40 it re-drives the relief: volume ×4 against the traced area (the trace simplifies the square's corners, so the closed form is the ratio);
+    - the thickness at 6 gives ×2 again;
+    - then no warning, and a confirmed dimension blocks nothing.
+  - The fixtures in `conformance/a6/drawings`: our writer's two files, the hand-written one, and six refusals.
+  - Browser flow 171/171, with a step "A6.4" before the last:
+    - the inches file added through "Add drawing": "3 to confirm", width 101.6;
+    - the width confirmed as it is;
+    - the hole entered as 15, which re-drives it (radius 7.5) and confirms it: "1 to confirm";
+    - extruded and opened, then Export STL, whose toast says "This part is a draft: 1 dimension".
+  - Studio 554/554. The test names were compared with the A6.3 run, and none is missing. Bench: every row within budget. Lint and type-check clean.
+- **Next**: A6.5, standards data with provenance.

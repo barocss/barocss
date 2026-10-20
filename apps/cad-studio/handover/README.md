@@ -350,7 +350,12 @@ stays out of the kernel's core files (requests for them go through the coordinat
     check. Datums from their faces' exact surfaces (1e-9), verified on open; sketch planes, measure and
     datum_distance. Keep-outs (box, cylinder, envelope + offset): overlap exact, clearance exact on the meshes, the
     chord tolerance stated, undecided within it. The Reference bodies card. Conformance `conformance/a6/references`.
-  - A6.4 drafts from images and drawings (next) → A6.5.
+  - **A6.4** (O28): done. Features from an image or a DXF drawing are drafts (`doc.drafts`): their dimensions (scaled,
+    or read from the drawing) unconfirmed until the user confirms them in the Drafts list or by answering a question
+    (ask_user blocks {dimension}); another value re-drives the features. Unconfirmed: check_spec unknowns, export
+    warnings. Our own DXF reader (LINE, ARC, CIRCLE, LWPOLYLINE, POLYLINE; $INSUNITS; typed refusals). PDF drawings
+    are not read (no renderer). Conformance `conformance/a6/drawings`.
+  - A6.5 standards data with provenance (next).
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

@@ -1478,6 +1478,40 @@
    }
   },
   {
+   "name": "get_drafts",
+   "annotations": {
+    "title": "Get drafts",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "output": {
+    "properties": {
+     "drafts": {
+      "type": "array"
+     },
+     "note": {
+      "type": "string"
+     },
+     "unconfirmed": {
+      "type": "array"
+     }
+    },
+    "required": [
+     "drafts",
+     "unconfirmed",
+     "note"
+    ],
+    "type": "object"
+   }
+  },
+  {
    "name": "get_image_layers",
    "annotations": {
     "title": "Get image layers",
@@ -1696,6 +1730,34 @@
      "generalized",
      "units",
      "gravity_m_s2"
+    ],
+    "type": "object"
+   }
+  },
+  {
+   "name": "import_drawing",
+   "annotations": {
+    "title": "Import drawing",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "dxf": {
+      "type": "string"
+     },
+     "name": {
+      "type": "string"
+     },
+     "plane": {
+      "type": "object"
+     }
+    },
+    "required": [
+     "dxf"
     ],
     "type": "object"
    }

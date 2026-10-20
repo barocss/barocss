@@ -350,6 +350,8 @@
        "reference",
        "datum",
        "keepout",
+       "drafts",
+       "drawing",
        "unref",
        "keepouts",
        "ask"

@@ -5,7 +5,8 @@
 import { commandById, commands, patchValues, refOf, shownFields, type Ctx, type Field, type Values } from '../app/commands';
 import { editFields } from '../app/editFields';
 import { measureBetween, measureItem, type MeasurePick } from '../app/measure';
-import { featureLabel, prefixDoc, withNode, type ModelNode, type StudioDoc } from '../engine/doc';
+import { featureLabel, prefixDoc, withNode, type DocPlane, type ModelNode, type StudioDoc } from '../engine/doc';
+type Vec3T = [number, number, number];
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { ToolDefinition } from './api';
 import { CAGE_MUTATORS, CAGE_TOOL_NAMES, CAGE_TOOLS, runCageTool } from './cageTools';
@@ -15,6 +16,7 @@ import { GROUPS, v1Call, viaV2 } from './groups';
 import { ROBOT_TOOL_NAMES, ROBOT_TOOLS, runRobotTool } from './robot';
 import { BRIEF_TOOL_NAMES, BRIEF_TOOLS, runBriefTool, saidIn } from './brief';
 import { QUESTION_TOOL_NAMES, QUESTION_TOOLS, runQuestionTool } from './questions';
+import { DRAFT_TOOL_NAMES, DRAFT_TOOLS, runDraftTool, withImageDraft } from './drafts';
 import { datumPlane, datumToFace, datumWorld, readReferences, REFERENCE_TOOL_NAMES, REFERENCE_TOOLS, referenceNameIn, ReferenceError, runReferenceTool } from './references';
 import { parse, runScript, SCRIPT_VERSION, ScriptError, type ScriptHost, type ScriptRun } from './script';
 import { checkNode, deleteFeature, deleteFeatures, featureDependents, renumber } from './features';
@@ -124,10 +126,10 @@ function features(doc: StudioDoc) {
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
-const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
+const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'import_drawing', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
 /** At most this many checkpoints a session (the oldest dropped first). */
 const CHECKPOINTS = 20;
-const MUTATORS = new Set(['apply_ops', 'run_script', 'restore', 'set_requirements', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part', ...CAGE_MUTATORS]);
+const MUTATORS = new Set(['apply_ops', 'run_script', 'restore', 'set_requirements', 'import_drawing', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part', ...CAGE_MUTATORS]);
 const DETAIL_LIMIT = 80;
 
 /** Evaluates a candidate document: the new state, or the engine's refusal as a tool error. */
@@ -320,6 +322,20 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
   if ((MUTATORS.has(name) || BATCHABLE.has(name) || ASSEMBLY_CHANGES.has(name)) && name !== 'apply_ops' && name !== 'run_script') {
     const ref = referenceNameIn(args);
     if (ref) return fail(state, `[REFERENCE_LOCKED] ${ref} belongs to a locked reference: no feature may use it. Take a datum from it (add_datum) and build on that, or keep the part clear of it (add_keepout).`);
+  }
+  if (DRAFT_TOOL_NAMES.has(name)) {
+    // (A drawing on a datum plane or a given plane, A6.4.)
+    let plane: DocPlane | undefined;
+    const pl = args.plane as Record<string, unknown> | undefined;
+    if (pl !== undefined) {
+      if (isObj(pl) && typeof pl.datum === 'string') { try { plane = datumPlane(readReferences(state.doc.references), pl.datum); } catch (e) { return fail(state, e instanceof ReferenceError ? e.message : String(e)); } }
+      else if (isObj(pl) && [pl.origin, pl.normal, pl.xAxis].every(v => Array.isArray(v) && v.length === 3 && v.every(x => typeof x === 'number' && Number.isFinite(x)))) plane = { origin: pl.origin as Vec3T, normal: pl.normal as Vec3T, xAxis: pl.xAxis as Vec3T };
+      else return fail(state, '"plane" is {datum: id} or {origin, normal, xAxis}.');
+    }
+    const out = runDraftTool(state.doc, name, args, plane);
+    if ('error' in out) return fail(state, out.error);
+    if (!out.changed) return { state, content: json(out.content), isError: false, changed: false, summary: out.summary };
+    return accept(state, out.doc, evaluate, out.summary, out.content as Record<string, unknown>);
   }
   if (REFERENCE_TOOL_NAMES.has(name)) {
     const out = await runReferenceTool(state.doc, state.bodies, name, args, evaluate);
@@ -768,6 +784,8 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         doc = withNode(doc, sketch);
         doc = withNode(doc, { kind: 'extrude', sketch: doc.nodes.length - 1, height, ...(base ? { from: base } : {}) });
       }
+      // (A draft, A6.4: its width and thickness the user's to confirm.)
+      doc = withImageDraft(doc, state.doc.nodes.length, `image ${String(args.image ?? (state.images?.length ?? 1))} ${String(args.layer ?? 'silhouette')}`, { width, thickness: height, at });
       return accept(state, doc, evaluate, `image ${String(args.image ?? (state.images?.length ?? 1))} ${String(args.layer ?? 'silhouette')} ${width} mm wide, ${height} thick${base ? ` from ${base}` : ''}${standing ? ', standing' : ''}`,
         { added: doc.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, doc.nodes)}`) });
     }
@@ -813,6 +831,8 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         doc = withNode(doc, { kind: 'loft', sections: refs, smooth: true });
       }
       if (doc === state.doc) return fail(state, `Nothing to inflate: ${skipped.join('; ') || 'the layer has no outline'}.`);
+      // (A draft, A6.4: its width and depth the user's to confirm.)
+      doc = withImageDraft(doc, state.doc.nodes.length, `image ${String(args.image ?? (state.images?.length ?? 1))} ${layerId}`, { width, depth, at });
       return accept(state, doc, evaluate, `image ${String(args.image ?? (state.images?.length ?? 1))} ${layerId} inflated (${mode}) ${width} mm wide, ${depth} deep${standing ? ', standing' : ''}`,
         { ...(skipped.length ? { skipped } : {}), note: mode === 'body' ? `the body spans ${-depth / 2}…${depth / 2} about its mid plane` : 'bumps are separate bodies sunk into the surface; union them only if one solid is needed (each union is slow)' });
     }
@@ -1270,6 +1290,7 @@ export const TOOLS: ToolDefinition[] = [
   ...BRIEF_TOOLS,
   ...QUESTION_TOOLS,
   ...REFERENCE_TOOLS,
+  ...DRAFT_TOOLS,
 ];
 
 export const SYSTEM_PROMPT = `You are the modeling assistant inside barocss CAD Studio, a parametric part modeler. The user describes a part or a change; you build it with the tools, which edit the part's feature tree exactly like the studio's own commands. Every change you make is evaluated by the geometry kernel and the result (bodies, volumes, bounds, face and edge names, or the exact refusal) comes back to you.
