@@ -2578,6 +2578,21 @@ try {
     await snap('spiral-bevel-pair');
   });
 
+  await check('Worm gear pair (R12b.5, D136): K1\'s pair from the palette — the wheel a helical gear at the lead angle, the ZI worm meshing with it crossed at 90°; its notes, clear in the mid-plane and ±b/3', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('worm gear pair'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[1]?.kind === 'worm' && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    assert.match(await page.textContent('.history'), /Helical gear mn2\.97 z30.*Worm ZI m_x3 ×2 Ø44/);
+    await page.locator('.outliner .ol').nth(1).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(n => /Meshes with n0/.test(n.textContent ?? '')), null, { timeout: 30000 });
+    const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(notes.some(t => /^Worm ZI \(involute helicoid\): reference Ø44, tip Ø50, root Ø36\.5/.test(t)) && notes.some(t => /^Meshes with n0: crossed at 90°, centre distance 67 mm, ratio 30:2 \(15:1\)/.test(t)) && notes.some(t => /^Clear over an axial pitch in the wheel's mid-plane/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('worm-pair');
+  });
+
   await check('Library (LIB4): the T-slot 20 series with its licence and estimates; a 20×20 profile inserted into the part, its notes from the library; a slot nut placed as a part', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Library"]');

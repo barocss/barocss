@@ -10,7 +10,7 @@ import { bodyKeyFor, withIds } from './ids';
  * animation tracks are moved to them once (the same keys wherever no feature was deleted or moved).
  */
 export const SCHEMA = 3;
-const KINDS = new Set(['sketch', 'extrude', 'revolve', 'decimate', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'thicken', 'sew', 'subd', 'gear', 'internal-gear', 'bevel-gear', 'rack', 'library', 'hole', 'sheet-base', 'sheet-contour', 'sheet-flange', 'sheet-corner-relief', 'frame-member', 'frame']);
+const KINDS = new Set(['sketch', 'extrude', 'revolve', 'decimate', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'thicken', 'sew', 'subd', 'gear', 'internal-gear', 'bevel-gear', 'worm', 'rack', 'library', 'hole', 'sheet-base', 'sheet-contour', 'sheet-flange', 'sheet-corner-relief', 'frame-member', 'frame']);
 
 export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] } | { error: string } {
   let raw: unknown;

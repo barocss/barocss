@@ -42,6 +42,7 @@ import { spurRack, type SpurRackReport, type SpurRackSpec } from './gear-rack.js
 import { spurGear, spurGearCenterDistance, spurGearDimensions, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
 import { internalGear, internalGearCenterDistance, pinionTurnInside, type InternalGearReport, type InternalGearSpec, type PlacedInternalGear } from './gear-internal.js';
 import { bevelGear, bevelMatePlacement, bevelGearMatrix, type BevelGearReport, type BevelGearSpec, type PlacedBevelGear } from './gear-bevel.js';
+import { worm as wormSolid, wormPlacement, wormMatrix, type WormReport, type WormSpec, type PlacedWorm } from './gear-worm.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
@@ -249,6 +250,20 @@ export type CadPartFeature = Base & (
     readonly spiral?: { readonly angle: number; readonly hand: 'right' | 'left'; readonly cutterRadius: CadPartDim };
     /** 'bevel-gear@0' (the default): straight or spiral, standard, spherical involute, schematic meridian root. */
     readonly generator?: 'bevel-gear@0' }
+  /**
+   * A cylindrical worm (R12b.5, D136): ZI (the default) or ZA, its axial module, starts (1–4), reference diameter, hand
+   * and length; a bore, an axial thickness reduction. On its own its axis is +Z through `center` from `from`, turned
+   * `rotation` degrees; or, with `mesh`, beside a helical spur gear (its wheel, at β = the worm's lead angle, of its hand):
+   * its axis square to the wheel's, at the centre distance toward `direction` (degrees from +X about the wheel's axis), in
+   * the wheel's mid-plane, its length centred there, turned to mesh (plus `phase` degrees of the worm's turn). A meshing
+   * worm left without its axial module, diameter or hand takes them from the wheel (m_x = m_n / cos β, d1 = z1 m_x / tan β).
+   * Faces `<id>.flankL#k`, `.flankR#k` (`.flankL2#k` …), `.tip#k`, `.root#k`, `.face0`, `.face1`, `.bore#1/2`, segments `.2` ….
+   */
+  | { readonly kind: 'worm'; readonly axialModule?: CadPartDim; readonly starts: number; readonly diameter?: CadPartDim; readonly hand?: 'right' | 'left'; readonly length: CadPartDim; readonly form?: 'ZI' | 'ZA' | 'ZN' | 'ZK' | 'ZC';
+    readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
+    readonly mesh?: { readonly gear: string; readonly direction?: number; readonly phase?: number };
+    /** 'worm@0' (the default). */
+    readonly generator?: 'worm@0' }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
     /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
     readonly form?: 'faceted' | 'helical' }
@@ -416,6 +431,9 @@ export interface CadPartOutput {
   /** A bevel gear's report and placement (R12b.3). */
   readonly bevelGear?: BevelGearReport;
   readonly bevelGearPlacement?: BevelGearPlacement;
+  /** A worm's report and placement (R12b.5). */
+  readonly worm?: WormReport;
+  readonly wormPlacement?: WormPlacement;
   /** A SubD body's make-up: steps, caps and their distance from the limit surface (R7, D79). */
   readonly subd?: SubdSummary;
   /** A decimated mesh's report: triangles before and after, why it stopped, the measured distance both ways (R9, D85). */
@@ -495,6 +513,8 @@ interface Part {
   readonly internalPlace?: PlacedInternalGear;
   readonly bevelGear?: BevelGearReport;
   readonly bevelPlace?: BevelGearPlacement;
+  readonly worm?: WormReport;
+  readonly wormPlace?: WormPlacement;
   readonly subd?: SubdSummary;
   readonly decimate?: DecimateReport;
   readonly fillet?: readonly FilletReport[];
@@ -512,6 +532,8 @@ export interface GearPlacement {
   /** A pinion meshing inside a ring (R12b.2a): the ring's placement (checkPlacedInternalGears). */
   readonly ring?: PlacedInternalGear;
 }
+/** A worm as placed (R12b.5): its frame and turn; the wheel it meshes with and that one's placement. */
+export interface WormPlacement extends PlacedWorm { readonly meshesWith?: string; readonly wheel?: GearPlacement }
 /** A bevel gear as placed (R12b.3): its apex, axis and turn; the bevel gear it meshes with and that one's placement. */
 export interface BevelGearPlacement extends PlacedBevelGear { readonly meshesWith?: string; readonly driver?: BevelGearPlacement }
 /** Gear diagnostics as the part model's codes (the gear's own code kept in the message). */
@@ -1560,6 +1582,41 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const T = bevelGearMatrix(place), moved = T.matrix.some((x, i) => x !== [1, 0, 0, 0, 1, 0, 0, 0, 1][i]) || T.offset.some(x => x !== 0);
         const brep = moved ? transformBrep(made!.brep, T) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, bevelGear: made!.report, bevelPlace: place }] };
+      };
+    }
+    case 'worm': {
+      if (f.generator !== undefined && f.generator !== 'worm@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const L = dim(f.length as CadPartDim, 'length', true), bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
+      const mesh = f.mesh as Record<string, unknown> | undefined;
+      if (mesh !== undefined && (!isRecord(mesh) || typeof mesh.gear !== 'string')) fail('INPUT', 'mesh must be { gear, direction?, phase? }');
+      const other = mesh === undefined ? undefined : ref(mesh.gear, 'mesh.gear').result;
+      const wheel = other && other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].gearPlace : undefined;
+      if (mesh !== undefined && !wheel) fail('REFERENCE', `${String(mesh.gear)} is not a spur gear (a worm's wheel is a helical one)`);
+      // (Meshing, left out: the wheel's — m_x = m_n / cos β, d1 = z1 m_x / tan β, its hand.)
+      const z1 = f.starts as number, wd = wheel ? spurGearDimensions(wheel.spec) : undefined;
+      if (wd && !wd.beta) fail('INPUT', `[MATE_INCOMPATIBLE] ${String(mesh!.gear)} is straight: a worm's wheel is helical, at the worm's lead angle`);
+      const mx = f.axialModule !== undefined ? dim(f.axialModule as CadPartDim, 'axialModule', true) : wd ? wd.mn / Math.cos(wd.beta) : dim(undefined as unknown as CadPartDim, 'axialModule', true);
+      const d1 = f.diameter !== undefined ? dim(f.diameter as CadPartDim, 'diameter', true) : wd ? z1 * mx / Math.tan(Math.abs(wd.beta)) : dim(undefined as unknown as CadPartDim, 'diameter', true);
+      const hand = (f.hand as 'right' | 'left' | undefined) ?? (wd ? (wd.beta > 0 ? 'right' : 'left') : undefined);
+      const spec: WormSpec = { axialModuleMM: mx, starts: z1, diameterMM: d1, hand: hand as 'right' | 'left', lengthMM: L, ...(f.form === undefined ? {} : { form: f.form as WormSpec['form'] }), boreDiameterMM: bore, toothThicknessReductionMM: red, ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+      let place: WormPlacement;
+      try {
+        if (wheel) {
+          const dirDeg = mesh!.direction ?? 0, phaseDeg = mesh!.phase ?? 0;
+          if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg)) || !(typeof phaseDeg === 'number' && Number.isFinite(phaseDeg))) fail('INPUT', 'mesh.direction and mesh.phase must be numbers of degrees');
+          place = { ...wormPlacement(wheel, spec, (dirDeg as number) * Math.PI / 180, (phaseDeg as number) * Math.PI / 180), meshesWith: String(mesh!.gear), wheel };
+        } else {
+          const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center');
+          place = { spec, origin: [c[0], c[1], f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from')], axis: [0, 0, 1], xAxis: [1, 0, 0], rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
+        }
+      } catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
+      return () => {
+        let made: ReturnType<typeof wormSolid>;
+        try { made = wormSolid(spec, { id: at }); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        const T = wormMatrix(place!), moved = T.matrix.some((x, i) => x !== [1, 0, 0, 0, 1, 0, 0, 0, 1][i]) || T.offset.some(x => x !== 0);
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: moved ? transformBrep(made!.brep, T) : made!.brep }, worm: made!.report, wormPlace: place! }] };
       };
     }
     case 'spur-rack': {
@@ -2924,7 +2981,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   let validated: BrepCheckReport | undefined, area: number | undefined;
   const flats = new Map<string, FlatPattern>();
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

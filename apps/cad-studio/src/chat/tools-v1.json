@@ -2628,6 +2628,7 @@
        "gear",
        "internal-gear",
        "bevel-gear",
+       "worm-pair",
        "gear-mesh",
        "gear-rack",
        "subd-torus",

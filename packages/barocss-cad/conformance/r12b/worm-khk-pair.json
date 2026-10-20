@@ -1,0 +1,89 @@
+{
+  "id": "r12b-worm-khk-pair",
+  "step": "R12b",
+  "decisions": [
+    "D136"
+  ],
+  "about": "K1's axial-module example (m_x 3, α_n 20°, double thread right-hand, z2 30, x 0: d1 44, γ 7.76517°, d2 90, a 67): the cylindrical wheel a helical spur gear at β = γ (m_n = m_x cos γ), 20 wide with a Ø20 bore; its ZI worm by mesh, 60 long with a Ø12 bore — its axial module and diameter from the wheel, its axis square to the wheel's at 67 mm along +X in its mid-plane. Each volume its section's area × its length (a turn keeps each slice's area), less the bore.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "spur-gear",
+          "normalModule": 2.972490504132897,
+          "helixAngle": 7.765166018425334,
+          "hand": "right",
+          "teeth": 30,
+          "faceWidth": 20,
+          "bore": 20
+        },
+        {
+          "id": "w",
+          "kind": "worm",
+          "starts": 2,
+          "length": 60,
+          "bore": 12,
+          "mesh": {
+            "gear": "g"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 119279.7884,
+          "relTol": 2e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            10
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 84310.8648,
+          "relTol": 2e-05
+        },
+        "centroidMM": {
+          "value": [
+            67,
+            0,
+            10
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^w\\.(flankL\\d?|flankR\\d?|tip|root|rootL|rootR|face0|face1|bore)(#\\d+\\.\\d+)?$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "K1 (KHK, Calculation of Gear Dimensions, Table 4.23, retrieved 2026-10-20, re-read 2026-10-21) for d1, γ, d2, a, d_a1, d_f1; the areas by π rf² + z ∫ 2ψ(r) r dr (test/gear-worm.test.mjs sectionArea for the worm; the wheel's transverse involute of α_t likewise)"
+}
