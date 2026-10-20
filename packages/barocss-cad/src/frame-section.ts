@@ -257,6 +257,21 @@ export interface FrameMemberReport {
   readonly axis: readonly [number, number, number]; readonly xAxis: readonly [number, number, number]; readonly yAxis: readonly [number, number, number];
   /** The up reference was along the member, so the section's y came from this one instead. */
   readonly upFallback?: readonly [number, number, number];
+  /** How its ends are finished at the frame's corners (FR3a, D125): square, mitre, butt, or running through. */
+  readonly ends?: readonly FrameEndReport[];
   /** The centroidal axis in the part: the line A·L is measured on. */
   readonly centroidLine: { readonly start: readonly [number, number, number]; readonly end: readonly [number, number, number] };
+}
+
+/**
+ * One end of a frame's member at a corner (FR3a, D125): `square` (no corner, or one left as it is), `mitre` (cut on the
+ * plane halfway between the two members), `butt` (ended on the face of the member that runs through), `through` (run on
+ * past the corner to cover the other member). `point` the skeleton point; `with` the other member; `angleDegrees` the
+ * cut from square; `plane` the cut's (its normal pointing away from the member); `extendedMM` how far a through member
+ * runs past the point.
+ */
+export interface FrameEndReport {
+  readonly end: 'start' | 'end'; readonly point: number; readonly kind: 'square' | 'mitre' | 'butt' | 'through';
+  readonly with?: number; readonly angleDegrees?: number; readonly extendedMM?: number;
+  readonly plane?: { readonly origin: readonly [number, number, number]; readonly normal: readonly [number, number, number] };
 }

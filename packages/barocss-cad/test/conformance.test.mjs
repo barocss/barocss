@@ -55,6 +55,11 @@ for (const file of cases) {
         close(r.areaMM2, w.areaMM2, 'area'); close(r.lengthMM, w.lengthMM, 'length'); w.centroid.forEach((x, i) => close(r.centroid[i], x, 'centroid'));
         for (const key of ['xAxis', 'yAxis', 'upFallback']) if (w[key]) w[key].forEach((x, i) => close(r[key][i], x, key));
         if (w.derived !== undefined) assert.deepEqual(r.derived ?? null, w.derived, `output ${k} member derived dimensions`);
+        // Its ends at the frame's corners (FR3a, D125): end, kind and point in order, and each cut's angle from square.
+        if (w.ends) {
+          assert.deepEqual((r.ends ?? []).map(e => [e.end, e.kind, e.point]), w.ends.map(e => [e.end, e.kind, e.point]), `output ${k} member ends`);
+          w.ends.forEach((e, i) => { if (e.angleDegrees !== undefined) close(r.ends[i].angleDegrees, e.angleDegrees, `end ${i} angle`); });
+        }
       }
       if (want.flat) {
         // A sheet's flat pattern (R12.2, D117): by the output's own rules, or with T and K given (`options.thicknessMM`).

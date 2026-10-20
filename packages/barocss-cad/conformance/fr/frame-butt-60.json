@@ -1,0 +1,158 @@
+{
+  "id": "fr-frame-butt-60",
+  "step": "FR",
+  "decisions": [
+    "D125"
+  ],
+  "about": "FR3a: two sharp 40 × 40 × 3 tubes meeting at 60°, butted: the through member runs on (b/2)·sin φ, the other ends on its face — (b/2)/sin φ short along its line, its centroid by the cut prism's moments.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              400,
+              0,
+              0
+            ],
+            [
+              249.99999999999997,
+              259.8076211353316,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              1
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "at": [
+              {
+                "point": 1,
+                "kind": "butt",
+                "through": 0
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 185290.30558560582,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            208.6602540378444,
+            0,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 400,
+          "centroid": [
+            0,
+            0
+          ],
+          "ends": [
+            {
+              "end": "start",
+              "kind": "square",
+              "point": 0
+            },
+            {
+              "end": "end",
+              "kind": "through",
+              "point": 1
+            }
+          ],
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 122946.25921919224,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            319.71031574263304,
+            140.02352458341485,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 300,
+          "centroid": [
+            0,
+            0
+          ],
+          "ends": [
+            {
+              "end": "start",
+              "kind": "square",
+              "point": 2
+            },
+            {
+              "end": "end",
+              "kind": "butt",
+              "point": 1,
+              "angleDegrees": 30
+            }
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: the through member A(400 + 20 sin φ), square both ends; the butted one cut by y = 20 — s_end(ξ) = L − 20/sin φ + ξ cot φ — so V = A(L − 20/sin φ), s̄ = (A c0² + cot²φ·I)/(2V), ξ̄ = cot φ·I/V; its cut 90° − φ from square."
+}

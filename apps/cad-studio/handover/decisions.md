@@ -6160,3 +6160,92 @@ The second FR stage frozen in D122: many members along a skeleton's segments, ea
 | Properties | 11/11, no failures |
 
 RB rows are in the next commit.
+
+## D125 — FR3a: two-member corners, and the planar Boolean's fix (2026-10-20)
+
+The third FR stage frozen in D122: first the defect S0 found, then the corners where two members of a frame end at one point.
+
+**The planar route's fix** (`part-model.ts` `planarBoolean`):
+- Two bodies of planes only went to the exact rational polyhedral Boolean. It needs each face's vertices exactly coplanar; a member off the axes, or a split's slanted cut, has them so to binary64 (~1e-15), and it refused the face ("not planar", D122).
+- Now that refusal, and only that one, hands the pair to the analytic Boolean, which works on the planes in binary64. Both callers take it: the general `boolean()` dispatch and the planar chamfer's wedge.
+- A test failing on the previous HEAD (`e85509dbf`, with the kernel rebuilt from its sources): a sharp tube on a 120° corner split and two mitred sharp tubes united by the part's own features (it failed with "face … is not planar"); now one body, 1e-12.
+- The S0 probe's two assertions of the refusal are turned to its fixed behaviour (the sharp cases at 120° and 3D split and weld exactly).
+- **The outer lane's report** (a facet mesh subtracted from a curved B-rep: slow, "not a manifold", F3): not touched. That pair has a curved body, so it never reaches the planar branch; the fallback runs only where the polyhedral route refused a face as not planar.
+
+**Corners** (the `frame` feature's `corners`):
+- `corners: { default?, at? }`:
+  - `default` (mitre when left out) finishes every place where exactly two members end;
+  - `at: [{ point, kind, through? }]` sets a point apart;
+  - `corners` left out finishes nothing, so a saved FR2 frame builds as it did.
+- **Joints are places**: points within 1e-6 mm are one point.
+- **A place where three or more members end** (a table's top corners) is left square and reported so; the ordered trim is FR3b. A point set apart there is refused.
+- **Mitre**: both members are cut on the plane through the point square to u1 + u2 (u1 into the point, u2 out). Each is run on past the point far enough to fill it (its section's reach × (tan θ + 1) + 1) before the cut.
+  - The cut faces are `<id>.m<k>.start.mitre` / `.end.mitre`.
+  - It is refused unless the second section is the first reflected in that plane (their vertices, lines' starts and arcs' centres, compared to 1e-9 of the size): `MITRE_SECTIONS_DIFFER`. That covers different sections and the same section turned differently. A 60 × 30 tube up a leg and along a rail meets face to face (the box is symmetric); rolled a quarter turn, it does not.
+- **Butt**: one member runs through: the `through` given, else the larger section, else the lower index.
+  - It runs on, square, far enough to cover the other's section there: the farthest of the other's box corners along it, (b/2)·sin φ for square tubes at an angle φ.
+  - The other is run on into it and cut on the plane of the through member's section box facing it (`.end.butt`). That side must be a face of the box (the approach square to a section axis): else `BUTT_NOT_ON_A_FACE` (a member rolled 30° offers an edge).
+  - Trimming to the through member's envelope, and to any plane or body, is FR3b.
+- **Members in line** (in-line ends at a point) or **folded back**: `CORNER_ANGLE`.
+- A cut leaving a member in pieces: `TRIM_LEAVES_PIECES` (a guard; none of the tests reaches it).
+- **The member report's `ends`**: each end's kind (square, mitre, butt, through), its point, the other member, the cut's angle from square, the cut plane, or how far a through member runs on. The cut list (FR4) reads them.
+- **Placement and building are split** (`placeMember`, `buildMember` with its runs-on and cuts), so corners plan from every member's frame before any is built. The tool ids for the half-spaces take no dots (the analytic Boolean refuses them).
+
+**Oracles** (`test/fr-3a.test.mjs`, 6 tests; closed forms written there):
+- **The planar route** (above).
+- **A mitred 600 × 400 rectangle of sharp tubes**:
+  - each A·L to 1e-12 (a prism cut by planes through the centroidal line's ends);
+  - the long points L + b from the B-rep;
+  - both ends' angles 45°, the cut faces by name at 45° to the line;
+  - the four welded (the analytic Boolean): one body, their sum to 1e-12, so they meet face to face with no overlap or gap.
+- **Round-cornered tubes at 120° and at a 3D corner** (up = the corner plane's normal):
+  - A·L to 1e-8 (the kernel's quadrature on cut cylinders, as S0 measured);
+  - θ = acos(u1·m) to 1e-12, the long point L + (b/2)·tan θ to 1e-12;
+  - the pair welded: one body, their sum.
+- **Butts square and at 60°**: the through member A(L + (b/2)·sin φ), the other A(L − (b/2)/sin φ), each to 1e-12; the butt's angle 90° − φ; welded, one body and their sum. By default a 50 × 50 leg runs through under a 40 × 40 rail (A(700 + 20), A(600 − 25)).
+- **Corners left alone**:
+  - no `corners` gives A·L and no ends;
+  - a table mitred by default leaves its three-member corners square and says so;
+  - a rectangle with one butt (member 1 through), one `none`, the rest mitred: each end's kind as set, A(600 − 20) and A(400 + 20).
+- **Refusals** by name (8 cases), and a two-section corner that is refused as a mitre but builds as a butt.
+- **Conformance** `conformance/fr/` (+4; generator `scripts/fr3a-conformance.mjs`, closed forms only):
+  - the mitred rectangle: each member's volume, and its centroid moved outwards by 2I/(L·A), since the section at y runs from y to L − y;
+  - the 60° butt: the cut prism's centroid s̄ = (A c0² + cot²φ·I)/(2V), ξ̄ = cot φ·I/V;
+  - `refuse-mitre-sections-differ`;
+  - `refuse-corner-not-a-joint`.
+  - The runner checks a member's `ends` (end, kind, point, angle).
+
+**Studio**:
+- **The frame node** gains `corners`. "Frame" in the palette has **Corners (two members)**: Mitre (the default for a new frame), Butt or None (overlap).
+- **The feature editor**:
+  - the frame's corners;
+  - a **Corner at point k** for each point where two members end: as the frame, mitre, butt with either member through, none (`corners.at`; "as the frame" removes the entry).
+- **The body's panel**:
+  - "Ends: start mitre 45° with member 4; end mitre 45° with member 2";
+  - a through member's run-on;
+  - a butt's angle;
+  - a warning on an end left square where three or more members meet ("an ordered trim comes with FR3b").
+- **The agent**: `corners` in `add_features` is checked (kinds, the at-list's fields); the kernel's refusals come back by name; `run_command frame` documents `corners`.
+- **The flatten test the coordinator asked for**: a frame on a sketch section (a plate with a hole), butted, as an assembly instance. Flattened, its section is the sketch's new index (2, after the base part's two nodes). Its members' volumes are by closed form, A(300 + x̄) and A(170 + x̄), with x̄ the section's centroid. Their faces are the frame's (`.m0.start`, `.m1.start.butt`, `.m1.hole0.side0`).
+- Studio tests `test/frame.test.ts` (+2): the palette's mitred rectangle, a table's warnings, the editor's corner fields, and the flatten and agent test.
+- A flow step (`fr3a-mitred-rectangle`): the palette's rectangle of sharp tubes, mitred, A·L and the ends in the notes.
+
+**Judgement calls**:
+- **The fallback is narrow**: only the polyhedral route's "not planar" refusal goes to the analytic Boolean. Exact rational planar Booleans keep their route where they work.
+- **A mitre needs the sections to meet face to face, checked by geometry**, so a symmetric section turned by its symmetry is accepted, and anything else is refused rather than left with a gap.
+- **A butt ends on the through member's section box**, so for an open section (an angle) that is the box's side, not necessarily material. Trimming to the member's actual envelope or any body is FR3b.
+- **Corners are off unless asked**: `corners` absent keeps FR2 frames as they were (no silent change to saved documents). The studio writes `{ default: 'mitre' }` for new frames.
+
+**Not in FR3a** (FR3b next): ordered trims at joints of three or more, copes, trims to the envelope, to a plane or to a body, and T-joints (a member ending on another's middle).
+
+**Checks** on e85509dbf plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; studio `eslint src test` 0 errors, 119 warnings as before; studio type-check) |
+| Kernel | 1268/1273 (4 skipped; +10: 6 fr-3a tests, 4 conformance cases; names compared, none missing); only the env-only "actual native Split source…" fails |
+| Conformance | 165/165 |
+| Studio | 628/628 (+2 of FR3a; names compared, none missing) |
+| Full flow | 182/182, run on its own; the new step included |
+
+RB rows are in the next commit.

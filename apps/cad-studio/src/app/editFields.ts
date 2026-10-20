@@ -224,6 +224,24 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
         });
       }
       number('roll', 'Roll', '°', n => (n as F).roll ?? 0, (n, v) => { const f = { ...(n as F) }; if (v) f.roll = v; else delete f.roll; return f; });
+      // (FR3a, D125: how two members meeting at a point are finished — all of them, then each such point set apart.)
+      out.push({ kind: 'choice', key: 'corners', label: 'Corners', options: [{ value: 'mitre', label: 'Mitre' }, { value: 'butt', label: 'Butt' }, { value: 'none', label: 'None (overlap)' }],
+        get: n => { const c = self<F>(n).corners; return c ? c.default ?? 'mitre' : 'none'; },
+        set: (n, v) => { const f = self<F>(n); return replace(n, i, { ...f, corners: { ...f.corners, default: v as 'mitre' | 'butt' | 'none' } }); } });
+      node.points.forEach((_, p) => {
+        const meet = node.segments.flatMap((g, k) => g[0] === p || g[1] === p ? [k] : []);
+        if (meet.length !== 2) return;
+        const options = [{ value: 'default', label: 'As the frame' }, { value: 'mitre', label: 'Mitre' }, ...meet.map(k => ({ value: `butt:${k}`, label: `Butt, member ${k + 1} through` })), { value: 'none', label: 'None (overlap)' }];
+        out.push({ kind: 'choice', key: `corner${p}`, label: `Corner at point ${p + 1}`, options,
+          get: n => { const e = self<F>(n).corners?.at?.find(x => x.point === p); return !e ? 'default' : e.kind === 'butt' ? `butt:${e.through ?? meet[0]}` : e.kind; },
+          set: (n, v) => {
+            const f = self<F>(n), rest = (f.corners?.at ?? []).filter(x => x.point !== p);
+            const entry = v === 'default' ? [] : v.startsWith('butt:') ? [{ point: p, kind: 'butt' as const, through: Number(v.slice(5)) }] : [{ point: p, kind: v as 'mitre' | 'none' }];
+            const at = [...rest, ...entry], corners = { ...(f.corners ?? {}), ...(at.length ? { at } : {}) };
+            if (!at.length) delete corners.at;
+            return replace(n, i, { ...f, corners });
+          } });
+      });
       node.points.forEach((_, p) => (['X', 'Y', 'Z'] as const).forEach((axis, c) => number(`p${p}.${axis.toLowerCase()}`, `Point ${p + 1} ${axis}`, 'mm', n => num((n as F).points[p][c]), (n, v) => {
         const f = n as F, points = f.points.map((q, j) => j === p ? q.map((x, k) => k === c ? v : x) as F['points'][number] : q);
         return { ...f, points };

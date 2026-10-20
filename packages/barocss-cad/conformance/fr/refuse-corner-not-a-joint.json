@@ -1,0 +1,80 @@
+{
+  "id": "fr-refuse-corner-not-a-joint",
+  "step": "FR",
+  "decisions": [
+    "D125"
+  ],
+  "about": "FR3a: a mitre asked at a point where three members end is refused by name (an ordered trim is FR3b).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              300,
+              0,
+              0
+            ],
+            [
+              300,
+              300,
+              0
+            ],
+            [
+              300,
+              0,
+              300
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "at": [
+              {
+                "point": 1,
+                "kind": "mitre"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[CORNER_NOT_A_JOINT] point 1: 3 member ends meet there"
+    }
+  },
+  "oracle": "By construction."
+}

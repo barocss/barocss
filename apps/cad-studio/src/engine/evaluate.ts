@@ -96,8 +96,21 @@ function memberNotes(m: NonNullable<CadPartSnapshot['outputs'][number]['member']
     ...(m.frame && node?.kind === 'frame' ? [{ text: `Frame member ${m.frame.member + 1} of ${node.segments.length}: point ${m.frame.from + 1} → point ${m.frame.to + 1}${m.mirrored ? ', mirrored' : ''}` }] : []),
     { text: `Member: ${m.section} · section ${+m.areaMM2.toFixed(3)} mm² · length ${mm(m.lengthMM)}` },
     { text: `Line through its ${m.anchor}${m.offset[0] || m.offset[1] ? `, moved (${m.offset.map(x => +x.toFixed(3)).join(', ')})` : ''}; section x ${direction(m.xAxis)}, y ${direction(m.yAxis)}${m.rollDegrees ? ` (rolled ${+m.rollDegrees.toFixed(3)}°)` : ''}${m.upFallback ? `; the line runs along up, so y follows ${direction(m.upFallback)}` : ''}` },
+    ...(m.ends && node?.kind === 'frame' ? endNotes(m.ends, node) : []),
     ...(est.length ? [{ text: `Estimates, not your stock's: ${est.map(k => `${k} ${typeof sec[k] === 'number' ? mm(sec[k] as number) : '(parameter)'}`).join(', ')} — the palette's first try${section?.kind === 'tslot' ? ' (the tslot-20 library\u2019s slot sizes)' : ''}. Use your supplier's.`, warning: true }] : []),
   ];
+}
+
+/**
+ * A frame member's ends at its corners (FR3a, D125): each end's finish; an end left square where three or more members
+ * meet (overlapping until an ordered trim, FR3b) said so as a warning.
+ */
+function endNotes(ends: NonNullable<NonNullable<CadPartSnapshot['outputs'][number]['member']>['ends']>, node: Extract<ModelNode, { kind: 'frame' }>): { text: string; warning?: boolean }[] {
+  const meeting = (p: number) => node.segments.reduce((n, g) => n + (g[0] === p ? 1 : 0) + (g[1] === p ? 1 : 0), 0);
+  const what = (e: (typeof ends)[number]) => e.kind === 'mitre' ? `mitre ${+e.angleDegrees!.toFixed(3)}° with member ${e.with! + 1}` : e.kind === 'butt' ? `butt on member ${e.with! + 1}${e.angleDegrees ? ` (${+e.angleDegrees.toFixed(3)}° from square)` : ''}` : e.kind === 'through' ? `through, ${+e.extendedMM!.toFixed(3)} mm past point ${e.point + 1} over member ${e.with! + 1}` : 'square';
+  const out: { text: string; warning?: boolean }[] = [{ text: `Ends: ${ends.map(e => `${e.end} ${what(e)}`).join('; ')}` }];
+  for (const e of ends) if (e.kind === 'square' && meeting(e.point) >= 3) out.push({ text: `Point ${e.point + 1}: ${meeting(e.point)} members meet, left square and overlapping (an ordered trim comes with FR3b)`, warning: true });
+  return out;
 }
 
 /** A sheet's notes and its flat pattern (worked out once a B-rep), or the flat's refusal as a warning. */

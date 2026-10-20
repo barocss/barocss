@@ -38,7 +38,7 @@ const SPECS: Record<string, Spec> = {
   'sheet-flange': { parent: 'ref', edges: 'names1', length: 'dim', 'angleDegrees?': 'num', 'bendRadius?': 'dim', 'measure?': 'enum:outer|inner|tangent', 'position?': 'enum:material-inside|material-outside|bend-outside', 'offsets?': 'dim2', 'relief?': 'any' },
   // (FR1, D123: a structural member, its section by kind and dimensions — none defaulted — or a closed sketch.)
   // (FR2, D124: a frame on a skeleton; overrides set members apart.)
-  frame: { points: 'points3', segments: 'segments', section: 'member-section', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'mirror?': 'bool', 'up?': 'vec3', 'overrides?': 'frame-overrides' },
+  frame: { points: 'points3', segments: 'segments', section: 'member-section', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'mirror?': 'bool', 'up?': 'vec3', 'overrides?': 'frame-overrides', 'corners?': 'frame-corners' },
   'frame-member': { section: 'member-section', start: 'dim3', end: 'dim3', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'up?': 'vec3' },
   'sheet-contour': { path: 'points2', 'plane?': 'plane', side: 'enum:left|right', width: 'dim', thickness: 'dim', bendRadius: 'dim', 'kFactor?': 'num', 'bendTable?': 'any' },
 };
@@ -141,6 +141,13 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
         const why = (o.section !== undefined && checkValue(o.section, 'member-section', nodes, parameters, leaves)) || (o.anchor !== undefined && checkValue(o.anchor, SPECS.frame['anchor?'], nodes, parameters, leaves)) || (o.offset !== undefined && checkValue(o.offset, 'dim2', nodes, parameters, leaves)) || (o.roll !== undefined && checkValue(o.roll, 'num', nodes, parameters, leaves)) || (o.mirror !== undefined && checkValue(o.mirror, 'bool', nodes, parameters, leaves));
         if (why) return `override of member ${o.member}: ${why}`;
       }
+      return null;
+    }
+    case 'frame-corners': {
+      const kinds = ['mitre', 'butt', 'none'];
+      if (!isObj(v) || Object.keys(v).some(k => k !== 'default' && k !== 'at')) return '{"default"?: "mitre" | "butt" | "none", "at"?: [{"point": i, "kind", "through"?: member}]}';
+      if (v.default !== undefined && !kinds.includes(String(v.default))) return 'corners.default: mitre, butt or none';
+      if (v.at !== undefined && (!Array.isArray(v.at) || !v.at.every(e => isObj(e) && Number.isInteger(e.point) && kinds.includes(String(e.kind)) && (e.through === undefined || Number.isInteger(e.through)) && Object.keys(e).every(k => ['point', 'kind', 'through'].includes(k))))) return 'corners.at: a list of {"point": i, "kind": "mitre" | "butt" | "none", "through"?: member}';
       return null;
     }
     case 'member-section': {
