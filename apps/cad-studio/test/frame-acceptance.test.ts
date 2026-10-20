@@ -8,7 +8,7 @@ import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { toPartDocument } from '../src/engine/part';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { drawingInputs } from '../src/chat/drawing';
-import { drawingIssues, issueContext } from '../src/drawing/issues';
+import { drawingIssues, fixAll, issueContext } from '../src/drawing/issues';
 import { readDrawing } from '../src/drawing/types';
 import { sheetSvg } from '../src/drawing/svg';
 import { sheetPdf } from '../src/drawing/pdf';
@@ -71,11 +71,15 @@ test('FR4b the welded table frame by the agent: a mitred 1000 × 600 top, four l
   const ctx = issueContext({ ...i, meta: { ...i.meta, date: '2026-10-20' } }), g = ctx.sheet.groups.find(x => x.role === 'table');
   assert.ok(g, 'the table on the sheet');
   // (Placed clear by the sheet's own rule: R14's issue list finds nothing on it.)
-  // (Placed clear by the sheet's own rule on A3: R14's issue list finds nothing on it. On A4 the 166 mm table, auto-placed,
-  // lands on the right view's name with no fix — the outer lane's placement, recorded in D128 as its follow-up.)
+  // (Placed clear by the sheet's own rule on A3: R14's issue list finds nothing on it. On A4 the 166 mm table cannot share
+  // the sheet with the views at 1:20 — no room anywhere — so its overlap carries a fix, A3 at 1:20, which Fix all applies
+  // and clears: the outer lane's O67, the follow-up D128 recorded; this expectation updated with it.)
   assert.deepEqual(drawingIssues(ctx).filter(x => x.tables?.includes('cut')).map(x => x.code), []);
   const a4 = drawingInputs(state.doc, { ...settings, sheet: 'A4' }); assert.ok(typeof a4 !== 'string');
-  assert.deepEqual(drawingIssues(issueContext({ ...a4, meta: { ...a4.meta, date: '2026-10-20' } })).filter(x => x.tables?.includes('cut')).map(x => [x.code, !!x.fix]), [['TEXT_OVERLAP', false]], 'the known A4 overlap (a follow-up)');
+  const a4in = { ...a4, meta: { ...a4.meta, date: '2026-10-20' } };
+  assert.deepEqual(drawingIssues(issueContext(a4in)).filter(x => x.tables?.includes('cut')).map(x => [x.code, x.fix]), [['TEXT_OVERLAP', { kind: 'scale', sheet: 'A3', scale: 0.05 }]], 'the A4 overlap and its fix');
+  const fixed = fixAll(a4in);
+  assert.equal(fixed.settings.sheet, 'A3'); assert.deepEqual(fixed.left.filter(x => x.tables?.includes('cut')), [], 'Fix all clears it');
   const svg = sheetSvg(ctx.sheet, 'welded-table');
   const texts = g.marks.filter(m => m.kind === 'text').map(m => (m as { text: string }).text);
   for (const t of ['CUT LIST', 'LENGTH [mm]', '1000.0', '730.0', 'MITRE 45', 'BUTT 0']) assert.ok(texts.includes(t), `the table: ${t}`);

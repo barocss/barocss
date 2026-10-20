@@ -499,7 +499,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
           {issues.map((x, k) => <div key={k} className={'dw-issue ' + x.severity} role="button" tabIndex={0} title={x.code}
             onClick={() => { const d = x.dims?.[0]; if (d) { setSelected(d); setTool('select'); } }}>
             <Icon name={x.severity === 'error' ? 'error' : 'warning'} small /><span>{x.message}</span>
-            {x.fix && <button className="ghost tiny" aria-label={`Fix: ${x.message}`} onClick={e => { e.stopPropagation(); fixIssue(x); }}>{x.fix.kind === 'auto-dimension' ? 'Auto' : x.fix.kind === 'remove' ? 'Remove' : x.fix.kind === 'accept' ? 'Accept' : x.fix.kind === 'scale' ? (x.fix.sheet ? 'A3' : 'Auto scale') : 'Move'}</button>}
+            {x.fix && <button className="ghost tiny" aria-label={`Fix: ${x.message}`} onClick={e => { e.stopPropagation(); fixIssue(x); }}>{x.fix.kind === 'auto-dimension' ? 'Auto' : x.fix.kind === 'remove' ? 'Remove' : x.fix.kind === 'accept' ? 'Accept' : x.fix.kind === 'scale' ? (x.fix.sheet ? 'A3' : x.fix.scale !== undefined ? (x.fix.scale >= 1 ? `${x.fix.scale}:1` : `1:${Math.round(1 / x.fix.scale)}`) : 'Auto scale') : 'Move'}</button>}
           </div>)}
           {!issues.length && views && <div className="empty">No issues: nothing overlaps or is lost, and every hole, step and overall size is given.</div>}
         </div>

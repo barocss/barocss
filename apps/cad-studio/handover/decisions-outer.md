@@ -3079,3 +3079,68 @@ Built as O62 froze it (`src/robot/sdf.ts`, `src/robot/usd.ts`, readers in `src/r
 
       (Declined: nothing installed, no reading.)
 - **Flow**: a step "RM9c" just before the last. The ccd-post arm is exported as SDF (the zip holds robot.sdf and the meshes, and python's zipfile reads the SDF: version 1.11, base_to_a continuous) and as USD (the articulation root, base_to_a a revolute joint, the post an Xform).
+
+## O67 — a table with no room: a verified sheet or scale fix, else said so; the A4 cut list clears (2026-10-20)
+
+The kernel lane's FR4b follow-up (D128). On A4 the 166 × 45 mm cut-list table, auto-placed, landed on the right view's name. R14 reported TEXT_OVERLAP with no fix, so Fix all could not clear it.
+
+- **Why no placement could fix it.** At 1:20 the views and their names take about 120 × 116 mm of an A4 drawing area of about 267 × 150 mm. Side by side with the 166 mm table they need 286 mm of width; stacked, 161 mm of height. Neither fits, wherever the views, the view names or the table's corner go.
+  - So O50's search, which already covers the whole frame in 5 mm steps, correctly finds nothing.
+  - Splitting the table's rows does not narrow it. Splitting its columns needs two 83 × 45 rooms, and A4 has one.
+- **The fix** (`issues.ts`):
+  - an issue context can now `rebuild` its sheet for other settings;
+  - a table with no room where it is tries, in order:
+    1. A3 at the views' current scale;
+    2. A3 at its own scale;
+    3. each smaller standard scale on this sheet.
+  - Each is built again, and the first whose sheet leaves the table clear (no TEXT_OVERLAP, TEXT_OVER_LINES or OFF_SHEET on it) is the fix. A fix is never offered that has not been checked.
+  - The search is cached per sheet and table, and takes 9 ms on the frame.
+  - When nothing clears it, the issue says so: "Nothing clears it: the table has no room on this sheet, on A3 or at a smaller standard scale; make it smaller or show fewer views."
+  - The fix button reads "A3", or the scale (e.g. 1:1), instead of "Auto scale" for a set scale.
+- **Evidence**:
+  - **`frame-acceptance.test.ts` (the kernel lane's), updated as asked.** On A4 the cut list's overlap now carries `{ scale, sheet A3, scale 0.05 }`, and Fix all ends on A3 with nothing left on the table. Before, the pinned expectation was `[TEXT_OVERLAP, no fix]`.
+  - **`drawing-table.test.ts`**, a new test on the L-bracket:
+    - a 156 × 40 table on A4 gets A3 at 1:1, which clears it;
+    - a 190 × 50 table on A3 at 2:1 gets 1:1, which clears it;
+    - a 495 mm table gets no fix, and its message says nothing clears it;
+    - a context without `rebuild` guesses no fix.
+  - The R14 drawing-issues fixtures are unchanged.
+
+## O68 — the DXF underlay S0: splines, ellipses, blocks and text shown as reference, regions as before — scope and acceptance frozen (2026-10-20)
+
+O61's cheaper DWG item, assigned by the coordinator after O67. A DXF drawing's SPLINE, ELLIPSE, INSERT/BLOCK, TEXT and MTEXT become a **reference underlay** on the imported sketch instead of refusing the file. This is our own TypeScript, with no new dependency. ezdxf 1.4.5 (O1's venv `~/.cache/barocss-ezdxf`) is a test oracle only, run `python -I`.
+
+- **Regions unchanged.** The profile import stays exact, from the top-level LINE, ARC, CIRCLE, LWPOLYLINE and POLYLINE, as O28 reads them now. Geometry inside a block, and every new entity kind, goes to the underlay only. The underlay **never** becomes a region, a hole, a sketch entity or a draft dimension.
+- **The underlay** (`src/sketch/dxfUnderlay.ts`):
+  - polylines and texts in the sketch plane, in mm, stored on the draft's sketch node as `underlay: { polylines: [x, y][][], texts: { at, text, height, angle }[], left?: Record<type, { count, why }> }`;
+  - drawn thin and grey under the sketch, not pickable, with a "Hide underlay" toggle.
+  - **SPLINE**: degree, knots, control points and weights (rational when given), evaluated by de Boor in our own code and flattened to a chord tolerance of **0.01 mm**. A spline with fit points only (no control points) is left out and listed, not refused: its interpolation is the writer's, and guessing it would put a wrong curve on screen.
+  - **ELLIPSE**: centre, major axis, ratio and the parameters 41/42, flattened to the same tolerance.
+  - **INSERT/BLOCK**:
+    - the block's entities through the insert's transform `T(insertion) · R(rotation) · S(sx, sy) · T(−base point)`, nested to any depth (a cycle is refused typed);
+    - MINSERT columns and rows as repeats;
+    - the insert's OCS: an extrusion of (0, 0, −1) mirrors X, the arbitrary-axis algorithm for that one case;
+    - non-uniform and mirrored scales are taken by transforming the flattened points, which is exact for points, so an arc under (2, 1) is the ellipse it becomes;
+    - LINE, ARC, CIRCLE and LWPOLYLINE inside blocks go to the underlay too.
+  - **TEXT and MTEXT**: insertion point (TEXT's alignment point when it has one), height, rotation and the plain string. MTEXT's inline codes are stripped (`\P` a new line; `\f…;`, `\H…;`, `{}` and the rest dropped), as ezdxf's `plain_text()` does.
+  - Entities off the XY plane (other than OCS −Z) are still refused, as now. A file with only underlay geometry imports as a sketch with no region: an underlay to trace over, said so.
+- **Acceptance**:
+  - **Fixtures** are written by a script with ezdxf (`scripts/dxf-underlay-fixtures.py`, outside the product) and committed under `conformance/a64/underlay/<case>/` (subfolders, as for R14):
+    - a spline set: cubic, a rational quadratic arc, a clamped quintic;
+    - ellipses: full, partial, and with a tilted major axis;
+    - nested blocks: three deep, scaled (2, −1), rotated 30°, mirrored by the OCS, a MINSERT 3 × 2;
+    - TEXT and MTEXT: rotated, aligned, MTEXT with codes;
+    - a plate whose regions sit beside an underlay.
+  - **Counts**: the underlay's entities by type, after block expansion, equal ezdxf's (its `virtual_entities` recursively).
+  - **Coordinates**:
+    - SPLINE points at 64 parameters equal ezdxf's own `BSpline.point(t)` to 1e-9 mm;
+    - ELLIPSE points at their parameters equal the closed form and ezdxf's to 1e-9;
+    - block transforms against the closed form written in the test from the fixture's numbers. Every flattened vertex of a circle inside the nested, scaled, mirrored blocks satisfies the ellipse equation of its composed transform to 1e-9, and each insert's origin is where the composed matrix puts it;
+    - TEXT and MTEXT position, height, rotation and plain string equal ezdxf's (`plain_text()`).
+  - **Flattening**: every chord is within 0.01 mm of the curve, by dense evaluation (1000 points a span).
+  - **Never regions or dimensions**: for each fixture, the regions, holes and draft dimensions equal those of the same file with its underlay entities deleted, deep-equal.
+  - The ezdxf readings are committed as data (`oracle.ezdxf-1.4.5.json`), as O1's are.
+- **Exposure**:
+  - `import_drawing`'s result adds `underlay: { by type: count }` and `left_out`, a compatible addition, with the contract regenerated;
+  - the Drafts toast says what came in as underlay;
+  - a flow step just before the last: a DXF with a block and a spline imported, its underlay drawn, its regions as before.
