@@ -408,6 +408,10 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **A8.4b** (O40): done. Baselines pinned by SHA-256 of canonical JSON (BOM, interfaces, every part's revision),
     chained to their parents; draft → review → approved | rejected by the user's token only; frozen once decided;
     tampering named on read-back; an approved ECR pins what it approved.
+  - **A8.5b** (O41): done. Every result stamped with what it read (model, material, process, interfaces, references,
+    requirement, drafts, drawing; faces by A1 signature); current, stale (input named) or unresolved (gone, ambiguous,
+    renamed — never re-targeted; A1's re-match carried in); stale never shown as current nor approved on; late results
+    kept under their own run; failed, unsupported, non-converged never 0 or a pass.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

@@ -1960,3 +1960,66 @@ The owner's decision on #2177 (O39, verbatim there): approval baselines, result 
     - printability's warp rule: unknown, "material is not set";
     - its BOM line: no material.
   - A material set on the body is the only thing that makes it steel. Changing it leaves the colour, the face colours and the appearance as they were.
+
+## O41 — A8.5b: result freshness — fingerprints, stale and unresolved, late results, no 0 and no pass for a failure (2026-10-20)
+
+- **`src/team/freshness.ts`.**
+  - `stamp` gives every result `{id, kind, subject, run, part?, status, value, number, verdict?, why?, fingerprint}`. The fingerprint is a digest per input it reads, plus the A1 signature of each face it names by name.
+  - **The producers:**
+    - `requirementResults`: each requirement's verdict, plus the `check_spec` report;
+    - `keepoutResult`: the least clearance ≥ 0, A6.3's measure;
+    - `massResult`, `inertiaResult`;
+    - `dfmResult`: printability;
+    - `bomResult`: derived, then checked against the assembly;
+    - `drawingResult`: `drawing_issues`.
+  - The inputs a requirement reads beyond its model and itself follow its query: `mass` the material; `library_check` the material and process; `print_rule` the process and material; `overhang_area` the process; `keepout` and `datum_distance` the references.
+- **Two refinements of the addendum, made before code. The tests hold both:**
+  - **`model`** is the features, the parameters and each part's name, placement and model. **Looks are not in it**: neither a body's colour nor its name. A display change must never make a mass stale. That was the point of #2177's material check, and the "bodies' names" the addendum listed would have broken it.
+  - **`check_spec`** reads the drafts too: its report lists a draft's unconfirmed dimensions as unknowns.
+- **`freshnessOf(result, doc, evaluate)`** gives `current`, `stale` (`changed`: each input named) or `unresolved` (each face with why and candidates). The faces are matched with A1's one matcher (`matchSignature`):
+  - `gone`: none alike;
+  - `ambiguous`: several as near, with the candidates;
+  - `renamed`: clearly another name. The message says "the result is not moved to it", and it is never re-targeted.
+  - **A result on a stored reference** (`refs: ['mate m1']`) takes A1's own `verifyReferences`. A problem gives `ambiguous` or `gone` with A1's candidates; a re-match, new or earlier and unconfirmed, gives `renamed`.
+- **Display and approval:**
+  - `displayOf` shows a value only when the result is current. Otherwise it reads `STALE — material changed since; it was …` or `UNRESOLVED — n1.top could be n1.top or n3.top; it was …`.
+  - `passes` needs ok, a pass and current. `numericOf` is null unless the result is ok.
+  - `summaryOf` counts pass, fail and unknown only for current, ok results; the rest go by state and status.
+  - **A baseline's cited results** (`draftBaseline(…, {cites})`, kept in the record and in its digest). Approving reads each again:
+    - a stale or unresolved one is refused `STALE_RESULT`, naming the input or the face;
+    - one not ok is refused `RESULT_NOT_OK`, a code added beside the addendum's;
+    - with no `evaluate`, it is refused `STALE_RESULT` ("cannot be read").
+    - `moveBaseline` is async now for this.
+- **Runs** (`openRun`, `recordResult`, `currentOf`):
+  - a later run for the same kind, subject and part supersedes the earlier;
+  - a result arriving for a superseded run is kept under its own run, marked `late`;
+  - `currentOf` is the latest run's result or `pending`, never an earlier run's;
+  - a result for a run of another subject is refused `NO_RUN`.
+- **Never a 0 or a pass:**
+  - a result not ok keeps no value, number or verdict, even when the producer passed some;
+  - the producers map their own failures:
+    - no body or no evaluation: `failed`;
+    - a requirement not measurable, e.g. a mass with no material: `unsupported`. An undecided keep-out within its chord band is ok with verdict `unknown`, its value null;
+    - printability with no process: `unsupported`;
+    - a drawing of nothing: `failed`;
+    - a BOM of a part that does not evaluate: `failed`, with no total.
+  - **`non_converged`**: no producer reports it today. The eigen-solve and the solvers do not say. The status holds the same rule, tested on a stamped result.
+- **Tests** (`test/team-freshness.test.ts`, 5):
+  - **The reads of every kind, and each change against them:**
+    - steel for aluminium makes the material results stale and leaves the height, face-distance, keep-out and drawing results current;
+    - SLA for FDM makes only `dfm` and `check_spec` stale;
+    - a keep-out added makes only `keepout` and `check_spec` stale;
+    - a colour and a name make nothing stale;
+    - a height change makes everything stale on `model`.
+  - **Stale display and approval:**
+    - a baseline citing p1's mass is approved while current;
+    - after p1's material changes, it is refused `STALE_BASELINE` (part p1);
+    - a new draft citing the old result is refused `STALE_RESULT` ("stale: material changed since");
+    - a failed citation is refused `RESULT_NOT_OK`.
+  - **Late results:** a late result is kept under its own run, the latest run stays pending, and then its own result is current.
+  - **Failures:** failed, unsupported (twice) and non-converged results never read 0 or pass, and the summary counts them by status.
+  - **Topology:**
+    - a 30 mm box's top split into two alike tops is ambiguous (`n1.top`, `n3.top`);
+    - a box moved off with another put in its place is renamed to `n3.*`, not moved;
+    - a sphere leaves the faces gone;
+    - A1's `refs-ambiguous` is carried in with A1's candidates exactly.

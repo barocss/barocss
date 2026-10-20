@@ -25,8 +25,8 @@ const user = (at = '2026-10-20T12:00:00Z') => userToken(at);
 const copy = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
 async function drafted(doc: StudioDoc, parent?: string) { const view = await bomView(doc, evaluate); return draftBaseline(doc, deriveBom(view), view, parent ? { parent } : {}); }
 async function approved(doc: StudioDoc, parent?: string) {
-  const d = await drafted(doc, parent), r = moveBaseline(d.doc, d.baseline.id, 'review', user());
-  return moveBaseline(r.doc, d.baseline.id, 'approved', user());
+  const d = await drafted(doc, parent), r = await moveBaseline(d.doc, d.baseline.id, 'review', user());
+  return moveBaseline(r.doc, d.baseline.id, 'approved', user(), evaluate);
 }
 
 test('the digest: SHA-256, as node:crypto gives it, across the padding boundaries and UTF-8; of the canonical JSON', () => {
@@ -46,16 +46,16 @@ test('a BOM baseline: drafted, sent to review and approved by the user only, in 
   assert.deepEqual(Object.keys(d.baseline.pins.parts), ['p1', 'p2']); assert.match(d.baseline.pins.bom, /^[0-9a-f]{64}$/);
   assert.equal(d.baseline.pins.interfaces, digestOf(readInterfaces(doc.interfaces)));
   // (An agent's move, and a value claiming to be the user's, refused; out of order refused.)
-  assert.throws(() => moveBaseline(d.doc, 'BL1', 'review', { by: 'bom', at: 't' }), /APPROVAL_IS_THE_USERS/);
-  for (const forged of [{ by: 'user', at: 't' }, copy(user()), Object.freeze({ by: 'user' as const, at: 't' })]) assert.throws(() => moveBaseline(d.doc, 'BL1', 'review', forged), /APPROVAL_IS_THE_USERS/);
-  assert.throws(() => moveBaseline(d.doc, 'BL1', 'approved', user()), /BAD_TRANSITION.*draft: it moves to review/);
+  await assert.rejects(() => moveBaseline(d.doc, 'BL1', 'review', { by: 'bom', at: 't' }), /APPROVAL_IS_THE_USERS/);
+  for (const forged of [{ by: 'user', at: 't' }, copy(user()), Object.freeze({ by: 'user' as const, at: 't' })]) await assert.rejects(() => moveBaseline(d.doc, 'BL1', 'review', forged), /APPROVAL_IS_THE_USERS/);
+  await assert.rejects(() => moveBaseline(d.doc, 'BL1', 'approved', user()), /BAD_TRANSITION.*draft: it moves to review/);
   const a = await approved(doc);
   assert.equal(a.baseline.state, 'approved'); assert.deepEqual(a.baseline.moves.map(m => m.to), ['review', 'approved']);
   assert.deepEqual(verifyBaseline(a.doc, 'BL1'), { intact: true, mismatches: [], current: true, changed: [] });
-  for (const to of ['review', 'approved', 'rejected'] as const) assert.throws(() => moveBaseline(a.doc, 'BL1', to, user()), /BASELINE_FROZEN.*draft a new baseline with BL1 as its parent/);
+  for (const to of ['review', 'approved', 'rejected'] as const) await assert.rejects(() => moveBaseline(a.doc, 'BL1', to, user()), /BASELINE_FROZEN.*draft a new baseline with BL1 as its parent/);
   // (Rejected is decided too.)
-  const r0 = await drafted(doc), r1 = moveBaseline(r0.doc, 'BL1', 'review', user()), rj = moveBaseline(r1.doc, 'BL1', 'rejected', user());
-  assert.equal(rj.baseline.state, 'rejected'); assert.throws(() => moveBaseline(rj.doc, 'BL1', 'approved', user()), /BASELINE_FROZEN/);
+  const r0 = await drafted(doc), r1 = await moveBaseline(r0.doc, 'BL1', 'review', user()), rj = await moveBaseline(r1.doc, 'BL1', 'rejected', user());
+  assert.equal(rj.baseline.state, 'rejected'); await assert.rejects(() => moveBaseline(rj.doc, 'BL1', 'approved', user()), /BASELINE_FROZEN/);
   // (A BOM that does not match the assembly is never drafted.)
   const view = await bomView(doc, evaluate), bom = deriveBom(view);
   assert.throws(() => draftBaseline(doc, { ...bom, lines: bom.lines.slice(1) }, view), /BOM_INVALID.*p1 \(bracket\) is on 0 lines/);
@@ -86,9 +86,9 @@ test('a change after approval: the baseline intact but not current, the part nam
   const moved: StudioDoc = { ...one.doc, instances: one.doc.instances!.map(i => (i.id === 'p2' ? { ...i, position: [0, 0, 24] as [number, number, number] } : i)) };
   assert.deepEqual(verifyBaseline(moved, 'BL1'), { intact: true, mismatches: [], current: false, changed: ['part p2'] });
   // (A draft made before the change cannot be approved after it.)
-  const early = await drafted(doc), sent = moveBaseline(early.doc, 'BL1', 'review', user());
+  const early = await drafted(doc), sent = await moveBaseline(early.doc, 'BL1', 'review', user());
   const later: StudioDoc = { ...sent.doc, instances: moved.instances };
-  assert.throws(() => moveBaseline(later, 'BL1', 'approved', user()), /STALE_BASELINE.*part p2 changed since/);
+  await assert.rejects(() => moveBaseline(later, 'BL1', 'approved', user()), /STALE_BASELINE.*part p2 changed since/);
   // (A draft cannot follow a draft.)
   const v0 = await bomView(doc, evaluate);
   assert.throws(() => draftBaseline(early.doc, early.baseline.content.bom, v0, { parent: 'BL1' }), /BAD_TRANSITION.*BL1 is still draft/);
