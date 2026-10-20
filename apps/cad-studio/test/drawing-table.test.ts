@@ -101,6 +101,27 @@ test('on the sheet: auto-placed above the title block and clean; over a view, a 
   assert.deepEqual(texts, ['CUT-LIST', 'NOT AVAILABLE', 'no frame members (make a frame or a structural member)']);
 });
 
+// O67: a table with no room where it is (the views and it cannot share the sheet at this scale) gets a sheet or scale
+// fix, offered only when that sheet built again leaves it clear; none clears it, the issue says so.
+test('no room for a table: A3 at the same scale, else a smaller standard scale — each built again and clear; nothing fits, said so', async () => {
+  const doc = await lBracket(), base = readDrawing(doc.drawing);
+  const big = (cols: number, rows: number): DrawingTable => ({ id: 't', title: 'BIG', columns: Array.from({ length: cols }, (_, k) => ({ key: `c${k}`, label: `COLUMN${k}` })), rows: Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, k) => `R${r}C${k}`)) });
+  const issueOf = (ctx: IssueContext) => drawingIssues(ctx).find(x => x.tables?.includes('t'));
+  // (A4, a 156 × 40 table: no room beside the views at 1:1 — A3 at 1:1 clears it.)
+  const a4 = ctxOf(doc, { ...base, sheet: 'A4', tables: [big(10, 6)] }), i4 = issueOf(a4)!;
+  assert.equal(i4.code, 'TEXT_OVERLAP'); assert.deepEqual(i4.fix, { kind: 'scale', sheet: 'A3', scale: a4.layout.scale });
+  const on3 = ctxOf(doc, applyFix(a4, i4.fix!)); assert.equal(on3.settings.sheet, 'A3'); assert.deepEqual(codes(on3, 't'), [], 'A3 clears it');
+  // (A3 at its own 2:1, a 190 × 50 table: no room — 1:1 on A3 clears it.)
+  const a3 = ctxOf(doc, { ...base, sheet: 'A3', tables: [big(12, 8)] }), i3 = issueOf(a3)!;
+  assert.equal(a3.layout.scale, 2); assert.deepEqual(i3.fix, { kind: 'scale', scale: 1 });
+  assert.deepEqual(codes(ctxOf(doc, applyFix(a3, i3.fix!)), 't'), [], '1:1 clears it');
+  // (A 495 mm table: wider than any frame — no fix, and the issue says nothing clears it.)
+  const wide = issueOf(ctxOf(doc, { ...base, sheet: 'A3', tables: [big(30, 4)] }))!;
+  assert.equal(wide.fix, undefined); assert.match(wide.message, /Nothing clears it: the table has no room on this sheet, on A3 or at a smaller standard scale/);
+  // (Without a way to build the sheet again — a context made by hand — no sheet or scale fix is guessed.)
+  assert.equal(issueOf({ ...a4, rebuild: undefined })!.fix, undefined);
+});
+
 test('written: the table in the SVG, the PDF and the DXF (TEXT and LINE entities, through the R11b writer); the DXF frozen and read by ezdxf (audit clean)', async () => {
   const doc = await lBracket(), ctx = ctxOf(doc, { ...readDrawing(doc.drawing), tables: [{ id: 'bends', from: 'bends' }] });
   const g = ctx.sheet.groups.find(x => x.role === 'table')!, texts = g.marks.filter(m => m.kind === 'text').map(m => (m as { text: string }).text), lines = g.marks.filter(m => m.kind === 'line').length;

@@ -188,7 +188,11 @@ function textOf(sheet: Sheet, id: string): string { const r = sheet.dimensions.f
 // ---------------------------------------------------------------------------------------------------------
 // The list
 
-export interface IssueContext { views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: (edge: string) => string | null }
+export interface IssueContext {
+  views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: (edge: string) => string | null;
+  /** The sheet built again for other settings (O67: a table's sheet or scale fix is offered only when that sheet clears it). */
+  rebuild?: (settings: DrawingSettings) => IssueContext;
+}
 
 export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   const { layout, settings, sheet } = ctx, out: DrawingIssue[] = [];
@@ -256,6 +260,8 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     out.push({ code: 'OFF_SHEET', severity: 'error', message: `${cap(name(p.owner, sheet))} reaches past the frame or into the title block.`, ...ids([p]), at: center(p.boxes[0] ?? [p.points[0], p.points[0], p.points[0], p.points[0]]), ...fixFor(ctx, p, placed, viewGrid) });
   }
   out.push(...duplicates(ctx), ...coverage(ctx));
+  // (A table no fix clears — no room here, on A3 or at a smaller standard scale — said so, never left as if one might, O67.)
+  for (const x of out) if (!x.fix && x.tables?.length && TABLE_CLASH.has(x.code)) x.message += ' Nothing clears it: the table has no room on this sheet, on A3 or at a smaller standard scale; make it smaller or show fewer views.';
   return out;
 }
 
@@ -281,6 +287,30 @@ function pickMover(a: Placed, b: Placed, settings: DrawingSettings): Placed {
   return ra < rb ? a : rb < ra ? b : b;
 }
 
+/** The table's issue codes that a sheet must be clear of for a fix to count. */
+const TABLE_CLASH = new Set<DrawingIssueCode>(['TEXT_OVERLAP', 'TEXT_OVER_LINES', 'OFF_SHEET']);
+/** A sheet or scale for a table that has no room where it is: tried in order, each built again and checked; none clear, undefined. */
+const tried = new WeakMap<IssueContext, Map<string, DrawingFix | undefined>>();
+function tableElsewhere(ctx: IssueContext, table: string): DrawingFix | undefined {
+  if (!ctx.rebuild) return undefined;
+  let seen = tried.get(ctx); if (!seen) tried.set(ctx, seen = new Map());
+  if (seen.has(table)) return seen.get(table);
+  const f = searchElsewhere(ctx, table); seen.set(table, f); return f;
+}
+function searchElsewhere(ctx: IssueContext, table: string): DrawingFix | undefined {
+  if (!ctx.rebuild) return undefined;
+  const tries: DrawingFix[] = [];
+  // (A3 at the scale the views have now, then at A3's own; then each smaller standard scale on this sheet.)
+  if (ctx.settings.sheet === 'A4') tries.push({ kind: 'scale', sheet: 'A3', scale: ctx.layout.scale }, { kind: 'scale', sheet: 'A3' });
+  for (const s of SCALES) if (s < ctx.layout.scale) tries.push({ kind: 'scale', scale: s });
+  for (const f of tries) {
+    const next = ctx.rebuild(applyFix(ctx, f));
+    // (Built without its own rebuild: the check does not search again.)
+    if (next.layout.fits && !drawingIssues({ ...next, rebuild: undefined }).some(x => TABLE_CLASH.has(x.code) && x.tables?.includes(table))) return f;
+  }
+  return undefined;
+}
+
 /**
  * A place for an annotation clear of every other text, of the views' lines and inside the frame: a dimension moved
  * row by row outward (or inward) square to its line, a callout or note along its leader's way; none if nothing clears.
@@ -294,7 +324,11 @@ function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewGri
   if (p.owner.kind === 'table') {
     // (A table goes where an auto-placed one would: the first room clear of everything else, O49.)
     const at = tableRoom(ctx.layout, ctx.sheet, p.owner.id!);
-    return at ? { fix: { kind: 'move-table', table: p.owner.id!, at } } : {};
+    if (at) return { fix: { kind: 'move-table', table: p.owner.id!, at } };
+    // (No room on this sheet at this scale — the views and the table cannot share it, O67: A3 at the same scale, else a
+    // smaller standard scale here, whichever first leaves the table clear when the sheet is built again with it.)
+    const other = tableElsewhere(ctx, p.owner.id!);
+    return other ? { fix: other } : {};
   }
   if (p.owner.kind === 'note') {
     const n = ctx.settings.notes?.find(x => x.id === p.owner.id); if (!n) return {};
@@ -499,7 +533,7 @@ export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; c
 export function issueContext(i: SheetInputs): IssueContext {
   const layout = layoutSheet(i.views, i.settings, i.section && i.settings.section ? i.section.projection : undefined);
   const sheet = buildSheet(i.views, layout, i.settings, { ...i.meta, callout: i.callout }, i.section);
-  return { views: i.views, layout, settings: i.settings, sheet, callout: i.callout };
+  return { views: i.views, layout, settings: i.settings, sheet, callout: i.callout, rebuild: settings => issueContext({ ...i, settings }) };
 }
 
 /**
