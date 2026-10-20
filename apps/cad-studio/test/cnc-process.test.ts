@@ -29,13 +29,14 @@ test('CNC1 data: the milling and turning profiles, every value with its page; th
   assert.match(mill.toleranceClasses!.page.note!, /not copied/);
 });
 
-test('CNC1 an aluminium block 100 × 60 × 20, milled: a metal, its walls and size pass; ±0.125 mm general, ISO 2768-1 f named; no holes (CNC2, O85), no cavities (CNC3, O86); access and the drawing said to come (CNC4–CNC5)', async () => {
+test('CNC1 an aluminium block 100 × 60 × 20, milled: a metal, its walls and size pass; ±0.125 mm general, ISO 2768-1 f named; no holes (CNC2, O85), no cavities (CNC3, O86), every face reached in two setups (CNC4, O87); the drawing said to come (CNC5)', async () => {
   const { r, by } = await report(machined(block(100, 60, 20), 'al6061'));
   assert.equal(r.process, 'cnc-milling');
   assert.deepEqual([by.material.status, by.wall.status, by.size.status], ['pass', 'pass', 'pass']);
   assert.equal(by.size.value, Math.max(100 / 400, 60 / 250, 20 / 150));
-  for (const id of ['hole-depth', 'hole-size', 'thread', 'corners', 'pocket', 'feature', 'tall', 'text']) assert.equal(by[id].status, 'pass', by[id].message);
-  for (const [id, stage] of [['access', 'CNC4'], ['drawing', 'CNC5']]) { assert.equal(by[id].status, 'unknown'); assert.match(by[id].why!, new RegExp(stage)); }
+  for (const id of ['hole-depth', 'hole-size', 'thread', 'corners', 'pocket', 'feature', 'tall', 'text', 'access', 'setups']) assert.equal(by[id].status, 'pass', by[id].message);
+  assert.equal(by.setups.value, 2);
+  for (const [id, stage] of [['drawing', 'CNC5']]) { assert.equal(by[id].status, 'unknown'); assert.match(by[id].why!, new RegExp(stage)); }
   assert.deepEqual([r.machining!.family, r.machining!.tolerance.mm, r.machining!.toleranceClass!.name], ['metal', 0.125, 'ISO 2768-1 f']);
 });
 

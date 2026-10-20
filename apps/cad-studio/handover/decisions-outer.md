@@ -3938,3 +3938,33 @@ The coordinator accepted CNC2 with one flag. Drill sizes "read as a pattern" are
 - **Flow**:
   - CNC1's and CNC2's steps read the new rules;
   - a new CNC3 step, through the real chat and tool servers: a 120 × 80 × 12 aluminium plate with a 50 × 30 pocket 8 deep reads "corners warn", sharp. Filleted r 5, it reads "corners pass".
+
+## O87 — CNC4: access from the six directions and setups; RB9 rung 4's "machinable" made real (2026-10-21)
+
+- **Access** (`src/machining/access.ts`, `accessOf`):
+  - Each surface sample uses IM3's grid: every display triangle split into n² parts, n from its longest edge over a step (the diagonal over 200, at least 0.1 mm, n at most 48), each part's centre 0.01 mm off it.
+  - Each sample is tested against ±X, ±Y and ±Z, the directions a part is set up along. A direction **reaches** a sample when the tool comes from the face's side (n · d ≥ 0: the end on it, or its side along it, which is side milling) and the ray along d leaves the part (the studio's BVH).
+  - A sample no direction reaches is an **undercut for a 3-axis mill**.
+  - The samples' areas are kept in 64 bins by their 6-bit masks.
+  - **Setups** are counted greedily over the bins: the direction reaching the most area not yet reached, then the next, until everything any direction reaches is covered. The count is exact for the samples.
+- **The rules** (milling; turning's access stays unknown, naming CNC6), in place of CNC1's placeholder `access`:
+  - **access**: the area no direction reaches is warned, its faces named: "a 5-axis setup, an undercut cutter or a change". It is a warning because no source gives a feasible limit; Hubs' undercut widths are not a reach rule;
+  - **setups**: the greedy count and its directions. It is a count, not a judgement, since no source gives a limit.
+
+  CNC2's and CNC3's undecided reaches (a step behind a narrower one, a closed corner) now point to the access rule. The report's `machining` adds `access`.
+- **RB9 rung 4** (`src/rb9/rungs-plates.ts`): the held `machinable` is now a hard predicate.
+  - It runs the CNC milling report on the plate. No rule may fail or be undecided, except material and wall: the brief states no material, so neither is judged. Stages not built yet are also left out (the drawing, CNC5). Warnings are kept in `measured`.
+  - Over the rung's space, every sampled trial passes. The tightest are a 3 mm corner on an 18 mm pocket and Ø4 through 20, both warned, not failed.
+  - Two mutants target it, both killed at both range ends:
+    - **deep-hole**: a Ø0.5 blind hole T − 1 deep, over 6 × d, fails;
+    - **groove**: an internal groove round a corner hole leaves a step reached by no straight tool, so the reach is undecided and the area unreached.
+  - The ladder's check passes: every rung 5/5 with RS 1, every mutant killed, and no hard predicate without a mutant.
+- **Tests** (`test/cnc-access.test.ts`, 4), against closed forms:
+  - a 40 × 30 × 20 box: its area is 2(1200 + 800 + 600) exactly, and every face is reached. Setups: +X first (30·20 + 2·40·20 + 2·40·30), then −X (600);
+  - a sealed 10 × 10 × 5 void: 400 mm² unreached (planar, so exact), its faces named, warned;
+  - a side slot open to +X is reached. The mutant, stopped 1 mm short of the face, is sealed: 760 mm² unreached exactly;
+  - an internal groove (r 8, 4 high, round a Ø10 bore): 142π hidden, within the chord (at least 98 % and at most exact). The bore itself is reached, and hole-depth's reason points to the access rule.
+  - CNC1's block test now expects access to pass in two setups.
+- **Flow**:
+  - CNC1's step now reads "… access pass, setups pass, drawing unknown";
+  - a new CNC4 step, through the real chat and tool servers: a side slot open to +X reads "access pass, setups pass"; the slot sealed reads "access warn".
