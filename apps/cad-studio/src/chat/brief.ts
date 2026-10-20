@@ -8,12 +8,10 @@ import type { StudioDoc } from '../engine/doc';
 import { MATERIALS_DATA, processProfile } from '../library/materials';
 
 export const BRIEF_VERSION = 1;
-/** The processes a brief may name: the five with rules (R6b.7), and three recorded as intent, not checked yet. */
+/** The processes a brief may name: those with rules (R6b.7; machining since CNC1, O84), and sheet metal recorded as intent. */
 export const PROCESSES = ['fdm', 'sla', 'sls', 'mjf', 'injection', 'cnc-milling', 'cnc-turning', 'sheet-metal'] as const;
 export type Process = (typeof PROCESSES)[number];
 const UNCHECKED: Partial<Record<Process, string>> = {
-  'cnc-milling': 'CNC milling is recorded as intent; its checks are the kernel lane\'s CNC steps, not built yet',
-  'cnc-turning': 'CNC turning is recorded as intent; its checks are the kernel lane\'s CNC steps, not built yet',
   'sheet-metal': 'sheet metal is recorded as intent; its checks are the kernel lane\'s R12 steps, not built yet',
 };
 export type Basis = 'stated' | 'assumed' | 'ambiguous';

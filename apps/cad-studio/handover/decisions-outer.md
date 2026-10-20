@@ -3809,3 +3809,39 @@ The coordinator closed IM with O82 and ordered CNC to start with an S0. Evidence
   - **CNC6**: turning — axisymmetry by P4, grooves, thread relief, L/D, against the turning profile.
   - **RB9 rung 4**'s held "machinable" rule becomes real when CNC1–CNC4 land.
 - **Kernel-core**: none is needed for CNC1–CNC4 or CNC6. CNC5's semantic PMI is the kernel's.
+
+## O84 — CNC1: machining's process rule, sourced page by page (2026-10-21)
+
+The coordinator accepted the CNC S0 and set a process rule: a product-file change needs the full flow before its checkpoint, even when the suite passes. O83 had skipped it for the `walls.ts` fix. This checkpoint runs the flow. The rule is recorded as feedback.
+
+- **The profiles** (`materials.json`, W-WEB, read 2026-10-21), every value with its page and label:
+  - **`cnc-milling`**:
+    - walls: metal 0.5 feasible and 0.8 recommended, plastic 1.0 and 1.5 (Hubs);
+    - inside edges above ⅓ × pocket depth; pockets 4 × width; holes 4 × d recommended and 6 × d at most; threads 3 × d long, M6 recommended, M2 feasible; small features 2.5 and 0.5; tall features h/w under 4 (Hubs);
+    - tolerance ±0.125 standard, ±0.025 feasible (Hubs);
+    - a typical mill 400 × 250 × 150 (Hubs);
+    - the deepest milled 50.8 from either side; engraved text 0.457 and 0.838 wide, 0.3 deep (Protolabs' milling guidelines).
+  - **`cnc-turning`**:
+    - the same walls and standard tolerance (Hubs), and ±0.13 (Protolabs' turning guidelines);
+    - a lathe Ø500 × 1000 (Hubs);
+    - from Protolabs: Ø0.76 in any region, walls 0.51, outside grooves at least 1.2 wide and at most 24.1 deep, holes 1 on the axis and 2 radial, point angles above 30°.
+  - **Tolerance classes**, a new profile field `toleranceClasses`: ISO 2768-1 f for metals and m for plastics, from Protolabs' CNC page. The class is named; its values are the standard's and are not copied, and the note says so. `checkMaterials` checks its page.
+- **The report** (`src/machining/report.ts`, through `check_printability` / `query.manufacturability`, which names `cnc-milling` or `cnc-turning`):
+  - **material**: one material for the part, its family the library's (metal, or polymer read as plastic); unknown when none is set or the bodies differ, and none is assumed;
+  - **wall**: the thinnest (IM4's ray) against the family's feasible (fail) and recommended (warn) limits; unknown without a family;
+  - **size**: for milling, the sorted sides against the mill's. For turning it is unknown until its axis (CNC6);
+  - **holes**, **corners**, **access**, **drawing**: unknown, naming CNC2–CNC5. Turning adds **turning** (CNC6).
+
+  `machining` adds the family, the material, the tolerance with its source, and the class.
+- **The brief**: CNC milling and turning have rules now, so a stated machining process becomes the part's process. The brief's "recorded as intent" notes for them are removed; sheet metal's stays. Two changes follow from this:
+  - the A6 fixture `conformance/a6/briefs/non-library-material.json` (stated "machined") now expects `cnc-milling` applied, its note saying why;
+  - AM1's profile list now includes the two machining profiles.
+  - the A8.1 scenario `conformance/a8/scenarios/reviewer-skipped.json` needs a process the DFM reviewer can't check, so it moves from CNC milling to sheet metal, its note saying why. Its expected verdicts (held, dfm skipped NOT_CHECKED) are unchanged;
+  - R6b.7's profile list now includes the two machining profiles.
+- **Tests** (`test/cnc-process.test.ts`, 5):
+  - the data: every value's page, and the classes named, not copied;
+  - an aluminium block 100 × 60 × 20: a metal, so material, wall and size pass. Its size ratio is exactly max(100/400, 60/250, 20/150), its tolerance ±0.125 under ISO 2768-1 f, and CNC2–CNC5 are said to come;
+  - walls by family: in aluminium, 0.6 is warned and 0.4 fails; in ABS, 1.2 is warned, 0.9 fails and 2 passes, under ISO 2768-1 m;
+  - nothing assumed: with no material, material and wall are unknown and there is no class; 450 long fails; turned, size and turning are unknown (CNC6); with no process, none is assumed;
+  - through the tools: a stated CNC milling in aluminium becomes the part's process and the report judges by it.
+- **Flow**: a CNC1 step. CNC milling is chosen in the Library panel, which shows no moulding settings. An aluminium block is made and set through the real chat and tool servers: "cnc-milling: material pass, wall pass, size pass, holes unknown, corners unknown, access unknown, drawing unknown".
