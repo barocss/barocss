@@ -126,10 +126,12 @@ export const frameCommand: Command = {
     { key: 'anchor', label: 'Lines through', kind: 'choice', options: ANCHORS.map(a => ({ value: a, label: a })) },
     { key: 'roll', label: 'Roll', kind: 'deg', min: -360, max: 360, step: 15 },
     { key: 'corners', label: 'Corners (two members)', kind: 'choice', options: CORNERS },
+    { key: 'multi', label: 'Three or more members', kind: 'choice', options: [{ value: 'order', label: 'Ordered trim' }, { value: 'none', label: 'None (overlap)' }] },
+    { key: 'tee', label: 'T-joints', kind: 'choice', options: [{ value: 'butt', label: 'Butt' }, { value: 'cope', label: 'Cope' }, { value: 'none', label: 'None (overlap)' }] },
   ],
   defaults: ctx => {
     const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity), x = Number.isFinite(right) ? Math.round(right + 60) : 0;
-    return { ...PREFILL, skeleton: edgesSkeleton(ctx) ? 'edges' : 'table', W: 600, D: 400, H: 700, x, y: 0, z: 0, anchor: 'centroid', roll: 0, corners: 'mitre' };
+    return { ...PREFILL, skeleton: edgesSkeleton(ctx) ? 'edges' : 'table', W: 600, D: 400, H: 700, x, y: 0, z: 0, anchor: 'centroid', roll: 0, corners: 'mitre', multi: 'order', tee: 'butt' };
   },
   steps: (ctx, v) => {
     if (v.skeleton !== 'edges') return [];
@@ -142,7 +144,8 @@ export const frameCommand: Command = {
     if (preset(v) && !(Number(v.W) > 0 && Number(v.D) > 0 && (v.skeleton === 'rectangle' || Number(v.H) > 0))) throw new Error('Give the skeleton a width, a depth and a height above 0.');
     const roll = Number(v.roll) || 0, anchor = String(v.anchor) as FrameAnchor, estimates = estimatesOf(v);
     const corners = (['mitre', 'butt', 'none'].includes(String(v.corners)) ? v.corners : 'mitre') as 'mitre' | 'butt' | 'none';
-    const node: ModelNode = { kind: 'frame', points: sk.points, segments: sk.segments, section: sectionOf(v), ...(anchor !== 'centroid' ? { anchor } : {}), ...(roll ? { roll } : {}), corners: { default: corners }, ...(estimates.length ? { estimates } : {}) };
+    const multi = v.multi === 'none' ? 'none' : 'order', tee = (['butt', 'cope', 'none'].includes(String(v.tee)) ? v.tee : 'butt') as 'butt' | 'cope' | 'none';
+    const node: ModelNode = { kind: 'frame', points: sk.points, segments: sk.segments, section: sectionOf(v), ...(anchor !== 'centroid' ? { anchor } : {}), ...(roll ? { roll } : {}), corners: { default: corners, multi, tee }, ...(estimates.length ? { estimates } : {}) };
     return withNode(ctx.doc, node);
   },
 };

@@ -1,0 +1,69 @@
+{
+  "id": "fr-refuse-members-clash",
+  "step": "FR",
+  "decisions": [
+    "D126"
+  ],
+  "about": "FR3b: two members crossing inside both their lengths are refused by name.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              400,
+              0,
+              0
+            ],
+            [
+              200,
+              -200,
+              0
+            ],
+            [
+              200,
+              200,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {}
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[MEMBERS_CLASH] members 0 and 1 cross inside both their lengths"
+    }
+  },
+  "oracle": "By construction: they cross at (200, 0, 0)."
+}

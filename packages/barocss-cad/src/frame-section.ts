@@ -266,12 +266,15 @@ export interface FrameMemberReport {
 /**
  * One end of a frame's member at a corner (FR3a, D125): `square` (no corner, or one left as it is), `mitre` (cut on the
  * plane halfway between the two members), `butt` (ended on the face of the member that runs through), `through` (run on
- * past the corner to cover the other member). `point` the skeleton point; `with` the other member; `angleDegrees` the
+ * past the corner to cover the other member); FR3b (D126): `cope` (ended on the other member's envelope), `trim` (an
+ * ordered trim's later member, or trimmed to a plane or a body). `point` the skeleton point; `with` the other member; `angleDegrees` the
  * cut from square; `plane` the cut's (its normal pointing away from the member); `extendedMM` how far a through member
  * runs past the point.
  */
 export interface FrameEndReport {
-  readonly end: 'start' | 'end'; readonly point: number; readonly kind: 'square' | 'mitre' | 'butt' | 'through';
+  readonly end: 'start' | 'end'; readonly point: number; readonly kind: 'square' | 'mitre' | 'butt' | 'through' | 'cope' | 'trim';
   readonly with?: number; readonly angleDegrees?: number; readonly extendedMM?: number;
+  /** An ordered trim (FR3b): this member's place in the order (1 for the second) and the members it is trimmed to. */
+  readonly rank?: number; readonly against?: readonly number[];
   readonly plane?: { readonly origin: readonly [number, number, number]; readonly normal: readonly [number, number, number] };
 }

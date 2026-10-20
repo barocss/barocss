@@ -107,9 +107,14 @@ function memberNotes(m: NonNullable<CadPartSnapshot['outputs'][number]['member']
  */
 function endNotes(ends: NonNullable<NonNullable<CadPartSnapshot['outputs'][number]['member']>['ends']>, node: Extract<ModelNode, { kind: 'frame' }>): { text: string; warning?: boolean }[] {
   const meeting = (p: number) => node.segments.reduce((n, g) => n + (g[0] === p ? 1 : 0) + (g[1] === p ? 1 : 0), 0);
-  const what = (e: (typeof ends)[number]) => e.kind === 'mitre' ? `mitre ${+e.angleDegrees!.toFixed(3)}° with member ${e.with! + 1}` : e.kind === 'butt' ? `butt on member ${e.with! + 1}${e.angleDegrees ? ` (${+e.angleDegrees.toFixed(3)}° from square)` : ''}` : e.kind === 'through' ? `through, ${+e.extendedMM!.toFixed(3)} mm past point ${e.point + 1} over member ${e.with! + 1}` : 'square';
+  const what = (e: (typeof ends)[number]) => e.kind === 'mitre' ? `mitre ${+e.angleDegrees!.toFixed(3)}° with member ${e.with! + 1}`
+    : e.kind === 'butt' ? `butt on member ${e.with! + 1}${e.angleDegrees ? ` (${+e.angleDegrees.toFixed(3)}° from square)` : ''}`
+    : e.kind === 'through' ? `through, ${+e.extendedMM!.toFixed(3)} mm past point ${e.point + 1} over member ${e.with! + 1}`
+    : e.kind === 'cope' ? `coped to member ${e.with! + 1}`
+    : e.kind === 'trim' ? (e.against ? `trimmed to member${e.against.length > 1 ? 's' : ''} ${e.against.map(m => m + 1).join(', ')} (${e.rank! + 1} in order)` : e.plane ? `trimmed to a plane${e.angleDegrees ? ` (${+e.angleDegrees.toFixed(3)}° from square)` : ''}` : 'trimmed to a body')
+    : 'square';
   const out: { text: string; warning?: boolean }[] = [{ text: `Ends: ${ends.map(e => `${e.end} ${what(e)}`).join('; ')}` }];
-  for (const e of ends) if (e.kind === 'square' && meeting(e.point) >= 3) out.push({ text: `Point ${e.point + 1}: ${meeting(e.point)} members meet, left square and overlapping (an ordered trim comes with FR3b)`, warning: true });
+  for (const e of ends) if (e.kind === 'square' && meeting(e.point) >= 3) out.push({ text: `Point ${e.point + 1}: ${meeting(e.point)} members meet, left square and overlapping (set "Three or more members" to an ordered trim)`, warning: true });
   return out;
 }
 

@@ -52,8 +52,13 @@ export interface BrepCheckReport {
   readonly maximumEdgeSurfaceGapMM: number;
 }
 
+/**
+ * A B-rep refusal: its code, and for a refusal a caller acts on, a typed `reason` (never the message's wording):
+ * `NOT_PLANAR_WITHIN_FLOAT` — the polyhedral Boolean's face whose vertices are coplanar only to binary64 (FR3b, D126).
+ */
+export type BrepErrorReason = 'NOT_PLANAR_WITHIN_FLOAT';
 export class BrepError extends Error {
-  constructor(readonly code: 'INPUT' | 'TOPOLOGY' | 'GEOMETRY', detail: string, readonly report?: BrepCheckReport) { super(('B-rep: ' + detail).slice(0, 1024)); this.name = 'BrepError'; }
+  constructor(readonly code: 'INPUT' | 'TOPOLOGY' | 'GEOMETRY', detail: string, readonly report?: BrepCheckReport, readonly reason?: BrepErrorReason) { super(('B-rep: ' + detail).slice(0, 1024)); this.name = 'BrepError'; }
 }
 
 /**

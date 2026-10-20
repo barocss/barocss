@@ -25,7 +25,16 @@ export type MemberSection =
  * A frame's corners (FR3a, D125; the kernel's `corners`): where exactly two members end at a point, `default` (mitre when
  * left out) finishes them — mitre, butt or none — and `at` sets a point apart (`through`: the member running on at a butt).
  */
-export interface FrameCorners { default?: 'mitre' | 'butt' | 'none'; at?: { point: number; kind: 'mitre' | 'butt' | 'none'; through?: number }[] }
+export interface FrameCorners {
+  default?: 'mitre' | 'butt' | 'none';
+  /** Three or more members ending at a point (FR3b, D126): an ordered trim (`order`) or left square (`none`, the default). */
+  multi?: 'order' | 'none';
+  /** Members ending on another's length (T-joints, FR3b): butted on its face, coped to its envelope, or left (`none`, the default). */
+  tee?: 'butt' | 'cope' | 'none';
+  at?: { point: number; kind: 'mitre' | 'butt' | 'cope' | 'order' | 'none'; through?: number; trim?: 'face' | 'envelope'; order?: number[] }[];
+}
+/** A member's end trimmed to a plane or an earlier body (FR3b, D126; the kernel's `trims`). */
+export type FrameTrim = { member: number; end: 'start' | 'end' } & ({ plane: { origin: [number, number, number]; normal: [number, number, number] } } | { body: BodyRef });
 /** One member of a frame set apart (FR2, D124): its own section, anchor, offset, roll or mirror. */
 export interface FrameOverride { member: number; section?: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean }
 export type FrameAnchor = 'centroid' | 'origin' | 'bottom-left' | 'bottom' | 'bottom-right' | 'left' | 'center' | 'right' | 'top-left' | 'top' | 'top-right';
@@ -160,7 +169,7 @@ type ModelNodeBase = SketchNode
    * one member along each, each its own body (side `part<k>`; one segment: `solid`). The frame's section and placement hold
    * for every member unless `overrides` sets one apart. `estimates` as a member's.
    */
-  | { kind: 'frame'; points: [Dim, Dim, Dim][]; segments: [number, number][]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; estimates?: string[] }
+  | { kind: 'frame'; points: [Dim, Dim, Dim][]; segments: [number, number][]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; trims?: FrameTrim[]; estimates?: string[] }
   | { kind: 'frame-member'; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; up?: [number, number, number]; estimates?: string[] }
   /** An open surface (copied from a direct surface `name`) thickened into a solid along its normal: faceted. */
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
@@ -428,7 +437,9 @@ export interface RackMesh { gear: number; direction?: number; centerDistance?: D
  * What a node depends on: what it is built on (`parentsOf`), and what it only refers to — a meshing gear's other
  * gear. Deleting and moving features keep to these; a body's own line (its look, its steps) follows `parentsOf`.
  */
-export const usesOf = (node: ModelNode): number[] => (node.kind === 'gear' || node.kind === 'rack') && node.mesh ? [node.mesh.gear] : parentsOf(node);
+export const usesOf = (node: ModelNode): number[] => (node.kind === 'gear' || node.kind === 'rack') && node.mesh ? [node.mesh.gear]
+  // (A frame refers to the bodies its members are trimmed to, FR3b: not built on them.)
+  : node.kind === 'frame' && node.trims?.some(t => 'body' in t) ? [...parentsOf(node), ...node.trims.flatMap(t => 'body' in t ? [t.body.node] : [])] : parentsOf(node);
 
 export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {

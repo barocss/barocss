@@ -86,7 +86,8 @@ test('D123 a member of a sketch section, saved and read back; the agent\'s run_c
 test('D124 Frame from the palette: a table skeleton (8 members), each its own body named by its member, A·L each; the notes say which member and points; the editor moves a point', () => {
   const cmd = commands.find(c => c.id === 'frame')!, ctx = { doc: emptyDoc(), bodies: [], selection: none } as never, d = cmd.defaults!(ctx);
   assert.equal(d.skeleton, 'table');
-  const doc = cmd.build!(ctx, d), node = doc.nodes[0], bodies = bodiesOf(doc), A = 40 * 40 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9);
+  // (Its three-member corners left as they are here — FR3b's ordered trim is the palette's default, D126.)
+  const doc = cmd.build!(ctx, { ...d, multi: 'none' }), node = doc.nodes[0], bodies = bodiesOf(doc), A = 40 * 40 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9);
   assert.equal(node.kind, 'frame'); assert.equal(bodies.length, 8);
   assert.equal(featureLabel(node, 0, doc.nodes), 'Frame RHS 40×40×3 · 8 members');
   // Legs 700 along Z, then the top's rails 600, 400, 600, 400.
@@ -113,7 +114,7 @@ test('D124 Frame on picked edges: a layout box\'s 12 edges, their corners shared
   const cmd = commands.find(c => c.id === 'frame')!, ctx = { doc: layout, bodies: lb, selection: { faces: [], edges: straight, bodies: [] } } as never, d = cmd.defaults!(ctx);
   assert.equal(d.skeleton, 'edges');
   assert.deepEqual(cmd.steps!(ctx, d), [{ label: 'Edges', text: '12 edges, 8 points', done: true }]);
-  const doc = cmd.build!(ctx, { ...d, section: 'round-tube', d: 26.9, t: 2.3 }), node = doc.nodes.at(-1)!;
+  const doc = cmd.build!(ctx, { ...d, section: 'round-tube', d: 26.9, t: 2.3, multi: 'none' }), node = doc.nodes.at(-1)!;
   assert.ok(node.kind === 'frame' && node.points.length === 8 && node.segments.length === 12);
   const A = Math.PI / 4 * (26.9 ** 2 - 22.3 ** 2), members = bodiesOf(doc).filter(b => b.ref?.node === doc.nodes.length - 1);
   assert.equal(members.length, 12);
@@ -143,24 +144,24 @@ test('D125 corners from the palette: a rectangle of sharp tubes mitred (A·L eac
   const cmd = commands.find(c => c.id === 'frame')!, ctx = { doc: emptyDoc(), bodies: [], selection: none } as never, d = cmd.defaults!(ctx);
   assert.equal(d.corners, 'mitre');
   const A = 1600 - 34 * 34, doc = cmd.build!(ctx, { ...d, skeleton: 'rectangle', ro: 0 }), node = doc.nodes[0];
-  assert.ok(node.kind === 'frame'); assert.deepEqual(node.corners, { default: 'mitre' });
+  assert.ok(node.kind === 'frame'); assert.deepEqual(node.corners, { default: 'mitre', multi: 'order', tee: 'butt' });
   const bodies = bodiesOf(doc), L = [600, 400, 600, 400];
   bodies.forEach((b, k) => assert.ok(Math.abs(b.volumeMM3! / (A * L[k]) - 1) < 1e-12, `member ${k}: ${b.volumeMM3}`));
   assert.ok(bodies[0].notes!.some(n => n.text === 'Ends: start mitre 45° with member 4; end mitre 45° with member 2'), JSON.stringify(bodies[0].notes));
   // A table: every top corner joins a leg and two rails — square, overlapping, said so.
-  const table = bodiesOf(cmd.build!(ctx, { ...d, ro: 0 }));
-  assert.ok(table[4].notes!.some(n => n.warning && /^Point 5: 3 members meet, left square and overlapping/.test(n.text)), JSON.stringify(table[4].notes));
+  const table = bodiesOf(cmd.build!(ctx, { ...d, ro: 0, multi: 'none' }));
+  assert.ok(table[4].notes!.some(n => n.warning && /^Point 5: 3 members meet, left square and overlapping \(set "Three or more members" to an ordered trim\)$/.test(n.text)), JSON.stringify(table[4].notes));
   // The editor: point 2 (index 1) butted, member 2 through — member 1 ends 20 short there, member 2 runs on 20.
   const f = editFields(doc.nodes, 0).find(x => x.key === 'corner1')!;
-  assert.ok(f.kind === 'choice'); assert.deepEqual(f.options.map(o => o.value), ['default', 'mitre', 'butt:0', 'butt:1', 'none']);
+  assert.ok(f.kind === 'choice'); assert.deepEqual(f.options.map(o => o.value), ['default', 'mitre', 'butt:0', 'butt:1', 'cope:0', 'cope:1', 'none']);
   const butted = f.kind === 'choice' ? f.set(doc.nodes, 'butt:1') : doc.nodes, bb = bodiesOf({ ...doc, nodes: butted });
-  assert.deepEqual((butted[0] as { corners?: unknown }).corners, { default: 'mitre', at: [{ point: 1, kind: 'butt', through: 1 }] });
+  assert.deepEqual((butted[0] as { corners?: unknown }).corners, { default: 'mitre', multi: 'order', tee: 'butt', at: [{ point: 1, kind: 'butt', through: 1 }] });
   assert.ok(Math.abs(bb[0].volumeMM3! / (A * 580) - 1) < 1e-12 && Math.abs(bb[1].volumeMM3! / (A * 420) - 1) < 1e-12, `${bb[0].volumeMM3} ${bb[1].volumeMM3}`);
   if (f.kind === 'choice') assert.equal(f.get(butted), 'butt:1');
   // All corners butted from the frame's field; back to the default for that point.
   const all = editFields(doc.nodes, 0).find(x => x.key === 'corners')!;
   if (all.kind === 'choice') assert.equal((all.set(doc.nodes, 'none')[0] as { corners?: { default?: string } }).corners!.default, 'none');
-  if (f.kind === 'choice') assert.deepEqual((f.set(butted, 'default')[0] as { corners?: unknown }).corners, { default: 'mitre' });
+  if (f.kind === 'choice') assert.deepEqual((f.set(butted, 'default')[0] as { corners?: unknown }).corners, { default: 'mitre', multi: 'order', tee: 'butt' });
 });
 
 test('D125 a frame on a sketch section inside an assembly instance: flattened, its section follows its sketch (volumes and face names); the agent\'s corners, checked', async () => {
@@ -192,4 +193,31 @@ test('D125 a frame on a sketch section inside an assembly instance: flattened, i
   assert.ok(bad.isError && /corners\.default: mitre, butt or none/.test(bad.content), bad.content);
   const inline = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [{ ...node, points: [[0, 0, 0], [300, 0, 0], [600, 0, 0]] }] }, evaluate);
   assert.ok(inline.isError && /CORNER_ANGLE/.test(inline.content), inline.content);
+});
+
+test('D126 the palette\'s table frame trims its corners in order (legs through, rails between, no warning); a T-joint rail butted on a post; the editor\'s joint fields; the agent\'s trims and refusals', async () => {
+  const cmd = commands.find(c => c.id === 'frame')!, ctx = { doc: emptyDoc(), bodies: [], selection: none } as never, d = cmd.defaults!(ctx);
+  assert.deepEqual([d.multi, d.tee], ['order', 'butt']);
+  const A = 1600 - 34 * 34, doc = cmd.build!(ctx, { ...d, ro: 0 }), node = doc.nodes[0];
+  assert.ok(node.kind === 'frame'); assert.deepEqual(node.corners, { default: 'mitre', multi: 'order', tee: 'butt' });
+  const bodies = bodiesOf(doc);
+  [720, 720, 720, 720, 560, 360, 560, 360].forEach((L, k) => assert.ok(Math.abs(bodies[k].volumeMM3! / (A * L) - 1) < 1e-12, `member ${k}: ${bodies[k].volumeMM3}`));
+  assert.ok(bodies.every(b => !b.notes!.some(n => /left square and overlapping/.test(n.text))));
+  assert.ok(bodies[4].notes!.some(n => /^Ends: start trimmed to member 1 \(2 in order\); end trimmed to member 2 \(2 in order\)$/.test(n.text)), JSON.stringify(bodies[4].notes));
+  assert.ok(bodies[0].notes!.some(n => /end through, 20 mm past point 5 over member 5/.test(n.text)), JSON.stringify(bodies[0].notes));
+  // The editor: the frame's joint settings.
+  const fields = editFields(doc.nodes, 0), multi = fields.find(f => f.key === 'multi')!, tee = fields.find(f => f.key === 'tee')!;
+  assert.ok(multi.kind === 'choice' && tee.kind === 'choice');
+  if (multi.kind === 'choice') { assert.equal(multi.get(doc.nodes), 'order'); assert.equal((multi.set(doc.nodes, 'none')[0] as { corners?: { multi?: string } }).corners!.multi, 'none'); }
+  // A T-joint by the agent: a rail on a post's middle (butted by `tee`), and a leg trimmed to an inclined floor.
+  const evaluate = async (x: StudioDoc) => evaluatePart(x, 1), SH = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 };
+  const tnode = { kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [0, 0, 400], [500, 0, 400]], segments: [[0, 1], [3, 2]], section: SH, corners: { tee: 'butt' }, trims: [{ member: 0, end: 'start', plane: { origin: [0, 0, 10], normal: [-0.2, 0, 1] } }] };
+  const r = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [tnode] }, evaluate);
+  assert.ok(!r.isError, r.content);
+  assert.ok(Math.abs(r.state.bodies[0].volumeMM3! / (A * 790) - 1) < 1e-12 && Math.abs(r.state.bodies[1].volumeMM3! / (A * 480) - 1) < 1e-12, `${r.state.bodies.map(b => b.volumeMM3)}`);
+  assert.ok(r.state.bodies[0].notes!.some(n => /^Ends: start trimmed to a plane \(11\.31\d*° from square\)/.test(n.text)), JSON.stringify(r.state.bodies[0].notes));
+  const refused = async (features: unknown[], re: RegExp) => { const x = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features }, evaluate); assert.ok(x.isError && re.test(x.content), x.content); };
+  await refused([{ ...tnode, section: { ...SH, outerRadius: 6 }, trims: undefined }], /BUTT_ON_OPEN_SIDE/);
+  await refused([{ ...tnode, trims: [{ member: 0, end: 'start' }] }], /a trim takes a \\"plane\\" or a \\"body\\"/);
+  await refused([{ ...tnode, corners: { tee: 'weld' } }], /corners\.tee: butt, cope or none/);
 });

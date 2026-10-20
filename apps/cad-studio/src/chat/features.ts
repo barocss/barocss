@@ -38,7 +38,7 @@ const SPECS: Record<string, Spec> = {
   'sheet-flange': { parent: 'ref', edges: 'names1', length: 'dim', 'angleDegrees?': 'num', 'bendRadius?': 'dim', 'measure?': 'enum:outer|inner|tangent', 'position?': 'enum:material-inside|material-outside|bend-outside', 'offsets?': 'dim2', 'relief?': 'any' },
   // (FR1, D123: a structural member, its section by kind and dimensions — none defaulted — or a closed sketch.)
   // (FR2, D124: a frame on a skeleton; overrides set members apart.)
-  frame: { points: 'points3', segments: 'segments', section: 'member-section', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'mirror?': 'bool', 'up?': 'vec3', 'overrides?': 'frame-overrides', 'corners?': 'frame-corners' },
+  frame: { points: 'points3', segments: 'segments', section: 'member-section', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'mirror?': 'bool', 'up?': 'vec3', 'overrides?': 'frame-overrides', 'corners?': 'frame-corners', 'trims?': 'frame-trims' },
   'frame-member': { section: 'member-section', start: 'dim3', end: 'dim3', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'up?': 'vec3' },
   'sheet-contour': { path: 'points2', 'plane?': 'plane', side: 'enum:left|right', width: 'dim', thickness: 'dim', bendRadius: 'dim', 'kFactor?': 'num', 'bendTable?': 'any' },
 };
@@ -144,11 +144,29 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
       return null;
     }
     case 'frame-corners': {
-      const kinds = ['mitre', 'butt', 'none'];
-      if (!isObj(v) || Object.keys(v).some(k => k !== 'default' && k !== 'at')) return '{"default"?: "mitre" | "butt" | "none", "at"?: [{"point": i, "kind", "through"?: member}]}';
-      if (v.default !== undefined && !kinds.includes(String(v.default))) return 'corners.default: mitre, butt or none';
-      if (v.at !== undefined && (!Array.isArray(v.at) || !v.at.every(e => isObj(e) && Number.isInteger(e.point) && kinds.includes(String(e.kind)) && (e.through === undefined || Number.isInteger(e.through)) && Object.keys(e).every(k => ['point', 'kind', 'through'].includes(k))))) return 'corners.at: a list of {"point": i, "kind": "mitre" | "butt" | "none", "through"?: member}';
+      const kinds = ['mitre', 'butt', 'cope', 'order', 'none'];
+      if (!isObj(v) || Object.keys(v).some(k => !['default', 'multi', 'tee', 'at'].includes(k))) return '{"default"?: "mitre" | "butt" | "none", "multi"?: "order" | "none", "tee"?: "butt" | "cope" | "none", "at"?: [{"point": i, "kind", "through"?, "trim"?, "order"?}]}';
+      if (v.default !== undefined && !['mitre', 'butt', 'none'].includes(String(v.default))) return 'corners.default: mitre, butt or none';
+      if (v.multi !== undefined && !['order', 'none'].includes(String(v.multi))) return 'corners.multi: order or none';
+      if (v.tee !== undefined && !['butt', 'cope', 'none'].includes(String(v.tee))) return 'corners.tee: butt, cope or none';
+      const entry = (e: unknown) => isObj(e) && Number.isInteger(e.point) && kinds.includes(String(e.kind)) && (e.through === undefined || Number.isInteger(e.through)) && (e.trim === undefined || e.trim === 'face' || e.trim === 'envelope') && (e.order === undefined || (Array.isArray(e.order) && e.order.every(m => Number.isInteger(m)))) && Object.keys(e).every(k => ['point', 'kind', 'through', 'trim', 'order'].includes(k));
+      if (v.at !== undefined && (!Array.isArray(v.at) || !v.at.every(entry))) return 'corners.at: a list of {"point": i, "kind": "mitre" | "butt" | "cope" | "order" | "none", "through"?: member, "trim"?: "face" | "envelope", "order"?: [members]}';
       return null;
+    }
+    case 'frame-trims': {
+      if (!Array.isArray(v)) return 'a list of {"member": k, "end": "start" | "end", "plane": {origin, normal}} or {…, "body": Ref}';
+      for (const t of v) {
+        if (!isObj(t) || !Number.isInteger(t.member) || (t.end !== 'start' && t.end !== 'end')) return 'each trim names its "member" and its "end" (start or end)';
+        if ((t.plane === undefined) === (t.body === undefined)) return 'a trim takes a "plane" or a "body" (one of them)';
+        if (t.plane !== undefined) { const why = checkValue(t.plane, 'trim-plane', nodes, parameters, leaves); if (why) return why; }
+        if (t.body !== undefined) { const why = checkValue(t.body, 'ref', nodes, parameters, leaves); if (why) return `trim body: ${why}`; }
+        if (Object.keys(t).some(k => !['member', 'end', 'plane', 'body'].includes(k))) return 'a trim has member, end and a plane or a body';
+      }
+      return null;
+    }
+    case 'trim-plane': {
+      const v3 = (x: unknown) => Array.isArray(x) && x.length === 3 && x.every(n => typeof n === 'number' && Number.isFinite(n));
+      return isObj(v) && v3(v.origin) && v3(v.normal) && Object.keys(v).every(k => k === 'origin' || k === 'normal') ? null : 'a trim plane {"origin": [x, y, z], "normal": [x, y, z]}';
     }
     case 'member-section': {
       // (Each kind's dimensions, every one given: the kernel takes no default size or radius, D122.)
