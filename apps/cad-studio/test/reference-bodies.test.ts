@@ -160,3 +160,25 @@ test('the requirement query keepout (undecided within the chord tolerance), datu
   const w = datumWorld(readReferences(s.doc.references), readReferences(s.doc.references).datums[0]);
   assert.ok(near(w.origin[2], c.expect.datum_origin_z) && w.normal!.every((x, i) => near(x, c.expect.datum_normal[i])));
 });
+
+test('O75 (A6.3): datums as mate targets — a pin on an axis datum and flush on a plane datum through add_mate; get_assembly lists them on the base part; a point datum does not mate', async () => {
+  let s = { doc: emptyDoc(), bodies: [], turnBase: emptyDoc() } as never as ChatState;
+  s = (await ok(s, 'run_command', { command: 'box', values: { w: 60, d: 60, h: 10, x: 0, y: 0, z: 0 } })).state;
+  s = (await ok(s, 'add_datum', { kind: 'plane', origin: [0, 0, 20], normal: [0, 0, 1], name: 'deck' })).state;
+  s = (await ok(s, 'add_datum', { kind: 'axis', origin: [30, 25, 0], direction: [0, 0, 1], name: 'spindle' })).state;
+  s = (await ok(s, 'add_datum', { kind: 'point', origin: [5, 5, 5], name: 'mark' })).state;
+  const ids = readReferences(s.doc.references).datums.map(d => d.id), [P, A, M] = ids;
+  assert.equal(ids.length, 3);
+  const faces = JSON.parse((await ok(s, 'get_assembly', { faces_of: 'base' })).content).base.faces.map((f: { name: string }) => f.name);
+  assert.ok(faces.includes(`datum:${P}`) && faces.includes(`datum:${A}`) && !faces.includes(`datum:${M}`), faces.join(' '));
+  s = (await ok(s, 'add_part', { name: 'Pin' })).state;
+  s = (await ok(s, 'run_command', { part: 'p1', command: 'cylinder', values: { r: 4, h: 15, x: 0, y: 0, z: 0 } })).state;
+  s = (await ok(s, 'add_mate', { kind: 'concentric', a: { part: 'base', face: `datum:${A}` }, b: { part: 'p1', face: 'n1.side0' } })).state;
+  const flush = await ok(s, 'add_mate', { kind: 'coincident', a: { part: 'base', face: `datum:${P}` }, b: { part: 'p1', face: 'n1.bottom' }, flip: true }); s = flush.state;
+  // (On the spindle's axis, its bottom on the deck facing down: the pin stands from z = 20.)
+  const pin = s.doc.instances![0], w = JSON.parse((await ok(s, 'get_assembly', {})).content).instances[0].world_bounds;
+  assert.deepEqual(w, { min: [26, 21, 20], max: [34, 29, 35] }, JSON.stringify([pin.position, pin.rotation]));
+  assert.deepEqual(JSON.parse(flush.content).freedom_left, { turns: 1, slides: 0 });
+  const bad = await call(s, 'add_mate', { kind: 'coincident', a: { part: 'base', face: `datum:${M}` }, b: { part: 'p1', face: 'n1.top' } });
+  assert.ok(bad.isError); assert.match(JSON.parse(bad.content).error, /is not a flat or round face of base/);
+});

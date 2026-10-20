@@ -4,7 +4,7 @@
 // studio does, so mated parts follow edits of the parts they are mated to.
 import { emptyDoc, type PartInstance, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
-import { tableOf, tablesFor } from '../assembly/faces';
+import { tableOf, tablesFor, withDatums } from '../assembly/faces';
 import { BASE, KIND_LABEL, kindsFor, mateLabel, mateRefusal, rotationMatrix, solveAssembly, type FaceTable, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
 import type { ToolDefinition } from './api';
 import { addDocLibrary, addLibraryPartToBody, libraries, libraryInstance, registerDocLibraries, snapByInterfaces } from '../library/libraries';
@@ -67,7 +67,7 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
   const mates = doc.mates ?? [];
   const solved = solveDoc(doc).problems;
   return {
-    base: { id: BASE, feature_count: doc.nodes.length, bodies: base.length, volume_mm3: r3(base.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)), note: 'the document\'s own part, fixed at the origin', ...(detail === BASE ? mateFaces(tableOf(doc)) : {}) },
+    base: { id: BASE, feature_count: doc.nodes.length, bodies: base.length, volume_mm3: r3(base.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)), note: 'the document\'s own part, fixed at the origin', ...(detail === BASE ? mateFaces(withDatums(tableOf(doc), doc)) : {}) },
     instances,
     mates: mates.map((m, i) => ({ id: m.id, label: mateLabel(m, i), kind: m.kind, a: m.a, b: m.b, ...(m.distance !== undefined ? { distance: m.distance } : {}), ...(m.angle !== undefined ? { angle: m.angle } : {}), ...(m.flip ? { flip: true } : {}) })),
     ...(solved.length ? { problems: solved } : {}),
@@ -141,7 +141,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
         if (!KIND_LABEL[kind]) return fail(doc, `"kind" is one of ${Object.keys(KIND_LABEL).join(', ')}.`);
         const ref = (v: unknown) => isObj(v) && typeof v.part === 'string' && typeof v.face === 'string' ? { part: v.part, face: v.face } : null;
         let a = ref(args.a), b = ref(args.b);
-        if (!a || !b) return fail(doc, '"a" and "b" are {part, face}: part "base" or an instance id, face a persistent face name (or origin:xy / origin:xz / origin:yz).');
+        if (!a || !b) return fail(doc, '"a" and "b" are {part, face}: part "base" or an instance id, face a persistent face name (or origin:xy / origin:xz / origin:yz, or datum:<id> on the base part).');
         for (const r of [a, b]) if (!partDoc(doc, r.part)) return fail(doc, `No part "${r.part}"; parts: ${partList()}.`);
         if (a.part === b.part) return fail(doc, 'Both faces are on the same part; mate faces of two different parts.');
         // b moves; when it is fixed and a is not, they swap (as when picking in the studio).
@@ -277,7 +277,7 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'add_mate',
-    description: 'Places a part by its faces, solved exactly by the studio\'s mate solver; a mate that conflicts with the others is refused with the reason. "a" stays, "b" moves (swapped when b\'s part is fixed). Kinds: coincident (two flat faces flush, facing each other; flip: facing the same way; with an origin plane the default is the same way and flip opposes them), distance (the same, `distance` mm apart), angle (two flat faces `angle` degrees apart), concentric (two round faces on one axis: a shaft in a bore; flip true/false sets the axis sense), tangent (a round face touching a flat or another round face). Faces are persistent names (from get_assembly faces_of, or part results), or a part\'s origin planes origin:xy / origin:xz / origin:yz. The result says what the moved part can still do (free turns and slides).',
+    description: 'Places a part by its faces, solved exactly by the studio\'s mate solver; a mate that conflicts with the others is refused with the reason. "a" stays, "b" moves (swapped when b\'s part is fixed). Kinds: coincident (two flat faces flush, facing each other; flip: facing the same way; with an origin plane the default is the same way and flip opposes them), distance (the same, `distance` mm apart), angle (two flat faces `angle` degrees apart), concentric (two round faces on one axis: a shaft in a bore; flip true/false sets the axis sense), tangent (a round face touching a flat or another round face). Faces are persistent names (from get_assembly faces_of, or part results), or a part\'s origin planes origin:xy / origin:xz / origin:yz, or the base part\'s datums datum:<id> (add_datum: a plane flat, an axis round). The result says what the moved part can still do (free turns and slides).',
     input_schema: { type: 'object', properties: { kind: { type: 'string', enum: Object.keys(KIND_LABEL) }, a: ref, b: ref, distance: { type: 'number' }, angle: { type: 'number' }, flip: { type: 'boolean' } }, required: ['kind', 'a', 'b'], additionalProperties: false },
   },
   {

@@ -3409,3 +3409,150 @@ Ordered by the coordinator after O71. There are three parts: the library's mater
   - `pnpm rb9` (seed 2026, 5 trials): **50/50 trials pass on all ten rungs; pass@1 = pass^5 = 1 and RS 1 each; 130/130 mutants killed; every hard predicate killed by a mutant.**
   - The report is regenerated in `notes/rb9-scripted-2026-10-20/`.
   - `test/rb9.test.ts` now runs all ten rungs.
+
+## O73 — set_material, steel in rungs 12 and 14; RB9.2: rungs 6 (beam) and 11 (print-in-place) (2026-10-20)
+
+Ordered by the coordinator after O72, which put a body's material on the body's look and not on placement.
+
+- **No existing tool edits a body's look**, so a new tool, `set_material`, was added. It takes `{material, bodies?}`, plus `part`, as every part tool does, for a placed part's own bodies.
+  - It writes the look's material: the first thing a body's mass, the BOM and a library part's context read, before the brief's material.
+  - An id outside the material library is refused with `[MATERIAL_UNKNOWN]` and the id list.
+  - It is batchable, so it can go in `apply_ops` and in the ops of `propose`; a placed part's change is proposed, as every assembly change is. It is classified as an idempotent alteration.
+  - v2 lists it as `features.material`.
+  - The system prompt names it as the path: "The brief's material is the base part's; a body or a placed part of another material gets it with set_material." The tool descriptions are the only docs that list tools.
+  - The contract overhead went from 14 440 to **14 544** of the 15 000 guard (+104), leaving **456**. tools/list is 113 595 characters, 99 051 plain; 82 tools.
+  - `tools-v1.json` and `tools-v2.json` were updated as a compatible change.
+  - Test: a base body set to ABS weighs ABS's density with no "assumed" note. A snap hook on it takes ABS's strain with no brief. A placed pin set to steel shows steel in its BOM row. An unknown id, an unknown part and an unknown body are refused.
+- **Rungs 12 and 14 now state steel.**
+  - Rung 12: the shaft is steel, the rest 6061. The mass closed form takes each part's density. New mutant: the shaft left aluminium.
+  - Rung 14: the payload is a steel block, sized by steel's density. New predicate: the payload link's mass from RM3, equal to m to 1e-9 relative. New mutant: the payload left aluminium.
+- **Rung 6, load bracket** (7 predicates, 7 mutants). Closed-form beam theory only (#2177).
+  - **`src/rb9/beam.ts`** cuts the body across x with the kernel's split. It takes the cut face's boundary from its B-rep edges, which have exact double endpoints, and chains them into loops; holes are signed by containment. Area, centroid and second moments then follow by **Green's theorem** on those loops. Only straight boundaries are accepted; a curved one is refused.
+  - Predicates:
+    - one body;
+    - the stated material;
+    - **prismatic**: root (past the farthest fillet axis), middle and tip sections, with I and area equal to 1e-9. On trial 1 they equal b·h³/12 = 12 282.5 exactly;
+    - slender, L/h ≥ 5;
+    - root fillets, top and bottom, r ≥ 0.25 h, from exact cylinders;
+    - σ = F·L·c/I ≤ σy/2 and δ = F·L³/(3EI) ≤ δmax, with I and c from the root section, E and σy from the material library.
+  - What it does not judge is stated in the file's head: stress concentration beyond the factor, contact at the wall, flange buckling.
+  - The sampler keeps the brief feasible: F is capped so the stress depth stays under 0.16 L, and δmax is sampled above the deflection depth's floor.
+  - The scripted agent sizes h in closed form on a 0.5 mm grid.
+  - Mutants: thin (0.6 of the stress depth), long (L × 2), stepped (not prismatic), stubby (L/h = 3), no fillet, the wrong metal stated, the arm not joined.
+  - The plate is 100 mm, so no mutant's fillet is refused.
+- **Rung 11, print-in-place toy** (4 predicates, 5 mutants): a ring captive on a flanged axle, FDM.
+  - **`src/rb9/captive.ts`**: each of ±X, ±Y and ±Z is a straight slide. The ring is on a prismatic dummy joint and the axle fixed, both children of one still link, so RM6 checks the pair (it skips a parent and its child). RM6's conservative advancement sweeps the slide, certified, until contact, or past the two parts' box plus 1 mm. A clear sweep means the ring escapes.
+  - Predicates:
+    - two solids, not meeting;
+    - every facing gap within [fitGap, 2·fitGap] (0.3 to 0.6), from exact faces: the bore round the axle (cylinders), the flange below and the flange above (planes);
+    - `check_printability`, no rule failing;
+    - captive in all six directions. The scripted toy meets contact after exactly its gap in each.
+  - Mutants: gap 0, gap 1.5, the top flange left off (escapes along +Z), an extra block, a 0.3 mm ring wall (print fails).
+- **Evidence**:
+  - `pnpm rb9` (seed 2026, 5 trials): **60/60 trials on twelve rungs; pass@1 = pass^5 = 1 and RS 1 each; 158/158 mutants killed; every hard predicate killed by a mutant.** The report is regenerated in `notes/rb9-scripted-2026-10-20/`.
+  - The set_material test in `test/enclosure.test.ts`.
+  - The contract tests with the new numbers.
+- **Still held**: rung 4 (CNC1–CNC6) and rung 7's bolt (R12c), both in the kernel lane. Live trials wait for the owner.
+
+## O74 — RB9.3: the scoped forms of rungs 4 (machined plate) and 7 (lap joint); the held rules named (2026-10-21)
+
+Ordered by the coordinator after O73, per O70: the geometry the studio can judge today. What waits for the kernel lane is a **soft "held" outcome**: never passed, its lane named, outside pass and RS. The ladder now has all fourteen rungs (`src/rb9/rungs-plates.ts`).
+
+- **Rung 4, machined plate** (6 hard predicates and 1 held; 7 mutants). A plate L × W × T, four corner through holes on a pitch, and a central pocket a × b × depth with vertical corner radius rc (a box cut, then its four vertical edges filleted). Predicates:
+  - the box and one solid;
+  - **holes**: four of their Ø, on the pitch, exact axes to 1e-9, through T, and no others of that Ø;
+  - **pocket**: from exact planes inside the plate. The walls facing in give a × b, centred, to 1e-9; the floor facing up gives the depth to 1e-9;
+  - **corners**: the four vertical cylinders that are not holes, each at its pocket corner inset by its radius, r ≥ rc;
+  - **volume**: L·W·T − 4πr²T − (a·b − (4 − π)·rc²)·depth, to 1e-9 relative;
+  - **held, machinable**: CNC1–CNC6 (kernel lane).
+
+  Mutants: a hole 1 mm off its pitch, three holes, the pocket 1 mm deeper, corner radius 1, a stray Ø3 blind hole (volume), the plate 5 longer, a loose block.
+- **Rung 7, bolted lap joint, the plates** (6 hard predicates and 1 held; 6 mutants). Plate A is fixed; plate B is lapped over A's far end and mated (coincident faces, concentric on the first hole, the xz origin planes 0 apart). The holes are Ø d clearance holes, 2 or 4 on one pattern centred in the lap. Predicates:
+  - two plates, one solid each;
+  - **mated**: RM1's tree is all fixed, with no problems;
+  - **pattern**: A's holes at the brief's positions (exact axes, 1e-9);
+  - **aligned**: every hole of A coaxial with one of B (1e-9);
+  - **edges**: every hole ≥ 1.5 Ø from its own plate's sides (the brief's rule, not a standard's);
+  - **contacts**: `checkAssembly` passes, with only the mate's contact;
+  - **held, bolt**: R12c's fasteners (kernel lane).
+
+  Mutants: one of B's holes 1 mm off, the rows 1 Ø from the sides, both plates' rows 2 mm apart (pattern), a nub under B 1 mm into A, B on one bolt hole and free to turn, plate B never added.
+- **Evidence**: `pnpm rb9` (seed 2026, 5 trials): **70/70 trials on fourteen rungs; pass@1 = pass^5 = 1 and RS 1 each; 184/184 mutants killed; no hard predicate without a mutant.** The report is regenerated in `notes/rb9-scripted-2026-10-20/`.
+
+## O75 — the outer-lane follow-ups: the Joints masses, the look ids, RD3's stop and coupling, datums as mate targets; the BVH skipped (2026-10-21)
+
+The batch the coordinator ordered after O74, from README §0's "Outer-lane follow-ups" and the O-log. Each has a test.
+
+- **The Joints card's link masses** (`src/ui/JointsPanel.tsx`). They are now one line, "Links N · total g", with "material assumed" when any is, and a Show/Hide button. The per-link list was what ran past the viewport on the 6R arm. It is closed by default. A link's own problem stays visible while closed, prefixed with the link's name.
+  - Test: the RM3 flow step. The 2R arm reads "Links 3 · 131.9 g · material assumed" with no list. Show opens the per-link masses as before (14.1 g, CoM (20.0, 0.0, 2.5)); Hide closes them.
+- **The appearance ids** (`src/engine/render.ts`). Every preset id now carries the `look-` prefix (`look-steel`, `look-brass`, …), so none is a material id. Documents keep appearances by value, not by preset id, so no saved file changes. The flow's two preset selections follow the new ids.
+  - Test (`test/material-look.test.ts`): every look id starts with `look-`; no look id is a material id in either list (the library's or the studio's); no material id takes the prefix; the ids are unique.
+- **RD3, the momentary peak torque** (`src/robot/actuators.ts`). A stated stop event, `estop` (rad/s²; `size_actuators` takes it as `estop_rad_s2`), is applied from the cycle's fastest sampled instant of each joint: every moving joint decelerates at that rate. The joint's output torque there comes from the RNEA and is checked against the reducer's page value, "Limit for Momentary Peak Torque". Without a stated stop there is no such check, and SIZING_MODEL says so. The check also runs in `checkPair`, the RD9 harness path, when its options carry `estop`.
+  - Test: on the one-joint case the stop torque equals J·a to 1e-9, with the page's limit and source. A stop past every pair's limit leaves none feasible, and the rejection is named.
+- **RD3, the actuators' own mass**: `sizeCoupled`, and `coupled: true` on `size_actuators`. Each chosen pair becomes a point mass at its joint's axis point on the joint's parent link (`withPointMass`, by the parallel-axis rule), and the robot is sized again until the choices repeat. It stops at 6 rounds, with `settled: false` if they still change. The result lists each added mass and its link.
+  - Test, on chain-2r: the choices settle. The elbow's pair is added to the upper arm. The shoulder's mass-matrix diagonal grows by exactly M·d² of that pair, to 1e-9. Sizing again on the coupled bodies gives the same choices (a fixed point). A point mass at the centre adds no inertia.
+- **A6.3, datums as mate targets** (`src/assembly/faces.ts`, `mates.ts`, `engine/references.ts`, `chat/assembly.ts`). The base part's face table now includes its datums as `datum:<id>`, where the datum's reference puts it: a plane datum as a flat face, an axis datum as a round one. Point datums do not mate.
+  - Like origin planes they are frames, not B-rep faces (`frameFace`). A flat mate with one defaults to the same way, and they take no signatures.
+  - `get_assembly faces_of: base` lists them, and the add_mate description names them.
+  - Test (`test/reference-bodies.test.ts`): a pin concentric with an axis datum and flush (flip) on a plane datum stands at the datums, its world box (26, 21, 20)–(34, 29, 35), with one turn left. A point datum is refused as not a face of the base.
+- **Skipped, as it needs a kernel-core change: the R3.2 BVH under RM6's mesh distance.** `facetBvh` (`packages/barocss-cad/src/facet-bvh.ts`) is built only from a B-rep made of facet faces, and is cached per B-rep. Its builder over raw positions and indices is not exported. Reusing it for display meshes needs a kernel export, such as `bvhOfTriangles(positions, indices)` returning the same `FacetBvh`. `meshDistance` keeps its box pruning in the meantime.
+- **Contract**: the overhead is unchanged at 14 544 of 15 000 (tools/list 113 992 characters, 99 448 plain); `tools-v1.json` is updated as a compatible change (size_actuators' two new properties, the descriptions).
+
+## O76 — IM S0: what injection moulding can measure exactly today, its sources, and the plan for IM1–IM6 (2026-10-21)
+
+On 2026-10-21 the coordinator moved IM1–IM6 and CNC1–CNC6 from the kernel lane to the outer lane, as RD1–RD3 had moved (README §0's lane lines). This is the S0 for the IM track. Evidence: `test/im-s0.test.ts` (4 probes).
+
+- **What exists**:
+  - the material library's `injection` profile: rib 0.6 recommended and 1.0 at most, bosses 0.6–1.0 of the wall, walls 0.6 and 1.0 recommended, draft 1° recommended, fit 0.1. Every value is the BaroCSS rule of thumb `P-INJ`, flagged as such;
+  - `draftAnalysis`: flat faces only, display-mesh normals; curved faces said to be not judged;
+  - `wallThickness`: rays on the display mesh;
+  - the printability report (AM3), rule by rule with pass, warn, fail, unknown and n/a;
+  - the studio's own triangle BVH and ray query (`print/orient.ts`, AM4);
+  - the kernel's exact `faceGeometry` (plane and cylinder; `other` for the rest) and `evaluateSurfaceD1`/`D2` on the B-rep's NURBS faces (`partBreps`).
+- **Exact normals on curved faces need no kernel change.** A display-mesh vertex is projected onto its B-rep face's NURBS by Gauss–Newton on `evaluateSurfaceD1` (start from a 25 × 25 parameter grid; first derivatives only).
+  - `evaluateSurfaceD2` refuses at a circle's C1 interior knot. D1 refuses exactly at a C0 knot (the quadrant joins, G1 in space), so the evaluation steps 1e-11 of the domain inside.
+  - The display mesh joins a face's pieces (`x#1`, `x#2`) into one display face, so each vertex is projected onto every piece and the nearest kept.
+  - The parameterised tessellation (`tessellateBrepWithParameters`, the vertices' (u, v)) is not exported. It would replace the search, but it is not needed.
+- **The probes**:
+  - **P1, a 3° drafted cylinder (a cone)**: the exact normal at each of 68 vertices gives the draft as 3° to **5.8e-15°**. The display mesh's normal is off by **0.0144°**, and the vertices lie 5.3e-7 mm off the surface (single precision). A draft check on curved faces must use the exact normal, not the mesh's.
+  - **P2, a cylinder lying across the pull**: `faceGeometry`'s exact cylinder, and n·d equal to z/r at every vertex to 1e-6 (the vertex's own precision). The face takes both signs: it **straddles** the isocline n·d = 0.
+  - **P3, undercuts by ±d visibility**: each triangle's centre is moved 0.01 mm along its normal into the open side, then a ray is cast along d through the studio BVH. A hole along the pull: 64/64 clear from +z and 64/64 from −z. A side hole across it: **0/64** both ways, so an undercut. A vertex on a face's rim grazes the next face, so vertex samples are ambiguous; triangle centres are not.
+  - **P4, a shelled box (t = 1.8)**: `wallThickness` gives 1.8 to 1e-4.
+- **Sources (public HTML only, read-only)**:
+  - Protolabs' injection moulding guide page (`protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/`, read 2026-10-21) is readable. It gives:
+    - draft "1 to 2 degrees" as a starting point, "at least 3 degrees" for PM-T1 and 5° for PM-T2;
+    - adjacent walls within 40–60 % of each other, ribs "around 60 percent";
+    - shrink from 0.002 in/in (ABS, PC) to 0.025 in/in (TPE);
+    - text over 20 pt, 0.010–0.015 in deep, with a 0.020 in stroke;
+    - the largest part, 480 × 751 × 203 mm.
+  - The services page (`protolabs.com/services/injection-molding/`, read 2026-10-21; the owner pointed to it) is readable. Its numbers are:
+    - "+/- 0.003 in. (0.08mm)" moulded tolerance, plus a resin tolerance "no less than +/- 0.002 in./in.";
+    - the largest part, "18.9 in. x 29.6 in. x 8 in. (480mm x 751mm x 203mm)".
+    It gives no draft, wall or rib values; for those it links the guide above and design-tip pages. IM1 takes the tolerance and size limits from it, and IM6 quotes against them.
+  - Its per-material wall ranges are not on that page. IM1 reads them from Fictiv's and Hubs' public guides. The linked "Definitive Guide" is a PDF, not read (no PDFs without asking).
+  - Each value goes into the profile with its URL, the date read and the page's own label, or flagged as an estimate. No standard's text is used.
+- **Tools, under the 15 000 contract guard (456 left).** One new tool per process would spend it. The proposal is to make `check_printability` the manufacturability report for the part's process: printing as now, injection moulding when the process is `injection`, machining for CNC. Its name stays for compatibility; its description and the rules change. Its output schema is the same rule list. This costs no overhead and goes to the coordinator first.
+- **The plan**, each stage with closed-form or constructed oracles, mutants where it is a check, and a flow step:
+  - **IM1**: the process rule.
+    - the `injection` profile sourced value by value, with per-material wall ranges and shrink;
+    - the pull direction and the surface finish (texture) on the document, versioned. The finish sets the minimum draft;
+    - the brief's process `injection` selects it.
+  - **IM2**: the draft field. For each face, the exact draft over its vertices and triangle centres, classified as:
+    - drafted (≥ the finish's minimum);
+    - low (0 < draft < minimum);
+    - vertical;
+    - negative (a back draft);
+    - straddle (both signs past the tolerance).
+    Steep faces and the isocline n·d = 0 are reported. Oracles: a cone's taper, a cylinder across the pull (straddle), a revolved sphere (its equator), a fillet (0 → 90°).
+  - **IM3**: undercuts by ±d triangle visibility: each face's area hidden from both directions, and the undercut regions. Oracles: a side hole, a snap hook's latch, an internal groove; mutants.
+  - **IM4**: walls, ribs, bosses, radii and sink.
+    - walls: the nominal wall from the ray-thickness distribution and adjacent-wall ratios;
+    - ribs: thickness at most 0.6 t (thin protrusions, by thickness against the nominal);
+    - bosses: wall against the nominal (exact cylinders, coaxial);
+    - radii: inside radii at least 0.5 t (concave exact cylinders);
+    - sink: thick sections.
+    Oracles: analytic shells, a constructed rib and boss.
+  - **IM5**: the parting line, from silhouette loops — edges between faces of opposite n·d, and isocline curves traced on straddling faces by projection — with a manual override. **Splitting a straddling face along its isocline is a face split by a curve, likely a kernel-core operation.** IM5 stops there and asks; the line itself, its loops and the override do not need it.
+  - **IM6**: the quote package: STEP, the DFM report (JSON and Markdown), the material, finish, pull and quantity, in one zip, like A8.5's bundle.
+  - Later, after IM6: an RB9 rung for a moulded part.
+- **No kernel-core change is needed for IM1–IM4 and IM6.** IM5's straddle-face split may need one, and it will be asked for when reached.

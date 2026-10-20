@@ -5,6 +5,7 @@ import { toPartDocument } from '../engine/part';
 import { contentKey } from '../engine/evalMemo';
 import type { StudioDoc } from '../engine/doc';
 import { BASE, clean, type FaceTable, type Vec3 } from './mates';
+import { datumWorld, readReferences } from '../chat/references';
 
 /** Values within a nanometre of a round number are that number (a circle read back from its NURBS). */
 const snap = (p: readonly number[]): Vec3 => [clean(p[0]), clean(p[1]), clean(p[2])];
@@ -68,6 +69,21 @@ export function tableOf(doc: StudioDoc): FaceTable {
 /** The face tables of a document's parts: the base part's own, an instance's by its id. */
 export const tablesFor = (doc: StudioDoc) => (part: string): FaceTable | undefined => {
   const d = part === BASE ? doc : doc.instances?.find(i => i.id === part)?.doc;
-  return d ? tableOf(d) : undefined;
+  return d ? (part === BASE ? withDatums(tableOf(d), doc) : tableOf(d)) : undefined;
 };
+/**
+ * The base part's datums as mate targets (A6.3, O75): `datum:<id>`, where its locked reference puts it — a plane datum
+ * a flat face, an axis datum a round one (an axis to put a shaft on, radius its fitted one or 0). Point datums do not mate.
+ */
+export function withDatums(table: FaceTable, doc: StudioDoc): FaceTable {
+  const set = readReferences(doc.references);
+  if (!set.datums.length) return table;
+  const out: FaceTable = { ...table };
+  for (const d0 of set.datums) {
+    const d = datumWorld(set, d0);
+    if (d.kind === 'plane' && d.normal) out[`datum:${d.id}`] = { kind: 'plane', point: snap(d.origin), normal: snapUnit(d.normal) };
+    else if (d.kind === 'axis' && d.direction) out[`datum:${d.id}`] = { kind: 'cylinder', point: snap(d.origin), axis: snapUnit(d.direction), radius: d.radius ?? 0, outer: false };
+  }
+  return out;
+}
 

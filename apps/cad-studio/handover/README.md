@@ -66,6 +66,7 @@ and worm gears, and the trochoid root moved there from R6a.6. The R12 → FR blo
 - The analytic Boolean's one union order (D107/D108), the region route's refusals (D113), the offset route's limits (D112), mesh shells' limits (D114): as in the R11 → R12 block below.
 - R12.5's and FR4b's agents are the scripted one (L2). A live model building them needs the owner's OK.
 - Run the full flow on its own (beside the kernel suite some drawing and A5 steps time out). B9's known flake keeps its budget.
+- **Kernel-lane request (O75, low priority):** export `bvhOfTriangles(positions, indices)` from `facet-bvh.ts` (the same `FacetBvh` over raw triangles), for RM6's `meshDistance` and A6.3's keep-out clearance. Box pruning covers today's cases; the coordinator queues it at a track boundary.
 
 **How to resume**
 1. Read this block, then D122–D128 in `decisions.md` (for the frame model), then §4's R12b item and D53–D60 (R6a gears).
@@ -376,7 +377,7 @@ Done:
 - **Merging:** the coordinator merges the outer lane's steps into this branch, in order, only while the kernel lane is idle after a checkpoint with a clean tree. It then runs the checks.
 
 **Next, in this order:**
-1. Kernel lane: **R11** general shell/offset (R10 done: D87–D103; R11 S0 done: D105; R11.1a done: D106; R11.1b done: D107; R11.1c done: D108 — R11.1 done; R11.2a done: D110; R11.2b done: D111; R11.2c-1 done: D112; R11.2c-2 done: D113 — R11.2 done; R11.3 done: D114 — **R11 done**) → **R12** sheet metal (S0 done: D115; R12.1 done: D116; R12.2 done: D117; R12.3a done: D118; R12.3b done: D119; R12.4 done: D120; R12.5 done: D121 — **R12 done**) → **FR1–FR4** frames (S0 done: D122; FR1 done: D123; FR2 done: D124; FR3a done: D125; FR3b done: D126; FR4a done: D127; FR4b done: D128 — **FR done**) → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root; S0 done: D129; R12b.1a done: D130; R12b.1b done: D131; R12b.2a done: D132) → R12c machine elements → IM1–IM6 injection moulding + CNC1–CNC6. Outer lane: **R11b DXF writer** → R14 drawings → A5 (DSL/MCP) → RM1–RM6 robot kinematics → RD1–RD3 dynamics and actuator sizing (moved from the kernel lane, coordinator 2026-10-20: they sit on the outer lane's `src/robot` model). A6–A8 (inputs, multi-agent) were not named in the two-lane decision; the coordinator assigns them.
+1. Kernel lane: **R11** general shell/offset (R10 done: D87–D103; R11 S0 done: D105; R11.1a done: D106; R11.1b done: D107; R11.1c done: D108 — R11.1 done; R11.2a done: D110; R11.2b done: D111; R11.2c-1 done: D112; R11.2c-2 done: D113 — R11.2 done; R11.3 done: D114 — **R11 done**) → **R12** sheet metal (S0 done: D115; R12.1 done: D116; R12.2 done: D117; R12.3a done: D118; R12.3b done: D119; R12.4 done: D120; R12.5 done: D121 — **R12 done**) → **FR1–FR4** frames (S0 done: D122; FR1 done: D123; FR2 done: D124; FR3a done: D125; FR3b done: D126; FR4a done: D127; FR4b done: D128 — **FR done**) → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root; S0 done: D129; R12b.1a done: D130; R12b.1b done: D131; R12b.2a done: D132) → R12c machine elements (IM1–IM6 and CNC1–CNC6 moved to the outer lane, below). Outer lane: **R11b DXF writer** → R14 drawings → A5 (DSL/MCP) → RM1–RM6 robot kinematics → RD1–RD3 dynamics and actuator sizing (moved from the kernel lane, coordinator 2026-10-20: they sit on the outer lane's `src/robot` model). → **IM1–IM6 injection moulding, then CNC1–CNC6 machining** (moved from the kernel lane by the coordinator, 2026-10-21: DFM analyses, drawings and process rules, like the outer lane's AM printability; each track with an S0; a stage that needs a kernel-core change stops and goes back to the kernel lane). A6–A8 (inputs, multi-agent) were not named in the two-lane decision; the coordinator assigns them.
    - R10 / R11: design input `handover/notes/research-r10-r11-fillet-shell-2026-10-18.md` (stages R10.1–R10.5 taken as R10's order by its S0, D87; R11.1–R11.3 taken as R11's order by its S0, D105, with its changes).
    - R12: no research note; its S0, D115, is the design input (stages R12.1–R12.5, data rules, what is not in R12).
    - A5 (DSL, one tool layer for the chat and an external MCP server): design input `handover/notes/research-cad-server-2026-10-18.md` (the owner, 2026-10-18: option 0 — order unchanged, the note kept as A5/A7 design input only).
@@ -391,7 +392,7 @@ Done:
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 
 ### Outer lane (owner, 2026-10-19: a second implementation session; the coordinator merges it into this branch)
-Order: **R11b DXF writer** → R14 automatic drawings → A5 DSL + MCP → RM1–RM6 robot kinematics (→ RD1–RD3). Its own
+Order: **R11b DXF writer** → R14 automatic drawings → A5 DSL + MCP → RM1–RM6 robot kinematics (→ RD1–RD3) → IM1–IM6 → CNC1–CNC6 (coordinator, 2026-10-21). Its own
 decision log `handover/decisions-outer.md` (O1, O2, …); conformance in `conformance/r11b/`, `r14/`, `a5/`, `rm/`; it
 stays out of the kernel's core files (requests for them go through the coordinator to the kernel lane).
 - **R11b** (O1): done. `writeDxf` (kernel `dxf-writer.ts`): AC1015 by default, R12 option; LINE, ARC, CIRCLE, ELLIPSE,
@@ -577,19 +578,15 @@ stays out of the kernel's core files (requests for them go through the coordinat
 - Waiting for the owner: RD3's published worked examples and the catalogue values the HTML pages lack (O22). Both are
   PDFs, and opening one is a download: the Harmonic Drive CSG-2A / CSF catalogue and the maxon motor catalogue.
 - Outer-lane follow-ups (logged, not scheduled):
-  - UX: the Joints card's link mass list runs past the viewport on a 6-link arm and the card scrolls; it could
-    collapse into a summary line with the list on demand (seen on the RM5 screenshot, `notes/acceptance/rm5-arm.png`;
-    the coordinator, 2026-10-20: log it, do not fix it now).
-  - RM6's mesh distance where hulls meet is brute force O(n·m): put the R3.2 BVH under it before parts of ~100k triangles.
-  - RD3 sizes each joint alone (the actuators' own mass not added to the links); coupling them is an iteration over the
-    chosen masses. Its refinement is most of its 735 ms (an RNEA per probe for one joint).
-  - A6.3: datums as mate targets (through the mates' face tables), not done. The tool contract's overhead: 13 470 of
+  - Done in O75: the Joints card's masses collapsed; the look- ids; RD3's stop check and coupled sizing; datums as mate targets.
+  - RM6's mesh distance where hulls meet is box-pruned, not a BVH: the R3.2 BVH needs a kernel export over raw triangles
+    (`bvhOfTriangles`), a kernel-core change (O75: skipped, listed for the coordinator).
+  - RD3's refinement is most of its 735 ms (an RNEA per probe for one joint); coupled sizing (O75) runs it once a round.
+  - A6.3's datums mate (O75). The tool contract's overhead: 13 470 of
     A5.1's 15 000 guard after O27's trim (from 14 804); 1 530 left.
   - Known flaky timing check (O27): PERF3 C16 in `test/cageEdit.test.ts` (the kernel lane's file) failed once in the full
     suite under load; its slowest warm step against the cold one is typically 0.025 of the 0.5 limit, so a single ~5 ms
     stall fails it. The threshold is unchanged.
-  - RD3 does not check the reducer's momentary peak torque (emergency stops, collisions): a check against the pages'
-    "Limit for Momentary Peak Torque" for a stated stop event.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
@@ -1490,7 +1487,15 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
       mutants killed; report `notes/rb9-scripted-2026-10-20/`. RB9.1b: rungs 8, 9, 12, 14.
     - **RB9.1b done (O72)**: rungs 8 (snap-fit box, material from the brief, no context numbers), 9 (PCB enclosure), 12 (5-part
       assembly), 14 (2-axis arm: RM1 tree, RM9b reach, RD9 margins, URDF FK/inertia) — 50/50 trials on ten rungs, 130/130 mutants;
-      a library part's material from the brief (O72); `place_part` material field proposed, not built.
+      a library part's material from the brief (O72).
+    - **set_material + RB9.2 done (O73)**: `set_material` (a body's look material; contract overhead 14 544 / 15 000);
+      rungs 12 and 14 state steel; rung 6 (beam: Green's-theorem sections on the kernel's cut, σ and δ closed form) and rung 11
+      (print-in-place: RM6 translation captivity) — 60/60 trials on twelve rungs, 158/158 mutants. Held: rungs 4 and 7 (kernel lane).
+    - **RB9.3 done (O74)**: rungs 4 (machined plate: holes, pocket, corner radii, volume) and 7 (lap joint: mated plates, coaxial
+      clearance holes, 1.5 Ø edges) scoped — 70/70 trials on all fourteen rungs, 184/184 mutants; CNC1–CNC6 and R12c's bolt held, named.
+    - **Follow-ups (O75)**: Joints masses collapsed; `look-` appearance ids; RD3 stop check (`estop_rad_s2`) and coupled sizing;
+      datums as mate targets; the R3.2 BVH under RM6 skipped (needs a kernel export).
+- **IM — injection moulding (outer lane from 2026-10-21)**: S0 done (O76) — exact draft on curved faces by projection onto the B-rep's NURBS (a 3° cone to 5.8e-15°; the mesh normal off by 0.014°), straddle by n·d's sign, undercuts by ±d triangle visibility (side hole 0/64), walls by rays; Protolabs' guide readable; IM rules proposed inside `check_printability` (no contract overhead). Next IM1.
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):

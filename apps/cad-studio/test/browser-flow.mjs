@@ -1070,7 +1070,7 @@ try {
     await page.click('.mode button:text-is("Render")');
     await page.waitForSelector('[aria-label="Render"]');
     await page.locator('.outliner .ol').first().click();
-    await page.selectOption('[aria-label="Appearance preset"]', 'brass');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-brass');
     await page.check('.render-panel [aria-label="Two-sided"]');
     await page.click('.render-panel [role="tab"]:text-is("Lights")');
     await page.click('.render-panel button:text-is("Add point")');
@@ -1114,7 +1114,7 @@ try {
     await page.click('.render-panel button:text-is("Apply material1")');
     await page.waitForSelector('.render-panel .diag');
     await page.click('.render-panel [role="tab"]:text-is("Appearance")');
-    await page.selectOption('[aria-label="Appearance preset"]', 'plastic-white');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-plastic-white');
     await page.selectOption('[aria-label="Shader material"]', 'material1');
     const shaded = await page.evaluate(() => window.__studioDoc.render);
     assert.match(shaded.scene, /#plinth/);
@@ -4353,12 +4353,19 @@ try {
     fs.writeFileSync(file, JSON.stringify(c.input.document));
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2, null, { timeout: 20000 }); await idle();
-    await page.waitForSelector('[aria-label="Link a mass"]', { timeout: 20000 });
+    // (O75: one summary line — the links and their total — the list on demand.)
+    await page.waitForSelector('[aria-label="Link masses"]', { timeout: 20000 });
+    assert.match(await page.locator('[aria-label="Link masses"]').innerText(), /Links\s*3 · 131\.9 g\s*·\s*material assumed/);
+    assert.equal(await page.locator('[aria-label="Link a mass"]').count(), 0, 'collapsed: no list');
+    await page.click('[aria-label="Show link masses"]');
+    await page.waitForSelector('[aria-label="Link a mass"]', { timeout: 5000 });
     // (An arm 60 × 20 × 5 less two Ø10 holes, aluminium: 14.1 g; its centre 20 mm along from its turning hole, 2.5 up.)
     const a = await page.locator('[aria-label="Link a mass"]').innerText();
     assert.match(a, /14\.1 g/); assert.match(a, /CoM \(20\.0, 0\.0, 2\.5\) mm · material assumed/);
     assert.match(await page.locator('[aria-label="Link base mass"]').innerText(), /103\.8 g/);
     await snap('rm3-mass');
+    await page.click('[aria-label="Hide link masses"]');
+    assert.equal(await page.locator('[aria-label="Link a mass"]').count(), 0);
   });
 
   // ---- RM4 (O17): URDF export -------------------------------------------------------------------------------------

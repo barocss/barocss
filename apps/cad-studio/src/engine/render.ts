@@ -84,16 +84,18 @@ export const MATERIAL_TEMPLATE = '@shader #paint {\n  @uniform amount: float(0, 
 export const SCENE_TEMPLATE = '@scene props {\n  version: 0;\n  box #plinth;\n}\n#plinth { size: 9 .4 6; translate: 3.2 -.25 -1.6; color: #6d727a; }\n';
 
 /** Appearance presets: the look of common materials. */
+// (O75: the ids say they are looks — `look-steel`, not `steel` — so none is ever read as a material id, which a
+// look never sets: only a body's material does.)
 export const APPEARANCES: readonly { id: string; label: string; appearance: Appearance }[] = [
-  { id: 'aluminium', label: 'Aluminium', appearance: { color: '#c9ccd1', metallic: 1, roughness: 0.35, opacity: 1 } },
-  { id: 'steel', label: 'Steel', appearance: { color: '#a7abb1', metallic: 1, roughness: 0.25, opacity: 1 } },
-  { id: 'brass', label: 'Brass', appearance: { color: '#d6b25a', metallic: 1, roughness: 0.3, opacity: 1 } },
-  { id: 'copper', label: 'Copper', appearance: { color: '#d48a63', metallic: 1, roughness: 0.3, opacity: 1 } },
-  { id: 'plastic-white', label: 'White plastic', appearance: { color: '#eceae6', metallic: 0, roughness: 0.45, opacity: 1 } },
-  { id: 'plastic-black', label: 'Black plastic', appearance: { color: '#26272a', metallic: 0, roughness: 0.5, opacity: 1 } },
-  { id: 'rubber', label: 'Rubber', appearance: { color: '#3a3b3d', metallic: 0, roughness: 0.9, opacity: 1 } },
-  { id: 'glass', label: 'Glass', appearance: { color: '#cfe6ee', metallic: 0, roughness: 0.05, opacity: 0.35 } },
-  { id: 'clay', label: 'Clay', appearance: { color: '#bfc2c8', metallic: 0, roughness: 0.7, opacity: 1 } },
+  { id: 'look-aluminium', label: 'Aluminium', appearance: { color: '#c9ccd1', metallic: 1, roughness: 0.35, opacity: 1 } },
+  { id: 'look-steel', label: 'Steel', appearance: { color: '#a7abb1', metallic: 1, roughness: 0.25, opacity: 1 } },
+  { id: 'look-brass', label: 'Brass', appearance: { color: '#d6b25a', metallic: 1, roughness: 0.3, opacity: 1 } },
+  { id: 'look-copper', label: 'Copper', appearance: { color: '#d48a63', metallic: 1, roughness: 0.3, opacity: 1 } },
+  { id: 'look-plastic-white', label: 'White plastic', appearance: { color: '#eceae6', metallic: 0, roughness: 0.45, opacity: 1 } },
+  { id: 'look-plastic-black', label: 'Black plastic', appearance: { color: '#26272a', metallic: 0, roughness: 0.5, opacity: 1 } },
+  { id: 'look-rubber', label: 'Rubber', appearance: { color: '#3a3b3d', metallic: 0, roughness: 0.9, opacity: 1 } },
+  { id: 'look-glass', label: 'Glass', appearance: { color: '#cfe6ee', metallic: 0, roughness: 0.05, opacity: 0.35 } },
+  { id: 'look-clay', label: 'Clay', appearance: { color: '#bfc2c8', metallic: 0, roughness: 0.7, opacity: 1 } },
 ];
 
 export const defaultRender = (): RenderSettings => ({

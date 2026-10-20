@@ -475,7 +475,9 @@ function placeRound(term: Term, R: Mat3, t: Vec3, held: Vec3[]): { t: Vec3; hold
 
 type Cylinder = Extract<MateFace, { kind: 'cylinder' }>;
 /** Whether a flat mate's normals face the same way: flip, or the reverse when an origin plane is involved. */
-export const planesAligned = (m: Mate) => !!m.flip !== (m.a.face.startsWith('origin:') || m.b.face.startsWith('origin:'));
+/** A frame, not a face of a B-rep: a part's origin planes, or a datum of its locked references (A6.3, O75) — no material side. */
+export const frameFace = (name: string) => name.startsWith('origin:') || name.startsWith('datum:');
+export const planesAligned = (m: Mate) => !!m.flip !== (frameFace(m.a.face) || frameFace(m.b.face));
 /** The direction a mate turns: flat faces opposed (flip: the same way), axes the same way (flip: reversed). */
 function directionOf(t: Term): { u: Vec3; v: Vec3 } {
   if (t.fixed.kind === 'plane' && t.moving.kind === 'plane') return { u: t.moving.normal, v: planesAligned(t.mate) ? t.fixed.normal : mul(t.fixed.normal, -1) };

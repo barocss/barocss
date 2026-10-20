@@ -16,7 +16,7 @@ import { dispatchTool } from '../src/chat/tools';
 // leaves the looks as they were.
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
-const STEEL = APPEARANCES.find(a => a.id === 'steel')!.appearance;
+const STEEL = APPEARANCES.find(a => a.id === 'look-steel')!.appearance;
 const IDENTITY = { origin: [0, 0, 0] as [number, number, number], R: [1, 0, 0, 0, 1, 0, 0, 0, 1] as [number, number, number, number, number, number, number, number, number] };
 
 async function steelLooking(): Promise<{ doc: StudioDoc; key: string }> {
@@ -55,4 +55,13 @@ test('a material set on the body is the only thing that makes it steel; the look
   // (And a material changes no look: a different one leaves the colour and the appearance.)
   const pla = withLook(set, e.bodies[0], { material: 'pla' });
   assert.equal(lookOf(pla, e.bodies[0]).color, STEEL.color); assert.deepEqual(pla.render, doc.render);
+});
+
+test('O75: the appearance presets and the materials never share an id — every look id is prefixed look-, none is a material id', async () => {
+  const { MATERIALS_DATA } = await import('../src/library/materials'), { MATERIALS } = await import('../src/app/materials');
+  const looks = APPEARANCES.map(a => a.id), materials = new Set([...MATERIALS_DATA.materials.map(m => m.id), ...MATERIALS.map(m => m.id)]);
+  assert.ok(looks.every(id => id.startsWith('look-')), looks.join(', '));
+  assert.deepEqual(looks.filter(id => materials.has(id)), []);
+  assert.ok(![...materials].some(id => id.startsWith('look-')), 'no material id takes the look prefix');
+  assert.equal(new Set(looks).size, looks.length);
 });

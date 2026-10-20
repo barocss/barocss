@@ -18,7 +18,7 @@
 //   stored signature. Its clear best being the name stored, the reference stands; another name, it is
 //   substituted and marked re-matched (until confirmed). Unclear or gone, it is a problem: the document opens,
 //   the feature holding it is held (suppressed, with the reason) so the rest builds, and the user picks.
-import type { FaceTable, MateFace } from '../assembly/mates';
+import { frameFace, type FaceTable, type MateFace } from '../assembly/mates';
 import { tablesFor } from '../assembly/faces';
 import { bodyKeyFor } from './ids';
 import { prefixDoc, type ModelNode, type StudioDoc } from './doc';
@@ -94,7 +94,7 @@ export function referencesOf(source: StudioDoc, readOnly = false): { doc: Studio
   });
   for (const mate of doc.mates ?? []) for (const side of [mate.a, mate.b] as (typeof mate.a & Pointed)[]) {
     // (A lock's faces are unused, ''; an origin plane is the part's own, not a face of its B-rep.)
-    if (!side.face || side.face.startsWith('origin:')) continue;
+    if (!side.face || frameFace(side.face)) continue;
     refs.push({ ...pointed(`mate ${mate.id}`, false, side, () => side.face, f => { side.face = f; }), part: side.part });
   }
   for (const d of doc.drawing?.dimensions ?? []) {
@@ -135,7 +135,7 @@ function unsigned(doc: StudioDoc): boolean {
     const list = n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' ? n.faces : null;
     if (list?.some(name => !n.sigs?.[name])) return true;
   }
-  for (const m of doc.mates ?? []) for (const side of [m.a, m.b]) if (side.face && !side.face.startsWith('origin:') && !side.sig) return true;
+  for (const m of doc.mates ?? []) for (const side of [m.a, m.b]) if (side.face && !frameFace(side.face) && !side.sig) return true;
   for (const d of doc.drawing?.dimensions ?? []) {
     const unsignedPoint = (p: { sig?: unknown; at?: string; ring?: { sig?: unknown }[] }) => p.at === 'pcd' ? (p.ring ?? []).some(m => !m.sig) : !p.sig;
     if (d.kind === 'pcd' ? d.ring.some(m => !m.sig) : 'a' in d ? (d.kind === 'linear' ? unsignedPoint(d.a) || unsignedPoint(d.b) : !d.a.sig || !d.b.sig) : !d.sig) return true;
@@ -156,7 +156,7 @@ function candidatesOf(ref: Ref, finals: readonly BodyResult[], parents: Readonly
   if (ref.part !== undefined) {
     const t = tables(ref.part); if (!t) return null;
     const out = new Map<string, Signature>();
-    for (const [name, f] of Object.entries(t)) if (!name.startsWith('origin:')) out.set(name, mateSignature(f));
+    for (const [name, f] of Object.entries(t)) if (!frameFace(name)) out.set(name, mateSignature(f));
     return out;
   }
   const bodies = ref.node === null ? finals : [parents.get(ref.node)].filter((b): b is BodyResult => !!b);

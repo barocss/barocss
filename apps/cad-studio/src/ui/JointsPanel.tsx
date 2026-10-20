@@ -45,7 +45,8 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
   /** Each joint's static gravity torque (N·m) or force (N) at the pose shown (RD1). */
   holding?: Record<string, number>;
 }) {
-  const [wsN, setWsN] = useState(20000), [wsH, setWsH] = useState(10), [wsFree, setWsFree] = useState(false);
+  const [wsN, setWsN] = useState(20000), [wsH, setWsH] = useState(10), [wsFree, setWsFree] = useState(false), [massesOpen, setMassesOpen] = useState(false);
+  const massLinks = links?.filter(l => l.part !== null) ?? [];
   const name = (link: string) => tree.links.find(l => l.id === link)?.name ?? (link === BASE ? 'Base part' : instances.find(i => i.id === link)?.name ?? link);
   return (
     <aside className="card props" aria-label="Joints">
@@ -88,8 +89,13 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
         {onExportMjcf && <button className="ghost" aria-label="Export MJCF" disabled={!ready} title={ready ? undefined : 'The parts are still being evaluated'} onClick={onExportMjcf}>Export MJCF</button>}
         {onExportSdf && <button className="ghost" aria-label="Export SDF" disabled={!ready} title={ready ? 'SDFormat 1.11 (Gazebo): links, inertia, meshes, joints, a loop as a ball joint' : 'The parts are still being evaluated'} onClick={onExportSdf}>Export SDF</button>}
         {onExportUsd && <button className="ghost" aria-label="Export USD" disabled={!ready} title={ready ? 'A USD stage (.usda) with UsdPhysics rigid bodies and joints' : 'The parts are still being evaluated'} onClick={onExportUsd}>Export USD</button>}</div>
-      {links?.filter(l => l.part !== null).map(l => {
+      {/* (O75: the links' masses as one line, the list on demand — a 6-link arm's ran past the viewport; a link's problem stays shown.) */}
+      {massLinks.length > 0 && <div className="kv" aria-label="Link masses">Links <b>{massLinks.length} · {mm1(massLinks.reduce((s, l) => s + l.massKg, 0) * 1000)} g</b>
+        {massLinks.some(l => l.issues.some(i => i.code === 'MATERIAL_ASSUMED')) && <span className="muted"> · material assumed</span>}
+        <button className="ghost small" aria-label={massesOpen ? 'Hide link masses' : 'Show link masses'} aria-expanded={massesOpen} onClick={() => setMassesOpen(!massesOpen)}>{massesOpen ? 'Hide' : 'Show'}</button></div>}
+      {massLinks.map(l => {
         const bad = l.issues.filter(i => i.code !== 'MATERIAL_ASSUMED'), assumed = l.issues.some(i => i.code === 'MATERIAL_ASSUMED');
+        if (!massesOpen) return bad.map((i, k) => <div key={`${l.link}-${k}`} className="hud-error" role="status">{name(l.link)}: {i.message}</div>);
         return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (kg·m²): ${l.principal.moments.map(m => m.toExponential(3)).join(', ')} principal`}>
           <div className="kv">{name(l.link)} <b>{mm1(l.massKg * 1000)} g</b></div>
           <div className="kv muted">CoM ({l.comM.map(v => mm1(v * 1000)).join(', ')}) mm{assumed ? ' · material assumed' : ''}</div>
