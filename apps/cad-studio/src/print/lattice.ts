@@ -234,8 +234,8 @@ export function planLattice(doc: StudioDoc, bodies: readonly BodyResult[], o: La
   let out = doc, ref: BodyRef = { node: doc.nodes.length - 1, side: 'solid' };
   const axis = (['x', 'y', 'z'] as const)[up];
   for (const dr of added) { out = withNode(out, { kind: 'hole', parent: ref, center: [dr.at[a], dr.at[b]], radius: r0, axis, side: 'min', depth: dr.depth } as ModelNode); ref = { node: out.nodes.length - 1, side: 'solid' }; }
-  out = withNode(out, { kind: 'mesh', name: 'lattice', unit: 'mm', representation: 'facets', ...(kept.length > 1 ? { pieces: kept.length } : {}), blob: { positions: putNow(positionsArray(all.positions)), indices: putNow(Uint32Array.from(all.indices)) } } as ModelNode);
+  out = withNode(out, { kind: 'mesh', name: 'lattice', role: 'infill', unit: 'mm', representation: 'facets', ...(kept.length > 1 ? { pieces: kept.length } : {}), blob: { positions: putNow(positionsArray(all.positions)), indices: putNow(Uint32Array.from(all.indices)) } } as ModelNode);
   const report: LatticeReport = { cell: L, k, h, t: hol.t, nodes: cav.phi.length, snapped, joined, volume: meshVolume(all), pieces: kept.length, dropped: { count: dropped, volume: droppedVolume }, drains: added, mixed: mixedTetrahedra(cav, field.psi, field.active), triangles: all.indices.length / 3, tau,
-    step: 'STEP carries the lattice as a faceted body until the export can leave it out (O57: the coordinator decides)' };
+    step: 'STEP leaves the lattice out (its infill role, O60): the exact part only; 3MF and the mass carry it' };
   return { doc: out, report, mesh: all, grid, psi: field.psi };
 }

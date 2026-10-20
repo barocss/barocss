@@ -2821,3 +2821,23 @@ The coordinator's guard on O55. The edge-sag and quadratic-patch δ is exact at 
 - The plain model undershoots at one segment a quarter: 1.102 vs 1.143 (pull 40), 0.906 vs 0.946 (pull 80).
 - The measured δ is never under the truth, and at most 1.53× it.
 - **Test** (`chord.test.ts`, pull 40, one segment a quarter): unmeasured, δ is unbounded; the plain 1.10221 is under the truth 1.14317 ± 0.004; measured, δ is 1.42875. A keep-out 10 mm above the body, clearance 1, is measured through the check and decided clear.
+
+## O60 — STEP leaves the lattice infill out, by its role (2026-10-20)
+
+The coordinator's answer to O57's open point. STEP is the exact part. The lattice is a print infill, and it stays in the mass and in 3MF.
+
+- **The role.** A mesh node can carry `role: 'infill'`; `lattice` writes it. The node's body result carries `role: 'infill'`.
+  - The filter goes by role, not by name. A later infill kind follows the same rule, and renaming the body changes nothing.
+  - The role stays studio-side. The kernel's part document never sees it.
+- **`stepFor`** (`engine/evaluate.ts`, studio code) leaves infill bodies out, the part's own and each shown instance's. It returns `omitted: ['lattice infill not included (<keys>); 3MF carries it']`.
+  - If only infill bodies remain, it refuses: "Only infill bodies: STEP carries the exact part, and there is none to export."
+- **Where the note shows:**
+  - the studio's STEP export shows it in its toast. It no longer asks "tessellated or planar?" for an infill body, since none goes out;
+  - `cad run --step` lists it under `notes`.
+- **3MF and the mass keep it**: `threeMfModelOf` and `massProperties` are unchanged.
+- **Test** (`lattice.test.ts`, the coarse case):
+  - every lattice piece is infill and the shell is not;
+  - STEP has one solid (the shell), with no tessellated entity, and the note names the pieces;
+  - with the role taken off, the same document's STEP carries 1 + pieces solids and no note;
+  - renamed, the lattice is still left out;
+  - 3MF has an object for the shell and each piece; the mass lists every body.

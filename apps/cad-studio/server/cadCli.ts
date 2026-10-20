@@ -208,11 +208,11 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
   const r = await dispatchTool(start, 'run_script', { source, dryRun: o.dry }, evaluate), body = JSON.parse(r.content);
   // (A refusal as the compiler would say it: file:line:col, then the reason.)
   if (r.isError) return failed(`${o.script === '-' ? '<stdin>' : o.script}${body.line ? `:${body.line}:${body.col}` : ''}: ${String(body.error).replace(/^(\[\w+\]) line \d+:\d+: /, '$1 ')}`);
-  const s = r.state, wrote: string[] = [];
+  const s = r.state, wrote: string[] = [], notes: string[] = [];
   if (!o.dry) {
     try {
       if (o.out) { writeAtomic(o.out, encodeStudioFile(s.doc)); wrote.push(o.out); }
-      if (o.step) { const step = stepFor(s.doc, o.step.replace(/^.*[\\/]/, '').replace(/\.\w+$/, '')); if ('error' in step) return failed(`STEP: ${step.error}`); writeAtomic(o.step, step.text); wrote.push(o.step); }
+      if (o.step) { const step = stepFor(s.doc, o.step.replace(/^.*[\\/]/, '').replace(/\.\w+$/, '')); if ('error' in step) return failed(`STEP: ${step.error}`); writeAtomic(o.step, step.text); wrote.push(o.step); if (step.omitted) notes.push(...step.omitted); }
       if (o.stl) {
         if (!s.bodies.length) return failed('STL: there is no body to write');
         for (const b of s.bodies) {
@@ -223,7 +223,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     } catch (e) { return failed(`writing: ${e instanceof Error ? e.message : String(e)}`); }
   }
   const c = o.check ? await checks(s) : undefined;
-  say(io.stdout, { ok: !c?.summary.hard_failing, ...(o.dry ? { dryRun: true } : {}), calls: body.calls.length, names: body.names, facts: body.facts ?? body.change, wrote, ...(c ? { checks: c } : {}) });
+  say(io.stdout, { ok: !c?.summary.hard_failing, ...(o.dry ? { dryRun: true } : {}), calls: body.calls.length, names: body.names, facts: body.facts ?? body.change, wrote, ...(notes.length ? { notes } : {}), ...(c ? { checks: c } : {}) });
   return c?.summary.hard_failing ? 3 : 0;
 }
 

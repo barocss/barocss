@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
+import { evaluatePart, stepFor, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { interference } from '../src/chat/analysis';
+import { interference, massProperties } from '../src/chat/analysis';
+import { threeMfModelOf } from '../src/print/export3mf';
 import { cavityField, insideFlags, marchingTetrahedra, planHollow } from '../src/print/hollow';
 import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, LatticeError, meshVolume, mixedTetrahedra, planLattice, weldTau } from '../src/print/lattice';
 
@@ -79,4 +80,26 @@ test('no overlap with the shell by the kernel\'s intersection, every piece touch
   const fine = await hollowBox(30, 30, 18, 3);
   // (h > L/4; and h past the drain's radius 1.5 mm, its column holding no node.)
   for (const bad of [{ cell: 0, k: 0.6 }, { cell: 6, k: 0 }, { cell: 6, k: 1.6 }, { cell: 6, k: 0.6, h: 2 }, { cell: 12, k: 0.6, h: 2 }]) assert.equal(code(() => planLattice(fine.doc, fine.bodies, bad)), 'BAD_VALUES', JSON.stringify(bad));
+});
+
+// O60: STEP is the exact part. The lattice body's `infill` role (not its name) leaves it out of STEP, which says so; 3MF and
+// the mass keep it; renamed, it is still left out.
+test('STEP leaves the infill out and says so (by its role, not its name); 3MF and the mass keep it', async () => {
+  const { doc, bodies } = await hollowBox(COARSE.w, COARSE.d, COARSE.h, COARSE.t, COARSE.drain), { doc: out } = planLattice(doc, bodies, { cell: COARSE.L, k: COARSE.k, h: COARSE.vox });
+  const e = await evaluate(out); assert.ok(e.ok);
+  const lats = e.bodies.filter(b => b.role === 'infill'), solids = (t: string) => (t.match(/=\s*(MANIFOLD_SOLID_BREP|BREP_WITH_VOIDS|TESSELLATED_SOLID)\(/g) ?? []).length;
+  assert.ok(lats.length >= 1 && lats.length === e.bodies.length - 1, 'every lattice piece is infill, the shell not');
+  const step = stepFor(out, 'part'); assert.ok('text' in step, JSON.stringify(step));
+  assert.equal(solids(step.text), 1, 'the shell alone'); assert.doesNotMatch(step.text, /TRIANGULATED_FACE|TESSELLATED_SHELL/);
+  assert.match(step.omitted?.join(' ') ?? '', /lattice infill not included \(.+\); 3MF carries it/);
+  // (Without the role, the same doc's STEP carries every piece.)
+  const plain = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, role: undefined } : n) }, all = stepFor(plain, 'part'); assert.ok('text' in all);
+  assert.equal(solids(all.text), 1 + lats.length); assert.equal(all.omitted, undefined);
+  // (Renamed: still left out.)
+  const renamed = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, name: 'my infill' } : n) }, r = stepFor(renamed, 'part'); assert.ok('text' in r);
+  assert.equal(solids(r.text), 1);
+  // (3MF: an object for the shell and each piece; the mass: every body, the lattice's volume in it.)
+  const model = threeMfModelOf(out, [{ doc: out, bodies: e.bodies }], 'part'); assert.ok(typeof model !== 'string', String(model));
+  assert.equal(model.objects.length, e.bodies.length);
+  assert.equal(massProperties(out, e.bodies).length, e.bodies.length);
 });

@@ -1440,12 +1440,13 @@ export function App() {
   /** Asked how mesh bodies go out when the part has any (R3.5, D48): its answer kept in this browser. */
   const [stepAsk, setStepAsk] = useState(false);
   const exportStepFile = async (meshes?: 'auto' | 'tessellated' | 'planar') => {
-    if (!meshes && bodies.some(b => b.family === 'faceted')) { setStepAsk(true); return; }
+    // (An infill body is left out of STEP, O60: it asks nothing.)
+    if (!meshes && bodies.some(b => b.family === 'faceted' && b.role !== 'infill')) { setStepAsk(true); return; }
     setStepAsk(false);
     if (meshes) { try { localStorage.setItem('studio.stepMeshes', meshes); } catch { /* private mode */ } }
     // (The evaluated model, with the instances placed beside it now.)
     const r = await engine.step({ ...evaluated, instances: doc.instances }, fileName, meshes);
-    if ('text' in r) { downloadBytes(new TextEncoder().encode(r.text), `${fileName}.step`, 'model/step'); const w = draftWarning(doc); if (w) setToast({ title: 'STEP written as a draft', hint: w, detail: '' }); }
+    if ('text' in r) { downloadBytes(new TextEncoder().encode(r.text), `${fileName}.step`, 'model/step'); const w = draftWarning(doc); if (w) setToast({ title: 'STEP written as a draft', hint: [w, ...(r.omitted ?? [])].join(' '), detail: '' }); else if (r.omitted) setToast({ title: 'STEP written', hint: r.omitted.join(' '), detail: '' }); }
     else setToast({ title: 'Could not write STEP', hint: 'Fix the model’s errors first, then export again.', detail: r.error });
   };
   const exportStl = async () => {

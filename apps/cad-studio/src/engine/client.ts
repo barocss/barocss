@@ -142,10 +142,10 @@ export class EngineClient {
     });
   }
 
-  step(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar'): Promise<{ text: string } | { error: string }> {
+  step(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar'): Promise<{ text: string; omitted?: string[] } | { error: string }> {
     const id = this.next++;
     return new Promise(resolve => {
-      this.pending.set(id, data => resolve((data as { step: { text: string } | { error: string } }).step));
+      this.pending.set(id, data => resolve((data as { step: { text: string; omitted?: string[] } | { error: string } }).step));
       this.worker.postMessage({ type: 'step', id, doc: this.wire.pack(doc), name, ...(meshes ? { meshes } : {}) });
     });
   }
