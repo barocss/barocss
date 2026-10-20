@@ -5906,3 +5906,110 @@ RB rows are in the next commit.
 | Full flow | 177/177, run on its own; the new step included |
 
 RB rows are in the next commit.
+
+## D122 — FR S0: feasibility of frames and weldments; two fixes before it (2026-10-20)
+
+**Before S0, two small fixes** (commit `7e3c1dc9e`, the coordinator's list):
+- A sheet's notes named each bend by its name's last part, so a PCB enclosure's four flanges all read "bend:". Now a bend reads by its last part when one feature makes all the sheet's bends (a contour's `bend1`, `bend2`; one flange's `bend`), and by its whole name otherwise (`n3.bend`, `n4.bend`: the feature its faces carry when picked). A studio test (fails on `ef2d68963`) and the R12.5 flow step (the enclosure's four bends read apart).
+- `eslint src test` in the studio: the two older unused variables fixed (`test/library-tools.test.ts`, `test/tools/cdp-drag.mjs`); 0 errors (119 warnings, as before).
+
+**FR S0.** The roadmap's feasibility checkpoint before FR1–FR4 (§4 "FR — weldments and frames"). There is no research note; this record is the design input. The questions:
+- Does today's kernel build a structural member exactly — a profile's section placed square to any 3D segment, with roll?
+- Can its ends be mitred, butted, coped and trimmed in order at a joint of three, and against which oracles?
+- What can a cut list read from the result: axis length, long-point length, end angles, mass?
+- What is kernel work, what is app work, and what belongs to the outer lane?
+
+Evidence: `packages/barocss-cad/test/fr-s0.test.mjs` (kept, 7 tests), against closed forms and quadratures written in the test. No product code changed. The section sizes in it are test values, not catalogue data.
+
+**The model** (definitions only, no data values):
+- A *section* is a closed 2D profile with holes; its area A and centroid in closed form. Its *envelope* is the outer loop filled (the tube with its bore closed).
+- A *member* is a section placed square to a skeleton segment p0 → p1 (the section's anchor on the segment; the section's x and y by an up reference and a roll about the axis) and extruded. A prism cut by planes holds A × (its centroidal axis between the planes), whatever the planes' tilt, so a member with planar end cuts has V = A·L_c exactly when the section's centroid lies on the segment.
+- A *mitre* at a joint p between u1 (into the joint) and u2 (out of it) is the plane through p square to u1 + u2. The end angle from square is θ = acos(u1·m). The cut face's area is A / cos θ; the long point lies (c)·tan θ past the joint, c the section's reach towards the corner's outside (b/2 for a box section in the corner's plane).
+- A *butt* ends one member on the other's face; a *cope* subtracts the other member's envelope (a fish mouth for round tubes); an *ordered trim* at a joint of 3+ takes the members in a list, each trimmed to the envelopes of those before it.
+
+**Today, as it stands:**
+- **Sections and members are exact, by extrusion** (a sketch on any plane takes `holes`; lines and arcs):
+  - a rectangular tube (corners sharp, ro 5, ro 6 with the bore concentric), an angle with root and toe radii, a channel with root radii, along an oblique 3D segment: V = A·L to 1e-12, valid, one body, mass ρ·A·L to 1e-12;
+  - roll: the same tube turned 0°, 30°, 90°, 137° about its axis: A·L each; its wide sides square to u × x exactly.
+  - `sweep` is not the route (no holes: "one loop … yet"); `sweep-curve` is faceted. Members are extrusions.
+- **Mitres by today's `split`** (any normal, both pieces kept):
+  - square, open (120°) and 3D joints of round-cornered tubes: θ to 1e-12 from the cut face's plane, the long point L + (b/2)·tan θ to 1e-12 from the B-rep's vertices; the pair's volume to the quadrature's accuracy (below). A pair's split takes 100–140 ms; the analytic union of a round-cornered pair 0.75–0.95 s.
+  - The two cut faces coincide: the analytic Boolean unites a pair into one body of exactly the sum (sharp tubes 1e-12, round-cornered at the quadrature's 1e-9).
+  - The off-cuts stay outputs: nothing trims and keeps one side.
+- **A defect in the planar route** (FR3 fixes it):
+  - Two bodies whose faces are all planes go to the exact rational polyhedral Boolean. It needs each face's vertices exactly coplanar, and a member off the axes, or a split's oblique cut, has float vertices only to ~1e-15 off its plane. It refuses: `polyhedral Boolean: face … is not planar`.
+  - So today a sharp-cornered tube on a 120° or 3D corner cannot be split, and two mitred sharp tubes on a square corner cannot be united by the part's `union`.
+  - The analytic Boolean unites that same pair exactly (155 400 mm³, 1e-15). Round-cornered tubes never meet this (their cylinders send them analytic).
+- **Mass on cut round corners is quadrature:** a cylinder face cut obliquely is integrated, not closed form: 1.5–1.6e-9 relative on mitred 40 × 40 × 3 tubes (3e-9 on a frame member cut at both ends). Planar members are exact. So the cut list takes ρ·A·L_c for planar end cuts (exact) and checks the kernel's mass against it; copes have no closed form and take the kernel's quadrature, stated.
+- **Trims must be against the envelope:**
+  - trimmed to the tube itself, a member keeps stubs inside the other's bore (3 bodies for sharp 40 × 40 × 3);
+  - to the envelope, one body: an ordered trim of three sharp tubes at a corner (X through, Y to X, Z to X then Y) gives A(L + b/2), A(L − b/2), A(L − b/2) to 1e-12, and the three united weigh their sum (no overlap);
+  - a butt to a plane (`split` on the side face) gives the same A(L − b/2).
+- **Round corners make a body trim differ from a plane's butt:** trimmed to a round-cornered envelope, the member reaches into its rounds: 2·∫[w_o(s) − w_i(s)](6 − √(36 − s²)) ds more (486.004 mm³ on a 40 × 40 × 3 tube with ro 6) by a Gauss–Legendre quadrature; the kernel agrees to 1.1e-10. FR3 offers both, named; the cut list reports the length each gives.
+- **A fish-mouth cope works:** a Ø25 × 2 tube onto a Ø50 × 2 one, square: the removed volume by a 1D quadrature of the two cylinders' overlap (∫ 2r²cos²t √(R² − r²sin²t) dt; 3411.69 mm³) and the kernel's volume agree to 8.7e-11; valid, one body, 80 ms; welded on, the pair weighs its sum. At 60° it also closes (the pair weighs its sum; no closed form).
+- **A rectangular frame of four mitred round-cornered tubes** (600 × 400, 40 × 40 × 3): long points L + b to 1e-12, masses to the quadrature (3e-9), grouped two and two, the frame's mass the sum; 0.7 s.
+- **Missing:**
+  - a 3D skeleton: the studio's sketches are 2D; the nearest is `doc.direct`'s free NURBS curves ("Edge as a curve"); the kernel has no 3D sketch;
+  - a section type in the kernel (sections are plain sketches) and in the library (LIB parts are 3D recipes only; the tslot-20 part is a box with slots subtracted in 3D, its slot sizes estimates, no URL record);
+  - any structural profile data: none in the repo;
+  - a member/weldment feature, its report, corner treatments, a trim keeping one side, a cut list;
+  - a drawing table: drawings have dimensions, datums, frames and notes, no table (the outer lane's branch has none either). The studio's BOM (`src/team/assembly.ts` `deriveBom`) groups identical parts, close to the cut list's grouping;
+  - material densities: every one is an estimate (`S-DENS`), so a cut list's mass is flagged an estimate unless the user's material says otherwise.
+
+**Kernel versus app:**
+- **Kernel:** section kinds (closed-form A and centroid, envelope, side names, anchors); the frame feature (members from a skeleton, one output per member); corner treatments and trims; the planar-route fix; the frame report; the cut list (data); typed refusals.
+- **App (studio):** a 3D skeleton node (points and segments in space), commands and HUDs for frames and corners, a cut-list panel and CSV, the agent's tools, flow steps.
+- **The outer lane:** a table entity on drawing sheets (FR4b needs one; R14's bend table would use the same). Asked of the coordinator at FR4b, before touching drawing files.
+
+**Verdict — FR in six stages, this order:**
+- **FR1 — sections and a straight member.**
+  - **Section kinds** in the part model: `rect-tube` (b, h, t, outer corner ro; inner ri = ro − t by default, or given), `round-tube` (d, t), `angle` (a, b, t, root r1, toe r2), `channel` (h, b, tw, tf, root r; parallel flanges), `tslot` (the tslot-20 part's parameters, its section as one loop with the slots and the bore a hole), and `sketch` (any closed sketch, holes allowed). Each with A and centroid in closed form, the envelope, side names (`outer.top`, `bore.left`, `slot1.*` …) and anchors (centroid and the box's nine points).
+  - **A straight member** (`frame-member`: one segment, the section, anchor, roll, up reference), so FR1 is visible and testable in the studio.
+  - **Oracles:** V = A·L to 1e-12 for each kind on oblique segments; the centroid against the kernel's mass centroid; the T-slot section's A·L against the library part's own 3D volume at the same L (two independent constructions).
+  - **Refusals:** `SECTION_DIMENSIONS` (t ≥ b/2, a radius that does not fit, ro in (0, t) with a concentric bore, a toe past the thickness …), `SEGMENT_ZERO_LENGTH`.
+  - **Studio:** the member command and node, the section's fields; the agent's raw node; a flow step.
+- **FR2 — members along a 3D skeleton, alignment and roll.**
+  - **The skeleton:** a studio node of points and segments in space (typed points, snaps to existing points and vertices), passed to the kernel as data.
+  - **The `frame` feature:** one member per segment, one output each (`<id>/<k>`, never united); per member section (default the frame's), anchor, offsets, roll, mirror. The up rule: the section's y along the up reference (default world Z) projected square to the member; a member within 1e-9 of parallel to it takes world X instead, and the report says so.
+  - **The frame report:** each member's segment, axis, section frame, anchor, section and length.
+  - **Oracles:** A·L each; section frames by dot products to 1e-12; roll by the angle between x axes; members of a closed skeleton meeting at their joints' points.
+  - **Refusals:** `SEGMENT_ZERO_LENGTH`, `SKELETON_OVERLAP` (collinear segments sharing length), `MEMBER_DUPLICATE`.
+  - **Studio:** the skeleton editor (points, segments), the Frame command, the agent's tools; a flow step.
+- **FR3a — two-member corners, and the planar-route fix.**
+  - **First, the defect:** planar bodies whose faces are coplanar only to float precision go to the analytic Boolean when the polyhedral one finds a face "not planar" (or its vertices are snapped onto their face's plane first; the step decides by test). A test failing on HEAD: the sharp tube's split on the 120° and 3D corners and the square pair's union (the probe's assertions flip).
+  - **Corners** at a skeleton point with two members: `mitre` (the default when both have the same section, mirrored in the mitre plane), `butt` (`through`: which member runs on; the other ends on its face plane or its envelope, named), `none`; a per-corner override list keyed by the skeleton point; each member's ends trimmed keeping the piece on its own segment.
+  - **Oracles:** V = A·L_c (planar 1e-12; round corners at the kernel's quadrature, about 1e-9, stated); θ = acos(u1·m) to 1e-12; long point L + c·tan θ to 1e-12; the pair united weighs its sum (no overlap).
+  - **Refusals:** `MITRE_SECTIONS_DIFFER` (offer a butt), `CORNER_ANGLE` (members in line or folded back), `CORNER_NOT_A_JOINT`.
+  - **Studio:** corner HUD and override; a flow step.
+- **FR3b — joints of three or more, copes, trims to a plane or a body.**
+  - **An ordered trim:** the members at a joint in a list; the first runs through, each next trimmed to the envelopes of all before it.
+  - **A cope:** the member less the other's envelope (round tubes: a fish mouth).
+  - **A trim to a plane or a body:** a member's end to a named plane or another body.
+  - Always against the envelope (the probe's bore stubs); the piece kept is the one holding the member's segment; anything else refused.
+  - **Oracles:** sharp sections by closed forms A(L ± b/2); round-cornered envelopes by the corner quadrature (1e-9); a round cope by the two-cylinder quadrature; all members united weigh their sum.
+  - **Refusals:** `TRIM_EMPTY`, `TRIM_LEAVES_PIECES`, `MEMBERS_CLASH` (after treatment two members still overlap; the pair named).
+  - **Studio:** joint order editor, cope and trim commands; a flow step.
+- **FR4a — the cut list.**
+  - **Kernel `cutList()`** on the frame's outputs: per member the section label, material, length on the axis (L_c), long-point length (the B-rep's extent along the axis), end cuts (kind square / mitre / butt / cope / trim; for planar ends the mitre angle about the section's y and the bevel about its x), mass (ρ·A·L_c for planar ends; the kernel's quadrature for copes, stated), quantity.
+  - **Grouping:** identical members on one row — the same section, material, lengths to 1e-6 mm and end cuts as an unordered pair (a handed section's mirror kept apart). Totals: count, length, mass.
+  - **Oracles:** the closed forms above; Σ quantity = members; Σ mass = ρ·A·ΣL_c; grouping by hand.
+  - **Studio:** a cut-list panel, CSV export, the agent's `cut_list` tool; a flow step.
+- **FR4b — the drawing table and acceptance.**
+  - The cut list on a drawing sheet as a table, and in its DXF through `writeDxf`. It needs a table entity in drawings (the outer lane's area): the coordinator decides who adds it.
+  - **Acceptance:** two frames built by the agent's tools in one chat turn each: a welded table frame (top rectangle mitred, four legs butted or ordered-trimmed, a lower rail), and a 2020-class T-slot frame (members cut square, no welds). Their cut lists against closed forms; conformance `fr/accept-*`; RB rows; the FR → R12b hand-over.
+
+**Every stage:** a D-record, tests failing on the previous HEAD where a defect is fixed, `conformance/fr/` fixtures (subfolders for non-kernel fixtures), a flow step, RB rows, a checkpoint.
+
+**Data and defaults:**
+- **No section sizes are built in.** Sections are parametric; their dimensions are the user's. A catalogue of sizes is data the user loads (rows of named sizes, each citing a source or flagged `estimate`), as with bend tables (D121). Whether to look for a public supplier page to seed one is the owner's call; reading one needs the owner's OK through the coordinator.
+- **No hidden kernel defaults:** corner radii, root and toe radii are given. The studio's prefill (rectangular tube ro = 2t, angle r1 = t, r2 = t/2, channel r = tf) is a reversible default, flagged an estimate wherever shown.
+- **T-slot:** the tslot-20 part's slot sizes are already estimates without a URL record; its section inherits the flags.
+- **Mass:** densities are the materials library's (all estimates, `S-DENS`); a cut list says so unless the material is the user's.
+
+**Not in FR1–FR4** (FR5–FR6 and beyond, listed for the owner to place):
+- T-slot hardware (FR5); gussets, end caps, weld beads, weld metadata and symbols, stock nesting (FR6);
+- tapered-flange channels and beams (I/H), bent or curved members (members along arcs);
+- end gaps for welds, notches for tube-to-tube saddles other than a full cope;
+- a 3D sketch with constraints (the skeleton is points and segments, typed or snapped).
+
+**Checks:** S0 changed no product code. The two fixes before it: studio 603/603 (+1, the new test; names compared with the test files at `ef2d68963`: none missing), studio lint 0 errors and type-check clean, the full flow 177/177 run on its own. Kernel 1234/1240 (4 skipped; +7, the fr-s0 tests; 1240 = 1233 + 7, so none missing): the env-only "actual native Split source…" fails, and `B9 performance` (mass-polyhedral's wall-clock budget, a known load-sensitive item in the open TODOs) failed once in the full parallel run at 170 ms and passes 3/3 alone. fr-s0 7/7, 12.5 s alone (most of it the four round-cornered welds through the feature, about 1 s each). Lint clean on the new file. Conformance, RB: not rerun, as at D115 (no kernel source change).
