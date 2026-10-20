@@ -1904,6 +1904,7 @@ The owner's decision on #2177 (O39, verbatim there): approval baselines, result 
   - **Nothing infers one, so nothing is refused. The test keeps it that way.**
   - **Noted, not changed:**
     - The appearance presets `steel` and `brass` share their ids with library materials. They are separate namespaces, and the test covers them.
+      - **Follow-up** (coordinator, on accepting O39): give the appearance ids a namespace prefix, or add a test that the two id sets never cross. The code is left as it is now.
     - The fastener command sets `steel` as its bodies' own material (`app/fasteners.ts`). It is a command's choice, not inferred from a look, and the bundle reports it as the body's material with the library's sources (basis `body`).
 
 ## O40 — A8.4b: approval baselines pinned by content digest (2026-10-20)
@@ -2069,3 +2070,65 @@ The owner's decision on #2177 (O39, verbatim there): approval baselines, result 
     - p1's mass taken before its material was set: stale (material changed), at writing and on read-back;
     - no approved baseline and no materials: three missing;
     - spawned: `ecrs.json` deleted gives exit 1, missing.
+
+## O43 — RM7 and RM8 S0: inverse kinematics; a four-bar loop closed — scope and acceptance frozen (2026-10-20)
+
+Assigned by the coordinator after #2177. RD4–RD8 (beam and solid FEA, the tet mesher) are on hold: they are FEA, and the owner's #2177 decision keeps CAE/FEM off the roadmap. The coordinator is asking whether that covers these rows.
+
+**Limits on both:**
+- Our own TypeScript, no new dependency. MuJoCo 3.3.0 (O38's venv) is a test oracle only.
+- No chat tool: `tools/list` is unchanged. The exposure is `src/robot/` and the MJCF export.
+- A change to the kernel core stops and goes to the coordinator.
+- The test names are compared at each checkpoint. The flow runs with `PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright` (1.62.1), the flow's own install, never another project's tree.
+
+### RM7 — damped least squares / Levenberg–Marquardt inverse kinematics (`src/robot/ik.ts`)
+- **The target**: an end link's pose, its motion from the solved pose (RM2's `Motion`), at a tool point given in the solved pose's world coordinates (default: the joint's child origin).
+- **The error**:
+  - position: the tool point's distance in **m** (the tree's mm / 1000);
+  - orientation: the angle of `R* Rᵀ` in **rad**, its axis-angle vector.
+  - Both are taken as one 6-vector, unweighted.
+- **The Jacobian**: the space Jacobian from each joint's screw at the current pose. A revolute column is `[ω × (x − p); ω]`, a prismatic one `[a; 0]`. A gear follower adds its multiplier times its column to its leader's; fixed and follower joints are not unknowns.
+- **The step**:
+  - `Δq = Jᵀ (J Jᵀ + λ² I)⁻¹ e`, with λ adapted as in LM: a step that lowers the error is kept and λ halves; one that does not is undone and λ grows by 4.
+  - Limits clamp a joint that has them.
+  - It stops at |Δp| ≤ 1e-7 m and |Δθ| ≤ 1e-7 rad (well inside the acceptance), or after 200 iterations.
+  - It restarts from up to 15 seeds (the given start, then a deterministic random sequence seeded by the target). The best result is kept.
+- **The result**: `{q, reached, iterations, restarts, errorM, errorRad, singular, sigmaMin, sigmaMax}`.
+  - `reached` holds only when both errors are within 1e-4 m and 1e-3 rad. It is never claimed otherwise.
+  - **The singularity flag**: at the result, `σmin / σmax` of J (its 6 rows, or as many as it has joints when fewer) below **1e-6**, computed by an eigen-solve of `J Jᵀ` (`JᵀJ` when narrower).
+- **Acceptance (tests on the arm-6r fixture, RM5's)**:
+  - **1000 targets, reachable by construction**: the FK of random joint values in [−π, π] (seeded). Each solve starts from 0.
+    - **The oracle is RM2's `forwardKinematics`** on the returned q, not the solver's own error.
+    - At least **990** reach the target within **1e-4 m and 1e-3 rad**. Successes, the worst errors and iteration counts are reported.
+  - **Singular**:
+    - the arm straight up (all q = 0), as a target, is reached and flagged singular, since no joint moves the tip along the arm;
+    - a 2R chain stretched is flagged too;
+    - random reachable targets are mostly not flagged, the count reported.
+  - **Unreachable** (a target past the arm's reach): `reached: false` with its best error, never a success.
+
+### RM8 — a four-bar loop, closed (`src/robot/loop.ts`, `conformance/rm/four-bar/`)
+- **The fixture**: a crank–rocker four-bar built from mates, as a user would. A base plate carries two pivots `d` apart; on them a crank `a` and a rocker `c`, joined by a coupler `b`. All are planar links on pins (a concentric and a coincident mate each).
+  - Grashof: a = 20, b = 70, c = 50, d = 60 mm, so s + l = 90 ≤ p + q = 110, and the crank turns fully.
+  - **RM1's tree** takes three revolute joints. The fourth pin is its **Loop**, already reported with its mates.
+- **The closure** (`closeLoop(tree, loop, driver, q)`):
+  - given the crank's value, it solves the two dependent joints so the loop's pin coincides on both of its parts (Newton on the pin's planar residual);
+  - **the branch is the assembled pose's**, followed by continuation from the previous solution. A step that would cross to the other branch (the sign of the coupler × rocker cross product flips) is refused `BRANCH_FLIP`, never taken;
+  - a crank angle with no closure (past a dead point, for a non-Grashof linkage) is `NO_CLOSURE`, typed.
+- **The oracle**: **Freudenstein's equation**, `K1 cos θ4 − K2 cos θ2 + K3 = cos(θ2 − θ4)`, with K1 = d/a, K2 = d/c, K3 = (a² − b² + c² + d²) / (2ac). Both of its roots are closed form; the branch is chosen by the assembled pose.
+- **Acceptance**:
+  - over a full crank turn in 360 steps, the rocker's angle equals Freudenstein's branch to **1e-9 rad**, the branch is never left, and the loop's pin coincides by FK to **1e-9 mm**;
+  - the other branch is refused when asked for (`BRANCH_FLIP`);
+  - a non-Grashof variant reports `NO_CLOSURE` at its dead points.
+- **MJCF**:
+  - the loop is written as an equality closure, `<equality><connect body1 body2 anchor/>` at the loop's pin. The tree is unchanged, and RM5's files are byte-identical for a tree without loops;
+  - our reader checks the closure.
+  - **MuJoCo** (`scripts/mjcf-oracle.py`, a closure mode, `python -I`), on the frozen export:
+    - **statically**, at 12 crank angles with our qpos, the closure's violation (the connect's anchors apart) is ≤ **1e-9 m**;
+    - **dynamically**, a 2 s passive run under gravity at 0.5 ms:
+      - the violation stays ≤ **1e-4 m** (a soft constraint);
+      - MuJoCo's rocker angle equals Freudenstein's at MuJoCo's crank angle within **1e-3 rad** throughout;
+      - the branch is never left.
+  - The readings are committed beside the case (`oracle.mujoco-3.3.0.json`), as O38's are.
+- **URDF**: still a tree format. The loop is left out and noted, as before.
+
+**Order**: RM7 → RM8, with a checkpoint after each.
