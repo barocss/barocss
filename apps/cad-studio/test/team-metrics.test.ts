@@ -18,8 +18,8 @@ const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 type Sc = (Scenario | PartsScenario) & { expect: { seeded?: (string | string[] | null)[] } };
 async function runsOf(edit?: (sc: Sc) => Sc): Promise<Labelled[]> {
   const out: Labelled[] = [];
-  for (const dir of ['a7', 'a8']) for (const f of readdirSync(join(ROOT, dir)).filter(n => n.endsWith('.json')).sort()) {
-    let sc = JSON.parse(readFileSync(join(ROOT, dir, f), 'utf8')) as Sc; if (!sc.expect?.seeded) continue;
+  for (const dir of ['a7', 'a8']) for (const f of readdirSync(join(ROOT, dir, 'scenarios')).filter(n => n.endsWith('.json')).sort()) {
+    let sc = JSON.parse(readFileSync(join(ROOT, dir, 'scenarios', f), 'utf8')) as Sc; if (!sc.expect?.seeded) continue;
     if (edit) sc = edit(sc);
     const traces = 'architect' in sc ? (await runPartsScenario(sc as PartsScenario, evaluate)).traces : (await runScenario(sc as Scenario, evaluate)).traces;
     out.push({ case: sc.case, traces, seeded: sc.expect.seeded! });
@@ -55,7 +55,7 @@ test('the metric itself: a mislabel is a miss and a false alarm; a defect past a
 
 test('cad-cli team --metrics prints the same table', async () => {
   let text = ''; const io = { stdout: new Writable({ write(c, _e, cb) { text += c; cb(); } }), stderr: new Writable({ write(_c, _e, cb) { cb(); } }) };
-  assert.equal(await cliMain(['team', '--metrics', join(ROOT, 'a7'), join(ROOT, 'a8')], io), 0);
+  assert.equal(await cliMain(['team', '--metrics', join(ROOT, 'a7', 'scenarios'), join(ROOT, 'a8', 'scenarios')], io), 0);
   const j = JSON.parse(text);
   assert.equal(j.scenarios, 29); assert.ok(j.detectors.every((x: { precision: number; recall: number }) => x.precision === 1 && x.recall === 1));
 });

@@ -11,7 +11,7 @@ import { runScenario, runSummary, scriptedReviewer, type Scenario } from '../src
 // any rejection rejects, their findings in role order whichever ends first; the defects only they see; the Drafting
 // agent on a frozen revision, refused when the model moved or for a non-drawing op. Byte-identical reruns.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8');
+const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 type Expect = { decisions: string[]; stops: ([string, string] | null)[]; reviews?: ([string, string, string[]][] | null)[]; kept_because?: string; accepted: number; ended: string; drawing_keeps_revision?: boolean };
 const load = (f: string) => JSON.parse(readFileSync(join(CASES, f), 'utf8')) as Scenario & { step: string; expect: Expect };

@@ -16,7 +16,7 @@ import { cliMain } from '../server/cadCli';
 // only the Verifier's view shows; a near-limit keep-out held; a clean run accepted — every run byte-identical on a rerun.
 // The Verifier's view: its keys exactly the fixed set, nothing of the patch in it, frozen. cad-cli team on a scenario.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a7');
+const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a7/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const load = (f: string) => JSON.parse(readFileSync(join(CASES, f), 'utf8')) as Scenario & { expect: { decisions: string[]; stops: ([string, string] | null)[]; accepted: number; ended: string; rebased_from?: string; contract_changes?: string[] } };
 

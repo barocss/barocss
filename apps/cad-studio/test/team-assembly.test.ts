@@ -13,7 +13,7 @@ import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 // built view and checked against the assembly — every instance once, the quantities, the totals, a library part's
 // source — its seeded defects refused.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8');
+const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const clean = async () => (await runPartsScenario(JSON.parse(readFileSync(join(CASES, 'parts-clean.json'), 'utf8')) as PartsScenario, evaluate)).final;
 

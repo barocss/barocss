@@ -375,7 +375,7 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - **A7.1–A7.4** (O31): done. `src/team/`: revisions (64-bit, canonical), patches (STALE_BASE, explicit rebase), the
     Integrator's serial gates with typed verdicts (applied, rejected, held, stale) and a byte-reproducible trace;
     roles as interfaces; the Verifier's built, frozen view; scripted roles; `cad-cli team`. Ten seeded-defect
-    scenarios in `conformance/a7`. No new chat tools. The live comparison waits for the owner (O30).
+    scenarios in `conformance/a7/scenarios`. No new chat tools. The live comparison waits for the owner (O30).
 - **A8** multi-agent v2 and v3 (coordinator, 2026-10-20):
   - **A8 S0** (O32): done. A8.1 parallel read-only DFM and Analysis reviewers, and a Drafting agent on a frozen
     revision; A8.2 the Architect's interfaces, Part agents with leases; A8.3 ECRs with impact and the user's approval;
@@ -383,15 +383,15 @@ stays out of the kernel's core files (requests for them go through the coordinat
     new chat tools; live numbers pending (O30).
   - **A8.1** (O33): done. Parallel read-only DFM and Analysis reviewers on their own frozen views, joined by role name;
     a Drafting agent with drawing ops only on a frozen revision (STALE_BASE, NOT_A_DRAWING_OP, DRAWING_ISSUES).
-    Six scenarios in `conformance/a8`.
+    Six scenarios in `conformance/a8/scenarios`.
   - **A8.2** (O34): done. The Architect's interfaces (`doc.interfaces`: hole patterns, envelopes, budgets, datums,
     keep-outs; their own revision); leases; Part agents' patches checked: lease (NO_LEASE, LEASE_EXPIRED,
     CONTRACT_MOVED, OUT_OF_PART), validity, contract (OUT_OF_ENVELOPE, HOLE_OFF_PATTERN on the exact cylinders,
-    OVER_BUDGET). Eight scenarios in `conformance/a8`.
+    OVER_BUDGET). Eight scenarios in `conformance/a8/scenarios`.
   - **A8.3** (O35): done. ECRs (`doc.ecrs`): changes and impact computed (parts, requirements, open patches,
     leases); only the user decides (APPROVAL_IS_THE_USERS); approved, the interfaces move, the touched leases stay on
     the old contract (CONTRACT_MOVED until renewed), the untouched ones move; rejected, nothing changes; STALE_ECR,
-    DECIDED, NO_CHANGE. Fixture `conformance/a8/ecr-move-pattern.json`.
+    DECIDED, NO_CHANGE. Fixture `conformance/a8/scenarios/ecr-move-pattern.json`.
   - **A8.4** (O36): done. The Assembly integrator's gate after each part (PARTS_MEET; PARTS_TOUCH undecided;
     PATTERN_MISALIGNED on every built part; OVER_TOTAL_BUDGET on the whole); the read-only BOM agent (derived lines,
     checked against the assembly, library sources). ECR decisions only through a minted user token.

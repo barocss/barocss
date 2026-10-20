@@ -14,7 +14,7 @@ import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 // approved, the interfaces move and the touched leases expire (the open patch is then refused CONTRACT_MOVED, until
 // the Architect renews); rejected, nothing changes; an agent's decision refused.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8');
+const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const fixture = JSON.parse(readFileSync(join(CASES, 'ecr-move-pattern.json'), 'utf8'));
 

@@ -1354,7 +1354,7 @@ Assigned by the coordinator after A6. Build the parts that need no model now, an
 - **The internal API** is `src/team/`. **`cad-cli team <scenario.json>`** runs a scripted team from a scenario file (the brief, the roles' patches and reviews) and prints the traces as JSON.
 - `tools/list` is unchanged, and so is the guard.
 
-### Acceptance (deterministic: scripted roles, seeded-defect fixtures in `conformance/a7/`)
+### Acceptance (deterministic: scripted roles, seeded-defect fixtures in `conformance/a7/scenarios/`)
 - The scripted Requirements, Designer and Verifier roles replay fixtures.
 - **The seeded defects**, one a fixture, each caught by the gate (or the Verifier) named, with its typed verdict:
   - an op that does not apply (validity);
@@ -1413,7 +1413,7 @@ Assigned by the coordinator after A6. Build the parts that need no model now, an
   - `add_keepout` and `add_datum` are batchable, so the Requirements role's ops can set the contracts in one `apply_ops`.
   - The REFERENCE_LOCKED guard (O26) exempts the reference tools. Making `add_datum` batchable had put it under the guard, and its own reference arguments were refused. The A6.3 tests failed, and the test-name comparison showed which.
 - **Evidence**: `test/team.test.ts` (4 tests). Its name was checked free first.
-  - **The ten scenarios** in `conformance/a7/` are hand-written with their expected decisions and stops, and **byte-identical on a rerun**:
+  - **The ten scenarios** in `conformance/a7/scenarios/` are hand-written with their expected decisions and stops, and **byte-identical on a rerun**:
 
     | scenario | what happens |
     |---|---|
@@ -1450,7 +1450,7 @@ Assigned by the coordinator after A6. Build the parts that need no model now, an
 Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revisions, patches, the Integrator's gates, built views, scripted roles, `cad-cli team`).
 
 **Limits on every step:**
-- Deterministic and scripted, with seeded-defect fixtures in `conformance/a8/`. No live model: the live numbers wait for the owner, as A7's comparison does (O30).
+- Deterministic and scripted, with seeded-defect fixtures in `conformance/a8/scenarios/`. No live model: the live numbers wait for the owner, as A7's comparison does (O30).
 - No chat tools: A8 adds none, and `tools/list` is unchanged. Exposure is `src/team/` and `cad-cli team` (scenario kinds v2 and v3).
 - A step needing a kernel-core change stops and goes to the coordinator.
 - The test names are compared at every checkpoint.
@@ -1543,7 +1543,7 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - the Analysis reviewer flags failing soft requirements, which the analysis gate does not hold;
   - the drafting agent replays drawing patches, with a stale base when the fixture says so.
 - **Evidence**: `test/team-v2.test.ts` (2 tests). Its name was checked free first.
-  - **Six scenarios** in `conformance/a8/` (`step: A8.1`), byte-identical on a rerun:
+  - **Six scenarios** in `conformance/a8/scenarios/` (`step: A8.1`), byte-identical on a rerun:
 
     | scenario | what happens |
     |---|---|
@@ -1594,7 +1594,7 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
 - **The run** (`runParts`): the Architect's plan, then the Part agents take turns, one patch a turn, until all are done or the rounds run out.
 - **Scripted**: the Architect replays its setup, interfaces and leases. Part agents replay patches, on a stale contract or another part when the fixture says so.
 - **Evidence**: `test/team-v3.test.ts` (2 tests). Its name was checked free first.
-  - **Eight scenarios** in `conformance/a8/` (step A8.2), byte-identical on a rerun, each refusal at its gate with the rest skipped:
+  - **Eight scenarios** in `conformance/a8/scenarios/` (step A8.2), byte-identical on a rerun, each refusal at its gate with the rest skipped:
 
     | scenario | what happens |
     |---|---|
@@ -1631,7 +1631,7 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - Refused: deciding twice (`DECIDED`); approving an ECR opened on interfaces that have moved since (`STALE_ECR`: open it again); opening one that changes nothing (`NO_CHANGE`).
 - A7's `CONTRACT_CHANGED` hold covers the interfaces too, since no op edits them. The ECR is the only way they change, and it comes from the Architect or a Part agent through the team API, decided by the user.
 - **Evidence**: `test/team-ecr.test.ts` (2 tests). Its name was checked free first.
-  - **The fixture** `conformance/a8/ecr-move-pattern.json`: after parts-clean, H1 is moved 2 mm along X.
+  - **The fixture** `conformance/a8/scenarios/ecr-move-pattern.json`: after parts-clean, H1 is moved 2 mm along X.
     - Its change and impact exactly as the fixture says: both parts, the board's open patch made on the old contract, both leases, no requirements.
     - Opening it changes nothing yet; an agent's approval is refused.
     - The user's approval moves the interfaces and leaves both leases on the old contract.
@@ -1718,3 +1718,7 @@ Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revis
   - the CLI prints the same table.
 - Studio 581/581 (53 s), with no test name missing against the last run. Lint and type-check clean.
 - **A8 is done**: A8.1–A8.5 (O33–O37). Pending the owner: the live comparison and live per-role metrics (O30).
+- **Fixed (coordinator, 2026-10-20)**: the team scenarios sat at `conformance/a7/*.json` and `conformance/a8/*.json`.
+  - The kernel's conformance runner (`packages/barocss-cad/test/conformance.test.mjs`, the kernel lane's file, unchanged) reads every `conformance/<step>/*.json` as a kernel case, so the integration merge failed 28 cases.
+  - They are now in `conformance/a7/scenarios/` and `conformance/a8/scenarios/`, as A6's fixtures are in subfolders, and the studio tests and CLI paths follow.
+  - Kernel conformance 145/145. From now on every checkpoint gives it beside the studio suite and the flow.
