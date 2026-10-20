@@ -39,7 +39,7 @@ export interface BodyResult {
   /** A sheet-metal body's flat pattern (R12.2, D117), or why it has none (its refusal). */
   flat?: FlatPattern; flatRefused?: string;
   /** A sheet-metal body's rules (R12.3, D119: the studio writes them into a flange's relief, the kernel defaulting none). */
-  sheet?: { thicknessMM: number; bendRadiusMM: number; kFactor: number };
+  sheet?: { thicknessMM: number; bendRadiusMM: number; kFactor?: number; bendTable?: string };
 }
 export type EvalResult =
   // (`faceTable`: the part's flat and round faces from the B-rep just built — the face table the requirement checks,
@@ -83,7 +83,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
 function sheetOf(o: CadPartSnapshot['outputs'][number]): Pick<BodyResult, 'notes' | 'flat' | 'flatRefused' | 'sheet'> {
   let f = flats.get(o.brep);
   if (!f) { try { f = { flat: o.flatPattern() }; } catch (e) { f = { refused: e instanceof Error ? e.message.replace(/^[^:]*: /, '') : String(e) }; } flats.set(o.brep, f); }
-  const notes = sheetNotes(o.sheet!), sheet = { thicknessMM: o.sheet!.thicknessMM, bendRadiusMM: o.sheet!.bendRadiusMM, kFactor: o.sheet!.kFactor };
+  const notes = sheetNotes(o.sheet!), sheet = { thicknessMM: o.sheet!.thicknessMM, bendRadiusMM: o.sheet!.bendRadiusMM, ...(o.sheet!.bendTable ? { bendTable: o.sheet!.bendTable.id } : { kFactor: o.sheet!.kFactor }) };
   if ('flat' in f) {
     const b = f.flat.box.max, n = f.flat.bends.length;
     return { notes: [...notes, { text: `Flat pattern ${+b[0].toFixed(3)} × ${+b[1].toFixed(3)} mm, ${n} bend${n === 1 ? '' : 's'}` }], flat: f.flat, sheet };
@@ -97,10 +97,12 @@ function sheetOf(o: CadPartSnapshot['outputs'][number]): Pick<BodyResult, 'notes
  */
 function sheetNotes(s: NonNullable<CadPartSnapshot['outputs'][number]['sheet']>): { text: string; warning?: boolean }[] {
   const mm = (x: number) => `${+x.toFixed(3)} mm`;
+  // (A bend table: each bend says the rows its K came from, and an estimate among them as a warning; R12.4, D120.)
+  const t = s.bendTable;
   return [
-    { text: `Sheet metal: ${mm(s.thicknessMM)} thick, bends of inner radius ${mm(s.bendRadiusMM)}, K-factor ${s.kFactor}` },
+    { text: `Sheet metal: ${mm(s.thicknessMM)} thick, bends of inner radius ${mm(s.bendRadiusMM)}, ${t ? `K from bend table ${t.id} (${t.rows.length} rows)` : `K-factor ${s.kFactor}`}` },
     ...(s.kFactor === 0.5 ? [{ text: 'K 0.5 is an estimate (the sheet\u2019s middle, no material data): real air bends lie lower, so the flat is long. Use your shop\u2019s value.', warning: true }] : []),
-    ...s.bends.map(b => ({ text: `${b.name.split('.').pop()}: ${+b.angleDegrees.toFixed(3)}°, allowance ${mm(b.allowanceMM)}, setback ${mm(b.setbackMM)}, deduction ${mm(b.deductionMM)}` })),
+    ...s.bends.map(b => ({ text: `${b.name.split('.').pop()}: ${+b.angleDegrees.toFixed(3)}°, allowance ${mm(b.allowanceMM)}, setback ${mm(b.setbackMM)}, deduction ${mm(b.deductionMM)}${b.table ? `; K ${+b.kFactor.toFixed(4)} from ${b.table.how === 'exact' ? 'row' : 'rows'} ${b.table.rows.join(', ')}${b.table.how === 'interpolated' ? ' (interpolated)' : ''}${b.table.estimate ? ', an estimate among them' : ''}` : ''}`, ...(b.table?.estimate ? { warning: true } : {}) })),
   ];
 }
 

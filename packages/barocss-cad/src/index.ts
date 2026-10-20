@@ -639,3 +639,5 @@ export { bendAllowance, outsideSetback, bendDeduction, contourFlangeSection, She
 export type { SheetReport, SheetBendReport, ContourSection, ContourBend } from './sheet-metal.js';
 export { flatPattern, flatPatternDxf, FlatPatternError } from './sheet-flat.js';
 export type { FlatPattern, FlatLoop, FlatSegment, FlatBend, FlatPatternOptions, FlatPatternErrorCode } from './sheet-flat.js';
+export { bendTableProblem, lookupBend, rowKFactor } from './sheet-metal.js';
+export type { BendTable, BendTableRow, BendTableSource, BendTableUse } from './sheet-metal.js';

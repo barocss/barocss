@@ -26,7 +26,7 @@ import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
 import { collectRecoveryBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs } from './engine/blobs';
 import { MeshRepairPanel } from './ui/MeshRepairPanel';
-import { DEFAULT_REPAIR, MESH_PLANAR_TRIANGLES, type MeshDiagnosis, type MeshRepairResult, type MeshRepairSteps } from '@barocss/cad';
+import { DEFAULT_REPAIR, MESH_PLANAR_TRIANGLES, bendTableProblem, type BendTable, type MeshDiagnosis, type MeshRepairResult, type MeshRepairSteps } from '@barocss/cad';
 import { encodeStudioFile, readStudioFile } from './engine/container';
 import { ParametersPanel } from './ui/ParametersPanel';
 import { LibraryPanel } from './ui/LibraryPanel';
@@ -1093,6 +1093,18 @@ export function App() {
   /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */
   const saveShared = () => { writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
   // A mesh file waiting for its unit, and opening it as a part in that unit.
+  // (A sheet's bend table from a file (R12.4, D120): checked, then set on the sheet feature its body starts from.)
+  const loadBendTable = async (b: BodyResult, file?: File) => {
+    if (!file) return;
+    let table: unknown;
+    try { table = JSON.parse(await file.text()); } catch { setToast({ title: 'Not a bend table', hint: `${file.name} is not JSON.`, detail: '' }); return; }
+    const problem = bendTableProblem(table);
+    if (problem) { setToast({ title: 'Bend table refused', hint: problem, detail: '' }); return; }
+    const i = rootOf(doc.nodes, refOf(b).node), n = doc.nodes[i];
+    if (!n || (n.kind !== 'sheet-base' && n.kind !== 'sheet-contour')) { setToast({ title: 'No sheet feature', hint: 'This body does not start from a sheet plate or profile.', detail: '' }); return; }
+    const rest = { ...n } as Record<string, unknown>; delete rest.kFactor;
+    commit({ ...doc, nodes: doc.nodes.map((x, j) => j === i ? { ...rest, bendTable: table as BendTable } as ModelNode : x) });
+  };
   // (A sheet-metal body's flat pattern shown: its body key; R12.2, D117.)
   const [flatView, setFlatView] = useState<string | null>(null);
   const [meshAsk, setMeshAsk] = useState<{ name: string; format: 'STL' | 'OBJ'; mesh: ReturnType<typeof readMeshFile>; unit: MeshUnit } | null>(null);
@@ -2109,6 +2121,7 @@ export function App() {
             <div className="kv">Surface area <b>{fmt(Math.round(b.mesh.faces.reduce((t, f) => t + f.areaMM2, 0)))} mm²</b></div>
             <div className="kv">Faces <b>{b.mesh.faces.length}</b></div>
             {b.notes?.map((n, k) => <div key={k} className={'hint' + (n.warning ? ' warn' : ' muted')} aria-label="Generator note">{n.warning && <Icon name="warning" small />} {n.text}</div>)}
+            {b.sheet && <div className="kv"><span>K <b>{b.sheet.bendTable ? `bend table ${b.sheet.bendTable}` : b.sheet.kFactor}</b></span><label className="ghost small" data-tip="Bend table" data-tip-desc="Load your shop's bend table (JSON: rows of thickness, radius and angle to K, allowance or deduction, each citing a source or marked an estimate) for this sheet's bends">Bend table…<input type="file" accept=".json,application/json" aria-label="Bend table file" style={{ display: 'none' }} onChange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ''; void loadBendTable(b, file); }} /></label></div>}
             {b.flat && <div className="kv"><span>Flat pattern <b>{fmt(Math.round(b.flat.box.max[0] * 100) / 100)} × {fmt(Math.round(b.flat.box.max[1] * 100) / 100)}</b></span><button className="ghost small" aria-label="Show the flat pattern" data-tip="Flat pattern" data-tip-desc="The sheet unfolded: its outline, bend lines and notes; export it as DXF" onClick={() => setFlatView(b.key)}>Flat</button></div>}
             <PointTest mesh={b.mesh} />
             {b.pieces && <div className="kv"><span>Pieces <b>{b.pieces}</b></span><button className="ghost small" aria-label="Separate the pieces" data-tip="Separate" data-tip-desc="Make each piece a body of its own (to move, colour or cut on its own)" onClick={() => separate(b)}>Separate</button></div>}

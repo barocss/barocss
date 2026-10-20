@@ -50,7 +50,7 @@ import { generalShell } from './general-shell.js';
 import { offsetCavity, offsetShell, smoothOffsetBody } from './offset-cavity.js';
 import { regionShell } from './region-shell.js';
 import { meshInnerOffset, type MeshShellReport } from './mesh-offset.js';
-import { bendAllowance, bendDeduction, contourFlangeSection, flangeSection, outsideSetback, SheetMetalError, type SheetReport } from './sheet-metal.js';
+import { bendAllowance, bendDeduction, bendTableProblem, contourFlangeSection, flangeSection, lookupBend, outsideSetback, SheetMetalError, type BendTable, type BendTableUse, type SheetReport } from './sheet-metal.js';
 import { flatPattern as flatPatternOf, FlatPatternError, type FlatPattern } from './sheet-flat.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { FacetPatch, Point } from './types.js';
@@ -237,8 +237,8 @@ export type CadPartFeature = Base & (
    * normal. Faces: `.leg<i>.a` (on the path) and `.leg<i>.b`, `.bend<k>.inner` / `.outer` (k the corner's point),
    * `.start` / `.end` (the path's ends), `.front` (in the plane) and `.back`.
    */
-  | { readonly kind: 'sheet-base'; readonly sketch: string; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly kFactor: number; readonly reverse?: boolean }
-  | { readonly kind: 'sheet-contour'; readonly path: readonly CadPartPoint2[]; readonly plane?: CadPartSketchPlane; readonly side: 'left' | 'right'; readonly width: CadPartDim; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly kFactor: number }
+  | ({ readonly kind: 'sheet-base'; readonly sketch: string; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly reverse?: boolean } & CadPartSheetK)
+  | ({ readonly kind: 'sheet-contour'; readonly path: readonly CadPartPoint2[]; readonly plane?: CadPartSketchPlane; readonly side: 'left' | 'right'; readonly width: CadPartDim; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim } & CadPartSheetK)
   /**
    * An edge flange (R12.3, D118) on a sheet (its rules from its report): on a straight `edge` between a planar skin face
    * and a thickness face, bent `angleDegrees` (default 90, in (0, 180)) towards that skin's outside, inner radius
@@ -278,6 +278,11 @@ export type CadPartFeature = Base & (
    */
   | { readonly kind: 'fillet'; readonly target: string; readonly edges: readonly string[]; readonly radius?: CadPartDim; readonly radii?: readonly { readonly at: CadPartPoint3; readonly radius: CadPartDim }[]; readonly section?: { readonly kind: 'circular' } | { readonly kind: 'conic'; readonly rho: number } | { readonly kind: 'g2'; readonly tension?: number } }
 );
+/**
+ * A sheet's K (R12.4, D120): one `kFactor` for every bend, or a `bendTable` (rows of T, R, angle → K, BA or BD, each
+ * citing a source or saying it is an estimate) giving each bend's — one of them, no default.
+ */
+export type CadPartSheetK = { readonly kFactor: number; readonly bendTable?: undefined } | { readonly bendTable: BendTable; readonly kFactor?: undefined };
 export interface CadPartDocument {
   readonly format: 'barocss-cad-part'; readonly version: 1; readonly units: 'mm';
   readonly parameters: Readonly<Record<string, number>>;
@@ -697,6 +702,13 @@ function frameOf(plane: CadPartSketchPlane, xyz: Tools['xyz'], fail: Tools['fail
 }
 /** A point of a sketch's own XYZ in the part. */
 const framed = (frame: Frame | undefined, p: Point): Point => !frame ? p : [frame.m[0] * p[0] + frame.m[1] * p[1] + frame.m[2] * p[2] + frame.o[0], frame.m[3] * p[0] + frame.m[4] * p[1] + frame.m[5] * p[2] + frame.o[1], frame.m[6] * p[0] + frame.m[7] * p[1] + frame.m[8] * p[2] + frame.o[2]];
+/** A bend's K: the sheet's, or its table's for T, R and the angle (R12.4, D120); a bend outside the table refused by name. */
+function bendK(rules: { readonly kFactor?: number; readonly bendTable?: BendTable }, T: number, R: number, angle: number, what: string, fail: Tools['fail']): { kFactor: number; use?: BendTableUse } {
+  if (rules.kFactor !== undefined) return { kFactor: rules.kFactor };
+  const r = lookupBend(rules.bendTable!, T, R, angle);
+  if ('miss' in r) return fail('PARAMETER', `[BEND_TABLE_MISS] ${what}: ${r.miss}`);
+  return r;
+}
 /** A solid's volume by its exact surfaces (quadrature where curved): the flange's collision test. */
 const exactVolume = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : brepMassProperties(s.brep, 1).volumeMM3;
 /**
@@ -704,7 +716,7 @@ const exactVolume = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid
  * skin, z along the edge), the plate trimmed and relieved, the flange's section extruded and united; refused where it
  * meets the sheet anywhere but its root.
  */
-function sheetFlange(o: { part: Part; sheet: SheetReport; at: string; edge: string; T: number; K: number; R: number; th: number; trim: number; straight: number; off: [number, number]; relief: { kind: 'rectangular' | 'obround'; width: number; depth: number } | null | undefined; fail: Tools['fail'] }): Result {
+function sheetFlange(o: { part: Part; sheet: SheetReport; at: string; edge: string; T: number; K: { kFactor: number; use?: BendTableUse }; R: number; th: number; trim: number; straight: number; off: [number, number]; relief: { kind: 'rectangular' | 'obround'; width: number; depth: number } | null | undefined; fail: Tools['fail'] }): Result {
   const { part, sheet, at, T, K, R, th, trim, straight, off, relief, fail } = o, brep = brepOf(part, 'target');
   const e = edgeNamed(brep, o.edge, fail);
   const ends = e.curve.controlPoints, A = ends[0], B = ends[ends.length - 1], Le = len(sub(B, A));
@@ -779,7 +791,7 @@ function sheetFlange(o: { part: Part; sheet: SheetReport; at: string; edge: stri
   const vp = exactVolume(plate), vf = exactVolume(piece), vu = exactVolume(out!);
   if (vp + vf - vu > 1e-8 * (vp + vf)) fail('GEOMETRY', `[FLANGES_COLLIDE] the flange on ${e.name} runs into the sheet: ${+(vp + vf - vu).toPrecision(6)} mm³ of it overlaps`);
   const c = add(A, add(scale(m, sec.center[0]), scale(n, sec.center[1])));
-  const bend = { name: `${at}.bend`, inner: `${at}.bend.inner`, outer: `${at}.bend.outer`, radiusMM: R, angleDegrees: th * 180 / Math.PI, axis: { origin: c, direction: w }, allowanceMM: bendAllowance(th, R, T, K), setbackMM: outsideSetback(th, R, T), deductionMM: bendDeduction(th, R, T, K) };
+  const bend = { name: `${at}.bend`, inner: `${at}.bend.inner`, outer: `${at}.bend.outer`, radiusMM: R, angleDegrees: th * 180 / Math.PI, axis: { origin: c, direction: w }, allowanceMM: bendAllowance(th, R, T, K.kFactor), setbackMM: outsideSetback(th, R, T), deductionMM: bendDeduction(th, R, T, K.kFactor), kFactor: K.kFactor, ...(K.use ? { table: K.use } : {}) };
   return { kind: 'solid', parts: [{ solid: out!, sheet: { ...sheet, bends: [...sheet.bends, bend] } }] };
 }
 /** An edge of a B-rep by its name, else by its faces' names without their piece numbers (one such edge). */
@@ -1032,15 +1044,19 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       }));
     }
     case 'sheet-base': case 'sheet-contour': {
-      const T = dim(f.thickness as CadPartDim, 'thickness', true), R = dim(f.bendRadius as CadPartDim, 'bendRadius', true), K = f.kFactor;
-      if (typeof K !== 'number' || !Number.isFinite(K) || K < 0 || K > 1) fail('PARAMETER', 'kFactor must be a number from 0 to 1 (the neutral layer lies within the sheet)');
+      const T = dim(f.thickness as CadPartDim, 'thickness', true), R = dim(f.bendRadius as CadPartDim, 'bendRadius', true), K = f.kFactor, table = f.bendTable as BendTable | undefined;
+      if ((K === undefined) === (table === undefined)) fail('PARAMETER', 'give the sheet a kFactor or a bendTable (one of them)');
+      if (K !== undefined && (typeof K !== 'number' || !Number.isFinite(K) || K < 0 || K > 1)) fail('PARAMETER', 'kFactor must be a number from 0 to 1 (the neutral layer lies within the sheet)');
+      const problem = table === undefined ? null : bendTableProblem(table);
+      if (problem) fail('PARAMETER', `[BEND_TABLE] ${problem}`);
+      const rules = K !== undefined ? { kFactor: K as number } : { bendTable: table! };
       if (f.kind === 'sheet-base') {
         const sketch = ref(f.sketch, 'sketch').result;
         if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
         const { outer, frame, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
         if (regions?.length) fail('CAPABILITY', 'a sheet\'s base takes one outer loop (holes allowed) yet');
         if (f.reverse !== undefined && typeof f.reverse !== 'boolean') fail('INPUT', 'reverse must be true or false');
-        const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, kFactor: K as number, fixedFace: `${at}.top`, bends: [] };
+        const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, ...rules, fixedFace: `${at}.top`, bends: [] };
         return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(holes ? { holes } : {}), ...(tags ? { sideTags: tags } : {}), heightMM: T, fromMM: f.reverse ? -T : 0, tag: at }) }))(), report);
       }
       const list = f.path as unknown;
@@ -1051,10 +1067,10 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       let section: ReturnType<typeof contourFlangeSection>;
       try { section = contourFlangeSection(path, f.side as 'left' | 'right', T, R, at); }
       catch (cause) { if (cause instanceof SheetMetalError) fail(cause.code, cause.message); throw cause; }
-      const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, kFactor: K as number, fixedFace: `${at}.leg0.a`, bends: section!.bends.map(b => {
-        const angle = Math.abs(b.angle);
+      const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, ...rules, fixedFace: `${at}.leg0.a`, bends: section!.bends.map(b => {
+        const angle = Math.abs(b.angle), k = bendK(rules, T, R, angle, `bend${b.vertex}`, fail);
         return { name: `${at}.bend${b.vertex}`, inner: b.inner, outer: b.outer, radiusMM: R, angleDegrees: angle * 180 / Math.PI, axis: { origin: framed(frame, [b.center[0], b.center[1], 0]), direction: frame ? [frame.m[2], frame.m[5], frame.m[8]] as Point : [0, 0, 1] as Point },
-          allowanceMM: bendAllowance(angle, R, T, K as number), setbackMM: outsideSetback(angle, R, T), deductionMM: bendDeduction(angle, R, T, K as number) };
+          allowanceMM: bendAllowance(angle, R, T, k.kFactor), setbackMM: outsideSetback(angle, R, T), deductionMM: bendDeduction(angle, R, T, k.kFactor), kFactor: k.kFactor, ...(k.use ? { table: k.use } : {}) };
       }) };
       return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer: section!.segments, heightMM: width, fromMM: 0, tag: at, names: { outer: section!.names, bottom: `${at}.front`, top: `${at}.back` } }) }))(), report);
     }
@@ -1073,7 +1089,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (parts.length !== 1) fail('SELECTION', 'a flange takes one sheet body');
       const p = parts[0], sheet = p.sheet;
       if (!sheet) return fail('CAPABILITY', '[NOT_A_SHEET] the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not)');
-      const T = sheet.thicknessMM, K = sheet.kFactor, R = f.bendRadius === undefined ? sheet.bendRadiusMM : dim(f.bendRadius as CadPartDim, 'bendRadius', true), L = dim(f.length as CadPartDim, 'length', true);
+      const T = sheet.thicknessMM, R = f.bendRadius === undefined ? sheet.bendRadiusMM : dim(f.bendRadius as CadPartDim, 'bendRadius', true), L = dim(f.length as CadPartDim, 'length', true);
       const deg = f.angleDegrees === undefined ? 90 : f.angleDegrees;
       if (typeof deg !== 'number' || !Number.isFinite(deg)) fail('INPUT', 'angleDegrees must be a number');
       if (!((deg as number) > 1e-6 && (deg as number) < 180 - 1e-6)) fail('PARAMETER', `[BEND_ANGLE] a flange bends between 0 and 180° (not ${deg}°: 180° is a hem, not supported yet)`);
@@ -1094,8 +1110,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const th = (deg as number) * Math.PI / 180, ossb = outsideSetback(th, R, T), issb = R * Math.tan(th / 2);
       const straight = measure === 'outer' ? L - ossb : measure === 'inner' ? L - issb : L;
       if (!(straight > 1e-6)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] a flange ${L} mm long (${measure}) is within its bend's setback of ${+(measure === 'inner' ? issb : ossb).toFixed(6)} mm`);
-      const trim = position === 'material-inside' ? ossb : position === 'material-outside' ? issb : 0;
-      return () => sheetFlange({ part: p, sheet, at, edge: f.edge as string, T, K, R, th, trim, straight, off, relief, fail });
+      const trim = position === 'material-inside' ? ossb : position === 'material-outside' ? issb : 0, k = bendK(sheet, T, R, th, 'the flange', fail);
+      return () => sheetFlange({ part: p, sheet, at, edge: f.edge as string, T, K: k, R, th, trim, straight, off, relief, fail });
     }
     case 'sweep': {
       const sketch = ref(f.sketch, 'sketch').result;
@@ -2182,10 +2198,11 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
     flatPattern(options: { readonly fixedFace?: string; readonly kFactor?: number } = {}) {
       const s = part.sheet;
       if (!s) throw new CadPartError('CAPABILITY', id, 'not made as sheet metal: give its thickness and K-factor to the kernel\'s flatPattern');
-      const k = options.kFactor ?? s.kFactor, key = `${options.fixedFace ?? s.fixedFace}|${k}`;
+      // (A K given here, else the sheet's K, else its bend table bend by bend.)
+      const k = options.kFactor ?? s.kFactor, key = `${options.fixedFace ?? s.fixedFace}|${k ?? 'table'}`;
       const hit = flats.get(key); if (hit) return hit;
       try {
-        const flat = flatPatternOf(brep, { thicknessMM: s.thicknessMM, kFactor: k, fixedFace: options.fixedFace ?? s.fixedFace, bendNames: s.bends.map(b => ({ name: b.name, faces: [b.inner, b.outer] })) });
+        const flat = flatPatternOf(brep, { thicknessMM: s.thicknessMM, ...(k !== undefined ? { kFactor: k } : { bendTable: s.bendTable! }), fixedFace: options.fixedFace ?? s.fixedFace, bendNames: s.bends.map(b => ({ name: b.name, faces: [b.inner, b.outer] })) });
         flats.set(key, flat); return flat;
       } catch (cause) {
         if (cause instanceof FlatPatternError) throw new CadPartError(cause.code === 'CUT_ACROSS_BEND' ? 'CAPABILITY' : 'GEOMETRY', id, cause.message);

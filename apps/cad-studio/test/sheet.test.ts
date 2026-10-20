@@ -160,3 +160,24 @@ test('D119 Corner relief: on a sheet plate\'s corner edge, square or round, its 
   assert.equal(bodiesOf(both)[0].flat!.bends.length, 2);
   const read = readStudioDoc(JSON.stringify(both)); assert.ok('doc' in read, JSON.stringify(read)); assert.equal(read.doc.nodes[2].kind, 'sheet-corner-relief');
 });
+
+test('D120 a sheet on a bend table: its notes name the table and each bend\'s rows (an estimate among them a warning); the flat honours the row\'s deduction; no K field; the agent\'s raw node', async () => {
+  const table = { id: 'shop-2mm', sources: [{ id: 'shop', label: 'the shop\'s test bends' }], rows: [
+    { thicknessMM: 2, radiusMM: 3, angleDegrees: 90, deductionMM: 4.2, source: 'shop' }, { thicknessMM: 2, radiusMM: 3, angleDegrees: 120, kFactor: 0.42, estimate: true }] };
+  const node = { kind: 'sheet-contour' as const, path: [[0, 0], [50, 0], [50, 35]] as [number, number][], side: 'left' as const, width: 20, thickness: 2, bendRadius: 3, bendTable: table };
+  const doc = withNode(emptyDoc(), node), [b] = bodiesOf(doc);
+  const notes = b.notes!.map(n => n.text);
+  assert.equal(notes[0], 'Sheet metal: 2 mm thick, bends of inner radius 3 mm, K from bend table shop-2mm (2 rows)');
+  assert.match(notes[1], /^bend1: 90°, allowance [\d.]+ mm, setback 5 mm, deduction 4\.2 mm; K [\d.]+ from row 0$/);
+  assert.ok(Math.abs(b.flat!.box.max[0] - 80.8) < 1e-9 && b.sheet!.bendTable === 'shop-2mm');
+  assert.deepEqual(editFields(doc.nodes, 0).map(f => f.key), ['t', 'r', 'w']);
+  // At 105°: interpolated between the rows, one of them an estimate — said as a warning.
+  const th = 105 * Math.PI / 180, [b2] = bodiesOf(withNode(emptyDoc(), { ...node, path: [[0, 0], [50, 0], [50 + 35 * Math.cos(th), 35 * Math.sin(th)]] }));
+  const n2 = b2.notes!.find(n => /^bend1/.test(n.text))!;
+  assert.ok(n2.warning && /from rows 0, 1 \(interpolated\), an estimate among them$/.test(n2.text), n2.text);
+  // The agent's raw node with its table: checked, built.
+  const evaluate = async (d: StudioDoc) => evaluatePart(d, 1);
+  const a = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [node] }, evaluate);
+  assert.ok(!a.isError, a.content);
+  assert.ok(Math.abs(a.state.bodies[0].flat!.box.max[0] - 80.8) < 1e-9);
+});

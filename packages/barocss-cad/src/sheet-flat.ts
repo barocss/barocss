@@ -6,6 +6,7 @@ import { faceGeometry, type FaceGeometry } from './analytic-boolean.js';
 import { tessellateBrep } from './brep-tessellate.js';
 import { brepMassProperties } from './solid-mass.js';
 import type { DxfDocument, DxfEntity } from './dxf-writer.js';
+import { lookupBend, type BendTable, type BendTableUse } from './sheet-metal.js';
 
 // R12.2 (D117): a sheet-metal body's flat pattern, from its B-rep and the sheet's thickness T and K-factor alone (D115).
 // The skin — the faces joined to a fixed planar face across smooth edges — is developed onto that face's plane: planes
@@ -31,22 +32,26 @@ export interface FlatBend {
   readonly allowanceMM: number;
   readonly centre: readonly [XY, XY]; readonly tangents: readonly [readonly [XY, XY], readonly [XY, XY]];
   readonly faces: readonly string[];
+  /** Its K from a bend table (R12.4, D120): the rows used. */
+  readonly table?: BendTableUse;
 }
 export interface FlatPattern {
-  readonly thicknessMM: number; readonly kFactor: number;
+  /** One K for every bend, or each bend's from a table (then undefined here, each bend's own). */
+  readonly thicknessMM: number; readonly kFactor?: number;
   /** The face the flat lies in the plane of (its outside towards the viewer). */
   readonly fixedFace: string;
   readonly loops: readonly FlatLoop[]; readonly bends: readonly FlatBend[];
   /** The flat's area (outer loop less holes) and its box (the flat is moved so its box starts at 0, 0). */
   readonly areaMM2: number; readonly box: { readonly min: XY; readonly max: XY };
 }
-export type FlatPatternErrorCode = 'NOT_A_SHEET' | 'NON_NORMAL_CUT' | 'BEND_NOT_CYLINDRICAL' | 'FLAT_OVERLAPS' | 'CUT_ACROSS_BEND';
+export type FlatPatternErrorCode = 'NOT_A_SHEET' | 'NON_NORMAL_CUT' | 'BEND_NOT_CYLINDRICAL' | 'FLAT_OVERLAPS' | 'CUT_ACROSS_BEND' | 'BEND_TABLE_MISS';
 /** A refusal: its message starts with its `[CODE]`. */
 export class FlatPatternError extends Error {
   constructor(readonly code: FlatPatternErrorCode, detail: string) { super(`[${code}] ${detail}`.slice(0, 1024)); this.name = 'FlatPatternError'; }
 }
 export interface FlatPatternOptions {
-  readonly thicknessMM: number; readonly kFactor: number;
+  /** One K-factor for every bend, or a bend table giving each bend's by its T, inner R and angle (R12.4): one of them. */
+  readonly thicknessMM: number; readonly kFactor?: number; readonly bendTable?: BendTable;
   /** The fixed face by name (its pieces `#k`: the largest); else the largest planar face. */
   readonly fixedFace?: string;
   /** Names for the bends, matched by a face of theirs (the sheet report's: `bend<k>` for others). */
@@ -71,7 +76,7 @@ const baseName = (n: string) => n.replace(/#\d+$/, '');
  */
 type DevMap =
   | { readonly kind: 'plane'; readonly o3: V; readonly e1: V; readonly e2: V; readonly o2: XY; readonly f1: XY; readonly f2: XY }
-  | { readonly kind: 'cyl'; readonly c: V; readonly a: V; readonly rho: number; readonly p3: V; readonly d0: V; readonly sgn: number; readonly o2: XY; readonly fa: XY; readonly fx: XY; readonly rn: number };
+  | { readonly kind: 'cyl'; readonly c: V; readonly a: V; readonly rho: number; readonly p3: V; readonly d0: V; readonly sgn: number; readonly o2: XY; readonly fa: XY; readonly fx: XY; readonly rn: number; readonly inner: number; readonly k: number; readonly use?: BendTableUse };
 function develop(m: DevMap, p: V): XY {
   if (m.kind === 'plane') { const d = sub(p, m.o3), x = dot(d, m.e1), y = dot(d, m.e2); return [m.o2[0] + x * m.f1[0] + y * m.f2[0], m.o2[1] + x * m.f1[1] + y * m.f2[1]]; }
   const s = dot(sub(p, m.p3), m.a), w = m.rn * angleOf(m, p);
@@ -133,7 +138,8 @@ const nameOf = (c: Ctx, f: string) => c.faces.get(f)!.name ?? f;
 
 /** The flat pattern of a sheet-metal body (see the top of this file); refusals as FlatPatternError. */
 export function flatPattern(brep: Brep, options: FlatPatternOptions): FlatPattern {
-  const T = options.thicknessMM, K = options.kFactor;
+  const T = options.thicknessMM, table = options.bendTable ?? null, K = options.kFactor ?? 0.5;
+  if ((options.kFactor === undefined) === (table === null)) throw new FlatPatternError('NOT_A_SHEET', 'a flat needs a K-factor or a bend table (one of them)');
   if (!(T > 0) || !(K >= 0 && K <= 1)) throw new FlatPatternError('NOT_A_SHEET', 'a flat needs a thickness above 0 and a K-factor from 0 to 1');
   let size = 1;
   for (const v of brep.vertices) size = Math.max(size, Math.abs(v.point[0]), Math.abs(v.point[1]), Math.abs(v.point[2]));
@@ -151,7 +157,8 @@ export function flatPattern(brep: Brep, options: FlatPatternOptions): FlatPatter
   if (brep.bodies.length !== 1) throw new FlatPatternError('NOT_A_SHEET', `the body is in ${brep.bodies.length} pieces: a flat is one piece of sheet`);
 
   const fixed = pickFixed(c, options.fixedFace);
-  const maps = developSkin(c, fixed);
+  // (A table: each bend's angle and inner radius found first — they do not depend on K — then its K looked up.)
+  const maps = developSkin(c, fixed, table ? kOfBends(c, developSkin(c, fixed, null), table) : null);
   const skin = new Set(maps.keys());
   checkThickness(c, skin);
   // The outline through the B-rep's loops; each piece an exact image.
@@ -163,7 +170,7 @@ export function flatPattern(brep: Brep, options: FlatPatternOptions): FlatPatter
   const box = boxOf(loops), dx = -box.min[0], dy = -box.min[1];
   const moved = loops.map(l => ({ ...l, segments: l.segments.map(s => shift(s, dx, dy)) }));
   const movedBends = bends.map(b => ({ ...b, centre: [sh(b.centre[0], dx, dy), sh(b.centre[1], dx, dy)] as const, tangents: [[sh(b.tangents[0][0], dx, dy), sh(b.tangents[0][1], dx, dy)] as const, [sh(b.tangents[1][0], dx, dy), sh(b.tangents[1][1], dx, dy)] as const] as const }));
-  return { thicknessMM: T, kFactor: K, fixedFace: nameOf(c, fixed), loops: moved, bends: movedBends, areaMM2: loops.reduce((s, l) => s + l.areaMM2, 0), box: { min: [0, 0], max: [box.max[0] + dx, box.max[1] + dy] } };
+  return { thicknessMM: T, ...(table ? {} : { kFactor: K }), fixedFace: nameOf(c, fixed), loops: moved, bends: movedBends, areaMM2: loops.reduce((s, l) => s + l.areaMM2, 0), box: { min: [0, 0], max: [box.max[0] + dx, box.max[1] + dy] } };
 }
 
 /** The fixed face: the named one (its largest piece), else the largest planar face. */
@@ -203,8 +210,29 @@ function straight(c: Ctx, e: BrepEdge): [V, V] | null {
   return [a, b];
 }
 
-/** The skin from the fixed face across smooth edges, each face's development. */
-function developSkin(c: Ctx, fixed: string): Map<string, DevMap> {
+/** A bend's K and the table's rows, looked up by the bend (its cylinder): from `kOfBends`. */
+type KOf = (g: Extract<FaceGeometry, { kind: 'cylinder' }>) => { k: number; use?: BendTableUse };
+/** Whether two cylinders are one (axis and radius). */
+const sameCylinder = (c: Ctx, a: { c: V; a: V; r?: number; rho?: number }, b: { c: V; a: V; r?: number; rho?: number }) => Math.abs((a.r ?? a.rho!) - (b.r ?? b.rho!)) <= c.tol && Math.abs(Math.abs(dot(a.a, b.a)) - 1) < 1e-12 && len(cross(sub(b.c, a.c), a.a)) <= c.tol;
+/** Each bend's K from a table by its T, inner radius and angle (its pieces' widest turn); a bend outside it refused. */
+function kOfBends(c: Ctx, maps: Map<string, DevMap>, table: BendTable): KOf {
+  const groups: { m: Extract<DevMap, { kind: 'cyl' }>; theta: number; k?: { k: number; use?: BendTableUse } }[] = [];
+  for (const [f, m] of maps) {
+    if (m.kind !== 'cyl') continue;
+    let lo = Infinity, hi = -Infinity;
+    for (const lid of c.faces.get(f)!.loops) for (const cid of c.loopsOf.get(lid)!) for (const p of samples(c.edges.get(c.co.get(cid)!.edge)!, 4)) { const a = angleOf(m, p); lo = Math.min(lo, a); hi = Math.max(hi, a); }
+    const g = groups.find(x => sameCylinder(c, x.m, m));
+    if (g) g.theta = Math.max(g.theta, hi - lo); else groups.push({ m, theta: hi - lo });
+  }
+  for (const g of groups) {
+    const r = lookupBend(table, c.T, g.m.inner, g.theta);
+    if ('miss' in r) throw new FlatPatternError('BEND_TABLE_MISS', `a bend of R ${fmt(g.m.inner)} mm, ${fmt(g.theta * 180 / Math.PI)}°: ${r.miss}`);
+    g.k = { k: r.kFactor, use: r.use };
+  }
+  return gc => { const g = groups.find(x => sameCylinder(c, x.m, gc)); if (!g) throw new FlatPatternError('NOT_A_SHEET', 'a bend was not found again'); return g.k!; };
+}
+/** The skin from the fixed face across smooth edges, each face's development (each bend's K from `kOf`, else the flat's). */
+function developSkin(c: Ctx, fixed: string, kOf: KOf | null): Map<string, DevMap> {
   const g0 = c.geo.get(fixed)! as Extract<FaceGeometry, { kind: 'plane' }>, maps = new Map<string, DevMap>([[fixed, planeMap(g0.o, g0.n)]]), queue = [fixed];
   while (queue.length) {
     const fid = queue.shift()!, m = maps.get(fid)!, gF = c.geo.get(fid)!;
@@ -227,9 +255,10 @@ function developSkin(c: Ctx, fixed: string): Map<string, DevMap> {
       if (gO.kind === 'plane') maps.set(other, { kind: 'plane', o3: A, e1: u, e2: tout, o2: a2, f1: u2, f2: x2 });
       else {
         const a = dot(gO.a, u) > 0 ? gO.a : scl(gO.a, -1), d = sub(A, gO.c), d0 = unit(sub(d, scl(gO.a, dot(d, gO.a))));
-        const sgn = Math.sign(dot(cross(d0, tout), a)) || 1, rn = gO.out === 1 ? gO.r - c.T + c.K * c.T : gO.r + c.K * c.T;
-        if (!(rn > 0)) throw new FlatPatternError('NOT_A_SHEET', `${nameOf(c, other)}: a bend of radius ${fmt(gO.r)} is tighter than the sheet is thick`);
-        maps.set(other, { kind: 'cyl', c: gO.c, a, rho: gO.r, p3: A, d0, sgn, o2: a2, fa: u2, fx: x2, rn });
+        const inner = gO.out === 1 ? gO.r - c.T : gO.r, kk = kOf ? kOf(gO) : { k: c.K }, rn = inner + kk.k * c.T;
+        const sgn = Math.sign(dot(cross(d0, tout), a)) || 1;
+        if (!(inner > 0)) throw new FlatPatternError('NOT_A_SHEET', `${nameOf(c, other)}: a bend of radius ${fmt(gO.r)} is tighter than the sheet is thick`);
+        maps.set(other, { kind: 'cyl', c: gO.c, a, rho: gO.r, p3: A, d0, sgn, o2: a2, fa: u2, fx: x2, rn, inner, k: kk.k, ...(kk.use ? { use: kk.use } : {}) });
       }
       queue.push(other);
     }
@@ -301,7 +330,7 @@ function checkVolume(c: Ctx, skin: Set<string>, maps: Map<string, DevMap>, devAr
   for (const f of skin) {
     const m = maps.get(f)!, a = Math.abs(devArea.get(f) ?? 0);
     if (m.kind === 'plane') want += c.T * a;
-    else { const inner = m.rn - c.K * c.T; want += c.T * a * (inner + c.T / 2) / m.rn; }
+    else want += c.T * a * (m.inner + c.T / 2) / m.rn;
   }
   const V = brepMassProperties(c.brep, 1).volumeMM3;
   if (!(Math.abs(V - want) <= 1e-7 * Math.max(Math.abs(V), 1))) throw new FlatPatternError('NOT_A_SHEET', `the body is not a sheet ${fmt(c.T)} mm thick: its volume ${fmt(V)} mm³ against ${fmt(want)} mm³ for its skin`);
@@ -447,11 +476,11 @@ function bendsOf(c: Ctx, skin: Set<string>, maps: Map<string, DevMap>, names: re
       const q = develop(maps.get(f)!, p), s = (q[0] - m.o2[0]) * m.fa[0] + (q[1] - m.o2[1]) * m.fa[1], w = (q[0] - m.o2[0]) * m.fx[0] + (q[1] - m.o2[1]) * m.fx[1];
       s0 = Math.min(s0, s); s1 = Math.max(s1, s); w0 = Math.min(w0, w); w1 = Math.max(w1, w);
     }
-    const theta = (w1 - w0) / m.rn, inner = m.rn - c.K * c.T, names_ = faces.map(f => baseName(nameOf(c, f)));
+    const theta = (w1 - w0) / m.rn, inner = m.inner, names_ = faces.map(f => baseName(nameOf(c, f)));
     const g = c.geo.get(faces[0])! as Extract<FaceGeometry, { kind: 'cylinder' }>;
     const named = names.find(b => b.faces.some(x => names_.includes(baseName(x))));
     k++;
-    out.push({ name: named?.name ?? `bend${k}`, direction: g.out === 1 ? 'down' : 'up', angleDegrees: theta * 180 / Math.PI, radiusMM: inner, kFactor: c.K, allowanceMM: theta * m.rn,
+    out.push({ name: named?.name ?? `bend${k}`, direction: g.out === 1 ? 'down' : 'up', angleDegrees: theta * 180 / Math.PI, radiusMM: inner, kFactor: m.k, ...(m.use ? { table: m.use } : {}), allowanceMM: theta * m.rn,
       centre: [devAt(m, s0, (w0 + w1) / 2), devAt(m, s1, (w0 + w1) / 2)], tangents: [[devAt(m, s0, w0), devAt(m, s1, w0)], [devAt(m, s0, w1), devAt(m, s1, w1)]], faces: [...new Set(names_)].sort() });
   }
   return out;
