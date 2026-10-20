@@ -53,7 +53,7 @@ import { meshInnerOffset, type MeshShellReport } from './mesh-offset.js';
 import { bendAllowance, bendDeduction, bendTableProblem, contourFlangeSection, flangeSection, lookupBend, outsideSetback, SheetMetalError, type BendTable, type BendTableUse, type SheetReport } from './sheet-metal.js';
 import { flatPattern as flatPatternOf, FlatPatternError, type FlatPattern } from './sheet-flat.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
-import { FRAME_ANCHORS, FrameSectionError, anchorPoint, frameSection, loopBox, type FrameAnchor, type FrameMemberReport, type FrameSectionSpec } from './frame-section.js';
+import { FRAME_ANCHORS, FrameSectionError, anchorPoint, frameSection, loopBox, type FrameAnchor, type FrameEndReport, type FrameMemberReport, type FrameSectionSpec } from './frame-section.js';
 import type { FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import { encodeBinaryStl } from './stl.js';
@@ -259,7 +259,7 @@ export type CadPartFeature = Base & (
    * segments on the same two points), `SKELETON_OVERLAP` (two on one line sharing a length), and the sections'
    * `SECTION_DIMENSIONS`.
    */
-  | { readonly kind: 'frame'; readonly points: readonly CadPartPoint3[]; readonly segments: readonly (readonly [number, number])[]; readonly section: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean; readonly up?: CadPartPoint3; readonly overrides?: readonly CadPartFrameOverride[] }
+  | { readonly kind: 'frame'; readonly points: readonly CadPartPoint3[]; readonly segments: readonly (readonly [number, number])[]; readonly section: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean; readonly up?: CadPartPoint3; readonly overrides?: readonly CadPartFrameOverride[]; readonly corners?: CadPartFrameCorners }
   | { readonly kind: 'frame-member'; readonly section: CadPartSection; readonly start: CadPartPoint3; readonly end: CadPartPoint3; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly up?: CadPartPoint3 }
   /**
    * An edge flange (R12.3, D118) on a sheet (its rules from its report): on a straight `edge` between a planar skin face
@@ -312,6 +312,15 @@ export interface CadPartDocument {
 }
 export interface CadPartLoftSection { readonly sketch: string; readonly z: CadPartDim }
 export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: CadPartDim } | { readonly kind: 'bend'; readonly radius: CadPartDim; readonly angleDegrees: number; readonly toward: 'x' | '-x' | 'y' | '-y' };
+/**
+ * A frame's corners (FR3a, D125): where exactly two members end at a skeleton point, `default` finishes them — `mitre`
+ * (both cut on the plane halfway between them), `butt` (one runs through to cover the other, which ends on its face) or
+ * `none` (left square, overlapping); `mitre` when left out — and `at` sets a point apart (`through`: the member that runs
+ * on at a butt; by default the larger section, the lower index on a tie). `corners` left out: no corner is finished (an
+ * FR2 frame as it was).
+ * Points where three or more members end are left as they are (an ordered trim, FR3b) and reported square.
+ */
+export interface CadPartFrameCorners { readonly default?: 'mitre' | 'butt' | 'none'; readonly at?: readonly { readonly point: number; readonly kind: 'mitre' | 'butt' | 'none'; readonly through?: number }[] }
 /** One member of a frame set apart (FR2, D124): its own section, anchor, offset, roll or mirror. */
 export interface CadPartFrameOverride { readonly member: number; readonly section?: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean }
 /** A member's section (FR1, D123): a kind and its dimensions, or a closed sketch. */
@@ -1116,10 +1125,12 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           per[k] = { look, shape: r.section === undefined ? base.shape : memberShape(r.section, `overrides[${n}].section`, { ref, dim, integer, fail }) };
         });
       }
+      const corners = frameCorners(f.corners, points, pairs, integer, fail);
       return () => {
-        const parts: Part[] = [];
+        const places = pairs.map(([i, j], k) => placeMember(per[k].shape, { start: points[i], end: points[j], L: lengths[k], ...per[k].look, up }));
+        const ends = corners ? planCorners(corners, points, pairs, places, fail) : null, parts: Part[] = [];
         for (let k = 0; k < pairs.length; k++) {
-          const [i, j] = pairs[k], r = buildMember(per[k].shape, { start: points[i], end: points[j], L: lengths[k], ...per[k].look, up, at: `${at}.m${k}`, frame: { member: k, from: i, to: j } }) as Extract<Result, { kind: 'solid' }>;
+          const [i, j] = pairs[k], r = buildMember(per[k].shape, { start: points[i], end: points[j], L: lengths[k], ...per[k].look, up, at: `${at}.m${k}`, frame: { member: k, from: i, to: j }, ...(ends ? { ends: ends[k] } : {}) }) as Extract<Result, { kind: 'solid' }>;
           parts.push(...r.parts);
         }
         return { kind: 'solid', parts };
@@ -1586,14 +1597,14 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
  * (D50). Both sides take the same three base corners, so they share one exact plane. Its base is `<at>.cut.top`
  * below and `<at>.cut.bottom` above, as the axis split's box names it.
  */
-function obliqueHalf(o: Point, n: Point, x: Point, y: Point, R: number, below: boolean, at: string): Solid {
+function obliqueHalf(o: Point, n: Point, x: Point, y: Point, R: number, below: boolean, at: string, capName?: string): Solid {
   const corner = (deg: number) => add(o, add(scale(x, 4 * R * Math.cos(deg * Math.PI / 180)), scale(y, 4 * R * Math.sin(deg * Math.PI / 180))));
   const apex = add(o, scale(n, below ? -4 * R : 4 * R));
   const positions = [...corner(90), ...corner(210), ...corner(330), ...apex];
   // The base first (wound about +n below, −n above), then the sides against its edges.
   const indices = below ? [0, 1, 2, 1, 0, 3, 2, 1, 3, 0, 2, 3] : [0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3];
   const tool = brepFromTriangles(positions, indices, { id: `${at}_cut`, maximumTriangles: 4 });
-  const base = `${at}_cut.facet0`, cap = `${at}.cut.${below ? 'top' : 'bottom'}`;
+  const base = `${at}_cut.facet0`, cap = capName ?? `${at}.cut.${below ? 'top' : 'bottom'}`;
   return { kind: 'brep', brep: transformBrep(tool, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, name => name.split('|').map(q => q === base ? cap : q.replace(`${at}_cut.facet`, `${at}.cut.side`)).join('|')) };
 }
 /** F2: a body with mesh faces and an exact body, `op`; refusals typed. */
@@ -1661,7 +1672,7 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
   if (b.kind === 'brep' && b.brep.faces.some(isFacetFace)) b = { kind: 'brep', brep: explodeFacets(b.brep, at, 'Booleans') };
   const A = a.kind === 'upright' ? (lineOnly(a.solid) ? brepFromPrismatic(a.solid, { id: at + '_a' }) : null) : a.brep;
   const B = b.kind === 'upright' ? (lineOnly(b.solid) ? brepFromPrismatic(b.solid, { id: at + '_b' }) : null) : b.brep;
-  if (A && B && planarBrep(A) && planarBrep(B)) return { kind: 'brep', brep: booleanPolyhedra(A, B, op, { id: at }) };
+  if (A && B && planarBrep(A) && planarBrep(B)) return { kind: 'brep', brep: planarBoolean(A, B, op, at) };
   // Planes and cylinders of any axis.
   const toBrep = (s: Solid) => s.kind === 'upright' ? brepFromPrismatic(s.solid, { id: at + '_in' }) : s.brep;
   try { return { kind: 'brep', brep: booleanAnalytic(toBrep(a), toBrep(b), op, { id: at }) }; }
@@ -1669,6 +1680,17 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
     if (cause instanceof BrepError && /not supported yet/.test(cause.message)) throw new CadPartError('CAPABILITY', at, cause.message.replace(/^B-rep: (analytic Boolean: )?/, ''));
     throw cause;
   }
+}
+/**
+ * Two bodies of planes only: the exact rational polyhedral Boolean. It needs each face's vertices exactly coplanar; a
+ * body off the axes (a member on an oblique line, a split's slanted cut) has them so only to binary64 (~1e-15), and the
+ * polyhedral route refuses the face as "not planar". Then the analytic Boolean, which works on the planes in binary64,
+ * takes the pair (FR3a, D125: a mitred sharp tube on a 120° or 3D corner, and two such tubes welded, were refused).
+ */
+function planarBoolean(a: Brep, b: Brep, op: 'union' | 'difference' | 'intersection', at: string): Brep {
+  try { return booleanPolyhedra(a, b, op, { id: at }); }
+  catch (cause) { if (!(cause instanceof BrepError && /polyhedral Boolean: face .* is not planar/.test(cause.message))) throw cause; }
+  return booleanAnalytic(a, b, op, { id: at });
 }
 /**
  * Copies united in a balanced tree (neighbours first, so each Boolean joins two bodies of like size, not
@@ -1832,22 +1854,148 @@ function memberFrame(u: Point, up: Point, rollDegrees: number): { x: Point; y: P
 /** The point (sx, sy) of a section in its frame, from `base`. */
 const sectionPoint = (F: { x: Point; y: Point }, sx: number, sy: number, base: Point): Point => add(base, add(scale(F.x, sx), scale(F.y, sy)));
 /** A member built: its section extruded L in its own XY (ends `.start`, `.end`), moved onto its line, its report on it. */
-function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Point; L: number; up: Point; at: string; frame?: { member: number; from: number; to: number } }): Result {
-  const shape = o.mirror ? mirroredShape(given) : given, pre = (n: string) => `${o.at}.${n}`;
-  const solid = prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), ...(shape.tags ? { sideTags: shape.tags } : {}), heightMM: o.L, fromMM: 0, tag: o.at,
-    names: { ...(shape.outerNames ? { outer: shape.outerNames.map(pre) } : {}), ...(shape.holeNames ? { holes: shape.holeNames.map(h => h.map(pre)) } : {}), bottom: `${o.at}.start`, top: `${o.at}.end` } });
+type CornerSpec = { readonly fallback: 'mitre' | 'butt' | 'none'; readonly at: ReadonlyMap<number, { readonly kind: 'mitre' | 'butt' | 'none'; readonly through?: number }> };
+/** A frame's `corners` checked (their points as the first point at the same place), or null when it has none. */
+function frameCorners(v: unknown, points: readonly Point[], pairs: readonly (readonly [number, number])[], integer: Tools['integer'], fail: Tools['fail']): CornerSpec | null {
+  if (v === undefined) return null;
+  if (!isRecord(v)) fail('INPUT', 'corners must be { default?, at? }');
+  const c = v as Record<string, unknown>, kinds = ['mitre', 'butt', 'none'];
+  if (c.default !== undefined && !kinds.includes(c.default as string)) fail('INPUT', 'corners.default must be mitre, butt or none');
+  const at = new Map<number, { kind: 'mitre' | 'butt' | 'none'; through?: number }>();
+  if (c.at !== undefined) {
+    if (!Array.isArray(c.at) || c.at.length > CadPartLimits.points) fail('INPUT', 'corners.at must list { point, kind, through? }');
+    (c.at as unknown[]).forEach((e, n) => {
+      if (!isRecord(e)) fail('INPUT', `corners.at[${n}] must be { point, kind, through? }`);
+      const r = e as Record<string, unknown>, p = canonicalPoint(points, integer(r.point, `corners.at[${n}].point`, 0, points.length - 1));
+      if (!kinds.includes(r.kind as string)) fail('INPUT', `corners.at[${n}].kind must be mitre, butt or none`);
+      if (at.has(p)) fail('INPUT', `corners.at[${n}]: point ${r.point} is set twice`);
+      const through = r.through === undefined ? undefined : integer(r.through, `corners.at[${n}].through`, 0, pairs.length - 1);
+      if (through !== undefined && r.kind !== 'butt') fail('INPUT', `corners.at[${n}]: through belongs to a butt`);
+      at.set(p, { kind: r.kind as 'mitre' | 'butt' | 'none', ...(through !== undefined ? { through } : {}) });
+    });
+  }
+  return { fallback: (c.default as 'mitre' | 'butt' | 'none' | undefined) ?? 'mitre', at };
+}
+/** The first point at the same place as point i (within 1e-6 mm): a joint is a place, not an index. */
+function canonicalPoint(points: readonly Point[], i: number): number {
+  for (let k = 0; k < i; k++) if (samePoint(points[k], points[i])) return k;
+  return i;
+}
+/** The vertices of a section's loops (starts and arc centres) in the part, as placed at a point of its line. */
+function sectionVertices(P: MemberPlace, at: Point): Point[] {
+  const out: Point[] = [];
+  for (const loop of [P.shape.outer, ...P.shape.holes]) for (const g of loop) {
+    out.push(sectionPoint(P.F, g.start[0] - P.q[0], g.start[1] - P.q[1], at));
+    if (g.kind === 'arc') out.push(sectionPoint(P.F, g.center[0] - P.q[0], g.center[1] - P.q[1], at));
+  }
+  return out;
+}
+/** The corners of a section's box in the part, as placed at a point of its line. */
+const boxCorners = (P: MemberPlace, at: Point): Point[] => [[P.box.min[0], P.box.min[1]], [P.box.max[0], P.box.min[1]], [P.box.max[0], P.box.max[1]], [P.box.min[0], P.box.max[1]]].map(c => sectionPoint(P.F, c[0] - P.q[0], c[1] - P.q[1], at));
+/** Whether two point sets are the same (each of one within tol of one of the other, the counts equal). */
+function samePoints(a: readonly Point[], b: readonly Point[], tol: number): boolean {
+  if (a.length !== b.length) return false;
+  for (const p of a) { let hit = false; for (const r of b) if (len(sub(p, r)) <= tol) { hit = true; break; } if (!hit) return false; }
+  return true;
+}
+const reflect = (v: Point, m: Point): Point => sub(v, scale(m, 2 * dot(v, m)));
+/**
+ * Each member's ends at the frame's corners (FR3a, D125). At a place where exactly two members end:
+ * - a mitre cuts both on the plane through the point square to u1 + u2 (u1 into the point, u2 out), each run on past
+ *   the point far enough to fill it — refused unless the second's section is the first's reflected in that plane
+ *   (`MITRE_SECTIONS_DIFFER`: their cut faces would not meet face to face);
+ * - a butt runs one member (`through`) on to cover the other's section, square, and ends the other on the plane of the
+ *   through member's section box facing it — refused when that side is no face of the box (`BUTT_NOT_ON_A_FACE`);
+ * - members in line or folded back have no corner (`CORNER_ANGLE`); a point set apart without exactly two members ending
+ *   there is `CORNER_NOT_A_JOINT`.
+ */
+function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly (readonly [number, number])[], places: readonly MemberPlace[], fail: Tools['fail']): MemberEnds[] {
+  const extend = pairs.map(() => [0, 0] as [number, number]), cuts: { o: Point; n: Point; name: string }[][] = pairs.map(() => []), report: FrameEndReport[][] = pairs.map(() => []);
+  const joints = new Map<number, { member: number; end: 0 | 1 }[]>();
+  pairs.forEach(([i, j], k) => ([[i, 0], [j, 1]] as const).forEach(([p, end]) => { const c = canonicalPoint(points, p); if (!joints.has(c)) joints.set(c, []); joints.get(c)!.push({ member: k, end }); }));
+  for (const p of spec.at.keys()) if ((joints.get(p)?.length ?? 0) !== 2 && spec.at.get(p)!.kind !== 'none') fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: ${joints.get(p)?.length ?? 0} member ends meet there, a corner joins two (three or more: an ordered trim, FR3b)`);
+  for (const [p, list] of joints) {
+    const want = spec.at.get(p) ?? { kind: list.length === 2 ? spec.fallback : 'none' as const };
+    if (list.length !== 2 || want.kind === 'none') { for (const e of list) report[e.member].push({ end: e.end ? 'end' : 'start', point: p, kind: 'square' }); continue; }
+    const at = points[p], [A, B] = list, PA = places[A.member], PB = places[B.member];
+    // Each member's direction into the point.
+    const inA = A.end ? PA.u : scale(PA.u, -1), inB = B.end ? PB.u : scale(PB.u, -1), c = dot(inA, inB);
+    if (c < -1 + 1e-12) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: members ${A.member} and ${B.member} are in line, no corner to finish`);
+    if (c > 1 - 1e-12) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: members ${A.member} and ${B.member} fold back on each other`);
+    if (want.kind === 'mitre') {
+      // u1 into the point (A), u2 out of it (B): the plane's normal u1 + u2; A's material below it, B's above.
+      const u2 = scale(inB, -1), m = unit(add(inA, u2)), cos = dot(inA, m), tan = Math.sqrt(1 - cos * cos) / cos;
+      const vA = sectionVertices(PA, at).map(v => add(at, reflect(sub(v, at), m))), vB = sectionVertices(PB, at);
+      const size = Math.max(1, ...vB.map(v => len(sub(v, at))));
+      if (!samePoints(vA, vB, 1e-9 * size)) fail('PARAMETER', `[MITRE_SECTIONS_DIFFER] point ${p}: members ${A.member} and ${B.member} would not meet face to face on the mitre (different sections, or turned differently); give a butt`);
+      const deg = Math.acos(Math.min(1, cos)) * 180 / Math.PI;
+      for (const [E, n, P] of [[A, m, PA], [B, scale(m, -1), PB]] as const) {
+        const reach = Math.max(...boxCorners(P, at).map(v => len(sub(v, at))));
+        extend[E.member][E.end] = reach * tan + reach + 1;
+        cuts[E.member].push({ o: at, n, name: `${E.end ? 'end' : 'start'}.mitre` });
+        report[E.member].push({ end: E.end ? 'end' : 'start', point: p, kind: 'mitre', with: E === A ? B.member : A.member, angleDegrees: deg, plane: { origin: at, normal: n } });
+      }
+      continue;
+    }
+    // A butt: T runs through, O ends on T's box face facing it.
+    const through = want.through ?? (PA.area > PB.area + 1e-9 ? A.member : PB.area > PA.area + 1e-9 ? B.member : Math.min(A.member, B.member));
+    if (through !== A.member && through !== B.member) fail('INPUT', `corners at point ${p}: through must be member ${A.member} or ${B.member}`);
+    const [T, O] = through === A.member ? [A, B] : [B, A], PT = places[T.member], PO = places[O.member];
+    const inT = T === A ? inA : inB, inO = T === A ? inB : inA;
+    // The side of T that O comes from, square to T's line, in T's section axes.
+    const w0 = sub(scale(inO, -1), scale(inT, dot(scale(inO, -1), inT))), wl = len(w0), w = scale(w0, 1 / wl), wx = dot(w, PT.F.x), wy = dot(w, PT.F.y);
+    const side = Math.abs(Math.abs(wx) - 1) < 1e-9 ? (wx > 0 ? PT.box.max[0] - PT.q[0] : PT.q[0] - PT.box.min[0]) : Math.abs(Math.abs(wy) - 1) < 1e-9 ? (wy > 0 ? PT.box.max[1] - PT.q[1] : PT.q[1] - PT.box.min[1]) : NaN;
+    if (Number.isNaN(side)) fail('PARAMETER', `[BUTT_NOT_ON_A_FACE] point ${p}: member ${O.member} meets member ${T.member} at an edge of its section, not a face (turn one, or mitre)`);
+    const face = add(at, scale(w, side));
+    // T runs on past the point to cover O's section there; O runs on into T far enough that its whole end lies past the face.
+    const runT = Math.max(0, ...boxCorners(PO, at).map(v => dot(sub(v, at), inT))), sO = Math.max(...boxCorners(PO, at).map(v => dot(sub(v, at), w)));
+    extend[T.member][T.end] = runT;
+    extend[O.member][O.end] = Math.max(0, (sO - side) / wl) + Math.max(...boxCorners(PO, at).map(v => len(sub(v, at)))) + 1;
+    cuts[O.member].push({ o: face, n: scale(w, -1), name: `${O.end ? 'end' : 'start'}.butt` });
+    report[T.member].push({ end: T.end ? 'end' : 'start', point: p, kind: 'through', with: O.member, extendedMM: runT });
+    report[O.member].push({ end: O.end ? 'end' : 'start', point: p, kind: 'butt', with: T.member, angleDegrees: Math.acos(Math.min(1, Math.abs(dot(inO, w)))) * 180 / Math.PI, plane: { origin: face, normal: scale(w, -1) } });
+  }
+  return pairs.map((_, k) => ({ extend: extend[k], cuts: cuts[k], report: report[k].sort((a, b) => a.end < b.end ? 1 : a.end > b.end ? -1 : 0) }));
+}
+/** A member's section placed on its line: the (mirrored) shape, area, centroid, box, the line's direction, the frame, the line's section point. */
+type MemberPlace = { readonly shape: MemberShape; readonly area: number; readonly centroid: XY; readonly box: { readonly min: XY; readonly max: XY }; readonly u: Point; readonly F: { x: Point; y: Point; fallback?: Point }; readonly q: XY };
+function placeMember(given: MemberShape, o: MemberLook & { start: Point; end: Point; L: number; up: Point }): MemberPlace {
+  const shape = o.mirror ? mirroredShape(given) : given;
   let area = shape.areaMM2, centroid = shape.centroid;
-  // (A sketch section: its area and centroid by the prism's exact mass.)
-  if (area === undefined || centroid === undefined) { const m = prismaticMassProperties(solid, 1); area = m.volumeMM3 / o.L; centroid = [m.centroidMM[0], m.centroidMM[1]]; }
+  // (A sketch section: its area and centroid by a unit prism's exact mass.)
+  if (area === undefined || centroid === undefined) {
+    const m = prismaticMassProperties(prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), heightMM: 1, fromMM: 0 }), 1);
+    area = m.volumeMM3; centroid = [m.centroidMM[0], m.centroidMM[1]];
+  }
   const box = shape.box ?? loopBox(shape.outer), u = snapUnit(scale(sub(o.end, o.start), 1 / o.L)), F = memberFrame(u, o.up, o.roll);
   // (The section point on the line: the anchor's, less the offset the section is moved by.)
-  const p = anchorPoint(o.anchor, centroid, box), q: XY = [p[0] - o.offset[0], p[1] - o.offset[1]];
+  const p = anchorPoint(o.anchor, centroid, box);
+  return { shape, area, centroid, box, u, F, q: [p[0] - o.offset[0], p[1] - o.offset[1]] };
+}
+/** How a member's ends are finished at its frame's corners (FR3a, D125): how far each end runs on, the planes it is cut by (keeping n·x < n·o), what each end is. */
+type MemberEnds = { readonly extend: readonly [number, number]; readonly cuts: readonly { readonly o: Point; readonly n: Point; readonly name: string }[]; readonly report: readonly FrameEndReport[] };
+/** A member built: its section extruded along its line (run on past an end where a corner needs it, ends `.start`, `.end`), moved onto its line, cut at its corners, its report on it. */
+function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Point; L: number; up: Point; at: string; frame?: { member: number; from: number; to: number }; ends?: MemberEnds }): Result {
+  const P = placeMember(given, o), { shape, area, centroid, u, F, q } = P, pre = (n: string) => `${o.at}.${n}`, e0 = o.ends?.extend[0] ?? 0, e1 = o.ends?.extend[1] ?? 0;
+  const solid = prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), ...(shape.tags ? { sideTags: shape.tags } : {}), heightMM: o.L + e0 + e1, fromMM: -e0, tag: o.at,
+    names: { ...(shape.outerNames ? { outer: shape.outerNames.map(pre) } : {}), ...(shape.holeNames ? { holes: shape.holeNames.map(h => h.map(pre)) } : {}), bottom: `${o.at}.start`, top: `${o.at}.end` } });
   const origin = sectionPoint(F, -q[0], -q[1], o.start), m: BrepAffine['matrix'] = [F.x[0], F.y[0], u[0], F.x[1], F.y[1], u[1], F.x[2], F.y[2], u[2]];
   const member: FrameMemberReport = { sectionKind: shape.kind, section: shape.label, areaMM2: area, centroid, ...(shape.derived ? { derived: shape.derived } : {}), anchor: o.anchor, offset: o.offset, rollDegrees: o.roll, ...(o.mirror ? { mirrored: true } : {}), ...(o.frame ? { frame: o.frame } : {}),
     start: o.start, end: o.end, lengthMM: o.L, axis: u, xAxis: F.x, yAxis: F.y, ...(F.fallback ? { upFallback: F.fallback } : {}),
-    centroidLine: { start: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.start), end: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.end) } };
+    centroidLine: { start: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.start), end: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.end) },
+    ...(o.ends ? { ends: o.ends.report } : {}) };
   const r = moveAll([{ solid: { kind: 'upright', solid } }], m, origin) as Extract<Result, { kind: 'solid' }>;
-  return { kind: 'solid', parts: r.parts.map(part => ({ ...part, member })) };
+  if (!o.ends?.cuts.length) return { kind: 'solid', parts: r.parts.map(part => ({ ...part, member })) };
+  // Cut at its corners: each plane keeps the member's side (n·x < n·o); a half-space round it, R past every point of it.
+  let cut = r.parts[0].solid;
+  const R = o.L + e0 + e1 + 2 * Math.hypot(P.box.max[0] - P.box.min[0], P.box.max[1] - P.box.min[1]) + 1;
+  for (const c of o.ends.cuts) {
+    const x = unit(cross(c.n, Math.abs(c.n[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0])), y = cross(c.n, x);
+    // (The tool's own ids take no dots; its cap is named as the member's cut face.)
+    cut = boolean(cut, obliqueHalf(c.o, c.n, x, y, R, true, `${o.at}_${c.name}`.replace(/\./g, '_'), `${o.at}.${c.name}`), 'intersection', o.at.replace(/\./g, '_'));
+  }
+  if (cut.kind === 'brep' && cut.brep.bodies.length !== 1) throw new CadPartError('GEOMETRY', o.at, `[TRIM_LEAVES_PIECES] cut at its corners, member ${o.frame?.member ?? ''} is in ${cut.brep.bodies.length} pieces`);
+  return { kind: 'solid', parts: [{ solid: cut, member }] };
 }
 function moveAll(parts: readonly Part[], m: BrepAffine['matrix'], o: Point): Result {
   return { kind: 'solid', parts: parts.map((p): Part => {
@@ -2334,7 +2482,7 @@ function wedgeChamfer(solid: Solid, source: Brep, edge: Brep['edges'][number], d
   const wedge = prismBrep(T0, T1, `${at}.face`);
   const body = solid.kind === 'upright' ? brepFromPrismatic(solid.solid) : solid.brep;
   // (A wedge ending in an end face's plane: the analytic Boolean, which takes the coplanar cap; the polyhedral one does not, D98.)
-  if (planarBrep(body) && !ends.some(Boolean)) return { kind: 'brep', brep: booleanPolyhedra(body, wedge, convex ? 'difference' : 'union', { id: at }) };
+  if (planarBrep(body) && !ends.some(Boolean)) return { kind: 'brep', brep: planarBoolean(body, wedge, convex ? 'difference' : 'union', at) };
   try { return { kind: 'brep', brep: booleanAnalytic(body, wedge, convex ? 'difference' : 'union', { id: at }) }; }
   catch (cause) { if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', `edge ${edge.name}: the chamfer would cut a curved face at an angle (not supported yet)`); throw cause; }
 }

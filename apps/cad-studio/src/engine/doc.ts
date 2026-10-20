@@ -21,6 +21,11 @@ export type MemberSection =
   | { kind: 'channel'; height: Dim; width: Dim; web: Dim; flange: Dim; rootRadius: Dim }
   | { kind: 'tslot'; size: Dim; cells: 1 | 2; openSlots?: number; opening: Dim; lip: Dim; undercut: Dim; depth: Dim; bore: Dim }
   | { kind: 'sketch'; sketch: number };
+/**
+ * A frame's corners (FR3a, D125; the kernel's `corners`): where exactly two members end at a point, `default` (mitre when
+ * left out) finishes them — mitre, butt or none — and `at` sets a point apart (`through`: the member running on at a butt).
+ */
+export interface FrameCorners { default?: 'mitre' | 'butt' | 'none'; at?: { point: number; kind: 'mitre' | 'butt' | 'none'; through?: number }[] }
 /** One member of a frame set apart (FR2, D124): its own section, anchor, offset, roll or mirror. */
 export interface FrameOverride { member: number; section?: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean }
 export type FrameAnchor = 'centroid' | 'origin' | 'bottom-left' | 'bottom' | 'bottom-right' | 'left' | 'center' | 'right' | 'top-left' | 'top' | 'top-right';
@@ -155,7 +160,7 @@ type ModelNodeBase = SketchNode
    * one member along each, each its own body (side `part<k>`; one segment: `solid`). The frame's section and placement hold
    * for every member unless `overrides` sets one apart. `estimates` as a member's.
    */
-  | { kind: 'frame'; points: [Dim, Dim, Dim][]; segments: [number, number][]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; estimates?: string[] }
+  | { kind: 'frame'; points: [Dim, Dim, Dim][]; segments: [number, number][]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; estimates?: string[] }
   | { kind: 'frame-member'; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; up?: [number, number, number]; estimates?: string[] }
   /** An open surface (copied from a direct surface `name`) thickened into a solid along its normal: faceted. */
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }

@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { commands } from '../src/app/commands';
 import { evaluateDoc, evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, featureLabel, withNode, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, featureLabel, rectanglePart, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import { flattenAssembly } from '../src/assembly/flatten';
 import { readStudioDoc } from '../src/engine/migrate';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { editFields } from '../src/app/editFields';
@@ -136,4 +137,59 @@ test('D124 the agent\'s frame: a raw node with an override (the legs mirrored an
   await refused([{ ...node, segments: 'all' }], /1 to 256 \[from, to\] point indices/);
   await refused([{ ...node, overrides: [{ member: 0, colour: 'red' }] }], /an override has no \\"colour\\"/);
   await refused([{ ...node, overrides: [{ member: 0, section: { kind: 'angle', legX: 40 } }] }], /override of member 0: a angle section needs/);
+});
+
+test('D125 corners from the palette: a rectangle of sharp tubes mitred (A·L each, 45° ends in the notes); a table\'s three-member corners left square and said so; a corner set apart in the editor', () => {
+  const cmd = commands.find(c => c.id === 'frame')!, ctx = { doc: emptyDoc(), bodies: [], selection: none } as never, d = cmd.defaults!(ctx);
+  assert.equal(d.corners, 'mitre');
+  const A = 1600 - 34 * 34, doc = cmd.build!(ctx, { ...d, skeleton: 'rectangle', ro: 0 }), node = doc.nodes[0];
+  assert.ok(node.kind === 'frame'); assert.deepEqual(node.corners, { default: 'mitre' });
+  const bodies = bodiesOf(doc), L = [600, 400, 600, 400];
+  bodies.forEach((b, k) => assert.ok(Math.abs(b.volumeMM3! / (A * L[k]) - 1) < 1e-12, `member ${k}: ${b.volumeMM3}`));
+  assert.ok(bodies[0].notes!.some(n => n.text === 'Ends: start mitre 45° with member 4; end mitre 45° with member 2'), JSON.stringify(bodies[0].notes));
+  // A table: every top corner joins a leg and two rails — square, overlapping, said so.
+  const table = bodiesOf(cmd.build!(ctx, { ...d, ro: 0 }));
+  assert.ok(table[4].notes!.some(n => n.warning && /^Point 5: 3 members meet, left square and overlapping/.test(n.text)), JSON.stringify(table[4].notes));
+  // The editor: point 2 (index 1) butted, member 2 through — member 1 ends 20 short there, member 2 runs on 20.
+  const f = editFields(doc.nodes, 0).find(x => x.key === 'corner1')!;
+  assert.ok(f.kind === 'choice'); assert.deepEqual(f.options.map(o => o.value), ['default', 'mitre', 'butt:0', 'butt:1', 'none']);
+  const butted = f.kind === 'choice' ? f.set(doc.nodes, 'butt:1') : doc.nodes, bb = bodiesOf({ ...doc, nodes: butted });
+  assert.deepEqual((butted[0] as { corners?: unknown }).corners, { default: 'mitre', at: [{ point: 1, kind: 'butt', through: 1 }] });
+  assert.ok(Math.abs(bb[0].volumeMM3! / (A * 580) - 1) < 1e-12 && Math.abs(bb[1].volumeMM3! / (A * 420) - 1) < 1e-12, `${bb[0].volumeMM3} ${bb[1].volumeMM3}`);
+  if (f.kind === 'choice') assert.equal(f.get(butted), 'butt:1');
+  // All corners butted from the frame's field; back to the default for that point.
+  const all = editFields(doc.nodes, 0).find(x => x.key === 'corners')!;
+  if (all.kind === 'choice') assert.equal((all.set(doc.nodes, 'none')[0] as { corners?: { default?: string } }).corners!.default, 'none');
+  if (f.kind === 'choice') assert.deepEqual((f.set(butted, 'default')[0] as { corners?: unknown }).corners, { default: 'mitre' });
+});
+
+test('D125 a frame on a sketch section inside an assembly instance: flattened, its section follows its sketch (volumes and face names); the agent\'s corners, checked', async () => {
+  // The instance: a 30 × 20 plate sketch with a hole, a two-member frame on it, mitred.
+  let part = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 20], holes: [[{ kind: 'arc', start: [14, 10], center: [10, 10], direction: 'ccw' }]] } as never);
+  part = withNode(part, { kind: 'frame', points: [[0, 0, 0], [300, 0, 0], [300, 200, 0]], segments: [[0, 1], [1, 2]], section: { kind: 'sketch', sketch: 0 }, corners: { default: 'butt' } });
+  const sub: StudioDoc = { ...rectanglePart(50, 50, 5), instances: [{ id: 'fr', name: 'fr', doc: part, position: [0, 100, 0], rotation: [0, 0, 0] } as PartInstance] };
+  const flat = flattenAssembly(sub), frame = flat.nodes.find(n => n.kind === 'frame')!;
+  // (The plate's two nodes come first: the frame's sketch is node 2 now.)
+  assert.ok(frame.kind === 'frame' && frame.section.kind === 'sketch' && frame.section.sketch === 2, JSON.stringify(frame));
+  const r = evaluatePart(flat, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
+  // (Placed 100 along Y, each member moved there: its body is the move's, its faces still the frame's.)
+  const A = 600 - 16 * Math.PI, members = r.bodies.filter(b => b.mesh.faces.some(f => f.name.startsWith(`${frame.id}.m`))).sort((p, q) => p.mesh.bounds.min[0] - q.mesh.bounds.min[0]);
+  assert.equal(members.length, 2);
+  // A butt, member 0 through (the same section: the lower index). Member 0 (along +X) has its section x (30 wide) along +Y;
+  // member 1 (along +Y) has its x along −X. With x̄ the section's centroid: member 0 runs on x̄ past the corner to cover
+  // member 1, and member 1 ends on member 0's face 30 − x̄ from the corner: A(300 + x̄) + A(200 − 30 + x̄).
+  const cx = (600 * 15 - 16 * Math.PI * 10) / A;
+  assert.ok(Math.abs(members[0].volumeMM3! / (A * (300 + cx)) - 1) < 1e-12, String(members[0].volumeMM3));
+  assert.ok(Math.abs(members[1].volumeMM3! / (A * (170 + cx)) - 1) < 1e-12, String(members[1].volumeMM3));
+  const fid = frame.id!, names = new Set(members.flatMap(b => b.mesh.faces.map(f => f.name.replace(/#\d+$/, ''))));
+  assert.ok([...names].every(n => n.startsWith(`${fid}.m`)) && names.has(`${fid}.m0.start`) && names.has(`${fid}.m1.start.butt`) && names.has(`${fid}.m1.hole0.side0`), [...names].join(' '));
+  // The agent's corners: checked before the kernel sees them.
+  const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
+  const node = { kind: 'frame', points: [[0, 0, 0], [300, 0, 0], [300, 300, 0]], segments: [[0, 1], [1, 2]], section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { default: 'mitre' } };
+  const ok = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [node] }, evaluate);
+  assert.ok(!ok.isError, ok.content);
+  const bad = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [{ ...node, corners: { default: 'weld' } }] }, evaluate);
+  assert.ok(bad.isError && /corners\.default: mitre, butt or none/.test(bad.content), bad.content);
+  const inline = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [{ ...node, points: [[0, 0, 0], [300, 0, 0], [600, 0, 0]] }] }, evaluate);
+  assert.ok(inline.isError && /CORNER_ANGLE/.test(inline.content), inline.content);
 });

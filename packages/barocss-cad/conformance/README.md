@@ -33,7 +33,8 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
       "sheet": { "thicknessMM": 2, "bendRadiusMM": 3, "kFactor": 0.4, "absTol": 1e-9, "bends": [{ "name": "c.bend1", "angleDegrees": 90, "allowanceMM": 5.969 }] },
       // optional: a structural member's report (FR1): its section's area and centroid, length, the section's x and y (and the up fallback), to absTol
       // ("derived": the dimensions derived by a geometric rule and how, or null for none — a tube's concentric bore radius)
-      "member": { "areaMM2": 420.82, "lengthMM": 394.46, "centroid": [0, 0], "xAxis": [0, 1, 0], "yAxis": [0, 0, 1], "derived": { "innerRadius": "concentric: ro − t" }, "absTol": 1e-9 },
+      // ("ends": a frame member's ends at its corners in order — end, kind, point, and the cut's angle from square, FR3a)
+      "member": { "areaMM2": 420.82, "lengthMM": 394.46, "centroid": [0, 0], "xAxis": [0, 1, 0], "yAxis": [0, 0, 1], "derived": { "innerRadius": "concentric: ro − t" }, "ends": [{ "end": "start", "kind": "mitre", "point": 0, "angleDegrees": 45 }], "absTol": 1e-9 },
       // optional: its flat pattern (R12.2): area, box, loops, bends (sorted by name) — or `error` {code, messageIncludes};
       // `options` as flatPattern takes them (with `thicknessMM`: the kernel's flatPattern of a body made without the rules)
       "flat": { "areaMM2": { "value": 2308.65, "relTol": 1e-9 }, "box": { "value": [94.36, 25], "absTol": 1e-9 }, "loops": 2, "bends": [{ "name": "c.bend1", "direction": "down", "angleDegrees": 90 }] }

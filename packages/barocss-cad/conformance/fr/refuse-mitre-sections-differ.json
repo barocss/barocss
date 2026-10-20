@@ -1,0 +1,78 @@
+{
+  "id": "fr-refuse-mitre-sections-differ",
+  "step": "FR",
+  "decisions": [
+    "D125"
+  ],
+  "about": "FR3a: a mitre between a sharp tube and a round-cornered one is refused by name (their cut faces would not meet face to face).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              300,
+              0,
+              0
+            ],
+            [
+              300,
+              300,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "overrides": [
+            {
+              "member": 1,
+              "section": {
+                "kind": "rect-tube",
+                "width": 40,
+                "height": 40,
+                "wall": 3,
+                "outerRadius": 6
+              }
+            }
+          ],
+          "corners": {
+            "default": "mitre"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[MITRE_SECTIONS_DIFFER] point 1: members 0 and 1"
+    }
+  },
+  "oracle": "By construction: the two sections differ."
+}

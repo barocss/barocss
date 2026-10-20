@@ -3233,6 +3233,25 @@ try {
     await snap('fr2-table-frame');
   });
 
+  await check('FR3a a mitred rectangle from the palette: four sharp tubes cut on their corners\' halfway planes, A·L each, 45° ends in the notes; the welded look of a frame (new in D125)', async () => {
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await press(' '); await page.locator('.palette input').fill('skeleton'); await press('Enter'); await hudReady();
+    await field('Skeleton').selectOption('rectangle'); await hudReady();
+    await field('Outer corner radius (estimate)').fill('0'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'frame', null, { timeout: 30000 });
+    await page.waitForFunction(() => /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.at(-1).corners), { default: 'mitre' });
+    // The first member: 600 mm of a sharp 40 × 40 × 3 tube (A 444 mm²), mitred at both ends: 266 400 mm³.
+    const vol = await bodyVolume();
+    assert.ok(Math.abs(vol - 444 * 600) <= 1, `${vol}`);
+    assert.match(await page.textContent('.props'), /Ends: start mitre 45° with member 4; end mitre 45° with member 2/);
+    await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('fr3a-mitred-rectangle');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

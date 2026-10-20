@@ -105,6 +105,8 @@ function pointIndex(points: P3[], p: readonly number[]): number {
 }
 const SKELETONS = [{ value: 'table', label: 'Table (top and legs)' }, { value: 'box', label: 'Box (12 edges)' }, { value: 'rectangle', label: 'Rectangle' }, { value: 'edges', label: 'Picked edges' }];
 const preset = (v: Values) => v.skeleton !== 'edges';
+/** How the corners of two members are finished (FR3a): mitred, butted (the larger section runs through), or left square. */
+const CORNERS = [{ value: 'mitre', label: 'Mitre' }, { value: 'butt', label: 'Butt' }, { value: 'none', label: 'None (overlap)' }];
 
 /**
  * A frame (FR2, D124): one member along each segment of a skeleton — a preset (a table, a box, a rectangle) sized by
@@ -123,10 +125,11 @@ export const frameCommand: Command = {
     ...sectionFields,
     { key: 'anchor', label: 'Lines through', kind: 'choice', options: ANCHORS.map(a => ({ value: a, label: a })) },
     { key: 'roll', label: 'Roll', kind: 'deg', min: -360, max: 360, step: 15 },
+    { key: 'corners', label: 'Corners (two members)', kind: 'choice', options: CORNERS },
   ],
   defaults: ctx => {
     const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity), x = Number.isFinite(right) ? Math.round(right + 60) : 0;
-    return { ...PREFILL, skeleton: edgesSkeleton(ctx) ? 'edges' : 'table', W: 600, D: 400, H: 700, x, y: 0, z: 0, anchor: 'centroid', roll: 0 };
+    return { ...PREFILL, skeleton: edgesSkeleton(ctx) ? 'edges' : 'table', W: 600, D: 400, H: 700, x, y: 0, z: 0, anchor: 'centroid', roll: 0, corners: 'mitre' };
   },
   steps: (ctx, v) => {
     if (v.skeleton !== 'edges') return [];
@@ -138,7 +141,8 @@ export const frameCommand: Command = {
     if (!sk) throw new Error('Pick straight edges (of a layout box or sketch) for the skeleton, or choose a preset.');
     if (preset(v) && !(Number(v.W) > 0 && Number(v.D) > 0 && (v.skeleton === 'rectangle' || Number(v.H) > 0))) throw new Error('Give the skeleton a width, a depth and a height above 0.');
     const roll = Number(v.roll) || 0, anchor = String(v.anchor) as FrameAnchor, estimates = estimatesOf(v);
-    const node: ModelNode = { kind: 'frame', points: sk.points, segments: sk.segments, section: sectionOf(v), ...(anchor !== 'centroid' ? { anchor } : {}), ...(roll ? { roll } : {}), ...(estimates.length ? { estimates } : {}) };
+    const corners = (['mitre', 'butt', 'none'].includes(String(v.corners)) ? v.corners : 'mitre') as 'mitre' | 'butt' | 'none';
+    const node: ModelNode = { kind: 'frame', points: sk.points, segments: sk.segments, section: sectionOf(v), ...(anchor !== 'centroid' ? { anchor } : {}), ...(roll ? { roll } : {}), corners: { default: corners }, ...(estimates.length ? { estimates } : {}) };
     return withNode(ctx.doc, node);
   },
 };

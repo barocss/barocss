@@ -642,4 +642,4 @@ export type { FlatPattern, FlatLoop, FlatSegment, FlatBend, FlatPatternOptions, 
 export { bendTableProblem, lookupBend, rowKFactor } from './sheet-metal.js';
 export type { BendTable, BendTableRow, BendTableSource, BendTableUse } from './sheet-metal.js';
 export { frameSection, anchorPoint, loopBox, FrameSectionError, FRAME_ANCHORS } from './frame-section.js';
-export type { FrameSection, FrameSectionSpec, FrameAnchor, FrameMemberReport } from './frame-section.js';
+export type { FrameSection, FrameSectionSpec, FrameAnchor, FrameMemberReport, FrameEndReport } from './frame-section.js';

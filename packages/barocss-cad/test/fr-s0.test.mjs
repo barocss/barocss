@@ -108,9 +108,8 @@ test('FR S0: a mitre by today\'s split — each member A × its axis to the join
     const x1 = cross(n, u1), x2 = cross(n, u2), e = 60;
     const feats = [...member('a', s, p0, p, x1, [0, e]), ...member('b', s, p, p2, x2, [e, 0]),
       { id: 'ac', kind: 'split', target: 'a', normal: m.normal, at: m.at }, { id: 'bc', kind: 'split', target: 'b', normal: m.normal, at: m.at }];
-    // (A planar member off the axes: its faces' float vertices are not exactly coplanar, so the exact polyhedral Boolean
-    // under split refuses it — the same defect as the weld below, D122.)
-    if (tol === 1e-12 && name !== 'square') { assert.throws(() => run(feats), /polyhedral Boolean: face .* is not planar/, name); continue; }
+    // (A planar member off the axes: its faces' float vertices are not exactly coplanar. The exact polyhedral Boolean under
+    // split refused it at S0, D122; since FR3a, D125, the analytic Boolean takes such a pair.)
     const t0 = performance.now(), snap = run(feats), A = snap.output('ac/0'), B = snap.output('bc/1'); t.diagnostic(`${name} ro ${tol === 1e-12 ? 0 : 6}: split ${Math.round(performance.now() - t0)} ms`);
     const L1 = Math.hypot(...sub(p, p0)), L2 = Math.hypot(...sub(p2, p));
     near(A.massProperties(STEEL).volumeMM3, s.area * L1, tol, `${name} a`); near(B.massProperties(STEEL).volumeMM3, s.area * L2, tol, `${name} b`);
@@ -127,11 +126,10 @@ test('FR S0: a mitre by today\'s split — each member A × its axis to the join
     // The two cut faces coincide: their union (the analytic Boolean) is one body with exactly the sum.
     const t1 = performance.now(), u = booleanAnalytic(A.brep, B.brep, 'union'); t.diagnostic(`${name}: weld ${Math.round(performance.now() - t1)} ms`);
     near(brepMassProperties(u, STEEL).volumeMM3, s.area * (L1 + L2), tol, `${name} welded`); assert.equal(u.bodies.length, 1, name);
-    // Through the part's `union`: planar bodies go to the exact rational polyhedral Boolean, which refuses the split's
-    // oblique cut face (its float vertices not exactly coplanar) — a defect for FR3 (D122). Curved ones go analytic.
-    const welded = () => run([...feats, { id: 'w', kind: 'union', target: 'ac/0', tool: 'bc/1' }]).output('w');
-    if (A.representation === 'planar') assert.throws(welded, /polyhedral Boolean: face .* is not planar/, name);
-    else near(welded().massProperties(STEEL).volumeMM3, s.area * (L1 + L2), tol, `${name} welded by the feature`);
+    // Through the part's `union`: planar bodies went to the exact rational polyhedral Boolean, which refused the split's
+    // oblique cut face (D122); since FR3a (D125) the analytic Boolean takes them. Curved ones go analytic.
+    const welded = run([...feats, { id: 'w', kind: 'union', target: 'ac/0', tool: 'bc/1' }]).output('w');
+    near(welded.massProperties(STEEL).volumeMM3, s.area * (L1 + L2), tol, `${name} welded by the feature`); assert.equal(welded.bodyCount, 1, name);
   }
 });
 
