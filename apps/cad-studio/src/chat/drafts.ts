@@ -5,10 +5,11 @@
 // Confirming a dimension at another value re-drives the features: the sketches scaled (about the image's corner, or a
 // hole about its centre), the extrusions' height, the lofts' depth. Unconfirmed dimensions are unknowns in check_spec,
 // and an export says the part is a draft.
-import type { Dim, DocPlane, LoopSegment, ModelNode, StudioDoc } from '../engine/doc';
+import type { Dim, DocPlane, DocUnderlay, LoopSegment, ModelNode, StudioDoc } from '../engine/doc';
 import { withNode } from '../engine/doc';
 import { featureId, nodeIndexOf } from '../engine/ids';
 import { DxfReadError, readDxfSketch, type DxfLoop } from '../sketch/dxfRead';
+import type { Underlay } from '../sketch/dxfUnderlay';
 
 export type Drive = { kind: 'scale'; nodes: string[]; about: [number, number] } | { kind: 'height'; nodes: string[] } | { kind: 'depth'; nodes: string[] } | { kind: 'hole'; node: string; hole: number; center: [number, number] };
 export interface DraftDim { name: string; label: string; value: number; basis: 'scaled' | 'from-drawing'; confirmed?: { by: 'user'; at: string }; drive: Drive }
@@ -41,8 +42,10 @@ export function withImageDraft(doc: StudioDoc, from: number, image: string, dims
 const segs = (l: DxfLoop): LoopSegment[] => l.segments.map(s => (s.kind === 'arc' ? { ...s, start: [r6(s.start[0] as number), r6(s.start[1] as number)], center: [r6(s.center[0] as number), r6(s.center[1] as number)] } : { ...s, start: [r6(s.start[0] as number), r6(s.start[1] as number)] }));
 const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** A DXF drawing added to the part as a sketch draft (its regions and holes, in mm, at the sketch plane), with its dimensions from the drawing. */
-export function withDrawingDraft(doc: StudioDoc, text: string, name: string, plane?: DocPlane): { doc: StudioDoc; draft: Draft; ignored: Record<string, number>; unit: string } {
+export function withDrawingDraft(doc: StudioDoc, text: string, name: string, plane?: DocPlane): { doc: StudioDoc; draft: Draft | null; ignored: Record<string, number>; unit: string; underlay: Underlay } {
   const s = readDxfSketch(text), [outer, ...more] = s.regions;
+  // (No profile: the drawing is an underlay alone, to trace over — no sketch, no draft dimensions, O68.)
+  if (!outer) return { doc: withUnderlay(doc, s.underlay, name, plane, undefined), draft: null, ignored: s.ignored, unit: s.unit.name, underlay: s.underlay };
   const node = { kind: 'sketch', profile: 'loop', segments: segs(outer), ...(more.length ? { regions: more.map(segs) } : {}), ...(s.holes.length ? { holes: s.holes.map(segs) } : {}), ...(plane ? { plane } : {}) } as ModelNode;
   const next = withNode(doc, node as never), at = next.nodes.length - 1, id = featureId(next.nodes, at), set = readDrafts(doc.drafts);
   const box = s.regions.reduce((b, l) => [Math.min(b[0], l.box[0]), Math.min(b[1], l.box[1]), Math.max(b[2], l.box[2]), Math.max(b[3], l.box[3])] as [number, number, number, number], [Infinity, Infinity, -Infinity, -Infinity] as [number, number, number, number]);
@@ -52,7 +55,21 @@ export function withDrawingDraft(doc: StudioDoc, text: string, name: string, pla
     ...s.holes.flatMap((h, i) => (h.circle ? [{ name: `d${i + 1}`, label: `hole ${i + 1}'s diameter`, value: r6(2 * h.circle.radius), basis: 'from-drawing' as const, drive: { kind: 'hole' as const, node: id, hole: i, center: [r6(h.circle.center[0]), r6(h.circle.center[1])] as [number, number] } }] : [])),
   ];
   const draft: Draft = { id: nextDraftId(set), from: { drawing: name }, nodes: [id], dims, note: `read from ${name} in ${s.unit.name}${s.unit.declared ? '' : ' (the file declares no unit)'}`, ...(s.unit.declared ? {} : { unitAssumed: true as const }) };
-  return { doc: { ...next, drafts: { version: 1, drafts: [...set.drafts, draft] } }, draft, ignored: s.ignored, unit: s.unit.name };
+  return { doc: withUnderlay({ ...next, drafts: { version: 1, drafts: [...set.drafts, draft] } }, s.underlay, name, plane, draft.id), draft, ignored: s.ignored, unit: s.unit.name, underlay: s.underlay };
+}
+/** The document with a drawing's underlay added beside it (O68), when it has anything to show. */
+function withUnderlay(doc: StudioDoc, u: Underlay, name: string, plane: DocPlane | undefined, draft: string | undefined): StudioDoc {
+  if (!u.polylines.length && !u.texts.length) return doc;
+  const have = doc.underlays ?? [];
+  let k = have.length + 1; while (have.some(x => x.id === `U${k}`)) k++;
+  const entry: DocUnderlay = { id: `U${k}`, name, ...(plane ? { plane } : {}), ...(draft ? { draft } : {}), polylines: u.polylines.map(l => l.map(p => [r6(p[0]), r6(p[1])] as [number, number])), texts: u.texts.map(t => ({ ...t, at: [r6(t.at[0]), r6(t.at[1])] as [number, number] })), counts: u.counts };
+  return { ...doc, underlays: [...have, entry] };
+}
+/** A draft's underlays scaled by k about o with its sketch (O68: the drawing traced over stays the drawing). */
+function scaleUnderlays(doc: StudioDoc, draft: string, k: number, o: [number, number]): DocUnderlay[] | undefined {
+  if (!doc.underlays) return undefined;
+  const at = (p: [number, number]): [number, number] => [r6(o[0] + (p[0] - o[0]) * k), r6(o[1] + (p[1] - o[1]) * k)];
+  return doc.underlays.map(u => u.draft !== draft ? u : { ...u, polylines: u.polylines.map(l => l.map(at)), texts: u.texts.map(t => ({ ...t, at: at(t.at), height: r6(t.height * k) })) });
 }
 
 // ——— confirming a dimension: re-driving its features
@@ -96,7 +113,8 @@ export function confirmDimension(doc: StudioDoc, key: string, value: number | un
   // (What the change moves: a scale moves every size of its sketches; a hole's diameter, only itself.)
   const moved = (x: DraftDim) => x !== dim && Math.abs(k - 1) > 1e-12 && dim.drive.kind === 'scale' && (x.drive.kind === 'scale' || x.drive.kind === 'hole') && (x.drive.kind === 'scale' ? x.drive.nodes.some(id => (dim.drive as { nodes: string[] }).nodes.includes(id)) : (dim.drive as { nodes: string[] }).nodes.includes(x.drive.node));
   const dims = draft.dims.map(x => (x === dim ? { ...x, value: r6(v), confirmed: { by: 'user' as const, at } } : moved(x) ? { ...x, value: r6(x.value * k), confirmed: undefined, ...(x.drive.kind === 'hole' ? { drive: { ...x.drive, center: scaleXY(x.drive.center, k, (dim.drive as { about: [number, number] }).about) as [number, number] } } : {}) } : x)).map(x => { if (x.confirmed === undefined) { const { confirmed: _c, ...rest } = x; void _c; return rest as DraftDim; } return x; });
-  return { ...doc, nodes, drafts: { version: 1, drafts: set.drafts.map(d => (d === draft ? { ...d, dims } : d)) } };
+  const underlays = Math.abs(k - 1) > 1e-12 && dim.drive.kind === 'scale' ? scaleUnderlays(doc, draft.id, k, dim.drive.about) : undefined;
+  return { ...doc, nodes, drafts: { version: 1, drafts: set.drafts.map(d => (d === draft ? { ...d, dims } : d)) }, ...(underlays ? { underlays } : {}) };
 }
 
 /** The drafts as the tools report them. */
@@ -129,7 +147,7 @@ export const DRAFT_TOOLS = [
   },
   {
     name: 'import_drawing',
-    description: 'Adds a DXF drawing\'s profile as a sketch draft (LINE, ARC, CIRCLE, LWPOLYLINE, POLYLINE; $INSUNITS to mm; text and dimensions left out): its closed loops as regions and holes, on the XY plane or "plane" ({datum: id} or {origin, normal, xAxis}). Its overall width, height and hole diameters are draft dimensions, unconfirmed. Refused, typed: DXF_MALFORMED, DXF_UNSUPPORTED (splines, ellipses, blocks, 3D), DXF_OPEN (a gap), DXF_NESTED, DXF_EMPTY.',
+    description: 'Adds a DXF drawing\'s profile as a sketch draft (LINE, ARC, CIRCLE, LWPOLYLINE, POLYLINE at the top level; $INSUNITS to mm): its closed loops as regions and holes, on the XY plane or "plane" ({datum: id} or {origin, normal, xAxis}). Its overall width, height and hole diameters are draft dimensions, unconfirmed. The drawing\'s SPLINE, ELLIPSE, INSERT/BLOCK (with everything inside blocks), TEXT and MTEXT come in as a reference underlay to trace over ("underlay": counts by type), never regions or dimensions; a file with no closed profile but curves is an underlay alone ("draft": null). Dimensions, hatches and fit-point-only splines are "left_out". Refused, typed: DXF_MALFORMED, DXF_UNSUPPORTED (3D), DXF_OPEN (a gap), DXF_NESTED, DXF_EMPTY, DWG_NOT_READ',
     input_schema: { type: 'object', properties: { dxf: { type: 'string' }, name: { type: 'string' }, plane: { type: 'object' } }, required: ['dxf'], additionalProperties: false },
   },
 ];
@@ -138,6 +156,8 @@ export function runDraftTool(doc: StudioDoc, name: string, args: Record<string, 
   if (typeof args.dxf !== 'string' || !args.dxf) return { error: '"dxf" is the drawing\'s text.' };
   try {
     const r = withDrawingDraft(doc, args.dxf, typeof args.name === 'string' && args.name ? args.name : 'drawing', plane);
-    return { doc: r.doc, content: { ok: true, draft: r.draft.id, feature: r.draft.nodes[0], unit: r.unit, dims: r.draft.dims.map(x => ({ key: `${r.draft.id}.${x.name}`, value_mm: x.value })), ...(Object.keys(r.ignored).length ? { left_out: r.ignored } : {}) }, changed: true, summary: `drawing ${r.draft.id}: ${r.draft.dims.length} dimensions to confirm` };
+    const shown = Object.keys(r.underlay.counts).length ? { underlay: r.underlay.counts } : {}, left = { ...r.ignored, ...Object.fromEntries(Object.entries(r.underlay.left).map(([t, x]) => [t, x.count])) };
+    if (!r.draft) return { doc: r.doc, content: { ok: true, draft: null, unit: r.unit, ...shown, note: 'no closed profile: the drawing is an underlay to trace over (its splines, ellipses, blocks and text), not geometry', ...(Object.keys(left).length ? { left_out: left } : {}) }, changed: true, summary: `drawing as an underlay (${Object.entries(r.underlay.counts).map(([t, n]) => `${n} ${t}`).join(', ')})` };
+    return { doc: r.doc, content: { ok: true, draft: r.draft.id, feature: r.draft.nodes[0], unit: r.unit, dims: r.draft.dims.map(x => ({ key: `${r.draft!.id}.${x.name}`, value_mm: x.value })), ...shown, ...(Object.keys(left).length ? { left_out: left } : {}) }, changed: true, summary: `drawing ${r.draft.id}: ${r.draft.dims.length} dimensions to confirm` };
   } catch (e) { if (e instanceof DxfReadError) return { error: e.message }; throw e; }
 }

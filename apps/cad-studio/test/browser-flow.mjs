@@ -4745,6 +4745,21 @@ try {
     assert.match(usda, /prepend apiSchemas = \["PhysicsArticulationRootAPI"\]/); assert.match(usda, /def PhysicsRevoluteJoint "base_to_a"/); assert.match(usda, /def Xform "post"/);
   });
 
+  // ---- O68: a DXF's underlay ------------------------------------------------------------------------------------------
+  await check('O68: a DXF plate with a block, a spline and a note added from Drafts — its region and hole as before, the rest an underlay drawn grey; hidden and shown', async () => {
+    const dir = join(root, '../../packages/barocss-cad/conformance/a6/underlay');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Add drawing"]', join(dir, 'plate', 'drawing.dxf'));
+    await page.waitForFunction(() => window.__studioDoc?.nodes.length === 1 && window.__studioDoc.underlays?.length === 1, null, { timeout: 15000 });
+    const d = await page.evaluate(() => ({ holes: window.__studioDoc.nodes[0].holes?.length ?? 0, counts: window.__studioDoc.underlays[0].counts }));
+    assert.deepEqual(d, { holes: 1, counts: { CIRCLE: 1, LINE: 1, SPLINE: 1, TEXT: 1 } });
+    await page.waitForSelector('[aria-label="Underlay drawing U1"] path', { timeout: 10000 });
+    assert.match(await page.locator('[aria-label="Underlay drawing U1"]').innerHTML(), /PLATE 3MM/);
+    await snap('o68-underlay');
+    await page.click('[aria-label="Hide underlay U1"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Underlay drawing U1"] path'));
+    await page.click('[aria-label="Show underlay U1"]'); await page.waitForSelector('[aria-label="Underlay drawing U1"] path', { timeout: 10000 });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

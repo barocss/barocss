@@ -1260,6 +1260,8 @@ recorded).
 - **Late (after A5–A8, before RB5–RB9), DWG/SAT import.** DWG R2000–R2018+ 2D entities as a drawing or underlay; ACIS
   SAT/SAB solids into our B-rep through the STEP import's tolerance and validation gate; optionally DWG writing of
   drawings. Only after an S0 that weighs demand against effort, recorded either way.
+  - **DXF underlay done (O68 S0, O69)**: splines, ellipses, blocks and text from an imported DXF shown grey to trace over (never
+    regions); points against ezdxf to 3e-14, blocks against the closed form to 7e-14. **A4 table fix (O67)**: verified A3/scale fix.
   - **S0 done (O61)**: DWG read deferred, SAT import deferred, DWG write no-go — DXF and STEP already reach the need; both
     specs are PDF-only; AutoCAD's 3DSOLID SAT is an undocumented variant. Revisit conditions in the note.
 
@@ -1478,6 +1480,12 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
     Parameters are sampled per run; 5 trials per scenario on fresh documents; pass@k and pass^k;
     a Requirement Score; checks validated against mutants; no VLM in the score; the checker is hidden
     from the agent.
+    - **S0 (O70)**: 14 rungs (+ the owner's 2-axis arm) frozen — samplers, hidden predicates, mutants (100 % kill), metrics; ready on
+      today's tools: 1–3, 5, 8–10, 12–14; rungs 6 (closed-form beam at the root section) and 11 (translation captivity) need one
+      small outer-lane predicate each; held: rung 7's bolt (R12c) and rung 4's machining rules (CNC1–CNC6), both kernel lane.
+      Live trials pending the owner.
+    - **RB9.1a done (O71)**: `pnpm rb9` — rungs 1, 2, 3, 5, 10, 13 scripted: 30/30 trials (edge values forced), pass^5 = 1, RS 1, 76/76
+      mutants killed; report `notes/rb9-scripted-2026-10-20/`. RB9.1b next: rungs 8, 9, 12, 14.
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):

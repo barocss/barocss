@@ -1,11 +1,13 @@
 // A DXF drawing read as a sketch draft (A6.4, O28): our own reader of the 2D geometry a profile needs — LINE, ARC,
 // CIRCLE, LWPOLYLINE (bulges as arcs) and POLYLINE/VERTEX (what AC1009 files, ours included, write) — in the file's
 // unit ($INSUNITS) scaled to mm. The edges are chained into closed loops end to end (within 1e-6 of the drawing's
-// size); the largest loop and the loops beside it are the regions, a loop inside one a hole. Text, dimensions,
-// hatches and points are annotation: left out, and listed. Anything else that is geometry (splines, ellipses, blocks,
-// 3D entities) is refused, typed, as are an edge left open, a loop inside a hole and a file that is not DXF.
+// size); the largest loop and the loops beside it are the regions, a loop inside one a hole. Splines, ellipses, blocks
+// and text are the underlay's (dxfUnderlay.ts, O68): shown to trace over, never regions. Dimensions, hatches and points
+// are annotation: left out, and listed. Other geometry (3D entities) is refused, typed, as are an edge left open, a loop
+// inside a hole and a file that is not DXF.
 // What it gives is a draft: its dimensions read from the drawing are the user's to confirm (drafts.ts).
 import type { LoopSegment } from '../engine/doc';
+import { readUnderlay, UNDERLAY_TOP, type Underlay } from './dxfUnderlay';
 
 export type DxfReadCode = 'DXF_MALFORMED' | 'DXF_UNSUPPORTED' | 'DXF_OPEN' | 'DXF_NESTED' | 'DXF_EMPTY' | 'DWG_NOT_READ';
 /** AutoCAD's DWG version tags (the file's first six bytes) and their releases. */
@@ -31,15 +33,18 @@ export interface DxfSketch {
   unit: { declared: boolean; name: string; toMM: number };
   /** Entities left out as annotation, counted by type. */
   ignored: Record<string, number>;
+  /** What the drawing shows beyond its profile, to trace over (O68): never regions, holes or dimensions. */
+  underlay: Underlay;
   entities: number;
 }
 
 const UNITS: Record<number, [string, number]> = { 1: ['inches', 25.4], 2: ['feet', 304.8], 4: ['millimetres', 1], 5: ['centimetres', 10], 6: ['metres', 1000] };
-const ANNOTATION = new Set(['TEXT', 'MTEXT', 'DIMENSION', 'HATCH', 'POINT', 'LEADER', 'MLEADER', 'ATTDEF', 'ATTRIB', 'VIEWPORT', 'SOLID', 'WIPEOUT', 'IMAGE']);
+// (TEXT and MTEXT are shown in the underlay, O68; the rest of the annotation is left out and listed.)
+const ANNOTATION = new Set(['DIMENSION', 'HATCH', 'POINT', 'LEADER', 'MLEADER', 'ATTDEF', 'ATTRIB', 'VIEWPORT', 'SOLID', 'WIPEOUT', 'IMAGE']);
 const GEOMETRY = new Set(['LINE', 'ARC', 'CIRCLE', 'LWPOLYLINE', 'POLYLINE']);
 
 /** The file as (code, value) pairs. */
-function pairsOf(text: string): [number, string][] {
+export function pairsOf(text: string): [number, string][] {
   const lines = text.replace(/\r\n?/g, '\n').split('\n');
   if (lines.length && lines[lines.length - 1] === '') lines.pop();
   if (lines.length % 2) throw new DxfReadError('DXF_MALFORMED', 'an odd number of lines: a group code without its value');
@@ -82,7 +87,9 @@ function readEntities(pairs: [number, string][]): { edges: Edge[]; circles: { c:
     entities++;
     if (type === 'VERTEX' || type === 'SEQEND') continue;
     if (ANNOTATION.has(type)) { ignored[type] = (ignored[type] ?? 0) + 1; continue; }
-    if (!GEOMETRY.has(type)) throw new DxfReadError('DXF_UNSUPPORTED', `a ${type} entity: the drawing reader takes LINE, ARC, CIRCLE, LWPOLYLINE and POLYLINE (export splines, ellipses and blocks as polylines)`);
+    // (Splines, ellipses, blocks and text: the underlay's, never the profile's, O68.)
+    if (UNDERLAY_TOP.has(type)) continue;
+    if (!GEOMETRY.has(type)) throw new DxfReadError('DXF_UNSUPPORTED', `a ${type} entity: the drawing reader takes LINE, ARC, CIRCLE, LWPOLYLINE and POLYLINE as the profile, and SPLINE, ELLIPSE, INSERT, TEXT and MTEXT as an underlay to trace over`);
     const g = (code: number, d?: number) => { const v = body.find(p => p[0] === code); if (!v) { if (d !== undefined) return d; throw new DxfReadError('DXF_MALFORMED', `a ${type} without its group ${code}`); } return num(v[1], `${type} group ${code}`); };
     if (body.some(p => p[0] === 30 && Math.abs(Number(p[1])) > 1e-9) || body.some(p => p[0] === 230 && Math.abs(Number(p[1]) - 1) > 1e-9)) throw new DxfReadError('DXF_UNSUPPORTED', `a ${type} off the XY plane (a Z, or an extrusion other than +Z): the drawing reader is 2D`);
     if (type === 'LINE') edges.push({ a: [g(10) * k, g(20) * k], b: [g(11) * k, g(21) * k] });
@@ -150,8 +157,14 @@ const toSegments = (edges: readonly Edge[]): LoopSegment[] => edges.map(e => (e.
 /** A DXF drawing's profile: its regions and holes, in mm. */
 export function readDxfSketch(text: string): DxfSketch {
   const dwg = dwgRefusal(text.slice(0, 6)); if (dwg) throw dwg;
-  const { edges, circles, unit, ignored, entities } = readEntities(pairsOf(text));
-  if (!edges.length && !circles.length) throw new DxfReadError('DXF_EMPTY', `no profile geometry (${entities} entities${Object.keys(ignored).length ? `, left out: ${Object.entries(ignored).map(([t, n]) => `${n} ${t}`).join(', ')}` : ''})`);
+  const { edges, circles, unit, ignored, entities } = readEntities(pairsOf(text)), underlay = readUnderlay(text, unit.toMM);
+  // (An underlay alone needs a curve to trace: text by itself is still nothing to read.)
+  const shown = underlay.polylines.length;
+  if (!edges.length && !circles.length) {
+    // (Nothing for a profile: an underlay alone to trace over, when there is one.)
+    if (shown) return { regions: [], holes: [], unit, ignored, entities, underlay };
+    throw new DxfReadError('DXF_EMPTY', `no profile geometry (${entities} entities${Object.keys(ignored).length ? `, left out: ${Object.entries(ignored).map(([t, n]) => `${n} ${t}`).join(', ')}` : ''})`);
+  }
   let size = 0; for (const e of edges) size = Math.max(size, Math.abs(e.a[0]), Math.abs(e.a[1]), Math.abs(e.b[0]), Math.abs(e.b[1])); for (const c of circles) size = Math.max(size, Math.abs(c.c[0]) + c.r, Math.abs(c.c[1]) + c.r);
   const tol = 1e-6 * Math.max(1, size), same = (p: P, q: P) => Math.abs(p[0] - q[0]) <= tol && Math.abs(p[1] - q[1]) <= tol;
   // (Chained end to start; an edge may be walked backwards — a reversed arc turns the other way.)
@@ -162,7 +175,7 @@ export function readDxfSketch(text: string): DxfSketch {
       const end = chain[chain.length - 1].b;
       if (same(end, chain[0].a)) break;
       const k = left.findIndex(e => same(e.a, end) || same(e.b, end));
-      if (k < 0) throw new DxfReadError('DXF_OPEN', `the profile is not closed at (${end[0].toPrecision(6)}, ${end[1].toPrecision(6)}) mm: an edge ends there with nothing joining it`);
+      if (k < 0) throw new DxfReadError('DXF_OPEN', `the profile is not closed at (${end[0].toPrecision(6)}, ${end[1].toPrecision(6)}) mm: an edge ends there with nothing joining it${underlay.counts.SPLINE || underlay.counts.ELLIPSE || underlay.left.SPLINE ? ` (the drawing's splines and ellipses are shown as underlay only: a profile takes lines, arcs and circles)` : ''}`);
       const e = left.splice(k, 1)[0];
       chain.push(same(e.a, end) ? { ...e, a: end } : { a: end, b: e.a, ...(e.c ? { c: e.c, ccw: !e.ccw } : {}) });
     }
@@ -183,5 +196,5 @@ export function readDxfSketch(text: string): DxfSketch {
     else throw new DxfReadError('DXF_NESTED', `a loop inside a hole (at (${l.box[0].toPrecision(6)}, ${l.box[1].toPrecision(6)}) mm): an island in a hole is a sketch of its own`);
   });
   regions.sort((a, b) => b.area - a.area);
-  return { regions, holes, unit, ignored, entities };
+  return { regions, holes, unit, ignored, entities, underlay };
 }

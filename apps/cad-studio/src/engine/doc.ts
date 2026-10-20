@@ -269,6 +269,8 @@ import type { HistoryEntry, Proposal } from '../chat/proposals';
  */
 export interface MeshRepairRecord { steps: MeshRepairSteps; result: { positions: string; indices: string; fill: string }; report: MeshRepairReport }
 
+/** A drawing's reference underlay (O68): polylines and texts in its plane's coordinates (mm). */
+export interface DocUnderlay { id: string; name: string; plane?: DocPlane; draft?: string; hidden?: boolean; polylines: [number, number][][]; texts: { at: [number, number]; text: string; height: number; angle: number }[]; counts: Record<string, number> }
 export interface StudioDoc {
   format: 'barocss-cad-model';
   /** 3: bodies keyed by stable ids; 2: nodes carry stable ids (`id`, `nextId`); 1: a node was named by its index. */
@@ -315,6 +317,11 @@ export interface StudioDoc {
   mates?: Mate[];
   /** The assembly read as a robot: its base link, joint limits and ratings (robot/joints.ts, RM1; versioned). */
   robot?: RobotSettings;
+  /**
+   * Reference underlays from imported drawings (A6.4, O68): a DXF's splines, ellipses, blocks and text as polylines and
+   * texts in mm on their plane, to trace over — never geometry; `draft`: the drawing's draft, whose confirmed width scales it.
+   */
+  underlays?: DocUnderlay[];
   /** The brief (A6.1, O24): purpose, process, material and the rest, each with its basis and the user's words (chat/brief.ts). */
   brief?: Brief;
   /** The clarifying questions asked and their answers (A6.2, O25; chat/questions.ts): at most two batches a brief. */
@@ -407,7 +414,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);

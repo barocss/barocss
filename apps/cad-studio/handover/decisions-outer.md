@@ -3144,3 +3144,204 @@ O61's cheaper DWG item, assigned by the coordinator after O67. A DXF drawing's S
   - `import_drawing`'s result adds `underlay: { by type: count }` and `left_out`, a compatible addition, with the contract regenerated;
   - the Drafts toast says what came in as underlay;
   - a flow step just before the last: a DXF with a block and a spline imported, its underlay drawn, its regions as before.
+
+## O69 — the DXF underlay: splines, ellipses, blocks and text to trace over, against ezdxf and closed forms (2026-10-20)
+
+Built as O68 froze it and the coordinator accepted (`src/sketch/dxfUnderlay.ts`; the profile reader `dxfRead.ts` sends these kinds there). Fixtures are in `conformance/a6/underlay/<case>/`, beside A6's `drawings/`, as the coordinator asked: not "a64".
+
+- **The profile is unchanged.** Regions and holes come from the top level's LINE, ARC, CIRCLE, LWPOLYLINE and POLYLINE, as before. SPLINE, ELLIPSE, INSERT, TEXT and MTEXT are skipped there and read by the underlay. TEXT and MTEXT are no longer "left out", since they are shown. DIMENSION, HATCH and the rest stay left out.
+- **The underlay reader**:
+  - SPLINE by our de Boor (rational with its weights), each knot span flattened on its own;
+  - ELLIPSE by its parameters (the minor axis is the major turned a quarter, times the ratio);
+  - both are flattened so that the points at ¼, ½ and ¾ of a chord are within half of 0.01 mm. The first run, at the full tolerance, let a spline's chord reach 0.01024 mm under the dense check; now chords are within 5.0e-3;
+  - INSERT through `T(insertion)·R(rotation)·[MINSERT cell offset]·S(sx, sy)·T(−base)`, nested, with a cycle refused, and OCS (0, 0, −1) as a mirror of X. The tolerance is divided by the map's largest stretch;
+  - a circle or arc under a non-similar map is counted ELLIPSE, as ezdxf makes it;
+  - TEXT at its alignment point when aligned; MTEXT's direction (11/21) or rotation, its codes stripped as `plain_text()`;
+  - fit-points-only splines are left out with the reason.
+- **Where it lives** (one change from O68's "on the sketch node"): `doc.underlays`, each with an id, name, plane, its draft and `hidden`.
+  - A file with curves but no closed profile is an underlay alone (no sketch, no dimensions, `draft: null`), and it has no sketch to hang on.
+  - Text alone is still DXF_EMPTY.
+  - Confirming a draft's width scales its underlay with its sketch.
+  - The field is in `STUDIO_DOC_FIELDS`. The evaluation key leaves it out, so hiding an underlay never re-evaluates.
+- **Exposure**:
+  - `import_drawing` returns `underlay` counts and `left_out` (including fit-only splines), or `draft: null` with a note;
+  - its description is updated. The frozen tool contract is unchanged, and its tests pass;
+  - the Drafts panel lists each underlay with Hide/Show;
+  - the viewport draws the underlays grey in its overlay (one path each, texts turned and sized by projection, every MTEXT line), not picked;
+  - the toast says what came in as underlay.
+- **Changed expectations** (A6.4's `drafts.test.ts`, on purpose):
+  - the inches drawing's TEXT moves from `left_out` to the underlay;
+  - `refuse-spline.dxf` (a LINE and a fit-only SPLINE) is now DXF_OPEN rather than DXF_UNSUPPORTED, and its message says the spline is shown as underlay only, because a profile takes lines, arcs and circles.
+- **Evidence** (`test/dxf-underlay.test.ts`, 6 tests). ezdxf 1.4.5 wrote the fixtures from known numbers and read them back (`scripts/dxf-underlay-oracle.py`, readings committed as `oracle.ezdxf-1.4.5.json`).
+  - **Splines** (cubic, rational quadratic, quintic, one fit-only):
+    - degree, knots, control points and weights are as ezdxf reads them;
+    - points at 64 parameters match `BSpline.point` to **2.9e-14 mm**;
+    - the rational arc's vertices lie on its circle to 1e-9;
+    - chords are within 5.0e-3 mm by dense evaluation;
+    - the fit-only spline is listed.
+  - **Ellipses**: points match `ConstructionEllipse.vertices` to **1.4e-14**; ends at the parameter ends; chords within 5.0e-3.
+  - **Blocks**:
+    - counts equal ezdxf's expansion: CIRCLE 7, ELLIPSE 1, LINE 8;
+    - every circle vertex and line end is on its closed-form composed transform to **6.9e-14**, covering three deep, (2, −1) scale, rotations, the OCS mirror and the 3 × 2 MINSERT;
+    - ezdxf's own expansion matches the same closed form.
+  - **Texts**: positions to 1e-12, heights, rotations to 1e-9, and MTEXT's plain string equal to ezdxf's.
+  - **Plate**: regions and holes deep-equal those of the same file with its SPLINE, TEXT and INSERT deleted; the underlay's counts match.
+  - **The tool**:
+    - the plate's underlay comes with draft F1 and is doubled with a 200 mm width;
+    - a splines-only file is an underlay alone with no node;
+    - a text-only file is DXF_EMPTY.
+- **Flow**: a step "O68" just before the last. The plate DXF is added from Drafts: one node with its hole, the underlay drawn (with the note's text), hidden and shown.
+  - Its first run found the viewport's group and the Drafts list item both labelled "Underlay U1". The drawing is now "Underlay drawing U1"; the rerun passes, and the flow is 192/192.
+- **Test names**: two A6.4 tests in `drafts.test.ts` are renamed with their changed expectations (the inches drawing's text; refuse-spline), so the name comparison shows them as replaced.
+
+## O70 — RB9 S0: the AI scenario ladder's deterministic harness — rungs, predicates, sampling, mutants, metrics; live trials pending (2026-10-20)
+
+Assigned by the coordinator after O69 (README §4 RB9). There are 13 rungs, plus the owner's 2-axis robot arm as rung 14 (README "AI scenario ladder").
+
+The harness extends A5.5's (`server/ab`, `pnpm ab`), whose 10 briefs hold fixed variants and bbox/volume/solids oracles. It becomes `pnpm rb9`:
+- each rung has a **parameter sampler** (seeded, so trial k of rung n is reproducible), a **hidden checker**, a **scripted ideal agent** built from the sampled parameters, and **mutants**;
+- the checker runs on the final document after the agent stops. It is never sent to the agent, nor written to its prompt, tools or files; the agent sees only the brief in words;
+- it may compute anything our kernel and studio code computes, not only `check_spec` queries;
+- our own TypeScript, no new dependency; ezdxf and MuJoCo stay test-only oracles outside the run;
+- no VLM in the score.
+
+**Metrics** (per rung and overall; n = 5 trials on fresh documents):
+- **pass** = every hard predicate holds;
+- pass@1 = c/n, pass@5 = 1 if any trial passes, pass^5 = 1 if all do (the τ-bench sense);
+- the **Requirement Score** RS = the mean over trials of (hard predicates holding / hard predicates); soft ones are reported beside it, unweighted;
+- calls, refusals, tokens (estimated) and wall time, as A5.5 reports them.
+- Expected for the scripted agent: pass@1 = pass@5 = pass^5 = 1 and RS = 1 on every ready rung. Anything less is a harness or product bug, recorded.
+
+**Mutant validation** (the checker checked):
+- every hard predicate has at least one **seeded wrong design**: the scripted calls with one perturbation (a value off, a feature moved, dropped or added, a wrong material, a part left unmated);
+- each must fail **its targeted predicate**. The kill rate is 100 % per rung, and the report lists the mutants, their target and what failed;
+- a predicate no mutant kills is not admitted.
+
+**The rungs**: their samplers (ranges, all mm unless said; constraints keep a sample buildable), hard predicates (tolerances are the kernel's exact-geometry ones unless said), capabilities and status. Each rung lists its mutants, at least one per predicate.
+
+1. **Block with hole** — w, d ∈ [30, 120], h ∈ [8, 40], dh ∈ [3, 0.4·min(w, d)] (0.5 steps).
+   - Hard: bbox = (w, d, h) to 1e-6; volume = whd − π(dh/2)²h to 1e-9 relative; one solid; the bore's exact cylinder has Ø dh to 1e-9, its axis at (w/2, d/2) square to the top to 1e-9, through (its face spans z 0…h).
+   - Needs box and hole. **Ready** (A5.5's brief, sampled).
+   - Mutants: Ø +1; axis 2 mm off; blind at h/2; w +5; no hole.
+2. **Washer** — D ∈ [8, 40], d ∈ [0.4D, 0.7D], t ∈ [0.8, 4].
+   - Hard: outer Ø D and bore Ø d (exact cylinders), coaxial to 1e-9; thickness t; volume π(D² − d²)t/4 to 1e-9; one solid.
+   - Needs tube. **Ready.**
+   - Mutants: bore offset 0.5; t × 1.5; d → 0.9D; a solid disc.
+3. **Printed phone stand** — w ∈ [60, 100], D ∈ [50, 90], H ∈ [40, 80], wall 5, lip 8, phone slot g ∈ [10, 14].
+   - Hard: bbox; volume by its closed form; one solid; the phone slot (lip to back) ≥ g; FDM rules on the print direction +Z: `min_wall` ≥ the fdm profile's and `print_rule` with no error.
+   - Needs box/union and the AM3 rules. **Ready.**
+   - Mutants: no lip; wall 0.5 (min_wall); slot g − 3; a floating second solid.
+4. **Machined plate** — L ∈ [80, 200], W ∈ [50, 150], T ∈ [6, 20], four corner holes on a pitch (p_x, p_y), a central pocket a × b × depth with corner radius rc ∈ [3, 8].
+   - Hard: bbox; four holes of their Ø at the pitch (exact axes to 1e-9); the pocket's size and depth; its vertical corner radii ≥ rc (`radius`); the volume's closed form.
+   - Needs box, holes, pocket (cut) and fillet. **Ready as geometry.**
+   - **The machining rules wait for CNC1–CNC6** (kernel lane, not started). The rung gains a soft "machinable" predicate when they land.
+   - Mutants: one hole moved; pocket too deep; corner radius 1; three holes.
+5. **Sheet-metal L-bracket** — R12.5's case (`sheet-l-bracket.calls.json`), now sampled: flange lengths, T ∈ [1, 3], R ∈ [T, 3T], K ∈ [0.3, 0.5].
+   - Hard: volume by the middle line to 1e-12; flat length by BD to 1e-12; the K-factor area identity to 1e-11; the sheet rules with no error.
+   - **Ready** (the kernel lane's R12.5; its frozen case keeps the ezdxf DXF audit).
+   - Mutants: K off; R < T; a flange 5 short.
+6. **Load bracket (beam stress), closed-form beam theory only.** CAE and FEM are off the roadmap (#2177), so this rung is **scoped down**, not held. A wall plate and a prismatic cantilever arm of length L ∈ [40, 150], section b × h (rectangular or a channel), a tip load F ∈ [20, 500] N, an aluminium or steel body (library materials), safety factor 2.
+   - Hard:
+     - the arm is prismatic: its root, mid and tip sections, cut by the kernel, have equal second moments to 1e-9;
+     - slender, L/h ≥ 5, where Euler–Bernoulli is the stated validity range;
+     - the root fillet is r ≥ 0.25h;
+     - σ = F·L·c/I ≤ σ_y/2 and δ = F·L³/(3EI) ≤ δ_max (sampled), with I and c from the **root section polygon**, by Green's theorem on the kernel's cut face (no handbook section table).
+   - The checker states what it does not judge: stress concentration beyond the factor, contact at the wall, buckling of thin flanges.
+   - Needs the section second-moment predicate. **Buildable in the outer lane** (`src/rb9/beam.ts`), small.
+   - Mutants: h too thin (σ); L doubled (δ); a tapered arm (prismatic fails); L/h = 3 (slender fails); no fillet.
+7. **Bolted joint** — two plates lapped and bolted through a hole pattern.
+   - **Held for the bolt itself**: there is no fastener in the library (enclosure and T-slot parts only), and standard fasteners come with **R12c machine elements (kernel lane)**.
+   - Scoped now: the plates' clearance holes aligned (`hole_alignment`, 1e-9), their pattern and edge distances ≥ 1.5 Ø (stated as the brief's rule, not a standard's), the two plates mated, no interference.
+   - When R12c lands: the bolt's library part, its length through the grip, and its clearance per the library's own data.
+   - Mutants: a hole 1 mm off; edge distance 1 Ø; plates interfering.
+8. **Snap-fit box** — a box and a lid (two bodies or instances), w, d, h, wall ∈ [1.5, 3], two or four snap hooks and ledges (library `snap-hook`, `snap-ledge`).
+   - Hard: every hook's `library_check` passes (its strain on assembly against the body's material, the library's own rule); each hook meets its ledge (aligned to 0.1); lid-to-box clearance ≥ the process fit gap (`clearance`); no interference; two solids.
+   - Needs the library parts and mates. **Ready.**
+   - Mutants: a hook too thick (strain fails); a ledge moved 2; lid clearance 0; one hook missing.
+9. **PCB enclosure** — A5.5's brief plus a PCB of size (a, b), its four holes on a pattern, standoffs (library `pcb-standoff`), vents.
+   - Hard: the standoffs' axes on the PCB's hole pattern to 1e-6; the PCB's keep-out clear (`keepout`); `min_wall`; the vent count; the volume's closed form; base and lid two solids.
+   - **Ready.**
+   - Mutants: a standoff 1 off; the PCB keep-out entered; no vents.
+10. **Sheet-metal PCB enclosure** — R12.5's case (`sheet-pcb-enclosure.calls.json`), sampled like rung 5, with its four standoff holes and connector slot. **Ready.** Mutants as rung 5's, plus a missing relief.
+11. **Print-in-place toy** — a captive ring on an axle, or a spinner, printed assembled.
+    - Hard:
+      - two or more solids, not interpenetrating;
+      - every facing gap between them in [fitGap, 2·fitGap] of the process profile (`clearance`);
+      - print rules with no error;
+      - **captive**: the moving part cannot leave along ±X, ±Y or ±Z. Each is a straight translation swept by RM6's conservative advancement (the part on a prismatic dummy joint) until contact; a clear sweep past the bounding box fails.
+    - Needs that translation captivity check. **Buildable in the outer lane** on RM6, small.
+    - Mutants: gap 0 (fused); gap 1.5 mm (loose beyond 2·fitGap); the axle's flange removed (escapes along Z).
+12. **5-part assembly** — five instances (a base, two brackets, a shaft, a cap) placed by mates.
+    - Hard: five instances; every instance's freedoms as the brief declares (0, or 1 for the shaft's turn), by RM1's joint tree; `checkAssembly` with no PARTS_MEET and only declared contacts; total mass by closed form; a BOM of five rows.
+    - **Ready.**
+    - Mutants: a part unmated (free); two interpenetrating; a part missing.
+13. **Product from a brief** — a family (a knob on a D-shaft, a cable clip, a wall hook), the brief in words with sampled needs (shaft Ø and flat, cable Ø, load).
+    - Hard: the frozen hidden requirements of that product (fits, sizes, printability, mass); the brief (A6.1) recorded with no open gap.
+    - **Ready** (A6.1 brief, A5.5's knob brief generalised).
+    - Mutants: bore Ø + 0.5; flat missing; the brief left with a gap.
+14. **2-axis robot arm** (the owner's rung) — two revolute joints by mates, link lengths l₁, l₂ ∈ [80, 250], a payload m ∈ [0.1, 1] kg and a target reach R* < l₁ + l₂.
+    - Hard:
+      - RM1's tree has two revolute joints;
+      - RM9b's reach ≥ R*;
+      - RD10's sizer margins all ≥ 0 at the duty, with a reducer from RD3's envelopes;
+      - the URDF exports, and our reader's FK equals RM2's to 1e-9 at 20 poses, its inertia RM3's to 1e-12.
+    - MuJoCo's load and inertia comparison stays a test-only oracle on the frozen case, as O38's.
+    - **Ready.**
+    - Mutants: l₂ short (reach); a motor too small (margin); a joint fixed.
+
+**Blocked, and whose lane:**
+- rung 7's bolt (R12c machine elements, kernel lane);
+- rung 4's machining rules (CNC1–CNC6, kernel lane).
+- Rungs 6 and 11 need one small predicate each in this lane: the root-section beam check, and the translation captivity sweep.
+- Everything else is ready on today's tools.
+
+**Order**:
+1. RB9.1: the harness, `src/rb9/` and `pnpm rb9`. Samplers, checkers and scripted agents for the ready rungs (1–3, 5, 8–10, 12–14), the mutants, and the report.
+2. RB9.2: rungs 6 and 11 with their predicates.
+3. RB9.3: rungs 4 and 7's scoped forms.
+
+Each is checkpointed with the scripted metrics (expected 1) and the mutant kill table.
+
+**Live trials, pending the owner's go-ahead** (not run):
+- five trials per rung with a real model through the same chat server (the v2 hybrid arm, and the json arm for comparison), on fresh documents;
+- seeds frozen in the report before the run, so the parameters are the scripted run's;
+- the agent gets the brief in words only, at most 24 turns, and at most three repair attempts after its own check (the research's fade point);
+- the checker runs after it stops; transcripts are recorded;
+- metrics as above, with the repair count;
+- no VLM.
+- **Cost from A5.5's measures**: the hybrid arm read about 14k input tokens per brief when ideal. At three times the ideal calls, 14 rungs × 5 trials × 2 arms comes to about 4–12M input tokens. The owner approves before any run (`--live`, `CAD_AB_LIVE=1`, as A5.5).
+
+## O71 — RB9.1a: the ladder harness and six rungs, scripted: 30/30 trials, 76/76 mutants killed (2026-10-20)
+
+Built as O70 froze it and the coordinator accepted (`src/rb9/`; `pnpm rb9`). The rungs ready on today's tools come in two parts. This is the first: rungs 1, 2, 3, 5, 10 and 13. Rungs 8, 9, 12 and 14 are **RB9.1b**, next. They need the library parts' placement (snap hooks and ledges, the enclosure's base and lid, PCB standoffs) and the assembly tools' face names worked into scripted calls.
+
+- **The core** (`core.ts`):
+  - a rung's space (each parameter's range, which may depend on those before it, on a step grid; or a choice);
+  - a seeded sampler (mulberry32). **The edges are forced**, as the coordinator asked: trial 0 puts every parameter at its low end, trial 1 at its high end, trials 2 and 3 alternate; the rest are random on the grid;
+  - the build on a fresh document through the agent's own tools (`dispatchTool`, the layer the chat server's MCP side runs). The brief's words are passed as the conversation, so a brief field can be "stated";
+  - the hidden checker, run after the build, on the part only;
+  - mutants run on both range ends (trials 0 and 1). A mutant's target may depend on the parameters, where a rung has families;
+  - the metrics: pass, pass@1 = c/n, pass@k, pass^k, and RS.
+  - The live arm (A5.5's chat-server turn) is not wired. `pnpm rb9 --live` refuses, since live trials wait for the owner.
+- **What the checker measures** (`measure.ts`):
+  - volumes from the kernel's mass properties (exact, to 1e-9 relative);
+  - bores and holes from the B-rep's exact cylinders, their radius, axis and extent (distinct by axis, so a face the kernel splits in halves is counted once);
+  - planes from exact faces;
+  - the box from the display mesh (1e-4);
+  - the studio's own checks (`min_wall` and the rest) on a copy of the part with the checker's requirements and process, never the agent's;
+  - sheet flats from the kernel's unfolding.
+- **The rungs**:
+  - **1, block with hole** (5 predicates, 6 mutants);
+  - **2, washer** (6, 6);
+  - **3, printed phone stand** (6, 6): the phone's slot from exact planes; the FDM wall from the fdm profile's 0.8, through `min_wall`;
+  - **5, sheet L-bracket** (7, 7) and **10, sheet PCB enclosure** (8, 8): R12.5's closed forms (middle-line volume, BD flat size, K-factor area identity), the bends and the holes on exact axes, all sampled. T, R, K, legs, flanges, insets, slot;
+  - **13, product from a brief** (6, 5), a family. A knob on a D-shaft: the bore's exact cylinder and depth, the flat's exact plane, the volume with the D-segment and the fillet by Pappus. Or a wall hook: two blind screw holes on the back's axis. Each with its A6.1 brief stated (purpose, process, material: no gap).
+- **Found while building**:
+  - a box command refuses a side under 1 mm, so the thin-wall mutant is a pocket leaving a 0.5 mm skin;
+  - the hook's screw holes must be blind, because a through hole runs on through the lip beyond the back;
+  - the hook's lip can rise above the back, so the box predicate takes the larger;
+  - the first draft left predicates with no mutant (solids, the washer's outside, the stand's box and volume, the product's volume and solids). Each now has one, and the test asserts none is left.
+- **Evidence**:
+  - `pnpm rb9` (seed 2026, 5 trials): **30/30 trials pass, pass@1 = pass@5 = pass^5 = 1 and RS 1 on every rung; 76/76 mutants killed; every hard predicate killed by a mutant.**
+  - The report, with each trial's seed and sampled values, is in `notes/rb9-scripted-2026-10-20/` (report.md, results.json).
+  - `test/rb9.test.ts`: the sampler's edge patterns, determinism and grid; the ladder end to end, as the CLI's gate; each trial's seed and values in the report.

@@ -159,6 +159,8 @@ interface Props {
   poles?: { key: string; at: Vec3 }[];
   /** A workspace map's voxel centres (RM9b), each with its manipulability as a share of the best, 0…1: dots coloured by it. */
   cloud?: { at: Vec3; t: number }[] | null;
+  /** Drawings' reference underlays (O68), in the world: polylines and texts (each with its baseline and up directions), drawn thin and grey, not picked. */
+  underlays?: { id: string; lines: Vec3[][]; texts: { at: Vec3; dir: Vec3; up: Vec3; text: string; height: number }[] }[];
   pickedPole?: string | null;
   onPickPole?(key: string): void;
   /** Placed instances of other parts, and the selected ones. */
@@ -912,6 +914,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     // The cage being edited: the mirrored half faint, faces picked (n-gons tinted), edges (creases heavier, open
     // and non-manifold ones marked), vertices (poles ringed), all over the body.
     if (!sk && props.cage) items.push(<CageMarks key="cage" overlay={props.cage} project={q => cam.project(q as Vec3, w, h)} />);
+    // Drawings' underlays (O68): their polylines one path each, their texts placed and turned as projected.
+    if (!sk) for (const u of props.underlays ?? []) {
+      const d: string[] = [];
+      for (const l of u.lines) l.forEach((p, k) => { const q = cam.project(p, w, h); d.push(`${k ? 'L' : 'M'}${q[0].toFixed(1)} ${q[1].toFixed(1)}`); });
+      items.push(<g key={'ul' + u.id} aria-label={`Underlay drawing ${u.id}`} className="underlay"><path d={d.join('')} className="underlay-line" fill="none" />
+        {u.texts.map((t, k) => { const a = cam.project(t.at, w, h), b = cam.project([t.at[0] + t.dir[0], t.at[1] + t.dir[1], t.at[2] + t.dir[2]], w, h), c = cam.project([t.at[0] + t.up[0] * t.height, t.at[1] + t.up[1] * t.height, t.at[2] + t.up[2] * t.height], w, h);
+          const size = Math.hypot(c[0] - a[0], c[1] - a[1]); return size >= 2 ? <text key={k} x={a[0]} y={a[1]} fontSize={size} className="underlay-text" transform={`rotate(${(Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI).toFixed(2)} ${a[0].toFixed(1)} ${a[1].toFixed(1)})`}>{t.text.split('\n').map((ln, i) => <tspan key={i} x={a[0]} dy={i ? size * 1.25 : 0}>{ln}</tspan>)}</text> : null; })}</g>);
+    }
     // A workspace map (RM9b): its voxels as small squares, one path a band of manipulability (blue low, red high).
     if (!sk && props.cloud?.length) {
       const bands = Array.from({ length: 8 }, () => [] as string[]);

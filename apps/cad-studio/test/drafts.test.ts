@@ -47,12 +47,12 @@ test('our DXF writer\'s files (AC1015 and AC1009) read back to the same profile:
   }
 });
 
-test('a hand-written DXF in inches (LINE, ARC, CIRCLE, with text and a dimension left out): to mm, area by the closed form', async () => {
+test('a hand-written DXF in inches (LINE, ARC, CIRCLE, with a dimension left out and its text shown as underlay, O68): to mm, area by the closed form', async () => {
   const text = readFileSync(join(CASES, 'by-hand-inches.dxf'), 'utf8'), d = readDxfSketch(text);
   assert.equal(d.unit.toMM, 25.4); assert.ok(d.unit.declared);
-  assert.deepEqual(d.ignored, { TEXT: 1, DIMENSION: 1 });
+  assert.deepEqual(d.ignored, { DIMENSION: 1 }); assert.deepEqual(d.underlay.counts, { TEXT: 1 });
   const r = await ok({ doc: emptyDoc(), bodies: [] }, 'import_drawing', { dxf: text, name: 'bracket' }), c = JSON.parse(r.content);
-  assert.deepEqual(c.left_out, { TEXT: 1, DIMENSION: 1 });
+  assert.deepEqual(c.left_out, { DIMENSION: 1 });
   const s = await extruded(r.state), area = (3 * 2 + Math.PI / 2 - Math.PI * 0.25 ** 2) * 25.4 ** 2;
   assert.ok(near(volume(s), area * 5), `${volume(s)} vs ${area * 5}`);
   const dims = Object.fromEntries(readDrafts(s.doc.drafts).drafts[0].dims.map(x => [x.name, x.value]));
@@ -74,12 +74,14 @@ test('a drawing that declares no unit: read as mm, said as an assumption beside 
   assert.deepEqual(JSON.parse((await ok(inches, 'get_drafts', {})).content).assumptions, []);
 });
 
-test('drawings refused, typed: a spline, a gap, a loop in a hole, nothing to read, a malformed file, a line off the XY plane', async () => {
-  for (const [file, want] of [['refuse-spline.dxf', 'DXF_UNSUPPORTED'], ['refuse-open.dxf', 'DXF_OPEN'], ['refuse-nested.dxf', 'DXF_NESTED'], ['refuse-empty.dxf', 'DXF_EMPTY'], ['refuse-malformed.dxf', 'DXF_MALFORMED'], ['refuse-3d.dxf', 'DXF_UNSUPPORTED']] as const) {
+test('drawings refused, typed: a gap a spline closed (the spline the underlay\'s, O68), a gap, a loop in a hole, nothing to read, a malformed file, a line off the XY plane', async () => {
+  for (const [file, want] of [['refuse-spline.dxf', 'DXF_OPEN'], ['refuse-open.dxf', 'DXF_OPEN'], ['refuse-nested.dxf', 'DXF_NESTED'], ['refuse-empty.dxf', 'DXF_EMPTY'], ['refuse-malformed.dxf', 'DXF_MALFORMED'], ['refuse-3d.dxf', 'DXF_UNSUPPORTED']] as const) {
     const s: ChatState = { doc: emptyDoc(), bodies: [] }, r = await call(s, 'import_drawing', { dxf: readFileSync(join(CASES, file), 'utf8') });
     assert.equal(code(r.content), want, `${file}: ${r.content}`); assert.equal(r.state, s);
   }
   assert.match((await call({ doc: emptyDoc(), bodies: [] }, 'import_drawing', { dxf: readFileSync(join(CASES, 'refuse-open.dxf'), 'utf8') })).content, /not closed at \(0\.00000, 10\.0000\) mm/);
+  // (A profile a spline would have closed: open, the spline shown as underlay only — a region takes lines, arcs and circles.)
+  assert.match((await call({ doc: emptyDoc(), bodies: [] }, 'import_drawing', { dxf: readFileSync(join(CASES, 'refuse-spline.dxf'), 'utf8') })).content, /shown as underlay only/);
 });
 
 test('a DWG is refused, typed (O61): its release named and the routes — DXF from its program, or the ODA File Converter', async () => {
