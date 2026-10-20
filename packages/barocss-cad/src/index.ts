@@ -637,3 +637,5 @@ export { writeDxf, dxfNumber, dxfText, dxfHatchLines, DxfWriteError, DXF_WRITER_
 export type { DxfDocument, DxfEntity, DxfLayer, DxfLinetype, DxfTextStyle, DxfBlock, DxfHatchLoop, DxfHatchFill, DxfDimensionGeometry, DxfVersion, DxfUnits, DxfXY, DxfWriteOptions, DxfWriteReport, DxfWriteResult, DxfWriteErrorCode } from './dxf-writer.js';
 export { bendAllowance, outsideSetback, bendDeduction, contourFlangeSection, SheetMetalError } from './sheet-metal.js';
 export type { SheetReport, SheetBendReport, ContourSection, ContourBend } from './sheet-metal.js';
+export { flatPattern, flatPatternDxf, FlatPatternError } from './sheet-flat.js';
+export type { FlatPattern, FlatLoop, FlatSegment, FlatBend, FlatPatternOptions, FlatPatternErrorCode } from './sheet-flat.js';

@@ -3043,6 +3043,32 @@ try {
     await snap('r12-1-sheet-hat-profile');
   });
 
+  await check('R12.2 a channel with a hole cut through its base (a file): its flat pattern from the body\'s panel — the textbook length, two bends down — and its DXF exported (layers, a circle, the notes) (new in D117)', async () => {
+    const fs = await import('node:fs'), file = join(out, 'sheet-channel-hole.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 4, outputs: {}, nodes: [
+      { id: 'n0', kind: 'sheet-contour', path: [[0, 30], [0, 0], [40, 0], [40, 30]], side: 'left', width: 25, thickness: 1.5, bendRadius: 2, kFactor: 0.44 },
+      { id: 'n1', kind: 'sketch', profile: 'circle', center: [20, -12.5], radius: 4, plane: { origin: [0, -1, 0], normal: [0, 1, 0], xAxis: [1, 0, 0] } }, { id: 'n2', kind: 'extrude', sketch: 1, height: 3.5 },
+      { id: 'n3', kind: 'difference', parent: { node: 0, side: 'solid' }, tool: { node: 2, side: 'solid' } }] }));
+    await openModel(file, 4, 30000);
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await bodyVolume();
+    // The flat: 100 − 2·BD long (BD = 2(R + T) − (π/2)(R + K·T), R 2, T 1.5, K 0.44) = 94.357 × 25 mm.
+    await page.waitForFunction(() => /Flat pattern 94\.357 × 25 mm, 2 bends/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.click('[aria-label="Show the flat pattern"]');
+    await page.waitForSelector('[aria-label="Flat pattern"]');
+    assert.equal(await page.locator('[aria-label="Flat pattern drawing"] [aria-label="Bend down"]').count(), 2);
+    assert.match(await page.locator('[aria-label="Flat pattern"]').innerText(), /94\.357 × 25 mm · 2 bends · T 1\.5 mm, K 0\.44/);
+    await snap('r12-2-flat-pattern');
+    // (Handled at once: a failed click must fail this step, not leave a waiting promise to end the whole flow.)
+    const download = page.waitForEvent('download'); download.catch(() => {});
+    await page.click('[aria-label="Export flat DXF"]');
+    const d = await download, text = fs.readFileSync(await d.path(), 'latin1');
+    assert.match(d.suggestedFilename(), /-flat\.dxf$/);
+    for (const layer of ['OUTLINE', 'BEND_UP', 'BEND_DOWN', 'BEND_NOTES']) assert.ok(new RegExp(`\\n${layer}\\r?\\n`).test(text), layer);
+    assert.equal(text.match(/\nCIRCLE\r?\n/g)?.length, 1); assert.equal(text.match(/\nTEXT\r?\n/g)?.length, 2);
+    await page.click('[aria-label="Close the flat pattern"]');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

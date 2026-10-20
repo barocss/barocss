@@ -5529,3 +5529,108 @@ RB rows are in the next commit.
 - **The two r12 contour cases' volume tolerance is now 1e-9**, as the other exact cases have.
   - RB measures by the B-rep quadrature: 1.4e-12 on the L-bracket, past the 1e-12 first written.
   - The kernel's prismatic integration, which the unit tests keep at 1e-12, is not the only route an implementation may take.
+
+## D117 — R12.2: the flat pattern and its DXF (2026-10-20)
+
+R12's second stage as D115 froze it. The probe's unfolder (D115) is now product code, `sheet-flat.ts`, working on the B-rep with only T and K. Its refusals are typed, and the sheet's report reaches it through holes and cuts.
+
+**The flat** (`flatPattern(brep, { thicknessMM, kFactor, fixedFace?, bendNames? })`; an output's `flatPattern({ fixedFace?, kFactor? })` uses the sheet's own rules):
+- **The fixed face.**
+  - The named face; a name split by Booleans (`#k`) takes its largest piece.
+  - Otherwise the sheet's own: a plate's `top`, a profile's `leg0.a`. Each sheet report now names it (`fixedFace`).
+  - Otherwise, for a body without the rules, the largest planar face; a tie goes to the first by id.
+  - The flat lies in that face's plane, seen from its outside: its x is world X in the plane (else Y), its y = n × x.
+- **The skin**: the faces joined to it across smooth edges (normals agreeing to 1e-9 at three points).
+  - Planes move rigidly.
+  - A cylinder unrolls at its neutral radius: ρ − T + K·T where the skin is its outside, else ρ + K·T.
+  - Each new face's frame is made across a straight tangent line, from the face before. The image of the direction into the face before, turned round, is the direction into the next face. This is one rule for plane→cylinder, cylinder→plane and cylinder→cylinder.
+  - Coplanar pieces, and pieces of one cylinder, share a development.
+  - A smooth neighbour that is neither a plane nor a cylinder is refused: `BEND_NOT_CYLINDRICAL`.
+- **The outline** is walked through the B-rep's own loops: from a boundary coedge, its loop's next, crossing an edge between two skin faces to the coedge on the other side. Tabs that touch at a corner (D115's no-gap tray) therefore make one outline through that point.
+  - Each piece is an exact image: a line; a circular arc (from a plane's circles); a spline (any other planar curve, its control points moved by the plane's affine map).
+  - On a bend only lines (its straight edges, and its arcs square to the axis).
+  - Consecutive collinear lines and arcs of one circle are joined; two half circles become a CIRCLE.
+  - The flat is moved so its box starts at 0, 0.
+- **Bends**: the skin's pieces of one cylinder, however reached.
+  - Each bend gives: its angle (its developed width over rn); its inner radius; its K; its BA (its developed width); its two tangent lines; its centre line; its faces; and its name, the sheet report's where a face matches, else `bend<k>`.
+  - `up` where the fixed skin is the bend's inside (towards the viewer), `down` where it is the outside.
+- **The sheet's report carries through** `difference` and `hole` features on a sheet (holes, cuts). The flat is worked out again from the B-rep, which decides whether it still is a sheet.
+
+**Refusals** (`FlatPatternError`, an output's as GEOMETRY with the code in its message; `CUT_ACROSS_BEND` as CAPABILITY):
+- `NOT_A_SHEET`:
+  - mesh faces, a body in pieces, or no planar face;
+  - a face facing a skin plane at another distance than T (`qe.top lies 5 mm from the skin face b.bottom, not the sheet's 2 mm`: a boss; a T given wrong);
+  - a face neither on the skins nor a cut through them;
+  - **the volume identity:** the body's volume against T × its skin at the middle — planes' area, bends' developed area × (R + T/2)/(R + K·T) — to 1e-7.
+  - The opposite skin is matched face by face: a plane at −T, or a coaxial cylinder at radius ρ ∓ T.
+- `NON_NORMAL_CUT`: a face of neither skin meeting a skin face off square at its edges' quarter points (`he.side0 meets the sheet's face b.bottom 13.82° off square`: a hole drilled 16.7° off).
+- `BEND_NOT_CYLINDRICAL`: a smooth continuation that is not a cylinder. The case is a thin parallelogram swept round a bend, its skin a cone.
+- `FLAT_OVERLAPS`, two tests:
+  - no two pieces of the outline cross, or overlap along a line. A touch at a point is allowed. The arcs are sampled at π/64, with a uniform grid so it is not all pairs.
+  - a point inside every skin face, developed, lies inside the outline once (a winding of 2 is two faces on one place).
+  - The case: a window 20 mm wide with a 30 mm flange on its edge (refused); at 10 mm the flange fits and unfolds.
+- `CUT_ACROSS_BEND`: an edge on a bend that does not develop straight.
+  - Square cuts across a bend develop straight: walls square to the axis or containing it, as a notch through a corner does (tested). No cut today's features make square to the sheet reaches this refusal, so it is a guard, untested by a case. A cut made in the flat and refolded is later work (D115).
+
+**DXF** (`flatPatternDxf(flat)`, through the R11b writer, unchanged):
+- Layers:
+  - OUTLINE (7): LINE, ARC, CIRCLE, SPLINE.
+  - BEND_UP (3) and BEND_DOWN (1): each bend's centre line, on the line type DASHED (5, −2.5).
+  - BEND_NOTES (2): a TEXT at the line's middle, along it and upright: `DOWN 90° R2`.
+- mm units.
+- Conformance `r12/flat-dxf/{channel-hole, tray-holes}/`:
+  - `case.json` holds the part document and the flat's options;
+  - `expected.AC1015.dxf` / `.AC1009.dxf` are reproduced byte for byte;
+  - `oracle.*.json` is ezdxf 1.4.5's reading (run outside the product, `scripts/flat-dxf-fixtures.mjs`; the `~/.cache/barocss-ezdxf` venv R11b set up, nothing downloaded). It audits clean (no errors, no fixes), and every entity is on its layer at its coordinates to 1e-9, with the notes' text.
+
+**Oracles**, none computed by the unfolder:
+- **The textbook flat length**, the outside dimensions to the virtual sharps less BD = 2(R + T)·tan(θ/2) − θ(R + K·T):
+  - a channel 30 + 40 + 30 with a hole: length and width to 1e-12, area L·W − π r² to 1e-12;
+  - an L at 30°–150°: length and area to 1e-12;
+  - another K (0.33) moves the flat by exactly its BD.
+- **The K-factor's area identity**, V/T + (K − ½)·T·Σθw: to 1e-11 on the channel, the tray with holes and with no gap, and the window flange that fits.
+- **Bend data:** each bend's centre line where the leg's flat length less the setback plus BA/2 puts it, to 1e-11; its strip BA wide.
+- **Closed forms of cut-outs:** a notch through an L's corner across its bend, 30·L − 6·(2(10 − R − T) + (π/2)(R + K·T)), to 1e-12.
+- **Either skin:** the same flat from the other skin to 1e-12, its bends `up`.
+- **Through STEP** (no names, no history): the same flat to 1e-9.
+- **Time:** the channel 15 ms; the tray with a hole 25–30 ms.
+
+**Studio:**
+- A sheet body's flat is worked out with its evaluation (once a B-rep; refusals kept). The body's panel shows `Flat pattern 94.357 × 25 mm, 2 bends`, or `No flat pattern: [CODE] …` as a warning.
+- A **Flat** button opens the flat pattern: drawn to scale, bends dashed (up green, down red) with their notes, and "DXF" (2000 or R12) to download it.
+- The R12.1 profile's body notes gain the flat line.
+
+**Tests:**
+- Kernel `test/r12-2.test.mjs` (6) and studio `test/sheet.test.ts` (+1). Both fail on HEAD b33f8da75, where there is no flat.
+- Conformance:
+  - `r12/flat-channel-hole`, `flat-l-bracket-120`;
+  - `refuse-flat-non-normal-cut`, `refuse-flat-overlaps`;
+  - the DXF cases above.
+- The conformance runner gains an optional `flat` expectation: area, box, loops, bends by name and direction, or the flat's error.
+- A flow step: a channel with a hole opened from a file. It checks the panel's line, the dialog's two `down` bends and its summary, and the DXF downloaded (four layers, one CIRCLE, two TEXTs).
+
+**Judgement calls:**
+1. **The flat's x axis** is world X projected into the fixed plane, else Y. A profile standing on XZ, unfolded from a vertical leg, therefore runs along Y. Its outline is the same either way.
+2. **A tie for the largest planar face** (a plate's top and bottom) goes to the first by id. Only bodies without the sheet's rules meet it; the tests name the face.
+3. **The sheet's report is carried through `difference` and `hole` only.**
+   - Moves, patterns and mirrors leave it behind: their bends' reported axes would be stale.
+   - A union makes something else, so it takes the kernel's `flatPattern` with T and K.
+   - Carrying it further is a later step if wanted.
+
+**Not done:** a cut across a bend made in the flat; bend reliefs and edge flanges (R12.3); a drawing sheet of the flat and a bend table on it (the outer lane's R14, from this data).
+
+**The flat's window:** it opens in the middle, above toasts.
+- The first full flow had it in the toast corner, where a toast left over from an earlier step (an STL opened) covered its DXF button.
+- The flow step also handles its download's promise at once. A failed click had left that promise waiting, and when it timed out it ended the whole flow, not just the step.
+
+**Checks** on b33f8da75 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel and studio) |
+| Kernel | 1207/1212 (4 skipped; only the env-only Split test fails) |
+| Conformance | 139/139, with the 4 new cases; the 2 DXF cases in `r12-2.test.mjs` |
+| Studio | 545/545 |
+| Full flow | 170/170, run on its own; the new step included, every outer-lane step passing |
+
+RB rows are in the next commit.

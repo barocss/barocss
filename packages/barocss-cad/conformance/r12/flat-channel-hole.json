@@ -1,0 +1,152 @@
+{
+  "id": "r12-flat-channel-hole",
+  "step": "R12",
+  "decisions": [
+    "D117"
+  ],
+  "about": "R12.2: a channel (outside 30 + 40 + 30, two 90° bends) with a hole cut through its base by difference (the sheet carried on): its flat by the textbook length.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "sheet-contour",
+          "path": [
+            [
+              0,
+              30
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              40,
+              30
+            ]
+          ],
+          "side": "left",
+          "width": 25,
+          "thickness": 1.5,
+          "bendRadius": 2,
+          "kFactor": 0.44
+        },
+        {
+          "id": "h",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            20,
+            -12.5
+          ],
+          "radius": 4,
+          "plane": {
+            "origin": [
+              0,
+              -1,
+              0
+            ],
+            "normal": [
+              0,
+              1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "he",
+          "kind": "extrude",
+          "sketch": "h",
+          "height": 3.5
+        },
+        {
+          "id": "d",
+          "kind": "difference",
+          "target": "c",
+          "tool": "he"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 3473.5785187243273,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            19.999999999999982,
+            9.993978758193661,
+            12.499999999999996
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "c.back",
+          "c.bend1.inner",
+          "c.bend1.outer",
+          "c.bend2.inner",
+          "c.bend2.outer",
+          "c.end",
+          "c.front",
+          "c.leg0.a",
+          "c.leg0.b",
+          "c.leg1.a",
+          "c.leg1.b",
+          "c.leg2.a",
+          "c.leg2.b",
+          "he.side0"
+        ],
+        "flat": {
+          "areaMM2": {
+            "value": 2308.650429006285,
+            "relTol": 1e-12
+          },
+          "box": {
+            "value": [
+              94.35663645854885,
+              25
+            ],
+            "absTol": 1e-9
+          },
+          "loops": 2,
+          "bends": [
+            {
+              "name": "c.bend1",
+              "direction": "down",
+              "angleDegrees": 90
+            },
+            {
+              "name": "c.bend2",
+              "direction": "down",
+              "angleDegrees": 90
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "oracle": "Flat: closed form — the length 100 − 2·BD with BD = 2(R + T)·tan 45° − (π/2)(R + K·T), the width 25, the area L·W − π·4²; the volume (T × that at K = ½ for the bends) and the centroid by this kernel."
+}

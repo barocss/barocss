@@ -51,6 +51,7 @@ import { offsetCavity, offsetShell, smoothOffsetBody } from './offset-cavity.js'
 import { regionShell } from './region-shell.js';
 import { meshInnerOffset, type MeshShellReport } from './mesh-offset.js';
 import { bendAllowance, bendDeduction, contourFlangeSection, outsideSetback, SheetMetalError, type SheetReport } from './sheet-metal.js';
+import { flatPattern as flatPatternOf, FlatPatternError, type FlatPattern } from './sheet-flat.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
@@ -301,8 +302,15 @@ export interface CadPartOutput {
   readonly fillet?: readonly FilletReport[];
   /** A mesh body's shell (R11.3, D114): the wall asked for and the wall its offset achieves, measured. */
   readonly shell?: MeshShellReport;
-  /** A sheet-metal body's rules and bends (R12.1, D116). */
+  /** A sheet-metal body's rules and bends (R12.1, D116); carried through holes and cuts (R12.2). */
   readonly sheet?: SheetReport;
+  /**
+   * A sheet's flat pattern (R12.2, D117): its skin developed from `fixedFace` (default the sheet's own: a plate's top, a
+   * profile's first leg on its path), bends at R + K·T (`kFactor`, default the sheet's). Refused (GEOMETRY, its code in
+   * the message: NOT_A_SHEET, NON_NORMAL_CUT, BEND_NOT_CYLINDRICAL, FLAT_OVERLAPS; CAPABILITY: CUT_ACROSS_BEND) where it
+   * is no sheet, or for a body made without the sheet's rules (`flatPattern` of the kernel takes T and K for those).
+   */
+  flatPattern(options?: { readonly fixedFace?: string; readonly kFactor?: number }): FlatPattern;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -667,6 +675,8 @@ function frameOf(plane: CadPartSketchPlane, xyz: Tools['xyz'], fail: Tools['fail
 }
 /** A point of a sketch's own XYZ in the part. */
 const framed = (frame: Frame | undefined, p: Point): Point => !frame ? p : [frame.m[0] * p[0] + frame.m[1] * p[1] + frame.m[2] * p[2] + frame.o[0], frame.m[3] * p[0] + frame.m[4] * p[1] + frame.m[5] * p[2] + frame.o[1], frame.m[6] * p[0] + frame.m[7] * p[1] + frame.m[8] * p[2] + frame.o[2]];
+/** Parts made from sheets (holes, cuts) carrying their sheet's report, part for part (R12.2, D117). */
+const carrySheet = (r: Result, from: readonly Part[]): Result => r.kind === 'solid' && from.some(p => p.sheet) ? { kind: 'solid', parts: r.parts.map((q, i) => from[i]?.sheet ? { ...q, sheet: from[i].sheet } : q) } : r;
 /** A sheet feature's result: its one part carrying the sheet's report. */
 const withSheet = (r: Result, sheet: SheetReport): Result => r.kind === 'solid' ? { kind: 'solid', parts: r.parts.map(p => ({ ...p, sheet })) } : r;
 /** A result built on a sketch's own XY, moved onto its plane. */
@@ -778,7 +788,9 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const joined = tool.reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), tool[0].solid);
         // Unions merge every target part into one; difference and intersection act on each part.
         if (op === 'union') return one(target.reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), joined));
-        return many(target.map(p => boolean(p.solid, joined, op, at)));
+        // (A sheet's holes and cuts: still the sheet, its rules carried on; R12.2, D117.)
+        const out = many(target.map(p => boolean(p.solid, joined, op, at)));
+        return op === 'difference' ? carrySheet(out, target) : out;
       };
     }
     case 'hole': {
@@ -788,7 +800,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (side !== 'min' && side !== 'max') fail('INPUT', 'side must be min or max');
       const csk = f.countersink === undefined ? null : dim(f.countersink as CadPartDim, 'countersink', true);
       if (csk !== null && !(csk / 2 > r)) fail('INPUT', 'a countersink must be wider than the hole');
-      return () => many(target.map(p => {
+      return () => carrySheet(many(target.map(p => {
         // The tool: a cylinder along local z over [h0, h1], centred at local (c1, c2), turned onto the axis
         // by a cyclic permutation (x: local x, y, z → world y, z, x; y: → world z, x, y).
         const box = bounds(p.solid), k = 'xyz'.indexOf(axis), hi = box.max[k], lo = box.min[k];
@@ -815,7 +827,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const o: Point = [local[0], local[1], face], offset = [0, 1, 2].map(i => P[3 * i] * o[0] + P[3 * i + 1] * o[1] + P[3 * i + 2] * o[2]) as Point;
         const placedCone = transformBrep(cone, { matrix: mul(P, M) as unknown as BrepAffine['matrix'], offset }, n => n.split('|').map(q => q.replace(`${at}_csk.`, `${at}.countersink-`)).join('|'));
         return boolean(out, { kind: 'brep', brep: placedCone }, 'difference', at);
-      }));
+      })), target);
     }
     case 'translate': {
       const target = solids(f.target, 'target'), o = xyz(f.offset as CadPartPoint3, 'offset');
@@ -864,7 +876,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const { outer, frame, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
         if (regions?.length) fail('CAPABILITY', 'a sheet\'s base takes one outer loop (holes allowed) yet');
         if (f.reverse !== undefined && typeof f.reverse !== 'boolean') fail('INPUT', 'reverse must be true or false');
-        const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, kFactor: K as number, bends: [] };
+        const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, kFactor: K as number, fixedFace: `${at}.top`, bends: [] };
         return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(holes ? { holes } : {}), ...(tags ? { sideTags: tags } : {}), heightMM: T, fromMM: f.reverse ? -T : 0, tag: at }) }))(), report);
       }
       const list = f.path as unknown;
@@ -875,7 +887,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       let section: ReturnType<typeof contourFlangeSection>;
       try { section = contourFlangeSection(path, f.side as 'left' | 'right', T, R, at); }
       catch (cause) { if (cause instanceof SheetMetalError) fail(cause.code, cause.message); throw cause; }
-      const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, kFactor: K as number, bends: section!.bends.map(b => {
+      const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, kFactor: K as number, fixedFace: `${at}.leg0.a`, bends: section!.bends.map(b => {
         const angle = Math.abs(b.angle);
         return { name: `${at}.bend${b.vertex}`, inner: b.inner, outer: b.outer, radiusMM: R, angleDegrees: angle * 180 / Math.PI, axis: { origin: framed(frame, [b.center[0], b.center[1], 0]), direction: frame ? [frame.m[2], frame.m[5], frame.m[8]] as Point : [0, 0, 1] as Point },
           allowanceMM: bendAllowance(angle, R, T, K as number), setbackMM: outsideSetback(angle, R, T), deductionMM: bendDeduction(angle, R, T, K as number) };
@@ -1952,6 +1964,7 @@ function buildBrepLocal(pts: Point[], edges: { id: string; v: [number, number] }
 function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   let validated: BrepCheckReport | undefined, area: number | undefined;
+  const flats = new Map<string, FlatPattern>();
   return Object.freeze({
     id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}),
     massProperties(density: number) {
@@ -1963,6 +1976,19 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
     exportStep(options: { readonly name?: string } = {}) { return exportStep(brep, { name: options.name ?? id }); },
     validate() { return validated ??= checkBrep(brep, { strict: true }); },
     surfaceArea() { return area ??= brepSurfaceArea(brep); },
+    flatPattern(options: { readonly fixedFace?: string; readonly kFactor?: number } = {}) {
+      const s = part.sheet;
+      if (!s) throw new CadPartError('CAPABILITY', id, 'not made as sheet metal: give its thickness and K-factor to the kernel\'s flatPattern');
+      const k = options.kFactor ?? s.kFactor, key = `${options.fixedFace ?? s.fixedFace}|${k}`;
+      const hit = flats.get(key); if (hit) return hit;
+      try {
+        const flat = flatPatternOf(brep, { thicknessMM: s.thicknessMM, kFactor: k, fixedFace: options.fixedFace ?? s.fixedFace, bendNames: s.bends.map(b => ({ name: b.name, faces: [b.inner, b.outer] })) });
+        flats.set(key, flat); return flat;
+      } catch (cause) {
+        if (cause instanceof FlatPatternError) throw new CadPartError(cause.code === 'CUT_ACROSS_BEND' ? 'CAPABILITY' : 'GEOMETRY', id, cause.message);
+        throw cause;
+      }
+    },
   });
 }
 function stl(brep: Brep, segmentsPerQuarter: number): Uint8Array {
