@@ -3691,3 +3691,37 @@ The coordinator accepted IM3 and asked for one addition, folded in here: when th
   The IM1 and AM3 tests are updated for the longer rule list.
 - **Flow**: IM2's chat-summary match includes the new rules. A new IM4 step through the real chat and tool servers builds a shelled box with a 2 mm rib: "rib warn, boss n/a, inside-radius warn, sink pass".
 - **Found, not fixed (follow-up)**: a `hole` on a cylinder's top face after that cylinder was united into a shell is refused with "the hole at (15, 20) along z misses the target", although the face is there. The tests drill the boss before the union.
+
+## O81 — IM5: the parting line — halves, loops, the isocline across straddling faces, the person's override; the face split asked of the kernel lane (2026-10-21)
+
+The coordinator accepted IM4 and ordered IM5. Two instructions came with it. If splitting a straddling face along its isocline needs a kernel face-split-by-curve, stop and say so; the loops and the override can be built first without it. And add a minimal repro of the hole-after-union refusal.
+
+- **The repro**: `test/fixtures/hole-after-union.calls.json` holds five calls: a box, its shell, a cylinder, their union, then a hole on `n4.top`. `test/known-bugs.test.ts` runs it as a node `todo` test: it runs and reports, and does not fail the suite until the bug is fixed. It is listed in README §0's follow-ups for the kernel lane.
+- **The halves** (`src/mould/parting.ts`). Each face goes to a half by its draft field (IM2, exact normals):
+  - **+**: it releases along the pull;
+  - **−**: it releases against it;
+  - **a wall along the pull** (n·d 0 throughout; IM2's draft field now says side `0` rather than `−`): where the person says, else `−`;
+  - **a straddling face**: split, unless the person puts it whole in one half.
+
+  The person's halves live in `doc.mould.sides`, `{face: "+" | "-"}`, a versioned addition. `check_printability` takes `sides` as an argument, and an argument wins over the document.
+- **The line**:
+  - every display-edge segment between the halves, judged at its middle; next to a straddling face, that face's half at the point comes from its exact normal;
+  - across each straddling face, its isocline n·d = 0, traced by marching its triangles. Each mesh edge's crossing is bisected 60 times on the exact normal and shared by position between the two triangles on that edge.
+
+  The pieces are chained into loops, joined within half the longest piece, because a crossing on a face's rim meets its edge's segments mid-segment. Each loop reports whether it is closed, its length, its extent along the pull, and whether it is flat (within the mesh's 1e-4).
+- **The face split is not built.** Moulding a straddling face in two halves needs the face split along its isocline: a face split by a curve, which is a kernel operation. The report names each such face and its isocline length. **Asked of the kernel lane** through the coordinator: `splitFaceAlongCurve(brep, face, curve)`, or a split of a face by the isocline n·d = 0 directly. Until then, the person can put the face whole in one half.
+- **In the report**, the moulding rule `parting`:
+  - **pass**: every loop closed and no face to split;
+  - **warn**: a straddling face to split (named, with its isocline length and the remedy), an open loop, or no loop at all (the whole part in one half);
+  - **unknown**: no pull.
+
+  `mould.parting` lists each face's half and basis, the faces to split, and the loops.
+- **Tests** (`test/mould-parting.test.ts`, 4, closed forms):
+  - **a box pulled along +Z**: its walls go to − by default, giving one loop round the top, 140 long (2 × (40 + 30)) to 1e-9 and flat at 10. Put in +, the loop runs round the bottom at 0;
+  - **a box drafted 2°**: its walls go to + by their draft, giving a loop round the bottom, 140 at 0;
+  - **a cylinder lying across the pull**: it straddles, with an isocline 80 long to 1e-9 (the lines z = 0, y = ±10). The loop is closed round the isocline and the caps' upper halves: 80 plus two 16-chord half circles (2 × 16 × 10 × sin(π/32) each), to 1e-4, stepped 0 … 10, its isocline points on z = 0 to 1e-9. Put whole in +, it has two loops, each the caps' full 32-chord circle;
+  - **the report**: a box passes ("1 parting loop (flat, 140 mm)"); the cross cylinder is warned, the face named; the document's sides or the tool's pass; all in one half gives "0 parting loops" (warned); no pull is unknown; a bad `sides` is refused.
+
+  The IM1, IM3 and AM3 tests are updated for the rule.
+- **Flow**: an IM5 step through the real chat and tool servers. On a cross cylinder the report ends "parting warn"; with `sides` putting it whole in +, "parting pass".
+- The contract overhead is unchanged at 14 544 (tools/list 115 716, 101 172 plain); `tools-v1.json` is updated as a compatible change.

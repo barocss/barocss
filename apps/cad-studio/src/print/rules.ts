@@ -13,6 +13,7 @@ import { overhangOf, type Vec3 } from './overhang';
 import { draftField, type DraftFace } from '../mould/draft';
 import { undercuts, type UndercutRegion } from '../mould/undercut';
 import { wallsOf, type WallReport } from '../mould/walls';
+import { partingLine, type Half, type PartingReport } from '../mould/parting';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
 export interface PrintRule {
@@ -29,6 +30,8 @@ export interface PrintabilityReport {
   readonly mould?: { readonly finish: string | null; readonly minDraftDeg: number | null; readonly recDraftDeg: number | null; readonly bodies: readonly { body: string; material: string | null; wallMM: readonly [number, number] | null; wallNote?: string; shrink: number | null }[];
     /** IM2: each face's exact draft and class (with a pull and a finish). */
     readonly draft?: readonly { body: string; face: string; cls: string; min_deg: number; max_deg: number; steepest_deg: number; side: string; below_mm2: number; area_mm2: number; isocline_points?: number }[];
+    /** IM5: the parting line — each face's half, the straddling faces to split, the loops. */
+    readonly parting?: Record<string, unknown>;
     /** IM4: each body's walls — the nominal, the thinnest and thick sections, ribs, bosses, fillets, sharp inside corners. */
     readonly walls?: readonly Record<string, unknown>[];
     /** IM3: the undercut regions (with a pull): their faces, area, centre and the side action that frees each (null: none). */
@@ -68,7 +71,7 @@ export function cavitiesOf(m: DisplayMesh): number {
 }
 
 /** The part's printability against its process, printer and orientation (given, else the document's chosen one). */
-export async function printability(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, options: { direction?: readonly number[]; finish?: string } = {}): Promise<PrintabilityReport> {
+export async function printability(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, options: { direction?: readonly number[]; finish?: string; sides?: Readonly<Record<string, Half>> } = {}): Promise<PrintabilityReport> {
   const profile = processProfile(doc.process), printer = printerProfile(doc.printer), dir = options.direction ?? doc.print?.direction;
   const b = dir ? unit(dir) : null, rules: PrintRule[] = [];
   if (profile?.id === 'injection') return mouldability(doc, bodies, profile, options);
@@ -134,7 +137,7 @@ export async function printability(doc: StudioDoc, bodies: readonly BodyResult[]
  * the walls against the process and each body's material range (sourced per value), the part against the largest a
  * moulder makes (its depth along the pull). The draft field (IM2) and undercuts (IM3) are said to come, not guessed.
  */
-function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile, options: { direction?: readonly number[]; finish?: string }): PrintabilityReport {
+function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile, options: { direction?: readonly number[]; finish?: string; sides?: Readonly<Record<string, Half>> }): PrintabilityReport {
   const t = (k: string) => profile.thresholds[k], rules: PrintRule[] = [], pullIn = options.direction ?? doc.mould?.pull, pull = pullIn ? unit(pullIn) : null;
   const finishId = options.finish ?? doc.mould?.finish ?? null, finish: MouldFinish | undefined = finishId ? profile.finishes?.find(f => f.id === finishId) : undefined;
   rules.push(pull ? { id: 'pull', level: 'feasible', status: 'pass', message: `the pull direction (the mould opens along it): ${pull.map(v => +v.toFixed(6)).join(', ')}` }
@@ -210,7 +213,19 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
       message: (!regions.length ? 'no undercut: every face seen along the pull one way or the other' : `${regions.length} undercut region${regions.length > 1 ? 's' : ''} (${+regions.reduce((a, r) => a + r.areaMM2, 0).toFixed(3)} mm²): ${sided.length ? `${sided.length} freed by a side action (${sided.map(r => `[${dirName(r.sideAction!)}]`).join(', ')})` : ''}${sided.length && stuck.length ? '; ' : ''}${stuck.length ? `${stuck.length} freed by no straight action across the pull (a collapsing core, a lifter or a redesign)` : ''}`) + ` (${limit})`,
       value: regions.reduce((a, r) => a + r.areaMM2, 0), unit: 'mm²', entities: [...new Set(regions.flatMap(r => r.faces))].slice(0, 40) });
   }
+  // IM5 (O81): the parting line — the edges between the halves and the isoclines across straddling faces, in loops.
+  let parting: PartingReport | null = null;
+  if (!pull) rules.push({ id: 'parting', level: 'recommended', status: 'unknown', message: 'the parting line', why: 'no pull direction: the halves part along it' });
+  else {
+    parting = partingLine(doc, bodies, pull, { ...doc.mould?.sides, ...options.sides });
+    const open = parting.loops.filter(l => !l.closed), sum = (v: number) => +v.toFixed(3);
+    const loops = parting.loops.map(l => `${l.closed ? '' : 'open, '}${l.flat ? 'flat' : `stepped ${sum(l.rangeMM[0])} … ${sum(l.rangeMM[1])}`}, ${sum(l.lengthMM)} mm`).join('; ');
+    rules.push({ id: 'parting', level: 'recommended', status: parting.split.length || open.length || !parting.loops.length ? 'warn' : 'pass',
+      message: `${parting.loops.length} parting loop${parting.loops.length === 1 ? '' : 's'}${loops ? ` (${loops})` : ''}${parting.split.length ? `; ${parting.split.length} straddling face${parting.split.length > 1 ? 's' : ''} it crosses along the isocline (${parting.split.map(x => `${x.face} ${sum(x.isoclineMM)} mm`).join(', ')}): each must be split there to mould in two halves — a face split by a curve, not built (the kernel's), or put the whole face in one half (sides)` : ''}${open.length ? `; ${open.length} not closed` : ''}`,
+      value: parting.loops.length, unit: 'loops', entities: parting.split.map(x => x.face) });
+  }
   return { process: profile.id, direction: pull, rules, mould: { finish: finish?.id ?? null, minDraftDeg: finish?.draftMinDeg ?? null, recDraftDeg: finish ? finish.draftRecDeg ?? finish.draftMinDeg : null, bodies: per.map(x => ({ body: x.key, material: x.material, wallMM: x.range, ...(x.note ? { wallNote: x.note } : {}), shrink: x.shrink })),
+    ...(parting ? { parting: { faces: parting.faces.map(f => ({ face: f.face, half: f.half, basis: f.basis })), split: parting.split.map(x => ({ face: x.face, isocline_mm: r6(x.isoclineMM) })), loops: parting.loops.map(l => ({ closed: l.closed, length_mm: r6(l.lengthMM), range_mm: l.rangeMM.map(r6), flat: l.flat, points: l.points.length })) } } : {}),
     walls: wr.map(w => ({ body: w.body, nominal_mm: w.nominalMM === null ? null : r6(w.nominalMM), thinnest_mm: w.thinnestMM === null ? null : r6(w.thinnestMM), thick95_mm: w.thick95MM === null ? null : r6(w.thick95MM), ribs: w.ribs.map(r => ({ faces: r.faces, thickness_mm: r6(r.thicknessMM) })), bosses: w.bosses.map(b => ({ outer: b.outer, inner: b.inner, wall_mm: r6(b.wallMM) })), fillets: w.fillets.map(f => ({ face: f.face, radius_mm: r6(f.radiusMM) })), sharp_corners: w.sharp.length, thick: w.thick ? { faces: w.thick.faces, area_mm2: r6(w.thick.areaMM2), max_mm: r6(w.thick.maxMM) } : null })),
     ...(regions ? { undercuts: regions.map(r => ({ body: r.body, faces: r.faces, area_mm2: r6(r.areaMM2), centroid: r.centroid.map(r6) as Vec3, side_action: r.sideAction, best_share: r6(r.best.clearShare) })) } : {}),
     ...(field ? { draft: field.map(f => ({ body: f.body, face: f.face, cls: f.cls, min_deg: r6(f.minDeg), max_deg: r6(f.maxDeg), steepest_deg: r6(f.steepestDeg), side: f.side, below_mm2: r6(f.belowMM2), area_mm2: r6(f.areaMM2), ...(f.isocline ? { isocline_points: f.isocline.length } : {}) })) } : {}) } };

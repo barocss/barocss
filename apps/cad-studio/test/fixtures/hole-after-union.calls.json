@@ -1,0 +1,71 @@
+{
+ "about": "Known bug (O80, for the kernel lane): a hole on a cylinder's top face after the cylinder was united into a shelled box is refused — \"the hole at (15, 20) along z misses the target\" — though the face n4.top is on the united body. Drilled before the union, the same hole cuts (test/mould-walls.test.ts drills first). Expected: the hole cuts the boss, Ø2.5, 10 deep, coaxial with n4.side0.",
+ "calls": [
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "box",
+    "values": {
+     "w": 60,
+     "d": 40,
+     "h": 25,
+     "x": 0,
+     "y": 0,
+     "z": 0
+    }
+   }
+  },
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "shell",
+    "values": {
+     "t": 2
+    },
+    "faces": [
+     "n1.top"
+    ]
+   }
+  },
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "cylinder",
+    "values": {
+     "r": 3,
+     "h": 12,
+     "x": 15,
+     "y": 20,
+     "z": 2
+    }
+   }
+  },
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "union",
+    "values": {},
+    "bodies": [
+     "b2",
+     "b4"
+    ]
+   }
+  },
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "hole",
+    "values": {
+     "type": "blind",
+     "d": 2.5,
+     "depth": 10,
+     "x": 15,
+     "y": 20
+    },
+    "faces": [
+     "n4.top"
+    ]
+   }
+  }
+ ]
+}

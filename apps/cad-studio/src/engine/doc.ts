@@ -300,8 +300,8 @@ export interface StudioDoc {
   printer?: string;
   /** How it lies in the printer (AM3–AM4): the build direction in the part's coordinates (up from the bed), chosen or given. */
   print?: { direction: [number, number, number] };
-  /** How it is moulded (IM1, O77; versioned): the pull direction (the mould opens along it) and the surface finish (an injection profile's finish id: its least draft). */
-  mould?: { version: 1; pull?: [number, number, number]; finish?: string };
+  /** How it is moulded (IM1, O77; versioned): the pull direction (the mould opens along it), the surface finish (an injection profile's finish id: its least draft) and the halves the person set (IM5). */
+  mould?: { version: 1; pull?: [number, number, number]; finish?: string; /** IM5 (O81): the person's halves, by face name — they decide a wall along the pull or a straddling face. */ sides?: Record<string, '+' | '-'> };
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
   /**

@@ -44,7 +44,8 @@ test('IM1 a shelled ABS box 60 × 40 × 25, walls 1.8, pulled along +Z with a PM
   assert.equal(by.finish.value, 3); assert.equal(by.finish.source, 'W-WEB');
   assert.equal(by['wall-material'].limit, 3.556); assert.ok(Math.abs(by['wall-material'].value! - 1.8) <= 1e-3, String(by['wall-material'].value));
   assert.equal(by.size.value, Math.max(60 / 751, 40 / 480, 25 / 203));
-  const { draft, undercuts: under, walls, ...mould } = r.mould!;
+  const { draft, undercuts: under, walls, parting, ...mould } = r.mould!;
+  assert.ok(parting);
   assert.equal(walls!.length, 1);
   assert.deepEqual(under, []);
   assert.deepEqual(mould, { finish: 'pm-t1', minDraftDeg: 3, recDraftDeg: 3, bodies: [{ body: r.mould!.bodies[0].body, material: 'abs', wallMM: [1.143, 3.556], shrink: 0.002 }] });
@@ -88,6 +89,6 @@ test('IM1 through the agent\'s tools: the brief states injection and ABS; check_
   const v1 = JSON.parse((await dispatchTool(s, 'check_printability', { direction: [0, 0, 1], finish: 'smooth' }, evaluate)).content);
   const v2 = JSON.parse((await dispatchTool(s, 'query', { action: 'manufacturability', direction: [0, 0, 1], finish: 'smooth' }, evaluate)).content);
   assert.deepEqual(v2, v1); assert.equal(v1.process, 'injection');
-  assert.deepEqual(v1.rules.filter((x: { status: string }) => x.status === 'pass').map((x: { id: string }) => x.id), ['pull', 'finish', 'wall', 'wall-material', 'wall-uniform', 'sink', 'size', 'undercut']);
+  assert.deepEqual(v1.rules.filter((x: { status: string }) => x.status === 'pass').map((x: { id: string }) => x.id), ['pull', 'finish', 'wall', 'wall-material', 'wall-uniform', 'sink', 'size', 'undercut', 'parting']);
   assert.equal(v1.mould.minDraftDeg, 0.5); assert.equal(v1.mould.recDraftDeg, 1); assert.equal(v1.mould.bodies[0].material, 'abs');
 });

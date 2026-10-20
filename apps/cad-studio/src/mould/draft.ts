@@ -18,8 +18,8 @@ export interface DraftFace {
   minDeg: number; maxDeg: number;
   /** The least |draft| (degrees): the steepest sample. */
   steepestDeg: number;
-  /** Which way it releases: + along the pull, − against it, ± both (straddling). */
-  side: '+' | '-' | '±';
+  /** Which way it releases: + along the pull, − against it, ± both (straddling), 0 neither (a wall along the pull, n·d 0 throughout). */
+  side: '+' | '-' | '±' | '0';
   /** Its area, and the area whose triangle centres' exact |draft| is under the minimum (the display mesh's triangles). */
   areaMM2: number; belowMM2: number;
   /** Straddling: points of its isocline n·d = 0, on the exact surface (one per mesh edge it crosses). */
@@ -156,7 +156,7 @@ function bodyField(body: BodyResult, brep: Brep | undefined, d: Vec3, minDeg: nu
     const f = df.index; if (!(area[f] > 0)) continue;
     const N = normals.get(f)!, pos = hi[f] > SIGN, neg = lo[f] < -SIGN, cls: DraftClass = pos && neg ? 'straddle' : steep[f] < sinMin - 1e-12 ? 'steep' : 'drafted';
     const face: DraftFace = { body: body.key, face: df.name.split('+')[0], kind: N.kind, cls, minDeg: Math.asin(Math.max(-1, Math.min(1, lo[f]))) * DEG, maxDeg: Math.asin(Math.max(-1, Math.min(1, hi[f]))) * DEG,
-      steepestDeg: Math.asin(Math.min(1, steep[f])) * DEG, side: pos && neg ? '±' : pos ? '+' : '-', areaMM2: area[f], belowMM2: below[f] };
+      steepestDeg: Math.asin(Math.min(1, steep[f])) * DEG, side: pos && neg ? '±' : pos ? '+' : neg ? '-' : '0', areaMM2: area[f], belowMM2: below[f] };
     if (cls === 'straddle' && N.kind !== 'facets') face.isocline = isoclineOf(m, f, N, vdot, d);
     out.push(face);
   }
@@ -177,4 +177,17 @@ function isoclineOf(m: DisplayMesh, f: number, N: Normal, vdot: Float64Array, d:
     }
   }
   return out;
+}
+
+/** A body's exact outward normal at a point on one of its display faces (IM5): the same normals the draft field reads. */
+export function exactNormals(doc: StudioDoc, body: BodyResult): (face: number, p: readonly number[]) => Vec3 {
+  let brep: Brep | undefined;
+  try { brep = partBreps(doc).find(x => x.key === body.key)?.brep; } catch { /* planes and cylinders still exact */ }
+  const normals = normalsOf(body, brep), out = new Float64Array(3), tri = [0, 0, 1];
+  return (face, p) => {
+    const N = normals.get(face); if (!N) return [0, 0, 0];
+    if (N.kind === 'facets') { const f = body.mesh.faces.find(x => x.index === face); return f ? [f.normal[0], f.normal[1], f.normal[2]] : [0, 0, 0]; }
+    normalAt(N, p[0], p[1], p[2], tri, out);
+    return [out[0], out[1], out[2]];
+  };
 }

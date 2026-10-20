@@ -74,5 +74,5 @@ test('IM3 in the manufacturability report: the side hole warned (a side action n
   ({ u } = await rule(side)); assert.equal(u.status, 'unknown'); assert.match(u.why!, /no pull direction/);
   // (The chat shows the report as its process and each rule's status.)
   assert.equal(summarize('check_printability', JSON.stringify(r), false), `injection: ${r.rules.map(x => `${x.id} ${x.status}`).join(', ')}`);
-  assert.match(summarize('check_printability', JSON.stringify(r), false), /undercut warn$/);
+  assert.match(summarize('check_printability', JSON.stringify(r), false), /undercut warn, parting \w+$/);
 });

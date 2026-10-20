@@ -734,6 +734,16 @@
      },
      "finish": {
       "type": "string"
+     },
+     "sides": {
+      "additionalProperties": {
+       "enum": [
+        "+",
+        "-"
+       ],
+       "type": "string"
+      },
+      "type": "object"
      }
     },
     "type": "object"
