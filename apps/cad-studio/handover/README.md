@@ -375,6 +375,12 @@ stays out of the kernel's core files (requests for them go through the coordinat
     Integrator's serial gates with typed verdicts (applied, rejected, held, stale) and a byte-reproducible trace;
     roles as interfaces; the Verifier's built, frozen view; scripted roles; `cad-cli team`. Ten seeded-defect
     scenarios in `conformance/a7`. No new chat tools. The live comparison waits for the owner (O30).
+- **A8** multi-agent v2 and v3 (coordinator, 2026-10-20):
+  - **A8 S0** (O32): done. A8.1 parallel read-only DFM and Analysis reviewers, and a Drafting agent on a frozen
+    revision; A8.2 the Architect's interfaces, Part agents with leases; A8.3 ECRs with impact and the user's approval;
+    A8.4 the Assembly integrator and a BOM agent; A8.5 per-role precision and recall on seeded defects. Scripted, no
+    new chat tools; live numbers pending (O30).
+  - A8.1 (next) → A8.2 → A8.3 → A8.4 → A8.5.
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

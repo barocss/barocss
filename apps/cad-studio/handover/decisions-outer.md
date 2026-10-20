@@ -1444,3 +1444,85 @@ Assigned by the coordinator after A6. Build the parts that need no model now, an
   3. **The REFERENCE_LOCKED exemption is narrow.** Datums and keep-outs may be added and deleted, in a batch too.
      - Refused for every role: deleting a reference, its face in a part op (hole), in an assembly op (mate) and in a batch (fillet); and a Designer's patch on its face, rejected at validity with the reference untouched.
      - No tool moves a reference.
+
+## O32 — A8 S0: multi-agent v2 and v3 — scope and acceptance frozen per step (2026-10-20)
+
+Assigned by the coordinator after A7. It builds on A7's core (`src/team/`: revisions, patches, the Integrator's gates, built views, scripted roles, `cad-cli team`).
+
+**Limits on every step:**
+- Deterministic and scripted, with seeded-defect fixtures in `conformance/a8/`. No live model: the live numbers wait for the owner, as A7's comparison does (O30).
+- No chat tools: A8 adds none, and `tools/list` is unchanged. Exposure is `src/team/` and `cad-cli team` (scenario kinds v2 and v3).
+- A step needing a kernel-core change stops and goes to the coordinator.
+- The test names are compared at every checkpoint.
+
+### A8.1 — v2: parallel read-only DFM and Analysis reviewers; a Drafting agent on a frozen revision
+- **Reviewers** (`DfmReviewer`, `AnalysisReviewer`) review a patch's result **in parallel** with the Verifier.
+  - Each is given a **built, frozen view** of a fixed key set, as the Verifier's (A7.3). The DFM view holds the printability report, the process, the facts and the boxes; the Analysis view holds the check report, the requirements, the mass and the keep-out results.
+  - They are **structurally read-only**: a view holds no state, no evaluate and no dispatcher, so a reviewer cannot apply anything.
+  - Each returns `{accept, findings: [{code, message, entities?}]}`, typed.
+  - The Integrator joins them: any rejection rejects the patch, with every reviewer's findings in the trace, ordered by role name so the trace is deterministic even though the reviews run in parallel.
+- **The Drafting agent** works on a **frozen revision**. Its patch holds only drawing ops (`auto_dimension`, `fix_drawing`, `set_drawing`, `accept_tolerances`; R14). Anything else is refused, typed `NOT_A_DRAWING_OP`.
+  - It is made against the model's revision. If the model moved since, the patch is refused `STALE_BASE`, as in A7.1, with the same canonical confirmation.
+  - Applied, its drawing is checked by `drawing_issues`: errors reject it (`DRAWING_ISSUES`); warnings are listed.
+- **Acceptance (fixtures)**:
+  - a DFM defect the gates allow (a feasible but not recommended overhang under the process) that only the DFM reviewer flags;
+  - an analysis concern no hard requirement covers (a soft requirement failing) that only the Analysis reviewer flags;
+  - both reviewers flagging one patch, their findings in role order;
+  - a reviewer's view keys checked, frozen, with nothing of the patch in it;
+  - the drafting patch applied on the frozen revision, its drawing issue-free;
+  - a drafting patch refused after the model moved; a non-drawing op refused.
+
+### A8.2 — v3: the Architect's `interfaces` section; Part agents against frozen contracts, with leases
+- **Interfaces** (`doc.interfaces`, version 1, the Architect's) is the assembly's contract. It holds:
+  - datums (A6.3's, by id);
+  - hole patterns `{id, positions (mm, the assembly's frame), diameter, parts: [ids]}`;
+  - envelopes `{id, part, box}`;
+  - keep-outs (A6.3's, by id);
+  - budgets `{mass_g?, parts?}`.
+  - It has its own revision (`interfacesRevision`).
+- **Leases**: the Architect leases each part to one Part agent, `{part, holder, contract: interfacesRevision, until: seq}`.
+  - A Part agent's patch is ops on its part (`part: id`), made against the contract revision of its lease.
+  - Refused, typed:
+    - `NO_LEASE`: no lease, or it is another agent's;
+    - `LEASE_EXPIRED`: the run's logical clock past `until`;
+    - `CONTRACT_MOVED`: the interfaces' revision is not the lease's (the agent re-reads and its lease is renewed by the Architect);
+    - `OUT_OF_PART`: ops on another part or the assembly.
+- **The part's gates** are A7's, run on the part, plus its contract:
+  - its body within its envelope;
+  - its holes on its pattern (A3's `hole_alignment`-style check against the pattern's positions);
+  - its share of the mass budget.
+- **Acceptance**:
+  - a two-part assembly (a bracket and a board) with a hole pattern, envelopes and a mass budget;
+  - one fixture each for: no lease, another agent's lease, an expired lease, a contract moved, a hole off its pattern, a body out of its envelope, over its mass budget;
+  - a clean run: both parts accepted under their leases.
+
+### A8.3 — v3: ECRs (engineering change requests), impact analysis, human approval
+- **A change to the interfaces** (from the Architect or a Part agent) is an **ECR**, `{id, by, changes (the interfaces' diff), impact, status: open | approved | rejected}`, never an op.
+- **The impact** is computed: the parts whose leases name the changed items, the requirements whose subjects they are, and the open patches made against the old revision.
+- **Only the user approves.** `approveEcr(doc, id, {by: 'user', at})` applies it, bumps the interfaces' revision and expires the leases it affects. An agent cannot approve one (`APPROVAL_IS_THE_USERS`).
+- A7's `CONTRACT_CHANGED` hold becomes an ECR when the change is to the interfaces.
+- **Acceptance**:
+  - an ECR moving a hole pattern: its impact lists both parts and the board's open patch;
+  - approved by the user, the leases expire and the open patch is refused `CONTRACT_MOVED`;
+  - rejected, nothing changes;
+  - an agent's approval refused.
+
+### A8.4 — v3: the Assembly integrator and a BOM agent
+- **The Assembly integrator** takes accepted part revisions into the assembly serially, one part at a time against the assembly's revision. Its gates:
+  - interference between parts (the kernel's intersection on the placed bodies);
+  - the interfaces (the hole patterns aligned across the parts that share them; envelopes);
+  - the mass budget over the whole.
+  - It uses typed verdicts and a trace, as A7.2.
+- **The BOM agent** is read-only. Its output is derived from the assembly: parts, quantities, materials (the brief's or the bodies'), library parts (fasteners, A6.5 sources), and mass, as a BOM artifact checked against the assembly (every instance counted once). Its view is built, as the reviewers' are.
+- **Acceptance**:
+  - two parts integrated, a third that interferes refused;
+  - a pattern misaligned across parts refused;
+  - the BOM's lines and totals against the assembly's closed form;
+  - its sources for library parts.
+
+### A8.5 — per-role metrics on seeded defects
+- Each fixture labels its seeded defects by category (validity, interference, interfaces, DFM, analysis, drawing, verifier-only).
+- **Precision and recall per role** — Verifier, DFM reviewer, Analysis reviewer, each gate — are computed over the fixture set from the scripted roles. They are reported by `cad-cli team --metrics`, and a test asserts them: 1.0 and 1.0 for the scripted roles on their own categories, with the confusion counts listed.
+- The same report with live roles is pending with O30's protocol.
+
+**Order**: A8.1 → A8.2 → A8.3 → A8.4 → A8.5, with a checkpoint after each.
