@@ -2336,3 +2336,30 @@ Assigned by the coordinator after #2177. RD4–RD8 (beam and solid FEA, the tet 
   - **The harness's numbers are RD2's and RD3's own**: effort equals `motion_torques`' peak or `gravity_torques`' hold, and every RD3 check value equals `sizeActuators`' for the same pair.
   - **The CLI** (spawned): the frozen arm and duty exit 0; a past-limit duty exits 1 with `least` joint range; a duty without limits exits 2 with the reason.
 - **Note:** RD3's ranking, by mass and then the largest least margin, picks 100:1 over 50:1 at equal mass. The seeded defect therefore came from a fast duty, not from "the smallest reducer".
+
+## O48 — RD10, the deterministic part: the scripted sizer takes arm-3r to every margin above zero (2026-10-20)
+
+- **`src/robot/sizer.ts`**: `sizeDesign(tree, bodies, sweep, duty, {maxRounds})` gives `{ok, rounds, trace, tree, duty, report, stopped?}`.
+  - **The document level**: `robotSizeOfDoc` writes the sized ratings back into `robot.joints`. The actuators and the profile stay in the duty.
+  - **One change a round**, for the worst failing margin, or else the first unknown:
+    - **an RD3 check fails, or a joint has no actuator**: the joint takes the lightest catalogue pair that passes every RD3 check in every move (by mass, then id). When none does, every move slows (velocity, acceleration and jerk × 0.8);
+    - **a velocity or effort rating fails, or is missing**: it becomes the joint's actuator's capability (`capability`): velocity min(motor max speed, reducer max input speed) / N; effort the reducer's repeated peak torque;
+    - **a range or a sweep fails**: `BRIEF_INFEASIBLE`, since no sizing rule changes geometry or the duty's poses;
+    - **only consistency fails**: `BRIEF_INFEASIBLE` ("the model is inconsistent");
+    - **past `maxRounds`** (10): `NOT_CONVERGED`.
+  - **Added beyond O46, found by the first run:** when a joint's actuator changes, its ratings are held to the new pair's capability, said in the trace.
+    - The run had rated the shoulder 36 N·m from its 100:1 reducer, then moved it to 50:1, whose repeated peak is 23 N·m. The harness checks ratings against the duty, not against the actuator, so the design would have "passed" rated past what it can give.
+    - The test now asserts every final rating is within its pair's capability.
+- **`cad-cli robot-size part.bcad duty.json -o sized.bcad`** writes `sized.bcad` (the ratings) and `sized.duty.json` (the actuators and the profile), and prints the trace. It exits 0 when sized, 1 when stopped, 2 for a malformed duty.
+- **The run** (`test/robot-sizer.test.ts`). The brief is arm-3r between two poses at 6 rad/s and 60 rad/s², 0.5 s dwells, 20 000 h. The start is undersized: ratings 1 rad/s and 1 N·m, every joint on 100:1.
+  - **16 failing margins** at the start.
+  - **8 rounds:** 3 velocity ratings, then 2 effort ratings, then the shoulder to 50:1 (its effort held to 23), the base's effort, and the base to 50:1 (effort held to 23).
+  - Every margin is then above 0, and the least is joint range l1~l2 at 0.25.
+  - Each round's check was failing when it was taken.
+  - **Saved and opened again**, a fresh harness run on the sized document and duty is ok and byte-identical to the sizer's last report. A rerun gives the same trace.
+  - **Stops:**
+    - a pose past a limit gives `BRIEF_INFEASIBLE` ("joint range base~l1 fails in move 0"), after the actuators and ratings are fixed first, since it is not the worst margin at the start;
+    - the payload swung into the base gives `BRIEF_INFEASIBLE` (sweep, contact base–payload);
+    - `maxRounds: 1` gives `NOT_CONVERGED`.
+  - **Spawned:** `robot-size` exits 0, then `robot-check` on its outputs exits 0.
+- **The L3 evidence is pending the owner**: a live model sizing the same arm, with the protocol in O46's S0. The scripted sizer's trace above is the baseline it is compared with: rounds, changes, final margins.

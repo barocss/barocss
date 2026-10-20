@@ -1089,7 +1089,8 @@ gear crank.
   - RD9 harness v1 — **without FEA** (O46): RD1–RD3 sizing, RM limits and sweeps, closed-form checks. **Done (O47)**:
     `cad-cli robot-check`; the arm-3r fixture's 80 margins above 0; seven seeded defects each at its own check; closed form to 1e-9.
   - RD10 an agent sizes a 3-DoF arm with every margin above zero — **without FEA** (O46). The deterministic part is
-    done first; the L3 evidence needs a live model run, pending the owner, with its protocol.
+    done first; the L3 evidence needs a live model run, pending the owner, with its protocol. **Deterministic part done (O48)**:
+    `cad-cli robot-size`; from 16 failing margins to all above 0 in 8 rounds; BRIEF_INFEASIBLE and NOT_CONVERGED typed.
 
 **IM — injection moulding and casting** (Protolabs, Fictiv, Stratasys, LyondellBasell, Dynacast, Engineers Edge):
 - IM1: process rule (material wall range and shrink, pull direction, finish to minimum draft).

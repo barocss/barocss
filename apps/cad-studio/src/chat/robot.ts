@@ -14,6 +14,7 @@ import { closureOfDoc } from '../robot/loop';
 import { readMjcf } from '../robot/mjcfCheck';
 import { sweepLinks, sweepPath, type SweepLink } from '../robot/sweep';
 import { checkDesign, type Duty, type HarnessReport } from '../robot/harness';
+import { sizeDesign, type Sized } from '../robot/sizer';
 import type { V3 } from '../robot/inertia';
 import { gravityTorques, linkBodies, linkMasses, moveTorques, STANDARD_GRAVITY, type MoveLimits } from '../robot/dynamics';
 import { MOTOR_FIELDS, MOTORS, readCatalogue, REDUCER_FIELDS, REDUCERS, sizeActuators, SIZING_MODEL, type Motor, type Reducer, type Sizing, type Source } from '../robot/actuators';
@@ -275,6 +276,13 @@ export function readDuty(tree: JointTree, raw: unknown): Duty | { error: string 
 export async function robotCheckOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: Duty): Promise<HarnessReport> {
   const r = await robotOfDoc(doc, bodies, evaluate);
   return checkDesign(r.tree, linkBodies(r.tree, r.partOf), await sweepLinksOfDoc(doc, bodies, evaluate, r.tree), duty);
+}
+/** RD10's scripted sizer on the document's robot: the sized ratings written back to its joints, the duty with its actuators. */
+export async function robotSizeOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: Duty, o: { maxRounds?: number } = {}): Promise<{ sized: Sized; doc: StudioDoc }> {
+  const r = await robotOfDoc(doc, bodies, evaluate), sized = sizeDesign(r.tree, linkBodies(r.tree, r.partOf), await sweepLinksOfDoc(doc, bodies, evaluate, r.tree), duty, o);
+  const robot = readRobot(doc.robot), joints: Record<string, JointSettings> = { ...robot.joints };
+  for (const j of sized.tree.joints) if (j.limit && (j.limit.velocity !== undefined || j.limit.effort !== undefined)) joints[j.key] = { ...joints[j.key], ...(j.limit.velocity !== undefined ? { velocity: j.limit.velocity } : {}), ...(j.limit.effort !== undefined ? { effort: j.limit.effort } : {}) };
+  return { sized, doc: { ...doc, robot: { ...robot, joints } } };
 }
 /** The document's robot as URDF (RM4). */
 export async function urdfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<UrdfResult> { const r = await robotOfDoc(doc, bodies, evaluate); return exportUrdf(r.tree, r.partOf, name); }

@@ -18,7 +18,7 @@ import { notLocalModel, openModel, writeAtomic } from './cadDoc';
 import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '../src/team/scripted';
 import { metricsOf, type Labelled } from '../src/team/metrics';
 import { verifyBundle, writeBundle } from '../src/team/bundle';
-import { readDuty, robotCheckOfDoc, treeOfDoc } from '../src/chat/robot';
+import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '../src/chat/robot';
 
 export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.
@@ -43,6 +43,10 @@ cad-cli robot-check part.bcad duty.json
   RD9's design-check harness: every margin of the robot against the duty (its moves out and back, dwells, life):
   the actuators (RD3), the joints' ranges and ratings, the sweep (RM6), the model's consistency. Exit 0 only when
   every margin is above 0 and nothing is unknown, else 1.
+cad-cli robot-size part.bcad duty.json -o sized.bcad
+  RD10's scripted sizer: one change a round (an actuator, a rating, or a slower profile) until every harness margin is
+  above 0; writes sized.bcad (the ratings) and sized.duty.json (the actuators, the profile); prints the trace. Exit 0
+  when sized, 1 when it stopped (BRIEF_INFEASIBLE: a range or a sweep no sizing fixes; NOT_CONVERGED).
 cad-cli team scenario.json
   Runs a scripted team (A7: the Requirements role's ops, the Designer's patches, the Verifier's rules) through the
   Integrator's gates; prints each patch's trace. Exit 1 when no patch was applied.`;
@@ -146,6 +150,23 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const r = await robotCheckOfDoc(s.doc, s.bodies, evaluate, duty);
     say(io.stdout, r);
     return r.ok ? 0 : 1;
+  }
+  if (cmd === 'robot-size') {
+    // (RD10, O48: the scripted sizer on a saved robot and a duty; the sized design written beside -o.)
+    const oi = rest.indexOf('-o'), files = rest.filter((a, i) => !a.startsWith('-') && rest[i - 1] !== '-o');
+    if (files.length !== 2 || oi < 0 || !rest[oi + 1]) return usage('robot-size takes a .bcad file, a duty .json and -o sized.bcad');
+    const opened = await openModel(resolve(files[0]));
+    if ('error' in opened) return failed(opened.error);
+    const s = await stateOf(opened.doc);
+    if ('error' in s) return failed(s.error);
+    let raw: unknown;
+    try { raw = JSON.parse(readFileSync(resolve(files[1]), 'utf8')); } catch (e) { return failed(`${files[1]}: ${e instanceof Error ? e.message : String(e)}`, 2); }
+    const duty = readDuty(await treeOfDoc(s.doc, s.bodies, evaluate), raw);
+    if ('error' in duty) return failed(`${files[1]}: ${duty.error}`, 2);
+    const { sized, doc } = await robotSizeOfDoc(s.doc, s.bodies, evaluate, duty), out = resolve(rest[oi + 1]), dutyOut = out.replace(/\.bcad$/i, '') + '.duty.json';
+    writeAtomic(out, encodeStudioFile(doc)); writeAtomic(dutyOut, JSON.stringify(sized.duty, null, 1) + '\n');
+    say(io.stdout, { ok: sized.ok, rounds: sized.rounds, trace: sized.trace, ...(sized.stopped ? { stopped: sized.stopped } : {}), least: sized.report.least, wrote: [out, dutyOut] });
+    return sized.ok ? 0 : 1;
   }
   if (cmd === 'check') {
     if (rest.length !== 1) return usage('check takes one .bcad file');
