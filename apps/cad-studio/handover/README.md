@@ -369,7 +369,10 @@ stays out of the kernel's core files (requests for them go through the coordinat
     Integrator's serial gates (validity → interference/clearance → interfaces → DFM → analysis), typed verdicts, a
     trace per patch; roles as interfaces, the Verifier given artifacts and requirements only; exposed as `src/team/`
     and `cad-cli team`, no new chat tools. The live single-versus-multi comparison pending with its protocol.
-  - A7.1–A7.4 (next).
+  - **A7.1–A7.4** (O31): done. `src/team/`: revisions (64-bit, canonical), patches (STALE_BASE, explicit rebase), the
+    Integrator's serial gates with typed verdicts (applied, rejected, held, stale) and a byte-reproducible trace;
+    roles as interfaces; the Verifier's built, frozen view; scripted roles; `cad-cli team`. Ten seeded-defect
+    scenarios in `conformance/a7`. No new chat tools. The live comparison waits for the owner (O30).
 - Kernel lane's intermittent flow step 116 (R10.3c, a wrong body once in four runs): its log and screenshot are in
   `notes/flaky-step116-flow12.log` / `.png`.
 - Pending decisions (outer lane, reversible defaults taken): cad-mcp's default autonomy is L2, the studio's (O12); `--autonomy 4` is one flag.

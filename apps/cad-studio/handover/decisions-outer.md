@@ -1379,3 +1379,58 @@ Assigned by the coordinator after A6. Build the parts that need no model now, an
 - **Needs**: the owner's OK for live runs and their cost, and the A5.5 A/B question that is open with them. The cost is estimated from A5.5's per-turn figures.
 
 **Not in A7**: A8 (parallel reviewers, the Architect, leases, ECRs), and any UI for the team.
+
+## O31 — A7.1–A7.4: the multi-agent core, deterministic (2026-10-20)
+
+- **Revisions and patches** (`src/team/team.ts`):
+  - `revisionOf(doc)` is a 64-bit FNV-1a, two 32-bit lanes mixed, 16 hex digits. It is taken over the canonical JSON (keys sorted) of nodes, parameters, bodies' looks, requirements, brief, references, process, printer and drafts. Key order, history and views do not change it; a contract does.
+  - A patch is `{id, by, base, ops, rationale?, rebasedFrom?}`.
+  - **A stale base is refused** with decision `stale` and finding `STALE_BASE`, naming the current revision; the state is the very same object.
+  - **`rebase(patch, revision)` is explicit**, keeps the first base in `rebasedFrom`, and is never automatic.
+- **The Integrator** (`integrate`) takes one patch against the state it is given. It runs A4's `apply_ops` on a copy of the state, so nothing is committed unless applied, then the gates in order:
+  1. **validity**: `OP_REFUSED`, `NOT_EVALUATED`, `NO_SOLID`, `REFERENCE_BROKEN`;
+  2. **interference**: `OVERLAP` for a pair of bodies that did not overlap before (the kernel's intersection); `KEEPOUT_VIOLATED`, and `KEEPOUT_UNDECIDED` within the chord tolerance (A6.3);
+  3. **interfaces**: `CONTRACT_CHANGED` when the patch changes references, the brief, the requirements, the process, the printer, the drafts or the questions; `INTERFACE_FAILED` for a hard `keepout`, `datum_distance`, `clearance` or `hole_alignment` requirement failing;
+  4. **dfm**: `DFM_FAILED` for the brief's stated process's (else the part's) feasibility rules. Skipped with `NO_PROCESS`, or with `NOT_CHECKED` for CNC and sheet metal;
+  5. **analysis**: `HARD_FAILED`, and `HARD_UNKNOWN` (undecided).
+  - Each gate is `{gate, verdict: pass | fail | undecided | skipped, findings}`. After a fail, the rest are skipped `NOT_REACHED`.
+  - **The decision**:
+    - `rejected` on a fail;
+    - `held` on an undecided gate, left to the user;
+    - otherwise the Verifier reviews, and `applied` or `rejected` with its findings.
+  - **The trace**: seq (a logical clock), the patch, its base and rebased-from, the dry run's diff, the gates, the Verifier (its model, verdict and findings), the decision, the revision after (only when applied), and the tokens per role.
+- **Roles are interfaces**, each with its `model`, and no chat tools:
+  - `RequirementsRole.brief`: its ops are applied and traced without the design gates, since the contracts are its own;
+  - `DesignerRole.propose(DesignerView)`: the view is the revision, facts, brief, requirements, and the last decision with its findings;
+  - `VerifierRole.review(VerifierView)`.
+  - **The Verifier's view is built, not prompted**: `verifierView` gives exactly `revision, brief, requirements, facts, mass, boxes, keepouts, printability, checks`. It is deep-frozen and JSON-copied, and holds nothing of the patch.
+- **The run** (`runTeam`) applies the brief, then takes the Designer's patches through the Integrator and the Verifier until done or the patch budget. It reports accepted and tried, the tokens per role, and the cost per accepted design (null when none).
+- **Scripted roles** (`src/team/scripted.ts`) are fixtures:
+  - the Designer's steps: a patch, `done`, `rebase` (the last patch on the current revision, explicitly), or a patch on a stale base;
+  - the Verifier's rules: total mass, size along an axis, body count, read only from its view.
+- **`cad-cli team scenario.json`** prints the run's traces (exit 0 when a patch is applied, 1 when none is, 2 on usage). There are no new chat tools and `tools/list` is unchanged.
+- **Fixed on the way**:
+  - `add_keepout` and `add_datum` are batchable, so the Requirements role's ops can set the contracts in one `apply_ops`.
+  - The REFERENCE_LOCKED guard (O26) exempts the reference tools. Making `add_datum` batchable had put it under the guard, and its own reference arguments were refused. The A6.3 tests failed, and the test-name comparison showed which.
+- **Evidence**: `test/team.test.ts` (4 tests). Its name was checked free first.
+  - **The ten scenarios** in `conformance/a7/` are hand-written with their expected decisions and stops, and **byte-identical on a rerun**:
+
+    | scenario | what happens |
+    |---|---|
+    | clean-run | every gate passes, DFM on FDM, the Verifier accepts, done |
+    | op-refused | validity `OP_REFUSED` |
+    | overlap | interference `OVERLAP` |
+    | keepout | interference `KEEPOUT_VIOLATED` |
+    | contract | interfaces `CONTRACT_CHANGED` |
+    | dfm-thin | a 0.3 mm shell for FDM: dfm `DFM_FAILED` |
+    | analysis | `HARD_FAILED`, then the right block applied |
+    | stale-rebase | `STALE_BASE`, then rebased and applied, its trace naming the old base |
+    | verifier-only | no gate sees it; the Verifier's mass rule rejects 14.9 g, not applied; a lighter block accepted |
+    | held | a round keep-out 5 mm away asking 5: `KEEPOUT_UNDECIDED`, held |
+
+    Every trace is complete, a revision after only when applied, and every gate after a fail not reached.
+  - **Patches**: stale refused with the state unchanged; the rebase keeps the first base; the revision changes with a contract but not with history or key order.
+  - **The Verifier's isolation**: its view's keys exactly the fixed set; no op, `run_command`, rationale (a marker string searched for) or patch in it; frozen; the same part gives the same view.
+  - **`cad-cli team`**: the clean run's output identical twice, its five gates in order; exit 1 on the contract scenario, 2 for a missing file.
+  - Studio 565/565, with no test name missing against the last run. Lint and type-check clean. Browser flow 173/173: no UI changed, and it is run for the shared tool code.
+- **Pending until the owner** (O30's protocol): the live comparison of one agent against the team at the same token budget, and the Verifier's precision and recall with a live model.
