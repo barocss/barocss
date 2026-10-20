@@ -17,7 +17,8 @@
     "chat": "node scripts/chat-server.mjs",
     "mcp": "node scripts/cad-mcp.mjs",
     "cli": "node scripts/cad-cli.mjs",
-    "ab": "node scripts/ab.mjs"
+    "ab": "node scripts/ab.mjs",
+    "rb9": "node scripts/rb9.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*",

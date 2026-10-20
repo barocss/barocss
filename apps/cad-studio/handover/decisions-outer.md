@@ -3310,3 +3310,38 @@ Each is checkpointed with the scripted metrics (expected 1) and the mutant kill 
 - metrics as above, with the repair count;
 - no VLM.
 - **Cost from A5.5's measures**: the hybrid arm read about 14k input tokens per brief when ideal. At three times the ideal calls, 14 rungs × 5 trials × 2 arms comes to about 4–12M input tokens. The owner approves before any run (`--live`, `CAD_AB_LIVE=1`, as A5.5).
+
+## O71 — RB9.1a: the ladder harness and six rungs, scripted: 30/30 trials, 76/76 mutants killed (2026-10-20)
+
+Built as O70 froze it and the coordinator accepted (`src/rb9/`; `pnpm rb9`). The rungs ready on today's tools come in two parts. This is the first: rungs 1, 2, 3, 5, 10 and 13. Rungs 8, 9, 12 and 14 are **RB9.1b**, next. They need the library parts' placement (snap hooks and ledges, the enclosure's base and lid, PCB standoffs) and the assembly tools' face names worked into scripted calls.
+
+- **The core** (`core.ts`):
+  - a rung's space (each parameter's range, which may depend on those before it, on a step grid; or a choice);
+  - a seeded sampler (mulberry32). **The edges are forced**, as the coordinator asked: trial 0 puts every parameter at its low end, trial 1 at its high end, trials 2 and 3 alternate; the rest are random on the grid;
+  - the build on a fresh document through the agent's own tools (`dispatchTool`, the layer the chat server's MCP side runs). The brief's words are passed as the conversation, so a brief field can be "stated";
+  - the hidden checker, run after the build, on the part only;
+  - mutants run on both range ends (trials 0 and 1). A mutant's target may depend on the parameters, where a rung has families;
+  - the metrics: pass, pass@1 = c/n, pass@k, pass^k, and RS.
+  - The live arm (A5.5's chat-server turn) is not wired. `pnpm rb9 --live` refuses, since live trials wait for the owner.
+- **What the checker measures** (`measure.ts`):
+  - volumes from the kernel's mass properties (exact, to 1e-9 relative);
+  - bores and holes from the B-rep's exact cylinders, their radius, axis and extent (distinct by axis, so a face the kernel splits in halves is counted once);
+  - planes from exact faces;
+  - the box from the display mesh (1e-4);
+  - the studio's own checks (`min_wall` and the rest) on a copy of the part with the checker's requirements and process, never the agent's;
+  - sheet flats from the kernel's unfolding.
+- **The rungs**:
+  - **1, block with hole** (5 predicates, 6 mutants);
+  - **2, washer** (6, 6);
+  - **3, printed phone stand** (6, 6): the phone's slot from exact planes; the FDM wall from the fdm profile's 0.8, through `min_wall`;
+  - **5, sheet L-bracket** (7, 7) and **10, sheet PCB enclosure** (8, 8): R12.5's closed forms (middle-line volume, BD flat size, K-factor area identity), the bends and the holes on exact axes, all sampled. T, R, K, legs, flanges, insets, slot;
+  - **13, product from a brief** (6, 5), a family. A knob on a D-shaft: the bore's exact cylinder and depth, the flat's exact plane, the volume with the D-segment and the fillet by Pappus. Or a wall hook: two blind screw holes on the back's axis. Each with its A6.1 brief stated (purpose, process, material: no gap).
+- **Found while building**:
+  - a box command refuses a side under 1 mm, so the thin-wall mutant is a pocket leaving a 0.5 mm skin;
+  - the hook's screw holes must be blind, because a through hole runs on through the lip beyond the back;
+  - the hook's lip can rise above the back, so the box predicate takes the larger;
+  - the first draft left predicates with no mutant (solids, the washer's outside, the stand's box and volume, the product's volume and solids). Each now has one, and the test asserts none is left.
+- **Evidence**:
+  - `pnpm rb9` (seed 2026, 5 trials): **30/30 trials pass, pass@1 = pass@5 = pass^5 = 1 and RS 1 on every rung; 76/76 mutants killed; every hard predicate killed by a mutant.**
+  - The report, with each trial's seed and sampled values, is in `notes/rb9-scripted-2026-10-20/` (report.md, results.json).
+  - `test/rb9.test.ts`: the sampler's edge patterns, determinism and grid; the ladder end to end, as the CLI's gate; each trial's seed and values in the report.

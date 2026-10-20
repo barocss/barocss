@@ -1483,6 +1483,8 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
       today's tools: 1–3, 5, 8–10, 12–14; rungs 6 (closed-form beam at the root section) and 11 (translation captivity) need one
       small outer-lane predicate each; held: rung 7's bolt (R12c) and rung 4's machining rules (CNC1–CNC6), both kernel lane.
       Live trials pending the owner.
+    - **RB9.1a done (O71)**: `pnpm rb9` — rungs 1, 2, 3, 5, 10, 13 scripted: 30/30 trials (edge values forced), pass^5 = 1, RS 1, 76/76
+      mutants killed; report `notes/rb9-scripted-2026-10-20/`. RB9.1b next: rungs 8, 9, 12, 14.
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):
