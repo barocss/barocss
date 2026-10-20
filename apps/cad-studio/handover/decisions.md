@@ -6351,5 +6351,7 @@ The fourth FR stage frozen in D122, and first the two points from FR3a's review.
 | Conformance | 170/170 |
 | Studio | 635/635 (+1 of FR3b, +6 from the merged AM7a/A6.3; names compared, none missing) |
 | Full flow | 184/184, run on its own; the new step included |
+| RB | 312 cases (+5: the fr cases), 0 new, the 8 known TODOs (totals as before: 4 refused, 3 invalid, 5 wrong) |
+| Properties | 11/11, no failures |
 
 RB rows are in the next commit.
