@@ -1,0 +1,46 @@
+{
+  "id": "fr-refuse-section-dimensions",
+  "step": "FR",
+  "decisions": [
+    "D123"
+  ],
+  "about": "FR1: a rectangular tube whose wall leaves no bore is refused by name.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 30,
+            "wall": 15,
+            "outerRadius": 0
+          },
+          "start": [
+            0,
+            0,
+            0
+          ],
+          "end": [
+            100,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[SECTION_DIMENSIONS] a wall 15 leaves no bore in 40 × 30"
+    }
+  },
+  "oracle": "By construction: 2t ≥ min(b, h)."
+}

@@ -13,6 +13,15 @@ import type { BaselineLog } from '../team/baseline';
 
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
+/** A member's section (FR1, D123): the kernel's kinds with their dimensions, or a closed sketch by its node. */
+export type MemberSection =
+  | { kind: 'rect-tube'; width: Dim; height: Dim; wall: Dim; outerRadius: Dim; innerRadius?: Dim }
+  | { kind: 'round-tube'; diameter: Dim; wall: Dim }
+  | { kind: 'angle'; legX: Dim; legY: Dim; thickness: Dim; rootRadius: Dim; toeRadius: Dim }
+  | { kind: 'channel'; height: Dim; width: Dim; web: Dim; flange: Dim; rootRadius: Dim }
+  | { kind: 'tslot'; size: Dim; cells: 1 | 2; openSlots?: number; opening: Dim; lip: Dim; undercut: Dim; depth: Dim; bore: Dim }
+  | { kind: 'sketch'; sketch: number };
+export type FrameAnchor = 'centroid' | 'origin' | 'bottom-left' | 'bottom' | 'bottom-right' | 'left' | 'center' | 'right' | 'top-left' | 'top' | 'top-right';
 /** `part<k>`: solid k of an imported STEP file that holds several (see the import node's `solids`). */
 export type Side = 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2' | 'instance3' | `part${number}`;
 export interface BodyRef { node: number; side: Side }
@@ -132,6 +141,14 @@ type ModelNodeBase = SketchNode
   /** A corner relief (R12.3b, D119; the kernel's `sheet-corner-relief`): the corner kept by its edge's name, as a flange's. */
   | { kind: 'sheet-corner-relief'; parent: BodyRef; edges: [string]; shape: 'square' | 'round'; size: Dim }
   | { kind: 'sheet-flange'; parent: BodyRef; edges: [string]; length: Dim; angleDegrees?: number; bendRadius?: Dim; measure?: 'outer' | 'inner' | 'tangent'; position?: 'material-inside' | 'material-outside' | 'bend-outside'; offsets?: [Dim, Dim]; relief?: { kind: 'rectangular' | 'obround'; width: Dim; depth: Dim } | { kind: 'none' } }
+  /**
+   * A structural member (FR1, D123; the kernel's `frame-member`): a `section` square to the line `start` → `end`, extruded
+   * its length. Its `anchor` (default the centroid) on the line, the section moved by `offset`, its y along `up` (default
+   * +Z) made square to the line, turned `roll` degrees. Sections by kind and their dimensions (none defaulted in the kernel)
+   * or a closed sketch (node `sketch`). `estimates`: the section's fields still at a first-try value the studio filled in
+   * (a radius, the T-slot's slot sizes) — the body's panel flags them; editing one drops it (D123).
+   */
+  | { kind: 'frame-member'; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; up?: [number, number, number]; estimates?: string[] }
   /** An open surface (copied from a direct surface `name`) thickened into a solid along its normal: faceted. */
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
   /**
@@ -407,6 +424,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
     case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'rack': case 'sheet-contour': return [];
+    case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
     default: return [node.parent.node];
@@ -421,7 +439,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -535,6 +553,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'thicken': return `Thicken ${node.name} ${n(node.thickness)}`;
     case 'sheet-base': return `Sheet plate T${n(node.thickness)}`;
     case 'sheet-flange': return `Flange ${n(node.length)} · ${fmt(node.angleDegrees ?? 90)}°`;
+    case 'frame-member': return `Member ${sectionLabel(node.section, n)} · ${memberLength(node)}`;
     case 'sheet-corner-relief': return `Corner relief ${node.shape} ${n(node.size)}`;
     case 'sheet-contour': return `Sheet profile T${n(node.thickness)}${node.path.length > 2 ? ` · ${node.path.length - 2} bend${node.path.length > 3 ? 's' : ''}` : ''}`;
     case 'sew': return `Sew ${node.names.length} surfaces`;
@@ -590,4 +609,23 @@ export function starterDoc(): StudioDoc {
 function helical(nodes: readonly ModelNode[], i: number, guard = 0): boolean {
   const n = nodes[i];
   return n?.kind === 'gear' && guard < 64 && (!!n.helixAngle || (!!n.mesh && helical(nodes, n.mesh.gear, guard + 1)));
+}
+
+/** A member's section in a feature's label (FR1, D123): `RHS 40×40×3`, `Tube Ø33.7×2.6`, `L 50×30×5`, `C 80×40`, `T-slot 20×40`. */
+export function sectionLabel(s: MemberSection, n: (v: Dim) => string): string {
+  switch (s.kind) {
+    case 'rect-tube': return `RHS ${n(s.width)}×${n(s.height)}×${n(s.wall)}`;
+    case 'round-tube': return `Tube Ø${n(s.diameter)}×${n(s.wall)}`;
+    case 'angle': return `L ${n(s.legX)}×${n(s.legY)}×${n(s.thickness)}`;
+    case 'channel': return `C ${n(s.height)}×${n(s.width)}`;
+    case 'tslot': return `T-slot ${n(s.size)}${s.cells === 2 ? `×${typeof s.size === 'number' ? fmt(2 * s.size) : '2a'}` : ''}`;
+    case 'sketch': return `sketch ${s.sketch + 1}`;
+  }
+}
+/** A member's length, its line's (numbers only; a parametric end reads as such). */
+function memberLength(node: Extract<ModelNode, { kind: 'frame-member' }>): string {
+  const p = [...node.start, ...node.end];
+  if (!p.every(v => typeof v === 'number')) return 'parametric';
+  const [a, b, c, d, e, f] = p as number[];
+  return `${fmt(Math.hypot(d - a, e - b, f - c))} mm`;
 }

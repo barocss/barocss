@@ -102,6 +102,12 @@ export function editFields(nodes: Nodes, i: number, params?: Record<string, numb
 }
 const getAt = (root: unknown, path: (string | number)[]): unknown => path.reduce<unknown>((o, k) => (o as Record<string | number, unknown>)?.[k], root);
 
+/** A member section's dimensions as the feature editor names them (FR1, D123). */
+const MEMBER_FIELD_LABELS: Record<string, string> = {
+  width: 'Width', height: 'Height', wall: 'Wall', outerRadius: 'Outer corner radius', innerRadius: 'Bore corner radius', diameter: 'Diameter',
+  legX: 'Leg along x', legY: 'Leg along y', thickness: 'Thickness', rootRadius: 'Root radius', toeRadius: 'Toe radius', web: 'Web', flange: 'Flanges',
+  size: 'Size', opening: 'Slot opening', lip: 'Slot lip', undercut: 'Slot undercut', depth: 'Slot depth', bore: 'Core bore',
+};
 function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
   const node = nodes[i], out: EditField[] = [];
   if (!node) return out;
@@ -204,6 +210,25 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       // (A bend table instead of one K: no K field; R12.4.)
       if (node.kFactor !== undefined) number('k', 'K-factor', undefined, n => (n as S).kFactor!, (n, v) => ({ ...(n as S), kFactor: v }) as S);
       if (node.kind === 'sheet-contour') number('w', 'Width', 'mm', n => num((n as Extract<ModelNode, { kind: 'sheet-contour' }>).width), (n, v) => ({ ...(n as Extract<ModelNode, { kind: 'sheet-contour' }>), width: v }));
+      break;
+    }
+    case 'frame-member': {
+      // (FR1, D123: the section's dimensions — editing one drops its estimate flag — the member's length along its line, its roll.)
+      type M = Extract<ModelNode, { kind: 'frame-member' }>;
+      const sec = node.section;
+      if (sec.kind !== 'sketch') for (const key of Object.keys(sec).filter(k => k !== 'kind' && k !== 'cells' && k !== 'openSlots')) {
+        number('s.' + key, MEMBER_FIELD_LABELS[key] ?? key, 'mm', n => num(((n as M).section as unknown as Record<string, Dim>)[key]), (n, v) => {
+          const m = n as M, estimates = m.estimates?.filter(e => e !== key);
+          const next: M = { ...m, section: { ...m.section, [key]: v } as M['section'] };
+          if (estimates?.length) next.estimates = estimates; else delete next.estimates;
+          return next;
+        });
+      }
+      if ([...node.start, ...node.end].every(v => typeof v === 'number')) number('len', 'Length', 'mm', n => { const m = n as M, [a, b] = [m.start as number[], m.end as number[]]; return Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]); }, (n, v) => {
+        const m = n as M, a = m.start as number[], b = m.end as number[], L = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+        return { ...m, end: [0, 1, 2].map(k => a[k] + (b[k] - a[k]) * v / L) as [number, number, number] };
+      });
+      number('roll', 'Roll', '°', n => (n as M).roll ?? 0, (n, v) => { const m = { ...(n as M) }; if (v) m.roll = v; else delete m.roll; return m; });
       break;
     }
     case 'sheet-corner-relief': number('size', 'Size', 'mm', n => num((n as Extract<ModelNode, { kind: 'sheet-corner-relief' }>).size), (n, v) => ({ ...(n as Extract<ModelNode, { kind: 'sheet-corner-relief' }>), size: v })); break;

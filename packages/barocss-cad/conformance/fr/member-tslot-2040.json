@@ -1,0 +1,81 @@
+{
+  "id": "fr-member-tslot-2040",
+  "step": "FR",
+  "decisions": [
+    "D123"
+  ],
+  "about": "FR1: a 20 × 40 T-slot section (six slots, two core bores; the tslot-20 library's estimate sizes) along +X: A·L; symmetric, so its centroid is the box's centre.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "tslot",
+            "size": 20,
+            "cells": 2,
+            "opening": 6.2,
+            "lip": 1.8,
+            "undercut": 11,
+            "depth": 6.1,
+            "bore": 4.2
+          },
+          "start": [
+            0,
+            0,
+            0
+          ],
+          "end": [
+            500,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 255405.576397669,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            250,
+            0,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 2
+          }
+        ],
+        "faceNamePattern": "^m\\.(start|end|core[01]|(top|bottom|left|right)\\.\\d|(t1|t2|r|b1|b2|l)\\.(lip[01]|under[01]|taper[01]|wall[01]|floor))$",
+        "member": {
+          "areaMM2": 510.811152795338,
+          "lengthMM": 500,
+          "centroid": [
+            10,
+            0
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: A = 2a² − 6(wo·ds + (wu − wo)²/4) − 2π(bore/2)² (a slot: its opening and two 45° wings); the section symmetric about its box's centre. Checked against the library part's own 3D Booleans in test/fr-1.test.mjs."
+}

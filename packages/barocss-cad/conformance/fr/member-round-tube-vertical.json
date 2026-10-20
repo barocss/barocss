@@ -1,0 +1,100 @@
+{
+  "id": "fr-member-round-tube-vertical",
+  "step": "FR",
+  "decisions": [
+    "D123"
+  ],
+  "about": "FR1: a Ø33.7 × 2.6 round tube standing on Z: up is along the line, so the section's y is +X (reported); A·L; the surface π(d + d − 2t)·L + 2A.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "round-tube",
+            "diameter": 33.7,
+            "wall": 2.6
+          },
+          "start": [
+            5,
+            5,
+            0
+          ],
+          "end": [
+            5,
+            5,
+            250
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 63507.29549231768,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            5,
+            5,
+            125
+          ],
+          "absTol": 1e-9
+        },
+        "areaMM2": {
+          "value": 49359.824127259824,
+          "relTol": 1e-12
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "m.bore",
+          "m.end",
+          "m.outside",
+          "m.start"
+        ],
+        "member": {
+          "areaMM2": 254.02918196927072,
+          "lengthMM": 250,
+          "centroid": [
+            0,
+            0
+          ],
+          "xAxis": [
+            0,
+            -1,
+            0
+          ],
+          "yAxis": [
+            1,
+            0,
+            0
+          ],
+          "upFallback": [
+            1,
+            0,
+            0
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: A = π(d² − (d − 2t)²)/4; the fallback by definition (x = y × u)."
+}

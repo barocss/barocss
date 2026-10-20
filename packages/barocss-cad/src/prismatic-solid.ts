@@ -70,8 +70,11 @@ const reverseRing = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(
  * and `tag.bottom`.
  */
 export function prismaticFromProfile(input: { readonly outer: readonly ProfileSegmentInput[]; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly heightMM: number; readonly fromMM?: number; readonly tag?: string; readonly sideTags?: SideTags;
-  /** Whole names for the outer loop's walls (one an authored segment) and the caps, in place of the tag's (R12.1 sheet roles, D116). */
-  readonly names?: { readonly outer: readonly string[]; readonly bottom: string; readonly top: string } }): PrismaticSolid {
+  /**
+   * Whole names for the outer loop's walls (one an authored segment) and the caps, in place of the tag's (R12.1 sheet roles,
+   * D116); the holes' walls too, each hole's list in its order (FR1 section roles, D123). A loop left out is named by the tag.
+   */
+  readonly names?: { readonly outer?: readonly string[]; readonly holes?: readonly (readonly string[])[]; readonly bottom: string; readonly top: string } }): PrismaticSolid {
   const budget = { maximumSegments: 1024 }, z0 = input.fromMM ?? 0, z1 = z0 + input.heightMM, tag = input.tag, tags = input.sideTags, names = input.names;
   // A clockwise authored loop is reversed; segment k then runs along authored segment n − 1 − k.
   const loop = (segments: readonly ProfileSegmentInput[], prefix: string, own?: readonly string[], whole?: readonly string[]) => {
@@ -81,7 +84,7 @@ export function prismaticFromProfile(input: { readonly outer: readonly ProfileSe
   // More outer loops (`regions`) join the first; their walls are named `${tag}.region${i}.side${k}` — with tags,
   // every wall is `${tag}.side[t]`, its segment's tag (unique in the sketch).
   const outers = [loop(input.outer, String(tag), tags?.outer, names?.outer), ...(input.regions ?? []).map((r, i) => loop(r, tags ? String(tag) : `${tag}.region${i}`, tags?.regions?.[i]))];
-  const holes = (input.holes ?? []).map((h, i) => loop(h, tags ? String(tag) : `${tag}.hole${i}`, tags?.holes?.[i]));
+  const holes = (input.holes ?? []).map((h, i) => loop(h, tags ? String(tag) : `${tag}.hole${i}`, tags?.holes?.[i], names?.holes?.[i]));
   // The outer boundaries minus the holes (holes may touch or cross them; the difference is exact either way).
   const tol = curveTolerance([...outers, ...holes]), regions = booleanCurveRegions(outers, holes, 'difference', tol);
   const caps = names ? [{ z: z0, regions, tag: names.bottom }, { z: z1, regions, tag: names.top }] : tag === undefined ? [] : [{ z: z0, regions, tag: tag + '.bottom' }, { z: z1, regions, tag: tag + '.top' }];

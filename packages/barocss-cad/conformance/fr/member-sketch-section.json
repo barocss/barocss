@@ -1,0 +1,104 @@
+{
+  "id": "fr-member-sketch-section",
+  "step": "FR",
+  "decisions": [
+    "D123"
+  ],
+  "about": "FR1: a member of a closed sketch (a 30 × 20 plate with a Ø8 hole) along +Y anchored at its bottom-left corner: A·L and the centroid by moments.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            30,
+            20
+          ],
+          "holes": [
+            [
+              {
+                "kind": "arc",
+                "start": [
+                  14,
+                  10
+                ],
+                "center": [
+                  10,
+                  10
+                ],
+                "direction": "ccw"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "sketch",
+            "sketch": "s"
+          },
+          "start": [
+            0,
+            0,
+            0
+          ],
+          "end": [
+            0,
+            250,
+            0
+          ],
+          "anchor": "bottom-left"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 137433.62938564082,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            -15.457179609915482,
+            125,
+            10
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 549.7345175425633,
+          "lengthMM": 250,
+          "centroid": [
+            15.457179609915482,
+            10
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: A = 600 − 16π; x̄ = (600·15 − 16π·10)/A, ȳ = 10."
+}

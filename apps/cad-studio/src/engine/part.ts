@@ -50,6 +50,8 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'sheet-base': return { ...at, kind: 'sheet-base', sketch: id(node.sketch), thickness: node.thickness, bendRadius: node.bendRadius, ...sheetK(node), ...(node.reverse ? { reverse: true } : {}) };
     case 'sheet-corner-relief': return { ...at, kind: 'sheet-corner-relief', target: ref(node.parent), corner: node.edges[0], shape: node.shape, size: node.size };
     case 'sheet-flange': return { ...at, kind: 'sheet-flange', target: ref(node.parent), edge: node.edges[0], length: node.length, ...(node.angleDegrees !== undefined ? { angleDegrees: node.angleDegrees } : {}), ...(node.bendRadius !== undefined ? { bendRadius: node.bendRadius } : {}), ...(node.measure ? { measure: node.measure } : {}), ...(node.position ? { position: node.position } : {}), ...(node.offsets ? { offsets: node.offsets } : {}), ...(node.relief ? { relief: node.relief } : {}) };
+    case 'frame-member': return { ...at, kind: 'frame-member', section: node.section.kind === 'sketch' ? { kind: 'sketch', sketch: id(node.section.sketch) } : node.section, start: node.start, end: node.end,
+      ...(node.anchor ? { anchor: node.anchor } : {}), ...(node.offset ? { offset: node.offset } : {}), ...(node.roll ? { roll: node.roll } : {}), ...(node.up ? { up: node.up } : {}) };
     case 'sheet-contour': return { ...at, kind: 'sheet-contour', path: node.path, ...(node.plane ? { plane: node.plane } : {}), side: node.side, width: node.width, thickness: node.thickness, bendRadius: node.bendRadius, ...sheetK(node) };
     case 'thicken': return { ...at, kind: 'thicken', surface: node.surface, thickness: node.thickness, ...(node.side ? { side: node.side } : {}) };
     case 'subd': return { ...at, kind: 'subd', cage: node.mirror ? mirrorCage(node.cage, node.mirror) as typeof node.cage : node.cage };
@@ -99,7 +101,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
     if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
-    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour';
+    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);

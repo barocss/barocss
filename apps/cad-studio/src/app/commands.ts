@@ -2,6 +2,7 @@
 // which fields its HUD shows, and how it changes the document.
 import { profileCommands } from './profileCommands';
 import { sheetCommands } from './sheetCommands';
+import { frameCommands } from './frameCommands';
 import { primitives, puck } from './primitives';
 import { alignCommand } from './alignCommand';
 import { FASTENER_SIZES, fastenerCommand } from './fasteners';
@@ -293,6 +294,7 @@ const allCommands: Command[] = [
   },
   ...profileCommands,
   ...sheetCommands,
+  ...frameCommands,
   {
     id: 'box', label: 'Box', icon: 'cad-box', hint: 'A block by width, depth and height', shortcut: 'B', group: 'create', keywords: 'cube block plate',
     available: () => ok,

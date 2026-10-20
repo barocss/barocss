@@ -53,6 +53,7 @@ import { meshInnerOffset, type MeshShellReport } from './mesh-offset.js';
 import { bendAllowance, bendDeduction, bendTableProblem, contourFlangeSection, flangeSection, lookupBend, outsideSetback, SheetMetalError, type BendTable, type BendTableUse, type SheetReport } from './sheet-metal.js';
 import { flatPattern as flatPatternOf, FlatPatternError, type FlatPattern } from './sheet-flat.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
+import { FRAME_ANCHORS, FrameSectionError, anchorPoint, frameSection, loopBox, type FrameAnchor, type FrameMemberReport, type FrameSectionSpec } from './frame-section.js';
 import type { FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import { encodeBinaryStl } from './stl.js';
@@ -240,6 +241,17 @@ export type CadPartFeature = Base & (
   | ({ readonly kind: 'sheet-base'; readonly sketch: string; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly reverse?: boolean } & CadPartSheetK)
   | ({ readonly kind: 'sheet-contour'; readonly path: readonly CadPartPoint2[]; readonly plane?: CadPartSketchPlane; readonly side: 'left' | 'right'; readonly width: CadPartDim; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim } & CadPartSheetK)
   /**
+   * A structural member (FR1, D123): a `section` placed square to the line `start` → `end` and extruded its length, one
+   * body. The section's `anchor` point (default its centroid) lies on the line, then the section moves by `offset` (in its own XY); the
+   * section's y runs along `up` (default +Z) made square to the line (a line along it takes +X, else +Y, and the report
+   * says so), then the section turns `roll` degrees about the line. Sections: `rect-tube`, `round-tube`, `angle`,
+   * `channel`, `tslot` (every dimension given: no sizes or radii built in, D122) or `sketch` (a closed sketch's loops in its
+   * own XY, holes allowed). Faces by the section's roles (`<id>.top`, `<id>.bore.left`, `<id>.root`, `<id>.t1.floor` …;
+   * a sketch's by its sides) and the ends `<id>.start` / `<id>.end`. The output's `member` reports the section, its area
+   * and centroid, the line and the section's frame. Refused by name: `SECTION_DIMENSIONS`, `SEGMENT_ZERO_LENGTH`.
+   */
+  | { readonly kind: 'frame-member'; readonly section: CadPartSection; readonly start: CadPartPoint3; readonly end: CadPartPoint3; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly up?: CadPartPoint3 }
+  /**
    * An edge flange (R12.3, D118) on a sheet (its rules from its report): on a straight `edge` between a planar skin face
    * and a thickness face, bent `angleDegrees` (default 90, in (0, 180)) towards that skin's outside, inner radius
    * `bendRadius` (default the sheet's). `length` to the outer virtual sharp (`measure` 'outer', the default), the inner
@@ -290,6 +302,14 @@ export interface CadPartDocument {
 }
 export interface CadPartLoftSection { readonly sketch: string; readonly z: CadPartDim }
 export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: CadPartDim } | { readonly kind: 'bend'; readonly radius: CadPartDim; readonly angleDegrees: number; readonly toward: 'x' | '-x' | 'y' | '-y' };
+/** A member's section (FR1, D123): a kind and its dimensions, or a closed sketch. */
+export type CadPartSection =
+  | { readonly kind: 'rect-tube'; readonly width: CadPartDim; readonly height: CadPartDim; readonly wall: CadPartDim; readonly outerRadius: CadPartDim; readonly innerRadius?: CadPartDim }
+  | { readonly kind: 'round-tube'; readonly diameter: CadPartDim; readonly wall: CadPartDim }
+  | { readonly kind: 'angle'; readonly legX: CadPartDim; readonly legY: CadPartDim; readonly thickness: CadPartDim; readonly rootRadius: CadPartDim; readonly toeRadius: CadPartDim }
+  | { readonly kind: 'channel'; readonly height: CadPartDim; readonly width: CadPartDim; readonly web: CadPartDim; readonly flange: CadPartDim; readonly rootRadius: CadPartDim }
+  | { readonly kind: 'tslot'; readonly size: CadPartDim; readonly cells: 1 | 2; readonly openSlots?: number; readonly opening: CadPartDim; readonly lip: CadPartDim; readonly undercut: CadPartDim; readonly depth: CadPartDim; readonly bore: CadPartDim }
+  | { readonly kind: 'sketch'; readonly sketch: string };
 export type CadPartErrorCode = 'FORMAT' | 'INPUT' | 'PARAMETER' | 'REFERENCE' | 'SELECTION' | 'CAPABILITY' | 'GEOMETRY';
 export class CadPartError extends Error {
   constructor(readonly code: CadPartErrorCode, readonly feature: string | null, detail: string) { super(`${feature ? feature + ': ' : ''}${detail}`.slice(0, 1024)); this.name = 'CadPartError'; }
@@ -331,6 +351,8 @@ export interface CadPartOutput {
   readonly shell?: MeshShellReport;
   /** A sheet-metal body's rules and bends (R12.1, D116); carried through holes and cuts (R12.2). */
   readonly sheet?: SheetReport;
+  /** A structural member's section, line and frame (FR1, D123). */
+  readonly member?: FrameMemberReport;
   /**
    * A sheet's flat pattern (R12.2, D117): its skin developed from `fixedFace` (default the sheet's own: a plate's top, a
    * profile's first leg on its path), bends at R + K·T (`kFactor`, default the sheet's). Refused (GEOMETRY, its code in
@@ -398,6 +420,7 @@ interface Part {
   readonly fillet?: readonly FilletReport[];
   readonly shell?: MeshShellReport;
   readonly sheet?: SheetReport;
+  readonly member?: FrameMemberReport;
 }
 /** A rack as placed: its pitch line from `origin` along `angle` (radians); the gear it meshes with, if any. */
 export interface RackPlacement { readonly spec: SpurRackSpec; readonly origin: XY; readonly angle: number; readonly from: number; readonly meshesWith?: string; readonly driver?: GearPlacement }
@@ -1043,6 +1066,33 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         return unionAll(Array.from({ length: count }, (_, k) => k ? rotate(p.solid, axis, deg * k, pivot, n => `${n}@${k}`) : p.solid), at);
       }));
     }
+    case 'frame-member': {
+      const start = xyz(f.start as CadPartPoint3, 'start'), end = xyz(f.end as CadPartPoint3, 'end'), L = len(sub(end, start));
+      if (!(L > MEMBER_MIN_MM)) fail('PARAMETER', `[SEGMENT_ZERO_LENGTH] a member runs from its start to its end: they are ${L} mm apart`);
+      const anchor = (f.anchor === undefined ? 'centroid' : f.anchor) as FrameAnchor;
+      if (!(FRAME_ANCHORS as readonly unknown[]).includes(anchor)) fail('INPUT', `anchor must be one of ${FRAME_ANCHORS.join(', ')}`);
+      const roll = f.roll === undefined ? 0 : f.roll;
+      if (typeof roll !== 'number' || !Number.isFinite(roll)) fail('INPUT', 'roll must be a number of degrees');
+      let offset: XY = [0, 0];
+      if (f.offset !== undefined) { if (!Array.isArray(f.offset) || f.offset.length !== 2) fail('INPUT', 'offset must be [x, y] in the section\'s plane'); offset = [dim((f.offset as readonly CadPartDim[])[0], 'offset x'), dim((f.offset as readonly CadPartDim[])[1], 'offset y')]; }
+      const up = f.up === undefined ? [0, 0, 1] as Point : xyz(f.up as CadPartPoint3, 'up');
+      if (!(len(up) > 1e-12)) fail('INPUT', 'up must not be zero');
+      const sec = f.section as unknown;
+      if (!isRecord(sec)) fail('INPUT', 'section must be { kind, … }: rect-tube, round-tube, angle, channel, tslot or sketch');
+      const section = sec as Record<string, unknown>;
+      let shape: MemberShape;
+      if (section.kind === 'sketch') {
+        const sketch = ref(section.sketch, 'section.sketch').result;
+        if (sketch.kind !== 'sketch') fail('REFERENCE', `section.sketch: ${String(section.sketch)} is not a sketch`);
+        const { outer, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
+        if (regions?.length) fail('CAPABILITY', 'a member\'s sketch section takes one outer loop (holes allowed) yet');
+        shape = { kind: 'sketch', label: `sketch ${String(section.sketch)}`, outer, holes: holes ?? [], ...(tags ? { tags } : {}) };
+      } else {
+        try { const b = frameSection(sectionSpec(section, dim, integer, fail)); shape = { kind: section.kind as string, label: b.label, outer: b.outer, holes: b.holes, outerNames: b.outerNames.map(n => `${at}.${n}`), holeNames: b.holeNames.map(h => h.map(n => `${at}.${n}`)), areaMM2: b.areaMM2, centroid: b.centroid, box: b.box }; }
+        catch (cause) { if (cause instanceof FrameSectionError) fail('PARAMETER', cause.message); throw cause; }
+      }
+      return () => buildMember(shape!, { start, end, L, anchor, offset, roll: roll as number, up, at });
+    }
     case 'sheet-base': case 'sheet-contour': {
       const T = dim(f.thickness as CadPartDim, 'thickness', true), R = dim(f.bendRadius as CadPartDim, 'bendRadius', true), K = f.kFactor, table = f.bendTable as BendTable | undefined;
       if ((K === undefined) === (table === undefined)) fail('PARAMETER', 'give the sheet a kFactor or a bendTable (one of them)');
@@ -1646,6 +1696,61 @@ function affine(s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?
  * Parts moved by x ↦ m·x + o (m a rotation or reflection times a uniform scale): each remembers what it
  * was moved from, and its mass moves with it (exact when the original's was).
  */
+/** A member shorter than this is refused (FR1, D123). */
+const MEMBER_MIN_MM = 1e-6;
+/** A member's section ready to extrude: its loops and roles, and (a kind's) its closed-form area, centroid and box. */
+type MemberShape = { readonly kind: string; readonly label: string; readonly outer: readonly ProfileSegmentInput[]; readonly holes: readonly (readonly ProfileSegmentInput[])[]; readonly tags?: SideTags;
+  readonly outerNames?: readonly string[]; readonly holeNames?: readonly (readonly string[])[]; readonly areaMM2?: number; readonly centroid?: XY; readonly box?: { readonly min: XY; readonly max: XY } };
+/** A section kind's dimensions resolved (parameters allowed); the kind's own checks follow in `frameSection`. */
+function sectionSpec(s: Record<string, unknown>, dim: Tools['dim'], integer: Tools['integer'], fail: Tools['fail']): FrameSectionSpec {
+  const n = (key: string) => dim(s[key] as CadPartDim, `section.${key}`);
+  switch (s.kind) {
+    case 'rect-tube': return { kind: 'rect-tube', width: n('width'), height: n('height'), wall: n('wall'), outerRadius: n('outerRadius'), ...(s.innerRadius !== undefined ? { innerRadius: n('innerRadius') } : {}) };
+    case 'round-tube': return { kind: 'round-tube', diameter: n('diameter'), wall: n('wall') };
+    case 'angle': return { kind: 'angle', legX: n('legX'), legY: n('legY'), thickness: n('thickness'), rootRadius: n('rootRadius'), toeRadius: n('toeRadius') };
+    case 'channel': return { kind: 'channel', height: n('height'), width: n('width'), web: n('web'), flange: n('flange'), rootRadius: n('rootRadius') };
+    case 'tslot': {
+      const cells = integer(s.cells, 'section.cells', 1, 2) as 1 | 2;
+      if (cells === 1 && s.openSlots === undefined) fail('INPUT', 'section.openSlots (0 to 4, clockwise from the top) must be given for one cell');
+      return { kind: 'tslot', size: n('size'), cells, openSlots: cells === 1 ? integer(s.openSlots, 'section.openSlots', 0, 4) : 6, opening: n('opening'), lip: n('lip'), undercut: n('undercut'), depth: n('depth'), bore: n('bore') };
+    }
+  }
+  return fail('INPUT', `section.kind must be rect-tube, round-tube, angle, channel, tslot or sketch (not ${String(s.kind)})`);
+}
+/** Components within rounding of 0 or ±1 are exactly that (an axis-aligned member stays exact). */
+const snapUnit = (v: Point): Point => v.map(c => Math.abs(c) < 1e-12 ? 0 : Math.abs(Math.abs(c) - 1) < 1e-12 ? Math.sign(c) : c) as unknown as Point;
+const ROLL_COS = [1, 0, -1, 0], ROLL_SIN = [0, 1, 0, -1];
+/**
+ * A member's section frame: y along `up` made square to the line u (a line along it takes +X, or +Y if along that too),
+ * x = y × u, then both turned `roll` degrees about u (quarter turns exact).
+ */
+function memberFrame(u: Point, up: Point, rollDegrees: number): { x: Point; y: Point; fallback?: Point } {
+  let r = unit(up), fallback: Point | undefined;
+  if (len(cross(u, r)) < 1e-9) { fallback = len(cross(u, [1, 0, 0])) < 1e-9 ? [0, 1, 0] : [1, 0, 0]; r = fallback; }
+  const y0 = unit(sub(r, scale(u, dot(r, u)))), x0 = cross(y0, u), q = rollDegrees / 90, k = Math.round(q);
+  const quarter = Math.abs(q - k) < 1e-12, i = ((k % 4) + 4) % 4, c = quarter ? ROLL_COS[i] : Math.cos(rollDegrees * Math.PI / 180), s = quarter ? ROLL_SIN[i] : Math.sin(rollDegrees * Math.PI / 180);
+  const x = snapUnit(add(scale(x0, c), scale(y0, s)));
+  return { x, y: snapUnit(cross(u, x)), ...(fallback ? { fallback } : {}) };
+}
+/** The point (sx, sy) of a section in its frame, from `base`. */
+const sectionPoint = (F: { x: Point; y: Point }, sx: number, sy: number, base: Point): Point => add(base, add(scale(F.x, sx), scale(F.y, sy)));
+/** A member built: its section extruded L in its own XY (ends `.start`, `.end`), moved onto its line, its report on it. */
+function buildMember(shape: MemberShape, o: { start: Point; end: Point; L: number; anchor: FrameAnchor; offset: XY; roll: number; up: Point; at: string }): Result {
+  const solid = prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), ...(shape.tags ? { sideTags: shape.tags } : {}), heightMM: o.L, fromMM: 0, tag: o.at,
+    names: { ...(shape.outerNames ? { outer: shape.outerNames } : {}), ...(shape.holeNames ? { holes: shape.holeNames } : {}), bottom: `${o.at}.start`, top: `${o.at}.end` } });
+  let area = shape.areaMM2, centroid = shape.centroid;
+  // (A sketch section: its area and centroid by the prism's exact mass.)
+  if (area === undefined || centroid === undefined) { const m = prismaticMassProperties(solid, 1); area = m.volumeMM3 / o.L; centroid = [m.centroidMM[0], m.centroidMM[1]]; }
+  const box = shape.box ?? loopBox(shape.outer), u = snapUnit(scale(sub(o.end, o.start), 1 / o.L)), F = memberFrame(u, o.up, o.roll);
+  // (The section point on the line: the anchor's, less the offset the section is moved by.)
+  const p = anchorPoint(o.anchor, centroid, box), q: XY = [p[0] - o.offset[0], p[1] - o.offset[1]];
+  const origin = sectionPoint(F, -q[0], -q[1], o.start), m: BrepAffine['matrix'] = [F.x[0], F.y[0], u[0], F.x[1], F.y[1], u[1], F.x[2], F.y[2], u[2]];
+  const member: FrameMemberReport = { sectionKind: shape.kind, section: shape.label, areaMM2: area, centroid, anchor: o.anchor, offset: o.offset, rollDegrees: o.roll,
+    start: o.start, end: o.end, lengthMM: o.L, axis: u, xAxis: F.x, yAxis: F.y, ...(F.fallback ? { upFallback: F.fallback } : {}),
+    centroidLine: { start: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.start), end: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.end) } };
+  const r = moveAll([{ solid: { kind: 'upright', solid } }], m, origin) as Extract<Result, { kind: 'solid' }>;
+  return { kind: 'solid', parts: r.parts.map(part => ({ ...part, member })) };
+}
 function moveAll(parts: readonly Part[], m: BrepAffine['matrix'], o: Point): Result {
   return { kind: 'solid', parts: parts.map((p): Part => {
     const exact = p.mass ?? (p.solid.kind === 'upright' ? ((s: PrismaticSolid) => (d: number) => prismaticMassProperties(s, d))(p.solid.solid) : undefined);
@@ -2185,7 +2290,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   let validated: BrepCheckReport | undefined, area: number | undefined;
   const flats = new Map<string, FlatPattern>();
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');
