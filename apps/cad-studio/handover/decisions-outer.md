@@ -2161,3 +2161,49 @@ Assigned by the coordinator after #2177. RD4–RD8 (beam and solid FEA, the tet 
     - a 2R chain (100 and 60 mm) stretched, flagged in position, and a position solve to its stretched point reached and flagged;
     - bent, not flagged;
   - a target 40 mm past the 2R's reach: `reached: false`, its error above 0.03 m.
+
+## O45 — RM8: a four-bar loop closed — Freudenstein to 3e-14 rad; MuJoCo holds the MJCF closure (2026-10-20)
+
+- **`src/robot/loop.ts`.**
+  - **`closureOfDoc(doc, tree, loop)`** finds the pin: the loop's concentric mate's axis on its first part, placed where the mates put it.
+  - **`closureOf(tree, a, b, pin, axis)`** records the assembled branch.
+    - Refused `NOT_ONE_LOOP` unless exactly three moving joints go round the loop besides its pin.
+    - Refused `NOT_PLANAR` unless each is a turn about the pin's axis direction.
+  - **`closeLoop(tree, closure, driver, value, from)`** solves the other two joints by Gauss–Newton on the pin's residual, from the previous solution. A step is capped at a quarter turn, and it stops at 1e-12 mm.
+    - **The branch** is the sign of the turn from one part's lever to the other's at the pin, each lever from the part's own joint. A closure on the other branch is refused `BRANCH_FLIP`, never taken.
+    - **A driver value with no closure** (residual above 1e-9 mm after 60 steps) is `NO_CLOSURE`.
+- **The fixture** (`test/robot-loop.test.ts`, frozen in `conformance/rm/four-bar/`) is built from mates, as a user would: pins at A (20, 20) and D (80, 20) on a plate; bars with a hole at each end; a 20, b 70, c 50, d 60 (Grashof); assembled at crank 60° on the open branch.
+  - **RM1's tree** has three continuous joints: `base~crank`, `crank~coupler`, `base~rocker`.
+  - The coupler–rocker pin is its one loop.
+- **Against Freudenstein's closed form** over a full crank turn in 360 steps:
+  - the rocker's angle, read by FK of its pin and not by the closure, has a worst error of **3.0e-14 rad** (bound 1e-9);
+  - the pin's worst gap by FK is **9.9e-13 mm** (bound 1e-9);
+  - the branch is never left.
+- **The other branch**: started from the crossed configuration (Freudenstein's other root), Newton closes there and is refused `BRANCH_FLIP`.
+- **A non-Grashof triple rocker** (50, 30, 40, 70: s + l = 100 > p + q = 90) is driven from 30°. It is refused `NO_CLOSURE` at the first step past its dead point, exactly where Freudenstein has no root, and closes everywhere before it.
+- **A non-planar loop** is refused `NOT_PLANAR`.
+- **MJCF** (`exportMjcf(…, closures)`, `mjcfOfDoc`):
+  - each planar loop becomes `<equality><connect name="loop_<a>_<b>" body1 body2 anchor/>`, the anchor at the pin in body1's link frame (m);
+  - a loop that cannot be closed is left out and noted;
+  - a tree without loops is written byte for byte as before (RM5's frozen arm-6r).
+- **Our reader** parses `connect` (each body must exist, never a body to itself). `connectViolations(model, q)` takes body2's point from qpos 0, as MuJoCo does. The closure holds at every one of the 361 solver poses to 1e-9 m.
+- **MuJoCo 3.3.0** (`packages/barocss-cad/scripts/loop-oracle.py`, `python -I`, O38's venv) ran on the frozen export (`cad-cli mjcf` writes the same `robot.xml` byte for byte). Its reading is committed as `oracle.mujoco-3.3.0.json`.
+  - **This is a script of its own** beside `mjcf-oracle.py`, rather than O43's "closure mode" in it.
+  - **Static, 12 crank angles at our joint values:**
+    - the connect's three equality rows (`efc_pos`) worst **4.7e-16 m** (bound 1e-9);
+    - the rocker's angle, from MuJoCo's own kinematics of the pins, against Freudenstein at MuJoCo's crank angle: worst **1.4e-14 rad** (bound 1e-9).
+  - **Dynamic, 2 s passive at 0.5 ms, RK4, contacts off, gravity in the linkage's plane:** the export's gravity runs along the pins, where nothing would move, so the oracle sets it in the plane, in the oracle only. The crank swings through 2π.
+    - **First run: failed.** The violation reached 7.0 mm and the angle error 0.145 rad.
+      - **The cause:** MuJoCo's default equality is soft (solref time constant 0.02 s). Under gravity alone it gives way about g·τ² ≈ 4 mm.
+      - **The fix**, in the oracle only, as its gravity and RM5's damping are: the closure's solref is set to 2·dt (critically damped), MuJoCo's stiffest at this step. The export sets no solref and invents nothing, and the bounds are unchanged.
+    - **Second run: passed.**
+      - violation at most **4.1e-5 m** (bound 1e-4);
+      - rocker against Freudenstein at most **9.1e-4 rad** (bound 1e-3);
+      - the branch kept; no warnings.
+      - **The angle margin is thin.** The 4e-5 m give, on a 20 mm crank, turns into nearly the whole 1e-3 rad. A finer step (τ = 2·dt) would tighten it; the frozen run is 0.5 ms.
+- **Tests** (`test/robot-loop.test.ts`, 4):
+  - the tree, the loop and the full turn against Freudenstein;
+  - the other branch, the triple rocker's dead point and the non-planar refusal;
+  - the MJCF connect read back and closed at every solver pose, the fixture frozen (`UPDATE_RM_FIXTURES`);
+  - MuJoCo's committed reading held to the criteria.
+- **URDF**: unchanged. A tree format: the loop is left out and noted.

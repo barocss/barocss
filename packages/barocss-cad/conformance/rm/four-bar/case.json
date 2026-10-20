@@ -1,0 +1,5 @@
+{
+ "case": "four-bar",
+ "step": "RM8",
+ "note": "A crank-rocker four-bar (a 20, b 70, c 50, d 60 mm; Grashof) from its mates, assembled at crank 60 deg on the open branch. robot.xml is its MJCF with the loop as <equality><connect> (frozen); expect.json is what scripts/loop-oracle.py checks in MuJoCo against Freudenstein."
+}

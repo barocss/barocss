@@ -9,7 +9,8 @@ import { composeInto, forwardKinematics, gearPairAt } from '../robot/fk';
 import { treeInertia, type LinkInertia } from '../robot/inertia';
 import { exportUrdf, type UrdfResult } from '../robot/urdf';
 import { readUrdf } from '../robot/urdfCheck';
-import { exportMjcf, type MjcfResult } from '../robot/mjcf';
+import { exportMjcf, type MjcfClosure, type MjcfResult } from '../robot/mjcf';
+import { closureOfDoc } from '../robot/loop';
 import { readMjcf } from '../robot/mjcfCheck';
 import { sweepLinks, sweepPath } from '../robot/sweep';
 import { gravityTorques, linkBodies, linkMasses, moveTorques, STANDARD_GRAVITY, type MoveLimits } from '../robot/dynamics';
@@ -252,4 +253,10 @@ async function robotOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluat
 /** The document's robot as URDF (RM4). */
 export async function urdfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<UrdfResult> { const r = await robotOfDoc(doc, bodies, evaluate); return exportUrdf(r.tree, r.partOf, name); }
 /** The document's robot as MJCF (RM5). */
-export async function mjcfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<MjcfResult> { const r = await robotOfDoc(doc, bodies, evaluate); return exportMjcf(r.tree, r.partOf, name); }
+export async function mjcfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<MjcfResult> {
+  const r = await robotOfDoc(doc, bodies, evaluate), closures: MjcfClosure[] = [], left: string[] = [];
+  // (RM8: each loop closed at its pin when it is a planar one; else left out and said why.)
+  for (const l of r.tree.loops) { try { closures.push(closureOfDoc(doc, r.tree, l)); } catch (e) { left.push(`${l.parts.join('–')}: ${e instanceof Error ? e.message : String(e)}`); } }
+  const out = exportMjcf(r.tree, r.partOf, name, closures);
+  return out.ok && left.length ? { ...out, notes: [...out.notes, ...left.map(x => `loop not written (${x})`)] } : out;
+}

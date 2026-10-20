@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!-- barocss-mjcf-v1: barocss CAD Studio. SI units; each body at its link frame (at its joint, Z on the axis); joint values 0 at the pose the mates solve to; a passive model (no damping, friction or actuators). -->
+<mujoco model="robot">
+  <compiler angle="radian" meshdir="meshes" autolimits="true"/>
+  <option gravity="0 0 -9.81"/>
+  <asset>
+    <mesh name="base" file="base.stl"/>
+    <mesh name="base_collision" file="base_collision.stl"/>
+    <mesh name="crank" file="crank.stl"/>
+    <mesh name="crank_collision" file="crank_collision.stl"/>
+    <mesh name="coupler" file="coupler.stl"/>
+    <mesh name="coupler_collision" file="coupler_collision.stl"/>
+    <mesh name="rocker" file="rocker.stl"/>
+    <mesh name="rocker_collision" file="rocker_collision.stl"/>
+  </asset>
+  <worldbody>
+    <body name="base" pos="0 0 0" quat="1 0 0 0">
+      <inertial pos="0.050000000000000086 0.020000000000000018 0.005" mass="0.10693971247941346" fullinertia="0.000015289507571410617 0.00008993524880288187 0.00010344242783296894 0 0 0"/>
+      <geom name="base_visual" type="mesh" mesh="base" contype="0" conaffinity="0" group="1"/>
+      <geom name="base_collision" type="mesh" mesh="base_collision" group="3"/>
+      <body name="crank" pos="0.019999999999999997 0.019999999999999997 0.01" quat="0.8660254037844386 0 0 0.5">
+        <inertial pos="0.010000000000000018 0 0.0025" mass="0.0035198562397067224" fullinertia="4.025468420726405e-8 2.5724030817793515e-7 2.828289247197545e-7 0 0 0"/>
+        <joint name="base_to_crank" type="hinge" pos="0 0 0" axis="0 0 1"/>
+        <geom name="crank_visual" type="mesh" mesh="crank" contype="0" conaffinity="0" group="1"/>
+        <geom name="crank_collision" type="mesh" mesh="crank_collision" group="3"/>
+        <body name="coupler" pos="0.01999999999999999 0 0.005" quat="0.9570947694550632 0 0 -0.289775089132519">
+          <inertial pos="0.03499999999999999 0 0.0025000000000000005" mass="0.010269856239706717" fullinertia="1.1056718420726476e-7 0.000005131141077848024 0.000005198917194389843 0 0 0"/>
+          <joint name="crank_to_coupler" type="hinge" pos="0 0 0" axis="0 0 1"/>
+          <geom name="coupler_visual" type="mesh" mesh="coupler" contype="0" conaffinity="0" group="1"/>
+          <geom name="coupler_collision" type="mesh" mesh="coupler_collision" group="3"/>
+        </body>
+      </body>
+      <body name="rocker" pos="0.07999999999999995 0.02 0.01" quat="0.7921368898545961 0 0 0.6103434670179471">
+        <inertial pos="0.025000000000000012 0 0.0024999999999999996" mass="0.007569856239706716" fullinertia="8.244218420726458e-8 0.000002113602334023971 0.0000021645034505657903 0 0 0"/>
+        <joint name="base_to_rocker" type="hinge" pos="0 0 0" axis="0 0 1"/>
+        <geom name="rocker_visual" type="mesh" mesh="rocker" contype="0" conaffinity="0" group="1"/>
+        <geom name="rocker_collision" type="mesh" mesh="rocker_collision" group="3"/>
+      </body>
+    </body>
+  </worldbody>
+  <equality>
+    <connect name="loop_coupler_rocker" body1="coupler" body2="rocker" anchor="0.07 0 0"/>
+  </equality>
+</mujoco>

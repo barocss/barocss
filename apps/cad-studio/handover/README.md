@@ -994,7 +994,8 @@ gear crank.
 - Later:
   - RM7 DLS/LM IK: ≥99% of 1000 reachable targets, errors ≤1e-4 m and 1e-3 rad, a singularity flag. **Done (O44)**:
     999/1000 by the oracle FK; worst 9.6e-8 m, 7.8e-7 rad; singular flagged at σmin/σmax < 1e-4.
-  - RM8 four-bar loop (closed-form oracle, branch kept, MJCF equality).
+  - RM8 four-bar loop (closed-form oracle, branch kept, MJCF equality). **Done (O45)**: Freudenstein to 3.0e-14 rad
+    over a full turn; BRANCH_FLIP and NO_CLOSURE typed; MJCF <connect> held by MuJoCo (static 4.7e-16 m; passive 4.1e-5 m).
   - RM9 SDF/USD, CCD, workspace map.
 
 **RD — dynamics, actuators, FEA** (maxon and Harmonic Drive sizing; NAFEMS):
