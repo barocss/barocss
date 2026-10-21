@@ -4,7 +4,7 @@ import { evaluateDoc, evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, featureLabel, type ModelNode } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
 import { editFields } from '../src/app/editFields';
-import { STEEL_G_ESTIMATE_MPA } from '../src/app/primitives';
+import { STEEL_E_ESTIMATE_MPA, STEEL_G_ESTIMATE_MPA } from '../src/app/primitives';
 import { CHAT_COMMANDS, runTool, type ChatState } from '../src/chat/tools';
 
 // R12c.1a (D153): the Spring command, its node, edit fields and notes; the chat's v2 surface names it (describe has
@@ -59,9 +59,37 @@ test('Spring (R12c.1a) in the chat: a v2 features command, its values behind des
   const state: ChatState = { doc: emptyDoc(), bodies: [] };
   const d = await runTool(state, 'describe', { command: 'spring' }, evaluate);
   assert.ok(!d.isError, d.content);
-  assert.match(d.content, /mean coil diameter/); assert.match(d.content, /steel's, an estimate/);
+  assert.match(d.content, /mean coil diameter/); assert.match(d.content, /steel's, an estimate/); assert.match(d.content, /compression \(default\) \| extension \| torsion/);
   const made = await runTool(state, 'features', { action: 'command', command: 'spring', values: { d: 1.5, D: 12, n: 8, p: 3, ends: 'closed', x: 0, y: 0, z: 0 } }, evaluate);
   assert.ok(!made.isError && made.changed, made.content.slice(0, 400));
   const node = made.state.doc.nodes[0] as Spring;
   assert.deepEqual([node.kind, node.wire, node.diameter, node.activeCoils, node.pitch, node.ends], ['spring', 1.5, 12, 8, 3, 'closed']);
+});
+
+test('Spring (R12c.1b): extension with machine loops and torsion with legs from the command — close-wound, G and E flagged estimates; volumes by the closed forms, labels, notes; hooks and E edited', () => {
+  const cmd = commands.find(c => c.id === 'spring')!, base = { ...cmd.defaults!(ctx), x: 0, y: 0, z: 0 };
+  const ext = cmd.build!(ctx, { ...base, type: 'extension', Fi: 4, F: 14 }), re = evaluateDoc(ext, 1);
+  assert.ok(re.ok, re.ok ? '' : `${re.error.title} ${re.error.detail}`);
+  const en = ext.nodes[0] as Spring;
+  assert.deepEqual([en.type, en.hooks, en.pitch, en.ends, en.initialTension, en.shearModulusEstimate, en.load], ['extension', 'machine-loop', undefined, undefined, 4, true, 14]);
+  assert.equal(featureLabel(en, 0, ext.nodes), 'Extension spring d2 × Ø20, 6 coils (machine loops)');
+  // πa²·S, S the centreline's length by D154's recipe (conformance r12c/extension-machine-loops): 1405.35079 mm³.
+  const eb = re.ok ? re.bodies[0] : null!;
+  assert.ok(Math.abs(eb.volumeMM3! - 1405.3507892) <= 4e-4 * 1405.35, String(eb.volumeMM3));
+  const k = 79300 * 16 / (8 * 8000 * 6), et = eb.notes!.map(n => n.text);
+  assert.ok(et.some(t => /^Extension spring, right hand, machine loops: wire Ø2, mean Ø20 .* 6 coils close-wound at pitch 2\.0014 mm/.test(t)), JSON.stringify(et));
+  assert.ok(et.some(t => /^Length inside the hooks 34\.3779 mm; initial tension 4 N \(your figure/.test(t)), JSON.stringify(et));
+  assert.ok(et.some(t => t.startsWith(`At 14 N: extension ${+(10 / k).toFixed(4)} mm past the initial tension`)), JSON.stringify(et));
+  const h = editFields(ext.nodes, 0).find(f => f.key === 'hooks')!, cross = h.kind === 'choice' ? h.set(ext.nodes, 'crossover') : ext.nodes, rc = evaluateDoc({ ...ext, nodes: cross }, 2);
+  assert.ok(rc.ok && rc.bodies[0].notes!.some(n => /crossover hooks/.test(n.text)) && rc.bodies[0].notes!.some(n => /^Length inside the hooks 50\.1358 mm/.test(n.text)), rc.ok ? JSON.stringify(rc.bodies[0].notes) : rc.error.detail);
+  const tor = cmd.build!(ctx, { ...base, type: 'torsion', n: 5.25, L0: 15, L1: 25, M: 500 }), rt = evaluateDoc(tor, 3);
+  assert.ok(rt.ok, rt.ok ? '' : rt.error.detail);
+  const tn = tor.nodes[0] as Spring;
+  assert.deepEqual([tn.type, tn.legLengths, tn.youngsModulus, tn.youngsModulusEstimate, tn.moment, tn.shearModulus], ['torsion', [15, 25], STEEL_E_ESTIMATE_MPA, true, 500, undefined]);
+  assert.equal(featureLabel(tn, 0, tor.nodes), 'Torsion spring d2 × Ø20, 5.25 coils');
+  const tb = rt.ok ? rt.bodies[0] : null!, kr = 206000 * 16 / (64 * 20 * 5.25);
+  assert.ok(Math.abs(tb.volumeMM3! - 1162.4977779) <= 4e-4 * 1162.5, String(tb.volumeMM3));
+  assert.ok(tb.notes!.some(n => /^Legs 15 and 25 mm along the coil's tangent, 90° apart/.test(n.text)) && tb.notes!.some(n => n.text.startsWith(`Rate ${+(kr * Math.PI / 180).toFixed(4)} N·mm/°`) && n.warning), JSON.stringify(tb.notes));
+  const e = editFields(tor.nodes, 0).find(f => f.key === 'E')!, e2 = e.kind === 'number' ? e.set(tor.nodes, 200000) : tor.nodes;
+  assert.deepEqual([(e2[0] as Spring).youngsModulus, (e2[0] as Spring).youngsModulusEstimate], [200000, undefined]);
 });

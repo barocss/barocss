@@ -471,8 +471,9 @@ function wormNotes(w: NonNullable<CadPartSnapshot['outputs'][number]['worm']>): 
   ];
 }
 /** A compression spring's report as lines for the body's panel (R12c.1a, D153): its sizes, solid heights, rate and load. */
-function springNotes(s: NonNullable<CadPartSnapshot['outputs'][number]['spring']>): { text: string; warning?: boolean }[] {
-  const d = s.dimensions, mm = (x: number) => +x.toFixed(4), ends = s.ends === 'open' ? 'open' : s.ends === 'closed' ? 'closed' : 'closed and ground';
+function springNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['spring']>): { text: string; warning?: boolean }[] {
+  if (r.type !== 'compression') return hookedSpringNotes(r);
+  const s = r, d = s.dimensions, mm = (x: number) => +x.toFixed(4), ends = s.ends === 'open' ? 'open' : s.ends === 'closed' ? 'closed' : 'closed and ground';
   return [
     { text: `Compression spring, ${s.hand} hand, ends ${ends}: wire Ø${mm(d.wireDiameterMM)}, mean Ø${mm(d.meanDiameterMM)} (outer ${mm(d.outerDiameterMM)}, inner ${mm(d.innerDiameterMM)}), index C ${mm(d.springIndex)}; ${mm(d.activeCoils)} active of ${mm(d.totalCoils)} coils, pitch ${mm(d.pitchMM)} mm (helix angle ${mm(d.helixAngleDeg)}°), free length ${mm(d.freeLengthMM)} mm (L0/D ${mm(d.slenderness)})` },
     { text: `Solid height ${mm(d.solidHeightMM)} mm (turns a wire Ø apart at pitch ${mm(d.solidPitchMM)}); ${mm(d.supplierSolidHeightMM)} mm by the supplier's rule ${d.supplierSolidHeightRule}; travel to solid ${mm(d.travelToSolidMM)} mm` },
@@ -482,6 +483,24 @@ function springNotes(s: NonNullable<CadPartSnapshot['outputs'][number]['spring']
     { text: 'Not validated for manufacturing: no buckling, fatigue or relaxation check', warning: true },
     ...s.diagnostics.map(x => ({ text: x.message.replace(/^spring: /, ''), warning: x.severity === 'warning' })),
   ];
+}
+/** An extension or torsion spring's report as lines (R12c.1b, D154). */
+function hookedSpringNotes(s: Extract<NonNullable<CadPartSnapshot['outputs'][number]['spring']>, { type: 'extension' | 'torsion' }>): { text: string; warning?: boolean }[] {
+  const d = s.dimensions, mm = (x: number) => +x.toFixed(4), close = s.dimensions.pitchMM < s.dimensions.wireDiameterMM * 1.01;
+  const head = `${s.type === 'extension' ? 'Extension' : 'Torsion'} spring, ${s.hand} hand${s.hooks ? `, ${s.hooks === 'crossover' ? 'crossover hooks' : 'machine loops'}` : ''}: wire Ø${mm(d.wireDiameterMM)}, mean Ø${mm(d.meanDiameterMM)} (outer ${mm(d.outerDiameterMM)}, inner ${mm(d.innerDiameterMM)}), index C ${mm(d.springIndex)}; ${mm(d.activeCoils)} coils${close ? ' close-wound' : ''} at pitch ${mm(d.pitchMM)} mm, coil length ${mm(d.bodyLengthMM)} mm`;
+  const lines: { text: string; warning?: boolean }[] = [{ text: head }];
+  if (s.type === 'extension') {
+    lines.push({ text: `Length inside the hooks ${mm(d.lengthInsideHooksMM!)} mm; initial tension ${mm(d.initialTensionN ?? 0)} N (your figure: no data behind it)` });
+    lines.push(d.rateNPerMM !== undefined ? { text: `Rate ${mm(d.rateNPerMM)} N/mm (Gd⁴/8D³n, G ${d.shearModulusMPa} MPa${d.shearModulusEstimate ? ', an estimate for steel: the rate is one too' : ''})`, ...(d.shearModulusEstimate ? { warning: true } : {}) } : { text: 'No rate: give the shear modulus G' });
+    if (d.load) lines.push({ text: `At ${mm(d.load.forceN)} N: ${d.load.extensionMM !== undefined ? `extension ${mm(d.load.extensionMM)} mm past the initial tension, ` : ''}shear stress ${mm(d.load.shearStressMPa)} MPa in the coil (Wahl K_W ${mm(d.wahlFactor!)}); the hooks' stresses not computed` });
+  } else {
+    lines.push({ text: `Legs ${mm(d.legLengthsMM![0])} and ${mm(d.legLengthsMM![1])} mm along the coil's tangent, ${mm(d.legAngleDeg!)}° apart seen along the axis` });
+    lines.push(d.torsionalRateNmmPerRad !== undefined ? { text: `Rate ${mm(d.torsionalRateNmmPerDeg!)} N·mm/° (Ed⁴/64Dn, ${mm(d.torsionalRateNmmPerRad)} N·mm/rad; E ${d.youngsModulusMPa} MPa${d.youngsModulusEstimate ? ', an estimate for steel: the rate is one too' : ''})`, ...(d.youngsModulusEstimate ? { warning: true } : {}) } : { text: 'No rate: give Young\'s modulus E' });
+    if (d.moment) lines.push({ text: `At ${mm(d.moment.momentNmm)} N·mm: ${d.moment.turnDeg !== undefined ? `turn ${mm(d.moment.turnDeg)}°, ` : ''}bending stress ${mm(d.moment.bendingStressMPa)} MPa (K_b ${mm(d.bendingFactor!)})` });
+  }
+  lines.push({ text: `Wire within ${s.sweep.profileDeviationMM.toExponential(1)} mm of the exact pipe (${s.sweep.pieces} cubic pieces on the coil; ends exact); wire length ${mm(d.wireLengthMM)} mm; the ${s.type === 'extension' ? 'hooks' : 'legs'} clear the wire by ${mm(d.leastClearanceMM - d.wireDiameterMM)} mm` });
+  lines.push({ text: 'Not validated for manufacturing: no fatigue, relaxation or hook-stress check', warning: true });
+  return lines;
 }
 /** A throated worm wheel's report as lines for the body's panel (R12b.6, D137). */
 function wormWheelNotes(w: NonNullable<CadPartSnapshot['outputs'][number]['wormWheel']>): { text: string; warning?: boolean }[] {

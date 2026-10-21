@@ -1,0 +1,67 @@
+{
+  "id": "r12c-torsion-legs",
+  "step": "R12c",
+  "decisions": [
+    "D154"
+  ],
+  "about": "R12c.1b: a torsion spring \u2014 wire d 2 on mean \u00d820, 5\u00bc coils close-wound, straight legs of 15 and 25 along the coil's tangent at its start and end (90\u00b0 apart).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "spring",
+          "type": "torsion",
+          "wire": 2,
+          "diameter": 20,
+          "activeCoils": 5.25,
+          "legLengths": [
+            15,
+            25
+          ],
+          "generator": "spring@0"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 1162.497777889751,
+          "relTol": 0.0004
+        },
+        "centroidMM": {
+          "value": [
+            -0.167673,
+            0.642801,
+            6.412396
+          ],
+          "absTol": 0.005
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "s.end0",
+          "s.end1",
+          "s.leg0",
+          "s.leg1",
+          "s.wire"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "V = \u03c0a\u00b2\u00b7(2\u03c0n\u221a(R\u00b2 + h\u00b2) + 15 + 25); relTol the fit's bound. The centroid by this kernel."
+}

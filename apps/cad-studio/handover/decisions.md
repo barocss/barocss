@@ -8455,3 +8455,103 @@ Ran:
 Not run:
 - RB and properties: the first kernel checkpoint after the T3 at D152.
 - The full browser flow (rules v2; the coordinator's per merge window).
+
+## D154 — R12c.1b: extension and torsion springs (2026-10-21)
+
+R12c's second stage, as D139 froze it.
+- **Extension springs:** a close-wound body; initial tension is the user's input, with no data behind it; hooks are exact torus arcs and straight pipes (machine loop, crossover).
+- **Torsion springs:** legs are straight pipes tangent to the coil, and the torsional rate is Ed⁴/(64Dn).
+- **New code:** `LEG_OVERLAP`.
+
+**Kernel** (`spring.ts`; `hookedSpring` and its types exported):
+- **The coil** is D153's helical sweep, close-wound. "Close-wound" is the solid pitch of a wire d + 2·tol thick: the turns stand 2·tol apart (4e-4 mm for d 2). Each fitted surface lies within tol of its pipe, so the two never meet.
+  - At p_s itself the fitted turns could cross by up to 2·tol.
+  - An open `pitch` ≥ p_s is accepted; below p_s it is `COILS_OVERLAP`, as in 1a.
+- **The ends are exact pieces of pipe.**
+  - A straight run is the section circle translated: degree 2 × 1.
+  - A bend is the circle turned about the bend's axis: the rational torus, degree 2 × 2, weights the product of the section's and the turn's cos(Δ/2), a span per ≤ 90°.
+  - Each piece starts on the frame where the last one ended, and the turn itself carries the frame. So the level circles match exactly, quarter joins at 45° included.
+  - Each piece is glued to the wire at their shared disc (`glueAtSharedFace`, as D153's ground ends).
+  - The bottom end mirrors the top: it is built outward from the coil's start along −T, its frame's e1 and e2 swapped so that its tangent points out.
+- **The recipes** (r_b is the bends' centreline radius, default d; above a, or `SELF_INTERSECTION`):
+  - **`machine-loop`** (default): a bend from the coil's tangent t up the axis, through acos(t·up). Then a loop centred on the axis, in the plane through it and the bend's end, its radius that point's distance from the axis, through `loopAngle` (default 180°). This is the end bent up over the body.
+  - **`crossover`:** a quarter bend toward the axis (in the plane of t and the inward radial, so it ends horizontal and inward), a straight run to the axis's nearest point, then a loop of radius ρ (default D/2) standing on it in the plane of the run and the axis, through `loopAngle` (default 270°).
+  - **Torsion:** a straight leg along t at each end, `legLengths` (default D each).
+- **`LEG_OVERLAP`, by the centreline.** Any two of its points at least πa apart along it must be d apart, sampled every d/4 on the ends and 64 a turn on the coil. πa is half a turn on the tightest bend a tube allows: nearer points are the tube's own neighbourhood. The coil against itself is covered by its pitch.
+  - A first version skipped neighbouring pieces whole. It missed a crossover loop of radius 1.2 whose 270° end sits 1.2·√2 from where the loop began, so the arc-length rule replaced it.
+  - The figure is reported (`leastClearanceMM`): 2.0014 for the default machine loops, where the bend leaves the last turn.
+- **The report** (`HookedSpringReport`, beside the compression `SpringReport`):
+  - sizes and C; the coils; the pitch and helix angle; the coil length; the wire's whole centreline length;
+  - **extension:** the length inside the hooks (the loops' inner extremes along the axis), the rate Gd⁴/(8D³n) when G is given, the initial tension as given; at a load, the extension (F − F_i)/k and τ = K_W 8FD/(πd³) in the coil. The hooks' stresses are not computed (no claim);
+  - **torsion:** k = Ed⁴/(64Dn) per radian and per degree when E is given, the free angle between the legs (the coils' fraction × 360°), the legs' lengths; at a moment, the turn M/k and σ = K_b 32M/(πd³), with K_b = (4C² − C − 1)/(4C(C − 1)) at the inner fibre;
+  - the least clearance; `manufacturingValidated: false`.
+- **Refused as INVALID_INPUT, as belonging to another type:**
+  - on an extension or torsion spring: `ends`, `endCoils`, `transition` and `freeLength`;
+  - on a torsion spring: hooks, loops, initial tension, G and a load;
+  - on an extension spring: legs, E and a moment.
+- **`compressionSpring` given type extension or torsion** is now INVALID_INPUT, which names hookedSpring. In D153 it was UNSUPPORTED_SPRING_KIND. Two D153 tests' expectations moved with that: compressionSpring's refusal, and the part model's `{type: 'torsion'}` refusal, now `{body: 'barrel'}`.
+
+**Part model:** the `spring` kind takes `type` extension or torsion, with `hooks`, `bendRadius`, `loopRadius`, `loopAngle`, `initialTension`, `legLengths`, `youngsModulus` (+ `youngsModulusEstimate`) and `moment`. These are refused on a compression spring.
+- Faces: `<id>.wire#k`, `.hook0#k` and `.hook1#k` (or `.leg0#k` and `.leg1#k`), `.end0` and `.end1`.
+
+**Studio and model:**
+- **The Spring command** gains a `type` choice. Its fields follow it:
+  - compression: pitch, ends, G, load;
+  - extension: pitch (0 for close-wound), hooks, initial tension (labelled "yours"), G, load;
+  - torsion: pitch (0), start and end legs, E, moment.
+- **E for steel**, 206 000 MPa, `STEEL_E_ESTIMATE_MPA`, is prefilled and flagged `youngsModulusEstimate`, as G is: an estimate with no source read, under the owner's rule for R12c. Editing it drops the flag.
+- **The node** gains `type`, `hooks`, `initialTension`, `legLengths`, `youngsModulus(Estimate)` and `moment`; `ends` is now optional (a compression spring's). The labels: "Extension spring d2 × Ø20, 6 coils (machine loops)", "Torsion spring d2 × Ø20, 5.25 coils".
+- **Edit fields** follow the type. The notes are per type. There is a friendly error for `[LEG_OVERLAP]`.
+- **Chat v2:** the spring command's `describe` values gained type, pw, hooks, Fi, L0, L1, E and M. There is no new command, tool or enum, and tools-v2.json is unchanged.
+  - The per-turn guard is **22 022**, measured on integration 3fa729fcb with FRd's welds in, and unchanged by this stage.
+
+**Oracles and tests** (`test/r12c-hooked-spring.test.mjs`, 5 tests, all failing on the previous HEAD). The centreline is rebuilt in the test from the recipe by plain vector algebra: the coil's end and tangent, the bends' angles, the loop's radius from the axis, the run to the axis.
+- **Machine loops** (D 20, d 2, 6 coils, G 79 300, F_i 4, F 14): valid, genus 0, one body, 158 faces, 90–185 ms.
+  - The close-wound gap is d + 2·tol by brute force, to 1e-7.
+  - The wire length is helix + d·acos(t·up) + ρπ at each end, to 1e-12.
+  - V 1405.328941 against πa²S 1405.350789: rel 1.55e-5, inside the fit's bound.
+  - Inside the hooks: 34.3779, to 1e-9. The bounds' height is that plus 4a.
+  - k by the torsion energy; the extension (14 − 4)/k; Wahl's τ.
+  - The face names are unique. STEP round trip.
+- **Crossover:** 174 faces; V rel 1.41e-5 against πa²(helix + πd/2 + run + 3πR/2) at each end; inside the hooks 50.1358.
+- **Torsion** (5¼ coils, legs 15 and 25, E 206 000, M 500): 126 faces; V rel 1.62e-5 against πa²(S + 40).
+  - The legs are 90° apart.
+  - k = M/θ with θ = ML/(EI), L = πDn, I = πd⁴/64 (the bending energy), to 1e-12. The turn and K_b's σ match too.
+  - The end leg's tip is ℓ along the tangent (the bounds).
+- **Hand and refusals:**
+  - the left hand mirrors the right, vertex for vertex;
+  - LEG_OVERLAP: a 300° machine loop (it comes back into the coil) and a crossover loop of radius 1.2;
+  - SELF_INTERSECTION: a bend of r_b 1 on a wire of radius 1;
+  - COILS_OVERLAP: pitch d;
+  - INVALID_INPUT: eight cases, each an argument of the wrong type or a bad value;
+  - UNSUPPORTED_SPRING_KIND: conical;
+  - an open pitch of 3 builds valid.
+- **Part model:** both types placed, the reports and flags on the outputs; LEG_OVERLAP → GEOMETRY and ends on a torsion spring → INPUT, each with its [CODE].
+- **Conformance `r12c/`:**
+  - `extension-machine-loops`: V by the closed form (rel 4e-4, the fit's bound); the centroid's y and z by the half turn about X at mid-height, its x by this kernel;
+  - `torsion-legs`: V by the closed form; the centroid by this kernel;
+  - `crossover-loop-overlap-refused`.
+- **Model** (`spring.test.ts`, +1 test): extension and torsion from the command; the volumes by those closed forms; the labels and notes (inside the hooks, the extension past the initial tension, the legs' angle, the flagged rates); hooks → crossover; E edited.
+- **Flow step** "Spring (R12c.1b, D154)": each type from the palette with its notes, and a snapshot.
+
+**Not in this stage:**
+- hook stresses (bending at the hook's bend);
+- the hooks' share of the rate (some suppliers add them to n_a);
+- extended hooks, side hooks and other hook forms;
+- torsion legs other than tangent (radial or bent legs);
+- the legs' share of the torsional rate ((ℓ1 + ℓ2)/(3πD) coils, a common correction): not applied, said in the formula.
+
+**Checks** (rules v2; `part-model.ts` changed, so the full kernel suite ran), on 526a8fa0c (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-hooked-spring` with `r12c-spring`: 12/12.
+- The full kernel suite, conformance included: 1440/1447, 6 skipped, 356 s. Only the env-only "actual native Split source…" failed.
+- Conformance `r12c/`: 6/6.
+- `@barocss/cad-model`: type-check clean, 656/656, 160 s (the guard test: 22 022 a turn). Studio: type-check clean, 186/186, 30 s.
+- Test names against the saved lists: none missing; +8 kernel (D154's 5 and 3 conformance cases), +12 cad-model (D154's 1, and the merged lanes' FRd1/FRd2 and O-G6), studio unchanged.
+- `FLOW_ONLY` "Spring (R12c": 1a's and 1b's steps, 2/2 (with the starter step), 22 s.
+  - The snapshots show the machine loops bent up over each end and the tangent legs.
+
+Not run:
+- RB and properties (the 2nd kernel checkpoint after the T3).
+- The full browser flow (the coordinator's).

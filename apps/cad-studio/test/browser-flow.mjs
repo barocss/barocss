@@ -2661,6 +2661,24 @@ try {
     await snap('spring-ground');
   });
 
+  await check('Spring (R12c.1b, D154): an extension spring with machine loops and a torsion spring with legs from the palette — close-wound, their notes (length inside the hooks, the legs\' angle, the rates flagged)', async () => {
+    for (const [type, kind, label, note] of [['extension', 'extension', /Extension spring d2 × Ø20, 6 coils \(machine loops\)/, /^Length inside the hooks 34\.3779 mm/], ['torsion', 'torsion', /Torsion spring d2 × Ø20, 6 coils/, /^Legs 20 and 20 mm along the coil's tangent, 0° apart/]]) {
+      await page.click('[aria-label="New part"]'); await idle();
+      await press(' '); await page.locator('.palette input').fill('spring'); await press('Enter'); await hudReady();
+      await field('Type').selectOption(type); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await press('Enter');
+      await page.waitForFunction(k => window.__studioDoc.nodes[0]?.kind === 'spring' && window.__studioDoc.nodes[0]?.type === k && /1 bod/.test(document.querySelector('.outliner')?.textContent ?? ''), kind, { timeout: 60000 }); await idle();
+      assert.match(await page.textContent('.history'), label);
+      await page.locator('.outliner .ol').first().click();
+      await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+      const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+      assert.ok(notes.some(t => note.test(t.replace(/^warning /, ''))) && notes.some(t => /^(warning )?Rate .*an estimate for steel/.test(t)), notes.join(' | '));
+      await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+      await snap(`spring-${type}`);
+    }
+  });
+
   await check('R12b.7 the gears\' acceptance by the scripted agent through the real chat: a planetary set (its own mesh checks passing), a right-angle bevel pair, a worm reducer — each in one turn, its pairs clear in their notes (new in D138)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });

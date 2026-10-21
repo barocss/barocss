@@ -43,7 +43,7 @@ import { spurGear, spurGearCenterDistance, spurGearDimensions, GearError, type G
 import { internalGear, internalGearCenterDistance, pinionTurnInside, type InternalGearReport, type InternalGearSpec, type PlacedInternalGear } from './gear-internal.js';
 import { bevelGear, bevelMatePlacement, bevelGearMatrix, type BevelGearReport, type BevelGearSpec, type PlacedBevelGear } from './gear-bevel.js';
 import { worm as wormSolid, wormPlacement, wormMatrix, type WormReport, type WormSpec, type PlacedWorm } from './gear-worm.js';
-import { compressionSpring, springDimensions, SpringError, type SpringDiagnosticCode, type SpringReport, type SpringSpec } from './spring.js';
+import { compressionSpring, hookedSpring, springDimensions, SpringError, type HookedSpringReport, type HookedSpringSpec, type SpringDiagnosticCode, type SpringReport, type SpringSpec } from './spring.js';
 import { throatedWormWheel, throatedWormPlacement, type ThroatedWheelReport, type ThroatedWheelSpec, type PlacedThroatedWheel } from './gear-worm-wheel.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
@@ -296,10 +296,15 @@ export type CadPartFeature = Base & (
    * `body` or `wireSection` other than compression, cylindrical and round is refused (UNSUPPORTED_SPRING_KIND). The wire
    * is the exact normal-plane circle swept along the coil, fitted within `profileTolerance` (default 1e-4·d). Faces
    * `<id>.wire#k`, `.end0`, `.end1` (the wire's ends), `.ground0`, `.ground1` (the ground planes).
+   * R12c.1b (D154): `type` extension — close-wound (or at `pitch`), `hooks` machine-loop (default) or crossover, `bendRadius`,
+   * `loopRadius`, `loopAngle` (degrees), `initialTension` (N, the user's figure); torsion — tangent `legLengths` [start, end],
+   * `youngsModulus` (E, MPa, with `youngsModulusEstimate`), `moment` (N·mm). Faces `.hook0#k`/`.hook1#k` or `.leg0#k`/`.leg1#k`.
    */
   | { readonly kind: 'spring'; readonly wire: CadPartDim; readonly diameter?: CadPartDim; readonly outerDiameter?: CadPartDim; readonly innerDiameter?: CadPartDim; readonly activeCoils: number;
     readonly pitch?: CadPartDim; readonly freeLength?: CadPartDim; readonly hand?: 'right' | 'left'; readonly ends?: 'open' | 'closed' | 'closed-ground'; readonly endCoils?: number; readonly transition?: number;
     readonly shearModulus?: number; readonly shearModulusEstimate?: boolean; readonly load?: number; readonly profileTolerance?: number;
+    readonly hooks?: 'machine-loop' | 'crossover'; readonly bendRadius?: CadPartDim; readonly loopRadius?: CadPartDim; readonly loopAngle?: number; readonly initialTension?: number;
+    readonly legLengths?: readonly [CadPartDim, CadPartDim]; readonly youngsModulus?: number; readonly youngsModulusEstimate?: boolean; readonly moment?: number;
     readonly type?: 'compression' | 'extension' | 'torsion'; readonly body?: 'cylindrical' | 'conical' | 'barrel' | 'variable-pitch'; readonly wireSection?: 'round' | 'rectangular';
     readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
     /** 'spring@0' (the default). */
@@ -477,8 +482,8 @@ export interface CadPartOutput {
   /** A throated worm wheel's report and placement (R12b.6). */
   readonly wormWheel?: ThroatedWheelReport;
   readonly wormWheelPlacement?: PlacedThroatedWheel;
-  /** A compression spring's report: its dimensions, rate and stresses, the sweep's measured fit (R12c.1a). */
-  readonly spring?: SpringReport;
+  /** A spring's report: its dimensions, rate and stresses, the sweep's measured fit (R12c.1a; extension and torsion R12c.1b). */
+  readonly spring?: SpringReport | HookedSpringReport;
   /** A SubD body's make-up: steps, caps and their distance from the limit surface (R7, D79). */
   readonly subd?: SubdSummary;
   /** A decimated mesh's report: triangles before and after, why it stopped, the measured distance both ways (R9, D85). */
@@ -562,7 +567,7 @@ interface Part {
   readonly wormPlace?: WormPlacement;
   readonly wormWheel?: ThroatedWheelReport;
   readonly wormWheelPlace?: PlacedThroatedWheel;
-  readonly spring?: SpringReport;
+  readonly spring?: SpringReport | HookedSpringReport;
   readonly subd?: SubdSummary;
   readonly decimate?: DecimateReport;
   readonly fillet?: readonly FilletReport[];
@@ -1774,11 +1779,20 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         ...(f.shearModulus !== undefined ? { shearModulusMPa: num('shearModulus'), ...(f.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}), ...(f.load !== undefined ? { loadN: num('load') } : {}), ...(f.profileTolerance !== undefined ? { profileToleranceMM: num('profileTolerance') } : {}),
         ...(f.type !== undefined ? { type: f.type as SpringSpec['type'] } : {}), ...(f.body !== undefined ? { body: f.body as SpringSpec['body'] } : {}), ...(f.wireSection !== undefined ? { wire: f.wireSection as SpringSpec['wire'] } : {}) };
       const springFail = (cause: unknown): never => { if (cause instanceof SpringError) fail(SPRING_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^spring: /, '')}`); throw cause; };
-      try { springDimensions(spec); } catch (cause) { springFail(cause); }
+      const hooked = f.type === 'extension' || f.type === 'torsion';
+      if (!hooked && (f.hooks !== undefined || f.bendRadius !== undefined || f.loopRadius !== undefined || f.loopAngle !== undefined || f.initialTension !== undefined || f.legLengths !== undefined || f.youngsModulus !== undefined || f.moment !== undefined)) fail('INPUT', 'hooks, bends, loops, initial tension, legs, E and a moment belong to an extension or a torsion spring (give its type)');
+      if (f.youngsModulusEstimate !== undefined && typeof f.youngsModulusEstimate !== 'boolean') fail('INPUT', 'youngsModulusEstimate must be true or false');
+      const legs = f.legLengths as unknown;
+      if (legs !== undefined && !(Array.isArray(legs) && legs.length === 2)) fail('INPUT', 'legLengths must be [start, end]');
+      const hspec: HookedSpringSpec | undefined = hooked ? { ...spec, ...(f.hooks !== undefined ? { hooks: f.hooks as HookedSpringSpec['hooks'] } : {}), ...(f.bendRadius !== undefined ? { bendRadiusMM: opt('bendRadius') } : {}), ...(f.loopRadius !== undefined ? { loopRadiusMM: opt('loopRadius') } : {}),
+        ...(f.loopAngle !== undefined ? { loopAngleDeg: num('loopAngle') } : {}), ...(f.initialTension !== undefined ? { initialTensionN: num('initialTension') } : {}),
+        ...(legs !== undefined ? { legLengthsMM: [dim((legs as CadPartDim[])[0], 'legLengths[0]', true), dim((legs as CadPartDim[])[1], 'legLengths[1]', true)] as const } : {}),
+        ...(f.youngsModulus !== undefined ? { youngsModulusMPa: num('youngsModulus'), ...(f.youngsModulusEstimate ? { youngsModulusEstimate: true } : {}) } : {}), ...(f.moment !== undefined ? { momentNmm: num('moment') } : {}) } : undefined;
+      if (!hspec) { try { springDimensions(spec); } catch (cause) { springFail(cause); } }
       const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (num('rotation') ?? 0) * Math.PI / 180;
       return () => {
-        let made: ReturnType<typeof compressionSpring> | undefined;
-        try { made = compressionSpring(spec, { id: at }); } catch (cause) { springFail(cause); }
+        let made: { readonly brep: Brep; readonly report: SpringReport | HookedSpringReport } | undefined;
+        try { made = hspec ? hookedSpring(hspec, { id: at }) : compressionSpring(spec, { id: at }); } catch (cause) { springFail(cause); }
         const cs = Math.cos(turn), sn = Math.sin(turn);
         const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, spring: made!.report }] };
