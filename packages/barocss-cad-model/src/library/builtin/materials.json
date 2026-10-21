@@ -575,6 +575,30 @@
     "friction": "S-TYP"
    },
    "friction": 0.4
+  },
+  {
+   "id": "grey-iron",
+   "label": "Grey cast iron",
+   "family": "metal",
+   "castFamily": "iron",
+   "densityGPerCm3": 7.2,
+   "elasticModulusMPa": 110000,
+   "yieldMPa": 150,
+   "allowableStrain": 0.001,
+   "shrink": 0,
+   "processes": [
+    "sand-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-TYP",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.4
   }
  ],
  "profiles": [
@@ -2129,6 +2153,176 @@
       "label": "Standard draft for sand casting is 2 degrees with a minimum of about 1 degree for external and internal features."
      }
     }
+   },
+   "allowances": {
+    "shrink": [
+     {
+      "family": "iron",
+      "label": "Grey Cast Iron",
+      "bands": [
+       {
+        "upToFt": 2,
+        "inPerFt": 0.125
+       },
+       {
+        "upToFt": 4,
+        "inPerFt": 0.105
+       },
+       {
+        "upToFt": null,
+        "inPerFt": 0.083
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+       "read": "2026-10-21",
+       "label": "Table 1: Rate of Contraction of Various Metals — Grey Cast Iron: up to 2 feet 0.125, 2 feet to 4 feet 0.105, over 4 feet 0.083 (inch/ft)",
+       "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+      }
+     },
+     {
+      "family": "steel",
+      "label": "Cast Steel",
+      "bands": [
+       {
+        "upToFt": 2,
+        "inPerFt": 0.251
+       },
+       {
+        "upToFt": 6,
+        "inPerFt": 0.191
+       },
+       {
+        "upToFt": null,
+        "inPerFt": 0.155
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+       "read": "2026-10-21",
+       "label": "Table 1: Rate of Contraction of Various Metals — Cast Steel: up to 2 feet 0.251, 2 feet to 6 feet 0.191, over 6 feet 0.155 (inch/ft)",
+       "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+      }
+     },
+     {
+      "family": "aluminium",
+      "label": "Aluminum",
+      "bands": [
+       {
+        "upToFt": 4,
+        "inPerFt": 0.155
+       },
+       {
+        "upToFt": 6,
+        "inPerFt": 0.143
+       },
+       {
+        "upToFt": null,
+        "inPerFt": 0.125
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+       "read": "2026-10-21",
+       "label": "Table 1: Rate of Contraction of Various Metals — Aluminum: up to 4 feet 0.155, 4 feet to 6 feet 0.143, over 6 feet 0.125 (inch/ft)",
+       "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+      }
+     },
+     {
+      "family": "magnesium",
+      "label": "Magnesium",
+      "bands": [
+       {
+        "upToFt": 4,
+        "inPerFt": 0.173
+       },
+       {
+        "upToFt": null,
+        "inPerFt": 0.155
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+       "read": "2026-10-21",
+       "label": "Table 1: Rate of Contraction of Various Metals — Magnesium: up to 4 feet 0.173, over 4 feet 0.155 (inch/ft)",
+       "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+      }
+     }
+    ],
+    "machining": [
+     {
+      "class": "iron",
+      "label": "Cast iron",
+      "bands": [
+       {
+        "upToIn": 12,
+        "in": 0.12
+       },
+       {
+        "upToIn": 20,
+        "in": 0.2
+       },
+       {
+        "upToIn": 40,
+        "in": 0.25
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture4.htm",
+       "read": "2026-10-21",
+       "label": "Table 3: Machining Allowances of Various Metals — Cast iron: up to 12 0.12, 12 to 20 0.20, 20 to 40 0.25 (inch)",
+       "note": "the bands and the allowance as printed in inches (1 in = 25.4 mm)"
+      }
+     },
+     {
+      "class": "steel",
+      "label": "Cast steel",
+      "bands": [
+       {
+        "upToIn": 6,
+        "in": 0.12
+       },
+       {
+        "upToIn": 20,
+        "in": 0.25
+       },
+       {
+        "upToIn": 40,
+        "in": 0.3
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture4.htm",
+       "read": "2026-10-21",
+       "label": "Table 3: Machining Allowances of Various Metals — Cast steel: up to 6 0.12, 6 to 20 0.25, 20 to 40 0.30 (inch)",
+       "note": "the bands and the allowance as printed in inches (1 in = 25.4 mm)"
+      }
+     },
+     {
+      "class": "nonferrous",
+      "label": "Non ferrous",
+      "bands": [
+       {
+        "upToIn": 8,
+        "in": 0.09
+       },
+       {
+        "upToIn": 12,
+        "in": 0.12
+       },
+       {
+        "upToIn": 40,
+        "in": 0.16
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture4.htm",
+       "read": "2026-10-21",
+       "label": "Table 3: Machining Allowances of Various Metals — Non ferrous: up to 8 0.09, 8 to 12 0.12, 12 to 40 0.16 (inch)",
+       "note": "the bands and the allowance as printed in inches (1 in = 25.4 mm)"
+      }
+     }
+    ]
    }
   }
  ],
