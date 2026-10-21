@@ -4,7 +4,7 @@
 // the worker once; later requests name it. Both sides keep the same table and forget, at the same
 // request, the nodes no request has named for a while (they process the requests in one order).
 import type { ModelNode, PartInstance, StudioDoc } from './doc';
-import { blobRefs, getBlob, putKnownBlob, type BlobArray } from './blobs';
+import { blobRefs, dropBlobs, getBlob, onBlobsEvicted, putKnownBlob, type BlobArray } from './blobs';
 
 export interface WireDoc {
   doc: Omit<StudioDoc, 'nodes'> & { nodes: [] };
@@ -14,6 +14,8 @@ export interface WireDoc {
   added: [number, ModelNode][];
   /** Mesh blobs the worker does not have yet (M1): hash and array, each sent once (a copy; the store keeps its own). */
   blobs?: [string, BlobArray][];
+  /** Blobs a sweep dropped here (PERF3 B13, O135): the worker drops them too, in step. */
+  dropped?: string[];
 }
 
 /** Requests between prunes, and how many requests a node may go unnamed before it is forgotten. */
@@ -38,6 +40,11 @@ export class WireSender {
   private next = 1;
   private seq = 0;
   private sentBlobs = new Set<string>();
+  /** Dropped by a sweep since the last pack: forgotten as sent (a blob put back is sent again), and told the worker. */
+  private dropped: string[] = [];
+  constructor() { onBlobsEvicted(h => this.forget(h)); }
+  /** These blobs are gone from the store: not sent any more, and the worker told with the next document. */
+  forget(hashes: readonly string[]): void { for (const h of hashes) if (this.sentBlobs.delete(h)) this.dropped.push(h); }
   pack(doc: StudioDoc): WireDoc {
     const seq = ++this.seq, ids: number[] = [], added: [number, ModelNode][] = [];
     for (const node of doc.nodes) {
@@ -48,7 +55,8 @@ export class WireSender {
     if (seq % PRUNE_EVERY === 0) for (const [id, u] of this.used) if (u.at < seq - KEEP_FOR) { this.used.delete(id); this.ids.delete(u.node); }
     const blobs: [string, BlobArray][] = [];
     for (const h of blobRefs(doc)) { const a = getBlob(h); if (a && !this.sentBlobs.has(h)) { this.sentBlobs.add(h); blobs.push([h, a]); } }
-    return { doc: { ...evaluatedPart(doc), nodes: [] }, ids, added, ...(blobs.length ? { blobs } : {}) };
+    const dropped = this.dropped.filter(h => !this.sentBlobs.has(h)); this.dropped = [];
+    return { doc: { ...evaluatedPart(doc), nodes: [] }, ids, added, ...(blobs.length ? { blobs } : {}), ...(dropped.length ? { dropped } : {}) };
   }
 }
 
@@ -58,6 +66,7 @@ export class WireReceiver {
   private seq = 0;
   unpack(w: WireDoc): StudioDoc {
     const seq = ++this.seq;
+    if (w.dropped) dropBlobs(w.dropped);
     for (const [h, a] of w.blobs ?? []) putKnownBlob(h, a);
     for (const [id, node] of w.added) this.nodes.set(id, { node, at: seq });
     const nodes: ModelNode[] = [];

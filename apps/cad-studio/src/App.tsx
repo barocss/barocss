@@ -29,7 +29,7 @@ import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
 import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
-import { collectRecoveryBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs, setBlobStore } from '@barocss/cad-model/engine/blobs';
+import { blobStats, collectRecoveryBlobs, evictBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs, setBlobStore } from '@barocss/cad-model/engine/blobs';
 import { indexedDbBlobStore } from './ui/blobStore';
 // (The recovery copy's blobs kept in this browser's IndexedDB: the store set before the studio reads or writes one — PKG-g2.)
 setBlobStore(indexedDbBlobStore());
@@ -1182,6 +1182,17 @@ export function App() {
   /** What the worker is doing that the user waits on (checking or repairing a mesh): shown with its stage, stoppable. */
   const [stage, setStage] = useState<string | null>(null);
   const [repairAsk, setRepairAsk] = useState<{ mode: 'import' | 'edit'; node?: number; name: string; format?: string; unit: string; positions: ArrayLike<number>; indices: ArrayLike<number>; diagnosis: MeshDiagnosis; steps: MeshRepairSteps; result: MeshRepairResult | null } | null>(null);
+  // (PERF3 B13, O135: the mesh blobs no step reaches dropped at an idle point — two seconds after the last change, no
+  // repair asked; a chat turn holds sweeps while it runs. The roots: the document, every undo and redo step. DEV: the
+  // bytes each sweep freed, window.__studioBlobs.)
+  useEffect(() => {
+    if (repairAsk) return;
+    const t = setTimeout(() => {
+      const s = evictBlobs([doc, ...undo.map(u => u.doc), ...redo.map(r => r.doc), ...(evaluatedRef.current ? [evaluatedRef.current] : [])]);
+      if (s && import.meta.env.DEV) (window as unknown as { __studioBlobs: unknown }).__studioBlobs = { ...blobStats, kept: s.kept, graced: s.graced.length };
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [doc, undo, redo, repairAsk]);
   const stopStage = () => { engine.restart(); setStage(null); setToast({ title: 'Stopped', hint: 'The mesh check or repair was stopped; nothing changed.', detail: '' }); };
   const openMesh = async () => {
     if (!meshAsk || !meshInUnit) return;
