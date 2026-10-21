@@ -4801,3 +4801,18 @@ Owner, relayed by the coordinator: "FR 에서 1, 2, 3, 모두 하고 그 밖에 
 - **What waits on the kernel lane's FR geometry** (after R12c): gussets in the cut list, weld beads (FRd's symbols on beads), end caps, tapered flanges, arc members, weld gaps and saddle notches, and the 7.5 s trim. Each stage does its model and drawing side against today's geometry and says what waits.
 - **Data rules** (unchanged): no built-in stock, section or hardware table; every value is the user's, a public page's with its record, derived by a stated rule, or a flagged estimate; no ISO or ANSI text.
 - **Order**: FRa, FRb, FRc, FRd, FRe, FRf, FRg. The coordinator may resequence.
+
+## O115 — FRa: a table with no room whole goes in blocks; the A4 cut list placed clear (D128) (2026-10-21)
+
+- **The cause, measured**: on the A4 welded table at 1:20 the cut list is 166 mm wide, and the widest room clear of the views is about 85 mm (x 202–287). No whole placement exists. The table stayed at its first place, over the right view and its name (D128); O67's fix offered A3.
+- **The rule** (`drawing/sheet.ts`, `inBlocks`): when no room holds the whole table, it goes in the fewest blocks that all fit.
+  - Its columns go in 1–3 groups of whole columns in order, each led again by the first column, the key (ITEM), and its rows in 1, 2 … blocks of whole rows in order, sizes differing by at most one. There are at most 6 blocks.
+  - Each block has its header, the title on the first, the notes on the last. Each is placed clear in turn by the sheet's own search, as a whole table is.
+  - A table placed in blocks lists each one in `sheet.tables` with `part: [k, n]`.
+  - A table the person keeps whole (`whole: true`) is never split, and O67's sheet and scale fixes apply to it as before.
+  - None fits: as before, the issue list says what it meets and offers the A3 or scale fix.
+- **On the A4 welded table at 1:20** it is 3 blocks (the columns in three groups, all five rows each), in the free column right of the views: [220, 130, 287, 165], [229, 95, 287, 125], [220, 50, 287, 90]. The issue list finds nothing on it. Every column appears in a block; every row appears once a group, in order.
+- **Tests**:
+  - frame-acceptance: the A4 expectation is now "in blocks, clear" (it was the overlap and its A3 fix): key column in each block, title first, notes last, rows in order, blocks apart.
+  - drawing-table: O67's fix paths keep `whole: true`; the same 10×6 table on A4 and 12×8 on A3 without it go in blocks, clear, every column present.
+- Rendering (SVG, PDF, DXF) is the table group's marks and needs no change.

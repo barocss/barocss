@@ -105,7 +105,7 @@ test('on the sheet: auto-placed above the title block and clean; over a view, a 
 // fix, offered only when that sheet built again leaves it clear; none clears it, the issue says so.
 test('no room for a table: A3 at the same scale, else a smaller standard scale — each built again and clear; nothing fits, said so', async () => {
   const doc = await lBracket(), base = readDrawing(doc.drawing);
-  const big = (cols: number, rows: number): DrawingTable => ({ id: 't', title: 'BIG', columns: Array.from({ length: cols }, (_, k) => ({ key: `c${k}`, label: `COLUMN${k}` })), rows: Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, k) => `R${r}C${k}`)) });
+  const big = (cols: number, rows: number, whole = true): DrawingTable => ({ id: 't', title: 'BIG', ...(whole ? { whole: true } : {}), columns: Array.from({ length: cols }, (_, k) => ({ key: `c${k}`, label: `COLUMN${k}` })), rows: Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, k) => `R${r}C${k}`)) });
   const issueOf = (ctx: IssueContext) => drawingIssues(ctx).find(x => x.tables?.includes('t'));
   // (A4, a 156 × 40 table: no room beside the views at 1:1 — A3 at 1:1 clears it.)
   const a4 = ctxOf(doc, { ...base, sheet: 'A4', tables: [big(10, 6)] }), i4 = issueOf(a4)!;
@@ -118,6 +118,14 @@ test('no room for a table: A3 at the same scale, else a smaller standard scale �
   // (A 495 mm table: wider than any frame — no fix, and the issue says nothing clears it.)
   const wide = issueOf(ctxOf(doc, { ...base, sheet: 'A3', tables: [big(30, 4)] }))!;
   assert.equal(wide.fix, undefined); assert.match(wide.message, /Nothing clears it: the table has no room on this sheet, on A3 or at a smaller standard scale/);
+  // (FRa, O115: the same tables not kept whole go in blocks — columns after the key, rows in order — each clear, no issue.)
+  for (const [sheet, cols, rows] of [['A4', 10, 6], ['A3', 12, 8]] as const) {
+    const c = ctxOf(doc, { ...base, sheet, tables: [big(cols, rows, false)] }), parts = c.sheet.tables!.filter(x => x.id === 't');
+    assert.ok(parts.length >= 2 && parts.every(p => p.part?.[1] === parts.length), `${sheet}: ${JSON.stringify(parts)}`);
+    assert.deepEqual(codes(c, 't'), [], `${sheet}: in blocks, clear`);
+    const texts = c.sheet.groups.filter(g => g.role === 'table' && g.id === 't').flatMap(g => g.marks.filter(m => m.kind === 'text').map(m => (m as { text: string }).text));
+    for (let k = 0; k < cols; k++) assert.ok(texts.includes(`COLUMN${k}`), `${sheet}: column ${k} in a block`);
+  }
   // (Without a way to build the sheet again — a context made by hand — no sheet or scale fix is guessed.)
   assert.equal(issueOf({ ...a4, rebuild: undefined })!.fix, undefined);
 });
