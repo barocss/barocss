@@ -89,8 +89,9 @@ const BUDGET = {
   // with the other lanes running — the GPU's own time now from timestamps (no longer the queue's wait); about twice the
   // worst of the three, the GPU's with a 3 ms floor. The 100 000-voxel cloud was the one row the GPU's time led: 8.2 ms, G14.)
   hover: { submits: 34, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
-  select: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
-  clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
+  // (One frame each: a 4 ms floor — one run at a load of 33 drew it in 3.07 ms of GPU, 1.3 in the others.)
+  select: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
+  clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
   orbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
   orbitOutlined: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 5 },
   pose: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3 },
@@ -98,8 +99,8 @@ const BUDGET = {
   explode: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 128, buffers: 4, gpuMS: 4 },
   sectionGpu: { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 33, kb: 5, buffers: 4, gpuMS: 6 },
   sectionCpu: { submits: 140, avgFrameMS: 2 },
-  // (G7: the pre-G7 SVG path took 30 ms of task a frame here.)
-  underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 16, kb: 5, buffers: 4, gpuMS: 4 },
+  // (G7: the pre-G7 SVG path took 30 ms of task a frame here; G15: its 100 texts engine labels too, 8.1–8.7 → 2.5–3.0 ms.)
+  underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 4 },
   // (G8: SVG squares took 55 ms of task a frame here. G14: 8.2 → 4.0–4.7 ms of GPU, its shader without discard and its
   // quads half a pixel smaller; the budget about twice.)
   cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 10 },

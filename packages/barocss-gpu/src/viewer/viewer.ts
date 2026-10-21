@@ -2,6 +2,7 @@
 // lived buffers and every pipeline it needs, renders on demand (one frame per animation frame at most),
 // follows the canvas size and pixel ratio, and recreates its device and re-uploads the scene when the
 // device is lost. Meshes carry a transform and a material; lights and the camera are plain data.
+import { ATLAS_CELLS, ATLAS_SIZE, GLYPH_CELL, GlyphAtlas, layoutLabels, type LabelInput } from './glyphs.js';
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, growBox, screenRect, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
@@ -10,7 +11,7 @@ import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer,
 type View = ReturnType<Texture['createView']>;
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrixInto, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
+import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
 
 export class ViewerError extends Error {
   constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(message); this.name = 'ViewerError'; }
@@ -156,10 +157,10 @@ function packInstances(input: InstancesInput): { count: number; data: ArrayBuffe
 export class Geometry {
   /** @internal Triangles: positions, normals, colours, indices. Lines: positions holds the segment instances. */
   /** `ownUVs` false: `uvs` is the viewer's shared zero buffer (the geometry has none; G13). */
-  gpu: { positions: Buffer; normals: Buffer | null; colors: Buffer | null; uvs: Buffer | null; ownUVs?: boolean; indices: Buffer | null; device: Device } | null = null;
+  gpu: { positions: Buffer; normals: Buffer | null; colors: Buffer | null; uvs: Buffer | null; ownUVs?: boolean; indices: Buffer | null; device: Device; labels?: { count: number; atlas: number } } | null = null;
   disposed = false;
   constructor(readonly data: PreparedGeometry, private readonly owner: Viewer) {}
-  get topology(): 'triangles' | 'lines' | 'points' { return this.data.topology; }
+  get topology(): 'triangles' | 'lines' | 'points' | 'labels' { return this.data.topology; }
   get bounds(): Box3 | null { return this.data.bounds; }
   /** Replace the vertex colours (sRGB, three or four per vertex): per-face highlights, say. */
   setColors(colors: ArrayLike<number> | null): void {
@@ -342,6 +343,7 @@ export class Mesh {
     f.set(normalMatrixInto(packNormal, this._transform), o + 16);
     f[o + 32] = srgbToLinear(m.color[0]); f[o + 33] = srgbToLinear(m.color[1]); f[o + 34] = srgbToLinear(m.color[2]); f[o + 35] = m.opacity;
     if (this.geometry.topology === 'lines') { f[o + 36] = m.lineWidth * pixelRatio; f[o + 37] = (m.lineDash?.[0] ?? 0) * pixelRatio; f[o + 38] = (m.lineDash?.[1] ?? 0) * pixelRatio; f[o + 39] = m.lineHidden; }
+    else if (this.geometry.topology === 'labels') { f[o + 36] = 0; f[o + 37] = 0; f[o + 38] = 0; f[o + 39] = m.lineHidden; }
     else if (this.geometry.topology === 'points') { f[o + 36] = m.pointSize * pixelRatio; f[o + 37] = (m.pointBorder?.width ?? 0) * pixelRatio; f[o + 38] = m.pointShape === 'square' ? 0 : 1; f[o + 39] = m.lineHidden; }
     else { f[o + 36] = m.metallic; f[o + 37] = m.roughness; f[o + 38] = m.emissive; f[o + 39] = m.unlit ? 1 : 0; }
     const u = packWords(f); u[o + 40] = this.id; u[o + 41] = this.outlineSlot; u[o + 42] = (this._receiveShadow ? 1 : 0) | (this._clipped ? 2 : 0); u[o + 43] = Math.round(m.alphaCutoff * 1000);
@@ -384,6 +386,8 @@ const backgroundOf = (b: BackgroundInput | undefined): Background => {
 export interface ViewerOptions {
   /** 4× multisampling (default true). */
   antialias?: boolean;
+  /** The labels' font (G15), a CSS font family with an optional weight ("500 'IBM Plex Mono', monospace"): one the page already has. */
+  labelFont?: string;
   /** Canvas background (sRGB): a colour, a vertical gradient, or 'transparent' (the page shows through). */
   background?: BackgroundInput;
   /** Device pixels per CSS pixel; default devicePixelRatio, capped at 2. */
@@ -431,6 +435,23 @@ export interface LineHit {
   segment: number; edge: number | null;
   /** The nearest world point on the segment, and its distance from the point on screen (CSS pixels). */
   point: Vec3; distance: number;
+}
+
+/**
+ * A text label (G15): its text (lines split at '\n'), where it is, and how it looks. A screen label is `size` CSS pixels
+ * high (default 12) whatever the zoom, placed by `align` (0–1 across and down its box; default its centre) and `offset`
+ * (CSS pixels); with `plane` it lies on a plane in the world (along its right and up), `size` its height in world units.
+ * `background`: a rounded box behind it, `padding` and `radius` in CSS pixels (scaled with a plane label), a 1-pixel border.
+ */
+export interface TextLabel {
+  text: string;
+  at: ArrayLike<number>;
+  size?: number;
+  color?: Color;
+  align?: readonly [number, number];
+  offset?: readonly [number, number];
+  background?: { color: Color; opacity?: number; padding?: number; radius?: number; border?: Color | null } | null;
+  plane?: { right: ArrayLike<number>; up: ArrayLike<number> } | null;
 }
 
 /** A point picked (G8): its mesh, its index (the geometry's element: its vertex, or its entry in indices), where it is, and its distance on screen (CSS pixels). */
@@ -553,6 +574,7 @@ export class Viewer {
     if (options.grid) this.grid = options.grid === true ? { visible: true } : { visible: true, ...options.grid };
     this.background = backgroundOf(options.background);
     this.pixelRatio = options.pixelRatio ?? Math.min(2, (globalThis as { devicePixelRatio?: number }).devicePixelRatio ?? 1);
+    if (options.labelFont) this.atlas = new GlyphAtlas(options.labelFont);
   }
 
   /** Open a viewer on a canvas. Throws a ViewerError when WebGPU or a device is not available. */
@@ -589,6 +611,7 @@ export class Viewer {
     this.shadowSampler = (device as unknown as { createSampler(d: object): object }).createSampler({ compare: 'less', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.mipSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
     this.rampSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
+    this.atlasSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.mipPipelines.clear();
     const white = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer white' });
     device.queue.writeTexture({ texture: white }, new Uint8Array([255, 255, 255, 255]), { bytesPerRow: 4 }, [1, 1]);
@@ -600,7 +623,7 @@ export class Viewer {
     this.emptyFront = device.createTexture({ size: [1, 1], format: 'r32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer no front depth' });
     this.shadowMap = null;
     // (The targets were the lost device's: made again, and bound, when next drawn.)
-    this.targets = null; this.pickTargets = null; this.oit = null;
+    this.targets = null; this.pickTargets = null; this.oit = null; this.atlasGpu = null;
     this.bindFrames();
     this.objectCapacity = 0; this.growObjects(Math.max(64, this.nextSlot));
     for (const m of this.meshes) m.dirty = true;
@@ -625,7 +648,7 @@ export class Viewer {
 
   private async createPipelines(): Promise<void> {
     const d = this.device;
-    const modules = { surface: d.createShaderModule({ code: surfaceWGSL(), label: 'viewer surface' }), line: d.createShaderModule({ code: lineWGSL, label: 'viewer line' }), point: d.createShaderModule({ code: pointWGSL, label: 'viewer point' }), pick: d.createShaderModule({ code: pickWGSL, label: 'viewer pick' }) };
+    const modules = { surface: d.createShaderModule({ code: surfaceWGSL(), label: 'viewer surface' }), line: d.createShaderModule({ code: lineWGSL, label: 'viewer line' }), point: d.createShaderModule({ code: pointWGSL, label: 'viewer point' }), label: d.createShaderModule({ code: labelWGSL, label: 'viewer label' }), pick: d.createShaderModule({ code: pickWGSL, label: 'viewer pick' }) };
     for (const [name, m] of Object.entries(modules)) {
       const errors = (await m.getCompilationInfo()).messages.filter(x => x.type === 'error');
       if (errors.length) throw new ViewerError('shader', `${name} shader: ${errors.map(e => `${e.lineNum}: ${e.message}`).join('; ')}`);
@@ -645,6 +668,9 @@ export class Viewer {
       { binding: 2, visibility: 2, buffer: { type: 'uniform', minBindingSize: 64 } },
     ] });
     const surfaceLayout = this.surfaceLayout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout, this.materialLayout] });
+    // Labels add the glyph atlas (G15).
+    this.atlasLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 2, texture: { sampleType: 'float' } }, { binding: 1, visibility: 2, sampler: { type: 'filtering' } }] });
+    const labelLayout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout, this.atlasLayout] });
     const instance = { arrayStride: INSTANCE_STRIDE, stepMode: 'instance', attributes: [
       ...[0, 1, 2, 3].map(k => ({ shaderLocation: 3 + k, offset: k * 16, format: 'float32x4' })), { shaderLocation: 7, offset: 64, format: 'unorm8x4' },
     ] };
@@ -718,6 +744,21 @@ export class Viewer {
       depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: k === 'pointOver' ? 'always' : k === 'pointHidden' ? 'less' : 'greater-equal' },
       multisample: ms,
     }));
+    // Labels (G15): glyph and box quads, blended; tested like points, over the scene, or only behind surfaces.
+    for (const k of ['label', 'labelOver', 'labelHidden'] as const) jobs.push(d.createRenderPipelineAsync({
+      label: `viewer ${k}`, layout: labelLayout,
+      vertex: {
+        module: modules.label, entryPoint: 'vs',
+        buffers: [{ arrayStride: 80, stepMode: 'instance', attributes: [
+          { shaderLocation: 0, offset: 0, format: 'float32x3' }, { shaderLocation: 1, offset: 12, format: 'unorm8x4' }, { shaderLocation: 2, offset: 16, format: 'float32x4' },
+          { shaderLocation: 3, offset: 32, format: 'float32x4' }, { shaderLocation: 4, offset: 48, format: 'float32x4' }, { shaderLocation: 5, offset: 64, format: 'float32x4' },
+        ] }],
+      },
+      fragment: { module: modules.label, entryPoint: k === 'labelHidden' ? 'fsHidden' : 'fs', targets: [{ format: SCENE_FORMAT, blend }] },
+      primitive: { topology: 'triangle-list' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: k === 'labelOver' ? 'always' : k === 'labelHidden' ? 'less' : 'greater-equal' },
+      multisample: ms,
+    }).then(p => { this.pipelines.set(k, p); }));
     for (const two of [false, true]) jobs.push(make(two ? 'pick2' : 'pick', {
       vertex: positionOnly(modules.pick),
       fragment: { module: modules.pick, entryPoint: 'fs', targets: [{ format: 'r32uint' }, { format: 'r32float' }, { format: 'r32uint' }] },
@@ -1126,6 +1167,51 @@ export class Viewer {
     return this.oit;
   }
 
+  /** A label geometry laid out against the glyph atlas (again when the atlas changes font, or the device is new). */
+  private uploadLabels(g: Geometry): boolean {
+    if (g.gpu && g.gpu.device === this.device && g.gpu.labels?.atlas === this.atlasVersion) return true;
+    if (g.gpu) { g.gpu.positions.destroy(); g.gpu = null; }
+    const { data, count } = layoutLabels(g.data.labels ?? [], this.atlas, packLabelColor);
+    if (!count) return false;
+    const b = this.device.createBuffer({ size: Math.max(16, data.byteLength), usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'labels' });
+    this.device.queue.writeBuffer(b, 0, data);
+    g.gpu = { device: this.device, positions: b, normals: null, colors: null, uvs: null, indices: null, labels: { count, atlas: this.atlasVersion } };
+    return true;
+  }
+  /** The labels' font (G15): a new one draws every glyph again, and lays every label out again. */
+  get labelFont(): string { return this.atlas.font; }
+  set labelFont(font: string) {
+    if (font === this.atlas.font) return;
+    this.atlas = new GlyphAtlas(font); this.atlasVersion++; this.atlasGpu = null; this.requestRender();
+  }
+  /** Draw every glyph again in the same font (a web font that has loaded since the first were drawn in its fallback). */
+  redrawGlyphs(): void { this.atlas = new GlyphAtlas(this.atlas.font); this.atlasVersion++; this.atlasGpu = null; this.requestRender(); }
+  private atlas = new GlyphAtlas("500 ui-monospace, 'SF Mono', Menlo, monospace");
+  private atlasVersion = 1;
+  private atlasLayout!: object;
+  private atlasSampler!: object;
+  private atlasGpu: { device: Device; texture: Texture; group: BindGroup; atlas: GlyphAtlas } | null = null;
+  /** The atlas on the GPU: made for this device and atlas, the glyphs added since written into their cells. */
+  private atlasGroup(): BindGroup {
+    let a = this.atlasGpu;
+    if (!a || a.device !== this.device || a.atlas !== this.atlas) {
+      a?.texture.destroy();
+      const texture = this.device.createTexture({ size: [ATLAS_SIZE, ATLAS_SIZE], format: 'r8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer glyph atlas' });
+      const group = this.device.createBindGroup({ layout: this.atlasLayout, entries: [{ binding: 0, resource: texture.createView() }, { binding: 1, resource: this.atlasSampler }] });
+      a = this.atlasGpu = { device: this.device, texture, group, atlas: this.atlas };
+      // (Every glyph drawn so far, into the new texture.)
+      this.atlas.added = this.atlas.fields.map((_, i) => i);
+    }
+    for (const cell of this.atlas.added) this.device.queue.writeTexture({ texture: a.texture, origin: [(cell % ATLAS_CELLS) * GLYPH_CELL, Math.floor(cell / ATLAS_CELLS) * GLYPH_CELL] }, this.atlas.fields[cell], { bytesPerRow: GLYPH_CELL }, [GLYPH_CELL, GLYPH_CELL]);
+    this.atlas.added.length = 0;
+    return a.group;
+  }
+  /** Labels (G15): text anchored at world points — sized in CSS pixels, or laid on a plane in world units — as one mesh. */
+  addLabels(labels: readonly TextLabel[], options: AddMeshOptions = {}): Mesh {
+    // (White by default: a label shows its own colours.)
+    return this.add({ positions: [], topology: 'labels', labels: labels.map(labelInput) }, { castShadow: false, pickable: false, ...options, material: { unlit: true, color: '#ffffff', ...options.material } });
+  }
+
   /** Zero texture coordinates for n vertices, one buffer shared by the geometries without their own (G13), grown by doubling. */
   private zeroUV: { device: Device; buffer: Buffer; vertices: number } | null = null;
   private zeroUVs(n: number): Buffer {
@@ -1139,6 +1225,7 @@ export class Viewer {
 
   private upload(g: Geometry): boolean {
     if (g.disposed) return false;
+    if (g.data.topology === 'labels') return this.uploadLabels(g);
     if (g.gpu && g.gpu.device === this.device) return true;
     const d = this.device, data = g.data;
     const buffer = (src: ArrayBufferView, usage: number, label: string) => {
@@ -1197,6 +1284,7 @@ export class Viewer {
     if (pick) return (two ? 'pick2' : 'pick');
     if (m.geometry.topology === 'lines') return mat.lineOver ? 'lineOver' : (t ? 'lineT' : 'line');
     if (m.geometry.topology === 'points') return mat.lineOver ? 'pointOver' : 'point';
+    if (m.geometry.topology === 'labels') return mat.lineOver ? 'labelOver' : 'label';
     if (mat.shadowOnly) return 'catcher';
     if (m.mapped) return two ? 'litMap2' : 'litMap';
     const variant = `${mat.unlit ? 'unlit' : 'lit'}${two}${t}`;
@@ -1266,14 +1354,16 @@ export class Viewer {
     { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
     if (data.topology === 'lines') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount / 2); return; }
     if (data.topology === 'points') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount); return; }
+    if (data.topology === 'labels') { pass.setBindGroup(2, this.atlasGroup()); pass.setVertexBuffer(0, g.positions); pass.draw(6, g.labels!.count); return; }
     if (!pick && m.mapped) { this.drawMapped(pass, m); return; }
     this.drawTriangles(pass, m, !pick);
   }
 
   /** A line or point mesh's parts behind the surfaces, faint (Material.lineHidden; G7, G8). */
   private drawHiddenLines(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }): void {
-    const points = m.geometry.topology === 'points', p = this.pipelines.get(points ? 'pointHidden' : 'lineHidden')!;
+    const t = m.geometry.topology, points = t === 'points', p = this.pipelines.get(t === 'labels' ? 'labelHidden' : points ? 'pointHidden' : 'lineHidden')!;
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
+    if (t === 'labels') { { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); } pass.setBindGroup(2, this.atlasGroup()); pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, m.geometry.gpu!.labels!.count); return; }
     { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
     pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, points ? m.geometry.data.elementCount : m.geometry.data.elementCount / 2);
   }
@@ -1455,7 +1545,7 @@ export class Viewer {
       if (!opaqueDone && (m.geometry.topology !== 'triangles' || m.transparent)) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); opaqueDone = true; }
       this.drawMesh(pass, m, current, false);
       if (m.geometry.topology !== 'triangles' && (m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(pass, m, current);
-      if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else if (m.geometry.topology === 'points') points += m.geometry.data.elementCount; else tris += (m.geometry.data.elementCount / 3) * m.instanceCount;
+      if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else if (m.geometry.topology === 'points') points += m.geometry.data.elementCount; else if (m.geometry.topology === 'triangles') tris += (m.geometry.data.elementCount / 3) * m.instanceCount;
     }
     if (!opaqueDone) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); }
     pass.end();
@@ -1484,7 +1574,7 @@ export class Viewer {
         if (m.geometry.topology === 'triangles') continue;
         this.drawMesh(cp, m, cc, false);
         if ((m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(cp, m, cc);
-        if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else points += m.geometry.data.elementCount;
+        if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else if (m.geometry.topology === 'points') points += m.geometry.data.elementCount;
       }
       cp.end();
     }
@@ -1877,6 +1967,21 @@ export function clipBox(b: Box3 | null, c: { normal: ArrayLike<number>; offset: 
 
  /** The segments of a mesh found hidden during one line pick (kept from pick to pick), and how many are tried. */
 const hiddenSegments = new Set<number>();
+/** A label's colour (sRGB, 0–1, three or four numbers) as linear RGBA8 in one word (G15). */
+function packLabelColor(c: readonly number[] | undefined, alpha: number): number {
+  const r = c ?? [1, 1, 1], a = Math.max(0, Math.min(1, (c && c.length > 3 ? c[3] : 1) * alpha));
+  const byte = (v: number) => Math.max(0, Math.min(255, Math.round(srgbToLinear(v) * 255)));
+  return (byte(r[0]) | (byte(r[1]) << 8) | (byte(r[2]) << 16) | (Math.round(a * 255) << 24)) >>> 0;
+}
+/** A label of the public API (colours as Color) as the layout reads it (sRGB numbers). */
+function labelInput(l: TextLabel): LabelInput {
+  const bg = l.background;
+  return {
+    text: l.text, at: l.at, size: l.size, align: l.align, offset: l.offset, plane: l.plane ?? null,
+    color: l.color === undefined ? undefined : [...parseColor(l.color)],
+    background: bg ? { color: [...parseColor(bg.color)], opacity: bg.opacity, padding: bg.padding, radius: bg.radius, border: bg.border ? [...parseColor(bg.border)] : null } : null,
+  };
+}
 /** Whether a box wholly in front of the eye lands on screen (device pixels, w × h) clear of a rectangle (x0, y0, x1, y1). */
 function boxMissesRect(m: ArrayLike<number>, b: Box3, r: readonly number[], w: number, h: number): boolean {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;

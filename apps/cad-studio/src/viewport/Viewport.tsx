@@ -2,7 +2,7 @@ import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 're
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
-import { Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLines, type OverlayPoints, type SectionClip, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import { Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
@@ -44,6 +44,8 @@ export interface ViewportHandle {
   readonly backend: 'webgpu' | 'webgl2' | null;
   /** The engine's overlay lines shown, segments a key (G7; WebGPU; for the flow). */
   overlayLines(): Record<string, number>;
+  /** The engine's overlay labels' texts, a key (G15; WebGPU; for the flow). */
+  overlayTexts(): Record<string, string[]>;
 }
 
 /** Where a new shape stands: a point on the ground or on an upward face, and that surface's normal. */
@@ -156,6 +158,19 @@ const BBOX_LOOK = { color: '#7fb2f0', width: 1.2, opacity: 0.85, dash: [5, 4] as
 const MEASURE_LOOK = { width: 1.5, dash: [5, 3] as const, hidden: 0.75 };
 const ACCENT_OF: Record<ThemeName, string> = { dark: '#e8c25a', light: '#c9961e' };
 const UNDERLAY_LOOK = { color: '#8a93a3', width: 0.75, opacity: 0.7, hidden: 0.35 };
+/** G15: the readout chips (styles.css .dim-chip and .dim-text a theme), and the underlays' texts (.underlay-text). */
+const CHIP_LOOKS: Record<ThemeName, Pick<OverlayLabels, 'color' | 'chip'>> = {
+  dark: { color: '#ffffff', chip: { fill: '#121315', border: '#e8c25a', padding: 4 } },
+  light: { color: '#1b232c', chip: { fill: '#ffffff', border: '#c9961e', padding: 4 } },
+};
+const chipLook = (theme: ThemeName) => CHIP_LOOKS[theme];
+const UNDERLAY_TEXT_LOOK = { color: '#8a93a3', opacity: 0.8, hidden: 0.35 };
+/** An underlay text as a plane label: its height the em, the anchor its first line's baseline-left (as the SVG text had it). */
+function underlayLabel(t: { at: Vec3; dir: Vec3; up: Vec3; text: string; height: number }): OverlayLabels['labels'][number] {
+  const lines = Math.max(1, t.text.split('\n').length), n = (v: Vec3): Vec3 => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+  // (The first baseline sits 0.925 em below the box's top of 1.25 em a line — glyphs.ts' layout.)
+  return { text: t.text, at: t.at, size: t.height, align: [0, 0.74 / lines], plane: { right: n(t.dir), up: n(t.up) } };
+}
 const BOX_EDGES = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
 /** A box's 12 edges as segments, from min and max (six numbers). */
 /** The workspace map's band colours (sRGB 0–1), as the SVG's hsl(240 − 34k, 80 %, 55 %). */
@@ -378,12 +393,31 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const r = renderer.current; if (!r?.setOverlayLines) return;
     r.setOverlayLines('measure', mlKey ? { segments: mlKey.split(',').map(Number), ...MEASURE_LOOK, color: ACCENT_OF[themeName] } : null); request();
   }, [mlKey, themeName, backend]);
+  // G15: the box's size and the measure's readout as chips (the SVG's colours a theme), engine labels on WebGPU.
+  const bbLabel = bb && !sketching ? bb.label : '';
+  useEffect(() => {
+    const r = renderer.current; if (!r?.setOverlayLabels) return;
+    const b = bbKey ? bbKey.split(',').map(Number) : null;
+    // (Above the box in the world — 0.4 of its diagonal over its top's centre, clear of its far corner — as the SVG chip sat above it on screen.)
+    const lift = b ? 0.4 * Math.hypot(b[3] - b[0], b[4] - b[1], b[5] - b[2]) : 0;
+    r.setOverlayLabels('bbox:label', b ? { labels: [{ text: bbLabel, at: [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, b[5] + lift], size: 12, align: [0.5, 1], offset: [0, -4] }], ...chipLook(themeName), hidden: 0.6 } : null); request();
+  }, [bbKey, bbLabel, themeName, backend]);
+  const mlLabel = ml ? ml.label : '';
+  useEffect(() => {
+    const r = renderer.current; if (!r?.setOverlayLabels) return;
+    const m = mlKey ? mlKey.split(',').map(Number) : null;
+    r.setOverlayLabels('measure:label', m ? { labels: [{ text: mlLabel, at: [(m[0] + m[3]) / 2, (m[1] + m[4]) / 2, (m[2] + m[5]) / 2], size: 12, align: [0.5, 1], offset: [0, -8] }], ...chipLook(themeName), hidden: 0.75 } : null); request();
+  }, [mlKey, mlLabel, themeName, backend]);
   const underlayKeys = useRef<string[]>([]);
   useEffect(() => {
     const r = renderer.current; if (!r?.setOverlayLines) return;
     const keys: string[] = [];
-    if (!sketching) for (const u of props.underlays ?? []) { keys.push('underlay:' + u.id); r.setOverlayLines('underlay:' + u.id, { segments: polylineSegments(u.lines), ...UNDERLAY_LOOK }); }
-    for (const k of underlayKeys.current) if (!keys.includes(k)) r.setOverlayLines(k, null);
+    if (!sketching) for (const u of props.underlays ?? []) {
+      keys.push('underlay:' + u.id); r.setOverlayLines('underlay:' + u.id, { segments: polylineSegments(u.lines), ...UNDERLAY_LOOK });
+      // (Its texts on the drawing's plane at their height, G15: anchored at the first line's baseline-left, as SVG set them.)
+      if (r.setOverlayLabels && u.texts.length) { keys.push('underlay:text:' + u.id); r.setOverlayLabels('underlay:text:' + u.id, { labels: u.texts.map(underlayLabel), ...UNDERLAY_TEXT_LOOK }); }
+    }
+    for (const k of underlayKeys.current) if (!keys.includes(k)) { if (k.startsWith('underlay:text:')) r.setOverlayLabels?.(k, null); else r.setOverlayLines(k, null); }
     underlayKeys.current = keys; request();
   }, [props.underlays, sketching, backend]);
   useEffect(() => {
@@ -423,6 +457,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     setCamera(v) { const c = camera.current; c.target = [...v.target] as Vec3; c.distance = v.distance; c.yaw = v.yaw; c.pitch = v.pitch; c.fovY = v.fovY; c.ortho = v.ortho; request(); },
     get backend() { return backend; },
     overlayLines() { return renderer.current?.overlayLines?.() ?? {}; },
+    overlayTexts() { return renderer.current?.overlayTexts?.() ?? {}; },
   }));
 
   const local = (e: { clientX: number; clientY: number }) => {
@@ -962,7 +997,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const edges = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
       const top = q.reduce((b, p) => p[1] < b[1] ? p : b, q[0]), tw = Math.max(60, bb.label.length * 7 + 14);
       items.push(<g key="bbox" data-engine-lines={engineLines ? 12 : undefined}>{!engineLines && edges.map(([a, b]) => <line key={a + '-' + b} x1={q[a][0]} y1={q[a][1]} x2={q[b][0]} y2={q[b][1]} className="bbox-line" />)}
-        <rect x={top[0] - tw / 2} y={top[1] - 30} width={tw} height={20} rx={4} className="dim-chip" /><text x={top[0]} y={top[1] - 16} textAnchor="middle" className="dim-text">{bb.label}</text></g>);
+        {!engineLines && <><rect x={top[0] - tw / 2} y={top[1] - 30} width={tw} height={20} rx={4} className="dim-chip" /><text x={top[0]} y={top[1] - 16} textAnchor="middle" className="dim-text">{bb.label}</text></>}</g>);
     }
     // The cage being edited: the mirrored half faint, faces picked (n-gons tinted), edges (creases heavier, open
     // and non-manifold ones marked), vertices (poles ringed), all over the body.
@@ -972,7 +1007,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const d: string[] = [];
       if (!engineLines) for (const l of u.lines) l.forEach((p, k) => { const q = cam.project(p, w, h); d.push(`${k ? 'L' : 'M'}${q[0].toFixed(1)} ${q[1].toFixed(1)}`); });
       items.push(<g key={'ul' + u.id} aria-label={`Underlay drawing ${u.id}`} className="underlay" data-engine-lines={engineLines ? u.lines.length : undefined}>{!engineLines && <path d={d.join('')} className="underlay-line" fill="none" />}
-        {u.texts.map((t, k) => { const a = cam.project(t.at, w, h), b = cam.project([t.at[0] + t.dir[0], t.at[1] + t.dir[1], t.at[2] + t.dir[2]], w, h), c = cam.project([t.at[0] + t.up[0] * t.height, t.at[1] + t.up[1] * t.height, t.at[2] + t.up[2] * t.height], w, h);
+        {!engineLines && u.texts.map((t, k) => { const a = cam.project(t.at, w, h), b = cam.project([t.at[0] + t.dir[0], t.at[1] + t.dir[1], t.at[2] + t.dir[2]], w, h), c = cam.project([t.at[0] + t.up[0] * t.height, t.at[1] + t.up[1] * t.height, t.at[2] + t.up[2] * t.height], w, h);
           const size = Math.hypot(c[0] - a[0], c[1] - a[1]); return size >= 2 ? <text key={k} x={a[0]} y={a[1]} fontSize={size} className="underlay-text" transform={`rotate(${(Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI).toFixed(2)} ${a[0].toFixed(1)} ${a[1].toFixed(1)})`}>{t.text.split('\n').map((ln, i) => <tspan key={i} x={a[0]} dy={i ? size * 1.25 : 0}>{ln}</tspan>)}</text> : null; })}</g>);
     }
     // A workspace map (RM9b): its voxels as small squares, one path a band of manipulability (blue low, red high).
@@ -996,7 +1031,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const a = cam.project(ml.a, w, h), b = cam.project(ml.b, w, h), mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, tw = Math.max(52, ml.label.length * 7 + 14);
       items.push(<g key="measure" className="measure" data-engine-lines={engineLines ? 1 : undefined}>{!engineLines && <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="measure-line" />}
         <circle cx={a[0]} cy={a[1]} r={3.5} className="measure-point" /><circle cx={b[0]} cy={b[1]} r={3.5} className="measure-point" />
-        <rect x={mx - tw / 2} y={my - 24} width={tw} height={20} rx={4} className="dim-chip" /><text x={mx} y={my - 10} textAnchor="middle" className="dim-text">{ml.label}</text></g>);
+        {!engineLines && <><rect x={mx - tw / 2} y={my - 24} width={tw} height={20} rx={4} className="dim-chip" /><text x={mx} y={my - 10} textAnchor="middle" className="dim-text">{ml.label}</text></>}</g>);
     }
     const dr = drag.current;
     if (dr.mode === 'box' && dr.x0 !== undefined) {

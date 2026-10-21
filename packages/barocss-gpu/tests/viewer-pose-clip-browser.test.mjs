@@ -633,3 +633,79 @@ test('G11 order-independent transparency: two interpenetrating see-through boxes
     assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
 });
+
+// G15: text labels from a distance-field atlas — a chip at a screen size whatever the zoom, a plane label at a world size,
+// edges a pixel wide when magnified, the depth rules of points; glyphs drawn once; a new font lays them out again.
+test('G15 labels: a chip the same size at any zoom; a plane label scaling with it, its edges a pixel wide magnified; hidden, faint, over; each glyph drawn once; a font change', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box, screen, pixel } = window, canvas = document.getElementById('c');
+      canvas.style.width = '640px'; canvas.style.height = '480px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, background: '#000000', camera: { position: [0, 0, 20], target: [0, 0, 0], up: [0, 1, 0] } });
+      viewer.add(box(4, 4, 2).surface, { name: 'body', material: { color: '#606060' } });
+      const bright = c => c[0] > 180 && c[1] > 180 && c[2] > 180;
+      /** The bright pixels' box within a window round a screen point. */
+      const extent = (img, [cx, cy], rw, rh) => { let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1, n = 0; for (let y = Math.max(0, Math.round(cy - rh)); y < Math.min(img.height, Math.round(cy + rh)); y++) for (let x = Math.max(0, Math.round(cx - rw)); x < Math.min(img.width, Math.round(cx + rw)); x++) if (bright(pixel(img, [x, y]))) { n++; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } return { n, w: x1 - x0 + 1, h: y1 - y0 + 1, x0, y0 }; };
+      // A chip beside the box, 16 px text, a dark box with a gold border.
+      // (Clear of the box at either distance: a screen label is depth-tested at its anchor, so a surface in front of the
+      // anchor hides what of the label it covers.)
+      const chip = viewer.addLabels([{ text: 'W 12.5 mm', at: [7, 0, 0], size: 16, color: '#ffffff', background: { color: '#121315', border: '#e8c25a', padding: 5 } }]);
+      await viewer.frame();
+      let img = await viewer.capture(); const at = screen(viewer, [7, 0, 0]);
+      const near = extent(img, at, 70, 16);
+      // (The chip's fill just inside its left edge, and its border: the text's left minus the padding.)
+      const fill = pixel(img, [near.x0 - 3, at[1]]);
+      let border = [0, 0, 0, 0]; for (let x = near.x0 - 9; x < near.x0 - 1; x++) { const c = pixel(img, [x, at[1]]); if (c[0] - c[2] > border[0] - border[2]) border = c; }
+      // Three times as far: the chip the same size on screen.
+      viewer.camera.position = [0, 0, 60]; await viewer.frame(); img = await viewer.capture();
+      const far = extent(img, screen(viewer, [7, 0, 0]), 70, 16);
+      // A plane label on the box's top, 1 unit high: its size follows the zoom.
+      chip.visible = false;
+      const plate = viewer.addLabels([{ text: 'PLATE', at: [0, 0, 1.01], size: 1, color: '#ffffff', plane: { right: [1, 0, 0], up: [0, 1, 0] } }]);
+      viewer.camera.position = [0, 0, 20]; await viewer.frame(); img = await viewer.capture();
+      const p20 = extent(img, screen(viewer, [0, 0, 1]), 160, 60);
+      viewer.camera.position = [0, 0, 10]; await viewer.frame(); img = await viewer.capture();
+      const p10 = extent(img, screen(viewer, [0, 0, 1]), 300, 120);
+      // Magnified (the camera close to one on the black beside the box): across the row through the letters' middle, how
+      // many pixels each edge takes.
+      const big = viewer.addLabels([{ text: 'HI', at: [8, 8, 0], size: 1, color: '#ffffff', plane: { right: [1, 0, 0], up: [0, 1, 0] } }]);
+      viewer.camera.position = [8, 8, 2]; viewer.camera.target = [8, 8, 0]; await viewer.frame(); img = await viewer.capture();
+      const mid = screen(viewer, [8, 8, 0]); let edges = 0, soft = 0, run = 0;
+      for (let x = 0; x < img.width; x++) { const v = pixel(img, [x, mid[1]])[0]; if (v > 40 && v < 215) run++; else { if (run) { edges++; soft = Math.max(soft, run); } run = 0; } }
+      viewer.camera.position = [0, 0, 20]; viewer.camera.target = [0, 0, 0]; big.visible = false;
+      // Under the box: hidden; faint where hidden; over the scene — against the box alone.
+      plate.visible = false;
+      await viewer.frame(); img = await viewer.capture();
+      let bodyPeak = 0; for (let y = -8; y <= 8; y++) for (let x = -40; x <= 40; x++) bodyPeak = Math.max(bodyPeak, pixel(img, [screen(viewer, [0, 0, -3])[0] + x, screen(viewer, [0, 0, -3])[1] + y])[0]);
+      const under = (o) => viewer.addLabels([{ text: 'HIDDEN', at: [0, 0, -3], size: 18, color: '#ffffff' }], { material: o });
+      const tests = {};
+      for (const [name, mat] of [['hidden', {}], ['faint', { lineHidden: 0.5 }], ['over', { lineOver: true }]]) {
+        const m = under(mat); await viewer.frame(); img = await viewer.capture();
+        const e = extent(img, screen(viewer, [0, 0, -3]), 60, 14); let peak = 0;
+        for (let y = -8; y <= 8; y++) for (let x = -40; x <= 40; x++) { const c = pixel(img, [screen(viewer, [0, 0, -3])[0] + x, screen(viewer, [0, 0, -3])[1] + y]); peak = Math.max(peak, c[0]); }
+        tests[name] = { bright: e.n, peak }; m.remove();
+      }
+      // Glyphs drawn once each: 'W 12.5 mm', 'PLATE', 'HIDDEN' — their distinct characters.
+      const glyphs = viewer.atlas.fields.length, distinct = new Set('W 12.5 mmPLATEHIHIDDEN').size;
+      // A new font: every label laid out again.
+      viewer.labelFont = "bold serif"; chip.visible = true; await viewer.frame(); img = await viewer.capture();
+      const refont = extent(img, screen(viewer, [7, 0, 0]), 70, 16);
+      viewer.dispose();
+      return { near, far, fill, border, p20, p10, edges, soft, tests, bodyPeak, glyphs, distinct, refont };
+    });
+    t.diagnostic(JSON.stringify(r));
+    assert.ok(r.near.n > 80 && r.near.h >= 9 && r.near.h <= 16, `the chip's text at 16 px ${JSON.stringify(r.near)}`);
+    assert.ok(Math.abs(r.far.w - r.near.w) <= 2 && Math.abs(r.far.h - r.near.h) <= 2, `the same size three times as far ${JSON.stringify([r.near, r.far])}`);
+    assert.ok(r.fill.slice(0, 3).every(v => v < 40), `the chip's fill dark ${JSON.stringify(r.fill)}`);
+    assert.ok(r.border[0] > 120 && r.border[1] > 90 && r.border[2] < 90, `its border gold ${JSON.stringify(r.border)}`);
+    assert.ok(Math.abs(r.p10.w / r.p20.w - 2) < 0.25, `a plane label twice as wide twice as near ${JSON.stringify([r.p20, r.p10])}`);
+    assert.ok(r.edges >= 3 && r.soft <= 2, `magnified about 20 times, each edge at most 2 pixels soft ${JSON.stringify([r.edges, r.soft])}`);
+    assert.ok(r.tests.hidden.bright === 0 && r.tests.hidden.peak <= r.bodyPeak + 2, `under the box: hidden ${JSON.stringify([r.tests, r.bodyPeak])}`);
+    assert.ok(r.tests.faint.peak > r.bodyPeak + 30 && r.tests.faint.peak < r.tests.over.peak - 20, `faint where hidden ${JSON.stringify([r.tests, r.bodyPeak])}`);
+    assert.ok(r.tests.over.bright > 40, `over the scene ${JSON.stringify(r.tests)}`);
+    assert.equal(r.glyphs, r.distinct, 'each character drawn once');
+    assert.ok(r.refont.n > 80, `a new font, laid out again ${JSON.stringify(r.refont)}`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});

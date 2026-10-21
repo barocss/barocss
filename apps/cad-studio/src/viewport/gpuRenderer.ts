@@ -15,7 +15,7 @@ import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@b
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
-import type { EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLines, OverlayPoints, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
+import type { EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 
 /** Device pixels per CSS pixel, up to 3 (a high-density screen with the page zoomed in). */
@@ -32,6 +32,7 @@ const HOVER: Vec3 = [0.62, 0.55, 0.36];
 const toward = (right: Vec3, up: Vec3, forward: Vec3, x: number, y: number, z: number): Vec3 => [-(x * right[0] + y * up[0] - z * forward[0]), -(x * right[1] + y * up[1] - z * forward[1]), -(x * right[2] + y * up[2] - z * forward[2])];
 /** The identity transform: a mesh as placed. */
 const IDENTITY = translation([0, 0, 0]);
+const LABEL_FONT = "500 'IBM Plex Mono', ui-monospace, monospace";
 /** Whether a mesh's transform is already `m` (setting it marks the mesh's block to send again). */
 const sameTransform = (a: ArrayLike<number>, m: ArrayLike<number>) => { for (let i = 0; i < 16; i++) if (a[i] !== m[i]) return false; return true; };
 /** A mesh moved to `m`, when it is not there already. */
@@ -142,6 +143,10 @@ export class GpuRenderer implements ViewRenderer {
   private host: { request: () => void } = { request: () => {} };
   private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {
     // (DEV: the viewer, for the bench's pick timings, G9.)
+    // (G15: the labels in the page's own mono font — IBM Plex Mono, as the SVG chips were — drawn again once it has loaded.)
+    viewer.labelFont = LABEL_FONT;
+    const fonts = (globalThis as { document?: { fonts?: { load(f: string): Promise<unknown> } } }).document?.fonts;
+    fonts?.load(`500 44px 'IBM Plex Mono'`).then(() => viewer.redrawGlyphs(), () => undefined);
     if (import.meta.env?.DEV) {
       (window as unknown as { __studioViewer: Viewer }).__studioViewer = viewer;
       // (G10's oracle: copies shared or each its own, every instance made again.)
@@ -299,6 +304,22 @@ export class GpuRenderer implements ViewRenderer {
     }
     this.viewer.requestRender();
   }
+  /** Overlay labels by key (G15): one label mesh each, laid out when they change. */
+  setOverlayLabels(key: string, labels: OverlayLabels | null): void {
+    const had = this.overlays.get(key);
+    if (had) { had.remove(); had.geometry.dispose(); this.overlays.delete(key); this.overlayText.delete(key); }
+    if (labels && labels.labels.length) {
+      const chip = labels.chip;
+      this.overlays.set(key, this.viewer.addLabels(labels.labels.map(l => ({ ...l, color: labels.color, background: chip ? { color: chip.fill, border: chip.border ?? null, padding: chip.padding ?? 4 } : null })), {
+        name: 'overlay:' + key, clipped: false, bounded: false, receiveShadow: false,
+        material: { opacity: labels.opacity ?? 1, lineOver: !!labels.over, lineHidden: labels.hidden ?? 0 },
+      }));
+      this.overlayText.set(key, labels.labels.map(l => l.text));
+    }
+    this.viewer.requestRender();
+  }
+  overlayTexts(): Record<string, string[]> { return Object.fromEntries(this.overlayText); }
+  private overlayText = new Map<string, string[]>();
   overlayLines(): Record<string, number> { return Object.fromEntries([...this.overlays].map(([k, m]) => [k, m.geometry.topology === 'points' ? m.geometry.data.elementCount : m.geometry.data.elementCount / 2])); }
   private overlays = new Map<string, Mesh>();
 

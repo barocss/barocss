@@ -5414,7 +5414,8 @@ try {
     // (Its polylines the engine's lines on WebGPU (G7), its texts SVG.)
     const underlayDrawn = () => page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayLines?.()['underlay:U1'] ?? 0) > 0 && !!document.querySelector('[aria-label="Underlay drawing U1"]') : !!document.querySelector('[aria-label="Underlay drawing U1"] path'));
     await page.waitForFunction(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayLines?.()['underlay:U1'] ?? 0) > 0 : !!document.querySelector('[aria-label="Underlay drawing U1"] path'), null, { timeout: 10000 });
-    assert.match(await page.locator('[aria-label="Underlay drawing U1"]').innerHTML(), /PLATE 3MM/);
+    // (Its texts the engine's labels on WebGPU, G15; SVG on WebGL2.)
+    assert.match(await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayTexts?.()['underlay:text:U1'] ?? []).join('\n') : document.querySelector('[aria-label="Underlay drawing U1"]')?.innerHTML ?? ''), /PLATE 3MM/);
     await snap('o68-underlay');
     await page.click('[aria-label="Hide underlay U1"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Underlay drawing U1"]') && !window.__studioOverlayLines?.()['underlay:U1']);
     assert.equal(await underlayDrawn(), false);

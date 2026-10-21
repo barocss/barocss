@@ -47,6 +47,18 @@ export interface OverlayPoints {
   over?: boolean;
   hidden?: number;
 }
+/**
+ * Text labels for an overlay (G15): each at a world point, sized in CSS pixels (or on a plane, in world units); one look
+ * for the set — a colour, a chip behind each (fill and border), its opacity and depth rule as the overlay lines'.
+ */
+export interface OverlayLabels {
+  labels: { text: string; at: ArrayLike<number>; size?: number; align?: readonly [number, number]; offset?: readonly [number, number]; plane?: { right: ArrayLike<number>; up: ArrayLike<number> } | null }[];
+  color: string;
+  chip?: { fill: string; border?: string; padding?: number } | null;
+  opacity?: number;
+  over?: boolean;
+  hidden?: number;
+}
 /** World line segments for an overlay (G7): six numbers a segment; a colour (CSS, sRGB), a width and dashes in CSS pixels. */
 export interface OverlayLines {
   segments: ArrayLike<number>;
@@ -112,8 +124,12 @@ export interface ViewRenderer {
   setOverlayLines?(key: string, lines: OverlayLines | null): void;
   /** Overlay points drawn by the engine (WebGPU only, G8): sprites at world points under a key (the overlay lines' keys apart). */
   setOverlayPoints?(key: string, points: OverlayPoints | null): void;
+  /** Overlay labels drawn by the engine (WebGPU only, G15) under a key — readouts, chips and drawings' texts. */
+  setOverlayLabels?(key: string, labels: OverlayLabels | null): void;
   /** The overlay lines and points shown, segments or points a key (G7, G8; for the flow). */
   overlayLines?(): Record<string, number>;
+  /** The overlay labels' texts, a key (G15; for the flow). */
+  overlayTexts?(): Record<string, string[]>;
   pickHalf?(x: number, y: number, camera: OrbitCamera): { half: '+' | '-'; index: number } | null;
   pickInstance?(x: number, y: number, camera: OrbitCamera): string | null;
   pickInstanceFace?(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number } | null;
