@@ -298,6 +298,6 @@ against the code as it is now:
    1e-38, 0) still compile and lower.
 - **Checks** (v2): gpu lint/tsc clean, unit 77/77 (+3: G5's), browser 6/6 (10 s); cad-interop 4/4 and its
   `cad-integration` test 2/2; studio 186/186 (20 s); `FLOW_ONLY` over the render, material and surface-analysis steps (the
-  steps that compile shader materials): see the checkpoint. Not run: the full flow, the cad-model suite (not touched),
+  steps that compile shader materials): 4/4 in 12 s, on `acbf60deb` in the verify worktree. Not run: the full flow, the cad-model suite (not touched),
   benches (no frame path changed).
 
