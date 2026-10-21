@@ -4,6 +4,8 @@ import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type FrameSectionRow, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { editSections, sectionUses } from '../src/frames/sections';
+import { WireReceiver, WireSender } from '../src/engine/wireDoc';
+import { contentKey, evaluationKey } from '../src/engine/evalMemo';
 
 // FRc (O117): the user's section library against closed forms — a frame on a row evaluates to the bodies the same section
 // inline gives (volume, centroid and box exactly); a row edited moves every frame on it (two straight frames of a sharp
@@ -88,4 +90,16 @@ test('FRc the palette: with a library, the member command offers "From your libr
   close(r.state.bodies[0].volumeMM3!, A(40, 40, 3) * 500, 'the member');
   const bare = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'run_command', { command: 'frame-member', values: { section: 'library', row: 'R40', x0: 0, y0: 0, z0: 0, x1: 500, y1: 0, z1: 0 } }, evaluate);
   assert.ok(bare.isError, 'no library: no such section kind');
+});
+
+test('FRc the engine worker gets the section library: a frame on a row, sent over the wire, evaluates to the same bodies (the studio evaluates off the main thread); the stock list stays behind; the caches\' keys follow an edited row', async () => {
+  const doc: StudioDoc = { ...lib(L({ kind: 'library', id: 'R40' })), frames: { version: 1, sections: [ROW], stock: [{ id: 'S6', lengthMM: 6000, source: 'a test value' }], kerfMM: 2 } };
+  const there = new WireReceiver().unpack(new WireSender().pack(doc));
+  assert.deepEqual(there.frames, { version: 1, sections: [ROW] });
+  const a = await bodiesOf(doc), b = await bodiesOf(there);
+  assert.deepEqual(b.map(x => x.volumeMM3), a.map(x => x.volumeMM3));
+  // (The caches' keys follow an edited row: evaluation, face tables and rendered views are not served stale.)
+  const edited: StudioDoc = { ...doc, frames: { ...doc.frames!, sections: [{ ...ROW, section: RHS(50, 30, 4) }] } };
+  assert.notEqual(evaluationKey(edited), evaluationKey(doc)); assert.notEqual(contentKey(edited), contentKey(doc));
+  assert.equal(contentKey(L(ROW.section)), contentKey({ ...L(ROW.section), frames: { version: 1, stock: [] } }), 'no library: the key as before');
 });
