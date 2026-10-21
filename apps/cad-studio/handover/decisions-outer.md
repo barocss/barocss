@@ -5155,3 +5155,28 @@ The coordinator's queue, item 4: model data for the GPU lane's two-colour propos
   - `method`: `'boolean' | 'faces'`. Where the Boolean refuses (facet or mixed bodies until the kernel's F3), only the faces are given, with `why`.
 - **Scope v1**: the base part's geometry. A proposal's placed-part changes are listed by part, not diffed in geometry. It is computed on demand, not per evaluation (two Booleans a proposal).
 - **Next**: build after the coordinator's reply on the shape.
+
+## O130 — PERF3 B13 S0: blob eviction — every holder, and a safe rule (2026-10-22)
+
+The coordinator's queue, item 5. The S0 is for the coordinator's reply before building. Evidence is in `packages/barocss-cad-model/test/blob-evict-s0.test.ts` (3 probes).
+
+- **Today**: the store (engine/blobs.ts) keeps every blob of the session, never evicted. P1: a mesh feature deleted, its arrays still held.
+- **The holders** of a blob's hash:
+  1. **the current document**: its mesh nodes, a repair's result, its placed parts' and pending parts' documents (`blobRefs` covers these);
+  2. **undo and redo**: the App's stacks of documents (up to 50);
+  3. **open proposals**: their **ops**, not documents. An add_features op may carry a mesh node naming a blob the document does not (P2: `blobRefs` misses it, so a rule over documents alone would drop what accepting the proposal needs);
+  4. **a chat turn in flight**: the panel's base, its built and shared states, and the server's copy (by `blobRefs` and the session's sent set);
+  5. **a pending mesh repair**: its result's blobs, put before the document naming them is committed;
+  6. **the worker wire**: the sender's `sentBlobs` and the worker's own copy of the store. P3: a blob is sent once, so one evicted and put back would never reach the worker again without a forget;
+  7. **the kernel's snapshot caches**: they hold their own arrays, but re-read `getBlob` whenever a document is converted, so anything reachable must stay;
+  8. **the recovery store** (IndexedDB): already collected against the document it keeps (`collectRecoveryBlobs`), separate from this.
+  - Not holders: templates (inlined), the clipboard (a body key), history (hashes of models), baselines (digests), drafts (image and drawing ids), drawings and bodies (evaluated arrays).
+- **Proposed rule: reachability, with a grace generation.** `evictBlobs(roots, pinned)` keeps:
+  - every hash reachable from the roots: the current document, every undo and redo document, and each document's open proposals' ops (found by walking their args for `blob: {positions, indices}` and repair results);
+  - every pinned hash: a pending repair's, and anything put by an operation not yet committed;
+  - every blob put since the last sweep (they survive one sweep, so a put whose document is not yet committed is safe without pinning).
+  It drops the rest.
+  - The app sweeps only at an idle point: after a commit, with no chat turn running and no repair pending.
+  - The wire's sender is told the evicted hashes (`forget`), so it sends them again if they come back. The worker drops them when the sender's next request names them as dropped, in lockstep as the nodes are pruned.
+- **The test it will carry**: random sequences of mesh adds, deletes, undo, redo, proposals made and accepted, and repairs. After each sweep, every hash reachable from every root is still in the store and every evaluation of a root still builds; an unreachable hash is gone after its grace sweep.
+- **Next**: build after the coordinator's reply.
