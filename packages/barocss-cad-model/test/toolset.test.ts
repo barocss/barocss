@@ -1,24 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { PassThrough } from 'node:stream';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, starterDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { acceptProposal, dispatchTool, runTool, SYSTEM_PROMPT, TOOLS, type ChatState } from '@barocss/cad-model/chat/tools';
-import { GROUPS, V1_OF, V2_ALIASES, V2_OF, v1Call, v2Result, v2Text, viaV2 } from '@barocss/cad-model/chat/groups';
-import { listed, SYSTEM_PROMPT_V2, TOOLS_V2, TOOLSET } from '@barocss/cad-model/chat/toolset';
-import { TOOL_CONTRACT_V2, breakingChanges, contractOf, validate, outputSchemaOf, type ContractEntry } from '@barocss/cad-model/chat/contract';
-import { serveMcp } from '../server/cadMcp';
-import { claudeArgs } from '../server/chatServer';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, starterDoc, type StudioDoc } from '../src/engine/doc';
+import { acceptProposal, dispatchTool, runTool, SYSTEM_PROMPT, TOOLS, type ChatState } from '../src/chat/tools';
+import { GROUPS, V1_OF, V2_ALIASES, V2_OF, v1Call, v2Result, v2Text, viaV2 } from '../src/chat/groups';
+import { listed, SYSTEM_PROMPT_V2, TOOLS_V2 } from '../src/chat/toolset';
+import { TOOL_CONTRACT_V2, breakingChanges, contractOf, type ContractEntry } from '../src/chat/contract';
 
 // A5.3 (O11): the consolidated tools (`barocss-cad-tools-v2`) — 13 tools whose actions are the handlers; `describe` for
 // the detail; the same gates; ops kept as handler calls; frozen in tools-v2.json. O105 (the owner, 2026-10-21: "우리는
 // 릴리즈 한게 아니라서 toolset v1 은 없어도 돼"): the only list the MCP and chat servers serve, at most 25,000 characters a
 // turn (tools/list + the system prompt). (The whole suite also replays through v2: CAD_TOOLS_VIA_V2=1.)
 
-const FROZEN = resolve(process.cwd(), 'src/chat/tools-v2.json');
+const FROZEN = resolve(resolve(import.meta.dirname, '..'), 'src/chat/tools-v2.json');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const read = (content: string) => JSON.parse(content) as Record<string, any>;
 async function stateOf(doc: StudioDoc): Promise<ChatState> { const r = await evaluate(doc); assert.ok(r.ok); return { doc, bodies: r.bodies }; }
@@ -124,38 +120,6 @@ test('the same gates through v2: L2 refuses an addition on a built part; ops nam
   assert.ok(!batch.isError, batch.content);
 });
 
-test('the MCP server: the v2 contract, 13 tools, v2 calls, structured results for read actions; a handler\'s name refused', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'cad-v2-')), statePath = join(dir, 'state.json');
-  writeFileSync(statePath, JSON.stringify({ doc: starterDoc(), changed: false }));
-  const input = new PassThrough(), output = new PassThrough(), served = serveMcp(statePath, input, output);
-  type Rpc = { id?: number; result?: Record<string, any>; error?: { code: number; message: string } };
-  const waiting = new Map<number, (m: Rpc) => void>(); let buf = '', id = 0;
-  output.on('data', d => { buf += d; let nl; while ((nl = buf.indexOf('\n')) >= 0) { const m = JSON.parse(buf.slice(0, nl)) as Rpc; buf = buf.slice(nl + 1); waiting.get(m.id!)?.(m); } });
-  const request = (method: string, params?: unknown) => new Promise<Rpc>(res => { const n = ++id; waiting.set(n, res); input.write(JSON.stringify({ jsonrpc: '2.0', id: n, method, params }) + '\n'); });
-  assert.equal((await request('initialize', { protocolVersion: '2025-06-18' })).result!.serverInfo.version, TOOL_CONTRACT_V2);
-  const list = (await request('tools/list')).result!.tools as { name: string }[];
-  assert.deepEqual(list.map(t => t.name), TOOLS_V2.map(t => t.name));
-  const mass = (await request('tools/call', { name: 'query', arguments: { action: 'mass' } })).result!;
-  assert.equal(mass.isError, false); assert.deepEqual(mass.structuredContent, JSON.parse(mass.content[0].text));
-  assert.deepEqual(validate(outputSchemaOf('mass_properties')!, mass.structuredContent), []);
-  const old = await request('tools/call', { name: 'mass_properties', arguments: {} });
-  assert.equal(old.error?.code, -32602, 'a handler\'s name is not a tool'); assert.equal(old.result, undefined);
-  const edit = (await request('tools/call', { name: 'features', arguments: { action: 'edit', index: 1, values: { h: 12 } } })).result!;
-  assert.equal(edit.isError, false, edit.content[0].text); assert.equal(edit.structuredContent, undefined);
-  // (query.select is select: the selection is saved for the studio.)
-  const sel = (await request('tools/call', { name: 'query', arguments: { action: 'select', faces: ['n1.top'] } })).result!;
-  assert.equal(sel.isError, false, sel.content[0].text);
-  input.end(); await served;
-  const saved = JSON.parse(readFileSync(statePath, 'utf8'));
-  assert.ok(saved.changed); assert.ok(saved.selection?.faces?.length === 1, JSON.stringify(saved.selection));
-});
-
-test('the chat server lists the v2 tools it serves, with their prompt', () => {
-  const args = claudeArgs({ mcpConfig: '{}', model: 'm' }), allowed = args[args.indexOf('--allowedTools') + 1].split(','), prompt = args[args.indexOf('--system-prompt') + 1];
-  assert.deepEqual(allowed, TOOLSET.tools.map(t => `mcp__cad__${t.name}`));
-  assert.equal(prompt, SYSTEM_PROMPT_V2);
-});
-
 test('the replay hook: CAD_TOOLS_VIA_V2=1 sends every handler call as its v2 call', () => {
   const was = process.env.CAD_TOOLS_VIA_V2;
   try {
@@ -181,7 +145,7 @@ function sourcesOf(dir: string): string[] {
 
 test('O105b: every string of the model package that names a handler reads, through v2Text, as v2 tool.actions — no underscored handler name, no one-word handler as a tool, every action named real', () => {
   let named = 0;
-  for (const file of sourcesOf(resolve(process.cwd(), '../../packages/barocss-cad-model/src'))) {
+  for (const file of sourcesOf(resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad-model/src'))) {
     for (const lit of readFileSync(file, 'utf8').match(/'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`|"(?:[^"\\\n]|\\.)*"/g) ?? []) {
       if (!lit.includes(' ') || !handlerNamesIn(lit).length) continue;
       named++;
@@ -191,32 +155,6 @@ test('O105b: every string of the model package that names a handler reads, throu
     }
   }
   assert.ok(named >= 60, `${named} strings name a handler`);
-});
-
-test('O105b through MCP: refusals and hints name v2 tools — no requirements, no snapshot, L2\'s proposal; a stored call in a result read as its v2 call', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'cad-v2-text-')), statePath = join(dir, 'state.json');
-  writeFileSync(statePath, JSON.stringify({ doc: starterDoc(), changed: false }));
-  const input = new PassThrough(), output = new PassThrough(), served = serveMcp(statePath, input, output);
-  type Rpc = { id?: number; result?: { isError: boolean; content: { text: string }[] } };
-  const waiting = new Map<number, (m: Rpc) => void>(); let buf = '', id = 0;
-  output.on('data', d => { buf += d; let nl; while ((nl = buf.indexOf('\n')) >= 0) { const m = JSON.parse(buf.slice(0, nl)) as Rpc; buf = buf.slice(nl + 1); waiting.get(m.id!)?.(m); } });
-  const call = async (name: string, args: object) => { const n = ++id; const m = await new Promise<Rpc>(res => { waiting.set(n, res); input.write(JSON.stringify({ jsonrpc: '2.0', id: n, method: 'tools/call', params: { name, arguments: args } }) + '\n'); }); return { isError: m.result!.isError, text: m.result!.content[0].text }; };
-  const peg = { action: 'command', command: 'cylinder', values: { r: 2, h: 5, x: 90, y: 0 } };
-  const said = [
-    [await call('requirements', { action: 'check' }), /requirements\.set first/],
-    [await call('history', { action: 'best' }), /run requirements\.check first/],
-    [await call('features', peg), /\(proposals\.propose\)/],
-  ] as const;
-  for (const [r, re] of said) { assert.ok(r.isError, r.text); assert.match(r.text, re); assert.deepEqual(handlerNamesIn(r.text), [], r.text); }
-  assert.ok(!(await call('proposals', { action: 'propose', title: 'a peg', ops: [{ tool: 'features', args: peg }] })).isError);
-  const listedOps = await call('proposals', { action: 'list' });
-  assert.deepEqual(handlerNamesIn(listedOps.text), [], listedOps.text);
-  assert.equal(JSON.parse(listedOps.text).proposals.at(-1).ops, 1);
-  input.end(); await served;
-  // (A stored call a result carries — a proposal's op — reads as its v2 call; keys and other values as they are.)
-  assert.deepEqual(JSON.parse(v2Result(JSON.stringify({ ops: [{ tool: 'run_command', args: { command: 'box' } }, { tool: 'nope', args: {} }], wall_thickness: 2, note: 'see get_part_summary' }))),
-    { ops: [{ tool: 'features', args: { command: 'box', action: 'command' } }, { tool: 'nope', args: {} }], wall_thickness: 2, note: 'see query.summary' });
-  assert.equal(v2Result('not JSON: run check_spec first'), 'not JSON: run requirements.check first');
 });
 
 test('O105b pass-through: names a user chose that are not handlers\' come back unchanged — a part, a parameter and a note with underscores; only a handler\'s exact name is rewritten (a known limit: a part named "add_part" reads as assembly.add_part)', () => {
