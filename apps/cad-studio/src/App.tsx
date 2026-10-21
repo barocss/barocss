@@ -415,7 +415,9 @@ export function App() {
 
   // (Render settings do not change the model: only its nodes and parameters re-evaluate it.)
   // (FRc, O117: the section library is model input too — a frame on a row is built from it.)
-  const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc.nodes, doc.parameters, doc.frames?.sections, marker]);
+  // (FRf2, O125: and the placed parts, when a frame follows a part's sketch — not otherwise, so moving parts does not re-evaluate the base.)
+  const followsParts = doc.nodes.some(n => n.kind === 'frame' && !!n.follows && 'part' in n.follows);
+  const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc.nodes, doc.parameters, doc.frames?.sections, followsParts ? doc.instances : null, marker]);
   const sectionRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
   // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
   useEffect(() => {

@@ -1810,6 +1810,7 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
   - **FRg done (O122)**: the 3D skeleton sketch — constraints (coincident, fixed, length, distance, angle, parallel, perpendicular, on an axis or a plane, along) solved by our own Levenberg–Marquardt with analytic Jacobians; diagnosis typed (dof, redundant, unmet, free; a conflict refused SKETCH3D_CONFLICT); a tetrahedron and a 3D rectangle to 1e-9. The FR queue (items 1–7) is done; the viewport tool is G17's.
   - **FRf2 S0 (O123)**: a frame following another part's sketch — the reference `{part, sketch (feature id), revision (A7)}` frozen; live geometry, the revision for staleness; base frames only (a placed part's frame following a sibling would need an assembly-wide evaluation: refused until decided).
   - **D155 drawing and query (O124)**: fit callouts with their limits (Ø12 H7/g6 (+0.018/0, -0.006/-0.017) (est.)), a class with no row FIT_ROW_MISSING; `query.fit_clearance`. Next FRf2's build.
+  - **FRf2 v1 done (O125)**: the base part's frames follow placed parts' sketches (`{part, sketch, revision}`), live with the part's placement; a changed part said until relinked; deleting or breaking the followed sketch refused FRAME_PART_IN_USE; a placed part's frame following a sibling FRAME_PART_SCOPE (open: an assembly-wide evaluation, the owner's decision).
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):

@@ -14,6 +14,13 @@ import type { BaselineLog } from '../team/baseline';
 
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
+/**
+ * What a frame follows (FRf, O121; FRf2, O125): a skeleton or a sketch of this document by index, or a placed part's
+ * sketch by its stable feature id — `revision` the part's A7 revision when the person linked it (its staleness).
+ */
+export type FrameFollows = { skeleton: number } | { sketch: number } | { part: string; sketch: string; revision?: string };
+/** The local feature a frame follows (a skeleton or sketch of this document), or null for a placed part's sketch. */
+export const followsIndex = (f: FrameFollows): number | null => 'part' in f ? null : 'skeleton' in f ? f.skeleton : f.sketch;
 /** A member's section (FR1, D123): the kernel's kinds with their dimensions, or a closed sketch by its node. */
 export type MemberSection =
   | { kind: 'rect-tube'; width: Dim; height: Dim; wall: Dim; outerRadius: Dim; innerRadius?: Dim }
@@ -186,7 +193,7 @@ type ModelNodeBase = SketchNode
    * `follows` (FRf, O121): the frame's points and segments are a skeleton's, or a sketch's straight edges lifted by its
    * plane, read at every evaluation (its own `points`/`segments` then a copy, not read for geometry).
    */
-  | { kind: 'frame'; follows?: { skeleton: number } | { sketch: number }; points: [Dim, Dim, Dim][]; segments: [number, number][]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; trims?: FrameTrim[]; estimates?: string[] }
+  | { kind: 'frame'; follows?: FrameFollows; points: [Dim, Dim, Dim][]; segments: [number, number][]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; trims?: FrameTrim[]; estimates?: string[] }
   | { kind: 'frame-member'; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; up?: [number, number, number]; estimates?: string[] }
   /** An open surface (copied from a direct surface `name`) thickened into a solid along its normal: faceted. */
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
@@ -322,9 +329,9 @@ import type { RenderSettings } from './render';
 import type { SketchRule } from '../sketch/terms';
 import type { DirectGeometry } from './direct';
 import type { DrawingSettings } from '../drawing/types';
-import { rotationSteps, type Mate } from '../assembly/mates';
+import { rotationMatrix, rotationSteps, type Mate } from '../assembly/mates';
 import { flattenAssembly } from '../assembly/flatten';
-import { bodyKeyFor, nextSerial, withIds } from './ids';
+import { bodyKeyFor, nextSerial, nodeIndexOf as nodeIndexOfLocal, withIds } from './ids';
 import type { Sig } from './references';
 import type { Requirement } from '../chat/spec';
 import type { CadLibraryInterface, CadLibraryManifest, CadLibraryOrigin, CadPartFeature, MeshRepairReport, MeshRepairSteps } from '@barocss/cad';
@@ -540,7 +547,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'library': return node.addTo ? [node.addTo.node] : [];
     case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
-    case 'frame': return [...(node.follows ? ['skeleton' in node.follows ? node.follows.skeleton : node.follows.sketch] : []), ...[node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : [])];
+    case 'frame': return [...(node.follows && followsIndex(node.follows) !== null ? [followsIndex(node.follows)!] : []), ...[node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : [])];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
     default: return [node.parent.node];
@@ -671,7 +678,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'sheet-base': return `Sheet plate T${n(node.thickness)}`;
     case 'sheet-flange': return `Flange ${n(node.length)} · ${fmt(node.angleDegrees ?? 90)}°`;
     case 'frame-member': return `Member ${sectionLabel(node.section, n)} · ${memberLength(node)}`;
-    case 'frame': { const k = frameSegmentCount(nodes, node); return `Frame ${sectionLabel(node.section, n)} · ${k} member${k === 1 ? '' : 's'}${node.follows ? ` · on ${'skeleton' in node.follows ? `skeleton ${node.follows.skeleton + 1}` : `sketch ${node.follows.sketch + 1}`}` : ''}`; }
+    case 'frame': { const k = frameSegmentCount(nodes, node); return `Frame ${sectionLabel(node.section, n)} · ${k} member${k === 1 ? '' : 's'}${node.follows ? ` · on ${'part' in node.follows ? `${node.follows.part}'s sketch ${node.follows.sketch}` : 'skeleton' in node.follows ? `skeleton ${node.follows.skeleton + 1}` : `sketch ${node.follows.sketch + 1}`}` : ''}`; }
     case 'skeleton': return `Skeleton${node.name ? ` ${node.name}` : ''} · ${node.points.length} points, ${node.segments.length} segments`;
     case 'sheet-corner-relief': return `Corner relief ${node.shape} ${n(node.size)}`;
     case 'sheet-contour': return `Sheet profile T${n(node.thickness)}${node.path.length > 2 ? ` · ${node.path.length - 2} bend${node.path.length > 3 ? 's' : ''}` : ''}`;
@@ -787,9 +794,10 @@ type FrameNode = Extract<ModelNode, { kind: 'frame' }>;
  * (a rectangle's four, a polygon's, an outline of lines) lifted by the sketch's plane, its parameters' values read now.
  * A source that is not there, not a skeleton or sketch, curved, or a segment naming no point: refused, typed.
  */
-export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, parameters: Readonly<Record<string, number>> = {}): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: string; error: string } {
+export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, parameters: Readonly<Record<string, number>> = {}, parts?: readonly PartInstance[] | null): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: string; error: string } {
   if (!node.follows) return { points: node.points, segments: node.segments };
-  const at = 'skeleton' in node.follows ? node.follows.skeleton : node.follows.sketch, src = nodes[at];
+  if ('part' in node.follows) return partSketchGeometry(node.follows, parts);
+  const at = followsIndex(node.follows)!, src = nodes[at];
   if ('skeleton' in node.follows) {
     if (src?.kind !== 'skeleton') return { code: 'FRAME_SKELETON_UNKNOWN', error: `the frame follows feature ${at}, which is ${src ? `a ${src.kind}` : 'not there'}, not a skeleton` };
     const bad = src.segments.findIndex(g => !(g[0] >= 0 && g[0] < src.points.length && g[1] >= 0 && g[1] < src.points.length));
@@ -797,6 +805,27 @@ export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, para
     return { points: src.points, segments: src.segments };
   }
   if (src?.kind !== 'sketch') return { code: 'FRAME_SKETCH_UNKNOWN', error: `the frame follows feature ${at}, which is ${src ? `a ${src.kind}` : 'not there'}, not a sketch` };
+  return sketchEdges(src, at, parameters);
+}
+/**
+ * FRf2 (O125): a placed part's sketch by its stable id — its straight edges lifted by its plane (the part's parameters)
+ * and placed by the instance's rotation and position now. `parts` null: the frame is inside a placed part, which follows
+ * its own part's features only (a sibling's would need each part evaluated with its siblings: not built).
+ */
+function partSketchGeometry(f: { part: string; sketch: string }, parts: readonly PartInstance[] | null | undefined): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: string; error: string } {
+  if (parts === null) return { code: 'FRAME_PART_SCOPE', error: `a placed part's frame follows only its own part's features, not ${f.part}'s sketch (that needs each part evaluated with its siblings)` };
+  const inst = (parts ?? []).find(i => i.id === f.part);
+  if (!inst) return { code: 'FRAME_PART_UNKNOWN', error: `the frame follows a sketch of part ${f.part}, which the assembly does not hold (parts: ${(parts ?? []).map(i => i.id).join(', ') || 'none'})` };
+  const k = nodeIndexOfLocal(inst.doc.nodes, f.sketch), src = inst.doc.nodes[k];
+  if (k < 0) return { code: 'FRAME_PART_FEATURE_GONE', error: `part ${f.part} has no feature ${f.sketch} now (the frame's sketch was deleted or renamed)` };
+  if (src.kind !== 'sketch') return { code: 'FRAME_SKETCH_UNKNOWN', error: `part ${f.part}'s feature ${f.sketch} is a ${src.kind}, not a sketch` };
+  const g = sketchEdges(src, k, inst.doc.parameters ?? {}); if ('code' in g) return g;
+  const R = rotationMatrix(inst.rotation), t = inst.position;
+  const points = g.points.map(p => { const q = p as [number, number, number]; return [0, 1, 2].map(r => R[3 * r] * q[0] + R[3 * r + 1] * q[1] + R[3 * r + 2] * q[2] + t[r]) as [number, number, number]; });
+  return { points, segments: g.segments };
+}
+/** A sketch's straight edges lifted by its plane: a rectangle's four, a polygon's, an outline of lines (FRf). */
+function sketchEdges(src: Extract<ModelNode, { kind: 'sketch' }>, at: number, parameters: Readonly<Record<string, number>>): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: string; error: string } {
   const v = (d: Dim) => typeof d === 'number' ? d : parameters[d.parameter] ?? NaN;
   let uv: [number, number][];
   if (src.profile === 'rectangle') { const [a, b] = [src.min.map(v), src.max.map(v)]; uv = [[a[0], a[1]], [b[0], a[1]], [b[0], b[1]], [a[0], b[1]]]; }

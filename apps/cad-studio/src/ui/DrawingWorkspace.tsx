@@ -3,6 +3,7 @@
 // points, or one straight edge, then where the dimension line goes), Diameter and Radius (a circle
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
+import { followedStale, staleText } from '@barocss/cad-model/frames/skeleton';
 import { fitMiss, withFit } from '@barocss/cad-model/drawing/fits';
 import { weldList } from '@barocss/cad-model/frames/welds';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -116,6 +117,8 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   // (D155: a diameter on a face with a fit class shows the class and its limits; a class with no row, an issue.)
   const callout = useMemo(() => withFit(doc, (edge: string) => holeCallout(doc.nodes, edge)), [doc.nodes, doc.fits]);
   const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
+  // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
+  const followedChanged = useMemo(() => followedStale(doc).map(staleText), [doc.nodes, doc.instances]);
   const threads = useMemo(() => threadsOf(doc.nodes), [doc.nodes]);
   // (Each sourced table's content once a document (O49): the bend table from the bodies' flat patterns.)
   const sourced = useMemo(() => new Map((settings.tables ?? []).filter(x => x.from).map(x => [x.id, tableContent(x, { doc, ...(bodies ? { bodies } : {}) })])), [settings.tables, doc, bodies]);
@@ -126,7 +129,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const weldJoints = useMemo(() => settings.weldSymbols && bodies ? weldList(doc, bodies).joints : undefined, [settings.weldSymbols, doc, bodies]);
   const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints }, cut), [views, layout, settings, title, cut, callout, threads, tableContentOf, weldJoints]);
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
-  const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout, fitMiss: fitMissOf }) : [], [views, layout, settings, sheet, callout, fitMissOf]);
+  const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout, fitMiss: fitMissOf, followedChanged }) : [], [views, layout, settings, sheet, callout, fitMissOf, followedChanged]);
   // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.
   const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
   const acceptEvery = () => {

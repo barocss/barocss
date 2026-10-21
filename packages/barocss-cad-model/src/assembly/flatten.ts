@@ -38,7 +38,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'skeleton': return node;
     case 'frame': {
       const shift = (sec: MemberSection): MemberSection => sec.kind === 'sketch' ? { kind: 'sketch', sketch: sec.sketch + k } : sec;
-      return { ...node, ...(node.follows ? { follows: 'skeleton' in node.follows ? { skeleton: node.follows.skeleton + k } : { sketch: node.follows.sketch + k } } : {}), section: shift(node.section), ...(node.overrides ? { overrides: node.overrides.map(o => o.section ? { ...o, section: shift(o.section) } : o) } : {}), ...(node.trims ? { trims: node.trims.map(t => 'body' in t ? { ...t, body: ref(t.body) } : t) } : {}) };
+      return { ...node, ...(node.follows && !('part' in node.follows) ? { follows: 'skeleton' in node.follows ? { skeleton: node.follows.skeleton + k } : { sketch: node.follows.sketch + k } } : {}), section: shift(node.section), ...(node.overrides ? { overrides: node.overrides.map(o => o.section ? { ...o, section: shift(o.section) } : o) } : {}), ...(node.trims ? { trims: node.trims.map(t => 'body' in t ? { ...t, body: ref(t.body) } : t) } : {}) };
     }
     case 'loft': return { ...node, sections: node.sections.map(s => ({ ...s, sketch: s.sketch + k })), ...(node.from ? { from: node.from.map(i => i + k) } : {}) };
     case 'union': case 'intersect': return { ...node, left: ref(node.left), right: ref(node.right) };

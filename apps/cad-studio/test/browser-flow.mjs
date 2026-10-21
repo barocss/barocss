@@ -3924,6 +3924,27 @@ try {
     } finally { chat.kill(); }
   });
 
+  await check('FRf2 a base frame on a placed part\'s sketch via the chat: a saved assembly with a 300 × 200 plate at z = 100, a frame following its sketch — 4 members on z = 100, the part\'s revision pinned (O125)', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin, file = join(out, 'plate-assembly.bcad');
+    const plate = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: { b1: { node: 1, side: 'solid' } }, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [300, 200] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }] };
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 0, outputs: {}, nodes: [], instances: [{ id: 'p1', name: 'Plate', doc: plate, position: [0, 0, 100], rotation: [0, 0, 0] }] }));
+    await openModel(file, 0, 30000); await idle();
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count();
+      const frame = { kind: 'frame', follows: { part: 'p1', sketch: 'n0' }, section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { default: 'mitre' } };
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'add', features: [frame] } }] })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => /^[0-9a-f]{16}$/.test(window.__studioDoc.nodes[0]?.follows?.revision ?? ''), null, { timeout: 60000 }); await idle();
+    await page.waitForFunction(() => /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 });
+    await snap('frf2-part-sketch');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

@@ -5074,3 +5074,30 @@ The kernel lane's request (D139 puts these with the outer lane), queued after FR
   - fit_clearance on the faces: clearance from 0 − (−6) = 6 to 18 − (−17) = 35 µm, limits 12 … 12.018 and 11.983 … 11.994, clear at MMC. The classes at Ø12 give the same. At Ø30, FIT_TABLE_MISS. The pin 0.01 off the axis is contradicted at MMC (an undeclared pair, since a declared one refuses the evaluation).
   - The read-tools contract test runs it.
 - **Flow step "D155 fit callouts …"** follows the kernel lane's Fits step: auto-dimensioned on A3, the bore's callout in the SVG, no FIT_ROW_MISSING.
+
+## O125 — FRf2 v1: the base part's frames follow placed parts' sketches (2026-10-22)
+
+Built as the S0 (O123) froze it, and as the coordinator approved.
+
+- **The reference**: `follows: { part, sketch, revision }`, the placed part's id, the sketch's stable feature id, and the part's A7 revision when linked.
+  - `FrameFollows` gains the form, and `followsIndex` keeps it out of local-index code (parentsOf, renumber, flatten, followers).
+  - A7's `canonical` and `revisionOf` moved unchanged into `team/revision.ts` (no imports) and are re-exported from team/team.ts, so frames/ can pin a revision without importing chat/tools.
+- **Live**: `frameGeometry` resolves the part's sketch by its id, lifts its straight edges by its plane (the part's parameters), and places them by the instance's rotation and position now.
+  - The kernel document (engine/part.ts) passes the assembly's parts.
+  - The studio's `evaluated` memo follows `doc.instances` only when a base frame follows a part, so moving parts does not re-evaluate the base otherwise. The worker's input already holds the parts.
+  - A part-scoped edit refreshes the base frames' copies.
+- **Staleness**:
+  - Moving the part changes nothing pinned: the revision is its content.
+  - When the part's revision differs from the one pinned, the frame's geometry is still current. It is said in `get_part_summary`'s `followed_changed`, as a warning in the member's notes, and as FOLLOWED_CHANGED (warning) in the drawing's issues, until the person relinks through features.edit with the new revision.
+  - Linking pins the revision when none is given.
+- **Typed refusals**, naming the frames:
+  - FRAME_PART_IN_USE: delete_part of a followed part; a part-scoped edit leaving the sketch gone or not straight-edged; one leaving it fewer edges than the frame has members (FRf's rule, as the coordinator asked).
+  - FRAME_PART_SCOPE: a frame inside a placed part following any part's sketch. ChatState gains `partOf` for part-scoped calls.
+  - FRAME_PART_UNKNOWN and FRAME_PART_FEATURE_GONE, at add or edit and at evaluation.
+- **Open (the coordinator raises it with the owner)**: a placed part's frame following a sibling needs each part evaluated with its siblings: describe, placedBodies, the mates' solve.
+- **Tests** (package frf2-frames, 3 tests): a 300 × 200 plate at z = 100.
+  - The frame's members are A · 300 and A · 200 on z = 100, with the revision pinned and the notes naming the part. Moved to z = 150, the frame moves and nothing is stale.
+  - The sketch widened to 400 through the part: A · 400, said in the summary, the notes and the drawing until relinked; relinking clears it.
+  - Every refusal above; deleting an unfollowed part is fine.
+  - The prompt's skeleton line names the part form; per turn unchanged (22,211).
+- **Flow step "FRf2 …"**: a saved assembly with the plate, and a frame following its sketch through the chat. 4 members, the revision pinned.
