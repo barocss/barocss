@@ -81,8 +81,19 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const pinned = cylCmd.build!({ ...blank, doc: tubeCmd.build!(blank, { ...tubeCmd.defaults!(blank), r: 10, ri: 6, x: 0, y: 0, z: 0 }) }, { ...cylCmd.defaults!(blank), r: 6, x: 0, y: 0, z: -5 });
   const fitted = await stateOf({ ...pinned, fits: { version: 1, tables: [{ id: 't', rows: [{ class: 'H7', overMM: 10, upToMM: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', overMM: 10, upToMM: 18, upperUM: -6, lowerUM: -17, estimate: true }] }], faces: [{ face: 'n1.hole0.side0', class: 'H7' }, { face: 'n3.side0', class: 'g6' }] } });
   const faceOf = (name: string) => { const body = fitted.bodies.findIndex(b => b.mesh.faces.some(f => f.name === name)); return { body, face: fitted.bodies[body].mesh.faces.findIndex(f => f.name === name) }; };
+  // (Key, Retaining ring and Pin take a shaft with a keyseat, a groove and a cross hole; Keyway a hub's bore: R12c.3b, D157.)
+  const shaftCmd = commandById('shaft')!, shaftDoc = shaftCmd.build!(blank, shaftCmd.defaults!(blank));
+  const holed = { ...shaftDoc, nodes: shaftDoc.nodes.map((n, i) => i === 0 ? { ...n, holes: [{ diameter: 4, at: 80 }] } as typeof n : n) };
+  const hubbed = await stateOf(tubeCmd.build!({ ...blank, doc: holed }, { ...tubeCmd.defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 }));
+  const boreOf = () => { const body = hubbed.bodies.findIndex(b => b.mesh.faces.some(f => /\.hole0\.side0$/.test(f.name))); return { body, face: hubbed.bodies[body].mesh.faces.findIndex(f => /\.hole0\.side0$/.test(f.name)) }; };
   for (const id of CHAT_COMMANDS) {
     const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
+    if (id === 'key' || id === 'keyway' || id === 'retaining-ring' || id === 'pin') {
+      const ctx: Ctx = { doc: hubbed.doc, bodies: hubbed.bodies, selection: id === 'keyway' ? sel({ faces: [boreOf()] }) : sel({ bodies: [hubbed.bodies.findIndex(b => b.ref?.node === 0)] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
     if (id === 'fit-class' || id === 'fit-pair') {
       const ctx: Ctx = { doc: fitted.doc, bodies: fitted.bodies, selection: sel({ faces: id === 'fit-class' ? [faceOf('n1.hole0.side0')] : [faceOf('n1.hole0.side0'), faceOf('n3.side0')] }) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
