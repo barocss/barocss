@@ -736,3 +736,53 @@ Measured before anything was changed; the coordinator's order.
   FLOW_ONLY (G12 and step 98) 3/3 on WebGPU and 3/3 on WebGL2. Not run: the full flow (the coordinator's), the cad-model
   suite (not touched), benches (no frame path changed but the decal pipelines' creation).
 
+## G16 — WebGL2 parity: curves and surfaces, a dragged body's turn, edge picks' depth, the proposal overlay (2026-10-22)
+
+All four items are brought to parity on the WebGL2 fallback (`viewport/renderer.ts`); none stays WebGPU-only.
+
+- **A dragged body's turn**: the mesh and line programs take a model matrix (`uModel`) and a normal matrix (`uNormal`,
+  the inverse transpose) instead of `uOffset`; a body is drawn by its gizmo drag's matrix (`ViewState.transforms`), else
+  moved by its offset (`placeBody`). Face and edge picks move it the same way. Before: the move only, the turn not shown.
+- **Edge picks pass over what a surface hides (G3 on WebGL2)**: a pick pass of its own (`pickPass`, a second program on
+  the mesh's vertex shader) writes an id and the depth (24 bits, packed into RGBA8) to two colour targets at once — the
+  opaque bodies as drawn (their polygon offset too) and the direct surfaces; it is drawn again only when the scene or the
+  camera changed, so a pointer's face pick and edge pick share it. `pickEdge` takes each body's segments within the radius
+  nearest first, its point nearest the pointer (back through the perspective), and passes over one when the depth at its
+  pixel lies in front of the point brought a pixel and a half nearer the eye (in world units at its depth) — the GPU
+  viewer's rule — trying up to 16 a body. Ghosted and hidden bodies neither hide nor are picked. Before: a CPU search with
+  no depth, an edge at the back of a body picked through its faces.
+- **Direct curves and surfaces**: `setDirect` and `pickDirect` on WebGL2 — surfaces lit, two-sided, in the GPU's blue
+  (`#8fb3d9`) or the accent when selected; curves as wide lines (2 CSS px, selected 3, `#5ec8e5` / `#ffd35c`); a selected
+  one's isocurves (1 px, 0.55) and control net (1.2 px, `#c9a3ff`); they count in the bounds (F frames them). `pickDirect`:
+  a curve within 6 px that a surface does not hide, else the surface under the pointer (its id in the pick pass); a direct
+  surface in front of a body is no face (as the GPU's raycast). The browser's "Curves and surfaces show in browsers with
+  WebGPU" note is gone. **Left out**: the outline round a selected surface (the GPU viewer's outline pass; the accent
+  colour marks it here).
+- **The proposal overlay (G12)**: `setProposalOverlay` on WebGL2 — the added (green) and removed (red) material
+  see-through (0.5), lit, two-sided, pulled in front of the faces it lies on (polygon offset −1 against the bodies' +1:
+  the decal), with its edges at 0.9 and at 0.35 of that where hidden (a second draw with the depth test reversed). The
+  volume chips are SVG in the viewport's overlay where the renderer draws no labels (`aria-label` "Material added" /
+  "removed"). The faces tint (`proposalTint`) is now only for the `faces` method, on either renderer.
+- **Also**: `Renderer.capture()` (the frame drawn again and read in the same task, the canvas keeping none). DEV hooks
+  for the flow, on either renderer: `__studioPixels(points)`, `__studioFrame(n)`, `__studioEdgeAt(point)`,
+  `__studioDirectAt(point)`, `__studioEye()`.
+- **Evidence**: flow step G16 (new, before the theme step), the same assertions on both renderers —
+  - the study fixture's panel lit blue and picked, the arc's quarter point drawn and picked, the panel clicked in the
+    canvas selected (the accent);
+  - a 40 × 20 × 8 plate: at the midpoints of the three edges at its corner farthest from the eye no pick finds them; at
+    the nearest corner's three each is found;
+  - turned 45° about X with the Rotate gizmo: the frame mid-drag (32 × 32 samples) against the frame the turn makes and
+    the frame before the drag — WebGL2 0.48 and 8.32 (WebGPU 0.55 and 7.33).
+  - On the old behaviour the step fails: with the depth test off (`shown` always true) at the edges; with the transforms
+    ignored (offsets only) at the turn (mid-drag 11.9 from the result, 5.3 from before).
+  - Step G12 on WebGL2 now draws the overlay: `tinted: false`, the chips `+500 mm³` / `−101 mm³`, the block's pixel
+    green-led and the hole's red-led — the same pixel checks as WebGPU (through `__studioPixels`, the GPU-only capture
+    replaced).
+- **Checks** (v2), in the detached verify worktree on `921b6e4bd` plus these changes: studio tsc clean, eslint 0 errors
+  (the flow's console warnings as before), suite 196/196; gpu unit 80/80 and browser 12/12 (not touched; 63 s with the
+  studio's, load 42–78). `FLOW_ONLY` on the steps each item touches — the direct steps 49–55, 46–48, 56–57, 63, the edge
+  steps 31/33/84, 98, G12 and G16: WebGPU 20/20 in 35 s; WebGL2 19/20 in 49 s (load 31–78), step 31 (fillet from the
+  palette) failing on its immediate read of the outliner after the fillet — it failed the same way in the WebGL2 run before
+  these changes (load 364) and alone passes one run in two: a flake of its own, not of the renderer. Not run: the full flow
+  (the coordinator's), the cad-model suite (not touched), benches (the WebGPU frame path is unchanged; the WebGL2 renderer
+  has none).
