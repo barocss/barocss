@@ -5,12 +5,12 @@
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, screenRect, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
-import { clippedRay, localPlane, nearestPoint, pointInstances, prepareGeometry, prepareScalars, scalarAt, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type ClippedHit, type GeometryInput, type PreparedGeometry } from './geometry.js';
+import { clippedRay, localPlane, nearestPoint, pointInstances, sceneNear, sceneRay, sceneTree, type SceneTree, prepareGeometry, prepareScalars, scalarAt, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type ClippedHit, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 type View = ReturnType<Texture['createView']>;
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
+import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
 
 export class ViewerError extends Error {
   constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(message); this.name = 'ViewerError'; }
@@ -263,6 +263,7 @@ export class Mesh {
     this.instances?.buffer?.destroy();
     this.instances = input ? { ...packInstances(input), buffer: null, device: null } : null;
     this.worldBox = undefined;
+    this.owner.sceneMoved();
     this.owner.requestRender();
   }
   get instanceCount(): number { return this.instances?.count ?? 1; }
@@ -270,7 +271,7 @@ export class Mesh {
   get transform(): Mat4 { return this._transform; }
   set transform(m: ArrayLike<number>) {
     if (m.length !== 16) throw new RangeError('A transform has 16 numbers (column-major)');
-    this._transform = Float64Array.from(m); this.worldBox = undefined; this.touch();
+    this._transform = Float64Array.from(m); this.worldBox = undefined; this.owner.sceneMoved(); this.touch();
   }
   get material(): Readonly<Material> { return this._material; }
   set material(m: Material) { this._material = materialOf({ ...this._material, ...m }); this._params = null; this.touch(); }
@@ -439,6 +440,10 @@ type PipelineKey = string;
 const SCENE_FORMAT = 'rgba16float';
 
 const SAMPLES = 4;
+/** G11's order-independent transparency: the accumulation (premultiplied colour × weight) and the revealage. */
+const OIT_ACCUM = 'rgba16float', OIT_REVEAL = 'r16float';
+/** Whether a mesh goes through the order-independent pass (G11): a see-through surface (a shadow catcher darkens, it stays). */
+const oitSurface = (m: Mesh): boolean => m.geometry.topology === 'triangles' && m.transparent && !m.material.shadowOnly;
 
 const sortKeys = new Map<Mesh, string>();
 const byPipeline = (a: Mesh, b: Mesh): number => { const x = sortKeys.get(a)!, y = sortKeys.get(b)!; return x < y ? -1 : x > y ? 1 : 0; };
@@ -486,7 +491,7 @@ export class Viewer {
   private materialLayout!: object;
   private surfaceLayout!: object;
   /** The surface pipeline description for a shader module and variant (lit or not, two-sided, transparent). */
-  private surfaceDescriptor!: (module: object, lit: boolean, two: boolean, transparent: boolean) => object;
+  private surfaceDescriptor!: (module: object, lit: boolean, two: boolean, transparent: boolean | 'oit') => object;
   /** Shader materials by their WGSL: an id and their module (made on first use). */
   private shaders = new Map<string, { id: number; module: object | null; device: Device | null }>();
   /** A shader material's surface WGSL (made once per material: the sort and the draw ask for it per mesh). */
@@ -588,7 +593,7 @@ export class Viewer {
     this.emptyFront = device.createTexture({ size: [1, 1], format: 'r32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer no front depth' });
     this.shadowMap = null;
     // (The targets were the lost device's: made again, and bound, when next drawn.)
-    this.targets = null; this.pickTargets = null;
+    this.targets = null; this.pickTargets = null; this.oit = null;
     this.bindFrames();
     this.objectCapacity = 0; this.growObjects(Math.max(64, this.nextSlot));
     for (const m of this.meshes) m.dirty = true;
@@ -650,16 +655,28 @@ export class Viewer {
     const make = (key: PipelineKey, desc: object) => d.createRenderPipelineAsync({ label: `viewer ${key}`, layout: /^(lit|unlit|catcher)/.test(key) ? surfaceLayout : layout, ...desc }).then(p => { this.pipelines.set(key, p); });
     const jobs: Promise<void>[] = [];
     d.pushErrorScope('validation');
+    // (G11's order-independent variant: the accumulation summed, the revealage multiplied, in any order.)
+    const oitTargets = [{ format: OIT_ACCUM, blend: { color: { srcFactor: 'one', dstFactor: 'one' }, alpha: { srcFactor: 'one', dstFactor: 'one' } } },
+      { format: OIT_REVEAL, blend: { color: { srcFactor: 'zero', dstFactor: 'one-minus-src' }, alpha: { srcFactor: 'zero', dstFactor: 'one-minus-src' } } }];
     this.surfaceDescriptor = (module, lit, two, t) => ({
       vertex: vertex(module),
-      fragment: { module, entryPoint: lit ? 'fsLit' : 'fsUnlit', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
+      fragment: t === 'oit' ? { module, entryPoint: lit ? 'fsLitOit' : 'fsUnlitOit', targets: oitTargets } : { module, entryPoint: lit ? 'fsLit' : 'fsUnlit', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
       primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back', frontFace: 'ccw' },
       // Faces sit a little behind lines drawn on them (reversed depth: lower is further).
       depthStencil: { format: 'depth32float', depthWriteEnabled: !t, depthCompare: 'greater-equal', depthBias: -2, depthBiasSlopeScale: -1.5 },
       multisample: ms,
     });
-    for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true])
-      jobs.push(make(`${lit ? 'lit' : 'unlit'}${two ? '2' : ''}${t ? 'T' : ''}`, this.surfaceDescriptor(modules.surface, lit, two, t)));
+    for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true, 'oit' as const])
+      jobs.push(make(`${lit ? 'lit' : 'unlit'}${two ? '2' : ''}${t === 'oit' ? 'O' : t ? 'T' : ''}`, this.surfaceDescriptor(modules.surface, lit, two, t)));
+    const oitModule = d.createShaderModule({ code: oitWGSL, label: 'viewer oit' });
+    jobs.push(d.createRenderPipelineAsync({
+      label: 'viewer oit composite', layout: 'auto',
+      vertex: { module: oitModule, entryPoint: 'vs' },
+      fragment: { module: oitModule, entryPoint: 'fs', targets: [{ format: SCENE_FORMAT, blend }] },
+      primitive: { topology: 'triangle-list' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'always' },
+      multisample: ms,
+    }).then(p => { this.pipelines.set('oitComposite', p); }));
     jobs.push(make('catcher', {
       vertex: vertex(modules.surface),
       fragment: { module: modules.surface, entryPoint: 'fsShadow', targets: [{ format: SCENE_FORMAT, blend }] },
@@ -798,14 +815,66 @@ export class Viewer {
     m.slot = this.freeSlots.pop() ?? this.nextSlot++;
     this.growObjects(this.nextSlot);
     this.meshes.push(m);
+    this.scene = null;
     this.requestRender();
     return m;
+  }
+
+  /** @internal A mesh moved (its transform or instances): the scene trees are made again at the next pick (G9). */
+  sceneMoved(): void { this.scene = null; }
+  /**
+   * @internal Picks through the scene trees and large point meshes' hierarchies (G9, default); false: every mesh walked
+   * in order, as before — the same answers (the test compares them), for tests.
+   */
+  accelerate = true;
+  /** The scene trees (G9): the triangle meshes' world boxes (one an instance) for rays; the line and point meshes' for the pointer. */
+  private scene: { rays: SceneTree; rayMesh: Mesh[]; rayInstance: Int32Array; marks: SceneTree; markMesh: Mesh[] } | null = null;
+  private sceneTrees(): NonNullable<Viewer['scene']> {
+    if (this.scene) return this.scene;
+    const rayMesh: Mesh[] = [], rayInstance: number[] = [], rayBoxes: number[] = [], markMesh: Mesh[] = [], markBoxes: number[] = [];
+    for (const m of this.meshes) {
+      const b = m.geometry.data.bounds;
+      if (!b) continue;
+      if (m.geometry.topology === 'triangles') {
+        for (let i = 0; i < m.instanceCount; i++) {
+          const w = transformBox(this.instanceTransform(m, m.instances ? i : null), b);
+          rayMesh.push(m); rayInstance.push(m.instances ? i : -1); rayBoxes.push(...w.min, ...w.max);
+        }
+      } else { const w = transformBox(m.transform, b); markMesh.push(m); markBoxes.push(...w.min, ...w.max); }
+    }
+    this.scene = { rays: sceneTree(Float64Array.from(rayBoxes), rayMesh.length), rayMesh, rayInstance: Int32Array.from(rayInstance), marks: sceneTree(Float64Array.from(markBoxes), markMesh.length), markMesh };
+    return this.scene;
+  }
+  /**
+   * The triangle leaves a world ray may hit before tmax, the earliest first (ties by leaf order): indices into the ray tree,
+   * and for each the least parameter a hit on it can have — where the ray enters its box, or for a capped mesh under the
+   * clip plane where the ray crosses the plane, if sooner: clippedRay's cap is that crossing, which a ray grazing an edge
+   * (its front face missed, its back hit) can take outside the box.
+   */
+  private rayLeaves(origin: Vec3, direction: Vec3, tmax: number): { leaves: number[]; ts: number[]; order: number[] } {
+    const S = this.sceneTrees(), c = this.clip;
+    let tp = Infinity;
+    if (c) { const den = dot(c.normal, direction), t = den > 0 ? (c.offset - dot(c.normal, origin)) / den : -1; if (t > 0) tp = t; }
+    let capping = false;
+    if (tp < Infinity) for (const m of S.rayMesh) if (this.capped(m)) { capping = true; break; }
+    const n = sceneRay(S.rays, origin, direction, capping ? Infinity : tmax, candLeaves, candTs);
+    let kept = 0;
+    for (let i = 0; i < n; i++) {
+      const t = capping && this.capped(S.rayMesh[candLeaves[i]]) ? Math.min(candTs[i], tp) : candTs[i];
+      if (t > tmax) continue;
+      candLeaves[kept] = candLeaves[i]; candTs[kept] = t; kept++;
+    }
+    candLeaves.length = kept; candTs.length = kept;
+    candOrder.length = kept; for (let i = 0; i < kept; i++) candOrder[i] = i;
+    candOrder.sort(byEntry);
+    return { leaves: candLeaves, ts: candTs, order: candOrder };
   }
 
   remove(mesh: Mesh): void {
     const i = this.meshes.indexOf(mesh);
     if (i < 0) return;
     this.meshes.splice(i, 1);
+    this.scene = null;
     this.freeSlots.push(mesh.slot);
     mesh.slot = -1;
     // Its own GPU buffers go with it (made again should it be drawn again).
@@ -821,7 +890,7 @@ export class Viewer {
   /** Remove every mesh and release every geometry. */
   clear(): void {
     for (const m of this.meshes) m.slot = -1;
-    this.meshes = []; this.freeSlots = []; this.nextSlot = 0;
+    this.meshes = []; this.freeSlots = []; this.nextSlot = 0; this.scene = null;
     for (const g of this.geometries) g.release();
     this.geometries.clear();
     this.requestRender();
@@ -911,7 +980,7 @@ export class Viewer {
       for (const k of [...this.pipelines.keys()]) if (k.startsWith(`shader${entry.id}:`)) this.pipelines.delete(k);
     }
     if (!this.pipelines.has(key)) {
-      const lit = !variant.startsWith('unlit'), two = variant.includes('2'), t = variant.endsWith('T');
+      const lit = !variant.startsWith('unlit'), two = variant.includes('2'), t = variant.endsWith('O') ? 'oit' as const : variant.endsWith('T');
       this.pipelines.set(key, (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({ label: `viewer ${key}`, layout: this.surfaceLayout, ...this.surfaceDescriptor(entry.module, lit, two, t) }));
     }
     return key;
@@ -1022,6 +1091,28 @@ export class Viewer {
     return this.targets;
   }
 
+  /**
+   * @internal See-through surfaces through the order-independent pass (G11, default); false: sorted far to near and
+   * blended over, as before (the test compares them).
+   */
+  orderIndependent = true;
+  /** @internal While the order-independent pass draws: transparent surfaces take their 'O' pipelines. */
+  private oitDrawing = false;
+  /** G11's targets: the accumulation and revealage (multisampled when the scene is) and their resolved copies, and the composite's bind group. */
+  private oit: { width: number; height: number; accumMs: Texture | null; revealMs: Texture | null; accum: Texture; reveal: Texture; group: BindGroup; views: { accumMs: View | null; revealMs: View | null; accum: View; reveal: View } } | null = null;
+  private ensureOit(): NonNullable<Viewer['oit']> {
+    const w = this.canvas.width, h = this.canvas.height, o = this.oit;
+    if (o && o.width === w && o.height === h) return o;
+    o?.accumMs?.destroy(); o?.revealMs?.destroy(); o?.accum.destroy(); o?.reveal.destroy();
+    const samples = this.options.antialias === false ? 1 : SAMPLES, ms = samples > 1;
+    const tex = (format: string, count: number, label: string) => this.device.createTexture({ size: [w, h], format, sampleCount: count, usage: TextureUsage.RENDER_ATTACHMENT | (count === 1 ? TextureUsage.TEXTURE_BINDING : 0), label });
+    const accumMs = ms ? tex(OIT_ACCUM, samples, 'viewer oit accum msaa') : null, revealMs = ms ? tex(OIT_REVEAL, samples, 'viewer oit reveal msaa') : null;
+    const accum = tex(OIT_ACCUM, 1, 'viewer oit accum'), reveal = tex(OIT_REVEAL, 1, 'viewer oit reveal');
+    const group = this.device.createBindGroup({ layout: this.pipelines.get('oitComposite')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: accum.createView() }, { binding: 1, resource: reveal.createView() }] });
+    this.oit = { width: w, height: h, accumMs, revealMs, accum, reveal, group, views: { accumMs: accumMs?.createView() ?? null, revealMs: revealMs?.createView() ?? null, accum: accum.createView(), reveal: reveal.createView() } };
+    return this.oit;
+  }
+
   private upload(g: Geometry): boolean {
     if (g.disposed) return false;
     if (g.gpu && g.gpu.device === this.device) return true;
@@ -1068,7 +1159,7 @@ export class Viewer {
   }
 
   private pipelineKey(m: Mesh, pick: boolean | 'mask'): PipelineKey {
-    const mat = m.material, two = mat.doubleSided ? '2' : '', t = m.transparent ? 'T' : '';
+    const mat = m.material, two = mat.doubleSided ? '2' : '', t = m.transparent ? (this.oitDrawing ? 'O' : 'T') : '';
     if (pick === 'mask') return (two ? 'mask2' : 'mask');
     if (pick) return (two ? 'pick2' : 'pick');
     if (m.geometry.topology === 'lines') return mat.lineOver ? 'lineOver' : (t ? 'lineT' : 'line');
@@ -1099,7 +1190,7 @@ export class Viewer {
   }
 
   private writeUniforms(viewProjection: Mat4, shadow: ShadowFrame | null = null): void {
-    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, [this.canvas.width, this.canvas.height, this.pixelRatio], this.gridFrame(), this.clip));
+    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, [this.canvas.width, this.canvas.height, this.pixelRatio, boxRadius(this.sceneBounds() ?? { min: [0, 0, 0], max: [1, 1, 1] })], this.gridFrame(), this.clip));
     if (shadow) this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, packFrame(shadow.viewProjection, this.camera, [], this.environment, null, [1, 1, 1], null, this.clip));
     let lo = Infinity, hi = -1;
     for (const m of this.meshes) if (m.dirty) {
@@ -1302,8 +1393,13 @@ export class Viewer {
       sp.end();
     }
     this.drawCapFront(enc, opaque, null);
+    // (G11: with a see-through surface in view, three passes — the opaque scene kept multisampled; the see-through
+    // surfaces into the accumulation and revealage, in any order; their composite, then the see-through lines and points
+    // over it. Without one, one pass as before.)
+    let oit = false;
+    if (this.orderIndependent) for (const m of transparent) if (oitSurface(m)) { oit = true; break; }
     const pass = enc.beginRenderPass({
-      colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa ? sceneView : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: targets.msaa ? 'discard' : 'store' }],
+      colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa && !oit ? sceneView : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: targets.msaa && !oit ? 'discard' : 'store' }],
       // (The depth is kept for ambient occlusion in the output pass; the background is put in there too.)
       depthStencilAttachment: { view: targets.views.depth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'store' },
     });
@@ -1313,6 +1409,8 @@ export class Viewer {
     // Opaque surfaces and their caps, the grid (tested against them), then lines and transparent meshes over it.
     let opaqueDone = false, caps = 0;
     for (const list of [opaque, transparent]) for (const m of list) {
+      // (In the order-independent frame the transparent list waits for its passes, but for shadow catchers: they darken the ground.)
+      if (oit && list === transparent && !m.material.shadowOnly) continue;
       if (!opaqueDone && (m.geometry.topology !== 'triangles' || m.transparent)) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); opaqueDone = true; }
       this.drawMesh(pass, m, current, false);
       if (m.geometry.topology !== 'triangles' && (m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(pass, m, current);
@@ -1320,6 +1418,35 @@ export class Viewer {
     }
     if (!opaqueDone) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); }
     pass.end();
+    if (oit) {
+      const o = this.ensureOit();
+      const op = enc.beginRenderPass({
+        colorAttachments: [
+          { view: o.views.accumMs ?? o.views.accum, resolveTarget: o.accumMs ? o.views.accum : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: o.accumMs ? 'discard' : 'store' },
+          { view: o.views.revealMs ?? o.views.reveal, resolveTarget: o.revealMs ? o.views.reveal : undefined, clearValue: { r: 1, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: o.revealMs ? 'discard' : 'store' },
+        ],
+        depthStencilAttachment: { view: targets.views.depth, depthLoadOp: 'load', depthStoreOp: 'store' },
+      });
+      op.setBindGroup(0, this.frameGroup);
+      const cur: { pipeline?: Pipeline } = {};
+      this.oitDrawing = true;
+      try { for (const m of transparent) if (oitSurface(m)) { this.drawMesh(op, m, cur, false); tris += (m.geometry.data.elementCount / 3) * m.instanceCount; } } finally { this.oitDrawing = false; }
+      op.end();
+      const cp = enc.beginRenderPass({
+        colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa ? sceneView : undefined, loadOp: 'load', storeOp: targets.msaa ? 'discard' : 'store' }],
+        depthStencilAttachment: { view: targets.views.depth, depthLoadOp: 'load', depthStoreOp: 'store' },
+      });
+      cp.setPipeline(this.pipelines.get('oitComposite')!); cp.setBindGroup(0, o.group); cp.draw(3);
+      cp.setBindGroup(0, this.frameGroup);
+      const cc: { pipeline?: Pipeline } = {};
+      for (const m of transparent) {
+        if (m.geometry.topology === 'triangles') continue;
+        this.drawMesh(cp, m, cc, false);
+        if ((m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(cp, m, cc);
+        if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else points += m.geometry.data.elementCount;
+      }
+      cp.end();
+    }
     if (outlines.length) {
       // The outline mask: every opaque surface hides what is behind it; outlined meshes write their number.
       const mask = enc.beginRenderPass({
@@ -1484,12 +1611,23 @@ export class Viewer {
     const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
     this.clipCamera();
     const ray = this.camera.ray((x / cw) * 2 - 1, 1 - (y / ch) * 2, this.aspect);
-    let best: { mesh: Mesh; triangle: number | null; t: number; instance: number | null; cap: boolean } | null = null;
-    for (const m of this.meshes) {
+    let best: { mesh: Mesh; triangle: number | null; t: number; instance: number | null; cap: boolean; leaf: number } | null = null;
+    if (this.accelerate) {
+      // (Through the scene tree: the leaves the ray enters, nearest entry first, until one starts past the best hit; the
+      // nearest hit, ties to the earliest mesh and instance — the walk's answer.)
+      const S = this.sceneTrees(), { leaves, ts, order } = this.rayLeaves(ray.origin, ray.direction, Infinity);
+      for (const k of order) {
+        if (best && ts[k] > best.t) break;
+        const leaf = leaves[k], m = S.rayMesh[leaf];
+        if (!m.visible || !m.pickable || m.geometry.disposed) continue;
+        const instance = S.rayInstance[leaf] < 0 ? null : S.rayInstance[leaf], hit = this.meshRay(m, instance, ray.origin, ray.direction);
+        if (hit && (!best || hit.t < best.t || (hit.t === best.t && leaf < best.leaf))) best = { mesh: m, triangle: hit.triangle, t: hit.t, instance, cap: hit.cap, leaf };
+      }
+    } else for (const m of this.meshes) {
       if (!m.visible || !m.pickable || m.geometry.topology !== 'triangles' || m.geometry.disposed) continue;
       for (let i = 0; i < m.instanceCount; i++) {
         const instance = m.instances ? i : null, hit = this.meshRay(m, instance, ray.origin, ray.direction);
-        if (hit && (!best || hit.t < best.t)) best = { mesh: m, triangle: hit.triangle, t: hit.t, instance, cap: hit.cap };
+        if (hit && (!best || hit.t < best.t)) best = { mesh: m, triangle: hit.triangle, t: hit.t, instance, cap: hit.cap, leaf: 0 };
       }
     }
     if (!best) return null;
@@ -1511,7 +1649,7 @@ export class Viewer {
     this.clipCamera();
     const vp = this.camera.viewProjection(this.aspect);
     let best: LineHit | null = null;
-    for (const m of this.meshes) {
+    for (const m of this.markCandidates(vp, x, y, cw, ch, radius, 'lines')) {
       if (!m.visible || !m.pickable || m.geometry.topology !== 'lines' || m.geometry.disposed) continue;
       const M = multiply(vp, m.transform), g = m.geometry.data, P = g.positions, I = g.indices;
       // A mesh wholly in front of the eye whose box lands farther than the radius from the point: none of its segments can be nearer.
@@ -1547,14 +1685,16 @@ export class Viewer {
     this.clipCamera();
     const vp = this.camera.viewProjection(this.aspect);
     let best: PointHit | null = null;
-    for (const m of this.meshes) {
+    let half = 0;
+    if (this.accelerate) for (const m of this.sceneTrees().markMesh) if (m.geometry.topology === 'points' && m.material.pointSize! / 2 > half) half = m.material.pointSize! / 2;
+    for (const m of this.markCandidates(vp, x, y, cw, ch, radius + half, 'points')) {
       if (!m.visible || !m.pickable || m.geometry.topology !== 'points' || m.geometry.disposed) continue;
       const M = multiply(vp, m.transform), g = m.geometry.data, P = g.positions, I = g.indices, reach = radius + m.material.pointSize! / 2;
       if (g.bounds && screenBoxMisses(M, g.bounds, x, y, cw, ch, reach)) continue;
       const plane = this.clip && m.clipped ? localPlane(m.transform, this.clip) : null;
       hiddenSegments.clear();
       for (let tries = 0; tries < MAX_HIDDEN_SEGMENTS; tries++) {
-        const hit = nearestPoint(g, M, x, y, cw, ch, reach, best ? best.distance : Infinity, plane, hiddenSegments);
+        const hit = nearestPoint(g, M, x, y, cw, ch, reach, best ? best.distance : Infinity, plane, hiddenSegments, this.accelerate);
         if (!hit) break;
         const a = I ? I[hit.index] : hit.index, point = transformPoint(m.transform, [P[3 * a], P[3 * a + 1], P[3 * a + 2]]);
         if (!options.throughSurfaces && !m.material.lineOver && this.hidden(point)) { hiddenSegments.add(hit.index); continue; }
@@ -1563,6 +1703,18 @@ export class Viewer {
       }
     }
     return best;
+  }
+
+  /**
+   * The line or point meshes whose box lands within `reach` pixels of (x, y), in the order they were added (G9: through the
+   * scene tree; without acceleration, every mesh) — the per-mesh search then runs on these as before.
+   */
+  private markCandidates(vp: Mat4, x: number, y: number, cw: number, ch: number, reach: number, _kind: 'lines' | 'points'): readonly Mesh[] {
+    if (!this.accelerate) return this.meshes;
+    const S = this.sceneTrees(), n = sceneNear(S.marks, vp, x, y, cw, ch, reach, candLeaves);
+    candLeaves.length = n; candLeaves.sort(ascending);
+    markOut.length = 0; for (let k = 0; k < n; k++) markOut.push(S.markMesh[candLeaves[k]]);
+    return markOut;
   }
 
   /**
@@ -1577,6 +1729,16 @@ export class Viewer {
     const c = this.camera, h = this.canvas.clientHeight || this.canvas.height;
     const pixel = (c.projection === 'perspective' ? 2 * Math.tan((c.fovY * Math.PI) / 360) * Math.sqrt(dd) * t : 2 * c.halfHeight) / Math.max(1, h);
     const before = t - (1.5 * pixel) / Math.sqrt(dd);
+    if (this.accelerate) {
+      const S = this.sceneTrees(), { leaves } = this.rayLeaves(ray.origin, d, before);
+      for (let k = 0; k < leaves.length; k++) {
+        const leaf = leaves[k], m = S.rayMesh[leaf];
+        if (!m.visible || m.transparent || m.geometry.disposed) continue;
+        const hit = this.meshRay(m, S.rayInstance[leaf] < 0 ? null : S.rayInstance[leaf], ray.origin, d);
+        if (hit && hit.t < before) return true;
+      }
+      return false;
+    }
     for (const m of this.meshes) {
       if (!m.visible || m.transparent || m.geometry.topology !== 'triangles' || m.geometry.disposed) continue;
       for (let i = 0; i < m.instanceCount; i++) {
@@ -1663,6 +1825,10 @@ export function clipBox(b: Box3 | null, c: { normal: ArrayLike<number>; offset: 
 
  /** The segments of a mesh found hidden during one line pick (kept from pick to pick), and how many are tried. */
 const hiddenSegments = new Set<number>();
+// (The scene trees' candidates, reused a pick: leaves, where a ray enters them, their order by entry; G9.)
+const candLeaves: number[] = [], candTs: number[] = [], candOrder: number[] = [], markOut: Mesh[] = [];
+const byEntry = (a: number, b: number): number => candTs[a] - candTs[b] || candLeaves[a] - candLeaves[b];
+const ascending = (a: number, b: number): number => a - b;
 /** Whether a box wholly in front of the eye lands on screen farther than `reach` pixels from a point (CSS): nothing in it can be nearer. */
 function screenBoxMisses(M: ArrayLike<number>, bx: Box3, x: number, y: number, cw: number, ch: number, reach: number): boolean {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;

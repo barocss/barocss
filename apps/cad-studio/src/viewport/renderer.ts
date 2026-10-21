@@ -27,7 +27,11 @@ export interface ViewState {
 }
 export type ThemeName = 'dark' | 'light';
 /** A placed instance as the viewport draws it: its bodies (as placed) and the cosmetic thread rings on them (line segments). */
-export interface InstanceItem { id: string; bodies: BodyResult[]; threads?: Float32Array }
+/**
+ * A placed part's bodies (in the world, as placed) and thread rings; with its placement (column-major 4 × 4), copies of the
+ * same tessellation share one geometry, drawn through the placements' difference (G10).
+ */
+export interface InstanceItem { id: string; bodies: BodyResult[]; threads?: Float32Array; placement?: Float64Array }
 /** The mould as the viewport shows it (G6): the loops (world polylines), the halves' bodies, the pull and the spread. */
 export interface MouldShown { pull: Vec3; loops: { points: Vec3[]; closed: boolean }[]; plus: BodyResult[]; minus: BodyResult[]; spread: number }
 /** A section's plane on the GPU (G2): kept where dot(normal, p) ≥ offset; `bodies`: the part's bodies cut by it too (not yet exact). */

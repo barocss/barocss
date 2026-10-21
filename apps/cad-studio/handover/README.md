@@ -856,6 +856,20 @@ acceleration → benches.
   border, a zero-alpha fill a ring; over or depth-tested with hidden ones faint) and `pickPoint` by index. RM9b's workspace
   map and the SubD cage's vertices (poles ringed) are engine points on WebGPU; curve/surface poles, corners and the measure
   ends stay SVG. A 100 000-voxel map orbited: task 55.5 → 2.9 ms a frame, GPU 55.1 → 6.6 ms a submit.
+- **G9** (2026-10-22): done. Scene-level trees for the viewer's picks (one over the triangle meshes' world boxes, an
+  instance a leaf, for rays and the depth-aware hidden test; one over the line and point meshes' for the pointer) and a
+  hierarchy inside large point meshes; the same answers as the linear walks (`Viewer.accelerate` off, compared over random
+  pointers plain, clipped and after moves). 500 pointers: raycast 46.5 → 3.6 ms, pickLine 77 → 7.9 ms, pickPoint (100 000
+  points) 289 → 9.8 ms; on the studio's 120 brackets raycast 26.6 → 4.1 ms.
+- **G10** (2026-10-22): done. Copies of a part that their placements only move (turned about Z, placed) share one
+  geometry in the viewer, drawn through T = P · P_ref⁻¹ under their pose; an edited, scaled or unplaced copy draws its own,
+  and one with picked faces or a textured look a private copy while it has them. 120 turned brackets opened: uploaded
+  2 003 → 85 KiB, 240 → 2 geometries (2 590 → 22 KiB kept). Against each its own mesh: the same frame (no pixel past 1) and
+  the same picks.
+- **G11** (2026-10-22): done. See-through surfaces through a weighted blended order-independent pass (an accumulation
+  and a revealage, summed in any order, then composited); outlines and caps untouched, see-through lines and points drawn
+  over it as before. Two interpenetrating see-through boxes give the same frame in either draw order (the sorted path
+  differed on 8 829 pixels); one layer as the sorted path drew it. 120 ghosted brackets orbited: GPU 2.67 → 2.83 ms.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

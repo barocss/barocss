@@ -69,7 +69,7 @@ import { fastenerName, fastenerThread } from '@barocss/cad-model/app/fasteners';
 import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/cad-model/app/holeRegion';
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import type { Analysis } from './viewport/analysis';
-import { boundsUnder, instancePoses } from './viewport/instancePose';
+import { boundsUnder, instancePoses, poseMatrix } from './viewport/instancePose';
 import { sectionPlane, sectionedBodies, sectionedInstances } from './viewport/sectionView';
 import { mapsOf, type MapKind } from './viewport/scalarMaps';
 import { isoclinePolylines } from '@barocss/cad-model/mould/parting';
@@ -621,7 +621,8 @@ export function App() {
     let frame = requestAnimationFrame(function step(now) { setJointValues(v => ({ ...v, [j.key]: mid + amp * Math.sin(2 * Math.PI * (now - t0) / 4000) })); frame = requestAnimationFrame(step); });
     return () => cancelAnimationFrame(frame);
   }, [jointPlaying, jointTree]);
-  const instancesPlaced = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ id: i.id, bodies: instanceBodies.get(i.id)!.bodies })), [doc.instances, instanceBodies]);
+  // (Each with its placement, as the bodies were placed: copies of one tessellation share a geometry in the viewer, G10.)
+  const instancesPlaced = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => { const b = instanceBodies.get(i.id)!, p = placementOf(b.inst); return { id: i.id, bodies: b.bodies, placement: poseMatrix({ R: Float64Array.from(p.m), t: Float64Array.from(p.t) }, undefined) }; }), [doc.instances, instanceBodies]);
   // The exploded view (display only): each instance pushed out from the middle by the explode factor.
   const [explode, setExplode] = useState(0);
   // (Dev/bench: any explode factor, as a drag would set it frame by frame; the button steps 0, 0.5, 1, 2.)

@@ -55,9 +55,17 @@ const BUDGET = {
   // (G8, set at load 32–53, about twice: SVG squares took 55 ms of task a frame here; G13 re-measures.)
   cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 8, kb: 6, buffers: 4, gpuMS: 14 },
   underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 16, kb: 6, buffers: 4, gpuMS: 14 },
+  // (G9: the pointer's picks over 120 brackets; a frame only when the hovered thing changes.)
+  hoverMany: { submits: 64, avgFrameMS: 2, perFrame: 1 },
+  pickMany: { submits: 4, avgFrameMS: 2, perFrame: 1 },
+  // (G10: a patterned assembly opened — what it uploads and keeps.)
+  pattern: { submits: 400, avgFrameMS: 4 },
+  // (G11: the 120 brackets see-through, orbited: 2.8 ms of GPU at load 13, the budget about twice — the 120-bracket rows' is 44.)
+  ghost: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
 };
 const os = await import('node:os'), loadAtStart = os.loadavg()[0];
 const rows = [];
+let picks = null;
 // (The main thread's task time, from the DevTools protocol: everything that ran, not only animation-frame callbacks.)
 const cdp = await page.context().newCDPSession(page); await cdp.send('Performance.enable');
 const taskTime = async () => (await cdp.send('Performance.getMetrics')).metrics.find(m => m.name === 'TaskDuration').value * 1000;
@@ -68,7 +76,7 @@ const measure = async (name, budget, act) => {
   const b = await page.evaluate(() => window.__bench), wall = Date.now() - t0, task = await taskTime() - task0;
   const avg = b.frames ? b.frameMS / b.frames : 0, most = Math.max(0, ...Object.values(b.perFrame)), drawn = Math.max(1, Object.keys(b.perFrame).length);
   const taskPerFrame = task / drawn, kbPerFrame = b.bytes / 1024 / drawn;
-  rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: +(b.submits ? b.gpuMS / b.submits : 0).toFixed(2), wallMS: wall,
+  rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: +(b.submits ? b.gpuMS / b.submits : 0).toFixed(2), wallMS: wall, taskTotalMS: +task.toFixed(1), uploadTotalKiB: +(b.bytes / 1024).toFixed(0),
     ok: b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity) && (b.submits ? b.gpuMS / b.submits : 0) <= (budget.gpuMS ?? Infinity), budget });
 };
 try {
@@ -149,6 +157,54 @@ try {
     await page.evaluate(() => new Promise(done => { let i = 0; const step = () => { window.__studioSetExplode(2 * ++i / 60); if (i < 60) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); }));
   });
   await page.evaluate(() => window.__studioSetExplode(0));
+  // G10: 120 copies of the bracket turned about Z in 3° steps, opened: what is uploaded and made, and the viewer's
+  // geometry bytes (each geometry once) — one tessellation shared by the copies, or each its own.
+  {
+    const turned = { ...many, instances: many.instances.map((i, k) => ({ ...i, id: `t${k}`, rotation: [0, 0, 3 * k], part: undefined })) };
+    await measure('pattern: 120 turned brackets opened', BUDGET.pattern, async () => {
+      await open('pattern.bcad', turned, () => window.__studioInstanceBounds?.().length === 120 && window.__studioInstanceBounds().every(b => b.id.startsWith('t')));
+    });
+    rows[rows.length - 1].geometry = await page.evaluate(() => {
+      const v = window.__studioViewer; if (!v) return null;
+      const gs = new Set(v.meshList.filter(m => m.name?.startsWith('inst:')).map(m => m.geometry));
+      let bytes = 0; for (const g of gs) { const d = g.data; bytes += d.positions.byteLength + d.normals.byteLength + d.colors.byteLength + d.uvs.byteLength + (d.indices?.byteLength ?? 0); }
+      return { geometries: gs.size, meshes: v.meshList.filter(m => m.name?.startsWith('inst:')).length, kib: +(bytes / 1024).toFixed(0), heapMiB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null };
+    });
+    await open('brackets.bcad', many, () => window.__studioInstanceBounds?.().length === 120 && window.__studioInstanceBounds().every(b => b.id.startsWith('i')));
+  }
+  // G9: the pointer across the 120 brackets (each move picks faces, edges and instances) and a bracket clicked from idle;
+  // then the viewer's own picks over 500 pointers on this scene (DEV __studioViewer): the linear walk (`accelerate` off,
+  // the picks as before G9) against the scene trees — timed, and the same answers.
+  {
+    const ab = await page.locator('canvas.vp-canvas').boundingBox(), ax = ab.x + ab.width / 2, ay = ab.y + ab.height / 2;
+    await measure('hover: 60 moves across 120 brackets', BUDGET.hoverMany, async () => {
+      for (let i = 0; i < 60; i++) { await page.mouse.move(ax - 300 + 10 * i, ay - 40 + (i % 7) * 12); await page.waitForTimeout(16); }
+    });
+    await measure('pick: a bracket clicked from idle', BUDGET.pickMany, async () => { await page.mouse.click(ax + 13, ay + 7); });
+    await page.keyboard.press('Escape');
+    picks = await page.evaluate(() => {
+      const v = window.__studioViewer; if (!v || !('accelerate' in v)) return null;
+      const c = v.canvas, W = c.clientWidth, H = c.clientHeight; let seed = 5; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      const at = Array.from({ length: 500 }, () => [rand() * W, rand() * H]);
+      const key = h => h ? [h.mesh.id, h.instance ?? null, h.triangle ?? null, h.segment ?? null, ...h.point.map(x => Math.round(x * 1e9))].join(',') : '';
+      const run = () => { const t0 = performance.now(), ray = at.map(([x, y]) => key(v.raycast(x, y))), t1 = performance.now(), line = at.map(([x, y]) => key(v.pickLine(x, y, 6))), t2 = performance.now(); return { ray, line, rayMs: t1 - t0, lineMs: t2 - t1 }; };
+      v.accelerate = false; run(); const lin = run(); v.accelerate = true; run(); const acc = run();
+      let differ = 0, hits = 0; for (let i = 0; i < at.length; i++) { if (lin.ray[i] !== acc.ray[i]) differ++; if (lin.line[i] !== acc.line[i]) differ++; if (lin.ray[i]) hits++; }
+      return { pointers: at.length, hits, differ, linear: { ray: lin.rayMs, line: lin.lineMs }, trees: { ray: acc.rayMs, line: acc.lineMs } };
+    });
+    // G11: the brackets ghosted (their surfaces 0.35 opaque, through the DEV viewer), orbited 60 steps — sorted far to near
+    // as before, then through the order-independent pass.
+    const ghosted = await page.evaluate(() => { const v = window.__studioViewer; if (!v || !('orderIndependent' in v)) return false; for (const m of v.meshList) if (m.name?.startsWith('inst:') && m.geometry.topology === 'triangles') m.material = { opacity: 0.35 }; return true; });
+    if (ghosted) for (const oit of [false, true]) {
+      await page.evaluate(o => { window.__studioViewer.orderIndependent = o; }, oit);
+      await measure(`ghosted: 120 brackets, orbit 60 (${oit ? 'order-independent' : 'sorted'})`, BUDGET.ghost, async () => {
+        await page.mouse.move(ax, ay); await page.mouse.down({ button: 'left' });
+        for (let i = 0; i < 60; i++) { await page.mouse.move(ax + 4 * i, ay + (i % 5)); await page.waitForTimeout(16); }
+        await page.mouse.up({ button: 'left' });
+      });
+    }
+    await page.evaluate(() => { const v = window.__studioViewer; if (!v) return; v.orderIndependent = true; for (const m of v.meshList) if (m.name?.startsWith('inst:') && m.geometry.topology === 'triangles') m.material = { opacity: 1 }; });
+  }
   // G2: the section plane dragged 60 steps across the 120 brackets — cut by the GPU's clip plane, then (the same build) by
   // clipMesh on the CPU as WebGL2 does; the exact section held back in both (only the drag's own cost).
   // (As a drag sets it: a new plane each animation frame, y from 20 to 160.)
@@ -178,5 +234,6 @@ try {
 } finally { await browser.close(); await server.close(); }
 // (The machine's load average: a budget is not set from numbers measured under load.)
 console.log(`load average ${loadAtStart.toFixed(1)} at the start, ${os.loadavg()[0].toFixed(1)} at the end${Math.max(loadAtStart, os.loadavg()[0]) > 4 ? ' — LOADED: compare, do not set budgets from this run' : ''}`);
-for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  wall ${r.wallMS} ms`);
-process.exit(rows.length === 12 && rows.every(r => r.ok) ? 0 : 1);
+for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  wall ${r.wallMS} ms  task total ${r.taskTotalMS} ms${r.geometry ? `  uploaded ${r.uploadTotalKiB} KiB; ${r.geometry.meshes} meshes on ${r.geometry.geometries} geometries, ${r.geometry.kib} KiB; heap ${r.geometry.heapMiB} MiB` : ''}`);
+if (picks) console.log(`picks over 120 brackets, ${picks.pointers} pointers (${picks.hits} on a bracket), ${picks.differ} answers different: raycast ${picks.linear.ray.toFixed(1)} → ${picks.trees.ray.toFixed(1)} ms, pickLine ${picks.linear.line.toFixed(1)} → ${picks.trees.line.toFixed(1)} ms (linear walk → scene trees)`);
+process.exit(rows.length === 17 && rows.every(r => r.ok) && (!picks || picks.differ === 0) ? 0 : 1);

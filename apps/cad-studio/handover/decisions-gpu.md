@@ -467,3 +467,116 @@ against the code as it is now:
   (43 s), and on WebGL2 on `d4c7af4e5` (cage and RM steps) 13/13 (66 s, the load at 78). Not run: the full flow (the
   coordinator's), the cad-model suite (not touched), the other benches (no other frame path changed).
 
+## G9 — scene-level trees for picks (2026-10-22)
+
+- **Two trees** (`geometry.ts`: `sceneTree`, `sceneRay`, `sceneNear`, on the same median-split builder as the per-geometry
+  BVHs, now `buildBvh`): over the triangle meshes' world boxes, one leaf a mesh or an instance, for rays; over the line and
+  point meshes' world boxes for the pointer. Leaf boxes are widened by a millionth of their diagonal past the slab test's
+  own tolerance, so nothing a per-mesh test finds is ruled out. Made again lazily at the next pick after a mesh is added,
+  removed, cleared or moved (`Mesh.transform`, `setInstances` → `Viewer.sceneMoved`); visibility, pickability, opacity and
+  the clip plane are read at the pick, as before.
+- **raycast**: the leaves the ray enters, nearest entry first, until one starts past the best hit; ties to the earliest
+  leaf (mesh order, then instance) — the walk's rule. **hidden** (G3's depth test for pickLine and pickPoint): the leaves
+  entered before the point. **pickLine / pickPoint**: the per-mesh search, unchanged, on the meshes whose box lands within
+  the reach of the pointer (`rectDistance`), in their order.
+- **Found by the equality test** (G9-D1): under a clip plane, `clippedRay`'s cap is wherever the ray crosses the plane once
+  its first kept-side hit is a back face — on a ray grazing a box's edge (its front face missed within tolerance, its back
+  hit) that crossing can lie outside the box, so a box-entry bound dropped a hider the walk had (9 of 1 500 picks differed).
+  A capped mesh under the plane is now bounded by min(box entry, plane crossing), the crossing computed as `clippedRay`
+  computes it. The cap's own behaviour on such rays is today's and is kept; it is noted here, not changed.
+- **Points** (G8's brute force): a point mesh of 256 or more points is searched through a hierarchy of its points
+  (`bvhOf`, one vertex an element), nodes passed over when their screen rectangle is farther than the best so far. The rule
+  is now exact under any visit order: nearest by d² compared directly, ties to the lowest index (G8 compared d² with the
+  best's √d² squared, which only differs at a rounding-level tie). The walk (`accelerate` off) uses the same rule.
+- **`Viewer.accelerate`** (internal, default true): false keeps the linear walks, the reference the test compares against.
+- **Evidence**: gpu browser test G9 — 150 turned boxes and their edges, a 60-instance mesh, a two-sided quad, a see-through
+  box (hides nothing), 100 000 + 150 + 60 points (one mesh over the scene); 500 random pointers × raycast, pickLine,
+  pickPoint, with the trees and with the walks: the same mesh, instance, triangle, face, cap, segment and point index, the
+  same distances, points equal (worst 0), plain, under a capping clip plane and after a quarter of the boxes moved.
+- **Bench**: in that test, 500 pointers (load ≈ 20): raycast 46.5 → 3.6 ms, pickLine 77 → 7.9 ms, pickPoint 289 → 9.8 ms
+  (linear → trees). `bench:browser` on the studio's 120 brackets (DEV `__studioViewer`), 500 pointers, the same answers:
+  raycast 26.6 → 4.1 ms, pickLine 4.1 → 3.4 ms (load 26 → 19). New rows `hover: 60 moves across 120 brackets` (63.8 ms of
+  task in all, 70.1 before G9 in the verify worktree) and `pick: a bracket clicked` (47.7 ms, 43.2 before): both are the
+  App's own updates on each move and click (its cursor readout, the selection), not the picks — those are 0.053 → 0.008 ms
+  a raycast. 100 000 points picked: G8's 3.5 ms a pick → 0.02 ms.
+- **Checks** (v2): gpu tsc and eslint clean, unit 77/77, browser 10/10; studio tsc and eslint clean, suite 192/192 (the first
+  run's 2 failures were G9's DEV hook reading `import.meta.env` under node: guarded, `7a375e7ff`); FLOW_ONLY on WebGPU over the
+  steps that pick, select, hover, mate, place instances, section or measure (67 steps by name, plus step 1): 75 passed and 4
+  failed for want of earlier steps FLOW_ONLY left out (the extend-surface step reads the imported source; the instance steps
+  the saved part) — steps 46–60 run together: 16/16. Not run: the full flow (the coordinator's), the cad-model suite.
+
+## G10 — copies share one tessellation (2026-10-22)
+
+- **Where it stood**: P6's note ("copies turned about Z are tessellated as placed") is older than `evaluatePlaced`'s
+  `samePlacedBody`, which compares names without their renumbering: probed on the bracket, every copy turned 0°, 37°, 90°,
+  180° about Z (and with a quarter turn about X) comes back from the engine as the part's own tessellation moved — the same
+  indices, positions within 4e-6 mm (float32) of P applied to the part's. What was per copy: `placeBody`'s world copy of
+  that mesh, and in the viewer a geometry (surface and edges) uploaded for each. The engine side is unchanged (the kernel's
+  placed evaluation still checks each copy's topology; no core files touched).
+- **Viewer side** (`gpuRenderer.ts`): `InstanceItem.placement` (App: `placementOf` of the placement the bodies were
+  evaluated for, as a 4 × 4). A body joins a **shape** — a reference copy's display mesh, its placement's inverse, one
+  surface and one edge geometry, and the meshes drawing them — when its topology key (sizes and a sample of indices) is the
+  shape's and `movedCopy` holds: the same indices and faces of vertices, and positions and edge points within 4e-7 of the
+  largest coordinate (normals 1e-5) of T applied to the reference's, T = P · P_ref⁻¹. It is drawn through T under its pose
+  (`placePreview`). Otherwise it starts a shape of its own; a body without a placement (the CPU section's clipped copies)
+  draws its own geometry as before. A shape is released with its last mesh; its reference copy can go first.
+- **Private while painted** (`bindShares`, each paint): a copy with picked faces (mates) — face colours are vertex colours —
+  or whose look has a texture or a shader material (uvs come from its own positions) takes a private geometry, and draws the
+  shape again when that clears; so does one wanting another base colour than the shape's first sharer. The shared geometry
+  is painted once, in its sharers' base colour.
+- **`shareCopies`** (internal, DEV `__studioShareCopies(on)`): false makes every copy its own again — the flow's oracle.
+- **Evidence**: studio `instance-pose.test.ts` G10 — four copies turned 0°, 37°, 90°, 200° and placed: two geometries, every
+  mesh on them, each drawn within 1e-4 mm of its own mesh (surface and edges), posed under its pose; an edited copy (its
+  second hole moved) and a copy scaled 1.001: their own; picked faces: private, then shared again; the reference gone: the
+  rest kept; all gone: every geometry released. Flow step G10 — 24 brackets turned in 15° steps on a ring: 48 meshes on 2
+  geometries; sharing off and on: 0 of 1 296 000 pixels differ by more than 96 (the largest difference 1), 400 pointers aimed
+  at the copies (255 on one), the same mesh and triangle at every one, points within 5e-6 mm; one copy then edited (its hole
+  moved and widened): it alone on two new geometries, the other 23 keeping their meshes.
+- **Bench** (`bench:browser` row `pattern: 120 turned brackets opened`, the same script on `98f7dc4be` in the verify
+  worktree, each run alone at load 33 → 26 and 25 → 21): uploaded 2 003 → 85 KiB; 240 meshes on 240 → 2 geometries, their
+  arrays 2 590 → 22 KiB; JS heap after 122.3 → 107.6 MiB (the main thread still keeps each copy's world `BodyResult`: mates,
+  mass and checks read them). The explode, section, pose and pick rows unchanged within noise (the brackets there,
+  translated copies, now share too); the explode row's 2-in-one-frame miss came up in the after-run, as it has before (G13).
+- **Checks** (v2): studio tsc and eslint clean, suite 193/193 (+1, the G10 renderer test); FLOW_ONLY on WebGPU on `8cfb5fad5`
+  (steps 46–60, the RM steps, explode, assembly and pattern steps, G10): 31 + 2 failures — G10 by its own too-few-hits check
+  (random pointers, the camera of earlier steps; aimed at the copies now, `test(cad-studio)` commit) and step 81, which counts
+  exactly one instance after step 57 had placed one; G10 with step 81 and its fastener steps 78–80 on the fix: 6/6. gpu
+  untouched (its suites as at G9). Not run: the full flow (the coordinator's), the cad-model suite.
+
+## G11 — order-independent transparency (2026-10-22)
+
+- **Choice (G11-D1)**: weighted blended OIT (McGuire–Bavoil), not depth peeling. It keeps the outline and cap behaviour —
+  the outline mask is its own pass over the meshes (unchanged), and caps are drawn only for opaque meshes — so the
+  coordinator's condition for depth peeling did not arise. It is one extra geometry pass for the see-through surfaces
+  whatever their depth complexity, works with the 4× multisampling as it is, and is exactly order-independent (sums and
+  products), where peeling is exact in colour but costs a pass a layer and needs per-sample depth reads. Its price: two or
+  more overlapping layers blend by a depth weight, not exactly "over" — a nearer layer counts more, the farther still
+  shows. One layer alone is exact (the test: equal to the sorted path within 1).
+- **Frame** (`drawFrame`): with a see-through triangle mesh in view (`oitSurface`: transparent, not a shadow catcher),
+  three passes —
+  1. the opaque scene: surfaces, caps, the grid, shadow catchers (they darken the ground), opaque lines and points; its
+     multisampled colour kept;
+  2. the see-through surfaces into `accum` (rgba16float, premultiplied colour × w, added) and `reveal` (r16float, × (1 −
+     alpha)), multisampled and resolved, tested against the opaque depth, writing none; w = clamp(1 / (1e-3 + (d/2)³),
+     0.01, 3000) with d the view depth over the scene's radius (`frame.viewport.w`);
+  3. their composite over the scene (`oitWGSL`: the weighted average where the revealage leaves room, as a premultiplied
+     surface), then the see-through and drawn-over lines and points, sorted far to near as before.
+  Without one, the single pass as before. Shader materials get the same `O` variant (`fsLitOit`, `fsUnlitOit` in every
+  surface module); `Viewer.orderIndependent = false` (internal) keeps the sorted path.
+- **Lines (G11-D2)**: opaque lines and points are drawn in the opaque pass, so a see-through surface in front dims them —
+  and so does one exactly at their depth or just behind (lines write no depth); see-through lines (a body's 0.6 edges) and
+  lines drawn over the scene are drawn after the composite, undimmed. Before, it depended on the meshes' box centres. To
+  tune with the ghosting looks if wanted.
+- **Evidence**: gpu browser test G11 — two boxes through each other with the same centre (so the sort keeps the order they
+  are added in), 0.5 and 0.45 opaque, added in both orders: 0 pixels differ by more than 3 (ΣRGB; the largest 2, f16
+  rounding), where the sorted path differs on 8 829 (the largest 98) — the test can tell; one 0.35 layer, outlined, before
+  a box cut and capped by the clip plane, a 0.8 line over it: as the sorted path drew it (the largest difference 1).
+  Flow before (`f3b850593`) and after (render a part, proposals' ghost, A6.3's ghosted reference, IM7, IM7a, G6, G10):
+  8/8 both; every screenshot the same but A6.3's (its hole's cylinder now even through the ghost's walls; 10 pixels past
+  96) and G6's halves (0 past 96, the largest 86) — the two with see-through surfaces over each other.
+- **Bench** (`bench:browser`, the 120 brackets ghosted: their surfaces 0.35 through the DEV viewer, orbited 60 steps, at load
+  13): GPU 2.67 ms a submit sorted, 2.83 ms order-independent; task 4.38 → 4.34 ms a frame. Budget GPU 8 (the 120-bracket
+  rows' is 44).
+- **Checks** (v2): gpu tsc and eslint clean, unit 77/77, browser 11/11; studio tsc clean, suite 193/193; the flow and bench
+  above. Not run: the full flow (the coordinator's), the cad-model suite.
+

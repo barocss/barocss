@@ -190,8 +190,8 @@ const BVH_LEAF = 8, BVH_FROM = 1024, SEGMENT_BVH_FROM = 256;
 const bvhs = new WeakMap<PreparedGeometry, Bvh>();
 function bvhOf(g: PreparedGeometry): Bvh {
   const have = bvhs.get(g); if (have) return have;
-  // (Three vertices an element for triangles, two for segments.)
-  const k3 = g.topology === 'lines' ? 2 : 3;
+  // (Three vertices an element for triangles, two for segments, one for points.)
+  const k3 = g.topology === 'lines' ? 2 : g.topology === 'points' ? 1 : 3;
   const P = g.positions, I = g.indices, n = g.elementCount / k3, order = new Uint32Array(n), c = new Float64Array(n * 3), tb = new Float64Array(n * 6);
   for (let t = 0; t < n; t++) {
     order[t] = t;
@@ -202,6 +202,12 @@ function bvhOf(g: PreparedGeometry): Bvh {
     }
     tb.set([x0, y0, z0, x1, y1, z1], 6 * t); c[3 * t] = (x0 + x1) / 2; c[3 * t + 1] = (y0 + y1) / 2; c[3 * t + 2] = (z0 + z1) / 2;
   }
+  const out = buildBvh(tb, c, order, n);
+  bvhs.set(g, out);
+  return out;
+}
+/** A hierarchy over n boxes (tb: min, max each; c: their centres; order: 0…n−1, reordered): median splits of the longest centre extent. */
+function buildBvh(tb: Float64Array, c: Float64Array, order: Uint32Array, n: number): Bvh {
   const box: number[] = [], left: number[] = [], right: number[] = [], start: number[] = [], count: number[] = [];
   const build = (lo: number, hi: number): number => {
     const id = left.length; left.push(-1); right.push(-1); start.push(lo); count.push(hi - lo);
@@ -218,10 +224,65 @@ function bvhOf(g: PreparedGeometry): Bvh {
     left[id] = l; right[id] = r; count[id] = 0;
     return id;
   };
-  build(0, n);
-  const out: Bvh = { box: Float64Array.from(box), left: Int32Array.from(left), right: Int32Array.from(right), start: Int32Array.from(start), count: Int32Array.from(count), order };
-  bvhs.set(g, out);
-  return out;
+  if (n) build(0, n);
+  return { box: Float64Array.from(box), left: Int32Array.from(left), right: Int32Array.from(right), start: Int32Array.from(start), count: Int32Array.from(count), order };
+}
+
+/**
+ * A scene-level tree (G9): a hierarchy over world boxes — a mesh's, or each instance's — for the viewer's picks. Built from
+ * `boxes` (min, max a leaf), each widened by a millionth of its diagonal past the slab test's own tolerance, so a ray or a
+ * screen point the per-mesh tests would find is never ruled out here. Leaves keep their index: the caller's order.
+ */
+export interface SceneTree { readonly n: number; readonly bvh: Bvh; /** The leaves' widened boxes, six numbers each. */ readonly boxes: Float64Array }
+export function sceneTree(boxes: Float64Array, n: number): SceneTree {
+  const tb = new Float64Array(6 * n), c = new Float64Array(3 * n), order = new Uint32Array(n);
+  for (let i = 0; i < n; i++) {
+    order[i] = i;
+    const o = 6 * i, w = 1e-6 * (Math.hypot(boxes[o + 3] - boxes[o], boxes[o + 4] - boxes[o + 1], boxes[o + 5] - boxes[o + 2]) + 1);
+    for (let k = 0; k < 3; k++) { tb[o + k] = boxes[o + k] - w; tb[o + 3 + k] = boxes[o + 3 + k] + w; c[3 * i + k] = (boxes[o + k] + boxes[o + 3 + k]) / 2; }
+  }
+  return { n, bvh: buildBvh(tb, c, order, n), boxes: tb };
+}
+const treeStack: number[] = [];
+/**
+ * The leaves a world ray (origin, direction: the parameter the per-mesh tests return) enters before `tmax`: their indices
+ * into `leaves` and where it enters each into `ts`, in no particular order; their count.
+ */
+export function sceneRay(tree: SceneTree, origin: Vec3, direction: Vec3, tmax: number, leaves: number[], ts: number[]): number {
+  leaves.length = 0; ts.length = 0;
+  if (!tree.n) return 0;
+  const h = tree.bvh, [ox, oy, oz] = origin, ix = 1 / direction[0], iy = 1 / direction[1], iz = 1 / direction[2], stack = treeStack;
+  stack.length = 0; stack.push(0);
+  while (stack.length) {
+    const node = stack.pop()!, t = slab(h.box, 6 * node, ox, oy, oz, ix, iy, iz);
+    if (t === Infinity || t > tmax) continue;
+    if (h.left[node] < 0) {
+      for (let i = h.start[node], e = i + h.count[node]; i < e; i++) { const leaf = h.order[i], tl = slab(tree.boxes, 6 * leaf, ox, oy, oz, ix, iy, iz); if (tl !== Infinity && tl <= tmax) { leaves.push(leaf); ts.push(tl); } }
+      continue;
+    }
+    stack.push(h.left[node], h.right[node]);
+  }
+  return leaves.length;
+}
+/**
+ * The leaves whose box lands on screen within `reach` pixels (CSS) of (x, y), M the view-projection (or every leaf a corner
+ * of which is not in front of the eye): their indices into `leaves`, in no particular order; their count.
+ */
+export function sceneNear(tree: SceneTree, M: ArrayLike<number>, x: number, y: number, cw: number, ch: number, reach: number, leaves: number[]): number {
+  leaves.length = 0;
+  if (!tree.n) return 0;
+  const h = tree.bvh, stack = treeStack;
+  stack.length = 0; stack.push(0);
+  while (stack.length) {
+    const node = stack.pop()!;
+    if (rectDistance(h.box, 6 * node, M, x, y, cw, ch) > reach + 1e-6 * (1 + reach)) continue;
+    if (h.left[node] < 0) {
+      for (let i = h.start[node], e = i + h.count[node]; i < e; i++) { const leaf = h.order[i]; if (rectDistance(tree.boxes, 6 * leaf, M, x, y, cw, ch) <= reach + 1e-6 * (1 + reach)) leaves.push(leaf); }
+      continue;
+    }
+    stack.push(h.left[node], h.right[node]);
+  }
+  return leaves.length;
 }
 
 /**
@@ -396,20 +457,38 @@ export function pointInstances(g: PreparedGeometry): ArrayBuffer {
  * `reach` pixels (CSS) and nearer than `best`, the nearest (ties to the lowest index), skipping those in `skip` and those
  * the plane (in the mesh's space) cuts away; its index and distance in pixels, or null.
  */
-export function nearestPoint(g: PreparedGeometry, M: ArrayLike<number>, x: number, y: number, cw: number, ch: number, reach: number, best: number, plane: ArrayLike<number> | null, skip: ReadonlySet<number> | null): { index: number; distance: number } | null {
-  const P = g.positions, I = g.indices, r2 = reach * reach;
-  let hit = -1, bd = Math.min(best, reach);
-  for (let s = 0; s < g.elementCount; s++) {
-    if (skip && skip.has(s)) continue;
-    const a = I ? I[s] : s, px = P[3 * a], py = P[3 * a + 1], pz = P[3 * a + 2];
-    if (plane && plane[0] * px + plane[1] * py + plane[2] * pz < plane[3]) continue;
-    const w = M[3] * px + M[7] * py + M[11] * pz + M[15];
-    if (w < 1e-6) continue;
-    const dx = ((M[0] * px + M[4] * py + M[8] * pz + M[12]) / w * 0.5 + 0.5) * cw - x, dy = (0.5 - (M[1] * px + M[5] * py + M[9] * pz + M[13]) / w * 0.5) * ch - y, d2 = dx * dx + dy * dy;
-    if (d2 > r2 || d2 >= bd * bd) continue;
-    bd = Math.sqrt(d2); hit = s;
+export function nearestPoint(g: PreparedGeometry, M: ArrayLike<number>, x: number, y: number, cw: number, ch: number, reach: number, best: number, plane: ArrayLike<number> | null, skip: ReadonlySet<number> | null, accelerate = true): { index: number; distance: number } | null {
+  const L = Math.min(best, reach);
+  nearPt.index = -1; nearPt.d2 = Infinity; nearPt.limit2 = L * L; nearPt.r2 = reach * reach; nearPt.skip = skip && skip.size ? skip : null;
+  nearPt.plane = plane; nearPt.x = x; nearPt.y = y; nearPt.cw = cw; nearPt.ch = ch;
+  if (!accelerate || g.elementCount < POINT_BVH_FROM) for (let s = 0; s < g.elementCount; s++) testPoint(g, M, s);
+  else {
+    // (A node passed over when its screen rectangle is farther than the best so far; ties go to the lowest index either way.)
+    const h = bvhOf(g), stack = pointStack;
+    stack.length = 0; stack.push(0);
+    while (stack.length) {
+      const node = stack.pop()!, limit = Math.min(L, Number.isFinite(nearPt.d2) ? Math.sqrt(nearPt.d2) : Infinity);
+      if (rectDistance(h.box, 6 * node, M, x, y, cw, ch) > limit + 1e-6 * (1 + limit)) continue;
+      if (h.left[node] < 0) { for (let i = h.start[node], e = i + h.count[node]; i < e; i++) testPoint(g, M, h.order[i]); continue; }
+      stack.push(h.left[node], h.right[node]);
+    }
   }
-  return hit < 0 ? null : { index: hit, distance: bd };
+  return nearPt.index < 0 ? null : { index: nearPt.index, distance: Math.sqrt(nearPt.d2) };
+}
+const POINT_BVH_FROM = 256, pointStack: number[] = [];
+const nearPt = { index: -1, d2: Infinity, limit2: Infinity, r2: 0, skip: null as ReadonlySet<number> | null, plane: null as ArrayLike<number> | null, x: 0, y: 0, cw: 0, ch: 0 };
+/** One point against the best so far (`nearPt`): within the reach, nearer than another mesh's best, then the nearest, ties to the lowest index. */
+function testPoint(g: PreparedGeometry, M: ArrayLike<number>, s: number): void {
+  const q = nearPt;
+  if (q.skip && q.skip.has(s)) return;
+  const P = g.positions, I = g.indices, a = I ? I[s] : s, px = P[3 * a], py = P[3 * a + 1], pz = P[3 * a + 2], pl = q.plane;
+  if (pl && pl[0] * px + pl[1] * py + pl[2] * pz < pl[3]) return;
+  const w = M[3] * px + M[7] * py + M[11] * pz + M[15];
+  if (w < 1e-6) return;
+  const dx = ((M[0] * px + M[4] * py + M[8] * pz + M[12]) / w * 0.5 + 0.5) * q.cw - q.x, dy = (0.5 - (M[1] * px + M[5] * py + M[9] * pz + M[13]) / w * 0.5) * q.ch - q.y, d2 = dx * dx + dy * dy;
+  if (d2 > q.r2 || d2 >= q.limit2) return;
+  if (q.index >= 0 && (d2 > q.d2 || (d2 === q.d2 && s > q.index))) return;
+  q.index = s; q.d2 = d2;
 }
 
 /** Segments as the line shader reads them, one instance each: a, b (3 floats each), colours of a and b (RGBA8). */
