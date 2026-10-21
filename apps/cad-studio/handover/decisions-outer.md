@@ -5184,3 +5184,45 @@ The coordinator's queue, item 5. The S0 is for the coordinator's reply before bu
 ## O131 — FRf2's sibling scope: decided-deferred (2026-10-22)
 
 The owner, through the coordinator, verbatim: "둘다 제안한대로 해줘" (do both as proposed). The proposal: a placed part's frame following a sibling part's sketch stays the typed refusal `FRAME_PART_SCOPE`, with no change now to how the assembly is evaluated (describe, placedBodies and the mates' solve stay per part); it is built only when a real need appears. The other half of the same decision, the chat turn's merge, is O132.
+
+## O132 — S0: a chat turn merged onto the document as it is now, conflicts re-proposed (2026-10-22)
+
+The owner's decision through the coordinator ("둘다 제안한대로 해줘", option (a)): the README defect "Chat turn overwrites edits made during it" is fixed by re-applying the agent's operations onto the current document and re-proposing only the conflicting ones, with A7's machinery: a patch on a base revision, STALE_BASE, an explicit rebase. Today `ChatPanel.send` takes `base` at send (`src/ui/ChatPanel.tsx:106`), and the end of the turn commits the agent's whole document (`App.tsx` chat `onCommit` → `commit(next)`). `carryOver` keeps only the non-model fields, so a box added meanwhile is lost.
+
+- **Capture: the turn's patch, recorded by the MCP server** (`server/cadMcp.ts`):
+  - Every tool call that changed the part (`out.changed`, not an error) is appended as an op in the form proposals already store and replay: the handler's name and arguments after `viaV2`/`v1Call`.
+  - Each op also records the serial range of the feature ids it handed out (`nextId` before → after).
+  - The state file keeps `patch: { id, by, base: revisionOf(turnBase), ops, ids }` (A7's `Patch` plus the id ranges). The chat server passes it through in `done`, so an aborted turn's patch is the part made so far.
+- **The fast path (unchanged behaviour)**: when the current document's revision is the patch's base, the agent's document is committed as today.
+- **The slow path: STALE_BASE, then an explicit rebase.** It runs in the browser in `chat/merge.ts` (the model), as acceptProposal already does: `mergeTurn(base, current, patch, evaluate) → { doc, applied, deferred }`.
+  - The ops replay one at a time on the current document through `dispatchTool`, with the gates the agent already passed at its autonomy.
+  - The person's change set `U` is `treeDiff(base, current)` (nodes added, changed and deleted), plus the parameters and other revision fields that differ.
+  - Before an op runs, its ids are remapped. The ids the agent's run handed out, from the base's `nextId`, are mapped to the ones the replay hands out on the current document. Whole `n<k>` id tokens in its arguments are rewritten, so a box the person added as `n4` meanwhile and the agent's own `n4` never collide.
+  - An op that conflicts is not applied (the merge keeps the state before it) and goes to `deferred` with a typed reason. Every other op is applied in order.
+- **What counts as a conflict** (per op, judged on its own before → after during the replay):
+  - **TURN_SAME_NODE**: the op changes or deletes a node the person changed or deleted.
+  - **TURN_NODE_GONE**: the op is refused on the current document (its error is kept), breaks a reference, or names a node the person deleted.
+  - **TURN_PARAMETER_CHANGED**: the op's arguments, or the args of a node it touches, name a parameter the person changed or deleted, or the op writes one.
+  - **TURN_FIELD_CHANGED**: the op writes a revision field (brief, requirements, material, process, references, interfaces…) the person also changed.
+  - **TURN_NOT_REPLAYABLE**: `restore` and `restore_best` bring back a whole earlier state.
+  - **TURN_BUILDS_ON_DEFERRED**: the op names an id a deferred op made.
+  - **TURN_SHAPE_DIFFERS**: the replay hands out a different number of ids than the agent's run did.
+- **What the person sees**:
+  - The merged document is committed as one change: one undo step back over the agent's change, the person's edit kept.
+  - The toast says "Chat turn merged with your edits: 7 of 9 changes applied, 2 wait as P3", with Undo.
+  - The deferred ops become one open proposal on the merged document: base `modelHash(merged)`, its ops remapped to the ids its replay will hand out, and its plan listing each op's reason ("not applied: you changed n2's depth during the turn"; "n5 was deleted"). It also gets an optional additive field, `merge: { turn, conflicts: [{ op, code, reason }] }`.
+  - The person previews, accepts, rejects or rebases it as any proposal. The design history's prompt entry says the turn was merged.
+- **Edges**:
+  - If the person edits again while the replay runs, it reruns against the newest document, at most twice, then defers the rest with the reason.
+  - With a rollback marker, the merge compares the document's prefix the person sees, as `base` is now.
+  - The previews during the turn still show the agent's states on the send-time base (unchanged).
+- **Tests**:
+  - The README repro: a long scripted turn with a box added meanwhile ends with both the box and the agent's change, and the ids don't clash.
+  - A same-node edit, a used node deleted, and a parameter changed under the agent each give a proposal, never a silent overwrite, with the person's value kept.
+  - A deferred op's dependants are deferred, and the proposal accepts cleanly on the merged document.
+  - The fast path is identical to today.
+  - In the studio, ⌘Z after the merge steps back once over the agent's change, and the person's edit stays.
+  - Flow step: the real chat with a slow scripted turn (the scripted agent's delay) and an edit in between, placed before "command palette and light theme".
+- **Touches**: `server/cadMcp.ts` and `server/chatServer.ts` (the patch), `src/chat/client.ts` (the done type), `src/ui/ChatPanel.tsx` (passes the patch and base), App.tsx's chat `onCommit` (the merge before `commit`, no joint, explode or section paths), and the model's new `chat/merge.ts` plus `Proposal.merge?`. FLOW_ONLY: chat/agent steps and proposal steps.
+- **Shared with G12 (item 4)**: the person's change set and the per-op touched set use the same `treeDiff`/revision-field comparison that `proposalDiff`'s `changedFaces` pairing will name.
+- **To check while building**: `rebaseProposal` replays a proposal's ops on a changed part. If those ops name ids they made themselves, the same id shift may hit stale proposals today. It will be confirmed by a probe, and fixed by the same remap if it does.
