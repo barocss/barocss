@@ -226,7 +226,9 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
       const toward = Math.abs(x - t0) < Math.abs(x - t1) ? 1 : -1, n1 = to2(f, at3(x + toward * 1e-3 * span), hint), n2 = to2(f, at3(x + toward * 2e-3 * span), hint);
       return q.along === 0 ? [2 * n1[0] - n2[0], q.at] : [q.at, 2 * n1[1] - n2[1]];
     };
-    return { kind: 'curve', f: tabulated(s, g, at3, t0, t1), t0, t1, src: at3, ...t, ...(k.kind !== 'param' || k.exact ? { exact: true } : {}), ...(k.kind === 'param' && k.src ? { srcCurve: k.src } : {}) } as CurveSegment2;
+    // (The source curve's interior knots as fractions of the range: its pieces' joins, D150.)
+    const breaks = k.kind === 'param' && k.src ? [...new Set(k.src.knots)].map(x => (x - t0) / (t1 - t0)).filter(u => u > 0 && u < 1) : [];
+    return { kind: 'curve', f: tabulated(s, g, at3, t0, t1, breaks), t0, t1, src: at3, ...t, ...(k.kind !== 'param' || k.exact ? { exact: true } : {}), ...(k.kind === 'param' && k.src ? { srcCurve: k.src } : {}) } as CurveSegment2;
   }
   if (k.kind === 'param') return { kind: 'curve', f: memo(x => to2(f, k.at(x))), t0: k.t0, t1: k.t1, src: k.at, ...t, ...(k.src ? { srcCurve: k.src } : {}) } as CurveSegment2;
   if (k.kind === 'line') {
@@ -250,46 +252,88 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
  * derivatives (the surface Jacobian's pseudo-inverse applied to the curve's tangent) and evaluated by
  * cubic Hermite interpolation: about (span / 128)⁴ off, far below tolerance, where every exact
  * evaluation would cost a Newton projection. Curves through a pole (a singular map) stay exact.
+ * `breaks` (fractions of the range): the source curve's interior knots, made samples too, each with its
+ * tangent from either side — a curve of C0 pieces (an edge of two fitted spans meeting at a corner) is
+ * interpolated piece by piece; one sample's tangent averaged across such a knot put both intervals beside
+ * it up to 4e-4 mm off (a bevel pair's toe edges, D150).
  */
-function tabulated(s: Nurbs, g: (x: number) => XY, at3: (x: number) => P3, t0: number, t1: number): (x: number) => XY {
+function tabulated(s: Nurbs, g: (x: number) => XY, at3: (x: number) => P3, t0: number, t1: number, breaks: readonly number[] = []): (x: number) => XY {
   const exact = memo(g), N = 128, span = t1 - t0;
-  let table: { p: XY[]; d: XY[] } | null | false = null;
+  // Sample fractions: the uniform 128 with the breaks among them (a uniform one within 1e-9 of a break gives way).
+  const inner = breaks.filter(b => b > 1e-9 && b < 1 - 1e-9).sort((a, b) => a - b);
+  const F: number[] = [], isBreak: boolean[] = [];
+  for (let i = 0, k = 0; i <= N; i++) {
+    const u = i / N;
+    while (k < inner.length && inner[k] < u - 1e-9) { F.push(inner[k]); isBreak.push(true); k++; }
+    if (k < inner.length && Math.abs(inner[k] - u) <= 1e-9) { F.push(inner[k]); isBreak.push(true); k++; continue; }
+    F.push(u); isBreak.push(false);
+  }
+  let table: { p: XY[]; dl: XY[]; dr: XY[] } | null | false = null;
   const build = () => {
-    const p: XY[] = [], d: (XY | null)[] = [];
-    for (let i = 0; i <= N; i++) {
-      const x = t0 + span * i / N, q = exact(x), P = at3(x);
-      p.push(q);
-      // At a pole the map's derivative comes from the neighbouring samples (below).
-      if (s.poles.some(o => len(sub(P, o.point)) <= 1e-6 * (s.size + 1))) { d.push(null); continue; }
-      const h = 1e-6 * span, xa = Math.max(Math.min(t0, t1), Math.min(Math.max(t0, t1), x - h)), xb = Math.max(Math.min(t0, t1), Math.min(Math.max(t0, t1), x + h));
-      const dP = scale(sub(at3(xb), at3(xa)), 1 / (xb - xa));
+    const p: XY[] = [], dl: (XY | null)[] = [], dr: (XY | null)[] = [], n = F.length - 1;
+    const lo = Math.min(t0, t1), hi = Math.max(t0, t1);
+    /**
+     * The domain rate of the curve for its tangent dP at the domain point q (null where the Jacobian is singular). `toward`:
+     * the side of the domain the curve leaves q into, the surface's derivatives taken on that side (across a C0 knot line of
+     * the surface — a flank of two spans — the two sides' Jacobians differ).
+     */
+    const rate = (q: XY, dP: P3, toward?: XY): XY | null => {
       const u = Math.min(s.U[1], Math.max(s.U[0], q[0] / s.ku)), v = Math.min(s.V[1], Math.max(s.V[0], q[1] / s.kv)), hu = 1e-7 * (s.U[1] - s.U[0]), hv = 1e-7 * (s.V[1] - s.V[0]);
-      const ua = u + hu <= s.U[1] ? u + hu : u - hu, va = v + hv <= s.V[1] ? v + hv : v - hv, Q = s.ev(u, v);
+      const su = toward && toward[0] * s.ku < 0 ? -1 : 1, sv = toward && toward[1] * s.kv < 0 ? -1 : 1;
+      const ua = u + su * hu <= s.U[1] && u + su * hu >= s.U[0] ? u + su * hu : u - su * hu, va = v + sv * hv <= s.V[1] && v + sv * hv >= s.V[0] ? v + sv * hv : v - sv * hv, Q = s.ev(u, v);
       const Su = scale(sub(s.ev(ua, v), Q), 1 / (ua - u)), Sv = scale(sub(s.ev(u, va), Q), 1 / (va - v));
       const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), det = g11 * g22 - g12 * g12, r1 = dot(Su, dP), r2 = dot(Sv, dP);
-      if (!(det > 1e-24 * (g11 + g22) ** 2)) { d.push(null); continue; }
-      d.push([(r1 * g22 - r2 * g12) / det * s.ku, (g11 * r2 - g12 * r1) / det * s.kv]);
+      if (!(det > 1e-24 * (g11 + g22) ** 2)) return null;
+      return [(r1 * g22 - r2 * g12) / det * s.ku, (g11 * r2 - g12 * r1) / det * s.kv];
+    };
+    for (let i = 0; i <= n; i++) {
+      const x = t0 + span * F[i], q = exact(x), P = at3(x);
+      p.push(q);
+      // At a pole the map's derivative comes from the neighbouring samples (below).
+      if (s.poles.some(o => len(sub(P, o.point)) <= 1e-6 * (s.size + 1))) { dl.push(null); dr.push(null); continue; }
+      const h = 1e-6 * span;
+      if (isBreak[i]) {
+        // Either side's tangent by a one-sided second-order difference, within that side's piece.
+        const side = (sg: 1 | -1): XY | null => {
+          const a = at3(x + sg * h), b = at3(x + sg * 2 * h), qa = exact(x + sg * 2 * h);
+          return rate(q, scale(add(scale(P, -3), sub(scale(a, 4), b)), 1 / (2 * sg * h)), [qa[0] - q[0], qa[1] - q[1]]);
+        };
+        dl.push(side(-1)); dr.push(side(1));
+        continue;
+      }
+      const xa = Math.max(lo, Math.min(hi, x - h)), xb = Math.max(lo, Math.min(hi, x + h));
+      const d = rate(q, scale(sub(at3(xb), at3(xa)), 1 / (xb - xa)));
+      dl.push(d); dr.push(d);
     }
-    // Second-order one-sided (or central) differences where the Jacobian is singular.
-    const h = span / N, out: XY[] = [];
-    for (let i = 0; i <= N; i++) {
-      const di = d[i]; if (di) { out.push(di); continue; }
-      const diff = (a: XY, b: XY, c: XY, k: number): XY => [(-3 * a[0] + 4 * b[0] - c[0]) / (2 * h * k), (-3 * a[1] + 4 * b[1] - c[1]) / (2 * h * k)];
-      if (i + 2 <= N && (i === 0 || i < N / 2)) out.push(diff(p[i], p[i + 1], p[i + 2], 1));
-      else if (i - 2 >= 0) out.push(diff(p[i], p[i - 1], p[i - 2], -1));
-      else return false;
-    }
-    return { p, d: out };
+    // Second-order one-sided differences over the (uneven) samples where the Jacobian is singular.
+    const fill = (d: (XY | null)[]): XY[] | false => {
+      const out: XY[] = [];
+      for (let i = 0; i <= n; i++) {
+        const di = d[i]; if (di) { out.push(di); continue; }
+        const [j1, j2] = i + 2 <= n && (i === 0 || i < n / 2) ? [i + 1, i + 2] : i - 2 >= 0 ? [i - 1, i - 2] : [-1, -1];
+        if (j1 < 0) return false;
+        const h1 = span * (F[j1] - F[i]), h2 = span * (F[j2] - F[i]);
+        out.push([0, 1].map(k => ((p[j1][k] - p[i][k]) * h2 * h2 - (p[j2][k] - p[i][k]) * h1 * h1) / (h1 * h2 * (h2 - h1))) as XY);
+      }
+      return out;
+    };
+    const L = fill(dl), R = fill(dr);
+    return L && R ? { p, dl: L, dr: R } : false;
   };
+  const n = F.length - 1;
   return x => {
     if (table === null) table = build();
     if (table === false || !(span !== 0)) return exact(x);
-    const f = (x - t0) / span * N, i = Math.min(N - 1, Math.max(0, Math.floor(f))), u = f - i;
-    if (u === 0) return table.p[i];
-    if (i === N - 1 && u === 1) return table.p[N];
-    const u2 = u * u, u3 = u2 * u, h = span / N, a = table.p[i], b = table.p[i + 1], da = table.d[i], db = table.d[i + 1];
-    const h00 = 2 * u3 - 3 * u2 + 1, h10 = (u3 - 2 * u2 + u) * h, h01 = -2 * u3 + 3 * u2, h11 = (u3 - u2) * h;
-    return [a[0] * h00 + da[0] * h10 + b[0] * h01 + db[0] * h11, a[1] * h00 + da[1] * h10 + b[1] * h01 + db[1] * h11];
+    const f = (x - t0) / span;
+    // The interval holding f (binary search over the sample fractions).
+    let a = 0, b = n;
+    while (b - a > 1) { const m = (a + b) >> 1; if (F[m] <= f) a = m; else b = m; }
+    const h = F[b] - F[a], u = (f - F[a]) / h;
+    if (u <= 0) return table.p[a];
+    if (u >= 1) return table.p[b];
+    const u2 = u * u, u3 = u2 * u, H = h * span, P0 = table.p[a], P1 = table.p[b], D0 = table.dr[a], D1 = table.dl[b];
+    const h00 = 2 * u3 - 3 * u2 + 1, h10 = (u3 - 2 * u2 + u) * H, h01 = -2 * u3 + 3 * u2, h11 = (u3 - u2) * H;
+    return [P0[0] * h00 + D0[0] * h10 + P1[0] * h01 + D1[0] * h11, P0[1] * h00 + D0[1] * h10 + P1[1] * h01 + D1[1] * h11];
   };
 }
 /** A curve's domain map, remembered per parameter (each one costs a surface projection on a general surface). */
