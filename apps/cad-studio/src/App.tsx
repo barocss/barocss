@@ -71,6 +71,9 @@ import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import type { Analysis } from './viewport/analysis';
 import { boundsUnder, instancePoses } from './viewport/instancePose';
 import { sectionPlane, sectionedBodies, sectionedInstances } from './viewport/sectionView';
+import { mapsOf, type MapKind } from './viewport/scalarMaps';
+import { isoclinePolylines } from '@barocss/cad-model/mould/parting';
+import { MapLegend, MouldLegend } from './ui/MapLegend';
 import { edgeChain } from '@barocss/cad-model/app/edgeChain';
 import { offsetShape } from '@barocss/cad-model/sketch/offset';
 import { extendAt, joinOpen, splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
@@ -294,6 +297,13 @@ export function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => { try { return (localStorage.getItem('cad-studio-theme') as 'dark' | 'light') || 'dark'; } catch { return 'dark'; } });
   /** A surface analysis look on the bodies (modelling view only). */
   const [analysis, setAnalysis] = useState<'zebra' | 'curvature' | 'overhang' | null>(null);
+  // (G6: an analysis map on the bodies — IM4 wall thickness; IM2 draft and CNC access when their data lands — and its value under the pointer.)
+  const [mapKind, setMapKind] = useState<MapKind | 'parting' | 'halves' | null>(null);
+  const [mapHover, setMapHover] = useState<number | null>(null);
+  // (G6: the mould's view for the parting and halves maps — built in the engine worker — and how far the halves are spread.)
+  const [mouldResult, setMouldResult] = useState<Awaited<ReturnType<EngineClient['mould']>> | 'working' | null>(null);
+  const [mouldSpread, setMouldSpread] = useState(0);
+  const halvesShownRef = useRef(false);
   const [ao, setAo] = useState(true);
   const [editNode, setEditNode] = useState<number | null>(null);
   /** The body whose name is being typed in the browser (its key). */
@@ -900,6 +910,8 @@ export function App() {
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
     // (The section view shows cut copies of the bodies: picks wait until it is closed.)
     if (sectionRef.current && !activeRef.current) return;
+    // (G6: while the mould's halves show, picks reach only them — none here.)
+    if (halvesShownRef.current && !activeRef.current) return;
     if (active) {
       // A command that takes a pick (a revolve's axis edge) gets the click; others ignore it.
       if (!active.cmd.onPick) return;
@@ -1622,6 +1634,21 @@ export function App() {
   const sectioned = !!(section && sectionBodies && !sketch && !previewBodies);
   // (G2: the viewer's clip plane while the section is open on WebGPU — on the bodies until their exact section is shown,
   // on the placed parts always; none in a sketch, where the section is not shown.)
+  const scalarMaps = useMemo(() => (mapKind === 'thickness' || mapKind === 'draft' || mapKind === 'access') && !rendering && !sketch && !previewBodies ? mapsOf(mapKind, doc, shownBodies) : null, [mapKind, rendering, sketch, previewBodies, shownBodies, doc]);
+  // (With the draft map, each body's isoclines n·d = 0 on its straddling faces, from the exact surface.)
+  const isoclines = useMemo(() => mapKind === 'draft' && scalarMaps && doc.mould?.pull ? shownBodies.flatMap(b => isoclinePolylines(doc, b, doc.mould!.pull!)) : null, [mapKind, scalarMaps, doc, shownBodies]);
+  // (The mould's view: asked again when the part, its pull or its sides change; none outside its two maps.)
+  const mouldWanted = (mapKind === 'parting' || mapKind === 'halves') && !rendering && !sketch && !previewBodies && !!doc.mould?.pull;
+  useEffect(() => {
+    if (!mouldWanted) { setMouldResult(null); return; }
+    let live = true; setMouldResult('working');
+    void engine.mould(doc, revision.current++, mapKind === 'halves').then(r => { if (live) setMouldResult(r); });
+    return () => { live = false; };
+  }, [mouldWanted, mapKind, evaluated, doc.mould, engine]);
+  const mouldShown = useMemo(() => mouldResult && mouldResult !== 'working' && !('error' in mouldResult)
+    ? { pull: mouldResult.pull, loops: mouldResult.loops, plus: mapKind === 'halves' ? mouldResult.plus : [], minus: mapKind === 'halves' ? mouldResult.minus : [], spread: mouldSpread } : null, [mouldResult, mapKind, mouldSpread]);
+  halvesShownRef.current = !!mouldShown && (mouldShown.plus.length + mouldShown.minus.length) > 0;
+  const mapLegend = scalarMaps?.[0] && viewport.current?.backend === 'webgpu' ? scalarMaps[0] : null;
   const sectionClip = useMemo(() => section && !sketch && gpuSection ? { ...sectionPlane(section), bodies: shownBodies === sectionBodies && !sectionExactShown } : null, [section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown]);
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -1822,7 +1849,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} clip={sectionClip} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} clip={sectionClip} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
@@ -2290,6 +2317,8 @@ export function App() {
       </div>
 
       <div className="corner-right">
+  {mapLegend && <MapLegend map={mapLegend} hover={mapHover} />}
+  {(mapKind === 'parting' || mapKind === 'halves') && <MouldLegend kind={mapKind} result={mouldResult} pull={!!doc.mould?.pull} spread={mouldSpread} onSpread={setMouldSpread} />}
   {section && <div className="card section-bar" role="group" aria-label="Section"><span className="muted">Section</span>{(['x', 'y', 'z'] as const).map(a => <button key={a} className={section.axis === a ? 'on' : ''} aria-label={`Section across ${a.toUpperCase()}`}
             onClick={() => { const k = 'xyz'.indexOf(a), vs = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)].flatMap(b => [b.mesh.bounds.min[k], b.mesh.bounds.max[k]]); setSection(s => s && { ...s, axis: a, at: vs.length ? Math.round(Math.min(...vs) + Math.max(...vs)) / 2 : 0 }); }}>{a.toUpperCase()}</button>)}
             <button aria-label="Flip the section" data-tip="Show the other side" onClick={() => setSection(s => s && { ...s, keep: s.keep === 'negative' ? 'positive' : 'negative' })}><Icon name="swap_horiz" small /></button>
@@ -2306,6 +2335,8 @@ export function App() {
           {!rendering && <button aria-label="Surface analysis" className={analysis ? 'on' : ''} data-tip={analysis === 'zebra' ? 'Zebra stripes' : analysis === 'curvature' ? 'Curvature map' : 'Surface analysis'}
             data-tip-desc="Click: zebra stripes (a bend or break in a stripe is a joint that is not smooth), then the curvature map (flat blue, tight red), then — for a printing process — the overhang map (red past its limit), then off"
             onClick={() => setAnalysis(a => a === null ? 'zebra' : a === 'zebra' ? 'curvature' : a === 'curvature' && printing ? 'overhang' : null)}>{analysis === 'zebra' ? 'Zebra' : analysis === 'curvature' ? 'Curv' : analysis === 'overhang' ? 'Overhang' : 'Analyse'}</button>}
+          {!rendering && <button aria-label="Analysis map" className={mapKind ? 'on' : ''} data-tip="Analysis map" data-tip-desc="Click: the wall thickness (thin red, nominal green, thick orange, past the thick-section limit purple); for a part with a pull, its draft (under the least draft red, + green, − blue, the isoclines white); the share a 3-axis mill does not reach (red); for a part with a pull, its parting line, then its two halves (spread apart from the legend); then off — each legend shows the value under the pointer"
+            onClick={() => { setMapHover(null); setMouldSpread(0); const pull = !!doc.mould?.pull; setMapKind(k => k === null ? 'thickness' : k === 'thickness' ? (pull ? 'draft' : 'access') : k === 'draft' ? 'access' : k === 'access' ? (pull ? 'parting' : null) : k === 'parting' ? 'halves' : null); }}>{mapKind === 'thickness' ? 'Thickness' : mapKind === 'draft' ? 'Draft' : mapKind === 'access' ? 'Access' : mapKind === 'parting' ? 'Parting' : mapKind === 'halves' ? 'Halves' : 'Maps'}</button>}
           <button onClick={() => setTheme(v => v === 'dark' ? 'light' : 'dark')} title="Toggle light / dark" aria-label="Toggle light or dark theme"><Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} small /></button>
         </div>
         {(doc.instances?.length ?? 0) > 0 && <button className={'chip snap' + (explode ? ' on' : '')} aria-label="Explode" data-tip="Exploded view" data-tip-desc="Spread the parts out from the middle to see how they go together (display only): click for more, then off"

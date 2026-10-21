@@ -30,6 +30,61 @@ export interface PreparedGeometry {
   edges: Uint32Array | null;
   vertexCount: number; elementCount: number;
   bounds: Box3 | null;
+  /** A scalar field on it for a colour map (G6), or null. */
+  scalars: ScalarField | null;
+}
+
+/**
+ * A scalar field on a triangle geometry (G6): one value per vertex (interpolated) or per triangle (flat), NaN where there
+ * is none. `draw` is what the GPU reads: the values per drawn vertex (a sentinel for none), and for a per-triangle field
+ * the triangles' positions and normals laid out one vertex each (drawn without the index buffer, each triangle flat).
+ */
+export interface ScalarField {
+  per: 'vertex' | 'triangle';
+  values: Float32Array;
+  draw: { values: Float32Array; positions: Float32Array | null; normals: Float32Array | null };
+}
+/** What the GPU reads for a missing value (WGSL makes no promise about NaN). */
+export const SCALAR_MISSING = -3e38;
+
+/** A scalar field for a triangle geometry: checked, and laid out for drawing. */
+export function prepareScalars(g: PreparedGeometry, input: ArrayLike<number>, per: 'vertex' | 'triangle'): ScalarField {
+  if (g.topology !== 'triangles') throw new RangeError('Only triangle geometry has a scalar field');
+  const T = g.elementCount / 3, n = per === 'vertex' ? g.vertexCount : T;
+  if (input.length !== n) throw new RangeError(`A per-${per} field needs ${n} values (it has ${input.length})`);
+  const values = Float32Array.from(input), I = g.indices;
+  if (per === 'vertex') {
+    const draw = new Float32Array(n);
+    for (let v = 0; v < n; v++) draw[v] = Number.isFinite(values[v]) ? values[v] : SCALAR_MISSING;
+    return { per, values, draw: { values: draw, positions: null, normals: null } };
+  }
+  const dv = new Float32Array(3 * T), P = new Float32Array(9 * T), N = new Float32Array(9 * T), GP = g.positions, GN = g.normals;
+  for (let t = 0; t < T; t++) {
+    const x = Number.isFinite(values[t]) ? values[t] : SCALAR_MISSING;
+    for (let k = 0; k < 3; k++) {
+      const v = I ? I[3 * t + k] : 3 * t + k, o = 3 * (3 * t + k);
+      dv[3 * t + k] = x;
+      P[o] = GP[3 * v]; P[o + 1] = GP[3 * v + 1]; P[o + 2] = GP[3 * v + 2];
+      N[o] = GN[3 * v]; N[o + 1] = GN[3 * v + 1]; N[o + 2] = GN[3 * v + 2];
+    }
+  }
+  return { per, values, draw: { values: dv, positions: P, normals: N } };
+}
+
+/** A field's value at a point (the geometry's own space) on triangle t: its triangle's, or its vertices' by barycentric weights; NaN where none. */
+export function scalarAt(g: PreparedGeometry, t: number, p: ArrayLike<number>): number {
+  const f = g.scalars;
+  if (!f) return NaN;
+  if (f.per === 'triangle') return f.values[t];
+  const I = g.indices, P = g.positions, ia = I ? I[3 * t] : 3 * t, ib = I ? I[3 * t + 1] : 3 * t + 1, ic = I ? I[3 * t + 2] : 3 * t + 2;
+  const ax = P[3 * ia], ay = P[3 * ia + 1], az = P[3 * ia + 2];
+  const v0x = P[3 * ib] - ax, v0y = P[3 * ib + 1] - ay, v0z = P[3 * ib + 2] - az, v1x = P[3 * ic] - ax, v1y = P[3 * ic + 1] - ay, v1z = P[3 * ic + 2] - az;
+  const v2x = p[0] - ax, v2y = p[1] - ay, v2z = p[2] - az;
+  const d00 = v0x * v0x + v0y * v0y + v0z * v0z, d01 = v0x * v1x + v0y * v1y + v0z * v1z, d11 = v1x * v1x + v1y * v1y + v1z * v1z;
+  const d20 = v2x * v0x + v2y * v0y + v2z * v0z, d21 = v2x * v1x + v2y * v1y + v2z * v1z, den = d00 * d11 - d01 * d01;
+  if (!(Math.abs(den) > 0)) return f.values[ia];
+  const b = (d11 * d20 - d01 * d21) / den, c = (d00 * d21 - d01 * d20) / den, a = 1 - b - c;
+  return a * f.values[ia] + b * f.values[ib] + c * f.values[ic];
 }
 
 export function prepareGeometry(input: GeometryInput): PreparedGeometry {
@@ -61,7 +116,7 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
   }
   const uvs = input.uvs ? Float32Array.from(input.uvs) : new Float32Array(vertexCount * 2);
   if (uvs.length !== vertexCount * 2) throw new RangeError('uvs must hold two numbers per vertex');
-  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), uvs, indices, faces, edges, vertexCount, elementCount, bounds: boxOfPositions(positions) };
+  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), uvs, indices, faces, edges, vertexCount, elementCount, bounds: boxOfPositions(positions), scalars: null };
 }
 
 /** sRGB colours (three or four per vertex, 0–1) as linear RGBA8; white when left out. */

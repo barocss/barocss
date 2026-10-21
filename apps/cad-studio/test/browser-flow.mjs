@@ -5702,6 +5702,43 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- G6: analysis maps -------------------------------------------------------------------------------------------
+  await check('G6: the analysis maps — a moulded plate\'s wall thickness with its legend and the value under the pointer; its draft; what a 3-axis mill does not reach; its parting line; its two halves (48,000 mm³ above the parting plane), spread apart; off again', async () => {
+    const fs = await import('node:fs'), file = join(out, 'g6-plate.bcad');
+    // (IM7's plate: 60 × 40 × 10 with a Ø10 through hole, injection moulded along +Z.)
+    const plate = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, process: 'injection', mould: { version: 1, pull: [0, 0, 1], finish: 'smooth' },
+      nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] }, { kind: 'extrude', sketch: 0, height: 10 }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [30, 20], radius: 5 }],
+      outputs: { b2: { node: 2, side: 'solid' } } };
+    fs.writeFileSync(file, JSON.stringify(plate));
+    await openModel(file, 3); await idle(); await iso();
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForSelector('[aria-label="Map legend"]', { timeout: 10000 });
+    assert.match(await page.locator('[aria-label="Map legend"]').innerText(), /Wall thickness/);
+    // The value under the pointer: over the plate's top, its 10 mm wall (the inscribed sphere at a top triangle).
+    const box = await page.locator('canvas.vp-canvas').boundingBox();
+    let value = '—';
+    for (let k = 0; k < 12 && value === '—'; k++) { await page.mouse.move(box.x + box.width * (0.4 + 0.02 * k), box.y + box.height * 0.5); await page.waitForTimeout(80); value = await page.locator('[aria-label="Map value"]').innerText(); }
+    assert.match(value, /^\d+(\.\d+)? mm$/, `a value under the pointer: ${value}`);
+    await snap('g6-thickness');
+    // The draft (O-G6's per-vertex exact draft): its walls along the pull under the smooth finish's least draft, red.
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForFunction(() => /Draft against the pull/.test(document.querySelector('[aria-label="Map legend"]')?.textContent ?? ''), null, { timeout: 30000 });
+    await snap('g6-draft');
+    // What a 3-axis mill does not reach (O-G6's per-triangle access): the plate's every face reached.
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForFunction(() => /Not reached by a 3-axis mill/.test(document.querySelector('[aria-label="Map legend"]')?.textContent ?? ''), null, { timeout: 30000 });
+    await snap('g6-access');
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForFunction(() => /\d+ loops?/.test(document.querySelector('[aria-label="Parting loops"]')?.textContent ?? ''), null, { timeout: 30000 });
+    await snap('g6-parting');
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForSelector('[aria-label="Plus half"]', { timeout: 60000 });
+    assert.match(await page.locator('[aria-label="Plus half"]').innerText(), /48,000 mm³/);
+    await page.click('[aria-label="Spread the halves"]'); await page.waitForTimeout(400); await snap('g6-halves');
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Mould legend"]') && !document.querySelector('[aria-label="Map legend"]'), null, { timeout: 5000 });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

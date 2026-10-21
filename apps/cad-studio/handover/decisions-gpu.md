@@ -301,3 +301,81 @@ against the code as it is now:
   steps that compile shader materials): 4/4 in 12 s, on `acbf60deb` in the verify worktree. Not run: the full flow, the cad-model suite (not touched),
   benches (no frame path changed).
 
+## G6 — scalar colour maps with a legend; the parting line and the mould's halves (2026-10-21, first part)
+
+- **Data shape** (proposed and approved before building, the coordinator relaying to the outer lane): an analysis map is
+  `ScalarMap { body, per: 'vertex' | 'triangle', values (NaN none), unit, range, thresholds, legend }` per body, worked out
+  when chosen or when the bodies change, never per frame. IM4 thickness, the parting loops and the halves exist in
+  cad-model; IM2's per-vertex exact draft (`draftSamples`), CNC's per-triangle access (`accessSamples`) and the isoclines
+  as polylines (`isoclinePolylines`) are the outer lane's (O-G6), wired here when they land.
+- **Viewer** (`packages/barocss-gpu`):
+  - `Geometry.setScalars(values, per)`: one value per vertex (interpolated) or per triangle (flat: the triangles' own
+    positions and normals laid out unindexed, made once per field), NaN none (a sentinel on the GPU: WGSL promises nothing
+    about NaN). `Mesh.colorMap = { stops: [value, sRGB][]; below?; above?; missing?; bands? } | null`: a 256-texel
+    `rgba8unorm-srgb` ramp per mesh, interpolated in linear light (`packColorMap`), drawn by its own pipeline (`vsMap`,
+    `fsMap`: the surface's lighting, flat when unlit), the material back with null. The pick, outline-mask, shadow and cap
+    passes draw the indexed geometry as before; a mapped mesh under the clip plane caps in its cap colour.
+  - `PickHit.scalar`: the field at the hit — its triangle's, or its vertices' by barycentric weights — for the legend.
+- **Studio**:
+  - The **Analysis map** button (beside Analyse, whose click count the flow relies on): Thickness, then for a moulded part
+    Parting and Halves, then off. `viewport/scalarMaps.ts`: IM4's thickness per display triangle (`wallSamples(body).local`,
+    a Float64Array, converted), over [0, max(2 × nominal, thick95)] from `wallsOf`; red under the process's thinnest wall
+    (the `wall` rule's `minWall`) and under the material's moulding range's low end (`materialData(id).wallMM.injection`,
+    the `wall-material` rule) when they exist, green at the nominal, orange to the thick-section limit (nominal over the
+    profile's `adjacentWallRatio`, 0.6 unset), purple past it, no wall grey — the outer lane's corrections (O-G6).
+  - The legend (`ui/MapLegend.tsx`): one small DOM element — title, unit, the ramp with its thresholds marked, the colour past
+    it, the value under the pointer (`scalarAt`, a ray on pointer moves while a map shows); the mould's legend its loops,
+    each half's bodies and volume, or why the halves cannot be built, and a Spread toggle.
+  - The mould's view (`engine/mouldView.ts`, run in the engine worker — the halves are Booleans): the moulding report's chain —
+    IM5's parting line, IM7b's straddling faces split, IM3's undercuts, IM7's plan, IM7a's halves. The loops are one line mesh
+    (the accent, 2.4 px, depth-tested), the halves see-through (+ blue, − amber, 0.6) with their edges, spread ± along the
+    pull by G1's transforms; while the halves show the part's bodies are not picked and App's picks wait.
+- **Evidence**:
+  - gpu browser (G6): a box with z as a per-vertex field on a blue → red ramp (each sample the ramp's colour at its value
+    within 0.02 in linear light), a per-triangle field in 4 bands (a NaN triangle the missing colour, the top band white),
+    below and above colours, picks reading 1, −0.5 and a triangle's own value (ray exact, GPU within 0.05), the cap of a
+    mapped mesh under a plane its cap colour, the material back with null, no buffer made over ten turned frames.
+  - studio `analysis-maps.test.ts`: the thickness map's values are the wall samples', a shelled box's nominal its 2 mm
+    shell, the limit nominal / 0.6; the mould's view on IM7's plate — closed flat loops, the + half 48,000 mm³ and both
+    halves the block less the part (1e-6, as IM7's own test); none without a pull; the renderer sets a field once per map
+    and clears it, draws the loops and halves, spreads them without making anything, and keeps the part from picks.
+  - Flow step G6 (new): a moulded holed plate — Thickness with its legend and a value under the pointer, Parting, Halves
+    (+ half 48,000 mm³), Spread, off.
+- **Found by the flow**: the engine worker's document is what evaluation reads (`evaluatedPart`: no `mould`), so the
+  mould's view had no pull there; the `mould` request now carries the document's mould settings itself (the shared wire is
+  left alone).
+- **Checks** (v2): gpu lint/tsc clean, unit 77/77, browser 7/7 (55 s, the load at 40); studio tsc clean, eslint 0 errors,
+  suite 189/189 (50 s); `FLOW_ONLY` over the analysis menu (surface analysis), IM1–IM8c, CNC1–CNC7b and the new G6 step in
+  the verify worktree: 21/22 first (G6 refused the parting map: the wire, above), then G6 and IM4 again on the fix, 3/3.
+  Not run: the full flow (the coordinator's), the cad-model suite (not touched), benches (no frame path changed).
+- **Not done (waits)**: the IM2 draft and CNC access maps and the isoclines (the outer lane's O-G6 exports, in
+  integration's next window: `draftSamples`, `accessSamples`, `isoclinePolylines`, and `castingDraftLimits` for casting's
+  draft marks). A legend for several bodies shows the first map's scale.
+
+## G6, second part — the draft and access maps and the isoclines, on O-G6's exports (2026-10-21)
+
+- On integration `3fa729fcb` (merged here as `1029155b1`), which holds the outer lane's O-G6: `draftSamples`, `accessSamples`,
+  `isoclinePolylines`, `castingDraftLimits`.
+- **Draft** (`draftMap`): per display vertex, the signed draft in degrees from the exact normals (`draftSamples`; a facet face's
+  vertex its display normal). The least draft from the report's own sources (`draftLimits`): an injection moulding's surface
+  finish (`draftMinDeg`/`draftRecDeg`; none without a finish set — the rule is unknown — so no marks), a die or sand casting's
+  alloy family (`castingDraftLimits`). With a least draft m: red where |draft| < m, + light to dark green from m to 2m, −
+  light to dark blue, saturating past ±2m, marks at ±m; without one the diverging map alone over ±10°.
+- **Access** (`accessMaps`): per display triangle the share no 3-axis direction reaches (`accessSamples`), 0 light blue to 1
+  red; it needs no pull.
+- **Isoclines**: with the draft map, each body's n·d = 0 polylines on its straddling faces (`isoclinePolylines`), one white line
+  mesh (1.6 px, depth-tested).
+- The Analysis map button's cycle: Thickness → Draft (with a pull) → Access → Parting → Halves (with a pull) → off.
+- **The worker request** (the coordinator's note): `ba0bd85e9` changed the studio's own engine request for the mould
+  (`engine/engine.worker.ts`, `engine/client.ts`: the `mould` request carries `doc.mould` beside the wire document); the
+  shared wire (`@barocss/cad-model/engine/wireDoc`, `evaluatedPart`) is unchanged.
+- **Evidence**: studio `analysis-maps.test.ts` +3: a moulded plate's draft — its walls 0°, its top +90°, its bottom −90° at
+  every such vertex, marks at ± the smooth finish's least draft and the range ±2m, none and ±10° without a finish; its access
+  map equal to `accessSamples`, every share in [0, 1]; a rod across the pull's isoclines along its sides (z 0 within 1e-3), a
+  plate along it none. The flow's G6 step walks the whole cycle.
+- **Checks** (v2): gpu unit 77/77, browser 7/7 (16 s); studio tsc clean, eslint 0 errors, suite 192/192 (29 s); FLOW_ONLY
+  (G6, IM1–IM8c, surface analysis and a chat/agent step, A5.3, then CNC1–CNC7b) in the verify worktree on `afe6bd0b3`:
+  16/16 (34 s, the load at 53) and 8/8 (21 s); the G6 step's screenshots: the plate's walls red (0°, under the smooth finish's
+  least draft), its top green; every face reached by a 3-axis mill. Not run: the full flow (the coordinator's), the cad-model
+  suite (not touched), benches (no frame path changed).
+
