@@ -278,6 +278,8 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   if (n.kind === 'sketch' && n.on) (n as { on: BodyRef }).on = ref(n.on);
   if ((n.kind === 'gear' || n.kind === 'rack' || n.kind === 'bevel-gear' || n.kind === 'worm') && n.mesh) (n as { mesh: GearMesh }).mesh = { ...n.mesh, gear: map(n.mesh.gear) };
   // (R12c.3b, D157: the shaft a key, ring or pin goes on, and a key's hub keyway.)
+  if (n.kind === 'oring') (n as { gland: number }).gland = map(n.gland);
+  if (n.kind === 'bearing') { (n as { shaft: number }).shaft = map(n.shaft); if (n.housing !== undefined) (n as { housing: number }).housing = map(n.housing); }
   if (n.kind === 'key' || n.kind === 'retaining-ring' || n.kind === 'pin') { (n as { shaft: number }).shaft = map(n.shaft); if (n.kind === 'key' && n.hub !== undefined) (n as { hub: number }).hub = map(n.hub); }
   for (const key of ['parent', 'left', 'right', 'tool', 'addTo'] as const) if (isObj(n[key])) (n as Record<string, unknown>)[key] = ref(n[key] as unknown as BodyRef);
   // (FRf: the skeleton or sketch a frame follows.)
@@ -291,11 +293,11 @@ function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode 
   if (node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief') return { ...node, edges: [r(node.edges[0])] };
   if (node.kind === 'shell') return { ...node, open: node.open.map(r) };
   if (node.kind === 'draft') return { ...node, faces: node.faces.map(r) };
-  if (node.kind === 'keyway') return { ...node, face: r(node.face) };
+  if (node.kind === 'keyway' || node.kind === 'oring-gland') return { ...node, face: r(node.face) };
   return node;
 }
 /** The persistent names a node is built on. */
-const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' ? n.faces : n.kind === 'keyway' ? [n.face] : [];
+const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' ? n.faces : n.kind === 'keyway' || n.kind === 'oring-gland' ? [n.face] : [];
 
 /** A drawing dimension's edge names, renamed (null when one of them is gone). */
 function renameDimension(d: DrawingDimension, rename: (name: string) => string | null): DrawingDimension | null {

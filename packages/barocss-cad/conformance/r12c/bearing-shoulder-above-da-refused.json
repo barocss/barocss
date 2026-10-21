@@ -1,0 +1,67 @@
+{
+  "id": "r12c-bearing-shoulder-above-da-refused",
+  "step": "R12c",
+  "decisions": [
+    "D158"
+  ],
+  "about": "R12c.4: the 6204 against a \u00d827 shoulder \u2014 above its da max 26.5 \u2014 is refused (SEAT_ABUTMENT).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "shaft",
+          "steps": [
+            {
+              "diameter": 27,
+              "length": 30
+            },
+            {
+              "diameter": 20,
+              "length": 50,
+              "grooves": [
+                {
+                  "diameter": 19,
+                  "width": 1.3,
+                  "at": 14.2
+                }
+              ]
+            }
+          ],
+          "generator": "shaft@0"
+        },
+        {
+          "id": "b",
+          "kind": "bearing",
+          "row": {
+            "id": "6204",
+            "designation": "6204",
+            "boreMM": 20,
+            "outsideMM": 47,
+            "widthMM": 14,
+            "chamferMM": 1,
+            "daMinMM": 25,
+            "daMaxMM": 26.5,
+            "DaMaxMM": 42,
+            "raMaxMM": 1,
+            "source": "B1 (D139): the NSK 6204 page"
+          },
+          "shaft": "s",
+          "step": 2,
+          "against": "start"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "SEAT_ABUTMENT"
+    }
+  },
+  "oracle": "27 > 26.5."
+}

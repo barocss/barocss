@@ -1,0 +1,66 @@
+{
+  "id": "r12c-oring-gland-no-squeeze-refused",
+  "step": "R12c",
+  "decisions": [
+    "D159"
+  ],
+  "about": "R12c.5: the same gland sealing on a \u00d832.6 bore \u2014 deeper (3.55) than the stretched section (3.5006): no squeeze, refused.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "pes",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 15.5
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "pes",
+          "height": 20
+        },
+        {
+          "id": "gl",
+          "kind": "oring-gland",
+          "target": "pe",
+          "face": "pe.side0",
+          "gland": "piston",
+          "ring": {
+            "id": "214",
+            "dash": "2-214",
+            "insideDiameter": 24.99,
+            "crossSection": 3.53,
+            "source": "O1 (D139): the Global O-Ring AS568 chart"
+          },
+          "groove": {
+            "diameter": 25.5,
+            "width": 4.7,
+            "at": 6
+          },
+          "seal": 32.6
+        },
+        {
+          "id": "or",
+          "kind": "oring",
+          "gland": "gl"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "GLAND_DIMENSIONS"
+    }
+  },
+  "oracle": "(32.6 \u2212 25.5)/2 = 3.55 > 3.5006."
+}
