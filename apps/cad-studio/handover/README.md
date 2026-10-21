@@ -772,6 +772,9 @@ acceleration → benches.
 - **G4** (2026-10-21): done. Bench budgets: every `bench:browser` row has a GPU-ms budget beside its CPU ones, a point-cloud
   row (the workspace map orbited), and `bench:assembly` and `bench-mesh-browser` exit 1 over their budgets; each prints the
   load average and says LOADED above 4. Measured at a load of 8–11 (the owner's go); budgets about twice.
+- **G5** (2026-10-21): done. The old review's four points: axes confirmed fine (each path declares its basis; the studio
+  uses neither); the viewer's material colours by the exact sRGB decode; a non-f32 literal refused at compile time for both
+  backends (the viewer's entry no longer throws); the mesh packet's arrays copied (no NaN through a Proxy).
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

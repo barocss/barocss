@@ -267,3 +267,37 @@ analyses, 6 scene-level pick acceleration, 7 benches for these. This session tak
 - **Checks**: no product code changed (benches only): the three benches twice each, alone (all within budget the second
   time); gpu unit 74/74 and browser 6/6 (10 s); studio 186/186 (16 s), on the merge `7733e3a3d` of integration's
   `6d4b80e75`. Not run: the flow (no product code), the cad-model suite (not touched).
+
+## G5 — the old review's four open GPU points, re-verified (2026-10-21)
+
+The old review (`REVIEW-2026-10-14-cad-gpu.md` §2 G4/G5 and `review-drafts/gpu-fuzz.md` R1/R2, read only). Each point,
+against the code as it is now:
+
+1. **CAD→GPU axes** (review G4, "[추정]": the kernel-face path turns `[x, z, −y]`, the Boolean paths do not) — **confirmed
+   fine, by design.** Each path declares its basis: `prepareKernelFacePreview` takes kernel faces (CAD Z-up) to its packet's
+   `right-handed-y-up` by (x, z, −y), as the interop GLB export does (`cad-interop/test/cad-integration.test.mjs` holds the two
+   equal; 2/2); `prepareAxisBoxBooleanBuffers` declares its input's authored XYZ to agree with the display's Y-up and turns
+   nothing (gpu README, "the explicit basis declares authored XYZ agreement with the display's Y-up"); the boolean-shell and
+   coplanar buffers say `right-handed-authored-xyz`. None is a studio path: the studio's viewer keeps CAD Z-up with the
+   camera's up +Z and no conversion.
+2. **sRGB `pow 2.2`** (review G5: the same colour gives different bytes by path) — **fixed where the studio sees it, with a
+   test that fails before.** The viewer encodes sRGB exactly (piecewise both ways), but its shader materials
+   (`materialShader`, `bindingShader`, `uv01Shader`: the Render workspace's materials) lowered their colour literals by the
+   material language's gamma-2.2 decode: a material `#808080` showed as #818181 beside a plain `#808080` material. They now
+   lower by the exact sRGB decode of the literal's hex (`lowerMeshMaterialWGSL(…, { srgb: true })`, the same for the UV01
+   lowering): every byte back to itself. The language's GLSL and older WGSL renderers keep their own pair (decode 2.2,
+   encode 1/2.2: back to the same bytes too), unchanged, with their fixtures.
+3. **NaN through `mesh-packet.ts` `array()`** (fuzz R1: `return input as number[]` — the descriptors checked, the caller's
+   array returned, so a Proxy could answer NaN on a later read) — **fixed, with a test that fails before**: `array()` returns a
+   copy of the values it checked (`mesh-packet.test.mjs`: a Proxy whose descriptors say finite numbers and whose reads say NaN,
+   through `validateMeshOptions` and `validatePreviewPacket`).
+4. **GLSL vs WGSL coefficient parity** (fuzz R2: `mix(#000,#fff,1e-50)` compiled; GLSL flushed it to 0, WGSL refused it, and
+   `materialShader` threw — the studio compiles its render materials as typed) — **fixed, with a test that fails before**: a
+   nonzero literal that is zero as an f32 is refused at compile time (`RANGE`, for both backends and the UV01 compiler);
+   `materialShader` returns a lowering's refusal as a diagnostic instead of throwing. Representable ones (a subnormal 1e-40,
+   1e-38, 0) still compile and lower.
+- **Checks** (v2): gpu lint/tsc clean, unit 77/77 (+3: G5's), browser 6/6 (10 s); cad-interop 4/4 and its
+  `cad-integration` test 2/2; studio 186/186 (20 s); `FLOW_ONLY` over the render, material and surface-analysis steps (the
+  steps that compile shader materials): see the checkpoint. Not run: the full flow, the cad-model suite (not touched),
+  benches (no frame path changed).
+
