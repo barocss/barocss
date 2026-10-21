@@ -8,7 +8,7 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh } from '../engine/mesh';
-import { buildBvh, rayHit } from '../print/orient';
+import { rayHit, triangleBvh } from '@barocss/cad';
 import { concaveSpan, extent, holesOf, tappedHoles, type Hole } from './holes';
 import { narrowest } from './cavities';
 import { DIRECTION_NAMES, DIRECTIONS } from './access';
@@ -45,7 +45,7 @@ function past(wall: readonly number[][], lo: number, hi: number, u: V, side: 1 |
 interface Floor { body: string; face: number; name: string; dir: number; level: number; depth: number; kind: 'pocket' | 'slot' | 'step'; bounded: V[]; free: V[]; walled: V[]; verts: number[][]; rising: number[]; also: number[] }
 /** A body's floors per setup direction. */
 function floorsOf(b: BodyResult): Floor[] {
-  const m = b.mesh, bvh = buildBvh(m), verts = vertsByFace(m), nb = new Map<number, Set<number>>(), out: Floor[] = [];
+  const m = b.mesh, bvh = triangleBvh(m.positions, m.indices), verts = vertsByFace(m), nb = new Map<number, Set<number>>(), out: Floor[] = [];
   for (const e of m.edges) for (const [x, y] of [[e.faces[0], e.faces[1]], [e.faces[1], e.faces[0]]]) { const s = nb.get(x); if (s) s.add(y); else nb.set(x, new Set([y])); }
   for (const f of m.faces) {
     if (f.exact?.kind !== 'plane') continue;
