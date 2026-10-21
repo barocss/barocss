@@ -428,3 +428,42 @@ against the code as it is now:
   WebGL2 (45 s). Not run: the full flow (the coordinator's), the cad-model suite (not touched), the other benches (no other
   frame path changed; the full `bench:browser` ran twice, its other rows within budget).
 
+## G8 — a point primitive (2026-10-22)
+
+- **Viewer** (`@barocss/gpu`): `GeometryInput.topology: 'points'` — one vertex (or one entry of `indices`) a point, one
+  screen-space quad an instance (position, RGBA8 colour: `pointInstances`). `Material.pointSize` (CSS px, default 4),
+  `pointShape: 'circle' | 'square'`, `pointBorder: { width, color }` (inside the edge; with a point's own alpha 0 it is a
+  ring). Edges by coverage, always blended; `lineOver` and `lineHidden` (G7) apply to points too (pipelines `point`,
+  `pointOver`, `pointHidden`). The border colour sits in the object block's cap slot (caps are triangles only).
+  `FrameStats.points`. Points are never shadow casters, picked by the pick pass, outlined or capped.
+- **`pickPoint(x, y, radius = 6, { throughSurfaces })`** → `{ mesh, index, point, distance }`: `index` is the geometry's
+  element (its vertex, or its entry in `indices`). Within `radius` plus the point's half size; a point a visible opaque
+  surface hides is passed over for the next nearest (pickLine's rule, G3), unless drawn over the scene; the clip plane's
+  cut side is skipped. A brute-force screen search a mesh after its box is checked (`screenBoxMisses`, now shared with
+  `pickLine`): 3.5 ms a pick over 100 000 points in the browser test — G9's scene-level structure can take it further.
+- **Studio**: `ViewRenderer.setOverlayPoints(key, { positions, colors, color, size, shape, border, opacity, over, hidden })`,
+  in the overlay map beside G7's lines (one mesh a key, made when the content changes; `__studioOverlayLines` counts
+  points too).
+  - RM9b's workspace map (`cloud`): a square of 3 a voxel in its band's colour (the SVG's hsl bands), 0.75 opaque,
+    depth-tested with hidden ones at 0.35 (G7-D1's rule: the voxels inside the arm and base show faint, not on top).
+  - The SubD cage's vertices by kind (`cagePoints`: plain 5, pole a 9.5 ring of 1.5, bad 8, picked 9 — the SVG's radii and
+    stroke), over the body like its edges; with them on the engine the SVG cage keeps only its tinted faces.
+  - Not moved: the selected curve's or surface's poles (a handful; the flow's pole step clicks their SVG marks), the corner
+    marks and the measure line's ends (hover-driven, one or two).
+- **Evidence**: gpu browser test G8 — red points above/beside/under a box: shown, shown, hidden; an over point shown on it;
+  a hidden-faint one between the box's grey and its colour; a square of 16 fills its corner at (6, 6), a disc does not;
+  a ring empty at its centre, white at its border, nothing past it; `pickPoint` on each: index 0 and 2 shown, the hidden 1
+  passed over (found through surfaces), the over one found, an indexed mesh's elements 0 and 1 (vertices 3 and 1) and not
+  its unindexed vertex, a ring within its half size, nothing in empty space; 100 000 points drawn (`stats.points`) and found
+  by 15 of 20 picks. Flow before (`48b83c1b8`) and after on the RM steps (RM1–RM9c) and the three cage steps: the cage's
+  pole rings and edges alike; RM9b's voxels the same, those behind the arm and base faint.
+- **Bench** (`bench:browser` row `cloud: 100 000 voxels` new, through a DEV hook `__studioSetCloud` around the arm), run
+  alone, the same script and hook on the pre-G8 code in the verify worktree: task 55.54 → 2.91 ms a frame, GPU 55.13 → 6.62
+  ms a submit, wall 4 427 → 2 407 ms (load 57–59 before, 53 → 32 after: LOADED). Budget task 8, GPU 14 (about twice), for
+  G13. The `explode:` row's 2-in-one-frame miss came up in this after-run too (G7's runs saw it only before): not the
+  overlays; for G13.
+- **Checks** (v2): gpu tsc and eslint clean, unit 77/77, browser 9/9 (14 s); studio tsc and eslint clean, suite 192/192 (26 s);
+  FLOW_ONLY on WebGPU (curves and surfaces, the pole drag, R8.2, R8.3, D84 by hand, RM1–RM9c) 15/15 before and 15/15 after
+  (43 s), and on WebGL2 on `d4c7af4e5` (cage and RM steps) 13/13 (66 s, the load at 78). Not run: the full flow (the
+  coordinator's), the cad-model suite (not touched), the other benches (no other frame path changed).
+
