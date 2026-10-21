@@ -645,6 +645,10 @@ export type { StepExportOptions } from './step.js';
 export type { DraftedExtrusionInput } from './drafted-extrusion.js';
 export type { EdgeFinishKind } from './edge-finish.js';
 export { faceGeometry } from './analytic-boolean.js';
+export { splitFaceAlongCurve, splitFaceAlongIsocline } from './analytic-boolean.js';
+export type { FaceSplit, FaceSplitPiece, FaceSplitOptions } from './analytic-boolean.js';
+export { surfaceIsoclines } from './surface-isocline.js';
+export type { SurfaceIsocline, SurfaceIsoclineOptions } from './surface-isocline.js';
 export type { FaceGeometry } from './analytic-boolean.js';
 /** General marching intersection of two parametric patches (used inside the analytic Booleans). */
 export { intersectPatches, chainCurve, SurfaceIntersectionError } from './surface-intersection.js';

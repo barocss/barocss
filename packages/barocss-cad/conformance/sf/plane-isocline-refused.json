@@ -1,0 +1,55 @@
+{
+  "id": "sf-plane-isocline-refused",
+  "step": "SF",
+  "decisions": [
+    "D149"
+  ],
+  "about": "A flat face has no isocline: it faces one way throughout.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            30
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "p",
+          "kind": "split-face",
+          "target": "b",
+          "face": "b.top",
+          "pull": [
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "[NO_ISOCLINE]"
+    }
+  },
+  "oracle": "contract: a face split never moves a curve onto the face, nor splits a face without an isocline"
+}

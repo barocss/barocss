@@ -20,7 +20,7 @@ import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromPro
 import { erodeSection } from './section-offset.js';
 import { booleanCurveRegions, curveTolerance, regionMoments, sampleRing, segEnd, segReverse, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { booleanPolyhedra } from './polyhedral-boolean.js';
-import { booleanAnalytic, faceGeometry } from './analytic-boolean.js';
+import { booleanAnalytic, faceGeometry, splitFaceAlongCurve, splitFaceAlongIsocline } from './analytic-boolean.js';
 import { faceReach, finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
 import { exportStep, importStep, stepTessellatedChars } from './step.js';
@@ -59,7 +59,7 @@ import { bendAllowance, bendDeduction, bendTableProblem, contourFlangeSection, f
 import { flatPattern as flatPatternOf, FlatPatternError, type FlatPattern } from './sheet-flat.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import { FRAME_ANCHORS, FrameSectionError, anchorPoint, frameSection, loopBox, type FrameAnchor, type FrameEndReport, type FrameMemberReport, type FrameSectionSpec } from './frame-section.js';
-import type { FacetPatch, Point } from './types.js';
+import type { Curve, FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import { encodeBinaryStl } from './stl.js';
 
@@ -171,6 +171,12 @@ export type CadPartFeature = Base & (
    * in (material taken off), negative out (material added). The faces by name.
    */
   | { readonly kind: 'draft'; readonly target: string; readonly faces: readonly string[]; readonly angleDegrees: number; readonly neutral?: CadPartDim }
+  /**
+   * D149: one face of a part split along NURBS curves lying on it (`curves`, mm), or along its isocline n·d = 0 for the pull
+   * `pull`; the face by name (a base name naming one face). The pieces are named `<face>#1`, `<face>#2` … (an isocline's +
+   * side first), or by `names`; every other face, its name and the volume are kept.
+   */
+  | { readonly kind: 'split-face'; readonly target: string; readonly face: string; readonly curves?: readonly { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[] }[]; readonly pull?: CadPartPoint3; readonly names?: readonly string[] }
   /** An open NURBS surface thickened into a solid: `thickness` along its normal (or against it, or half each way). Faceted. */
   | { readonly kind: 'thicken'; readonly surface: { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[] }; readonly thickness: CadPartDim; readonly side?: 'normal' | 'reverse' | 'both' }
   /**
@@ -1458,6 +1464,32 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         // The wedges together, then off the body (or onto it) at once.
         const all = wedges.filter(w => !empty(w)).reduce<Solid | null>((u, w) => u ? boolean(u, w, 'union', at) : w, null);
         return one(all ? boolean(target[0].solid, all, a > 0 ? 'difference' : 'union', at) : target[0].solid);
+      };
+    }
+    case 'split-face': {
+      const target = solids(f.target, 'target'), face = f.face, given = f.curves as unknown, names = f.names as unknown;
+      if (typeof face !== 'string' || !face) fail('INPUT', 'face must be a face name');
+      if ((given === undefined) === (f.pull === undefined)) fail('INPUT', 'give curves, or pull for the isocline (one of them)');
+      if (target.length !== 1) fail('REFERENCE', 'split one part at a time (name it as id/k)');
+      if (names !== undefined && (!Array.isArray(names) || !names.every(n => typeof n === 'string'))) fail('INPUT', 'names must list the pieces\' names');
+      const pull = f.pull === undefined ? null : xyz(f.pull as CadPartPoint3, 'pull');
+      let curves: Curve[] | null = null;
+      if (given !== undefined) {
+        if (!Array.isArray(given) || !given.length || given.length > CadPartLimits.edges) fail('INPUT', 'curves must list 1 to 64 NURBS curves');
+        curves = (given as Record<string, unknown>[]).map((c, i) => {
+          if (!isRecord(c)) fail('INPUT', `curves[${i}] must be a NURBS curve { degree, knots, controlPoints, weights }`);
+          const curve = { kind: 'curve' as const, id: `split_curve${i}`, degree: c.degree as number, knots: c.knots as number[], controlPoints: c.controlPoints as Point[], weights: c.weights as number[] };
+          try { validateCurve(curve); } catch (cause) { fail('INPUT', `curves[${i}]: ${cause instanceof Error ? cause.message : String(cause)}`); }
+          return curve;
+        });
+      }
+      return () => {
+        const brep = brepOf(target[0], at), options = { id: at, ...(names === undefined ? {} : { names: names as string[] }) };
+        try { return one({ kind: 'brep', brep: (curves ? splitFaceAlongCurve(brep, face as string, curves, options) : splitFaceAlongIsocline(brep, face as string, pull!, options)).brep }); }
+        catch (cause) {
+          if (cause instanceof BrepError) fail(/not supported yet/.test(cause.message) ? 'CAPABILITY' : /\[(NO_FACE|AMBIGUOUS)\]/.test(cause.message) ? 'REFERENCE' : cause.code === 'INPUT' ? 'INPUT' : 'GEOMETRY', cause.message.replace(/^B-rep: /, ''));
+          throw cause;
+        }
       };
     }
     case 'thicken': {

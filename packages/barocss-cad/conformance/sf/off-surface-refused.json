@@ -1,0 +1,77 @@
+{
+  "id": "sf-off-surface-refused",
+  "step": "SF",
+  "decisions": [
+    "D149"
+  ],
+  "about": "A curve 1 mm above the face it is to split is refused, not projected.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            30
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "p",
+          "kind": "split-face",
+          "target": "b",
+          "face": "b.top",
+          "curves": [
+            {
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  10,
+                  0,
+                  11
+                ],
+                [
+                  25,
+                  30,
+                  11
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "[OFF_SURFACE]"
+    }
+  },
+  "oracle": "contract: a face split never moves a curve onto the face, nor splits a face without an isocline"
+}

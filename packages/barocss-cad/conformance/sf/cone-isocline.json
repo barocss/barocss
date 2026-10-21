@@ -1,0 +1,120 @@
+{
+  "id": "sf-cone-isocline",
+  "step": "SF",
+  "decisions": [
+    "D149"
+  ],
+  "about": "A revolved frustum's cone half (a general face) split along its isocline for a pull along +x: two quarters, the frustum unchanged.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              4,
+              20
+            ],
+            [
+              0,
+              20
+            ]
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "r",
+          "kind": "revolve",
+          "sketch": "s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          }
+        },
+        {
+          "id": "p",
+          "kind": "split-face",
+          "target": "r",
+          "face": "r.side1#1",
+          "pull": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 3267.256359733385,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            7.3076923076923075
+          ],
+          "absTol": 0.000001
+        },
+        "areaMM2": {
+          "value": 1282.8020742457504,
+          "relTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "r.side0",
+          "r.side1",
+          "r.side1#1",
+          "r.side2"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "closed form: the frustum πh(R² + Rr + r²)/3, its area π(R² + r²) + π(R + r)s, its centroid h(R² + 2Rr + 3r²)/4(R² + Rr + r²) up the axis"
+}
