@@ -22,7 +22,7 @@ const num: JsonSchema = { type: 'number' }, str: JsonSchema = { type: 'string' }
  * selection: neither changes the document.)
  */
 const READ: Record<string, JsonSchema | null> = {
-  get_part_summary: o({ feature_count: num, facts: obj, parameters: obj, features: arr, bodies: arr }, ['feature_count', 'facts', 'parameters', 'features', 'bodies']),
+  get_part_summary: o({ feature_count: num, facts: obj, parameters: obj, features: arr, bodies: arr, note: str, followed_changed: arr }, ['feature_count', 'facts', 'parameters', 'features', 'bodies']),
   get_image_layers: null,
   measure: o({ label: str, area: num, length: num, radius: num, distance: num, from: arr, to: arr, angle_deg: num, normal_distance: num, resolved: arr }),
   mass_properties: o({ bodies: arr, note: str }, ['bodies']),

@@ -1,7 +1,8 @@
+import { followedStale, staleText } from '../frames/skeleton';
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import { fitNotes } from './fits';
 import type { FaceTable } from '../assembly/mates';
-import { cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
+import { brepSurfaceArea, cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
@@ -25,6 +26,11 @@ export interface BodyResult {
   /** 'infill' (O60): a print infill body (its node's role) — in the mass and 3MF, left out of STEP. */
   role?: 'infill';
   volumeMM3: number | null; massG: number | null;
+  /**
+   * Its surface area (mm²): the kernel's, over the exact surfaces as mass properties integrate them (`areaBasis`
+   * 'exact'); the display mesh's triangles only where the kernel cannot (labelled 'display mesh', a little low on curves).
+   */
+  areaMM2?: number; areaBasis?: 'exact' | 'display mesh';
   /** Centre of mass (mm), with the volume (uniform density). */
   centroid?: [number, number, number];
   /** Inertia about the centre of mass (kg·m², aluminium at 2700 kg/m³; scale by density for another material). */
@@ -70,22 +76,31 @@ let sharing = false;
 export function shareMeshes(on: boolean): void { sharing = on; }
 const flats = new WeakMap<Brep, { flat: FlatPattern } | { refused: string }>();
 const masses = new WeakMap<Brep, ReturnType<CadPartSnapshot['outputs'][number]['massProperties']> | null>();
+// (The surface area, once a B-rep: the kernel's over its exact surfaces, null where it cannot.)
+const areas = new WeakMap<Brep, number | null>();
 function meshOf(brep: Brep, revision: number, quality: number): DisplayMesh {
   let byQuality = meshes.get(brep); if (!byQuality) meshes.set(brep, byQuality = new Map());
   let m = byQuality.get(quality); if (!m) byQuality.set(quality, m = bodyMesh(brep, revision, quality));
   if (sharing) return m;
   return { ...m, positions: m.positions.slice(), normals: m.normals.slice(), faceOfVertex: m.faceOfVertex.slice(), indices: m.indices.slice(), edgeLines: m.edgeLines.slice(), edgeOfSegment: m.edgeOfSegment.slice() };
 }
+/** The body's area fields: the kernel's exact area, else the display mesh's triangles, labelled. */
+function areaOf(A: number | null, brep: Brep, revision: number, quality: number): { areaMM2: number; areaBasis: 'exact' | 'display mesh' } {
+  if (A !== null) return { areaMM2: A, areaBasis: 'exact' };
+  return { areaMM2: meshOf(brep, revision, quality).faces.reduce((t, f) => t + f.areaMM2, 0), areaBasis: 'display mesh' };
+}
 /** A body's evaluated result: its mesh, and its volume, mass, centroid and inertia when it has a volume. */
 function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision: number, quality: number): BodyResult {
   let m = masses.get(o.brep);
   if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
+  let A = areas.get(o.brep);
+  if (A === undefined) { try { A = brepSurfaceArea(o.brep); if (!Number.isFinite(A)) A = null; } catch { A = null; } areas.set(o.brep, A); }
   const mass = m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]) } : { volumeMM3: null, massG: null };
   const at = keyed(o.id, doc.nodes), lib = at.ref ? doc.nodes[at.ref.node] : undefined;
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear, at.ref ? doc.nodes[at.ref.node] : undefined) } : {}), ...(o.worm ? { notes: [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] } : {}), ...(o.wormWheel ? { notes: wormWheelNotes(o.wormWheel) } : {}), ...(o.spring ? { notes: springNotes(o.spring) } : {}), ...(o.shaft ? { notes: shaftNotes(o.shaft) } : {}), ...(o.key || o.keyway || o.ring || o.pin ? { notes: shaftPartNotes(o) } : {}), ...(o.bevelGear ? { notes: [...bevelGearNotes(o.bevelGear, at.ref ? doc.nodes[at.ref.node] : undefined), ...bevelMeshNotes(o.bevelGearPlacement)], ...(o.bevelGear.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined), doc.frames?.sections, doc.nodes), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
+  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear, at.ref ? doc.nodes[at.ref.node] : undefined) } : {}), ...(o.worm ? { notes: [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] } : {}), ...(o.wormWheel ? { notes: wormWheelNotes(o.wormWheel) } : {}), ...(o.spring ? { notes: springNotes(o.spring) } : {}), ...(o.shaft ? { notes: shaftNotes(o.shaft) } : {}), ...(o.key || o.keyway || o.ring || o.pin ? { notes: shaftPartNotes(o) } : {}), ...(o.bevelGear ? { notes: [...bevelGearNotes(o.bevelGear, at.ref ? doc.nodes[at.ref.node] : undefined), ...bevelMeshNotes(o.bevelGearPlacement)], ...(o.bevelGear.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined), doc.frames?.sections, doc.nodes, at.ref ? staleOf(doc).get(at.ref.node) : undefined), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
 }
 
 const AXES: [string, number[]][] = [['+X', [1, 0, 0]], ['−X', [-1, 0, 0]], ['+Y', [0, 1, 0]], ['−Y', [0, -1, 0]], ['+Z', [0, 0, 1]], ['−Z', [0, 0, -1]]];
@@ -95,7 +110,7 @@ const direction = (v: readonly number[]): string => AXES.find(([, a]) => a.every
  * A structural member's section, length and frame as lines for its panel (FR1, D123); the section fields still at the
  * palette's first-try values flagged as estimates (D122: no section data is built in).
  */
-function memberNotes(m: NonNullable<CadPartSnapshot['outputs'][number]['member']>, node: ModelNode | undefined, rows: readonly FrameSectionRow[] = [], nodesNow: readonly ModelNode[] = []): { text: string; warning?: boolean }[] {
+function memberNotes(m: NonNullable<CadPartSnapshot['outputs'][number]['member']>, node: ModelNode | undefined, rows: readonly FrameSectionRow[] = [], nodesNow: readonly ModelNode[] = [], stale?: string): { text: string; warning?: boolean }[] {
   const mm = (x: number) => `${+x.toFixed(3)} mm`;
   // (A frame's member: its own section when an override gives one — no estimates then — else the frame's, FR2.)
   const own = node?.kind === 'frame' && m.frame ? node.overrides?.find(o => o.member === m.frame!.member)?.section : undefined;
@@ -105,6 +120,8 @@ function memberNotes(m: NonNullable<CadPartSnapshot['outputs'][number]['member']
     ...(m.frame && node?.kind === 'frame' ? [{ text: `Frame member ${m.frame.member + 1} of ${frameSegmentCount(nodesNow, node)}: point ${m.frame.from + 1} → point ${m.frame.to + 1}${m.mirrored ? ', mirrored' : ''}` }] : []),
     { text: `Member: ${m.section} · section ${+m.areaMM2.toFixed(3)} mm² · length ${mm(m.lengthMM)}` },
     { text: `Line through its ${m.anchor}${m.offset[0] || m.offset[1] ? `, moved (${m.offset.map(x => +x.toFixed(3)).join(', ')})` : ''}; section x ${direction(m.xAxis)}, y ${direction(m.yAxis)}${m.rollDegrees ? ` (rolled ${+m.rollDegrees.toFixed(3)}°)` : ''}${m.upFallback ? `; the line runs along up, so y follows ${direction(m.upFallback)}` : ''}` },
+    // (FRf2, O125: a frame following a placed part's sketch — which; changed since linked, said until relinked.)
+    ...(node?.kind === 'frame' && node.follows && 'part' in node.follows ? [stale ? { text: `${stale[0].toUpperCase()}${stale.slice(1)}`, warning: true } : { text: `Follows ${node.follows.part}'s sketch ${node.follows.sketch} (revision ${node.follows.revision ?? 'not pinned'})` }] : []),
     // (FRc, O117: a section from the library — its row, and where its sizes come from; an estimate row said as one.)
     ...(section?.kind === 'library' ? [libraryNote(section.id, rows)] : []),
     ...(m.ends && node?.kind === 'frame' ? endNotes(m.ends, node) : []),
@@ -113,6 +130,13 @@ function memberNotes(m: NonNullable<CadPartSnapshot['outputs'][number]['member']
 }
 
 /** A library section's row in words: its name and source, or a warning when its sizes are estimates. */
+/** FRf2: each base frame's staleness text by node index, once a document. */
+const staleCache = new WeakMap<StudioDoc, Map<number, string>>();
+function staleOf(doc: StudioDoc): Map<number, string> {
+  let m = staleCache.get(doc);
+  if (!m) { m = new Map(followedStale(doc).map(x => [x.frame, staleText(x)])); staleCache.set(doc, m); }
+  return m;
+}
 function libraryNote(id: string, rows: readonly FrameSectionRow[]): { text: string; warning?: boolean } {
   const r = rows.find(x => x.id === id);
   if (!r) return { text: `Section library row ${id}: not in the document's library`, warning: true };

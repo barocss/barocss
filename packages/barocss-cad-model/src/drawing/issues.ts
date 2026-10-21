@@ -33,7 +33,7 @@ import { VIEW_IDS, type DimPoint, type DrawingDimension, type DrawingSettings, t
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
-export type DrawingIssueCode = 'DATUM_LOST' | 'FRAME_LOST' | 'DATUM_UNDEFINED' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'FIT_ROW_MISSING';
+export type DrawingIssueCode = 'DATUM_LOST' | 'FRAME_LOST' | 'DATUM_UNDEFINED' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED';
 export type DrawingFix =
   | { kind: 'remove'; dim: string }
   | { kind: 'move'; dim: string; place: XY }
@@ -192,6 +192,8 @@ export interface IssueContext {
   views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: (edge: string, diameterMM?: number) => string | null;
   /** D155: why a diameter dimension's fit class has no limits at its size (drawing/fits.ts fitMiss), or null. */
   fitMiss?: (edge: string, diameterMM: number) => string | null;
+  /** FRf2 (O125): frames following a placed part's sketch that changed since linked, in words. */
+  followedChanged?: readonly string[];
   /** The sheet built again for other settings (O67: a table's sheet or scale fix is offered only when that sheet clears it). */
   rebuild?: (settings: DrawingSettings) => IssueContext;
 }
@@ -221,6 +223,8 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   }
   // What lies on the sheet: annotations and the lines they must keep clear of.
   // (A feature control frame is part of its dimension: they overlap, are kept clear and move together.)
+  // (FRf2, O125: a frame following a placed part's sketch that changed since linked: its geometry current, the link to renew.)
+  for (const t of ctx.followedChanged ?? []) out.push({ code: 'FOLLOWED_CHANGED', severity: 'warning', message: `A frame ${t}.` });
   // (D155: a diameter's fit class with no row for its size in the user's tables: said, with what to load — never a guessed limit.)
   if (ctx.fitMiss) for (const r of sheet.dimensions) if (r.ok && r.kind === 'diameter') {
     const why = ctx.fitMiss(r.dim.edge, 2 * r.radius);
@@ -542,13 +546,13 @@ function accepted(d: DrawingDimension): DrawingDimension {
 }
 
 /** What a sheet is built from, to build it again after a fix. */
-export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; callout: (edge: string, diameterMM?: number) => string | null; fitMiss?: (edge: string, diameterMM: number) => string | null; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; section?: Parameters<typeof buildSheet>[4] & { projection: { min: readonly number[]; max: readonly number[] } } }
+export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; callout: (edge: string, diameterMM?: number) => string | null; fitMiss?: (edge: string, diameterMM: number) => string | null; followedChanged?: readonly string[]; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; section?: Parameters<typeof buildSheet>[4] & { projection: { min: readonly number[]; max: readonly number[] } } }
 
 /** The context of a sheet built from its inputs (its layout from the settings, the section's extent with it). */
 export function issueContext(i: SheetInputs): IssueContext {
   const layout = layoutSheet(i.views, i.settings, i.section && i.settings.section ? i.section.projection : undefined);
   const sheet = buildSheet(i.views, layout, i.settings, { ...i.meta, callout: i.callout }, i.section);
-  return { views: i.views, layout, settings: i.settings, sheet, callout: i.callout, ...(i.fitMiss ? { fitMiss: i.fitMiss } : {}), rebuild: settings => issueContext({ ...i, settings }) };
+  return { views: i.views, layout, settings: i.settings, sheet, callout: i.callout, ...(i.fitMiss ? { fitMiss: i.fitMiss } : {}), ...(i.followedChanged?.length ? { followedChanged: i.followedChanged } : {}), rebuild: settings => issueContext({ ...i, settings }) };
 }
 
 /**
