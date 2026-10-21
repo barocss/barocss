@@ -4948,3 +4948,23 @@ The GPU lane's G6 shows the analyses on the model as colour maps and lines. Only
     - Purple over: the thick-section limit is `nominalMM / adjacentWallRatio` (the profile's threshold, 0.6 when unset). wallsOf's `thick` gives the faces and `maxMM`, not the limit.
   - **Parting, confirmed**: `PartingReport.loops[].points` are polylines with `closed` and `flat`, in the part's coordinates (a placed instance's transform is the viewer's).
   - **mouldHalves, confirmed**: `plus` and `minus` are BodyResult[] on success, else `{ok: false, code: 'MOULD_BUILD'}`.
+
+## O120 — FRe: T-slot frame members expose the tslot-20 interfaces; library hardware snaps to them (2026-10-21)
+
+- **The interfaces** (`frames/interfaces.ts`, `tslotInterfaces`): a T-slot frame member (a frame's or a single member's) gets tslot-20's own profile interfaces, with the same ids, roles and accepts:
+  - `slot-t1` … `slot-l`: t-slot ⇄ slot-nut;
+  - `end0` and `end1`: profile-end ⇄ end-cap;
+  - `face-top` and `face-right`: profile-face ⇄ bracket-leg.
+- **How each frame is read**: off the member's own faces, by the kernel's section names, with no table of sizes. Every plane is the face's exact one, since the display mesh's points are single precision and gave 8.199999809 for 8.2.
+  - A slot: on its lips' underside (`<slot>.under0`), centred between its two lips, at the member's start; z the underside's normal (into the slot), x along the member.
+  - An end: on its end face, at the section's origin (the first cell's centre, from the outer faces).
+  - A face: on the top or right outer face.
+  - The mates go on the face each frame lies on.
+- **Snapping**: `snap_part` takes `<body>.<id>` (e.g. `b0.slot-t1`) on any part holding T-slot members. A missing one is refused with the part's interfaces named. `get_assembly` lists each part's `member_interfaces`. No kernel face-naming change was needed.
+- **Oracles** (package test frame-tslot-interfaces, 5 tests):
+  - Every interface of a 20×20 member with four slots open, and of a 20×40 member with six, has the frame of tslot-20's profile in each one's section coordinates, to 1e-9.
+  - A slot nut snapped 100 along slot-t1 sits where it sits on the library's profile (position and turn), with its mate on the member's `t1.under0`.
+  - The chat path (get_assembly, insert_part, snap_part) puts it in the same place.
+  - An RHS member has none.
+- **Flow step "FRe …"**: through the chat, the member's first build applies; the nut's insert and snap are proposed and accepted; the mate is on `t1.under0`.
+- **Open**: end caps and brackets snap through the same ids and are not flow-tested here. Hardware sizes stay the library's estimates as it states them.
