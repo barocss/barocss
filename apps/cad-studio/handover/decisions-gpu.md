@@ -631,3 +631,39 @@ Measured before anything was changed; the coordinator's order.
   fails in both, for want of earlier steps), and every viewport screenshot identical (0 pixels past 8) — the only
   differences a render's progress readout (2.48 / 2.45). Not run: the full flow (the coordinator's), the cad-model suite.
 
+## G14 — display LOD: measured, two fixes, stopped (2026-10-22)
+
+- **Measured** (the bench harness with render-pass timestamps; orbit 60 steps and 30 still frames; load 15–35):
+
+  | case | GPU a frame, orbit / still |
+  |---|---|
+  | 100 000 points spread over a 120 mm cube | 3.0 / 2.6 ms |
+  | the same around the 2R arm (the bench's cloud row: dense on screen) | 8.26 / 7.33 ms |
+  | — its hidden-parts pass off | 4.68 ms |
+  | — points of 1 px | 4.64 ms |
+  | — 25 000 points | 3.53 ms |
+  | 200 000-triangle mesh (organic) | 1.5–2.5 / 1.5–2.5 ms |
+  | 1 000 000-triangle mesh | 3.0 / 2.7–4.2 ms |
+
+  The dense cloud is fill and blending (≈ 2.5 M fragments a pass piling onto the same pixels), and a second pass for its
+  hidden parts (G7's `lineHidden`, 0.35) that shaded every point again.
+- **Fix 1 — no discard in the point shader**: a point writes no depth and always blends, so where it does not cover (or the
+  clip plane cuts it) it returns transparent black instead of discarding; a pipeline without discard keeps the depth test
+  ahead of the fragment shader. The hidden pass 3.6 → 1.4 ms; orbit 8.26 → 6.11 ms.
+- **Fix 2 — quads half a pixel smaller**: a point's quad reached a whole pixel past its half size; its coverage ends half a
+  pixel past (a point of 3 drew 5 × 5, now 4 × 4). Orbit 6.11 → 4.67 ms, still 4.75 → 4.23 ms, 25 000 points 2.0 ms. The
+  edge fringe — pixels under half covered — now keeps only the multisamples inside the quad: RM9b's screenshot within 42 of
+  765 (ΣRGB) of before at 994 pixels, the cage's pole rings and vertices as before (the other differences in those flow
+  shots are a panel's preview time and a picked face's SVG tint caught at another moment).
+- **Stopped (G14-D1)**: no density LOD for points — a cap on the points drawn where they pile up would take most of the
+  remaining ≈ 3.5 ms but change which voxels (and colours) show, and 4.7 ms is a quarter of a 60 Hz frame. No levels of
+  detail for meshes — a million triangles orbit in ≈ 3 ms of GPU; simplified levels would cost their memory (≈ 1.3× the
+  mesh), popping between levels and the question of which level a pick is against, for at most ≈ 2 ms. The million-triangle
+  orbit's main-thread time (6.4 ms a frame, 3.5 for 200 000) is React's development build re-rendering the App (`jsxDEV`,
+  39 ms over 60 frames), not the viewer: with G13's panel item for the UI side. Worth revisiting for meshes past ≈ 5 M
+  triangles or clouds past ≈ 500 000 points, neither of which the studio makes today.
+- **Bench**: `bench:browser`'s cloud row 4.03–4.73 ms of GPU in two runs (load 34–113); its budget 17 → 10.
+- **Checks** (v2): gpu unit 77/77, browser 11/11 (G8's shapes, rings, picks unchanged); studio suite 194/194; FLOW_ONLY on
+  WebGPU, before (`2c5a345e5`) and after, RM1–RM9c and the three cage steps: 13/13 both. Not run: the full flow (the
+  coordinator's), the cad-model suite.
+

@@ -876,6 +876,10 @@ acceleration → benches.
   10.6 → 4.7 MiB, an explode 22.9 → 4.1 MiB sampled); the outline mask scissored; uvs optional; the view cube drawn only
   when the camera turns. Every bench budget re-measured (three runs, load 12–17). The hover and click rows are React's
   development build re-rendering the App's panels (36 of 55 ms of a click) — for the UI side.
+- **G14** (2026-10-22): done, and stopped where display LOD was not worth it. Points: their shader without discard (the
+  depth test kept ahead of it) and their quads half a pixel smaller — a dense 100 000-point cloud 8.2 → 4.7 ms of GPU. No
+  density cap (it would change which voxels show, for ≈ 3.5 ms); no mesh levels (a 1 000 000-triangle mesh orbits in ≈ 3
+  ms of GPU).
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
