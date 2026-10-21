@@ -4916,3 +4916,29 @@ FRd is split in two: FRd1 (joints, records, the list as a table) here, and FRd2 
   - FRd1's two long flow step names made the screenshot's file name too long (ENAMETOOLONG), which killed the flow. They are shortened.
   - The read-tools contract test now runs `weld_list`.
   - drawing-table's pinned source list includes 'weld-list'.
+
+## O-G6 — sample exports for the GPU lane's analysis maps (2026-10-21)
+
+The GPU lane's G6 shows the analyses on the model as colour maps and lines. Only new functions were added; the existing ones' results are unchanged (accessOf's loop moved into a shared per-triangle function, adding in its own order).
+
+- **`draftSamples(doc, body, pull)`** (mould/draft.ts) gives a Float32Array, one value per display vertex: the signed draft in degrees, asin(n·d), from the exact normal at the vertex's position. It is the same evaluation draftField makes (a plane's normal, a cylinder's radial, the NURBS foot's). A facet face's vertex takes its display normal.
+- **`accessSamples(bodies, stepMM?)`** (machining/access.ts) gives, per body and per display triangle: `unreachedShare` (0..1), the share of its area no ±X, ±Y or ±Z reaches, and `mask`, the OR of its samples' 6-bit masks. These are accessOf's samples, kept by triangle.
+- **`isoclinePolylines(doc, body, pull)`** goes in mould/parting.ts, beside the marching and chaining it reuses, rather than in draft.ts. It gives `{face, points, closed}` per straddling face's isocline: its triangles marched as the parting line marches them, chained as its loops are.
+- **`castingDraftLimits(doc, bodies, profile)`** (casting/report.ts) is the one extra: a cast part's least and achievable draft by its alloy's family, with the page. The casting report's draft rule switches its `limit` between the two, so it is not a threshold to read.
+- **Oracles** (package test g6-samples, 5 tests):
+  - A 3° cone's side is 3 at every vertex, to Float32 rounding of a value within 1e-9.
+  - The draft's sign changes on exactly the faces draftField calls straddling, over six cases.
+  - The access shares, area-weighted, equal accessOf's unreachedMM2 (400 and 760, sealed void and sealed slot). A void's triangles have mask 0, and the top face has +Z.
+  - A cylinder r 10 × 40 across the pull gives two open polylines at z = 0, each 40 long. A cone gives none.
+  - castingDraftLimits holds the least and achievable that the A380 report's rule judges by.
+- **Threshold sources for G6**, confirmed or corrected:
+  - **IM2, corrected**: the minimum draft is not the profile's but the surface finish's.
+    - Injection: `printability(…).mould.minDraftDeg` (and `recDraftDeg`), the finish chosen in `doc.mould.finish`. None chosen: null, and the draft rule is unknown, so show no marks.
+    - Casting: `castingDraftLimits`.
+    - Marks at ±min and saturating at 2 × min are the GPU lane's to choose.
+  - **IM4, confirmed with sources named**: `wallSamples(body).local` is a Float64Array, mm per triangle, Infinity where no wall.
+    - The range [0, max(2 × nominal, thick95)] works: `nominalMM` and `thick95MM` come from wallsOf's report.
+    - Red under: the process's `minWall` threshold (the 'wall' rule's limit), and also under the material's moulding range low end when it has one (`materialData(id).wallMM.injection`, the 'wall-material' rule).
+    - Purple over: the thick-section limit is `nominalMM / adjacentWallRatio` (the profile's threshold, 0.6 when unset). wallsOf's `thick` gives the faces and `maxMM`, not the limit.
+  - **Parting, confirmed**: `PartingReport.loops[].points` are polylines with `closed` and `flat`, in the part's coordinates (a placed instance's transform is the viewer's).
+  - **mouldHalves, confirmed**: `plus` and `minus` are BodyResult[] on success, else `{ok: false, code: 'MOULD_BUILD'}`.
