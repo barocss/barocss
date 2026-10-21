@@ -467,3 +467,41 @@ against the code as it is now:
   (43 s), and on WebGL2 on `d4c7af4e5` (cage and RM steps) 13/13 (66 s, the load at 78). Not run: the full flow (the
   coordinator's), the cad-model suite (not touched), the other benches (no other frame path changed).
 
+## G9 — scene-level trees for picks (2026-10-22)
+
+- **Two trees** (`geometry.ts`: `sceneTree`, `sceneRay`, `sceneNear`, on the same median-split builder as the per-geometry
+  BVHs, now `buildBvh`): over the triangle meshes' world boxes, one leaf a mesh or an instance, for rays; over the line and
+  point meshes' world boxes for the pointer. Leaf boxes are widened by a millionth of their diagonal past the slab test's
+  own tolerance, so nothing a per-mesh test finds is ruled out. Made again lazily at the next pick after a mesh is added,
+  removed, cleared or moved (`Mesh.transform`, `setInstances` → `Viewer.sceneMoved`); visibility, pickability, opacity and
+  the clip plane are read at the pick, as before.
+- **raycast**: the leaves the ray enters, nearest entry first, until one starts past the best hit; ties to the earliest
+  leaf (mesh order, then instance) — the walk's rule. **hidden** (G3's depth test for pickLine and pickPoint): the leaves
+  entered before the point. **pickLine / pickPoint**: the per-mesh search, unchanged, on the meshes whose box lands within
+  the reach of the pointer (`rectDistance`), in their order.
+- **Found by the equality test** (G9-D1): under a clip plane, `clippedRay`'s cap is wherever the ray crosses the plane once
+  its first kept-side hit is a back face — on a ray grazing a box's edge (its front face missed within tolerance, its back
+  hit) that crossing can lie outside the box, so a box-entry bound dropped a hider the walk had (9 of 1 500 picks differed).
+  A capped mesh under the plane is now bounded by min(box entry, plane crossing), the crossing computed as `clippedRay`
+  computes it. The cap's own behaviour on such rays is today's and is kept; it is noted here, not changed.
+- **Points** (G8's brute force): a point mesh of 256 or more points is searched through a hierarchy of its points
+  (`bvhOf`, one vertex an element), nodes passed over when their screen rectangle is farther than the best so far. The rule
+  is now exact under any visit order: nearest by d² compared directly, ties to the lowest index (G8 compared d² with the
+  best's √d² squared, which only differs at a rounding-level tie). The walk (`accelerate` off) uses the same rule.
+- **`Viewer.accelerate`** (internal, default true): false keeps the linear walks, the reference the test compares against.
+- **Evidence**: gpu browser test G9 — 150 turned boxes and their edges, a 60-instance mesh, a two-sided quad, a see-through
+  box (hides nothing), 100 000 + 150 + 60 points (one mesh over the scene); 500 random pointers × raycast, pickLine,
+  pickPoint, with the trees and with the walks: the same mesh, instance, triangle, face, cap, segment and point index, the
+  same distances, points equal (worst 0), plain, under a capping clip plane and after a quarter of the boxes moved.
+- **Bench**: in that test, 500 pointers (load ≈ 20): raycast 46.5 → 3.6 ms, pickLine 77 → 7.9 ms, pickPoint 289 → 9.8 ms
+  (linear → trees). `bench:browser` on the studio's 120 brackets (DEV `__studioViewer`), 500 pointers, the same answers:
+  raycast 26.6 → 4.1 ms, pickLine 4.1 → 3.4 ms (load 26 → 19). New rows `hover: 60 moves across 120 brackets` (63.8 ms of
+  task in all, 70.1 before G9 in the verify worktree) and `pick: a bracket clicked` (47.7 ms, 43.2 before): both are the
+  App's own updates on each move and click (its cursor readout, the selection), not the picks — those are 0.053 → 0.008 ms
+  a raycast. 100 000 points picked: G8's 3.5 ms a pick → 0.02 ms.
+- **Checks** (v2): gpu tsc and eslint clean, unit 77/77, browser 10/10; studio tsc and eslint clean, suite 192/192 (the first
+  run's 2 failures were G9's DEV hook reading `import.meta.env` under node: guarded, `7a375e7ff`); FLOW_ONLY on WebGPU over the
+  steps that pick, select, hover, mate, place instances, section or measure (67 steps by name, plus step 1): 75 passed and 4
+  failed for want of earlier steps FLOW_ONLY left out (the extend-surface step reads the imported source; the instance steps
+  the saved part) — steps 46–60 run together: 16/16. Not run: the full flow (the coordinator's), the cad-model suite.
+

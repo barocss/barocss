@@ -854,6 +854,11 @@ acceleration → benches.
   border, a zero-alpha fill a ring; over or depth-tested with hidden ones faint) and `pickPoint` by index. RM9b's workspace
   map and the SubD cage's vertices (poles ringed) are engine points on WebGPU; curve/surface poles, corners and the measure
   ends stay SVG. A 100 000-voxel map orbited: task 55.5 → 2.9 ms a frame, GPU 55.1 → 6.6 ms a submit.
+- **G9** (2026-10-22): done. Scene-level trees for the viewer's picks (one over the triangle meshes' world boxes, an
+  instance a leaf, for rays and the depth-aware hidden test; one over the line and point meshes' for the pointer) and a
+  hierarchy inside large point meshes; the same answers as the linear walks (`Viewer.accelerate` off, compared over random
+  pointers plain, clipped and after moves). 500 pointers: raycast 46.5 → 3.6 ms, pickLine 77 → 7.9 ms, pickPoint (100 000
+  points) 289 → 9.8 ms; on the studio's 120 brackets raycast 26.6 → 4.1 ms.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
