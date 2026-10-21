@@ -4,7 +4,7 @@
 // (O85): holes and threads — each step's depth over its diameter from its reach, the drill table, a tapped hole's tap
 // drill, size and length. CNC3 (O86): inside corners against ⅓ of their depth, cavities' depth over width, small
 // features, tall thin walls, text. CNC4 (O87): access from the six directions with the tool's side, and setups. CNC5
-// (O88): the drawing a shop machines from (milling and turning alike). CNC6 (O89): turning — the axis, what is turned
+// (O88): the drawing a shop machines from (milling and turning alike). CNC7a (O101): the features recognised. CNC6 (O89): turning — the axis, what is turned
 // and what is milled by live tools, the lathe's size, the outside profile's grooves and least diameter, holes by their
 // axes, points.
 import type { StudioDoc } from '../engine/doc';
@@ -16,6 +16,7 @@ import { accessOf, type Access } from './access';
 import { cavitiesOf, type Cavities } from './cavities';
 import { drawingCheck, type DrawingCheck } from './drawing';
 import { turningOf, type Turning } from './turning';
+import { featuresOf, type Feature } from './features';
 import { holesOf, nearestDrills, onDrillTable, tappedHoles, type Hole, type TappedHole } from './holes';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
 
@@ -51,9 +52,16 @@ export function machinability(doc: StudioDoc, bodies: readonly BodyResult[], pro
   if (profile.id === 'cnc-milling') { ({ holes, tapped } = holeRules(doc, bodies, profile, rules)); cavities = cavityRules(doc, bodies, profile, rules, holes); access = accessRules(bodies, rules); }
   else { holes = holesOf(bodies); turning = turningRules(doc, bodies, profile, rules, holes, id); }
   const drawing = drawingRule(doc, bodies, rules);
+  // (CNC7a, O101: the features recognised, for milling — a summary rule after the drawing's, and the list itself.)
+  let features: Feature[] | null = null;
+  if (profile.id === 'cnc-milling') {
+    features = featuresOf(doc, bodies, holes);
+    const by = (['pocket', 'slot', 'step', 'hole', 'boss'] as const).map(k => [k, features!.filter(f => f.kind === k).length] as const).filter(([, n]) => n);
+    rules.push({ id: 'features', level: 'recommended', status: 'pass', message: by.length ? `${by.map(([k, n]) => `${n} ${k}${n === 1 ? '' : k === 'boss' ? 'es' : 's'}`).join(', ')} recognised, each with its setup` : 'no machined features recognised', value: features.length, unit: 'features' });
+  }
   const classes = profile.toleranceClasses;
   return { process: profile.id, direction: null, rules, machining: { family, material: id, tolerance: { mm: t('tolMM').value, feasibleMM: t('tolFeasibleMM').value, source: t('tolMM').page?.url ?? t('tolMM').source },
-    toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null, holes, tapped, ...(cavities ? { cavities } : {}), ...(access ? { access } : {}), ...(turning ? { turning } : {}), drawing } };
+    toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null, holes, tapped, ...(cavities ? { cavities } : {}), ...(access ? { access } : {}), ...(turning ? { turning } : {}), drawing, ...(features ? { features } : {}) } };
 }
 
 const worst = (xs: readonly PrintRule['status'][]): PrintRule['status'] => xs.includes('fail') ? 'fail' : xs.includes('warn') ? 'warn' : xs.includes('unknown') ? 'unknown' : 'pass';
