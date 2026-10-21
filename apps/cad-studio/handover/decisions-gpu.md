@@ -543,3 +543,40 @@ against the code as it is now:
   exactly one instance after step 57 had placed one; G10 with step 81 and its fastener steps 78–80 on the fix: 6/6. gpu
   untouched (its suites as at G9). Not run: the full flow (the coordinator's), the cad-model suite.
 
+## G11 — order-independent transparency (2026-10-22)
+
+- **Choice (G11-D1)**: weighted blended OIT (McGuire–Bavoil), not depth peeling. It keeps the outline and cap behaviour —
+  the outline mask is its own pass over the meshes (unchanged), and caps are drawn only for opaque meshes — so the
+  coordinator's condition for depth peeling did not arise. It is one extra geometry pass for the see-through surfaces
+  whatever their depth complexity, works with the 4× multisampling as it is, and is exactly order-independent (sums and
+  products), where peeling is exact in colour but costs a pass a layer and needs per-sample depth reads. Its price: two or
+  more overlapping layers blend by a depth weight, not exactly "over" — a nearer layer counts more, the farther still
+  shows. One layer alone is exact (the test: equal to the sorted path within 1).
+- **Frame** (`drawFrame`): with a see-through triangle mesh in view (`oitSurface`: transparent, not a shadow catcher),
+  three passes —
+  1. the opaque scene: surfaces, caps, the grid, shadow catchers (they darken the ground), opaque lines and points; its
+     multisampled colour kept;
+  2. the see-through surfaces into `accum` (rgba16float, premultiplied colour × w, added) and `reveal` (r16float, × (1 −
+     alpha)), multisampled and resolved, tested against the opaque depth, writing none; w = clamp(1 / (1e-3 + (d/2)³),
+     0.01, 3000) with d the view depth over the scene's radius (`frame.viewport.w`);
+  3. their composite over the scene (`oitWGSL`: the weighted average where the revealage leaves room, as a premultiplied
+     surface), then the see-through and drawn-over lines and points, sorted far to near as before.
+  Without one, the single pass as before. Shader materials get the same `O` variant (`fsLitOit`, `fsUnlitOit` in every
+  surface module); `Viewer.orderIndependent = false` (internal) keeps the sorted path.
+- **Lines (G11-D2)**: opaque lines and points are drawn in the opaque pass, so a see-through surface in front dims them —
+  and so does one exactly at their depth or just behind (lines write no depth); see-through lines (a body's 0.6 edges) and
+  lines drawn over the scene are drawn after the composite, undimmed. Before, it depended on the meshes' box centres. To
+  tune with the ghosting looks if wanted.
+- **Evidence**: gpu browser test G11 — two boxes through each other with the same centre (so the sort keeps the order they
+  are added in), 0.5 and 0.45 opaque, added in both orders: 0 pixels differ by more than 3 (ΣRGB; the largest 2, f16
+  rounding), where the sorted path differs on 8 829 (the largest 98) — the test can tell; one 0.35 layer, outlined, before
+  a box cut and capped by the clip plane, a 0.8 line over it: as the sorted path drew it (the largest difference 1).
+  Flow before (`f3b850593`) and after (render a part, proposals' ghost, A6.3's ghosted reference, IM7, IM7a, G6, G10):
+  8/8 both; every screenshot the same but A6.3's (its hole's cylinder now even through the ghost's walls; 10 pixels past
+  96) and G6's halves (0 past 96, the largest 86) — the two with see-through surfaces over each other.
+- **Bench** (`bench:browser`, the 120 brackets ghosted: their surfaces 0.35 through the DEV viewer, orbited 60 steps, at load
+  13): GPU 2.67 ms a submit sorted, 2.83 ms order-independent; task 4.38 → 4.34 ms a frame. Budget GPU 8 (the 120-bracket
+  rows' is 44).
+- **Checks** (v2): gpu tsc and eslint clean, unit 77/77, browser 11/11; studio tsc clean, suite 193/193; the flow and bench
+  above. Not run: the full flow (the coordinator's), the cad-model suite.
+

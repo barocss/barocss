@@ -864,6 +864,10 @@ acceleration → benches.
   and one with picked faces or a textured look a private copy while it has them. 120 turned brackets opened: uploaded
   2 003 → 85 KiB, 240 → 2 geometries (2 590 → 22 KiB kept). Against each its own mesh: the same frame (no pixel past 1) and
   the same picks.
+- **G11** (2026-10-22): done. See-through surfaces through a weighted blended order-independent pass (an accumulation
+  and a revealage, summed in any order, then composited); outlines and caps untouched, see-through lines and points drawn
+  over it as before. Two interpenetrating see-through boxes give the same frame in either draw order (the sorted path
+  differed on 8 829 pixels); one layer as the sorted path drew it. 120 ghosted brackets orbited: GPU 2.67 → 2.83 ms.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
