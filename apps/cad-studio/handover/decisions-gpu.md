@@ -166,6 +166,11 @@ analyses, 6 scene-level pick acceleration, 7 benches for these. This session tak
 
     The brackets are small (about 100 triangles each), so the CPU's clipping is a small part of the frame; on large bodies
     its share grows with their triangles, the GPU's does not.
+  - Checks (T2: gpu shaders and App.tsx), on the merge `7455af373` of integration's `b435c0b87`: cad-model package 626/626
+    (106 s), lint/tsc clean; gpu lint/tsc clean, unit 74/74, browser 4/4 (94 s with the builds); studio tsc clean, eslint 0
+    errors (106 warnings: the flow's three new G2 lines among them), suite 185/185 (32 s); the full browser flow on its own
+    219/220 (777 s, port 52691) — step 109, the throated worm wheel's known `waitForSelector` flake, passed on its own
+    (22 s); before the merge the full flow was 217/217 (704 s). `FLOW_RENDERER=webgl2` section step: passes on the CPU path.
 - **Not done / limits**: one cap colour for every mesh (the CPU cap took a body's own colour mixed with the accent); a
   ghosted (see-through) body is cut but not capped; the cap casts no shadow; an open mesh marked `cap` shows a cap where
   its inside shows (the studio caps every body and instance, as clipMesh did). The section's outline is not drawn as lines
