@@ -3,8 +3,8 @@
 // bodies that are still visible, and no unknown fields. Also deleting a feature (with the sketches only
 // it used) and renumbering the later ones; persistent face and edge names carry stable feature ids
 // (engine/ids.ts), so they stay as they are.
-import { sketch3dRefusal, type Constraint3D, type V3 } from '../frames/sketch3d';
-import { followersOf } from '../frames/skeleton';
+import { type BoundConstraint3D, type V3 } from '../frames/sketch3d';
+import { boundConstraints, boundRefusal, followersOf } from '../frames/skeleton';
 import { frameGeometry, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
@@ -125,7 +125,10 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   if (kind === 'skeleton' && node.constraints !== undefined) {
     if (!Array.isArray(node.constraints)) return 'skeleton.constraints: a list of 3D constraints ({"kind": "length", "segment": k, "value": mm} …)';
     if ((node.points as unknown[][]).some(p => p.some(v => typeof v !== 'number'))) return 'skeleton: a skeleton with constraints has numbers for its points (the solver moves them)';
-    const why = sketch3dRefusal(node.points as V3[], node.segments as [number, number][], node.constraints as Constraint3D[]);
+    // (O140: a length's, distance's or angle's value may be a parameter's: checked as it is now.)
+    const b = boundConstraints(node.constraints as BoundConstraint3D[], parameters);
+    if ('error' in b) return b.error;
+    const why = boundRefusal(node.points as V3[], node.segments as [number, number][], b);
     if (why) return `[SKETCH3D_INPUT] skeleton.${why}`;
   }
   return null;

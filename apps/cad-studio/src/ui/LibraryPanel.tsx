@@ -10,6 +10,7 @@ import { CASTING_PROCESSES, type CastingProcess } from '@barocss/cad-model/casti
 import { MATERIALS_DATA, processProfile } from '@barocss/cad-model/library/materials';
 import { Icon } from './atoms';
 import { BearingRows } from './BearingRows';
+import { RingRows } from './RingRows';
 import { ORingRows } from './ORingRows';
 import { FitTables } from './FitTables';
 import { FrameSections } from './FrameSections';
@@ -87,6 +88,8 @@ export function LibraryPanel({ doc, onCommit, onError, onClose, onQuote }: { doc
     <BearingRows doc={doc} onCommit={onCommit} onError={onError} />
     {/* (R12c.5, D159: the person's own O-ring rows.) */}
     <ORingRows doc={doc} onCommit={onCommit} onError={onError} />
+    {/* (O139: the person's own retaining-ring rows.) */}
+    <RingRows doc={doc} onCommit={onCommit} onError={onError} />
     {SOURCES.map(({ source, title }) => {
       const list = all.filter(e => e.source === source);
       return <section key={source} aria-label={`${title} libraries`}>

@@ -405,6 +405,14 @@ try {
     assert.doesNotMatch(await constraints(), /Vertical/);
     // Dimension tool: an edge opens the inline editor; two points open their distance.
     await press('d'); await pick('edge', 0);
+    // (O137: the inline editor stays above the top bar. Moved into the bar's band — a dimension in the top 36 px — the
+    // point at its middle is the editor, not the bar, and it still takes the value.)
+    const above = await page.evaluate(() => {
+      const e = document.querySelector('.dim-edit'), was = e.style.top; e.style.top = '8px';
+      const r = e.getBoundingClientRect(), bar = document.querySelector('.topbar').getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      const out = { inBar: r.top + r.height / 2 < bar.bottom, hit: hit === e }; e.style.top = was; return out;
+    });
+    assert.deepEqual(above, { inBar: true, hit: true });
     await page.locator('.dim-edit').fill('60'); await page.locator('.dim-edit').press('Enter');
     assert.equal(await page.inputValue('#sk-len0'), '60'); assert.match(await constraints(), /Length\s*edge 1 = 60/); assert.match(await status(), /2 DOF/);
     await pick('point', 0); await pick('point', 2);
@@ -3860,6 +3868,78 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
+
+  // ---- O139: retaining-ring rows loaded in the Library panel (none built in) ---------------------------------------------
+  await check('ring rows (O139): a row loaded in the Library panel; a ring on it via the chat cites it, no estimate; the used row stays', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const file = join(out, 'rings.json'); fs.writeFileSync(file, JSON.stringify([{ id: 'r20', designation: '20 × 1.2', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' }]));
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="Ring rows"]'), /No ring rows: load your own .* None is built in/);
+      await page.setInputFiles('input[aria-label="Ring rows file"]', file);
+      await page.waitForFunction(() => window.__studioDoc.rings?.rows?.length === 1, null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Ring row r20"]'), /20 × 1\.2 Ø20 shaft · groove Ø19 × 1\.3 · the maker's sheet/);
+    } finally { await page.click('[aria-label="Close library"]'); }
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      if (!await page.locator('[aria-label="Chat message"]').count()) await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), cmd = (command, values, sel) => ({ tool: 'features', args: { action: 'command', command, values, ...(sel ?? {}) } });
+      const calls = [cmd('shaft', {}), cmd('retaining-ring', { row: 'r20' }, { bodies: ['b0'] })];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      assert.deepEqual(await page.locator('.chat-tool.err').allInnerTexts(), []);
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'retaining-ring' && n.row === 'r20'), null, { timeout: 60000 }); await idle();
+    await page.locator('.outliner .ol', { hasText: /^Retaining ring/ }).first().click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /checked against your ring row/.test(x.textContent ?? '')), null, { timeout: 30000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.trim());
+    assert.ok(notes.some(t => t === 'Its groove checked against your ring row (the maker\'s sheet)'), notes.join(' | '));
+    assert.ok(!notes.some(t => /an estimate: your ring's row/.test(t)), notes.join(' | '));
+    // (The row the ring uses stays: removing it is refused, said.)
+    await page.click('[aria-label="Library"]');
+    try {
+      await page.click('[aria-label="Remove ring row r20"]');
+      await page.waitForFunction(() => /used by a retaining ring/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 10000 });
+      assert.equal(await page.evaluate(() => window.__studioDoc.rings.rows.length), 1);
+    } finally { await page.click('[aria-label="Close library"]'); }
+  });
+
+  // ---- O138: a key's width fit — classes on the key's, keyseat's and keyway's sides -----------------------------------
+  await check('key width fit (O138): h9 on the key, N9 on its keyseat, JS9 on the keyway via the chat — both width fits in the key\'s notes', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const table = { id: 'key-fits', rows: [{ class: 'N9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }, { class: 'JS9', overMM: 3, upToMM: 6, upperUM: 15, lowerUM: -15, estimate: true }, { class: 'h9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }] };
+    const file = join(out, 'key-fits.json'); fs.writeFileSync(file, JSON.stringify(table));
+    await page.click('[aria-label="Library"]');
+    try { await page.setInputFiles('input[aria-label="Fit table file"]', file); await page.waitForFunction(() => window.__studioDoc.fits?.tables?.length === 1, null, { timeout: 10000 }); }
+    finally { await page.click('[aria-label="Close library"]'); }
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      if (!await page.locator('[aria-label="Chat message"]').count()) await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), cmd = (command, values, sel) => ({ tool: 'features', args: { action: 'command', command, values, ...(sel ?? {}) } });
+      // (Ids as they come: the shaft n0, the tube n1–n2, the keyway n3, the key n4 — its side0 the round-ended key's first straight side.)
+      const calls = [cmd('shaft', {}), cmd('tube', { r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 }), cmd('keyway', { b: 6, t2: 2.8 }, { faces: ['n2.hole0.side0'] }), cmd('key', { h: 6 }, { bodies: ['b0'] }),
+        cmd('fit-class', { class: 'h9' }, { faces: ['n4.side0'] }), cmd('fit-class', { class: 'N9' }, { faces: ['n0.keyseat1'] }), cmd('fit-class', { class: 'JS9' }, { faces: ['n3.keyway'] })];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      const errors = await page.locator('.chat-tool.err').allInnerTexts();
+      assert.deepEqual(errors, []);
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc.fits?.faces?.length === 3, null, { timeout: 60000 }); await idle();
+    await page.locator('.outliner .ol', { hasText: /^Key/ }).first().click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /Width fit in the seat/.test(x.textContent ?? '')), null, { timeout: 30000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning\s*/, '').trim());
+    assert.ok(notes.includes('Width fit in the seat: N9/h9 at 6 mm — transition, −0.03 to +0.03 mm clearance (an estimate)'), notes.join(' | '));
+    assert.ok(notes.includes('Width fit in the hub\'s keyway: JS9/h9 at 6 mm — transition, −0.015 to +0.045 mm clearance (an estimate)'), notes.join(' | '));
+    await snap('key-width-fit');
+  });
   await check('FRc the section library in the Library panel: a row, a frame on it via the chat (133 200 mm³), the row edited (172 800), a used row kept (O117)', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
@@ -4047,6 +4127,43 @@ try {
     } finally { chat.kill(); }
   });
 
+
+  // ---- O140: FRg's lengths bound to parameters — re-solved when a parameter changes ---------------------------------------
+  await check('FRg bound to parameters (O140): sides W and D via the chat, 444 · 600; W 800 in the panel re-solves (444 · 800); D −5 refused naming D', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.click('[aria-label="Parameters"]');
+    for (const [name, value] of [['W', '600'], ['D', '400']]) { await page.fill('[aria-label="New parameter name"]', name); await page.fill('[aria-label="New parameter value"]', value); await page.click('[aria-label="Add parameter"]'); }
+    await page.waitForFunction(() => window.__studioDoc.parameters.W === 600 && window.__studioDoc.parameters.D === 400, null, { timeout: 5000 });
+    await page.click('[aria-label="Close parameters"]');
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      if (!await page.locator('[aria-label="Chat message"]').count()) await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const constraints = [{ kind: 'fixed', point: 0 }, { kind: 'along', segment: 0, axis: 'x' }, { kind: 'on-plane', point: 2, plane: { origin: [0, 0, 0], normal: [0, 0, 1] } }, { kind: 'length', segment: 0, value: { parameter: 'W' } }, { kind: 'length', segment: 1, value: { parameter: 'D' } },
+        { kind: 'perpendicular', a: 0, b: 1 }, { kind: 'parallel', a: 0, b: 2 }, { kind: 'parallel', a: 1, b: 3 }];
+      const skeleton = { kind: 'skeleton', points: [[0, 0, 0], [590, 10, 0], [610, 390, 5], [-5, 405, 3]], segments: [[0, 1], [1, 2], [2, 3], [3, 0]], constraints };
+      const frame = { kind: 'frame', follows: { skeleton: 0 }, section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { default: 'mitre' } };
+      const n = await page.locator('.chat-msg.assistant').count();
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'add', features: [skeleton, frame] } }] })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      assert.deepEqual(await page.locator('.chat-tool.err').allInnerTexts(), []);
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    const first = async () => { await page.locator('.outliner .ol').first().click(); await page.waitForFunction(() => /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 30000 }); return bodyVolume(); };
+    assert.ok(Math.abs(await first() - 444 * 600) <= 1);
+    const setValue = async (name, v) => { await page.click('[aria-label="Parameters"]'); await page.fill(`[aria-label="Value of ${name}"]`, v); await page.locator(`[aria-label="Value of ${name}"]`).press('Enter'); await page.click('[aria-label="Close parameters"]'); };
+    await setValue('W', '800');
+    await page.waitForFunction(() => Math.abs(window.__studioDoc.nodes[0].points[1][0] - 800) < 1e-6, null, { timeout: 15000 }); await idle();
+    assert.ok(Math.abs(await first() - 444 * 800) <= 1);
+    await setValue('D', '-5');
+    await page.waitForFunction(() => /That value does not hold/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 10000 });
+    assert.match(await page.textContent('.toast'), /bound to D = -5/);
+    assert.deepEqual(await page.evaluate(() => window.__studioDoc.parameters), { W: 800, D: 400 });
+    await snap('frg-bound-parameters');
+  });
   await check('FRf2 a base frame on a placed part\'s sketch via the chat: a saved assembly with a 300 × 200 plate at z = 100, a frame following its sketch — 4 members on z = 100, the part\'s revision pinned (O125)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin, file = join(out, 'plate-assembly.bcad');
     const plate = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: { b1: { node: 1, side: 'solid' } }, nodes: [
@@ -6031,6 +6148,62 @@ try {
     await page.waitForFunction(() => !document.querySelector('[aria-label="Mould legend"]') && !document.querySelector('[aria-label="Map legend"]'), null, { timeout: 5000 });
   });
 
+  // ---- O133: a chat turn merged onto an edit the person made while it ran ------------------------------------------
+  await check('chat turn merged with an edit made during it: a slow scripted turn raises the box to 20 while a second box is added — both kept; one Undo takes the agent\'s change back, the second box stays (O133)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
+      await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+      if (!await page.locator('[aria-label="Chat message"]').count()) await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const k = await page.locator('.chat-msg.assistant').count(), tools = await page.locator('.chat-tool').count();
+      const calls = [{ tool: 'features', args: { action: 'edit', index: 1, values: { h: 20 } } }, { pause: 6000 }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      // (While the turn pauses, after its edit: the person adds a second box at X 40.)
+      await page.waitForFunction(t => document.querySelectorAll('.chat-tool').length > t, tools, { timeout: 30000 });
+      await page.evaluate(() => document.activeElement?.blur?.());
+      await press('b'); await hudReady(); await field('At X').fill('40'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+      assert.ok(await page.locator('.chat-msg.busy').count(), 'the turn is still running');
+      await page.waitForFunction(n => document.querySelectorAll('.chat-msg.assistant').length > n && !document.querySelector('[aria-label="Chat message"]')?.disabled, k, { timeout: 60000 });
+      await page.waitForFunction(() => /Chat turn merged with your edits/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 15000 });
+      assert.match(await page.textContent('.toast'), /1 of 1 change applied/);
+      const heights = () => page.evaluate(() => window.__studioDoc.nodes.filter(n => n.kind === 'extrude').map(n => [n.id, n.height]));
+      assert.deepEqual(await heights(), [['n1', 20], ['n3', 16]]);
+      await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+      await snap('chat-merge-both-kept');
+      // One Undo: the agent's change gone, the person's box kept.
+      await page.click('[aria-label="Close chat"]'); await page.evaluate(() => document.activeElement?.blur?.());
+      await press('Meta+z');
+      await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.id === 'n1')?.height === 16, null, { timeout: 15000 });
+      assert.deepEqual(await heights(), [['n1', 16], ['n3', 16]]);
+    } finally { chat.kill(); }
+  });
+
+  // ---- PERF3 B13 (O135): mesh blobs no step reaches evicted at idle; nothing reachable dropped -------------------------
+  await check('blob eviction: an STL opened, the idle sweeps run (the DEV counter), its arrays kept while undo holds them — undo and redo build it, no dropped blob asked for (O135)', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, '../../packages/barocss-cad-model/test/fixtures/block-cm.stl'));
+    await page.waitForSelector('[aria-label="Mesh units"]'); await page.selectOption('[aria-label="Mesh unit"]', 'cm');
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const sweeps0 = await page.evaluate(() => window.__studioBlobs?.sweeps ?? 0);
+    await page.click('[aria-label="New part"]'); await idle();
+    // (Two sweeps: two seconds after each change; the mesh's document is an undo step, so its blobs stay.)
+    await page.waitForFunction(n => (window.__studioBlobs?.sweeps ?? 0) >= n + 1, sweeps0, { timeout: 15000 });
+    await page.waitForTimeout(2500);
+    const b = await page.evaluate(() => window.__studioBlobs);
+    console.log(`    (blob sweeps ${b.sweeps}, last freed ${b.lastFreed} bytes, ${b.freed} in all, ${b.kept} kept)`);
+    assert.deepEqual(b.evictedAsked, []);
+    await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await press('Meta+z'); await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.deepEqual(await page.evaluate(() => window.__studioBlobs.evictedAsked), []);
+  });
+
   // ---- G10: copies turned about Z share one tessellation --------------------------------------------------------------
   await check('G10: 24 copies of a bracket turned about Z in 15° steps share one tessellation — the same pixels and picks as each its own mesh; an edited copy gets its own, the others kept', async () => {
     const fs = await import('node:fs');
@@ -6092,40 +6265,6 @@ try {
     assert.deepEqual(after.own, [false], 'its surface not shared');
     const kept = Object.keys(before).filter(k => k !== 'inst:r5' && before[k] === after.ids[k]).length;
     assert.equal(kept, 23, 'the other copies kept their meshes');
-  });
-
-  // ---- O133: a chat turn merged onto an edit the person made while it ran ------------------------------------------
-  await check('chat turn merged with an edit made during it: a slow scripted turn raises the box to 20 while a second box is added — both kept; one Undo takes the agent\'s change back, the second box stays (O133)', async () => {
-    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
-    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
-    try {
-      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
-      await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
-      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
-      if (!await page.locator('[aria-label="Chat message"]').count()) await page.click('[aria-label="Chat"]');
-      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
-      const k = await page.locator('.chat-msg.assistant').count(), tools = await page.locator('.chat-tool').count();
-      const calls = [{ tool: 'features', args: { action: 'edit', index: 1, values: { h: 20 } } }, { pause: 6000 }];
-      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
-      // (While the turn pauses, after its edit: the person adds a second box at X 40.)
-      await page.waitForFunction(t => document.querySelectorAll('.chat-tool').length > t, tools, { timeout: 30000 });
-      await page.evaluate(() => document.activeElement?.blur?.());
-      await press('b'); await hudReady(); await field('At X').fill('40'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
-      await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
-      assert.ok(await page.locator('.chat-msg.busy').count(), 'the turn is still running');
-      await page.waitForFunction(n => document.querySelectorAll('.chat-msg.assistant').length > n && !document.querySelector('[aria-label="Chat message"]')?.disabled, k, { timeout: 60000 });
-      await page.waitForFunction(() => /Chat turn merged with your edits/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 15000 });
-      assert.match(await page.textContent('.toast'), /1 of 1 change applied/);
-      const heights = () => page.evaluate(() => window.__studioDoc.nodes.filter(n => n.kind === 'extrude').map(n => [n.id, n.height]));
-      assert.deepEqual(await heights(), [['n1', 20], ['n3', 16]]);
-      await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
-      await snap('chat-merge-both-kept');
-      // One Undo: the agent's change gone, the person's box kept.
-      await page.click('[aria-label="Close chat"]'); await page.evaluate(() => document.activeElement?.blur?.());
-      await press('Meta+z');
-      await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.id === 'n1')?.height === 16, null, { timeout: 15000 });
-      assert.deepEqual(await heights(), [['n1', 16], ['n3', 16]]);
-    } finally { chat.kill(); }
   });
 
   await check('command palette and light theme', async () => {

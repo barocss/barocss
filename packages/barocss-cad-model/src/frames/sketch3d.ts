@@ -8,6 +8,15 @@
 
 export type V3 = [number, number, number];
 export type Axis3 = 'x' | 'y' | 'z';
+/** A constraint's value: a number, or a document parameter's (FRg after G17's ask, O140: re-solved when it changes). */
+export type Value3D = number | { parameter: string };
+/** A constraint as kept in the document: lengths, distances and angles a number or a parameter. */
+export type BoundConstraint3D =
+  | Exclude<Constraint3D, { kind: 'length' | 'distance' | 'angle' }>
+  | { kind: 'length'; segment: number; value: Value3D }
+  | { kind: 'distance'; a: number; b: number; value: Value3D }
+  | { kind: 'angle'; a: number; b: number; degrees: Value3D };
+/** A constraint the solver takes: every value a number. */
 export type Constraint3D =
   | { kind: 'coincident'; a: number; b: number }
   | { kind: 'fixed'; point: number; at?: V3 }

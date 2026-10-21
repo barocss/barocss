@@ -1,4 +1,4 @@
-import { followedStale, staleText } from '../frames/skeleton';
+import { followedStale, resolveSkeletons, staleText } from '../frames/skeleton';
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import { fitNotes } from './fits';
 import type { FaceTable } from '../assembly/mates';
@@ -205,9 +205,12 @@ function snapshotOf(doc: StudioDoc): CadPartSnapshot {
   return last ? last.withDocument(part) : evaluateCadPart(part);
 }
 
+/** The document with its parameter-bound skeletons solved for its parameters now (O140; the same document when none moved), or their refusal. */
+function skeletonsNow(doc: StudioDoc): StudioDoc { const r = resolveSkeletons(doc); if ('error' in r) throw new Error(r.error); return r.doc; }
 export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): EvalResult {
   const t0 = performance.now();
   try {
+    doc = skeletonsNow(doc);
     const snapshot = snapshotOf(doc); last = snapshot;
     const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
@@ -253,6 +256,7 @@ const lastParts = new Map<PartSlot, CadPartSnapshot>();
 export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot: PartSlot = 'part'): EvalResult {
   const t0 = performance.now();
   try {
+    doc = skeletonsNow(doc);
     const part = toPartDocument(doc), last = lastParts.get(slot), snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastParts.set(slot, snapshot);
     const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
@@ -264,6 +268,7 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot
 /** A part's bodies' volumes only (a clash probe's intersection): no mesh worked out or sent (PERF3 B12). */
 export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok: true; volumes: { key: string; volumeMM3: number | null }[] } | { ok: false; error: FriendlyError } {
   try {
+    doc = skeletonsNow(doc);
     const part = toPartDocument(doc), last = lastParts.get(slot), snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastParts.set(slot, snapshot);
     return { ok: true, volumes: snapshot.outputs.map(o => {
       let m = masses.get(o.brep);
@@ -564,9 +569,12 @@ function shaftPartNotes(o: CadPartSnapshot['outputs'][number]): { text: string; 
     out.push({ text: `Key ${mm(k.widthMM)} × ${mm(k.heightMM)} × ${mm(k.lengthMM)} (${k.ends} ends) in keyseat ${k.keyseat}: ${mm(k.seatPlayMM)} play in the seat's width, ${mm(k.lengthRoomMM)} to spare in its length; it stands ${mm(k.standsMM)} above the shaft` });
     if (k.hub) out.push({ text: `In the hub's keyway: ${mm(k.hub.keywayPlayMM)} play in its width, ${mm(k.hub.topClearanceMM)} under its floor` });
     else out.push({ text: 'No hub keyway given: the key\'s top clearance is not checked', warning: true });
+    // (O138: the width fits from the classes on the key's, the seat's and the keyway's sides — the user's tables.)
+    const um = (x: number) => `${x > 0 ? '+' : x < 0 ? '−' : ''}${mm(Math.abs(x) / 1000)}`;
+    for (const [where, f] of [['seat', k.seatFit], ['hub\'s keyway', k.hubFit]] as const) if (f) out.push({ text: `Width fit in the ${where}: ${f.hole.class}/${f.shaft.class} at ${mm(k.widthMM)} mm — ${f.kind}, ${um(f.clearanceMinUM)} to ${um(f.clearanceMaxUM)} mm clearance${f.estimate ? ' (an estimate)' : ''}`, ...(f.estimate ? { warning: true } : {}) });
   }
   if (o.keyway) { const w = o.keyway; out.push({ text: `Keyway ${mm(w.widthMM)} wide, ${mm(w.depthMM)} deep in the Ø${mm(2 * w.boreRadiusMM)} bore (its floor ${mm(w.floorRadiusMM)} from the axis), ${mm(w.toMM - w.fromMM)} long at ${mm(w.angleDeg)}°` }); }
-  if (o.ring) { const r = o.ring; out.push({ text: `Retaining ring ${mm(r.thicknessMM)} thick, Ø${mm(r.innerDiameterMM)} to Ø${mm(r.outerDiameterMM)} in groove ${r.groove}: ${mm(r.axialPlayMM)} axial play` }); if (r.estimate) out.push({ text: 'The ring\'s sizes are an estimate: your ring\'s row gives them', warning: true }); }
+  if (o.ring) { const r = o.ring; out.push({ text: `Retaining ring ${mm(r.thicknessMM)} thick, Ø${mm(r.innerDiameterMM)} to Ø${mm(r.outerDiameterMM)} in groove ${r.groove}: ${mm(r.axialPlayMM)} axial play` }); if (r.estimate) out.push({ text: 'The ring\'s sizes are an estimate: your ring\'s row gives them', warning: true }); else if (r.source) out.push({ text: `Its groove checked against your ring row (${r.source})` }); }
   if (o.pin) { const p = o.pin; out.push({ text: `Pin Ø${mm(p.diameterMM)} × ${mm(p.lengthMM)} in cross hole ${p.hole} (Ø${mm(p.holeDiameterMM)}): ${mm(p.clearanceMM)} clearance` }); }
   out.push({ text: 'Sizes are yours (your own rows: none built in); not validated for manufacturing', warning: true });
   return out;

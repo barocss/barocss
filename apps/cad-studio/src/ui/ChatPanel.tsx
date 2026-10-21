@@ -15,6 +15,7 @@ import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { nextSerial } from '@barocss/cad-model/engine/ids';
 import { changedDuring, mergeTurn, type Merged, type TurnOp } from '@barocss/cad-model/chat/merge';
 import { revisionOf } from '@barocss/cad-model/team/revision';
+import { holdSweeps } from '@barocss/cad-model/engine/blobs';
 import { Icon } from './atoms';
 import './chat.css';
 
@@ -118,6 +119,9 @@ export function ChatPanel(props: ChatPanelProps) {
     const message = (said0.trim() || (attached.length ? 'Model what the image shows.' : '')) + (said0.trim() || attached.length ? sel : '') + note;
     if (!message || running || !status?.enabled || props.blocked) return;
     if (typed === undefined) setText(''); setImages([]); setRunning(true);
+    // (No blob sweep while the turn runs: its base, built and shared states and their meshes are held here, O135.)
+    const release = holdSweeps();
+    try {
     traces.current = [...traces.current, ...attached.map(i => i.trace)];
     if (said0.trim()) said.current = [...said.current, said0.trim()];
     setItems(list => [...list, { kind: 'user', text: said0.trim(), ...(attached.length ? { images: attached } : {}) }]);
@@ -178,6 +182,7 @@ export function ChatPanel(props: ChatPanelProps) {
     latest.current.onPreview(null);
     if (doc) latest.current.onCommit(doc, done.selection, merged);
     else if (done.selection) latest.current.onSelect(done.selection);
+    } finally { release(); }
   };
 
   const enabled = !!status?.enabled;

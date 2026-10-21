@@ -90,7 +90,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   bearing: { selection: 'bodies: [the shaft]; the user\'s bearing rows loaded (none built in: if none, say so)', values: { row: 'a bearing row\'s id from the user\'s rows', step: 'the shaft\'s step it sits on (its Ø the row\'s bore)', against: 'start | end: the shoulder it stands against', housing: 'none | a body node\'s index whose bore takes it', sc: 'none | the shaft seat\'s class from the user\'s fit tables', hc: 'none | the housing seat\'s class' } },
   key: { selection: 'bodies: [the shaft] (a shaft with a keyseat)', values: { seat: 'its keyseat, from 1', h: 'the key\'s height (the user\'s key data, else say the prefill is an estimate)', b: 'width (0: the seat\'s)', l: 'length (0: the seat\'s)', ends: 'auto (the seat\'s) | round | square', hub: 'none | a keyway node\'s index (its clearance over the key is checked)' } },
   keyway: { selection: 'faces: [one bore: a cylindrical hole\'s face of the hub]', values: { b: 'width (the key\'s data, else an estimate)', t2: 'depth t2 from the bore\'s surface (the same)', angle: 'degrees about the bore from its reference direction (+X projected); over the key\'s seat' } },
-  'retaining-ring': { selection: 'bodies: [the shaft] (a shaft with a ring groove)', values: { groove: 'its groove, from 1', s: 'ring thickness (the ring\'s row, else an estimate)', D: 'outer diameter of its envelope (the same)' } },
+  'retaining-ring': { selection: 'bodies: [the shaft] (a shaft with a ring groove)', values: { groove: 'its groove, from 1', s: 'ring thickness (the ring\'s row, else an estimate)', D: 'outer diameter of its envelope (the same)', row: 'the id of the person\'s ring row it is checked against (Library panel, RINGS; O139), or none: an estimate' } },
   pin: { selection: 'bodies: [the shaft] (a shaft with a cross hole)', values: { hole: 'its cross hole, from 1', d: 'diameter (0: the hole\'s; larger needs fit classes)', L: 'length (0: flush with the step)' } },
   shaft: { selection: 'none', values: { n: 'steps, 1–5', d1: 'step 1 diameter (mm)', l1: 'step 1 length (mm)', d2: 'step 2 diameter', l2: 'step 2 length', d3: 'step 3 diameter', l3: 'step 3 length', d4: 'step 4 diameter (n ≥ 4)', l4: 'step 4 length', d5: 'step 5 diameter (n 5)', l5: 'step 5 length', r: 'shoulder fillet radius (0: none)', c: 'end chamfers (0: none)', ks: 'the step with a keyseat (0: none)', kb: 'keyseat width — the key\'s from the user\'s own data, else say the prefill is an estimate', kt: 'keyseat depth t1 (the same)', kl: 'keyseat length', ko: 'keyseat start from its step\'s start', ke: 'end-mill (default) | square | disc', kr: 'disc cutter radius (ke disc)', gs: 'the step with a ring groove (0: none)', gd: 'groove bottom diameter (the ring\'s data, else an estimate)', gw: 'groove width', ga: 'groove start from its step\'s start', x: 'axis X', y: 'axis Y', z: 'Z it starts at' } },
   'fit-class': { selection: 'faces: [one cylindrical face — a bore or a shaft]', values: { class: 'a tolerance class from the loaded fit tables (a hole\'s capital letter H7, a shaft\'s small g6), or none to clear it; the user loads the tables (none built in): if none is loaded, say so' } },
@@ -811,7 +811,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, state.partOf ? null : doc.instances ?? []);
         if (why) return fail(state, `Feature ${k + 1} of ${list.length} (would be index ${doc.nodes.length}): ${why}`, { kept: 'nothing was added' });
         // (A new feature takes the next stable id: one the call brings is not used, ids are never handed out twice.)
-        const solved = solvedSkeleton(node as ModelNode);
+        const solved = solvedSkeleton(node as ModelNode, doc.parameters);
         if ('error' in solved) return fail(state, `Feature ${k + 1} of ${list.length}: ${solved.error}`, { kept: 'nothing was added' });
         if (solved.solve) solves.push({ feature: doc.nodes.length, ...solved.solve });
         doc = withNode(doc, { ...withFollowed(doc, solved.node), id: undefined });
@@ -840,7 +840,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         }
       }
       // (FRg, O122: a skeleton with constraints solved again from its edit.)
-      const solved = solvedSkeleton(next[index]);
+      const solved = solvedSkeleton(next[index], state.doc.parameters);
       if ('error' in solved) return fail(state, `Feature ${index}: ${solved.error}`, { kept: 'the part is unchanged' });
       next = next.map((n, k) => k === index ? solved.node : n);
       // (FRf, O121: a skeleton frames follow keeps every point and segment they use.)

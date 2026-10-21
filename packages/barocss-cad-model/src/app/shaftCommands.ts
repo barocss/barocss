@@ -2,6 +2,7 @@
 // groove on another. Every size is the user's: the prefills (a 6 × 3.5 seat on Ø20, a Ø19 × 1.3 groove on Ø20) are
 // estimates for a first try, said so in their labels — key and ring sizes come from the user's own rows (none built in).
 import { featureLabel, withNode, type ModelNode } from '../engine/doc';
+import { ringRowsFor } from '../engine/rings';
 import type { Command, Ctx, Field, Values } from './commands';
 
 const ok = { ok: true as const };
@@ -55,7 +56,8 @@ function pickedShaft(ctx: Ctx): { node: Extract<ModelNode, { kind: 'shaft' }>; i
   return node?.kind === 'shaft' && ref!.side === 'solid' ? { node, index: ref!.node } : null;
 }
 const seatsOf = (s: Extract<ModelNode, { kind: 'shaft' }>) => s.steps.flatMap(x => x.keyseats ?? []);
-const groovesOf = (s: Extract<ModelNode, { kind: 'shaft' }>) => s.steps.flatMap(x => x.grooves ?? []);
+/** Each step's ring grooves, in order, with the step's diameter (a ring row's shaft size, O139). */
+const groovesOf = (s: Extract<ModelNode, { kind: 'shaft' }>) => s.steps.flatMap(x => (x.grooves ?? []).map(g => ({ ...g, shaftDiameter: Number(x.diameter) })));
 const no = (reason: string) => ({ ok: false as const, reason });
 
 const keyCommand: Command = {
@@ -99,9 +101,16 @@ const ringCommand: Command = {
   hint: 'A retaining ring\'s envelope in a groove of the selected shaft — its thickness and outer diameter from your ring\'s row (the prefills are estimates) — checked against the groove\'s width',
   available: ctx => { const s = pickedShaft(ctx); return !s ? no('Select a shaft (from the Shaft command).') : groovesOf(s.node).length ? ok : no('The shaft has no ring groove: give it one (edit the shaft).'); },
   fields: ctx => [{ key: 'groove', label: 'Groove', kind: 'count', min: 1, max: Math.max(1, groovesOf(pickedShaft(ctx)?.node ?? { kind: 'shaft', steps: [], center: [0, 0], generator: 'shaft@0' }).length) },
-    { key: 's', label: 'Thickness (estimate)', kind: 'mm', min: 0.05 }, { key: 'D', label: 'Outer Ø (estimate)', kind: 'mm', min: 0.5 }],
-  defaults: ctx => { const g = groovesOf(pickedShaft(ctx)?.node ?? { kind: 'shaft', steps: [], center: [0, 0], generator: 'shaft@0' })[0]; return { groove: 1, s: g ? Math.max(0.1, +(g.width - 0.1).toFixed(3)) : 1.2, D: g ? +(g.diameter + 5).toFixed(3) : 24 }; },
-  build: (ctx, v) => withNode(ctx.doc, { kind: 'retaining-ring', shaft: pickedShaft(ctx)!.index, groove: Math.round(n(v, 'groove')), thickness: n(v, 's'), outerDiameter: n(v, 'D') }),
+    { key: 's', label: 'Thickness (estimate)', kind: 'mm', min: 0.05 }, { key: 'D', label: 'Outer Ø (estimate)', kind: 'mm', min: 0.5 },
+    // (O139: the user's ring row it is checked against — none built in; none: an estimate.)
+    { key: 'row', label: 'Ring row', kind: 'choice', options: [...(ctx.doc.rings?.rows ?? []).map(r => ({ value: r.id, label: `${r.designation ?? r.id} · Ø${r.shaftDiameterMM} shaft, groove Ø${r.grooveDiameterMM} × ${r.grooveWidthMM}${r.estimate ? ' (estimate)' : ''}` })), { value: 'none', label: 'None (an estimate)' }] }],
+  defaults: ctx => {
+    const s = pickedShaft(ctx), g = groovesOf(s?.node ?? { kind: 'shaft', steps: [], center: [0, 0], generator: 'shaft@0' })[0];
+    // (The row for the first groove's sizes, when the person has one.)
+    const row = g && s ? ringRowsFor(ctx.doc, g.shaftDiameter, Number(g.diameter))[0]?.id : undefined;
+    return { groove: 1, s: g ? Math.max(0.1, +(g.width - 0.1).toFixed(3)) : 1.2, D: g ? +(g.diameter + 5).toFixed(3) : 24, row: row ?? 'none' };
+  },
+  build: (ctx, v) => withNode(ctx.doc, { kind: 'retaining-ring', shaft: pickedShaft(ctx)!.index, groove: Math.round(n(v, 'groove')), thickness: n(v, 's'), outerDiameter: n(v, 'D'), ...(v.row && v.row !== 'none' ? { row: String(v.row) } : {}) }),
 };
 
 const pinCommand: Command = {
