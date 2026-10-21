@@ -19,11 +19,11 @@ const Z: [number, number, number] = [0, 0, 1];
 /** A rule the rung does not judge yet: soft, never passed, its lane named. */
 const held = (id: string, why: string): Outcome => ({ id, hard: false, pass: false, measured: 'held', expected: why });
 
-/** O87: machinable — the CNC milling report on the part: no rule failed or undecided but material and wall, which need the material the brief does not state, and the stages not built yet (said so in their reasons); warnings kept in what was measured. */
+/** O87: machinable — the CNC milling report on the part: no rule failed or undecided but material and wall, which need the material the brief does not state, stock, which needs the shop's list (O102), and the stages not built yet (said so in their reasons); warnings kept in what was measured. */
 function machinable(doc: Parameters<typeof machinability>[0], bodies: Parameters<typeof machinability>[1]): Outcome {
-  const r = machinability(doc, bodies, processProfile('cnc-milling')!), judged = r.rules.filter(x => x.id !== 'material' && x.id !== 'wall' && !/is not built yet/.test(x.why ?? ''));
+  const r = machinability(doc, bodies, processProfile('cnc-milling')!), judged = r.rules.filter(x => x.id !== 'material' && x.id !== 'wall' && x.id !== 'stock' && !/is not built yet/.test(x.why ?? ''));
   const bad = judged.filter(x => x.status === 'fail' || x.status === 'unknown'), warned = judged.filter(x => x.status === 'warn');
-  return { id: 'machinable', hard: true, pass: !bad.length, measured: { failed: bad.map(x => `${x.id}: ${x.status}`), warned: warned.map(x => x.id) }, expected: 'cnc-milling: no rule failed or undecided (material and wall not judged: the brief states no material; the stages not built yet, the drawing\'s CNC5, not judged)' };
+  return { id: 'machinable', hard: true, pass: !bad.length, measured: { failed: bad.map(x => `${x.id}: ${x.status}`), warned: warned.map(x => x.id) }, expected: 'cnc-milling: no rule failed or undecided (material and wall not judged: the brief states no material; stock not judged: the brief loads no stock list (CNC7b); the stages not built yet not judged)' };
 }
 // ——— 4. the machined plate
 const CORNERS: readonly [number, number][] = [[-1, -1], [1, -1], [1, 1], [-1, 1]];

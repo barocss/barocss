@@ -118,6 +118,7 @@
        "edit",
        "delete",
        "material",
+       "stock",
        "batch"
       ],
       "type": "string"

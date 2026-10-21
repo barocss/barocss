@@ -3279,6 +3279,34 @@
    }
   },
   {
+   "name": "set_stock",
+   "annotations": {
+    "title": "Set stock",
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "input": {
+    "additionalProperties": false,
+    "properties": {
+     "allowance": {
+      "type": "number"
+     },
+     "part": {
+      "type": "string"
+     },
+     "rows": {
+      "items": {
+       "type": "object"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   }
+  },
+  {
    "name": "size_actuators",
    "annotations": {
     "title": "Size actuators",

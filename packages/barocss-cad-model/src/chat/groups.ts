@@ -23,6 +23,7 @@ export const GROUPS: Record<string, Group> = {
       edit: ['edit_feature', 'index, values? | feature?'],
       delete: ['delete_feature', 'index'],
       material: ['set_material', 'material, bodies?, part? — what bodies are made of'],
+      stock: ['set_stock', 'rows?, allowance? — the shop\'s stock list and the allowance'],
       batch: ['apply_ops', 'ops: [{tool, args, opId?}], dryRun? — several calls all or nothing'],
     },
   },

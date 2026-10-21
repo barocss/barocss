@@ -20,6 +20,7 @@ import type { Access } from '../machining/access';
 import type { DrawingCheck } from '../machining/drawing';
 import type { Turning } from '../machining/turning';
 import type { Feature } from '../machining/features';
+import type { StockResult } from '../machining/stock';
 import { machinability } from '../machining/report';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
@@ -47,7 +48,9 @@ export interface PrintabilityReport {
     /** CNC6 (O89): the turning axis, what is turned and what is not, size, profile, grooves, holes, points. */
     readonly turning?: Turning;
     /** CNC7a (O101): the machining features recognised, each with its setup, sizes and faces. */
-    readonly features?: readonly Feature[] };
+    readonly features?: readonly Feature[];
+    /** CNC7b (O102): the stock chosen from the shop's list, or why none is. */
+    readonly stock?: StockResult };
   readonly mould?: { readonly finish: string | null; readonly minDraftDeg: number | null; readonly recDraftDeg: number | null; readonly bodies: readonly { body: string; material: string | null; wallMM: readonly [number, number] | null; wallNote?: string; shrink: number | null }[];
     /** IM2: each face's exact draft and class (with a pull and a finish). */
     readonly draft?: readonly { body: string; face: string; cls: string; min_deg: number; max_deg: number; steepest_deg: number; side: string; below_mm2: number; area_mm2: number; isocline_points?: number }[];
