@@ -338,7 +338,7 @@ export interface StudioDoc {
    */
   machining?: { version: 1; stock?: StockRow[]; allowanceMM?: number };
   /** IM8b (O108): casting's pattern — the faces machined after casting (by name), and the user's own machining allowance (mm a face) and shrinkage (a ratio, mm/mm); unset, the table's. */
-  casting?: { version: 1; machined?: string[]; machiningAllowanceMM?: number; shrink?: number };
+  casting?: { version: 1; machined?: string[]; machiningAllowanceMM?: number; shrink?: number; /** IM8c (O109): where the metal comes in (a point on the part, mm), the person's: hot spots are fed from it. */ gate?: [number, number, number] };
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
   /**

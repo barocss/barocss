@@ -4605,8 +4605,8 @@ Owner, relayed by the coordinator: "@barocss/cad-model 은 완전 공개 패키�
 - **The rules** (casting report):
   - `shrink`: one factor for the whole pattern, 1 + ratio, by the part's largest extent; the band's top is in the band; the user's `doc.casting.shrink` takes precedence.
   - `machining-allowance`: the table's mm, or the user's, on the faces marked machined. None marked is n/a; a name not on the part fails `[CASTING_FACE]`; a curved face is unknown (only flat faces move out); past the table's 40 in is unknown and said.
-  - **One uniform scale, not per dimension**: a uniform scale keeps exact planes and cylinders exact in the STEP, and a per-dimension one would not.
-- **The tool**: `set_casting`, a v2 action `features.casting` (O105's rule, a compatible enum addition recorded in tools-v2.json). It sets machined, allowance and shrink, each refused by name. Per turn 21,531 (+109).
+  - **One uniform scale, not per dimension**: a uniform scale keeps exact planes and cylinders exact in the STEP, and a per-dimension one would not. (O109, at the coordinator's review: the report and pattern.json say it is a simplification. A pattern maker may scale each dimension by its own band, and the factors each dimension's band would give are listed where they differ.)
+- **The tool**: `set_casting`, a v2 action `features.casting` (O105's rule, a compatible enum addition recorded in tools-v2.json). It sets machined, allowance and shrink, each refused by name. Per turn 21,531 (+109). Why a tool, though O104 said IM8 would need none: which faces are machined after casting is the person's choice, as are their own allowance and shrinkage. The document has to hold them, and the agent has to be able to set them, so an action carries them.
 - **The pattern** (`casting/pattern.ts`): each machined flat face moved out by the allowance (the studio's `offset-face`), then the body scaled about the part's box centre (the studio's `scale`), both through the tool layer.
   - `cad-cli pattern part.bcad -o dir` writes pattern.step and pattern.json: factor, band, page, allowance, faces, pivot, the part's and the pattern's boxes. Typed codes otherwise (PATTERN_NOT_CASTING, _ONE_BODY, _MATERIAL, _SHRINK, _ALLOWANCE, _FACE, _BUILD).
 - **Tests** (`test/im8b.test.ts`, 7):
@@ -4619,3 +4619,30 @@ Owner, relayed by the coordinator: "@barocss/cad-model 은 완전 공개 패키�
   - the CLI.
   - Flow step "IM8b": sand casting and the Pull in the Library panel; through the real chat a block, A356 and its top marked; the report's shrink and machining-allowance pass.
 - **Next**: IM8c, hot spots and feeding.
+
+## O109 — IM8c: hot spots and feeding from the distance field; the section change; the IM8 casting track's items done (2026-10-21)
+
+- **The field** (`casting/solidification.ts`): the part's distance field on a voxel grid through the kernel's K6 `voxelInsideFlags` and `voxelDepth`, which run on K2's nearest query. There is no new copy.
+  - Each inside node's depth is the radius of the largest ball about it inside the part.
+  - The grid is at most 400k nodes (step from the box, or a caller's `h`), offset irrationally so no row runs through a mesh edge. The depth is capped at half the least extent, so nothing clips.
+  - The L junction at h 0.4 is 1.87M nodes in 179 ms, most of them outside.
+- **Hot spots**:
+  - a plateau of the field (26-neighbours, equal within 1e-9 of the size) with no deeper neighbour: the centre of a locally largest inscribed ball, which is how IM8 S0 found the L junction that IM4's per-face sphere misses;
+  - smaller than a cell: dropped;
+  - one whose liquid region holds a larger one is part of it.
+  - Modulus is r/2, a plate's (2r thick) or a long bar's V/A, said to be an estimate.
+- **Feeding** (Chvorinov orders freezing by modulus):
+  - a hot spot's liquid region is the nodes joined to it at depth ≥ its own less a quarter cell;
+  - it is fed when the ball at some node of the region reaches the gate. The gate is the person's, `features.casting {gate}` / `doc.casting.gate`, and none is assumed.
+  - An unfed one is warned `[SHRINK_POROSITY]` with its r and where it is.
+  - The quarter cell matters: the L junction's r 2.343 sits over its walls' 2 by less than a cell of 0.4, so a floor of r − h would let the region run down the legs. The test pins it.
+- **Section change**: the thickest section (2 × the deepest radius) against IM4's nominal wall, against Engineers Edge's "If a section change of over 2:1 thickness ratio is unavoidable … use a wedge form between the unequal sections." (W-WEB, read 2026-10-21; sand casting's `sectionRatioMax`). Die casting has no ratio read, so it is unknown and said.
+- **The shrink wording (O108 review)**: the report and pattern.json say the one uniform factor by the largest extent is a simplification. A pattern maker may scale each dimension by its own band, and where the bands differ each dimension's factor is listed, e.g. X 1.011917 (4–6 ft); Y, Z 1.012917.
+- **Tests** (`test/im8c.test.ts`, 4, plus one in im8b for the wording):
+  - a plate 100 × 60 × 10: one hot spot r = 5 on the mid-plane (within half a cell), fed from a gate on top, section 1 : 1;
+  - the L junction: r = t(2 − √2) on the bisector; isolated from a leg's end, fed from the outer corner; the mutant noted;
+  - a 20 mm block on a 4 mm plate: isolated from the far end ([SHRINK_POROSITY]), fed from a gate on the block, section 5 : 1 past 2 : 1;
+  - the unknowns and the gate's refusals.
+  - Flow step "IM8c": through the real chat, the block on the plate gated far warns, then gated on the block passes.
+  - IM8a's tool test and the IM8a and IM8b flow regexes name the three new rules.
+- **The IM8 track's items (S0, a, b, c) are done.** Next, by O104's plan, comes IM7 without the face split. Its parts that need straddling faces wait for the kernel's splitFaceAlongCurve (queue item 2).
