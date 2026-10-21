@@ -3855,7 +3855,7 @@ try {
 
 
   // ---- O139: retaining-ring rows loaded in the Library panel (none built in) ---------------------------------------------
-  await check('ring rows (O139): a ring row loaded in the Library panel (none built in); the default shaft and its ring made through the chat on that row — the ring cites it, no estimate warning; the row it uses cannot be removed', async () => {
+  await check('ring rows (O139): a row loaded in the Library panel; a ring on it via the chat cites it, no estimate; the used row stays', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     const file = join(out, 'rings.json'); fs.writeFileSync(file, JSON.stringify([{ id: 'r20', designation: '20 × 1.2', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' }]));
@@ -3894,7 +3894,7 @@ try {
   });
 
   // ---- O138: a key's width fit — classes on the key's, keyseat's and keyway's sides -----------------------------------
-  await check('key width fit (O138): a fit table loaded (none built in); the default shaft, a hub with its keyway and the key made through the chat, h9 on the key\'s side, N9 on the keyseat, JS9 on the keyway — both width fits in the key\'s notes', async () => {
+  await check('key width fit (O138): h9 on the key, N9 on its keyseat, JS9 on the keyway via the chat — both width fits in the key\'s notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     const table = { id: 'key-fits', rows: [{ class: 'N9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }, { class: 'JS9', overMM: 3, upToMM: 6, upperUM: 15, lowerUM: -15, estimate: true }, { class: 'h9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }] };
@@ -4114,7 +4114,7 @@ try {
 
 
   // ---- O140: FRg's lengths bound to parameters — re-solved when a parameter changes ---------------------------------------
-  await check('FRg bound to parameters (O140): W 600 and D 400 added in the Parameters panel, a skeleton whose sides are W and D with a frame on it via the chat — 444 · 600; W set to 800 in the panel, the skeleton re-solved and the frame follows (444 · 800); D set to −5 refused, naming D, the parameters as they were', async () => {
+  await check('FRg bound to parameters (O140): sides W and D via the chat, 444 · 600; W 800 in the panel re-solves (444 · 800); D −5 refused naming D', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     await page.click('[aria-label="Parameters"]');
