@@ -231,6 +231,17 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
       break;
     }
+    case 'sprocket': case 'pulley': case 'coupling': case 'belt': {
+      // (R12c.6b, D161: the sizes the node holds; a belt's rounding of links.)
+      const g = (n: ModelNode) => n as Record<string, unknown> & ModelNode, has = (k: string) => (node as Record<string, unknown>)[k] !== undefined;
+      const keyed = (key: string, label: string, unit: 'mm' | '°' | undefined, k: string, drop = false) => number(key, label, unit, n => Number(g(n)[k] ?? 0), (n, v) => { const next = { ...g(n) }; if (drop && !(v > 0)) delete next[k]; else next[k] = v; return next as ModelNode; });
+      if (node.kind === 'sprocket') { keyed('teeth', 'Teeth', undefined, 'teeth'); keyed('tip', 'Tip Ø', 'mm', 'tip'); keyed('w', 'Tooth width', 'mm', 'width'); }
+      if (node.kind === 'pulley') { if (has('teeth')) keyed('teeth', 'Grooves (teeth)', undefined, 'teeth'); if (has('diameter')) keyed('d', 'Diameter', 'mm', 'diameter'); if (has('grooves')) keyed('n', 'Grooves', undefined, 'grooves'); if (has('width')) keyed('w', 'Face width', 'mm', 'width'); }
+      if (node.kind === 'sprocket' || node.kind === 'pulley') keyed('bore', 'Bore Ø (0: none)', 'mm', 'bore', true);
+      if (node.kind === 'belt') out.push({ kind: 'choice', key: 'links', label: 'Links (a chain)', options: [{ value: 'whole', label: 'Whole' }, { value: 'even', label: 'Even' }], get: n => self<typeof node>(n).rounding ?? 'whole', set: (n, v) => replace(n, i, { ...self<typeof node>(n), rounding: v as 'whole' | 'even' }) });
+      if (node.kind !== 'belt') keyed('rot', 'Rotation', '°', 'rotation');
+      break;
+    }
     case 'cam': {
       // (R12c.6a, D160: the lift scales every position of the program alike; the laws and angles stay.)
       const g = (n: ModelNode) => n as typeof node, top = (n: ModelNode) => Math.max(...g(n).segments.map(x => x.to ?? 0));

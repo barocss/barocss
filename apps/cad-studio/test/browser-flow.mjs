@@ -3817,6 +3817,42 @@ try {
     await snap('oring-gland');
   });
 
+  await check('Chain drive (R12c.6b, D161): the user\'s drive rows loaded (none built in); two sprockets and a chain on them through the scripted chat — the second moved to the distance for whole links, the links and the tooth form in their notes', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const rows = [{ kind: 'chain', id: 'chain-a', pitchMM: 12.7, rollerDiameterMM: 8.51, innerWidthMM: 7.75, plateHeightMM: 11.8, estimate: true }];
+    const file = join(out, 'drive-rows.json'); fs.writeFileSync(file, JSON.stringify(rows));
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="Drive rows"]'), /No drive rows: load your own .* None is built in/);
+      await page.setInputFiles('input[aria-label="Drive rows file"]', file);
+      await page.waitForFunction(() => window.__studioDoc.drives?.rows?.length === 1, null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Drive row chain-a"]'), /chain-a chain p 12\.7, roller Ø8\.51 · estimate/);
+    } finally { await page.click('[aria-label="Close library"]'); }
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), cmd = (command, values, extra = {}) => ({ tool: 'features', args: { action: 'command', command, values, ...extra } });
+      const calls = [cmd('sprocket', { row: 'chain-a', teeth: 17, tip: 75, w: 7, x: 0, y: 0, z: 0 }), cmd('sprocket', { row: 'chain-a', teeth: 34, tip: 145, w: 7, x: 200, y: 0, z: 0 }), cmd('belt-drive', { links: 'whole', snap: 'move' }, { bodies: ['b0', 'b1'] })];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`);
+      await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(x => x.kind === 'belt') && /3 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    const moved = await page.evaluate(() => window.__studioDoc.nodes[1].center[0]);
+    assert.ok(Math.abs(moved - 203.0145565) < 1e-4, String(moved));
+    const row = await page.evaluate(() => [...document.querySelectorAll('.outliner .ol')].findIndex(e => /^\s*chain-a on features 1 and 2/.test(e.textContent ?? '')));
+    await page.locator('.outliner .ol').nth(row).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /58 links/.test(x.textContent ?? '')), null, { timeout: 30000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning\s*/, '').trim());
+    assert.ok(notes.some(t => /^Chain chain-a \(an estimate\): length 736\.6 mm/.test(t)) && notes.some(t => /^58 pitches: 58 links/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Top")'); await press('f'); await page.waitForTimeout(500);
+    await snap('chain-drive');
+  });
+
   await check('Fits (R12c.2, D155): a fit table loaded in the Library panel (none built in); a bore and a pin given H7 and g6 and declared a pair through the chat — the limits and the clearance in the notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });

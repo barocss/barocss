@@ -1,0 +1,41 @@
+{
+  "id": "r12c-sprocket-pointed-refused",
+  "step": "R12c",
+  "decisions": [
+    "D161"
+  ],
+  "about": "R12c.6b: the same sprocket with a Ø80 tip — above the flanks' meeting point Ø79.0737 (R cos(π/z) + √((p − r_s)² − p²/4), with the roller's seat): refused TOOTH_FORM.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sprocket",
+          "row": {
+            "kind": "chain",
+            "id": "chain-a",
+            "pitchMM": 12.7,
+            "rollerDiameterMM": 8.51,
+            "innerWidthMM": 7.75,
+            "plateHeightMM": 11.8,
+            "estimate": true
+          },
+          "teeth": 17,
+          "tip": 80,
+          "width": 7
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "[TOOTH_FORM] the tip Ø80 reaches the flanks' meeting point: the teeth are pointed at Ø79.07"
+    }
+  },
+  "oracle": "R = 12.7/(2 sin(π/17)), r_s = 4.255: R cos(π/17) + √(8.445² − 6.35²) = 39.5369 (Ø79.0737)."
+}

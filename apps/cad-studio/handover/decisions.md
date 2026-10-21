@@ -9258,3 +9258,132 @@ Ran:
 
 Not run:
 - The full browser flow (the coordinator's).
+
+## D161 — R12c.6b: sprockets and chain, pulleys and belts, couplings from the user's rows; the tooth form derived (2026-10-22)
+
+R12c.6b as D139 froze it, with the coordinator's data rule:
+- chain pitch, belt sections and coupling sizes come from the user's rows;
+- the tooth forms come from closed-form geometry derived here;
+- couplings, which are bought items, carry `bought` defaults for the outer lane's BOM S1.
+
+No chain, belt or coupling table is built in, and no row in the tests or conformance is named after a standard size: they are test rows flagged estimates.
+
+**Rows** (`drive.ts`, `driveRowProblem`): one list of kinds, each citing its source or flagged an estimate, no unknown field, and sizes checked.
+- chain { pitchMM, rollerDiameterMM (< pitch), innerWidthMM?, plateHeightMM? };
+- timing-belt { pitchMM, pitchLineOffsetMM, groove: points [x along the land, depth below the outside circle], the ends on or above it, the inner points below, x not falling, thicknessMM? };
+- v-belt { angleDeg, datumWidthMM, aboveDatumMM, belowDatumMM, spacingMM, edgeMM, thicknessMM? }: the bottom width must stay above 0, the spacing and edge must take the top width;
+- flat-belt { widthMM, thicknessMM };
+- coupling { type?, boreMM [d1, d2], outsideMM, lengthMM, boreStepMM?, partNumber?, supplier? }.
+
+**Sprockets** (`sprocket`, `sprocketProfile`, `sprocketLimits`, `sprocketPitchDiameter`):
+- The seats are centred on the pitch circle R = p/(2 sin(π/z)), where neighbouring seats are p apart. The seat Ø defaults to the roller's and must be at least that.
+- **The tooth form `pivot-clearance`**, derived here and not ISO 606's (D139 found ISO 606's formulas only behind tables, not as public text):
+  - A roller leaving seat k turns about its neighbour's centre P_{k±1} at distance p. So the flank that just clears it is the circle of radius p − r_s about P_{k±1}.
+  - That circle and the seat (r_s about P_k) have radii summing to p, the distance between their centres. They touch where the chord P_kP_{k±1} crosses the seat: seat and flank meet tangentially.
+  - The seat arc spans π − 2π/z; the tip circle is the user's.
+  - Its limits come from the same construction: above where the flanks leave the seats, 2√((R − r_s sin(π/z))² + (r_s cos(π/z))²), and below the flanks' meeting point on the tooth's bisector, 2(R cos(π/z) + √((p − r_s)² − p²/4)), where the tooth is pointed (TOOTH_FORM).
+  - Any other form is UNSUPPORTED_TOOTH_FORM.
+- **Exact arcs:** every piece is an exact circular arc (rational quadratic), four per tooth: `flank<2k−1>`, `seat<k>`, `flank<2k>`, `tip<k>`. It is extruded through the user's width, with a bore below the roots.
+- **The engagement check, on the built teeth:** a roller (the row's Ø) turning out of seat 0 about seat 1's centre, swung until it clears the tip circle. Its least gap to every built piece is r_s − r_1 (0.145 mm for a Ø8.8 seat on a Ø8.51 roller).
+
+**Pulleys** (`pulley`; the belt row's kind picks the type):
+- **timing:**
+  - pitch Ø pz/π, outside Ø pz/π − 2u;
+  - each groove is the row's profile in its own frame, its first and last segments cut at the outside circle (the nearer root of the segment's quadratic);
+  - the lands are arcs of that circle between the grooves; grooves with no land between them are TOOTH_FORM;
+  - extruded; faces `groove<k>.<j>`, `land<k>`.
+- **V:** the row's trapezoid grooves (half-angle α/2, w_d at the datum, b above and h_f below) at e spacing with f edges, revolved round the user's datum Ø.
+- **flat:** a face of the user's Ø and width. Its crown is a circular arc through the edges' radius r − h and the crown r, ρ = (h² + W²/4)/(2h).
+  - FACE_WIDTH warns when the belt is wider than the face.
+- V and flat pulleys are revolved sections, so they need a bore.
+
+**Belts and chains** (`openBeltLength`, `chainLinks`, `beltBand`):
+- **The open length:** sin β = (R1 − R2)/C; L = 2C cos β + (π + 2β)R1 + (π − 2β)R2; the wraps π ± 2β.
+  - BELT_GEOMETRY when the pitch circles overlap, or when the band is thicker than a wheel is round.
+- **A chain on its sprockets' pitch circles:**
+  - L/p pitches, rounded up to whole or even links;
+  - the centre distance for that count solved by bisection (L increases with C);
+  - CHAIN_LINKS warns when the given distance does not give whole links.
+  - The chain's polygon on the sprockets (the chordal effect) is not modelled.
+- **The band:** the path's offsets at ±t/2 (arcs and tangent lines with the same normals), the hole clockwise, extruded through the width.
+  - t is the row's thickness or a chain's plate height; a stand-in is said to be one.
+  - Its area between the offsets is L·t exactly (Steiner: each offset's length differs from L by πt).
+
+**Couplings** (`couplingEnvelope`):
+- The row's envelope is revolved: a sleeve of its outside Ø and length, the bores d1 to the step (default the middle) and d2 beyond.
+- The report carries `bought` { bought: true, partNumber?, supplier?, source? } from the row and `envelopeOnly: true`, for the outer lane's BOM S1 (BodyResult.element).
+
+**Part model:**
+- Kinds:
+  - `sprocket` { row, teeth, tip, width, seat?, toothForm?, bore? };
+  - `pulley` { row, teeth? | diameter?, grooves?, width?, crown?, bore? };
+  - `belt` { row, pitchRadii [R1, R2], centerDistance, rounding?, width? };
+  - `coupling` { row }.
+  - Each takes its row inline and is placed by centre, from and rotation.
+- Outputs: `sprocket`, `pulley`, `belt`, `coupling`.
+- Codes: INVALID_INPUT → INPUT, UNSUPPORTED_TOOTH_FORM → CAPABILITY, TOOTH_FORM and BELT_GEOMETRY → GEOMETRY, each with its own code kept.
+
+**Oracles and tests** (`test/r12c-drive.test.mjs`, 8 tests, all failing on the previous HEAD: the module did not exist). Oracles are written in the test:
+- **The rows:** their refusals.
+- **A sprocket** (z 17, seat Ø8.8, tip Ø75, 7 wide, Ø20 bore):
+  - the pitch Ø, root, flank radius and the pointed tip by the formulas;
+  - its volume by integrating, ray by ray, a membership test of the region: the tip disc, less each seat's circle, less the gap above its seats' tangent line outside both flank circles. The transitions are bisected; the result agrees within 2e-5;
+  - a roller of seat 5 turning out about seat 6 measured against the built faces' own curves: its gap r_s − r_1;
+  - refusals: pointed, under the seats' edge, a seat under the roller, another form, a bore through the roots.
+- **A timing pulley:** the disc less each groove, its polygon cut at the circle by a quadratic solved in the test, plus the circular segment under its chord. A pulley with no lands is refused.
+- **V and crowned flat pulleys:** Pappus on their sections by hand, the trapezoid's centroid and the circular segment's 4ρ sin³(θ/2)/(3(θ − sin θ)). Also FACE_WIDTH.
+- **The belt's length** by another form, 2√(C² − (R1 − R2)²) + 2R1(π − acos((R1 − R2)/C)) + 2R2 acos((R1 − R2)/C), both ways round.
+  - The band's volume L·t·w.
+  - The chain's pitches, whole and even links, and the distance for 58 links checked back. CHAIN_LINKS. Overlapping wheels refused.
+- **The coupling** by Pappus (two annuli) and its `bought`.
+- **The part model:** the four kinds placed, their reports, the refusals' codes.
+- **Conformance `r12c/`** (from a script with no kernel geometry):
+  - `sprocket-z17`: ray integration, relTol 2e-5;
+  - `pulley-v-two-grooves`: Pappus;
+  - `belt-flat-open`: L·t·w; its centroid from the runs' rectangles and the arcs' annular sectors;
+  - `coupling-stepped-sleeve`: Pappus, with its face names;
+  - `sprocket-pointed-refused`.
+
+**Studio and model:**
+- **The document's `drives`** { version 1, rows } is in STUDIO_DOC_FIELDS and crosses to the worker. `editDriveRows` keeps a row in use.
+- **Nodes:**
+  - `sprocket`, `pulley`, `coupling` { row (an id), sizes, center, from?, rotation? };
+  - `belt` { row, wheels [i, j], rounding? }.
+  - A belt refers to its wheels (`usesOf`), not built on them. `renumber` and `flatten` carry the wheels.
+- **`beltFeature`** maps the belt from its wheels:
+  - each must be a sprocket or pulley of the belt's row, both at one Z ([DRIVE_WHEELS]);
+  - the pitch radii: a sprocket p/(2 sin(π/z)); a timing pulley pz/(2π); a V pulley its datum; a flat one its face plus half the belt's thickness, the belt's centre line;
+  - the band from the first wheel turned toward the second, across the wheel where the belt runs: centred, or in a V pulley's first groove.
+- **Commands** (create):
+  - Sprocket ("sprocket"): its tip prefilled ¾ of the way from the seats' edge to the point, said so in its label;
+  - Pulley ("pulley sheave"): the fields follow the row's kind;
+  - Belt or chain ("belt chain drive"): two picked wheels of one row; for a chain, whole or even links, and the second sprocket moved to the distance they need, or left with the warning;
+  - Coupling ("coupling").
+  - Each is unavailable with no rows ("none is built in").
+- **Notes:**
+  - a sprocket: chain, pitch Ø, the tooth form "(derived here, not ISO 606's)", the engagement gap;
+  - a pulley: its type's sizes;
+  - a belt: its length, wraps, pitches and links, "the chordal effect is not modelled", the band's sizes;
+  - a coupling: its envelope and "Bought: part … from …".
+  - The rows' estimates are named.
+- **Friendly errors** for [DRIVE_ROW_UNKNOWN], [DRIVE_WHEELS], [TOOTH_FORM], [UNSUPPORTED_TOOTH_FORM] and [BELT_GEOMETRY].
+- **Edit fields:** the sizes the node holds, a belt's links.
+- **The Library panel's DRIVES** (`ui/DriveRows.tsx`) and the icons `cad-sprocket`, `cad-pulley`, `cad-belt`, `cad-coupling`.
+- **Chat v2:** four features commands, their values behind `describe`. The per-turn total is 22,319 (was 22,279; cap 25,000).
+- **Tests:** `test/drive.test.ts` (4):
+  - the sprocket at the conformance case's volume, its notes and the tip's prefill by the formulas;
+  - the chain with the second sprocket moved so that L = 58p, the band 58·p·t·w;
+  - flat pulleys and their belt on R = d/2 + t/2, the coupling's notes, two refusals' titles;
+  - describe and a features command.
+  - `fields.test` gained `drives`. The studio `chat.test` gained contexts.
+  - `palette.test` checks the new labels and words.
+  - A new palette test reads every word the browser flow types into the palette and finds none opening a drive command it did not mean.
+- **A flow step** "Chain drive (R12c.6b, D161)": the rows loaded in the Library panel, two sprockets and the chain through the scripted chat, the second moved to 203.0146, the links in the chain's notes.
+
+**Not in this stage:**
+- standard tooth forms and groove tables (rows the user loads, or a form refused);
+- the chain's links as solids and its chordal speed variation;
+- crossed belts, idlers and tensioners;
+- a coupling placed on and checked against shaft ends (it is placed by hand);
+- the BOM itself: the outer lane's S1, with `bought` here.
+- (The D160 fix, 6988793c9: the pressure-angle limits and the cam laws are attributed to no unread source.)
