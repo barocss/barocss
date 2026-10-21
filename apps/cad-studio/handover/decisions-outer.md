@@ -4735,3 +4735,69 @@ The coordinator's order, the PKG roadmap's last step (research-package-boundary 
 - **What stays in the studio**: tests of the servers (MCP, chat, CLI, A/B), of the UI, viewport and App, ones that spawn the studio's scripts, the bench fixtures', pkg-boundary (the app's own boundary check), mould-quote and mould-undercut (server imports), and instance / instance-drag (held for the GPU lane). The kernel's tests are untouched.
 - **Names**: before, 805 in the studio. After, studio 179 + package 626 = 805, and the union equals the set before, 0 missing and 0 added, at every step.
 - **Release note**, unchanged: the exports point at .ts sources, so a build step comes before a real publish (O107).
+
+## O113 — IM7b: straddling faces split along their isoclines (D149) before the halves; a loop climbing along walls (2026-10-21)
+
+- **The split first** (`mould/tooling.ts`, `splitStraddles`):
+  - A display face IM5 finds straddling the pull may be several kernel faces. A full cylinder's side, for one, is two half-faces `n1.side0#1` and `#2` under one display name.
+  - Each of them gets a `split-face` node in the document's history, the kernel's D149 isocline split with the pull, with pieces `<face>#1` on the + side, `#2`, …. A new studio node kind, `{ kind: 'split-face', parent, face, pull, names? }` (engine/doc.ts, engine/part.ts), is internal to the mould tooling: add_features does not document it, so the agent's feature kinds do not list it.
+  - A kernel face already one-sided (NO_SPLIT, or ON_BOUNDARY "wholly on one side": its seam on the isocline) needs no split.
+  - Any other refusal is said with its tag, as MOULD_STRADDLE.
+  - IM5's parting line traces the isocline across a straddling face, so it holds as the halves' line. The plan accepts the resolved faces, including their pieces' names on the split part.
+- **A loop climbing along walls**: a parting loop that is not flat but climbs only along faces along the pull (a rod's end caps, above its isocline) takes the height of its runs across the pull. The cut plane crosses those walls. A loop that climbs across other faces is refused as MOULD_STEPPED: a parting surface off the axis planes, not built, said.
+- **The rod across the pull** (S0's D149 refusal), Ø20 × 50 along X, pull +Z, moulds on the plane through its axis, z = 0:
+  - drawn with its seam on the isocline, no split is needed;
+  - drawn with its seam across, both half-faces are split (two `split-face` nodes).
+  - Either way each half is 70·40·20 − 2500π, summing to the block less the part to 1e-6.
+  - The same rod tilted 45° in XZ slopes its parting line across the cylinder (not a wall): MOULD_STEPPED.
+- **Surfaces**: the injection report's tooling rule and `cad-cli mould` split first. mould.json lists the faces split; the rule says "N faces split along the isocline".
+- **Tests** (`test/im7.test.ts`, 7): the rod both ways, halves exact, the splits in the document's history; the tilted rod refused; the CLI's refusal now the tilted rod's MOULD_STEPPED. IM7a's and S0's cases are unchanged.
+- **Merged**: the integration tip 1355102ab (D149 and its RB rows), the kernel rebuilt.
+
+## O114 — FR S0: the plan for FR's leftovers (items 1–7), its oracles and data rules (2026-10-21)
+
+Owner, relayed by the coordinator: "FR 에서 1, 2, 3, 모두 하고 그 밖에 남은 것도 하고" (do all of FR's leftover groups 1, 2, 3, plus the rest FR left): roadmap item 5, the outer lane's part. Evidence is in `packages/barocss-cad-model/test/fr-s0.test.ts` (4 probes).
+
+- **What exists**, from a survey of the code:
+  - Frames, the cut list (FR4a), the cut-list drawing table (FR4b) and O67's A3 fix for A4.
+  - tslot-20's library parts with their interfaces.
+  - CNC7b's user-loaded stock pattern (`StockRow`, `set_stock`, "none is built in").
+  - Nothing for weld data, nesting, a section library, a shared skeleton or a 3D skeleton. Frame members have no interfaces, so hardware cannot snap to them.
+- **Probes**:
+  - **P1**: a mitred corner's weld seam is read off the geometry. The mitre face of a 40 × 40 × 3 tube cut at 45° has an outer loop of 2 · (40 + 40√2) = 193.137 and an inner one of 2 · (34 + 34√2), both to 1e-3. Weld lengths need no table.
+  - **P2**: nesting must be exact for small counts. First-fit-decreasing packs 5 5 4 4 3 3 3 3 into bars of 10 as four; the optimum is three (5 5 · 4 3 3 · 4 3 3). With a 0.5 kerf the optimum is four. The waste total is the bars less the pieces less the kerfs.
+  - **P3**: a parameter already moves two frames together. That shares numbers, not a skeleton's topology.
+  - **P4**: the cut list's pieces carry each long-point length (320 and 220 for the L's mitred members) and the counts nesting needs.
+- **The stages**, each with closed-form oracles, mutants, a flow step and the usual checkpoint:
+  - **FRa, the A4 cut-list placement (item 6, D128)**: when no free rectangle on A4 holds the whole table, split it into column blocks of whole rows, each placed clear with its header repeated; else say so. Oracle: no overlap with any view, name or title block on the A4 welded table at 1:20; the rows' total is unchanged.
+  - **FRb, stock nesting (item 2)**:
+    - The stock is a user-loaded list (`doc.frames.stock`: {id, lengthMM, count?, source}); none is built in, as CNC7b.
+    - The kerf is the user's, else an estimate flagged as one.
+    - Pieces come from the cut list's long-point lengths. Exact branch-and-bound up to a stated count (P2's oracle), else first-fit-decreasing with the gap to the lower bound ⌈Σ(L + kerf)/stock⌉ said.
+    - The plan per bar, with the offcuts and an exact waste total. A v2 action `features.frame_stock`, and cad-cli and the cut-list dialog's own export.
+  - **FRc, the user's section library and its editor (item 3)**:
+    - `doc.frames.sections` rows (kind, dims, name, source or estimate; none built in, D122); a frame's `section` may name one.
+    - A v2 action to load or edit rows; an editor panel in the Library panel (src/ui, not the viewport or App's joint, explode or section paths).
+    - The palette's prefills stay flagged as estimates. Oracle: a frame on a library row evaluates to the same body as the same section inline.
+  - **FRd, weld metadata and symbols (item 1)**:
+    - Each frame joint gets a weld record: its kind (fillet, butt, all-round), size and the person's notes.
+    - The seam lengths come from the joint's faces (P1). The size is the person's or an estimate rule flagged as one.
+    - Drawing symbols are our own glyphs built from the joint's geometry (reference line, arrow to the seam, the weld's mark), with no standard's text copied. They go in SVG, PDF and DXF.
+    - Oracle: P1's lengths, the symbol count equal to the joints, and the arrow's end on the seam.
+    - Bead geometry is the kernel lane's (after R12c); the symbols on beads wait for it, said.
+  - **FRe, T-slot hardware on frame members (item 5)**:
+    - A tslot frame member exposes slot interfaces along its axis (role t-slot, accepting slot-nut), its ends and its faces, so library hardware (tslot-20's nut, cap, bracket) snaps to it.
+    - Dimensions come from the library's rows (user-loaded or sourced per page), never a built-in table.
+    - Oracle: a nut snapped to a member's slot sits where tslot-20's own profile places it.
+  - **FRf, shared skeletons (item 4)**:
+    - A skeleton node (points, segments) that several frames reference, so editing it moves them all.
+    - A frame that follows another part's sketch: its segments taken from that sketch's entities lifted by the sketch plane, kept live.
+    - Oracle: editing one point moves every member on it, in each frame.
+  - **FRg, the 3D skeleton sketch's model (item 7)**:
+    - Points, segments and 3D constraints in cad-model: coincident, length, angle, parallel, perpendicular, on an axis or a plane, fixed.
+    - Our own solver (Gauss–Newton with Levenberg–Marquardt damping, no WASM) with typed over- and under-constraint diagnosis.
+    - The viewport tool is the GPU lane's (G17), built on this.
+    - Oracle: closed-form constructions (a rectangle of given sides square in 3D, a tetrahedron of given edges) to 1e-9, and the degrees of freedom left.
+- **What waits on the kernel lane's FR geometry** (after R12c): gussets in the cut list, weld beads (FRd's symbols on beads), end caps, tapered flanges, arc members, weld gaps and saddle notches, and the 7.5 s trim. Each stage does its model and drawing side against today's geometry and says what waits.
+- **Data rules** (unchanged): no built-in stock, section or hardware table; every value is the user's, a public page's with its record, derived by a stated rule, or a flagged estimate; no ISO or ANSI text.
+- **Order**: FRa, FRb, FRc, FRd, FRe, FRf, FRg. The coordinator may resequence.
