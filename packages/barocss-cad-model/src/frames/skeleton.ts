@@ -3,6 +3,7 @@
 // would break them is refused, typed, naming the frames: deleting a skeleton or sketch a frame follows (chat/features.ts
 // deleteFeature), and an edit taking away a segment of a followed skeleton or a point its segments used.
 import { featureLabel, frameGeometry, type ModelNode, type StudioDoc } from '../engine/doc';
+import { solveSketch3D, type Solve3D, type V3 } from './sketch3d';
 
 /** The frames following feature `index` (by label). */
 export function followersOf(nodes: readonly ModelNode[], index: number): string[] {
@@ -25,4 +26,16 @@ export function withFollowed(doc: StudioDoc, node: ModelNode): ModelNode {
   if (node.kind !== 'frame' || !node.follows) return node;
   const g = frameGeometry(doc.nodes, node, doc.parameters);
   return 'code' in g ? node : { ...node, points: g.points, segments: g.segments };
+}
+
+/**
+ * FRg (O122): a skeleton with constraints solved from its points as given — stored solved — with its diagnosis; a
+ * conflict refused, typed, naming the constraints left unmet. Any other node as it is.
+ */
+export function solvedSkeleton(node: ModelNode): { node: ModelNode; solve?: Omit<Solve3D, 'points'> } | { error: string } {
+  if (node.kind !== 'skeleton' || !node.constraints?.length) return { node };
+  const r = solveSketch3D(node.points as V3[], node.segments, node.constraints);
+  if (r.status === 'conflict') return { error: `[SKETCH3D_CONFLICT] the skeleton's constraints cannot all hold: ${r.unmet.map(u => `constraint ${u.constraint} (${node.constraints![u.constraint].kind}) off by ${+u.residual.toPrecision(3)}`).join(', ')}. Change or remove one of them.` };
+  const { points, ...solve } = r;
+  return { node: { ...node, points: points.map(p => [p[0], p[1], p[2]] as [number, number, number]) }, solve };
 }

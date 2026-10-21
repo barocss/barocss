@@ -40,7 +40,7 @@ import { cutListCsv } from '@barocss/cad';
 import { partCutList } from '../app/cutList';
 import { nestCutList } from '../frames/nesting';
 import { editSections } from '../frames/sections';
-import { skeletonEditRefusal, withFollowed } from '../frames/skeleton';
+import { skeletonEditRefusal, solvedSkeleton, withFollowed } from '../frames/skeleton';
 import { weldList, type WeldRecord } from '../frames/welds';
 export { resolveNames, type NameSelection };
 
@@ -752,13 +752,17 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         const pl = isObj(node) ? (node as Record<string, unknown>).plane : undefined;
         if (isObj(pl) && typeof pl.datum === 'string') { try { list[k] = { ...(node as object), plane: datumPlane(readReferences(doc.references), pl.datum) }; } catch (e) { return fail(state, e instanceof ReferenceError ? e.message : String(e)); } }
       }
+      const solves: Record<string, unknown>[] = [];
       for (const [k, node] of list.entries()) {
         const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections);
         if (why) return fail(state, `Feature ${k + 1} of ${list.length} (would be index ${doc.nodes.length}): ${why}`, { kept: 'nothing was added' });
         // (A new feature takes the next stable id: one the call brings is not used, ids are never handed out twice.)
-        doc = withNode(doc, { ...withFollowed(doc, node as ModelNode), id: undefined });
+        const solved = solvedSkeleton(node as ModelNode);
+        if ('error' in solved) return fail(state, `Feature ${k + 1} of ${list.length}: ${solved.error}`, { kept: 'nothing was added' });
+        if (solved.solve) solves.push({ feature: doc.nodes.length, ...solved.solve });
+        doc = withNode(doc, { ...withFollowed(doc, solved.node), id: undefined });
       }
-      return accept(state, doc, evaluate, `added ${list.length} feature${list.length > 1 ? 's' : ''}`, { added: doc.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, doc.nodes)}`) });
+      return accept(state, doc, evaluate, `added ${list.length} feature${list.length > 1 ? 's' : ''}`, { added: doc.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, doc.nodes)}`), ...(solves.length ? { skeletons: solves } : {}) });
     }
     case 'edit_feature': {
       const index = Number(args.index), nodes = state.doc.nodes;
@@ -781,6 +785,10 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
           else next = f.set(next, Boolean(v));
         }
       }
+      // (FRg, O122: a skeleton with constraints solved again from its edit.)
+      const solved = solvedSkeleton(next[index]);
+      if ('error' in solved) return fail(state, `Feature ${index}: ${solved.error}`, { kept: 'the part is unchanged' });
+      next = next.map((n, k) => k === index ? solved.node : n);
       // (FRf, O121: a skeleton frames follow keeps every point and segment they use.)
       const held = skeletonEditRefusal(nodes, index, next[index]);
       if (held) return fail(state, held);
@@ -1266,7 +1274,7 @@ const PART_TOOLS: ToolDefinition[] = [
 - {"kind":"sweep","sketch":i,"path":[{"kind":"straight","length":l} | {"kind":"bend","radius":r,"angleDegrees":deg,"toward":"x"|"-x"|"y"|"-y"}]} (from the sketch plane up +Z)
 - {"kind":"loft","sections":[{"sketch":i,"z":z},...],"smooth"?:bool}
 - Sheet metal (each with the sheet's rules: "thickness":T, "bendRadius":R (inner), and either "kFactor":K 0–1 (the neutral layer at R + K·T; K from the user's shop, else say it is an estimate) or "bendTable":{"id","sources":[{"id","label","url"?}],"rows":[{"thicknessMM","radiusMM","angleDegrees"?,"kFactor"|"allowanceMM"|"deductionMM","source":id | "estimate":true}]} — the shop's table, a bend outside it refused): {"kind":"sheet-base","sketch":i,…rules,"reverse"?:bool} (a plate T thick from a closed sketch) | {"kind":"sheet-contour","path":[[x,y],…],"side":"left"|"right","width":w,"plane"?:{origin,normal,xAxis},…rules} (an open path, one skin of the sheet, the material to its side looking along it, a bend at each corner, extruded w along the plane's normal; faces .leg<i>.a/.b, .bend<k>.inner/.outer, .start, .end, .front, .back) | {"kind":"sheet-flange","parent":Ref,"edges":[edge name],"length":L,"angleDegrees"?:deg,"bendRadius"?:r,"measure"?:"outer"|"inner"|"tangent","position"?:"material-inside"|"material-outside"|"bend-outside","offsets"?:[a,b],"relief"?:{"kind":"rectangular"|"obround","width":w,"depth":d} | {"kind":"none"}} (an edge flange on a sheet's straight skin edge, bent up from that skin; with offsets its relief is required, width and depth given — no defaults; the sheet's T is the usual estimate) | {"kind":"sheet-corner-relief","parent":Ref,"edges":[corner edge name],"shape":"square"|"round","size":s} (a plate's square corner cut off before flanging its two edges; size at least R + T, round √2 that)
-- Skeleton (FRf): {"kind":"skeleton","points":[[x,y,z],…],"segments":[[from,to],…]} — no body; frames on it follow its edits ("follows":{"skeleton":k} in place of points and segments; {"sketch":k}: a sketch's straight edges).
+- Skeleton (FRf): {"kind":"skeleton","points":[[x,y,z],…],"segments":[[from,to],…],"constraints"?:[{"kind":"fixed"|"coincident"|"length"|"distance"|"angle"|"parallel"|"perpendicular"|"on-axis"|"on-plane"|"along",…}]} (FRg: solved on add and edit; the result's skeletons: status, dof, redundant, free) — no body; frames on it follow its edits ("follows":{"skeleton":k} in place of points and segments; {"sketch":k}: a sketch's straight edges).
 - Frame (FR2): {"kind":"frame","points":[[x,y,z],…],"segments":[[from,to],…],"section":S,"anchor"?,"offset"?,"roll"?,"mirror"?:bool,"up"?,"overrides"?:[{"member":k,"section"?:S,"anchor"?,"offset"?,"roll"?,"mirror"?}]} — a member along each segment (point indices), each its own body (sides part0, part1, …); a member as frame-member's below; mirror turns the section over across its own y axis; faces .m<k>.<role>, .m<k>.start/.end. No two segments on the same points or overlapping on one line. "corners"?:{"default"?:"mitre"|"butt"|"none","at"?:[{"point":i,"kind","through"?:member}]} finishes points where exactly two members end (mitre: both on the halfway plane, the same section turned alike; butt: through runs on, the other ends on its face; none: square, overlapping); left out, no corner is finished; "multi":"order"|"none" (three or more ends: an ordered trim — the first, by "order" or the larger section, runs through, each next trimmed to the envelopes before it); "tee":"butt"|"cope"|"none" (a member ending on another's length); "at" kinds also "cope" (to the through member's envelope), "order" with "order":[members], and "trim":"face"|"envelope" on a butt (a butt on an open side — an angle's leg end, a round tube, a round corner — is refused BUTT_ON_OPEN_SIDE: trim to the envelope); faces .m<k>.start.mitre, .m<k>.end.butt, .m<k>.end.cope, .m<k>.end.trim. "trims"?:[{"member":k,"end":"start"|"end","plane":{"origin","normal"}} | {…,"body":Ref}] trims an end no joint finishes to a plane (run on to meet it) or to an earlier body (not consumed); crossing members are refused MEMBERS_CLASH
 - Structural member (FR1): {"kind":"frame-member","section":S,"start":[x,y,z],"end":[x,y,z],"anchor"?:"centroid"|"origin"|"bottom-left"|…|"top-right","offset"?:[dx,dy],"roll"?:deg,"up"?:[x,y,z]} — the section square to the line start→end, extruded its length; the anchor point on the line (default the centroid), the section moved by offset, its y along up (default +Z) made square to the line (a vertical line takes +X), turned roll°. S, every dimension given (no default sizes or radii; ask for the stock's or say they are estimates): {"kind":"rect-tube","width","height","wall","outerRadius","innerRadius"?} | {"kind":"round-tube","diameter","wall"} | {"kind":"angle","legX","legY","thickness","rootRadius","toeRadius"} | {"kind":"channel","height","width","web","flange","rootRadius"} | {"kind":"tslot","size","cells":1|2,"openSlots"?:0–4 (one cell),"opening","lip","undercut","depth","bore"} | {"kind":"sketch","sketch":i} (a closed sketch, holes allowed). Faces by role: .top/.bottom/.left/.right/.round.*, .bore.*, .back.x/.face.y/.root/.toe.x, .web/.tip.top, .<slot>.floor …, and the ends .start/.end
 - {"kind":"hole","parent":Ref,"center":[a,b],"radius":r,"axis"?:"x"|"y"|"z","side"?:"min"|"max","depth"?:d} (omit depth for through)

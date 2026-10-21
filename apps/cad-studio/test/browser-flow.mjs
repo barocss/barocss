@@ -3827,6 +3827,30 @@ try {
     } finally { chat.kill(); }
   });
 
+  await check('FRg a constrained 3D skeleton via the chat: a rough rectangle solved to 600 × 400 square on add, a frame on it — its first member 444 · 600 mm³ (O122)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const constraints = [{ kind: 'fixed', point: 0 }, { kind: 'along', segment: 0, axis: 'x' }, { kind: 'on-plane', point: 2, plane: { origin: [0, 0, 0], normal: [0, 0, 1] } }, { kind: 'length', segment: 0, value: 600 }, { kind: 'length', segment: 1, value: 400 },
+        { kind: 'perpendicular', a: 0, b: 1 }, { kind: 'parallel', a: 0, b: 2 }, { kind: 'parallel', a: 1, b: 3 }];
+      const skeleton = { kind: 'skeleton', points: [[0, 0, 0], [590, 10, 0], [610, 390, 5], [-5, 405, 3]], segments: [[0, 1], [1, 2], [2, 3], [3, 0]], constraints };
+      const frame = { kind: 'frame', follows: { skeleton: 0 }, section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { default: 'mitre' } };
+      const n = await page.locator('.chat-msg.assistant').count();
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'add', features: [skeleton, frame] } }] })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+      await page.waitForFunction(() => /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+      // (Solved: the second corner at (600, 0, 0), the third on z = 0, all square.)
+      const pts = await page.evaluate(() => window.__studioDoc.nodes[0].points);
+      assert.ok(Math.abs(pts[1][0] - 600) < 1e-6 && Math.abs(pts[1][1]) < 1e-6 && Math.abs(pts[2][2]) < 1e-6, JSON.stringify(pts));
+      const vol = await bodyVolume(); assert.ok(Math.abs(vol - 444 * 600) <= 1, String(vol));
+      await snap('frg-skeleton-solved');
+    } finally { chat.kill(); }
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [
