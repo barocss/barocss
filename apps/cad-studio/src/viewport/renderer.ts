@@ -31,6 +31,18 @@ export interface InstanceItem { id: string; bodies: BodyResult[]; threads?: Floa
 /** The mould as the viewport shows it (G6): the loops (world polylines), the halves' bodies, the pull and the spread. */
 export interface MouldShown { pull: Vec3; loops: { points: Vec3[]; closed: boolean }[]; plus: BodyResult[]; minus: BodyResult[]; spread: number }
 /** A section's plane on the GPU (G2): kept where dot(normal, p) ≥ offset; `bodies`: the part's bodies cut by it too (not yet exact). */
+/** World line segments for an overlay (G7): six numbers a segment; a colour (CSS, sRGB), a width and dashes in CSS pixels. */
+export interface OverlayLines {
+  segments: ArrayLike<number>;
+  color: string;
+  width: number;
+  opacity?: number;
+  dash?: readonly [number, number];
+  /** Drawn over the scene, not hidden by surfaces (the SubD cage, the thing edited). */
+  over?: boolean;
+  /** Its parts behind surfaces drawn too, at this share of its opacity (0 – 1; default 0: hidden). */
+  hidden?: number;
+}
 export interface SectionClip { normal: Vec3; offset: number; bodies: boolean }
 /** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
 export interface ViewRenderer {
@@ -77,6 +89,13 @@ export interface ViewRenderer {
   setMould?(view: MouldShown | null): void;
   /** Isoclines (WebGPU only, G6): world polylines drawn with the draft map, or none. */
   setIsoclines?(lines: readonly { points: readonly Vec3[]; closed: boolean }[] | null): void;
+  /**
+   * Overlay lines drawn by the engine (WebGPU only, G7) — what were SVG paths projected every frame: world segments under a
+   * key, uploaded once and depth-tested (or over the scene); null removes them. Not picked, clipped or counted in the bounds.
+   */
+  setOverlayLines?(key: string, lines: OverlayLines | null): void;
+  /** The overlay lines shown, segments a key (G7; for the flow). */
+  overlayLines?(): Record<string, number>;
   pickHalf?(x: number, y: number, camera: OrbitCamera): { half: '+' | '-'; index: number } | null;
   pickInstance?(x: number, y: number, camera: OrbitCamera): string | null;
   pickInstanceFace?(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number } | null;

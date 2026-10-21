@@ -379,3 +379,46 @@ against the code as it is now:
   least draft), its top green; every face reached by a 3-axis mill. Not run: the full flow (the coordinator's), the cad-model
   suite (not touched), benches (no frame path changed).
 
+## G7 — the overlays' lines into the engine (2026-10-21)
+
+- **What moved**: the bounding box's 12 edges, the measure line, each underlay's polylines and the SubD cage's edges (by kind,
+  and the mirrored half) were SVG paths rebuilt and projected on every rendered frame (`setTick` re-renders the overlay).
+  On WebGPU they are now engine line meshes: `ViewRenderer.setOverlayLines(key, { segments, color, width, opacity, dash,
+  over, hidden })`, uploaded when the overlay changes (the Viewport keys them by content — the App hands new objects every
+  render — so a frame makes nothing) and skipped in the SVG. WebGL2 keeps the SVG (the fallback has no such lines).
+- **Stays SVG**: the box's size chip, the measure line's end points and label, the underlays' texts (G15 is 3D text), the
+  cage's faces and vertices, poles, corners and the workspace cloud (G8, the point primitive), the gizmo, the triad and the
+  view cube. `setTick` still re-renders the overlay each frame for those (they follow the camera); what it no longer does is
+  project and stringify the lines: the underlay bench's 40 000 points were nearly all of that frame's task.
+- **Viewer** (`@barocss/gpu`):
+  - `Material.lineDash: [on, off]` (CSS px), from each segment's start (as each SVG `<line>` restarted its dash; a polyline
+    drawn as segments restarts per segment — the underlays draw solid);
+  - `Material.lineOver`: drawn after everything with no depth test, never passed over by `pickLine`;
+  - `Material.lineHidden`: a depth-tested line's parts behind surfaces drawn again at that share of its opacity (a second
+    draw, depth `less` — reversed Z, so only behind; no overlap with the visible draw);
+  - `AddMeshOptions.bounded: false`: left out of `sceneBounds`, so an overlay (a 2 m drawing under a 40 mm plate) does not
+    move the shadow's fit or what `fit()` frames.
+- **Depth**: the coordinator asked for depth-tested lines. A measure line between a box's top and bottom runs through the body,
+  and the box's back edges sit behind it: depth-tested alone they vanished (the first after-run's screenshot). So the box
+  (0.6), the measure line (0.75) and the underlays (0.35) draw their hidden parts faint; SVG drew all of them alike over
+  everything. The SubD cage stays over the body (`lineOver`): R8.2's design (the cage is the thing edited; its pick is the
+  CPU's projection, through the body), so its look is unchanged.
+- **Evidence**:
+  - gpu browser test G7 (new): a depth-tested line hidden under a box and shown beside it; an over line shown and picked over it;
+    a hidden-faint line between the body's grey and its colour there (210,107,211 over 147,147,149; 255,0,255 beside); a 6/6 px
+    dash measured 6 (±1) px each run, 35 dashes; a 2 000-unit unbounded line not in `sceneBounds`.
+  - Flow screenshots before (`afe6bd0b3`) and after on the steps drawing these lines (measure, mass + bounding box, R8.2, R8.3
+    cage extrude/crease/mirror, D84 by hand, O68 underlay): the cage, its mirror's dashes and the underlay match; the box and
+    measure line as above.
+  - Flow selectors: the measure, box and O68 steps read the engine's lines (`__studioOverlayLines`, DEV) on WebGPU and the SVG
+    on WebGL2; O68 checks the underlay gone when hidden and back when shown.
+- **Bench** (`bench:browser` row `underlay:` new — a 2 000-polyline, 40 000-point underlay with 100 texts orbited 60 steps),
+  run alone, the same script on the pre-G7 code in the verify worktree: task 30.38 → 8.22 ms a frame, GPU 27.6 → 6.94 ms a
+  submit, wall 2 952 → 2 428 ms, at a load of 11–14 (LOADED). Budget set at about twice (task 16, GPU 14), for G13 to
+  re-measure quiet. Seen in passing: the pre-G7 code's `explode:` row twice in two runs drew 2 submits in one frame (budget 1;
+  after G7, 1 in both runs): for G13.
+- **Checks** (v2, on `697a02ce4` in the verify worktree): gpu tsc and eslint clean, unit 77/77, browser 8/8 (10 s); studio tsc
+  and eslint clean, suite 192/192 (19 s); FLOW_ONLY (the seven steps above) 7/7 on WebGPU (32 s, the load at 41) and 7/7 on
+  WebGL2 (45 s). Not run: the full flow (the coordinator's), the cad-model suite (not touched), the other benches (no other
+  frame path changed; the full `bench:browser` ran twice, its other rows within budget).
+

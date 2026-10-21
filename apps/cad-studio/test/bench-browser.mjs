@@ -51,6 +51,8 @@ const BUDGET = {
   explode: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 28, kb: 128, buffers: 4, gpuMS: 44 },
   sectionGpu: { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 8, buffers: 4, gpuMS: 44 },
   sectionCpu: { submits: 140, avgFrameMS: 2 },
+  // (G7, set at load 12 — the pre-G7 SVG path took 30 ms of task a frame here; G13 re-measures on a quiet machine.)
+  underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 16, kb: 6, buffers: 4, gpuMS: 14 },
 };
 const os = await import('node:os'), loadAtStart = os.loadavg()[0];
 const rows = [];
@@ -140,8 +142,24 @@ try {
     await measure(name, budget, dragSection);
   }
   await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false }));
+  // G7: a large DXF underlay (2 000 polylines of 20 points, 100 texts) over a small plate, orbited 60 steps: its lines
+  // were an SVG path projected every frame; they are an engine line mesh now.
+  await page.click('[aria-label="Section view"]').catch(() => {});
+  const polylines = Array.from({ length: 2000 }, (_, k) => Array.from({ length: 20 }, (_, i) => [(k % 50) * 8 + i * 0.35, Math.floor(k / 50) * 8 + Math.sin(i + k) * 2]));
+  const texts = Array.from({ length: 100 }, (_, k) => ({ at: [(k % 10) * 40, Math.floor(k / 10) * 32], text: `NOTE ${k}`, height: 3, angle: 0 }));
+  const drawing = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { kind: 'extrude', sketch: 0, height: 5 }], outputs: { b1: { node: 1, side: 'solid' } },
+    underlays: [{ id: 'U1', name: 'big', polylines, texts, counts: { LWPOLYLINE: 2000, TEXT: 100 } }] };
+  await open('underlay.bcad', drawing, () => window.__studioDoc?.underlays?.length === 1 && !!document.querySelector('[aria-label="Underlay drawing U1"]'));
+  {
+    const ub = await page.locator('canvas.vp-canvas').boundingBox(), ux = ub.x + ub.width / 2, uy = ub.y + ub.height / 2;
+    await measure('underlay: 40 000 points, 100 texts, orbit 60', BUDGET.underlay, async () => {
+      await page.mouse.move(ux, uy); await page.mouse.down({ button: 'left' });
+      for (let i = 0; i < 60; i++) { await page.mouse.move(ux + 4 * i, uy + (i % 5)); await page.waitForTimeout(16); }
+      await page.mouse.up({ button: 'left' });
+    });
+  }
 } finally { await browser.close(); await server.close(); }
 // (The machine's load average: a budget is not set from numbers measured under load.)
 console.log(`load average ${loadAtStart.toFixed(1)} at the start, ${os.loadavg()[0].toFixed(1)} at the end${Math.max(loadAtStart, os.loadavg()[0]) > 4 ? ' — LOADED: compare, do not set budgets from this run' : ''}`);
 for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  wall ${r.wallMS} ms`);
-process.exit(rows.length === 10 && rows.every(r => r.ok) ? 0 : 1);
+process.exit(rows.length === 11 && rows.every(r => r.ok) ? 0 : 1);

@@ -15,7 +15,7 @@ import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@b
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
-import type { EdgeRef, FaceRef, InstanceItem, MouldShown, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
+import type { EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLines, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 
 /** Device pixels per CSS pixel, up to 3 (a high-density screen with the page zoomed in). */
@@ -229,6 +229,21 @@ export class GpuRenderer implements ViewRenderer {
     this.applyClip(); this.viewer.requestRender();
   }
   private isoclines: Mesh | null = null;
+
+  /** Overlay lines by key (G7): one line mesh each, made when they change, never per frame. */
+  setOverlayLines(key: string, lines: OverlayLines | null): void {
+    const had = this.overlays.get(key);
+    if (had) { had.remove(); had.geometry.dispose(); this.overlays.delete(key); }
+    if (lines && lines.segments.length >= 6) {
+      this.overlays.set(key, this.viewer.add({ positions: lines.segments, topology: 'lines' }, {
+        name: 'overlay:' + key, pickable: false, castShadow: false, receiveShadow: false, clipped: false, bounded: false,
+        material: { color: lines.color, unlit: true, lineWidth: lines.width, opacity: lines.opacity ?? 1, lineDash: lines.dash ?? null, lineOver: !!lines.over, lineHidden: lines.hidden ?? 0 },
+      }));
+    }
+    this.viewer.requestRender();
+  }
+  overlayLines(): Record<string, number> { return Object.fromEntries([...this.overlays].map(([k, m]) => [k, m.geometry.data.elementCount / 2])); }
+  private overlays = new Map<string, Mesh>();
 
   /** The half under a point (G6), or null. */
   pickHalf(x: number, y: number, camera: OrbitCamera): { half: '+' | '-'; index: number } | null {

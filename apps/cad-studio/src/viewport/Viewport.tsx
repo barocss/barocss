@@ -2,7 +2,7 @@ import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 're
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
-import { Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type SectionClip, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import { Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLines, type SectionClip, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
@@ -18,7 +18,7 @@ import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
 import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
 import { ViewCube } from './ViewCube';
-import { CageMarks } from './CageMarks';
+import { CAGE_LINE_KEYS, CageMarks, cageLines } from './CageMarks';
 import { pickCage, type CageHit, type CageMode, type CageSelection, type StudioCage } from '@barocss/cad-model/subd/cageEdit';
 import type { CageValidation } from '@barocss/cad';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
@@ -42,6 +42,8 @@ export interface ViewportHandle {
   setCamera(c: RenderCamera): void;
   /** Which renderer draws: WebGPU, the WebGL2 fallback, or none yet. */
   readonly backend: 'webgpu' | 'webgl2' | null;
+  /** The engine's overlay lines shown, segments a key (G7; WebGPU; for the flow). */
+  overlayLines(): Record<string, number>;
 }
 
 /** Where a new shape stands: a point on the ground or on an upward face, and that surface's normal. */
@@ -146,6 +148,29 @@ interface Props {
   cage?: CageOverlay | null;
   onPickCage?(hit: CageHit | null, additive: boolean, grow?: 'loop' | 'ring'): void;
 }
+/**
+ * The overlay lines' looks (G7), as styles.css drew them in SVG; depth-tested now, their hidden parts faint (SVG drew them
+ * all alike) — a measure line between two faces runs through the body.
+ */
+const BBOX_LOOK = { color: '#7fb2f0', width: 1.2, opacity: 0.85, dash: [5, 4] as const, hidden: 0.6 };
+const MEASURE_LOOK = { width: 1.5, dash: [5, 3] as const, hidden: 0.75 };
+const ACCENT_OF: Record<ThemeName, string> = { dark: '#e8c25a', light: '#c9961e' };
+const UNDERLAY_LOOK = { color: '#8a93a3', width: 0.75, opacity: 0.7, hidden: 0.35 };
+const BOX_EDGES = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
+/** A box's 12 edges as segments, from min and max (six numbers). */
+function boxSegments(b: readonly number[]): OverlayLines['segments'] {
+  const out = new Float32Array(72);
+  BOX_EDGES.forEach(([i, j], e) => { for (const [k, c] of [[0, i], [1, j]]) for (let a = 0; a < 3; a++) out[6 * e + 3 * k + a] = c & (1 << a) ? b[3 + a] : b[a]; });
+  return out;
+}
+/** Polylines as segments. */
+function polylineSegments(lines: readonly (readonly Vec3[])[]): OverlayLines['segments'] {
+  let n = 0; for (const l of lines) n += Math.max(0, l.length - 1);
+  const out = new Float32Array(6 * n); let o = 0;
+  for (const l of lines) for (let i = 0; i + 1 < l.length; i++) { const p = l[i], q = l[i + 1]; out[o++] = p[0]; out[o++] = p[1]; out[o++] = p[2]; out[o++] = q[0]; out[o++] = q[1]; out[o++] = q[2]; }
+  return out;
+}
+
 export interface CageOverlay {
   cage: StudioCage; mode: CageMode; sel: CageSelection; validation: CageValidation;
   /** The mirrored half (drawn faint), when the cage is one half. */
@@ -183,6 +208,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const renderer = useRef<ViewRenderer | null>(null);
   const [backend, setBackend] = useState<'webgpu' | 'webgl2' | null>(null);
   const theme = useRef<ThemeName>('dark'), ao = useRef(true);
+  /** The theme as state, for the overlay lines whose colour follows it (G7). */
+  const [themeName, setThemeName] = useState<ThemeName>('dark');
   const camera = useRef(new OrbitCamera());
   const frame = useRef(0);
   const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null; vertex?: { body: number; at: Vec3 } | null }>({ face: null, edge: null });
@@ -323,6 +350,34 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setScalarMaps?.(props.scalarMaps ?? null); request(); }, [props.scalarMaps, backend]);
   useEffect(() => { renderer.current?.setMould?.(props.mould ?? null); request(); }, [props.mould, backend]);
   useEffect(() => { renderer.current?.setIsoclines?.(props.isoclines ?? null); request(); }, [props.isoclines, backend]);
+  // G7: the bounding box, the measure line, the underlays' polylines and the SubD cage's edges as engine lines on WebGPU —
+  // made when they change (keyed by their content: the App hands new objects each render), not projected every frame;
+  // WebGL2 keeps them SVG. Their looks as styles.css drew them.
+  const sketching = !!props.sketch, bb = props.boundsBox, bbKey = bb && !sketching ? [...bb.min, ...bb.max].join(',') : '';
+  useEffect(() => {
+    const r = renderer.current; if (!r?.setOverlayLines) return;
+    r.setOverlayLines('bbox', bbKey ? { segments: boxSegments(bbKey.split(',').map(Number)), ...BBOX_LOOK } : null); request();
+  }, [bbKey, backend]);
+  const ml = props.measureLine, mlKey = ml ? [...ml.a, ...ml.b].join(',') : '';
+  useEffect(() => {
+    const r = renderer.current; if (!r?.setOverlayLines) return;
+    r.setOverlayLines('measure', mlKey ? { segments: mlKey.split(',').map(Number), ...MEASURE_LOOK, color: ACCENT_OF[themeName] } : null); request();
+  }, [mlKey, themeName, backend]);
+  const underlayKeys = useRef<string[]>([]);
+  useEffect(() => {
+    const r = renderer.current; if (!r?.setOverlayLines) return;
+    const keys: string[] = [];
+    if (!sketching) for (const u of props.underlays ?? []) { keys.push('underlay:' + u.id); r.setOverlayLines('underlay:' + u.id, { segments: polylineSegments(u.lines), ...UNDERLAY_LOOK }); }
+    for (const k of underlayKeys.current) if (!keys.includes(k)) r.setOverlayLines(k, null);
+    underlayKeys.current = keys; request();
+  }, [props.underlays, sketching, backend]);
+  useEffect(() => {
+    const r = renderer.current; if (!r?.setOverlayLines) return;
+    const lines = props.cage && !sketching ? cageLines(props.cage) : [];
+    for (const k of CAGE_LINE_KEYS) if (!lines.some(l => l[0] === k)) r.setOverlayLines(k, null);
+    for (const [k, l] of lines) r.setOverlayLines(k, l);
+    request();
+  }, [props.cage, sketching, backend]);
   // (By content: the list is rebuilt on every render; the last one is kept while its content is the same.)
   const instanceFacesRef = useRef<readonly InstanceFace[]>([]);
   if (!sameInstanceFaces(instanceFacesRef.current, props.instanceFaces ?? [])) instanceFacesRef.current = props.instanceFaces ?? [];
@@ -339,12 +394,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       camera.current.frameAt(toWorld(plane, [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2]), [max[0] - min[0], max[1] - min[1]], insets.left / w, insets.right / w); request();
     },
     toggleOrtho() { camera.current.ortho = !camera.current.ortho; request(); return camera.current.ortho; },
-    setTheme(name) { theme.current = name; renderer.current?.setTheme(name); request(); },
+    setTheme(name) { theme.current = name; setThemeName(name); renderer.current?.setTheme(name); request(); },
     setAo(on) { ao.current = on; if (renderer.current) renderer.current.aoEnabled = on; request(); },
     capture() { return renderer.current?.capture ? renderer.current.capture() : Promise.resolve(null); },
     getCamera() { const c = camera.current; return { target: [...c.target] as [number, number, number], distance: c.distance, yaw: c.yaw, pitch: c.pitch, fovY: c.fovY, ortho: c.ortho }; },
     setCamera(v) { const c = camera.current; c.target = [...v.target] as Vec3; c.distance = v.distance; c.yaw = v.yaw; c.pitch = v.pitch; c.fovY = v.fovY; c.ortho = v.ortho; request(); },
     get backend() { return backend; },
+    overlayLines() { return renderer.current?.overlayLines?.() ?? {}; },
   }));
 
   const local = (e: { clientX: number; clientY: number }) => {
@@ -743,6 +799,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
 
   // Overlay: sketch preview, dimension labels and the move gizmo, projected each frame.
   const overlay = () => {
+    /** The overlay lines are the engine's (G7): only their labels, points and texts stay SVG. */
+    const engineLines = !!renderer.current?.setOverlayLines;
     const c = canvas.current; if (!c) return null;
     const w = c.clientWidth, h = c.clientHeight; const cam = camera.current;
     const items: React.ReactNode[] = [];
@@ -881,17 +939,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       const c = (i: number): Vec3 => [i & 1 ? bb.max[0] : bb.min[0], i & 2 ? bb.max[1] : bb.min[1], i & 4 ? bb.max[2] : bb.min[2]], q = Array.from({ length: 8 }, (_, i) => cam.project(c(i), w, h));
       const edges = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
       const top = q.reduce((b, p) => p[1] < b[1] ? p : b, q[0]), tw = Math.max(60, bb.label.length * 7 + 14);
-      items.push(<g key="bbox">{edges.map(([a, b]) => <line key={a + '-' + b} x1={q[a][0]} y1={q[a][1]} x2={q[b][0]} y2={q[b][1]} className="bbox-line" />)}
+      items.push(<g key="bbox" data-engine-lines={engineLines ? 12 : undefined}>{!engineLines && edges.map(([a, b]) => <line key={a + '-' + b} x1={q[a][0]} y1={q[a][1]} x2={q[b][0]} y2={q[b][1]} className="bbox-line" />)}
         <rect x={top[0] - tw / 2} y={top[1] - 30} width={tw} height={20} rx={4} className="dim-chip" /><text x={top[0]} y={top[1] - 16} textAnchor="middle" className="dim-text">{bb.label}</text></g>);
     }
     // The cage being edited: the mirrored half faint, faces picked (n-gons tinted), edges (creases heavier, open
     // and non-manifold ones marked), vertices (poles ringed), all over the body.
-    if (!sk && props.cage) items.push(<CageMarks key="cage" overlay={props.cage} project={q => cam.project(q as Vec3, w, h)} />);
+    if (!sk && props.cage) items.push(<CageMarks key="cage" overlay={props.cage} project={q => cam.project(q as Vec3, w, h)} lines={!engineLines} />);
     // Drawings' underlays (O68): their polylines one path each, their texts placed and turned as projected.
     if (!sk) for (const u of props.underlays ?? []) {
       const d: string[] = [];
-      for (const l of u.lines) l.forEach((p, k) => { const q = cam.project(p, w, h); d.push(`${k ? 'L' : 'M'}${q[0].toFixed(1)} ${q[1].toFixed(1)}`); });
-      items.push(<g key={'ul' + u.id} aria-label={`Underlay drawing ${u.id}`} className="underlay"><path d={d.join('')} className="underlay-line" fill="none" />
+      if (!engineLines) for (const l of u.lines) l.forEach((p, k) => { const q = cam.project(p, w, h); d.push(`${k ? 'L' : 'M'}${q[0].toFixed(1)} ${q[1].toFixed(1)}`); });
+      items.push(<g key={'ul' + u.id} aria-label={`Underlay drawing ${u.id}`} className="underlay" data-engine-lines={engineLines ? u.lines.length : undefined}>{!engineLines && <path d={d.join('')} className="underlay-line" fill="none" />}
         {u.texts.map((t, k) => { const a = cam.project(t.at, w, h), b = cam.project([t.at[0] + t.dir[0], t.at[1] + t.dir[1], t.at[2] + t.dir[2]], w, h), c = cam.project([t.at[0] + t.up[0] * t.height, t.at[1] + t.up[1] * t.height, t.at[2] + t.up[2] * t.height], w, h);
           const size = Math.hypot(c[0] - a[0], c[1] - a[1]); return size >= 2 ? <text key={k} x={a[0]} y={a[1]} fontSize={size} className="underlay-text" transform={`rotate(${(Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI).toFixed(2)} ${a[0].toFixed(1)} ${a[1].toFixed(1)})`}>{t.text.split('\n').map((ln, i) => <tspan key={i} x={a[0]} dy={i ? size * 1.25 : 0}>{ln}</tspan>)}</text> : null; })}</g>);
     }
@@ -913,7 +971,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const ml = props.measureLine;
     if (ml) {
       const a = cam.project(ml.a, w, h), b = cam.project(ml.b, w, h), mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, tw = Math.max(52, ml.label.length * 7 + 14);
-      items.push(<g key="measure"><line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="measure-line" />
+      items.push(<g key="measure" className="measure" data-engine-lines={engineLines ? 1 : undefined}>{!engineLines && <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="measure-line" />}
         <circle cx={a[0]} cy={a[1]} r={3.5} className="measure-point" /><circle cx={b[0]} cy={b[1]} r={3.5} className="measure-point" />
         <rect x={mx - tw / 2} y={my - 24} width={tw} height={20} rx={4} className="dim-chip" /><text x={mx} y={my - 10} textAnchor="middle" className="dim-text">{ml.label}</text></g>);
     }
