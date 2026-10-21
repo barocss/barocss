@@ -25,7 +25,9 @@ test('a facet cube with a cylinder and a sphere: holes, a boss, a bite and an in
     ['through hole', cylinder(3, -5, 30), 'difference', 8000 - Math.PI * 9 * 20, 1e-9],
     ['blind hole', cylinder(3, 12, 20), 'difference', 8000 - Math.PI * 9 * 8, 1e-9],
     ['boss', cylinder(3, 15, 10), 'union', 8000 + Math.PI * 9 * 5, 1e-9],
-    ['sphere bite', sphere(6, [20, 20, 20]), 'difference', 8000 - Math.PI * 4 / 3 * 216 / 8, 1e-5],
+    // (The rim at the default 32 segments a quarter: 1.008e-5 off. It was 6.4e-6 while spurious crossings of an arc and its copy split
+    // the arc into 41 edges, each tessellated on its own — D152.)
+    ['sphere bite', sphere(6, [20, 20, 20]), 'difference', 8000 - Math.PI * 4 / 3 * 216 / 8, 1.5e-5],
     ['sphere ∩', sphere(6, [20, 20, 20]), 'intersection', Math.PI * 4 / 3 * 216 / 8, 1e-9],
   ]) {
     const r = facetBoolean(m, tool, op, { id: 'r' });

@@ -158,6 +158,17 @@ function leavesAwayFromEnds(s: CurveSegment2, t: CurveSegment2, e: XY, ue: numbe
   }
   return false;
 }
+/**
+ * Points shared by two segments where they run along each other (a curve and its copy over part of its length: two faces'
+ * sections by one plane, D152): only the ends of each such run. Between consecutive points along s, the middle of s lying on t
+ * makes them one run; its inner points were "crossings" found all along it, each a split of both curves into slivers.
+ */
+function overlapEnds(s: CurveSegment2, t: CurveSegment2, points: XY[], eps: number): XY[] {
+  if (points.length < 3) return points;
+  const at = points.map(p => ({ p, u: paramOf(s, p) })).sort((a, b) => a.u - b.u);
+  const along = at.slice(0, -1).map((a, i) => { const q = segAt(s, (a.u + at[i + 1].u) / 2); return segDistance(t, q) <= eps; });
+  return at.filter((_, i) => !(i > 0 && i < at.length - 1 && along[i - 1] && along[i])).map(a => a.p);
+}
 export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: number): XY[] {
   const out: XY[] = [], on = (x: CurveSegment2, p: XY) => !surelyOff(x, p, eps) && segDistance(x, p) <= eps;
   const push = (p: XY) => { if (on(s, p) && on(t, p)) out.push(p); };
@@ -184,7 +195,7 @@ export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: numbe
       const P = segAt(s, u), Q = segAt(t, v);
       if (Math.hypot(P[0] - Q[0], P[1] - Q[1]) <= eps) { const m: XY = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2]; if (!out.some(o => Math.hypot(o[0] - m[0], o[1] - m[1]) <= eps) && !touchOfEnd(s, t, u, m, eps) && !touchOfEnd(t, s, v, m, eps)) push(m); }
     }
-    ends(); return out;
+    ends(); return overlapEnds(s, t, out, eps);
   }
   if (s.kind === 'line' && t.kind === 'line') {
     const d1 = [s.b[0] - s.a[0], s.b[1] - s.a[1]], d2 = [t.b[0] - t.a[0], t.b[1] - t.a[1]], den = d1[0] * d2[1] - d1[1] * d2[0];

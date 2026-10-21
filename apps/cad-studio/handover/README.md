@@ -7,7 +7,72 @@ no npm publish.
 
 ## 0. Start here — hand-over of 2026-10-18 (read this section first)
 
-### Kernel lane: hand-over at the track K → queue boundary (2026-10-21) — read this block first
+### Kernel lane: hand-over at the queue → R12c boundary (2026-10-21) — read this block first
+
+The kernel lane goes on in a new session at each track boundary (the owner, 2026-10-19). This block is that hand-over. Since the
+track K → queue block below, the **kernel-lane queue** is done: five items, D148–D152 (D148b with D148). **The next step is R12c.1a**
+(springs), as D139 froze it; the coordinator clears and re-briefs this lane for it. The track K → queue block is kept as history.
+
+**State**
+- Branch `review/cad-gpu-engine-2026-10-14` (local only). The tip is D152's commit, then its RB-rows commit (`git log -2`).
+- **The queue, done** (the coordinator's order):
+  1. D148, D148b: a hole drilled into a named face (`face`), after a union. Its overshoot above the face is capped by the free space there; it is refused when obstructed.
+  2. D149: `splitFaceAlongCurve` and `splitFaceAlongIsocline` (`@barocss/cad`) on the analytic Boolean's own face cutting.
+     - Pieces are `<face>#k`, each with its `side`. `surfaceIsoclines` traces n·d = 0 on a general face (poles and flat edges handled).
+     - The part feature is `split-face`; conformance is `sf/`.
+     - The outer lane's IM7b uses it for mould halves.
+  3. D150: the 6° bevel pair now intersects. A general face's domain map of an edge across C0 knots is taken piece by piece (`tabulated`'s breaks). Conformance `bp/`.
+  4. D151: STEP export's bounding box is computed without a mesh (`brepBounds`, exact on whole patches). The 724-face wheel exports in 2.2 s instead of 19.7.
+  5. D152: curve cuts lying along each other share only their run's ends (`overlapEnds`), so a Boolean result's exact edges stay whole. The bevel corner went from 258 edges to 23, the whole pair from 766/809 to 48/57.
+- **Fixes in shared Boolean code** found on the way, each with its test:
+  - `exactly()` reversed a whole circle (D149);
+  - `intervals()` rejoined a curve at a cylinder's seam (D149);
+  - `tabulated` took one tangent across C0 knots (D150);
+  - `intersectSegments` split overlapping curves at every sample (D152).
+- **Verification rules v2** (the coordinator, 2026-10-21; they replace the T1/T2 checks, and T3 stays):
+  - no baseline reruns; diff the passing names against your own saved lists (one per suite, in your scratchpad);
+  - no full flow at a checkpoint, only `FLOW_ONLY` for the steps that run the changed code. The coordinator runs the full flow per merge window;
+  - the full kernel suite only when brep core changes (analytic-boolean, part-model, brep-*, the tessellators, the curved arrangement);
+  - RB and properties only at T3 and at every 4th kernel checkpoint;
+  - the package suites (cad-model, studio) for what the change touches;
+  - long checks in a detached worktree, never idling;
+  - flakes rerun alone;
+  - each checkpoint lists what ran and what did not.
+- **Test layout** (PKG-h, the outer lane): model-level tests live in `packages/barocss-cad-model/test` (`pnpm test` there, about 630). The studio keeps UI, viewport and server tests (about 185). Report both.
+- **Checks at this boundary (T3 part)**, on D152, with the time each took on this shared machine:
+
+  | Check | Result | Time |
+  |---|---|---|
+  | lint / type-check: kernel | clean / clean | 9 s / 7 s |
+  | Kernel suite, conformance included | 1420/1429 (6 skipped). It failed the two tolerances D152 moved, which pass alone after the move; otherwise only the env-only "actual native Split source…" fails | 300 s |
+  | `@barocss/cad-model` / studio | 635/635 / 186/186 | 112 s / 22 s |
+  | Test names against the saved lists | none missing | — |
+  | `FLOW_ONLY`: the Boolean, gear, fillet, shell, loft, sweep and IM7 steps | 42/42 | 251 s |
+  | RB (T3) | 377 cases, 0 new, the 8 known TODOs | 68 s |
+  | Properties (T3) | 11/11 | 166 s |
+  | Full browser flow | the coordinator's, per merge window (rules v2) | — |
+
+**Next: R12c** (D139: its stages frozen R12c.1a–R12c.8, with their oracles and refusals). Springs come first. Owner (2026-10-21): "R12c 기본값 세 가지 그대로 가. 끼워맞춤 표는 사용자가 불러오고, O-링 범위와 스프링 G는 추정값으로 표시해." New commands go in as v2 group actions only, under the 25 000-per-turn guard. After R12c, the FR completion share (roadmap item 5, kernel lane).
+
+**Open, unscheduled** (also under Open TODOs):
+- **The mass quadrature of trimmed general faces.** It meshes them twice for Richardson extrapolation, which is slow: the 724-face wheel's 180 trimmed tori take 1.9 s of its 2.2 s STEP export (D151). It is also inexact on bodies like the bevel pair's intersection: there the kernel, D149's Green's-theorem oracle and a mesh disagree by 1–2%, and the kernel's value moves 0.3% with the edges' split (D152).
+
+**How to resume**
+1. Read this block, then D139 (R12c) and D148–D152 in `decisions.md`.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+3. For a flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>`, in `apps/cad-studio`, on its own.
+   - A step that builds on the step before it (step 45 needs step 44's mesh) needs both in the regex.
+4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`.
+5. Each step needs:
+   - a D-record (the next is D153);
+   - tests that fail on the previous HEAD;
+   - conformance where it fits;
+   - the v2 checks;
+   - a §0 row, a commit, and a checkpoint to the coordinator.
+
+   Then end the turn and wait.
+
+### Kernel lane: hand-over at the track K → queue boundary (2026-10-21) (history: the queue is done, see the block above)
 
 The kernel lane goes on in a new session at each track boundary (the owner, 2026-10-19). This block is that hand-over.
 Since the R12b → next block below: the R12c S0 (D139, its stages frozen, the owner's data decision recorded) and **track K**,
@@ -47,7 +112,8 @@ lane for it). The R12b → next block is kept as history.
 2. ~~A face split along a curve or an isocline~~ — **done: D149, 2026-10-21** (`splitFaceAlongCurve(brep, face, curves)` and `splitFaceAlongIsocline(brep, face, pull)` on the Boolean's own face cutting, pieces `<face>#k` with their `side`; `surfaceIsoclines` exported; the part feature `split-face`; conformance `sf/`). Wiring it into `mould/parting.ts` is the outer lane's (O81).
 3. ~~The analytic Boolean's "inputs touch along an edge" refusal on a 16/20 bevel pair 6° off~~ — **done: D150, 2026-10-21** (fixed: a general face's domain map of an edge across C0 knots — the edge's and the surface's — taken piece by piece; the cropped corner as `test/d150-bevel-pair.test.mjs` and conformance `bp/`; the whole pair at 3–9° under `GEAR_SURVEY=1`).
 4. ~~STEP export performance for many-face bodies~~ — **done: D151, 2026-10-21** (the export tessellated only for its bounding-box validation property: now taken without a mesh, exact on whole patches; the 724-face wheel 19.7 s → 2.2 s, the rest the mass quadrature of its 180 trimmed tori; a Boolean result's many-piece edges proposed as a follow-up).
-5. Then R12c's stages as D139 froze them (R12c.1a springs first).
+5. ~~Boolean results split exact edges into many stitched pieces~~ — **done: D152, 2026-10-21** (curve cuts along each other share only their run's ends; the bevel corner 258 → 23 edges).
+6. Then R12c's stages as D139 froze them (R12c.1a springs first).
 
 **Rules that came up since the R12b → next block** (all standing):
 - **Agent tools (owner, 2026-10-21):** "앱 채팅과 MCP 기본값을 v2로 바꾸고 v1은 동결해. 새 기능은 v2 동작으로 넣고, 상한은 표면별 매 차례 전체 양(목록+프롬프트)으로 바꿔." then "우리는 릴리즈 한게 아니라서 toolset v1 은 없어도 돼". The outer lane removed v1 (O105). A new feature kind or command (R12c's springs, shafts …) goes in only as a v2 group action, its detail behind `describe`, under the 25 000-per-turn guard (tools/list + prompt), following the rule the outer lane wrote into this §0. Nothing goes into v1.
@@ -57,7 +123,7 @@ lane for it). The R12b → next block is kept as history.
 **How to resume**
 1. Read this block, then D139 (R12c) and D140–D147 (track K) in `decisions.md`.
 2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`); `pnpm build:library` in `packages/barocss-cad` before kernel tests; the flow with `CAD_STUDIO_CHAT_PORT=52491`, on its own; RB by `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record` then `scripts/rb/props.mjs --record`.
-3. Each step: a D-record (the next is D152), tests failing on the previous HEAD, conformance where it fits, the tier's checks, a §0 row, a commit, RB rows at T2/T3, a checkpoint to the coordinator; then end the turn and wait.
+3. Each step: a D-record (the next is D153), tests failing on the previous HEAD, conformance where it fits, the tier's checks, a §0 row, a commit, RB rows at T2/T3, a checkpoint to the coordinator; then end the turn and wait.
 
 ### Kernel lane: hand-over at the R12b → next boundary (2026-10-21) (history: track K is done, see the block above)
 
@@ -769,6 +835,9 @@ acceleration → benches.
   eye's ray, the clip plane and caps honoured, a pixel and a half of slack); `throughSurfaces` keeps the old search. The
   studio's edge and curve picks take it. Against the GPU's depth at 300 random pointers: nothing behind, nothing shown
   missed.
+- **G4** (2026-10-21): done. Bench budgets: every `bench:browser` row has a GPU-ms budget beside its CPU ones, a point-cloud
+  row (the workspace map orbited), and `bench:assembly` and `bench-mesh-browser` exit 1 over their budgets; each prints the
+  load average and says LOADED above 4. Measured at a load of 8–11 (the owner's go); budgets about twice.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
@@ -833,6 +902,7 @@ acceleration → benches.
   - To change: the other reading is a lug from a ring of rim faces; say so and it is added as a second case.
 
 ### Open TODOs and known defects
+- **Mass quadrature of trimmed general faces** (D151, D152): slow, since it meshes them twice (1.9 s of the 724-face wheel's STEP export), and inexact on bodies like the bevel pair's intersection. There the kernel, a Green's-theorem oracle and a mesh disagree by 1–2%, and the kernel's value moves with the edges' split. Unscheduled.
 - **Analytic Boolean, one union order** (D107, D108): four of a notched box's slabs at t 3 (end, top, floor, then one wall last) fail ("an edge with one use"; the wall's slab swallows a 0.89 mm convex edge of the end slab whole); every other order closes. The shell retries by halves (D108); the Boolean's root not traced.
 - 1 nm graze gives a wrong body (RB TODO; `cylinder-box-graze-*` rows).
 - Helical × helical Boolean is refused (`gear-helical-pair-crossing-intersect`).

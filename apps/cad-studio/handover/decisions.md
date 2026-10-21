@@ -8267,3 +8267,80 @@ Not run:
 - The full browser flow (rules v2).
 - RB and properties: this is not a 4th kernel checkpoint.
 - App tsc: no studio source changed.
+
+## D152 — curve cuts lying along each other share only their run's ends: a Boolean result's exact edges stay whole (2026-10-21)
+
+Kernel-lane queue item 5, from D151's side finding. The 6° bevel corner (D150) came out with 258 edges for 9 faces:
+- `p.toe|w.flankR`, one exact source edge, in 34 pieces;
+- the toe's section by the crop box in 117 pieces, the shortest 4e-5 mm.
+
+The coordinator asked where the vertices along exact edges come from, and for a fix so that an exact edge stays one piece, or the fewest pieces the topology needs.
+
+**Where they came from.** The cause is in the arrangement, not in `stitch`'s T-junction splitting:
+- **The split happens before stitching.** The final intersection's `p.toe` region left `curveFaceRegions` already as 220 boundary segments, not 4 + 8.
+- **Its 12 cuts are 6 curves, each twice**, once each way:
+  - B's toe boundary, brought in by the coincident-surface rule (two general faces on one surface cut each other by their boundaries);
+  - B's flank edges, brought in again because they lie on A's toe surface (the `along` rule).
+- **`dedupeCuts` didn't catch it.** It keeps one of two equal-length copies only on planes.
+- **The arrangement then split them.** `intersectSegments` crosses two `curve` segments by their polylines' crossings, refined by Newton. Two copies of one curve "cross" at every sample pair along their overlap, and each point split both curves.
+- **With the copies removed, partial overlaps did the same.** These were two faces' sections by one plane: the two crop boxes share their side planes. That still gave 161 edges.
+- **So the fix belongs in `intersectSegments`.** For lines and arcs, an overlap already gives only its ends; for `curve` segments it gave a point at every sample.
+
+**Fix** (`curved-arrangement.ts`, `overlapEnds`, applied to every curve–curve result):
+- The points two curves share are sorted along the first.
+- Wherever the first curve's middle between two consecutive points lies on the second (within the arrangement's eps), those points belong to one run along each other, and only the run's ends are kept.
+- Two crossings with a lens between them are unchanged, since the middle of the lens is off the other curve.
+
+`dedupeCuts` stays as it was: the arrangement now treats a copy like any other overlap.
+- On the 4° pair, the 1260 runs collapsed were full-length copies, with a gap of at most 3e-14 along them, and clusters of three points over a span shorter than 1e-4. None left out a crossing.
+
+**Results:**
+
+| Case | Faces | Edges before → after |
+|---|---|---|
+| the 6° bevel corner | 9 | 258 → 23 (`p.toe|w.flankR` one piece; the shortest edge over 1e-3 mm) |
+| the whole pair at 4° | 22 | 766 → 48 |
+| the whole pair at 6° | 25 | 809 → 57 |
+| RB corpus, parts and oracle (152 outputs) | — | only the corner changed; 151 unchanged, no count up, every refusal as before |
+
+**The same solids.** For the corner and the whole pair at 4° and 6°, the old and new results:
+- have the same faces on the same surfaces (control points equal to 1e-9);
+- have edges on each other: every old edge's points lie on the new edges to 6.5e-9 mm, and every new edge's on the old to 5.5e-9.
+
+**Their volumes by the integrators.** These moved, within the integrators' own error on these bodies:
+
+| Integrator | Corner (old → new) | Whole pair at 4° (old → new) |
+|---|---|---|
+| kernel (quadrature) | 1.33e-9 | 38.986 → 39.109 mm³ |
+| Green's-theorem oracle (D149) | 1.9e-10 | 38.538 → 38.571 |
+| a 32-segment mesh | — | 38.376 → 38.342 |
+
+- On the corner the Green's-theorem oracle's area also holds, to 7e-12.
+- On the whole pair the three integrators disagree with each other by 1–2%, whatever the edges. That is an open item (below), not this fix: the B-reps are the same.
+
+**Oracles and tests** (`test/d152-overlapping-cuts.test.mjs`, 3 tests; the first two fail on the previous HEAD):
+- **`intersectSegments`:** an arc and its reversed copy share 2 points; an arc and a copy over part of it share 2, at π/3 and π; two circles crossing twice keep both crossings, at (6, ±8).
+- **The corner:** valid, 9 faces, at most 30 edges (it was 258), `p.toe|w.flankR` one edge, no edge under 1e-3 mm.
+- **The survey** (`GEAR_SURVEY=1`): the whole pair at 4° and 6°, valid, at most 60 and 70 edges.
+- **Conformance `bp/bevel-6deg-corner`:** re-pinned to this kernel. The volume moved by 1.3e-9, the area by 4.0e-6 and the centroid by 8e-9 mm, all the quadrature's own change on identical faces.
+
+**Open, not scheduled:**
+- **The mass quadrature of trimmed general faces.** It is slow: the 724-face wheel's 180 trimmed tori are meshed twice (D151, 1.9 s). It is also inexact on bodies like the bevel pair's intersection: there the kernel, the Green's-theorem oracle and a mesh disagree by 1–2%, and the kernel's value depends on how the edges are split (0.3%).
+
+**Two tests' tolerances, moved with their reasons** (both tests run on the same inputs as before):
+- `facet-boolean` "sphere bite": 1e-5 → 1.5e-5. The facet Boolean tessellates its exact part at the default 32 segments a quarter. While spurious crossings split the bite's quarter arc and its copy into 41 edges, each tessellated on its own, the rim was finer than that by accident: 6.4e-6 off. At 32 a quarter it is 1.008e-5 off.
+- `r10-s0` (b) coaxial: 1e-9 → 3e-9 on the removed 5.34 mm³. That is the difference of two quadratures of about 4120 mm³ each, so 1e-9 of it is 1.3e-12 of theirs. The cut's edges lie on the earlier ones to 1e-11 (62 edges then, 14 now). Its quadrature moved 1.4e-8 mm³, which is 1.9e-9 of the difference.
+
+**Checks** (rules v2; `curved-arrangement.ts` is brep core), on 6d4b80e75 plus this change:
+
+Ran:
+- Kernel lint and type-check: clean.
+- `d152-overlapping-cuts`: 2 pass, plus the survey (skipped by default). Both fail on 6d4b80e75.
+- The full kernel suite, conformance included: 1420/1429, 6 skipped, 300 s. Besides the env-only "actual native Split source…", it failed the two tolerances above, which then pass alone.
+- `@barocss/cad-model`: 635/635, 112 s. Studio: 186/186, 22 s.
+- Test names against the saved lists: none missing; +3 kernel (D152), +5 cad-model, +1 studio (the merged lanes').
+- `FLOW_ONLY` for the steps that run Booleans on general faces (bevel, spiral bevel and worm gears, R12b.7, R10.x, R11.x, fillet, loft, sweep, IM7): 42/42, 251 s.
+- RB and properties: on this commit, in the rows commit after it (this is the queue's T3).
+
+Not run:
+- The full browser flow (rules v2; the coordinator runs it per merge window).
