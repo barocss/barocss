@@ -5896,7 +5896,13 @@ try {
     const r = await page.evaluate(async () => {
       const v = window.__studioViewer, W = v.canvas.clientWidth, H = v.canvas.clientHeight;
       let seed = 7; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-      const at = Array.from({ length: 400 }, () => [rand() * W, rand() * H]);
+      // (Aimed at the copies: a pointer near each one's screen box, 400 in all, whatever the camera.)
+      const M = v.camera.viewProjection(v.aspect), boxes = window.__studioInstanceBounds().map(b => {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (let c = 0; c < 8; c++) { const p = [c & 1 ? b.max[0] : b.min[0], c & 2 ? b.max[1] : b.min[1], c & 4 ? b.max[2] : b.min[2]], w = M[3] * p[0] + M[7] * p[1] + M[11] * p[2] + M[15], sx = ((M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12]) / w * 0.5 + 0.5) * W, sy = (0.5 - (M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13]) / w * 0.5) * H; x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy); }
+        return [x0, y0, x1, y1];
+      });
+      const at = Array.from({ length: 400 }, (_, k) => { const b = boxes[k % boxes.length]; return [b[0] + rand() * (b[2] - b[0]), b[1] + rand() * (b[3] - b[1])]; });
       const settle = () => new Promise(done => setTimeout(done, 400));
       const picks = () => at.map(([x, y]) => { const h = v.raycast(x, y); return h && { name: h.mesh.name, tri: h.triangle, p: h.point }; });
       await v.frame(); const a = await v.capture(), pa = picks(), geoA = new Set(v.meshList.map(m => m.geometry)).size;
@@ -5916,7 +5922,7 @@ try {
     });
     console.log(`  G10 oracle: ${JSON.stringify(r)}`);
     assert.ok(r.strong <= r.pixels * 0.001, `the same frame: ${r.strong} of ${r.pixels} pixels differ by more than 96 (max ${r.max})`);
-    assert.ok(r.hits > 20 && r.differ === 0 && r.gap < 1e-3, `the same picks ${JSON.stringify(r)}`);
+    assert.ok(r.hits > 100 && r.differ === 0 && r.gap < 1e-3, `the same picks ${JSON.stringify(r)}`);
     assert.ok(r.geoB - r.geoA === 46, `each its own: 46 more geometries ${JSON.stringify(r)}`);
     await snap('g10-copies');
     // Copy 5 edited (its second hole moved): its own geometries; the other 23 kept as they were.
