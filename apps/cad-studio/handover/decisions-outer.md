@@ -5129,3 +5129,11 @@ The coordinator's queue, item 2: O90's follow-up. Below about 1100 px the bar's 
   - every tool is on the bar or under More tools, none lost (at 800 some fold);
   - Parameters opened from the menu opens its panel.
   - O90's step is unchanged.
+
+## O128 — hollowing's curved-body refusal is structural, not timed (2026-10-22)
+
+The coordinator's queue, item 3. hollow.test asserted "refused at once" by wall-clock time (< 1000 ms) and flaked under load.
+
+- **What it found**: the refusal was never "at once" in structure. For an explicit voxel route on a curved body, `planHollow` built the whole cavity field and its components first and only then refused CURVED_BODY. It was merely fast enough.
+- **Now** (print/hollow.ts): the explicit voxel route checks for curved faces before any voxel work. The auto route still builds the field first, since its drains need it for the exact shell too, and refuses as before. `hollowWork.fields` counts the cavity fields built.
+- **The test** asserts that the refused call built no field: the count is unchanged, with no clock. Its name now says "refused before any voxel work" (the name diff shows the rename).

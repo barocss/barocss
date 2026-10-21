@@ -5,7 +5,7 @@ import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { chordOf } from '../src/chat/references';
 import { marchingTetrahedra } from '@barocss/cad';
-import { cavityField, enclosedVoids, HollowError, planHollow } from '../src/print/hollow';
+import { cavityField, enclosedVoids, hollowWork, HollowError, planHollow } from '../src/print/hollow';
 
 // AM7a (O53): SDF voxel hollowing with drains. The cavity φ = depth − t > 0 meshed by marching tetrahedra and subtracted
 // from the exact body; a drain from the bottom into each cavity. Wall thickness against the target; every cavity
@@ -85,9 +85,9 @@ test('the cavity mesher on a sphere R 15, t 2.5: its volume within 3·A·h²/(8(
   const vc = v6 / 6, want = 4 / 3 * Math.PI * rho ** 3, bound = 3 * A * h * h / (8 * rho) + A * delta;
   console.log(`AM7a sphere cavity: ${vc.toFixed(2)} vs ${want.toFixed(2)} (|Δ| ${Math.abs(vc - want).toFixed(2)}, bound ${bound.toFixed(2)}; the mesh ${delta.toFixed(4)} mm below the sphere, chordOf ${chordOf(sm).toFixed(4)})`);
   assert.ok(Math.abs(vc - want) <= bound, `${vc} vs ${want}, bound ${bound}`);
-  // (The voxel route asked for on a curved body: refused at once.)
-  const t0 = Date.now();
-  assert.equal(code(() => planHollow(doc, bodies, { t, h, route: 'voxel' })), 'CURVED_BODY'); assert.ok(Date.now() - t0 < 1000, 'at once');
+  // (The voxel route asked for on a curved body: refused before any voxel work — no cavity field built, counted, not timed.)
+  const fields = hollowWork.fields;
+  assert.equal(code(() => planHollow(doc, bodies, { t, h, route: 'voxel' })), 'CURVED_BODY'); assert.equal(hollowWork.fields, fields, 'refused before any voxel work');
 });
 
 test('the exact route (the kernel\'s closed shell, R11): the box to its closed form exactly, walls measured at t; the sphere and its drain; a bent sweep the shell refuses is CURVED_BODY with R11\'s reason', async () => {
