@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { withLook } from '@barocss/cad-model/app/bodies';
-import { dispatchTool } from '@barocss/cad-model/chat/tools';
-import { partingLine } from '@barocss/cad-model/mould/parting';
-import { printability } from '@barocss/cad-model/print/rules';
+import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
+import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
+import { withLook } from '../src/app/bodies';
+import { dispatchTool } from '../src/chat/tools';
+import { partingLine } from '../src/mould/parting';
+import { printability } from '../src/print/rules';
 
 // IM5 (O81): the parting line against closed forms — a box (its walls along the pull: by default in the − half, the
 // loop round the top, 2(w + d) long, flat; put in the + half, round the bottom), a box drafted 2° (its walls + by

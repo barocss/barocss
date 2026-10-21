@@ -6,7 +6,7 @@ import { join, relative, resolve } from 'node:path';
 // The owner, 2026-10-21: "@barocss/cad-model 은 완전 공개 패키지야" — every file under its src/ ships, so none may hold
 // a machine's own paths (a home directory, a temp folder).
 
-const SRC = resolve(process.cwd(), '../../packages/barocss-cad-model/src');
+const SRC = resolve(import.meta.dirname, '../src');
 function filesOf(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap(e => e.isDirectory() ? filesOf(join(dir, e.name)) : [join(dir, e.name)]);
 }

@@ -3,22 +3,22 @@ import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { writeDxf } from '@barocss/cad';
-import { brepsFor } from '@barocss/cad-model/engine/evaluate';
-import { rectanglePart, starterDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { projectViews } from '@barocss/cad-model/drawing/project';
-import { holeCallout } from '@barocss/cad-model/drawing/callout';
-import { drawingIssues, issueContext, type SheetInputs } from '@barocss/cad-model/drawing/issues';
-import { autoLayout } from '@barocss/cad-model/drawing/layout';
-import { GENERAL_NOTE_PREFIX, POSITION_ESTIMATE_MM, acceptAll, holePosition, toleranceSuggestions } from '@barocss/cad-model/drawing/tolerance';
-import { sheetDxfDocument } from '@barocss/cad-model/drawing/dxf';
-import { sheetPdf, pdfMissing } from '@barocss/cad-model/drawing/pdf';
-import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '@barocss/cad-model/drawing/types';
+import { brepsFor } from '../src/engine/evaluate';
+import { rectanglePart, starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
+import { projectViews } from '../src/drawing/project';
+import { holeCallout } from '../src/drawing/callout';
+import { drawingIssues, issueContext, type SheetInputs } from '../src/drawing/issues';
+import { autoLayout } from '../src/drawing/layout';
+import { GENERAL_NOTE_PREFIX, POSITION_ESTIMATE_MM, acceptAll, holePosition, toleranceSuggestions } from '../src/drawing/tolerance';
+import { sheetDxfDocument } from '../src/drawing/dxf';
+import { sheetPdf, pdfMissing } from '../src/drawing/pdf';
+import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 
 // R14.4 (O5): tolerance and GD&T suggestions. Conformance cases packages/barocss-cad/conformance/r14/tol-<name>/case.json:
 // a studio document and its laid-out drawing in a mode; the suggestions offered (kind, message, estimate) and, after
 // accepting them all, the issue list (empty), the datums and frames. UPDATE_R14_FIXTURES=1 writes them.
 
-const root = resolve(process.cwd(), '../../packages/barocss-cad/conformance/r14');
+const root = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/r14');
 const hole = (node: number, center: [number, number], radius: number, extra: object = {}) => ({ kind: 'hole' as const, parent: { node, side: 'solid' as const }, center, radius, ...extra });
 const viewsOf = (doc: StudioDoc): DrawingViews => { const b = brepsFor(doc); assert.ok('breps' in b); const r = projectViews(b.breps, b.prefixes); assert.ok(r.ok); return r.views; };
 const inputsOf = (doc: StudioDoc, settings: DrawingSettings): SheetInputs => ({ views: viewsOf(doc), settings, callout: e => holeCallout(doc.nodes, e), meta: { title: 't', date: 'd' } });

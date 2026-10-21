@@ -2,18 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { dispatchTool } from '@barocss/cad-model/chat/tools';
-import { bomView, checkAssembly, checkBom, deriveBom } from '@barocss/cad-model/team/assembly';
-import { runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '../src/engine/doc';
+import { dispatchTool } from '../src/chat/tools';
+import { bomView, checkAssembly, checkBom, deriveBom } from '../src/team/assembly';
+import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 
 // A8.4 (O36): the Assembly integrator's whole-assembly gate and the BOM agent. A part moved after its acceptance caught
 // (PATTERN_MISALIGNED); parts in face contact not passed (undecided or meeting); the total mass; the BOM derived from a
 // built view and checked against the assembly — every instance once, the quantities, the totals, a library part's
 // source — its seeded defects refused.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios');
+const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a8/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const clean = async () => (await runPartsScenario(JSON.parse(readFileSync(join(CASES, 'parts-clean.json'), 'utf8')) as PartsScenario, evaluate)).final;
 

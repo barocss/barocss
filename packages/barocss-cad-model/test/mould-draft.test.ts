@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { withLook } from '@barocss/cad-model/app/bodies';
-import { draftField } from '@barocss/cad-model/mould/draft';
-import { printability } from '@barocss/cad-model/print/rules';
-import { dispatchTool } from '@barocss/cad-model/chat/tools';
+import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
+import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
+import { withLook } from '../src/app/bodies';
+import { draftField } from '../src/mould/draft';
+import { printability } from '../src/print/rules';
+import { dispatchTool } from '../src/chat/tools';
 
 // IM2 (O78): the draft field from exact normals, against closed forms — a drafted cylinder (a cone: its taper at every
 // sample), a box drafted θ (its four walls θ), a cylinder along the pull (0: steep) and across it (straddling, its

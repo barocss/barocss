@@ -2,17 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { holesOff, interfacesRevision, placedBodies, readInterfaces } from '@barocss/cad-model/team/parts';
-import { partsSummary, runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
+import { evaluatePart } from '../src/engine/evaluate';
+import type { StudioDoc } from '../src/engine/doc';
+import { holesOff, interfacesRevision, placedBodies, readInterfaces } from '../src/team/parts';
+import { partsSummary, runPartsScenario, type PartsScenario } from '../src/team/scripted';
 
 // A8.2 (O34): the Architect's interfaces and Part agents under leases. The v3 scenarios (conformance/a8, step A8.2): each
 // refusal typed at its gate — lease (NO_LEASE, LEASE_EXPIRED, CONTRACT_MOVED, OUT_OF_PART) or contract (OUT_OF_ENVELOPE,
 // HOLE_OFF_PATTERN, OVER_BUDGET) — the clean run applied; byte-identical on a rerun. The hole-pattern check against
 // the exact cylinders, placed.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios');
+const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a8/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 type Expect = { decisions: string[]; stops: ([string, string] | null)[] };
 const load = (f: string) => JSON.parse(readFileSync(join(CASES, f), 'utf8')) as PartsScenario & { expect: Expect };

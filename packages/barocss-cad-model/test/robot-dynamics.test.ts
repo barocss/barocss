@@ -2,21 +2,21 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import type { Mate } from '@barocss/cad-model/assembly/mates';
-import { solveDoc } from '@barocss/cad-model/chat/assembly';
-import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { treeOfDoc } from '@barocss/cad-model/chat/robot';
-import { applyTo, forwardKinematics } from '@barocss/cad-model/robot/fk';
-import { gravityTorques, linkMasses, STANDARD_GRAVITY, type LinkMass } from '@barocss/cad-model/robot/dynamics';
-import type { Joint, JointTree } from '@barocss/cad-model/robot/joints';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import type { Mate } from '../src/assembly/mates';
+import { solveDoc } from '../src/chat/assembly';
+import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { treeOfDoc } from '../src/chat/robot';
+import { applyTo, forwardKinematics } from '../src/robot/fk';
+import { gravityTorques, linkMasses, STANDARD_GRAVITY, type LinkMass } from '../src/robot/dynamics';
+import type { Joint, JointTree } from '../src/robot/joints';
 
 // RD1 (O20): static gravity torques — the planar 2R and 3R closed forms to 1e-9 (arms of real blocks on Y-axis joints,
 // their mass and centre from the block's analytic volume), G = ∂V/∂q against finite differences of the potential
 // energy on random 3D trees, a gear follower's share by virtual work, the tool, the conformance case.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/rm');
+const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/rm');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function build(calls: [string, object][]): Promise<StudioDoc> { let s: ChatState = { doc: emptyDoc(), bodies: [] }; for (const [t, a] of calls) { const r = await dispatchTool(s, t, a, evaluate); assert.ok(!r.isError, r.content); s = r.state; } return s.doc; }
 let seed = 13; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };

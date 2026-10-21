@@ -2,19 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import type { ChatState } from '@barocss/cad-model/chat/tools';
-import { integratePart, interfacesRevision, readInterfaces, type Interfaces, type Lease, type PartPatch } from '@barocss/cad-model/team/parts';
-import { decideEcr, openEcr, readEcrs, renewLeases, userToken } from '@barocss/cad-model/team/ecr';
-import { runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
+import { evaluatePart } from '../src/engine/evaluate';
+import type { StudioDoc } from '../src/engine/doc';
+import type { ChatState } from '../src/chat/tools';
+import { integratePart, interfacesRevision, readInterfaces, type Interfaces, type Lease, type PartPatch } from '../src/team/parts';
+import { decideEcr, openEcr, readEcrs, renewLeases, userToken } from '../src/team/ecr';
+import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 
 // A8.3 (O35): ECRs. A change to the interfaces is an ECR whose impact is computed — the parts, the requirements on a
 // changed datum or keep-out, the open patches made on the old contract, the leases — and only the user decides it:
 // approved, the interfaces move and the touched leases expire (the open patch is then refused CONTRACT_MOVED, until
 // the Architect renews); rejected, nothing changes; an agent's decision refused.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios');
+const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a8/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const fixture = JSON.parse(readFileSync(join(CASES, 'ecr-move-pattern.json'), 'utf8'));
 

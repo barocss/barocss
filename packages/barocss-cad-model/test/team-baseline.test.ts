@@ -3,22 +3,22 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { bomView, deriveBom } from '@barocss/cad-model/team/assembly';
-import { draftBaseline, moveBaseline, readBaselines, verifyBaseline } from '@barocss/cad-model/team/baseline';
-import { digestOf, partDigests, sha256Hex, sha256Text } from '@barocss/cad-model/team/digest';
-import { decideEcr, openEcr, readEcrs, userToken, verifyEcrPin } from '@barocss/cad-model/team/ecr';
-import { readInterfaces } from '@barocss/cad-model/team/parts';
-import { canonical } from '@barocss/cad-model/team/team';
-import { runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
+import { evaluatePart } from '../src/engine/evaluate';
+import type { StudioDoc } from '../src/engine/doc';
+import { bomView, deriveBom } from '../src/team/assembly';
+import { draftBaseline, moveBaseline, readBaselines, verifyBaseline } from '../src/team/baseline';
+import { digestOf, partDigests, sha256Hex, sha256Text } from '../src/team/digest';
+import { decideEcr, openEcr, readEcrs, userToken, verifyEcrPin } from '../src/team/ecr';
+import { readInterfaces } from '../src/team/parts';
+import { canonical } from '../src/team/team';
+import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 
 // A8.4b (O32's addendum, O39): approval baselines pinned by content digest. The BOM and interfaces by the SHA-256 of
 // their canonical JSON, every part's revision by its own; draft → review → approved | rejected by the user's token only;
 // decided, never written again — a later change is a new baseline with the old as its parent, and the old still
 // verifies. Tampering is found on read-back, each field named. An approved ECR pins what it approved.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios');
+const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a8/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const clean = async () => (await runPartsScenario(JSON.parse(readFileSync(join(CASES, 'parts-clean.json'), 'utf8')) as PartsScenario, evaluate)).final;
 const user = (at = '2026-10-20T12:00:00Z') => userToken(at);

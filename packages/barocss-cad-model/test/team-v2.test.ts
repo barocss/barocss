@@ -2,16 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { ANALYSIS_VIEW_KEYS, DFM_VIEW_KEYS, integrate, revisionOf, type ReviewerRole, type ReviewView } from '@barocss/cad-model/team/team';
-import { runScenario, runSummary, scriptedReviewer, type Scenario } from '@barocss/cad-model/team/scripted';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '../src/engine/doc';
+import { ANALYSIS_VIEW_KEYS, DFM_VIEW_KEYS, integrate, revisionOf, type ReviewerRole, type ReviewView } from '../src/team/team';
+import { runScenario, runSummary, scriptedReviewer, type Scenario } from '../src/team/scripted';
 
 // A8.1 (O32–O33): multi-agent v2. Parallel read-only reviewers — DFM and Analysis — each on its own built, frozen view;
 // any rejection rejects, their findings in role order whichever ends first; the defects only they see; the Drafting
 // agent on a frozen revision, refused when the model moved or for a non-drawing op. Byte-identical reruns.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios');
+const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a8/scenarios');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 type Expect = { decisions: string[]; stops: ([string, string] | null)[]; reviews?: ([string, string, string[]][] | null)[]; kept_because?: string; accepted: number; ended: string; drawing_keeps_revision?: boolean };
 const load = (f: string) => JSON.parse(readFileSync(join(CASES, f), 'utf8')) as Scenario & { step: string; expect: Expect };

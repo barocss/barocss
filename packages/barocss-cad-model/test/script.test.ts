@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, starterDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { acceptProposal, dispatchTool, runTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { lex, parse, runScript, SCRIPT_LIMITS, ScriptError, type ScriptHost } from '@barocss/cad-model/chat/script';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, starterDoc, type StudioDoc } from '../src/engine/doc';
+import { acceptProposal, dispatchTool, runTool, type ChatState } from '../src/chat/tools';
+import { lex, parse, runScript, SCRIPT_LIMITS, ScriptError, type ScriptHost } from '../src/chat/script';
 
 // A5.2 (O10): run_script — a part built in one call, all or nothing, each command a tool call; typed errors with the
 // line; the conformance cases in conformance/a5/; a fuzz run that only ever ends in a typed error.
@@ -14,7 +14,7 @@ const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const read = (content: string) => JSON.parse(content) as Record<string, any>;
 const volumeOf = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0);
 const empty = (): ChatState => ({ doc: emptyDoc(), bodies: [] });
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a5');
+const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a5');
 
 test('a script builds a part in one change: commands, loops, faces by role, edges between faces, raw features, edits', async () => {
   const source = [

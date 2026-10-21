@@ -2,23 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart, placeBody, type BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
-import { solveDoc } from '@barocss/cad-model/chat/assembly';
-import { mjcfOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
-import { applyTo, forwardKinematics } from '@barocss/cad-model/robot/fk';
+import { evaluatePart, placeBody, type BodyResult } from '../src/engine/evaluate';
+import { rectanglePart, type StudioDoc } from '../src/engine/doc';
+import { rotationMatrix } from '../src/assembly/mates';
+import { solveDoc } from '../src/chat/assembly';
+import { mjcfOfDoc, treeOfDoc } from '../src/chat/robot';
+import { applyTo, forwardKinematics } from '../src/robot/fk';
 import { convexHull, meshClearance } from '@barocss/cad';
-import { meshesMeet, sweepLinks, sweepPath } from '@barocss/cad-model/robot/sweep';
-import { CCD_TOLERANCE, sweepTimed, timePath, timeAt } from '@barocss/cad-model/robot/ccd';
-import { at, trapezoid } from '@barocss/cad-model/robot/profile';
+import { meshesMeet, sweepLinks, sweepPath } from '../src/robot/sweep';
+import { CCD_TOLERANCE, sweepTimed, timePath, timeAt } from '../src/robot/ccd';
+import { at, trapezoid } from '../src/robot/profile';
 
 // RM9a (O62): continuous collision along a timed, multi-segment joint path. The 2R arm swung into the post on a trapezoid:
 // its time of impact against the plane's separating-axis contact angle mapped through the trapezoid's closed form; two
 // segments, the contact on the second; MuJoCo's own first contact (its hulls are these boxes); the 6R arm folding on an
 // S-curve against a dense exact check; the bench within twice RM6's.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/rm');
+const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/rm');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const hullPts = (p: Float64Array) => convexHull(p).positions;
 async function robot(doc: StudioDoc) {

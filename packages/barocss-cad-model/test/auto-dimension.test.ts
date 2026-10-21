@@ -2,22 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { brepsFor } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { projectViews } from '@barocss/cad-model/drawing/project';
-import { layoutSheet } from '@barocss/cad-model/drawing/views';
-import { buildSheet } from '@barocss/cad-model/drawing/sheet';
-import { autoDimensions } from '@barocss/cad-model/drawing/auto';
-import { holeCallout } from '@barocss/cad-model/drawing/callout';
-import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '@barocss/cad-model/drawing/types';
-import { snapPoints } from '@barocss/cad-model/drawing/dimensions';
+import { brepsFor } from '../src/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
+import { projectViews } from '../src/drawing/project';
+import { layoutSheet } from '../src/drawing/views';
+import { buildSheet } from '../src/drawing/sheet';
+import { autoDimensions } from '../src/drawing/auto';
+import { holeCallout } from '../src/drawing/callout';
+import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
+import { snapPoints } from '../src/drawing/dimensions';
 
 // R14.1 (O2): Auto-dimension. Each conformance case (packages/barocss-cad/conformance/r14/<case>/case.json) is a studio
 // document and its drawing settings; the dimensions Auto-dimension gives it, as they read on the sheet, must be the
 // expected ones (the parts are built from round design values, so every expected value is the design's, checked by
 // hand). UPDATE_R14_FIXTURES=1 writes the cases from the parts below.
 
-const root = resolve(process.cwd(), '../../packages/barocss-cad/conformance/r14');
+const root = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/r14');
 const hole = (node: number, center: [number, number], radius: number, extra: object = {}) => ({ kind: 'hole' as const, parent: { node, side: 'solid' as const }, center, radius, ...extra });
 const PARTS: Record<string, { about: string; doc: () => StudioDoc; drawing?: Partial<DrawingSettings>; step?: string }> = {
   'starter-plate': { about: 'the starter plate: overall sizes in the front and top views, the hole located from the left and front edges, its callout', doc: () => withNode(rectanglePart(64, 32, 8), hole(1, [32, 16], 4)) },
