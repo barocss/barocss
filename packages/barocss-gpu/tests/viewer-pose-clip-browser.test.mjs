@@ -231,3 +231,91 @@ test('G2 the clip plane: caps of a box, a cylinder, a holed tube and a turned co
     assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
 });
+
+// G2b: a mesh's own cap colour, times its material colour; none: the plane's.
+test('G2b each mesh\'s cap in its own colour times its material colour; without one, the plane\'s', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box, screen } = window, canvas = document.getElementById('c');
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [0, -30, 0], target: [0, 0, 0], up: [0, 0, 1], projection: 'orthographic' }, lights: [] });
+      viewer.add(box(4, 4, 4).surface, { material: { color: '#ffffff', unlit: true }, cap: true, capColor: '#00ff00', transform: api.translation([-6, 0, 0]) });
+      viewer.add(box(4, 4, 4).surface, { material: { color: '#ff0000', unlit: true }, cap: true, capColor: '#ffffff', transform: api.translation([0, 0, 0]) });
+      const plain = viewer.add(box(4, 4, 4).surface, { material: { color: '#ffffff', unlit: true }, cap: true, transform: api.translation([6, 0, 0]) });
+      viewer.camera.fit({ min: [-9, -3, -3], max: [9, 3, 3] }, viewer.aspect);
+      viewer.clipPlane = { normal: [0, 1, 0], offset: 0, cap: '#0000ff' };
+      const px = (img, p) => { const [x, y] = screen(viewer, p), i = (Math.round(y) * img.width + Math.round(x)) * 4; return [...img.data.slice(i, i + 3)]; };
+      const a = await viewer.capture(), out = { own: px(a, [-6, 0, 0]), timesMaterial: px(a, [0, 0, 0]), plane: px(a, [6, 0, 0]) };
+      plain.capColor = '#ff00ff'; const b = await viewer.capture(); out.changed = px(b, [6, 0, 0]);
+      plain.capColor = null; const c = await viewer.capture(); out.back = px(c, [6, 0, 0]);
+      viewer.dispose();
+      return out;
+    });
+    t.diagnostic(JSON.stringify(r));
+    assert.deepEqual(r.own, [0, 255, 0]); assert.deepEqual(r.timesMaterial, [255, 0, 0]); assert.deepEqual(r.plane, [0, 0, 255]);
+    assert.deepEqual(r.changed, [255, 0, 255]); assert.deepEqual(r.back, [0, 0, 255]);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
+// G3: a line pick passes over a segment a surface hides — the GPU's depth at its pixel is the oracle: nothing found lies
+// behind a surface, and every segment found through surfaces that the GPU shows is found (or a nearer one); the clip
+// plane's cut-away faces hide nothing, its cap does; another mesh hides too.
+test('G3 depth-aware line picks: nothing behind a surface, everything the GPU shows; other meshes and the clip plane', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box, screen, tp } = window, canvas = document.getElementById('c');
+      canvas.style.width = '640px'; canvas.style.height = '480px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, background: '#202020', camera: { position: [7, -9, 6], target: [0, 0, 0], up: [0, 0, 1] } });
+      const b = box(2, 2, 2), body = viewer.add(b.surface, { name: 'body', material: { color: '#a0a0a0' }, cap: true }), edges = viewer.add(b.edges, { name: 'edges', material: { color: '#ffffff', unlit: true } });
+      // A second box in front of part of the first, seen from here: it hides some of its edges too (in the samples).
+      const other = viewer.add(box(1, 1, 3).surface, { name: 'other', material: { color: '#406080' }, transform: api.translation([0.2, -2.2, 0]) });
+      viewer.fit(); await viewer.frame();
+      const eye = viewer.camera.position, dist = p => Math.hypot(p[0] - eye[0], p[1] - eye[1], p[2] - eye[2]);
+      const pixelAt = p => 2 * Math.tan(viewer.camera.fovY * Math.PI / 360) * dist(p) / canvas.clientHeight;
+      /** Whether the GPU shows a world point: the surface at its pixel is not nearer than it, by more than two pixels. */
+      const shown = async p => { const [x, y] = screen(viewer, p), h = await viewer.pick(x, y); return !h || dist(p) <= dist(h.point) + 2 * pixelAt(p); };
+      let seed = 9; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      const [x0, y0] = screen(viewer, [-1.5, 1.5, 1.5]), [x1, y1] = screen(viewer, [1.5, -1.5, -1.5]);
+      const stats = { tries: 0, found: 0, behind: 0, missed: 0, hiddenThrough: 0 };
+      const run = async () => {
+        for (let k = 0; k < 300; k++) {
+          const x = Math.min(x0, x1) - 10 + rand() * (Math.abs(x1 - x0) + 20), y = Math.min(y0, y1) - 10 + rand() * (Math.abs(y1 - y0) + 20);
+          const aware = viewer.pickLine(x, y, 6), through = viewer.pickLine(x, y, 6, { throughSurfaces: true });
+          stats.tries++;
+          if (aware) { stats.found++; if (!(await shown(aware.point))) stats.behind++; }
+          if (through) {
+            const vis = await shown(through.point);
+            if (!vis) stats.hiddenThrough++;
+            else if (!aware || aware.distance > through.distance + 1e-9) stats.missed++;
+          }
+        }
+      };
+      await run();
+      const plain = { ...stats };
+      // The back vertical edge (x −1, y +1), behind the box: not found on its own; through surfaces it is.
+      const [bx, by] = screen(viewer, [-1, 1, 0]), backAware = viewer.pickLine(bx, by, 2), backThrough = viewer.pickLine(bx, by, 2, { throughSurfaces: true });
+      // Cut open, the front faces away (no cap): the back edge shows; capped, the cap hides it.
+      body.cap = false; viewer.clipPlane = { normal: [-0.6, 0.8, 0], offset: 0 }; await viewer.frame();
+      const cutOpen = viewer.pickLine(bx, by, 2);
+      body.cap = true; await viewer.frame();
+      const cutCapped = viewer.pickLine(bx, by, 2);
+      Object.assign(stats, { tries: 0, found: 0, behind: 0, missed: 0, hiddenThrough: 0 });
+      body.cap = false; await run(); const clipped = { ...stats };
+      viewer.dispose();
+      return { plain, clipped, back: { aware: backAware && { edge: backAware.edge, point: backAware.point }, through: backThrough && { edge: backThrough.edge, point: backThrough.point } }, cutOpen: cutOpen && cutOpen.point, cutCapped: cutCapped && cutCapped.point };
+    });
+    t.diagnostic(JSON.stringify(r));
+    for (const st of [r.plain, r.clipped]) {
+      assert.equal(st.behind, 0, `nothing found behind a surface ${JSON.stringify(st)}`);
+      assert.equal(st.missed, 0, `everything shown found ${JSON.stringify(st)}`);
+      assert.ok(st.found > 30 && st.hiddenThrough > 3, `the scene picks and hides some ${JSON.stringify(st)}`);
+    }
+    assert.ok(!r.back.aware || Math.hypot(r.back.aware.point[0] + 1, r.back.aware.point[1] - 1) > 1e-3, `the back edge not found ${JSON.stringify(r.back)}`);
+    assert.ok(r.back.through && Math.hypot(r.back.through.point[0] + 1, r.back.through.point[1] - 1) < 1e-3, `through surfaces it is ${JSON.stringify(r.back)}`);
+    assert.ok(r.cutOpen && Math.hypot(r.cutOpen[0] + 1, r.cutOpen[1] - 1) < 1e-3, `cut open, the back edge shows ${JSON.stringify(r.cutOpen)}`);
+    assert.ok(!r.cutCapped || Math.hypot(r.cutCapped[0] + 1, r.cutCapped[1] - 1) > 1e-3, `capped, the cap hides it ${JSON.stringify(r.cutCapped)}`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});

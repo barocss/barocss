@@ -168,8 +168,9 @@ export class GpuRenderer implements ViewRenderer {
   }
 
   /**
-   * The section's clip plane (G2): the viewer's plane, its cap in the colour the CPU's cap has (a selected face's, the
-   * theme's base mixed with the accent); the part's bodies cut by it only while their exact section is not shown.
+   * The section's clip plane (G2): the viewer's plane; each mesh's cap in its own colour (G2b: set where it is painted),
+   * the theme's base mixed with the accent where none is; the part's bodies cut by it only while their exact section is not
+   * shown.
    */
   setClip(clip: SectionClip | null): void {
     this.clip = clip;
@@ -282,6 +283,8 @@ export class GpuRenderer implements ViewRenderer {
       if (state === b.state) return;
       b.state = state;
       this.paint(b, faceState, view.bodyColors?.get(bi), faces);
+      // (Its cap as the CPU's section painted its cut face: selected, the body's own colour or the base mixed with the accent; G2b.)
+      b.surface.capColor = mix(this.settings ? [1, 1, 1] : view.bodyColors?.get(bi) ?? this.theme.base, ACCENT, 0.42);
       this.dropHighlight(b);
       if (edgeState.size) {
         const L = b.result.mesh.edgeLines, E = b.result.mesh.edgeOfSegment, pts: number[] = [], colors: number[] = [];
@@ -509,6 +512,8 @@ export class GpuRenderer implements ViewRenderer {
         const mesh = this.instanceMeshes.get(it.id)?.[bi];
         if (!mesh) return;
         const base: Vec3 = look ? [1, 1, 1] : this.theme.base, on = mix(base, ACCENT, 0.42), picked = new Set(this.instanceFaces.filter(f => f.id === it.id && f.body === bi).map(f => f.face));
+        // (Its cap as the CPU's section painted it: an instance's cut face was never selected, the base colour; G2b.)
+        m.capColor = base;
         // (The same colours on the same mesh as last time: nothing written. A new selection repaints none of them.)
         const key = JSON.stringify([base, [...picked]]);
         if (this.instancePainted.get(m)?.mesh === mesh && this.instancePainted.get(m)?.key === key) return;

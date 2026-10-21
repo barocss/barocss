@@ -253,7 +253,7 @@ export function clippedRay(g: PreparedGeometry, M: ArrayLike<number>, origin: Ve
 export interface SegmentHit { segment: number; distance: number; s: number }
 const clipA = new Float64Array(3), clipB = new Float64Array(3);
 const near = { segment: -1, distance: Infinity, s: 0 };
-const segClip = { on: false, nx: 0, ny: 0, nz: 0, d: 0 };
+const segClip = { on: false, nx: 0, ny: 0, nz: 0, d: 0, skip: null as ReadonlySet<number> | null };
 
 /**
  * The segment of a line geometry nearest (x, y) on a canvas of cw × ch CSS pixels, through `M` (view-projection
@@ -262,9 +262,11 @@ const segClip = { on: false, nx: 0, ny: 0, nz: 0, d: 0 };
  * of the eye. A large geometry is searched through a hierarchy of segment boxes, a node passed over when its
  * corners all land in front of the eye and their screen rectangle is farther than the best so far.
  */
-export function nearestSegment(g: PreparedGeometry, M: ArrayLike<number>, x: number, y: number, cw: number, ch: number, radius: number, earlier = Infinity, plane: ArrayLike<number> | null = null): SegmentHit | null {
+export function nearestSegment(g: PreparedGeometry, M: ArrayLike<number>, x: number, y: number, cw: number, ch: number, radius: number, earlier = Infinity, plane: ArrayLike<number> | null = null, skip: ReadonlySet<number> | null = null): SegmentHit | null {
   if (g.topology !== 'lines') return null;
   near.segment = -1; near.distance = Infinity; near.s = 0;
+  // (Segments to leave out: those a line pick found hidden.)
+  segClip.skip = skip && skip.size ? skip : null;
   // (With a plane — nx, ny, nz, d in the geometry's space — only each segment's part where n·p ≥ d.)
   segClip.on = !!plane; if (plane) { segClip.nx = plane[0]; segClip.ny = plane[1]; segClip.nz = plane[2]; segClip.d = plane[3]; }
   const n = g.elementCount / 2;
@@ -300,6 +302,7 @@ function clipOf(out: Float64Array, M: ArrayLike<number>, P: Float32Array, i: num
 }
 /** One segment against the best so far (`near`): the same arithmetic, in the same order, as the viewer's walk had. */
 function testSegment(g: PreparedGeometry, M: ArrayLike<number>, sgm: number, x: number, y: number, cw: number, ch: number, radius: number, earlier: number): void {
+  if (segClip.skip && segClip.skip.has(sgm)) return;
   const P = g.positions, I = g.indices, ia = I ? I[2 * sgm] : 2 * sgm, ib = I ? I[2 * sgm + 1] : 2 * sgm + 1, a = clipA, b = clipB, eps = 1e-6;
   clipOf(a, M, P, ia); clipOf(b, M, P, ib);
   let s0 = 0, s1 = 1;

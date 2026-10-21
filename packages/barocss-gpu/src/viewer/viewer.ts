@@ -82,6 +82,8 @@ export interface AddMeshOptions {
   instances?: InstancesInput;
   /** Cut by the viewer's clip plane when one is set (default true). */
   clipped?: boolean;
+  /** Its cap's colour (sRGB, times the material colour); default the clip plane's. */
+  capColor?: Color | null;
   /**
    * A closed solid: where the clip plane cuts it, its cut is filled with the plane's cap (default false). The cap is drawn
    * from the mesh's back faces seen through the cut, so an open mesh would show one where its inside shows.
@@ -169,6 +171,7 @@ export class Mesh {
   private _clipped: boolean;
   /** Filled where the clip plane cuts it (a closed solid; AddMeshOptions.cap). */
   cap: boolean;
+  private _capColor: Vec3 | null = null;
   /** @internal Instances: their count, packed data, transforms, and the GPU buffer (null: not uploaded). */
   instances: { count: number; data: ArrayBuffer; matrices: Float64Array[]; buffer: Buffer | null; device: Device | null } | null = null;
   /** @internal Which outline colour of the frame (1-based; 0 none). */
@@ -187,6 +190,7 @@ export class Mesh {
     this._receiveShadow = options.receiveShadow ?? true;
     this._clipped = options.clipped ?? true;
     this.cap = options.cap ?? false;
+    if (options.capColor) this._capColor = parseColor(options.capColor);
     this.name = options.name;
     if (options.transform) this.transform = options.transform;
     if (options.instances) this.setInstances(options.instances);
@@ -227,6 +231,16 @@ export class Mesh {
   get visible(): boolean { return this._visible; }
   set visible(v: boolean) { this._visible = v; this.owner.requestRender(); }
   get transparent(): boolean { return this._material.opacity < 1 || this._material.shadowOnly; }
+  /**
+   * Its cap's colour (sRGB), times its material colour — as a face of it in that colour would be lit — or null: the clip
+   * plane's own cap colour (G2b).
+   */
+  get capColor(): Vec3 | null { return this._capColor; }
+  set capColor(c: Color | null) {
+    const next = c === null ? null : parseColor(c), had = this._capColor;
+    if (next === had || (next && had && next[0] === had[0] && next[1] === had[1] && next[2] === had[2])) return;
+    this._capColor = next; this.touch();
+  }
   /** Cut by the viewer's clip plane (when one is set). */
   get clipped(): boolean { return this._clipped; }
   set clipped(v: boolean) { if (v !== this._clipped) { this._clipped = v; this.touch(); } }
@@ -255,6 +269,7 @@ export class Mesh {
     if (this.geometry.topology === 'lines') f.set([m.lineWidth * pixelRatio, 0, 0, 1], o + 36);
     else f.set([m.metallic, m.roughness, m.emissive, m.unlit ? 1 : 0], o + 36);
     new Uint32Array(f.buffer).set([this.id, this.outlineSlot, (this._receiveShadow ? 1 : 0) | (this._clipped ? 2 : 0), Math.round(m.alphaCutoff * 1000)], o + 40);
+    if (this._capColor) { const c = linear(this._capColor); f[o + 44] = c[0]; f[o + 45] = c[1]; f[o + 46] = c[2]; f[o + 47] = 1; } else f.fill(0, o + 44, o + 48);
   }
 }
 
@@ -1332,10 +1347,12 @@ export class Viewer {
 
   /**
    * The line segment drawn nearest a point of the canvas (CSS pixels), within radius pixels. Lines are
-   * thin, so this is a screen-space search, not a pixel read; it does not test whether a surface hides them. Only the
-   * parts of segments on the clip plane's kept side are found.
+   * thin, so this is a screen-space search, not a pixel read. A segment whose nearest point a surface hides (an opaque
+   * mesh more than about a pixel and a half in front of it along the eye's ray: what the depth test hides) is passed
+   * over for the next nearest (G3); `throughSurfaces` finds it anyway. Only the parts of segments on the clip plane's
+   * kept side are found, and only what the plane keeps hides them.
    */
-  pickLine(x: number, y: number, radius = 6): LineHit | null {
+  pickLine(x: number, y: number, radius = 6, options: { throughSurfaces?: boolean } = {}): LineHit | null {
     this.alive();
     const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
     this.clipCamera();
@@ -1358,13 +1375,43 @@ export class Viewer {
       }
       // (Every segment, or for a large geometry those its segment boxes do not rule out: the same answer, ties to the lowest.)
       // (The clip plane in the mesh's own space: only the kept parts of its segments.)
-      const hit = nearestSegment(g, M, x, y, cw, ch, radius, best ? best.distance : Infinity, this.clip && m.clipped ? localPlane(m.transform, this.clip) : null);
-      if (!hit) continue;
-      const ia = I ? I[2 * hit.segment] : 2 * hit.segment, ib = I ? I[2 * hit.segment + 1] : 2 * hit.segment + 1;
-      const A = transformPoint(m.transform, [P[3 * ia], P[3 * ia + 1], P[3 * ia + 2]]), B = transformPoint(m.transform, [P[3 * ib], P[3 * ib + 1], P[3 * ib + 2]]);
-      best = { mesh: m, segment: hit.segment, edge: g.edges ? g.edges[hit.segment] : null, point: add(A, scale(sub(B, A), hit.s)), distance: hit.distance };
+      const plane = this.clip && m.clipped ? localPlane(m.transform, this.clip) : null;
+      hiddenSegments.clear();
+      for (let tries = 0; tries < MAX_HIDDEN_SEGMENTS; tries++) {
+        const hit = nearestSegment(g, M, x, y, cw, ch, radius, best ? best.distance : Infinity, plane, hiddenSegments);
+        if (!hit) break;
+        const ia = I ? I[2 * hit.segment] : 2 * hit.segment, ib = I ? I[2 * hit.segment + 1] : 2 * hit.segment + 1;
+        const A = transformPoint(m.transform, [P[3 * ia], P[3 * ia + 1], P[3 * ia + 2]]), B = transformPoint(m.transform, [P[3 * ib], P[3 * ib + 1], P[3 * ib + 2]]);
+        const point = add(A, scale(sub(B, A), hit.s));
+        // (Hidden: the next nearest of this mesh's segments, the hidden one left out.)
+        if (!options.throughSurfaces && this.hidden(point)) { hiddenSegments.add(hit.segment); continue; }
+        best = { mesh: m, segment: hit.segment, edge: g.edges ? g.edges[hit.segment] : null, point, distance: hit.distance };
+        break;
+      }
     }
     return best;
+  }
+
+  /**
+   * Whether an opaque surface hides a world point (G3): the eye's ray to it hits a visible, opaque triangle mesh (its
+   * instances, the clip plane's kept side and caps) more than about a pixel and a half before it — lines are drawn over the
+   * surface they lie on, and slightly behind it they still show, as the depth test's bias lets them.
+   */
+  private hidden(p: Vec3): boolean {
+    const v = transformPoint(this.camera.viewProjection(this.aspect), p), ray = this.camera.ray(v[0], v[1], this.aspect);
+    const d = ray.direction, dd = dot(d, d), t = dot(sub(p, ray.origin), d) / dd;
+    // (A pixel in world units at the point's depth, over the ray's length: the slack, in the ray's parameter.)
+    const c = this.camera, h = this.canvas.clientHeight || this.canvas.height;
+    const pixel = (c.projection === 'perspective' ? 2 * Math.tan((c.fovY * Math.PI) / 360) * Math.sqrt(dd) * t : 2 * c.halfHeight) / Math.max(1, h);
+    const before = t - (1.5 * pixel) / Math.sqrt(dd);
+    for (const m of this.meshes) {
+      if (!m.visible || m.transparent || m.geometry.topology !== 'triangles' || m.geometry.disposed) continue;
+      for (let i = 0; i < m.instanceCount; i++) {
+        const hit = this.meshRay(m, m.instances ? i : null, ray.origin, d);
+        if (hit && hit.t < before) return true;
+      }
+    }
+    return false;
   }
 
   /** The world point under a pixel, or where the view ray meets the plane through the target (zoom to cursor). */
@@ -1440,5 +1487,9 @@ export function clipBox(b: Box3 | null, c: { normal: ArrayLike<number>; offset: 
   if (n[k] > 0) min[k] = Math.max(min[k], c.offset); else max[k] = Math.min(max[k], -c.offset);
   return min[k] > max[k] ? null : { min: min as unknown as Vec3, max: max as unknown as Vec3 };
 }
+
+ /** The segments of a mesh found hidden during one line pick (kept from pick to pick), and how many are tried. */
+const hiddenSegments = new Set<number>();
+const MAX_HIDDEN_SEGMENTS = 16;
 
 export const createViewer = (canvas: HTMLCanvasElement, options?: ViewerOptions): Promise<Viewer> => Viewer.create(canvas, options);
