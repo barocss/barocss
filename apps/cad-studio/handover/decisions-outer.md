@@ -4142,3 +4142,23 @@ The second of PKG's two early steps. B1–B4 are the four places where code boun
   - sketch/*, assembly/drag, library/*, engine/stl, engine/vec3 and the CLI import nothing from `viewport/` or `ui/`; library/ names no `localStorage` outside comments; the three re-exports are in place;
   - with no store, registering a user library keeps nothing. With a store set, it is written there and read back by `loadUserLibraries`.
 - **Not in PKG-b**: `app/templates.ts` and `app/recovery.ts` also use `localStorage`. They are app modules in the proposal and stay. B11, the tests importing pure functions from `.tsx`, is optional and left.
+
+## O93 — `@barocss/cad-model` made a public package (2026-10-21)
+
+The owner's decision, verbatim: "@barocss/cad-model 는 공개패키지로 해줘" (make @barocss/cad-model a public package). The coordinator forwarded it after PKG-b's checkpoint, so it is its own small commit.
+
+- **`packages/barocss-cad-model/package.json`**: `private` removed, mirroring the kernel's publish fields:
+  - version `0.0.0-experimental` and license MIT;
+  - `repository` (git, `packages/barocss-cad-model`), `homepage` and `bugs`;
+  - `files` (src, README.md, LICENSE) and `publishConfig: {access: public}`;
+  - a description: the CAD document model and engineering domain logic on top of @barocss/cad, no UI.
+
+  The kernel's `publishConfig` also maps its exports to a compiled `dist/`. This package has no build yet, so it has no `dist` mapping; that comes with its first real code.
+- **Added**: a README (what the package is, that it is empty until the moves, that a release goes through the release process) and the repository's MIT LICENSE.
+- **Nothing published, pushed or released.** `pnpm pack`, run locally into the scratchpad, gives a tarball of LICENSE, package.json, README.md and src/index.ts.
+- **No changeset yet**: one comes when real code lands (PKG-c). The repository's checks, read for a new public package that only exports `{}`:
+  - `release.yml` ("Npm version PR", run by hand on develop) runs type-check, lint, build:library, the non-app tests and `check-packages.mjs`, then opens a changesets version PR. This package passes lint and type-check, has no build or test script to run, and a package without a changeset is not versioned;
+  - `check-packages.mjs` and `check-release-version.mjs` cover only the fixed release set in `.github/scripts/release-manifests.mjs` (kit, browser, server, render). A new package is not packed or checked there, and it cannot trip the pending-changeset check while it has none;
+  - `npm-release.yml` publishes only those four tarballs, by name. A public cad-model is not published by any workflow until it is added to that set on purpose.
+- **Open, for the coordinator and the owner later**: a public package's exports are an API. `"./*"` stays for the moves. Before the first release it needs a curated public entry (`index.ts`) and a stability policy for its exports. Not designed here.
+- The lockfile is unchanged: workspace links carry no version.
