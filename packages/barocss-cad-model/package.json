@@ -27,8 +27,9 @@
     "access": "public"
   },
   "scripts": {
-    "lint": "eslint src",
-    "type-check": "tsc --noEmit -p ."
+    "lint": "eslint src test",
+    "type-check": "tsc --noEmit -p .",
+    "test": "node scripts/test.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*"
