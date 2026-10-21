@@ -1,4 +1,4 @@
-import { followedStale, staleText } from '../frames/skeleton';
+import { followedStale, resolveSkeletons, staleText } from '../frames/skeleton';
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import { fitNotes } from './fits';
 import type { FaceTable } from '../assembly/mates';
@@ -100,7 +100,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear, at.ref ? doc.nodes[at.ref.node] : undefined) } : {}), ...(o.worm ? { notes: [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] } : {}), ...(o.wormWheel ? { notes: wormWheelNotes(o.wormWheel) } : {}), ...(o.spring ? { notes: springNotes(o.spring) } : {}), ...(o.shaft ? { notes: shaftNotes(o.shaft) } : {}), ...(o.key || o.keyway || o.ring || o.pin ? { notes: shaftPartNotes(o) } : {}), ...(o.bearing ? { notes: bearingNotes(o.bearing) } : {}), ...(o.gland ? { notes: glandNotes(o.gland) } : {}), ...(o.oring ? { notes: [{ text: `O-ring ${o.oring.ring}, its section ${+o.oring.stretchedCrossSectionMM.toFixed(4)} stretched; the free ring overlaps its sealing surface by ${+o.oring.overlapMM3.toFixed(4)} mm³ (the squeeze's displaced volume, by the Boolean); its squeezed shape is not modelled`, warning: false }] } : {}), ...(o.bevelGear ? { notes: [...bevelGearNotes(o.bevelGear, at.ref ? doc.nodes[at.ref.node] : undefined), ...bevelMeshNotes(o.bevelGearPlacement)], ...(o.bevelGear.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined), doc.frames?.sections, doc.nodes, at.ref ? staleOf(doc).get(at.ref.node) : undefined), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
+  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear, at.ref ? doc.nodes[at.ref.node] : undefined) } : {}), ...(o.worm ? { notes: [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] } : {}), ...(o.wormWheel ? { notes: wormWheelNotes(o.wormWheel) } : {}), ...(o.spring ? { notes: springNotes(o.spring) } : {}), ...(o.cam ? { notes: camNotes(o.cam) } : {}), ...(o.shaft ? { notes: shaftNotes(o.shaft) } : {}), ...(o.key || o.keyway || o.ring || o.pin ? { notes: shaftPartNotes(o) } : {}), ...(o.bearing ? { notes: bearingNotes(o.bearing) } : {}), ...(o.gland ? { notes: glandNotes(o.gland) } : {}), ...(o.oring ? { notes: [{ text: `O-ring ${o.oring.ring}, its section ${+o.oring.stretchedCrossSectionMM.toFixed(4)} stretched; the free ring overlaps its sealing surface by ${+o.oring.overlapMM3.toFixed(4)} mm³ (the squeeze's displaced volume, by the Boolean); its squeezed shape is not modelled`, warning: false }] } : {}), ...(o.bevelGear ? { notes: [...bevelGearNotes(o.bevelGear, at.ref ? doc.nodes[at.ref.node] : undefined), ...bevelMeshNotes(o.bevelGearPlacement)], ...(o.bevelGear.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined), doc.frames?.sections, doc.nodes, at.ref ? staleOf(doc).get(at.ref.node) : undefined), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
 }
 
 const AXES: [string, number[]][] = [['+X', [1, 0, 0]], ['−X', [-1, 0, 0]], ['+Y', [0, 1, 0]], ['−Y', [0, -1, 0]], ['+Z', [0, 0, 1]], ['−Z', [0, 0, -1]]];
@@ -205,9 +205,12 @@ function snapshotOf(doc: StudioDoc): CadPartSnapshot {
   return last ? last.withDocument(part) : evaluateCadPart(part);
 }
 
+/** The document with its parameter-bound skeletons solved for its parameters now (O140; the same document when none moved), or their refusal. */
+function skeletonsNow(doc: StudioDoc): StudioDoc { const r = resolveSkeletons(doc); if ('error' in r) throw new Error(r.error); return r.doc; }
 export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): EvalResult {
   const t0 = performance.now();
   try {
+    doc = skeletonsNow(doc);
     const snapshot = snapshotOf(doc); last = snapshot;
     const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
@@ -253,6 +256,7 @@ const lastParts = new Map<PartSlot, CadPartSnapshot>();
 export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot: PartSlot = 'part'): EvalResult {
   const t0 = performance.now();
   try {
+    doc = skeletonsNow(doc);
     const part = toPartDocument(doc), last = lastParts.get(slot), snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastParts.set(slot, snapshot);
     const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
@@ -264,6 +268,7 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot
 /** A part's bodies' volumes only (a clash probe's intersection): no mesh worked out or sent (PERF3 B12). */
 export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok: true; volumes: { key: string; volumeMM3: number | null }[] } | { ok: false; error: FriendlyError } {
   try {
+    doc = skeletonsNow(doc);
     const part = toPartDocument(doc), last = lastParts.get(slot), snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastParts.set(slot, snapshot);
     return { ok: true, volumes: snapshot.outputs.map(o => {
       let m = masses.get(o.brep);
@@ -515,6 +520,25 @@ function springNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['spring']
     ...s.diagnostics.map(x => ({ text: x.message.replace(/^spring: /, ''), warning: x.severity === 'warning' })),
   ];
 }
+/** A disc cam's report as lines (R12c.6a, D160): its follower, program, pressure angle, curvature and the fit. */
+function camNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['cam']>): { text: string; warning?: boolean }[] {
+  const mm = (x: number) => +x.toFixed(4), d1 = (x: number) => +x.toFixed(1), u = r.units === 'deg' ? '°' : ' mm', osc = r.motion === 'oscillating', flat = r.follower === 'flat';
+  const who = flat ? `${osc ? 'an oscillating' : 'a translating'} flat-faced follower` : `${osc ? 'an oscillating' : 'a translating'} roller follower (r ${mm(r.rollerRadiusMM!)}, prime circle R ${mm(r.primeRadiusMM!)})`;
+  const where = osc ? `, pivot ${mm(r.pivotDistanceMM!)} off the centre${r.armLengthMM !== undefined ? `, arm ${mm(r.armLengthMM)}` : ''}${r.faceOffsetMM ? `, the face ${mm(r.faceOffsetMM)} from the pivot` : ''}, at rest ${d1(r.restAngleDeg!)}°` : r.offsetMM ? `, offset ${mm(r.offsetMM)}` : '';
+  const program = r.segments.map(g => g.motion === 'dwell' ? `dwell to ${d1(g.endDeg)}°` : `${g.motion} to ${mm(g.to)}${u} over ${d1(g.startDeg)}–${d1(g.endDeg)}° (${g.law})`).join(', ');
+  const c = r.curvature, pa = r.pressureAngle;
+  return [
+    { text: `Disc cam for ${who}${where}: base R ${mm(r.baseRadiusMM)}, ${osc ? 'swing' : 'lift'} ${mm(r.stroke)}${u}` },
+    { text: `Motion: ${program}` },
+    { text: `Peak velocity ${r.segments.filter(g => g.law).map(g => `${mm(g.peakVelocity)}`).join(' / ')} ${r.units}/rad, acceleration ${r.segments.filter(g => g.law).map(g => `${mm(g.peakAcceleration)}`).join(' / ')} ${r.units}/rad² (rise / return, per radian of the cam's turn)` },
+    { text: flat && !osc ? 'Pressure angle 0° (the face square to the follower\'s motion)' : `Pressure angle at most ${mm(pa.maxDeg)}° at ${d1(pa.atDeg)}°, against ${pa.limitDeg}°${pa.limitEstimate ? ' (a rule of thumb, an estimate)' : ''}`, ...(pa.maxDeg > pa.limitDeg ? { warning: true } : {}) },
+    { text: flat ? `Least radius of curvature ${mm(c.leastProfileRadiusMM)} at ${d1(c.atDeg)}° (ρ = h + h_ββ > 0: no undercut); the face touches from ${mm(r.faceContactMM![0])} to ${mm(r.faceContactMM![1])} mm ${osc ? 'from the pivot' : 'about the follower\'s line'}`
+      : `The pitch curve's least convex radius ${mm(c.leastPitchRadiusMM!)} at ${d1(c.atDeg)}°, above the roller's ${mm(r.rollerRadiusMM!)}: no undercut (the profile's ${mm(c.leastProfileRadiusMM)})` },
+    { text: `Profile within ${r.profileDeviationMM.toExponential(1)} mm of its closed form (${r.profilePieces} cubic pieces, tolerance ${r.profileToleranceMM.toExponential(1)}); the follower found on the built profile within ${r.sweep.deviationMM.toExponential(1)} mm of the law (${r.sweep.samples} positions)` },
+    ...r.warnings.filter(w => w.code !== 'PRESSURE_ANGLE').map(w => ({ text: w.message, warning: true })),
+    { text: 'Not validated for manufacturing: no forces, contact stress, wear or follower dynamics', warning: true },
+  ];
+}
 /** An O-ring gland's report as lines (R12c.5, D159). */
 function glandNotes(g: NonNullable<CadPartSnapshot['outputs'][number]['gland']>): { text: string; warning?: boolean }[] {
   const mm = (x: number) => +x.toFixed(4), p = (x: number) => +x.toFixed(1), out: { text: string; warning?: boolean }[] = [];
@@ -545,9 +569,12 @@ function shaftPartNotes(o: CadPartSnapshot['outputs'][number]): { text: string; 
     out.push({ text: `Key ${mm(k.widthMM)} × ${mm(k.heightMM)} × ${mm(k.lengthMM)} (${k.ends} ends) in keyseat ${k.keyseat}: ${mm(k.seatPlayMM)} play in the seat's width, ${mm(k.lengthRoomMM)} to spare in its length; it stands ${mm(k.standsMM)} above the shaft` });
     if (k.hub) out.push({ text: `In the hub's keyway: ${mm(k.hub.keywayPlayMM)} play in its width, ${mm(k.hub.topClearanceMM)} under its floor` });
     else out.push({ text: 'No hub keyway given: the key\'s top clearance is not checked', warning: true });
+    // (O138: the width fits from the classes on the key's, the seat's and the keyway's sides — the user's tables.)
+    const um = (x: number) => `${x > 0 ? '+' : x < 0 ? '−' : ''}${mm(Math.abs(x) / 1000)}`;
+    for (const [where, f] of [['seat', k.seatFit], ['hub\'s keyway', k.hubFit]] as const) if (f) out.push({ text: `Width fit in the ${where}: ${f.hole.class}/${f.shaft.class} at ${mm(k.widthMM)} mm — ${f.kind}, ${um(f.clearanceMinUM)} to ${um(f.clearanceMaxUM)} mm clearance${f.estimate ? ' (an estimate)' : ''}`, ...(f.estimate ? { warning: true } : {}) });
   }
   if (o.keyway) { const w = o.keyway; out.push({ text: `Keyway ${mm(w.widthMM)} wide, ${mm(w.depthMM)} deep in the Ø${mm(2 * w.boreRadiusMM)} bore (its floor ${mm(w.floorRadiusMM)} from the axis), ${mm(w.toMM - w.fromMM)} long at ${mm(w.angleDeg)}°` }); }
-  if (o.ring) { const r = o.ring; out.push({ text: `Retaining ring ${mm(r.thicknessMM)} thick, Ø${mm(r.innerDiameterMM)} to Ø${mm(r.outerDiameterMM)} in groove ${r.groove}: ${mm(r.axialPlayMM)} axial play` }); if (r.estimate) out.push({ text: 'The ring\'s sizes are an estimate: your ring\'s row gives them', warning: true }); }
+  if (o.ring) { const r = o.ring; out.push({ text: `Retaining ring ${mm(r.thicknessMM)} thick, Ø${mm(r.innerDiameterMM)} to Ø${mm(r.outerDiameterMM)} in groove ${r.groove}: ${mm(r.axialPlayMM)} axial play` }); if (r.estimate) out.push({ text: 'The ring\'s sizes are an estimate: your ring\'s row gives them', warning: true }); else if (r.source) out.push({ text: `Its groove checked against your ring row (${r.source})` }); }
   if (o.pin) { const p = o.pin; out.push({ text: `Pin Ø${mm(p.diameterMM)} × ${mm(p.lengthMM)} in cross hole ${p.hole} (Ø${mm(p.holeDiameterMM)}): ${mm(p.clearanceMM)} clearance` }); }
   out.push({ text: 'Sizes are yours (your own rows: none built in); not validated for manufacturing', warning: true });
   return out;

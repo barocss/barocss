@@ -17,10 +17,11 @@ test('PERF3 B13 S0 P1: the store keeps every blob for the session — a mesh fea
   assert.equal(blobRefs(gone).size, 0); assert.ok(hasBlob(p) && hasBlob(i), 'still held');
 });
 
-test('PERF3 B13 S0 P2: blobRefs misses a blob named only in an open proposal\'s ops — a rule over documents alone would drop what accepting it needs', async () => {
+test('PERF3 B13 S0 P2 (fixed in O135): a blob named only in an open proposal\'s ops — blobRefs sees it now, so a sweep keeps what accepting it needs', async () => {
   const { p, i } = await arrays(202.5);
   const doc: StudioDoc = { ...emptyDoc(), proposals: [{ id: 'P1', title: 'a mesh', status: 'open', by: { agent: 'test' }, at: '2026-10-22', base: 'x', ops: [{ tool: 'add_features', args: { features: [mesh(p, i)] } }], risk: { level: 'low', features_touched: 1, references_broken: 0, hard_requirements_changed: [], approval: [] }, summary: '' }] };
-  assert.equal(blobRefs(doc).has(p), false, 'not seen by blobRefs');
+  assert.equal(blobRefs(doc).has(p), true, 'seen by blobRefs (O135)');
+  assert.equal(blobRefs({ ...doc, proposals: doc.proposals!.map(q => ({ ...q, status: 'rejected' as const })) }).has(p), false, 'a decided proposal holds none');
   assert.ok(JSON.stringify(doc.proposals).includes(p), 'but named by the proposal');
 });
 

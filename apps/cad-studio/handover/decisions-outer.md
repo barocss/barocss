@@ -5270,3 +5270,132 @@ The coordinator approved O132 with one addition: implicit dependants. An op whos
 - **Limits**:
   - A batch's inner op naming, by index, a feature an earlier inner op made is moved as the outer op is, so it is exact only for appends.
   - A script's `node(i)` is not rewritten. The merge's applied path does not depend on either: it applies what the op did.
+
+## O134 — the palette ranks a command's label before any keyword (2026-10-22)
+
+The coordinator's request after 8788eafec: the kernel lane's Shaft command lists "fillet" among its keywords, so the palette's first result for "fillet" was Shaft and 21 fillet and chamfer flow steps failed. The palette filtered on label, keywords and id alike and sorted only by availability.
+
+- `src/ui/paletteRank.ts` ranks each match: 0 the label is the text; 1 the label starts with it; 2 a word of the label starts with it; 3 the label holds it; 4 only the keywords or id hold it. Availability orders the commands within a rank, then the toolbar's order. A keyword can never beat a label, whatever is available.
+- `test/palette-rank.test.ts`: every command's label typed gives it (or one of the same label) first, available or not. A command keyed "fillet chamfer" comes after every label match for "fillet" and "chamfer".
+
+## O135 — PERF3 B13: mesh blobs evicted at idle points (2026-10-22)
+
+The coordinator approved O130 with both choices as proposed, plus: an unlisted-holder test; an evicted-then-requested hash logged as an error; no sweep mid recovery write; and a DEV counter of the bytes freed. Built at 60441d33a and f29337d8b.
+
+- **`evictBlobs(roots, pinned)`** (engine/blobs.ts) keeps:
+  - every hash the roots name through `blobRefs`, which now also walks open proposals' ops for mesh nodes (P2's gap);
+  - every pinned hash (`pinBlobs` → release);
+  - every blob put since the last sweep (`fresh`, the grace generation), returned as `graced`.
+- **Everything else is dropped**:
+  - its bytes are counted in `blobStats` (sweeps, lastFreed, freed, lastDropped);
+  - the hashes are remembered (capped at 4096): a later `getBlob` of one logs an error and records it in `blobStats.evictedAsked`, naming a missed holder.
+- **Holds**: `holdSweeps()` makes a sweep return null. ChatPanel holds sweeps for a whole turn, merge included. `saveRecoveryBlobs` holds while it writes.
+- **The studio**: the sweep runs 2 s after the last change to the document or undo/redo, never while a repair is asked. Its roots are the document, every undo and redo step, and the evaluated document. DEV: `window.__studioBlobs` (the stats, kept and graced).
+- **The worker in lockstep**:
+  - `WireSender` subscribes to `onBlobsEvicted`;
+  - `forget(hashes)` removes them from `sentBlobs` and queues them;
+  - the next `pack` carries `dropped`, which `WireReceiver.unpack` drops before it puts that message's blobs;
+  - a blob put back is therefore sent again (P3's gap).
+- **Tests** (`test/blob-evict.test.ts`):
+  - grace, then the drop with its bytes;
+  - four random sessions of 120 steps: mesh adds and deletes, undo, redo, proposals made and accepted, a pinned repair, sweeps. After every sweep, every hash any root names is present and every root's blobs resolve;
+  - an unlisted holder: kept by grace and reported, then gone, with the error logged;
+  - holds;
+  - the wire in step: forgotten, `dropped` sent, and re-sent when put back.
+  The S0's P2 now asserts the fix.
+- **Flow step**: an STL is opened, then a new part. The idle sweeps run while the mesh document is an undo step; undo and redo build it, and no dropped blob is asked for. The bytes freed are printed for the record.
+- **Not measured yet**: the effect on a 200k-triangle mesh session. The counter is there to read it.
+
+## O136 — G12: `proposalDiff`, a proposal's added and removed material (2026-10-22)
+
+The S0 (O129) was approved with two notes: `changedFaces` must be complete when the method is `faces`, shown by a facet-body test; and results are cached by (base revision, proposal id). Built in `src/chat/proposalDiff.ts`.
+
+- **`proposalDiff(base, proposed)`**, where each side is `{doc, bodies}`, returns `{ added, removed, changedFaces, parts, method, why? }`:
+  - **`added` and `removed`**: each side's B-reps are united, then `after − before` and `before − after` are taken with the kernel's analytic Boolean. Each result is a display mesh, tessellated at the bodies' quality 8, with its volume; null when nothing is there.
+  - **`changedFaces`**: computed from both sides' display faces by persistent name, whichever method ran: added, removed, or changed. "Changed" means the area (9 significant digits), the centroid (1e-5 mm) or the exact surface (1e-9) differs.
+  - **`parts`**: from `proposalParts`.
+  - **`method: 'faces'`**: used when the Boolean refuses, with the kernel's message in `why`. Today that is any facet body ("faceted (mesh) faces are not supported yet"); added and removed are null then.
+- **`proposalDiffFor(key, base, proposed)`**: a small LRU (8) keyed by `revision|proposal`. A proposal hovered twice runs its Booleans once; `diffWork.booleans` counts them.
+- **Tests** (`test/proposal-diff.test.ts`):
+  - the hole: removed 90π as a mesh; the n2 faces added; n1.top and n1.bottom changed;
+  - the boss: added 200π;
+  - the taller extrude: added 6000;
+  - a facet cube moved 5 up: `faces` with why, and every mesh face listed as changed, the plate untouched. The test says it turns into `boolean` with 500/500 after F3;
+  - the cache.
+- **For the GPU lane**: draw `added` and `removed` like any body, in two colours. Under `faces`, tint `changedFaces` on the proposal's bodies.
+
+## O137 — the inline dimension editor above the top bar (2026-10-22)
+
+The coordinator flagged a regression from O127's z 6 top bar: `.dim-edit` (the sketch's inline dimension input, z 5) went under the bar when the edited dimension sat in the top 36 px of the window. Of the two options offered, it is raised to z 7, above the bar and below the palette's backdrop (10), rather than clamped below the bar: the input stays at its dimension. It is transient, and is gone before a menu of the bar can open. Flow, in "explicit constraints and dimensions…": the open editor is moved into the bar's band (top 8 px). The point at its middle is the editor, not the bar, and it then still takes its value.
+
+## O138 — a key's width fit in the studio (2026-10-22)
+
+The coordinator's queue after O137, the kernel lane's open studio item. Fit class took only cylindrical faces; a key's fit is on its width, between planar sides.
+
+- **Fit class** now also takes a planar face, if it is a side of a key (`n4.side0`), of a shaft's keyseat (`n0.keyseat1`) or of a hub's keyway (`n3.keyway`): `keyFitRole` in engine/fits.ts. The class is stored like a cylinder's, in `doc.fits.faces`. Any other plane is refused, saying what is allowed. **Fit pair** stays cylinders only: a key pairs its own classes.
+- **Evaluation** (engine/part.ts): a key node takes the classes on its own sides (a shaft's class), its keyseat's and its hub keyway's (holes' classes), via `keyClasses`. It gives them to D157's kernel `fit: {tables, key, seat?, hub?}`. The size is the key's width; the limits come from D155's `fitLimits` on the user's tables (none built in).
+- **Notes**: the key's notes add "Width fit in the seat: N9/h9 at 6 mm — transition, −0.03 to +0.03 mm clearance (an estimate)", and the same for the hub's keyway; an estimate row is a warning.
+- **Refusals**, typed FIT_FACE:
+  - a hole's class on the key's side, or a shaft's class on a seat or keyway;
+  - a seat or keyway classed while the key has no class;
+  - a row missing (the kernel's lookup error).
+  The kernel's KEY_FIT rule stands: with classes, the key is modelled at its seat's width.
+- **Tests**: `test/key-fit.test.ts`, with the test's own estimate rows. N9/h9 gives −30 to +30 µm, JS9/h9 −15 to +45, both transition; plus the refusals and the plain-plane refusal. The flow step "key width fit (O138)…" loads the table in the Library panel, builds the shaft, hub, keyway and key through the real chat, classes the three sides through the chat, and reads both notes from the key's body.
+
+## O139 — retaining-ring rows in the Library panel (2026-10-22)
+
+The coordinator's queue, the kernel lane's open studio item. A studio ring was always an estimate: part.ts sent the kernel `row: { estimate: true }` whatever the ring.
+
+- **The rows**: `doc.rings: { version: 1, rows }` (engine/rings.ts). Each row is `{ id, designation?, shaftDiameterMM, grooveDiameterMM, grooveWidthMM, source | estimate: true }`.
+  - `ringRowProblem` refuses unknown fields, a size that is not above 0, a groove Ø not below the shaft's, and a row with neither or both of source and estimate.
+  - `editRingRows` adds or replaces rows by id, removes them, and keeps a row a ring uses.
+  - `ringRowsFor(doc, shaftØ, grooveØ)` finds the rows that fit a groove.
+  - None is built in.
+- **The ring**: a `retaining-ring` node takes `row?`. The Retaining ring command gains a Ring row choice: the person's rows, or None (an estimate). Its default is the row that fits the first groove's sizes.
+- **Evaluation**: part.ts gives the kernel the row it names, in its part model's field names (shaftDiameter, grooveDiameter, grooveWidth). The first mapping used the …MM names, which the kernel ignores, so nothing was checked; the test found it. Its `ringSolid` checks the step's and the groove's sizes (RING_FIT). A row the document no longer holds is refused as [RING_ROW_UNKNOWN]. A ring with no row stays an estimate, said with a warning.
+- **The notes**: a ring on a row cites it ("Its groove checked against your ring row (the maker's sheet)"), with no estimate warning.
+- **The studio**: the Library panel's RINGS section loads a JSON file of rows (one or a list), lists them with their sizes and source, and removes them (refused, and said, for a used row).
+- **Tests**: `test/ring-rows.test.ts`: the default offered and cited; no row, an estimate; refusals for a row for another groove (RING_FIT), a row gone, a used row removed, and bad rows. `fields.test.ts`' every-field document includes `rings`. The flow step "ring rows (O139)…" loads a row in the Library panel, makes the shaft and its ring on that row through the real chat, reads the citation, and has the row's removal refused.
+
+## O140 — FRg: a 3D skeleton's values bound to parameters (2026-10-22)
+
+The coordinator's queue item 4, the model side (G17's drag tool comes later), closing §0's "FRg's 3D skeleton constraints take numbers only".
+
+- **Bound values**: a `length`'s or `distance`'s `value`, or an `angle`'s `degrees`, may be `{ parameter: name }` (`BoundConstraint3D` in frames/sketch3d.ts). The solver still takes numbers only; `boundConstraints` gives it each parameter's value now, with a map of which constraint is bound to which parameter.
+- **Refusals**, naming the parameter:
+  - a parameter the document lacks: [SKETCH3D_PARAMETER] "constraint 4 (length) is bound to the parameter "D", which the document does not have";
+  - a bound value out of range: [SKETCH3D_INPUT] "constraint 3 (length, bound to W = -5): …";
+  - a conflict: [SKETCH3D_CONFLICT], each unmet constraint with its binding ("…, bound to W = 800) off by …"), ending "Change the parameter W, or change or remove one of them". When none of the unmet constraints is bound, it names every parameter the skeleton binds, since one of them moved it there.
+- **Re-solved when a parameter changes**: `resolveSkeletons(doc)` re-solves every skeleton with a bound value from its stored points. It returns the very same document when no point moved, so caches keep their keys, or the refusal with the skeleton's feature named.
+  - The Parameters panel calls it before committing. A refusal is a toast ("That value does not hold"), and the parameters stay as they were.
+  - Every evaluation entry (evaluateDoc, evaluatePart, evaluateVolumes) applies it too, so a parameter changed by any other path (a configuration applied, a sensitivity variant) builds the solved geometry.
+  - add_features and edit_feature solve with the document's parameters.
+- **Tests**: `test/sketch3d-params.test.ts`:
+  - W and D bound: 600 × 400, A·600;
+  - W set to 800: re-solved, the frame A·800; evaluated without the re-solve, the same; a second re-solve gives the same document;
+  - the refusals: a conflict through a held diagonal naming W, a missing parameter, a bound length −5.
+  The flow step "FRg bound to parameters (O140)…": W and D added in the Parameters panel, the skeleton and its frame via the real chat (444 · 600), W set to 800 in the panel (444 · 800), D set to −5 refused with D named and the parameters unchanged.
+
+## O141 — item 5: the App's cost of a bracket click, on a production build (2026-10-22)
+
+The coordinator's item 5, from the GPU lane's G13 profile: a bracket click cost 55 ms on the dev server, 36 of it React's jsxDEV, attributed to the App's panels being re-created on each selection change. The ask was to measure on a production build first, and memoise only if it still costs more than a few ms.
+
+- **The bench**: `test/bench-panels.mjs`, opt-in, not a budget. It runs 120 placed brackets (the G9 scene) on the dev server and on a production build (vite build, served by vite preview). It reports the main thread's task time (CDP TaskDuration) for a bracket clicked from idle, the selection cleared (Escape) and 60 pointer moves, five runs each, as the median and every value. `PROFILE=1` gives a CPU profile of the session's first click (on an unminified production build) and `TRACE=1` a devtools.timeline trace of it.
+- **Measured** (load 33–59 from other lanes; all times main-thread task time):
+
+  | | dev server | production build |
+  |---|---|---|
+  | first click of the session | 77.7 ms | 100.5 ms (39–53 in other runs) |
+  | each later click (after Escape) | 4.4–6.6 ms, median 5.8 | 4.1–5.7 ms, median 5.2 |
+  | Escape | 0.4 ms | 0.4 ms |
+  | hover | 1.91 ms a move | 1.80 ms a move |
+
+- **What the first click is** (production, profiled and traced):
+  - 52.8 ms of task, of which 11.7 ms is sampled JavaScript.
+  - The trace splits it: style and layout 1.4 ms, paint 1.3 ms, GC 0.7 ms. The rest is first-run work: V8 compiling and running code the first selection takes for the first time (the reconciler's mount paths, the props panel's).
+  - A later click mounts the same panel again in 3.5 ms of task, only 1.5 ms of it JavaScript (profiled).
+- **Decision: no memoisation now.**
+  - A later click costs about 5 ms on either build, and React's share of it is about 1.5 ms; memoising the panels could save at most about that.
+  - The 55 ms G13 saw is its bench's one bracket click, the scene's first: a first-run cost that memoisation would not remove.
+  - What would cut it is warming that code ahead of the click (e.g. mounting the props panel's tree once while idle). That is a separate question, for the coordinator to decide.
+- **Not run**: a quiet-machine rerun (load 33–59 here).

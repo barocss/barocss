@@ -7,9 +7,9 @@ import { paletteList } from '../src/ui/paletteList';
 // D157's fix: a command's keywords must not take another command's label. The Shaft's "fillet chamfer key groove …"
 // made "fillet" + Enter open Shaft (Fillet unavailable with nothing picked sorts after it), failing 21 flow steps.
 // Typing each command's own label, with nothing picked, gives that command first — over every command.
-// (Six collisions older than R12c are named: they wait for the outer lane's ranking of an exact label first, and this
-// list must only shrink.)
-const WAITING = new Set(['pipe', 'sweep-curve', 'sheet-flange', 'frame', 'tube', 'move']);
+// (The six collisions older than R12c — pipe, sweep-curve, sheet-flange, frame, tube, move — cleared by the outer
+// lane's ranking of a label first, O134: none waits.)
+const WAITING = new Set<string>([]);
 
 test('the palette: each command\'s label typed gives that command first (empty part, and a plate with nothing picked)', () => {
   for (const doc of [emptyDoc(), rectanglePart(64, 32, 8)]) {
@@ -22,6 +22,6 @@ test('the palette: each command\'s label typed gives that command first (empty p
   }
   // The flow's own palette words.
   const ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
-  for (const [q, id] of [['fillet', 'fillet'], ['chamfer', 'chamfer'], ['hole', 'hole'], ['interference', 'interference'], ['spring', 'spring'], ['shaft', 'shaft'], ['worm gear pair', 'worm-pair'], ['meshing gear', 'gear-mesh']] as const)
+  for (const [q, id] of [['fillet', 'fillet'], ['chamfer', 'chamfer'], ['hole', 'hole'], ['interference', 'interference'], ['spring', 'spring'], ['cam', 'cam'], ['shaft', 'shaft'], ['worm gear pair', 'worm-pair'], ['meshing gear', 'gear-mesh']] as const)
     assert.equal(paletteList(q, ctx)[0]?.c.id, id, q);
 });

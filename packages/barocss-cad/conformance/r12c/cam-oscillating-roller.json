@@ -1,0 +1,84 @@
+{
+  "id": "r12c-cam-oscillating-roller",
+  "step": "R12c",
+  "decisions": [
+    "D160"
+  ],
+  "about": "R12c.6a: an oscillating roller follower — pivot 50 off the centre, arm 40, roller 5 on base 20 — swinging 15° by cycloidal rise and return over 120° each, 60° dwells.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "o",
+          "kind": "cam",
+          "base": 20,
+          "roller": 5,
+          "follower": "roller",
+          "motion": "oscillating",
+          "pivotDistance": 50,
+          "armLength": 40,
+          "thickness": 10,
+          "segments": [
+            {
+              "angle": 120,
+              "to": 15,
+              "law": "cycloidal"
+            },
+            {
+              "angle": 60
+            },
+            {
+              "angle": 120,
+              "to": 0,
+              "law": "cycloidal"
+            },
+            {
+              "angle": 60
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 20476.200066146386,
+          "relTol": 0.0001
+        },
+        "centroidMM": {
+          "value": [
+            -0.752701136094799,
+            -6.066858024120595,
+            5
+          ],
+          "absTol": 0.002
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "o.dwell1",
+          "o.dwell2",
+          "o.face0",
+          "o.face1",
+          "o.return1",
+          "o.rise1"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "The roller centre (a − l cos ψ, l sin ψ), cos ψ0 = (a² + l² − R_p²)/(2al), turned back by θ and offset 5 inward; area and centroid by Green's theorem."
+}

@@ -33,6 +33,27 @@ export function setFitPair(doc: StudioDoc, hole: string, shaft: string, remove =
   if (!remove) pairs.push({ hole, shaft });
   return { ...doc, fits: { ...f, version: 1, pairs } };
 }
+/**
+ * A key's width fit (O138): a planar face of a key (`n7.side0`), of a shaft's keyseat (`n0.keyseat1`) or of a hub's
+ * keyway (`n5.keyway`) carries a class like a cylinder; the size is the key's width, the limits the key's kernel fit
+ * (seat/hub as holes, the key as the shaft). Which of the three a face's name is, or null.
+ */
+export function keyFitRole(doc: Pick<StudioDoc, 'nodes'>, face: string): { role: 'key' | 'keyseat' | 'keyway'; node: number; seat?: number } | null {
+  const m = /^(n\d+)\.(.+?)(?:#\d+)?$/.exec(face); if (!m) return null;
+  const node = doc.nodes.findIndex(n => n.id === m[1]), n = doc.nodes[node]; if (!n) return null;
+  if (n.kind === 'key') return { role: 'key', node };
+  if (n.kind === 'keyway' && m[2] === 'keyway') return { role: 'keyway', node };
+  const seat = /^keyseat(\d+)$/.exec(m[2]);
+  if (n.kind === 'shaft' && seat) return { role: 'keyseat', node, seat: Number(seat[1]) };
+  return null;
+}
+/** The classes on a key's faces, its keyseat's and its hub keyway's (by the key node and the ids of what it sits in). */
+export function keyClasses(faces: readonly { face: string; class: string }[], ids: { key: string; shaft: string; keyseat: number; hub?: string }): { key?: string; seat?: string; hub?: string } {
+  const on = (test: (name: string) => boolean) => faces.find(f => test(f.face.replace(/#\d+$/, '')))?.class;
+  const key = on(n => n.startsWith(`${ids.key}.`)), seat = on(n => n === `${ids.shaft}.keyseat${ids.keyseat}`), hub = ids.hub ? on(n => n === `${ids.hub}.keyway`) : undefined;
+  return { ...(key ? { key } : {}), ...(seat ? { seat } : {}), ...(hub ? { hub } : {}) };
+}
+
 /** The class a face carries. */
 export const classOf = (doc: StudioDoc, face: string): string | undefined => doc.fits?.faces?.find(x => x.face === face)?.class;
 /** The classes the tables hold, holes first. */
@@ -57,7 +78,14 @@ export function fitNotes(doc: StudioDoc, outputs: readonly Output[]): Map<string
     const hit = find(face);
     if (!hit) { add('', { text: `${face} (${cls}): no face of that name now`, warning: true }); continue; }
     const g = faceGeometry(hit.x);
-    if (g.kind !== 'cylinder') throw new FitError('FIT_FACE', `${face} carries ${cls} but is not a cylinder now`);
+    // (A key's, keyseat's or keyway's side: the key's width fit, in the key's notes from its kernel fit, O138.)
+    const key = g.kind === 'plane' ? keyFitRole(doc, face) : null;
+    if (key) {
+      const hole = key.role !== 'key';
+      if (hole !== isHoleClass(cls)) throw new FitError('FIT_FACE', `${face} is ${key.role === 'key' ? "a key's side: give it a shaft's class (a small letter: h9)" : `a ${key.role}'s side: give it a hole's class (a capital letter: N9, JS9, P9)`}, not ${cls}`);
+      continue;
+    }
+    if (g.kind !== 'cylinder') throw new FitError('FIT_FACE', `${face} carries ${cls} but is not a cylinder now (a plane takes a class only on a key's, keyseat's or keyway's side)`);
     const hole = g.out === -1;
     if (hole !== isHoleClass(cls)) throw new FitError('FIT_FACE', `${face} is a ${hole ? 'hole' : 'shaft'}'s face: give it a ${hole ? "hole's class (a capital letter: H7)" : "shaft's class (a small letter: g6)"}, not ${cls}`);
     const l = lookupFit(tables, cls, 2 * g.r), src = tables.find(t => t.id === l.table)?.sources?.find(s => s.id === l.source);

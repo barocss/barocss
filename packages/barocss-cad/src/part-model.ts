@@ -48,6 +48,7 @@ import { seatedBearing, bearingRowProblem, BearingError, type BearingCode, type 
 import { keySolid, keywayCut, ringSolid, pinSolid, ShaftPartError, type KeyFitClasses, type KeyReport, type KeywayReport, type PinReport, type RingReport, type ShaftPartCode } from './shaft-parts.js';
 import type { FitTable } from './fits.js';
 import { shaftSolid, ShaftError, type ShaftDiagnosticCode, type ShaftReport, type ShaftSpec } from './shaft.js';
+import { discCam, CamError, type CamCode, type CamLaw, type CamReport, type CamSpec } from './cam.js';
 import { compressionSpring, hookedSpring, springDimensions, SpringError, type HookedSpringReport, type HookedSpringSpec, type SpringDiagnosticCode, type SpringReport, type SpringSpec } from './spring.js';
 import { throatedWormWheel, throatedWormPlacement, type ThroatedWheelReport, type ThroatedWheelSpec, type PlacedThroatedWheel } from './gear-worm-wheel.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
@@ -315,6 +316,23 @@ export type CadPartFeature = Base & (
     /** 'spring@0' (the default). */
     readonly generator?: 'spring@0' }
   /**
+   * A disc cam (R12c.6a, D160) for a `follower` roller | flat, its `motion` translating (the default; `offset` its line off
+   * the centre) or oscillating (`pivotDistance`, the roller's `armLength`, the face's `faceOffset`), the `roller` radius,
+   * the `base` circle, its `segments` — { angle (degrees), to (the follower's position, mm or the arm's degrees; omitted a
+   * dwell), law uniform | harmonic | cycloidal | polynomial-345 | modified-trapezoid } from 0 round to 0 over 360° —
+   * `thickness`, `bore`; `pressureAngleLimit` (degrees; default 30 translating, 35 oscillating, estimates), `faceWidth`
+   * checked, `profileTolerance` (default 1e-4·base). The cam turns counter-clockwise; the follower above it at `rotation` 0
+   * (degrees about +Z through `center`, from `from`). Faces `<id>.rise1#k`, `.dwell1#k`, `.return1#k`, `.bore#1`/`#2`,
+   * `.face0`/`.face1`. Refused: CAM_UNDERCUT, INVALID_INPUT.
+   */
+  | { readonly kind: 'cam'; readonly base: CadPartDim; readonly thickness: CadPartDim; readonly follower: 'roller' | 'flat'; readonly motion?: 'translating' | 'oscillating';
+    readonly roller?: CadPartDim; readonly offset?: CadPartDim; readonly pivotDistance?: CadPartDim; readonly armLength?: CadPartDim; readonly faceOffset?: CadPartDim; readonly faceWidth?: CadPartDim;
+    readonly segments: readonly { readonly angle: number; readonly to?: number; readonly law?: CamLaw }[];
+    readonly bore?: CadPartDim; readonly minimumRim?: CadPartDim; readonly pressureAngleLimit?: number; readonly profileTolerance?: number;
+    readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
+    /** 'cam@0' (the default). */
+    readonly generator?: 'cam@0' }
+  /**
    * A shaft (R12c.3a, D156): `steps` [{ diameter, length, fillet? (at the shoulder after it), undercut? { width, depth },
    * grooves? [{ diameter, width, at }], keyseats? [{ width, depth, length, offset, ends? square | end-mill (default) |
    * disc, cutterRadius?, angle? }] }] along +Z from `from` through `center`, `chamfers` [start, end], cross `holes`
@@ -532,6 +550,8 @@ export interface CadPartOutput {
   readonly wormWheelPlacement?: PlacedThroatedWheel;
   /** A spring's report: its dimensions, rate and stresses, the sweep's measured fit (R12c.1a; extension and torsion R12c.1b). */
   readonly spring?: SpringReport | HookedSpringReport;
+  /** A cam's report: its program, pressure angle, curvature, fit and the follower's sweep on the built profile (R12c.6a). */
+  readonly cam?: CamReport;
   /** A shaft's report: its steps, keyseats, grooves and holes (R12c.3a). */
   readonly shaft?: ShaftReport;
   /** A key's, a keyway's, a ring's or a pin's report and checks (R12c.3b). */
@@ -624,6 +644,7 @@ interface Part {
   readonly wormWheel?: ThroatedWheelReport;
   readonly wormWheelPlace?: PlacedThroatedWheel;
   readonly spring?: SpringReport | HookedSpringReport;
+  readonly cam?: CamReport;
   readonly shaft?: ShaftReport;
   readonly shaftPlace?: BrepAffine;
   readonly key?: KeyReport; readonly keyway?: KeywayReport; readonly ring?: RingReport; readonly pin?: PinReport;
@@ -660,6 +681,8 @@ const GLAND_CODES: Record<GlandCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT
 const BEARING_CODES: Record<BearingCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', SEAT_ABUTMENT: 'GEOMETRY', SEAT_FIT: 'GEOMETRY' };
 /** Shaft parts' diagnostics as the part model's codes. */
 const SHAFT_PART_CODES: Record<ShaftPartCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', KEY_FIT: 'GEOMETRY', RING_FIT: 'GEOMETRY', PIN_FIT: 'GEOMETRY' };
+/** Cam refusals as the part model's codes (the cam's own code kept in the message). */
+const CAM_CODES: Record<CamCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', CAM_UNDERCUT: 'GEOMETRY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY' };
 /** Spring diagnostics as the part model's codes (the spring's own code kept in the message). */
 const SPRING_CODES: Record<SpringDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', SELF_INTERSECTION: 'GEOMETRY', COILS_OVERLAP: 'GEOMETRY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', UNSUPPORTED_SPRING_KIND: 'CAPABILITY', LEG_OVERLAP: 'GEOMETRY' };
 type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
@@ -1966,6 +1989,29 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const cs = Math.cos(turn), sn = Math.sin(turn);
         const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, spring: made!.report }] };
+      };
+    }
+    case 'cam': {
+      if (f.generator !== undefined && f.generator !== 'cam@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const opt = (key: string) => f[key as keyof typeof f] === undefined ? undefined : dim(f[key as keyof typeof f] as CadPartDim, key);
+      const num = (key: string) => { const v = f[key as keyof typeof f]; if (v !== undefined && !(typeof v === 'number' && Number.isFinite(v))) fail('INPUT', `${key} must be a number`); return v as number | undefined; };
+      const segs = f.segments as unknown;
+      if (!Array.isArray(segs)) fail('INPUT', 'segments must be a list of { angle, to?, law? }');
+      const keys = ['angle', 'to', 'law'];
+      (segs as Record<string, unknown>[]).forEach((g, i) => { if (!g || typeof g !== 'object') fail('INPUT', `segments[${i}] must be { angle, to?, law? }`); const extra = Object.keys(g).find(x => !keys.includes(x)); if (extra) fail('INPUT', `segments[${i}].${extra} is not angle, to or law`); });
+      const spec: CamSpec = { baseRadiusMM: dim(f.base as CadPartDim, 'base', true), thicknessMM: dim(f.thickness as CadPartDim, 'thickness', true), follower: f.follower as CamSpec['follower'],
+        ...(f.motion !== undefined ? { motion: f.motion as CamSpec['motion'] } : {}), ...(f.roller !== undefined ? { rollerRadiusMM: opt('roller') } : {}), ...(f.offset !== undefined ? { offsetMM: opt('offset') } : {}),
+        ...(f.pivotDistance !== undefined ? { pivotDistanceMM: opt('pivotDistance') } : {}), ...(f.armLength !== undefined ? { armLengthMM: opt('armLength') } : {}), ...(f.faceOffset !== undefined ? { faceOffsetMM: opt('faceOffset') } : {}),
+        ...(f.faceWidth !== undefined ? { faceWidthMM: opt('faceWidth') } : {}), ...(f.bore !== undefined ? { boreDiameterMM: opt('bore') } : {}), ...(f.minimumRim !== undefined ? { minimumRimMM: opt('minimumRim') } : {}),
+        ...(f.pressureAngleLimit !== undefined ? { pressureAngleLimitDeg: num('pressureAngleLimit') } : {}), ...(f.profileTolerance !== undefined ? { profileToleranceMM: num('profileTolerance') } : {}),
+        segments: (segs as { angle: number; to?: number; law?: CamLaw }[]).map(g => ({ angleDeg: g.angle, ...(g.to !== undefined ? { to: g.to } : {}), ...(g.law !== undefined ? { law: g.law } : {}) })) };
+      const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (num('rotation') ?? 0) * Math.PI / 180;
+      return () => {
+        let made: { readonly brep: Brep; readonly report: CamReport } | undefined;
+        try { made = discCam(spec, { id: at }); } catch (cause) { if (cause instanceof CamError) fail(CAM_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^cam: /, '')}`); throw cause; }
+        const cs = Math.cos(turn), sn = Math.sin(turn);
+        const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, cam: made!.report }] };
       };
     }
     case 'spur-rack': {
@@ -3330,7 +3376,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   let validated: BrepCheckReport | undefined, area: number | undefined;
   const flats = new Map<string, FlatPattern>();
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

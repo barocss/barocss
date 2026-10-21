@@ -1,0 +1,83 @@
+{
+  "id": "r12c-cam-roller-cycloidal",
+  "step": "R12c",
+  "decisions": [
+    "D160"
+  ],
+  "about": "R12c.6a: S0's disc cam — base 20, roller 5, a cycloidal rise of 8 over 120°, dwell 60°, cycloidal return, dwell — 10 thick with a Ø8 bore; the profile fitted within 1e-4 of the base radius.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "cam",
+          "base": 20,
+          "roller": 5,
+          "follower": "roller",
+          "thickness": 10,
+          "bore": 8,
+          "segments": [
+            {
+              "angle": 120,
+              "to": 8,
+              "law": "cycloidal"
+            },
+            {
+              "angle": 60
+            },
+            {
+              "angle": 120,
+              "to": 0,
+              "law": "cycloidal"
+            },
+            {
+              "angle": 60
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 17878.657703193596,
+          "relTol": 0.0001
+        },
+        "centroidMM": {
+          "value": [
+            2.417469842541201,
+            -4.187180644916673,
+            5
+          ],
+          "absTol": 0.002
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "c.bore",
+          "c.dwell1",
+          "c.dwell2",
+          "c.face0",
+          "c.face1",
+          "c.return1",
+          "c.rise1"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "The exact profile (the pitch curve Rot(−θ)(0, 25 + s) less 5 along its normal) by Green's theorem: area and centroid, less the bore; the fit's deviation (≤ 2e-3 mm) times the perimeter bounds the volume's change."
+}

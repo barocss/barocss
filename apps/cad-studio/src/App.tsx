@@ -1,6 +1,7 @@
 import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
 import { placedBase, placedDoc, placementOf, type PartInstance } from '@barocss/cad-model/engine/doc';
+import { resolveSkeletons } from '@barocss/cad-model/frames/skeleton';
 import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type MeshRepairRecord, type ModelNode, type Side, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, featureId, nextSerial } from '@barocss/cad-model/engine/ids';
 import { MATERIALS } from '@barocss/cad-model/app/materials';
@@ -29,7 +30,7 @@ import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
 import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
-import { collectRecoveryBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs, setBlobStore } from '@barocss/cad-model/engine/blobs';
+import { blobStats, collectRecoveryBlobs, evictBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs, setBlobStore } from '@barocss/cad-model/engine/blobs';
 import { indexedDbBlobStore } from './ui/blobStore';
 // (The recovery copy's blobs kept in this browser's IndexedDB: the store set before the studio reads or writes one — PKG-g2.)
 setBlobStore(indexedDbBlobStore());
@@ -1183,6 +1184,17 @@ export function App() {
   /** What the worker is doing that the user waits on (checking or repairing a mesh): shown with its stage, stoppable. */
   const [stage, setStage] = useState<string | null>(null);
   const [repairAsk, setRepairAsk] = useState<{ mode: 'import' | 'edit'; node?: number; name: string; format?: string; unit: string; positions: ArrayLike<number>; indices: ArrayLike<number>; diagnosis: MeshDiagnosis; steps: MeshRepairSteps; result: MeshRepairResult | null } | null>(null);
+  // (PERF3 B13, O135: the mesh blobs no step reaches dropped at an idle point — two seconds after the last change, no
+  // repair asked; a chat turn holds sweeps while it runs. The roots: the document, every undo and redo step. DEV: the
+  // bytes each sweep freed, window.__studioBlobs.)
+  useEffect(() => {
+    if (repairAsk) return;
+    const t = setTimeout(() => {
+      const s = evictBlobs([doc, ...undo.map(u => u.doc), ...redo.map(r => r.doc), ...(evaluatedRef.current ? [evaluatedRef.current] : [])]);
+      if (s && import.meta.env.DEV) (window as unknown as { __studioBlobs: unknown }).__studioBlobs = { ...blobStats, kept: s.kept, graced: s.graced.length };
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [doc, undo, redo, repairAsk]);
   const stopStage = () => { engine.restart(); setStage(null); setToast({ title: 'Stopped', hint: 'The mesh check or repair was stopped; nothing changed.', detail: '' }); };
   const openMesh = async () => {
     if (!meshAsk || !meshInUnit) return;
@@ -2065,7 +2077,12 @@ export function App() {
         ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} onQuote={() => { void exportQuote(); }} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
-        onChange={p => commit({ ...doc, ...p, ...(p.configurations ? {} : { configurations: undefined }) })} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
+        onChange={p => {
+          // (O140: the skeletons bound to a parameter re-solved with it — a conflict refused, the parameter named, nothing changed.)
+          const r = resolveSkeletons({ ...doc, ...p, ...(p.configurations ? {} : { configurations: undefined }) });
+          if ('error' in r) { setToast({ title: 'That value does not hold', hint: r.error.replace(/^\[\w+\] /, ''), detail: 'The parameters are as they were.' }); return; }
+          commit(r.doc);
+        }} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
       {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} onError={m => setToast({ title: 'Could not use that image', hint: m, detail: '' })} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
         onChange={commitRender} onExport={exportImage} fov={fov}

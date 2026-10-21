@@ -231,6 +231,17 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
       break;
     }
+    case 'cam': {
+      // (R12c.6a, D160: the lift scales every position of the program alike; the laws and angles stay.)
+      const g = (n: ModelNode) => n as typeof node, top = (n: ModelNode) => Math.max(...g(n).segments.map(x => x.to ?? 0));
+      number('rb', 'Base circle radius', 'mm', n => g(n).base, (n, v) => ({ ...g(n), base: v }));
+      if (node.follower === 'roller') number('rr', 'Roller radius', 'mm', n => g(n).roller ?? 0, (n, v) => ({ ...g(n), roller: v }));
+      number('h', node.motion === 'oscillating' ? 'Swing' : 'Lift', node.motion === 'oscillating' ? '°' : 'mm', top, (n, v) => { const k = top(n) > 0 ? v / top(n) : 0; return { ...g(n), segments: g(n).segments.map(x => x.to === undefined ? x : { ...x, to: x.to * k }) }; });
+      number('t', 'Thickness', 'mm', n => g(n).thickness, (n, v) => ({ ...g(n), thickness: v }));
+      number('bore', 'Bore Ø (0: none)', 'mm', n => g(n).bore ?? 0, (n, v) => { const next = { ...g(n) }; if (v > 0) next.bore = v; else delete next.bore; return next; });
+      number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
+      break;
+    }
     case 'spring': {
       // (R12c.1a, D153: a compression spring; editing G drops its estimate flag — the value is the user's then.)
       const g = (n: ModelNode) => n as typeof node;
