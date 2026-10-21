@@ -5277,3 +5277,31 @@ The coordinator's request after 8788eafec: the kernel lane's Shaft command lists
 
 - `src/ui/paletteRank.ts` ranks each match: 0 the label is the text; 1 the label starts with it; 2 a word of the label starts with it; 3 the label holds it; 4 only the keywords or id hold it. Availability orders the commands within a rank, then the toolbar's order. A keyword can never beat a label, whatever is available.
 - `test/palette-rank.test.ts`: every command's label typed gives it (or one of the same label) first, available or not. A command keyed "fillet chamfer" comes after every label match for "fillet" and "chamfer".
+
+## O135 — PERF3 B13: mesh blobs evicted at idle points (2026-10-22)
+
+The coordinator approved O130 with both choices as proposed, plus: an unlisted-holder test; an evicted-then-requested hash logged as an error; no sweep mid recovery write; and a DEV counter of the bytes freed. Built at 60441d33a and f29337d8b.
+
+- **`evictBlobs(roots, pinned)`** (engine/blobs.ts) keeps:
+  - every hash the roots name through `blobRefs`, which now also walks open proposals' ops for mesh nodes (P2's gap);
+  - every pinned hash (`pinBlobs` → release);
+  - every blob put since the last sweep (`fresh`, the grace generation), returned as `graced`.
+- **Everything else is dropped**:
+  - its bytes are counted in `blobStats` (sweeps, lastFreed, freed, lastDropped);
+  - the hashes are remembered (capped at 4096): a later `getBlob` of one logs an error and records it in `blobStats.evictedAsked`, naming a missed holder.
+- **Holds**: `holdSweeps()` makes a sweep return null. ChatPanel holds sweeps for a whole turn, merge included. `saveRecoveryBlobs` holds while it writes.
+- **The studio**: the sweep runs 2 s after the last change to the document or undo/redo, never while a repair is asked. Its roots are the document, every undo and redo step, and the evaluated document. DEV: `window.__studioBlobs` (the stats, kept and graced).
+- **The worker in lockstep**:
+  - `WireSender` subscribes to `onBlobsEvicted`;
+  - `forget(hashes)` removes them from `sentBlobs` and queues them;
+  - the next `pack` carries `dropped`, which `WireReceiver.unpack` drops before it puts that message's blobs;
+  - a blob put back is therefore sent again (P3's gap).
+- **Tests** (`test/blob-evict.test.ts`):
+  - grace, then the drop with its bytes;
+  - four random sessions of 120 steps: mesh adds and deletes, undo, redo, proposals made and accepted, a pinned repair, sweeps. After every sweep, every hash any root names is present and every root's blobs resolve;
+  - an unlisted holder: kept by grace and reported, then gone, with the error logged;
+  - holds;
+  - the wire in step: forgotten, `dropped` sent, and re-sent when put back.
+  The S0's P2 now asserts the fix.
+- **Flow step**: an STL is opened, then a new part. The idle sweeps run while the mesh document is an undo step; undo and redo build it, and no dropped blob is asked for. The bytes freed are printed for the record.
+- **Not measured yet**: the effect on a 200k-triangle mesh session. The counter is there to read it.
