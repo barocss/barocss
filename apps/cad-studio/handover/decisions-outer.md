@@ -5341,3 +5341,18 @@ The coordinator's queue after O137, the kernel lane's open studio item. Fit clas
   - a row missing (the kernel's lookup error).
   The kernel's KEY_FIT rule stands: with classes, the key is modelled at its seat's width.
 - **Tests**: `test/key-fit.test.ts`, with the test's own estimate rows. N9/h9 gives −30 to +30 µm, JS9/h9 −15 to +45, both transition; plus the refusals and the plain-plane refusal. The flow step "key width fit (O138)…" loads the table in the Library panel, builds the shaft, hub, keyway and key through the real chat, classes the three sides through the chat, and reads both notes from the key's body.
+
+## O139 — retaining-ring rows in the Library panel (2026-10-22)
+
+The coordinator's queue, the kernel lane's open studio item. A studio ring was always an estimate: part.ts sent the kernel `row: { estimate: true }` whatever the ring.
+
+- **The rows**: `doc.rings: { version: 1, rows }` (engine/rings.ts). Each row is `{ id, designation?, shaftDiameterMM, grooveDiameterMM, grooveWidthMM, source | estimate: true }`.
+  - `ringRowProblem` refuses unknown fields, a size that is not above 0, a groove Ø not below the shaft's, and a row with neither or both of source and estimate.
+  - `editRingRows` adds or replaces rows by id, removes them, and keeps a row a ring uses.
+  - `ringRowsFor(doc, shaftØ, grooveØ)` finds the rows that fit a groove.
+  - None is built in.
+- **The ring**: a `retaining-ring` node takes `row?`. The Retaining ring command gains a Ring row choice: the person's rows, or None (an estimate). Its default is the row that fits the first groove's sizes.
+- **Evaluation**: part.ts gives the kernel the row it names, in its part model's field names (shaftDiameter, grooveDiameter, grooveWidth). The first mapping used the …MM names, which the kernel ignores, so nothing was checked; the test found it. Its `ringSolid` checks the step's and the groove's sizes (RING_FIT). A row the document no longer holds is refused as [RING_ROW_UNKNOWN]. A ring with no row stays an estimate, said with a warning.
+- **The notes**: a ring on a row cites it ("Its groove checked against your ring row (the maker's sheet)"), with no estimate warning.
+- **The studio**: the Library panel's RINGS section loads a JSON file of rows (one or a list), lists them with their sizes and source, and removes them (refused, and said, for a used row).
+- **Tests**: `test/ring-rows.test.ts`: the default offered and cited; no row, an estimate; refusals for a row for another groove (RING_FIT), a row gone, a used row removed, and bad rows. `fields.test.ts`' every-field document includes `rings`. The flow step "ring rows (O139)…" loads a row in the Library panel, makes the shaft and its ring on that row through the real chat, reads the citation, and has the row's removal refused.

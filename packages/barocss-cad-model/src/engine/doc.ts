@@ -305,7 +305,7 @@ type ModelNodeBase = SketchNode
   | { kind: 'bearing'; row: string; shaft: number; step: number; against: 'start' | 'end'; housing?: number; shaftClass?: string; housingClass?: string }
   | { kind: 'key'; shaft: number; keyseat: number; height: number; width?: number; length?: number; ends?: 'round' | 'square'; hub?: number }
   | { kind: 'keyway'; parent: BodyRef; face: string; width: number; depth: number; angle?: number }
-  | { kind: 'retaining-ring'; shaft: number; groove: number; thickness: number; outerDiameter: number }
+  | { kind: 'retaining-ring'; shaft: number; groove: number; thickness: number; outerDiameter: number; /** The user's ring row it is checked against (O139); none: an estimate. */ row?: string }
   | { kind: 'pin'; shaft: number; hole: number; diameter?: number; length?: number; fit?: boolean }
   | { kind: 'worm'; starts: number; form: 'ZI' | 'ZA'; length: Dim; bore?: Dim; thicknessReduction?: Dim; mesh: BevelMesh; generator: 'worm@0' }
   | { kind: 'gear';
@@ -412,6 +412,8 @@ export interface StudioDoc {
   bearings?: { version: 1; rows: import('@barocss/cad').BearingRow[] };
   /** R12c.5 (D159): the user's O-ring rows (none built in), each citing its source or flagged an estimate. */
   orings?: { version: 1; rows: import('@barocss/cad').ORingRow[] };
+  /** The user's retaining-ring rows (O139): none built in. */
+  rings?: { version: 1; rows: import('./rings').StudioRingRow[] };
   frames?: { version: 1; stock?: FrameStockRow[]; kerfMM?: number; /** FRc (O117): the user's section library — none built in (D122); a frame's section may name a row. */ sections?: FrameSectionRow[]; /** FRd1 (O118): the person's welds, by joint id (frames/welds.ts) — kind, size (mm), all round, the bore welded or not (theirs alone), notes; unset, the rule's. */ welds?: { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; allRound?: boolean; inner?: boolean; notes?: string }[] };
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
@@ -537,7 +539,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);

@@ -3854,6 +3854,45 @@ try {
   });
 
 
+  // ---- O139: retaining-ring rows loaded in the Library panel (none built in) ---------------------------------------------
+  await check('ring rows (O139): a ring row loaded in the Library panel (none built in); the default shaft and its ring made through the chat on that row — the ring cites it, no estimate warning; the row it uses cannot be removed', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const file = join(out, 'rings.json'); fs.writeFileSync(file, JSON.stringify([{ id: 'r20', designation: '20 × 1.2', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' }]));
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="Ring rows"]'), /No ring rows: load your own .* None is built in/);
+      await page.setInputFiles('input[aria-label="Ring rows file"]', file);
+      await page.waitForFunction(() => window.__studioDoc.rings?.rows?.length === 1, null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Ring row r20"]'), /20 × 1\.2 Ø20 shaft · groove Ø19 × 1\.3 · the maker's sheet/);
+    } finally { await page.click('[aria-label="Close library"]'); }
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      if (!await page.locator('[aria-label="Chat message"]').count()) await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), cmd = (command, values, sel) => ({ tool: 'features', args: { action: 'command', command, values, ...(sel ?? {}) } });
+      const calls = [cmd('shaft', {}), cmd('retaining-ring', { row: 'r20' }, { bodies: ['b0'] })];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      assert.deepEqual(await page.locator('.chat-tool.err').allInnerTexts(), []);
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'retaining-ring' && n.row === 'r20'), null, { timeout: 60000 }); await idle();
+    await page.locator('.outliner .ol', { hasText: /^Retaining ring/ }).first().click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /checked against your ring row/.test(x.textContent ?? '')), null, { timeout: 30000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.trim());
+    assert.ok(notes.some(t => t === 'Its groove checked against your ring row (the maker\'s sheet)'), notes.join(' | '));
+    assert.ok(!notes.some(t => /an estimate: your ring's row/.test(t)), notes.join(' | '));
+    // (The row the ring uses stays: removing it is refused, said.)
+    await page.click('[aria-label="Library"]');
+    try {
+      await page.click('[aria-label="Remove ring row r20"]');
+      await page.waitForFunction(() => /used by a retaining ring/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 10000 });
+      assert.equal(await page.evaluate(() => window.__studioDoc.rings.rows.length), 1);
+    } finally { await page.click('[aria-label="Close library"]'); }
+  });
+
   // ---- O138: a key's width fit — classes on the key's, keyseat's and keyway's sides -----------------------------------
   await check('key width fit (O138): a fit table loaded (none built in); the default shaft, a hub with its keyway and the key made through the chat, h9 on the key\'s side, N9 on the keyseat, JS9 on the keyway — both width fits in the key\'s notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
