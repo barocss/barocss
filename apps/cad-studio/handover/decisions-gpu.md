@@ -704,4 +704,8 @@ Measured before anything was changed; the coordinator's order.
   16 → 6. The one-frame select and clear rows' GPU floor 3 → 4 ms (one run at load 33 drew 3.07).
 - **Checks** (v2): gpu tsc and eslint clean, unit 80/80, browser 12/12; studio tsc and eslint clean, suite 194/194. Not run:
   the full flow (the coordinator's), the cad-model suite.
+- **G15-D2 (the coordinator's change to D1, 2026-10-22)**: the measure readout and the box's size chip are drawn over the
+  scene (`over`), at full strength, as the SVG drew them — a readout anchored between two faces is almost always inside the
+  body, and a faint readout fails at the one thing it is for. The anchor's depth rule (with the hidden share) stays for the
+  underlays' texts and other world labels.
 

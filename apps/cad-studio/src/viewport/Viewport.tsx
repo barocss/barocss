@@ -393,20 +393,21 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const r = renderer.current; if (!r?.setOverlayLines) return;
     r.setOverlayLines('measure', mlKey ? { segments: mlKey.split(',').map(Number), ...MEASURE_LOOK, color: ACCENT_OF[themeName] } : null); request();
   }, [mlKey, themeName, backend]);
-  // G15: the box's size and the measure's readout as chips (the SVG's colours a theme), engine labels on WebGPU.
+  // G15: the box's size and the measure's readout as chips (the SVG's colours a theme), engine labels on WebGPU — over the
+  // scene at full strength, as the SVG drew them (G15-D2: a readout anchored between two faces is inside the body).
   const bbLabel = bb && !sketching ? bb.label : '';
   useEffect(() => {
     const r = renderer.current; if (!r?.setOverlayLabels) return;
     const b = bbKey ? bbKey.split(',').map(Number) : null;
     // (Above the box in the world — 0.4 of its diagonal over its top's centre, clear of its far corner — as the SVG chip sat above it on screen.)
     const lift = b ? 0.4 * Math.hypot(b[3] - b[0], b[4] - b[1], b[5] - b[2]) : 0;
-    r.setOverlayLabels('bbox:label', b ? { labels: [{ text: bbLabel, at: [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, b[5] + lift], size: 12, align: [0.5, 1], offset: [0, -4] }], ...chipLook(themeName), hidden: 0.6 } : null); request();
+    r.setOverlayLabels('bbox:label', b ? { labels: [{ text: bbLabel, at: [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, b[5] + lift], size: 12, align: [0.5, 1], offset: [0, -4] }], ...chipLook(themeName), over: true } : null); request();
   }, [bbKey, bbLabel, themeName, backend]);
   const mlLabel = ml ? ml.label : '';
   useEffect(() => {
     const r = renderer.current; if (!r?.setOverlayLabels) return;
     const m = mlKey ? mlKey.split(',').map(Number) : null;
-    r.setOverlayLabels('measure:label', m ? { labels: [{ text: mlLabel, at: [(m[0] + m[3]) / 2, (m[1] + m[4]) / 2, (m[2] + m[5]) / 2], size: 12, align: [0.5, 1], offset: [0, -8] }], ...chipLook(themeName), hidden: 0.75 } : null); request();
+    r.setOverlayLabels('measure:label', m ? { labels: [{ text: mlLabel, at: [(m[0] + m[3]) / 2, (m[1] + m[4]) / 2, (m[2] + m[5]) / 2], size: 12, align: [0.5, 1], offset: [0, -8] }], ...chipLook(themeName), over: true } : null); request();
   }, [mlKey, mlLabel, themeName, backend]);
   const underlayKeys = useRef<string[]>([]);
   useEffect(() => {
