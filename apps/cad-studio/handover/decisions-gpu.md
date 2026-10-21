@@ -403,6 +403,12 @@ against the code as it is now:
   (0.6), the measure line (0.75) and the underlays (0.35) draw their hidden parts faint; SVG drew all of them alike over
   everything. The SubD cage stays over the body (`lineOver`): R8.2's design (the cage is the thing edited; its pick is the
   CPU's projection, through the body), so its look is unchanged.
+- **Decision (G7-D1, confirmed by the coordinator 2026-10-21)**: overlay lines are depth-tested with their hidden parts drawn
+  faint (`OverlayLines.hidden`, the viewer's `lineHidden`), not hidden — the usual CAD convention, and a measure line that
+  vanishes inside the body is worse than one shown through it. The shares, to tune later in one place (`Viewport.tsx`'s
+  `BBOX_LOOK`, `MEASURE_LOOK`, `UNDERLAY_LOOK`): measure line 0.75 (the thing asked for, read through the body), bounding
+  box 0.6 (its back edges must read on light faces: 0.35 was barely visible in the mass step's screenshot), underlays 0.35
+  (a drawing under the part, context only). The SubD cage is drawn over the body (`lineOver`), as R8.2 designed it.
 - **Evidence**:
   - gpu browser test G7 (new): a depth-tested line hidden under a box and shown beside it; an over line shown and picked over it;
     a hidden-faint line between the body's grey and its colour there (210,107,211 over 147,147,149; 255,0,255 beside); a 6/6 px
