@@ -352,6 +352,44 @@ fn lineColor(in: LOut) -> vec4f {
 @fragment fn fsHidden(in: LOut) -> @location(0) vec4f { return lineColor(in) * object.params.w; }
 `;
 
+/**
+ * Points as screen-space sprites, one instance each (G8): size in device pixels (object.params.x), a border inside the
+ * edge (.y pixels, colour object.cap.rgb), a disc (.z 1) or a square (.z 0); edges by coverage, blended. fsHidden draws
+ * the parts behind surfaces at object.params.w of their opacity.
+ */
+export const pointWGSL = common + /* wgsl */ `
+struct POut { @builtin(position) clip: vec4f, @location(0) color: vec4f, @location(1) world: vec3f, @location(2) @interpolate(linear) local: vec2f }
+@vertex fn vs(@builtin(vertex_index) vi: u32, @location(0) p: vec3f, @location(1) c: vec4f) -> POut {
+  var o: POut;
+  let w = object.model * vec4f(p, 1.0);
+  let q = frame.viewProj * w;
+  if (q.w < 1e-6) { o.clip = vec4f(0.0, 0.0, -1.0, 1.0); return o; }
+  var corners = array<vec2f, 6>(vec2f(-1.0, -1.0), vec2f(1.0, -1.0), vec2f(1.0, 1.0), vec2f(-1.0, -1.0), vec2f(1.0, 1.0), vec2f(-1.0, 1.0));
+  // (A pixel more than its half size each way, for the coverage at its edge.)
+  let r = max(object.params.x, 1.0) * 0.5 + 1.0;
+  let k = corners[vi];
+  o.clip = vec4f(q.xy + k * r / (frame.viewport.xy * 0.5) * q.w, q.zw);
+  o.local = k * r;
+  o.color = c * object.color;
+  o.world = w.xyz;
+  return o;
+}
+fn pointColor(in: POut) -> vec4f {
+  if (clippedAway(in.world)) { discard; }
+  let half = max(object.params.x, 1.0) * 0.5;
+  let d = select(max(abs(in.local.x), abs(in.local.y)), length(in.local), object.params.z > 0.5);
+  let cover = clamp(half - d + 0.5, 0.0, 1.0);
+  if (cover <= 0.0) { discard; }
+  var col = in.color;
+  if (object.params.y > 0.0) { col = mix(col, vec4f(object.cap.rgb, object.color.a), clamp(d - (half - object.params.y) + 0.5, 0.0, 1.0)); }
+  let a = col.a * cover;
+  if (a <= 0.0) { discard; }
+  return vec4f(col.rgb * a, a);
+}
+@fragment fn fs(in: POut) -> @location(0) vec4f { return pointColor(in); }
+@fragment fn fsHidden(in: POut) -> @location(0) vec4f { return pointColor(in) * object.params.w; }
+`;
+
 /** The ground grid: the plane through the up axis at the grid height, ray-cast per pixel. */
 export const gridWGSL = common + /* wgsl */ `
 struct GOut { @builtin(position) pos: vec4f, @location(0) ndc: vec2f }

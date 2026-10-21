@@ -5139,7 +5139,10 @@ try {
     await page.waitForSelector('[aria-label="Workspace summary"]', { timeout: 30000 });
     const text = await page.locator('[aria-label="Workspace summary"]').innerText();
     assert.match(text, /^Workspace of 20000 poses: \d+ voxels of 10 mm, reach \d+\.\d mm, best manipulability \d/);
-    assert.ok(await page.locator('[aria-label="Workspace map"] path').count() >= 2, 'the voxels drawn in bands');
+    // (Engine points on WebGPU, G8: one a voxel; SVG paths a band on WebGL2.)
+    const voxels = Number(text.match(/(\d+) voxels/)[1]);
+    if (await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu')) assert.equal(await drawnLines('cloud', ''), voxels, 'the voxels drawn, one point each');
+    else assert.ok(await page.locator('[aria-label="Workspace map"] path').count() >= 2, 'the voxels drawn in bands');
     await snap('rm9b-workspace');
     await page.click('[aria-label="Hide workspace"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Workspace map"]'));
   });

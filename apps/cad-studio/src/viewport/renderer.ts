@@ -31,6 +31,18 @@ export interface InstanceItem { id: string; bodies: BodyResult[]; threads?: Floa
 /** The mould as the viewport shows it (G6): the loops (world polylines), the halves' bodies, the pull and the spread. */
 export interface MouldShown { pull: Vec3; loops: { points: Vec3[]; closed: boolean }[]; plus: BodyResult[]; minus: BodyResult[]; spread: number }
 /** A section's plane on the GPU (G2): kept where dot(normal, p) ≥ offset; `bodies`: the part's bodies cut by it too (not yet exact). */
+/** World points for an overlay (G8): a colour each (sRGB 0–1, rgb) or one; size and border in CSS pixels. */
+export interface OverlayPoints {
+  positions: ArrayLike<number>;
+  colors?: ArrayLike<number>;
+  color?: string;
+  size: number;
+  shape?: 'circle' | 'square';
+  border?: { width: number; color: string };
+  opacity?: number;
+  over?: boolean;
+  hidden?: number;
+}
 /** World line segments for an overlay (G7): six numbers a segment; a colour (CSS, sRGB), a width and dashes in CSS pixels. */
 export interface OverlayLines {
   segments: ArrayLike<number>;
@@ -94,7 +106,9 @@ export interface ViewRenderer {
    * key, uploaded once and depth-tested (or over the scene); null removes them. Not picked, clipped or counted in the bounds.
    */
   setOverlayLines?(key: string, lines: OverlayLines | null): void;
-  /** The overlay lines shown, segments a key (G7; for the flow). */
+  /** Overlay points drawn by the engine (WebGPU only, G8): sprites at world points under a key (the overlay lines' keys apart). */
+  setOverlayPoints?(key: string, points: OverlayPoints | null): void;
+  /** The overlay lines and points shown, segments or points a key (G7, G8; for the flow). */
   overlayLines?(): Record<string, number>;
   pickHalf?(x: number, y: number, camera: OrbitCamera): { half: '+' | '-'; index: number } | null;
   pickInstance?(x: number, y: number, camera: OrbitCamera): string | null;

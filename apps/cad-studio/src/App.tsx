@@ -602,6 +602,8 @@ export function App() {
     const dirOf = (deg: number, quarter: number): Vec3 => { const t = (deg + quarter) * Math.PI / 180; return [Math.cos(t) * x[0] + Math.sin(t) * y[0], Math.cos(t) * x[1] + Math.sin(t) * y[1], Math.cos(t) * x[2] + Math.sin(t) * y[2]]; };
     return { id: u.id, lines: u.polylines.map(l => l.map(at)), texts: u.texts.map(t => ({ at: at(t.at), dir: dirOf(t.angle, 0), up: dirOf(t.angle, 90), text: t.text, height: t.height })) };
   }), [doc.underlays]);
+  /** A synthetic workspace map for the bench (G8, DEV: `__studioSetCloud`), shown in place of the arm's. */
+  const [benchCloud, setBenchCloud] = useState<{ at: Vec3; t: number }[] | null>(null);
   const workspaceCloud = useMemo(() => { if (!workspace) return null; const best = Math.max(0, ...workspace.voxels.map(v => v.w)); return workspace.voxels.map(v => ({ at: v.c as Vec3, t: best > 0 ? v.w / best : 0 })); }, [workspace]);
   // (A path checked is for the pose it was checked to: moving a joint clears it.)
   useEffect(() => setPathCheck(null), [jointValues, jointTree]);
@@ -1657,6 +1659,11 @@ export function App() {
     w.__studioSectionDebug = setSectionDebug;
     (window as unknown as { __studioSetSection: typeof setSection }).__studioSetSection = setSection;
     (window as unknown as { __studioOverlayLines: () => Record<string, number> }).__studioOverlayLines = () => viewport.current?.overlayLines() ?? {};
+    // (n points spread through a box, coloured by height; 0: none.)
+    (window as unknown as { __studioSetCloud: (n: number, min: Vec3, max: Vec3) => void }).__studioSetCloud = (n, min, max) => setBenchCloud(n > 0 ? Array.from({ length: n }, (_, i) => {
+      const u = (i * 0.61803398875) % 1, v = (i * 0.7548776662) % 1, w = (i * 0.5698402910) % 1;
+      return { at: [min[0] + u * (max[0] - min[0]), min[1] + v * (max[1] - min[1]), min[2] + w * (max[2] - min[2])] as Vec3, t: w };
+    }) : null);
   });
   const sectionFrom = nextSerial(evaluated);
   const shownSelection = sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
@@ -1850,7 +1857,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} clip={sectionClip} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} clip={sectionClip} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
