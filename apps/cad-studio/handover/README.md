@@ -195,6 +195,8 @@ track boundary); after it the kernel lane's queue below. The FR → R12b block b
 - R12b.7's, R12.5's and FR4b's agents are the scripted one (L2). A live model building them needs the owner's OK.
 - Run the full flow on its own (beside the kernel suite some drawing and A5 steps time out).
 - PKG's rule until it runs: no new imports from domain code into `src/ui/` or `src/viewport/`, no new browser globals outside them.
+- FRg's 3D skeleton constraints take numbers only; binding their values to parameters waits until after G17 (the GPU lane's drag solve will want it too). The coordinator's note, 2026-10-22.
+- FRf2's open item: a placed part's frame following a sibling needs each part evaluated with its siblings (describe, placedBodies, the mates' solve). Refused FRAME_PART_SCOPE until the owner decides.
 
 **How to resume**
 1. Read this block, then D129–D138 in `decisions.md` (the gear model), then the PKG design note `handover/notes/research-package-boundary-2026-10-21.md` if PKG is under way.
