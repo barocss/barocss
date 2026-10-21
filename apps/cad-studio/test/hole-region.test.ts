@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { withNode, rectanglePart } from '@barocss/cad-model/engine/doc';
-import { addedHoles, holeGroup, holeRegions, regionMesh } from '../src/app/holeRegion';
+import { addedHoles, holeGroup, holeRegions, regionMesh } from '@barocss/cad-model/app/holeRegion';
 
 const box = { min: [0, 0, 0], max: [32, 32, 8] };
 

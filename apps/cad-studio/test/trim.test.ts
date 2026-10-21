@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { trimAt, trimPreview } from '../src/sketch/trim';
+import { trimAt, trimPreview } from '@barocss/cad-model/sketch/trim';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { sampleOutline } from '@barocss/cad-model/sketch/profile';
 import type { SketchShape } from '../src/viewport/Viewport';
@@ -49,7 +49,7 @@ test('trim: an open line is cut back to its crossings, or split in two; a lone c
 });
 
 test('extend: a line runs on to the shape ahead of it; an arc round its circle; nothing ahead is refused', async () => {
-  const { extendAt, extendPreview, splitAt } = await import('../src/sketch/trim');
+  const { extendAt, extendPreview, splitAt } = await import('@barocss/cad-model/sketch/trim');
   const { arcOf } = await import('@barocss/cad-model/sketch/profile');
   const rect: SketchShape = { kind: 'rectangle', a: [0, 0], b: [20, 10] };
   // A line from inside, stopping short of the right edge: its end runs on to x = 20.

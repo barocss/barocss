@@ -11,9 +11,9 @@ import { tableLayout, tableSize, cellText, TABLE_PAD, TABLE_ROW, TABLE_TEXT, typ
 import { bendTable, tableContent } from '@barocss/cad-model/drawing/tables';
 import { textWidth } from '@barocss/cad-model/drawing/text';
 import { readDrawing, type DrawingSettings, type DrawingTable } from '@barocss/cad-model/drawing/types';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '@barocss/cad-model/drawing/svg';
+import { sheetPdf } from '@barocss/cad-model/drawing/pdf';
+import { sheetDxf } from '@barocss/cad-model/drawing/dxf';
 import { dxfText } from '@barocss/cad';
 
 // The drawing table (O49) and R12's bend table on it. A table laid out from its content (widths from its texts, its box

@@ -50,7 +50,7 @@ export interface ViewRenderer {
   /** Cosmetic thread rings (line segments, WebGPU only). */
   setThreads?(lines: Float32Array): void;
   /** See-through tool regions (a hole's whole cylinder) as a mesh and its rims (WebGPU only). */
-  setRegions?(mesh: ReturnType<typeof import('../app/holeRegion').regionMesh> | null): void;
+  setRegions?(mesh: ReturnType<typeof import('@barocss/cad-model/app/holeRegion').regionMesh> | null): void;
   /** Direct curves and surfaces (WebGPU only), and the one under a point. */
   setDirect?(items: import('@barocss/cad-model/engine/direct').DirectDisplay[], selected: readonly string[]): void;
   pickDirect?(x: number, y: number, camera: OrbitCamera): string | null;

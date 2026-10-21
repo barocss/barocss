@@ -8,7 +8,7 @@ import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, TOOLS } from '@barocss/cad-model/chat/tools';
 import { canonicalOf, integrate, rebase, revisionOf, VERIFIER_VIEW_KEYS, verifierView, type Patch, type VerifierView } from '@barocss/cad-model/team/team';
-import { runScenario, runSummary, scriptedVerifier, STALE_REVISION, type Scenario } from '../src/team/scripted';
+import { runScenario, runSummary, scriptedVerifier, STALE_REVISION, type Scenario } from '@barocss/cad-model/team/scripted';
 import { cliMain } from '../server/cadCli';
 
 // A7 (O30–O31): the multi-agent core, deterministic. The seeded-defect scenarios (conformance/a7): each defect stopped at

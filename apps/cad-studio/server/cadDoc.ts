@@ -5,7 +5,7 @@
 // studio's chat: its gates, its proposals (kept in the file for the user to accept in the studio).
 import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
-import { encodeStudioFile, readStudioFile } from '../src/engine/container';
+import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { registerTeamLibraries, serveMcp, type McpStore } from './cadMcp';
 

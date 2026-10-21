@@ -10,9 +10,9 @@ import { layoutSheet } from '@barocss/cad-model/drawing/views';
 import { snapPoints } from '@barocss/cad-model/drawing/dimensions';
 import { buildSheet, hatch, type Mark } from '@barocss/cad-model/drawing/sheet';
 import { sectionOf } from '@barocss/cad-model/drawing/section';
-import { sheetSvg } from '../src/drawing/svg';
-import { arcEntity, sectionDxfDocument, sheetDxf, sheetDxfDocument } from '../src/drawing/dxf';
-import { sketchDxfDocument } from '../src/sketch/dxf';
+import { sheetSvg } from '@barocss/cad-model/drawing/svg';
+import { arcEntity, sectionDxfDocument, sheetDxf, sheetDxfDocument } from '@barocss/cad-model/drawing/dxf';
+import { sketchDxfDocument } from '@barocss/cad-model/sketch/dxf';
 import { defaultDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '@barocss/cad-model/drawing/types';
 
 // R11b (O1): the drawing, a section and a sketch as DXF. The documents handed to the kernel's writer are the

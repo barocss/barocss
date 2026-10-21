@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { stepLengthUnit } from '@barocss/cad-model/engine/stepUnits';
-import { pdfMissing } from '../src/drawing/pdf';
+import { pdfMissing } from '@barocss/cad-model/drawing/pdf';
 
 test('STEP length units: millimetres, metres, inches, none declared', () => {
   assert.deepEqual(stepLengthUnit("#10=( LENGTH_UNIT() NAMED_UNIT(*) SI_UNIT(.MILLI.,.METRE.) );\n#11=( NAMED_UNIT(*) PLANE_ANGLE_UNIT() SI_UNIT($,.RADIAN.) );"), { name: 'millimetres', toMM: 1, declared: true });

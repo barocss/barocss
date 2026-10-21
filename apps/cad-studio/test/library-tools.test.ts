@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { acceptProposal, dispatchTool, runTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { confirmDocLibrary, libraryById, libraryEntry, shareRefusal } from '@barocss/cad-model/library/libraries';
 import { checkLibraryForSharing, UNLICENSED } from '@barocss/cad-model/library/sharing';
 import { createChatServer } from '../server/chatServer';

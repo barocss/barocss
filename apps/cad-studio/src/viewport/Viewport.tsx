@@ -6,13 +6,13 @@ import { Renderer, type EdgeRef, type FaceRef, type ThemeName, type ViewRenderer
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
-import { regionMesh, type ToolRegion } from '../app/holeRegion';
+import { regionMesh, type ToolRegion } from '@barocss/cad-model/app/holeRegion';
 import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '@barocss/cad-model/sketch/profile';
-import { extendPreview, splitPreview, trimPreview } from '../sketch/trim';
+import { extendPreview, splitPreview, trimPreview } from '@barocss/cad-model/sketch/trim';
 import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
 import { shapeOutline } from '@barocss/cad-model/sketch/loops';
 import { hvOf, isSettled, type SketchPick } from '@barocss/cad-model/sketch/rules';
-import { pickSketch } from '../sketch/select';
+import { pickSketch } from '@barocss/cad-model/sketch/select';
 import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
 import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';

@@ -6,7 +6,7 @@ import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
 import { blobRefs, blobsAsBase64, blobsFromBase64, getBlob, inlineMeshes, meshNodeBlobs, putKnownBlob, sha256 } from '@barocss/cad-model/engine/blobs';
-import { decodeStudioFile, encodeStudioFile, isContainer, readStudioFile } from '../src/engine/container';
+import { decodeStudioFile, encodeStudioFile, isContainer, readStudioFile } from '@barocss/cad-model/engine/container';
 import { WireReceiver, WireSender } from '@barocss/cad-model/engine/wireDoc';
 
 // M1 (R3.3): mesh arrays as blobs named by SHA-256; the .bcad container; plain JSON when there are none.

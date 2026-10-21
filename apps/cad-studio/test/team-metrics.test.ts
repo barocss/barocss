@@ -5,8 +5,8 @@ import { join, resolve } from 'node:path';
 import { Writable } from 'node:stream';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { metricsOf, type Labelled } from '../src/team/metrics';
-import { runPartsScenario, runScenario, type PartsScenario, type Scenario } from '../src/team/scripted';
+import { metricsOf, type Labelled } from '@barocss/cad-model/team/metrics';
+import { runPartsScenario, runScenario, type PartsScenario, type Scenario } from '@barocss/cad-model/team/scripted';
 import { cliMain } from '../server/cadCli';
 
 // A8.5 (O37): per-role precision and recall on the seeded defects. Every detector over the A7 and A8 scenarios against

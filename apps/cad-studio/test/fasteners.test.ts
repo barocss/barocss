@@ -4,7 +4,7 @@ import { evaluateDoc, stlFor, type BodyResult } from '@barocss/cad-model/engine/
 import { readStl } from '@barocss/cad';
 import { emptyDoc, featureLabel, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { commands, type Ctx } from '@barocss/cad-model/app/commands';
-import { editCommand } from '../src/app/editCommand';
+import { editCommand } from '@barocss/cad-model/app/editCommand';
 import { FASTENER_SIZES, fastenerFit, fastenerName, fastenerThread, holeFit, lengthsOf, sizeForHole } from '@barocss/cad-model/app/fasteners';
 
 const ctx: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };

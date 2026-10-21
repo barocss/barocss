@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { captureSignatures, refreshSignatures, verifyReferences } from '@barocss/cad-model/engine/references';
 
 // Stored references with their signatures (A1.3b): written with the reference, refreshed only by an accepted

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { roundCorner } from '../src/sketch/corner';
+import { roundCorner } from '@barocss/cad-model/sketch/corner';
 import { arcOf } from '@barocss/cad-model/sketch/profile';
 
 test('rounding a corner: an arc tangent to both edges, ends cut back, constraints renumbered', () => {

@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 
 // Observation (A2.1): facts after every change, what changed, and a face's or edge's detail on request.
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);

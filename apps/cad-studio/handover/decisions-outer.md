@@ -4271,3 +4271,45 @@ The coordinator merged PKG-c as 16f409e41 and agreed to skip PKG-d. That leaves 
   - app tsc 0; the package's type-check 0 and lint 0;
   - lint on the 232 edited studio files: 0 errors (91 existing `no-explicit-any` warnings in tests);
   - full flow 213/213.
+
+## O97 — PKG-f: the 48 dependents moved; server, ab and rb9 on the package (2026-10-21)
+
+The coordinator merged PKG-e as 8a3badab2. PKG-f moves the 48 files that depended on the SCC, the last of the model in the app.
+
+- **The move** (the same script, after fast-forwarding to 8a3badab2):
+  - 48 files `git mv`ed to the same subtree. Each is **byte-identical to its content before PKG-c** (48 of 48). Against HEAD, 3 are R100 and 45 are R090–R099, differing only by their own package specifiers, which are relative again (163 of them).
+  - **86 importers** re-pointed, 153 specifiers, including `server/` (cadCli, cadMcp, cadDoc, chatServer, `ab/`) and the tests.
+  - `scripts/rb9.mjs` bundles `packages/barocss-cad-model/src/rb9/main.ts`. Its ladder was run once by hand from the new entry.
+  - The emptied folders are removed: `io`, `machining`, `mould`, `print`, `rb9`, `robot`, `sketch`, `standards`, `team`.
+- **What the app keeps**:
+  - `App.tsx`, `main.tsx`, `styles.css`, `ui/`, `viewport/`;
+  - `app/{recovery,templates}`, `assembly/{useAssembly,faceClient,faces.worker}`, `chat/{client,images}`, `engine/{client,engine.worker}`, `subd/useCageEditor`;
+  - `drawing/drawing.css`, and `chat/tools-v1/v2.json` (until PKG-h).
+- **A third changeset** (minor), for the rest of the model.
+- **`test/pkg-boundary.test.ts`**:
+  - every `server/` file imports nothing of the model by a path into the app's `src/`; only the app's own client and worker files may be named that way;
+  - at least 190 package files are checked.
+- **Checks (T2; a move touches everything)**:
+  - lint of the 87 edited files: 0 errors (31 existing `no-explicit-any` warnings in tests);
+  - the package's lint and type-check 0; the kernel's lint 0; app tsc 0;
+  - studio suite 754 = 753 pass + 1 todo, its names unchanged;
+  - conformance 201/201;
+  - kernel suite 1368: 1363 pass, the 1 known environmental failure;
+  - full flow 213/213.
+- The first run of this verification never started (a backgrounded chain that died with its shell, no logs). The coordinator noticed. It was rerun as a tracked background task.
+
+## O98 — PKG-g: the boundary guarded by lint; DOM kept, PKG-g2 planned (2026-10-21)
+
+- **`eslint.config.mjs`** (root; a shared-config touch, declared). `no-restricted-imports`:
+  - **in `packages/barocss-cad-model/**`**, each refused by name with its reason: `react` and `react-dom`, `@barocss/gpu`, any `apps/` path or the studio app package, and the package's own name (inside it, modules import each other relatively);
+  - **in `packages/barocss-cad/**`**: `@barocss/cad-model`, so the kernel imports nothing of the model above it.
+  - Mutant-tested before landing, with two temporary files: in the model, `react`, `@barocss/gpu`, `../../../apps/cad-studio/src/ui/files` and `@barocss/cad-model/team/team` are each an error with its message; in the kernel, `@barocss/cad-model/team/team` is one. The real package and the kernel lint clean.
+- **DOM kept in the package's `lib`**: without it the package has **8 type errors**:
+  - `engine/blobs.ts`'s IndexedDB (`IDBDatabase`, `indexedDB`, `IDBTransaction`), browser storage inside the model;
+  - `engine/meshWire.ts`'s `Transferable`;
+  - `io/zip.ts`'s `BlobPart`.
+- **PKG-g2, next** (the coordinator's plan):
+  - a `BlobStore` interface the app sets, as `LibraryStore` (B4), so `engine/blobs.ts` stops naming IndexedDB;
+  - local structural types for `Transferable` and `BlobPart`;
+  - then DOM dropped from the package's `lib`, if it type-checks.
+- **Checks**: the same T2 run as PKG-f (O97), with this config in place: the package's and the kernel's lint 0.

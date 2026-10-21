@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { readStudioFile } from '../src/engine/container';
+import { readStudioFile } from '@barocss/cad-model/engine/container';
 import { treeOfDoc } from '@barocss/cad-model/chat/robot';
 import { forwardKinematics, type Motion } from '@barocss/cad-model/robot/fk';
 import type { JointTree } from '@barocss/cad-model/robot/joints';

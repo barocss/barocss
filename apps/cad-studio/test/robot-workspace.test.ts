@@ -11,7 +11,7 @@ import { applyTo, forwardKinematics } from '@barocss/cad-model/robot/fk';
 import { convexHull } from '@barocss/cad-model/robot/hull';
 import { probeAt, toolProbe } from '@barocss/cad-model/robot/ik';
 import { meshesMeet, partParent, sweepLinks } from '@barocss/cad-model/robot/sweep';
-import { workspaceMap, WorkspaceError } from '../src/robot/workspace';
+import { workspaceMap, WorkspaceError } from '@barocss/cad-model/robot/workspace';
 import type { Joint, JointTree } from '@barocss/cad-model/robot/joints';
 
 // RM9b (O62): a workspace map. The planar 2R (l₁ 80, l₂ 50) against its annulus 30 ≤ r ≤ 130 — every occupied voxel

@@ -9,7 +9,7 @@ import { chatStatus, newChatBlobs, runServerTurn, type ChatStatus } from '../cha
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { diffLine, withHistory } from '@barocss/cad-model/chat/proposals';
 import { treeDiff } from '@barocss/cad-model/chat/transactions';
-import { latestPump, reshareNodes } from '../chat/pump';
+import { latestPump, reshareNodes } from '@barocss/cad-model/chat/pump';
 import { modelHash } from '@barocss/cad-model/chat/spec';
 import { Icon } from './atoms';
 import './chat.css';

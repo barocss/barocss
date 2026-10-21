@@ -6,7 +6,7 @@ import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { resolveEdge, resolveFace } from '@barocss/cad-model/chat/names';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 
 // Selectors (A1.2): a face or edge said by what it is, resolved to its persistent name.
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);

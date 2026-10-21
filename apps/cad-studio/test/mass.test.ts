@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 import { rectanglePart } from '@barocss/cad-model/engine/doc';
-import { bodyMass, combined, inertiaAbout } from '../src/app/mass';
+import { bodyMass, combined, inertiaAbout } from '@barocss/cad-model/app/mass';
 
 test('mass: a block\'s inertia about its centre and about a corner, in steel; two bodies\' centre of mass', () => {
   const r = evaluateDoc(rectanglePart(40, 20, 10), 1); assert.ok(r.ok);

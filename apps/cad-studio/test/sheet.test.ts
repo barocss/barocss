@@ -4,7 +4,7 @@ import { commands } from '@barocss/cad-model/app/commands';
 import { profilePath } from '@barocss/cad-model/app/sheetCommands';
 import { evaluateDoc, evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, featureLabel, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { editFields } from '@barocss/cad-model/app/editFields';
 

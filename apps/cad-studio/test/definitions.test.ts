@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { rectanglePart, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { acceptRevision, dismissRevision, freshPartId, makeIndependent, offerRevision, revisionOf, sharing } from '../src/assembly/definitions';
+import { acceptRevision, dismissRevision, freshPartId, makeIndependent, offerRevision, revisionOf, sharing } from '@barocss/cad-model/assembly/definitions';
 
 const pin = rectanglePart(10, 10, 20), taller = rectanglePart(10, 10, 30);
 const placed = (id: string, part: string, x: number): PartInstance => ({ id, name: 'pin', doc: pin, position: [x, 0, 0], rotation: [0, 0, 0], part: { id: part, rev: 'A', source: 'pin.bcad' } });

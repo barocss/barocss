@@ -9,11 +9,11 @@ import { forwardKinematics } from '@barocss/cad-model/robot/fk';
 import { closureOfDoc } from '@barocss/cad-model/robot/loop';
 import { readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
 import { readUrdf } from '@barocss/cad-model/robot/urdfCheck';
-import { exportSdf } from '../src/robot/sdf';
-import { exportUsd } from '../src/robot/usd';
-import { modelFk, readSdf, readUsda, type RobotModel } from '../src/robot/modelCheck';
+import { exportSdf } from '@barocss/cad-model/robot/sdf';
+import { exportUsd } from '@barocss/cad-model/robot/usd';
+import { modelFk, readSdf, readUsda, type RobotModel } from '@barocss/cad-model/robot/modelCheck';
 import type { Mat3 } from '@barocss/cad-model/robot/inertia';
-import { fromQuat } from '../src/robot/modelCheck';
+import { fromQuat } from '@barocss/cad-model/robot/modelCheck';
 import type { JointTree } from '@barocss/cad-model/robot/joints';
 
 // RM9c (O62): SDF 1.11 and USD (UsdPhysics, .usda), checked by our own readers: the same tree back (names, masses and

@@ -5,8 +5,8 @@ import { emptyDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } f
 import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { featureId } from '@barocss/cad-model/engine/ids';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
-import { splitAt, trimAt } from '../src/sketch/trim';
-import { roundCorner } from '../src/sketch/corner';
+import { splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
+import { roundCorner } from '@barocss/cad-model/sketch/corner';
 import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
 import { renameToTagged, withIds } from '@barocss/cad-model/sketch/entityIds';
 import type { SketchShape } from '../src/viewport/Viewport';

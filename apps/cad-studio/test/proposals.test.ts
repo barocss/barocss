@@ -5,7 +5,7 @@ import { emptyDoc, rectanglePart, type StudioDoc } from '@barocss/cad-model/engi
 import { acceptProposal, agentMayNotAccept, dispatchTool, leaveOutClosure, previewProposal, proposalParts, rebaseProposal, runTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { approvalOf, compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory, type HistoryEntry } from '@barocss/cad-model/chat/proposals';
 import { modelHash } from '@barocss/cad-model/chat/spec';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { defaultDrawing } from '@barocss/cad-model/drawing/types';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';

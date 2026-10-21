@@ -14,13 +14,15 @@ const IMPORT = /^\s*(?:import|export)\b[^;]*?from\s+'([^']+)'/gm;
 const importsOf = (p: string) => [...src(p).matchAll(IMPORT)].map(m => m[1]);
 
 test('PKG-b the blockers stay cut: sketch/*, assembly/drag, library/*, the CLI import nothing from viewport/ or ui/; library/ reaches no localStorage', () => {
-  // (What is still in the app and bound for the model — the sketch's dependents until PKG-f — and the CLI.)
-  const files = [...readdirSync(join(root, 'src/sketch')).filter(f => f.endsWith('.ts')).map(f => `src/sketch/${f}`), 'server/cadCli.ts'];
+  // (PKG-f, O97: the model is all in the package; the server — the CLI, MCP, chat server, ab — imports nothing of the UI.)
+  const files = readdirSync(join(root, 'server'), { recursive: true }).map(String).filter(f => f.endsWith('.ts')).map(f => `server/${f}`);
+  assert.ok(files.includes('server/cadCli.ts'));
+  for (const f of files) for (const spec of importsOf(f)) assert.ok(!/(^|\/)src\/(?!ui\/|viewport\/)/.test(spec) || /src\/(app\/(recovery|templates)|chat\/(client|images)|engine\/client|assembly\/(useAssembly|faceClient)|subd\/useCageEditor)/.test(spec), `${f} imports the model by path: ${spec}`);
   for (const f of files) for (const spec of importsOf(f)) assert.ok(!/(^|\/)(viewport|ui)\//.test(spec), `${f} imports ${spec}`);
   // (PKG-c, O95: what moved to @barocss/cad-model imports nothing of the app — relative paths stay inside the package.)
   const pkg = join(root, '../../packages/barocss-cad-model/src'), moved: string[] = [];
   const walk = (d: string) => { for (const n of readdirSync(d, { withFileTypes: true })) { const p = join(d, n.name); if (n.isDirectory()) walk(p); else if (n.name.endsWith('.ts')) moved.push(p); } };
-  walk(pkg); assert.ok(moved.length >= 140, String(moved.length));
+  walk(pkg); assert.ok(moved.length >= 190, String(moved.length));
   for (const f of moved) for (const m of readFileSync(f, 'utf8').matchAll(IMPORT)) assert.ok(!m[1].startsWith('.') || !join(f, '..', m[1]).startsWith(join(root, 'src')), `${f} reaches back into the app: ${m[1]}`);
   for (const f of moved) for (const m of readFileSync(f, 'utf8').matchAll(IMPORT)) assert.ok(!/^(react|@barocss\/gpu)/.test(m[1]), `${f} imports ${m[1]}`);
   // (PKG-e, O96: the library — moved — still reaches no browser storage.)

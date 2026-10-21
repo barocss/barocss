@@ -10,9 +10,9 @@ import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { drawingInputs } from '@barocss/cad-model/chat/drawing';
 import { drawingIssues, fixAll, issueContext } from '@barocss/cad-model/drawing/issues';
 import { readDrawing } from '@barocss/cad-model/drawing/types';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '@barocss/cad-model/drawing/svg';
+import { sheetPdf } from '@barocss/cad-model/drawing/pdf';
+import { sheetDxf } from '@barocss/cad-model/drawing/dxf';
 import { cutListSource } from '@barocss/cad-model/app/cutList';
 
 // FR4b (D128): the frames' acceptance — a welded table frame and a 2020-class T-slot frame, each built by the agent's

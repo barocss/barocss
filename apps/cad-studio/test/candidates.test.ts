@@ -7,8 +7,8 @@ import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { canonical, canonicalOf } from '@barocss/cad-model/team/team';
-import { CandidateBoard, type Evidence, type Reopen } from '../src/team/candidates';
-import { runBoardScenario, type BoardScenario } from '../src/team/boardScenario';
+import { CandidateBoard, type Evidence, type Reopen } from '@barocss/cad-model/team/candidates';
+import { runBoardScenario, type BoardScenario } from '@barocss/cad-model/team/boardScenario';
 
 // A7.5 (O94; #2181): candidates isolated, verified, approved. The oracles are the closed forms (a 20 × 10 × h block is
 // 200·h mm³) and the board's own contract; the mutants break the replay (facts, a verdict, an unreadable file), deliver
@@ -55,7 +55,7 @@ test('A7.5 isolation: two candidates built on R0 leave it unchanged and do not s
 
 test('A7.5 the replay gate, mutants: the part read back with other facts, a verdict measured past its tolerance, a file that does not read — each refused by name, the part unchanged', async () => {
   const s = await seeded();
-  const bent = (f: (e: Evidence) => Evidence | { error: string }): Reopen => async bytes => { const real = await (await import('../src/team/candidates')).inProcessReopen(evaluate)(bytes); return 'error' in real ? real : f(real); };
+  const bent = (f: (e: Evidence) => Evidence | { error: string }): Reopen => async bytes => { const real = await (await import('@barocss/cad-model/team/candidates')).inProcessReopen(evaluate)(bytes); return 'error' in real ? real : f(real); };
   for (const [reopen, code] of [
     [bent(e => ({ ...e, facts: { ...e.facts, volume_mm3: e.facts.volume_mm3 + 1 } })), 'REPLAY_FACTS_DIFFER'],
     [bent(e => ({ ...e, verdicts: { ...e.verdicts, H: { ...e.verdicts.H, measured: (e.verdicts.H.measured ?? 0) + 0.02 } } })), 'REPLAY_VERDICT_DIFFERS'],
