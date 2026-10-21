@@ -4460,3 +4460,28 @@ The coordinator's limit: the contract has 355 characters left, so **no new tool*
   - `cad-cli cam-preview`, spawned: the two files, the JSON's first key the banner, the SVG's first line the banner, no G-code token (G0–G3, M3/M6) in any file.
 - **The CNC track's roadmap items** (CNC1–CNC8) are all done: O84–O89, O101–O103, with S0s O83 and O100. Still open: the title block's material and finish cells (R14), 5-axis and undercut cutters, and a quote package for machining.
 - **Checks: T1**. A model module, the CLI and a test; no UI and no T2 file, so no flow step is affected.
+
+## O104 — IM8 S0: casting — modulus, hot spots, allowances, die-casting draft; the plan (2026-10-21)
+
+The coordinator's order after CNC8: IM8 (casting presets, allowances, section and solidification checks), then the parts of IM7 that do not need the kernel's face split. Evidence is in `test/im8-s0.test.ts` (4 probes), each against a closed form. Before it, the integration branch was merged (K3, K4: the kernel's one point–triangle distance and nearest query).
+
+- **P1, the casting modulus** M = V/A, from exact volume and area:
+  - a 100 × 100 × 10 plate is 100000 / 24000 = 4.1667; a 20 mm cube is 20 / 6 = 3.3333;
+  - **Chvorinov's rule** (solidification time ∝ M²; the physics, derived and not copied) gives the ratio (M₁/M₂)² = 1.5625: the plate freezes last.
+- **P2, the hot spot of an L junction** (walls 4, a sharp inside corner):
+  - **a finding**: IM4's local thickness, an inscribed sphere at each face's inward ray, reads 4 everywhere. The junction's ball lies on no face's ray, so IM4 misses the hot spot;
+  - **the largest inscribed ball**, found along the corner's bisector with the kernel's exact nearest distance (`nearestDistance2`, K2–K4), is 2r = 2t(2 − √2) = 4.686 to 2e-3;
+  - so IM8's section check searches the distance field for its local maxima, the hot spots. It does not use the per-face sphere.
+- **P3, a pattern's shrink allowance**, from NPTEL's foundry lecture (`archive.nptel.ac.in/…/metalcasting/lecture3.htm`, read 2026-10-21; inches per foot by metal and size band):
+  - aluminium up to 4 ft, 0.155 in/ft: 100 mm cast is 101.2917 on the pattern;
+  - cast steel up to 2 ft, 0.251 in/ft: 102.0917.
+- **P4, die-casting draft per alloy** (Dynacast's die-cast design guide, read 2026-10-21: "0.5º is achievable for zinc", "1º-2º is achievable for aluminum"), on IM2's exact draft field: a block drafted 0.75° meets zinc's 0.5° and not aluminium's 1°.
+- **Sources found and not used for values**:
+  - Dynacast's FAQ (tolerances ±0.001–0.002 in for zinc, ±0.002–0.004 in for aluminium, walls "typically 2mm for aluminum") is to read page by page in IM8a;
+  - a handbook table seen only through a third-party upload is not used;
+  - percentage shrink figures disagree between sources, so the inch-per-foot table is the one used.
+- **The plan**, each stage with closed-form oracles, mutants and a flow step, in the one manufacturability report:
+  - **IM8a, casting presets**: process profiles `die-casting` (zinc, aluminium, magnesium by family) and `sand-casting`. Each value sourced page by page (W-WEB) or derived (W-DERIVED) or an estimate: draft, least wall, tolerance. The material's alloy family chooses.
+  - **IM8b, allowances**: shrink by alloy and size band (the lecture's table, W-WEB), the machining allowance (the user's or an estimate, as CNC7b's), draft by process. A pattern's dimensions are scaled, exported as a scaled STEP and the factors in JSON.
+  - **IM8c, sections and solidification**: the distance field's local maxima (the largest inscribed balls, the kernel's nearest query) as hot spots, each with its modulus. Chvorinov's ordering: a hot spot with no path of rising modulus to a feeder (the gate, set by the user) is an isolated hot spot, a shrink-porosity risk, warned with where it is. Section changes are steeper than a ratio, sourced or an estimate.
+  - **Then IM7's parts without the face split**: core and cavity halves from IM5's parting where faces do not straddle, side-core directions from IM3's undercut side actions, shut-off candidates. The split surfaces wait for the kernel.
