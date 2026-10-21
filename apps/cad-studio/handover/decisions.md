@@ -7791,3 +7791,42 @@ Track K's second step (the PKG design note's G4–G6; the coordinator's 2026-10-
 - `@barocss/cad-model` lint and type-check clean.
 - Studio: tsc clean; eslint on the changed tests 0 errors; the suite 756/758 with the known `todo` (O80) and one failure, `hollow`'s sphere cavity test on its "refused at once" (< 1000 ms) wall-clock assert under the full suite's load — `print/hollow.ts` uses none of the changed code, and it passed alone twice and in the suite's next full run.
 - The flow and RB not run (no studio-visible behaviour changed; the coordinator's verify worktree runs the flow).
+
+## D142 — K3: the exact clearance between two meshes, one point–triangle (2026-10-21)
+
+Track K's third step (the PKG design note's G3 and G12). The studio measured how far apart two meshes are in two ways of its own: the robot sweep's `meshDistance` (RM6/RM9a: every triangle pair, pruned by the pairs' boxes; also used by keep-out checks, the assembly gate and an RB9 rung) and the analysis tool's `clearance` (A2.2: each mesh's vertices against the other's triangles, by brute force). Both, and one more private point–triangle (the display mesh's chord measure), now use the kernel.
+
+**Decision:**
+- **Kernel** `src/mesh-clearance.ts`, exported: `meshClearance(pa, ia, pb, ib, { bvhA?, bvhB? })` → `{ distanceMM, pointA, pointB, triangleA, triangleB }`.
+  - The least distance between the two surfaces over every pair of triangles, with the closest points on each and their triangles. **0 where they touch or cross** (an edge of one through the other), Infinity when either mesh has no triangle.
+  - A dual descent of the two meshes' K2 hierarchies: a pair of nodes is split on its larger box, the nearer child pair taken first; a pair whose boxes are as far apart as the best found is skipped. It stops at 0.
+  - Two triangles: 0 when an edge of one crosses the other; else the least of the six corner–triangle (Ericson 5.1.5) and nine edge–edge (5.1.9) distances — the sweep's own formulas, so its distances are reproduced.
+  - Prebuilt trees can be passed (`bvhA`, `bvhB`) for meshes that do not move.
+  - The name is kept apart from R9's `meshDistance`, which is one-way (the largest distance from one mesh's samples to the other's surface) and stays as it was.
+- **`@barocss/cad-model`:**
+  - `robot/sweep.ts`: `meshDistance` and its private point–triangle, segment–segment and box helpers removed; the sweep's exact step uses `meshClearance(…).distanceMM`. `meshesMeet` (the contact test, with its containment parity) stays.
+  - The other three users (`chat/references` keep-outs, `team/assembly`'s gate, `rb9/rungs-enclosure`'s hook gaps) and the two robot tests take the kernel's.
+  - `chat/analysis.ts`: `clearance` is `meshClearance`; its private `pointTriangle2` removed. `near` is now the closest point on the pair's first body (the old one was a vertex of either).
+  - `engine/mesh.ts`: the chord measure's private point–triangle replaced by the kernel's `pointTriangleDistance2` (K2).
+  - Not here: `app/measure.ts`'s `closestOnTriangle` (it returns the point, and belongs with K4's closest-point queries) and `print/hollow.ts`'s (K6).
+
+**A defect fixed in the analysis clearance:** vertices against triangles miss edge–edge minima. Two 40 × 10 × 10 bars turned 45° about X and about Y, one 16 above the other, cross edge to edge 16 − 10√2 = 1.858 mm apart: the `interference` tool said 15.713 mm (a corner against a face), the kernel says 1.858. On parts whose closest features are a face and a corner (the boxes and cylinders below) nothing changed but `near`.
+
+**Results matched** (a before/after snapshot, not kept: three parts — three boxes, a box with two cylinders, the crossed bars — every pair's `meshDistance` and the `interference` tool):
+- The sweep's distances: identical to the last bit (1.8578643798828125 on the crossed bars, 25.355339061882727 between the cylinders).
+- `interference`: the same clearances but the crossed bars' (the defect above); `near` moved to the first body's side (on a tie of a whole face, another point of the same face).
+
+**Speed:** two bumpy spheres of 28 800 triangles each, about 1 mm apart: the sweep's box-pruned all-pairs search 5283 ms, the kernel 38 ms (139×; both trees built in the call).
+
+**Oracles** (`packages/barocss-cad/test/k3-mesh-clearance.test.mjs`, 3 tests, 1.8 s; none of them the kernel's):
+- an all-pairs brute force written apart (a point to a triangle by its plane and edges, segments by the lines' interior solution or the end distances, a crossing by an edge's sign change), on 60 random triangle soups, crossing and apart (both counts asserted), within 1e-9; the witnesses: |pA − pB| is the distance, pA on A's surface and pB on B's (by the K2 nearest query);
+- closed forms: 40 random box pairs (the per-axis gaps' norm) to 1e-12; the crossed bars 16 − 10√2 to 1e-12, at the crossing over the origin; a box inside a box 2 (surfaces, not volumes); touching and overlapping boxes 0;
+- coarse sphere meshes against the brute force; 28 800 × 28 800 triangles in well under its bound, between the bumps' limits; the one-way `meshDistance` a different quantity on the same pair; prebuilt trees the same.
+- The brute force itself first gave NaN on the sphere meshes' degenerate pole triangles (a zero-area plane, a zero-length edge); the kernel did not. The oracle was fixed (a triangle of no area is its edges), not the kernel.
+- The test fails on the previous HEAD: `meshClearance` did not exist.
+
+**Checks — T1** (no kernel source but the new file and the index):
+- Kernel lint and type-check clean; `k3-mesh-clearance` 3/3.
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed tests 0 errors; the suite 760/762 with the known `todo` (O80) and the known `hollow` "at once" timing flake (logged at K2), which passed in the next full run.
+- Conformance, the full kernel suite, the flow and RB not run (T1).

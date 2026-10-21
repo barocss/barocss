@@ -7,13 +7,14 @@
 // joint-to-joint distances down the chain to the link (fixed in their links) plus the link's own reach from its joint;
 // a slide moves a point by exactly |Δq|. The clearance comes from the links' convex hulls first (GJK: a prefilter; a
 // hull distance is never more than the true one); where hulls meet, from the meshes themselves: an exact test for
-// contact (an edge through the inside of a triangle, or one inside the other) and else their least distance.
+// contact (an edge through the inside of a triangle, or one inside the other) and else their least distance (the
+// kernel's exact `meshClearance`, K3).
 // Parent and child are not checked (they meet at their joint by design, as simulators do), nor pairs whose relative
 // pose the path does not change (said so if they touch).
 import type { BodyResult } from '../engine/evaluate';
 import type { JointTree } from './joints';
 import { forwardKinematics, type Motion } from './fk';
-import { convexDistance } from '@barocss/cad';
+import { convexDistance, meshClearance } from '@barocss/cad';
 
 export interface SweepLink { link: string; /** Its mesh at home (world, mm): every body of its part, merged. */ positions: Float64Array; indices: Uint32Array; /** Its convex hull's corners at home (world, mm). */ hull: Float64Array }
 export interface SweepResult {
@@ -101,7 +102,7 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
           if (r === 0 && s === 0) { skipped.push({ links: [A, B], why: 'in contact where the path starts and not moved by it' }); rate.set(`${A}|${B}`, -1); continue; }
           return { contact: { s, values: fk.values, links: [A, B] }, clear: false, minClearance: { mm: 0, s, links: [A, B] }, samples, pairs, skipped };
         }
-        d = meshDistance(pa.mesh, la.indices, pb.mesh, lb.indices);
+        d = meshClearance(pa.mesh, la.indices, pb.mesh, lb.indices).distanceMM;
       }
       if (r < 0) continue;
       if (!min || d < min.mm) min = { mm: d, s, links: [A, B] };
@@ -162,74 +163,6 @@ function inside(x: number, y: number, z: number, P: ArrayLike<number>, I: ArrayL
   for (let k = 0; k < I.length / 3; k++) { load(tB, P, I, k); if (pierces(x, y, z, x + 1e6 * 0.5773, y + 1e6 * 0.5782, z + 1e6 * 0.5763, tB)) n++; }
   return n % 2 === 1;
 }
-/** Each triangle's box (min x y z, max x y z) into `out`. */
-function boxesOf(P: ArrayLike<number>, I: ArrayLike<number>, out: Float64Array): Float64Array {
-  for (let k = 0; k < I.length / 3; k++) for (let q = 0; q < 3; q++) {
-    const a = P[I[k * 3] * 3 + q], b = P[I[k * 3 + 1] * 3 + q], c = P[I[k * 3 + 2] * 3 + q];
-    out[k * 6 + q] = Math.min(a, b, c); out[k * 6 + 3 + q] = Math.max(a, b, c);
-  }
-  return out;
-}
-/**
- * The least distance between two meshes' triangles (a vertex to a triangle, either way; an edge to an edge). A pair whose
- * boxes are already as far apart as the best found is skipped: a box gap is never more than its triangles' distance, so
- * the result is the same, and the near pairs alone are measured (RM9a: the time of impact's last steps measure them).
- */
-export function meshDistance(PA: ArrayLike<number>, IA: ArrayLike<number>, PB: ArrayLike<number>, IB: ArrayLike<number>): number {
-  let best = Infinity;
-  const na = IA.length / 3, nb = IB.length / 3, bA = boxesOf(PA, IA, new Float64Array(na * 6)), bB = boxesOf(PB, IB, new Float64Array(nb * 6));
-  for (let i = 0; i < na; i++) {
-    let loaded = false;
-    for (let j = 0; j < nb; j++) {
-      let gap = 0;
-      for (let q = 0; q < 3; q++) { const g = Math.max(bB[j * 6 + q] - bA[i * 6 + 3 + q], bA[i * 6 + q] - bB[j * 6 + 3 + q], 0); gap += g * g; }
-      if (gap >= best * best) continue;
-      if (!loaded) { load(tA, PA, IA, i); loaded = true; }
-      load(tB, PB, IB, j);
-      for (let v = 0; v < 3; v++) { best = Math.min(best, pointTriangle(tA[v * 3], tA[v * 3 + 1], tA[v * 3 + 2], tB), pointTriangle(tB[v * 3], tB[v * 3 + 1], tB[v * 3 + 2], tA)); }
-      for (let e = 0; e < 3; e++) for (let f = 0; f < 3; f++) best = Math.min(best, segSeg(tA, e, (e + 1) % 3, tB, f, (f + 1) % 3));
-    }
-  }
-  return best;
-}
-/** A point's distance to a triangle (Ericson's regions). */
-function pointTriangle(px: number, py: number, pz: number, t: Float64Array): number {
-  const ax = t[0], ay = t[1], az = t[2], abx = t[3] - ax, aby = t[4] - ay, abz = t[5] - az, acx = t[6] - ax, acy = t[7] - ay, acz = t[8] - az, apx = px - ax, apy = py - ay, apz = pz - az;
-  const d1 = abx * apx + aby * apy + abz * apz, d2 = acx * apx + acy * apy + acz * apz;
-  let cx: number, cy: number, cz: number;
-  const bpx = px - t[3], bpy = py - t[4], bpz = pz - t[5], d3 = abx * bpx + aby * bpy + abz * bpz, d4 = acx * bpx + acy * bpy + acz * bpz;
-  const cpx = px - t[6], cpy = py - t[7], cpz = pz - t[8], d5 = abx * cpx + aby * cpy + abz * cpz, d6 = acx * cpx + acy * cpy + acz * cpz;
-  const vc = d1 * d4 - d3 * d2, vb = d5 * d2 - d1 * d6, va = d3 * d6 - d5 * d4;
-  if (d1 <= 0 && d2 <= 0) { cx = ax; cy = ay; cz = az; }
-  else if (d3 >= 0 && d4 <= d3) { cx = t[3]; cy = t[4]; cz = t[5]; }
-  else if (vc <= 0 && d1 >= 0 && d3 <= 0) { const v = d1 / (d1 - d3); cx = ax + v * abx; cy = ay + v * aby; cz = az + v * abz; }
-  else if (d6 >= 0 && d5 <= d6) { cx = t[6]; cy = t[7]; cz = t[8]; }
-  else if (vb <= 0 && d2 >= 0 && d6 <= 0) { const w = d2 / (d2 - d6); cx = ax + w * acx; cy = ay + w * acy; cz = az + w * acz; }
-  else if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0) { const w = (d4 - d3) / ((d4 - d3) + (d5 - d6)); cx = t[3] + w * (t[6] - t[3]); cy = t[4] + w * (t[7] - t[4]); cz = t[5] + w * (t[8] - t[5]); }
-  else { const den = 1 / (va + vb + vc), v = vb * den, w = vc * den; cx = ax + abx * v + acx * w; cy = ay + aby * v + acy * w; cz = az + abz * v + acz * w; }
-  return Math.hypot(px - cx, py - cy, pz - cz);
-}
-/** The least distance between two segments (Ericson 5.1.9). */
-function segSeg(a: Float64Array, i: number, j: number, b: Float64Array, k: number, l: number): number {
-  const p1 = [a[i * 3], a[i * 3 + 1], a[i * 3 + 2]], q1 = [a[j * 3], a[j * 3 + 1], a[j * 3 + 2]], p2 = [b[k * 3], b[k * 3 + 1], b[k * 3 + 2]], q2 = [b[l * 3], b[l * 3 + 1], b[l * 3 + 2]];
-  const d1 = [q1[0] - p1[0], q1[1] - p1[1], q1[2] - p1[2]], d2 = [q2[0] - p2[0], q2[1] - p2[1], q2[2] - p2[2]], r = [p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]];
-  const A = d1[0] * d1[0] + d1[1] * d1[1] + d1[2] * d1[2], E = d2[0] * d2[0] + d2[1] * d2[1] + d2[2] * d2[2], F = d2[0] * r[0] + d2[1] * r[1] + d2[2] * r[2];
-  let s: number, t: number;
-  if (A <= 1e-18 && E <= 1e-18) { s = 0; t = 0; }
-  else if (A <= 1e-18) { s = 0; t = Math.min(1, Math.max(0, F / E)); }
-  else {
-    const C = d1[0] * r[0] + d1[1] * r[1] + d1[2] * r[2];
-    if (E <= 1e-18) { t = 0; s = Math.min(1, Math.max(0, -C / A)); }
-    else {
-      const B = d1[0] * d2[0] + d1[1] * d2[1] + d1[2] * d2[2], den = A * E - B * B;
-      s = den > 1e-18 ? Math.min(1, Math.max(0, (B * F - C * E) / den)) : 0;
-      t = (B * s + F) / E;
-      if (t < 0) { t = 0; s = Math.min(1, Math.max(0, -C / A)); } else if (t > 1) { t = 1; s = Math.min(1, Math.max(0, (B - C) / A)); }
-    }
-  }
-  return Math.hypot(p1[0] + d1[0] * s - p2[0] - d2[0] * t, p1[1] + d1[1] * s - p2[1] - d2[1] * t, p1[2] + d1[2] * s - p2[2] - d2[2] * t);
-}
-
 /** The links of a tree for a sweep: each part's bodies (as shown, world) merged, and their hull's corners. */
 export function sweepLinks(tree: JointTree, bodiesOf: (part: string) => readonly BodyResult[] | undefined, hullOf: (points: Float64Array) => Float64Array): SweepLink[] {
   const out: SweepLink[] = [];

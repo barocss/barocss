@@ -572,6 +572,8 @@ export { decimateMesh, type DecimateOptions, type DecimateReport, type DecimateR
 export { meshDistance, type MeshDistance } from './mesh-distance.js';
 // K2 (D141): the one triangle hierarchy, its ray and nearest-point queries.
 export { triangleBvh, rayHit, nearestDistance2, pointTriangleDistance2, type TriangleBvh, type TriangleBvhOptions } from './triangle-bvh.js';
+// K3 (D142): the least distance between two meshes' surfaces, exactly, with the closest points.
+export { meshClearance, type MeshClearance, type MeshClearanceOptions } from './mesh-clearance.js';
 // K1 (D140): generic convex geometry moved down from the studio's robot track.
 export { convexHull, HullError, type ConvexHull, type HullErrorCode } from './convex-hull.js';
 export { convexDistance } from './convex-distance.js';

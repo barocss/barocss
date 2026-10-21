@@ -9,8 +9,8 @@ import { solveDoc } from '@barocss/cad-model/chat/assembly';
 import { dispatchTool } from '@barocss/cad-model/chat/tools';
 import { treeOfDoc } from '@barocss/cad-model/chat/robot';
 import { applyTo, forwardKinematics } from '@barocss/cad-model/robot/fk';
-import { convexDistance, convexHull } from '@barocss/cad';
-import { meshDistance, meshesMeet, pathOf, reaches, sweepLinks, sweepPath } from '@barocss/cad-model/robot/sweep';
+import { convexDistance, convexHull, meshClearance } from '@barocss/cad';
+import { meshesMeet, pathOf, reaches, sweepLinks, sweepPath } from '@barocss/cad-model/robot/sweep';
 import type { Joint, JointTree } from '@barocss/cad-model/robot/joints';
 
 // RM6 (O19): the collision sweep — GJK against the polytopes' brute-force distance, the motion bound against dense
@@ -41,7 +41,7 @@ test('GJK: the distance between convex sets equals the polytopes\' brute-force d
   for (let k = 0; k < 60; k++) {
     const cloud = (cx: number) => Float64Array.from({ length: 60 }, (_, i) => (i % 3 === 0 ? cx : 0) + (rand() - 0.5) * 10);
     const a = cloud(0), b = cloud(4 + rand() * 12), ha = convexHull(a), hb = convexHull(b);
-    const brute = meshesMeet(ha.positions, ha.indices, hb.positions, hb.indices) ? 0 : meshDistance(ha.positions, ha.indices, hb.positions, hb.indices);
+    const brute = meshesMeet(ha.positions, ha.indices, hb.positions, hb.indices) ? 0 : meshClearance(ha.positions, ha.indices, hb.positions, hb.indices).distanceMM;
     assert.ok(Math.abs(convexDistance(a, b) - brute) < 1e-8, `${k}: ${convexDistance(a, b)} vs ${brute}`);
   }
 });
@@ -126,7 +126,7 @@ test('the 6R arm against a dense sweep with the exact mesh test: no contact the 
     // (Where it stopped, the two links are within the tolerance: a true contact, not a false alarm.)
     const fk = forwardKinematics(tree, r.contact.values), [A, B] = r.contact.links, pose = (id: string) => { const l = links.find(x => x.link === id)!, m = fk.motions.get(id)!, p = new Float64Array(l.positions.length); for (let i = 0; i < p.length; i += 3) { const v = applyTo(m, [l.positions[i], l.positions[i + 1], l.positions[i + 2]]); p[i] = v[0]; p[i + 1] = v[1]; p[i + 2] = v[2]; } return { p, i: l.indices }; };
     const a = pose(A), b = pose(B);
-    assert.ok(meshesMeet(a.p, a.i, b.p, b.i) || meshDistance(a.p, a.i, b.p, b.i) < 1e-5, JSON.stringify(r.contact));
+    assert.ok(meshesMeet(a.p, a.i, b.p, b.i) || meshClearance(a.p, a.i, b.p, b.i).distanceMM < 1e-5, JSON.stringify(r.contact));
   }
   assert.equal(r.pairs.length, 21 - 6, 'every pair of the seven links but the six parent–child ones');
 });

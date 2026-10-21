@@ -3,7 +3,7 @@
 // `x#2`: a cylinder wall in halves) shown as one face; display edges are the real B-rep edges minus
 // seams and smooth (tangent) joints, with connected pieces between the same two faces joined. Faces and
 // edges carry their persistent B-rep names, which features use to refer to them.
-import { faceGeometry, revolutionOf, surfaceDomain, surfaceEvaluator, tessellateBrep, type Brep, type BrepFace, type BrepMesh } from '@barocss/cad';
+import { faceGeometry, pointTriangleDistance2, revolutionOf, surfaceDomain, surfaceEvaluator, tessellateBrep, type Brep, type BrepFace, type BrepMesh } from '@barocss/cad';
 export { sub, cross, dot, len, unit as norm } from './vec3';
 import { sub, cross, dot, len, unit as norm } from './vec3';
 
@@ -238,29 +238,11 @@ function sampledChord(face: BrepFace, mf: { vertexOffset: number; vertexCount: n
   }
   return worst * CHORD_SAFETY;
 }
-/** A point's distance to the nearest triangle around the corners a, b, c (local vertices; `start`/`ring`: each vertex's triangles). */
+/** A point's distance to the nearest triangle around the corners a, b, c (local vertices; `start`/`ring`: each vertex's triangles, as their first index; the kernel's point–triangle, K3). */
 function ringDistance(x: number, y: number, z: number, P: ArrayLike<number>, I: ArrayLike<number>, start: Int32Array, ring: Int32Array, o: number, a: number, b: number, c: number): number {
   let best = Infinity;
-  for (let j = 0; j < 3; j++) { const v = j === 0 ? a : j === 1 ? b : c; for (let k = start[v]; k < start[v + 1]; k++) { const t = ring[k], d = pointTriangle(x, y, z, P, I[t] * 3, I[t + 1] * 3, I[t + 2] * 3); if (d < best) best = d; } }
-  return best;
-}
-/** A point's distance to the triangle a, b, c of P (offsets): the nearest of its face, edges and corners (Ericson's regions). */
-function pointTriangle(px: number, py: number, pz: number, P: ArrayLike<number>, a: number, b: number, c: number): number {
-  const abx = P[b] - P[a], aby = P[b + 1] - P[a + 1], abz = P[b + 2] - P[a + 2], acx = P[c] - P[a], acy = P[c + 1] - P[a + 1], acz = P[c + 2] - P[a + 2];
-  const apx = px - P[a], apy = py - P[a + 1], apz = pz - P[a + 2];
-  const d1 = abx * apx + aby * apy + abz * apz, d2 = acx * apx + acy * apy + acz * apz;
-  let qx: number, qy: number, qz: number;
-  const bpx = px - P[b], bpy = py - P[b + 1], bpz = pz - P[b + 2], d3 = abx * bpx + aby * bpy + abz * bpz, d4 = acx * bpx + acy * bpy + acz * bpz;
-  const cpx = px - P[c], cpy = py - P[c + 1], cpz = pz - P[c + 2], d5 = abx * cpx + aby * cpy + abz * cpz, d6 = acx * cpx + acy * cpy + acz * cpz;
-  const vc = d1 * d4 - d3 * d2, vb = d5 * d2 - d1 * d6, va = d3 * d6 - d5 * d4;
-  if (d1 <= 0 && d2 <= 0) { qx = P[a]; qy = P[a + 1]; qz = P[a + 2]; }
-  else if (d3 >= 0 && d4 <= d3) { qx = P[b]; qy = P[b + 1]; qz = P[b + 2]; }
-  else if (d6 >= 0 && d5 <= d6) { qx = P[c]; qy = P[c + 1]; qz = P[c + 2]; }
-  else if (vc <= 0 && d1 >= 0 && d3 <= 0) { const t = d1 / (d1 - d3); qx = P[a] + t * abx; qy = P[a + 1] + t * aby; qz = P[a + 2] + t * abz; }
-  else if (vb <= 0 && d2 >= 0 && d6 <= 0) { const t = d2 / (d2 - d6); qx = P[a] + t * acx; qy = P[a + 1] + t * acy; qz = P[a + 2] + t * acz; }
-  else if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0) { const t = (d4 - d3) / ((d4 - d3) + (d5 - d6)); qx = P[b] + t * (P[c] - P[b]); qy = P[b + 1] + t * (P[c + 1] - P[b + 1]); qz = P[b + 2] + t * (P[c + 2] - P[b + 2]); }
-  else { const den = 1 / (va + vb + vc), v = vb * den, w = vc * den; qx = P[a] + abx * v + acx * w; qy = P[a + 1] + aby * v + acy * w; qz = P[a + 2] + abz * v + acz * w; }
-  return Math.hypot(px - qx, py - qy, pz - qz);
+  for (let j = 0; j < 3; j++) { const v = j === 0 ? a : j === 1 ? b : c; for (let k = start[v]; k < start[v + 1]; k++) { const d = pointTriangleDistance2(P, I, ring[k] / 3, x, y, z); if (d < best) best = d; } }
+  return Math.sqrt(best);
 }
 /** A point's (u, v) on a surface by Gauss–Newton from (u, v), central differences, clamped to the domain: into UV; the residual. */
 function invertOn(S: (u: number, v: number) => readonly number[], dom: { u: [number, number]; v: [number, number] }, x: number, y: number, z: number, u: number, v: number, iterations = 40): number {

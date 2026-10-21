@@ -2,7 +2,7 @@
 // and draft. From the evaluated bodies (exact mass from the kernel; distances, rays and angles on the display
 // mesh, whose chord error is stated), or by evaluating a probe (an intersection, a split) with the kernel.
 // Names, keys and numbers only: no mesh index.
-import { nearestDistance2, rayHit, triangleBvh, type TriangleBvh } from '@barocss/cad';
+import { meshClearance, nearestDistance2, rayHit, triangleBvh, type TriangleBvh } from '@barocss/cad';
 import { withNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
@@ -39,37 +39,10 @@ const tri = new Float64Array(9);
 function triangleAt(m: DisplayMesh, t: number): void {
   for (let k = 0; k < 3; k++) { const i = m.indices[t * 3 + k]; tri[k * 3] = m.positions[i * 3]; tri[k * 3 + 1] = m.positions[i * 3 + 1]; tri[k * 3 + 2] = m.positions[i * 3 + 2]; }
 }
-/** Squared distance from p to the triangle in `tri` (closest point by regions). */
-function pointTriangle2(px: number, py: number, pz: number): number {
-  const ax = tri[0], ay = tri[1], az = tri[2], abx = tri[3] - ax, aby = tri[4] - ay, abz = tri[5] - az, acx = tri[6] - ax, acy = tri[7] - ay, acz = tri[8] - az;
-  const apx = px - ax, apy = py - ay, apz = pz - az, d1 = abx * apx + aby * apy + abz * apz, d2 = acx * apx + acy * apy + acz * apz;
-  let cx: number, cy: number, cz: number;
-  if (d1 <= 0 && d2 <= 0) { cx = ax; cy = ay; cz = az; }
-  else {
-    const bpx = px - tri[3], bpy = py - tri[4], bpz = pz - tri[5], d3 = abx * bpx + aby * bpy + abz * bpz, d4 = acx * bpx + acy * bpy + acz * bpz;
-    const cpx = px - tri[6], cpy = py - tri[7], cpz = pz - tri[8], d5 = abx * cpx + aby * cpy + abz * cpz, d6 = acx * cpx + acy * cpy + acz * cpz;
-    const vc = d1 * d4 - d3 * d2, vb = d5 * d2 - d1 * d6, va = d3 * d6 - d5 * d4;
-    if (d3 >= 0 && d4 <= d3) { cx = tri[3]; cy = tri[4]; cz = tri[5]; }
-    else if (d6 >= 0 && d5 <= d6) { cx = tri[6]; cy = tri[7]; cz = tri[8]; }
-    else if (vc <= 0 && d1 >= 0 && d3 <= 0) { const v = d1 / (d1 - d3); cx = ax + abx * v; cy = ay + aby * v; cz = az + abz * v; }
-    else if (vb <= 0 && d2 >= 0 && d6 <= 0) { const w = d2 / (d2 - d6); cx = ax + acx * w; cy = ay + acy * w; cz = az + acz * w; }
-    else if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0) { const w = (d4 - d3) / (d4 - d3 + d5 - d6); cx = tri[3] + (tri[6] - tri[3]) * w; cy = tri[4] + (tri[7] - tri[4]) * w; cz = tri[5] + (tri[8] - tri[5]) * w; }
-    else { const den = 1 / (va + vb + vc), v = vb * den, w = vc * den; cx = ax + abx * v + acx * w; cy = ay + aby * v + acy * w; cz = az + abz * v + acz * w; }
-  }
-  return (px - cx) ** 2 + (py - cy) ** 2 + (pz - cz) ** 2;
-}
-
-/** The smallest distance between two bodies' meshes (each one's vertices against the other's triangles), with the points. */
+/** The smallest distance between two bodies' meshes, exactly (the kernel's `meshClearance`, K3: every triangle pair, an edge to an edge included), with its point on the first. */
 function clearance(a: DisplayMesh, b: DisplayMesh): { distance: number; at: Vec3 } {
-  let best = Infinity, at: Vec3 = [0, 0, 0];
-  for (const [m, o] of [[a, b], [b, a]] as const) {
-    const n = m.positions.length / 3, T = o.indices.length / 3;
-    for (let v = 0; v < n; v++) {
-      const px = m.positions[v * 3], py = m.positions[v * 3 + 1], pz = m.positions[v * 3 + 2];
-      for (let t = 0; t < T; t++) { triangleAt(o, t); const d = pointTriangle2(px, py, pz); if (d < best) { best = d; at = [px, py, pz]; } }
-    }
-  }
-  return { distance: Math.sqrt(best), at };
+  const c = meshClearance(a.positions, a.indices, b.positions, b.indices);
+  return { distance: c.distanceMM, at: (c.pointA ?? [0, 0, 0]) as Vec3 };
 }
 
 /**

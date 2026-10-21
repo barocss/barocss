@@ -4,12 +4,13 @@
 // and the whole assembly within the total mass budget — so parts each under a share that is not fixed cannot sum past
 // the total unnoticed. The BOM agent is read-only: given a built view of the assembly, it lists the parts; the BOM is
 // checked against the assembly (every instance counted once, the totals), with a library part's source named.
+import { meshClearance } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Evaluate } from '../chat/tools';
 import { massProperties } from '../chat/analysis';
 import { materialIdOf } from '../app/bodies';
-import { meshDistance, meshesMeet } from '../robot/sweep';
+import { meshesMeet } from '../robot/sweep';
 import { chordOf, measureBody } from '../chat/references';
 import { holesOff, placedBodies, readInterfaces } from './parts';
 import type { RoleReport } from './team';
@@ -37,7 +38,7 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
       const A = a.mesh.bounds, B = b.mesh.bounds, chord = chordOf(a.mesh) + chordOf(b.mesh);
       if ([0, 1, 2].some(k => A.max[k] < B.min[k] - chord - 1e-6 || B.max[k] < A.min[k] - chord - 1e-6)) continue;
       if (meshesMeet(a.mesh.positions, a.mesh.indices, b.mesh.positions, b.mesh.indices)) findings.push({ code: 'PARTS_MEET', message: `${ids[i]} and ${ids[j]} interpenetrate`, entities: [ids[i], ids[j]] });
-      else if (meshDistance(a.mesh.positions, a.mesh.indices, b.mesh.positions, b.mesh.indices) <= chord) {
+      else if (meshClearance(a.mesh.positions, a.mesh.indices, b.mesh.positions, b.mesh.indices).distanceMM <= chord) {
         // (Contact is the normal state of an assembly where it is declared: a hole pattern the two share, or a mate
         // between them — expected, named, passed. Undeclared touching is not decided by the meshes: held.)
         const why = declaredContact(doc, ids[i], ids[j]);

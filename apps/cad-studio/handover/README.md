@@ -64,7 +64,7 @@ track boundary); after it the kernel lane's queue below. The FR → R12b block b
 - **Load capacity** (bending and contact stress, life): not attempted, and it would need the standards' factors (no ISO/AGMA/DIN text, by the data rule).
 
 **Kernel-lane queue after PKG** (README §0 "Roadmap" item 4 and what R12b found)
-1. **Track K** (generic geometry moved down from the studio): K1 hull + GJK (done: D140, 2026-10-21); K2 one `triangleBvh(positions, indices)` with ray and nearest queries (supersedes the studio dual-tree, withdrawn 2026-10-21; done: D141, 2026-10-21); K3 an exact `meshClearance` with one point–triangle; K4 `closestPointOnSurface`; K5 polygon section properties, a 3×3 symmetric eigen solver, `meshVolume`; K6 a voxel SDF and marching tetrahedra; K7 curve-fit equivalence.
+1. **Track K** (generic geometry moved down from the studio): K1 hull + GJK (done: D140, 2026-10-21); K2 one `triangleBvh(positions, indices)` with ray and nearest queries (supersedes the studio dual-tree, withdrawn 2026-10-21; done: D141, 2026-10-21); K3 an exact `meshClearance` with one point–triangle (done: D142, 2026-10-21); K4 `closestPointOnSurface`; K5 polygon section properties, a 3×3 symmetric eigen solver, `meshVolume`; K6 a voxel SDF and marching tetrahedra; K7 curve-fit equivalence.
 2. **The outer lane's three requests** (queued 2026-10-21):
    - the hole-after-union refusal — a hole on a boss's top after the boss was united into a shell is refused "misses the target" (O80); repro `apps/cad-studio/test/fixtures/hole-after-union.calls.json`, the `todo` test in `test/known-bugs.test.ts`;
    - a face split along a curve or an isocline (`splitFaceAlongCurve`), for IM5's two-half parting;
