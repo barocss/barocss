@@ -179,7 +179,13 @@ type ModelNodeBase = SketchNode
    * one member along each, each its own body (side `part<k>`; one segment: `solid`). The frame's section and placement hold
    * for every member unless `overrides` sets one apart. `estimates` as a member's.
    */
-  | { kind: 'frame'; points: [Dim, Dim, Dim][]; segments: [number, number][]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; trims?: FrameTrim[]; estimates?: string[] }
+  /** FRf (O121): a skeleton — points and straight segments several frames follow (`follows`); it makes no body. */
+  | { kind: 'skeleton'; points: [Dim, Dim, Dim][]; segments: [number, number][]; name?: string }
+  /**
+   * `follows` (FRf, O121): the frame's points and segments are a skeleton's, or a sketch's straight edges lifted by its
+   * plane, read at every evaluation (its own `points`/`segments` then a copy, not read for geometry).
+   */
+  | { kind: 'frame'; follows?: { skeleton: number } | { sketch: number }; points: [Dim, Dim, Dim][]; segments: [number, number][]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; trims?: FrameTrim[]; estimates?: string[] }
   | { kind: 'frame-member'; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; up?: [number, number, number]; estimates?: string[] }
   /** An open surface (copied from a direct surface `name`) thickened into a solid along its normal: faceted. */
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
@@ -361,6 +367,8 @@ export interface StudioDoc {
   /** IM8b (O108): casting's pattern — the faces machined after casting (by name), and the user's own machining allowance (mm a face) and shrinkage (a ratio, mm/mm); unset, the table's. */
   casting?: { version: 1; machined?: string[]; machiningAllowanceMM?: number; shrink?: number; /** IM8c (O109): where the metal comes in (a point on the part, mm), the person's: hot spots are fed from it. */ gate?: [number, number, number] };
   /** FRb (O116): how frames are cut — the shop's stock lengths (loaded by the user, none built in) and the saw's kerf (mm; unset, an estimate is taken and said). */
+  /** R12c.2 (D155): fit tables the user loads (none built in), cylindrical faces' classes by face name, declared hole–shaft pairs (engine/fits.ts). */
+  fits?: import('./fits').StudioFits;
   frames?: { version: 1; stock?: FrameStockRow[]; kerfMM?: number; /** FRc (O117): the user's section library — none built in (D122); a frame's section may name a row. */ sections?: FrameSectionRow[]; /** FRd1 (O118): the person's welds, by joint id (frames/welds.ts) — kind, size (mm), all round, the bore welded or not (theirs alone), notes; unset, the rule's. */ welds?: { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; allRound?: boolean; inner?: boolean; notes?: string }[] };
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
@@ -486,7 +494,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'frames'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'frames', 'fits'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);
@@ -506,7 +514,7 @@ export function carryOver(next: StudioDoc, was: StudioDoc, doc: StudioDoc): Stud
 
 export const emptyDoc = (): StudioDoc => ({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 });
 
-export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch';
+export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch' && node.kind !== 'skeleton';
 
 /** A gear meshing with an earlier one (node `gear`). */
 export interface GearMesh { gear: number; direction?: number; centerDistance?: Dim; phase?: number }
@@ -529,9 +537,9 @@ export function parentsOf(node: ModelNode): number[] {
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'rack': case 'sheet-contour': return [];
+    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
-    case 'frame': return [node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : []);
+    case 'frame': return [...(node.follows ? ['skeleton' in node.follows ? node.follows.skeleton : node.follows.sketch] : []), ...[node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : [])];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
     case 'difference': return [node.parent.node, node.tool.node];
     default: return [node.parent.node];
@@ -546,7 +554,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
+    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -555,7 +563,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
     if (!isSolidNode(node) || consumed.has(String(index))) return;
     if (node.kind === 'split') (['negative', 'positive'] as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else if (node.kind === 'import' && (node.solids ?? 1) > 1) Array.from({ length: node.solids! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
-    else if (node.kind === 'frame' && node.segments.length > 1) node.segments.forEach((_, k) => { const side = `part${k}` as const; if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+    else if (node.kind === 'frame' && frameSegmentCount(nodes, node) > 1) Array.from({ length: frameSegmentCount(nodes, node) }, (_, k) => k).forEach(k => { const side = `part${k}` as const; if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else if (node.kind === 'mesh' && (node.pieces ?? 1) > 1) Array.from({ length: node.pieces! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else refs.push({ node: index, side: 'solid' });
   });
@@ -662,7 +670,8 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'sheet-base': return `Sheet plate T${n(node.thickness)}`;
     case 'sheet-flange': return `Flange ${n(node.length)} · ${fmt(node.angleDegrees ?? 90)}°`;
     case 'frame-member': return `Member ${sectionLabel(node.section, n)} · ${memberLength(node)}`;
-    case 'frame': return `Frame ${sectionLabel(node.section, n)} · ${node.segments.length} member${node.segments.length === 1 ? '' : 's'}`;
+    case 'frame': { const k = frameSegmentCount(nodes, node); return `Frame ${sectionLabel(node.section, n)} · ${k} member${k === 1 ? '' : 's'}${node.follows ? ` · on ${'skeleton' in node.follows ? `skeleton ${node.follows.skeleton + 1}` : `sketch ${node.follows.sketch + 1}`}` : ''}`; }
+    case 'skeleton': return `Skeleton${node.name ? ` ${node.name}` : ''} · ${node.points.length} points, ${node.segments.length} segments`;
     case 'sheet-corner-relief': return `Corner relief ${node.shape} ${n(node.size)}`;
     case 'sheet-contour': return `Sheet profile T${n(node.thickness)}${node.path.length > 2 ? ` · ${node.path.length - 2} bend${node.path.length > 3 ? 's' : ''}` : ''}`;
     case 'sew': return `Sew ${node.names.length} surfaces`;
@@ -770,3 +779,34 @@ function memberLength(node: Extract<ModelNode, { kind: 'frame-member' }>): strin
   const [a, b, c, d, e, f] = p as number[];
   return `${fmt(Math.hypot(d - a, e - b, f - c))} mm`;
 }
+
+type FrameNode = Extract<ModelNode, { kind: 'frame' }>;
+/**
+ * FRf (O121): a frame's points and segments — its own, or those it follows: a skeleton's, or a sketch's straight edges
+ * (a rectangle's four, a polygon's, an outline of lines) lifted by the sketch's plane, its parameters' values read now.
+ * A source that is not there, not a skeleton or sketch, curved, or a segment naming no point: refused, typed.
+ */
+export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, parameters: Readonly<Record<string, number>> = {}): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: string; error: string } {
+  if (!node.follows) return { points: node.points, segments: node.segments };
+  const at = 'skeleton' in node.follows ? node.follows.skeleton : node.follows.sketch, src = nodes[at];
+  if ('skeleton' in node.follows) {
+    if (src?.kind !== 'skeleton') return { code: 'FRAME_SKELETON_UNKNOWN', error: `the frame follows feature ${at}, which is ${src ? `a ${src.kind}` : 'not there'}, not a skeleton` };
+    const bad = src.segments.findIndex(g => !(g[0] >= 0 && g[0] < src.points.length && g[1] >= 0 && g[1] < src.points.length));
+    if (bad >= 0) return { code: 'FRAME_SKELETON_POINT', error: `skeleton ${at}'s segment ${bad} names point ${src.segments[bad].find(p => !(p >= 0 && p < src.points.length))}, which it does not have (${src.points.length} points)` };
+    return { points: src.points, segments: src.segments };
+  }
+  if (src?.kind !== 'sketch') return { code: 'FRAME_SKETCH_UNKNOWN', error: `the frame follows feature ${at}, which is ${src ? `a ${src.kind}` : 'not there'}, not a sketch` };
+  const v = (d: Dim) => typeof d === 'number' ? d : parameters[d.parameter] ?? NaN;
+  let uv: [number, number][];
+  if (src.profile === 'rectangle') { const [a, b] = [src.min.map(v), src.max.map(v)]; uv = [[a[0], a[1]], [b[0], a[1]], [b[0], b[1]], [a[0], b[1]]]; }
+  else if (src.profile === 'polygon') uv = src.points.map(p => [v(p[0]), v(p[1])]);
+  else if (src.profile === 'loop' && src.segments.every(g => g.kind === 'line')) uv = src.segments.map(g => [v(g.start[0]), v(g.start[1])]);
+  else return { code: 'FRAME_SKETCH_CURVED', error: `sketch ${at} (${src.profile}) has curved edges: a frame follows straight ones only (a rectangle, a polygon, an outline of lines)` };
+  if (uv.some(p => !p.every(Number.isFinite))) return { code: 'FRAME_SKETCH_UNKNOWN', error: `sketch ${at} names a parameter that is not set` };
+  const pl = src.plane ?? { origin: [0, 0, 0] as [number, number, number], normal: [0, 0, 1] as [number, number, number], xAxis: [1, 0, 0] as [number, number, number] };
+  const n = pl.normal, x = pl.xAxis, y: [number, number, number] = [n[1] * x[2] - n[2] * x[1], n[2] * x[0] - n[0] * x[2], n[0] * x[1] - n[1] * x[0]];
+  const points = uv.map(([a, b]) => [0, 1, 2].map(k => pl.origin[k] + a * x[k] + b * y[k]) as [number, number, number]);
+  return { points, segments: points.map((_, k) => [k, (k + 1) % points.length] as [number, number]) };
+}
+/** How many members a frame has (its geometry's segments; refused, its own copy's). */
+export function frameSegmentCount(nodes: readonly ModelNode[], node: FrameNode): number { const g = frameGeometry(nodes, node); return 'segments' in g ? g.segments.length : node.segments.length; }

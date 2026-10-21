@@ -76,8 +76,19 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const hollowable = await stateOf(rectanglePart(40, 30, 20));
   // (The lattice fills a part hollowed for printing: that box hollowed, AM7b.)
   const hollowed = await stateOf(planHollow(hollowable.doc, hollowable.bodies, { t: 2, drain: 4 }).doc);
+  // (Fit class takes a cylindrical face with a fit table loaded; Fit pair two classed faces, a bore and a pin: R12c.2, D155.)
+  const tubeCmd = commandById('tube')!, cylCmd = commandById('cylinder')!, blank: Ctx = { doc: emptyDoc(), bodies: [], selection: sel({}) };
+  const pinned = cylCmd.build!({ ...blank, doc: tubeCmd.build!(blank, { ...tubeCmd.defaults!(blank), r: 10, ri: 6, x: 0, y: 0, z: 0 }) }, { ...cylCmd.defaults!(blank), r: 6, x: 0, y: 0, z: -5 });
+  const fitted = await stateOf({ ...pinned, fits: { version: 1, tables: [{ id: 't', rows: [{ class: 'H7', overMM: 10, upToMM: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', overMM: 10, upToMM: 18, upperUM: -6, lowerUM: -17, estimate: true }] }], faces: [{ face: 'n1.hole0.side0', class: 'H7' }, { face: 'n3.side0', class: 'g6' }] } });
+  const faceOf = (name: string) => { const body = fitted.bodies.findIndex(b => b.mesh.faces.some(f => f.name === name)); return { body, face: fitted.bodies[body].mesh.faces.findIndex(f => f.name === name) }; };
   for (const id of CHAT_COMMANDS) {
     const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
+    if (id === 'fit-class' || id === 'fit-pair') {
+      const ctx: Ctx = { doc: fitted.doc, bodies: fitted.bodies, selection: sel({ faces: id === 'fit-class' ? [faceOf('n1.hole0.side0')] : [faceOf('n1.hole0.side0'), faceOf('n3.side0')] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
     const ctx: Ctx = id === 'hollow' ? { doc: hollowable.doc, bodies: hollowable.bodies, selection: sel({}) } : id === 'lattice' ? { doc: hollowed.doc, bodies: hollowed.bodies, selection: sel({}) } : id === 'split-bed' ? { doc: bar.doc, bodies: bar.bodies, selection: sel({}) } : id === 'gear-mesh' ? { doc: geared.doc, bodies: geared.bodies, selection: sel({ bodies: [0] }) } : id === 'decimate' ? { doc: meshed.doc, bodies: meshed.bodies, selection: sel({ bodies: [0] }) }
       : id === 'sheet-flange' ? { doc: sheet.doc, bodies: sheet.bodies, selection: sel({ edges: [{ body: 0, edge: sheetEdge }] }) }
       : id === 'sheet-corner-relief' ? { doc: sheet.doc, bodies: sheet.bodies, selection: sel({ edges: [{ body: 0, edge: sheet.bodies[0].mesh.edges.findIndex(e => e.names.includes('n1.side0|n1.side1')) }] }) } : { doc: profile ? sketched : s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };

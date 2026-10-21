@@ -1,0 +1,437 @@
+{
+  "id": "r12c-fits-ring-and-shaft",
+  "step": "R12c",
+  "decisions": [
+    "D155"
+  ],
+  "about": "R12c.2: a ring with a \u00d850 bore and a \u00d850 shaft through it, coaxial; the \u00d850 worked examples' classes from rows cited to their page \u2014 H8/f7 clears, H7/k6 transitions, H7/p6 interferes; a class not loaded is a typed miss.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "rs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 35
+        },
+        {
+          "id": "ring",
+          "kind": "extrude",
+          "sketch": "rs",
+          "height": 20
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 25
+        },
+        {
+          "id": "bore",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 20
+        },
+        {
+          "id": "r",
+          "kind": "difference",
+          "target": "ring",
+          "tool": "bore"
+        },
+        {
+          "id": "ss",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 25,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              -5
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "shaft",
+          "kind": "extrude",
+          "sketch": "ss",
+          "height": 30
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 37699.11184307752,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            10
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 58904.86225480862,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            10
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ],
+    "fitChecks": [
+      {
+        "tables": [
+          {
+            "id": "f2-50",
+            "sources": [
+              {
+                "id": "F2",
+                "label": "Engineering fit (Wikipedia): the \u00d850 worked examples",
+                "url": "https://en.wikipedia.org/wiki/Engineering_fit",
+                "read": "2026-10-21"
+              }
+            ],
+            "rows": [
+              {
+                "class": "H8",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 39,
+                "lowerUM": 0,
+                "source": "F2"
+              },
+              {
+                "class": "f7",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": -25,
+                "lowerUM": -50,
+                "source": "F2"
+              },
+              {
+                "class": "H7",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 25,
+                "lowerUM": 0,
+                "source": "F2"
+              },
+              {
+                "class": "k6",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 18,
+                "lowerUM": 2,
+                "source": "F2"
+              },
+              {
+                "class": "p6",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 42,
+                "lowerUM": 26,
+                "source": "F2"
+              }
+            ]
+          }
+        ],
+        "hole": {
+          "output": "r",
+          "face": "bore.side0#1",
+          "class": "H8"
+        },
+        "shaft": {
+          "output": "shaft",
+          "face": "shaft.side0#1",
+          "class": "f7"
+        },
+        "kind": "clearance",
+        "clearanceUM": [
+          25,
+          89
+        ],
+        "mmcOverlapMM3": 0,
+        "lmcOverlapMM3": 0,
+        "contradicted": false,
+        "absTol": 1e-06
+      },
+      {
+        "tables": [
+          {
+            "id": "f2-50",
+            "sources": [
+              {
+                "id": "F2",
+                "label": "Engineering fit (Wikipedia): the \u00d850 worked examples",
+                "url": "https://en.wikipedia.org/wiki/Engineering_fit",
+                "read": "2026-10-21"
+              }
+            ],
+            "rows": [
+              {
+                "class": "H8",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 39,
+                "lowerUM": 0,
+                "source": "F2"
+              },
+              {
+                "class": "f7",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": -25,
+                "lowerUM": -50,
+                "source": "F2"
+              },
+              {
+                "class": "H7",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 25,
+                "lowerUM": 0,
+                "source": "F2"
+              },
+              {
+                "class": "k6",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 18,
+                "lowerUM": 2,
+                "source": "F2"
+              },
+              {
+                "class": "p6",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 42,
+                "lowerUM": 26,
+                "source": "F2"
+              }
+            ]
+          }
+        ],
+        "hole": {
+          "output": "r",
+          "face": "bore.side0#1",
+          "class": "H7"
+        },
+        "shaft": {
+          "output": "shaft",
+          "face": "shaft.side0#1",
+          "class": "k6"
+        },
+        "kind": "transition",
+        "clearanceUM": [
+          -18,
+          23
+        ],
+        "mmcOverlapMM3": 28.279423262411246,
+        "lmcOverlapMM3": 0,
+        "contradicted": false,
+        "absTol": 1e-06
+      },
+      {
+        "tables": [
+          {
+            "id": "f2-50",
+            "sources": [
+              {
+                "id": "F2",
+                "label": "Engineering fit (Wikipedia): the \u00d850 worked examples",
+                "url": "https://en.wikipedia.org/wiki/Engineering_fit",
+                "read": "2026-10-21"
+              }
+            ],
+            "rows": [
+              {
+                "class": "H8",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 39,
+                "lowerUM": 0,
+                "source": "F2"
+              },
+              {
+                "class": "f7",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": -25,
+                "lowerUM": -50,
+                "source": "F2"
+              },
+              {
+                "class": "H7",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 25,
+                "lowerUM": 0,
+                "source": "F2"
+              },
+              {
+                "class": "k6",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 18,
+                "lowerUM": 2,
+                "source": "F2"
+              },
+              {
+                "class": "p6",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 42,
+                "lowerUM": 26,
+                "source": "F2"
+              }
+            ]
+          }
+        ],
+        "hole": {
+          "output": "r",
+          "face": "bore.side0#1",
+          "class": "H7"
+        },
+        "shaft": {
+          "output": "shaft",
+          "face": "shaft.side0#1",
+          "class": "p6"
+        },
+        "kind": "interference",
+        "clearanceUM": [
+          -42,
+          -1
+        ],
+        "mmcOverlapMM3": 66.00115457259608,
+        "lmcOverlapMM3": 1.5715974329341829,
+        "contradicted": false,
+        "absTol": 1e-06
+      },
+      {
+        "tables": [
+          {
+            "id": "f2-50",
+            "sources": [
+              {
+                "id": "F2",
+                "label": "Engineering fit (Wikipedia): the \u00d850 worked examples",
+                "url": "https://en.wikipedia.org/wiki/Engineering_fit",
+                "read": "2026-10-21"
+              }
+            ],
+            "rows": [
+              {
+                "class": "H8",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 39,
+                "lowerUM": 0,
+                "source": "F2"
+              },
+              {
+                "class": "f7",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": -25,
+                "lowerUM": -50,
+                "source": "F2"
+              },
+              {
+                "class": "H7",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 25,
+                "lowerUM": 0,
+                "source": "F2"
+              },
+              {
+                "class": "k6",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 18,
+                "lowerUM": 2,
+                "source": "F2"
+              },
+              {
+                "class": "p6",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 42,
+                "lowerUM": 26,
+                "source": "F2"
+              }
+            ]
+          }
+        ],
+        "hole": {
+          "output": "r",
+          "face": "bore.side0#1",
+          "class": "H6"
+        },
+        "shaft": {
+          "output": "shaft",
+          "face": "shaft.side0#1",
+          "class": "k6"
+        },
+        "error": {
+          "code": "FIT_TABLE_MISS",
+          "messageIncludes": "load a row for H6"
+        }
+      }
+    ]
+  },
+  "oracle": "the clearances are the page's own results (D139 F2); the overlaps \u03c0L(r_s\u00b2 \u2212 r_h\u00b2) at the limit sizes where the shaft is the bigger, else 0; the volumes \u03c0(35\u00b2 \u2212 25\u00b2)\u00b720 and \u03c025\u00b2\u00b730."
+}
