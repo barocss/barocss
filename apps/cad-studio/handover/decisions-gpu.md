@@ -318,9 +318,11 @@ against the code as it is now:
   - `PickHit.scalar`: the field at the hit — its triangle's, or its vertices' by barycentric weights — for the legend.
 - **Studio**:
   - The **Analysis map** button (beside Analyse, whose click count the flow relies on): Thickness, then for a moulded part
-    Parting and Halves, then off. `viewport/scalarMaps.ts`: IM4's thickness per display triangle (`wallSamples(body).local`),
-    thin red → the nominal (the area-weighted median) green → the thick-section limit (nominal / 0.6, the wall report's
-    ratio) orange, past it purple, no wall grey; the threshold sources as cited, pending the outer lane's confirmation.
+    Parting and Halves, then off. `viewport/scalarMaps.ts`: IM4's thickness per display triangle (`wallSamples(body).local`,
+    a Float64Array, converted), over [0, max(2 × nominal, thick95)] from `wallsOf`; red under the process's thinnest wall
+    (the `wall` rule's `minWall`) and under the material's moulding range's low end (`materialData(id).wallMM.injection`,
+    the `wall-material` rule) when they exist, green at the nominal, orange to the thick-section limit (nominal over the
+    profile's `adjacentWallRatio`, 0.6 unset), purple past it, no wall grey — the outer lane's corrections (O-G6).
   - The legend (`ui/MapLegend.tsx`): one small DOM element — title, unit, the ramp with its thresholds marked, the colour past
     it, the value under the pointer (`scalarAt`, a ray on pointer moves while a map shows); the mould's legend its loops,
     each half's bodies and volume, or why the halves cannot be built, and a Spread toggle.
@@ -339,7 +341,14 @@ against the code as it is now:
     and clears it, draws the loops and halves, spreads them without making anything, and keeps the part from picks.
   - Flow step G6 (new): a moulded holed plate — Thickness with its legend and a value under the pointer, Parting, Halves
     (+ half 48,000 mm³), Spread, off.
-- **Not done (waits)**: the IM2 draft and CNC access maps and the isoclines (the outer lane's O-G6 exports); the minimum-wall
-  threshold (its source to be confirmed). A legend for several bodies shows the first map's scale (they share it when one
-  body; per-body scales would differ).
+- **Found by the flow**: the engine worker's document is what evaluation reads (`evaluatedPart`: no `mould`), so the
+  mould's view had no pull there; the `mould` request now carries the document's mould settings itself (the shared wire is
+  left alone).
+- **Checks** (v2): gpu lint/tsc clean, unit 77/77, browser 7/7 (55 s, the load at 40); studio tsc clean, eslint 0 errors,
+  suite 189/189 (50 s); `FLOW_ONLY` over the analysis menu (surface analysis), IM1–IM8c, CNC1–CNC7b and the new G6 step in
+  the verify worktree: 21/22 first (G6 refused the parting map: the wire, above), then G6 and IM4 again on the fix, 3/3.
+  Not run: the full flow (the coordinator's), the cad-model suite (not touched), benches (no frame path changed).
+- **Not done (waits)**: the IM2 draft and CNC access maps and the isoclines (the outer lane's O-G6 exports, in
+  integration's next window: `draftSamples`, `accessSamples`, `isoclinePolylines`, and `castingDraftLimits` for casting's
+  draft marks). A legend for several bodies shows the first map's scale.
 

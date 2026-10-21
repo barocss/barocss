@@ -3,6 +3,16 @@
 // changes, not per frame.
 import type { ScalarMap } from '../viewport/scalarMaps';
 
+/** The thresholds with room for a label: none within 18 % of the bar's ends or of a label before it (their marks stay, with a title). */
+function labelled(map: ScalarMap, lo: number, span: number): ScalarMap['thresholds'] {
+  const out: ScalarMap['thresholds'] = [];
+  for (const t of [...map.thresholds].sort((a, b) => a.value - b.value)) {
+    const f = (t.value - lo) / span;
+    if (f < 0.18 || f > 0.82 || out.some(o => Math.abs((o.value - lo) / span - f) < 0.18)) continue;
+    out.push(t);
+  }
+  return out;
+}
 const fmt = (v: number) => (Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2));
 
 export function MapLegend({ map, hover }: { map: ScalarMap; hover: number | null }) {
@@ -16,7 +26,7 @@ export function MapLegend({ map, hover }: { map: ScalarMap; hover: number | null
         {map.above && <div className="map-legend-past" style={{ background: map.above }} title="past the range" />}
         {map.thresholds.map(t => <div key={t.label} className="map-legend-mark" style={{ left: at(t.value) }} title={`${t.label}: ${fmt(t.value)} ${map.unit}`} />)}
       </div>
-      <div className="map-legend-scale mono"><span>{fmt(lo)}</span>{map.thresholds.map(t => <span key={t.label} style={{ left: at(t.value) }}>{fmt(t.value)}</span>)}<span>{fmt(hi)} {map.unit}</span></div>
+      <div className="map-legend-scale mono"><span>{fmt(lo)}</span>{labelled(map, lo, span).map(t => <span key={t.label} style={{ left: at(t.value) }}>{fmt(t.value)}</span>)}<span>{fmt(hi)} {map.unit}</span></div>
     </div>
   );
 }
