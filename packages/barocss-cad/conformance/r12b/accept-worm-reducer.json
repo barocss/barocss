@@ -1,0 +1,95 @@
+{
+  "id": "r12b-accept-worm-reducer",
+  "step": "R12b",
+  "decisions": [
+    "D138"
+  ],
+  "about": "R12b.7 acceptance: the worm reducer the agent builds (apps/cad-studio/test/fixtures/gear-worm-reducer.calls.json) — a single-start right-hand ZA worm, axial module 3, Ø44, bored 12, and its throated wheel of 30 teeth, 20 wide, bored 20: 30 : 1.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n0",
+          "kind": "worm-wheel",
+          "worm": {
+            "axialModule": 3,
+            "starts": 1,
+            "diameter": 44,
+            "hand": "right"
+          },
+          "teeth": 30,
+          "faceWidth": 20,
+          "generator": "worm-wheel@0",
+          "center": [
+            0,
+            0
+          ],
+          "bore": 20
+        },
+        {
+          "id": "n1",
+          "kind": "worm",
+          "starts": 1,
+          "length": 66,
+          "form": "ZA",
+          "generator": "worm@0",
+          "mesh": {
+            "gear": "n0"
+          },
+          "bore": 12
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 123784.10032,
+          "relTol": 0.000002
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            10
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 92794.490683,
+          "relTol": 0.000002
+        },
+        "centroidMM": {
+          "value": [
+            66.998371,
+            0,
+            10
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "Closed forms: a = (d1 + m z2)/2 = 67, the worm's middle there in the wheel's mid-plane Z 10, its axis along Y; γ = atan(z1 m/d1), the lead π m z1; the throat d2 + 2m, R_t = a − d2/2 − m. Volumes by this kernel, as r12b-worm-wheel-pair for its wheel; the worm's centroid by this kernel (off its middle by the thread's ends, 1.6e-3 mm)."
+}

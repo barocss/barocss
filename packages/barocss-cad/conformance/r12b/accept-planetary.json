@@ -1,0 +1,200 @@
+{
+  "id": "r12b-accept-planetary",
+  "step": "R12b",
+  "decisions": [
+    "D138"
+  ],
+  "about": "R12b.7 acceptance: the planetary set the agent builds (apps/cad-studio/test/fixtures/gear-planetary.calls.json) — module 2, a ring of 60 (x2 0.5, the root of a 24-tooth pinion cutter), three planets of 18 at 0°, 120° and 240°, a sun of 24 (x 0.5) meshing with the first planet, all 15 wide.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n0",
+          "kind": "internal-gear",
+          "module": 2,
+          "teeth": 60,
+          "faceWidth": 15,
+          "rim": 140,
+          "generator": "internal-gear@1",
+          "cutter": {
+            "teeth": 24
+          },
+          "center": [
+            0,
+            0
+          ],
+          "profileShift": 0.5
+        },
+        {
+          "id": "n1",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 18,
+          "faceWidth": 15,
+          "generator": "spur-gear@1",
+          "mesh": {
+            "gear": "n0"
+          },
+          "bore": 8
+        },
+        {
+          "id": "n2",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 18,
+          "faceWidth": 15,
+          "generator": "spur-gear@1",
+          "mesh": {
+            "gear": "n0",
+            "direction": 120
+          },
+          "bore": 8
+        },
+        {
+          "id": "n3",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 18,
+          "faceWidth": 15,
+          "generator": "spur-gear@1",
+          "mesh": {
+            "gear": "n0",
+            "direction": 240
+          },
+          "bore": 8
+        },
+        {
+          "id": "n4",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 24,
+          "faceWidth": 15,
+          "generator": "spur-gear@1",
+          "mesh": {
+            "gear": "n1",
+            "direction": 180
+          },
+          "profileShift": 0.5,
+          "bore": 10
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 55391.511407,
+          "relTol": 0.000001
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            7.5
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 14242.976989,
+          "relTol": 0.000001
+        },
+        "centroidMM": {
+          "value": [
+            42.927956,
+            0,
+            7.5
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 14242.976989,
+          "relTol": 0.000001
+        },
+        "centroidMM": {
+          "value": [
+            -21.463978,
+            37.176701,
+            7.5
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 14242.976989,
+          "relTol": 0.000001
+        },
+        "centroidMM": {
+          "value": [
+            -21.463978,
+            -37.176701,
+            7.5
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 27839.735907,
+          "relTol": 0.000001
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            7.5
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "Closed forms: the working centre distance (zΣ m/2) cos α / cos α_w with inv α_w = 2 tan α xΣ/zΣ + inv α, the same 42.927956 mm for the ring with a planet (42, 0.5) and the sun with one (42, 0.5); the planets there at 0°, 120°, 240°, the sun on the ring's axis; zr = zs + 2zp, (zs + zr)/3 = 28. Volumes: each gear's as in its own stage's cases (r12b-internal-*, r12b-generated-*), by this kernel."
+}

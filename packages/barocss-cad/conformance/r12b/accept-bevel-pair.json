@@ -1,0 +1,96 @@
+{
+  "id": "r12b-accept-bevel-pair",
+  "step": "R12b",
+  "decisions": [
+    "D138"
+  ],
+  "about": "R12b.7 acceptance: the right-angle straight bevel pair the agent builds (apps/cad-studio/test/fixtures/gear-bevel-pair.calls.json) — module 3 at the heel, 20 and 40 teeth, face width 18, bores 12 and 20, the pinion's toe on Z 0.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n0",
+          "kind": "bevel-gear",
+          "module": 3,
+          "teeth": 20,
+          "mateTeeth": 40,
+          "faceWidth": 18,
+          "generator": "bevel-gear@0",
+          "center": [
+            0,
+            0
+          ],
+          "from": -42.87581537662156,
+          "bore": 12
+        },
+        {
+          "id": "n1",
+          "kind": "bevel-gear",
+          "module": 3,
+          "teeth": 40,
+          "mateTeeth": 20,
+          "faceWidth": 18,
+          "generator": "bevel-gear@0",
+          "mesh": {
+            "gear": "n0"
+          },
+          "bore": 20
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 37665.001423,
+          "relTol": 0.000001
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            12.869653
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 205813.511904,
+          "relTol": 0.000001
+        },
+        "centroidMM": {
+          "value": [
+            42.294521,
+            0,
+            -42.875815
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "Closed forms: δ1 = atan(z1/z2) = 26.565051°, δ2 = 90° − δ1, Re = m z1/(2 sin δ1) = 67.082039 mm, θa = atan(m/Re), θf = atan(1.25 m/Re), the apex 42.875815 mm below Z 0; the mate's axis along +X through it. Volumes and centroids by this kernel (as r12b-bevel-* for their solids)."
+}

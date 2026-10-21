@@ -1,0 +1,40 @@
+{
+ "about": "R12b.7 acceptance (D138): a right-angle straight bevel pair, module 3 at the heel, 20 and 40 teeth, face width 18 \u2014 the pinion and its mate (the same apex, the shaft angle 90\u00b0), each bored; ratio 2. Built by the agent's tools in one turn.",
+ "calls": [
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "bevel-gear",
+    "values": {
+     "m": 3,
+     "teeth": 20,
+     "mate": 40,
+     "sigma": 90,
+     "b": 18,
+     "bore": 12,
+     "spiral": 0,
+     "x": 0,
+     "y": 0,
+     "z": 0
+    }
+   }
+  },
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "gear-mesh",
+    "bodies": [
+     "b0"
+    ],
+    "values": {
+     "dir": 0,
+     "bore": 20
+    }
+   }
+  },
+  {
+   "tool": "get_part_summary",
+   "args": {}
+  }
+ ]
+}

@@ -1,0 +1,136 @@
+{
+ "about": "R12b.7 acceptance (D138): a planetary set, module 2 \u2014 a ring of 60 teeth (x2 0.5, the internal gear's default; its root cut by a 24-tooth pinion cutter, an estimate), three planets of 18 (x 0) at 120\u00b0, a sun of 24 (x 0.5): zr = zs + 2zp and (zs + zr)/3 = 28 whole, so all three planets mesh with both; x_s = x2 \u2212 2x_p, so the sun's working centre distance is the ring's. Built by the agent's tools in one turn, its own mesh checks with them.",
+ "calls": [
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "internal-gear",
+    "values": {
+     "m": 2,
+     "teeth": 60,
+     "b": 15,
+     "rim": 140,
+     "x": 0,
+     "y": 0,
+     "z": 0
+    }
+   }
+  },
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "gear-mesh",
+    "bodies": [
+     "b0"
+    ],
+    "values": {
+     "teeth": 18,
+     "dir": 0,
+     "shift": 0,
+     "bore": 8
+    }
+   }
+  },
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "gear-mesh",
+    "bodies": [
+     "b0"
+    ],
+    "values": {
+     "teeth": 18,
+     "dir": 120,
+     "shift": 0,
+     "bore": 8
+    }
+   }
+  },
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "gear-mesh",
+    "bodies": [
+     "b0"
+    ],
+    "values": {
+     "teeth": 18,
+     "dir": 240,
+     "shift": 0,
+     "bore": 8
+    }
+   }
+  },
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "gear-mesh",
+    "bodies": [
+     "b1"
+    ],
+    "values": {
+     "teeth": 24,
+     "dir": 180,
+     "shift": 0.5,
+     "bore": 10
+    }
+   }
+  },
+  {
+   "tool": "set_requirements",
+   "args": {
+    "requirements": [
+     {
+      "id": "sun-planet-1",
+      "source": "the gears mesh without crossing",
+      "hard": true,
+      "basis": "assumed",
+      "check": {
+       "op": ">=",
+       "query": {
+        "fn": "gear_clearance",
+        "a": "n4",
+        "b": "n1"
+       },
+       "value": 0
+      }
+     },
+     {
+      "id": "sun-planet-2",
+      "source": "the gears mesh without crossing",
+      "hard": true,
+      "basis": "assumed",
+      "check": {
+       "op": ">=",
+       "query": {
+        "fn": "gear_clearance",
+        "a": "n4",
+        "b": "n2"
+       },
+       "value": 0
+      }
+     },
+     {
+      "id": "sun-planet-3",
+      "source": "the gears mesh without crossing",
+      "hard": true,
+      "basis": "assumed",
+      "check": {
+       "op": ">=",
+       "query": {
+        "fn": "gear_clearance",
+        "a": "n4",
+        "b": "n3"
+       },
+       "value": 0
+      }
+     }
+    ]
+   }
+  },
+  {
+   "tool": "check_spec",
+   "args": {}
+  }
+ ]
+}
