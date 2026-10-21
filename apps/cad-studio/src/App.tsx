@@ -1,5 +1,6 @@
 import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { EngineClient } from './engine/client';
+import { EngineClient, type ProposalOverlay } from './engine/client';
+import { PROPOSAL_ADDED, PROPOSAL_REMOVED } from './viewport/renderer';
 import { placedBase, placedDoc, placementOf, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { resolveSkeletons } from '@barocss/cad-model/frames/skeleton';
 import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type MeshRepairRecord, type ModelNode, type Side, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
@@ -1384,7 +1385,10 @@ export function App() {
   // Proposals (A4.2): one shown as a ghost — the part it would leave, its changed bodies tinted — with a
   // before/after toggle and the volume it adds or takes off; accepted (its ops replayed) or rejected (kept).
   // (`full`: the part the whole proposal leaves; `parts`: its features, `leaveOut` those unticked, A4.3.)
-  const [ghost, setGhost] = useState<{ id: string; bodies: BodyResult[]; after: boolean; full: StudioDoc; parts: ProposalPart[]; leaveOut: string[] } | null>(null);
+  // (`shown`: the part as previewed — the whole proposal's, or without what is left out; G12 diffs it with the part.)
+  const [ghost, setGhost] = useState<{ id: string; bodies: BodyResult[]; after: boolean; full: StudioDoc; shown: StudioDoc; parts: ProposalPart[]; leaveOut: string[] } | null>(null);
+  /** G12: what the shown proposal adds and takes away (worked out in the engine worker), for the viewport's overlay. */
+  const [proposalOverlay, setProposalOverlay] = useState<ProposalOverlay | null>(null);
   const [proposalBusy, setProposalBusy] = useState(false), [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
   const partEval = (d: StudioDoc) => engine.part(d, revision.current++, 'agent');
   useEffect(() => { setGhost(g => { if (g) setPreviewBodies(null); return null; }); }, [doc.nodes, doc.parameters]);
@@ -1397,7 +1401,7 @@ export function App() {
     const tools = await import('@barocss/cad-model/chat/tools'), r = await tools.previewProposal({ doc: from, bodies }, p.id, partEval);
     setProposalBusy(false);
     if ('error' in r) { setToast({ title: `${p.id} does not apply to the part as it is`, hint: r.error, detail: '' }); return; }
-    setGhost({ id: p.id, bodies: r.bodies, after: true, full: r.doc, parts: tools.proposalParts(from, r.doc), leaveOut: [] }); setPreviewBodies(r.bodies);
+    setGhost({ id: p.id, bodies: r.bodies, after: true, full: r.doc, shown: r.doc, parts: tools.proposalParts(from, r.doc), leaveOut: [] }); setPreviewBodies(r.bodies);
   };
   /** A stale proposal made again on the part as it is, then shown (D41): only the rebased one can be accepted. */
   const rebaseIt = async (p: Proposal) => {
@@ -1419,8 +1423,15 @@ export function App() {
     const r = await partEval(partial.doc);
     setProposalBusy(false);
     if (!r.ok) { setToast({ title: `Without ${leaveOut.join(', ')} the part does not build`, hint: `${r.error.title}. ${r.error.hint}`, detail: '' }); return; }
-    setGhost(g => g && { ...g, leaveOut, bodies: r.bodies, after: true }); setPreviewBodies(r.bodies);
+    setGhost(g => g && { ...g, leaveOut, bodies: r.bodies, shown: partial.doc, after: true }); setPreviewBodies(r.bodies);
   };
+  // (G12: the diff of the part as it is and the proposal as shown, again when what is shown changes; none without one.)
+  useEffect(() => {
+    if (!ghost) { setProposalOverlay(null); return; }
+    let live = true;
+    void engine.proposalDiff(doc, ghost.shown, revision.current++, { revision: modelHash(doc), proposal: `${ghost.id}|${ghost.leaveOut.join(',')}` }).then(r => { if (live) setProposalOverlay('error' in r ? null : r); });
+    return () => { live = false; };
+  }, [ghost?.id, ghost?.shown]);
   const flipGhost = () => setGhost(g => { if (!g) return g; setPreviewBodies(g.after ? null : g.bodies); return { ...g, after: !g.after }; });
   const acceptIt = async (p: Proposal) => {
     if (active || sketch) return;
@@ -1633,18 +1644,26 @@ export function App() {
   // the part has — tinted, so what is new reads at a glance.)
   const previewNodes = useMemo(() => { if (!active?.cmd.build || !previewBodies) return null; try { return active.cmd.build(active.ctx, active.values).nodes; } catch { return null; } }, [active, previewBodies]);
   const bodyColors = useMemo(() => {
-    // (A proposal's ghost: the bodies it adds or changes.)
+    // (A proposal's ghost: the bodies it adds or changes — not tinted while the engine draws its two-colour overlay, G12.)
+    const overlaid = !!ghost && proposalOverlay?.method === 'boolean' && viewport.current?.backend === 'webgpu';
     const had = ghost ? new Set(bodies.map(b => `${b.key}:${Math.round(b.volumeMM3 ?? 0)}`)) : null;
     const fresh = (b: BodyResult) => { if (had) return !had.has(`${b.key}:${Math.round(b.volumeMM3 ?? 0)}`); const at = previewNodes && bodyNodeOf(previewNodes, b.key); return !!previewNodes && !!at && rootOf(previewNodes, at.node) >= evaluated.nodes.length; };
-    return new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color ?? (shownBodies === previewBodies && fresh(b) ? PREVIEW_TINT : undefined); return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; }));
-  }, [shownBodies, doc, previewBodies, previewNodes, evaluated.nodes.length, ghost, bodies]);
+    return new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color ?? (shownBodies === previewBodies && fresh(b) && !overlaid ? PREVIEW_TINT : undefined); return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; }));
+  }, [shownBodies, doc, previewBodies, previewNodes, evaluated.nodes.length, ghost, bodies, proposalOverlay]);
   const hiddenBodies = useMemo(() => new Set(shownBodies.flatMap((b, i) => lookOf(doc, b).hidden ? [i] : [])), [shownBodies, doc]);
   // Faces coloured on their own, by body index and face index (their names kept with the body's look).
+  // (G12: a shown proposal's faces tinted — where the Boolean refused, or WebGL2 draws no overlay — those it adds or changes
+  // green on the after view, those it removes or changes red on the before view.)
+  const proposalTint = useMemo(() => {
+    const o = proposalOverlay; if (!o || !ghost || (o.method === 'boolean' && viewport.current?.backend === 'webgpu')) return null;
+    const on = new Set(o.changedFaces.filter(f => ghost.after ? f.kind !== 'removed' : f.kind !== 'added').map(f => f.name));
+    return { on, color: rgbOf(ghost.after ? PROPOSAL_ADDED : PROPOSAL_REMOVED) };
+  }, [proposalOverlay, ghost]);
   const faceColors = useMemo(() => new Map(shownBodies.flatMap((b, i) => {
-    const own = lookOf(doc, b).faces; if (!own) return [];
-    const m = new Map(b.mesh.faces.flatMap(f => { const c = own[f.name]; return c ? [[f.index, rgbOf(c)] as [number, [number, number, number]]] : []; }));
+    const own = lookOf(doc, b).faces; if (!own && !proposalTint) return [];
+    const m = new Map(b.mesh.faces.flatMap(f => { const c = proposalTint?.on.has(f.name) ? proposalTint.color : own?.[f.name] ? rgbOf(own[f.name]) : null; return c ? [[f.index, c] as [number, [number, number, number]]] : []; }));
     return m.size ? [[i, m] as [number, Map<number, [number, number, number]>]] : [];
-  })), [shownBodies, doc]);
+  })), [shownBodies, doc, proposalTint]);
   // (While placing, the pointer looks through the shape being placed: the preview's new bodies.)
   const placeSkip = useMemo(() => { const have = new Set(bodies.map(b => b.key)); return new Set((previewBodies ?? []).filter(b => !have.has(b.key)).map(b => b.key)); }, [bodies, previewBodies]);
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
@@ -1676,6 +1695,8 @@ export function App() {
     (window as unknown as { __studioSetSection: typeof setSection }).__studioSetSection = setSection;
     (window as unknown as { __studioOverlayLines: () => Record<string, number> }).__studioOverlayLines = () => viewport.current?.overlayLines() ?? {};
     (window as unknown as { __studioOverlayTexts: () => Record<string, string[]> }).__studioOverlayTexts = () => viewport.current?.overlayTexts() ?? {};
+    // (G12: the shown proposal's diff, as the overlay has it.)
+    (window as unknown as { __studioProposalOverlay: () => unknown }).__studioProposalOverlay = () => proposalOverlay && { added: proposalOverlay.added?.volumeMM3 ?? null, removed: proposalOverlay.removed?.volumeMM3 ?? null, method: proposalOverlay.method, faces: proposalOverlay.changedFaces.length, tinted: !!proposalTint };
     // (n points spread through a box, coloured by height; 0: none.)
     (window as unknown as { __studioSetCloud: (n: number, min: Vec3, max: Vec3) => void }).__studioSetCloud = (n, min, max) => setBenchCloud(n > 0 ? Array.from({ length: n }, (_, i) => {
       const u = (i * 0.61803398875) % 1, v = (i * 0.7548776662) % 1, w = (i * 0.5698402910) % 1;
@@ -1874,7 +1895,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} clip={sectionClip} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} clip={sectionClip} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}

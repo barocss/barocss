@@ -15,8 +15,10 @@ import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@b
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
+import { PROPOSAL_ADDED, PROPOSAL_REMOVED } from './renderer';
 import type { EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
+import type { ProposalOverlay } from '../engine/client';
 
 /** Device pixels per CSS pixel, up to 3 (a high-density screen with the page zoomed in). */
 const pixelRatio = () => Math.min(3, Math.max(1, globalThis.devicePixelRatio || 1));
@@ -33,6 +35,7 @@ const toward = (right: Vec3, up: Vec3, forward: Vec3, x: number, y: number, z: n
 /** The identity transform: a mesh as placed. */
 const IDENTITY = translation([0, 0, 0]);
 const LABEL_FONT = "500 'IBM Plex Mono', ui-monospace, monospace";
+
 /** Whether a mesh's transform is already `m` (setting it marks the mesh's block to send again). */
 const sameTransform = (a: ArrayLike<number>, m: ArrayLike<number>) => { for (let i = 0; i < 16; i++) if (a[i] !== m[i]) return false; return true; };
 /** A mesh moved to `m`, when it is not there already. */
@@ -304,6 +307,22 @@ export class GpuRenderer implements ViewRenderer {
     }
     this.viewer.requestRender();
   }
+  /** A proposal's added and removed material (G12): see-through decals in green and red, their edges, a chip each. */
+  setProposalOverlay(view: ProposalOverlay | null): void {
+    for (const m of this.proposalMeshes) { m.remove(); m.geometry.dispose(); }
+    this.proposalMeshes = [];
+    if (view) for (const side of ['added', 'removed'] as const) {
+      const s = view[side]; if (!s || !s.mesh.indices.length) continue;
+      const color = side === 'added' ? PROPOSAL_ADDED : PROPOSAL_REMOVED, m = s.mesh, b = m.bounds;
+      this.proposalMeshes.push(this.viewer.add({ positions: m.positions, normals: m.normals, indices: m.indices }, { name: 'proposal:' + side, material: { color, opacity: 0.5, doubleSided: true, decal: true, roughness: 0.6 }, castShadow: false, pickable: false }));
+      if (m.edgeLines.length) this.proposalMeshes.push(this.viewer.add({ positions: m.edgeLines, topology: 'lines' }, { material: { color, unlit: true, lineWidth: 1.6, opacity: 0.9, lineHidden: 0.35 }, castShadow: false, pickable: false }));
+      // (Its volume over the scene at its box's top, as the readouts are drawn: G15-D2.)
+      const text = `${side === 'added' ? '+' : '−'}${Math.round(s.volumeMM3).toLocaleString('en-US')} mm³`;
+      this.proposalMeshes.push(this.viewer.addLabels([{ text, at: [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2, b.max[2]], size: 12, color: '#ffffff', align: [0.5, 1], offset: [0, -6], background: { color, padding: 4 } }], { bounded: false, clipped: false, material: { lineOver: true } }));
+    }
+    this.applyClip(); this.viewer.requestRender();
+  }
+  private proposalMeshes: Mesh[] = [];
   /** Overlay labels by key (G15): one label mesh each, laid out when they change. */
   setOverlayLabels(key: string, labels: OverlayLabels | null): void {
     const had = this.overlays.get(key);

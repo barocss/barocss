@@ -50,6 +50,11 @@ export interface Material {
   shadowOnly?: boolean;
   /** A colour map (Viewer.createTexture), multiplied into the colour through the geometry's uvs. */
   map?: ImageTexture | null;
+  /**
+   * Drawn a little in front of the surfaces it lies on (G12: an overlay sharing faces with a body, such as a proposal's
+   * added or removed material) — the opposite of the surfaces' own depth bias. Default false.
+   */
+  decal?: boolean;
   /** Alpha cutout: pixels whose alpha (colour × map) is below this (0 – 1) are not drawn — leaves, grilles, decals with holes; 0: off. */
   alphaCutoff?: number;
   /**
@@ -356,7 +361,7 @@ export class Mesh {
 function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash' | 'pointBorder'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null; pointBorder: { width: number; color: Vec3 } | null } {
   return {
     color: parseColor(m.color, m.shadowOnly ? [0, 0, 0] : [0.8, 0.8, 0.8]), opacity: Math.min(1, Math.max(0, m.opacity ?? 1)),
-    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, lineDash: m.lineDash && m.lineDash[0] > 0 && m.lineDash[1] > 0 ? [m.lineDash[0], m.lineDash[1]] : null, lineOver: m.lineOver ?? false, lineHidden: Math.min(1, Math.max(0, m.lineHidden ?? 0)),
+    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, lineDash: m.lineDash && m.lineDash[0] > 0 && m.lineDash[1] > 0 ? [m.lineDash[0], m.lineDash[1]] : null, lineOver: m.lineOver ?? false, lineHidden: Math.min(1, Math.max(0, m.lineHidden ?? 0)), decal: m.decal ?? false,
     pointSize: Math.max(0, m.pointSize ?? 4), pointShape: m.pointShape ?? 'circle', pointBorder: m.pointBorder && m.pointBorder.width > 0 ? { width: m.pointBorder.width, color: parseColor(m.pointBorder.color, [1, 1, 1]) } : null, shadowOnly: m.shadowOnly ?? false, map: m.map ?? null, shader: m.shader ?? null, alphaCutoff: Math.min(1, Math.max(0, m.alphaCutoff ?? 0)),
   };
 }
@@ -518,7 +523,7 @@ export class Viewer {
   private materialLayout!: object;
   private surfaceLayout!: object;
   /** The surface pipeline description for a shader module and variant (lit or not, two-sided, transparent). */
-  private surfaceDescriptor!: (module: object, lit: boolean, two: boolean, transparent: boolean | 'oit') => object;
+  private surfaceDescriptor!: (module: object, lit: boolean, two: boolean, transparent: boolean | 'oit', decal?: boolean) => object;
   /** Shader materials by their WGSL: an id and their module (made on first use). */
   private shaders = new Map<string, { id: number; module: object | null; device: Device | null }>();
   /** A shader material's surface WGSL (made once per material: the sort and the draw ask for it per mesh). */
@@ -691,16 +696,16 @@ export class Viewer {
     // (G11's order-independent variant: the accumulation summed, the revealage multiplied, in any order.)
     const oitTargets = [{ format: OIT_ACCUM, blend: { color: { srcFactor: 'one', dstFactor: 'one' }, alpha: { srcFactor: 'one', dstFactor: 'one' } } },
       { format: OIT_REVEAL, blend: { color: { srcFactor: 'zero', dstFactor: 'one-minus-src' }, alpha: { srcFactor: 'zero', dstFactor: 'one-minus-src' } } }];
-    this.surfaceDescriptor = (module, lit, two, t) => ({
+    this.surfaceDescriptor = (module, lit, two, t, decal = false) => ({
       vertex: vertex(module),
       fragment: t === 'oit' ? { module, entryPoint: lit ? 'fsLitOit' : 'fsUnlitOit', targets: oitTargets } : { module, entryPoint: lit ? 'fsLit' : 'fsUnlit', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
       primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back', frontFace: 'ccw' },
-      // Faces sit a little behind lines drawn on them (reversed depth: lower is further).
-      depthStencil: { format: 'depth32float', depthWriteEnabled: !t, depthCompare: 'greater-equal', depthBias: -2, depthBiasSlopeScale: -1.5 },
+      // Faces sit a little behind lines drawn on them (reversed depth: lower is further); a decal a little in front (G12).
+      depthStencil: { format: 'depth32float', depthWriteEnabled: !t, depthCompare: 'greater-equal', depthBias: decal ? 2 : -2, depthBiasSlopeScale: decal ? 1.5 : -1.5 },
       multisample: ms,
     });
-    for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true, 'oit' as const])
-      jobs.push(make(`${lit ? 'lit' : 'unlit'}${two ? '2' : ''}${t === 'oit' ? 'O' : t ? 'T' : ''}`, this.surfaceDescriptor(modules.surface, lit, two, t)));
+    for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true, 'oit' as const]) for (const decal of [false, true])
+      jobs.push(make(`${lit ? 'lit' : 'unlit'}${two ? '2' : ''}${t === 'oit' ? 'O' : t ? 'T' : ''}${decal ? 'D' : ''}`, this.surfaceDescriptor(modules.surface, lit, two, t, decal)));
     const oitModule = d.createShaderModule({ code: oitWGSL, label: 'viewer oit' });
     jobs.push(d.createRenderPipelineAsync({
       label: 'viewer oit composite', layout: 'auto',
@@ -1034,8 +1039,9 @@ export class Viewer {
       for (const k of [...this.pipelines.keys()]) if (k.startsWith(`shader${entry.id}:`)) this.pipelines.delete(k);
     }
     if (!this.pipelines.has(key)) {
-      const lit = !variant.startsWith('unlit'), two = variant.includes('2'), t = variant.endsWith('O') ? 'oit' as const : variant.endsWith('T');
-      this.pipelines.set(key, (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({ label: `viewer ${key}`, layout: this.surfaceLayout, ...this.surfaceDescriptor(entry.module, lit, two, t) }));
+      const decal = variant.endsWith('D'), v = decal ? variant.slice(0, -1) : variant;
+      const lit = !v.startsWith('unlit'), two = v.includes('2'), t = v.endsWith('O') ? 'oit' as const : v.endsWith('T');
+      this.pipelines.set(key, (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({ label: `viewer ${key}`, layout: this.surfaceLayout, ...this.surfaceDescriptor(entry.module, lit, two, t, decal) }));
     }
     return key;
   }
@@ -1287,7 +1293,7 @@ export class Viewer {
     if (m.geometry.topology === 'labels') return mat.lineOver ? 'labelOver' : 'label';
     if (mat.shadowOnly) return 'catcher';
     if (m.mapped) return two ? 'litMap2' : 'litMap';
-    const variant = `${mat.unlit ? 'unlit' : 'lit'}${two}${t}`;
+    const variant = `${mat.unlit ? 'unlit' : 'lit'}${two}${t}${mat.decal ? 'D' : ''}`;
     return mat.shader ? this.shaderPipeline(mat.shader, variant) : variant;
   }
 

@@ -135,6 +135,8 @@ interface Props {
   mould?: MouldShown | null;
   /** Isoclines drawn with the draft map (G6), or none. */
   isoclines?: readonly { points: readonly Vec3[]; closed: boolean }[] | null;
+  /** A shown proposal's added and removed material (G12; WebGPU), or none. */
+  proposal?: import('../engine/client').ProposalOverlay | null;
   instanceSelection?: string[];
   /** Faces of instances shown picked (mate faces). */
   instanceFaces?: { id: string; body: number; face: number }[];
@@ -380,6 +382,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setScalarMaps?.(props.scalarMaps ?? null); request(); }, [props.scalarMaps, backend]);
   useEffect(() => { renderer.current?.setMould?.(props.mould ?? null); request(); }, [props.mould, backend]);
   useEffect(() => { renderer.current?.setIsoclines?.(props.isoclines ?? null); request(); }, [props.isoclines, backend]);
+  useEffect(() => { renderer.current?.setProposalOverlay?.(props.proposal ?? null); request(); }, [props.proposal, backend]);
   // G7: the bounding box, the measure line, the underlays' polylines and the SubD cage's edges as engine lines on WebGPU —
   // made when they change (keyed by their content: the App hands new objects each render), not projected every frame;
   // WebGL2 keeps them SVG. Their looks as styles.css drew them.
