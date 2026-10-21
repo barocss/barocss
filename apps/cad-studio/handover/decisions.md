@@ -8015,3 +8015,25 @@ The kernel-lane queue's first item (O80; repro `apps/cad-studio/test/fixtures/ho
 - Studio: 777/777, no `todo` left (D148's repro now passes; the outer lane's additions in the count). 94 s.
 - The full browser flow, on its own: 215/215, 702 s (its hole steps now write `face`).
 - RB: in the rows commit after this one.
+
+## D148b — a hole's overshoot above its named face capped by the free space there (2026-10-21)
+
+The coordinator's review of D148 (judgement call 2): from a named face the cutter reached 1 % of the depth past it, up to 1 mm, so a lip or an overhang closer than that above the face, over the hole, was cut with no refusal — a wrong body. Fixed rather than kept.
+
+**Decision** (`part-model.ts`, the `hole` feature, a blind hole with `face`):
+- **The free space above the face** over the hole: rays from the face's plane out along its normal — from the hole's centre, 16 points on its rim and 8 at half its radius — against the body's tessellation (8 segments a quarter) through K2's tree; the least hit (`clearanceAbove`).
+- **The overshoot** is min(1 % of the depth, 1 mm, half that free space): the cutter stops short of anything above.
+- **Refused** when the free space is under 1e-3 mm: `GEOMETRY` with `[OBSTRUCTED_ABOVE] material <distance> mm above <face> over the hole at (x, y)` — the cutter has no room to stop short of it.
+- Holes without `face`, and through holes, are unchanged (no rays).
+- Limits, stated: a feature above the face that slips between the 25 sample rays (thinner than about 2πr/16 at the rim) is not seen; the tessellation's chord error enters only for curved faces above.
+
+**Oracles** (`packages/barocss-cad/test/d148-hole-face.test.mjs`, now 3 tests):
+- a 60-tall block with a 20 × 20 lip 0.5 mm above its top (held by a post): a 55-deep hole into `b.top` under the lip takes exactly π·9·55 (to 1e-9) — the lip whole. With the cap taken out (checked by hand on the built `dist`), the same hole took π·9·0.05 more: the lip cut, the test failing;
+- the lip 0.0005 mm above: refused `GEOMETRY [OBSTRUCTED_ABOVE] material 0.0005 mm above b.top`.
+- D148's tests unchanged (the tower beside the hole, far from it: the overshoot as before).
+
+**Checks — T2** (`part-model.ts`), on 6b2c4375d plus this change:
+- Kernel lint and type-check clean; `d148-hole-face` 3/3. The full kernel suite, conformance included, 1404/1409 (4 skipped; +1; 1409 = 1408 + 1, none missing); only the env-only "actual native Split source…" fails. 242 s.
+- App tsc clean. Studio 785/785, 94 s (the outer lane's additions since D148 in the count).
+- The full browser flow, on its own: 216/216 (the outer lane's new step included), 792 s.
+- RB: in the rows commit after this one.
