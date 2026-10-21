@@ -133,8 +133,8 @@ test('R6b.2 PCB standoffs and hole alignment: four standoffs on a floor under an
 });
 
 test('R6b.7 materials and process profiles: the data checked (every value sourced, the densities as before); the boss\'s thresholds from the process — FDM allows what moulding warns, no process leaves them unknown, said; a material value read from the body\'s material, unknown while it is assumed', async () => {
-  const { MATERIALS_DATA, checkMaterials, materialData } = await import('../src/library/materials');
-  const { MATERIALS } = await import('../src/app/materials');
+  const { MATERIALS_DATA, checkMaterials, materialData } = await import('@barocss/cad-model/library/materials');
+  const { MATERIALS } = await import('@barocss/cad-model/app/materials');
   const { registerLibrary } = await import('../src/library/libraries');
   const { withLook } = await import('../src/app/bodies');
   assert.deepEqual(checkMaterials(MATERIALS_DATA), []);

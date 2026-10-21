@@ -4,7 +4,7 @@
 // line parallel, an arc about its centre — with new corners where the moved pieces meet (cut back, or run on
 // to meet across the gap); where an arc joins its neighbour tangentially (a rounded corner) they still meet there.
 import type { SketchShape } from './types';
-import { arcOf } from './profile';
+import { arcOf } from '@barocss/cad-model/sketch/profile';
 
 type P2 = [number, number];
 const r6 = (v: number) => Math.round(v * 1e6) / 1e6;

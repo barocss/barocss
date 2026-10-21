@@ -3,10 +3,10 @@
 // runs and bends) and Loft (through two or more picked sections). A profile drawn on a body's face joins
 // that body by default; Operation can make a new body or cut it instead.
 import { withNode, type BodyRef, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
-import { toLocal, toWorld } from '../sketch/plane';
+import { toLocal, toWorld } from '@barocss/cad-model/sketch/plane';
 import { loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
 import { faceProfile } from './faceProfile';
-import { directNow } from '../engine/directModule';
+import { directNow } from '@barocss/cad-model/engine/directModule';
 import type { Command, Ctx, Field, Values } from './commands';
 
 // (Only types from commands.ts: it lists these commands, so a value import would be a cycle.)

@@ -4,7 +4,7 @@
 // close up, into one closed outline. A rectangle and a circle across its edge become a keyhole after two
 // trims: the rectangle's edge inside the circle, then the circle's arc inside the rectangle.
 import type { SketchShape } from './types';
-import { arcOf } from './profile';
+import { arcOf } from '@barocss/cad-model/sketch/profile';
 import { carryPolygon, inheritIds, nextIdOf, withIds } from './entityIds';
 
 type P2 = [number, number];

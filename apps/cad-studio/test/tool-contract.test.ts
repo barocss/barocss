@@ -8,7 +8,7 @@ import { evaluatePart } from '../src/engine/evaluate';
 import { starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { boxCage } from '../src/app/primitives';
 import { dispatchTool, SYSTEM_PROMPT, TOOLS, type ChatState } from '../src/chat/tools';
-import { TOOL_CONTRACT_VERSION, annotationsOf, breakingChanges, contractOf, outputSchemaOf, validate, type ContractEntry, type JsonSchema } from '../src/chat/contract';
+import { TOOL_CONTRACT_VERSION, annotationsOf, breakingChanges, contractOf, outputSchemaOf, validate, type ContractEntry, type JsonSchema } from '@barocss/cad-model/chat/contract';
 import { serveMcp, TOOLS_LISTED } from '../server/cadMcp';
 
 // A5.1 (O9): the tool layer's contract. Every tool classified; the names, input and output schemas and annotations

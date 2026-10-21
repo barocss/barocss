@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { MeshReceiver, MeshSender } from '../src/engine/meshWire';
 import { evaluateDoc, evaluatePart, evaluateVolumes, shareMeshes, type BodyResult, type EvalResult } from '../src/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import type { DisplayMesh } from '../src/engine/mesh';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 
 // PERF3 B12 (D82): evaluation replies carry only the meshes the client does not hold; the client puts back the rest.
 const mesh = (n: number): DisplayMesh => ({ positions: new Float32Array(3 * n).fill(n), normals: new Float32Array(3 * n), faceOfVertex: new Float32Array(n), indices: new Uint32Array(3), faces: [], edgeLines: new Float32Array(6), edgeOfSegment: new Float32Array(2), edges: [], bounds: { min: [0, 0, 0], max: [1, 1, 1] } } as unknown as DisplayMesh);

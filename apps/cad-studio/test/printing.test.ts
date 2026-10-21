@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MATERIALS_DATA, checkMaterials, printerProfile, processProfile } from '../src/library/materials';
+import { MATERIALS_DATA, checkMaterials, printerProfile, processProfile } from '@barocss/cad-model/library/materials';
 
 // AM (D72–): 3D printing — process and printer profiles (AM1).
 test('AM1 profiles: five processes (SLS and MJF added), every printing one with every printing threshold sourced; five generic printers on printing processes with their build volumes; the data checks clean', () => {

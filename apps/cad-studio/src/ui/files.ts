@@ -4,4 +4,4 @@ export function downloadBytes(bytes: Uint8Array, name: string, type: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export { meshToStl } from '../engine/stl';
+export { meshToStl } from '@barocss/cad-model/engine/stl';

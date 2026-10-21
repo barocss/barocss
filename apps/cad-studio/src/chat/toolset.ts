@@ -2,9 +2,9 @@
 // consolidated tools (`barocss-cad-tools-v2`, groups.ts) with `describe` for the detail. Both run on the one tool layer
 // (v2 calls are v1 calls), so the A/B (A5.5) compares only what the model reads. `CAD_TOOLSET=v2` picks v2 for the
 // chat server and the MCP server; v1 stays the default until the A/B decides.
-import type { ToolDefinition } from './api';
-import { annotationsOf, outputSchemaOf, TOOL_CONTRACT_V2, TOOL_CONTRACT_VERSION, type JsonSchema } from './contract';
-import { GROUPS, V2_OF } from './groups';
+import type { ToolDefinition } from '@barocss/cad-model/chat/api';
+import { annotationsOf, outputSchemaOf, TOOL_CONTRACT_V2, TOOL_CONTRACT_VERSION, type JsonSchema } from '@barocss/cad-model/chat/contract';
+import { GROUPS, V2_OF } from '@barocss/cad-model/chat/groups';
 import { CHAT_COMMANDS, featureKinds, SYSTEM_PROMPT, TOOLS } from './tools';
 
 /** `json` (A5.5): v1 without run_script — the A/B's JSON-only arm, today's tools before the script. */

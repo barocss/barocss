@@ -3,7 +3,7 @@
 // edited. From the hole features themselves: the axis and side they drill from, their diameter, depth and
 // copies, across the body's extent along that axis (through) or in from its face (to a depth).
 import { holeCentres, type ModelNode } from '../engine/doc';
-import type { Vec3 } from '../engine/mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
 /** A frustum: from `start` along `dir` (unit, into the material) for `length`, radius r0 at the start, r1 at the end. */
 export interface ToolRegion { start: Vec3; dir: Vec3; length: number; r0: number; r1: number }

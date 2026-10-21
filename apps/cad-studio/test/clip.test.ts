@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { rectanglePart, withNode } from '../src/engine/doc';
-import { clipMesh } from '../src/engine/clip';
-import type { DisplayMesh } from '../src/engine/mesh';
+import { clipMesh } from '@barocss/cad-model/engine/clip';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 
 /** A closed mesh's volume (divergence theorem) and whether every edge has two triangles. */
 const volume = (m: DisplayMesh) => { let v = 0; const P = m.positions, I = m.indices; for (let t = 0; t < I.length; t += 3) { const [a, b, c] = [I[t], I[t + 1], I[t + 2]].map(i => [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]]); v += (a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0])) / 6; } return v; };

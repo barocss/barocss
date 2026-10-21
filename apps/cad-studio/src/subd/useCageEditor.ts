@@ -5,11 +5,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StudioDoc, ModelNode } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
-import { triangleMesh, type Vec3 } from '../engine/mesh';
+import { triangleMesh, type Vec3 } from '@barocss/cad-model/engine/mesh';
 import { refOf } from '../app/bodyRef';
 import type { TransformGizmo } from '../viewport/gizmo';
 import type { CageOverlay } from '../viewport/Viewport';
-import { commitDrag, dragged, fullCage, previewTriangles, redoSession, runOp, select, selectionCentre, startSession, undoSession, validationOf, type CageHit, type CageMode, type CageOp, type CageSession } from './cageEdit';
+import { commitDrag, dragged, fullCage, previewTriangles, redoSession, runOp, select, selectionCentre, startSession, undoSession, validationOf, type CageHit, type CageMode, type CageOp, type CageSession } from '@barocss/cad-model/subd/cageEdit';
 import { mirrorCage } from '@barocss/cad';
 
 type SubdNode = Extract<ModelNode, { kind: 'subd' }>;

@@ -6,13 +6,13 @@
 import { checkLibraryFit, instantiateLibraryPart, loadCadLibrary, placeByInterfaces, type CadLibrary, type CadLibraryInterface } from '@barocss/cad';
 import { emptyDoc, withNode, type BodyRef, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { evaluateDoc } from '../engine/evaluate';
-import type { DisplayMesh } from '../engine/mesh';
-import { pointInBody } from '../app/measure';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
+import { pointInBody } from '@barocss/cad-model/app/measure';
 import { BASE, eulerOf, rotationMatrix, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
-import tslot20 from './builtin/tslot-20.json';
-import enclosure from './builtin/enclosure.json';
-import { checkLibraryForSharing, estimateCount, licenseOf, sharingRefusal, type LibraryCheck } from './sharing';
-import { materialContext, materialData, processProfile } from './materials';
+import tslot20 from '@barocss/cad-model/library/builtin/tslot-20.json';
+import enclosure from '@barocss/cad-model/library/builtin/enclosure.json';
+import { checkLibraryForSharing, estimateCount, licenseOf, sharingRefusal, type LibraryCheck } from '@barocss/cad-model/library/sharing';
+import { materialContext, materialData, processProfile } from '@barocss/cad-model/library/materials';
 import { materialIdOf } from '../app/bodies';
 
 /** Where a library comes from: built into the studio, shared by a team, or the user's own. */

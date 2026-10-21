@@ -15,13 +15,19 @@ const importsOf = (p: string) => [...src(p).matchAll(IMPORT)].map(m => m[1]);
 
 test('PKG-b the blockers stay cut: sketch/*, assembly/drag, library/*, the CLI import nothing from viewport/ or ui/; library/ reaches no localStorage', () => {
   const files = [...readdirSync(join(root, 'src/sketch')).filter(f => f.endsWith('.ts')).map(f => `src/sketch/${f}`), 'src/assembly/drag.ts',
-    ...readdirSync(join(root, 'src/library')).filter(f => f.endsWith('.ts')).map(f => `src/library/${f}`), 'server/cadCli.ts', 'src/engine/stl.ts', 'src/engine/vec3.ts'];
+    ...readdirSync(join(root, 'src/library')).filter(f => f.endsWith('.ts')).map(f => `src/library/${f}`), 'server/cadCli.ts'];
   for (const f of files) for (const spec of importsOf(f)) assert.ok(!/(^|\/)(viewport|ui)\//.test(spec), `${f} imports ${spec}`);
+  // (PKG-c, O95: what moved to @barocss/cad-model imports nothing of the app — relative paths stay inside the package.)
+  const pkg = join(root, '../../packages/barocss-cad-model/src'), moved: string[] = [];
+  const walk = (d: string) => { for (const n of readdirSync(d, { withFileTypes: true })) { const p = join(d, n.name); if (n.isDirectory()) walk(p); else if (n.name.endsWith('.ts')) moved.push(p); } };
+  walk(pkg); assert.ok(moved.length >= 40, String(moved.length));
+  for (const f of moved) for (const m of readFileSync(f, 'utf8').matchAll(IMPORT)) assert.ok(!m[1].startsWith('.') || !join(f, '..', m[1]).startsWith(join(root, 'src')), `${f} reaches back into the app: ${m[1]}`);
+  for (const f of moved) for (const m of readFileSync(f, 'utf8').matchAll(IMPORT)) assert.ok(!/^(react|@barocss\/gpu)/.test(m[1]), `${f} imports ${m[1]}`);
   for (const f of files.filter(x => x.startsWith('src/library/'))) assert.ok(!/\blocalStorage\s*[?.]/.test(src(f).replace(/\/\/.*$|\/\*[\s\S]*?\*\//gm, '')), `${f} reaches localStorage`);
   // (The UI still reads the moved names from where it did: re-exported.)
   assert.match(src('src/viewport/Viewport.tsx'), /export type \{ SketchTool, SketchShape, SketchAnchor, SketchState, Make \} from '\.\.\/sketch\/types'/);
-  assert.match(src('src/viewport/gizmo.ts'), /export type \{ Axis3 \} from '\.\.\/engine\/vec3'/);
-  assert.match(src('src/ui/files.ts'), /export \{ meshToStl \} from '\.\.\/engine\/stl'/);
+  assert.match(src('src/viewport/gizmo.ts'), /export type \{ Axis3 \} from '@barocss\/cad-model\/engine\/vec3'/);
+  assert.match(src('src/ui/files.ts'), /export \{ meshToStl \} from '@barocss\/cad-model\/engine\/stl'/);
 });
 
 test('PKG-b the user\'s libraries go to the store the app sets: kept there and read back; with none set nothing is kept', () => {

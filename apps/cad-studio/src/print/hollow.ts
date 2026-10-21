@@ -7,9 +7,9 @@
 import { withNode, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
 import { positionsArray, putKnownBlob, type BlobArray } from '../engine/blobs';
 import { evaluatePart, type BodyResult } from '../engine/evaluate';
-import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import { refOf } from '../app/bodyRef';
-import { sha256Hex } from '../team/sha256';
+import { sha256Hex } from '@barocss/cad-model/team/sha256';
 
 export type HollowCode = 'CURVED_BODY' | 'ONE_BODY' | 'DIRECTION_NOT_AXIS' | 'NOTHING_TO_HOLLOW' | 'GRID_TOO_FINE' | 'BAD_VALUES' | 'DRAIN_NO_ROOM' | 'BOOLEAN_REFUSED';
 export class HollowError extends Error { constructor(public code: HollowCode, message: string) { super(`[${code}] ${message}`); this.name = 'HollowError'; } }

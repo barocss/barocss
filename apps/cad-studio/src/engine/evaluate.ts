@@ -1,8 +1,8 @@
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import type { FaceTable } from '../assembly/mates';
 import { cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
-import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
-import { friendly, type FriendlyError } from './errors';
+import { bodyMesh, type DisplayEdge, type DisplayMesh } from '@barocss/cad-model/engine/mesh';
+import { friendly, type FriendlyError } from '@barocss/cad-model/engine/errors';
 import { bodyKeyOf, toPartDocument } from './part';
 import { placedDoc, type BodyRef, type ModelNode, type Side, type StudioDoc } from './doc';
 import { bodyNodeOf } from './ids';

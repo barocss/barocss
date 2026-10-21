@@ -4,8 +4,8 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { bodyName, lookOf } from '../app/bodies';
-import { materialData, printerProfile } from '../library/materials';
-import type { ThreeMfModel, ThreeMfObject } from './threemf';
+import { materialData, printerProfile } from '@barocss/cad-model/library/materials';
+import type { ThreeMfModel, ThreeMfObject } from '@barocss/cad-model/print/threemf';
 
 /** The rotation (row-major) turning the unit direction `d` onto +Z: the shortest turn (half a turn about X for −Z). */
 export function rotationToUp(d: readonly number[]): number[] {

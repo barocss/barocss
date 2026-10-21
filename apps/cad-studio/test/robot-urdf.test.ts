@@ -8,9 +8,9 @@ import type { StudioDoc } from '../src/engine/doc';
 import { dispatchTool } from '../src/chat/tools';
 import { treeOfDoc, urdfOfDoc } from '../src/chat/robot';
 import { forwardKinematics } from '../src/robot/fk';
-import { convexHull, HullError } from '../src/robot/hull';
+import { convexHull, HullError } from '@barocss/cad-model/robot/hull';
 import { rpyOf, type UrdfResult } from '../src/robot/urdf';
-import { parseXml, readUrdf, urdfFk, XmlError } from '../src/robot/urdfCheck';
+import { parseXml, readUrdf, urdfFk, XmlError } from '@barocss/cad-model/robot/urdfCheck';
 import { symmetricEigen, type Mat3 } from '../src/robot/inertia';
 import { cliMain } from '../server/cadCli';
 

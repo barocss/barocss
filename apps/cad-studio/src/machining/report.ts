@@ -10,7 +10,7 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { materialIdOf } from '../app/bodies';
-import { materialData, type ProcessProfile } from '../library/materials';
+import { materialData, type ProcessProfile } from '@barocss/cad-model/library/materials';
 import { wallsOf } from '../mould/walls';
 import { accessOf, type Access } from './access';
 import { cavitiesOf, type Cavities } from './cavities';

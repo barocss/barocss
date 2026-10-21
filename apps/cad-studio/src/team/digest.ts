@@ -3,7 +3,7 @@
 // WebCrypto's digest is not); the tests check it against node:crypto.
 import type { StudioDoc } from '../engine/doc';
 import { canonical, revisionContent } from './team';
-import { sha256Hex, sha256Text } from './sha256';
+import { sha256Hex, sha256Text } from '@barocss/cad-model/team/sha256';
 export { sha256Hex, sha256Text };
 /** A value's content digest: the SHA-256 of its canonical JSON. */
 export const digestOf = (v: unknown) => sha256Text(canonical(v));

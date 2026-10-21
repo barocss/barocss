@@ -8,7 +8,7 @@
 import { evaluateSurfaceD1, surfaceDomain, type Brep } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import { partBreps, type BodyResult } from '../engine/evaluate';
-import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 
 export type DraftClass = 'drafted' | 'steep' | 'straddle';
 export interface DraftFace {

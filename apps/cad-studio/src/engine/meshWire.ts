@@ -3,7 +3,7 @@
 // token alone: no copy made, nothing sent. The client keeps the same last reply's meshes by token and puts them back.
 // Both sides keep exactly the last reply of each slot, in the order the worker posts them.
 import type { BodyResult, EvalResult } from './evaluate';
-import type { DisplayMesh } from './mesh';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 
 /** A body as posted: its mesh and the token it goes by, or only the token of a mesh the client holds. */
 export type WireBody = Omit<BodyResult, 'mesh'> & ({ mesh: DisplayMesh; meshToken: number } | { meshRef: number });

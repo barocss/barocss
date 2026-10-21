@@ -4,10 +4,10 @@
 import { robotCheckOfDoc, robotOfDoc, treeOfDoc, urdfOfDoc } from '../chat/robot';
 import { forwardKinematics } from '../robot/fk';
 import { treeInertia } from '../robot/inertia';
-import { readUrdf, urdfFk } from '../robot/urdfCheck';
+import { readUrdf, urdfFk } from '@barocss/cad-model/robot/urdfCheck';
 import { workspaceMap } from '../robot/workspace';
 import type { Duty } from '../robot/harness';
-import { materialData } from '../library/materials';
+import { materialData } from '@barocss/cad-model/library/materials';
 import { assemblyBodies, bomView, checkAssembly } from '../team/assembly';
 import { prng, type Call, type Evaluate, type Outcome, type Params, type Rung } from './core';
 import { boxOf, cylindersOf, holds, near } from './measure';

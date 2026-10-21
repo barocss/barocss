@@ -1,15 +1,15 @@
 import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 'react';
 import type { BodyResult } from '../engine/evaluate';
-import type { Vec3 } from '../engine/mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
 import { Renderer, type EdgeRef, type FaceRef, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import { GpuRenderer } from './gpuRenderer';
-import type { RenderCamera, RenderSettings } from '../engine/render';
-import type { DirectDisplay } from '../engine/direct';
+import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
+import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import { regionMesh, type ToolRegion } from '../app/holeRegion';
-import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '../sketch/profile';
+import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '@barocss/cad-model/sketch/profile';
 import { extendPreview, splitPreview, trimPreview } from '../sketch/trim';
-import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type SketchPlane } from '../sketch/plane';
+import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
 import { shapeOutline } from '../sketch/loops';
 import { hvOf, isSettled, type SketchPick } from '../sketch/rules';
 import { pickSketch } from '../sketch/select';
@@ -18,10 +18,10 @@ import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX,
 import { gizmoMarks } from './GizmoMarks';
 import { ViewCube } from './ViewCube';
 import { CageMarks } from './CageMarks';
-import { pickCage, type CageHit, type CageMode, type CageSelection, type StudioCage } from '../subd/cageEdit';
+import { pickCage, type CageHit, type CageMode, type CageSelection, type StudioCage } from '@barocss/cad-model/subd/cageEdit';
 import type { CageValidation } from '@barocss/cad';
-import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '../sketch/osnap';
-import { splineOutline } from '../sketch/spline';
+import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
+import { splineOutline } from '@barocss/cad-model/sketch/spline';
 import type { Analysis } from './analysis';
 
 export type { SketchTool, SketchShape, SketchAnchor, SketchState, Make } from '../sketch/types';

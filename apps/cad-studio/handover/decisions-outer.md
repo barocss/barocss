@@ -4209,3 +4209,39 @@ The owner's decision, verbatim: "#2181에서 빠진 네 가지(저장→새로 �
   - the replay gate's mutants: facts off by 1 mm³, H measured 0.02 off (its tolerance 0.01), H's verdict flipped, a file that does not read. Each is refused by name with the part unchanged; 0.005 off still matches;
   - a duplicate accept applied once (one undo, then NOTHING_TO_UNDO); undo and redo restore the canonical JSON and the volume; E refused on the new token; tokens only move on.
 - **Not in A7.5**: a UI for the board (it runs headless and in the studio's tool path); parallel execution in workers (candidates build in turn on their own copies, which isolates their state but is not concurrency); assembly candidates (#2181's later step).
+
+## O95 — PKG-c: the 42 SCC-independent model files moved to `@barocss/cad-model` (2026-10-21)
+
+The coordinator called the joint PKG boundary: the kernel lane had finished R12b and stopped, and the integration branch was at 3677add70, the same tree as dbc4aa678.
+
+- **The partition, again at HEAD.** The proposal's 41 / 95 / 42 were measured at 73aaf95a6, and both lanes have added files since. A script over every import, export, `import()` and `new URL()` specifier in `src/`, with the proposal's app files left out, gives:
+  - 195 model files: 192 TypeScript and the 3 built-in library JSON files. `tools-v1/v2.json` stay in the app (risk 2);
+  - **0 edges from model into the app**, after PKG-b;
+  - one strongly connected component of **105** files (20,955 lines);
+  - **42 independent** files (39 TS and 3 JSON, 4,848 lines) and **48 dependents** (4,214 lines).
+  - Since the proposal, `sketch/{offset,corner,history}` joined the SCC (through `sketch/types` and its `rules` import), and `engine/stl` joined the independent files (PKG-b's B3). The new folders (`machining/`, more of `mould/`, `team/candidates`) are in the SCC or depend on it.
+- **The move** (a script, its rewrites computed against the tree before the move):
+  - `git mv` of each file to `packages/barocss-cad-model/src/<the same path>`. All **42 are R100**, byte-identical renames.
+  - **180 importers** (src/, server/, test/) re-pointed: 313 specifiers to `@barocss/cad-model/<path>`.
+  - No shims at old paths. The moved files import only each other, relatively, and `@barocss/cad`. The model is imported by package specifier only (B10); vite and esbuild resolve the workspace link to the one real file, so module-global state stays one module.
+- **The moved files**:
+  - `app/{edgeChain,materials,measure}`;
+  - `chat/{api,contract,groups,script,trace}`;
+  - `drawing/text`;
+  - `engine/{clip,curveSource,direct,directModule,errors,fit,geom2,mesh,meshImport,render,stepUnits,stl,trim,vec3}`;
+  - `io/zip`;
+  - `library/{materials,sharing}` and `library/builtin/{enclosure,materials,tslot-20}.json`;
+  - `print/threemf`;
+  - `robot/{gjk,hull,mjcfCheck,profile,urdfCheck}`;
+  - `sketch/{osnap,plane,profile,spline,terms}`;
+  - `subd/cageEdit`;
+  - `team/sha256`.
+- **The package**:
+  - `exports` gains `"./*.json": "./src/*.json"` beside `"./*"` (the longer key wins), so the app's `library/libraries.ts` reads the built-in JSON by specifier;
+  - its tsconfig gains `lib: ES2022 + DOM` and `resolveJsonModule`. Dropping DOM is PKG-g's question.
+- **The kernel-file touch, declared**: `packages/barocss-cad/test/fr-1.test.mjs:111` now reads `tslot-20.json` from its new path, `packages/barocss-cad-model/src/library/builtin/`. The one-line path change is the only kernel edit; the fixture moved with the library.
+- **The first changeset for `@barocss/cad-model`** (minor) names the modules that landed. Nothing is published.
+- **`test/pkg-boundary.test.ts`**:
+  - every file in the package imports nothing back into the app by a relative path, and no `react` or `@barocss/gpu`;
+  - the gizmo's `Axis3` and `ui/files`' `meshToStl` re-exports now come from the package specifier;
+  - the frozen tool contracts pass without `UPDATE_TOOL_CONTRACT`.

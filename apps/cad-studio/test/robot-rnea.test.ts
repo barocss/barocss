@@ -10,7 +10,7 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { treeOfDoc } from '../src/chat/robot';
 import { applyTo, forwardKinematics } from '../src/robot/fk';
 import { coordinates, gravityTorques, linkBodies, massMatrix, moveTorques, rnea, STANDARD_GRAVITY, type LinkBody } from '../src/robot/dynamics';
-import { at, onSegment, sCurve, sCurveTimes, trapezoid } from '../src/robot/profile';
+import { at, onSegment, sCurve, sCurveTimes, trapezoid } from '@barocss/cad-model/robot/profile';
 import type { Joint, JointTree } from '../src/robot/joints';
 import type { Mat3 } from '../src/robot/inertia';
 

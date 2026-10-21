@@ -1,7 +1,7 @@
 // Z-up orbit camera with perspective/orthographic projection. Matrices are column-major (WebGL).
-import type { Vec3 } from '../engine/mesh';
-export { sub, dot, cross, unit as normalize } from '../engine/vec3';
-import { sub, dot, cross, unit as normalize } from '../engine/vec3';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
+export { sub, dot, cross, unit as normalize } from '@barocss/cad-model/engine/vec3';
+import { sub, dot, cross, unit as normalize } from '@barocss/cad-model/engine/vec3';
 
 export type Mat4 = Float32Array;
 

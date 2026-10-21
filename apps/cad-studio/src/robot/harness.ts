@@ -8,7 +8,7 @@
 // unknown, typed, never a pass.
 import type { JointTree } from './joints';
 import type { V3 } from './inertia';
-import type { ProfileKind } from './profile';
+import type { ProfileKind } from '@barocss/cad-model/robot/profile';
 import { coordinates, gravityTorques, massMatrix, moveTorques, rnea, STANDARD_GRAVITY, type LinkBody, type MoveLimits } from './dynamics';
 import { checkPair, MOTORS, REDUCERS, sizeActuators, type Motor, type Reducer } from './actuators';
 import { sweepPath, type SweepLink } from './sweep';

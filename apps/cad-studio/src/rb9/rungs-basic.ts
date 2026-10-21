@@ -2,7 +2,7 @@
 // a D-shaft, a wall hook). Each: its sampled space, the brief in words, the ideal agent's calls, the hidden checker by
 // closed forms and exact faces, and mutants that each must fail a named predicate.
 import { readBrief, briefGaps } from '../chat/brief';
-import { processProfile } from '../library/materials';
+import { processProfile } from '@barocss/cad-model/library/materials';
 import type { Call, Mutant, Outcome, Params, Rung } from './core';
 import { axisDistance, boxIs, cylindersOf, distinctCylinders, holds, near, parallel, studioChecks, volumeOf } from './measure';
 

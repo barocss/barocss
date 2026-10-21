@@ -5,7 +5,7 @@
 // A stated process the studio has rules for becomes the part's process; a stated library material is the material of
 // every body that has none of its own (an assumed one is not applied: its mass stays assumed, said so).
 import type { StudioDoc } from '../engine/doc';
-import { MATERIALS_DATA, processProfile } from '../library/materials';
+import { MATERIALS_DATA, processProfile } from '@barocss/cad-model/library/materials';
 
 export const BRIEF_VERSION = 1;
 /** The processes a brief may name: those with rules (R6b.7; machining since CNC1, O84), and sheet metal recorded as intent. */

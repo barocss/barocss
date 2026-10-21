@@ -6,7 +6,7 @@
 import type { StudioDoc } from '../engine/doc';
 import { materialIdOf } from '../app/bodies';
 import type { BodyResult } from '../engine/evaluate';
-import { materialData, type WebSource } from '../library/materials';
+import { materialData, type WebSource } from '@barocss/cad-model/library/materials';
 import { drawingInputs } from '../chat/drawing';
 import { drawingIssues, issueContext } from '../drawing/issues';
 import { GENERAL_NOTE_PREFIX } from '../drawing/tolerance';

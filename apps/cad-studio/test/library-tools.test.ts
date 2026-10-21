@@ -9,7 +9,7 @@ import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { acceptProposal, dispatchTool, runTool, type ChatState } from '../src/chat/tools';
 import { readStudioDoc } from '../src/engine/migrate';
 import { confirmDocLibrary, libraryById, libraryEntry, shareRefusal } from '../src/library/libraries';
-import { checkLibraryForSharing, UNLICENSED } from '../src/library/sharing';
+import { checkLibraryForSharing, UNLICENSED } from '@barocss/cad-model/library/sharing';
 import { createChatServer } from '../server/chatServer';
 import { registerTeamLibraries } from '../server/cadMcp';
 

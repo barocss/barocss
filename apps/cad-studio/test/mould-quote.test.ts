@@ -8,7 +8,7 @@ import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { withLook } from '../src/app/bodies';
 import { encodeStudioFile } from '../src/engine/container';
-import { materialData } from '../src/library/materials';
+import { materialData } from '@barocss/cad-model/library/materials';
 import { quotePackage, QUOTE_FILES } from '../src/mould/quote';
 import { cliMain } from '../server/cadCli';
 

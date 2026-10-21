@@ -26,7 +26,7 @@
 import type { BrepProjection } from '@barocss/cad';
 import { autoDimensions, axisOf, holesOf, levels } from './auto';
 import { basicBox, buildSheet, datumMarks, dimensionMarks, frameMarks, tableRoom, type Mark, type MarkGroup, type Sheet } from './sheet';
-import { textCorners } from './text';
+import { textCorners } from '@barocss/cad-model/drawing/text';
 import { SCALES, layoutSheet, type SheetLayout } from './views';
 import type { Resolved } from './dimensions';
 import { VIEW_IDS, type DimPoint, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';

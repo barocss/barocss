@@ -4,8 +4,8 @@
 // Run through scripts/bench-mesh.mjs (one fixture per process, for its peak memory): pnpm bench:mesh.
 import { serialize } from 'node:v8';
 import { booleanPolyhedra, brepFromTriangles, brepMassProperties, CadPartLimits, encodeBinaryStl, facetBrepFromTriangles, readStl, type Brep } from '@barocss/cad';
-import { bodyMesh, type DisplayMesh } from '../../src/engine/mesh';
-import { meshInMM } from '../../src/engine/meshImport';
+import { bodyMesh, type DisplayMesh } from '@barocss/cad-model/engine/mesh';
+import { meshInMM } from '@barocss/cad-model/engine/meshImport';
 import { prepareGeometry, rayTriangles, type PreparedGeometry } from '../../../../packages/barocss-gpu/src/viewer/geometry';
 import { addBox, fixtures, random } from './mesh-fixtures';
 

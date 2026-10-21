@@ -11,7 +11,7 @@ import { buildSheet, PENS } from '../../src/drawing/sheet';
 import { sheetSvg } from '../../src/drawing/svg';
 import { sheetPdf } from '../../src/drawing/pdf';
 import { resolveDimension, snapPoints } from '../../src/drawing/dimensions';
-import { textWidth } from '../../src/drawing/text';
+import { textWidth } from '@barocss/cad-model/drawing/text';
 import { defaultDrawing, type DrawingSettings, type DrawingViews, type ViewId } from '../../src/drawing/types';
 
 type Row = { id: string; area: string; name: string; ok: boolean; expected?: unknown; actual?: unknown };

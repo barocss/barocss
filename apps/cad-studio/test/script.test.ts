@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, starterDoc, type StudioDoc } from '../src/engine/doc';
 import { acceptProposal, dispatchTool, runTool, type ChatState } from '../src/chat/tools';
-import { lex, parse, runScript, SCRIPT_LIMITS, ScriptError, type ScriptHost } from '../src/chat/script';
+import { lex, parse, runScript, SCRIPT_LIMITS, ScriptError, type ScriptHost } from '@barocss/cad-model/chat/script';
 
 // A5.2 (O10): run_script — a part built in one call, all or nothing, each command a tool call; typed errors with the
 // line; the conformance cases in conformance/a5/; a fuzz run that only ever ends in a typed error.

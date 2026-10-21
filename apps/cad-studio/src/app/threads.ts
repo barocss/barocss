@@ -3,9 +3,9 @@
 // external thread and just inside an internal one. Which faces: those of a tapped hole feature (its
 // thread noted, "M6×1"), and the faces at the nominal diameter of a fastener's own features.
 import type { ModelNode } from '../engine/doc';
-import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import { FASTENER_SIZES } from './fasteners';
-import { roundFaceAxis } from './measure';
+import { roundFaceAxis } from '@barocss/cad-model/app/measure';
 import { featureId } from '../engine/ids';
 
 /** At most this many rings on one face (a long thread shows every few pitches). */

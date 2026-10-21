@@ -8,8 +8,8 @@ import { join } from 'node:path';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { withLook } from '../src/app/bodies';
-import { crc32 } from '../src/io/zip';
-import { write3mf, type ThreeMfModel } from '../src/print/threemf';
+import { crc32 } from '@barocss/cad-model/io/zip';
+import { write3mf, type ThreeMfModel } from '@barocss/cad-model/print/threemf';
 import { rotationToUp, threeMfModelOf } from '../src/print/export3mf';
 
 // AM5 (D76): 3MF written by our own code, read back by an independent reader — Node's zlib (inflate, CRC-32) and this

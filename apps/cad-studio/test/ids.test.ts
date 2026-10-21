@@ -9,7 +9,7 @@ import { flattenAssembly } from '../src/assembly/flatten';
 import { featureIdsOf, nextSerial, nodeIndexOf, renameFeatureIds, withIds } from '../src/engine/ids';
 import { toPartDocument } from '../src/engine/part';
 import { readStudioDoc } from '../src/engine/migrate';
-import { defaultRender } from '../src/engine/render';
+import { defaultRender } from '@barocss/cad-model/engine/render';
 import { lookOf, withLook } from '../src/app/bodies';
 
 // Stable feature ids (A1): a face's name keeps its feature's id however the history around it changes.

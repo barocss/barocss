@@ -4,7 +4,7 @@ import { evaluatePart, partBreps } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { chordOf, verdictOf } from '../src/chat/references';
-import { bodyMesh, measureChords, type DisplayMesh } from '../src/engine/mesh';
+import { bodyMesh, measureChords, type DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import { depthAt, depthBins } from '../src/print/hollow';
 
 // O55: A6.3's chord tolerance, bounded from the tessellation's own steps in both directions. On a sphere and a torus the

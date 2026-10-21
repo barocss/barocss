@@ -5,7 +5,7 @@ import { fmtMM, resolveDimension, resolveLine, type Resolved } from './dimension
 import { centreMarks } from './centres';
 import { threadMarks } from './threads';
 import type { FaceThread } from '../app/threads';
-import { fitText, textCorners, textWidth } from './text';
+import { fitText, textCorners, textWidth } from '@barocss/cad-model/drawing/text';
 import { VIEWS, scaleLabel, toSheet, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
 import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSettings, DrawingTable, DrawingViews, Tolerance, ViewId, XY } from './types';
 import { tableLayout, type TableContent } from './table';

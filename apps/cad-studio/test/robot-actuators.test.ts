@@ -67,7 +67,7 @@ test('the checks against their closed forms: a joint with no gravity load on a t
   const r = REDUCERS[2], m = MOTORS[0], N = si(r.ratio), eta = si(r.efficiency), Jd = si(m.rotorInertia) + si(r.inputInertia), Tf = si(m.noLoadCurrent) * si(m.torqueConstant);
   let sq = 0, peak = 0;
   for (const dir of [1, -1]) {
-    const { sCurve, onSegment } = await import('../src/robot/profile'), p = sCurve(d, v, a, jk);
+    const { sCurve, onSegment } = await import('@barocss/cad-model/robot/profile'), p = sCurve(d, v, a, jk);
     for (const seg of p.segments) {
       const n = 20000, h = (seg.t1 - seg.t0) / n;
       for (let i = 0; i <= n; i++) {

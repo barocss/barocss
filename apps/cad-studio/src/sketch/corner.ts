@@ -3,7 +3,7 @@
 // constraints follow the new numbering: the cut edges keep their direction rules (H/V, parallel, angle) but
 // lose their length locks; the arc gets the radius lock and tangent joints.
 import type { SketchShape } from './types';
-import type { SketchRule } from './terms';
+import type { SketchRule } from '@barocss/cad-model/sketch/terms';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 type P2 = [number, number];

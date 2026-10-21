@@ -5,8 +5,8 @@
 // change is a change of topology, which L2 proposes.
 import { SubdError, type CageValidation } from '@barocss/cad';
 import type { ModelNode, StudioDoc } from '../engine/doc';
-import { commitDrag, emptyCageSel, runOp, selectedVertices, startSession, validationOf, type CageOp, type CageSelection, type CageSession, type StudioCage } from '../subd/cageEdit';
-import type { ToolDefinition } from './api';
+import { commitDrag, emptyCageSel, runOp, selectedVertices, startSession, validationOf, type CageOp, type CageSelection, type CageSession, type StudioCage } from '@barocss/cad-model/subd/cageEdit';
+import type { ToolDefinition } from '@barocss/cad-model/chat/api';
 
 type SubdNode = Extract<ModelNode, { kind: 'subd' }>;
 type V3 = [number, number, number];

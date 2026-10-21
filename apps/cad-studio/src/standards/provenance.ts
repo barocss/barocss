@@ -6,7 +6,7 @@
 // A legal review before release is the owner's step (README §0), not done here.
 import { FASTENER_KINDS, FASTENER_SIZES } from '../app/fasteners';
 import { GENERAL_TOLERANCE, POSITION_ESTIMATE_MM } from '../drawing/tolerance';
-import { MATERIALS_DATA } from '../library/materials';
+import { MATERIALS_DATA } from '@barocss/cad-model/library/materials';
 
 export type Licence = 'facts' | 'own' | 'CC0-1.0' | 'CC-BY-4.0' | 'public-domain' | 'MIT' | (string & {});
 /** The licences a table's data may carry: facts (values as read), our own, and permissive ones. */

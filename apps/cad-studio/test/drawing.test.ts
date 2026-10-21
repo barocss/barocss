@@ -9,7 +9,7 @@ import { buildSheet, type Mark } from '../src/drawing/sheet';
 import { centreMarks } from '../src/drawing/centres';
 import { sectionOf } from '../src/drawing/section';
 import { hatch, noteMarks, TITLE_ROOM, toleranceText, valueMarks } from '../src/drawing/sheet';
-import { fitText, textWidth } from '../src/drawing/text';
+import { fitText, textWidth } from '@barocss/cad-model/drawing/text';
 import type { PartInstance } from '../src/engine/doc';
 import { arcPath, sheetSvg } from '../src/drawing/svg';
 import { sheetPdf } from '../src/drawing/pdf';

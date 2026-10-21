@@ -16,8 +16,8 @@ import { serveMcp } from '../server/cadMcp';
 import { checkImages, claudeArgs, createChatServer, DEFAULT_ORIGINS, fromStudio, stateNote, summarize, userMessage } from '../server/chatServer';
 import { fitSize } from '../src/chat/images';
 import { planHollow } from '../src/print/hollow';
-import { simplify, traceImage, traceLoops } from '../src/chat/trace';
-import { defaultRender } from '../src/engine/render';
+import { simplify, traceImage, traceLoops } from '@barocss/cad-model/chat/trace';
+import { defaultRender } from '@barocss/cad-model/engine/render';
 import { defaultDrawing } from '../src/drawing/types';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);

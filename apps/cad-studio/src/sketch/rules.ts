@@ -3,8 +3,8 @@
 // or a constraint the others already imply (it would over-define the sketch) is refused with a reason,
 // so the shape on screen always satisfies exactly what the list shows.
 import type { SketchShape } from './types';
-import { arcOf, inferredHV, samePair, solveOutline, type ArcPair, type OutlineConstraints, type P2, type SolveReport, type SolveResult } from './profile';
-import { edgeAngle, type SketchRule } from './terms';
+import { arcOf, inferredHV, samePair, solveOutline, type ArcPair, type OutlineConstraints, type P2, type SolveReport, type SolveResult } from '@barocss/cad-model/sketch/profile';
+import { edgeAngle, type SketchRule } from '@barocss/cad-model/sketch/terms';
 import { circleRelation } from './loops';
 
 export type Polygon = Extract<SketchShape, { kind: 'polygon' }>;

@@ -3,11 +3,11 @@
 // camera to turn about it) and feature handles (an arrow that drags one dimension). Pure geometry: what to
 // draw in screen space for a camera, which handle a point hits, and what a drag means in mm or degrees.
 // The viewport draws and dispatches; callers apply the values.
-import type { Vec3 } from '../engine/mesh';
-import { segmentDistance as segDist, insideRing as insidePolygon } from '../engine/geom2';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
+import { segmentDistance as segDist, insideRing as insidePolygon } from '@barocss/cad-model/engine/geom2';
 
-export type { Axis3 } from '../engine/vec3';
-import type { Axis3 } from '../engine/vec3';
+export type { Axis3 } from '@barocss/cad-model/engine/vec3';
+import type { Axis3 } from '@barocss/cad-model/engine/vec3';
 type XY = [number, number];
 export interface TransformGizmo {
   /** Where the handles sit (world, mm). */

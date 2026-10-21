@@ -6,7 +6,7 @@
 // reaches it is the time of impact (to the step's 1e-12 in s). The time is u's inverse there, by bisection to the double's
 // precision. Everything before it is certified free; the contact at it is met to the tolerance.
 import type { JointTree } from './joints';
-import { at, sCurve, trapezoid, type Profile, type ProfileKind } from './profile';
+import { at, sCurve, trapezoid, type Profile, type ProfileKind } from '@barocss/cad-model/robot/profile';
 import { sweepPath, type SweepLink, type SweepResult } from './sweep';
 
 export interface JointLimits { v: number; a: number; j?: number }

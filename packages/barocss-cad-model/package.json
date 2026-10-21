@@ -15,6 +15,7 @@
     "url": "https://github.com/barocss/barocss/issues"
   },
   "exports": {
+    "./*.json": "./src/*.json",
     "./*": "./src/*.ts"
   },
   "files": [

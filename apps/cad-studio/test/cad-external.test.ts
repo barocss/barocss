@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
 import { PassThrough } from 'node:stream';
 import { emptyDoc, withNode } from '../src/engine/doc';
-import { meshInMM, readMeshFile } from '../src/engine/meshImport';
+import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
 import { meshNodeBlobs } from '../src/engine/blobs';
 import { encodeStudioFile, isContainer, readStudioFile } from '../src/engine/container';
 import { TOOLS } from '../src/chat/tools';

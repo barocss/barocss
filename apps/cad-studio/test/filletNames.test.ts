@@ -68,7 +68,7 @@ test('an edge of a general fillet referenced by a later feature: a ring\'s edges
 });
 
 test('R10.2b refusals read as plain-language errors: an end meeting another finished edge, an end square on a face, a branching chain', async () => {
-  const { friendly } = await import('../src/engine/errors');
+  const { friendly } = await import('@barocss/cad-model/engine/errors');
   assert.equal(friendly('n6: CAPABILITY: edge a|b: it meets another finished edge at its end; blending them there arrives with R10.3b').title, 'These fillets meet at a corner');
   assert.equal(friendly('n6: CAPABILITY: [VERTEX_BLEND_UNSUPPORTED] edges a|b and c|d meet at a corner with another finished edge; blending three there arrives with R10.3b').title, 'These fillets meet at a corner');
   assert.equal(friendly('n6: CAPABILITY: edge a|b: the fillet would end square on a face (its last section in that face\'s plane); that end is not supported yet').title, 'The fillet can’t end here yet');

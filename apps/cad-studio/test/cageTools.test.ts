@@ -4,7 +4,7 @@ import { checkBrep, subdBrep, validateCage } from '@barocss/cad';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, runTool, TOOLS, type ChatState } from '../src/chat/tools';
-import { fullCage } from '../src/subd/cageEdit';
+import { fullCage } from '@barocss/cad-model/subd/cageEdit';
 
 // R8.2 (D83): the agent's SubD cage tools — the editor's steps on a subd node, each one checked: the cage a manifold,
 // the kernel's body valid; moves are value edits, topology changes proposals at autonomy L2.
@@ -80,7 +80,7 @@ test('R8.2 mending: faces deleted leave a hole the boundary query finds, filled 
 test('R8.2 a mirrored cage: indices of the half; an extrusion keeps the plane\'s vertices on the plane and the body whole', async () => {
   const s = await boxState(), i = subdIndex(s), node = s.doc.nodes[i] as Subd;
   // The half on the + side of X, as the editor's mirror makes it.
-  const { runOp, startSession } = await import('../src/subd/cageEdit');
+  const { runOp, startSession } = await import('@barocss/cad-model/subd/cageEdit');
   const half = runOp(startSession(i, node.cage), 'mirror-x');
   const doc = { ...s.doc, nodes: s.doc.nodes.map((n, k) => k === i ? { ...node, cage: half.cage, mirror: 'x' } as ModelNode : n) };
   const r = await evaluate(doc); assert.ok(r.ok); const m: ChatState = { doc, bodies: r.bodies };

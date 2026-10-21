@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain, type Curve, type Surface } from '@barocss/cad';
-import { approximateCurve, chordParameters, interpolateCurve } from '../src/engine/fit';
-import { directOps, emptyDirect, geometryOf, importSource } from '../src/engine/direct';
+import { approximateCurve, chordParameters, interpolateCurve } from '@barocss/cad-model/engine/fit';
+import { directOps, emptyDirect, geometryOf, importSource } from '@barocss/cad-model/engine/direct';
 
 const asCurve = (f: ReturnType<typeof interpolateCurve>): Curve => ({ kind: 'curve', id: 'c', degree: f.degree, knots: f.knots, controlPoints: f.points, weights: f.weights });
 const near = (a: readonly number[], b: readonly number[], tol = 1e-9) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) <= tol;
@@ -43,7 +43,7 @@ test('fill: four sides of a square fill it flat; a surface extended past an edge
 });
 
 test('knot removal: a knot inserted comes out again (the curve unchanged); one that shapes the curve stays; a curve refitted with fewer poles', async () => {
-  const { removeCurveKnot } = await import('../src/engine/fit');
+  const { removeCurveKnot } = await import('@barocss/cad-model/engine/fit');
   let d = importSource(emptyDirect(), `@model k { version: 0; length-unit: mm;
   @curve #wave { type: nurbs; degree: 3; knots: [0,0,0,0,0.5,1,1,1,1]; control-points: [[0,0,0],[5,10,0],[10,-10,0],[15,10,0],[20,0,0]]; weights: [1,1,1,1,1]; } }`, 'k');
   const wave = d.objects[0].id, g0 = geometryOf(d, d.objects[0]) as Curve;

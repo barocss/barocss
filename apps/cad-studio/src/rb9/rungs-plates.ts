@@ -11,7 +11,7 @@ import { assemblyBodies, checkAssembly } from '../team/assembly';
 import type { Call, Outcome, Params, Rung } from './core';
 import { axisDistance, boxIs, boxOf, cylindersOf, holds, near, parallel, volumeOf } from './measure';
 import { machinability } from '../machining/report';
-import { processProfile } from '../library/materials';
+import { processProfile } from '@barocss/cad-model/library/materials';
 
 const num = (p: Params, k: string) => p[k] as number;
 const cmd = (command: string, values: Record<string, unknown>, sel: Record<string, unknown> = {}): Call => ({ tool: 'run_command', args: { command, values, ...sel } });

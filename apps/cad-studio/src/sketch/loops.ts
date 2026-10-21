@@ -2,8 +2,8 @@
 // rest are separate regions of material (the first drawn is the main profile).
 import type { SketchShape } from './types';
 import type { LoopSegment as DocSegment, SketchNode, SketchOutline } from '../engine/doc';
-import { outlineSegments, sampleOutline, sampleSlot, slotSegments, type P2 } from './profile';
-import { segmentDistance as segDist, insideRing as inside } from '../engine/geom2';
+import { outlineSegments, sampleOutline, sampleSlot, slotSegments, type P2 } from '@barocss/cad-model/sketch/profile';
+import { segmentDistance as segDist, insideRing as inside } from '@barocss/cad-model/engine/geom2';
 import { sideTagsFor, withIds } from './entityIds';
 
 export function isConvex(points: [number, number][]) {

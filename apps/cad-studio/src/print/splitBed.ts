@@ -7,9 +7,9 @@
 import { withNode, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
 import { evaluatePart, type BodyResult } from '../engine/evaluate';
 import { bodyKeyFor } from '../engine/ids';
-import { printerProfile, processProfile } from '../library/materials';
+import { printerProfile, processProfile } from '@barocss/cad-model/library/materials';
 import { refOf } from '../app/bodyRef';
-import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 
 export type SplitCode = 'NOT_NEEDED' | 'ONE_BODY' | 'NO_PRINTER' | 'DIRECTION_NOT_AXIS' | 'TOO_BIG_TWO_WAYS' | 'NO_ROOM' | 'BAD_CONNECTOR';
 export class SplitError extends Error { constructor(public code: SplitCode, message: string) { super(`[${code}] ${message}`); this.name = 'SplitError'; } }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, rayOnPlane, standardPlane, tiltPlane, toLocal, toWorld, xyPlane } from '../src/sketch/plane';
+import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, rayOnPlane, standardPlane, tiltPlane, toLocal, toWorld, xyPlane } from '@barocss/cad-model/sketch/plane';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { profileOf } from '../src/sketch/loops';

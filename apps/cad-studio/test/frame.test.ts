@@ -9,7 +9,7 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { editFields } from '../src/app/editFields';
 import { bodyName, withLook } from '../src/app/bodies';
 import { partCutList } from '../src/app/cutList';
-import { MATERIALS } from '../src/app/materials';
+import { MATERIALS } from '@barocss/cad-model/app/materials';
 import { cutText } from '../src/ui/CutListDialog';
 
 // FR1 (D123): a structural member in the studio — the palette's command (its section kinds, the prefilled radii and the

@@ -7,7 +7,7 @@
 // cone, its normals at one angle to the axis, reaching the axis: its included angle).
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import type { DisplayMesh } from '../engine/mesh';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import { exactNormals } from '../mould/draft';
 import { concaveSpan, extent, type Hole } from './holes';
 

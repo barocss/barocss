@@ -12,8 +12,8 @@ import { contentKey } from '../engine/evalMemo';
 import { refOf } from '../app/bodyRef';
 import { VIEWS } from '../drawing/views';
 import { VIEW_IDS, type ViewId } from '../drawing/types';
-import type { DisplayMesh } from '../engine/mesh';
-import { crc32, deflateZlib } from '../io/zip';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
+import { crc32, deflateZlib } from '@barocss/cad-model/io/zip';
 
 const CELL = 500, MARGIN = 28, W = CELL * 2, H = CELL * 2;
 /** Faces showing fewer pixels than this get no label (too small to point at). */

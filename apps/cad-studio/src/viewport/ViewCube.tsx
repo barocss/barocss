@@ -2,7 +2,7 @@
 // Right …). A click on a face looks straight at it; on a corner, from that corner (isometric); on an edge,
 // from between its two faces. Dragging it orbits. Hovered parts light up.
 import { useRef, useState } from 'react';
-import type { Vec3 } from '../engine/mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
 const FACES: { n: Vec3; label: string }[] = [
   { n: [0, 0, 1], label: 'TOP' }, { n: [0, 0, -1], label: 'BOTTOM' }, { n: [0, -1, 0], label: 'FRONT' },

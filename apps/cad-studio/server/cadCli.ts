@@ -7,13 +7,13 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { mjcfOfDoc, urdfOfDoc } from '../src/chat/robot';
-import { readMjcf } from '../src/robot/mjcfCheck';
-import { readUrdf } from '../src/robot/urdfCheck';
+import { readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
+import { readUrdf } from '@barocss/cad-model/robot/urdfCheck';
 import { encodeStudioFile } from '../src/engine/container';
 import { evaluateDoc, stepFor, stlFor } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { meshToStl } from '../src/engine/stl';
+import { meshToStl } from '@barocss/cad-model/engine/stl';
 import { notLocalModel, openModel, writeAtomic } from './cadDoc';
 import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '../src/team/scripted';
 import { metricsOf, type Labelled } from '../src/team/metrics';

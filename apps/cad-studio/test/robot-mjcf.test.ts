@@ -10,8 +10,8 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { mjcfOfDoc, treeOfDoc, urdfOfDoc } from '../src/chat/robot';
 import { forwardKinematics } from '../src/robot/fk';
 import { quatOf, type MjcfResult } from '../src/robot/mjcf';
-import { mjcfFk, readMjcf } from '../src/robot/mjcfCheck';
-import { readUrdf, urdfFk } from '../src/robot/urdfCheck';
+import { mjcfFk, readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
+import { readUrdf, urdfFk } from '@barocss/cad-model/robot/urdfCheck';
 import { symmetricEigen, type Mat3 } from '../src/robot/inertia';
 import { cliMain } from '../server/cadCli';
 

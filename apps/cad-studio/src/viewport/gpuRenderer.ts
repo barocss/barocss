@@ -11,9 +11,9 @@ import { faceRuns, paintFaces, type FaceRuns, type Painted } from './facePaint';
 const ZEBRA = zebra(), CURVATURE = curvature();
 import { materialShader, showScene, type MaterialShaderResult, type SceneView } from '@barocss/gpu';
 import type { BodyResult } from '../engine/evaluate';
-import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '../engine/render';
-import type { DirectDisplay } from '../engine/direct';
-import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@barocss/cad-model/engine/render';
+import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
+import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
 import type { EdgeRef, FaceRef, ThemeName, ViewRenderer, ViewState } from './renderer';
 

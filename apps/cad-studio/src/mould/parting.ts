@@ -8,7 +8,7 @@
 // not done; the person can instead put the whole face in one half.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import { draftField, exactNormals } from './draft';
 
 export type Half = '+' | '-';

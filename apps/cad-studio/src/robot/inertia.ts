@@ -9,7 +9,7 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { materialIdOf } from '../app/bodies';
-import { materialOf } from '../app/materials';
+import { materialOf } from '@barocss/cad-model/app/materials';
 import { rotationMatrix } from '../assembly/mates';
 import type { JointTree } from './joints';
 

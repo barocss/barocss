@@ -7,7 +7,7 @@
 import { emptyDoc, featureLabel, leafBodies, prefixDoc, withNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import { nodeIndexOf } from '../engine/ids';
-import { measureBetween, type MeasurePick } from '../app/measure';
+import { measureBetween, type MeasurePick } from '@barocss/cad-model/app/measure';
 import { resolveEdge, resolveFace, resolveNames } from './names';
 import { factsOf } from './observe';
 import { draftAnalysis, interference, wallThickness } from './analysis';
@@ -16,7 +16,7 @@ import { libraryById } from '../library/libraries';
 import { holeAlignment } from '../library/alignment';
 import { overhangOf } from '../print/overhang';
 import { printability, type PrintabilityReport } from '../print/rules';
-import { processProfile } from '../library/materials';
+import { processProfile } from '@barocss/cad-model/library/materials';
 import { faceTableOf } from '../assembly/faces';
 import { checkKeepouts, datumToFace, datumWorld, readReferences } from './references';
 import { unconfirmed, unitAssumptions } from './drafts';

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { anglesOf, appearanceOf, defaultRender, directionFrom, offsetsAt, readRender, withKey } from '../src/engine/render';
+import { anglesOf, appearanceOf, defaultRender, directionFrom, offsetsAt, readRender, withKey } from '@barocss/cad-model/engine/render';
 
 test('render settings: read back with defaults for anything missing or out of range', () => {
   assert.deepEqual(readRender(undefined), defaultRender());
@@ -38,7 +38,7 @@ test('render animation: keys interpolate linearly and hold at the ends; keys at 
 });
 
 test('a texture: kept from a saved document only as an image data URL, its repeat in range; tiled coordinates every repeat', async () => {
-  const { readAppearance, tiledUVs } = await import('../src/engine/render');
+  const { readAppearance, tiledUVs } = await import('@barocss/cad-model/engine/render');
   const base = defaultRender().defaultAppearance, png = 'data:image/png;base64,iVBORw0KGgo=';
   assert.deepEqual(readAppearance({ ...base, texture: { image: png, scale: 25 } }, base).texture, { image: png, scale: 25 });
   assert.equal(readAppearance({ ...base, texture: { image: 'https://example.com/a.png', scale: 25 } }, base).texture, undefined, 'no outside URLs');

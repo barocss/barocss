@@ -7,7 +7,7 @@ import { emptyDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import type { Mate } from '../src/assembly/mates';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { mjcfOfDoc, treeOfDoc } from '../src/chat/robot';
-import { connectViolations, mjcfFk, readMjcf } from '../src/robot/mjcfCheck';
+import { connectViolations, mjcfFk, readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
 import { forwardKinematics } from '../src/robot/fk';
 import type { JointTree } from '../src/robot/joints';
 import { closeLoop, closureOf, closureOfDoc, type Closure } from '../src/robot/loop';

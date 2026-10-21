@@ -4,7 +4,7 @@
 // each child at its parent's pose times their relative frame at home, then its motion about its axis. A different
 // composition from RM2's product of exponentials, so the two checked against each other test the exports. The
 // external validators (usd-core's UsdPhysics parser, libsdformat) wait for the owner's go-ahead (O62).
-import { parseXml, type XmlNode } from './urdfCheck';
+import { parseXml, type XmlNode } from '@barocss/cad-model/robot/urdfCheck';
 import type { Mat3, V3 } from './inertia';
 
 export interface ModelLink { name: string; R: Mat3; o: V3; mass: number; com: V3; inertia: Mat3 }

@@ -9,7 +9,7 @@ import { drawingInputs } from '../src/chat/drawing';
 import { applyFix, drawingIssues, issueContext, type IssueContext } from '../src/drawing/issues';
 import { tableLayout, tableSize, cellText, TABLE_PAD, TABLE_ROW, TABLE_TEXT, type TableContent } from '../src/drawing/table';
 import { bendTable, tableContent } from '../src/drawing/tables';
-import { textWidth } from '../src/drawing/text';
+import { textWidth } from '@barocss/cad-model/drawing/text';
 import { readDrawing, type DrawingSettings, type DrawingTable } from '../src/drawing/types';
 import { sheetSvg } from '../src/drawing/svg';
 import { sheetPdf } from '../src/drawing/pdf';

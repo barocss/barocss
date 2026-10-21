@@ -6,7 +6,7 @@
 import type { JointTree } from './joints';
 import { forwardKinematics } from './fk';
 import { pathTo, probeAt, toolProbe, unknownsOf } from './ik';
-import { convexDistance } from './gjk';
+import { convexDistance } from '@barocss/cad-model/robot/gjk';
 import { meshesMeet, partParent, type SweepLink } from './sweep';
 
 export interface WorkspaceOptions {

@@ -15,7 +15,7 @@ import type { BodyResult } from '../engine/evaluate';
 import { rotationMatrix } from '../assembly/mates';
 import type { Joint, JointTree } from './joints';
 import { linkInertia, linkFrames, type Frame, type LinkInertia, type Mat3, type V3 } from './inertia';
-import { convexHull, HullError } from './hull';
+import { convexHull, HullError } from '@barocss/cad-model/robot/hull';
 
 export const URDF_EXPORT_VERSION = 'barocss-urdf-v1';
 /** A dummy link's mass (kg) and inertia (kg·m²): small enough to change nothing, not zero (a static link in PyBullet). */

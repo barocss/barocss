@@ -8,11 +8,11 @@ import type { StudioDoc } from '../engine/doc';
 import { stepFor, type BodyResult } from '../engine/evaluate';
 import { lookOf, materialIdOf } from '../app/bodies';
 import { massProperties } from '../chat/analysis';
-import { materialData, processProfile } from '../library/materials';
+import { materialData, processProfile } from '@barocss/cad-model/library/materials';
 import { printability, type PrintabilityReport } from '../print/rules';
 import { documentRevision } from '../team/bundle';
 import { sha256Hex } from '../team/digest';
-import { writeZip } from '../io/zip';
+import { writeZip } from '@barocss/cad-model/io/zip';
 import type { Half } from './parting';
 
 type Evaluate = Parameters<typeof printability>[2];

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { stepLengthUnit } from '../src/engine/stepUnits';
+import { stepLengthUnit } from '@barocss/cad-model/engine/stepUnits';
 import { pdfMissing } from '../src/drawing/pdf';
 
 test('STEP length units: millimetres, metres, inches, none declared', () => {

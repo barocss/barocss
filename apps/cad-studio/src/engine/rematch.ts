@@ -11,7 +11,7 @@
 import { bodyKeyFor, nodeIndexOf } from './ids';
 import { prefixDoc, type ModelNode, type StudioDoc } from './doc';
 import type { BodyResult, EvalResult } from './evaluate';
-import type { Vec3 } from './mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
 /** What a stored name looked like: a face's kind, normal and centroid, or an edge's straightness, direction and midpoint. */
 export interface Signature { kind: string; at: Vec3; dir: Vec3 | null; size: number; radius?: number }

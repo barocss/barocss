@@ -108,7 +108,7 @@ test('FR1 sections: each kind along an oblique 3D line — V = A·L by the textb
 });
 
 test('FR1 the T-slot section against the tslot-20 library part (its own 3D Booleans): the same volume at the same length, 20×20 with 1–4 slots and 20×40', () => {
-  const lib = loadCadLibrary(JSON.parse(readFileSync(resolve(import.meta.dirname, '../../../apps/cad-studio/src/library/builtin/tslot-20.json'), 'utf8')));
+  const lib = loadCadLibrary(JSON.parse(readFileSync(resolve(import.meta.dirname, '../../barocss-cad-model/src/library/builtin/tslot-20.json'), 'utf8')));
   for (const [cells, open] of [[1, 1], [1, 2], [1, 3], [1, 4], [2, 6]]) {
     const inst = instantiateLibraryPart(lib, 'profile', { params: { cells, openSlots: Math.min(open, 4), L: 250 } });
     const want = evaluateCadPart(D(inst.features)).outputs.filter(o => inst.outputs.includes(o.feature)).reduce((s, o) => s + o.massProperties(1).volumeMM3, 0);

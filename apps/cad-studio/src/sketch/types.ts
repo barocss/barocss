@@ -1,7 +1,7 @@
 // The sketch's state types (PKG-b, B1): the shapes a sketch is drawn with, the tool, the anchor and the state — the
 // model's (sketch/*), not the viewport's. viewport/Viewport.tsx re-exports them for the UI.
-import type { PlaneKind, SketchPlane } from './plane';
-import type { SketchRule } from './terms';
+import type { PlaneKind, SketchPlane } from '@barocss/cad-model/sketch/plane';
+import type { SketchRule } from '@barocss/cad-model/sketch/terms';
 import type { SketchPick } from './rules';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */

@@ -3,7 +3,7 @@
 // matrices are what the renderer shows while dragging, before the instance is evaluated there.
 import type { PartInstance } from '../engine/doc';
 import { eulerOf, rotationMatrix, type Freedom } from './mates';
-import type { Axis3 } from '../engine/vec3';
+import type { Axis3 } from '@barocss/cad-model/engine/vec3';
 
 type Vec3 = [number, number, number];
 type Mat3 = Parameters<typeof eulerOf>[0];
