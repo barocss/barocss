@@ -32,7 +32,7 @@ const READ: Record<string, JsonSchema | null> = {
   draft: o({ body: str, pull: arr, walls: arr, under_min: arr, note: str }, ['body', 'walls']),
   check_spec: o({ model_hash: str, summary: obj, failures: arr, unknowns: arr, policy: obj, validation: obj }, ['model_hash', 'summary']),
   // (FR4a, D127: a frame's cut list.)
-  cut_list: o({ rows: arr, totals: obj, densities: str, csv: str }, ['rows', 'totals', 'densities']),
+  cut_list: o({ rows: arr, totals: obj, densities: str, nesting: obj, csv: str }, ['rows', 'totals', 'densities', 'nesting']),
   diff: o({ from: str, to: str, diff: obj }, ['diff']),
   list_proposals: o({ proposals: arr }, ['proposals']),
   render_views: o({ legend: obj, views: obj, layout: str, notes: arr }, ['views']),
@@ -65,7 +65,7 @@ const READ: Record<string, JsonSchema | null> = {
 const ADDS = new Set(['run_command', 'add_features', 'extrude_image_layer', 'inflate_image_layer', 'add_part', 'add_mate', 'insert_part', 'add_library', 'add_library_part', 'propose']);
 /** Changes that may alter or remove what is there; `true`: the same call twice has no further effect. */
 const ALTERS: Record<string, boolean> = {
-  edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, set_brief: true, set_material: true, set_stock: true, set_casting: true, ask_user: false, add_reference: false, add_datum: false, add_keepout: false, delete_reference_item: true, import_drawing: false, accept_proposal: true,
+  edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, set_brief: true, set_material: true, set_stock: true, set_casting: true, set_frame_stock: true, ask_user: false, add_reference: false, add_datum: false, add_keepout: false, delete_reference_item: true, import_drawing: false, accept_proposal: true,
   subd_move: false, subd_extrude: false, subd_insert_loop: false, subd_bridge: false, subd_fill: false, subd_weld: false, subd_crease: true, subd_delete: false,
   place_part: true, delete_part: true, edit_mate: true, delete_mate: true, snap_part: true, orient_for_print: true,
   auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true, set_joints: true,

@@ -5,7 +5,7 @@
 import { commandById, commands, patchValues, refOf, shownFields, type Ctx, type Field, type Values } from '../app/commands';
 import { editFields } from '../app/editFields';
 import { measureBetween, measureItem, type MeasurePick } from '../app/measure';
-import { featureLabel, prefixDoc, withNode, type DocPlane, type ModelNode, type StockRow, type StudioDoc } from '../engine/doc';
+import { featureLabel, prefixDoc, withNode, type DocPlane, type ModelNode, type FrameStockRow, type StockRow, type StudioDoc } from '../engine/doc';
 type Vec3T = [number, number, number];
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { ToolDefinition } from './api';
@@ -38,6 +38,7 @@ import { captureSignatures, refreshSignatures, verifyReferences } from '../engin
 import { rememberedEvaluate } from '../engine/evalMemo';
 import { cutListCsv } from '@barocss/cad';
 import { partCutList } from '../app/cutList';
+import { nestCutList } from '../frames/nesting';
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
@@ -144,7 +145,7 @@ function features(doc: StudioDoc) {
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
-const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'set_stock', 'set_casting', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
+const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
 /** The tools a batch (apply_ops, a patch) may hold (A7.5: a candidate's unsupported op is refused by name before it runs). */
 export const BATCHABLE_TOOLS: ReadonlySet<string> = BATCHABLE;
 /** At most this many checkpoints a session (the oldest dropped first). */
@@ -940,6 +941,25 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const doc = { ...state.doc, casting };
       return { state: { ...state, doc }, content: json({ ok: true, machined: casting.machined ?? [], allowance: casting.machiningAllowanceMM ?? null, shrink: casting.shrink ?? null, gate: casting.gate ?? null }), isError: false, changed: true, summary: `casting: ${casting.machined?.length ?? 0} machined face${casting.machined?.length === 1 ? '' : 's'}` };
     }
+    case 'set_frame_stock': {
+      // (FRb, O116: the shop's stock lengths for frames, the user's — each row checked, a bad one refused by name; the saw's kerf.)
+      const rows = Array.isArray(args.rows) ? args.rows : undefined, kerf = args.kerf;
+      if (rows === undefined && kerf === undefined) return fail(state, 'Give rows, kerf or both.');
+      if (kerf !== undefined && !(typeof kerf === 'number' && kerf >= 0 && kerf < 20)) return fail(state, `[FRAME_KERF] kerf is the saw's width in mm, 0 to 20: ${JSON.stringify(kerf)}.`);
+      const good: FrameStockRow[] = [];
+      for (const [k, r] of (rows ?? []).entries()) {
+        const o = r as Record<string, unknown>, id = typeof o.id === 'string' && o.id ? o.id : '', src = typeof o.source === 'string' ? o.source.trim() : '';
+        if (!id || !src) return fail(state, `[FRAME_STOCK_ROW] row ${k}: an id and a source (where the length comes from: your shop, a page) are needed.`);
+        if (!(typeof o.length === 'number' && o.length > 0 && Number.isFinite(o.length))) return fail(state, `[FRAME_STOCK_ROW] row ${k} (${id}): length is mm > 0.`);
+        if (o.count !== undefined && !(Number.isInteger(o.count) && (o.count as number) > 0)) return fail(state, `[FRAME_STOCK_ROW] row ${k} (${id}): count is a whole number > 0 (unset: as many as needed).`);
+        if (o.section !== undefined && !(typeof o.section === 'string' && o.section)) return fail(state, `[FRAME_STOCK_ROW] row ${k} (${id}): section is the cut list's section text (unset: any section).`);
+        good.push({ id, lengthMM: o.length, ...(o.count !== undefined ? { count: o.count as number } : {}), ...(o.section !== undefined ? { section: o.section as string } : {}), source: src });
+      }
+      if (new Set(good.map(r => r.id)).size !== good.length) return fail(state, '[FRAME_STOCK_ROW] two rows with one id.');
+      const was = state.doc.frames ?? { version: 1 as const }, frames = { ...was, version: 1 as const, ...(rows !== undefined ? { stock: good } : {}), ...(kerf !== undefined ? { kerfMM: kerf as number } : {}) };
+      const doc = { ...state.doc, frames };
+      return { state: { ...state, doc }, content: json({ ok: true, rows: frames.stock?.length ?? 0, kerf: frames.kerfMM ?? null }), isError: false, changed: true, summary: `frame stock: ${frames.stock?.length ?? 0} lengths${frames.kerfMM !== undefined ? `, kerf ${frames.kerfMM} mm` : ''}` };
+    }
     case 'mass_properties': {
       const keys = strings(args.bodies), shown = keys.length ? state.bodies.filter(b => keys.includes(b.key)) : state.bodies;
       if (keys.length && shown.length !== keys.length) return fail(state, `No body ${keys.filter(k => !state.bodies.some(b => b.key === k)).join(', ')} (bodies: ${state.bodies.map(b => b.key).join(', ')}).`);
@@ -994,8 +1014,10 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       // (FR4a, D127: read only; the bodies' own materials, else the part's default.)
       const list = partCutList(state.doc, state.bodies);
       if (!list) return fail(state, 'The part has no frame members: make a frame (add_features kind "frame") or a structural member first.');
-      const rows = list.rows.map(r => ({ ...r, names: r.pieces.map(k => list.names[k] ?? k) }));
-      return { state, content: json({ rows, totals: list.totals, densities: 'estimates (the materials library\'s)', ...(args.csv === true ? { csv: cutListCsv(list) } : {}) }), isError: false, changed: false, summary: `${list.totals.quantity} pieces in ${list.rows.length} rows` };
+      // (FRb, O116: with stock lengths loaded, the pieces nested into them; else the result says how to load them.)
+      const rows = list.rows.map(r => ({ ...r, names: r.pieces.map(k => list.names[k] ?? k) })), nest = nestCutList(state.doc, list);
+      const nesting = nest.ok ? nest.nesting : { error: `[${nest.code}] ${nest.message}` };
+      return { state, content: json({ rows, totals: list.totals, densities: 'estimates (the materials library\'s)', nesting, ...(args.csv === true ? { csv: cutListCsv(list) } : {}) }), isError: false, changed: false, summary: `${list.totals.quantity} pieces in ${list.rows.length} rows${nest.ok ? `; ${nest.nesting.totals.bars} bars, ${nest.nesting.totals.wasteMM} mm waste` : ''}` };
     }
     case 'check_spec': {
       if (!state.doc.requirements?.length) return fail(state, 'There are no requirements yet: set_requirements first, from the brief.');
@@ -1270,6 +1292,11 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     input_schema: { type: 'object', properties: { machined: { type: 'array', items: { type: 'string' } }, allowance: { type: 'number' }, shrink: { type: 'number' }, gate: { type: 'array', items: { type: 'number' } } }, additionalProperties: false },
   },
   {
+    name: 'set_frame_stock',
+    description: 'Sets the shop\'s stock lengths for frame members (none is built in) and the saw\'s kerf (mm; unset: an estimate, said). rows: {id, length (mm), count? (unset: as many as needed), section? (the cut list\'s section text; unset: any), source}. The cut list then nests its pieces into them (FRb): bars, offcuts and the waste.',
+    input_schema: { type: 'object', properties: { rows: { type: 'array', items: { type: 'object' } }, kerf: { type: 'number' } }, additionalProperties: false },
+  },
+  {
     name: 'mass_properties',
     description: 'Each body\'s volume, surface area, mass by its material (none set: aluminium, said as assumed), centroid, inertia about it (kg·m²) and box.',
     input_schema: { type: 'object', properties: { bodies: { ...nameList, description: 'Body keys (default: all).' } }, additionalProperties: false },
@@ -1301,7 +1328,7 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'cut_list',
-    description: 'The frame members\' cut list (FR4a): identical members on one row — {rows [{item, quantity, section, material, axisLengthMM (the centroidal axis between the end planes; by volume where an end is coped or trimmed to an envelope or a body: fromVolume), longPointMM, ends [{end, kind (square | mitre | butt | through | cope | trim), mitreDegrees (about the section\'s y), bevelDegrees (about its x)}], massKG each, totalMassKG, pieces: body keys}], totals {quantity, axisLengthMM, massKG}}. Masses use the materials library\'s densities, every one an estimate: say so. csv: true adds the CSV.',
+    description: 'The frame members\' cut list (FR4a): identical members on one row — {rows [{item, quantity, section, material, axisLengthMM (the centroidal axis between the end planes; by volume where an end is coped or trimmed to an envelope or a body: fromVolume), longPointMM, ends [{end, kind (square | mitre | butt | through | cope | trim), mitreDegrees (about the section\'s y), bevelDegrees (about its x)}], massKG each, totalMassKG, pieces: body keys}], totals {quantity, axisLengthMM, massKG}}. Masses use the materials library\'s densities, every one an estimate: say so. nesting (FRb): with stock lengths loaded (set_frame_stock), {bars [{stock, section, lengthMM, pieces, usedMM, kerfMM, offcutMM}], sections [{method exact | first-fit-decreasing, stockMM, lowerBoundMM, optimal, note?}], totals {bars, stockMM, piecesMM, kerfMM, wasteMM}, kerf {mm, basis}, unplaced}; else {error}. csv: true adds the CSV.',
     input_schema: { type: 'object', properties: { csv: { type: 'boolean' } }, additionalProperties: false },
   },
   {

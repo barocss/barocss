@@ -19,6 +19,7 @@ import { Icon, Kbd } from './ui/atoms';
 import { FlatPatternDialog } from './ui/FlatPatternDialog';
 import { CutListDialog } from './ui/CutListDialog';
 import { partCutList } from '@barocss/cad-model/app/cutList';
+import { nestCutList } from '@barocss/cad-model/frames/nesting';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
 import { ShapesStrip } from './ui/ShapesStrip';
@@ -2356,7 +2357,7 @@ export function App() {
           { label: 'Clear selection', icon: 'deselect', shortcut: 'Esc', run: () => setSelection(emptySel) },
         ]} />}
 
-      {cutListView && (() => { const list = partCutList(doc, bodies, material); return list ? <CutListDialog list={list} name={fileName.replace(/[^\w.-]+/g, '_')} onClose={() => setCutListView(false)} /> : null; })()}
+      {cutListView && (() => { const list = partCutList(doc, bodies, material); return list ? <CutListDialog list={list} nesting={nestCutList(doc, list)} name={fileName.replace(/[^\w.-]+/g, '_')} onClose={() => setCutListView(false)} /> : null; })()}
       {flatView && (() => { const fb = bodies.find(x => x.key === flatView); return fb?.flat ? <FlatPatternDialog flat={fb.flat} name={`${fileName}-${bodyName(doc, fb)}`.replace(/[^\w.-]+/g, '_')} onClose={() => setFlatView(null)} /> : null; })()}
       {meshAsk && meshInUnit && <div className="toast card recovery" role="dialog" aria-label="Mesh units">
         <Icon name="straighten" className="accent" />

@@ -3579,6 +3579,45 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
+  await check('FRb the welded table\'s cut list nested into the shop\'s stock through the real chat: 6000 and 4000 mm lengths at a 3 mm kerf — one of each, 10 000 mm, the waste 650 (closed forms); in the cut list and its nesting CSV (new in O116)', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      // (FR4b left the table: twelve members.)
+      if (!/12 bodies/.test(await page.textContent('.outliner') ?? '')) {
+        const { calls } = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad-model/test/fixtures/frame-welded-table.calls.json'), 'utf8'));
+        await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+        await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+        const k = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: calls.slice(0, 1) })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(j => document.querySelectorAll('.chat-msg.assistant').length > j && !document.querySelector('[aria-label="Chat message"]')?.disabled, k, { timeout: 120000 });
+        await page.click('[aria-label="Close chat"]');
+      }
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count();
+      const rows = [{ id: 'L6', length: 6000, source: 'a test value' }, { id: 'L4', length: 4000, source: 'a test value' }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'frame_stock', rows, kerf: 3 } }, { tool: 'query', args: { action: 'cutlist' } }] })}`);
+      await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      const tools = await page.locator('.chat-tool').allInnerTexts();
+      assert.ok(tools.some(t => t.includes('features.frame_stock')) && tools.at(-1).includes('query.cutlist'), tools.slice(-3).join(' | '));
+      await page.click('[aria-label="Close chat"]');
+      await page.waitForFunction(() => window.__studioDoc.frames?.stock?.length === 2 && window.__studioDoc.frames.kerfMM === 3, null, { timeout: 30000 }); await idle();
+      await page.click('[aria-label="Show the cut list"]');
+      await page.waitForSelector('[aria-label="Nesting"]');
+      // (9320 mm of pieces: no sum of 4000s and 6000s lies in [9330, 10 000); one of each holds them — 10 000 − 9320 − 3 · 10.)
+      assert.match(await page.textContent('[aria-label="Nesting"]'), /Nested: 2 bars · 10000 mm of stock · waste 650 mm · kerf 3 mm.*exact, optimal/);
+      const download = page.waitForEvent('download', { timeout: 20000 });
+      await page.click('[aria-label="Export nesting CSV"]');
+      const csv = fs.readFileSync(await (await download).path(), 'utf8').trim().split('\n');
+      assert.equal(csv.length, 4); assert.equal(csv[3], 'total,,,10000,,9320,30,650');
+      await snap('frb-nesting');
+      await page.click('[aria-label="Close the cut list"]');
+    } finally { chat.kill(); }
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

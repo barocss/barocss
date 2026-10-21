@@ -4816,3 +4816,30 @@ Owner, relayed by the coordinator: "FR 에서 1, 2, 3, 모두 하고 그 밖에 
   - frame-acceptance: the A4 expectation is now "in blocks, clear" (it was the overlap and its A3 fix): key column in each block, title first, notes last, rows in order, blocks apart.
   - drawing-table: O67's fix paths keep `whole: true`; the same 10×6 table on A4 and 12×8 on A3 without it go in blocks, clear, every column present.
 - Rendering (SVG, PDF, DXF) is the table group's marks and needs no change.
+
+## O116 — FRb: the cut list nested into the shop's stock lengths, exact for small counts (2026-10-21)
+
+- **Data** (`doc.frames`, versioned): `stock` [{id, lengthMM, count?, section?, source}] and `kerfMM`.
+  - The user loads them: `features.frame_stock` (handler `set_frame_stock`), or `cad-cli nest --list`. None is built in (CNC7b's pattern).
+  - A row with no `section` takes any section. One with a section takes only the cut list's rows of that section text.
+  - An unset kerf is taken as 3 mm, an estimate, and said (`kerf.basis`).
+  - Rows are refused by name (FRAME_STOCK_ROW: no source, a length ≤ 0, a count not a whole number, an empty section, two rows of one id). A kerf outside 0–20 mm is FRAME_KERF.
+- **The rule** (`frames/nesting.ts`, `nestCutList`):
+  - Each piece is its long-point length (FR4a). A bar of k pieces takes k − 1 kerfs; its end is left as it comes.
+  - Per section, the plan minimises total stock length, then the bar count.
+  - Up to 14 pieces it is exact: branch and bound, longest piece first, into each distinct open bar (same stock and free length tried once) or a new bar of each stock row left. The bound is the length used plus what the rest needs past the open bars' free length. The budget is 200 000 nodes.
+  - Past 14 pieces, past the budget, or with counts that leave a piece without a bar, it is first-fit-decreasing into the shortest stock that takes the piece.
+  - Each section states its method, whether it is optimal, and its lower bound: over bar counts b, the least of max(pieces + kerf · (n − b), b · shortest stock), where b of the longest stock can hold them. A first-fit-decreasing plan at the bound is optimal; otherwise the gap is stated as "at most".
+  - The waste is exact: the bars' length less the pieces' and the kerfs'. Pieces no stock takes are listed as NEST_TOO_LONG, or NEST_STOCK_SHORT when the counts are spent.
+- **Surfaces**:
+  - The cut list's result (`query.cutlist`) gains `nesting`: the plan, or `{error}` saying how to load stock.
+  - The cut list dialog shows the bars, the stock, the waste, the kerf and each section's method, with a nesting CSV.
+  - `cad-cli nest part.bcad -o folder [--list lengths.json] [--kerf mm]` writes nesting.json and nesting.csv. It exits 1 when refused or when a piece is left over.
+  - The v2 contract adds `features.frame_stock` (compatible; recorded in tools-v2.json). Per turn is 21,682 characters (+142).
+- **Closed forms**:
+  - FR S0's P2: 5 5 4 4 3 3 3 3 into 10s is exactly 3 bars with no waste (FFD takes 4). With a kerf of 0.5 it is 4 bars, the waste 40 − 30 − 2.
+  - The welded table's 12 long points (9320 mm) into 6000 mm bars at a 3 mm kerf: 2 bars (9320 > 6000), the waste 12 000 − 9320 − 30 = 2650. With 4000 mm bars too: one of each, 10 000 mm, the waste 650, since no sum of 4000s and 6000s lies in [9330, 10 000).
+  - The mitred L (320 and 220) into 600: one bar, 543 used, the offcut 57.
+  - 40 × 1000 into 6000: first-fit-decreasing takes 7 bars, at the bound of 42 000 (six bars hold 36 000), so optimal.
+- **Tests**: package frame-nesting (5); studio frame-nest-cli (the CLI); fields (the new field); chat's tool set. Flow step "FRb …" after FR4b.
+- **Not done**: optimising for offcuts kept for reuse, or several kerfs per saw. The cut list's rows are taken as cut from straight bars: no bend allowance (FR's bent members wait on the kernel).
