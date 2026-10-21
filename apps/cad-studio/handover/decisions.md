@@ -9387,3 +9387,21 @@ No chain, belt or coupling table is built in, and no row in the tests or conform
 - a coupling placed on and checked against shaft ends (it is placed by hand);
 - the BOM itself: the outer lane's S1, with `bought` here.
 - (The D160 fix, 6988793c9: the pressure-angle limits and the cam laws are attributed to no unread source.)
+
+**Checks** (rules v2: `part-model.ts` gained cases, so the full kernel suite ran; the 1st kernel checkpoint since D160's RB run, so no RB), on 4c5008b70 (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-drive`: 8/8.
+- The full kernel suite, conformance included: 1504/1511, 6 skipped, 293 s. It failed only the env-only "actual native Split source…".
+- Conformance `r12c/`: 26/26.
+- `@barocss/cad-model`: type-check clean, 736/736. Studio: type-check clean, 197/197 (the new palette test included).
+- Test names against the saved lists:
+  - kernel: none missing, +13;
+  - cad-model: +21 (4 this stage's); one missing, "PERF3 B13 S0 P2 …", renamed by the integration's O135 to "… (fixed in O135) …", not by this stage;
+  - studio: none missing, +3.
+- `FLOW_ONLY` "Chain drive (R12c" with the Cam, Spring and Shaft steps and "fillet a box top edge": 7/7 (with the starter step).
+  - The flow's palette words are covered by the new palette test.
+
+Not run:
+- RB and properties: next at the 4th kernel checkpoint since D160.
+- The full browser flow (the coordinator's).
