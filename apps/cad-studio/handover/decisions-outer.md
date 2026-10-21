@@ -5024,3 +5024,29 @@ The GPU lane's G6 shows the analyses on the model as colour maps and lines. Only
 - **The viewport's tool** is the GPU lane's (G17), built on `solveSketch3D` and its diagnosis.
 - **Not done**: constraint values bound to parameters (they are numbers), and a dragged point's solve (the tool's, G17).
 - **The FR queue (O114) is done**: FRa through FRg, items 1–7. What waits on the kernel lane's FR geometry (gussets, beads, end caps, coped joints, a cross-part followed sketch) is said in each stage.
+
+## O123 — FRf2 S0: a frame following another part's sketch — the reference across parts, frozen (2026-10-21)
+
+The coordinator asked for this as its own stage (D122's "a frame cannot follow another part's sketch", in scope since the owner said all of FR). The design question is the reference across part documents. It uses A7's revisions and A8's digests, with no new link. Evidence is in `packages/barocss-cad-model/test/frf2-s0.test.ts` (4 probes).
+
+- **What a "part" is here**: a placed instance (`doc.instances[k]`) whose document the assembly holds inline. Parts are not separate files; a team bundle carries the one assembly document. So the reference crosses part documents inside one assembly document, not files.
+- **Probes**:
+  - **P1**: a placed part's sketch, lifted by its plane and placed by the instance's `rotationMatrix(rotation)·p + position`, is where the part's own body stands (a 300 × 200 plate at (100, 50, 0) turned 90° about z: its box to 1e-9). The transform is the mates' own.
+  - **P2**: freshness's `modelInput` already holds each part's own model, recursively. A base frame following a part's sketch has its results go stale when the part changes. **No freshness change.**
+  - **P3**: A7's `revisionOf(part doc)` follows a part's content, not its placement; A8's `partDigest` follows both. So the link pins the revision, and the placement is read live.
+  - **P4**: a part is deleted today whatever refers to it.
+  - **P5**: the base's evaluation input (`evaluatedPart`) holds its parts' documents; a part's own evaluation holds no siblings.
+- **The reference, frozen**: `follows: { part: '<instance id>', sketch: '<the sketch's stable feature id in that part>', revision: '<A7 revisionOf of that part's document when linked>' }`.
+  - It names the feature by stable id (FR's other references use indices within one document; across documents only ids survive the other part's reordering).
+- **Live**: the geometry is the part's sketch now, lifted and placed by the instance's placement now, at every evaluation of the base. A change in the other part reaches the base on the base's next evaluation: the evaluation memo's key already includes the instances' documents (evaluatedPart), and the studio's `evaluated` memo will also follow the followed parts (App.tsx's core memo, as FRc did for the section library).
+- **Staleness**: the geometry is always current. The pinned `revision` says which version the person linked. When the part's revision differs, the frame's member notes, its result and the issue list say "the followed sketch changed since it was linked (a → b)" until the person relinks (`features.edit` with the new revision, no new action). Results go stale by freshness as P2 shows, and baselines already pin each part's digest (A8.4b), so an approval sees the part changed.
+- **Refusals**, typed, naming the frames:
+  - FRAME_PART_UNKNOWN: no such placed part.
+  - FRAME_PART_FEATURE_GONE: no feature with that id in it.
+  - FRAME_SKETCH_UNKNOWN or FRAME_SKETCH_CURVED: not a straight-edged sketch. All of these at add or edit and at evaluation.
+  - FRAME_PART_IN_USE: deleting a followed part (delete_part), or deleting or replacing its sketch with a curved one through the part-scoped tools.
+- **Scope, and the one assembly-wide change, said before building**:
+  - v1 lets **the base part's frames** follow placed parts' sketches. That needs no assembly-wide evaluation change (P5: the base already holds its parts).
+  - A frame **inside a placed part** following a sibling would need each part evaluated with its siblings, an assembly-wide evaluation change (parts are evaluated alone today: describe, placedBodies, the mates' solve). Refused there, FRAME_PART_SCOPE, until decided.
+  - A sub-assembly's nested parts are reached through their instance only (`part` is a top-level instance id).
+- **Next**: FRf2 itself, after the coordinator's reply on this S0.
