@@ -20,9 +20,13 @@ const ref = (r: BodyRef) => r.side === 'negative' ? `${id(r.node)}/0` : r.side =
 const sheetK = (n: { kFactor?: number; bendTable?: BendTable }) => (n.bendTable ? { bendTable: n.bendTable } : { kFactor: n.kFactor! }) as { kFactor: number } | { bendTable: BendTable };
 /** One node as a kernel feature (`nodes`: the document's, for its ids; without them node i is `n<i>`). */
 /** A member section for the kernel: a sketch section's node index as its feature id (FR2, D124). */
-/** A library section is its row's (FRc): a missing row goes on by a kind naming it, which the kernel refuses (INPUT) with that name. */
+/** A library section is its row's (FRc): a row the library does not hold (deleted, renamed) is refused, typed — never a fallback. */
 const kernelSection = (s: MemberSection, toId: (i: number) => string): CadPartSection => s.kind === 'sketch' ? { kind: 'sketch', sketch: toId(s.sketch) } : s.kind === 'library' ? libraryRow(s.id) : s;
-const libraryRow = (rowId: string): CadPartSection => library.get(rowId) ?? ({ kind: `library "${rowId}", which the document's section library does not hold` } as never);
+function libraryRow(rowId: string): CadPartSection {
+  const row = library.get(rowId);
+  if (row) return row;
+  throw new Error(`[FRAME_SECTION_UNKNOWN] a frame's section names the library row "${rowId}", which the document's section library does not hold (rows: ${[...library.keys()].join(', ') || 'none'})`);
+}
 /** A frame's override for the kernel: its sketch section by feature id. */
 function kernelOverride(o: FrameOverride): CadPartFrameOverride { const { section, ...rest } = o; return { ...rest, ...(section ? { section: kernelSection(section, id) } : {}) }; }
 export function featureOf(node: ModelNode, index: number, nodes?: readonly ModelNode[]): CadPartFeature {

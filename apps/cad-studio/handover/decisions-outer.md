@@ -4852,7 +4852,7 @@ Owner, relayed by the coordinator: "FR 에서 1, 2, 3, 모두 하고 그 밖에 
 - **A frame or member names a row**: its section is `{kind: 'library', id}`, and so may an override's.
   - `engine/part.ts` resolves it from the document's library before the kernel, so the kernel is untouched.
   - The chat refuses an id the library does not hold: FRAME_SECTION_UNKNOWN, with the rows listed.
-  - A document naming a missing row (written by hand) reaches the kernel as a kind that names it, and evaluates to the kernel's INPUT refusal with that name.
+  - A document naming a deleted or renamed row (written by hand) is refused at evaluation in `engine/part.ts`, typed `[FRAME_SECTION_UNKNOWN]` with the row and the rows held, titled "A frame names a section that is not in the library". It never falls back to another section.
 - **Editing** (`frames/sections.ts`, `editSections`), shared by the chat and the panel:
   - Rows are added or replaced by id, and ids removed. A changed row moves every frame on it.
   - A row in use is not removed: FRAME_SECTION_IN_USE, naming each feature as `feature i (label)`.

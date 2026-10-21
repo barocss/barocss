@@ -9,7 +9,7 @@ import { editSections, sectionUses } from '../src/frames/sections';
 // inline gives (volume, centroid and box exactly); a row edited moves every frame on it (two straight frames of a sharp
 // RHS w × h × t: A = wh − (w − 2t)(h − 2t), each member A · 300, before and after); rows need a source or an estimate
 // flag (none is built in, D122) and are refused by name; a row in use is not removed; a section naming no row refused
-// before the kernel, and a document naming one evaluated to the kernel's INPUT refusal with its name.
+// before the kernel, and a document naming a deleted or renamed row refused at evaluation, typed, never a fallback.
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const bodiesOf = async (doc: StudioDoc): Promise<BodyResult[]> => { const r = await evaluate(doc); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies; };
@@ -66,14 +66,18 @@ test('FRc rows refused by name: no source and no estimate flag, a sketch section
   const rm = editSections(est.doc, [], ['E']); assert.ok(!('error' in rm)); assert.deepEqual([rm.removed, rm.doc.frames!.sections], [['E'], []]);
 });
 
-test('FRc a section naming no row: add_features refuses it before the kernel (FRAME_SECTION_UNKNOWN, the rows listed); a document holding one evaluates to the kernel\'s INPUT refusal naming it', async () => {
+test('FRc a section naming no row: add_features refuses it before the kernel (FRAME_SECTION_UNKNOWN, the rows listed); a document naming a deleted or renamed row refused at evaluation, typed (FRAME_SECTION_UNKNOWN), not a fallback', async () => {
   const s: ChatState = { doc: lib(emptyDoc()), bodies: [] };
   const r = await dispatchTool(s, 'add_features', { features: [{ kind: 'frame', points: [[0, 0, 0], [300, 0, 0]], segments: [[0, 1]], section: { kind: 'library', id: 'R99' } }] }, evaluate);
   assert.ok(r.isError); assert.match(JSON.parse(r.content).error, /\[FRAME_SECTION_UNKNOWN\] no row "R99" in the section library \(rows: R40\)/);
   const ok = await dispatchTool(s, 'add_features', { features: [{ kind: 'frame', points: [[0, 0, 0], [300, 0, 0]], segments: [[0, 1]], section: { kind: 'library', id: 'R40' } }] }, evaluate);
   assert.ok(!ok.isError, ok.content); close(ok.state.bodies[0].volumeMM3!, A(40, 40, 3) * 300, 'on the row');
-  const dangling = await evaluate(straight(emptyDoc(), 0));
-  assert.ok(!dangling.ok); assert.match(JSON.stringify(dangling.error), /library \\"R40\\", which the document's section library does not hold/);
+  // (A row deleted or renamed under a frame — the document written by hand: refused, typed, before the kernel; no fallback.)
+  for (const doc of [straight(emptyDoc(), 0), lib(straight(emptyDoc(), 0), [{ ...ROW, id: 'R40b' }])]) {
+    const r2 = await evaluate(doc);
+    assert.ok(!r2.ok); assert.equal(r2.error.title, 'A frame names a section that is not in the library');
+    assert.match(r2.error.detail, /^\[FRAME_SECTION_UNKNOWN\] a frame's section names the library row "R40", which the document's section library does not hold \(rows: (none|R40b)\)$/);
+  }
 });
 
 test('FRc the palette: with a library, the member command offers "From your library" and its rows — the member takes the row by id; without one, the kinds alone', async () => {
