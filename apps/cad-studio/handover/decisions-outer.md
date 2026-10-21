@@ -5323,3 +5323,7 @@ The S0 (O129) was approved with two notes: `changedFaces` must be complete when 
   - a facet cube moved 5 up: `faces` with why, and every mesh face listed as changed, the plate untouched. The test says it turns into `boolean` with 500/500 after F3;
   - the cache.
 - **For the GPU lane**: draw `added` and `removed` like any body, in two colours. Under `faces`, tint `changedFaces` on the proposal's bodies.
+
+## O137 — the inline dimension editor above the top bar (2026-10-22)
+
+The coordinator flagged a regression from O127's z 6 top bar: `.dim-edit` (the sketch's inline dimension input, z 5) went under the bar when the edited dimension sat in the top 36 px of the window. Of the two options offered, it is raised to z 7, above the bar and below the palette's backdrop (10), rather than clamped below the bar: the input stays at its dimension. It is transient, and is gone before a menu of the bar can open. Flow, in "explicit constraints and dimensions…": the open editor is moved into the bar's band (top 8 px). The point at its middle is the editor, not the bar, and it then still takes its value.

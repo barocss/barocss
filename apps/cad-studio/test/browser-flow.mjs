@@ -405,6 +405,14 @@ try {
     assert.doesNotMatch(await constraints(), /Vertical/);
     // Dimension tool: an edge opens the inline editor; two points open their distance.
     await press('d'); await pick('edge', 0);
+    // (O137: the inline editor stays above the top bar. Moved into the bar's band — a dimension in the top 36 px — the
+    // point at its middle is the editor, not the bar, and it still takes the value.)
+    const above = await page.evaluate(() => {
+      const e = document.querySelector('.dim-edit'), was = e.style.top; e.style.top = '8px';
+      const r = e.getBoundingClientRect(), bar = document.querySelector('.topbar').getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      const out = { inBar: r.top + r.height / 2 < bar.bottom, hit: hit === e }; e.style.top = was; return out;
+    });
+    assert.deepEqual(above, { inBar: true, hit: true });
     await page.locator('.dim-edit').fill('60'); await page.locator('.dim-edit').press('Enter');
     assert.equal(await page.inputValue('#sk-len0'), '60'); assert.match(await constraints(), /Length\s*edge 1 = 60/); assert.match(await status(), /2 DOF/);
     await pick('point', 0); await pick('point', 2);
