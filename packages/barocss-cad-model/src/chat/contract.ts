@@ -1,13 +1,13 @@
 // The agent tool layer's contract (A5.1, O9): what each tool promises an MCP client beyond its input schema — its
 // annotations (read only, destructive, idempotent; nothing reaches outside the document) and, for the tools that only
-// read, the shape of their result (`outputSchema`, returned as `structuredContent`). The names, input schemas,
-// annotations and output schemas are frozen in `tools-v1.json`; a change that would break a client (a tool or a
-// property gone, a type or enum narrowed, a property newly required) needs a new contract version.
+// read, the shape of their result (`outputSchema`, returned as `structuredContent`). Clients see the handlers through
+// the consolidated tools (groups.ts, toolset.ts), whose names, input schemas, annotations and output schemas are frozen
+// in `tools-v2.json`; a change that would break a client (a tool or a property gone, a type or enum narrowed, a
+// property newly required) needs a new contract version. (O105: the handlers' own 83-tool list, v1, is no longer served.)
 
 import { GROUPS } from './groups';
 
-export const TOOL_CONTRACT_VERSION = 'barocss-cad-tools-v1';
-/** The consolidated tools (A5.3, O11): 13 tools, each action a v1 tool (groups.ts), frozen in `tools-v2.json`. */
+/** The consolidated tools (A5.3, O11): 13 tools, each action a handler (groups.ts), frozen in `tools-v2.json`; the only surface (O105). */
 export const TOOL_CONTRACT_V2 = 'barocss-cad-tools-v2';
 
 export type JsonSchema = { type?: string | string[]; properties?: Record<string, JsonSchema>; required?: string[]; items?: JsonSchema; enum?: unknown[]; additionalProperties?: boolean | JsonSchema; anyOf?: JsonSchema[]; description?: string; [k: string]: unknown };

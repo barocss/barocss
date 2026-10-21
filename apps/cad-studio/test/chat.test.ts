@@ -13,6 +13,7 @@ import { acceptProposal, CHAT_COMMANDS, COMMAND_DOCS, dispatchTool, resolveNames
 import { checkNode, deleteFeature } from '@barocss/cad-model/chat/features';
 import { eventParser, type TurnEvent } from '../src/chat/client';
 import { serveMcp } from '../server/cadMcp';
+import { TOOLS_V2 } from '@barocss/cad-model/chat/toolset';
 import { checkImages, claudeArgs, createChatServer, DEFAULT_ORIGINS, fromStudio, stateNote, summarize, userMessage } from '../server/chatServer';
 import { fitSize } from '../src/chat/images';
 import { planHollow } from '@barocss/cad-model/print/hollow';
@@ -119,11 +120,11 @@ test('a scripted model drives the MCP tool server: the plate with four corner ho
   // feature is a proposal. (This model runs at L4.)
   const l2Path = join(scratch(), 'state-l2.json');
   writeFileSync(l2Path, JSON.stringify({ doc: emptyDoc(), changed: false }));
-  const first = mcpClient(l2Path), built = await first.call('run_command', { command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } });
+  const first = mcpClient(l2Path), built = await first.call('features', { action: 'command', command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } });
   assert.ok(!built.isError, JSON.stringify(built.json));
-  assert.ok(!(await first.call('run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } })).isError, 'still the first turn');
+  assert.ok(!(await first.call('features', { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } })).isError, 'still the first turn');
   await first.close();
-  const second = mcpClient(l2Path), refused = await second.call('run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 58, y: 6 } });
+  const second = mcpClient(l2Path), refused = await second.call('features', { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 58, y: 6 } });
   assert.ok(refused.isError); assert.equal(refused.json.code, 'needs_proposal');
   await second.close();
   assert.equal(JSON.parse(readFileSync(l2Path, 'utf8')).doc.nodes.length, 3);
@@ -134,23 +135,24 @@ test('a scripted model drives the MCP tool server: the plate with four corner ho
   const init = await mcp.request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '0' } });
   assert.deepEqual(init.result.capabilities, { tools: {} });
   const listed = (await mcp.request('tools/list')).result.tools;
-  assert.deepEqual(listed.map((t: any) => t.name), TOOLS.map(t => t.name));
-  assert.equal(listed[1].inputSchema.properties.command.enum.length, CHAT_COMMANDS.length);
+  // (The v2 tools, O105: every live command named in the features tool's text, for describe — never an enum.)
+  assert.deepEqual(listed.map((t: any) => t.name), TOOLS_V2.map(t => t.name));
+  assert.ok(listed.find((t: any) => t.name === 'features').description.includes(` Commands: ${CHAT_COMMANDS.join(', ')}.`));
   assert.equal((await mcp.request('nope')).error.code, -32601);
-  const box = await mcp.call('run_command', { command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } });
+  const box = await mcp.call('features', { action: 'command', command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } });
   assert.ok(!box.isError);
   const top = box.json.bodies[0].faces.find((f: any) => f.normal[2] === 1).name;
   // Parallel calls run in order; the last hole is off the part on purpose and is refused.
-  const holes = await Promise.all([[6, 6], [58, 6], [6, 26], [158, 26]].map(([x, y]) => mcp.call('run_command', { command: 'hole', faces: [top], values: { d: 8, x, y } })));
+  const holes = await Promise.all([[6, 6], [58, 6], [6, 26], [158, 26]].map(([x, y]) => mcp.call('features', { action: 'command', command: 'hole', faces: [top], values: { d: 8, x, y } })));
   assert.deepEqual(holes.map(h => h.isError), [false, false, false, true]);
   assert.match(holes[3].json.error, /misses the body/);
-  const fixed = await mcp.call('run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 58, y: 26 } });
+  const fixed = await mcp.call('features', { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 58, y: 26 } });
   const vertical = fixed.json.bodies[0].edges.filter((e: any) => e.line === 'along z').map((e: any) => e.name);
   assert.equal(vertical.length, 4);
-  const fillet = await mcp.call('run_command', { command: 'fillet', edges: vertical, values: { radius: 2 } });
+  const fillet = await mcp.call('features', { action: 'command', command: 'fillet', edges: vertical, values: { radius: 2 } });
   assert.ok(!fillet.isError, JSON.stringify(fillet.json));
   const round = fillet.json.bodies[0].faces.filter((f: any) => f.radius === 2).map((f: any) => f.name);
-  assert.ok(!(await mcp.call('select', { faces: round })).isError);
+  assert.ok(!(await mcp.call('query', { action: 'select', faces: round })).isError);
   await mcp.close();
   if (level === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = level;
   // The state file holds what the turn built, for the chat server to hand back.
@@ -281,10 +283,10 @@ test('the chat server sends a state only when a tool changed the part since the 
   const use = (id: string, name: string) => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', id, name: `mcp__cad__${name}`, input: {} }] }, session_id: sid });
   const result = (id: string) => JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: id, content: [{ type: 'text', text: '{"ok":true}' }] }] }, session_id: sid });
   const fake = fakeClaude((_args, statePath) => [
-    JSON.stringify({ type: 'system', subtype: 'init', session_id: sid, tools: TOOLS.map(t => `mcp__cad__${t.name}`) }),
-    use('t1', 'run_command'), () => writeFileSync(statePath, JSON.stringify({ doc: one, changed: true, version: 1 })), result('t1'),
-    use('t2', 'describe_part'), result('t2'), use('t3', 'measure'), result('t3'),
-    use('t4', 'run_command'), () => writeFileSync(statePath, JSON.stringify({ doc: two, changed: true, version: 2 })), result('t4'),
+    JSON.stringify({ type: 'system', subtype: 'init', session_id: sid, tools: TOOLS_V2.map(t => `mcp__cad__${t.name}`) }),
+    use('t1', 'features'), () => writeFileSync(statePath, JSON.stringify({ doc: one, changed: true, version: 1 })), result('t1'),
+    use('t2', 'describe'), result('t2'), use('t3', 'query'), result('t3'),
+    use('t4', 'features'), () => writeFileSync(statePath, JSON.stringify({ doc: two, changed: true, version: 2 })), result('t4'),
     JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'Done.', session_id: sid }),
   ]);
   const srv = await serve(createChatServer({ mcpScript: '/x/cadMcp.mjs', spawn: fake.spawn, workDir: scratch() }));
@@ -300,10 +302,10 @@ test('the chat server runs the claude CLI with only the studio tools and streams
   const built = withNode(plate, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 4 });
   const sid = '7235de6e-4fc3-4fc4-b479-410846a6528a';
   const fake = fakeClaude((args, statePath) => [
-    JSON.stringify({ type: 'system', subtype: 'init', session_id: sid, tools: TOOLS.map(t => `mcp__cad__${t.name}`) }),
+    JSON.stringify({ type: 'system', subtype: 'init', session_id: sid, tools: TOOLS_V2.map(t => `mcp__cad__${t.name}`) }),
     JSON.stringify({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Adding ' } }, session_id: sid, parent_tool_use_id: null }),
     JSON.stringify({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'a hole.' } }, session_id: sid, parent_tool_use_id: null }),
-    JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'Adding a hole.' }, { type: 'tool_use', id: 'toolu_1', name: 'mcp__cad__run_command', input: { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } } }] }, session_id: sid }),
+    JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'Adding a hole.' }, { type: 'tool_use', id: 'toolu_1', name: 'mcp__cad__features', input: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } } }] }, session_id: sid }),
     () => writeFileSync(statePath, JSON.stringify({ doc: built, changed: true, selection: { faces: ['n1.top'], edges: [], bodies: [] } })),
     JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: [{ type: 'text', text: JSON.stringify({ ok: true, did: 'Hole {"d":8,"x":6,"y":6}', bodies: [{ key: 'b2', volume_mm3: 15981.876 }] }) }] }] }, session_id: sid }),
     JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'Done.', session_id: sid }),
@@ -315,7 +317,7 @@ test('the chat server runs the claude CLI with only the studio tools and streams
     assert.equal((await turn(srv.url, { text: '' })).status, 400);
     const { events } = await turn(srv.url, { text: 'add a Ø8 hole 6 mm from the corner', doc: plate });
     assert.deepEqual(events.map(e => e.type), ['text', 'text', 'tool', 'state', 'done']);
-    assert.deepEqual(events[2], { type: 'tool', name: 'run_command', input: { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } }, summary: 'Hole {"d":8,"x":6,"y":6} → 1 body, 15982 mm³', isError: false });
+    assert.deepEqual(events[2], { type: 'tool', name: 'features', input: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } }, summary: 'Hole {"d":8,"x":6,"y":6} → 1 body, 15982 mm³', isError: false });
     assert.deepEqual((events[3] as { doc: StudioDoc }).doc, built);
     assert.deepEqual(events[4], { type: 'done', doc: built, selection: { faces: ['n1.top'], edges: [], bodies: [] }, session: sid, end: 'done' });
     const run = fake.spawned[1];
@@ -328,7 +330,7 @@ test('the chat server runs the claude CLI with only the studio tools and streams
     assert.match(sent.message.content[0].text, /Current part: 2 features[\s\S]*add a Ø8 hole/);
     assert.equal(flag('--output-format'), 'stream-json'); assert.equal(flag('--model'), 'claude-opus-5-5'); assert.equal(flag('--tools'), '');
     assert.ok(a.includes('--strict-mcp-config')); assert.ok(!a.includes('--resume'));
-    assert.equal(flag('--allowedTools'), TOOLS.map(t => `mcp__cad__${t.name}`).join(','));
+    assert.equal(flag('--allowedTools'), TOOLS_V2.map(t => `mcp__cad__${t.name}`).join(','));
     const mcp = JSON.parse(flag('--mcp-config')).mcpServers.cad;
     assert.equal(mcp.command, process.execPath); assert.deepEqual(mcp.args, ['/x/cadMcp.mjs']);
     // The next turn resumes the CLI conversation and carries an image before its text.

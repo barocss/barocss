@@ -8,19 +8,19 @@ import { createInterface } from 'node:readline';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { ImageTrace } from '@barocss/cad-model/chat/trace';
-import { runTool, TOOLS, type ChatState } from '@barocss/cad-model/chat/tools';
+import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { outputSchemaOf } from '@barocss/cad-model/chat/contract';
-import { v1Call } from '@barocss/cad-model/chat/groups';
-import { listed, toolsetOf, type Toolset } from '@barocss/cad-model/chat/toolset';
+import { GROUPS, v1Call } from '@barocss/cad-model/chat/groups';
+import { listed, TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { arrayOf, putKnownBlob, type BlobType } from '@barocss/cad-model/engine/blobs';
 
 /** `images`: the traces of the conversation's attached images (read only). */
 /** `blobFiles`: the document's mesh blobs (M1, D45), files the chat server checked and kept for the conversation, read into the store before the first call. */
 export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[]; /** What the user typed this conversation (A6.2): quotes are checked against it. */ turns?: string[] }
 
-/** The tools as MCP lists them (A5.1): title, annotations and, for read tools, the output schema (v1). */
-export const TOOLS_LISTED = TOOLS.map(listed);
-/** The v1 tool a call runs (a consolidated tool's action, A5.3), for its output schema. */
+/** The tools as MCP lists them (A5.1): title, annotations and, for read actions, the output schema (v2, the only list, O105). */
+export const TOOLS_LISTED = TOOLSET.tools.map(listed);
+/** The handler a call runs (a consolidated tool's action, A5.3), for its output schema. */
 const v1Name = (name: string, args: unknown) => { const v = v1Call(name, args); return v && !('error' in v) ? v.name : name; };
 const structuredOf = (text: string): Record<string, unknown> | undefined => { try { const v = JSON.parse(text); return v && typeof v === 'object' && !Array.isArray(v) ? v : undefined; } catch { return undefined; } };
 
@@ -52,9 +52,7 @@ export function stateFileStore(statePath: string): McpStore {
   };
 }
 
-export async function serveMcp(source: string | McpStore, input: NodeJS.ReadableStream = process.stdin, output: NodeJS.WritableStream = process.stdout, set?: Toolset) {
-  // (The tool list the client reads, A5.3: v1, or the consolidated v2 with CAD_TOOLSET=v2. Both names are callable.)
-  const tools = toolsetOf(set), list = tools.tools.map(listed);
+export async function serveMcp(source: string | McpStore, input: NodeJS.ReadableStream = process.stdin, output: NodeJS.WritableStream = process.stdout) {
   const store = typeof source === 'string' ? stateFileStore(source) : source, saved = await store.open();
   const first = await evaluate(saved.doc);
   let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(saved.turns ? { turns: saved.turns } : {}) };
@@ -68,11 +66,14 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
   const handle = async (msg: { id?: unknown; method?: string; params?: Record<string, any> }) => {
     if (msg.id === undefined) return; // notifications
     switch (msg.method) {
-      // (The tool contract's version, A5.1: names, input and output schemas and annotations frozen in src/chat/tools-v1.json.)
-      case 'initialize': return reply(msg.id, { protocolVersion: msg.params?.protocolVersion ?? '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'barocss-cad', title: 'BaroCSS CAD', version: tools.version } });
+      // (The tool contract's version, A5.1: names, input and output schemas and annotations frozen in src/chat/tools-v2.json.)
+      case 'initialize': return reply(msg.id, { protocolVersion: msg.params?.protocolVersion ?? '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'barocss-cad', title: 'BaroCSS CAD', version: TOOLSET.version } });
       case 'ping': return reply(msg.id, {});
-      case 'tools/list': return reply(msg.id, { tools: list });
+      case 'tools/list': return reply(msg.id, { tools: TOOLS_LISTED });
       case 'tools/call': {
+        // (Only the listed tools: a handler's own name (`run_command`) is not one, O105. Ops inside a batch or a proposal
+        // name tools as before; saved proposals replay.)
+        if (!(String(msg.params?.name) in GROUPS)) return error(msg.id, -32602, `Unknown tool: ${String(msg.params?.name)}. The tools are ${Object.keys(GROUPS).join(', ')}.`);
         const out = await runTool(state, String(msg.params?.name), msg.params?.arguments ?? {}, evaluate);
         state = out.state; changed ||= out.changed; if (out.changed) version++;
         const unsaved = out.changed ? save('change') : v1Name(String(msg.params?.name), msg.params?.arguments) === 'select' ? save('select') : null;

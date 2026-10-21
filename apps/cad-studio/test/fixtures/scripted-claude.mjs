@@ -26,7 +26,9 @@ say({ type: 'system', subtype: 'init' });
 await request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'scripted', version: '0' } });
 for (const [k, call] of calls.entries()) {
   say({ type: 'assistant', message: { content: [{ type: 'tool_use', id: `toolu_${k}`, name: `mcp__cad__${call.tool}`, input: call.args }] } });
-  const r = (await request('tools/call', { name: call.tool, arguments: call.args })).result;
+  // (A JSON-RPC error — an unknown tool, O105 — comes back to the model as a failed call, as the CLI reports it.)
+  const m = await request('tools/call', { name: call.tool, arguments: call.args });
+  const r = m.result ?? { isError: true, content: [{ type: 'text', text: JSON.stringify({ ok: false, error: m.error?.message ?? 'no result' }) }] };
   // (The A/B harness, A5.5: each call's size, to estimate what a model would read and write.)
   if (process.env.CAD_AB_LOG) appendFileSync(process.env.CAD_AB_LOG, JSON.stringify({ tool: call.tool, args: JSON.stringify(call.args ?? {}).length, result: r.content.filter(c => c.type === 'text').map(c => c.text).join('').length, isError: r.isError }) + '\n');
   say({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: `toolu_${k}`, is_error: r.isError, content: r.content.filter(c => c.type === 'text') }] } });

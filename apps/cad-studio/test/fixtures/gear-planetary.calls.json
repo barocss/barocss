@@ -2,8 +2,9 @@
  "about": "R12b.7 acceptance (D138): a planetary set, module 2 \u2014 a ring of 60 teeth (x2 0.5, the internal gear's default; its root cut by a 24-tooth pinion cutter, an estimate), three planets of 18 (x 0) at 120\u00b0, a sun of 24 (x 0.5): zr = zs + 2zp and (zs + zr)/3 = 28 whole, so all three planets mesh with both; x_s = x2 \u2212 2x_p, so the sun's working centre distance is the ring's. Built by the agent's tools in one turn, its own mesh checks with them.",
  "calls": [
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "internal-gear",
     "values": {
      "m": 2,
@@ -17,8 +18,9 @@
    }
   },
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "gear-mesh",
     "bodies": [
      "b0"
@@ -32,8 +34,9 @@
    }
   },
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "gear-mesh",
     "bodies": [
      "b0"
@@ -47,8 +50,9 @@
    }
   },
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "gear-mesh",
     "bodies": [
      "b0"
@@ -62,8 +66,9 @@
    }
   },
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "gear-mesh",
     "bodies": [
      "b1"
@@ -77,8 +82,9 @@
    }
   },
   {
-   "tool": "set_requirements",
+   "tool": "requirements",
    "args": {
+    "action": "set",
     "requirements": [
      {
       "id": "sun-planet-1",
@@ -129,8 +135,10 @@
    }
   },
   {
-   "tool": "check_spec",
-   "args": {}
+   "tool": "requirements",
+   "args": {
+    "action": "check"
+   }
   }
  ]
 }

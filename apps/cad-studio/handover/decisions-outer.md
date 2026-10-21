@@ -4485,3 +4485,29 @@ The coordinator's order after CNC8: IM8 (casting presets, allowances, section an
   - **IM8b, allowances**: shrink by alloy and size band (the lecture's table, W-WEB), the machining allowance (the user's or an estimate, as CNC7b's), draft by process. A pattern's dimensions are scaled, exported as a scaled STEP and the factors in JSON.
   - **IM8c, sections and solidification**: the distance field's local maxima (the largest inscribed balls, the kernel's nearest query) as hot spots, each with its modulus. Chvorinov's ordering: a hot spot with no path of rising modulus to a feeder (the gate, set by the user) is an isolated hot spot, a shrink-porosity risk, warned with where it is. Section changes are steeper than a ratio, sourced or an estimate.
   - **Then IM7's parts without the face split**: core and cavity halves from IM5's parting where faces do not straddle, side-core directions from IM3's undercut side actions, shut-off candidates. The split surfaces wait for the kernel.
+
+## O105 — v2 the only tool surface; v1 removed; one per-turn guard (2026-10-21)
+
+Owner, 2026-10-21, relayed by the coordinator. First: "앱 채팅과 MCP 기본값을 v2로 바꾸고 v1은 동결해. 새 기능은 v2 동작으로 넣고, 상한은 표면별 매 차례 전체 양(목록+프롬프트)으로 바꿔." Then, replacing the freeze: "우리는 릴리즈 한게 아니라서 toolset v1 은 없어도 돼" (we haven't released, so toolset v1 isn't needed).
+
+- **One surface.** The 13 v2 tools (`barocss-cad-tools-v2`, frozen in `tools-v2.json`) are what the app chat, MCP (`cad-mcp`) and the chat server's CLI see.
+  - Removed: `CAD_TOOLSET`, `cad-mcp --toolset` (now refused as an unknown option), `toolset()`/`toolsetOf()`, `TOOLS_V1` as a list, `tools-v1.json`, `TOOL_CONTRACT_VERSION`.
+  - `toolset.ts` exports one `TOOLSET {version, tools, prompt}`.
+  - MCP `tools/call` takes only the listed names. A handler's own name (`run_command`) is a JSON-RPC error −32602 that names the tools; a freeze would have had to keep it callable.
+- **`json` removed.** Only the A/B's json arm used it. The arm is gone, and the harness keeps the ten briefs on the v2 tools (`hybrid`) through the real chat server; live runs still need `CAD_AB_LIVE=1`.
+  - **A5.5's v1/v2 live A/B is dropped** by this decision. Its dry-run report stays as history (`notes/ab-dry-run-2026-10-20/`).
+- **The handlers are kept** (`chat/tools.ts`, its 83 tools and their annotations and output schemas in `contract.ts`). Each v2 action dispatches to one, so a v2 call is a handler call.
+  - In-process tests (`dispatchTool`, `runTool`) and saved proposals' ops may still name handlers. Ops naming v2 tools are stored as handler calls, as before, so saved documents replay.
+  - Conformance `a2/` and `a4/` are in-process handler cases and are unchanged.
+- **Moved to v2 names**:
+  - the nine `test/fixtures/*.calls.json`, nested proposal ops included: 84 scripted calls and 6 mocked chat events in the flow;
+  - the scripted agent's MCP calls in `chat.test.ts` and `cad-external.test.ts`;
+  - the MCP tests in `tool-contract.test.ts` and `toolset.test.ts`;
+  - `subdClamp.test.ts`, which now records the agent's calls as v2 calls (`v2Call`, a new export of `groups.ts`, which `viaV2` uses) and maps them back with `v1Call` for the editor's own steps.
+  - The scripted agent now reports a JSON-RPC error as a failed call, as the CLI does.
+  - The transcript labels a call `features.command` (tool.action).
+- **New capability only as v2**: a tool is a group action, with detail behind `describe`. A command or feature kind goes into the live registries; the features tool names them in its text (no enum) and `describe` gives the detail. If headroom runs low, the lists move behind `describe` too. This is in README §0 for both lanes.
+- **One guard**: per turn, tools/list JSON plus the system prompt, v2 ≤ 25,000 characters (`toolset.test.ts`).
+  - It replaces `listed − plain < 15000` (tool-contract) and `tools/list ≤ 15000` (toolset).
+  - At 7691e0c90 (the coordinator's measurement) v2 was 13,164 + 8,242 = 21,406, against v1's 118,495 + 7,922 = 126,417.
+- **Tests removed or renamed**: listed in the O105 checkpoint, each with its reason.

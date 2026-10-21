@@ -2,8 +2,9 @@
  "about": "FR4b acceptance (D128): a 2020-class T-slot frame 400 \u00d7 300 \u00d7 500 \u2014 four uprights, and rails at the bottom and the top between their faces, every member cut square (no welds: brackets join T-slot); its cut list. The slot sizes are the tslot-20 library's estimates.",
  "calls": [
   {
-   "tool": "add_features",
+   "tool": "features",
    "args": {
+    "action": "add",
     "features": [
      {
       "kind": "frame",
@@ -195,8 +196,10 @@
    }
   },
   {
-   "tool": "cut_list",
-   "args": {}
+   "tool": "query",
+   "args": {
+    "action": "cutlist"
+   }
   }
  ]
 }

@@ -2,8 +2,9 @@
  "about": "RB9 rung 10 (R12.5, D121): a sheet-metal PCB enclosure \u2014 a 100 \u00d7 70 base of 1.5 mm sheet (inner radius 1.5, K 0.44 given), a 3 mm square relief off each corner, four 25 mm flanges full length, four \u00d83.2 holes for the board's standoffs, a 20 \u00d7 8 connector slot in the front flange.",
  "calls": [
   {
-   "tool": "add_features",
+   "tool": "features",
    "args": {
+    "action": "add",
     "features": [
      {
       "kind": "sketch",

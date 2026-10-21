@@ -10,7 +10,6 @@ import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
 import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
 import { meshNodeBlobs } from '@barocss/cad-model/engine/blobs';
 import { encodeStudioFile, isContainer, readStudioFile } from '@barocss/cad-model/engine/container';
-import { TOOLS } from '@barocss/cad-model/chat/tools';
 import { TOOLS_V2 } from '@barocss/cad-model/chat/toolset';
 import { docStore, mcpOptions, notLocalModel, openModel } from '../server/cadDoc';
 import { serveMcp } from '../server/cadMcp';
@@ -40,15 +39,15 @@ test('cad-mcp --doc: spawned as a client would, a script run and saved; a second
   const d = dir(), part = join(d, 'part.bcad');
   const a = client(['--doc', part]);
   const init = (await a.request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '0' } })).result!;
-  assert.equal(init.serverInfo.version, 'barocss-cad-tools-v1');
-  assert.equal(((await a.request('tools/list')).result!.tools as unknown[]).length, TOOLS.length);
+  assert.equal(init.serverInfo.version, 'barocss-cad-tools-v2');
+  assert.deepEqual(((await a.request('tools/list')).result!.tools as { name: string }[]).map(t => t.name), TOOLS_V2.map(t => t.name));
   assert.ok(!existsSync(part), 'a new part: no file until the first change');
-  const built = await a.call('run_script', { source: PLATE });
+  const built = await a.call('model', { source: PLATE });
   assert.equal(built.isError, false, built.content[0].text);
   assert.ok(existsSync(part), 'saved on the change');
   const saved = readFileSync(part);
   // A read changes nothing on disk.
-  await a.call('get_part_summary', {});
+  await a.call('query', { action: 'summary' });
   assert.deepEqual(readFileSync(part), saved);
   const before = facts(built);
   assert.equal(await a.close(), 0, a.stderr());
@@ -56,9 +55,8 @@ test('cad-mcp --doc: spawned as a client would, a script run and saved; a second
   // Reopened: the same features and facts; the file as it was.
   const read = await readStudioFile(new Uint8Array(readFileSync(part)));
   assert.ok('doc' in read && read.doc.nodes.length === 5, JSON.stringify(read).slice(0, 200));
-  const b = client(['--doc', part, '--toolset', 'v2']);
+  const b = client(['--doc', part]);
   await b.request('initialize', { protocolVersion: '2025-06-18' });
-  assert.equal(((await b.request('tools/list')).result!.tools as unknown[]).length, TOOLS_V2.length);
   const again = JSON.parse((await b.call('query', { action: 'summary' })).content[0].text);
   assert.deepEqual(again.facts, before);
   assert.ok(Math.abs(again.facts.volume_mm3 - PLATE_MM3) < 0.01);
@@ -73,7 +71,7 @@ test('cad-mcp on a container with mesh blobs: a change saved with its blobs, the
   writeFileSync(part, encodeStudioFile(withNode(emptyDoc(), node)));
   const c = client(['--doc', part, '--autonomy', '4']);
   await c.request('initialize', {});
-  const r = await c.call('run_script', { source: 'box({w: 10, d: 10, h: 10, x: 200, y: 0, z: 0})' });
+  const r = await c.call('model', { source: 'box({w: 10, d: 10, h: 10, x: 200, y: 0, z: 0})' });
   assert.equal(r.isError, false, r.content[0].text);
   assert.equal(await c.close(), 0, c.stderr());
   const bytes = new Uint8Array(readFileSync(part));
@@ -89,8 +87,9 @@ test('cad-mcp options: local .bcad files only, the flags, the usage', async () =
   assert.match(notLocalModel('/tmp/a.step')!, /not a \.bcad/);
   assert.equal(notLocalModel('C:\\parts\\a.bcad'), null);
   assert.equal(notLocalModel('/tmp/a.bcad'), null);
-  assert.deepEqual(mcpOptions(['--doc', 'a.bcad', '--toolset', 'v2', '--autonomy', '3']), { doc: resolve('a.bcad'), toolset: 'v2', autonomy: '3' });
-  for (const bad of [[], ['--doc'], ['--doc', 'a.step'], ['--toolset', 'v3', '--doc', 'a.bcad'], ['--autonomy', '9', '--doc', 'a.bcad'], ['--what']]) assert.ok('error' in mcpOptions(bad), JSON.stringify(bad));
+  assert.deepEqual(mcpOptions(['--doc', 'a.bcad', '--autonomy', '3']), { doc: resolve('a.bcad'), autonomy: '3' });
+  // (--toolset went with v1, O105: refused as any unknown option.)
+  for (const bad of [[], ['--doc'], ['--doc', 'a.step'], ['--toolset', 'v2', '--doc', 'a.bcad'], ['--autonomy', '9', '--doc', 'a.bcad'], ['--what']]) assert.ok('error' in mcpOptions(bad), JSON.stringify(bad));
   assert.ok('usage' in mcpOptions(['--help']) && !('error' in mcpOptions(['--help'])));
   // The real script: a usage error exits 2 and says why on stderr, nothing on stdout.
   const child = spawn(process.execPath, [join(root, 'scripts/cad-mcp.mjs'), '--doc', 'x.step'], { stdio: ['ignore', 'pipe', 'pipe'] });
@@ -104,7 +103,7 @@ test('a change the file cannot take is said so: the call is an error and the par
   const d = dir(), part = join(d, 'gone', 'part.bcad');
   const input = new PassThrough(), output = new PassThrough(), served = serveMcp(docStore(part), input, output);
   const replies: Record<string, any>[] = []; createInterface({ input: output }).on('line', l => replies.push(JSON.parse(l)));
-  input.write(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'run_script', arguments: { source: 'box({w: 5, d: 5, h: 5})' } } }) + '\n');
+  input.write(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'model', arguments: { source: 'box({w: 5, d: 5, h: 5})' } } }) + '\n');
   input.end(); await served; await new Promise(r => setImmediate(r));
   const r = replies[0].result;
   assert.equal(r.isError, true);

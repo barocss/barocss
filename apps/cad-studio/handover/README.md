@@ -521,13 +521,15 @@ stays out of the kernel's core files (requests for them go through the coordinat
   `run_script` → A5.3 consolidated tools (≤ 15k characters) → A5.4 external MCP + CLI → A5.5 A/B (live runs on a go-ahead).
   - **A5.1** (O9): done. The tool contract `barocss-cad-tools-v1`: every tool classified (read / adds / alters),
     MCP annotations, output schemas and structured results for read tools, frozen in `src/chat/tools-v1.json` with a
-    breaking-change test. tools/list 76 697 characters (64 531 before), system prompt 6 588.
+    breaking-change test. tools/list 76 697 characters (64 531 before), system prompt 6 588. (History: v1 and
+    `tools-v1.json` were removed in O105; the handlers keep this contract's annotations and output schemas.)
   - **A5.2** (O10): done. `run_script` (`barocss-cad-script-v1`): a JS-like script (const, for … of range, if, arithmetic,
     handles naming a feature's faces by role) whose commands and features run as tool calls, all or nothing, typed errors
     with their line; proposable. Conformance `conformance/a5/`. tools/list 79 171 characters, system prompt 6 870.
   - **A5.3** (O11): done. The consolidated tools `barocss-cad-tools-v2`: 13 tools, each action a v1 tool (one layer,
     the same gates), `describe` for the detail, `CAD_TOOLSET=v2` to serve them (v1 the default until A5.5). tools/list
-    10 985 characters (v1 79 171), system prompt 7 094 (v1 6 870); the whole suite replays through v2.
+    10 985 characters (v1 79 171), system prompt 7 094 (v1 6 870); the whole suite replays through v2. (History: since
+    O105 v2 is the only surface and `CAD_TOOLSET` is gone.)
   - **A5.4** (O12): done. `cad-mcp --doc part.bcad` (any MCP client; each change saved atomically with its blobs;
     local files only; the studio's gates) and `cad-cli run script -o part.bcad [--step] [--stl] [--check]` (exit 3 on a
     failing hard requirement); scripts may state `requirements([...])`.
@@ -535,6 +537,9 @@ stays out of the kernel's core files (requests for them go through the coordinat
     real chat server, a hidden kernel oracle; all 60 pass. Ideal calls 6.4 against 2, estimated input 152k against 14k
     tokens a brief. Live runs (`--live` with `CAD_AB_LIVE=1`) wait for the owner: about 5M input tokens at the least,
     about 17M if an agent makes 3× the ideal calls. Report: `notes/ab-dry-run-2026-10-20/`.
+    **Dropped (O105)**: the owner, 2026-10-21, "우리는 릴리즈 한게 아니라서 toolset v1 은 없어도 돼" (we haven't released,
+    so toolset v1 isn't needed). The v1/v2 live A/B will not run; the json arm is removed. `pnpm ab` keeps the ten briefs on
+    the v2 tools (the hybrid arm), scripted or live behind `CAD_AB_LIVE=1`.
 - **RM** robot kinematics:
   - **RM1** (O14): done. The mate graph as a joint tree (`src/robot/joints.ts`, `doc.robot` v1): each pair's joint read
     from its mates' free twists (fixed, revolute/continuous, prismatic, dummy-link chains for cylindrical, planar, ball;
@@ -699,6 +704,11 @@ stays out of the kernel's core files (requests for them go through the coordinat
   - no push, PR, publish or release;
   - no deleting branches, worktrees or user files;
   - no touching other sessions' checkouts.
+- **Tool surface (O105; owner, 2026-10-21: "우리는 릴리즈 한게 아니라서 toolset v1 은 없어도 돼"), both lanes**:
+  - The 13 v2 tools (`groups.ts`, `toolset.ts`, frozen in `tools-v2.json`) are the only surface a model sees: app chat, MCP and the CLI. MCP calls take only these names.
+  - The handlers (`run_command`, `measure`, …) stay; each v2 action dispatches to one. In-process tests and saved proposals' ops may name them; anything sent over MCP uses v2 names.
+  - New capability goes in only as v2: a new tool is an action in a group, with its detail behind `describe`. A new command or feature kind goes into the live registries (`CHAT_COMMANDS`, the feature kinds). The features tool names them in its text, not as an enum, and `describe {"command"}` or `{"feature"}` gives the detail. If headroom runs low, those name lists move behind `describe` too.
+  - One guard, per turn: tools/list JSON plus the system prompt, v2 ≤ 25,000 characters (`toolset.test.ts`). Every checkpoint reports the number.
 - Git identity: `easylogic <cyberuls@gmail.com>`. Commits end with the `Co-Authored-By` line. Replies to the owner in Korean; code, commits and peer messages in English.
 
 ### Owner decisions so far
@@ -1606,6 +1616,7 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
   - **CNC7b done (O102)**: stock from the shop's list (`set_stock`; none built in), the allowance the user's or a 1 mm estimate said; smallest block or bar; the `stock` rule; `cad-cli stock` writes stock.json and stock.step. 
   - **CNC8 done (O103)**: an optional 2.5D CAM preview, NOT FOR PRODUCTION in every file — pockets' contour loops (inset by the tool radius, then the stepover, sharp past a corner's radius) at each step-down, drill points; slots and steps listed; `cad-cli cam-preview` writes JSON and SVG; no G-code, no new tool. CNC1–CNC8 done.
   - **IM8 S0 (O104)**: casting modulus V/A and Chvorinov's ratio, the L junction's hot spot by the largest inscribed ball (IM4's per-face sphere misses it), shrink allowance from a public table, die-cast draft per alloy; the plan IM8a presets, IM8b allowances, IM8c hot spots and feeding, then IM7 without the face split. Next IM8a.
+  - **O105, v2 the only tool surface**: v1 removed (the owner: "우리는 릴리즈 한게 아니라서 toolset v1 은 없어도 돼"). App chat, MCP and the CLI serve the 13 v2 tools; MCP refuses a handler's own name (`run_command`); `CAD_TOOLSET`, `--toolset`, `tools-v1.json` and the A/B's json arm are gone; the handlers are kept and v2 actions dispatch to them. Scripted calls and fixtures moved to v2 names. One guard: v2 per turn (tools/list + prompt) ≤ 25,000. See the standing rules.
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):
