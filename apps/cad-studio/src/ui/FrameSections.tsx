@@ -53,7 +53,8 @@ export function FrameSections({ doc, onCommit, onError }: { doc: StudioDoc; onCo
         <button className="ghost small" aria-label={`Remove section ${r.id}`} disabled={!!by.length} title={by.length ? `Used by ${by.join(', ')}` : 'Remove the row'} onClick={() => apply([], [r.id])}><Icon name="delete" small /></button>
       </div>;
     })}
-    {draft ? <div className="library" aria-label="Section row">
+    {/* (Keyed: the form and the buttons are different elements — the file input never becomes a text field.) */}
+    {draft ? <div key="form" className="library" aria-label="Section row">
       <label className="kv"><span>Id</span><input aria-label="Section id" value={draft.id} disabled={draft.editing} onChange={ev => set({ id: ev.target.value })} /></label>
       <label className="kv"><span>Name</span><input aria-label="Section name" value={draft.name} onChange={ev => set({ name: ev.target.value })} /></label>
       <label className="kv"><span>Kind</span><select aria-label="Section kind" value={draft.kind} onChange={ev => set({ kind: ev.target.value as InlineSection['kind'] })}>
@@ -65,7 +66,7 @@ export function FrameSections({ doc, onCommit, onError }: { doc: StudioDoc; onCo
         <button className="primary" aria-label="Save section" onClick={() => { if (apply([rowOf(draft)])) setDraft(null); }}>Save</button>
         <button className="ghost" aria-label="Cancel section" onClick={() => setDraft(null)}>Cancel</button>
       </div>
-    </div> : <div className="row-actions">
+    </div> : <div key="actions" className="row-actions">
       <button className="ghost small" aria-label="Add section" onClick={() => setDraft({ ...EMPTY })}>Add a section</button>
       <label className="ghost small file-button">Add a sections file…<input type="file" accept="application/json,.json" aria-label="Sections file" hidden onChange={ev => { const f = ev.currentTarget.files?.[0]; if (f) void addFile(f); ev.currentTarget.value = ''; }} /></label>
     </div>}
