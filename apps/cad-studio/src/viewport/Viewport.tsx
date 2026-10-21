@@ -129,6 +129,8 @@ interface Props {
   onHoverScalar?(value: number | null): void;
   /** The mould's parting loops and halves (G6), or none. */
   mould?: MouldShown | null;
+  /** Isoclines drawn with the draft map (G6), or none. */
+  isoclines?: readonly { points: readonly Vec3[]; closed: boolean }[] | null;
   instanceSelection?: string[];
   /** Faces of instances shown picked (mate faces). */
   instanceFaces?: { id: string; body: number; face: number }[];
@@ -320,6 +322,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setClip?.(props.clip ?? null); request(); }, [props.clip, backend]);
   useEffect(() => { renderer.current?.setScalarMaps?.(props.scalarMaps ?? null); request(); }, [props.scalarMaps, backend]);
   useEffect(() => { renderer.current?.setMould?.(props.mould ?? null); request(); }, [props.mould, backend]);
+  useEffect(() => { renderer.current?.setIsoclines?.(props.isoclines ?? null); request(); }, [props.isoclines, backend]);
   // (By content: the list is rebuilt on every render; the last one is kept while its content is the same.)
   const instanceFacesRef = useRef<readonly InstanceFace[]>([]);
   if (!sameInstanceFaces(instanceFacesRef.current, props.instanceFaces ?? [])) instanceFacesRef.current = props.instanceFaces ?? [];

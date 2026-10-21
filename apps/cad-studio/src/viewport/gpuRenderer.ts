@@ -220,6 +220,16 @@ export class GpuRenderer implements ViewRenderer {
     const p = m.from.pull, k = m.from.spread;
     for (const h of m.halves) { const s = h.half === '+' ? k : -k, t = translation([p[0] * s, p[1] * s, p[2] * s]); place(h.surface, t); if (h.edges) place(h.edges, t); }
   }
+  /** Isoclines (G6): one line mesh (white, 1.6 px, depth-tested), made again when they change. */
+  setIsoclines(lines: readonly { points: readonly Vec3[]; closed: boolean }[] | null): void {
+    if (this.isoclines) { this.isoclines.remove(); this.isoclines.geometry.dispose(); this.isoclines = null; }
+    const segs: number[] = [];
+    for (const l of lines ?? []) for (let i = 0; i + 1 < l.points.length + (l.closed ? 1 : 0); i++) { const a = l.points[i], b = l.points[(i + 1) % l.points.length]; segs.push(a[0], a[1], a[2], b[0], b[1], b[2]); }
+    if (segs.length) this.isoclines = this.viewer.add({ positions: segs, topology: 'lines' }, { name: 'isoclines', material: { color: '#ffffff', unlit: true, lineWidth: 1.6 }, pickable: false, castShadow: false });
+    this.applyClip(); this.viewer.requestRender();
+  }
+  private isoclines: Mesh | null = null;
+
   /** The half under a point (G6), or null. */
   pickHalf(x: number, y: number, camera: OrbitCamera): { half: '+' | '-'; index: number } | null {
     if (!this.mould?.halves.length) return null;

@@ -5657,7 +5657,7 @@ try {
   });
 
   // ---- G6: analysis maps -------------------------------------------------------------------------------------------
-  await check('G6: the analysis maps — a moulded plate\'s wall thickness with its legend and the value under the pointer; its parting line; its two halves (48,000 mm³ above the parting plane), spread apart; off again', async () => {
+  await check('G6: the analysis maps — a moulded plate\'s wall thickness with its legend and the value under the pointer; its draft; what a 3-axis mill does not reach; its parting line; its two halves (48,000 mm³ above the parting plane), spread apart; off again', async () => {
     const fs = await import('node:fs'), file = join(out, 'g6-plate.bcad');
     // (IM7's plate: 60 × 40 × 10 with a Ø10 through hole, injection moulded along +Z.)
     const plate = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, process: 'injection', mould: { version: 1, pull: [0, 0, 1], finish: 'smooth' },
@@ -5674,6 +5674,14 @@ try {
     for (let k = 0; k < 12 && value === '—'; k++) { await page.mouse.move(box.x + box.width * (0.4 + 0.02 * k), box.y + box.height * 0.5); await page.waitForTimeout(80); value = await page.locator('[aria-label="Map value"]').innerText(); }
     assert.match(value, /^\d+(\.\d+)? mm$/, `a value under the pointer: ${value}`);
     await snap('g6-thickness');
+    // The draft (O-G6's per-vertex exact draft): its walls along the pull under the smooth finish's least draft, red.
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForFunction(() => /Draft against the pull/.test(document.querySelector('[aria-label="Map legend"]')?.textContent ?? ''), null, { timeout: 30000 });
+    await snap('g6-draft');
+    // What a 3-axis mill does not reach (O-G6's per-triangle access): the plate's every face reached.
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForFunction(() => /Not reached by a 3-axis mill/.test(document.querySelector('[aria-label="Map legend"]')?.textContent ?? ''), null, { timeout: 30000 });
+    await snap('g6-access');
     await page.click('[aria-label="Analysis map"]');
     await page.waitForFunction(() => /\d+ loops?/.test(document.querySelector('[aria-label="Parting loops"]')?.textContent ?? ''), null, { timeout: 30000 });
     await snap('g6-parting');

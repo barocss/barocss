@@ -1,10 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { refOf } from '@barocss/cad-model/app/bodyRef';
 import { wallSamples } from '@barocss/cad-model/chat/analysis';
-import { thicknessLimits, thicknessMap } from '../src/viewport/scalarMaps';
+import { accessMaps, draftLimits, draftMap, thicknessLimits, thicknessMap } from '../src/viewport/scalarMaps';
+import { accessSamples } from '@barocss/cad-model/machining/access';
+import { isoclinePolylines } from '@barocss/cad-model/mould/parting';
 import { wallsOf } from '@barocss/cad-model/mould/walls';
 import { processProfile } from '@barocss/cad-model/library/materials';
 import { mouldView } from '../src/engine/mouldView';
@@ -98,4 +100,41 @@ test('G6 the renderer: a body\'s field set once per map and cleared; the mould\'
   // Gone: released, and the part picked again.
   r.setMould(null);
   assert.ok(log.removed >= made - before); assert.equal(surface.pickable, true);
+});
+
+test('G6 the draft map (O-G6\'s draftSamples): a box along +Z — its walls 0°, its top +90°, its bottom −90°; marks at ± the finish\'s least draft; none without a finish', () => {
+  const d = holedPlate(), [b] = bodiesOf(d), limits = draftLimits(d, [b])!;
+  const finish = processProfile('injection')!.finishes!.find(f => f.id === 'smooth')!;
+  assert.deepEqual(limits, { minDeg: finish.draftMinDeg, recDeg: finish.draftRecDeg ?? null });
+  const m = draftMap(d, b, [0, 0, 1], limits), P = b.mesh.positions, N = b.mesh.normals;
+  assert.equal(m.per, 'vertex'); assert.equal(m.values.length, P.length / 3);
+  let walls = 0, tops = 0, bottoms = 0;
+  for (let v = 0; v < m.values.length; v++) {
+    const nz = N[3 * v + 2];
+    if (Math.abs(nz) < 1e-9) { assert.ok(Math.abs(m.values[v]) < 1e-6, String(m.values[v])); walls++; }
+    else if (nz > 0.999) { assert.ok(Math.abs(m.values[v] - 90) < 1e-6); tops++; }
+    else if (nz < -0.999) { assert.ok(Math.abs(m.values[v] + 90) < 1e-6); bottoms++; }
+  }
+  assert.ok(walls && tops && bottoms);
+  assert.deepEqual(m.thresholds.map(t => t.value), [-finish.draftMinDeg, finish.draftMinDeg]);
+  assert.deepEqual(m.range, [-2 * finish.draftMinDeg, 2 * finish.draftMinDeg]);
+  // No finish: the diverging map alone, ±10°.
+  const bare = { ...d, mould: { version: 1 as const, pull: [0, 0, 1] as [number, number, number] } };
+  assert.equal(draftLimits(bare, [b]), null);
+  const plain = draftMap(bare, b, [0, 0, 1], null);
+  assert.deepEqual([plain.thresholds.length, plain.range], [0, [-10, 10]]);
+});
+
+test('G6 the access map (O-G6\'s accessSamples): the share per display triangle a 3-axis mill does not reach, as accessSamples gives it', () => {
+  const [b] = bodiesOf(holedPlate()), [m] = accessMaps([b]), [a] = accessSamples([b]);
+  assert.equal(m.per, 'triangle'); assert.deepEqual([...m.values], [...a.unreachedShare]); assert.equal(m.values.length, b.mesh.indices.length / 3);
+  assert.ok([...m.values].every(v => v >= 0 && v <= 1));
+});
+
+test('G6 the isoclines (O-G6\'s isoclinePolylines): a rod across the pull has its n·d = 0 lines along its sides; a box along it none', () => {
+  const rod = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }), { kind: 'extrude', sketch: 0, height: 50 });
+  const lines = isoclinePolylines(rod, bodiesOf(rod)[0], [0, 0, 1]);
+  assert.ok(lines.length >= 1 && lines.every(l => l.points.every(p => Math.abs(p[2]) < 1e-3)), JSON.stringify(lines.map(l => l.points.slice(0, 2))));
+  const plate = holedPlate();
+  assert.equal(isoclinePolylines(plate, bodiesOf(plate)[0], [0, 0, 1]).length, 0);
 });

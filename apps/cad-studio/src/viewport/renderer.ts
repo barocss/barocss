@@ -75,6 +75,8 @@ export interface ViewRenderer {
    * by `spread` (mm); while the halves show, picks reach only them (pickHalf), the part's bodies none.
    */
   setMould?(view: MouldShown | null): void;
+  /** Isoclines (WebGPU only, G6): world polylines drawn with the draft map, or none. */
+  setIsoclines?(lines: readonly { points: readonly Vec3[]; closed: boolean }[] | null): void;
   pickHalf?(x: number, y: number, camera: OrbitCamera): { half: '+' | '-'; index: number } | null;
   pickInstance?(x: number, y: number, camera: OrbitCamera): string | null;
   pickInstanceFace?(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number } | null;

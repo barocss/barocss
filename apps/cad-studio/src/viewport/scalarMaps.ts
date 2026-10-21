@@ -8,6 +8,9 @@ import { wallSamples } from '@barocss/cad-model/chat/analysis';
 import { wallsOf } from '@barocss/cad-model/mould/walls';
 import { materialIdOf } from '@barocss/cad-model/app/bodies';
 import { materialData, processProfile } from '@barocss/cad-model/library/materials';
+import { draftSamples } from '@barocss/cad-model/mould/draft';
+import { accessSamples } from '@barocss/cad-model/machining/access';
+import { castingDraftLimits } from '@barocss/cad-model/casting/report';
 
 export interface ScalarMap {
   /** The body (BodyResult.key) it colours. */
@@ -21,7 +24,7 @@ export interface ScalarMap {
   legend: { title: string; stops: [number, string][] };
   below?: string; above?: string; missing?: string;
 }
-export type MapKind = 'thickness';
+export type MapKind = 'thickness' | 'draft' | 'access';
 
 /** Where the thickness map's thresholds come from (the moulding rules'): the process's thinnest wall and adjacent-wall ratio, the material's range's low end. */
 export interface ThicknessLimits { minWallMM: number | null; materialLowMM: number | null; ratio: number }
@@ -61,7 +64,51 @@ export function thicknessMap(doc: StudioDoc, body: BodyResult, limits: Thickness
   };
 }
 
-/** The maps of a kind for the bodies shown. */
+/**
+ * The draft's least and recommended angles for the part (degrees), as its report reads them: an injection moulding's from
+ * its surface finish (none without a finish set: the rule is unknown), a casting's from its alloy's family
+ * (`castingDraftLimits`); null otherwise.
+ */
+export function draftLimits(doc: StudioDoc, bodies: readonly BodyResult[]): { minDeg: number; recDeg: number | null } | null {
+  const profile = processProfile(doc.process);
+  if (!profile) return null;
+  if (profile.id === 'injection') { const f = doc.mould?.finish ? profile.finishes?.find(x => x.id === doc.mould!.finish) : undefined; return f ? { minDeg: f.draftMinDeg, recDeg: f.draftRecDeg ?? null } : null; }
+  if (profile.id === 'die-casting' || profile.id === 'sand-casting') { const c = castingDraftLimits(doc, bodies, profile); return c ? { minDeg: c.minDeg, recDeg: c.recDeg } : null; }
+  return null;
+}
+
+/**
+ * IM2's draft per display vertex (degrees, signed: + releasing along the pull, − against it), from the exact normals
+ * (`draftSamples`). With a least draft m: red where |draft| < m, + light to dark green from m to 2m, − light to dark blue,
+ * saturating past ±2m, marks at ±m; without one (no finish, no casting alloy) only the diverging map, ±10°.
+ */
+export function draftMap(doc: StudioDoc, body: BodyResult, pull: readonly number[], limits: { minDeg: number; recDeg: number | null } | null): ScalarMap {
+  const values = draftSamples(doc, body, pull), m = limits?.minDeg ?? 0, eps = 1e-6;
+  const stops: [number, string][] = m > 0
+    ? [[-2 * m, '#08519c'], [-m, '#9ecae1'], [-m + eps, '#d7301f'], [m - eps, '#d7301f'], [m, '#a1d99b'], [2 * m, '#006d2c']]
+    : [[-10, '#08519c'], [0, '#f0f0f0'], [10, '#006d2c']];
+  const lo = stops[0][0], hi = stops[stops.length - 1][0];
+  return {
+    body: body.key, per: 'vertex', values, unit: '°', range: [lo, hi],
+    thresholds: m > 0 ? [{ value: -m, label: `− least draft (${m}°)` }, { value: m, label: `least draft (${m}°)` }] : [],
+    legend: { title: 'Draft against the pull', stops }, below: stops[0][1], above: stops[stops.length - 1][1], missing: '#808080',
+  };
+}
+
+/** CNC4's access per display triangle: the share of it no 3-axis direction reaches (`accessSamples`), 0 neutral, 1 red. */
+export function accessMaps(bodies: readonly BodyResult[]): ScalarMap[] {
+  return accessSamples(bodies).map(a => ({
+    body: a.body, per: 'triangle' as const, values: a.unreachedShare, unit: 'share', range: [0, 1] as [number, number], thresholds: [],
+    legend: { title: 'Not reached by a 3-axis mill', stops: [[0, '#c6dbef'], [0.5, '#fc9272'], [1, '#cb181d']] as [number, string][] }, missing: '#808080',
+  }));
+}
+
+/** The maps of a kind for the bodies shown (draft needs the mould's pull: none without one). */
 export function mapsOf(kind: MapKind, doc: StudioDoc, bodies: readonly BodyResult[]): ScalarMap[] {
-  return kind === 'thickness' ? bodies.map(b => thicknessMap(doc, b)) : [];
+  if (kind === 'thickness') return bodies.map(b => thicknessMap(doc, b));
+  if (kind === 'access') return accessMaps(bodies);
+  const pull = doc.mould?.pull;
+  if (!pull) return [];
+  const limits = draftLimits(doc, bodies);
+  return bodies.map(b => draftMap(doc, b, pull, limits));
 }
