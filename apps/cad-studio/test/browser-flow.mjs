@@ -5874,6 +5874,63 @@ try {
     await page.waitForFunction(() => !document.querySelector('[aria-label="Mould legend"]') && !document.querySelector('[aria-label="Map legend"]'), null, { timeout: 5000 });
   });
 
+  // ---- G10: copies turned about Z share one tessellation --------------------------------------------------------------
+  await check('G10: 24 copies of a bracket turned about Z in 15° steps share one tessellation — the same pixels and picks as each its own mesh; an edited copy gets its own, the others kept', async () => {
+    const fs = await import('node:fs');
+    const bracket = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [
+      { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 12] }, { kind: 'extrude', sketch: 0, height: 6 },
+      { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 2 }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [24, 6], radius: 2 }],
+      outputs: { b1: { node: 3, side: 'solid' } } };
+    const edited = { ...bracket, nodes: [...bracket.nodes.slice(0, 3), { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [21, 6], radius: 2.5 }] };
+    const ring = edit => ({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {},
+      instances: Array.from({ length: 24 }, (_, k) => ({ id: `r${k}`, name: `bracket ${k}`, doc: edit && k === 5 ? edited : bracket,
+        position: [70 * Math.cos(k * Math.PI / 12), 70 * Math.sin(k * Math.PI / 12), 0], rotation: [0, 0, 15 * k] })) });
+    const file = join(out, 'g10-ring.bcad');
+    fs.writeFileSync(file, JSON.stringify(ring(false)));
+    await openModel(file, 0);
+    await page.waitForFunction(() => window.__studioInstanceBounds?.().length === 24, null, { timeout: 60000 }); await idle(); await page.waitForTimeout(800);
+    const geos = () => page.evaluate(() => { const ms = window.__studioViewer.meshList.filter(m => m.name?.startsWith('inst:')); return { meshes: ms.length, geometries: new Set(ms.map(m => m.geometry)).size, ids: Object.fromEntries(ms.filter(m => m.geometry.topology === 'triangles').map(m => [m.name, m.id])), own: ms.filter(m => m.name === 'inst:r5' && m.geometry.topology === 'triangles').map(m => ms.some(o => o !== m && o.geometry === m.geometry)) }; });
+    const shared = await geos();
+    assert.deepEqual([shared.meshes, shared.geometries], [48, 2], 'a surface and its edges each, on two geometries');
+    // The oracle: each copy its own mesh again (as before G10) — the same frame, and the same picks over 400 pointers.
+    const r = await page.evaluate(async () => {
+      const v = window.__studioViewer, W = v.canvas.clientWidth, H = v.canvas.clientHeight;
+      let seed = 7; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      const at = Array.from({ length: 400 }, () => [rand() * W, rand() * H]);
+      const settle = () => new Promise(done => setTimeout(done, 400));
+      const picks = () => at.map(([x, y]) => { const h = v.raycast(x, y); return h && { name: h.mesh.name, tri: h.triangle, p: h.point }; });
+      await v.frame(); const a = await v.capture(), pa = picks(), geoA = new Set(v.meshList.map(m => m.geometry)).size;
+      window.__studioShareCopies(false); await settle(); await v.frame();
+      const b = await v.capture(), pb = picks(), geoB = new Set(v.meshList.map(m => m.geometry)).size;
+      window.__studioShareCopies(true); await settle();
+      let strong = 0, max = 0;
+      for (let i = 0; i < a.data.length; i += 4) { const d = Math.abs(a.data[i] - b.data[i]) + Math.abs(a.data[i + 1] - b.data[i + 1]) + Math.abs(a.data[i + 2] - b.data[i + 2]); if (d > 96) strong++; if (d > max) max = d; }
+      let differ = 0, hits = 0, gap = 0;
+      for (let i = 0; i < at.length; i++) {
+        const x = pa[i], y = pb[i];
+        if (x) hits++;
+        if (!x !== !y || (x && (x.name !== y.name || x.tri !== y.tri))) { differ++; continue; }
+        if (x) gap = Math.max(gap, Math.hypot(x.p[0] - y.p[0], x.p[1] - y.p[1], x.p[2] - y.p[2]));
+      }
+      return { pixels: a.data.length / 4, strong, max, hits, differ, gap, geoA, geoB };
+    });
+    console.log(`  G10 oracle: ${JSON.stringify(r)}`);
+    assert.ok(r.strong <= r.pixels * 0.001, `the same frame: ${r.strong} of ${r.pixels} pixels differ by more than 96 (max ${r.max})`);
+    assert.ok(r.hits > 20 && r.differ === 0 && r.gap < 1e-3, `the same picks ${JSON.stringify(r)}`);
+    assert.ok(r.geoB - r.geoA === 46, `each its own: 46 more geometries ${JSON.stringify(r)}`);
+    await snap('g10-copies');
+    // Copy 5 edited (its second hole moved): its own geometries; the other 23 kept as they were.
+    fs.writeFileSync(file, JSON.stringify(ring(true)));
+    const before = (await geos()).ids;
+    await openModel(file, 0);
+    await page.waitForFunction(() => window.__studioInstanceBounds?.().length === 24, null, { timeout: 60000 }); await idle(); await page.waitForTimeout(800);
+    const after = await geos();
+    assert.deepEqual([after.meshes, after.geometries], [48, 4], 'the edited copy on its own two');
+    assert.deepEqual(after.own, [false], 'its surface not shared');
+    const kept = Object.keys(before).filter(k => k !== 'inst:r5' && before[k] === after.ids[k]).length;
+    assert.equal(kept, 23, 'the other copies kept their meshes');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

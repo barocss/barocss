@@ -4,7 +4,7 @@
 // selected bodies an outline; ghost bodies are see-through. Picking is on the CPU (synchronous for hover).
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
-import { clipBox, createViewer, multiply, rotation, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
+import { clipBox, createViewer, invert, multiply, rotation, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
 import { curvature, overhang, zebra, type Analysis } from './analysis';
 import { faceRuns, paintFaces, type FaceRuns, type Painted } from './facePaint';
 
@@ -44,7 +44,45 @@ const mix = (a: Vec3, b: Vec3, k: number): Vec3 => [a[0] + (b[0] - a[0]) * k, a[
 
 /** `state`: what setState last showed it as (hover, picks, colours, ghost, placement), so an unchanged body is left alone. */
 /** `runs` and `painted`: the surface's vertices by face, and what its colours show (a hover repaints only what changed). */
-interface PlacedInstance { id: string; sigs: string[]; threadLines: Float32Array | undefined; surfaces: Mesh[]; edges: Mesh[]; threads: Mesh | null }
+/**
+ * An instance's meshes: a surface a body and the bodies' edges. A body that is a copy of another instance's — the same
+ * tessellation moved by the two placements' difference (G10) — draws that copy's shared geometry (`shapes`) through its own
+ * matrix (`shareT`, under the pose); `sharing` says whether it does now (a copy with picked faces or a textured look paints
+ * its own, so takes a private copy).
+ */
+interface PlacedInstance {
+  id: string; sigs: string[]; threadLines: Float32Array | undefined; surfaces: Mesh[]; edges: Mesh[]; threads: Mesh | null;
+  shapes: (Shape | null)[]; shareT: Float64Array[]; sharing: boolean[]; edgeBody: number[]; edgeSharing: boolean[]; bodies: BodyResult[];
+}
+/** Copies' one tessellation (G10): a reference copy's display mesh, the inverse of its placement, the geometries made from it and the meshes drawing them. */
+interface Shape { key: string; ref: DisplayMesh; inverse: Float64Array; surface: Geometry; edges: Geometry | null; users: Set<Mesh>; colorKey: string | null }
+/** A display mesh's topology in a few numbers (its sizes and a sample of its indices): copies are looked for among equal keys. */
+function topologyKey(m: DisplayMesh): string {
+  const I = m.indices, step = Math.max(1, Math.floor(I.length / 499));
+  let h = 2166136261;
+  for (let i = 0; i < I.length; i += step) { h ^= I[i]; h = Math.imul(h, 16777619); }
+  return [m.positions.length, I.length, m.edgeLines.length, h >>> 0].join(',');
+}
+/**
+ * Whether a display mesh is `ref` moved by T (column-major, rigid): the same indices and faces of vertices, and every
+ * position, normal and edge point where T puts ref's, to float32 rounding (positions to 4e-7 of the largest coordinate).
+ */
+function movedCopy(ref: DisplayMesh, m: DisplayMesh, T: ArrayLike<number>): boolean {
+  if (ref.positions.length !== m.positions.length || ref.indices.length !== m.indices.length || ref.edgeLines.length !== m.edgeLines.length) return false;
+  for (let i = 0; i < ref.indices.length; i++) if (ref.indices[i] !== m.indices[i]) return false;
+  for (let v = 0; v < ref.faceOfVertex.length; v++) if (ref.faceOfVertex[v] !== m.faceOfVertex[v]) return false;
+  let big = 0;
+  for (let i = 0; i < m.positions.length; i++) big = Math.max(big, Math.abs(m.positions[i]));
+  const tol = 4e-7 * (1 + big);
+  return movedPoints(ref.positions, m.positions, T, tol, true) && movedPoints(ref.edgeLines, m.edgeLines, T, tol, true) && movedPoints(ref.normals, m.normals, T, 1e-5, false);
+}
+function movedPoints(a: ArrayLike<number>, b: ArrayLike<number>, T: ArrayLike<number>, tol: number, move: boolean): boolean {
+  for (let v = 0; v < a.length; v += 3) {
+    const x = a[v], y = a[v + 1], z = a[v + 2];
+    for (let r = 0; r < 3; r++) if (Math.abs(T[r] * x + T[4 + r] * y + T[8 + r] * z + (move ? T[12 + r] : 0) - b[v + r]) > tol) return false;
+  }
+  return true;
+}
 interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string; state: string; tile?: number; runs: FaceRuns; painted: Painted | null }
 
 /** A mesh's content in a few numbers (sizes, bounds and a sample of positions): equal for a re-evaluation that changed nothing. */
@@ -104,7 +142,11 @@ export class GpuRenderer implements ViewRenderer {
   private host: { request: () => void } = { request: () => {} };
   private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {
     // (DEV: the viewer, for the bench's pick timings, G9.)
-    if (import.meta.env?.DEV) (window as unknown as { __studioViewer: Viewer }).__studioViewer = viewer;
+    if (import.meta.env?.DEV) {
+      (window as unknown as { __studioViewer: Viewer }).__studioViewer = viewer;
+      // (G10's oracle: copies shared or each its own, every instance made again.)
+      (window as unknown as { __studioShareCopies: (on: boolean) => void }).__studioShareCopies = on => this.setShareCopies(on);
+    }
   }
   /** Where the viewer's frame requests go: the viewport's request (one draw per animation frame). */
   setRequestHost(request: () => void): void { this.host.request = request; }
@@ -577,7 +619,41 @@ export class GpuRenderer implements ViewRenderer {
    * whose bodies and rings are as they were keeps its meshes (a new selection, a re-evaluation that changed nothing, G1):
    * only new or changed ones are made, and gone ones released.
    */
+  /** @internal Copies share one tessellation (G10, default); false: each its own, as before (the flow's oracle compares them). */
+  shareCopies = true;
+  private shapes = new Map<string, Shape[]>();
+  /** The shape a body is a copy of under its placement P, and the matrix that moves the shape's geometry onto it; or a new shape with it as the reference. */
+  private shapeOf(mesh: DisplayMesh, P: Float64Array): { shape: Shape; T: Float64Array } {
+    const key = topologyKey(mesh), list = this.shapes.get(key) ?? [];
+    for (const shape of list) { const T = multiply(P, shape.inverse); if (movedCopy(shape.ref, mesh, T)) return { shape, T }; }
+    const shape: Shape = {
+      key, ref: mesh, inverse: invert(P), users: new Set(), colorKey: null,
+      surface: this.viewer.createGeometry({ positions: mesh.positions, normals: mesh.normals, indices: mesh.indices }),
+      edges: mesh.edgeLines.length ? this.viewer.createGeometry({ positions: mesh.edgeLines, topology: 'lines' }) : null,
+    };
+    list.push(shape); this.shapes.set(key, list);
+    return { shape, T: multiply(P, shape.inverse) };
+  }
+  /** A mesh no longer drawing a shape: the shape's geometries released with its last one. */
+  private release(shape: Shape, m: Mesh): void {
+    shape.users.delete(m);
+    if (shape.users.size) return;
+    shape.surface.dispose(); shape.edges?.dispose();
+    const list = this.shapes.get(shape.key)?.filter(x => x !== shape) ?? [];
+    if (list.length) this.shapes.set(shape.key, list); else this.shapes.delete(shape.key);
+  }
+
+  /** @internal Copies shared or each its own (G10), every instance made again. */
+  setShareCopies(on: boolean): void {
+    this.shareCopies = on;
+    for (const it of this.instances) this.dropInstance(it);
+    this.instances = [];
+    this.setInstances(this.lastItems, this.instanceSelection);
+  }
+  private lastItems: InstanceItem[] = [];
+
   setInstances(items: InstanceItem[], selected: readonly string[]): void {
+    this.lastItems = items;
     const had = new Map(this.instances.map(it => [it.id, it]));
     this.instanceMeshes = new Map(items.map(it => [it.id, it.bodies.map(b => b.mesh)]));
     this.instances = items.map(it => {
@@ -591,16 +667,61 @@ export class GpuRenderer implements ViewRenderer {
   }
 
   private makeInstance(it: InstanceItem, sigs: string[]): PlacedInstance {
-    return {
-      id: it.id, sigs, threadLines: it.threads,
-      surfaces: it.bodies.map(b => this.viewer.add({ positions: b.mesh.positions, normals: b.mesh.normals, indices: b.mesh.indices }, { name: 'inst:' + it.id })),
-      edges: it.bodies.filter(b => b.mesh.edgeLines.length).map(b => this.viewer.add({ positions: b.mesh.edgeLines, topology: 'lines' }, { name: 'inst:' + it.id, material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false, pickable: false })),
+    // (G10: with a placement, each body joins the copies of its shape — or starts a shape — and draws it through its matrix.)
+    const P = this.shareCopies && it.placement ? it.placement : null, found = it.bodies.map(b => P ? this.shapeOf(b.mesh, P) : null);
+    const out: PlacedInstance = {
+      id: it.id, sigs, threadLines: it.threads, bodies: it.bodies,
+      shapes: found.map(f => f?.shape ?? null), shareT: found.map(f => f?.T ?? IDENTITY), sharing: found.map(f => !!f),
+      surfaces: it.bodies.map((b, bi) => { const f = found[bi]; return f ? this.sharedSurface(it.id, f.shape) : this.privateSurface(it.id, b.mesh); }),
+      edgeBody: [], edgeSharing: [], edges: [],
       threads: it.threads?.length ? this.viewer.add({ positions: it.threads, topology: 'lines' }, { material: { color: this.theme.edge, unlit: true, lineWidth: 1, opacity: 0.55 }, pickable: false, castShadow: false }) : null,
     };
+    it.bodies.forEach((b, bi) => {
+      if (!b.mesh.edgeLines.length) return;
+      const f = found[bi];
+      out.edgeBody.push(bi); out.edgeSharing.push(!!f);
+      out.edges.push(f ? this.sharedEdges(it.id, f.shape) : this.privateEdges(it.id, b.mesh));
+    });
+    return out;
   }
+  private privateSurface(id: string, mesh: DisplayMesh): Mesh { return this.viewer.add({ positions: mesh.positions, normals: mesh.normals, indices: mesh.indices }, { name: 'inst:' + id }); }
+  private sharedSurface(id: string, shape: Shape): Mesh { const m = this.viewer.add(shape.surface, { name: 'inst:' + id }); shape.users.add(m); return m; }
+  private privateEdges(id: string, mesh: DisplayMesh): Mesh { return this.viewer.add({ positions: mesh.edgeLines, topology: 'lines' }, { name: 'inst:' + id, material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false, pickable: false }); }
+  private sharedEdges(id: string, shape: Shape): Mesh { const m = this.viewer.add(shape.edges!, { name: 'inst:' + id, material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false, pickable: false }); shape.users.add(m); return m; }
 
   private dropInstance(it: PlacedInstance): void {
-    for (const m of [...it.surfaces, ...it.edges, ...(it.threads ? [it.threads] : [])]) { m.remove(); m.geometry.dispose(); }
+    it.surfaces.forEach((m, bi) => { m.remove(); if (it.sharing[bi]) this.release(it.shapes[bi]!, m); else m.geometry.dispose(); });
+    it.edges.forEach((m, k) => { m.remove(); if (it.edgeSharing[k]) this.release(it.shapes[it.edgeBody[k]]!, m); else m.geometry.dispose(); });
+    if (it.threads) { it.threads.remove(); it.threads.geometry.dispose(); }
+  }
+
+  /**
+   * Which copies draw their shape's geometry and which their own (G10): a copy whose faces are picked, or whose look has a
+   * texture or a shader material (its uvs from its own positions), paints its own; so does one wanting another base colour
+   * than the shape's first sharer. Meshes are swapped where that changed; true if any was.
+   */
+  private bindShares(): boolean {
+    const r = this.settings, agreed = new Map<Shape, string>(), want: { it: PlacedInstance; bi: number; share: boolean }[] = [];
+    for (const it of this.instances) {
+      const look = r ? appearanceOf(r, 'inst:' + it.id) : null;
+      it.shapes.forEach((shape, bi) => {
+        if (!shape) return;
+        const base: Vec3 = look ? [1, 1, 1] : this.theme.base, key = JSON.stringify(base);
+        const own = !!look && (!!look.texture || !!look.shader) || this.instanceFaces.some(f => f.id === it.id && f.body === bi);
+        if (!own && !agreed.has(shape)) agreed.set(shape, key);
+        want.push({ it, bi, share: !own && agreed.get(shape) === key });
+      });
+    }
+    let swapped = false;
+    for (const { it, bi, share } of want) {
+      if (it.sharing[bi] === share) continue;
+      const shape = it.shapes[bi]!, old = it.surfaces[bi];
+      old.remove(); if (it.sharing[bi]) this.release(shape, old); else old.geometry.dispose();
+      it.surfaces[bi] = share ? this.sharedSurface(it.id, shape) : this.privateSurface(it.id, it.bodies[bi].mesh);
+      it.sharing[bi] = share;
+      swapped = true;
+    }
+    return swapped;
   }
 
   /** The instances shown moved, by a matrix each (G1): their meshes' transforms only, nothing made or uploaded. */
@@ -611,12 +732,14 @@ export class GpuRenderer implements ViewRenderer {
   /** Instances' look: the modelling base, or their render appearance (by key inst:<id>). */
   private paintInstances(): void {
     const r = this.settings, env = r?.environment;
+    // (G10: which copies share their shape's geometry; a swapped mesh is placed, clipped and painted below.)
+    const swapped = this.bindShares();
     for (const it of this.instances) {
       const look = r ? appearanceOf(r, 'inst:' + it.id) : null;
       it.surfaces.forEach((m, bi) => {
         const tiles = this.instanceTiles.get(m) ?? {}; this.instanceTiles.set(m, tiles);
-        const dm = this.instanceMeshes.get(it.id)?.[bi];
-        m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: dm ? this.mapFor(m.geometry, dm, look, tiles) : null, alphaCutoff: look.cutout ?? 0 }
+        const dm = this.instanceMeshes.get(it.id)?.[bi], shared = it.sharing[bi];
+        m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: dm && !shared ? this.mapFor(m.geometry, dm, look, tiles) : null, alphaCutoff: look.cutout ?? 0 }
           : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: 1, shader: this.analysis, unlit: !!this.analysis, map: null, alphaCutoff: 0 };
         m.outline = this.instanceSelection.includes(it.id) ? ACCENT : null;
         // Face colours as the bodies' (paint): the base, picked faces mixed with the accent.
@@ -625,6 +748,16 @@ export class GpuRenderer implements ViewRenderer {
         const base: Vec3 = look ? [1, 1, 1] : this.theme.base, on = mix(base, ACCENT, 0.42), picked = new Set(this.instanceFaces.filter(f => f.id === it.id && f.body === bi).map(f => f.face));
         // (Its cap as the CPU's section painted it: an instance's cut face was never selected, the base colour; G2b.)
         m.capColor = base;
+        // (A shared geometry: painted once in its sharers' base colour — none of them has picked faces.)
+        if (shared) {
+          const shape = it.shapes[bi]!, key = JSON.stringify(base);
+          if (shape.colorKey === key) return;
+          shape.colorKey = key;
+          const colors = new Float32Array(shape.ref.positions.length);
+          for (let v = 0; v < colors.length / 3; v++) colors.set(base, v * 3);
+          shape.surface.setColors(colors);
+          return;
+        }
         // (The same colours on the same mesh as last time: nothing written. A new selection repaints none of them.)
         const key = JSON.stringify([base, [...picked]]);
         if (this.instancePainted.get(m)?.mesh === mesh && this.instancePainted.get(m)?.key === key) return;
@@ -636,6 +769,7 @@ export class GpuRenderer implements ViewRenderer {
       for (const e of it.edges) { e.material = { color: this.theme.edge }; e.visible = env ? env.edges : true; }
       if (it.threads) it.threads.material = { color: this.theme.edge };
     }
+    if (swapped) { this.placePreview(); this.applyClip(); }
     this.viewer.requestRender();
   }
 
@@ -650,8 +784,9 @@ export class GpuRenderer implements ViewRenderer {
     for (const it of this.instances) {
       const pose = this.poses?.get(it.id), drag = p && p.id === it.id ? p.matrix : null;
       const m = drag && pose ? multiply(drag, pose) : drag ?? pose ?? IDENTITY;
-      for (const mesh of it.surfaces) place(mesh, m);
-      for (const mesh of it.edges) place(mesh, m);
+      // (A shared copy's meshes: its matrix onto the shape under the pose; G10.)
+      it.surfaces.forEach((mesh, bi) => place(mesh, it.sharing[bi] ? multiply(m, it.shareT[bi]) : m));
+      it.edges.forEach((mesh, k) => place(mesh, it.edgeSharing[k] ? multiply(m, it.shareT[it.edgeBody[k]]) : m));
       if (it.threads) place(it.threads, m);
     }
     this.viewer.requestRender();
