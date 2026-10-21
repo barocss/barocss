@@ -130,7 +130,8 @@ test('AM3 rules that fail or warn: a hole too small to print open; a horizontal 
   assert.deepEqual([q.status, q.measured], ['fail', 0.1]);
 });
 
-import { searchOrientation, orientPart, buildBvh, rayHit, fibonacciDirections } from '@barocss/cad-model/print/orient';
+import { searchOrientation, orientPart, fibonacciDirections } from '@barocss/cad-model/print/orient';
+import { rayHit, triangleBvh } from '@barocss/cad';
 
 const tShape = () => {
   let t = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [15, 0], max: [25, 10] });
@@ -155,7 +156,7 @@ test('AM4 orientation: a T prints on its flat side (whole outline on the bed, lo
   const plate = rectanglePart(60, 40, 2), pr = searchOrientation(bodiesOf(plate)[0].mesh, faceTableOf(plate), 45);
   assert.ok(Math.abs(Math.abs(pr.best.direction[2]) - 1) < 1e-9, JSON.stringify(pr.best.direction));
   // The ray tree against a brute force over every triangle: 200 rays through the T.
-  const bvh = buildBvh(b.mesh), P = b.mesh.positions, I = b.mesh.indices;
+  const bvh = triangleBvh(b.mesh.positions, b.mesh.indices), P = b.mesh.positions, I = b.mesh.indices;
   const brute = (o: number[], d: number[]) => { let best = Infinity; for (let k = 0; k < I.length; k += 3) { const a = [P[3 * I[k]], P[3 * I[k] + 1], P[3 * I[k] + 2]], c = [P[3 * I[k + 1]], P[3 * I[k + 1] + 1], P[3 * I[k + 1] + 2]], f = [P[3 * I[k + 2]], P[3 * I[k + 2] + 1], P[3 * I[k + 2] + 2]];
     const e1 = c.map((x, j) => x - a[j]), e2 = f.map((x, j) => x - a[j]), h = [d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]], det = e1[0] * h[0] + e1[1] * h[1] + e1[2] * h[2];
     if (Math.abs(det) < 1e-14) continue; const s = o.map((x, j) => x - a[j]), u = (s[0] * h[0] + s[1] * h[1] + s[2] * h[2]) / det; if (u < 0 || u > 1) continue;

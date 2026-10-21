@@ -1,66 +1,13 @@
 // AM4 (D75): which way up to print. Candidate build directions — a fixed Fibonacci sphere of 64, then each large
 // planar face set down on the bed (its normal's opposite) — are scored first cheaply by every candidate's overhang
 // area, height and bed contact, then the best eight again with their support volume: rays straight down from each
-// overhanging triangle, through a bounding-volume tree of the display mesh, to what is below it or the bed. The
+// overhanging triangle, through the kernel's triangle hierarchy of the display mesh (`triangleBvh`, K2), to what is
+// below it or the bed. The
 // choice is deterministic: by score, then the lower height, then the candidate's index. The top three are reported.
+import { rayHit, triangleBvh } from '@barocss/cad';
 import type { DisplayMesh } from '../engine/mesh';
 import type { FaceTable } from '../assembly/mates';
 import { overhangOf, type Vec3 } from './overhang';
-
-/** A triangle bounding-volume tree over a display mesh: nodes' boxes, children or triangle runs, in typed arrays. */
-export interface TriangleBvh { readonly box: Float64Array; readonly left: Int32Array; readonly start: Int32Array; readonly count: Int32Array; readonly order: Uint32Array; readonly mesh: DisplayMesh }
-const LEAF = 8;
-export function buildBvh(mesh: DisplayMesh): TriangleBvh {
-  const P = mesh.positions, I = mesh.indices, T = I.length / 3, order = new Uint32Array(T), cx = new Float64Array(3 * T);
-  for (let t = 0; t < T; t++) { order[t] = t; for (let k = 0; k < 3; k++) cx[3 * t + k] = (P[3 * I[3 * t] + k] + P[3 * I[3 * t + 1] + k] + P[3 * I[3 * t + 2] + k]) / 3; }
-  // A split run has more than LEAF triangles, so each half (and every leaf below the root) has at least LEAF / 2.
-  const cap = 2 * Math.max(1, Math.ceil(T / (LEAF >> 1))) + 1, box = new Float64Array(6 * cap), left = new Int32Array(cap).fill(-1), start = new Int32Array(cap), count = new Int32Array(cap);
-  let nodes = 0;
-  const stack: [number, number, number][] = [[nodes++, 0, T]];
-  while (stack.length) {
-    const [n, s, c] = stack.pop()!;
-    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
-    for (let i = s; i < s + c; i++) for (let v = 0; v < 3; v++) { const p = 3 * I[3 * order[i] + v]; const x = P[p], y = P[p + 1], z = P[p + 2]; if (x < x0) x0 = x; if (y < y0) y0 = y; if (z < z0) z0 = z; if (x > x1) x1 = x; if (y > y1) y1 = y; if (z > z1) z1 = z; }
-    box.set([x0, y0, z0, x1, y1, z1], 6 * n);
-    if (c <= LEAF) { start[n] = s; count[n] = c; continue; }
-    // Split at the median along the box's longest side.
-    const ax = x1 - x0 >= y1 - y0 && x1 - x0 >= z1 - z0 ? 0 : y1 - y0 >= z1 - z0 ? 1 : 2;
-    const part = Array.from(order.subarray(s, s + c)).sort((a, b) => cx[3 * a + ax] - cx[3 * b + ax] || a - b);
-    order.set(part, s);
-    const half = c >> 1, l = nodes++, r = nodes++;
-    left[n] = l;
-    stack.push([l, s, half], [r, s + half, c - half]);
-  }
-  return { box, left, start, count, order, mesh };
-}
-const stackBuf = new Int32Array(256);
-/** The nearest hit along o + t·d (t > eps) with the mesh, or Infinity. */
-export function rayHit(bvh: TriangleBvh, o: readonly number[], d: readonly number[], eps = 1e-6): number {
-  const P = bvh.mesh.positions, I = bvh.mesh.indices, B = bvh.box, inv0 = 1 / d[0], inv1 = 1 / d[1], inv2 = 1 / d[2];
-  let best = Infinity, sp = 0; stackBuf[sp++] = 0;
-  while (sp) {
-    const n = stackBuf[--sp], b = 6 * n;
-    // Slab test.
-    let t0 = (B[b] - o[0]) * inv0, t1 = (B[b + 3] - o[0]) * inv0; let lo = Math.min(t0, t1), hi = Math.max(t0, t1);
-    t0 = (B[b + 1] - o[1]) * inv1; t1 = (B[b + 4] - o[1]) * inv1; lo = Math.max(lo, Math.min(t0, t1)); hi = Math.min(hi, Math.max(t0, t1));
-    t0 = (B[b + 2] - o[2]) * inv2; t1 = (B[b + 5] - o[2]) * inv2; lo = Math.max(lo, Math.min(t0, t1)); hi = Math.min(hi, Math.max(t0, t1));
-    if (!(hi >= Math.max(lo, 0)) || lo > best) continue;
-    if (bvh.left[n] >= 0) { stackBuf[sp++] = bvh.left[n]; stackBuf[sp++] = bvh.left[n] + 1; continue; }
-    for (let i = bvh.start[n], e = i + bvh.count[n]; i < e; i++) {
-      const t = 3 * bvh.order[i], a = 3 * I[t], c = 3 * I[t + 1], f = 3 * I[t + 2];
-      const e1x = P[c] - P[a], e1y = P[c + 1] - P[a + 1], e1z = P[c + 2] - P[a + 2], e2x = P[f] - P[a], e2y = P[f + 1] - P[a + 1], e2z = P[f + 2] - P[a + 2];
-      const hx = d[1] * e2z - d[2] * e2y, hy = d[2] * e2x - d[0] * e2z, hz = d[0] * e2y - d[1] * e2x, det = e1x * hx + e1y * hy + e1z * hz;
-      if (det > -1e-14 && det < 1e-14) continue;
-      const sx = o[0] - P[a], sy = o[1] - P[a + 1], sz = o[2] - P[a + 2], u = (sx * hx + sy * hy + sz * hz) / det;
-      if (u < 0 || u > 1) continue;
-      const qx = sy * e1z - sz * e1y, qy = sz * e1x - sx * e1z, qz = sx * e1y - sy * e1x, v = (d[0] * qx + d[1] * qy + d[2] * qz) / det;
-      if (v < 0 || u + v > 1) continue;
-      const tt = (e2x * qx + e2y * qy + e2z * qz) / det;
-      if (tt > eps && tt < best) best = tt;
-    }
-  }
-  return best;
-}
 
 /** The score's normalised terms (each before its weight): support / (area · diag), overhang / area, height / diag, contact / area. */
 export interface OrientationTerms { readonly support: number; readonly overhang: number; readonly height: number; readonly contact: number }
@@ -107,7 +54,7 @@ export function searchOrientation(mesh: DisplayMesh, table: FaceTable, limitDeg:
     return { index, direction: b, overhangMM2: o.totalMM2, heightMM: height, contactMM2: o.bedMM2, terms, score: weights.overhang * terms.overhang + weights.height * terms.height - weights.contact * terms.contact, bottom };
   });
   const short = [...cheap].sort(order).slice(0, 8);
-  const bvh = buildBvh(mesh), Ix = mesh.indices;
+  const bvh = triangleBvh(mesh.positions, mesh.indices), Ix = mesh.indices;
   const scored: OrientationScore[] = short.map(c => {
     const b = c.direction, down = [-b[0], -b[1], -b[2]], s = Math.sin(limitDeg * Math.PI / 180);
     let support = 0;

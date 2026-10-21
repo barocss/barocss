@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { buildBvh, rayHit } from '@barocss/cad-model/print/orient';
+import { rayHit, triangleBvh } from '@barocss/cad';
 import { exactNormals } from '@barocss/cad-model/mould/draft';
 import { wallsOf } from '@barocss/cad-model/mould/walls';
 import { faceTableOf } from '@barocss/cad-model/assembly/faces';
@@ -24,7 +24,7 @@ type V = [number, number, number];
 const SIX: V[] = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
 /** Each triangle's centre (0.01 mm off it), seen along each of the six directions: a bit per direction. */
 function access(b: BodyResult): { seen: Uint8Array; area: Float64Array } {
-  const m = b.mesh, P = m.positions, I = m.indices, T = I.length / 3, bvh = buildBvh(m), seen = new Uint8Array(T), area = new Float64Array(T);
+  const m = b.mesh, P = m.positions, I = m.indices, T = I.length / 3, bvh = triangleBvh(m.positions, m.indices), seen = new Uint8Array(T), area = new Float64Array(T);
   for (let t = 0; t < T; t++) {
     const p = [0, 1, 2].map(k => [0, 1, 2].map(j => P[3 * I[3 * t + k] + j])), u = p[1].map((v, j) => v - p[0][j]), w = p[2].map((v, j) => v - p[0][j]);
     const n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]], l = Math.hypot(n[0], n[1], n[2]); if (!(l > 0)) continue;

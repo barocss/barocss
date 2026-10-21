@@ -3,7 +3,7 @@
 // the document, so the part opens without the library — regenerates it when the library is there, and snaps one
 // library part onto another by their interfaces: placed exactly (the frames facing), held by real mates on the
 // interfaces' faces.
-import { checkLibraryFit, instantiateLibraryPart, loadCadLibrary, placeByInterfaces, type CadLibrary, type CadLibraryInterface } from '@barocss/cad';
+import { checkLibraryFit, instantiateLibraryPart, loadCadLibrary, placeByInterfaces, rayHit, triangleBvh, type CadLibrary, type CadLibraryInterface, type TriangleBvh } from '@barocss/cad';
 import { emptyDoc, withNode, type BodyRef, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { evaluateDoc } from '../engine/evaluate';
 import type { DisplayMesh } from '../engine/mesh';
@@ -315,22 +315,13 @@ export function aroundAt(mesh: DisplayMesh, point: readonly number[], n: Vec3, d
   }
   return least;
 }
+/** The kernel's triangle hierarchy of a display mesh (K2), made once per mesh: the rays below ask it many times. */
+const bvhs = new WeakMap<DisplayMesh, TriangleBvh>();
+function bvhOf(mesh: DisplayMesh): TriangleBvh { let b = bvhs.get(mesh); if (!b) { b = triangleBvh(mesh.positions, mesh.indices); bvhs.set(mesh, b); } return b; }
 /** The body's thickness at a point on its surface: from it along −n to where the ray leaves the body (its display mesh); null if it never does. */
 export function thicknessAt(mesh: DisplayMesh, point: readonly number[], n: readonly number[]): number | null {
-  const P = mesh.positions, I = mesh.indices, o = [point[0] - 1e-6 * n[0], point[1] - 1e-6 * n[1], point[2] - 1e-6 * n[2]], d = [-n[0], -n[1], -n[2]];
-  let best = Infinity;
-  for (let k = 0; k < I.length; k += 3) {
-    const a = I[k] * 3, b = I[k + 1] * 3, c = I[k + 2] * 3;
-    const e1 = [P[b] - P[a], P[b + 1] - P[a + 1], P[b + 2] - P[a + 2]], e2 = [P[c] - P[a], P[c + 1] - P[a + 1], P[c + 2] - P[a + 2]];
-    const h = [d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]], det = e1[0] * h[0] + e1[1] * h[1] + e1[2] * h[2];
-    if (Math.abs(det) < 1e-12) continue;
-    const s = [o[0] - P[a], o[1] - P[a + 1], o[2] - P[a + 2]], u = (s[0] * h[0] + s[1] * h[1] + s[2] * h[2]) / det;
-    if (u < 0 || u > 1) continue;
-    const q = [s[1] * e1[2] - s[2] * e1[1], s[2] * e1[0] - s[0] * e1[2], s[0] * e1[1] - s[1] * e1[0]], v = (d[0] * q[0] + d[1] * q[1] + d[2] * q[2]) / det;
-    if (v < 0 || u + v > 1) continue;
-    const t = (e2[0] * q[0] + e2[1] * q[1] + e2[2] * q[2]) / det;
-    if (t > 1e-6 && t < best) best = t;
-  }
+  // (From 1e-6 outside along n, hits beyond 1e-6; a triangle edge-on to the ray — |det| < 1e-12 — passed, as the brute force did.)
+  const o = [point[0] - 1e-6 * n[0], point[1] - 1e-6 * n[1], point[2] - 1e-6 * n[2]], d = [-n[0], -n[1], -n[2]];
+  const best = rayHit(bvhOf(mesh), o, d, 1e-6, -1, 1e-12);
   return Number.isFinite(best) ? best + 1e-6 : null;
 }
-

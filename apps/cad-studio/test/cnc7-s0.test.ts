@@ -5,7 +5,7 @@ import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { holesOf, concaveSpan, extent } from '@barocss/cad-model/machining/holes';
 import { narrowest } from '@barocss/cad-model/machining/cavities';
-import { buildBvh, rayHit } from '@barocss/cad-model/print/orient';
+import { rayHit, triangleBvh } from '@barocss/cad';
 
 // CNC7 S0 (O100): what feature recognition and stock can read exactly today, on a constructed plate with one of each
 // feature — a closed pocket, a through slot, an edge step, a through hole, a blind hole and a boss — every oracle the
@@ -36,7 +36,7 @@ const dot = (a: V, b: V) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 /** A probe: each plane looking out with walls rising from it, classed by the directions its walls bound it on both sides. */
 function floorsOf(b: BodyResult): { face: string; depth: number; width: number | null; kind: 'pocket' | 'slot' | 'step' }[] {
-  const m = b.mesh, bvh = buildBvh(m), verts: number[][][] = m.faces.map(() => []);
+  const m = b.mesh, bvh = triangleBvh(m.positions, m.indices), verts: number[][][] = m.faces.map(() => []);
   for (let i = 0; i < m.faceOfVertex.length; i++) verts[m.faceOfVertex[i]].push([m.positions[3 * i], m.positions[3 * i + 1], m.positions[3 * i + 2]]);
   const nb = new Map<number, Set<number>>();
   for (const e of m.edges) for (const [x, y] of [[e.faces[0], e.faces[1]], [e.faces[1], e.faces[0]]]) { const s = nb.get(x) ?? new Set(); s.add(y); nb.set(x, s); }

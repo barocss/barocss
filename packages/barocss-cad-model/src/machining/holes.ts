@@ -7,7 +7,7 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh } from '../engine/mesh';
-import { buildBvh, rayHit } from '../print/orient';
+import { rayHit, triangleBvh } from '@barocss/cad';
 import { FASTENER_SIZES } from '../app/fasteners';
 
 type Vec3 = readonly [number, number, number] | readonly number[];
@@ -72,7 +72,7 @@ export function holesOf(bodies: readonly BodyResult[]): Hole[] {
       if (isBore(m, f.index, c, a)) pieces.push({ face: f.index, c, a, r: e.r });
     }
     if (!pieces.length) continue;
-    const bvh = buildBvh(m), used = new Set<Piece>();
+    const bvh = triangleBvh(m.positions, m.indices), used = new Set<Piece>();
     for (const p0 of pieces) {
       if (used.has(p0)) continue;
       const group = pieces.filter(q => !used.has(q) && coaxial(q, p0)); for (const q of group) used.add(q);

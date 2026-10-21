@@ -570,6 +570,8 @@ export { classifyPointInFacets, facetBvh, type FacetBvh, type FacetPointClass } 
 export { splitFacetBrep, type FacetSplitOptions, type FacetSplitResult } from './facet-split.js';
 export { decimateMesh, type DecimateOptions, type DecimateReport, type DecimateResult } from './mesh-decimate.js';
 export { meshDistance, type MeshDistance } from './mesh-distance.js';
+// K2 (D141): the one triangle hierarchy, its ray and nearest-point queries.
+export { triangleBvh, rayHit, nearestDistance2, pointTriangleDistance2, type TriangleBvh, type TriangleBvhOptions } from './triangle-bvh.js';
 // K1 (D140): generic convex geometry moved down from the studio's robot track.
 export { convexHull, HullError, type ConvexHull, type HullErrorCode } from './convex-hull.js';
 export { convexDistance } from './convex-distance.js';

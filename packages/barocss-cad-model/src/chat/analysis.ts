@@ -2,6 +2,7 @@
 // and draft. From the evaluated bodies (exact mass from the kernel; distances, rays and angles on the display
 // mesh, whose chord error is stated), or by evaluating a probe (an intersection, a split) with the kernel.
 // Names, keys and numbers only: no mesh index.
+import { nearestDistance2, rayHit, triangleBvh, type TriangleBvh } from '@barocss/cad';
 import { withNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
@@ -37,18 +38,6 @@ export function massProperties(doc: StudioDoc, bodies: readonly BodyResult[]): R
 const tri = new Float64Array(9);
 function triangleAt(m: DisplayMesh, t: number): void {
   for (let k = 0; k < 3; k++) { const i = m.indices[t * 3 + k]; tri[k * 3] = m.positions[i * 3]; tri[k * 3 + 1] = m.positions[i * 3 + 1]; tri[k * 3 + 2] = m.positions[i * 3 + 2]; }
-}
-/** Distance along (dx, dy, dz) from (ox, oy, oz) to the triangle in `tri` (Möller–Trumbore), or Infinity. */
-function rayHit(ox: number, oy: number, oz: number, dx: number, dy: number, dz: number): number {
-  const e1x = tri[3] - tri[0], e1y = tri[4] - tri[1], e1z = tri[5] - tri[2], e2x = tri[6] - tri[0], e2y = tri[7] - tri[1], e2z = tri[8] - tri[2];
-  const px = dy * e2z - dz * e2y, py = dz * e2x - dx * e2z, pz = dx * e2y - dy * e2x, det = e1x * px + e1y * py + e1z * pz;
-  if (Math.abs(det) < 1e-14) return Infinity;
-  const inv = 1 / det, tx = ox - tri[0], ty = oy - tri[1], tz = oz - tri[2], u = (tx * px + ty * py + tz * pz) * inv;
-  if (u < 0 || u > 1) return Infinity;
-  const qx = ty * e1z - tz * e1y, qy = tz * e1x - tx * e1z, qz = tx * e1y - ty * e1x, v = (dx * qx + dy * qy + dz * qz) * inv;
-  if (v < 0 || u + v > 1) return Infinity;
-  const t = (e2x * qx + e2y * qy + e2z * qz) * inv;
-  return t > 1e-9 ? t : Infinity;
 }
 /** Squared distance from p to the triangle in `tri` (closest point by regions). */
 function pointTriangle2(px: number, py: number, pz: number): number {
@@ -122,58 +111,12 @@ export async function section(doc: StudioDoc, bodies: readonly BodyResult[], eva
   });
 }
 
-// A uniform grid over a mesh's triangles, for rays (wall thickness): cells about two triangles each.
-interface Grid { n: number; lo: Float64Array; size: Float64Array; cells: Int32Array[]; stamp: Int32Array; mark: number }
-function gridOf(m: DisplayMesh): Grid {
-  const T = m.indices.length / 3, n = Math.max(1, Math.min(64, Math.ceil(Math.cbrt(T / 2)))), lo = new Float64Array(3), hi = new Float64Array(3);
-  for (let k = 0; k < 3; k++) { lo[k] = m.bounds.min[k] - 1e-6; hi[k] = m.bounds.max[k] + 1e-6; }
-  const size = new Float64Array(3); for (let k = 0; k < 3; k++) size[k] = Math.max(1e-9, (hi[k] - lo[k]) / n);
-  const lists: number[][] = Array.from({ length: n * n * n }, () => []);
-  for (let t = 0; t < T; t++) {
-    triangleAt(m, t);
-    const a = [0, 0, 0], b = [0, 0, 0];
-    for (let k = 0; k < 3; k++) { const mn = Math.min(tri[k], tri[3 + k], tri[6 + k]), mx = Math.max(tri[k], tri[3 + k], tri[6 + k]); a[k] = Math.max(0, Math.min(n - 1, Math.floor((mn - lo[k]) / size[k]))); b[k] = Math.max(0, Math.min(n - 1, Math.floor((mx - lo[k]) / size[k]))); }
-    for (let i = a[0]; i <= b[0]; i++) for (let j = a[1]; j <= b[1]; j++) for (let k = a[2]; k <= b[2]; k++) lists[(i * n + j) * n + k].push(t);
-  }
-  return { n, lo, size, cells: lists.map(l => Int32Array.from(l)), stamp: new Int32Array(T), mark: 0 };
-}
-/** The nearest hit along a ray through the grid (Amanatides–Woo), skipping triangle `skip`; Infinity for none. */
-function gridRay(m: DisplayMesh, g: Grid, ox: number, oy: number, oz: number, dx: number, dy: number, dz: number, skip: number): number {
-  const o = [ox, oy, oz], d = [dx, dy, dz], c = [0, 0, 0], step = [0, 0, 0], tMax = [0, 0, 0], tDelta = [0, 0, 0];
-  for (let k = 0; k < 3; k++) {
-    c[k] = Math.max(0, Math.min(g.n - 1, Math.floor((o[k] - g.lo[k]) / g.size[k])));
-    step[k] = d[k] > 0 ? 1 : d[k] < 0 ? -1 : 0;
-    const edge = g.lo[k] + (c[k] + (step[k] > 0 ? 1 : 0)) * g.size[k];
-    tMax[k] = step[k] ? (edge - o[k]) / d[k] : Infinity; tDelta[k] = step[k] ? g.size[k] / Math.abs(d[k]) : Infinity;
-  }
-  g.mark++;
-  let best = Infinity;
-  for (;;) {
-    const list = g.cells[(c[0] * g.n + c[1]) * g.n + c[2]];
-    for (let q = 0; q < list.length; q++) {
-      const t = list[q]; if (t === skip || g.stamp[t] === g.mark) continue;
-      g.stamp[t] = g.mark; triangleAt(m, t);
-      const h = rayHit(ox, oy, oz, dx, dy, dz); if (h < best) best = h;
-    }
-    const k = tMax[0] < tMax[1] ? (tMax[0] < tMax[2] ? 0 : 2) : (tMax[1] < tMax[2] ? 1 : 2);
-    // (A hit nearer than the next cell's boundary cannot be beaten further on.)
-    if (best <= tMax[k]) return best;
-    c[k] += step[k]; if (c[k] < 0 || c[k] >= g.n) return best;
-    tMax[k] += tDelta[k];
-  }
-}
-
-/** The nearest surface to a point within `r` (through the grid's cells in its box), or r when none is nearer. */
-function nearestWithin(m: DisplayMesh, g: Grid, px: number, py: number, pz: number, r: number): number {
-  const a = [0, 0, 0], b = [0, 0, 0], p = [px, py, pz];
-  for (let k = 0; k < 3; k++) { a[k] = Math.max(0, Math.min(g.n - 1, Math.floor((p[k] - r - g.lo[k]) / g.size[k]))); b[k] = Math.max(0, Math.min(g.n - 1, Math.floor((p[k] + r - g.lo[k]) / g.size[k]))); }
-  g.mark++;
-  let best = r * r;
-  for (let i = a[0]; i <= b[0]; i++) for (let j = a[1]; j <= b[1]; j++) for (let k = a[2]; k <= b[2]; k++) {
-    const list = g.cells[(i * g.n + j) * g.n + k];
-    for (let q = 0; q < list.length; q++) { const t = list[q]; if (g.stamp[t] === g.mark) continue; g.stamp[t] = g.mark; triangleAt(m, t); const d2 = pointTriangle2(px, py, pz); if (d2 < best) best = d2; }
-  }
-  return Math.sqrt(best);
+// Rays and nearest points through the kernel's triangle hierarchy (`triangleBvh`, K2), one per mesh as it is asked for.
+// (The two ray ends written into module scratch: the loops below run per triangle.)
+const rayO = new Float64Array(3), rayD = new Float64Array(3);
+function inward(g: TriangleBvh, ox: number, oy: number, oz: number, dx: number, dy: number, dz: number, skip: number): number {
+  rayO[0] = ox; rayO[1] = oy; rayO[2] = oz; rayD[0] = dx; rayD[1] = dy; rayD[2] = dz;
+  return rayHit(g, rayO, rayD, 1e-9, skip);
 }
 /**
  * A body's wall samples (IM4, O80), one per display triangle: its centre, area and face, the ray depth inward along its
@@ -185,7 +128,7 @@ export interface WallSamples { depth: Float64Array; local: Float64Array; area: F
 const samplesOf = new WeakMap<DisplayMesh, WallSamples>();
 export function wallSamples(b: BodyResult): WallSamples {
   const have = samplesOf.get(b.mesh); if (have) return have;
-  const m = b.mesh, T = m.indices.length / 3, g = gridOf(m), out: WallSamples = { depth: new Float64Array(T).fill(Infinity), local: new Float64Array(T).fill(Infinity), area: new Float64Array(T), face: new Int32Array(T), centre: new Float64Array(3 * T) };
+  const m = b.mesh, T = m.indices.length / 3, g = triangleBvh(m.positions, m.indices), out: WallSamples = { depth: new Float64Array(T).fill(Infinity), local: new Float64Array(T).fill(Infinity), area: new Float64Array(T), face: new Int32Array(T), centre: new Float64Array(3 * T) };
   for (let t = 0; t < T; t++) {
     triangleAt(m, t);
     const cx = (tri[0] + tri[3] + tri[6]) / 3, cy = (tri[1] + tri[4] + tri[7]) / 3, cz = (tri[2] + tri[5] + tri[8]) / 3;
@@ -194,8 +137,8 @@ export function wallSamples(b: BodyResult): WallSamples {
     out.face[t] = m.faceOfVertex[m.indices[t * 3]]; out.centre[3 * t] = cx; out.centre[3 * t + 1] = cy; out.centre[3 * t + 2] = cz;
     if (!(l > 0)) continue;
     nx /= -l; ny /= -l; nz /= -l; out.area[t] = l / 2;
-    const d = gridRay(m, g, cx, cy, cz, nx, ny, nz, t); out.depth[t] = d;
-    if (Number.isFinite(d)) out.local[t] = 2 * nearestWithin(m, g, cx + nx * d / 2, cy + ny * d / 2, cz + nz * d / 2, d / 2);
+    const d = inward(g, cx, cy, cz, nx, ny, nz, t); out.depth[t] = d;
+    if (Number.isFinite(d)) out.local[t] = 2 * Math.sqrt(nearestDistance2(g, cx + nx * d / 2, cy + ny * d / 2, cz + nz * d / 2, d * d / 4));
   }
   samplesOf.set(b.mesh, out);
   return out;
@@ -203,7 +146,7 @@ export function wallSamples(b: BodyResult): WallSamples {
 
 /**
  * Wall thickness of a body: from sample points on its faces (each triangle's centre), a ray inward against the
- * face's normal to the next wall (through a uniform grid of the triangles). The thinnest (with where), and the
+ * face's normal to the next wall (through the kernel's triangle hierarchy). The thinnest (with where), and the
  * faces under `below` mm if asked. On the display mesh: good to its chord error on curved walls.
  */
 // (A body's wall thickness depends on its mesh alone: kept per mesh, as the print rules and checks ask again, PERF3 A1.)
@@ -214,7 +157,7 @@ export function wallThickness(b: BodyResult, below?: number): Record<string, unk
   return r;
 }
 function measureWalls(b: BodyResult, below?: number): Record<string, unknown> {
-  const m = b.mesh, T = m.indices.length / 3, perFace = new Map<number, number>(), g = gridOf(m), depth = new Float64Array(T), area = new Float64Array(T);
+  const m = b.mesh, T = m.indices.length / 3, perFace = new Map<number, number>(), g = triangleBvh(m.positions, m.indices), depth = new Float64Array(T), area = new Float64Array(T);
   let min = Infinity, at: Vec3 = [0, 0, 0], face = -1;
   for (let t = 0; t < T; t++) {
     triangleAt(m, t);
@@ -222,7 +165,7 @@ function measureWalls(b: BodyResult, below?: number): Record<string, unknown> {
     const e1x = tri[3] - tri[0], e1y = tri[4] - tri[1], e1z = tri[5] - tri[2], e2x = tri[6] - tri[0], e2y = tri[7] - tri[1], e2z = tri[8] - tri[2];
     let nx = e1y * e2z - e1z * e2y, ny = e1z * e2x - e1x * e2z, nz = e1x * e2y - e1y * e2x; const l = Math.hypot(nx, ny, nz); if (!(l > 0)) continue;
     nx /= -l; ny /= -l; nz /= -l;
-    const d = gridRay(m, g, cx, cy, cz, nx, ny, nz, t);
+    const d = inward(g, cx, cy, cz, nx, ny, nz, t);
     depth[t] = d; area[t] = l / 2;
     const f = m.faceOfVertex[m.indices[t * 3]];
     if (d < (perFace.get(f) ?? Infinity)) perFace.set(f, d);

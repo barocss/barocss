@@ -9,7 +9,7 @@
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh } from '../engine/mesh';
 import type { StudioDoc } from '../engine/doc';
-import { buildBvh, rayHit } from '../print/orient';
+import { rayHit, triangleBvh, type TriangleBvh } from '@barocss/cad';
 import { besideEdge, wallsOf } from '../mould/walls';
 import { concaveSpan, extent } from './holes';
 
@@ -42,14 +42,14 @@ function vertsByFace(m: DisplayMesh): number[][][] {
   for (let i = 0; i < m.faceOfVertex.length; i++) out[m.faceOfVertex[i]]?.push([m.positions[3 * i], m.positions[3 * i + 1], m.positions[3 * i + 2]]);
   return out;
 }
-const escapes = (bvh: ReturnType<typeof buildBvh>, p: V, d: V) => rayHit(bvh, p, d) === Infinity;
+const escapes = (bvh: TriangleBvh, p: V, d: V) => rayHit(bvh, p, d) === Infinity;
 /** Whether a cylinder's axis is the line through c along the unit a. */
 function onAxis(x: { c: V; a: V }, c: V, a: V): boolean {
   const d = [x.c[0] - c[0], x.c[1] - c[1], x.c[2] - c[2]], s = dot(d, a);
   return Math.abs(Math.abs(dot(unit(x.a), a)) - 1) <= 1e-9 && Math.hypot(d[0] - s * a[0], d[1] - s * a[1], d[2] - s * a[2]) <= 1e-9;
 }
 /** Whether a plane next to a face (a set of display faces, across a straight edge) looks out along its normal beside it. */
-function opensBeside(m: DisplayMesh, bvh: ReturnType<typeof buildBvh>, mine: ReadonlySet<number>): boolean {
+function opensBeside(m: DisplayMesh, bvh: TriangleBvh, mine: ReadonlySet<number>): boolean {
   for (const g of m.edges) {
     if (!g.straight || mine.has(g.faces[0]) === mine.has(g.faces[1])) continue;
     const o = mine.has(g.faces[0]) ? g.faces[1] : g.faces[0], x = m.faces[o].exact;
@@ -61,7 +61,7 @@ function opensBeside(m: DisplayMesh, bvh: ReturnType<typeof buildBvh>, mine: Rea
  * Whether a plane a concave fillet is tangent to (its axis r off the plane, on its outer side; the display drops smooth
  * edges, so they are found by geometry) looks out along its normal next to it: its triangle nearest the tangent line.
  */
-function tangentOpen(m: DisplayMesh, bvh: ReturnType<typeof buildBvh>, verts: readonly number[][][], c: V, a: V, r: number, lo: number, hi: number): boolean {
+function tangentOpen(m: DisplayMesh, bvh: TriangleBvh, verts: readonly number[][][], c: V, a: V, r: number, lo: number, hi: number): boolean {
   for (const f of m.faces) {
     const x = f.exact; if (x?.kind !== 'plane' || Math.abs(dot(x.n, a)) > 1e-9 || Math.abs(dot([c[0] - x.o[0], c[1] - x.o[1], c[2] - x.o[2]], x.n) - r) > 1e-6) continue;
     const q = [c[0] - r * x.n[0], c[1] - r * x.n[1], c[2] - r * x.n[2]];
@@ -76,7 +76,7 @@ function tangentOpen(m: DisplayMesh, bvh: ReturnType<typeof buildBvh>, verts: re
   return false;
 }
 /** Whether a face, just beside an edge, looks out along its normal (a ray from there leaves the part). */
-function looksOut(m: DisplayMesh, bvh: ReturnType<typeof buildBvh>, f: number, n: V, a: V, b: V): boolean {
+function looksOut(m: DisplayMesh, bvh: TriangleBvh, f: number, n: V, a: V, b: V): boolean {
   const c0 = besideEdge(m, f, a, b); return !!c0 && escapes(bvh, [c0[0] + 0.01 * n[0], c0[1] + 0.01 * n[1], c0[2] + 0.01 * n[2]], n);
 }
 /**
@@ -116,7 +116,7 @@ export function cavitiesOf(doc: StudioDoc, bodies: readonly BodyResult[], holeFa
   let edgeFillets = 0;
   const walls = wallsOf(doc, bodies, 0.6);
   for (const body of bodies) {
-    const m = body.mesh, bvh = buildBvh(m), verts = vertsByFace(m);
+    const m = body.mesh, bvh = triangleBvh(m.positions, m.indices), verts = vertsByFace(m);
     // Inside fillets: concave cylinders round half a turn or less (pieces on one axis and radius joined).
     const seen = new Set<number>();
     for (const f of m.faces) {

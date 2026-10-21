@@ -1,9 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateSurfaceD1, surfaceDomain, faceGeometry, type Brep } from '@barocss/cad';
+import { evaluateSurfaceD1, surfaceDomain, faceGeometry, rayHit, triangleBvh, type Brep } from '@barocss/cad';
 import { evaluatePart, partBreps, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { buildBvh, rayHit } from '@barocss/cad-model/print/orient';
 import { wallThickness } from '@barocss/cad-model/chat/analysis';
 
 // IM S0 (O76): what the injection-moulding track can measure today, exactly, without a kernel-core change — each probe
@@ -108,7 +107,7 @@ test('IM S0 P3: undercuts by ±d visibility — a side hole across the pull is h
     ['run_command', { command: 'hole', values: { d: 6, x: 20, y: 10 }, faces: [{ normal: [0, -1, 0], pick: 'max' }] }]] as [string, Record<string, unknown>][]) {
     const r = await dispatchTool(s, tool, args, evaluate); assert.ok(!r.isError, r.content); s = r.state;
   }
-  const body = s.bodies[0], bvh = buildBvh(body.mesh), m = body.mesh;
+  const body = s.bodies[0], bvh = triangleBvh(body.mesh.positions, body.mesh.indices), m = body.mesh;
   // (Each triangle's centre moved 0.01 mm off it along its own normal, into the open side, then a ray along d: a vertex on a
   // face's rim lies on the next face too, and its ray grazes it.)
   const seen = (face: number, d: V) => {

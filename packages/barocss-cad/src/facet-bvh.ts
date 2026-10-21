@@ -1,20 +1,16 @@
 // Points against a facet body (F0, R3.2): inside, outside or on it, by the parity of a ray's crossings with its
-// triangles, found through a bounding-volume hierarchy over them (median split on the longest centre extent,
-// flat typed arrays, built once per B-rep). A ray that grazes an edge or a vertex, or runs in a triangle's
-// plane, says nothing: the next of a fixed set of directions is tried, and three clean rays vote. A point within
-// the tolerance of a triangle is on the body. No allocation per triangle or per ray.
+// triangles, found through the kernel's triangle hierarchy over them (`triangleBvh`, K2; built once per B-rep). A ray
+// that grazes an edge or a vertex, or runs in a triangle's plane, says nothing: the next of a fixed set of directions is
+// tried, and three clean rays vote. A point within the tolerance of a triangle is on the body. No allocation per
+// triangle or per ray.
 import { BrepError, type Brep } from './brep-core.js';
 import type { FacetPatch, Point } from './types.js';
+import { triangleBvh, type TriangleBvh } from './triangle-bvh.js';
 
 export type FacetPointClass = 'inside' | 'outside' | 'on';
 
-/** The triangles of a facet body (positions and three indices a triangle) and the hierarchy over them. */
-export interface FacetBvh {
-  readonly positions: Float64Array; readonly indices: Uint32Array;
-  /** Per node: its box [x0, y0, z0, x1, y1, z1]; its first child (the second is next), or −1 for a leaf; a leaf's triangles order[start, start + count). */
-  readonly box: Float64Array; readonly left: Int32Array; readonly start: Int32Array; readonly count: Int32Array; readonly order: Uint32Array;
-  readonly nodes: number; readonly size: number;
-}
+/** The triangles of a facet body and the hierarchy over them (K2, D141: the kernel's one triangle hierarchy). */
+export type FacetBvh = TriangleBvh;
 
 const built = new WeakMap<Brep, FacetBvh>();
 /** The hierarchy over a facet body's triangles (made once per B-rep); refused unless every face is a facet face. */
@@ -38,46 +34,7 @@ function buildFacetBvh(brep: Brep): FacetBvh {
     for (let i = 0; i < F.indices.length; i++) indices[3 * t0 + i] = F.indices[i] + v0;
     v0 += F.positions.length / 3; t0 += F.indices.length / 3;
   }
-  // Each triangle's box and centre.
-  const tb = new Float64Array(6 * nt), c = new Float64Array(3 * nt), order = new Uint32Array(nt);
-  let size = 1;
-  for (let t = 0; t < nt; t++) {
-    order[t] = t;
-    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
-    for (let k = 0; k < 3; k++) {
-      const v = 3 * indices[3 * t + k], x = positions[v], y = positions[v + 1], z = positions[v + 2];
-      if (x < x0) x0 = x; if (y < y0) y0 = y; if (z < z0) z0 = z; if (x > x1) x1 = x; if (y > y1) y1 = y; if (z > z1) z1 = z;
-    }
-    tb[6 * t] = x0; tb[6 * t + 1] = y0; tb[6 * t + 2] = z0; tb[6 * t + 3] = x1; tb[6 * t + 4] = y1; tb[6 * t + 5] = z1;
-    c[3 * t] = (x0 + x1) / 2; c[3 * t + 1] = (y0 + y1) / 2; c[3 * t + 2] = (z0 + z1) / 2;
-    size = Math.max(size, Math.abs(x0), Math.abs(y0), Math.abs(z0), Math.abs(x1), Math.abs(y1), Math.abs(z1));
-  }
-  const cap = Math.max(1, 2 * nt), box = new Float64Array(6 * cap), left = new Int32Array(cap), start = new Int32Array(cap), count = new Int32Array(cap);
-  const todo = new Int32Array(cap), cb = new Float64Array(6);
-  let nodes = 1, top = 0; todo[top++] = 0; start[0] = 0; count[0] = nt;
-  while (top) {
-    const id = todo[--top], lo = start[id], hi = lo + count[id];
-    let bx0 = Infinity, by0 = Infinity, bz0 = Infinity, bx1 = -Infinity, by1 = -Infinity, bz1 = -Infinity;
-    cb[0] = cb[1] = cb[2] = Infinity; cb[3] = cb[4] = cb[5] = -Infinity;
-    for (let i = lo; i < hi; i++) {
-      const t = order[i], B = 6 * t, C = 3 * t;
-      if (tb[B] < bx0) bx0 = tb[B]; if (tb[B + 1] < by0) by0 = tb[B + 1]; if (tb[B + 2] < bz0) bz0 = tb[B + 2];
-      if (tb[B + 3] > bx1) bx1 = tb[B + 3]; if (tb[B + 4] > by1) by1 = tb[B + 4]; if (tb[B + 5] > bz1) bz1 = tb[B + 5];
-      for (let k = 0; k < 3; k++) { if (c[C + k] < cb[k]) cb[k] = c[C + k]; if (c[C + k] > cb[k + 3]) cb[k + 3] = c[C + k]; }
-    }
-    const N = 6 * id; box[N] = bx0; box[N + 1] = by0; box[N + 2] = bz0; box[N + 3] = bx1; box[N + 4] = by1; box[N + 5] = bz1;
-    left[id] = -1;
-    if (hi - lo <= 4) continue;
-    let ax = 0; for (let k = 1; k < 3; k++) if (cb[k + 3] - cb[k] > cb[ax + 3] - cb[ax]) ax = k;
-    const mid = (cb[ax] + cb[ax + 3]) / 2;
-    let i = lo, j = hi - 1;
-    while (i <= j) { if (c[3 * order[i] + ax] < mid) i++; else { const x = order[i]; order[i] = order[j]; order[j] = x; j--; } }
-    if (i === lo || i === hi) i = (lo + hi) >> 1;
-    const l = nodes++, r = nodes++;
-    left[id] = l; start[l] = lo; count[l] = i - lo; start[r] = i; count[r] = hi - i; count[id] = 0;
-    todo[top++] = l; todo[top++] = r;
-  }
-  return { positions, indices, box, left, start, count, order, nodes, size };
+  return triangleBvh(positions, indices);
 }
 
 /** Ray directions tried in turn (unit, irrational components: not along any axis or common diagonal). */

@@ -10,7 +10,7 @@ import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { wallSamples } from '../chat/analysis';
 import { faceTableOf } from '../assembly/faces';
-import { buildBvh, rayHit } from '../print/orient';
+import { rayHit, triangleBvh, type TriangleBvh } from '@barocss/cad';
 
 export interface Rib { body: string; faces: [string, string]; thicknessMM: number }
 export interface Boss { outer: string; inner: string; wallMM: number }
@@ -40,7 +40,7 @@ function faceBox(m: DisplayMesh, f: number): { lo: Vec3; hi: Vec3 } {
   return { lo, hi };
 }
 /** Whether a ray out of a face (from its largest triangle's centre, along its normal) hits the body. */
-function facesInward(m: DisplayMesh, bvh: ReturnType<typeof buildBvh>, f: number, n: readonly number[]): boolean {
+function facesInward(m: DisplayMesh, bvh: TriangleBvh, f: number, n: readonly number[]): boolean {
   let best = -1, A = 0;
   for (let t = 0; t < m.indices.length; t += 3) {
     if (m.faceOfVertex[m.indices[t]] !== f) continue;
@@ -85,7 +85,7 @@ export function wallsOf(doc: StudioDoc, bodies: readonly BodyResult[], ratio: nu
     if (Math.abs(Math.abs(dot(a, b)) - 1) <= 1e-9 && Math.hypot(d[0] - s * a[0], d[1] - s * a[1], d[2] - s * a[2]) <= 1e-9) bosses.push({ outer: o.n, inner: i.n, wallMM: o.f.radius - i.f.radius });
   }
   for (const body of bodies) {
-    const m = body.mesh, w = wallSamples(body), bvh = buildBvh(m);
+    const m = body.mesh, w = wallSamples(body), bvh = triangleBvh(m.positions, m.indices);
     // (The thinnest by the inward ray itself: the sphere reads less than the wall by a concave corner, where its middle is
     // nearer the next wall — fine for thick sections, which it only lowers, not for the thinnest.)
     const nominal = quantile(w.local, w.area, 0.5);

@@ -10,7 +10,7 @@
 // surface sampled to its chord error, and to the step.
 import type { BodyResult } from '../engine/evaluate';
 import type { Vec3 } from '../engine/mesh';
-import { buildBvh, rayHit, type TriangleBvh } from '../print/orient';
+import { rayHit, triangleBvh, type TriangleBvh } from '@barocss/cad';
 
 export interface UndercutRegion {
   body: string; faces: string[]; areaMM2: number; centroid: Vec3; triangles: number;
@@ -48,7 +48,7 @@ export function undercuts(bodies: readonly BodyResult[], pull: readonly number[]
   const regions: UndercutRegion[] = [];
   let samples = 0, coarsest = 0;
   for (const body of bodies) {
-    const m = body.mesh, P = m.positions, I = m.indices, T = I.length / 3, bvh = buildBvh(m);
+    const m = body.mesh, P = m.positions, I = m.indices, T = I.length / 3, bvh = triangleBvh(m.positions, m.indices);
     // Per triangle: its hidden samples (offset points, packed) and their area.
     const hiddenPts: number[][] = new Array(T), hiddenArea = new Float64Array(T), centre = new Float64Array(3 * T);
     for (let t = 0; t < T; t++) {

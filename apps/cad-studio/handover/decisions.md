@@ -7748,3 +7748,46 @@ Track K's first step (README §0 "Roadmap" item 4; the PKG design note's G1 and 
 - `@barocss/cad-model` lint and type-check clean.
 - Studio: tsc clean; eslint on the changed files 0 errors (node-bench's two console warnings, as before); the suite 753/754 with the known `todo` (O80), 0 fail; the robot tests 87/87, the frozen USD stages included.
 - Conformance, the full kernel suite, the flow and RB not run (T1; no kernel core file touched).
+
+## D141 — K2: one triangle hierarchy with ray and nearest-point queries, shared by the kernel and the studio (2026-10-21)
+
+Track K's second step (the PKG design note's G4–G6; the coordinator's 2026-10-21 withdrawal of a studio dual tree reopened as this). Five trees and searches over triangle meshes had grown apart: the kernel's facet classification tree (F0, R3.2), the kernel's mesh-distance tree (R9), the studio's print/mould/machining BVH (`print/orient.ts`, AM4), the studio's uniform grid for wall rays (`chat/analysis.ts`, A2.2) and a brute-force ray over every triangle (`library/libraries.ts` `thicknessAt`). They are now one.
+
+**Decision:**
+- **Kernel** `src/triangle-bvh.ts`, exported:
+  - `triangleBvh(positions, indices, { leafSize = 4 })` → `TriangleBvh` (positions, indices, per node a box, its first child or −1, a leaf's run of `order`; `nodes`; `size`, the largest coordinate's magnitude for tolerances). Median splits by quickselect on the longest side of a node's box, an explicit stack. A Float64Array and a Uint32Array are taken as they are; a display mesh's Float32Array positions are copied to Float64 (the same values).
+  - `rayHit(bvh, o, d, minT = 1e-6, skip = −1, detTol = 1e-14)` → the nearest t beyond `minT`, or Infinity. Möller–Trumbore with the studio BVH's own arithmetic (divisions by the determinant; edges count; a determinant within `detTol` passed), so its results are the studio's bit for bit. `skip` drops one triangle (the wall rays' own); `detTol` lets `thicknessAt` keep its 1e-12.
+  - `nearestDistance2(bvh, x, y, z, bound2 = ∞)` → the squared distance to the surface when below the bound, else the bound (branch and bound, the nearer child first): the mesh distance's search, and the wall analysis's "nearest within r".
+  - `pointTriangleDistance2(P, I, k, x, y, z)` (Ericson 5.1.5), the mesh distance's, now public: K3 folds the studio's five private copies into it.
+- **Inside the kernel:** `facetBvh(brep)` builds `triangleBvh` (its type is now `TriangleBvh`; its ray parity code unchanged); `meshDistance` and `meshDistanceRange` search it with `nearestDistance2` (their private tree, quickselect and point–triangle gone).
+- **In `@barocss/cad-model`:**
+  - `print/orient.ts`: its `TriangleBvh`, `buildBvh` and `rayHit` removed; the orientation search and its five other users (`machining/access`, `machining/holes`, `machining/cavities`, `mould/undercut`, `mould/walls`) and four studio tests (`printing`, `im-s0`, `cnc-s0`, `cnc7-s0`) take the kernel's (`triangleBvh(m.positions, m.indices)`). The studio's default ray start, 1e-6, is the kernel's default.
+  - `chat/analysis.ts`: the uniform grid (`gridOf`, `gridRay`, `nearestWithin`) and its private ray removed; `wallSamples` and `wallThickness` cast through the kernel's tree (start 1e-9 and the own triangle skipped, as the grid did) and ask `nearestDistance2` for the inscribed sphere. Its brute-force `clearance` and `pointTriangle2` stay for K3 (`meshClearance`).
+  - `library/libraries.ts`: `thicknessAt` (and `aroundAt` through it) casts through a tree kept per display mesh (a WeakMap), not over every triangle.
+  - Not here: `print/hollow.ts`'s brute-force ray, part of the hollowing core K6 moves down.
+- **A defect fixed in the studio tree:** its slab test computed (box − o)·(1/d) for every axis, so a ray along an axis whose origin lay exactly on a box's face plane met 0·∞ = NaN and the box was dropped, with every hit in it. A 10-mm box's 12 triangles, a ray straight down at x = 0 (the box's own face plane): the studio tree said Infinity, the brute force and the kernel 10 (reproduced in this session against the removed code). The machining and mould rays are along the axes from points on faces, where this can happen. The kernel tests such an axis by comparison instead of by its slab. On the three snapshot parts below no result changed by it; it is a latent miss, now closed.
+
+**Results matched** (a before/after snapshot, not kept, of every user on three parts — a T, a plate with a through and a blind hole, a cup — the orientation search's top three, wall thickness and wall samples, `thicknessAt` and `aroundAt` at 40 points each, undercuts, machining access, holes, mould walls, cavities):
+- Everything through the old orient tree, `thicknessAt` and `aroundAt`: identical.
+- `wallSamples`: 98 of its depths and local thicknesses differ in the last bit (at most 2.1e-16 relative), because the grid's private ray multiplied by the determinant's inverse and the kernel divides by it. That flips one exact tie: the cup's 3 mm floor read 2.9999999999999996 before and 3.0000000000000004 now, so `wallThickness(b, 3)`'s `faces_below` lost `n1.bottom` (thickness 3.000 either way, against `below: 3`). Recorded, not chased: a tie at the last bit has no right side.
+
+**Speed** (Node 22, this machine; a bumpy sphere of 100 352 triangles, or a two-shell one of 102 400):
+- building the tree: the studio's 228 ms, the kernel's 62 ms (3.7×; quickselect instead of a full sort at every node);
+- 20 000 rays from inside: the studio's 19.2 ms, the kernel's 18.1 ms (identical t's);
+- `wallSamples` 1758 → 488 ms (3.6×), `wallThickness` 487 → 205 ms (2.4×) — the grid's per-cell lists against the tree;
+- 200 `thicknessAt` calls 198 → 45 ms (4.4×), the tree built once per mesh where the brute force read every triangle per call.
+- A first kernel version with the slab in a helper and swap-based branches was 15 % slower per ray than the studio's; the slab now sits in the loop with Math.min/max and only the zero axes branch.
+
+**Oracles** (`packages/barocss-cad/test/k2-triangle-bvh.test.mjs`, 5 tests, 0.4 s; none of them the tree):
+- the tree's invariants: every triangle in exactly one leaf, every node's box holding its triangles, leaves ≤ leafSize, depth ≤ ⌈log₂(n/leaf)⌉ + 1 (leaf sizes 1, 4, 8);
+- 1500 rays (inside out, outside in, misses, `skip`, `minT`, non-unit d) equal to a brute force over every triangle with the same arithmetic, exactly;
+- axis-parallel rays on a box's face planes (the defect above), from inside along each axis to the far faces at the closed-form gaps, the chords of a sphere mesh against its radius;
+- 600 nearest points against a brute force, exactly; the bound returned when nothing is nearer; the box's face and edge distances in closed form;
+- facet classification and the mesh distance through the shared tree; 100k triangles built and 20 000 rays queried, each well under its bound.
+- The tests fail on the previous HEAD: none of the four exports existed.
+
+**Checks — T2** (the facet classification is under the facet Booleans, so the whole kernel suite with its conformance was run):
+- Kernel lint and type-check clean; `k2-triangle-bvh` 5/5. The full kernel suite (conformance included) 1384/1389 (4 skipped): 1389 = D138's 1368 + r12c-s0's 10 + k1's 6 + k2's 5, so none missing; only the env-only "actual native Split source…" fails. 349 s.
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed tests 0 errors; the suite 756/758 with the known `todo` (O80) and one failure, `hollow`'s sphere cavity test on its "refused at once" (< 1000 ms) wall-clock assert under the full suite's load — `print/hollow.ts` uses none of the changed code, and it passed alone twice and in the suite's next full run.
+- The flow and RB not run (no studio-visible behaviour changed; the coordinator's verify worktree runs the flow).

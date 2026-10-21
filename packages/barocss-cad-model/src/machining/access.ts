@@ -5,7 +5,7 @@
 // greedily: the direction reaching the most area not yet reached, then the next, until all that any reaches is — the
 // samples' areas kept by their 6-bit mask (64 bins), so the count is exact for the samples and cheap.
 import type { BodyResult } from '../engine/evaluate';
-import { buildBvh, rayHit } from '../print/orient';
+import { rayHit, triangleBvh } from '@barocss/cad';
 
 export const DIRECTIONS: readonly (readonly [number, number, number])[] = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
 export const DIRECTION_NAMES: readonly string[] = ['+X', '−X', '+Y', '−Y', '+Z', '−Z'];
@@ -28,7 +28,7 @@ export function accessOf(bodies: readonly BodyResult[], stepMM?: number): Access
   const byMask = new Array<number>(64).fill(0), unreached = new Map<string, Unreached & { areaMM2: number }>();
   let samples = 0, area = 0;
   for (const body of bodies) {
-    const m = body.mesh, P = m.positions, I = m.indices, T = I.length / 3, bvh = buildBvh(m);
+    const m = body.mesh, P = m.positions, I = m.indices, T = I.length / 3, bvh = triangleBvh(m.positions, m.indices);
     for (let t = 0; t < T; t++) {
       const a = 3 * I[3 * t], b = 3 * I[3 * t + 1], c = 3 * I[3 * t + 2];
       const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
