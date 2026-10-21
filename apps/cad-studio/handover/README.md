@@ -744,7 +744,7 @@ acceleration → benches.
   `setInstanceTransforms`), the instance meshes made once per geometry change (keyed `setInstances`); thread rings per
   instance, moved with it. Bench rows `pose:` and `explode:` in `bench:browser`: a played joint 35.8 → 3.1 KiB uploaded
   and 1 116 → 0 buffers made; a 120-bracket explode drag 2 MiB → 62 KiB a frame, 35 280 → 0 buffers, task 22.3 → 13.3 ms
-  a frame. Checks T1: studio 787/787, flow `FLOW_ONLY` (instance/mate/section/explode/RM/RD) 31/31.
+  a frame. Checks: studio 787/787; T2 full flow 217/217; posed/exploded/sectioned frames within 16 (ΣRGB) of the CPU path's on ≤ 75 pixels.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

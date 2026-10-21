@@ -63,6 +63,12 @@ analyses, 6 scene-level pick acceleration, 7 benches for these. This session tak
   - Checks (T1): studio suite 787/787; studio `tsc` clean, eslint 0 errors (120 warnings, none in the changed files);
     cad-model lint/tsc clean; gpu lint/tsc clean; flow `FLOW_ONLY` over the instance, mate, section, explode, RM/RD steps
     (30 steps and the first) 31/31.
+  - Checks at the checkpoint (T2, App.tsx touched; on the merge `1a52dc75e` of integration's `b7e1d447a`): gpu unit 73/73
+    (2 s), gpu browser 3/3 (11 s), the full browser flow on its own 217/217 (685 s, port 52691).
+  - Same pixels as the CPU path (the coordinator's rule): the flow's instance, explode, section-with-instances, RM2 posed
+    and RM9b steps run on integration's tip (moved copies) and on this branch, screenshots diffed (1440 × 900): at most 75
+    pixels a frame (0.006 %) differ, each by at most 16 in |ΔR| + |ΔG| + |ΔB| (about 5/255 a channel), none by more than
+    32; the RM2 posed and RM9b frames identical. The run-to-run noise of one build is the corner's timing label only.
 - **Binds**: a new view-only motion of an instance (a mate preview, an animation track) goes through
   `instanceTransforms`, not through moved copies of its meshes. `posedInstances`/`movedBody` stay for the exports and
   checks that need moved meshes (and the CPU section until G2).
