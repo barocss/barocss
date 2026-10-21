@@ -221,7 +221,7 @@ export const primitives: Command[] = [
     },
   },
   {
-    id: 'spring', label: 'Spring', icon: 'cad-spring', hint: 'A coil spring of round wire — the wire\'s exact circle swept along the coil, fitted within 1e-4 of its diameter: compression (open, closed, or closed and ground ends), extension (close-wound, machine-loop or crossover hooks) or torsion (close-wound, tangent legs). Its rate from G (E for torsion; steel\'s prefilled, an estimate), its lengths and the stress at a working load in its notes. Not validated for manufacturing', group: 'create', keywords: 'spring coil compression extension tension torsion helix helical wire hook loop leg ground closed rate stiffness plunger',
+    id: 'spring', label: 'Spring', icon: 'cad-spring', hint: 'A coil spring of round wire — the wire\'s exact circle swept along the coil, fitted within 1e-4 of its diameter: compression (open, closed, or closed and ground ends), extension (close-wound, machine-loop or crossover hooks) or torsion (close-wound, tangent legs). Its rate from G (E for torsion; steel\'s prefilled, an estimate), its lengths and the stress at a working load in its notes. Not validated for manufacturing', group: 'create', keywords: 'spring coil compression extension torsion',
     available: () => ok,
     fields: () => [{ key: 'type', label: 'Type', kind: 'choice', options: [{ value: 'compression', label: 'Compression' }, { value: 'extension', label: 'Extension' }, { value: 'torsion', label: 'Torsion' }] },
       { key: 'd', label: 'Wire Ø', kind: 'mm', min: 0.1 }, { key: 'D', label: 'Mean coil Ø', kind: 'mm', min: 0.5 }, { key: 'n', label: 'Active coils', kind: 'number', min: 0.5, step: 0.25 },

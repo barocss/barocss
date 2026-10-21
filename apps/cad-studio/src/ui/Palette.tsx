@@ -1,17 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { commands, type Command, type Ctx } from '@barocss/cad-model/app/commands';
+import type { Command, Ctx } from '@barocss/cad-model/app/commands';
+import { paletteList } from './paletteList';
 import { Icon, Kbd } from './atoms';
 
 export function Palette({ ctx, onRun, onClose }: { ctx: Ctx; onRun(c: Command): void; onClose(): void }) {
   const [q, setQ] = useState(''); const [cursor, setCursor] = useState(0);
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => input.current?.focus(), []);
-  const list = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    return commands.map(c => ({ c, a: c.available(ctx) }))
-      .filter(({ c }) => !s || (c.label + ' ' + (c.keywords ?? '') + ' ' + c.id).toLowerCase().includes(s))
-      .sort((x, y) => Number(y.a.ok) - Number(x.a.ok));
-  }, [q, ctx]);
+  const list = useMemo(() => paletteList(q, ctx), [q, ctx]);
   return (
     <div className="palette-backdrop" onMouseDown={onClose}>
       <div className="card palette" role="dialog" aria-label="Command palette" onMouseDown={e => e.stopPropagation()}>

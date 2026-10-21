@@ -10,7 +10,7 @@ const n = (v: Values, k: string) => Number(v[k]);
 const count = (v: Values | undefined) => Math.max(1, Math.min(MAX, Math.round(Number(v?.n ?? 3)) || 3));
 
 const shaftCommand: Command = {
-  id: 'shaft', label: 'Shaft', icon: 'cad-shaft', group: 'create', keywords: 'shaft stepped axle spindle shoulder fillet chamfer keyseat keyway key groove retaining ring circlip turned',
+  id: 'shaft', label: 'Shaft', icon: 'cad-shaft', group: 'create', keywords: 'shaft stepped axle turned',
   hint: 'A stepped shaft along Z, revolved exactly: steps of your diameters and lengths, shoulder fillets, end chamfers, a keyseat on one step and a ring groove on another (cut by exact Booleans). The prefilled key and ring sizes are estimates: your own rows give them. Not validated for manufacturing',
   available: () => ok,
   fields: () => {
@@ -59,7 +59,7 @@ const groovesOf = (s: Extract<ModelNode, { kind: 'shaft' }>) => s.steps.flatMap(
 const no = (reason: string) => ({ ok: false as const, reason });
 
 const keyCommand: Command = {
-  id: 'key', label: 'Key', icon: 'cad-key', group: 'create', keywords: 'key parallel feather keyed hub keyway shaft keyseat',
+  id: 'key', label: 'Key', icon: 'cad-key', group: 'create', keywords: 'key parallel feather',
   hint: 'A parallel key in a keyseat of the selected shaft — its height yours, its width and length the seat\'s unless given — checked against the seat and, with a hub keyway, against its width and the clearance over its top. Not validated for manufacturing',
   available: ctx => { const s = pickedShaft(ctx); return !s ? no('Select a shaft (from the Shaft command).') : seatsOf(s.node).length ? ok : no('The shaft has no keyseat: give it one (edit the shaft).'); },
   fields: ctx => {
@@ -86,7 +86,7 @@ function pickedBore(ctx: Ctx): { ref: NonNullable<Ctx['bodies'][number]['ref']>;
   return radial[0] * face.normal[0] + radial[1] * face.normal[1] + radial[2] * face.normal[2] < 0 ? { ref: body.ref, name: face.name } : null;
 }
 const keywayCommand: Command = {
-  id: 'keyway', label: 'Keyway', icon: 'cad-key', group: 'modify', keywords: 'keyway hub bore key slot broach',
+  id: 'keyway', label: 'Keyway', icon: 'cad-key', group: 'modify', keywords: 'keyway hub broach',
   hint: 'A keyway cut into the selected bore of a hub, through its length: its width and depth t2 from the bore\'s surface are yours (the prefills are estimates); a key in the shaft\'s seat is checked against it',
   available: ctx => pickedBore(ctx) ? ok : no('Select one bore (a cylindrical hole\'s face) of the hub.'),
   fields: () => [{ key: 'b', label: 'Width (estimate)', kind: 'mm', min: 0.1 }, { key: 't2', label: 'Depth t2 (estimate)', kind: 'mm', min: 0.1 }, { key: 'angle', label: 'Angle about the bore', kind: 'deg' }],
@@ -95,7 +95,7 @@ const keywayCommand: Command = {
 };
 
 const ringCommand: Command = {
-  id: 'retaining-ring', label: 'Retaining ring', icon: 'cad-key', group: 'create', keywords: 'retaining ring circlip snap ring groove shaft external',
+  id: 'retaining-ring', label: 'Retaining ring', icon: 'cad-key', group: 'create', keywords: 'retaining ring circlip snap ring',
   hint: 'A retaining ring\'s envelope in a groove of the selected shaft — its thickness and outer diameter from your ring\'s row (the prefills are estimates) — checked against the groove\'s width',
   available: ctx => { const s = pickedShaft(ctx); return !s ? no('Select a shaft (from the Shaft command).') : groovesOf(s.node).length ? ok : no('The shaft has no ring groove: give it one (edit the shaft).'); },
   fields: ctx => [{ key: 'groove', label: 'Groove', kind: 'count', min: 1, max: Math.max(1, groovesOf(pickedShaft(ctx)?.node ?? { kind: 'shaft', steps: [], center: [0, 0], generator: 'shaft@0' }).length) },
@@ -105,7 +105,7 @@ const ringCommand: Command = {
 };
 
 const pinCommand: Command = {
-  id: 'pin', label: 'Pin', icon: 'cad-key', group: 'create', keywords: 'pin dowel cross hole shaft parallel pin',
+  id: 'pin', label: 'Dowel pin', icon: 'cad-key', group: 'create', keywords: 'dowel pin',
   hint: 'A pin in a cross hole of the selected shaft — the hole\'s diameter and the step\'s length unless given; its fit on the hole by fit classes (Fit class, Fit pair) from your tables',
   available: ctx => { const s = pickedShaft(ctx); return !s ? no('Select a shaft (from the Shaft command).') : s.node.holes?.length ? ok : no('The shaft has no cross hole: give it one.'); },
   fields: ctx => [{ key: 'hole', label: 'Cross hole', kind: 'count', min: 1, max: Math.max(1, pickedShaft(ctx)?.node.holes?.length ?? 1) }, { key: 'd', label: 'Ø (0: the hole\'s)', kind: 'mm', min: 0 }, { key: 'L', label: 'Length (0: flush)', kind: 'mm', min: 0 }],
