@@ -156,3 +156,23 @@ export function pointTriangleDistance2(P: ArrayLike<number>, I: ArrayLike<number
   const dx = px - qx, dy = py - qy, dz = pz - qz;
   return dx * dx + dy * dy + dz * dz;
 }
+
+/** The point of triangle abc nearest p (Ericson 5.1.5's regions; K4), written into `out` (by default a new one). */
+export function closestPointOnTriangle(p: ArrayLike<number>, a: ArrayLike<number>, b: ArrayLike<number>, c: ArrayLike<number>, out: [number, number, number] = [0, 0, 0]): [number, number, number] {
+  const ax = a[0], ay = a[1], az = a[2], abx = b[0] - ax, aby = b[1] - ay, abz = b[2] - az, acx = c[0] - ax, acy = c[1] - ay, acz = c[2] - az;
+  const apx = p[0] - ax, apy = p[1] - ay, apz = p[2] - az, d1 = abx * apx + aby * apy + abz * apz, d2 = acx * apx + acy * apy + acz * apz;
+  if (d1 <= 0 && d2 <= 0) { out[0] = ax; out[1] = ay; out[2] = az; return out; }
+  const bpx = p[0] - b[0], bpy = p[1] - b[1], bpz = p[2] - b[2], d3 = abx * bpx + aby * bpy + abz * bpz, d4 = acx * bpx + acy * bpy + acz * bpz;
+  if (d3 >= 0 && d4 <= d3) { out[0] = b[0]; out[1] = b[1]; out[2] = b[2]; return out; }
+  const vc = d1 * d4 - d3 * d2;
+  if (vc <= 0 && d1 >= 0 && d3 <= 0) { const t = d1 / (d1 - d3); out[0] = ax + t * abx; out[1] = ay + t * aby; out[2] = az + t * abz; return out; }
+  const cpx = p[0] - c[0], cpy = p[1] - c[1], cpz = p[2] - c[2], d5 = abx * cpx + aby * cpy + abz * cpz, d6 = acx * cpx + acy * cpy + acz * cpz;
+  if (d6 >= 0 && d5 <= d6) { out[0] = c[0]; out[1] = c[1]; out[2] = c[2]; return out; }
+  const vb = d5 * d2 - d1 * d6;
+  if (vb <= 0 && d2 >= 0 && d6 <= 0) { const t = d2 / (d2 - d6); out[0] = ax + t * acx; out[1] = ay + t * acy; out[2] = az + t * acz; return out; }
+  const va = d3 * d6 - d5 * d4;
+  if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0) { const t = (d4 - d3) / ((d4 - d3) + (d5 - d6)); out[0] = b[0] + t * (c[0] - b[0]); out[1] = b[1] + t * (c[1] - b[1]); out[2] = b[2] + t * (c[2] - b[2]); return out; }
+  const den = 1 / (va + vb + vc), v = vb * den, w = vc * den;
+  out[0] = ax + abx * v + acx * w; out[1] = ay + aby * v + acy * w; out[2] = az + abz * v + acz * w;
+  return out;
+}

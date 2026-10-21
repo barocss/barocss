@@ -2,7 +2,7 @@
 // regions away — each loop keeps what lies outside it (a hole) or inside it (an island). A loop
 // comes from a closed curve projected onto the surface (each sample to its nearest surface point);
 // the display mesh is the surface's grid clipped along the loops.
-import { curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator, type Curve, type Surface } from '@barocss/cad';
+import { closestPointOnSurface, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator, type Curve, type Surface } from '@barocss/cad';
 
 type At = (u: number, v: number) => readonly number[];
 
@@ -10,25 +10,12 @@ type UV = [number, number];
 export interface TrimLoop { uv: UV[]; keep: 'outside' | 'inside' }
 
 const sub3 = (a: readonly number[], b: readonly number[]) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const dot3 = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const len3 = (a: readonly number[]) => Math.hypot(a[0], a[1], a[2]);
 
-/** The nearest point of the surface to p, from a seed (u, v): Gauss–Newton on the surface's tangents. */
-const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
-function nearest(s: Surface, at: At, p: readonly number[], seed: UV): { uv: UV; gap: number } {
-  const { u: [u0, u1], v: [v0, v1] } = surfaceDomain(s), hu = (u1 - u0) * 1e-6, hv = (v1 - v0) * 1e-6;
-  let [u, v] = seed;
-  for (let it = 0; it < 20; it++) {
-    const q = at(u, v), r = sub3(q, p);
-    const ua = clamp(u - hu, u0, u1), ub = clamp(u + hu, u0, u1), va = clamp(v - hv, v0, v1), vb = clamp(v + hv, v0, v1);
-    const su = scaled(sub3(at(ub, v), at(ua, v)), 1 / (ub - ua)), sv = scaled(sub3(at(u, vb), at(u, va)), 1 / (vb - va));
-    const a = dot3(su, su), b = dot3(su, sv), c = dot3(sv, sv), det = a * c - b * b, gu = dot3(su, r), gv = dot3(sv, r);
-    if (!(Math.abs(det) > 1e-300)) break;
-    const du = -(c * gu - b * gv) / det, dv = -(a * gv - b * gu) / det, nu = clamp(u + du, u0, u1), nv = clamp(v + dv, v0, v1);
-    const done = Math.abs(nu - u) < (u1 - u0) * 1e-12 && Math.abs(nv - v) < (v1 - v0) * 1e-12;
-    u = nu; v = nv; if (done) break;
-  }
-  return { uv: [u, v], gap: len3(sub3(at(u, v), p)) };
+/** The nearest point of the surface to p, from a seed (u, v): the kernel's `closestPointOnSurface` (K4), on the exact tangents. */
+function nearest(s: Surface, p: readonly number[], seed: UV): { uv: UV; gap: number } {
+  const f = closestPointOnSurface(s, p, { seed, iterations: 20 });
+  return { uv: [f.u, f.v], gap: f.distance };
 }
 
 /** Whether segments ab and cd cross or touch (collinear ones only when they overlap). */
@@ -61,9 +48,9 @@ export function projectLoop(s: Surface, c: Curve, earlier: readonly TrimLoop[] =
   for (let k = 0; k < samples; k++) {
     const p = C(t0 + (t1 - t0) * k / samples);
     const seed = nearestSeed(grid, p);
-    let best = nearest(s, S, p, prev ?? seed);
+    let best = nearest(s, p, prev ?? seed);
     // (A jump to a far point of the surface: seeded again from the whole grid.)
-    if (prev) { const fromGrid = nearest(s, S, p, seed); if (fromGrid.gap < best.gap - 1e-9) best = fromGrid; }
+    if (prev) { const fromGrid = nearest(s, p, seed); if (fromGrid.gap < best.gap - 1e-9) best = fromGrid; }
     out.push(best.uv); prev = best.uv;
   }
   if (crossesAny(out, out, true)) throw new Error('The curve crosses itself on the surface: trim by a simple loop.');
@@ -112,7 +99,6 @@ function nearestSeed(grid: readonly { uv: UV; p: number[] }[], p: readonly numbe
   for (let k = 1; k < grid.length; k++) { const d = len3(sub3(grid[k].p, p)); if (d < bd) { bd = d; best = grid[k]; } }
   return best.uv;
 }
-const scaled = (a: number[], k: number) => [a[0] * k, a[1] * k, a[2] * k];
 
 /** A mesh under construction: vertices by their (u, v) (shared by the triangles round them). */
 interface Mesh { at: At; u0: number; u1: number; v0: number; v1: number; su: number; sv: number; pos: number[]; nrm: number[]; idx: number[]; seen: Map<string, number> }

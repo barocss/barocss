@@ -7830,3 +7830,46 @@ Track K's third step (the PKG design note's G3 and G12). The studio measured how
 - `@barocss/cad-model` lint and type-check clean.
 - Studio: tsc clean; eslint on the changed tests 0 errors; the suite 760/762 with the known `todo` (O80) and the known `hollow` "at once" timing flake (logged at K2), which passed in the next full run.
 - Conformance, the full kernel suite, the flow and RB not run (T1).
+
+## D143 — K4: the nearest point of a surface, and of a triangle (2026-10-21)
+
+Track K's fourth step (the PKG design note's G9, with G14's `nearest` and `app/measure.ts`'s triangle foot). The studio projected points onto NURBS faces three ways — the draft field's foot (IM2: Gauss–Newton on exact first derivatives from a 24 × 24 grid), the trim loops' `nearest` and the display mesh's chord measure (`invertOn` and `nearestOnGrid`; both Gauss–Newton on central differences) — and found a triangle's nearest point with its own copy. They now use the kernel's.
+
+**Decision:**
+- **Kernel** `src/surface-closest.ts`, exported:
+  - `closestPointOnSurface(surface, p, { seed?, grid?, iterations = 30 })` → `{ u, v, point, distance, normal, iterations }`: from the seed, or the nearest node of a seed grid (prebuilt or its n, default 24), Gauss–Newton on the exact first derivatives, each step clamped to the domain; the unit normal du × dv there ([0, 0, 0] at a pole).
+  - `surfaceSeedGrid(surface, n = 24)`, built once per surface and passed to every query.
+  - `surfaceD1Near(surface, u, v, U, V)`: first derivatives, taken just off an exact C0 knot (the rational circle's quadrant joins, where `evaluateSurfaceD1` refuses) — the draft field's nudges.
+  - **Two safeguards the studio's copies lacked,** found by this step's own tests:
+    - a step that would take the surface farther is halved until it does not. Far from a convex surface (beyond its radius of curvature) Gauss–Newton's whole step overshoots by about 1 + distance × curvature and swings round it: a point 15 mm outside a Ø20 cylinder converged to a foot 23 mm away, on the wrong side;
+    - where it converges linearly (two steps running shrinking by less than 3⅓: far off the surface, or near the centre of curvature on the concave side, where the rate is about distance × curvature), Newton's step with the second derivatives is tried as well, kept when it ends nearer and the full Hessian is positive definite. A point near a cylinder's axis needed more than 30 Gauss–Newton steps; now 10.
+    - Second derivatives cost about 30 first ones (84 µs against 2.5 µs here), so they are taken only then, never for a step of rounding's size; the step's size is the one taken, after the clamp — at a domain edge the raw step keeps pointing out, and the studio's draft foot ran its 30 iterations there.
+    - Neither changes a query near the surface: the whole Gauss–Newton step is taken, as before.
+- **Kernel** `closestPointOnTriangle(p, a, b, c, out?)` in `src/triangle-bvh.ts` (Ericson 5.1.5, returning the point), beside K2's `pointTriangleDistance2`.
+- **In `@barocss/cad-model`:**
+  - `mould/draft.ts`: its pieces carry a `surfaceSeedGrid`; `foot` is `closestPointOnSurface` (its normal times the face's sense); its private `d1`, nudges and Gauss–Newton gone.
+  - `engine/trim.ts`: `nearest` is `closestPointOnSurface` from its seed (20 iterations, as before); the central differences gone.
+  - `engine/mesh.ts`: the chord measure's `invertOn` and `nearestOnGrid` replaced (seeded from the last vertex, then from a seed grid made once per face; the coarse samples' 8 iterations kept, and the seed's own distance kept when lower, as `invertOn` did).
+  - `app/measure.ts`: `closestOnTriangle` is the kernel's `closestPointOnTriangle`.
+  - Not here: the kernel's own private projections in `brep-tessellate.ts`, `offset-cavity.ts` and `rolling-ball.ts` (each on its own evaluator and seeds; tessellation is a T2 core file) — candidates for a later step, named.
+
+**Results matched** (a before/after snapshot, not kept: the draft field of a 3° cone and a filleted box, `measureChords` on the O59 SubD cube at qualities 1, 2 and 4, `projectLoop` of two circles onto a bicubic saddle):
+- The draft fields: identical, bit for bit.
+- The chord depths: within 2e-14 relative, except two faces at quality 4 that rose 1.05e-7 relative (0.3372926 → 0.3372926017). Those two are mirror images of each other: before they differed by 2e-11 (the central differences' noise), now they agree to 1e-14.
+- The trim loops' (u, v): within 1.7e-11 relative, the central differences' error.
+
+**Speed** (the same process and load; this machine's load average was 80–160 throughout, so only side-by-side figures are given):
+- 1440 queries on the SubD cube's 24 patches, 0.05 mm off them, seeded nearby: the studio's central-difference `invertOn` 70–72 ms, the kernel 38–40 ms (1.8×). The kernel's feet are nearer: the 1440 distances sum to 40.98376 against 41.00349 (the old one stopped short).
+- 240 draft-field feet on a fillet: the old foot 1.4 ms, the kernel 2.0 ms — 6 second-derivative evaluations among the 240 (the near-converged steps at a domain edge); the old foot spent 30 iterations at such edges instead.
+
+**Oracles** (`packages/barocss-cad/test/k4-closest-point.test.mjs`, 3 tests, about 2.5 s; none of them the kernel's):
+- closed-form feet on exact surfaces the part model builds: a cylinder's side (500 points inside and outside, the radial foot and distance to 1e-9, the normal radial), exactly on the rational circle's quadrant joins (no refusal), past the patch's end (the top circle's distance); a sphere (||p| − R|, to 1e-8, points from 0.2R to 2.2R); a torus (|√((ρ − R)² + y²) − r|, to 1e-8);
+- a freeform bicubic patch: the foot against a 200 × 200 parameter scan polished by window halving (never nearer than Gauss–Newton's, and within 1e-7 of it), a prebuilt grid the same, a query seeded at its own foot the same;
+- triangles: 300 random triangles and points — the point's distance squared the K2 `pointTriangleDistance2` to 1e-9, and never farther than a barycentric scan of the triangle.
+- The test fails on the previous HEAD: none of the exports existed.
+
+**Checks — T1:**
+- Kernel lint and type-check clean; `k4-closest-point` 3/3.
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; the suite 761/762 with the known `todo` (O80), 0 fail.
+- The full kernel suite, conformance, the flow and RB not run (T1); the coordinator's 4th-checkpoint T2 falls at K5.
