@@ -3784,6 +3784,34 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
+  await check('FRe a slot nut on a T-slot frame member via the chat: the member\'s interfaces listed, the nut inserted and snapped 50 along its top slot (proposed, accepted), held by a mate (O120)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const send = async (calls, ms = 120000) => {
+        const n = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: ms });
+      };
+      const member = { kind: 'frame-member', section: { kind: 'tslot', cells: 1, openSlots: 4, size: 20, opening: 6.2, lip: 1.8, undercut: 11, depth: 6.1, bore: 4.2 }, start: [0, 0, 0], end: [0, 0, 300] };
+      // (The first build of an empty part applies; the assembly's change is proposed, then accepted as the user would.)
+      await send([{ tool: 'features', args: { action: 'add', features: [member] } }, { tool: 'assembly', args: { action: 'get' } }]);
+      await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+      await send([{ tool: 'proposals', args: { action: 'propose', title: 'A slot nut', ops: [{ tool: 'assembly', args: { action: 'insert', library: 'tslot-20', part: 'slot-nut-m5' } },
+        { tool: 'assembly', args: { action: 'snap', a: { part: 'base', interface: 'b0.slot-t1' }, b: { part: 'p1', interface: 'seat' }, offset: [50, 0, 0] } }] } }]);
+      await page.waitForSelector('[aria-label="Proposal P1"]', { timeout: 15000 });
+      await page.locator('[aria-label="Proposal P1"] button', { hasText: /^Accept/ }).click();
+      await page.waitForFunction(() => window.__studioDoc.instances?.length === 1 && (window.__studioDoc.mates ?? []).length >= 1, null, { timeout: 60000 }); await idle();
+      const mates = await page.evaluate(() => window.__studioDoc.mates);
+      assert.ok(mates.some(m => /\.t1\.under0$/.test(m.a.face)), JSON.stringify(mates));
+      await page.click('[aria-label="Close chat"]');
+      await snap('fre-slot-nut');
+    } finally { chat.kill(); }
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

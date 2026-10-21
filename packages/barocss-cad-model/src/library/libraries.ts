@@ -14,6 +14,7 @@ import enclosure from './builtin/enclosure.json';
 import { checkLibraryForSharing, estimateCount, licenseOf, sharingRefusal, type LibraryCheck } from './sharing';
 import { materialContext, materialData, processProfile } from './materials';
 import { materialIdOf } from '../app/bodies';
+import { tslotInterfaces } from '../frames/interfaces';
 
 /** Where a library comes from: built into the studio, shared by a team, or the user's own. */
 export type LibrarySource = 'built-in' | 'team' | 'user';
@@ -161,14 +162,26 @@ export function regenerateLibraryNode(node: LibraryNode, overrides: { variant?: 
   return JSON.stringify(next) === JSON.stringify(node) ? null : next;
 }
 
-/** The library nodes of a part (the base document or an instance's), with their interfaces. */
-function interfaceOf(doc: StudioDoc, part: string, id: string): { itf: CadLibraryInterface; node: LibraryNode } | string {
+/**
+ * An interface of a part (the base document or an instance's): a library node's, or — `<body>.<id>` — a T-slot frame
+ * member's (FRe, O120: frames/interfaces.ts, read off its faces).
+ */
+function interfaceOf(doc: StudioDoc, part: string, id: string): { itf: CadLibraryInterface } | string {
   const pd = part === BASE ? doc : doc.instances?.find(i => i.id === part)?.doc;
   if (!pd) return `no part ${part}`;
   const nodes = pd.nodes.filter((n): n is LibraryNode => n.kind === 'library');
-  if (!nodes.length) return `${part} holds no library part`;
-  for (const node of nodes) { const itf = node.interfaces.find(x => x.id === id); if (itf) return { itf, node }; }
-  return `${part} has no interface ${id} (interfaces: ${nodes.flatMap(n => n.interfaces.map(x => x.id)).join(', ')})`;
+  for (const node of nodes) { const itf = node.interfaces.find(x => x.id === id); if (itf) return { itf }; }
+  const members = memberInterfaces(pd), dot = id.indexOf('.');
+  if (dot > 0) { const m = members.find(x => x.body === id.slice(0, dot)), itf = m?.interfaces.find(x => x.id === id.slice(dot + 1)); if (itf) return { itf }; }
+  const all = [...nodes.flatMap(n => n.interfaces.map(x => x.id)), ...members.flatMap(m => m.interfaces.map(x => `${m.body}.${x.id}`))];
+  if (!all.length) return `${part} holds no library part or T-slot frame member`;
+  return `${part} has no interface ${id} (interfaces: ${all.join(', ')})`;
+}
+/** The T-slot frame members' interfaces of a part document (its bodies evaluated), by body key. */
+export function memberInterfaces(pd: StudioDoc): { body: string; interfaces: CadLibraryInterface[] }[] {
+  if (!pd.nodes.some(n => n.kind === 'frame' || n.kind === 'frame-member')) return [];
+  const r = evaluateDoc(pd, 1); if (!r.ok) return [];
+  return r.bodies.flatMap(b => { const interfaces = tslotInterfaces(b); return interfaces ? [{ body: b.key, interfaces }] : []; });
 }
 /** Which mates two interfaces' faces make: flat faces flush, round ones on one axis. */
 const MATE_OF: Readonly<Record<string, MateKind>> = { plane: 'coincident', axis: 'concentric' };

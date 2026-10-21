@@ -4,17 +4,24 @@
 // small right triangle, a butt weld two short bars), the size before the mark, a ring at the knee where it goes all
 // round, a second ring where the bore is welded too, and the joint's W-number at the line's end (the weld list's).
 // Each joint is shown once, in the first view (front, top, right) where an edge of its end face is visible; a joint seen
-// in none is said (`unshown`). The knees along each side of a view are kept KNEE_GAP apart.
+// in none is said (`unshown`). Each is placed where its symbol (but its leader) is clear of the views, the title block and
+// the symbols before it: along its nearest side in KNEE_GAP steps from its tip, then the other sides.
 import type { WeldJoint } from '../frames/welds';
 import { inView } from './dimensions';
+import { textCorners } from './text';
 import type { Mark, MarkGroup } from './sheet';
 import { toSheet, type SheetLayout, type ViewPlacement } from './views';
 import type { BrepProjection } from '@barocss/cad';
 import type { DrawingViews, ViewId, XY } from './types';
 
 export const WELD_VIEWS: readonly ViewId[] = ['front', 'top', 'right'];
-const OUT = 7, KNEE_GAP = 7, LINE = 16, ARROW = 2.5, ARROW_HALF = 0.6, MARK = 2.4, RING = 1.1, TEXT = 2.5;
+const OUT = 7, KNEE_GAP = 7, TRIES = 12, CLEAR = 1, LINE = 16, ARROW = 2.5, ARROW_HALF = 0.6, MARK = 2.4, RING = 1.1, TEXT = 2.5;
 type Side = 'left' | 'right' | 'top' | 'bottom';
+type Rect = [number, number, number, number];
+const SIDES: readonly Side[] = ['left', 'right', 'top', 'bottom'];
+const alongOf = (side: Side) => side === 'left' || side === 'right' ? 1 : 0;
+/** The nearest side first, then the rest. */
+const sidesFrom = (first: Side): Side[] => [first, ...SIDES.filter(x => x !== first)];
 
 export interface WeldPlaced { readonly label: string; readonly joint: string; readonly view: ViewId; readonly tip: XY; readonly edge: string }
 export interface WeldSymbols { readonly groups: MarkGroup[]; readonly placed: readonly WeldPlaced[]; readonly unshown: readonly string[] }
@@ -44,20 +51,27 @@ export function weldSymbols(layout: SheetLayout, views: DrawingViews, joints: re
     }
     unshown.push(label);
   });
-  const groups: MarkGroup[] = [], placed: WeldPlaced[] = [];
-  for (const id of WELD_VIEWS) for (const side of ['left', 'right', 'top', 'bottom'] as Side[]) {
-    const here = found.filter(f => f.view === id && f.side === side), v = layout.views[id];
-    // (Along the side in order of the tips, each knee at least KNEE_GAP past the one before.)
-    const along = side === 'left' || side === 'right' ? 1 : 0;
-    here.sort((a, b) => a.tip[along] - b.tip[along]);
-    let last = -Infinity;
-    for (const f of here) {
-      const t = Math.max(f.tip[along], last + KNEE_GAP); last = t;
-      const knee = kneeOf(v, side, t);
-      groups.push({ role: 'weld', id: f.label, view: id, marks: symbolMarks(f.tip, knee, side, f.j, f.label) });
-      placed.push({ label: f.label, joint: f.j.id, view: id, tip: f.tip, edge: f.edge });
+  const groups: MarkGroup[] = [], placed: WeldPlaced[] = [], taken: Rect[] = [];
+  // (Each in turn, by view and along its side: the first knee whose symbol — but its leader — is clear of every view, the
+  // title block, the frame's edge and the symbols placed; none clear, its nearest knee, and the issue list says so.)
+  found.sort((a, b) => WELD_VIEWS.indexOf(a.view) - WELD_VIEWS.indexOf(b.view) || a.side.localeCompare(b.side) || a.tip[alongOf(a.side)] - b.tip[alongOf(b.side)]);
+  for (const f of found) {
+    const v = layout.views[f.view];
+    let best: { marks: Mark[]; box: Rect } | null = null;
+    for (const side of sidesFrom(f.side)) {
+      for (let k = 0; k <= 2 * TRIES && !best; k++) {
+        const step = k % 2 ? (k + 1) / 2 : -k / 2, t = f.tip[alongOf(side)] + step * KNEE_GAP;
+        const marks = symbolMarks(f.tip, kneeOf(v, side, t), side, f.j, f.label), box = boxOf(marks);
+        if (clear(box, layout, taken)) best = { marks, box };
+      }
+      if (best) break;
     }
+    if (!best) { const marks = symbolMarks(f.tip, kneeOf(v, f.side, f.tip[alongOf(f.side)]), f.side, f.j, f.label); best = { marks, box: boxOf(marks) }; }
+    taken.push(best.box);
+    groups.push({ role: 'weld', id: f.label, view: f.view, marks: best.marks });
+    placed.push({ label: f.label, joint: f.j.id, view: f.view, tip: f.tip, edge: f.edge });
   }
+  placed.sort((a, b) => Number(a.label.slice(1)) - Number(b.label.slice(1)));
   return { groups, placed, unshown };
 }
 
@@ -92,3 +106,28 @@ function symbolMarks(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string)
   return marks;
 }
 const ring = (c: XY, r: number): Mark => ({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'thin' });
+
+/** A symbol's box but its leader and arrow (they run into the view by design): its knee, reference line, mark, rings and texts. */
+function boxOf(marks: readonly Mark[]): Rect {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const take = (x: number, y: number) => { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; };
+  marks.forEach((m, k) => {
+    if (k < 2) return;
+    if (m.kind === 'line') { take(m.a[0], m.a[1]); take(m.b[0], m.b[1]); }
+    else if (m.kind === 'polyline') for (const p of m.points) take(p[0], p[1]);
+    else if (m.kind === 'arc') { take(m.center[0] - m.u[0], m.center[1] - m.v[1]); take(m.center[0] + m.u[0], m.center[1] + m.v[1]); }
+    else if (m.kind === 'text') for (const p of textCorners(m.at, m.text, m.size, m.anchor, m.angle ?? 0, !!m.bold)) take(p[0], p[1]);
+  });
+  return [x0, y0, x1, y1];
+}
+const meets = (a: Rect, b: Rect, gap: number) => a[0] < b[2] + gap && b[0] < a[2] + gap && a[1] < b[3] + gap && b[1] < a[3] + gap;
+/** Clear of every shown view's box, the title block, the symbols placed, and inside the frame. */
+function clear(box: Rect, layout: SheetLayout, taken: readonly Rect[]): boolean {
+  const f = layout.frame;
+  if (box[0] < f[0] + CLEAR || box[1] < f[1] + CLEAR || box[2] > f[2] - CLEAR || box[3] > f[3] - CLEAR) return false;
+  if (meets(box, layout.title, CLEAR)) return false;
+  for (const id of ['front', 'top', 'right', 'iso'] as const) { const v = layout.views[id]; if (!v.hidden && meets(box, v.box, CLEAR)) return false; }
+  if (layout.section && meets(box, layout.section.box, CLEAR)) return false;
+  for (const t of taken) if (meets(box, t, CLEAR)) return false;
+  return true;
+}
