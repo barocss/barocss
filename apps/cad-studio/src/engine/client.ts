@@ -48,7 +48,7 @@ export class EngineClient {
   restart(): void {
     this.worker.terminate();
     const error = { title: 'Stopped', hint: 'The computation was stopped.', detail: '' };
-    const cancelled = { result: { ok: false, revision: 0, error, ms: 0 }, step: { error: 'cancelled' }, drawing: { ok: false, error }, bytes: null, error: 'stopped' };
+    const cancelled = { result: { ok: false, revision: 0, error, ms: 0 }, step: { error: 'cancelled' }, drawing: { ok: false, error }, bytes: null, error: 'stopped', why: 'stopped' };
     this.progress.clear();
     for (const resolve of this.pending.values()) resolve(cancelled);
     this.pending.clear(); this.latestEval = 0; this.wire = new WireSender(); this.meshesIn = new MeshReceiver(); this.slots.clear();
@@ -81,6 +81,25 @@ export class EngineClient {
       this.pending.set(id, data => resolve((data as { result: EvalResult }).result));
       this.slots.set(id, 'section');
       this.worker.postMessage({ type: 'section', id, doc: this.wire.pack(doc), revision });
+    });
+  }
+
+  /**
+   * The mould's view (G6): its parting loops, and its two halves' bodies when asked (built in the worker); null without a
+   * pull, with why when the halves cannot be built.
+   */
+  mould(doc: StudioDoc, revision: number, halves: boolean): Promise<{ pull: [number, number, number]; loops: { points: [number, number, number][]; closed: boolean; flat: boolean }[]; why: string | null; plus: import('@barocss/cad-model/engine/evaluate').BodyResult[]; minus: import('@barocss/cad-model/engine/evaluate').BodyResult[] } | { error: string } | null> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => {
+        const d = data as { result: EvalResult; mould: { pull: [number, number, number]; loops: { points: [number, number, number][]; closed: boolean; flat: boolean }[]; why: string | null; plus: number; halves: boolean } | null; why: string | null };
+        if (d.why) { resolve({ error: d.why }); return; }
+        if (!d.mould) { resolve(null); return; }
+        const bodies = d.result.ok ? d.result.bodies : [];
+        resolve({ pull: d.mould.pull, loops: d.mould.loops, why: d.mould.why, plus: bodies.slice(0, d.mould.plus), minus: bodies.slice(d.mould.plus) });
+      });
+      this.slots.set(id, 'mould');
+      this.worker.postMessage({ type: 'mould', id, doc: this.wire.pack(doc), revision, halves });
     });
   }
 

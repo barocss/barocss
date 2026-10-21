@@ -125,6 +125,8 @@ struct VOut {
   @location(1) normal: vec3f,
   @location(2) color: vec4f,
   @location(3) uv: vec2f,
+  // A colour map's scalar (G6; 0 elsewhere).
+  @location(4) scalar: f32,
 }
 @vertex fn vs(@location(0) position: vec3f, @location(1) normal: vec3f, @location(2) color: vec4f, inst: Instance, @location(8) uv: vec2f) -> VOut {
   var o: VOut;
@@ -134,6 +136,19 @@ struct VOut {
   o.normal = (object.normalMatrix * vec4f(instanceNormal(inst, normal), 0.0)).xyz;
   o.color = color * inst.color * object.color;
   o.uv = uv;
+  o.scalar = 0.0;
+  return o;
+}
+// A colour-mapped mesh (G6): position, normal, instance and its scalar; no vertex colour or uv.
+@vertex fn vsMap(@location(0) position: vec3f, @location(1) normal: vec3f, inst: Instance, @location(9) scalar: f32) -> VOut {
+  var o: VOut;
+  let world = object.model * instanceMatrix(inst) * vec4f(position, 1.0);
+  o.clip = frame.viewProj * world;
+  o.world = world.xyz;
+  o.normal = (object.normalMatrix * vec4f(instanceNormal(inst, normal), 0.0)).xyz;
+  o.color = vec4f(1.0);
+  o.uv = vec2f(0.0);
+  o.scalar = scalar;
   return o;
 }
 
@@ -248,6 +263,29 @@ struct CapOut { @location(0) color: vec4f, @builtin(frag_depth) depth: f32 }
   o.color = vec4f(c, 1.0);
   o.depth = z;
   return o;
+}
+
+/**
+ * A colour map's colour for a scalar (G6): the map's ramp (group 2's texture, 256 texels, sRGB-decoded) across the range in
+ * materialParams.slot[0].xy, in .z bands when ≥ 1; the missing colour (slot 1) for none, the below and above colours
+ * (slots 2, 3, w 1 when set) outside the range.
+ */
+fn mapColor(v: f32) -> vec3f {
+  let p = materialParams.slot;
+  if (v < -1e37) { return p[1].rgb; }
+  if (v < p[0].x && p[2].w > 0.5) { return p[2].rgb; }
+  if (v > p[0].y && p[3].w > 0.5) { return p[3].rgb; }
+  var t = clamp((v - p[0].x) / max(p[0].y - p[0].x, 1e-30), 0.0, 1.0);
+  if (p[0].z >= 1.0) { t = min(floor(t * p[0].z), p[0].z - 1.0) / max(p[0].z - 1.0, 1.0); }
+  return textureSampleLevel(map, mapSampler, vec2f(t * (255.0 / 256.0) + 0.5 / 256.0, 0.5), 0.0).rgb;
+}
+@fragment fn fsMap(in: VOut, @builtin(front_facing) front: bool) -> @location(0) vec4f {
+  if (clippedAway(in.world)) { discard; }
+  var n = normalize(in.normal);
+  if (!front) { n = -n; }
+  let base = mapColor(in.scalar);
+  if (object.params.w > 0.5) { return vec4f(base, 1.0); }
+  return vec4f(shade(in.world, n, base, object.params.x, object.params.y, 0.0, (object.pick.z & 1u) == 1u), 1.0);
 }
 
 @fragment fn fsUnlit(in: VOut) -> @location(0) vec4f {

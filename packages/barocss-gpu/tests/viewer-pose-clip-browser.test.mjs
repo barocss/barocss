@@ -319,3 +319,80 @@ test('G3 depth-aware line picks: nothing behind a surface, everything the GPU sh
     assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
 });
+
+// G6: a scalar field and its colour map — per vertex (interpolated) and per triangle (flat), none, below and above, bands,
+// back to the material; under the clip plane the cap in its cap colour; picks read the field; nothing made per frame.
+test('G6 colour maps of scalar fields: per vertex and per triangle, missing, below, above, bands; the cap under a plane; picks read the value', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box, screen } = window, canvas = document.getElementById('c');
+      canvas.style.width = '640px'; canvas.style.height = '480px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [0, -30, 0], target: [0, 0, 0], up: [0, 0, 1], projection: 'orthographic' }, lights: [] });
+      const unlit = { color: '#808080', unlit: true };
+      // A: per vertex, the field z (−2 … 2 across a 4 mm box): blue at −2, red at 2.
+      const A = viewer.add(box(4, 4, 4).surface, { name: 'A', material: unlit, cap: true, capColor: '#00ff00', transform: api.translation([-6, 0, 0]) });
+      const zs = []; for (let v = 0; v < A.geometry.data.vertexCount; v++) zs.push(A.geometry.data.positions[3 * v + 2]);
+      A.geometry.setScalars(zs, 'vertex');
+      const ramp = { stops: [[-2, '#0000ff'], [2, '#ff0000']] };
+      A.colorMap = ramp;
+      // B: per triangle, its index (12): 0 … 11 in 4 bands of grey; its front face's two triangles: 6 none, 7 the top band.
+      const B = viewer.add(box(4, 4, 4).surface, { name: 'B', material: unlit });
+      B.geometry.setScalars(Array.from({ length: 12 }, (_, k) => k === 6 ? NaN : k === 7 ? 11 : k), 'triangle');
+      B.colorMap = { stops: [[0, '#000000'], [11, '#ffffff']], missing: '#ff00ff', bands: 4 };
+      // C: per vertex 0 … 10 by x, its range 2 … 8: below teal, above orange.
+      const C = viewer.add(box(4, 4, 4).surface, { name: 'C', material: unlit, transform: api.translation([6, 0, 0]) });
+      C.geometry.setScalars(Array.from({ length: C.geometry.data.vertexCount }, (_, v) => (C.geometry.data.positions[3 * v] + 2) * 2.5), 'vertex');
+      C.colorMap = { stops: [[2, '#000000'], [8, '#ffffff']], below: '#00ffff', above: '#ff8000' };
+      viewer.camera.fit({ min: [-9, -3, -3], max: [9, 3, 3] }, viewer.aspect);
+      await viewer.frame(); await viewer.capture(); await viewer.pick(1, 1);
+      const made0 = window.made;
+      const img = await viewer.capture();
+      const px = (p, M) => { const [x, y] = screen(viewer, p), i = (Math.round(y) * img.width + Math.round(x)) * 4; return [...img.data.slice(i, i + 3)]; };
+      // (Front faces at y −2: A's at z ±1.5 and 0; B's two front triangles; C's left, middle and right.)
+      const out = {
+        aTop: px([-6, -2, 1.9]), aBottom: px([-6, -2, -1.9]), aMiddle: px([-6, -2, 0]),
+        bLeft: px([-1, -2, 0.6]), bRight: px([1, -2, -0.6]),
+        cLeft: px([4.3, -2, 0]), cMiddle: px([6, -2, 0]), cRight: px([7.7, -2, 0]),
+      };
+      // The expected sRGB bytes of A's samples: the ramp's texels at their values (linear light).
+      const texel = v => { const i = Math.round((v + 2) / 4 * 255); return [...api.packColorMap(ramp).ramp.slice(4 * i, 4 * i + 3)]; };
+      out.want = { top: texel(1.9), bottom: texel(-1.9), middle: texel(0) };
+      // Picks: the field at the hit (A at z 1, z −0.5; B's triangle; C at x −1 → 2.5).
+      const ray = p => viewer.raycast(...screen(viewer, p)), gpu = async p => (await viewer.pick(...screen(viewer, p)));
+      out.picks = { aTop: ray([-6, -2, 1])?.scalar, aLow: ray([-6, -2, -0.5])?.scalar, aGpu: (await gpu([-6, -2, 1]))?.scalar, b6: ray([1, -2, -0.6]), b7: ray([-1, -2, 0.6]), c: ray([5, -2, 0])?.scalar };
+      out.picks.b6 = out.picks.b6 && { triangle: out.picks.b6.triangle, none: Number.isNaN(out.picks.b6.scalar) };
+      out.picks.b7 = out.picks.b7 && { triangle: out.picks.b7.triangle, scalar: out.picks.b7.scalar };
+      // Ten frames turning the camera: nothing made.
+      for (let k = 0; k < 10; k++) { viewer.camera.position = [Math.sin(k / 10) * 30, -30 * Math.cos(k / 10), 2]; await viewer.frame(); }
+      out.made = window.made - made0 - 1;
+      viewer.camera.position = [0, -30, 0];
+      // Cut across y = 0 (kept y ≥ 0), seen from the cut-away side: A's cap in its cap colour, not its map.
+      viewer.clipPlane = { normal: [0, 1, 0], offset: 0 };
+      const cut = await viewer.capture(), [kx, ky] = screen(viewer, [-6, 0, 0]), ki = (Math.round(ky) * cut.width + Math.round(kx)) * 4;
+      out.cap = [...cut.data.slice(ki, ki + 3)];
+      viewer.clipPlane = null;
+      // Back to the material: colorMap null.
+      A.colorMap = null; const back = await viewer.capture(), [bx, by] = screen(viewer, [-6, -2, 1.5]), bi = (Math.round(by) * back.width + Math.round(bx)) * 4;
+      out.material = [...back.data.slice(bi, bi + 3)];
+      viewer.dispose();
+      return out;
+    });
+    t.diagnostic(JSON.stringify(r));
+    const near = (a, b, d = 3) => a.every((x, i) => Math.abs(x - b[i]) <= d);
+    // (Per vertex, interpolated: each sample the ramp's colour at its value, within 0.02 in linear light — a pixel's step in
+    // the field moves a dark channel's sRGB byte by about five.)
+    const lin = c => c.map(x => { const v = x / 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    const nearLinear = (a, b) => lin(a).every((x, i) => Math.abs(x - lin(b)[i]) <= 0.02);
+    assert.ok(nearLinear(r.aTop, r.want.top) && nearLinear(r.aBottom, r.want.bottom) && nearLinear(r.aMiddle, r.want.middle), `A on its ramp ${JSON.stringify([r.aTop, r.aBottom, r.aMiddle, r.want])}`);
+    assert.deepEqual(r.bRight, [255, 0, 255], 'B\'s triangle 6: none, the missing colour'); assert.deepEqual(r.bLeft, [255, 255, 255], 'B\'s triangle 7: the top band');
+    assert.deepEqual(r.cLeft, [0, 255, 255], 'C below its range'); assert.deepEqual(r.cRight, [255, 128, 0], 'C above its range'); assert.ok(r.cMiddle[0] === r.cMiddle[2] && r.cMiddle[0] > 60 && r.cMiddle[0] < 200, `C's middle grey ${r.cMiddle}`);
+    assert.ok(Math.abs(r.picks.aTop - 1) < 1e-5 && Math.abs(r.picks.aLow + 0.5) < 1e-5 && Math.abs(r.picks.aGpu - 1) < 0.05, JSON.stringify(r.picks));
+    assert.ok(r.picks.b6?.triangle === 6 && r.picks.b6.none && r.picks.b7?.triangle === 7 && r.picks.b7.scalar === 11, `B's picks: none on 6, 11 on 7 ${JSON.stringify(r.picks)}`);
+    assert.ok(Math.abs(r.picks.c - 2.5) < 1e-5, JSON.stringify(r.picks));
+    assert.equal(r.made, 0, 'nothing made while the camera turns');
+    assert.deepEqual(r.cap, [0, 128, 0], 'the cap in its cap colour times the material\'s (G2b), not the map');
+    assert.deepEqual(r.material, [128, 128, 128], 'the material again');
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});

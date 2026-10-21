@@ -4,6 +4,7 @@ import { MeshSender } from '@barocss/cad-model/engine/meshWire';
 import { projectViews } from '@barocss/cad-model/drawing/project';
 import { sectionOf } from '@barocss/cad-model/drawing/section';
 import { WireReceiver, type WireDoc } from '@barocss/cad-model/engine/wireDoc';
+import { mouldView } from './mouldView';
 import { diagnoseMesh, repairMesh, stepMeshes, stepSizeProblem, stepTessellatedChars, type MeshRepairSteps } from '@barocss/cad';
 
 export type WorkerRequest =
@@ -14,6 +15,8 @@ export type WorkerRequest =
   | { type: 'placed'; id: number; doc: WireDoc; base: WireDoc; place: { m: number[]; t: [number, number, number] }; revision: number }
   | { type: 'preview'; id: number; doc: WireDoc; revision: number }
   | { type: 'section'; id: number; doc: WireDoc; revision: number }
+  /** The mould's parting loops, and its halves when asked (G6: the tooling's Booleans, off the main thread). */
+  | { type: 'mould'; id: number; doc: WireDoc; revision: number; halves: boolean }
   | { type: 'stl'; id: number; doc: WireDoc; key: string }
   | { type: 'step'; id: number; doc: WireDoc; name: string; meshes?: 'auto' | 'tessellated' | 'planar' }
   /** A STEP file's meshes when it holds nothing else (R3.5), for the repair gate. */
@@ -57,6 +60,13 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     const result = request.type === 'placed' ? evaluatePlaced(request.doc, base!, request.place, request.revision) : request.type === 'part' ? evaluatePart(request.doc, request.revision, 8, request.slot) : request.type === 'preview' || request.type === 'section' ? evaluatePreview(request.doc, request.revision, 8, request.type) : evaluateDoc(request.doc, request.revision);
     const out = meshesOut.pack(replySlot(request), result);
     (self as unknown as Worker).postMessage({ id: request.id, result: out.result }, out.transfer);
+  } else if (request.type === 'mould') {
+    // (The part's bodies as evaluated, then the view; the halves' meshes sent in a slot of their own.)
+    const part = evaluateDoc(request.doc, request.revision);
+    let view: ReturnType<typeof mouldView> = null, why: string | null = null;
+    try { view = part.ok ? mouldView(request.doc, part.bodies, request.halves) : null; } catch (e) { why = e instanceof Error ? e.message : String(e); }
+    const halves = view?.halves, out = meshesOut.pack('mould', { ok: true, revision: request.revision, ms: 0, bodies: halves ? [...halves.plus, ...halves.minus] : [] });
+    (self as unknown as Worker).postMessage({ id: request.id, result: out.result, mould: view && { pull: view.pull, loops: view.loops, why: view.why, plus: halves?.plus.length ?? 0, halves: !!halves }, why: why ?? (part.ok ? null : 'the part does not evaluate') }, out.transfer);
   } else if (request.type === 'volumes') {
     (self as unknown as Worker).postMessage({ id: request.id, volumes: evaluateVolumes(request.doc) });
   } else if (request.type === 'drawing') {

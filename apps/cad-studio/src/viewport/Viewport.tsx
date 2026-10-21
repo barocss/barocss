@@ -2,7 +2,8 @@ import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 're
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
-import { Renderer, type EdgeRef, type FaceRef, type InstanceItem, type SectionClip, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import { Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type SectionClip, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
@@ -123,6 +124,11 @@ interface Props {
   instanceTransforms?: ReadonlyMap<string, Float64Array>;
   /** The section's clip plane on the GPU (G2): kept where dot(normal, p) ≥ offset; the part's bodies cut too, or only the placed parts. */
   clip?: SectionClip | null;
+  /** Analysis maps on the bodies (G6), and the value under the pointer as it moves over them (null off them). */
+  scalarMaps?: readonly ScalarMap[] | null;
+  onHoverScalar?(value: number | null): void;
+  /** The mould's parting loops and halves (G6), or none. */
+  mould?: MouldShown | null;
   instanceSelection?: string[];
   /** Faces of instances shown picked (mate faces). */
   instanceFaces?: { id: string; body: number; face: number }[];
@@ -312,6 +318,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
   useEffect(() => { renderer.current?.setInstanceTransforms?.(props.instanceTransforms ?? null); request(); }, [props.instanceTransforms, backend]);
   useEffect(() => { renderer.current?.setClip?.(props.clip ?? null); request(); }, [props.clip, backend]);
+  useEffect(() => { renderer.current?.setScalarMaps?.(props.scalarMaps ?? null); request(); }, [props.scalarMaps, backend]);
+  useEffect(() => { renderer.current?.setMould?.(props.mould ?? null); request(); }, [props.mould, backend]);
   // (By content: the list is rebuilt on every render; the last one is kept while its content is the same.)
   const instanceFacesRef = useRef<readonly InstanceFace[]>([]);
   if (!sameInstanceFaces(instanceFacesRef.current, props.instanceFaces ?? [])) instanceFacesRef.current = props.instanceFaces ?? [];
@@ -602,6 +610,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (!sameHover(prev, next)) { hover.current = next; r.setState(viewState()); request(); }
     const point = surfacePoint(x, y, w, h, face) ?? planePoint(x, y, w, h, 0);
     propsRef.current.onCursor(point);
+    // (G6: the map's value under the pointer, for its legend.)
+    if (propsRef.current.onHoverScalar) propsRef.current.onHoverScalar(r.scalarAt?.(x, y, camera.current) ?? null);
   };
 
   const drafting = useRef(false);

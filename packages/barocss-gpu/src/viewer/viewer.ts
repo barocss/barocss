@@ -5,7 +5,7 @@
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, screenRect, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
-import { clippedRay, localPlane, prepareGeometry, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type ClippedHit, type GeometryInput, type PreparedGeometry } from './geometry.js';
+import { clippedRay, localPlane, prepareGeometry, prepareScalars, scalarAt, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type ClippedHit, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 type View = ReturnType<Texture['createView']>;
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
@@ -92,6 +92,31 @@ export interface AddMeshOptions {
 }
 /** A clip plane: what is drawn of the meshes it clips is where dot(normal, p) ≥ offset; their caps in a colour (sRGB). */
 export interface ClipPlane { normal: ArrayLike<number>; offset: number; cap?: Color }
+/**
+ * A colour map for a mesh's scalar field (G6): colours (sRGB) at values, at least two, rising; between them interpolated in
+ * linear light, across the first's and the last's values (a 256-texel ramp). Below and above them the end colours, or
+ * `below` / `above` when given; `missing` where the field has none (default mid grey); `bands` ≥ 2: that many flat steps.
+ */
+export interface ColorMap { stops: readonly (readonly [number, Color])[]; below?: Color | null; above?: Color | null; missing?: Color; bands?: number }
+/** A colour map as the GPU takes it: its ramp's 256 sRGB texels and its 16 parameters (range, bands, missing, below, above). */
+export function packColorMap(map: ColorMap): { ramp: Uint8Array; params: Float32Array } {
+  const stops = map.stops.map(([v, c]) => [v, linear(parseColor(c))] as const);
+  if (stops.length < 2 || stops.some(([v], i) => !Number.isFinite(v) || (i > 0 && !(v > stops[i - 1][0])))) throw new RangeError('A colour map needs two or more stops at rising finite values');
+  const lo = stops[0][0], hi = stops[stops.length - 1][0], ramp = new Uint8Array(256 * 4), encode = (x: number) => Math.round(Math.min(1, Math.max(0, x <= 0.0031308 ? x * 12.92 : 1.055 * Math.pow(x, 1 / 2.4) - 0.055)) * 255);
+  for (let i = 0; i < 256; i++) {
+    const v = lo + ((hi - lo) * i) / 255;
+    let k = 0; while (k < stops.length - 2 && v > stops[k + 1][0]) k++;
+    const [va, ca] = stops[k], [vb, cb] = stops[k + 1], t = Math.min(1, Math.max(0, (v - va) / (vb - va)));
+    for (let c = 0; c < 3; c++) ramp[4 * i + c] = encode(ca[c] + (cb[c] - ca[c]) * t);
+    ramp[4 * i + 3] = 255;
+  }
+  const params = new Float32Array(16), bands = map.bands && map.bands >= 2 ? Math.floor(map.bands) : 0;
+  params.set([lo, hi, bands, 0], 0);
+  params.set([...linear(parseColor(map.missing, [0.5, 0.5, 0.5])), 1], 4);
+  if (map.below) params.set([...linear(parseColor(map.below)), 1], 8);
+  if (map.above) params.set([...linear(parseColor(map.above)), 1], 12);
+  return { ramp, params };
+}
 export interface InstancesInput { transforms: ArrayLike<number>; colors?: ArrayLike<number> }
 
 /** Bytes per instance: a 4×4 transform and an RGBA8 colour (see Instance in shaders.ts). */
@@ -146,9 +171,25 @@ export class Geometry {
     if (this.gpu?.uvs) this.gpu.device.queue.writeBuffer(this.gpu.uvs, 0, this.data.uvs);
     this.owner.requestRender();
   }
+  /**
+   * A scalar field for a colour map (G6): one value per vertex (interpolated) or per triangle (drawn flat), NaN where there
+   * is none; null removes it. Meshes with a colour map show it (Mesh.colorMap); picks read it (PickHit.scalar).
+   */
+  setScalars(values: ArrayLike<number> | null, per: 'vertex' | 'triangle' = 'vertex'): void {
+    this.data.scalars = values ? prepareScalars(this.data, values, per) : null;
+    this.releaseScalars();
+    this.owner.requestRender();
+  }
+  /** @internal The field's GPU buffers (made on first draw, and again after a device loss or a new field). */
+  scalarGpu: { device: Device; positions: Buffer | null; normals: Buffer | null; values: Buffer } | null = null;
+  /** @internal */ releaseScalars(): void {
+    const s = this.scalarGpu; if (!s) return;
+    s.positions?.destroy(); s.normals?.destroy(); s.values.destroy(); this.scalarGpu = null;
+  }
   /** Release the GPU buffers (meshes using it stop drawing). */
   dispose(): void { this.disposed = true; this.release(); this.owner.forget(this); this.owner.requestRender(); }
   /** @internal */ release(): void {
+    this.releaseScalars();
     if (!this.gpu) return;
     this.gpu.positions.destroy(); this.gpu.normals?.destroy(); this.gpu.colors?.destroy(); this.gpu.uvs?.destroy(); this.gpu.indices?.destroy();
     this.gpu = null;
@@ -172,6 +213,9 @@ export class Mesh {
   /** Filled where the clip plane cuts it (a closed solid; AddMeshOptions.cap). */
   cap: boolean;
   private _capColor: Vec3 | null = null;
+  private _colorMap: (ColorMap & { packed: { ramp: Uint8Array; params: Float32Array } }) | null = null;
+  /** @internal A colour map's bind group (its ramp and parameters), for the device and map it was made for. */
+  mapState: { device: Device; map: object; texture: Texture; params: Buffer; group: BindGroup } | null = null;
   /** @internal Instances: their count, packed data, transforms, and the GPU buffer (null: not uploaded). */
   instances: { count: number; data: ArrayBuffer; matrices: Float64Array[]; buffer: Buffer | null; device: Device | null } | null = null;
   /** @internal Which outline colour of the frame (1-based; 0 none). */
@@ -241,6 +285,15 @@ export class Mesh {
     if (next === had || (next && had && next[0] === had[0] && next[1] === had[1] && next[2] === had[2])) return;
     this._capColor = next; this.touch();
   }
+  /**
+   * A colour map of its geometry's scalar field (G6; Geometry.setScalars) in place of its material's colour, lit as the
+   * surface (flat when unlit), or null for the material again. Without a field the material shows.
+   */
+  get colorMap(): ColorMap | null { return this._colorMap; }
+  set colorMap(map: ColorMap | null) { this._colorMap = map ? { ...map, packed: packColorMap(map) } : null; this.owner.requestRender(); }
+  /** @internal Whether it draws its colour map: one set, a field on its triangles, opaque. */
+  get mapped(): boolean { return !!this._colorMap && !!this.geometry.data.scalars && this.geometry.topology === 'triangles' && !this.transparent; }
+  /** @internal */ get packedMap(): { ramp: Uint8Array; params: Float32Array } | null { return this._colorMap?.packed ?? null; }
   /** Cut by the viewer's clip plane (when one is set). */
   get clipped(): boolean { return this._clipped; }
   set clipped(v: boolean) { if (v !== this._clipped) { this._clipped = v; this.touch(); } }
@@ -342,6 +395,8 @@ export interface PickHit {
   depth: number;
   /** On the clip plane's cap of the mesh (triangle and face are null then). */
   cap?: boolean;
+  /** The mesh's scalar field at the point (G6: its triangle's, or its vertices' interpolated), when it has one; NaN where none. */
+  scalar?: number;
 }
 
 export interface LineHit {
@@ -429,6 +484,8 @@ export class Viewer {
   private boundEnv: ImageTexture | null = null;
   private mipPipelines = new Map<string, Pipeline>();
   private mipSampler!: object;
+  /** The colour maps' ramp sampler (G6: linear, clamped). */
+  private rampSampler!: object;
   private textures = new Set<ImageTexture>();
   /** The one identity instance plain meshes draw with. */
   private identityInstance!: Buffer;
@@ -495,6 +552,7 @@ export class Viewer {
     this.shadowFrameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer shadow frame' });
     this.shadowSampler = (device as unknown as { createSampler(d: object): object }).createSampler({ compare: 'less', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.mipSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
+    this.rampSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.mipPipelines.clear();
     const white = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer white' });
     device.queue.writeTexture({ texture: white }, new Uint8Array([255, 255, 255, 255]), { bytesPerRow: 4 }, [1, 1]);
@@ -613,6 +671,14 @@ export class Viewer {
       depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal' },
       multisample: ms,
     }));
+    // Colour-mapped surfaces (G6): position, normal, instance, scalar (location 9); one- and two-sided.
+    for (const two of [false, true]) jobs.push(make(two ? 'litMap2' : 'litMap', {
+      vertex: { module: modules.surface, entryPoint: 'vsMap', buffers: [position, { arrayStride: 12, attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x3' }] }, instance, { arrayStride: 4, attributes: [{ shaderLocation: 9, offset: 0, format: 'float32' }] }] },
+      fragment: { module: modules.surface, entryPoint: 'fsMap', targets: [{ format: SCENE_FORMAT }] },
+      primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater-equal', depthBias: -2, depthBiasSlopeScale: -1.5 },
+      multisample: ms,
+    }));
     // Caps (G2): a kept back face seen through the cut, at the plane's depth (written by the fragment).
     jobs.push(make('litCap', {
       vertex: vertex(modules.surface),
@@ -708,6 +774,7 @@ export class Viewer {
     // Its own GPU buffers go with it (made again should it be drawn again).
     if (mesh.instances?.buffer) { mesh.instances.buffer.destroy(); mesh.instances.buffer = null; mesh.instances.device = null; }
     mesh.materialState?.params.destroy(); mesh.materialState = null;
+    mesh.mapState?.params.destroy(); mesh.mapState?.texture.destroy(); mesh.mapState = null;
     this.requestRender();
   }
 
@@ -967,6 +1034,7 @@ export class Viewer {
     if (pick) return (two ? 'pick2' : 'pick');
     if (m.geometry.topology === 'lines') return (t ? 'lineT' : 'line');
     if (mat.shadowOnly) return 'catcher';
+    if (m.mapped) return two ? 'litMap2' : 'litMap';
     const variant = `${mat.unlit ? 'unlit' : 'lit'}${two}${t}`;
     return mat.shader ? this.shaderPipeline(mat.shader, variant) : variant;
   }
@@ -1031,7 +1099,36 @@ export class Viewer {
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
     pass.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
     if (data.topology === 'lines') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount / 2); return; }
+    if (!pick && m.mapped) { this.drawMapped(pass, m); return; }
     this.drawTriangles(pass, m, !pick);
+  }
+
+  /** A colour-mapped mesh (G6): its field's buffers (a per-triangle field's own positions and normals, drawn unindexed) and its map's bind group. */
+  private drawMapped(pass: RenderPass, m: Mesh): void {
+    const g = m.geometry, data = g.data, f = data.scalars!, base = g.gpu!, n = m.instanceCount;
+    let s = g.scalarGpu;
+    if (!s || s.device !== this.device) {
+      const buf = (src: Float32Array, label: string) => { const b = this.device.createBuffer({ size: Math.max(4, src.byteLength), usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label }); this.device.queue.writeBuffer(b, 0, src); return b; };
+      s = g.scalarGpu = { device: this.device, values: buf(f.draw.values, 'scalars'), positions: f.draw.positions ? buf(f.draw.positions, 'scalar positions') : null, normals: f.draw.normals ? buf(f.draw.normals, 'scalar normals') : null };
+    }
+    pass.setVertexBuffer(0, s.positions ?? base.positions); pass.setVertexBuffer(1, s.normals ?? base.normals!); pass.setVertexBuffer(2, this.instanceBuffer(m)); pass.setVertexBuffer(3, s.values);
+    pass.setBindGroup(2, this.mapGroup2(m));
+    if (f.per === 'triangle') pass.draw(data.elementCount, n);
+    else if (base.indices) { pass.setIndexBuffer(base.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); pass.drawIndexed(data.elementCount, n); }
+    else pass.draw(data.elementCount, n);
+  }
+  /** A mesh's colour-map bind group: its ramp (sRGB texels, filtered) and its parameters, made when the map or device changes. */
+  private mapGroup2(m: Mesh): BindGroup {
+    const packed = m.packedMap!, st = m.mapState;
+    if (st && st.device === this.device && st.map === packed) return st.group;
+    st?.texture.destroy(); st?.params.destroy();
+    const texture = this.device.createTexture({ size: [256, 1], format: 'rgba8unorm-srgb', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer colour map' });
+    this.device.queue.writeTexture({ texture }, packed.ramp, { bytesPerRow: 1024 }, [256, 1]);
+    const params = this.device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer colour map params' });
+    this.device.queue.writeBuffer(params, 0, packed.params);
+    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: texture.createView() }, { binding: 1, resource: this.rampSampler }, { binding: 2, resource: { buffer: params } }] });
+    m.mapState = { device: this.device, map: packed, texture, params, group };
+    return group;
   }
 
   /** Whether a mesh's cut is capped this frame: a clip plane, an opaque closed triangle mesh it clips. */
@@ -1289,7 +1386,7 @@ export class Viewer {
     // The triangle: a ray through the pixel in the (instance's) own space (on the cap: none).
     const ray = this.camera.ray(ndcX, ndcY, this.aspect), hit = this.meshRay(mesh, mesh.instances ? instance : null, ray.origin, ray.direction);
     const faces = mesh.geometry.data.faces, tri = hit ? hit.triangle : null;
-    return { mesh, point, triangle: tri, face: tri !== null && faces ? faces[tri] : null, instance: mesh.instances ? instance : null, depth, cap: !!hit?.cap };
+    return { mesh, point, triangle: tri, face: tri !== null && faces ? faces[tri] : null, instance: mesh.instances ? instance : null, depth, cap: !!hit?.cap, ...this.scalarHit(mesh, mesh.instances ? instance : null, tri, point) };
   }
 
   /**
@@ -1300,6 +1397,12 @@ export class Viewer {
     const clip = this.clip && m.clipped ? this.clip : null;
     // (Cut open, a single-sided mesh without a cap shows no inside: the ray passes its back faces, as the draw culls them.)
     return clippedRay(m.geometry.data, this.instanceTransform(m, instance), origin, direction, clip, this.capped(m), !clip || this.capped(m) || m.material.doubleSided === true);
+  }
+
+  /** A hit's scalar (G6): the field at the point in the mesh's own space, when it has one and a triangle was hit. */
+  private scalarHit(m: Mesh, instance: number | null, triangle: number | null, point: Vec3): { scalar?: number } {
+    if (!m.geometry.data.scalars || triangle === null) return {};
+    return { scalar: scalarAt(m.geometry.data, triangle, transformPoint(invert(this.instanceTransform(m, instance)), point)) };
   }
 
   /** The world transform of a mesh, or of one of its instances. */
@@ -1342,7 +1445,7 @@ export class Viewer {
     if (!best) return null;
     const point = add(ray.origin, scale(ray.direction, best.t)), faces = best.mesh.geometry.data.faces;
     const v = transformPoint(this.camera.viewProjection(this.aspect), point);
-    return { mesh: best.mesh, point, triangle: best.triangle, face: best.triangle !== null && faces ? faces[best.triangle] : null, instance: best.instance, depth: v[2], cap: best.cap };
+    return { mesh: best.mesh, point, triangle: best.triangle, face: best.triangle !== null && faces ? faces[best.triangle] : null, instance: best.instance, depth: v[2], cap: best.cap, ...this.scalarHit(best.mesh, best.instance, best.triangle, point) };
   }
 
   /**
@@ -1463,7 +1566,7 @@ export class Viewer {
     this.resizeObserver?.disconnect();
     this.cancelScheduled();
     for (const g of this.geometries) g.release();
-    for (const m of this.meshes) { m.instances?.buffer?.destroy(); m.materialState?.params.destroy(); }
+    for (const m of this.meshes) { m.instances?.buffer?.destroy(); m.materialState?.params.destroy(); m.mapState?.params.destroy(); m.mapState?.texture.destroy(); }
     this.geometries.clear(); this.meshes = [];
     this.targets?.msaa?.destroy(); this.targets?.scene.destroy(); this.targets?.depth.destroy();
     if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.instance.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }
