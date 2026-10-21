@@ -85,26 +85,29 @@ await page.addInitScript(() => {
 // 2026-10-21, at a load average of 8–11 — the owner ran it rather than wait for a quiet machine; the GPU's with a 4 ms
 // floor, as the CPU's 2 ms; the earlier rows' submit and CPU budgets from PERF3 D18).
 const BUDGET = {
-  hover: { submits: 34, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
-  select: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 24 },
-  clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
-  orbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
-  orbitOutlined: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 6 },
-  pose: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 20, kb: 8, buffers: 4, gpuMS: 32 },
-  cloud: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 8, kb: 6, buffers: 4, gpuMS: 6 },
-  explode: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 28, kb: 128, buffers: 4, gpuMS: 44 },
-  sectionGpu: { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 8, buffers: 4, gpuMS: 44 },
+  // (G13, 2026-10-22: every row re-measured, three runs alone at a load of 12–15 — the machine had no quieter window
+  // with the other lanes running — the GPU's own time now from timestamps (no longer the queue's wait); about twice the
+  // worst of the three, the GPU's with a 3 ms floor. The 100 000-voxel cloud is the one row the GPU's time leads: 8.2 ms.)
+  hover: { submits: 34, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
+  select: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
+  clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
+  orbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
+  orbitOutlined: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 5 },
+  pose: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3 },
+  cloud: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 3 },
+  explode: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 128, buffers: 4, gpuMS: 4 },
+  sectionGpu: { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 33, kb: 5, buffers: 4, gpuMS: 6 },
   sectionCpu: { submits: 140, avgFrameMS: 2 },
-  // (G7, set at load 12 — the pre-G7 SVG path took 30 ms of task a frame here; G13 re-measures on a quiet machine.)
-  // (G8, set at load 32–53, about twice: SVG squares took 55 ms of task a frame here; G13 re-measures.)
-  cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 8, kb: 6, buffers: 4, gpuMS: 14 },
-  underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 16, kb: 6, buffers: 4, gpuMS: 14 },
-  // (G9: the pointer's picks over 120 brackets; a frame only when the hovered thing changes.)
-  hoverMany: { submits: 64, avgFrameMS: 2, perFrame: 1 },
-  pickMany: { submits: 4, avgFrameMS: 2, perFrame: 1 },
-  // (G10: a patterned assembly opened — what it uploads and keeps.)
-  pattern: { submits: 400, avgFrameMS: 4 },
-  // (G11: the 120 brackets see-through, orbited: 2.8 ms of GPU at load 13, the budget about twice — the 120-bracket rows' is 44.)
+  // (G7: the pre-G7 SVG path took 30 ms of task a frame here.)
+  underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 16, kb: 5, buffers: 4, gpuMS: 4 },
+  // (G8: SVG squares took 55 ms of task a frame here.)
+  cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 17 },
+  // (G9: the pointer's picks over 120 brackets — a frame only when the hovered thing changes; the task is the App's.)
+  hoverMany: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 140 },
+  pickMany: { submits: 4, avgFrameMS: 2, perFrame: 1, taskMS: 90, gpuMS: 5 },
+  // (G10: a patterned assembly opened.)
+  pattern: { submits: 8, avgFrameMS: 2, perFrame: 1 },
+  // (G11: the 120 brackets see-through, orbited.)
   ghost: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
 };
 const os = await import('node:os'), loadAtStart = os.loadavg()[0];
