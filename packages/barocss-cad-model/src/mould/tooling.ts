@@ -11,16 +11,16 @@
 // splitFaceAlongCurve); a sloped or curved parting line, or a riser off the axis planes, is IM7b's.
 import type { StudioDoc, Axis } from '../engine/doc';
 import { withNode } from '../engine/doc';
-import { evaluateDoc, type BodyResult } from '../engine/evaluate';
+import { evaluateDoc, partBreps, type BodyResult } from '../engine/evaluate';
 import type { Vec3 } from '../engine/mesh';
 import { refOf } from '../app/bodyRef';
-import { rayHit, triangleBvh } from '@barocss/cad';
-import type { PartingReport } from './parting';
+import { pointTriangleDistance2, rayHit, triangleBvh } from '@barocss/cad';
+import { partingLine, type Half, type PartingReport } from './parting';
 import type { UndercutRegion } from './undercut';
 
 export type ToolingCode = 'MOULD_NO_PULL' | 'MOULD_PULL_AXIS' | 'MOULD_ONE_BODY' | 'MOULD_STRADDLE' | 'MOULD_NO_PARTING' | 'MOULD_STEPPED' | 'MOULD_BUILD';
 /** What each waiting code waits for: the kernel's face split (D149), or the next stage (IM7b). */
-export const WAITS_FOR: Readonly<Partial<Record<ToolingCode, string>>> = { MOULD_STRADDLE: 'the kernel\'s face split (D149, splitFaceAlongCurve)', MOULD_STEPPED: 'a parting surface off the axis planes (IM7b)' };
+export const WAITS_FOR: Readonly<Partial<Record<ToolingCode, string>>> = { MOULD_STRADDLE: 'splitStraddles, the kernel\'s isocline split (D149)', MOULD_STEPPED: 'a parting surface off the axis planes (IM7b)' };
 export interface ShutOff { readonly at: number; readonly lengthMM: number; readonly areaMM2: number; readonly centroid: Vec3 }
 export interface SideCore { readonly faces: readonly string[]; readonly direction: Vec3; readonly areaMM2: number; readonly centroid: Vec3 }
 export interface ToolingPlan {
@@ -45,21 +45,63 @@ const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 const AXES: readonly Axis[] = ['x', 'y', 'z'];
 const refusal = (sideCores: readonly SideCore[], stuck: ToolingPlan['stuck']) => (code: ToolingCode, message: string): ToolingResult => ({ ok: false, code, message, waitsFor: WAITS_FOR[code] ?? null, sideCores, stuck });
 
+/**
+ * IM7b (O113): the straddling faces split first. A display face IM5 finds straddling the pull is one or more of the
+ * kernel's faces (a full cylinder's side is two half-faces under one name): each is split along its isocline n·d = 0
+ * for the pull, a `split-face` node in the document's history (the kernel's D149; pieces `<face>#1` on the + side, …);
+ * one the kernel finds one-sided already (NO_SPLIT: its seam on the isocline) needs none. IM5's parting line, which
+ * traces the isocline across a straddling face, then holds as the halves' line. Any other refusal is said with its tag.
+ */
+export function splitStraddles(doc: StudioDoc, bodies: readonly BodyResult[], pull: readonly number[], sides: Readonly<Record<string, Half>> = {}):
+  { ok: true; doc: StudioDoc; bodies: BodyResult[]; parting: PartingReport; split: string[]; resolved: string[] } | { ok: false; code: 'MOULD_STRADDLE'; message: string } {
+  const parting = partingLine(doc, bodies, pull, sides), straddling = [...new Set(parting.split.map(x => x.face))];
+  if (!straddling.length || bodies.length !== 1) return { ok: true, doc, bodies: [...bodies], parting, split: [], resolved: [] };
+  let breps: { key: string; brep: { faces: readonly { name?: string }[] } }[] = [];
+  try { breps = partBreps(doc) as never; } catch { return { ok: false, code: 'MOULD_STRADDLE', message: 'no exact B-rep to split the straddling faces on' }; }
+  const brep = breps.find(b => b.key === bodies[0].key)?.brep ?? breps[0]?.brep;
+  let d = doc, at = refOf(bodies[0]), last: BodyResult[] = [...bodies];
+  const split: string[] = [];
+  for (const face of straddling) {
+    const names = (brep?.faces ?? []).map(f => f.name ?? '').filter(n => n === face || n.startsWith(`${face}#`));
+    if (!names.length) return { ok: false, code: 'MOULD_STRADDLE', message: `${face}: no exact face of that name to split` };
+    for (const name of names) {
+      const tried = withNode(d, { kind: 'split-face', parent: at, face: name, pull: [pull[0], pull[1], pull[2]] }), r = evaluateDoc(tried, 1);
+      if (r.ok) { d = tried; at = { node: d.nodes.length - 1, side: 'solid' }; last = r.bodies; split.push(name); continue; }
+      const why = String((r.error as { detail?: string }).detail ?? JSON.stringify(r.error));
+      // (One-sided already — its seam on the isocline, as a full cylinder drawn with its seam across the pull: no split;
+      // the kernel says NO_SPLIT, or ON_BOUNDARY with the face wholly on one side.)
+      if (/\[NO_SPLIT\]/.test(why) || (/\[ON_BOUNDARY\]/.test(why) && /wholly on one side/.test(why))) continue;
+      return { ok: false, code: 'MOULD_STRADDLE', message: `${name} would not split along its isocline: ${why.slice(0, 240)}` };
+    }
+  }
+  // (On the split part a display face carries its kernel pieces' name, `<face>#k`: those are resolved too.)
+  const after = split.length ? partingLine(d, last, pull, sides) : parting;
+  const resolved = [...new Set([...straddling, ...after.split.map(x => x.face).filter(n => straddling.some(f => n === f || n.startsWith(`${f}#`)))])];
+  return { ok: true, doc: d, bodies: last, parting: after, split, resolved };
+}
+
 /** The halves' plan, from IM5's parting line and IM3's undercuts at the pull. */
-export function toolingPlan(bodies: readonly BodyResult[], pull: readonly number[] | null, parting: PartingReport | null, regions: readonly UndercutRegion[], marginMM = MARGIN_ESTIMATE_MM): ToolingResult {
+export function toolingPlan(bodies: readonly BodyResult[], pull: readonly number[] | null, parting: PartingReport | null, regions: readonly UndercutRegion[], marginMM = MARGIN_ESTIMATE_MM, resolved: readonly string[] = []): ToolingResult {
   const sideCores: SideCore[] = regions.filter(r => r.sideAction).map(r => ({ faces: r.faces, direction: r.sideAction!, areaMM2: r6(r.areaMM2), centroid: r.centroid.map(r6) as Vec3 }));
   const stuck = regions.filter(r => !r.sideAction).map(r => ({ faces: r.faces, areaMM2: r6(r.areaMM2) })), refuse = refusal(sideCores, stuck);
   if (!pull || !parting) return refuse('MOULD_NO_PULL', 'no pull direction: the halves part along it');
   const k = pull.findIndex(v => Math.abs(Math.abs(v) - 1) <= 1e-9);
   if (k < 0 || pull.some((v, i) => i !== k && Math.abs(v) > 1e-9)) return refuse('MOULD_PULL_AXIS', 'the halves here are cut across an axis: a pull along ±X, ±Y or ±Z');
   if (bodies.length !== 1) return refuse('MOULD_ONE_BODY', `a mould of one body; the part has ${bodies.length}`);
-  if (parting.split.length) return refuse('MOULD_STRADDLE', `${parting.split.length} face${parting.split.length === 1 ? '' : 's'} straddle the pull (${parting.split.map(s => s.face).join(', ')}): each must be split along its isocline, which waits for ${WAITS_FOR.MOULD_STRADDLE} — or put the whole face in one half (sides)`);
+  const unsplit = parting.split.filter(x => !resolved.includes(x.face));
+  if (unsplit.length) return refuse('MOULD_STRADDLE', `${unsplit.length} face${unsplit.length === 1 ? '' : 's'} straddle the pull (${[...new Set(unsplit.map(x => x.face))].join(', ')}), not split along the isocline: split them first (${WAITS_FOR.MOULD_STRADDLE}) — or put the whole face in one half (sides)`);
   if (!parting.loops.length) return refuse('MOULD_NO_PARTING', 'no parting line: every face in one half');
   const s = pull[k] > 0 ? 1 : -1 as 1 | -1, size = Math.max(...[0, 1, 2].map(i => bodies[0].mesh.bounds.max[i] - bodies[0].mesh.bounds.min[i])), tol = 1e-4 * (1 + size);
-  if (parting.loops.some(l => !l.flat)) return refuse('MOULD_STEPPED', `a parting loop not across the pull in one plane (${parting.loops.filter(l => !l.flat).map(l => `${r6(l.rangeMM[0])} … ${r6(l.rangeMM[1])}`).join('; ')}): a sloped or curved parting line waits for ${WAITS_FOR.MOULD_STEPPED}`);
-  // (The loops' heights along the pull, merged within the tolerance: each a plane across the pull, at s · height on the axis.)
+  // (Each loop's height: a flat loop's own; IM7b (O113): a loop that climbs only along walls of the pull — a rod's end
+  // caps above its split isocline — takes the height of its runs across the pull, the cut plane crossing those walls.)
+  const levelOf = new Map<PartingReport['loops'][number], number>();
+  for (const l of parting.loops) {
+    const lv = l.flat ? l.rangeMM[0] : loopLevel(l.points, bodies[0], pull, tol);
+    if (lv === null) return refuse('MOULD_STEPPED', `a parting loop not across the pull in one plane (${r6(l.rangeMM[0])} … ${r6(l.rangeMM[1])}), climbing across faces that are not along the pull: it waits for ${WAITS_FOR.MOULD_STEPPED}`);
+    levelOf.set(l, lv);
+  }
   const heights: number[] = [];
-  for (const l of [...parting.loops].sort((a, b) => a.rangeMM[0] - b.rangeMM[0])) if (!heights.length || l.rangeMM[0] - heights[heights.length - 1] > tol) heights.push(l.rangeMM[0]);
+  for (const h of [...levelOf.values()].sort((a, b) => a - b)) if (!heights.length || h - heights[heights.length - 1] > tol) heights.push(h);
   const at = (h: number) => r6(s * h);
   // IM7a (O111): between two heights the halves meet on a riser — a flat wall (along the pull) of the part running from
   // one parting height to the other; its plane, across an axis, cuts the block too.
@@ -69,13 +111,36 @@ export function toolingPlan(bodies: readonly BodyResult[], pull: readonly number
   const outer = [...parting.loops].sort((a, b) => b.lengthMM - a.lengthMM)[0];
   const b = bodies[0].mesh.bounds, min = [0, 1, 2].map(i => r6(b.min[i] - marginMM)), max = [0, 1, 2].map(i => r6(b.max[i] + marginMM));
   // (A shut-off: a closed loop inside another at its height — smaller, a point of it within — the halves touching across an opening there.)
-  const loops = parting.loops.map(l => ({ at: at(l.rangeMM[0]), points: l.points }));
-  const shutOffs: ShutOff[] = parting.loops.filter(l => l.closed && parting.loops.some(o => o !== l && Math.abs(o.rangeMM[0] - l.rangeMM[0]) <= tol && loopArea(l.points, k) < loopArea(o.points, k) && inside(l.points[0], o.points, k))).map(l => ({ at: at(l.rangeMM[0]), lengthMM: r6(l.lengthMM), areaMM2: r6(loopArea(l.points, k)), centroid: loopCentroid(l.points, k, at(l.rangeMM[0])) }));
+  const loops = parting.loops.map(l => ({ at: at(levelOf.get(l)!), points: l.points }));
+  const shutOffs: ShutOff[] = parting.loops.filter(l => l.closed && parting.loops.some(o => o !== l && Math.abs(levelOf.get(o)! - levelOf.get(l)!) <= tol && loopArea(l.points, k) < loopArea(o.points, k) && inside(l.points[0], o.points, k))).map(l => ({ at: at(levelOf.get(l)!), lengthMM: r6(l.lengthMM), areaMM2: r6(loopArea(l.points, k)), centroid: loopCentroid(l.points, k, at(levelOf.get(l)!)) }));
   const notBuilt = [...(sideCores.length ? [`${sideCores.length} side core${sideCores.length === 1 ? '' : 's'}: their directions given, their bodies not built`] : []),
     'no gate, runner, cooling, ejectors or mould base: the halves are the impression only'];
-  return { ok: true, plan: { pull: pull.map(r6) as Vec3, axis: AXES[k], sign: s, planeAt: at(outer.rangeMM[0]), levels: heights.map(at), cuts, loops, marginMM, block: { min, max }, shutOffs, sideCores, stuck, notBuilt } };
+  return { ok: true, plan: { pull: pull.map(r6) as Vec3, axis: AXES[k], sign: s, planeAt: at(levelOf.get(outer)!), levels: heights.map(at), cuts, loops, marginMM, block: { min, max }, shutOffs, sideCores, stuck, notBuilt } };
 }
 
+/**
+ * A non-flat loop's height (IM7b, O113): its runs across the pull all at one height, and every run that climbs lying on
+ * a face along the pull (its display normals ⟂ the pull: the cut plane crosses it anywhere); else null.
+ */
+function loopLevel(points: readonly Vec3[], body: BodyResult, pull: readonly number[], tol: number): number | null {
+  const m = body.mesh, P = m.positions, N = m.normals, F = m.faceOfVertex, I = m.indices, wall = new Uint8Array(m.faces.length).fill(1);
+  for (let v = 0; v < F.length; v++) if (Math.abs(N[3 * v] * pull[0] + N[3 * v + 1] * pull[1] + N[3 * v + 2] * pull[2]) > 1e-4) wall[F[v]] = 0;
+  const h = (p: readonly number[]) => p[0] * pull[0] + p[1] * pull[1] + p[2] * pull[2];
+  let level: number | null = null;
+  for (let i = 0; i + 1 < points.length; i++) {
+    const a = points[i], b = points[i + 1];
+    if (Math.abs(h(a) - h(b)) <= tol) { if (level === null) level = h(a); else if (Math.abs(level - h(a)) > tol) return null; continue; }
+    // (A climbing run: its middle on a wall's triangle, to the mesh's precision.)
+    const q = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
+    let on = false;
+    for (let t = 0; t < I.length && !on; t += 3) {
+      if (!wall[F[I[t]]]) continue;
+      on = pointTriangleDistance2(P, I, t / 3, q[0], q[1], q[2]) <= 1e-6;
+    }
+    if (!on) return null;
+  }
+  return level;
+}
 /** The flat walls along the pull from one parting height to another, as axis planes; or what is missing. */
 function risersOf(body: BodyResult, pull: readonly number[], heights: readonly number[], tol: number): { cuts: { axis: Axis; at: number }[]; missing: string | null } {
   const m = body.mesh, P = m.positions, F = m.faceOfVertex, lo = new Float64Array(m.faces.length).fill(Infinity), hi = new Float64Array(m.faces.length).fill(-Infinity);

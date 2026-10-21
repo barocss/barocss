@@ -10,14 +10,16 @@ import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/do
 import { withLook } from '@barocss/cad-model/app/bodies';
 import { printability } from '@barocss/cad-model/print/rules';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { partingLine, type Half } from '@barocss/cad-model/mould/parting';
+import type { Half } from '@barocss/cad-model/mould/parting';
 import { undercuts } from '@barocss/cad-model/mould/undercut';
-import { mouldHalves, toolingPlan } from '@barocss/cad-model/mould/tooling';
+import { mouldHalves, splitStraddles, toolingPlan } from '@barocss/cad-model/mould/tooling';
 
 // IM7 S0 (O110): a mould's halves where no face needs a split, against closed forms — a 60 × 40 × 10 plate with a Ø10
 // through hole moulded along +Z: its parting plane at the top (z = 10), the hole's rim a shut-off of area π·5²; the
 // block (10 mm a side) less the part cut there: the moving half 80 · 60 · 10, the fixed half 80 · 60 · 20 − (24000 −
-// 250π), together the block less the part. Refused with what each waits for: a cylinder across the pull straddles (D149).
+// 250π), together the block less the part. IM7b (O113): a rod across the pull, its side split along its isocline first (the
+// kernel's D149) where its seam is not already on it, then moulded on the plane through its axis, each half 70·40·20 − 2500π;
+// a rod tilted 45° slopes its parting line across faces not along the pull — MOULD_STEPPED, said.
 // A side hole's side core: its direction across the pull, given on the refusal too. IM7a (O111): a cup's inside goes to
 // the moving half as its core (by the rays: open above, on the part below), whichever half its walls were given; a
 // stepped block's halves meet on its riser — each case's halves summing to the block less the part to 1e-6.
@@ -35,7 +37,15 @@ const moulded = (doc: StudioDoc, sides?: Record<string, Half>): StudioDoc => {
   return withLook(d, bodiesOf(d)[0], { material: 'abs' });
 };
 const sum = (bs: readonly BodyResult[]) => bs.reduce((t, b) => t + b.volumeMM3!, 0);
-const plan = (d: StudioDoc) => { const b = bodiesOf(d), pull = d.mould!.pull!; return toolingPlan(b, pull, partingLine(d, b, pull, d.mould?.sides ?? {}), undercuts(b, pull).regions); };
+/** The plan after IM7b's isocline splits (O113): with the split document and bodies the halves are built on. */
+function mould(d: StudioDoc) {
+  const b = bodiesOf(d), pull = d.mould!.pull!, sp = splitStraddles(d, b, pull, d.mould?.sides ?? {});
+  if (!sp.ok) return { p: { ok: false as const, code: sp.code, message: sp.message, waitsFor: null, sideCores: [], stuck: [] }, doc: d, bodies: b, split: [] as string[] };
+  return { p: toolingPlan(sp.bodies, pull, sp.parting, undercuts(sp.bodies, pull).regions, 10, sp.resolved), doc: sp.doc, bodies: sp.bodies, split: sp.split };
+}
+const plan = (d: StudioDoc) => mould(d).p;
+/** A rod Ø20 × 50 along X (its circle's seam along xAxis), and one tilted 45° in XZ. */
+const rodAlong = (xAxis: [number, number, number], normal: [number, number, number] = [1, 0, 0]) => withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal, xAxis } } as never), { kind: 'extrude', sketch: 0, height: 50 });
 const holed = () => build([cmd('box', { w: 60, d: 40, h: 10, x: 0, y: 0, z: 0 }), cmd('hole', { d: 10, x: 30, y: 20 }, { faces: ['n1.top'] })]);
 
 test('IM7 S0 a plate with a Ø10 through hole along +Z: one flat parting plane at z = 10; the hole\'s rim a shut-off (π·5² within the chord); no side core; the block 10 mm a side (an estimate)', async () => {
@@ -58,9 +68,20 @@ test('IM7 S0 the halves: the block less the part cut at z = 10 — the moving ha
   assert.ok(h.plus.every(b => b.mesh.bounds.min[2] >= 10 - 1e-6) && h.minus.every(b => b.mesh.bounds.max[2] <= 10 + 1e-6), 'each half on its side of the plane');
 });
 
-test('IM7 S0 refused with what it waits for: a cylinder across the pull straddles — the kernel\'s face split (D149)', async () => {
-  const rod = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } } as never), { kind: 'extrude', sketch: 0, height: 50 });
-  const across = plan(moulded(rod)); assert.ok(!across.ok && across.code === 'MOULD_STRADDLE' && /D149, splitFaceAlongCurve/.test(across.waitsFor!), JSON.stringify(across));
+test('IM7b a rod across the pull (Ø20 × 50 along X): its side split along its isocline (D149) where its seam is off it, none needed where its seam is on it; either way the plane through its axis (z = 0), each half 70·40·20 − 2500π, the block less the part to 1e-6', async () => {
+  const block = 70 * 40 * 40, part = 2500 * Math.PI * 2, half = 70 * 40 * 20 - 2500 * Math.PI;
+  for (const [xAxis, splits] of [[[0, 1, 0], 0], [[0, 0, 1], 2]] as const) {
+    const m = mould(moulded(rodAlong([...xAxis]))); assert.ok(m.p.ok, JSON.stringify(m.p));
+    assert.equal(m.split.length, splits, `seam along ${xAxis}: ${m.split.join(', ')}`);
+    assert.equal(m.doc.nodes.filter(n => n.kind === 'split-face').length, splits, 'the splits in the document\'s history');
+    assert.deepEqual([m.p.plan.levels, m.p.plan.cuts], [[0], [{ axis: 'z', at: 0 }]]);
+    const h = mouldHalves(m.doc, m.bodies, m.p.plan); assert.ok(h.ok, JSON.stringify(h));
+    assert.ok(Math.abs(sum(h.plus) - half) <= 1e-6 * block && Math.abs(sum(h.minus) - half) <= 1e-6 * block, `${sum(h.plus)} ${sum(h.minus)} vs ${half}`);
+    assert.ok(Math.abs(sum(h.plus) + sum(h.minus) - (block - part)) <= 1e-6 * block);
+  }
+  // (Tilted 45° in XZ: its isocline lines slope, across faces not along the pull — a parting surface off the axis planes.)
+  const tilted = plan(moulded(rodAlong([0, 1, 0], [Math.SQRT1_2, 0, Math.SQRT1_2])));
+  assert.ok(!tilted.ok && tilted.code === 'MOULD_STEPPED' && /off the axis planes/.test(tilted.waitsFor!), JSON.stringify(tilted).slice(0, 300));
 });
 
 test('IM7a a cup (60 × 40 × 25 shelled 2, open at the top): its inside the moving half\'s core — with its walls in the fixed half (the parting line stepped 2 and 25, the inner walls the risers) or in the moving one (the rim the one plane); either way the moving half 46368 + 48000, the fixed 108000, the block less the part to 1e-6', async () => {
@@ -100,11 +121,10 @@ test('IM7 S0 side cores: a block with a side hole along X — its side core\'s d
   assert.equal(ok.status, 'pass'); assert.match(ok.message, /two halves on a flat parting plane \(z = 10\): 1 shut-off, 0 side cores/);
 });
 
-test('IM7 S0 cad-cli mould: the holed plate — exit 0, mould.json (the plane, the halves\' volumes, the shut-off, the margin an estimate) and mould.step of two solids; the rod across the pull — exit 1, MOULD_STRADDLE, waiting for D149', async () => {
+test('IM7 S0 cad-cli mould: the holed plate — exit 0, mould.json (the plane, the halves\' volumes, the shut-off, the margin an estimate) and mould.step of two solids; the rod tilted 45° — exit 1, MOULD_STEPPED (a parting surface off the axis planes)', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'im7-')), part = join(dir, 'plate.bcad'), rodFile = join(dir, 'rod.bcad');
   writeFileSync(part, encodeStudioFile(moulded(await holed())));
-  const rod = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } } as never), { kind: 'extrude', sketch: 0, height: 50 });
-  writeFileSync(rodFile, encodeStudioFile(moulded(rod)));
+  writeFileSync(rodFile, encodeStudioFile(moulded(rodAlong([0, 1, 0], [Math.SQRT1_2, 0, Math.SQRT1_2]))));
   const cli = (...a: string[]) => spawnSync(process.execPath, [join(process.cwd(), 'scripts/cad-cli.mjs'), 'mould', ...a], { encoding: 'utf8', timeout: 180000 });
   let r = cli(part, '-o', join(dir, 'out'));
   assert.equal(r.status, 0, r.stderr + r.stdout);
@@ -112,5 +132,5 @@ test('IM7 S0 cad-cli mould: the holed plate — exit 0, mould.json (the plane, t
   assert.deepEqual([j.format, j.axis, j.planeAt, j.shutOffs.length, j.halves.plus.volume_mm3, j.margin.basis], ['barocss-mould', 'z', 10, 1, 48000, 'estimate']);
   const step = readFileSync(join(dir, 'out/mould.step'), 'utf8');
   assert.ok(step.startsWith('ISO-10303-21;') && (step.match(/MANIFOLD_SOLID_BREP/g) ?? []).length === 2, 'two solids');
-  r = cli(rodFile, '-o', join(dir, 'none')); assert.equal(r.status, 1); assert.match(r.stdout, /MOULD_STRADDLE/); assert.match(r.stdout, /D149/);
+  r = cli(rodFile, '-o', join(dir, 'none')); assert.equal(r.status, 1); assert.match(r.stdout, /MOULD_STEPPED/); assert.match(r.stdout, /off the axis planes/);
 });

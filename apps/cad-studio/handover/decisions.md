@@ -8145,3 +8145,55 @@ Nothing is classified and nothing is merged (merging would join the pieces again
 - App tsc clean (70 s). Studio 792/792 (216 s, beside the baseline run).
 - The full browser flow, on its own: 217/217, 717 s.
 - RB: in the rows commit after this one.
+
+## D150 — the 6° bevel pair: a general face's domain map across C0 knots (2026-10-21)
+
+Kernel-lane queue item 3 (D134). The exact intersection of the 16/20 straight bevel pair turned 6° off was refused: "not a manifold solid (edge … has 1 uses; the inputs touch along an edge or at a vertex)". 3°, 4°, 5° and 9° worked. The coordinator asked for a minimal reproduction first, then a fix or a typed refusal. **Fixed.**
+
+**Reproduction:**
+- Each gear is cropped (an exact intersection) to a 1.6 mm box about the failing edge, (18.172, −3.677, 16.515). That leaves 7 and 11 faces.
+- Their intersection fails the same way in 1.3 s, against 21 s for the whole pair.
+- The corner is where the two flanks (`p.flankL2`, `w.flankR`) and the toe sphere that both gears share (`p.toe`, `w.toe`, one surface) all meet.
+
+**Cause, found by narrowing:**
+- **Not the cuts.** The flank–flank cut ends exactly at the triple point. The toe edges meet there at 33°, not at a grazing angle. Both toes' arrangements cross the two toe edges at that point.
+- **The failing edge** runs from the triple point to Q, 9.7e-4 mm along `w.flankR|w.toe`. It is a piece of that edge, used only by `w.flankR`'s piece.
+- **The flank's own domain map of that edge was off.** In `w.flankR`'s domain the arrangement split the edge at the right domain point. Mapping that point back through the edge's parameter, which is how `stitch` cuts a source edge, landed 9.7e-4 mm away.
+- **The 129-sample Hermite table** (`tabulated`) of the edge's map into the flank's domain was 1.75e-3 mm off beside t = 0.5:
+  - The edge is two degree-4 spans joined C0 at t = 0.5 (knot multiplicity 4).
+  - The flank surface is two spans joined C0 along u = 1, the same line.
+  - The sample at t = 0.5 took one central-difference tangent across both joins, so both intervals beside it were wrong.
+- The 6° phase only puts the corner within that interval. That explains why the other phases worked.
+
+**Fix** (`analytic-boolean.ts`, `tabulated`, the map of a curve into a general face's domain):
+- The source curve's interior knots (`breaks`, passed by `curve2` for a source edge) become samples of the table, in place of the uniform sample within 1e-9 of each.
+- At such a sample the table keeps a tangent from each side: one-sided second-order differences of the curve, each within its own span.
+- Each side's surface Jacobian is taken toward that side of the domain. Across a C0 knot line of the surface, the two sides' Jacobians differ.
+- Hermite runs piece by piece; evaluation finds its interval by binary search over the now uneven samples. Pole samples keep their derivative from their neighbours (second-order, for uneven spacing).
+- With this, that edge's map is within 8e-8 mm. Curves without knots are tabulated exactly as before.
+
+**Oracles** (`test/d150-bevel-pair.test.mjs`):
+- **The cropped corner** (default run, about 6 s): the result is valid (checkBrep), with 7 and 11 faces in, and the volume 0.70557 mm³. A voxel count of the two tessellated bodies, inside both by ray parity (K6, h 0.005), gives 0.7037, within 0.5%.
+  - The count converges from below: 0.7003, 0.7037 and 0.7053 at h 0.01, 0.005 and 0.0025. It never runs the analytic Boolean.
+  - This test fails on the previous HEAD with D134's message.
+- **Survey** (`GEAR_SURVEY=1`): the whole pair at 3°, 4°, 5°, 6° and 9° — each valid, the volume growing with the phase: 24.360, 38.986, 52.939, 66.393, 88.075 mm³. The four that worked before are unchanged from D134 (24.4–88.1). Each takes 26–46 s.
+- **Conformance** `conformance/bp/bevel-6deg-corner`: the cropped corner as a part document. The volume, centroid and area are pinned to 1e-6 (this kernel's values, the voxel cross-check in the test), with names, topology and a STEP round trip.
+- `gear-bevel.test.mjs`'s note about 6° now points here.
+
+**Side note:** the corner's result has 9 faces and 258 edges. Its traced cuts are stored as many fitted pieces (`fitPieces`). Not looked into here.
+
+**Checks** (`analytic-boolean.ts` is brep core, so the full kernel suite ran), on 2d85090e7 plus this change. The verification rules changed during the run (the coordinator's v2); what was run and what was not:
+
+Ran:
+- Kernel lint and type-check: clean.
+- `d150-bevel-pair`: 1 pass, plus the survey (skipped by default). The test fails on b435c0b87 (run there before the fix).
+- Conformance `bp/`: 1/1 (7 s).
+- The full kernel suite, conformance included: 1418/1424, 5 skipped, 338 s. Only the env-only "actual native Split source…" fails.
+- `@barocss/cad-model`: 626/626, 88 s on its own. An earlier run beside other suites failed the modelled thread's 8 s budget at 9.8 s; alone it takes 3.05 s on both trees.
+- Studio: 181/181, 51 s. App tsc: clean, 31 s.
+- Test names: diffed once against a b435c0b87 run of all three suites, before rule 1. The union 2228 → 2231: none missing, the 3 new ones added. From now on, this run's passing names are saved per suite (scratchpad `names/`) for the next diff.
+- `FLOW_ONLY` for the steps that run Booleans on general faces (bevel, spiral bevel and worm gears, R12b.7, R10.x, R11.x, fillet, loft, sweep): 40/40, 235 s.
+
+Not run (rules v2):
+- The full browser flow: stopped partway when the rules arrived. The coordinator runs it on integration.
+- RB and properties: this is not a 4th kernel checkpoint.
