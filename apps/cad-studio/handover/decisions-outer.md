@@ -4867,4 +4867,5 @@ Owner, relayed by the coordinator: "FR 에서 1, 2, 3, 모두 하고 그 밖에 
   - The mitred L on a row is the same as with the section inline: volumes, centroids and boxes exactly.
   - Two straight frames on R40 (40 × 40 × 3) are each A · 300 = 133 200 mm³. With R40 edited to 50 × 30 × 4 they are each 576 · 300 = 172 800.
 - **Tests**: package frame-sections (5); fields (the new field). Flow step "FRc …": a row written in the panel, a frame on it through the chat, the row edited and the frame following.
+- **Found by the flow step**: the studio's evaluated document followed only the nodes and parameters, so a row written before the frame never reached the evaluation, and the frame was refused FRAME_SECTION_UNKNOWN. `evaluated` now also follows `doc.frames.sections` (App.tsx, the core memo, not the GPU lane's paths). The editor's form and buttons are keyed apart (React reused the file input as the Name field).
 - **Not done**: a sketch section as a library row (it belongs to one part's features), and sharing rows across parts. A library file stays the person's own; the team libraries (LIB4) are for parts, not sections.
