@@ -1,5 +1,5 @@
 // The document as the engine worker sees it: what evaluation reads (parameters, nodes, outputs and the
-// placed instances — not render, drawing, direct geometry, looks, mates or pending revisions), with its
+// placed instances, and the section library (FRc) — not render, drawing, direct geometry, looks, mates or pending revisions), with its
 // nodes sent by id. Nodes are immutable (an edit makes a new object), so each node object crosses to
 // the worker once; later requests name it. Both sides keep the same table and forget, at the same
 // request, the nodes no request has named for a while (they process the requests in one order).
@@ -23,6 +23,8 @@ const PRUNE_EVERY = 64, KEEP_FOR = 256;
 export function evaluatedPart(doc: StudioDoc): StudioDoc {
   const out: StudioDoc = { format: doc.format, schema: doc.schema, units: doc.units, parameters: doc.parameters, nodes: doc.nodes, outputs: doc.outputs };
   if (doc.instances?.length) out.instances = doc.instances.map(stripInstance);
+  // (FRc, O117: the section library a frame's section may name is model input; the rest of `frames` is not.)
+  if (doc.frames?.sections?.length) out.frames = { version: 1, sections: doc.frames.sections };
   return out;
 }
 const stripInstance = (i: PartInstance): PartInstance => ({ ...i, doc: evaluatedPart(i.doc) });

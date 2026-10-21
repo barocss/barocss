@@ -9,6 +9,7 @@ import { UNLICENSED } from '@barocss/cad-model/library/sharing';
 import { CASTING_PROCESSES, type CastingProcess } from '@barocss/cad-model/casting/report';
 import { MATERIALS_DATA, processProfile } from '@barocss/cad-model/library/materials';
 import { Icon } from './atoms';
+import { FrameSections } from './FrameSections';
 
 const SOURCES: { source: LibrarySource; title: string }[] = [{ source: 'built-in', title: 'BUILT-IN' }, { source: 'team', title: 'TEAM' }, { source: 'user', title: 'YOURS' }];
 
@@ -75,6 +76,8 @@ export function LibraryPanel({ doc, onCommit, onError, onClose, onQuote }: { doc
         <option value="">Not set</option>{processProfile(doc.process)!.finishes!.map(f => <option key={f.id} value={f.id}>{f.label} · ≥ {f.draftMinDeg}°</option>)}</select></label>
       {onQuote && <div className="row-actions"><button className="ghost" aria-label="Quote package" title="The part as STEP, the manufacturability report and the request (material, finish, pull, quantity) in one zip: no price, what is open said" onClick={onQuote}>Quote package</button></div>}
     </>}
+    {/* (FRc, O117: the person's own frame sections.) */}
+    <FrameSections doc={doc} onCommit={onCommit} onError={onError} />
     {SOURCES.map(({ source, title }) => {
       const list = all.filter(e => e.source === source);
       return <section key={source} aria-label={`${title} libraries`}>

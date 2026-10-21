@@ -20,7 +20,13 @@ export type MemberSection =
   | { kind: 'angle'; legX: Dim; legY: Dim; thickness: Dim; rootRadius: Dim; toeRadius: Dim }
   | { kind: 'channel'; height: Dim; width: Dim; web: Dim; flange: Dim; rootRadius: Dim }
   | { kind: 'tslot'; size: Dim; cells: 1 | 2; openSlots?: number; opening: Dim; lip: Dim; undercut: Dim; depth: Dim; bore: Dim }
-  | { kind: 'sketch'; sketch: number };
+  | { kind: 'sketch'; sketch: number }
+  /** FRc (O117): a row of the document's section library (`frames.sections`) by its id — resolved before the kernel. */
+  | { kind: 'library'; id: string };
+/** A section given by its dimensions: what a library row holds (FRc). */
+export type InlineSection = Exclude<MemberSection, { kind: 'sketch' } | { kind: 'library' }>;
+/** A row of the user's section library (FRc, O117): an id, a name, the section, and where its sizes come from — a source, or flagged as an estimate. */
+export interface FrameSectionRow { id: string; name?: string; section: InlineSection; source?: string; estimate?: true }
 /**
  * A frame's corners (FR3a, D125; the kernel's `corners`): where exactly two members end at a point, `default` (mitre when
  * left out) finishes them — mitre, butt or none — and `at` sets a point apart (`through`: the member running on at a butt).
@@ -344,7 +350,7 @@ export interface StudioDoc {
   /** IM8b (O108): casting's pattern — the faces machined after casting (by name), and the user's own machining allowance (mm a face) and shrinkage (a ratio, mm/mm); unset, the table's. */
   casting?: { version: 1; machined?: string[]; machiningAllowanceMM?: number; shrink?: number; /** IM8c (O109): where the metal comes in (a point on the part, mm), the person's: hot spots are fed from it. */ gate?: [number, number, number] };
   /** FRb (O116): how frames are cut — the shop's stock lengths (loaded by the user, none built in) and the saw's kerf (mm; unset, an estimate is taken and said). */
-  frames?: { version: 1; stock?: FrameStockRow[]; kerfMM?: number };
+  frames?: { version: 1; stock?: FrameStockRow[]; kerfMM?: number; /** FRc (O117): the user's section library — none built in (D122); a frame's section may name a row. */ sections?: FrameSectionRow[] };
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
   /**
@@ -740,6 +746,7 @@ export function sectionLabel(s: MemberSection, n: (v: Dim) => string): string {
     case 'channel': return `C ${n(s.height)}×${n(s.width)}`;
     case 'tslot': return `T-slot ${n(s.size)}${s.cells === 2 ? `×${typeof s.size === 'number' ? fmt(2 * s.size) : '2a'}` : ''}`;
     case 'sketch': return `sketch ${s.sketch + 1}`;
+    case 'library': return s.id;
   }
 }
 /** A member's length, its line's (numbers only; a parametric end reads as such). */

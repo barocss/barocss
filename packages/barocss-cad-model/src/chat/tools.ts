@@ -39,6 +39,7 @@ import { rememberedEvaluate } from '../engine/evalMemo';
 import { cutListCsv } from '@barocss/cad';
 import { partCutList } from '../app/cutList';
 import { nestCutList } from '../frames/nesting';
+import { editSections } from '../frames/sections';
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
@@ -145,7 +146,7 @@ function features(doc: StudioDoc) {
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
-const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
+const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'set_frame_sections', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
 /** The tools a batch (apply_ops, a patch) may hold (A7.5: a candidate's unsupported op is refused by name before it runs). */
 export const BATCHABLE_TOOLS: ReadonlySet<string> = BATCHABLE;
 /** At most this many checkpoints a session (the oldest dropped first). */
@@ -749,7 +750,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         if (isObj(pl) && typeof pl.datum === 'string') { try { list[k] = { ...(node as object), plane: datumPlane(readReferences(doc.references), pl.datum) }; } catch (e) { return fail(state, e instanceof ReferenceError ? e.message : String(e)); } }
       }
       for (const [k, node] of list.entries()) {
-        const why = checkNode(node, doc.nodes, doc.parameters);
+        const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections);
         if (why) return fail(state, `Feature ${k + 1} of ${list.length} (would be index ${doc.nodes.length}): ${why}`, { kept: 'nothing was added' });
         // (A new feature takes the next stable id: one the call brings is not used, ids are never handed out twice.)
         doc = withNode(doc, { ...(node as ModelNode), id: undefined });
@@ -761,7 +762,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       if (!Number.isInteger(index) || !nodes[index]) return fail(state, `There is no feature ${String(args.index)} (features 0–${nodes.length - 1}).`);
       let next: ModelNode[];
       if (args.feature !== undefined) {
-        const why = checkNode(args.feature, nodes.slice(0, index), state.doc.parameters);
+        const why = checkNode(args.feature, nodes.slice(0, index), state.doc.parameters, state.doc.frames?.sections);
         if (why) return fail(state, `Feature ${index}: ${why}`);
         // (The replacement is the same feature: it keeps its id, so the names of its faces stay.)
         next = nodes.map((n, i) => i === index ? { ...(args.feature as ModelNode), id: n.id } : n);
@@ -959,6 +960,15 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const was = state.doc.frames ?? { version: 1 as const }, frames = { ...was, version: 1 as const, ...(rows !== undefined ? { stock: good } : {}), ...(kerf !== undefined ? { kerfMM: kerf as number } : {}) };
       const doc = { ...state.doc, frames };
       return { state: { ...state, doc }, content: json({ ok: true, rows: frames.stock?.length ?? 0, kerf: frames.kerfMM ?? null }), isError: false, changed: true, summary: `frame stock: ${frames.stock?.length ?? 0} lengths${frames.kerfMM !== undefined ? `, kerf ${frames.kerfMM} mm` : ''}` };
+    }
+    case 'set_frame_sections': {
+      // (FRc, O117: the user's section library — rows added or replaced by id, ids removed; a row in use stays. An edited row moves every frame on it: evaluated.)
+      const rows = Array.isArray(args.rows) ? args.rows : undefined, remove = strings(args.remove);
+      if (!rows?.length && !remove.length) return fail(state, 'Give rows, remove or both.');
+      const r = editSections(state.doc, rows, remove);
+      if ('error' in r) return fail(state, r.error);
+      return accept(state, r.doc, evaluate, `section library: ${[r.added.length ? `added ${r.added.join(', ')}` : '', r.replaced.length ? `changed ${r.replaced.join(', ')}` : '', r.removed.length ? `removed ${r.removed.join(', ')}` : ''].filter(Boolean).join('; ')}`,
+        { added: r.added, replaced: r.replaced, removed: r.removed, rows: r.doc.frames?.sections?.map(x => ({ id: x.id, ...(x.name ? { name: x.name } : {}), section: x.section, ...(x.source ? { source: x.source } : { estimate: true }) })) ?? [] });
     }
     case 'mass_properties': {
       const keys = strings(args.bodies), shown = keys.length ? state.bodies.filter(b => keys.includes(b.key)) : state.bodies;
@@ -1295,6 +1305,11 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     name: 'set_frame_stock',
     description: 'Sets the shop\'s stock lengths for frame members (none is built in) and the saw\'s kerf (mm; unset: an estimate, said). rows: {id, length (mm), count? (unset: as many as needed), section? (the cut list\'s section text; unset: any), source}. The cut list then nests its pieces into them (FRb): bars, offcuts and the waste.',
     input_schema: { type: 'object', properties: { rows: { type: 'array', items: { type: 'object' } }, kerf: { type: 'number' } }, additionalProperties: false },
+  },
+  {
+    name: 'set_frame_sections',
+    description: 'Adds, changes or removes rows of the part\'s section library (none is built in): rows [{id, name?, section (a section by its dimensions, as a frame\'s), source (where the sizes come from) | estimate: true}] added or replaced by id; remove: ids (a row a frame uses stays). A frame or member then takes {"kind": "library", "id"} as its section; a changed row moves every frame on it.',
+    input_schema: { type: 'object', properties: { rows: { type: 'array', items: { type: 'object' } }, remove: { type: 'array', items: { type: 'string' } } }, additionalProperties: false },
   },
   {
     name: 'mass_properties',

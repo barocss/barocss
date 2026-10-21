@@ -2,6 +2,9 @@
 export interface FriendlyError { title: string; hint: string; detail: string }
 
 const rules: { test: RegExp; title: string; hint: string }[] = [
+  { test: /FRAME_SECTION_UNKNOWN/,
+    title: 'A frame names a section that is not in the library',
+    hint: 'Add the row back to the section library (Library panel, SECTIONS), or give the frame another section.' },
   { test: /misses the target/i,
     title: 'The hole misses the body',
     hint: 'Move the centre onto the body (a hole may run off an edge as a notch, but it must cut something).' },

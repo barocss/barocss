@@ -28,6 +28,7 @@ export const GROUPS: Record<string, Group> = {
       material: ['set_material', 'material, bodies?, part? — what bodies are made of'],
       stock: ['set_stock', 'rows?, allowance? — the shop\'s stock list and the allowance'],
       frame_stock: ['set_frame_stock', 'rows?, kerf? — the shop\'s stock lengths for frames and the saw\'s kerf (FRb)'],
+      frame_sections: ['set_frame_sections', 'rows?, remove? — your section library: rows a frame names by {kind: "library", id} (FRc)'],
       casting: ['set_casting', 'machined?, allowance?, shrink?, gate? — a casting\'s machined faces, your allowances and its gate'],
       batch: ['apply_ops', 'ops: [{tool, args, opId?}], dryRun? — several calls all or nothing'],
     },

@@ -49,7 +49,10 @@ test('R10 S0 (b) coaxial: a revolved tool tangent to a cone (the rim between a c
   for (let i = 0; i < 4; i++) { const [x0, y0] = kite[i], [x1, y1] = kite[(i + 1) % 4], cr = x0 * y1 - x1 * y0; Mx += (x0 + x1) * cr / 6; }
   const th = Math.PI / 4, As = rf * rf * th / 2, cx = c[0] + (2 * rf * Math.sin(th / 2)) / (3 * th / 2) * Math.cos(th / 2);
   const exact = 2 * Math.PI * (Math.abs(Mx) - As * cx);
-  assert.ok(Math.abs((vol(body) - vol(cut)) / exact - 1) < 1e-9, `${vol(body) - vol(cut)} vs ${exact}`);
+  // (The removed 5.34 mm³ is the difference of two quadratures of about 4120 mm³ each: 1e-9 of it is 1.3e-12 of theirs. The cut's
+  // faces and edges are the same since D152 — its edges lie on the earlier ones to 1e-11 — but stored as 14 edges, not 62, its
+  // quadrature moved 1.4e-8 mm³: 1.9e-9 of the difference.)
+  assert.ok(Math.abs((vol(body) - vol(cut)) / exact - 1) < 3e-9, `${vol(body) - vol(cut)} vs ${exact}`);
 });
 
 test('R10 S0 then and now: the edges R10.1 added — refused at S0 (D87) — are filleted, and faceReach\'s defect (8.5 mm admitted on a face 7.93 mm deep) is a typed refusal (D88)', () => {
