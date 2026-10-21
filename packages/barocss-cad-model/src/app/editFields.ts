@@ -207,6 +207,30 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       }
       break;
     }
+    case 'shaft': {
+      // (R12c.3a, D156: each step's diameter and length; the shoulders' fillets and the chamfers together; the keyseats' and grooves' sizes.)
+      const g = (n: ModelNode) => n as typeof node;
+      node.steps.forEach((_, k) => {
+        const step = (n: ModelNode, patch: Partial<typeof node.steps[number]>) => ({ ...g(n), steps: g(n).steps.map((s, j) => j === k ? { ...s, ...patch } : s) });
+        number(`d${k + 1}`, `Step ${k + 1} Ø`, 'mm', n => num(g(n).steps[k].diameter), (n, v) => step(n, { diameter: v }));
+        number(`l${k + 1}`, `Step ${k + 1} length`, 'mm', n => num(g(n).steps[k].length), (n, v) => step(n, { length: v }));
+        node.steps[k].keyseats?.forEach((_, j) => {
+          const seat = (n: ModelNode, patch: Record<string, number>) => step(n, { keyseats: g(n).steps[k].keyseats!.map((x, i) => i === j ? { ...x, ...patch } : x) });
+          number(`k${k + 1}.${j + 1}b`, `Keyseat (step ${k + 1}) width`, 'mm', n => g(n).steps[k].keyseats![j].width, (n, v) => seat(n, { width: v }));
+          number(`k${k + 1}.${j + 1}t`, `Keyseat (step ${k + 1}) depth`, 'mm', n => g(n).steps[k].keyseats![j].depth, (n, v) => seat(n, { depth: v }));
+          number(`k${k + 1}.${j + 1}l`, `Keyseat (step ${k + 1}) length`, 'mm', n => g(n).steps[k].keyseats![j].length, (n, v) => seat(n, { length: v }));
+        });
+        node.steps[k].grooves?.forEach((_, j) => {
+          const groove = (n: ModelNode, patch: Record<string, number>) => step(n, { grooves: g(n).steps[k].grooves!.map((x, i) => i === j ? { ...x, ...patch } : x) });
+          number(`g${k + 1}.${j + 1}d`, `Groove (step ${k + 1}) Ø`, 'mm', n => g(n).steps[k].grooves![j].diameter, (n, v) => groove(n, { diameter: v }));
+          number(`g${k + 1}.${j + 1}w`, `Groove (step ${k + 1}) width`, 'mm', n => g(n).steps[k].grooves![j].width, (n, v) => groove(n, { width: v }));
+        });
+      });
+      number('r', 'Shoulder fillets', 'mm', n => g(n).steps.find(s => s.fillet)?.fillet ?? 0, (n, v) => ({ ...g(n), steps: g(n).steps.map((s, j) => { const x = { ...s }; if (v > 0 && j < g(n).steps.length - 1) x.fillet = v; else delete x.fillet; return x; }) }));
+      number('c', 'End chamfers', 'mm', n => g(n).chamfers?.[0] ?? 0, (n, v) => { const x = { ...g(n) }; if (v > 0) x.chamfers = [v, v]; else delete x.chamfers; return x; });
+      number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
+      break;
+    }
     case 'spring': {
       // (R12c.1a, D153: a compression spring; editing G drops its estimate flag — the value is the user's then.)
       const g = (n: ModelNode) => n as typeof node;

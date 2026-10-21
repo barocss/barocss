@@ -8655,3 +8655,94 @@ Not run:
 - The full kernel suite (no brep core change).
 - RB and properties (the 3rd kernel checkpoint after the T3: the 4th is the next).
 - The full browser flow (the coordinator's).
+
+## D156 — R12c.3a: shafts — steps, fillets, chamfers, undercuts, ring grooves, keyseats and cross holes (2026-10-22)
+
+R12c.3 as D139 froze it, split in two by scope, as R12b.1 and R12c.1 were:
+- **R12c.3a (this record):** the shaft kind with its keyseats, ring grooves and cross holes.
+- **R12c.3b (next):** keys, hub keyways, rings and pins as parts, and their pair checks (the key's width fit through R12c.2, its top clearance h − t1 against t2, its length in the seat; a ring's groove against the ring's rows; a pin's hole fit).
+
+The owner's data rule holds: key, ring and pin sizes are the user's, and no standards table is built in. The command's prefills (a 6 × 3.5 seat on Ø20, a Ø19 × 1.3 groove: D139's K1 and R1 sizes) are labelled estimates in the HUD, as FR1's section prefills are.
+
+**Kernel** (`shaft.ts`; exported `shaftSolid`, `ShaftError` and the types):
+- **The shaft in its own frame:** axis +Z from z 0. Its half-section in y = 0 walks out along the first end, along each step and shoulder, and back down the last end to the axis.
+  - Each piece carries a side tag (R10a), so the revolved faces are named.
+  - It is revolved exactly: a part document's loop sketch and revolve.
+- **The profile's features:**
+  - **Fillet:** a shoulder fillet is a concave quarter circle in the smaller step's corner, on either side of the shoulder.
+  - **Undercut:** a rectangular relief { width, depth } in the smaller step against its shoulder (not with a fillet).
+  - **Chamfers:** 45° at the ends.
+  - **Ring groove:** { diameter (its bottom), width, at } on a step.
+- **Keyseats by the analytic Boolean:** { width b, depth t1, length, offset, ends, angle about the axis, cutterRadius }.
+  - **square:** a box from R − t1 out.
+  - **end-mill** (default): a stadium of radius b/2, `length` overall.
+  - **disc:** a flat floor `length` long that runs out at each end along the cutter's circle (radius R_c > t1, centre R − t1 + R_c from the axis). In the axial plane that is two quarter circles and the floor, extruded across b. The seat at the surface is longer by 2√(R_c² − (R_c − t1)²).
+- **Cross holes by the analytic Boolean:** { diameter, at, angle (default 90°, along Y) }, through the shaft.
+- **Face names:**
+  - `<id>.end0`, `.end1`, `.chamfer0`, `.chamfer1`;
+  - `.seatk` (a piece after a groove or an undercut `.seatk.2` …), `.shoulders`, `.fillets`, `.undercuts`, `.undercutwalls`;
+  - `.grooveg`, `.groovewallg.1/.2` (grooves counted along the shaft);
+  - `.keyseatj`, `.holej`.
+  - Each revolved face is in halves, `#1` and `#2`.
+  - **Changed from D139's `seat#k`:** the analytic Boolean reads a trailing `#k` as a piece number and numbers the pieces again by position. So after a keyseat every `keyseat#j` became `keyseat#1 … #15` and `shoulder#1` became `shoulder`. An index written into the name survives.
+- **Refusals** (codes INVALID_INPUT, SHAFT_STEPS, KEYSEAT_DIMENSIONS, GROOVE_DIMENSIONS, and the new HOLE_DIMENSIONS):
+  - **SHAFT_STEPS:** no steps; a non-positive size; two neighbouring steps of one diameter; a fillet past its shoulder's height or longer than its step; a fillet and an undercut on one shoulder; a fillet or an undercut on the last step; an undercut to the axis or longer than its step; a chamfer past its end step's radius or length.
+  - **KEYSEAT_DIMENSIONS:** t1 at or past the axis; b no narrower than the step's chord at the floor (the sides would not stand); an end-milled seat no longer than its width; a disc cutter not larger than t1; the seat, its disc run-out included, running off its step.
+  - **GROOVE_DIMENSIONS:** a bottom at or above the step; a groove off the seat between its fillets and chamfers; grooves and undercuts meeting.
+  - **HOLE_DIMENSIONS:** a hole off the shaft, crossing a shoulder, or no smaller than its step.
+- **The report** (`ShaftReport`): the length; the steps' spans; each keyseat (step, ends, sizes, floor radius, length at the surface, angle, cutter); each groove; each hole; `manufacturingValidated: false`.
+- **Part model:** the kind `shaft`, its dims taking parameters; placed by `center`, `from` and `rotation`. SHAFT_STEPS and INVALID_INPUT map to INPUT, the others to GEOMETRY, with the `[CODE]` in the message.
+
+**Oracles and tests** (`test/r12c-shaft.test.mjs`, 6 tests, all failing on the previous HEAD):
+- **Pappus**, V = π∫r(z)² dz on the test's own half-section, by Gauss–Legendre per piece:
+  - steps 25/20/30 with fillets 1 (down) and 1.5 (up) and chamfers 1 and 0.5: 34356.437003 against 34356.436902 (rel 3e-9; the Gauss pieces at the fillets' square-root ends carry the 1e-4);
+  - an undercut and a DIN 471-size groove (D139 R1's Ø19 × 1.30 on Ø20, test values): to 1e-6.
+  - The faces are named as above.
+  - STEP round trip.
+- **Keyseats on Ø20 with 6 × 3.5 × 18** (K1's sizes as test values):
+  - square: A(R − t1)·l with A in closed form (S0's 20.087441 mm² back): 361.573946 both;
+  - end-mill: (l − b)A plus the disc ends by quadrature (S0's 95.742473 back): 336.791766 against 336.791771;
+  - disc, R_c 8: l·A + 2∫₀^e A(r_c − √(R_c² − u²)) du: 544.872580 against 544.872581; the length at the surface l + 2e.
+  - Turned 180° about the axis: the same volume, on −X.
+- **A cross hole** Ø4 through Ø25: ∫4√(ρ² − x²)√(R² − x²) dx (x = ρ sin θ) to 1e-6; genus 1.
+- **Refusals:** seven SHAFT_STEPS, seven KEYSEAT_DIMENSIONS, four GROOVE_DIMENSIONS, three HOLE_DIMENSIONS.
+- **Part model:** a parameter for a diameter; placed and turned; the codes mapped.
+- **Conformance `r12c/`:**
+  - `shaft-steps-fillets`: Pappus' volume and centroid by Simpson, relTol 1e-8; the face names;
+  - `shaft-keyseat-square`: the closed form, the centroid's x from the cut prism's moment;
+  - `shaft-keyseat-crossing-refused`.
+- **A false alarm on the way:** the first model test was off by 0.01 mm³ on the 20/25/20 shaft. The kernel was right (each shaft to 1e-8). My own Simpson evaluated r(z) at a piece's end from the next piece. It now uses each piece's own r(z), as the kernel test always did.
+
+**Studio and model:**
+- **The `shaft` node:** steps with fillets, undercuts, grooves and keyseats; chamfers, holes, centre, from, rotation. Its label: "Shaft 3 steps Ø20–Ø25 × 95, keyed". It joins the kind lists (no parents, a body maker, migrate, flatten).
+- **The Shaft command** (create, icon `cad-shaft`):
+  - steps 1–5, each a diameter and a length, shown while the count reaches it;
+  - one fillet radius for every shoulder, and the end chamfers;
+  - a keyseat on a chosen step (width and depth labelled estimates, length, start, ends, the disc cutter's radius);
+  - a ring groove on a chosen step (diameter and width labelled estimates, start);
+  - the axis.
+  - The default is an output shaft: Ø20 × 30 keyed, Ø25 × 40, Ø20 × 25 grooved, fillets and chamfers 0.5.
+- **Edit fields:** each step's Ø and length; each keyseat's width, depth and length; each groove's Ø and width; the fillets together; the chamfers; the rotation.
+- **Notes:** the steps; each keyseat, groove and hole; "Sizes are yours … not validated" as a warning.
+- **Chat v2:** `shaft` is a features command, its values (d1–d5, l1–l5 …) behind `describe`. It adds no tool or enum, and tools-v2.json is unchanged. The per-turn guard is 22 043 → **22 060**.
+- **Tests:** `test/shaft.test.ts` (3), including the default's volume by Pappus less the end-milled seat. A flow step "Shaft (R12c.3a, D156)".
+
+**Not in this stage:**
+- R12c.3b's keys, keyways, rings and pins;
+- DIN 509-form undercuts (angled), splines;
+- keyseats across steps, threads on a step (the `thread` kind stands apart).
+
+**Checks** (rules v2: `part-model.ts` gained a case, so the full kernel suite ran; the 4th kernel checkpoint since D152's T3, so RB and properties ran too), on 4521fbe21 (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-shaft`: 6/6.
+- The full kernel suite, conformance included: 1456/1463, 6 skipped, 278 s. Only the env-only "actual native Split source…" failed.
+- Conformance `r12c/`: 11/11.
+- `@barocss/cad-model`: type-check clean, 672/672, 94 s (the guard test: 22 060). Studio: type-check clean, 192/192, 26 s.
+- Test names against the saved lists: none missing; +9 kernel (D156's 6 and 3 conformance cases), +7 cad-model (D156's 3 and the merged lanes'), studio unchanged.
+- `FLOW_ONLY` "Shaft (R12c": 1/1 (with the starter step).
+- **RB:** 388 cases (377 at D152, plus R12c's 11 conformance cases), 0 new, the 8 known TODOs (the cylinder–box grazes and the helical-pair crossing), 125 s. The row is in the commit after this one.
+- **Properties:** 11/11, 176 s.
+
+Not run:
+- The full browser flow (the coordinator's).
