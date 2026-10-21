@@ -843,8 +843,8 @@ acceleration → benches.
   backends (the viewer's entry no longer throws); the mesh packet's arrays copied (no NaN through a Proxy).
 - **G6** (2026-10-21): first part done. Scalar colour maps in the viewer (`Geometry.setScalars`, `Mesh.colorMap`,
   `PickHit.scalar`); the studio's Analysis map button — IM4 wall thickness with a DOM legend and the value under the pointer,
-  a moulded part's parting line and its two halves (built in the engine worker, see-through, spread). IM2 draft, CNC access
-  and isoclines wait for the outer lane's exports (O-G6).
+  a moulded part's parting line and its two halves (built in the engine worker, see-through, spread). Then (on O-G6's exports)
+  the IM2 draft map (marks at ± the finish's or the casting alloy's least draft), the CNC access map and the isoclines.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

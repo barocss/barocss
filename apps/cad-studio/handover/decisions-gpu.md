@@ -352,3 +352,30 @@ against the code as it is now:
   integration's next window: `draftSamples`, `accessSamples`, `isoclinePolylines`, and `castingDraftLimits` for casting's
   draft marks). A legend for several bodies shows the first map's scale.
 
+## G6, second part — the draft and access maps and the isoclines, on O-G6's exports (2026-10-21)
+
+- On integration `3fa729fcb` (merged here as `1029155b1`), which holds the outer lane's O-G6: `draftSamples`, `accessSamples`,
+  `isoclinePolylines`, `castingDraftLimits`.
+- **Draft** (`draftMap`): per display vertex, the signed draft in degrees from the exact normals (`draftSamples`; a facet face's
+  vertex its display normal). The least draft from the report's own sources (`draftLimits`): an injection moulding's surface
+  finish (`draftMinDeg`/`draftRecDeg`; none without a finish set — the rule is unknown — so no marks), a die or sand casting's
+  alloy family (`castingDraftLimits`). With a least draft m: red where |draft| < m, + light to dark green from m to 2m, −
+  light to dark blue, saturating past ±2m, marks at ±m; without one the diverging map alone over ±10°.
+- **Access** (`accessMaps`): per display triangle the share no 3-axis direction reaches (`accessSamples`), 0 light blue to 1
+  red; it needs no pull.
+- **Isoclines**: with the draft map, each body's n·d = 0 polylines on its straddling faces (`isoclinePolylines`), one white line
+  mesh (1.6 px, depth-tested).
+- The Analysis map button's cycle: Thickness → Draft (with a pull) → Access → Parting → Halves (with a pull) → off.
+- **The worker request** (the coordinator's note): `ba0bd85e9` changed the studio's own engine request for the mould
+  (`engine/engine.worker.ts`, `engine/client.ts`: the `mould` request carries `doc.mould` beside the wire document); the
+  shared wire (`@barocss/cad-model/engine/wireDoc`, `evaluatedPart`) is unchanged.
+- **Evidence**: studio `analysis-maps.test.ts` +3: a moulded plate's draft — its walls 0°, its top +90°, its bottom −90° at
+  every such vertex, marks at ± the smooth finish's least draft and the range ±2m, none and ±10° without a finish; its access
+  map equal to `accessSamples`, every share in [0, 1]; a rod across the pull's isoclines along its sides (z 0 within 1e-3), a
+  plate along it none. The flow's G6 step walks the whole cycle.
+- **Checks** (v2): gpu unit 77/77, browser 7/7 (16 s); studio tsc clean, eslint 0 errors, suite 192/192 (29 s); FLOW_ONLY
+  (G6, IM1–IM8c, surface analysis and a chat/agent step, A5.3, then CNC1–CNC7b) in the verify worktree on `afe6bd0b3`:
+  16/16 (34 s, the load at 53) and 8/8 (21 s); the G6 step's screenshots: the plate's walls red (0°, under the smooth finish's
+  least draft), its top green; every face reached by a 3-axis mill. Not run: the full flow (the coordinator's), the cad-model
+  suite (not touched), benches (no frame path changed).
+

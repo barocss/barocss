@@ -3,12 +3,12 @@
 // changes, not per frame.
 import type { ScalarMap } from '../viewport/scalarMaps';
 
-/** The thresholds with room for a label: none within 18 % of the bar's ends or of a label before it (their marks stay, with a title). */
+/** The thresholds with room for a label: none within 28 % of the bar's ends or of a label before it (their marks stay, with a title). */
 function labelled(map: ScalarMap, lo: number, span: number): ScalarMap['thresholds'] {
   const out: ScalarMap['thresholds'] = [];
   for (const t of [...map.thresholds].sort((a, b) => a.value - b.value)) {
     const f = (t.value - lo) / span;
-    if (f < 0.18 || f > 0.82 || out.some(o => Math.abs((o.value - lo) / span - f) < 0.18)) continue;
+    if (f < 0.28 || f > 0.72 || out.some(o => Math.abs((o.value - lo) / span - f) < 0.28)) continue;
     out.push(t);
   }
   return out;
