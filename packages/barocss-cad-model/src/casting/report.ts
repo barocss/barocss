@@ -11,6 +11,7 @@ import { materialData, type CastFamily, type ProcessProfile, type ProcessThresho
 import { wallsOf } from '../mould/walls';
 import { draftField, type DraftFace } from '../mould/draft';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
+import { machinedFaces, machiningOf, machiningView, partExtent, shrinkOf, shrinkView, type MachiningAllowance, type ShrinkAllowance } from './allowances';
 
 export type CastingProcess = 'die-casting' | 'sand-casting';
 export const CASTING_PROCESSES: readonly CastingProcess[] = ['die-casting', 'sand-casting'];
@@ -20,9 +21,11 @@ export interface CastingSummary {
   readonly tolerance: { readonly mm: number; readonly source: string; readonly page: string } | null;
   /** The faces under the least draft, and under the achievable one (by name). */
   readonly steep: readonly string[]; readonly underRecommended: readonly string[];
+  /** IM8b (O108): the pattern's shrinkage and the machining allowance (null: not known), and the faces it goes on. */
+  readonly shrink: ShrinkAllowance | null; readonly machining: MachiningAllowance | null; readonly machined: readonly string[];
 }
 
-const r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0;
+const r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0, r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 const unit = (v: readonly number[]): [number, number, number] => { const l = Math.hypot(v[0], v[1], v[2]); return [v[0] / l, v[1] / l, v[2] / l]; };
 /** A family's threshold, or the process's own for every family (sand casting's draft). */
 const limitOf = (profile: ProcessProfile, family: CastFamily, key: string): ProcessThreshold | undefined => profile.thresholds[`${family}${key}`] ?? profile.thresholds[key[0].toLowerCase() + key.slice(1)];
@@ -69,10 +72,25 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
       message: `every face's draft (its exact normal), the least ${r3(least)}°, against a ${family} alloy's least ${dMin.value}°${dRec ? ` and achievable ${dRec.value}°` : ''}${steep.length ? `: ${steep.length} under the least` : ''}${underRec.length ? `; ${underRec.length} under the achievable` : ''}${straddle.length ? `; ${straddle.length} straddle the pull (a parting line crosses them, IM5)` : ''}`,
       value: r3(least), limit: steep.length || !dRec ? dMin.value : dRec.value, unit: 'deg', source: pageOf(steep.length || !dRec ? dMin : dRec), entities: faceNames([...steep, ...underRec, ...straddle]) });
   }
+  // IM8b (O108): the pattern's allowances — the shrinkage it is scaled by, the machining allowance on the faces marked machined.
+  const size = bodies.length ? partExtent(bodies).largestMM : 0;
+  const shrink = family && bodies.length ? shrinkOf(doc, profile, family, size) : null;
+  if (!shrink) rules.push({ id: 'shrink', level: 'recommended', status: 'unknown', message: 'the pattern\'s shrinkage', why: noFamily ?? 'no body' });
+  else if (!shrink.ok) rules.push({ id: 'shrink', level: 'recommended', status: 'unknown', message: 'the pattern\'s shrinkage', why: shrink.why });
+  else rules.push({ id: 'shrink', level: 'recommended', status: 'pass', message: `the pattern scaled ${r6(1 + shrink.ratio)} (${shrink.basis === 'set' ? 'your shrinkage' : `${shrink.label}, ${shrink.band}: the part's largest ${r3(size)} mm`})`, value: r6(1 + shrink.ratio), unit: 'ratio', ...(shrink.page ? { source: shrink.page } : {}) });
+  const marked = machinedFaces(doc, bodies), flat = marked.found.filter(f => f.flat), curved = marked.found.filter(f => !f.flat);
+  const machining = family && bodies.length ? machiningOf(doc, profile, family, size) : null;
+  if (!marked.found.length && !marked.missing.length) rules.push({ id: 'machining-allowance', level: 'recommended', status: 'n/a', message: 'no face is marked machined (set_casting machined): no machining allowance' });
+  else if (marked.missing.length) rules.push({ id: 'machining-allowance', level: 'feasible', status: 'fail', message: `[CASTING_FACE] marked machined but not on the part: ${marked.missing.join(', ')}`, entities: marked.missing });
+  else if (!machining || !machining.ok) rules.push({ id: 'machining-allowance', level: 'recommended', status: 'unknown', message: `the machining allowance on ${marked.found.length} face${marked.found.length === 1 ? '' : 's'}`, why: machining ? machining.why : noFamily ?? 'no body', entities: marked.found.map(f => f.name) });
+  else rules.push({ id: 'machining-allowance', level: 'recommended', status: curved.length ? 'unknown' : 'pass',
+    message: `${machining.mm} mm on ${flat.length} flat face${flat.length === 1 ? '' : 's'} (${machining.basis === 'set' ? 'your allowance' : `${machining.label}, ${machining.band}`})${curved.length ? `; ${curved.length} curved (${curved.map(f => f.name).join(', ')}) take none here` : ''}`,
+    value: machining.mm, unit: 'mm', ...(machining.page ? { source: machining.page } : {}), entities: marked.found.map(f => f.name), ...(curved.length ? { why: 'only flat faces are moved out by the allowance (offset-face)' } : {}) });
   // Tolerance: the family's general linear tolerance where a page gives one.
   const tol = family ? limitOf(profile, family, 'TolMM') : undefined;
   rules.push(tol ? { id: 'tolerance', level: 'recommended', status: 'pass', message: `a ${family} alloy holds about ±${tol.value} mm (${tol.page?.label ?? tol.description})`, value: tol.value, unit: 'mm', source: pageOf(tol) }
     : { id: 'tolerance', level: 'recommended', status: 'unknown', message: 'the general tolerance', why: noFamily ?? `no ${profile.label.toLowerCase()} tolerance for a ${family} alloy was read from a public page: ask your caster` });
-  const casting: CastingSummary = { material: id, family, tolerance: tol ? { mm: tol.value, source: tol.source, page: pageOf(tol) } : null, steep: faceNames(steep), underRecommended: faceNames(underRec) };
+  const casting: CastingSummary = { material: id, family, tolerance: tol ? { mm: tol.value, source: tol.source, page: pageOf(tol) } : null, steep: faceNames(steep), underRecommended: faceNames(underRec),
+    shrink: shrink?.ok ? shrinkView(shrink) : null, machining: machining?.ok ? machiningView(machining) : null, machined: marked.found.filter(f => f.flat).map(f => f.name) };
   return { process: profile.id, direction: pull, rules, casting };
 }

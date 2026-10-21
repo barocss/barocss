@@ -119,6 +119,7 @@
        "delete",
        "material",
        "stock",
+       "casting",
        "batch"
       ],
       "type": "string"

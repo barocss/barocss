@@ -4587,3 +4587,35 @@ Owner, relayed by the coordinator: "@barocss/cad-model 은 완전 공개 패키�
   - `rb9/` (the scenario ladder and its scripted agent) is product code, public with the rest.
 - **Test**: `test/cad-model-public.test.ts` fails if a file under `src/` holds such a path. A planted `/Users/someone/x.json` was caught by its pattern.
 - **Release item**, with no change now: the exports point at `.ts` sources, so a build step to JS and `.d.ts` comes before a real publish. No publish and no version change.
+
+## O108 — IM8b: a casting pattern's allowances — shrinkage and machining by NPTEL's tables, the pattern as STEP and JSON (2026-10-21)
+
+- **The data** (the `sand-casting` profile's `allowances`, as printed, read 2026-10-21):
+  - NPTEL metal casting lecture 3, Table 1, "Rate of Contraction of Various Metals", inch/ft by the pattern dimension:
+    - Grey Cast Iron 0.125 / 0.105 / 0.083 (up to 2 ft, 2–4 ft, over 4 ft);
+    - Cast Steel 0.251 / 0.191 / 0.155 (2, 6 ft);
+    - Aluminum 0.155 / 0.143 / 0.125 (4, 6 ft);
+    - Magnesium 0.173 / 0.155 (4 ft).
+  - Lecture 4, Table 3, "Machining Allowances of Various Metals", in inches:
+    - cast iron 0.12 / 0.20 / 0.25 by 12, 20, 40 in;
+    - cast steel 0.12 / 0.25 / 0.30 by 6, 20, 40;
+    - non ferrous 0.09 / 0.12 / 0.16 by 8, 12, 40.
+  - The values are kept as printed; the code applies the stated rule (ft × 304.8, in × 25.4, inch/ft ÷ 12 as a ratio). `checkMaterials` checks the pages, the rising bands and positive values.
+  - Lecture 4's Table 2 (pattern draft by pattern material and surface height) was read but is not used yet. Die casting has no allowance table read, so its shrink is unknown and said. New material `grey-iron` (family iron, S-TYP estimates).
+- **The rules** (casting report):
+  - `shrink`: one factor for the whole pattern, 1 + ratio, by the part's largest extent; the band's top is in the band; the user's `doc.casting.shrink` takes precedence.
+  - `machining-allowance`: the table's mm, or the user's, on the faces marked machined. None marked is n/a; a name not on the part fails `[CASTING_FACE]`; a curved face is unknown (only flat faces move out); past the table's 40 in is unknown and said.
+  - **One uniform scale, not per dimension**: a uniform scale keeps exact planes and cylinders exact in the STEP, and a per-dimension one would not.
+- **The tool**: `set_casting`, a v2 action `features.casting` (O105's rule, a compatible enum addition recorded in tools-v2.json). It sets machined, allowance and shrink, each refused by name. Per turn 21,531 (+109).
+- **The pattern** (`casting/pattern.ts`): each machined flat face moved out by the allowance (the studio's `offset-face`), then the body scaled about the part's box centre (the studio's `scale`), both through the tool layer.
+  - `cad-cli pattern part.bcad -o dir` writes pattern.step and pattern.json: factor, band, page, allowance, faces, pivot, the part's and the pattern's boxes. Typed codes otherwise (PATTERN_NOT_CASTING, _ONE_BODY, _MATERIAL, _SHRINK, _ALLOWANCE, _FACE, _BUILD).
+- **Tests** (`test/im8b.test.ts`, 7):
+  - the data as printed;
+  - every band, its top included;
+  - the allowances in mm;
+  - the report rules;
+  - the pattern of a 100 × 60 × 20 A356 block with its top machined: 100·60·22.286·f³ to 1e-9 relative, its box about the centre, its STEP read back to the volume to 1e-6;
+  - refusals;
+  - the CLI.
+  - Flow step "IM8b": sand casting and the Pull in the Library panel; through the real chat a block, A356 and its top marked; the report's shrink and machining-allowance pass.
+- **Next**: IM8c, hot spots and feeding.

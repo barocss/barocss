@@ -88,7 +88,7 @@ test('IM8a the report through the tool: die-cast zinc — its process, family an
   const r = await dispatchTool(s, 'check_printability', {}, evaluate), j = JSON.parse(r.content);
   assert.ok(!r.isError, r.content);
   assert.deepEqual([j.process, j.casting.family, j.casting.tolerance.mm, j.casting.tolerance.page], ['die-casting', 'zinc', 0.0508, 'https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design']);
-  assert.deepEqual(j.rules.map((x: { id: string }) => x.id), ['material', 'pull', 'wall', 'draft', 'tolerance']);
-  assert.ok(j.rules.every((x: { status: string }) => x.status === 'pass'), r.content);
+  // (IM8b's two rules between: die casting has no shrinkage read, and no face is marked machined.)
+  assert.deepEqual(j.rules.map((x: { id: string; status: string }) => [x.id, x.status]), [['material', 'pass'], ['pull', 'pass'], ['wall', 'pass'], ['draft', 'pass'], ['shrink', 'unknown'], ['machining-allowance', 'n/a'], ['tolerance', 'pass']]);
   assert.equal((await dispatchTool(s, 'query', { action: 'manufacturability' }, evaluate)).content, r.content);
 });
