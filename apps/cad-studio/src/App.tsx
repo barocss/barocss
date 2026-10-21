@@ -1656,6 +1656,7 @@ export function App() {
     w.__studioSection = () => ({ gpu: gpuSection, exact: sectionExactShown, clip: sectionClip, bodies: shownBodies.length });
     w.__studioSectionDebug = setSectionDebug;
     (window as unknown as { __studioSetSection: typeof setSection }).__studioSetSection = setSection;
+    (window as unknown as { __studioOverlayLines: () => Record<string, number> }).__studioOverlayLines = () => viewport.current?.overlayLines() ?? {};
   });
   const sectionFrom = nextSerial(evaluated);
   const shownSelection = sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }

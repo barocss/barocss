@@ -396,3 +396,55 @@ test('G6 colour maps of scalar fields: per vertex and per triangle, missing, bel
     assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
 });
+
+// G7: overlay lines — dashed from each segment's start, over the scene or depth-tested, and left out of the scene's bounds.
+test('G7 overlay lines: depth-tested ones hidden by a surface (or their hidden parts faint), ones over the scene not (drawn and picked); dashes at their lengths; unbounded meshes not in the scene bounds', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box, screen, pixel } = window, canvas = document.getElementById('c');
+      canvas.style.width = '640px'; canvas.style.height = '480px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, background: '#000000', camera: { position: [0, 0, 20], target: [0, 0, 0], up: [0, 1, 0] } });
+      viewer.add(box(4, 4, 2).surface, { name: 'body', material: { color: '#808080' } });
+      const line = (y, z, color, material = {}, options = {}) => viewer.add({ positions: [-6, y, z, 6, y, z], topology: 'lines' }, { material: { color, unlit: true, lineWidth: 3, ...material }, castShadow: false, ...options });
+      // Under the box: red depth-tested, green over the scene; above it: blue dashed 6 on, 6 off; a long one left out of the bounds.
+      line(0, -3, '#ff0000');
+      line(1, -3, '#00ff00', { lineOver: true });
+      line(-1, 2, '#0000ff', { lineDash: [6, 6] });
+      // Magenta depth-tested with its hidden part at half its opacity.
+      line(0.5, -3, '#ff00ff', { lineHidden: 0.5 });
+      viewer.add({ positions: [-1000, -1.5, 0, 1000, -1.5, 0], topology: 'lines' }, { material: { color: '#ffffff', unlit: true }, bounded: false });
+      await viewer.frame();
+      const img = await viewer.capture();
+      const isRed = c => c[0] > 120 && c[1] < 80 && c[2] < 80, isGreen = c => c[1] > 120 && c[0] < 80 && c[2] < 80, isBlue = c => c[2] > 120 && c[0] < 80 && c[1] < 80;
+      const red = { over: isRed(pixel(img, screen(viewer, [0, 0, -3]))), outside: isRed(pixel(img, screen(viewer, [4, 0, -3]))) };
+      const green = { over: isGreen(pixel(img, screen(viewer, [0, 1, -3]))), outside: isGreen(pixel(img, screen(viewer, [4, 1, -3]))) };
+      const mag = { over: pixel(img, screen(viewer, [0, 0.5, -3])), outside: pixel(img, screen(viewer, [4, 0.5, -3])), body: pixel(img, screen(viewer, [0, -0.25, -3])) };
+      // The dashed line's runs along its pixels.
+      const [ax, ay] = screen(viewer, [-6, -1, 2]), [bx] = screen(viewer, [6, -1, 2]), runs = [];
+      let cur = null, len = 0;
+      for (let x = Math.ceil(ax) + 1; x < Math.floor(bx) - 1; x++) { const on = isBlue(pixel(img, [x, ay])); if (on === cur) len++; else { if (cur !== null) runs.push([cur, len]); cur = on; len = 1; } }
+      runs.push([cur, len]);
+      const inner = runs.slice(1, -1), ons = inner.filter(q => q[0]).map(q => q[1]), offs = inner.filter(q => !q[0]).map(q => q[1]);
+      // Picks: the depth-tested line over the box is hidden; the one over the scene is found there.
+      const [rx, ry] = screen(viewer, [0, 0, -3]), [gx, gy] = screen(viewer, [0, 1, -3]);
+      const pickRed = viewer.pickLine(rx, ry, 2), pickGreen = viewer.pickLine(gx, gy, 2);
+      const bounds = viewer.sceneBounds();
+      viewer.dispose();
+      return { red, green, mag, ons, offs, runs: runs.length, pickRed: pickRed && pickRed.point, pickGreen: pickGreen && pickGreen.point, bounds };
+    });
+    t.diagnostic(JSON.stringify(r));
+    assert.deepEqual(r.red, { over: false, outside: true }, 'the depth-tested line hidden under the box, shown beside it');
+    assert.deepEqual(r.green, { over: true, outside: true }, 'the line over the scene shown everywhere');
+    // (Its hidden part half way between the body's grey and its own magenta.)
+    const [m, o, b] = [r.mag.over, r.mag.outside, r.mag.body];
+    assert.ok(o[0] > 200 && o[1] < 60 && o[2] > 200, `the hidden-drawn line in full beside the box ${JSON.stringify(r.mag)}`);
+    assert.ok(m[0] - b[0] > 25 && m[2] - b[2] > 25 && m[1] < b[1] && m[0] < o[0] - 25, `its hidden part faint over the box ${JSON.stringify(r.mag)}`);
+    assert.ok(r.ons.length >= 8 && r.offs.length >= 8, `dashes along the line ${JSON.stringify(r)}`);
+    for (const n of [...r.ons, ...r.offs]) assert.ok(Math.abs(n - 6) <= 1.5, `each dash and gap about 6 pixels ${JSON.stringify(r)}`);
+    assert.equal(r.pickRed, null, 'the hidden line is not picked');
+    assert.ok(r.pickGreen && Math.abs(r.pickGreen[1] - 1) < 1e-6 && Math.abs(r.pickGreen[2] + 3) < 1e-6, `the line over the scene is picked ${JSON.stringify(r.pickGreen)}`);
+    assert.ok(r.bounds && r.bounds.max[0] <= 6 + 1e-9 && r.bounds.min[0] >= -6 - 1e-9, `the unbounded line not in the bounds ${JSON.stringify(r.bounds)}`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});

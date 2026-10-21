@@ -200,6 +200,10 @@ try {
   const clickAt = async (x, y) => { await page.mouse.move(x - 4, y); await page.mouse.move(x, y); await page.mouse.click(x, y); };
   const status = () => page.locator('.sk-status').first().innerText();
   const snap = (name) => page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-${name}.png`) });
+  // G7: the overlay lines (bounding box, measure line, underlays, the SubD cage's edges) are engine lines on WebGPU, SVG on
+  // WebGL2: how many are drawn under a key, either way.
+  const drawnLines = (key, svg) => page.evaluate(([key, svg]) => document.querySelector('.viewport')?.dataset.renderer === 'webgpu'
+    ? (window.__studioOverlayLines?.()[key] ?? 0) : document.querySelectorAll(svg).length, [key, svg]);
   const iso = async () => { await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(400); };
   /**
    * G2: the open section as the GPU's clip plane draws it against the CPU's clipped and capped meshes (clipMesh), both
@@ -1090,7 +1094,7 @@ try {
     const text = await card.innerText();
     const h = (await doc()).nodes[ext].height;
     assert.match(text, new RegExp(`Distance\\s*${h} mm`)); assert.match(text, /Angle\s*0°/);
-    assert.equal(await page.locator('.measure-line').count(), 1);
+    assert.equal(await drawnLines('measure', '.measure-line'), 1);
   });
 
   await check('render a part with an appearance, a light and a saved view', async () => {
@@ -2118,7 +2122,7 @@ try {
     await page.selectOption('[aria-label="Inertia about"]', 'origin');
     assert.notEqual(await page.locator('[aria-label="Moments of inertia"]').innerText(), centre);
     await page.locator('[aria-label="Show the bounding box"]').first().check();
-    await page.waitForSelector('.vp-overlay .bbox-line', { state: 'attached', timeout: 5000 }); await snap('mass-box');
+    await page.waitForFunction(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? window.__studioOverlayLines?.().bbox === 12 : !!document.querySelector('.vp-overlay .bbox-line'), null, { timeout: 5000 }); await snap('mass-box');
   });
 
   await check('selection filter: Edges skips faces, Bodies picks the whole body, Pick all is back', async () => {
@@ -5121,11 +5125,15 @@ try {
     await page.waitForFunction(() => window.__studioDoc?.nodes.length === 1 && window.__studioDoc.underlays?.length === 1, null, { timeout: 15000 });
     const d = await page.evaluate(() => ({ holes: window.__studioDoc.nodes[0].holes?.length ?? 0, counts: window.__studioDoc.underlays[0].counts }));
     assert.deepEqual(d, { holes: 1, counts: { CIRCLE: 1, LINE: 1, SPLINE: 1, TEXT: 1 } });
-    await page.waitForSelector('[aria-label="Underlay drawing U1"] path', { timeout: 10000 });
+    // (Its polylines the engine's lines on WebGPU (G7), its texts SVG.)
+    const underlayDrawn = () => page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayLines?.()['underlay:U1'] ?? 0) > 0 && !!document.querySelector('[aria-label="Underlay drawing U1"]') : !!document.querySelector('[aria-label="Underlay drawing U1"] path'));
+    await page.waitForFunction(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayLines?.()['underlay:U1'] ?? 0) > 0 : !!document.querySelector('[aria-label="Underlay drawing U1"] path'), null, { timeout: 10000 });
     assert.match(await page.locator('[aria-label="Underlay drawing U1"]').innerHTML(), /PLATE 3MM/);
     await snap('o68-underlay');
-    await page.click('[aria-label="Hide underlay U1"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Underlay drawing U1"] path'));
-    await page.click('[aria-label="Show underlay U1"]'); await page.waitForSelector('[aria-label="Underlay drawing U1"] path', { timeout: 10000 });
+    await page.click('[aria-label="Hide underlay U1"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Underlay drawing U1"]') && !window.__studioOverlayLines?.()['underlay:U1']);
+    assert.equal(await underlayDrawn(), false);
+    await page.click('[aria-label="Show underlay U1"]'); await page.waitForFunction(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayLines?.()['underlay:U1'] ?? 0) > 0 : !!document.querySelector('[aria-label="Underlay drawing U1"] path'), null, { timeout: 10000 });
+    assert.equal(await underlayDrawn(), true);
   });
 
   // ---- IM1 (O77): moulding's process rule -----------------------------------------------------------------------
