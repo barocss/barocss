@@ -7,7 +7,9 @@
 // frame's callback), the bytes written to GPU buffers per frame and the GPU buffers made. Measured at G1 (2026-10-21):
 // the joint 9.8 ms task and 3.1 KiB a frame, the explode 13.3 ms and 62 KiB (each moved mesh's object block), no buffers
 // made in either; before G1 (meshes moved on copies and re-uploaded) 10.3 ms, 36 KiB, 1 116 buffers and 22.3 ms, 2.0 MiB,
-// 35 280 buffers, with 49 of the explode's 60 steps drawn. Opt-in (needs a browser):
+// 35 280 buffers, with 49 of the explode's 60 steps drawn. G2 (2026-10-21): the section plane dragged across them, 15.6 ms
+// task, 2.3 KiB and no buffers a frame on the GPU's clip plane; the CPU's clipMesh (WebGL2's path, unbudgeted, for the
+// comparison) 19.3 ms, 190 KiB and 45 buffers a frame. Opt-in (needs a browser):
 //   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] node test/bench-browser.mjs
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
@@ -97,6 +99,16 @@ try {
     await page.evaluate(() => new Promise(done => { let i = 0; const step = () => { window.__studioSetExplode(2 * ++i / 60); if (i < 60) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); }));
   });
   await page.evaluate(() => window.__studioSetExplode(0));
+  // G2: the section plane dragged 60 steps across the 120 brackets — cut by the GPU's clip plane, then (the same build) by
+  // clipMesh on the CPU as WebGL2 does; the exact section held back in both (only the drag's own cost).
+  // (As a drag sets it: a new plane each animation frame, y from 20 to 160.)
+  const dragSection = () => page.evaluate(() => new Promise(done => { let i = 0; const step = () => { window.__studioSetSection({ axis: 'y', at: 20 + 140 * ++i / 60, keep: 'positive' }); if (i < 60) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); }));
+  await page.click('[aria-label="Section view"]'); await page.waitForFunction(() => window.__studioSection?.().clip !== undefined, null, { timeout: 10000 });
+  for (const [name, cpu, budget] of [['section: 120 brackets, 60-step drag (GPU)', false, { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 8, buffers: 4 }], ['section: the same, CPU clipMesh (WebGL2\'s)', true, { submits: 140, avgFrameMS: 2 }]]) {
+    await page.evaluate(c => window.__studioSectionDebug({ hold: true, cpu: c }), cpu); await page.waitForTimeout(800);
+    await measure(name, budget, dragSection);
+  }
+  await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false }));
 } finally { await browser.close(); await server.close(); }
 for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit  wall ${r.wallMS} ms`);
-process.exit(rows.length === 7 && rows.every(r => r.ok) ? 0 : 1);
+process.exit(rows.length === 9 && rows.every(r => r.ok) ? 0 : 1);

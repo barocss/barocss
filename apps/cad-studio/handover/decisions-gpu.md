@@ -72,3 +72,108 @@ analyses, 6 scene-level pick acceleration, 7 benches for these. This session tak
 - **Binds**: a new view-only motion of an instance (a mate preview, an animation track) goes through
   `instanceTransforms`, not through moved copies of its meshes. `posedInstances`/`movedBody` stay for the exports and
   checks that need moved meshes (and the CPU section until G2).
+
+## G2 — a GPU clip plane with a cap for the section view while its plane moves (2026-10-21)
+
+- **Before**: with the section view open, every change of its plane (a drag, X/Y/Z, Flip) ran `clipMesh` on every body
+  and every placed instance (the instances first moved on copies, G1's section exception), and the renderer made and
+  uploaded the clipped meshes; the kernel's exact section (a Split, in the engine worker) replaced the bodies when it came.
+  The hand-over (§3, ~line 1002) asked for "a GPU clipping plane would make the section view instant".
+- **What** (`packages/barocss-gpu`):
+  - `Viewer.clipPlane = { normal, offset, cap }` (or null): drawn is where dot(normal, p) ≥ offset. The frame block grows
+    32 bytes (`FRAME_BYTES` 992 → 1024): `clip` (normal, offset) and `clipColor` (the cap's linear colour, w 1 when set).
+    `AddMeshOptions.clipped` (default true; `Mesh.clipped`) and `cap` (default false: a closed solid; `Mesh.cap`); the flag
+    rides in the object block's `pick.z` (bit 0 receive shadow, bit 1 clipped).
+  - Discarded beyond the plane in every pass that draws a clipped mesh: surfaces (lit, unlit, the shadow catcher), lines
+    (the fragment's world point, carried from the segment's ends), the GPU pick, the outline mask, and the shadow map (its
+    pipeline gains a depth-only fragment `fsDepth`).
+  - The cap: drawn from the mesh's back faces (`cullMode: 'front'`) on the kept side whose eye ray crossed the plane before
+    them (it came in through the cut), at the crossing's depth (`frag_depth`), in the cap colour, lit as a face on the
+    plane facing the cut-away side with the mesh's metal and roughness (flat when unlit). The same test and depth in the
+    pick (`fsCapPick`: the cap picks its mesh, its point on the plane) and the outline mask (`fsCapMask`: the cap hides what
+    is behind it and carries its mesh's outline).
+  - A prepass (`capFront`, only while a plane caps something): every opaque surface's nearest kept front depth per
+    pixel (r32float, bound as frame binding 5), and a back face behind one is not capped — its ray crossed the plane outside
+    the solid and came in through that face. The first version without it painted the cap over the kept faces seen in
+    front of the cut (an iso view of the cut box showed only the cap colour); the browser test now holds a kept face in
+    front of the cut showing the body, and fails without the prepass.
+  - Bounds: `Viewer.sceneBounds` (the camera's clip planes, the shadow frame, the occlusion) cuts a clipped mesh's box by an
+    axis-aligned plane (`clipBox`, exported), as a clipped copy's box is; another plane leaves the box.
+  - The CPU paths honour the plane (the coordinator's point 1): `rayTriangles(g, o, d, plane, backs)` counts only hits on
+    the kept side (the plane carried into the mesh's space, `localPlane`: (Aᵀn)·x ≥ offset − n·t), and reports whether the
+    hit is a back face; `clippedRay` (exported, used by `raycast` and the GPU pick's triangle) turns a back-face hit of a
+    capped mesh into its cap hit (`PickHit.cap`, the point on the plane, triangle and face null) when the ray crossed the
+    plane before it; a single-sided uncapped mesh cut open is ray-cast without its back faces, as it is drawn.
+    `nearestSegment(…, plane)` (`pickLine`) clips each segment to its kept part before the eye clip, the parameter carried
+    through both; with no plane the arithmetic is the same as before.
+- **Studio** (`apps/cad-studio`):
+  - `src/viewport/sectionView.ts`: `sectionPlane`, `cutAway` (clipMesh's null by the box, its tolerance), `sectionedBodies`
+    and `sectionedInstances`: on WebGPU the bodies themselves less those wholly cut away and the instances' list itself;
+    on WebGL2 the clipMesh copies exactly as before.
+  - App (call sites only): the section's bodies from `sectionedBodies`, the instances from `sectionedInstances`, G1's matrices
+    on the instances always on WebGPU (the plane in world space cuts each where it is shown), and `clip` to the Viewport:
+    the plane, and whether the part's bodies are cut (until their exact section is shown). DEV hooks `__studioSection()`,
+    `__studioSectionDebug({ hold, cpu })` (the exact section held back, the CPU path forced) and `__studioSetSection`.
+  - `GpuRenderer.setClip`: the viewer's plane, the cap in the CPU cap's colour (a selected face's: the theme's base mixed
+    with the accent, 0.42); the bodies' surfaces, edges and highlights cut while not exact, the instances' surfaces, edges
+    and rings always, the surfaces capped; everything else (ground, direct objects, regions, the part's rings, props)
+    not cut, as the CPU section left them. `bounds()` (the studio's occlusion radius and fit) cuts the boxes the same way,
+    and the ground (the shadow catcher) is now one unit square placed by its transform from those bounds, again when the
+    plane moves — it followed the CPU's clipped meshes before by being made again; now nothing is made.
+  - The exact kernel section is kept and still replaces the bodies when it arrives (the cut faces lit as selected, "Sketch
+    the section" reading them); only the moving plane is the GPU's.
+- **Consumers of clipMesh's output** (the coordinator's point 5): only App's display path — the Viewport's bodies and
+  instances, the cut faces' highlight (`shownSelection`, by the cap's name), the per-index body colours, hidden bodies and
+  face colours, and the status line's solid count. On WebGPU: the bodies unclipped (the same membership: wholly cut
+  bodies left out), so the counts and the per-index lists are the same; the cap is drawn, not a face, so it is not
+  highlighted as a face (it has the highlight's colour). On WebGL2: unchanged. No export reads it: STEP, 3MF, the drawings
+  (kernel views and sections), the mass properties and the screenshots of drawings read `bodies` / the kernel; the
+  viewport capture (PNG) draws what is shown, so it has the GPU's section. Picks, measure and osnap stay off in a section
+  (App ignores picks while sectioned; osnap runs only in a sketch, which closes the section); hover still ray-casts, now
+  with the plane.
+- **Evidence**:
+  - `packages/barocss-gpu/tests/viewer-core.test.mjs` (node): the frame block's clip words; a box's ray with the plane (the
+    far bottom from inside, back), on a 7 200-triangle sheet through its hierarchy against every triangle with the plane
+    (60 random rays and planes), a segment found only on its kept part with its parameter, a null plane the same as none.
+  - `tests/viewer-pose-clip-browser.test.mjs` (real WebGPU), G2: shapes cut across y = 0 in an orthographic view, each
+    cap's pixels against its section's closed form, within one pixel along its outline: box 1 332 px for 1 366 (± 148),
+    64-sided cylinder 606 for 602 (± 87), a square tube with a 32-sided hole 1 066 for 1 099 (± 206), a turned copy 1 366
+    for 1 366; the hole open, an uncapped box hollow and see-through, an unclipped one whole; the CPU ray and the GPU pick on
+    the cap (point on the plane), nothing through the hole, the line pick not finding the cut-away edge (found without
+    the plane); the outline round the cut box (304 px, centred within 6); the cap in perspective; a kept face in front of the
+    cut showing the body; no cap from the kept side.
+  - `apps/cad-studio/test/section-view.test.ts`: the WebGL2 path equal to the code before G2 (bodies and posed instances,
+    12 random planes); the WebGPU path the same bodies less exactly clipMesh's nulls (60 planes); clipMesh's caps at the
+    closed forms (box exact, a 32-sided cylinder and the holed plate's hole within 1 % — the chords); the CPU ray with the
+    plane against a ray on clipMesh's meshes, a holed plate and a box moved by a matrix: 4 000 rays, 2 378 hits, 548 on
+    caps, the parameter within 1.4e-5 mm, the cap where clipMesh's cap is in every case.
+  - The flow (the coordinator's rule 8): in the section, section-with-instances and RM2-posed-section steps, the GPU's
+    section against the CPU's clipped meshes through the same viewer, the exact section held back (`sectionAgainstCpu`,
+    both shots kept). Pixels differing by more than 96 (ΣRGB: a cap, a silhouette, an edge line — geometry) are at most
+    0.07 % of the 1 296 000 over every run (the full flow: 51, 211 and 467) (the flow holds ≤ 0.1 %): an edge-on cap strip where the plane runs along a
+    face, and edge lines at the cut, up to 475. Faint differences (more than 8) are 0.01–0.04 % in the section and
+    instance steps and 0.5–4 % in the posed view, all below 30: the ground's contact shadow and the CPU shot's shadow
+    speckle on the ground, whose frame follows the scene's box (the CPU's path builds its ground from its clipped meshes,
+    a frame late). The first GPU version had a cap painted over kept faces in front of the cut: 7 243 and 34 201 pixels
+    differed then; the prepass took them to these. Under `FLOW_RENDERER=webgl2` the same helper asserts the CPU path and
+    no plane (the section step passes).
+  - Bench (`bench:browser`, new rows; 120 brackets, the plane dragged 60 steps, the exact section held back):
+
+    | Row | Task / frame | Upload / frame | Buffers made |
+    |---|---|---|---|
+    | section, GPU clip plane | 15.6 ms | 2.3 KiB | 0 |
+    | section, CPU clipMesh (WebGL2's path, same build) | 19.3 ms | 190 KiB | 2 706 (45 a frame) |
+
+    The brackets are small (about 100 triangles each), so the CPU's clipping is a small part of the frame; on large bodies
+    its share grows with their triangles, the GPU's does not.
+  - Checks (T2: gpu shaders and App.tsx), on the merge `7455af373` of integration's `b435c0b87`: cad-model package 626/626
+    (106 s), lint/tsc clean; gpu lint/tsc clean, unit 74/74, browser 4/4 (94 s with the builds); studio tsc clean, eslint 0
+    errors (106 warnings: the flow's three new G2 lines among them), suite 185/185 (32 s); the full browser flow on its own
+    219/220 (777 s, port 52691) — step 109, the throated worm wheel's known `waitForSelector` flake, passed on its own
+    (22 s); before the merge the full flow was 217/217 (704 s). `FLOW_RENDERER=webgl2` section step: passes on the CPU path.
+- **Not done / limits**: one cap colour for every mesh (the CPU cap took a body's own colour mixed with the accent); a
+  ghosted (see-through) body is cut but not capped; the cap casts no shadow; an open mesh marked `cap` shows a cap where
+  its inside shows (the studio caps every body and instance, as clipMesh did). The section's outline is not drawn as lines
+  (clipMesh drew none either).
+- **Binds**: a view that cuts the model for display goes through `Viewer.clipPlane` and `Mesh.clipped`/`cap`, not through
+  cut copies; any CPU query of the viewer honours it. WebGL2 keeps clipMesh.

@@ -51,7 +51,6 @@ import { MatePanel } from './ui/MatePanel';
 import { JointsPanel } from './ui/JointsPanel';
 import { jointTreeOf } from '@barocss/cad-model/robot/joints';
 import { forwardKinematics, gearPairAt, sliderRange } from '@barocss/cad-model/robot/fk';
-import { posedBody } from '@barocss/cad-model/robot/preview';
 import { treeInertia } from '@barocss/cad-model/robot/inertia';
 import { gravityTorques, linkMasses } from '@barocss/cad-model/robot/dynamics';
 import { exportUrdf } from '@barocss/cad-model/robot/urdf';
@@ -69,11 +68,11 @@ import { fastenerName, fastenerThread } from '@barocss/cad-model/app/fasteners';
 import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/cad-model/app/holeRegion';
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import type { Analysis } from './viewport/analysis';
-import { boundsUnder, instancePoses, motionOf } from './viewport/instancePose';
+import { boundsUnder, instancePoses } from './viewport/instancePose';
+import { sectionPlane, sectionedBodies, sectionedInstances } from './viewport/sectionView';
 import { edgeChain } from '@barocss/cad-model/app/edgeChain';
 import { offsetShape } from '@barocss/cad-model/sketch/offset';
 import { extendAt, joinOpen, splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
-import { clipMesh } from '@barocss/cad-model/engine/clip';
 import { faceProfile } from '@barocss/cad-model/app/faceProfile';
 import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
 import { renameToTagged } from '@barocss/cad-model/sketch/entityIds';
@@ -423,14 +422,18 @@ export function App() {
     if (!run.busy) void (async () => { run.busy = true; try { while (run.next) { const j = run.next; run.next = null; await j(); } } finally { run.busy = false; } })();
     return () => { live = false; };
   }, [section, bodies, evaluated, engine]);
-  // At once (while the plane is dragged, until the exact section arrives): the meshes clipped and capped.
+  // At once (while the plane is dragged, until the exact section arrives): on WebGPU the bodies whole, cut and capped by
+  // the viewer's clip plane (G2); on WebGL2 the meshes clipped and capped on the CPU.
+  // (Dev/test: the exact section held back, and the CPU's path forced, to compare the two clips through one viewer.)
+  const [sectionDebug, setSectionDebug] = useState({ hold: false, cpu: false });
+  const gpuSection = viewport.current?.backend === 'webgpu' && !sectionDebug.cpu;
   const sectionClipped = useMemo(() => {
     if (!section) return null;
     // (The section's first split is the next feature: its cut faces are named after the next id, engine/ids.ts.)
-    const k = 'xyz'.indexOf(section.axis) as 0 | 1 | 2, cap = `n${nextSerial(evaluated)}.cut`;
-    return bodies.flatMap(b => { const mesh = clipMesh(b.mesh, k, section.at, section.keep, cap); return mesh ? [{ ...b, mesh }] : []; });
-  }, [section, bodies, evaluated]);
-  const sectionBodies = section ? (sectionExact?.key === JSON.stringify(section) ? sectionExact.bodies : sectionClipped) : null;
+    return sectionedBodies(bodies, section, gpuSection, `n${nextSerial(evaluated)}.cut`);
+  }, [section, bodies, evaluated, gpuSection]);
+  const sectionExactShown = !!section && sectionExact?.key === JSON.stringify(section) && !sectionDebug.hold;
+  const sectionBodies = section ? (sectionExactShown ? sectionExact!.bodies : sectionClipped) : null;
   const render = useMemo(() => doc.render ?? defaultRender(), [doc.render]);
 
   // Evaluate the accepted document whenever it or the rollback marker changes.
@@ -611,14 +614,11 @@ export function App() {
   const instancePoseMap = useMemo(() => instancePoses(bodies, instancesPlaced, jointFk, explode), [instancesPlaced, explode, bodies, jointFk]);
   // (The flow's view of what is shown, RM2: each instance's bounds as placed, posed or exploded.)
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioInstanceBounds: () => unknown }).__studioInstanceBounds = () => instancesPlaced.map(i => { const b = i.bodies[0]?.mesh, M = instancePoseMap.get(i.id), box = b && M ? boundsUnder(b.positions, M) : b?.bounds; return { id: i.id, min: box?.min, max: box?.max }; }); }, [instancesPlaced, instancePoseMap]);
-  // The section view cuts the placed parts too (their meshes moved, clipped and capped, as the part's while dragged).
-  const instancesShown = useMemo(() => {
-    if (!section || sketch) return instancesPlaced;
-    const k = 'xyz'.indexOf(section.axis) as 0 | 1 | 2;
-    return instancesPlaced.map(i => { const M = instancePoseMap.get(i.id), m = M && motionOf(M); return { id: i.id, bodies: i.bodies.flatMap(b => { const mesh = clipMesh(m ? posedBody(b, m).mesh : b.mesh, k, section.at, section.keep, 'section'); return mesh ? [{ ...b, mesh }] : []; }) }; });
-  }, [instancesPlaced, instancePoseMap, section, sketch]);
-  // (The clipped copies are already moved; otherwise the meshes take the matrices.)
-  const instanceTransforms = section && !sketch ? undefined : instancePoseMap;
+  // The section view cuts the placed parts too: on WebGPU by the clip plane where their matrices put them (G2), on WebGL2
+  // as moved copies clipped and capped.
+  const instancesShown = useMemo(() => !section || sketch ? instancesPlaced : sectionedInstances(instancesPlaced, instancePoseMap, section, gpuSection), [instancesPlaced, instancePoseMap, section, sketch, gpuSection]);
+  // (The CPU's clipped copies are already moved; otherwise the meshes take the matrices.)
+  const instanceTransforms = section && !sketch && !gpuSection ? undefined : instancePoseMap;
   const insertPart = async (file: File) => {
     try {
       const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
@@ -1618,6 +1618,16 @@ export function App() {
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
   const mateFaces = !!assembly.draft || (!!assembly.selected && instanceSel.length === 1);
   const sectioned = !!(section && sectionBodies && !sketch && !previewBodies);
+  // (G2: the viewer's clip plane while the section is open on WebGPU — on the bodies until their exact section is shown,
+  // on the placed parts always; none in a sketch, where the section is not shown.)
+  const sectionClip = useMemo(() => section && !sketch && gpuSection ? { ...sectionPlane(section), bodies: shownBodies === sectionBodies && !sectionExactShown } : null, [section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown]);
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const w = window as unknown as { __studioSection: () => unknown; __studioSectionDebug: (d: { hold: boolean; cpu: boolean }) => void };
+    w.__studioSection = () => ({ gpu: gpuSection, exact: sectionExactShown, clip: sectionClip, bodies: shownBodies.length });
+    w.__studioSectionDebug = setSectionDebug;
+    (window as unknown as { __studioSetSection: typeof setSection }).__studioSetSection = setSection;
+  });
   const sectionFrom = nextSerial(evaluated);
   const shownSelection = sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
     : previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
@@ -1810,7 +1820,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} clip={sectionClip} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}

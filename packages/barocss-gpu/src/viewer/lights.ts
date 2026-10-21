@@ -62,7 +62,9 @@ export const directionalLights = (lights: readonly Light[]): DirectionalLight[] 
 /** The ground grid as drawn this frame: cell size, cells per major line, fade distance, height; colour (sRGB) and opacity. */
 export interface GridFrame { cell: number; major: number; fade: number; height: number; color: Vec3; opacity: number }
 
-export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly [number, number, number] = [1, 1, 1], grid: GridFrame | null = null): Float32Array {
+/** The clip plane (G2): drawn where dot(normal, p) ≥ offset (normal of unit length), its cap in a colour (sRGB). */
+export interface ClipFrame { normal: Vec3; offset: number; cap: Vec3 }
+export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly [number, number, number] = [1, 1, 1], grid: GridFrame | null = null, clip: ClipFrame | null = null): Float32Array {
   const f = new Float32Array(FRAME_BYTES / 4), u = new Uint32Array(f.buffer);
   f.set(viewProjection, 0);
   const forward = normalize(sub(camera.target, camera.position));
@@ -104,6 +106,7 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
     const c = linear(grid.color);
     put4(f, o + 40, grid.cell, grid.major, grid.fade, grid.height); put4(f, o + 44, c[0], c[1], c[2], grid.opacity);
   }
+  if (clip) { const c = linear(clip.cap); put4(f, o + 48, clip.normal[0], clip.normal[1], clip.normal[2], clip.offset); put4(f, o + 52, c[0], c[1], c[2], 1); }
   return f;
 }
 
