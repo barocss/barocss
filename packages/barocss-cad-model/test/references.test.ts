@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
-import { captureSignatures, refreshSignatures, verifyReferences } from '@barocss/cad-model/engine/references';
+import { join, resolve } from 'node:path';
+import { evaluatePart } from '../src/engine/evaluate';
+import { rectanglePart, type StudioDoc } from '../src/engine/doc';
+import { runTool, type ChatState } from '../src/chat/tools';
+import { readStudioDoc } from '../src/engine/migrate';
+import { captureSignatures, refreshSignatures, verifyReferences } from '../src/engine/references';
 
 // Stored references with their signatures (A1.3b): written with the reference, refreshed only by an accepted
 // edit, verified on open by the one matcher.
@@ -32,7 +32,7 @@ test('signatures: written with a reference from the bodies it was picked on; a r
 });
 
 // The A1.3b conformance cases (conformance/a1, those with "verify").
-const a1 = join(process.cwd(), 'conformance', 'a1');
+const a1 = join(resolve(import.meta.dirname, '..'), 'conformance', 'a1');
 for (const file of readdirSync(a1).filter(f => f.endsWith('.json'))) {
   const c = JSON.parse(readFileSync(join(a1, file), 'utf8'));
   if (!c.input.verify) continue;

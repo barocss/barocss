@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
+import { join, resolve } from 'node:path';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { runTool, type ChatState } from '../src/chat/tools';
+import { readStudioDoc } from '../src/engine/migrate';
 
 // Re-matching stored names after an edit renumbers the faces they come from (A1.3).
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
@@ -47,7 +47,7 @@ test('rematch: a dimension changed keeps every name (no guessing), and a corner 
 
 // The A1.3 conformance cases (conformance/a1, those with "edit"): a document, an edit_feature call, and the
 // stored names and volume that must come out (or the refusal).
-const a1 = join(process.cwd(), 'conformance', 'a1');
+const a1 = join(resolve(import.meta.dirname, '..'), 'conformance', 'a1');
 for (const file of readdirSync(a1).filter(f => f.endsWith('.json'))) {
   const c = JSON.parse(readFileSync(join(a1, file), 'utf8'));
   if (!c.input.edit || c.input.verify) continue;

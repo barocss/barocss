@@ -2,17 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { rectanglePart, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
-import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { withLook } from '@barocss/cad-model/app/bodies';
-import type { Requirement } from '@barocss/cad-model/chat/spec';
-import { bomView, deriveBom } from '@barocss/cad-model/team/assembly';
-import { draftBaseline, moveBaseline } from '@barocss/cad-model/team/baseline';
-import { userToken } from '@barocss/cad-model/team/ecr';
-import { bomResult, currentOf, displayOf, dfmResult, drawingResult, emptyStore, freshnessOf, inertiaResult, keepoutResult, massResult, numericOf, openRun, passes, recordResult, requirementResults, stamp, summaryOf, type Freshness, type Result } from '@barocss/cad-model/team/freshness';
-import { runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
+import { evaluatePart } from '../src/engine/evaluate';
+import { rectanglePart, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { readStudioDoc } from '../src/engine/migrate';
+import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { withLook } from '../src/app/bodies';
+import type { Requirement } from '../src/chat/spec';
+import { bomView, deriveBom } from '../src/team/assembly';
+import { draftBaseline, moveBaseline } from '../src/team/baseline';
+import { userToken } from '../src/team/ecr';
+import { bomResult, currentOf, displayOf, dfmResult, drawingResult, emptyStore, freshnessOf, inertiaResult, keepoutResult, massResult, numericOf, openRun, passes, recordResult, requirementResults, stamp, summaryOf, type Freshness, type Result } from '../src/team/freshness';
+import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 
 // A8.5b (O32's addendum, O39): every result stamped with what it read; read back current, stale (the changed input
 // named) or unresolved (a face gone, ambiguous, or renamed — never re-targeted; A1's own re-match failure carried in).
@@ -78,7 +78,7 @@ test('a stale result is shown as stale, its input named, never as current; and n
   const steel = withLook(doc, body, { material: 'steel' }), f = await freshnessOf(mass, steel, evaluate);
   assert.match(displayOf(mass, f), /^mass base: STALE — material changed since; it was /); assert.equal(passes({ ...mass, verdict: 'pass' }, f), false);
   // (A BOM baseline on the clean assembly citing p1's mass: approved while current; refused once p1's material changes.)
-  const sc = JSON.parse(readFileSync(join(resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios'), 'parts-clean.json'), 'utf8')) as PartsScenario;
+  const sc = JSON.parse(readFileSync(join(resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a8/scenarios'), 'parts-clean.json'), 'utf8')) as PartsScenario;
   const asm = (await runPartsScenario(sc, evaluate)).final, m1 = await massResult(asm, evaluate, 'R1', 'p1');
   const draft = async (d: StudioDoc, cites: Result[]) => { const view = await bomView(d, evaluate), b = draftBaseline(d, deriveBom(view), view, { cites }); return moveBaseline(b.doc, b.baseline.id, 'review', userToken('t')); };
   const ok = await draft(asm, [m1]);
@@ -133,7 +133,7 @@ test('a result that failed, is not supported or did not converge never reads as 
   assert.equal(displayOf(nc, cur), 'inertia base: non-converged — the eigen-solve stopped at its sweep limit');
   assert.deepEqual(summaryOf([failed, rm, dfm, nc].map(result => ({ result, freshness: cur }))), { pass: 0, fail: 0, unknown: 0, stale: 0, unresolved: 0, failed: 1, unsupported: 2, non_converged: 1 });
   // (A BOM of a part that does not evaluate: failed, its total not 0.)
-  const sc = JSON.parse(readFileSync(join(resolve(process.cwd(), '../../packages/barocss-cad/conformance/a8/scenarios'), 'parts-clean.json'), 'utf8')) as PartsScenario;
+  const sc = JSON.parse(readFileSync(join(resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a8/scenarios'), 'parts-clean.json'), 'utf8')) as PartsScenario;
   const asm = (await runPartsScenario(sc, evaluate)).final, broken: StudioDoc = { ...asm, instances: asm.instances!.map(i => (i.id === 'p2' ? { ...i, doc: empty } : i)) };
   const bom = await bomResult(broken, evaluate, 'R1'); assert.deepEqual([bom.status, bom.number], ['failed', null]); assert.match(bom.why!, /^p2: /);
   assert.equal((await bomResult(asm, evaluate, 'R1')).verdict, 'pass');
@@ -162,7 +162,7 @@ test('faces lost to a topology change: the result unresolved — gone, ambiguous
   const sphere = (await dispatchTool({ doc: { ...rectanglePart(1, 1, 1), nodes: [], nextId: 0 } as StudioDoc, bodies: [] }, 'run_command', { command: 'sphere', values: { r: 5, x: 0, y: 0, z: 0 } }, evaluate)).state.doc;
   assert.deepEqual((await freshnessOf(rn, sphere, evaluate)).unresolved.map(u => [u.face, u.why]), [['n1.top', 'gone'], ['n1.bottom', 'gone']]);
   // (A1's conformance case: a mate as near two tops. A result relying on it takes A1's state, with A1's candidates.)
-  const a1 = JSON.parse(readFileSync(join(process.cwd(), 'conformance', 'a1', 'refs-ambiguous.json'), 'utf8')), doc = read(a1.input.file);
+  const a1 = JSON.parse(readFileSync(join(resolve(import.meta.dirname, '..'), 'conformance', 'a1', 'refs-ambiguous.json'), 'utf8')), doc = read(a1.input.file);
   const onMate = stamp(doc, await bodiesOf(doc), { id: 'mass:base@R1', kind: 'mass', subject: 'base', run: 'R1', status: 'ok', number: 1 }, { refs: ['mate m1'] });
   const h = await freshnessOf(onMate, doc, evaluate);
   assert.equal(h.state, 'unresolved'); assert.deepEqual(h.unresolved.map(u => u.candidates), a1.expect.problems.map((p: { candidates: string[] }) => p.candidates));

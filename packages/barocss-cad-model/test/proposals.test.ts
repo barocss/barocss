@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { acceptProposal, agentMayNotAccept, dispatchTool, leaveOutClosure, previewProposal, proposalParts, rebaseProposal, runTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { approvalOf, compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory, type HistoryEntry } from '@barocss/cad-model/chat/proposals';
-import { modelHash } from '@barocss/cad-model/chat/spec';
-import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
-import { defaultDrawing } from '@barocss/cad-model/drawing/types';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
+import { acceptProposal, agentMayNotAccept, dispatchTool, leaveOutClosure, previewProposal, proposalParts, rebaseProposal, runTool, type ChatState } from '../src/chat/tools';
+import { approvalOf, compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory, type HistoryEntry } from '../src/chat/proposals';
+import { modelHash } from '../src/chat/spec';
+import { readStudioDoc } from '../src/engine/migrate';
+import { defaultDrawing } from '../src/drawing/types';
 import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 // Proposals and the design history (A4.2): a change proposed is worked out on a copy, the part unchanged; a
 // person accepts (its ops replayed) or rejects it (kept); the history is compact, capped and under a budget.
@@ -134,7 +134,7 @@ test('risk: changes to an assembly, its mates, the drawing or a part from a file
 });
 
 // The A4 conformance cases (conformance/a4): a document, a proposal, what it would do, and its acceptance.
-const a4 = join(process.cwd(), 'conformance', 'a4');
+const a4 = join(resolve(import.meta.dirname, '..'), 'conformance', 'a4');
 for (const file of readdirSync(a4).filter(f => f.endsWith('.json'))) {
   const c = JSON.parse(readFileSync(join(a4, file), 'utf8'));
   test(`conformance ${c.id}: ${c.about}`, async () => {

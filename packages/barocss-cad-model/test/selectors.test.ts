@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { resolveEdge, resolveFace } from '@barocss/cad-model/chat/names';
-import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
+import { join, resolve } from 'node:path';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
+import { runTool, type ChatState } from '../src/chat/tools';
+import { resolveEdge, resolveFace } from '../src/chat/names';
+import { readStudioDoc } from '../src/engine/migrate';
 
 // Selectors (A1.2): a face or edge said by what it is, resolved to its persistent name.
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
@@ -59,7 +59,7 @@ test('selectors in the tools: a fillet on edges said by their faces, a measure b
 });
 
 // The selector conformance cases (conformance/a1, those with "selectors").
-const a1 = join(process.cwd(), 'conformance', 'a1');
+const a1 = join(resolve(import.meta.dirname, '..'), 'conformance', 'a1');
 for (const file of readdirSync(a1).filter(f => f.endsWith('.json'))) {
   const c = JSON.parse(readFileSync(join(a1, file), 'utf8'));
   if (!c.input.selectors) continue;

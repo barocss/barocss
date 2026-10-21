@@ -1,16 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { emptyDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { evaluateDoc, evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '@barocss/cad-model/chat/features';
-import { flattenAssembly } from '@barocss/cad-model/assembly/flatten';
-import { featureIdsOf, nextSerial, nodeIndexOf, renameFeatureIds, withIds } from '@barocss/cad-model/engine/ids';
-import { toPartDocument } from '@barocss/cad-model/engine/part';
-import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
-import { defaultRender } from '@barocss/cad-model/engine/render';
-import { lookOf, withLook } from '@barocss/cad-model/app/bodies';
+import { join, resolve } from 'node:path';
+import { emptyDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import { evaluateDoc, evaluatePart } from '../src/engine/evaluate';
+import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '../src/chat/features';
+import { flattenAssembly } from '../src/assembly/flatten';
+import { featureIdsOf, nextSerial, nodeIndexOf, renameFeatureIds, withIds } from '../src/engine/ids';
+import { toPartDocument } from '../src/engine/part';
+import { readStudioDoc } from '../src/engine/migrate';
+import { defaultRender } from '../src/engine/render';
+import { lookOf, withLook } from '../src/app/bodies';
 
 // Stable feature ids (A1): a face's name keeps its feature's id however the history around it changes.
 const volumes = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies.map(b => Math.round(b.volumeMM3! * 1000) / 1000); };
@@ -99,7 +99,7 @@ test('ids: names parse into feature ids, rename by id, and find their nodes (a p
 // The A1 conformance cases (conformance/a1): a studio document, operations on its history, and the ids, names
 // and volumes that must come out.
 
-const a1 = join(process.cwd(), 'conformance', 'a1');
+const a1 = join(resolve(import.meta.dirname, '..'), 'conformance', 'a1');
 for (const file of readdirSync(a1).filter(f => f.endsWith('.json'))) {
   const c = JSON.parse(readFileSync(join(a1, file), 'utf8'));
   if (c.input.selectors || c.input.edit || c.input.verify) continue; // (selectors, rematch, references tests)
