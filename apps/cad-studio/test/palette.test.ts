@@ -22,6 +22,6 @@ test('the palette: each command\'s label typed gives that command first (empty p
   }
   // The flow's own palette words.
   const ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
-  for (const [q, id] of [['fillet', 'fillet'], ['chamfer', 'chamfer'], ['hole', 'hole'], ['interference', 'interference'], ['spring', 'spring'], ['shaft', 'shaft'], ['worm gear pair', 'worm-pair'], ['meshing gear', 'gear-mesh']] as const)
+  for (const [q, id] of [['fillet', 'fillet'], ['chamfer', 'chamfer'], ['hole', 'hole'], ['interference', 'interference'], ['spring', 'spring'], ['cam', 'cam'], ['shaft', 'shaft'], ['worm gear pair', 'worm-pair'], ['meshing gear', 'gear-mesh']] as const)
     assert.equal(paletteList(q, ctx)[0]?.c.id, id, q);
 });

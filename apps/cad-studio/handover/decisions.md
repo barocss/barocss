@@ -9101,3 +9101,143 @@ Ran:
 Not run:
 - RB and properties (the 3rd kernel checkpoint since D156's run; the 4th, R12c.6a, runs them).
 - The full browser flow (the coordinator's).
+
+## D160 — R12c.6a: disc cams and followers under closed-form laws; pressure angle and undercut against closed forms (2026-10-22)
+
+R12c.6a as D139 froze it, with the coordinator's rule: the motion laws come from closed forms derived and cited, never a table, and the pressure angle and the undercut are checked against closed forms.
+
+**The laws** (`cam.ts`, `camLaw(law, u)` → f, f', f'' on u ∈ [0, 1], f(0) = 0, f(1) = 1), each integrated by hand in the module's header; Norton's *Cam Design and Manufacturing Handbook* gives the same functions (cited from memory, not re-read):
+- **uniform** f = u. Its velocity steps at both ends, so it is always refused (below).
+- **harmonic** f = (1 − cos πu)/2. Its acceleration steps at a dwell: an ACCELERATION_STEP warning (infinite jerk).
+- **cycloidal** f = u − sin(2πu)/(2π).
+- **polynomial-345** f = 10u³ − 15u⁴ + 6u⁵: the least degree with f, f' and f'' fixed at both ends.
+- **modified-trapezoid:** the acceleration is a quarter sine to u = 1/8, flat A to 3/8, a half cosine through zero to −A at 5/8, flat to 7/8, then a quarter sine back to 0.
+  - Integrated twice piece by piece, f(1) = 1 gives A(1/8 + 1/(4π)) = 1, so A = 8π/(π + 2) = 4.8881. The peak velocity is A(1/4 + 1/(2π)) = 2.
+- **The peaks** `camLawPeaks` (Cv, Ca), from the same forms: harmonic π/2 and π²/2; cycloidal 2 and 2π; 3-4-5 15/8 and 10/√3 (where f''' = 0, u = (3 − √3)/6); modified trapezoid 2 and 8π/(π + 2).
+- **A segment** from p0 to p1 over β: s = p0 + Δf(u), s' = Δf'/β, s'' = Δf''/β², per radian of the cam's turn.
+
+**The frame:** the cam turns counter-clockwise about +Z by θ, and the follower sits above it.
+- A translating follower moves along +Y on the line x = e (its offset).
+- An oscillating follower swings about a pivot at (a, 0), the arm at ψ = ψ0 + s from the line to the centre.
+- The profile is in the cam's frame, Rot(−θ) of the world.
+
+**Roller followers** (the pitch curve P = Rot(−θ)C, C the roller centre's world path):
+- P' = Rot(−θ)(C' − JC) and P'' = Rot(−θ)(C'' − 2JC' − C), so κ = (Q1 × Q2)/|Q1|³ in the world frame. P runs clockwise, so κ < 0 where it is convex.
+- **The profile** is P less r_r along the outward normal JQ1/|Q1|. Its tangent is P'(1 + r_r κ), exact, so the Hermite fit takes exact end tangents.
+- **Undercut** (CAM_UNDERCUT): the pitch curve's least convex radius is at most r_r. The search is dense sampling per segment plus golden section.
+- **Pressure angle:** the angle between the pitch curve's normal and the follower's motion.
+  - Translating: tan φ = (s' − e)/(d + s), d = √(R_p² − e²) (Norton's form).
+  - Oscillating: C = (a − l cos ψ, l sin ψ), cos ψ0 = (a² + l² − R_p²)/(2al), the motion ⊥ the arm.
+
+**Flat-faced followers** (the face is a line n·X = h; in the cam's frame at angle β):
+- The profile is the lines' envelope K = h m + h_β Jm, its radius of curvature ρ = h + h_ββ and its tangent ρβ'Jm.
+  - Translating: h = r_b + s, so ρ = r_b + s + s'' (Norton's form). The contact is at s' along the face, and the pressure angle is 0.
+  - Oscillating: n = (sin ψ, cos ψ), h = a sin ψ − c (the face c from the pivot toward the cam), sin ψ0 = (r_b + c)/a.
+    - The pressure angle is atan(c/t), t the contact's distance from the pivot along the face: 0 for a face through the pivot.
+- **Undercut** where ρ ≤ 0, or where the face turns faster than the cam (1 + ψ' ≤ 0).
+- **The face's contact** range is reported; `faceWidthMM` is checked against it: a FACE_WIDTH warning.
+
+**A velocity step** at a joint is a corner in the cam's path.
+- Every law but uniform starts and ends at rest. So any cam with a uniform segment has a step at which the velocity drops.
+- For a roller, or for a translating flat face, that step is a convex corner: radius of curvature 0 (or ρ → −∞). It is refused CAM_UNDERCUT, naming the step and where it is.
+- For an oscillating flat face the sense depends on cos ψ. A step with no convex corner is refused INVALID_INPUT ("the profile would need a flat there, not built").
+- So uniform stays in the law set and its refusal says why. The command's form does not offer it.
+
+**The pressure angle's limit** defaults to 30° translating and 35° oscillating.
+- These are a rule of thumb (Norton, *Design of Machinery*, cited from memory and not re-read for this stage), flagged estimates, like O2's ranges (D159). A user's limit replaces them, and a PRESSURE_ANGLE warning is raised above the limit.
+
+**The fit:** Hermite cubics in θ per segment, pieces broken at the segment joints. Each segment starts at ⌈32 β/2π⌉ pieces, doubling until its parameter-matched deviation (23 samples a piece, an upper bound on the distance) is within the tolerance.
+- The tolerance defaults to 1e-4 of the base radius.
+- The budget is 2048 pieces (PROFILE_BUDGET_EXCEEDED).
+- S0's cam: 34 pieces, 3.8e-4 mm.
+
+**The follower's displacement on the built profile** (D139's check), every half degree, from the law's position by secant steps:
+- a roller: the least distance from its centre to the built pieces (sampled, golden-section refined) less r_r;
+- a flat face: its offset less the built profile's support along its normal.
+- S0's cam: within 3.8e-4 mm of the law.
+
+**Solid and part model:**
+- **`discCam`:** the profile is extruded through `extrudedProfile`, with a bore (`minimumRimMM`, default 1, below the base circle).
+  - Faces `<id>.rise1#k`, `.dwell1#k`, `.return1#k` (the motions counted by kind, pieces in θ), `.bore#1/#2`, `.face0/.face1`.
+- **Exports:** `camProfile`, `camMotion`, `camLaw`, `camLawPeaks`, `CAM_LAWS`, `CamError` and the types.
+- **The kind `cam`** { base, thickness, follower, motion?, roller?, offset?, pivotDistance?, armLength?, faceOffset?, faceWidth?, segments [{ angle, to?, law? }], bore?, minimumRim?, pressureAngleLimit?, profileTolerance?, center?, from?, rotation?, generator 'cam@0' }.
+  - The output's `cam` is the report.
+  - Refusals: CAM_UNDERCUT → GEOMETRY, INVALID_INPUT → INPUT, PROFILE_BUDGET_EXCEEDED → CAPABILITY, each with its own code kept in the message. An unknown segment field is refused.
+
+**Oracles and tests** (`test/r12c-cam.test.mjs`, 9 tests, all failing on the previous HEAD: the module did not exist). Every oracle is written in the test, apart from the kernel's code:
+- **The laws:**
+  - f(0), f(1), and f', f'' against central differences;
+  - Cv and Ca against dense sampling;
+  - the ends at rest (uniform's velocity 1, harmonic's acceleration π²/2).
+- **The modified trapezoid:** its acceleration shape integrated twice by Simpson's rule, scaled so the rise is 1. A = 8π/(π + 2) comes out, not in. Cv = 2 and f within 1e-10.
+- **S0's cam** (base 20, roller 5, cycloidal 8 over 120°, 60° dwells):
+  - the pitch curve's least convex radius by the polar formula ρ = (r² + r'²)^{3/2}/(r² + 2r'² − r r''): 23.690158, S0's figure;
+  - the pressure angle by Norton's form;
+  - the volume against Green's theorem on the exact profile;
+  - the lift found on the built solid's own face curves (the highest roller centre on x = 0 touching any sampled point), within the fit's deviation over cos φ;
+  - the face names and the segments' peaks.
+- **An offset roller** (e 6): Norton's form with the offset; ρ by finite differences of the parametric pitch curve; a PRESSURE_ANGLE warning at a given 20°, not flagged an estimate.
+- **A flat translating follower** (3-4-5 rise, modified-trapezoid return):
+  - ρ = r_b + s + s'';
+  - the contact from −2·8/β to 15/8·8/β;
+  - the pressure angle 0;
+  - FACE_WIDTH at 15 mm;
+  - the lift on the built curves.
+- **An oscillating roller** (pivot 50, arm 40):
+  - ψ0;
+  - the pressure angle through Kennedy's instant centre a s'/(1 + s') on the line of centres, an independent construction;
+  - ρ by finite differences;
+  - two ACCELERATION_STEP warnings for the harmonic return;
+  - the arm's angle found on the built curves.
+- **An oscillating flat face** (pivot 60, c 0 and 5):
+  - the contact as the instant centre's foot on the face line;
+  - its range from the pivot;
+  - ρ by finite differences of those points;
+  - the pressure angle 0 and atan(c/t_min).
+- **Refusals:**
+  - uniform's step −3.819719 mm/rad at 120°;
+  - a roller 15 on base 6 with ρ 11.8433 by the polar formula;
+  - a flat face on a fast rise (ρ < 0);
+  - INVALID_INPUT: off 360°, not back at 0, no law, a position below 0, an offset past the prime circle, a bore through the base circle, an arm that never reaches the prime circle.
+- **The part model:** placed and turned with a bore (the bore's π·16·10 off S0's volume), the codes mapped, an unknown segment field, an unknown generator; `camMotion`.
+- **Conformance `r12c/`** (independent oracles: the exact profiles' area and centroid by Green's theorem, from a script that uses no kernel geometry):
+  - `cam-roller-cycloidal`: S0's cam with a Ø8 bore, relTol 1e-4;
+  - `cam-flat-345`: relTol 2e-4;
+  - `cam-oscillating-roller`: relTol 1e-4;
+  - `cam-uniform-refused`.
+
+**Studio and model:**
+- **The node `cam`** maps to the kind.
+  - Its label is "Cam for a roller follower, base R20, lift 8" (or "an oscillating flat-faced follower … swing 10°").
+  - `usesOf`, `leafBodies`, `flatten` and `migrate` know it.
+- **The Cam command** (create, keywords "cam follower", icon `cad-cam`):
+  - follower, motion, base, roller, offset, pivot, arm, face offset;
+  - the program as rise (lift, angle, law), a dwell after it, a return (angle, law); the rest of 360° is the dwell before the rise;
+  - thickness, bore, place;
+  - defaults: S0's cam with a Ø8 bore.
+  - The laws offered are cycloidal, 3-4-5, modified trapezoid and harmonic.
+- **Edit fields:** base, roller, lift or swing (scaling every position alike), thickness, bore, rotation.
+- **Notes:**
+  - the follower and its geometry;
+  - the program;
+  - the peaks;
+  - the pressure angle against its limit ("a rule of thumb, an estimate"; a warning above it);
+  - the least convex radius against the roller, or ρ and the face's contact;
+  - the fit and the sweep;
+  - the warnings;
+  - "Not validated for manufacturing".
+- **A friendly error** for `[CAM_UNDERCUT]`.
+- **Chat v2:** a features command, its values behind `describe`. The per-turn total is 22,279 (was 22,274; cap 25,000).
+- **Tests:** `test/cam.test.ts` (3):
+  - the default against the conformance volume, the notes and the label;
+  - an oscillating flat face, the lift edited, an undercut's title;
+  - describe and a features command.
+  - `palette.test` checks "cam" gives Cam first.
+- **A flow step** "Cam (R12c.6a, D160)".
+
+**Not in this stage:**
+- the follower's own solid (a roller or a lever, as library parts or the user's bodies);
+- forces, contact stress, wear, follower jump and spring sizing;
+- globoidal, cylindrical and face cams;
+- the arm's clearance with the cam;
+- the profile's flats that a velocity step would need.

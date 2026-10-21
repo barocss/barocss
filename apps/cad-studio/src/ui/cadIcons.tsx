@@ -196,6 +196,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-shaft': <><path d="M2.5 9.5h6v-2h7v2h6v5h-6v2h-7v-2h-6z" style={tone(TONE.right)} />{ac('M10.2 7.5h3.6')}<path d="M8.5 7.5v9M15.5 7.5v9" strokeOpacity={0.55} /></>,
   // A fit (R12c.2): a shaft in its bore, the gap between them in the accent colour.
   'cad-fit': <><circle cx="12" cy="12" r="9" style={tone(TONE.right)} /><circle cx="12" cy="12" r="5.6" style={dark} /><circle cx="12" cy="12" r="4.6" style={tone(TONE.top)} />{ac('M17.6 12h3.4M3 12h3.4')}</>,
+  // A disc cam (R12c.6a): its lobed profile round a bore, the roller follower on top and its stem in the accent colour.
+  'cad-cam': <><path d="M17.76 15.5L17.56 16.23L17.33 16.93L17.08 17.6L16.76 18.25L16.36 18.85L15.89 19.39L15.35 19.86L14.75 20.26L14.1 20.58L13.42 20.81L12.72 20.95L12 21L11.28 20.95L10.58 20.81L9.9 20.58L9.25 20.26L8.65 19.86L8.11 19.39L7.64 18.85L7.24 18.25L6.92 17.6L6.69 16.92L6.55 16.22L6.5 15.5L6.55 14.78L6.69 14.08L6.91 13.39L7.18 12.72L7.48 12.03L7.83 11.33L8.27 10.63L8.8 9.95L9.44 9.31L10.19 8.76L11.06 8.33L12 8.06L12.99 7.97L13.99 8.08L14.95 8.39L15.82 8.89L16.57 9.55L17.17 10.33L17.6 11.2L17.88 12.1L18.01 13.01L18.01 13.89L17.92 14.72Z" style={tone(TONE.right)} /><circle cx="12" cy="15.5" r="1.6" style={dark} /><circle cx="12" cy="6.25" r="1.8" style={tone(TONE.top)} />{ac('M12 4.45V1.5')}</>,
   // A compression spring (R12c.1a): its coil between the ground plates.
   'cad-spring': <>{ghost(SPRING.back)}{line(SPRING.front)}{ac('M4 4.2h16M4 20.4h16')}</>,
   // A rack: a bar with trapezoid teeth along its top.

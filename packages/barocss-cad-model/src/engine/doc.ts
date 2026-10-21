@@ -14,6 +14,8 @@ import type { BaselineLog } from '../team/baseline';
 
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
+/** A cam's motion laws (R12c.6a, D160): closed forms, the kernel's. */
+export type CamLawName = 'uniform' | 'harmonic' | 'cycloidal' | 'polynomial-345' | 'modified-trapezoid';
 /**
  * What a frame follows (FRf, O121; FRf2, O125): a skeleton or a sketch of this document by index, or a placed part's
  * sketch by its stable feature id — `revision` the part's A7 revision when the person linked it (its staleness).
@@ -276,6 +278,16 @@ type ModelNodeBase = SketchNode
    */
   | { kind: 'spring'; type?: 'extension' | 'torsion'; wire: Dim; diameter: Dim; activeCoils: number; pitch?: Dim; freeLength?: Dim; hand: 'right' | 'left'; ends?: 'open' | 'closed' | 'closed-ground'; shearModulus?: number; shearModulusEstimate?: boolean; load?: number;
     hooks?: 'machine-loop' | 'crossover'; initialTension?: number; legLengths?: [number, number]; youngsModulus?: number; youngsModulusEstimate?: boolean; moment?: number; center: [number, number]; from?: number; rotation?: number; generator: 'spring@0' }
+  /**
+   * A disc cam (R12c.6a, D160): its `follower` roller | flat, `motion` translating (the default; its line `offset` off the
+   * centre) or oscillating (`pivotDistance`, a roller's `armLength`, a face's `faceOffset`), the `roller` radius, the
+   * `base` circle, the program's `segments` — { angle (degrees), to (the follower's position: mm, or the arm's degrees;
+   * omitted, a dwell), law } from 0 round to 0 over 360° — `thickness`, `bore`; `pressureAngleLimit` when the user gives
+   * one (else 30° translating, 35° oscillating: rules of thumb, flagged estimates). Its axis +Z through `center` from
+   * `from`; the cam turns counter-clockwise, the follower above it at `rotation` 0.
+   */
+  | { kind: 'cam'; follower: 'roller' | 'flat'; motion?: 'translating' | 'oscillating'; base: number; roller?: number; offset?: number; pivotDistance?: number; armLength?: number; faceOffset?: number;
+    segments: { angle: number; to?: number; law?: CamLawName }[]; thickness: number; bore?: number; pressureAngleLimit?: number; center: [number, number]; from?: number; rotation?: number; generator: 'cam@0' }
   /**
    * A shaft (R12c.3a, D156): steps along +Z from `from` through `center` — each a diameter and a length, a fillet at the
    * shoulder after it, an undercut, ring grooves and keyseats — end chamfers and cross holes. Every size is the user's
@@ -581,7 +593,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
+    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
     case 'frame': return [...(node.follows && followsIndex(node.follows) !== null ? [followsIndex(node.follows)!] : []), ...[node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : [])];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
@@ -598,7 +610,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
+    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -749,6 +761,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'spring': return node.type === 'extension' ? `Extension spring d${n(node.wire)} × Ø${n(node.diameter)}, ${fmt(node.activeCoils)} coils (${node.hooks === 'crossover' ? 'crossover hooks' : 'machine loops'})`
       : node.type === 'torsion' ? `Torsion spring d${n(node.wire)} × Ø${n(node.diameter)}, ${fmt(node.activeCoils)} coils`
       : `${node.ends === 'open' ? 'Open' : node.ends === 'closed' ? 'Closed' : 'Ground'} spring d${n(node.wire)} × Ø${n(node.diameter)}, ${fmt(node.activeCoils)} coils`;
+    case 'cam': { const top = Math.max(...node.segments.map(g => g.to ?? 0)), osc = node.motion === 'oscillating'; return `Cam for ${osc ? 'an oscillating' : 'a'} ${node.follower === 'flat' ? 'flat-faced' : 'roller'} follower, base R${fmt(node.base)}, ${osc ? `swing ${fmt(top)}°` : `lift ${fmt(top)}`}`; }
     case 'worm-wheel': return `Throated worm wheel m_x${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;
     case 'worm': { const w = wormOf(node, nodes); return `Worm ${node.form} m_x${w ? fmt(+w.mx.toFixed(4)) : '?'} ×${node.starts}${w ? ` Ø${fmt(+w.d1.toFixed(3))}` : ''}`; }
     case 'bevel-gear': { const t = bevelTeeth(node, nodes), spiral = bevelSpiral(node, nodes); return `${spiral ? 'Spiral bevel gear' : 'Bevel gear'} m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${t.teeth}/${t.mateTeeth}${spiral ? ' (ideal model)' : ''}`; }

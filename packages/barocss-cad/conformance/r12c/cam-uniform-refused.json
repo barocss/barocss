@@ -1,0 +1,51 @@
+{
+  "id": "r12c-cam-uniform-refused",
+  "step": "R12c",
+  "decisions": [
+    "D160"
+  ],
+  "about": "R12c.6a: a uniform rise into a dwell — the velocity steps from 3.82 to 0 mm/rad at 120°, a corner in the pitch curve no roller follows (its radius 0 < r_r): refused CAM_UNDERCUT.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "u",
+          "kind": "cam",
+          "base": 20,
+          "roller": 5,
+          "follower": "roller",
+          "thickness": 10,
+          "segments": [
+            {
+              "angle": 120,
+              "to": 8,
+              "law": "uniform"
+            },
+            {
+              "angle": 60
+            },
+            {
+              "angle": 120,
+              "to": 0,
+              "law": "cycloidal"
+            },
+            {
+              "angle": 60
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "[CAM_UNDERCUT] the follower's velocity steps by -3.819719 mm/rad at 120°"
+    }
+  },
+  "oracle": "Uniform motion: s' = 8/(2π/3) = 3.819719 mm/rad, stepping to 0 at its end — a convex corner (ρ = 0)."
+}

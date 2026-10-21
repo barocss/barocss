@@ -2683,6 +2683,21 @@ try {
     }
   });
 
+  await check('Cam (R12c.6a, D160): a disc cam from the palette — S0\'s roller cam, cycloidal rise and return; its notes (the program, the pressure angle against a rule of thumb, the pitch curve\'s least radius above the roller, the fit and the follower on the built profile)', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('cam'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'cam' && /1 bod/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    assert.match(await page.textContent('.history'), /Cam for a roller follower, base R20, lift 8/);
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning /, ''));
+    assert.ok(notes.some(t => /^Motion: rise to 8 mm over 0–120° \(cycloidal\), dwell to 180°/.test(t)) && notes.some(t => /^Pressure angle at most 14\.8683° .*a rule of thumb, an estimate/.test(t)) && notes.some(t => /least convex radius 23\.6902 .* no undercut/.test(t)) && notes.some(t => /^Profile within .* the follower found on the built profile/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Top")'); await press('f'); await page.waitForTimeout(500);
+    await snap('cam-roller');
+  });
+
   await check('R12b.7 the gears\' acceptance by the scripted agent through the real chat: a planetary set (its own mesh checks passing), a right-angle bevel pair, a worm reducer — each in one turn, its pairs clear in their notes (new in D138)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
