@@ -26,6 +26,8 @@ export interface ViewState {
   hoverBody?: number;
 }
 export type ThemeName = 'dark' | 'light';
+/** A placed instance as the viewport draws it: its bodies (as placed) and the cosmetic thread rings on them (line segments). */
+export interface InstanceItem { id: string; bodies: BodyResult[]; threads?: Float32Array }
 /** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
 export interface ViewRenderer {
   /** Host-driven frames (GPU viewer): its own frame requests go here instead of to its own animation frame (PERF3 A2). */
@@ -55,7 +57,9 @@ export interface ViewRenderer {
   setDirect?(items: import('@barocss/cad-model/engine/direct').DirectDisplay[], selected: readonly string[]): void;
   pickDirect?(x: number, y: number, camera: OrbitCamera): string | null;
   /** Placed instances of other parts (WebGPU only), and the one under a point. */
-  setInstances?(items: { id: string; bodies: BodyResult[] }[], selected: readonly string[]): void;
+  setInstances?(items: InstanceItem[], selected: readonly string[]): void;
+  /** Instances shown moved by a matrix each (column-major 4 × 4; posed, exploded), the rest as placed (G1). */
+  setInstanceTransforms?(transforms: ReadonlyMap<string, Float64Array> | null): void;
   pickInstance?(x: number, y: number, camera: OrbitCamera): string | null;
   pickInstanceFace?(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number } | null;
   setInstanceFaces?(faces: readonly { id: string; body: number; face: number }[]): void;

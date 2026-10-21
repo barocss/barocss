@@ -734,6 +734,18 @@ stays out of the kernel's core files (requests for them go through the coordinat
     suite under load; its slowest warm step against the cold one is typically 0.025 of the 0.5 limit, so a single ~5 ms
     stall fails it. The threshold is unchanged.
 
+### GPU viewer lane (2026-10-21: a session the coordinator started; the coordinator merges it into this branch)
+Improvements to the one 3D viewer (`packages/barocss-gpu`) and its studio glue (`src/viewport/`, App's call sites), on
+branch `claude/gpu-viewer-pose-clip-2026-10-21` cut from this branch's tip `6b2c4375d`. Its own decision log
+`handover/decisions-gpu.md` (G1, G2, …); it stays out of the kernel's core files. Order from the read-only survey (in G1):
+transforms → GPU clip plane → overlays into the engine → depth-aware `pickLine` → scalar colour maps → scene-level pick
+acceleration → benches.
+- **G1** (2026-10-21): done. Posed and exploded instances by a matrix each on their meshes (`viewport/instancePose.ts`,
+  `setInstanceTransforms`), the instance meshes made once per geometry change (keyed `setInstances`); thread rings per
+  instance, moved with it. Bench rows `pose:` and `explode:` in `bench:browser`: a played joint 35.8 → 3.1 KiB uploaded
+  and 1 116 → 0 buffers made; a 120-bracket explode drag 2 MiB → 62 KiB a frame, 35 280 → 0 buffers, task 22.3 → 13.3 ms
+  a frame. Checks: studio 787/787; T2 full flow 217/217; posed/exploded/sectioned frames within 16 (ΣRGB) of the CPU path's on ≤ 75 pixels.
+
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
 - No functions inside functions on hot paths (per frame, per element, per sample): hoist them to module level.

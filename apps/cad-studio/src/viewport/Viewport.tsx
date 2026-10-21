@@ -2,7 +2,7 @@ import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 're
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
-import { Renderer, type EdgeRef, type FaceRef, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import { Renderer, type EdgeRef, type FaceRef, type InstanceItem, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
@@ -118,7 +118,9 @@ interface Props {
   pickedPole?: string | null;
   onPickPole?(key: string): void;
   /** Placed instances of other parts, and the selected ones. */
-  instances?: { id: string; bodies: BodyResult[] }[];
+  instances?: InstanceItem[];
+  /** Instances shown moved (posed by the joints, exploded) by a matrix each (column-major 4 × 4), the rest as placed (G1). */
+  instanceTransforms?: ReadonlyMap<string, Float64Array>;
   instanceSelection?: string[];
   /** Faces of instances shown picked (mate faces). */
   instanceFaces?: { id: string; body: number; face: number }[];
@@ -306,6 +308,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
+  useEffect(() => { renderer.current?.setInstanceTransforms?.(props.instanceTransforms ?? null); request(); }, [props.instanceTransforms, backend]);
   // (By content: the list is rebuilt on every render; the last one is kept while its content is the same.)
   const instanceFacesRef = useRef<readonly InstanceFace[]>([]);
   if (!sameInstanceFaces(instanceFacesRef.current, props.instanceFaces ?? [])) instanceFacesRef.current = props.instanceFaces ?? [];
