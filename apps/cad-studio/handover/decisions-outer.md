@@ -5137,3 +5137,21 @@ The coordinator's queue, item 3. hollow.test asserted "refused at once" by wall-
 - **What it found**: the refusal was never "at once" in structure. For an explicit voxel route on a curved body, `planHollow` built the whole cavity field and its components first and only then refused CURVED_BODY. It was merely fast enough.
 - **Now** (print/hollow.ts): the explicit voxel route checks for curved faces before any voxel work. The auto route still builds the field first, since its drains need it for the exact shell too, and refuses as before. `hollowWork.fields` counts the cavity fields built.
 - **The test** asserts that the refused call built no field: the count is unchanged, with no clock. Its name now says "refused before any voxel work" (the name diff shows the rename).
+
+## O129 — G12 S0: a proposal's added and removed material, exactly (2026-10-22)
+
+The coordinator's queue, item 4: model data for the GPU lane's two-colour proposal overlay. This is the S0, and the shape goes to the coordinator before building. Evidence is in `packages/barocss-cad-model/test/g12-s0.test.ts` (4 probes).
+
+- **The route probed**: unite each side's bodies (the base before, the proposal after), then `removed = before − after` and `added = after − before` with the kernel's analytic Boolean. It does not depend on body keys: a union node gets a new key though its material hardly changes, so matching bodies by key would call the whole plate removed and added.
+- **Probes**:
+  - **P1**: a Ø6 hole through a 40 × 30 × 10 plate removes π · 9 · 10 = 282.743 exactly, and adds nothing.
+  - **P2**: a boss r 5 × 8 united on its top (a new key) adds π · 25 · 8 = 628.319, and removes nothing.
+  - **P3**: the extrude made 15 adds the slab 6000 exactly and removes nothing. This was the hard case, the two sides' faces coinciding, and the Boolean takes it.
+  - **P4**: the faces by persistent name. The hole adds `n2.side0`; `n1.top` and `n1.bottom` keep their names but their areas change. "Changed" is by geometry, not by name.
+- **Proposed shape**: `proposalDiff(base, proposed)` returns:
+  - `added`, `removed`: `{ mesh: DisplayMesh, volumeMM3 } | null`, each the display mesh of the Boolean's result, tessellated as bodies are, so the GPU lane draws it as any body;
+  - `changedFaces`: `{ name, kind: 'added' | 'removed' | 'changed' }[]`, by persistent name, with changed by geometry (area, or the A1 signature where kept);
+  - `parts`: the existing `proposalParts`, for labels;
+  - `method`: `'boolean' | 'faces'`. Where the Boolean refuses (facet or mixed bodies until the kernel's F3), only the faces are given, with `why`.
+- **Scope v1**: the base part's geometry. A proposal's placed-part changes are listed by part, not diffed in geometry. It is computed on demand, not per evaluation (two Booleans a proposal).
+- **Next**: build after the coordinator's reply on the shape.
