@@ -3728,6 +3728,72 @@ try {
     await snap('shaft-parts');
   });
 
+  await check('Bearing (R12c.4, D158): the user\'s bearing rows loaded in the Library panel (none built in); a 6204 on the default shaft\'s first shoulder through the scripted chat — its seat and the not-located side in its notes', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const rows = [{ id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, estimate: true }];
+    const file = join(out, 'bearing-rows.json'); fs.writeFileSync(file, JSON.stringify(rows));
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="Bearing rows"]'), /No bearing rows: load your own .* None is built in/);
+      await page.setInputFiles('input[aria-label="Bearing rows file"]', file);
+      await page.waitForFunction(() => window.__studioDoc.bearings?.rows?.length === 1, null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Bearing row 6204"]'), /6204 Ø20 × Ø47 × 14 · estimate/);
+    } finally { await page.click('[aria-label="Close library"]'); }
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), cmd = (command, values, extra = {}) => ({ tool: 'features', args: { action: 'command', command, values, ...extra } });
+      const calls = [cmd('shaft', { ks: 0, gs: 0, r: 0 }), cmd('bearing', { row: '6204', step: 1, against: 'end' }, { bodies: ['b0'] })];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`);
+      await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(x => x.kind === 'bearing') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    const row = await page.evaluate(() => [...document.querySelectorAll('.outliner .ol')].findIndex(e => /^\s*Bearing 6204/.test(e.textContent ?? '')));
+    await page.locator('.outliner .ol').nth(row).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /against the Ø25 shoulder/.test(x.textContent ?? '')), null, { timeout: 30000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning\s*/, '').trim());
+    assert.ok(notes.includes('On step 1 from 16 to 30, against the Ø25 shoulder; its other side not located; no overlap with the shaft') && notes.some(t => /not for structural calculation/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('bearing');
+  });
+
+  await check('O-ring gland (R12c.5, D159): the user\'s O-ring rows loaded (none built in); a piston gland on a Ø31 cylinder for AS568-214 at S0\'s sizes through the scripted chat — stretch, squeeze and fill in its notes, the ranges said to be estimates', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const file = join(out, 'oring-rows.json'); fs.writeFileSync(file, JSON.stringify([{ id: '214', dash: '2-214', insideDiameterMM: 24.99, crossSectionMM: 3.53, estimate: true }]));
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="O-ring rows"]'), /No O-ring rows: load your own .* None is built in/);
+      await page.setInputFiles('input[aria-label="O-ring rows file"]', file);
+      await page.waitForFunction(() => window.__studioDoc.orings?.rows?.length === 1, null, { timeout: 10000 });
+    } finally { await page.click('[aria-label="Close library"]'); }
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), cmd = (command, values, extra = {}) => ({ tool: 'features', args: { action: 'command', command, values, ...extra } });
+      const calls = [cmd('cylinder', { r: 15.5, h: 20, x: 0, y: 0, z: 0 }), cmd('oring-gland', { ring: '214', seal: 31.1, dg: 25.5, w: 4.7, at: 6 }, { faces: ['n1.side0'] })];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`);
+      await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(x => x.kind === 'oring') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    const row = await page.evaluate(() => [...document.querySelectorAll('.outliner .ol')].findIndex(e => /O-ring gland/.test(e.textContent ?? '')));
+    await page.locator('.outliner .ol').nth(row).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /Stretch 2 %/.test(x.textContent ?? '')), null, { timeout: 30000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning\s*/, '').trim());
+    assert.ok(notes.includes('Stretch 2 %, the section 3.5006 stretched; squeeze 20.7 % (20 % stretched); fill 73.1 %') && notes.some(t => /\(estimates: Fictiv/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('oring-gland');
+  });
+
   await check('Fits (R12c.2, D155): a fit table loaded in the Library panel (none built in); a bore and a pin given H7 and g6 and declared a pair through the chat — the limits and the clearance in the notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
@@ -5706,6 +5772,35 @@ try {
   });
 
   // ---- the shapes strip's overflow: a More menu, never a sideways page --------------------------------------------
+  await check('narrow window top bar: at 1024 and 800 the whole bar fits — no sideways page, every mode button in the window, every tool on the bar or under More tools (O127)', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    const TOOLS = ['Chat', 'Undo', 'Redo', 'New part', 'New from a template', 'Library', 'Parameters', 'Open', 'Save', 'Export STL', 'Export 3MF', 'Export STEP', 'Insert part'];
+    try {
+      for (const width of [1024, 800]) {
+        await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(300);
+        const w = await page.evaluate(() => ({ page: document.documentElement.scrollWidth - window.innerWidth, scrolled: document.scrollingElement.scrollLeft,
+          bar: Math.max(...[...document.querySelectorAll('.topbar > *')].filter(e => getComputedStyle(e).display !== 'none').map(e => e.getBoundingClientRect().right)) - window.innerWidth,
+          modes: Math.max(...[...document.querySelectorAll('.mode button')].map(e => e.getBoundingClientRect().right)) - window.innerWidth }));
+        assert.ok(w.page <= 0 && w.scrolled === 0 && w.bar <= 0.5 && w.modes <= 0, `${width}: ${JSON.stringify(w)}`);
+        const onBar = await page.evaluate(() => [...document.querySelectorAll('.tools-tray > .tool, .tools-tray > span:not(.tools-more-anchor) > .tool')].map(e => e.getAttribute('aria-label')));
+        let inMenu = [];
+        if (await page.locator('[aria-label="More tools"]').count()) {
+          await page.click('[aria-label="More tools"]');
+          inMenu = await page.evaluate(() => [...document.querySelectorAll('[role="menu"][aria-label="More tools"] .tool')].map(e => e.getAttribute('aria-label')).filter(l => !/^Remove template/.test(l ?? '')));
+          await page.keyboard.press('Escape');
+        }
+        const reach = new Set([...onBar, ...inMenu]);
+        assert.deepEqual(TOOLS.filter(t => !reach.has(t)), [], `${width}: on the bar ${onBar}; in More tools ${inMenu}`);
+        assert.ok(width > 1000 || inMenu.length > 0, `${width}: some fold under More tools`);
+      }
+      // (A tool from the menu works: Parameters opens its panel.)
+      await page.click('[aria-label="More tools"]'); await page.click('[role="menu"][aria-label="More tools"] [aria-label="Parameters"]');
+      await page.waitForSelector('[aria-label="Parameters panel"], .params', { timeout: 5000 });
+      await snap('top-bar-800');
+      await page.click('[aria-label="More tools"]'); await page.click('[role="menu"][aria-label="More tools"] [aria-label="Parameters"]');
+    } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
+  });
+
   await check('shapes strip: no sideways page scroll at 1440, 1100 or 860; what has no room goes under More shapes, none lost; a pick from it starts', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     // (Nothing wider than the window: the page's own width, and every top-bar control's right edge.)
@@ -5982,6 +6077,40 @@ try {
     assert.deepEqual(after.own, [false], 'its surface not shared');
     const kept = Object.keys(before).filter(k => k !== 'inst:r5' && before[k] === after.ids[k]).length;
     assert.equal(kept, 23, 'the other copies kept their meshes');
+  });
+
+  // ---- O133: a chat turn merged onto an edit the person made while it ran ------------------------------------------
+  await check('chat turn merged with an edit made during it: a slow scripted turn raises the box to 20 while a second box is added — both kept; one Undo takes the agent\'s change back, the second box stays (O133)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
+      await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+      if (!await page.locator('[aria-label="Chat message"]').count()) await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const k = await page.locator('.chat-msg.assistant').count(), tools = await page.locator('.chat-tool').count();
+      const calls = [{ tool: 'features', args: { action: 'edit', index: 1, values: { h: 20 } } }, { pause: 6000 }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      // (While the turn pauses, after its edit: the person adds a second box at X 40.)
+      await page.waitForFunction(t => document.querySelectorAll('.chat-tool').length > t, tools, { timeout: 30000 });
+      await page.evaluate(() => document.activeElement?.blur?.());
+      await press('b'); await hudReady(); await field('At X').fill('40'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+      assert.ok(await page.locator('.chat-msg.busy').count(), 'the turn is still running');
+      await page.waitForFunction(n => document.querySelectorAll('.chat-msg.assistant').length > n && !document.querySelector('[aria-label="Chat message"]')?.disabled, k, { timeout: 60000 });
+      await page.waitForFunction(() => /Chat turn merged with your edits/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 15000 });
+      assert.match(await page.textContent('.toast'), /1 of 1 change applied/);
+      const heights = () => page.evaluate(() => window.__studioDoc.nodes.filter(n => n.kind === 'extrude').map(n => [n.id, n.height]));
+      assert.deepEqual(await heights(), [['n1', 20], ['n3', 16]]);
+      await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+      await snap('chat-merge-both-kept');
+      // One Undo: the agent's change gone, the person's box kept.
+      await page.click('[aria-label="Close chat"]'); await page.evaluate(() => document.activeElement?.blur?.());
+      await press('Meta+z');
+      await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.id === 'n1')?.height === 16, null, { timeout: 15000 });
+      assert.deepEqual(await heights(), [['n1', 16], ['n3', 16]]);
+    } finally { chat.kill(); }
   });
 
   await check('command palette and light theme', async () => {

@@ -1,6 +1,7 @@
 // The browser side of the chat server (server/chatServer.ts, reached through the dev server's
 // /api/chat proxy): whether chat is available, and one turn streamed as server-sent events.
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { TurnOp } from '@barocss/cad-model/chat/merge';
 import { blobRefs, blobsAsBase64 } from '@barocss/cad-model/engine/blobs';
 import type { NameSelection } from '@barocss/cad-model/chat/tools';
 
@@ -8,8 +9,8 @@ export interface ChatStatus { enabled: boolean; model?: string; via?: string; re
 export type TurnEvent =
   | { type: 'text'; delta: string }
   | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean }
-  | { type: 'state'; doc: StudioDoc }
-  | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string };
+  | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
+  | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; ops?: TurnOp[] };
 
 const OFF = 'The chat server is not running. Start it beside the studio with `pnpm --filter @barocss/cad-studio-app chat` (it uses the claude CLI and its sign-in).';
 

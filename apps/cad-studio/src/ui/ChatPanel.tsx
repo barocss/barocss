@@ -11,6 +11,10 @@ import { diffLine, withHistory } from '@barocss/cad-model/chat/proposals';
 import { treeDiff } from '@barocss/cad-model/chat/transactions';
 import { latestPump, reshareNodes } from '@barocss/cad-model/chat/pump';
 import { modelHash } from '@barocss/cad-model/chat/spec';
+import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
+import { nextSerial } from '@barocss/cad-model/engine/ids';
+import { changedDuring, mergeTurn, type Merged, type TurnOp } from '@barocss/cad-model/chat/merge';
+import { revisionOf } from '@barocss/cad-model/team/revision';
 import { Icon } from './atoms';
 import './chat.css';
 
@@ -30,7 +34,10 @@ export interface ChatPanelProps {
   /** Why chat cannot start now (a command or sketch is open), or null. */
   blocked: string | null;
   onPreview(bodies: BodyResult[] | null): void;
-  onCommit(doc: StudioDoc, selection?: NameSelection): void;
+  /** The whole evaluation of a document (the merge of a turn onto edits made during it checks each step, O133). */
+  check(doc: StudioDoc): Promise<EvalResult | null>;
+  /** The turn's part, once; `merged`: it was merged onto edits the person made while it ran (O133). */
+  onCommit(doc: StudioDoc, selection?: NameSelection, merged?: Merged): void;
   /** What is selected in the viewport, by name: offered as context chips for the next message (A4.3). */
   context: { kind: 'face' | 'edge' | 'body'; name: string }[];
   /** A turn that only selected (the part unchanged). */
@@ -117,6 +124,8 @@ export function ChatPanel(props: ChatPanelProps) {
     const controller = new AbortController(); abort.current = controller;
     // Streamed text goes into the last assistant item until a tool call starts a new one.
     let open = false, built: StudioDoc | null = null;
+    /** The turn's calls that changed the part, as the tool server captured them (O133). */
+    const ops: TurnOp[] = [];
     const base = props.base();
     // (The previews: one evaluation at a time, the latest state waiting; nodes a state did not change are the ones
     // already sent, PERF3 A3.)
@@ -130,24 +139,44 @@ export function ChatPanel(props: ChatPanelProps) {
           setItems(list => wasOpen ? [...list.slice(0, -1), { kind: 'assistant', text: (list[list.length - 1] as { text: string }).text + e.delta }] : [...list, { kind: 'assistant', text: e.delta }]);
         } else if (e.type === 'tool') { open = false; setItems(list => [...list, { kind: 'tool', name: e.name, input: e.input, summary: e.summary, isError: e.isError }]); }
         else if (e.type === 'state') {
+          if (e.ops) ops.push(...e.ops);
           built = shared = reshareNodes(shared, e.doc); previews.push(built);
         }
       },
     });
     previews.close();
+    if (done.ops) ops.push(...done.ops);
     if (done.session) session.current = done.session;
     abort.current = null; setRunning(false);
     // An aborted turn keeps what it had built when it stopped.
     let doc = done.doc ? reshareNodes(shared, done.doc) : done.end === 'aborted' ? built : null;
+    // (Edited during the turn: its calls merged onto the part as it is now, the conflicting ones a proposal, O133. Edited
+    // again while merging: merged again, twice at most; then every call waits.)
+    let merged: Merged | undefined, from = base;
+    if (doc && ops.length && changedDuring(base, latest.current.base())) {
+      const patch = { id: `${session.current ?? 'turn'}#${said.current.length}`, by: { agent: 'chat', ...(status?.model ? { model: status.model } : {}) }, base: revisionOf(base), nextId: nextSerial(base), ops };
+      try {
+        for (let tries = 0; ; tries++) {
+          const now = latest.current.base();
+          merged = await mergeTurn(base, now, patch, latest.current.check, tries < 3 ? {} : { deferAll: 'you kept editing the part while the turn was merged onto it' });
+          from = now;
+          if (tries === 3 || !changedDuring(now, latest.current.base())) break;
+        }
+        doc = merged.doc;
+      } catch (e) {
+        setItems(list => [...list, { kind: 'notice', text: `The turn could not be merged with your edits: ${e instanceof Error ? e.message : String(e)}. Nothing of it was applied.` }]);
+        doc = null; merged = undefined;
+      }
+    }
     // (The turn in the design history, saved with the part: the message capped, the model, what it changed.)
     if (doc) {
-      const hash = modelHash(doc), line = diffLine(treeDiff(base, doc));
-      doc = withHistory(doc, { kind: 'prompt', by: { agent: 'chat', ...(status?.model ? { model: status.model } : {}) }, prompt: message, ...(line ? { summary: line } : {}), ...(hash !== modelHash(base) ? { model_hash: hash } : {}) });
+      const hash = modelHash(doc), line = [diffLine(treeDiff(from, doc)), merged ? `merged over your edits: ${merged.applied.length} of ${ops.length} applied${merged.proposal ? `, the rest ${merged.proposal}` : ''}` : ''].filter(Boolean).join('; ');
+      doc = withHistory(doc, { kind: 'prompt', by: { agent: 'chat', ...(status?.model ? { model: status.model } : {}) }, prompt: message, ...(line ? { summary: line } : {}), ...(hash !== modelHash(from) ? { model_hash: hash } : {}) });
     }
     if (done.end === 'error') setItems(list => [...list, { kind: 'notice', text: done.error ?? 'The chat request failed.' }]);
     if (done.end === 'aborted') setItems(list => [...list, { kind: 'notice', text: doc ? 'Stopped. The changes made so far are kept (one undo removes them).' : 'Stopped.' }]);
     latest.current.onPreview(null);
-    if (doc) latest.current.onCommit(doc, done.selection);
+    if (doc) latest.current.onCommit(doc, done.selection, merged);
     else if (done.selection) latest.current.onSelect(done.selection);
   };
 

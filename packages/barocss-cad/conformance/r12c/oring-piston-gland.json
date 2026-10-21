@@ -1,0 +1,109 @@
+{
+  "id": "r12c-oring-piston-gland",
+  "step": "R12c",
+  "decisions": [
+    "D159"
+  ],
+  "about": "R12c.5: AS568-214 (D139 O1: CS 3.53, ID 24.99, a test row citing its chart) in S0's piston gland \u2014 a \u00d831 piston grooved to \u00d825.5, 4.7 wide from z 6, sealing on a \u00d831.1 bore \u2014 and the ring as the stretched torus at rest on the groove's bottom.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "pes",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 15.5
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "pes",
+          "height": 20
+        },
+        {
+          "id": "gl",
+          "kind": "oring-gland",
+          "target": "pe",
+          "face": "pe.side0",
+          "gland": "piston",
+          "ring": {
+            "id": "214",
+            "dash": "2-214",
+            "insideDiameter": 24.99,
+            "crossSection": 3.53,
+            "source": "O1 (D139): the Global O-Ring AS568 chart"
+          },
+          "groove": {
+            "diameter": 25.5,
+            "width": 4.7,
+            "at": 6
+          },
+          "seal": 31.1
+        },
+        {
+          "id": "or",
+          "kind": "oring",
+          "gland": "gl"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 13948.259047902897,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            10.135694678474449
+          ],
+          "absTol": 1e-07
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 876.8770143233402,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            8.35
+          ],
+          "absTol": 1e-07
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "The piston \u03c015.5\u00b2\u00b720 less the groove \u03c0(15.5\u00b2 \u2212 12.75\u00b2)\u00b74.7; the torus 2\u03c0\u00b2R'r'\u00b2 with r'\u00b2(12.75 + r') = r\u00b2(ID/2 + r) (the volume kept: r' 1.75031, S0's section 3.5006), centred in the groove at z 8.35."
+}

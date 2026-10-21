@@ -115,6 +115,13 @@ const refusalOf = (e: unknown) => { const x = e as { detail?: string; title?: st
 /** A blob put by its SHA-256 at once (the command's build is synchronous): the hash the store's own would give. */
 export function putNow(a: BlobArray): string { const h = sha256Hex(new Uint8Array(a.buffer, a.byteOffset, a.byteLength)); putKnownBlob(h, a); return h; }
 
+/** The voxel work planHollow has done (cavity fields built): what a test reads to know a refusal came before any. */
+export const hollowWork = { fields: 0 };
+/** A curved body refused for a mesh cavity, with why the voxel route was taken. */
+function curvedRefusal(body: BodyResult, why: string): void {
+  const curved = body.mesh.faces.filter(f => f.kind === 'curved' && !f.facet).length;
+  if (curved) throw new HollowError('CURVED_BODY', `the part has ${curved} curved face${curved > 1 ? 's' : ''} and ${why}: a mesh cavity in a curved body needs the kernel's mixed facet–analytic Booleans (F3)`);
+}
 /** The hollowing's features appended: the cavity mesh, its difference from the body, a drain into each cavity. */
 export function planHollow(doc: StudioDoc, bodies: readonly BodyResult[], o: HollowOptions): { doc: StudioDoc; report: HollowReport } {
   if (bodies.length !== 1) throw new HollowError('ONE_BODY', `hollowing takes a part of one body; this one has ${bodies.length}`);
@@ -123,6 +130,9 @@ export function planHollow(doc: StudioDoc, bodies: readonly BodyResult[], o: Hol
   const d = doc.print?.direction ?? [0, 0, 1], up = d.findIndex(x => Math.abs(x) > 1e-9);
   if (up < 0 || d.some((x, i) => i !== up && Math.abs(x) > 1e-9)) throw new HollowError('DIRECTION_NOT_AXIS', `the print direction (${d.join(', ')}) is not along X, Y or Z`);
   const body = bodies[0];
+  // (The voxel route asked for on a curved body: refused before any voxel work — the field is not built.)
+  if (o.route === 'voxel') curvedRefusal(body, 'the voxel route was asked for');
+  hollowWork.fields++;
   const g = cavityField(body.mesh, t, h), comps = cavityComponents(g, up);
   if (!comps.length) throw new HollowError('NOTHING_TO_HOLLOW', `no point of the part is deeper than the wall (${t} mm): it is thinner than ${2 * t} mm everywhere`);
   // (The drains: from the part's bottom (min along up) to each cavity's lowest node, its column inside the bottom.)
@@ -142,8 +152,7 @@ export function planHollow(doc: StudioDoc, bodies: readonly BodyResult[], o: Hol
     else why = `the kernel's exact shell refused it: ${r.ok ? `it gave ${r.bodies.length} bod${r.bodies.length === 1 ? 'y' : 'ies'} with ${r.bodies[0]?.innerShells ?? 0} cavities` : refusalOf(r.error)}`;
   } else why = 'the voxel route was asked for';
   if (route === 'voxel') {
-    const curved = body.mesh.faces.filter(f => f.kind === 'curved' && !f.facet).length;
-    if (curved) throw new HollowError('CURVED_BODY', `the part has ${curved} curved face${curved > 1 ? 's' : ''} and ${why}: a mesh cavity in a curved body needs the kernel's mixed facet–analytic Booleans (F3)`);
+    curvedRefusal(body, why!);
   // (The kernel's mesh Boolean takes up to 16 000 triangles until F3: each cavity piece simplified first (R9's decimate),
   // within e = h/50 of itself; a result the Boolean refuses as touching, at h/20 then h/10 — e goes into the bounds. A
   // mesh is one closed piece: one mesh node a cavity, each taken from the part in turn.)

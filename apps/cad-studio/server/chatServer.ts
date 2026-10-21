@@ -17,6 +17,7 @@ import { TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { v1Call } from '@barocss/cad-model/chat/groups';
 import { PROMPT_CHARS } from '@barocss/cad-model/chat/proposals';
 import type { StateFile } from './cadMcp';
+import type { TurnOp } from '@barocss/cad-model/chat/merge';
 import type { BlobType, WireBlobs } from '@barocss/cad-model/engine/blobs';
 import { createHash } from 'node:crypto';
 
@@ -64,8 +65,8 @@ export function fromStudio(req: IncomingMessage, origins: readonly string[]): bo
 export type ChatServerEvent =
   | { type: 'text'; delta: string }
   | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean }
-  | { type: 'state'; doc: StudioDoc }
-  | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; usage?: TurnUsage };
+  | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
+  | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; usage?: TurnUsage; ops?: TurnOp[] };
 /** What the CLI reports a turn used (its result message, A5.5): tokens, model turns, cost. */
 export interface TurnUsage { input_tokens?: number; output_tokens?: number; cache_read_input_tokens?: number; cache_creation_input_tokens?: number; num_turns?: number; total_cost_usd?: number }
 
@@ -251,7 +252,9 @@ export function createChatServer(options: ChatServerOptions) {
     res.on('close', () => { if (!res.writableFinished) { aborted = true; child.kill('SIGTERM'); } });
     child.stderr?.on('data', d => { stderr = (stderr + d).slice(-2000); });
     const calls = new Map<string, { name: string; input: unknown }>();
-    let sent = 0, usage: TurnUsage | undefined;
+    let sent = 0, sentOps = 0, usage: TurnUsage | undefined;
+    /** The calls not yet sent (each once: a state carries those since the last). */
+    const newOps = (f: StateFile | null) => { const all = f?.ops ?? [], out = all.slice(sentOps); sentOps = all.length; return out.length ? { ops: out } : {}; };
     const lines = createInterface({ input: child.stdout! });
     lines.on('line', line => {
       let m: Record<string, any>;
@@ -267,7 +270,7 @@ export function createChatServer(options: ChatServerOptions) {
           const text = typeof b.content === 'string' ? b.content : (b.content ?? []).map((c: { text?: string }) => c.text ?? '').join('');
           emit({ type: 'tool', name: call.name, input: call.input, summary: summarize(v1NameOf(call.name, call.input), text, !!b.is_error), isError: !!b.is_error || /"ok":false/.test(text) });
           // (Only a part a tool changed since the last state sent: a read-only call re-sent nothing, PERF3 A3.)
-          const s = read(); if (s?.changed && (s.version === undefined || s.version > sent)) { sent = s.version ?? 0; emit({ type: 'state', doc: s.doc }); }
+          const s = read(); if (s?.changed && (s.version === undefined || s.version > sent)) { sent = s.version ?? 0; emit({ type: 'state', doc: s.doc, ...newOps(s) }); }
         }
       } else if (m.type === 'result') {
         if (m.usage || m.num_turns !== undefined) usage = { ...(m.usage ?? {}), ...(m.num_turns !== undefined ? { num_turns: m.num_turns } : {}), ...(m.total_cost_usd !== undefined ? { total_cost_usd: m.total_cost_usd } : {}) };
@@ -277,7 +280,7 @@ export function createChatServer(options: ChatServerOptions) {
     const code = await new Promise<number | null>(resolve => { child.on('error', e => { failure = e.message; resolve(null); }); child.on('close', resolve); });
     const s = read();
     if (!aborted && code !== 0 && !failure) failure = stderr.trim().split('\n').slice(-3).join(' ') || `claude exited with ${code}`;
-    emit({ type: 'done', ...(s?.changed ? { doc: s.doc } : {}), ...(s?.selection ? { selection: s.selection } : {}), ...(session ? { session } : {}), end: aborted ? 'aborted' : failure ? 'error' : 'done', ...(failure ? { error: failure } : {}), ...(usage ? { usage } : {}) });
+    emit({ type: 'done', ...(s?.changed ? { doc: s.doc } : {}), ...newOps(s), ...(s?.selection ? { selection: s.selection } : {}), ...(session ? { session } : {}), end: aborted ? 'aborted' : failure ? 'error' : 'done', ...(failure ? { error: failure } : {}), ...(usage ? { usage } : {}) });
     res.end();
     rmSync(dir, { recursive: true, force: true });
   };

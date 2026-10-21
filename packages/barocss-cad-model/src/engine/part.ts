@@ -2,6 +2,7 @@
 // so persistent face and edge names read `n1.side0`, `n1.top`, `n2.side0|n1.top` and keep their names as other
 // features come and go; a kernel output `n5` / `n5/0` / `n5/1` is the studio body `b5` / `b5_negative` /
 // `b5_positive` (keyed by the id too); the solids of a STEP file holding several are `n5/k`, `b5_part<k>`.
+import type { BearingRow, FitTable, ORingRow } from '@barocss/cad';
 import { getBlob } from './blobs';
 import { mirrorCage } from '@barocss/cad';
 import type { BendTable, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartSection } from '@barocss/cad';
@@ -13,6 +14,8 @@ import { rotationSteps } from '../assembly/mates';
 let current: readonly ModelNode[] = [];
 // (FRc, O117: the document's section library, by id, that a frame's library section resolves from.)
 let library: ReadonlyMap<string, InlineSection> = new Map();
+/** The document's bearing rows and fit tables (R12c.4: a bearing's row and its seats' classes inline in its feature). */
+let bearingRows: ReadonlyMap<string, BearingRow> = new Map(), fitTables: readonly FitTable[] = [], oringRows: ReadonlyMap<string, ORingRow> = new Map();
 // (FRf, O121: the parameters' values, for a frame following a sketch — its points lifted as numbers.)
 let params: Readonly<Record<string, number>> = {};
 // (FRf2, O125: the assembly's placed parts, for a base frame following a part's sketch.)
@@ -100,6 +103,21 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       return { ...at, kind: 'worm-wheel', worm: { axialModule: node.module, starts: node.starts, diameter: node.diameter, hand: node.hand }, teeth: node.teeth, faceWidth: node.faceWidth, generator: node.generator, center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}),
         ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
+    case 'oring-gland': {
+      const row = oringRows.get(node.ring);
+      if (!row) throw new Error(`[ORING_ROW_UNKNOWN] a gland names the O-ring row "${node.ring}", which the document's O-ring rows do not hold (rows: ${[...oringRows.keys()].join(', ') || 'none'})`);
+      const fit = node.sealClass || node.grooveClass ? { fit: { tables: fitTables, ...(node.sealClass ? { seal: node.sealClass } : {}), ...(node.grooveClass ? { groove: node.grooveClass } : {}) } } : {};
+      return { ...at, kind: 'oring-gland', target: ref(node.parent), face: node.face, gland: node.gland, ring: { id: row.id, ...(row.dash ? { dash: row.dash } : {}), insideDiameter: row.insideDiameterMM, crossSection: row.crossSectionMM, ...(row.source ? { source: row.source } : {}), ...(row.estimate ? { estimate: true } : {}) },
+        groove: { diameter: node.diameter, width: node.width, ...(node.at !== undefined ? { at: node.at } : {}), ...(node.depth !== undefined ? { depth: node.depth } : {}), ...(node.center ? { center: node.center } : {}) }, ...(node.seal !== undefined ? { seal: node.seal } : {}), ...fit };
+    }
+    case 'oring': return { ...at, kind: 'oring', gland: id(node.gland) };
+    case 'bearing': {
+      // (A row the document does not hold is refused, typed — never a fallback.)
+      const row = bearingRows.get(node.row);
+      if (!row) throw new Error(`[BEARING_ROW_UNKNOWN] a bearing names the row "${node.row}", which the document's bearing rows do not hold (rows: ${[...bearingRows.keys()].join(', ') || 'none'})`);
+      const fit = node.shaftClass || node.housingClass ? { fit: { tables: fitTables, ...(node.shaftClass ? { shaft: node.shaftClass } : {}), ...(node.housingClass ? { housing: node.housingClass } : {}) } } : {};
+      return { ...at, kind: 'bearing', row, shaft: id(node.shaft), step: node.step, against: node.against, ...(node.housing !== undefined ? { housing: id(node.housing) } : {}), ...fit };
+    }
     case 'key': return { ...at, kind: 'key', shaft: id(node.shaft), keyseat: node.keyseat, height: node.height, ...(node.width !== undefined ? { width: node.width } : {}), ...(node.length !== undefined ? { length: node.length } : {}), ...(node.ends ? { ends: node.ends } : {}), ...(node.hub !== undefined ? { hub: id(node.hub) } : {}) };
     case 'keyway': return { ...at, kind: 'keyway', target: ref(node.parent), face: node.face, width: node.width, depth: node.depth, ...(node.angle ? { angle: node.angle } : {}) };
     case 'retaining-ring': return { ...at, kind: 'retaining-ring', shaft: id(node.shaft), groove: node.groove, thickness: node.thickness, outerDiameter: node.outerDiameter, row: { estimate: true } };
@@ -160,13 +178,13 @@ function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
  * an intersection or a subtraction from nothing is gone too).
  */
 export function toPartDocument(doc: StudioDoc): CadPartDocument {
-  doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section])); params = doc.parameters ?? {}; partsNow = doc.instances ?? [];
+  doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section])); bearingRows = new Map((doc.bearings?.rows ?? []).map(r => [r.id, r])); oringRows = new Map((doc.orings?.rows ?? []).map(r => [r.id, r])); fitTables = doc.fits?.tables ?? []; params = doc.parameters ?? {}; partsNow = doc.instances ?? [];
   const gone = new Set<number>(), features: CadPartFeature[] = [];
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
     if (node.kind === 'skeleton') return;
     if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
-    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
+    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);

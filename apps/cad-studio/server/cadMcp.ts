@@ -13,10 +13,11 @@ import { outputSchemaOf } from '@barocss/cad-model/chat/contract';
 import { GROUPS, v1Call, v2Result } from '@barocss/cad-model/chat/groups';
 import { listed, TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { arrayOf, putKnownBlob, type BlobType } from '@barocss/cad-model/engine/blobs';
+import { captureOp, type TurnOp } from '@barocss/cad-model/chat/merge';
 
 /** `images`: the traces of the conversation's attached images (read only). */
 /** `blobFiles`: the document's mesh blobs (M1, D45), files the chat server checked and kept for the conversation, read into the store before the first call. */
-export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[]; /** What the user typed this conversation (A6.2): quotes are checked against it. */ turns?: string[] }
+export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[]; /** What the user typed this conversation (A6.2): quotes are checked against it. */ turns?: string[]; /** The turn's calls that changed the part, each as it did it (O133: merged onto the person's part when they edited during the turn). */ ops?: TurnOp[] }
 
 /** The tools as MCP lists them (A5.1): title, annotations and, for read actions, the output schema (v2, the only list, O105). */
 export const TOOLS_LISTED = TOOLSET.tools.map(listed);
@@ -33,7 +34,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
  */
 export interface McpStore {
   open(): Promise<{ doc: StudioDoc; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number }>;
-  save(s: { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; version: number }, why: 'change' | 'select'): string | null;
+  save(s: { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; version: number; ops?: TurnOp[] }, why: 'change' | 'select'): string | null;
 }
 /** The chat server's state file: {doc, selection?, changed, version}, its blobs read from the files it names. */
 export function stateFileStore(statePath: string): McpStore {
@@ -45,7 +46,7 @@ export function stateFileStore(statePath: string): McpStore {
     },
     save(s) {
       const tmp = `${statePath}.tmp`;
-      writeFileSync(tmp, JSON.stringify({ doc: s.doc, ...(s.selection ? { selection: s.selection } : {}), changed: s.changed, version: s.version } satisfies StateFile));
+      writeFileSync(tmp, JSON.stringify({ doc: s.doc, ...(s.selection ? { selection: s.selection } : {}), changed: s.changed, version: s.version, ...(s.ops?.length ? { ops: s.ops } : {}) } satisfies StateFile));
       renameSync(tmp, statePath);
       return null;
     },
@@ -57,7 +58,9 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
   const first = await evaluate(saved.doc);
   let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(saved.turns ? { turns: saved.turns } : {}) };
   let changed = saved.changed, version = saved.version;
-  const save = (why: 'change' | 'select') => store.save({ doc: state.doc, ...(state.selection ? { selection: state.selection } : {}), changed, version }, why);
+  // (O133: each call that changed the part, captured as what it did — the studio merges them onto the part as the person has it.)
+  const ops: TurnOp[] = [];
+  const save = (why: 'change' | 'select') => store.save({ doc: state.doc, ...(state.selection ? { selection: state.selection } : {}), changed, version, ops }, why);
   const reply = (id: unknown, result: unknown) => void output.write(JSON.stringify({ jsonrpc: '2.0', id, result }) + '\n');
   const error = (id: unknown, code: number, message: string) => void output.write(JSON.stringify({ jsonrpc: '2.0', id, error: { code, message } }) + '\n');
 
@@ -74,7 +77,8 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
         // (Only the listed tools: a handler's own name (`run_command`) is not one, O105. Ops inside a batch or a proposal
         // name tools as before; saved proposals replay.)
         if (!(String(msg.params?.name) in GROUPS)) return error(msg.id, -32602, `Unknown tool: ${String(msg.params?.name)}. The tools are ${Object.keys(GROUPS).join(', ')}.`);
-        const out = await runTool(state, String(msg.params?.name), msg.params?.arguments ?? {}, evaluate);
+        const before = state.doc, out = await runTool(state, String(msg.params?.name), msg.params?.arguments ?? {}, evaluate);
+        if (out.changed) { const v1 = v1Call(String(msg.params?.name), msg.params?.arguments ?? {}); ops.push(captureOp(before, out.state.doc, v1 && !('error' in v1) ? v1.name : String(msg.params?.name), v1 && !('error' in v1) ? v1.args : {})); }
         state = out.state; changed ||= out.changed; if (out.changed) version++;
         const unsaved = out.changed ? save('change') : v1Name(String(msg.params?.name), msg.params?.arguments) === 'select' ? save('select') : null;
         // (A read tool's result also as structured content, its output schema's shape; the text keeps the same JSON.)

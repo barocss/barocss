@@ -88,10 +88,19 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const boreOf = () => { const body = hubbed.bodies.findIndex(b => b.mesh.faces.some(f => /\.hole0\.side0$/.test(f.name))); return { body, face: hubbed.bodies[body].mesh.faces.findIndex(f => /\.hole0\.side0$/.test(f.name)) }; };
   for (const id of CHAT_COMMANDS) {
     const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
-    if (id === 'key' || id === 'keyway' || id === 'retaining-ring' || id === 'pin') {
-      const ctx: Ctx = { doc: hubbed.doc, bodies: hubbed.bodies, selection: id === 'keyway' ? sel({ faces: [boreOf()] }) : sel({ bodies: [hubbed.bodies.findIndex(b => b.ref?.node === 0)] }) }, cmd = commandById(id)!;
+    if (id === 'key' || id === 'keyway' || id === 'retaining-ring' || id === 'pin' || id === 'bearing') {
+      // (A bearing takes the user's rows loaded: R12c.4, D158.)
+      const withRows = id === 'bearing' ? { ...hubbed.doc, bearings: { version: 1 as const, rows: [{ id: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, estimate: true }] } } : hubbed.doc;
+      const ctx: Ctx = { doc: withRows, bodies: hubbed.bodies, selection: id === 'keyway' ? sel({ faces: [boreOf()] }) : sel({ bodies: [hubbed.bodies.findIndex(b => b.ref?.node === 0)] }) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    if (id === 'oring-gland') {
+      // (A gland takes one face and the user's O-ring rows loaded: R12c.5, D159.)
+      const ctx: Ctx = { doc: { ...fitted.doc, orings: { version: 1, rows: [{ id: '214', insideDiameterMM: 24.99, crossSectionMM: 3.53, estimate: true }] } }, bodies: fitted.bodies, selection: sel({ faces: [faceOf('n3.side0')] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values).filter(k => k !== 'h')), id);
       continue;
     }
     if (id === 'fit-class' || id === 'fit-pair') {

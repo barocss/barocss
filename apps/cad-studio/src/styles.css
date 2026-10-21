@@ -85,7 +85,8 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .kv select { font: 500 11px var(--mono); color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 1px 2px; max-width: 60%; }
 .measure-item + .measure-item { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
 
-.topbar { position: absolute; top: 0; left: 0; right: 0; height: 36px; overflow-x: clip; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: rgba(22, 23, 25, 0.92); border-bottom: 1px solid var(--line-soft); z-index: 2; }
+.topbar { position: absolute; top: 0; left: 0; right: 0; height: 36px; overflow-x: clip; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: rgba(22, 23, 25, 0.92); border-bottom: 1px solid var(--line-soft); z-index: 6; }
+/* (Above the panels under it, z 2–5: its menus — More shapes, More tools, Templates — drop over them; the palette's backdrop, z 10, still covers it.) */
 .brand { display: flex; align-items: center; gap: 6px; font-weight: 600; }
 .doc-tab { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 4px 0 8px; border-radius: 5px; background: #2a2c30; }
 .doc-tab input { background: transparent; border: 0; color: var(--text); font: 400 12px var(--sans); outline: none; }
@@ -95,6 +96,11 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .shapes-more-anchor { position: relative; display: inline-flex; }
 .shapes-more { position: absolute; top: 34px; left: 0; z-index: 30; display: grid; grid-template-columns: repeat(6, 30px); gap: 2px; padding: 6px; }
 .shapes .tool { width: 30px; height: 30px; }
+/* The right-hand tools (ui/ToolsTray.tsx): the bar's spacing between them; the rest in More tools, under its button at the right. */
+.tools-tray { display: flex; flex: 0 0 auto; align-items: center; gap: 10px; }
+.tools-more-anchor { position: relative; display: inline-flex; }
+.tools-more { position: absolute; top: 34px; right: 0; z-index: 30; display: grid; grid-template-columns: repeat(4, 30px); gap: 6px; padding: 8px; }
+.tools-more .tpl-anchor { position: relative; }
 .shapes .tool[draggable='true'] { cursor: grab; }
 .mode { display: flex; gap: 2px; padding: 2px; border-radius: 6px; background: #2a2c30; }
 .mode button { height: 24px; padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: #9a9ea6; cursor: pointer; }

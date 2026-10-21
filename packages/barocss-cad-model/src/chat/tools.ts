@@ -32,6 +32,7 @@ import { changeOf, edgeDetail, faceDetail, factsOf } from './observe';
 import { draftAnalysis, interference, massProperties, section, wallThickness } from './analysis';
 import { renderViews } from './views';
 import { isEmptyDiff, newTransactions, OP_IDS, treeDiff, type Transactions, type TreeDiff } from './transactions';
+import { moveOp } from './remap';
 import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, approvalOf, riskOf, riskRank, withHistory, type ChecksDelta, type Op, type Proposal, type Risk } from './proposals';
 import { checkRequirement, checkSpec, expectedOf, modelHash, newPolicy, runCheck, updatePolicy, validateSuite, type Policy, type Requirement } from './spec';
 import { captureSignatures, refreshSignatures, verifyReferences } from '../engine/references';
@@ -85,6 +86,8 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   gear: { selection: 'none', values: { m: 'module (mm): the pitch diameter is m × teeth', teeth: 'teeth, 6–200 (under 18 undercut without a profile shift: the refusal gives the least x)', b: 'face width (mm)', shift: 'profile shift coefficient x, −0.5 to 1 (0: none; + thickens the tooth, moves tip and root out by x·m)', helix: 'helix angle β in degrees, 0 (spur) to 45; helical: m is the normal module', hand: 'right | left (helical only; a meshing gear takes the opposite hand itself)', bore: 'bore diameter (0: none), leaving a rim of at least one module below the root', x: 'centre X', y: 'centre Y', z: 'Z it stands on' } },
   'gear-mesh': { selection: 'bodies: [one spur gear, as made] — or [one internal gear]: the new gear then meshes inside it (ratio +z1/z2, the same way) — or [one bevel gear]: its mate (teeth the selected one\'s mate teeth, the same apex; dir and bore only)', values: { shift: 'profile shift x of the new gear, −0.5 to 1 (the centre distance becomes the working one)', teeth: 'teeth of the new gear, 6–200 (ratio −z1/z2 to the selected one; inside a ring, fewer than its teeth — about 2/5 clears the interference conditions)', dir: 'direction from the selected gear\'s axis to the new one\'s, degrees from +X (a bevel mate: the way its axis leans, about the selected gear\'s axis)', bore: 'bore diameter (0: none)' } },
   // (R12b.2a, D132: an internal gear.)
+  'oring-gland': { selection: 'faces: [one face: a shaft\'s outside (piston), a bore (rod) or a flat face]; the user\'s O-ring rows loaded (none built in: if none, say so)', values: { ring: 'an O-ring row\'s id from the user\'s rows', seal: 'radial glands: the bore\'s Ø (piston) or the rod\'s Ø (rod) it seals on', dg: 'the groove\'s bottom Ø (radial) or inner Ø (face); the prefill from 20 % squeeze is an estimate: say so', w: 'groove width (prefill from 80 % fill, an estimate)', at: 'radial: the groove\'s start along the face', h: 'face: the groove\'s depth' } },
+  bearing: { selection: 'bodies: [the shaft]; the user\'s bearing rows loaded (none built in: if none, say so)', values: { row: 'a bearing row\'s id from the user\'s rows', step: 'the shaft\'s step it sits on (its Ø the row\'s bore)', against: 'start | end: the shoulder it stands against', housing: 'none | a body node\'s index whose bore takes it', sc: 'none | the shaft seat\'s class from the user\'s fit tables', hc: 'none | the housing seat\'s class' } },
   key: { selection: 'bodies: [the shaft] (a shaft with a keyseat)', values: { seat: 'its keyseat, from 1', h: 'the key\'s height (the user\'s key data, else say the prefill is an estimate)', b: 'width (0: the seat\'s)', l: 'length (0: the seat\'s)', ends: 'auto (the seat\'s) | round | square', hub: 'none | a keyway node\'s index (its clearance over the key is checked)' } },
   keyway: { selection: 'faces: [one bore: a cylindrical hole\'s face of the hub]', values: { b: 'width (the key\'s data, else an estimate)', t2: 'depth t2 from the bore\'s surface (the same)', angle: 'degrees about the bore from its reference direction (+X projected); over the key\'s seat' } },
   'retaining-ring': { selection: 'bodies: [the shaft] (a shaft with a ring groove)', values: { groove: 'its groove, from 1', s: 'ring thickness (the ring\'s row, else an estimate)', D: 'outer diameter of its envelope (the same)' } },
@@ -503,13 +506,13 @@ export function agentMayNotAccept(p: Proposal, level: number): string | null {
 }
 
 /** Ops run in order on a copy, each on what the one before left: the result, or the first refusal (nothing applied). */
-interface OpsRun { cur: ChatState; results: Record<string, unknown>[]; ops: Op[]; diff: TreeDiff; change: Record<string, unknown>; broken: Record<string, unknown>[] }
+interface OpsRun { cur: ChatState; results: Record<string, unknown>[]; ops: Op[]; /** The feature ids in order before each op kept (O133: what its indices name). */ orders: string[][]; diff: TreeDiff; change: Record<string, unknown>; broken: Record<string, unknown>[] }
 async function runOps(state: ChatState, input: unknown, evaluate: Evaluate): Promise<{ fail: ToolOutcome } | OpsRun> {
   // (The same ops on the same part again — a proposal accepted or rebased — are the evaluations already made, PERF3 A3.)
   evaluate = rememberedEvaluate(evaluate);
   const ops = Array.isArray(input) ? input : null;
   if (!ops?.length) return { fail: fail(state, 'Pass "ops": a list of {tool, args, opId?}.') };
-  const tx = state.tx ?? newTransactions(), results: Record<string, unknown>[] = [], kept: Op[] = [];
+  const tx = state.tx ?? newTransactions(), results: Record<string, unknown>[] = [], kept: Op[] = [], orders: string[][] = [];
   let cur: ChatState = state;
   for (let k = 0; k < ops.length; k++) {
     let op = ops[k] as Record<string, unknown>;
@@ -521,13 +524,15 @@ async function runOps(state: ChatState, input: unknown, evaluate: Evaluate): Pro
     // (Through the dispatcher: a part tool may name an instance with "part", assembly tools are batchable too.)
     const r = await runToolCounted(cur, op.tool, opArgs, evaluate);
     if (r.isError) { let why: unknown = r.content; try { why = JSON.parse(r.content).error; } catch { /* plain text */ } return { fail: fail(state, `op ${k} (${op.tool}${opId ? ` ${opId}` : ''}) was refused: ${String(why)} Nothing was applied.`, { failed_op: k, kept: 'nothing was applied' }) }; }
-    cur = r.state; let did: unknown = r.summary; try { did = JSON.parse(r.content).did ?? r.summary; } catch { /* plain text */ }
+    orders.push(idsOf(cur.doc.nodes)); cur = r.state; let did: unknown = r.summary; try { did = JSON.parse(r.content).did ?? r.summary; } catch { /* plain text */ }
     results.push({ op: k, ...(opId ? { opId } : {}), did }); kept.push({ tool: op.tool, args: opArgs, ...(opId ? { opId } : {}) });
   }
   const diff = treeDiff(state.doc, cur.doc), change = changeOf(factsOf(state.doc, state.bodies), factsOf(cur.doc, cur.bodies));
   const refs = await verifyReferences(cur.doc, cur.bodies, evaluate), broken = [...refs.problems.map(p => ({ where: p.where, name: p.name, ...(p.candidates.length ? { could_be: p.candidates } : { gone: true }) })), ...refs.changes.map(c => ({ where: c.where, name: c.was, now: c.now }))];
-  return { cur, results, ops: kept, diff, change, broken };
+  return { cur, results, ops: kept, orders, diff, change, broken };
 }
+/** A document's feature ids in order. */
+const idsOf = (nodes: readonly ModelNode[]) => nodes.map((_, i) => featureId(nodes, i));
 /** The studio side of a script (A5.2): each call through the dispatcher on the working part, a concise result. */
 class ScriptOn implements ScriptHost {
   readonly commands = CHAT_COMMANDS;
@@ -635,13 +640,43 @@ export async function rebaseProposal(state: ChatState, id: string, evaluate: Eva
   if (!p || p.status !== 'open') return { error: p ? `${id} is ${p.status} already.` : `No proposal ${id}.` };
   const now = modelHash(state.doc);
   if (p.base === now) return { error: `${id} was made on the part as it is: nothing to rebase.` };
-  const made = await proposalOf(state, p.ops, evaluate);
+  // (O133: its ops' feature indices and the ids it made itself moved to the part as it is, when it says what they named.)
+  let ops = p.ops;
+  if (p.orders?.length === p.ops.length) {
+    const moved = await moveOps(state, p.ops, p.orders, evaluate);
+    if ('error' in moved) return { error: `${id} no longer applies: ${moved.error}` };
+    ops = moved.ops;
+  }
+  const made = await proposalOf(state, ops, evaluate);
   if ('fail' in made) return { error: `${id} no longer applies: ${errorOf(made.fail)}` };
   const rebased = { original: p.rebased?.original ?? p.base, from: p.base, at: new Date().toISOString(), risk_was: p.rebased?.risk_was ?? p.risk };
-  const q: Proposal = { ...p, base: now, ops: made.ops, risk: made.risk, summary: made.summary, rebased, ...(made.checks ? { checks: made.checks } : {}) };
+  const q: Proposal = { ...p, base: now, ops: made.ops, orders: made.orders, risk: made.risk, summary: made.summary, rebased, ...(made.checks ? { checks: made.checks } : {}) };
   if (!made.checks) delete q.checks;
   const doc = withHistory({ ...state.doc, proposals: state.doc.proposals!.map(x => x.id === id ? q : x) }, { kind: 'rebase', by, proposal: id, base_was: p.base, model_hash: now, summary: `${id} rebased: ${made.summary}`, risk: made.risk });
   return { state: { ...state, doc }, made };
+}
+/**
+ * Ops made on one state replayed one at a time on another (O133): each moved first (`moveOp`: the indices it names by
+ * the ids they had — `orders`, the ids in order before each op — and the ids the ops made themselves as the ones the
+ * replay hands out), then run. The ops as moved, or the first that names a feature gone or is refused.
+ */
+export async function moveOps(state: ChatState, ops: readonly Op[], orders: readonly (readonly string[])[], evaluate: Evaluate, ids: Map<string, string> = new Map(), made?: readonly (readonly string[])[]): Promise<{ ops: Op[]; state: ChatState } | { error: string; op: number; ops: Op[] }> {
+  let cur: ChatState = { ...state, policy: undefined };
+  const out: Op[] = [];
+  for (let k = 0; k < ops.length; k++) {
+    const before = idsOf(cur.doc.nodes), { op, missing } = moveOp(ops[k], { from: orders[k] ?? before, to: before, ids });
+    // (Stopped at the first that does not apply: the rest moved as far as known, not run.)
+    const rest = () => [...out, op, ...ops.slice(k + 1).map((o, j) => moveOp(o, { from: orders[k + 1 + j] ?? before, to: before, ids }).op)];
+    if (missing.length) return { error: `op ${k} (${op.tool}) names ${[...new Set(missing)].join(', ')}, which the part no longer has`, op: k, ops: rest() };
+    const r = await runToolCounted(cur, op.tool, op.args ?? {}, evaluate);
+    if (r.isError) return { error: `op ${k} (${op.tool}) was refused: ${errorOf(r)}`, op: k, ops: rest() };
+    // (The ids it made, in the order made, are the ones it made where it was made: what later ops name.)
+    const now = idsOf(r.state.doc.nodes), had = new Set(before), madeHere = now.filter(x => !had.has(x));
+    const was = new Set(orders[k] ?? []), madeThere = made?.[k] ?? (orders[k + 1] ?? []).filter(x => !was.has(x));
+    madeThere.forEach((x, i) => { if (madeHere[i] && madeHere[i] !== x) ids.set(x, madeHere[i]); });
+    out.push(op); cur = r.state;
+  }
+  return { ops: out, state: cur };
 }
 const errorOf = (o: ToolOutcome) => { try { return String(JSON.parse(o.content).error); } catch { return o.content; } };
 
@@ -1152,7 +1187,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const by = { agent: 'chat', ...(env?.CAD_MODEL ? { model: env.CAD_MODEL } : {}) };
       const plan = typeof args.plan === 'string' ? args.plan : undefined;
       const p: Proposal = { id: nextProposalId(state.doc), title: title.slice(0, 120), status: 'open', by, at: new Date().toISOString(), ...(plan ? { plan: plan.slice(0, PLAN_CHARS) } : {}),
-        ...(reqs.length ? { requirements: reqs } : {}), ...(env?.CAD_PROMPT ? { prompt: env.CAD_PROMPT.slice(0, PROMPT_CHARS) } : {}), base: modelHash(state.doc), ops: made.ops, risk: made.risk, summary: made.summary, ...(made.checks ? { checks: made.checks } : {}) };
+        ...(reqs.length ? { requirements: reqs } : {}), ...(env?.CAD_PROMPT ? { prompt: env.CAD_PROMPT.slice(0, PROMPT_CHARS) } : {}), base: modelHash(state.doc), ops: made.ops, orders: made.orders, risk: made.risk, summary: made.summary, ...(made.checks ? { checks: made.checks } : {}) };
       const doc = withHistory({ ...state.doc, proposals: [...(state.doc.proposals ?? []), p] }, { kind: 'proposal', by, proposal: p.id, summary: `${p.id} ${p.title}: ${p.summary}`, ...(plan ? { plan } : {}), ...(reqs.length ? { requirements: reqs } : {}), risk: p.risk });
       return { state: { ...state, doc }, content: json({ ok: true, proposal: p.id, applied: false, note: 'The part is unchanged: the user accepts or rejects the proposal in the studio.', diff: made.diff, change: made.change, ...(made.broken.length ? { broken_references: made.broken } : {}), ...(made.checks ? { checks: made.checks } : {}), risk: p.risk }), isError: false, changed: true, summary: `proposed ${p.id}: ${p.summary}` };
     }
