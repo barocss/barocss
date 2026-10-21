@@ -12,7 +12,7 @@ import { faceTableOf, ORIGIN_PLANES } from '../../src/assembly/faces';
 import { BASE, lockRel, solveAssembly, type FaceTable, type Mate } from '../../src/assembly/mates';
 import { defaultDrawing } from '../../src/drawing/types';
 import { toleranceText } from '../../src/drawing/sheet';
-import type { P2 } from '../../src/sketch/profile';
+import type { P2 } from '@barocss/cad-model/sketch/profile';
 
 type Row = { id: string; area: string; name: string; ok: boolean; expected?: unknown; actual?: unknown };
 const rows: Row[] = [];

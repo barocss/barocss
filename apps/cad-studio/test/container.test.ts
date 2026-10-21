@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { meshInMM, readMeshFile } from '../src/engine/meshImport';
+import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
 import { blobRefs, blobsAsBase64, blobsFromBase64, getBlob, inlineMeshes, meshNodeBlobs, putKnownBlob, sha256 } from '../src/engine/blobs';
 import { decodeStudioFile, encodeStudioFile, isContainer, readStudioFile } from '../src/engine/container';
 import { WireReceiver, WireSender } from '../src/engine/wireDoc';

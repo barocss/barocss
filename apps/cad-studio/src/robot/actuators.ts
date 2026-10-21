@@ -21,7 +21,7 @@
 import type { JointTree } from './joints';
 import { coordinates, massMatrix, moveMotion, moveState, rnea, STANDARD_GRAVITY, type LinkBody, type MoveLimits, type MoveMotion } from './dynamics';
 import type { V3 } from './inertia';
-import type { ProfileKind, Segment } from './profile';
+import type { ProfileKind, Segment } from '@barocss/cad-model/robot/profile';
 
 /** Where a value comes from: a product page read in the browser (its URL, the date read, the page's own label), a
  * value derived from sourced ones (how), or an estimate (why, and what would replace it). */

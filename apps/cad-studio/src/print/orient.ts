@@ -3,7 +3,7 @@
 // area, height and bed contact, then the best eight again with their support volume: rays straight down from each
 // overhanging triangle, through a bounding-volume tree of the display mesh, to what is below it or the bed. The
 // choice is deterministic: by score, then the lower height, then the candidate's index. The top three are reported.
-import type { DisplayMesh } from '../engine/mesh';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import type { FaceTable } from '../assembly/mates';
 import { overhangOf, type Vec3 } from './overhang';
 
@@ -132,7 +132,7 @@ export function searchOrientation(mesh: DisplayMesh, table: FaceTable, limitDeg:
 }
 
 /** The part's orientation: its largest body's search, with its printing process's limit and weights; why not, else. */
-export function orientPart(doc: import('../engine/doc').StudioDoc, bodies: readonly import('../engine/evaluate').BodyResult[], table: FaceTable, profile: import('../library/materials').ProcessProfile | undefined): OrientationResult | string {
+export function orientPart(doc: import('../engine/doc').StudioDoc, bodies: readonly import('../engine/evaluate').BodyResult[], table: FaceTable, profile: import('@barocss/cad-model/library/materials').ProcessProfile | undefined): OrientationResult | string {
   if (!profile?.additive) return profile ? `${profile.label} is not printing` : 'no printing process is chosen';
   const body = [...bodies].sort((a, b) => (b.volumeMM3 ?? 0) - (a.volumeMM3 ?? 0))[0];
   if (!body) return 'no body';

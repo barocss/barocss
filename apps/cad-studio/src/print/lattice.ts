@@ -5,7 +5,7 @@
 import { withNode, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
 import { evaluatePart, type BodyResult } from '../engine/evaluate';
 import { positionsArray } from '../engine/blobs';
-import type { Vec3 } from '../engine/mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { CORNER, TETS, cavityField, depthAt, depthBins, marchingTetrahedra, meshPieces, nodeAt, putNow, type DepthBins, type Grid } from './hollow';
 
 export type LatticeCode = 'NOT_HOLLOW' | 'BAD_VALUES' | 'GRID_TOO_FINE' | 'NO_LATTICE' | 'UNDRAINED';

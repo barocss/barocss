@@ -6,7 +6,7 @@ import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, SYSTEM_PROMPT, TOOLS } from '../src/chat/tools';
 import { SYSTEM_PROMPT_V2, TOOLS_V2 } from '../src/chat/toolset';
-import { GROUPS } from '../src/chat/groups';
+import { GROUPS } from '@barocss/cad-model/chat/groups';
 import { FASTENER_SIZES } from '../src/app/fasteners';
 import { ALLOWED_LICENCES, checkTables, NAMED_STANDARDS, STANDARD_SOURCES, STANDARD_TABLES, type StdSource, type StdTable } from '../src/standards/provenance';
 

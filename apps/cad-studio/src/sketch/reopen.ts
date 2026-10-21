@@ -2,7 +2,7 @@
 // shape (its kept outline with all constraints when it has one), more regions and holes beside it.
 import type { LoopSegment, SketchNode, SketchOutline } from '../engine/doc';
 import type { SketchShape } from './types';
-import type { P2 } from './profile';
+import type { P2 } from '@barocss/cad-model/sketch/profile';
 import type { Polygon } from './rules';
 import { loopOf } from './loops';
 

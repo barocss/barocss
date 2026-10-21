@@ -8,7 +8,7 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { confirmDimension, draftWarning, readDrafts, unconfirmed } from '../src/chat/drafts';
 import { dwgRelease, readDxfSketch } from '../src/sketch/dxfRead';
 import { sketchDxf } from '../src/sketch/dxf';
-import { traceImage } from '../src/chat/trace';
+import { traceImage } from '@barocss/cad-model/chat/trace';
 import { answerBatch } from '../src/chat/questions';
 
 // A6.4 (O28): images and drawings give drafts only. Our DXF reader against our own writer's files (both versions) and a

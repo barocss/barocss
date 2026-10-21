@@ -9,7 +9,7 @@
 // the one that frees all its hidden samples, else the one that frees the most, said. Rays on the display mesh: a
 // surface sampled to its chord error, and to the step.
 import type { BodyResult } from '../engine/evaluate';
-import type { Vec3 } from '../engine/mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { buildBvh, rayHit, type TriangleBvh } from '../print/orient';
 
 export interface UndercutRegion {

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { roundCorner } from '../src/sketch/corner';
-import { arcOf } from '../src/sketch/profile';
+import { arcOf } from '@barocss/cad-model/sketch/profile';
 
 test('rounding a corner: an arc tangent to both edges, ends cut back, constraints renumbered', () => {
   const sq = { kind: 'polygon' as const, points: [[0, 0], [20, 0], [20, 10], [0, 10]] as [number, number][], closed: true, bulges: [0, 0, 0, 0], lengths: { 0: 20, 1: 10, 2: 20 }, hv: { h: [0, 2], v: [1, 3] } };

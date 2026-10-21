@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readStudioDoc } from '../src/engine/migrate';
 import { rectanglePart } from '../src/engine/doc';
-import { defaultRender } from '../src/engine/render';
+import { defaultRender } from '@barocss/cad-model/engine/render';
 
 test('reading a model file: the current one as it is, an older one filled in and said so, a newer one refused', () => {
   const now = readStudioDoc(JSON.stringify(rectanglePart(10, 10, 5)));

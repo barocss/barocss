@@ -9,9 +9,9 @@ import { evaluatePart } from '../../src/engine/evaluate';
 import { cylinderPart, emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type StudioDoc } from '../../src/engine/doc';
 import { faceTableOf } from '../../src/assembly/faces';
 import { BASE, solveAssembly, type FaceTable, type Mate } from '../../src/assembly/mates';
-import type { P2 } from '../../src/sketch/profile';
+import type { P2 } from '@barocss/cad-model/sketch/profile';
 import { startPicking } from '../../src/sketch/select';
-import { xyPlane } from '../../src/sketch/plane';
+import { xyPlane } from '@barocss/cad-model/sketch/plane';
 import { editFields } from '../../src/app/editFields';
 import type { SketchState } from '../../src/viewport/Viewport';
 

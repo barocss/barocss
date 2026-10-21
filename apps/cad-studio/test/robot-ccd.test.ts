@@ -8,10 +8,10 @@ import { rotationMatrix } from '../src/assembly/mates';
 import { solveDoc } from '../src/chat/assembly';
 import { mjcfOfDoc, treeOfDoc } from '../src/chat/robot';
 import { applyTo, forwardKinematics } from '../src/robot/fk';
-import { convexHull } from '../src/robot/hull';
+import { convexHull } from '@barocss/cad-model/robot/hull';
 import { meshDistance, meshesMeet, sweepLinks, sweepPath } from '../src/robot/sweep';
 import { CCD_TOLERANCE, sweepTimed, timePath, timeAt } from '../src/robot/ccd';
-import { at, trapezoid } from '../src/robot/profile';
+import { at, trapezoid } from '@barocss/cad-model/robot/profile';
 
 // RM9a (O62): continuous collision along a timed, multi-segment joint path. The 2R arm swung into the post on a trapezoid:
 // its time of impact against the plane's separating-axis contact angle mapped through the trapezoid's closed form; two

@@ -25,7 +25,7 @@ import { prefixDoc, type ModelNode, type StudioDoc } from './doc';
 import { rememberedEvaluate } from './evalMemo';
 import type { BodyResult, EvalResult } from './evaluate';
 import { matchSignature, rankAlike, signaturesOf, type Signature } from './rematch';
-import type { Vec3 } from './mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
 /** A stored signature (rounded: positions to 1e-6 mm, directions to 1e-9, sizes to 1e-6). */
 export interface Sig { k: string; p: Vec3; d?: Vec3; s: number; r?: number }

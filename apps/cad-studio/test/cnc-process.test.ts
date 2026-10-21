@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { withLook } from '../src/app/bodies';
-import { MATERIALS_DATA, checkMaterials, processProfile } from '../src/library/materials';
+import { MATERIALS_DATA, checkMaterials, processProfile } from '@barocss/cad-model/library/materials';
 import { printability } from '../src/print/rules';
 import { dispatchTool } from '../src/chat/tools';
 

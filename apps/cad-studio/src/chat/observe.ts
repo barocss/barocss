@@ -5,10 +5,10 @@ import { featureLabel, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { nodeIndexOf } from '../engine/ids';
 import { materialIdOf } from '../app/bodies';
-import { materialOf } from '../app/materials';
+import { materialOf } from '@barocss/cad-model/app/materials';
 import { materialFact } from './analysis';
-import { roundFaceAxis } from '../app/measure';
-import type { Vec3 } from '../engine/mesh';
+import { roundFaceAxis } from '@barocss/cad-model/app/measure';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
 const v3 = (v: readonly number[]) => v.map(r3) as Vec3;

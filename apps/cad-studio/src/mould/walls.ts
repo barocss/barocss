@@ -7,7 +7,7 @@
 // Thick sections are where the local thickness passes the nominal over the adjacent-wall ratio.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import { wallSamples } from '../chat/analysis';
 import { faceTableOf } from '../assembly/faces';
 import { buildBvh, rayHit } from '../print/orient';

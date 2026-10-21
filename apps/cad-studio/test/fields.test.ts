@@ -4,7 +4,7 @@ import { carryOver, NODE_EXTRA_FIELDS, rectanglePart, STUDIO_DOC_FIELDS, withNod
 import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '../src/chat/features';
 import { flattenAssembly } from '../src/assembly/flatten';
 import { readStudioDoc } from '../src/engine/migrate';
-import { defaultRender } from '../src/engine/render';
+import { defaultRender } from '@barocss/cad-model/engine/render';
 import { defaultDrawing } from '../src/drawing/types';
 
 // Every field a document or a node can hold survives every path that rebuilds one: a field added to the types

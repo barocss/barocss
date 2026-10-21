@@ -6,7 +6,7 @@
 import { spawn as nodeSpawn, type ChildProcess } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { loadCadLibrary } from '@barocss/cad';
-import { checkLibraryForSharing, sharingRefusal } from '../src/library/sharing';
+import { checkLibraryForSharing, sharingRefusal } from '@barocss/cad-model/library/sharing';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -14,7 +14,7 @@ import { createInterface } from 'node:readline';
 import type { StudioDoc } from '../src/engine/doc';
 import type { NameSelection } from '../src/chat/tools';
 import { toolset, toolsetOf } from '../src/chat/toolset';
-import { v1Call } from '../src/chat/groups';
+import { v1Call } from '@barocss/cad-model/chat/groups';
 import { PROMPT_CHARS } from '../src/chat/proposals';
 import type { StateFile } from './cadMcp';
 import type { BlobType, WireBlobs } from '../src/engine/blobs';

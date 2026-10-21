@@ -17,7 +17,7 @@ test('offset: rectangles, circles, slots and straight outlines grow or shrink; t
 });
 
 test('offset: a rounded rectangle (tangent arcs) moves out piece by piece; its arcs about their centres', async () => {
-  const { arcOf } = await import('../src/sketch/profile');
+  const { arcOf } = await import('@barocss/cad-model/sketch/profile');
   const t = Math.tan(Math.PI / 8); // a quarter arc's bulge
   // 20 × 10 with R2 corners, counter-clockwise.
   const pts: [number, number][] = [[2, 0], [18, 0], [20, 2], [20, 8], [18, 10], [2, 10], [0, 8], [0, 2]];
@@ -31,7 +31,7 @@ test('offset: a rounded rectangle (tangent arcs) moves out piece by piece; its a
 });
 
 test('offset: arcs meeting their neighbours at corners — the moved pieces cut back or run on to meet', async () => {
-  const { arcOf } = await import('../src/sketch/profile');
+  const { arcOf } = await import('@barocss/cad-model/sketch/profile');
   // A door arch, counter-clockwise: the top arc meets both sides at corners.
   const pts: [number, number][] = [[0, 0], [20, 0], [20, 10], [0, 10]], bulges = [0, 0, 0.3, 0];
   const top = arcOf(pts[2], pts[3], 0.3);

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc, stepFor } from '../src/engine/evaluate';
 import { importStep, checkBrep, brepMassProperties } from '@barocss/cad';
 import { cylinderPart, emptyDoc, featureLabel, leafBodies, loftTop, prefixDoc, rectanglePart, starterDoc, withNode } from '../src/engine/doc';
-import type { DisplayMesh } from '../src/engine/mesh';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 
 // Signed volume of a closed, outward-wound triangle mesh.
 function signedVolume(mesh: DisplayMesh) {
@@ -363,7 +363,7 @@ test('revolve: a circle sketch turns into a torus, cut by a box; a profile along
 });
 
 test('a slot sketch extrudes as one line + arc body with two curved faces and exact mass', async () => {
-  const { slotSegments } = await import('../src/sketch/profile');
+  const { slotSegments } = await import('@barocss/cad-model/sketch/profile');
   const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
     { kind: 'sketch', profile: 'loop', segments: slotSegments([0, 0], [40, 0], 6) }), { kind: 'extrude', sketch: 0, height: 5 });
   const r = evaluateDoc(doc, 1);
@@ -381,7 +381,7 @@ test('a slot sketch extrudes as one line + arc body with two curved faces and ex
 });
 
 test('a concave outline with an arc notch becomes a loop body; straight convex outlines stay polygons', async () => {
-  const { outlineSegments, bulgeThrough } = await import('../src/sketch/profile');
+  const { outlineSegments, bulgeThrough } = await import('@barocss/cad-model/sketch/profile');
   const points: [number, number][] = [[0, 0], [40, 0], [40, 20], [25, 20], [15, 20], [0, 20]];
   const bulges = [0, 0, 0, bulgeThrough([25, 20], [15, 20], [20, 15]), 0, 0];
   const segments = outlineSegments(points, bulges);
@@ -394,7 +394,7 @@ test('a concave outline with an arc notch becomes a loop body; straight convex o
 });
 
 test('the numerical solver keeps H/V edges, honours locked lengths and reports DOF', async () => {
-  const { solveOutline } = await import('../src/sketch/profile');
+  const { solveOutline } = await import('@barocss/cad-model/sketch/profile');
   const rect: [number, number][] = [[0, 0], [40, 0], [40, 20], [0, 20]];
   const free = solveOutline(rect, {});
   assert.ok(free.ok); assert.equal(free.dof, 2);
@@ -406,7 +406,7 @@ test('the numerical solver keeps H/V edges, honours locked lengths and reports D
 });
 
 test('arcs in the solver: tangent joints snap exact, a radius lock holds, DOF counts the centre', async () => {
-  const { solveOutline, bulgeThrough, arcOf, inferTangents } = await import('../src/sketch/profile');
+  const { solveOutline, bulgeThrough, arcOf, inferTangents } = await import('@barocss/cad-model/sketch/profile');
   // A 40 x 20 plate whose right side is a rough bulging arc drawn by hand (not tangent to anything).
   const points: [number, number][] = [[0, 0], [40, 0], [40, 20], [0, 20]];
   const bulges = [0, bulgeThrough([40, 0], [40, 20], [47, 10]), 0, 0];
@@ -428,7 +428,7 @@ test('arcs in the solver: tangent joints snap exact, a radius lock holds, DOF co
 
 test('closing an outline infers near-tangent arc joints and settles them exact', async () => {
   const { settleShape } = await import('../src/sketch/settle');
-  const { arcOf } = await import('../src/sketch/profile');
+  const { arcOf } = await import('@barocss/cad-model/sketch/profile');
   // Arc from (40,0) to (40,20) nearly tangent to the bottom and top edges (bulge ≈ 1 = semicircle).
   const open = { kind: 'polygon' as const, points: [[0, 0], [40, 0], [40, 20], [0, 20]] as [number, number][], closed: false, bulges: [0, 0.97, 0, 0] };
   const r = settleShape({ ...open, closed: true }, open);
@@ -443,7 +443,7 @@ test('closing an outline infers near-tangent arc joints and settles them exact',
 });
 
 test('equal radius and concentric arc pairs', async () => {
-  const { solveOutline, bulgeThrough, arcOf, inferArcRelations } = await import('../src/sketch/profile');
+  const { solveOutline, bulgeThrough, arcOf, inferArcRelations } = await import('@barocss/cad-model/sketch/profile');
   // Two hand-drawn end arcs of different radius (≈10.64 and ≈10.42).
   const points: [number, number][] = [[0, 0], [40, 0], [40, 20], [0, 20]];
   const bulges = [0, bulgeThrough([40, 0], [40, 20], [47, 10]), 0, bulgeThrough([0, 20], [0, 0], [-7.5, 10])];
@@ -470,7 +470,7 @@ test('equal radius and concentric arc pairs', async () => {
 
 test('closing infers equal radii and shared centres; a loop with them still extrudes', async () => {
   const { settleShape } = await import('../src/sketch/settle');
-  const { outlineSegments, bulgeThrough } = await import('../src/sketch/profile');
+  const { outlineSegments, bulgeThrough } = await import('@barocss/cad-model/sketch/profile');
   const open = { kind: 'polygon' as const, points: [[30, 0], [0, 30], [0, 15], [15, 0]] as [number, number][], closed: false,
     bulges: [bulgeThrough([30, 0], [0, 30], [21.2132, 21.2132]), 0, bulgeThrough([0, 15], [15, 0], [10.9, 10.9]), 0] };
   const r = settleShape({ ...open, closed: true }, open);

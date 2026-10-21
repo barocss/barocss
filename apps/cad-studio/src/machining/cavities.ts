@@ -7,7 +7,7 @@
 // its hull) across walls rising on both sides — a step, open on a side, is not a cavity. A tall feature is IM4's rib (two opposite planes, both facing into the part), its height from its root
 // edge. Holes are CNC2's: a floor only a hole's bores rise from is the hole's bottom, not a cavity's.
 import type { BodyResult } from '../engine/evaluate';
-import type { DisplayMesh } from '../engine/mesh';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import type { StudioDoc } from '../engine/doc';
 import { buildBvh, rayHit } from '../print/orient';
 import { besideEdge, wallsOf } from '../mould/walls';

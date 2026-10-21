@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { dragAlong, dragPlane, dragTurn, hitTest, layout, snapTo, type Projector, type TransformGizmo } from '../src/viewport/gizmo';
-import type { Vec3 } from '../src/engine/mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
 // A camera straight above, looking down −Z: screen x = world x, screen y = −world y (10 px per mm, origin at 500, 500).
 const top: Projector = { project: (p: Vec3) => [500 + p[0] * 10, 500 - p[1] * 10], forward: [0, 0, -1], size: 10 };

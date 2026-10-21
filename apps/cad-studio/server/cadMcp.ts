@@ -7,10 +7,10 @@ import { registerLibrary } from '../src/library/libraries';
 import { createInterface } from 'node:readline';
 import { evaluateDoc } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
-import type { ImageTrace } from '../src/chat/trace';
+import type { ImageTrace } from '@barocss/cad-model/chat/trace';
 import { runTool, TOOLS, type ChatState } from '../src/chat/tools';
-import { outputSchemaOf } from '../src/chat/contract';
-import { v1Call } from '../src/chat/groups';
+import { outputSchemaOf } from '@barocss/cad-model/chat/contract';
+import { v1Call } from '@barocss/cad-model/chat/groups';
 import { listed, toolsetOf, type Toolset } from '../src/chat/toolset';
 import { arrayOf, putKnownBlob, type BlobType } from '../src/engine/blobs';
 

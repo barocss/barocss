@@ -2,7 +2,7 @@
 // selection repaints only the faces whose state changed, one range each, instead of making, converting and
 // sending the whole colour buffer again; a change of the colours themselves (theme, body or face colours,
 // render settings) paints the whole body once.
-import type { Vec3 } from '../engine/mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
 /** What the painter writes to: the viewer's surface geometry. */
 export interface ColorTarget {

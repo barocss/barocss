@@ -3,7 +3,7 @@
 // between them, the memory the arrays take, and what display, picking, point classification and mass cost
 // on them. Nothing here is product code; it sizes R3 (facet faces). Run: pnpm bench:mesh --facets [fixture ...]
 import { encodeBinaryStl, readStl } from '@barocss/cad';
-import { meshInMM } from '../../src/engine/meshImport';
+import { meshInMM } from '@barocss/cad-model/engine/meshImport';
 import { fixtures, random } from './mesh-fixtures';
 
 const ms = (t0: number) => +(performance.now() - t0).toFixed(1);

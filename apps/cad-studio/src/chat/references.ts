@@ -11,13 +11,13 @@
 import type { StudioDoc, DocPlane, ModelNode } from '../engine/doc';
 import { emptyDoc, withNode } from '../engine/doc';
 import { partBreps, placeBody, type BodyResult, type EvalResult } from '../engine/evaluate';
-import { measureChords, unmeasured, type DisplayMesh, type Vec3 } from '../engine/mesh';
+import { measureChords, unmeasured, type DisplayMesh, type Vec3 } from '@barocss/cad-model/engine/mesh';
 import { rotationMatrix } from '../assembly/mates';
 import { symmetricEigen, type Mat3 } from '../robot/inertia';
 import { meshDistance } from '../robot/sweep';
 import { refOf } from '../app/bodyRef';
 import { bodyKeyFor } from '../engine/ids';
-import { stepLengthUnit } from '../engine/stepUnits';
+import { stepLengthUnit } from '@barocss/cad-model/engine/stepUnits';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 export interface Placement { position: Vec3; rotation: Vec3 }

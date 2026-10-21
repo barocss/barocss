@@ -6,13 +6,13 @@ import { emptyDoc, type PartInstance, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import { tableOf, tablesFor, withDatums } from '../assembly/faces';
 import { BASE, KIND_LABEL, kindsFor, mateLabel, mateRefusal, rotationMatrix, solveAssembly, type FaceTable, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
-import type { ToolDefinition } from './api';
+import type { ToolDefinition } from '@barocss/cad-model/chat/api';
 import { addDocLibrary, addLibraryPartToBody, libraries, libraryInstance, registerDocLibraries, snapByInterfaces } from '../library/libraries';
 import { faceTableOf } from '../assembly/faces';
 import { printability } from '../print/rules';
 import { orientPart, type OrientationScore } from '../print/orient';
-import { processProfile } from '../library/materials';
-import { UNLICENSED } from '../library/sharing';
+import { processProfile } from '@barocss/cad-model/library/materials';
+import { UNLICENSED } from '@barocss/cad-model/library/sharing';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 interface State { doc: StudioDoc; bodies: BodyResult[] }

@@ -3,7 +3,7 @@
 // from the model's 3D geometry in mm, so a dimension follows the part as it changes.
 import type { BrepProjection, ProjectedCurve, ProjectedEdge } from '@barocss/cad';
 import type { CentreRef, DimPoint, DrawingDimension, EdgeRef, Vec3, ViewId, XY } from './types';
-import { dot } from '../engine/vec3';
+import { dot } from '@barocss/cad-model/engine/vec3';
 
 const sub3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dist3 = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);

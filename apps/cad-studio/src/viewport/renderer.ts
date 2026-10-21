@@ -4,7 +4,7 @@
 // An ID pass serves face picking. Resources persist: camera moves only write uniforms and
 // selection changes only rewrite small state buffers.
 import type { BodyResult } from '../engine/evaluate';
-import type { Vec3 } from '../engine/mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
 
 export interface FaceRef { body: number; face: number }
@@ -42,7 +42,7 @@ export interface ViewRenderer {
   bounds(): { min: Vec3; max: Vec3 } | null;
   dispose?(): void;
   /** Render settings (the Render workspace; WebGPU only). */
-  setRender?(settings: import('../engine/render').RenderSettings | null): void;
+  setRender?(settings: import('@barocss/cad-model/engine/render').RenderSettings | null): void;
   /** The frame as a PNG (WebGPU only). */
   capture?(): Promise<Blob>;
   /** Zebra stripes or the curvature map on the bodies (WebGPU only; null: off). */
@@ -52,7 +52,7 @@ export interface ViewRenderer {
   /** See-through tool regions (a hole's whole cylinder) as a mesh and its rims (WebGPU only). */
   setRegions?(mesh: ReturnType<typeof import('../app/holeRegion').regionMesh> | null): void;
   /** Direct curves and surfaces (WebGPU only), and the one under a point. */
-  setDirect?(items: import('../engine/direct').DirectDisplay[], selected: readonly string[]): void;
+  setDirect?(items: import('@barocss/cad-model/engine/direct').DirectDisplay[], selected: readonly string[]): void;
   pickDirect?(x: number, y: number, camera: OrbitCamera): string | null;
   /** Placed instances of other parts (WebGPU only), and the one under a point. */
   setInstances?(items: { id: string; bodies: BodyResult[] }[], selected: readonly string[]): void;

@@ -5,7 +5,7 @@ import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { runDrawingTool } from '../src/chat/drawing';
 import { defaultDrawing, type DrawingSettings } from '../src/drawing/types';
-import { processProfile } from '../src/library/materials';
+import { processProfile } from '@barocss/cad-model/library/materials';
 import { machinability } from '../src/machining/report';
 import { DRAWING_PAGES, drawingCheck } from '../src/machining/drawing';
 

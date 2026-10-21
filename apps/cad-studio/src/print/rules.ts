@@ -4,11 +4,11 @@
 // not have it: powder does not tip). Values and limits come with each, the limits' sources from the profile.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import type { DisplayMesh } from '../engine/mesh';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import { faceTableOf } from '../assembly/faces';
 import { interference, wallThickness } from '../chat/analysis';
 import { materialIdOf } from '../app/bodies';
-import { materialData, printerProfile, processProfile, type MouldFinish, type ProcessProfile } from '../library/materials';
+import { materialData, printerProfile, processProfile, type MouldFinish, type ProcessProfile } from '@barocss/cad-model/library/materials';
 import { overhangOf, type Vec3 } from './overhang';
 import { draftField, type DraftFace } from '../mould/draft';
 import { undercuts, type UndercutRegion } from '../mould/undercut';

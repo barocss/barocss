@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { offsetsAt, withKey, type RenderAnimation } from '../engine/render';
+import { offsetsAt, withKey, type RenderAnimation } from '@barocss/cad-model/engine/render';
 import { Icon } from './atoms';
 
 /**

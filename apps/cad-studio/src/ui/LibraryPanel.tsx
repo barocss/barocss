@@ -5,8 +5,8 @@
 import { useEffect, useState } from 'react';
 import type { StudioDoc } from '../engine/doc';
 import { confirmDocLibrary, insertLibraryPart, libraries, libraryEntry, libraryInstance, registerDocLibraries, registerLibrary, shareRefusal, type LibraryEntry, type LibrarySource } from '../library/libraries';
-import { UNLICENSED } from '../library/sharing';
-import { MATERIALS_DATA, processProfile } from '../library/materials';
+import { UNLICENSED } from '@barocss/cad-model/library/sharing';
+import { MATERIALS_DATA, processProfile } from '@barocss/cad-model/library/materials';
 import { Icon } from './atoms';
 
 const SOURCES: { source: LibrarySource; title: string }[] = [{ source: 'built-in', title: 'BUILT-IN' }, { source: 'team', title: 'TEAM' }, { source: 'user', title: 'YOURS' }];

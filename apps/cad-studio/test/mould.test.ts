@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MATERIALS_DATA, checkMaterials, materialData, processProfile, type MaterialsData } from '../src/library/materials';
+import { MATERIALS_DATA, checkMaterials, materialData, processProfile, type MaterialsData } from '@barocss/cad-model/library/materials';
 import { printability } from '../src/print/rules';
 import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';

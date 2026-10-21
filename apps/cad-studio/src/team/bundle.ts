@@ -10,7 +10,7 @@ import type { Evaluate } from '../chat/tools';
 import { encodeStudioFile, readStudioFile } from '../engine/container';
 import { lookOf } from '../app/bodies';
 import { briefMaterial } from '../chat/brief';
-import { MATERIALS_DATA, materialData } from '../library/materials';
+import { MATERIALS_DATA, materialData } from '@barocss/cad-model/library/materials';
 import { readBaselines, verifyBaseline, type Baseline } from './baseline';
 import { digestOf, sha256Hex } from './digest';
 import { readEcrs, verifyEcrPin, type Ecr } from './ecr';

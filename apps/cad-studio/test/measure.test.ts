@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { cylinderPart, emptyDoc, rectanglePart, withNode } from '../src/engine/doc';
-import { measureBetween, measureItem } from '../src/app/measure';
-import type { DisplayMesh } from '../src/engine/mesh';
+import { measureBetween, measureItem } from '@barocss/cad-model/app/measure';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 
 const meshOf = (doc: Parameters<typeof evaluateDoc>[0]): DisplayMesh => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies[0].mesh; };
 const faceBy = (m: DisplayMesh, pred: (n: [number, number, number]) => boolean) => m.faces.findIndex(f => f.kind === 'plane' && pred(f.normal));
@@ -35,7 +35,7 @@ test('measure: a cylinder face shows its radius, its rim an arc of that radius a
 });
 
 test('errors: a too-steep draft and a zero angle name their cause', async () => {
-  const { friendly } = await import('../src/engine/errors');
+  const { friendly } = await import('@barocss/cad-model/engine/errors');
   assert.equal(friendly('n1: the draft closes a straight wall before the top (steeper than the profile allows)').title, 'The draft is too steep for this height');
   assert.equal(friendly('n1: angleDegrees must be in (0, 360]').title, 'The angle must be between 1° and 360°');
   // A suspected touch from the curved-face Boolean says it may be an unsupported overlap; the exact
@@ -59,7 +59,7 @@ test('measure: between two bodies, the closest points span the gap', () => {
 test('measure: two round faces on one axis are coaxial; off it, by how much', async () => {
   const { evaluateDoc } = await import('../src/engine/evaluate');
   const { rectanglePart, withNode } = await import('../src/engine/doc');
-  const { measureBetween, roundFaceAxis } = await import('../src/app/measure');
+  const { measureBetween, roundFaceAxis } = await import('@barocss/cad-model/app/measure');
   let doc = rectanglePart(40, 20, 10);
   doc = withNode(doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [10, 10], radius: 3 });
   doc = withNode(doc, { kind: 'sketch', profile: 'circle', center: [10, 10], radius: 2 });

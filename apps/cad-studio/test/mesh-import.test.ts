@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, featureLabel, withNode } from '../src/engine/doc';
-import { meshInMM, readMeshFile } from '../src/engine/meshImport';
+import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
 
 test('an STL in centimetres opens as a solid in mm: welded, scaled, its flat faces merged', () => {
   const mesh = readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures/block-cm.stl'))));

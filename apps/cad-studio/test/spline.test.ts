@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { splineOutline } from '../src/sketch/spline';
-import { arcOf } from '../src/sketch/profile';
+import { splineOutline } from '@barocss/cad-model/sketch/spline';
+import { arcOf } from '@barocss/cad-model/sketch/profile';
 
 type P2 = [number, number];
 /** The outline's tangent leaving and arriving at each point (arcs by their bulge, lines by their direction). */

@@ -6,7 +6,7 @@
 // against the fastener table's tap drill (d − P), its size and its length.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import type { DisplayMesh } from '../engine/mesh';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import { buildBvh, rayHit } from '../print/orient';
 import { FASTENER_SIZES } from '../app/fasteners';
 

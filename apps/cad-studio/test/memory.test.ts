@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { recoveryText } from '../src/app/recovery';
 import { parameterUses, renameParameter } from '../src/ui/ParametersPanel';
-import { meshInMM } from '../src/engine/meshImport';
+import { meshInMM } from '@barocss/cad-model/engine/meshImport';
 import type { ModelNode, StudioDoc } from '../src/engine/doc';
 
 // PERF3 B13 (D82): what an edit writes out and copies, measured against the code it replaces (kept here as the reference).

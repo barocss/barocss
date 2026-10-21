@@ -9,8 +9,8 @@ import { solveDoc } from '../src/chat/assembly';
 import { dispatchTool } from '../src/chat/tools';
 import { treeOfDoc } from '../src/chat/robot';
 import { applyTo, forwardKinematics } from '../src/robot/fk';
-import { convexHull } from '../src/robot/hull';
-import { convexDistance } from '../src/robot/gjk';
+import { convexHull } from '@barocss/cad-model/robot/hull';
+import { convexDistance } from '@barocss/cad-model/robot/gjk';
 import { meshDistance, meshesMeet, pathOf, reaches, sweepLinks, sweepPath } from '../src/robot/sweep';
 import type { Joint, JointTree } from '../src/robot/joints';
 

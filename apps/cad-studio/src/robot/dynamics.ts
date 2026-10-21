@@ -13,7 +13,7 @@ import type { JointTree } from './joints';
 import { applyTo, forwardKinematics, type Motion } from './fk';
 import { linkFrames, linkInertia, type Mat3, type V3 } from './inertia';
 import { pathOf } from './sweep';
-import { onSegment, sCurve, trapezoid, ProfileError, type Profile, type ProfileKind, type Segment } from './profile';
+import { onSegment, sCurve, trapezoid, ProfileError, type Profile, type ProfileKind, type Segment } from '@barocss/cad-model/robot/profile';
 
 export const STANDARD_GRAVITY = 9.80665;
 /** A link's mass (kg) and its centre of mass at home (world, mm). */

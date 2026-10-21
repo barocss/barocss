@@ -3,7 +3,7 @@
 // columns, a header row (`label [unit]`), then the rows; each column as wide as its widest text plus a pad each side.
 // Numbers are shown to their column's digits (absent: up to 2, trailing zeros dropped) and aligned right; text left.
 import type { Mark } from './sheet';
-import { textWidth } from './text';
+import { textWidth } from '@barocss/cad-model/drawing/text';
 import type { TableCell, TableColumn, TableCorner, XY } from './types';
 
 export const TABLE_TEXT = 2.5;

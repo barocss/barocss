@@ -5,7 +5,7 @@
 import { withNode, type Axis, type ModelNode } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Command, Ctx, Values } from './commands';
-import { dot, cross } from '../engine/vec3';
+import { dot, cross } from '@barocss/cad-model/engine/vec3';
 
 type V3 = [number, number, number];
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { MATERIALS_DATA, checkMaterials, processProfile, type MaterialsData, type ProcessProfile } from '../src/library/materials';
+import { MATERIALS_DATA, checkMaterials, processProfile, type MaterialsData, type ProcessProfile } from '@barocss/cad-model/library/materials';
 import { machinability } from '../src/machining/report';
 import { cavitiesOf, narrowest } from '../src/machining/cavities';
 

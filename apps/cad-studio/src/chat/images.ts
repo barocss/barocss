@@ -1,6 +1,6 @@
 // Images attached to a chat message (each also traced into outlines, see trace.ts), scaled in the browser so the long side is at most MAX_SIDE px
 // (what the model reads at full detail) and sent as base64 PNG (drawings) or JPEG (photos).
-import { traceImage, type ImageTrace } from './trace';
+import { traceImage, type ImageTrace } from '@barocss/cad-model/chat/trace';
 
 export interface ChatImage { media_type: 'image/png' | 'image/jpeg'; data: string; name: string; width: number; height: number; trace: ImageTrace }
 

@@ -7,7 +7,7 @@
 import type { SketchShape } from './types';
 import type { LoopSegment, ModelNode, SketchNode } from '../engine/doc';
 import type { Polygon } from './rules';
-import type { SketchRule } from './terms';
+import type { SketchRule } from '@barocss/cad-model/sketch/terms';
 
 export interface SideTags { outer: string[]; regions?: string[][]; holes?: string[][] }
 

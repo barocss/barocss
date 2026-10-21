@@ -1,9 +1,9 @@
 // Finished sketches as profiles the feature commands take (Extrude, Revolve, Pipe, Loft): which sketches no
 // feature uses yet, the picked ones, where they lie (outlines in world space, to draw and pick), and the
 // sketches of a loft brought onto its first section's plane (the kernel lofts sections of one plane).
-import type { Vec3 } from '../engine/mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { parentsOf, type LoopSegment, type ModelNode, type SketchNode } from '../engine/doc';
-import { toLocal, toWorld, xyPlane, type SketchPlane } from '../sketch/plane';
+import { toLocal, toWorld, xyPlane, type SketchPlane } from '@barocss/cad-model/sketch/plane';
 import { loopOf } from '../sketch/loops';
 
 type XY = [number, number];

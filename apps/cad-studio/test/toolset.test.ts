@@ -7,9 +7,9 @@ import { PassThrough } from 'node:stream';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, starterDoc, type StudioDoc } from '../src/engine/doc';
 import { acceptProposal, dispatchTool, runTool, SYSTEM_PROMPT, TOOLS, type ChatState } from '../src/chat/tools';
-import { GROUPS, V1_OF, V2_ALIASES, V2_OF, v1Call, viaV2 } from '../src/chat/groups';
+import { GROUPS, V1_OF, V2_ALIASES, V2_OF, v1Call, viaV2 } from '@barocss/cad-model/chat/groups';
 import { listed, SYSTEM_PROMPT_V2, TOOLS_V2, toolsetOf } from '../src/chat/toolset';
-import { TOOL_CONTRACT_V2, breakingChanges, contractOf, validate, outputSchemaOf, type ContractEntry } from '../src/chat/contract';
+import { TOOL_CONTRACT_V2, breakingChanges, contractOf, validate, outputSchemaOf, type ContractEntry } from '@barocss/cad-model/chat/contract';
 import { serveMcp, TOOLS_LISTED } from '../server/cadMcp';
 import { claudeArgs } from '../server/chatServer';
 

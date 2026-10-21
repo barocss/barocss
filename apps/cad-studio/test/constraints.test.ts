@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { settleShape } from '../src/sketch/settle';
-import { arcOf, bulgeThrough, type P2 } from '../src/sketch/profile';
+import { arcOf, bulgeThrough, type P2 } from '@barocss/cad-model/sketch/profile';
 import {
   applyConstraint, commitDimension, constraintEntries, constraintOptions, dimensionKey, redundancy, removeConstraint, solveShape,
   type Polygon, type SketchPick,
 } from '../src/sketch/rules';
 import { nextPicks, pickSketch, sketchClick } from '../src/sketch/select';
 import type { SketchState } from '../src/viewport/Viewport';
-import { xyPlane } from '../src/sketch/plane';
+import { xyPlane } from '@barocss/cad-model/sketch/plane';
 
 const E = (i: number): SketchPick => ({ kind: 'edge', i }), Pt = (i: number): SketchPick => ({ kind: 'point', i });
 const close = (points: P2[], bulges?: number[]): Polygon => {
@@ -200,7 +200,7 @@ test('horizontal and vertical distances between points, also when the points lin
 
 test('angle dimensions between two lines: at a shared corner, between separate edges, out of range refused', async () => {
   const { angleKey, dimensionValue, dimensionLabel } = await import('../src/sketch/rules');
-  const { edgeAngle } = await import('../src/sketch/terms');
+  const { edgeAngle } = await import('@barocss/cad-model/sketch/terms');
   let s = quad();
   // Edges 1 and 2 meet at point 2: the corner between them.
   assert.equal(dimensionKey(s, [E(0), E(1)]), 'ang0_1');
@@ -292,7 +292,7 @@ test('a finished outline keeps its constraints in the sketch node; the feature e
 test('a finished sketch node comes back as its shapes: the kept outline with its constraints, loops, regions and holes', async () => {
   const { sketchShapes, loopShape } = await import('../src/sketch/reopen');
   const { shapeNode, profileOf } = await import('../src/sketch/loops');
-  const { outlineSegments } = await import('../src/sketch/profile');
+  const { outlineSegments } = await import('@barocss/cad-model/sketch/profile');
   // A constrained outline round-trips with every constraint.
   let s = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
   s = (commitDimension(s, 'len0', 60) as { shape: Polygon }).shape;
@@ -449,7 +449,7 @@ test('a dimension may not push an attached circle across the outline or off it; 
 });
 
 test('a plate with six fully placed holes solves (the kernel’s larger sketch profile)', async () => {
-  const { solveOutline } = await import('../src/sketch/profile');
+  const { solveOutline } = await import('@barocss/cad-model/sketch/profile');
   const pts: [number, number][] = [[0, 0], [80, 0], [80, 40], [0, 40]];
   const circles: [number, number][] = [[10, 10], [40, 10], [70, 10], [10, 30], [40, 30], [70, 30]];
   const rules = circles.flatMap((c, k) => [{ kind: 'cdx' as const, a: 0, circle: k, value: c[0] }, { kind: 'cdy' as const, a: 0, circle: k, value: c[1] }]);

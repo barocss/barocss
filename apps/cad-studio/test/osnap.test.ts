@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { rectanglePart, withNode } from '../src/engine/doc';
-import { modelSnaps, nearestSnap, shapeSnaps } from '../src/sketch/osnap';
-import { planeOfFace } from '../src/sketch/plane';
+import { modelSnaps, nearestSnap, shapeSnaps } from '@barocss/cad-model/sketch/osnap';
+import { planeOfFace } from '@barocss/cad-model/sketch/plane';
 
 test('sketch snaps: a rectangle’s corners, middles and centre; a drafting one only its first corner', () => {
   const r = shapeSnaps({ kind: 'rectangle', a: [0, 0], b: [10, 4] });

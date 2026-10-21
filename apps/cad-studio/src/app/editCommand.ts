@@ -2,7 +2,7 @@
 // fields, app/editFields.ts) as a command, with arrows in the viewport where they act. Selecting a body
 // shows them; dragging one opens the edit with the usual preview, limits and Apply.
 import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode } from '../engine/doc';
-import { toWorld } from '../sketch/plane';
+import { toWorld } from '@barocss/cad-model/sketch/plane';
 import { editFields } from './editFields';
 import { planeOf, profileMiddle } from './profiles';
 import { replaceRange } from '../chat/features';

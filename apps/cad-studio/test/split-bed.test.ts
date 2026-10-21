@@ -4,7 +4,7 @@ import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { interference } from '../src/chat/analysis';
-import { processProfile } from '../src/library/materials';
+import { processProfile } from '@barocss/cad-model/library/materials';
 import { fitsBed, planBedSplit, SplitError, type SplitOptions } from '../src/print/splitBed';
 
 // AM6 (O51): a part too big for the bed split along one axis into the fewest even pieces that fit, with dowel or plug

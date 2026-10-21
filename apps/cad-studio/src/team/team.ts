@@ -16,7 +16,7 @@ import { interference, massProperties } from '../chat/analysis';
 import { factsOf } from '../chat/observe';
 import { checkKeepouts, readReferences, type KeepoutResult } from '../chat/references';
 import { printability, type PrintabilityReport } from '../print/rules';
-import { processProfile } from '../library/materials';
+import { processProfile } from '@barocss/cad-model/library/materials';
 import { readBrief, isStated } from '../chat/brief';
 
 // ——— revisions and patches

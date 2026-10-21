@@ -3,7 +3,7 @@
 // bed — facing straight down at the part's lowest point — rest on it and are left out. A planar face is judged by its
 // exact normal (the B-rep's), whole; a curved face triangle by triangle, its display mesh's — accurate to the chord
 // error, said so.
-import type { DisplayMesh } from '../engine/mesh';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import type { FaceTable } from '../assembly/mates';
 
 export type Vec3 = [number, number, number];

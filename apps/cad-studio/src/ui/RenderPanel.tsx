@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { compileGpu, materialShader } from '@barocss/gpu';
-import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderSettings } from '../engine/render';
+import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderSettings } from '@barocss/cad-model/engine/render';
 import { Icon } from './atoms';
 
 /**

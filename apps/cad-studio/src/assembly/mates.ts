@@ -7,7 +7,7 @@
 // reason; nothing is fitted or iterated, so a solved assembly stays put when it is solved again.
 import type { PartInstance } from '../engine/doc';
 import type { Sig } from '../engine/references';
-import { dot, cross, add, sub, len } from '../engine/vec3';
+import { dot, cross, add, sub, len } from '@barocss/cad-model/engine/vec3';
 
 export type Vec3 = [number, number, number];
 export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock';

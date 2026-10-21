@@ -2,10 +2,10 @@
 // face's boundary from its display triangles (edges of one triangle only), on the face's sketch plane,
 // with runs of points on one circle turned back into arcs and straight runs into single lines. The
 // outer loop is the profile; the loops inside it are its holes.
-import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { LoopSegment, SketchNode } from '../engine/doc';
-import { planeOfFace, toLocal } from '../sketch/plane';
-import { signedArea as area } from '../engine/geom2';
+import { planeOfFace, toLocal } from '@barocss/cad-model/sketch/plane';
+import { signedArea as area } from '@barocss/cad-model/engine/geom2';
 
 type XY = [number, number];
 // To 0.1 µm: the display mesh is single precision, so authored sizes come back rounded off.

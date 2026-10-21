@@ -5,7 +5,7 @@
 import { evaluateDoc, stepFor, stlFor } from '../../src/engine/evaluate';
 import { importStep, brepMassProperties } from '@barocss/cad';
 import { emptyDoc, loftTop, prefixDoc, rectanglePart, starterDoc, withNode, type ModelNode, type StudioDoc } from '../../src/engine/doc';
-import type { DisplayMesh } from '../../src/engine/mesh';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import { editFields } from '../../src/app/editFields';
 
 type Row = { id: string; name: string; ok: boolean; expected?: unknown; actual?: unknown; note?: string };

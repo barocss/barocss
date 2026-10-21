@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { analyzeCurve, analyzeSurface, curveLength, curvePlaneCrossings, directOps, domainsOf, geometryOf, surfaceIntersection, type DirectGeometry } from '../engine/direct';
+import { analyzeCurve, analyzeSurface, curveLength, curvePlaneCrossings, directOps, domainsOf, geometryOf, surfaceIntersection, type DirectGeometry } from '@barocss/cad-model/engine/direct';
 
 /**
  * The tools for selected direct curves and surfaces: one curve (split, knot, trim, reverse, poles), two

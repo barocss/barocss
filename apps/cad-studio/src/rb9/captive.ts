@@ -4,7 +4,7 @@
 // until contact or until the part has passed the other's box. A clear sweep means the part escapes that way.
 import type { BodyResult } from '../engine/evaluate';
 import type { Joint, JointTree } from '../robot/joints';
-import { convexHull } from '../robot/hull';
+import { convexHull } from '@barocss/cad-model/robot/hull';
 import { sweepPath, type SweepLink } from '../robot/sweep';
 
 export const DIRECTIONS: readonly [string, [number, number, number]][] = [['+x', [1, 0, 0]], ['-x', [-1, 0, 0]], ['+y', [0, 1, 0]], ['-y', [0, -1, 0]], ['+z', [0, 0, 1]], ['-z', [0, 0, -1]]];

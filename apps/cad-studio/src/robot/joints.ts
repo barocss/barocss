@@ -14,7 +14,7 @@
 import { checkPlacedSpurGears, spurGearDimensions, type GearPlacement } from '@barocss/cad';
 import type { PartInstance, StudioDoc } from '../engine/doc';
 import { BASE, rotationMatrix, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
-import { add, cross, dot, len, sub } from '../engine/vec3';
+import { add, cross, dot, len, sub } from '@barocss/cad-model/engine/vec3';
 
 export const ROBOT_VERSION = 1;
 export type JointType = 'fixed' | 'revolute' | 'continuous' | 'prismatic';

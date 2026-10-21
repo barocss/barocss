@@ -287,9 +287,9 @@ export function holeCentres(center: readonly number[], p?: HolePattern): [number
   return Array.from({ length: p.count }, (_, j) => { const a = 2 * Math.PI * j / p.count, cs = Math.cos(a), sn = Math.sin(a); return [r6(p.about[0] + dx * cs - dy * sn), r6(p.about[1] + dx * sn + dy * cs)]; });
 }
 
-import type { RenderSettings } from './render';
-import type { SketchRule } from '../sketch/terms';
-import type { DirectGeometry } from './direct';
+import type { RenderSettings } from '@barocss/cad-model/engine/render';
+import type { SketchRule } from '@barocss/cad-model/sketch/terms';
+import type { DirectGeometry } from '@barocss/cad-model/engine/direct';
 import type { DrawingSettings } from '../drawing/types';
 import { rotationSteps, type Mate } from '../assembly/mates';
 import { flattenAssembly } from '../assembly/flatten';

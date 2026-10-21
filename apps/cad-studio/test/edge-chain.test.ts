@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { rectanglePart, withNode } from '../src/engine/doc';
-import { edgeChain } from '../src/app/edgeChain';
+import { edgeChain } from '@barocss/cad-model/app/edgeChain';
 
 test('a double-click chain runs round a rounded rim and stops at sharp corners', () => {
   const vertical = ['n1.side0|n1.side1', 'n1.side1|n1.side2', 'n1.side2|n1.side3', 'n1.side0|n1.side3'];

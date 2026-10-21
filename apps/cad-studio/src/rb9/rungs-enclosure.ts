@@ -3,7 +3,7 @@
 // board's hole pattern, the board's component space as a keep-out checked by the studio's own keep-out check, the vents
 // by the kernel's section through their wall, the wall by the FDM profile's minimum.
 import { dispatchTool, type ChatState } from '../chat/tools';
-import { processProfile } from '../library/materials';
+import { processProfile } from '@barocss/cad-model/library/materials';
 import type { Call, Evaluate, Outcome, Params, Rung } from './core';
 import { axisDistance, boxIs, cylindersOf, distinctCylinders, holds, parallel, planeFace, studioChecks } from './measure';
 import type { StudioDoc } from '../engine/doc';

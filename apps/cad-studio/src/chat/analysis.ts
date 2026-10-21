@@ -4,12 +4,12 @@
 // Names, keys and numbers only: no mesh index.
 import { withNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
-import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import { bodyKeyFor } from '../engine/ids';
 import { materialIdOf } from '../app/bodies';
 import { draftField } from '../mould/draft';
 import { refOf } from '../app/bodyRef';
-import { materialOf } from '../app/materials';
+import { materialOf } from '@barocss/cad-model/app/materials';
 
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
 const v3 = (v: readonly number[]) => v.map(r3) as Vec3;

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { faceRuns, paintFaces, type ColorTarget, type Painted } from '../src/viewport/facePaint';
 import { fillVertexColors, vertexColors } from '../../../packages/barocss-gpu/src/viewer/geometry';
-import type { Vec3 } from '../src/engine/mesh';
+import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
 // PERF3 B7: a hover repaints only the faces whose state changed; the colours on the GPU are the same bytes a whole
 // repaint makes. The target is the viewer geometry's own conversion (vertexColors, fillVertexColors) on a byte buffer.

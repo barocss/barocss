@@ -1,7 +1,7 @@
 import test from 'node:test';
-import { loadDirect } from '../src/engine/directModule';
+import { loadDirect } from '@barocss/cad-model/engine/directModule';
 import assert from 'node:assert/strict';
-import { analyzeCurve, analyzeSurface, curveLength, directDisplay, directIGES, directOps, domainsOf, emptyDirect, geometryOf, importIGESFile, importSource, movePole, polesOf, type DirectGeometry } from '../src/engine/direct';
+import { analyzeCurve, analyzeSurface, curveLength, directDisplay, directIGES, directOps, domainsOf, emptyDirect, geometryOf, importIGESFile, importSource, movePole, polesOf, type DirectGeometry } from '@barocss/cad-model/engine/direct';
 
 /** A `.barocad` study: an arc, a line above it and a bilinear panel. */
 export const STUDY = `@model study {
@@ -170,8 +170,8 @@ test('direct: a loft through curves of different degrees and knots makes them al
 });
 
 test('curves made in the studio: a sketch outline, a circle and model edges as exact curves', async () => {
-  const { outlineCurve, circleCurve, edgeCurve, curvesSource } = await import('../src/engine/curveSource');
-  const { xyPlane } = await import('../src/sketch/plane');
+  const { outlineCurve, circleCurve, edgeCurve, curvesSource } = await import('@barocss/cad-model/engine/curveSource');
+  const { xyPlane } = await import('@barocss/cad-model/sketch/plane');
   const { evaluateDoc } = await import('../src/engine/evaluate');
   const { rectanglePart, withNode } = await import('../src/engine/doc');
   const t = Math.tan(Math.PI / 8), plane = xyPlane(5);
@@ -193,8 +193,8 @@ test('curves made in the studio: a sketch outline, a circle and model edges as e
 });
 
 test('direct: a curve\'s crossings with a plane; two surfaces\' intersection curve; a point in or out of a body', async () => {
-  const { curvePlaneCrossings, surfaceIntersection } = await import('../src/engine/direct');
-  const { pointInBody } = await import('../src/app/measure');
+  const { curvePlaneCrossings, surfaceIntersection } = await import('@barocss/cad-model/engine/direct');
+  const { pointInBody } = await import('@barocss/cad-model/app/measure');
   const { evaluateDoc } = await import('../src/engine/evaluate');
   const { rectanglePart } = await import('../src/engine/doc');
   const d = importSource(emptyDirect(), STUDY, 'study'), arc = byName(d, 'arc');

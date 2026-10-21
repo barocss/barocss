@@ -1,7 +1,7 @@
 import { shownFields } from '../app/commands';
 import { useEffect, useRef } from 'react';
 import type { Command, Ctx, Values } from '../app/commands';
-import type { FriendlyError } from '../engine/errors';
+import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { Icon, Kbd } from './atoms';
 
 interface Props {

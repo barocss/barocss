@@ -9,12 +9,12 @@ import { FASTENER_SIZES, fastenerCommand } from './fasteners';
 import { duplicateBody } from '../chat/features';
 import { leafBodies, planeText, withNode, type Axis, type FilletSection, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import type { DisplayEdge } from '../engine/mesh';
+import type { DisplayEdge } from '@barocss/cad-model/engine/mesh';
 import { refOf } from './bodyRef';
 import { planBedSplit } from '../print/splitBed';
 import { planHollow } from '../print/hollow';
 import { isHollowed, planLattice } from '../print/lattice';
-import { printerProfile, processProfile } from '../library/materials';
+import { printerProfile, processProfile } from '@barocss/cad-model/library/materials';
 import { featureId } from '../engine/ids';
 
 export interface FaceSel { body: number; face: number }

@@ -9,7 +9,7 @@ import { tableContent } from '../drawing/tables';
 import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
 import type { StudioDoc } from '../engine/doc';
-import type { FriendlyError } from '../engine/errors';
+import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { buildSheet, curveMark, dimensionMarks } from '../drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '../drawing/svg';
 import { toleranceText } from '../drawing/sheet';

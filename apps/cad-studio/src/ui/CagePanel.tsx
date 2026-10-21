@@ -1,7 +1,7 @@
 // R8.2 (D81): the cage editor's panel — mode, Box/Smooth, the operations on the selection, the mirror, what the
 // validation flags, the session's undo, and Done / Cancel.
 import type { CageEditor } from '../subd/useCageEditor';
-import { validationOf, type CageMode, type CageOp } from '../subd/cageEdit';
+import { validationOf, type CageMode, type CageOp } from '@barocss/cad-model/subd/cageEdit';
 
 const OPS: { op: CageOp; label: string; key?: string; tip: string }[] = [
   { op: 'extrude', label: 'Extrude', key: 'E', tip: 'The picked faces (or boundary edges) out as a new region; drag the gizmo to move it — or hold Shift as you drag' },

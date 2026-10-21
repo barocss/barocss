@@ -14,7 +14,7 @@ import { BASE, solveAssembly, type FaceTable, type Mate } from '../../src/assemb
 import { sectionOf } from '../../src/drawing/section';
 import { projectViews } from '../../src/drawing/project';
 import { resolveDimension } from '../../src/drawing/dimensions';
-import type { P2 } from '../../src/sketch/profile';
+import type { P2 } from '@barocss/cad-model/sketch/profile';
 
 type Row = { id: string; area: string; name: string; ok: boolean; expected?: unknown; actual?: unknown };
 const rows: Row[] = [];
