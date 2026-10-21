@@ -2,6 +2,7 @@
 // min(k − G, k + G)), cut to the cavity (φ_c = depth − t) and kept off the drains, meshed by marching tetrahedra into a
 // separate facet body named `lattice` — the shell's B-rep unchanged (option B: a lattice mesh is far past the kernel's
 // mesh Boolean). Its loose fragments dropped; each empty region it leaves (a sheet gyroid's two labyrinths) drained.
+import { meshVolume } from '@barocss/cad';
 import { withNode, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
 import { evaluatePart, type BodyResult } from '../engine/evaluate';
 import { positionsArray } from '../engine/blobs';
@@ -120,12 +121,6 @@ export function emptyRegions(g: Grid, psi: Float64Array, active: Uint8Array, up:
   }
   return out;
 }
-/** The signed volume of a closed mesh. */
-export function meshVolume(m: { positions: ArrayLike<number>; indices: ArrayLike<number> }): number {
-  const P = m.positions, I = m.indices; let v6 = 0;
-  for (let t = 0; t < I.length; t += 3) { const a = I[t] * 3, b = I[t + 1] * 3, c = I[t + 2] * 3; v6 += P[a] * (P[b + 1] * P[c + 2] - P[b + 2] * P[c + 1]) - P[a + 1] * (P[b] * P[c + 2] - P[b + 2] * P[c]) + P[a + 2] * (P[b] * P[c + 1] - P[b + 1] * P[c]); }
-  return v6 / 6;
-}
 /** φ_c at a point by trilinear interpolation of the grid (exact along the grid's edges, where the mesh's vertices lie). */
 function phiAt(g: Grid, p: readonly number[]): number {
   const f = [0, 1, 2].map(q => Math.max(0, Math.min(g.n[q] - 1.000001, (p[q] - g.o[q]) / g.h))), i = f.map(Math.floor), u = f.map((x, q) => x - i[q]);
@@ -224,7 +219,7 @@ export function planLattice(doc: StudioDoc, bodies: readonly BodyResult[], o: La
   for (const piece of meshPieces(mesh)) {
     let touches = false;
     for (let v = 0; v < piece.positions.length && !touches; v += 3) if (phiAt(cav, [piece.positions[v], piece.positions[v + 1], piece.positions[v + 2]]) <= h && Math.abs(depthAt(depth, piece.positions[v], piece.positions[v + 1], piece.positions[v + 2]) - hol.t) <= 2 * tau) touches = true;
-    if (touches) kept.push(piece); else { dropped++; droppedVolume += meshVolume(piece); }
+    if (touches) kept.push(piece); else { dropped++; droppedVolume += meshVolume(piece.positions, piece.indices); }
   }
   if (!kept.length) throw new LatticeError('NO_LATTICE', `no lattice is left in the cavity at L ${L}, k ${k}`);
   const all = { positions: [] as number[], indices: [] as number[] };
@@ -235,7 +230,7 @@ export function planLattice(doc: StudioDoc, bodies: readonly BodyResult[], o: La
   const axis = (['x', 'y', 'z'] as const)[up];
   for (const dr of added) { out = withNode(out, { kind: 'hole', parent: ref, center: [dr.at[a], dr.at[b]], radius: r0, axis, side: 'min', depth: dr.depth } as ModelNode); ref = { node: out.nodes.length - 1, side: 'solid' }; }
   out = withNode(out, { kind: 'mesh', name: 'lattice', role: 'infill', unit: 'mm', representation: 'facets', ...(kept.length > 1 ? { pieces: kept.length } : {}), blob: { positions: putNow(positionsArray(all.positions)), indices: putNow(Uint32Array.from(all.indices)) } } as ModelNode);
-  const report: LatticeReport = { cell: L, k, h, t: hol.t, nodes: cav.phi.length, snapped, joined, volume: meshVolume(all), pieces: kept.length, dropped: { count: dropped, volume: droppedVolume }, drains: added, mixed: mixedTetrahedra(cav, field.psi, field.active), triangles: all.indices.length / 3, tau,
+  const report: LatticeReport = { cell: L, k, h, t: hol.t, nodes: cav.phi.length, snapped, joined, volume: meshVolume(all.positions, all.indices), pieces: kept.length, dropped: { count: dropped, volume: droppedVolume }, drains: added, mixed: mixedTetrahedra(cav, field.psi, field.active), triangles: all.indices.length / 3, tau,
     step: 'STEP leaves the lattice out (its infill role, O60): the exact part only; 3MF and the mass carry it' };
   return { doc: out, report, mesh: all, grid, psi: field.psi };
 }

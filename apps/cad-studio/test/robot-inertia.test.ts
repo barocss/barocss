@@ -1,3 +1,4 @@
+import { symmetricEigen3 } from '@barocss/cad';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -10,7 +11,7 @@ import { solveDoc } from '@barocss/cad-model/chat/assembly';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { MATERIALS } from '@barocss/cad-model/app/materials';
 import { jointTreeOf } from '@barocss/cad-model/robot/joints';
-import { linkFrames, linkInertia, rotateInertia, symmetricEigen, type Frame, type Mat3 } from '@barocss/cad-model/robot/inertia';
+import { linkFrames, linkInertia, rotateInertia, type Frame, type Mat3 } from '@barocss/cad-model/robot/inertia';
 
 // RM3 (O16): link inertia — an analytic rotated, off-origin cuboid (I = R·diag·Rᵀ about its moved centre), the same in
 // any link frame (I_L = Rᵀ I R), its principal moments the cuboid's own; a cylinder; densities; bodies combined by the
@@ -88,7 +89,7 @@ test('the eigen-solver: random symmetric matrices rebuilt from their eigenpairs,
   let seed = 3; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 - 0.5; };
   for (let k = 0; k < 200; k++) {
     const a = [rand(), rand(), rand(), rand(), rand(), rand()], S: Mat3 = [a[0], a[1], a[2], a[1], a[3], a[4], a[2], a[4], a[5]];
-    const { values, vectors: V } = symmetricEigen(S), back = mul(mul(V, [values[0], 0, 0, 0, values[1], 0, 0, 0, values[2]]), tr(V));
+    const { values, vectors: V } = symmetricEigen3(S), back = mul(mul(V, [values[0], 0, 0, 0, values[1], 0, 0, 0, values[2]]), tr(V));
     assert.ok(back.every((x, i) => Math.abs(x - S[i]) < 1e-12) && values[0] <= values[1] && values[1] <= values[2]);
     assert.ok(mul(tr(V), V).every((x, i) => Math.abs(x - I3[i]) < 1e-12));
   }

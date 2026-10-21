@@ -8,10 +8,10 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool } from '@barocss/cad-model/chat/tools';
 import { treeOfDoc, urdfOfDoc } from '@barocss/cad-model/chat/robot';
 import { forwardKinematics } from '@barocss/cad-model/robot/fk';
-import { convexHull, HullError } from '@barocss/cad';
+import { convexHull, HullError, symmetricEigen3 } from '@barocss/cad';
 import { rpyOf, type UrdfResult } from '@barocss/cad-model/robot/urdf';
 import { parseXml, readUrdf, urdfFk, XmlError } from '@barocss/cad-model/robot/urdfCheck';
-import { symmetricEigen, type Mat3 } from '@barocss/cad-model/robot/inertia';
+import type { Mat3 } from '@barocss/cad-model/robot/inertia';
 import { cliMain } from '../server/cadCli';
 
 // RM4 (O17): URDF export — its convex hulls, our XML reader, the structural rules of the URDF spec, forward kinematics
@@ -171,7 +171,7 @@ test('the export_urdf tool and cad-cli urdf; the conformance cases with what the
       writeFileSync(join(dir, 'robot.bcad'), JSON.stringify(d));
       const { model } = readUrdf(r.urdf), q = [0.4, -1.1], samples = [{}, Object.fromEntries(tree.joints.filter(x => !x.mimic).map((x, i) => [x.key, q[i % 2]]))];
       const links = model.links.filter(l => l.inertial && l.inertial.mass > 1e-6).map(l => {
-        const I = l.inertial!.I, e = symmetricEigen([I[0], I[1], I[2], I[1], I[3], I[4], I[2], I[4], I[5]]);
+        const I = l.inertial!.I, e = symmetricEigen3([I[0], I[1], I[2], I[1], I[3], I[4], I[2], I[4], I[5]]);
         return { name: l.name, mass: l.inertial!.mass, com: l.inertial!.xyz, principal: e.values };
       });
       const fk = samples.map(s => { const v = forwardKinematics(tree, s).values, u = urdfFk(model, Object.fromEntries(Object.entries(v).map(([k, x]) => [r.names.joints[k], x])));

@@ -7873,3 +7873,34 @@ Track K's fourth step (the PKG design note's G9, with G14's `nearest` and `app/m
 - `@barocss/cad-model` lint and type-check clean.
 - Studio: tsc clean; the suite 761/762 with the known `todo` (O80), 0 fail.
 - The full kernel suite, conformance, the flow and RB not run (T1); the coordinator's 4th-checkpoint T2 falls at K5.
+
+## D144 — K5: polygon section properties, a symmetric 3 × 3 eigen solver, a mesh's volume (2026-10-21)
+
+Track K's fifth step (the PKG design note's G10, G11 and G8's `meshVolume`). Three small routines lived in the studio (and one of them twice, once in the kernel): the RB9 beam rung's Green's-theorem section integrals (`rb9/beam.ts`, O73), the robot track's `symmetricEigen` (`robot/inertia.ts`; the kernel's mesh offset had its own `jacobi3`), and the lattice's `meshVolume` (`print/lattice.ts`; the QA engine probe had another).
+
+**Decision:**
+- **Kernel** `src/section-properties.ts`, exported:
+  - `polygonSectionProperties(loops)` → `{ area, centroid, Ixx, Iyy, Ixy, I1, I2, angle, loops }`: straight-edged loops of (x, y) corners in either orientation, a loop inside an odd number of others a hole (the beam rung's rule); Green's theorem for A, ∫x, ∫y, ∫x², ∫y² and, new, ∫xy (Σ (x₀y₁ − x₁y₀)(2x₀y₀ + x₀y₁ + x₁y₀ + 2x₁y₁)/24); about the centroid by the parallel-axis theorem; the principal moments m ± √(((Ixx − Iyy)/2)² + Ixy²) and I1's axis atan2(−2Ixy, Ixx − Iyy)/2. Ixx is ∫(y − cy)² dA (about the x axis), Iyy ∫(x − cx)² dA.
+  - `symmetricEigen3(S)` → `{ values (ascending), vectors (columns, row-major) }` and `symmetricEigen3InPlace(A, V)` for hot paths: the cyclic Jacobi rotations both copies used (up to 50 sweeps, done at off² ≤ 1e-30 diag²).
+  - `meshVolume(positions, indices)`: Σ a·(b × c)/6, signed.
+  - Types `SectionProperties`, `Matrix3`, `Vector3`.
+- **Inside the kernel:** `mesh-offset.ts`'s private `jacobi3` replaced by `symmetricEigen3InPlace` (32 sweeps before, 50 now; both stop long before).
+- **In `@barocss/cad-model`:**
+  - `rb9/beam.ts`: `beamSection` takes the kernel's section properties on its (y, z) loops (its `Iy` is the kernel's Ixx, its `Iz` the Iyy); its private `green` and `inside` gone. The loop chaining stays (it reads the B-rep's cut edges).
+  - `robot/inertia.ts`: `symmetricEigen` removed; it, `robot/usd.ts`, `chat/references.ts` and three robot tests (`inertia`, `urdf`, `mjcf`) take the kernel's `symmetricEigen3`. `rotateInertia` stays (it is the robot frame's).
+  - `print/lattice.ts`: `meshVolume` removed; it and `test/lattice.test.ts`, `test/qa/engine-probe.ts` (whose own copy also goes) take the kernel's `(positions, indices)` form.
+
+**Results matched** (a before/after snapshot, not kept: `beamSection` of an I-beam at three cuts and of a hollow box, `symmetricEigen` on five matrices — general, diagonal with a repeated value, nearly repeated (1e-9), a dense one, the identity — and `meshVolume` of a tetrahedron): identical, bit for bit.
+
+**Oracles** (`packages/barocss-cad/test/k5-section-eigen-volume.test.mjs`, 4 tests, 0.3 s; none of them the routines):
+- sections: a rectangle's bh³/12 and hb³/12 (Ixy 0, I1's axis along x); a hollow rectangle with its hole either way round; an I-beam as one outline against its parts (2(100·10³/12 + 1000·45²) + 10·80³/12); a right triangle's bh³/36, hb³/36 and Ixy = −b²h²/72; an island inside a hole counted as material; a rectangle turned by four angles about another point — I1 and I2 unchanged, I1's axis turned with it (mod π); an equal angle's axes at ±45° (Ixx = Iyy); FR's own sharp rectangular tube (D123) — the area and centroid of its closed forms;
+- eigen: 500 random symmetric matrices — AV = VΛ to 1e-12‖A‖, VᵀV = I to 1e-12, ascending, the trace and the determinant; [[2, 1, 0], [1, 3, 1], [0, 1, 4]]'s 3 − √3, 3, 3 + √3 to 1e-14; a repeated value; the identity's vectors; the in-place form the same values;
+- volume: a unit tetrahedron 1/6 and reversed −1/6; a 4 × 3 × 2 box 24, moved anywhere; the K1 hull of 2000 sphere points just under 4/3·πR³.
+- The test fails on the previous HEAD: none of the exports existed.
+
+**Checks — T2** (the 4th checkpoint since the last full run):
+- Kernel lint and type-check clean; `k5-section-eigen-volume` 4/4. The full kernel suite, conformance included, 1394/1399 (4 skipped): 1399 = D141's 1389 + K3's 3 + K4's 3 + K5's 4, so none missing; only the env-only "actual native Split source…" fails. 376 s (the machine under load from other sessions).
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed tests 0 errors (the engine probe's two console warnings, as before); the suite 767/768 with the known `todo` (O80), 0 fail.
+- The full browser flow, on its own: 215/215, 696 s.
+- RB: in the rows commit after this one.

@@ -64,7 +64,7 @@ track boundary); after it the kernel lane's queue below. The FR → R12b block b
 - **Load capacity** (bending and contact stress, life): not attempted, and it would need the standards' factors (no ISO/AGMA/DIN text, by the data rule).
 
 **Kernel-lane queue after PKG** (README §0 "Roadmap" item 4 and what R12b found)
-1. **Track K** (generic geometry moved down from the studio): K1 hull + GJK (done: D140, 2026-10-21); K2 one `triangleBvh(positions, indices)` with ray and nearest queries (supersedes the studio dual-tree, withdrawn 2026-10-21; done: D141, 2026-10-21); K3 an exact `meshClearance` with one point–triangle (done: D142, 2026-10-21); K4 `closestPointOnSurface` (done: D143, 2026-10-21); K5 polygon section properties, a 3×3 symmetric eigen solver, `meshVolume`; K6 a voxel SDF and marching tetrahedra; K7 curve-fit equivalence.
+1. **Track K** (generic geometry moved down from the studio): K1 hull + GJK (done: D140, 2026-10-21); K2 one `triangleBvh(positions, indices)` with ray and nearest queries (supersedes the studio dual-tree, withdrawn 2026-10-21; done: D141, 2026-10-21); K3 an exact `meshClearance` with one point–triangle (done: D142, 2026-10-21); K4 `closestPointOnSurface` (done: D143, 2026-10-21); K5 polygon section properties, a 3×3 symmetric eigen solver, `meshVolume` (done: D144, 2026-10-21); K6 a voxel SDF and marching tetrahedra; K7 curve-fit equivalence.
 2. **The outer lane's three requests** (queued 2026-10-21):
    - the hole-after-union refusal — a hole on a boss's top after the boss was united into a shell is refused "misses the target" (O80); repro `apps/cad-studio/test/fixtures/hole-after-union.calls.json`, the `todo` test in `test/known-bugs.test.ts`;
    - a face split along a curve or an isocline (`splitFaceAlongCurve`), for IM5's two-half parting;
@@ -755,6 +755,7 @@ stays out of the kernel's core files (requests for them go through the coordinat
 - **Narrow-window top bar** (O90, low priority; the coordinator, 2026-10-21): below about 1100 px the bar's controls other than the shapes strip are wider than the window. The mode group and the right-hand tools are clipped at its edge (`overflow-x: clip`), so the page does not shift, but they cannot be reached. A narrow layout for the whole bar (a second row, or the tools folded into a menu) is its own piece of work. Not now.
 - Kernel `B9 performance` (mass-polyhedral) asserts wall-clock times (40k planar mesh < 400 ms; 75 ms alone): it failed once at 417 ms with the studio suite running beside it (D84). Load-sensitive, as AM4's was; move it to the bench or give it headroom when next touched.
 - Studio `hollow` "the cavity mesher on a sphere R 15, t 2.5 …" asserts the voxel route's CURVED_BODY refusal comes "at once" (< 1000 ms wall-clock): it failed once under the full studio suite's load (2026-10-21, D141's run; `print/hollow.ts` untouched by that step), and passed alone twice and in the next full run. A known timing flake beside B9 and C16; its budget stays (the coordinator, at K2's review).
+- Flow step 109 (the throated worm wheel): a `waitForSelector` timeout once under the full suite's load (2026-10-21, the outer lane's run after the CNC7b merge); it passed on a `FLOW_ONLY` rerun. A known timing flake beside the screenshot one; its timeout stays (the coordinator).
 
 ### How to run
 §2 below has the setup. In short:

@@ -1,3 +1,4 @@
+import { meshVolume } from '@barocss/cad';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluatePart, stepFor, type BodyResult } from '@barocss/cad-model/engine/evaluate';
@@ -6,7 +7,7 @@ import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { interference, massProperties } from '@barocss/cad-model/chat/analysis';
 import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
 import { cavityField, insideFlags, marchingTetrahedra, planHollow } from '@barocss/cad-model/print/hollow';
-import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, LatticeError, meshVolume, mixedTetrahedra, planLattice, weldTau } from '@barocss/cad-model/print/lattice';
+import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, LatticeError, mixedTetrahedra, planLattice, weldTau } from '@barocss/cad-model/print/lattice';
 
 // AM7b (O57): a gyroid lattice infill, a separate mesh body inside an exactly hollowed part. Its solid fraction against the
 // gyroid's own f(k) within the derived ε_MT + ε_mix + 4σ; the solid one component, nothing loose; every empty region
@@ -31,7 +32,7 @@ test('the solid fraction on whole cells: a 24 × 24 × 12 cavity of 6 mm cells, 
   const cav = cavityField(box.bodies[0].mesh, t, h), { psi, active } = latticeField(cav, [3, 3, 3], L, k, [], 2), tau = weldTau(30, L);
   awayFromZero(psi, tau);
   const mesh = marchingTetrahedra({ ...cav, phi: psi });
-  const V = 24 * 24 * 12, vol = meshVolume(mesh), f = gyroidFraction(k), sigma = Math.sqrt(f * (1 - f) / 1e6);
+  const V = 24 * 24 * 12, vol = meshVolume(mesh.positions, mesh.indices), f = gyroidFraction(k), sigma = Math.sqrt(f * (1 - f) / 1e6);
   // (g: the least |∇G| over the mesh's band vertices — those on |G| = k, not on the cavity's walls.)
   let g = Infinity;
   for (let v = 0; v < mesh.positions.length; v += 3) { const p = [mesh.positions[v], mesh.positions[v + 1], mesh.positions[v + 2]]; if (Math.abs(Math.abs(gyroid(p, [3, 3, 3], L)) - k) < 0.05 * k && p.every((x, q) => x > 3 + h && x < (q === 2 ? 15 : 27) - h)) g = Math.min(g, gyroidGradient(p, [3, 3, 3], L)); }
