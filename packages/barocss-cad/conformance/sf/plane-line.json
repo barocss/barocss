@@ -1,0 +1,116 @@
+{
+  "id": "sf-plane-line",
+  "step": "SF",
+  "decisions": [
+    "D149"
+  ],
+  "about": "A box's top split along a line from (10, 0) to (25, 30), the pieces named: 525 and 675 mm², the box unchanged.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            30
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "p",
+          "kind": "split-face",
+          "target": "b",
+          "face": "b.top",
+          "curves": [
+            {
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  10,
+                  0,
+                  10
+                ],
+                [
+                  25,
+                  30,
+                  10
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          ],
+          "names": [
+            "b.top.left",
+            "b.top.right"
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 12000,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            20,
+            15,
+            5
+          ],
+          "absTol": 0.000001
+        },
+        "areaMM2": {
+          "value": 3800,
+          "relTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "b.bottom",
+          "b.side0",
+          "b.side1",
+          "b.side2",
+          "b.side3",
+          "b.top.left",
+          "b.top.right"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "closed form: the box's volume, centroid and area; the pieces' areas (trapezoids) are pinned in test/d149-split-face.test.mjs"
+}

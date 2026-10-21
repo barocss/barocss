@@ -22,10 +22,11 @@ import { curvePiece, curveReversed } from './curve-segment.js';
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, nurbsOf as surfaceOfFace, type Brep, type BrepFace } from './brep-core.js';
 import { facetPlane } from './facet-patch.js';
 import { circleOf, polesOf } from './brep-tessellate.js';
-import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
+import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segDistance, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { nameEdges } from './prismatic-solid.js';
 import { baseName } from './polyhedral-boolean.js';
-import { evaluateCurve, evaluateSurface, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
+import { evaluateCurve, evaluateSurface, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator, validateCurve } from './math.js';
+import { catmullRom, chainNeighbours, surfaceIsoclines } from './surface-isocline.js';
 import { chainCurve, intersectPatches, SurfaceIntersectionError } from './surface-intersection.js';
 import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { linearToleranceMM } from './numeric-policy.js';
@@ -375,21 +376,7 @@ function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, nu
     at = k.at;
     // In a cylinder domain the curve is cut where it crosses the domain's seam (θ = ref ± π), so each
     // piece maps continuously.
-    const ranges: [number, number][] = [];
-    if (f.surf.kind === 'cylinder') {
-      const n = 256, U = (t: number) => to2(f, at(t))[0], jump = Math.PI * f.surf.r;
-      let start = k.lo, prev = U(k.lo);
-      for (let i = 1; i <= n; i++) {
-        let t = k.lo + (k.hi - k.lo) * i / n; const u = U(t);
-        if (Math.abs(u - prev) > jump) {
-          let a = k.lo + (k.hi - k.lo) * (i - 1) / n, b = t; const ua = U(a);
-          for (let it = 0; it < 60; it++) { const m = (a + b) / 2; if (Math.abs(U(m) - ua) > jump) b = m; else a = m; }
-          ranges.push([start, a]); start = b; t = b;
-        }
-        prev = U(t);
-      }
-      ranges.push([start, k.hi]);
-    } else ranges.push([k.lo, k.hi]);
+    const ranges = seamRanges(f, at, k.lo, k.hi);
     // (On a general face the probe's domain map is tabulated like any curve's.)
     const pieces = ranges.map(([a, b]) => f.surf.kind === 'nurbs' ? { ...(curve2(f, { kind: 'param', at, t0: a, t1: b }, tol) as Extract<CurveSegment2, { kind: 'curve' }>), t0: a, t1: b } : { kind: 'curve' as const, f: (x: number) => to2(f, at(x)), t0: a, t1: b });
     params.push(...ranges.flat());
@@ -419,6 +406,23 @@ function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, nu
   const rings = [f.region.outer, ...f.region.holes];
   for (const pr of probe) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) params.push(param(to3(f, x)));
   return insideIntervals(f, params, at, tol);
+}
+/** A curve's parameter range cut where it crosses a cylinder face's domain seam (θ = ref ± π), so each piece maps continuously. */
+function seamRanges(f: GFace, at: (t: number) => P3, lo: number, hi: number): [number, number][] {
+  if (f.surf.kind !== 'cylinder') return [[lo, hi]];
+  const ranges: [number, number][] = [], n = 256, U = (t: number) => to2(f, at(t))[0], jump = Math.PI * f.surf.r;
+  let start = lo, prev = U(lo);
+  for (let i = 1; i <= n; i++) {
+    let t = lo + (hi - lo) * i / n; const u = U(t);
+    if (Math.abs(u - prev) > jump) {
+      let a = lo + (hi - lo) * (i - 1) / n, b = t; const ua = U(a);
+      for (let it = 0; it < 60; it++) { const m = (a + b) / 2; if (Math.abs(U(m) - ua) > jump) b = m; else a = m; }
+      ranges.push([start, a]); start = b; t = b;
+    }
+    prev = U(t);
+  }
+  ranges.push([start, hi]);
+  return ranges;
 }
 /** Sorted parameters → the intervals between them whose middles lie in the face. */
 function insideIntervals(f: GFace, params: number[], at: (t: number) => P3, tol: number, strict = false): [number, number][] {
@@ -896,7 +900,9 @@ function exactly(k: Curve3, tol: number): Curve3 {
   const ab = sub(b, a), l = len(ab);
   if (l > tol && P.every(p => len(cross(sub(p, a), ab)) / l <= tol)) return { kind: 'line', p: a, q: b };
   // The circle through its ends and middle (a closed curve through a quarter instead).
-  const q = len(sub(b, a)) <= tol ? P[4] : b, u = sub(m, a), v = sub(q, a), n = cross(u, v), nn = dot(n, n);
+  // (Turning from the start through the middle to the end; a closed curve through its quarter to its middle — taken the
+  // other way round, the turn of a whole circle came out reversed, D149.)
+  const closed = len(sub(b, a)) <= tol, u = closed ? sub(P[4], a) : sub(m, a), v = closed ? sub(m, a) : sub(b, a), n = cross(u, v), nn = dot(n, n);
   if (nn <= tol * tol * tol * tol) return k;
   const c = add(a, scale(add(scale(cross(n, u), dot(v, v)), scale(cross(v, n), dot(u, u))), 1 / (2 * nn))), r = len(sub(a, c));
   if (!P.every(p => Math.abs(len(sub(p, c)) - r) <= tol && Math.abs(dot(sub(p, c), unit(n))) <= tol)) return k;
@@ -1096,6 +1102,284 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   // (A tolerant input's — a fitted offset's, D110, D113 — pieces keep its tolerance: the result is tolerant as its worst.)
   const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.toleranceMM), ...x.vertices.map(v => v.toleranceMM)]));
   return stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol);
+}
+
+// ---- a face split along curves (D149) ---------------------------------------------------------------
+// A face cut along curves lying on it, as the Boolean cuts a face along its intersection curves: the curves clipped to the
+// face (`intervals`), mapped into its domain (`curve2`), the domain's region divided (`curveFaceRegions`) and every face
+// stitched again (`stitch`) — nothing classified or merged, so only the one face changes. The isocline n·d = 0 is such a
+// curve: closed form on a cylinder (two generators), traced on a general face (surface-isocline.ts), refused on a plane.
+/**
+ * One piece of a split face: its name in the result; `faces`, its result faces — one, or two either side of a closed
+ * general face's seam (`name` and `name#2`); for an isocline split, `side` +1 where its outward normal has n·d > 0, −1 below.
+ */
+export interface FaceSplitPiece { readonly name: string; readonly faces: readonly string[]; readonly side?: 1 | -1 }
+export interface FaceSplit { readonly brep: Brep; readonly pieces: readonly FaceSplitPiece[] }
+export interface FaceSplitOptions {
+  /** The result's id (its edges' and vertices' prefix; default `split`). */
+  readonly id?: string;
+  /** The pieces' names, in the order of `pieces` (default `<face>#1`, `<face>#2` …: the + side first, then by position). */
+  readonly names?: readonly string[];
+}
+/** A cut in the face's domain and the input curve it comes from (one curve's pieces must not cross each other). */
+interface SourcedCut { readonly seg: CurveSegment2; readonly source: number }
+const splitError = (code: 'INPUT' | 'GEOMETRY', tag: string, detail: string) => new BrepError(code, `face split: [${tag}] ${detail}`);
+const fmt3 = (x: readonly number[]) => `(${x.map(v => +v.toFixed(4)).join(', ')})`;
+
+/**
+ * The face (an id, a name, or a base name naming one face) cut along curves lying on it: each curve on its surface within
+ * the tolerance (10 × the linear tolerance at the body's scale), clipped to the face, ending on its boundary at an angle
+ * (or closed: a hole and a disc), not crossing itself. Every other face, edge name and the volume are kept.
+ * Refusals (`face split: [TAG]`): NO_FACE, AMBIGUOUS, NOT_SOLID, CURVES (INPUT); OFF_SURFACE, OFF_FACE, ON_BOUNDARY,
+ * OPEN_END, TANGENT (under 0.057° to the boundary, or touching it), SELF_CROSSING, NO_SPLIT (GEOMETRY).
+ */
+export function splitFaceAlongCurve(brep: Brep, face: string, curves: Curve | readonly Curve[], options: FaceSplitOptions = {}): FaceSplit {
+  const list: readonly Curve[] = Array.isArray(curves) ? curves : [curves as Curve];
+  if (!list.length || list.length > 64) throw splitError('INPUT', 'CURVES', 'give 1 to 64 curves');
+  list.forEach((c, i) => { try { validateCurve(c); } catch (cause) { throw splitError('INPUT', 'CURVES', `curve ${i}: ${cause instanceof Error ? cause.message : String(cause)}`); } });
+  return splitFace(brep, face, options, (f, tol) => list.flatMap((c, i) => curveCuts(f, c, i, tol)), null);
+}
+/**
+ * The face cut along its isocline n·d = 0 for the pull `pull`: its pieces each on one side (`side`). Refused on a plane
+ * (WALL when it lies along the pull, NO_ISOCLINE otherwise), on a cylinder along the pull (WALL), and where n·d keeps one
+ * sign over the face (NO_ISOCLINE); otherwise as `splitFaceAlongCurve` (an isocline crossing itself at a saddle: SELF_CROSSING).
+ */
+export function splitFaceAlongIsocline(brep: Brep, face: string, pull: readonly number[], options: FaceSplitOptions = {}): FaceSplit {
+  const l = Array.isArray(pull) && pull.length === 3 ? Math.hypot(pull[0], pull[1], pull[2]) : NaN;
+  if (!(l > 0) || !Number.isFinite(l)) throw splitError('INPUT', 'PULL', 'the pull must be a finite, nonzero [x, y, z]');
+  const d: P3 = [pull[0] / l, pull[1] / l, pull[2] / l];
+  return splitFace(brep, face, options, (f, tol, span) => isoclineCuts(f, d, tol, span), d);
+}
+
+/** A curve's pieces on the face, as domain cuts (lines and arcs kept exact; a piece of the curve itself otherwise). */
+function curveCuts(f: GFace, c: Curve, source: number, tol: number): SourcedCut[] {
+  const [t0, t1] = curveDomain(c), at = curveEvaluator(c);
+  let worst = 0, where: P3 = at(t0);
+  for (let k = 0; k <= 64; k++) { const x = at(t0 + (t1 - t0) * k / 64), e = offSurface(f, x, 1e3 * tol); if (e > worst) { worst = e; where = x; } }
+  if (worst > tol) throw splitError('GEOMETRY', 'OFF_SURFACE', `curve ${source} is ${worst.toPrecision(3)} mm off the face's surface at ${fmt3(where)} (the tolerance ${tol} mm)`);
+  const spans = intervals(f, { kind: 'param', at, lo: t0, hi: t1 }, tol, true);
+  if (!spans.length) throw splitError('GEOMETRY', 'OFF_FACE', `curve ${source} lies on the face's surface but outside the face`);
+  // (On a cylinder, pieces cut at its domain's seam, a piece of no length — a whole circle through the seam — left out.)
+  return spans.flatMap(([a, b]) => seamRanges(f, at, a, b)).filter(([a, b]) => Math.max(len(sub(at(b), at(a))), len(sub(at((a + b) / 2), at(a)))) > tol)
+    .map(([a, b]) => ({ source, seg: intoWindow(f, curve2(f, exactly({ kind: 'param', at, t0: a, t1: b, exact: true, src: c }, tol * 1e-3), tol), tol) }));
+}
+/**
+ * A cut on a cylinder face in its domain's window: an end on the seam maps to either side of it, so a line takes the side
+ * its middle has (moved whole by a turn), and a curve's points on the seam take their neighbours' side.
+ */
+function intoWindow(f: GFace, g: CurveSegment2, tol: number): CurveSegment2 {
+  const s = f.surf;
+  if (s.kind !== 'cylinder') return g;
+  const W = TWO_PI * s.r, w = [s.s * s.r * (s.ref - Math.PI), s.s * s.r * (s.ref + Math.PI)].sort((x, y) => x - y);
+  if (g.kind === 'line') {
+    const mid = segAtAny(g, 0.5), shift = Math.round((to2(f, to3(f, mid))[0] - mid[0]) / W) * W;
+    return shift ? { ...g, a: [g.a[0] + shift, g.a[1]], b: [g.b[0] + shift, g.b[1]] } : g;
+  }
+  if (g.kind !== 'curve') return g;
+  const f0 = g.f, t0 = g.t0, span = g.t1 - g.t0;
+  return { ...g, f: (t: number): XY => {
+    const q = f0(t); if (Math.abs(q[0] - w[0]) > tol && Math.abs(q[0] - w[1]) > tol) return q;
+    const n = f0(t + (t - t0 < span / 2 ? 1 : -1) * 1e-4 * span);
+    return [Math.abs(n[0] - w[0]) < Math.abs(n[0] - w[1]) ? w[0] : w[1], q[1]];
+  } };
+}
+/** The isocline's pieces on the face, as domain cuts. */
+function isoclineCuts(f: GFace, d: P3, tol: number, span: number): SourcedCut[] {
+  const s = f.surf;
+  if (s.kind === 'plane') {
+    const nd = dot(s.n, d);
+    if (Math.abs(nd) <= 1e-12) throw splitError('GEOMETRY', 'WALL', 'the face is flat and along the pull (n·d = 0 throughout): no isocline divides it');
+    throw splitError('GEOMETRY', 'NO_ISOCLINE', `the face is flat (n·d = ${nd.toPrecision(3)} throughout): it lies wholly on one side`);
+  }
+  const out: SourcedCut[] = [];
+  if (s.kind === 'cylinder') {
+    // The generators where the radial direction is square to the pull: ±(a × d⊥).
+    const perp = sub(d, scale(s.a, dot(d, s.a)));
+    if (len(perp) <= 1e-12) throw splitError('GEOMETRY', 'WALL', 'the face is a cylinder along the pull (n·d = 0 throughout): no isocline divides it');
+    const rho = unit(cross(s.a, perp));
+    [1, -1].forEach((sg, source) => {
+      const p = add(s.c, scale(rho, sg * s.r));
+      for (const [lo, hi] of intervals(f, { kind: 'line', p, d: s.a, lo: -span, hi: span }, tol)) if (hi - lo > tol) out.push({ source, seg: curve2(f, { kind: 'line', p: add(p, scale(s.a, lo)), q: add(p, scale(s.a, hi)) }, tol) });
+    });
+    if (!out.length) throw splitError('GEOMETRY', 'NO_ISOCLINE', 'the isocline misses the face: it lies wholly on one side');
+    return out;
+  }
+  // (n·d ≈ 0 all over: a general wall along the pull, a ruled sweep of the pull.)
+  let most = 0; for (let i = 1; i < 8; i++) for (let j = 1; j < 8; j++) { const u = s.U[0] + (s.U[1] - s.U[0]) * i / 8, v = s.V[0] + (s.V[1] - s.V[0]) * j / 8; most = Math.max(most, Math.abs(dot(nurbsNormal(s, [u, v]), d))); }
+  if (most <= 1e-9) throw splitError('GEOMETRY', 'WALL', 'the face lies along the pull (n·d = 0 throughout): no isocline divides it');
+  surfaceIsoclines(s.S, d, { toleranceMM: tol / 4 }).forEach((line, source) => {
+    const P = line.uv, M = line.closed ? P.length : P.length - 1;
+    if (M < 1) return;
+    const uvAt = (t: number): XY => {
+      const i = Math.min(M - 1, Math.max(0, Math.floor(t))), [p0, p1, p2, p3] = chainNeighbours(P, i, line.closed), q = catmullRom(p0, p1, p2, p3, t - i);
+      return [Math.min(s.U[1], Math.max(s.U[0], q[0])), Math.min(s.V[1], Math.max(s.V[0], q[1]))];
+    };
+    const at3 = (t: number): P3 => { const q = uvAt(t); return s.ev(q[0], q[1]); };
+    const seg = { kind: 'curve' as const, f: (t: number): XY => { const q = uvAt(t); return [q[0] * s.ku, q[1] * s.kv]; }, t0: 0, t1: M, src: at3, exact: true } as CurveSegment2 & { kind: 'curve' };
+    const params = [0, M];
+    for (const ring of [f.region.outer, ...f.region.holes]) for (const g of ring) for (const x of intersectSegments(seg, g, tol)) params.push(M * paramOfCurve(seg, x));
+    for (const [a, b] of insideIntervals(f, params, at3, tol, true)) out.push({ source, seg: { ...seg, t0: a, t1: b } });
+  });
+  if (!out.length) throw splitError('GEOMETRY', 'NO_ISOCLINE', 'n·d keeps one sign over the face: it lies wholly on one side');
+  return out;
+}
+
+/** The part of a segment between fractions u0 and u1. */
+function subSegment(g: CurveSegment2, u0: number, u1: number): CurveSegment2 {
+  if (g.kind === 'line') return { ...g, a: segAtAny(g, u0), b: segAtAny(g, u1) };
+  if (g.kind === 'arc') return { ...g, t0: g.t0 + g.sweep * u0, sweep: g.sweep * (u1 - u0) };
+  return { ...g, t0: g.t0 + (g.t1 - g.t0) * u0, t1: g.t0 + (g.t1 - g.t0) * u1 };
+}
+/**
+ * A cut without its runs along the face's boundary (an isocline along a face's flat edge, where n·d = 0, before it turns in):
+ * 256 samples, a run on the boundary (within 10 × tol) longer than 100 × tol left out, its ends found by bisection to a
+ * hundredth of the tolerance so the pieces left still end on the boundary. A cut wholly on it is left out.
+ */
+function offBoundary(f: GFace, c: SourcedCut, tol: number): SourcedCut[] {
+  const rings = [f.region.outer, ...f.region.holes], g = c.seg, N = 256;
+  const d = (u: number) => { const p = segAtAny(g, u); let m = Infinity; for (const ring of rings) for (const h of ring) m = Math.min(m, segDistance(h, p)); return m; };
+  const on = Array.from({ length: N + 1 }, (_, k) => d(k / N) <= 10 * tol);
+  if (!on.some(x => x)) return [c];
+  if (on.every(x => x)) return [];
+  // Runs on the boundary, by sample index.
+  const runs: [number, number][] = [];
+  for (let k = 0; k <= N; k++) if (on[k] && (k === 0 || !on[k - 1])) { let e = k; while (e < N && on[e + 1]) e++; runs.push([k, e]); }
+  const edge = (a: number, b: number) => { let lo = a, hi = b; for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (d(m) <= 1e-2 * tol) lo = m; else hi = m; } return lo; };
+  const cuts: [number, number][] = [];
+  let from = 0;
+  for (const [a, b] of runs) {
+    const u0 = a === 0 ? 0 : edge(a / N, (a - 1) / N), u1 = b === N ? 1 : edge(b / N, (b + 1) / N);
+    if (len(sub(to3(f, segAtAny(g, u1)), to3(f, segAtAny(g, u0)))) <= 100 * tol) continue;
+    if (u0 > from) cuts.push([from, u0]);
+    from = u1;
+  }
+  if (from < 1) cuts.push([from, 1]);
+  return cuts.filter(([a, b]) => len(sub(to3(f, segAtAny(g, b)), to3(f, segAtAny(g, a)))) > 10 * tol || len(sub(to3(f, segAtAny(g, (a + b) / 2)), to3(f, segAtAny(g, a)))) > 10 * tol)
+    .map(([a, b]) => ({ source: c.source, seg: a === 0 && b === 1 ? g : subSegment(g, a, b) }));
+}
+/** A 3D tangent of a domain segment at u (∈ [0, 1]), by a central difference through the face's map. */
+function tangent3(f: GFace, g: CurveSegment2, u: number): P3 {
+  const h = 1e-5, a = Math.max(0, u - h), b = Math.min(1, u + h);
+  return sub(to3(f, segAtAny(g, b)), to3(f, segAtAny(g, a)));
+}
+/** Whether segments ab and cd cross properly (each strictly across the other's line). */
+function crossesProperly(a: XY, b: XY, c: XY, d: XY): boolean {
+  const o = (p: XY, q: XY, r: XY) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+  return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0;
+}
+/** The cuts' ends on the boundary at an angle (or on another cut), their insides off it, no curve across itself. */
+function checkCuts(f: GFace, cuts: readonly SourcedCut[], tol: number, what: string): void {
+  const region = f.region, rings = [region.outer, ...region.holes], eps = 10 * tol;
+  for (const c of cuts) {
+    const k = curve3Of(f, c.seg);
+    if (len(sub(startOf(k), endOf(k))) > eps) for (const u of [0, 1]) {
+      const p = segAtAny(c.seg, u);
+      if (locateInRegion(p, region, eps) === 'boundary') {
+        const t1 = tangent3(f, c.seg, u);
+        for (const ring of rings) for (const g of ring) if (segDistance(g, p) <= eps) {
+          // (A domain side collapsed to a point — a pole — has no direction: nothing to meet at an angle.)
+          const t2 = tangent3(f, g, Math.min(1, Math.max(0, paramOfCurve(g, p)))); if (len(t2) <= 1e-9 * len(t1)) continue;
+          const sine = len(cross(t1, t2)) / (len(t1) * len(t2));
+          if (!(sine >= 1e-3)) throw splitError('GEOMETRY', 'TANGENT', `the ${what} meets the face's boundary at ${fmt3(to3(f, p))} at ${(Math.asin(Math.min(1, sine)) * 180 / Math.PI).toPrecision(3)}° (under 0.057°: a sliver)`);
+        }
+        continue;
+      }
+      if (cuts.some(o => o !== c && segDistance(o.seg, p) <= eps)) continue;
+      throw splitError('GEOMETRY', 'OPEN_END', `the ${what} ends inside the face at ${fmt3(to3(f, p))}: it must run to the boundary or close on itself`);
+    }
+    for (let i = 2; i <= 62; i++) {
+      const p = segAtAny(c.seg, i / 64);
+      if (locateInRegion(p, region, tol) === 'boundary') throw splitError('GEOMETRY', 'TANGENT', `the ${what} touches the face's boundary at ${fmt3(to3(f, p))}`);
+    }
+  }
+  // One curve's pieces, as 64-chord polylines in the domain, crossing each other (not at their ends).
+  const sources = [...new Set(cuts.map(c => c.source))];
+  for (const s of sources) {
+    const mine = cuts.filter(c => c.source === s), polys = mine.map(c => Array.from({ length: 65 }, (_, i) => segAtAny(c.seg, i / 64))), ends = polys.flatMap(p => [p[0], p[64]]);
+    for (let a = 0; a < polys.length; a++) for (let b = a; b < polys.length; b++) for (let i = 0; i < 64; i++) for (let j = a === b ? i + 2 : 0; j < 64; j++) {
+      if (a === b && i === 0 && j === 63) continue;
+      const A = polys[a], B = polys[b];
+      if (!crossesProperly(A[i], A[i + 1], B[j], B[j + 1])) continue;
+      const m: XY = [(A[i][0] + A[i + 1][0]) / 2, (A[i][1] + A[i + 1][1]) / 2];
+      if (ends.some(e => Math.hypot(e[0] - m[0], e[1] - m[1]) <= eps)) continue;
+      throw splitError('GEOMETRY', 'SELF_CROSSING', `the ${what} crosses itself near ${fmt3(to3(f, m))}`);
+    }
+  }
+}
+/** The fraction along k of the point nearest x, and its distance (64 samples, then a golden-section search). */
+function nearestOn(k: Curve3, x: P3): { t: number; d: number } {
+  const d = (u: number) => len(sub(pointOf(k, u), x));
+  let best = 0, bd = Infinity; for (let i = 0; i <= 64; i++) { const v = d(i / 64); if (v < bd) { bd = v; best = i / 64; } }
+  let lo = Math.max(0, best - 1 / 64), hi = Math.min(1, best + 1 / 64);
+  for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (d(m1) < d(m2)) hi = m2; else lo = m1; }
+  const t = (lo + hi) / 2, dt = d(t);
+  return dt < bd ? { t, d: dt } : { t: best, d: bd };
+}
+/** Domain pieces grouped by meeting across the face's seam (an edge its loops use twice): each group one piece of the face. */
+function seamGroups(brep: Brep, target: BrepFace, pieces: readonly Piece[], tol: number): Piece[][] {
+  const loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c])), edges = new Map(brep.edges.map(e => [e.id, e]));
+  const used = target.loops.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge));
+  const seams = [...new Set(used.filter((e, i) => used.indexOf(e) !== i))].map(e => curve3(edges.get(e)!.curve, true));
+  const root = pieces.map((_, i) => i), find = (x: number): number => { while (root[x] !== x) x = root[x] = root[root[x]]; return x; };
+  if (seams.length) {
+    // Each piece's spans along each seam (fractions of the seam edge).
+    const spans = pieces.map(p => {
+      const out: { seam: number; lo: number; hi: number }[] = [];
+      for (const ring of [p.region.outer, ...p.region.holes]) for (const g of ring) {
+        const k = curve3Of(p.face, g);
+        seams.forEach((sk, si) => {
+          if (![0.1, 0.5, 0.9].every(u => nearestOn(sk, pointOf(k, u)).d <= 10 * tol)) return;
+          const a = nearestOn(sk, pointOf(k, 0)).t, b = nearestOn(sk, pointOf(k, 1)).t;
+          out.push({ seam: si, lo: Math.min(a, b), hi: Math.max(a, b) });
+        });
+      }
+      return out;
+    });
+    for (let i = 0; i < pieces.length; i++) for (let j = i + 1; j < pieces.length; j++)
+      if (spans[i].some(a => spans[j].some(b => a.seam === b.seam && Math.min(a.hi, b.hi) - Math.max(a.lo, b.lo) > 1e-9))) root[find(i)] = find(j);
+  }
+  const groups = new Map<number, Piece[]>();
+  pieces.forEach((p, i) => { const r = find(i), list = groups.get(r); if (list) list.push(p); else groups.set(r, [p]); });
+  return [...groups.values()];
+}
+const byKey = (a: Piece, b: Piece) => a.key[0] - b.key[0] || a.key[1] - b.key[1] || a.key[2] - b.key[2];
+
+function splitFace(brep: Brep, ref: string, options: FaceSplitOptions, cutsOf: (f: GFace, tol: number, span: number) => SourcedCut[], pull: P3 | null): FaceSplit {
+  const what = pull ? 'isocline' : 'curve';
+  if (typeof ref !== 'string' || !ref) throw splitError('INPUT', 'NO_FACE', 'name the face to split (its id or name)');
+  if (brep.faces.some(isFacetFace)) throw new BrepError('GEOMETRY', 'face split: faceted (mesh) faces are not supported yet');
+  if (brep.bodies.some(b => b.kind !== 'solid') || brep.shells.some(s => !s.closed)) throw splitError('INPUT', 'NOT_SOLID', 'the body must be a closed solid');
+  const byBase = brep.faces.filter(x => x.name !== undefined && baseName(x.name) === ref);
+  const target = brep.faces.find(x => x.id === ref) ?? brep.faces.find(x => x.name === ref) ?? (byBase.length === 1 ? byBase[0] : undefined);
+  if (!target) throw splitError('INPUT', byBase.length ? 'AMBIGUOUS' : 'NO_FACE', byBase.length ? `${ref} names ${byBase.length} faces (${byBase.map(x => x.name).join(', ')}): name one` : `no face ${ref}`);
+  let scaleMM = 1; for (const v of brep.vertices) for (const x of v.point) scaleMM = Math.max(scaleMM, Math.abs(x));
+  const tol = linearToleranceMM(scaleMM) * 10, span = 4 * scaleMM + 1, index = brep.faces.indexOf(target);
+  const F = facesOf(brep, 0, tol), f = F[index];
+  // A cut along the face's own boundary divides nothing: those runs of it are left out.
+  const cuts = cutsOf(f, tol, span).flatMap(c => offBoundary(f, c, tol));
+  if (!cuts.length) throw splitError('GEOMETRY', 'ON_BOUNDARY', pull ? 'the isocline runs along the face\'s boundary: the face lies wholly on one side' : 'the curve runs along the face\'s boundary');
+  checkCuts(f, cuts, tol, what);
+  const segs = dedupeCuts(cuts.map(c => c.seg), tol, f.surf.kind === 'plane');
+  const regions = curveFaceRegions([f.region.outer, ...f.region.holes], segs, tol).filter(r => regionInteriorPoint(r) !== null && Math.abs(regionArea(r)) > tol * tol);
+  const mine: Piece[] = regions.map(region => ({ face: f, region, out: 1 as const, key: to3(f, regionInteriorPoint(region)!) }));
+  let groups = seamGroups(brep, target, mine, tol);
+  if (groups.length < 2) throw splitError('GEOMETRY', 'NO_SPLIT', `the ${what} does not divide the face (it only opens it along its seam)`);
+  // A piece across a cylinder's seam joins in one face (its domain centred in the gap the other pieces leave).
+  groups = groups.map(g => (g.length > 1 && f.surf.kind === 'cylinder' ? mergePieces(g, tol) : g).sort(byKey));
+  const sideOf = (g: Piece[]): 1 | -1 | undefined => pull ? (dot(normalOut({ ...g[0].face, out: g[0].out }, g[0].key), pull) >= 0 ? 1 : -1) : undefined;
+  const sides = new Map(groups.map(g => [g, sideOf(g)]));
+  groups.sort((a, b) => (sides.get(b) ?? 0) - (sides.get(a) ?? 0) || byKey(a[0], b[0]));
+  const base = target.name ?? target.id, given = options.names;
+  if (given !== undefined && (!Array.isArray(given) || given.length !== groups.length || !given.every(n => typeof n === 'string' && n) || new Set(given).size !== given.length))
+    throw splitError('INPUT', 'NAMES', `give ${groups.length} distinct names for the ${groups.length} pieces`);
+  const names = given ?? groups.map((_, k) => `${base}#${k + 1}`), taken = new Set(brep.faces.filter(x => x !== target).map(x => x.name));
+  const pieces: FaceSplitPiece[] = groups.map((g, k) => ({ name: names[k], faces: g.map((_, j) => j ? `${names[k]}#${j + 1}` : names[k]), ...(pull ? { side: sides.get(g)! } : {}) }));
+  for (const p of pieces) for (const n of p.faces) if (taken.has(n)) throw splitError('INPUT', 'NAMES', `${n} is already a face's name: give the pieces other names`);
+  const others = F.flatMap((g, i) => i === index ? [] : [{ face: g, region: g.region, out: 1 as const, key: to3(g, regionInteriorPoint(g.region) ?? segAtAny(g.region.outer[0], 0)) }]);
+  const all: Piece[] = [...others, ...groups.flat()];
+  const faceNames = [...brep.faces.filter((_, i) => i !== index).map(x => x.name), ...pieces.flatMap(p => p.faces)];
+  const inputTol = Math.max(0, ...brep.edges.map(e => e.toleranceMM), ...brep.vertices.map(v => v.toleranceMM));
+  return { brep: stitch(all, options.id ?? 'split', tol, true, inputTol, faceNames), pieces };
 }
 
 // ---- merging ----------------------------------------------------------------------------------------
@@ -1318,7 +1602,8 @@ function regionLength(region: CurveRegion2): number {
   return total;
 }
 
-function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0): Brep {
+/** `names`: per piece, its face's name as given (a face split keeps every other face's name exactly, D149). */
+function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[]): Brep {
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
   // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
   const set = new PointSet3(20 * tol);
@@ -1443,6 +1728,7 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
     if (list.length === 1) { faceNames[list[0]] = n; continue; }
     [...list].sort((x, y) => { const a = pieces[x].key, b = pieces[y].key; return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; }).forEach((i, k) => { faceNames[i] = `${n}#${k + 1}`; });
   }
+  if (names) names.forEach((n, i) => { if (n !== undefined) faceNames[i] = n; });
   const edgeList = edges.map((e, i) => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], tol / 4), vertices: [vertexAt(e.v[0], i), vertexAt(e.v[1], i)] as [string, string],
     name: [...new Set((uses.get(i) ?? []).map(u => faceNames[u.piece]))].sort().join('|') }));
   nameEdges(edgeList);
