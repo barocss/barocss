@@ -29,6 +29,8 @@ export function evaluatedPart(doc: StudioDoc): StudioDoc {
   if (doc.fits?.faces?.length) out.fits = doc.fits;
   // (R12c.4, D158: a bearing's row and its seats' classes are model input.)
   if (doc.bearings?.rows.length) { out.bearings = doc.bearings; if (doc.fits) out.fits = doc.fits; }
+  // (R12c.5, D159: a gland's O-ring row.)
+  if (doc.orings?.rows.length) { out.orings = doc.orings; if (doc.fits) out.fits = doc.fits; }
   return out;
 }
 const stripInstance = (i: PartInstance): PartInstance => ({ ...i, doc: evaluatedPart(i.doc) });

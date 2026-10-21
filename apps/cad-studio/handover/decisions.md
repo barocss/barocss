@@ -8982,3 +8982,122 @@ Ran:
 Not run:
 - RB and properties (the 2nd kernel checkpoint since D156's run).
 - The full browser flow (the coordinator's).
+
+## D159 — R12c.5: O-ring glands from the user's rows, the ranges as estimates, the ring as an exact torus (2026-10-22)
+
+R12c.5 as D139 froze it, under the owner's rule "O-링 범위와 스프링 G는 추정값으로 표시해".
+- **The gland's sizes** come from the user's rows: the ring's row, the groove the user gives. No ring is built in.
+- **The guidance ranges** are data. They ship as D139's O2 values flagged estimates, and the user's ranges citing their source take their place.
+
+**Kernel** (`oring.ts`; exported `glandCheck`, `glandCut`, `oringInGland`, `oringRowProblem`, `O2_RANGES`, `GlandError` and the types):
+- **A ring row** is `{ id, dash?, insideDiameterMM, crossSectionMM, source | estimate }` (checked: sizes above 0, a source or an estimate, no unknown field).
+- **The ranges** are `{ squeezePercent: [lo, hi], fillPercent: [lo, hi], stretchMaxPercent, source?, estimate? }`.
+  - The defaults are O2's (Fictiv's gland design guide, read for D139): squeeze 18–25 % for radial glands and 20–30 % for face glands; fill 75–85 %; stretch ≤ 5 %. They are `estimate: true`.
+- **`glandCheck`:**
+  - **The kinds:**
+    - piston: a shaft's groove sealing on a bore Ø; h = (D_bore − D_g)/2; the ring stretched on the groove's bottom;
+    - rod: a bore's groove sealing on a rod Ø; h = (D_g − D_rod)/2; the ring stretched on the rod;
+    - face: a flat face's groove, its depth h, its inner Ø.
+  - **The stretched section** by the torus's volume, r'²(R_b + r') = r²(ID/2 + r).
+  - **Squeeze** (CS − h)/CS, nominal and stretched.
+  - **Fill** πCS²/4 over w·h, nominal and stretched. The checks use the stretched values.
+  - **At the fit's extremes:** with the seal's and the groove's classes (R12c.2), the depth between their limit sizes gives the squeeze's range.
+  - **GLAND_DIMENSIONS:** no depth; no squeeze (h ≥ CS'), at nominal or at the extremes; fill ≥ 100 %; a class the tables lack.
+  - **Warnings**, each against the ranges, each saying "(an estimate)" when the ranges are:
+    - SQUEEZE_RANGE;
+    - FILL_RANGE;
+    - STRETCH_RANGE: above the maximum, or loose (negative).
+- **`glandCut`:** the groove cut by the analytic Boolean, faces `<id>.groove`.
+  - piston: an annulus from the groove's bottom out, on a shaft's outside, `at` along the face from its start;
+  - rod: from inside the bore's air to the groove's bottom, in a bore;
+  - face: an annulus of the inner Ø and the width, `depth` into a flat face about its centre.
+  - **GLAND_DIMENSIONS** (each saying which): a face of the wrong kind (a piston groove on a bore, or the reverse; a face groove off a flat face); the groove off the face's extent; its bottom not past the face; the centre off the face's plane; the groove cutting through the wall (the body splits).
+- **`oringInGland`:** the ring as the stretched torus at rest on the groove's bottom, centred along a radial groove, or on a face groove's bottom against its inner wall.
+  - **Its free overlap** with the sealing surface (beyond the bore, inside the rod, above the face) by the analytic Boolean: the ring less its own side of the surface, measured directly.
+  - A first version took the torus's whole volume less the kept part. It carried the quadrature's error of the whole, 2–3e-6 mm³, so the overlap is now measured directly.
+  - The squeezed ring's shape is not modelled: an elastomer's deformation, out of scope (D139).
+- **Part model:** the kinds
+  - `oring-gland` { target, face, gland, ring (inline), groove { diameter, width, at?, depth?, center? }, seal?, ranges?, fit? }: it consumes its target; the output's `gland` is the report;
+  - `oring` { gland }: it refers to the gland; the output's `oring` is { ring, overlapMM3, stretchedCrossSectionMM }.
+
+**Oracles and tests** (`test/r12c-oring.test.mjs`, 6 tests, all failing on the previous HEAD):
+- **The ring and the gland:** D139's O1 (AS568-214: CS 3.53, ID 24.99) is a test row citing its chart. S0's gland: groove Ø25.5, bore Ø31.1, 4.7 wide.
+- **The arithmetic,** with the stretched section by bisection (another solver than the kernel's iteration). S0's figures come back:
+  - stretch 2.04 %;
+  - the section 3.5006;
+  - squeeze 20.7 % nominal and 20.0 % stretched;
+  - fill 74.4 % nominal, 73.1 % stretched, which is under O2's 75 %: FILL_RANGE, "(an estimate)".
+- **The user's own ranges** with a source: no warning, nothing said to be an estimate.
+- **Refusals and warnings:**
+  - GLAND_DIMENSIONS: no depth, no squeeze, a full groove, a face gland without its depth;
+  - SQUEEZE_RANGE at a Ø30.6 bore;
+  - STRETCH_RANGE above 5 % and when loose;
+  - the rows and the ranges checked.
+- **The fit's extremes:** H8 on the bore and h9 on the groove (test rows) give the depth 2.8 … 2.8455, so the squeeze's range by hand. A class not loaded is refused.
+- **Piston:**
+  - the groove's removal π(R² − r²)w to 1e-6;
+  - the torus 2π²R'r'² to 1e-9;
+  - the free ring's overlap with the bore by Pappus on its circular segment, V = 2π(R' + ȳ)A, to 1e-6: 136.48580, S0's figure;
+  - centred at z 8.35.
+- **Rod** (a test ring flagged an estimate):
+  - the groove's removal;
+  - the ring at rest on the groove's bottom, its overlap with the rod on its inner side, 2π(R' − ȳ)A;
+  - the stretch on the rod.
+- **Face** (a plate's top, the ring ID 29.5):
+  - the groove's removal π((R + w)² − R²)h;
+  - its overlap under the flange, 2πR'A (the chord square to the axis);
+  - O2's face ranges.
+- **Cut refusals:** a piston groove on a bore, a groove off its face, a groove through a tube's wall.
+- **The part model:** the overlap 136.4858; the codes mapped; an O-ring on a body that is no gland is REFERENCE.
+- **Conformance `r12c/`:**
+  - `oring-piston-gland`: the grooved piston and the torus by their closed forms to 1e-9, centred at z 8.35;
+  - `oring-gland-no-squeeze-refused`.
+
+**Studio and model:**
+- **The document's `orings`** { version 1, rows } is in STUDIO_DOC_FIELDS and crosses to the worker with the fit tables. `editORingRows` keeps a row in use.
+- **Nodes:**
+  - `oring-gland` { parent, face, gland, ring (an id), diameter, width, at?, depth?, center?, seal?, sealClass?, grooveClass? }: built on its body; its part feature takes the row inline and the fit tables; a row gone is `[ORING_ROW_UNKNOWN]`;
+  - `oring` { gland }: `usesOf` gives its gland. `renumber`, `renameNode` and the named faces carry the gland and its face (`chat/features.ts`, as D157).
+- **The O-ring gland command** (modify, keywords "o-ring oring gland"):
+  - one face picked; its kind from it (a flat face, a bore, or a shaft's outside, by its normal against its axis);
+  - unavailable with no rows;
+  - the ring row; the seal Ø (piston: the face + 0.1, rod: − 0.1);
+  - the groove's bottom Ø from 20 % squeeze, its width from 80 % fill, centred along the face, each labelled "(… an estimate)". A face gland's inner Ø is the ring's ID and its depth comes from 25 % squeeze;
+  - it adds the gland and the ring.
+- **Notes:**
+  - the gland: the ring and its source, or an estimate; the groove;
+  - stretch, the stretched section, squeeze nominal and stretched (and at the extremes), fill;
+  - the ranges, with "estimates: Fictiv …" as a warning;
+  - each warning;
+  - the ring: its overlap, and "its squeezed shape is not modelled".
+- **The Library panel's O-RINGS** (`ui/ORingRows.tsx`), friendly errors for `[ORING_ROW_UNKNOWN]` and `[GLAND_DIMENSIONS]`, and the icon `cad-oring`.
+- **Chat v2:** a features command, its values behind `describe`. The agent cannot load rows.
+- **Tests:**
+  - `test/gland.test.ts` (3): no rows then O1, a piston gland at S0's sizes through the command, the prefills checked by hand, the notes and the overlap, the worker crossing, a row in use; a face gland about a plate's centre; a refusal; describe;
+  - `fields.test.ts` gained `orings`;
+  - studio `chat.test`: a context;
+  - `palette.test` passes with "O-ring gland".
+- **A flow step** "O-ring gland (R12c.5, D159)".
+
+**Not in this stage:**
+- the squeezed ring's shape, extrusion gaps and back-up rings;
+- dynamic (reciprocating, rotary) glands' own ranges: they are data the user can give, and O2's radial range is the static one;
+- material compatibility;
+- O-rings as LIB1 library parts: the gland takes the row instead.
+
+**Checks** (rules v2: `part-model.ts` gained cases, so the full kernel suite ran), on df549b020 (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-oring`: 6/6.
+- The full kernel suite, conformance included: 1477/1485, 6 skipped, 344 s.
+  - It failed the env-only "actual native Split source…".
+  - It failed the timed D151 test ("exports in a few seconds"). That test passed alone in 4.1 s; the load average was up to 41: a flake, rerun alone.
+- Conformance `r12c/`: 17/17.
+- `@barocss/cad-model`: type-check clean, 699/699, 118 s. Studio: type-check clean, 194/194, 22 s (`palette.test` with "O-ring gland").
+- Test names against the saved lists: none missing (D151's from its rerun); +8 kernel, +3 cad-model, studio unchanged.
+- `FLOW_ONLY` "O-ring gland (R12c" and "fillet a box top edge from the palette": 2/2 (with the starter step).
+  - No flow palette word holds the new keywords ("o-ring oring gland").
+
+Not run:
+- RB and properties (the 3rd kernel checkpoint since D156's run; the 4th, R12c.6a, runs them).
+- The full browser flow (the coordinator's).

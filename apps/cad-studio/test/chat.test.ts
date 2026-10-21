@@ -96,6 +96,13 @@ test('tool schemas: every buildable command is exposed and documented with the H
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
       continue;
     }
+    if (id === 'oring-gland') {
+      // (A gland takes one face and the user's O-ring rows loaded: R12c.5, D159.)
+      const ctx: Ctx = { doc: { ...fitted.doc, orings: { version: 1, rows: [{ id: '214', insideDiameterMM: 24.99, crossSectionMM: 3.53, estimate: true }] } }, bodies: fitted.bodies, selection: sel({ faces: [faceOf('n3.side0')] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values).filter(k => k !== 'h')), id);
+      continue;
+    }
     if (id === 'fit-class' || id === 'fit-pair') {
       const ctx: Ctx = { doc: fitted.doc, bodies: fitted.bodies, selection: sel({ faces: id === 'fit-class' ? [faceOf('n1.hole0.side0')] : [faceOf('n1.hole0.side0'), faceOf('n3.side0')] }) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);

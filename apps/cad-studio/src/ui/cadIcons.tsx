@@ -186,6 +186,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-sphere': <><circle cx="12" cy="12" r="8.5" style={tone(TONE.right)} /><path d="M3.5 12a8.5 3.2 0 0 0 17 0" strokeOpacity={0.55} /><ellipse cx="9" cy="8.6" rx="2.6" ry="1.8" style={tone(0.3)} stroke="none" /><circle cx="12" cy="12" r="8.5" /></>,
   'cad-cone': <>{cylinder(0.5, 0.52, -0.08, 1.05, 0)}</>,
   'cad-gear': <><path d="M12 2.5l1.6 2.6 3-.6.6 3 2.6 1.6-1.4 2.9 1.4 2.9-2.6 1.6-.6 3-3-.6L12 21.5l-1.6-2.6-3 .6-.6-3-2.6-1.6 1.4-2.9-1.4-2.9 2.6-1.6.6-3 3 .6z" style={tone(TONE.right)} /><circle cx="12" cy="12" r="2.6" style={dark} /></>,
+  // An O-ring (R12c.5): the ring's section as a torus seen across, its gland's groove in the accent colour.
+  'cad-oring': <><circle cx="12" cy="12" r="8.5" style={tone(TONE.right)} /><circle cx="12" cy="12" r="5" style={dark} />{ac('M3.5 12a8.5 8.5 0 0 1 17 0')}</>,
   // A bearing (R12c.4): its outer and inner rings, the balls between in the accent colour.
   'cad-bearing': <><circle cx="12" cy="12" r="9.5" style={tone(TONE.right)} /><circle cx="12" cy="12" r="4.5" style={dark} />{[0, 1, 2, 3, 4, 5].map(k => <circle key={k} cx={12 + 7 * Math.cos(k * Math.PI / 3)} cy={12 + 7 * Math.sin(k * Math.PI / 3)} r="1.3" className="acf" stroke="none" />)}</>,
   // A key (R12c.3b): a round-ended block, its top in the accent colour.
