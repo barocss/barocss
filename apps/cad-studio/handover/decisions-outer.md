@@ -5226,3 +5226,47 @@ The owner's decision through the coordinator ("둘다 제안한대로 해줘", o
 - **Touches**: `server/cadMcp.ts` and `server/chatServer.ts` (the patch), `src/chat/client.ts` (the done type), `src/ui/ChatPanel.tsx` (passes the patch and base), App.tsx's chat `onCommit` (the merge before `commit`, no joint, explode or section paths), and the model's new `chat/merge.ts` plus `Proposal.merge?`. FLOW_ONLY: chat/agent steps and proposal steps.
 - **Shared with G12 (item 4)**: the person's change set and the per-op touched set use the same `treeDiff`/revision-field comparison that `proposalDiff`'s `changedFaces` pairing will name.
 - **To check while building**: `rebaseProposal` replays a proposal's ops on a changed part. If those ops name ids they made themselves, the same id shift may hit stale proposals today. It will be confirmed by a probe, and fixed by the same remap if it does.
+
+## O133 — item 0: a chat turn merged onto the edits made during it (2026-10-22)
+
+The coordinator approved O132 with one addition: implicit dependants. An op whose meaning comes from a deferred op without naming an id (the selection, a newest-sketch default, a mode) must not be applied to another target. Built at e8e213a6e.
+
+- **Capture made explicit** (`chat/merge.ts` `captureOp`). The coordinator offered two options; this takes the first, so ops are fully explicit at capture.
+  - Each call that changed the part is recorded twice:
+    - as the call itself, for a proposal to replay;
+    - as what it did: the features added (each after the one it followed), changed and deleted, in *id form*, plus the parameters, body outputs, looks, other fields, proposals and history entries.
+  - In id form, every index reference is the referenced feature's serial (`renumber`).
+  - So an implicit target becomes the feature it picked. An extrude of "the newest unused sketch" reads that sketch's id, and a selector reads the face it resolved to.
+  - Why not replay the calls on the current document, as the S0 said: node references are indices (`sketch: 2`, `BodyRef.node`), and commands pick implicit targets. A replay on a part the person changed would build on the wrong features (the coordinator's own case).
+- **Merge** (`mergeTurn`, in the browser):
+  - The person's change is captured the same way, from the base to now.
+  - The turn's ids move past the person's by one offset (`n<k>`, `n<k>.top`, `b<k>` follow).
+  - Each op is checked against the person's change and against the ops deferred so far, then applied in id form and converted back to indices once. The result is evaluated once; if it does not build, it is evaluated op by op and the failing ops are deferred (TURN_NODE_GONE, with the reason).
+  - Codes: TURN_SAME_NODE, TURN_NODE_GONE, TURN_PARAMETER_CHANGED (a parameter the person changed, named in the op's features or written by it), TURN_FIELD_CHANGED, TURN_NOT_REPLAYABLE, TURN_BUILDS_ON_DEFERRED, TURN_SHAPE_DIFFERS.
+  - TURN_BUILDS_ON_DEFERRED covers an op that uses, changes or writes what a deferred op made, changed or wrote. That includes implicit picks, which capture made explicit.
+  - An eighth code, TURN_STILL_EDITING: after two reruns for edits made while merging, every op waits, unrun and with nothing awaited, so no edit can land in between.
+- **The proposal**:
+  - The deferred calls are moved to the merged part (`moveOps`) and worked out as any proposal: risk, checks, `orders`.
+  - When they do not replay, the proposal is kept with high risk, and its summary says why.
+  - Its plan lists each call's reason, and `merge: {turn, conflicts}` keeps the codes.
+- **The studio**:
+  - The tool server keeps `ops` in the state file. The chat server sends each op once, in `state` and `done`.
+  - ChatPanel merges when `changedDuring(base, now)`: anything but the design history differs. Otherwise it commits as before (the fast path, unchanged).
+  - App commits the merged document as one change, with a toast ("Chat turn merged with your edits: 1 of 1 change applied"; or "2 wait as P3 (why)") and Undo.
+- **rebaseProposal** (the S0's "to check"):
+  - The probe confirmed the bug. A proposal `[box, edit_feature {index: 3}]`, rebased after the person added a box, edited the person's box.
+  - Proposals now keep `orders`, the feature ids before each op (`runOps`). A rebase moves each op by what its indices and self-made ids named (`chat/remap.ts`, `moveOps`), one op at a time.
+  - Older proposals without `orders` rebase as before.
+- **Tests**:
+  - `test/chat-merge.test.ts`:
+    - the README repro: ten calls, and a box the person added meanwhile (ids n2 and n3 taken). Both are kept, the agent's moved to n4–n6, and the volume is the sum;
+    - SAME_NODE: the person's 12 kept; the proposal accepted gives 20; the independent box applied;
+    - NODE_GONE: a hole on a box the person deleted;
+    - PARAMETER_CHANGED;
+    - the implicit context: op 0 deferred, op 1 extruding the newest sketch is BUILDS_ON_DEFERRED, and the person's own unused sketch is not extruded;
+    - the fast path's test.
+  - `test/rebase-moves-ops.test.ts`: the probe turned into a regression test.
+  - The flow step "chat turn merged with an edit made during it…": a scripted turn pauses (a new `{"pause": ms}` call in the scripted agent) after raising the box to 20. Meanwhile the person adds a box at X 40. Both are kept, and one ⌘Z gives 16 again with the second box kept.
+- **Limits**:
+  - A batch's inner op naming, by index, a feature an earlier inner op made is moved as the outer op is, so it is exact only for appends.
+  - A script's `node(i)` is not rewritten. The merge's applied path does not depend on either: it applies what the op did.
