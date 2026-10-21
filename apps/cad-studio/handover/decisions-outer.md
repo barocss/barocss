@@ -5375,3 +5375,27 @@ The coordinator's queue item 4, the model side (G17's drag tool comes later), cl
   - W set to 800: re-solved, the frame A·800; evaluated without the re-solve, the same; a second re-solve gives the same document;
   - the refusals: a conflict through a held diagonal naming W, a missing parameter, a bound length −5.
   The flow step "FRg bound to parameters (O140)…": W and D added in the Parameters panel, the skeleton and its frame via the real chat (444 · 600), W set to 800 in the panel (444 · 800), D set to −5 refused with D named and the parameters unchanged.
+
+## O141 — item 5: the App's cost of a bracket click, on a production build (2026-10-22)
+
+The coordinator's item 5, from the GPU lane's G13 profile: a bracket click cost 55 ms on the dev server, 36 of it React's jsxDEV, attributed to the App's panels being re-created on each selection change. The ask was to measure on a production build first, and memoise only if it still costs more than a few ms.
+
+- **The bench**: `test/bench-panels.mjs`, opt-in, not a budget. It runs 120 placed brackets (the G9 scene) on the dev server and on a production build (vite build, served by vite preview). It reports the main thread's task time (CDP TaskDuration) for a bracket clicked from idle, the selection cleared (Escape) and 60 pointer moves, five runs each, as the median and every value. `PROFILE=1` gives a CPU profile of the session's first click (on an unminified production build) and `TRACE=1` a devtools.timeline trace of it.
+- **Measured** (load 33–59 from other lanes; all times main-thread task time):
+
+  | | dev server | production build |
+  |---|---|---|
+  | first click of the session | 77.7 ms | 100.5 ms (39–53 in other runs) |
+  | each later click (after Escape) | 4.4–6.6 ms, median 5.8 | 4.1–5.7 ms, median 5.2 |
+  | Escape | 0.4 ms | 0.4 ms |
+  | hover | 1.91 ms a move | 1.80 ms a move |
+
+- **What the first click is** (production, profiled and traced):
+  - 52.8 ms of task, of which 11.7 ms is sampled JavaScript.
+  - The trace splits it: style and layout 1.4 ms, paint 1.3 ms, GC 0.7 ms. The rest is first-run work: V8 compiling and running code the first selection takes for the first time (the reconciler's mount paths, the props panel's).
+  - A later click mounts the same panel again in 3.5 ms of task, only 1.5 ms of it JavaScript (profiled).
+- **Decision: no memoisation now.**
+  - A later click costs about 5 ms on either build, and React's share of it is about 1.5 ms; memoising the panels could save at most about that.
+  - The 55 ms G13 saw is its bench's one bracket click, the scene's first: a first-run cost that memoisation would not remove.
+  - What would cut it is warming that code ahead of the click (e.g. mounting the props panel's tree once while idle). That is a separate question, for the coordinator to decide.
+- **Not run**: a quiet-machine rerun (load 33–59 here).
