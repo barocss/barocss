@@ -2,6 +2,7 @@
 // by passing `part`), their placement and grounding, and mates solved by the studio's own solver
 // (src/assembly/mates.ts) with its exact refusals. The assembly is re-solved after every change, as the
 // studio does, so mated parts follow edits of the parts they are mated to.
+import { tslotInterfaces } from '../frames/interfaces';
 import { emptyDoc, type PartInstance, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import { tableOf, tablesFor, withDatums } from '../assembly/faces';
@@ -52,6 +53,13 @@ function mateFaces(table: FaceTable, cap = 40) {
   return entries.length > cap ? { faces: list, more: entries.length - cap } : { faces: list };
 }
 
+/** FRe (O120): a part's T-slot frame members' interfaces, for snap_part (`<body>.<id>`: role ⇄ what it accepts). */
+function memberInterfaceList(bodies: readonly BodyResult[]): { member_interfaces?: string[] } {
+  const out: string[] = [];
+  for (const b of bodies) for (const i of tslotInterfaces(b) ?? []) out.push(`${b.key}.${i.id} (${i.role} ⇄ ${i.accepts?.join(', ') ?? 'nothing'})`);
+  return out.length ? { member_interfaces: out } : {};
+}
+
 async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, detail: string | null) {
   const instances = await Promise.all((doc.instances ?? []).map(async inst => {
     const r = await evaluate(inst.doc), bodies = r?.ok ? r.bodies : [];
@@ -61,13 +69,14 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
       feature_count: inst.doc.nodes.length, bodies: bodies.length, volume_mm3: r3(bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)),
       ...(bodies.length ? { world_bounds: placedBounds(inst, min, max) } : {}),
       ...(r && !r.ok ? { error: r.error.title } : {}),
+      ...memberInterfaceList(bodies),
       ...(detail === inst.id ? mateFaces(tableOf(inst.doc)) : {}),
     };
   }));
   const mates = doc.mates ?? [];
   const solved = solveDoc(doc).problems;
   return {
-    base: { id: BASE, feature_count: doc.nodes.length, bodies: base.length, volume_mm3: r3(base.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)), note: 'the document\'s own part, fixed at the origin', ...(detail === BASE ? mateFaces(withDatums(tableOf(doc), doc)) : {}) },
+    base: { id: BASE, feature_count: doc.nodes.length, bodies: base.length, volume_mm3: r3(base.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)), note: 'the document\'s own part, fixed at the origin', ...memberInterfaceList(base), ...(detail === BASE ? mateFaces(withDatums(tableOf(doc), doc)) : {}) },
     instances,
     mates: mates.map((m, i) => ({ id: m.id, label: mateLabel(m, i), kind: m.kind, a: m.a, b: m.b, ...(m.distance !== undefined ? { distance: m.distance } : {}), ...(m.angle !== undefined ? { angle: m.angle } : {}), ...(m.flip ? { flip: true } : {}) })),
     ...(solved.length ? { problems: solved } : {}),
@@ -320,7 +329,7 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'snap_part',
-    description: 'Snaps part b onto part a by their library interfaces: placed exactly (b\'s interface facing a\'s, moved by offset along a\'s interface frame: x along it — a slot\'s length — then y, z) and held by real mates on the interfaces\' faces (flat flush, round on one axis), leaving free what they leave free (a nut slides along its slot). The roles must accept each other.',
+    description: 'Snaps part b onto part a by their interfaces — a library part\'s (list_library, insert_part), or a T-slot frame member\'s (`<body>.slot-t1` …, get_assembly\'s member_interfaces): placed exactly (b\'s interface facing a\'s, moved by offset along a\'s interface frame: x along it — a slot\'s length — then y, z) and held by real mates on the interfaces\' faces (flat flush, round on one axis), leaving free what they leave free (a nut slides along its slot). The roles must accept each other.',
     input_schema: { type: 'object', properties: { a: end, b: end, offset: xyz }, required: ['a', 'b'], additionalProperties: false },
   },
   {
