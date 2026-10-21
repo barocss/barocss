@@ -144,7 +144,7 @@ function features(doc: StudioDoc) {
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
-const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'set_stock', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
+const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'set_stock', 'set_casting', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
 /** The tools a batch (apply_ops, a patch) may hold (A7.5: a candidate's unsupported op is refused by name before it runs). */
 export const BATCHABLE_TOOLS: ReadonlySet<string> = BATCHABLE;
 /** At most this many checkpoints a session (the oldest dropped first). */
@@ -926,6 +926,19 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const doc = { ...state.doc, machining };
       return { state: { ...state, doc }, content: json({ ok: true, rows: machining.stock?.length ?? 0, allowance: machining.allowanceMM ?? null }), isError: false, changed: true, summary: `stock: ${machining.stock?.length ?? 0} rows${machining.allowanceMM !== undefined ? `, ${machining.allowanceMM} mm a face` : ''}` };
     }
+    case 'set_casting': {
+      // (IM8b, O108: the casting pattern's — the faces machined after casting, by name, and the user's own allowance and shrinkage.)
+      const machined = args.machined, allowance = args.allowance, shrink = args.shrink;
+      if (machined === undefined && allowance === undefined && shrink === undefined) return fail(state, 'Give machined, allowance, shrink or any of them.');
+      if (machined !== undefined && !(Array.isArray(machined) && machined.every(x => typeof x === 'string' && x))) return fail(state, '[CASTING_FACE] machined is a list of face names ("n1.top").');
+      const faces = new Set(state.bodies.flatMap(b => b.mesh.faces.map(f => f.name))), missing = ((machined ?? []) as string[]).filter(n => !faces.has(n));
+      if (missing.length) return fail(state, `[CASTING_FACE] not a face of the part: ${missing.join(', ')}. Use the names from the last result or query.summary.`);
+      if (allowance !== undefined && !(typeof allowance === 'number' && allowance >= 0 && allowance < 100)) return fail(state, `[CASTING_ALLOWANCE] allowance is mm a machined face, 0 to 100: ${JSON.stringify(allowance)}.`);
+      if (shrink !== undefined && !(typeof shrink === 'number' && shrink >= 0 && shrink < 0.1)) return fail(state, `[CASTING_SHRINK] shrink is a ratio (mm/mm), 0 to 0.1 (0.013 is 1.3 %): ${JSON.stringify(shrink)}.`);
+      const was = state.doc.casting ?? { version: 1 as const }, casting = { ...was, version: 1 as const, ...(machined !== undefined ? { machined: [...new Set(machined as string[])] } : {}), ...(allowance !== undefined ? { machiningAllowanceMM: allowance as number } : {}), ...(shrink !== undefined ? { shrink: shrink as number } : {}) };
+      const doc = { ...state.doc, casting };
+      return { state: { ...state, doc }, content: json({ ok: true, machined: casting.machined ?? [], allowance: casting.machiningAllowanceMM ?? null, shrink: casting.shrink ?? null }), isError: false, changed: true, summary: `casting: ${casting.machined?.length ?? 0} machined face${casting.machined?.length === 1 ? '' : 's'}` };
+    }
     case 'mass_properties': {
       const keys = strings(args.bodies), shown = keys.length ? state.bodies.filter(b => keys.includes(b.key)) : state.bodies;
       if (keys.length && shown.length !== keys.length) return fail(state, `No body ${keys.filter(k => !state.bodies.some(b => b.key === k)).join(', ')} (bodies: ${state.bodies.map(b => b.key).join(', ')}).`);
@@ -1249,6 +1262,11 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     name: 'set_stock',
     description: 'Sets the shop\'s stock list (none is built in) and the machining allowance per face (mm). rows: {id, kind "block", size [a,b,c], source} or {id, kind "bar", diameter, maxLength?, source}.',
     input_schema: { type: 'object', properties: { rows: { type: 'array', items: { type: 'object' } }, allowance: { type: 'number' } }, additionalProperties: false },
+  },
+  {
+    name: 'set_casting',
+    description: 'Sets a casting pattern\'s inputs (IM8b): machined, the faces machined after casting (flat ones get the machining allowance on the pattern); allowance, your machining allowance (mm a face; unset: the process\'s table by the part\'s size); shrink, your shrinkage (a ratio, mm/mm; unset: the table\'s by the alloy and size). The manufacturability report shows both and their sources; cad-cli pattern writes the pattern.',
+    input_schema: { type: 'object', properties: { machined: { type: 'array', items: { type: 'string' } }, allowance: { type: 'number' }, shrink: { type: 'number' } }, additionalProperties: false },
   },
   {
     name: 'mass_properties',

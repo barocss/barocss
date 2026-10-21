@@ -5342,9 +5342,37 @@ try {
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const reports = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /die-casting:/.test(x)).slice(-2);
-      assert.match(reports[0], /query\.manufacturability\s*die-casting: material pass, pull pass, wall pass, draft warn, tolerance pass/, reports[0]);
-      assert.match(reports[1], /die-casting: material pass, pull pass, wall pass, draft pass, tolerance pass/, reports[1]);
+      assert.match(reports[0], /query\.manufacturability\s*die-casting: material pass, pull pass, wall pass, draft warn, shrink unknown, machining-allowance n\/a, tolerance pass/, reports[0]);
+      assert.match(reports[1], /die-casting: material pass, pull pass, wall pass, draft pass, shrink unknown, machining-allowance n\/a, tolerance pass/, reports[1]);
       await snap('im8a-die-casting');
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
+  // ---- IM8b (O108): a sand-cast pattern's allowances, through the real chat and tool servers -------------------------
+  await check('IM8b: sand casting chosen in the Library panel, an A356 block 100 × 60 × 20 made through the real chat with its top marked machined — the report scales the pattern 1.012917 (Aluminum, up to 4 ft) and puts 2.286 mm on n1.top, each from NPTEL\'s page', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'sand-casting');
+    await page.selectOption('[aria-label="Pull direction"]', '+Z');
+    await page.waitForFunction(() => window.__studioDoc.process === 'sand-casting' && window.__studioDoc.mould?.pull?.[2] === 1, null, { timeout: 5000 });
+    await page.click('[aria-label="Close library"]');
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 100, d: 60, h: 20, x: 0, y: 0, z: 0 } } },
+        { tool: 'features', args: { action: 'material', material: 'a356' } },
+        { tool: 'features', args: { action: 'casting', machined: ['n1.top'] } },
+        { tool: 'query', args: { action: 'manufacturability' } }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      await page.waitForFunction(() => window.__studioDoc.casting?.machined?.[0] === 'n1.top', null, { timeout: 10000 });
+      const report = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /sand-casting:/.test(x)).pop();
+      assert.match(report, /sand-casting: material pass, pull pass, wall pass, draft fail, shrink pass, machining-allowance pass, tolerance unknown/, report);
+      await snap('im8b-sand-pattern');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
   });

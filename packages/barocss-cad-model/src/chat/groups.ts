@@ -27,6 +27,7 @@ export const GROUPS: Record<string, Group> = {
       delete: ['delete_feature', 'index'],
       material: ['set_material', 'material, bodies?, part? — what bodies are made of'],
       stock: ['set_stock', 'rows?, allowance? — the shop\'s stock list and the allowance'],
+      casting: ['set_casting', 'machined?, allowance?, shrink? — a casting pattern\'s machined faces and your allowances'],
       batch: ['apply_ops', 'ops: [{tool, args, opId?}], dryRun? — several calls all or nothing'],
     },
   },
