@@ -2,10 +2,10 @@
 // run in this process (the studio's tool path) or by `cad-cli board scenario.json` (a fresh process, its replay a
 // fresh reader too). The same scenario gives the same outcomes either way; its conformance case holds #2181's nine
 // steps (conformance/a7/candidates/).
-import { emptyDoc } from '../engine/doc';
-import { dispatchTool, type ChatState, type Evaluate } from '../chat/tools';
-import type { Op } from '../chat/proposals';
-import { freshnessOf, massResult, type Result } from './freshness';
+import { emptyDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState, type Evaluate } from '@barocss/cad-model/chat/tools';
+import type { Op } from '@barocss/cad-model/chat/proposals';
+import { freshnessOf, massResult, type Result } from '@barocss/cad-model/team/freshness';
 import { CandidateBoard, type CandidateRequest, type Outcome, type Reopen } from './candidates';
 
 export type BoardStep =

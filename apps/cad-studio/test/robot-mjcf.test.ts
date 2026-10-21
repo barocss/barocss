@@ -3,16 +3,16 @@ import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
-import type { Mate } from '../src/assembly/mates';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { mjcfOfDoc, treeOfDoc, urdfOfDoc } from '../src/chat/robot';
-import { forwardKinematics } from '../src/robot/fk';
-import { quatOf, type MjcfResult } from '../src/robot/mjcf';
+import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { Mate } from '@barocss/cad-model/assembly/mates';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { mjcfOfDoc, treeOfDoc, urdfOfDoc } from '@barocss/cad-model/chat/robot';
+import { forwardKinematics } from '@barocss/cad-model/robot/fk';
+import { quatOf, type MjcfResult } from '@barocss/cad-model/robot/mjcf';
 import { mjcfFk, readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
 import { readUrdf, urdfFk } from '@barocss/cad-model/robot/urdfCheck';
-import { symmetricEigen, type Mat3 } from '../src/robot/inertia';
+import { symmetricEigen, type Mat3 } from '@barocss/cad-model/robot/inertia';
 import { cliMain } from '../server/cadCli';
 
 // RM5 (O18): MJCF export — the 6R arm built from its mates, its model read back against MuJoCo's structure, FK in

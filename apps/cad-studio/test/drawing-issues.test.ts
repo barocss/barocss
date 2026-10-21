@@ -2,14 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { brepsFor } from '../src/engine/evaluate';
-import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { projectViews } from '../src/drawing/project';
-import { snapPoints } from '../src/drawing/dimensions';
-import { holeCallout } from '../src/drawing/callout';
-import { autoDimensions } from '../src/drawing/auto';
-import { applyFix, drawingIssues, fixAll, issueContext, quadsOverlap, segmentHitsQuad, textBox, type SheetInputs } from '../src/drawing/issues';
-import { defaultDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
+import { brepsFor } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { projectViews } from '@barocss/cad-model/drawing/project';
+import { snapPoints } from '@barocss/cad-model/drawing/dimensions';
+import { holeCallout } from '@barocss/cad-model/drawing/callout';
+import { autoDimensions } from '@barocss/cad-model/drawing/auto';
+import { applyFix, drawingIssues, fixAll, issueContext, quadsOverlap, segmentHitsQuad, textBox, type SheetInputs } from '@barocss/cad-model/drawing/issues';
+import { defaultDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '@barocss/cad-model/drawing/types';
 
 // R14.2 (O3): the drawing's issue list. Conformance cases packages/barocss-cad/conformance/r14/issues-<name>/case.json:
 // a studio document and drawing settings, the issue codes found, and those left after every fix is applied

@@ -14,13 +14,13 @@
 //     redo moves on and never reuses: a candidate is accepted only on the token it was built on, so one built before
 //     an undo can never become valid again by accident — even when the content it was built on is back.
 // The board's clock is logical (ticks), so a run is the same to the byte.
-import type { StudioDoc } from '../engine/doc';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { encodeStudioFile, readStudioFile } from '../engine/container';
-import { BATCHABLE_TOOLS, dispatchTool, type ChatState, type Evaluate } from '../chat/tools';
-import type { Op } from '../chat/proposals';
-import { checkSpec } from '../chat/spec';
-import { factsOf } from '../chat/observe';
-import { integrate, revisionOf, runGates, type GateResult } from './team';
+import { BATCHABLE_TOOLS, dispatchTool, type ChatState, type Evaluate } from '@barocss/cad-model/chat/tools';
+import type { Op } from '@barocss/cad-model/chat/proposals';
+import { checkSpec } from '@barocss/cad-model/chat/spec';
+import { factsOf } from '@barocss/cad-model/chat/observe';
+import { integrate, revisionOf, runGates, type GateResult } from '@barocss/cad-model/team/team';
 
 export type BoardCode = 'DUPLICATE' | 'CANCELLED' | 'TIMED_OUT' | 'BUDGET_EXCEEDED' | 'STALE_BASE' | 'UNSUPPORTED_OP' | 'WRONG_UNIT' | 'WRONG_TARGET'
   | 'MISSING_DEPENDENCY' | 'NOT_BUILT' | 'UNKNOWN_CANDIDATE' | 'GATE_FAILED' | 'REPLAY_UNREADABLE' | 'REPLAY_FACTS_DIFFER' | 'REPLAY_VERDICT_DIFFERS'

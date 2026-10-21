@@ -2,7 +2,7 @@
 // is left of it, so its full cylinder (and a countersink's cone) is drawn see-through as it is placed or
 // edited. From the hole features themselves: the axis and side they drill from, their diameter, depth and
 // copies, across the body's extent along that axis (through) or in from its face (to a depth).
-import { holeCentres, type ModelNode } from '../engine/doc';
+import { holeCentres, type ModelNode } from '@barocss/cad-model/engine/doc';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
 /** A frustum: from `start` along `dir` (unit, into the material) for `length`, radius r0 at the start, r1 at the end. */

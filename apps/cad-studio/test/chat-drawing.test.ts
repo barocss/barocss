@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { acceptProposal, dispatchTool, runTool, TOOLS, type ChatState } from '../src/chat/tools';
-import { DRAWING_TOOL_NAMES } from '../src/chat/drawing';
-import { readDrawing } from '../src/drawing/types';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, starterDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { acceptProposal, dispatchTool, runTool, TOOLS, type ChatState } from '@barocss/cad-model/chat/tools';
+import { DRAWING_TOOL_NAMES } from '@barocss/cad-model/chat/drawing';
+import { readDrawing } from '@barocss/cad-model/drawing/types';
 
 // R14.5 (O6): the agent's drawing tools — the issue list and tolerance suggestions to read, Auto layout and dimensions,
 // fixes and accepted suggestions as proposals only (a drawing change always needs the user, D41).

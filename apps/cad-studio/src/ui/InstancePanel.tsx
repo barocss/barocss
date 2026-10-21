@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import type { PartInstance } from '../engine/doc';
-import type { BodyResult } from '../engine/evaluate';
-import { fmt } from '../engine/doc';
+import type { PartInstance } from '@barocss/cad-model/engine/doc';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { fmt } from '@barocss/cad-model/engine/doc';
 
 /** A placed part: its name, position and rotation (applied on Enter or when a box is left), duplicate, hide, remove. */
 export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, onGround, shared = 0, pending, onIndependent, onRevision, onAccept, onDismiss }: {

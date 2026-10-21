@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { evaluateDoc } from '../src/engine/evaluate';
+import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 
 const vols = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.title + ' ' + r.error.detail); return r.bodies.map(b => Math.round(b.volumeMM3!)); };
 const off = (doc: StudioDoc, i: number): StudioDoc => ({ ...doc, nodes: doc.nodes.map((n, k) => k === i ? { ...n, suppressed: true } as ModelNode : n) });

@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
-import { acceptProposal, agentMayNotAccept, dispatchTool, leaveOutClosure, previewProposal, proposalParts, rebaseProposal, runTool, type ChatState } from '../src/chat/tools';
-import { approvalOf, compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory, type HistoryEntry } from '../src/chat/proposals';
-import { modelHash } from '../src/chat/spec';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { acceptProposal, agentMayNotAccept, dispatchTool, leaveOutClosure, previewProposal, proposalParts, rebaseProposal, runTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { approvalOf, compactHistory, HISTORY_BYTES, rejectProposal, PROMPT_CHARS, stripHistory, withHistory, type HistoryEntry } from '@barocss/cad-model/chat/proposals';
+import { modelHash } from '@barocss/cad-model/chat/spec';
 import { readStudioDoc } from '../src/engine/migrate';
-import { defaultDrawing } from '../src/drawing/types';
+import { defaultDrawing } from '@barocss/cad-model/drawing/types';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 

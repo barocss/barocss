@@ -1,8 +1,8 @@
 // Part templates: new documents started from a saved one (its features, parameters, look and drawing
 // settings), kept in this browser, beside two built in — an empty part and the starter plate.
-import { emptyDoc, starterDoc, type StudioDoc } from '../engine/doc';
+import { emptyDoc, starterDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readStudioDoc } from '../engine/migrate';
-import { inlineMeshes } from '../engine/blobs';
+import { inlineMeshes } from '@barocss/cad-model/engine/blobs';
 
 const KEY = 'studio.templates';
 export const BUILT_IN: { name: string; doc: () => StudioDoc }[] = [{ name: 'Empty part', doc: emptyDoc }, { name: 'Plate with a hole', doc: starterDoc }];

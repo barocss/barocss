@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { runTool, type ChatState } from '../src/chat/tools';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { readStudioDoc } from '../src/engine/migrate';
 
 // Re-matching stored names after an edit renumbers the faces they come from (A1.3).

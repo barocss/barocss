@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { profileOf } from '../src/sketch/loops';
-import { sketchShapes } from '../src/sketch/reopen';
-import { toPartDocument } from '../src/engine/part';
-import { emptyDoc, withNode, type SketchNode } from '../src/engine/doc';
+import { profileOf } from '@barocss/cad-model/sketch/loops';
+import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
+import { toPartDocument } from '@barocss/cad-model/engine/part';
+import { emptyDoc, withNode, type SketchNode } from '@barocss/cad-model/engine/doc';
 
 test('construction shapes are no part of the profile, are kept with the sketch and come back on reopen', () => {
   const rect = { kind: 'rectangle' as const, a: [0, 0] as [number, number], b: [20, 10] as [number, number] };

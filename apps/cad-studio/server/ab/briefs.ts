@@ -3,7 +3,7 @@
 // from the agent — and, for the scripted dry run, what an ideal agent calls in each arm: `json` (v1 tools, no script)
 // and `hybrid` (v2 tools and model.run). The scripted calls follow the system prompt's protocol: requirements first,
 // then the build, then the check. Dimensions are the brief's own, not taken from any standard.
-import type { Requirement } from '../../src/chat/spec';
+import type { Requirement } from '@barocss/cad-model/chat/spec';
 
 export type Arm = 'json' | 'hybrid';
 export interface Call { tool: string; args: Record<string, unknown> }

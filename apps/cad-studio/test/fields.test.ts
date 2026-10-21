@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { carryOver, NODE_EXTRA_FIELDS, rectanglePart, STUDIO_DOC_FIELDS, withNode, type ModelNode, type NodeExtras, type StudioDoc } from '../src/engine/doc';
-import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '../src/chat/features';
-import { flattenAssembly } from '../src/assembly/flatten';
+import { carryOver, NODE_EXTRA_FIELDS, rectanglePart, STUDIO_DOC_FIELDS, withNode, type ModelNode, type NodeExtras, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '@barocss/cad-model/chat/features';
+import { flattenAssembly } from '@barocss/cad-model/assembly/flatten';
 import { readStudioDoc } from '../src/engine/migrate';
 import { defaultRender } from '@barocss/cad-model/engine/render';
-import { defaultDrawing } from '../src/drawing/types';
+import { defaultDrawing } from '@barocss/cad-model/drawing/types';
 
 // Every field a document or a node can hold survives every path that rebuilds one: a field added to the types
 // without being carried fails here (the lists are checked against the types at compile time, engine/doc.ts).

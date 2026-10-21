@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { rectanglePart } from '../src/engine/doc';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart } from '@barocss/cad-model/engine/doc';
 import { bodyMass, combined, inertiaAbout } from '../src/app/mass';
 
 test('mass: a block\'s inertia about its centre and about a corner, in steel; two bodies\' centre of mass', () => {

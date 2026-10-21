@@ -6,7 +6,7 @@
 import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { registerTeamLibraries, serveMcp, type McpStore } from './cadMcp';
 
 /** Why a path is not a local .bcad (or .json) file the tools may use, or null. */

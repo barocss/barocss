@@ -3,11 +3,11 @@
 // voxels of size h, each with its count and the best manipulability seen there, w = √det(J Jᵀ) (RM7's Jacobian, its
 // position rows). A pose whose links interpenetrate (RM6's exact test, when the links are given) is left out and counted.
 // Ranges: a joint's limits where set; else a turn [−π, π]; a slide must have its limits.
-import type { JointTree } from './joints';
-import { forwardKinematics } from './fk';
-import { pathTo, probeAt, toolProbe, unknownsOf } from './ik';
+import type { JointTree } from '@barocss/cad-model/robot/joints';
+import { forwardKinematics } from '@barocss/cad-model/robot/fk';
+import { pathTo, probeAt, toolProbe, unknownsOf } from '@barocss/cad-model/robot/ik';
 import { convexDistance } from '@barocss/cad-model/robot/gjk';
-import { meshesMeet, partParent, type SweepLink } from './sweep';
+import { meshesMeet, partParent, type SweepLink } from '@barocss/cad-model/robot/sweep';
 
 export interface WorkspaceOptions {
   link: string;

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { gizmoAxes, movedInstance, previewMatrix, turnedInstance } from '../src/assembly/drag';
-import { rotationMatrix } from '../src/assembly/mates';
-import { rectanglePart, type PartInstance } from '../src/engine/doc';
+import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
+import { rectanglePart, type PartInstance } from '@barocss/cad-model/engine/doc';
 
 type V = [number, number, number];
 const placeOf = (inst: PartInstance, p: V): V => { const R = rotationMatrix(inst.rotation); return [0, 1, 2].map(i => R[i * 3] * p[0] + R[i * 3 + 1] * p[1] + R[i * 3 + 2] * p[2] + inst.position[i]) as V; };

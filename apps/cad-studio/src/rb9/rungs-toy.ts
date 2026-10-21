@@ -2,9 +2,9 @@
 // two solids not meeting; every facing gap (the bore round the axle, the flange below, the flange above, from the B-rep's
 // exact cylinders and planes) within [fitGap, 2·fitGap] of the process profile; the printing rules with no failure; and
 // the ring captive — no straight slide along ±X, ±Y or ±Z gets it out (captive.ts, on RM6's certified sweep).
-import { dispatchTool, type ChatState } from '../chat/tools';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { processProfile } from '@barocss/cad-model/library/materials';
-import type { BodyResult } from '../engine/evaluate';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { captivity } from './captive';
 import type { Call, Outcome, Params, Rung } from './core';
 import { cylindersOf, holds } from './measure';

@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { MATERIALS_DATA, checkMaterials, materialData, processProfile, type MaterialsData } from '@barocss/cad-model/library/materials';
-import { printability } from '../src/print/rules';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { withLook } from '../src/app/bodies';
-import { dispatchTool } from '../src/chat/tools';
+import { printability } from '@barocss/cad-model/print/rules';
+import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { withLook } from '@barocss/cad-model/app/bodies';
+import { dispatchTool } from '@barocss/cad-model/chat/tools';
 
 // IM1 (O77): injection moulding's process rule in the manufacturability report — the values sourced page by page
 // (Protolabs, read 2026-10-21), the pull and finish on the document, walls against the process and the material's

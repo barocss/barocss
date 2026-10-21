@@ -2,15 +2,15 @@
 // code the worker runs (brepsFor → projectViews), checks view extents, visible / hidden pieces at known
 // places, sheet layout and scale, dimension values after model edits, and projection time.
 //   node test/qa/run-engine-probe.mjs drawing-probe.ts
-import { brepsFor } from '../../src/engine/evaluate';
-import { cylinderPart, emptyDoc, loftTop, rectanglePart, starterDoc, withNode, type ModelNode, type StudioDoc } from '../../src/engine/doc';
-import { projectViews } from '../../src/drawing/project';
-import { layoutSheet, scaleLabel } from '../../src/drawing/views';
-import { resolveDimension, snapPoints } from '../../src/drawing/dimensions';
-import { buildSheet } from '../../src/drawing/sheet';
+import { brepsFor } from '@barocss/cad-model/engine/evaluate';
+import { cylinderPart, emptyDoc, loftTop, rectanglePart, starterDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { projectViews } from '@barocss/cad-model/drawing/project';
+import { layoutSheet, scaleLabel } from '@barocss/cad-model/drawing/views';
+import { resolveDimension, snapPoints } from '@barocss/cad-model/drawing/dimensions';
+import { buildSheet } from '@barocss/cad-model/drawing/sheet';
 import { sheetSvg } from '../../src/drawing/svg';
 import { sheetPdf } from '../../src/drawing/pdf';
-import { defaultDrawing, type DrawingDimension, type DrawingViews, type ViewId } from '../../src/drawing/types';
+import { defaultDrawing, type DrawingDimension, type DrawingViews, type ViewId } from '@barocss/cad-model/drawing/types';
 import type { ProjectedCurve } from '@barocss/cad';
 
 type Row = { id: string; area: string; name: string; ok: boolean; expected?: unknown; actual?: unknown; note?: string };

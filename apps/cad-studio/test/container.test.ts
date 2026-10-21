@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
-import { blobRefs, blobsAsBase64, blobsFromBase64, getBlob, inlineMeshes, meshNodeBlobs, putKnownBlob, sha256 } from '../src/engine/blobs';
+import { blobRefs, blobsAsBase64, blobsFromBase64, getBlob, inlineMeshes, meshNodeBlobs, putKnownBlob, sha256 } from '@barocss/cad-model/engine/blobs';
 import { decodeStudioFile, encodeStudioFile, isContainer, readStudioFile } from '../src/engine/container';
-import { WireReceiver, WireSender } from '../src/engine/wireDoc';
+import { WireReceiver, WireSender } from '@barocss/cad-model/engine/wireDoc';
 
 // M1 (R3.3): mesh arrays as blobs named by SHA-256; the .bcad container; plain JSON when there are none.
 const block = () => meshInMM(readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures/block-cm.stl')))), 'cm');

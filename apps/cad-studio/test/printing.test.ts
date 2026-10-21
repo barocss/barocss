@@ -19,11 +19,11 @@ test('AM1 profiles: five processes (SLS and MJF added), every printing one with 
   assert.ok(problems.includes('printer x: injection is not a printing process') && problems.includes('sla: no minHoleMM'), problems.join(' | '));
 });
 
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { faceTableOf } from '../src/assembly/faces';
-import { overhangOf } from '../src/print/overhang';
-import { runCheck } from '../src/chat/spec';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { faceTableOf } from '@barocss/cad-model/assembly/faces';
+import { overhangOf } from '@barocss/cad-model/print/overhang';
+import { runCheck } from '@barocss/cad-model/chat/spec';
 
 const bodiesOf = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.hint); return r.ok ? r.bodies : []; };
 /** A body from raw part-model features (a library node, as a library part is). */
@@ -69,8 +69,8 @@ test('AM2 overhang_area as a requirement: FDM measures it; powder (SLS) has no l
   assert.equal((await run('injection')).status, 'unknown'); assert.equal((await run()).status, 'unknown');
 });
 
-import { printability, cavitiesOf } from '../src/print/rules';
-import { withLook } from '../src/app/bodies';
+import { printability, cavitiesOf } from '@barocss/cad-model/print/rules';
+import { withLook } from '@barocss/cad-model/app/bodies';
 
 const evaluate = async (d: StudioDoc) => evaluateDoc(d, 1);
 const report = async (doc: StudioDoc, direction?: [number, number, number]) => { const r = await printability(doc, bodiesOf(doc), evaluate, direction ? { direction } : {}); return Object.fromEntries(r.rules.map(x => [x.id, x])); };
@@ -130,7 +130,7 @@ test('AM3 rules that fail or warn: a hole too small to print open; a horizontal 
   assert.deepEqual([q.status, q.measured], ['fail', 0.1]);
 });
 
-import { searchOrientation, orientPart, buildBvh, rayHit, fibonacciDirections } from '../src/print/orient';
+import { searchOrientation, orientPart, buildBvh, rayHit, fibonacciDirections } from '@barocss/cad-model/print/orient';
 
 const tShape = () => {
   let t = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [15, 0], max: [25, 10] });
@@ -182,7 +182,7 @@ test('AM4 performance: 100 000 triangles oriented (well under 6 s even under loa
   assert.ok(r.ms < 6000, `${r.ms} ms for ${tris} triangles`);
   if (process.env.AM_PERF) console.log(`AM4 perf: ${tris} triangles, ${r.candidates} candidates, ${r.ms.toFixed(0)} ms`);
   // The snap hook on a plate's top face: printed up +Z its beam stands up (across the layers) — warned; up +X it lies in them.
-  const { addLibraryPartToBody } = await import('../src/library/libraries');
+  const { addLibraryPartToBody } = await import('@barocss/cad-model/library/libraries');
   const plate = (direction: [number, number, number]) => withLook({ ...rectanglePart(60, 40, 3), process: 'fdm', print: { direction } }, bodiesOf(rectanglePart(60, 40, 3))[0], { material: 'abs' });
   const on = (direction: [number, number, number]) => (addLibraryPartToBody(plate(direction), 'enclosure', 'snap-hook', {}, { body: { node: 1, side: 'solid' }, face: 'n1.top', point: [30, 20, 3], normal: [0, 0, 1] }) as { node: Extract<ModelNode, { kind: 'library' }> }).node;
   assert.ok(on([0, 0, 1]).warnings.some(w => /^print-plane: printed in layers/.test(w)));
@@ -190,8 +190,8 @@ test('AM4 performance: 100 000 triangles oriented (well under 6 s even under loa
 });
 
 test('AM4 through the agent tool: orient_for_print scores (apply false changes nothing), then applies the best direction to the document\'s print settings; refused with no process chosen', async () => {
-  const { runTool } = await import('../src/chat/tools');
-  const { evaluatePart } = await import('../src/engine/evaluate');
+  const { runTool } = await import('@barocss/cad-model/chat/tools');
+  const { evaluatePart } = await import('@barocss/cad-model/engine/evaluate');
   const evaluate = async (d: StudioDoc) => evaluatePart(d, 1);
   const doc = { ...tShape(), process: 'fdm' }, r0 = await evaluate(doc); assert.ok(r0.ok);
   const s = { doc, bodies: r0.ok ? r0.bodies : [] };

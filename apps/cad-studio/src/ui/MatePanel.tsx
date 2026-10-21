@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import type { PartInstance } from '../engine/doc';
-import { fmt } from '../engine/doc';
-import { BASE, KIND_LABEL, kindsFor, mateLabel, type FaceTable, type Mate, type MateKind, type MateRef } from '../assembly/mates';
+import type { PartInstance } from '@barocss/cad-model/engine/doc';
+import { fmt } from '@barocss/cad-model/engine/doc';
+import { BASE, KIND_LABEL, kindsFor, mateLabel, type FaceTable, type Mate, type MateKind, type MateRef } from '@barocss/cad-model/assembly/mates';
 import type { Assembly } from '../assembly/useAssembly';
 import { Icon } from './atoms';
 

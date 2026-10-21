@@ -5,7 +5,7 @@
 // composition from RM2's product of exponentials, so the two checked against each other test the exports. The
 // external validators (usd-core's UsdPhysics parser, libsdformat) wait for the owner's go-ahead (O62).
 import { parseXml, type XmlNode } from '@barocss/cad-model/robot/urdfCheck';
-import type { Mat3, V3 } from './inertia';
+import type { Mat3, V3 } from '@barocss/cad-model/robot/inertia';
 
 export interface ModelLink { name: string; R: Mat3; o: V3; mass: number; com: V3; inertia: Mat3 }
 export interface ModelJoint { name: string; type: string; parent: string; child: string; axis: V3; limit?: { lower?: number; upper?: number; effort?: number; velocity?: number }; mimic?: { joint: string; multiplier: number; offset: number } }

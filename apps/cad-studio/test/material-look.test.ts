@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart } from '../src/engine/evaluate';
-import { rectanglePart, type StudioDoc } from '../src/engine/doc';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { APPEARANCES, defaultRender } from '@barocss/cad-model/engine/render';
-import { lookKey, lookOf, materialIdOf, withLook } from '../src/app/bodies';
-import { massProperties } from '../src/chat/analysis';
-import { linkInertia } from '../src/robot/inertia';
-import { printability } from '../src/print/rules';
-import { bomView } from '../src/team/assembly';
-import { dispatchTool } from '../src/chat/tools';
+import { lookKey, lookOf, materialIdOf, withLook } from '@barocss/cad-model/app/bodies';
+import { massProperties } from '@barocss/cad-model/chat/analysis';
+import { linkInertia } from '@barocss/cad-model/robot/inertia';
+import { printability } from '@barocss/cad-model/print/rules';
+import { bomView } from '@barocss/cad-model/team/assembly';
+import { dispatchTool } from '@barocss/cad-model/chat/tools';
 
 // #2177 (O39): an engineering material (its density, its sources) is never inferred from a display look. A body named
 // "Steel bracket", coloured as the Steel appearance, with the Steel PBR preset on it and a brief whose finish says steel,

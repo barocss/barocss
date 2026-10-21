@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { flatPatternDxf, writeDxf } from '@barocss/cad';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { toPartDocument } from '../src/engine/part';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { toPartDocument } from '@barocss/cad-model/engine/part';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 
 // R12.5 (D121): the RB9 ladder's sheet-metal rungs — 5, an L-bracket, and 10, a PCB enclosure — built by the agent's
 // tools from the calls in test/fixtures (the flow sends the same calls through the real chat). Acceptance by closed forms

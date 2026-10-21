@@ -2,15 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
-import type { Mate } from '../src/assembly/mates';
-import { solveDoc } from '../src/chat/assembly';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { treeOfDoc } from '../src/chat/robot';
-import { coordinates, linkBodies, massMatrix, rnea, type LinkBody } from '../src/robot/dynamics';
-import type { JointTree } from '../src/robot/joints';
-import { MOTOR_FIELDS, MOTORS, REDUCER_FIELDS, REDUCERS, si, sizeActuators, type Check, type Motor, type Reducer, type Value } from '../src/robot/actuators';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { Mate } from '@barocss/cad-model/assembly/mates';
+import { solveDoc } from '@barocss/cad-model/chat/assembly';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { coordinates, linkBodies, massMatrix, rnea, type LinkBody } from '@barocss/cad-model/robot/dynamics';
+import type { JointTree } from '@barocss/cad-model/robot/joints';
+import { MOTOR_FIELDS, MOTORS, REDUCER_FIELDS, REDUCERS, si, sizeActuators, type Check, type Motor, type Reducer, type Value } from '@barocss/cad-model/robot/actuators';
 
 // RD3 (O22): actuator sizing. The checks against their closed forms on a joint with no gravity load (a trapezoid: the
 // motor torque constant on each segment, so every integral is exact), the dwell's share of the RMS exactly, the choice
@@ -197,7 +197,7 @@ test('O75: a stated stop — the reducer\'s momentary peak torque checked agains
 });
 
 test('O75: sizing coupled — each chosen pair a point mass at its joint on the parent link; the shoulder\'s load inertia grows by M·d² of the elbow\'s; the choices settled and a fixed point', async () => {
-  const { sizeCoupled, withPointMass } = await import('../src/robot/actuators');
+  const { sizeCoupled, withPointMass } = await import('@barocss/cad-model/robot/actuators');
   const doc = JSON.parse(readFileSync(join(CASES, 'chain-2r', 'case.json'), 'utf8')).input.document as StudioDoc, { tree, bodies } = await robotOf(doc), keys = coordinates(tree);
   const lim = () => ({ velocity: 3, acceleration: 20 }), to = { [keys[0]]: 1, [keys[1]]: -1 };
   const c = sizeCoupled(tree, bodies, {}, to, 'trapezoid', lim);

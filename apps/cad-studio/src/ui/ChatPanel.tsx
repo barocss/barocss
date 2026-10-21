@@ -2,15 +2,15 @@
 // preview. Turns run on the chat server (the claude CLI with the studio's tools); the part changes here
 // only through `onCommit`, once per turn, so one undo takes a turn back.
 import { useEffect, useRef, useState } from 'react';
-import type { StudioDoc } from '../engine/doc';
-import type { BodyResult } from '../engine/evaluate';
-import type { NameSelection } from '../chat/tools';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import type { NameSelection } from '@barocss/cad-model/chat/tools';
 import { chatStatus, newChatBlobs, runServerTurn, type ChatStatus } from '../chat/client';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
-import { diffLine, withHistory } from '../chat/proposals';
-import { treeDiff } from '../chat/transactions';
+import { diffLine, withHistory } from '@barocss/cad-model/chat/proposals';
+import { treeDiff } from '@barocss/cad-model/chat/transactions';
 import { latestPump, reshareNodes } from '../chat/pump';
-import { modelHash } from '../chat/spec';
+import { modelHash } from '@barocss/cad-model/chat/spec';
 import { Icon } from './atoms';
 import './chat.css';
 

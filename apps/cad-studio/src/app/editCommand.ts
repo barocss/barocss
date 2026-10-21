@@ -1,15 +1,15 @@
 // Editing a feature already in the part by dragging: the feature's own dimensions (the feature editor's
 // fields, app/editFields.ts) as a command, with arrows in the viewport where they act. Selecting a body
 // shows them; dragging one opens the edit with the usual preview, limits and Apply.
-import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode } from '../engine/doc';
+import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode } from '@barocss/cad-model/engine/doc';
 import { toWorld } from '@barocss/cad-model/sketch/plane';
-import { editFields } from './editFields';
-import { planeOf, profileMiddle } from './profiles';
-import { replaceRange } from '../chat/features';
-import { commands, type Command, type Ctx, type Field, type HandleSpec, type Selection, type Values } from './commands';
-import type { BodyResult } from '../engine/evaluate';
-import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
-import { refOf } from './bodyRef';
+import { editFields } from '@barocss/cad-model/app/editFields';
+import { planeOf, profileMiddle } from '@barocss/cad-model/app/profiles';
+import { replaceRange } from '@barocss/cad-model/chat/features';
+import { commands, type Command, type Ctx, type Field, type HandleSpec, type Selection, type Values } from '@barocss/cad-model/app/commands';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { bodyKeyFor, featureId, nodeIndexOf } from '@barocss/cad-model/engine/ids';
+import { refOf } from '@barocss/cad-model/app/bodyRef';
 
 type V3 = [number, number, number];
 const ok = { ok: true as const };

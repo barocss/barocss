@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { rectanglePart, type StudioDoc } from '../src/engine/doc';
-import { runTool, type ChatState } from '../src/chat/tools';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { readStudioDoc } from '../src/engine/migrate';
 
 // Requirements as declarative checks (A3.1): kept in the document, run by check_spec.
@@ -102,7 +102,7 @@ test('policy: the best snapshot, rounds without progress and a restart hint; a c
 });
 
 test('gear queries (R6a.4b, D56): centre distance, backlash, contact ratio and clearance of two gears as placed; a crossing measured as minus its depth; not gears, unknown', async () => {
-  const { commands } = await import('../src/app/commands');
+  const { commands } = await import('@barocss/cad-model/app/commands');
   const gear = commands.find(c => c.id === 'gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!;
   const ctx0 = { doc: { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 } as StudioDoc, bodies: [], selection: { faces: [], edges: [], bodies: [] } };
   const one = gear.build!(ctx0, { ...gear.defaults!(ctx0), m: 2, teeth: 20, b: 10, bore: 8, x: 0, y: 0, z: 0 }), r1 = await evaluate(one); assert.ok(r1.ok);

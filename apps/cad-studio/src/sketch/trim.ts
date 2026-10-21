@@ -3,9 +3,9 @@
 // the shape left open is an outline with ends, and open outlines meeting end to end join — when they
 // close up, into one closed outline. A rectangle and a circle across its edge become a keyhole after two
 // trims: the rectangle's edge inside the circle, then the circle's arc inside the rectangle.
-import type { SketchShape } from './types';
+import type { SketchShape } from '@barocss/cad-model/sketch/types';
 import { arcOf } from '@barocss/cad-model/sketch/profile';
-import { carryPolygon, inheritIds, nextIdOf, withIds } from './entityIds';
+import { carryPolygon, inheritIds, nextIdOf, withIds } from '@barocss/cad-model/sketch/entityIds';
 
 type P2 = [number, number];
 type Poly = { points: P2[]; bulges: number[]; closed: boolean };

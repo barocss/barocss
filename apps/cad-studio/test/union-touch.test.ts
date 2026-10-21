@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 
 /** Two 10 mm cubes, the second at (x, y, z), then their union. */
 function pair(x: number, y: number, z: number): StudioDoc {

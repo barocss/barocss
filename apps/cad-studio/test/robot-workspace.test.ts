@@ -2,17 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart, placeBody, type BodyResult } from '../src/engine/evaluate';
-import type { StudioDoc } from '../src/engine/doc';
-import { rotationMatrix } from '../src/assembly/mates';
-import { solveDoc } from '../src/chat/assembly';
-import { treeOfDoc } from '../src/chat/robot';
-import { applyTo, forwardKinematics } from '../src/robot/fk';
+import { evaluatePart, placeBody, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
+import { solveDoc } from '@barocss/cad-model/chat/assembly';
+import { treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { applyTo, forwardKinematics } from '@barocss/cad-model/robot/fk';
 import { convexHull } from '@barocss/cad-model/robot/hull';
-import { probeAt, toolProbe } from '../src/robot/ik';
-import { meshesMeet, partParent, sweepLinks } from '../src/robot/sweep';
+import { probeAt, toolProbe } from '@barocss/cad-model/robot/ik';
+import { meshesMeet, partParent, sweepLinks } from '@barocss/cad-model/robot/sweep';
 import { workspaceMap, WorkspaceError } from '../src/robot/workspace';
-import type { Joint, JointTree } from '../src/robot/joints';
+import type { Joint, JointTree } from '@barocss/cad-model/robot/joints';
 
 // RM9b (O62): a workspace map. The planar 2R (l₁ 80, l₂ 50) against its annulus 30 ≤ r ≤ 130 — every occupied voxel
 // meets it, every voxel wholly inside it is occupied — and w = l₁ l₂ |sin θ₂|; the elbow limited to [0, π/2], its own

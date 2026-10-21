@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { withLook } from '../src/app/bodies';
+import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { withLook } from '@barocss/cad-model/app/bodies';
 import { MATERIALS_DATA, checkMaterials, processProfile } from '@barocss/cad-model/library/materials';
-import { printability } from '../src/print/rules';
-import { dispatchTool } from '../src/chat/tools';
+import { printability } from '@barocss/cad-model/print/rules';
+import { dispatchTool } from '@barocss/cad-model/chat/tools';
 
 // CNC1 (O84): machining's process rule — the milling and turning profiles sourced page by page (Hubs, Protolabs, read
 // 2026-10-21); the material's family choosing the wall limits (a metal's 0.5 feasible, 0.8 recommended; a plastic's

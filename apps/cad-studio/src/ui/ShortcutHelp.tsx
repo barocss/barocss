@@ -1,7 +1,7 @@
 // The keyboard and mouse at a glance (? opens it): every command's key by group, the general keys, and
 // how the mouse moves the view and picks.
 import { useEffect } from 'react';
-import { commands } from '../app/commands';
+import { commands } from '@barocss/cad-model/app/commands';
 import { Icon, Kbd } from './atoms';
 
 const GROUPS: [string, string][] = [['create', 'Create'], ['modify', 'Modify'], ['pattern', 'Pattern'], ['combine', 'Combine'], ['inspect', 'Inspect']];

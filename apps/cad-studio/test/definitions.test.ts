@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { rectanglePart, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import { rectanglePart, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { acceptRevision, dismissRevision, freshPartId, makeIndependent, offerRevision, revisionOf, sharing } from '../src/assembly/definitions';
 
 const pin = rectanglePart(10, 10, 20), taller = rectanglePart(10, 10, 30);

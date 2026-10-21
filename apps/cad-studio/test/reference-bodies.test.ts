@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart, stepFor } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { chordOf, datumWorld, readReferences, referenceLocal, verdictOf, verifyDatums } from '../src/chat/references';
+import { evaluatePart, stepFor } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { chordOf, datumWorld, readReferences, referenceLocal, verdictOf, verifyDatums } from '@barocss/cad-model/chat/references';
 
 // A6.3 (O26): a STEP or mesh file as a locked reference body, its datums and keep-outs. Datums against the faces'
 // closed forms to 1e-9 (placed and turned); the reference locked (typed refusals) and in no mass, export or tree; keep-out
@@ -112,7 +112,7 @@ test('keep-out verdicts against closed forms: box ∩ box overlap 125 mm³ exact
   assert.ok(by('K3').verdict === 'undecided' && Math.abs(chord - 5 * (1 - Math.cos(Math.PI / 32))) < 1e-4 && Math.abs(by('K3').clearance_mm - 5) <= chord, JSON.stringify(by('K3')));
   assert.match(by('K3').why, /chord tolerance 0\.0241 mm/);
   // (The tolerance is an upper bound: every point of the cylinder's mesh is within it of the true surface.)
-  const { withKeepout } = await import('../src/chat/references'), probe = withKeepout(s.doc, readReferences(s.doc.references).keepouts[2]), ev = await evaluate(probe.doc);
+  const { withKeepout } = await import('@barocss/cad-model/chat/references'), probe = withKeepout(s.doc, readReferences(s.doc.references).keepouts[2]), ev = await evaluate(probe.doc);
   assert.ok(ev.ok); const m = ev.bodies.at(-1)!.mesh;
   let worst = 0;
   for (let t = 0; t < m.indices.length / 3; t++) {

@@ -1,8 +1,8 @@
 // A part instance dragged with the viewport gizmo: moved along a world axis, or turned about one through
 // the centre of its box, as a new placement (position, rotation X then Y then Z in degrees). The
 // matrices are what the renderer shows while dragging, before the instance is evaluated there.
-import type { PartInstance } from '../engine/doc';
-import { eulerOf, rotationMatrix, type Freedom } from './mates';
+import type { PartInstance } from '@barocss/cad-model/engine/doc';
+import { eulerOf, rotationMatrix, type Freedom } from '@barocss/cad-model/assembly/mates';
 import type { Axis3 } from '@barocss/cad-model/engine/vec3';
 
 type Vec3 = [number, number, number];

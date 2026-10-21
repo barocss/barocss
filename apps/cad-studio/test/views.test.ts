@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { writeFileSync } from 'node:fs';
-import { evaluatePart } from '../src/engine/evaluate';
-import { rectanglePart, type StudioDoc } from '../src/engine/doc';
-import { runTool, type ChatState } from '../src/chat/tools';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
 
 // Views for an agent (A2.3): one PNG sheet of exact line views with numbered faces, and its legend.
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);

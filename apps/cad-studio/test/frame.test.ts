@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { commands } from '../src/app/commands';
-import { evaluateDoc, evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, featureLabel, rectanglePart, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
-import { flattenAssembly } from '../src/assembly/flatten';
+import { commands } from '@barocss/cad-model/app/commands';
+import { evaluateDoc, evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, featureLabel, rectanglePart, withNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { flattenAssembly } from '@barocss/cad-model/assembly/flatten';
 import { readStudioDoc } from '../src/engine/migrate';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { editFields } from '../src/app/editFields';
-import { bodyName, withLook } from '../src/app/bodies';
-import { partCutList } from '../src/app/cutList';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { editFields } from '@barocss/cad-model/app/editFields';
+import { bodyName, withLook } from '@barocss/cad-model/app/bodies';
+import { partCutList } from '@barocss/cad-model/app/cutList';
 import { MATERIALS } from '@barocss/cad-model/app/materials';
 import { cutText } from '../src/ui/CutListDialog';
 

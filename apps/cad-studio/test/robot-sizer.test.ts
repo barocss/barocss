@@ -4,14 +4,14 @@ import { spawn } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import type { StudioDoc } from '../src/engine/doc';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
 import { readStudioFile } from '../src/engine/container';
-import { robotCheckOfDoc, robotSizeOfDoc } from '../src/chat/robot';
-import type { Duty } from '../src/robot/harness';
-import { capability } from '../src/robot/sizer';
-import { MOTORS, REDUCERS } from '../src/robot/actuators';
+import { robotCheckOfDoc, robotSizeOfDoc } from '@barocss/cad-model/chat/robot';
+import type { Duty } from '@barocss/cad-model/robot/harness';
+import { capability } from '@barocss/cad-model/robot/sizer';
+import { MOTORS, REDUCERS } from '@barocss/cad-model/robot/actuators';
 
 // RD10 (O46, O48), the deterministic part: RD9's arm-3r taken from an undersized start — ratings too low, every joint on
 // 100:1, a fast duty — to every harness margin above 0 by the scripted sizer, one change a round, each round naming the

@@ -3,17 +3,17 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { dxfHatchLines, writeDxf, type DxfDocument, type DxfEntity } from '@barocss/cad';
-import { brepsFor } from '../src/engine/evaluate';
-import { starterDoc, type SketchNode, type StudioDoc } from '../src/engine/doc';
-import { projectViews } from '../src/drawing/project';
-import { layoutSheet } from '../src/drawing/views';
-import { snapPoints } from '../src/drawing/dimensions';
-import { buildSheet, hatch, type Mark } from '../src/drawing/sheet';
-import { sectionOf } from '../src/drawing/section';
+import { brepsFor } from '@barocss/cad-model/engine/evaluate';
+import { starterDoc, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { projectViews } from '@barocss/cad-model/drawing/project';
+import { layoutSheet } from '@barocss/cad-model/drawing/views';
+import { snapPoints } from '@barocss/cad-model/drawing/dimensions';
+import { buildSheet, hatch, type Mark } from '@barocss/cad-model/drawing/sheet';
+import { sectionOf } from '@barocss/cad-model/drawing/section';
 import { sheetSvg } from '../src/drawing/svg';
 import { arcEntity, sectionDxfDocument, sheetDxf, sheetDxfDocument } from '../src/drawing/dxf';
 import { sketchDxfDocument } from '../src/sketch/dxf';
-import { defaultDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
+import { defaultDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '@barocss/cad-model/drawing/types';
 
 // R11b (O1): the drawing, a section and a sketch as DXF. The documents handed to the kernel's writer are the
 // kernel's conformance inputs (packages/barocss-cad/conformance/r11b/<case>/document.json); UPDATE_DXF_FIXTURES=1

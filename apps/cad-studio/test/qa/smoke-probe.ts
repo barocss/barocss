@@ -3,17 +3,17 @@
 // remaining-freedom report, section A–A and angular dimensions on drawings.
 //   node test/qa/run-engine-probe.mjs smoke-probe.ts
 import { settleShape } from '../../src/sketch/settle';
-import { commitDimension, type Polygon } from '../../src/sketch/rules';
-import { profileOf, shapeNode } from '../../src/sketch/loops';
-import { sketchShapes } from '../../src/sketch/reopen';
-import { editFields } from '../../src/app/editFields';
-import { evaluateDoc, brepsFor, evaluatePart } from '../../src/engine/evaluate';
-import { emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type SketchNode, type StudioDoc } from '../../src/engine/doc';
-import { faceTableOf, ORIGIN_PLANES } from '../../src/assembly/faces';
-import { BASE, solveAssembly, type FaceTable, type Mate } from '../../src/assembly/mates';
-import { sectionOf } from '../../src/drawing/section';
-import { projectViews } from '../../src/drawing/project';
-import { resolveDimension } from '../../src/drawing/dimensions';
+import { commitDimension, type Polygon } from '@barocss/cad-model/sketch/rules';
+import { profileOf, shapeNode } from '@barocss/cad-model/sketch/loops';
+import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
+import { editFields } from '@barocss/cad-model/app/editFields';
+import { evaluateDoc, brepsFor, evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { faceTableOf, ORIGIN_PLANES } from '@barocss/cad-model/assembly/faces';
+import { BASE, solveAssembly, type FaceTable, type Mate } from '@barocss/cad-model/assembly/mates';
+import { sectionOf } from '@barocss/cad-model/drawing/section';
+import { projectViews } from '@barocss/cad-model/drawing/project';
+import { resolveDimension } from '@barocss/cad-model/drawing/dimensions';
 import type { P2 } from '@barocss/cad-model/sketch/profile';
 
 type Row = { id: string; area: string; name: string; ok: boolean; expected?: unknown; actual?: unknown };

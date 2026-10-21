@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, stlFor, type BodyResult } from '../src/engine/evaluate';
+import { evaluateDoc, stlFor, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { readStl } from '@barocss/cad';
-import { emptyDoc, featureLabel, type StudioDoc } from '../src/engine/doc';
-import { commands, type Ctx } from '../src/app/commands';
+import { emptyDoc, featureLabel, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { commands, type Ctx } from '@barocss/cad-model/app/commands';
 import { editCommand } from '../src/app/editCommand';
-import { FASTENER_SIZES, fastenerFit, fastenerName, fastenerThread, holeFit, lengthsOf, sizeForHole } from '../src/app/fasteners';
+import { FASTENER_SIZES, fastenerFit, fastenerName, fastenerThread, holeFit, lengthsOf, sizeForHole } from '@barocss/cad-model/app/fasteners';
 
 const ctx: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const f = commands.find(c => c.id === 'fastener')!;
@@ -43,7 +43,7 @@ test('a placed bolt edits as itself (five steps rebuilt in place); lengths follo
 });
 
 test('a bolt edited into a nut: fewer steps, and the features after it follow', async () => {
-  const { withNode } = await import('../src/engine/doc');
+  const { withNode } = await import('@barocss/cad-model/engine/doc');
   let doc = f.build!(ctx, { ...f.defaults!(ctx), size: 'M6', length: '20', x: 0, y: 0, z: 0 });
   const top = doc.nodes.length - 1;
   doc = withNode(doc, { kind: 'translate', parent: { node: top, side: 'solid' }, offset: [50, 0, 0] });
@@ -118,7 +118,7 @@ test('a countersunk socket screw (ISO 10642): its head sunk below the seat, flus
 });
 
 test('a fastener inserted as a part of its own: an instance at the seat, turned out of its face, its thread remembered', async () => {
-  const { withFastenerInstance } = await import('../src/app/fasteners');
+  const { withFastenerInstance } = await import('@barocss/cad-model/app/fasteners');
   const v = { ...f.defaults!(ctx), kind: 'hex-bolt', size: 'M8', length: '30', x: 5, y: 6, z: 7, insert: 'instance', up: '+x' };
   const doc = f.build!(ctx, v);
   assert.equal(doc.nodes.length, 0, 'nothing joins the part');

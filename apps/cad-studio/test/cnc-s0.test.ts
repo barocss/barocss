@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { buildBvh, rayHit } from '../src/print/orient';
-import { exactNormals } from '../src/mould/draft';
-import { wallsOf } from '../src/mould/walls';
-import { faceTableOf } from '../src/assembly/faces';
+import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { buildBvh, rayHit } from '@barocss/cad-model/print/orient';
+import { exactNormals } from '@barocss/cad-model/mould/draft';
+import { wallsOf } from '@barocss/cad-model/mould/walls';
+import { faceTableOf } from '@barocss/cad-model/assembly/faces';
 
 // CNC S0 (O83): what the machining track can measure exactly today, against closed forms and constructed cases, with
 // no kernel-core change — a pocket's corner radius and depth (exact cylinders and planes), six-direction access and a

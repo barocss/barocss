@@ -4,8 +4,8 @@
 // not run when an earlier gate stopped the patch or it had nothing to check (a skipped gate) — and then the patch is not
 // counted for it. Over every patch it ran on: true and false positives and negatives, precision and recall. The
 // scripted roles' numbers are computed here; the same report with live roles waits for the owner (O30).
-import type { Trace } from './team';
-import type { PartTrace } from './parts';
+import type { Trace } from '@barocss/cad-model/team/team';
+import type { PartTrace } from '@barocss/cad-model/team/parts';
 
 export type Detection = 'flag' | 'clear' | 'not_run';
 export interface Labelled { case: string; traces: (Trace | PartTrace)[]; seeded: (string | string[] | null)[] }

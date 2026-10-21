@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { referencesOf, markedReferences } from '../src/engine/references';
-import { modelHash } from '../src/chat/spec';
-import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { referencesOf, markedReferences } from '@barocss/cad-model/engine/references';
+import { modelHash } from '@barocss/cad-model/chat/spec';
+import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 
 // PERF3 A6 (D82): the references' copy is copy-on-write — the setters never reach the source (frozen here), the
 // nodes they do not touch stay the same objects — and the read-only walk copies nothing.

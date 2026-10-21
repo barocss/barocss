@@ -3,8 +3,8 @@
 // part, or as a new placed part; a user library is added from a file, and shared with the team only when it is
 // licensed, confirmed if an agent wrote it, and passes its check (run again by the server).
 import { useEffect, useState } from 'react';
-import type { StudioDoc } from '../engine/doc';
-import { confirmDocLibrary, insertLibraryPart, libraries, libraryEntry, libraryInstance, registerDocLibraries, registerLibrary, shareRefusal, type LibraryEntry, type LibrarySource } from '../library/libraries';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { confirmDocLibrary, insertLibraryPart, libraries, libraryEntry, libraryInstance, registerDocLibraries, registerLibrary, shareRefusal, type LibraryEntry, type LibrarySource } from '@barocss/cad-model/library/libraries';
 import { UNLICENSED } from '@barocss/cad-model/library/sharing';
 import { MATERIALS_DATA, processProfile } from '@barocss/cad-model/library/materials';
 import { Icon } from './atoms';

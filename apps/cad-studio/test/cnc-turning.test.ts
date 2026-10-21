@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { processProfile } from '@barocss/cad-model/library/materials';
-import { machinability } from '../src/machining/report';
-import { holesOf } from '../src/machining/holes';
-import { turningOf } from '../src/machining/turning';
+import { machinability } from '@barocss/cad-model/machining/report';
+import { holesOf } from '@barocss/cad-model/machining/holes';
+import { turningOf } from '@barocss/cad-model/machining/turning';
 
 // CNC6 (O89): turning against closed forms — a revolved stepped shaft (Ø20 × 52, a groove 10 wide and 2 deep, a point
 // of 2·atan(8/12)), a cylinder with a flat (its 12 × 30 = 360 mm² not turned, planar: exact), holes by their axes,

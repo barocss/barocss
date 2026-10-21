@@ -3,16 +3,16 @@ import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { writeDxf } from '@barocss/cad';
-import { brepsFor } from '../src/engine/evaluate';
-import { rectanglePart, starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { projectViews } from '../src/drawing/project';
-import { holeCallout } from '../src/drawing/callout';
-import { drawingIssues, issueContext, type SheetInputs } from '../src/drawing/issues';
-import { autoLayout } from '../src/drawing/layout';
-import { GENERAL_NOTE_PREFIX, POSITION_ESTIMATE_MM, acceptAll, holePosition, toleranceSuggestions } from '../src/drawing/tolerance';
+import { brepsFor } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, starterDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { projectViews } from '@barocss/cad-model/drawing/project';
+import { holeCallout } from '@barocss/cad-model/drawing/callout';
+import { drawingIssues, issueContext, type SheetInputs } from '@barocss/cad-model/drawing/issues';
+import { autoLayout } from '@barocss/cad-model/drawing/layout';
+import { GENERAL_NOTE_PREFIX, POSITION_ESTIMATE_MM, acceptAll, holePosition, toleranceSuggestions } from '@barocss/cad-model/drawing/tolerance';
 import { sheetDxfDocument } from '../src/drawing/dxf';
 import { sheetPdf, pdfMissing } from '../src/drawing/pdf';
-import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
+import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '@barocss/cad-model/drawing/types';
 
 // R14.4 (O5): tolerance and GD&T suggestions. Conformance cases packages/barocss-cad/conformance/r14/tol-<name>/case.json:
 // a studio document and its laid-out drawing in a mode; the suggestions offered (kind, message, estimate) and, after

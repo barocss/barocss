@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { commands, type Ctx } from '../src/app/commands';
-import { threadLines, threadsOf } from '../src/app/threads';
+import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { commands, type Ctx } from '@barocss/cad-model/app/commands';
+import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.title + ' ' + r.error.hint); return r.bodies; };
 /** Ring count and radius range of the segments (32 per ring), about the axis through (cx, cy) along Z. */

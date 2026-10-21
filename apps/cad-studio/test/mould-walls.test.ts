@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { withLook } from '../src/app/bodies';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { wallsOf } from '../src/mould/walls';
-import { printability } from '../src/print/rules';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { withLook } from '@barocss/cad-model/app/bodies';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { wallsOf } from '@barocss/cad-model/mould/walls';
+import { printability } from '@barocss/cad-model/print/rules';
 
 // IM4 (O80): walls, ribs, bosses, inside corners and thick sections, on analytic shells and constructed features —
 // a shelled box (t 2: its nominal and thinnest 2, its eight inside corners sharp), a rib inside it (1.2 = 0.6 t passes,

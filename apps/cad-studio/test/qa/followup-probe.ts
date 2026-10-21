@@ -3,15 +3,15 @@
 // against their edges: the cases a user reaches by accident.
 //   node test/qa/run-engine-probe.mjs followup-probe.ts
 import { settleShape } from '../../src/sketch/settle';
-import { commitDimension, type Polygon } from '../../src/sketch/rules';
-import { profileOf } from '../../src/sketch/loops';
-import { evaluateDoc, stepFor } from '../../src/engine/evaluate';
-import { emptyDoc, leafBodies, prefixDoc, rectanglePart, starterDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../../src/engine/doc';
-import { deleteFeature } from '../../src/chat/features';
-import { faceTableOf, ORIGIN_PLANES } from '../../src/assembly/faces';
-import { BASE, lockRel, solveAssembly, type FaceTable, type Mate } from '../../src/assembly/mates';
-import { defaultDrawing } from '../../src/drawing/types';
-import { toleranceText } from '../../src/drawing/sheet';
+import { commitDimension, type Polygon } from '@barocss/cad-model/sketch/rules';
+import { profileOf } from '@barocss/cad-model/sketch/loops';
+import { evaluateDoc, stepFor } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, leafBodies, prefixDoc, rectanglePart, starterDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { deleteFeature } from '@barocss/cad-model/chat/features';
+import { faceTableOf, ORIGIN_PLANES } from '@barocss/cad-model/assembly/faces';
+import { BASE, lockRel, solveAssembly, type FaceTable, type Mate } from '@barocss/cad-model/assembly/mates';
+import { defaultDrawing } from '@barocss/cad-model/drawing/types';
+import { toleranceText } from '@barocss/cad-model/drawing/sheet';
 import type { P2 } from '@barocss/cad-model/sketch/profile';
 
 type Row = { id: string; area: string; name: string; ok: boolean; expected?: unknown; actual?: unknown };

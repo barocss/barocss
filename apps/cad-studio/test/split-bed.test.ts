@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { interference } from '../src/chat/analysis';
+import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { interference } from '@barocss/cad-model/chat/analysis';
 import { processProfile } from '@barocss/cad-model/library/materials';
-import { fitsBed, planBedSplit, SplitError, type SplitOptions } from '../src/print/splitBed';
+import { fitsBed, planBedSplit, SplitError, type SplitOptions } from '@barocss/cad-model/print/splitBed';
 
 // AM6 (O51): a part too big for the bed split along one axis into the fewest even pieces that fit, with dowel or plug
 // connectors. Piece volumes against the original (exactly before connectors, by the closed form after); each piece

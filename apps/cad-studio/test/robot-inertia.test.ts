@@ -2,15 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { tablesFor } from '../src/assembly/faces';
-import { rotationMatrix } from '../src/assembly/mates';
-import { solveDoc } from '../src/chat/assembly';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { tablesFor } from '@barocss/cad-model/assembly/faces';
+import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
+import { solveDoc } from '@barocss/cad-model/chat/assembly';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { MATERIALS } from '@barocss/cad-model/app/materials';
-import { jointTreeOf } from '../src/robot/joints';
-import { linkFrames, linkInertia, rotateInertia, symmetricEigen, type Frame, type Mat3 } from '../src/robot/inertia';
+import { jointTreeOf } from '@barocss/cad-model/robot/joints';
+import { linkFrames, linkInertia, rotateInertia, symmetricEigen, type Frame, type Mat3 } from '@barocss/cad-model/robot/inertia';
 
 // RM3 (O16): link inertia — an analytic rotated, off-origin cuboid (I = R·diag·Rᵀ about its moved centre), the same in
 // any link frame (I_L = Rᵀ I R), its principal moments the cuboid's own; a cylinder; densities; bodies combined by the

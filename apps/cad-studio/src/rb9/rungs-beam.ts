@@ -3,7 +3,7 @@
 // (beam.ts: Green's theorem on the kernel's cut face) and judges the Euler–Bernoulli beam on those sections:
 // σ = F·L·c / I ≤ σy / 2 and δ = F·L³ / (3 E I) ≤ δmax, where the theory holds (L/h ≥ 5), with the root filleted.
 // Not judged (stated in the report): stress concentration beyond the factor, contact at the wall, flange buckling.
-import { materialIdOf } from '../app/bodies';
+import { materialIdOf } from '@barocss/cad-model/app/bodies';
 import { materialData } from '@barocss/cad-model/library/materials';
 import { beamSection, type BeamSection } from './beam';
 import type { Call, Outcome, Params, Rung } from './core';

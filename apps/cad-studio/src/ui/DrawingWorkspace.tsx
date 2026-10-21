@@ -4,30 +4,30 @@
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { BodyResult } from '../engine/evaluate';
-import { tableContent } from '../drawing/tables';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { tableContent } from '@barocss/cad-model/drawing/tables';
 import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
-import type { StudioDoc } from '../engine/doc';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
-import { buildSheet, curveMark, dimensionMarks } from '../drawing/sheet';
+import { buildSheet, curveMark, dimensionMarks } from '@barocss/cad-model/drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '../drawing/svg';
-import { toleranceText } from '../drawing/sheet';
+import { toleranceText } from '@barocss/cad-model/drawing/sheet';
 import { pdfMissing, sheetPdf } from '../drawing/pdf';
 import { sectionDxfDocument, sheetDxf } from '../drawing/dxf';
-import { MIN_HOLE_ON_PAPER_MM, autoLayout, frontByInformation } from '../drawing/layout';
-import { reorient } from '../drawing/reorient';
-import { applyFix, drawingIssues, fixAll, type DrawingIssue } from '../drawing/issues';
-import { acceptAll, applySuggestion, toleranceSuggestions, type ToleranceSuggestion } from '../drawing/tolerance';
+import { MIN_HOLE_ON_PAPER_MM, autoLayout, frontByInformation } from '@barocss/cad-model/drawing/layout';
+import { reorient } from '@barocss/cad-model/drawing/reorient';
+import { applyFix, drawingIssues, fixAll, type DrawingIssue } from '@barocss/cad-model/drawing/issues';
+import { acceptAll, applySuggestion, toleranceSuggestions, type ToleranceSuggestion } from '@barocss/cad-model/drawing/tolerance';
 import { writeDxf, type DxfVersion } from '@barocss/cad';
-import { holeCallout } from '../drawing/callout';
-import { threadsOf } from '../app/threads';
-import { ORIENTATIONS, SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet, type Orientation } from '../drawing/views';
-import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '../drawing/dimensions';
-import { VIEW_IDS, modelPrint, nextRevision, type DimPoint, type DrawingNote, type DrawingTable, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '../drawing/types';
+import { holeCallout } from '@barocss/cad-model/drawing/callout';
+import { threadsOf } from '@barocss/cad-model/app/threads';
+import { ORIENTATIONS, SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
+import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '@barocss/cad-model/drawing/dimensions';
+import { VIEW_IDS, modelPrint, nextRevision, type DimPoint, type DrawingNote, type DrawingTable, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
 import { Icon, Kbd } from './atoms';
-import type { SectionResult } from '../drawing/section';
+import type { SectionResult } from '@barocss/cad-model/drawing/section';
 import '../drawing/drawing.css';
 
 /** The front view's sides, as the SHEET card names them (R14.3b). */

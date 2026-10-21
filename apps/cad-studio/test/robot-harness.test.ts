@@ -4,18 +4,18 @@ import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
-import type { Mate } from '../src/assembly/mates';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { materialIdOf, withLook } from '../src/app/bodies';
+import type { Mate } from '@barocss/cad-model/assembly/mates';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { materialIdOf, withLook } from '@barocss/cad-model/app/bodies';
 import { materialOf } from '@barocss/cad-model/app/materials';
-import { solveDoc } from '../src/chat/assembly';
-import { readDuty, robotCheckOfDoc, robotOfDoc, treeOfDoc } from '../src/chat/robot';
-import { linkBodies } from '../src/robot/dynamics';
-import { sizeActuators } from '../src/robot/actuators';
-import type { Duty, HarnessReport } from '../src/robot/harness';
+import { solveDoc } from '@barocss/cad-model/chat/assembly';
+import { readDuty, robotCheckOfDoc, robotOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { linkBodies } from '@barocss/cad-model/robot/dynamics';
+import { sizeActuators } from '@barocss/cad-model/robot/actuators';
+import type { Duty, HarnessReport } from '@barocss/cad-model/robot/harness';
 
 // RD9 (O46, O47): the design-check harness v1, without FEA. A 3R arm (base, three 20 × 20 × 80 aluminium blocks on Z, Y,
 // Y, a 60 mm steel cube locked on the last) from its mates, with limits and ratings: on a clean duty every margin is

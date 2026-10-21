@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, rayOnPlane, standardPlane, tiltPlane, toLocal, toWorld, xyPlane } from '@barocss/cad-model/sketch/plane';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { profileOf } from '../src/sketch/loops';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { profileOf } from '@barocss/cad-model/sketch/loops';
 
 const near = (a: readonly number[], b: readonly number[], eps = 1e-9) => a.every((x, i) => Math.abs(x - b[i]) <= eps);
 
@@ -103,7 +103,7 @@ test('a plane tipped about its X axis keeps X and turns its normal towards Y', (
 });
 
 test('loft sections: picked sketches on parallel planes, carried onto the lowest one, ordered by height', async () => {
-  const { loftSections, unusedSketches, pickedSketches } = await import('../src/app/profiles');
+  const { loftSections, unusedSketches, pickedSketches } = await import('@barocss/cad-model/app/profiles');
   const rect = { kind: 'sketch' as const, profile: 'rectangle' as const, min: [0, 0] as [number, number], max: [10, 10] as [number, number] };
   const circle = { kind: 'sketch' as const, profile: 'circle' as const, center: [5, 5] as [number, number], radius: 3, plane: { origin: [0, 0, 20] as [number, number, number], normal: [0, 0, 1] as [number, number, number], xAxis: [1, 0, 0] as [number, number, number] } };
   const nodes = [rect, circle];
@@ -129,7 +129,7 @@ test('loft sections: picked sketches on parallel planes, carried onto the lowest
 });
 
 test('revolve about a picked edge: a straight edge in the sketch plane becomes the axis; others are refused', async () => {
-  const { revolveCommand } = await import('../src/app/profileCommands');
+  const { revolveCommand } = await import('@barocss/cad-model/app/profileCommands');
   let d = rectanglePart(32, 32, 16); d = withNode(d, { kind: 'sketch', profile: 'rectangle', min: [22, 13], max: [29, 19] });
   const ev = evaluateDoc(d, 5); assert.ok(ev.ok);
   const ctx = { doc: d, bodies: ev.bodies, selection: { faces: [], edges: [], bodies: [] } };

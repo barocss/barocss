@@ -5,7 +5,7 @@
 import type { ToolDefinition } from '@barocss/cad-model/chat/api';
 import { annotationsOf, outputSchemaOf, TOOL_CONTRACT_V2, TOOL_CONTRACT_VERSION, type JsonSchema } from '@barocss/cad-model/chat/contract';
 import { GROUPS, V2_OF } from '@barocss/cad-model/chat/groups';
-import { CHAT_COMMANDS, featureKinds, SYSTEM_PROMPT, TOOLS } from './tools';
+import { CHAT_COMMANDS, featureKinds, SYSTEM_PROMPT, TOOLS } from '@barocss/cad-model/chat/tools';
 
 /** `json` (A5.5): v1 without run_script — the A/B's JSON-only arm, today's tools before the script. */
 export type Toolset = 'v1' | 'v2' | 'json';

@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { brepMassProperties, checkPlacedBevelGears, checkPlacedInternalGears, checkPlacedSpurGears, checkPlacedThroatedPair, evaluateCadPart, internalGear, spurGear, type CadPartSnapshot } from '@barocss/cad';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { toPartDocument } from '../src/engine/part';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { toPartDocument } from '@barocss/cad-model/engine/part';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 
 // R12b.7 (D138): the gears' acceptance — a planetary set, a right-angle bevel pair and a worm reducer, each built by the
 // agent's tools in one turn from the calls in test/fixtures (the flow sends the same calls through the real chat).

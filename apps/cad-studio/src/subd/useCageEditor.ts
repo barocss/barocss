@@ -3,10 +3,10 @@
 // once per step), the keys (1 2 3 modes, Tab Box/Smooth, ⌘Z the session's undo, Enter Done, Esc Cancel), and Done
 // writing the node once (one step of the document's undo; the timeline keeps its one feature).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { StudioDoc, ModelNode } from '../engine/doc';
-import type { BodyResult, EvalResult } from '../engine/evaluate';
+import type { StudioDoc, ModelNode } from '@barocss/cad-model/engine/doc';
+import type { BodyResult, EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { triangleMesh, type Vec3 } from '@barocss/cad-model/engine/mesh';
-import { refOf } from '../app/bodyRef';
+import { refOf } from '@barocss/cad-model/app/bodyRef';
 import type { TransformGizmo } from '../viewport/gizmo';
 import type { CageOverlay } from '../viewport/Viewport';
 import { commitDrag, dragged, fullCage, previewTriangles, redoSession, runOp, select, selectionCentre, startSession, undoSession, validationOf, type CageHit, type CageMode, type CageOp, type CageSession } from '@barocss/cad-model/subd/cageEdit';

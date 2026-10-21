@@ -2,9 +2,9 @@
 // the first trials, so the scripted agent's pass^k is not luck), its hidden checker's predicates, its scripted ideal
 // agent, its mutants; one trial built on a fresh document through the agent's own tools (dispatchTool, the tool layer the
 // chat server's MCP server runs), checked after it stops; the metrics (pass@1, pass@k, pass^k, the Requirement Score).
-import { emptyDoc, type StudioDoc } from '../engine/doc';
-import { evaluatePart, type BodyResult } from '../engine/evaluate';
-import { dispatchTool, type ChatState } from '../chat/tools';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 
 export type Params = Record<string, number | string>;
 export interface Call { tool: string; args: Record<string, unknown> }

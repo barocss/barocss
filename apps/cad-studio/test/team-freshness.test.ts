@@ -2,16 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { rectanglePart, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { withLook } from '../src/app/bodies';
-import type { Requirement } from '../src/chat/spec';
-import { bomView, deriveBom } from '../src/team/assembly';
-import { draftBaseline, moveBaseline } from '../src/team/baseline';
-import { userToken } from '../src/team/ecr';
-import { bomResult, currentOf, displayOf, dfmResult, drawingResult, emptyStore, freshnessOf, inertiaResult, keepoutResult, massResult, numericOf, openRun, passes, recordResult, requirementResults, stamp, summaryOf, type Freshness, type Result } from '../src/team/freshness';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { withLook } from '@barocss/cad-model/app/bodies';
+import type { Requirement } from '@barocss/cad-model/chat/spec';
+import { bomView, deriveBom } from '@barocss/cad-model/team/assembly';
+import { draftBaseline, moveBaseline } from '@barocss/cad-model/team/baseline';
+import { userToken } from '@barocss/cad-model/team/ecr';
+import { bomResult, currentOf, displayOf, dfmResult, drawingResult, emptyStore, freshnessOf, inertiaResult, keepoutResult, massResult, numericOf, openRun, passes, recordResult, requirementResults, stamp, summaryOf, type Freshness, type Result } from '@barocss/cad-model/team/freshness';
 import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 
 // A8.5b (O32's addendum, O39): every result stamped with what it read; read back current, stale (the changed input

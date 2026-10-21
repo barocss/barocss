@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from '../src/engine/doc';
-import { runTool, type ChatState } from '../src/chat/tools';
-import { featureId } from '../src/engine/ids';
-import { profileOf } from '../src/sketch/loops';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { featureId } from '@barocss/cad-model/engine/ids';
+import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { splitAt, trimAt } from '../src/sketch/trim';
 import { roundCorner } from '../src/sketch/corner';
-import { sketchShapes } from '../src/sketch/reopen';
-import { renameToTagged, withIds } from '../src/sketch/entityIds';
+import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
+import { renameToTagged, withIds } from '@barocss/cad-model/sketch/entityIds';
 import type { SketchShape } from '../src/viewport/Viewport';
 
 // R10a (D86): a sketch's sides have ids of their own, kept as it is edited, and the walls a body makes of it are named by

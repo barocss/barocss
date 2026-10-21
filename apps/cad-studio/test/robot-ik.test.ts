@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import type { StudioDoc } from '../src/engine/doc';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readStudioFile } from '../src/engine/container';
-import { treeOfDoc } from '../src/chat/robot';
-import { forwardKinematics, type Motion } from '../src/robot/fk';
-import type { JointTree } from '../src/robot/joints';
-import { IK_ANGLE_TOL_RAD, IK_POSITION_TOL_M, jacobianConditioning, solveIk, unknownsOf, pathTo } from '../src/robot/ik';
+import { treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { forwardKinematics, type Motion } from '@barocss/cad-model/robot/fk';
+import type { JointTree } from '@barocss/cad-model/robot/joints';
+import { IK_ANGLE_TOL_RAD, IK_POSITION_TOL_M, jacobianConditioning, solveIk, unknownsOf, pathTo } from '@barocss/cad-model/robot/ik';
 
 // RM7 (O43): damped least squares / LM inverse kinematics. 1000 targets on RM5's 6R arm, reachable by construction (RM2's
 // FK of random joint values), each solved from 0 and judged by RM2's FK on the answer — not by the solver's own error:

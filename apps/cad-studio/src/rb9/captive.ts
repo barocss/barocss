@@ -2,10 +2,10 @@
 // a straight slide, the part on a prismatic dummy joint and the other fixed, both children of one still link (so RM6 checks
 // the pair: parent and child it skips). RM6's conservative advancement sweeps the slide, certified between its samples,
 // until contact or until the part has passed the other's box. A clear sweep means the part escapes that way.
-import type { BodyResult } from '../engine/evaluate';
-import type { Joint, JointTree } from '../robot/joints';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import type { Joint, JointTree } from '@barocss/cad-model/robot/joints';
 import { convexHull } from '@barocss/cad-model/robot/hull';
-import { sweepPath, type SweepLink } from '../robot/sweep';
+import { sweepPath, type SweepLink } from '@barocss/cad-model/robot/sweep';
 
 export const DIRECTIONS: readonly [string, [number, number, number]][] = [['+x', [1, 0, 0]], ['-x', [-1, 0, 0]], ['+y', [0, 1, 0]], ['-y', [0, -1, 0]], ['+z', [0, 0, 1]], ['-z', [0, 0, -1]]];
 export interface Escape { direction: string; captive: boolean; /** How far it slid before contact (mm); the full travel when it escapes. */ travel: number; samples: number }

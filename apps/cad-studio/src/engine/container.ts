@@ -9,9 +9,9 @@
 //
 // Reading checks each blob's SHA-256 against its name before it is used. Files of either kind open; a plain JSON
 // file's inline mesh arrays stay as they are.
-import { arrayOf, blobRefs, blobTypeOf, getBlob, missingBlobs, putKnownBlob, sha256, type BlobArray, type BlobType } from './blobs';
+import { arrayOf, blobRefs, blobTypeOf, getBlob, missingBlobs, putKnownBlob, sha256, type BlobArray, type BlobType } from '@barocss/cad-model/engine/blobs';
 import { readStudioDoc } from './migrate';
-import type { StudioDoc } from './doc';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 
 const MAGIC = 'BCADPACK', VERSION = 1;
 const pad8 = (n: number) => (n + 7) & ~7;

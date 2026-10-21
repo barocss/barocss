@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import type { StudioDoc } from '../src/engine/doc';
-import { holesOff, interfacesRevision, placedBodies, readInterfaces } from '../src/team/parts';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { holesOff, interfacesRevision, placedBodies, readInterfaces } from '@barocss/cad-model/team/parts';
 import { partsSummary, runPartsScenario, type PartsScenario } from '../src/team/scripted';
 
 // A8.2 (O34): the Architect's interfaces and Part agents under leases. The v3 scenarios (conformance/a8, step A8.2): each

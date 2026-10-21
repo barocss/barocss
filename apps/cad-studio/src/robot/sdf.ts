@@ -9,10 +9,10 @@
 //   - a loop (RM8): a graph is allowed in SDF, so its pin is a `ball` joint between its two links, at the pin.
 // What SDF cannot hold is refused by robotParts, as for URDF.
 import { encodeBinaryStl } from '@barocss/cad';
-import type { JointTree } from './joints';
-import type { Mat3, V3 } from './inertia';
-import { esc, namer, num, nums, robotParts, rpyOf, type UrdfFile, type UrdfPart, type UrdfRefusal } from './urdf';
-import type { MjcfClosure } from './mjcf';
+import type { JointTree } from '@barocss/cad-model/robot/joints';
+import type { Mat3, V3 } from '@barocss/cad-model/robot/inertia';
+import { esc, namer, num, nums, robotParts, rpyOf, type UrdfFile, type UrdfPart, type UrdfRefusal } from '@barocss/cad-model/robot/urdf';
+import type { MjcfClosure } from '@barocss/cad-model/robot/mjcf';
 
 export const SDF_EXPORT_VERSION = 'barocss-sdf-v1';
 export type SdfResult =

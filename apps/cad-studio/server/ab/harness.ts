@@ -7,9 +7,9 @@
 import { createServer, type Server } from 'node:http';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { evaluateDoc } from '../../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../../src/engine/doc';
-import { checkSpec } from '../../src/chat/spec';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { checkSpec } from '@barocss/cad-model/chat/spec';
 import { toolsetOf, type Toolset } from '../../src/chat/toolset';
 import { createChatServer, stateNote, type TurnUsage } from '../chatServer';
 import type { Arm, Brief, Call } from './briefs';

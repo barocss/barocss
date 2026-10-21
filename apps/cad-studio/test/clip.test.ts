@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { rectanglePart, withNode } from '../src/engine/doc';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
 import { clipMesh } from '@barocss/cad-model/engine/clip';
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 

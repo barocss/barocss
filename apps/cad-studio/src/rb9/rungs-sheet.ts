@@ -4,7 +4,7 @@
 // directions, angles and radii; the holes on their exact axes.
 import type { Call, Outcome, Params, Rung } from './core';
 import { axisDistance, cylindersOf, distinctCylinders, holds, near, parallel, volumeOf } from './measure';
-import type { BodyResult } from '../engine/evaluate';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 
 const PI = Math.PI, TH = PI / 2;
 const num = (p: Params, k: string) => p[k] as number;

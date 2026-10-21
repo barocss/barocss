@@ -1,6 +1,6 @@
-import type { StudioDoc } from '../engine/doc';
-import { faceKey } from './faces';
-import type { FaceTable } from './mates';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { faceKey } from '@barocss/cad-model/assembly/faces';
+import type { FaceTable } from '@barocss/cad-model/assembly/mates';
 
 /** Parts' mate faces from a worker, each part read once per change (by its nodes and parameters). */
 export class FaceClient {

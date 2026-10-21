@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { editFields, type BindableField } from '../src/app/editFields';
-import { evaluateDoc } from '../src/engine/evaluate';
+import { rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { editFields, type BindableField } from '@barocss/cad-model/app/editFields';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 
 test('parameters: a feature value bound to a parameter reads its value; the part follows the parameter', () => {
   let doc: StudioDoc = { ...rectanglePart(32, 20, 8), parameters: { H: 15, W: 40 } };

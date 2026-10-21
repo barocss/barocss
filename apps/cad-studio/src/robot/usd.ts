@@ -10,10 +10,10 @@
 //     limits in degrees (a turn) or metres (a slide); a continuous joint a revolute one without limits;
 //   - what UsdPhysics has no attribute for — a gear coupling, effort and velocity limits — kept as `barocss:` custom
 //     attributes, said in the notes; a loop's pin (RM8) a PhysicsSphericalJoint excluded from the articulation.
-import type { JointTree } from './joints';
-import { symmetricEigen, type Mat3, type V3 } from './inertia';
-import { namer, num, robotParts, type UrdfPart, type UrdfRefusal } from './urdf';
-import { quatOf, type MjcfClosure } from './mjcf';
+import type { JointTree } from '@barocss/cad-model/robot/joints';
+import { symmetricEigen, type Mat3, type V3 } from '@barocss/cad-model/robot/inertia';
+import { namer, num, robotParts, type UrdfPart, type UrdfRefusal } from '@barocss/cad-model/robot/urdf';
+import { quatOf, type MjcfClosure } from '@barocss/cad-model/robot/mjcf';
 
 export const USD_EXPORT_VERSION = 'barocss-usd-v1';
 export type UsdResult =

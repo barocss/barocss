@@ -2,19 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import type { StudioDoc } from '../src/engine/doc';
-import { mjcfOfDoc, robotOfDoc, urdfOfDoc } from '../src/chat/robot';
-import { forwardKinematics } from '../src/robot/fk';
-import { closureOfDoc } from '../src/robot/loop';
+import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { mjcfOfDoc, robotOfDoc, urdfOfDoc } from '@barocss/cad-model/chat/robot';
+import { forwardKinematics } from '@barocss/cad-model/robot/fk';
+import { closureOfDoc } from '@barocss/cad-model/robot/loop';
 import { readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
 import { readUrdf } from '@barocss/cad-model/robot/urdfCheck';
 import { exportSdf } from '../src/robot/sdf';
 import { exportUsd } from '../src/robot/usd';
 import { modelFk, readSdf, readUsda, type RobotModel } from '../src/robot/modelCheck';
-import type { Mat3 } from '../src/robot/inertia';
+import type { Mat3 } from '@barocss/cad-model/robot/inertia';
 import { fromQuat } from '../src/robot/modelCheck';
-import type { JointTree } from '../src/robot/joints';
+import type { JointTree } from '@barocss/cad-model/robot/joints';
 
 // RM9c (O62): SDF 1.11 and USD (UsdPhysics, .usda), checked by our own readers: the same tree back (names, masses and
 // inertia to 1e-12, axes, limits), the four formats agreeing on arm-6r, FK from each file's frames equal to RM2's at 100

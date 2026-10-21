@@ -1,7 +1,7 @@
 // PERF3 A3 (D82): an agent's turn sends the part after every tool that changed it; each one evaluated for the preview
 // would queue evaluations the next state makes stale. One runs at a time; a state arriving meanwhile replaces the one
 // waiting (latest wins), so a burst of states costs at most two evaluations.
-import type { ModelNode, StudioDoc } from '../engine/doc';
+import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
 
 export interface LatestPump<T> { push(value: T): void; close(): void }
 interface PumpState<T, R> { run: (v: T) => Promise<R>; done: (r: R, v: T) => void; busy: boolean; waiting: { v: T } | null; closed: boolean }

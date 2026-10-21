@@ -2,14 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
-import { faceTableOf, tablesFor } from '../src/assembly/faces';
-import type { Mate } from '../src/assembly/mates';
-import { solveDoc } from '../src/chat/assembly';
-import { dispatchTool, runTool, type ChatState } from '../src/chat/tools';
-import { treeOfDoc } from '../src/chat/robot';
-import { jointTreeOf, motionOf, readRobot, type JointTree } from '../src/robot/joints';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { faceTableOf, tablesFor } from '@barocss/cad-model/assembly/faces';
+import type { Mate } from '@barocss/cad-model/assembly/mates';
+import { solveDoc } from '@barocss/cad-model/chat/assembly';
+import { dispatchTool, runTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { jointTreeOf, motionOf, readRobot, type JointTree } from '@barocss/cad-model/robot/joints';
 
 // RM1 (O14): the mate graph as a joint tree. Each case is an assembly built here, its mates solved, the tree read;
 // the cases are also conformance/rm/<case>/case.json (the document and the expected joints; UPDATE_RM_FIXTURES=1).

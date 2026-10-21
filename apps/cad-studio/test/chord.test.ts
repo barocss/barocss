@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart, partBreps } from '../src/engine/evaluate';
-import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { chordOf, verdictOf } from '../src/chat/references';
+import { evaluatePart, partBreps } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { chordOf, verdictOf } from '@barocss/cad-model/chat/references';
 import { bodyMesh, measureChords, type DisplayMesh } from '@barocss/cad-model/engine/mesh';
-import { depthAt, depthBins } from '../src/print/hollow';
+import { depthAt, depthBins } from '@barocss/cad-model/print/hollow';
 
 // O55: A6.3's chord tolerance, bounded from the tessellation's own steps in both directions. On a sphere and a torus the
 // new δ is at least the mesh's true worst depth below the exact surface (sampled over every triangle) and not far

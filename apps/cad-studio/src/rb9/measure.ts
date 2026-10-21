@@ -1,10 +1,10 @@
 // What the RB9 checkers measure on a part (O70): exact quantities from the kernel — volumes from its mass properties,
 // cylinders from the B-rep's exact faces — and the studio's own checks (check_spec queries) run on a copy of the part
 // with the checker's requirements, never the agent's.
-import type { StudioDoc } from '../engine/doc';
-import type { BodyResult } from '../engine/evaluate';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
-import { checkSpec, type Requirement } from '../chat/spec';
+import { checkSpec, type Requirement } from '@barocss/cad-model/chat/spec';
 import type { Evaluate, Outcome } from './core';
 
 export const volumeOf = (bodies: readonly BodyResult[]) => bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0);

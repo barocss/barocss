@@ -4,16 +4,16 @@
 // document's revision), with a manifest of every file's SHA-256 and what is still open. No price: prices are the
 // moulder's. Open — an unstated material, quantity, pull or finish, a failing rule — is said, and the package is not
 // called complete while anything is.
-import type { StudioDoc } from '../engine/doc';
-import { stepFor, type BodyResult } from '../engine/evaluate';
-import { lookOf, materialIdOf } from '../app/bodies';
-import { massProperties } from '../chat/analysis';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { stepFor, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { lookOf, materialIdOf } from '@barocss/cad-model/app/bodies';
+import { massProperties } from '@barocss/cad-model/chat/analysis';
 import { materialData, processProfile } from '@barocss/cad-model/library/materials';
-import { printability, type PrintabilityReport } from '../print/rules';
+import { printability, type PrintabilityReport } from '@barocss/cad-model/print/rules';
 import { documentRevision } from '../team/bundle';
-import { sha256Hex } from '../team/digest';
+import { sha256Hex } from '@barocss/cad-model/team/digest';
 import { writeZip } from '@barocss/cad-model/io/zip';
-import type { Half } from './parting';
+import type { Half } from '@barocss/cad-model/mould/parting';
 
 type Evaluate = Parameters<typeof printability>[2];
 export const QUOTE_FILES = { step: 'part.step', report: 'dfm.json', page: 'dfm.md', request: 'quote.json', manifest: 'manifest.json' } as const;

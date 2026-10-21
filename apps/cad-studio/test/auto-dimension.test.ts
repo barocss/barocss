@@ -2,15 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { brepsFor } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { projectViews } from '../src/drawing/project';
-import { layoutSheet } from '../src/drawing/views';
-import { buildSheet } from '../src/drawing/sheet';
-import { autoDimensions } from '../src/drawing/auto';
-import { holeCallout } from '../src/drawing/callout';
-import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
-import { snapPoints } from '../src/drawing/dimensions';
+import { brepsFor } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { projectViews } from '@barocss/cad-model/drawing/project';
+import { layoutSheet } from '@barocss/cad-model/drawing/views';
+import { buildSheet } from '@barocss/cad-model/drawing/sheet';
+import { autoDimensions } from '@barocss/cad-model/drawing/auto';
+import { holeCallout } from '@barocss/cad-model/drawing/callout';
+import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '@barocss/cad-model/drawing/types';
+import { snapPoints } from '@barocss/cad-model/drawing/dimensions';
 
 // R14.1 (O2): Auto-dimension. Each conformance case (packages/barocss-cad/conformance/r14/<case>/case.json) is a studio
 // document and its drawing settings; the dimensions Auto-dimension gives it, as they read on the sheet, must be the

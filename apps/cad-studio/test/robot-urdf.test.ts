@@ -3,15 +3,15 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import type { StudioDoc } from '../src/engine/doc';
-import { dispatchTool } from '../src/chat/tools';
-import { treeOfDoc, urdfOfDoc } from '../src/chat/robot';
-import { forwardKinematics } from '../src/robot/fk';
+import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool } from '@barocss/cad-model/chat/tools';
+import { treeOfDoc, urdfOfDoc } from '@barocss/cad-model/chat/robot';
+import { forwardKinematics } from '@barocss/cad-model/robot/fk';
 import { convexHull, HullError } from '@barocss/cad-model/robot/hull';
-import { rpyOf, type UrdfResult } from '../src/robot/urdf';
+import { rpyOf, type UrdfResult } from '@barocss/cad-model/robot/urdf';
 import { parseXml, readUrdf, urdfFk, XmlError } from '@barocss/cad-model/robot/urdfCheck';
-import { symmetricEigen, type Mat3 } from '../src/robot/inertia';
+import { symmetricEigen, type Mat3 } from '@barocss/cad-model/robot/inertia';
 import { cliMain } from '../server/cadCli';
 
 // RM4 (O17): URDF export — its convex hulls, our XML reader, the structural rules of the URDF spec, forward kinematics

@@ -2,17 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
-import type { Mate } from '../src/assembly/mates';
-import { solveDoc } from '../src/chat/assembly';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { treeOfDoc } from '../src/chat/robot';
-import { applyTo, forwardKinematics } from '../src/robot/fk';
-import { coordinates, gravityTorques, linkBodies, massMatrix, moveTorques, rnea, STANDARD_GRAVITY, type LinkBody } from '../src/robot/dynamics';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { Mate } from '@barocss/cad-model/assembly/mates';
+import { solveDoc } from '@barocss/cad-model/chat/assembly';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { applyTo, forwardKinematics } from '@barocss/cad-model/robot/fk';
+import { coordinates, gravityTorques, linkBodies, massMatrix, moveTorques, rnea, STANDARD_GRAVITY, type LinkBody } from '@barocss/cad-model/robot/dynamics';
 import { at, onSegment, sCurve, sCurveTimes, trapezoid } from '@barocss/cad-model/robot/profile';
-import type { Joint, JointTree } from '../src/robot/joints';
-import type { Mat3 } from '../src/robot/inertia';
+import type { Joint, JointTree } from '@barocss/cad-model/robot/joints';
+import type { Mat3 } from '@barocss/cad-model/robot/inertia';
 
 // RD2 (O21): inverse dynamics and moves. The RNEA is checked against oracles that do not use it: M(q) from the
 // geometric Jacobians (its columns = RNEA(q, 0, e_k) − G), the kinetic energy from FK velocities, the planar 2R

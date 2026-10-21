@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { commands, type Command, type Ctx } from '../app/commands';
+import { commands, type Command, type Ctx } from '@barocss/cad-model/app/commands';
 import { Icon, Kbd } from './atoms';
 
 export function Palette({ ctx, onRun, onClose }: { ctx: Ctx; onRun(c: Command): void; onClose(): void }) {

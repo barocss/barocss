@@ -1,7 +1,7 @@
 // Undo / redo of edits to a closed outline while sketching (constraints, dimensions, typed values). Each
 // step remembers the outline before and after; a step applies only while the sketch still shows the shape
 // it left, so a new shape or a cleared profile never brings an old one back over it.
-import type { SketchShape } from './types';
+import type { SketchShape } from '@barocss/cad-model/sketch/types';
 
 interface Step { before: SketchShape; after: SketchShape }
 

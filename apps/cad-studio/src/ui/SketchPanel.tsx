@@ -1,9 +1,9 @@
 import { planeLabel } from '@barocss/cad-model/sketch/plane';
-import { isConvex } from '../sketch/loops';
+import { isConvex } from '@barocss/cad-model/sketch/loops';
 import { useMemo, useState } from 'react';
 import type { SketchAnchor, SketchShape, SketchState } from '../viewport/Viewport';
 import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, type ArcPair, type P2, type SolveResult } from '@barocss/cad-model/sketch/profile';
-import { isSettled, redundancy, solveShape, type SketchPick } from '../sketch/rules';
+import { isSettled, redundancy, solveShape, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import { ConstraintTools } from './ConstraintTools';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;

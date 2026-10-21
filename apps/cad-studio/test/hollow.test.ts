@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { chordOf } from '../src/chat/references';
-import { cavityField, enclosedVoids, HollowError, marchingTetrahedra, planHollow } from '../src/print/hollow';
+import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { chordOf } from '@barocss/cad-model/chat/references';
+import { cavityField, enclosedVoids, HollowError, marchingTetrahedra, planHollow } from '@barocss/cad-model/print/hollow';
 
 // AM7a (O53): SDF voxel hollowing with drains. The cavity φ = depth − t > 0 meshed by marching tetrahedra and subtracted
 // from the exact body; a drain from the bottom into each cavity. Wall thickness against the target; every cavity

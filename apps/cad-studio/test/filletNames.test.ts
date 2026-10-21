@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { runTool, type ChatState } from '../src/chat/tools';
-import { bodyKeyFor } from '../src/engine/ids';
-import { captureSignatures } from '../src/engine/references';
-import { rematchNames } from '../src/engine/rematch';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { bodyKeyFor } from '@barocss/cad-model/engine/ids';
+import { captureSignatures } from '@barocss/cad-model/engine/references';
+import { rematchNames } from '@barocss/cad-model/engine/rematch';
 
 // R10.2 (D89, D90): a general fillet's faces are its patches (`n<k>.face#j`, their count following the loft) and its
 // edges pieces; what the document stores must still resolve when its radius changes. Faces: the studio shows the patches

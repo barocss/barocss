@@ -2,15 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
-import type { Mate } from '../src/assembly/mates';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { mjcfOfDoc, treeOfDoc } from '../src/chat/robot';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { Mate } from '@barocss/cad-model/assembly/mates';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { mjcfOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
 import { connectViolations, mjcfFk, readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
-import { forwardKinematics } from '../src/robot/fk';
-import type { JointTree } from '../src/robot/joints';
-import { closeLoop, closureOf, closureOfDoc, type Closure } from '../src/robot/loop';
+import { forwardKinematics } from '@barocss/cad-model/robot/fk';
+import type { JointTree } from '@barocss/cad-model/robot/joints';
+import { closeLoop, closureOf, closureOfDoc, type Closure } from '@barocss/cad-model/robot/loop';
 
 // RM8 (O43): a four-bar loop closed. A crank–rocker (a 20, b 70, c 50, d 60 mm) built from mates as a user would: RM1's
 // tree takes three turns and keeps the fourth pin as its loop. Driven by the crank through a full turn, the loop is

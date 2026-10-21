@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluationKey } from '../src/engine/evalMemo';
-import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { evaluationKey } from '@barocss/cad-model/engine/evalMemo';
+import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 
 // PERF3 A3 (D82): the evaluation memo's key — equal parts equal keys whatever their objects, any change a new key,
 // and long texts and arrays not written out on every lookup.

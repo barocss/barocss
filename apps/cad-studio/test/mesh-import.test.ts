@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, featureLabel, withNode } from '../src/engine/doc';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, featureLabel, withNode } from '@barocss/cad-model/engine/doc';
 import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
 
 test('an STL in centimetres opens as a solid in mm: welded, scaled, its flat faces merged', () => {

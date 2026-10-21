@@ -2,9 +2,9 @@
 // cutter or another CAD program. Each loop a closed LWPOLYLINE with its arcs as bulges (a lone circle a
 // CIRCLE): the outer loop and the regions on PROFILE, holes on HOLES, construction shapes on CONSTRUCTION.
 import { writeDxf, type DxfDocument, type DxfEntity, type DxfVersion, type DxfWriteResult, type DxfXY } from '@barocss/cad';
-import type { Dim, LoopSegment, SketchNode } from '../engine/doc';
+import type { Dim, LoopSegment, SketchNode } from '@barocss/cad-model/engine/doc';
 import { slotSegments, type P2 } from '@barocss/cad-model/sketch/profile';
-import type { SketchShape } from './types';
+import type { SketchShape } from '@barocss/cad-model/sketch/types';
 
 export const SKETCH_DXF_VERSION = 'cad-studio-sketch-dxf-v1';
 
