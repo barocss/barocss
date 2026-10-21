@@ -163,3 +163,23 @@ export function exactNormals(doc: StudioDoc, body: BodyResult): (face: number, p
     return [out[0], out[1], out[2]];
   };
 }
+
+/**
+ * O-G6 (the GPU lane's colour map): the signed draft (degrees, asin(n·d)) at each display vertex, from the exact normal at
+ * its position — the evaluation draftField makes (a plane's, a cylinder's radial, the NURBS foot's); a facet face's
+ * vertex takes its display normal (a facet has no other). `pull` is taken as a unit vector.
+ */
+export function draftSamples(doc: StudioDoc, body: BodyResult, pull: readonly number[]): Float32Array {
+  const l = Math.hypot(pull[0], pull[1], pull[2]), dx = pull[0] / l, dy = pull[1] / l, dz = pull[2] / l;
+  let brep: Brep | undefined;
+  try { brep = partBreps(doc).find(x => x.key === body.key)?.brep; } catch { /* planes and cylinders still exact */ }
+  const m = body.mesh, normals = normalsOf(body, brep), V = m.faceOfVertex.length, out = new Float32Array(V);
+  for (let i = 0; i < V; i++) {
+    const N = normals.get(m.faceOfVertex[i])!;
+    let s: number;
+    if (N.kind === 'facets') s = m.normals[3 * i] * dx + m.normals[3 * i + 1] * dy + m.normals[3 * i + 2] * dz;
+    else { normalAt(N, m.positions[3 * i], m.positions[3 * i + 1], m.positions[3 * i + 2], tn, n1); s = n1[0] * dx + n1[1] * dy + n1[2] * dz; }
+    out[i] = Math.asin(Math.max(-1, Math.min(1, s))) * DEG;
+  }
+  return out;
+}

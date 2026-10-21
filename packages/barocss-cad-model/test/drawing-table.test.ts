@@ -68,7 +68,7 @@ test('the bend table on R12\'s L-bracket: BA = θ(R + K·T), BD = 2(R + T)tan(θ
   // (A part with no sheet body: the source says so.)
   const box = await run([{ tool: 'run_command', args: { command: 'box', values: { w: 10, d: 10, h: 10, x: 0, y: 0, z: 0 } } }]);
   assert.deepEqual(bendTable({ doc: box }), { error: 'no sheet-metal body with a flat pattern' });
-  assert.match((tableContent({ id: 'x', from: 'nope' }, { doc: box }) as { error: string }).error, /^no table source "nope" \(sources: bends, cut-list\)/);
+  assert.match((tableContent({ id: 'x', from: 'nope' }, { doc: box }) as { error: string }).error, /^no table source "nope" \(sources: bends, cut-list, weld-list\)/);
 });
 
 test('on the sheet: auto-placed above the title block and clean; over a view, a note, the title block: each issue and its fix; a source\'s refusal TABLE_SOURCE, drawn with its reason', async () => {

@@ -4870,3 +4870,75 @@ Owner, relayed by the coordinator: "FR 에서 1, 2, 3, 모두 하고 그 밖에 
 - **Found by the flow step**: the studio's evaluated document followed only the nodes and parameters, so a row written before the frame never reached the evaluation, and the frame was refused FRAME_SECTION_UNKNOWN. `evaluated` now also follows `doc.frames.sections` (App.tsx, the core memo, not the GPU lane's paths). The editor's form and buttons are keyed apart (React reused the file input as the Name field).
   - The same step then found the engine worker's view of the document (`evaluatedPart`, wireDoc.ts) without the library, which also left the evaluation memo's key blind to it. The library now crosses the wire (the stock list stays behind). `evaluationKey` follows from that, and `contentKey` (face tables, rendered views) also takes the rows when there are some. A package test sends a frame on a row over the wire and checks the keys change with an edited row.
 - **Not done**: a sketch section as a library row (it belongs to one part's features), and sharing rows across parts. A library file stays the person's own; the team libraries (LIB4) are for parts, not sections.
+
+## O118 — FRd1: a frame's weld joints read off the geometry, the person's welds, the weld list (2026-10-21)
+
+FRd is split in two: FRd1 (joints, records, the list as a table) here, and FRd2 (the symbols in the views) next.
+
+- **Joints** (`frames/welds.ts`, `weldList`), where a member's end meets another member:
+  - **mitre**: two members cut on one plane at a corner (the kernel's `with`). One joint per corner, named by the lesser of its two end ids. Seam: the mitre face's outer loop. A butt weld by default.
+  - **butt**: an end on the face of a member running through (`with`). Seam: the end face's loop. A fillet.
+  - **on-face**: a square end lying on other members' faces with no corner between them (a leg under a top), found by contact: the end face's plane on an opposite, coplanar face of another member, their outlines overlapping. A fillet, meeting every member it touches.
+  - Ids are `<body>.<end>`, stable while the frame's members are.
+- **Seam lengths**: the end face's outer loop on the display mesh (FR S0's P1). `seamBasis: exact` where the section's outer sides are straight (a sharp RHS, an angle or channel with zero radii). `mesh` along a curved side: within the mesh's chord tolerance, said in the list's notes.
+- **Inner loops** (coordinator's review): an end face's inner loops (a tube's bore) are given with each joint (`innerLoop.mm`). Whether they are welded is the person's record (`inner: true | false`), never a default. Unsaid, they are not counted in the seam, marked BORE ? in the list, and said in its notes. `weldMM` is the outer loop, plus the inner where said. The welded table's bores: 2(34 + 34√2) at a mitre, 4 · 34 elsewhere.
+- **Records** (`doc.frames.welds`, the person's, by joint): kind, size (mm), all round, inner, notes. Unset, the rule's weld: a butt weld at a mitre, a fillet elsewhere, the size the thinner wall of the members. That size is an estimate, a rule of thumb rather than a calculation, and is said. A section with no wall (a sketch, a T-slot) gives no size and says so. A record whose joint is gone (corners changed) is kept and listed as orphaned, not dropped.
+- **Surfaces**:
+  - v2 `features.welds` (set_welds): refuses WELD_JOINT_UNKNOWN (listing the ids), WELD_FIELD and WELD_NO_JOINTS.
+  - v2 `query.welds` (weld_list): joints labelled W1…, totals and orphaned records.
+  - The drawing's 'weld-list' table and its "Weld list" checkbox beside the cut list's: W1… with the members as cut-list items, estimated sizes starred, the seams' total.
+  - v2 recorded (compatible). Per turn 22,014 characters (+206).
+- **Closed forms**, the welded table: 4 mitres at 2(40 + 40√2), 8 butts and 4 legs at 160 each, 16 joints and 2692.548 mm of seam. Every size is 3 mm, an estimate. An RHS 20 × 20 × 2 with 3 mm corners butted in a T: the seam below 2(20 + 20) − 24 + 6π = 74.850 and within 0.5 %, basis mesh, size 2.
+- **Tests**: package frame-welds (4). Flow step "FRd1 …": the welds through the chat and the weld list on an A3 drawing, clear and in the SVG.
+- **Waits**: bead geometry is the kernel lane's (after R12c). A coped end (FR3b `cope`) has no plane, so it is no joint here yet; said for FRd2.
+
+## O119 — FRd2: weld symbols in the views, our own glyphs, each arrow on a seam edge by name (2026-10-21)
+
+- **The symbol** (`drawing/welds.ts`) is built from the joint's geometry. No standard's text is copied.
+  - An arrow whose tip is the midpoint of a visible edge of the joint's end face, found by its persistent name in the view.
+  - A leader to a knee just outside the view, then a reference line with the weld's mark on it: a fillet is a small right triangle, a butt weld two short bars.
+  - The size before the mark: the person's, or the estimate starred.
+  - A ring at the knee where the weld goes all round, and a second ring where the bore is welded too (FRd1's `inner`, the person's).
+  - The joint's W-number at the line's end, as in the weld list.
+- **Placement**:
+  - Each joint is shown once, in the first of front, top and right where an edge of its end face is visible.
+  - The knee goes on the side of the view box nearest the tip, OUT 7 mm past it. Knees along one side are kept 7 mm apart in order of their tips.
+  - Symbols are placed before the tables, so an auto-placed table keeps clear of their texts.
+  - A joint seen in no view gets no symbol. The sheet lists it (`welds.unshown`), and the issue list warns WELD_NOT_SHOWN: the weld list holds it, and a section or detail view would show it.
+- **Surfaces**: the drawing setting `weldSymbols` and its "Weld symbols" checkbox (off by default). The sheet's `welds {placed (label, joint, view, tip, edge), unshown}`. SVG, PDF and DXF draw the marks (lines, a fill, arcs, texts) as they draw every group.
+- **Oracles**:
+  - On the welded table on A3, 11 of the 16 joints are shown (6 front, 2 top, 3 right). W8 and W13–W16 have every edge of their end face hidden in all three views, and are said.
+  - Each arrow's tip is the midpoint of an edge named after its joint's end face, visible in its view.
+  - The W-numbers appear in the SVG, PDF and DXF.
+  - Coordinator's request: a mitred L with its corner at x = w, w 300 → 400. The corner's joint keeps its id, its arrow resolves by the same edge name, and it moves 100 along the front view's x.
+- **Not done**: the symbols are not yet in the issue list's overlap checks (they are placed clear of the views; a dimension or note crossing one is not flagged). Bead geometry stays the kernel lane's. A coped end (no plane) has no joint yet.
+- **Fixes found by the run**:
+  - FRd1's two long flow step names made the screenshot's file name too long (ENAMETOOLONG), which killed the flow. They are shortened.
+  - The read-tools contract test now runs `weld_list`.
+  - drawing-table's pinned source list includes 'weld-list'.
+
+## O-G6 — sample exports for the GPU lane's analysis maps (2026-10-21)
+
+The GPU lane's G6 shows the analyses on the model as colour maps and lines. Only new functions were added; the existing ones' results are unchanged (accessOf's loop moved into a shared per-triangle function, adding in its own order).
+
+- **`draftSamples(doc, body, pull)`** (mould/draft.ts) gives a Float32Array, one value per display vertex: the signed draft in degrees, asin(n·d), from the exact normal at the vertex's position. It is the same evaluation draftField makes (a plane's normal, a cylinder's radial, the NURBS foot's). A facet face's vertex takes its display normal.
+- **`accessSamples(bodies, stepMM?)`** (machining/access.ts) gives, per body and per display triangle: `unreachedShare` (0..1), the share of its area no ±X, ±Y or ±Z reaches, and `mask`, the OR of its samples' 6-bit masks. These are accessOf's samples, kept by triangle.
+- **`isoclinePolylines(doc, body, pull)`** goes in mould/parting.ts, beside the marching and chaining it reuses, rather than in draft.ts. It gives `{face, points, closed}` per straddling face's isocline: its triangles marched as the parting line marches them, chained as its loops are.
+- **`castingDraftLimits(doc, bodies, profile)`** (casting/report.ts) is the one extra: a cast part's least and achievable draft by its alloy's family, with the page. The casting report's draft rule switches its `limit` between the two, so it is not a threshold to read.
+- **Oracles** (package test g6-samples, 5 tests):
+  - A 3° cone's side is 3 at every vertex, to Float32 rounding of a value within 1e-9.
+  - The draft's sign changes on exactly the faces draftField calls straddling, over six cases.
+  - The access shares, area-weighted, equal accessOf's unreachedMM2 (400 and 760, sealed void and sealed slot). A void's triangles have mask 0, and the top face has +Z.
+  - A cylinder r 10 × 40 across the pull gives two open polylines at z = 0, each 40 long. A cone gives none.
+  - castingDraftLimits holds the least and achievable that the A380 report's rule judges by.
+- **Threshold sources for G6**, confirmed or corrected:
+  - **IM2, corrected**: the minimum draft is not the profile's but the surface finish's.
+    - Injection: `printability(…).mould.minDraftDeg` (and `recDraftDeg`), the finish chosen in `doc.mould.finish`. None chosen: null, and the draft rule is unknown, so show no marks.
+    - Casting: `castingDraftLimits`.
+    - Marks at ±min and saturating at 2 × min are the GPU lane's to choose.
+  - **IM4, confirmed with sources named**: `wallSamples(body).local` is a Float64Array, mm per triangle, Infinity where no wall.
+    - The range [0, max(2 × nominal, thick95)] works: `nominalMM` and `thick95MM` come from wallsOf's report.
+    - Red under: the process's `minWall` threshold (the 'wall' rule's limit), and also under the material's moulding range low end when it has one (`materialData(id).wallMM.injection`, the 'wall-material' rule).
+    - Purple over: the thick-section limit is `nominalMM / adjacentWallRatio` (the profile's threshold, 0.6 when unset). wallsOf's `thick` gives the faces and `maxMM`, not the limit.
+  - **Parting, confirmed**: `PartingReport.loops[].points` are polylines with `closed` and `flat`, in the part's coordinates (a placed instance's transform is the viewer's).
+  - **mouldHalves, confirmed**: `plus` and `minus` are BodyResult[] on success, else `{ok: false, code: 'MOULD_BUILD'}`.

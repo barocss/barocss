@@ -130,3 +130,20 @@ export function partingLine(doc: StudioDoc, bodies: readonly BodyResult[], pull:
   }
   return { pull: d, faces, split, loops };
 }
+
+/**
+ * O-G6 (the GPU lane's isocline lines): each straddling face's isocline n·d = 0 as polylines — its triangles marched as
+ * the parting line marches them (each mesh edge's crossing bisected on the exact normal), the pieces chained as the
+ * parting line chains its loops (joined within half the longest piece). Faces that do not straddle give none.
+ */
+export function isoclinePolylines(doc: StudioDoc, body: BodyResult, pull: readonly number[]): { face: string; points: Vec3[]; closed: boolean }[] {
+  const field = draftField(doc, [body], pull, 0), d = field.pull, m = body.mesh, normal = exactNormals(doc, body), out: { face: string; points: Vec3[]; closed: boolean }[] = [];
+  for (const df of m.faces) {
+    const name = df.name.split('+')[0];
+    if (field.faces.find(x => x.face === name)?.side !== '±') continue;
+    const iso = isoclineSegments(m, df.index, p => normal(df.index, p), d);
+    let longest = 0; for (const g of iso) longest = Math.max(longest, Math.hypot(g[3] - g[0], g[4] - g[1], g[5] - g[2]));
+    for (const c of chain(iso, Math.max(1e-6, longest / 2))) out.push({ face: name, points: c.pts, closed: c.closed });
+  }
+  return out;
+}
