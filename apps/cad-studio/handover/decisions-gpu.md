@@ -660,10 +660,79 @@ Measured before anything was changed; the coordinator's order.
   detail for meshes — a million triangles orbit in ≈ 3 ms of GPU; simplified levels would cost their memory (≈ 1.3× the
   mesh), popping between levels and the question of which level a pick is against, for at most ≈ 2 ms. The million-triangle
   orbit's main-thread time (6.4 ms a frame, 3.5 for 200 000) is React's development build re-rendering the App (`jsxDEV`,
-  39 ms over 60 frames), not the viewer: with G13's panel item for the UI side. Worth revisiting for meshes past ≈ 5 M
+  39 ms over 60 frames), not the viewer: with G13's panel item for the UI side — which the outer lane measured on a
+  production build (O141): about 1.5 ms of JavaScript a later click, so no memoisation was needed. Worth revisiting for meshes past ≈ 5 M
   triangles or clouds past ≈ 500 000 points, neither of which the studio makes today.
 - **Bench**: `bench:browser`'s cloud row 4.03–4.73 ms of GPU in two runs (load 34–113); its budget 17 → 10.
 - **Checks** (v2): gpu unit 77/77, browser 11/11 (G8's shapes, rings, picks unchanged); studio suite 194/194; FLOW_ONLY on
   WebGPU, before (`2c5a345e5`) and after, RM1–RM9c and the three cage steps: 13/13 both. Not run: the full flow (the
   coordinator's), the cad-model suite.
+
+## G15 — text labels, an SDF atlas (2026-10-22)
+
+- **Glyphs** (`viewer/glyphs.ts`): each character drawn once into a 64² cell by the browser's own 2D canvas
+  (`OffscreenCanvas`), 44 px to the em, in the label font — one the page already has; no font file is ours or downloaded
+  (the studio sets IBM Plex Mono, which its stylesheet already loads, and draws the glyphs again once that web font has
+  loaded: `redrawGlyphs`). The coverage, thresholded at a half, becomes a signed distance field by our own transform
+  (Felzenszwalb–Huttenlocher's exact squared Euclidean distance, two passes of 1D lower envelopes; the test checks it
+  against brute force on random seeds), ±8 px to 0 and 255, 128 on the edge. Cells in one 2048² r8 atlas (1 024 glyphs; a
+  full atlas draws no more and says so), uploaded as they are added and again after a lost device.
+- **Labels** (`Viewer.addLabels`, topology `labels`): a label's lines laid out at the glyphs' advances, 1.25 em apart,
+  placed at its anchor by `align` and `offset`; one 80-byte instance a glyph, two for a chip (its fill, its 1-pixel border).
+  A screen label is `size` CSS pixels high whatever the zoom, about its anchor's projection; a plane label lies along its
+  plane's right and up, `size` its height in world units. The shader cuts a glyph's edge at the field's middle over
+  `fwidth` of it — a device pixel at any magnification — and a chip's rounded box by its distance in device pixels. Depth:
+  the points' rules — tested at the anchor (screen) or the quad (plane), `lineOver`, `lineHidden` for the hidden parts.
+- **Studio**: `ViewRenderer.setOverlayLabels(key, …)` beside G7's lines and G8's points. The measure readout (at the line's
+  middle, hidden parts at the line's 0.75) and the box's size chip (above the box, 0.4 of its diagonal over its top, 0.6),
+  the SVG chip's colours a theme (`.dim-chip`, `.dim-text`: dark #121315 / #fff / the accent border, light #fff /
+  #1b232c); the underlays' texts on the drawing's plane at their height, anchored at the first line's baseline-left as the
+  SVG had them, #8a93a3 at 0.8, hidden parts at 0.35 (their lines'). Not moved: the sketch's dimension chips (hovered and
+  clicked to edit, in the sketch's own 2D overlay) and the gizmo's readout (it follows the pointer while dragging).
+- **G15-D1 (a label is tested at its anchor)**: a screen label takes its anchor's depth, so a surface in front of the anchor
+  hides — faintly, with `lineHidden` — the part of the label it covers; a readout whose anchor is inside a body (a measure
+  between two faces) is drawn faint as a whole. The box chip's anchor was lifted clear of the box for that reason.
+- **Evidence**: gpu `glyphs.test.mjs` (new, 3): the transform equal to brute force on four grids; a disc's field above 128
+  inside, below outside, 4.5 px out at the expected value; the layout's lines, advances, centring and the chip's two
+  instances. Browser test G15: a 16 px chip the same size three times as far (86 → 86 px wide, 12 high), its fill
+  #121315-dark and its border gold; a plane label twice as wide twice as near (100 → 210 px); magnified about 20 times,
+  each edge at most 1 pixel soft; under a box hidden (no pixel past the box's own), faint with `lineHidden`, over it with
+  `lineOver`; 16 glyphs for 16 distinct characters; a new font laid out again. Flow before (`eab5e666c`) and after on
+  measure, mass and box, O68, the light theme: 5/5 both; the readout and the note where they were (the readout faint, its
+  anchor inside the box), the size chip above the box; WebGL2 5/5 (its SVG).
+- **Bench**: the underlay row (100 texts) task 8.1–8.7 → 2.5–3.0 ms a frame, GPU 1.5–2.1 ms (load 17–33); its task budget
+  16 → 6. The one-frame select and clear rows' GPU floor 3 → 4 ms (one run at load 33 drew 3.07).
+- **Checks** (v2): gpu tsc and eslint clean, unit 80/80, browser 12/12; studio tsc and eslint clean, suite 194/194. Not run:
+  the full flow (the coordinator's), the cad-model suite.
+- **G15-D2 (the coordinator's change to D1, 2026-10-22)**: the measure readout and the box's size chip are drawn over the
+  scene (`over`), at full strength, as the SVG drew them — a readout anchored between two faces is almost always inside the
+  body, and a faint readout fails at the one thing it is for. The anchor's depth rule (with the hidden share) stays for the
+  underlays' texts and other world labels.
+
+## G12 — a proposal's two-colour overlay (2026-10-22)
+
+- **On the outer lane's `proposalDiff`** (O136, integration `d2e4c1860`, merged here as `7351f2348`): added and removed
+  material as display meshes with their volumes (the analytic Boolean of each side's united bodies), the changed faces by
+  persistent name, the method (`faces` with why where the Boolean refuses).
+- **Where it runs**: the engine worker (`proposalDiff` request): both sides evaluated in part slots of their own — the
+  base in `read`, the proposal in `agent` (where its preview was just made) — then `proposalDiffFor`, kept by the base's
+  revision (`modelHash`) and the proposal with what is left out; the two meshes in a reply slot. The App asks whenever the
+  proposal shown changes (previewed, rebased, a feature ticked); none without one.
+- **Drawn** (`GpuRenderer.setProposalOverlay`): the added material `#57b26b` and the removed `#e5534b` (the view triad's
+  green and red), each a see-through (0.5) two-sided surface through G11's order-independent pass, with its edges (0.9,
+  hidden parts 0.35) and a chip of its volume (+500 mm³ / −101 mm³) over the scene as readouts are (G15-D2). The surfaces
+  are **decals** (`Material.decal`, new: the surfaces' depth bias reversed, a `D` variant of the surface pipelines and of
+  shader materials'), so where the removed material shares the base's faces (the before view) or the added shares the
+  proposal's (the after view), the overlay wins without z-fighting. The blue preview tint is off while the overlay shows.
+- **Faces instead** (`proposalTint`): where the method is `faces`, or on WebGL2 (no overlay), the shown bodies' faces are
+  tinted through `faceColors`: those added or changed green on the after view, removed or changed red on the before view.
+- **Evidence**: flow step G12 (new, before the theme step) — a 40 × 20 × 8 plate, a proposal of a Ø4 through hole and a
+  10 × 10 × 5 block beside it: method `boolean`, added 500.0 mm³, removed 100.53 (π·2²·8), 9 faces changed; on WebGPU the
+  two overlay meshes drawn, the block's pixel green-led (green over red by 20 and over blue by 10 — with the blue preview
+  tint still on it was cyan, 119/187/201, which is why the tint is dropped), the hole's red-led (over green by 20); before and after both shown (the screenshots: the red core in the hole after, the red disc on the top and
+  the floating green block before); rejected, the overlay gone. WebGL2: the faces tinted (`tinted: true`). Step 98 (the
+  proposals' rebase, accept in part, reject) passes on both renderers with the tint change.
+- **Checks** (v2): gpu tsc and eslint clean, unit 80/80, browser 12/12; studio tsc and eslint clean, suite 196/196;
+  FLOW_ONLY (G12 and step 98) 3/3 on WebGPU and 3/3 on WebGL2. Not run: the full flow (the coordinator's), the cad-model
+  suite (not touched), benches (no frame path changed but the decal pipelines' creation).
 

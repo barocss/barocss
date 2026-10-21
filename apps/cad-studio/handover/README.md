@@ -881,6 +881,14 @@ acceleration → benches.
   depth test kept ahead of it) and their quads half a pixel smaller — a dense 100 000-point cloud 8.2 → 4.7 ms of GPU. No
   density cap (it would change which voxels show, for ≈ 3.5 ms); no mesh levels (a 1 000 000-triangle mesh orbits in ≈ 3
   ms of GPU).
+- **G15** (2026-10-22): done. Text labels in the viewer from a distance-field atlas — glyphs drawn once by the page's own
+  canvas in a font it already has (IBM Plex Mono here), our own exact distance transform, edges a pixel wide at any size;
+  screen labels at a pixel size, plane labels at a world size; depth-tested with the faint-hidden rule. The measure readout,
+  the box's size chip and the underlays' texts are engine labels on WebGPU (the sketch's editable dimensions and the gizmo's
+  readout stay SVG). The 100-text underlay orbit: task 8.1–8.7 → 2.5–3.0 ms a frame.
+- **G12** (2026-10-22): done, on the outer lane's `proposalDiff` (O136). A shown proposal's added material in green and
+  removed in red — see-through decals over the bodies, their edges and a volume chip each, worked out in the engine worker;
+  its faces tinted instead where the Boolean refuses, and on WebGL2. A Ø4 hole and a 10 × 10 × 5 block: 500 and 100.5 mm³.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

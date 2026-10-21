@@ -1,6 +1,15 @@
 import { rememberFaceTable } from '@barocss/cad-model/assembly/faces';
 import type { EvalResult, PartSlot } from '@barocss/cad-model/engine/evaluate';
 import { MeshReceiver, type WireResult } from '@barocss/cad-model/engine/meshWire';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
+/** A proposal's diff as the viewport overlays it (G12). */
+export interface ProposalOverlay {
+  added: { mesh: DisplayMesh; volumeMM3: number } | null;
+  removed: { mesh: DisplayMesh; volumeMM3: number } | null;
+  changedFaces: { name: string; kind: 'added' | 'removed' | 'changed' }[];
+  method: 'boolean' | 'faces';
+  why: string | null;
+}
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { DrawingResult } from '@barocss/cad-model/drawing/project';
 import { WireSender } from '@barocss/cad-model/engine/wireDoc';
@@ -113,6 +122,26 @@ export class EngineClient {
       this.pending.set(id, data => { const r = (data as { result: EvalResult }).result; remembered(doc, r); resolve(r); });
       this.slots.set(id, `part:${slot}`);
       this.worker.postMessage({ type: 'part', id, doc: this.wire.pack(doc), revision, slot });
+    });
+  }
+
+  /**
+   * What a proposal adds to and takes from the part (G12, `proposalDiff` in the worker, kept there by `key`): the added and
+   * removed material's meshes and volumes, the faces by persistent name, and the method ('faces': the Boolean refused, why).
+   */
+  proposalDiff(base: StudioDoc, proposed: StudioDoc, revision: number, key: { revision: string; proposal: string }): Promise<ProposalOverlay | { error: string }> {
+    const id = this.next++;
+    return new Promise(resolve => {
+      this.pending.set(id, data => {
+        const d = data as { result?: EvalResult; diff: { added: number | null; removed: number | null; changedFaces: { name: string; kind: 'added' | 'removed' | 'changed' }[]; method: 'boolean' | 'faces'; why: string | null } | null; why: string | null };
+        if (!d.diff) { resolve({ error: d.why ?? 'stopped' }); return; }
+        const bodies = d.result?.ok ? d.result.bodies : [], mesh = (k: string) => bodies.find(b => b.key === k)?.mesh ?? null;
+        resolve({ added: d.diff.added !== null ? { mesh: mesh('added')!, volumeMM3: d.diff.added } : null, removed: d.diff.removed !== null ? { mesh: mesh('removed')!, volumeMM3: d.diff.removed } : null, changedFaces: d.diff.changedFaces, method: d.diff.method, why: d.diff.why });
+      });
+      this.slots.set(id, 'proposalDiff');
+      // (The base, then the proposal: the worker unpacks them in that order.)
+      const baseWire = this.wire.pack(base), proposedWire = this.wire.pack(proposed);
+      this.worker.postMessage({ type: 'proposalDiff', id, doc: baseWire, proposed: proposedWire, revision, key });
     });
   }
 

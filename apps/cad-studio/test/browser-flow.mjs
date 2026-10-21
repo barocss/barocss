@@ -5582,7 +5582,8 @@ try {
     // (Its polylines the engine's lines on WebGPU (G7), its texts SVG.)
     const underlayDrawn = () => page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayLines?.()['underlay:U1'] ?? 0) > 0 && !!document.querySelector('[aria-label="Underlay drawing U1"]') : !!document.querySelector('[aria-label="Underlay drawing U1"] path'));
     await page.waitForFunction(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayLines?.()['underlay:U1'] ?? 0) > 0 : !!document.querySelector('[aria-label="Underlay drawing U1"] path'), null, { timeout: 10000 });
-    assert.match(await page.locator('[aria-label="Underlay drawing U1"]').innerHTML(), /PLATE 3MM/);
+    // (Its texts the engine's labels on WebGPU, G15; SVG on WebGL2.)
+    assert.match(await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayTexts?.()['underlay:text:U1'] ?? []).join('\n') : document.querySelector('[aria-label="Underlay drawing U1"]')?.innerHTML ?? ''), /PLATE 3MM/);
     await snap('o68-underlay');
     await page.click('[aria-label="Hide underlay U1"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Underlay drawing U1"]') && !window.__studioOverlayLines?.()['underlay:U1']);
     assert.equal(await underlayDrawn(), false);
@@ -6301,6 +6302,48 @@ try {
     assert.deepEqual(after.own, [false], 'its surface not shared');
     const kept = Object.keys(before).filter(k => k !== 'inst:r5' && before[k] === after.ids[k]).length;
     assert.equal(kept, 23, 'the other copies kept their meshes');
+  });
+
+  // ---- G12: a proposal's two-colour overlay ----------------------------------------------------------------------------
+  await check('G12: a proposal previewed with what it adds (green) and takes away (red) — a Ø4 hole in a 40 × 20 × 8 plate and a 10 × 10 × 5 block beside it: 500 mm³ added, 100.5 removed, by the Boolean; cleared with the preview', async () => {
+    const fs = await import('node:fs');
+    const nodes = [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 8 }];
+    const risk = { level: 'low', features_touched: 1, references_broken: 0, hard_requirements_changed: [], approval: [] };
+    const ops = [{ tool: 'features', args: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 4, x: 30, y: 10 } } },
+      { tool: 'features', args: { action: 'add', features: [{ kind: 'sketch', profile: 'rectangle', min: [50, 0], max: [60, 10] }, { kind: 'extrude', sketch: 3, height: 5 }] } }];
+    const proposals = [{ id: 'P9', title: 'A Ø4 hole and a block', status: 'open', by: { agent: 'chat' }, at: '2026-10-22T00:00:00Z', base: '0', ops, risk, summary: '3 added' }];
+    const file = join(out, 'g12-proposal.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes, proposals }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForSelector('[aria-label="Proposal P9"]', { timeout: 15000 }); await idle();
+    await page.locator('[aria-label="Proposal P9"] button', { hasText: 'Rebase & preview' }).click();
+    await page.waitForSelector('[aria-label="Proposal P9"] [aria-label="Volume change"]', { timeout: 15000 });
+    await page.waitForFunction(() => !!window.__studioProposalOverlay?.(), null, { timeout: 30000 }); await page.waitForTimeout(600);
+    const o = await page.evaluate(() => window.__studioProposalOverlay());
+    console.log(`  G12 overlay: ${JSON.stringify(o)}`);
+    assert.equal(o.method, 'boolean');
+    assert.ok(Math.abs(o.added - 500) < 1, `500 mm³ added ${JSON.stringify(o)}`);
+    assert.ok(Math.abs(o.removed - Math.PI * 4 * 8) < 1.5, `the hole's π·2²·8 removed ${JSON.stringify(o)}`);
+    assert.ok(o.faces > 0);
+    if (await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu')) {
+      // Drawn: the two materials (and their edges and chips); green over the block, red at the hole.
+      const names = await page.evaluate(() => window.__studioViewer.meshList.map(m => m.name).filter(n => n?.startsWith('proposal:')));
+      assert.deepEqual(names.sort(), ['proposal:added', 'proposal:removed']);
+      assert.equal(o.tinted, false, 'no faces tinted: the Boolean drew it');
+      const c = await page.evaluate(async () => {
+        const v = window.__studioViewer, img = await v.capture(), M = v.camera.viewProjection(v.aspect), W = v.canvas.width, H = v.canvas.height;
+        const at = p => { const q = [0, 1, 3].map(k => M[k] * p[0] + M[4 + k] * p[1] + M[8 + k] * p[2] + M[12 + k]); const x = Math.round((q[0] / q[2] * 0.5 + 0.5) * W), y = Math.round((0.5 - q[1] / q[2] * 0.5) * H), i = (y * W + x) * 4; return [...img.data.slice(i, i + 3)]; };
+        return { block: at([55, 5, 5]), hole: at([30, 10, 8]) };
+      });
+      assert.ok(c.block[1] > c.block[0] + 20 && c.block[1] > c.block[2] + 10, `green over the block ${JSON.stringify(c)}`);
+      assert.ok(c.hole[0] > c.hole[1] + 20, `red at the hole ${JSON.stringify(c)}`);
+    } else assert.equal(o.tinted, true, 'WebGL2: its faces tinted');
+    await snap('g12-proposal');
+    // Before and after: the overlay stays; the preview cleared, it goes.
+    await page.click('[aria-label="Proposal P9"] [aria-label="Before or after"]'); await page.waitForTimeout(500); await snap('g12-proposal-before');
+    assert.ok(await page.evaluate(() => !!window.__studioProposalOverlay()));
+    await page.locator('[aria-label="Proposal P9"] button', { hasText: 'Reject' }).click();
+    await page.waitForFunction(() => !window.__studioProposalOverlay?.(), null, { timeout: 10000 });
   });
 
   await check('command palette and light theme', async () => {

@@ -5,6 +5,7 @@ import { projectViews } from '@barocss/cad-model/drawing/project';
 import { sectionOf } from '@barocss/cad-model/drawing/section';
 import { WireReceiver, type WireDoc } from '@barocss/cad-model/engine/wireDoc';
 import { mouldView } from './mouldView';
+import { proposalDiffFor } from '@barocss/cad-model/chat/proposalDiff';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { diagnoseMesh, repairMesh, stepMeshes, stepSizeProblem, stepTessellatedChars, type MeshRepairSteps } from '@barocss/cad';
 
@@ -18,6 +19,7 @@ export type WorkerRequest =
   | { type: 'section'; id: number; doc: WireDoc; revision: number }
   /** The mould's parting loops, and its halves when asked (G6: the tooling's Booleans, off the main thread). */
   | { type: 'mould'; id: number; doc: WireDoc; revision: number; halves: boolean; mould: StudioDoc['mould'] }
+  | { type: 'proposalDiff'; id: number; doc: WireDoc; proposed: WireDoc; revision: number; key: { revision: string; proposal: string } }
   | { type: 'stl'; id: number; doc: WireDoc; key: string }
   | { type: 'step'; id: number; doc: WireDoc; name: string; meshes?: 'auto' | 'tessellated' | 'planar' }
   /** A STEP file's meshes when it holds nothing else (R3.5), for the repair gate. */
@@ -56,6 +58,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   }
   // (The documents unpacked in the order the client packed them: the request's, then a placed part's base.)
   const doc = wire.unpack(event.data.doc), base = event.data.type === 'placed' ? wire.unpack(event.data.base) : null;
+  const proposed = event.data.type === 'proposalDiff' ? wire.unpack(event.data.proposed) : null;
   const request = { ...event.data, doc };
   if (request.type === 'evaluate' || request.type === 'part' || request.type === 'placed' || request.type === 'preview' || request.type === 'section') {
     const result = request.type === 'placed' ? evaluatePlaced(request.doc, base!, request.place, request.revision) : request.type === 'part' ? evaluatePart(request.doc, request.revision, 8, request.slot) : request.type === 'preview' || request.type === 'section' ? evaluatePreview(request.doc, request.revision, 8, request.type) : evaluateDoc(request.doc, request.revision);
@@ -69,6 +72,16 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     try { view = part.ok ? mouldView({ ...request.doc, mould: request.mould }, part.bodies, request.halves) : null; } catch (e) { why = e instanceof Error ? e.message : String(e); }
     const halves = view?.halves, out = meshesOut.pack('mould', { ok: true, revision: request.revision, ms: 0, bodies: halves ? [...halves.plus, ...halves.minus] : [] });
     (self as unknown as Worker).postMessage({ id: request.id, result: out.result, mould: view && { pull: view.pull, loops: view.loops, why: view.why, plus: halves?.plus.length ?? 0, halves: !!halves }, why: why ?? (part.ok ? null : 'the part does not evaluate') }, out.transfer);
+  } else if (request.type === 'proposalDiff') {
+    // (G12: both sides evaluated in part slots of their own — the base in 'read', the proposal in 'agent', where its
+    // preview was just made — then the diff, kept by the base's revision and the proposal; its two meshes in a slot.)
+    const a = evaluatePart(request.doc, request.revision, 8, 'read'), b = evaluatePart(proposed!, request.revision, 8, 'agent');
+    if (!a.ok || !b.ok) { (self as unknown as Worker).postMessage({ id: request.id, diff: null, why: 'a side does not build' }); return; }
+    let d: ReturnType<typeof proposalDiffFor> | null = null, why: string | null = null;
+    try { d = proposalDiffFor(request.key, { doc: request.doc, bodies: a.bodies }, { doc: proposed!, bodies: b.bodies }); } catch (e) { why = e instanceof Error ? e.message : String(e); }
+    const sides = d ? [d.added, d.removed] : [], bodies = sides.flatMap((m, i) => m ? [{ ...a.bodies[0], key: i ? 'removed' : 'added', mesh: m.mesh }] : []);
+    const out = meshesOut.pack('proposalDiff', { ok: true, revision: request.revision, ms: 0, bodies });
+    (self as unknown as Worker).postMessage({ id: request.id, result: out.result, diff: d && { added: d.added ? d.added.volumeMM3 : null, removed: d.removed ? d.removed.volumeMM3 : null, changedFaces: d.changedFaces, method: d.method, why: d.why ?? null }, why }, out.transfer);
   } else if (request.type === 'volumes') {
     (self as unknown as Worker).postMessage({ id: request.id, volumes: evaluateVolumes(request.doc) });
   } else if (request.type === 'drawing') {
