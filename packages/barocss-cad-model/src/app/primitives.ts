@@ -78,6 +78,11 @@ const n = (v: Values, ...keys: string[]) => keys.map(k => Number(v[k]));
 export const puck = (at: V3): HandleSpec => ({ key: 'x', at, dir: [1, 0, 0], pair: { key: 'y', dir: [0, 1, 0] } });
 const arrow = (key: string, at: V3, dir: V3, extra: Partial<HandleSpec> = {}): HandleSpec => ({ key, at, dir, min: 0.5, step: 0.5, ...extra });
 const X: V3 = [1, 0, 0], Y: V3 = [0, 1, 0], Z: V3 = [0, 0, 1];
+/**
+ * Spring steel's shear modulus G, MPa: an estimate (a commonly used round figure, no source read), prefilled by the
+ * Spring command and flagged as such on the node (the owner, R12c: "스프링 G는 추정값으로 표시해").
+ */
+export const STEEL_G_ESTIMATE_MPA = 79300;
 
 /** The one selected body when it is a spur gear as made (not built on further): its node and index. */
 /** The Internal gear command's default x2 (D132): unshifted, a ring's tip corners cut a rack-cut pinion's fillet at no backlash. */
@@ -211,6 +216,21 @@ export const primitives: Command[] = [
       const wheel = throated ? withNode(ctx.doc, { kind: 'worm-wheel', module: m, starts: Math.round(z1), diameter: d1, hand, teeth: Math.round(z2), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'worm-wheel@0' })
         : withNode(ctx.doc, { kind: 'gear', module: g.mn, helixAngle: g.gamma * 180 / Math.PI, hand, teeth: Math.round(z2), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'spur-gear@0' });
       return withNode(wheel, { kind: 'worm', starts: Math.round(z1), form, length: L, ...(wbore > 0 ? { bore: wbore } : {}), mesh: { gear: wheel.nodes.length - 1 }, generator: 'worm@0' });
+    },
+  },
+  {
+    id: 'spring', label: 'Spring', icon: 'cad-spring', hint: 'A compression spring: round wire on a coil — the wire\'s exact circle swept along it, fitted within 1e-4 of its diameter — with open, closed or closed and ground ends (a dead coil each end at the solid pitch). Its rate from the shear modulus G (steel\'s prefilled, an estimate), its solid heights and the stress at a working load in its notes. Not validated for manufacturing', group: 'create', keywords: 'spring coil compression helix helical wire ground closed rate stiffness plunger',
+    available: () => ok,
+    fields: () => [{ key: 'd', label: 'Wire Ø', kind: 'mm', min: 0.1 }, { key: 'D', label: 'Mean coil Ø', kind: 'mm', min: 0.5 }, { key: 'n', label: 'Active coils', kind: 'number', min: 0.5, step: 0.5 }, { key: 'p', label: 'Pitch', kind: 'mm', min: 0.1 },
+      { key: 'ends', label: 'Ends', kind: 'choice', options: [{ value: 'closed-ground', label: 'Closed and ground' }, { value: 'closed', label: 'Closed' }, { value: 'open', label: 'Open' }] },
+      { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }] },
+      { key: 'G', label: 'Shear modulus G (MPa)', kind: 'number', min: 0 }, { key: 'F', label: 'Working load (N)', kind: 'number', min: 0 }, ...at],
+    defaults: ctx => ({ d: 2, D: 20, n: 6, p: 5, ends: 'closed-ground', hand: 'right', G: STEEL_G_ESTIMATE_MPA, F: 0, ...beside(ctx, 20) }),
+    handles: (_, v) => { const [D, x, y, zz] = n(v, 'D', 'x', 'y', 'z'); return [puck([x, y, zz]), arrow('D', [x + D / 2, y, zz], X, { scale: 2 })]; },
+    build: (ctx, v) => {
+      const [d, D, na, p, G, F, x, y, zz] = n(v, 'd', 'D', 'n', 'p', 'G', 'F', 'x', 'y', 'z'), ends = v.ends === 'open' || v.ends === 'closed' ? v.ends : 'closed-ground' as const;
+      // (G prefilled with steel's is flagged an estimate, the owner's decision for R12c; a value typed in is the user's.)
+      return withNode(ctx.doc, { kind: 'spring', wire: d, diameter: D, activeCoils: na, pitch: p, hand: v.hand === 'left' ? 'left' : 'right', ends, ...(G > 0 ? { shearModulus: G, ...(G === STEEL_G_ESTIMATE_MPA ? { shearModulusEstimate: true } : {}) } : {}), ...(F > 0 ? { load: F } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'spring@0' });
     },
   },
   {

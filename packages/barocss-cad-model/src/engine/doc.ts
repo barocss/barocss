@@ -251,6 +251,13 @@ type ModelNodeBase = SketchNode
    * widened by `thicknessReduction`; its axis +Z through `center` from `from`, turned `rotation`.
    */
   | { kind: 'worm-wheel'; module: Dim; starts: number; diameter: Dim; hand: 'right' | 'left'; teeth: number; faceWidth: Dim; bore?: Dim; thicknessReduction?: Dim; center: [number, number]; from?: number; rotation?: number; generator: 'worm-wheel@0' }
+  /**
+   * A compression spring (R12c.1a, D153): round wire `wire` (d) on a mean coil diameter `diameter`, its active coils,
+   * the body's `pitch` or the `freeLength`, its hand and ends (closed and ground by default; a dead coil each end); the
+   * shear modulus G (MPa) for the rate — the command prefills steel's, flagged `shearModulusEstimate` until edited —
+   * and a working `load` (N). Its axis +Z through `center` from `from`, the wire starting `rotation` degrees from +X.
+   */
+  | { kind: 'spring'; wire: Dim; diameter: Dim; activeCoils: number; pitch?: Dim; freeLength?: Dim; hand: 'right' | 'left'; ends: 'open' | 'closed' | 'closed-ground'; shearModulus?: number; shearModulusEstimate?: boolean; load?: number; center: [number, number]; from?: number; rotation?: number; generator: 'spring@0' }
   | { kind: 'worm'; starts: number; form: 'ZI' | 'ZA'; length: Dim; bore?: Dim; thicknessReduction?: Dim; mesh: BevelMesh; generator: 'worm@0' }
   | { kind: 'gear';
     /** The module; a helical gear's normal module m_n (R6a.5c: `helixAngle` degrees and `hand`; a meshing gear takes the other's angle, opposite hand). */
@@ -518,7 +525,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'rack': case 'sheet-contour': return [];
+    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'rack': case 'sheet-contour': return [];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
     case 'frame': return [node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : []);
     case 'union': case 'intersect': return [node.left.node, node.right.node];
@@ -535,7 +542,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
+    if (node.kind === 'sketch' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -674,6 +681,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'subd': return `SubD ${node.name} (${node.cage.faces.length} ${node.cage.faces.every(f => f.length === 4) ? 'quads' : 'faces'})`;
     case 'library': return node.name;
     case 'rack': return `Rack m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} × ${node.teeth}`;
+    case 'spring': return `${node.ends === 'open' ? 'Open' : node.ends === 'closed' ? 'Closed' : 'Ground'} spring d${n(node.wire)} × Ø${n(node.diameter)}, ${fmt(node.activeCoils)} coils`;
     case 'worm-wheel': return `Throated worm wheel m_x${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${node.teeth}`;
     case 'worm': { const w = wormOf(node, nodes); return `Worm ${node.form} m_x${w ? fmt(+w.mx.toFixed(4)) : '?'} ×${node.starts}${w ? ` Ø${fmt(+w.d1.toFixed(3))}` : ''}`; }
     case 'bevel-gear': { const t = bevelTeeth(node, nodes), spiral = bevelSpiral(node, nodes); return `${spiral ? 'Spiral bevel gear' : 'Bevel gear'} m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} z${t.teeth}/${t.mateTeeth}${spiral ? ' (ideal model)' : ''}`; }

@@ -2644,6 +2644,23 @@ try {
     await snap('throated-worm-pair');
   });
 
+  await check('Spring (R12c.1a, D153): a compression spring from the palette — closed and ground, steel\'s G an estimate; its notes (sizes, solid heights, the rate flagged), the ground ends flat at Z 0 and L0', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('spring'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'spring' && /1 bod/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    assert.match(await page.textContent('.history'), /Ground spring d2 × Ø20, 6 coils/);
+    const node = await page.evaluate(() => window.__studioDoc.nodes[0]);
+    assert.ok(node.shearModulus === 79300 && node.shearModulusEstimate === true && node.ends === 'closed-ground', JSON.stringify(node));
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(notes.some(t => /Compression spring, right hand, ends closed and ground: wire Ø2, mean Ø20/.test(t)) && notes.some(t => /Solid height 16\.0081 mm/.test(t)) && notes.some(t => /^(warning )?Rate 3\.3042 N\/mm .*an estimate for steel/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('spring-ground');
+  });
+
   await check('R12b.7 the gears\' acceptance by the scripted agent through the real chat: a planetary set (its own mesh checks passing), a right-angle bevel pair, a worm reducer — each in one turn, its pairs clear in their notes (new in D138)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
