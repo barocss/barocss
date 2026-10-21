@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { confirmDocLibrary, insertLibraryPart, libraries, libraryEntry, libraryInstance, registerDocLibraries, registerLibrary, shareRefusal, type LibraryEntry, type LibrarySource } from '@barocss/cad-model/library/libraries';
 import { UNLICENSED } from '@barocss/cad-model/library/sharing';
+import { CASTING_PROCESSES, type CastingProcess } from '@barocss/cad-model/casting/report';
 import { MATERIALS_DATA, processProfile } from '@barocss/cad-model/library/materials';
 import { Icon } from './atoms';
 
@@ -66,9 +67,10 @@ export function LibraryPanel({ doc, onCommit, onError, onClose, onQuote }: { doc
     {processProfile(doc.process)?.additive && <label className="kv"><span>Printer</span><select aria-label="Printer" value={doc.printer ?? ''} onChange={ev => { const next = { ...doc }; if (ev.target.value) next.printer = ev.target.value; else delete next.printer; onCommit(next); }}>
       <option value="">Not chosen</option>{MATERIALS_DATA.printers.filter(p => p.process === doc.process).map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select></label>}
     {/* (IM1, O77: moulding — the pull, along which the mould opens, and the finish, which sets the least draft.) */}
+    {/* (IM8a, O106: casting's mould opens along a pull too; it has no finishes.) */}
+    {(processProfile(doc.process)?.finishes || CASTING_PROCESSES.includes(doc.process as CastingProcess)) && <label className="kv"><span>Pull</span><select aria-label="Pull direction" value={doc.mould?.pull ? PULLS.find(p => p.v.every((x, k) => x === doc.mould!.pull![k]))?.id ?? '' : ''} onChange={ev => onCommit(withMould(doc, { pull: PULLS.find(p => p.id === ev.target.value)?.v }))}>
+        <option value="">Not set</option>{PULLS.map(p => <option key={p.id} value={p.id}>{p.id}</option>)}</select></label>}
     {processProfile(doc.process)?.finishes && <>
-      <label className="kv"><span>Pull</span><select aria-label="Pull direction" value={doc.mould?.pull ? PULLS.find(p => p.v.every((x, k) => x === doc.mould!.pull![k]))?.id ?? '' : ''} onChange={ev => onCommit(withMould(doc, { pull: PULLS.find(p => p.id === ev.target.value)?.v }))}>
-        <option value="">Not set</option>{PULLS.map(p => <option key={p.id} value={p.id}>{p.id}</option>)}</select></label>
       <label className="kv"><span>Finish</span><select aria-label="Mould finish" value={doc.mould?.finish ?? ''} onChange={ev => onCommit(withMould(doc, { finish: ev.target.value || undefined }))}>
         <option value="">Not set</option>{processProfile(doc.process)!.finishes!.map(f => <option key={f.id} value={f.id}>{f.label} · ≥ {f.draftMinDeg}°</option>)}</select></label>
       {onQuote && <div className="row-actions"><button className="ghost" aria-label="Quote package" title="The part as STEP, the manufacturability report and the request (material, finish, pull, quantity) in one zip: no price, what is open said" onClick={onQuote}>Quote package</button></div>}

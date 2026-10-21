@@ -5,7 +5,7 @@ import { MATERIALS_DATA, checkMaterials, printerProfile, processProfile } from '
 // AM (D72–): 3D printing — process and printer profiles (AM1).
 test('AM1 profiles: five processes (SLS and MJF added), every printing one with every printing threshold sourced; five generic printers on printing processes with their build volumes; the data checks clean', () => {
   assert.deepEqual(checkMaterials(MATERIALS_DATA), []);
-  assert.deepEqual(MATERIALS_DATA.profiles.map(p => [p.id, !!p.additive]), [['injection', false], ['fdm', true], ['sla', true], ['sls', true], ['mjf', true], ['cnc-milling', false], ['cnc-turning', false]]);
+  assert.deepEqual(MATERIALS_DATA.profiles.map(p => [p.id, !!p.additive]), [['injection', false], ['fdm', true], ['sla', true], ['sls', true], ['mjf', true], ['cnc-milling', false], ['cnc-turning', false], ['die-casting', false], ['sand-casting', false]]);
   for (const p of MATERIALS_DATA.profiles.filter(x => x.additive)) for (const k of ['minWallUnsupported', 'maxOverhangDeg', 'maxBridgeMM', 'minHoleMM', 'fitGap', 'escapeHoleMM', 'escapeHoles', 'horizontalHoleMM']) {
     const t = p.thresholds[k]; assert.ok(t && Number.isFinite(t.value) && t.source in MATERIALS_DATA.sources, `${p.id}.${k}`);
   }

@@ -5,8 +5,13 @@
 // `profile.<threshold>` from the document's process.
 import materialsJson from './builtin/materials.json';
 
+/** A casting alloy's family (IM8a, O106): which of a casting process's limits apply. */
+export type CastFamily = 'zinc' | 'aluminium' | 'magnesium' | 'copper' | 'steel';
+export const CAST_FAMILIES: readonly CastFamily[] = ['zinc', 'aluminium', 'magnesium', 'copper', 'steel'];
 export interface MaterialData {
   readonly id: string; readonly label: string; readonly family: 'metal' | 'polymer';
+  /** A casting alloy's family (IM8a); none for a material not cast here (a wrought alloy, a polymer). */
+  readonly castFamily?: CastFamily;
   readonly densityGPerCm3: number; readonly elasticModulusMPa: number; readonly yieldMPa: number; readonly allowableStrain: number; readonly shrink: number;
   /** Its coefficient of friction against itself (a snap-fit's push-on and pull-off forces). */
   readonly friction: number;
@@ -50,6 +55,7 @@ export function checkMaterials(d: MaterialsData): string[] {
     for (const [field, s] of Object.entries(m.sources)) if (!(s in d.sources)) problems.push(`${m.id}.${field}: unknown source ${s}`);
     for (const k of NUMERIC) if (!(k in m.sources)) problems.push(`${m.id}.${k}: no source`);
     for (const [p, [lo, hi]] of Object.entries(m.wallMM ?? {})) if (!(lo > 0 && hi > lo)) problems.push(`${m.id}.wallMM.${p}: ${lo}–${hi}`);
+    if (m.castFamily !== undefined && (!CAST_FAMILIES.includes(m.castFamily) || m.family !== 'metal')) problems.push(`${m.id}.castFamily: ${m.castFamily}`);
   }
   // (Printing processes carry every printing threshold; printers name a known process, a positive build volume and layer.)
   const AM = ['minWallUnsupported', 'maxOverhangDeg', 'maxBridgeMM', 'minHoleMM', 'fitGap', 'escapeHoleMM', 'escapeHoles', 'horizontalHoleMM', 'warpLrefMM'];

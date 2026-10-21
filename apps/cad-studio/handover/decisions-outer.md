@@ -4160,7 +4160,7 @@ The owner's decision, verbatim: "@barocss/cad-model 는 공개패키지로 해�
   - `release.yml` ("Npm version PR", run by hand on develop) runs type-check, lint, build:library, the non-app tests and `check-packages.mjs`, then opens a changesets version PR. This package passes lint and type-check, has no build or test script to run, and a package without a changeset is not versioned;
   - `check-packages.mjs` and `check-release-version.mjs` cover only the fixed release set in `.github/scripts/release-manifests.mjs` (kit, browser, server, render). A new package is not packed or checked there, and it cannot trip the pending-changeset check while it has none;
   - `npm-release.yml` publishes only those four tarballs, by name. A public cad-model is not published by any workflow until it is added to that set on purpose.
-- **Open, for the coordinator and the owner later**: a public package's exports are an API. `"./*"` stays for the moves. Before the first release it needs a curated public entry (`index.ts`) and a stability policy for its exports. Not designed here.
+- **Open, for the coordinator and the owner later**: a public package's exports are an API. `"./*"` stays for the moves. Before the first release it needs a curated public entry (`index.ts`) and a stability policy for its exports. Not designed here. (History: settled in O107. The package is fully public, with no curated entry; stability is 0.x experimental.)
 - The lockfile is unchanged: workspace links carry no version.
 
 ## O94 — A7.5: candidates isolated, verified and approved — the replay gate, operations, undo against freshness, #2181's nine steps (2026-10-21)
@@ -4520,3 +4520,70 @@ Owner, 2026-10-21, relayed by the coordinator. First: "앱 채팅과 MCP 기본�
   - through MCP, three refusals (no requirements, no snapshot, L2's proposal) name v2 tools;
   - `v2Result` converts a stored op.
 - Verified so far: app tsc 0, toolset.test 11/11. **Not yet run:** the full studio suite name diff and FLOW_ONLY on the chat steps.
+
+## O106 — IM8a: casting presets — die casting and sand casting by the alloy's casting family (2026-10-21)
+
+- **The data** (`library/builtin/materials.json`).
+  - Two process profiles, `die-casting` and `sand-casting`. Their limits are keyed by casting family (`zincWallMinMM`, `aluminiumDraftRecDeg`, …), with the process's own value applying to every family (sand casting's draft). Each limit names its page, read 2026-10-21:
+    - **eFunda, die casting** (`efunda.com/processes/metal_processing/die_casting.cfm`), its table of minimum thickness and draft:
+      - zinc alloys 0.6 mm, 0.25°;
+      - aluminium alloys 0.9 mm, 0.5°;
+      - copper alloys (brass) 1.25 mm, 0.7°.
+    - **Dynacast, a beginner's guide to die-cast design**: "0.5º is achievable for zinc 1º-2º is achievable for aluminum". Achievable draft is zinc 0.5° and aluminium 1° (the low end).
+      - Tolerances "±0.001" and ±0.002"" for zinc and "±0.002" and ±0.004"" for aluminium are W-DERIVED: the looser end × 25.4, so 0.0508 and 0.1016 mm.
+    - **Dynacast, die casting design FAQ**: "Wall thickness, typically is 2mm for aluminum die casting." This is aluminium's typical wall: under it warns, under 0.9 fails.
+    - **Engineers Edge, design for sand casting**:
+      - walls "0.10" - Aluminum, .13 Magnesium and .13 for Steel", W-DERIVED × 25.4 as 2.54, 3.302 and 3.302 mm;
+      - "Standard draft for sand casting is 2 degrees with a minimum of about 1 degree".
+  - **Not read, so unknown and said**:
+    - Magnesium in die casting: no HTML page gave a value; the TMS course and Wikipedia's table taken from a standard were not used.
+    - Copper tolerance.
+    - Sand-casting tolerance: Engineers Edge's chart is an image.
+    - Iron.
+  - **Materials**: a `castFamily` (zinc | aluminium | magnesium | copper | steel), checked by `checkMaterials`.
+    - New casting alloys `zamak3`, `a380`, `az91d` (die) and `a356` (sand). Their mechanical values are S-TYP estimates, flagged.
+    - Brass (copper, die) and steel (steel, sand) gained a family.
+    - Al 6061 has none: a wrought alloy.
+- **The report** (`casting/report.ts`, `castability`, dispatched from `printability`) has these rules:
+  - **material**: a non-casting alloy fails; a family with no value read is unknown;
+  - **pull**: `doc.mould.pull` or `direction`;
+  - **wall**: IM4's thinnest against the least (fail) and typical (warn);
+  - **draft**: IM2's exact field against the least (fail) and achievable (warn); straddling faces warn;
+  - **tolerance**: where read.
+  - It also returns a `casting` summary: family, tolerance and page, the steep faces.
+- **Surfaces**:
+  - The brief's processes now include `die-casting` and `sand-casting`.
+  - The Library panel lists both and shows the Pull for casting; finishes stay moulding's.
+  - The report tool's description and the v2 `query.manufacturability` hint add casting (+16 characters a turn: 21,406 → 21,422).
+  - No new tool or action (O105's rule).
+- **Tests** (`test/im8a.test.ts`, 6), with a block drafted θ on each side of every draft limit and a box shelled to t on each side of every wall limit:
+  - data and page checks;
+  - die draft: zinc 0.75/0.5 pass, 0.4 warn, 0.2 fail; aluminium 1.5 pass, 0.75 warn, 0.4 fail;
+  - sand draft: 0.75 fail, 1.5 warn, 2.5 pass;
+  - walls: die zinc 0.8 pass; aluminium 0.8 fail, 1.5 warn, 2.5 pass; sand aluminium 2 fail, 3 pass; sand steel 3 fail, 3.5 pass;
+  - the unknowns;
+  - the tool and its v2 action.
+  - Flow step "IM8a" chooses die casting with a +Z pull in the Library panel. Through the real chat, A380 at 0.75° warns on draft and Zamak 3 passes.
+- **Next**: IM8b, allowances.
+- **With it, O105b's review** (the coordinator): a pass-through test in toolset.test. Names a user chose that are not handlers' (`my_bracket_v2`, `left_rail_2`, a non-handler `tool`) come back unchanged; only a handler's exact name is rewritten, and that known limit (a part named `add_part`) is pinned.
+
+## O107 — @barocss/cad-model is fully public (2026-10-21)
+
+Owner, relayed by the coordinator: "@barocss/cad-model 은 완전 공개 패키지야" (@barocss/cad-model is a fully public package).
+
+- Every module under `packages/barocss-cad-model/src/` is public API, imported by its path (`@barocss/cad-model/<module>`), as the `./*` export already does. There is no curated subset and no internal/public split; `src/index.ts` exports nothing.
+  - This settles O93's open item. "Stability policy" stays only as: 0.x experimental (`0.0.0-experimental`), no compatibility promise yet.
+- **The package README** is rewritten:
+  - every module public, with a module map, one line each (engine, sketch, app, assembly, subd, chat, drawing, print, mould, machining, casting, robot, library, standards, team, rb9, io);
+  - no UI or DOM, layered on `@barocss/cad`;
+  - the data rules;
+  - 0.x, so the API may change.
+  - `src/index.ts`'s stale "empty until the moves" comment is updated.
+- **Checked under src/, since everything ships** (197 files):
+  - No absolute `/Users/`, `/private/`, `/home/` or `/var/folders/` paths, no temp paths, no test probes (`*.test.*`, `_*`, `*probe*`), no hosts or ports.
+  - No secrets: no API keys, passwords or bearer tokens. The "tokens" in `team/` are minted approval tokens, not credentials.
+  - The only environment reads are the agent's run settings (`CAD_AUTONOMY`, `CAD_MAX_TURNS`, `CAD_MODEL`, `CAD_PROMPT`) and the test hook `CAD_TOOLS_VIA_V2`, each guarded for no `process`.
+  - The data: `library/builtin/{materials,enclosure,tslot-20}.json` are CC0, written for BaroCSS, values sourced (W-WEB/W-DERIVED with pages) or flagged estimates, no supplier's or standard's tables. `standards/provenance.ts` refuses GPL, share-alike, non-commercial or unknown licences. Shop lists (stock, bend tables, frame sections) are the user's to load.
+  - `rb9/` (the scenario ladder and its scripted agent) is product code, public with the rest.
+- **Test**: `test/cad-model-public.test.ts` fails if a file under `src/` holds such a path. A planted `/Users/someone/x.json` was caught by its pattern.
+- **Release item**, with no change now: the exports point at `.ts` sources, so a build step to JS and `.d.ts` comes before a real publish. No publish and no version change.

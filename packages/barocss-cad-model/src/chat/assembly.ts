@@ -219,7 +219,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
         content: json({ ok: true, added: r.node.name, feature: r.doc.nodes.length - 1, ...(r.node.context ? { context: r.node.context } : {}), warnings: r.node.warnings }) };
     }
     case 'check_printability': {
-      // (AM3, IM1: the manufacturability rules for the part's process — printing, injection moulding — read only.)
+      // (AM3, IM1, CNC1, IM8a: the manufacturability rules for the part's process — printing, moulding, machining, casting — read only.)
       const dir = vec3(args.direction);
       if (args.finish !== undefined && typeof args.finish !== 'string') return fail(doc, '"finish" is a moulding finish id.');
       const sides = args.sides === undefined ? undefined : isObj(args.sides) && Object.values(args.sides).every(v => v === '+' || v === '-') ? args.sides as Record<string, '+' | '-'> : null;
@@ -310,7 +310,7 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'check_printability',
-    description: 'The manufacturability report for the part\'s process (printing, injection moulding, machining), naming the process it judged by (none chosen: it says so, none assumed); each rule pass, warn, fail, unknown (why) or n/a, with values, limits and their sources. Printing (the process and printer): wall, hole, horizontal holes, gaps between bodies, enclosed cavities, bed fit, overhang, warp, tipping, as it lies (direction: the build direction, else the chosen one). Injection moulding: the pull (direction, else the document\'s), the finish and its least draft (finish: smooth, pm-t1, pm-t2, else the document\'s), walls against the process and the material\'s range, the largest part; draft, undercuts, walls, ribs, bosses, inside corners, sink; the parting line (sides: {face: "+" | "-"} puts a face in a half).',
+    description: 'The manufacturability report for the part\'s process (printing, injection moulding, machining, casting), naming the process it judged by (none chosen: it says so, none assumed); each rule pass, warn, fail, unknown (why) or n/a, with values, limits and their sources. Printing (the process and printer): wall, hole, horizontal holes, gaps between bodies, enclosed cavities, bed fit, overhang, warp, tipping, as it lies (direction: the build direction, else the chosen one). Injection moulding: the pull (direction, else the document\'s), the finish and its least draft (finish: smooth, pm-t1, pm-t2, else the document\'s), walls against the process and the material\'s range, the largest part; draft, undercuts, walls, ribs, bosses, inside corners, sink; the parting line (sides: {face: "+" | "-"} puts a face in a half). Die and sand casting (IM8a): the material\'s casting family, the pull (direction, else the document\'s), the thinnest wall, every face\'s draft against the family\'s least and achievable, the tolerance where a page gives it.',
     input_schema: { type: 'object', properties: { direction: xyz, finish: { type: 'string' }, sides: { type: 'object', additionalProperties: { type: 'string', enum: ['+', '-'] } } }, additionalProperties: false },
   },
   {

@@ -5319,6 +5319,36 @@ try {
     const w = await wide(); assert.ok(w.page <= 0 && w.scrolled === 0, JSON.stringify(w));
   });
 
+  // ---- IM8a (O106): casting presets, through the Library panel and the real chat and tool servers -----------------
+  await check('IM8a: die casting chosen in the Library panel with a +Z pull, a block drafted 0.75° made through the real chat — aluminium (A380) warned under its 1° achievable draft, zinc (Zamak 3) passing; the tolerance from its page', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'die-casting');
+    await page.selectOption('[aria-label="Pull direction"]', '+Z');
+    await page.waitForFunction(() => window.__studioDoc.process === 'die-casting' && window.__studioDoc.mould?.pull?.[2] === 1, null, { timeout: 5000 });
+    assert.equal(await page.locator('[aria-label="Mould finish"]').count(), 0, 'no finishes for casting');
+    await page.click('[aria-label="Close library"]');
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [
+        { tool: 'features', args: { action: 'add', features: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { kind: 'extrude', sketch: 0, height: 20, draft: 0.75 }] } },
+        { tool: 'features', args: { action: 'material', material: 'a380' } },
+        { tool: 'query', args: { action: 'manufacturability' } },
+        { tool: 'features', args: { action: 'material', material: 'zamak3' } },
+        { tool: 'query', args: { action: 'manufacturability' } }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
+      const reports = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /die-casting:/.test(x)).slice(-2);
+      assert.match(reports[0], /query\.manufacturability\s*die-casting: material pass, pull pass, wall pass, draft warn, tolerance pass/, reports[0]);
+      assert.match(reports[1], /die-casting: material pass, pull pass, wall pass, draft pass, tolerance pass/, reports[1]);
+      await snap('im8a-die-casting');
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

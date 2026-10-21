@@ -218,3 +218,10 @@ test('O105b through MCP: refusals and hints name v2 tools — no requirements, n
     { ops: [{ tool: 'features', args: { command: 'box', action: 'command' } }, { tool: 'nope', args: {} }], wall_thickness: 2, note: 'see query.summary' });
   assert.equal(v2Result('not JSON: run check_spec first'), 'not JSON: run requirements.check first');
 });
+
+test('O105b pass-through: names a user chose that are not handlers\' come back unchanged — a part, a parameter and a note with underscores; only a handler\'s exact name is rewritten (a known limit: a part named "add_part" reads as assembly.add_part)', () => {
+  const user = { part: 'my_bracket_v2', parameters: { wall_t_mm: 2, hole_d: 6.6 }, bodies: [{ key: 'b1', name: 'left_rail_2' }], note: 'my_bracket_v2 uses left_rail_2 and the base_plate', ops: [{ tool: 'not_a_handler', args: { x: 1 } }] };
+  assert.equal(v2Result(JSON.stringify(user)), JSON.stringify(user));
+  assert.equal(v2Text('my_bracket_v2, set_material_x, xset_material and set_materials'), 'my_bracket_v2, set_material_x, xset_material and set_materials');
+  assert.equal(v2Text('a part named add_part'), 'a part named assembly.add_part', 'the known limit, pinned');
+});
