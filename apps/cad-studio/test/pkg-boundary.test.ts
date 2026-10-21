@@ -50,3 +50,29 @@ test('PKG-b the user\'s libraries go to the store the app sets: kept there and r
     assert.deepEqual(loadUserLibraries(), []); assert.ok(libraryById('tslot-20-pkg'), 'read back from the store');
   } finally { unregisterLibrary('tslot-20-pkg'); setLibraryStore(null); }
 });
+
+test('PKG-g2 the recovery blobs go to the BlobStore the app sets: none — kept nowhere, found nowhere; set — kept, read back into the blob store, collected; the model names no IndexedDB and its lib has no DOM', async () => {
+  const blobs = await import('@barocss/cad-model/engine/blobs'), { emptyDoc, withNode } = await import('@barocss/cad-model/engine/doc');
+  const node = await blobs.meshNodeBlobs({ kind: 'mesh', name: 'tet', unit: 'mm', representation: 'facets' }, [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], [0, 1, 2, 0, 1, 3, 0, 2, 3, 1, 2, 3]);
+  const doc = withNode(emptyDoc(), node as never);
+  const kept = new Map<string, { type: 'f64' | 'f32' | 'u32' | 'i32'; data: Float64Array | Float32Array | Uint32Array | Int32Array }>();
+  const store = { keys: async () => new Set(kept.keys()), get: async (hs: readonly string[]) => new Map(hs.flatMap(h => kept.has(h) ? [[h, kept.get(h)!] as const] : [])),
+    put: async (es: readonly { hash: string; type: 'f64' | 'f32' | 'u32' | 'i32'; data: Float64Array | Float32Array | Uint32Array | Int32Array }[]) => { for (const e of es) kept.set(e.hash, { type: e.type, data: e.data }); return true; },
+    delete: async (hs: readonly string[]) => { for (const h of hs) kept.delete(h); } };
+  try {
+    blobs.setBlobStore(null);
+    assert.equal(await blobs.saveRecoveryBlobs(doc), false, 'none set: not kept');
+    blobs.setBlobStore(store);
+    assert.equal(await blobs.saveRecoveryBlobs(doc), true);
+    assert.deepEqual([...kept.keys()].sort(), [node.blob.positions, node.blob.indices].sort());
+    // (A recovered document naming blobs this session has not loaded: read back from the store.)
+    const ghost = withNode(emptyDoc(), { kind: 'mesh', name: 'g', unit: 'mm', representation: 'facets', blob: { positions: 'a'.repeat(64), indices: 'b'.repeat(64) } } as never);
+    kept.set('a'.repeat(64), { type: 'f64', data: new Float64Array([0, 0, 0]) }); kept.set('b'.repeat(64), { type: 'u32', data: new Uint32Array([0, 0, 0]) });
+    assert.deepEqual(await blobs.loadRecoveryBlobs(ghost), []); assert.ok(blobs.getBlob('a'.repeat(64)));
+    await blobs.collectRecoveryBlobs(null); assert.equal(kept.size, 0, 'collected');
+  } finally { blobs.setBlobStore(null); }
+  const pkgSrc = join(root, '../../packages/barocss-cad-model/src');
+  assert.ok(!/\bindexedDB\b|\bIDB[A-Z]/.test(readFileSync(join(pkgSrc, 'engine/blobs.ts'), 'utf8')), 'the model names no IndexedDB');
+  const lib = (JSON.parse(readFileSync(join(pkgSrc, '../tsconfig.json'), 'utf8')) as { compilerOptions: { lib: string[] } }).compilerOptions.lib;
+  assert.ok(!lib.some(l => /dom/i.test(l)), `the model's lib: ${lib}`);
+});

@@ -79,57 +79,51 @@ export function inlineMeshes(doc: StudioDoc): StudioDoc | null {
   return ok ? out : null;
 }
 
-// ---- IndexedDB: the recovery copy's blobs ---------------------------------------------------------------------
-const DB = 'studio.blobs', STORE = 'blobs';
-function openDb(): Promise<IDBDatabase | null> {
-  return new Promise(resolve => {
-    try {
-      if (typeof indexedDB === 'undefined') return resolve(null);
-      const r = indexedDB.open(DB, 1);
-      r.onupgradeneeded = () => r.result.createObjectStore(STORE);
-      r.onsuccess = () => resolve(r.result); r.onerror = () => resolve(null);
-    } catch { resolve(null); }
-  });
+// ---- The recovery copy's blobs, in the store the app sets (PKG-g2, O99) -------------------------------------------
+/**
+ * Where the recovery copy's blobs are kept between sessions: an async key-value store of typed arrays by hash (the
+ * studio's is IndexedDB, `ui/blobStore.ts`). The model names no browser storage; with none set (a test, the CLI, the
+ * servers) nothing is kept and nothing is found.
+ */
+export interface BlobStore {
+  /** The hashes kept. */
+  keys(): Promise<Set<string>>;
+  /** Those of `hashes` kept, by hash. */
+  get(hashes: readonly string[]): Promise<Map<string, { type: BlobType; data: BlobArray }>>;
+  /** Keeps these; false when it would not (private mode, quota). */
+  put(entries: readonly { hash: string; type: BlobType; data: BlobArray }[]): Promise<boolean>;
+  /** Forgets these. */
+  delete(hashes: readonly string[]): Promise<void>;
 }
-const done = (t: IDBTransaction) => new Promise<boolean>(resolve => { t.oncomplete = () => resolve(true); t.onerror = () => resolve(false); t.onabort = () => resolve(false); });
-/** Writes the document's blobs that IndexedDB does not have yet; false when it would not (private mode, quota). */
+let recovery: BlobStore | null = null;
+/** The app sets the store the recovery copy's blobs are kept in (null: none). */
+export function setBlobStore(s: BlobStore | null): void { recovery = s; }
+/** Writes the document's blobs that the store does not have yet; false when it would not (none set, private mode, quota). */
 export async function saveRecoveryBlobs(doc: StudioDoc): Promise<boolean> {
   const refs = [...blobRefs(doc)]; if (!refs.length) return true;
-  const db = await openDb(); if (!db) return false;
+  if (!recovery) return false;
   try {
-    const have = await keys(db), t = db.transaction(STORE, 'readwrite'), s = t.objectStore(STORE);
-    for (const h of refs) { const a = store.get(h); if (a && !have.has(h)) s.put({ type: blobTypeOf(a), data: a }, h); }
-    return await done(t);
-  } catch { return false; } finally { db.close(); }
+    const have = await recovery.keys(), entries: { hash: string; type: BlobType; data: BlobArray }[] = [];
+    for (const h of refs) { const a = store.get(h); if (a && !have.has(h)) entries.push({ hash: h, type: blobTypeOf(a), data: a }); }
+    return entries.length ? await recovery.put(entries) : true;
+  } catch { return false; }
 }
 /** Loads the blobs a recovered document names into the store; the hashes still missing. */
 export async function loadRecoveryBlobs(doc: StudioDoc): Promise<string[]> {
   const need = missingBlobs(doc); if (!need.length) return [];
-  const db = await openDb(); if (!db) return need;
+  if (!recovery) return need;
   try {
-    const t = db.transaction(STORE, 'readonly'), s = t.objectStore(STORE);
-    await Promise.all(need.map(h => new Promise<void>(resolve => {
-      const r = s.get(h);
-      r.onsuccess = () => { const v = r.result as { type: BlobType; data: BlobArray } | undefined; if (v) putKnownBlob(h, v.data); resolve(); };
-      r.onerror = () => resolve();
-    })));
+    for (const [h, v] of await recovery.get(need)) putKnownBlob(h, v.data);
     return missingBlobs(doc);
-  } catch { return need; } finally { db.close(); }
+  } catch { return need; }
 }
-/** Deletes every IndexedDB blob the document does not name (after a save: the recovery copy is gone). */
+/** Deletes every kept blob the document does not name (after a save: the recovery copy is gone). */
 export async function collectRecoveryBlobs(keep: StudioDoc | null): Promise<void> {
-  const db = await openDb(); if (!db) return;
+  if (!recovery) return;
   try {
-    const live = keep ? blobRefs(keep) : new Set<string>(), have = await keys(db), t = db.transaction(STORE, 'readwrite'), s = t.objectStore(STORE);
-    for (const h of have) if (!live.has(h)) s.delete(h);
-    await done(t);
-  } catch { /* storage unavailable */ } finally { db.close(); }
-}
-function keys(db: IDBDatabase): Promise<Set<string>> {
-  return new Promise(resolve => {
-    const r = db.transaction(STORE, 'readonly').objectStore(STORE).getAllKeys();
-    r.onsuccess = () => resolve(new Set(r.result.map(String))); r.onerror = () => resolve(new Set());
-  });
+    const live = keep ? blobRefs(keep) : new Set<string>(), gone = [...await recovery.keys()].filter(h => !live.has(h));
+    if (gone.length) await recovery.delete(gone);
+  } catch { /* storage unavailable */ }
 }
 
 // ---- Over JSON (the chat server's turn): blobs as base64, beside the document ------------------------------------

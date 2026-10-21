@@ -4313,3 +4313,58 @@ The coordinator merged PKG-e as 8a3badab2. PKG-f moves the 48 files that depende
   - local structural types for `Transferable` and `BlobPart`;
   - then DOM dropped from the package's `lib`, if it type-checks.
 - **Checks**: the same T2 run as PKG-f (O97), with this config in place: the package's and the kernel's lint 0.
+
+## O99 — PKG-g2: the recovery blobs' store set by the app; the model's lib without DOM (2026-10-21)
+
+The coordinator's plan after O98. Without DOM the package had 8 type errors: IndexedDB in `engine/blobs.ts`, `Transferable` in `engine/meshWire.ts`, `BlobPart` in `io/zip.ts`.
+
+- **`BlobStore`** (`engine/blobs.ts`), the same pattern as B4's `LibraryStore`:
+  - an async store of typed arrays by hash (`keys`, `get`, `put`, `delete`), set by the app with `setBlobStore`;
+  - `saveRecoveryBlobs`, `loadRecoveryBlobs` and `collectRecoveryBlobs` go through it. With none set (a test, the CLI, the servers), nothing is kept and nothing found, as before in Node, where `indexedDB` was undefined;
+  - the model no longer names IndexedDB.
+- **`src/ui/blobStore.ts`** (the app): `indexedDbBlobStore()`, the IndexedDB code moved from the model as it was (the `studio.blobs` database, its `blobs` store, one open and close per call, storage that is missing or refused keeping nothing). `App.tsx` sets it at load, before the studio reads or writes a recovery copy.
+- **Local types, no DOM names**:
+  - `meshWire.ts` exports `type Transfer = ArrayBuffer` (its pushes cast `as ArrayBuffer`). The worker passes the list to `postMessage` as before;
+  - `zip.ts`'s `BlobPiece` reads the part type off `Blob`'s own constructor, so it is the same under the DOM's lib and Node's.
+- **The package's `lib` is `["ES2022"]`**: it type-checks without DOM, with `@types/node` supplying `Blob`, `CompressionStream`, `Response`, `TextEncoder` and `performance`. The app's tsconfig, with DOM, type-checks the same files too.
+- **Test** (`test/pkg-boundary.test.ts`, +1):
+  - with none set, a mesh's blobs are not kept (false);
+  - with a Map-backed store set, both are kept;
+  - a recovered document naming blobs this session has not loaded reads them back into the blob store;
+  - collecting with no document empties the store;
+  - `engine/blobs.ts` names no IndexedDB, and the package's lib has no DOM.
+- **Checks: T2**, since `App.tsx` changed (results in the checkpoint).
+
+## O100 — CNC7 S0: feature recognition and stock — what reads exactly today, and the plan for CNC7 and CNC8 (2026-10-21)
+
+The coordinator set the next outer-lane work in roadmap order. IM7 needs the kernel's face split (queued), so machining comes first: CNC7, feature recognition and stock export, then CNC8, an optional 2.5D CAM preview marked "not for production". README §4 forbids production G-code. Evidence is in `test/cnc7-s0.test.ts` (3 probes). Every oracle is the construction: a 120 × 80 × 20 plate with one of each feature.
+
+- **P1, floors by their walls**, per setup: the planes a tool along +Z faces, looking out, with a wall rising at their edge.
+  - Classified by the in-plane directions their walls bound on both sides: all of them, a **pocket**; some, a **slot**; none, a **step**.
+  - The pocket 30 × 20 reads 8 deep and 20 wide; the slot 6 deep and 10 wide; the step 5 deep.
+  - The step's floor comes in two faces, because the slot runs through it: one feature, two floors. CNC7 groups them.
+  - Two rules the probe found:
+    - floors are per setup direction. An L's riser faces a tool along Y, so it is that setup's floor and not this one's;
+    - a rising wall counts only at the floor's edge. A boss standing inside the top face does not make the top a floor.
+- **P2, holes and bosses**:
+  - CNC2's holes are already features: Ø6.6 through 20 and Ø5 blind 10 deep, with type and steps;
+  - a **boss** is a convex exact cylinder whose base lies on a plane facing along its axis: Ø12, 8 high.
+- **P3, stock from the user's list**: the smallest block whose sorted sides hold the part's sorted sides plus twice an allowance.
+  - The part with its boss is 120 × 80 × 28. With a 1 mm allowance, the list gives 122 × 82 × 30.
+  - A turned Ø20 × 52 takes the smallest bar of at least Ø22, cut to 54.
+  - When none fits, that is said.
+  - **No stock list is built in**, the owner's pattern (D121, bend tables; FR's sections): the user loads their shop's list. The allowance is a flagged estimate until the user sets it.
+- **The plan**, each stage with oracles, mutants where it is a check, and a flow step:
+  - **CNC7a, feature recognition** (`machining/features.ts`):
+    - per setup direction (CNC4's), pockets, slots and steps from floors classed by their bounding walls; the floors of one feature (a step crossed by a slot) grouped by their walls;
+    - holes by CNC2 (through, blind, counterbored, tapped) and bosses;
+    - each feature with its exact size, depth, faces and the setup that reaches it;
+    - a `features` section in the machining report and an agent-readable list (through `check_printability`, no new tool unless the contract has room).
+  - **CNC7b, stock**:
+    - a stock list the user loads (blocks, plates, bars; each row its source, or the user's own) and an allowance (an estimate until set);
+    - the smallest block or bar around the part in the setup's frame; refused by name when none fits (STOCK_NONE_FITS);
+    - **stock export**: `stock.json` (size, placement against the part, allowance with its basis, the row chosen) and the stock as STEP through the kernel's writer, for a CAM program to read.
+  - **CNC8, an optional 2.5D CAM preview**, marked **"not for production"** wherever it shows (the viewport, the report, every file):
+    - outlines only, for the recognised pockets (offset contours at the tool's radius, stepped by depth) and holes (drill points);
+    - **no G-code**, no feeds or speeds.
+- **Then** IM8 (casting presets, allowances, section and solidification checks), and the parts of IM7 that do not need the face split.

@@ -10,8 +10,10 @@ export function crc32(bytes: Uint8Array): number {
   return (c ^ 0xffffffff) >>> 0;
 }
 
+/** A part a Blob is made of, read off the Blob constructor itself (PKG-g2: the same under the DOM's lib and Node's). */
+type BlobPiece = NonNullable<ConstructorParameters<typeof Blob>[0]> extends Iterable<infer P> ? P : never;
 async function compress(raw: Uint8Array, format: 'deflate' | 'deflate-raw'): Promise<Uint8Array> {
-  const stream = new Blob([raw as BlobPart]).stream().pipeThrough(new CompressionStream(format));
+  const stream = new Blob([raw as unknown as BlobPiece]).stream().pipeThrough(new CompressionStream(format));
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 /** zlib deflate (a 2-byte header and an Adler-32 trailer around the raw stream), as PNG's IDAT holds. */
