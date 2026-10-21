@@ -43,7 +43,7 @@ lane for it). The R12b → next block is kept as history.
   | Properties | 11/11 | 335 s |
 
 **The kernel-lane queue** (the coordinator's order)
-1. The hole-after-union refusal — a hole on a boss's top after the boss was united into a shell is refused "misses the target" (O80); repro `apps/cad-studio/test/fixtures/hole-after-union.calls.json`, the `todo` test in `test/known-bugs.test.ts`.
+1. ~~The hole-after-union refusal~~ — **done: D148, 2026-10-21** (the hole takes the picked face by name; the repro in `test/known-bugs.test.ts` is a passing test now).
 2. A face split along a curve or an isocline (`splitFaceAlongCurve`), for IM5's two-half parting.
 3. The analytic Boolean's "inputs touch along an edge" refusal on a 16/20 bevel pair 6° off (D134).
 4. STEP export performance for many-face bodies (the throated wheel's 724 faces about 15 s, all tessellation; D137, D138).

@@ -8009,4 +8009,9 @@ The kernel-lane queue's first item (O80; repro `apps/cad-studio/test/fixtures/ho
 - `apps/cad-studio/test/known-bugs.test.ts`: the repro, now a test (its `todo` off) — the Ø2.5 bore coaxial with the boss at (15, 20), the material taken π·1.25²·10 (to 1e-6).
 - Both fail on the previous HEAD (the `face` input did not exist; the repro was the `todo`).
 
-**Checks — T2** (`part-model.ts` is a core file): see the commit's checkpoint.
+**Checks — T2** (`part-model.ts` is a core file), on the merged tree c80ac5c47 (D148 with the outer lane's CNC8, IM8 S0, O105, O105b):
+- Kernel lint and type-check clean; `d148-hole-face` 2/2. The full kernel suite, conformance included, 1403/1408 (4 skipped; +2, the new tests; 1408 = 1406 + 2, none missing); only the env-only "actual native Split source…" fails. 403 s. (A first run during the merge, beside another session's flow, also failed `B9 performance` — the known load-sensitive timing flake.)
+- `@barocss/cad-model` lint and type-check clean; app tsc clean.
+- Studio: 777/777, no `todo` left (D148's repro now passes; the outer lane's additions in the count). 94 s.
+- The full browser flow, on its own: 215/215, 702 s (its hole steps now write `face`).
+- RB: in the rows commit after this one.
