@@ -4605,8 +4605,8 @@ Owner, relayed by the coordinator: "@barocss/cad-model 은 완전 공개 패키�
 - **The rules** (casting report):
   - `shrink`: one factor for the whole pattern, 1 + ratio, by the part's largest extent; the band's top is in the band; the user's `doc.casting.shrink` takes precedence.
   - `machining-allowance`: the table's mm, or the user's, on the faces marked machined. None marked is n/a; a name not on the part fails `[CASTING_FACE]`; a curved face is unknown (only flat faces move out); past the table's 40 in is unknown and said.
-  - **One uniform scale, not per dimension**: a uniform scale keeps exact planes and cylinders exact in the STEP, and a per-dimension one would not.
-- **The tool**: `set_casting`, a v2 action `features.casting` (O105's rule, a compatible enum addition recorded in tools-v2.json). It sets machined, allowance and shrink, each refused by name. Per turn 21,531 (+109).
+  - **One uniform scale, not per dimension**: a uniform scale keeps exact planes and cylinders exact in the STEP, and a per-dimension one would not. (O109, at the coordinator's review: the report and pattern.json say it is a simplification. A pattern maker may scale each dimension by its own band, and the factors each dimension's band would give are listed where they differ.)
+- **The tool**: `set_casting`, a v2 action `features.casting` (O105's rule, a compatible enum addition recorded in tools-v2.json). It sets machined, allowance and shrink, each refused by name. Per turn 21,531 (+109). Why a tool, though O104 said IM8 would need none: which faces are machined after casting is the person's choice, as are their own allowance and shrinkage. The document has to hold them, and the agent has to be able to set them, so an action carries them.
 - **The pattern** (`casting/pattern.ts`): each machined flat face moved out by the allowance (the studio's `offset-face`), then the body scaled about the part's box centre (the studio's `scale`), both through the tool layer.
   - `cad-cli pattern part.bcad -o dir` writes pattern.step and pattern.json: factor, band, page, allowance, faces, pivot, the part's and the pattern's boxes. Typed codes otherwise (PATTERN_NOT_CASTING, _ONE_BODY, _MATERIAL, _SHRINK, _ALLOWANCE, _FACE, _BUILD).
 - **Tests** (`test/im8b.test.ts`, 7):
@@ -4619,3 +4619,119 @@ Owner, relayed by the coordinator: "@barocss/cad-model 은 완전 공개 패키�
   - the CLI.
   - Flow step "IM8b": sand casting and the Pull in the Library panel; through the real chat a block, A356 and its top marked; the report's shrink and machining-allowance pass.
 - **Next**: IM8c, hot spots and feeding.
+
+## O109 — IM8c: hot spots and feeding from the distance field; the section change; the IM8 casting track's items done (2026-10-21)
+
+- **The field** (`casting/solidification.ts`): the part's distance field on a voxel grid through the kernel's K6 `voxelInsideFlags` and `voxelDepth`, which run on K2's nearest query. There is no new copy.
+  - Each inside node's depth is the radius of the largest ball about it inside the part.
+  - The grid is at most 400k nodes (step from the box, or a caller's `h`), offset irrationally so no row runs through a mesh edge. The depth is capped at half the least extent, so nothing clips.
+  - The L junction at h 0.4 is 1.87M nodes in 179 ms, most of them outside.
+- **Hot spots**:
+  - a plateau of the field (26-neighbours, equal within 1e-9 of the size) with no deeper neighbour: the centre of a locally largest inscribed ball, which is how IM8 S0 found the L junction that IM4's per-face sphere misses;
+  - smaller than a cell: dropped;
+  - one whose liquid region holds a larger one is part of it.
+  - Modulus is r/2, a plate's (2r thick) or a long bar's V/A, said to be an estimate.
+- **Feeding** (Chvorinov orders freezing by modulus):
+  - a hot spot's liquid region is the nodes joined to it at depth ≥ its own less a quarter cell;
+  - it is fed when the ball at some node of the region reaches the gate. The gate is the person's, `features.casting {gate}` / `doc.casting.gate`, and none is assumed.
+  - An unfed one is warned `[SHRINK_POROSITY]` with its r and where it is.
+  - The quarter cell matters: the L junction's r 2.343 sits over its walls' 2 by less than a cell of 0.4, so a floor of r − h would let the region run down the legs. The test pins it.
+- **Section change**: the thickest section (2 × the deepest radius) against IM4's nominal wall, against Engineers Edge's "If a section change of over 2:1 thickness ratio is unavoidable … use a wedge form between the unequal sections." (W-WEB, read 2026-10-21; sand casting's `sectionRatioMax`). Die casting has no ratio read, so it is unknown and said.
+- **The shrink wording (O108 review)**: the report and pattern.json say the one uniform factor by the largest extent is a simplification. A pattern maker may scale each dimension by its own band, and where the bands differ each dimension's factor is listed, e.g. X 1.011917 (4–6 ft); Y, Z 1.012917.
+- **Tests** (`test/im8c.test.ts`, 4, plus one in im8b for the wording):
+  - a plate 100 × 60 × 10: one hot spot r = 5 on the mid-plane (within half a cell), fed from a gate on top, section 1 : 1;
+  - the L junction: r = t(2 − √2) on the bisector; isolated from a leg's end, fed from the outer corner; the mutant noted;
+  - a 20 mm block on a 4 mm plate: isolated from the far end ([SHRINK_POROSITY]), fed from a gate on the block, section 5 : 1 past 2 : 1;
+  - the unknowns and the gate's refusals.
+  - Flow step "IM8c": through the real chat, the block on the plate gated far warns, then gated on the block passes.
+  - IM8a's tool test and the IM8a and IM8b flow regexes name the three new rules.
+- **The IM8 track's items (S0, a, b, c) are done.** Next, by O104's plan, comes IM7 without the face split. Its parts that need straddling faces wait for the kernel's splitFaceAlongCurve (queue item 2).
+
+## O110 — IM7 S0: a mould's halves where no face needs a split; shut-offs, side-core directions; IM8c's modulus corrected (2026-10-21)
+
+- **The halves** (`mould/tooling.ts`):
+  - The input is IM5's parting line at an axis pull (±X, ±Y, ±Z). When no face straddles it and every parting loop is flat and at one height along the pull, the halves meet on one plane.
+  - A block about the part (10 mm a side, an estimate, or `--margin`), less the part, is cut there with the document's own nodes (extrude, difference, split). The kernel's B-rep gives the volumes.
+  - The half on the +pull side moves along it: IM5's "+", the moving half, B side, usually the core. The other half is fixed: A side, usually the cavity.
+  - Every face must lie on its half's side of the plane, checked from its mesh extent along the pull.
+- **Shut-offs**: the inner closed parting loops in the plane, where the halves touch across an opening; the core half's metal fills it up to the plane. Each gets its area (shoelace in the plane), its polygon centroid and its length.
+- **Side cores**: IM3's undercut regions freed across the pull give their directions, faces, area and centroid. Their bodies are not built. They are given on a refusal too, since a side core's own faces often straddle or step the parting line (a side hole's wall straddles).
+  - Undercuts that no side core frees are listed.
+  - Not built: a gate, runners, cooling, ejectors, the mould base.
+- **Refused by code, each with what it waits for**:
+  - `MOULD_STRADDLE`, a face straddling the pull: the kernel's face split (D149, splitFaceAlongCurve). The person can still put the face whole in one half.
+  - `MOULD_STEPPED`, a parting loop not flat, or loops at more than one height: a stepped parting surface, IM7a.
+  - `MOULD_ACROSS_PLANE`, a half's face on the other side of the plane, e.g. a cup's inside put in the moving half (its core reaches below the rim): an insert, IM7a.
+  - `MOULD_PULL_AXIS`, `_ONE_BODY`, `_NO_PULL`, `_NO_PARTING`, `_BUILD`.
+  - So only straddling faces wait for the kernel. IM7a, the next stage, is the cup's core insert and the stepped parting surface.
+- **Surfaces**:
+  - The injection report gains a `tooling` rule after `parting`: pass with the plane, the shut-offs and the side cores, warn when an undercut stays unfreed, unknown with the code otherwise.
+  - `cad-cli mould part.bcad -o dir [--margin mm]` writes mould.step (both halves, two solids) and mould.json (the plane, the block, the halves' volumes and labels, shut-offs, side cores, stuck regions, what is not built, the margin's basis).
+  - No tool or action; no viewport or App.tsx change.
+- **IM8c's modulus corrected** (the coordinator's review). A plate 2r thick has V/A ≈ r, not r/2 (S0's 100×100×10 plate: 4.17 against r = 5). Each hot spot's modulus now comes from its plateau's shape, read from the covariance's principal extents; an extent longer than the ball's diameter counts:
+  - a sheet (two or more such extents) gives r;
+  - a line (one) gives r/2;
+  - a point (none) gives r/3.
+  - The range [r/3, r] is reported, and the value is labelled an estimate. Feeding (ball reach) is unchanged.
+- **Tests**:
+  - `test/im7.test.ts`, 5:
+    - the holed plate's plan: plane z = 10, one shut-off of π·5² within 2 % (the chord), centroid (30, 20);
+    - the halves' exact volumes: 48000 and 96000 − (24000 − 250π), summing to the block less the part, 1e-6;
+    - the refusals: the rod across the pull → D149; the cup → MOULD_STEPPED; the cup with its inside in the moving half → MOULD_ACROSS_PLANE;
+    - the side hole's ±X side core on the refusal, and the report's tooling rule;
+    - the CLI.
+  - One more in im8c (the plate a sheet ≈ r; a long round bar a line ≈ r/2; a cube in a plate a point ≈ r/3; the L junction a line).
+  - Flow step "IM7": injection with Pull +Z; through the real chat a holed plate gives "parting pass, tooling pass".
+  - The injection rule lists pinned in printing.test, mould-undercut.test and the IM5 flow step gain `tooling`.
+
+## O111 — IM7a: a cup's core and a stepped parting line — the block less the part cut and its lumps given to halves by rays (2026-10-21)
+
+- **The construction** (`mould/tooling.ts`, replacing S0's single plane cut):
+  - The block less the part is cut by the plan's planes: each parting height across the pull, and, between two heights, each riser's plane. A riser is a flat wall of the part along the pull running from one parting height to another.
+  - Only pieces that span a plane are split. Each piece of more than one lump is separated (lumps counted by mesh connectivity; the kernel refuses to separate a one-piece body).
+  - Each lump goes to a half by rays along ±pull against the part, from a hair inside each of its 32 largest triangles, voting by area:
+    - shadowed from above (the part over it): the fixed half;
+    - open above and on the part below (a cup's inside): the moving half, its core;
+    - neither or both: the side of the nearest parting loop's height (across the pull).
+  - The lumps partition the block less the part, so the halves' volumes sum to it exactly.
+  - The halves are now lists of lumps. mould.json lists each lump with its half, its basis and its volume, plus each half's lump count and total.
+  - The tooling rule says "meeting at N parting heights … and R risers" when there are several heights.
+- **What it does**:
+  - A cup is moulded either way: with its inner walls in the fixed half (IM5's default: the parting line stepped at the floor, 2, and the rim, 25, the inner walls its four risers), or with them in the moving half (the rim the one plane). Its inside goes to the moving half as the core.
+  - A stepped block (50 × 40 × 20 beside 50 × 40 × 10): its halves meet at z = 20 and z = 10 on the step's wall x = 50.
+- **IM5's chaining fixed**: a loop that has come back to its start is now closed, and stops growing. Before, it ran on into another loop near it (two stepped loops a riser apart were joined into one "stepped" loop with a jump), because the tolerance a straddling face's isocline needs is wide. IM5's own tests still pass.
+- **Shut-offs**: a closed loop inside another at its height, now meaning smaller and with a point of it inside. A centroid test counted the outer loop as inside the hole whose centre it shares.
+- **Refused, with what each waits for**:
+  - a straddling face: the kernel's face split (D149);
+  - a sloped or curved parting line (a loop not flat), or a riser not flat across an axis: IM7b, a parting surface off the axis planes.
+  - The S0 code MOULD_ACROSS_PLANE is gone: the rays now decide it.
+- **Tests** (`test/im7.test.ts`, 7). Each case's halves sum to the block less the part to 1e-6:
+  - the cup both ways: the moving half 46368 + 48000, the fixed 108000;
+  - the stepped block: the moving half 36000 + 72000, the fixed 120000;
+  - S0's plate, its halves now lump lists;
+  - the CLI.
+  - Flow step "IM7a": through the real chat a cup ends "tooling pass".
+
+## O112 — PKG-h: the model-only tests in @barocss/cad-model (2026-10-21)
+
+The coordinator's order, the PKG roadmap's last step (research-package-boundary §PKG-h): move the model-only tests into `packages/barocss-cad-model/test`.
+
+- **The runner**: `packages/barocss-cad-model/scripts/test.mjs` bundles each test with the package's sources, as the studio's runner does, and runs `node --test` from the package.
+  - Every test lives in `test/`, so `import.meta.dirname` is defined as that folder in every bundle, and a test's paths are its own.
+  - `pnpm test [name …]` runs the suite or the named tests; type-check and lint include `test/`.
+  - The root `pnpm test` is already `pnpm run -r test`, so it picks the package up with no root change.
+- **What moved** (git mv, five commits, each green with the name diff):
+  1. 72 tests with no paths;
+  2. 30 more: 26 on the kernel's conformance (their paths now from the package root, two levels below the repo as the studio is, so the same relative paths hold) and mould-draft, mould-parting, mould-walls and mould (D149 touches no studio file, the coordinator);
+  3. the studio's `conformance/{a1,a2,a3,a4}`, read only by these tests, with the 8 tests reading them;
+  4. 12 fixtures (block-cm.stl, two .bcad, nine *.calls.json) with the 12 tests reading them. The flow and cad-external now read those fixtures from the package.
+  5. `tools-v2.json`, byte-identical at sha-256 885c5fe2…, to `packages/barocss-cad-model/src/chat/` beside contract.ts, with toolset.test and tool-contract.test, run with no update flag.
+  - 124 test files in all. In a moved test, `'@barocss/cad-model/X'` became `'../src/X'` (inside the package, imports are relative) and `process.cwd()` became `resolve(import.meta.dirname, '..')`.
+- **Split, not moved**: a few tests of the studio itself were cut out unchanged and stay in the studio:
+  - engine.test's one viewport-camera test is now `sketch-framing.test.ts`;
+  - toolset.test's MCP-server, chat-server and O105b-through-MCP tests are now `toolset-mcp.test.ts`;
+  - tool-contract.test's MCP-server test is now `tool-contract-mcp.test.ts`.
+  - meshWire.test reads the DOM's `Transferable` as `unknown[]`, since the package has no DOM lib.
+- **What stays in the studio**: tests of the servers (MCP, chat, CLI, A/B), of the UI, viewport and App, ones that spawn the studio's scripts, the bench fixtures', pkg-boundary (the app's own boundary check), mould-quote and mould-undercut (server imports), and instance / instance-drag (held for the GPU lane). The kernel's tests are untouched.
+- **Names**: before, 805 in the studio. After, studio 179 + package 626 = 805, and the union equals the set before, 0 missing and 0 added, at every step.
+- **Release note**, unchanged: the exports point at .ts sources, so a build step comes before a real publish (O107).

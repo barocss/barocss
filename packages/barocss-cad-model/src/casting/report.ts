@@ -11,7 +11,8 @@ import { materialData, type CastFamily, type ProcessProfile, type ProcessThresho
 import { wallsOf } from '../mould/walls';
 import { draftField, type DraftFace } from '../mould/draft';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
-import { machinedFaces, machiningOf, machiningView, partExtent, shrinkOf, shrinkView, type MachiningAllowance, type ShrinkAllowance } from './allowances';
+import { solidification, type Solidification } from './solidification';
+import { machinedFaces, machiningOf, machiningView, partExtent, shrinkByDimension, shrinkOf, shrinkView, type MachiningAllowance, type ShrinkAllowance } from './allowances';
 
 export type CastingProcess = 'die-casting' | 'sand-casting';
 export const CASTING_PROCESSES: readonly CastingProcess[] = ['die-casting', 'sand-casting'];
@@ -23,8 +24,12 @@ export interface CastingSummary {
   readonly steep: readonly string[]; readonly underRecommended: readonly string[];
   /** IM8b (O108): the pattern's shrinkage and the machining allowance (null: not known), and the faces it goes on. */
   readonly shrink: ShrinkAllowance | null; readonly machining: MachiningAllowance | null; readonly machined: readonly string[];
+  /** IM8c (O109): the distance field's hot spots, their feeding from the gate, the grid. */
+  readonly solidification: Solidification | null;
 }
 
+/** O108's simplification said: one factor by the largest extent; each dimension's own band, where they differ. */
+const bandNote = (by: readonly { axis: string; factor: number; band: string }[]) => `; a simplification: one factor by the largest extent — a pattern maker may scale each dimension by its own band${new Set(by.map(d => d.factor)).size > 1 ? ` (${by.map(d => `${d.axis} ${d.factor}, ${d.band}`).join('; ')})` : ''}`;
 const r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0, r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 const unit = (v: readonly number[]): [number, number, number] => { const l = Math.hypot(v[0], v[1], v[2]); return [v[0] / l, v[1] / l, v[2] / l]; };
 /** A family's threshold, or the process's own for every family (sand casting's draft). */
@@ -77,7 +82,7 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
   const shrink = family && bodies.length ? shrinkOf(doc, profile, family, size) : null;
   if (!shrink) rules.push({ id: 'shrink', level: 'recommended', status: 'unknown', message: 'the pattern\'s shrinkage', why: noFamily ?? 'no body' });
   else if (!shrink.ok) rules.push({ id: 'shrink', level: 'recommended', status: 'unknown', message: 'the pattern\'s shrinkage', why: shrink.why });
-  else rules.push({ id: 'shrink', level: 'recommended', status: 'pass', message: `the pattern scaled ${r6(1 + shrink.ratio)} (${shrink.basis === 'set' ? 'your shrinkage' : `${shrink.label}, ${shrink.band}: the part's largest ${r3(size)} mm`})`, value: r6(1 + shrink.ratio), unit: 'ratio', ...(shrink.page ? { source: shrink.page } : {}) });
+  else rules.push({ id: 'shrink', level: 'recommended', status: 'pass', message: `the pattern scaled ${r6(1 + shrink.ratio)} (${shrink.basis === 'set' ? 'your shrinkage' : `${shrink.label}, ${shrink.band}: the part's largest ${r3(size)} mm`})${shrink.basis === 'table' ? bandNote(shrinkByDimension(doc, profile, family!, bodies)) : ''}`, value: r6(1 + shrink.ratio), unit: 'ratio', ...(shrink.page ? { source: shrink.page } : {}) });
   const marked = machinedFaces(doc, bodies), flat = marked.found.filter(f => f.flat), curved = marked.found.filter(f => !f.flat);
   const machining = family && bodies.length ? machiningOf(doc, profile, family, size) : null;
   if (!marked.found.length && !marked.missing.length) rules.push({ id: 'machining-allowance', level: 'recommended', status: 'n/a', message: 'no face is marked machined (set_casting machined): no machining allowance' });
@@ -86,11 +91,30 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
   else rules.push({ id: 'machining-allowance', level: 'recommended', status: curved.length ? 'unknown' : 'pass',
     message: `${machining.mm} mm on ${flat.length} flat face${flat.length === 1 ? '' : 's'} (${machining.basis === 'set' ? 'your allowance' : `${machining.label}, ${machining.band}`})${curved.length ? `; ${curved.length} curved (${curved.map(f => f.name).join(', ')}) take none here` : ''}`,
     value: machining.mm, unit: 'mm', ...(machining.page ? { source: machining.page } : {}), entities: marked.found.map(f => f.name), ...(curved.length ? { why: 'only flat faces are moved out by the allowance (offset-face)' } : {}) });
+  // IM8c (O109): where it freezes last (the distance field's hot spots), whether each is fed from the gate, and how steep its section changes are.
+  const sol = bodies.length ? solidification(bodies, doc.casting?.gate ?? null) : null;
+  if (!sol || !sol.hotSpots.length) rules.push({ id: 'hot-spots', level: 'recommended', status: 'unknown', message: 'where the casting freezes last', why: sol ? 'no hot spot resolved on the grid' : 'no body' });
+  else { const big = sol.hotSpots[0]; rules.push({ id: 'hot-spots', level: 'recommended', status: 'pass', message: `${sol.hotSpots.length} hot spot${sol.hotSpots.length === 1 ? '' : 's'} (where it freezes last: the largest inscribed balls), the largest r ${big.radiusMM} mm at (${big.at.join(', ')}), modulus ≈ ${big.modulusMM} mm (an estimate from its shape, a ${big.shape}: within ${big.modulusRangeMM[0]} … ${big.modulusRangeMM[1]} mm, r/3 … r); grid ${sol.grid.h} mm`, value: big.radiusMM, unit: 'mm' }); }
+  if (!sol || !sol.hotSpots.length) rules.push({ id: 'feeding', level: 'recommended', status: 'unknown', message: 'the hot spots fed from the gate', why: 'no hot spot' });
+  else if (!sol.gate) rules.push({ id: 'feeding', level: 'recommended', status: 'unknown', message: 'the hot spots fed from the gate', why: 'no gate is set (set_casting gate: where the metal comes in): feeding is judged from it, none is assumed' });
+  else {
+    const isolated = sol.hotSpots.filter(x => !x.fed);
+    rules.push({ id: 'feeding', level: 'recommended', status: isolated.length ? 'warn' : 'pass',
+      message: isolated.length ? `[SHRINK_POROSITY] ${isolated.length} hot spot${isolated.length === 1 ? '' : 's'} not fed from the gate through sections at least as thick (Chvorinov: they freeze last, cut off): ${isolated.map(x => `r ${x.radiusMM} mm at (${x.at.join(', ')})`).join('; ')} — feed ${isolated.length === 1 ? 'it' : 'them'} (a riser, a gate there) or make the way thicker`
+        : `every hot spot (${sol.hotSpots.length}) fed from the gate at (${sol.gate.join(', ')}) through sections at least as thick`, value: isolated.length, unit: 'hot spots' });
+  }
+  const ratioMax = profile.thresholds.sectionRatioMax, nominal = walls.filter(w => w.nominalMM !== null).map(w => w.nominalMM!)[0];
+  if (!sol || !nominal) rules.push({ id: 'section-change', level: 'recommended', status: 'unknown', message: 'the thickest section against the nominal wall', why: 'no wall measured' });
+  else if (!ratioMax) rules.push({ id: 'section-change', level: 'recommended', status: 'unknown', message: `the thickest section, ${r3(2 * sol.maxRadiusMM)} mm, against the nominal wall, ${r3(nominal)} mm`, why: `no ${profile.label.toLowerCase()} section-change ratio was read from a public page` });
+  else {
+    const ratio = 2 * sol.maxRadiusMM / nominal;
+    rules.push({ id: 'section-change', level: 'recommended', status: ratio > ratioMax.value + 1e-9 ? 'warn' : 'pass', message: `the thickest section (2r = ${r3(2 * sol.maxRadiusMM)} mm) against the nominal wall (${r3(nominal)} mm): ${r3(ratio)} : 1, against ${ratioMax.value} : 1${ratio > ratioMax.value + 1e-9 ? ' — a wedge between the unequal sections, or two castings' : ''}`, value: r3(ratio), limit: ratioMax.value, unit: 'ratio', source: pageOf(ratioMax) });
+  }
   // Tolerance: the family's general linear tolerance where a page gives one.
   const tol = family ? limitOf(profile, family, 'TolMM') : undefined;
   rules.push(tol ? { id: 'tolerance', level: 'recommended', status: 'pass', message: `a ${family} alloy holds about ±${tol.value} mm (${tol.page?.label ?? tol.description})`, value: tol.value, unit: 'mm', source: pageOf(tol) }
     : { id: 'tolerance', level: 'recommended', status: 'unknown', message: 'the general tolerance', why: noFamily ?? `no ${profile.label.toLowerCase()} tolerance for a ${family} alloy was read from a public page: ask your caster` });
   const casting: CastingSummary = { material: id, family, tolerance: tol ? { mm: tol.value, source: tol.source, page: pageOf(tol) } : null, steep: faceNames(steep), underRecommended: faceNames(underRec),
-    shrink: shrink?.ok ? shrinkView(shrink) : null, machining: machining?.ok ? machiningView(machining) : null, machined: marked.found.filter(f => f.flat).map(f => f.name) };
+    shrink: shrink?.ok ? shrinkView(shrink) : null, machining: machining?.ok ? machiningView(machining) : null, machined: marked.found.filter(f => f.flat).map(f => f.name), solidification: sol };
   return { process: profile.id, direction: pull, rules, casting };
 }

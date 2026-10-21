@@ -66,7 +66,7 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
   const handle = async (msg: { id?: unknown; method?: string; params?: Record<string, any> }) => {
     if (msg.id === undefined) return; // notifications
     switch (msg.method) {
-      // (The tool contract's version, A5.1: names, input and output schemas and annotations frozen in src/chat/tools-v2.json.)
+      // (The tool contract's version, A5.1: names, input and output schemas and annotations frozen in packages/barocss-cad-model/src/chat/tools-v2.json.)
       case 'initialize': return reply(msg.id, { protocolVersion: msg.params?.protocolVersion ?? '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'barocss-cad', title: 'BaroCSS CAD', version: TOOLSET.version } });
       case 'ping': return reply(msg.id, {});
       case 'tools/list': return reply(msg.id, { tools: TOOLS_LISTED });

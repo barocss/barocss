@@ -113,3 +113,14 @@ test('IM8b cad-cli pattern: the saved block — exit 0, pattern.json (factor 1.0
   assert.ok(existsSync(join(dir, 'out/pattern.step')) && readFileSync(join(dir, 'out/pattern.step'), 'utf8').startsWith('ISO-10303-21;'));
   r = cli(die, '-o', join(dir, 'none')); assert.equal(r.status, 1); assert.match(r.stdout, /PATTERN_NOT_CASTING/);
 });
+
+test('IM8b the uniform factor said as a simplification (O109): a 1500 × 100 × 100 aluminium bar — one factor by its largest extent (0.143/12, 4–6 ft), and each dimension\'s own band where they differ (Y, Z 0.155/12); pattern.json lists them', async () => {
+  const d = cast(block(1500, 100, 100), 'a356'), sh = await rule(d, 'shrink');
+  assert.equal(sh.value, 1.011917);
+  assert.match(sh.message, /a simplification: one factor by the largest extent — a pattern maker may scale each dimension by its own band \(X 1\.011917, 4 ft to 6 ft; Y 1\.012917, up to 4 ft; Z 1\.012917, up to 4 ft\)/, sh.message);
+  const p = await patternOf(d, bodiesOf(d), evaluate); assert.ok(p.ok);
+  assert.deepEqual(p.file.shrink.byDimension.map(x => [x.axis, x.factor]), [['X', 1.011917], ['Y', 1.012917], ['Z', 1.012917]]);
+  assert.match(p.file.shrink.simplification, /one factor by the largest extent/);
+  // (One band throughout: said a simplification, no list.)
+  assert.doesNotMatch((await rule(cast(block(100, 60, 20), 'a356'), 'shrink')).message, /\(X /);
+});
