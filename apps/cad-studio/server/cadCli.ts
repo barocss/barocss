@@ -21,6 +21,9 @@ import { verifyBundle, writeBundle } from '@barocss/cad-model/team/bundle';
 import { inProcessReopen, type Reopen } from '@barocss/cad-model/team/candidates';
 import { runBoardScenario, type BoardScenario } from '@barocss/cad-model/team/boardScenario';
 import { canonical } from '@barocss/cad-model/team/team';
+import { chooseStock, stockDoc, stockFile } from '@barocss/cad-model/machining/stock';
+import { turningOf } from '@barocss/cad-model/machining/turning';
+import { holesOf } from '@barocss/cad-model/machining/holes';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -60,6 +63,10 @@ cad-cli board scenario.json [--fresh]
   Runs a candidate board's scenario (A7.5): candidates built in isolation, cancelled, timed out, accepted through the
   Integrator and the replay gate, undone and redone; prints each step's outcome and whether it is the scenario's
   expected one. --fresh reads every accepted part back in a fresh process (cad-cli replay). Exit 1 when one differs.
+cad-cli stock part.bcad -o folder [--list stock.json] [--allowance mm]
+  The stock a part is machined from (CNC7b): the smallest block (milled) or bar (turned) on the shop's list — the part's
+  own, or one given — around it with the allowance a face (yours, else 1 mm, an estimate); writes stock.json and
+  stock.step. Exit 1 when none is loaded or none fits.
 cad-cli replay part.bcad
   Reads a saved part as the studio opens it and evaluates it afresh: prints its facts and its requirements' verdicts
   (A7.5's replay gate reads an accepted part back with it). Exit 1 when it does not read.
@@ -188,6 +195,31 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     writeAtomic(resolve(rest[oi + 1]), q.zip);
     say(io.stdout, { complete: q.manifest.complete, open: q.manifest.open, files: q.manifest.files.map(f => f.path), wrote: resolve(rest[oi + 1]) });
     return q.manifest.complete ? 0 : 1;
+  }
+  if (cmd === 'stock') {
+    // (CNC7b, O102: the stock of a saved part from the shop's list — stock.json and stock.step; exit 1 when none is chosen.)
+    const oi = rest.indexOf('-o'), li = rest.indexOf('--list'), ai = rest.indexOf('--allowance'), file = rest.find((a, i) => !a.startsWith('-') && !['-o', '--list', '--allowance'].includes(rest[i - 1]));
+    if (!file || oi < 0 || !rest[oi + 1]) return usage('stock takes a .bcad file and -o folder [--list stock.json] [--allowance mm]');
+    const opened = await openModel(resolve(file));
+    if ('error' in opened) return failed(opened.error);
+    let s0 = await stateOf(opened.doc); if ('error' in s0) return failed(s0.error);
+    if (li >= 0 || ai >= 0) {
+      let rows: unknown;
+      if (li >= 0) { try { rows = JSON.parse(readFileSync(resolve(rest[li + 1]), 'utf8')); } catch (e) { return failed(`${rest[li + 1]}: ${e instanceof Error ? e.message : String(e)}`); } }
+      const set = await dispatchTool(s0, 'set_stock', { ...(li >= 0 ? { rows } : {}), ...(ai >= 0 ? { allowance: Number(rest[ai + 1]) } : {}) }, evaluate);
+      if (set.isError) return failed(JSON.parse(set.content).error ?? set.content);
+      s0 = set.state;
+    }
+    const process = s0.doc.process === 'cnc-turning' ? 'cnc-turning' : 'cnc-milling';
+    const turning = process === 'cnc-turning' ? turningOf(s0.doc, s0.bodies, holesOf(s0.bodies)) : null, r = chooseStock(s0.doc, s0.bodies, process, turning);
+    if (!r.ok) { say(io.stdout, { ok: false, code: r.code, message: r.message, allowance: r.allowance }); return 1; }
+    const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
+    const step = stepFor(stockDoc(r.choice), 'stock');
+    if ('error' in step) return failed(`the stock's STEP: ${step.error}`);
+    writeAtomic(join(dir, 'stock.json'), new TextEncoder().encode(JSON.stringify(stockFile(r.choice), null, 1) + '\n'));
+    writeAtomic(join(dir, 'stock.step'), new TextEncoder().encode(step.text));
+    say(io.stdout, { ok: true, row: r.choice.row.id, size: r.choice.size, allowance: r.choice.allowance, wrote: [join(dir, 'stock.json'), join(dir, 'stock.step')] });
+    return 0;
   }
   if (cmd === 'robot-check') {
     // (RD9, O47: the harness on a saved robot and a duty file.)

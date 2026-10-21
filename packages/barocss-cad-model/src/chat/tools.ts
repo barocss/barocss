@@ -5,7 +5,7 @@
 import { commandById, commands, patchValues, refOf, shownFields, type Ctx, type Field, type Values } from '../app/commands';
 import { editFields } from '../app/editFields';
 import { measureBetween, measureItem, type MeasurePick } from '../app/measure';
-import { featureLabel, prefixDoc, withNode, type DocPlane, type ModelNode, type StudioDoc } from '../engine/doc';
+import { featureLabel, prefixDoc, withNode, type DocPlane, type ModelNode, type StockRow, type StudioDoc } from '../engine/doc';
 type Vec3T = [number, number, number];
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { ToolDefinition } from './api';
@@ -144,7 +144,7 @@ function features(doc: StudioDoc) {
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
-const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
+const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'set_stock', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
 /** The tools a batch (apply_ops, a patch) may hold (A7.5: a candidate's unsupported op is refused by name before it runs). */
 export const BATCHABLE_TOOLS: ReadonlySet<string> = BATCHABLE;
 /** At most this many checkpoints a session (the oldest dropped first). */
@@ -907,6 +907,25 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       for (const b of picked) doc = withLook(doc, b, { material: id });
       return { state: { ...state, doc }, content: json({ ok: true, bodies: picked.map(b => b.key), material: id }), isError: false, changed: true, summary: `${picked.map(b => b.key).join(', ')}: ${id}` };
     }
+    case 'set_stock': {
+      // (CNC7b, O102: the shop's stock list, the user's — each row checked, a bad one refused by name; the allowance per face.)
+      const rows = Array.isArray(args.rows) ? args.rows : undefined, allowance = args.allowance;
+      if (rows === undefined && allowance === undefined) return fail(state, 'Give rows, allowance or both.');
+      if (allowance !== undefined && !(typeof allowance === 'number' && allowance >= 0 && allowance < 100)) return fail(state, `[STOCK_ALLOWANCE] allowance is mm a face, 0 to 100: ${JSON.stringify(allowance)}.`);
+      const good: StockRow[] = [];
+      for (const [k, r] of (rows ?? []).entries()) {
+        const o = r as Record<string, unknown>, id = typeof o.id === 'string' && o.id ? o.id : '', src = typeof o.source === 'string' ? o.source.trim() : '';
+        const pos = (v: unknown) => typeof v === 'number' && v > 0 && Number.isFinite(v);
+        if (!id || !src) return fail(state, `[STOCK_ROW] row ${k}: an id and a source (where the size comes from: your shop, a page) are needed.`);
+        if (o.kind === 'block' && Array.isArray(o.size) && o.size.length === 3 && o.size.every(pos)) good.push({ id, kind: 'block', size: [o.size[0], o.size[1], o.size[2]] as [number, number, number], source: src });
+        else if (o.kind === 'bar' && pos(o.diameter) && (o.maxLength === undefined || pos(o.maxLength))) good.push({ id, kind: 'bar', diameter: o.diameter as number, ...(o.maxLength !== undefined ? { maxLength: o.maxLength as number } : {}), source: src });
+        else return fail(state, `[STOCK_ROW] row ${k} (${id}): a block has size [a, b, c] > 0; a bar a diameter > 0 (and maxLength > 0).`);
+      }
+      if (new Set(good.map(r => r.id)).size !== good.length) return fail(state, '[STOCK_ROW] two rows with one id.');
+      const was = state.doc.machining ?? { version: 1 as const }, machining = { ...was, version: 1 as const, ...(rows !== undefined ? { stock: good } : {}), ...(allowance !== undefined ? { allowanceMM: allowance as number } : {}) };
+      const doc = { ...state.doc, machining };
+      return { state: { ...state, doc }, content: json({ ok: true, rows: machining.stock?.length ?? 0, allowance: machining.allowanceMM ?? null }), isError: false, changed: true, summary: `stock: ${machining.stock?.length ?? 0} rows${machining.allowanceMM !== undefined ? `, ${machining.allowanceMM} mm a face` : ''}` };
+    }
     case 'mass_properties': {
       const keys = strings(args.bodies), shown = keys.length ? state.bodies.filter(b => keys.includes(b.key)) : state.bodies;
       if (keys.length && shown.length !== keys.length) return fail(state, `No body ${keys.filter(k => !state.bodies.some(b => b.key === k)).join(', ')} (bodies: ${state.bodies.map(b => b.key).join(', ')}).`);
@@ -1225,6 +1244,11 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     name: 'set_material',
     description: 'Sets what bodies are made of: a material id from the material library (their mass, the BOM and a library part\'s checks read it before the brief\'s material). bodies: body keys (default: all of the part).',
     input_schema: { type: 'object', properties: { material: { type: 'string' }, bodies: { ...nameList, description: 'Body keys (default: all).' } }, required: ['material'], additionalProperties: false },
+  },
+  {
+    name: 'set_stock',
+    description: 'Sets the shop\'s stock list (none is built in) and the machining allowance per face (mm). rows: {id, kind "block", size [a,b,c], source} or {id, kind "bar", diameter, maxLength?, source}.',
+    input_schema: { type: 'object', properties: { rows: { type: 'array', items: { type: 'object' } }, allowance: { type: 'number' } }, additionalProperties: false },
   },
   {
     name: 'mass_properties',

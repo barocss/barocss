@@ -43,6 +43,8 @@ export type Side = 'solid' | 'negative' | 'positive' | 'instance1' | 'instance2'
 export interface BodyRef { node: number; side: Side }
 
 /** Where a sketch lies (see sketch/plane.ts); none: the XY plane at Z 0. */
+/** A stock row (CNC7b): a block's three sides, or a bar's diameter (and the longest length it comes in), with its source (the shop's own, a page …). */
+export type StockRow = { id: string; kind: 'block'; size: [number, number, number]; source: string } | { id: string; kind: 'bar'; diameter: number; maxLength?: number; source: string };
 export interface DocPlane { origin: [number, number, number]; normal: [number, number, number]; xAxis: [number, number, number] }
 /** A sheet's K (R12.4, D120): one K-factor, or a bend table (the shop's, loaded from a file) giving each bend's. */
 export type SheetK = { kFactor: number; bendTable?: undefined } | { bendTable: BendTable; kFactor?: undefined };
@@ -329,6 +331,11 @@ export interface StudioDoc {
   print?: { direction: [number, number, number] };
   /** How it is moulded (IM1, O77; versioned): the pull direction (the mould opens along it), the surface finish (an injection profile's finish id: its least draft) and the halves the person set (IM5). */
   mould?: { version: 1; pull?: [number, number, number]; finish?: string; /** IM5 (O81): the person's halves, by face name — they decide a wall along the pull or a straddling face. */ sides?: Record<string, '+' | '-'> };
+  /**
+   * How it is machined (CNC7b, O102; versioned): the shop's stock list — loaded by the user, none built in (D121's
+   * pattern) — and the allowance per face (mm; unset, an estimate of 1 mm is taken and said).
+   */
+  machining?: { version: 1; stock?: StockRow[]; allowanceMM?: number };
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
   /**
@@ -453,7 +460,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould', 'machining'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);

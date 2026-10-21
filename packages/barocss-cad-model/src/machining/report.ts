@@ -17,6 +17,7 @@ import { cavitiesOf, type Cavities } from './cavities';
 import { drawingCheck, type DrawingCheck } from './drawing';
 import { turningOf, type Turning } from './turning';
 import { featuresOf, type Feature } from './features';
+import { chooseStock, type StockResult } from './stock';
 import { holesOf, nearestDrills, onDrillTable, tappedHoles, type Hole, type TappedHole } from './holes';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
 
@@ -59,9 +60,13 @@ export function machinability(doc: StudioDoc, bodies: readonly BodyResult[], pro
     const by = (['pocket', 'slot', 'step', 'hole', 'boss'] as const).map(k => [k, features!.filter(f => f.kind === k).length] as const).filter(([, n]) => n);
     rules.push({ id: 'features', level: 'recommended', status: 'pass', message: by.length ? `${by.map(([k, n]) => `${n} ${k}${n === 1 ? '' : k === 'boss' ? 'es' : 's'}`).join(', ')} recognised, each with its setup` : 'no machined features recognised', value: features.length, unit: 'features' });
   }
+  // (CNC7b, O102: the stock it is cut from — the shop's list, the user's; the allowance the user's or an estimate, said.)
+  const stock: StockResult = chooseStock(doc, bodies, profile.id as 'cnc-milling' | 'cnc-turning', turning);
+  if (stock.ok) { const c = stock.choice; rules.push({ id: 'stock', level: 'recommended', status: 'pass', message: `stock ${c.row.id}: ${c.row.kind === 'block' ? c.size.join(' × ') : `Ø${c.size[0]} × ${c.size[1]}`} mm (${c.row.source}), ${c.allowance.mm} mm a face${c.allowance.basis === 'estimate' ? ' (an estimate: set yours)' : ''}`, value: c.row.kind === 'block' ? c.size.reduce((p, x) => p * x, 1) : c.size[0], unit: c.row.kind === 'block' ? 'mm³' : 'mm' }); }
+  else rules.push({ id: 'stock', level: 'recommended', status: stock.code === 'STOCK_NONE_FITS' ? 'warn' : 'unknown', message: `${stock.code}: ${stock.message}`, ...(stock.code === 'STOCK_NONE_FITS' ? {} : { why: stock.message }) });
   const classes = profile.toleranceClasses;
   return { process: profile.id, direction: null, rules, machining: { family, material: id, tolerance: { mm: t('tolMM').value, feasibleMM: t('tolFeasibleMM').value, source: t('tolMM').page?.url ?? t('tolMM').source },
-    toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null, holes, tapped, ...(cavities ? { cavities } : {}), ...(access ? { access } : {}), ...(turning ? { turning } : {}), drawing, ...(features ? { features } : {}) } };
+    toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null, holes, tapped, ...(cavities ? { cavities } : {}), ...(access ? { access } : {}), ...(turning ? { turning } : {}), drawing, ...(features ? { features } : {}), stock } };
 }
 
 const worst = (xs: readonly PrintRule['status'][]): PrintRule['status'] => xs.includes('fail') ? 'fail' : xs.includes('warn') ? 'warn' : xs.includes('unknown') ? 'unknown' : 'pass';

@@ -4400,3 +4400,36 @@ The coordinator set the next outer-lane work in roadmap order. IM7 needs the ker
   - a pocket cut into the side: from −Y, 10 deep, 10 × 20.
 - **Flow**: a CNC7a step through the real chat and tool servers. A milled plate with a pocket and a hole reads "features pass".
 - **Checks: T1** (results in the checkpoint).
+
+## O102 — CNC7b: stock from the shop's list, and its export (2026-10-21)
+
+- **The list is the user's** (`doc.machining`, versioned: `stock` rows and `allowanceMM`). None is built in, the owner's pattern of D121.
+  - A row is a block (three sides) or a bar (a diameter, and the longest it comes in), with its source (the shop, a page).
+  - **`set_stock`** (an agent tool, v1 and v2's `material` group as `stock`) sets the rows, the allowance or both. Refused by name: a row without an id or source, a block not of three positive sides, a bar not of a positive diameter, two rows of one id (STOCK_ROW); an allowance outside 0–100 mm (STOCK_ALLOWANCE).
+  - The frozen contracts gained it additively (`UPDATE_TOOL_CONTRACT=1`: v1 +28 lines, v2 +1). Their overhead is 14,645 of 15,000.
+- **The choice** (`machining/stock.ts`, `chooseStock`):
+  - **milling**: the smallest block whose sorted sides hold the part's box plus twice the allowance, laid along the part (longest on longest) and centred on its box;
+  - **turning**: the thinnest bar holding the turned diameter plus twice the allowance, long enough when it says how long, cut to the length plus twice the allowance, along CNC6's axis from the part's lowest point less the allowance;
+  - **the allowance** is the user's, else 1 mm a face, an estimate, said in the rule and in `stock.json`;
+  - **refused, typed**: STOCK_NONE_LOADED (unknown), STOCK_NONE_FITS (warned, the size needed said), STOCK_NO_AXIS;
+  - sizes read off the mesh fit to 1e-6 mm. Its vertices lie on the exact surfaces only to rounding: a Ø20 shaft read Ø20.000000x and missed Ø22 by 1e-9.
+- **The report**: a `stock` rule for milling and turning ("stock B30: 122 × 82 × 30 mm (the shop), 1 mm a face (an estimate: set yours)"), and `machining.stock`.
+- **The export**: `cad-cli stock part.bcad -o folder [--list stock.json] [--allowance mm]` writes:
+  - `stock.json`: the row, the size as cut, the placement, the allowance with its basis, the part's size;
+  - `stock.step`: the stock as a body (a box, or a cylinder on a plane square to the axis) through the kernel's writer.
+  - It exits 1 when none is loaded or none fits.
+- **Tests** (`test/cnc-stock.test.ts`, 6), against closed forms:
+  - O100's plate (120 × 80 × 28 with its boss) takes B30, 122 × 82 × 30 at 1 mm, an estimate, from min (−1, −1, −1) to max (121, 81, 29); a block listed as 30 × 122 × 82 is laid along. With 2 mm set it takes B32, 125 × 85 × 32;
+  - none loaded is unknown; none fits is warned, naming 122 × 82 × 30;
+  - a turned Ø20 × 52 takes R22 (not R16 or R25), 54 long, from y = −1. One listed 50 long is warned;
+  - the export: the block's body is 122 · 82 · 30 to 1e-6 mm³; the bar's is π · 11² · 54 within 1 %; the STEP is ISO-10303-21;
+  - set_stock's four refusals;
+  - `cad-cli stock`, spawned: exit 0, `stock.json` (B30, an estimate) and `stock.step`; without a list, exit 1 with STOCK_NONE_LOADED.
+- **Flow**: a CNC7b step through the real chat and tool servers. The agent sets the list; the report reads "stock pass", and the document holds both rows.
+- **Two tests that follow from it**:
+  - `chat.test.ts`'s tool list gains `set_stock`;
+  - RB9 rung 4's `machinable` leaves the `stock` rule out, as it does material and wall: the brief loads no stock list. Without that, every plate read "stock: unknown".
+- **Two failures that came and went**, neither from this change:
+  - `hollow.test.ts`'s "refused at once" (under 1000 ms) failed once with the full suite running beside it, then passed alone and in the next full suite;
+  - flow step 109, R12b.6's throated worm wheel (the kernel lane's), timed out once, then passed with the worm and CNC steps rerun.
+- **Checks: T2**, since `chat/tools.ts`, the frozen contracts and `engine/doc.ts` changed (results in the checkpoint).
