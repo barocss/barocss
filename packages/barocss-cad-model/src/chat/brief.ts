@@ -9,7 +9,7 @@ import { MATERIALS_DATA, processProfile } from '../library/materials';
 
 export const BRIEF_VERSION = 1;
 /** The processes a brief may name: those with rules (R6b.7; machining since CNC1, O84), and sheet metal recorded as intent. */
-export const PROCESSES = ['fdm', 'sla', 'sls', 'mjf', 'injection', 'cnc-milling', 'cnc-turning', 'sheet-metal'] as const;
+export const PROCESSES = ['fdm', 'sla', 'sls', 'mjf', 'injection', 'cnc-milling', 'cnc-turning', 'die-casting', 'sand-casting', 'sheet-metal'] as const;
 export type Process = (typeof PROCESSES)[number];
 const UNCHECKED: Partial<Record<Process, string>> = {
   'sheet-metal': 'sheet metal is recorded as intent; its checks are the kernel lane\'s R12 steps, not built yet',

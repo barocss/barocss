@@ -11,6 +11,7 @@ import { materialIdOf } from '../app/bodies';
 import { materialData, printerProfile, processProfile, type MouldFinish, type ProcessProfile } from '../library/materials';
 import { overhangOf, type Vec3 } from './overhang';
 import { draftField, type DraftFace } from '../mould/draft';
+import { castability, type CastingSummary } from '../casting/report';
 import { undercuts, type UndercutRegion } from '../mould/undercut';
 import { wallsOf, type WallReport } from '../mould/walls';
 import { partingLine, type Half, type PartingReport } from '../mould/parting';
@@ -35,6 +36,8 @@ export interface PrintRule {
  */
 export interface PrintabilityReport {
   readonly process: string | null; readonly printer?: string; readonly direction: Vec3 | null; readonly rules: readonly PrintRule[];
+  /** IM8a (O106): the casting material's family, its tolerance where read, the faces under the draft limits. */
+  readonly casting?: CastingSummary;
   /** CNC1 (O84): the material's family, the general tolerance (sourced) and its class (named, not copied). */
   readonly machining?: { readonly family: 'metal' | 'plastic' | null; readonly material: string | null; readonly tolerance: { mm: number; feasibleMM: number; source: string }; readonly toleranceClass: { name: string; note: string; source: string } | null;
     /** CNC2 (O85): the holes found (steps, open ends, reaches) and the tapped holes matched to them. */
@@ -100,6 +103,7 @@ export async function printability(doc: StudioDoc, bodies: readonly BodyResult[]
   const b = dir ? unit(dir) : null, rules: PrintRule[] = [];
   if (profile?.id === 'injection') return mouldability(doc, bodies, profile, options);
   if (profile?.id === 'cnc-milling' || profile?.id === 'cnc-turning') return machinability(doc, bodies, profile);
+  if (profile?.id === 'die-casting' || profile?.id === 'sand-casting') return castability(doc, bodies, profile, options);
   if (!profile?.additive) {
     const why = profile ? `${profile.label} is not printing, and has no rules here yet` : 'no process is chosen: set the brief\'s process (or the studio\'s Process) — none is assumed';
     return { process: profile?.id ?? null, direction: b, rules: ['wall', 'hole', 'horizontal-hole', 'gap', 'cavity', 'bed-fit', 'overhang', 'warp', 'tip'].map(id => ({ id, level: 'recommended' as const, status: 'unknown' as const, message: id, why })) };

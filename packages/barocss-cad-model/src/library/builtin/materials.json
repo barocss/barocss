@@ -53,7 +53,8 @@
    "allowableStrain": 0.0012,
    "shrink": 0,
    "processes": [
-    "cnc"
+    "cnc",
+    "sand-casting"
    ],
    "estimate": true,
    "sources": {
@@ -65,7 +66,8 @@
     "wallMM": "S-TYP",
     "friction": "S-TYP"
    },
-   "friction": 0.6
+   "friction": 0.6,
+   "castFamily": "steel"
   },
   {
    "id": "ss304",
@@ -101,7 +103,8 @@
    "allowableStrain": 0.002,
    "shrink": 0,
    "processes": [
-    "cnc"
+    "cnc",
+    "die-casting"
    ],
    "estimate": true,
    "sources": {
@@ -113,7 +116,8 @@
     "wallMM": "S-TYP",
     "friction": "S-TYP"
    },
-   "friction": 0.5
+   "friction": 0.5,
+   "castFamily": "copper"
   },
   {
    "id": "ti64",
@@ -475,6 +479,102 @@
    },
    "friction": 0.45,
    "warpRisk": 0.2
+  },
+  {
+   "id": "zamak3",
+   "label": "Zinc alloy (Zamak 3 class)",
+   "family": "metal",
+   "castFamily": "zinc",
+   "densityGPerCm3": 6.6,
+   "elasticModulusMPa": 96000,
+   "yieldMPa": 200,
+   "allowableStrain": 0.002,
+   "shrink": 0,
+   "processes": [
+    "die-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-TYP",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.4
+  },
+  {
+   "id": "a380",
+   "label": "Aluminium die-casting alloy (A380 class)",
+   "family": "metal",
+   "castFamily": "aluminium",
+   "densityGPerCm3": 2.7,
+   "elasticModulusMPa": 71000,
+   "yieldMPa": 150,
+   "allowableStrain": 0.002,
+   "shrink": 0,
+   "processes": [
+    "die-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-TYP",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.4
+  },
+  {
+   "id": "az91d",
+   "label": "Magnesium die-casting alloy (AZ91D class)",
+   "family": "metal",
+   "castFamily": "magnesium",
+   "densityGPerCm3": 1.8,
+   "elasticModulusMPa": 45000,
+   "yieldMPa": 150,
+   "allowableStrain": 0.002,
+   "shrink": 0,
+   "processes": [
+    "die-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-TYP",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.4
+  },
+  {
+   "id": "a356",
+   "label": "Aluminium casting alloy (A356 class)",
+   "family": "metal",
+   "castFamily": "aluminium",
+   "densityGPerCm3": 2.7,
+   "elasticModulusMPa": 72000,
+   "yieldMPa": 180,
+   "allowableStrain": 0.002,
+   "shrink": 0,
+   "processes": [
+    "sand-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-TYP",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.4
   }
  ],
  "profiles": [
@@ -1835,6 +1935,199 @@
      "read": "2026-10-21",
      "label": "Tolerances for Parts without Technical Drawing: +/- 0.005 in. (+/- 0.127mm) / ISO 2768-1-1989-f (metals), ISO 2768-1-1989-m (plastics)",
      "note": "the classes named; their tolerance values are not copied"
+    }
+   }
+  },
+  {
+   "id": "die-casting",
+   "label": "Die casting",
+   "thresholds": {
+    "zincWallMinMM": {
+     "value": 0.6,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a zinc alloy’s least wall",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Zinc alloys — Min. Thickness 0.6 mm (0.025 in)"
+     }
+    },
+    "zincDraftMinDeg": {
+     "value": 0.25,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "a zinc alloy’s least draft",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Zinc alloys — Min. Draft Angle 0.25º"
+     }
+    },
+    "zincDraftRecDeg": {
+     "value": 0.5,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "a zinc alloy’s draft, achievable in general",
+     "page": {
+      "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+      "read": "2026-10-21",
+      "label": "For draft angles, in general, 0.5º is achievable for zinc 1º-2º is achievable for aluminum."
+     }
+    },
+    "zincTolMM": {
+     "value": 0.0508,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "a zinc alloy’s linear tolerance, ±",
+     "page": {
+      "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+      "read": "2026-10-21",
+      "label": "generally between ±0.001\" and ±0.002\" is possible for zinc",
+      "note": "derived: the looser end, 0.002 in × 25.4 mm/in"
+     }
+    },
+    "aluminiumWallMinMM": {
+     "value": 0.9,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an aluminium alloy’s least wall",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Aluminum alloys — Min. Thickness 0.9 mm (0.035 in)"
+     }
+    },
+    "aluminiumWallRecMM": {
+     "value": 2,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an aluminium alloy’s typical wall",
+     "page": {
+      "url": "https://www.dynacast.com/resources/article/die-casting-design-faq",
+      "read": "2026-10-21",
+      "label": "Wall thickness, typically is 2mm for aluminum die casting."
+     }
+    },
+    "aluminiumDraftMinDeg": {
+     "value": 0.5,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "an aluminium alloy’s least draft",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Aluminum alloys — Min. Draft Angle 0.5º"
+     }
+    },
+    "aluminiumDraftRecDeg": {
+     "value": 1,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "an aluminium alloy’s draft, achievable in general (the low end of 1º–2º)",
+     "page": {
+      "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+      "read": "2026-10-21",
+      "label": "For draft angles, in general, 0.5º is achievable for zinc 1º-2º is achievable for aluminum."
+     }
+    },
+    "aluminiumTolMM": {
+     "value": 0.1016,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "an aluminium alloy’s linear tolerance, ±",
+     "page": {
+      "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+      "read": "2026-10-21",
+      "label": "aluminum can hold between ±0.002\" and ±0.004\"",
+      "note": "derived: the looser end, 0.004 in × 25.4 mm/in"
+     }
+    },
+    "copperWallMinMM": {
+     "value": 1.25,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a copper alloy’s (brass’s) least wall",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Copper alloys (Brass) — Min. Thickness 1.25 mm (0.050 in)"
+     }
+    },
+    "copperDraftMinDeg": {
+     "value": 0.7,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "a copper alloy’s (brass’s) least draft",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Copper alloys (Brass) — Min. Draft Angle 0.7º"
+     }
+    }
+   }
+  },
+  {
+   "id": "sand-casting",
+   "label": "Sand casting",
+   "thresholds": {
+    "aluminiumWallMinMM": {
+     "value": 2.54,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "an aluminium alloy’s least wall or web",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "In general web or wall thickness should as a minimum be 0.10\" - Aluminum, .13 Magnesium and .13 for Steel.",
+      "note": "derived: 0.10 in × 25.4 mm/in"
+     }
+    },
+    "magnesiumWallMinMM": {
+     "value": 3.302,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "a magnesium alloy’s least wall or web",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "In general web or wall thickness should as a minimum be 0.10\" - Aluminum, .13 Magnesium and .13 for Steel.",
+      "note": "derived: 0.13 in × 25.4 mm/in"
+     }
+    },
+    "steelWallMinMM": {
+     "value": 3.302,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "a steel’s least wall or web",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "In general web or wall thickness should as a minimum be 0.10\" - Aluminum, .13 Magnesium and .13 for Steel.",
+      "note": "derived: 0.13 in × 25.4 mm/in"
+     }
+    },
+    "draftMinDeg": {
+     "value": 1,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "the least draft, external and internal",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "Standard draft for sand casting is 2 degrees with a minimum of about 1 degree for external and internal features."
+     }
+    },
+    "draftRecDeg": {
+     "value": 2,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "the standard draft",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "Standard draft for sand casting is 2 degrees with a minimum of about 1 degree for external and internal features."
+     }
     }
    }
   }

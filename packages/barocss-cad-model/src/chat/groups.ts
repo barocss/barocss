@@ -45,7 +45,7 @@ export const GROUPS: Record<string, Group> = {
       cutlist: ['cut_list', 'csv? — a frame\u2019s members to cut: rows of identical ones, lengths, end cuts, mass (FR4a)'],
       render: ['render_views', 'highlight?, section? — pictures of the part'],
       select: ['select', 'faces?, edges?, bodies? — shows them selected in the studio'],
-      manufacturability: ['check_printability', 'direction?, finish?, sides? — the report for the part\'s process: printing, injection moulding (pull, finish, halves), machining'],
+      manufacturability: ['check_printability', 'direction?, finish?, sides? — the report for the part\'s process: printing, injection moulding (pull, finish, halves), machining, casting (pull)'],
     },
   },
   history: {

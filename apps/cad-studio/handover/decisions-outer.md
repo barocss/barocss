@@ -4520,3 +4520,48 @@ Owner, 2026-10-21, relayed by the coordinator. First: "앱 채팅과 MCP 기본�
   - through MCP, three refusals (no requirements, no snapshot, L2's proposal) name v2 tools;
   - `v2Result` converts a stored op.
 - Verified so far: app tsc 0, toolset.test 11/11. **Not yet run:** the full studio suite name diff and FLOW_ONLY on the chat steps.
+
+## O106 — IM8a: casting presets — die casting and sand casting by the alloy's casting family (2026-10-21)
+
+- **The data** (`library/builtin/materials.json`).
+  - Two process profiles, `die-casting` and `sand-casting`. Their limits are keyed by casting family (`zincWallMinMM`, `aluminiumDraftRecDeg`, …), with the process's own value applying to every family (sand casting's draft). Each limit names its page, read 2026-10-21:
+    - **eFunda, die casting** (`efunda.com/processes/metal_processing/die_casting.cfm`), its table of minimum thickness and draft:
+      - zinc alloys 0.6 mm, 0.25°;
+      - aluminium alloys 0.9 mm, 0.5°;
+      - copper alloys (brass) 1.25 mm, 0.7°.
+    - **Dynacast, a beginner's guide to die-cast design**: "0.5º is achievable for zinc 1º-2º is achievable for aluminum". Achievable draft is zinc 0.5° and aluminium 1° (the low end).
+      - Tolerances "±0.001" and ±0.002"" for zinc and "±0.002" and ±0.004"" for aluminium are W-DERIVED: the looser end × 25.4, so 0.0508 and 0.1016 mm.
+    - **Dynacast, die casting design FAQ**: "Wall thickness, typically is 2mm for aluminum die casting." This is aluminium's typical wall: under it warns, under 0.9 fails.
+    - **Engineers Edge, design for sand casting**:
+      - walls "0.10" - Aluminum, .13 Magnesium and .13 for Steel", W-DERIVED × 25.4 as 2.54, 3.302 and 3.302 mm;
+      - "Standard draft for sand casting is 2 degrees with a minimum of about 1 degree".
+  - **Not read, so unknown and said**:
+    - Magnesium in die casting: no HTML page gave a value; the TMS course and Wikipedia's table taken from a standard were not used.
+    - Copper tolerance.
+    - Sand-casting tolerance: Engineers Edge's chart is an image.
+    - Iron.
+  - **Materials**: a `castFamily` (zinc | aluminium | magnesium | copper | steel), checked by `checkMaterials`.
+    - New casting alloys `zamak3`, `a380`, `az91d` (die) and `a356` (sand). Their mechanical values are S-TYP estimates, flagged.
+    - Brass (copper, die) and steel (steel, sand) gained a family.
+    - Al 6061 has none: a wrought alloy.
+- **The report** (`casting/report.ts`, `castability`, dispatched from `printability`) has these rules:
+  - **material**: a non-casting alloy fails; a family with no value read is unknown;
+  - **pull**: `doc.mould.pull` or `direction`;
+  - **wall**: IM4's thinnest against the least (fail) and typical (warn);
+  - **draft**: IM2's exact field against the least (fail) and achievable (warn); straddling faces warn;
+  - **tolerance**: where read.
+  - It also returns a `casting` summary: family, tolerance and page, the steep faces.
+- **Surfaces**:
+  - The brief's processes now include `die-casting` and `sand-casting`.
+  - The Library panel lists both and shows the Pull for casting; finishes stay moulding's.
+  - The report tool's description and the v2 `query.manufacturability` hint add casting (+9 characters).
+  - No new tool or action (O105's rule).
+- **Tests** (`test/im8a.test.ts`, 6), with a block drafted θ on each side of every draft limit and a box shelled to t on each side of every wall limit:
+  - data and page checks;
+  - die draft: zinc 0.75/0.5 pass, 0.4 warn, 0.2 fail; aluminium 1.5 pass, 0.75 warn, 0.4 fail;
+  - sand draft: 0.75 fail, 1.5 warn, 2.5 pass;
+  - walls: die zinc 0.8 pass; aluminium 0.8 fail, 1.5 warn, 2.5 pass; sand aluminium 2 fail, 3 pass; sand steel 3 fail, 3.5 pass;
+  - the unknowns;
+  - the tool and its v2 action.
+  - Flow step "IM8a" chooses die casting with a +Z pull in the Library panel. Through the real chat, A380 at 0.75° warns on draft and Zamak 3 passes.
+- **Next**: IM8b, allowances.
