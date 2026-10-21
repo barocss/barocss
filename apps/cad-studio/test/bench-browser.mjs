@@ -26,14 +26,58 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, dev
 await page.addInitScript(() => {
   // (`perFrame`: submits by the animation frame's timestamp — every callback of one frame shares it — so two draws in
   // one frame, the viewer's and the viewport's, show as 2; PERF3 A2.)
-  const w = window; w.__bench = { submits: 0, frames: 0, frameMS: 0, gpuMS: 0, perFrame: {}, t: -1, bytes: 0, buffers: 0 };
+  const w = window; w.__bench = { submits: 0, frames: 0, frameMS: 0, gpuMS: 0, queueMS: 0, timed: false, perFrame: {}, t: -1, batch: 0, sameStamp: 0, bytes: 0, buffers: 0 };
   // (G1: what goes up to the GPU — the bytes of every buffer write, and the buffers made.)
   if (w.GPUQueue) { const write = GPUQueue.prototype.writeBuffer; GPUQueue.prototype.writeBuffer = function (buffer, offset, data, dataOffset, size) { w.__bench.bytes += size !== undefined ? size * (data.BYTES_PER_ELEMENT ?? 1) : data.byteLength - (dataOffset ?? 0) * (data.BYTES_PER_ELEMENT ?? 1); return write.apply(this, arguments); }; }
-  if (w.GPUDevice) { const make = GPUDevice.prototype.createBuffer; GPUDevice.prototype.createBuffer = function (d) { w.__bench.buffers++; return make.call(this, d); }; }
-  // (GPU time: from each submit until the queue reports that work done.)
-  if (w.GPUQueue) { const submit = GPUQueue.prototype.submit; GPUQueue.prototype.submit = function (...a) { w.__bench.submits++; w.__bench.perFrame[w.__bench.t] = (w.__bench.perFrame[w.__bench.t] ?? 0) + 1; const t0 = performance.now(), r = submit.apply(this, a); this.onSubmittedWorkDone().then(() => { w.__bench.gpuMS += performance.now() - t0; }); return r; }; }
+  const make = w.GPUDevice ? GPUDevice.prototype.createBuffer : null;
+  if (w.GPUDevice) GPUDevice.prototype.createBuffer = function (d) { w.__bench.buffers++; return make.call(this, d); };
+  // (G13: the GPU's own time — every render pass's timestamps, begin to end, when the adapter has timestamp queries; the
+  // device asked for them. Before G13 the GPU column was the wall time from a submit until the queue reported it done,
+  // which waits on the main thread too: 15–22 ms on the pose, explode and section rows, where the GPU's own was ≈ 2.5 ms.
+  // That is kept as `queue`.)
+  const pending = [];
+  if (w.GPUAdapter) { const rd = GPUAdapter.prototype.requestDevice; GPUAdapter.prototype.requestDevice = function (d = {}) { return rd.call(this, this.features.has('timestamp-query') ? { ...d, requiredFeatures: [...(d.requiredFeatures ?? []), 'timestamp-query'] } : d); }; }
+  if (w.GPUDevice) {
+    const ce = GPUDevice.prototype.createCommandEncoder;
+    GPUDevice.prototype.createCommandEncoder = function (d) {
+      const enc = ce.call(this, d), dev = this;
+      if (!dev.features.has('timestamp-query')) return enc;
+      const pool = dev.__ts ??= [], qs = pool.pop() ?? dev.createQuerySet({ type: 'timestamp', count: 32 });
+      let n = 0;
+      const begin = enc.beginRenderPass.bind(enc), finish = enc.finish.bind(enc);
+      enc.beginRenderPass = desc => { if (desc.timestampWrites || n + 2 > 32) return begin(desc); const p = begin({ ...desc, timestampWrites: { querySet: qs, beginningOfPassWriteIndex: n, endOfPassWriteIndex: n + 1 } }); n += 2; return p; };
+      enc.finish = fd => {
+        if (n) {
+          const res = make.call(dev, { size: 256, usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC }), read = make.call(dev, { size: 256, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+          enc.resolveQuerySet(qs, 0, n, res, 0); enc.copyBufferToBuffer(res, 0, read, 0, n * 8);
+          pending.push({ dev, qs, res, read, n });
+        } else pool.push(qs);
+        return finish(fd);
+      };
+      return enc;
+    };
+  }
+  if (w.GPUQueue) { const submit = GPUQueue.prototype.submit; GPUQueue.prototype.submit = function (...a) {
+    w.__bench.submits++; w.__bench.perFrame[w.__bench.batch] = (w.__bench.perFrame[w.__bench.batch] ?? 0) + 1;
+    const t0 = performance.now(), r = submit.apply(this, a), mine = pending.splice(0);
+    this.onSubmittedWorkDone().then(() => { w.__bench.queueMS += performance.now() - t0; });
+    for (const q of mine) q.read.mapAsync(GPUMapMode.READ).then(() => {
+      const t = new BigInt64Array(q.read.getMappedRange(0, q.n * 8)); let ns = 0;
+      for (let i = 0; i + 1 < q.n; i += 2) ns += Number(t[i + 1] - t[i]);
+      w.__bench.gpuMS += ns / 1e6; w.__bench.timed = true;
+      q.read.unmap(); q.read.destroy(); q.res.destroy(); (q.dev.__ts ??= []).push(q.qs);
+    }, () => {});
+    return r;
+  }; }
   const raf = w.requestAnimationFrame.bind(w);
-  w.requestAnimationFrame = cb => raf(t => { const t0 = performance.now(); w.__bench.t = t; try { cb(t); } finally { w.__bench.frames++; w.__bench.frameMS += performance.now() - t0; } });
+  // (G13: a frame is one batch of animation-frame callbacks — a new one when its timestamp changes, or when a message
+  // posted from the last one has arrived: tasks run between batches only. Headless Chromium under load can stamp two
+  // batches alike — `sameStamp` counts them — which, keyed by the timestamp before G13, showed as 2 submits in one frame.)
+  const chan = new MessageChannel(); let ended = true;
+  chan.port1.onmessage = () => { ended = true; };
+  w.requestAnimationFrame = cb => raf(t => {
+    if (ended || t !== w.__bench.t) { if (t === w.__bench.t) w.__bench.sameStamp++; w.__bench.batch++; ended = false; chan.port2.postMessage(0); }
+    const t0 = performance.now(); w.__bench.t = t; try { cb(t); } finally { w.__bench.frames++; w.__bench.frameMS += performance.now() - t0; } });
 });
 // The budgets (G4: one table): submits and their most in one frame, the animation frames' average CPU (a 2 ms floor), the
 // main thread's task time and the GPU's time a submit (from it until the queue reports it done: wall time, so it holds
@@ -41,26 +85,30 @@ await page.addInitScript(() => {
 // 2026-10-21, at a load average of 8–11 — the owner ran it rather than wait for a quiet machine; the GPU's with a 4 ms
 // floor, as the CPU's 2 ms; the earlier rows' submit and CPU budgets from PERF3 D18).
 const BUDGET = {
-  hover: { submits: 34, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
-  select: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 24 },
-  clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
-  orbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
-  orbitOutlined: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 6 },
-  pose: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 20, kb: 8, buffers: 4, gpuMS: 32 },
-  cloud: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 8, kb: 6, buffers: 4, gpuMS: 6 },
-  explode: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 28, kb: 128, buffers: 4, gpuMS: 44 },
-  sectionGpu: { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 8, buffers: 4, gpuMS: 44 },
+  // (G13, 2026-10-22: every row re-measured, three runs alone at a load of 12–15 — the machine had no quieter window
+  // with the other lanes running — the GPU's own time now from timestamps (no longer the queue's wait); about twice the
+  // worst of the three, the GPU's with a 3 ms floor. The 100 000-voxel cloud was the one row the GPU's time led: 8.2 ms, G14.)
+  hover: { submits: 34, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
+  select: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
+  clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
+  orbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
+  orbitOutlined: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 5 },
+  pose: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3 },
+  cloud: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 3 },
+  explode: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 128, buffers: 4, gpuMS: 4 },
+  sectionGpu: { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 33, kb: 5, buffers: 4, gpuMS: 6 },
   sectionCpu: { submits: 140, avgFrameMS: 2 },
-  // (G7, set at load 12 — the pre-G7 SVG path took 30 ms of task a frame here; G13 re-measures on a quiet machine.)
-  // (G8, set at load 32–53, about twice: SVG squares took 55 ms of task a frame here; G13 re-measures.)
-  cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 8, kb: 6, buffers: 4, gpuMS: 14 },
-  underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 16, kb: 6, buffers: 4, gpuMS: 14 },
-  // (G9: the pointer's picks over 120 brackets; a frame only when the hovered thing changes.)
-  hoverMany: { submits: 64, avgFrameMS: 2, perFrame: 1 },
-  pickMany: { submits: 4, avgFrameMS: 2, perFrame: 1 },
-  // (G10: a patterned assembly opened — what it uploads and keeps.)
-  pattern: { submits: 400, avgFrameMS: 4 },
-  // (G11: the 120 brackets see-through, orbited: 2.8 ms of GPU at load 13, the budget about twice — the 120-bracket rows' is 44.)
+  // (G7: the pre-G7 SVG path took 30 ms of task a frame here.)
+  underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 16, kb: 5, buffers: 4, gpuMS: 4 },
+  // (G8: SVG squares took 55 ms of task a frame here. G14: 8.2 → 4.0–4.7 ms of GPU, its shader without discard and its
+  // quads half a pixel smaller; the budget about twice.)
+  cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 10 },
+  // (G9: the pointer's picks over 120 brackets — a frame only when the hovered thing changes; the task is the App's.)
+  hoverMany: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 140 },
+  pickMany: { submits: 4, avgFrameMS: 2, perFrame: 1, taskMS: 90, gpuMS: 5 },
+  // (G10: a patterned assembly opened.)
+  pattern: { submits: 8, avgFrameMS: 2, perFrame: 1 },
+  // (G11: the 120 brackets see-through, orbited.)
   ghost: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
 };
 const os = await import('node:os'), loadAtStart = os.loadavg()[0];
@@ -71,13 +119,13 @@ const cdp = await page.context().newCDPSession(page); await cdp.send('Performanc
 const taskTime = async () => (await cdp.send('Performance.getMetrics')).metrics.find(m => m.name === 'TaskDuration').value * 1000;
 const measure = async (name, budget, act) => {
   await page.waitForTimeout(500);
-  await page.evaluate(() => { Object.assign(window.__bench, { submits: 0, frames: 0, frameMS: 0, gpuMS: 0, perFrame: {}, bytes: 0, buffers: 0 }); });
+  await page.evaluate(() => { Object.assign(window.__bench, { submits: 0, frames: 0, frameMS: 0, gpuMS: 0, queueMS: 0, perFrame: {}, sameStamp: 0, bytes: 0, buffers: 0 }); });
   const task0 = await taskTime(), t0 = Date.now(); await act(); await page.waitForTimeout(400);
   const b = await page.evaluate(() => window.__bench), wall = Date.now() - t0, task = await taskTime() - task0;
   const avg = b.frames ? b.frameMS / b.frames : 0, most = Math.max(0, ...Object.values(b.perFrame)), drawn = Math.max(1, Object.keys(b.perFrame).length);
-  const taskPerFrame = task / drawn, kbPerFrame = b.bytes / 1024 / drawn;
-  rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: +(b.submits ? b.gpuMS / b.submits : 0).toFixed(2), wallMS: wall, taskTotalMS: +task.toFixed(1), uploadTotalKiB: +(b.bytes / 1024).toFixed(0),
-    ok: b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity) && (b.submits ? b.gpuMS / b.submits : 0) <= (budget.gpuMS ?? Infinity), budget });
+  const taskPerFrame = task / drawn, kbPerFrame = b.bytes / 1024 / drawn, gpu = b.submits ? (b.timed ? b.gpuMS : b.queueMS) / b.submits : 0;
+  rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: +gpu.toFixed(2), queueMS: +(b.submits ? b.queueMS / b.submits : 0).toFixed(2), timed: b.timed, sameStamp: b.sameStamp, wallMS: wall, taskTotalMS: +task.toFixed(1), uploadTotalKiB: +(b.bytes / 1024).toFixed(0),
+    ok: b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity) && gpu <= (budget.gpuMS ?? Infinity), budget });
 };
 try {
   await page.goto(server.resolvedUrls.local[0]);
@@ -167,7 +215,7 @@ try {
     rows[rows.length - 1].geometry = await page.evaluate(() => {
       const v = window.__studioViewer; if (!v) return null;
       const gs = new Set(v.meshList.filter(m => m.name?.startsWith('inst:')).map(m => m.geometry));
-      let bytes = 0; for (const g of gs) { const d = g.data; bytes += d.positions.byteLength + d.normals.byteLength + d.colors.byteLength + d.uvs.byteLength + (d.indices?.byteLength ?? 0); }
+      let bytes = 0; for (const g of gs) { const d = g.data; bytes += d.positions.byteLength + d.normals.byteLength + d.colors.byteLength + (d.uvs?.byteLength ?? 0) + (d.indices?.byteLength ?? 0); }
       return { geometries: gs.size, meshes: v.meshList.filter(m => m.name?.startsWith('inst:')).length, kib: +(bytes / 1024).toFixed(0), heapMiB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null };
     });
     await open('brackets.bcad', many, () => window.__studioInstanceBounds?.().length === 120 && window.__studioInstanceBounds().every(b => b.id.startsWith('i')));
@@ -234,6 +282,6 @@ try {
 } finally { await browser.close(); await server.close(); }
 // (The machine's load average: a budget is not set from numbers measured under load.)
 console.log(`load average ${loadAtStart.toFixed(1)} at the start, ${os.loadavg()[0].toFixed(1)} at the end${Math.max(loadAtStart, os.loadavg()[0]) > 4 ? ' — LOADED: compare, do not set budgets from this run' : ''}`);
-for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  wall ${r.wallMS} ms  task total ${r.taskTotalMS} ms${r.geometry ? `  uploaded ${r.uploadTotalKiB} KiB; ${r.geometry.meshes} meshes on ${r.geometry.geometries} geometries, ${r.geometry.kib} KiB; heap ${r.geometry.heapMiB} MiB` : ''}`);
+for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit${r.timed ? '' : ' (queue: no timestamps)'}${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  queue ${r.queueMS} ms${r.sameStamp ? ` (${r.sameStamp} frames stamped as the last)` : ''}  wall ${r.wallMS} ms  task total ${r.taskTotalMS} ms${r.geometry ? `  uploaded ${r.uploadTotalKiB} KiB; ${r.geometry.meshes} meshes on ${r.geometry.geometries} geometries, ${r.geometry.kib} KiB; heap ${r.geometry.heapMiB} MiB` : ''}`);
 if (picks) console.log(`picks over 120 brackets, ${picks.pointers} pointers (${picks.hits} on a bracket), ${picks.differ} answers different: raycast ${picks.linear.ray.toFixed(1)} → ${picks.trees.ray.toFixed(1)} ms, pickLine ${picks.linear.line.toFixed(1)} → ${picks.trees.line.toFixed(1)} ms (linear walk → scene trees)`);
 process.exit(rows.length === 17 && rows.every(r => r.ok) && (!picks || picks.differ === 0) ? 0 : 1);

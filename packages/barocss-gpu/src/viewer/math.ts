@@ -90,6 +90,23 @@ export function invert(m: Mat4): Mat4 {
 }
 
 /** The inverse transpose of the upper 3×3 (for normals), padded to a 4×4. */
+/** The normal matrix into `out` (G13: no arrays; `out` must not be `m`). */
+export function normalMatrixInto(out: Float64Array, m: Mat4): Float64Array {
+  const a = m;
+  const b00 = a[0] * a[5] - a[1] * a[4], b01 = a[0] * a[6] - a[2] * a[4], b02 = a[0] * a[7] - a[3] * a[4];
+  const b03 = a[1] * a[6] - a[2] * a[5], b04 = a[1] * a[7] - a[3] * a[5], b05 = a[2] * a[7] - a[3] * a[6];
+  const b06 = a[8] * a[13] - a[9] * a[12], b07 = a[8] * a[14] - a[10] * a[12], b08 = a[8] * a[15] - a[11] * a[12];
+  const b09 = a[9] * a[14] - a[10] * a[13], b10 = a[9] * a[15] - a[11] * a[13], b11 = a[10] * a[15] - a[11] * a[14];
+  const det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+  const s = det ? 1 / det : 0;
+  // (The inverse's upper 3 × 3, transposed: out[c·4 + r] = inverse[r·4 + c].)
+  const i0 = (a[5] * b11 - a[6] * b10 + a[7] * b09) * s, i1 = (a[2] * b10 - a[1] * b11 - a[3] * b09) * s, i2 = (a[13] * b05 - a[14] * b04 + a[15] * b03) * s;
+  const i4 = (a[6] * b08 - a[4] * b11 - a[7] * b07) * s, i5 = (a[0] * b11 - a[2] * b08 + a[3] * b07) * s, i6 = (a[14] * b02 - a[12] * b05 - a[15] * b01) * s;
+  const i8 = (a[4] * b10 - a[5] * b08 + a[7] * b06) * s, i9 = (a[1] * b08 - a[0] * b10 - a[3] * b06) * s, i10 = (a[12] * b04 - a[13] * b02 + a[15] * b00) * s;
+  out.fill(0); out[15] = 1;
+  out[0] = i0; out[4] = i1; out[8] = i2; out[1] = i4; out[5] = i5; out[9] = i6; out[2] = i8; out[6] = i9; out[10] = i10;
+  return out;
+}
 export function normalMatrix(m: Mat4): Mat4 {
   const i = invert(m), out = identity();
   for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) out[c * 4 + r] = i[r * 4 + c];

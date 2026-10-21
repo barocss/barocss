@@ -580,3 +580,90 @@ against the code as it is now:
 - **Checks** (v2): gpu tsc and eslint clean, unit 77/77, browser 11/11; studio tsc clean, suite 193/193; the flow and bench
   above. Not run: the full flow (the coordinator's), the cad-model suite.
 
+## G13 — hygiene (2026-10-22)
+
+Measured before anything was changed; the coordinator's order.
+
+- **1. Shadow-map redraws (G13-D1: the metric, not the map)**. With the main thread otherwise idle — the 120 brackets moved
+  by their meshes' transforms through the DEV viewer, `render()` then the queue's `onSubmittedWorkDone` — the GPU's own
+  time a frame is 2.2 ms still, 2.7 ms with every caster moving (the shadow redraw ≈ 0.5 ms; a 1024² map 0.2 ms less; AO
+  off 0.1 ms less). The bench's 15–22 ms on the pose, explode and section rows was its GPU column — the wall time from a
+  submit until that promise resolved, which waits on the main thread (14–17 ms of task a frame on those rows; 2.7 on the
+  orbit, where it read 2.3). So the shadow map is left as it is. `bench:browser` and `bench:assembly` now ask the device
+  for timestamp queries and add every render pass's begin–end (`GPU`), keeping the old figure as `queue`; with them the
+  pose reads 0.97 ms, the explode 1.24, the section 1.83. One real GPU cost shows: the 100 000-point cloud, 8–10 ms (for
+  G14, display LOD).
+- **2. The explode row's "2 in one frame"** (1 run in 8 here): both submits were the Viewport's own frame callback
+  (`Viewport.tsx`, by their stacks), 2 ms apart under one timestamp — two frame batches headless Chromium stamped alike
+  under load; one Viewport, one guard, so no double draw. The bench now counts a frame as a batch of animation-frame
+  callbacks (a new one when the timestamp changes or a message posted from the last has arrived — tasks run between
+  batches only) and reports `frames stamped as the last` when it happens. In the 4 full runs since, rows saw such
+  frames (the pattern row twice, the explode and CPU-section rows once, one frame each), counted apart — and no batch had 2 submits.
+- **3. The App's hover and pick** (CPU profiles of the 120-bracket rows): a hover move is ≈ 0.5 ms of JavaScript, most of it
+  React's scheduling; the viewer's share is the scene bounds per pick (`unionBox`, 1.2 ms over 60 moves — fixed under 4)
+  and the scene tree's one build (1.1 ms). A click on a bracket is 55 ms, 36 of them `jsxDEV`: React's development build
+  making the App's panels again on a selection change (the bench runs the dev server). In the viewport: the view cube is
+  now drawn only when the camera turns (`memo` on its basis; its callbacks read the viewport's refs) and its parts keyed by
+  face and cell, not by their points (React made each polygon again on every turn). The App's panels — memoised against a
+  selection change, or measured on a production build — are the UI side's; noted for the coordinator.
+- **4. Per frame**: V8's sampling heap profiler over a 60-step orbit and a 60-step explode of the 120 brackets, the viewer's
+  functions in its top 22: 10 645 → 4 732 KiB (orbit), 22 927 → 4 069 KiB (explode); all sampled, React included, 20 973 →
+  14 098 and 135 965 → 110 120. What changed: the shadow key in a kept typed array (an array of numbers emptied and filled
+  was a new store a frame: 4.4 MiB); `sceneBounds` grown in one box (`growBox`); `transformBox` without corner arrays;
+  the object block written in place (`normalMatrixInto`, its words, its colour); the visible lists and transparent entries
+  kept, numeric sort keys (`pipelineOrder`); the frame block and a draw's dynamic offset reused; the studio renderer's
+  bounds kept while their inputs are the same objects. Left: `transformBox`/`multiply` for each moved mesh (its new world
+  box, the copy's matrix), render-pass descriptors.
+  - **The outline mask** draws only the meshes whose screen box meets the outline's rectangle (outlined ones always),
+    scissored to it — the output reads the mask there alone.
+  - **Optional uvs**: a geometry without them keeps none (`PreparedGeometry.uvs` null) and binds one zero buffer the viewer
+    shares (grown by doubling); `setUVs` gives it its own. For a 120-bracket assembly's geometries, 8 bytes a vertex less
+    kept and uploaded.
+- **5. Budgets** (`bench:browser`, `bench:assembly`, `bench-mesh-browser`): every row from three runs alone at a load of
+  12–17 — the machine had no quieter window with the other lanes working — about twice the worst of the three, the GPU's
+  (timestamps) with a 3 ms floor. Notable: pose GPU 32 → 3, explode 44 → 4, section 44 → 6 (they were the queue's wait);
+  the 100 000-voxel cloud 14 → 17 (its GPU time is real); bench:assembly's buffers 1 500 → 60 (24 since load with G10's
+  sharing). All 17 `bench:browser` rows pass on the new table; bench:assembly 3/3; bench-mesh-browser 3/3 but one run's
+  million-triangle save (318 ms; 113 and 128 in the others), its budget from that run.
+- **Evidence and checks** (v2): gpu tsc and eslint clean, unit 77/77 (one updated: no uvs given, none kept), browser 11/11;
+  studio tsc and eslint clean, suite 193/193; FLOW_ONLY before (`2a770898e`) and after over render looks, measure, mass,
+  proposals, double-click, RM1, RM2's posed sections, O68, G6, G10 (11 steps): the same pass/fail both (surface analysis
+  fails in both, for want of earlier steps), and every viewport screenshot identical (0 pixels past 8) — the only
+  differences a render's progress readout (2.48 / 2.45). Not run: the full flow (the coordinator's), the cad-model suite.
+
+## G14 — display LOD: measured, two fixes, stopped (2026-10-22)
+
+- **Measured** (the bench harness with render-pass timestamps; orbit 60 steps and 30 still frames; load 15–35):
+
+  | case | GPU a frame, orbit / still |
+  |---|---|
+  | 100 000 points spread over a 120 mm cube | 3.0 / 2.6 ms |
+  | the same around the 2R arm (the bench's cloud row: dense on screen) | 8.26 / 7.33 ms |
+  | — its hidden-parts pass off | 4.68 ms |
+  | — points of 1 px | 4.64 ms |
+  | — 25 000 points | 3.53 ms |
+  | 200 000-triangle mesh (organic) | 1.5–2.5 / 1.5–2.5 ms |
+  | 1 000 000-triangle mesh | 3.0 / 2.7–4.2 ms |
+
+  The dense cloud is fill and blending (≈ 2.5 M fragments a pass piling onto the same pixels), and a second pass for its
+  hidden parts (G7's `lineHidden`, 0.35) that shaded every point again.
+- **Fix 1 — no discard in the point shader**: a point writes no depth and always blends, so where it does not cover (or the
+  clip plane cuts it) it returns transparent black instead of discarding; a pipeline without discard keeps the depth test
+  ahead of the fragment shader. The hidden pass 3.6 → 1.4 ms; orbit 8.26 → 6.11 ms.
+- **Fix 2 — quads half a pixel smaller**: a point's quad reached a whole pixel past its half size; its coverage ends half a
+  pixel past (a point of 3 drew 5 × 5, now 4 × 4). Orbit 6.11 → 4.67 ms, still 4.75 → 4.23 ms, 25 000 points 2.0 ms. The
+  edge fringe — pixels under half covered — now keeps only the multisamples inside the quad: RM9b's screenshot within 42 of
+  765 (ΣRGB) of before at 994 pixels, the cage's pole rings and vertices as before (the other differences in those flow
+  shots are a panel's preview time and a picked face's SVG tint caught at another moment).
+- **Stopped (G14-D1)**: no density LOD for points — a cap on the points drawn where they pile up would take most of the
+  remaining ≈ 3.5 ms but change which voxels (and colours) show, and 4.7 ms is a quarter of a 60 Hz frame. No levels of
+  detail for meshes — a million triangles orbit in ≈ 3 ms of GPU; simplified levels would cost their memory (≈ 1.3× the
+  mesh), popping between levels and the question of which level a pick is against, for at most ≈ 2 ms. The million-triangle
+  orbit's main-thread time (6.4 ms a frame, 3.5 for 200 000) is React's development build re-rendering the App (`jsxDEV`,
+  39 ms over 60 frames), not the viewer: with G13's panel item for the UI side. Worth revisiting for meshes past ≈ 5 M
+  triangles or clouds past ≈ 500 000 points, neither of which the studio makes today.
+- **Bench**: `bench:browser`'s cloud row 4.03–4.73 ms of GPU in two runs (load 34–113); its budget 17 → 10.
+- **Checks** (v2): gpu unit 77/77, browser 11/11 (G8's shapes, rings, picks unchanged); studio suite 194/194; FLOW_ONLY on
+  WebGPU, before (`2c5a345e5`) and after, RM1–RM9c and the three cage steps: 13/13 both. Not run: the full flow (the
+  coordinator's), the cad-model suite.
+

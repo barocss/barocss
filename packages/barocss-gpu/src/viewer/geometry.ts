@@ -24,7 +24,8 @@ export interface GeometryInput {
 
 export interface PreparedGeometry {
   topology: 'triangles' | 'lines' | 'points';
-  positions: Float32Array; normals: Float32Array; colors: Uint8Array; uvs: Float32Array;
+  /** uvs: null when the input had none (G13: they read as zero, from one buffer the viewer shares). */
+  positions: Float32Array; normals: Float32Array; colors: Uint8Array; uvs: Float32Array | null;
   indices: Uint32Array | Uint16Array | null;
   faces: Uint32Array | null;
   edges: Uint32Array | null;
@@ -114,8 +115,8 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
     if (topology !== 'lines' || input.edges.length !== elementCount / 2) throw new RangeError('edges must hold one id per segment');
     edges = Uint32Array.from(input.edges);
   }
-  const uvs = input.uvs ? Float32Array.from(input.uvs) : new Float32Array(vertexCount * 2);
-  if (uvs.length !== vertexCount * 2) throw new RangeError('uvs must hold two numbers per vertex');
+  const uvs = input.uvs ? Float32Array.from(input.uvs) : null;
+  if (uvs && uvs.length !== vertexCount * 2) throw new RangeError('uvs must hold two numbers per vertex');
   return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), uvs, indices, faces, edges, vertexCount, elementCount, bounds: boxOfPositions(positions), scalars: null };
 }
 
