@@ -3722,7 +3722,7 @@ try {
       await snap('frd1-weld-list');
       const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
       const svg = fs.readFileSync(await svgFile.path(), 'utf8');
-      for (const t of ['WELD LIST', 'W1', 'W16', 'MITRE', 'ON FACE', 'FILLET', '4', '3*', '16 welds, seams 2692.5 mm in all']) assert.ok(svg.includes(`>${t}</text>`), `SVG: ${t}`);
+      for (const t of ['WELD LIST', 'W1', 'W16', 'MITRE', 'ON FACE', 'FILLET', '4', '3*', '?', 'BORE', '16 welds, seams 2692.5 mm in all (the bores marked ? not counted)']) assert.ok(svg.includes(`>${t}</text>`), `SVG: ${t}`);
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 

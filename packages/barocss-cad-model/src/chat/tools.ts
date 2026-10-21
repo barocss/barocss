@@ -981,13 +981,14 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       for (const [k, w] of given.entries()) {
         const o = (isObj(w) ? w : {}) as Record<string, unknown>, joint = typeof o.joint === 'string' ? o.joint : '';
         if (!ids.has(joint)) return fail(state, `[WELD_JOINT_UNKNOWN] weld ${k}: no joint "${joint}" (joints: ${[...ids].join(', ')}). Use weld_list's ids.`);
-        const extra = Object.keys(o).find(x => !['joint', 'kind', 'size', 'allRound', 'notes'].includes(x));
-        if (extra) return fail(state, `[WELD_FIELD] weld ${k} (${joint}): no field "${extra}" (joint, kind, size, allRound, notes).`);
+        const extra = Object.keys(o).find(x => !['joint', 'kind', 'size', 'allRound', 'inner', 'notes'].includes(x));
+        if (extra) return fail(state, `[WELD_FIELD] weld ${k} (${joint}): no field "${extra}" (joint, kind, size, allRound, inner, notes).`);
+        if (o.inner !== undefined && typeof o.inner !== 'boolean') return fail(state, `[WELD_FIELD] weld ${k} (${joint}): inner (whether the end's inner loop, a tube's bore, is welded) is true or false.`);
         if (o.kind !== undefined && o.kind !== 'fillet' && o.kind !== 'butt') return fail(state, `[WELD_FIELD] weld ${k} (${joint}): kind is fillet or butt.`);
         if (o.size !== undefined && !(typeof o.size === 'number' && o.size > 0 && o.size < 50)) return fail(state, `[WELD_FIELD] weld ${k} (${joint}): size is mm, above 0 and below 50.`);
         if (o.allRound !== undefined && typeof o.allRound !== 'boolean') return fail(state, `[WELD_FIELD] weld ${k} (${joint}): allRound is true or false.`);
         if (o.notes !== undefined && typeof o.notes !== 'string') return fail(state, `[WELD_FIELD] weld ${k} (${joint}): notes is text.`);
-        good.push({ joint, ...(o.kind ? { kind: o.kind as WeldRecord['kind'] } : {}), ...(o.size !== undefined ? { sizeMM: o.size as number } : {}), ...(o.allRound !== undefined ? { allRound: o.allRound as boolean } : {}), ...(typeof o.notes === 'string' && o.notes.trim() ? { notes: o.notes.trim() } : {}) });
+        good.push({ joint, ...(o.kind ? { kind: o.kind as WeldRecord['kind'] } : {}), ...(o.size !== undefined ? { sizeMM: o.size as number } : {}), ...(o.allRound !== undefined ? { allRound: o.allRound as boolean } : {}), ...(o.inner !== undefined ? { inner: o.inner as boolean } : {}), ...(typeof o.notes === 'string' && o.notes.trim() ? { notes: o.notes.trim() } : {}) });
       }
       if (new Set(good.map(r => r.joint)).size !== good.length) return fail(state, '[WELD_FIELD] two welds for one joint.');
       const welds = [...was.filter(r => !remove.includes(r.joint) && !good.some(g => g.joint === r.joint)), ...good];
@@ -1343,12 +1344,12 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'set_welds',
-    description: 'Sets the person\'s welds on the part\'s frame joints (FRd1): welds [{joint (an id from weld_list), kind? fillet | butt, size? mm, allRound?, notes?}] replace a joint\'s record; remove: joint ids. Unset, the rule\'s weld: a butt weld at a mitre, a fillet elsewhere, the thinner wall as its size (an estimate).',
+    description: 'Sets the person\'s welds on the part\'s frame joints (FRd1): welds [{joint (an id from weld_list), kind? fillet | butt, size? mm, allRound?, inner? (whether the end\'s inner loop, a tube\'s bore, is welded: yours to say, none assumed), notes?}] replace a joint\'s record; remove: joint ids. Unset, the rule\'s weld: a butt weld at a mitre, a fillet elsewhere, the thinner wall as its size (an estimate).',
     input_schema: { type: 'object', properties: { welds: { type: 'array', items: { type: 'object' } }, remove: { type: 'array', items: { type: 'string' } } }, additionalProperties: false },
   },
   {
     name: 'weld_list',
-    description: 'The frame\'s weld joints read off the geometry (FRd1): {joints [{label W1…, id, kind mitre | butt | on-face, body, end, meets, face, seamMM (the end face\'s outer loop), seamBasis exact | mesh, at, centre, weld {kind, sizeMM, sizeBasis set | estimate | none, allRound, notes?}}], totals {count, seamMM}, orphaned (records whose joint is gone), notes}. Say estimated sizes are estimates.',
+    description: 'The frame\'s weld joints read off the geometry (FRd1): {joints [{label W1…, id, kind mitre | butt | on-face, body, end, meets, face, seamMM (the end face\'s outer loop), seamBasis exact | mesh, innerLoop {mm, welded: yours, null when not said} | null, weldMM, at, centre, weld {kind, sizeMM, sizeBasis set | estimate | none, allRound, notes?}}], totals {count, seamMM}, orphaned (records whose joint is gone), notes}. Say estimated sizes are estimates.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
