@@ -505,3 +505,41 @@ against the code as it is now:
   failed for want of earlier steps FLOW_ONLY left out (the extend-surface step reads the imported source; the instance steps
   the saved part) — steps 46–60 run together: 16/16. Not run: the full flow (the coordinator's), the cad-model suite.
 
+## G10 — copies share one tessellation (2026-10-22)
+
+- **Where it stood**: P6's note ("copies turned about Z are tessellated as placed") is older than `evaluatePlaced`'s
+  `samePlacedBody`, which compares names without their renumbering: probed on the bracket, every copy turned 0°, 37°, 90°,
+  180° about Z (and with a quarter turn about X) comes back from the engine as the part's own tessellation moved — the same
+  indices, positions within 4e-6 mm (float32) of P applied to the part's. What was per copy: `placeBody`'s world copy of
+  that mesh, and in the viewer a geometry (surface and edges) uploaded for each. The engine side is unchanged (the kernel's
+  placed evaluation still checks each copy's topology; no core files touched).
+- **Viewer side** (`gpuRenderer.ts`): `InstanceItem.placement` (App: `placementOf` of the placement the bodies were
+  evaluated for, as a 4 × 4). A body joins a **shape** — a reference copy's display mesh, its placement's inverse, one
+  surface and one edge geometry, and the meshes drawing them — when its topology key (sizes and a sample of indices) is the
+  shape's and `movedCopy` holds: the same indices and faces of vertices, and positions and edge points within 4e-7 of the
+  largest coordinate (normals 1e-5) of T applied to the reference's, T = P · P_ref⁻¹. It is drawn through T under its pose
+  (`placePreview`). Otherwise it starts a shape of its own; a body without a placement (the CPU section's clipped copies)
+  draws its own geometry as before. A shape is released with its last mesh; its reference copy can go first.
+- **Private while painted** (`bindShares`, each paint): a copy with picked faces (mates) — face colours are vertex colours —
+  or whose look has a texture or a shader material (uvs come from its own positions) takes a private geometry, and draws the
+  shape again when that clears; so does one wanting another base colour than the shape's first sharer. The shared geometry
+  is painted once, in its sharers' base colour.
+- **`shareCopies`** (internal, DEV `__studioShareCopies(on)`): false makes every copy its own again — the flow's oracle.
+- **Evidence**: studio `instance-pose.test.ts` G10 — four copies turned 0°, 37°, 90°, 200° and placed: two geometries, every
+  mesh on them, each drawn within 1e-4 mm of its own mesh (surface and edges), posed under its pose; an edited copy (its
+  second hole moved) and a copy scaled 1.001: their own; picked faces: private, then shared again; the reference gone: the
+  rest kept; all gone: every geometry released. Flow step G10 — 24 brackets turned in 15° steps on a ring: 48 meshes on 2
+  geometries; sharing off and on: 0 of 1 296 000 pixels differ by more than 96 (the largest difference 1), 400 pointers aimed
+  at the copies (255 on one), the same mesh and triangle at every one, points within 5e-6 mm; one copy then edited (its hole
+  moved and widened): it alone on two new geometries, the other 23 keeping their meshes.
+- **Bench** (`bench:browser` row `pattern: 120 turned brackets opened`, the same script on `98f7dc4be` in the verify
+  worktree, each run alone at load 33 → 26 and 25 → 21): uploaded 2 003 → 85 KiB; 240 meshes on 240 → 2 geometries, their
+  arrays 2 590 → 22 KiB; JS heap after 122.3 → 107.6 MiB (the main thread still keeps each copy's world `BodyResult`: mates,
+  mass and checks read them). The explode, section, pose and pick rows unchanged within noise (the brackets there,
+  translated copies, now share too); the explode row's 2-in-one-frame miss came up in the after-run, as it has before (G13).
+- **Checks** (v2): studio tsc and eslint clean, suite 193/193 (+1, the G10 renderer test); FLOW_ONLY on WebGPU on `8cfb5fad5`
+  (steps 46–60, the RM steps, explode, assembly and pattern steps, G10): 31 + 2 failures — G10 by its own too-few-hits check
+  (random pointers, the camera of earlier steps; aimed at the copies now, `test(cad-studio)` commit) and step 81, which counts
+  exactly one instance after step 57 had placed one; G10 with step 81 and its fastener steps 78–80 on the fix: 6/6. gpu
+  untouched (its suites as at G9). Not run: the full flow (the coordinator's), the cad-model suite.
+
