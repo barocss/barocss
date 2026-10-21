@@ -845,6 +845,11 @@ acceleration → benches.
   `PickHit.scalar`); the studio's Analysis map button — IM4 wall thickness with a DOM legend and the value under the pointer,
   a moulded part's parting line and its two halves (built in the engine worker, see-through, spread). Then (on O-G6's exports)
   the IM2 draft map (marks at ± the finish's or the casting alloy's least draft), the CNC access map and the isoclines.
+- **G7** (2026-10-21): done. The bounding box, the measure line, the underlays' polylines and the SubD cage's edges are
+  engine line meshes on WebGPU (`setOverlayLines`, made when they change), not SVG paths projected every frame; the viewer's
+  lines gain dashes, `lineOver` (the cage, over the body as designed) and `lineHidden` (the box, measure line and underlays
+  depth-tested, their hidden parts faint). Labels, points and texts stay SVG; WebGL2 keeps SVG. A 2 000-polyline underlay
+  orbited: task 30.4 → 8.2 ms a frame (load 12).
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
