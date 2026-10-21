@@ -65,8 +65,9 @@ test('FRe a member of another section has no interfaces; a missing one is refuse
 
 test('FRe through the chat: get_assembly lists the member\'s interfaces (b0.slot-t1 …), insert_part and snap_part put a nut in its top slot 50 along — the same place as the model call', async () => {
   const evaluate = async (d: StudioDoc) => evaluateDoc(d, 1);
-  let s = { doc: member(1), bodies: (evaluateDoc(member(1), 1) as { bodies: never[] }).bodies } as never as import('../src/chat/tools').ChatState;
-  const { dispatchTool } = await import('../src/chat/tools');
+  const { dispatchTool } = await import('../src/chat/tools'), first = evaluateDoc(member(1), 1);
+  assert.ok(first.ok);
+  let s: import('../src/chat/tools').ChatState = { doc: member(1), bodies: first.bodies };
   const listed = JSON.parse((await dispatchTool(s, 'get_assembly', {}, evaluate)).content);
   assert.ok(listed.base.member_interfaces.includes('b0.slot-t1 (t-slot ⇄ slot-nut)') && listed.base.member_interfaces.includes('b0.end1 (profile-end ⇄ end-cap)'), JSON.stringify(listed.base));
   let r = await dispatchTool(s, 'insert_part', { library: 'tslot-20', part: 'slot-nut-m5' }, evaluate); assert.ok(!r.isError, r.content); s = r.state;
