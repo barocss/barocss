@@ -49,6 +49,7 @@ export function getBlob(hash: string): BlobArray | undefined {
   const a = store.get(hash);
   if (!a && evicted.has(hash)) {
     evicted.delete(hash); blobStats.evictedAsked.push(hash);
+    // eslint-disable-next-line no-console -- the coordinator's rule (O135): a missed holder is an error to see
     console.error(`blob ${hash.slice(0, 12)}… was evicted and is asked for again: a holder the sweep did not see (engine/blobs.ts evictBlobs)`);
   }
   return a;
