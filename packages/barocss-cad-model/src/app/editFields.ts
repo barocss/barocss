@@ -1,7 +1,7 @@
 // The editable dimensions of a feature, including those of the sketch it is made from: each field
 // reads its value from the document's nodes and writes a changed copy of them (sketch edits change the
 // sketch node, so every feature made from it follows).
-import type { Axis, Dim, ModelNode, SketchNode } from '../engine/doc';
+import { frameGeometry, type Axis, type Dim, type ModelNode, type SketchNode } from '../engine/doc';
 import { outlineFields } from '../sketch/outlineFields';
 import { helixOf } from '../engine/part';
 import { spurGearCenterDistance, internalGearCenterDistance, bevelGearDimensions } from '@barocss/cad';
@@ -334,8 +334,10 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
         get: n => self<F>(n).corners?.multi ?? 'none', set: (n, v) => { const f = self<F>(n); return replace(n, i, { ...f, corners: { ...f.corners, multi: v as 'order' | 'none' } }); } });
       out.push({ kind: 'choice', key: 'tee', label: 'T-joints', options: [{ value: 'butt', label: 'Butt' }, { value: 'cope', label: 'Cope' }, { value: 'none', label: 'None (overlap)' }],
         get: n => self<F>(n).corners?.tee ?? 'none', set: (n, v) => { const f = self<F>(n); return replace(n, i, { ...f, corners: { ...f.corners, tee: v as 'butt' | 'cope' | 'none' } }); } });
-      node.points.forEach((_, p) => {
-        const meet = node.segments.flatMap((g, k) => g[0] === p || g[1] === p ? [k] : []);
+      // (FRf, O121: a frame that follows has its source's points: corners by them; its points are edited at the source.)
+      const geo = frameGeometry(nodes, node), gp = 'points' in geo ? geo.points : node.points, gs = 'segments' in geo ? geo.segments : node.segments;
+      gp.forEach((_, p) => {
+        const meet = gs.flatMap((g, k) => g[0] === p || g[1] === p ? [k] : []);
         if (meet.length !== 2) return;
         const options = [{ value: 'default', label: 'As the frame' }, { value: 'mitre', label: 'Mitre' }, ...meet.map(k => ({ value: `butt:${k}`, label: `Butt, member ${k + 1} through` })), ...meet.map(k => ({ value: `cope:${k}`, label: `Cope, member ${k + 1} through` })), { value: 'none', label: 'None (overlap)' }];
         out.push({ kind: 'choice', key: `corner${p}`, label: `Corner at point ${p + 1}`, options,
@@ -348,8 +350,17 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
             return replace(n, i, { ...f, corners });
           } });
       });
-      node.points.forEach((_, p) => (['X', 'Y', 'Z'] as const).forEach((axis, c) => number(`p${p}.${axis.toLowerCase()}`, `Point ${p + 1} ${axis}`, 'mm', n => num((n as F).points[p][c]), (n, v) => {
+      if (!node.follows) node.points.forEach((_, p) => (['X', 'Y', 'Z'] as const).forEach((axis, c) => number(`p${p}.${axis.toLowerCase()}`, `Point ${p + 1} ${axis}`, 'mm', n => num((n as F).points[p][c]), (n, v) => {
         const f = n as F, points = f.points.map((q, j) => j === p ? q.map((x, k) => k === c ? v : x) as F['points'][number] : q);
+        return { ...f, points };
+      })));
+      break;
+    }
+    case 'skeleton': {
+      // (FRf, O121: a skeleton's points — every frame on it follows.)
+      type S = Extract<ModelNode, { kind: 'skeleton' }>;
+      node.points.forEach((_, p) => (['X', 'Y', 'Z'] as const).forEach((axis, c) => number(`p${p}.${axis.toLowerCase()}`, `Point ${p + 1} ${axis}`, 'mm', n => num((n as S).points[p][c]), (n, v) => {
+        const f = n as S, points = f.points.map((q, j) => j === p ? q.map((x, k) => k === c ? v : x) as S['points'][number] : q);
         return { ...f, points };
       })));
       break;

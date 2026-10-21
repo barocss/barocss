@@ -5,7 +5,7 @@
 import { getBlob } from './blobs';
 import { mirrorCage } from '@barocss/cad';
 import type { BendTable, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartSection } from '@barocss/cad';
-import { holeCentres, bevelSpiral, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type StudioDoc } from './doc';
+import { frameGeometry, holeCentres, bevelSpiral, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type StudioDoc } from './doc';
 import { featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { rotationSteps } from '../assembly/mates';
 
@@ -13,6 +13,8 @@ import { rotationSteps } from '../assembly/mates';
 let current: readonly ModelNode[] = [];
 // (FRc, O117: the document's section library, by id, that a frame's library section resolves from.)
 let library: ReadonlyMap<string, InlineSection> = new Map();
+// (FRf, O121: the parameters' values, for a frame following a sketch — its points lifted as numbers.)
+let params: Readonly<Record<string, number>> = {};
 const id = (index: number) => featureId(current, index);
 const ref = (r: BodyRef) => r.side === 'negative' ? `${id(r.node)}/0` : r.side === 'positive' ? `${id(r.node)}/1` : r.side.startsWith('part') ? `${id(r.node)}/${r.side.slice(4)}` : id(r.node);
 
@@ -33,6 +35,8 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
   if (nodes) current = nodes;
   const at = { id: id(index) };
   switch (node.kind) {
+    // (FRf: a skeleton makes no feature — toPartDocument leaves it out; frames on it take its points.)
+    case 'skeleton': throw new Error('a skeleton makes no kernel feature');
     // The drawn outline and its constraints are the studio's own (the kernel takes the solved profile).
     case 'sketch': { const profile = { ...node }; delete profile.outline; delete profile.on; delete profile.construction; return { ...at, ...profile } as CadPartFeature; }
     case 'extrude': return { ...at, kind: 'extrude', sketch: id(node.sketch), height: node.height, ...(node.from === undefined ? {} : { from: node.from }), ...(node.draft ? { draft: node.draft } : {}) };
@@ -62,9 +66,10 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'sheet-base': return { ...at, kind: 'sheet-base', sketch: id(node.sketch), thickness: node.thickness, bendRadius: node.bendRadius, ...sheetK(node), ...(node.reverse ? { reverse: true } : {}) };
     case 'sheet-corner-relief': return { ...at, kind: 'sheet-corner-relief', target: ref(node.parent), corner: node.edges[0], shape: node.shape, size: node.size };
     case 'sheet-flange': return { ...at, kind: 'sheet-flange', target: ref(node.parent), edge: node.edges[0], length: node.length, ...(node.angleDegrees !== undefined ? { angleDegrees: node.angleDegrees } : {}), ...(node.bendRadius !== undefined ? { bendRadius: node.bendRadius } : {}), ...(node.measure ? { measure: node.measure } : {}), ...(node.position ? { position: node.position } : {}), ...(node.offsets ? { offsets: node.offsets } : {}), ...(node.relief ? { relief: node.relief } : {}) };
-    case 'frame': return { ...at, kind: 'frame', points: node.points, segments: node.segments, section: kernelSection(node.section, id),
+    case 'frame': { const g = frameGeometry(current, node, params); if ('code' in g) throw new Error(`[${g.code}] ${g.error}`);
+      return { ...at, kind: 'frame', points: g.points, segments: g.segments, section: kernelSection(node.section, id),
       ...(node.anchor ? { anchor: node.anchor } : {}), ...(node.offset ? { offset: node.offset } : {}), ...(node.roll ? { roll: node.roll } : {}), ...(node.mirror ? { mirror: true } : {}), ...(node.up ? { up: node.up } : {}),
-      ...(node.overrides?.length ? { overrides: node.overrides.map(kernelOverride) } : {}), ...(node.corners ? { corners: node.corners } : {}), ...(node.trims?.length ? { trims: node.trims.map(t => 'body' in t ? { member: t.member, end: t.end, body: ref(t.body) } : t) } : {}) };
+      ...(node.overrides?.length ? { overrides: node.overrides.map(kernelOverride) } : {}), ...(node.corners ? { corners: node.corners } : {}), ...(node.trims?.length ? { trims: node.trims.map(t => 'body' in t ? { member: t.member, end: t.end, body: ref(t.body) } : t) } : {}) }; }
     case 'frame-member': return { ...at, kind: 'frame-member', section: kernelSection(node.section, id), start: node.start, end: node.end,
       ...(node.anchor ? { anchor: node.anchor } : {}), ...(node.offset ? { offset: node.offset } : {}), ...(node.roll ? { roll: node.roll } : {}), ...(node.up ? { up: node.up } : {}) };
     case 'sheet-contour': return { ...at, kind: 'sheet-contour', path: node.path, ...(node.plane ? { plane: node.plane } : {}), side: node.side, width: node.width, thickness: node.thickness, bendRadius: node.bendRadius, ...sheetK(node) };
@@ -142,10 +147,11 @@ function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
  * an intersection or a subtraction from nothing is gone too).
  */
 export function toPartDocument(doc: StudioDoc): CadPartDocument {
-  doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section]));
+  doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section])); params = doc.parameters ?? {};
   const gone = new Set<number>(), features: CadPartFeature[] = [];
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
+    if (node.kind === 'skeleton') return;
     if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
     const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;

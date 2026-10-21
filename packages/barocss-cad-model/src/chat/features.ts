@@ -3,7 +3,8 @@
 // bodies that are still visible, and no unknown fields. Also deleting a feature (with the sketches only
 // it used) and renumbering the later ones; persistent face and edge names carry stable feature ids
 // (engine/ids.ts), so they stay as they are.
-import { leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type StudioDoc } from '../engine/doc';
+import { followersOf } from '../frames/skeleton';
+import { frameGeometry, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
@@ -38,7 +39,9 @@ const SPECS: Record<string, Spec> = {
   'sheet-flange': { parent: 'ref', edges: 'names1', length: 'dim', 'angleDegrees?': 'num', 'bendRadius?': 'dim', 'measure?': 'enum:outer|inner|tangent', 'position?': 'enum:material-inside|material-outside|bend-outside', 'offsets?': 'dim2', 'relief?': 'any' },
   // (FR1, D123: a structural member, its section by kind and dimensions — none defaulted — or a closed sketch.)
   // (FR2, D124: a frame on a skeleton; overrides set members apart.)
-  frame: { points: 'points3', segments: 'segments', section: 'member-section', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'mirror?': 'bool', 'up?': 'vec3', 'overrides?': 'frame-overrides', 'corners?': 'frame-corners', 'trims?': 'frame-trims' },
+  // (FRf, O121: a skeleton several frames follow; a frame on one — or on a sketch's straight edges — names it in `follows`.)
+  skeleton: { points: 'points3', segments: 'segments', 'name?': 'text' },
+  frame: { 'follows?': 'frame-follows', 'points?': 'points3', 'segments?': 'segments', section: 'member-section', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'mirror?': 'bool', 'up?': 'vec3', 'overrides?': 'frame-overrides', 'corners?': 'frame-corners', 'trims?': 'frame-trims' },
   'frame-member': { section: 'member-section', start: 'dim3', end: 'dim3', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'up?': 'vec3' },
   'sheet-contour': { path: 'points2', 'plane?': 'plane', side: 'enum:left|right', width: 'dim', thickness: 'dim', bendRadius: 'dim', 'kFactor?': 'num', 'bendTable?': 'any' },
 };
@@ -112,6 +115,9 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     const why = checkValue(v, type, nodes, parameters, leaves);
     if (why) return `${kind}.${key}: ${why}`;
   }
+  // (FRf, O121: a frame follows a skeleton or a sketch, or has its own points and segments; a skeleton's segments name its points.)
+  if (kind === 'frame' && node.follows === undefined && (node.points === undefined || node.segments === undefined)) return 'frame: give "points" and "segments", or "follows" {"skeleton": k} | {"sketch": k}.';
+  if (kind === 'skeleton') { const P = (node.points as unknown[]).length, bad = (node.segments as number[][]).findIndex(g => g.some(i => i >= P)); if (bad >= 0) return `skeleton: segment ${bad} names a point it does not have (${P} points).`; }
   return null;
 }
 
@@ -131,6 +137,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
   if (type.startsWith('enum:')) return type.slice(5).split('|').includes(String(v)) ? null : `one of ${type.slice(5).split('|').join(', ')}`;
   switch (type) {
     case 'any': return null;
+    case 'text': return typeof v === 'string' ? null : 'text';
     case 'num': return typeof v === 'number' && Number.isFinite(v) ? null : 'a number';
     case 'pos': return typeof v === 'number' && v > 0 ? null : 'a positive number';
     case 'bool': return typeof v === 'boolean' ? null : 'true or false';
@@ -156,6 +163,13 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     case 'vec3': return Array.isArray(v) && v.length === 3 && v.every(n => typeof n === 'number' && Number.isFinite(n)) && v.some(n => n !== 0) ? null : 'three numbers [x, y, z], not all 0';
     case 'points3': return Array.isArray(v) && v.length >= 2 && v.length <= 1024 && v.every(p => Array.isArray(p) && p.length === 3 && p.every(dim)) ? null : '2 to 1024 [x, y, z] points';
     case 'segments': return Array.isArray(v) && v.length >= 1 && v.length <= 256 && v.every(g => Array.isArray(g) && g.length === 2 && g.every(i => Number.isInteger(i) && i >= 0)) ? null : '1 to 256 [from, to] point indices';
+    case 'frame-follows': {
+      if (!isObj(v) || Object.keys(v).length !== 1 || !(Number.isInteger(v.skeleton) || Number.isInteger(v.sketch))) return 'a frame follows {"skeleton": k} or {"sketch": k} (an earlier feature)';
+      const k = (v.skeleton ?? v.sketch) as number, src = nodes[k], want = v.skeleton !== undefined ? 'skeleton' : 'sketch';
+      if (src?.kind !== want) return `[FRAME_${want.toUpperCase()}_UNKNOWN] feature ${k} is ${src ? `a ${src.kind}` : 'not there (an earlier feature)'}, not a ${want}`;
+      const g = frameGeometry(nodes, { kind: 'frame', follows: v, points: [], segments: [] } as never, parameters);
+      return 'code' in g ? `[${g.code}] ${g.error}` : null;
+    }
     case 'frame-overrides': {
       if (!Array.isArray(v)) return 'a list of {"member": k, …}';
       for (const o of v) {
@@ -248,6 +262,8 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   if (n.kind === 'sketch' && n.on) (n as { on: BodyRef }).on = ref(n.on);
   if ((n.kind === 'gear' || n.kind === 'rack' || n.kind === 'bevel-gear' || n.kind === 'worm') && n.mesh) (n as { mesh: GearMesh }).mesh = { ...n.mesh, gear: map(n.mesh.gear) };
   for (const key of ['parent', 'left', 'right', 'tool', 'addTo'] as const) if (isObj(n[key])) (n as Record<string, unknown>)[key] = ref(n[key] as unknown as BodyRef);
+  // (FRf: the skeleton or sketch a frame follows.)
+  if (n.kind === 'frame' && n.follows) (n as { follows: unknown }).follows = 'skeleton' in n.follows ? { skeleton: map(n.follows.skeleton) } : { sketch: map(n.follows.sketch) };
   return n;
 }
 /** A node's names (fillet and chamfer edges, shell openings, draft faces) with feature ids replaced. */
@@ -298,6 +314,9 @@ export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; 
   const removed = new Set([index]);
   for (const s of parentsOf(nodes[index])) if (nodes[s]?.kind === 'sketch' && users(s).every(k => k === index)) removed.add(s);
   const blocking = [...removed].flatMap(users).filter(k => !removed.has(k));
+  // (FRf, O121: a skeleton or sketch frames follow: refused, typed, naming them.)
+  const followers = followersOf(nodes, index);
+  if (followers.length) return { error: `[FRAME_SKELETON_IN_USE] feature ${index} (a ${nodes[index].kind}) is followed by ${followers.join(', ')}: give those frames their own points, or delete them, first.` };
   if (blocking.length) return { error: `Feature ${index} is used by feature${blocking.length > 1 ? 's' : ''} ${[...new Set(blocking)].join(', ')}; delete ${blocking.length > 1 ? 'those' : 'that'} first.` };
   const kept = nodes.map((_, i) => i).filter(i => !removed.has(i));
   const newIndex = new Map(kept.map((old, k) => [old, k]));

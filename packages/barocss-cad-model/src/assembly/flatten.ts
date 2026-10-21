@@ -35,9 +35,10 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'rack': case 'library': case 'sheet-contour': return node;
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };
     case 'frame-member': return node.section.kind === 'sketch' ? { ...node, section: { kind: 'sketch', sketch: node.section.sketch + k } } : node;
+    case 'skeleton': return node;
     case 'frame': {
       const shift = (sec: MemberSection): MemberSection => sec.kind === 'sketch' ? { kind: 'sketch', sketch: sec.sketch + k } : sec;
-      return { ...node, section: shift(node.section), ...(node.overrides ? { overrides: node.overrides.map(o => o.section ? { ...o, section: shift(o.section) } : o) } : {}), ...(node.trims ? { trims: node.trims.map(t => 'body' in t ? { ...t, body: ref(t.body) } : t) } : {}) };
+      return { ...node, ...(node.follows ? { follows: 'skeleton' in node.follows ? { skeleton: node.follows.skeleton + k } : { sketch: node.follows.sketch + k } } : {}), section: shift(node.section), ...(node.overrides ? { overrides: node.overrides.map(o => o.section ? { ...o, section: shift(o.section) } : o) } : {}), ...(node.trims ? { trims: node.trims.map(t => 'body' in t ? { ...t, body: ref(t.body) } : t) } : {}) };
     }
     case 'loft': return { ...node, sections: node.sections.map(s => ({ ...s, sketch: s.sketch + k })), ...(node.from ? { from: node.from.map(i => i + k) } : {}) };
     case 'union': case 'intersect': return { ...node, left: ref(node.left), right: ref(node.right) };
