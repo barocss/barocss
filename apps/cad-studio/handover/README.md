@@ -850,6 +850,10 @@ acceleration → benches.
   lines gain dashes, `lineOver` (the cage, over the body as designed) and `lineHidden` (the box, measure line and underlays
   depth-tested, their hidden parts faint). Labels, points and texts stay SVG; WebGL2 keeps SVG. A 2 000-polyline underlay
   orbited: task 30.4 → 8.2 ms a frame (load 12).
+- **G8** (2026-10-22): done. A point primitive in the viewer (`topology: 'points'`: discs or squares of a pixel size, a
+  border, a zero-alpha fill a ring; over or depth-tested with hidden ones faint) and `pickPoint` by index. RM9b's workspace
+  map and the SubD cage's vertices (poles ringed) are engine points on WebGPU; curve/surface poles, corners and the measure
+  ends stay SVG. A 100 000-voxel map orbited: task 55.5 → 2.9 ms a frame, GPU 55.1 → 6.6 ms a submit.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

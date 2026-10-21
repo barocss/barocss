@@ -1,10 +1,11 @@
 // R8.2 (D81): a SubD cage drawn over the viewport while it is edited — faces picked (n-gons tinted), edges (picked,
 // creased, open, non-manifold), vertices (picked, poles ringed), and the mirrored half faint. Drawn over the body
 // (the cage is the thing edited; nothing hides it), projected every frame — each kind as one SVG path, so a cage of
-// thousands of edges stays a handful of elements. On WebGPU its edges and the mirror are engine lines instead (G7,
-// `cageLines`: made when the overlay changes, drawn over the scene), and only the faces and vertices stay SVG.
+// thousands of edges stays a handful of elements. On WebGPU its edges and the mirror are engine lines (G7, `cageLines`)
+// and its vertices engine points (G8, `cagePoints`) instead — made when the overlay changes, drawn over the scene — and
+// only the tinted faces stay SVG.
 import type { CageOverlay } from './Viewport';
-import type { OverlayLines } from './renderer';
+import type { OverlayLines, OverlayPoints } from './renderer';
 
 type P = (p: readonly number[]) => [number, number, number];
 const ek = (a: number, b: number) => a < b ? `${a}_${b}` : `${b}_${a}`;
@@ -69,11 +70,32 @@ export function cageLines(overlay: CageOverlay): [string, OverlayLines][] {
   lineCache.set(overlay, out);
   return out;
 }
-/** Every key cageLines can use (to clear them). */
-export const CAGE_LINE_KEYS = ['cage:mirror', ...LINE_ORDER.map(k => 'cage:' + k)];
+/** The vertex kinds' looks as the SVG drew them (styles.css .cage-vertex; a ring's stroke centred on its radius), in drawing order. */
+const VERTEX_LOOK: Record<VertexKind, Omit<OverlayPoints, 'positions'>> = {
+  plain: { color: '#7aa7ff', size: 5, over: true },
+  pole: { color: '#e98a3b', size: 9.5, border: { width: 1.5, color: '#e98a3b' }, over: true },
+  bad: { color: '#ff4d4d', size: 8, over: true },
+  picked: { color: '#ffb020', size: 9, over: true },
+};
+const VERTEX_ORDER = ['plain', 'pole', 'bad', 'picked'] as const;
+const pointCache = new WeakMap<CageOverlay, [string, OverlayPoints][]>();
+/** The cage's vertices as engine overlay points (G8), a list a kind keyed `cage:v:<kind>`, poles as rings; the same list for the same overlay. */
+export function cagePoints(overlay: CageOverlay): [string, OverlayPoints][] {
+  const have = pointCache.get(overlay); if (have) return have;
+  const pre = prepare(overlay), P = overlay.cage.positions, at: Record<VertexKind, number[]> = { plain: [], picked: [], pole: [], bad: [] };
+  for (let i = 0; i < pre.vertKind.length; i++) { const k = pre.vertKind[i]; if (k) at[k].push(P[3 * i], P[3 * i + 1], P[3 * i + 2]); }
+  const out: [string, OverlayPoints][] = [];
+  // (A pole's ring: no fill, its border.)
+  for (const k of VERTEX_ORDER) if (at[k].length) out.push(['cage:v:' + k, { positions: Float32Array.from(at[k]), ...VERTEX_LOOK[k], ...(k === 'pole' ? { colors: new Float32Array((at[k].length / 3) * 4) } : {}) }]);
+  pointCache.set(overlay, out);
+  return out;
+}
+/** Every key cageLines and cagePoints can use (to clear them). */
+export const CAGE_LINE_KEYS = ['cage:mirror', ...LINE_ORDER.map(k => 'cage:' + k), ...VERTEX_ORDER.map(k => 'cage:v:' + k)];
 const dot = (X: Float64Array, Y: Float64Array, i: number, r: number) => `M${(X[i] - r).toFixed(1)},${Y[i].toFixed(1)}a${r},${r} 0 1 0 ${2 * r},0a${r},${r} 0 1 0 ${-2 * r},0`;
 const facePath = (faces: readonly (readonly number[])[], list: readonly number[], S: readonly string[]) => list.map(k => 'M' + faces[k].map(i => S[i]).join('L') + 'Z').join('');
 
+/** `lines` false: the engine draws the edges, the mirror and the vertices (G7, G8); only the faces here. */
 export function CageMarks({ overlay, project, lines = true }: { overlay: CageOverlay; project: P; lines?: boolean }) {
   const { cage } = overlay, n = cage.positions.length / 3, pre = prepare(overlay);
   const X = new Float64Array(n), Y = new Float64Array(n), S: string[] = new Array(n);
@@ -83,7 +105,7 @@ export function CageMarks({ overlay, project, lines = true }: { overlay: CageOve
   if (lines) for (let e = 0; e < pre.edgeA.length; e++) paths[EDGE_KINDS[pre.edgeKind[e]]].push(`M${S[pre.edgeA[e]]}L${S[pre.edgeB[e]]}`);
   const pickedEdges = lines ? paths.picked.length : pre.edgeKind.reduce((n, k) => n + (EDGE_KINDS[k] === 'picked' ? 1 : 0), 0);
   const verts: Record<VertexKind, string[]> = { plain: [], picked: [], pole: [], bad: [] };
-  for (let i = 0; i < n; i++) { const k = pre.vertKind[i]; if (k) verts[k].push(dot(X, Y, i, pre.vertR[i])); }
+  if (lines) for (let i = 0; i < n; i++) { const k = pre.vertKind[i]; if (k) verts[k].push(dot(X, Y, i, pre.vertR[i])); }
   const ngons = { size: pre.ngonCount }, selFaces = { size: pre.selCount }, seen = { size: pre.seen };
   const m = overlay.mirrored;
   const mirrorPath = m && lines ? (() => { const M = Array.from({ length: m.positions.length / 3 }, (_, i) => project([m.positions[3 * i], m.positions[3 * i + 1], m.positions[3 * i + 2]])); return m.faces.map(f => 'M' + f.map(i => `${M[i][0].toFixed(1)},${M[i][1].toFixed(1)}`).join('L') + 'Z').join(''); })() : '';

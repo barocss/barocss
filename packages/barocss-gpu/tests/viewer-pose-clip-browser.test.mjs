@@ -448,3 +448,78 @@ test('G7 overlay lines: depth-tested ones hidden by a surface (or their hidden p
     assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
 });
+
+// G8: points as screen-space sprites — discs, squares, rings; depth-tested, over the scene, hidden parts faint; picked by index.
+test('G8 points: discs and squares at their size, a ring by its border; hidden under a surface, over it, or faint; pickPoint gives the index (with and without indices), hidden ones passed over; 100 000 points drawn and picked', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box, screen, pixel } = window, canvas = document.getElementById('c');
+      canvas.style.width = '640px'; canvas.style.height = '480px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, background: '#000000', camera: { position: [0, 0, 20], target: [0, 0, 0], up: [0, 1, 0] } });
+      viewer.add(box(4, 4, 2).surface, { name: 'body', material: { color: '#808080' } });
+      const pts = (positions, color, material = {}, extra = {}) => viewer.add({ positions, topology: 'points', colors: positions.flatMap((_, i) => i % 3 ? [] : color), ...extra }, { material: { color: '#ffffff', unlit: true, ...material }, castShadow: false });
+      // Red: one above the box, one under it, one beside it (depth-tested, discs of 12).
+      const red = pts([0, 0, 2, 0.8, 0, -3, 4, 0, -3], [1, 0, 0], { pointSize: 12 });
+      // Green over the scene, under the box; magenta faint where hidden, under it.
+      pts([-0.8, 0, -3], [0, 1, 0], { pointSize: 12, lineOver: true });
+      pts([0, 0.8, -3], [1, 0, 1], { pointSize: 12, lineHidden: 0.5 });
+      // A square and a disc of 16, beside the box; a ring (no fill, a 2-pixel white border) of 16.
+      pts([-4, 1.5, 0], [0, 0, 1], { pointSize: 16, pointShape: 'square' });
+      pts([-4, -1.5, 0], [0, 0, 1], { pointSize: 16 });
+      const ring = viewer.add({ positions: [4, 1.5, 0], topology: 'points', colors: [1, 1, 0, 0] }, { material: { color: '#ffffff', unlit: true, pointSize: 16, pointBorder: { width: 2, color: '#ffffff' } } });
+      // Through indices: elements 3 and 1 of four vertices.
+      const indexed = viewer.add({ positions: [-6, 3, 0, -5, 3, 0, -4, 3, 0, -3, 3, 0], indices: [3, 1], topology: 'points' }, { material: { color: '#00ffff', unlit: true, pointSize: 8 } });
+      await viewer.frame();
+      const img = await viewer.capture(), at = p => pixel(img, screen(viewer, p)), off = (p, dx, dy) => { const [x, y] = screen(viewer, p); return pixel(img, [x + dx, y + dy]); };
+      const isRed = c => c[0] > 150 && c[1] < 80 && c[2] < 80;
+      const look = {
+        redAbove: isRed(at([0, 0, 2])), redUnder: isRed(at([0.8, 0, -3])), redBeside: isRed(at([4, 0, -3])),
+        greenOver: at([-0.8, 0, -3]), magentaFaint: at([0, 0.8, -3]), body: at([0.5, -0.8, 1]),
+        squareCorner: off([-4, 1.5, 0], 6, 6), discCorner: off([-4, -1.5, 0], 6, 6), discCentre: at([-4, -1.5, 0]),
+        ringCentre: at([4, 1.5, 0]), ringEdge: off([4, 1.5, 0], 7, 0), ringOut: off([4, 1.5, 0], 10, 0),
+      };
+      const pk = p => { const [x, y] = screen(viewer, p); return [x, y]; };
+      const pick = (p, o) => { const h = viewer.pickPoint(...pk(p), 3, o); return h && { mesh: h.mesh === red ? 'red' : h.mesh === indexed ? 'indexed' : h.mesh === ring ? 'ring' : h.mesh.material.lineOver ? 'over' : 'other', index: h.index, point: h.point.map(v => Math.round(v * 1000) / 1000) }; };
+      const picks = {
+        above: pick([0, 0, 2]), beside: pick([4, 0, -3]), under: pick([0.8, 0, -3]), underThrough: pick([0.8, 0, -3], { throughSurfaces: true }),
+        over: pick([-0.8, 0, -3]), indexed3: pick([-3, 3, 0]), indexed1: pick([-5, 3, 0]), unindexedVertex: pick([-4, 3, 0]), ring: pick([4.3, 1.5, 0]), none: pick([2.9, -2.9, 0.5]),
+      };
+      // 100 000 points in a 40-unit cube around the scene: drawn (stats) and picked, timed.
+      const N = 100000, P = new Float32Array(3 * N), C = new Float32Array(3 * N);
+      let seed = 3; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      for (let i = 0; i < N; i++) { P[3 * i] = rand() * 40 - 20; P[3 * i + 1] = rand() * 40 - 20; P[3 * i + 2] = rand() * 10 - 15; C[3 * i] = rand(); C[3 * i + 1] = 0.5; C[3 * i + 2] = 1 - C[3 * i]; }
+      const t0 = performance.now(), cloud = viewer.add({ positions: P, colors: C, topology: 'points' }, { material: { pointSize: 3, unlit: true }, bounded: false }), tMake = performance.now() - t0;
+      await viewer.frame();
+      const tf = performance.now(); for (let k = 0; k < 10; k++) await viewer.frame(); const tFrame = (performance.now() - tf) / 10;
+      const stats = { ...viewer.stats };
+      let found = 0; const tp = performance.now();
+      for (let k = 0; k < 20; k++) { const h = viewer.pickPoint(20 + k * 30, 240, 4); if (h && h.mesh === cloud) found++; }
+      const tPick = (performance.now() - tp) / 20;
+      viewer.dispose();
+      return { look, picks, cloud: { points: stats.points, tMake, tFrame, tPick, found } };
+    });
+    t.diagnostic(JSON.stringify(r));
+    const L = r.look;
+    assert.deepEqual([L.redAbove, L.redUnder, L.redBeside], [true, false, true], 'depth-tested: above and beside shown, under the box hidden');
+    assert.ok(L.greenOver[1] > 200 && L.greenOver[0] < 60, `over the scene: shown on the box ${JSON.stringify(L.greenOver)}`);
+    assert.ok(L.magentaFaint[0] - L.body[0] > 25 && L.magentaFaint[2] - L.body[2] > 25 && L.magentaFaint[1] < L.body[1], `hidden part faint ${JSON.stringify([L.magentaFaint, L.body])}`);
+    assert.ok(L.squareCorner[2] > 200, `a square fills its corner ${JSON.stringify(L.squareCorner)}`);
+    assert.ok(L.discCorner[2] < 40 && L.discCentre[2] > 200, `a disc does not ${JSON.stringify([L.discCorner, L.discCentre])}`);
+    assert.ok(L.ringCentre.slice(0, 3).every(v => v < 30) && L.ringEdge.slice(0, 3).every(v => v > 200) && L.ringOut.slice(0, 3).every(v => v < 30), `a ring: empty, its border, then nothing ${JSON.stringify([L.ringCentre, L.ringEdge, L.ringOut])}`);
+    const P = r.picks;
+    assert.deepEqual(P.above, { mesh: 'red', index: 0, point: [0, 0, 2] });
+    assert.deepEqual(P.beside, { mesh: 'red', index: 2, point: [4, 0, -3] });
+    assert.equal(P.under?.mesh === 'red' && P.under.index === 1 ? 'found' : 'passed over', 'passed over', `a hidden point is not picked ${JSON.stringify(P.under)}`);
+    assert.deepEqual(P.underThrough, { mesh: 'red', index: 1, point: [0.8, 0, -3] });
+    assert.equal(P.over?.mesh, 'over');
+    assert.deepEqual(P.indexed3, { mesh: 'indexed', index: 0, point: [-3, 3, 0] }, 'an indexed point by its element');
+    assert.deepEqual(P.indexed1, { mesh: 'indexed', index: 1, point: [-5, 3, 0] });
+    assert.ok(!P.unindexedVertex || P.unindexedVertex.mesh !== 'indexed', `a vertex no index names is no point ${JSON.stringify(P.unindexedVertex)}`);
+    assert.deepEqual(P.ring, { mesh: 'ring', index: 0, point: [4, 1.5, 0] }, 'a ring picked within its half size');
+    assert.equal(P.none, null);
+    assert.ok(r.cloud.points >= 100000, `the cloud drawn ${JSON.stringify(r.cloud)}`);
+    assert.ok(r.cloud.found >= 10, `and picked ${JSON.stringify(r.cloud)}`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});

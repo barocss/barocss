@@ -15,7 +15,7 @@ import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@b
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
-import type { EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLines, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
+import type { EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLines, OverlayPoints, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 
 /** Device pixels per CSS pixel, up to 3 (a high-density screen with the page zoomed in). */
@@ -242,7 +242,19 @@ export class GpuRenderer implements ViewRenderer {
     }
     this.viewer.requestRender();
   }
-  overlayLines(): Record<string, number> { return Object.fromEntries([...this.overlays].map(([k, m]) => [k, m.geometry.data.elementCount / 2])); }
+  /** Overlay points by key (G8): one point mesh each, made when they change. */
+  setOverlayPoints(key: string, points: OverlayPoints | null): void {
+    const had = this.overlays.get(key);
+    if (had) { had.remove(); had.geometry.dispose(); this.overlays.delete(key); }
+    if (points && points.positions.length >= 3) {
+      this.overlays.set(key, this.viewer.add({ positions: points.positions, colors: points.colors, topology: 'points' }, {
+        name: 'overlay:' + key, pickable: false, castShadow: false, receiveShadow: false, clipped: false, bounded: false,
+        material: { color: points.color ?? '#ffffff', unlit: true, pointSize: points.size, pointShape: points.shape ?? 'circle', pointBorder: points.border ?? null, opacity: points.opacity ?? 1, lineOver: !!points.over, lineHidden: points.hidden ?? 0 },
+      }));
+    }
+    this.viewer.requestRender();
+  }
+  overlayLines(): Record<string, number> { return Object.fromEntries([...this.overlays].map(([k, m]) => [k, m.geometry.topology === 'points' ? m.geometry.data.elementCount : m.geometry.data.elementCount / 2])); }
   private overlays = new Map<string, Mesh>();
 
   /** The half under a point (G6), or null. */

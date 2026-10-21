@@ -12,10 +12,10 @@ export interface GeometryInput {
   uvs?: ArrayLike<number>;
   /** sRGB colours per vertex, 0–1: three (rgb) or four (rgba) numbers each. */
   colors?: ArrayLike<number>;
-  /** Triangles (or segment pairs for lines); vertices in order when left out. */
+  /** Triangles (or segment pairs for lines, or one vertex a point); vertices in order when left out. */
   indices?: ArrayLike<number>;
-  /** Triangles (default) or line segments. */
-  topology?: 'triangles' | 'lines';
+  /** Triangles (default), line segments or points (G8: screen-space sprites, Material.pointSize). */
+  topology?: 'triangles' | 'lines' | 'points';
   /** An id per triangle (a CAD face, say), reported by picking. */
   faces?: ArrayLike<number>;
   /** An id per line segment (a CAD edge, say), reported by line picking. */
@@ -23,7 +23,7 @@ export interface GeometryInput {
 }
 
 export interface PreparedGeometry {
-  topology: 'triangles' | 'lines';
+  topology: 'triangles' | 'lines' | 'points';
   positions: Float32Array; normals: Float32Array; colors: Uint8Array; uvs: Float32Array;
   indices: Uint32Array | Uint16Array | null;
   faces: Uint32Array | null;
@@ -97,13 +97,13 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
     indices = vertexCount <= 0xffff ? Uint16Array.from(input.indices) : Uint32Array.from(input.indices);
     for (let i = 0; i < indices.length; i++) if (input.indices[i] >= vertexCount || input.indices[i] < 0 || !Number.isInteger(input.indices[i])) throw new RangeError(`indices[${i}] = ${input.indices[i]} is not a vertex`);
   }
-  const elementCount = indices ? indices.length : vertexCount, per = topology === 'lines' ? 2 : 3;
+  const elementCount = indices ? indices.length : vertexCount, per = topology === 'lines' ? 2 : topology === 'points' ? 1 : 3;
   if (elementCount % per) throw new RangeError(`${topology} need a multiple of ${per} ${indices ? 'indices' : 'vertices'}`);
   let normals: Float32Array;
   if (input.normals) {
     normals = Float32Array.from(input.normals);
     if (normals.length !== positions.length) throw new RangeError('normals must match positions');
-  } else normals = topology === 'lines' ? new Float32Array(positions.length) : vertexNormals(positions, indices);
+  } else normals = topology !== 'triangles' ? new Float32Array(positions.length) : vertexNormals(positions, indices);
   let faces: Uint32Array | null = null;
   if (input.faces) {
     if (topology !== 'triangles' || input.faces.length !== elementCount / 3) throw new RangeError('faces must hold one id per triangle');
@@ -381,6 +381,35 @@ function testSegment(g: PreparedGeometry, M: ArrayLike<number>, sgm: number, x: 
   // Screen parameter → segment parameter (perspective-correct).
   const u = (t * a[2]) / ((1 - t) * b[2] + t * a[2] || 1);
   near.segment = sgm; near.distance = dist; near.s = s0 + (s1 - s0) * u;
+}
+
+/** Points as the point shader reads them, one instance each (G8): the position (3 floats) and the colour (RGBA8). */
+export function pointInstances(g: PreparedGeometry): ArrayBuffer {
+  const n = g.elementCount, out = new ArrayBuffer(n * 16), f = new Float32Array(out), u = new Uint32Array(out);
+  const P = g.positions, I = g.indices, C = new Uint32Array(g.colors.buffer, g.colors.byteOffset, g.vertexCount);
+  for (let s = 0; s < n; s++) { const a = I ? I[s] : s; f[4 * s] = P[3 * a]; f[4 * s + 1] = P[3 * a + 1]; f[4 * s + 2] = P[3 * a + 2]; u[4 * s + 3] = C[a]; }
+  return out;
+}
+
+/**
+ * The point drawn nearest a canvas position (G8): with M the mesh's view-projection, among the points whose centre is within
+ * `reach` pixels (CSS) and nearer than `best`, the nearest (ties to the lowest index), skipping those in `skip` and those
+ * the plane (in the mesh's space) cuts away; its index and distance in pixels, or null.
+ */
+export function nearestPoint(g: PreparedGeometry, M: ArrayLike<number>, x: number, y: number, cw: number, ch: number, reach: number, best: number, plane: ArrayLike<number> | null, skip: ReadonlySet<number> | null): { index: number; distance: number } | null {
+  const P = g.positions, I = g.indices, r2 = reach * reach;
+  let hit = -1, bd = Math.min(best, reach);
+  for (let s = 0; s < g.elementCount; s++) {
+    if (skip && skip.has(s)) continue;
+    const a = I ? I[s] : s, px = P[3 * a], py = P[3 * a + 1], pz = P[3 * a + 2];
+    if (plane && plane[0] * px + plane[1] * py + plane[2] * pz < plane[3]) continue;
+    const w = M[3] * px + M[7] * py + M[11] * pz + M[15];
+    if (w < 1e-6) continue;
+    const dx = ((M[0] * px + M[4] * py + M[8] * pz + M[12]) / w * 0.5 + 0.5) * cw - x, dy = (0.5 - (M[1] * px + M[5] * py + M[9] * pz + M[13]) / w * 0.5) * ch - y, d2 = dx * dx + dy * dy;
+    if (d2 > r2 || d2 >= bd * bd) continue;
+    bd = Math.sqrt(d2); hit = s;
+  }
+  return hit < 0 ? null : { index: hit, distance: bd };
 }
 
 /** Segments as the line shader reads them, one instance each: a, b (3 floats each), colours of a and b (RGBA8). */

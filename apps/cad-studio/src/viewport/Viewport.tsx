@@ -2,7 +2,7 @@ import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 're
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
-import { Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLines, type SectionClip, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import { Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLines, type OverlayPoints, type SectionClip, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
@@ -18,7 +18,7 @@ import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
 import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
 import { ViewCube } from './ViewCube';
-import { CAGE_LINE_KEYS, CageMarks, cageLines } from './CageMarks';
+import { CAGE_LINE_KEYS, CageMarks, cageLines, cagePoints } from './CageMarks';
 import { pickCage, type CageHit, type CageMode, type CageSelection, type StudioCage } from '@barocss/cad-model/subd/cageEdit';
 import type { CageValidation } from '@barocss/cad';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
@@ -158,6 +158,21 @@ const ACCENT_OF: Record<ThemeName, string> = { dark: '#e8c25a', light: '#c9961e'
 const UNDERLAY_LOOK = { color: '#8a93a3', width: 0.75, opacity: 0.7, hidden: 0.35 };
 const BOX_EDGES = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
 /** A box's 12 edges as segments, from min and max (six numbers). */
+/** The workspace map's band colours (sRGB 0–1), as the SVG's hsl(240 − 34k, 80 %, 55 %). */
+const CLOUD_BANDS = Array.from({ length: 8 }, (_, k) => hslRgb(240 - k * 34, 0.8, 0.55));
+function hslRgb(h: number, s: number, l: number): [number, number, number] {
+  const a = s * Math.min(l, 1 - l), f = (n: number) => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+  return [f(0), f(8), f(4)];
+}
+/** A workspace map as overlay points (G8): a square of 3 a voxel, its band's colour, three quarters opaque. */
+function cloudPoints(cloud: readonly { at: Vec3; t: number }[]): OverlayPoints {
+  const P = new Float32Array(3 * cloud.length), C = new Float32Array(3 * cloud.length);
+  for (let i = 0; i < cloud.length; i++) {
+    const c = cloud[i], b = CLOUD_BANDS[Math.min(7, Math.floor(c.t * 8))];
+    P[3 * i] = c.at[0]; P[3 * i + 1] = c.at[1]; P[3 * i + 2] = c.at[2]; C[3 * i] = b[0]; C[3 * i + 1] = b[1]; C[3 * i + 2] = b[2];
+  }
+  return { positions: P, colors: C, size: 3, shape: 'square', opacity: 0.75, hidden: 0.35 };
+}
 function boxSegments(b: readonly number[]): OverlayLines['segments'] {
   const out = new Float32Array(72);
   BOX_EDGES.forEach(([i, j], e) => { for (const [k, c] of [[0, i], [1, j]]) for (let a = 0; a < 3; a++) out[6 * e + 3 * k + a] = c & (1 << a) ? b[3 + a] : b[a]; });
@@ -373,11 +388,18 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   }, [props.underlays, sketching, backend]);
   useEffect(() => {
     const r = renderer.current; if (!r?.setOverlayLines) return;
-    const lines = props.cage && !sketching ? cageLines(props.cage) : [];
-    for (const k of CAGE_LINE_KEYS) if (!lines.some(l => l[0] === k)) r.setOverlayLines(k, null);
+    const lines = props.cage && !sketching ? cageLines(props.cage) : [], points = props.cage && !sketching && r.setOverlayPoints ? cagePoints(props.cage) : [];
+    for (const k of CAGE_LINE_KEYS) if (!lines.some(l => l[0] === k) && !points.some(p => p[0] === k)) r.setOverlayLines(k, null);
     for (const [k, l] of lines) r.setOverlayLines(k, l);
+    for (const [k, p] of points) r.setOverlayPoints!(k, p);
     request();
   }, [props.cage, sketching, backend]);
+  // G8: the workspace map's voxels as engine points (squares of 3, their band's colour), depth-tested with their hidden
+  // ones faint, made when the map changes; SVG on WebGL2.
+  useEffect(() => {
+    const r = renderer.current; if (!r?.setOverlayPoints) return;
+    r.setOverlayPoints('cloud', props.cloud?.length && !sketching ? cloudPoints(props.cloud) : null); request();
+  }, [props.cloud, sketching, backend]);
   // (By content: the list is rebuilt on every render; the last one is kept while its content is the same.)
   const instanceFacesRef = useRef<readonly InstanceFace[]>([]);
   if (!sameInstanceFaces(instanceFacesRef.current, props.instanceFaces ?? [])) instanceFacesRef.current = props.instanceFaces ?? [];
@@ -954,7 +976,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
           const size = Math.hypot(c[0] - a[0], c[1] - a[1]); return size >= 2 ? <text key={k} x={a[0]} y={a[1]} fontSize={size} className="underlay-text" transform={`rotate(${(Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI).toFixed(2)} ${a[0].toFixed(1)} ${a[1].toFixed(1)})`}>{t.text.split('\n').map((ln, i) => <tspan key={i} x={a[0]} dy={i ? size * 1.25 : 0}>{ln}</tspan>)}</text> : null; })}</g>);
     }
     // A workspace map (RM9b): its voxels as small squares, one path a band of manipulability (blue low, red high).
-    if (!sk && props.cloud?.length) {
+    if (!sk && props.cloud?.length && engineLines) items.push(<g key="cloud" aria-label="Workspace map" data-engine-points={props.cloud.length} />);
+    else if (!sk && props.cloud?.length) {
       const bands = Array.from({ length: 8 }, () => [] as string[]);
       for (const c of props.cloud) { const q = cam.project(c.at, w, h); bands[Math.min(7, Math.floor(c.t * 8))].push(`M${(q[0] - 1.5).toFixed(1)} ${(q[1] - 1.5).toFixed(1)}h3v3h-3z`); }
       items.push(<g key="cloud" aria-label="Workspace map">{bands.map((d, k) => d.length ? <path key={k} d={d.join('')} fill={`hsl(${240 - k * 34} 80% 55%)`} fillOpacity={0.75} /> : null)}</g>);
