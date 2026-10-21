@@ -660,7 +660,8 @@ Measured before anything was changed; the coordinator's order.
   detail for meshes — a million triangles orbit in ≈ 3 ms of GPU; simplified levels would cost their memory (≈ 1.3× the
   mesh), popping between levels and the question of which level a pick is against, for at most ≈ 2 ms. The million-triangle
   orbit's main-thread time (6.4 ms a frame, 3.5 for 200 000) is React's development build re-rendering the App (`jsxDEV`,
-  39 ms over 60 frames), not the viewer: with G13's panel item for the UI side. Worth revisiting for meshes past ≈ 5 M
+  39 ms over 60 frames), not the viewer: with G13's panel item for the UI side — which the outer lane measured on a
+  production build (O141): about 1.5 ms of JavaScript a later click, so no memoisation was needed. Worth revisiting for meshes past ≈ 5 M
   triangles or clouds past ≈ 500 000 points, neither of which the studio makes today.
 - **Bench**: `bench:browser`'s cloud row 4.03–4.73 ms of GPU in two runs (load 34–113); its budget 17 → 10.
 - **Checks** (v2): gpu unit 77/77, browser 11/11 (G8's shapes, rings, picks unchanged); studio suite 194/194; FLOW_ONLY on
