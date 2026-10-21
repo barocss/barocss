@@ -2365,10 +2365,17 @@ export function App() {
         <span className="chip mono">mm</span>
       </div>
 
-      {chat && !rendering && !drawing && <Suspense fallback={null}><ChatPanel base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)}
+      {chat && !rendering && !drawing && <Suspense fallback={null}><ChatPanel base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
-        onPreview={setPreviewBodies} onCommit={(next, sel) => {
+        onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
           chatSelection.current = sel ?? null;
+          // (Merged onto the edits made while it ran, O133: what applied, and what waits as a proposal and why.)
+          if (merged) {
+            commit(next, true, true);
+            const n = merged.applied.length + merged.deferred.length, why = merged.deferred[0]?.reason;
+            setToast({ title: 'Chat turn merged with your edits', hint: `${merged.applied.length} of ${n} change${n > 1 ? 's' : ''} applied${merged.proposal ? `; ${merged.deferred.length} wait${merged.deferred.length > 1 ? '' : 's'} as ${merged.proposal}${why ? ` (${why})` : ''}` : ''}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
+            return;
+          }
           // (Applied directly by the agent — at L2 only value edits — said so with an undo, D41.)
           const direct = JSON.stringify(next.nodes) !== JSON.stringify(doc.nodes) || JSON.stringify(next.parameters) !== JSON.stringify(doc.parameters), what = direct ? describeChange(doc, next) : '';
           commit(next);

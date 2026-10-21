@@ -5924,6 +5924,40 @@ try {
     await page.waitForFunction(() => !document.querySelector('[aria-label="Mould legend"]') && !document.querySelector('[aria-label="Map legend"]'), null, { timeout: 5000 });
   });
 
+  // ---- O133: a chat turn merged onto an edit the person made while it ran ------------------------------------------
+  await check('chat turn merged with an edit made during it: a slow scripted turn raises the box to 20 while a second box is added — both kept; one Undo takes the agent\'s change back, the second box stays (O133)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
+      await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+      if (!await page.locator('[aria-label="Chat message"]').count()) await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const k = await page.locator('.chat-msg.assistant').count(), tools = await page.locator('.chat-tool').count();
+      const calls = [{ tool: 'features', args: { action: 'edit', index: 1, values: { h: 20 } } }, { pause: 6000 }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      // (While the turn pauses, after its edit: the person adds a second box at X 40.)
+      await page.waitForFunction(t => document.querySelectorAll('.chat-tool').length > t, tools, { timeout: 30000 });
+      await page.evaluate(() => document.activeElement?.blur?.());
+      await press('b'); await hudReady(); await field('At X').fill('40'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+      assert.ok(await page.locator('.chat-msg.busy').count(), 'the turn is still running');
+      await page.waitForFunction(n => document.querySelectorAll('.chat-msg.assistant').length > n && !document.querySelector('[aria-label="Chat message"]')?.disabled, k, { timeout: 60000 });
+      await page.waitForFunction(() => /Chat turn merged with your edits/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 15000 });
+      assert.match(await page.textContent('.toast'), /1 of 1 change applied/);
+      const heights = () => page.evaluate(() => window.__studioDoc.nodes.filter(n => n.kind === 'extrude').map(n => [n.id, n.height]));
+      assert.deepEqual(await heights(), [['n1', 20], ['n3', 16]]);
+      await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+      await snap('chat-merge-both-kept');
+      // One Undo: the agent's change gone, the person's box kept.
+      await page.click('[aria-label="Close chat"]'); await page.evaluate(() => document.activeElement?.blur?.());
+      await press('Meta+z');
+      await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.id === 'n1')?.height === 16, null, { timeout: 15000 });
+      assert.deepEqual(await heights(), [['n1', 16], ['n3', 16]]);
+    } finally { chat.kill(); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
