@@ -6,18 +6,16 @@
 // enum or tool.
 import type { ToolDefinition } from './api';
 import { annotationsOf, outputSchemaOf, TOOL_CONTRACT_V2, type JsonSchema } from './contract';
-import { GROUPS, V2_OF } from './groups';
+import { GROUPS, v2Text } from './groups';
 import { CHAT_COMMANDS, featureKinds, SYSTEM_PROMPT, TOOLS } from './tools';
 
 /** A handler's own definition (its name, description and input schema): what describe and the model tool read. */
 const handler = (name: string) => TOOLS.find(t => t.name === name)!;
-/** Text with each handler name that has an underscore written as its group's action (`apply_ops` → `features.batch`). */
-const v2Names = (text: string) => text.replace(/\b[a-z]+(?:_[a-z]+)+\b/g, w => V2_OF.get(w) ?? w);
 const actionList = (name: string) => Object.entries(GROUPS[name].actions).map(([a, [, hint]]) => hint ? `${a} (${hint})` : a).join('; ');
 
 function groupTool(name: string): ToolDefinition {
   const g = GROUPS[name], actions = Object.keys(g.actions);
-  if (name === 'model') { const t = handler('run_script'); return { name, description: v2Names(t.description), input_schema: t.input_schema }; }
+  if (name === 'model') { const t = handler('run_script'); return { name, description: v2Text(t.description), input_schema: t.input_schema }; }
   if (name === 'describe') return {
     name, description: 'What this list leaves out, on request: {"tool"} its actions; {"tool", "action"} that action\'s full description and arguments; {"command"} a command\'s selection and values; {"feature"} a feature kind\'s node JSON. Ask before using an action, command or feature kind the first time.',
     input_schema: { type: 'object', properties: { tool: { type: 'string' }, action: { type: 'string' }, command: { type: 'string' }, feature: { type: 'string' } }, additionalProperties: false },
@@ -35,7 +33,7 @@ const PHRASES: [string, string][] = [
   ['interference (overlap and clearance), section, wall_thickness and draft', 'query.interference (overlap and clearance), query.section, query.wall and query.draft'],
   ['(propose)', '(proposals.propose)'], ['inspect gives', 'query.inspect gives'], ['ops of propose', 'ops of proposals.propose'],
 ];
-export const SYSTEM_PROMPT_V2 = v2Names(PHRASES.reduce((p, [a, b]) => p.split(a).join(b), SYSTEM_PROMPT))
+export const SYSTEM_PROMPT_V2 = v2Text(PHRASES.reduce((p, [a, b]) => p.split(a).join(b), SYSTEM_PROMPT))
   .replace(/\n\n/, '\n\nTools take an "action": query.measure is the query tool with action "measure". describe gives an action\'s arguments, a command\'s values or a feature kind\'s JSON when you need them.\n\n');
 
 /** A tool as MCP lists it: title, annotations and, where the result has a fixed shape, its output schema. */

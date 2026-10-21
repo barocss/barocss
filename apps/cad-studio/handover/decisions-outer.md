@@ -4511,3 +4511,12 @@ Owner, 2026-10-21, relayed by the coordinator. First: "앱 채팅과 MCP 기본�
   - It replaces `listed − plain < 15000` (tool-contract) and `tools/list ≤ 15000` (toolset).
   - At 7691e0c90 (the coordinator's measurement) v2 was 13,164 + 8,242 = 21,406, against v1's 118,495 + 7,922 = 126,417.
 - **Tests removed or renamed**: listed in the O105 checkpoint, each with its reason.
+
+## O105b — handler texts read as v2 tool.actions at the MCP boundary (2026-10-21)
+
+- The MCP server passes every tool result through `v2Result` (groups.ts). Prose goes through `v2Text`: an underscored handler name becomes its action (`get_part_summary` → `query.summary`), and "(propose)" and "with propose," become `proposals.propose`. A stored `{tool, args}` call in a result reads as its v2 call. Keys stay as they are; handlers keep their names internally. toolset.ts now uses `v2Text` for the prompt as well, and the per-turn size is unchanged at 21,406.
+- Tests (toolset.test.ts):
+  - every string literal in the model package that names a handler (≥ 60) reads, through `v2Text`, with no handler name left and every action it names real;
+  - through MCP, three refusals (no requirements, no snapshot, L2's proposal) name v2 tools;
+  - `v2Result` converts a stored op.
+- Verified so far: app tsc 0, toolset.test 11/11. **Not yet run:** the full studio suite name diff and FLOW_ONLY on the chat steps.

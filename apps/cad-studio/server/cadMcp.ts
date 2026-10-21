@@ -10,7 +10,7 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { ImageTrace } from '@barocss/cad-model/chat/trace';
 import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { outputSchemaOf } from '@barocss/cad-model/chat/contract';
-import { GROUPS, v1Call } from '@barocss/cad-model/chat/groups';
+import { GROUPS, v1Call, v2Result } from '@barocss/cad-model/chat/groups';
 import { listed, TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { arrayOf, putKnownBlob, type BlobType } from '@barocss/cad-model/engine/blobs';
 
@@ -78,9 +78,11 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
         state = out.state; changed ||= out.changed; if (out.changed) version++;
         const unsaved = out.changed ? save('change') : v1Name(String(msg.params?.name), msg.params?.arguments) === 'select' ? save('select') : null;
         // (A read tool's result also as structured content, its output schema's shape; the text keeps the same JSON.)
-        const structured = !out.isError && !unsaved && outputSchemaOf(v1Name(String(msg.params?.name), msg.params?.arguments)) ? structuredOf(out.content) : undefined;
+        // (What the caller reads names v2 tools only, O105b: a handler's hint or refusal as its tool.action, a stored op as its v2 call.)
+        const text = v2Result(out.content);
+        const structured = !out.isError && !unsaved && outputSchemaOf(v1Name(String(msg.params?.name), msg.params?.arguments)) ? structuredOf(text) : undefined;
         // (A change the store could not keep is said so, as an error: the part changed here but not on disk.)
-        return reply(msg.id, { content: [{ type: 'text', text: out.content }, ...(unsaved ? [{ type: 'text', text: `Not saved: ${unsaved}` }] : []), ...(out.images ?? []).map(i => ({ type: 'image', data: i.data, mimeType: i.mediaType }))], ...(structured ? { structuredContent: structured } : {}), isError: out.isError || !!unsaved });
+        return reply(msg.id, { content: [{ type: 'text', text }, ...(unsaved ? [{ type: 'text', text: `Not saved: ${unsaved}` }] : []), ...(out.images ?? []).map(i => ({ type: 'image', data: i.data, mimeType: i.mediaType }))], ...(structured ? { structuredContent: structured } : {}), isError: out.isError || !!unsaved });
       }
       default: return error(msg.id, -32601, `Unknown method ${msg.method}`);
     }
