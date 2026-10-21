@@ -6289,25 +6289,87 @@ try {
     assert.ok(Math.abs(o.added - 500) < 1, `500 mm³ added ${JSON.stringify(o)}`);
     assert.ok(Math.abs(o.removed - Math.PI * 4 * 8) < 1.5, `the hole's π·2²·8 removed ${JSON.stringify(o)}`);
     assert.ok(o.faces > 0);
+    // Drawn on either renderer (WebGL2 too, G16): the two materials, their edges and chips; green over the block, red at the
+    // hole; no faces tinted, the Boolean drew it.
+    assert.equal(o.tinted, false, 'no faces tinted: the Boolean drew it');
     if (await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu')) {
-      // Drawn: the two materials (and their edges and chips); green over the block, red at the hole.
       const names = await page.evaluate(() => window.__studioViewer.meshList.map(m => m.name).filter(n => n?.startsWith('proposal:')));
       assert.deepEqual(names.sort(), ['proposal:added', 'proposal:removed']);
-      assert.equal(o.tinted, false, 'no faces tinted: the Boolean drew it');
-      const c = await page.evaluate(async () => {
-        const v = window.__studioViewer, img = await v.capture(), M = v.camera.viewProjection(v.aspect), W = v.canvas.width, H = v.canvas.height;
-        const at = p => { const q = [0, 1, 3].map(k => M[k] * p[0] + M[4 + k] * p[1] + M[8 + k] * p[2] + M[12 + k]); const x = Math.round((q[0] / q[2] * 0.5 + 0.5) * W), y = Math.round((0.5 - q[1] / q[2] * 0.5) * H), i = (y * W + x) * 4; return [...img.data.slice(i, i + 3)]; };
-        return { block: at([55, 5, 5]), hole: at([30, 10, 8]) };
-      });
-      assert.ok(c.block[1] > c.block[0] + 20 && c.block[1] > c.block[2] + 10, `green over the block ${JSON.stringify(c)}`);
-      assert.ok(c.hole[0] > c.hole[1] + 20, `red at the hole ${JSON.stringify(c)}`);
-    } else assert.equal(o.tinted, true, 'WebGL2: its faces tinted');
+    } else assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.vp-overlay [aria-label^="Material"]')].map(g => g.textContent).sort()), ['+500 mm³', '−101 mm³'], 'WebGL2: the chips in the overlay');
+    const [block, hole] = await page.evaluate(() => window.__studioPixels([[55, 5, 5], [30, 10, 8]]));
+    assert.ok(block[1] > block[0] + 20 && block[1] > block[2] + 10, `green over the block ${JSON.stringify(block)}`);
+    assert.ok(hole[0] > hole[1] + 20, `red at the hole ${JSON.stringify(hole)}`);
     await snap('g12-proposal');
     // Before and after: the overlay stays; the preview cleared, it goes.
     await page.click('[aria-label="Proposal P9"] [aria-label="Before or after"]'); await page.waitForTimeout(500); await snap('g12-proposal-before');
     assert.ok(await page.evaluate(() => !!window.__studioProposalOverlay()));
     await page.locator('[aria-label="Proposal P9"] button', { hasText: 'Reject' }).click();
     await page.waitForFunction(() => !window.__studioProposalOverlay?.(), null, { timeout: 10000 });
+  });
+
+  // ---- G16: WebGL2 parity — the same checks on either renderer --------------------------------------------------------
+  await check('G16: curves and surfaces drawn and picked, edges a surface hides not picked, a dragged body drawn turned — on either renderer', async () => {
+    const fs = await import('node:fs');
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    // Curves and surfaces: the panel (z = −5, 20 × 20) lit blue and picked; the arc's quarter point cyan and picked.
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, 'test/fixtures/study.barocad'));
+    await page.waitForFunction(() => (window.__studioDoc.direct?.objects.length ?? 0) === 4); await idle();
+    // (Imported, all four are picked: the arc alone, then the panel from the canvas.)
+    await page.locator('.ol.direct', { hasText: 'arc' }).click();
+    await press('f'); await page.waitForTimeout(600);
+    const ids = await page.evaluate(() => Object.fromEntries(window.__studioDoc.direct.objects.map(o => [o.name.split(' · ')[1], o.id])));
+    const P = [15, 15, -5], A = [5, 3.75, 0];
+    const [pa, aa] = await page.evaluate(([P, A]) => window.__studioPixels([P, A]), [P, A]);
+    assert.ok(pa[2] > pa[0] + 20, `the panel drawn, lit blue: ${JSON.stringify(pa)} (${renderer})`);
+    assert.ok(aa[0] > aa[2] + 40, `the arc drawn in the accent, picked: ${JSON.stringify(aa)}`);
+    assert.deepEqual(await page.evaluate(([P, A]) => [window.__studioDirectAt(P), window.__studioDirectAt(A)], [P, A]), [ids.panel, ids.arc], 'picked');
+    const sp = await page.evaluate(P => window.__studioScreenOf(P), P);
+    await page.mouse.click(sp[0], sp[1]);
+    await page.waitForFunction(() => /panel/.test(document.querySelector('.ol.direct.sel')?.textContent ?? ''), null, { timeout: 5000 }); await page.waitForTimeout(300);
+    const [on] = await page.evaluate(P => window.__studioPixels([P]), P);
+    assert.ok(on[0] > on[2] + 40, `selected: the accent ${JSON.stringify(on)}`);
+    await snap('g16-direct');
+    // Edges: a 40 × 20 × 8 plate; at the midpoints of the three edges at its corner farthest from the eye (hidden) no pick
+    // finds them; at the nearest corner's three it finds each.
+    const plate = join(out, 'g16-plate.bcad');
+    fs.writeFileSync(plate, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 8 }] }));
+    await openModel(plate, 2); await idle(); await page.waitForTimeout(600);
+    const edges = await page.evaluate(() => {
+      const c = i => [i & 1 ? 40 : 0, i & 2 ? 20 : 0, i & 4 ? 8 : 0], e = window.__studioEye(), d = i => Math.hypot(...c(i).map((v, k) => v - e[k]));
+      const far = [...Array(8).keys()].reduce((b, i) => d(i) > d(b) ? i : b, 0), near = [...Array(8).keys()].reduce((b, i) => d(i) < d(b) ? i : b, 0);
+      const on = (segs, a, b) => segs.length > 0 && segs.every(s => [s.slice(0, 3), s.slice(3)].every(p => { const ab = b.map((v, k) => v - a[k]), ap = p.map((v, k) => v - a[k]), t = ap.reduce((x, v, k) => x + v * ab[k], 0) / ab.reduce((x, v) => x + v * v, 0); return t > -1e-3 && t < 1 + 1e-3 && Math.hypot(...ap.map((v, k) => v - t * ab[k])) < 1e-3; }));
+      const test = i => [1, 2, 4].map(bit => { const a = c(i), b = c(i ^ bit), m = a.map((v, k) => (v + b[k]) / 2), hit = window.__studioEdgeAt(m); return hit ? on(hit.segments, a, b) : false; });
+      return { hidden: test(far), shown: test(near) };
+    });
+    assert.deepEqual(edges, { hidden: [false, false, false], shown: [true, true, true] }, `edges a surface hides are passed over (${renderer})`);
+    // A dragged body's turn: the frame mid-drag at 45° about X is the frame the turn makes (its move alone, as WebGL2 drew
+    // it before, is the frame before the drag).
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await press(' '); await page.locator('.palette input').fill('rotate'); await press('Enter'); await press('e'); await hudReady();
+    await page.waitForSelector('[data-gizmo=turnX]', { timeout: 5000 });
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const o = await page.evaluate(() => { const c = document.querySelector('.gizmo-origin'); return [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]; });
+    const q = await page.evaluate(() => { const ps = document.querySelector('[data-gizmo=turnX] polyline:nth-of-type(2)').getAttribute('points').trim().split(' ').map(p => p.split(',').map(Number)); return ps[ps.length >> 1]; });
+    const r = Math.hypot(q[0] - o[0], q[1] - o[1]), a0 = Math.atan2(q[1] - o[1], q[0] - o[0]);
+    const before = await page.evaluate(() => window.__studioFrame(32));
+    await page.mouse.move(svg.x + q[0], svg.y + q[1]); await page.mouse.down();
+    for (let k = 1; k <= 12; k++) await page.mouse.move(svg.x + o[0] + r * Math.cos(a0 - k * Math.PI / 48), svg.y + o[1] + r * Math.sin(a0 - k * Math.PI / 48));
+    await page.waitForTimeout(400);
+    const during = await page.evaluate(() => window.__studioFrame(32));
+    await snap('g16-turning');
+    await page.mouse.up();
+    await page.waitForFunction(() => [...document.querySelectorAll('.hud input')].some(i => Math.abs(Number(i.value)) === 45), null, { timeout: 5000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'rotate', null, { timeout: 15000 }); await idle();
+    // (Its top face is picked again once it is made: cleared, as it was not lit while it turned.)
+    await press('Escape'); await page.waitForFunction(() => !/SELECTION/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 }); await page.waitForTimeout(600);
+    const after = await page.evaluate(() => window.__studioFrame(32));
+    const diff = (x, y) => x.reduce((t, v, i) => t + Math.abs(v - y[i]), 0) / x.length;
+    const turned = { toAfter: diff(during, after), toBefore: diff(during, before), moved: diff(before, after) };
+    console.log(`  G16 turn (${renderer}): ${JSON.stringify(turned)}`);
+    assert.ok(turned.moved > 2 && turned.toAfter < turned.toBefore / 4, `mid-drag drawn as turned ${JSON.stringify(turned)}`);
+    await snap('g16-turned');
   });
 
   await check('command palette and light theme', async () => {

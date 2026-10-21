@@ -1645,17 +1645,17 @@ export function App() {
   const previewNodes = useMemo(() => { if (!active?.cmd.build || !previewBodies) return null; try { return active.cmd.build(active.ctx, active.values).nodes; } catch { return null; } }, [active, previewBodies]);
   const bodyColors = useMemo(() => {
     // (A proposal's ghost: the bodies it adds or changes — not tinted while the engine draws its two-colour overlay, G12.)
-    const overlaid = !!ghost && proposalOverlay?.method === 'boolean' && viewport.current?.backend === 'webgpu';
+    const overlaid = !!ghost && proposalOverlay?.method === 'boolean';
     const had = ghost ? new Set(bodies.map(b => `${b.key}:${Math.round(b.volumeMM3 ?? 0)}`)) : null;
     const fresh = (b: BodyResult) => { if (had) return !had.has(`${b.key}:${Math.round(b.volumeMM3 ?? 0)}`); const at = previewNodes && bodyNodeOf(previewNodes, b.key); return !!previewNodes && !!at && rootOf(previewNodes, at.node) >= evaluated.nodes.length; };
     return new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color ?? (shownBodies === previewBodies && fresh(b) && !overlaid ? PREVIEW_TINT : undefined); return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; }));
   }, [shownBodies, doc, previewBodies, previewNodes, evaluated.nodes.length, ghost, bodies, proposalOverlay]);
   const hiddenBodies = useMemo(() => new Set(shownBodies.flatMap((b, i) => lookOf(doc, b).hidden ? [i] : [])), [shownBodies, doc]);
   // Faces coloured on their own, by body index and face index (their names kept with the body's look).
-  // (G12: a shown proposal's faces tinted — where the Boolean refused, or WebGL2 draws no overlay — those it adds or changes
+  // (G12: a shown proposal's faces tinted — where the Boolean refused (WebGL2 draws the overlay too, G16) — those it adds or changes
   // green on the after view, those it removes or changes red on the before view.)
   const proposalTint = useMemo(() => {
-    const o = proposalOverlay; if (!o || !ghost || (o.method === 'boolean' && viewport.current?.backend === 'webgpu')) return null;
+    const o = proposalOverlay; if (!o || !ghost || o.method === 'boolean') return null;
     const on = new Set(o.changedFaces.filter(f => ghost.after ? f.kind !== 'removed' : f.kind !== 'added').map(f => f.name));
     return { on, color: rgbOf(ghost.after ? PROPOSAL_ADDED : PROPOSAL_REMOVED) };
   }, [proposalOverlay, ghost]);
@@ -2036,7 +2036,6 @@ export function App() {
             if (o.hidden) { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(x => x.id === o.id ? { ...x, hidden: false } : x) }, [o.id]); return; }
             setSelection(emptySel); setDirectSel(prev => e.shiftKey ? (prev.includes(o.id) ? prev.filter(x => x !== o.id) : [...prev, o.id]) : [o.id]);
           }}><Icon name={o.hidden ? 'visibility_off' : 'gesture'} small />{o.name}</button>)}
-        {!!doc.direct?.objects.length && viewport.current?.backend === 'webgl2' && <div className="empty">Curves and surfaces show in browsers with WebGPU.</div>}
         <SpecifyPanel doc={doc} onAnswer={answerQuestions} onAcceptAll={acceptAll} />
         <DraftsPanel drafts={liveDrafts(doc)} underlays={doc.underlays ?? []} onUnderlay={(id, hidden) => commit({ ...doc, underlays: (doc.underlays ?? []).map(u => u.id === id ? { ...u, hidden } : u) }, false)} onAddDrawing={f => void addDrawingFile(f)} onConfirm={(key, value) => { try { commit(confirmDimension(doc, key, value, new Date().toISOString())); } catch (e) { setToast({ title: 'Dimension not changed', hint: e instanceof Error ? e.message.replace(/^\[[A-Z_]+\] /, '') : String(e), detail: '' }); } }} />
         <ReferencesPanel set={readReferences(doc.references)} local={refLocal} verdicts={keepoutVerdicts} onAddFile={f => void addReferenceFile(f)} onPlace={placeRef}

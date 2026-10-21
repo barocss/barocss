@@ -2,7 +2,7 @@ import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 're
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
-import { Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import { PROPOSAL_ADDED, PROPOSAL_REMOVED, Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
@@ -303,7 +303,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const viewState = (): ViewState => ({
     hoverFace: hover.current.face, hoverEdge: hover.current.edge,
     selectedFaces: propsRef.current.selection.faces, selectedEdges: propsRef.current.selection.edges, selectedBodies: propsRef.current.selection.bodies,
-    // (The WebGL2 renderer draws offsets only: a dragged body there shows its move, not its turn.)
+    // (Both renderers draw a dragged body by its matrix, its turn too — G16 for WebGL2; the offsets keep its move.)
     offsets: propsRef.current.transforms ? new Map([...propsRef.current.transforms].map(([k, m]) => [k, [m[12], m[13], m[14]] as Vec3])) : propsRef.current.offsets ?? new Map(),
     transforms: propsRef.current.transforms ?? undefined, ghostBodies: propsRef.current.ghost, bodyColors: propsRef.current.bodyColors, faceColors: propsRef.current.faceColors, hiddenBodies: propsRef.current.hiddenBodies, hoverBody: propsRef.current.hoverBody ?? undefined,
   });
@@ -383,6 +383,44 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setMould?.(props.mould ?? null); request(); }, [props.mould, backend]);
   useEffect(() => { renderer.current?.setIsoclines?.(props.isoclines ?? null); request(); }, [props.isoclines, backend]);
   useEffect(() => { renderer.current?.setProposalOverlay?.(props.proposal ?? null); request(); }, [props.proposal, backend]);
+  // (G16, for the flow: the same probes on either renderer — the frame's pixels at world points or over a grid, the edge and
+  // the direct object a pick finds at a world point.)
+  useEffect(() => {
+    if (!import.meta.env?.DEV) return;
+    const grab = async () => {
+      const blob = await renderer.current?.capture?.(); if (!blob) return null;
+      const bmp = await createImageBitmap(blob), c = new OffscreenCanvas(bmp.width, bmp.height), g = c.getContext('2d')!;
+      g.drawImage(bmp, 0, 0);
+      return { data: g.getImageData(0, 0, bmp.width, bmp.height).data, width: bmp.width, height: bmp.height };
+    };
+    const at = (img: { data: Uint8ClampedArray; width: number; height: number }, x: number, y: number) => {
+      const i = (Math.min(img.height - 1, Math.max(0, Math.round(y))) * img.width + Math.min(img.width - 1, Math.max(0, Math.round(x)))) * 4;
+      return [img.data[i], img.data[i + 1], img.data[i + 2]];
+    };
+    const screen = (p: Vec3) => camera.current.project(p, canvas.current!.clientWidth, canvas.current!.clientHeight);
+    const w = window as unknown as Record<string, unknown>;
+    w.__studioPixels = async (points: Vec3[]) => {
+      const img = await grab(); if (!img) return null;
+      const k = img.width / Math.max(1, canvas.current!.clientWidth);
+      return points.map(p => { const q = screen(p); return at(img, q[0] * k, q[1] * k); });
+    };
+    w.__studioFrame = async (n: number) => {
+      const img = await grab(); if (!img) return null;
+      const out: number[] = [];
+      for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) out.push(...at(img, ((i + 0.5) / n) * img.width, ((j + 0.5) / n) * img.height));
+      return out;
+    };
+    w.__studioEdgeAt = (p: Vec3, radius = 6) => {
+      const r = renderer.current; if (!r) return null;
+      const q = screen(p), hit = r.pickEdge(q[0], q[1], camera.current, viewState(), radius);
+      if (!hit) return null;
+      const m = propsRef.current.bodies[hit.body]?.mesh, segs: number[][] = [];
+      if (m) for (let s = 0; s < m.edgeLines.length; s += 6) if (m.edgeOfSegment[s / 3] === hit.edge) segs.push([...m.edgeLines.subarray(s, s + 6)]);
+      return { ...hit, segments: segs };
+    };
+    w.__studioEye = () => camera.current.eye();
+    w.__studioDirectAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickDirect?.(q[0], q[1], camera.current) ?? null; };
+  }, [backend]);
   // G7: the bounding box, the measure line, the underlays' polylines and the SubD cage's edges as engine lines on WebGPU —
   // made when they change (keyed by their content: the App hands new objects each render), not projected every frame;
   // WebGL2 keeps them SVG. Their looks as styles.css drew them.
@@ -1036,6 +1074,15 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       items.push(<g key="measure" className="measure" data-engine-lines={engineLines ? 1 : undefined}>{!engineLines && <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="measure-line" />}
         <circle cx={a[0]} cy={a[1]} r={3.5} className="measure-point" /><circle cx={b[0]} cy={b[1]} r={3.5} className="measure-point" />
         {!engineLines && <><rect x={mx - tw / 2} y={my - 24} width={tw} height={20} rx={4} className="dim-chip" /><text x={mx} y={my - 10} textAnchor="middle" className="dim-text">{ml.label}</text></>}</g>);
+    }
+    // A proposal's volume chips (G12), where the renderer draws no labels (WebGL2, G16): at each material's box top, as the GPU's.
+    const pr = props.proposal;
+    if (pr && !sk && !renderer.current?.setOverlayLabels) for (const side of ['added', 'removed'] as const) {
+      const s = pr[side]; if (!s || !s.mesh.indices.length) continue;
+      const b = s.mesh.bounds, q = cam.project([(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2, b.max[2]], w, h);
+      const text = `${side === 'added' ? '+' : '−'}${Math.round(s.volumeMM3).toLocaleString('en-US')} mm³`, tw = text.length * 7 + 12, fill = side === 'added' ? PROPOSAL_ADDED : PROPOSAL_REMOVED;
+      items.push(<g key={'proposal:' + side} aria-label={side === 'added' ? 'Material added' : 'Material removed'}><rect x={q[0] - tw / 2} y={q[1] - 26} width={tw} height={20} rx={4} style={{ fill }} />
+        <text x={q[0]} y={q[1] - 12} textAnchor="middle" className="dim-text" style={{ fill: '#ffffff' }}>{text}</text></g>);
     }
     const dr = drag.current;
     if (dr.mode === 'box' && dr.x0 !== undefined) {
