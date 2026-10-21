@@ -4968,3 +4968,28 @@ The GPU lane's G6 shows the analyses on the model as colour maps and lines. Only
   - An RHS member has none.
 - **Flow step "FRe …"**: through the chat, the member's first build applies; the nut's insert and snap are proposed and accepted; the mate is on `t1.under0`.
 - **Open**: end caps and brackets snap through the same ids and are not flow-tested here. Hardware sizes stay the library's estimates as it states them.
+
+## O121 — FRf: shared skeletons; a frame follows a skeleton or a sketch, kept live (2026-10-21)
+
+- **The model** (engine/doc.ts):
+  - A `skeleton` node holds points and straight segments, and makes no body.
+  - A frame's `follows: {skeleton: k} | {sketch: k}` gives it that source's points and segments at every evaluation (`frameGeometry`).
+  - A followed sketch gives its straight edges (a rectangle's four, a polygon's, an outline of lines) lifted by its plane, its parameters' values read at that evaluation.
+  - A frame keeps its own `points` and `segments` as a copy, set when it is added. They are not read for geometry: the kernel document, the body list, member notes and the edit fields all resolve the source.
+- **Live**:
+  - Editing the skeleton (or the sketch) moves every frame on it.
+  - A frame that follows has no point fields of its own (they are edited at the source); its corner choices use the followed points.
+  - A skeleton has point fields in the feature editor.
+  - The evaluation memo and the worker see the skeleton as a node, so no extra keying was needed.
+- **Typed refusals**, each naming the frames, never a silent break:
+  - Deleting a skeleton or sketch a frame follows is `FRAME_SKELETON_IN_USE` (deleteFeature, through `parentsOf`/`usesOf`).
+  - An edit of a followed skeleton that takes away a segment, or a point its segments use, is `FRAME_SKELETON_IN_USE` (edit_feature). Moving points and adding points and segments is fine.
+  - A frame following what is no skeleton or sketch is `FRAME_SKELETON_UNKNOWN` / `FRAME_SKETCH_UNKNOWN`. A curved sketch is `FRAME_SKETCH_CURVED`. Both are refused at add_features (checkNode) and at evaluation (engine/part.ts, for a document written by hand).
+  - A skeleton's segment naming a point it lacks is refused at the check, and `FRAME_SKELETON_POINT` at evaluation.
+- **The prompt** gains one line on skeletons and `follows`. Per turn 22,032 (+18).
+- **Closed forms** (package test frame-skeleton, 4 tests):
+  - Two frames on a 600 × 400 skeleton (sharp RHS 40 × 40 × 3 and 20 × 20 × 2, mitred) have members A · 600 and A · 400. Edited to 800 × 400, both follow. Adding a point and a segment adds a member to each.
+  - A frame on a 300 × 200 rectangle sketch on z = 100 sits on that plane; the sketch edited to 500 × 200, it follows.
+  - Every refusal above is tested.
+- **Flow step "FRf …"** through the chat: 8 members; the skeleton's points moved by a value edit (L2 applies it); the first member is 444 · 800 mm³; deleting the skeleton is refused and it stays.
+- **Open**: a sketch in another placed part (an instance) is not followed. That would be a reference across parts' documents, which neither the mates' faces nor the evaluation carry today. Followed sketches here are the same part's features, as the frame command's edge pick was.

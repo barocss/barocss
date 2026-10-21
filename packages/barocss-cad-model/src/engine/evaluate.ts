@@ -5,7 +5,7 @@ import { cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, c
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, toPartDocument } from './part';
-import { placedDoc, type BodyRef, type FrameSectionRow, type ModelNode, type Side, type StudioDoc } from './doc';
+import { frameSegmentCount, placedDoc, type BodyRef, type FrameSectionRow, type ModelNode, type Side, type StudioDoc } from './doc';
 import { bodyNodeOf } from './ids';
 
 /** A kernel output's body key and the node and side it is now. */
@@ -85,7 +85,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear, at.ref ? doc.nodes[at.ref.node] : undefined) } : {}), ...(o.worm ? { notes: [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] } : {}), ...(o.wormWheel ? { notes: wormWheelNotes(o.wormWheel) } : {}), ...(o.spring ? { notes: springNotes(o.spring) } : {}), ...(o.bevelGear ? { notes: [...bevelGearNotes(o.bevelGear, at.ref ? doc.nodes[at.ref.node] : undefined), ...bevelMeshNotes(o.bevelGearPlacement)], ...(o.bevelGear.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined), doc.frames?.sections), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
+  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear, at.ref ? doc.nodes[at.ref.node] : undefined) } : {}), ...(o.worm ? { notes: [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] } : {}), ...(o.wormWheel ? { notes: wormWheelNotes(o.wormWheel) } : {}), ...(o.spring ? { notes: springNotes(o.spring) } : {}), ...(o.bevelGear ? { notes: [...bevelGearNotes(o.bevelGear, at.ref ? doc.nodes[at.ref.node] : undefined), ...bevelMeshNotes(o.bevelGearPlacement)], ...(o.bevelGear.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined), doc.frames?.sections, doc.nodes), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
 }
 
 const AXES: [string, number[]][] = [['+X', [1, 0, 0]], ['−X', [-1, 0, 0]], ['+Y', [0, 1, 0]], ['−Y', [0, -1, 0]], ['+Z', [0, 0, 1]], ['−Z', [0, 0, -1]]];
@@ -95,14 +95,14 @@ const direction = (v: readonly number[]): string => AXES.find(([, a]) => a.every
  * A structural member's section, length and frame as lines for its panel (FR1, D123); the section fields still at the
  * palette's first-try values flagged as estimates (D122: no section data is built in).
  */
-function memberNotes(m: NonNullable<CadPartSnapshot['outputs'][number]['member']>, node: ModelNode | undefined, rows: readonly FrameSectionRow[] = []): { text: string; warning?: boolean }[] {
+function memberNotes(m: NonNullable<CadPartSnapshot['outputs'][number]['member']>, node: ModelNode | undefined, rows: readonly FrameSectionRow[] = [], nodesNow: readonly ModelNode[] = []): { text: string; warning?: boolean }[] {
   const mm = (x: number) => `${+x.toFixed(3)} mm`;
   // (A frame's member: its own section when an override gives one — no estimates then — else the frame's, FR2.)
   const own = node?.kind === 'frame' && m.frame ? node.overrides?.find(o => o.member === m.frame!.member)?.section : undefined;
   const section = own ?? (node?.kind === 'frame-member' || node?.kind === 'frame' ? node.section : undefined);
   const est = own ? [] : node?.kind === 'frame-member' || node?.kind === 'frame' ? node.estimates ?? [] : [], sec = (section ?? {}) as unknown as Record<string, unknown>;
   return [
-    ...(m.frame && node?.kind === 'frame' ? [{ text: `Frame member ${m.frame.member + 1} of ${node.segments.length}: point ${m.frame.from + 1} → point ${m.frame.to + 1}${m.mirrored ? ', mirrored' : ''}` }] : []),
+    ...(m.frame && node?.kind === 'frame' ? [{ text: `Frame member ${m.frame.member + 1} of ${frameSegmentCount(nodesNow, node)}: point ${m.frame.from + 1} → point ${m.frame.to + 1}${m.mirrored ? ', mirrored' : ''}` }] : []),
     { text: `Member: ${m.section} · section ${+m.areaMM2.toFixed(3)} mm² · length ${mm(m.lengthMM)}` },
     { text: `Line through its ${m.anchor}${m.offset[0] || m.offset[1] ? `, moved (${m.offset.map(x => +x.toFixed(3)).join(', ')})` : ''}; section x ${direction(m.xAxis)}, y ${direction(m.yAxis)}${m.rollDegrees ? ` (rolled ${+m.rollDegrees.toFixed(3)}°)` : ''}${m.upFallback ? `; the line runs along up, so y follows ${direction(m.upFallback)}` : ''}` },
     // (FRc, O117: a section from the library — its row, and where its sizes come from; an estimate row said as one.)
