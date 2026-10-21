@@ -92,6 +92,9 @@ test('G1 the renderer: an instance\'s meshes made once — a new selection, the 
   const perInstance = instances.map(i => i.bodies.length + i.bodies.filter(b => b.mesh.edgeLines.length).length);
   r.setInstances(items, []);
   assert.equal(log.added, perInstance[0] + perInstance[1]);
+  // (G2b: each instance surface's cap in its base colour, as the CPU's section painted an instance's cut face.)
+  const surfaces = (r as unknown as { instances: { surfaces: { capColor?: unknown }[] }[] }).instances.flatMap(i => i.surfaces);
+  assert.ok(surfaces.length && surfaces.every(m => JSON.stringify(m.capColor) === JSON.stringify([0.74, 0.75, 0.78])), JSON.stringify(surfaces.map(m => m.capColor)));
   const made = log.added, painted = log.colors;
   // A new selection, then the same bodies in new objects (a re-evaluation that changed nothing): nothing made, nothing repainted but the outline.
   r.setInstances(items, ['a']); r.setInstances(items.map(i => ({ id: i.id, bodies: i.bodies.map(b => ({ ...b })) })), ['a']);

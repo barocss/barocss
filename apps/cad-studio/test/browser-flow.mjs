@@ -201,6 +201,31 @@ try {
   const status = () => page.locator('.sk-status').first().innerText();
   const snap = (name) => page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-${name}.png`) });
   const iso = async () => { await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(400); };
+  /**
+   * G2: the open section as the GPU's clip plane draws it against the CPU's clipped and capped meshes (clipMesh), both
+   * through the same viewer, the exact section held back: the viewport's pixels that differ by more than 8 (|ΔR|+|ΔG|+|ΔB|),
+   * by more than 96 (`strong`: geometry — a cap, a silhouette, an edge line — not shading) and the largest difference. Both
+   * shots are kept. On WebGL2: the CPU's path, and no clip plane. (The strong ones are an edge-on cap strip and edge lines
+   * at the cut, at most 0.07 % when set; the faint ones the ground's shadow and occlusion, whose frame follows the scene's
+   * box — the CPU's path builds its ground from its clipped meshes a frame late — up to 4 % in one view, G2.)
+   */
+  const sectionAgainstCpu = async (name) => {
+    const s = await page.evaluate(() => window.__studioSection());
+    if (renderer === 'webgl2') { assert.equal(s.gpu, false, 'WebGL2 clips on the CPU'); assert.equal(s.clip, null); return null; }
+    assert.equal(s.gpu, true, 'WebGPU clips on the GPU'); assert.ok(s.clip, 'the clip plane set');
+    const shot = async cpu => { await page.evaluate(c => window.__studioSectionDebug({ hold: true, cpu: c }), cpu); await page.waitForTimeout(500); return page.locator('canvas.vp-canvas').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-${name}-${cpu ? 'cpu' : 'gpu'}.png`) }); };
+    const gpu = await shot(false), cpu = await shot(true);
+    const held = await page.evaluate(() => window.__studioSection());
+    await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false })); await page.waitForTimeout(300);
+    assert.equal(held.clip, null, 'the CPU path: no clip plane');
+    return page.evaluate(async ([a, b]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height); };
+      const A = await load(a), B = await load(b);
+      let n = 0, strong = 0, max = 0;
+      for (let k = 0; k < A.data.length; k += 4) { const d = Math.abs(A.data[k] - B.data[k]) + Math.abs(A.data[k + 1] - B.data[k + 1]) + Math.abs(A.data[k + 2] - B.data[k + 2]); if (d > 8) n++; if (d > 96) strong++; if (d > max) max = d; }
+      return { pixels: A.width * A.height, differ: n, strong, max };
+    }, [gpu.toString('base64'), cpu.toString('base64')]);
+  };
 
   await check('sketch on a side face cuts a window through; shapes inside a shape are holes', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
@@ -1301,6 +1326,8 @@ try {
     // The section view cuts the placed parts with the part.
     await page.click('[aria-label="Section view"]'); await page.waitForSelector('[data-handle="section"]', { timeout: 10000 });
     await page.click('[aria-label="Section across X"]'); await page.waitForTimeout(500); await snap('section-instances');
+    const g2 = await sectionAgainstCpu('section-instances');
+    if (g2) { console.log(`  G2 section with instances, GPU against CPU: ${JSON.stringify(g2)}`); assert.ok(g2.strong <= 0.001 * g2.pixels, `the GPU's section within 0.1 % of the CPU's pixels (by more than 96): ${JSON.stringify(g2)}`); }
     await page.click('[aria-label="Section view"]'); await page.waitForFunction(() => !document.querySelector('[data-handle="section"]'), null, { timeout: 5000 });
   });
 
@@ -1744,6 +1771,8 @@ try {
     await page.click('[aria-label="Section view"]');
     await page.waitForSelector('[data-handle="section"]', { timeout: 10000 });
     await page.waitForTimeout(600); await snap('section');
+    const g2 = await sectionAgainstCpu('section');
+    if (g2) { console.log(`  G2 section, GPU against CPU: ${JSON.stringify(g2)}`); assert.ok(g2.strong <= 0.001 * g2.pixels, `the GPU's section within 0.1 % of the CPU's pixels (by more than 96): ${JSON.stringify(g2)}`); }
     await page.click('[aria-label="Section across X"]'); await page.waitForTimeout(600);
     await page.click('[aria-label="Flip the section"]'); await page.waitForTimeout(600);
     // Dragging the plane: the clipped, capped meshes follow at once (the exact section after).
@@ -4542,6 +4571,12 @@ try {
     assert.equal(JSON.stringify((await doc()).instances), placed, 'a preview: the placements are not changed');
     assert.match(await page.locator('[aria-label="Joint a~b"]').innerText(), /180\.0 °/);
     await snap('rm2-posed');
+    // (G2: the posed arm sectioned — the plane in world space through the swung link, as the CPU's moved copies cut.)
+    await page.click('[aria-label="Section view"]'); await page.waitForSelector('[data-handle="section"]', { timeout: 10000 });
+    await page.click('[aria-label="Section across X"]'); await page.waitForTimeout(600); await snap('rm2-posed-section');
+    const g2 = await sectionAgainstCpu('rm2-posed-section');
+    if (g2) { console.log(`  G2 posed section, GPU against CPU: ${JSON.stringify(g2)}`); assert.ok(g2.strong <= 0.001 * g2.pixels, `the GPU's section within 0.1 % of the CPU's pixels (by more than 96): ${JSON.stringify(g2)}`); }
+    await page.click('[aria-label="Section view"]'); await page.waitForFunction(() => !document.querySelector('[data-handle="section"]'), null, { timeout: 5000 });
     await page.click('[aria-label="Joints home"]');
     await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'b').min[0] - 50) < 1e-3, null, { timeout: 10000 });
     // Played: the first arm swings by itself, then stopped.

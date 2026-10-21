@@ -5,8 +5,8 @@
 
 export const MAX_DIRECTIONAL = 4, MAX_POINT = 8, MAX_SPOT = 4;
 /** Byte sizes and offsets of the uniform blocks (kept with the WGSL below and packFrame in lights.ts). */
-export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96;
-export const OBJECT_BYTES = 176, OBJECT_STRIDE = 256;
+export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 32;
+export const OBJECT_BYTES = 192, OBJECT_STRIDE = 256;
 
 const common = /* wgsl */ `
 struct DirLight { direction: vec4f, color: vec4f }
@@ -34,6 +34,10 @@ struct Frame {
   invViewProj: mat4x4f,
   grid: vec4f,
   gridColor: vec4f,
+  // The clip plane (G2): what is drawn of a mesh it clips is where dot(clip.xyz, world) >= clip.w; the cap colour
+  // (linear), w 1 while a plane is set (0: none).
+  clip: vec4f,
+  clipColor: vec4f,
 }
 struct Object {
   model: mat4x4f,
@@ -41,12 +45,16 @@ struct Object {
   color: vec4f,
   params: vec4f,
   pick: vec4u,
+  // Its cap's colour (linear; w 1 when set, else the frame's), times its material colour (G2b).
+  cap: vec4f,
 }
 @group(0) @binding(0) var<uniform> frame: Frame;
 @group(0) @binding(1) var shadowMap: texture_depth_2d;
 @group(0) @binding(2) var shadowSampler: sampler_comparison;
 @group(0) @binding(3) var envMap: texture_2d<f32>;
 @group(0) @binding(4) var envSampler: sampler;
+// The nearest kept front surface's depth per pixel (G2: drawn first while a clip plane caps something; 0 none).
+@group(0) @binding(5) var capFront: texture_2d<f32>;
 /** The environment map (equirectangular, Z up) in a direction, at a mip level. */
 fn envAt(d: vec3f, lod: f32) -> vec3f {
   let u = atan2(d.y, d.x) / 6.2831853 + 0.5;
@@ -57,6 +65,35 @@ fn envAt(d: vec3f, lod: f32) -> vec3f {
 /** Every surface draw is instanced (a plain mesh: one identity instance): a transform and colour each. */
 struct Instance { @location(3) c0: vec4f, @location(4) c1: vec4f, @location(5) c2: vec4f, @location(6) c3: vec4f, @location(7) color: vec4f }
 fn instanceMatrix(i: Instance) -> mat4x4f { return mat4x4f(i.c0, i.c1, i.c2, i.c3); }
+/** Whether a world point is on the side the clip plane cuts away, for a mesh it clips (object.pick.z bit 1). */
+fn clippedAway(world: vec3f) -> bool {
+  return frame.clipColor.w > 0.5 && (object.pick.z & 2u) != 0u && dot(frame.clip.xyz, world) < frame.clip.w;
+}
+/**
+ * The cap behind a kept back face: where the eye's ray to it crosses the clip plane, if it crosses it before reaching it
+ * (the ray came in through the cut), as the point (w 1) — else w 0. Orthographic rays come from behind the eye.
+ */
+fn capPoint(world: vec3f) -> vec4f {
+  let dir = select(frame.forward.xyz, world - frame.eye.xyz, frame.eye.w > 0.5);
+  let den = dot(frame.clip.xyz, dir);
+  if (den <= 0.0) { return vec4f(0.0); }
+  let s = (dot(frame.clip.xyz, world) - frame.clip.w) / den;
+  if (s < 0.0 || (frame.eye.w > 0.5 && s >= 1.0)) { return vec4f(0.0); }
+  return vec4f(world - dir * s, 1.0);
+}
+/**
+ * Whether a back face's fragment is behind a kept front surface: then its ray came into the solid through that surface,
+ * after crossing the plane outside it, and no cap is there (reversed depth: larger is nearer).
+ */
+fn capHidden(pos: vec4f) -> bool { return textureLoad(capFront, vec2i(pos.xy), 0).r > pos.z + 1e-7; }
+/** The reversed depth of a cap point, or −1 when it is not in the view's depth range. */
+fn capDepth(q: vec4f) -> f32 {
+  if (q.w < 0.5) { return -1.0; }
+  let c = frame.viewProj * vec4f(q.xyz, 1.0);
+  if (c.w <= 0.0) { return -1.0; }
+  let z = c.z / c.w;
+  return select(-1.0, z, z >= 0.0 && z <= 1.0);
+}
 /** Normals through an instance transform: the cofactor of its 3×3 (any invertible transform). */
 fn instanceNormal(i: Instance, n: vec3f) -> vec3f {
   let a = i.c0.xyz; let b = i.c1.xyz; let c = i.c2.xyz;
@@ -136,15 +173,22 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
 @fragment fn fsLit(in: VOut, @builtin(front_facing) front: bool) -> @location(0) vec4f {
   let texel = textureSample(map, mapSampler, in.uv);
   let alpha = in.color.a * texel.a;
+  if (clippedAway(in.world)) { discard; }
   // Alpha cutout (pick.w: the cutoff × 1000; 0 off).
   if (object.pick.w > 0u && alpha < f32(object.pick.w) / 1000.0) { discard; }
   var n = normalize(in.normal);
   if (!front) { n = -n; }
-  // Perspective: toward the eye; orthographic: against the view direction.
-  let v = select(-frame.forward.xyz, normalize(frame.eye.xyz - in.world), frame.eye.w > 0.5);
   let base = in.color.rgb * texel.rgb * shaderColor(in.uv, in.world, n);
-  let metallic = clamp(object.params.x, 0.0, 1.0);
-  let rough = clamp(object.params.y, 0.04, 1.0);
+  let c = shade(in.world, n, base, object.params.x, object.params.y, object.params.z, (object.pick.z & 1u) == 1u);
+  return vec4f(c * alpha, alpha);
+}
+
+/** Lit colour of a point: ambient (hemisphere or environment map), its reflection, emission, and every light. */
+fn shade(world: vec3f, n: vec3f, base: vec3f, metallicIn: f32, roughIn: f32, emissive: f32, receive: bool) -> vec3f {
+  // Perspective: toward the eye; orthographic: against the view direction.
+  let v = select(-frame.forward.xyz, normalize(frame.eye.xyz - world), frame.eye.w > 0.5);
+  let metallic = clamp(metallicIn, 0.0, 1.0);
+  let rough = clamp(roughIn, 0.04, 1.0);
   let a = rough * rough;
   let hemi = dot(n, frame.up.xyz) * 0.5 + 0.5;
   var ambient = mix(frame.ground.rgb * frame.ground.w, frame.sky.rgb * frame.sky.w, hemi);
@@ -160,16 +204,16 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
   var reflected = mix(mix(frame.ground.rgb * frame.ground.w, frame.sky.rgb * frame.sky.w, skyward), ambient, rough);
   if (frame.up.w > 0.0) { reflected = envAt(mirrored, rough * frame.forward.w) * frame.up.w; }
   let fresnel = f0 + (max(vec3f(1.0 - rough), f0) - f0) * pow(1.0 - nov, 5.0);
-  var c = ambient * base * (1.0 - metallic) + reflected * fresnel + object.params.z * base;
+  var c = ambient * base * (1.0 - metallic) + reflected * fresnel + emissive * base;
   for (var i = 0u; i < frame.counts.x; i++) {
     let d = frame.dirs[i];
     var lit = 1.0;
-    if (frame.counts.w == i + 1u && object.pick.z == 1u) { lit = shadowAt(in.world, n); }
+    if (frame.counts.w == i + 1u && receive) { lit = shadowAt(world, n); }
     c += brdf(n, v, normalize(-d.direction.xyz), base, metallic, a) * d.color.rgb * d.color.w * PI * lit;
   }
   for (var i = 0u; i < frame.counts.y; i++) {
     let p = frame.points[i];
-    let to = p.position.xyz - in.world;
+    let to = p.position.xyz - world;
     let dist = length(to);
     var fall = 1.0 / max(dist * dist, 1e-4);
     if (p.position.w > 0.0) { let q = clamp(1.0 - pow(dist / p.position.w, 4.0), 0.0, 1.0); fall *= q * q; }
@@ -177,7 +221,7 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
   }
   for (var i = 0u; i < frame.counts.z; i++) {
     let s = frame.spots[i];
-    let to = s.position.xyz - in.world;
+    let to = s.position.xyz - world;
     let dist = length(to);
     let l = to / max(dist, 1e-6);
     let cone = smoothstep(s.cone.y, s.cone.x, dot(-l, normalize(s.direction.xyz)));
@@ -185,17 +229,37 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
     if (s.position.w > 0.0) { let q = clamp(1.0 - pow(dist / s.position.w, 4.0), 0.0, 1.0); fall *= q * q; }
     c += brdf(n, v, l, base, metallic, a) * s.color.rgb * s.color.w * fall * PI;
   }
-  return vec4f(c * alpha, alpha);
+  return c;
+}
+
+// The clip plane's cap (G2): a kept back face seen through the cut, drawn where the eye's ray crosses the plane, in the
+// cap colour, lit as a face on the plane facing the cut-away side (the mesh's metal and roughness; flat when unlit).
+struct CapOut { @location(0) color: vec4f, @builtin(frag_depth) depth: f32 }
+@fragment fn fsCap(in: VOut) -> CapOut {
+  if (clippedAway(in.world) || capHidden(in.clip)) { discard; }
+  let q = capPoint(in.world);
+  let z = capDepth(q);
+  if (z < 0.0) { discard; }
+  let n = -normalize(frame.clip.xyz);
+  let base = select(frame.clipColor.rgb, object.cap.rgb * object.color.rgb, object.cap.w > 0.5);
+  var c = base;
+  if (object.params.w < 0.5) { c = shade(q.xyz, n, base, object.params.x, object.params.y, 0.0, (object.pick.z & 1u) == 1u); }
+  var o: CapOut;
+  o.color = vec4f(c, 1.0);
+  o.depth = z;
+  return o;
 }
 
 @fragment fn fsUnlit(in: VOut) -> @location(0) vec4f {
   let texel = textureSample(map, mapSampler, in.uv);
   let a = in.color.a * texel.a;
+  if (clippedAway(in.world)) { discard; }
   if (object.pick.w > 0u && a < f32(object.pick.w) / 1000.0) { discard; }
   return vec4f(in.color.rgb * texel.rgb * shaderColor(in.uv, in.world, normalize(in.normal)) * a, a);
 }
 // A shadow catcher: only the shadow of the casting light, in the material colour, as dark as its opacity.
 @fragment fn fsShadow(in: VOut) -> @location(0) vec4f {
+  if (clippedAway(in.world)) { discard; }
   var lit = 1.0;
   if (frame.counts.w > 0u) { lit = shadowAt(in.world, normalize(in.normal)); }
   let a = (1.0 - lit) * in.color.a;
@@ -205,11 +269,13 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
 
 /** Lines as screen-space quads, one instance per segment: width in device pixels (object.params.x). */
 export const lineWGSL = common + /* wgsl */ `
-struct LOut { @builtin(position) clip: vec4f, @location(0) color: vec4f }
+struct LOut { @builtin(position) clip: vec4f, @location(0) color: vec4f, @location(1) world: vec3f }
 @vertex fn vs(@builtin(vertex_index) vi: u32, @location(0) a: vec3f, @location(1) b: vec3f, @location(2) ca: vec4f, @location(3) cb: vec4f) -> LOut {
   var o: LOut;
-  var pa = frame.viewProj * object.model * vec4f(a, 1.0);
-  var pb = frame.viewProj * object.model * vec4f(b, 1.0);
+  let wa = object.model * vec4f(a, 1.0);
+  let wb = object.model * vec4f(b, 1.0);
+  var pa = frame.viewProj * wa;
+  var pb = frame.viewProj * wb;
   // Clip to the space in front of the eye before dividing.
   let eps = 1e-6;
   if (pa.w < eps && pb.w < eps) { o.clip = vec4f(0.0, 0.0, -1.0, 1.0); return o; }
@@ -230,9 +296,13 @@ struct LOut { @builtin(position) clip: vec4f, @location(0) color: vec4f }
   let off = (nrm * c.y + dir * (c.x * 2.0 - 1.0)) * w / half * p.w;
   o.clip = vec4f(p.xy + off, p.zw);
   o.color = select(ca, cb, c.x > 0.5) * object.color;
+  o.world = select(wa.xyz, wb.xyz, c.x > 0.5);
   return o;
 }
-@fragment fn fs(in: LOut) -> @location(0) vec4f { return vec4f(in.color.rgb * in.color.a, in.color.a); }
+@fragment fn fs(in: LOut) -> @location(0) vec4f {
+  if (clippedAway(in.world)) { discard; }
+  return vec4f(in.color.rgb * in.color.a, in.color.a);
+}
 `;
 
 /** The ground grid: the plane through the up axis at the grid height, ray-cast per pixel. */
@@ -290,17 +360,47 @@ fn axisLine(x: f32) -> f32 { return 1.0 - min(abs(x) / max(fwidth(x), 1e-6) / 1.
 `;
 
 export const pickWGSL = common + /* wgsl */ `
-struct POut { @builtin(position) clip: vec4f, @location(0) @interpolate(flat) instance: u32 }
+struct POut { @builtin(position) clip: vec4f, @location(0) @interpolate(flat) instance: u32, @location(1) world: vec3f }
 struct Ids { @location(0) id: u32, @location(1) depth: f32, @location(2) instance: u32 }
 @vertex fn vs(@location(0) position: vec3f, inst: Instance, @builtin(instance_index) ii: u32) -> POut {
   var o: POut;
-  o.clip = frame.viewProj * object.model * instanceMatrix(inst) * vec4f(position, 1.0);
+  let world = object.model * instanceMatrix(inst) * vec4f(position, 1.0);
+  o.clip = frame.viewProj * world;
   o.instance = ii;
+  o.world = world.xyz;
   return o;
 }
-@fragment fn fs(in: POut) -> Ids { return Ids(object.pick.x, in.clip.z, in.instance); }
+@fragment fn fs(in: POut) -> Ids {
+  if (clippedAway(in.world)) { discard; }
+  return Ids(object.pick.x, in.clip.z, in.instance);
+}
 // The outline mask: which outline (1-based; 0 none) covers each visible pixel.
-@fragment fn fsMask(in: POut) -> @location(0) u32 { return object.pick.y; }
+@fragment fn fsMask(in: POut) -> @location(0) u32 {
+  if (clippedAway(in.world)) { discard; }
+  return object.pick.y;
+}
+// The nearest kept front surface's depth (capFront, read by the caps).
+@fragment fn fsFront(in: POut) -> @location(0) f32 {
+  if (clippedAway(in.world)) { discard; }
+  return in.clip.z;
+}
+// The shadow map: depth only, less what the clip plane cuts away.
+@fragment fn fsDepth(in: POut) { if (clippedAway(in.world)) { discard; } }
+// The cap in the pick and the outline mask (G2): at the plane's depth, as fsCap draws it.
+struct CapIds { @location(0) id: u32, @location(1) depth: f32, @location(2) instance: u32, @builtin(frag_depth) z: f32 }
+@fragment fn fsCapPick(in: POut) -> CapIds {
+  if (clippedAway(in.world) || capHidden(in.clip)) { discard; }
+  let z = capDepth(capPoint(in.world));
+  if (z < 0.0) { discard; }
+  return CapIds(object.pick.x, z, in.instance, z);
+}
+struct CapMask { @location(0) id: u32, @builtin(frag_depth) z: f32 }
+@fragment fn fsCapMask(in: POut) -> CapMask {
+  if (clippedAway(in.world) || capHidden(in.clip)) { discard; }
+  let z = capDepth(capPoint(in.world));
+  if (z < 0.0) { discard; }
+  return CapMask(object.pick.y, z);
+}
 `;
 
 /**

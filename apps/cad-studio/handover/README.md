@@ -45,8 +45,8 @@ lane for it). The R12b → next block is kept as history.
 **The kernel-lane queue** (the coordinator's order)
 1. ~~The hole-after-union refusal~~ — **done: D148, 2026-10-21** (the hole takes the picked face by name; the repro in `test/known-bugs.test.ts` is a passing test now).
 2. ~~A face split along a curve or an isocline~~ — **done: D149, 2026-10-21** (`splitFaceAlongCurve(brep, face, curves)` and `splitFaceAlongIsocline(brep, face, pull)` on the Boolean's own face cutting, pieces `<face>#k` with their `side`; `surfaceIsoclines` exported; the part feature `split-face`; conformance `sf/`). Wiring it into `mould/parting.ts` is the outer lane's (O81).
-3. The analytic Boolean's "inputs touch along an edge" refusal on a 16/20 bevel pair 6° off (D134).
-4. STEP export performance for many-face bodies (the throated wheel's 724 faces about 15 s, all tessellation; D137, D138).
+3. ~~The analytic Boolean's "inputs touch along an edge" refusal on a 16/20 bevel pair 6° off~~ — **done: D150, 2026-10-21** (fixed: a general face's domain map of an edge across C0 knots — the edge's and the surface's — taken piece by piece; the cropped corner as `test/d150-bevel-pair.test.mjs` and conformance `bp/`; the whole pair at 3–9° under `GEAR_SURVEY=1`).
+4. ~~STEP export performance for many-face bodies~~ — **done: D151, 2026-10-21** (the export tessellated only for its bounding-box validation property: now taken without a mesh, exact on whole patches; the 724-face wheel 19.7 s → 2.2 s, the rest the mass quadrature of its 180 trimmed tori; a Boolean result's many-piece edges proposed as a follow-up).
 5. Then R12c's stages as D139 froze them (R12c.1a springs first).
 
 **Rules that came up since the R12b → next block** (all standing):
@@ -57,7 +57,7 @@ lane for it). The R12b → next block is kept as history.
 **How to resume**
 1. Read this block, then D139 (R12c) and D140–D147 (track K) in `decisions.md`.
 2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`); `pnpm build:library` in `packages/barocss-cad` before kernel tests; the flow with `CAD_STUDIO_CHAT_PORT=52491`, on its own; RB by `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record` then `scripts/rb/props.mjs --record`.
-3. Each step: a D-record (the next is D150), tests failing on the previous HEAD, conformance where it fits, the tier's checks, a §0 row, a commit, RB rows at T2/T3, a checkpoint to the coordinator; then end the turn and wait.
+3. Each step: a D-record (the next is D152), tests failing on the previous HEAD, conformance where it fits, the tier's checks, a §0 row, a commit, RB rows at T2/T3, a checkpoint to the coordinator; then end the turn and wait.
 
 ### Kernel lane: hand-over at the R12b → next boundary (2026-10-21) (history: track K is done, see the block above)
 
@@ -527,6 +527,18 @@ Done:
    - **Track K (kernel lane)**, generic geometry moved down from the studio: K1 hull + GJK; K2 one `triangleBvh(positions, indices)` with ray/nearest (supersedes the studio dual-tree, withdrawn 2026-10-21); K3 exact `meshClearance` + one point–triangle; K4 `closestPointOnSurface`; K5 polygon section properties, 3×3 symmetric eigen, `meshVolume`; K6 voxel SDF + marching tetrahedra; K7 curve-fit equivalence.
    - **Kernel-lane requests from the outer lane** (queued 2026-10-21): the hole-after-union refusal (repro `apps/cad-studio/test/fixtures/hole-after-union.calls.json`, a `todo` test); `splitFaceAlongCurve` / an isocline split for IM5's two-half parting; the analytic Boolean's "inputs touch along an edge" refusal on a 16/20 bevel pair 6° off (D134).
 
+5. **FR completion** (owner, 2026-10-21: "FR 에서 1, 2, 3, 모두 하고 그 밖에 남은 것도 하고" — every item of the FR hand-over's "For the owner: not in FR" list, plus what FR left). By lane (the coordinator's split; each track gets an S0 first):
+   - **Outer lane** (after IM7b), model, drawing and library work: weld metadata and weld symbols on drawings (FR6); stock nesting, i.e. 1D cutting optimisation of members into stock lengths from a user-loaded stock list (FR6); a user's section library and its editor (nothing built in, by the owner's rule, D122); shared skeletons (one skeleton driving several frames, a frame following another part's sketch); T-slot hardware as library parts placed on T-slot members (FR5; dimensions user-loaded or sourced per page, never built-in tables); the A4 cut-list placement fix (D128); the 3D skeleton sketch's model (points, segments, 3D constraints) for the GPU lane's viewport tool.
+   - **Kernel lane** (after queue items 3–4 and R12c): gussets, end caps and weld beads (FR6 geometry); tapered-flange channels and I/H beams; members along arcs (bent or curved); weld end gaps and tube-to-tube saddle notches other than a full cope; the 7.5 s round-cornered ordered trim's speed (D126); also the SubD cap-boundary display folds (D79 TODO, 14–38°, 88.6° on the pipe clamp).
+   - **GPU lane**: the 3D skeleton sketch's viewport tool (drawing points and segments in 3D, snapping, constraint handles) on the outer lane's model.
+6. **GPU track** (owner, 2026-10-21: "GPU 로드맵은 이야기한 것들 다 해줘"). The GPU lane, `handover/decisions-gpu.md` (G-ids), packages/barocss-gpu plus the studio's viewport glue; design input the GPU review session's code and docs surveys (2026-10-21, relayed by the coordinator). Order:
+   - G1 posed/exploded instances by mesh transform (done); G2 a GPU clip plane with a cut cap, honoured by pick, snap, measure and hover (in progress).
+   - Correctness and measurement: G3 depth-aware edge picking (`pickLine` ignores occluding surfaces, viewer.ts:1212); G4 bench scenarios with budgets (joint play, explode, section drag, a large assembly, a point cloud; GPU ms budgeted); G5 re-verify the old review's open points (CAD→GPU axis convention, sRGB, NaN through `mesh-packet.ts` array(), GLSL/WGSL coefficient parity).
+   - Analyses on screen: G6 per-vertex scalar colour maps with a legend (IM2 draft, IM4 thickness, CNC access) and parting lines/isoclines as 3D lines, the IM7 mould halves' display; G7 the SVG overlays into engine line meshes, depth-tested (DXF underlay, measure, bbox, SubD poles); G8 a point/sprite primitive (RM9b workspace voxels).
+   - Large assemblies: G9 scene-level pick acceleration (a top-level BVH); G10 copies turned about Z sharing one tessellation (P6).
+   - Quality: G11 order-independent (or depth-peeled) transparency for ghosted bodies; G12 the proposal's added/removed two-colour overlay (D40); G13 hygiene (per-frame allocations, the outline mask pass, optional uv).
+   - Then: G14 display LOD for 1M-triangle meshes (measure first with G4's benches); G15 3D text labels (SDF atlas); G16 WebGL2 parity (curves and surfaces, a dragged body's turn); G17 the 3D skeleton sketch tool (item 5); G18 the docs items deferred earlier (WebGPU shader demo hosts with repeating-UV materials lowered to WGSL, docs screenshots, gpu `test:consumer`, the gpu bundle's CAD externalisation), last, unless the owner keeps them deferred.
+
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 
 ### Outer lane (owner, 2026-10-19: a second implementation session; the coordinator merges it into this branch)
@@ -745,6 +757,18 @@ acceleration → benches.
   instance, moved with it. Bench rows `pose:` and `explode:` in `bench:browser`: a played joint 35.8 → 3.1 KiB uploaded
   and 1 116 → 0 buffers made; a 120-bracket explode drag 2 MiB → 62 KiB a frame, 35 280 → 0 buffers, task 22.3 → 13.3 ms
   a frame. Checks: studio 787/787; T2 full flow 217/217; posed/exploded/sectioned frames within 16 (ΣRGB) of the CPU path's on ≤ 75 pixels.
+- **G2** (2026-10-21): done. The section view while its plane moves on the GPU: `Viewer.clipPlane` (a frame-block plane,
+  discarded in the surface, line, pick, outline-mask and shadow passes), a cap from back faces seen through the cut at the
+  plane's depth (a front-depth prepass keeps it off kept faces), `raycast`/`pick`/`pickLine` honouring it (`PickHit.cap`);
+  the studio's bodies and instances shown whole and cut by it (`viewport/sectionView.ts`), the exact section still replacing
+  the bodies; WebGL2 keeps clipMesh (pinned). Bench `section:` rows: 120 brackets, 2.3 KiB and 0 buffers a frame against
+  clipMesh's 190 KiB and 2 706. Against the CPU's section through one viewer, ≤ 0.07 % of pixels differ by more than 96.
+- **G2b** (2026-10-21): done. Each mesh's cap in its own colour (`Mesh.capColor`, times its material colour): the bodies'
+  as the CPU painted their cut faces, the instances' their base colour.
+- **G3** (2026-10-21): done. `pickLine` passes over a segment whose nearest point a visible opaque surface hides (the
+  eye's ray, the clip plane and caps honoured, a pixel and a half of slack); `throughSurfaces` keeps the old search. The
+  studio's edge and curve picks take it. Against the GPU's depth at 300 random pointers: nothing behind, nothing shown
+  missed.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

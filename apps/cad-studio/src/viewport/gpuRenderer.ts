@@ -4,7 +4,7 @@
 // selected bodies an outline; ghost bodies are see-through. Picking is on the CPU (synchronous for hover).
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
-import { createViewer, multiply, rotation, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
+import { clipBox, createViewer, multiply, rotation, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
 import { curvature, overhang, zebra, type Analysis } from './analysis';
 import { faceRuns, paintFaces, type FaceRuns, type Painted } from './facePaint';
 
@@ -15,7 +15,7 @@ import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@b
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
-import type { EdgeRef, FaceRef, InstanceItem, ThemeName, ViewRenderer, ViewState } from './renderer';
+import type { EdgeRef, FaceRef, InstanceItem, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
 
 /** Device pixels per CSS pixel, up to 3 (a high-density screen with the page zoomed in). */
 const pixelRatio = () => Math.min(3, Math.max(1, globalThis.devicePixelRatio || 1));
@@ -86,6 +86,8 @@ export class GpuRenderer implements ViewRenderer {
   private instances: PlacedInstance[] = [];
   /** The instances shown moved (posed, exploded): a matrix each on their meshes (G1). */
   private poses: ReadonlyMap<string, Float64Array> | null = null;
+  /** The section's clip plane (G2), or none. */
+  private clip: SectionClip | null = null;
   private instanceSelection: readonly string[] = [];
   /** Instances' display meshes (for the face under a pick). */
   private instanceMeshes = new Map<string, DisplayMesh[]>();
@@ -114,6 +116,8 @@ export class GpuRenderer implements ViewRenderer {
   setTheme(name: ThemeName): void {
     this.theme = THEMES[name];
     this.applyLook();
+    // (The cap takes the theme's colour.)
+    if (this.clip) this.setClip(this.clip);
   }
 
   /** Render settings (the Render workspace), or null for the modelling look. */
@@ -158,14 +162,50 @@ export class GpuRenderer implements ViewRenderer {
       return this.makeBody(result, sigs[bi]);
     });
     for (const list of pool.values()) for (const b of list) { b.surface.remove(); b.edges?.remove(); this.dropHighlight(b); b.geometries.forEach(g => g.dispose()); }
-    this.ground?.remove(); this.ground?.geometry.dispose(); this.ground = null;
-    const b = this.bounds();
-    if (b) {
-      const cx = (b.min[0] + b.max[0]) / 2, cy = (b.min[1] + b.max[1]) / 2, r = Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]) * 1.5 + 20, z = b.min[2] - 0.02;
-      this.ground = this.viewer.add({ positions: [cx - r, cy - r, z, cx + r, cy - r, z, cx + r, cy + r, z, cx - r, cy + r, z], normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], indices: [0, 1, 2, 0, 2, 3] },
-        { material: { shadowOnly: true, opacity: this.settings ? 0.55 : this.theme.shadow }, pickable: false, castShadow: false, visible: this.settings ? this.settings.environment.ground : true });
-    }
+    this.placeGround();
+    this.applyClip();
     this.viewer.requestRender();
+  }
+
+  /**
+   * The section's clip plane (G2): the viewer's plane; each mesh's cap in its own colour (G2b: set where it is painted),
+   * the theme's base mixed with the accent where none is; the part's bodies cut by it only while their exact section is not
+   * shown.
+   */
+  setClip(clip: SectionClip | null): void {
+    this.clip = clip;
+    // (The ground under what is shown, as the CPU's clipped bodies put it.)
+    this.placeGround();
+    this.viewer.clipPlane = clip ? { normal: clip.normal, offset: clip.offset, cap: mix(this.theme.base, ACCENT, 0.42) } : null;
+    this.applyClip();
+    this.viewer.requestRender();
+  }
+  /**
+   * Which meshes the plane cuts, as the CPU section cut them: the bodies' surfaces, edges and highlights (while not exact)
+   * and the placed parts' surfaces, edges and rings, their surfaces capped; nothing else (the ground, direct objects,
+   * regions, rings, props).
+   */
+  private applyClip(): void {
+    if (!this.clip) return;
+    const bodies = this.clip.bodies, cut = new Set<Mesh>();
+    for (const b of this.bodies) for (const m of [b.surface, b.edges, b.highlight]) if (m) { m.clipped = bodies; cut.add(m); }
+    for (const b of this.bodies) b.surface.cap = true;
+    for (const it of this.instances) { for (const m of [...it.surfaces, ...it.edges, ...(it.threads ? [it.threads] : [])]) { m.clipped = true; cut.add(m); } for (const m of it.surfaces) m.cap = true; }
+    for (const m of this.viewer.meshList) if (!cut.has(m)) m.clipped = false;
+  }
+
+  /**
+   * The shadow catcher under the bodies (and the placed parts), 1.5 times their spread and 20 mm more each way, just
+   * below them: one unit square made once, placed by its transform (G2: it follows the section's cut without a new mesh).
+   */
+  private placeGround(): void {
+    const b = this.bounds();
+    if (!b) { if (this.ground) this.ground.visible = false; return; }
+    const cx = (b.min[0] + b.max[0]) / 2, cy = (b.min[1] + b.max[1]) / 2, r = Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]) * 1.5 + 20, z = b.min[2] - 0.02;
+    this.ground ??= this.viewer.add({ positions: [-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], indices: [0, 1, 2, 0, 2, 3] },
+      { material: { shadowOnly: true, opacity: this.settings ? 0.55 : this.theme.shadow }, pickable: false, castShadow: false, clipped: false });
+    place(this.ground, [r, 0, 0, 0, 0, r, 0, 0, 0, 0, 1, 0, cx, cy, z, 1]);
+    this.ground.visible = this.settings ? this.settings.environment.ground : true;
   }
 
   private makeBody(result: BodyResult, sig: string): Body {
@@ -243,6 +283,8 @@ export class GpuRenderer implements ViewRenderer {
       if (state === b.state) return;
       b.state = state;
       this.paint(b, faceState, view.bodyColors?.get(bi), faces);
+      // (Its cap as the CPU's section painted its cut face: selected, the body's own colour or the base mixed with the accent; G2b.)
+      b.surface.capColor = mix(this.settings ? [1, 1, 1] : view.bodyColors?.get(bi) ?? this.theme.base, ACCENT, 0.42);
       this.dropHighlight(b);
       if (edgeState.size) {
         const L = b.result.mesh.edgeLines, E = b.result.mesh.edgeOfSegment, pts: number[] = [], colors: number[] = [];
@@ -268,6 +310,7 @@ export class GpuRenderer implements ViewRenderer {
       for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = moved;
       if (b.edges) { b.edges.material = { opacity: ghost ? 0.35 : 0.9 }; b.edges.pickable = !ghost && !hidden; b.edges.visible = !hidden && (this.settings ? this.settings.environment.edges : true); }
     });
+    this.applyClip();
   }
 
   private dropHighlight(b: Body): void {
@@ -335,17 +378,19 @@ export class GpuRenderer implements ViewRenderer {
   bounds(): { min: Vec3; max: Vec3 } | null {
     if (!this.bodies.length && !this.direct.length && !this.instances.length) return null;
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
-    for (const b of this.bodies) grow(min, max, b.result.mesh.bounds);
+    // (Cut by the section's plane where it cuts them, as the CPU's clipped meshes' boxes are: the ambient occlusion and the fit follow it.)
+    const c = this.clip;
+    for (const b of this.bodies) { const x = c?.bodies ? clipBox(b.result.mesh.bounds, c) : b.result.mesh.bounds; if (x) grow(min, max, x); }
     for (const d of this.direct) { const b = d.mesh.bounds; if (b) grow(min, max, b); }
-    for (const it of this.instances) for (const m of it.surfaces) { const b = m.bounds; if (b) grow(min, max, b); }
-    return { min, max };
+    for (const it of this.instances) for (const m of it.surfaces) { const b = c ? clipBox(m.bounds, c) : m.bounds; if (b) grow(min, max, b); }
+    return min[0] <= max[0] ? { min, max } : null;
   }
 
   /** Cosmetic threads: thin rings in the edge colour, a little faded. */
   setThreads(lines: Float32Array): void {
     if (this.threads) { this.threads.remove(); this.threads.geometry.dispose(); this.threads = null; }
     if (lines.length) this.threads = this.viewer.add({ positions: lines, topology: 'lines' }, { material: { color: this.theme.edge, unlit: true, lineWidth: 1, opacity: 0.55 }, pickable: false, castShadow: false });
-    this.viewer.requestRender();
+    this.applyClip(); this.viewer.requestRender();
   }
 
   /**
@@ -395,7 +440,7 @@ export class GpuRenderer implements ViewRenderer {
       this.regions.push(this.viewer.add({ positions: mesh.positions, normals: mesh.normals, indices: mesh.indices }, { material: { color: '#4aa8ff', roughness: 0.6, opacity: 0.22, doubleSided: true }, pickable: false, castShadow: false }));
       this.regions.push(this.viewer.add({ positions: mesh.rims, topology: 'lines' }, { material: { color: '#6cbcff', unlit: true, lineWidth: 1.4, opacity: 0.9 }, pickable: false, castShadow: false }));
     }
-    this.viewer.requestRender();
+    this.applyClip(); this.viewer.requestRender();
   }
 
   /** Direct geometry: surfaces as two-sided meshes, curves as lines; the selected ones outlined with their control nets. */
@@ -413,7 +458,7 @@ export class GpuRenderer implements ViewRenderer {
       if (on && it.isos?.length) this.controls.push(this.viewer.add({ positions: it.isos, topology: 'lines' }, { material: { color: '#f3f5f7', unlit: true, lineWidth: 1, opacity: 0.55 }, pickable: false, castShadow: false }));
       if (on && it.controls.length) this.controls.push(this.viewer.add({ positions: it.controls, topology: 'lines' }, { material: { color: '#c9a3ff', unlit: true, lineWidth: 1.2 }, pickable: false, castShadow: false }));
     }
-    this.viewer.requestRender();
+    this.applyClip(); this.viewer.requestRender();
   }
 
   /**
@@ -431,7 +476,7 @@ export class GpuRenderer implements ViewRenderer {
     });
     for (const it of had.values()) this.dropInstance(it);
     this.instanceSelection = selected;
-    this.paintInstances(); this.placePreview();
+    this.paintInstances(); this.placePreview(); this.applyClip();
   }
 
   private makeInstance(it: InstanceItem, sigs: string[]): PlacedInstance {
@@ -467,6 +512,8 @@ export class GpuRenderer implements ViewRenderer {
         const mesh = this.instanceMeshes.get(it.id)?.[bi];
         if (!mesh) return;
         const base: Vec3 = look ? [1, 1, 1] : this.theme.base, on = mix(base, ACCENT, 0.42), picked = new Set(this.instanceFaces.filter(f => f.id === it.id && f.body === bi).map(f => f.face));
+        // (Its cap as the CPU's section painted it: an instance's cut face was never selected, the base colour; G2b.)
+        m.capColor = base;
         // (The same colours on the same mesh as last time: nothing written. A new selection repaints none of them.)
         const key = JSON.stringify([base, [...picked]]);
         if (this.instancePainted.get(m)?.mesh === mesh && this.instancePainted.get(m)?.key === key) return;

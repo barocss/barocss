@@ -1,0 +1,150 @@
+{
+  "id": "bp-bevel-6deg-corner",
+  "step": "BP",
+  "decisions": [
+    "D134",
+    "D150"
+  ],
+  "about": "The 16/20 straight bevel pair turned 6° off, each gear cropped to a 1.6 mm box at the corner where both flanks meet their common toe sphere: the intersection is a valid solid (it was refused as touching along an edge).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "bevel-gear",
+          "module": 2,
+          "teeth": 16,
+          "mateTeeth": 20,
+          "faceWidth": 6,
+          "thicknessReduction": 0.05,
+          "rotation": 0,
+          "center": [
+            5,
+            -3
+          ],
+          "from": 2
+        },
+        {
+          "id": "w",
+          "kind": "bevel-gear",
+          "module": 2,
+          "teeth": 20,
+          "mateTeeth": 16,
+          "faceWidth": 6,
+          "thicknessReduction": 0.05,
+          "mesh": {
+            "gear": "p",
+            "direction": 0,
+            "phase": 6
+          }
+        },
+        {
+          "id": "x1s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            17.372,
+            -4.4773
+          ],
+          "max": [
+            18.972,
+            -2.8773
+          ]
+        },
+        {
+          "id": "x1",
+          "kind": "extrude",
+          "sketch": "x1s",
+          "height": 1.6,
+          "from": 15.715
+        },
+        {
+          "id": "x2s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            17.372,
+            -4.4773
+          ],
+          "max": [
+            18.972,
+            -2.8773
+          ]
+        },
+        {
+          "id": "x2",
+          "kind": "extrude",
+          "sketch": "x2s",
+          "height": 1.6,
+          "from": 15.715
+        },
+        {
+          "id": "a",
+          "kind": "intersect",
+          "target": "p",
+          "tool": "x1"
+        },
+        {
+          "id": "b",
+          "kind": "intersect",
+          "target": "w",
+          "tool": "x2"
+        },
+        {
+          "id": "i",
+          "kind": "intersect",
+          "target": "a",
+          "tool": "b"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 0.705570133625,
+          "relTol": 0.000001
+        },
+        "centroidMM": {
+          "value": [
+            18.305653903,
+            -3.25028207,
+            16.965035008
+          ],
+          "absTol": 0.000001
+        },
+        "areaMM2": {
+          "value": 4.95423827499,
+          "relTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "p.flankL2",
+          "p.tip",
+          "p.toe",
+          "w.flankR",
+          "w.flankR2",
+          "x1.side1",
+          "x1.side2",
+          "x1.side3",
+          "x1.top"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "this kernel; cross-checked in test/d150-bevel-pair.test.mjs against a voxel count of the two tessellated bodies (K6 ray parity: 0.7037 at h 0.005, 0.7053 at 0.0025, converging from below), which never runs the analytic Boolean"
+}

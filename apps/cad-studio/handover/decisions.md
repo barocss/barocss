@@ -8145,3 +8145,125 @@ Nothing is classified and nothing is merged (merging would join the pieces again
 - App tsc clean (70 s). Studio 792/792 (216 s, beside the baseline run).
 - The full browser flow, on its own: 217/217, 717 s.
 - RB: in the rows commit after this one.
+
+## D150 — the 6° bevel pair: a general face's domain map across C0 knots (2026-10-21)
+
+Kernel-lane queue item 3 (D134). The exact intersection of the 16/20 straight bevel pair turned 6° off was refused: "not a manifold solid (edge … has 1 uses; the inputs touch along an edge or at a vertex)". 3°, 4°, 5° and 9° worked. The coordinator asked for a minimal reproduction first, then a fix or a typed refusal. **Fixed.**
+
+**Reproduction:**
+- Each gear is cropped (an exact intersection) to a 1.6 mm box about the failing edge, (18.172, −3.677, 16.515). That leaves 7 and 11 faces.
+- Their intersection fails the same way in 1.3 s, against 21 s for the whole pair.
+- The corner is where the two flanks (`p.flankL2`, `w.flankR`) and the toe sphere that both gears share (`p.toe`, `w.toe`, one surface) all meet.
+
+**Cause, found by narrowing:**
+- **Not the cuts.** The flank–flank cut ends exactly at the triple point. The toe edges meet there at 33°, not at a grazing angle. Both toes' arrangements cross the two toe edges at that point.
+- **The failing edge** runs from the triple point to Q, 9.7e-4 mm along `w.flankR|w.toe`. It is a piece of that edge, used only by `w.flankR`'s piece.
+- **The flank's own domain map of that edge was off.** In `w.flankR`'s domain the arrangement split the edge at the right domain point. Mapping that point back through the edge's parameter, which is how `stitch` cuts a source edge, landed 9.7e-4 mm away.
+- **The 129-sample Hermite table** (`tabulated`) of the edge's map into the flank's domain was 1.75e-3 mm off beside t = 0.5:
+  - The edge is two degree-4 spans joined C0 at t = 0.5 (knot multiplicity 4).
+  - The flank surface is two spans joined C0 along u = 1, the same line.
+  - The sample at t = 0.5 took one central-difference tangent across both joins, so both intervals beside it were wrong.
+- The 6° phase only puts the corner within that interval. That explains why the other phases worked.
+
+**Fix** (`analytic-boolean.ts`, `tabulated`, the map of a curve into a general face's domain):
+- The source curve's interior knots (`breaks`, passed by `curve2` for a source edge) become samples of the table, in place of the uniform sample within 1e-9 of each.
+- At such a sample the table keeps a tangent from each side: one-sided second-order differences of the curve, each within its own span.
+- Each side's surface Jacobian is taken toward that side of the domain. Across a C0 knot line of the surface, the two sides' Jacobians differ.
+- Hermite runs piece by piece; evaluation finds its interval by binary search over the now uneven samples. Pole samples keep their derivative from their neighbours (second-order, for uneven spacing).
+- With this, that edge's map is within 8e-8 mm. Curves without knots are tabulated exactly as before.
+
+**Oracles** (`test/d150-bevel-pair.test.mjs`):
+- **The cropped corner** (default run, about 6 s): the result is valid (checkBrep), with 7 and 11 faces in, and the volume 0.70557 mm³. A voxel count of the two tessellated bodies, inside both by ray parity (K6, h 0.005), gives 0.7037, within 0.5%.
+  - The count converges from below: 0.7003, 0.7037 and 0.7053 at h 0.01, 0.005 and 0.0025. It never runs the analytic Boolean.
+  - This test fails on the previous HEAD with D134's message.
+- **Survey** (`GEAR_SURVEY=1`): the whole pair at 3°, 4°, 5°, 6° and 9° — each valid, the volume growing with the phase: 24.360, 38.986, 52.939, 66.393, 88.075 mm³. The four that worked before are unchanged from D134 (24.4–88.1). Each takes 26–46 s.
+- **Conformance** `conformance/bp/bevel-6deg-corner`: the cropped corner as a part document. The volume, centroid and area are pinned to 1e-6 (this kernel's values, the voxel cross-check in the test), with names, topology and a STEP round trip.
+- `gear-bevel.test.mjs`'s note about 6° now points here.
+
+**Side note:** the corner's result has 9 faces and 258 edges. Its traced cuts are stored as many fitted pieces (`fitPieces`). Not looked into here.
+
+**Checks** (`analytic-boolean.ts` is brep core, so the full kernel suite ran), on 2d85090e7 plus this change. The verification rules changed during the run (the coordinator's v2); what was run and what was not:
+
+Ran:
+- Kernel lint and type-check: clean.
+- `d150-bevel-pair`: 1 pass, plus the survey (skipped by default). The test fails on b435c0b87 (run there before the fix).
+- Conformance `bp/`: 1/1 (7 s).
+- The full kernel suite, conformance included: 1418/1424, 5 skipped, 338 s. Only the env-only "actual native Split source…" fails.
+- `@barocss/cad-model`: 626/626, 88 s on its own. An earlier run beside other suites failed the modelled thread's 8 s budget at 9.8 s; alone it takes 3.05 s on both trees.
+- Studio: 181/181, 51 s. App tsc: clean, 31 s.
+- Test names: diffed once against a b435c0b87 run of all three suites, before rule 1. The union 2228 → 2231: none missing, the 3 new ones added. From now on, this run's passing names are saved per suite (scratchpad `names/`) for the next diff.
+- `FLOW_ONLY` for the steps that run Booleans on general faces (bevel, spiral bevel and worm gears, R12b.7, R10.x, R11.x, fillet, loft, sweep): 40/40, 235 s.
+
+Not run (rules v2):
+- The full browser flow: stopped partway when the rules arrived. The coordinator runs it on integration.
+- RB and properties: this is not a 4th kernel checkpoint.
+
+## D151 — STEP export without a mesh: the bounding-box validation property taken exactly (2026-10-21)
+
+Kernel-lane queue item 4 (D137, D138): STEP export of the 724-face throated wheel took about 15 s. The coordinator asked for a profile first, and asked why the export tessellates at all, since an AP203/214 B-rep needs no mesh.
+
+**Profile** (K1's wheel: m_x 3, double thread, z2 30, b 20 — 724 faces, 1686 edges; on this machine):
+
+| Part | Time |
+|---|---|
+| `exportStep`, everything | 19.7 s |
+| `exportStep` with `validationProperties: false` | 0.1 s (the B-rep entities themselves) |
+| the bounding-box validation property: a tessellation at 16 segments a quarter (770 912 triangles), kept only for six numbers | 14.1 s |
+| the volume, area and centroid (`brepMassProperties`, `brepSurfaceArea`: one quadrature, cached per B-rep) | 1.9 s |
+
+- **The B-rep itself needs no mesh.** It is written as `ADVANCED_BREP_SHAPE_REPRESENTATION` (B-spline curves and surfaces). Only the CAx-IF geometric validation properties computed anything, and the box was the cost.
+- **The quadrature:**
+  - The 540 flank and fillet faces are whole patches, integrated exactly.
+  - The 180 tip and root faces (torus patches trimmed inside their domain) are meshed, at 8 and 16 segments a quarter, for Richardson extrapolation.
+  - The two planar faces are exact.
+- **The importer** uses the box only as the scale of the centroid's limit (0.1% of its diagonal). Still, the box the file states should be the part's.
+
+**Decision** (`brep-bounds.ts`, `brepBounds`; `step.ts` takes its box from it):
+- **Vertices:** each grows the box.
+- **Edges:** each curve is sampled 8 times a knot span, then refined by a golden section about its extreme samples.
+- **Planar faces:** add nothing; their extremes lie on their edges.
+- **Whole patches** (the mass routine's test, now exported as `wholePatchTest`): the surface's exact extremes over its domain. A grid of 4 a span, then alternating golden sections in the cells about the best sample.
+- **Other curved faces** (trimmed): only their own tessellation's vertices, at 16 a quarter, as before.
+- **Facet faces:** their positions.
+- **Skipping:** a curve or patch whose control net lies within the box so far is skipped, because positive weights keep it inside its hull. That covers most of them once the vertices are in.
+
+**Result:**
+- The wheel's export takes 2.2 s, down from 19.7: the box 0.09 s, the quadrature 1.9 s. Its box is unchanged (here every extreme lies on an edge, within 1.4e-14).
+- On a face whose highest point lies inside the patch, the old box was wrong: a bicubic bump peaking at z 11.96911 was written as 11.92857, 0.04 mm low. The mesh's vertices missed the peak. It is exact now.
+
+**Oracles** (`test/d151-step-bounds.test.mjs`, 2 tests, both failing on the previous HEAD):
+- **The wheel:**
+  - The export is under 8 s. It took 17.6 s at the previous HEAD.
+  - The box holds a mesh's vertices and matches its stated values to 1e-9.
+- **A 40 × 30 block with an uneven bicubic top:**
+  - The STEP box's top equals the patch's highest point to 1e-9. The test finds that point itself, with a 401 × 401 grid and then Newton on the gradient of z.
+  - A mesh at 16 a quarter falls short of it by more than 1e-7.
+  - The other five sides of the box are exact.
+
+**What D150's many-piece edges cost here** (the coordinator's question): nothing for the wheel, which is not a Boolean result (2.3 edges a face). Boolean results are another matter.
+- The 6° bevel corner (D150) has 9 faces and 258 edges.
+- One edge that should be a single exact piece, `p.toe|w.flankR` (a piece of the source edge eB), is stitched as 34 pieces. The toe's section by the crop box, `p.toe|x1.side2`, is 117 pieces, the shortest 4e-5 mm long.
+- The likely cause: traced copies of exact edges leave vertices along them (chains running partly along an `along` edge), and `stitch` splits the edge at each one.
+- Its STEP file is 220 kB for 9 faces, exported in 0.7 s.
+- Proposed to the coordinator as a follow-up, not done here.
+
+**The remaining 1.9 s:** the quadrature of the 180 trimmed torus faces, meshed twice. Integrating a trimmed patch exactly (by its trims in the domain) would remove it. That is not done here.
+
+**Checks** (rules v2; `brep-bounds.ts` and `brep-mass-quadrature.ts` are brep-*, so the full kernel suite ran), on f567478ab plus this change:
+
+Ran:
+- Kernel lint and type-check: clean.
+- `d151-step-bounds`: 2/2. Both fail on f567478ab (17.6 s; the box 0.04 mm low).
+- The full kernel suite, conformance included: 1419/1426, 5 skipped, 339 s. It failed the new wheel test once, at 8.5 s against its first 8 s budget, inside the parallel suite. The budget is now 12 s, and the test passes alone. Otherwise only the env-only "actual native Split source…" fails.
+- `@barocss/cad-model`: 630/630, 82 s. Studio: 185/185, 16 s.
+- Test names against the saved lists:
+  - kernel: none missing, the 2 new ones added;
+  - cad-model: none missing, +4 (the outer lane's FR S0, merged);
+  - studio: 2 renamed by the outer lane's IM7b merge (the IM7 S0 cad-cli and refusal tests), +6 (G2, IM7).
+- `FLOW_ONLY` for the steps that write or read STEP (export, STEP and meshes, open a STEP file, A6.3, IM6 quote, IM7, the throated wheel): all pass.
+  - Step 45, "STEP and meshes", needs step 44's mesh body. Run without it, it timed out. With it, both pass (9 s).
+
+Not run:
+- The full browser flow (rules v2).
+- RB and properties: this is not a 4th kernel checkpoint.
+- App tsc: no studio source changed.
