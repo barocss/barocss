@@ -4433,3 +4433,30 @@ The coordinator set the next outer-lane work in roadmap order. IM7 needs the ker
   - `hollow.test.ts`'s "refused at once" (under 1000 ms) failed once with the full suite running beside it, then passed alone and in the next full suite;
   - flow step 109, R12b.6's throated worm wheel (the kernel lane's), timed out once, then passed with the worm and CNC steps rerun.
 - **Checks: T2**, since `chat/tools.ts`, the frozen contracts and `engine/doc.ts` changed (results in the checkpoint).
+
+## O103 — CNC8: an optional 2.5D CAM preview, NOT FOR PRODUCTION; the CNC track's roadmap items done (2026-10-21)
+
+The coordinator's limit: the contract has 355 characters left, so **no new tool**. The preview is a model function and a CLI command, as CNC7b's export is. README §4 forbids production G-code, and none is written.
+
+- **`machining/cam.ts`** (`camPreview`):
+  - **pockets** (CNC7a's, closed only): the floor's outline (its triangles' boundary edges walked into loops, the largest kept, collinear points dropped), offset inward by the tool's radius, then by the stepover, until it closes up. Each loop is the tool's centre. The **levels** run from the top down by the step-down, the last at the floor. The loops and the length (their perimeters × the levels) are in the floor's plane;
+  - **`inset`**: each edge moved in, the corners where the moved lines cross. An edge the offset turns against its own direction (a rounded corner's short chord, once the offset passes its radius) is dropped and the corners found again, so the corner turns sharp, as a contour offset does. It gives null once the outline closes up;
+  - **holes**: a drill point at each open end the hole is reached from: entry, axis into the part, depth, diameter;
+  - **slots and steps** are listed in `skipped`, not previewed (open on a side);
+  - **the tool** is given (`--tool`), else Ø6, an estimate. The stepover (40 %) and step-down (50 %) of its diameter are estimates, said;
+  - **not there**: G-code, feeds or speeds, a collision check, islands cleared around, a stock model.
+- **Marked everywhere it shows**: the preview's first key is its banner, "NOT FOR PRODUCTION — a 2.5D preview of outlines to look at, not a toolpath for a machine: no G-code, no feeds or speeds, no collision check". The SVG's first line is that banner as a comment, and it is drawn on the sheet in red.
+- **`cad-cli cam-preview part.bcad -o folder [--tool mm]`** writes `cam-preview.json` and one `cam-preview-<setup>.svg` per setup (pZ, mZ …): the loops as polygons, the drill points as circles.
+- **Tests** (`test/cnc-cam.test.ts`, 5), against closed forms:
+  - `inset`: 10 × 4 by 1 gives 8 × 2, and by 2 it closes up; a rounded square past its corner radius turns sharp (14 × 14);
+  - a 50 × 30 pocket 8 deep with Ø6 (an estimate):
+    - loops (44 − 4.8k) × (24 − 4.8k) for k = 0…4, at stepover 2.4;
+    - levels 3, 6, 8;
+    - length 3 · Σ 2(68 − 9.6k) = 1464;
+    - the floor's plane at z 12, +Z;
+    - the mutant, Ø32, gives no loop, "does not fit (30 wide)";
+  - filleted r 5: the same loop boxes; the first loop's length 2(44 + 24) − 16 + 4π within the chord; the third sharp-cornered (2(34.4 + 14.4) exactly);
+  - drill points: Ø6.6 through 20 from +Z at z 20 and from −Z at z 0, both 20 deep; Ø5 blind from +Z, 10. A slot is skipped. A given Ø4 is said given, and the SVG's first line carries the banner;
+  - `cad-cli cam-preview`, spawned: the two files, the JSON's first key the banner, the SVG's first line the banner, no G-code token (G0–G3, M3/M6) in any file.
+- **The CNC track's roadmap items** (CNC1–CNC8) are all done: O84–O89, O101–O103, with S0s O83 and O100. Still open: the title block's material and finish cells (R14), 5-axis and undercut cutters, and a quote package for machining.
+- **Checks: T1**. A model module, the CLI and a test; no UI and no T2 file, so no flow step is affected.
