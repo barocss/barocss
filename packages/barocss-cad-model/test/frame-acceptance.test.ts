@@ -77,9 +77,29 @@ test('FR4b the welded table frame by the agent: a mitred 1000 × 600 top, four l
   assert.deepEqual(drawingIssues(ctx).filter(x => x.tables?.includes('cut')).map(x => x.code), []);
   const a4 = drawingInputs(state.doc, { ...settings, sheet: 'A4' }); assert.ok(typeof a4 !== 'string');
   const a4in = { ...a4, meta: { ...a4.meta, date: '2026-10-20' } };
-  assert.deepEqual(drawingIssues(issueContext(a4in)).filter(x => x.tables?.includes('cut')).map(x => [x.code, x.fix]), [['TEXT_OVERLAP', { kind: 'scale', sheet: 'A3', scale: 0.05 }]], 'the A4 overlap and its fix');
-  const fixed = fixAll(a4in);
-  assert.equal(fixed.settings.sheet, 'A3'); assert.deepEqual(fixed.left.filter(x => x.tables?.includes('cut')), [], 'Fix all clears it');
+  // (FRa, O115: on A4 the 166 mm table has no room whole, so its rows go in blocks — each clear, the header in each, the
+  // title on the first, the notes on the last, every row once in order — and the issue list finds nothing on it.)
+  const a4ctx = issueContext(a4in), blocks = a4ctx.sheet.tables!.filter(x => x.id === 'cut');
+  assert.ok(blocks.length >= 2 && blocks.every((b, k) => b.part![0] === k + 1 && b.part![1] === blocks.length), JSON.stringify(blocks));
+  assert.deepEqual(drawingIssues(a4ctx).filter(x => x.tables?.includes('cut')).map(x => x.code), [], 'the A4 table clear');
+  const groupsA4 = a4ctx.sheet.groups.filter(x => x.role === 'table' && x.id === 'cut'), textsOf = (gg: typeof groupsA4[number]) => gg.marks.filter(m => m.kind === 'text').map(m => (m as { text: string }).text);
+  // (The 166 mm table is wider than any room on this A4 at 1:20: its columns go in groups, ITEM leading each.)
+  assert.ok(groupsA4.every(gg => textsOf(gg).includes('ITEM')), 'the key column in every block');
+  for (const h of ['QTY', 'SECTION', 'MATERIAL', 'LENGTH [mm]', 'LONG POINT [mm]', 'START', 'END', 'MASS EA [kg]']) assert.ok(groupsA4.some(gg => textsOf(gg).includes(h)), `${h} in a block`);
+  assert.deepEqual(groupsA4.map(gg => textsOf(gg).includes('CUT LIST')), groupsA4.map((_, k) => k === 0), 'the title on the first');
+  assert.ok(textsOf(groupsA4.at(-1)!).some(t => /^12 pieces, 9160 mm, /.test(t)) && !groupsA4.slice(0, -1).some(gg => textsOf(gg).some(t => /^12 pieces/.test(t))), 'the notes on the last');
+  // (Every row once in each column group — each item as often as the others — and in order within each block.)
+  // (The ITEM column: the block's leftmost column of numbers.)
+  const itemsOf = (gg: typeof groupsA4[number]) => {
+    const nums = gg.marks.filter(m => m.kind === 'text' && /^[1-5]$/.test((m as { text: string }).text)) as { text: string; at: [number, number] }[], x = Math.min(...nums.map(m => m.at[0]));
+    return nums.filter(m => Math.abs(m.at[0] - x) < 1e-6).sort((a, b) => a.at[1] - b.at[1]).map(m => Number(m.text));
+  };
+  const counts = [1, 2, 3, 4, 5].map(n => groupsA4.flatMap(itemsOf).filter(x => x === n).length);
+  assert.ok(counts[0] >= 1 && counts.every(c => c === counts[0]), JSON.stringify(counts));
+  for (const gg of groupsA4) { const it = itemsOf(gg); assert.ok(it.every((x, k) => k === 0 || x > it[k - 1]), JSON.stringify(it)); }
+  for (let i = 0; i < blocks.length; i++) for (let j = i + 1; j < blocks.length; j++) { const a = blocks[i].box, b = blocks[j].box; assert.ok(a[2] <= b[0] || b[2] <= a[0] || a[3] <= b[1] || b[3] <= a[1], 'blocks apart'); }
+  // (The A3 fix stays for a person who wants it whole: Fix all on A4 has nothing to fix for the table now.)
+  assert.deepEqual(fixAll(a4in).left.filter(x => x.tables?.includes('cut')), []);
   const svg = sheetSvg(ctx.sheet, 'welded-table');
   const texts = g.marks.filter(m => m.kind === 'text').map(m => (m as { text: string }).text);
   for (const t of ['CUT LIST', 'LENGTH [mm]', '1000.0', '730.0', 'MITRE 45', 'BUTT 0']) assert.ok(texts.includes(t), `the table: ${t}`);

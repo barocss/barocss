@@ -26,6 +26,8 @@ import { partingLine } from '@barocss/cad-model/mould/parting';
 import { undercuts } from '@barocss/cad-model/mould/undercut';
 import { patternOf } from '@barocss/cad-model/casting/pattern';
 import { chooseStock, stockDoc, stockFile } from '@barocss/cad-model/machining/stock';
+import { nestCutList, nestingCsv } from '@barocss/cad-model/frames/nesting';
+import { partCutList } from '@barocss/cad-model/app/cutList';
 import { camPreview, camSvg } from '@barocss/cad-model/machining/cam';
 import { turningOf } from '@barocss/cad-model/machining/turning';
 import { holesOf } from '@barocss/cad-model/machining/holes';
@@ -70,6 +72,11 @@ cad-cli board scenario.json [--fresh]
   Runs a candidate board's scenario (A7.5): candidates built in isolation, cancelled, timed out, accepted through the
   Integrator and the replay gate, undone and redone; prints each step's outcome and whether it is the scenario's
   expected one. --fresh reads every accepted part back in a fresh process (cad-cli replay). Exit 1 when one differs.
+cad-cli nest part.bcad -o folder [--list lengths.json] [--kerf mm]
+  Nests the frame members' cut list into the shop's stock lengths (FRb) — the part's own, or a list given: [{id, length,
+  count?, section?, source}] — with the saw's kerf (yours, else 3 mm, an estimate); exact up to 14 pieces a section, else
+  first-fit-decreasing with its gap to the lower bound. Writes nesting.json and nesting.csv; exit 1 when refused or a
+  piece is left over.
 cad-cli stock part.bcad -o folder [--list stock.json] [--allowance mm]
   The stock a part is machined from (CNC7b): the smallest block (milled) or bar (turned) on the shop's list — the part's
   own, or one given — around it with the allowance a face (yours, else 1 mm, an estimate); writes stock.json and
@@ -240,6 +247,28 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     writeAtomic(join(dir, 'stock.step'), new TextEncoder().encode(step.text));
     say(io.stdout, { ok: true, row: r.choice.row.id, size: r.choice.size, allowance: r.choice.allowance, wrote: [join(dir, 'stock.json'), join(dir, 'stock.step')] });
     return 0;
+  }
+  if (cmd === 'nest') {
+    // (FRb, O116: a saved part's frame members nested into the shop's stock lengths — nesting.json and nesting.csv; exit 1 when refused or a piece is left over.)
+    const oi = rest.indexOf('-o'), li = rest.indexOf('--list'), ki = rest.indexOf('--kerf'), file = rest.find((a, i) => !a.startsWith('-') && !['-o', '--list', '--kerf'].includes(rest[i - 1]));
+    if (!file || oi < 0 || !rest[oi + 1]) return usage('nest takes a .bcad file and -o folder [--list lengths.json] [--kerf mm]');
+    const opened = await openModel(resolve(file));
+    if ('error' in opened) return failed(opened.error);
+    let s0 = await stateOf(opened.doc); if ('error' in s0) return failed(s0.error);
+    if (li >= 0 || ki >= 0) {
+      let rows: unknown;
+      if (li >= 0) { try { rows = JSON.parse(readFileSync(resolve(rest[li + 1]), 'utf8')); } catch (e) { return failed(`${rest[li + 1]}: ${e instanceof Error ? e.message : String(e)}`); } }
+      const set = await dispatchTool(s0, 'set_frame_stock', { ...(li >= 0 ? { rows } : {}), ...(ki >= 0 ? { kerf: Number(rest[ki + 1]) } : {}) }, evaluate);
+      if (set.isError) return failed(JSON.parse(set.content).error ?? set.content);
+      s0 = set.state;
+    }
+    const r = nestCutList(s0.doc, partCutList(s0.doc, s0.bodies));
+    if (!r.ok) { say(io.stdout, { ok: false, code: r.code, message: r.message }); return 1; }
+    const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
+    writeAtomic(join(dir, 'nesting.json'), new TextEncoder().encode(JSON.stringify(r.nesting, null, 1) + '\n'));
+    writeAtomic(join(dir, 'nesting.csv'), new TextEncoder().encode(nestingCsv(r.nesting)));
+    say(io.stdout, { ok: !r.nesting.unplaced.length, ...r.nesting.totals, kerf: r.nesting.kerf, sections: r.nesting.sections.map(x => ({ section: x.section, method: x.method, optimal: x.optimal })), unplaced: r.nesting.unplaced.map(p => `${p.name}: ${p.code}`), wrote: [join(dir, 'nesting.json'), join(dir, 'nesting.csv')] });
+    return r.nesting.unplaced.length ? 1 : 0;
   }
   if (cmd === 'pattern') {
     // (IM8b, O108: a sand-cast part's pattern — pattern.step and pattern.json; exit 1 with the code when none is made.)

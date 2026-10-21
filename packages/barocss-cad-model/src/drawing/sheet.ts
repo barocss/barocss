@@ -8,7 +8,7 @@ import type { FaceThread } from '../app/threads';
 import { fitText, textCorners, textWidth } from './text';
 import { VIEWS, scaleLabel, toSheet, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
 import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSettings, DrawingTable, DrawingViews, Tolerance, ViewId, XY } from './types';
-import { tableLayout, type TableContent } from './table';
+import { tableLayout, tableSize, type TableContent, type TableLayout } from './table';
 import { VIEW_IDS } from './types';
 
 /** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), centre 0.25 chain, frame 0.7. */
@@ -30,7 +30,7 @@ export type Mark =
 /** `table` (O49): a drawing table, its id the table's. */
 export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table'; id?: string; view?: ViewId; marks: Mark[] }
 /** `tables`: each table placed (its box), or why its source gave nothing (drawn with the reason). */
-export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string }[] }
+export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string; /** FRa (O115): a table in blocks, this one's place: [k, of n]. */ part?: [number, number] }[] }
 
 export const TEXT = 3.5;
 const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
@@ -114,11 +114,59 @@ function tableGroups(layout: SheetLayout, settings: DrawingSettings, before: rea
   for (const t of settings.tables ?? []) {
     const { content, error } = tableContentOf(t, contentOf);
     let l = t.at ? tableLayout(content, t.at, t.corner ?? 'top-left') : tableLayout(content, [layout.title[2], layout.title[1] - 3], 'bottom-right');
-    if (!t.at) { const at = roomIn(layout, taken, l.box[2] - l.box[0], l.box[3] - l.box[1]); if (at) l = tableLayout(content, at, 'top-left'); taken.push(l.box); }
+    if (!t.at) {
+      const at = roomIn(layout, taken, l.box[2] - l.box[0], l.box[3] - l.box[1]);
+      // (FRa, O115: no room for the whole table — the A4 cut list at 1:20, D128 — then its rows in blocks, each placed clear.)
+      const blocks = at || t.whole ? null : inBlocks(layout, taken, content);
+      if (blocks) {
+        for (const [k, b] of blocks.entries()) { taken.push(b.box); groups.push({ role: 'table', id: t.id, marks: b.marks }); placed.push({ id: t.id, box: b.box, part: [k + 1, blocks.length], ...(error ? { error } : {}) }); }
+        continue;
+      }
+      if (at) l = tableLayout(content, at, 'top-left'); taken.push(l.box);
+    }
     groups.push({ role: 'table', id: t.id, marks: l.marks });
     placed.push({ id: t.id, box: l.box, ...(error ? { error } : {}) });
   }
   return { groups, placed };
+}
+/** A table is not split into more blocks than this: one that needs more does not fit, and the issue list says so. */
+export const TABLE_BLOCKS_MAX = 6;
+/**
+ * A table in blocks (FRa, O115), the fewest that all fit: its columns in 1–3 groups of whole columns in order, each after
+ * the first column again (the key: ITEM), times its rows in 1, 2 … blocks of whole rows in order (sizes differing by at
+ * most one); each block with its header, the title on the first, the notes on the last; each placed clear in turn (as a
+ * whole table is). Null when none do.
+ */
+function inBlocks(layout: SheetLayout, taken: readonly Rect[], content: TableContent): TableLayout[] | null {
+  const n = content.rows.length, rest = content.columns.length - 1, tries: [number, number][] = [];
+  for (let m = 1; m <= Math.min(3, Math.max(1, rest)); m++) for (let k = 1; k <= Math.min(n, TABLE_BLOCKS_MAX); k++) if (m * k > 1 && m * k <= TABLE_BLOCKS_MAX) tries.push([m, k]);
+  tries.sort((a, b) => a[0] * a[1] - b[0] * b[1] || a[0] - b[0]);
+  for (const [m, k] of tries) {
+    const groups = columnGroups(content, m), room = [...taken], out: TableLayout[] = [], total = m * k;
+    for (const cols of groups) for (let i = 0, start = 0; i < k; i++) {
+      const size = Math.floor(n / k) + (i < n % k ? 1 : 0), first = out.length === 0, last = out.length === total - 1;
+      const part: TableContent = { columns: cols.map(c => content.columns[c]), rows: content.rows.slice(start, start + size).map(r => cols.map(c => r[c])), ...(first && content.title ? { title: content.title } : {}), ...(last && content.notes ? { notes: content.notes } : {}) };
+      start += size;
+      const probe = tableLayout(part, [0, 0], 'top-left'), at = roomIn(layout, room, probe.box[2] - probe.box[0], probe.box[3] - probe.box[1]);
+      if (!at) break;
+      const placedBlock = tableLayout(part, at, 'top-left'); room.push(placedBlock.box); out.push(placedBlock);
+    }
+    if (out.length === total) return out;
+  }
+  return null;
+}
+/** The columns' indices in m groups, the first column leading each: the rest split where the widths balance. */
+function columnGroups(content: TableContent, m: number): number[][] {
+  if (m === 1) return [content.columns.map((_, i) => i)];
+  const widths = tableSize(content).widths, rest = widths.slice(1), sum = rest.reduce((a, b) => a + b, 0), out: number[][] = [];
+  let at = 1;
+  for (let g = 0; g < m; g++) {
+    const cols = [0], target = sum * (g + 1) / m;
+    let acc = rest.slice(0, at - 1).reduce((a, b) => a + b, 0);
+    while (at < widths.length && (g === m - 1 || acc + widths[at] / 2 <= target || cols.length === 1)) { cols.push(at); acc += widths[at]; at++; }
+    out.push(cols);
+  }
+  return out.filter(c => c.length > 1);
 }
 /** The first top-left corner for a w × h box clear of `taken`: from just above the title block's right end, upward then leftward in 5 mm steps, inside the frame; null when none is. */
 function roomIn(layout: SheetLayout, taken: readonly Rect[], w: number, h: number): XY | null {
