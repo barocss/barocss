@@ -7710,5 +7710,10 @@ Evidence: `packages/barocss-cad/test/r12c-s0.test.mjs` (kept, 10 tests, 6 s alon
 - **Built-in tables:** keep every size table user-loaded (default), or build in a small set (for example ISO 286's preferred fits H7/g6, H7/h6, H7/k6, H7/p6, H8/f7 to 500 mm from F1-type pages, each value sourced). The default taken: none.
 - **Guidance ranges:** ship O2's squeeze, fill and stretch ranges as flagged estimates the user can override (default), or require the user to load them.
 - **Spring materials:** prefill G for steel as a flagged estimate (default), or require it.
+- **Applied (the coordinator, 2026-10-21, at review; the owner's standing pattern — bend tables and frame sections user-loaded, studio prefills flagged estimates — which the owner may override):**
+  1. no built-in fit tables (or any other size table): all user-loaded;
+  2. O2's squeeze, fill and stretch ranges shipped as flagged estimates the user can override;
+  3. the spring's G prefilled for steel in the studio as a flagged estimate; no default in the kernel (G is an input).
+- **At review:** K1 and S1 are re-read at their sources before any use beyond the S0 probe.
 
 **Checks:** S0 changed no product code. The tier: T1 (lint of the new file, the new test). r12c-s0 10/10, 6 s alone; lint clean. Kernel `pnpm build:library` before it. The full kernel suite, conformance, studio, flow and RB not rerun (no source change, as at D115, D122 and D129).
