@@ -4891,3 +4891,28 @@ FRd is split in two: FRd1 (joints, records, the list as a table) here, and FRd2 
 - **Closed forms**, the welded table: 4 mitres at 2(40 + 40√2), 8 butts and 4 legs at 160 each, 16 joints and 2692.548 mm of seam. Every size is 3 mm, an estimate. An RHS 20 × 20 × 2 with 3 mm corners butted in a T: the seam below 2(20 + 20) − 24 + 6π = 74.850 and within 0.5 %, basis mesh, size 2.
 - **Tests**: package frame-welds (4). Flow step "FRd1 …": the welds through the chat and the weld list on an A3 drawing, clear and in the SVG.
 - **Waits**: bead geometry is the kernel lane's (after R12c). A coped end (FR3b `cope`) has no plane, so it is no joint here yet; said for FRd2.
+
+## O119 — FRd2: weld symbols in the views, our own glyphs, each arrow on a seam edge by name (2026-10-21)
+
+- **The symbol** (`drawing/welds.ts`) is built from the joint's geometry. No standard's text is copied.
+  - An arrow whose tip is the midpoint of a visible edge of the joint's end face, found by its persistent name in the view.
+  - A leader to a knee just outside the view, then a reference line with the weld's mark on it: a fillet is a small right triangle, a butt weld two short bars.
+  - The size before the mark: the person's, or the estimate starred.
+  - A ring at the knee where the weld goes all round, and a second ring where the bore is welded too (FRd1's `inner`, the person's).
+  - The joint's W-number at the line's end, as in the weld list.
+- **Placement**:
+  - Each joint is shown once, in the first of front, top and right where an edge of its end face is visible.
+  - The knee goes on the side of the view box nearest the tip, OUT 7 mm past it. Knees along one side are kept 7 mm apart in order of their tips.
+  - Symbols are placed before the tables, so an auto-placed table keeps clear of their texts.
+  - A joint seen in no view gets no symbol. The sheet lists it (`welds.unshown`), and the issue list warns WELD_NOT_SHOWN: the weld list holds it, and a section or detail view would show it.
+- **Surfaces**: the drawing setting `weldSymbols` and its "Weld symbols" checkbox (off by default). The sheet's `welds {placed (label, joint, view, tip, edge), unshown}`. SVG, PDF and DXF draw the marks (lines, a fill, arcs, texts) as they draw every group.
+- **Oracles**:
+  - On the welded table on A3, 11 of the 16 joints are shown (6 front, 2 top, 3 right). W8 and W13–W16 have every edge of their end face hidden in all three views, and are said.
+  - Each arrow's tip is the midpoint of an edge named after its joint's end face, visible in its view.
+  - The W-numbers appear in the SVG, PDF and DXF.
+  - Coordinator's request: a mitred L with its corner at x = w, w 300 → 400. The corner's joint keeps its id, its arrow resolves by the same edge name, and it moves 100 along the front view's x.
+- **Not done**: the symbols are not yet in the issue list's overlap checks (they are placed clear of the views; a dimension or note crossing one is not flagged). Bead geometry stays the kernel lane's. A coped end (no plane) has no joint yet.
+- **Fixes found by the run**:
+  - FRd1's two long flow step names made the screenshot's file name too long (ENAMETOOLONG), which killed the flow. They are shortened.
+  - The read-tools contract test now runs `weld_list`.
+  - drawing-table's pinned source list includes 'weld-list'.

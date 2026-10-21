@@ -88,6 +88,8 @@ export interface DrawingSettings {
   centers?: boolean;
   /** Tangent edges (a fillet's boundaries) as thin lines (not shown by default). */
   tangent?: boolean;
+  /** FRd2 (O119): the frame's weld symbols in the views (not shown by default). */
+  weldSymbols?: boolean;
   /** Section A–A: the part cut by the plane square to the front view's depth at `y` along it (Y = y from −Y), seen like the front view, under it (none: no section). */
   section?: { y: number };
   /** The title block's part name (default: the file name). */
@@ -130,6 +132,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     hidden: r.hidden !== false,
     ...(r.centers === false ? { centers: false } : {}),
     ...(r.tangent === true ? { tangent: true } : {}),
+    ...(r.weldSymbols === true ? { weldSymbols: true } : {}),
     ...(r.section && typeof r.section.y === 'number' && Number.isFinite(r.section.y) ? { section: { y: r.section.y } } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),

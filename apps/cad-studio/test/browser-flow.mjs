@@ -3647,7 +3647,7 @@ try {
     } finally { chat.kill(); }
   });
 
-  await check('FRc the section library in the Library panel: a row written there (RHS 40 × 40 × 3, the shop\'s), a frame on it through the real chat — A · 300 = 133 200 mm³; the row edited to 50 × 30 × 4 — the frame follows, 172 800; a row in use not removable (new in O117)', async () => {
+  await check('FRc the section library in the Library panel: a row, a frame on it via the chat (133 200 mm³), the row edited (172 800), a used row kept (O117)', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     const fill = async (dims) => { for (const [k, v] of Object.entries(dims)) await page.fill(`[aria-label="Section ${k}"]`, String(v)); };
@@ -3692,7 +3692,7 @@ try {
     await snap('frc-section-library');
   });
 
-  await check('FRd1 the welded table\'s welds through the real chat: 16 joints read off the geometry (4 mitres, 8 butts, 4 legs on the top), one set to a 4 mm fillet; the weld list on an A3 drawing by its checkbox — W1–W16, the seams 2692.5 mm, clear and in the SVG (new in O118)', async () => {
+  await check('FRd1 the welded table\'s welds via the chat: 16 joints, one set to a 4 mm fillet; the weld list on A3, clear, in the SVG (O118)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
@@ -3723,6 +3723,29 @@ try {
       const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
       const svg = fs.readFileSync(await svgFile.path(), 'utf8');
       for (const t of ['WELD LIST', 'W1', 'W16', 'MITRE', 'ON FACE', 'FILLET', '4', '3*', '?', 'BORE', '16 welds, seams 2692.5 mm in all (the bores marked ? not counted)']) assert.ok(svg.includes(`>${t}</text>`), `SVG: ${t}`);
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
+  await check('FRd2 the welded table\'s weld symbols on A3 by their checkbox: 11 shown, 5 said unshown; W-numbers and sizes in the SVG (O119)', async () => {
+    const fs = await import('node:fs');
+    if (!/12 bodies/.test(await page.textContent('.outliner') ?? '')) throw new Error('FRd1 left no welded table');
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForSelector('[aria-label="Weld symbols"]', { timeout: 20000 });
+      await page.check('[aria-label="Weld symbols"]');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.welds?.placed?.length > 0, null, { timeout: 30000 });
+      const w = await page.evaluate(() => window.__studioDrawing().welds);
+      assert.equal(w.placed.length, 11, JSON.stringify(w)); assert.deepEqual(w.unshown, ['W8', 'W13', 'W14', 'W15', 'W16']);
+      const issues = await page.evaluate(() => window.__studioDrawing().issues);
+      assert.ok(issues.some(i => i.code === 'WELD_NOT_SHOWN' && i.severity === 'warning'), JSON.stringify(issues));
+      await snap('frd2-weld-symbols');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      // (W1, the mitre set to 4 mm in FRd1: its size as set; the rest 3*, estimates.)
+      for (const p of w.placed) assert.ok(svg.includes(`>${p.label}</text>`), `SVG: ${p.label}`);
+      assert.ok(svg.includes('>4</text>') && svg.includes('>3*</text>'), 'sizes');
+      assert.match(svg, /<g class="weld"/);
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
