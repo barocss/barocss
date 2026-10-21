@@ -4368,3 +4368,35 @@ The coordinator set the next outer-lane work in roadmap order. IM7 needs the ker
     - outlines only, for the recognised pockets (offset contours at the tool's radius, stepped by depth) and holes (drill points);
     - **no G-code**, no feeds or speeds.
 - **Then** IM8 (casting presets, allowances, section and solidification checks), and the parts of IM7 that do not need the face split.
+
+## O101 — CNC7a: machining features recognised per setup (2026-10-21)
+
+- **`machining/features.ts`** (`featuresOf`, in `@barocss/cad-model`):
+  - **Floors**, for every setup direction (CNC4's ±X, ±Y, ±Z). A floor is a plane facing the tool, looking out along its normal, with a wall rising at its edge. It is a **pocket** when its walls bound it in every in-plane direction, a **slot** when only across, a **step** on one side (O100's probe).
+  - **One feature's floors** are one face name at one level: a step a slot runs through is one feature of two pieces.
+  - **One feature seen from two setups**: when two floors are each other's rising wall (an L's floor and riser, a pocket run out through an edge and its end wall), the shallower reading is kept, the way a tool cuts it, and it is reachable from both setups.
+  - **Sizes**:
+    - a pocket: its narrowest width across its walls (rotating calipers) and its longest extent;
+    - a slot: across, and along its free direction;
+    - a step: out from its wall, and along it;
+    - the depth: below the highest wall.
+  - **Holes** are CNC2's: the narrowest step's diameter, through or blind, the depth along the axis, a counterbore's diameter and depth, a tapped hole's thread. Their setups are out of each open end along the axis.
+  - **Bosses**: a convex exact cylinder standing on a plane that faces along its axis, its diameter and height.
+  - Each feature has an id (`pocket1`, `hole2` …), its body, setups and faces.
+- **The report**: for milling, a `features` rule after the drawing's ("1 pocket, 1 slot, 1 step, 2 holes, 1 boss recognised, each with its setup") and the list in `machining.features`. The agent reads it through `check_printability`. No new tool.
+- **Tests** (`test/cnc-features.test.ts`, 4). Every size is the construction's:
+  - O100's plate:
+    - the pocket 30 × 20 × 8 from +Z;
+    - the slot 10 wide, 80 long, 6 deep;
+    - the step 15 wide, 120 long, 5 deep: one feature of two floors, from +Y and +Z;
+    - Ø6.6 through 20 from ±Z; Ø5 blind 10 from +Z;
+    - the boss Ø12 × 8;
+    - the report's rule and list;
+  - mutants:
+    - the pocket run out through the near edge is a slot (its end wall's −X reading merged);
+    - its corners filleted r 5, it is still a pocket 30 × 20 × 8;
+    - with the boss taken away, there is none;
+  - a counterbored Ø6.6 through 20 (Ø11 × 6) and an M6 tapped blind 12, with their counterbore and thread;
+  - a pocket cut into the side: from −Y, 10 deep, 10 × 20.
+- **Flow**: a CNC7a step through the real chat and tool servers. A milled plate with a pocket and a hole reads "features pass".
+- **Checks: T1** (results in the checkpoint).
