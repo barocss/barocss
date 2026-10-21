@@ -120,6 +120,7 @@
        "material",
        "stock",
        "frame_stock",
+       "frame_sections",
        "casting",
        "batch"
       ],

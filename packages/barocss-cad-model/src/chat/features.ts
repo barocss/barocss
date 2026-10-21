@@ -50,8 +50,12 @@ const MEMBER_SECTIONS: Record<string, Spec> = {
   channel: { height: 'dim', width: 'dim', web: 'dim', flange: 'dim', rootRadius: 'dim' },
   tslot: { size: 'dim', cells: 'enum:1|2', 'openSlots?': 'num', opening: 'dim', lip: 'dim', undercut: 'dim', depth: 'dim', bore: 'dim' },
   sketch: { sketch: 'sketch' },
+  // (FRc, O117: a row of the document's section library by its id.)
+  library: { id: 'library-row' },
 };
-const MEMBER_SECTION_HELP = 'a section {"kind": "rect-tube" | "round-tube" | "angle" | "channel" | "tslot" | "sketch", …its dimensions}';
+const MEMBER_SECTION_HELP = 'a section {"kind": "rect-tube" | "round-tube" | "angle" | "channel" | "tslot" | "sketch", …its dimensions} or {"kind": "library", "id"} (a row of the section library)';
+// (The section library's row ids that the node being checked may name: checkNode's.)
+let libraryIds: ReadonlySet<string> = new Set();
 const PROFILE: Record<string, Spec> = {
   rectangle: { min: 'dim2', max: 'dim2' },
   circle: { center: 'dim2', radius: 'dim' },
@@ -64,9 +68,29 @@ const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object
 /** A body reference as the agent writes it (`node` an index), with the body's key (by its stable id). */
 const refText = (r: BodyRef, nodes: readonly ModelNode[]) => `{node ${r.node}, side ${r.side}} (body ${bodyKeyFor(nodes, r.node, r.side)})`;
 
+/**
+ * Why a section library row is refused (FRc, O117), or null: an id, its section by dimensions (every one given; a sketch
+ * or another row is no library row), and where its sizes come from — a source, or flagged as an estimate.
+ */
+export function checkSectionRow(row: unknown, parameters: Record<string, number> = {}): string | null {
+  if (!isObj(row)) return 'a row is {id, name?, section, source | estimate: true}';
+  const id = typeof row.id === 'string' ? row.id.trim() : '';
+  if (!id) return 'a row needs an id';
+  const extra = Object.keys(row).find(k => !['id', 'name', 'section', 'source', 'estimate'].includes(k));
+  if (extra) return `${id}: no field "${extra}" (id, name, section, source, estimate)`;
+  if (row.name !== undefined && typeof row.name !== 'string') return `${id}: name is text`;
+  if (!isObj(row.section) || row.section.kind === 'sketch' || row.section.kind === 'library') return `${id}: section is one by its dimensions (rect-tube, round-tube, angle, channel, tslot)`;
+  const why = checkValue(row.section, 'member-section', [], parameters, []);
+  if (why) return `${id}: ${why}`;
+  const source = typeof row.source === 'string' ? row.source.trim() : '';
+  if (!source && row.estimate !== true) return `${id}: say where the sizes come from (source: your shop, a page) or flag them (estimate: true); none is built in`;
+  return null;
+}
+
 /** Why the node cannot be appended to `nodes`, or null. */
-export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters: Record<string, number>): string | null {
+export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters: Record<string, number>, sections: readonly { id: string }[] = []): string | null {
   if (!isObj(node)) return 'A feature is an object with a "kind".';
+  libraryIds = new Set(sections.map(r => r.id));
   const kind = String(node.kind);
   if (kind === 'import' || kind === 'mesh') return 'STEP, STL and OBJ files are opened from a file, not written in chat.';
   let spec: Spec;
@@ -181,6 +205,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
       const extra = Object.keys(v).find(k => k !== 'kind' && !(k in fields) && !(`${k}?` in fields));
       return extra ? `a ${String(v.kind)} section has no "${extra}"` : null;
     }
+    case 'library-row': return typeof v === 'string' && libraryIds.has(v) ? null : `[FRAME_SECTION_UNKNOWN] no row "${String(v)}" in the section library (rows: ${[...libraryIds].join(', ') || 'none — load them with features.frame_sections'})`;
     case 'names': return Array.isArray(v) && v.every(n => typeof n === 'string') ? null : 'a list of face or edge names';
     case 'names1': return Array.isArray(v) && v.length > 0 && v.every(n => typeof n === 'string') ? null : 'a non-empty list of edge names';
     case 'sketch': {

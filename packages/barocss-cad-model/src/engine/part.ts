@@ -5,12 +5,14 @@
 import { getBlob } from './blobs';
 import { mirrorCage } from '@barocss/cad';
 import type { BendTable, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartSection } from '@barocss/cad';
-import { holeCentres, bevelSpiral, type BodyRef, type FrameOverride, type MemberSection, type ModelNode, type StudioDoc } from './doc';
+import { holeCentres, bevelSpiral, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type StudioDoc } from './doc';
 import { featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { rotationSteps } from '../assembly/mates';
 
 // (The nodes being converted: a feature's id and its references' ids are read from them.)
 let current: readonly ModelNode[] = [];
+// (FRc, O117: the document's section library, by id, that a frame's library section resolves from.)
+let library: ReadonlyMap<string, InlineSection> = new Map();
 const id = (index: number) => featureId(current, index);
 const ref = (r: BodyRef) => r.side === 'negative' ? `${id(r.node)}/0` : r.side === 'positive' ? `${id(r.node)}/1` : r.side.startsWith('part') ? `${id(r.node)}/${r.side.slice(4)}` : id(r.node);
 
@@ -18,7 +20,9 @@ const ref = (r: BodyRef) => r.side === 'negative' ? `${id(r.node)}/0` : r.side =
 const sheetK = (n: { kFactor?: number; bendTable?: BendTable }) => (n.bendTable ? { bendTable: n.bendTable } : { kFactor: n.kFactor! }) as { kFactor: number } | { bendTable: BendTable };
 /** One node as a kernel feature (`nodes`: the document's, for its ids; without them node i is `n<i>`). */
 /** A member section for the kernel: a sketch section's node index as its feature id (FR2, D124). */
-const kernelSection = (s: MemberSection, toId: (i: number) => string): CadPartSection => s.kind === 'sketch' ? { kind: 'sketch', sketch: toId(s.sketch) } : s;
+/** A library section is its row's (FRc): a missing row goes on by a kind naming it, which the kernel refuses (INPUT) with that name. */
+const kernelSection = (s: MemberSection, toId: (i: number) => string): CadPartSection => s.kind === 'sketch' ? { kind: 'sketch', sketch: toId(s.sketch) } : s.kind === 'library' ? libraryRow(s.id) : s;
+const libraryRow = (rowId: string): CadPartSection => library.get(rowId) ?? ({ kind: `library "${rowId}", which the document's section library does not hold` } as never);
 /** A frame's override for the kernel: its sketch section by feature id. */
 function kernelOverride(o: FrameOverride): CadPartFrameOverride { const { section, ...rest } = o; return { ...rest, ...(section ? { section: kernelSection(section, id) } : {}) }; }
 export function featureOf(node: ModelNode, index: number, nodes?: readonly ModelNode[]): CadPartFeature {
@@ -57,7 +61,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'frame': return { ...at, kind: 'frame', points: node.points, segments: node.segments, section: kernelSection(node.section, id),
       ...(node.anchor ? { anchor: node.anchor } : {}), ...(node.offset ? { offset: node.offset } : {}), ...(node.roll ? { roll: node.roll } : {}), ...(node.mirror ? { mirror: true } : {}), ...(node.up ? { up: node.up } : {}),
       ...(node.overrides?.length ? { overrides: node.overrides.map(kernelOverride) } : {}), ...(node.corners ? { corners: node.corners } : {}), ...(node.trims?.length ? { trims: node.trims.map(t => 'body' in t ? { member: t.member, end: t.end, body: ref(t.body) } : t) } : {}) };
-    case 'frame-member': return { ...at, kind: 'frame-member', section: node.section.kind === 'sketch' ? { kind: 'sketch', sketch: id(node.section.sketch) } : node.section, start: node.start, end: node.end,
+    case 'frame-member': return { ...at, kind: 'frame-member', section: kernelSection(node.section, id), start: node.start, end: node.end,
       ...(node.anchor ? { anchor: node.anchor } : {}), ...(node.offset ? { offset: node.offset } : {}), ...(node.roll ? { roll: node.roll } : {}), ...(node.up ? { up: node.up } : {}) };
     case 'sheet-contour': return { ...at, kind: 'sheet-contour', path: node.path, ...(node.plane ? { plane: node.plane } : {}), side: node.side, width: node.width, thickness: node.thickness, bendRadius: node.bendRadius, ...sheetK(node) };
     case 'thicken': return { ...at, kind: 'thicken', surface: node.surface, thickness: node.thickness, ...(node.side ? { side: node.side } : {}) };
@@ -129,7 +133,7 @@ function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
  * an intersection or a subtraction from nothing is gone too).
  */
 export function toPartDocument(doc: StudioDoc): CadPartDocument {
-  doc = withIds(doc); current = doc.nodes;
+  doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section]));
   const gone = new Set<number>(), features: CadPartFeature[] = [];
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {

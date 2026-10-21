@@ -4843,3 +4843,27 @@ Owner, relayed by the coordinator: "FR 에서 1, 2, 3, 모두 하고 그 밖에 
   - 40 × 1000 into 6000: first-fit-decreasing takes 7 bars, at the bound of 42 000 (six bars hold 36 000), so optimal.
 - **Tests**: package frame-nesting (5); studio frame-nest-cli (the CLI); fields (the new field); chat's tool set. Flow step "FRb …" after FR4b.
 - **Not done**: optimising for offcuts kept for reuse, or several kerfs per saw. The cut list's rows are taken as cut from straight bars: no bend allowance (FR's bent members wait on the kernel).
+
+## O117 — FRc: the user's section library and its editor; a frame names a row (2026-10-21)
+
+- **Data**: `doc.frames.sections` holds rows {id, name?, section, source | estimate: true}.
+  - A row's section is given by its dimensions (rect-tube, round-tube, angle, channel, tslot), the kernel's kinds.
+  - A row needs a source, or the flag that its sizes are estimates. None is built in (D122).
+- **A frame or member names a row**: its section is `{kind: 'library', id}`, and so may an override's.
+  - `engine/part.ts` resolves it from the document's library before the kernel, so the kernel is untouched.
+  - The chat refuses an id the library does not hold: FRAME_SECTION_UNKNOWN, with the rows listed.
+  - A document naming a missing row (written by hand) reaches the kernel as a kind that names it, and evaluates to the kernel's INPUT refusal with that name.
+- **Editing** (`frames/sections.ts`, `editSections`), shared by the chat and the panel:
+  - Rows are added or replaced by id, and ids removed. A changed row moves every frame on it.
+  - A row in use is not removed: FRAME_SECTION_IN_USE, naming each feature as `feature i (label)`.
+  - Rows are refused by name: FRAME_SECTION_ROW (no source and no flag, a sketch or library section, a missing dimension, an unknown field, two rows of one id).
+- **Surfaces**:
+  - The v2 action `features.frame_sections` (handler `set_frame_sections`) re-evaluates the part.
+  - The Library panel's SECTIONS list shows each row's label, its source or "estimate", and how many features use it. A form adds or edits rows (an edited row keeps its id), and a sections file (JSON) can be added. Remove is disabled while a row is in use.
+  - The palette's member and frame commands offer "From your library" and its rows once the document has some. The prefills stay flagged as estimates, as before.
+  - v2 records the action (compatible). Per turn is 21,808 characters (+126).
+- **Closed forms**:
+  - The mitred L on a row is the same as with the section inline: volumes, centroids and boxes exactly.
+  - Two straight frames on R40 (40 × 40 × 3) are each A · 300 = 133 200 mm³. With R40 edited to 50 × 30 × 4 they are each 576 · 300 = 172 800.
+- **Tests**: package frame-sections (5); fields (the new field). Flow step "FRc …": a row written in the panel, a frame on it through the chat, the row edited and the frame following.
+- **Not done**: a sketch section as a library row (it belongs to one part's features), and sharing rows across parts. A library file stays the person's own; the team libraries (LIB4) are for parts, not sections.
