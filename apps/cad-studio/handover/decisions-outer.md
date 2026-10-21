@@ -5305,3 +5305,21 @@ The coordinator approved O130 with both choices as proposed, plus: an unlisted-h
   The S0's P2 now asserts the fix.
 - **Flow step**: an STL is opened, then a new part. The idle sweeps run while the mesh document is an undo step; undo and redo build it, and no dropped blob is asked for. The bytes freed are printed for the record.
 - **Not measured yet**: the effect on a 200k-triangle mesh session. The counter is there to read it.
+
+## O136 — G12: `proposalDiff`, a proposal's added and removed material (2026-10-22)
+
+The S0 (O129) was approved with two notes: `changedFaces` must be complete when the method is `faces`, shown by a facet-body test; and results are cached by (base revision, proposal id). Built in `src/chat/proposalDiff.ts`.
+
+- **`proposalDiff(base, proposed)`**, where each side is `{doc, bodies}`, returns `{ added, removed, changedFaces, parts, method, why? }`:
+  - **`added` and `removed`**: each side's B-reps are united, then `after − before` and `before − after` are taken with the kernel's analytic Boolean. Each result is a display mesh, tessellated at the bodies' quality 8, with its volume; null when nothing is there.
+  - **`changedFaces`**: computed from both sides' display faces by persistent name, whichever method ran: added, removed, or changed. "Changed" means the area (9 significant digits), the centroid (1e-5 mm) or the exact surface (1e-9) differs.
+  - **`parts`**: from `proposalParts`.
+  - **`method: 'faces'`**: used when the Boolean refuses, with the kernel's message in `why`. Today that is any facet body ("faceted (mesh) faces are not supported yet"); added and removed are null then.
+- **`proposalDiffFor(key, base, proposed)`**: a small LRU (8) keyed by `revision|proposal`. A proposal hovered twice runs its Booleans once; `diffWork.booleans` counts them.
+- **Tests** (`test/proposal-diff.test.ts`):
+  - the hole: removed 90π as a mesh; the n2 faces added; n1.top and n1.bottom changed;
+  - the boss: added 200π;
+  - the taller extrude: added 6000;
+  - a facet cube moved 5 up: `faces` with why, and every mesh face listed as changed, the plate untouched. The test says it turns into `boolean` with 500/500 after F3;
+  - the cache.
+- **For the GPU lane**: draw `added` and `removed` like any body, in two colours. Under `faces`, tint `changedFaces` on the proposal's bodies.
