@@ -33,7 +33,7 @@ import { VIEW_IDS, type DimPoint, type DrawingDimension, type DrawingSettings, t
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
-export type DrawingIssueCode = 'DATUM_LOST' | 'FRAME_LOST' | 'DATUM_UNDEFINED' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN';
+export type DrawingIssueCode = 'DATUM_LOST' | 'FRAME_LOST' | 'DATUM_UNDEFINED' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'FIT_ROW_MISSING';
 export type DrawingFix =
   | { kind: 'remove'; dim: string }
   | { kind: 'move'; dim: string; place: XY }
@@ -189,7 +189,9 @@ function textOf(sheet: Sheet, id: string): string { const r = sheet.dimensions.f
 // The list
 
 export interface IssueContext {
-  views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: (edge: string) => string | null;
+  views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: (edge: string, diameterMM?: number) => string | null;
+  /** D155: why a diameter dimension's fit class has no limits at its size (drawing/fits.ts fitMiss), or null. */
+  fitMiss?: (edge: string, diameterMM: number) => string | null;
   /** The sheet built again for other settings (O67: a table's sheet or scale fix is offered only when that sheet clears it). */
   rebuild?: (settings: DrawingSettings) => IssueContext;
 }
@@ -219,6 +221,11 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   }
   // What lies on the sheet: annotations and the lines they must keep clear of.
   // (A feature control frame is part of its dimension: they overlap, are kept clear and move together.)
+  // (D155: a diameter's fit class with no row for its size in the user's tables: said, with what to load — never a guessed limit.)
+  if (ctx.fitMiss) for (const r of sheet.dimensions) if (r.ok && r.kind === 'diameter') {
+    const why = ctx.fitMiss(r.dim.edge, 2 * r.radius);
+    if (why) out.push({ code: 'FIT_ROW_MISSING', severity: 'error', message: `Dimension ${r.text}: its tolerance class has no limits here — ${why.replace(/^\[FIT_TABLE_MISS\] /, '')}.`, dims: [r.dim.id], view: r.dim.view });
+  }
   // (FRd2, O119: a weld seen in no view has no symbol: said, the weld list holds it.)
   if (sheet.welds?.unshown.length) out.push({ code: 'WELD_NOT_SHOWN', severity: 'warning', message: `Weld${sheet.welds.unshown.length > 1 ? 's' : ''} ${sheet.welds.unshown.join(', ')}: no edge of the joint is visible in the front, top or right view, so no symbol is drawn. The weld list holds ${sheet.welds.unshown.length > 1 ? 'them' : 'it'}; a section or a detail view would show ${sheet.welds.unshown.length > 1 ? 'them' : 'it'}.` });
   for (const tb of sheet.tables ?? []) if (tb.error) out.push({ code: 'TABLE_SOURCE', severity: 'error', message: `Table ${tb.id} has no rows from its source: ${tb.error}.`, tables: [tb.id] });
@@ -535,13 +542,13 @@ function accepted(d: DrawingDimension): DrawingDimension {
 }
 
 /** What a sheet is built from, to build it again after a fix. */
-export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; callout: (edge: string) => string | null; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; section?: Parameters<typeof buildSheet>[4] & { projection: { min: readonly number[]; max: readonly number[] } } }
+export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; callout: (edge: string, diameterMM?: number) => string | null; fitMiss?: (edge: string, diameterMM: number) => string | null; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; section?: Parameters<typeof buildSheet>[4] & { projection: { min: readonly number[]; max: readonly number[] } } }
 
 /** The context of a sheet built from its inputs (its layout from the settings, the section's extent with it). */
 export function issueContext(i: SheetInputs): IssueContext {
   const layout = layoutSheet(i.views, i.settings, i.section && i.settings.section ? i.section.projection : undefined);
   const sheet = buildSheet(i.views, layout, i.settings, { ...i.meta, callout: i.callout }, i.section);
-  return { views: i.views, layout, settings: i.settings, sheet, callout: i.callout, rebuild: settings => issueContext({ ...i, settings }) };
+  return { views: i.views, layout, settings: i.settings, sheet, callout: i.callout, ...(i.fitMiss ? { fitMiss: i.fitMiss } : {}), rebuild: settings => issueContext({ ...i, settings }) };
 }
 
 /**

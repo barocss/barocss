@@ -118,3 +118,16 @@ test('the gravity_torques tool on the planar 3R; the conformance case (rm/gravit
   const c = JSON.parse(readFileSync(join(dir, 'case.json'), 'utf8')), rr = await robotOf(c.input.document), G = gravityTorques(rr.tree, rr.masses, c.input.values).torques;
   for (const [k, v] of Object.entries(c.expect.torques_N_m) as [string, number][]) assert.ok(Math.abs(G[k] - v) < c.expect.tol_rel * Math.abs(v) + 1e-12, k);
 });
+
+test('gravityTorques with a link the base does not reach yet (a part added, not yet mated; a joint mid-edit) — no throw: the reached joint\'s torque by closed form (1 kg at 100 mm, about y: −0.980665 N·m), the rest said ROBOT_NOT_READY', () => {
+  const tree = { version: 1 as const, base: 'L0', links: [{ id: 'L0', part: 'base', name: 'base' }, { id: 'L1', part: 'p1', name: 'arm' }, { id: 'L2', part: 'p2', name: 'loose' }],
+    joints: [{ key: 'j1', type: 'revolute' as const, parent: 'L0', child: 'L1', origin: [0, 0, 0] as [number, number, number], axis: [0, 1, 0] as [number, number, number], mates: [] },
+      { key: 'j2', type: 'revolute' as const, parent: 'L9', child: 'L2', origin: [0, 0, 0] as [number, number, number], axis: [0, 1, 0] as [number, number, number], mates: [] }],
+    loops: [], couplings: [], problems: [], notes: [] };
+  const masses = new Map([['L1', { massKg: 1, com: [100, 0, 0] as [number, number, number] }], ['L2', { massKg: 2, com: [0, 0, 50] as [number, number, number] }]]);
+  const r = gravityTorques(tree as never, masses, {});
+  assert.ok(Math.abs(r.torques.j1 - -0.980665) <= 1e-12, String(r.torques.j1));
+  assert.equal('j2' in r.torques, false); assert.equal('j2' in r.generalized, false);
+  assert.deepEqual([r.notReady?.code, r.notReady?.links, r.notReady?.joints], ['ROBOT_NOT_READY', ['L2'], ['j2']]);
+  assert.equal(gravityTorques(tree as never, new Map([['L1', masses.get('L1')!]]), {}).notReady?.links.length, 0, 'a massless unreached link: only its joint said');
+});

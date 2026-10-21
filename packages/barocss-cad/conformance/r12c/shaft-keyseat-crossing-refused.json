@@ -1,0 +1,48 @@
+{
+  "id": "r12c-shaft-keyseat-crossing-refused",
+  "step": "R12c",
+  "decisions": [
+    "D156"
+  ],
+  "about": "R12c.3a: a keyseat running past its step's end is refused (a seat crossing a step).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "shaft",
+          "steps": [
+            {
+              "diameter": 20,
+              "length": 30,
+              "keyseats": [
+                {
+                  "width": 6,
+                  "depth": 3.5,
+                  "length": 18,
+                  "offset": 20
+                }
+              ]
+            },
+            {
+              "diameter": 25,
+              "length": 10
+            }
+          ],
+          "generator": "shaft@0"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "KEYSEAT_DIMENSIONS"
+    }
+  },
+  "oracle": "20 + 18 > 30."
+}

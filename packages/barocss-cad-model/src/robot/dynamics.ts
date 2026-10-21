@@ -10,7 +10,7 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { rotationMatrix } from '../assembly/mates';
 import type { JointTree } from './joints';
-import { applyTo, forwardKinematics, type Motion } from './fk';
+import { applyTo, forwardKinematics } from './fk';
 import { linkFrames, linkInertia, type Mat3, type V3 } from './inertia';
 import { pathOf } from './sweep';
 import { onSegment, sCurve, trapezoid, ProfileError, type Profile, type ProfileKind, type Segment } from './profile';
@@ -37,6 +37,11 @@ export interface GravityResult {
   torques: Record<string, number>;
   /** One value an independent joint: a leader with its followers' shares (×multiplier) added. */
   generalized: Record<string, number>;
+  /**
+   * Links with mass, and joints, that no joint path from the base reaches yet (a part added and not yet mated, a joint
+   * mid-edit): left out — their torques not given — and said, typed, rather than thrown.
+   */
+  notReady?: { code: 'ROBOT_NOT_READY'; links: string[]; joints: string[]; message: string };
 }
 
 /** The joints' static gravity torques at joint values q (by key; absent: 0). `g`: gravity (m/s²), world. */
@@ -45,10 +50,13 @@ export function gravityTorques(tree: JointTree, masses: ReadonlyMap<string, Link
   // (The links beyond each joint: those whose path from the base goes through it.)
   for (const l of tree.links) for (const k of pathOf(tree, l.id)) (below.get(k) ?? below.set(k, []).get(k)!).push(l.id);
   const centre = new Map<string, V3>();
-  for (const l of tree.links) { const m = masses.get(l.id); if (m && m.massKg > 0) centre.set(l.id, applyTo(fk.motions.get(l.id)!, m.com)); }
+  const links: string[] = [], joints: string[] = [];
+  for (const l of tree.links) { const m = masses.get(l.id); if (!(m && m.massKg > 0)) continue; const M = fk.motions.get(l.id); if (M) centre.set(l.id, applyTo(M, m.com)); else links.push(l.id); }
   for (const j of tree.joints) {
     if (j.type === 'fixed') { torques[j.key] = 0; continue; }
-    const P: Motion = fk.motions.get(j.parent)!, a = [0, 1, 2].map(i => P.R[i * 3] * j.axis[0] + P.R[i * 3 + 1] * j.axis[1] + P.R[i * 3 + 2] * j.axis[2]) as V3, p = applyTo(P, j.origin);
+    const P = fk.motions.get(j.parent);
+    if (!P) { joints.push(j.key); continue; }
+    const a = [0, 1, 2].map(i => P.R[i * 3] * j.axis[0] + P.R[i * 3 + 1] * j.axis[1] + P.R[i * 3 + 2] * j.axis[2]) as V3, p = applyTo(P, j.origin);
     let t = 0;
     for (const id of below.get(j.key) ?? []) {
       const c = centre.get(id); if (!c) continue;
@@ -62,9 +70,10 @@ export function gravityTorques(tree: JointTree, masses: ReadonlyMap<string, Link
     torques[j.key] = t;
   }
   const generalized: Record<string, number> = {};
-  for (const j of tree.joints) if (j.type !== 'fixed' && !j.mimic) generalized[j.key] = torques[j.key];
-  for (const j of tree.joints) if (j.mimic && j.mimic.joint in generalized) generalized[j.mimic.joint] += j.mimic.multiplier * torques[j.key];
-  return { torques, generalized };
+  for (const j of tree.joints) if (j.type !== 'fixed' && !j.mimic && j.key in torques) generalized[j.key] = torques[j.key];
+  for (const j of tree.joints) if (j.mimic && j.mimic.joint in generalized && j.key in torques) generalized[j.mimic.joint] += j.mimic.multiplier * torques[j.key];
+  if (!links.length && !joints.length) return { torques, generalized };
+  return { torques, generalized, notReady: { code: 'ROBOT_NOT_READY', links, joints, message: `not reached from the base yet: ${[...links.map(l => `link ${l}`), ...joints.map(k => `joint ${k}`)].join(', ')} — their torques are not given (a part not yet mated, or a joint mid-edit)` } };
 }
 
 // ── RD2: inverse dynamics (RNEA), the mass matrix (an independent route), moves and their torques ──────────────────

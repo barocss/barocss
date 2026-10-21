@@ -1,0 +1,64 @@
+{
+  "id": "r12c-shaft-keyseat-square",
+  "step": "R12c",
+  "decisions": [
+    "D156"
+  ],
+  "about": "R12c.3a: a square-ended keyseat 6 wide, 3.5 deep, 18 long from z 10 in a \u00d820 \u00d7 40 shaft (D139 K1's sizes for shafts 17\u201322, as test values), on +X.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "shaft",
+          "steps": [
+            {
+              "diameter": 20,
+              "length": 40,
+              "keyseats": [
+                {
+                  "width": 6,
+                  "depth": 3.5,
+                  "length": 18,
+                  "offset": 10,
+                  "ends": "square"
+                }
+              ]
+            }
+          ],
+          "generator": "shaft@0"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 12204.796668366307,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            -0.2422408238609146,
+            0,
+            20.02962556081987
+          ],
+          "absTol": 1e-07
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "V = \u03c0R\u00b2\u00b740 \u2212 A\u00b7l, A = \u222b_{|x|\u2264b/2}(\u221a(R\u00b2 \u2212 x\u00b2) \u2212 (R \u2212 t1))dx in closed form (D139 S0: 20.087441 mm\u00b2); the centroid's x from the removed prism's moment l\u00b7((R\u00b2 \u2212 h\u00b2)b \u2212 b\u00b3/12)/2, its z from the cut's centre at 19."
+}

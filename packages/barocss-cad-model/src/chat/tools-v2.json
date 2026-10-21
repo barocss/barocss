@@ -324,6 +324,7 @@
        "section",
        "wall",
        "draft",
+       "fit_clearance",
        "welds",
        "cutlist",
        "render",
