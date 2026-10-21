@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { commands, type Command, type Ctx } from '@barocss/cad-model/app/commands';
 import { Icon, Kbd } from './atoms';
+import { paletteOrder } from './paletteRank';
 
 export function Palette({ ctx, onRun, onClose }: { ctx: Ctx; onRun(c: Command): void; onClose(): void }) {
   const [q, setQ] = useState(''); const [cursor, setCursor] = useState(0);
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => input.current?.focus(), []);
   const list = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    return commands.map(c => ({ c, a: c.available(ctx) }))
-      .filter(({ c }) => !s || (c.label + ' ' + (c.keywords ?? '') + ' ' + c.id).toLowerCase().includes(s))
-      .sort((x, y) => Number(y.a.ok) - Number(x.a.ok));
+    // (Ranked by the label first, keywords last: ui/paletteRank.ts.)
+    const av = new Map(commands.map(c => [c, c.available(ctx)]));
+    return paletteOrder(commands.map(c => ({ c, ok: av.get(c)!.ok })), q).map(({ c }) => ({ c, a: av.get(c)! }));
   }, [q, ctx]);
   return (
     <div className="palette-backdrop" onMouseDown={onClose}>

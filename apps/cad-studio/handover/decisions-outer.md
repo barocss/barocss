@@ -5270,3 +5270,10 @@ The coordinator approved O132 with one addition: implicit dependants. An op whos
 - **Limits**:
   - A batch's inner op naming, by index, a feature an earlier inner op made is moved as the outer op is, so it is exact only for appends.
   - A script's `node(i)` is not rewritten. The merge's applied path does not depend on either: it applies what the op did.
+
+## O134 — the palette ranks a command's label before any keyword (2026-10-22)
+
+The coordinator's request after 8788eafec: the kernel lane's Shaft command lists "fillet" among its keywords, so the palette's first result for "fillet" was Shaft and 21 fillet and chamfer flow steps failed. The palette filtered on label, keywords and id alike and sorted only by availability.
+
+- `src/ui/paletteRank.ts` ranks each match: 0 the label is the text; 1 the label starts with it; 2 a word of the label starts with it; 3 the label holds it; 4 only the keywords or id hold it. Availability orders the commands within a rank, then the toolbar's order. A keyword can never beat a label, whatever is available.
+- `test/palette-rank.test.ts`: every command's label typed gives it (or one of the same label) first, available or not. A command keyed "fillet chamfer" comes after every label match for "fillet" and "chamfer".
