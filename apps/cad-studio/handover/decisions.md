@@ -7940,3 +7940,33 @@ Track K's sixth step (the PKG design note's G7). The studio's hollowing (`print/
 - `@barocss/cad-model` lint and type-check clean.
 - Studio: tsc clean; eslint on the changed tests 0 errors; the suite 767/768 with the known `todo` (O80), 0 fail.
 - The full kernel suite, conformance, the flow and RB not run (T1; no kernel core file touched).
+
+## D146 — K7: the curve-fit equivalence check — equal where both apply, not a replacement; stopped for a decision (2026-10-21)
+
+Track K's last step (the PKG design note's G13: "equivalence check first"). The studio's `engine/fit.ts` (133 lines, used by `engine/direct.ts`'s fill, extend, refit and knot removal) against the kernel's certified interpolation (`buildInterpolatingCurve`, `buildInterpolatingSurface`). No product code changed; the comparison is kept as `apps/cad-studio/test/k7-fit-equivalence.test.ts` (4 tests, about 1 s).
+
+**What each has:**
+- Studio: global interpolation with chord-length parameters and averaged knots (any count, any degree up to n, all weights 1); least-squares approximation with its ends kept (NURBS Book A9.7: `refitCurve`, 64 samples); surface interpolation as the tensor of curve interpolations on averaged parameters (`fill`, `extend`: 16 × 16 grids); knot removal (A5.8).
+- Kernel: through-point interpolation on caller-given parameters, degree 1–3, at most 16 points a direction, coordinates and parameters within 10 000, a deterministic scaled-pivot solve, and a complete report (basis matrix, pivots, eliminations, through-point observations), source and model, validated bit for bit; the tensor surface the same way. No least squares, no knot removal, no tangent, curvature or periodic constraints (its report says so).
+
+**Where both apply — equal to rounding:**
+- curves: 31 point sets (the `fit.test` 9-point curve and 30 random sets of 2–16 points) × degrees 1–3 on the same chord parameters: the knots within 1.1e-16 (the same averages, summed differently — the kernel from the first parameter as origin + Σ offsets/p), the poles within 4.2e-14 mm, the curves within 3.0e-14 mm at 2001 equal parameters, the through-points within 2.1e-14 mm. Continuity is the same by construction (the same degree and knots: Cᵖ⁻¹ at each simple interior knot).
+- surfaces: the fill's 16 × 16 Coons grid on the studio's averaged parameters: the kernel's surface within 1.8e-14 mm of the studio's at 1681 samples, the knots the studio's own.
+- a closed loop (the first point repeated last): both clamped and open in parameter, the ends meeting in position only, 1.8e-15 mm apart; neither periodic.
+
+**Where they differ in kind:**
+- more than 16 points (the refit's 64 samples, and its interpolation fallback when the pole count equals the samples): the studio fits, the kernel refuses (`INPUT`);
+- coordinates past 10 000 mm (a 25 m run): the studio fits, the kernel refuses;
+- two points at degree 3: the studio lowers the degree to 1, the kernel refuses (it must be asked for degree 1);
+- a repeated point: both refuse (the studio's "cannot be fitted", the kernel's `INPUT`);
+- least squares and knot removal: the studio only;
+- cost: a 16-point cubic 13–31 µs in the studio against 2.7–3.4 ms for the kernel's certified build (110–210×); the 16 × 16 surface 2.3 ms against 235 ms (100×) — the report, source and model the kernel builds and checks every time.
+
+**Verdict: not equivalent as a replacement.** The kernel's interpolation is the studio's mathematics where both apply, but it covers only part of what the studio fits (no least squares, no knot removal, 16 points), and the certified build costs two orders of magnitude more per fit, for a report the direct geometry does not read. Per the coordinator's rule ("if they are not equivalent, stop and report rather than replacing") nothing is moved. `engine/fit.ts` stays in `@barocss/cad-model`.
+
+**For the coordinator (and the owner if it is theirs):**
+- (a) leave `engine/fit.ts` where it is (default; nothing changes);
+- (b) move it into the kernel as a plain, uncertified fitting module beside the certified one (interpolation with chord parameters and any count, least squares, knot removal, the surface tensor), with this file's comparison as its first oracle, so one copy exists and the certified path stays for documents that need its report;
+- (c) only the fill and extend surfaces through the certified kernel (they fit its limits exactly, and are within 1.8e-14 mm), the curves left in the studio — at 100× the cost per surface (235 ms), which a user would notice on every fill.
+
+**Checks — T1:** no product code changed. `k7-fit-equivalence` 4/4; app tsc clean; eslint clean on the new file. FLOW_ONLY not run: nothing on a flow path changed (the fill and refit steps run the same `engine/fit.ts`). Kernel and studio suites not rerun (no source change).
