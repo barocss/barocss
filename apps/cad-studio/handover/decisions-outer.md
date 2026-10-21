@@ -5399,3 +5399,62 @@ The coordinator's item 5, from the GPU lane's G13 profile: a bracket click cost 
   - The 55 ms G13 saw is its bench's one bracket click, the scene's first: a first-run cost that memoisation would not remove.
   - What would cut it is warming that code ahead of the click (e.g. mounting the props panel's tree once while idle). That is a separate question, for the coordinator to decide.
 - **Not run**: a quiet-machine rerun (load 33–59 here).
+
+## O142 — S0: R12c's machine elements on drawings and in the BOM (2026-10-22)
+
+The coordinator's next item, for the outer side of the kernel lane's machine elements (D153–D159 so far: springs, shafts, keys, keyways, retaining rings, pins, bearings, O-ring glands; cams and the rest coming). This is the S0, for the coordinator's reply before building. Data rules hold: no built-in tables, no copied standards text. Every value comes from the user's rows or the kernel's report, and every estimate is flagged.
+
+**What there is today** (survey):
+- **BOM** (team/assembly.ts `bomView`/`deriveBom`/`checkBom`):
+  - one line per placed part, merged by shape and material: `{item, parts, qty, material, massG, source}`;
+  - the source is only a library part's `lib@version/part`;
+  - the base part is not a line, and nothing reads a node's kind, size, row or estimate;
+  - its consumers are the team's BOM agent's oracle, freshness and baselines. The studio shows no BOM, and no drawing has a BOM table.
+- **Drawing tables** (drawing/tables.ts):
+  - three sources: `bends`, `cut-list`, `weld-list`;
+  - rendered as plain marks in SVG, PDF and DXF, placed clear of everything else;
+  - a source's error drawn as NOT AVAILABLE;
+  - checkboxes in the Drawing workspace.
+- **Callouts**: holes (drawing/callout.ts) and D155 fits on diameter dimensions only. There are none for bearings, rings, keys, keyways, springs or glands.
+- **The reports**: the kernel's snapshot carries each element's report (`spring`, `shaft`, `key`, `keyway`, `ring`, `pin`, `bearing`, `gland`, `oring`), but `BodyResult` keeps only their note text. Gears and racks are the exception. Drawing code cannot read the numbers today.
+- **Side finding**: in `bodyOf` a body's later `notes:` spreads replace a library body's notes instead of adding to them. To fix in S1.
+
+**Proposed scope**, three stages, each a checkpoint:
+- **S1, the data**:
+  - **`BodyResult.element`**: the kernel's report as plain data, `{ kind, report, row? }`. `row` is the user's row it used (bearing / ring / O-ring id, its source or estimate) or the fit table rows.
+  - **`elementRows(doc, bodies)`**, one row per machine-element body:
+    - `{ item (feature id and label), kind, size, row, source, estimate, why? }`;
+    - `size` is our own short text from the report: spring Ø wire × Ø mean × free length, n active; key b × h × l; pin Ø d × L; ring groove Ø × width, s thick; bearing designation or row, d × D × B; gland ring, ID × CS;
+    - `estimate` with `why`: a row marked estimate, no row (a ring), a modulus estimated (springs).
+  - **BOM lines for bought elements**: bearing, retaining ring, key, pin, O-ring and spring become lines of their own beside the parts that hold them. Their qty is multiplied by the placed copies, and they merge by (kind, size, row). `BomLine` gains optional `kind`, `size`, `row` and `estimate`. Shafts, keyways and glands are made features, not lines. `deriveBom` and `checkBom` include them, so the BOM agent's oracle checks them too.
+- **S2, the drawing tables**, three new `from` sources with Drawing workspace checkboxes, shown when the part has such elements:
+  - `elements`: the element rows above;
+  - `springs`: the data a spring drawing carries, one row a spring, from its report. Free length, wire Ø, mean Ø, outer Ø, active and total coils, pitch, solid height, ends, hand, rate (or "—" with no G given). The modulus's basis goes in the table's notes.
+  - `glands`: one row a gland. The ring (row id / dash), ID × CS, groove Ø, width and depth, stretch, squeeze and fill %, and the ranges' source or estimate.
+  Column titles are our own words. A table asked for a part with none of its kind is NOT AVAILABLE, with why.
+- **S3, the callouts and dimensions**:
+  - a bearing seat's diameter dimension (shaft step or housing bore) appends the bearing's designation or row and its source or "(est.)";
+  - a ring groove's diameter dimension appends the groove width and the ring's row ("Ø19 × 1.3 · ring r20");
+  - auto-dimension adds a keyseat's width b and depth t1 on the shaft's view, and a keyway's width and d + t2 on the hub's.
+  These are text after the dimension (as D155's fits), not new leader marks.
+
+**Oracles** (the kernel's conformance values where they exist):
+- S1: the shaft-parts scene (default shaft, hub, keyway, key, ring on row r20, pin, bearing row, gland row):
+  - element rows exactly: key "6 × 6 × 18"; ring on r20 citing its source, not an estimate; the same ring without a row an estimate; pin "Ø4 × 20"; the bearing's d × D × B from its row;
+  - an assembly of 2 copies of a part with a key and a ring: part ×2, key ×2, ring ×2, merged;
+  - an estimate row flagged in the BOM.
+- S2:
+  - the springs table's cells equal D153's conformance spring report (to its column digits), with the G-estimate note;
+  - the glands table equals D159's S0 gland report;
+  - each table's texts are in the SVG, PDF and DXF;
+  - NOT AVAILABLE for a part without springs.
+- S3:
+  - the bearing seat's Ø20 dimension names the bearing's row;
+  - the groove's Ø19 dimension reads "× 1.3" and the ring's row;
+  - the key dimensions are 6 and 3.5 on the shaft and 6 and 22.8 (Ø20 + 2.8) on the hub, each as auto-dimension gives it.
+- A flow step a stage, before the theme step.
+
+**Questions for the coordinator**:
+1. Bought elements as BOM lines of their own (proposed), and that list of kinds?
+2. Callouts as text after the seat's or groove's dimension (proposed), or leader notes on the element?
+3. Should the element rows and BOM cover the placed parts' elements in v1 (proposed: yes, multiplied by copies)?
