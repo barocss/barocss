@@ -87,7 +87,7 @@ await page.addInitScript(() => {
 const BUDGET = {
   // (G13, 2026-10-22: every row re-measured, three runs alone at a load of 12–15 — the machine had no quieter window
   // with the other lanes running — the GPU's own time now from timestamps (no longer the queue's wait); about twice the
-  // worst of the three, the GPU's with a 3 ms floor. The 100 000-voxel cloud is the one row the GPU's time leads: 8.2 ms.)
+  // worst of the three, the GPU's with a 3 ms floor. The 100 000-voxel cloud was the one row the GPU's time led: 8.2 ms, G14.)
   hover: { submits: 34, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
   select: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
   clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
@@ -100,8 +100,9 @@ const BUDGET = {
   sectionCpu: { submits: 140, avgFrameMS: 2 },
   // (G7: the pre-G7 SVG path took 30 ms of task a frame here.)
   underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 16, kb: 5, buffers: 4, gpuMS: 4 },
-  // (G8: SVG squares took 55 ms of task a frame here.)
-  cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 17 },
+  // (G8: SVG squares took 55 ms of task a frame here. G14: 8.2 → 4.0–4.7 ms of GPU, its shader without discard and its
+  // quads half a pixel smaller; the budget about twice.)
+  cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 10 },
   // (G9: the pointer's picks over 120 brackets — a frame only when the hovered thing changes; the task is the App's.)
   hoverMany: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 140 },
   pickMany: { submits: 4, avgFrameMS: 2, perFrame: 1, taskMS: 90, gpuMS: 5 },
