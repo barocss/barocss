@@ -46,7 +46,7 @@ lane for it). The R12b → next block is kept as history.
 1. ~~The hole-after-union refusal~~ — **done: D148, 2026-10-21** (the hole takes the picked face by name; the repro in `test/known-bugs.test.ts` is a passing test now).
 2. ~~A face split along a curve or an isocline~~ — **done: D149, 2026-10-21** (`splitFaceAlongCurve(brep, face, curves)` and `splitFaceAlongIsocline(brep, face, pull)` on the Boolean's own face cutting, pieces `<face>#k` with their `side`; `surfaceIsoclines` exported; the part feature `split-face`; conformance `sf/`). Wiring it into `mould/parting.ts` is the outer lane's (O81).
 3. ~~The analytic Boolean's "inputs touch along an edge" refusal on a 16/20 bevel pair 6° off~~ — **done: D150, 2026-10-21** (fixed: a general face's domain map of an edge across C0 knots — the edge's and the surface's — taken piece by piece; the cropped corner as `test/d150-bevel-pair.test.mjs` and conformance `bp/`; the whole pair at 3–9° under `GEAR_SURVEY=1`).
-4. STEP export performance for many-face bodies (the throated wheel's 724 faces about 15 s, all tessellation; D137, D138).
+4. ~~STEP export performance for many-face bodies~~ — **done: D151, 2026-10-21** (the export tessellated only for its bounding-box validation property: now taken without a mesh, exact on whole patches; the 724-face wheel 19.7 s → 2.2 s, the rest the mass quadrature of its 180 trimmed tori; a Boolean result's many-piece edges proposed as a follow-up).
 5. Then R12c's stages as D139 froze them (R12c.1a springs first).
 
 **Rules that came up since the R12b → next block** (all standing):
@@ -57,7 +57,7 @@ lane for it). The R12b → next block is kept as history.
 **How to resume**
 1. Read this block, then D139 (R12c) and D140–D147 (track K) in `decisions.md`.
 2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`); `pnpm build:library` in `packages/barocss-cad` before kernel tests; the flow with `CAD_STUDIO_CHAT_PORT=52491`, on its own; RB by `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record` then `scripts/rb/props.mjs --record`.
-3. Each step: a D-record (the next is D151), tests failing on the previous HEAD, conformance where it fits, the tier's checks, a §0 row, a commit, RB rows at T2/T3, a checkpoint to the coordinator; then end the turn and wait.
+3. Each step: a D-record (the next is D152), tests failing on the previous HEAD, conformance where it fits, the tier's checks, a §0 row, a commit, RB rows at T2/T3, a checkpoint to the coordinator; then end the turn and wait.
 
 ### Kernel lane: hand-over at the R12b → next boundary (2026-10-21) (history: track K is done, see the block above)
 
@@ -1717,6 +1717,8 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
   - **PKG-h done (O112)**: the model-only tests in the package: 124 test files (72 + 30 + 8 + 12 + 2, five green commits), the studio's conformance a1–a4 and 12 fixtures with them, `tools-v2.json` byte-identical beside contract.ts; the package's own `pnpm test`; 805 test names across both suites, as before. The studio keeps its server, UI, viewport, CLI-spawning and GPU-lane tests.
   - **IM7b done (O113)**: straddling faces split along their isoclines first (the kernel's D149, `split-face` nodes in the document's history, internal to the mould tooling; a half-face already one-sided needs none); a parting loop climbing only along walls takes its flat runs' height. The rod across the pull moulds on the plane through its axis, each half exact; a sloped parting line (a tilted rod) stays MOULD_STEPPED, said.
   - **FR S0 (O114)** (owner: "FR 에서 1, 2, 3, 모두 하고 그 밖에 남은 것도 하고"): the plan FRa A4 cut-list placement → FRb stock nesting (user-loaded stock, kerf, exact for small counts) → FRc the user's section library and editor → FRd weld metadata and symbols from the geometry → FRe T-slot hardware on frame members → FRf shared skeletons → FRg the 3D skeleton sketch's model and solver. Probes: a mitre seam read off the geometry; FFD 4 bars against the optimum 3; a parameter shared; the cut list's lengths. What waits on the kernel's FR geometry (gussets, beads, …) said per stage. Next FRa.
+  - **FRa done (O115)**: a table with no room whole goes in the fewest blocks that fit (columns in groups led by the key column, rows in order; the title first, the notes last); `whole: true` keeps one whole for O67's fixes. The A4 welded table's cut list at 1:20: 3 blocks, clear (D128's overlap gone). Next FRb.
+  - **FRb done (O116)**: the cut list nested into the shop's stock lengths (`doc.frames`, user-loaded, none built in; `features.frame_stock`): the kerf the user's or an estimate, said; per section the least stock exactly up to 14 pieces (branch and bound), else first-fit-decreasing with its lower bound and gap; the waste exact; in the cut list's result and dialog and `cad-cli nest`. The welded table: 2 × 6000, or 6000 + 4000 with 650 mm waste. Next FRc.
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):

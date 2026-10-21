@@ -8,7 +8,7 @@ import { facetedCopy } from './facet-boolean.js';
 import { BrepError, type Brep } from './brep-core.js';
 import { faceGeometry } from './analytic-boolean.js';
 import { brepMassProperties, brepSurfaceArea } from './solid-mass.js';
-import { tessellateBrep } from './brep-tessellate.js';
+import { brepBounds } from './brep-bounds.js';
 import { dot, len, scale, sub, unit } from './vec3.js';
 import type { Curve, FacetPatch, Point, Surface } from './types.js';
 import { brepFromTriangles } from './mesh-brep.js';
@@ -200,8 +200,9 @@ function writeValidationProperties(breps: readonly Brep[], add_: (e: string) => 
     if (!b.bodies.some(x => x.kind === 'solid')) continue;
     const m = brepMassProperties(b, 1); volume += m.volumeMM3; for (let k = 0; k < 3; k++) moment[k] += m.volumeMM3 * m.centroidMM[k];
     area += brepSurfaceArea(b);
-    const mesh = tessellateBrep(b, { segmentsPerQuarter: 16 }), P = mesh.positionsMM;
-    for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++) { if (P[i + k] < lo[k]) lo[k] = P[i + k]; if (P[i + k] > hi[k]) hi[k] = P[i + k]; }
+    // (The box without a mesh, D151: a tessellation at 16 a quarter took 14 s of the 724-face wheel's 20 s export.)
+    const box = brepBounds(b);
+    for (let k = 0; k < 3; k++) { if (box.min[k] < lo[k]) lo[k] = box.min[k]; if (box.max[k] > hi[k]) hi[k] = box.max[k]; }
   }
   if (!(volume > 0)) return;
   const property = (what: string, representation: string) => { const def = add_(`PROPERTY_DEFINITION('geometric validation property',${text(`${what} of ${name}`)},${shape})`); add_(`PROPERTY_DEFINITION_REPRESENTATION(${def},${representation})`); };

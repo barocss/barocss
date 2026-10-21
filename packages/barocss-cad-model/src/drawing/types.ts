@@ -60,7 +60,7 @@ export type TableCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-rig
  * source (`from`: 'bends', R12's bend table; the kernel lane's cut list). `at`: a sheet point (mm, y down) that its
  * `corner` (default top-left) is on; absent, it is laid out above the title block, right-aligned, stacked upward.
  */
-export interface DrawingTable { id: string; title?: string; columns?: TableColumn[]; rows?: TableCell[][]; from?: string; at?: XY; corner?: TableCorner }
+export interface DrawingTable { id: string; title?: string; columns?: TableColumn[]; rows?: TableCell[][]; from?: string; at?: XY; corner?: TableCorner; /** FRa (O115): kept whole — never split into blocks (the issue list's sheet and scale fixes then apply). */ whole?: boolean }
 /** A straight edge by its persistent name, `near` a model point on it (names can repeat). */
 export interface EdgeRef { edge: string; near: Vec3; sig?: Sig; was?: string }
 
@@ -171,14 +171,14 @@ const columnOk = (c: unknown) => { const x = c as TableColumn; return !!x && typ
 /** A table kept when whole: 1–20 columns and at most 200 rows each as long (given content), or a source's name. */
 const isTable = (v: unknown): v is DrawingTable => {
   const x = v as DrawingTable;
-  if (!x || typeof x.id !== 'string' || !x.id || (x.title !== undefined && (typeof x.title !== 'string' || x.title.length > 120)) || (x.at !== undefined && !isXY(x.at)) || (x.corner !== undefined && !CORNERS.includes(x.corner))) return false;
+  if (!x || typeof x.id !== 'string' || !x.id || (x.title !== undefined && (typeof x.title !== 'string' || x.title.length > 120)) || (x.at !== undefined && !isXY(x.at)) || (x.corner !== undefined && !CORNERS.includes(x.corner)) || (x.whole !== undefined && typeof x.whole !== 'boolean')) return false;
   if (x.from !== undefined) return typeof x.from === 'string' && /^[a-z][a-z0-9-]{0,31}$/.test(x.from) && x.columns === undefined && x.rows === undefined;
   return Array.isArray(x.columns) && x.columns.length >= 1 && x.columns.length <= 20 && x.columns.every(columnOk) && Array.isArray(x.rows) && x.rows.length <= 200 && x.rows.every(r => Array.isArray(r) && r.length === x.columns!.length && r.every(cellOk));
 };
 function readTables(raw: unknown): DrawingTable[] {
   if (!Array.isArray(raw)) return [];
   const seen = new Set<string>(), out: DrawingTable[] = [];
-  for (const v of raw) if (isTable(v) && !seen.has(v.id)) { seen.add(v.id); out.push(JSON.parse(JSON.stringify({ id: v.id, ...(v.title ? { title: v.title } : {}), ...(v.from ? { from: v.from } : { columns: v.columns, rows: v.rows }), ...(v.at ? { at: v.at } : {}), ...(v.corner ? { corner: v.corner } : {}) })) as DrawingTable); }
+  for (const v of raw) if (isTable(v) && !seen.has(v.id)) { seen.add(v.id); out.push(JSON.parse(JSON.stringify({ id: v.id, ...(v.title ? { title: v.title } : {}), ...(v.from ? { from: v.from } : { columns: v.columns, rows: v.rows }), ...(v.whole ? { whole: true } : {}), ...(v.at ? { at: v.at } : {}), ...(v.corner ? { corner: v.corner } : {}) })) as DrawingTable); }
   return out;
 }
 const isNote = (n: unknown): n is DrawingNote => !!n && typeof (n as DrawingNote).id === 'string' && typeof (n as DrawingNote).text === 'string' && isXY((n as DrawingNote).at);

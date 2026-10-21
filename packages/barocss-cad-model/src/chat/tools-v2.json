@@ -119,6 +119,7 @@
        "delete",
        "material",
        "stock",
+       "frame_stock",
        "casting",
        "batch"
       ],
