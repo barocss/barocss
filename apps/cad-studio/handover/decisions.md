@@ -7533,3 +7533,46 @@ Next: R12b.6 — the throated wheel of a ZA worm, attempted (refused with the re
 - double-enveloping (globoid) worms.
 
 Next: R12b.7 — acceptance (a planetary set, a right-angle bevel pair, a worm reducer) and the R12b → R12c hand-over.
+
+## D138 — R12b.7: acceptance by the agent, a planetary set, a right-angle bevel pair and a worm reducer (2026-10-21)
+
+The last R12b stage frozen in D129. Three gear sets are built by the agent's tools in one chat turn each and accepted by closed forms that are not read from the build. Every pair is then checked by the kernel's full sweep of the two exact profiles as placed, including the pairs no placement made. No product code changed. **R12b is done** with this step; the R12b → next hand-over block is at the top of README §0.
+
+**Acceptance** (`apps/cad-studio/test/gear-acceptance.test.ts`, 3 tests). Each set comes from the calls in `test/fixtures/gear-*.calls.json`, sent through `dispatchTool` as the chat does; the flow sends all three through the real chat.
+- **A planetary set** (`gear-planetary.calls.json`), module 2, 15 wide: a ring of 60 (`Internal gear`, x2 0.5 — the default — its root cut by a 24-tooth pinion cutter, an estimate), three planets of 18 (x 0) meshing inside it at 0°, 120° and 240° (`Meshing gear` with the ring selected), and a sun of 24 (x 0.5) meshing with the first planet (`Meshing gear` with it selected, toward 180°). The agent then sets three requirements (the sun's `gear_clearance` with each planet ≥ 0, assumed) and runs `check_spec`: 3 pass.
+  - **Why these numbers:** zr = zs + 2zp, and x_s = x2 − 2x_p, so the ring–planet pair (z difference 42, x difference 0.5) and the sun–planet pair (z sum 42, x sum 0.5) have one working centre distance; (zs + zr)/3 = 28 is whole, so all three planets can mesh with both. A first try with the planets at x 0.25 (the sun at 0) crossed the ring: the ring's tip corners ran into the planets' root fillets (x2 − x1 0.25 against D132's 0.5). The studio said so in each planet's notes ("The teeth cross … interference", "Radial assembly: the teeth cross"), and the fixture is the corrected set.
+  - **Oracles:**
+    - the working centre distance (zΣ m/2) cos α / cos α_w with inv α_w = 2 tan α xΣ/zΣ + inv α (inverted by Newton in the test): 42.9280 mm for both pairs, equal to 1e-15;
+    - the planets at that distance at 0°, 120°, 240° and the sun on the ring's axis (placed through planet 1: the chain closes), to 1e-12;
+    - diameters by the shifted standard proportions: planet tip m(z + 2) = 40 and root m(z − 2.5) = 31; sun 54 and 45; the ring's tip m(z − 2 + 2x2) = 118, inside;
+    - **all six pairs** by the full sweep (`checkPlacedInternalGears`, `checkPlacedSpurGears`, report mode): the ring with each planet least clearance 0, the sun with each 1.7e-6 mm, none crossing (touching at no backlash); the sun with planets 2 and 3 were placed by no rule that relates them;
+    - **the control:** planet 2 moved to 110° still meshes with the ring, and the sweep finds it crossing the sun by 1.97 mm, so the check can fail;
+    - **turned:** the ring 7.5° (the carrier held), each planet +zr/zp of it the same way and the sun −zr/zs, to 1e-12; all six pairs still clear;
+    - no warnings but the ring's cutter tip radius (an estimate, D133); each planet's "Radial assembly clear";
+    - each body's volume that of its gear built alone, to 1e-9 (placed rigidly).
+- **A right-angle straight bevel pair** (`gear-bevel-pair.calls.json`): `Bevel gear` m3 z20, mate 40, Σ 90°, face width 18, bore 12, its toe on Z 0; `Meshing gear` with it selected (direction 0°, bore 20).
+  - **Oracles:** δ1 = atan(z1/z2) = 26.5651°, δ2 = 90° − δ1; Re = m z1/(2 sin δ1) = 67.0820 mm, Ri = Re − b; θa = atan(m/Re), θf = atan(1.25 m/Re); the heel's tip and root diameters 2Re sin(δ ± θ); one apex, the pinion's axis +Z and the mate's +X; the apex Ri cos(δ1 + θa) = 42.8758 mm below the toe's plane; Tredgold's contact ratio by its formula (the virtual spur pair on the back cones, radii Re tan δ) equal to the report's 1.71218 to 1e-9, and the exact spherical one 1.71372 within 1% of it; the sweep on the heel sphere clear (least 4.7e-9 mm, within its chord sag 5.6e-5); turned 9°, the mate 4.5°, still clear.
+  - Warnings: each gear's schematic root (D134), as expected.
+- **A worm reducer, 30 : 1** (`gear-worm-reducer.calls.json`): `Worm gear pair` with m_x 3, one start, d1 44, right hand, Wheel: Throated (D137), z2 30, face width 20, bores 20 and 12.
+  - **Oracles:** a = (d1 + m z2)/2 = 67; the worm's middle at (a, 0, b/2), its axis along Y, square to the wheel's axis and the line of centres; γ = atan(z1 m/d1) = 3.9005°, the lead π m z1, ZA's axial sides atan(tan α / cos γ); the worm's tip d1 + 2m and root d1 − 2.5m; the wheel's d2 = m z2, the throat d2 + 2m = 96, its torus R_t = a − d2/2 − m = 19, the root 2(a − R_h) = 82.5 with R_h = d1/2 + 1.25 m the hob's crest; **at the faces** (c = b/2) the tip on the throat torus 2(a − √(R_t² − c²)) = 101.689 and the root on the hob crest's 2(a − √(R_h² − c²)) = 86.542; the pair check (`checkPlacedThroatedPair`, report, 16 samples) touching or clear in all 5 sections (least 0 to 5.3e-8 mm, touch 6.6e-4); turned 5°, the worm 150°, still in contact.
+  - Warnings: the wheel's hob note (D137), as expected.
+- **Conformance** `r12b/` (+3, 27; 201 overall): `accept-planetary`, `accept-bevel-pair`, `accept-worm-reducer`, written by the test (`WRITE_ACCEPTANCE=1`), which also checks they hold the part the agent built. Expected: each output's volume by this kernel (relTol 1e-6; 2e-6 for the worm set), the centroids by the closed forms where they are on an axis (the planetary set, the wheel) and by this kernel otherwise, one body of genus 1; a STEP round trip for the planetary and bevel sets (the throated wheel's STEP export takes about 15 s, D137, so not here).
+- **A flow step** "R12b.7 the gears' acceptance …": each set by the scripted agent through the real chat on a new part; the bodies (5, 2, 2); the agent's last tool (`check_spec`, `get_part_summary`); the planetary set's three requirements; the sun's "Meshes with n1: centre distance 42.928 mm, ratio −18:24" and "Clear over a full tooth period"; the bevel mate's "Clear over a full tooth period on the heel sphere"; the worm's "In contact along lines across the face"; a screenshot of each (`r12b-7-*`).
+
+**Timings:** the acceptance test 29 s (planetary 10 s, bevel 4 s, worm reducer 14 s). The studio's first evaluation of the worm reducer took 23 s in a cold run: no single hot spot (B-spline basis evaluation 2.3 s, the wheel's section functions about 1.5 s, the pair check 3.2 s, tessellation and its validation the rest). Added to the kernel queue beside STEP export.
+
+**Not in this stage:**
+- a carrier: the planetary set is held at its carrier (a star arrangement); the carrier's ratio 1 + zr/zs = 3.5 with the ring fixed is not modelled, nor a carrier body or pins;
+- an assembly of parts with mates (each set is one part of separate bodies, as the R12b commands build them);
+- housings, shafts and bearings (R12c machine elements);
+- a live model as the agent (the scripted one, L2; a live run needs the owner's OK).
+
+**Checks:**
+- Kernel 1363/1368 (4 skipped; +3, the accept cases; the names against D137's run: none missing). The env-only "actual native Split source…" fails. No kernel source changed.
+- Conformance 201/201.
+- Studio 746/747 with the known todo, 0 fail (+3). Studio lint 0 errors (119 warnings), type-check clean. Tool contract unchanged.
+- The full flow 212/212 on its own (+1). Its first run failed the new step on its own selector (the outliner's rows taken by position: an extra row put planet 3 where the sun was expected); the rows are now taken by name, and the step passes alone and in the full run.
+- RB: 370 cases (+3), 0 new, the 8 known TODOs; the rows commit after this one.
+- The kernel suite 302 s; the five slowest files alone in the hand-over block.
+
+Next: the R12b → next hand-over (README §0), then the joint PKG boundary, which the coordinator runs.

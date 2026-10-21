@@ -2615,6 +2615,38 @@ try {
     await snap('throated-worm-pair');
   });
 
+  await check('R12b.7 the gears\' acceptance by the scripted agent through the real chat: a planetary set (its own mesh checks passing), a right-angle bevel pair, a worm reducer — each in one turn, its pairs clear in their notes (new in D138)', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      // (Each: the bodies, the last tool the agent called, and the body — by its name in the outliner — whose note says its pair is clear.)
+      for (const [name, bodies, tool, at, note] of [['planetary', 5, 'check_spec', 'Spur gear m2 z24', /Meshes with n1: centre distance 42\.928 mm, ratio −18:24/], ['bevel-pair', 2, 'get_part_summary', 'Bevel gear m3 z40/20', /Clear over a full tooth period on the heel sphere/], ['worm-reducer', 2, 'get_part_summary', 'Worm ZA m_x3 ×1 Ø44', /In contact along lines across the face/]]) {
+        const { calls } = JSON.parse(fs.readFileSync(join(root, `test/fixtures/gear-${name}.calls.json`), 'utf8'));
+        await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+        await page.click('[aria-label="Chat"]');
+        await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+        const n = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 180000 });
+        const line = await page.locator('.chat-tool').last().innerText();
+        assert.ok(line.includes(tool), line);
+        await page.click('[aria-label="Close chat"]');
+        await page.waitForFunction(k => new RegExp(`${k} bodies`).test(document.querySelector('.outliner')?.textContent ?? ''), bodies, { timeout: 90000 }); await idle();
+        // (The planetary set's sun was checked by the agent against each planet: its requirements all pass.)
+        if (name === 'planetary') assert.ok((await page.evaluate(() => window.__studioDoc.requirements?.length)) === 3);
+        await page.locator('.outliner .ol').filter({ hasText: at }).first().click();
+        await page.waitForFunction(re => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => new RegExp(re).test(x.textContent ?? '')), note.source, { timeout: 60000 });
+        if (name === 'planetary') {
+          const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+          assert.ok(notes.some(t => /^Clear over a full tooth period/.test(t)), notes.join(' | '));
+        }
+        await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+        await snap(`r12b-7-${name}`);
+      }
+    } finally { chat.kill(); }
+  });
+
   await check('Library (LIB4): the T-slot 20 series with its licence and estimates; a 20×20 profile inserted into the part, its notes from the library; a slot nut placed as a part', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Library"]');
