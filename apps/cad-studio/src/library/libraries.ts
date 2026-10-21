@@ -57,16 +57,22 @@ export function shareRefusal(id: string): string | null {
   return sharingRefusal(e.library, e, checkLibrary(id)!);
 }
 
-// The user's own libraries, kept in this browser (a convenience: they are files the user has besides).
+// The user's own libraries, kept where the app says (a convenience: they are files the user has besides). PKG-b, B4: the
+// store is the app's to set (the studio's, the browser's storage); with none — a test, the CLI — nothing is kept.
 const USER_KEY = 'barocss-cad-user-libraries';
+/** Where the user's libraries are kept: a key-value store (the browser's `localStorage` in the studio). */
+export interface LibraryStore { getItem(key: string): string | null; setItem(key: string, value: string): void }
+let store: LibraryStore | null = null;
+/** The app sets the store the user's libraries are kept in (null: none). */
+export function setLibraryStore(s: LibraryStore | null): void { store = s; }
 function saveUserLibraries(): void {
-  try { globalThis.localStorage?.setItem(USER_KEY, JSON.stringify([...registry.values()].filter(e => e.source === 'user').map(e => ({ library: e.library.manifest, authoredBy: e.authoredBy, confirmed: e.confirmed })))); } catch { /* storage unavailable */ }
+  try { store?.setItem(USER_KEY, JSON.stringify([...registry.values()].filter(e => e.source === 'user').map(e => ({ library: e.library.manifest, authoredBy: e.authoredBy, confirmed: e.confirmed })))); } catch { /* storage unavailable */ }
 }
 /** The user's libraries kept in this browser, loaded again (each refused one skipped, said in the result). */
 export function loadUserLibraries(): string[] {
   const problems: string[] = [];
   let kept: { library: unknown; authoredBy?: 'person' | 'agent'; confirmed?: boolean }[] = [];
-  try { kept = JSON.parse(globalThis.localStorage?.getItem(USER_KEY) ?? '[]'); } catch { return problems; }
+  try { kept = JSON.parse(store?.getItem(USER_KEY) ?? '[]'); } catch { return problems; }
   for (const k of Array.isArray(kept) ? kept : []) { try { registerLibrary(k.library, 'user', { authoredBy: k.authoredBy, confirmed: k.confirmed }); } catch (cause) { problems.push(cause instanceof Error ? cause.message : String(cause)); } }
   return problems;
 }

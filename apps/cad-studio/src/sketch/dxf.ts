@@ -4,7 +4,7 @@
 import { writeDxf, type DxfDocument, type DxfEntity, type DxfVersion, type DxfWriteResult, type DxfXY } from '@barocss/cad';
 import type { Dim, LoopSegment, SketchNode } from '../engine/doc';
 import { slotSegments, type P2 } from './profile';
-import type { SketchShape } from '../viewport/Viewport';
+import type { SketchShape } from './types';
 
 export const SKETCH_DXF_VERSION = 'cad-studio-sketch-dxf-v1';
 

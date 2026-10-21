@@ -13,7 +13,7 @@ import { encodeStudioFile } from '../src/engine/container';
 import { evaluateDoc, stepFor, stlFor } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { meshToStl } from '../src/ui/files';
+import { meshToStl } from '../src/engine/stl';
 import { notLocalModel, openModel, writeAtomic } from './cadDoc';
 import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '../src/team/scripted';
 import { metricsOf, type Labelled } from '../src/team/metrics';

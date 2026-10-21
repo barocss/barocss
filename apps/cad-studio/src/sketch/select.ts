@@ -1,6 +1,6 @@
 // Picking outline points and edges in the viewport (screen pixels), and what a click does with the
 // Select and Dimension tools.
-import type { SketchShape, SketchState } from '../viewport/Viewport';
+import type { SketchShape, SketchState } from './types';
 import { sampleSegment, type P2 } from './profile';
 import { angleKey, circlePairKeys, distanceKey, edgeCircleKey, isSettled, samePick, type Polygon, type SketchPick } from './rules';
 import { segmentDistance as toSegment } from '../engine/geom2';

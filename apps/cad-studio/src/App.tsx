@@ -35,7 +35,8 @@ import { ParametersPanel } from './ui/ParametersPanel';
 import { LibraryPanel } from './ui/LibraryPanel';
 import { CagePanel } from './ui/CagePanel';
 import { useCageEditor } from './subd/useCageEditor';
-import { loadUserLibraries } from './library/libraries';
+import { loadUserLibraries, setLibraryStore } from './library/libraries';
+import { browserStore } from './ui/browserStore';
 import { processProfile } from './library/materials';
 import type { BindableField } from './app/editFields';
 import { InstancePanel } from './ui/InstancePanel';
@@ -327,7 +328,8 @@ export function App() {
     ? (printing ? { kind: 'overhang', sinLimit: Math.sin(printing.thresholds.maxOverhangDeg.value * Math.PI / 180), bedZ: bodies.reduce((m, b) => Math.min(m, b.mesh.bounds.min[2]), Infinity) } : null)
     : analysis;
   // (The user's own libraries kept in this browser, once.)
-  useEffect(() => { loadUserLibraries(); }, []);
+  // (The user's libraries kept in this browser: the store set before they are read — PKG-b, B4.)
+  useEffect(() => { setLibraryStore(browserStore()); loadUserLibraries(); }, []);
   /** The view's field of view (degrees; the Render panel sets it, a saved view keeps it). */
   const [fov, setFov] = useState(32);
   const [section, setSection] = useState<{ axis: 'x' | 'y' | 'z'; at: number; keep: 'negative' | 'positive' } | null>(null);

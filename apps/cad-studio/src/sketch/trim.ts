@@ -3,7 +3,7 @@
 // the shape left open is an outline with ends, and open outlines meeting end to end join — when they
 // close up, into one closed outline. A rectangle and a circle across its edge become a keyhole after two
 // trims: the rectangle's edge inside the circle, then the circle's arc inside the rectangle.
-import type { SketchShape } from '../viewport/Viewport';
+import type { SketchShape } from './types';
 import { arcOf } from './profile';
 import { carryPolygon, inheritIds, nextIdOf, withIds } from './entityIds';
 

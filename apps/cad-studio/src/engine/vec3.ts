@@ -1,5 +1,7 @@
 // 3D vector helpers for the studio (one copy instead of one per module). `unit` keeps a zero vector zero.
 export type Vec3 = [number, number, number];
+/** An axis by index: 0 X, 1 Y, 2 Z (PKG-b, B2: the model's, not the viewport gizmo's). */
+export type Axis3 = 0 | 1 | 2;
 type V = readonly number[];
 
 export const add = (a: V, b: V): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];

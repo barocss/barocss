@@ -2,7 +2,7 @@
 // becomes an arc of radius r tangent to both, its ends where the edges are cut back. The outline's
 // constraints follow the new numbering: the cut edges keep their direction rules (H/V, parallel, angle) but
 // lose their length locks; the arc gets the radius lock and tangent joints.
-import type { SketchShape } from '../viewport/Viewport';
+import type { SketchShape } from './types';
 import type { SketchRule } from './terms';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;

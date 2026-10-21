@@ -4126,3 +4126,19 @@ PKG is the owner-approved package split (`handover/notes/research-package-bounda
   - suite 743 = 742 pass + 1 todo, the same names as before;
   - kernel conformance 195/195;
   - full flow 211/211.
+
+## O92 — PKG-b: blockers B1–B4 cut in place, nothing moved (2026-10-21)
+
+The second of PKG's two early steps. B1–B4 are the four places where code bound for `@barocss/cad-model` reaches into the app (`viewport/`, `ui/`, browser storage). Each is cut where it stands. Behaviour is unchanged, and the UI reads every moved name from where it did, by re-export. The moves (PKG-c to PKG-f) wait for the joint boundary.
+
+- **B1, the sketch types**: `SketchTool`, `SketchShape`, `SketchAnchor`, `SketchState` and `Make` move from `viewport/Viewport.tsx` to the new `src/sketch/types.ts`. Their types come from `sketch/plane`, `sketch/terms` and `sketch/rules`. `Viewport.tsx` re-exports them, and the 11 sketch modules that type-imported them from the viewport import `./types`.
+- **B2, `Axis3`**: declared in `engine/vec3.ts`. `viewport/gizmo.ts` re-exports it; `assembly/drag.ts` imports it from the engine.
+- **B3, `meshToStl`**: moves to the new `src/engine/stl.ts`. `ui/files.ts` re-exports it (`downloadBytes` stays there). `server/cadCli.ts` imports it from the engine, so the CLI no longer imports `ui/`.
+- **B4, the user's libraries' storage**:
+  - `library/libraries.ts` keeps them in a `LibraryStore` (`getItem`/`setItem`) that the app sets with `setLibraryStore`. With none set (a test, the CLI) nothing is kept, which is what happened before in Node, where `globalThis.localStorage` was undefined.
+  - The studio sets it from `ui/browserStore.ts`, `localStorage` guarded: storage that is missing or refused gives null. It is set in the same mount effect, just before `loadUserLibraries()`.
+  - `library/` no longer names `localStorage`. The browser API stays in `ui/`, the PKG rule.
+- **Kept cut** (`test/pkg-boundary.test.ts`, 2):
+  - sketch/*, assembly/drag, library/*, engine/stl, engine/vec3 and the CLI import nothing from `viewport/` or `ui/`; library/ names no `localStorage` outside comments; the three re-exports are in place;
+  - with no store, registering a user library keeps nothing. With a store set, it is written there and read back by `loadUserLibraries`.
+- **Not in PKG-b**: `app/templates.ts` and `app/recovery.ts` also use `localStorage`. They are app modules in the proposal and stay. B11, the tests importing pure functions from `.tsx`, is optional and left.
