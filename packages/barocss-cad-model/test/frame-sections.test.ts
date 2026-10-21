@@ -21,9 +21,13 @@ const L = (section: unknown) => withNode(emptyDoc(), { kind: 'frame', points: [[
 const straight = (doc: StudioDoc, y: number) => withNode(doc, { kind: 'frame', points: [[0, y, 0], [300, y, 0]], segments: [[0, 1]], section: { kind: 'library', id: 'R40' } } as never);
 const close = (a: number, b: number, what: string) => assert.ok(Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b)), `${what}: ${a} vs ${b}`);
 
-test('FRc a frame on a library row is the frame with that section inline: the mitred L\'s two members — the same volumes, centroids and boxes exactly', async () => {
+test('FRc a frame on a library row is the frame with that section inline: the mitred L\'s two members — the same volumes, centroids and boxes exactly; its panel names the row and its source (an estimate row warned)', async () => {
   const inline = await bodiesOf(L(ROW.section)), named = await bodiesOf(lib(L({ kind: 'library', id: 'R40' })));
   assert.equal(named.length, 2);
+  // (Its panel names the row and its source; an estimate row is said as one.)
+  assert.ok(named[0].notes!.some(n => n.text === 'From your section library: RHS 40 (a test value)'), JSON.stringify(named[0].notes));
+  const est = await bodiesOf(lib(L({ kind: 'library', id: 'E' }), [{ id: 'E', section: ROW.section, estimate: true }]));
+  assert.ok(est[0].notes!.some(n => n.warning && /From your section library: E — its sizes are estimates/.test(n.text)), JSON.stringify(est[0].notes));
   named.forEach((b, k) => {
     assert.equal(b.volumeMM3, inline[k].volumeMM3, `member ${k} volume`);
     assert.deepEqual(b.centroid, inline[k].centroid); assert.deepEqual(b.mesh.bounds, inline[k].mesh.bounds);

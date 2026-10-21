@@ -4861,6 +4861,7 @@ Owner, relayed by the coordinator: "FR 에서 1, 2, 3, 모두 하고 그 밖에 
   - The v2 action `features.frame_sections` (handler `set_frame_sections`) re-evaluates the part.
   - The Library panel's SECTIONS list shows each row's label, its source or "estimate", and how many features use it. A form adds or edits rows (an edited row keeps its id), and a sections file (JSON) can be added. Remove is disabled while a row is in use.
   - The palette's member and frame commands offer "From your library" and its rows once the document has some. The prefills stay flagged as estimates, as before.
+  - A member's panel names its row and the row's source. An estimate row is a warning: "its sizes are estimates, not your stock's".
   - v2 records the action (compatible). Per turn is 21,808 characters (+126).
 - **Closed forms**:
   - The mitred L on a row is the same as with the section inline: volumes, centroids and boxes exactly.
