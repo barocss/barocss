@@ -869,7 +869,7 @@ try {
   });
 
   await check('open an STL in centimetres: the unit asked for, the block in mm with its hole, its flat faces merged', async () => {
-    await page.setInputFiles('input[aria-label="Model file"]', join(root, 'test/fixtures/block-cm.stl'));
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, '../../packages/barocss-cad-model/test/fixtures/block-cm.stl'));
     await page.waitForSelector('[aria-label="Mesh units"]');
     assert.match(await page.locator('[aria-label="Mesh units"]').innerText(), /4 × 2 × 1 mm/);
     await page.selectOption('[aria-label="Mesh unit"]', 'cm');
@@ -928,7 +928,7 @@ try {
 
   await check('a mesh saved as the container opens again the same; unsaved, its copy (blobs in IndexedDB) comes back after a reload', async () => {
     const fs = await import('node:fs');
-    await page.setInputFiles('input[aria-label="Model file"]', join(root, 'test/fixtures/block-cm.stl'));
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, '../../packages/barocss-cad-model/test/fixtures/block-cm.stl'));
     await page.waitForSelector('[aria-label="Mesh units"]');
     await page.selectOption('[aria-label="Mesh unit"]', 'cm');
     await page.click('[aria-label="Mesh units"] button:text-is("Open")');
@@ -2622,7 +2622,7 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       // (Each: the bodies, the last tool the agent called, and the body — by its name in the outliner — whose note says its pair is clear.)
       for (const [name, bodies, tool, at, note] of [['planetary', 5, 'requirements.check', 'Spur gear m2 z24', /Meshes with n1: centre distance 42\.928 mm, ratio −18:24/], ['bevel-pair', 2, 'query.summary', 'Bevel gear m3 z40/20', /Clear over a full tooth period on the heel sphere/], ['worm-reducer', 2, 'query.summary', 'Worm ZA m_x3 ×1 Ø44', /In contact along lines across the face/]]) {
-        const { calls } = JSON.parse(fs.readFileSync(join(root, `test/fixtures/gear-${name}.calls.json`), 'utf8'));
+        const { calls } = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad-model/test/fixtures/gear-${name}.calls.json`), 'utf8'));
         await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
         await page.click('[aria-label="Chat"]');
         await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
@@ -2821,10 +2821,10 @@ try {
     await page.waitForTimeout(600); await snap('cage-done');
   });
 
-  // (The calls: test/fixtures/subd-pipe-clamp.calls.json; the cage they make: the kernel's conformance case r8-subd-pipe-clamp.)
+  // (The calls: packages/barocss-cad-model/test/fixtures/subd-pipe-clamp.calls.json; the cage they make: the kernel's conformance case r8-subd-pipe-clamp.)
   await check('D84 the pipe clamp by the agent through the real chat: its cage-tool calls proposed and accepted; one body, the conformance cage; STEP out and in, the same volume', async () => {
     const { spawn } = await import('node:child_process'), fs = await import('node:fs'), origin = new URL(url).origin;
-    const { calls } = JSON.parse(fs.readFileSync(join(root, 'test/fixtures/subd-pipe-clamp.calls.json'), 'utf8'));
+    const { calls } = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad-model/test/fixtures/subd-pipe-clamp.calls.json'), 'utf8'));
     const want = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/r8/subd-pipe-clamp.json'), 'utf8'));
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
@@ -3341,7 +3341,7 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       // (The flats, in the box's order: 30 × 70 − BD and 100 + 2(25 − BD) × 70 + 2(25 − BD), BD = 2(R + T) − (π/2)(R + K·T) at T = R = 1.5, K 0.44.)
       for (const [name, flat, bends, circles, notes] of [['l-bracket', '30 × 67\\.393 mm, 1 bend', ['down', 1], 2, 1], ['pcb-enclosure', '144\\.786 × 114\\.786 mm, 4 bends', ['up', 4], 4, 4]]) {
-        const { calls } = JSON.parse(fs.readFileSync(join(root, `test/fixtures/sheet-${name}.calls.json`), 'utf8'));
+        const { calls } = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad-model/test/fixtures/sheet-${name}.calls.json`), 'utf8'));
         const want = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad/conformance/r12/accept-${name}.json`), 'utf8')).expect.outputs[0].volumeMM3.value;
         await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
         await page.click('[aria-label="Chat"]');
@@ -3534,7 +3534,7 @@ try {
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
-      const { calls } = JSON.parse(fs.readFileSync(join(root, 'test/fixtures/frame-welded-table.calls.json'), 'utf8'));
+      const { calls } = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad-model/test/fixtures/frame-welded-table.calls.json'), 'utf8'));
       await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });

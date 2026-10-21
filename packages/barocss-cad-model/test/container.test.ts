@@ -1,16 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
-import { blobRefs, blobsAsBase64, blobsFromBase64, getBlob, inlineMeshes, meshNodeBlobs, putKnownBlob, sha256 } from '@barocss/cad-model/engine/blobs';
-import { decodeStudioFile, encodeStudioFile, isContainer, readStudioFile } from '@barocss/cad-model/engine/container';
-import { WireReceiver, WireSender } from '@barocss/cad-model/engine/wireDoc';
+import { join, resolve } from 'node:path';
+import { evaluateDoc } from '../src/engine/evaluate';
+import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
+import { meshInMM, readMeshFile } from '../src/engine/meshImport';
+import { blobRefs, blobsAsBase64, blobsFromBase64, getBlob, inlineMeshes, meshNodeBlobs, putKnownBlob, sha256 } from '../src/engine/blobs';
+import { decodeStudioFile, encodeStudioFile, isContainer, readStudioFile } from '../src/engine/container';
+import { WireReceiver, WireSender } from '../src/engine/wireDoc';
 
 // M1 (R3.3): mesh arrays as blobs named by SHA-256; the .bcad container; plain JSON when there are none.
-const block = () => meshInMM(readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures/block-cm.stl')))), 'cm');
+const block = () => meshInMM(readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(resolve(import.meta.dirname, '..'), 'test/fixtures/block-cm.stl')))), 'cm');
 const summary = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.hint); return r.bodies.map(b => ({ key: b.key, volume: b.volumeMM3, faces: b.mesh.faces.map(f => f.name) })); };
 
 test('an old file (inline arrays) and the same part as blobs in the container: the same bodies, volumes and names', async () => {
@@ -77,10 +77,10 @@ test('blobs cross to the worker once, and to the chat server as base64 (checked)
 });
 
 test('fixture pair: block-inline.bcad (inline arrays, as before M1) and block-container.bcad (blobs) open as the same part', async () => {
-  const read = async (name: string) => { const r = await readStudioFile(new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures', name)))); assert.ok('doc' in r, JSON.stringify(r)); return r.doc; };
+  const read = async (name: string) => { const r = await readStudioFile(new Uint8Array(readFileSync(join(resolve(import.meta.dirname, '..'), 'test/fixtures', name)))); assert.ok('doc' in r, JSON.stringify(r)); return r.doc; };
   const inline = await read('block-inline.bcad'), packed = await read('block-container.bcad');
-  assert.ok(!isContainer(new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures/block-inline.bcad')))));
-  assert.ok(isContainer(new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures/block-container.bcad')))));
+  assert.ok(!isContainer(new Uint8Array(readFileSync(join(resolve(import.meta.dirname, '..'), 'test/fixtures/block-inline.bcad')))));
+  assert.ok(isContainer(new Uint8Array(readFileSync(join(resolve(import.meta.dirname, '..'), 'test/fixtures/block-container.bcad')))));
   assert.deepEqual(summary(packed), summary(inline));
   assert.ok(Math.abs(summary(packed)[0].volume! - 7000) < 1e-6);
 });

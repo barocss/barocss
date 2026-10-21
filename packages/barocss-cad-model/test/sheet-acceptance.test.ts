@@ -1,18 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { flatPatternDxf, writeDxf } from '@barocss/cad';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { toPartDocument } from '@barocss/cad-model/engine/part';
-import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '../src/engine/doc';
+import { toPartDocument } from '../src/engine/part';
+import { dispatchTool, type ChatState } from '../src/chat/tools';
 
 // R12.5 (D121): the RB9 ladder's sheet-metal rungs — 5, an L-bracket, and 10, a PCB enclosure — built by the agent's
 // tools from the calls in test/fixtures (the flow sends the same calls through the real chat). Acceptance by closed forms
 // of the outside dimensions and the sheet's rules, none read from the build: the volume, the flat's size, its holes, its
 // bends; the kernel's conformance cases r12/accept-* hold the same part documents (WRITE_ACCEPTANCE=1 rewrites them).
-const root = process.cwd(), conformance = join(root, '../../packages/barocss-cad/conformance/r12');
+const root = resolve(import.meta.dirname, '..'), conformance = join(root, '../../packages/barocss-cad/conformance/r12');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function build(name: string): Promise<ChatState> {
   const { calls } = JSON.parse(readFileSync(join(root, 'test/fixtures', `${name}.calls.json`), 'utf8')) as { calls: { tool: string; args: Record<string, unknown> }[] };

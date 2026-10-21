@@ -2,15 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { readDxfSketch } from '@barocss/cad-model/sketch/dxfRead';
-import { readUnderlay, splinePoint, UNDERLAY_TOLERANCE, type UnderlayCurve } from '@barocss/cad-model/sketch/dxfUnderlay';
+import { readDxfSketch } from '../src/sketch/dxfRead';
+import { readUnderlay, splinePoint, UNDERLAY_TOLERANCE, type UnderlayCurve } from '../src/sketch/dxfUnderlay';
 
 // O68 (A6.4): a DXF drawing's reference underlay — SPLINE, ELLIPSE, INSERT/BLOCK, TEXT and MTEXT — against ezdxf 1.4.5's
 // readings of the same files (scripts/dxf-underlay-oracle.py; the fixtures written by it from known numbers): counts by
 // type with every block expanded, spline and ellipse points to 1e-9, nested, scaled and mirrored block transforms against
 // the closed form, texts' positions and plain strings; every chord within the tolerance; and the underlay never a region.
 
-const DIR = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a6/underlay');
+const DIR = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a6/underlay');
 const fixture = (c: string) => readFileSync(join(DIR, c, 'drawing.dxf'), 'utf8');
 const oracle = (c: string) => JSON.parse(readFileSync(join(DIR, c, 'oracle.ezdxf-1.4.5.json'), 'utf8'));
 type P = [number, number];
@@ -130,7 +130,7 @@ test('the plate: its regions and holes exactly as without the underlay — deep-
 });
 
 test('import_drawing: the plate\'s underlay beside its draft (counts in the result, on the document, scaled with a confirmed width); a splines-only file an underlay alone; text alone still nothing to read', async () => {
-  const { dispatchTool } = await import('@barocss/cad-model/chat/tools'), { evaluatePart } = await import('@barocss/cad-model/engine/evaluate'), { emptyDoc } = await import('@barocss/cad-model/engine/doc'), { confirmDimension } = await import('@barocss/cad-model/chat/drafts');
+  const { dispatchTool } = await import('../src/chat/tools'), { evaluatePart } = await import('../src/engine/evaluate'), { emptyDoc } = await import('../src/engine/doc'), { confirmDimension } = await import('../src/chat/drafts');
   const evaluate = async (d: Parameters<typeof evaluatePart>[0]) => evaluatePart(d, 1), empty = { doc: emptyDoc(), bodies: [] };
   const r = await dispatchTool(empty, 'import_drawing', { dxf: fixture('plate'), name: 'plate' }, evaluate), c = JSON.parse(r.content);
   assert.ok(!r.isError, r.content); assert.deepEqual(c.underlay, { CIRCLE: 1, LINE: 1, SPLINE: 1, TEXT: 1 }); assert.equal(c.draft, 'F1');

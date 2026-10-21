@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { checkBrep, subdBrep, validateCage } from '@barocss/cad';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { v1Call, v2Call } from '@barocss/cad-model/chat/groups';
-import { commitDrag, runOp, startSession, type CageSession } from '@barocss/cad-model/subd/cageEdit';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { v1Call, v2Call } from '../src/chat/groups';
+import { commitDrag, runOp, startSession, type CageSession } from '../src/subd/cageEdit';
 
 // D84 (R8.3): the owner's acceptance part, a SubD pipe clamp (handover/notes/acceptance/subd-pipe-clamp.png), built
 // through the agent's cage tools as an agent would: each pick found by subd_select (or read off the cage), each change
@@ -17,8 +17,8 @@ import { commitDrag, runOp, startSession, type CageSession } from '@barocss/cad-
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 type Subd = Extract<ModelNode, { kind: 'subd' }>;
 type V3 = [number, number, number];
-const CALLS = join(process.cwd(), 'test/fixtures/subd-pipe-clamp.calls.json');
-const CASE = join(process.cwd(), '../../packages/barocss-cad/conformance/r8/subd-pipe-clamp.json');
+const CALLS = join(resolve(import.meta.dirname, '..'), 'test/fixtures/subd-pipe-clamp.calls.json');
+const CASE = join(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/r8/subd-pipe-clamp.json');
 
 /** The clamp's sizes: a 20/17 mm tube 40 long, 24 quads round and 7 along; a lug of 4 levels over rows 1–5 of column 0. */
 const RO = 20, RI = 17, H = 40, NU = 24, NH = 7, ROW = H / NH, LEVELS = [4, ROW, ROW, ROW], HOLD = 0.6, HOLE = 4.2, RING = 5.2, FUNNEL = 0.6;

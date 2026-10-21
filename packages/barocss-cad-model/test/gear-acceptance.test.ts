@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { brepMassProperties, checkPlacedBevelGears, checkPlacedInternalGears, checkPlacedSpurGears, checkPlacedThroatedPair, evaluateCadPart, internalGear, spurGear, type CadPartSnapshot } from '@barocss/cad';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { toPartDocument } from '@barocss/cad-model/engine/part';
-import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '../src/engine/doc';
+import { toPartDocument } from '../src/engine/part';
+import { dispatchTool, type ChatState } from '../src/chat/tools';
 
 // R12b.7 (D138): the gears' acceptance — a planetary set, a right-angle bevel pair and a worm reducer, each built by the
 // agent's tools in one turn from the calls in test/fixtures (the flow sends the same calls through the real chat).
@@ -16,7 +16,7 @@ import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 // exact profiles as placed — the pairs no placement made among them (the sun with the second and third planets, which
 // mesh only if (zs + zr)/3 is whole) and, as a control that the check can fail, a planet off its place. The kernel's
 // conformance cases r12b/accept-* hold the same part documents (WRITE_ACCEPTANCE=1).
-const root = process.cwd(), conformance = join(root, '../../packages/barocss-cad/conformance/r12b');
+const root = resolve(import.meta.dirname, '..'), conformance = join(root, '../../packages/barocss-cad/conformance/r12b');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function build(name: string): Promise<{ state: ChatState; results: string[] }> {
   const { calls } = JSON.parse(readFileSync(join(root, 'test/fixtures', `${name}.calls.json`), 'utf8')) as { calls: { tool: string; args: Record<string, unknown> }[] };

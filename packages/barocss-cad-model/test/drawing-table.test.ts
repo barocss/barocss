@@ -2,18 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { drawingInputs } from '@barocss/cad-model/chat/drawing';
-import { applyFix, drawingIssues, issueContext, type IssueContext } from '@barocss/cad-model/drawing/issues';
-import { tableLayout, tableSize, cellText, TABLE_PAD, TABLE_ROW, TABLE_TEXT, type TableContent } from '@barocss/cad-model/drawing/table';
-import { bendTable, tableContent } from '@barocss/cad-model/drawing/tables';
-import { textWidth } from '@barocss/cad-model/drawing/text';
-import { readDrawing, type DrawingSettings, type DrawingTable } from '@barocss/cad-model/drawing/types';
-import { sheetSvg } from '@barocss/cad-model/drawing/svg';
-import { sheetPdf } from '@barocss/cad-model/drawing/pdf';
-import { sheetDxf } from '@barocss/cad-model/drawing/dxf';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '../src/engine/doc';
+import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { drawingInputs } from '../src/chat/drawing';
+import { applyFix, drawingIssues, issueContext, type IssueContext } from '../src/drawing/issues';
+import { tableLayout, tableSize, cellText, TABLE_PAD, TABLE_ROW, TABLE_TEXT, type TableContent } from '../src/drawing/table';
+import { bendTable, tableContent } from '../src/drawing/tables';
+import { textWidth } from '../src/drawing/text';
+import { readDrawing, type DrawingSettings, type DrawingTable } from '../src/drawing/types';
+import { sheetSvg } from '../src/drawing/svg';
+import { sheetPdf } from '../src/drawing/pdf';
+import { sheetDxf } from '../src/drawing/dxf';
 import { dxfText } from '@barocss/cad';
 
 // The drawing table (O49) and R12's bend table on it. A table laid out from its content (widths from its texts, its box
@@ -22,9 +22,9 @@ import { dxfText } from '@barocss/cad';
 // fix), its source's refusal an error; the bend table's BA and BD by the closed forms, and a shop table's deduction.
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
-const CASE = resolve(process.cwd(), '../../packages/barocss-cad/conformance/r14/tables/bends');
+const CASE = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/r14/tables/bends');
 async function run(calls: { tool: string; args: object }[]): Promise<StudioDoc> { let s: ChatState = { doc: emptyDoc(), bodies: [] }; for (const c of calls) { const r = await dispatchTool(s, c.tool, c.args as Record<string, unknown>, evaluate); assert.ok(!r.isError, r.content); s = r.state; } return s.doc; }
-const lBracket = async () => run(JSON.parse(readFileSync(join(process.cwd(), 'test/fixtures/sheet-l-bracket.calls.json'), 'utf8')).calls);
+const lBracket = async () => run(JSON.parse(readFileSync(join(resolve(import.meta.dirname, '..'), 'test/fixtures/sheet-l-bracket.calls.json'), 'utf8')).calls);
 const ctxOf = (doc: StudioDoc, settings: DrawingSettings): IssueContext => { const i = drawingInputs(doc, settings); assert.ok(typeof i !== 'string', String(i)); return issueContext({ ...i, meta: { ...i.meta, date: '2026-10-20' } }); };
 const codes = (ctx: IssueContext, table: string) => drawingIssues(ctx).filter(x => x.tables?.includes(table)).map(x => x.code);
 

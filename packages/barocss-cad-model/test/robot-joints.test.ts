@@ -2,19 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { faceTableOf, tablesFor } from '@barocss/cad-model/assembly/faces';
-import type { Mate } from '@barocss/cad-model/assembly/mates';
-import { solveDoc } from '@barocss/cad-model/chat/assembly';
-import { dispatchTool, runTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { treeOfDoc } from '@barocss/cad-model/chat/robot';
-import { jointTreeOf, motionOf, readRobot, type JointTree } from '@barocss/cad-model/robot/joints';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import { faceTableOf, tablesFor } from '../src/assembly/faces';
+import type { Mate } from '../src/assembly/mates';
+import { solveDoc } from '../src/chat/assembly';
+import { dispatchTool, runTool, type ChatState } from '../src/chat/tools';
+import { treeOfDoc } from '../src/chat/robot';
+import { jointTreeOf, motionOf, readRobot, type JointTree } from '../src/robot/joints';
 
 // RM1 (O14): the mate graph as a joint tree. Each case is an assembly built here, its mates solved, the tree read;
 // the cases are also conformance/rm/<case>/case.json (the document and the expected joints; UPDATE_RM_FIXTURES=1).
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/rm');
+const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/rm');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const bodiesOf = async (doc: StudioDoc) => { const r = await evaluate(doc); assert.ok(r.ok); return r.bodies; };
 const plateWithHoles = (w: number, d: number, h: number, holes: [number, number][], r = 5) => holes.reduce((doc, c) => withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, center: c, radius: r } as never), rectanglePart(w, d, h));

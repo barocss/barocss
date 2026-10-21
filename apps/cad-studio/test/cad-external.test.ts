@@ -65,7 +65,7 @@ test('cad-mcp --doc: spawned as a client would, a script run and saved; a second
 });
 
 test('cad-mcp on a container with mesh blobs: a change saved with its blobs, the file read back whole', async () => {
-  const m = meshInMM(readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(root, 'test/fixtures/block-cm.stl')))), 'cm');
+  const m = meshInMM(readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(root, '../../packages/barocss-cad-model/test/fixtures/block-cm.stl')))), 'cm');
   const node = await meshNodeBlobs({ kind: 'mesh' as const, name: 'block', unit: 'cm', representation: 'facets' as const }, m.positions, m.indices);
   const d = dir(), part = join(d, 'mesh.bcad');
   writeFileSync(part, encodeStudioFile(withNode(emptyDoc(), node)));

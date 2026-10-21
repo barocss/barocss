@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, featureLabel, withNode } from '@barocss/cad-model/engine/doc';
-import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
+import { join, resolve } from 'node:path';
+import { evaluateDoc } from '../src/engine/evaluate';
+import { emptyDoc, featureLabel, withNode } from '../src/engine/doc';
+import { meshInMM, readMeshFile } from '../src/engine/meshImport';
 
 test('an STL in centimetres opens as a solid in mm: welded, scaled, its flat faces merged', () => {
-  const mesh = readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures/block-cm.stl'))));
+  const mesh = readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(resolve(import.meta.dirname, '..'), 'test/fixtures/block-cm.stl'))));
   const cm = meshInMM(mesh, 'cm');
   assert.equal(cm.positions.length / 3, 16, 'the 96 corners of 32 triangles welded to 16 vertices');
   assert.deepEqual(cm.size, [40, 20, 10]);
@@ -19,7 +19,7 @@ test('an STL in centimetres opens as a solid in mm: welded, scaled, its flat fac
 });
 
 test('an STL imported as facet faces (F0): regions named by the node, flat ones shown as planes; an older planar node keeps its names', () => {
-  const mesh = readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures/block-cm.stl'))));
+  const mesh = readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(resolve(import.meta.dirname, '..'), 'test/fixtures/block-cm.stl'))));
   const cm = meshInMM(mesh, 'cm');
   const facets = evaluateDoc(withNode(emptyDoc(), { kind: 'mesh', name: 'block', unit: 'cm', ...cm, representation: 'facets' }), 1);
   assert.ok(facets.ok, facets.ok ? '' : facets.error.hint);
@@ -32,7 +32,7 @@ test('an STL imported as facet faces (F0): regions named by the node, flat ones 
 });
 
 test('a mesh node in pieces: each closed piece a body of its own, keyed b<k>_part<j>, faces named per piece', () => {
-  const mesh = readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures/block-cm.stl'))));
+  const mesh = readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(resolve(import.meta.dirname, '..'), 'test/fixtures/block-cm.stl'))));
   const one = meshInMM(mesh, 'mm'), n = one.positions.length / 3;
   // The block twice, the second 100 mm along X.
   const positions = [...one.positions, ...one.positions.map((x, i) => i % 3 === 0 ? x + 100 : x)], indices = [...one.indices, ...one.indices.map(i => i + n)];

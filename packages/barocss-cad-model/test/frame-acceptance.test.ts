@@ -1,26 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { booleanAnalytic, brepMassProperties, cutList, cutPiece, dxfText, evaluateCadPart } from '@barocss/cad';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { toPartDocument } from '@barocss/cad-model/engine/part';
-import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { drawingInputs } from '@barocss/cad-model/chat/drawing';
-import { drawingIssues, fixAll, issueContext } from '@barocss/cad-model/drawing/issues';
-import { readDrawing } from '@barocss/cad-model/drawing/types';
-import { sheetSvg } from '@barocss/cad-model/drawing/svg';
-import { sheetPdf } from '@barocss/cad-model/drawing/pdf';
-import { sheetDxf } from '@barocss/cad-model/drawing/dxf';
-import { cutListSource } from '@barocss/cad-model/app/cutList';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '../src/engine/doc';
+import { toPartDocument } from '../src/engine/part';
+import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { drawingInputs } from '../src/chat/drawing';
+import { drawingIssues, fixAll, issueContext } from '../src/drawing/issues';
+import { readDrawing } from '../src/drawing/types';
+import { sheetSvg } from '../src/drawing/svg';
+import { sheetPdf } from '../src/drawing/pdf';
+import { sheetDxf } from '../src/drawing/dxf';
+import { cutListSource } from '../src/app/cutList';
 
 // FR4b (D128): the frames' acceptance — a welded table frame and a 2020-class T-slot frame, each built by the agent's
 // tools in one turn from the calls in test/fixtures (the flow sends the same calls through the real chat), and the cut
 // list on a drawing sheet as a table (the outer lane's O49). Acceptance by closed forms of the frames' dimensions, none
 // read from the build: every member's volume, the cut list's rows and totals, no two members overlapping (welded or
 // united, their sum). The kernel's conformance cases fr/accept-* hold the same part documents (WRITE_ACCEPTANCE=1).
-const root = process.cwd(), conformance = join(root, '../../packages/barocss-cad/conformance/fr');
+const root = resolve(import.meta.dirname, '..'), conformance = join(root, '../../packages/barocss-cad/conformance/fr');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function build(name: string): Promise<{ state: ChatState; results: string[] }> {
   const { calls } = JSON.parse(readFileSync(join(root, 'test/fixtures', `${name}.calls.json`), 'utf8')) as { calls: { tool: string; args: Record<string, unknown> }[] };

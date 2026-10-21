@@ -2,16 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { applyBrief, briefGaps, confirmField, patchBrief, readBrief, type Brief } from '@barocss/cad-model/chat/brief';
+import { evaluatePart } from '../src/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '../src/engine/doc';
+import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { applyBrief, briefGaps, confirmField, patchBrief, readBrief, type Brief } from '../src/chat/brief';
 
 // A6.1 (O24): the brief. The conformance fixtures (hand-written: their expected gaps and what the studio does with the
 // process and material) through the tool; an assumption never replacing what the user stated; the studio's confirm;
 // a stated material giving the bodies' mass; the script's brief(); the field kept through open and the v2 path.
 
-const CASES = resolve(process.cwd(), '../../packages/barocss-cad/conformance/a6/briefs');
+const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a6/briefs');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const call = async (s: ChatState, tool: string, args: object) => dispatchTool(s, tool, args, evaluate);
 
