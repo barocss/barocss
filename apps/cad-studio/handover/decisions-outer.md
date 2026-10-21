@@ -4162,3 +4162,50 @@ The owner's decision, verbatim: "@barocss/cad-model 는 공개패키지로 해�
   - `npm-release.yml` publishes only those four tarballs, by name. A public cad-model is not published by any workflow until it is added to that set on purpose.
 - **Open, for the coordinator and the owner later**: a public package's exports are an API. `"./*"` stays for the moves. Before the first release it needs a curated public entry (`index.ts`) and a stability policy for its exports. Not designed here.
 - The lockfile is unchanged: workspace links carry no version.
+
+## O94 — A7.5: candidates isolated, verified and approved — the replay gate, operations, undo against freshness, #2181's nine steps (2026-10-21)
+
+The owner's decision, verbatim: "#2181에서 빠진 네 가지(저장→새로 열기 재생 검사, 취소·중복 전달 처리, 실행 취소와 최신성 시험, 9단계 시나리오 자동화)를 바깥 줄 A7.5로 PKG-a·b 다음에 넣어." That is: put #2181's four missing pieces (a save → reopen replay check, cancel and duplicate-delivery handling, undo against freshness, and the nine-step scenario automated) into the outer lane as A7.5, after PKG-a and PKG-b.
+
+#2181 was read first (`gh issue view 2181`; its §4 contract and §5 scenario). Most of it already exists in A7/A8: the base revision with STALE_BASE, explicit rebase, the gates, the Verifier, held, freshness, baselines, the minted token. A7.5 adds only the four pieces.
+
+- **The board** (`src/team/candidates.ts`, `CandidateBoard`), around A7's Integrator:
+  - **Isolation**: a candidate starts on its own copy of the accepted state (structuredClone). It is built there with the agent's own tools (`apply_ops` through `dispatchTool`), and its evidence is stamped with the revision and the token it was built on: facts, each requirement's verdict and measure, and A7's gates. The accepted part and the other candidates never see it.
+  - **Checked before it runs**:
+    - the unit (the studio's documents are mm: WRONG_UNIT);
+    - each op against the tools a batch may hold (UNSUPPORTED_OP; `BATCHABLE_TOOLS`, exported from `chat/tools.ts`);
+    - its dependencies (MISSING_DEPENDENCY when one is not accepted);
+    - its ops budget.
+  - **Checked as it builds**: a target that is not there (WRONG_TARGET), and its bodies and triangles budgets. Each budget is refused by name: "budget triangles: 72 over 1".
+  - **Operations**: every call carries an operationId. A second delivery is answered from the trace (DUPLICATE, with the first outcome) and never applied again.
+  - **Cancel and timeout**:
+    - a cancelled candidate's state is discarded, and nothing else is touched;
+    - its result arriving after the cancel, mid-build, is refused (CANCELLED);
+    - the clock is logical (ticks), so a result past its deadline is refused (TIMED_OUT).
+  - **Accepting**:
+    - first the token. A candidate is accepted only on the token it was built on, else STALE_BASE, naming both;
+    - then A7's `integrate` on the accepted state (its gates and its STALE_BASE). A failure is GATE_FAILED, with the finding;
+    - then the **replay gate**: the document saved as the studio saves it (`encodeStudioFile`), read back by a fresh reader (`readStudioFile`, evaluated afresh) and compared;
+    - facts must match: solids, the volume to 1e-9 relative, the bbox. Each requirement's verdict must match, and its measure within that check's tolerance. Otherwise REPLAY_FACTS_DIFFER, REPLAY_VERDICT_DIFFERS or REPLAY_UNREADABLE, and the part is unchanged;
+    - the reader is in-process on the studio's path; `cad-cli board --fresh` spawns `cad-cli replay` per accept, a fresh process.
+  - **Undo and redo** restore the accepted document (its source, geometry and references). Results stamped against the undone revision read stale by A8.5b's `freshnessOf`, and current again after the redo.
+  - **The acceptance token** is a counter that every accept, undo and redo moves on and never reuses. A candidate built before an undo is refused even when the content it was built on is back. That is #2181's "revision token reuse".
+  - **A saved file** opens as a new board (`CandidateBoard.open`). One that does not read is refused (CORRUPT_FILE).
+- **The scenario** (`src/team/boardScenario.ts`; `conformance/a7/candidates/candidates-nine-steps.json`, 42 steps): #2181's nine steps in order, every volume by the closed form 20·10·h:
+  - R0 is 1000 mm³. A (h 6) is 1200 and B (h 7) 1400, built in isolation, R0 unchanged;
+  - a wrong target and a cancel mid-build leave everything intact, and a duplicate run is answered;
+  - A is accepted (R1, 1200). B is refused stale. B2, rebuilt on R1, gives 1400 with new evidence and is accepted (R2);
+  - a mass stamped on R2 reads stale after the undo. E, built on R1 before R2, is refused stale with R1's content back. After the redo the mass is current;
+  - save, fresh open, then a re-edit: F (h 9) gives 1800. G (h 12) is built, then refused at accept by the hard requirement H ≤ 10 (GATE_FAILED);
+  - the negatives, each typed: UNSUPPORTED_OP, WRONG_UNIT, WRONG_TARGET, MISSING_DEPENDENCY, BUDGET_EXCEEDED (ops, triangles), TIMED_OUT, DUPLICATE (an accept delivered again, not applied), CORRUPT_FILE (the saved file cut in half).
+  - **Two paths, the same steps**: in-process (the studio's tool path) and `cad-cli board scenario.json --fresh` (exit 0 when every step is the expected one).
+- **CLI**:
+  - `cad-cli board scenario.json [--fresh]` prints the steps, `matches` and `differ`;
+  - `cad-cli replay part.bcad` prints a saved part's evidence read afresh.
+- **Tests** (`test/candidates.test.ts`, 5):
+  - the scenario in-process, every step as expected, with the closed forms checked;
+  - the same through a spawned `cad-cli board --fresh`;
+  - isolation: R0's canonical JSON unchanged; A's and B's evidence unchanged by a failure and a cancel mid-build;
+  - the replay gate's mutants: facts off by 1 mm³, H measured 0.02 off (its tolerance 0.01), H's verdict flipped, a file that does not read. Each is refused by name with the part unchanged; 0.005 off still matches;
+  - a duplicate accept applied once (one undo, then NOTHING_TO_UNDO); undo and redo restore the canonical JSON and the volume; E refused on the new token; tokens only move on.
+- **Not in A7.5**: a UI for the board (it runs headless and in the studio's tool path); parallel execution in workers (candidates build in turn on their own copies, which isolates their state but is not concurrency); assembly candidates (#2181's later step).

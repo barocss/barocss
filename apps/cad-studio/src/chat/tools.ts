@@ -145,6 +145,8 @@ function features(doc: StudioDoc) {
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
 const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
+/** The tools a batch (apply_ops, a patch) may hold (A7.5: a candidate's unsupported op is refused by name before it runs). */
+export const BATCHABLE_TOOLS: ReadonlySet<string> = BATCHABLE;
 /** At most this many checkpoints a session (the oldest dropped first). */
 const CHECKPOINTS = 20;
 const MUTATORS = new Set(['apply_ops', 'run_script', 'restore', 'set_requirements', 'import_drawing', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part', ...CAGE_MUTATORS]);

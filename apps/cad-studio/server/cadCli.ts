@@ -18,6 +18,12 @@ import { notLocalModel, openModel, writeAtomic } from './cadDoc';
 import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '../src/team/scripted';
 import { metricsOf, type Labelled } from '../src/team/metrics';
 import { verifyBundle, writeBundle } from '../src/team/bundle';
+import { inProcessReopen, type Reopen } from '../src/team/candidates';
+import { runBoardScenario, type BoardScenario } from '../src/team/boardScenario';
+import { canonical } from '../src/team/team';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { quotePackage } from '../src/mould/quote';
 import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '../src/chat/robot';
 
@@ -50,6 +56,13 @@ cad-cli robot-size part.bcad duty.json -o sized.bcad
   RD10's scripted sizer: one change a round (an actuator, a rating, or a slower profile) until every harness margin is
   above 0; writes sized.bcad (the ratings) and sized.duty.json (the actuators, the profile); prints the trace. Exit 0
   when sized, 1 when it stopped (BRIEF_INFEASIBLE: a range or a sweep no sizing fixes; NOT_CONVERGED).
+cad-cli board scenario.json [--fresh]
+  Runs a candidate board's scenario (A7.5): candidates built in isolation, cancelled, timed out, accepted through the
+  Integrator and the replay gate, undone and redone; prints each step's outcome and whether it is the scenario's
+  expected one. --fresh reads every accepted part back in a fresh process (cad-cli replay). Exit 1 when one differs.
+cad-cli replay part.bcad
+  Reads a saved part as the studio opens it and evaluates it afresh: prints its facts and its requirements' verdicts
+  (A7.5's replay gate reads an accepted part back with it). Exit 1 when it does not read.
 cad-cli team scenario.json
   Runs a scripted team (A7: the Requirements role's ops, the Designer's patches, the Verifier's rules) through the
   Integrator's gates; prints each patch's trace. Exit 1 when no patch was applied.`;
@@ -117,6 +130,30 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const r = await runScenario(sc, evaluate);
     say(io.stdout, runSummary(r));
     return r.accepted > 0 ? 0 : 1;
+  }
+  if (cmd === 'replay') {
+    // (A7.5, O94: a saved part read and evaluated afresh — the replay gate's reader in a fresh process.)
+    if (rest.length !== 1) return usage('replay takes one .bcad file');
+    const back = await inProcessReopen(evaluate)(new Uint8Array(readFileSync(resolve(rest[0]))));
+    say(io.stdout, back);
+    return 'error' in back ? 1 : 0;
+  }
+  if (cmd === 'board') {
+    // (A7.5, O94: a candidate board's scenario; --fresh, each accepted part read back by a spawned cad-cli replay.)
+    const file = rest.find(a => !a.startsWith('--')); if (!file) return usage('board takes a scenario file');
+    let sc: BoardScenario;
+    try { sc = JSON.parse(readFileSync(resolve(file), 'utf8')) as BoardScenario; } catch (e) { return failed(`${file}: ${e instanceof Error ? e.message : String(e)}`); }
+    const reopen: Reopen | undefined = rest.includes('--fresh') ? async bytes => {
+      const dir = mkdtempSync(join(tmpdir(), 'cad-replay-')), path = join(dir, 'part.bcad');
+      try {
+        writeFileSync(path, bytes);
+        const r = spawnSync(process.execPath, [process.argv[1], 'replay', path], { encoding: 'utf8' });
+        try { return JSON.parse(r.stdout); } catch { return { error: `the fresh reader gave no result (exit ${r.status}): ${r.stderr.slice(0, 200)}` }; }
+      } finally { rmSync(dir, { recursive: true, force: true }); }
+    } : undefined;
+    const r = await runBoardScenario(sc, evaluate, reopen), same = r.steps.map((x, k) => canonical(x) === canonical(sc.expect[k]));
+    say(io.stdout, { case: sc.case, steps: r.steps, matches: same.every(Boolean), differ: same.flatMap((ok, k) => ok ? [] : [k]) });
+    return same.every(Boolean) && same.length === sc.expect.length ? 0 : 1;
   }
   if (cmd === 'bundle') {
     // (A8.6, O42: the export bundle written from a saved part, or read back from its folder alone.)
