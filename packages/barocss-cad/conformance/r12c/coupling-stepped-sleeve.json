@@ -1,0 +1,72 @@
+{
+  "id": "r12c-coupling-stepped-sleeve",
+  "step": "R12c",
+  "decisions": [
+    "D161"
+  ],
+  "about": "R12c.6b: a coupling's envelope from a test row (an estimate): a Ø30 × 40 sleeve, bores Ø12 and Ø14 stepped at 18.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "k",
+          "kind": "coupling",
+          "row": {
+            "kind": "coupling",
+            "id": "R20",
+            "type": "rigid sleeve",
+            "boreMM": [
+              12,
+              14
+            ],
+            "outsideMM": 30,
+            "lengthMM": 40,
+            "boreStepMM": 18,
+            "estimate": true
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 22851.944962212154,
+          "relTol": 1e-8
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            19.646136926037943
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "k.bore1",
+          "k.bore2",
+          "k.face0",
+          "k.face1",
+          "k.outside",
+          "k.step"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "Two annuli: π(15² − 6²)·18 + π(15² − 7²)·22; the centroid their volumes' weighted mid-heights."
+}

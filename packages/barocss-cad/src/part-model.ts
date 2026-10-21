@@ -48,6 +48,7 @@ import { seatedBearing, bearingRowProblem, BearingError, type BearingCode, type 
 import { keySolid, keywayCut, ringSolid, pinSolid, ShaftPartError, type KeyFitClasses, type KeyReport, type KeywayReport, type PinReport, type RingReport, type ShaftPartCode } from './shaft-parts.js';
 import type { FitTable } from './fits.js';
 import { shaftSolid, ShaftError, type ShaftDiagnosticCode, type ShaftReport, type ShaftSpec } from './shaft.js';
+import { sprocket, pulley, beltBand, couplingEnvelope, DriveError, type DriveCode, type DriveRow, type SprocketReport, type PulleyReport, type BeltReport, type CouplingReport } from './drive.js';
 import { discCam, CamError, type CamCode, type CamLaw, type CamReport, type CamSpec } from './cam.js';
 import { compressionSpring, hookedSpring, springDimensions, SpringError, type HookedSpringReport, type HookedSpringSpec, type SpringDiagnosticCode, type SpringReport, type SpringSpec } from './spring.js';
 import { throatedWormWheel, throatedWormPlacement, type ThroatedWheelReport, type ThroatedWheelSpec, type PlacedThroatedWheel } from './gear-worm-wheel.js';
@@ -333,6 +334,18 @@ export type CadPartFeature = Base & (
     /** 'cam@0' (the default). */
     readonly generator?: 'cam@0' }
   /**
+   * R12c.6b (D161): drive elements from the user's rows (`row` inline: a chain, a belt or a coupling row, citing its source
+   * or flagged an estimate). A `sprocket` for a chain row, `teeth`, `tip` Ø and `width` (the tooth form `pivot-clearance`,
+   * derived; `seat` Ø at least the roller's); a `pulley` for a belt row (timing: `teeth`, `width`; V: `diameter` the datum,
+   * `grooves`; flat: `diameter`, `width`, `crown`); a `belt` (its row a belt or a chain) as a band on two wheels' pitch
+   * radii `pitchRadii` at `centerDistance` along the turned +X (`rounding` a chain's links); a `coupling`'s envelope.
+   * Each on its axis +Z through `center` from `from`, turned `rotation` degrees. Faces in `drive.ts`.
+   */
+  | { readonly kind: 'sprocket'; readonly row: DriveRow; readonly teeth: number; readonly tip: CadPartDim; readonly width: CadPartDim; readonly seat?: CadPartDim; readonly toothForm?: string; readonly bore?: CadPartDim; readonly minimumRim?: CadPartDim; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'sprocket@0' }
+  | { readonly kind: 'pulley'; readonly row: DriveRow; readonly teeth?: number; readonly diameter?: CadPartDim; readonly grooves?: number; readonly width?: CadPartDim; readonly crown?: CadPartDim; readonly bore?: CadPartDim; readonly minimumRim?: CadPartDim; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'pulley@0' }
+  | { readonly kind: 'belt'; readonly row: DriveRow; readonly pitchRadii: readonly [CadPartDim, CadPartDim]; readonly centerDistance: CadPartDim; readonly rounding?: 'whole' | 'even'; readonly width?: CadPartDim; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'belt@0' }
+  | { readonly kind: 'coupling'; readonly row: DriveRow; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'coupling@0' }
+  /**
    * A shaft (R12c.3a, D156): `steps` [{ diameter, length, fillet? (at the shoulder after it), undercut? { width, depth },
    * grooves? [{ diameter, width, at }], keyseats? [{ width, depth, length, offset, ends? square | end-mill (default) |
    * disc, cutterRadius?, angle? }] }] along +Z from `from` through `center`, `chamfers` [start, end], cross `holes`
@@ -552,6 +565,8 @@ export interface CadPartOutput {
   readonly spring?: SpringReport | HookedSpringReport;
   /** A cam's report: its program, pressure angle, curvature, fit and the follower's sweep on the built profile (R12c.6a). */
   readonly cam?: CamReport;
+  /** A drive element's report (R12c.6b): a sprocket's, a pulley's, a belt's or chain's, a coupling's (a bought item). */
+  readonly sprocket?: SprocketReport; readonly pulley?: PulleyReport; readonly belt?: BeltReport; readonly coupling?: CouplingReport;
   /** A shaft's report: its steps, keyseats, grooves and holes (R12c.3a). */
   readonly shaft?: ShaftReport;
   /** A key's, a keyway's, a ring's or a pin's report and checks (R12c.3b). */
@@ -645,6 +660,7 @@ interface Part {
   readonly wormWheelPlace?: PlacedThroatedWheel;
   readonly spring?: SpringReport | HookedSpringReport;
   readonly cam?: CamReport;
+  readonly sprocket?: SprocketReport; readonly pulley?: PulleyReport; readonly belt?: BeltReport; readonly coupling?: CouplingReport;
   readonly shaft?: ShaftReport;
   readonly shaftPlace?: BrepAffine;
   readonly key?: KeyReport; readonly keyway?: KeywayReport; readonly ring?: RingReport; readonly pin?: PinReport;
@@ -681,6 +697,8 @@ const GLAND_CODES: Record<GlandCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT
 const BEARING_CODES: Record<BearingCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', SEAT_ABUTMENT: 'GEOMETRY', SEAT_FIT: 'GEOMETRY' };
 /** Shaft parts' diagnostics as the part model's codes. */
 const SHAFT_PART_CODES: Record<ShaftPartCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', KEY_FIT: 'GEOMETRY', RING_FIT: 'GEOMETRY', PIN_FIT: 'GEOMETRY' };
+/** Drive refusals as the part model's codes (R12c.6b; the element's own code kept in the message). */
+const DRIVE_CODES: Record<DriveCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_TOOTH_FORM: 'CAPABILITY', TOOTH_FORM: 'GEOMETRY', BELT_GEOMETRY: 'GEOMETRY' };
 /** Cam refusals as the part model's codes (the cam's own code kept in the message). */
 const CAM_CODES: Record<CamCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', CAM_UNDERCUT: 'GEOMETRY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY' };
 /** Spring diagnostics as the part model's codes (the spring's own code kept in the message). */
@@ -1989,6 +2007,32 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const cs = Math.cos(turn), sn = Math.sin(turn);
         const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, spring: made!.report }] };
+      };
+    }
+    case 'sprocket': case 'pulley': case 'belt': case 'coupling': {
+      const gen = `${f.kind}@0`;
+      if (f.generator !== undefined && f.generator !== gen) fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const opt = (key: string) => (f as Record<string, unknown>)[key] === undefined ? undefined : dim((f as Record<string, unknown>)[key] as CadPartDim, key);
+      const int = (key: string) => { const v = (f as Record<string, unknown>)[key]; if (v !== undefined && !(typeof v === 'number' && Number.isFinite(v))) fail('INPUT', `${key} must be a number`); return v as number | undefined; };
+      const row = (f as { row?: unknown }).row as DriveRow;
+      if (!row || typeof row !== 'object') fail('INPUT', 'row must be the drive row (a chain, a belt or a coupling row) inline');
+      const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (int('rotation') ?? 0) * Math.PI / 180;
+      const g = f as Record<string, unknown>, radii = g.pitchRadii as unknown;
+      if (f.kind === 'belt' && !(Array.isArray(radii) && radii.length === 2)) fail('INPUT', 'pitchRadii must be [first wheel, second wheel]');
+      const make = (): { brep: Brep; part: Record<string, unknown> } => {
+        switch (f.kind) {
+          case 'sprocket': { const m = sprocket({ chain: row as never, teeth: int('teeth') as number, tipDiameterMM: opt('tip') as number, widthMM: opt('width') as number, ...(g.seat !== undefined ? { seatDiameterMM: opt('seat') } : {}), ...(g.toothForm !== undefined ? { toothForm: g.toothForm as 'pivot-clearance' } : {}), ...(g.bore !== undefined ? { boreDiameterMM: opt('bore') } : {}), ...(g.minimumRim !== undefined ? { minimumRimMM: opt('minimumRim') } : {}) }, { id: at }); return { brep: m.brep, part: { sprocket: m.report } }; }
+          case 'pulley': { const m = pulley({ belt: row as never, ...(g.teeth !== undefined ? { teeth: int('teeth') } : {}), ...(g.diameter !== undefined ? { diameterMM: opt('diameter') } : {}), ...(g.grooves !== undefined ? { grooves: int('grooves') } : {}), ...(g.width !== undefined ? { widthMM: opt('width') } : {}), ...(g.crown !== undefined ? { crownMM: opt('crown') } : {}), ...(g.bore !== undefined ? { boreDiameterMM: opt('bore') } : {}), ...(g.minimumRim !== undefined ? { minimumRimMM: opt('minimumRim') } : {}) }, { id: at }); return { brep: m.brep, part: { pulley: m.report } }; }
+          case 'belt': { const r = radii as CadPartDim[], m = beltBand({ row: row as never, pitchRadiiMM: [dim(r[0], 'pitchRadii[0]', true), dim(r[1], 'pitchRadii[1]', true)], centerDistanceMM: dim(g.centerDistance as CadPartDim, 'centerDistance', true), ...(g.rounding !== undefined ? { rounding: g.rounding as 'whole' | 'even' } : {}), ...(g.width !== undefined ? { widthMM: opt('width') } : {}) }, { id: at }); return { brep: m.brep, part: { belt: m.report } }; }
+          default: { const m = couplingEnvelope(row as never, { id: at }); return { brep: m.brep, part: { coupling: m.report } }; }
+        }
+      };
+      return () => {
+        let made: { brep: Brep; part: Record<string, unknown> } | undefined;
+        try { made = make(); } catch (cause) { if (cause instanceof DriveError) fail(DRIVE_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^drive: /, '')}`); throw cause; }
+        const cs = Math.cos(turn), sn = Math.sin(turn);
+        const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, ...made!.part }] };
       };
     }
     case 'cam': {
@@ -3376,7 +3420,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   let validated: BrepCheckReport | undefined, area: number | undefined;
   const flats = new Map<string, FlatPattern>();
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

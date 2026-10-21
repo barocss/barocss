@@ -32,10 +32,12 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
   if (node.rematched) node = { ...node, rematched: Object.fromEntries(Object.entries(node.rematched).map(([n, v]) => [name(n), name(v)])) };
   switch (node.kind) {
     case 'sketch': return node.on ? { ...node, on: ref(node.on) } : node;
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'library': case 'sheet-contour': return node;
+    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'coupling': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'library': case 'sheet-contour': return node;
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };
     case 'frame-member': return node.section.kind === 'sketch' ? { ...node, section: { kind: 'sketch', sketch: node.section.sketch + k } } : node;
     case 'skeleton': return node;
+    // (R12c.6b, D161: the wheels a belt runs on.)
+    case 'belt': return { ...node, wheels: [node.wheels[0] + k, node.wheels[1] + k] };
     case 'frame': {
       const shift = (sec: MemberSection): MemberSection => sec.kind === 'sketch' ? { kind: 'sketch', sketch: sec.sketch + k } : sec;
       return { ...node, ...(node.follows && !('part' in node.follows) ? { follows: 'skeleton' in node.follows ? { skeleton: node.follows.skeleton + k } : { sketch: node.follows.sketch + k } } : {}), section: shift(node.section), ...(node.overrides ? { overrides: node.overrides.map(o => o.section ? { ...o, section: shift(o.section) } : o) } : {}), ...(node.trims ? { trims: node.trims.map(t => 'body' in t ? { ...t, body: ref(t.body) } : t) } : {}) };

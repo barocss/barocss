@@ -86,12 +86,21 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const holed = { ...shaftDoc, nodes: shaftDoc.nodes.map((n, i) => i === 0 ? { ...n, holes: [{ diameter: 4, at: 80 }] } as typeof n : n) };
   const hubbed = await stateOf(tubeCmd.build!({ ...blank, doc: holed }, { ...tubeCmd.defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 }));
   const boreOf = () => { const body = hubbed.bodies.findIndex(b => b.mesh.faces.some(f => /\.hole0\.side0$/.test(f.name))); return { body, face: hubbed.bodies[body].mesh.faces.findIndex(f => /\.hole0\.side0$/.test(f.name)) }; };
+  // (The drive commands take the user's drive rows; Belt or chain two sprockets of one chain row: R12c.6b, D161.)
+  const driveRows = { version: 1 as const, rows: [{ kind: 'chain' as const, id: 'c', pitchMM: 12.7, rollerDiameterMM: 8.51, estimate: true }, { kind: 'flat-belt' as const, id: 'f', widthMM: 40, thicknessMM: 3, estimate: true }, { kind: 'coupling' as const, id: 'k', boreMM: [12, 12] as [number, number], outsideMM: 30, lengthMM: 40, estimate: true }] };
+  const chained = await stateOf({ ...withNode(withNode(emptyDoc(), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [0, 0], generator: 'sprocket@0' }), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [150, 0], generator: 'sprocket@0' }), drives: driveRows });
   for (const id of CHAT_COMMANDS) {
     const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
     if (id === 'key' || id === 'keyway' || id === 'retaining-ring' || id === 'pin' || id === 'bearing') {
       // (A bearing takes the user's rows loaded: R12c.4, D158.)
       const withRows = id === 'bearing' ? { ...hubbed.doc, bearings: { version: 1 as const, rows: [{ id: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, estimate: true }] } } : hubbed.doc;
       const ctx: Ctx = { doc: withRows, bodies: hubbed.bodies, selection: id === 'keyway' ? sel({ faces: [boreOf()] }) : sel({ bodies: [hubbed.bodies.findIndex(b => b.ref?.node === 0)] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    if (id === 'sprocket' || id === 'pulley' || id === 'coupling' || id === 'belt-drive') {
+      const ctx: Ctx = { doc: chained.doc, bodies: chained.bodies, selection: id === 'belt-drive' ? sel({ bodies: [0, 1] }) : sel({}) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
       continue;

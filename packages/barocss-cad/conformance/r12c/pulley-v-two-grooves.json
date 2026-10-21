@@ -1,0 +1,66 @@
+{
+  "id": "r12c-pulley-v-two-grooves",
+  "step": "R12c",
+  "decisions": [
+    "D161"
+  ],
+  "about": "R12c.6b: a V pulley for a test belt row (38°, datum width 8.5, 2 above and 9 below the datum, grooves 12 apart, edges 8; an estimate), two grooves on a Ø100 datum, Ø20 bore.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "v",
+          "kind": "pulley",
+          "row": {
+            "kind": "v-belt",
+            "id": "v-a",
+            "angleDeg": 38,
+            "datumWidthMM": 8.5,
+            "aboveDatumMM": 2,
+            "belowDatumMM": 9,
+            "spacingMM": 12,
+            "edgeMM": 8,
+            "thicknessMM": 8,
+            "estimate": true
+          },
+          "diameter": 100,
+          "grooves": 2,
+          "bore": 20
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 188957.14308397885,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            14
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "Pappus: the Ø104 × 28 rim less the bore, less two trapezoids (wb at r 41, wt at r 52) turned about the axis at their centroids."
+}

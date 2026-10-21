@@ -2,9 +2,9 @@
 // so persistent face and edge names read `n1.side0`, `n1.top`, `n2.side0|n1.top` and keep their names as other
 // features come and go; a kernel output `n5` / `n5/0` / `n5/1` is the studio body `b5` / `b5_negative` /
 // `b5_positive` (keyed by the id too); the solids of a STEP file holding several are `n5/k`, `b5_part<k>`.
-import type { BearingRow, FitTable, ORingRow } from '@barocss/cad';
+import type { BearingRow, ChainRow, DriveRow, FitTable, ORingRow } from '@barocss/cad';
 import { getBlob } from './blobs';
-import { mirrorCage } from '@barocss/cad';
+import { mirrorCage, sprocketPitchDiameter, timingPitchDiameter } from '@barocss/cad';
 import type { BendTable, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartSection } from '@barocss/cad';
 import { frameGeometry, holeCentres, bevelSpiral, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
 import { featureId, nodeIndexOf, serialOf, withIds } from './ids';
@@ -16,8 +16,31 @@ import { rotationSteps } from '../assembly/mates';
 let current: readonly ModelNode[] = [];
 // (FRc, O117: the document's section library, by id, that a frame's library section resolves from.)
 let library: ReadonlyMap<string, InlineSection> = new Map();
+/**
+ * A belt's or chain's feature from its two wheels (R12c.6b, D161): each a sprocket or a pulley of the belt's row, their
+ * pitch radii (a sprocket p/(2 sin(π/z)); a timing pulley pz/(2π); a V pulley its datum; a flat one its face plus half the
+ * belt's thickness, the belt's centre line), the first's centre the band's, turned toward the second; the band across the
+ * wheel's width where the belt runs (centred on a sprocket's or a flat face, in a V pulley's first groove).
+ */
+export function beltFeature(node: Extract<ModelNode, { kind: 'belt' }>, row: DriveRow): Record<string, unknown> {
+  const wheel = (i: number) => {
+    const w = current[i];
+    if (!w || (w.kind !== 'sprocket' && w.kind !== 'pulley')) throw new Error(`[DRIVE_WHEELS] a belt runs on two sprockets or pulleys: feature ${i + 1} is ${w ? `a ${w.kind}` : 'missing'}`);
+    if (w.row !== row.id) throw new Error(`[DRIVE_WHEELS] the ${row.kind} ${row.id} runs on wheels of its row: feature ${i + 1} is for ${w.row}`);
+    return w;
+  };
+  const a = wheel(node.wheels[0]), b = wheel(node.wheels[1]);
+  if ((a.from ?? 0) !== (b.from ?? 0)) throw new Error(`[DRIVE_WHEELS] the wheels stand at Z ${a.from ?? 0} and ${b.from ?? 0}: a belt runs on wheels in one plane`);
+  const R = (w: typeof a): number => w.kind === 'sprocket' ? sprocketPitchDiameter((row as ChainRow).pitchMM, w.teeth) / 2
+    : row.kind === 'timing-belt' ? timingPitchDiameter(row.pitchMM, w.teeth ?? 0) / 2 : row.kind === 'flat-belt' ? (w.diameter ?? 0) / 2 + row.thicknessMM / 2 : (w.diameter ?? 0) / 2;
+  const dx = b.center[0] - a.center[0], dy = b.center[1] - a.center[1], C = Math.hypot(dx, dy);
+  const across = a.kind === 'sprocket' ? a.width : a.width ?? 0;
+  const width = row.kind === 'chain' ? row.innerWidthMM ?? Math.min(5, across) : row.kind === 'flat-belt' ? row.widthMM : row.kind === 'v-belt' ? row.datumWidthMM : across;
+  const z = (a.from ?? 0) + (row.kind === 'v-belt' ? row.edgeMM - width / 2 : Math.max(0, (across - width) / 2));
+  return { kind: 'belt', row, pitchRadii: [R(a), R(b)], centerDistance: C, ...(node.rounding ? { rounding: node.rounding } : {}), width, center: a.center, ...(z ? { from: z } : {}), ...(dx || dy ? { rotation: Math.atan2(dy, dx) * 180 / Math.PI } : {}), generator: node.generator };
+}
 /** The document's bearing rows and fit tables (R12c.4: a bearing's row and its seats' classes inline in its feature). */
-let bearingRows: ReadonlyMap<string, BearingRow> = new Map(), fitTables: readonly FitTable[] = [], fitFaces: readonly { face: string; class: string }[] = [], ringRows: ReadonlyMap<string, StudioRingRow> = new Map(), oringRows: ReadonlyMap<string, ORingRow> = new Map();
+let bearingRows: ReadonlyMap<string, BearingRow> = new Map(), fitTables: readonly FitTable[] = [], fitFaces: readonly { face: string; class: string }[] = [], ringRows: ReadonlyMap<string, StudioRingRow> = new Map(), oringRows: ReadonlyMap<string, ORingRow> = new Map(), driveRows: ReadonlyMap<string, DriveRow> = new Map();
 // (FRf, O121: the parameters' values, for a frame following a sketch — its points lifted as numbers.)
 let params: Readonly<Record<string, number>> = {};
 // (FRf2, O125: the assembly's placed parts, for a base frame following a part's sketch.)
@@ -141,6 +164,16 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       return { ...at, kind: 'shaft', steps: node.steps.map(s => ({ diameter: s.diameter, length: s.length, ...(s.fillet ? { fillet: s.fillet } : {}), ...(s.undercut ? { undercut: s.undercut } : {}), ...(s.grooves?.length ? { grooves: s.grooves } : {}), ...(s.keyseats?.length ? { keyseats: s.keyseats } : {}) })),
         ...(node.chamfers ? { chamfers: node.chamfers } : {}), ...(node.holes?.length ? { holes: node.holes } : {}), center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}), generator: node.generator };
     }
+    case 'sprocket': case 'pulley': case 'coupling': case 'belt': {
+      // (R12c.6b, D161: the drive row inline; a belt's path from its wheels' pitch circles and centres.)
+      const row = driveRows.get(node.row);
+      if (!row) throw new Error(`[DRIVE_ROW_UNKNOWN] a ${node.kind} names the drive row "${node.row}", which the document's drive rows do not hold (rows: ${[...driveRows.keys()].join(', ') || 'none'})`);
+      if (node.kind === 'belt') return { ...at, ...beltFeature(node, row) } as unknown as CadPartFeature;
+      const place = { center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}) };
+      if (node.kind === 'coupling') return { ...at, kind: 'coupling', row, ...place, generator: node.generator };
+      if (node.kind === 'sprocket') return { ...at, kind: 'sprocket', row, teeth: node.teeth, tip: node.tip, width: node.width, ...(node.seat ? { seat: node.seat } : {}), ...(node.bore ? { bore: node.bore } : {}), ...place, generator: node.generator };
+      return { ...at, kind: 'pulley', row, ...(node.teeth !== undefined ? { teeth: node.teeth } : {}), ...(node.diameter !== undefined ? { diameter: node.diameter } : {}), ...(node.grooves !== undefined ? { grooves: node.grooves } : {}), ...(node.width !== undefined ? { width: node.width } : {}), ...(node.crown ? { crown: node.crown } : {}), ...(node.bore ? { bore: node.bore } : {}), ...place, generator: node.generator };
+    }
     case 'cam': {
       // (R12c.6a, D160: a disc cam on its own axis.)
       return { ...at, kind: 'cam', follower: node.follower, ...(node.motion ? { motion: node.motion } : {}), base: node.base, ...(node.roller !== undefined ? { roller: node.roller } : {}), ...(node.offset ? { offset: node.offset } : {}),
@@ -199,13 +232,13 @@ function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
  * an intersection or a subtraction from nothing is gone too).
  */
 export function toPartDocument(doc: StudioDoc): CadPartDocument {
-  doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section])); bearingRows = new Map((doc.bearings?.rows ?? []).map(r => [r.id, r])); oringRows = new Map((doc.orings?.rows ?? []).map(r => [r.id, r])); fitTables = doc.fits?.tables ?? []; fitFaces = doc.fits?.faces ?? []; ringRows = new Map((doc.rings?.rows ?? []).map(r => [r.id, r])); params = doc.parameters ?? {}; partsNow = doc.instances ?? [];
+  doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section])); bearingRows = new Map((doc.bearings?.rows ?? []).map(r => [r.id, r])); oringRows = new Map((doc.orings?.rows ?? []).map(r => [r.id, r])); driveRows = new Map((doc.drives?.rows ?? []).map(r => [r.id, r])); fitTables = doc.fits?.tables ?? []; fitFaces = doc.fits?.faces ?? []; ringRows = new Map((doc.rings?.rows ?? []).map(r => [r.id, r])); params = doc.parameters ?? {}; partsNow = doc.instances ?? [];
   const gone = new Set<number>(), features: CadPartFeature[] = [];
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
     if (node.kind === 'skeleton') return;
     if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
-    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
+    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);
