@@ -40,7 +40,8 @@ function setup() {
 function classed(doc: StudioDoc, face: string, cls: string) { return run(doc, 'fit-class', { face }, { class: cls }); }
 
 test('a key\'s width fit: classes on the key\'s, the keyseat\'s and the keyway\'s sides — both fits in the key\'s notes from the user\'s rows', () => {
-  let { doc, side, seat, hub, key } = setup();
+  const s = setup(), { side, seat, hub, key } = s;
+  let doc = s.doc;
   assert.deepEqual([keyFitRole(doc, side)?.role, keyFitRole(doc, seat)?.role, keyFitRole(doc, hub)?.role, keyFitRole(doc, 'n0.step1')], ['key', 'keyseat', 'keyway', null]);
   doc = classed(doc, side, 'h9'); doc = classed(doc, seat, 'N9'); doc = classed(doc, hub, 'JS9');
   const notes = evaluated(doc).find(b => b.ref?.node === key)!.notes!.map(n => [n.text, !!n.warning]);
