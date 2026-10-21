@@ -5508,3 +5508,26 @@ S2 of O142, built on S1's data (`BodyResult.element`, `elementLines`). There are
   - the tables' texts in the SVG, the PDF and the DXF.
   `drawing-table.test`'s list of sources is updated.
 - **Flow step** "element tables (O144)…": a spring from the palette, its A3 drawing with both tables by their checkboxes, no gland table offered, the SVG holding them and the estimate line.
+
+## O145 — R12c on drawings and in the BOM, S3a: the elements on their dimensions, and leader notes (2026-10-22)
+
+The first part of O142's S3, as the coordinator answered: text after the dimension (as D155's fits), and a leader note only where an element has no dimension of its own.
+
+- **Callouts** (drawing/elementCallouts.ts `withElements`), built from the part's elements:
+  - the studio passes its evaluated bodies' (`elementsOfBodies`), since none are evaluated on the page;
+  - the chat's and the servers' drawings use `partElements(doc)`, the kernel's snapshot.
+  They wrap the hole and fit callouts in both places, DrawingWorkspace and chat/drawing.ts. What they add:
+  - **a bearing**: a diameter dimension on its seat (the shaft's `seat<step>` face, at the bearing's bore) or on its housing's bore (a face of the housing node, at its outside diameter) adds "bearing 6204 (B1 (D139))". That is its designation or row, with the row's source or "(est.)".
+  - **a retaining ring**: a diameter on its groove's bottom (`groove<g>`, at the groove's Ø) adds "× 1.3 · ring r20 (the maker's sheet)", the groove's width being the ring's thickness plus its play. Without a row it reads "· ring (est.)".
+  - Another diameter on the same face adds nothing.
+- **Leader notes** (`elementNotes`, `withElementNotes`): a key and a dowel pin have no dimension of their own.
+  - Auto layout (the studio's Auto-dimension, and the chat's `drawing.auto_dimension`) gives each a note `el-<feature>`, worded as the element list's ("key 6 × 6 × 18", "dowel pin Ø4 × 20").
+  - Its leader runs to the middle of a visible edge of its faces in the first view (front, top, right) that shows one; the note goes just outside that view's nearest side.
+  - The issue list's moves clear one that overlaps. Each pass makes them again, keeping the person's own notes.
+  - `SheetInputs.elements` carries the elements to Auto layout.
+- **Tests** (`test/element-callouts.test.ts`):
+  - the bearing's seat Ø20 and housing Ø47 callouts, and after a fit's text;
+  - the ring groove's with and without a row, and on a hand-placed diameter dimension on the sheet;
+  - Auto layout's two notes with their leaders, no issue about them, and made again without doubling.
+  - The flow step "element notes (O145)…": a shaft and its key from the palette, then Auto-dimension on A3. The key's note is there with its leader, there is no text overlap, and it is in the SVG.
+- **Still to do (S3b)**: the key and keyway dimensions in auto-dimension, i.e. the keyseat's width b and d − t1 on the shaft, and the keyway's width and d + t2 on the hub. They need references the auto-dimension does not make today: the far silhouette of the shaft and the far side of the bore, not edge ends. That is the next checkpoint.

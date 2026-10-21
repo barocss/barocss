@@ -23,6 +23,7 @@
 // Tables (O49) are annotations: TEXT_OVERLAP, TEXT_OVER_LINES (a view's lines or area) and OFF_SHEET, fix: move it
 // (move-table); and an error of their own:
 //   TABLE_SOURCE       a table's source is unknown or gave nothing (drawn with its reason)   (none: fix the part or the table)
+import type { PartElement } from './elementCallouts';
 import type { BrepProjection } from '@barocss/cad';
 import { autoDimensions, axisOf, holesOf, levels } from './auto';
 import { basicBox, buildSheet, datumMarks, dimensionMarks, frameMarks, tableRoom, type Mark, type MarkGroup, type Sheet } from './sheet';
@@ -546,7 +547,7 @@ function accepted(d: DrawingDimension): DrawingDimension {
 }
 
 /** What a sheet is built from, to build it again after a fix. */
-export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; callout: (edge: string, diameterMM?: number) => string | null; fitMiss?: (edge: string, diameterMM: number) => string | null; followedChanged?: readonly string[]; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; section?: Parameters<typeof buildSheet>[4] & { projection: { min: readonly number[]; max: readonly number[] } } }
+export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; /** The part's machine elements (O145): Auto layout's leader notes for keys and pins. */ elements?: readonly PartElement[]; callout: (edge: string, diameterMM?: number) => string | null; fitMiss?: (edge: string, diameterMM: number) => string | null; followedChanged?: readonly string[]; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; section?: Parameters<typeof buildSheet>[4] & { projection: { min: readonly number[]; max: readonly number[] } } }
 
 /** The context of a sheet built from its inputs (its layout from the settings, the section's extent with it). */
 export function issueContext(i: SheetInputs): IssueContext {

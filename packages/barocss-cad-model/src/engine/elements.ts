@@ -60,7 +60,7 @@ export interface ElementLine {
 }
 const n = (x: number) => `${+x.toFixed(3)}`;
 /** A report's sizes as one short line (our own words; the values the kernel's). */
-function sizeOf(e: BodyElement, oringRow?: { insideDiameterMM: number; crossSectionMM: number }): string {
+export function sizeOf(e: BodyElement, oringRow?: { insideDiameterMM: number; crossSectionMM: number }): string {
   switch (e.kind) {
     case 'spring': { const d = e.report.dimensions, type = e.report.type, L = 'freeLengthMM' in d ? `${n(d.freeLengthMM)} free` : `${n(d.bodyLengthMM)} body`; return `${type}, Ø${n(d.wireDiameterMM)} wire, Ø${n(d.meanDiameterMM)} mean × ${L}, ${n(d.activeCoils)} active`; }
     case 'shaft': { const ds = e.report.steps.map(s => s.diameterMM); return `${e.report.steps.length} steps Ø${n(Math.min(...ds))}–Ø${n(Math.max(...ds))} × ${n(e.report.lengthMM)}`; }

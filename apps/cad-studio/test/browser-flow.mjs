@@ -3876,6 +3876,30 @@ try {
       assert.ok(svg.includes('>n0: its shear modulus G is an estimate</text>'), 'the estimate said under the element list');
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+
+  // ---- O145: machine elements on their dimensions — a key's leader note by Auto-dimension ------------------------------
+  await check('element notes (O145): the default shaft and its key from the palette; Auto-dimension on A3 adds the key\'s leader note, clear — in the SVG', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
+      if (pickShaft) { await page.locator('.outliner .ol', { hasText: /^Shaft/ }).first().click(); await page.waitForTimeout(300); }
+      await press(' '); await page.locator('.palette input').fill(label); await page.locator('.palette input').press('Enter');
+      await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.notes?.some(n => n.id.startsWith('el-') && /^key /.test(n.text)), null, { timeout: 60000 });
+      const note = await page.evaluate(() => window.__studioDoc.drawing.notes.find(n => n.id.startsWith('el-')));
+      assert.ok(note.leader && /^key [\d.]+ × [\d.]+ × [\d.]+$/.test(note.text), JSON.stringify(note));
+      assert.deepEqual(await page.evaluate(() => (window.__studioDrawing?.()?.issues ?? []).filter(x => x.code === 'TEXT_OVERLAP').length), 0);
+      await snap('element-key-note');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes(`>${note.text}</text>`), 'the note in the SVG');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   // ---- O139: retaining-ring rows loaded in the Library panel (none built in) ---------------------------------------------
   await check('ring rows (O139): a row loaded in the Library panel; a ring on it via the chat cites it, no estimate; the used row stays', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;

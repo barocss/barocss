@@ -9,6 +9,7 @@
 // - Scale and sheet: first the scales at which the smallest hole is at least MIN_HOLE_ON_PAPER_MM across on paper,
 //   largest first (or the one set), on the sheet set then A3 for an A4 sheet: the first giving nothing crowded and no
 //   error on the issue list. Only if none: the largest clean scale below them. Else the attempt with the fewest errors.
+import { elementNotes, withElementNotes } from './elementCallouts';
 import { autoDimensions, holesOf, levels, type AutoDimensionReport } from './auto';
 import { roundIn } from './dimensions';
 import { drawingIssues, fixAll, issueContext, type DrawingIssue, type SheetInputs } from './issues';
@@ -121,7 +122,7 @@ export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report:
         const s: DrawingSettings = { ...base, scale, ...(Object.keys(room).length ? { room } : {}) };
         const layout = issueContext({ ...i, settings: s }).layout;
         if (!layout.fits) break;
-        const auto = autoDimensions(i.views, layout, s, i.callout), placed: DrawingSettings = { ...s, dimensions: auto.dimensions };
+        const auto = autoDimensions(i.views, layout, s, i.callout), placed: DrawingSettings = withElementNotes({ ...s, dimensions: auto.dimensions }, i.elements ? elementNotes(i.views, layout, i.elements) : []);
         // Once every side has room: the issue list's moves for what still overlaps (a short dimension's text, a callout
         // over lines). While a side is crowded, more room comes first.
         const moved = auto.report.crowded.length ? { settings: placed, left: drawingIssues(issueContext({ ...i, settings: placed })) } : fixAll({ ...i, settings: placed }, 40, f => f.kind === 'move' || f.kind === 'move-note');

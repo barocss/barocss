@@ -4,6 +4,7 @@
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
 import { followedStale, staleText } from '@barocss/cad-model/frames/skeleton';
+import { elementsOfBodies, withElements } from '@barocss/cad-model/drawing/elementCallouts';
 import { fitMiss, withFit } from '@barocss/cad-model/drawing/fits';
 import { weldList } from '@barocss/cad-model/frames/welds';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -115,7 +116,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const layout = useMemo(() => views && layoutSheet(views, settings, cut?.projection), [views, settings, cut]);
   // Diameter dimensions on a hole read as its callout (count, size or thread, depth, counterbore or countersink).
   // (D155: a diameter on a face with a fit class shows the class and its limits; a class with no row, an issue.)
-  const callout = useMemo(() => withFit(doc, (edge: string) => holeCallout(doc.nodes, edge)), [doc.nodes, doc.fits]);
+  // (O145: and the machine elements' callouts — a bearing's seat, a ring's groove.)
+  const elements = useMemo(() => elementsOfBodies(doc.nodes, bodies ?? []), [doc.nodes, bodies]);
+  const callout = useMemo(() => withElements(doc, withFit(doc, (edge: string) => holeCallout(doc.nodes, edge)), elements), [doc.nodes, doc.fits, elements]);
   const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
   // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
   const followedChanged = useMemo(() => followedStale(doc).map(staleText), [doc.nodes, doc.instances]);
@@ -367,7 +370,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, section: turned.settings.section && r.section?.ok ? r.section : undefined };
     }
-    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(base.section ? { section: base.section } : {}) });
+    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(base.section ? { section: base.section } : {}) });
     onChange(next);
     const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts;
     const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';
