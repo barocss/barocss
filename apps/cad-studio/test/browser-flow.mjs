@@ -3686,6 +3686,22 @@ try {
     } finally { chat.kill(); }
   });
 
+  await check('Shaft (R12c.3a, D156): a stepped shaft from the palette — keyed, shouldered with fillets, a ring groove; its notes (steps, keyseat, groove) and the estimate labels on the key and ring sizes', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('shaft'); await press('Enter'); await hudReady();
+    assert.match(await page.textContent('.hud'), /Keyseat width \(estimate\)/);
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'shaft' && /1 bod/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    assert.match(await page.textContent('.history'), /Shaft 3 steps Ø20–Ø25 × 95, keyed/);
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning\s*/, '').trim());
+    assert.ok(notes.includes('Shaft 95 mm: Ø20 from 0 to 30; Ø25 from 30 to 70; Ø20 from 70 to 95') && notes.some(t => /^Keyseat 1 \(step 1, end-mill\): 6 wide, 3\.5 deep/.test(t)) && notes.includes('Groove 1 (step 3): Ø19, 1.3 wide from 88'), notes.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('shaft');
+  });
+
   await check('Fits (R12c.2, D155): a fit table loaded in the Library panel (none built in); a bore and a pin given H7 and g6 and declared a pair through the chat — the limits and the clearance in the notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
@@ -5268,7 +5284,10 @@ try {
     await page.waitForSelector('[aria-label="Workspace summary"]', { timeout: 30000 });
     const text = await page.locator('[aria-label="Workspace summary"]').innerText();
     assert.match(text, /^Workspace of 20000 poses: \d+ voxels of 10 mm, reach \d+\.\d mm, best manipulability \d/);
-    assert.ok(await page.locator('[aria-label="Workspace map"] path').count() >= 2, 'the voxels drawn in bands');
+    // (Engine points on WebGPU, G8: one a voxel; SVG paths a band on WebGL2.)
+    const voxels = Number(text.match(/(\d+) voxels/)[1]);
+    if (await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu')) assert.equal(await drawnLines('cloud', ''), voxels, 'the voxels drawn, one point each');
+    else assert.ok(await page.locator('[aria-label="Workspace map"] path').count() >= 2, 'the voxels drawn in bands');
     await snap('rm9b-workspace');
     await page.click('[aria-label="Hide workspace"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Workspace map"]'));
   });

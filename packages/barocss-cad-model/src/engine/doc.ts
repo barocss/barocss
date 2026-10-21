@@ -276,6 +276,13 @@ type ModelNodeBase = SketchNode
    */
   | { kind: 'spring'; type?: 'extension' | 'torsion'; wire: Dim; diameter: Dim; activeCoils: number; pitch?: Dim; freeLength?: Dim; hand: 'right' | 'left'; ends?: 'open' | 'closed' | 'closed-ground'; shearModulus?: number; shearModulusEstimate?: boolean; load?: number;
     hooks?: 'machine-loop' | 'crossover'; initialTension?: number; legLengths?: [number, number]; youngsModulus?: number; youngsModulusEstimate?: boolean; moment?: number; center: [number, number]; from?: number; rotation?: number; generator: 'spring@0' }
+  /**
+   * A shaft (R12c.3a, D156): steps along +Z from `from` through `center` — each a diameter and a length, a fillet at the
+   * shoulder after it, an undercut, ring grooves and keyseats — end chamfers and cross holes. Every size is the user's
+   * (the command's prefills are estimates, said so in its labels).
+   */
+  | { kind: 'shaft'; steps: { diameter: Dim; length: Dim; fillet?: number; undercut?: { width: number; depth: number }; grooves?: { diameter: number; width: number; at: number }[]; keyseats?: { width: number; depth: number; length: number; offset: number; ends?: 'square' | 'end-mill' | 'disc'; cutterRadius?: number; angle?: number }[] }[];
+      chamfers?: [number, number]; holes?: { diameter: number; at: number; angle?: number }[]; center: [number, number]; from?: number; rotation?: number; generator: 'shaft@0' }
   | { kind: 'worm'; starts: number; form: 'ZI' | 'ZA'; length: Dim; bore?: Dim; thicknessReduction?: Dim; mesh: BevelMesh; generator: 'worm@0' }
   | { kind: 'gear';
     /** The module; a helical gear's normal module m_n (R6a.5c: `helixAngle` degrees and `hand`; a meshing gear takes the other's angle, opposite hand). */
@@ -545,7 +552,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
+    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'shaft': case 'rack': case 'sheet-contour': case 'skeleton': return [];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
     case 'frame': return [...(node.follows && followsIndex(node.follows) !== null ? [followsIndex(node.follows)!] : []), ...[node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : [])];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
@@ -562,7 +569,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
+    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'shaft' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -702,6 +709,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'subd': return `SubD ${node.name} (${node.cage.faces.length} ${node.cage.faces.every(f => f.length === 4) ? 'quads' : 'faces'})`;
     case 'library': return node.name;
     case 'rack': return `Rack m${typeof node.module === 'number' ? fmt(node.module) : node.module.parameter} × ${node.teeth}`;
+    case 'shaft': { const L = node.steps.reduce((s, x) => s + (typeof x.length === 'number' ? x.length : NaN), 0), d = node.steps.map(x => typeof x.diameter === 'number' ? x.diameter : NaN); return `Shaft ${node.steps.length} step${node.steps.length === 1 ? '' : 's'} Ø${fmt(Math.min(...d))}–Ø${fmt(Math.max(...d))} × ${fmt(L)}${node.steps.some(x => x.keyseats?.length) ? ', keyed' : ''}`; }
     case 'spring': return node.type === 'extension' ? `Extension spring d${n(node.wire)} × Ø${n(node.diameter)}, ${fmt(node.activeCoils)} coils (${node.hooks === 'crossover' ? 'crossover hooks' : 'machine loops'})`
       : node.type === 'torsion' ? `Torsion spring d${n(node.wire)} × Ø${n(node.diameter)}, ${fmt(node.activeCoils)} coils`
       : `${node.ends === 'open' ? 'Open' : node.ends === 'closed' ? 'Closed' : 'Ground'} spring d${n(node.wire)} × Ø${n(node.diameter)}, ${fmt(node.activeCoils)} coils`;

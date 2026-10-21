@@ -1,5 +1,5 @@
 export { Viewer, Mesh, Geometry, ImageTexture, ViewerError, createViewer, clipBox, packColorMap } from './viewer.js';
-export type { Material, ShaderMaterial, AddMeshOptions, ClipPlane, ColorMap, InstancesInput, TextureSource, TextureOptions, ViewerOptions, BackgroundInput, GridOptions, PickHit, LineHit, FrameStats } from './viewer.js';
+export type { Material, ShaderMaterial, AddMeshOptions, ClipPlane, ColorMap, InstancesInput, TextureSource, TextureOptions, ViewerOptions, BackgroundInput, GridOptions, PickHit, LineHit, PointHit, FrameStats } from './viewer.js';
 export { Camera } from './camera.js';
 export type { CameraState, Projection, Ray } from './camera.js';
 export { OrbitControls, orbit, pan, zoom } from './controls.js';

@@ -52,6 +52,8 @@ const BUDGET = {
   sectionGpu: { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 8, buffers: 4, gpuMS: 44 },
   sectionCpu: { submits: 140, avgFrameMS: 2 },
   // (G7, set at load 12 — the pre-G7 SVG path took 30 ms of task a frame here; G13 re-measures on a quiet machine.)
+  // (G8, set at load 32–53, about twice: SVG squares took 55 ms of task a frame here; G13 re-measures.)
+  cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 8, kb: 6, buffers: 4, gpuMS: 14 },
   underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 16, kb: 6, buffers: 4, gpuMS: 14 },
 };
 const os = await import('node:os'), loadAtStart = os.loadavg()[0];
@@ -118,6 +120,21 @@ try {
       await page.mouse.up({ button: 'left' });
     });
   }
+  // G8: a synthetic map of 100 000 voxels around the arm (DEV __studioSetCloud), orbited 60 steps: SVG squares projected
+  // every frame before, engine points now.
+  {
+    const box = await page.evaluate(() => { const b = window.__studioInstanceBounds(); const min = [0, 1, 2].map(k => Math.min(...b.map(x => x.min[k]))), max = [0, 1, 2].map(k => Math.max(...b.map(x => x.max[k]))); return { min, max }; });
+    await page.evaluate(({ min, max }) => window.__studioSetCloud(100000, min, max), box);
+    // (Engine points, or the SVG's band paths before G8 and on WebGL2.)
+    await page.waitForFunction(() => window.__studioOverlayLines?.().cloud === 100000 || document.querySelectorAll('[aria-label="Workspace map"] path').length > 0, null, { timeout: 60000 }); await page.waitForTimeout(500);
+    const vb = await page.locator('canvas.vp-canvas').boundingBox(), vx = vb.x + vb.width / 2, vy = vb.y + vb.height / 2;
+    await measure('cloud: 100 000 voxels, orbit 60', BUDGET.cloud100k, async () => {
+      await page.mouse.move(vx, vy); await page.mouse.down({ button: 'left' });
+      for (let i = 0; i < 60; i++) { await page.mouse.move(vx + 4 * i, vy + (i % 5)); await page.waitForTimeout(16); }
+      await page.mouse.up({ button: 'left' });
+    });
+    await page.evaluate(() => window.__studioSetCloud(0));
+  }
   await page.click('[aria-label="Hide workspace"]');
   // 120 holed brackets (bench-assembly's), exploded from 0 to 2 one step an animation frame, 60 steps: an explode drag.
   const bracket = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [
@@ -162,4 +179,4 @@ try {
 // (The machine's load average: a budget is not set from numbers measured under load.)
 console.log(`load average ${loadAtStart.toFixed(1)} at the start, ${os.loadavg()[0].toFixed(1)} at the end${Math.max(loadAtStart, os.loadavg()[0]) > 4 ? ' — LOADED: compare, do not set budgets from this run' : ''}`);
 for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  wall ${r.wallMS} ms`);
-process.exit(rows.length === 11 && rows.every(r => r.ok) ? 0 : 1);
+process.exit(rows.length === 12 && rows.every(r => r.ok) ? 0 : 1);

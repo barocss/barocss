@@ -1,0 +1,85 @@
+{
+  "id": "r12c-shaft-steps-fillets",
+  "step": "R12c",
+  "decisions": [
+    "D156"
+  ],
+  "about": "R12c.3a: a stepped shaft \u00d825 \u00d7 30, \u00d820 \u00d7 40, \u00d830 \u00d7 10 \u2014 a fillet of 1 into the step-down shoulder, 1.5 into the step-up one, 45\u00b0 chamfers of 1 and 0.5 at the ends \u2014 revolved exactly.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "sh",
+          "kind": "shaft",
+          "steps": [
+            {
+              "diameter": 25,
+              "length": 30,
+              "fillet": 1
+            },
+            {
+              "diameter": 20,
+              "length": 40,
+              "fillet": 1.5
+            },
+            {
+              "diameter": 30,
+              "length": 10
+            }
+          ],
+          "chamfers": [
+            1,
+            0.5
+          ],
+          "generator": "shaft@0"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 34356.43700341109,
+          "relTol": 1e-08
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            40.196651745497945
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "sh.chamfer0",
+          "sh.chamfer1",
+          "sh.end0",
+          "sh.end1",
+          "sh.fillet1",
+          "sh.fillet2",
+          "sh.seat1",
+          "sh.seat2",
+          "sh.seat3",
+          "sh.shoulder1",
+          "sh.shoulder2"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "Pappus: \u03c0\u222br(z)\u00b2dz and \u03c0\u222bz\u00b7r(z)\u00b2dz over the half-section (the fillets r_s + \u03c1 \u2212 \u221a(\u03c1\u00b2 \u2212 (z \u2212 z_c)\u00b2), the chamfers linear), by Simpson on 200 000 intervals a piece."
+}

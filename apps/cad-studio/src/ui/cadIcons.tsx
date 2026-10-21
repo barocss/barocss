@@ -186,6 +186,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-sphere': <><circle cx="12" cy="12" r="8.5" style={tone(TONE.right)} /><path d="M3.5 12a8.5 3.2 0 0 0 17 0" strokeOpacity={0.55} /><ellipse cx="9" cy="8.6" rx="2.6" ry="1.8" style={tone(0.3)} stroke="none" /><circle cx="12" cy="12" r="8.5" /></>,
   'cad-cone': <>{cylinder(0.5, 0.52, -0.08, 1.05, 0)}</>,
   'cad-gear': <><path d="M12 2.5l1.6 2.6 3-.6.6 3 2.6 1.6-1.4 2.9 1.4 2.9-2.6 1.6-.6 3-3-.6L12 21.5l-1.6-2.6-3 .6-.6-3-2.6-1.6 1.4-2.9-1.4-2.9 2.6-1.6.6-3 3 .6z" style={tone(TONE.right)} /><circle cx="12" cy="12" r="2.6" style={dark} /></>,
+  // A shaft (R12c.3a): three steps side by side, the middle one larger, its keyseat in the accent colour.
+  'cad-shaft': <><path d="M2.5 9.5h6v-2h7v2h6v5h-6v2h-7v-2h-6z" style={tone(TONE.right)} />{ac('M10.2 7.5h3.6')}<path d="M8.5 7.5v9M15.5 7.5v9" strokeOpacity={0.55} /></>,
   // A fit (R12c.2): a shaft in its bore, the gap between them in the accent colour.
   'cad-fit': <><circle cx="12" cy="12" r="9" style={tone(TONE.right)} /><circle cx="12" cy="12" r="5.6" style={dark} /><circle cx="12" cy="12" r="4.6" style={tone(TONE.top)} />{ac('M17.6 12h3.4M3 12h3.4')}</>,
   // A compression spring (R12c.1a): its coil between the ground plates.

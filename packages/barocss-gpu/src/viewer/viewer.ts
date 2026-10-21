@@ -5,12 +5,12 @@
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, screenRect, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
-import { clippedRay, localPlane, prepareGeometry, prepareScalars, scalarAt, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type ClippedHit, type GeometryInput, type PreparedGeometry } from './geometry.js';
+import { clippedRay, localPlane, nearestPoint, pointInstances, prepareGeometry, prepareScalars, scalarAt, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type ClippedHit, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 type View = ReturnType<Texture['createView']>;
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
+import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
 
 export class ViewerError extends Error {
   constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(message); this.name = 'ViewerError'; }
@@ -36,6 +36,12 @@ export interface Material {
   lineOver?: boolean;
   /** Depth-tested lines' hidden parts drawn too, at this share of their opacity (0 – 1, default 0: not drawn; G7). */
   lineHidden?: number;
+  /** Points' size (diameter or side) in CSS pixels (default 4; G8). lineOver and lineHidden apply to points too. */
+  pointSize?: number;
+  /** Points drawn as discs (default) or squares (G8). */
+  pointShape?: 'circle' | 'square';
+  /** A border inside each point's edge (G8): its width in CSS pixels and colour (sRGB); a point's own alpha 0 leaves a ring. */
+  pointBorder?: { width: number; color: Color } | null;
   /**
    * A shadow catcher: draws nothing but the shadow of the shadow-casting light, in the colour (default
    * black) and as dark as the opacity — a ground under a model, say.
@@ -152,7 +158,7 @@ export class Geometry {
   gpu: { positions: Buffer; normals: Buffer | null; colors: Buffer | null; uvs: Buffer | null; indices: Buffer | null; device: Device } | null = null;
   disposed = false;
   constructor(readonly data: PreparedGeometry, private readonly owner: Viewer) {}
-  get topology(): 'triangles' | 'lines' { return this.data.topology; }
+  get topology(): 'triangles' | 'lines' | 'points' { return this.data.topology; }
   get bounds(): Box3 | null { return this.data.bounds; }
   /** Replace the vertex colours (sRGB, three or four per vertex): per-face highlights, say. */
   setColors(colors: ArrayLike<number> | null): void {
@@ -331,16 +337,20 @@ export class Mesh {
     f.set(normalMatrix(this._transform), o + 16);
     f.set([...linear(m.color), m.opacity], o + 32);
     if (this.geometry.topology === 'lines') f.set([m.lineWidth * pixelRatio, (m.lineDash?.[0] ?? 0) * pixelRatio, (m.lineDash?.[1] ?? 0) * pixelRatio, m.lineHidden], o + 36);
+    else if (this.geometry.topology === 'points') f.set([m.pointSize * pixelRatio, (m.pointBorder?.width ?? 0) * pixelRatio, m.pointShape === 'square' ? 0 : 1, m.lineHidden], o + 36);
     else f.set([m.metallic, m.roughness, m.emissive, m.unlit ? 1 : 0], o + 36);
     new Uint32Array(f.buffer).set([this.id, this.outlineSlot, (this._receiveShadow ? 1 : 0) | (this._clipped ? 2 : 0), Math.round(m.alphaCutoff * 1000)], o + 40);
-    if (this._capColor) { const c = linear(this._capColor); f[o + 44] = c[0]; f[o + 45] = c[1]; f[o + 46] = c[2]; f[o + 47] = 1; } else f.fill(0, o + 44, o + 48);
+    // (A point's border colour where a surface's cap colour goes.)
+    const capOrBorder = this.geometry.topology === 'points' ? m.pointBorder?.color ?? null : this._capColor;
+    if (capOrBorder) { const c = linear(capOrBorder); f[o + 44] = c[0]; f[o + 45] = c[1]; f[o + 46] = c[2]; f[o + 47] = 1; } else f.fill(0, o + 44, o + 48);
   }
 }
 
-function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null } {
+function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash' | 'pointBorder'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null; pointBorder: { width: number; color: Vec3 } | null } {
   return {
     color: parseColor(m.color, m.shadowOnly ? [0, 0, 0] : [0.8, 0.8, 0.8]), opacity: Math.min(1, Math.max(0, m.opacity ?? 1)),
-    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, lineDash: m.lineDash && m.lineDash[0] > 0 && m.lineDash[1] > 0 ? [m.lineDash[0], m.lineDash[1]] : null, lineOver: m.lineOver ?? false, lineHidden: Math.min(1, Math.max(0, m.lineHidden ?? 0)), shadowOnly: m.shadowOnly ?? false, map: m.map ?? null, shader: m.shader ?? null, alphaCutoff: Math.min(1, Math.max(0, m.alphaCutoff ?? 0)),
+    metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, lineDash: m.lineDash && m.lineDash[0] > 0 && m.lineDash[1] > 0 ? [m.lineDash[0], m.lineDash[1]] : null, lineOver: m.lineOver ?? false, lineHidden: Math.min(1, Math.max(0, m.lineHidden ?? 0)),
+    pointSize: Math.max(0, m.pointSize ?? 4), pointShape: m.pointShape ?? 'circle', pointBorder: m.pointBorder && m.pointBorder.width > 0 ? { width: m.pointBorder.width, color: parseColor(m.pointBorder.color, [1, 1, 1]) } : null, shadowOnly: m.shadowOnly ?? false, map: m.map ?? null, shader: m.shader ?? null, alphaCutoff: Math.min(1, Math.max(0, m.alphaCutoff ?? 0)),
   };
 }
 
@@ -418,7 +428,10 @@ export interface LineHit {
   point: Vec3; distance: number;
 }
 
-export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; deviceLosses: number; cpuMs: number }
+/** A point picked (G8): its mesh, its index (the geometry's element: its vertex, or its entry in indices), where it is, and its distance on screen (CSS pixels). */
+export interface PointHit { mesh: Mesh; index: number; point: Vec3; distance: number }
+
+export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; points: number; deviceLosses: number; cpuMs: number }
 
 /** Built-in pipelines by name; a shader material's are `shader<id>:<variant>`. */
 type PipelineKey = string;
@@ -435,7 +448,7 @@ export class Viewer {
   readonly controls: OrbitControls | null = null;
   lights: Light[];
   environment: Environment;
-  readonly stats: FrameStats = { frames: 0, drawCalls: 0, culled: 0, triangles: 0, lines: 0, deviceLosses: 0, cpuMs: 0 };
+  readonly stats: FrameStats = { frames: 0, drawCalls: 0, culled: 0, triangles: 0, lines: 0, points: 0, deviceLosses: 0, cpuMs: 0 };
   /** Selection outline width in CSS pixels. */
   outlineWidth = 2;
   /** The ground grid (change its fields, then requestRender). */
@@ -600,7 +613,7 @@ export class Viewer {
 
   private async createPipelines(): Promise<void> {
     const d = this.device;
-    const modules = { surface: d.createShaderModule({ code: surfaceWGSL(), label: 'viewer surface' }), line: d.createShaderModule({ code: lineWGSL, label: 'viewer line' }), pick: d.createShaderModule({ code: pickWGSL, label: 'viewer pick' }) };
+    const modules = { surface: d.createShaderModule({ code: surfaceWGSL(), label: 'viewer surface' }), line: d.createShaderModule({ code: lineWGSL, label: 'viewer line' }), point: d.createShaderModule({ code: pointWGSL, label: 'viewer point' }), pick: d.createShaderModule({ code: pickWGSL, label: 'viewer pick' }) };
     for (const [name, m] of Object.entries(modules)) {
       const errors = (await m.getCompilationInfo()).messages.filter(x => x.type === 'error');
       if (errors.length) throw new ViewerError('shader', `${name} shader: ${errors.map(e => `${e.lineNum}: ${e.message}`).join('; ')}`);
@@ -667,6 +680,18 @@ export class Viewer {
       // Lines test depth but do not write it: no occlusion halos around them. (Over the scene: not tested; their hidden
       // parts: only behind a surface.)
       depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: t === 'over' ? 'always' : t === 'hidden' ? 'less' : 'greater-equal' },
+      multisample: ms,
+    }));
+    // Points (G8): a screen-space quad each, blended (their edges and borders are coverage); tested like lines, over the
+    // scene, or only behind surfaces (their hidden parts).
+    for (const k of ['point', 'pointOver', 'pointHidden'] as const) jobs.push(make(k, {
+      vertex: {
+        module: modules.point, entryPoint: 'vs',
+        buffers: [{ arrayStride: 16, stepMode: 'instance', attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }, { shaderLocation: 1, offset: 12, format: 'unorm8x4' }] }],
+      },
+      fragment: { module: modules.point, entryPoint: k === 'pointHidden' ? 'fsHidden' : 'fs', targets: [{ format: SCENE_FORMAT, blend }] },
+      primitive: { topology: 'triangle-list' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: k === 'pointOver' ? 'always' : k === 'pointHidden' ? 'less' : 'greater-equal' },
       multisample: ms,
     }));
     for (const two of [false, true]) jobs.push(make(two ? 'pick2' : 'pick', {
@@ -1007,8 +1032,8 @@ export class Viewer {
       else if (src.byteLength) d.queue.writeBuffer(b, 0, src);
       return b;
     };
-    g.gpu = data.topology === 'lines'
-      ? { device: d, positions: buffer(new Uint8Array(segmentInstances(data)), BufferUsage.VERTEX, 'segments'), normals: null, colors: null, uvs: null, indices: null }
+    g.gpu = data.topology !== 'triangles'
+      ? { device: d, positions: buffer(new Uint8Array(data.topology === 'lines' ? segmentInstances(data) : pointInstances(data)), BufferUsage.VERTEX, data.topology), normals: null, colors: null, uvs: null, indices: null }
       : {
         device: d,
         positions: buffer(data.positions, BufferUsage.VERTEX, 'positions'), normals: buffer(data.normals, BufferUsage.VERTEX, 'normals'),
@@ -1027,7 +1052,7 @@ export class Viewer {
       const b = m.bounds;
       if (b && !boxInFrustum(planes, b)) { culled++; continue; }
       // (Lines over the scene after everything, transparent or not.)
-      if (m.geometry.topology === 'lines' && m.material.lineOver) transparent.push({ m, d: -1e300 });
+      if (m.geometry.topology !== 'triangles' && m.material.lineOver) transparent.push({ m, d: -1e300 });
       else if (m.transparent) {
         const c = b ? [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2, (b.min[2] + b.max[2]) / 2] as Vec3 : eye;
         transparent.push({ m, d: dot(sub(c, eye), forward) });
@@ -1036,7 +1061,7 @@ export class Viewer {
     // Opaque surfaces by pipeline (fewer state changes), then lines (they test depth but do not write
     // it, so they come after the surfaces), then transparent far to near.
     // (The keys in a map kept for the purpose, and comparators at module level: no closures a frame; PERF3 C17.)
-    sortKeys.clear(); for (const m of opaque) sortKeys.set(m, (m.geometry.topology === 'lines' ? '1' : '0') + this.pipelineKey(m, false));
+    sortKeys.clear(); for (const m of opaque) sortKeys.set(m, (m.geometry.topology !== 'triangles' ? '1' : '0') + this.pipelineKey(m, false));
     opaque.sort(byPipeline); sortKeys.clear();
     transparent.sort(farFirst);
     return { opaque, transparent: transparent.map(t => t.m), culled };
@@ -1047,6 +1072,7 @@ export class Viewer {
     if (pick === 'mask') return (two ? 'mask2' : 'mask');
     if (pick) return (two ? 'pick2' : 'pick');
     if (m.geometry.topology === 'lines') return mat.lineOver ? 'lineOver' : (t ? 'lineT' : 'line');
+    if (m.geometry.topology === 'points') return mat.lineOver ? 'pointOver' : 'point';
     if (mat.shadowOnly) return 'catcher';
     if (m.mapped) return two ? 'litMap2' : 'litMap';
     const variant = `${mat.unlit ? 'unlit' : 'lit'}${two}${t}`;
@@ -1113,16 +1139,17 @@ export class Viewer {
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
     pass.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
     if (data.topology === 'lines') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount / 2); return; }
+    if (data.topology === 'points') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount); return; }
     if (!pick && m.mapped) { this.drawMapped(pass, m); return; }
     this.drawTriangles(pass, m, !pick);
   }
 
-  /** A line mesh's parts behind the surfaces, faint (Material.lineHidden; G7). */
+  /** A line or point mesh's parts behind the surfaces, faint (Material.lineHidden; G7, G8). */
   private drawHiddenLines(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }): void {
-    const p = this.pipelines.get('lineHidden')!;
+    const points = m.geometry.topology === 'points', p = this.pipelines.get(points ? 'pointHidden' : 'lineHidden')!;
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
     pass.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
-    pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, m.geometry.data.elementCount / 2);
+    pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, points ? m.geometry.data.elementCount : m.geometry.data.elementCount / 2);
   }
 
   /** A colour-mapped mesh (G6): its field's buffers (a per-triangle field's own positions and normals, drawn unindexed) and its map's bind group. */
@@ -1282,14 +1309,14 @@ export class Viewer {
     });
     pass.setBindGroup(0, this.frameGroup);
     const current: { pipeline?: Pipeline } = {};
-    let tris = 0, lines = 0;
+    let tris = 0, lines = 0, points = 0;
     // Opaque surfaces and their caps, the grid (tested against them), then lines and transparent meshes over it.
     let opaqueDone = false, caps = 0;
     for (const list of [opaque, transparent]) for (const m of list) {
-      if (!opaqueDone && (m.geometry.topology === 'lines' || m.transparent)) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); opaqueDone = true; }
+      if (!opaqueDone && (m.geometry.topology !== 'triangles' || m.transparent)) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); opaqueDone = true; }
       this.drawMesh(pass, m, current, false);
-      if (m.geometry.topology === 'lines' && (m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(pass, m, current);
-      if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else tris += (m.geometry.data.elementCount / 3) * m.instanceCount;
+      if (m.geometry.topology !== 'triangles' && (m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(pass, m, current);
+      if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else if (m.geometry.topology === 'points') points += m.geometry.data.elementCount; else tris += (m.geometry.data.elementCount / 3) * m.instanceCount;
     }
     if (!opaqueDone) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); }
     pass.end();
@@ -1313,7 +1340,7 @@ export class Viewer {
     show.end();
     if (capture) enc.copyTextureToBuffer({ texture: out }, { buffer: capture, bytesPerRow: Math.ceil((out.width * 4) / 256) * 256 }, [out.width, out.height]);
     this.device.queue.submit([enc.finish()]);
-    Object.assign(this.stats, { frames: this.stats.frames + 1, drawCalls: opaque.length + transparent.length + caps, culled, triangles: tris, lines });
+    Object.assign(this.stats, { frames: this.stats.frames + 1, drawCalls: opaque.length + transparent.length + caps, culled, triangles: tris, lines, points });
   }
 
   private occlusionFrame() {
@@ -1488,17 +1515,7 @@ export class Viewer {
       if (!m.visible || !m.pickable || m.geometry.topology !== 'lines' || m.geometry.disposed) continue;
       const M = multiply(vp, m.transform), g = m.geometry.data, P = g.positions, I = g.indices;
       // A mesh wholly in front of the eye whose box lands farther than the radius from the point: none of its segments can be nearer.
-      const bx = g.bounds;
-      if (bx) {
-        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, front = true;
-        for (let c = 0; c < 8 && front; c++) {
-          const px = c & 1 ? bx.max[0] : bx.min[0], py = c & 2 ? bx.max[1] : bx.min[1], pz = c & 4 ? bx.max[2] : bx.min[2];
-          const w = M[3] * px + M[7] * py + M[11] * pz + M[15]; if (w < 1e-6) { front = false; break; }
-          const sxp = ((M[0] * px + M[4] * py + M[8] * pz + M[12]) / w * 0.5 + 0.5) * cw, syp = (0.5 - (M[1] * px + M[5] * py + M[9] * pz + M[13]) / w * 0.5) * ch;
-          x0 = Math.min(x0, sxp); x1 = Math.max(x1, sxp); y0 = Math.min(y0, syp); y1 = Math.max(y1, syp);
-        }
-        if (front && (x < x0 - radius || x > x1 + radius || y < y0 - radius || y > y1 + radius)) continue;
-      }
+      if (g.bounds && screenBoxMisses(M, g.bounds, x, y, cw, ch, radius)) continue;
       // (Every segment, or for a large geometry those its segment boxes do not rule out: the same answer, ties to the lowest.)
       // (The clip plane in the mesh's own space: only the kept parts of its segments.)
       const plane = this.clip && m.clipped ? localPlane(m.transform, this.clip) : null;
@@ -1512,6 +1529,36 @@ export class Viewer {
         // (Hidden: the next nearest of this mesh's segments, the hidden one left out.)
         if (!options.throughSurfaces && !m.material.lineOver && this.hidden(point)) { hiddenSegments.add(hit.segment); continue; }
         best = { mesh: m, segment: hit.segment, edge: g.edges ? g.edges[hit.segment] : null, point, distance: hit.distance };
+        break;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * The point drawn nearest a position of the canvas (CSS pixels, G8): among the visible, pickable point meshes, the one
+   * whose centre is nearest, within `radius` pixels past the point's own half size. As pickLine: a point an opaque surface
+   * hides is passed over for the next nearest (unless `throughSurfaces`, or its material draws it over the scene), and only
+   * points on the clip plane's kept side are found. A brute-force screen search a mesh, its box checked first.
+   */
+  pickPoint(x: number, y: number, radius = 6, options: { throughSurfaces?: boolean } = {}): PointHit | null {
+    this.alive();
+    const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
+    this.clipCamera();
+    const vp = this.camera.viewProjection(this.aspect);
+    let best: PointHit | null = null;
+    for (const m of this.meshes) {
+      if (!m.visible || !m.pickable || m.geometry.topology !== 'points' || m.geometry.disposed) continue;
+      const M = multiply(vp, m.transform), g = m.geometry.data, P = g.positions, I = g.indices, reach = radius + m.material.pointSize! / 2;
+      if (g.bounds && screenBoxMisses(M, g.bounds, x, y, cw, ch, reach)) continue;
+      const plane = this.clip && m.clipped ? localPlane(m.transform, this.clip) : null;
+      hiddenSegments.clear();
+      for (let tries = 0; tries < MAX_HIDDEN_SEGMENTS; tries++) {
+        const hit = nearestPoint(g, M, x, y, cw, ch, reach, best ? best.distance : Infinity, plane, hiddenSegments);
+        if (!hit) break;
+        const a = I ? I[hit.index] : hit.index, point = transformPoint(m.transform, [P[3 * a], P[3 * a + 1], P[3 * a + 2]]);
+        if (!options.throughSurfaces && !m.material.lineOver && this.hidden(point)) { hiddenSegments.add(hit.index); continue; }
+        best = { mesh: m, index: hit.index, point, distance: hit.distance };
         break;
       }
     }
@@ -1616,6 +1663,17 @@ export function clipBox(b: Box3 | null, c: { normal: ArrayLike<number>; offset: 
 
  /** The segments of a mesh found hidden during one line pick (kept from pick to pick), and how many are tried. */
 const hiddenSegments = new Set<number>();
+/** Whether a box wholly in front of the eye lands on screen farther than `reach` pixels from a point (CSS): nothing in it can be nearer. */
+function screenBoxMisses(M: ArrayLike<number>, bx: Box3, x: number, y: number, cw: number, ch: number, reach: number): boolean {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let c = 0; c < 8; c++) {
+    const px = c & 1 ? bx.max[0] : bx.min[0], py = c & 2 ? bx.max[1] : bx.min[1], pz = c & 4 ? bx.max[2] : bx.min[2];
+    const w = M[3] * px + M[7] * py + M[11] * pz + M[15]; if (w < 1e-6) return false;
+    const sxp = ((M[0] * px + M[4] * py + M[8] * pz + M[12]) / w * 0.5 + 0.5) * cw, syp = (0.5 - (M[1] * px + M[5] * py + M[9] * pz + M[13]) / w * 0.5) * ch;
+    x0 = Math.min(x0, sxp); x1 = Math.max(x1, sxp); y0 = Math.min(y0, syp); y1 = Math.max(y1, syp);
+  }
+  return x < x0 - reach || x > x1 + reach || y < y0 - reach || y > y1 + reach;
+}
 const MAX_HIDDEN_SEGMENTS = 16;
 
 export const createViewer = (canvas: HTMLCanvasElement, options?: ViewerOptions): Promise<Viewer> => Viewer.create(canvas, options);
