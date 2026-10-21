@@ -1,4 +1,5 @@
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
+import { fitNotes } from './fits';
 import type { FaceTable } from '../assembly/mates';
 import { cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
@@ -184,12 +185,18 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
   const t0 = performance.now();
   try {
     const snapshot = snapshotOf(doc); last = snapshot;
-    const bodies: BodyResult[] = snapshot.outputs.map(o => bodyOf(o, doc, revision, quality));
+    const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
     return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable };
   } catch (cause) {
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
+}
+/** The bodies with their fits' notes (R12c.2, D155; throws a fit's refusal). */
+function withFitNotes(bodies: BodyResult[], doc: StudioDoc, outputs: CadPartSnapshot['outputs']): BodyResult[] {
+  if (!doc.fits?.faces?.length) return bodies;
+  const notes = fitNotes(doc, outputs);
+  return bodies.map((b, i) => { const n = notes.get(outputs[i].id); return n ? { ...b, notes: [...(b.notes ?? []), ...n] } : b; });
 }
 
 /** A preview's planar-path limit for meshes (F0, D42): about a second, so it stays live; applying runs up to the committed limit. */
@@ -223,7 +230,7 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot
   const t0 = performance.now();
   try {
     const part = toPartDocument(doc), last = lastParts.get(slot), snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastParts.set(slot, snapshot);
-    const bodies: BodyResult[] = snapshot.outputs.map(o => bodyOf(o, doc, revision, quality));
+    const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
     return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable };
   } catch (cause) {

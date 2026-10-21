@@ -43,6 +43,10 @@ Every roadmap step (R… / RB…) adds its cases under a folder named after it, 
     // Optional: a frame's cut list over its member outputs (FR4a): rows in order (quantity, pieces, axis length, long
     // point, from volume or not, each end's kind with its mitre and bevel angles, mass each) and totals, at a density.
     "cutList": { "densityKgPerM3": 7850, "absTol": 1e-9, "rows": [{ "quantity": 2, "pieces": ["f/0", "f/2"], "axisLengthMM": 600, "longPointMM": 640, "fromVolume": false, "ends": [{ "kind": "mitre", "mitreDegrees": 45, "bevelDegrees": 0 }], "massKG": 1.97 }], "totals": { "quantity": 4, "axisLengthMM": 2000, "massKG": 6.97 } },
+    // Optional: fits between outputs (R12c.2): the tables (the user's rows, as fitTableProblem takes them), a hole face and a
+    // shaft face { output, face, class } — the kind, clearance [least, greatest] µm, the overlap at MMC and LMC (mm³) to
+    // absTol, contradicted or not; or `error` {code, messageIncludes}.
+    "fitChecks": [{ "tables": [{ "id": "t", "sources": [{ "id": "S", "label": "…" }], "rows": [{ "class": "H7", "overMM": 30, "upToMM": 50, "upperUM": 25, "lowerUM": 0, "source": "S" }] }], "hole": { "output": "r", "face": "bore.side0#1", "class": "H7" }, "shaft": { "output": "s", "face": "s.side0#1", "class": "k6" }, "kind": "transition", "clearanceUM": [-18, 23], "mmcOverlapMM3": 28.2794, "lmcOverlapMM3": 0, "contradicted": false, "absTol": 1e-6 }],
     // Optional: all outputs written to one STEP file and read back are strictly valid (names unique) and
     // keep their total volume and area to relTol.
     "stepRoundTrip": { "relTol": 1e-6 },

@@ -305,9 +305,13 @@ fn mapColor(v: f32) -> vec3f {
 }
 `;
 
-/** Lines as screen-space quads, one instance per segment: width in device pixels (object.params.x). */
+/**
+ * Lines as screen-space quads, one instance per segment: width in device pixels (object.params.x); dashed when
+ * object.params.y (on) and .z (off, device pixels) are set, from each segment's start; fsHidden draws the parts behind
+ * surfaces at object.params.w of their opacity (G7).
+ */
 export const lineWGSL = common + /* wgsl */ `
-struct LOut { @builtin(position) clip: vec4f, @location(0) color: vec4f, @location(1) world: vec3f }
+struct LOut { @builtin(position) clip: vec4f, @location(0) color: vec4f, @location(1) world: vec3f, @location(2) @interpolate(linear) along: f32 }
 @vertex fn vs(@builtin(vertex_index) vi: u32, @location(0) a: vec3f, @location(1) b: vec3f, @location(2) ca: vec4f, @location(3) cb: vec4f) -> LOut {
   var o: LOut;
   let wa = object.model * vec4f(a, 1.0);
@@ -335,12 +339,17 @@ struct LOut { @builtin(position) clip: vec4f, @location(0) color: vec4f, @locati
   o.clip = vec4f(p.xy + off, p.zw);
   o.color = select(ca, cb, c.x > 0.5) * object.color;
   o.world = select(wa.xyz, wb.xyz, c.x > 0.5);
+  o.along = c.x * l;
   return o;
 }
-@fragment fn fs(in: LOut) -> @location(0) vec4f {
+fn lineColor(in: LOut) -> vec4f {
   if (clippedAway(in.world)) { discard; }
+  let period = object.params.y + object.params.z;
+  if (object.params.y > 0.0 && object.params.z > 0.0 && in.along % period > object.params.y) { discard; }
   return vec4f(in.color.rgb * in.color.a, in.color.a);
 }
+@fragment fn fs(in: LOut) -> @location(0) vec4f { return lineColor(in); }
+@fragment fn fsHidden(in: LOut) -> @location(0) vec4f { return lineColor(in) * object.params.w; }
 `;
 
 /** The ground grid: the plane through the up axis at the grid height, ray-cast per pixel. */

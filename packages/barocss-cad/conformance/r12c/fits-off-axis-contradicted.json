@@ -1,0 +1,214 @@
+{
+  "id": "r12c-fits-off-axis-contradicted",
+  "step": "R12c",
+  "decisions": [
+    "D155"
+  ],
+  "about": "R12c.2: the same pair with the shaft 0.05 mm off the bore's axis \u2014 more than H8/f7's least clearance a side (12.5 \u00b5m): the declared clearance fit is contradicted by the geometry at MMC.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "rs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 35
+        },
+        {
+          "id": "ring",
+          "kind": "extrude",
+          "sketch": "rs",
+          "height": 20
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 25
+        },
+        {
+          "id": "bore",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 20
+        },
+        {
+          "id": "r",
+          "kind": "difference",
+          "target": "ring",
+          "tool": "bore"
+        },
+        {
+          "id": "ss",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0.05,
+            0
+          ],
+          "radius": 25,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              -5
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "shaft",
+          "kind": "extrude",
+          "sketch": "ss",
+          "height": 30
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 37699.11184307752,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            10
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 58904.86225480862,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            0.05,
+            0,
+            10
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ],
+    "fitChecks": [
+      {
+        "tables": [
+          {
+            "id": "f2-50",
+            "sources": [
+              {
+                "id": "F2",
+                "label": "Engineering fit (Wikipedia): the \u00d850 worked examples",
+                "url": "https://en.wikipedia.org/wiki/Engineering_fit",
+                "read": "2026-10-21"
+              }
+            ],
+            "rows": [
+              {
+                "class": "H8",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 39,
+                "lowerUM": 0,
+                "source": "F2"
+              },
+              {
+                "class": "f7",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": -25,
+                "lowerUM": -50,
+                "source": "F2"
+              },
+              {
+                "class": "H7",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 25,
+                "lowerUM": 0,
+                "source": "F2"
+              },
+              {
+                "class": "k6",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 18,
+                "lowerUM": 2,
+                "source": "F2"
+              },
+              {
+                "class": "p6",
+                "overMM": 30,
+                "upToMM": 50,
+                "upperUM": 42,
+                "lowerUM": 26,
+                "source": "F2"
+              }
+            ]
+          }
+        ],
+        "hole": {
+          "output": "r",
+          "face": "bore.side0#1",
+          "class": "H8"
+        },
+        "shaft": {
+          "output": "shaft",
+          "face": "shaft.side0#1",
+          "class": "f7"
+        },
+        "kind": "clearance",
+        "clearanceUM": [
+          25,
+          89
+        ],
+        "mmcOverlapMM3": 31.92784940644742,
+        "lmcOverlapMM3": 1.7292587027350237,
+        "contradicted": true,
+        "absTol": 1e-06
+      }
+    ]
+  },
+  "oracle": "the overlap L(\u03c0r_s\u00b2 \u2212 A), A the common area of the bore's and the shaft's circles e apart (the lens in closed form), at each condition's sizes."
+}
