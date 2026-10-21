@@ -3702,6 +3702,32 @@ try {
     await snap('shaft');
   });
 
+  await check('Shaft parts (R12c.3b, D157): the default shaft, a hub over its seat with a keyway, the key and a ring through the scripted chat — the key\'s clearance under the keyway and the ring\'s play in the notes', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), cmd = (command, values, extra = {}) => ({ tool: 'features', args: { action: 'command', command, values, ...extra } });
+      // (The shaft n0; the tube a sketch n1 and its revolve n2, whose bore takes the keyway n3.)
+      const calls = [cmd('shaft', {}), cmd('tube', { r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 }), cmd('keyway', { b: 6, t2: 2.8 }, { faces: ['n2.hole0.side0'] }), cmd('key', { h: 6, hub: '3' }, { bodies: ['b0'] }), cmd('retaining-ring', {}, { bodies: ['b0'] })];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`);
+      await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(x => x.kind === 'retaining-ring') && /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    const keyRow = await page.evaluate(() => [...document.querySelectorAll('.outliner .ol')].findIndex(e => /^\s*Key \d/.test(e.textContent ?? '')));
+    await page.locator('.outliner .ol').nth(keyRow).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /under its floor/.test(x.textContent ?? '')), null, { timeout: 30000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning\s*/, '').trim());
+    assert.ok(notes.includes('In the hub\'s keyway: 0 play in its width, 0.3 under its floor'), notes.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('shaft-parts');
+  });
+
   await check('Fits (R12c.2, D155): a fit table loaded in the Library panel (none built in); a bore and a pin given H7 and g6 and declared a pair through the chat — the limits and the clearance in the notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
@@ -5978,6 +6004,69 @@ try {
     await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     await press('Meta+z'); await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     assert.deepEqual(await page.evaluate(() => window.__studioBlobs.evictedAsked), []);
+  });
+
+  // ---- G10: copies turned about Z share one tessellation --------------------------------------------------------------
+  await check('G10: 24 copies of a bracket turned about Z in 15° steps share one tessellation — the same pixels and picks as each its own mesh; an edited copy gets its own, the others kept', async () => {
+    const fs = await import('node:fs');
+    const bracket = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [
+      { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 12] }, { kind: 'extrude', sketch: 0, height: 6 },
+      { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 2 }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [24, 6], radius: 2 }],
+      outputs: { b1: { node: 3, side: 'solid' } } };
+    const edited = { ...bracket, nodes: [...bracket.nodes.slice(0, 3), { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [21, 6], radius: 2.5 }] };
+    const ring = edit => ({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {},
+      instances: Array.from({ length: 24 }, (_, k) => ({ id: `r${k}`, name: `bracket ${k}`, doc: edit && k === 5 ? edited : bracket,
+        position: [70 * Math.cos(k * Math.PI / 12), 70 * Math.sin(k * Math.PI / 12), 0], rotation: [0, 0, 15 * k] })) });
+    const file = join(out, 'g10-ring.bcad');
+    fs.writeFileSync(file, JSON.stringify(ring(false)));
+    await openModel(file, 0);
+    await page.waitForFunction(() => window.__studioInstanceBounds?.().length === 24, null, { timeout: 60000 }); await idle(); await page.waitForTimeout(800);
+    const geos = () => page.evaluate(() => { const ms = window.__studioViewer.meshList.filter(m => m.name?.startsWith('inst:')); return { meshes: ms.length, geometries: new Set(ms.map(m => m.geometry)).size, ids: Object.fromEntries(ms.filter(m => m.geometry.topology === 'triangles').map(m => [m.name, m.id])), own: ms.filter(m => m.name === 'inst:r5' && m.geometry.topology === 'triangles').map(m => ms.some(o => o !== m && o.geometry === m.geometry)) }; });
+    const shared = await geos();
+    assert.deepEqual([shared.meshes, shared.geometries], [48, 2], 'a surface and its edges each, on two geometries');
+    // The oracle: each copy its own mesh again (as before G10) — the same frame, and the same picks over 400 pointers.
+    const r = await page.evaluate(async () => {
+      const v = window.__studioViewer, W = v.canvas.clientWidth, H = v.canvas.clientHeight;
+      let seed = 7; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      // (Aimed at the copies: a pointer near each one's screen box, 400 in all, whatever the camera.)
+      const M = v.camera.viewProjection(v.aspect), boxes = window.__studioInstanceBounds().map(b => {
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (let c = 0; c < 8; c++) { const p = [c & 1 ? b.max[0] : b.min[0], c & 2 ? b.max[1] : b.min[1], c & 4 ? b.max[2] : b.min[2]], w = M[3] * p[0] + M[7] * p[1] + M[11] * p[2] + M[15], sx = ((M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12]) / w * 0.5 + 0.5) * W, sy = (0.5 - (M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13]) / w * 0.5) * H; x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy); }
+        return [x0, y0, x1, y1];
+      });
+      const at = Array.from({ length: 400 }, (_, k) => { const b = boxes[k % boxes.length]; return [b[0] + rand() * (b[2] - b[0]), b[1] + rand() * (b[3] - b[1])]; });
+      const settle = () => new Promise(done => setTimeout(done, 400));
+      const picks = () => at.map(([x, y]) => { const h = v.raycast(x, y); return h && { name: h.mesh.name, tri: h.triangle, p: h.point }; });
+      await v.frame(); const a = await v.capture(), pa = picks(), geoA = new Set(v.meshList.map(m => m.geometry)).size;
+      window.__studioShareCopies(false); await settle(); await v.frame();
+      const b = await v.capture(), pb = picks(), geoB = new Set(v.meshList.map(m => m.geometry)).size;
+      window.__studioShareCopies(true); await settle();
+      let strong = 0, max = 0;
+      for (let i = 0; i < a.data.length; i += 4) { const d = Math.abs(a.data[i] - b.data[i]) + Math.abs(a.data[i + 1] - b.data[i + 1]) + Math.abs(a.data[i + 2] - b.data[i + 2]); if (d > 96) strong++; if (d > max) max = d; }
+      let differ = 0, hits = 0, gap = 0;
+      for (let i = 0; i < at.length; i++) {
+        const x = pa[i], y = pb[i];
+        if (x) hits++;
+        if (!x !== !y || (x && (x.name !== y.name || x.tri !== y.tri))) { differ++; continue; }
+        if (x) gap = Math.max(gap, Math.hypot(x.p[0] - y.p[0], x.p[1] - y.p[1], x.p[2] - y.p[2]));
+      }
+      return { pixels: a.data.length / 4, strong, max, hits, differ, gap, geoA, geoB };
+    });
+    console.log(`  G10 oracle: ${JSON.stringify(r)}`);
+    assert.ok(r.strong <= r.pixels * 0.001, `the same frame: ${r.strong} of ${r.pixels} pixels differ by more than 96 (max ${r.max})`);
+    assert.ok(r.hits > 100 && r.differ === 0 && r.gap < 1e-3, `the same picks ${JSON.stringify(r)}`);
+    assert.ok(r.geoB - r.geoA === 46, `each its own: 46 more geometries ${JSON.stringify(r)}`);
+    await snap('g10-copies');
+    // Copy 5 edited (its second hole moved): its own geometries; the other 23 kept as they were.
+    fs.writeFileSync(file, JSON.stringify(ring(true)));
+    const before = (await geos()).ids;
+    await openModel(file, 0);
+    await page.waitForFunction(() => window.__studioInstanceBounds?.().length === 24, null, { timeout: 60000 }); await idle(); await page.waitForTimeout(800);
+    const after = await geos();
+    assert.deepEqual([after.meshes, after.geometries], [48, 4], 'the edited copy on its own two');
+    assert.deepEqual(after.own, [false], 'its surface not shared');
+    const kept = Object.keys(before).filter(k => k !== 'inst:r5' && before[k] === after.ids[k]).length;
+    assert.equal(kept, 23, 'the other copies kept their meshes');
   });
 
   await check('command palette and light theme', async () => {

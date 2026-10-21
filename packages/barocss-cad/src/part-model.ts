@@ -43,6 +43,8 @@ import { spurGear, spurGearCenterDistance, spurGearDimensions, GearError, type G
 import { internalGear, internalGearCenterDistance, pinionTurnInside, type InternalGearReport, type InternalGearSpec, type PlacedInternalGear } from './gear-internal.js';
 import { bevelGear, bevelMatePlacement, bevelGearMatrix, type BevelGearReport, type BevelGearSpec, type PlacedBevelGear } from './gear-bevel.js';
 import { worm as wormSolid, wormPlacement, wormMatrix, type WormReport, type WormSpec, type PlacedWorm } from './gear-worm.js';
+import { keySolid, keywayCut, ringSolid, pinSolid, ShaftPartError, type KeyFitClasses, type KeyReport, type KeywayReport, type PinReport, type RingReport, type ShaftPartCode } from './shaft-parts.js';
+import type { FitTable } from './fits.js';
 import { shaftSolid, ShaftError, type ShaftDiagnosticCode, type ShaftReport, type ShaftSpec } from './shaft.js';
 import { compressionSpring, hookedSpring, springDimensions, SpringError, type HookedSpringReport, type HookedSpringSpec, type SpringDiagnosticCode, type SpringReport, type SpringSpec } from './spring.js';
 import { throatedWormWheel, throatedWormPlacement, type ThroatedWheelReport, type ThroatedWheelSpec, type PlacedThroatedWheel } from './gear-worm-wheel.js';
@@ -324,6 +326,18 @@ export type CadPartFeature = Base & (
     readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
     /** 'shaft@0' (the default). */
     readonly generator?: 'shaft@0' }
+  /**
+   * R12c.3b (D157): what goes on a shaft. A parallel `key` in keyseat `keyseat` of the shaft feature `shaft` (width and
+   * length the seat's by default; its height; ends round | square), checked against the seat and, with `hub` (a keyway
+   * feature), against the hub's keyway; `fit` { tables, key, seat?, hub? } its width's classes (R12c.2). A `keyway` cut
+   * into `target`'s bore `face` (width, depth t2, angle). A `retaining-ring` envelope in groove `groove` (thickness, outer
+   * diameter; `row` the user's ring row). A `pin` in cross hole `hole` (diameter and length the hole's and the step's by
+   * default; `fit` true when its classes make an interference a declared fit). Sizes are the user's.
+   */
+  | { readonly kind: 'key'; readonly shaft: string; readonly keyseat: number; readonly width?: CadPartDim; readonly height: CadPartDim; readonly length?: CadPartDim; readonly ends?: 'round' | 'square'; readonly hub?: string; readonly fit?: { readonly tables: readonly FitTable[]; readonly key: string; readonly seat?: string; readonly hub?: string } }
+  | { readonly kind: 'keyway'; readonly target: string; readonly face: string; readonly width: CadPartDim; readonly depth: CadPartDim; readonly angle?: number }
+  | { readonly kind: 'retaining-ring'; readonly shaft: string; readonly groove: number; readonly thickness: CadPartDim; readonly outerDiameter: CadPartDim; readonly row?: { readonly shaftDiameter?: number; readonly grooveDiameter?: number; readonly grooveWidth?: number; readonly source?: string; readonly estimate?: boolean } }
+  | { readonly kind: 'pin'; readonly shaft: string; readonly hole: number; readonly diameter?: CadPartDim; readonly length?: CadPartDim; readonly fit?: boolean }
   | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
     /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
     readonly form?: 'faceted' | 'helical' }
@@ -501,6 +515,8 @@ export interface CadPartOutput {
   readonly spring?: SpringReport | HookedSpringReport;
   /** A shaft's report: its steps, keyseats, grooves and holes (R12c.3a). */
   readonly shaft?: ShaftReport;
+  /** A key's, a keyway's, a ring's or a pin's report and checks (R12c.3b). */
+  readonly key?: KeyReport; readonly keyway?: KeywayReport; readonly ring?: RingReport; readonly pin?: PinReport;
   /** A SubD body's make-up: steps, caps and their distance from the limit surface (R7, D79). */
   readonly subd?: SubdSummary;
   /** A decimated mesh's report: triangles before and after, why it stopped, the measured distance both ways (R9, D85). */
@@ -586,6 +602,8 @@ interface Part {
   readonly wormWheelPlace?: PlacedThroatedWheel;
   readonly spring?: SpringReport | HookedSpringReport;
   readonly shaft?: ShaftReport;
+  readonly shaftPlace?: BrepAffine;
+  readonly key?: KeyReport; readonly keyway?: KeywayReport; readonly ring?: RingReport; readonly pin?: PinReport;
   readonly subd?: SubdSummary;
   readonly decimate?: DecimateReport;
   readonly fillet?: readonly FilletReport[];
@@ -611,6 +629,8 @@ export interface BevelGearPlacement extends PlacedBevelGear { readonly meshesWit
 const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_PROFILE_SHIFT: 'CAPABILITY', UNSUPPORTED_GEAR_KIND: 'CAPABILITY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', SELF_INTERSECTION: 'GEOMETRY', ROOT_TRANSITION_UNVALIDATED: 'GEOMETRY', BORE_INTERSECTION: 'GEOMETRY', MATE_INCOMPATIBLE: 'INPUT', UNDERCUT: 'GEOMETRY', INVOLUTE_INTERFERENCE: 'GEOMETRY', TROCHOID_INTERFERENCE: 'GEOMETRY', TRIMMING_INTERFERENCE: 'GEOMETRY', RIM_INTERSECTION: 'GEOMETRY', IDEAL_MODEL: 'GEOMETRY' };
 /** Shaft diagnostics as the part model's codes (the shaft's own code kept in the message). */
 const SHAFT_CODES: Record<ShaftDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', SHAFT_STEPS: 'INPUT', KEYSEAT_DIMENSIONS: 'GEOMETRY', GROOVE_DIMENSIONS: 'GEOMETRY', HOLE_DIMENSIONS: 'GEOMETRY' };
+/** Shaft parts' diagnostics as the part model's codes. */
+const SHAFT_PART_CODES: Record<ShaftPartCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', KEY_FIT: 'GEOMETRY', RING_FIT: 'GEOMETRY', PIN_FIT: 'GEOMETRY' };
 /** Spring diagnostics as the part model's codes (the spring's own code kept in the message). */
 const SPRING_CODES: Record<SpringDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', SELF_INTERSECTION: 'GEOMETRY', COILS_OVERLAP: 'GEOMETRY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', UNSUPPORTED_SPRING_KIND: 'CAPABILITY', LEG_OVERLAP: 'GEOMETRY' };
 type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
@@ -1787,6 +1807,39 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, wormWheel: made!.report, wormWheelPlace: place }] };
       };
     }
+    case 'key': case 'retaining-ring': case 'pin': {
+      // (R12c.3b, D157: the shaft referenced, not consumed — it stays an output of its own, as a meshing gear's.)
+      const other = ref(f.shaft, 'shaft').result, sp = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0] : undefined;
+      if (!sp?.shaft || !sp.shaftPlace) fail('REFERENCE', `${String(f.shaft)} is not a shaft`);
+      const placed = { report: sp!.shaft!, place: sp!.shaftPlace! };
+      const index = (v: unknown, what: string) => { if (!Number.isInteger(v) || (v as number) < 1) fail('INPUT', `${what} must be a number from 1`); return v as number; };
+      const optDim = (v: unknown, what: string) => v === undefined ? undefined : dim(v as CadPartDim, what, true);
+      const partFail = (cause: unknown): never => { if (cause instanceof ShaftPartError) fail(SHAFT_PART_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft part: /, '')}`); throw cause; };
+      let hub: KeywayReport | undefined;
+      if (f.kind === 'key' && f.hub !== undefined) { const h = ref(f.hub, 'hub').result, hp = h.kind === 'solid' && h.parts.length === 1 ? h.parts[0] : undefined; if (!hp?.keyway) fail('REFERENCE', `${String(f.hub)} is not a keyway`); hub = hp!.keyway; }
+      const fit = f.kind === 'key' && f.fit !== undefined ? (isRecord(f.fit) && Array.isArray((f.fit as Record<string, unknown>).tables) && typeof (f.fit as Record<string, unknown>).key === 'string' ? f.fit as unknown as KeyFitClasses : fail('INPUT', 'fit must be { tables, key, seat?, hub? }')) : undefined;
+      return () => {
+        try {
+          if (f.kind === 'key') { const made = keySolid(placed, { keyseat: index(f.keyseat, 'keyseat'), heightMM: dim(f.height as CadPartDim, 'height', true), ...(f.width !== undefined ? { widthMM: optDim(f.width, 'width') } : {}), ...(f.length !== undefined ? { lengthMM: optDim(f.length, 'length') } : {}), ...(f.ends !== undefined ? { ends: f.ends as 'round' | 'square' } : {}), ...(hub ? { hub } : {}), ...(fit ? { fit } : {}) }, at); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, key: made.report }] }; }
+          if (f.kind === 'retaining-ring') { const row = f.row as Record<string, unknown> | undefined; const made = ringSolid(placed, { groove: index(f.groove, 'groove'), thicknessMM: dim(f.thickness as CadPartDim, 'thickness', true), outerDiameterMM: dim(f.outerDiameter as CadPartDim, 'outerDiameter', true), ...(row ? { row: { ...(row.shaftDiameter !== undefined ? { shaftDiameterMM: row.shaftDiameter as number } : {}), ...(row.grooveDiameter !== undefined ? { grooveDiameterMM: row.grooveDiameter as number } : {}), ...(row.grooveWidth !== undefined ? { grooveWidthMM: row.grooveWidth as number } : {}), ...(row.source !== undefined ? { source: row.source as string } : {}), ...(row.estimate !== undefined ? { estimate: row.estimate as boolean } : {}) } } : {}) }, at); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, ring: made.report }] }; }
+          const made = pinSolid(placed, { hole: index(f.hole, 'hole'), ...(f.diameter !== undefined ? { diameterMM: optDim(f.diameter, 'diameter') } : {}), ...(f.length !== undefined ? { lengthMM: optDim(f.length, 'length') } : {}), ...(f.fit ? { fit: true } : {}) }, at);
+          return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, pin: made.report }] };
+        } catch (cause) { return partFail(cause); }
+      };
+    }
+    case 'keyway': {
+      const target = solids(f.target, 'target');
+      if (target.length !== 1) fail('SELECTION', 'a keyway is cut into one body');
+      if (typeof f.face !== 'string') fail('INPUT', 'face must name the bore');
+      const b = dim(f.width as CadPartDim, 'width', true), t2 = dim(f.depth as CadPartDim, 'depth', true);
+      if (f.angle !== undefined && !(typeof f.angle === 'number' && Number.isFinite(f.angle))) fail('INPUT', 'angle must be a number of degrees');
+      return () => {
+        let made: ReturnType<typeof keywayCut> | undefined;
+        try { made = keywayCut(brepOf(target[0], at), { face: f.face as string, widthMM: b, depthMM: t2, ...(f.angle !== undefined ? { angleDeg: f.angle as number } : {}) }, at); }
+        catch (cause) { if (cause instanceof ShaftPartError) fail(SHAFT_PART_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft part: /, '')}`); throw cause; }
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, keyway: made!.report }] };
+      };
+    }
     case 'shaft': {
       if (f.generator !== undefined && f.generator !== 'shaft@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
       const list = <T,>(v: unknown, what: string): T[] => { if (v === undefined) return []; if (!Array.isArray(v)) fail('INPUT', `${what} must be a list`); return v as T[]; };
@@ -1811,7 +1864,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         try { made = shaftSolid(spec, { id: at }); } catch (cause) { if (cause instanceof ShaftError) fail(SHAFT_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft: /, '')}`); throw cause; }
         const cs = Math.cos(turn), sn = Math.sin(turn);
         const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
-        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, shaft: made!.report }] };
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, shaft: made!.report, shaftPlace: { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] } }] };
       };
     }
     case 'spring': {
@@ -3207,7 +3260,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   let validated: BrepCheckReport | undefined, area: number | undefined;
   const flats = new Map<string, FlatPattern>();
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

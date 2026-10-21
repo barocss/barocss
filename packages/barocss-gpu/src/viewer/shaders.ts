@@ -185,7 +185,7 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
   return (diffuse + spec) * nol;
 }
 
-@fragment fn fsLit(in: VOut, @builtin(front_facing) front: bool) -> @location(0) vec4f {
+fn litColor(in: VOut, front: bool) -> vec4f {
   let texel = textureSample(map, mapSampler, in.uv);
   let alpha = in.color.a * texel.a;
   if (clippedAway(in.world)) { discard; }
@@ -197,6 +197,20 @@ fn brdf(n: vec3f, v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32) -> vec
   let c = shade(in.world, n, base, object.params.x, object.params.y, object.params.z, (object.pick.z & 1u) == 1u);
   return vec4f(c * alpha, alpha);
 }
+@fragment fn fsLit(in: VOut, @builtin(front_facing) front: bool) -> @location(0) vec4f { return litColor(in, front); }
+// Order-independent transparency (G11, weighted blended): the premultiplied colour weighted by nearness into the
+// accumulation, its alpha into the revealage (what of the background still shows), summed in any order. The weight
+// falls with the view depth over the scene's size (frame.viewport.w), so a nearer layer counts for more.
+struct Oit { @location(0) accum: vec4f, @location(1) reveal: f32 }
+fn oitOf(c: vec4f, world: vec3f) -> Oit {
+  let d = max(dot(world - frame.eye.xyz, frame.forward.xyz), 0.0) / max(frame.viewport.w, 1e-6);
+  let w = clamp(1.0 / (1e-3 + pow(d * 0.5, 3.0)), 1e-2, 3e3);
+  var o: Oit;
+  o.accum = c * w;
+  o.reveal = c.a;
+  return o;
+}
+@fragment fn fsLitOit(in: VOut, @builtin(front_facing) front: bool) -> Oit { return oitOf(litColor(in, front), in.world); }
 
 /** Lit colour of a point: ambient (hemisphere or environment map), its reflection, emission, and every light. */
 fn shade(world: vec3f, n: vec3f, base: vec3f, metallicIn: f32, roughIn: f32, emissive: f32, receive: bool) -> vec3f {
@@ -288,13 +302,15 @@ fn mapColor(v: f32) -> vec3f {
   return vec4f(shade(in.world, n, base, object.params.x, object.params.y, 0.0, (object.pick.z & 1u) == 1u), 1.0);
 }
 
-@fragment fn fsUnlit(in: VOut) -> @location(0) vec4f {
+fn unlitColor(in: VOut) -> vec4f {
   let texel = textureSample(map, mapSampler, in.uv);
   let a = in.color.a * texel.a;
   if (clippedAway(in.world)) { discard; }
   if (object.pick.w > 0u && a < f32(object.pick.w) / 1000.0) { discard; }
   return vec4f(in.color.rgb * texel.rgb * shaderColor(in.uv, in.world, normalize(in.normal)) * a, a);
 }
+@fragment fn fsUnlit(in: VOut) -> @location(0) vec4f { return unlitColor(in); }
+@fragment fn fsUnlitOit(in: VOut) -> Oit { return oitOf(unlitColor(in), in.world); }
 // A shadow catcher: only the shadow of the casting light, in the material colour, as dark as its opacity.
 @fragment fn fsShadow(in: VOut) -> @location(0) vec4f {
   if (clippedAway(in.world)) { discard; }
@@ -388,6 +404,27 @@ fn pointColor(in: POut) -> vec4f {
 }
 @fragment fn fs(in: POut) -> @location(0) vec4f { return pointColor(in); }
 @fragment fn fsHidden(in: POut) -> @location(0) vec4f { return pointColor(in) * object.params.w; }
+`;
+
+/**
+ * The see-through surfaces composited over the scene (G11): their weighted average colour where the revealage leaves
+ * room for it, premultiplied — blended as any surface over what is drawn (the accumulation and revealage resolved).
+ */
+export const oitWGSL = /* wgsl */ `
+@group(0) @binding(0) var accum: texture_2d<f32>;
+@group(0) @binding(1) var reveal: texture_2d<f32>;
+@vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4f {
+  let p = vec2f(f32((i << 1u) & 2u), f32(i & 2u)) * 2.0 - 1.0;
+  return vec4f(p, 0.0, 1.0);
+}
+@fragment fn fs(@builtin(position) at: vec4f) -> @location(0) vec4f {
+  let q = vec2i(at.xy);
+  let r = textureLoad(reveal, q, 0).r;
+  if (r >= 1.0) { discard; }
+  let a = textureLoad(accum, q, 0);
+  let k = 1.0 - r;
+  return vec4f(a.rgb / max(a.a, 1e-5) * k, k);
+}
 `;
 
 /** The ground grid: the plane through the up axis at the grid height, ray-cast per pixel. */

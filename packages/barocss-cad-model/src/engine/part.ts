@@ -100,6 +100,10 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       return { ...at, kind: 'worm-wheel', worm: { axialModule: node.module, starts: node.starts, diameter: node.diameter, hand: node.hand }, teeth: node.teeth, faceWidth: node.faceWidth, generator: node.generator, center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}),
         ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
+    case 'key': return { ...at, kind: 'key', shaft: id(node.shaft), keyseat: node.keyseat, height: node.height, ...(node.width !== undefined ? { width: node.width } : {}), ...(node.length !== undefined ? { length: node.length } : {}), ...(node.ends ? { ends: node.ends } : {}), ...(node.hub !== undefined ? { hub: id(node.hub) } : {}) };
+    case 'keyway': return { ...at, kind: 'keyway', target: ref(node.parent), face: node.face, width: node.width, depth: node.depth, ...(node.angle ? { angle: node.angle } : {}) };
+    case 'retaining-ring': return { ...at, kind: 'retaining-ring', shaft: id(node.shaft), groove: node.groove, thickness: node.thickness, outerDiameter: node.outerDiameter, row: { estimate: true } };
+    case 'pin': return { ...at, kind: 'pin', shaft: id(node.shaft), hole: node.hole, ...(node.diameter !== undefined ? { diameter: node.diameter } : {}), ...(node.length !== undefined ? { length: node.length } : {}), ...(node.fit ? { fit: true } : {}) };
     case 'shaft': {
       // (R12c.3a, D156: a shaft on its own axis.)
       return { ...at, kind: 'shaft', steps: node.steps.map(s => ({ diameter: s.diameter, length: s.length, ...(s.fillet ? { fillet: s.fillet } : {}), ...(s.undercut ? { undercut: s.undercut } : {}), ...(s.grooves?.length ? { grooves: s.grooves } : {}), ...(s.keyseats?.length ? { keyseats: s.keyseats } : {}) })),
@@ -162,7 +166,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
   doc.nodes.forEach((node, i) => {
     if (node.kind === 'skeleton') return;
     if (node.kind === 'sketch') { features.push(...featuresOf(node, i)); return; }
-    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'shaft' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
+    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);

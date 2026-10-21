@@ -68,19 +68,25 @@ test('G1 the pose matrices: every vertex, edge point and box where the moved cop
 
 /** A stand-in for the viewer: meshes that keep their transform and material, counted as they are made and removed. */
 function fakeViewer() {
-  const log = { added: 0, removed: 0, colors: 0, transforms: 0 };
+  const log = { added: 0, removed: 0, colors: 0, transforms: 0, geometries: 0, disposed: 0 };
   class Mesh {
     material: unknown = {}; outline: unknown = null; visible = true; pickable = true; private t: ArrayLike<number> = poseMatrix(undefined, undefined);
-    constructor(readonly geometry: { setColors(c: unknown): void; dispose(): void }, readonly name?: string) {}
+    constructor(readonly geometry: { setColors(c: unknown): void; dispose(): void; input?: unknown }, readonly name?: string) {}
     get transform() { return this.t; }
     set transform(m: ArrayLike<number>) { this.t = Float64Array.from(m); log.transforms++; }
     get bounds() { return null; }
     remove() { log.removed++; }
   }
-  const geometry = () => ({ setColors() { log.colors++; }, setUVs() {}, dispose() {} });
+  // (A geometry made by createGeometry is shared by the meshes added on it; add() with plain arrays makes its own.)
+  const geometry = (input?: unknown) => { log.geometries++; return { input, shared: false, setColors() { log.colors++; }, setUVs() {}, dispose() { log.disposed++; } }; };
   const viewer = {
-    add(_input: unknown, o: { name?: string } = {}) { log.added++; return new Mesh(geometry(), o.name); },
-    createGeometry: geometry, requestRender() {}, setBackground() {}, grid: {}, dispose() {},
+    add(input: { shared?: boolean } & Record<string, unknown>, o: { name?: string; transform?: ArrayLike<number> } = {}) {
+      log.added++;
+      const m = new Mesh(input && 'shared' in input ? input as never : geometry(input), o.name);
+      if (o.transform) m.transform = o.transform;
+      return m;
+    },
+    createGeometry: (input: unknown) => Object.assign(geometry(input), { shared: true }), requestRender() {}, setBackground() {}, grid: {}, dispose() {},
   };
   return { viewer, log };
 }
@@ -128,3 +134,66 @@ test('G1 the renderer: an instance\'s meshes made once — a new selection, the 
   r.setInstances([], []);
   assert.equal(log.removed, log.added);
 });
+
+// G10: copies of one part turned about Z (and placed) share one tessellation: one geometry, drawn through each copy's
+// matrix onto it; an edited copy, a not-rigid one, or one with picked faces draws its own.
+test('G10 copies share a tessellation: four turned copies one geometry, each drawn where its own mesh is; an edited or scaled copy its own; picked faces a private copy and back; all released', async () => {
+  const bracket = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [
+    { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 12] }, { kind: 'extrude', sketch: 0, height: 6 },
+    { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 2 }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [24, 6], radius: 2 }],
+    outputs: { b1: { node: 3, side: 'solid' } } } as unknown as StudioDoc;
+  const edited = { ...bracket, nodes: [...bracket.nodes.slice(0, 3), { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [22, 6], radius: 2 }] } as unknown as StudioDoc;
+  const one = async (d: StudioDoc) => { const r = await evaluatePart(d, 1); assert.ok(r.ok); return r.bodies[0]; };
+  const base = await one(bracket), other = await one(edited);
+  const copy = (b: BodyResult) => ({ ...b, mesh: { ...b.mesh, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), edgeLines: b.mesh.edgeLines.slice() } });
+  const turnZ = (deg: number) => { const a = deg * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a); return [c, -sn, 0, sn, c, 0, 0, 0, 1]; };
+  const placed = (id: string, b: BodyResult, deg: number, t: [number, number, number], scale = 1): InstanceItem => {
+    const m = turnZ(deg).map((v, i) => (i % 4 === 0 ? v * scale : v * (i < 9 && i % 4 !== 0 ? scale : 1)));
+    return { id, bodies: [placeBody(copy(b), m, t)], placement: poseMatrix({ R: Float64Array.from(turnZ(deg)), t: Float64Array.from(t) }, undefined) };
+  };
+  const { viewer, log } = fakeViewer();
+  const r = new (GpuRenderer as unknown as new (c: unknown, v: unknown) => GpuRenderer)({}, viewer);
+  const items = [placed('a', base, 0, [0, 0, 0]), placed('b', base, 37, [60, 5, 0]), placed('c', base, 90, [0, 60, 2]), placed('d', base, 200, [-40, -30, 0])];
+  r.setInstances(items, []);
+  type Inst = { id: string; surfaces: { geometry: unknown; transform: ArrayLike<number> }[]; edges: { geometry: unknown; transform: ArrayLike<number> }[]; sharing: boolean[] };
+  const inst = () => (r as unknown as { instances: Inst[] }).instances;
+  // One surface and one edge geometry for the four; every mesh on them.
+  assert.equal(log.geometries, 2, 'two geometries for four copies');
+  const g0 = inst()[0].surfaces[0].geometry;
+  assert.ok(inst().every(i => i.surfaces[0].geometry === g0 && i.sharing[0]));
+  // Each copy drawn where its own mesh is: its matrix times the shape's positions (the first copy's), within float32 rounding.
+  const ref = items[0].bodies[0].mesh;
+  let worst = 0;
+  inst().forEach((i, k) => {
+    const want = items[k].bodies[0].mesh, M = i.surfaces[0].transform, E = i.edges[0].transform;
+    for (let v = 0; v < ref.positions.length; v += 3) { const p = apply(M, ref.positions, v); for (let c = 0; c < 3; c++) worst = Math.max(worst, Math.abs(p[c] - want.positions[v + c])); }
+    for (let v = 0; v < ref.edgeLines.length; v += 3) { const p = apply(E, ref.edgeLines, v); for (let c = 0; c < 3; c++) worst = Math.max(worst, Math.abs(p[c] - want.edgeLines[v + c])); }
+  });
+  assert.ok(worst < 1e-4, `worst ${worst} mm`);
+  // Posed: the pose over the copy's matrix.
+  const pose = poseMatrix(undefined, [0, 0, 7]);
+  r.setInstanceTransforms(new Map([['b', pose]]));
+  const b = inst().find(i => i.id === 'b')!, bm = b.surfaces[0].transform, want = items[1].bodies[0].mesh;
+  for (let v = 0; v < 9; v += 3) { const p = apply(bm, ref.positions, v); assert.ok(Math.abs(p[2] - (want.positions[v + 2] + 7)) < 1e-4 && Math.abs(p[0] - want.positions[v]) < 1e-4); }
+  r.setInstanceTransforms(null);
+  // An edited copy (its second hole moved) and a scaled one (not rigid): each its own geometries; the four still share.
+  const made = log.geometries;
+  r.setInstances([...items, placed('e', other, 37, [60, 60, 0]), placed('f', base, 37, [90, 60, 0], 1.001)], []);
+  assert.equal(log.geometries - made, 4, 'the edited and the scaled copy: a surface and edges each');
+  assert.ok(inst().slice(0, 4).every(i => i.surfaces[0].geometry === g0));
+  assert.ok(inst()[4].surfaces[0].geometry !== g0 && inst()[5].surfaces[0].geometry !== g0);
+  // A picked face on c: c paints its own copy; cleared, c draws the shape again.
+  r.setInstanceFaces([{ id: 'c', body: 0, face: 1 }]);
+  const c = () => inst().find(i => i.id === 'c')!;
+  assert.ok(c().surfaces[0].geometry !== g0 && !c().sharing[0], 'picked: its own');
+  assert.ok(inst().filter(i => i.id !== 'c').slice(0, 3).every(i => i.surfaces[0].geometry === g0), 'the others still share');
+  r.setInstanceFaces([]);
+  assert.ok(c().surfaces[0].geometry === g0 && c().sharing[0], 'cleared: shared again');
+  // The first copy (the shape's reference) gone: the others keep drawing the shape.
+  r.setInstances(items.slice(1), []);
+  assert.ok(inst().every(i => i.surfaces[0].geometry === g0));
+  // All gone: every geometry released.
+  r.setInstances([], []);
+  assert.equal(log.disposed, log.geometries, `${log.disposed} of ${log.geometries} released`);
+});
+
