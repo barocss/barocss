@@ -60,6 +60,8 @@ const BUDGET = {
   pickMany: { submits: 4, avgFrameMS: 2, perFrame: 1 },
   // (G10: a patterned assembly opened — what it uploads and keeps.)
   pattern: { submits: 400, avgFrameMS: 4 },
+  // (G11: the 120 brackets see-through, orbited: 2.8 ms of GPU at load 13, the budget about twice — the 120-bracket rows' is 44.)
+  ghost: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
 };
 const os = await import('node:os'), loadAtStart = os.loadavg()[0];
 const rows = [];
@@ -190,6 +192,18 @@ try {
       let differ = 0, hits = 0; for (let i = 0; i < at.length; i++) { if (lin.ray[i] !== acc.ray[i]) differ++; if (lin.line[i] !== acc.line[i]) differ++; if (lin.ray[i]) hits++; }
       return { pointers: at.length, hits, differ, linear: { ray: lin.rayMs, line: lin.lineMs }, trees: { ray: acc.rayMs, line: acc.lineMs } };
     });
+    // G11: the brackets ghosted (their surfaces 0.35 opaque, through the DEV viewer), orbited 60 steps — sorted far to near
+    // as before, then through the order-independent pass.
+    const ghosted = await page.evaluate(() => { const v = window.__studioViewer; if (!v || !('orderIndependent' in v)) return false; for (const m of v.meshList) if (m.name?.startsWith('inst:') && m.geometry.topology === 'triangles') m.material = { opacity: 0.35 }; return true; });
+    if (ghosted) for (const oit of [false, true]) {
+      await page.evaluate(o => { window.__studioViewer.orderIndependent = o; }, oit);
+      await measure(`ghosted: 120 brackets, orbit 60 (${oit ? 'order-independent' : 'sorted'})`, BUDGET.ghost, async () => {
+        await page.mouse.move(ax, ay); await page.mouse.down({ button: 'left' });
+        for (let i = 0; i < 60; i++) { await page.mouse.move(ax + 4 * i, ay + (i % 5)); await page.waitForTimeout(16); }
+        await page.mouse.up({ button: 'left' });
+      });
+    }
+    await page.evaluate(() => { const v = window.__studioViewer; if (!v) return; v.orderIndependent = true; for (const m of v.meshList) if (m.name?.startsWith('inst:') && m.geometry.topology === 'triangles') m.material = { opacity: 1 }; });
   }
   // G2: the section plane dragged 60 steps across the 120 brackets — cut by the GPU's clip plane, then (the same build) by
   // clipMesh on the CPU as WebGL2 does; the exact section held back in both (only the drag's own cost).
@@ -222,4 +236,4 @@ try {
 console.log(`load average ${loadAtStart.toFixed(1)} at the start, ${os.loadavg()[0].toFixed(1)} at the end${Math.max(loadAtStart, os.loadavg()[0]) > 4 ? ' — LOADED: compare, do not set budgets from this run' : ''}`);
 for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  wall ${r.wallMS} ms  task total ${r.taskTotalMS} ms${r.geometry ? `  uploaded ${r.uploadTotalKiB} KiB; ${r.geometry.meshes} meshes on ${r.geometry.geometries} geometries, ${r.geometry.kib} KiB; heap ${r.geometry.heapMiB} MiB` : ''}`);
 if (picks) console.log(`picks over 120 brackets, ${picks.pointers} pointers (${picks.hits} on a bracket), ${picks.differ} answers different: raycast ${picks.linear.ray.toFixed(1)} → ${picks.trees.ray.toFixed(1)} ms, pickLine ${picks.linear.line.toFixed(1)} → ${picks.trees.line.toFixed(1)} ms (linear walk → scene trees)`);
-process.exit(rows.length === 15 && rows.every(r => r.ok) && (!picks || picks.differ === 0) ? 0 : 1);
+process.exit(rows.length === 17 && rows.every(r => r.ok) && (!picks || picks.differ === 0) ? 0 : 1);

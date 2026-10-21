@@ -10,7 +10,7 @@ import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer,
 type View = ReturnType<Texture['createView']>;
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
+import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
 
 export class ViewerError extends Error {
   constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(message); this.name = 'ViewerError'; }
@@ -440,6 +440,10 @@ type PipelineKey = string;
 const SCENE_FORMAT = 'rgba16float';
 
 const SAMPLES = 4;
+/** G11's order-independent transparency: the accumulation (premultiplied colour × weight) and the revealage. */
+const OIT_ACCUM = 'rgba16float', OIT_REVEAL = 'r16float';
+/** Whether a mesh goes through the order-independent pass (G11): a see-through surface (a shadow catcher darkens, it stays). */
+const oitSurface = (m: Mesh): boolean => m.geometry.topology === 'triangles' && m.transparent && !m.material.shadowOnly;
 
 const sortKeys = new Map<Mesh, string>();
 const byPipeline = (a: Mesh, b: Mesh): number => { const x = sortKeys.get(a)!, y = sortKeys.get(b)!; return x < y ? -1 : x > y ? 1 : 0; };
@@ -487,7 +491,7 @@ export class Viewer {
   private materialLayout!: object;
   private surfaceLayout!: object;
   /** The surface pipeline description for a shader module and variant (lit or not, two-sided, transparent). */
-  private surfaceDescriptor!: (module: object, lit: boolean, two: boolean, transparent: boolean) => object;
+  private surfaceDescriptor!: (module: object, lit: boolean, two: boolean, transparent: boolean | 'oit') => object;
   /** Shader materials by their WGSL: an id and their module (made on first use). */
   private shaders = new Map<string, { id: number; module: object | null; device: Device | null }>();
   /** A shader material's surface WGSL (made once per material: the sort and the draw ask for it per mesh). */
@@ -589,7 +593,7 @@ export class Viewer {
     this.emptyFront = device.createTexture({ size: [1, 1], format: 'r32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer no front depth' });
     this.shadowMap = null;
     // (The targets were the lost device's: made again, and bound, when next drawn.)
-    this.targets = null; this.pickTargets = null;
+    this.targets = null; this.pickTargets = null; this.oit = null;
     this.bindFrames();
     this.objectCapacity = 0; this.growObjects(Math.max(64, this.nextSlot));
     for (const m of this.meshes) m.dirty = true;
@@ -651,16 +655,28 @@ export class Viewer {
     const make = (key: PipelineKey, desc: object) => d.createRenderPipelineAsync({ label: `viewer ${key}`, layout: /^(lit|unlit|catcher)/.test(key) ? surfaceLayout : layout, ...desc }).then(p => { this.pipelines.set(key, p); });
     const jobs: Promise<void>[] = [];
     d.pushErrorScope('validation');
+    // (G11's order-independent variant: the accumulation summed, the revealage multiplied, in any order.)
+    const oitTargets = [{ format: OIT_ACCUM, blend: { color: { srcFactor: 'one', dstFactor: 'one' }, alpha: { srcFactor: 'one', dstFactor: 'one' } } },
+      { format: OIT_REVEAL, blend: { color: { srcFactor: 'zero', dstFactor: 'one-minus-src' }, alpha: { srcFactor: 'zero', dstFactor: 'one-minus-src' } } }];
     this.surfaceDescriptor = (module, lit, two, t) => ({
       vertex: vertex(module),
-      fragment: { module, entryPoint: lit ? 'fsLit' : 'fsUnlit', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
+      fragment: t === 'oit' ? { module, entryPoint: lit ? 'fsLitOit' : 'fsUnlitOit', targets: oitTargets } : { module, entryPoint: lit ? 'fsLit' : 'fsUnlit', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
       primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back', frontFace: 'ccw' },
       // Faces sit a little behind lines drawn on them (reversed depth: lower is further).
       depthStencil: { format: 'depth32float', depthWriteEnabled: !t, depthCompare: 'greater-equal', depthBias: -2, depthBiasSlopeScale: -1.5 },
       multisample: ms,
     });
-    for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true])
-      jobs.push(make(`${lit ? 'lit' : 'unlit'}${two ? '2' : ''}${t ? 'T' : ''}`, this.surfaceDescriptor(modules.surface, lit, two, t)));
+    for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true, 'oit' as const])
+      jobs.push(make(`${lit ? 'lit' : 'unlit'}${two ? '2' : ''}${t === 'oit' ? 'O' : t ? 'T' : ''}`, this.surfaceDescriptor(modules.surface, lit, two, t)));
+    const oitModule = d.createShaderModule({ code: oitWGSL, label: 'viewer oit' });
+    jobs.push(d.createRenderPipelineAsync({
+      label: 'viewer oit composite', layout: 'auto',
+      vertex: { module: oitModule, entryPoint: 'vs' },
+      fragment: { module: oitModule, entryPoint: 'fs', targets: [{ format: SCENE_FORMAT, blend }] },
+      primitive: { topology: 'triangle-list' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'always' },
+      multisample: ms,
+    }).then(p => { this.pipelines.set('oitComposite', p); }));
     jobs.push(make('catcher', {
       vertex: vertex(modules.surface),
       fragment: { module: modules.surface, entryPoint: 'fsShadow', targets: [{ format: SCENE_FORMAT, blend }] },
@@ -964,7 +980,7 @@ export class Viewer {
       for (const k of [...this.pipelines.keys()]) if (k.startsWith(`shader${entry.id}:`)) this.pipelines.delete(k);
     }
     if (!this.pipelines.has(key)) {
-      const lit = !variant.startsWith('unlit'), two = variant.includes('2'), t = variant.endsWith('T');
+      const lit = !variant.startsWith('unlit'), two = variant.includes('2'), t = variant.endsWith('O') ? 'oit' as const : variant.endsWith('T');
       this.pipelines.set(key, (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({ label: `viewer ${key}`, layout: this.surfaceLayout, ...this.surfaceDescriptor(entry.module, lit, two, t) }));
     }
     return key;
@@ -1075,6 +1091,28 @@ export class Viewer {
     return this.targets;
   }
 
+  /**
+   * @internal See-through surfaces through the order-independent pass (G11, default); false: sorted far to near and
+   * blended over, as before (the test compares them).
+   */
+  orderIndependent = true;
+  /** @internal While the order-independent pass draws: transparent surfaces take their 'O' pipelines. */
+  private oitDrawing = false;
+  /** G11's targets: the accumulation and revealage (multisampled when the scene is) and their resolved copies, and the composite's bind group. */
+  private oit: { width: number; height: number; accumMs: Texture | null; revealMs: Texture | null; accum: Texture; reveal: Texture; group: BindGroup; views: { accumMs: View | null; revealMs: View | null; accum: View; reveal: View } } | null = null;
+  private ensureOit(): NonNullable<Viewer['oit']> {
+    const w = this.canvas.width, h = this.canvas.height, o = this.oit;
+    if (o && o.width === w && o.height === h) return o;
+    o?.accumMs?.destroy(); o?.revealMs?.destroy(); o?.accum.destroy(); o?.reveal.destroy();
+    const samples = this.options.antialias === false ? 1 : SAMPLES, ms = samples > 1;
+    const tex = (format: string, count: number, label: string) => this.device.createTexture({ size: [w, h], format, sampleCount: count, usage: TextureUsage.RENDER_ATTACHMENT | (count === 1 ? TextureUsage.TEXTURE_BINDING : 0), label });
+    const accumMs = ms ? tex(OIT_ACCUM, samples, 'viewer oit accum msaa') : null, revealMs = ms ? tex(OIT_REVEAL, samples, 'viewer oit reveal msaa') : null;
+    const accum = tex(OIT_ACCUM, 1, 'viewer oit accum'), reveal = tex(OIT_REVEAL, 1, 'viewer oit reveal');
+    const group = this.device.createBindGroup({ layout: this.pipelines.get('oitComposite')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: accum.createView() }, { binding: 1, resource: reveal.createView() }] });
+    this.oit = { width: w, height: h, accumMs, revealMs, accum, reveal, group, views: { accumMs: accumMs?.createView() ?? null, revealMs: revealMs?.createView() ?? null, accum: accum.createView(), reveal: reveal.createView() } };
+    return this.oit;
+  }
+
   private upload(g: Geometry): boolean {
     if (g.disposed) return false;
     if (g.gpu && g.gpu.device === this.device) return true;
@@ -1121,7 +1159,7 @@ export class Viewer {
   }
 
   private pipelineKey(m: Mesh, pick: boolean | 'mask'): PipelineKey {
-    const mat = m.material, two = mat.doubleSided ? '2' : '', t = m.transparent ? 'T' : '';
+    const mat = m.material, two = mat.doubleSided ? '2' : '', t = m.transparent ? (this.oitDrawing ? 'O' : 'T') : '';
     if (pick === 'mask') return (two ? 'mask2' : 'mask');
     if (pick) return (two ? 'pick2' : 'pick');
     if (m.geometry.topology === 'lines') return mat.lineOver ? 'lineOver' : (t ? 'lineT' : 'line');
@@ -1152,7 +1190,7 @@ export class Viewer {
   }
 
   private writeUniforms(viewProjection: Mat4, shadow: ShadowFrame | null = null): void {
-    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, [this.canvas.width, this.canvas.height, this.pixelRatio], this.gridFrame(), this.clip));
+    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, [this.canvas.width, this.canvas.height, this.pixelRatio, boxRadius(this.sceneBounds() ?? { min: [0, 0, 0], max: [1, 1, 1] })], this.gridFrame(), this.clip));
     if (shadow) this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, packFrame(shadow.viewProjection, this.camera, [], this.environment, null, [1, 1, 1], null, this.clip));
     let lo = Infinity, hi = -1;
     for (const m of this.meshes) if (m.dirty) {
@@ -1355,8 +1393,13 @@ export class Viewer {
       sp.end();
     }
     this.drawCapFront(enc, opaque, null);
+    // (G11: with a see-through surface in view, three passes — the opaque scene kept multisampled; the see-through
+    // surfaces into the accumulation and revealage, in any order; their composite, then the see-through lines and points
+    // over it. Without one, one pass as before.)
+    let oit = false;
+    if (this.orderIndependent) for (const m of transparent) if (oitSurface(m)) { oit = true; break; }
     const pass = enc.beginRenderPass({
-      colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa ? sceneView : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: targets.msaa ? 'discard' : 'store' }],
+      colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa && !oit ? sceneView : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: targets.msaa && !oit ? 'discard' : 'store' }],
       // (The depth is kept for ambient occlusion in the output pass; the background is put in there too.)
       depthStencilAttachment: { view: targets.views.depth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'store' },
     });
@@ -1366,6 +1409,8 @@ export class Viewer {
     // Opaque surfaces and their caps, the grid (tested against them), then lines and transparent meshes over it.
     let opaqueDone = false, caps = 0;
     for (const list of [opaque, transparent]) for (const m of list) {
+      // (In the order-independent frame the transparent list waits for its passes, but for shadow catchers: they darken the ground.)
+      if (oit && list === transparent && !m.material.shadowOnly) continue;
       if (!opaqueDone && (m.geometry.topology !== 'triangles' || m.transparent)) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); opaqueDone = true; }
       this.drawMesh(pass, m, current, false);
       if (m.geometry.topology !== 'triangles' && (m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(pass, m, current);
@@ -1373,6 +1418,35 @@ export class Viewer {
     }
     if (!opaqueDone) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); }
     pass.end();
+    if (oit) {
+      const o = this.ensureOit();
+      const op = enc.beginRenderPass({
+        colorAttachments: [
+          { view: o.views.accumMs ?? o.views.accum, resolveTarget: o.accumMs ? o.views.accum : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: o.accumMs ? 'discard' : 'store' },
+          { view: o.views.revealMs ?? o.views.reveal, resolveTarget: o.revealMs ? o.views.reveal : undefined, clearValue: { r: 1, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: o.revealMs ? 'discard' : 'store' },
+        ],
+        depthStencilAttachment: { view: targets.views.depth, depthLoadOp: 'load', depthStoreOp: 'store' },
+      });
+      op.setBindGroup(0, this.frameGroup);
+      const cur: { pipeline?: Pipeline } = {};
+      this.oitDrawing = true;
+      try { for (const m of transparent) if (oitSurface(m)) { this.drawMesh(op, m, cur, false); tris += (m.geometry.data.elementCount / 3) * m.instanceCount; } } finally { this.oitDrawing = false; }
+      op.end();
+      const cp = enc.beginRenderPass({
+        colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa ? sceneView : undefined, loadOp: 'load', storeOp: targets.msaa ? 'discard' : 'store' }],
+        depthStencilAttachment: { view: targets.views.depth, depthLoadOp: 'load', depthStoreOp: 'store' },
+      });
+      cp.setPipeline(this.pipelines.get('oitComposite')!); cp.setBindGroup(0, o.group); cp.draw(3);
+      cp.setBindGroup(0, this.frameGroup);
+      const cc: { pipeline?: Pipeline } = {};
+      for (const m of transparent) {
+        if (m.geometry.topology === 'triangles') continue;
+        this.drawMesh(cp, m, cc, false);
+        if ((m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(cp, m, cc);
+        if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else points += m.geometry.data.elementCount;
+      }
+      cp.end();
+    }
     if (outlines.length) {
       // The outline mask: every opaque surface hides what is behind it; outlined meshes write their number.
       const mask = enc.beginRenderPass({

@@ -593,3 +593,43 @@ test('G9 scene trees: raycast, pickLine and pickPoint through them equal the lin
     assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
 });
+
+// G11: see-through surfaces through the order-independent pass — the same frame whatever the order they are drawn in.
+test('G11 order-independent transparency: two interpenetrating see-through boxes the same in either order (the sorted path not); one layer, outlined, over a capped cut, as the sorted path drew it; see-through lines over it', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box } = window, canvas = document.getElementById('c');
+      canvas.style.width = '640px'; canvas.style.height = '480px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, background: '#101010', camera: { position: [6, -9, 7], target: [0, 0, 0], up: [0, 0, 1] } });
+      const diff = (a, b) => { let n = 0, max = 0; for (let i = 0; i < a.data.length; i += 4) { const d = Math.abs(a.data[i] - b.data[i]) + Math.abs(a.data[i + 1] - b.data[i + 1]) + Math.abs(a.data[i + 2] - b.data[i + 2]); if (d > 3) n++; if (d > max) max = d; } return { n, max }; };
+      viewer.add(box(8, 8, 0.5).surface, { name: 'floor', material: { color: '#808080' }, transform: api.translation([0, 0, -2]) });
+      // Two boxes through each other, the same centre (so the sort keeps the order they were added in), see-through.
+      const A = () => viewer.add(box(5, 1.2, 1.2).surface, { name: 'A', material: { color: '#ff3020', opacity: 0.5 } });
+      const B = () => viewer.add(box(1.2, 5, 1.2).surface, { name: 'B', material: { color: '#2060ff', opacity: 0.45 } });
+      const shots = async () => {
+        let a = A(), b = B(); await viewer.frame(); const ab = await viewer.capture(); viewer.remove(a); viewer.remove(b);
+        b = B(); a = A(); await viewer.frame(); const ba = await viewer.capture(); viewer.remove(a); viewer.remove(b);
+        return diff(ab, ba);
+      };
+      const oit = await shots();
+      viewer.orderIndependent = false; const sorted = await shots(); viewer.orderIndependent = true;
+      // One see-through layer, outlined, in front of an opaque box cut and capped by the clip plane; a see-through line over all.
+      const solid = viewer.add(box(2, 2, 2).surface, { name: 'solid', material: { color: '#c0a060' }, cap: true, transform: api.translation([0, 2, 0]) });
+      const glass = viewer.add(box(4, 0.4, 3).surface, { name: 'glass', material: { color: '#60c0ff', opacity: 0.35 }, transform: api.translation([0, -1.5, 0]) });
+      glass.outline = '#ffcc00';
+      viewer.add({ positions: [-3, -3, 1, 3, -3, 1], topology: 'lines' }, { material: { color: '#ffffff', unlit: true, lineWidth: 2, opacity: 0.8 } });
+      viewer.clipPlane = { normal: [1, 0, 0], offset: 0.3 };
+      await viewer.frame(); const one = await viewer.capture(), statsOit = { ...viewer.stats };
+      viewer.orderIndependent = false; await viewer.frame(); const oneSorted = await viewer.capture(); viewer.orderIndependent = true;
+      void solid;
+      viewer.dispose();
+      return { oit, sorted, single: diff(one, oneSorted), drawCalls: statsOit.drawCalls };
+    });
+    t.diagnostic(JSON.stringify(r));
+    assert.equal(r.oit.n, 0, `either order the same frame ${JSON.stringify(r.oit)}`);
+    assert.ok(r.sorted.n > 500, `the sorted path does depend on it (the test can tell) ${JSON.stringify(r.sorted)}`);
+    assert.ok(r.single.n <= 50 && r.single.max <= 12, `one layer, its outline, the cap and a line over it as the sorted path drew them ${JSON.stringify(r.single)}`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});

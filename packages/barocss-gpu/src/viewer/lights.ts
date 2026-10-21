@@ -64,7 +64,7 @@ export interface GridFrame { cell: number; major: number; fade: number; height: 
 
 /** The clip plane (G2): drawn where dot(normal, p) ≥ offset (normal of unit length), its cap in a colour (sRGB). */
 export interface ClipFrame { normal: Vec3; offset: number; cap: Vec3 }
-export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly [number, number, number] = [1, 1, 1], grid: GridFrame | null = null, clip: ClipFrame | null = null): Float32Array {
+export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly number[] = [1, 1, 1, 0], grid: GridFrame | null = null, clip: ClipFrame | null = null): Float32Array {
   const f = new Float32Array(FRAME_BYTES / 4), u = new Uint32Array(f.buffer);
   f.set(viewProjection, 0);
   const forward = normalize(sub(camera.target, camera.position));
@@ -100,7 +100,8 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
   }
   o += MAX_SPOT * 16;
   if (shadow && caster >= 0) { f.set(shadow.viewProjection, o); put4(f, o + 16, shadow.normalOffset, shadow.texel, shadow.bias, 0); }
-  put4(f, o + 20, viewport[0], viewport[1], viewport[2], 0);
+  // (viewport.w: the scene's size, the see-through surfaces' depth weight's scale; G11.)
+  put4(f, o + 20, viewport[0], viewport[1], viewport[2], viewport[3] ?? 0);
   if (grid) {
     f.set(invert(viewProjection), o + 24);
     const c = linear(grid.color);
