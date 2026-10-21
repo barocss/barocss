@@ -7873,3 +7873,140 @@ Track K's fourth step (the PKG design note's G9, with G14's `nearest` and `app/m
 - `@barocss/cad-model` lint and type-check clean.
 - Studio: tsc clean; the suite 761/762 with the known `todo` (O80), 0 fail.
 - The full kernel suite, conformance, the flow and RB not run (T1); the coordinator's 4th-checkpoint T2 falls at K5.
+
+## D144 — K5: polygon section properties, a symmetric 3 × 3 eigen solver, a mesh's volume (2026-10-21)
+
+Track K's fifth step (the PKG design note's G10, G11 and G8's `meshVolume`). Three small routines lived in the studio (and one of them twice, once in the kernel): the RB9 beam rung's Green's-theorem section integrals (`rb9/beam.ts`, O73), the robot track's `symmetricEigen` (`robot/inertia.ts`; the kernel's mesh offset had its own `jacobi3`), and the lattice's `meshVolume` (`print/lattice.ts`; the QA engine probe had another).
+
+**Decision:**
+- **Kernel** `src/section-properties.ts`, exported:
+  - `polygonSectionProperties(loops)` → `{ area, centroid, Ixx, Iyy, Ixy, I1, I2, angle, loops }`: straight-edged loops of (x, y) corners in either orientation, a loop inside an odd number of others a hole (the beam rung's rule); Green's theorem for A, ∫x, ∫y, ∫x², ∫y² and, new, ∫xy (Σ (x₀y₁ − x₁y₀)(2x₀y₀ + x₀y₁ + x₁y₀ + 2x₁y₁)/24); about the centroid by the parallel-axis theorem; the principal moments m ± √(((Ixx − Iyy)/2)² + Ixy²) and I1's axis atan2(−2Ixy, Ixx − Iyy)/2. Ixx is ∫(y − cy)² dA (about the x axis), Iyy ∫(x − cx)² dA.
+  - `symmetricEigen3(S)` → `{ values (ascending), vectors (columns, row-major) }` and `symmetricEigen3InPlace(A, V)` for hot paths: the cyclic Jacobi rotations both copies used (up to 50 sweeps, done at off² ≤ 1e-30 diag²).
+  - `meshVolume(positions, indices)`: Σ a·(b × c)/6, signed.
+  - Types `SectionProperties`, `Matrix3`, `Vector3`.
+- **Inside the kernel:** `mesh-offset.ts`'s private `jacobi3` replaced by `symmetricEigen3InPlace` (32 sweeps before, 50 now; both stop long before).
+- **In `@barocss/cad-model`:**
+  - `rb9/beam.ts`: `beamSection` takes the kernel's section properties on its (y, z) loops (its `Iy` is the kernel's Ixx, its `Iz` the Iyy); its private `green` and `inside` gone. The loop chaining stays (it reads the B-rep's cut edges).
+  - `robot/inertia.ts`: `symmetricEigen` removed; it, `robot/usd.ts`, `chat/references.ts` and three robot tests (`inertia`, `urdf`, `mjcf`) take the kernel's `symmetricEigen3`. `rotateInertia` stays (it is the robot frame's).
+  - `print/lattice.ts`: `meshVolume` removed; it and `test/lattice.test.ts`, `test/qa/engine-probe.ts` (whose own copy also goes) take the kernel's `(positions, indices)` form.
+
+**Results matched** (a before/after snapshot, not kept: `beamSection` of an I-beam at three cuts and of a hollow box, `symmetricEigen` on five matrices — general, diagonal with a repeated value, nearly repeated (1e-9), a dense one, the identity — and `meshVolume` of a tetrahedron): identical, bit for bit.
+
+**Oracles** (`packages/barocss-cad/test/k5-section-eigen-volume.test.mjs`, 4 tests, 0.3 s; none of them the routines):
+- sections: a rectangle's bh³/12 and hb³/12 (Ixy 0, I1's axis along x); a hollow rectangle with its hole either way round; an I-beam as one outline against its parts (2(100·10³/12 + 1000·45²) + 10·80³/12); a right triangle's bh³/36, hb³/36 and Ixy = −b²h²/72; an island inside a hole counted as material; a rectangle turned by four angles about another point — I1 and I2 unchanged, I1's axis turned with it (mod π); an equal angle's axes at ±45° (Ixx = Iyy); FR's own sharp rectangular tube (D123) — the area and centroid of its closed forms;
+- eigen: 500 random symmetric matrices — AV = VΛ to 1e-12‖A‖, VᵀV = I to 1e-12, ascending, the trace and the determinant; [[2, 1, 0], [1, 3, 1], [0, 1, 4]]'s 3 − √3, 3, 3 + √3 to 1e-14; a repeated value; the identity's vectors; the in-place form the same values;
+- volume: a unit tetrahedron 1/6 and reversed −1/6; a 4 × 3 × 2 box 24, moved anywhere; the K1 hull of 2000 sphere points just under 4/3·πR³.
+- The test fails on the previous HEAD: none of the exports existed.
+
+**Checks — T2** (the 4th checkpoint since the last full run):
+- Kernel lint and type-check clean; `k5-section-eigen-volume` 4/4. The full kernel suite, conformance included, 1394/1399 (4 skipped): 1399 = D141's 1389 + K3's 3 + K4's 3 + K5's 4, so none missing; only the env-only "actual native Split source…" fails. 376 s (the machine under load from other sessions).
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed tests 0 errors (the engine probe's two console warnings, as before); the suite 767/768 with the known `todo` (O80), 0 fail.
+- The full browser flow, on its own: 215/215, 696 s.
+- RB: in the rows commit after this one.
+
+## D145 — K6: a mesh on a voxel grid and marching tetrahedra; the hollowing's brute-force ray on the K2 tree (2026-10-21)
+
+Track K's sixth step (the PKG design note's G7). The studio's hollowing (`print/hollow.ts`, AM7a, O53) held the voxel core the lattice (AM7b) also uses: inside flags by ray parity along +X, a node's depth below the surface through triangles binned on a grid, the cavity field, marching tetrahedra — and a brute-force ray over every triangle for its wall measure. The generic core moves into the kernel on (positions, indices); the doc-level planning stays.
+
+**Decision:**
+- **Kernel** `src/voxel-field.ts`, exported:
+  - `voxelInsideFlags(positions, indices, o, h, n)`: the studio's ray parity along +X per grid row (triangles binned by the rows their YZ boxes cover; the crossings sorted), unchanged; its sort comparator hoisted to module level.
+  - `voxelDepth(positions, indices, o, h, n, cap, inside)`: each inside node's distance to the nearest triangle, capped — through the K2 hierarchy's bounded nearest query instead of the studio's triangle bins.
+  - `marchingTetrahedra({ o, h, n, phi })` → `{ positions, indices, edges }`: the studio's, unchanged (six tetrahedra a cell about its diagonal, vertices shared by grid edge, each nudged 1e-9 of its edge off a node, triangles turned outward); `voxelNode`, `VOXEL_CORNERS`, `VOXEL_TETRAHEDRA`; types `VoxelField`, `VoxelPoint`.
+- **In `@barocss/cad-model`:**
+  - `print/hollow.ts`: `cavityField` now the kernel's flags and depth (its grid layout, irrational offsets and MAX_NODES refusal stay); `Grid` is the kernel's `VoxelField`; `depthBins` / `depthAt` keep their names for the lattice and the chord test but are the kernel's tree and bounded nearest query; `wallOf` and `onOuter` cast through one K2 tree per mesh (`rayHit` from 1e-7, the sampled triangle skipped) instead of every triangle per ray; `enclosedVoids` takes the kernel's flags. Removed: `trianglesOf`, `insideFlags`, `dist2`, the bins, `marchingTetrahedra` and its helpers, `nodeAt`, `CORNER`, `TETS`, the private ray. `cavityComponents`, `meshPieces`, `planHollow` and the errors stay.
+  - `print/lattice.ts`: takes `marchingTetrahedra`, `voxelNode`, `VOXEL_CORNERS`, `VOXEL_TETRAHEDRA` from the kernel.
+  - Tests: `hollow` and `lattice` take `marchingTetrahedra` (and `voxelInsideFlags`, for the lattice's void check, in place of its own triangle packing) from the kernel.
+  - No tool file and nothing under `chat/**` touched (O105 is the outer lane's).
+
+**Results matched** (a before/after snapshot, not kept: on the 40 × 30 × 20 box at t 3, h 0.75 and the R 15 sphere at t 2.5, h 0.5 — the cavity field φ (hashed), its marching-tetrahedra mesh (positions and indices hashed, counts), `wallOf`, `enclosedVoids`, `depthAt` at five points; `planHollow` on the box by both routes (the reports); `planLattice` on the hollowed box (report and mesh hashed)): identical, bit for bit. On a separate 28 800-triangle mesh one node's depth of 274 625 differed in the last bit (2.4193548243607160 against …155, a tie at a triangle's region boundary).
+
+**Speed** (side by side in one process, a bumpy 28 800-triangle sphere, a 65³ grid):
+- 200 000 depth queries: the bins 2.7–3.4 s, the kernel 0.38–0.49 s (7×);
+- the field's depth over its inside nodes: 1.8–1.9 s → 0.23–0.25 s (7.8×);
+- 1200 axis-parallel rays (the wall measure's kind): 250–291 ms → 11–21 ms (about 20×);
+- the inside flags: the same code, 8–13 ms both.
+- The test files as a whole, run alone before and after: `hollow` 6.38 → 6.28 s, `chord` 3.57 → 2.48 s, `lattice` 10.84 → 12.19 s — their time is the kernel's Booleans, decimation and evaluation, not the voxel core; the lattice's difference is within this machine's load swing (load average 12–36 across the two runs).
+
+**Oracles** (`packages/barocss-cad/test/k6-voxel-field.test.mjs`, 3 tests, 0.7 s; none of them the kernel's):
+- a box: every node inside exactly when strictly within it (by coordinates), its depth the nearest face's distance capped, to 1e-12;
+- a UV sphere mesh (R 10, 48 bands): deep nodes inside, the depth R − |p| within twice the chord error, every node beyond R outside;
+- marching tetrahedra: a linear field's surface exactly on its plane (1e-12); an analytic sphere's field (r 6) meshed closed and consistently oriented (each directed edge once, with its reverse), χ = 2, every vertex used, the volume below 4/3·πr³ and its error 8.02, 2.02, 0.503 at h 0.8, 0.4, 0.2 (×3.98, ×4.01: h²); vertices on crossing edges.
+- The test fails on the previous HEAD: none of the exports existed.
+
+**Checks — T1:**
+- Kernel lint and type-check clean; `k6-voxel-field` 3/3.
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed tests 0 errors; the suite 767/768 with the known `todo` (O80), 0 fail.
+- The full kernel suite, conformance, the flow and RB not run (T1; no kernel core file touched).
+
+## D146 — K7: the curve-fit equivalence check — equal where both apply, not a replacement; stopped for a decision (2026-10-21)
+
+Track K's last step (the PKG design note's G13: "equivalence check first"). The studio's `engine/fit.ts` (133 lines, used by `engine/direct.ts`'s fill, extend, refit and knot removal) against the kernel's certified interpolation (`buildInterpolatingCurve`, `buildInterpolatingSurface`). No product code changed; the comparison is kept as `apps/cad-studio/test/k7-fit-equivalence.test.ts` (4 tests, about 1 s).
+
+**What each has:**
+- Studio: global interpolation with chord-length parameters and averaged knots (any count, any degree up to n, all weights 1); least-squares approximation with its ends kept (NURBS Book A9.7: `refitCurve`, 64 samples); surface interpolation as the tensor of curve interpolations on averaged parameters (`fill`, `extend`: 16 × 16 grids); knot removal (A5.8).
+- Kernel: through-point interpolation on caller-given parameters, degree 1–3, at most 16 points a direction, coordinates and parameters within 10 000, a deterministic scaled-pivot solve, and a complete report (basis matrix, pivots, eliminations, through-point observations), source and model, validated bit for bit; the tensor surface the same way. No least squares, no knot removal, no tangent, curvature or periodic constraints (its report says so).
+
+**Where both apply — equal to rounding:**
+- curves: 31 point sets (the `fit.test` 9-point curve and 30 random sets of 2–16 points) × degrees 1–3 on the same chord parameters: the knots within 1.1e-16 (the same averages, summed differently — the kernel from the first parameter as origin + Σ offsets/p), the poles within 4.2e-14 mm, the curves within 3.0e-14 mm at 2001 equal parameters, the through-points within 2.1e-14 mm. Continuity is the same by construction (the same degree and knots: Cᵖ⁻¹ at each simple interior knot).
+- surfaces: the fill's 16 × 16 Coons grid on the studio's averaged parameters: the kernel's surface within 1.8e-14 mm of the studio's at 1681 samples, the knots the studio's own.
+- a closed loop (the first point repeated last): both clamped and open in parameter, the ends meeting in position only, 1.8e-15 mm apart; neither periodic.
+
+**Where they differ in kind:**
+- more than 16 points (the refit's 64 samples, and its interpolation fallback when the pole count equals the samples): the studio fits, the kernel refuses (`INPUT`);
+- coordinates past 10 000 mm (a 25 m run): the studio fits, the kernel refuses;
+- two points at degree 3: the studio lowers the degree to 1, the kernel refuses (it must be asked for degree 1);
+- a repeated point: both refuse (the studio's "cannot be fitted", the kernel's `INPUT`);
+- least squares and knot removal: the studio only;
+- cost: a 16-point cubic 13–31 µs in the studio against 2.7–3.4 ms for the kernel's certified build (110–210×); the 16 × 16 surface 2.3 ms against 235 ms (100×) — the report, source and model the kernel builds and checks every time.
+
+**Verdict: not equivalent as a replacement.** The kernel's interpolation is the studio's mathematics where both apply, but it covers only part of what the studio fits (no least squares, no knot removal, 16 points), and the certified build costs two orders of magnitude more per fit, for a report the direct geometry does not read. Per the coordinator's rule ("if they are not equivalent, stop and report rather than replacing") nothing is moved. `engine/fit.ts` stays in `@barocss/cad-model`.
+
+**For the coordinator (and the owner if it is theirs):**
+- (a) leave `engine/fit.ts` where it is (default; nothing changes);
+- (b) move it into the kernel as a plain, uncertified fitting module beside the certified one (interpolation with chord parameters and any count, least squares, knot removal, the surface tensor), with this file's comparison as its first oracle, so one copy exists and the certified path stays for documents that need its report;
+- (c) only the fill and extend surfaces through the certified kernel (they fit its limits exactly, and are within 1.8e-14 mm), the curves left in the studio — at 100× the cost per surface (235 ms), which a user would notice on every fill.
+
+**Checks — T1:** no product code changed. `k7-fit-equivalence` 4/4; app tsc clean; eslint clean on the new file. FLOW_ONLY not run: nothing on a flow path changed (the fill and refit steps run the same `engine/fit.ts`). Kernel and studio suites not rerun (no source change).
+
+## D147 — K7b: plain B-spline fitting in the kernel; the studio's `engine/fit.ts` removed (2026-10-21)
+
+The coordinator's decision on D146: option (b) — "the boundary proposal (G13) puts generic fitting in the kernel, and 'one copy' is the reason track K exists"; (c) out, 235 ms a fill being too slow. This ends track K.
+
+**Decision:**
+- **Kernel** `src/fit-plain.ts`, exported: `interpolateCurvePlain(points, p = 3, params?, knots?)`, `approximateCurvePlain(points, count, p = 3)`, `interpolateSurfacePlain(grid, p = 3, q = 3)`, `removeCurveKnotPlain(curve, u, tol)`, `chordParameters`, `averagedKnots`, `plainBasis`, `plainFindSpan`; types `PlainFitCurve`, `PlainFitSurface`, `PlainPoint`. The studio's algorithms and arithmetic unchanged — chord-length parameters for any number of points, a degree lowered to n for n + 1 points, repeated points refused ("cannot be fitted", now a RangeError), no coordinate bound; least squares with the ends kept (A9.7); the surface tensor on averaged parameters; knot removal (A5.8), a rational curve's weights kept. The closures it built per row or pole (the collocation row, the pole combination, the averaging) are module functions.
+- **Named plainly as uncertified:** the file's head says these produce no report and no certificate (no basis matrix, pivots, observations or bounds), and that documents needing those take `buildInterpolatingCurve` / `buildInterpolatingSurface`, which these equal to rounding where both apply. The certified path is untouched.
+- **`@barocss/cad-model`:** `engine/fit.ts` deleted; `engine/direct.ts` (fill, extend, refit, knot removal) and `test/fit.test.ts` take the kernel's. One copy remains. Nothing under `chat/**` touched.
+- **Tests moved:** D146's comparison (`apps/cad-studio/test/k7-fit-equivalence.test.ts`) is now the kernel's `test/k7b-fit-plain.test.mjs`, the module's oracle: plain against certified where both apply, and plain against the studio's old outputs for the rest — the cases in `test/k7b-fit-cases.mjs`, the outputs of the old `engine/fit.ts` frozen before the move in `test/fixtures/k7b-fit-plain.json` (12 interpolations including 64 points, 40 points at 25 m, two and three points; 5 least-squares fits including 64 → 64; 4 knot removals, two that come out and two that stay; 3 surfaces, 16 × 16, 24 × 9 at degrees 3 × 2, 3 × 2; a repeated point's refusal).
+
+**Oracles** (`k7b-fit-plain`, 4 tests, about 6 s, most of it the certified builds):
+- plain against certified: 31 point sets × degrees 1–3 — knots within 1.1e-16, poles within 4.2e-14 mm, curves within 3.0e-14 mm; the fill's 16 × 16 surface within 1.8e-14 mm, its knots its averaged parameters';
+- plain against the old studio outputs: equal bit for bit (JSON's shortest round-tripping decimals, equal text being equal bits) — the move changed no number;
+- the kinds: the plain path takes 64 points, 25 m and two points at degree 3 (lowered) where the certified one refuses (`INPUT`); a closed loop the same on both; more poles than points refused;
+- cost: a 16-point cubic 19 µs plain against 5.9 ms certified; the 16 × 16 surface 1.1 ms plain.
+- The test fails on the previous HEAD: none of the plain exports existed.
+
+**Checks — T3** (track K's boundary; times as run, this machine shared with other sessions): see the hand-over block at the top of README §0, which records them per check.
+
+## D148 — the hole after a union: a hole's depth from the face it is drilled into, by name (2026-10-21)
+
+The kernel-lane queue's first item (O80; repro `apps/cad-studio/test/fixtures/hole-after-union.calls.json`, until now the `todo` test in `test/known-bugs.test.ts`). A Ø2.5 blind hole 10 deep on a boss's top, after the boss (a cylinder standing on the floor of a shelled 60 × 40 × 25 box, its top at z 14) was united into the box, was refused "the hole at (15, 20) along z misses the target". Drilled before the union it cut.
+
+**Cause:** the kernel's `hole` measured a blind hole's depth (and placed a countersink) from the target's extreme along the axis on its `side` — the bounding box's top, z 25 for the united body — not from the face the user picked. From z 25 down 10 the tool lay in the shell's open cavity: no material, a miss. Before the union the boss alone was the target, and its own top was the extreme.
+
+**Decision:**
+- **Kernel** (`part-model.ts`, the `hole` feature): an optional `face` — the planar face it is drilled into, by name (a base name, `#k` pieces matched as `draft` matches them). Its plane, square to the axis, sets where the depth and the countersink start, and its outward normal sets the side. A face's name keeps the hole on it through parameter edits (a number would not).
+  - From a named face the tool reaches past it by 1 % of the depth, at most 1 mm — nothing above the face is cut (it is the outside there, and near it); from the extreme, 1 mm as before.
+  - A through hole is unchanged (the whole body); with a countersink, the cone sits on the named face.
+  - Refusals: `REFERENCE` (no such face on the target), `SELECTION` (not a flat face square to the hole's axis), `INPUT` (a `side` contradicting the face's normal; an empty name).
+  - Documents without `face` evaluate exactly as before.
+- **`@barocss/cad-model`:** the studio's `hole` node gains `face` (engine/doc.ts; engine/part.ts passes it on), and the Hole command (app/commands.ts) writes the picked face's name, so every new hole is drilled from its face. No tool file or `chat/**` changed: the command's fields and the agent's `run_command` are as they were.
+
+**Oracles:**
+- `packages/barocss-cad/test/d148-hole-face.test.mjs` (2 tests): a 40 × 40 × 10 block with a 10 × 10 × 30 tower — the block's top z 10, the body's z 40: a hole into `b.top` beside the tower takes π r² d (to 1e-9); without `face` it still misses (`SELECTION`, the old behaviour kept); into `b.bottom` it goes up from z 0; a countersink sits on the named face (the frustum Ø10 → Ø6 in closed form plus the rest of the bore, to 1e-6); the block's height edited to 8, 10, 15 — the hole follows its face; the refusals above.
+- `apps/cad-studio/test/known-bugs.test.ts`: the repro, now a test (its `todo` off) — the Ø2.5 bore coaxial with the boss at (15, 20), the material taken π·1.25²·10 (to 1e-6).
+- Both fail on the previous HEAD (the `face` input did not exist; the repro was the `todo`).
+
+**Checks — T2** (`part-model.ts` is a core file): see the commit's checkpoint.

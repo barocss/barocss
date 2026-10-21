@@ -9,6 +9,7 @@
 import { BrepError } from './brep-core.js';
 import { selfIntersections } from './mesh-repair.js';
 import { meshDistanceRange } from './mesh-distance.js';
+import { symmetricEigen3InPlace } from './section-properties.js';
 
 const refuse = (detail: string): never => { throw new BrepError('GEOMETRY', `CAPABILITY: shell: ${detail}`); };
 const at = (p: readonly number[]) => p.map(x => +x.toFixed(4)).join(', ');
@@ -56,7 +57,7 @@ export function meshInnerOffset(P: Float64Array, I: Uint32Array, t: number): { p
   for (let v = 0; v < nv; v++) {
     const m = 9 * v;
     A[0] = M[m]; A[1] = M[m + 1]; A[2] = M[m + 2]; A[3] = M[m + 1]; A[4] = M[m + 4]; A[5] = M[m + 5]; A[6] = M[m + 2]; A[7] = M[m + 5]; A[8] = M[m + 8];
-    jacobi3(A, V);
+    symmetricEigen3InPlace(A, V);
     const top = Math.max(A[0], A[4], A[8]);
     d[0] = 0; d[1] = 0; d[2] = 0;
     for (let e = 0; e < 3; e++) {
@@ -96,19 +97,3 @@ function cornerAngle(P: Float64Array, a: number, b: number, c: number): number {
   return Math.atan2(Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx), ux * vx + uy * vy + uz * vz);
 }
 
-/** A symmetric 3 × 3 matrix's eigenvalues (left on A's diagonal) and eigenvectors (V's columns), by cyclic Jacobi rotations. */
-function jacobi3(A: Float64Array, V: Float64Array): void {
-  V.fill(0); V[0] = 1; V[4] = 1; V[8] = 1;
-  for (let sweep = 0; sweep < 32; sweep++) {
-    const off = A[1] * A[1] + A[2] * A[2] + A[5] * A[5];
-    if (!(off > 1e-30 * (A[0] * A[0] + A[4] * A[4] + A[8] * A[8]))) return;
-    for (let p = 0; p < 2; p++) for (let q = p + 1; q < 3; q++) {
-      const apq = A[3 * p + q];
-      if (apq === 0) continue;
-      const th = (A[3 * q + q] - A[3 * p + p]) / (2 * apq), tt = Math.sign(th || 1) / (Math.abs(th) + Math.sqrt(th * th + 1)), c = 1 / Math.sqrt(tt * tt + 1), s = tt * c;
-      for (let k = 0; k < 3; k++) { const akp = A[3 * k + p], akq = A[3 * k + q]; A[3 * k + p] = c * akp - s * akq; A[3 * k + q] = s * akp + c * akq; }
-      for (let k = 0; k < 3; k++) { const apk = A[3 * p + k], aqk = A[3 * q + k]; A[3 * p + k] = c * apk - s * aqk; A[3 * q + k] = s * apk + c * aqk; }
-      for (let k = 0; k < 3; k++) { const vkp = V[3 * k + p], vkq = V[3 * k + q]; V[3 * k + p] = c * vkp - s * vkq; V[3 * k + q] = s * vkp + c * vkq; }
-    }
-  }
-}

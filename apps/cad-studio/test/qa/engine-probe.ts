@@ -3,23 +3,14 @@
 // volume, face counts and bounds with hand-computed values. Prints one JSON line per case.
 //   node test/qa/run-engine-probe.mjs
 import { evaluateDoc, stepFor, stlFor } from '@barocss/cad-model/engine/evaluate';
-import { importStep, brepMassProperties } from '@barocss/cad';
+import { brepMassProperties, importStep, meshVolume } from '@barocss/cad';
 import { emptyDoc, loftTop, prefixDoc, rectanglePart, starterDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import { editFields } from '@barocss/cad-model/app/editFields';
 
 type Row = { id: string; name: string; ok: boolean; expected?: unknown; actual?: unknown; note?: string };
 const rows: Row[] = [];
 let rev = 1;
 
-function meshVolume(m: DisplayMesh) {
-  let v = 0; const p = m.positions, i = m.indices;
-  for (let t = 0; t < i.length; t += 3) {
-    const a = i[t] * 3, b = i[t + 1] * 3, c = i[t + 2] * 3;
-    v += (p[a] * (p[b + 1] * p[c + 2] - p[b + 2] * p[c + 1]) - p[a + 1] * (p[b] * p[c + 2] - p[b + 2] * p[c]) + p[a + 2] * (p[b] * p[c + 1] - p[b + 1] * p[c])) / 6;
-  }
-  return v;
-}
 const rel = (a: number, b: number) => Math.abs(a - b) / Math.max(1e-9, Math.abs(b));
 const S = (n: number) => ({ node: n, side: 'solid' as const });
 const add = (doc: StudioDoc, ...nodes: ModelNode[]) => nodes.reduce((d, n) => withNode(d, n), doc);
@@ -36,7 +27,7 @@ const cyl = (r: number, h: number, cx: number, cy: number, z = 0, doc = emptyDoc
 function vol(id: string, name: string, doc: StudioDoc, expected: number, opts: { tol?: number; bodies?: number; faces?: number } = {}) {
   const r = evaluateDoc(doc, rev++);
   if (!r.ok) { rows.push({ id, name, ok: false, expected, actual: 'REFUSED: ' + r.error.title + ' | ' + r.error.detail }); return null; }
-  const kernel = r.bodies.reduce((s, b) => s + (b.volumeMM3 ?? NaN), 0), mesh = r.bodies.reduce((s, b) => s + meshVolume(b.mesh), 0);
+  const kernel = r.bodies.reduce((s, b) => s + (b.volumeMM3 ?? NaN), 0), mesh = r.bodies.reduce((s, b) => s + meshVolume(b.mesh.positions, b.mesh.indices), 0);
   const tol = opts.tol ?? 1e-4;
   const notes: string[] = [];
   let ok = rel(kernel, expected) < tol;

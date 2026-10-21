@@ -6,6 +6,7 @@
 // and the triangle inequality on the principal moments (I1 ≤ I2 + I3 …), each a typed problem when it fails.
 // The link frame (what RM4 writes the child link in): the base link's part frame; a link on a moving joint, at the
 // joint's point with Z along its axis and X the part's X square to it (else the part's Y); a fixed one, its part frame.
+import { symmetricEigen3 } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { materialIdOf } from '../app/bodies';
@@ -42,29 +43,6 @@ const crossV = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a
 /** The rotation `I_L = Rᵀ I R` (R's columns: the new axes in the old coordinates). */
 export const rotateInertia = (I: Mat3, R: Mat3): Mat3 => mul(mul(transpose(R), I), R);
 
-/**
- * A symmetric 3 × 3's eigenvalues (ascending) and unit eigenvectors (columns), by cyclic Jacobi rotations — exact to
- * rounding for these small matrices, and no dependency.
- */
-export function symmetricEigen(S: Mat3): { values: V3; vectors: Mat3 } {
-  const a = [...S] as Mat3, v: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-  for (let sweep = 0; sweep < 50; sweep++) {
-    const off = a[1] * a[1] + a[2] * a[2] + a[5] * a[5], scale = a[0] * a[0] + a[4] * a[4] + a[8] * a[8];
-    if (off <= 1e-30 * Math.max(scale, 1e-300)) break;
-    for (const [p, q] of [[0, 1], [0, 2], [1, 2]] as const) {
-      const apq = a[p * 3 + q];
-      if (Math.abs(apq) < 1e-300) continue;
-      const app = a[p * 3 + p], aqq = a[q * 3 + q], theta = (aqq - app) / (2 * apq);
-      const t = Math.sign(theta || 1) / (Math.abs(theta) + Math.sqrt(theta * theta + 1)), c = 1 / Math.sqrt(t * t + 1), s = t * c;
-      for (let k = 0; k < 3; k++) { const akp = a[k * 3 + p], akq = a[k * 3 + q]; a[k * 3 + p] = c * akp - s * akq; a[k * 3 + q] = s * akp + c * akq; }
-      for (let k = 0; k < 3; k++) { const apk = a[p * 3 + k], aqk = a[q * 3 + k]; a[p * 3 + k] = c * apk - s * aqk; a[q * 3 + k] = s * apk + c * aqk; }
-      for (let k = 0; k < 3; k++) { const vkp = v[k * 3 + p], vkq = v[k * 3 + q]; v[k * 3 + p] = c * vkp - s * vkq; v[k * 3 + q] = s * vkp + c * vkq; }
-    }
-  }
-  const order = [0, 1, 2].sort((i, j) => a[i * 4] - a[j * 4]);
-  return { values: order.map(i => a[i * 4]) as V3, vectors: [0, 1, 2].flatMap(r => order.map(i => v[r * 3 + i])) as Mat3 };
-}
-
 /** One body's mass (kg), centre (mm, part coordinates) and inertia about it (kg·m²) at its own material's density. */
 function bodyMass(doc: StudioDoc, b: BodyResult): { m: number; c: V3; I: Mat3; material: string; assumed: boolean } | null {
   if (b.volumeMM3 === null || !b.centroid || !b.inertia) return null;
@@ -93,7 +71,7 @@ export function linkInertia(link: string, part: string | null, doc: StudioDoc | 
     if (mass.assumed) issues.push({ code: 'MATERIAL_ASSUMED', message: `${b.key} has no material set: ${mass.material} assumed.` });
   }
   const IL = rotateInertia(symmetrize(I), frame.R), com = applyM(transpose(frame.R), [c[0] - frame.origin[0], c[1] - frame.origin[1], c[2] - frame.origin[2]]).map(x => x / 1000) as V3;
-  const e = symmetricEigen(IL), [i1, i2, i3] = e.values, tol = 1e-9 * Math.max(Math.abs(i3), 1e-300);
+  const e = symmetricEigen3(IL), [i1, i2, i3] = e.values, tol = 1e-9 * Math.max(Math.abs(i3), 1e-300);
   if (!(i1 > tol)) issues.push({ code: 'NOT_SPD', message: `its inertia is not positive definite (least principal moment ${i1.toExponential(3)} kg·m²)` });
   if (i3 > i1 + i2 + tol) issues.push({ code: 'TRIANGLE', message: `its principal moments break the triangle inequality (${i3.toExponential(4)} > ${i1.toExponential(4)} + ${i2.toExponential(4)})` });
   return { link, part, massKg: M, comM: com, inertia: IL, principal: { moments: e.values, axes: e.vectors }, frame, bodies: counted, issues };

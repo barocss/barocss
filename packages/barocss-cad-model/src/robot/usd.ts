@@ -10,8 +10,9 @@
 //     limits in degrees (a turn) or metres (a slide); a continuous joint a revolute one without limits;
 //   - what UsdPhysics has no attribute for — a gear coupling, effort and velocity limits — kept as `barocss:` custom
 //     attributes, said in the notes; a loop's pin (RM8) a PhysicsSphericalJoint excluded from the articulation.
+import { symmetricEigen3 } from '@barocss/cad';
 import type { JointTree } from './joints';
-import { symmetricEigen, type Mat3, type V3 } from './inertia';
+import { type Mat3, type V3 } from './inertia';
 import { namer, num, robotParts, type UrdfPart, type UrdfRefusal } from './urdf';
 import { quatOf, type MjcfClosure } from './mjcf';
 
@@ -56,7 +57,7 @@ export function exportUsd(tree: JointTree, partOf: (part: string) => UrdfPart | 
       '        uniform token[] xformOpOrder = ["xformOp:transform"]');
     if (li) {
       // (The principal frame from the tensor itself, right-handed: I = A diag(d) Aᵀ.)
-      const e = symmetricEigen(li.inertia), A = proper(e.vectors);
+      const e = symmetricEigen3(li.inertia), A = proper(e.vectors);
       out.push(`        float physics:mass = ${num(li.massKg)}`, `        point3f physics:centerOfMass = ${tuple(li.comM)}`, `        float3 physics:diagonalInertia = ${tuple(e.values)}`, `        quatf physics:principalAxes = ${tuple(quatOf(A))}`);
     } else out.push('        float physics:mass = 1e-9', '        float3 physics:diagonalInertia = (1e-15, 1e-15, 1e-15)');
     if (m) {

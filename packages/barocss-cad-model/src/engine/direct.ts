@@ -3,13 +3,7 @@
 // sources and objects; an operation that makes new objects hides the ones it was made from (so they
 // can be shown again), one that refines an object's own source (poles, knots, degree, interval) moves the
 // object to the refined source.
-import {
-  buildAlignedRationalRuledSurface, buildTranslationalSweepSurface, compileCadModel, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide,
-  elevateSourceSurfaceAxisDegree, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, insertSourceCurveKnot,
-  insertSourceSurfaceKnot, joinCurves, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter,
-  curveDomain, surfaceDomain, evaluateCurveCurvature, evaluateSurfaceCurvature, exportIGES, importIGES, evaluateSurface, evaluateCurve, surfaceEvaluator, intersectPatches, SurfaceIntersectionError, elevateSourceCurveDegree, IGESImportError, transformNativeGeometryAffine, buildMultiSectionLoftSurface, type CadAffineMatrix3x4, type Curve, type Model, type Surface,
-} from '@barocss/cad';
-import { approximateCurve, interpolateSurface, removeCurveKnot } from './fit';
+import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine } from '@barocss/cad';
 import { curvesSource, surfacesSource } from './curveSource';
 import { keptAt, projectLoop, trimmedMesh, type TrimLoop } from './trim';
 
@@ -209,7 +203,7 @@ export const directOps = {
       const u = i / n, v = j / n, a = C0(u), b = C2(u), c = D0(v), e = D1(v);
       return [0, 1, 2].map(k => (1 - v) * a[k] + v * b[k] + (1 - u) * c[k] + u * e[k] - ((1 - u) * (1 - v) * P00[k] + u * (1 - v) * P10[k] + (1 - u) * v * P01[k] + u * v * P11[k])) as [number, number, number];
     }));
-    const fit = interpolateSurface(grid);
+    const fit = interpolateSurfacePlain(grid);
     return add(d, [], surfacesSource('fill', [fit]), [{ geometry: 's1', name: 'Filled surface' }]);
   },
   /** The surface run on past one of its edges along its tangent there by `distance` mm (re-fitted as a bicubic B-spline). */
@@ -228,7 +222,7 @@ export const directOps = {
     const all = atMax ? [...rows, ...more] : [...more.reverse(), ...rows];
     // (Back to u along the first index when the run was across v.)
     const grid = alongU ? all : all[0].map((_, j) => all.map(r => r[j]));
-    return add(d, [id], surfacesSource('extended', [interpolateSurface(grid)]), [{ geometry: 's1', name: `${nameOf(d, id)} · extended` }]);
+    return add(d, [id], surfacesSource('extended', [interpolateSurfacePlain(grid)]), [{ geometry: 's1', name: `${nameOf(d, id)} · extended` }]);
   },
   /**
    * The curve fitted again with `count` poles (least squares through 64 samples of it, cubic, its ends
@@ -236,14 +230,14 @@ export const directOps = {
    */
   refitCurve(d: DirectGeometry, id: string, count: number) {
     const c = curveOf(d, id), pts = sampleCurve(c, 64).map(s => [s.point[0], s.point[1], s.point[2]] as [number, number, number]);
-    const f = approximateCurve(pts, Math.round(count)), fc: Curve = { kind: 'curve', id: 'f', degree: f.degree, knots: f.knots, controlPoints: f.points, weights: f.weights };
+    const f = approximateCurvePlain(pts, Math.round(count)), fc: Curve = { kind: 'curve', id: 'f', degree: f.degree, knots: f.knots, controlPoints: f.points, weights: f.weights };
     // The largest distance from a sample to the fit (each against the nearest of 512 points along it).
     const along = sampleCurve(fc, 512).map(s => s.point), worst = Math.max(...pts.map(p => Math.min(...along.map(q => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2])))));
     return add(d, [id], curvesSource('fitted', [{ degree: f.degree, knots: f.knots, points: f.points, weights: f.weights }]), [{ geometry: 'c1', name: `${nameOf(d, id)} · ${f.points.length} poles (±${Math.round(worst * 1000) / 1000})` }]);
   },
   /** The curve without its interior knot nearest `u`, when it stays within `tol` mm; refused when the knot carries shape. */
   removeCurveKnot(d: DirectGeometry, id: string, u: number, tol: number) {
-    const c = curveOf(d, id), r = removeCurveKnot({ degree: c.degree, knots: [...c.knots], points: c.controlPoints.map(p => [p[0], p[1], p[2]] as [number, number, number]), weights: [...c.weights] }, u, tol);
+    const c = curveOf(d, id), r = removeCurveKnotPlain({ degree: c.degree, knots: [...c.knots], points: c.controlPoints.map(p => [p[0], p[1], p[2]] as [number, number, number]), weights: [...c.weights] }, u, tol);
     if (!r) throw new Error(`That knot cannot come out without moving the curve more than ${tol} mm (or it has none inside).`);
     return add(d, [id], curvesSource('knot', [r]), [{ geometry: 'c1', name: `${nameOf(d, id)} · knot removed` }]);
   },

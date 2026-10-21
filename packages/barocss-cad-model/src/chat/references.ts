@@ -8,13 +8,13 @@
 // (exact), else the distance between the meshes (exact on the triangles), which is the true distance within the two
 // meshes' chord tolerance (a curved face's sag, r(1 − cos(π/32)) at the studio's 8 segments a quarter); a verdict
 // within that tolerance of the limit is **undecided**, never a pass.
-import { meshClearance } from '@barocss/cad';
+import { meshClearance, symmetricEigen3 } from '@barocss/cad';
 import type { StudioDoc, DocPlane, ModelNode } from '../engine/doc';
 import { emptyDoc, withNode } from '../engine/doc';
 import { partBreps, placeBody, type BodyResult, type EvalResult } from '../engine/evaluate';
 import { measureChords, unmeasured, type DisplayMesh, type Vec3 } from '../engine/mesh';
 import { rotationMatrix } from '../assembly/mates';
-import { symmetricEigen, type Mat3 } from '../robot/inertia';
+import type { Mat3 } from '../robot/inertia';
 import { refOf } from '../app/bodyRef';
 import { bodyKeyFor } from '../engine/ids';
 import { stepLengthUnit } from '../engine/stepUnits';
@@ -103,7 +103,7 @@ function faceSamples(mesh: DisplayMesh, face: number): { p: Vec3[]; n: Vec3[] } 
 function leastAxis(xs: readonly Vec3[], c: Vec3): Vec3 {
   const M = [0, 0, 0, 0, 0, 0, 0, 0, 0];
   for (const x of xs) { const d = sub(x, c); for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) M[3 * i + j] += d[i] * d[j]; }
-  const { values, vectors } = symmetricEigen(M as Mat3);
+  const { values, vectors } = symmetricEigen3(M as Mat3);
   let k = 0; for (let i = 1; i < 3; i++) if (values[i] < values[k]) k = i;
   return unit([vectors[k], vectors[3 + k], vectors[6 + k]]);
 }
@@ -126,7 +126,7 @@ export function fitCylinder(mesh: DisplayMesh, face: number): { origin: Vec3; di
   const { p, n } = faceSamples(mesh, face);
   // (The normals of a cylinder all lie across its axis: the axis is the least direction of Σ n nᵀ.)
   const M = [0, 0, 0, 0, 0, 0, 0, 0, 0]; for (const v of n) for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) M[3 * i + j] += v[i] * v[j];
-  const { values, vectors } = symmetricEigen(M as Mat3); let k = 0; for (let i = 1; i < 3; i++) if (values[i] < values[k]) k = i;
+  const { values, vectors } = symmetricEigen3(M as Mat3); let k = 0; for (let i = 1; i < 3; i++) if (values[i] < values[k]) k = i;
   const a = unit([vectors[k], vectors[3 + k], vectors[6 + k]]), e1 = unit(Math.abs(a[0]) < 0.9 ? cross(a, [1, 0, 0]) : cross(a, [0, 1, 0])), e2 = cross(a, e1);
   // (A circle through the points across the axis, by least squares on x² + y² + D x + E y + F = 0, then refined by Gauss–Newton.)
   const u = p.map(x => [dot(x, e1), dot(x, e2)] as [number, number]);

@@ -1,3 +1,4 @@
+import { symmetricEigen3 } from '@barocss/cad';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
@@ -12,7 +13,7 @@ import { forwardKinematics } from '@barocss/cad-model/robot/fk';
 import { quatOf, type MjcfResult } from '@barocss/cad-model/robot/mjcf';
 import { mjcfFk, readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
 import { readUrdf, urdfFk } from '@barocss/cad-model/robot/urdfCheck';
-import { symmetricEigen, type Mat3 } from '@barocss/cad-model/robot/inertia';
+import type { Mat3 } from '@barocss/cad-model/robot/inertia';
 import { cliMain } from '../server/cadCli';
 
 // RM5 (O18): MJCF export — the 6R arm built from its mates, its model read back against MuJoCo's structure, FK in
@@ -125,7 +126,7 @@ test('the export_mjcf tool and cad-cli mjcf; the arm-6r conformance case with wh
   if (process.env.UPDATE_RM_FIXTURES) {
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, 'robot.bcad'), JSON.stringify(doc));
-    const { model } = readMjcf(r.xml), links = model.bodies.map(b => { const I = b.inertial!.I, e = symmetricEigen([I[0], I[3], I[4], I[3], I[1], I[5], I[4], I[5], I[2]]); return { name: b.name, mass: b.inertial!.mass, com: b.inertial!.pos, principal: e.values }; });
+    const { model } = readMjcf(r.xml), links = model.bodies.map(b => { const I = b.inertial!.I, e = symmetricEigen3([I[0], I[3], I[4], I[3], I[1], I[5], I[4], I[5], I[2]]); return { name: b.name, mass: b.inertial!.mass, com: b.inertial!.pos, principal: e.values }; });
     const samples = [{}, Object.fromEntries(tree.joints.map((x, i) => [x.key, [0.3, -0.8, 1.2, 0.5, -1.4, 2.0][i]]))];
     const fk = samples.map(s => { const v = Object.fromEntries(Object.entries(forwardKinematics(tree, s).values).map(([k, x]) => [r.names.joints[k], x])); return { values: v, links: Object.fromEntries([...mjcfFk(model, v)].map(([n, p]) => [n, { position: p.t, rotation: p.R }])) }; });
     writeFileSync(join(dir, 'case.json'), JSON.stringify({ case: 'arm-6r', step: 'RM5', note: 'A 6R arm (axes Z, Y, Y, Z, Y, Z) of six 20 × 20 × 80 aluminium blocks on a base plate, from its mates. robot.xml is its MJCF (frozen); expect.json is what scripts/mjcf-oracle.py checks in MuJoCo: masses, centres, principal inertia, body frames at two poses, and the arm hanging under gravity (pending the owner\'s go-ahead, O18).' }, null, 1) + '\n');

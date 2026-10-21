@@ -4,7 +4,8 @@ import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluat
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { chordOf } from '@barocss/cad-model/chat/references';
-import { cavityField, enclosedVoids, HollowError, marchingTetrahedra, planHollow } from '@barocss/cad-model/print/hollow';
+import { marchingTetrahedra } from '@barocss/cad';
+import { cavityField, enclosedVoids, HollowError, planHollow } from '@barocss/cad-model/print/hollow';
 
 // AM7a (O53): SDF voxel hollowing with drains. The cavity φ = depth − t > 0 meshed by marching tetrahedra and subtracted
 // from the exact body; a drain from the bottom into each cavity. Wall thickness against the target; every cavity
