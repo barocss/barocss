@@ -7710,7 +7710,7 @@ Evidence: `packages/barocss-cad/test/r12c-s0.test.mjs` (kept, 10 tests, 6 s alon
 - **Built-in tables:** keep every size table user-loaded (default), or build in a small set (for example ISO 286's preferred fits H7/g6, H7/h6, H7/k6, H7/p6, H8/f7 to 500 mm from F1-type pages, each value sourced). The default taken: none.
 - **Guidance ranges:** ship O2's squeeze, fill and stretch ranges as flagged estimates the user can override (default), or require the user to load them.
 - **Spring materials:** prefill G for steel as a flagged estimate (default), or require it.
-- **Applied (the coordinator, 2026-10-21, at review; the owner's standing pattern — bend tables and frame sections user-loaded, studio prefills flagged estimates — which the owner may override):**
+- **Decided (the owner, 2026-10-21, relayed by the coordinator):** "R12c 기본값 세 가지 그대로 가. 끼워맞춤 표는 사용자가 불러오고, O-링 범위와 스프링 G는 추정값으로 표시해." (Keep the three R12c defaults: fit tables are user-loaded; the O-ring ranges and the spring's G are shown as estimates.) So:
   1. no built-in fit tables (or any other size table): all user-loaded;
   2. O2's squeeze, fill and stretch ranges shipped as flagged estimates the user can override;
   3. the spring's G prefilled for steel in the studio as a flagged estimate; no default in the kernel (G is an input).
