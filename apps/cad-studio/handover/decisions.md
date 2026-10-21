@@ -8852,3 +8852,21 @@ Ran:
 Not run:
 - RB and properties (the 1st kernel checkpoint since D156's run).
 - The full browser flow (the coordinator's).
+
+**D157 fix — the palette (2026-10-22, the coordinator's report on 8788eafec's window flow).**
+- **The failure.** 21 steps failed: every one that rounds or chamfers through the palette, step 31 alone too.
+  - D156's Shaft keywords held "fillet chamfer key groove …", so "fillet" + Enter opened Shaft, which has no Radius field.
+  - The palette keeps the commands available here first. Fillet is unavailable with nothing picked, so the always-available Shaft came ahead of it.
+- **The cause.** I ran FLOW_ONLY for my own steps only. A new command's label and keywords touch the palette, so the steps that drive the palette with nearby words are affected too.
+- **The fix** (579bddc47):
+  - The R12c commands' keywords name themselves only. Shaft is "shaft stepped axle turned" (its "spindle" held "pin"). Key, Keyway, Retaining ring, Spring and Fit class/pair are trimmed (they held "hole", "interference", "bore", "shaft", "clearance").
+  - The Pin's label is "Dowel pin", since the gears' "pinion" holds "pin".
+  - The palette's filter and order moved, unchanged, into `ui/paletteList.ts`.
+  - **The pin:** `test/palette.test.ts` types each command's label with nothing picked (an empty part, and a plate) and checks that the command comes first, plus the flow's own palette words. Six collisions older than R12c (Pipe, Sweep, Flange, Frame, Tube, Move) are named there; they wait for the outer lane's change that ranks an exact label first, and the list must only shrink.
+- **The rule from here:** run FLOW_ONLY on the palette-driven steps for nearby words with every new command, not only its own step.
+- **Checks:** the studio suite 193/193 with the new test. One chat-server test, "reports a missing CLI…", failed in the full run and passed alone (a load flake). cad-model's R12c and toolset tests: 22/22, the guard unchanged at 22 252. FLOW_ONLY 'fillet|chamfer|round|R10|Shaft|Key|Hole|Fit|Spring' on the fixed tree: below.
+- **FLOW_ONLY on the fixed tree** (579bddc47, the detached worktree; the machine loaded, its average up to 46, so 3181 s):
+  - 74 passed, among them every step the window flow failed on 8788eafec: 31, 33, 35, 65, 84, 93, 120, 121, 154–166, and the R12c steps.
+  - 8 failed. Rerun as the rules say, they are not regressions:
+    - seven pass alone: fastener at a Ø6.6, R11.2c-1, FR3b (a timing check), R14.1, A5.2, A6.4 and IM3;
+    - "refit a curve" failed alone too, because the regex's "Fit" caught "refit" without the steps that make its rail. With its chain (import a .barocad source … extend a surface) it is 7/7.
