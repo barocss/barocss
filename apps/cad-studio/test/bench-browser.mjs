@@ -35,6 +35,24 @@ await page.addInitScript(() => {
   const raf = w.requestAnimationFrame.bind(w);
   w.requestAnimationFrame = cb => raf(t => { const t0 = performance.now(); w.__bench.t = t; try { cb(t); } finally { w.__bench.frames++; w.__bench.frameMS += performance.now() - t0; } });
 });
+// The budgets (G4: one table): submits and their most in one frame, the animation frames' average CPU (a 2 ms floor), the
+// main thread's task time and the GPU's time a submit (from it until the queue reports it done: wall time, so it holds
+// the queue's wait too) a frame, the upload a frame and the buffers made. About twice what was measured alone (G4,
+// 2026-10-21, at a load average of 8–11 — the owner ran it rather than wait for a quiet machine; the GPU's with a 4 ms
+// floor, as the CPU's 2 ms; the earlier rows' submit and CPU budgets from PERF3 D18).
+const BUDGET = {
+  hover: { submits: 34, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
+  select: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 24 },
+  clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
+  orbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
+  orbitOutlined: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 6 },
+  pose: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 20, kb: 8, buffers: 4, gpuMS: 32 },
+  cloud: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 8, kb: 6, buffers: 4, gpuMS: 6 },
+  explode: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 28, kb: 128, buffers: 4, gpuMS: 44 },
+  sectionGpu: { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 8, buffers: 4, gpuMS: 44 },
+  sectionCpu: { submits: 140, avgFrameMS: 2 },
+};
+const os = await import('node:os'), loadAtStart = os.loadavg()[0];
 const rows = [];
 // (The main thread's task time, from the DevTools protocol: everything that ran, not only animation-frame callbacks.)
 const cdp = await page.context().newCDPSession(page); await cdp.send('Performance.enable');
@@ -47,28 +65,28 @@ const measure = async (name, budget, act) => {
   const avg = b.frames ? b.frameMS / b.frames : 0, most = Math.max(0, ...Object.values(b.perFrame)), drawn = Math.max(1, Object.keys(b.perFrame).length);
   const taskPerFrame = task / drawn, kbPerFrame = b.bytes / 1024 / drawn;
   rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: +(b.submits ? b.gpuMS / b.submits : 0).toFixed(2), wallMS: wall,
-    ok: b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity), budget });
+    ok: b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity) && (b.submits ? b.gpuMS / b.submits : 0) <= (budget.gpuMS ?? Infinity), budget });
 };
 try {
   await page.goto(server.resolvedUrls.local[0]);
   await page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? '') && /Hole Ø8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
   const box = await page.locator('canvas.vp-canvas').boundingBox(), cx = box.x + box.width / 2, cy = box.y + box.height / 2;
   // 60 pointer moves across the plate (faces, edges, the hole): a submit only when what is hovered changes.
-  await measure('hover: 60 moves across the plate', { submits: 34, avgFrameMS: 2, perFrame: 1 }, async () => {
+  await measure('hover: 60 moves across the plate', BUDGET.hover, async () => {
     for (let i = 0; i < 60; i++) { await page.mouse.move(cx - 300 + 10 * i, cy - 40 + (i % 7) * 12); await page.waitForTimeout(16); }
   });
   // A click on a face from idle (the selection changes): one frame drawn, once.
-  await measure('select: a face clicked from idle', { submits: 2, avgFrameMS: 2, perFrame: 1 }, async () => { await page.mouse.click(cx + 40, cy + 30); });
-  await measure('select: cleared (Escape) from idle', { submits: 2, avgFrameMS: 2, perFrame: 1 }, async () => { await page.keyboard.press('Escape'); });
+  await measure('select: a face clicked from idle', BUDGET.select, async () => { await page.mouse.click(cx + 40, cy + 30); });
+  await measure('select: cleared (Escape) from idle', BUDGET.clear, async () => { await page.keyboard.press('Escape'); });
   // An orbit drag of 60 steps: one frame each.
-  await measure('orbit: 60-step drag', { submits: 64, avgFrameMS: 2, perFrame: 1 }, async () => {
+  await measure('orbit: 60-step drag', BUDGET.orbit, async () => {
     await page.mouse.move(cx, cy); await page.mouse.down({ button: 'left' });
     for (let i = 0; i < 60; i++) { await page.mouse.move(cx + 4 * i, cy + (i % 5)); await page.waitForTimeout(16); }
     await page.mouse.up({ button: 'left' });
   });
   // (PERF3 C14: the same orbit with the plate picked whole — its selection outline drawn every frame.)
   await page.locator('.outliner .ol-row', { hasText: 'Extrude 8' }).first().click(); await page.waitForTimeout(300);
-  await measure('orbit: 60 steps, body outlined', { submits: 64, avgFrameMS: 2, perFrame: 1 }, async () => {
+  await measure('orbit: 60 steps, body outlined', BUDGET.orbitOutlined, async () => {
     await page.mouse.move(cx, cy); await page.mouse.down({ button: 'left' });
     for (let i = 0; i < 60; i++) { await page.mouse.move(cx + 4 * i, cy + (i % 5)); await page.waitForTimeout(16); }
     await page.mouse.up({ button: 'left' });
@@ -83,9 +101,22 @@ try {
   // The 2R arm (conformance rm/chain-2r): its first joint played (a sine through its range, 4 s a period) for 1.5 s.
   const arm = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/chain-2r/case.json'), 'utf8')).input.document;
   await open('chain-2r.bcad', arm, () => window.__studioDoc?.instances?.length === 2 && window.__studioInstanceBounds?.().length === 2 && !!document.querySelector('[aria-label="Play joint base~a"]'));
-  await measure('pose: a joint of the 2R arm played', { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 20, kb: 8, buffers: 4 }, async () => {
+  await measure('pose: a joint of the 2R arm played', BUDGET.pose, async () => {
     await page.click('[aria-label="Play joint base~a"]'); await page.waitForTimeout(1500); await page.click('[aria-label="Play joint base~a"]');
   });
+  // G4: the arm's workspace map shown (RM9b: 20 000 poses, its voxels drawn as an overlay), orbited 60 steps.
+  await page.click('[aria-label="Joints home"]').catch(() => {});
+  await page.click('[aria-label="Map workspace"]'); await page.waitForSelector('[aria-label="Workspace summary"]', { timeout: 60000 }); await page.waitForTimeout(500);
+  const voxels = Number((await page.locator('[aria-label="Workspace summary"]').innerText()).match(/(\d+) voxels/)?.[1] ?? 0);
+  {
+    const vb = await page.locator('canvas.vp-canvas').boundingBox(), vx = vb.x + vb.width / 2, vy = vb.y + vb.height / 2;
+    await measure(`cloud: ${voxels} workspace voxels, orbit 60`, BUDGET.cloud, async () => {
+      await page.mouse.move(vx, vy); await page.mouse.down({ button: 'left' });
+      for (let i = 0; i < 60; i++) { await page.mouse.move(vx + 4 * i, vy + (i % 5)); await page.waitForTimeout(16); }
+      await page.mouse.up({ button: 'left' });
+    });
+  }
+  await page.click('[aria-label="Hide workspace"]');
   // 120 holed brackets (bench-assembly's), exploded from 0 to 2 one step an animation frame, 60 steps: an explode drag.
   const bracket = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [
     { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 12] }, { kind: 'extrude', sketch: 0, height: 6 },
@@ -95,7 +126,7 @@ try {
   const many = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {},
     instances: Array.from({ length: N }, (_, k) => ({ id: `i${k}`, name: `bracket ${k}`, doc: bracket, position: [40 * (k % side), 20 * Math.floor(k / side), 0], rotation: [0, 0, 0], part: { id: 'bracket', rev: 'A' } })) };
   await open('brackets.bcad', many, () => window.__studioInstanceBounds?.().length === 120);
-  await measure('explode: 120 brackets, 60-step drag', { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 28, kb: 128, buffers: 4 }, async () => {
+  await measure('explode: 120 brackets, 60-step drag', BUDGET.explode, async () => {
     await page.evaluate(() => new Promise(done => { let i = 0; const step = () => { window.__studioSetExplode(2 * ++i / 60); if (i < 60) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); }));
   });
   await page.evaluate(() => window.__studioSetExplode(0));
@@ -104,11 +135,13 @@ try {
   // (As a drag sets it: a new plane each animation frame, y from 20 to 160.)
   const dragSection = () => page.evaluate(() => new Promise(done => { let i = 0; const step = () => { window.__studioSetSection({ axis: 'y', at: 20 + 140 * ++i / 60, keep: 'positive' }); if (i < 60) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); }));
   await page.click('[aria-label="Section view"]'); await page.waitForFunction(() => window.__studioSection?.().clip !== undefined, null, { timeout: 10000 });
-  for (const [name, cpu, budget] of [['section: 120 brackets, 60-step drag (GPU)', false, { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 8, buffers: 4 }], ['section: the same, CPU clipMesh (WebGL2\'s)', true, { submits: 140, avgFrameMS: 2 }]]) {
+  for (const [name, cpu, budget] of [['section: 120 brackets, 60-step drag (GPU)', false, BUDGET.sectionGpu], ['section: the same, CPU clipMesh (WebGL2\'s)', true, BUDGET.sectionCpu]]) {
     await page.evaluate(c => window.__studioSectionDebug({ hold: true, cpu: c }), cpu); await page.waitForTimeout(800);
     await measure(name, budget, dragSection);
   }
   await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false }));
 } finally { await browser.close(); await server.close(); }
-for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit  wall ${r.wallMS} ms`);
-process.exit(rows.length === 9 && rows.every(r => r.ok) ? 0 : 1);
+// (The machine's load average: a budget is not set from numbers measured under load.)
+console.log(`load average ${loadAtStart.toFixed(1)} at the start, ${os.loadavg()[0].toFixed(1)} at the end${Math.max(loadAtStart, os.loadavg()[0]) > 4 ? ' — LOADED: compare, do not set budgets from this run' : ''}`);
+for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  wall ${r.wallMS} ms`);
+process.exit(rows.length === 10 && rows.every(r => r.ok) ? 0 : 1);
