@@ -8344,3 +8344,114 @@ Ran:
 
 Not run:
 - The full browser flow (rules v2; the coordinator runs it per merge window).
+
+## D153 — R12c.1a: the helical sweep of the wire's exact normal-plane circle, and compression springs (2026-10-21)
+
+R12c's first stage, as D139 froze it. The kernel generator first, with its closed-form oracles, then the studio's command as a v2 features command.
+
+**Kernel** (`packages/barocss-cad/src/spring.ts`; exported: `helicalSweep`, `compressionSpring`, `springDimensions`, `springSolidPitch`, `SpringError` and the types):
+- **The centreline** C(φ) = (R cos φ, R sin φ, z(φ)) is made of runs: a constant pitch, or a pitch easing from one value to the next by the smoothstep 3t² − 2t³ in φ. So z is C² and the wire is tangent-continuous across runs.
+- **The section** is the exact circle of radius a in the plane normal to C, on the frame e1 = (−cos φ, −sin φ, 0) (toward the axis) and e2 = T × e1 = (σ sin φ, −σ cos φ, γ), with σ = z′/L, γ = R/L, L = √(R² + z′²). A section point (x, y) is P(φ; x, y) = ((R − x) cos φ + yσ sin φ, (R − x) sin φ − yσ cos φ, z + yγ).
+  - P is affine in (x, y). So each of the circle's four rational quarters is carried along φ by its three control points' paths.
+  - Each path is fitted by cubic Hermite pieces, exact in value and φ-derivative at the piece ends. On a constant pitch this is S0's construction, the gears' `rotationPoles`, with z exact.
+  - A face is a quarter times its paths' fits: degree 2 × 3, at most 4 pieces (13 poles, the 16-pole convention). The level circles are exact; the ends are the normal discs.
+- **The deviation.** The surface's distance from the exact pipe, at the same parameters, is a positively weighted mean of its control paths' errors. So the largest path error, measured on every piece (15 points inside each), bounds it.
+  - That bound is the reported `profileDeviationMM`. Pieces are added until it is within the tolerance (1e-4·d by default), starting from the rotation fit's s⁴/384 at the outermost pole (R + a√2).
+  - Past 1024 pieces: `PROFILE_BUDGET_EXCEEDED`, with the measured figures, never a looser fit.
+  - The bound is a little stricter than S0's (R + a)·dev, and D 20, d 2 still takes 22 pieces a turn (132 for 6 turns).
+- **The quarters join at 45°, 135° …**, not at 0° and 90° as in S0. The ground plane passes through the start disc's centre line, crossing its boundary at θ 0 and π, so no vertex may sit there.
+- **`SELF_INTERSECTION`** when a reaches the centreline's least radius of curvature (R(1 + (h/R)²) on constant runs, sampled on easing runs) or a ≥ R.
+
+**A compression spring** (`spring@0`; the D139 inputs, ends `closed-ground` by default):
+- **Open ends:** one run at the pitch p. The centreline starts at z = aγ, so the start disc's lowest point is at 0. L0 = n_a p + 2aγ.
+- **Closed ends:** a dead coil each end at the geometric solid pitch p_s, easing to p over the transition (90° by default), centred on the dead coil's end. The transitions' mean pitch is (p_s + p)/2, so the rise is exactly 2 n_e p_s + n_a p. The start is at aγ_s, and L0 = rise + 2aγ_s.
+- **Closed and ground:** the same wire from z 0, cut square to the axis at the centreline's two end heights (faces `.ground0`, `.ground1`). L0 = 2 n_e p_s + n_a p. The start disc is halved and the ground face runs about half a turn. That is a convention, recorded; real springs are often ground over about 270°.
+- **p_s, the geometric solid pitch:** the least pitch at which neighbouring turns of the centreline are d apart (Newton on the least distance near one turn, then bisection on the pitch). It is 2.0010140 for D 20, d 2, as S0 found. A pitch below it is refused (`COILS_OVERLAP`, naming both), so a coil wound at p = d is refused.
+- **The ground ends: the Boolean on the end pieces only (D139's open question).**
+  - On the whole spring the analytic Boolean took 2.1 s (8 turns) and 5.0 s (22 turns), and refused D 40, d 1, 20 coils ("the inputs touch along an edge").
+  - Now each end piece, up to where the wire's underside clears the plane by a/4 (about half a turn), is built on its own and cut. It is then glued back to the body at their shared exact disc (`glueAtSharedFace`).
+  - That takes 0.70 s (8 turns), 0.61 s (22 turns) and 0.66 s (D 40, d 1, 20 coils), all valid.
+  - A spring too short for that is cut whole.
+  - The Boolean numbers a cut piece's faces by position: `<id>.wire#1 …` are the bottom piece's, then the body's, then the top piece's (renumbered after it).
+- **The left hand** is the right hand mirrored in XZ.
+- **`endCoils` above 1** is refused (`UNSUPPORTED_SPRING_KIND`): dead coils at p_s would touch each other.
+  - Also refused: extension and torsion (R12c.1b), conical, barrel and variable-pitch bodies, rectangular wire.
+- **The report** (`SpringReport`):
+  - sizes: d, D, outer and inner diameters, C, Wahl's K_W = (4C − 1)/(4C − 4) + 0.615/C;
+  - coils (active, end, total), the pitch and helix angle, L0, L0/D;
+  - the solid heights: the geometric one at p_s, and the supplier's rule (d·n_t ground, d·(n_t + 1) otherwise);
+  - the travel to solid;
+  - k = Gd⁴/(8D³n_a) when G is given (no default in the kernel), with its estimate flag;
+  - at a load: F/k, the length then, τ = K_W 8FD/(πd³) and the uncorrected value. A load past solid is a `COILS_OVERLAP` warning;
+  - the sweep's pieces, segments, measured bound, wire length (Gauss–Legendre on easing runs) and least curvature radius;
+  - `manufacturingValidated: false`: no buckling, fatigue or relaxation claim.
+- **S1, re-read at its source** (as D139 asked before any use beyond the probe): https://www.compressionspring.com/helical-spring-formulas-and-equations.html, read 2026-10-21 by this session with the fetch tool, page text only. It gives "Lsolid = dN" for ground ends and "d(N+1)" for all others (N the total coils), and k = Gd⁴/(8D³n_a). These are the supplier's rule as reported. acxesspring.com was not re-read and is not used.
+
+**Part model:** the kind `spring`:
+- inputs: `wire`; `diameter`, `outerDiameter` or `innerDiameter`; `activeCoils`; `pitch` or `freeLength`; `hand`, `ends`, `endCoils`, `transition`, `shearModulus`, `shearModulusEstimate`, `load`, `profileTolerance`;
+- refused unless compression, cylindrical and round: `type`, `body`, `wireSection`;
+- placement: `center`, `from`, `rotation`; `generator: 'spring@0'`;
+- its axis is +Z through the centre, from `from`;
+- the output's `spring` is the report;
+- codes: INVALID_INPUT → INPUT; SELF_INTERSECTION and COILS_OVERLAP → GEOMETRY; PROFILE_BUDGET_EXCEEDED and UNSUPPORTED_SPRING_KIND → CAPABILITY. Each message keeps the `[CODE]`.
+
+**Studio and model** (`@barocss/cad-model`):
+- **The `spring` node**, its label ("Ground spring d2 × Ø20, 6 coils"), its part feature, and the kind lists it joins (no parents, a body maker, migrate, flatten).
+- **The Spring command** (create; side toolbar, not placed at the pointer, as the worm pair):
+  - its defaults: d 2, D 20, 6 coils, p 5, closed and ground, right hand;
+  - G is 79 300 MPa, `STEEL_G_ESTIMATE_MPA`: an estimate with no source read, flagged `shearModulusEstimate` on the node (the owner's decision: "스프링 G는 추정값으로 표시해");
+  - a working load 0;
+  - a puck and a diameter arrow.
+- **Edit fields:** d, D, coils, pitch (or free length), ends, hand, G (typing it drops the estimate flag), load, rotation.
+- **Notes:** sizes; solid heights; the rate, a warning while G is the estimate; the load; the fit; "not validated for manufacturing".
+- **Friendly errors** for `[COILS_OVERLAP]` and `[UNSUPPORTED_SPRING_KIND]`.
+- **The icon** `cad-spring`.
+- **Agent tools (v2):** `spring` is a command of the features tool (`features` {action: "command", command: "spring"}), its values behind `describe` {"command": "spring"}. No new tool or enum. The per-turn guard: 21 808 → **21 816** characters (the command's name in the features tool's list), cap 25 000.
+
+**Oracles and tests** (`packages/barocss-cad/test/r12c-spring.test.mjs`, 7 tests, all failing on the previous HEAD since there was no `spring.ts`). Written in the test: the centreline re-derived from the pitch law, its length by composite Simpson, the distance from it by Newton on φ, the solid pitch by brute force.
+- **Open** (D 20, d 2, p 5, 6 turns): valid, genus 0; 132 pieces, 134 faces, 9 ms.
+  - The fit bound is 1.97e-4; sampled surface points lie 1.50e-4 off a.
+  - V 1188.074704 against πa²S 1188.096610: rel 1.84e-5, inside the bound 2πa·S·dev (rel 3.9e-4).
+  - z runs from 0 to L0 = n p + 2aγ.
+  - k agrees with the wire's torsion energy to 1e-12, and so do K_W, τ and F/k.
+  - At p_s the turns are d apart to 1e-7.
+- **Closed:** 180 pieces, 186 faces. The distance is 1.43e-4 off (bound 1.88e-4); V rel 1.69e-5 against πa²S on the variable centreline; the least curvature radius is 10.009. L0 = 2p_s + n_a p + 2aγ_s and the rise agree to 1e-12.
+- **Closed and ground: V = πa²S − (4/3)a³R/h_s**, a closed form derived in the test.
+  - In the pipe's coordinates a point's height is z(s) + yγ and dV = (1 − κx) dA ds. Where the pitch is constant, the section point (x, y) lies below the plane for s < −yR/h.
+  - So the cut takes ∫_{y<0} (1 − κx)(−yR/h) dA = (2/3)a³R/h. The x term vanishes by symmetry; the cut's band, φ up to aγ/h_s, lies in the dead coil.
+  - Result: 194 faces, 0.70 s; V 1541.175204 against 1541.199877, rel 1.60e-5 (bound 3.87e-4). The bounds are 0 and L0 to 1e-9; the face names are unique; STEP round trip.
+- **D 40, d 1, 20 coils, ground:** 672 pieces, 674 faces, 0.76 s, V rel 4.99e-6. The left hand is the right hand mirrored, vertex for vertex, and climbs the other way.
+- **L0 ↔ p** for each end type; OD and ID as D ± d.
+- **Refusals:**
+  - INVALID_INPUT: d 0, D ≤ d, n 0, both p and L0, neither diameter or two of them, bad ends, a transition too long;
+  - COILS_OVERLAP: p = d (the message names 2.001014), and an L0 below solid;
+  - UNSUPPORTED_SPRING_KIND: extension, torsion, conical, rectangular, 2 end coils;
+  - PROFILE_BUDGET_EXCEEDED: D/d 100 over 30 turns, as S0 predicted;
+  - SELF_INTERSECTION and a non-circle section (helicalSweep);
+  - a load past solid warns.
+- **Part model:** placed at the centre and from, turned; the report and the estimate flag on the output; the codes mapped.
+- **Conformance `r12c/`:**
+  - `spring-open`: V by the closed form, relTol 4e-4 (the fit's bound); the centroid (0, 0, L0/2), the turns whole;
+  - `spring-closed-ground`: V by the closed form; the centroid's y and z by the half-turn symmetry, its x by this kernel;
+  - `spring-touching-refused`: GEOMETRY, COILS_OVERLAP.
+- **Model** (`packages/barocss-cad-model/test/spring.test.ts`, 3 tests):
+  - the default command's node, label, volume (the closed form, rel 4e-4), bounds and notes;
+  - edit fields: G drops the flag; open; p 2 refused with the friendly title and the kernel's detail; left;
+  - the chat: describe and `features` {action: "command"}.
+- **Flow step** "Spring (R12c.1a, D153)": from the palette; the node's G and flag; the notes; a snapshot.
+
+**Open, not in this stage:** every volume falls 1.6–1.8e-5 below the closed form, inside the fit's bound. The ground spring's mass takes several seconds: the trimmed-general-face quadrature, the open item at D151 and D152.
+
+**Checks** (rules v2; `part-model.ts` gained a case, which counts as brep core, so the full kernel suite ran), on 05dd56309 (this change's code) in a detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-spring`: 7/7, 26 s alone (its mass and distance oracles on the ground springs take most of it).
+- The full kernel suite, conformance included: 1432/1439, 6 skipped, 275 s. Only the env-only "actual native Split source…" failed.
+- Conformance `r12c/`: 3/3.
+- `@barocss/cad-model`: type-check clean, 644/644, 136 s. Studio: type-check clean, 186/186, 24 s.
+- Test names against the saved lists: none missing. +10 kernel (D153's 7 and 3 conformance cases); +9 cad-model (D153's 3, and 6 FRc from the merged outer lane); studio unchanged.
+- `FLOW_ONLY` "Spring (R12c": 1/1 (with the starter step), 16 s.
+
+Not run:
+- RB and properties: the first kernel checkpoint after the T3 at D152.
+- The full browser flow (rules v2; the coordinator's per merge window).

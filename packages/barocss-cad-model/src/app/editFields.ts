@@ -207,6 +207,21 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       }
       break;
     }
+    case 'spring': {
+      // (R12c.1a, D153: a compression spring; editing G drops its estimate flag — the value is the user's then.)
+      const g = (n: ModelNode) => n as typeof node;
+      number('d', 'Wire Ø', 'mm', n => num(g(n).wire), (n, v) => ({ ...g(n), wire: v }));
+      number('D', 'Mean coil Ø', 'mm', n => num(g(n).diameter), (n, v) => ({ ...g(n), diameter: v }));
+      number('n', 'Active coils', undefined, n => g(n).activeCoils, (n, v) => ({ ...g(n), activeCoils: v }));
+      if (node.freeLength !== undefined) number('L0', 'Free length', 'mm', n => num(g(n).freeLength ?? 0), (n, v) => ({ ...g(n), freeLength: v }));
+      else number('p', 'Pitch', 'mm', n => num(g(n).pitch ?? 0), (n, v) => ({ ...g(n), pitch: v }));
+      out.push({ kind: 'choice', key: 'ends', label: 'Ends', options: [{ value: 'closed-ground', label: 'Closed and ground' }, { value: 'closed', label: 'Closed' }, { value: 'open', label: 'Open' }], get: n => self<typeof node>(n).ends, set: (n, v) => replace(n, i, { ...self<typeof node>(n), ends: v as typeof node.ends }) });
+      out.push({ kind: 'choice', key: 'hand', label: 'Hand', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }], get: n => self<typeof node>(n).hand, set: (n, v) => replace(n, i, { ...self<typeof node>(n), hand: v as 'right' | 'left' }) });
+      number('G', 'Shear modulus G (MPa)', undefined, n => g(n).shearModulus ?? 0, (n, v) => { const next = { ...g(n) }; delete next.shearModulusEstimate; if (v > 0) next.shearModulus = v; else delete next.shearModulus; return next; });
+      number('F', 'Working load (N)', undefined, n => g(n).load ?? 0, (n, v) => { const next = { ...g(n) }; if (v > 0) next.load = v; else delete next.load; return next; });
+      number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
+      break;
+    }
     case 'worm-wheel': {
       // (R12b.6, D137: the throated wheel and the worm it is cut for; its worm follows.)
       const g = (n: ModelNode) => n as typeof node;

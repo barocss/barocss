@@ -1,0 +1,62 @@
+{
+  "id": "r12c-spring-open",
+  "step": "R12c",
+  "decisions": [
+    "D153"
+  ],
+  "about": "R12c.1a: an open-ended compression spring \u2014 round wire d 2 on mean \u00d820, 6 active coils at pitch 5, right hand \u2014 the exact normal-plane circle swept along the helix, fitted within 1e-4\u00b7d.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "spring",
+          "wire": 2,
+          "diameter": 20,
+          "activeCoils": 6,
+          "pitch": 5,
+          "ends": "open",
+          "generator": "spring@0"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 1188.0966100661237,
+          "relTol": 0.0004
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            15.996848672150328
+          ],
+          "absTol": 0.01
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "s.end0",
+          "s.end1",
+          "s.wire"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "V = \u03c0a\u00b2\u00b7S, S = 2\u03c0n\u221a(R\u00b2 + (p/2\u03c0)\u00b2) (a tube square to its path, Pappus\u2013Guldin; relTol 4e-4 is the 1e-4\u00b7d fit's bound 2\u03c0a\u00b7S\u00b7tol / \u03c0a\u00b2S); the centroid at (0, 0, L0/2), L0 = n p + 2aR/\u221a(R\u00b2 + h\u00b2), the turns whole (the curvature term \u222be1 ds vanishes)."
+}

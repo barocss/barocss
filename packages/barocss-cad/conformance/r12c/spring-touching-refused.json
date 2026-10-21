@@ -1,0 +1,35 @@
+{
+  "id": "r12c-spring-touching-refused",
+  "step": "R12c",
+  "decisions": [
+    "D153"
+  ],
+  "about": "R12c.1a: coils wound at pitch d are refused as overlapping \u2014 neighbouring turns are d apart only at the geometric solid pitch, above d by the helix angle (D139 S0).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "spring",
+          "wire": 2,
+          "diameter": 20,
+          "activeCoils": 6,
+          "pitch": 2,
+          "ends": "open",
+          "generator": "spring@0"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "COILS_OVERLAP"
+    }
+  },
+  "oracle": "the least distance between C(\u03c6) and C(\u03c6 + t) near one turn, against d (brute force in test/r12c-spring.test.mjs): 2 at pitch 2.0010140 for D 20, d 2."
+}
