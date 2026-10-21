@@ -89,6 +89,6 @@ test('IM1 through the agent\'s tools: the brief states injection and ABS; check_
   const v1 = JSON.parse((await dispatchTool(s, 'check_printability', { direction: [0, 0, 1], finish: 'smooth' }, evaluate)).content);
   const v2 = JSON.parse((await dispatchTool(s, 'query', { action: 'manufacturability', direction: [0, 0, 1], finish: 'smooth' }, evaluate)).content);
   assert.deepEqual(v2, v1); assert.equal(v1.process, 'injection');
-  assert.deepEqual(v1.rules.filter((x: { status: string }) => x.status === 'pass').map((x: { id: string }) => x.id), ['pull', 'finish', 'wall', 'wall-material', 'wall-uniform', 'sink', 'size', 'undercut', 'parting']);
+  assert.deepEqual(v1.rules.filter((x: { status: string }) => x.status === 'pass').map((x: { id: string }) => x.id), ['pull', 'finish', 'wall', 'wall-material', 'wall-uniform', 'sink', 'size', 'undercut', 'parting', 'tooling']);
   assert.equal(v1.mould.minDraftDeg, 0.5); assert.equal(v1.mould.recDraftDeg, 1); assert.equal(v1.mould.bodies[0].material, 'abs');
 });

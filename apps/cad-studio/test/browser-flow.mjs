@@ -5436,6 +5436,33 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- IM7a (O111): a cup's core and a stepped parting line, through the real chat and tool servers -----------------
+  await check('IM7a: injection moulding with a +Z pull, a cup (a box shelled open at the top) made through the real chat — the report\'s tooling passes: its inside the moving half\'s core, the parting line stepped at z = 2 and 25 on its inner walls', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'injection');
+    await page.selectOption('[aria-label="Pull direction"]', '+Z'); await page.selectOption('[aria-label="Mould finish"]', 'smooth');
+    await page.waitForFunction(() => window.__studioDoc.process === 'injection' && window.__studioDoc.mould?.pull?.[2] === 1, null, { timeout: 5000 });
+    await page.click('[aria-label="Close library"]');
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 60, d: 40, h: 25, x: 0, y: 0, z: 0 } } },
+        { tool: 'features', args: { action: 'command', command: 'shell', values: { t: 2 }, faces: ['n1.top'] } },
+        { tool: 'features', args: { action: 'material', material: 'abs' } },
+        { tool: 'query', args: { action: 'manufacturability' } }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 90000 });
+      const report = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /injection:/.test(x)).pop();
+      assert.match(report, /parting \w+, tooling pass$/, report);
+      await snap('im7a-cup');
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

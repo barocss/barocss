@@ -17,9 +17,10 @@ import { mouldHalves, toolingPlan } from '@barocss/cad-model/mould/tooling';
 // IM7 S0 (O110): a mould's halves where no face needs a split, against closed forms — a 60 × 40 × 10 plate with a Ø10
 // through hole moulded along +Z: its parting plane at the top (z = 10), the hole's rim a shut-off of area π·5²; the
 // block (10 mm a side) less the part cut there: the moving half 80 · 60 · 10, the fixed half 80 · 60 · 20 − (24000 −
-// 250π), together the block less the part. Refused with what each waits for: a cylinder across the pull straddles (D149);
-// a cup's floor steps the parting line, and its core given to the moving half reaches below the rim (IM7a). A side hole's
-// side core: its direction across the pull, given on the refusal too.
+// 250π), together the block less the part. Refused with what each waits for: a cylinder across the pull straddles (D149).
+// A side hole's side core: its direction across the pull, given on the refusal too. IM7a (O111): a cup's inside goes to
+// the moving half as its core (by the rays: open above, on the part below), whichever half its walls were given; a
+// stepped block's halves meet on its riser — each case's halves summing to the block less the part to 1e-6.
 
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies; };
@@ -33,6 +34,7 @@ const moulded = (doc: StudioDoc, sides?: Record<string, Half>): StudioDoc => {
   const d: StudioDoc = { ...doc, process: 'injection', mould: { version: 1, pull: [0, 0, 1], finish: 'smooth', ...(sides ? { sides } : {}) } };
   return withLook(d, bodiesOf(d)[0], { material: 'abs' });
 };
+const sum = (bs: readonly BodyResult[]) => bs.reduce((t, b) => t + b.volumeMM3!, 0);
 const plan = (d: StudioDoc) => { const b = bodiesOf(d), pull = d.mould!.pull!; return toolingPlan(b, pull, partingLine(d, b, pull, d.mould?.sides ?? {}), undercuts(b, pull).regions); };
 const holed = () => build([cmd('box', { w: 60, d: 40, h: 10, x: 0, y: 0, z: 0 }), cmd('hole', { d: 10, x: 30, y: 20 }, { faces: ['n1.top'] })]);
 
@@ -50,21 +52,42 @@ test('IM7 S0 the halves: the block less the part cut at z = 10 — the moving ha
   const d = moulded(await holed()), b = bodiesOf(d), p = plan(d); assert.ok(p.ok);
   const h = mouldHalves(d, b, p.plan); assert.ok(h.ok, JSON.stringify(h));
   const part = 60 * 40 * 10 - Math.PI * 25 * 10, block = 80 * 60 * 30;
-  assert.ok(Math.abs(h.plus.volumeMM3! - 48000) <= 1e-6 * 48000, String(h.plus.volumeMM3));
-  assert.ok(Math.abs(h.minus.volumeMM3! - (80 * 60 * 20 - part)) <= 1e-6 * 72000, String(h.minus.volumeMM3));
-  assert.ok(Math.abs(h.plus.volumeMM3! + h.minus.volumeMM3! - (block - part)) <= 1e-6 * block);
-  assert.ok(h.plus.mesh.bounds.min[2] >= 10 - 1e-6 && h.minus.mesh.bounds.max[2] <= 10 + 1e-6, 'each half on its side of the plane');
+  assert.ok(Math.abs(sum(h.plus) - 48000) <= 1e-6 * 48000, String(sum(h.plus)));
+  assert.ok(Math.abs(sum(h.minus) - (80 * 60 * 20 - part)) <= 1e-6 * 72000, String(sum(h.minus)));
+  assert.ok(Math.abs(sum(h.plus) + sum(h.minus) - (block - part)) <= 1e-6 * block);
+  assert.ok(h.plus.every(b => b.mesh.bounds.min[2] >= 10 - 1e-6) && h.minus.every(b => b.mesh.bounds.max[2] <= 10 + 1e-6), 'each half on its side of the plane');
 });
 
-test('IM7 S0 refused with what each waits for: a cylinder across the pull straddles — the kernel\'s face split (D149); a cup\'s floor steps the parting line, and its core put in the moving half reaches below the rim — IM7a', async () => {
+test('IM7 S0 refused with what it waits for: a cylinder across the pull straddles — the kernel\'s face split (D149)', async () => {
   const rod = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } } as never), { kind: 'extrude', sketch: 0, height: 50 });
   const across = plan(moulded(rod)); assert.ok(!across.ok && across.code === 'MOULD_STRADDLE' && /D149, splitFaceAlongCurve/.test(across.waitsFor!), JSON.stringify(across));
+});
+
+test('IM7a a cup (60 × 40 × 25 shelled 2, open at the top): its inside the moving half\'s core — with its walls in the fixed half (the parting line stepped 2 and 25, the inner walls the risers) or in the moving one (the rim the one plane); either way the moving half 46368 + 48000, the fixed 108000, the block less the part to 1e-6', async () => {
   const cup = await build([cmd('box', { w: 60, d: 40, h: 25, x: 0, y: 0, z: 0 }), cmd('shell', { t: 2 }, { faces: ['n1.top'] })]);
-  const stepped = plan(moulded(cup)); assert.ok(!stepped.ok && stepped.code === 'MOULD_STEPPED' && /IM7a/.test(stepped.waitsFor!), JSON.stringify(stepped));
-  // (The person puts the cup's inside in the moving half: the rim is then the one plane, and the core reaches below it.)
   const b = bodiesOf(moulded(cup)), inner = b[0].mesh.faces.filter(f => f.kind === 'plane' && Math.abs(f.normal[2]) < 1e-9 && f.centroid[0] > 1 && f.centroid[0] < 59 && f.centroid[1] > 1 && f.centroid[1] < 39).map(f => f.name);
   assert.equal(inner.length, 4, inner.join(' '));
-  const cored = plan(moulded(cup, Object.fromEntries(inner.map(n => [n, '+'])))); assert.ok(!cored.ok && cored.code === 'MOULD_ACROSS_PLANE' && /IM7a/.test(cored.waitsFor!), JSON.stringify(cored));
+  const block = 80 * 60 * 45, part = 60 * 40 * 25 - 56 * 36 * 23, inside = 56 * 36 * 23;
+  for (const [d, levels] of [[moulded(cup), [2, 25]], [moulded(cup, Object.fromEntries(inner.map(n => [n, '+']))), [25]]] as const) {
+    const p = plan(d); assert.ok(p.ok, JSON.stringify(p));
+    assert.deepEqual(p.plan.levels, levels);
+    const h = mouldHalves(d, bodiesOf(d), p.plan); assert.ok(h.ok, JSON.stringify(h));
+    assert.ok(Math.abs(sum(h.plus) - (inside + 80 * 60 * 10)) <= 1e-6 * block, `${levels}: plus ${sum(h.plus)}`);
+    assert.ok(Math.abs(sum(h.minus) - (80 * 60 * 35 - 60 * 40 * 25)) <= 1e-6 * block, `${levels}: minus ${sum(h.minus)}`);
+    assert.ok(Math.abs(sum(h.plus) + sum(h.minus) - (block - part)) <= 1e-6 * block);
+    assert.ok(h.lumps.some(l => l.half === '+' && l.basis === 'over the part'), 'the core: open above, on the part below');
+  }
+});
+
+test('IM7a a stepped block (50 × 40 × 20 beside 50 × 40 × 10, along X): the parting line at z = 20 and z = 10, the step\'s wall (x = 50) its riser; the moving half 36000 + 72000, the fixed 120000, the block less the part to 1e-6', async () => {
+  const d = moulded(await build([cmd('box', { w: 50, d: 40, h: 20, x: 0, y: 0, z: 0 }), cmd('box', { w: 50, d: 40, h: 10, x: 50, y: 0, z: 0 }), ['run_command', { command: 'union', values: {}, bodies: ['b1', 'b3'] }]]));
+  const p = plan(d); assert.ok(p.ok, JSON.stringify(p));
+  assert.deepEqual([p.plan.levels, p.plan.cuts], [[10, 20], [{ axis: 'z', at: 10 }, { axis: 'z', at: 20 }, { axis: 'x', at: 50 }]]);
+  const h = mouldHalves(d, bodiesOf(d), p.plan); assert.ok(h.ok, JSON.stringify(h));
+  const block = 120 * 60 * 40, part = 50 * 40 * 20 + 50 * 40 * 10;
+  assert.ok(Math.abs(sum(h.plus) - (60 * 60 * 10 + 60 * 60 * 20)) <= 1e-6 * block, `plus ${sum(h.plus)}`);
+  assert.ok(Math.abs(sum(h.minus) - 120000) <= 1e-6 * block, `minus ${sum(h.minus)}`);
+  assert.ok(Math.abs(sum(h.plus) + sum(h.minus) - (block - part)) <= 1e-6 * block);
 });
 
 test('IM7 S0 side cores: a block with a side hole along X — its side core\'s direction across the pull (±X, from IM3), given on the refusal too (its wall straddles: D149); the report\'s tooling rule says both', async () => {

@@ -4683,3 +4683,31 @@ Owner, relayed by the coordinator: "@barocss/cad-model 은 완전 공개 패키�
   - One more in im8c (the plate a sheet ≈ r; a long round bar a line ≈ r/2; a cube in a plate a point ≈ r/3; the L junction a line).
   - Flow step "IM7": injection with Pull +Z; through the real chat a holed plate gives "parting pass, tooling pass".
   - The injection rule lists pinned in printing.test, mould-undercut.test and the IM5 flow step gain `tooling`.
+
+## O111 — IM7a: a cup's core and a stepped parting line — the block less the part cut and its lumps given to halves by rays (2026-10-21)
+
+- **The construction** (`mould/tooling.ts`, replacing S0's single plane cut):
+  - The block less the part is cut by the plan's planes: each parting height across the pull, and, between two heights, each riser's plane. A riser is a flat wall of the part along the pull running from one parting height to another.
+  - Only pieces that span a plane are split. Each piece of more than one lump is separated (lumps counted by mesh connectivity; the kernel refuses to separate a one-piece body).
+  - Each lump goes to a half by rays along ±pull against the part, from a hair inside each of its 32 largest triangles, voting by area:
+    - shadowed from above (the part over it): the fixed half;
+    - open above and on the part below (a cup's inside): the moving half, its core;
+    - neither or both: the side of the nearest parting loop's height (across the pull).
+  - The lumps partition the block less the part, so the halves' volumes sum to it exactly.
+  - The halves are now lists of lumps. mould.json lists each lump with its half, its basis and its volume, plus each half's lump count and total.
+  - The tooling rule says "meeting at N parting heights … and R risers" when there are several heights.
+- **What it does**:
+  - A cup is moulded either way: with its inner walls in the fixed half (IM5's default: the parting line stepped at the floor, 2, and the rim, 25, the inner walls its four risers), or with them in the moving half (the rim the one plane). Its inside goes to the moving half as the core.
+  - A stepped block (50 × 40 × 20 beside 50 × 40 × 10): its halves meet at z = 20 and z = 10 on the step's wall x = 50.
+- **IM5's chaining fixed**: a loop that has come back to its start is now closed, and stops growing. Before, it ran on into another loop near it (two stepped loops a riser apart were joined into one "stepped" loop with a jump), because the tolerance a straddling face's isocline needs is wide. IM5's own tests still pass.
+- **Shut-offs**: a closed loop inside another at its height, now meaning smaller and with a point of it inside. A centroid test counted the outer loop as inside the hole whose centre it shares.
+- **Refused, with what each waits for**:
+  - a straddling face: the kernel's face split (D149);
+  - a sloped or curved parting line (a loop not flat), or a riser not flat across an axis: IM7b, a parting surface off the axis planes.
+  - The S0 code MOULD_ACROSS_PLANE is gone: the rays now decide it.
+- **Tests** (`test/im7.test.ts`, 7). Each case's halves sum to the block less the part to 1e-6:
+  - the cup both ways: the moving half 46368 + 48000, the fixed 108000;
+  - the stepped block: the moving half 36000 + 72000, the fixed 120000;
+  - S0's plate, its halves now lump lists;
+  - the CLI.
+  - Flow step "IM7a": through the real chat a cup ends "tooling pass".

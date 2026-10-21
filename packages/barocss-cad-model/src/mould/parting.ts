@@ -22,6 +22,8 @@ export interface PartingReport {
 }
 type Seg = [number, number, number, number, number, number];
 const SIGN = 1e-12, FLAT = 1e-4;
+/** Back at its start (mm): the mesh's shared vertices, to single precision. */
+const CLOSE = 1e-4;
 const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 /** The isocline's crossing on a mesh edge a–b, by bisection on the face's exact normal (sa: n·d's sign at a). */
@@ -62,8 +64,11 @@ function chain(segs: readonly Seg[], tol: number): { pts: Vec3[]; closed: boolea
     if (used[start]) continue;
     used[start] = 1;
     const pts: Vec3[] = [end(segs[start], 0), end(segs[start], 1)];
+    // (IM7a, O111: a loop that has come back to its start is closed — it must not run on into another loop near it, as
+    // two stepped loops a riser apart did with the wide tolerance a straddling face's isocline needs.)
+    let shut = false;
     for (const grow of [1, 0] as const) {
-      for (;;) {
+      for (; !shut;) {
         const tip = grow ? pts[pts.length - 1] : pts[0];
         let best = -1, bk: 0 | 1 = 0, bd = tol;
         for (let i = 0; i < segs.length; i++) {
@@ -72,8 +77,9 @@ function chain(segs: readonly Seg[], tol: number): { pts: Vec3[]; closed: boolea
         }
         if (best < 0) break;
         used[best] = 1;
-        const far = end(segs[best], bk === 0 ? 1 : 0);
+        const far = end(segs[best], bk === 0 ? 1 : 0), other = grow ? pts[0] : pts[pts.length - 1];
         if (grow) pts.push(far); else pts.unshift(far);
+        if (pts.length > 3 && Math.hypot(far[0] - other[0], far[1] - other[1], far[2] - other[2]) <= CLOSE) shut = true;
       }
     }
     const a = pts[0], z = pts[pts.length - 1];

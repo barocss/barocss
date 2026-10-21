@@ -21,7 +21,7 @@ import { verifyBundle, writeBundle } from '@barocss/cad-model/team/bundle';
 import { inProcessReopen, type Reopen } from '@barocss/cad-model/team/candidates';
 import { runBoardScenario, type BoardScenario } from '@barocss/cad-model/team/boardScenario';
 import { canonical } from '@barocss/cad-model/team/team';
-import { MARGIN_ESTIMATE_MM, mouldHalves, toolingPlan } from '@barocss/cad-model/mould/tooling';
+import { MARGIN_ESTIMATE_MM, mouldHalves, toolingPlan, type ToolingPlan } from '@barocss/cad-model/mould/tooling';
 import { partingLine } from '@barocss/cad-model/mould/parting';
 import { undercuts } from '@barocss/cad-model/mould/undercut';
 import { patternOf } from '@barocss/cad-model/casting/pattern';
@@ -35,6 +35,8 @@ import { tmpdir } from 'node:os';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
 import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
 
+/** A mould plan as mould.json shows it: without the loops' points (the lumps' classifier's). */
+const withoutLoops = ({ loops: _, ...rest }: ToolingPlan) => rest;
 export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.
   --stl writes one file per body when there are several (part-b1.stl, part-b3.stl, …).
@@ -273,8 +275,10 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
     const step = stepFor(halves.doc, 'mould');
     if ('error' in step) return failed(`the halves' STEP: ${step.error}`);
-    const vol = (b: { volumeMM3?: number | null }) => b.volumeMM3 === null || b.volumeMM3 === undefined ? null : Math.round(b.volumeMM3 * 1e3) / 1e3;
-    const json = { format: 'barocss-mould', version: 1, ...plan.plan, halves: { plus: { label: 'moves along the pull (B side, usually the core)', key: halves.plus.key, volume_mm3: vol(halves.plus) }, minus: { label: 'fixed (A side, usually the cavity)', key: halves.minus.key, volume_mm3: vol(halves.minus) } }, margin: { mm: margin, basis: mi >= 0 ? 'set' : 'estimate' } };
+    const vol = (bs: readonly { volumeMM3?: number | null }[]) => Math.round(bs.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0) * 1e3) / 1e3;
+    const shown = withoutLoops(plan.plan);
+    const json = { format: 'barocss-mould', version: 1, ...shown, halves: { plus: { label: 'moves along the pull (B side, usually the core)', lumps: halves.plus.length, volume_mm3: vol(halves.plus) }, minus: { label: 'fixed (A side, usually the cavity)', lumps: halves.minus.length, volume_mm3: vol(halves.minus) } },
+      lumps: halves.lumps.map(l => ({ key: l.body.key, half: l.half, basis: l.basis, volume_mm3: vol([l.body]) })), margin: { mm: margin, basis: mi >= 0 ? 'set' : 'estimate' } };
     writeAtomic(join(dir, 'mould.json'), new TextEncoder().encode(JSON.stringify(json, null, 1) + '\n'));
     writeAtomic(join(dir, 'mould.step'), new TextEncoder().encode(step.text));
     say(io.stdout, { ok: true, plane: `${plan.plan.axis} = ${plan.plan.planeAt}`, shutOffs: plan.plan.shutOffs.length, sideCores: plan.plan.sideCores.length, wrote: [join(dir, 'mould.json'), join(dir, 'mould.step')] });
