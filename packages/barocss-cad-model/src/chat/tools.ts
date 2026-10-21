@@ -809,7 +809,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, state.partOf ? null : doc.instances ?? []);
         if (why) return fail(state, `Feature ${k + 1} of ${list.length} (would be index ${doc.nodes.length}): ${why}`, { kept: 'nothing was added' });
         // (A new feature takes the next stable id: one the call brings is not used, ids are never handed out twice.)
-        const solved = solvedSkeleton(node as ModelNode);
+        const solved = solvedSkeleton(node as ModelNode, doc.parameters);
         if ('error' in solved) return fail(state, `Feature ${k + 1} of ${list.length}: ${solved.error}`, { kept: 'nothing was added' });
         if (solved.solve) solves.push({ feature: doc.nodes.length, ...solved.solve });
         doc = withNode(doc, { ...withFollowed(doc, solved.node), id: undefined });
@@ -838,7 +838,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         }
       }
       // (FRg, O122: a skeleton with constraints solved again from its edit.)
-      const solved = solvedSkeleton(next[index]);
+      const solved = solvedSkeleton(next[index], state.doc.parameters);
       if ('error' in solved) return fail(state, `Feature ${index}: ${solved.error}`, { kept: 'the part is unchanged' });
       next = next.map((n, k) => k === index ? solved.node : n);
       // (FRf, O121: a skeleton frames follow keeps every point and segment they use.)

@@ -1,4 +1,4 @@
-import { followedStale, staleText } from '../frames/skeleton';
+import { followedStale, resolveSkeletons, staleText } from '../frames/skeleton';
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import { fitNotes } from './fits';
 import type { FaceTable } from '../assembly/mates';
@@ -205,9 +205,12 @@ function snapshotOf(doc: StudioDoc): CadPartSnapshot {
   return last ? last.withDocument(part) : evaluateCadPart(part);
 }
 
+/** The document with its parameter-bound skeletons solved for its parameters now (O140; the same document when none moved), or their refusal. */
+function skeletonsNow(doc: StudioDoc): StudioDoc { const r = resolveSkeletons(doc); if ('error' in r) throw new Error(r.error); return r.doc; }
 export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): EvalResult {
   const t0 = performance.now();
   try {
+    doc = skeletonsNow(doc);
     const snapshot = snapshotOf(doc); last = snapshot;
     const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
@@ -253,6 +256,7 @@ const lastParts = new Map<PartSlot, CadPartSnapshot>();
 export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot: PartSlot = 'part'): EvalResult {
   const t0 = performance.now();
   try {
+    doc = skeletonsNow(doc);
     const part = toPartDocument(doc), last = lastParts.get(slot), snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastParts.set(slot, snapshot);
     const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
@@ -264,6 +268,7 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot
 /** A part's bodies' volumes only (a clash probe's intersection): no mesh worked out or sent (PERF3 B12). */
 export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok: true; volumes: { key: string; volumeMM3: number | null }[] } | { ok: false; error: FriendlyError } {
   try {
+    doc = skeletonsNow(doc);
     const part = toPartDocument(doc), last = lastParts.get(slot), snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastParts.set(slot, snapshot);
     return { ok: true, volumes: snapshot.outputs.map(o => {
       let m = masses.get(o.brep);

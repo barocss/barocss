@@ -1,6 +1,7 @@
 import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient } from './engine/client';
 import { placedBase, placedDoc, placementOf, type PartInstance } from '@barocss/cad-model/engine/doc';
+import { resolveSkeletons } from '@barocss/cad-model/frames/skeleton';
 import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type MeshRepairRecord, type ModelNode, type Side, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, featureId, nextSerial } from '@barocss/cad-model/engine/ids';
 import { MATERIALS } from '@barocss/cad-model/app/materials';
@@ -2075,7 +2076,12 @@ export function App() {
         ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} onQuote={() => { void exportQuote(); }} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
-        onChange={p => commit({ ...doc, ...p, ...(p.configurations ? {} : { configurations: undefined }) })} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
+        onChange={p => {
+          // (O140: the skeletons bound to a parameter re-solved with it — a conflict refused, the parameter named, nothing changed.)
+          const r = resolveSkeletons({ ...doc, ...p, ...(p.configurations ? {} : { configurations: undefined }) });
+          if ('error' in r) { setToast({ title: 'That value does not hold', hint: r.error.replace(/^\[\w+\] /, ''), detail: 'The parameters are as they were.' }); return; }
+          commit(r.doc);
+        }} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
       {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} onError={m => setToast({ title: 'Could not use that image', hint: m, detail: '' })} available={viewport.current?.backend === 'webgpu'}
         selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
         onChange={commitRender} onExport={exportImage} fov={fov}

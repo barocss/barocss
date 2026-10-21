@@ -5356,3 +5356,22 @@ The coordinator's queue, the kernel lane's open studio item. A studio ring was a
 - **The notes**: a ring on a row cites it ("Its groove checked against your ring row (the maker's sheet)"), with no estimate warning.
 - **The studio**: the Library panel's RINGS section loads a JSON file of rows (one or a list), lists them with their sizes and source, and removes them (refused, and said, for a used row).
 - **Tests**: `test/ring-rows.test.ts`: the default offered and cited; no row, an estimate; refusals for a row for another groove (RING_FIT), a row gone, a used row removed, and bad rows. `fields.test.ts`' every-field document includes `rings`. The flow step "ring rows (O139)…" loads a row in the Library panel, makes the shaft and its ring on that row through the real chat, reads the citation, and has the row's removal refused.
+
+## O140 — FRg: a 3D skeleton's values bound to parameters (2026-10-22)
+
+The coordinator's queue item 4, the model side (G17's drag tool comes later), closing §0's "FRg's 3D skeleton constraints take numbers only".
+
+- **Bound values**: a `length`'s or `distance`'s `value`, or an `angle`'s `degrees`, may be `{ parameter: name }` (`BoundConstraint3D` in frames/sketch3d.ts). The solver still takes numbers only; `boundConstraints` gives it each parameter's value now, with a map of which constraint is bound to which parameter.
+- **Refusals**, naming the parameter:
+  - a parameter the document lacks: [SKETCH3D_PARAMETER] "constraint 4 (length) is bound to the parameter "D", which the document does not have";
+  - a bound value out of range: [SKETCH3D_INPUT] "constraint 3 (length, bound to W = -5): …";
+  - a conflict: [SKETCH3D_CONFLICT], each unmet constraint with its binding ("…, bound to W = 800) off by …"), ending "Change the parameter W, or change or remove one of them". When none of the unmet constraints is bound, it names every parameter the skeleton binds, since one of them moved it there.
+- **Re-solved when a parameter changes**: `resolveSkeletons(doc)` re-solves every skeleton with a bound value from its stored points. It returns the very same document when no point moved, so caches keep their keys, or the refusal with the skeleton's feature named.
+  - The Parameters panel calls it before committing. A refusal is a toast ("That value does not hold"), and the parameters stay as they were.
+  - Every evaluation entry (evaluateDoc, evaluatePart, evaluateVolumes) applies it too, so a parameter changed by any other path (a configuration applied, a sensitivity variant) builds the solved geometry.
+  - add_features and edit_feature solve with the document's parameters.
+- **Tests**: `test/sketch3d-params.test.ts`:
+  - W and D bound: 600 × 400, A·600;
+  - W set to 800: re-solved, the frame A·800; evaluated without the re-solve, the same; a second re-solve gives the same document;
+  - the refusals: a conflict through a held diagonal naming W, a missing parameter, a bound length −5.
+  The flow step "FRg bound to parameters (O140)…": W and D added in the Parameters panel, the skeleton and its frame via the real chat (444 · 600), W set to 800 in the panel (444 · 800), D set to −5 refused with D named and the parameters unchanged.

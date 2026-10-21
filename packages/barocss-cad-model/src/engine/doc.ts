@@ -1,7 +1,7 @@
 // The studio document: plain data, one node per feature. Every command appends or edits nodes; the
 // worker evaluates it on the kernel's B-rep part model (a node is feature `id`, see part.ts and ids.ts).
 
-import type { Constraint3D } from '../frames/sketch3d';
+import type { BoundConstraint3D } from '../frames/sketch3d';
 import type { RobotSettings } from '../robot/joints';
 import type { BendTable } from '@barocss/cad';
 import type { Brief } from '../chat/brief';
@@ -188,7 +188,7 @@ type ModelNodeBase = SketchNode
    * for every member unless `overrides` sets one apart. `estimates` as a member's.
    */
   /** FRf (O121): a skeleton — points and straight segments several frames follow (`follows`); it makes no body. */
-  | { kind: 'skeleton'; points: [Dim, Dim, Dim][]; segments: [number, number][]; name?: string; /** FRg (O122): its 3D constraints (frames/sketch3d.ts); its points stored solved. */ constraints?: Constraint3D[] }
+  | { kind: 'skeleton'; points: [Dim, Dim, Dim][]; segments: [number, number][]; name?: string; /** FRg (O122): its 3D constraints (frames/sketch3d.ts), a length's, distance's or angle's value a number or a parameter (O140); its points stored solved. */ constraints?: BoundConstraint3D[] }
   /**
    * `follows` (FRf, O121): the frame's points and segments are a skeleton's, or a sketch's straight edges lifted by its
    * plane, read at every evaluation (its own `points`/`segments` then a copy, not read for geometry).

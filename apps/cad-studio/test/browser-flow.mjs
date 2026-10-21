@@ -4112,6 +4112,43 @@ try {
     } finally { chat.kill(); }
   });
 
+
+  // ---- O140: FRg's lengths bound to parameters — re-solved when a parameter changes ---------------------------------------
+  await check('FRg bound to parameters (O140): W 600 and D 400 added in the Parameters panel, a skeleton whose sides are W and D with a frame on it via the chat — 444 · 600; W set to 800 in the panel, the skeleton re-solved and the frame follows (444 · 800); D set to −5 refused, naming D, the parameters as they were', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.click('[aria-label="Parameters"]');
+    for (const [name, value] of [['W', '600'], ['D', '400']]) { await page.fill('[aria-label="New parameter name"]', name); await page.fill('[aria-label="New parameter value"]', value); await page.click('[aria-label="Add parameter"]'); }
+    await page.waitForFunction(() => window.__studioDoc.parameters.W === 600 && window.__studioDoc.parameters.D === 400, null, { timeout: 5000 });
+    await page.click('[aria-label="Close parameters"]');
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      if (!await page.locator('[aria-label="Chat message"]').count()) await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const constraints = [{ kind: 'fixed', point: 0 }, { kind: 'along', segment: 0, axis: 'x' }, { kind: 'on-plane', point: 2, plane: { origin: [0, 0, 0], normal: [0, 0, 1] } }, { kind: 'length', segment: 0, value: { parameter: 'W' } }, { kind: 'length', segment: 1, value: { parameter: 'D' } },
+        { kind: 'perpendicular', a: 0, b: 1 }, { kind: 'parallel', a: 0, b: 2 }, { kind: 'parallel', a: 1, b: 3 }];
+      const skeleton = { kind: 'skeleton', points: [[0, 0, 0], [590, 10, 0], [610, 390, 5], [-5, 405, 3]], segments: [[0, 1], [1, 2], [2, 3], [3, 0]], constraints };
+      const frame = { kind: 'frame', follows: { skeleton: 0 }, section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { default: 'mitre' } };
+      const n = await page.locator('.chat-msg.assistant').count();
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'add', features: [skeleton, frame] } }] })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      assert.deepEqual(await page.locator('.chat-tool.err').allInnerTexts(), []);
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    const first = async () => { await page.locator('.outliner .ol').first().click(); await page.waitForFunction(() => /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 30000 }); return bodyVolume(); };
+    assert.ok(Math.abs(await first() - 444 * 600) <= 1);
+    const setValue = async (name, v) => { await page.click('[aria-label="Parameters"]'); await page.fill(`[aria-label="Value of ${name}"]`, v); await page.locator(`[aria-label="Value of ${name}"]`).press('Enter'); await page.click('[aria-label="Close parameters"]'); };
+    await setValue('W', '800');
+    await page.waitForFunction(() => Math.abs(window.__studioDoc.nodes[0].points[1][0] - 800) < 1e-6, null, { timeout: 15000 }); await idle();
+    assert.ok(Math.abs(await first() - 444 * 800) <= 1);
+    await setValue('D', '-5');
+    await page.waitForFunction(() => /That value does not hold/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 10000 });
+    assert.match(await page.textContent('.toast'), /bound to D = -5/);
+    assert.deepEqual(await page.evaluate(() => window.__studioDoc.parameters), { W: 800, D: 400 });
+    await snap('frg-bound-parameters');
+  });
   await check('FRf2 a base frame on a placed part\'s sketch via the chat: a saved assembly with a 300 × 200 plate at z = 100, a frame following its sketch — 4 members on z = 100, the part\'s revision pinned (O125)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin, file = join(out, 'plate-assembly.bcad');
     const plate = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: { b1: { node: 1, side: 'solid' } }, nodes: [
