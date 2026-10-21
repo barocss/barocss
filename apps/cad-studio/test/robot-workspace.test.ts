@@ -8,7 +8,7 @@ import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
 import { solveDoc } from '@barocss/cad-model/chat/assembly';
 import { treeOfDoc } from '@barocss/cad-model/chat/robot';
 import { applyTo, forwardKinematics } from '@barocss/cad-model/robot/fk';
-import { convexHull } from '@barocss/cad-model/robot/hull';
+import { convexHull } from '@barocss/cad';
 import { probeAt, toolProbe } from '@barocss/cad-model/robot/ik';
 import { meshesMeet, partParent, sweepLinks } from '@barocss/cad-model/robot/sweep';
 import { workspaceMap, WorkspaceError } from '@barocss/cad-model/robot/workspace';

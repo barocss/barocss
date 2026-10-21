@@ -1,6 +1,6 @@
 // The robot tools (RM1, O14): the assembly read as a joint tree, and its settings (the base link, joint limits and
 // ratings). A change to the settings is the assembly's, so like a mate it is the user's to accept (D41: proposed).
-import type { GearPlacement } from '@barocss/cad';
+import { convexHull, type GearPlacement } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { ToolDefinition } from './api';
@@ -19,7 +19,6 @@ import type { V3 } from '../robot/inertia';
 import { gravityTorques, linkBodies, linkMasses, moveTorques, STANDARD_GRAVITY, type MoveLimits } from '../robot/dynamics';
 import { MOTOR_FIELDS, MOTORS, readCatalogue, REDUCER_FIELDS, REDUCERS, sizeActuators, sizeCoupled, SIZING_MODEL, type Motor, type Reducer, type Sizing, type Source } from '../robot/actuators';
 import type { ProfileKind } from '../robot/profile';
-import { convexHull } from '../robot/hull';
 import { placeBody } from '../engine/evaluate';
 import { tablesFor } from '../assembly/faces';
 import { solveDoc } from './assembly';

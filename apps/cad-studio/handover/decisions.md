@@ -7717,3 +7717,34 @@ Evidence: `packages/barocss-cad/test/r12c-s0.test.mjs` (kept, 10 tests, 6 s alon
 - **At review:** K1 and S1 are re-read at their sources before any use beyond the S0 probe.
 
 **Checks:** S0 changed no product code. The tier: T1 (lint of the new file, the new test). r12c-s0 10/10, 6 s alone; lint clean. Kernel `pnpm build:library` before it. The full kernel suite, conformance, studio, flow and RB not rerun (no source change, as at D115, D122 and D129).
+
+## D140 — K1: the convex hull and the convex distance (GJK) moved into the kernel (2026-10-21)
+
+Track K's first step (README §0 "Roadmap" item 4; the PKG design note's G1 and G2, `handover/notes/research-package-boundary-2026-10-21.md`), started on the coordinator's "PKG done (except PKG-g2)". Two generic routines the robot track wrote for itself (RM4's hull, O17; RM6's GJK, O19) move down into `@barocss/cad`; the copies in `@barocss/cad-model` go in the same step.
+
+**Decision:**
+- **Kernel** `src/convex-hull.ts`: `convexHull(points)` → `ConvexHull { positions, indices }` (triangles counter-clockwise from outside), `HullError` with `HullErrorCode` `TOO_FEW` | `DEGENERATE` — the studio's quickhull, the same algorithm and the same output. Two changes, neither visible in the output:
+  - its working state (the points, faces, edge map) is per call, not module-level (the studio's kept the points in a module variable, unsafe if a hull were ever built inside another);
+  - the next face to expand is found by one forward cursor instead of a scan of every face each round: points are only ever given to the newest faces, so the first face holding outside points never moves back. The faces' order, and so the output's, stays the one the RM4 hull made — the studio's frozen USD export (`robot-sdf-usd`, its collision meshes) depends on it. A first try with a stack (last face first) changed the triangle order and that test caught it; it was dropped.
+  - The `add` closure inside the hull loop is a module function now (the hot-path rule).
+- **Kernel** `src/convex-distance.ts`: `convexDistance(a, b, tol = 1e-10)` — the studio's GJK with Ericson's closest-point regions, unchanged in result; the tetrahedron's per-iteration closure and the progress test's `some` callback are module functions.
+- **Exports** from `src/index.ts`: `convexHull`, `HullError`, `ConvexHull`, `HullErrorCode`, `convexDistance` (an API addition, recorded here). No kernel changeset, as for R12b's additions.
+- **`@barocss/cad-model`:** `src/robot/hull.ts` and `src/robot/gjk.ts` deleted; their five importers (`chat/robot`, `rb9/captive`, `robot/urdf`, `robot/sweep`, `robot/workspace`) and the studio's six (`App.tsx`, `test/robot-{ccd,sweep,urdf,workspace}.test.ts`, `test/bench/node-bench.ts`) take the kernel's. The `Hull` type had no importer. The subpaths `@barocss/cad-model/robot/hull` and `/robot/gjk` are gone (the package is unpublished; its PKG changesets are still pending).
+
+**Oracles** (`packages/barocss-cad/test/k1-convex.test.mjs`, 6 tests, 0.5 s; none of them the kernel's):
+- **A brute-force hull:** every triple of points with all the others on one side is a facet (general position). On 42 random sets of 4–40 points the kernel's facets, mapped back to the input by exact coordinates, are exactly the brute force's; each closed (every directed edge once with its twin, V − E + F = 2) and outward (no point in front of a facet beyond 1e-9).
+- **Closed forms:** a unit cube with 60 points on its faces, 12 on its edges and 100 inside: 8 corners, V = 1 to 1e-15 (the divergence theorem on the triangles); the regular octahedron 4a³/3 and icosahedron (5/12)(3 + √5)·2³ to 1e-12, 8 and 20 faces.
+- **All extreme:** 4000 points on a sphere: 4000 corners, closed, every point inside, the volume just below the sphere's; at 1e6 times the size and reversed, the same corners and the volume scaled to 1e-9. About 52 000 points in a ball: closed, all inside. Each well under the 2 s bound (the whole file 0.5 s).
+- **Refusals:** three points `TOO_FEW`; one point, a line and a plane `DEGENERATE`.
+- **A brute-force distance:** the least over vertex–triangle and edge–edge pairs of the two brute-force hulls, each in closed form (point–triangle by the prism test and edges; segment–segment by the lines' interior solution or the four end distances), zero when a corner lies inside the other or an edge crosses a facet. 120 random pairs (both meeting and apart, the counts asserted): GJK within 1e-9, and symmetric.
+  - The oracle's first form missed an edge piercing a facet with no corner inside; GJK said 0, a million sampled separating axes agreed (the best −1.48), and the oracle gained the crossing test. Recorded because the oracle, not the kernel, was wrong.
+- **Closed forms:** 200 random axis-aligned box pairs (the per-axis gaps' norm), a point and a box (the clamp), skew segments (|(p2 − p1)·(d1 × d2)|/|d1 × d2|), touching faces and a shared corner (0).
+- The test fails on the previous HEAD: the kernel exported neither.
+
+**Not done here:** conformance fixtures (neither is a part feature); a witness pair from GJK (the closest points), which K3's exact `meshClearance` may want — added then if it does.
+
+**Checks — T1:**
+- Kernel lint and type-check clean; `k1-convex` 6/6. No other kernel source changed (the index's export lines only).
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed files 0 errors (node-bench's two console warnings, as before); the suite 753/754 with the known `todo` (O80), 0 fail; the robot tests 87/87, the frozen USD stages included.
+- Conformance, the full kernel suite, the flow and RB not run (T1; no kernel core file touched).

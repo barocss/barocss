@@ -570,6 +570,9 @@ export { classifyPointInFacets, facetBvh, type FacetBvh, type FacetPointClass } 
 export { splitFacetBrep, type FacetSplitOptions, type FacetSplitResult } from './facet-split.js';
 export { decimateMesh, type DecimateOptions, type DecimateReport, type DecimateResult } from './mesh-decimate.js';
 export { meshDistance, type MeshDistance } from './mesh-distance.js';
+// K1 (D140): generic convex geometry moved down from the studio's robot track.
+export { convexHull, HullError, type ConvexHull, type HullErrorCode } from './convex-hull.js';
+export { convexDistance } from './convex-distance.js';
 export { subdBrep, SubdError, subdSummary, type SubdCage, type SubdOptions, type SubdSummary } from './subd.js';
 export { subdReport, type SubdReport, type SubdReportOptions } from './subd-report.js';
 export { cageTopology, validateCage, edgeLoop, edgeRing, moveVertices, selectionVertices, extrudeFaces, extrudeEdges, insertEdgeLoop, deleteFaces, compact, boundaryLoop, fillHole, bridge, weldVertices, weldWithin, setCreases, mirrorCage, halfCage, keepOnPlane, subdPreviewMesh, type Cage, type CageTopology, type CageValidation, type MirrorAxis } from './subd-cage.js';

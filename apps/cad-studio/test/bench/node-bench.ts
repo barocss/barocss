@@ -3,7 +3,7 @@
 // rows have a 1 ms floor), so noise passes and a real regression (a lost cache, a quadratic loop) fails. Run: pnpm bench (BENCH_JSON=1 for machine output).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { brepFromTriangles, decimateMesh, meshDistance, diagnoseMesh, encodeBinaryStl, readStl, repairMesh, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
+import { brepFromTriangles, convexHull, decimateMesh, meshDistance, diagnoseMesh, encodeBinaryStl, readStl, repairMesh, brepMassProperties, brepSurfaceArea, checkSpurGearPair, evaluateCadPart, exportStep, extrudeFaces, facetBoolean, facetBrepFromTriangles, splitFacetBrep, stepMeshes, subdBrep, tessellateBrep, type CadPartDocument } from '@barocss/cad';
 import { boxCage } from '@barocss/cad-model/app/primitives';
 import { organicTorus } from './mesh-fixtures';
 import { evaluateDoc, shareMeshes } from '@barocss/cad-model/engine/evaluate';
@@ -36,7 +36,6 @@ import { readUrdf } from '@barocss/cad-model/robot/urdfCheck';
 import { exportMjcf } from '@barocss/cad-model/robot/mjcf';
 import { readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
 import { sweepLinks, sweepPath } from '@barocss/cad-model/robot/sweep';
-import { convexHull } from '@barocss/cad-model/robot/hull';
 import { placeBody } from '@barocss/cad-model/engine/evaluate';
 import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
 import { solveDoc } from '@barocss/cad-model/chat/assembly';

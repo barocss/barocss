@@ -9,13 +9,12 @@
 //   - a gear follower: <mimic joint multiplier offset>; loops cannot be written (a tree format): left out, noted.
 // What URDF cannot hold is refused, typed: an unsupported motion, bad or missing limits (a revolute or prismatic joint
 // needs lower, upper, effort and velocity), a link whose inertia fails its checks, a part with no hull.
-import { encodeBinaryStl } from '@barocss/cad';
+import { convexHull, encodeBinaryStl, HullError } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { rotationMatrix } from '../assembly/mates';
 import type { Joint, JointTree } from './joints';
 import { linkInertia, linkFrames, type Frame, type LinkInertia, type Mat3, type V3 } from './inertia';
-import { convexHull, HullError } from './hull';
 
 export const URDF_EXPORT_VERSION = 'barocss-urdf-v1';
 /** A dummy link's mass (kg) and inertia (kg·m²): small enough to change nothing, not zero (a static link in PyBullet). */

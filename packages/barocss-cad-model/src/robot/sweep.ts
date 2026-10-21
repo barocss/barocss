@@ -13,7 +13,7 @@
 import type { BodyResult } from '../engine/evaluate';
 import type { JointTree } from './joints';
 import { forwardKinematics, type Motion } from './fk';
-import { convexDistance } from './gjk';
+import { convexDistance } from '@barocss/cad';
 
 export interface SweepLink { link: string; /** Its mesh at home (world, mm): every body of its part, merged. */ positions: Float64Array; indices: Uint32Array; /** Its convex hull's corners at home (world, mm). */ hull: Float64Array }
 export interface SweepResult {

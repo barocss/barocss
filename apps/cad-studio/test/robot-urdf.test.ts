@@ -8,7 +8,7 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool } from '@barocss/cad-model/chat/tools';
 import { treeOfDoc, urdfOfDoc } from '@barocss/cad-model/chat/robot';
 import { forwardKinematics } from '@barocss/cad-model/robot/fk';
-import { convexHull, HullError } from '@barocss/cad-model/robot/hull';
+import { convexHull, HullError } from '@barocss/cad';
 import { rpyOf, type UrdfResult } from '@barocss/cad-model/robot/urdf';
 import { parseXml, readUrdf, urdfFk, XmlError } from '@barocss/cad-model/robot/urdfCheck';
 import { symmetricEigen, type Mat3 } from '@barocss/cad-model/robot/inertia';

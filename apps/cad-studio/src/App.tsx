@@ -29,7 +29,7 @@ import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
 import { collectRecoveryBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs } from '@barocss/cad-model/engine/blobs';
 import { MeshRepairPanel } from './ui/MeshRepairPanel';
-import { DEFAULT_REPAIR, MESH_PLANAR_TRIANGLES, bendTableProblem, type BendTable, type MeshDiagnosis, type MeshRepairResult, type MeshRepairSteps } from '@barocss/cad';
+import { DEFAULT_REPAIR, MESH_PLANAR_TRIANGLES, bendTableProblem, convexHull, type BendTable, type MeshDiagnosis, type MeshRepairResult, type MeshRepairSteps } from '@barocss/cad';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
 import { ParametersPanel } from './ui/ParametersPanel';
 import { LibraryPanel } from './ui/LibraryPanel';
@@ -59,7 +59,6 @@ import { workspaceMap, type WorkspaceMap } from '@barocss/cad-model/robot/worksp
 import { exportSdf } from '@barocss/cad-model/robot/sdf';
 import { exportUsd } from '@barocss/cad-model/robot/usd';
 import { closureOfDoc } from '@barocss/cad-model/robot/loop';
-import { convexHull } from '@barocss/cad-model/robot/hull';
 import { writeZip } from '@barocss/cad-model/io/zip';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from '@barocss/cad-model/app/profiles';
