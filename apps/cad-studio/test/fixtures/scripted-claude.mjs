@@ -25,6 +25,8 @@ const say = o => process.stdout.write(JSON.stringify({ ...o, session_id: 'script
 say({ type: 'system', subtype: 'init' });
 await request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'scripted', version: '0' } });
 for (const [k, call] of calls.entries()) {
+  // (A pause, `{"pause": ms}`: a slow turn, so the flow can edit the part while it runs, O133.)
+  if (typeof call.pause === 'number') { await new Promise(resolve => setTimeout(resolve, call.pause)); continue; }
   say({ type: 'assistant', message: { content: [{ type: 'tool_use', id: `toolu_${k}`, name: `mcp__cad__${call.tool}`, input: call.args }] } });
   // (A JSON-RPC error — an unknown tool, O105 — comes back to the model as a failed call, as the CLI reports it.)
   const m = await request('tools/call', { name: call.tool, arguments: call.args });
@@ -33,7 +35,7 @@ for (const [k, call] of calls.entries()) {
   if (process.env.CAD_AB_LOG) appendFileSync(process.env.CAD_AB_LOG, JSON.stringify({ tool: call.tool, args: JSON.stringify(call.args ?? {}).length, result: r.content.filter(c => c.type === 'text').map(c => c.text).join('').length, isError: r.isError }) + '\n');
   say({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: `toolu_${k}`, is_error: r.isError, content: r.content.filter(c => c.type === 'text') }] } });
 }
-say({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: `Scripted: ${calls.length} call${calls.length === 1 ? '' : 's'}.` } }, parent_tool_use_id: null });
+say({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: `Scripted: ${calls.filter(c => typeof c.pause !== 'number').length} call${calls.filter(c => typeof c.pause !== 'number').length === 1 ? '' : 's'}.` } }, parent_tool_use_id: null });
 server.stdin.end();
 await new Promise(resolve => server.on('close', resolve));
 say({ type: 'result', subtype: 'success', is_error: false, result: 'done' });

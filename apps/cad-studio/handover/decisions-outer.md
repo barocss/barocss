@@ -5112,3 +5112,161 @@ The coordinator's queue, item 1. The Selection panel's "Surface area" summed the
   - A cylinder r 10 × 20 is 600π to 1e-9, with the mesh's sum below it; a box 40 × 30 × 10 is 3800; mass_properties gives the same.
   - The D84 pipe clamp is its conformance area 11 019.522 to within 1e-4, where the mesh's sum is more than 0.05 % low.
 - App.tsx: only the props panel's area line, not the viewport or the GPU lane's paths.
+
+## O127 — the narrow-window top bar: the right-hand tools fold into More tools (2026-10-22)
+
+The coordinator's queue, item 2: O90's follow-up. Below about 1100 px the bar's controls clipped at the window's edge.
+
+- **`src/ui/ToolsTray.tsx`**: the right-hand tools (Chat … Insert part) show as many as the bar has room for, and the rest go from the right into a **More tools** menu.
+  - The tray counts the shapes strip at its least (its More button alone), so the shapes give way first, then the tools.
+  - Measured again on any size change (ResizeObserver, inside `ui/`).
+  - The menu closes on a pick, a click outside it, or Escape. Templates keeps its own dropdown open inside it.
+- **Spacing**: the tray keeps the bar's 10 px between tools.
+- **App.tsx**: the same 14 tool nodes, passed to the tray (keys added). This is the top bar only, not the viewport or the GPU lane's paths.
+- **Flow step "narrow window top bar …"** at 1024 and 800 px:
+  - the whole bar fits, and the page never scrolls sideways;
+  - every mode button is inside the window;
+  - every tool is on the bar or under More tools, none lost (at 800 some fold);
+  - Parameters opened from the menu opens its panel.
+  - O90's step is unchanged.
+
+## O128 — hollowing's curved-body refusal is structural, not timed (2026-10-22)
+
+The coordinator's queue, item 3. hollow.test asserted "refused at once" by wall-clock time (< 1000 ms) and flaked under load.
+
+- **What it found**: the refusal was never "at once" in structure. For an explicit voxel route on a curved body, `planHollow` built the whole cavity field and its components first and only then refused CURVED_BODY. It was merely fast enough.
+- **Now** (print/hollow.ts): the explicit voxel route checks for curved faces before any voxel work. The auto route still builds the field first, since its drains need it for the exact shell too, and refuses as before. `hollowWork.fields` counts the cavity fields built.
+- **The test** asserts that the refused call built no field: the count is unchanged, with no clock. Its name now says "refused before any voxel work" (the name diff shows the rename).
+
+## O129 — G12 S0: a proposal's added and removed material, exactly (2026-10-22)
+
+The coordinator's queue, item 4: model data for the GPU lane's two-colour proposal overlay. This is the S0, and the shape goes to the coordinator before building. Evidence is in `packages/barocss-cad-model/test/g12-s0.test.ts` (4 probes).
+
+- **The route probed**: unite each side's bodies (the base before, the proposal after), then `removed = before − after` and `added = after − before` with the kernel's analytic Boolean. It does not depend on body keys: a union node gets a new key though its material hardly changes, so matching bodies by key would call the whole plate removed and added.
+- **Probes**:
+  - **P1**: a Ø6 hole through a 40 × 30 × 10 plate removes π · 9 · 10 = 282.743 exactly, and adds nothing.
+  - **P2**: a boss r 5 × 8 united on its top (a new key) adds π · 25 · 8 = 628.319, and removes nothing.
+  - **P3**: the extrude made 15 adds the slab 6000 exactly and removes nothing. This was the hard case, the two sides' faces coinciding, and the Boolean takes it.
+  - **P4**: the faces by persistent name. The hole adds `n2.side0`; `n1.top` and `n1.bottom` keep their names but their areas change. "Changed" is by geometry, not by name.
+- **Proposed shape**: `proposalDiff(base, proposed)` returns:
+  - `added`, `removed`: `{ mesh: DisplayMesh, volumeMM3 } | null`, each the display mesh of the Boolean's result, tessellated as bodies are, so the GPU lane draws it as any body;
+  - `changedFaces`: `{ name, kind: 'added' | 'removed' | 'changed' }[]`, by persistent name, with changed by geometry (area, or the A1 signature where kept);
+  - `parts`: the existing `proposalParts`, for labels;
+  - `method`: `'boolean' | 'faces'`. Where the Boolean refuses (facet or mixed bodies until the kernel's F3), only the faces are given, with `why`.
+- **Scope v1**: the base part's geometry. A proposal's placed-part changes are listed by part, not diffed in geometry. It is computed on demand, not per evaluation (two Booleans a proposal).
+- **Next**: build after the coordinator's reply on the shape.
+
+## O130 — PERF3 B13 S0: blob eviction — every holder, and a safe rule (2026-10-22)
+
+The coordinator's queue, item 5. The S0 is for the coordinator's reply before building. Evidence is in `packages/barocss-cad-model/test/blob-evict-s0.test.ts` (3 probes).
+
+- **Today**: the store (engine/blobs.ts) keeps every blob of the session, never evicted. P1: a mesh feature deleted, its arrays still held.
+- **The holders** of a blob's hash:
+  1. **the current document**: its mesh nodes, a repair's result, its placed parts' and pending parts' documents (`blobRefs` covers these);
+  2. **undo and redo**: the App's stacks of documents (up to 50);
+  3. **open proposals**: their **ops**, not documents. An add_features op may carry a mesh node naming a blob the document does not (P2: `blobRefs` misses it, so a rule over documents alone would drop what accepting the proposal needs);
+  4. **a chat turn in flight**: the panel's base, its built and shared states, and the server's copy (by `blobRefs` and the session's sent set);
+  5. **a pending mesh repair**: its result's blobs, put before the document naming them is committed;
+  6. **the worker wire**: the sender's `sentBlobs` and the worker's own copy of the store. P3: a blob is sent once, so one evicted and put back would never reach the worker again without a forget;
+  7. **the kernel's snapshot caches**: they hold their own arrays, but re-read `getBlob` whenever a document is converted, so anything reachable must stay;
+  8. **the recovery store** (IndexedDB): already collected against the document it keeps (`collectRecoveryBlobs`), separate from this.
+  - Not holders: templates (inlined), the clipboard (a body key), history (hashes of models), baselines (digests), drafts (image and drawing ids), drawings and bodies (evaluated arrays).
+- **Proposed rule: reachability, with a grace generation.** `evictBlobs(roots, pinned)` keeps:
+  - every hash reachable from the roots: the current document, every undo and redo document, and each document's open proposals' ops (found by walking their args for `blob: {positions, indices}` and repair results);
+  - every pinned hash: a pending repair's, and anything put by an operation not yet committed;
+  - every blob put since the last sweep (they survive one sweep, so a put whose document is not yet committed is safe without pinning).
+  It drops the rest.
+  - The app sweeps only at an idle point: after a commit, with no chat turn running and no repair pending.
+  - The wire's sender is told the evicted hashes (`forget`), so it sends them again if they come back. The worker drops them when the sender's next request names them as dropped, in lockstep as the nodes are pruned.
+- **The test it will carry**: random sequences of mesh adds, deletes, undo, redo, proposals made and accepted, and repairs. After each sweep, every hash reachable from every root is still in the store and every evaluation of a root still builds; an unreachable hash is gone after its grace sweep.
+- **Next**: build after the coordinator's reply.
+
+## O131 — FRf2's sibling scope: decided-deferred (2026-10-22)
+
+The owner, through the coordinator, verbatim: "둘다 제안한대로 해줘" (do both as proposed). The proposal: a placed part's frame following a sibling part's sketch stays the typed refusal `FRAME_PART_SCOPE`, with no change now to how the assembly is evaluated (describe, placedBodies and the mates' solve stay per part); it is built only when a real need appears. The other half of the same decision, the chat turn's merge, is O132.
+
+## O132 — S0: a chat turn merged onto the document as it is now, conflicts re-proposed (2026-10-22)
+
+The owner's decision through the coordinator ("둘다 제안한대로 해줘", option (a)): the README defect "Chat turn overwrites edits made during it" is fixed by re-applying the agent's operations onto the current document and re-proposing only the conflicting ones, with A7's machinery: a patch on a base revision, STALE_BASE, an explicit rebase. Today `ChatPanel.send` takes `base` at send (`src/ui/ChatPanel.tsx:106`), and the end of the turn commits the agent's whole document (`App.tsx` chat `onCommit` → `commit(next)`). `carryOver` keeps only the non-model fields, so a box added meanwhile is lost.
+
+- **Capture: the turn's patch, recorded by the MCP server** (`server/cadMcp.ts`):
+  - Every tool call that changed the part (`out.changed`, not an error) is appended as an op in the form proposals already store and replay: the handler's name and arguments after `viaV2`/`v1Call`.
+  - Each op also records the serial range of the feature ids it handed out (`nextId` before → after).
+  - The state file keeps `patch: { id, by, base: revisionOf(turnBase), ops, ids }` (A7's `Patch` plus the id ranges). The chat server passes it through in `done`, so an aborted turn's patch is the part made so far.
+- **The fast path (unchanged behaviour)**: when the current document's revision is the patch's base, the agent's document is committed as today.
+- **The slow path: STALE_BASE, then an explicit rebase.** It runs in the browser in `chat/merge.ts` (the model), as acceptProposal already does: `mergeTurn(base, current, patch, evaluate) → { doc, applied, deferred }`.
+  - The ops replay one at a time on the current document through `dispatchTool`, with the gates the agent already passed at its autonomy.
+  - The person's change set `U` is `treeDiff(base, current)` (nodes added, changed and deleted), plus the parameters and other revision fields that differ.
+  - Before an op runs, its ids are remapped. The ids the agent's run handed out, from the base's `nextId`, are mapped to the ones the replay hands out on the current document. Whole `n<k>` id tokens in its arguments are rewritten, so a box the person added as `n4` meanwhile and the agent's own `n4` never collide.
+  - An op that conflicts is not applied (the merge keeps the state before it) and goes to `deferred` with a typed reason. Every other op is applied in order.
+- **What counts as a conflict** (per op, judged on its own before → after during the replay):
+  - **TURN_SAME_NODE**: the op changes or deletes a node the person changed or deleted.
+  - **TURN_NODE_GONE**: the op is refused on the current document (its error is kept), breaks a reference, or names a node the person deleted.
+  - **TURN_PARAMETER_CHANGED**: the op's arguments, or the args of a node it touches, name a parameter the person changed or deleted, or the op writes one.
+  - **TURN_FIELD_CHANGED**: the op writes a revision field (brief, requirements, material, process, references, interfaces…) the person also changed.
+  - **TURN_NOT_REPLAYABLE**: `restore` and `restore_best` bring back a whole earlier state.
+  - **TURN_BUILDS_ON_DEFERRED**: the op names an id a deferred op made.
+  - **TURN_SHAPE_DIFFERS**: the replay hands out a different number of ids than the agent's run did.
+- **What the person sees**:
+  - The merged document is committed as one change: one undo step back over the agent's change, the person's edit kept.
+  - The toast says "Chat turn merged with your edits: 7 of 9 changes applied, 2 wait as P3", with Undo.
+  - The deferred ops become one open proposal on the merged document: base `modelHash(merged)`, its ops remapped to the ids its replay will hand out, and its plan listing each op's reason ("not applied: you changed n2's depth during the turn"; "n5 was deleted"). It also gets an optional additive field, `merge: { turn, conflicts: [{ op, code, reason }] }`.
+  - The person previews, accepts, rejects or rebases it as any proposal. The design history's prompt entry says the turn was merged.
+- **Edges**:
+  - If the person edits again while the replay runs, it reruns against the newest document, at most twice, then defers the rest with the reason.
+  - With a rollback marker, the merge compares the document's prefix the person sees, as `base` is now.
+  - The previews during the turn still show the agent's states on the send-time base (unchanged).
+- **Tests**:
+  - The README repro: a long scripted turn with a box added meanwhile ends with both the box and the agent's change, and the ids don't clash.
+  - A same-node edit, a used node deleted, and a parameter changed under the agent each give a proposal, never a silent overwrite, with the person's value kept.
+  - A deferred op's dependants are deferred, and the proposal accepts cleanly on the merged document.
+  - The fast path is identical to today.
+  - In the studio, ⌘Z after the merge steps back once over the agent's change, and the person's edit stays.
+  - Flow step: the real chat with a slow scripted turn (the scripted agent's delay) and an edit in between, placed before "command palette and light theme".
+- **Touches**: `server/cadMcp.ts` and `server/chatServer.ts` (the patch), `src/chat/client.ts` (the done type), `src/ui/ChatPanel.tsx` (passes the patch and base), App.tsx's chat `onCommit` (the merge before `commit`, no joint, explode or section paths), and the model's new `chat/merge.ts` plus `Proposal.merge?`. FLOW_ONLY: chat/agent steps and proposal steps.
+- **Shared with G12 (item 4)**: the person's change set and the per-op touched set use the same `treeDiff`/revision-field comparison that `proposalDiff`'s `changedFaces` pairing will name.
+- **To check while building**: `rebaseProposal` replays a proposal's ops on a changed part. If those ops name ids they made themselves, the same id shift may hit stale proposals today. It will be confirmed by a probe, and fixed by the same remap if it does.
+
+## O133 — item 0: a chat turn merged onto the edits made during it (2026-10-22)
+
+The coordinator approved O132 with one addition: implicit dependants. An op whose meaning comes from a deferred op without naming an id (the selection, a newest-sketch default, a mode) must not be applied to another target. Built at e8e213a6e.
+
+- **Capture made explicit** (`chat/merge.ts` `captureOp`). The coordinator offered two options; this takes the first, so ops are fully explicit at capture.
+  - Each call that changed the part is recorded twice:
+    - as the call itself, for a proposal to replay;
+    - as what it did: the features added (each after the one it followed), changed and deleted, in *id form*, plus the parameters, body outputs, looks, other fields, proposals and history entries.
+  - In id form, every index reference is the referenced feature's serial (`renumber`).
+  - So an implicit target becomes the feature it picked. An extrude of "the newest unused sketch" reads that sketch's id, and a selector reads the face it resolved to.
+  - Why not replay the calls on the current document, as the S0 said: node references are indices (`sketch: 2`, `BodyRef.node`), and commands pick implicit targets. A replay on a part the person changed would build on the wrong features (the coordinator's own case).
+- **Merge** (`mergeTurn`, in the browser):
+  - The person's change is captured the same way, from the base to now.
+  - The turn's ids move past the person's by one offset (`n<k>`, `n<k>.top`, `b<k>` follow).
+  - Each op is checked against the person's change and against the ops deferred so far, then applied in id form and converted back to indices once. The result is evaluated once; if it does not build, it is evaluated op by op and the failing ops are deferred (TURN_NODE_GONE, with the reason).
+  - Codes: TURN_SAME_NODE, TURN_NODE_GONE, TURN_PARAMETER_CHANGED (a parameter the person changed, named in the op's features or written by it), TURN_FIELD_CHANGED, TURN_NOT_REPLAYABLE, TURN_BUILDS_ON_DEFERRED, TURN_SHAPE_DIFFERS.
+  - TURN_BUILDS_ON_DEFERRED covers an op that uses, changes or writes what a deferred op made, changed or wrote. That includes implicit picks, which capture made explicit.
+  - An eighth code, TURN_STILL_EDITING: after two reruns for edits made while merging, every op waits, unrun and with nothing awaited, so no edit can land in between.
+- **The proposal**:
+  - The deferred calls are moved to the merged part (`moveOps`) and worked out as any proposal: risk, checks, `orders`.
+  - When they do not replay, the proposal is kept with high risk, and its summary says why.
+  - Its plan lists each call's reason, and `merge: {turn, conflicts}` keeps the codes.
+- **The studio**:
+  - The tool server keeps `ops` in the state file. The chat server sends each op once, in `state` and `done`.
+  - ChatPanel merges when `changedDuring(base, now)`: anything but the design history differs. Otherwise it commits as before (the fast path, unchanged).
+  - App commits the merged document as one change, with a toast ("Chat turn merged with your edits: 1 of 1 change applied"; or "2 wait as P3 (why)") and Undo.
+- **rebaseProposal** (the S0's "to check"):
+  - The probe confirmed the bug. A proposal `[box, edit_feature {index: 3}]`, rebased after the person added a box, edited the person's box.
+  - Proposals now keep `orders`, the feature ids before each op (`runOps`). A rebase moves each op by what its indices and self-made ids named (`chat/remap.ts`, `moveOps`), one op at a time.
+  - Older proposals without `orders` rebase as before.
+- **Tests**:
+  - `test/chat-merge.test.ts`:
+    - the README repro: ten calls, and a box the person added meanwhile (ids n2 and n3 taken). Both are kept, the agent's moved to n4–n6, and the volume is the sum;
+    - SAME_NODE: the person's 12 kept; the proposal accepted gives 20; the independent box applied;
+    - NODE_GONE: a hole on a box the person deleted;
+    - PARAMETER_CHANGED;
+    - the implicit context: op 0 deferred, op 1 extruding the newest sketch is BUILDS_ON_DEFERRED, and the person's own unused sketch is not extruded;
+    - the fast path's test.
+  - `test/rebase-moves-ops.test.ts`: the probe turned into a regression test.
+  - The flow step "chat turn merged with an edit made during it…": a scripted turn pauses (a new `{"pause": ms}` call in the scripted agent) after raising the box to 20. Meanwhile the person adds a box at X 40. Both are kept, and one ⌘Z gives 16 again with the second box kept.
+- **Limits**:
+  - A batch's inner op naming, by index, a feature an earlier inner op made is moved as the outer op is, so it is exact only for appends.
+  - A script's `node(i)` is not rewritten. The merge's applied path does not depend on either: it applies what the op did.

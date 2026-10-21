@@ -5772,6 +5772,35 @@ try {
   });
 
   // ---- the shapes strip's overflow: a More menu, never a sideways page --------------------------------------------
+  await check('narrow window top bar: at 1024 and 800 the whole bar fits — no sideways page, every mode button in the window, every tool on the bar or under More tools (O127)', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    const TOOLS = ['Chat', 'Undo', 'Redo', 'New part', 'New from a template', 'Library', 'Parameters', 'Open', 'Save', 'Export STL', 'Export 3MF', 'Export STEP', 'Insert part'];
+    try {
+      for (const width of [1024, 800]) {
+        await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(300);
+        const w = await page.evaluate(() => ({ page: document.documentElement.scrollWidth - window.innerWidth, scrolled: document.scrollingElement.scrollLeft,
+          bar: Math.max(...[...document.querySelectorAll('.topbar > *')].filter(e => getComputedStyle(e).display !== 'none').map(e => e.getBoundingClientRect().right)) - window.innerWidth,
+          modes: Math.max(...[...document.querySelectorAll('.mode button')].map(e => e.getBoundingClientRect().right)) - window.innerWidth }));
+        assert.ok(w.page <= 0 && w.scrolled === 0 && w.bar <= 0.5 && w.modes <= 0, `${width}: ${JSON.stringify(w)}`);
+        const onBar = await page.evaluate(() => [...document.querySelectorAll('.tools-tray > .tool, .tools-tray > span:not(.tools-more-anchor) > .tool')].map(e => e.getAttribute('aria-label')));
+        let inMenu = [];
+        if (await page.locator('[aria-label="More tools"]').count()) {
+          await page.click('[aria-label="More tools"]');
+          inMenu = await page.evaluate(() => [...document.querySelectorAll('[role="menu"][aria-label="More tools"] .tool')].map(e => e.getAttribute('aria-label')).filter(l => !/^Remove template/.test(l ?? '')));
+          await page.keyboard.press('Escape');
+        }
+        const reach = new Set([...onBar, ...inMenu]);
+        assert.deepEqual(TOOLS.filter(t => !reach.has(t)), [], `${width}: on the bar ${onBar}; in More tools ${inMenu}`);
+        assert.ok(width > 1000 || inMenu.length > 0, `${width}: some fold under More tools`);
+      }
+      // (A tool from the menu works: Parameters opens its panel.)
+      await page.click('[aria-label="More tools"]'); await page.click('[role="menu"][aria-label="More tools"] [aria-label="Parameters"]');
+      await page.waitForSelector('[aria-label="Parameters panel"], .params', { timeout: 5000 });
+      await snap('top-bar-800');
+      await page.click('[aria-label="More tools"]'); await page.click('[role="menu"][aria-label="More tools"] [aria-label="Parameters"]');
+    } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
+  });
+
   await check('shapes strip: no sideways page scroll at 1440, 1100 or 860; what has no room goes under More shapes, none lost; a pick from it starts', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     // (Nothing wider than the window: the page's own width, and every top-bar control's right edge.)
@@ -6048,6 +6077,40 @@ try {
     assert.deepEqual(after.own, [false], 'its surface not shared');
     const kept = Object.keys(before).filter(k => k !== 'inst:r5' && before[k] === after.ids[k]).length;
     assert.equal(kept, 23, 'the other copies kept their meshes');
+  });
+
+  // ---- O133: a chat turn merged onto an edit the person made while it ran ------------------------------------------
+  await check('chat turn merged with an edit made during it: a slow scripted turn raises the box to 20 while a second box is added — both kept; one Undo takes the agent\'s change back, the second box stays (O133)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
+      await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+      if (!await page.locator('[aria-label="Chat message"]').count()) await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const k = await page.locator('.chat-msg.assistant').count(), tools = await page.locator('.chat-tool').count();
+      const calls = [{ tool: 'features', args: { action: 'edit', index: 1, values: { h: 20 } } }, { pause: 6000 }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      // (While the turn pauses, after its edit: the person adds a second box at X 40.)
+      await page.waitForFunction(t => document.querySelectorAll('.chat-tool').length > t, tools, { timeout: 30000 });
+      await page.evaluate(() => document.activeElement?.blur?.());
+      await press('b'); await hudReady(); await field('At X').fill('40'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+      assert.ok(await page.locator('.chat-msg.busy').count(), 'the turn is still running');
+      await page.waitForFunction(n => document.querySelectorAll('.chat-msg.assistant').length > n && !document.querySelector('[aria-label="Chat message"]')?.disabled, k, { timeout: 60000 });
+      await page.waitForFunction(() => /Chat turn merged with your edits/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 15000 });
+      assert.match(await page.textContent('.toast'), /1 of 1 change applied/);
+      const heights = () => page.evaluate(() => window.__studioDoc.nodes.filter(n => n.kind === 'extrude').map(n => [n.id, n.height]));
+      assert.deepEqual(await heights(), [['n1', 20], ['n3', 16]]);
+      await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+      await snap('chat-merge-both-kept');
+      // One Undo: the agent's change gone, the person's box kept.
+      await page.click('[aria-label="Close chat"]'); await page.evaluate(() => document.activeElement?.blur?.());
+      await press('Meta+z');
+      await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.id === 'n1')?.height === 16, null, { timeout: 15000 });
+      assert.deepEqual(await heights(), [['n1', 16], ['n3', 16]]);
+    } finally { chat.kill(); }
   });
 
   await check('command palette and light theme', async () => {
