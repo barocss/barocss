@@ -7989,3 +7989,24 @@ The coordinator's decision on D146: option (b) — "the boundary proposal (G13) 
 - The test fails on the previous HEAD: none of the plain exports existed.
 
 **Checks — T3** (track K's boundary; times as run, this machine shared with other sessions): see the hand-over block at the top of README §0, which records them per check.
+
+## D148 — the hole after a union: a hole's depth from the face it is drilled into, by name (2026-10-21)
+
+The kernel-lane queue's first item (O80; repro `apps/cad-studio/test/fixtures/hole-after-union.calls.json`, until now the `todo` test in `test/known-bugs.test.ts`). A Ø2.5 blind hole 10 deep on a boss's top, after the boss (a cylinder standing on the floor of a shelled 60 × 40 × 25 box, its top at z 14) was united into the box, was refused "the hole at (15, 20) along z misses the target". Drilled before the union it cut.
+
+**Cause:** the kernel's `hole` measured a blind hole's depth (and placed a countersink) from the target's extreme along the axis on its `side` — the bounding box's top, z 25 for the united body — not from the face the user picked. From z 25 down 10 the tool lay in the shell's open cavity: no material, a miss. Before the union the boss alone was the target, and its own top was the extreme.
+
+**Decision:**
+- **Kernel** (`part-model.ts`, the `hole` feature): an optional `face` — the planar face it is drilled into, by name (a base name, `#k` pieces matched as `draft` matches them). Its plane, square to the axis, sets where the depth and the countersink start, and its outward normal sets the side. A face's name keeps the hole on it through parameter edits (a number would not).
+  - From a named face the tool reaches past it by 1 % of the depth, at most 1 mm — nothing above the face is cut (it is the outside there, and near it); from the extreme, 1 mm as before.
+  - A through hole is unchanged (the whole body); with a countersink, the cone sits on the named face.
+  - Refusals: `REFERENCE` (no such face on the target), `SELECTION` (not a flat face square to the hole's axis), `INPUT` (a `side` contradicting the face's normal; an empty name).
+  - Documents without `face` evaluate exactly as before.
+- **`@barocss/cad-model`:** the studio's `hole` node gains `face` (engine/doc.ts; engine/part.ts passes it on), and the Hole command (app/commands.ts) writes the picked face's name, so every new hole is drilled from its face. No tool file or `chat/**` changed: the command's fields and the agent's `run_command` are as they were.
+
+**Oracles:**
+- `packages/barocss-cad/test/d148-hole-face.test.mjs` (2 tests): a 40 × 40 × 10 block with a 10 × 10 × 30 tower — the block's top z 10, the body's z 40: a hole into `b.top` beside the tower takes π r² d (to 1e-9); without `face` it still misses (`SELECTION`, the old behaviour kept); into `b.bottom` it goes up from z 0; a countersink sits on the named face (the frustum Ø10 → Ø6 in closed form plus the rest of the bore, to 1e-6); the block's height edited to 8, 10, 15 — the hole follows its face; the refusals above.
+- `apps/cad-studio/test/known-bugs.test.ts`: the repro, now a test (its `todo` off) — the Ø2.5 bore coaxial with the boss at (15, 20), the material taken π·1.25²·10 (to 1e-6).
+- Both fail on the previous HEAD (the `face` input did not exist; the repro was the `todo`).
+
+**Checks — T2** (`part-model.ts` is a core file): see the commit's checkpoint.

@@ -101,8 +101,10 @@ export type CadPartFeature = Base & (
   /**
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
    * the top for z). `center` is in the other two coordinates in order: z → [x, y], x → [y, z], y → [x, z].
+   * `face` (D148): the planar face it is drilled into, by name — the depth and the countersink measured from that face's
+   * plane rather than the target's extreme on `side` (a boss's top inside a shell); its normal along ±axis gives the side.
    */
-  | { readonly kind: 'hole'; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim; readonly axis?: CadPartAxis; readonly side?: 'min' | 'max'; /** A 90° countersink: its diameter at the face (wider than the hole). */ readonly countersink?: CadPartDim }
+  | { readonly kind: 'hole'; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim; readonly axis?: CadPartAxis; readonly side?: 'min' | 'max'; /** A 90° countersink: its diameter at the face (wider than the hole). */ readonly countersink?: CadPartDim; readonly face?: string }
   | { readonly kind: 'translate'; readonly target: string; readonly offset: CadPartPoint3 }
   /** About an axis through `pivot` (default the origin) by any angle; off quarter turns about X or Y the body leaves the upright family. */
   | { readonly kind: 'rotate'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly pivot?: CadPartPoint3 }
@@ -612,6 +614,14 @@ function explodeFacets(b: Brep, at: string, what: string): Brep {
 }
 const brepOf = (part: Part, id: string): Brep => part.brep ??= part.solid.kind === 'upright' ? brepFromPrismatic(part.solid.solid, { id }) : part.solid.brep;
 
+/** A named planar face of a body square to coordinate axis k: its plane's coordinate and the side its outward normal faces (D148). */
+function holeFace(brep: Brep, name: string, k: number, fail: (code: CadPartErrorCode, detail: string) => never): { at: number; side: 'min' | 'max' } {
+  const face = brep.faces.find(x => x.name === name || (x.name ?? '').split('#')[0] === name);
+  if (!face) return fail('REFERENCE', `no face ${name} on the target`);
+  const g = faceGeometry(face);
+  if (g.kind !== 'plane' || Math.abs(Math.abs(g.n[k]) - 1) > 1e-9) return fail('SELECTION', `${name} is not a flat face square to the hole's axis`);
+  return { at: g.o[k], side: g.n[k] > 0 ? 'max' : 'min' };
+}
 function bounds(s: Solid): { min: Point; max: Point } {
   const min: Point = [Infinity, Infinity, Infinity], max: Point = [-Infinity, -Infinity, -Infinity];
   const take = (p: readonly number[]) => { for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); } };
@@ -1118,15 +1128,24 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'hole': {
       const target = solids(f.target, 'target'), c = xy(f.center as CadPartPoint2, 'center'), r = dim(f.radius as CadPartDim, 'radius', true);
       const depth = f.depth === undefined ? null : dim(f.depth as CadPartDim, 'depth', true), axis = f.axis === undefined ? 'z' : axisOf(f.axis);
-      const side = f.side === undefined ? 'max' : f.side;
-      if (side !== 'min' && side !== 'max') fail('INPUT', 'side must be min or max');
+      const named = f.face === undefined ? null : f.face;
+      if (named !== null && (typeof named !== 'string' || !named)) fail('INPUT', 'face must be a face name');
+      const given = f.side;
+      if (given !== undefined && given !== 'min' && given !== 'max') fail('INPUT', 'side must be min or max');
       const csk = f.countersink === undefined ? null : dim(f.countersink as CadPartDim, 'countersink', true);
       if (csk !== null && !(csk / 2 > r)) fail('INPUT', 'a countersink must be wider than the hole');
       return () => carrySheet(many(target.map(p => {
         // The tool: a cylinder along local z over [h0, h1], centred at local (c1, c2), turned onto the axis
         // by a cyclic permutation (x: local x, y, z → world y, z, x; y: → world z, x, y).
         const box = bounds(p.solid), k = 'xyz'.indexOf(axis), hi = box.max[k], lo = box.min[k];
-        const [h0, h1] = depth === null ? [lo - 1, hi + 1] : side === 'max' ? [hi - depth, hi + 1] : [lo - 1, lo + depth];
+        // (The face drilled into: the named planar face's plane, its outward normal along ±axis the side; else the
+        // target's extreme on `side`. From a named face the tool reaches only a hair past it — 1 % of the depth, at most
+        // 1 mm — so nothing above the face is cut; from the extreme, 1 mm as before.)
+        const start = named === null ? null : holeFace(brepOf(p, at), named, k, fail);
+        const side = start ? start.side : given ?? 'max';
+        if (start && given !== undefined && given !== start.side) fail('INPUT', `side ${given} does not match ${named}, which faces ${start.side === 'max' ? '+' : '-'}${axis}`);
+        const face = start ? start.at : side === 'max' ? hi : lo, over = start && depth !== null ? Math.min(1, 0.01 * depth) : 1;
+        const [h0, h1] = depth === null ? [lo - 1, hi + 1] : side === 'max' ? [face - depth, face + over] : [face - over, face + depth];
         const local: XY = axis === 'y' ? [c[1], c[0]] : c;
         const cylinder = prismaticFromProfile({ outer: [{ kind: 'arc', start: [local[0] + r, local[1]], center: local, direction: 'ccw' }], heightMM: h1 - h0, fromMM: h0, tag: at });
         const tool: Solid = axis === 'z' ? { kind: 'upright', solid: cylinder }
@@ -1142,7 +1161,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         // face (so no face of it lies on the face). Revolved about its profile's Y (depth into the
         // material), then carried to the hole: s along local x, depth down local z from the face, the
         // revolve's z along ±local y (the map turning, not mirroring), then the hole's axis permutation.
-        const R = csk / 2, e = Math.min(0.5, R), t = R - r, face = side === 'max' ? hi : lo, down = side === 'max' ? -1 : 1;
+        const R = csk / 2, e = Math.min(0.5, R), t = R - r, down = side === 'max' ? -1 : 1;
         const cone = revolveProfile({ id: `${at}_csk`, profile: [{ kind: 'line', start: [0, -e] }, { kind: 'line', start: [R + e, -e] }, { kind: 'line', start: [r, t] }, { kind: 'line', start: [0, t] }], axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
         const M = [1, 0, 0, 0, 0, -down, 0, down, 0], P = axis === 'z' ? [1, 0, 0, 0, 1, 0, 0, 0, 1] : axis === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : [0, 1, 0, 0, 0, 1, 1, 0, 0];
         const mul = (A: number[], B: number[]) => [0, 1, 2].flatMap(i => [0, 1, 2].map(j => A[3 * i] * B[j] + A[3 * i + 1] * B[3 + j] + A[3 * i + 2] * B[6 + j]));

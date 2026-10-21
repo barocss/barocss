@@ -270,6 +270,7 @@ type ModelNodeBase = SketchNode
   | { kind: 'decimate'; parent: BodyRef; ratio?: number; triangles?: number; maxError?: number; featureAngle?: number }
   /** `thread`: a tapped hole's cosmetic thread (the hole is its tap drill), e.g. "M6×1"; studio-only. */
   | { kind: 'hole'; parent: BodyRef; center: [Dim, Dim]; radius: Dim; axis?: Axis; side?: 'min' | 'max'; depth?: Dim; thread?: string; pattern?: HolePattern;
+    /** The face it goes into, by name (D148): its depth and countersink from that face's plane, not the body's extreme. */ face?: string;
     /** A 90° countersink: its diameter at the face (the kernel cuts it with the hole). */ countersink?: number;
     /** (Older documents: a countersink's diameter for the callout only, its cone the three steps after the hole.) */ csk?: number };
 

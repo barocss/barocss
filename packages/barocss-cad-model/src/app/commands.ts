@@ -395,10 +395,11 @@ const allCommands: Command[] = [
       return out;
     },
     build: (ctx, v) => {
-      const f = ctx.selection.faces[0], body = ctx.bodies[f.body], { axis, side } = holeAxis(body.mesh.faces[f.face].normal)!;
-      // Through by default; the side is kept so a later depth edit drills in from the picked face. A
+      const f = ctx.selection.faces[0], body = ctx.bodies[f.body], picked = body.mesh.faces[f.face], { axis, side } = holeAxis(picked.normal)!;
+      // Through by default; the side, and the picked face by name (D148: depths and countersinks from its plane, wherever it
+      // sits in the body — a boss's top inside a shell), are kept so a later depth edit drills in from that face. A
       // counterbore is a second, wider hole to its depth on the same centre.
-      const at = { center: [Number(v.x), Number(v.y)] as [number, number], ...(axis === 'z' ? {} : { axis }), ...(side === 'min' ? { side } : {}) };
+      const at = { center: [Number(v.x), Number(v.y)] as [number, number], ...(axis === 'z' ? {} : { axis }), ...(side === 'min' ? { side } : {}), face: picked.name.split('+')[0] };
       if (v.type === 'counterbore' && !(Number(v.cd) > Number(v.d))) throw new Error('The counterbore must be wider than the hole.');
       if (v.type === 'countersink' && !(Number(v.csd) > Number(v.d))) throw new Error('The countersink must be wider than the hole.');
       const tapped = v.type === 'tapped' && FASTENER_SIZES[String(v.thread)], blind = v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind');

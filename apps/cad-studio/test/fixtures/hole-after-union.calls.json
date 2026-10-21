@@ -1,5 +1,5 @@
 {
- "about": "Known bug (O80, for the kernel lane): a hole on a cylinder's top face after the cylinder was united into a shelled box is refused — \"the hole at (15, 20) along z misses the target\" — though the face n4.top is on the united body. Drilled before the union, the same hole cuts (test/mould-walls.test.ts drills first). Expected: the hole cuts the boss, Ø2.5, 10 deep, coaxial with n4.side0.",
+ "about": "Fixed in D148 (was a known bug, O80): a hole on a cylinder's top face after the cylinder was united into a shelled box is refused — \"the hole at (15, 20) along z misses the target\" — though the face n4.top is on the united body. Drilled before the union, the same hole cuts (test/mould-walls.test.ts drills first). Expected: the hole cuts the boss, Ø2.5, 10 deep, coaxial with n4.side0.",
  "calls": [
   {
    "tool": "run_command",
