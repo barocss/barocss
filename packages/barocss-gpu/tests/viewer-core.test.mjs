@@ -108,7 +108,8 @@ test('viewer geometry: checks its input, computes normals, picks the nearest tri
   assert.deepEqual(g.bounds, { min: [0, 0, 0], max: [1, 1, 1] });
   // Texture coordinates: two per vertex, zeros when left out.
   assert.throws(() => prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 0, 2, 3], uvs: [0, 0, 1] }), /two numbers per vertex/);
-  assert.deepEqual([...prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 0, 2, 3] }).uvs], [0, 0, 0, 0, 0, 0, 0, 0]);
+  // (G13: none given, none kept — the viewer binds its shared zeros for them.)
+  assert.equal(prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 0, 2, 3] }).uvs, null);
   // A face id per triangle.
   assert.throws(() => prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 0, 2, 3], faces: [7] }), /one id per triangle/);
   assert.deepEqual([...prepareGeometry({ positions: quad(0), indices: [0, 1, 2, 0, 2, 3], faces: [7, 7] }).faces], [7, 7]);

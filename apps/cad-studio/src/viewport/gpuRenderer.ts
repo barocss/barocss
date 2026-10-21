@@ -529,6 +529,15 @@ export class GpuRenderer implements ViewRenderer {
 
   /** The box around the bodies and the direct curves and surfaces. */
   bounds(): { min: Vec3; max: Vec3 } | null {
+    // (Kept while what it is made of stays the same objects — the render asks for it every frame; G13.)
+    const k = this.boundsKey;
+    if (k && k[0] === this.bodies && k[1] === this.direct && k[2] === this.instances && k[3] === this.poses && k[4] === this.instancePreview && k[5] === this.clip) return this.boundsMemo;
+    this.boundsKey = [this.bodies, this.direct, this.instances, this.poses, this.instancePreview, this.clip];
+    return this.boundsMemo = this.measureBounds();
+  }
+  private boundsKey: unknown[] | null = null;
+  private boundsMemo: { min: Vec3; max: Vec3 } | null = null;
+  private measureBounds(): { min: Vec3; max: Vec3 } | null {
     if (!this.bodies.length && !this.direct.length && !this.instances.length) return null;
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
     // (Cut by the section's plane where it cuts them, as the CPU's clipped meshes' boxes are: the ambient occlusion and the fit follow it.)

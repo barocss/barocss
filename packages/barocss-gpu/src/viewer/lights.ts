@@ -64,8 +64,9 @@ export interface GridFrame { cell: number; major: number; fade: number; height: 
 
 /** The clip plane (G2): drawn where dot(normal, p) ≥ offset (normal of unit length), its cap in a colour (sRGB). */
 export interface ClipFrame { normal: Vec3; offset: number; cap: Vec3 }
-export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly number[] = [1, 1, 1, 0], grid: GridFrame | null = null, clip: ClipFrame | null = null): Float32Array {
-  const f = new Float32Array(FRAME_BYTES / 4), u = new Uint32Array(f.buffer);
+export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly number[] = [1, 1, 1, 0], grid: GridFrame | null = null, clip: ClipFrame | null = null, into: Float32Array | null = null): Float32Array {
+  // (`into`: a block kept for it, cleared and written again — G13.)
+  const f = into ? (into.fill(0), into) : new Float32Array(FRAME_BYTES / 4), u = new Uint32Array(f.buffer);
   f.set(viewProjection, 0);
   const forward = normalize(sub(camera.target, camera.position));
   const eye = camera.position; put4(f, 16, eye[0], eye[1], eye[2], camera.projection === 'perspective' ? 1 : 0);

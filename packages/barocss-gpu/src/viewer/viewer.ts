@@ -2,14 +2,14 @@
 // lived buffers and every pipeline it needs, renders on demand (one frame per animation frame at most),
 // follows the canvas size and pixel ratio, and recreates its device and re-uploads the scene when the
 // device is lost. Meshes carry a transform and a material; lights and the camera are plain data.
-import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, screenRect, transformBox, unionBox, type Box3 } from './bounds.js';
+import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, growBox, screenRect, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
 import { clippedRay, localPlane, nearestPoint, pointInstances, sceneNear, sceneRay, sceneTree, type SceneTree, prepareGeometry, prepareScalars, scalarAt, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type ClippedHit, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 type View = ReturnType<Texture['createView']>;
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
-import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrix, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
+import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrixInto, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
 import { FRAME_BYTES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
 
 export class ViewerError extends Error {
@@ -155,7 +155,8 @@ function packInstances(input: InstancesInput): { count: number; data: ArrayBuffe
 
 export class Geometry {
   /** @internal Triangles: positions, normals, colours, indices. Lines: positions holds the segment instances. */
-  gpu: { positions: Buffer; normals: Buffer | null; colors: Buffer | null; uvs: Buffer | null; indices: Buffer | null; device: Device } | null = null;
+  /** `ownUVs` false: `uvs` is the viewer's shared zero buffer (the geometry has none; G13). */
+  gpu: { positions: Buffer; normals: Buffer | null; colors: Buffer | null; uvs: Buffer | null; ownUVs?: boolean; indices: Buffer | null; device: Device } | null = null;
   disposed = false;
   constructor(readonly data: PreparedGeometry, private readonly owner: Viewer) {}
   get topology(): 'triangles' | 'lines' | 'points' { return this.data.topology; }
@@ -182,6 +183,8 @@ export class Geometry {
     if (this.data.topology !== 'triangles') throw new RangeError('Only triangle geometry has texture coordinates');
     if (uvs.length !== this.data.vertexCount * 2) throw new RangeError('uvs must hold two numbers per vertex');
     this.data.uvs = Float32Array.from(uvs);
+    // (Drawn with the shared zeros until now: its own buffer from here.)
+    if (this.gpu && !this.gpu.ownUVs) { this.gpu.uvs = this.gpu.device.createBuffer({ size: Math.max(4, this.data.uvs.byteLength), usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'uvs' }); this.gpu.ownUVs = true; }
     if (this.gpu?.uvs) this.gpu.device.queue.writeBuffer(this.gpu.uvs, 0, this.data.uvs);
     this.owner.requestRender();
   }
@@ -205,7 +208,7 @@ export class Geometry {
   /** @internal */ release(): void {
     this.releaseScalars();
     if (!this.gpu) return;
-    this.gpu.positions.destroy(); this.gpu.normals?.destroy(); this.gpu.colors?.destroy(); this.gpu.uvs?.destroy(); this.gpu.indices?.destroy();
+    this.gpu.positions.destroy(); this.gpu.normals?.destroy(); this.gpu.colors?.destroy(); if (this.gpu.ownUVs) this.gpu.uvs?.destroy(); this.gpu.indices?.destroy();
     this.gpu = null;
   }
 }
@@ -334,13 +337,14 @@ export class Mesh {
   /** @internal The object block (see Object in shaders.ts); lines carry their width in device pixels. */
   pack(into: Float32Array, at: number, pixelRatio: number): void {
     const f = into, m = this._material, o = at / 4;
+    // (G13: written in place — a scratch normal matrix, the colour by its parts.)
     f.set(this._transform, o);
-    f.set(normalMatrix(this._transform), o + 16);
-    f.set([...linear(m.color), m.opacity], o + 32);
-    if (this.geometry.topology === 'lines') f.set([m.lineWidth * pixelRatio, (m.lineDash?.[0] ?? 0) * pixelRatio, (m.lineDash?.[1] ?? 0) * pixelRatio, m.lineHidden], o + 36);
-    else if (this.geometry.topology === 'points') f.set([m.pointSize * pixelRatio, (m.pointBorder?.width ?? 0) * pixelRatio, m.pointShape === 'square' ? 0 : 1, m.lineHidden], o + 36);
-    else f.set([m.metallic, m.roughness, m.emissive, m.unlit ? 1 : 0], o + 36);
-    new Uint32Array(f.buffer).set([this.id, this.outlineSlot, (this._receiveShadow ? 1 : 0) | (this._clipped ? 2 : 0), Math.round(m.alphaCutoff * 1000)], o + 40);
+    f.set(normalMatrixInto(packNormal, this._transform), o + 16);
+    f[o + 32] = srgbToLinear(m.color[0]); f[o + 33] = srgbToLinear(m.color[1]); f[o + 34] = srgbToLinear(m.color[2]); f[o + 35] = m.opacity;
+    if (this.geometry.topology === 'lines') { f[o + 36] = m.lineWidth * pixelRatio; f[o + 37] = (m.lineDash?.[0] ?? 0) * pixelRatio; f[o + 38] = (m.lineDash?.[1] ?? 0) * pixelRatio; f[o + 39] = m.lineHidden; }
+    else if (this.geometry.topology === 'points') { f[o + 36] = m.pointSize * pixelRatio; f[o + 37] = (m.pointBorder?.width ?? 0) * pixelRatio; f[o + 38] = m.pointShape === 'square' ? 0 : 1; f[o + 39] = m.lineHidden; }
+    else { f[o + 36] = m.metallic; f[o + 37] = m.roughness; f[o + 38] = m.emissive; f[o + 39] = m.unlit ? 1 : 0; }
+    const u = packWords(f); u[o + 40] = this.id; u[o + 41] = this.outlineSlot; u[o + 42] = (this._receiveShadow ? 1 : 0) | (this._clipped ? 2 : 0); u[o + 43] = Math.round(m.alphaCutoff * 1000);
     // (A point's border colour where a surface's cap colour goes.)
     const capOrBorder = this.geometry.topology === 'points' ? m.pointBorder?.color ?? null : this._capColor;
     if (capOrBorder) { const c = linear(capOrBorder); f[o + 44] = c[0]; f[o + 45] = c[1]; f[o + 46] = c[2]; f[o + 47] = 1; } else f.fill(0, o + 44, o + 48);
@@ -445,7 +449,9 @@ const OIT_ACCUM = 'rgba16float', OIT_REVEAL = 'r16float';
 /** Whether a mesh goes through the order-independent pass (G11): a see-through surface (a shadow catcher darkens, it stays). */
 const oitSurface = (m: Mesh): boolean => m.geometry.topology === 'triangles' && m.transparent && !m.material.shadowOnly;
 
-const sortKeys = new Map<Mesh, string>();
+const sortKeys = new Map<Mesh, number>();
+const pipelineIds = new Map<string, number>();
+const pipelineOrder = (key: string): number => { let i = pipelineIds.get(key); if (i === undefined) { i = pipelineIds.size; pipelineIds.set(key, i); } return i; };
 const byPipeline = (a: Mesh, b: Mesh): number => { const x = sortKeys.get(a)!, y = sortKeys.get(b)!; return x < y ? -1 : x > y ? 1 : 0; };
 const farFirst = (a: { d: number }, b: { d: number }): number => b.d - a.d;
 export class Viewer {
@@ -499,8 +505,9 @@ export class Viewer {
   /** The scene's box while a frame is drawn (asked for by the shadow, occlusion and camera clip). */
   private frameBox: { box: Box3 | null } | null = null;
   /** What the shadow map was last drawn from (device, size, light view, each caster), as numbers: unchanged, it is kept. */
-  private shadowDrawn: number[] = [];
-  private shadowNext: number[] = [];
+  private shadowDrawn = new Float64Array(0);
+  private shadowNext = new Float64Array(0);
+  private shadowDrawnLength = -1;
   /** The frame's shadow casters (a list kept from frame to frame). */
   private casterList: Mesh[] = [];
   private ids = new WeakMap<object, number>();
@@ -901,8 +908,14 @@ export class Viewer {
   /** The box around every visible mesh (a clipped mesh's box cut by an axis-aligned clip plane, as a clipped copy's would be). */
   sceneBounds(): Box3 | null {
     if (this.frameBox) return this.frameBox.box;
+    // (Grown in one box, G13: no box a mesh.)
     let b: Box3 | null = null;
-    for (const m of this.meshes) if (m.visible && m.bounded && !m.geometry.disposed) b = unionBox(b, this.clip && m.clipped ? clipBox(m.bounds, this.clip) : m.bounds);
+    for (const m of this.meshes) {
+      if (!m.visible || !m.bounded || m.geometry.disposed) continue;
+      const x = this.clip && m.clipped ? clipBox(m.bounds, this.clip) : m.bounds;
+      if (!x) continue;
+      if (!b) b = { min: [x.min[0], x.min[1], x.min[2]], max: [x.max[0], x.max[1], x.max[2]] }; else growBox(b, x);
+    }
     return b;
   }
 
@@ -1113,6 +1126,17 @@ export class Viewer {
     return this.oit;
   }
 
+  /** Zero texture coordinates for n vertices, one buffer shared by the geometries without their own (G13), grown by doubling. */
+  private zeroUV: { device: Device; buffer: Buffer; vertices: number } | null = null;
+  private zeroUVs(n: number): Buffer {
+    const z = this.zeroUV;
+    if (z && z.device === this.device && z.vertices >= n) return z.buffer;
+    // (A smaller one stays with the geometries bound to it — only the larger is made; zeros on creation.)
+    const vertices = Math.max(65536, 2 ** Math.ceil(Math.log2(Math.max(1, n))));
+    this.zeroUV = { device: this.device, vertices, buffer: this.device.createBuffer({ size: vertices * 8, usage: BufferUsage.VERTEX, label: 'viewer zero uvs' }) };
+    return this.zeroUV.buffer;
+  }
+
   private upload(g: Geometry): boolean {
     if (g.disposed) return false;
     if (g.gpu && g.gpu.device === this.device) return true;
@@ -1128,14 +1152,16 @@ export class Viewer {
       : {
         device: d,
         positions: buffer(data.positions, BufferUsage.VERTEX, 'positions'), normals: buffer(data.normals, BufferUsage.VERTEX, 'normals'),
-        colors: buffer(data.colors, BufferUsage.VERTEX, 'colors'), uvs: buffer(data.uvs, BufferUsage.VERTEX, 'uvs'), indices: data.indices ? buffer(data.indices, BufferUsage.INDEX, 'indices') : null,
+        colors: buffer(data.colors, BufferUsage.VERTEX, 'colors'), uvs: data.uvs ? buffer(data.uvs, BufferUsage.VERTEX, 'uvs') : this.zeroUVs(data.vertexCount), ownUVs: !!data.uvs, indices: data.indices ? buffer(data.indices, BufferUsage.INDEX, 'indices') : null,
       };
     return true;
   }
 
   /** The meshes to draw this frame: visible, uploaded and in the frustum; opaque first, then transparent back to front. */
   private visibleMeshes(viewProjection: Mat4): { opaque: Mesh[]; transparent: Mesh[]; culled: number } {
-    const planes = frustumPlanes(viewProjection), opaque: Mesh[] = [], transparent: { m: Mesh; d: number }[] = [];
+    // (The lists and the transparent meshes' entries kept from frame to frame, G13.)
+    const planes = frustumPlanes(viewProjection), opaque = this.visOpaque, transparent = this.visEntries;
+    opaque.length = 0; let entries = 0;
     let culled = 0;
     const eye = this.camera.position, forward = this.camera.basis().forward;
     for (const m of this.meshes) {
@@ -1143,20 +1169,27 @@ export class Viewer {
       const b = m.bounds;
       if (b && !boxInFrustum(planes, b)) { culled++; continue; }
       // (Lines over the scene after everything, transparent or not.)
-      if (m.geometry.topology !== 'triangles' && m.material.lineOver) transparent.push({ m, d: -1e300 });
-      else if (m.transparent) {
-        const c = b ? [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2, (b.min[2] + b.max[2]) / 2] as Vec3 : eye;
-        transparent.push({ m, d: dot(sub(c, eye), forward) });
-      } else opaque.push(m);
+      let d = 0;
+      if (m.geometry.topology !== 'triangles' && m.material.lineOver) d = -1e300;
+      else if (m.transparent) d = b ? ((b.min[0] + b.max[0]) / 2 - eye[0]) * forward[0] + ((b.min[1] + b.max[1]) / 2 - eye[1]) * forward[1] + ((b.min[2] + b.max[2]) / 2 - eye[2]) * forward[2] : 0;
+      else { opaque.push(m); continue; }
+      const e = transparent[entries] ??= { m, d }; e.m = m; e.d = d; entries++;
     }
+    transparent.length = entries;
     // Opaque surfaces by pipeline (fewer state changes), then lines (they test depth but do not write
     // it, so they come after the surfaces), then transparent far to near.
     // (The keys in a map kept for the purpose, and comparators at module level: no closures a frame; PERF3 C17.)
-    sortKeys.clear(); for (const m of opaque) sortKeys.set(m, (m.geometry.topology !== 'triangles' ? '1' : '0') + this.pipelineKey(m, false));
+    // (Numbers, G13: an id a pipeline key, lines and points after the surfaces — no string a mesh a frame.)
+    sortKeys.clear(); for (const m of opaque) sortKeys.set(m, (m.geometry.topology !== 'triangles' ? 1e6 : 0) + pipelineOrder(this.pipelineKey(m, false)));
     opaque.sort(byPipeline); sortKeys.clear();
     transparent.sort(farFirst);
-    return { opaque, transparent: transparent.map(t => t.m), culled };
+    const list = this.visTransparent; list.length = entries;
+    for (let i = 0; i < entries; i++) list[i] = transparent[i].m;
+    return { opaque, transparent: list, culled };
   }
+  private visOpaque: Mesh[] = [];
+  private visTransparent: Mesh[] = [];
+  private visEntries: { m: Mesh; d: number }[] = [];
 
   private pipelineKey(m: Mesh, pick: boolean | 'mask'): PipelineKey {
     const mat = m.material, two = mat.doubleSided ? '2' : '', t = m.transparent ? (this.oitDrawing ? 'O' : 'T') : '';
@@ -1190,7 +1223,9 @@ export class Viewer {
   }
 
   private writeUniforms(viewProjection: Mat4, shadow: ShadowFrame | null = null): void {
-    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, [this.canvas.width, this.canvas.height, this.pixelRatio, boxRadius(this.sceneBounds() ?? { min: [0, 0, 0], max: [1, 1, 1] })], this.gridFrame(), this.clip));
+    // (Into the frame block kept for it, G13.)
+    const vpt = frameViewport; vpt[0] = this.canvas.width; vpt[1] = this.canvas.height; vpt[2] = this.pixelRatio; const sb = this.sceneBounds(); vpt[3] = sb ? boxRadius(sb) : 0.866;
+    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, vpt, this.gridFrame(), this.clip, frameBlock));
     if (shadow) this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, packFrame(shadow.viewProjection, this.camera, [], this.environment, null, [1, 1, 1], null, this.clip));
     let lo = Infinity, hi = -1;
     for (const m of this.meshes) if (m.dirty) {
@@ -1228,7 +1263,7 @@ export class Viewer {
   private drawMesh(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }, pick: boolean | 'mask'): void {
     const p = this.pipelines.get(this.pipelineKey(m, pick))!, g = m.geometry.gpu!, data = m.geometry.data;
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
-    pass.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
+    { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
     if (data.topology === 'lines') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount / 2); return; }
     if (data.topology === 'points') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount); return; }
     if (!pick && m.mapped) { this.drawMapped(pass, m); return; }
@@ -1239,7 +1274,7 @@ export class Viewer {
   private drawHiddenLines(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }): void {
     const points = m.geometry.topology === 'points', p = this.pipelines.get(points ? 'pointHidden' : 'lineHidden')!;
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
-    pass.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
+    { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
     pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, points ? m.geometry.data.elementCount : m.geometry.data.elementCount / 2);
   }
 
@@ -1289,7 +1324,7 @@ export class Viewer {
     pass.setPipeline(this.pipelines.get('capFront')!);
     for (const m of opaque) {
       if (m.geometry.topology !== 'triangles') continue;
-      pass.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
+      { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
       this.drawTriangles(pass, m, false);
     }
     pass.end();
@@ -1302,7 +1337,7 @@ export class Viewer {
       if (!this.capped(m) || (key === 'capPick' && !m.pickable)) continue;
       const p = this.pipelines.get(key)!;
       if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
-      pass.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
+      { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
       this.drawTriangles(pass, m, key === 'litCap');
       n++;
     }
@@ -1315,17 +1350,22 @@ export class Viewer {
   }
   /** Whether the shadow map must be drawn again: the light's view or a caster changed since it was (recorded when so). */
   private shadowChanged(viewProjection: ArrayLike<number>, casters: readonly Mesh[]): boolean {
-    const k = this.shadowNext; k.length = 0;
-    k.push(this.idOf(this.device), this.shadowMapSize);
+    // (The key in a typed array kept from frame to frame, grown when needed — G13: an array of numbers emptied and
+    // filled again each frame was its own new store, 70 KiB a frame for 240 casters.)
+    const need = 3 + 4 + viewProjection.length + casters.length * 20;
+    if (this.shadowNext.length < need) this.shadowNext = new Float64Array(need * 2);
+    const k = this.shadowNext;
+    let n = 0;
+    k[n++] = this.idOf(this.device); k[n++] = this.shadowMapSize;
     // (The clip plane changes what casts.)
-    if (this.clip) k.push(1, ...this.clip.normal, this.clip.offset); else k.push(0);
-    for (let i = 0; i < viewProjection.length; i++) k.push(viewProjection[i]);
-    for (const m of casters) { k.push(m.slot, this.idOf(m.geometry), m.geometry.gpu ? 1 : 0, m.instances ? this.idOf(m.instances) : 0); for (let i = 0; i < m.transform.length; i++) k.push(m.transform[i]); }
+    if (this.clip) { k[n++] = 1; k[n++] = this.clip.normal[0]; k[n++] = this.clip.normal[1]; k[n++] = this.clip.normal[2]; k[n++] = this.clip.offset; } else k[n++] = 0;
+    for (let i = 0; i < viewProjection.length; i++) k[n++] = viewProjection[i];
+    for (const m of casters) { k[n++] = m.slot; k[n++] = this.idOf(m.geometry); k[n++] = m.geometry.gpu ? 1 : 0; k[n++] = m.instances ? this.idOf(m.instances) : 0; const t = m.transform; for (let i = 0; i < t.length; i++) k[n++] = t[i]; }
     const was = this.shadowDrawn;
-    let same = was.length === k.length;
-    for (let i = 0; same && i < k.length; i++) same = was[i] === k[i];
+    let same = this.shadowDrawnLength === n;
+    for (let i = 0; same && i < n; i++) same = was[i] === k[i];
     if (same) return false;
-    this.shadowDrawn = k; this.shadowNext = was;
+    this.shadowDrawn = k; this.shadowNext = was; this.shadowDrawnLength = n;
     return true;
   }
   /** Number each distinct outline colour of the frame (up to MAX_OUTLINES; later ones share the last). */
@@ -1364,17 +1404,18 @@ export class Viewer {
     const vp = this.prepareCamera();
     const { opaque, transparent, culled } = this.visibleMeshes(vp);
     const outlines = this.outlineColors();
+    const outlineArea = outlines.length ? this.outlineRect(vp) : null;
     const shadow = this.shadowFrame();
     if (shadow && (!this.shadowMap || this.shadowMap.width !== this.shadowMapSize)) {
       this.shadowMap?.destroy();
       this.shadowMap = this.device.createTexture({ size: [this.shadowMapSize, this.shadowMapSize], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer shadow map' });
       this.bindFrames();
-      this.shadowDrawn.length = 0;
+      this.shadowDrawnLength = -1;
     }
     const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
     if (env !== this.boundEnv || (env && !env.gpu)) this.bindFrames();
     this.writeUniforms(vp, shadow);
-    this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlines.length ? this.outlineRect(vp) : null)));
+    this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlineArea)));
     const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.views.scene;
     const enc = this.device.createCommandEncoder();
     // (The shadow map is drawn again only when the light's view or a caster changed.)
@@ -1454,8 +1495,19 @@ export class Viewer {
         depthStencilAttachment: { view: targets.views.maskDepth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
       });
       mask.setBindGroup(0, this.frameGroup);
+      // (G13: only where the outline can be — the output reads the mask within that rectangle alone — so only the
+      // meshes whose screen box meets it, scissored to it.)
+      const W = this.canvas.width, H = this.canvas.height, a = outlineArea;
+      if (a) {
+        const x0 = Math.max(0, Math.floor(a[0])), y0 = Math.max(0, Math.floor(a[1])), x1 = Math.min(W, Math.ceil(a[2]) + 1), y1 = Math.min(H, Math.ceil(a[3]) + 1);
+        if (x1 > x0 && y1 > y0) mask.setScissorRect(x0, y0, x1 - x0, y1 - y0);
+      }
       const cur: { pipeline?: Pipeline } = {};
-      for (const list of [opaque, transparent]) for (const m of list) if (m.geometry.topology === 'triangles' && (!m.transparent || m.outlineSlot)) this.drawMesh(mask, m, cur, 'mask');
+      for (const list of [opaque, transparent]) for (const m of list) {
+        if (m.geometry.topology !== 'triangles' || (m.transparent && !m.outlineSlot)) continue;
+        if (a && !m.outlineSlot && m.bounds && boxMissesRect(vp, m.bounds, a, W, H)) continue;
+        this.drawMesh(mask, m, cur, 'mask');
+      }
       // (Caps hide what is behind them, and carry their mesh's outline.)
       this.drawCaps(mask, opaque, cur, 'capMask');
       mask.end();
@@ -1825,6 +1877,21 @@ export function clipBox(b: Box3 | null, c: { normal: ArrayLike<number>; offset: 
 
  /** The segments of a mesh found hidden during one line pick (kept from pick to pick), and how many are tried. */
 const hiddenSegments = new Set<number>();
+/** Whether a box wholly in front of the eye lands on screen (device pixels, w × h) clear of a rectangle (x0, y0, x1, y1). */
+function boxMissesRect(m: ArrayLike<number>, b: Box3, r: readonly number[], w: number, h: number): boolean {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i < 8; i++) {
+    const x = i & 1 ? b.max[0] : b.min[0], y = i & 2 ? b.max[1] : b.min[1], z = i & 4 ? b.max[2] : b.min[2];
+    const cw = m[3] * x + m[7] * y + m[11] * z + m[15]; if (!(cw > 1e-9)) return false;
+    const sx = ((m[0] * x + m[4] * y + m[8] * z + m[12]) / cw * 0.5 + 0.5) * w, sy = (0.5 - (m[1] * x + m[5] * y + m[9] * z + m[13]) / cw * 0.5) * h;
+    if (sx < x0) x0 = sx; if (sx > x1) x1 = sx; if (sy < y0) y0 = sy; if (sy > y1) y1 = sy;
+  }
+  return x1 < r[0] || x0 > r[2] || y1 < r[1] || y0 > r[3];
+}
+// (G13: scratch kept across frames — the object block's normal matrix, its 32-bit words, a draw's dynamic offset.)
+const packNormal = new Float64Array(16), dynamicOffset = new Uint32Array(1), frameBlock = new Float32Array(FRAME_BYTES / 4), frameViewport = [1, 1, 1, 0];
+const packViews = new WeakMap<ArrayBuffer, Uint32Array>();
+const packWords = (f: Float32Array): Uint32Array => { let u = packViews.get(f.buffer as ArrayBuffer); if (!u) { u = new Uint32Array(f.buffer); packViews.set(f.buffer as ArrayBuffer, u); } return u; };
 // (The scene trees' candidates, reused a pick: leaves, where a ray enters them, their order by entry; G9.)
 const candLeaves: number[] = [], candTs: number[] = [], candOrder: number[] = [], markOut: Mesh[] = [];
 const byEntry = (a: number, b: number): number => candTs[a] - candTs[b] || candLeaves[a] - candLeaves[b];

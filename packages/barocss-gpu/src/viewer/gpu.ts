@@ -8,7 +8,7 @@ export interface BindGroupLayout { readonly __layout?: never }
 export interface Pipeline { getBindGroupLayout(index: number): BindGroupLayout }
 export interface RenderPass {
   setPipeline(pipeline: Pipeline): void;
-  setBindGroup(index: number, group: BindGroup, dynamicOffsets?: number[]): void;
+  setBindGroup(index: number, group: BindGroup, dynamicOffsets?: number[] | Uint32Array, start?: number, length?: number): void;
   setVertexBuffer(slot: number, buffer: Buffer): void;
   setIndexBuffer(buffer: Buffer, format: 'uint16' | 'uint32'): void;
   setScissorRect(x: number, y: number, width: number, height: number): void;
