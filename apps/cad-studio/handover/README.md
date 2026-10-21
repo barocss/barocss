@@ -41,7 +41,16 @@ track K → queue block below, the **kernel-lane queue** is done: five items, D1
 - **Test layout** (PKG-h, the outer lane): model-level tests live in `packages/barocss-cad-model/test` (`pnpm test` there, about 630). The studio keeps UI, viewport and server tests (about 185). Report both.
 - **Checks at this boundary (T3 part)**, on D152, with the time each took on this shared machine:
 
-CHECKS_TABLE
+  | Check | Result | Time |
+  |---|---|---|
+  | lint / type-check: kernel | clean / clean | 9 s / 7 s |
+  | Kernel suite, conformance included | 1420/1429 (6 skipped). It failed the two tolerances D152 moved, which pass alone after the move; otherwise only the env-only "actual native Split source…" fails | 300 s |
+  | `@barocss/cad-model` / studio | 635/635 / 186/186 | 112 s / 22 s |
+  | Test names against the saved lists | none missing | — |
+  | `FLOW_ONLY`: the Boolean, gear, fillet, shell, loft, sweep and IM7 steps | 42/42 | 251 s |
+  | RB (T3) | 377 cases, 0 new, the 8 known TODOs | 68 s |
+  | Properties (T3) | 11/11 | 166 s |
+  | Full browser flow | the coordinator's, per merge window (rules v2) | — |
 
 **Next: R12c** (D139: its stages frozen R12c.1a–R12c.8, with their oracles and refusals). Springs come first. Owner (2026-10-21): "R12c 기본값 세 가지 그대로 가. 끼워맞춤 표는 사용자가 불러오고, O-링 범위와 스프링 G는 추정값으로 표시해." New commands go in as v2 group actions only, under the 25 000-per-turn guard. After R12c, the FR completion share (roadmap item 5, kernel lane).
 
