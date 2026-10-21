@@ -4313,3 +4313,24 @@ The coordinator merged PKG-e as 8a3badab2. PKG-f moves the 48 files that depende
   - local structural types for `Transferable` and `BlobPart`;
   - then DOM dropped from the package's `lib`, if it type-checks.
 - **Checks**: the same T2 run as PKG-f (O97), with this config in place: the package's and the kernel's lint 0.
+
+## O99 — PKG-g2: the recovery blobs' store set by the app; the model's lib without DOM (2026-10-21)
+
+The coordinator's plan after O98. Without DOM the package had 8 type errors: IndexedDB in `engine/blobs.ts`, `Transferable` in `engine/meshWire.ts`, `BlobPart` in `io/zip.ts`.
+
+- **`BlobStore`** (`engine/blobs.ts`), the same pattern as B4's `LibraryStore`:
+  - an async store of typed arrays by hash (`keys`, `get`, `put`, `delete`), set by the app with `setBlobStore`;
+  - `saveRecoveryBlobs`, `loadRecoveryBlobs` and `collectRecoveryBlobs` go through it. With none set (a test, the CLI, the servers), nothing is kept and nothing found, as before in Node, where `indexedDB` was undefined;
+  - the model no longer names IndexedDB.
+- **`src/ui/blobStore.ts`** (the app): `indexedDbBlobStore()`, the IndexedDB code moved from the model as it was (the `studio.blobs` database, its `blobs` store, one open and close per call, storage that is missing or refused keeping nothing). `App.tsx` sets it at load, before the studio reads or writes a recovery copy.
+- **Local types, no DOM names**:
+  - `meshWire.ts` exports `type Transfer = ArrayBuffer` (its pushes cast `as ArrayBuffer`). The worker passes the list to `postMessage` as before;
+  - `zip.ts`'s `BlobPiece` reads the part type off `Blob`'s own constructor, so it is the same under the DOM's lib and Node's.
+- **The package's `lib` is `["ES2022"]`**: it type-checks without DOM, with `@types/node` supplying `Blob`, `CompressionStream`, `Response`, `TextEncoder` and `performance`. The app's tsconfig, with DOM, type-checks the same files too.
+- **Test** (`test/pkg-boundary.test.ts`, +1):
+  - with none set, a mesh's blobs are not kept (false);
+  - with a Map-backed store set, both are kept;
+  - a recovered document naming blobs this session has not loaded reads them back into the blob store;
+  - collecting with no document empties the store;
+  - `engine/blobs.ts` names no IndexedDB, and the package's lib has no DOM.
+- **Checks: T2**, since `App.tsx` changed (results in the checkpoint).

@@ -27,7 +27,10 @@ import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
 import { Timeline } from './ui/Timeline';
 import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
-import { collectRecoveryBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs } from '@barocss/cad-model/engine/blobs';
+import { collectRecoveryBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs, setBlobStore } from '@barocss/cad-model/engine/blobs';
+import { indexedDbBlobStore } from './ui/blobStore';
+// (The recovery copy's blobs kept in this browser's IndexedDB: the store set before the studio reads or writes one — PKG-g2.)
+setBlobStore(indexedDbBlobStore());
 import { MeshRepairPanel } from './ui/MeshRepairPanel';
 import { DEFAULT_REPAIR, MESH_PLANAR_TRIANGLES, bendTableProblem, type BendTable, type MeshDiagnosis, type MeshRepairResult, type MeshRepairSteps } from '@barocss/cad';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';

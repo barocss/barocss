@@ -9,21 +9,23 @@ import type { DisplayMesh } from './mesh';
 export type WireBody = Omit<BodyResult, 'mesh'> & ({ mesh: DisplayMesh; meshToken: number } | { meshRef: number });
 export type WireResult = { ok: true; revision: number; bodies: WireBody[]; ms: number; faceTable?: unknown } | Extract<EvalResult, { ok: false }>;
 
+/** What a reply transfers: its meshes' buffers (a worker's `postMessage` takes them as its transfer list; PKG-g2: no DOM type). */
+export type Transfer = ArrayBuffer;
 /** The worker's side: kept meshes in, posted replies out. */
 export class MeshSender {
   private sent = new Map<string, Map<DisplayMesh, number>>();
   private next = 1;
   /** The reply for `slot` and the buffers it transfers; a mesh posted is a copy (the kept one stays whole). */
-  pack(slot: string, result: EvalResult): { result: WireResult; transfer: Transferable[] } {
+  pack(slot: string, result: EvalResult): { result: WireResult; transfer: Transfer[] } {
     if (!result.ok) { this.sent.set(slot, new Map()); return { result, transfer: [] }; }
-    const before = this.sent.get(slot), now = new Map<DisplayMesh, number>(), transfer: Transferable[] = [];
+    const before = this.sent.get(slot), now = new Map<DisplayMesh, number>(), transfer: Transfer[] = [];
     const bodies: WireBody[] = result.bodies.map(body => {
       const { mesh, ...rest } = body;
       const token = now.get(mesh) ?? before?.get(mesh);
       if (token !== undefined) { now.set(mesh, token); return { ...rest, meshRef: token }; }
       const t = this.next++, copy = copyMesh(mesh);
       now.set(mesh, t);
-      transfer.push(copy.positions.buffer, copy.normals.buffer, copy.faceOfVertex.buffer, copy.indices.buffer, copy.edgeLines.buffer, copy.edgeOfSegment.buffer);
+      transfer.push(copy.positions.buffer as ArrayBuffer, copy.normals.buffer as ArrayBuffer, copy.faceOfVertex.buffer as ArrayBuffer, copy.indices.buffer as ArrayBuffer, copy.edgeLines.buffer as ArrayBuffer, copy.edgeOfSegment.buffer as ArrayBuffer);
       return { ...rest, mesh: copy, meshToken: t };
     });
     this.sent.set(slot, now);
