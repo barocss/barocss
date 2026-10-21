@@ -3853,6 +3853,39 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
+
+  // ---- O138: a key's width fit — classes on the key's, keyseat's and keyway's sides -----------------------------------
+  await check('key width fit (O138): a fit table loaded (none built in); the default shaft, a hub with its keyway and the key made through the chat, h9 on the key\'s side, N9 on the keyseat, JS9 on the keyway — both width fits in the key\'s notes', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const table = { id: 'key-fits', rows: [{ class: 'N9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }, { class: 'JS9', overMM: 3, upToMM: 6, upperUM: 15, lowerUM: -15, estimate: true }, { class: 'h9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }] };
+    const file = join(out, 'key-fits.json'); fs.writeFileSync(file, JSON.stringify(table));
+    await page.click('[aria-label="Library"]');
+    try { await page.setInputFiles('input[aria-label="Fit table file"]', file); await page.waitForFunction(() => window.__studioDoc.fits?.tables?.length === 1, null, { timeout: 10000 }); }
+    finally { await page.click('[aria-label="Close library"]'); }
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      if (!await page.locator('[aria-label="Chat message"]').count()) await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), cmd = (command, values, sel) => ({ tool: 'features', args: { action: 'command', command, values, ...(sel ?? {}) } });
+      // (Ids as they come: the shaft n0, the tube n1–n2, the keyway n3, the key n4 — its side0 the round-ended key's first straight side.)
+      const calls = [cmd('shaft', {}), cmd('tube', { r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 }), cmd('keyway', { b: 6, t2: 2.8 }, { faces: ['n2.hole0.side0'] }), cmd('key', { h: 6 }, { bodies: ['b0'] }),
+        cmd('fit-class', { class: 'h9' }, { faces: ['n4.side0'] }), cmd('fit-class', { class: 'N9' }, { faces: ['n0.keyseat1'] }), cmd('fit-class', { class: 'JS9' }, { faces: ['n3.keyway'] })];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      const errors = await page.locator('.chat-tool.err').allInnerTexts();
+      assert.deepEqual(errors, []);
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc.fits?.faces?.length === 3, null, { timeout: 60000 }); await idle();
+    await page.locator('.outliner .ol', { hasText: /^Key/ }).first().click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /Width fit in the seat/.test(x.textContent ?? '')), null, { timeout: 30000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning\s*/, '').trim());
+    assert.ok(notes.includes('Width fit in the seat: N9/h9 at 6 mm — transition, −0.03 to +0.03 mm clearance (an estimate)'), notes.join(' | '));
+    assert.ok(notes.includes('Width fit in the hub\'s keyway: JS9/h9 at 6 mm — transition, −0.015 to +0.045 mm clearance (an estimate)'), notes.join(' | '));
+    await snap('key-width-fit');
+  });
   await check('FRc the section library in the Library panel: a row, a frame on it via the chat (133 200 mm³), the row edited (172 800), a used row kept (O117)', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });

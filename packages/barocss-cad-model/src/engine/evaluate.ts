@@ -545,6 +545,9 @@ function shaftPartNotes(o: CadPartSnapshot['outputs'][number]): { text: string; 
     out.push({ text: `Key ${mm(k.widthMM)} × ${mm(k.heightMM)} × ${mm(k.lengthMM)} (${k.ends} ends) in keyseat ${k.keyseat}: ${mm(k.seatPlayMM)} play in the seat's width, ${mm(k.lengthRoomMM)} to spare in its length; it stands ${mm(k.standsMM)} above the shaft` });
     if (k.hub) out.push({ text: `In the hub's keyway: ${mm(k.hub.keywayPlayMM)} play in its width, ${mm(k.hub.topClearanceMM)} under its floor` });
     else out.push({ text: 'No hub keyway given: the key\'s top clearance is not checked', warning: true });
+    // (O138: the width fits from the classes on the key's, the seat's and the keyway's sides — the user's tables.)
+    const um = (x: number) => `${x > 0 ? '+' : x < 0 ? '−' : ''}${mm(Math.abs(x) / 1000)}`;
+    for (const [where, f] of [['seat', k.seatFit], ['hub\'s keyway', k.hubFit]] as const) if (f) out.push({ text: `Width fit in the ${where}: ${f.hole.class}/${f.shaft.class} at ${mm(k.widthMM)} mm — ${f.kind}, ${um(f.clearanceMinUM)} to ${um(f.clearanceMaxUM)} mm clearance${f.estimate ? ' (an estimate)' : ''}`, ...(f.estimate ? { warning: true } : {}) });
   }
   if (o.keyway) { const w = o.keyway; out.push({ text: `Keyway ${mm(w.widthMM)} wide, ${mm(w.depthMM)} deep in the Ø${mm(2 * w.boreRadiusMM)} bore (its floor ${mm(w.floorRadiusMM)} from the axis), ${mm(w.toMM - w.fromMM)} long at ${mm(w.angleDeg)}°` }); }
   if (o.ring) { const r = o.ring; out.push({ text: `Retaining ring ${mm(r.thicknessMM)} thick, Ø${mm(r.innerDiameterMM)} to Ø${mm(r.outerDiameterMM)} in groove ${r.groove}: ${mm(r.axialPlayMM)} axial play` }); if (r.estimate) out.push({ text: 'The ring\'s sizes are an estimate: your ring\'s row gives them', warning: true }); }

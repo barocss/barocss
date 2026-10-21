@@ -5327,3 +5327,17 @@ The S0 (O129) was approved with two notes: `changedFaces` must be complete when 
 ## O137 — the inline dimension editor above the top bar (2026-10-22)
 
 The coordinator flagged a regression from O127's z 6 top bar: `.dim-edit` (the sketch's inline dimension input, z 5) went under the bar when the edited dimension sat in the top 36 px of the window. Of the two options offered, it is raised to z 7, above the bar and below the palette's backdrop (10), rather than clamped below the bar: the input stays at its dimension. It is transient, and is gone before a menu of the bar can open. Flow, in "explicit constraints and dimensions…": the open editor is moved into the bar's band (top 8 px). The point at its middle is the editor, not the bar, and it then still takes its value.
+
+## O138 — a key's width fit in the studio (2026-10-22)
+
+The coordinator's queue after O137, the kernel lane's open studio item. Fit class took only cylindrical faces; a key's fit is on its width, between planar sides.
+
+- **Fit class** now also takes a planar face, if it is a side of a key (`n4.side0`), of a shaft's keyseat (`n0.keyseat1`) or of a hub's keyway (`n3.keyway`): `keyFitRole` in engine/fits.ts. The class is stored like a cylinder's, in `doc.fits.faces`. Any other plane is refused, saying what is allowed. **Fit pair** stays cylinders only: a key pairs its own classes.
+- **Evaluation** (engine/part.ts): a key node takes the classes on its own sides (a shaft's class), its keyseat's and its hub keyway's (holes' classes), via `keyClasses`. It gives them to D157's kernel `fit: {tables, key, seat?, hub?}`. The size is the key's width; the limits come from D155's `fitLimits` on the user's tables (none built in).
+- **Notes**: the key's notes add "Width fit in the seat: N9/h9 at 6 mm — transition, −0.03 to +0.03 mm clearance (an estimate)", and the same for the hub's keyway; an estimate row is a warning.
+- **Refusals**, typed FIT_FACE:
+  - a hole's class on the key's side, or a shaft's class on a seat or keyway;
+  - a seat or keyway classed while the key has no class;
+  - a row missing (the kernel's lookup error).
+  The kernel's KEY_FIT rule stands: with classes, the key is modelled at its seat's width.
+- **Tests**: `test/key-fit.test.ts`, with the test's own estimate rows. N9/h9 gives −30 to +30 µm, JS9/h9 −15 to +45, both transition; plus the refusals and the plain-plane refusal. The flow step "key width fit (O138)…" loads the table in the Library panel, builds the shaft, hub, keyway and key through the real chat, classes the three sides through the chat, and reads both notes from the key's body.
