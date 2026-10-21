@@ -5044,7 +5044,7 @@ try {
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), split = lines[lines.length - 2], whole = lines[lines.length - 1];
-      assert.match(split, /injection: .*parting warn$/, split); assert.match(whole, /injection: .*parting pass$/, whole);
+      assert.match(split, /injection: .*parting warn, tooling \w+$/, split); assert.match(whole, /injection: .*parting pass, tooling \w+$/, whole);
       await snap('im5-parting');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
@@ -5405,6 +5405,33 @@ try {
       assert.match(reports[0], /hot-spots pass, feeding warn, section-change warn/, reports[0]);
       assert.match(reports[1], /hot-spots pass, feeding pass, section-change warn/, reports[1]);
       await snap('im8c-feeding');
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+  });
+
+  // ---- IM7 S0 (O110): the mould's halves where no face needs a split, through the real chat and tool servers -----------
+  await check('IM7: injection moulding with a +Z pull, a plate with a Ø10 through hole made through the real chat — the report\'s tooling: two halves on the flat parting plane z = 10, one shut-off (the hole), no side core', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'injection');
+    await page.selectOption('[aria-label="Pull direction"]', '+Z'); await page.selectOption('[aria-label="Mould finish"]', 'smooth');
+    await page.waitForFunction(() => window.__studioDoc.process === 'injection' && window.__studioDoc.mould?.pull?.[2] === 1, null, { timeout: 5000 });
+    await page.click('[aria-label="Close library"]');
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 60, d: 40, h: 10, x: 0, y: 0, z: 0 } } },
+        { tool: 'features', args: { action: 'command', command: 'hole', values: { d: 10, x: 30, y: 20 }, faces: ['n1.top'] } },
+        { tool: 'features', args: { action: 'material', material: 'abs' } },
+        { tool: 'query', args: { action: 'manufacturability' } }];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 90000 });
+      const report = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /injection:/.test(x)).pop();
+      assert.match(report, /parting pass, tooling pass$/, report);
+      await snap('im7-tooling');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
   });

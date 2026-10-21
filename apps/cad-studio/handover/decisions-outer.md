@@ -4646,3 +4646,40 @@ Owner, relayed by the coordinator: "@barocss/cad-model 은 완전 공개 패키�
   - Flow step "IM8c": through the real chat, the block on the plate gated far warns, then gated on the block passes.
   - IM8a's tool test and the IM8a and IM8b flow regexes name the three new rules.
 - **The IM8 track's items (S0, a, b, c) are done.** Next, by O104's plan, comes IM7 without the face split. Its parts that need straddling faces wait for the kernel's splitFaceAlongCurve (queue item 2).
+
+## O110 — IM7 S0: a mould's halves where no face needs a split; shut-offs, side-core directions; IM8c's modulus corrected (2026-10-21)
+
+- **The halves** (`mould/tooling.ts`):
+  - The input is IM5's parting line at an axis pull (±X, ±Y, ±Z). When no face straddles it and every parting loop is flat and at one height along the pull, the halves meet on one plane.
+  - A block about the part (10 mm a side, an estimate, or `--margin`), less the part, is cut there with the document's own nodes (extrude, difference, split). The kernel's B-rep gives the volumes.
+  - The half on the +pull side moves along it: IM5's "+", the moving half, B side, usually the core. The other half is fixed: A side, usually the cavity.
+  - Every face must lie on its half's side of the plane, checked from its mesh extent along the pull.
+- **Shut-offs**: the inner closed parting loops in the plane, where the halves touch across an opening; the core half's metal fills it up to the plane. Each gets its area (shoelace in the plane), its polygon centroid and its length.
+- **Side cores**: IM3's undercut regions freed across the pull give their directions, faces, area and centroid. Their bodies are not built. They are given on a refusal too, since a side core's own faces often straddle or step the parting line (a side hole's wall straddles).
+  - Undercuts that no side core frees are listed.
+  - Not built: a gate, runners, cooling, ejectors, the mould base.
+- **Refused by code, each with what it waits for**:
+  - `MOULD_STRADDLE`, a face straddling the pull: the kernel's face split (D149, splitFaceAlongCurve). The person can still put the face whole in one half.
+  - `MOULD_STEPPED`, a parting loop not flat, or loops at more than one height: a stepped parting surface, IM7a.
+  - `MOULD_ACROSS_PLANE`, a half's face on the other side of the plane, e.g. a cup's inside put in the moving half (its core reaches below the rim): an insert, IM7a.
+  - `MOULD_PULL_AXIS`, `_ONE_BODY`, `_NO_PULL`, `_NO_PARTING`, `_BUILD`.
+  - So only straddling faces wait for the kernel. IM7a, the next stage, is the cup's core insert and the stepped parting surface.
+- **Surfaces**:
+  - The injection report gains a `tooling` rule after `parting`: pass with the plane, the shut-offs and the side cores, warn when an undercut stays unfreed, unknown with the code otherwise.
+  - `cad-cli mould part.bcad -o dir [--margin mm]` writes mould.step (both halves, two solids) and mould.json (the plane, the block, the halves' volumes and labels, shut-offs, side cores, stuck regions, what is not built, the margin's basis).
+  - No tool or action; no viewport or App.tsx change.
+- **IM8c's modulus corrected** (the coordinator's review). A plate 2r thick has V/A ≈ r, not r/2 (S0's 100×100×10 plate: 4.17 against r = 5). Each hot spot's modulus now comes from its plateau's shape, read from the covariance's principal extents; an extent longer than the ball's diameter counts:
+  - a sheet (two or more such extents) gives r;
+  - a line (one) gives r/2;
+  - a point (none) gives r/3.
+  - The range [r/3, r] is reported, and the value is labelled an estimate. Feeding (ball reach) is unchanged.
+- **Tests**:
+  - `test/im7.test.ts`, 5:
+    - the holed plate's plan: plane z = 10, one shut-off of π·5² within 2 % (the chord), centroid (30, 20);
+    - the halves' exact volumes: 48000 and 96000 − (24000 − 250π), summing to the block less the part, 1e-6;
+    - the refusals: the rod across the pull → D149; the cup → MOULD_STEPPED; the cup with its inside in the moving half → MOULD_ACROSS_PLANE;
+    - the side hole's ±X side core on the refusal, and the report's tooling rule;
+    - the CLI.
+  - One more in im8c (the plate a sheet ≈ r; a long round bar a line ≈ r/2; a cube in a plate a point ≈ r/3; the L junction a line).
+  - Flow step "IM7": injection with Pull +Z; through the real chat a holed plate gives "parting pass, tooling pass".
+  - The injection rule lists pinned in printing.test, mould-undercut.test and the IM5 flow step gain `tooling`.

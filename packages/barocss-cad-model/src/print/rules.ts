@@ -12,6 +12,7 @@ import { materialData, printerProfile, processProfile, type MouldFinish, type Pr
 import { overhangOf, type Vec3 } from './overhang';
 import { draftField, type DraftFace } from '../mould/draft';
 import { castability, type CastingSummary } from '../casting/report';
+import { toolingPlan } from '../mould/tooling';
 import { undercuts, type UndercutRegion } from '../mould/undercut';
 import { wallsOf, type WallReport } from '../mould/walls';
 import { partingLine, type Half, type PartingReport } from '../mould/parting';
@@ -253,6 +254,11 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
       message: `${parting.loops.length} parting loop${parting.loops.length === 1 ? '' : 's'}${loops ? ` (${loops})` : ''}${parting.split.length ? `; ${parting.split.length} straddling face${parting.split.length > 1 ? 's' : ''} it crosses along the isocline (${parting.split.map(x => `${x.face} ${sum(x.isoclineMM)} mm`).join(', ')}): each must be split there to mould in two halves — a face split by a curve, not built (the kernel's), or put the whole face in one half (sides)` : ''}${open.length ? `; ${open.length} not closed` : ''}`,
       value: parting.loops.length, unit: 'loops', entities: parting.split.map(x => x.face) });
   }
+  // IM7 S0 (O110): the halves where no face needs a split — the parting plane, its shut-offs, the side cores' directions.
+  const tooling = toolingPlan(bodies, pull, parting, regions ?? []);
+  rules.push(tooling.ok ? { id: 'tooling', level: 'recommended', status: tooling.plan.stuck.length ? 'warn' : 'pass',
+      message: `two halves on a flat parting plane (${tooling.plan.axis} = ${tooling.plan.planeAt}): ${tooling.plan.shutOffs.length} shut-off${tooling.plan.shutOffs.length === 1 ? '' : 's'}, ${tooling.plan.sideCores.length} side core${tooling.plan.sideCores.length === 1 ? '' : 's'}${tooling.plan.stuck.length ? `, ${tooling.plan.stuck.length} undercut${tooling.plan.stuck.length === 1 ? '' : 's'} no side core frees` : ''} (cad-cli mould writes them)`, value: tooling.plan.shutOffs.length, unit: 'shut-offs' }
+    : { id: 'tooling', level: 'recommended', status: 'unknown', message: `the halves: [${tooling.code}]${tooling.sideCores.length ? `; ${tooling.sideCores.length} side core${tooling.sideCores.length === 1 ? '' : 's'} (${tooling.sideCores.map(c => `[${c.direction.map(v => +v.toFixed(6)).join(', ')}]`).join(', ')})` : ''}`, why: tooling.message });
   return { process: profile.id, direction: pull, rules, mould: { finish: finish?.id ?? null, minDraftDeg: finish?.draftMinDeg ?? null, recDraftDeg: finish ? finish.draftRecDeg ?? finish.draftMinDeg : null, bodies: per.map(x => ({ body: x.key, material: x.material, wallMM: x.range, ...(x.note ? { wallNote: x.note } : {}), shrink: x.shrink })),
     ...(parting ? { parting: { faces: parting.faces.map(f => ({ face: f.face, half: f.half, basis: f.basis })), split: parting.split.map(x => ({ face: x.face, isocline_mm: r6(x.isoclineMM) })), loops: parting.loops.map(l => ({ closed: l.closed, length_mm: r6(l.lengthMM), range_mm: l.rangeMM.map(r6), flat: l.flat, points: l.points.length })) } } : {}),
     walls: wr.map(w => ({ body: w.body, nominal_mm: w.nominalMM === null ? null : r6(w.nominalMM), thinnest_mm: w.thinnestMM === null ? null : r6(w.thinnestMM), thick95_mm: w.thick95MM === null ? null : r6(w.thick95MM), ribs: w.ribs.map(r => ({ faces: r.faces, thickness_mm: r6(r.thicknessMM) })), bosses: w.bosses.map(b => ({ outer: b.outer, inner: b.inner, wall_mm: r6(b.wallMM) })), fillets: w.fillets.map(f => ({ face: f.face, radius_mm: r6(f.radiusMM) })), sharp_corners: w.sharp.length, thick: w.thick ? { faces: w.thick.faces, area_mm2: r6(w.thick.areaMM2), max_mm: r6(w.thick.maxMM) } : null })),

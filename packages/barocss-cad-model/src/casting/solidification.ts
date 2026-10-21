@@ -1,8 +1,8 @@
 // IM8c (O109): where a casting freezes last, and whether it is fed. The part's distance field on a voxel grid (the
 // kernel's K6 inside flags and depth, through K2's nearest query): each inside node's depth is the radius of the largest
 // ball about it inside the part. A hot spot is a plateau of the field with no deeper neighbour — the centre of a locally
-// largest inscribed ball (IM8 S0: the L junction's 2t(2 − √2), which IM4's per-face sphere misses) — its modulus taken as
-// r/2 (a plate's or a long bar's V/A, an estimate). Chvorinov's rule orders freezing by modulus, so metal reaches a hot
+// largest inscribed ball (IM8 S0: the L junction's 2t(2 − √2), which IM4's per-face sphere misses) — its modulus estimated
+// from the plateau's shape (O110: a sheet r, a line r/2, a point r/3; a plate 2r thick has V/A ≈ r, not r/2). Chvorinov's rule orders freezing by modulus, so metal reaches a hot
 // spot while it freezes only through sections at least as thick: its liquid region is the nodes joined to it at depth ≥
 // its own (less a quarter cell for the grid). A hot spot whose region reaches the gate the user sets is fed (the ball at
 // some node of it touches the gate); one whose region does not is isolated, a shrink-porosity risk, said with where.
@@ -12,8 +12,11 @@ import type { BodyResult } from '../engine/evaluate';
 export interface HotSpot {
   /** The plateau's centre (mm) and the inscribed ball's radius there. */
   readonly at: readonly [number, number, number]; readonly radiusMM: number;
-  /** r/2: a plate's (thickness 2r) or a long bar's (radius r) V/A — an estimate of the section's modulus. */
-  readonly modulusMM: number;
+  /**
+   * The section's modulus V/A, an estimate from the plateau's shape: a sheet (a plate 2r thick) r, a line (a long round
+   * bar of radius r) r/2, a point (a ball or a cube about it) r/3 — always within [r/3, r].
+   */
+  readonly modulusMM: number; readonly shape: 'sheet' | 'line' | 'point'; readonly modulusRangeMM: readonly [number, number];
   /** Fed through sections at least as thick from the gate; null with no gate. */
   readonly fed: boolean | null;
 }
@@ -86,11 +89,42 @@ export function solidification(bodies: readonly BodyResult[], gate: readonly num
   const hotSpots: HotSpot[] = kept.map(s => {
     const c = [0, 0, 0]; for (const v of s.nodes) { const p = node(v, o, h, n); c[0] += p[0]; c[1] += p[1]; c[2] += p[2]; }
     const at = c.map(x => r3(x / s.nodes.length)) as [number, number, number];
-    return { at, radiusMM: r3(s.r), modulusMM: r3(s.r / 2), fed: g ? s.region.some(v => touches(v, g, depth[v] + h, o, h, n)) : null };
+    const shape = shapeOf(s.nodes, o, h, n, s.r);
+    return { at, radiusMM: r3(s.r), modulusMM: r3(shape === 'sheet' ? s.r : shape === 'line' ? s.r / 2 : s.r / 3), shape, modulusRangeMM: [r3(s.r / 3), r3(s.r)] as const, fed: g ? s.region.some(v => touches(v, g, depth[v] + h, o, h, n)) : null };
   });
   return { grid: { h: r3(h), n, nodes: N }, hotSpots, gate: g as [number, number, number] | null, maxRadiusMM: r3(maxR) };
 }
 
+/**
+ * The plateau's shape by its principal extents (the covariance's eigenvalues, a uniform spread's length √(12λ)): each
+ * longer than the ball's diameter counts — two or more a sheet, one a line, none a point.
+ */
+function shapeOf(nodes: readonly number[], o: readonly number[], h: number, n: readonly number[], r: number): 'sheet' | 'line' | 'point' {
+  const c = [0, 0, 0];
+  for (const v of nodes) { const p = node(v, o, h, n); c[0] += p[0]; c[1] += p[1]; c[2] += p[2]; }
+  c[0] /= nodes.length; c[1] /= nodes.length; c[2] /= nodes.length;
+  const C = [0, 0, 0, 0, 0, 0]; // xx yy zz xy xz yz
+  for (const v of nodes) { const p = node(v, o, h, n), x = p[0] - c[0], y = p[1] - c[1], z = p[2] - c[2]; C[0] += x * x; C[1] += y * y; C[2] += z * z; C[3] += x * y; C[4] += x * z; C[5] += y * z; }
+  const lengths = eigen3(C.map(x => x / nodes.length)).map(l => Math.sqrt(12 * Math.max(0, l)));
+  const long = lengths.filter(l => l > 2 * r).length;
+  return long >= 2 ? 'sheet' : long === 1 ? 'line' : 'point';
+}
+/** A symmetric 3 × 3's eigenvalues (xx, yy, zz, xy, xz, yz), by cyclic Jacobi rotations. */
+function eigen3(c: readonly number[]): number[] {
+  const a = [[c[0], c[3], c[4]], [c[3], c[1], c[5]], [c[4], c[5], c[2]]];
+  for (let sweep = 0; sweep < 30; sweep++) {
+    let off = 0;
+    for (let p = 0; p < 2; p++) for (let q = p + 1; q < 3; q++) off += a[p][q] * a[p][q];
+    if (off < 1e-30) break;
+    for (let p = 0; p < 2; p++) for (let q = p + 1; q < 3; q++) {
+      if (Math.abs(a[p][q]) < 1e-300) continue;
+      const th = (a[q][q] - a[p][p]) / (2 * a[p][q]), t = Math.sign(th || 1) / (Math.abs(th) + Math.sqrt(th * th + 1)), cs = 1 / Math.sqrt(t * t + 1), sn = t * cs;
+      for (let k = 0; k < 3; k++) { const akp = a[k][p], akq = a[k][q]; a[k][p] = cs * akp - sn * akq; a[k][q] = sn * akp + cs * akq; }
+      for (let k = 0; k < 3; k++) { const apk = a[p][k], aqk = a[q][k]; a[p][k] = cs * apk - sn * aqk; a[q][k] = sn * apk + cs * aqk; }
+    }
+  }
+  return [a[0][0], a[1][1], a[2][2]];
+}
 /** Whether a node has a neighbour deeper than d (within eps). */
 function deeperNeighbour(id: number, d: number, depth: Float64Array, inside: Uint8Array, n: readonly number[], eps: number): boolean {
   for (let q = 0; q < 26; q++) { const w = id + NB[q]; if (inBounds(id, w, n) && inside[w] && depth[w] > d + eps) return true; }
