@@ -60,6 +60,9 @@ test('every read tool’s result matches its output schema and changes nothing',
   const r3 = await evaluate(fr); assert.ok(r3.ok);
   const cl = await dispatchTool({ doc: fr, bodies: r3.bodies }, 'cut_list', {}, evaluate);
   assert.ok(!cl.isError && !cl.changed, cl.content); assert.deepEqual(validate(outputSchemaOf('cut_list')!, JSON.parse(cl.content)), [], 'cut_list'); seen.add('cut_list');
+  // (Its welds, FRd1: the L's one mitre.)
+  const wl = await dispatchTool({ doc: fr, bodies: r3.bodies }, 'weld_list', {}, evaluate);
+  assert.ok(!wl.isError && !wl.changed, wl.content); assert.deepEqual(validate(outputSchemaOf('weld_list')!, JSON.parse(wl.content)), [], 'weld_list'); seen.add('weld_list');
   // Every read tool with an output schema was run here.
   // (A keep-out to check, A6.3.)
   const withK = await dispatchTool(s, 'add_keepout', { box: { frame: { origin: [100, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] }, size: [5, 5, 5] } }, evaluate);
