@@ -53,12 +53,16 @@ function array(input: unknown, min: number, max: number, label: string): number[
   // Count is bounded before inspecting elements or allocating copies.
   const keys = Reflect.ownKeys(input);
   requireValue(keys.length === input.length + 1, `${label} must be dense JSON data without additional fields`);
+  // (The values checked, copied: the caller's array itself could answer differently on a later read — a Proxy — and NaN
+  // would pass into an accepted, frozen result; G5, the old review's fuzz R1.)
+  const out = new Array<number>(input.length);
   for (let i = 0; i < input.length; i++) {
     const descriptor = Object.getOwnPropertyDescriptor(input, String(i));
     requireValue(descriptor && 'value' in descriptor && descriptor.enumerable && typeof descriptor.value === 'number' && Number.isFinite(descriptor.value),
       `${label}[${i}] must be finite numeric JSON data`);
+    out[i] = descriptor!.value as number;
   }
-  return input as number[];
+  return out;
 }
 
 function triple(input: unknown, label: string, limit: number, nonnegative = false): [number, number, number] {
