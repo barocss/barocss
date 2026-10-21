@@ -4711,3 +4711,27 @@ Owner, relayed by the coordinator: "@barocss/cad-model 은 완전 공개 패키�
   - S0's plate, its halves now lump lists;
   - the CLI.
   - Flow step "IM7a": through the real chat a cup ends "tooling pass".
+
+## O112 — PKG-h: the model-only tests in @barocss/cad-model (2026-10-21)
+
+The coordinator's order, the PKG roadmap's last step (research-package-boundary §PKG-h): move the model-only tests into `packages/barocss-cad-model/test`.
+
+- **The runner**: `packages/barocss-cad-model/scripts/test.mjs` bundles each test with the package's sources, as the studio's runner does, and runs `node --test` from the package.
+  - Every test lives in `test/`, so `import.meta.dirname` is defined as that folder in every bundle, and a test's paths are its own.
+  - `pnpm test [name …]` runs the suite or the named tests; type-check and lint include `test/`.
+  - The root `pnpm test` is already `pnpm run -r test`, so it picks the package up with no root change.
+- **What moved** (git mv, five commits, each green with the name diff):
+  1. 72 tests with no paths;
+  2. 30 more: 26 on the kernel's conformance (their paths now from the package root, two levels below the repo as the studio is, so the same relative paths hold) and mould-draft, mould-parting, mould-walls and mould (D149 touches no studio file, the coordinator);
+  3. the studio's `conformance/{a1,a2,a3,a4}`, read only by these tests, with the 8 tests reading them;
+  4. 12 fixtures (block-cm.stl, two .bcad, nine *.calls.json) with the 12 tests reading them. The flow and cad-external now read those fixtures from the package.
+  5. `tools-v2.json`, byte-identical at sha-256 885c5fe2…, to `packages/barocss-cad-model/src/chat/` beside contract.ts, with toolset.test and tool-contract.test, run with no update flag.
+  - 124 test files in all. In a moved test, `'@barocss/cad-model/X'` became `'../src/X'` (inside the package, imports are relative) and `process.cwd()` became `resolve(import.meta.dirname, '..')`.
+- **Split, not moved**: a few tests of the studio itself were cut out unchanged and stay in the studio:
+  - engine.test's one viewport-camera test is now `sketch-framing.test.ts`;
+  - toolset.test's MCP-server, chat-server and O105b-through-MCP tests are now `toolset-mcp.test.ts`;
+  - tool-contract.test's MCP-server test is now `tool-contract-mcp.test.ts`.
+  - meshWire.test reads the DOM's `Transferable` as `unknown[]`, since the package has no DOM lib.
+- **What stays in the studio**: tests of the servers (MCP, chat, CLI, A/B), of the UI, viewport and App, ones that spawn the studio's scripts, the bench fixtures', pkg-boundary (the app's own boundary check), mould-quote and mould-undercut (server imports), and instance / instance-drag (held for the GPU lane). The kernel's tests are untouched.
+- **Names**: before, 805 in the studio. After, studio 179 + package 626 = 805, and the union equals the set before, 0 missing and 0 added, at every step.
+- **Release note**, unchanged: the exports point at .ts sources, so a build step comes before a real publish (O107).
