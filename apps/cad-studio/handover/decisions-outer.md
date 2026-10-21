@@ -5180,3 +5180,7 @@ The coordinator's queue, item 5. The S0 is for the coordinator's reply before bu
   - The wire's sender is told the evicted hashes (`forget`), so it sends them again if they come back. The worker drops them when the sender's next request names them as dropped, in lockstep as the nodes are pruned.
 - **The test it will carry**: random sequences of mesh adds, deletes, undo, redo, proposals made and accepted, and repairs. After each sweep, every hash reachable from every root is still in the store and every evaluation of a root still builds; an unreachable hash is gone after its grace sweep.
 - **Next**: build after the coordinator's reply.
+
+## O131 — FRf2's sibling scope: decided-deferred (2026-10-22)
+
+The owner, through the coordinator, verbatim: "둘다 제안한대로 해줘" (do both as proposed). The proposal: a placed part's frame following a sibling part's sketch stays the typed refusal `FRAME_PART_SCOPE`, with no change now to how the assembly is evaluated (describe, placedBodies and the mates' solve stay per part); it is built only when a real need appears. The other half of the same decision, the chat turn's merge, is O132.
