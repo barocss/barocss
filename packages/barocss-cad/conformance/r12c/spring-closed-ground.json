@@ -1,0 +1,63 @@
+{
+  "id": "r12c-spring-closed-ground",
+  "step": "R12c",
+  "decisions": [
+    "D153"
+  ],
+  "about": "R12c.1a: the same spring with closed and ground ends (the default) \u2014 a dead coil each end at the geometric solid pitch 2.0010140, easing over 90\u00b0 to the body, cut flat at z 0 and L0 = 2p_s + n_a p.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "spring",
+          "wire": 2,
+          "diameter": 20,
+          "activeCoils": 6,
+          "pitch": 5,
+          "generator": "spring@0"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 1541.1998773110126,
+          "relTol": 0.0004
+        },
+        "centroidMM": {
+          "value": [
+            -0.136442,
+            0,
+            17.001013985931507
+          ],
+          "absTol": 0.005
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "s.end0",
+          "s.end1",
+          "s.ground0",
+          "s.ground1",
+          "s.wire"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "V = \u03c0a\u00b2\u00b7S \u2212 2\u00b7(2/3)a\u00b3R/h_s: S the centreline's length by Simpson on D153's pitch law (dead runs at p_s, smoothstep transitions); each ground plane through the centreline's end height takes (2/3)a\u00b3R/h_s where the pitch is constant (derived in test/r12c-spring.test.mjs); p_s the least pitch keeping neighbouring turns d apart (brute force there). relTol the fit's bound. The centroid's y 0 and z L0/2 by the half turn about the X axis at mid-height that maps the wire onto itself; its x by this kernel."
+}

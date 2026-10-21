@@ -2644,6 +2644,23 @@ try {
     await snap('throated-worm-pair');
   });
 
+  await check('Spring (R12c.1a, D153): a compression spring from the palette — closed and ground, steel\'s G an estimate; its notes (sizes, solid heights, the rate flagged), the ground ends flat at Z 0 and L0', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('spring'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'spring' && /1 bod/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    assert.match(await page.textContent('.history'), /Ground spring d2 × Ø20, 6 coils/);
+    const node = await page.evaluate(() => window.__studioDoc.nodes[0]);
+    assert.ok(node.shearModulus === 79300 && node.shearModulusEstimate === true && node.ends === 'closed-ground', JSON.stringify(node));
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+    assert.ok(notes.some(t => /Compression spring, right hand, ends closed and ground: wire Ø2, mean Ø20/.test(t)) && notes.some(t => /Solid height 16\.0081 mm/.test(t)) && notes.some(t => /^(warning )?Rate 3\.3042 N\/mm .*an estimate for steel/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('spring-ground');
+  });
+
   await check('R12b.7 the gears\' acceptance by the scripted agent through the real chat: a planetary set (its own mesh checks passing), a right-angle bevel pair, a worm reducer — each in one turn, its pairs clear in their notes (new in D138)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
@@ -3647,7 +3664,7 @@ try {
     } finally { chat.kill(); }
   });
 
-  await check('FRc the section library in the Library panel: a row written there (RHS 40 × 40 × 3, the shop\'s), a frame on it through the real chat — A · 300 = 133 200 mm³; the row edited to 50 × 30 × 4 — the frame follows, 172 800; a row in use not removable (new in O117)', async () => {
+  await check('FRc the section library in the Library panel: a row, a frame on it via the chat (133 200 mm³), the row edited (172 800), a used row kept (O117)', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     const fill = async (dims) => { for (const [k, v] of Object.entries(dims)) await page.fill(`[aria-label="Section ${k}"]`, String(v)); };
@@ -3690,6 +3707,63 @@ try {
     // (50 × 30 × 4: 576 mm², the frame on the row follows.)
     vol = await bodyVolume(); assert.ok(Math.abs(vol - 172800) <= 1, String(vol));
     await snap('frc-section-library');
+  });
+
+  await check('FRd1 the welded table\'s welds via the chat: 16 joints, one set to a 4 mm fillet; the weld list on A3, clear, in the SVG (O118)', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      const { calls } = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad-model/test/fixtures/frame-welded-table.calls.json'), 'utf8'));
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      let n = await page.locator('.chat-msg.assistant').count();
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [calls[0], { tool: 'query', args: { action: 'welds' } }] })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      assert.ok((await page.locator('.chat-tool').last().innerText()).includes('query.welds'));
+      // (The first mitre's id: the frame's members are the bodies b0_part0…, the corner named by its lesser end, b0_part0.start.)
+      n = await page.locator('.chat-msg.assistant').count();
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'welds', welds: [{ joint: 'b0_part0.start', kind: 'fillet', size: 4 }] } }] })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+      await page.waitForFunction(() => window.__studioDoc.frames?.welds?.length === 1 && /12 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    } finally { chat.kill(); }
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForSelector('[aria-label="Weld list table"]', { timeout: 20000 });
+      await page.check('[aria-label="Weld list table"]');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.tables?.some(t => t.id === 'weld-list' && !t.error), null, { timeout: 30000 });
+      const issues = await page.evaluate(() => window.__studioDrawing?.()?.issues ?? []);
+      assert.ok(!issues.some(i => (i.tables ?? []).includes('weld-list')), JSON.stringify(issues));
+      await snap('frd1-weld-list');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      for (const t of ['WELD LIST', 'W1', 'W16', 'MITRE', 'ON FACE', 'FILLET', '4', '3*', '?', 'BORE', '16 welds, seams 2692.5 mm in all (the bores marked ? not counted)']) assert.ok(svg.includes(`>${t}</text>`), `SVG: ${t}`);
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
+  await check('FRd2 the welded table\'s weld symbols on A3 by their checkbox: 11 shown, 5 said unshown; W-numbers and sizes in the SVG (O119)', async () => {
+    const fs = await import('node:fs');
+    if (!/12 bodies/.test(await page.textContent('.outliner') ?? '')) throw new Error('FRd1 left no welded table');
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForSelector('[aria-label="Weld symbols"]', { timeout: 20000 });
+      await page.check('[aria-label="Weld symbols"]');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.welds?.placed?.length > 0, null, { timeout: 30000 });
+      const w = await page.evaluate(() => window.__studioDrawing().welds);
+      assert.equal(w.placed.length, 11, JSON.stringify(w)); assert.deepEqual(w.unshown, ['W8', 'W13', 'W14', 'W15', 'W16']);
+      const issues = await page.evaluate(() => window.__studioDrawing().issues);
+      assert.ok(issues.some(i => i.code === 'WELD_NOT_SHOWN' && i.severity === 'warning'), JSON.stringify(issues));
+      await snap('frd2-weld-symbols');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      // (W1, the mitre set to 4 mm in FRd1: its size as set; the rest 3*, estimates.)
+      for (const p of w.placed) assert.ok(svg.includes(`>${p.label}</text>`), `SVG: ${p.label}`);
+      assert.ok(svg.includes('>4</text>') && svg.includes('>3*</text>'), 'sizes');
+      assert.match(svg, /<g class="weld"/);
+    } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {

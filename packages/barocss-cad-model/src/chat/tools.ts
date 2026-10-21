@@ -40,6 +40,7 @@ import { cutListCsv } from '@barocss/cad';
 import { partCutList } from '../app/cutList';
 import { nestCutList } from '../frames/nesting';
 import { editSections } from '../frames/sections';
+import { weldList, type WeldRecord } from '../frames/welds';
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
@@ -83,6 +84,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   gear: { selection: 'none', values: { m: 'module (mm): the pitch diameter is m × teeth', teeth: 'teeth, 6–200 (under 18 undercut without a profile shift: the refusal gives the least x)', b: 'face width (mm)', shift: 'profile shift coefficient x, −0.5 to 1 (0: none; + thickens the tooth, moves tip and root out by x·m)', helix: 'helix angle β in degrees, 0 (spur) to 45; helical: m is the normal module', hand: 'right | left (helical only; a meshing gear takes the opposite hand itself)', bore: 'bore diameter (0: none), leaving a rim of at least one module below the root', x: 'centre X', y: 'centre Y', z: 'Z it stands on' } },
   'gear-mesh': { selection: 'bodies: [one spur gear, as made] — or [one internal gear]: the new gear then meshes inside it (ratio +z1/z2, the same way) — or [one bevel gear]: its mate (teeth the selected one\'s mate teeth, the same apex; dir and bore only)', values: { shift: 'profile shift x of the new gear, −0.5 to 1 (the centre distance becomes the working one)', teeth: 'teeth of the new gear, 6–200 (ratio −z1/z2 to the selected one; inside a ring, fewer than its teeth — about 2/5 clears the interference conditions)', dir: 'direction from the selected gear\'s axis to the new one\'s, degrees from +X (a bevel mate: the way its axis leans, about the selected gear\'s axis)', bore: 'bore diameter (0: none)' } },
   // (R12b.2a, D132: an internal gear.)
+  spring: { selection: 'none', values: { d: 'wire diameter (mm)', D: 'mean coil diameter (mm; above d; outer = D + d, inner = D − d)', n: 'active coils (may be fractional)', p: 'the body\'s pitch (mm); below the geometric solid pitch (a hair above d) is refused as overlapping coils', ends: 'closed-ground (the default: a dead coil each end at the solid pitch, cut flat) | closed | open', hand: 'right | left', G: 'shear modulus G (MPa) for the rate; the default is steel\'s, an estimate (say so); 0: no rate', F: 'working load (N) for the deflection and corrected stress; 0: none', x: 'axis X', y: 'axis Y', z: 'Z it stands on (its lowest point, or the ground plane)' } },
   'worm-pair': { selection: 'none', values: { m: 'axial module m_x (mm; the wheel\'s transverse module)', starts: 'worm threads, 1–4', d1: 'worm reference diameter (mm; q = d1 / m_x; the lead angle γ = atan(starts m_x / d1), at most 45°)', hand: 'right | left (worm and wheel of one hand)', wheel: 'cylindrical (a helical gear, the default) | throated (enveloping the worm, cut by a hob of its thread; the worm is then ZA)', form: 'ZI (involute helicoid, the default) | ZA (straight axial sides); ZN, ZK and ZC are refused; a throated wheel takes ZA', z2: 'wheel teeth, 10–200 (ratio z2 : starts)', b: 'wheel face width (mm)', bore: 'wheel bore (0: none)', wbore: 'worm bore (0: none)', x: 'wheel centre X', y: 'wheel centre Y', z: 'Z the wheel stands on (the worm lies in its mid-plane, along +Y of the line of centres, long enough for the mesh zone)' } },
   'bevel-gear': { selection: 'none', values: { m: 'module at the heel (mm): the reference diameter there is m × teeth', teeth: 'teeth, 5–200 (too few for its mate are undercut and refused, naming Tredgold\'s virtual teeth)', mate: 'the mating gear\'s teeth: with the shaft angle they fix its pitch cone', sigma: 'shaft angle Σ between the two axes, degrees (90 a right-angle pair; a pitch cone of 90° or more — crown or internal bevel — is refused)', b: 'face width along the cone (mm; over a third of the cone distance is warned of)', bore: 'bore diameter (0: none)', spiral: 'mean spiral angle β_m, 0–45° (0: straight). A spiral bevel gear is an IDEAL MODEL — the conjugate of its mate on every sphere, line contact, not a face-milled or face-hobbed tooth (no crowning, no machine settings): its body carries ideal_model; say so to the user', hand: 'left | right (spiral only; seen from its apex the tooth turns clockwise toward the heel for right; its mate takes the other)', rc: 'the tooth trace\'s cutter radius, mm (spiral only; 0: the mean cone distance, an estimate — ask for the shop\'s)', x: 'apex X', y: 'apex Y', z: 'Z its toe stands on' } },
   'internal-gear': { selection: 'none', values: { m: 'module (mm): the pitch diameter is m × teeth', teeth: 'teeth, 8–200 (unshifted under 34 its tip falls inside its base circle: the refusal gives the least x)', b: 'face width (mm)', rim: 'the rim\'s outer diameter (mm): at least the root circle plus a module', shift: 'profile shift coefficient x2, −0.5 to 0.75 (its tip at r − (1 − x2) m)', helix: 'helix angle β, 0–45° (0: straight); its pinion takes the same hand', hand: 'right | left (helical only)', cutter: 'teeth of the pinion-type cutter that cuts its root (24 by default, an estimate: ask for the shop\'s; 0 the schematic root; a helical ring\'s is schematic). Too many cutter teeth for the ring is refused, naming why (K1\'s Table 4.8 limit)', x: 'centre X', y: 'centre Y', z: 'Z it stands on' } },
@@ -146,7 +148,7 @@ function features(doc: StudioDoc) {
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
-const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'set_frame_sections', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
+const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'set_frame_sections', 'set_welds', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
 /** The tools a batch (apply_ops, a patch) may hold (A7.5: a candidate's unsupported op is refused by name before it runs). */
 export const BATCHABLE_TOOLS: ReadonlySet<string> = BATCHABLE;
 /** At most this many checkpoints a session (the oldest dropped first). */
@@ -970,6 +972,36 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       return accept(state, r.doc, evaluate, `section library: ${[r.added.length ? `added ${r.added.join(', ')}` : '', r.replaced.length ? `changed ${r.replaced.join(', ')}` : '', r.removed.length ? `removed ${r.removed.join(', ')}` : ''].filter(Boolean).join('; ')}`,
         { added: r.added, replaced: r.replaced, removed: r.removed, rows: r.doc.frames?.sections?.map(x => ({ id: x.id, ...(x.name ? { name: x.name } : {}), section: x.section, ...(x.source ? { source: x.source } : { estimate: true }) })) ?? [] });
     }
+    case 'set_welds': {
+      // (FRd1, O118: the person's welds by joint — kind, size, all round, notes — over the rule's; a joint the part does not have refused, listing them.)
+      const given = Array.isArray(args.welds) ? args.welds : [], remove = strings(args.remove);
+      if (!given.length && !remove.length) return fail(state, 'Give welds, remove or both.');
+      const joints = weldList(state.doc, state.bodies).joints, ids = new Set(joints.map(j => j.id)), was = state.doc.frames?.welds ?? [];
+      if (!joints.length) return fail(state, '[WELD_NO_JOINTS] the part has no weld joints: frame members meeting at a corner, a butt or a face.');
+      const good: WeldRecord[] = [];
+      for (const [k, w] of given.entries()) {
+        const o = (isObj(w) ? w : {}) as Record<string, unknown>, joint = typeof o.joint === 'string' ? o.joint : '';
+        if (!ids.has(joint)) return fail(state, `[WELD_JOINT_UNKNOWN] weld ${k}: no joint "${joint}" (joints: ${[...ids].join(', ')}). Use weld_list's ids.`);
+        const extra = Object.keys(o).find(x => !['joint', 'kind', 'size', 'allRound', 'inner', 'notes'].includes(x));
+        if (extra) return fail(state, `[WELD_FIELD] weld ${k} (${joint}): no field "${extra}" (joint, kind, size, allRound, inner, notes).`);
+        if (o.inner !== undefined && typeof o.inner !== 'boolean') return fail(state, `[WELD_FIELD] weld ${k} (${joint}): inner (whether the end's inner loop, a tube's bore, is welded) is true or false.`);
+        if (o.kind !== undefined && o.kind !== 'fillet' && o.kind !== 'butt') return fail(state, `[WELD_FIELD] weld ${k} (${joint}): kind is fillet or butt.`);
+        if (o.size !== undefined && !(typeof o.size === 'number' && o.size > 0 && o.size < 50)) return fail(state, `[WELD_FIELD] weld ${k} (${joint}): size is mm, above 0 and below 50.`);
+        if (o.allRound !== undefined && typeof o.allRound !== 'boolean') return fail(state, `[WELD_FIELD] weld ${k} (${joint}): allRound is true or false.`);
+        if (o.notes !== undefined && typeof o.notes !== 'string') return fail(state, `[WELD_FIELD] weld ${k} (${joint}): notes is text.`);
+        good.push({ joint, ...(o.kind ? { kind: o.kind as WeldRecord['kind'] } : {}), ...(o.size !== undefined ? { sizeMM: o.size as number } : {}), ...(o.allRound !== undefined ? { allRound: o.allRound as boolean } : {}), ...(o.inner !== undefined ? { inner: o.inner as boolean } : {}), ...(typeof o.notes === 'string' && o.notes.trim() ? { notes: o.notes.trim() } : {}) });
+      }
+      if (new Set(good.map(r => r.joint)).size !== good.length) return fail(state, '[WELD_FIELD] two welds for one joint.');
+      const welds = [...was.filter(r => !remove.includes(r.joint) && !good.some(g => g.joint === r.joint)), ...good];
+      const doc = { ...state.doc, frames: { version: 1 as const, ...state.doc.frames, welds } };
+      return { state: { ...state, doc }, content: json({ ok: true, set: good.map(r => r.joint), removed: remove.filter(id => was.some(r => r.joint === id)), welds: welds.length }), isError: false, changed: true, summary: `welds: ${good.length} set${remove.length ? `, ${remove.length} removed` : ''}` };
+    }
+    case 'weld_list': {
+      // (FRd1, O118: read only — each joint, its seam from the geometry and its weld, the person's or the rule's.)
+      const w = weldList(state.doc, state.bodies);
+      if (!w.joints.length && !w.orphaned.length) return fail(state, 'The part has no weld joints: frame members meeting at a corner, a butt or a face.');
+      return { state, content: json({ joints: w.joints.map((j, k) => ({ label: `W${k + 1}`, ...j })), totals: w.totals, orphaned: w.orphaned, notes: w.notes }), isError: false, changed: false, summary: `${w.totals.count} welds, ${w.totals.seamMM} mm of seam` };
+    }
     case 'mass_properties': {
       const keys = strings(args.bodies), shown = keys.length ? state.bodies.filter(b => keys.includes(b.key)) : state.bodies;
       if (keys.length && shown.length !== keys.length) return fail(state, `No body ${keys.filter(k => !state.bodies.some(b => b.key === k)).join(', ')} (bodies: ${state.bodies.map(b => b.key).join(', ')}).`);
@@ -1310,6 +1342,16 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     name: 'set_frame_sections',
     description: 'Adds, changes or removes rows of the part\'s section library (none is built in): rows [{id, name?, section (a section by its dimensions, as a frame\'s), source (where the sizes come from) | estimate: true}] added or replaced by id; remove: ids (a row a frame uses stays). A frame or member then takes {"kind": "library", "id"} as its section; a changed row moves every frame on it.',
     input_schema: { type: 'object', properties: { rows: { type: 'array', items: { type: 'object' } }, remove: { type: 'array', items: { type: 'string' } } }, additionalProperties: false },
+  },
+  {
+    name: 'set_welds',
+    description: 'Sets the person\'s welds on the part\'s frame joints (FRd1): welds [{joint (an id from weld_list), kind? fillet | butt, size? mm, allRound?, inner? (whether the end\'s inner loop, a tube\'s bore, is welded: yours to say, none assumed), notes?}] replace a joint\'s record; remove: joint ids. Unset, the rule\'s weld: a butt weld at a mitre, a fillet elsewhere, the thinner wall as its size (an estimate).',
+    input_schema: { type: 'object', properties: { welds: { type: 'array', items: { type: 'object' } }, remove: { type: 'array', items: { type: 'string' } } }, additionalProperties: false },
+  },
+  {
+    name: 'weld_list',
+    description: 'The frame\'s weld joints read off the geometry (FRd1): {joints [{label W1…, id, kind mitre | butt | on-face, body, end, meets, face, seamMM (the end face\'s outer loop), seamBasis exact | mesh, innerLoop {mm, welded: yours, null when not said} | null, weldMM, at, centre, weld {kind, sizeMM, sizeBasis set | estimate | none, allRound, notes?}}], totals {count, seamMM}, orphaned (records whose joint is gone), notes}. Say estimated sizes are estimates.',
+    input_schema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
     name: 'mass_properties',

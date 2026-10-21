@@ -1,6 +1,8 @@
 // The agent's drawing tools (R14.5, O6): the same Auto layout, issue list and tolerance suggestions the Drawing
 // workspace offers, on the document's drawing. Reading tools change nothing; the others change the drawing, which an
 // agent can only propose (`propose` with them as ops; D41): the user accepts it in the studio.
+import { weldList, type WeldJoint } from '../frames/welds';
+import { evaluatePart } from '../engine/evaluate';
 import { brepsFor } from '../engine/evaluate';
 import type { StudioDoc } from '../engine/doc';
 import { projectViews } from '../drawing/project';
@@ -60,8 +62,11 @@ export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDr
   const r = projectViews(b.breps, b.prefixes, { tangentEdges: !!settings.tangent, ...(settings.orientation ? { orientation: settings.orientation } : {}) });
   if (!r.ok) return r.empty ? 'There is no body to draw yet.' : `The views could not be projected: ${r.error}`;
   const section = settings.section ? sectionOf(doc, settings.section.y, settings.orientation) : undefined;
-  return { views: r.views, settings, callout: e => holeCallout(doc.nodes, e), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc }) }, ...(section?.ok ? { section } : {}) };
+  return { views: r.views, settings, callout: e => holeCallout(doc.nodes, e), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}) }, ...(section?.ok ? { section } : {}) };
 }
+
+/** FRd2 (O119): the frame's weld joints for the symbols (the part evaluated for its members). */
+function weldJointsOf(doc: StudioDoc): readonly WeldJoint[] { const e = evaluatePart(doc, 0); return e.ok ? weldList(doc, e.bodies).joints : []; }
 
 type Outcome = { doc: StudioDoc; content: Record<string, unknown>; changed: boolean; summary: string } | { error: string };
 
