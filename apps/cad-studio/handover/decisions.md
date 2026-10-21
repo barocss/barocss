@@ -7576,3 +7576,139 @@ The last R12b stage frozen in D129. Three gear sets are built by the agent's too
 - The kernel suite 302 s; the five slowest files alone in the hand-over block.
 
 Next: the R12b → next hand-over (README §0), then the joint PKG boundary, which the coordinator runs.
+
+## D139 — R12c S0: feasibility of machine and power-transmission elements (2026-10-21)
+
+**R12c S0.** The roadmap's feasibility checkpoint before R12c (§4 "R12c — machine and power-transmission elements"), run now by the coordinator's order while PKG is under way (the stages themselves wait: track K, then the queued requests, then R12c, as the R12b → next block orders them). There is no research note; this record is the design input. The questions:
+- Can today's kernel build a coil spring's wire exactly enough — the pipe of a helix — and cut its ground ends, against which oracles?
+- What do fits and tolerances need: computed ISO 286 limits, or loaded ones? How do they feed a clearance check?
+- Shafts, keys and keyways, ring grooves, pins and dowels; bearing envelopes and seats; O-ring glands: kernel geometry, or composition of existing features?
+- Pulleys, belts, sprockets, chain, couplings, cams, linkages and hinges; standard profiles and connector envelopes: which part is kernel work, which library data, which the outer lane's?
+
+Evidence: `packages/barocss-cad/test/r12c-s0.test.mjs` (kept, 10 tests, 6 s alone), against closed forms and quadratures written in the test, none of them the kernel's. No product code changed. The sizes in it are test values; those from public pages are recorded below, per value.
+
+**Sources** (public HTML, read 2026-10-21 by this session with curl or the fetch tool, page text only, nothing downloaded or kept; values as facts, no standard text, formulas in our words):
+- F1: "IT Grade", Wikipedia, https://en.wikipedia.org/wiki/IT_Grade — label "ISO 286 - Table 1": IT5–IT11 for the 13 ranges to 500 mm (µm), e.g. over 18 to 30: IT5 9, IT6 13, IT7 21, IT8 33, IT9 52, IT10 84, IT11 130; over 30 to 50: 11, 16, 25, 39, 62, 100, 160. Also the page's rule that from IT6 each fifth grade is ×10.
+- F2: "Engineering fit", Wikipedia, https://en.wikipedia.org/wiki/Engineering_fit — the worked examples at Ø50: H8 0/+39 µm and f7 −50/−25 (clearance +25…+89); H7 0/+25 and k6 +2/+18 (+23…−18); H7 0/+25 and p6 +26/+42 (−1…−42). The page's own results are the arithmetic's oracle.
+- B1: "6204 Series", NSK, https://www.oss.nsk.com/6204-dgbb-sr.html — d 20, D 47, B 14, r (min.) 1; abutment da (min.) 25, da (max.) 26.5, Da (max.) 42, ra (max.) 1 (mm).
+- R1: "Retaining Ring, External, Steel … 20mm", Lawson Products, https://www.lawsonproducts.com/products/retaining-ring-external-steel-20mm-97020 — for Ø20 (stated to meet DIN 471): groove Ø19.0, groove width 1.30, ring thickness 1.20. (A search summary saw the same on pgb-europe.com's DIN 471 Ø20 page; not read here.)
+- K1: "DIN 6885-1 Standard Dimensions for Parallel keys", fasten.it, https://fasten.it/Norms/Norm/DIN_6885-1 — shafts 17–22: key 6 × 6, shaft seat depth t1 3.5, hub t2 2.8 (by a search summary of the page; the page marks the norm withdrawn). To be re-read before any use beyond this probe.
+- O1: "AS568 O-Ring Size Chart", Global O-Ring, https://www.globaloring.com/as568-size-chart/ — dash 214: cross-section 0.139 in (3.53 mm), ID 0.984 in ± .010 (24.99 mm).
+- O2: "O-Ring Groove (Gland) Design Guide", Fictiv, https://www.fictiv.com/articles/o-ring-groove-gland-design-guide — squeeze: static male–female 18–25 %, face 20–30 %, reciprocating 10–20 %, rotary 0–10 %; fill 75–85 %; installed ID stretch ideally ≤ 5 %. (MN Rubber's guide, https://www.mnrubber.com/tools-resources/design-guide/rubber-standard-parts/groove-design-o-ring-seals/: fill ≤ about 90 %, stretch above about 3 % may need the next size.) Guidance ranges, not limits.
+- U1: "USB hardware", Wikipedia, https://en.wikipedia.org/wiki/USB_hardware — the connector dimensions table: USB-C receptacle opening 8.34 × 2.56 × 6.2 mm, plug body 8.25 × 2.4 × 6.51 mm; the page notes the receptacle figures are the opening only. (Its "USB-C" article gives the same opening, 6.20 deep.)
+- S1: compression-spring formula pages, https://www.compressionspring.com/helical-spring-formulas-and-equations.html and https://acxesspring.com/compression-spring-rate.html (by search summary): k = Gd⁴/(8D³n) on active coils; solid height d·n_t with ground ends, d(n_t + 1) otherwise. The rate is re-derived in the test from the wire's torsion energy; the end conventions are a supplier's, recorded as such.
+- Not found as public HTML: ISO 286's fundamental deviations as text (only tables; the shift letters need rows like the IT grades), ISO 606 sprocket tooth-form formulas, timing-belt tooth profiles (maker-specific), V-belt groove tables. Not attempted: any PDF (Parker's O-ring handbook, bearing catalogues, USB-IF's specification).
+
+**Today, as it stands:**
+- **Springs: no helical sweep of a section exists.** `thread-helical.ts` sweeps an axial radius profile ρ(φ) (a thread), not a section square to the path; `sweep-curve` is faceted (and has no self-overlap check); `sweep` has straight runs and bends only; the gears' twisted extrusion turns a *transverse* (z-plane) profile, and a round wire's transverse section is not a circle.
+- **A spring's wire is buildable exactly enough by the gears' own construction, generalised to a 3D section** (built in the test with `buildBrep`):
+  - The helix C(φ) = (R cos φ, R sin φ, hφ), h = p/2π, has its Frenet frame carried by the screw motion M(φ) (turn φ about Z, rise hφ). So the pipe of radius a is exactly M(φ) applied to the circle in the normal plane at φ = 0. The motion is affine in the section point, so a face is the circle's exact rational quarter (degree 2) times the rotation's cubic Hermite fit (exact at the piece ends, as `rotationPoles` in `gear.ts`), with z = hφ exact. The circle edges at every segment end are exact.
+  - D 20, d 2, p 5, 6 turns: 22 pieces a turn for 1e-4·d (36 segments × 4 pieces, 146 faces), valid, genus 0, one body; built in 3 ms.
+  - **Its distance from the centreline** (an independent check: Newton on the helix for each sampled surface point) is a within 1.34e-4 mm, equal to the fit's bound (R + a)·dev(step) (the rotation fit's error per unit radius, sampled).
+  - **Its volume** against πa²·L (a tube square to its path, a below the curvature radius R(1 + (h/R)²): Pappus–Guldin for tubes): 1188.0811 against 1188.0966, rel 1.30e-5, inside the bound 2πa·L·(the measured distance error). Mass 154 ms; STEP round trip 674 ms, valid, the same volume to 1e-9.
+  - **The budget:** pieces a turn within 1e-4·d grow with D/d: 22 (D/d 10), 26 (20), 29 (31), 31 (40), 38 (100). A 30-turn spring of D/d 100 needs 1140 pieces. Faces keep ≤ 4 pieces (13 poles, the 16-pole convention).
+- **A plane square to the axis cuts away exactly πa²·L·z0/h** — a closed form derived here: in the pipe's coordinates (s, ρ, θ), dV = ρ(1 − κρ cos θ) dρ dθ ds and a point's height is hφ + ρ sin θ·R/L, so below z0 (clear of the start disc, z0 ≥ aR/L) the wire holds L/h ∫∫ ρ(1 − κρ cos θ)(z0 − ρ sin θ R/L) dρ dθ = πa²·L·z0/h; the odd terms vanish. **The ground ends by today's analytic Boolean** (two boxes off a 3-turn coil): valid, 62 faces, 1.07 s, V 431.6695 against 431.6751 (rel 1.3e-5, the fit's, inside its bound).
+- **The coils' clearance is not p ≥ d:** the least distance between neighbouring turns of the centreline falls short of the pitch by the helix angle, so turns of pitch d overlap by a hair. For D 20, d 2 the turns are d apart at pitch 2.001011. Closed ends wound "touching" must be modelled at that geometric pitch or refused as overlapping; the supplier's solid height d·n_t is reported beside the geometric one.
+- **The rate:** k = Gd⁴/(8D³n_a) agrees with the wire's torsion energy (torque FD/2 over πD n_a, J = πd⁴/32; Castigliano, the shear of direct load and curvature neglected) to 1e-12; Wahl's K_W = (4C − 1)/(4C − 4) + 0.615/C, 1.1448 at C 10.
+- **Fits: the IT tolerance factor does not reproduce the table.** i = 0.45∛D + 0.001D µm on each range's geometric mean, times 7, 10, 16, 25, 40, 64, 100 for IT5–IT11, rounded to the µm: 55 of F1's 91 values agree; 36 differ, by up to 10 % (IT9 0–3: 22 against 25; IT11 400–500: 389 against 400), because the standard rounds by its own rules. So limits are loaded rows, never computed; the formula is not used, even as a fallback.
+  - **Limits to clearances** by arithmetic reproduce F2's own results exactly (H8/f7 +25…+89, H7/k6 +23…−18, H7/p6 −1…−42).
+  - **The kernel at the limit sizes** (a Ø50 + δ bore in a ring, a Ø50 + ε shaft, 20 long; ring less shaft): every clearance case removes nothing; every interference removes πL((d_s/2)² − (d_h/2)²) to 1e-6 (H7/k6 at MMC 18 µm: 28.2794 mm³; H7/p6 at LMC 1 µm: 1.5716 mm³). Coaxial cylinders 1 µm apart Boolean cleanly.
+- **Today's hole feature** has a countersink only; the studio's hole command has counterbores and tapped holes; no fit or tolerance attribute exists on a face. Drawings carry `{ kind: 'fit', code }` callouts checked only against a pattern, with no limits behind them (outer lane, `model/drawing/types.ts`).
+- **Shafts are exact today by revolve and Booleans:**
+  - a stepped Ø25/Ø20 shaft with a DIN 471-size groove (R1: Ø19, 1.30 wide) at the bearing's face: Pappus to 1e-12, valid;
+  - a 6 × 6 keyseat (K1: t1 3.5) square-ended, 18 long: the removed volume Aseg·L with Aseg = ∫(√(R² − x²) − (R − t1))dx over |x| ≤ b/2 in closed form (20.087441 mm²), to 1e-8;
+  - end-milled (a stadium extruded down): the straight part plus the two half-disc ends, ∫∫_{disc b/2}(√(R² − x²) − (R − t1)) by Gauss–Legendre on x = (b/2) sin u (95.742473 mm³), to 1e-7; 36 ms;
+  - the key 6 high stands 2.5 above the shaft; the hub's t2 2.8 leaves 0.3 over it.
+- **A bearing envelope on its seat:** a 6204 (B1) as a revolved section with corners r 1: Pappus in closed form (19800.6522 mm³) to 1e-11; on its Ø20 seat against the Ø25 shoulder (coincident bore and seat, face and shoulder) the shaft less the bearing is untouched to 1e-9. The abutment rules are arithmetic on loaded values (da min ≤ shoulder ≤ da max, housing shoulder ≤ Da max, fillet ≤ ra max).
+- **An O-ring on a piston gland** (O1's AS568-214 on a test gland: groove Ø25.5, bore Ø31.1, 4.7 wide):
+  - stretch 2.04 %; volume kept, the section 3.53 → 3.5006 (r'²(Dg/2 + r') = r²(ID/2 + r));
+  - squeeze 20.7 % nominal, 20.0 % stretched; fill 74.4 % (πCS²/4 over w·h);
+  - the torus exact (2π²Rr² to 1e-10);
+  - **the bore's displacement of the free ring** (the torus intersected with a sleeve beyond the bore) against Pappus on the circular segment, A = r'² acos(c/r') − c√(r'² − c²), ȳ = (2/3)(r'² − c²)^{3/2}/A, V = 2π(R' + ȳ)A: 136.48580 mm³ both, rel 6.8e-10; torus–cylinder by today's analytic Boolean, 0.75 s.
+  - The squeezed ring's shape is not modelled (an elastomer's deformation, out of scope); the checks are on the free ring and the gland.
+- **A connector opening:** U1's USB-C opening (a stadium 8.34 × 2.56, 6.2 deep) in a panel and the plug body (8.25 × 2.4) seated in it: areas in closed form to 1e-12; the plug touches nothing (gaps 0.045 across, 0.080 through); its 6.51 stands 0.31 out of the opening — an opening, not the receptacle's housing or tongue, so an envelope is only a keep-out and an opening.
+- **A disc cam for a roller follower** (base 20, roller 5, a cycloidal rise of 8 over 120°, dwells of 60°): the pitch curve's inner offset fitted by C¹ Hermite pieces through the gears' `extrudedProfile`: 32 pieces within 1e-4·r_r (measured against the exact offset's polyline), valid; the volume against Green's theorem on the exact offset (periodic trapezoids), rel 5.2e-6, inside perimeter × deviation; the pitch curve's least convex radius of curvature 23.69 > r_r: no undercut.
+- **Elsewhere, already:**
+  - the outer lane's fastener table (A6.5, `model/app/fasteners.ts`: ISO 4017/4762/10642/4032/7089 sizes, ISO 273 clearances, tap drill d − P; built in, with `model/standards/provenance.ts`'s per-value source records);
+  - the library system (LIB1–LIB4): manifests with sourced or estimated parameters, interfaces and declared fits checked by exact Boolean overlap (`library-fit.ts`); the built-in tslot-20 and enclosure libraries (the enclosure's living hinge);
+  - FR's sections (rect-tube, round-tube, angle, channel, tslot, sketch) with no sizes; **no section-catalogue loader exists** (FR's rule says users load sizes; nothing loads them yet);
+  - user-loaded tables done once: the bend table (D120: rows each citing a source or `estimate: true`, validated, `[BEND_TABLE]` and `[BEND_TABLE_MISS]`, a JSON file input);
+  - mates (coincident, concentric, distance, angle, tangent, lock), the robot track's joints (revolute, prismatic, chains) and RM8's planar loop closure (four-bar linkages, outer lane);
+  - A3 requirements (`clearance`, `gear_*`, `hole_diameter`, `library_check`, `keepout` …) and A6.3's box and cylinder keep-outs.
+- **Missing:** any spring, fit table or fit attribute, shaft, keyseat, ring groove, key, ring, pin or dowel part, bearing, O-ring gland, pulley, belt, sprocket, chain, coupling, cam or follower, hinge part, connector envelope.
+
+**Kernel, library or outer lane:**
+- **Kernel** (new geometry or maths): the helical sweep and springs; fit tables (validation, lookup, limit arithmetic, the MMC/LMC check by Boolean); the shaft kind with keyseats and ring grooves (named faces for mates); the bearing-seat and O-ring-gland checks and the gland feature; cams (motion laws, the profile, checks); sprocket and pulley outlines where a closed form or the user's profile exists; belt and chain length; the section-table validator.
+- **Library items** (composition of existing features, data the user loads): keys, retaining rings, pins and dowels, bearing envelopes, O-rings as parts, couplings, hinges, connector envelopes, T-slot hardware. The library's fits check them.
+- **Outer lane:** drawing callouts with limits from the loaded fit table, A3 queries (`fit_clearance`, `spring_rate`, `seat_check` …), linkages as mechanisms (the robot track's joints and loop closure), the studio panels where they are the outer lane's. Asked of the coordinator at each stage that needs them.
+
+**Verdict — R12c in these stages, this order:**
+- **R12c.1a — the helical sweep, and compression springs.**
+  - **Kernel:** `helicalSweep(section, helix)`: a closed planar section of lines and arcs (circle first) placed in the helix's normal plane at φ 0, carried by the screw motion; the faces the section's exact curves times the rotation's Hermite fit, ≤ 4 pieces a face, segments as needed; the fit within `profileToleranceMM` (1e-4·d by default), measured; past a budget of 1024 pieces, `PROFILE_BUDGET_EXCEEDED`, never a looser fit.
+  - **The kind `spring`** (generator `spring@0`): wire d, mean D (or outer or inner), active coils n_a, pitch or free length L0, hand, ends `open` | `closed` | `closed-ground` (and the number of end coils, default 1 each).
+    - Closed ends: the pitch goes from the body's to the geometric solid pitch (the least that keeps turns d apart, found as in S0) over a transition (default 90° each side). There the centreline is not a helix: the section's motion is the variable helix's frame, fitted the same way, its deviation measured against that centreline's own pipe (the distance oracle generalises). If it cannot hold the tolerance in the budget, `PROFILE_BUDGET_EXCEEDED` with the measured figures.
+    - Ground ends: the plane cuts by the analytic Boolean (S0: 1.07 s on 3 turns), or built directly if a longer spring makes the Boolean the cost (decided by test inside the stage).
+  - **Report:** k (G given, or the material's estimate, flagged), the spring index C, the pitch and helix angle, the solid heights (the supplier's convention d·n_t or d(n_t + 1), and the geometric one), the stress at a given load with K_W, L0/D; `manufacturingValidated: false`; no buckling, fatigue or relaxation claims.
+  - **Oracles:** V = πa²·L within the measured bound; the distance from the centreline; the ground cut's πa²·L·Δz/h; k by the torsion energy; the geometric solid pitch by the least centreline distance; STEP round trip.
+  - **Refusals:** `INVALID_INPUT` (d ≤ 0, D ≤ d, n_a ≤ 0 …); `SELF_INTERSECTION` (a ≥ the helix's curvature radius); `COILS_OVERLAP` (a pitch below the geometric solid pitch, named with both); `PROFILE_BUDGET_EXCEEDED`; `UNSUPPORTED_SPRING_KIND` (conical, barrel, variable-pitch bodies, rectangular wire until asked).
+  - **Studio:** the Spring command, edit fields, notes (the rate, solid heights), the agent's node; a flow step.
+- **R12c.1b — extension and torsion springs.** Extension: body at pitch d's geometric solid pitch, initial tension reported as the user's input (no data); hooks as torus arcs and straight pipes (machine loop, crossover), exact. Torsion: legs as straight pipes tangent to the coil, the torsional rate Ed⁴/(64Dn) reported (the energy oracle again, bending). Oracles: volumes by parts (πa²·L per piece, tori by Pappus); refusals as 1a plus `LEG_OVERLAP`.
+- **R12c.2 — fits and tolerances.**
+  - **A fit table** the user loads, as the bend table: rows `{ class: 'H7' | 'g6' | …, over, upTo, upperUM, lowerUM, source | estimate }`, sources as D120's. Validation `[FIT_TABLE]` (bad class, ranges overlapping or out of order, upper < lower, no source and no estimate); lookup `[FIT_TABLE_MISS]` naming the class and size. No formula fallback (S0).
+  - **A tolerance attribute** on cylindrical faces (a hole's bore, a shaft's seat, a gear's bore): `{ class }` resolved against the table at the face's nominal size.
+  - **`fitCheck(hole, shaft)`:** the limits, min and max clearance, the kind (clearance, transition, interference); the bodies at MMC and LMC checked by exact Boolean (S0's construction), so a declared clearance fit that the geometry contradicts is an error.
+  - **Oracles:** F2's examples; the Boolean against πL Δ(r²) at both limits.
+  - **Studio and outer lane:** the "Fit table…" file input; drawings' fit callouts showing limits (the outer lane, asked); the A3 query `fit_clearance`.
+- **R12c.3 — shafts, keys and keyways, rings, pins and dowels.**
+  - **The kind `shaft`:** steps `{ diameter, length, chamfer?, fillet?, undercut? }` along an axis, revolved exactly; named faces `seat#k`, `shoulder#k`, `fillet#k`, `end0`/`end1`.
+  - **Options on a step:** `keyseat` (width, depth t1, length, offset, ends `square` | `end-mill` | `disc` with the cutter's radius), `ring-groove` (diameter, width, at), cross holes (pins).
+  - **Library items (data loaded):** parallel keys (b, h, l, ends), retaining rings (an envelope: thickness, free and installed diameters, lug space), pins and dowels; the hub keyway t2 on a bore.
+  - **Pair checks:** the key's width fit (via R12c.2), its top clearance h − t1 against t2, its length within the seat; a ring's groove against the ring's rows; a pin's hole fit.
+  - **Oracles:** Pappus; the keyseat's disc segment in closed form; the end-mill ends by quadrature (S0); a disc cutter's run-out as a cylinder's segment by quadrature.
+  - **Refusals:** `SHAFT_STEPS` (non-positive sizes, a fillet larger than the step), `KEYSEAT_DIMENSIONS` (t1 ≥ R, b ≥ the step's diameter, the seat crossing a step), `GROOVE_DIMENSIONS`.
+- **R12c.4 — bearing envelopes and seats.**
+  - **Library item:** a rolling bearing's envelope (d, D, B, r; optional abutment values), loaded rows, its interfaces (bore, outside, faces); simplified internals flagged "not for structural calculation".
+  - **`seatCheck`:** shaft and housing seats against the envelope: the seat diameters' fit classes (R12c.2), the shoulder heights within da min … da max and ≤ Da max, the fillet ≤ ra max, the axial location (a shoulder, a ring groove or a spacer on each side); the bodies' Boolean (no overlap, contact on the seats).
+  - **Oracles:** Pappus on the rounded section (S0); B1's abutment values.
+  - **Refusals:** `SEAT_ABUTMENT` (an error when the shoulder misses the band or the fillet exceeds ra max), `SEAT_FIT` (a seat class the table lacks), warnings for an unlocated side. No load ratings or life (no data, no claims).
+- **R12c.5 — O-ring glands.**
+  - **The feature `oring-gland`** on a cylinder or a face: kind `piston` | `rod` | `face`; the O-ring's ID and CS (a loaded row or given); the groove from the target squeeze or the depth given, the width from the target fill; its corner radii.
+  - **Checks:** stretch, the stretched CS by volume, squeeze (nominal and stretched, at the fit's extremes when the bore and groove have classes), fill, against guidance ranges that are data (O2's as estimates, user-overridable); warnings `SQUEEZE_RANGE`, `FILL_RANGE`, `STRETCH_RANGE`; an error `GLAND_DIMENSIONS` (fill > 100 %, squeeze ≤ 0, the groove through the wall).
+  - **The O-ring** as an exact torus part (library or built); the free ring's overlap with the bore by Boolean, checked against S0's Pappus segment.
+- **R12c.6a — cams and followers.** Disc cams with a roller or flat-faced follower, translating or oscillating; motion laws uniform, harmonic, cycloidal, 3-4-5 polynomial; dwells. The profile the pitch curve's offset (roller) or envelope (flat face), fitted (S0: 32 pieces), its deviation measured. Checks: the pressure angle's maximum (warning above a given limit), undercut (the pitch curve's convex radius against r_r; a flat face's ρ + s against zero), the follower's displacement by a sweep of the built profile against the law. Refusals `CAM_UNDERCUT`, `INVALID_INPUT`.
+- **R12c.6b — sprockets and chain, pulleys and belts, couplings.**
+  - Sprockets: pitch diameter p/sin(180°/z) and the tooth gap from the user's roller diameter; the tooth form only from a loaded definition or refused (`UNSUPPORTED_TOOTH_FORM`): ISO 606's formulas were not found as public text.
+  - Timing pulleys: pitch diameter p z/π and the pitch line offset as given; the tooth profile the user's sketch (maker-specific).
+  - V and flat pulleys: a revolved groove profile from loaded rows.
+  - Belt and chain length between two wheels in closed form (open: 2C cos β + (π + 2β)R + (π − 2β)r, sin β = (R − r)/C; the chain in pitches, rounded to whole links, the centre distance back from it).
+  - Couplings: library items.
+  - Hinges and linkages: library parts with interfaces; their motion is the outer lane's joints and loop closure. No new kernel kinematics.
+- **R12c.7 — standard profiles and connector envelopes.**
+  - A section table loader for FR's kinds (rows of named sizes, each sourced or estimated, `[SECTION_TABLE]`, `[SECTION_TABLE_MISS]`), as the bend table; the studio's file input.
+  - Connector envelopes as library items: the opening (U1's kind of data), the body, a keep-out (A6.3); fit checks as declared fits. USB-C from U1's values as the test row, not a built-in.
+- **R12c.8 — acceptance.** The agent builds, in one turn each: a gearbox output shaft (a stepped shaft, a keyed spur gear, two bearings on seats with rings, an O-ring sealed cover) and a spring-loaded plunger (a compression spring with ground ends in a bore, its rate and solid height against closed forms); each against its closed forms; conformance `r12c/accept-*`; the R12c → next hand-over.
+
+**Every stage:** a D-record, a test failing on the previous HEAD, `conformance/r12c/` fixtures (studio ones in subfolders), the studio's command, notes and agent node, a flow step (at T2/T3), RB rows (at T2/T3), a checkpoint with its tier.
+
+**New public codes** (announced here, added at their stages): `SpringDiagnosticCode` (`INVALID_INPUT`, `SELF_INTERSECTION`, `COILS_OVERLAP`, `PROFILE_BUDGET_EXCEEDED`, `UNSUPPORTED_SPRING_KIND`, `LEG_OVERLAP`); `[FIT_TABLE]`, `[FIT_TABLE_MISS]`, `[SECTION_TABLE]`, `[SECTION_TABLE_MISS]`; `SHAFT_STEPS`, `KEYSEAT_DIMENSIONS`, `GROOVE_DIMENSIONS`, `SEAT_ABUTMENT`, `SEAT_FIT`, `GLAND_DIMENSIONS` (errors); `SQUEEZE_RANGE`, `FILL_RANGE`, `STRETCH_RANGE` (warnings); `CAM_UNDERCUT`, `UNSUPPORTED_TOOTH_FORM`. Mapped to the part model as INPUT, CAPABILITY, GEOMETRY.
+
+**Data:**
+- **No tables are built in.** ISO 286 limits, keys, rings, pins, bearings, O-rings, belts, chains, sections and connectors are rows the user loads, each citing a source (URL, date read, label) or flagged `estimate`, as the bend tables (D120) and frame sections (D122). Built-in tables wait for the owner's OK.
+- The values above are test oracles only, each cited by its source id here. K1 and S1 came through search summaries: re-read before any further use.
+- Guidance ranges (squeeze, fill, stretch; a spring index's usual band) are data too: loaded, or the estimates above flagged as such.
+- Material shear and Young's moduli: the user's, or an estimate flagged (the materials library has densities only, all estimates).
+
+**Not in R12c** (for the owner to place):
+- conical, barrel and variable-pitch spring bodies, rectangular wire, wave and disc (Belleville) springs, gas springs;
+- spring fatigue, buckling, relaxation; bearing load ratings and life; key and shaft strength; O-ring material compatibility and the squeezed ring's shape;
+- splines and serrations (involute splines are a gear's sibling: a candidate for R12b's machinery later);
+- ISO 606 sprocket tooth forms unless a public source of the formulas is found, or the user loads a definition;
+- GD&T beyond the size fit (position, runout) — the outer lane's drawings;
+- tolerance stack-ups.
+
+**For the owner:**
+- **Built-in tables:** keep every size table user-loaded (default), or build in a small set (for example ISO 286's preferred fits H7/g6, H7/h6, H7/k6, H7/p6, H8/f7 to 500 mm from F1-type pages, each value sourced). The default taken: none.
+- **Guidance ranges:** ship O2's squeeze, fill and stretch ranges as flagged estimates the user can override (default), or require the user to load them.
+- **Spring materials:** prefill G for steel as a flagged estimate (default), or require it.
+
+**Checks:** S0 changed no product code. The tier: T1 (lint of the new file, the new test). r12c-s0 10/10, 6 s alone; lint clean. Kernel `pnpm build:library` before it. The full kernel suite, conformance, studio, flow and RB not rerun (no source change, as at D115, D122 and D129).
