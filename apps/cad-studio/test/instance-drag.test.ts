@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { gizmoAxes, movedInstance, previewMatrix, turnedInstance } from '../src/assembly/drag';
+import { gizmoAxes, movedInstance, previewMatrix, turnedInstance } from '@barocss/cad-model/assembly/drag';
 import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
 import { rectanglePart, type PartInstance } from '@barocss/cad-model/engine/doc';
 
@@ -44,7 +44,7 @@ test('instance drag: fixed, hidden and fully mated parts get no gizmo; a part th
 });
 
 test('a dragged move lines up with other bodies’ sides and middles within the tolerance', async () => {
-  const { alignMove } = await import('../src/assembly/drag');
+  const { alignMove } = await import('@barocss/cad-model/assembly/drag');
   const box = { min: [0, 0, 0], max: [10, 10, 10] }, other = { min: [30, 0, 0], max: [50, 10, 20] };
   // Dragged along X to 19.4: its high side (29.4) is drawn onto the other's low side (30).
   assert.deepEqual(alignMove(box, [other], [19.4, 0, 0], [true, false, false], 1), { move: [20, 0, 0], snapped: [0] });

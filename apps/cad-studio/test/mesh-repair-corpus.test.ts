@@ -49,7 +49,7 @@ test('M0 broken set: each defect found and repaired as expected', () => {
 test('a repair as a recorded step on the mesh node: the import kept, the result its own blobs, fill faces named, the container round trip; removed, the mesh as imported', async () => {
   const { DEFAULT_REPAIR: steps } = await import('@barocss/cad');
   const { meshNodeBlobs, putBlob, positionsArray, blobRefs } = await import('@barocss/cad-model/engine/blobs');
-  const { encodeStudioFile, readStudioFile } = await import('../src/engine/container');
+  const { encodeStudioFile, readStudioFile } = await import('@barocss/cad-model/engine/container');
   const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
   const { emptyDoc, withNode } = await import('@barocss/cad-model/engine/doc');
   const f = set.get('broken-hole')!, r = repairMesh(f.positions, f.indices, steps);

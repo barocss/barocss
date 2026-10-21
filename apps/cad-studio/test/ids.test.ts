@@ -8,7 +8,7 @@ import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '@barocs
 import { flattenAssembly } from '@barocss/cad-model/assembly/flatten';
 import { featureIdsOf, nextSerial, nodeIndexOf, renameFeatureIds, withIds } from '@barocss/cad-model/engine/ids';
 import { toPartDocument } from '@barocss/cad-model/engine/part';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { defaultRender } from '@barocss/cad-model/engine/render';
 import { lookOf, withLook } from '@barocss/cad-model/app/bodies';
 

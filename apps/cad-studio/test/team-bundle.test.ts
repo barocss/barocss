@@ -9,12 +9,12 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { withLook } from '@barocss/cad-model/app/bodies';
 import { bomView, deriveBom } from '@barocss/cad-model/team/assembly';
 import { draftBaseline, moveBaseline } from '@barocss/cad-model/team/baseline';
-import { BUNDLE_FILES, verifyBundle, writeBundle, type Manifest } from '../src/team/bundle';
+import { BUNDLE_FILES, verifyBundle, writeBundle, type Manifest } from '@barocss/cad-model/team/bundle';
 import { digestOf, sha256Hex } from '@barocss/cad-model/team/digest';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import { massResult } from '@barocss/cad-model/team/freshness';
-import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
-import { encodeStudioFile } from '../src/engine/container';
+import { runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
+import { encodeStudioFile } from '@barocss/cad-model/engine/container';
 
 // A8.6 (O32's addendum, O39): the export bundle. Written from the clean A8 assembly with its BOM baseline approved and
 // every body's material set: complete, and verified complete in a fresh process (a spawned cad-cli). With a file

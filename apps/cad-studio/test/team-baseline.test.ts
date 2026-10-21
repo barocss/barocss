@@ -11,7 +11,7 @@ import { digestOf, partDigests, sha256Hex, sha256Text } from '@barocss/cad-model
 import { decideEcr, openEcr, readEcrs, userToken, verifyEcrPin } from '@barocss/cad-model/team/ecr';
 import { readInterfaces } from '@barocss/cad-model/team/parts';
 import { canonical } from '@barocss/cad-model/team/team';
-import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
+import { runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
 
 // A8.4b (O32's addendum, O39): approval baselines pinned by content digest. The BOM and interfaces by the SHA-256 of
 // their canonical JSON, every part's revision by its own; draft → review → approved | rejected by the user's token only;

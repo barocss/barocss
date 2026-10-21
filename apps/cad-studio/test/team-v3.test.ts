@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { holesOff, interfacesRevision, placedBodies, readInterfaces } from '@barocss/cad-model/team/parts';
-import { partsSummary, runPartsScenario, type PartsScenario } from '../src/team/scripted';
+import { partsSummary, runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
 
 // A8.2 (O34): the Architect's interfaces and Part agents under leases. The v3 scenarios (conformance/a8, step A8.2): each
 // refusal typed at its gate — lease (NO_LEASE, LEASE_EXPIRED, CONTRACT_MOVED, OUT_OF_PART) or contract (OUT_OF_ENVELOPE,

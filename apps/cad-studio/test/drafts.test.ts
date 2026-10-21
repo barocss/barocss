@@ -7,7 +7,7 @@ import { emptyDoc, type SketchNode, type StudioDoc } from '@barocss/cad-model/en
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { confirmDimension, draftWarning, readDrafts, unconfirmed } from '@barocss/cad-model/chat/drafts';
 import { dwgRelease, readDxfSketch } from '@barocss/cad-model/sketch/dxfRead';
-import { sketchDxf } from '../src/sketch/dxf';
+import { sketchDxf } from '@barocss/cad-model/sketch/dxf';
 import { traceImage } from '@barocss/cad-model/chat/trace';
 import { answerBatch } from '@barocss/cad-model/chat/questions';
 

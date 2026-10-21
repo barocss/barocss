@@ -8,8 +8,8 @@ import { projectViews } from '@barocss/cad-model/drawing/project';
 import { layoutSheet, scaleLabel } from '@barocss/cad-model/drawing/views';
 import { resolveDimension, snapPoints } from '@barocss/cad-model/drawing/dimensions';
 import { buildSheet } from '@barocss/cad-model/drawing/sheet';
-import { sheetSvg } from '../../src/drawing/svg';
-import { sheetPdf } from '../../src/drawing/pdf';
+import { sheetSvg } from '@barocss/cad-model/drawing/svg';
+import { sheetPdf } from '@barocss/cad-model/drawing/pdf';
 import { defaultDrawing, type DrawingDimension, type DrawingViews, type ViewId } from '@barocss/cad-model/drawing/types';
 import type { ProjectedCurve } from '@barocss/cad';
 

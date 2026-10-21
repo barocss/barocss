@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, SYSTEM_PROMPT, TOOLS } from '@barocss/cad-model/chat/tools';
-import { SYSTEM_PROMPT_V2, TOOLS_V2 } from '../src/chat/toolset';
+import { SYSTEM_PROMPT_V2, TOOLS_V2 } from '@barocss/cad-model/chat/toolset';
 import { GROUPS } from '@barocss/cad-model/chat/groups';
 import { FASTENER_SIZES } from '@barocss/cad-model/app/fasteners';
 import { ALLOWED_LICENCES, checkTables, NAMED_STANDARDS, STANDARD_SOURCES, STANDARD_TABLES, type StdSource, type StdTable } from '@barocss/cad-model/standards/provenance';

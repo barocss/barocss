@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { rectanglePart } from '@barocss/cad-model/engine/doc';
 import { defaultRender } from '@barocss/cad-model/engine/render';
 

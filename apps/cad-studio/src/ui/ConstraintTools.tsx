@@ -1,7 +1,7 @@
 // The sketch panel's constraint section for a closed outline: what is picked, the constraints that can
 // apply to it, and every constraint with a remove button. Refusals are shown with their reason.
 import { useEffect, useState } from 'react';
-import { roundCorner } from '../sketch/corner';
+import { roundCorner } from '@barocss/cad-model/sketch/corner';
 import {
   applyConstraint, circleDimensionKeys, circlePairKeys, constraintEntries, constraintOptions, dimensionKey, pointDimensionKeys, removeConstraint, samePick,
   type ConstraintKind, type Polygon, type SketchPick,

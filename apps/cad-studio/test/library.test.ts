@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { checkFits, insertLibraryPart, libraries, libraryById, libraryInstance, regenerateLibraryNode, registerLibrary, snapByInterfaces, unregisterLibrary } from '@barocss/cad-model/library/libraries';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { solveDoc } from '@barocss/cad-model/chat/assembly';
 import { BASE } from '@barocss/cad-model/assembly/mates';
 

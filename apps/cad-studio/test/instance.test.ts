@@ -21,7 +21,7 @@ test('instances: a part placed by rotation then a move, in display and in STEP',
 });
 
 test('exploded view: instances pushed out from the middle by the factor; the meshes moved, not the parts', async () => {
-  const { explodeOffsets, movedBody } = await import('../src/assembly/explode');
+  const { explodeOffsets, movedBody } = await import('@barocss/cad-model/assembly/explode');
   const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
   const { rectanglePart } = await import('@barocss/cad-model/engine/doc');
   const r = evaluateDoc(rectanglePart(10, 10, 10), 1); assert.ok(r.ok);

@@ -13,7 +13,7 @@ import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { NameSelection } from '@barocss/cad-model/chat/tools';
-import { toolset, toolsetOf } from '../src/chat/toolset';
+import { toolset, toolsetOf } from '@barocss/cad-model/chat/toolset';
 import { v1Call } from '@barocss/cad-model/chat/groups';
 import { PROMPT_CHARS } from '@barocss/cad-model/chat/proposals';
 import type { StateFile } from './cadMcp';

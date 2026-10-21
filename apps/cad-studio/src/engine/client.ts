@@ -1,6 +1,6 @@
 import { rememberFaceTable } from '@barocss/cad-model/assembly/faces';
 import type { EvalResult, PartSlot } from '@barocss/cad-model/engine/evaluate';
-import { MeshReceiver, type WireResult } from './meshWire';
+import { MeshReceiver, type WireResult } from '@barocss/cad-model/engine/meshWire';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { DrawingResult } from '@barocss/cad-model/drawing/project';
 import { WireSender } from '@barocss/cad-model/engine/wireDoc';

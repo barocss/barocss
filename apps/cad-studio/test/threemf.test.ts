@@ -10,7 +10,7 @@ import { emptyDoc, rectanglePart, type StudioDoc } from '@barocss/cad-model/engi
 import { withLook } from '@barocss/cad-model/app/bodies';
 import { crc32 } from '@barocss/cad-model/io/zip';
 import { write3mf, type ThreeMfModel } from '@barocss/cad-model/print/threemf';
-import { rotationToUp, threeMfModelOf } from '../src/print/export3mf';
+import { rotationToUp, threeMfModelOf } from '@barocss/cad-model/print/export3mf';
 
 // AM5 (D76): 3MF written by our own code, read back by an independent reader — Node's zlib (inflate, CRC-32) and this
 // file's own ZIP and XML scanning, not the writer's — and by Python's zipfile and ElementTree when Python is there.

@@ -4,7 +4,7 @@ import { evaluatePart, stepFor, type BodyResult } from '@barocss/cad-model/engin
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { interference, massProperties } from '@barocss/cad-model/chat/analysis';
-import { threeMfModelOf } from '../src/print/export3mf';
+import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
 import { cavityField, insideFlags, marchingTetrahedra, planHollow } from '@barocss/cad-model/print/hollow';
 import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, LatticeError, meshVolume, mixedTetrahedra, planLattice, weldTau } from '@barocss/cad-model/print/lattice';
 

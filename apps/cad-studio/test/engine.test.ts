@@ -427,7 +427,7 @@ test('arcs in the solver: tangent joints snap exact, a radius lock holds, DOF co
 });
 
 test('closing an outline infers near-tangent arc joints and settles them exact', async () => {
-  const { settleShape } = await import('../src/sketch/settle');
+  const { settleShape } = await import('@barocss/cad-model/sketch/settle');
   const { arcOf } = await import('@barocss/cad-model/sketch/profile');
   // Arc from (40,0) to (40,20) nearly tangent to the bottom and top edges (bulge ≈ 1 = semicircle).
   const open = { kind: 'polygon' as const, points: [[0, 0], [40, 0], [40, 20], [0, 20]] as [number, number][], closed: false, bulges: [0, 0.97, 0, 0] };
@@ -469,7 +469,7 @@ test('equal radius and concentric arc pairs', async () => {
 });
 
 test('closing infers equal radii and shared centres; a loop with them still extrudes', async () => {
-  const { settleShape } = await import('../src/sketch/settle');
+  const { settleShape } = await import('@barocss/cad-model/sketch/settle');
   const { outlineSegments, bulgeThrough } = await import('@barocss/cad-model/sketch/profile');
   const open = { kind: 'polygon' as const, points: [[30, 0], [0, 30], [0, 15], [15, 0]] as [number, number][], closed: false,
     bulges: [bulgeThrough([30, 0], [0, 30], [21.2132, 21.2132]), 0, bulgeThrough([0, 15], [15, 0], [10.9, 10.9]), 0] };

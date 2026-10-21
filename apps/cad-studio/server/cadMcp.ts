@@ -11,7 +11,7 @@ import type { ImageTrace } from '@barocss/cad-model/chat/trace';
 import { runTool, TOOLS, type ChatState } from '@barocss/cad-model/chat/tools';
 import { outputSchemaOf } from '@barocss/cad-model/chat/contract';
 import { v1Call } from '@barocss/cad-model/chat/groups';
-import { listed, toolsetOf, type Toolset } from '../src/chat/toolset';
+import { listed, toolsetOf, type Toolset } from '@barocss/cad-model/chat/toolset';
 import { arrayOf, putKnownBlob, type BlobType } from '@barocss/cad-model/engine/blobs';
 
 /** `images`: the traces of the conversation's attached images (read only). */

@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, withNode, rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { SYSTEM_PROMPT_JSON, toolsetOf } from '../src/chat/toolset';
+import { SYSTEM_PROMPT_JSON, toolsetOf } from '@barocss/cad-model/chat/toolset';
 import { BRIEFS, type Arm } from '../server/ab/briefs';
 import { estimateTokens, oracleOf, reportAb, summarizeAb, type RunResult } from '../server/ab/harness';
 import { abMain } from '../server/ab/main';

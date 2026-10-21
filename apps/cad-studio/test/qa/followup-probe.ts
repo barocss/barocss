@@ -2,7 +2,7 @@
 // the features QA never saw (lock mates, circles from edges, drawing tolerances), at engine level and
 // against their edges: the cases a user reaches by accident.
 //   node test/qa/run-engine-probe.mjs followup-probe.ts
-import { settleShape } from '../../src/sketch/settle';
+import { settleShape } from '@barocss/cad-model/sketch/settle';
 import { commitDimension, type Polygon } from '@barocss/cad-model/sketch/rules';
 import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { evaluateDoc, stepFor } from '@barocss/cad-model/engine/evaluate';

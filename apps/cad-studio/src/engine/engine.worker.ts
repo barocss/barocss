@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 import { brepsFor, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, evaluateVolumes, shareMeshes, stepFor, stlFor, type PartSlot } from '@barocss/cad-model/engine/evaluate';
-import { MeshSender } from './meshWire';
+import { MeshSender } from '@barocss/cad-model/engine/meshWire';
 import { projectViews } from '@barocss/cad-model/drawing/project';
 import { sectionOf } from '@barocss/cad-model/drawing/section';
 import { WireReceiver, type WireDoc } from '@barocss/cad-model/engine/wireDoc';

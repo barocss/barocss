@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 
 // Re-matching stored names after an edit renumbers the faces they come from (A1.3).
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);

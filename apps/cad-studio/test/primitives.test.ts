@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type ModelNode } from '@barocss/cad-model/engine/doc';
 import { commands, type Ctx, type Values } from '@barocss/cad-model/app/commands';
-import { editCommand } from '../src/app/editCommand';
+import { editCommand } from '@barocss/cad-model/app/editCommand';
 
 const ctx: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 function make(id: string, values: Record<string, number> = {}) {

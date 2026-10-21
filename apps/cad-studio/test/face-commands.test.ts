@@ -5,7 +5,7 @@ import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-
 import { faceProfile, fitLoop } from '@barocss/cad-model/app/faceProfile';
 import { extrudeCommand } from '@barocss/cad-model/app/profileCommands';
 import { carrySelection, commands, type Ctx, type Selection } from '@barocss/cad-model/app/commands';
-import { editCommand, featureOfPick } from '../src/app/editCommand';
+import { editCommand, featureOfPick } from '@barocss/cad-model/app/editCommand';
 import { bodyNodes, deleteFeatures } from '@barocss/cad-model/chat/features';
 
 function bodiesOf(doc: StudioDoc): BodyResult[] { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.title); return r.bodies; }

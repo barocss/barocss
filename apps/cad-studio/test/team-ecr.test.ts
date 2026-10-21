@@ -7,7 +7,7 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { ChatState } from '@barocss/cad-model/chat/tools';
 import { integratePart, interfacesRevision, readInterfaces, type Interfaces, type Lease, type PartPatch } from '@barocss/cad-model/team/parts';
 import { decideEcr, openEcr, readEcrs, renewLeases, userToken } from '@barocss/cad-model/team/ecr';
-import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
+import { runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
 
 // A8.3 (O35): ECRs. A change to the interfaces is an ECR whose impact is computed — the parts, the requirements on a
 // changed datum or keep-out, the open patches made on the old contract, the leases — and only the user decides it:

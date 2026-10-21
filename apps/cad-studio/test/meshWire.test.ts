@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MeshReceiver, MeshSender } from '../src/engine/meshWire';
+import { MeshReceiver, MeshSender } from '@barocss/cad-model/engine/meshWire';
 import { evaluateDoc, evaluatePart, evaluateVolumes, shareMeshes, type BodyResult, type EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';

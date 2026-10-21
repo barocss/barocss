@@ -7,9 +7,9 @@ import { join } from 'node:path';
 import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { withLook } from '@barocss/cad-model/app/bodies';
-import { encodeStudioFile } from '../src/engine/container';
+import { encodeStudioFile } from '@barocss/cad-model/engine/container';
 import { materialData } from '@barocss/cad-model/library/materials';
-import { quotePackage, QUOTE_FILES } from '../src/mould/quote';
+import { quotePackage, QUOTE_FILES } from '@barocss/cad-model/mould/quote';
 import { cliMain } from '../server/cadCli';
 
 // IM6 (O82): the quote package — complete only when nothing is open; every file's SHA-256 in its manifest (node:crypto

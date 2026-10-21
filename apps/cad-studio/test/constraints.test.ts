@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { settleShape } from '../src/sketch/settle';
+import { settleShape } from '@barocss/cad-model/sketch/settle';
 import { arcOf, bulgeThrough, type P2 } from '@barocss/cad-model/sketch/profile';
 import {
   applyConstraint, commitDimension, constraintEntries, constraintOptions, dimensionKey, redundancy, removeConstraint, solveShape,
   type Polygon, type SketchPick,
 } from '@barocss/cad-model/sketch/rules';
-import { nextPicks, pickSketch, sketchClick } from '../src/sketch/select';
+import { nextPicks, pickSketch, sketchClick } from '@barocss/cad-model/sketch/select';
 import type { SketchState } from '../src/viewport/Viewport';
 import { xyPlane } from '@barocss/cad-model/sketch/plane';
 
@@ -156,7 +156,7 @@ test('picking points before edges in screen space, and the Select / Dimension cl
 });
 
 test('Select / Dimension turn a rectangle into an outline with its H/V edges; with none current, the last shape comes back', async () => {
-  const { rectangleOutline, startPicking } = await import('../src/sketch/select');
+  const { rectangleOutline, startPicking } = await import('@barocss/cad-model/sketch/select');
   const rect = { kind: 'rectangle' as const, a: [40, 20] as P2, b: [0, 0] as P2 };
   const outline = rectangleOutline(rect)!;
   assert.deepEqual(outline.points, [[0, 0], [40, 0], [40, 20], [0, 20]]);
@@ -229,7 +229,7 @@ test('angle dimensions between two lines: at a shared corner, between separate e
 });
 
 test('sketch history steps back and forward through outline edits, and only over the shape it left', async () => {
-  const { SketchHistory } = await import('../src/sketch/history');
+  const { SketchHistory } = await import('@barocss/cad-model/sketch/history');
   const h = new SketchHistory(), a = quad();
   const b = ok(applyConstraint(a, [E(2)], 'horizontal')), c = removeConstraint(b, 'h:0');
   h.push(a, b); h.push(b, c);
@@ -317,7 +317,7 @@ test('a finished sketch node comes back as its shapes: the kept outline with its
 });
 
 test('a Rectangle-tool rectangle stays a rectangle after Select / Dimension while it still is one (QA S3, K29)', async () => {
-  const { rectangleOutline } = await import('../src/sketch/select');
+  const { rectangleOutline } = await import('@barocss/cad-model/sketch/select');
   const { shapeNode } = await import('@barocss/cad-model/sketch/loops');
   const { editFields } = await import('@barocss/cad-model/app/editFields');
   const { emptyDoc, withNode } = await import('@barocss/cad-model/engine/doc');
@@ -339,7 +339,7 @@ test('a Rectangle-tool rectangle stays a rectangle after Select / Dimension whil
 });
 
 test('a circle is placed from the outline: picked from the sketch, centre distances, diameter, saved, reopened, edited', async () => {
-  const { sketchClick, attachCircle, pickSketch } = await import('../src/sketch/select');
+  const { sketchClick, attachCircle, pickSketch } = await import('@barocss/cad-model/sketch/select');
   const { profileOf, shapeNode } = await import('@barocss/cad-model/sketch/loops');
   const { sketchShapes } = await import('@barocss/cad-model/sketch/reopen');
   const { editFields } = await import('@barocss/cad-model/app/editFields');
@@ -387,14 +387,14 @@ test('a circle is placed from the outline: picked from the sketch, centre distan
 });
 
 test('Select / Dimension after drawing a circle edit the outline drawn before it; the circle stays beside it', async () => {
-  const { startPicking, rectangleOutline } = await import('../src/sketch/select');
+  const { startPicking, rectangleOutline } = await import('@barocss/cad-model/sketch/select');
   const rect = { kind: 'rectangle' as const, a: [0, 0] as P2, b: [40, 20] as P2 }, hole = { kind: 'circle' as const, c: [10, 10] as P2, r: 3 };
   const s = startPicking({ plane: xyPlane(), tool: 'circle', shape: hole, done: [rect] }, 'dimension');
   assert.deepEqual(s.shape, rectangleOutline(rect)); assert.deepEqual(s.done, [hole]);
 });
 
 test('circles are placed from horizontal / vertical edges and from each other', async () => {
-  const { sketchClick } = await import('../src/sketch/select');
+  const { sketchClick } = await import('@barocss/cad-model/sketch/select');
   const { edgeCircleKey, circlePairKeys, dimensionLabel } = await import('@barocss/cad-model/sketch/rules');
   const { outlineFields } = await import('@barocss/cad-model/sketch/outlineFields');
   const { profileOf } = await import('@barocss/cad-model/sketch/loops');

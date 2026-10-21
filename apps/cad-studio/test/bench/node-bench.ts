@@ -7,7 +7,7 @@ import { brepFromTriangles, decimateMesh, meshDistance, diagnoseMesh, encodeBina
 import { boxCage } from '@barocss/cad-model/app/primitives';
 import { organicTorus } from './mesh-fixtures';
 import { evaluateDoc, shareMeshes } from '@barocss/cad-model/engine/evaluate';
-import { MeshSender } from '../../src/engine/meshWire';
+import { MeshSender } from '@barocss/cad-model/engine/meshWire';
 import { meshInMM } from '@barocss/cad-model/engine/meshImport';
 import { recoveryText } from '../../src/app/recovery';
 import { emptyDoc as emptyStudioDoc } from '@barocss/cad-model/engine/doc';
@@ -16,7 +16,7 @@ import { directDisplay, emptyDirect, importSource, movePole } from '@barocss/cad
 import { projectViews } from '@barocss/cad-model/drawing/project';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
 import { buildSheet } from '@barocss/cad-model/drawing/sheet';
-import { sheetDxf } from '../../src/drawing/dxf';
+import { sheetDxf } from '@barocss/cad-model/drawing/dxf';
 import { autoDimensions } from '@barocss/cad-model/drawing/auto';
 import { drawingIssues } from '@barocss/cad-model/drawing/issues';
 import { autoLayout } from '@barocss/cad-model/drawing/layout';
@@ -26,7 +26,7 @@ import { checkSpec, type Requirement } from '@barocss/cad-model/chat/spec';
 import { parse as parseScript } from '@barocss/cad-model/chat/script';
 import { jointTreeOf } from '@barocss/cad-model/robot/joints';
 import { forwardKinematics } from '@barocss/cad-model/robot/fk';
-import { posedInstances } from '../../src/robot/preview';
+import { posedInstances } from '@barocss/cad-model/robot/preview';
 import { treeInertia } from '@barocss/cad-model/robot/inertia';
 import { sizeActuators } from '@barocss/cad-model/robot/actuators';
 import { gravityTorques, moveTorques } from '@barocss/cad-model/robot/dynamics';

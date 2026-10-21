@@ -6,7 +6,7 @@ import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool } from '@barocss/cad-model/chat/tools';
 import { bomView, checkAssembly, checkBom, deriveBom } from '@barocss/cad-model/team/assembly';
-import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
+import { runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
 
 // A8.4 (O36): the Assembly integrator's whole-assembly gate and the BOM agent. A part moved after its acceptance caught
 // (PATTERN_MISALIGNED); parts in face contact not passed (undecided or meeting); the total mass; the BOM derived from a

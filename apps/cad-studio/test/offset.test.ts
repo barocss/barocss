@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { offsetShape } from '../src/sketch/offset';
+import { offsetShape } from '@barocss/cad-model/sketch/offset';
 
 test('offset: rectangles, circles, slots and straight outlines grow or shrink; too far is refused', () => {
   assert.deepEqual(offsetShape({ kind: 'rectangle', a: [0, 0], b: [20, 10] }, 2), { shape: { kind: 'rectangle', a: [-2, -2], b: [22, 12] } });

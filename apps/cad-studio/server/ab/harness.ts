@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { checkSpec } from '@barocss/cad-model/chat/spec';
-import { toolsetOf, type Toolset } from '../../src/chat/toolset';
+import { toolsetOf, type Toolset } from '@barocss/cad-model/chat/toolset';
 import { createChatServer, stateNote, type TurnUsage } from '../chatServer';
 import type { Arm, Brief, Call } from './briefs';
 

@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 
 // Requirements as declarative checks (A3.1): kept in the document, run by check_spec.
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);

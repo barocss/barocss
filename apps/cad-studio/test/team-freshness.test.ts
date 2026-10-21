@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { rectanglePart, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { readStudioDoc } from '../src/engine/migrate';
+import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { withLook } from '@barocss/cad-model/app/bodies';
 import type { Requirement } from '@barocss/cad-model/chat/spec';
@@ -12,7 +12,7 @@ import { bomView, deriveBom } from '@barocss/cad-model/team/assembly';
 import { draftBaseline, moveBaseline } from '@barocss/cad-model/team/baseline';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import { bomResult, currentOf, displayOf, dfmResult, drawingResult, emptyStore, freshnessOf, inertiaResult, keepoutResult, massResult, numericOf, openRun, passes, recordResult, requirementResults, stamp, summaryOf, type Freshness, type Result } from '@barocss/cad-model/team/freshness';
-import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
+import { runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';
 
 // A8.5b (O32's addendum, O39): every result stamped with what it read; read back current, stale (the changed input
 // named) or unresolved (a face gone, ambiguous, or renamed — never re-targeted; A1's own re-match failure carried in).

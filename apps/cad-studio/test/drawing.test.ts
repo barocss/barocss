@@ -11,8 +11,8 @@ import { sectionOf } from '@barocss/cad-model/drawing/section';
 import { hatch, noteMarks, TITLE_ROOM, toleranceText, valueMarks } from '@barocss/cad-model/drawing/sheet';
 import { fitText, textWidth } from '@barocss/cad-model/drawing/text';
 import type { PartInstance } from '@barocss/cad-model/engine/doc';
-import { arcPath, sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
+import { arcPath, sheetSvg } from '@barocss/cad-model/drawing/svg';
+import { sheetPdf } from '@barocss/cad-model/drawing/pdf';
 import { defaultDrawing, readDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '@barocss/cad-model/drawing/types';
 
 const viewsOf = (doc: StudioDoc): DrawingViews => {

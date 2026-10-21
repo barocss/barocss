@@ -2,7 +2,7 @@
 // driving dimensions), circles placed by dimensions from outline points, mates to origin planes and the
 // remaining-freedom report, section A–A and angular dimensions on drawings.
 //   node test/qa/run-engine-probe.mjs smoke-probe.ts
-import { settleShape } from '../../src/sketch/settle';
+import { settleShape } from '@barocss/cad-model/sketch/settle';
 import { commitDimension, type Polygon } from '@barocss/cad-model/sketch/rules';
 import { profileOf, shapeNode } from '@barocss/cad-model/sketch/loops';
 import { sketchShapes } from '@barocss/cad-model/sketch/reopen';

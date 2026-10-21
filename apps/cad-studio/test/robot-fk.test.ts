@@ -10,7 +10,7 @@ import { dispatchTool } from '@barocss/cad-model/chat/tools';
 import { treeOfDoc } from '@barocss/cad-model/chat/robot';
 import { jointTreeOf, type Joint, type JointTree } from '@barocss/cad-model/robot/joints';
 import { applyTo, composeInto, forwardKinematics, gearPairAt, screwInto, sliderRange, type Motion } from '@barocss/cad-model/robot/fk';
-import { posedInstances } from '../src/robot/preview';
+import { posedInstances } from '@barocss/cad-model/robot/preview';
 
 // RM2 (O15): forward kinematics over the joint tree — the planar 2R closed form to 1e-9, the product of exponentials
 // against the moving-axis form on a random 3D tree, gear followers turning their pair with the tooth phase held,
