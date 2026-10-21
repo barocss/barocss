@@ -21,6 +21,7 @@ import { CutListDialog } from './ui/CutListDialog';
 import { partCutList } from './app/cutList';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
+import { ShapesStrip } from './ui/ShapesStrip';
 import { ContextMenu } from './ui/ContextMenu';
 import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
@@ -34,7 +35,8 @@ import { ParametersPanel } from './ui/ParametersPanel';
 import { LibraryPanel } from './ui/LibraryPanel';
 import { CagePanel } from './ui/CagePanel';
 import { useCageEditor } from './subd/useCageEditor';
-import { loadUserLibraries } from './library/libraries';
+import { loadUserLibraries, setLibraryStore } from './library/libraries';
+import { browserStore } from './ui/browserStore';
 import { processProfile } from './library/materials';
 import type { BindableField } from './app/editFields';
 import { InstancePanel } from './ui/InstancePanel';
@@ -326,7 +328,8 @@ export function App() {
     ? (printing ? { kind: 'overhang', sinLimit: Math.sin(printing.thresholds.maxOverhangDeg.value * Math.PI / 180), bedZ: bodies.reduce((m, b) => Math.min(m, b.mesh.bounds.min[2]), Infinity) } : null)
     : analysis;
   // (The user's own libraries kept in this browser, once.)
-  useEffect(() => { loadUserLibraries(); }, []);
+  // (The user's libraries kept in this browser: the store set before they are read — PKG-b, B4.)
+  useEffect(() => { setLibraryStore(browserStore()); loadUserLibraries(); }, []);
   /** The view's field of view (degrees; the Render panel sets it, a saved view keeps it). */
   const [fov, setFov] = useState(32);
   const [section, setSection] = useState<{ axis: 'x' | 'y' | 'z'; at: number; keep: 'negative' | 'positive' } | null>(null);
@@ -1836,7 +1839,7 @@ export function App() {
           <input value={fileName} onChange={e => setFileName(e.target.value)} size={Math.max(8, fileName.length)} />
           {dirty && <span className="dot" aria-label="Unsaved changes" />}</label>
         {/* Shapes: click one and place it with the pointer, or drag it onto the model. */}
-        {!sketch && !rendering && !drawing && <div className="shapes" role="toolbar" aria-label="Shapes">{commands.filter(c => c.place).map(toolButton)}</div>}
+        {!sketch && !rendering && !drawing && <ShapesStrip buttons={commands.filter(c => c.place).map(toolButton)} />}
         <div className="grow" />
         <div className="mode" role="group" aria-label="Mode">
           <button className={!sketch && !rendering && !drawing ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); setDrawing(false); }}>Model</button>

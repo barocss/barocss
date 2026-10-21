@@ -1,6 +1,6 @@
 // A sketch's closed shapes as one profile: each shape a closed loop; loops inside another are holes, the
 // rest are separate regions of material (the first drawn is the main profile).
-import type { SketchShape } from '../viewport/Viewport';
+import type { SketchShape } from './types';
 import type { LoopSegment as DocSegment, SketchNode, SketchOutline } from '../engine/doc';
 import { outlineSegments, sampleOutline, sampleSlot, slotSegments, type P2 } from './profile';
 import { segmentDistance as segDist, insideRing as inside } from '../engine/geom2';

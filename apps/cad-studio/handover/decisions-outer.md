@@ -4087,3 +4087,78 @@ The coordinator accepted CNC5 and ordered CNC6, which closes the CNC track. Its 
 - **For the kernel lane**: AP242 semantic PMI in the STEP writer (CNC5 stopped before it); the hole-after-union refusal (still the one todo); the triangle-BVH consolidation (track K).
 - **Not built**: the title block's material and finish cells (an R14 layout change; notes carry them); 5-axis and undercut cutters (access only warns); a price or a quote package for machining (IM6's pattern, if wanted); L/D and thread relief rules (no source).
 - **Counts across the track**: 34 studio tests added (S0 4, CNC1 5, CNC2 6, CNC3 7, CNC4 4, CNC5 4, CNC6 4), 6 flow steps (CNC1–CNC6), and 2 RB9 mutants. The contract overhead is unchanged: no tool text changed.
+
+## O90 — the top bar's shapes strip: a More menu, never a sideways page (2026-10-21)
+
+The kernel lane found the strip full at 1440 px. One more placed command (worm-pair) shifted the page sideways and broke flow step 72, so they put that command in the side toolbar. The coordinator asked for the strip to handle overflow, with a flow assertion that the page does not scroll sideways.
+
+- **Measured**: at 1440 the strip's 15 shapes never fitted. The bar's other controls (852 px), its gaps and padding left room for 12. Before this change the bar ran about 25 px over and squeezed its other children.
+- **`src/ui/ShapesStrip.tsx`**:
+  - It shows as many shapes as the bar has room for. The room is the bar's width less its other laid-out children, gaps and padding, leaving out the two `.grow` spacers. A child hidden with `display: none` takes no gap.
+  - When not every shape fits, a **More shapes** button holds the rest in a grid menu. The menu closes on a pick, a click outside it, or Escape.
+  - The room is measured again whenever the bar or any of its children changes size (ResizeObserver; the browser API stays inside `ui/`, the PKG rule).
+  - `App.tsx` passes the same tool buttons as before, so drag-to-place, tips and the lit active command are unchanged. Everything goes through one component.
+- **CSS**:
+  - `.shapes` may shrink (`flex: 0 1 auto; min-width: 0`);
+  - `.topbar` clips sideways (`overflow-x: clip`, the vertical axis left visible for its dropdowns), so nothing in it can widen the page.
+- **Flow**:
+  - a new step checks 1440, 1100 and 860. The page never scrolls sideways (scrollWidth and scrollLeft). The whole bar fits down to 1100. Shown plus in the menu stays the same total (11 + 4, 0 + 15, 0 + 15), and no more are shown as the window narrows. A shape picked from the menu starts its command, its button lit, and the menu closes;
+  - the five steps that clicked Fastener, and one that clicked Cylinder, use a `shape(label)` helper that opens More when the strip has no room for it.
+- **Follow-up, beyond the strip**: below about 1100 px the bar's other controls alone are wider than the window. The mode group and the right-hand tools are clipped at its edge rather than shifting the page. A narrow-window layout for the whole bar is its own piece of work.
+
+## O91 — PKG-a: the empty `@barocss/cad-model` package (2026-10-21)
+
+PKG is the owner-approved package split (`handover/notes/research-package-boundary-2026-10-21.md`, README §0 roadmap item 4). The coordinator ordered only the two steps that are safe while the kernel lane is mid-track, each its own checkpoint: PKG-a, then PKG-b. The moves (PKG-c to PKG-f) wait for the joint boundary.
+
+- **`packages/barocss-cad-model`**:
+  - `@barocss/cad-model`, private, `type: module`;
+  - `exports: {"./*": "./src/*.ts"}`, so modules are imported by path;
+  - dependency `@barocss/cad: workspace:*`; devDependencies typescript 5.9.2 and @types/node 26.6.4, the studio's versions;
+  - a tsconfig with `moduleResolution: Bundler`, `types: ["node"]` and `lib: ["ES2022"]`: no DOM, so a browser global in model code fails its type check once code moves in;
+  - scripts `lint` (eslint, the root config) and `type-check`;
+  - one file, `src/index.ts`, a comment and `export {}`, because tsc refuses an empty input.
+- **The studio** depends on it (`"@barocss/cad-model": "workspace:*"`). The workspace already globs `packages/*`.
+- **`pnpm-lock.yaml`**: the coordinator said this change is expected, so it is committed. The diff is only the new importer and the studio's new link, 16 lines. `pnpm install --offline` relinked node_modules: it added the package's links and pruned stale entries; the lock itself changed only by those lines.
+- **Nothing moved.**
+- **Checks**:
+  - the package's lint 0 and type-check 0;
+  - studio tsc 0;
+  - suite 743 = 742 pass + 1 todo, the same names as before;
+  - kernel conformance 195/195;
+  - full flow 211/211.
+
+## O92 — PKG-b: blockers B1–B4 cut in place, nothing moved (2026-10-21)
+
+The second of PKG's two early steps. B1–B4 are the four places where code bound for `@barocss/cad-model` reaches into the app (`viewport/`, `ui/`, browser storage). Each is cut where it stands. Behaviour is unchanged, and the UI reads every moved name from where it did, by re-export. The moves (PKG-c to PKG-f) wait for the joint boundary.
+
+- **B1, the sketch types**: `SketchTool`, `SketchShape`, `SketchAnchor`, `SketchState` and `Make` move from `viewport/Viewport.tsx` to the new `src/sketch/types.ts`. Their types come from `sketch/plane`, `sketch/terms` and `sketch/rules`. `Viewport.tsx` re-exports them, and the 11 sketch modules that type-imported them from the viewport import `./types`.
+- **B2, `Axis3`**: declared in `engine/vec3.ts`. `viewport/gizmo.ts` re-exports it; `assembly/drag.ts` imports it from the engine.
+- **B3, `meshToStl`**: moves to the new `src/engine/stl.ts`. `ui/files.ts` re-exports it (`downloadBytes` stays there). `server/cadCli.ts` imports it from the engine, so the CLI no longer imports `ui/`.
+- **B4, the user's libraries' storage**:
+  - `library/libraries.ts` keeps them in a `LibraryStore` (`getItem`/`setItem`) that the app sets with `setLibraryStore`. With none set (a test, the CLI) nothing is kept, which is what happened before in Node, where `globalThis.localStorage` was undefined.
+  - The studio sets it from `ui/browserStore.ts`, `localStorage` guarded: storage that is missing or refused gives null. It is set in the same mount effect, just before `loadUserLibraries()`.
+  - `library/` no longer names `localStorage`. The browser API stays in `ui/`, the PKG rule.
+- **Kept cut** (`test/pkg-boundary.test.ts`, 2):
+  - sketch/*, assembly/drag, library/*, engine/stl, engine/vec3 and the CLI import nothing from `viewport/` or `ui/`; library/ names no `localStorage` outside comments; the three re-exports are in place;
+  - with no store, registering a user library keeps nothing. With a store set, it is written there and read back by `loadUserLibraries`.
+- **Not in PKG-b**: `app/templates.ts` and `app/recovery.ts` also use `localStorage`. They are app modules in the proposal and stay. B11, the tests importing pure functions from `.tsx`, is optional and left.
+
+## O93 — `@barocss/cad-model` made a public package (2026-10-21)
+
+The owner's decision, verbatim: "@barocss/cad-model 는 공개패키지로 해줘" (make @barocss/cad-model a public package). The coordinator forwarded it after PKG-b's checkpoint, so it is its own small commit.
+
+- **`packages/barocss-cad-model/package.json`**: `private` removed, mirroring the kernel's publish fields:
+  - version `0.0.0-experimental` and license MIT;
+  - `repository` (git, `packages/barocss-cad-model`), `homepage` and `bugs`;
+  - `files` (src, README.md, LICENSE) and `publishConfig: {access: public}`;
+  - a description: the CAD document model and engineering domain logic on top of @barocss/cad, no UI.
+
+  The kernel's `publishConfig` also maps its exports to a compiled `dist/`. This package has no build yet, so it has no `dist` mapping; that comes with its first real code.
+- **Added**: a README (what the package is, that it is empty until the moves, that a release goes through the release process) and the repository's MIT LICENSE.
+- **Nothing published, pushed or released.** `pnpm pack`, run locally into the scratchpad, gives a tarball of LICENSE, package.json, README.md and src/index.ts.
+- **No changeset yet**: one comes when real code lands (PKG-c). The repository's checks, read for a new public package that only exports `{}`:
+  - `release.yml` ("Npm version PR", run by hand on develop) runs type-check, lint, build:library, the non-app tests and `check-packages.mjs`, then opens a changesets version PR. This package passes lint and type-check, has no build or test script to run, and a package without a changeset is not versioned;
+  - `check-packages.mjs` and `check-release-version.mjs` cover only the fixed release set in `.github/scripts/release-manifests.mjs` (kit, browser, server, render). A new package is not packed or checked there, and it cannot trip the pending-changeset check while it has none;
+  - `npm-release.yml` publishes only those four tarballs, by name. A public cad-model is not published by any workflow until it is added to that set on purpose.
+- **Open, for the coordinator and the owner later**: a public package's exports are an API. `"./*"` stays for the moves. Before the first release it needs a curated public entry (`index.ts`) and a stability policy for its exports. Not designed here.
+- The lockfile is unchanged: workspace links carry no version.

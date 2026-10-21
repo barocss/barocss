@@ -73,6 +73,8 @@ const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySe
 const hudReady = async () => { await page.waitForTimeout(250); return page.waitForFunction(() => /preview|refused/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 }); };
 const field = (label) => page.locator('.hud .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
 const press = (k) => page.keyboard.press(k);
+/** A shape's button from the top bar's strip, or from its More shapes menu when the strip has no room for it. */
+const shape = async label => { if (!(await page.locator(`.shapes > [aria-label="${label}"]`).count())) await page.click('[aria-label="More shapes"]'); await page.click(`.shapes [aria-label="${label}"]`); };
 const canvasCenter = async () => { const b = await page.locator('canvas').boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 
 try {
@@ -1864,7 +1866,7 @@ try {
     await press('h'); await hudReady(); await field('Centre X').fill('32'); await field('Centre Y').fill('16'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await press('Escape');
-    await page.click('.shapes [aria-label="Fastener"]'); await hudReady();
+    await shape('Fastener'); await hudReady();
     await field('Size').selectOption('M8'); await field('Length').selectOption('20');
     await field('Axis at X').fill('32'); await field('Axis at Y').fill('16'); await field('Seat at Z').fill('8');
     await hudReady(); await page.waitForTimeout(300); await snap('fastener-preview'); await press('Enter');
@@ -1884,7 +1886,7 @@ try {
     await press('h'); await hudReady(); await field('Centre X').fill('32'); await field('Centre Y').fill('16'); await field('Diameter').fill('6.6'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await press('Escape');
-    await page.click('.shapes [aria-label="Fastener"]'); await hudReady();
+    await shape('Fastener'); await hudReady();
     // Over the hole's wall (whichever side faces the eye): the fitted bolt follows.
     let fitted = false;
     for (const p of [[32 - 3.2, 16, 4], [32 + 3.2, 16, 4], [32, 16 - 3.2, 4], [32, 16 + 3.2, 4]]) {
@@ -1904,7 +1906,7 @@ try {
 
   await check('a countersunk screw inserted as a part of its own: an assembly instance, the part unchanged', async () => {
     const before = await page.evaluate(() => window.__studioDoc.nodes.length);
-    await page.click('.shapes [aria-label="Fastener"]'); await hudReady();
+    await shape('Fastener'); await hudReady();
     await field('Part').selectOption('csk-screw'); await field('Size').selectOption('M5'); await field('Length').selectOption('16');
     await field('Axis at X').fill('10'); await field('Axis at Y').fill('10'); await field('Seat at Z').fill('8'); await field('Insert').selectOption('instance');
     await hudReady(); await page.waitForTimeout(400); await snap('fastener-instance-preview'); await press('Enter');
@@ -1914,14 +1916,14 @@ try {
     assert.equal(await page.evaluate(() => window.__studioDoc.nodes.length), before, 'no features joined the part');
     await idle(); await page.waitForTimeout(800); await snap('fastener-instance');
     // A bolt standing clear of the plate shows its cosmetic thread: rings along its shank.
-    await page.click('.shapes [aria-label="Fastener"]'); await hudReady();
+    await shape('Fastener'); await hudReady();
     await field('Part').selectOption('hex-bolt'); await field('Size').selectOption('M8'); await field('Length').selectOption('30');
     await field('Axis at X').fill('90'); await field('Axis at Y').fill('16'); await field('Seat at Z').fill('30');
     await hudReady(); await page.waitForTimeout(400); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.made?.values?.x === 90, null, { timeout: 15000 }); await idle();
     await press('Escape'); await press('f'); await page.waitForTimeout(800); await snap('fastener-threads');
     // Modelled: the thread as helical B-spline faces (one solid), its head and seat named for mates.
-    await page.click('.shapes [aria-label="Fastener"]'); await hudReady();
+    await shape('Fastener'); await hudReady();
     await field('Part').selectOption('hex-bolt'); await field('Size').selectOption('M8'); await field('Length').selectOption('30');
     await field('Axis at X').fill('120'); await field('Axis at Y').fill('16'); await field('Seat at Z').fill('30'); await field('Thread').selectOption('modelled');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
@@ -1990,7 +1992,7 @@ try {
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(400);
     // The box's +X face (x = 32): its middle, on screen.
     const [sx, sy] = await page.evaluate(() => window.__studioScreenOf([32, 16, 8]));
-    await page.click('.shapes [aria-label="Cylinder"]'); await hudReady();
+    await shape('Cylinder'); await hudReady();
     await page.mouse.move(sx - 6, sy, { steps: 3 }); await page.mouse.move(sx, sy); await page.waitForTimeout(300); await page.mouse.click(sx, sy);
     await page.waitForFunction(() => /placed/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
     await hudReady(); await page.waitForTimeout(250); await snap('side-cylinder'); await press('Enter');
@@ -5231,6 +5233,41 @@ try {
       await snap('cnc6-turning');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
+  });
+
+  // ---- the shapes strip's overflow: a More menu, never a sideways page --------------------------------------------
+  await check('shapes strip: no sideways page scroll at 1440, 1100 or 860; what has no room goes under More shapes, none lost; a pick from it starts', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    // (Nothing wider than the window: the page's own width, and every top-bar control's right edge.)
+    const wide = () => page.evaluate(() => ({ page: document.documentElement.scrollWidth - window.innerWidth, scrolled: document.scrollingElement.scrollLeft,
+      bar: Math.max(...[...document.querySelectorAll('.topbar > *')].map(e => e.getBoundingClientRect().right)) - window.innerWidth,
+      shown: document.querySelectorAll('.shapes > .tool').length, more: !!document.querySelector('[aria-label="More shapes"]') }));
+    const inMenu = async () => { if (!(await page.locator('[aria-label="More shapes"]').count())) return 0; await page.click('[aria-label="More shapes"]'); const n = await page.locator('[role="menu"][aria-label="More shapes"] .tool').count(); await page.keyboard.press('Escape'); return n; };
+    const seen = [];
+    try {
+      for (const width of [1440, 1100, 860]) {
+        await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(300);
+        const w = await wide();
+        // (The page never scrolls sideways; the bar itself fits down to 1100 — at 860 its other controls alone are wider than
+        // the window and are clipped at its edge, a follow-up beyond the strip.)
+        assert.ok(w.page <= 0 && w.scrolled === 0 && (width < 1100 || w.bar <= 0.5), `${width}: ${JSON.stringify(w)}`);
+        seen.push([width, w.shown, await inMenu()]);
+      }
+      const totals = seen.map(([, a, b]) => a + b);
+      assert.ok(totals.every(x => x === totals[0]) && totals[0] > 0, `none lost: ${JSON.stringify(seen)}`);
+      assert.ok(seen[0][1] > seen[2][1] && seen.every(([, a], k) => k === 0 || a <= seen[k - 1][1]), `no more shown as the window narrows: ${JSON.stringify(seen)}`);
+      // A shape from the menu starts its command.
+      await page.click('[aria-label="More shapes"]');
+      const last = page.locator('[role="menu"][aria-label="More shapes"] .tool').last(), label = await last.getAttribute('aria-label');
+      await last.click();
+      assert.equal(await page.locator('[role="menu"][aria-label="More shapes"]').count(), 0, 'the menu closes on a pick');
+      // (Its command is the active one: its button lit when the menu opens again.)
+      await page.click('[aria-label="More shapes"]');
+      await page.waitForFunction(l => document.querySelector(`[role="menu"][aria-label="More shapes"] [aria-label="${l}"]`)?.classList.contains('on'), label, { timeout: 5000 });
+      await snap('shapes-more');
+      await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
+    } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
+    const w = await wide(); assert.ok(w.page <= 0 && w.scrolled === 0, JSON.stringify(w));
   });
 
   await check('command palette and light theme', async () => {

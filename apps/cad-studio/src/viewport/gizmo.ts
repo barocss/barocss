@@ -6,7 +6,8 @@
 import type { Vec3 } from '../engine/mesh';
 import { segmentDistance as segDist, insideRing as insidePolygon } from '../engine/geom2';
 
-export type Axis3 = 0 | 1 | 2;
+export type { Axis3 } from '../engine/vec3';
+import type { Axis3 } from '../engine/vec3';
 type XY = [number, number];
 export interface TransformGizmo {
   /** Where the handles sit (world, mm). */

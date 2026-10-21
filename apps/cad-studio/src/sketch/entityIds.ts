@@ -4,7 +4,7 @@
 // a body makes of the sketch are named `side[e<k>]` and keep their names through those edits (D31's plan). A
 // polygon's id i is its point i's and so its segment i's (segment i runs from point i); the constraints, kept by
 // index, are carried through an edit by these ids (`carryPolygon`).
-import type { SketchShape } from '../viewport/Viewport';
+import type { SketchShape } from './types';
 import type { LoopSegment, ModelNode, SketchNode } from '../engine/doc';
 import type { Polygon } from './rules';
 import type { SketchRule } from './terms';

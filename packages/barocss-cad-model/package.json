@@ -1,0 +1,39 @@
+{
+  "name": "@barocss/cad-model",
+  "version": "0.0.0-experimental",
+  "private": false,
+  "type": "module",
+  "description": "The CAD document model and engineering domain logic on top of @barocss/cad: documents, evaluation, analyses, manufacturability and the agent tools — no UI",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/barocss/barocss.git",
+    "directory": "packages/barocss-cad-model"
+  },
+  "homepage": "https://github.com/barocss/barocss/tree/develop/packages/barocss-cad-model#readme",
+  "bugs": {
+    "url": "https://github.com/barocss/barocss/issues"
+  },
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@barocss/cad": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2",
+    "@types/node": "26.6.4"
+  }
+}
