@@ -47,6 +47,7 @@ import { throatedWormWheel, throatedWormPlacement, type ThroatedWheelReport, typ
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { tessellateBrep } from './brep-tessellate.js';
+import { rayHit, triangleBvh } from './triangle-bvh.js';
 import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, SolidMassError, type SolidMassProperties } from './solid-mass.js';
 import { glueAtSharedFace, withCavities } from './brep-glue.js';
 import { loftSolid } from './loft.js';
@@ -614,6 +615,26 @@ function explodeFacets(b: Brep, at: string, what: string): Brep {
 }
 const brepOf = (part: Part, id: string): Brep => part.brep ??= part.solid.kind === 'upright' ? brepFromPrismatic(part.solid.solid, { id }) : part.solid.brep;
 
+/** Free space closer than this above a hole's face (mm) refuses it (D148b): the cutter has no room to stop short of it. */
+const OBSTRUCTION_MM = 1e-3;
+/** Unit vectors of the two coordinates a hole's `center` is in, for axis k: z → (x, y), x → (y, z), y → (x, z). */
+const HOLE_PLANE_AXES: readonly (readonly [number, number])[] = [[1, 2], [0, 2], [0, 1]];
+/**
+ * The free space above a hole's face along its axis (D148b): rays from the face's plane, out along its normal, from the
+ * hole's centre and 16 points on its rim and 8 at half its radius, against the body's tessellation (K2's tree); the
+ * least hit, or Infinity when nothing is above.
+ */
+function clearanceAbove(brep: Brep, k: number, dir: 1 | -1, face: number, c: XY, r: number): number {
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 8 }), bvh = triangleBvh(mesh.positionsMM, mesh.indices), [a, b] = HOLE_PLANE_AXES[k];
+  const o: Point = [0, 0, 0], d: Point = [0, 0, 0]; d[k] = dir;
+  let least = Infinity;
+  for (let s = 0; s < 25; s++) {
+    const rad = s === 0 ? 0 : s <= 16 ? r : r / 2, ang = s === 0 ? 0 : s <= 16 ? 2 * Math.PI * (s - 1) / 16 : 2 * Math.PI * (s - 17) / 8;
+    o[a] = c[0] + rad * Math.cos(ang); o[b] = c[1] + rad * Math.sin(ang); o[k] = face;
+    least = Math.min(least, rayHit(bvh, o, d, 1e-9));
+  }
+  return least;
+}
 /** A named planar face of a body square to coordinate axis k: its plane's coordinate and the side its outward normal faces (D148). */
 function holeFace(brep: Brep, name: string, k: number, fail: (code: CadPartErrorCode, detail: string) => never): { at: number; side: 'min' | 'max' } {
   const face = brep.faces.find(x => x.name === name || (x.name ?? '').split('#')[0] === name);
@@ -1139,12 +1160,19 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         // by a cyclic permutation (x: local x, y, z → world y, z, x; y: → world z, x, y).
         const box = bounds(p.solid), k = 'xyz'.indexOf(axis), hi = box.max[k], lo = box.min[k];
         // (The face drilled into: the named planar face's plane, its outward normal along ±axis the side; else the
-        // target's extreme on `side`. From a named face the tool reaches only a hair past it — 1 % of the depth, at most
-        // 1 mm — so nothing above the face is cut; from the extreme, 1 mm as before.)
+        // target's extreme on `side`. From a named face the tool reaches past it by 1 % of the depth, at most 1 mm, and at
+        // most half the free space above the face over the hole (D148b: a lip or an overhang there stays whole); from the
+        // extreme, 1 mm as before.)
         const start = named === null ? null : holeFace(brepOf(p, at), named, k, fail);
         const side = start ? start.side : given ?? 'max';
         if (start && given !== undefined && given !== start.side) fail('INPUT', `side ${given} does not match ${named}, which faces ${start.side === 'max' ? '+' : '-'}${axis}`);
-        const face = start ? start.at : side === 'max' ? hi : lo, over = start && depth !== null ? Math.min(1, 0.01 * depth) : 1;
+        const face = start ? start.at : side === 'max' ? hi : lo;
+        let over = 1;
+        if (start && depth !== null) {
+          const free = clearanceAbove(brepOf(p, at), k, side === 'max' ? 1 : -1, face, c, r);
+          if (free < OBSTRUCTION_MM) fail('GEOMETRY', `[OBSTRUCTED_ABOVE] material ${+free.toPrecision(3)} mm above ${named} over the hole at (${c[0]}, ${c[1]}): a blind hole from that face would cut it`);
+          over = Math.min(1, 0.01 * depth, free / 2);
+        }
         const [h0, h1] = depth === null ? [lo - 1, hi + 1] : side === 'max' ? [face - depth, face + over] : [face - over, face + depth];
         const local: XY = axis === 'y' ? [c[1], c[0]] : c;
         const cylinder = prismaticFromProfile({ outer: [{ kind: 'arc', start: [local[0] + r, local[1]], center: local, direction: 'ccw' }], heightMM: h1 - h0, fromMM: h0, tag: at });

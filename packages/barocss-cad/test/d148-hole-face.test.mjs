@@ -37,3 +37,19 @@ test('D148: the face is a name, so a parameter edit moves the hole with it; refu
   assert.equal(code(D([...stepped(), { id: 'h', kind: 'hole', target: 'u', center: [10, 10], radius: 3, depth: 6, face: 'b.side0' }])), 'SELECTION');
   assert.equal(code(D([...stepped(), { id: 'h', kind: 'hole', target: 'u', center: [10, 10], radius: 3, depth: 6, face: 'b.top', side: 'min' }])), 'INPUT');
 });
+
+// D148b: from a named face the tool reaches past it by at most half the free space above the face over the hole — an
+// overhang 0.5 mm above a block's top stays whole; one closer than 1e-3 mm is refused, named (OBSTRUCTED_ABOVE).
+const overhung = gap => [
+  { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 40] }, { id: 'b', kind: 'extrude', sketch: 's', height: 60 },
+  { id: 'ps', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [4, 4] }, { id: 'post', kind: 'extrude', sketch: 'ps', height: gap, from: 60 },
+  { id: 'qs', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [20, 20] }, { id: 'lip', kind: 'extrude', sketch: 'qs', height: 1.5, from: 60 + gap },
+  { id: 'u1', kind: 'union', target: 'b', tool: 'post' }, { id: 'u', kind: 'union', target: 'u1', tool: 'lip' },
+];
+test('D148b: an overhang 0.5 mm above the face is not cut by a 55-deep hole (1 % of it, 0.55, would reach it); 0.0005 mm above, refused', () => {
+  const base = volume(D(overhung(0.5))), v = volume(D([...overhung(0.5), { id: 'h', kind: 'hole', target: 'u', center: [12, 12], radius: 3, depth: 55, face: 'b.top' }]));
+  assert.ok(Math.abs(base - v - Math.PI * 9 * 55) <= 1e-9 * base, `taken ${base - v} vs the bore alone ${Math.PI * 9 * 55} (the lip would add ${Math.PI * 9 * 0.05})`);
+  const near = D([...overhung(0.0005), { id: 'h', kind: 'hole', target: 'u', center: [12, 12], radius: 3, depth: 55, face: 'b.top' }]);
+  let message = ''; try { evaluateCadPart(near); } catch (e) { message = `${e.code} ${e.message}`; }
+  assert.match(message, /^GEOMETRY .*\[OBSTRUCTED_ABOVE\] material 0\.0005 mm above b\.top/);
+});

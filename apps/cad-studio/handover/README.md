@@ -44,7 +44,7 @@ lane for it). The R12b → next block is kept as history.
 
 **The kernel-lane queue** (the coordinator's order)
 1. ~~The hole-after-union refusal~~ — **done: D148, 2026-10-21** (the hole takes the picked face by name; the repro in `test/known-bugs.test.ts` is a passing test now).
-2. A face split along a curve or an isocline (`splitFaceAlongCurve`), for IM5's two-half parting.
+2. A face split along a curve or an isocline (`splitFaceAlongCurve`), for IM5's two-half parting. **Next** (the coordinator, 2026-10-21): start with an S0-style probe — an exact split of a plane, a cylinder and a NURBS face along a curve on the face, with closed-form area checks — before wiring it into the Boolean or the parting tools; T1 unless brep core changes (then T2), `FLOW_ONLY` for any parting step. The consumer: `packages/barocss-cad-model/src/mould/parting.ts` (O81: it traces each straddling face's isocline n·d = 0 as points, each mesh edge's crossing bisected 60 times on the exact normal, and asks for `splitFaceAlongCurve(brep, face, curve)` or a split by the isocline directly); the analytic Boolean already cuts faces along intersection curves internally (`analytic-boolean.ts` `cutPair`), the candidate to reuse.
 3. The analytic Boolean's "inputs touch along an edge" refusal on a 16/20 bevel pair 6° off (D134).
 4. STEP export performance for many-face bodies (the throated wheel's 724 faces about 15 s, all tessellation; D137, D138).
 5. Then R12c's stages as D139 froze them (R12c.1a springs first).
