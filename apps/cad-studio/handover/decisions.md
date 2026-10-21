@@ -9241,3 +9241,20 @@ R12c.6a as D139 froze it, with the coordinator's rule: the motion laws come from
 - globoidal, cylindrical and face cams;
 - the arm's clearance with the cam;
 - the profile's flats that a velocity step would need.
+
+**Checks** (rules v2: `part-model.ts` gained a case, so the full kernel suite ran; the 4th kernel checkpoint since D156's run, so RB and properties ran), on f9eacc907 (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-cam`: 9/9.
+- The full kernel suite, conformance included: 1491/1498, 6 skipped, 1219 s (the load average up to 48). It failed only the env-only "actual native Split source…".
+- Conformance `r12c/`: 21/21.
+- `@barocss/cad-model`: type-check clean, 716/716. Studio: type-check clean, 194/194 (`palette.test` with "cam").
+- Test names against the saved lists: none missing; +13 kernel, +17 cad-model (3 of them this stage's, the rest the integration's O133), studio unchanged.
+- `FLOW_ONLY` "Cam (R12c" with the palette steps' neighbours (fillet, chamfer, round, R10, Shaft, Key, Hole, Fit, Spring): 82/85, the Cam step passing.
+  - Three failed under the load: "refit a curve" (its chain not selected: with the curve steps 49–55, 8/8), "fastener at a Ø6.6" and the FR3b frame gap. Each passed rerun alone.
+  - No flow palette word holds the new keywords ("cam follower").
+- RB: 398 cases, no new failures. The non-OK totals are unchanged (4 refused, 3 invalid, 5 wrong): the 8 known TODOs.
+- Properties: 11/11.
+
+Not run:
+- The full browser flow (the coordinator's).
