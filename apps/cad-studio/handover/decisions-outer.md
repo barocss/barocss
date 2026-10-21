@@ -4735,3 +4735,21 @@ The coordinator's order, the PKG roadmap's last step (research-package-boundary 
 - **What stays in the studio**: tests of the servers (MCP, chat, CLI, A/B), of the UI, viewport and App, ones that spawn the studio's scripts, the bench fixtures', pkg-boundary (the app's own boundary check), mould-quote and mould-undercut (server imports), and instance / instance-drag (held for the GPU lane). The kernel's tests are untouched.
 - **Names**: before, 805 in the studio. After, studio 179 + package 626 = 805, and the union equals the set before, 0 missing and 0 added, at every step.
 - **Release note**, unchanged: the exports point at .ts sources, so a build step comes before a real publish (O107).
+
+## O113 — IM7b: straddling faces split along their isoclines (D149) before the halves; a loop climbing along walls (2026-10-21)
+
+- **The split first** (`mould/tooling.ts`, `splitStraddles`):
+  - A display face IM5 finds straddling the pull may be several kernel faces. A full cylinder's side, for one, is two half-faces `n1.side0#1` and `#2` under one display name.
+  - Each of them gets a `split-face` node in the document's history, the kernel's D149 isocline split with the pull, with pieces `<face>#1` on the + side, `#2`, …. A new studio node kind, `{ kind: 'split-face', parent, face, pull, names? }` (engine/doc.ts, engine/part.ts), is internal to the mould tooling: add_features does not document it, so the agent's feature kinds do not list it.
+  - A kernel face already one-sided (NO_SPLIT, or ON_BOUNDARY "wholly on one side": its seam on the isocline) needs no split.
+  - Any other refusal is said with its tag, as MOULD_STRADDLE.
+  - IM5's parting line traces the isocline across a straddling face, so it holds as the halves' line. The plan accepts the resolved faces, including their pieces' names on the split part.
+- **A loop climbing along walls**: a parting loop that is not flat but climbs only along faces along the pull (a rod's end caps, above its isocline) takes the height of its runs across the pull. The cut plane crosses those walls. A loop that climbs across other faces is refused as MOULD_STEPPED: a parting surface off the axis planes, not built, said.
+- **The rod across the pull** (S0's D149 refusal), Ø20 × 50 along X, pull +Z, moulds on the plane through its axis, z = 0:
+  - drawn with its seam on the isocline, no split is needed;
+  - drawn with its seam across, both half-faces are split (two `split-face` nodes).
+  - Either way each half is 70·40·20 − 2500π, summing to the block less the part to 1e-6.
+  - The same rod tilted 45° in XZ slopes its parting line across the cylinder (not a wall): MOULD_STEPPED.
+- **Surfaces**: the injection report's tooling rule and `cad-cli mould` split first. mould.json lists the faces split; the rule says "N faces split along the isocline".
+- **Tests** (`test/im7.test.ts`, 7): the rod both ways, halves exact, the splits in the document's history; the tilted rod refused; the CLI's refusal now the tilted rod's MOULD_STEPPED. IM7a's and S0's cases are unchanged.
+- **Merged**: the integration tip 1355102ab (D149 and its RB rows), the kernel rebuilt.

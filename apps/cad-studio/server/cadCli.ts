@@ -21,7 +21,7 @@ import { verifyBundle, writeBundle } from '@barocss/cad-model/team/bundle';
 import { inProcessReopen, type Reopen } from '@barocss/cad-model/team/candidates';
 import { runBoardScenario, type BoardScenario } from '@barocss/cad-model/team/boardScenario';
 import { canonical } from '@barocss/cad-model/team/team';
-import { MARGIN_ESTIMATE_MM, mouldHalves, toolingPlan, type ToolingPlan } from '@barocss/cad-model/mould/tooling';
+import { MARGIN_ESTIMATE_MM, mouldHalves, splitStraddles, toolingPlan, type ToolingPlan } from '@barocss/cad-model/mould/tooling';
 import { partingLine } from '@barocss/cad-model/mould/parting';
 import { undercuts } from '@barocss/cad-model/mould/undercut';
 import { patternOf } from '@barocss/cad-model/casting/pattern';
@@ -267,17 +267,21 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const opened = await openModel(resolve(file));
     if ('error' in opened) return failed(opened.error);
     const s0 = await stateOf(opened.doc); if ('error' in s0) return failed(s0.error);
-    const pull = s0.doc.mould?.pull ?? null, parting = pull ? partingLine(s0.doc, s0.bodies, pull, s0.doc.mould?.sides ?? {}) : null;
-    const plan = toolingPlan(s0.bodies, pull, parting, pull ? undercuts(s0.bodies, pull).regions : [], margin);
+    const pull = s0.doc.mould?.pull ?? null;
+    // (IM7b, O113: the straddling faces split along their isoclines first — the kernel's D149 — then the plan on the split part.)
+    const sp = pull ? splitStraddles(s0.doc, s0.bodies, pull, s0.doc.mould?.sides ?? {}) : null;
+    if (sp && !sp.ok) { say(io.stdout, { ok: false, code: sp.code, message: sp.message }); return 1; }
+    const doc = sp?.doc ?? s0.doc, bodies = sp?.bodies ?? s0.bodies;
+    const plan = toolingPlan(bodies, pull, sp?.parting ?? (pull ? partingLine(doc, bodies, pull, s0.doc.mould?.sides ?? {}) : null), pull ? undercuts(bodies, pull).regions : [], margin, sp?.resolved ?? []);
     if (!plan.ok) { say(io.stdout, { ok: false, code: plan.code, message: plan.message, waitsFor: plan.waitsFor }); return 1; }
-    const halves = mouldHalves(s0.doc, s0.bodies, plan.plan);
+    const halves = mouldHalves(doc, bodies, plan.plan);
     if (!halves.ok) { say(io.stdout, { ok: false, code: halves.code, message: halves.message }); return 1; }
     const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
     const step = stepFor(halves.doc, 'mould');
     if ('error' in step) return failed(`the halves' STEP: ${step.error}`);
     const vol = (bs: readonly { volumeMM3?: number | null }[]) => Math.round(bs.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0) * 1e3) / 1e3;
     const shown = withoutLoops(plan.plan);
-    const json = { format: 'barocss-mould', version: 1, ...shown, halves: { plus: { label: 'moves along the pull (B side, usually the core)', lumps: halves.plus.length, volume_mm3: vol(halves.plus) }, minus: { label: 'fixed (A side, usually the cavity)', lumps: halves.minus.length, volume_mm3: vol(halves.minus) } },
+    const json = { format: 'barocss-mould', version: 1, ...shown, split: sp?.split ?? [], halves: { plus: { label: 'moves along the pull (B side, usually the core)', lumps: halves.plus.length, volume_mm3: vol(halves.plus) }, minus: { label: 'fixed (A side, usually the cavity)', lumps: halves.minus.length, volume_mm3: vol(halves.minus) } },
       lumps: halves.lumps.map(l => ({ key: l.body.key, half: l.half, basis: l.basis, volume_mm3: vol([l.body]) })), margin: { mm: margin, basis: mi >= 0 ? 'set' : 'estimate' } };
     writeAtomic(join(dir, 'mould.json'), new TextEncoder().encode(JSON.stringify(json, null, 1) + '\n'));
     writeAtomic(join(dir, 'mould.step'), new TextEncoder().encode(step.text));

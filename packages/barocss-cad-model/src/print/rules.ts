@@ -12,7 +12,7 @@ import { materialData, printerProfile, processProfile, type MouldFinish, type Pr
 import { overhangOf, type Vec3 } from './overhang';
 import { draftField, type DraftFace } from '../mould/draft';
 import { castability, type CastingSummary } from '../casting/report';
-import { toolingPlan } from '../mould/tooling';
+import { splitStraddles, toolingPlan } from '../mould/tooling';
 import { undercuts, type UndercutRegion } from '../mould/undercut';
 import { wallsOf, type WallReport } from '../mould/walls';
 import { partingLine, type Half, type PartingReport } from '../mould/parting';
@@ -255,9 +255,12 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
       value: parting.loops.length, unit: 'loops', entities: parting.split.map(x => x.face) });
   }
   // IM7 S0 (O110): the halves where no face needs a split — the parting plane, its shut-offs, the side cores' directions.
-  const tooling = toolingPlan(bodies, pull, parting, regions ?? []);
+  // (IM7b, O113: the straddling faces split along their isoclines first — D149 — then the plan on the split part.)
+  const straddles = pull ? splitStraddles(doc, bodies, pull, { ...doc.mould?.sides, ...options.sides }) : null;
+  const tooling = straddles && !straddles.ok ? { ok: false as const, code: straddles.code, message: straddles.message, waitsFor: null, sideCores: [], stuck: [] }
+    : toolingPlan(straddles?.bodies ?? bodies, pull, straddles?.parting ?? parting, regions ?? [], undefined, straddles?.resolved ?? []);
   rules.push(tooling.ok ? { id: 'tooling', level: 'recommended', status: tooling.plan.stuck.length ? 'warn' : 'pass',
-      message: `two halves ${tooling.plan.levels.length > 1 ? `meeting at ${tooling.plan.levels.length} parting heights (${tooling.plan.axis} = ${tooling.plan.levels.join(', ')}) and ${tooling.plan.cuts.length - tooling.plan.levels.length} riser${tooling.plan.cuts.length - tooling.plan.levels.length === 1 ? '' : 's'}` : `on a flat parting plane (${tooling.plan.axis} = ${tooling.plan.planeAt})`}: ${tooling.plan.shutOffs.length} shut-off${tooling.plan.shutOffs.length === 1 ? '' : 's'}, ${tooling.plan.sideCores.length} side core${tooling.plan.sideCores.length === 1 ? '' : 's'}${tooling.plan.stuck.length ? `, ${tooling.plan.stuck.length} undercut${tooling.plan.stuck.length === 1 ? '' : 's'} no side core frees` : ''} (cad-cli mould writes them)`, value: tooling.plan.shutOffs.length, unit: 'shut-offs' }
+      message: `two halves ${tooling.plan.levels.length > 1 ? `meeting at ${tooling.plan.levels.length} parting heights (${tooling.plan.axis} = ${tooling.plan.levels.join(', ')}) and ${tooling.plan.cuts.length - tooling.plan.levels.length} riser${tooling.plan.cuts.length - tooling.plan.levels.length === 1 ? '' : 's'}` : `on a flat parting plane (${tooling.plan.axis} = ${tooling.plan.planeAt})`}: ${tooling.plan.shutOffs.length} shut-off${tooling.plan.shutOffs.length === 1 ? '' : 's'}, ${tooling.plan.sideCores.length} side core${tooling.plan.sideCores.length === 1 ? '' : 's'}${tooling.plan.stuck.length ? `, ${tooling.plan.stuck.length} undercut${tooling.plan.stuck.length === 1 ? '' : 's'} no side core frees` : ''} ${straddles?.ok && straddles.split.length ? `; ${straddles.split.length} face${straddles.split.length === 1 ? '' : 's'} split along the isocline` : ''} (cad-cli mould writes them)`, value: tooling.plan.shutOffs.length, unit: 'shut-offs' }
     : { id: 'tooling', level: 'recommended', status: 'unknown', message: `the halves: [${tooling.code}]${tooling.sideCores.length ? `; ${tooling.sideCores.length} side core${tooling.sideCores.length === 1 ? '' : 's'} (${tooling.sideCores.map(c => `[${c.direction.map(v => +v.toFixed(6)).join(', ')}]`).join(', ')})` : ''}`, why: tooling.message });
   return { process: profile.id, direction: pull, rules, mould: { finish: finish?.id ?? null, minDraftDeg: finish?.draftMinDeg ?? null, recDraftDeg: finish ? finish.draftRecDeg ?? finish.draftMinDeg : null, bodies: per.map(x => ({ body: x.key, material: x.material, wallMM: x.range, ...(x.note ? { wallNote: x.note } : {}), shrink: x.shrink })),
     ...(parting ? { parting: { faces: parting.faces.map(f => ({ face: f.face, half: f.half, basis: f.basis })), split: parting.split.map(x => ({ face: x.face, isocline_mm: r6(x.isoclineMM) })), loops: parting.loops.map(l => ({ closed: l.closed, length_mm: r6(l.lengthMM), range_mm: l.rangeMM.map(r6), flat: l.flat, points: l.points.length })) } } : {}),
