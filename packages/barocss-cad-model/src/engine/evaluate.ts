@@ -1,6 +1,7 @@
 import { followedStale, resolveSkeletons, staleText } from '../frames/skeleton';
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import { fitNotes } from './fits';
+import { elementOf, type BodyElement } from './elements';
 import type { FaceTable } from '../assembly/mates';
 import { brepSurfaceArea, cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
@@ -39,6 +40,8 @@ export interface BodyResult {
   pieces?: number;
   /** What a generator says of the body (a gear: its dimensions, its flank fit, its root). */
   notes?: { text: string; warning?: boolean }[];
+  /** A machine element's kernel report as plain data, with the user's row it was checked against (O142; a stable shape). */
+  element?: BodyElement;
   /** Enclosed voids, exactly: the B-rep's inner shells (a solid's shells past its first; AM3 cavities). */
   innerShells?: number;
   /** A spur gear as made: its spec and where it stands (the gear queries, A3; a meshing gear's other gear with it). */
@@ -89,6 +92,8 @@ function areaOf(A: number | null, brep: Brep, revision: number, quality: number)
   if (A !== null) return { areaMM2: A, areaBasis: 'exact' };
   return { areaMM2: meshOf(brep, revision, quality).faces.reduce((t, f) => t + f.areaMM2, 0), areaBasis: 'display mesh' };
 }
+/** A sheet body's fields but its notes (those go in the body's one list). */
+function sheetFields(s: ReturnType<typeof sheetOf>): Omit<ReturnType<typeof sheetOf>, 'notes'> { const out = { ...s }; delete out.notes; return out; }
 /** A body's evaluated result: its mesh, and its volume, mass, centroid and inertia when it has a volume. */
 function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision: number, quality: number): BodyResult {
   let m = masses.get(o.brep);
@@ -100,7 +105,32 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
-  return { ...at, ...(libNotes ? { notes: libNotes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), ...(o.gear ? { notes: [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] } : {}), ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.internalGear ? { notes: internalGearNotes(o.internalGear, at.ref ? doc.nodes[at.ref.node] : undefined) } : {}), ...(o.worm ? { notes: [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] } : {}), ...(o.wormWheel ? { notes: wormWheelNotes(o.wormWheel) } : {}), ...(o.spring ? { notes: springNotes(o.spring) } : {}), ...(o.shaft ? { notes: shaftNotes(o.shaft) } : {}), ...(o.key || o.keyway || o.ring || o.pin ? { notes: shaftPartNotes(o) } : {}), ...(o.bearing ? { notes: bearingNotes(o.bearing) } : {}), ...(o.gland ? { notes: glandNotes(o.gland) } : {}), ...(o.oring ? { notes: [{ text: `O-ring ${o.oring.ring}, its section ${+o.oring.stretchedCrossSectionMM.toFixed(4)} stretched; the free ring overlaps its sealing surface by ${+o.oring.overlapMM3.toFixed(4)} mm³ (the squeeze's displaced volume, by the Boolean); its squeezed shape is not modelled`, warning: false }] } : {}), ...(o.bevelGear ? { notes: [...bevelGearNotes(o.bevelGear, at.ref ? doc.nodes[at.ref.node] : undefined), ...bevelMeshNotes(o.bevelGearPlacement)], ...(o.bevelGear.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}) } : {}), ...(o.rack ? { notes: [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}), ...(o.subd && o.subd.caps ? { notes: subdNotes(o.subd), subd: o.subd } : {}), ...(o.decimate ? { notes: decimateNotes(o.decimate) } : {}), ...(o.sheet ? sheetOf(o) : {}), ...(o.member ? { notes: memberNotes(o.member, lib ?? (at.ref ? doc.nodes[at.ref.node] : undefined), doc.frames?.sections, doc.nodes, at.ref ? staleOf(doc).get(at.ref.node) : undefined), ...(m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}) } : {}) };
+  // (Every source's notes, in one list: a library part's and a member's, a gear's and its mesh's … — O142: before, a later
+  // source's replaced an earlier one's.)
+  const node = at.ref ? doc.nodes[at.ref.node] : undefined, sheet = o.sheet ? sheetOf(o) : null;
+  const notes: NonNullable<BodyResult['notes']> = [
+    ...(libNotes ?? []),
+    ...(o.gear ? [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] : []),
+    ...(o.internalGear ? internalGearNotes(o.internalGear, node) : []),
+    ...(o.worm ? [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] : []),
+    ...(o.wormWheel ? wormWheelNotes(o.wormWheel) : []),
+    ...(o.spring ? springNotes(o.spring) : []),
+    ...(o.shaft ? shaftNotes(o.shaft) : []),
+    ...(o.key || o.keyway || o.ring || o.pin ? shaftPartNotes(o) : []),
+    ...(o.bearing ? bearingNotes(o.bearing) : []),
+    ...(o.gland ? glandNotes(o.gland) : []),
+    ...(o.oring ? [{ text: `O-ring ${o.oring.ring}, its section ${+o.oring.stretchedCrossSectionMM.toFixed(4)} stretched; the free ring overlaps its sealing surface by ${+o.oring.overlapMM3.toFixed(4)} mm³ (the squeeze's displaced volume, by the Boolean); its squeezed shape is not modelled`, warning: false }] : []),
+    ...(o.bevelGear ? [...bevelGearNotes(o.bevelGear, node), ...bevelMeshNotes(o.bevelGearPlacement)] : []),
+    ...(o.rack ? [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] : []),
+    ...(o.subd && o.subd.caps ? subdNotes(o.subd) : []),
+    ...(o.decimate ? decimateNotes(o.decimate) : []),
+    ...(sheet?.notes ?? []),
+    ...(o.member ? memberNotes(o.member, lib ?? node, doc.frames?.sections, doc.nodes, at.ref ? staleOf(doc).get(at.ref.node) : undefined) : []),
+  ];
+  const element = elementOf(o, node);
+  return { ...at, ...(notes.length ? { notes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}),
+    ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.bevelGear?.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}),
+    ...(o.subd && o.subd.caps ? { subd: o.subd } : {}), ...(sheet ? sheetFields(sheet) : {}), ...(o.member && m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}), ...(element ? { element } : {}) };
 }
 
 const AXES: [string, number[]][] = [['+X', [1, 0, 0]], ['−X', [-1, 0, 0]], ['+Y', [0, 1, 0]], ['−Y', [0, -1, 0]], ['+Z', [0, 0, 1]], ['−Z', [0, 0, -1]]];

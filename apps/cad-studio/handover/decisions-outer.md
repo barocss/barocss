@@ -5458,3 +5458,35 @@ The coordinator's next item, for the outer side of the kernel lane's machine ele
 1. Bought elements as BOM lines of their own (proposed), and that list of kinds?
 2. Callouts as text after the seat's or groove's dimension (proposed), or leader notes on the element?
 3. Should the element rows and BOM cover the placed parts' elements in v1 (proposed: yes, multiplied by copies)?
+
+## O143 — R12c on drawings and in the BOM, S1: the elements as data, and their BOM lines (2026-10-22)
+
+The coordinator approved O142's S0 with three answers:
+- Bought elements get their own BOM lines. The default kinds are bearing, retaining ring, key, dowel pin, O-ring and spring; gears, racks, worms and cams are made. A per-node `bought` override is added, and a line says when the override decided it.
+- Callouts go after the dimension, with a leader only where an element has no dimension of its own (S3).
+- Placed parts are covered, multiplied by their copies.
+
+S1 is built.
+
+- **`BodyResult.element`** (engine/elements.ts) is the kernel's report as plain data. It is kept stable for the GPU lane and later readers.
+  - Shape: `{ kind, report, row? }`, where kind is spring, shaft, key, keyway, retaining-ring, pin, bearing, oring-gland or oring.
+  - `row` is the user's row it was checked against: `{ id, source?, estimate }` for a bearing, a ring on a row, or a gland's ring.
+  - A test structured-clones every kind's data, which is what the worker's post does.
+- **The notes in one list**: `bodyOf` gathers every source's notes (a library's, a gear's and its mesh's, a spring's, a sheet's, a member's…) into one array. Before, a later `notes:` spread replaced an earlier one. That was latent: no built-in body has two sources, but a library part that is a spring or a gear would have lost its library line. The package suite is unchanged by it (729/729).
+- **`bought`**: an override on any node (`NodeExtras.bought`, true or false; checkNode takes it; the every-field test carries it). Unset, `boughtOf` gives the default for the kind.
+- **`elementLines(doc, bodies)`**: one line per element body, plus each node the person marked bought. The line is `{ item, label, kind, size, row, estimate, why, bought, boughtBy, massG }`.
+  - `size` is our own short text from the report: "6 × 6 × 18", "Ø4 × 20", "Ø19 / Ø24 × 1.2", "compression, Ø… wire, Ø… mean × … free, … active", "3 steps Ø20–Ø25 × 95".
+  - `why` gives each estimate: a row marked an estimate, a ring with no row, G or E estimated, a gland's ranges.
+- **The BOM** (team/assembly.ts):
+  - `bomView` adds `elements`, the bought ones from the base part and each placed part.
+  - `deriveBom` gives each its own line, merged by (kind, size, row), with `kind`, `size`, `row`, `estimate` and `override` (the person's override decided it). The line's `parts` are `part:feature`. `elementQty` counts them; their mass stays their parts' and is not added to the total.
+  - `checkBom` checks each bought element: on one line once, the line's kind, size and row its own, an estimate said, and the count. The BOM agent's oracle covers them.
+- **Tests** (`test/elements.test.ts`):
+  - the shaft-parts scene's lines exactly, with its default-bought list;
+  - a ring on r20 citing its source, and without a row an estimate;
+  - a spring's G estimate said;
+  - the library notes kept in order;
+  - 2 copies of the part: the part ×2, key ×2 (`i0:n4`, `i1:n4`), ring ×2 on r20, pin ×2, checked; a line left off found;
+  - the overrides: the key made (no line), the shaft bought (a line, `override`);
+  - a ring with no row gives an estimate line.
+- **No flow step for S1**: the studio shows no BOM yet, and S2's element table is where the lines become visible. The browser side is covered by the verify's machine-element and library steps, which carry the new field over the worker's wire.
