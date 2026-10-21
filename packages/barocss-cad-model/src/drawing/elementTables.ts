@@ -26,7 +26,7 @@ export function elementsSource(ctx: Ctx): TableContent | { error: string } {
     title: 'MACHINE ELEMENTS',
     columns: [{ key: 'item', label: 'ITEM' }, { key: 'kind', label: 'KIND' }, { key: 'size', label: 'SIZE', unit: 'mm' }, { key: 'row', label: 'ROW' }, { key: 'source', label: 'SOURCE' },
       { key: 'bought', label: 'BOUGHT' }, { key: 'est', label: 'EST.' }, { key: 'mass', label: 'MASS', unit: 'g', digits: 1 }],
-    rows: lines.map(l => [l.item, l.kind, l.size, l.row?.id ?? null, l.row ? (l.row.source ?? (l.row.estimate ? 'estimate' : null)) : null, `${l.bought ? 'bought' : 'made'}${l.boughtBy === 'override' ? ' (set)' : ''}`, l.estimate ? 'est.' : '', l.massG]),
+    rows: lines.map(l => [l.item, l.kind, l.size, l.row?.id ?? null, [l.row ? (l.row.source ?? (l.row.estimate ? 'estimate' : '')) : '', l.catalogue ?? ''].filter(Boolean).join(' · ') || null, `${l.bought ? 'bought' : 'made'}${l.boughtBy === 'override' ? ' (set)' : ''}`, l.estimate ? 'est.' : '', l.massG]),
     notes: [...lines.filter(l => l.estimate).map(l => `${l.item}: ${l.why.join('; ')}`), 'Sizes and rows are yours (none built in); bought or made by kind unless set; not validated for manufacturing'],
   };
 }

@@ -5558,3 +5558,22 @@ The coordinator's drawing-practice point: avoid dimensioning to hidden lines.
   - A point is hidden only when no visible edge of the view ends there: a corner that a hidden edge also ends at is a seen point. With that rule, R14's conformance raises none (79/79 drawing tests).
 - **No section is added.** A section through the seat is R14's view logic, an open item (§0).
 - **Test**: the shaft-parts scene under its hub warns d − t1 (16.5) on a hidden line, and not the hub's keyway width, which the top view shows.
+
+### O143 addendum — D160's cam and D161's drives in the element data (2026-10-22)
+
+The coordinator's note with integration cadfe4700, merged here as 26b88406b. The kernel's cam and drive notes were already folded into the one notes list, after the spring's.
+- **`BodyElement`** gains `cam`, `sprocket`, `pulley`, `belt` (a belt or a chain) and `coupling`, each with its row: a sprocket's chain, a pulley's belt, a belt's row, a coupling's row, each with its source or estimate.
+- **Bought by default**: belts and chains are bought. A coupling is bought as its kernel report's `bought` says (from its row). Cams, sprockets and pulleys are made.
+- A coupling's part number and supplier are carried as the line's `catalogue`, into the BOM line and the element list's source cell.
+- **Sizes**, our words from the reports:
+  - cam: "translating roller, base R20, stroke 8 mm";
+  - sprocket: "17 teeth, p 12.7, Ø… pitch";
+  - pulley: "flat, Ø80 pitch × 50";
+  - belt: "flat-belt, L … at 150";
+  - coupling: "Ø12 / Ø14 bores, Ø30 × 40".
+  Why an estimate: a cam's pressure-angle limit, a belt's band section.
+- **Test**: two pulleys, their belt, a coupling and a cam (the kernel lane's test rows):
+  - lines with pulleys made, belt bought, coupling bought, cam made;
+  - the coupling's catalogue "TEST-1, a test supplier";
+  - the BOM's belt and coupling lines;
+  - every element's data structured-cloned.
