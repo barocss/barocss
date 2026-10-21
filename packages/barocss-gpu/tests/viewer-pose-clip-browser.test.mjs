@@ -523,3 +523,73 @@ test('G8 points: discs and squares at their size, a ring by its border; hidden u
     assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
 });
+
+// G9: the scene trees — the same picks as the linear walks (the viewer's `accelerate` off), faster.
+test('G9 scene trees: raycast, pickLine and pickPoint through them equal the linear walks over 500 random pointers (plain, clipped, after moves), and are timed', { timeout: 180000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box } = window, canvas = document.getElementById('c');
+      canvas.style.width = '640px'; canvas.style.height = '480px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, background: '#000000', camera: { position: [60, -80, 70], target: [20, 20, 0], up: [0, 0, 1] } });
+      let seed = 11; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      const turn = (a, x, y, z) => { const c = Math.cos(a), sn = Math.sin(a); return [c, sn, 0, 0, -sn, c, 0, 0, 0, 0, 1, 0, x, y, z, 1]; };
+      const names = new Map(); const named = (m, n) => { names.set(m, n); return m; };
+      const b = box(4, 2, 1.5), meshes = [];
+      // 150 boxes, each its surface and edges, turned and placed at random.
+      for (let k = 0; k < 150; k++) {
+        const T = turn(rand() * 6.28, rand() * 50 - 5, rand() * 50 - 5, rand() * 6);
+        meshes.push(named(viewer.add(b.surface, { material: { color: '#a0a0a0' }, transform: T, cap: true }), 's' + k), named(viewer.add(b.edges, { material: { color: '#ffffff', unlit: true }, transform: T }), 'e' + k));
+      }
+      // One mesh of 60 instances, a two-sided open quad, a see-through box (hides nothing).
+      named(viewer.add(box(2, 2, 2).surface, { instances: { transforms: Array.from({ length: 60 }, () => turn(rand() * 6.28, rand() * 50 - 5, rand() * 50 - 5, rand() * 6)).flat() }, cap: true }), 'inst');
+      named(viewer.add({ positions: [0, 0, 8, 30, 0, 8, 30, 30, 8, 0, 30, 8], indices: [0, 1, 2, 0, 2, 3] }, { material: { doubleSided: true } }), 'quad');
+      named(viewer.add(box(10, 10, 10).surface, { material: { opacity: 0.4 }, transform: turn(0, 20, 20, 3) }), 'glass');
+      // Points: 100 000 through the scene, 50 small ones, 20 over the scene.
+      const N = 100000, P = new Float32Array(3 * N); for (let i = 0; i < 3 * N; i += 3) { P[i] = rand() * 60 - 10; P[i + 1] = rand() * 60 - 10; P[i + 2] = rand() * 12; }
+      named(viewer.add({ positions: P, topology: 'points' }, { material: { pointSize: 3, unlit: true } }), 'cloud');
+      named(viewer.add({ positions: Array.from({ length: 150 }, () => rand() * 40), topology: 'points' }, { material: { pointSize: 8 } }), 'few');
+      named(viewer.add({ positions: Array.from({ length: 60 }, () => rand() * 40), topology: 'points' }, { material: { pointSize: 6, lineOver: true } }), 'over');
+      await viewer.frame();
+      const pointers = Array.from({ length: 500 }, () => [rand() * 640, rand() * 480]);
+      const key = h => h && { mesh: names.get(h.mesh), instance: h.instance ?? null, triangle: h.triangle ?? null, face: h.face ?? null, cap: h.cap ?? null, segment: h.segment ?? null, index: h.index ?? null, distance: h.distance ?? null };
+      const run = () => {
+        const out = { ray: [], line: [], point: [], ms: { ray: 0, line: 0, point: 0 } };
+        let t0 = performance.now(); for (const [x, y] of pointers) out.ray.push(viewer.raycast(x, y)); out.ms.ray = performance.now() - t0;
+        t0 = performance.now(); for (const [x, y] of pointers) out.line.push(viewer.pickLine(x, y, 6)); out.ms.line = performance.now() - t0;
+        t0 = performance.now(); for (const [x, y] of pointers) out.point.push(viewer.pickPoint(x, y, 4)); out.ms.point = performance.now() - t0;
+        return out;
+      };
+      const compare = (A, B) => {
+        let diff = 0, hits = { ray: 0, line: 0, point: 0 }, worst = 0, first = null;
+        for (const k of ['ray', 'line', 'point']) for (let i = 0; i < pointers.length; i++) {
+          const a = A[k][i], b = B[k][i];
+          if (a) hits[k]++;
+          const same = JSON.stringify(key(a)) === JSON.stringify(key(b));
+          const d = a && b ? Math.hypot(a.point[0] - b.point[0], a.point[1] - b.point[1], a.point[2] - b.point[2]) : 0;
+          worst = Math.max(worst, d);
+          if (!same || d > 1e-9) { diff++; first ??= { k, i, a: key(a), b: key(b), d }; }
+        }
+        return { diff, hits, worst, first };
+      };
+      const both = () => { viewer.accelerate = false; run(); const lin = run(); viewer.accelerate = true; run(); const acc = run(); return { cmp: compare(acc, lin), lin: lin.ms, acc: acc.ms }; };
+      const plain = both();
+      viewer.clipPlane = { normal: [0.6, 0.8, 0], offset: 25 }; await viewer.frame();
+      const clipped = both();
+      viewer.clipPlane = null;
+      // Moved: every other box turned again, the instances replaced — the trees made again.
+      for (let k = 0; k < meshes.length; k += 4) { const T = turn(rand() * 6.28, rand() * 50 - 5, rand() * 50 - 5, rand() * 6); meshes[k].transform = T; meshes[k + 1].transform = T; }
+      await viewer.frame();
+      const moved = both();
+      viewer.dispose();
+      return { plain, clipped, moved };
+    });
+    t.diagnostic(JSON.stringify(r));
+    for (const [name, c] of Object.entries(r)) {
+      assert.equal(c.cmp.diff, 0, `${name}: the trees' picks equal the walks' ${JSON.stringify(c.cmp.first)}`);
+      assert.ok(c.cmp.hits.ray > 15 && c.cmp.hits.line > 25 && c.cmp.hits.point > 80, `${name}: the pointers find things ${JSON.stringify(c.cmp.hits)}`);
+      assert.ok(c.cmp.worst <= 1e-9);
+    }
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});

@@ -5,7 +5,7 @@
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, screenRect, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
-import { clippedRay, localPlane, nearestPoint, pointInstances, prepareGeometry, prepareScalars, scalarAt, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type ClippedHit, type GeometryInput, type PreparedGeometry } from './geometry.js';
+import { clippedRay, localPlane, nearestPoint, pointInstances, sceneNear, sceneRay, sceneTree, type SceneTree, prepareGeometry, prepareScalars, scalarAt, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type ClippedHit, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 type View = ReturnType<Texture['createView']>;
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
@@ -263,6 +263,7 @@ export class Mesh {
     this.instances?.buffer?.destroy();
     this.instances = input ? { ...packInstances(input), buffer: null, device: null } : null;
     this.worldBox = undefined;
+    this.owner.sceneMoved();
     this.owner.requestRender();
   }
   get instanceCount(): number { return this.instances?.count ?? 1; }
@@ -270,7 +271,7 @@ export class Mesh {
   get transform(): Mat4 { return this._transform; }
   set transform(m: ArrayLike<number>) {
     if (m.length !== 16) throw new RangeError('A transform has 16 numbers (column-major)');
-    this._transform = Float64Array.from(m); this.worldBox = undefined; this.touch();
+    this._transform = Float64Array.from(m); this.worldBox = undefined; this.owner.sceneMoved(); this.touch();
   }
   get material(): Readonly<Material> { return this._material; }
   set material(m: Material) { this._material = materialOf({ ...this._material, ...m }); this._params = null; this.touch(); }
@@ -798,14 +799,66 @@ export class Viewer {
     m.slot = this.freeSlots.pop() ?? this.nextSlot++;
     this.growObjects(this.nextSlot);
     this.meshes.push(m);
+    this.scene = null;
     this.requestRender();
     return m;
+  }
+
+  /** @internal A mesh moved (its transform or instances): the scene trees are made again at the next pick (G9). */
+  sceneMoved(): void { this.scene = null; }
+  /**
+   * @internal Picks through the scene trees and large point meshes' hierarchies (G9, default); false: every mesh walked
+   * in order, as before — the same answers (the test compares them), for tests.
+   */
+  accelerate = true;
+  /** The scene trees (G9): the triangle meshes' world boxes (one an instance) for rays; the line and point meshes' for the pointer. */
+  private scene: { rays: SceneTree; rayMesh: Mesh[]; rayInstance: Int32Array; marks: SceneTree; markMesh: Mesh[] } | null = null;
+  private sceneTrees(): NonNullable<Viewer['scene']> {
+    if (this.scene) return this.scene;
+    const rayMesh: Mesh[] = [], rayInstance: number[] = [], rayBoxes: number[] = [], markMesh: Mesh[] = [], markBoxes: number[] = [];
+    for (const m of this.meshes) {
+      const b = m.geometry.data.bounds;
+      if (!b) continue;
+      if (m.geometry.topology === 'triangles') {
+        for (let i = 0; i < m.instanceCount; i++) {
+          const w = transformBox(this.instanceTransform(m, m.instances ? i : null), b);
+          rayMesh.push(m); rayInstance.push(m.instances ? i : -1); rayBoxes.push(...w.min, ...w.max);
+        }
+      } else { const w = transformBox(m.transform, b); markMesh.push(m); markBoxes.push(...w.min, ...w.max); }
+    }
+    this.scene = { rays: sceneTree(Float64Array.from(rayBoxes), rayMesh.length), rayMesh, rayInstance: Int32Array.from(rayInstance), marks: sceneTree(Float64Array.from(markBoxes), markMesh.length), markMesh };
+    return this.scene;
+  }
+  /**
+   * The triangle leaves a world ray may hit before tmax, the earliest first (ties by leaf order): indices into the ray tree,
+   * and for each the least parameter a hit on it can have — where the ray enters its box, or for a capped mesh under the
+   * clip plane where the ray crosses the plane, if sooner: clippedRay's cap is that crossing, which a ray grazing an edge
+   * (its front face missed, its back hit) can take outside the box.
+   */
+  private rayLeaves(origin: Vec3, direction: Vec3, tmax: number): { leaves: number[]; ts: number[]; order: number[] } {
+    const S = this.sceneTrees(), c = this.clip;
+    let tp = Infinity;
+    if (c) { const den = dot(c.normal, direction), t = den > 0 ? (c.offset - dot(c.normal, origin)) / den : -1; if (t > 0) tp = t; }
+    let capping = false;
+    if (tp < Infinity) for (const m of S.rayMesh) if (this.capped(m)) { capping = true; break; }
+    const n = sceneRay(S.rays, origin, direction, capping ? Infinity : tmax, candLeaves, candTs);
+    let kept = 0;
+    for (let i = 0; i < n; i++) {
+      const t = capping && this.capped(S.rayMesh[candLeaves[i]]) ? Math.min(candTs[i], tp) : candTs[i];
+      if (t > tmax) continue;
+      candLeaves[kept] = candLeaves[i]; candTs[kept] = t; kept++;
+    }
+    candLeaves.length = kept; candTs.length = kept;
+    candOrder.length = kept; for (let i = 0; i < kept; i++) candOrder[i] = i;
+    candOrder.sort(byEntry);
+    return { leaves: candLeaves, ts: candTs, order: candOrder };
   }
 
   remove(mesh: Mesh): void {
     const i = this.meshes.indexOf(mesh);
     if (i < 0) return;
     this.meshes.splice(i, 1);
+    this.scene = null;
     this.freeSlots.push(mesh.slot);
     mesh.slot = -1;
     // Its own GPU buffers go with it (made again should it be drawn again).
@@ -821,7 +874,7 @@ export class Viewer {
   /** Remove every mesh and release every geometry. */
   clear(): void {
     for (const m of this.meshes) m.slot = -1;
-    this.meshes = []; this.freeSlots = []; this.nextSlot = 0;
+    this.meshes = []; this.freeSlots = []; this.nextSlot = 0; this.scene = null;
     for (const g of this.geometries) g.release();
     this.geometries.clear();
     this.requestRender();
@@ -1484,12 +1537,23 @@ export class Viewer {
     const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
     this.clipCamera();
     const ray = this.camera.ray((x / cw) * 2 - 1, 1 - (y / ch) * 2, this.aspect);
-    let best: { mesh: Mesh; triangle: number | null; t: number; instance: number | null; cap: boolean } | null = null;
-    for (const m of this.meshes) {
+    let best: { mesh: Mesh; triangle: number | null; t: number; instance: number | null; cap: boolean; leaf: number } | null = null;
+    if (this.accelerate) {
+      // (Through the scene tree: the leaves the ray enters, nearest entry first, until one starts past the best hit; the
+      // nearest hit, ties to the earliest mesh and instance — the walk's answer.)
+      const S = this.sceneTrees(), { leaves, ts, order } = this.rayLeaves(ray.origin, ray.direction, Infinity);
+      for (const k of order) {
+        if (best && ts[k] > best.t) break;
+        const leaf = leaves[k], m = S.rayMesh[leaf];
+        if (!m.visible || !m.pickable || m.geometry.disposed) continue;
+        const instance = S.rayInstance[leaf] < 0 ? null : S.rayInstance[leaf], hit = this.meshRay(m, instance, ray.origin, ray.direction);
+        if (hit && (!best || hit.t < best.t || (hit.t === best.t && leaf < best.leaf))) best = { mesh: m, triangle: hit.triangle, t: hit.t, instance, cap: hit.cap, leaf };
+      }
+    } else for (const m of this.meshes) {
       if (!m.visible || !m.pickable || m.geometry.topology !== 'triangles' || m.geometry.disposed) continue;
       for (let i = 0; i < m.instanceCount; i++) {
         const instance = m.instances ? i : null, hit = this.meshRay(m, instance, ray.origin, ray.direction);
-        if (hit && (!best || hit.t < best.t)) best = { mesh: m, triangle: hit.triangle, t: hit.t, instance, cap: hit.cap };
+        if (hit && (!best || hit.t < best.t)) best = { mesh: m, triangle: hit.triangle, t: hit.t, instance, cap: hit.cap, leaf: 0 };
       }
     }
     if (!best) return null;
@@ -1511,7 +1575,7 @@ export class Viewer {
     this.clipCamera();
     const vp = this.camera.viewProjection(this.aspect);
     let best: LineHit | null = null;
-    for (const m of this.meshes) {
+    for (const m of this.markCandidates(vp, x, y, cw, ch, radius, 'lines')) {
       if (!m.visible || !m.pickable || m.geometry.topology !== 'lines' || m.geometry.disposed) continue;
       const M = multiply(vp, m.transform), g = m.geometry.data, P = g.positions, I = g.indices;
       // A mesh wholly in front of the eye whose box lands farther than the radius from the point: none of its segments can be nearer.
@@ -1547,14 +1611,16 @@ export class Viewer {
     this.clipCamera();
     const vp = this.camera.viewProjection(this.aspect);
     let best: PointHit | null = null;
-    for (const m of this.meshes) {
+    let half = 0;
+    if (this.accelerate) for (const m of this.sceneTrees().markMesh) if (m.geometry.topology === 'points' && m.material.pointSize! / 2 > half) half = m.material.pointSize! / 2;
+    for (const m of this.markCandidates(vp, x, y, cw, ch, radius + half, 'points')) {
       if (!m.visible || !m.pickable || m.geometry.topology !== 'points' || m.geometry.disposed) continue;
       const M = multiply(vp, m.transform), g = m.geometry.data, P = g.positions, I = g.indices, reach = radius + m.material.pointSize! / 2;
       if (g.bounds && screenBoxMisses(M, g.bounds, x, y, cw, ch, reach)) continue;
       const plane = this.clip && m.clipped ? localPlane(m.transform, this.clip) : null;
       hiddenSegments.clear();
       for (let tries = 0; tries < MAX_HIDDEN_SEGMENTS; tries++) {
-        const hit = nearestPoint(g, M, x, y, cw, ch, reach, best ? best.distance : Infinity, plane, hiddenSegments);
+        const hit = nearestPoint(g, M, x, y, cw, ch, reach, best ? best.distance : Infinity, plane, hiddenSegments, this.accelerate);
         if (!hit) break;
         const a = I ? I[hit.index] : hit.index, point = transformPoint(m.transform, [P[3 * a], P[3 * a + 1], P[3 * a + 2]]);
         if (!options.throughSurfaces && !m.material.lineOver && this.hidden(point)) { hiddenSegments.add(hit.index); continue; }
@@ -1563,6 +1629,18 @@ export class Viewer {
       }
     }
     return best;
+  }
+
+  /**
+   * The line or point meshes whose box lands within `reach` pixels of (x, y), in the order they were added (G9: through the
+   * scene tree; without acceleration, every mesh) — the per-mesh search then runs on these as before.
+   */
+  private markCandidates(vp: Mat4, x: number, y: number, cw: number, ch: number, reach: number, _kind: 'lines' | 'points'): readonly Mesh[] {
+    if (!this.accelerate) return this.meshes;
+    const S = this.sceneTrees(), n = sceneNear(S.marks, vp, x, y, cw, ch, reach, candLeaves);
+    candLeaves.length = n; candLeaves.sort(ascending);
+    markOut.length = 0; for (let k = 0; k < n; k++) markOut.push(S.markMesh[candLeaves[k]]);
+    return markOut;
   }
 
   /**
@@ -1577,6 +1655,16 @@ export class Viewer {
     const c = this.camera, h = this.canvas.clientHeight || this.canvas.height;
     const pixel = (c.projection === 'perspective' ? 2 * Math.tan((c.fovY * Math.PI) / 360) * Math.sqrt(dd) * t : 2 * c.halfHeight) / Math.max(1, h);
     const before = t - (1.5 * pixel) / Math.sqrt(dd);
+    if (this.accelerate) {
+      const S = this.sceneTrees(), { leaves } = this.rayLeaves(ray.origin, d, before);
+      for (let k = 0; k < leaves.length; k++) {
+        const leaf = leaves[k], m = S.rayMesh[leaf];
+        if (!m.visible || m.transparent || m.geometry.disposed) continue;
+        const hit = this.meshRay(m, S.rayInstance[leaf] < 0 ? null : S.rayInstance[leaf], ray.origin, d);
+        if (hit && hit.t < before) return true;
+      }
+      return false;
+    }
     for (const m of this.meshes) {
       if (!m.visible || m.transparent || m.geometry.topology !== 'triangles' || m.geometry.disposed) continue;
       for (let i = 0; i < m.instanceCount; i++) {
@@ -1663,6 +1751,10 @@ export function clipBox(b: Box3 | null, c: { normal: ArrayLike<number>; offset: 
 
  /** The segments of a mesh found hidden during one line pick (kept from pick to pick), and how many are tried. */
 const hiddenSegments = new Set<number>();
+// (The scene trees' candidates, reused a pick: leaves, where a ray enters them, their order by entry; G9.)
+const candLeaves: number[] = [], candTs: number[] = [], candOrder: number[] = [], markOut: Mesh[] = [];
+const byEntry = (a: number, b: number): number => candTs[a] - candTs[b] || candLeaves[a] - candLeaves[b];
+const ascending = (a: number, b: number): number => a - b;
 /** Whether a box wholly in front of the eye lands on screen farther than `reach` pixels from a point (CSS): nothing in it can be nearer. */
 function screenBoxMisses(M: ArrayLike<number>, bx: Box3, x: number, y: number, cw: number, ch: number, reach: number): boolean {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;

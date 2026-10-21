@@ -102,7 +102,10 @@ export class GpuRenderer implements ViewRenderer {
   private view: ViewState | null = null;
 
   private host: { request: () => void } = { request: () => {} };
-  private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {}
+  private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {
+    // (DEV: the viewer, for the bench's pick timings, G9.)
+    if (import.meta.env.DEV) (window as unknown as { __studioViewer: Viewer }).__studioViewer = viewer;
+  }
   /** Where the viewer's frame requests go: the viewport's request (one draw per animation frame). */
   setRequestHost(request: () => void): void { this.host.request = request; }
 

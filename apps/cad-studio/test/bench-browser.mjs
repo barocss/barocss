@@ -55,9 +55,13 @@ const BUDGET = {
   // (G8, set at load 32–53, about twice: SVG squares took 55 ms of task a frame here; G13 re-measures.)
   cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 8, kb: 6, buffers: 4, gpuMS: 14 },
   underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 16, kb: 6, buffers: 4, gpuMS: 14 },
+  // (G9: the pointer's picks over 120 brackets; a frame only when the hovered thing changes.)
+  hoverMany: { submits: 64, avgFrameMS: 2, perFrame: 1 },
+  pickMany: { submits: 4, avgFrameMS: 2, perFrame: 1 },
 };
 const os = await import('node:os'), loadAtStart = os.loadavg()[0];
 const rows = [];
+let picks = null;
 // (The main thread's task time, from the DevTools protocol: everything that ran, not only animation-frame callbacks.)
 const cdp = await page.context().newCDPSession(page); await cdp.send('Performance.enable');
 const taskTime = async () => (await cdp.send('Performance.getMetrics')).metrics.find(m => m.name === 'TaskDuration').value * 1000;
@@ -68,7 +72,7 @@ const measure = async (name, budget, act) => {
   const b = await page.evaluate(() => window.__bench), wall = Date.now() - t0, task = await taskTime() - task0;
   const avg = b.frames ? b.frameMS / b.frames : 0, most = Math.max(0, ...Object.values(b.perFrame)), drawn = Math.max(1, Object.keys(b.perFrame).length);
   const taskPerFrame = task / drawn, kbPerFrame = b.bytes / 1024 / drawn;
-  rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: +(b.submits ? b.gpuMS / b.submits : 0).toFixed(2), wallMS: wall,
+  rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: +(b.submits ? b.gpuMS / b.submits : 0).toFixed(2), wallMS: wall, taskTotalMS: +task.toFixed(1),
     ok: b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity) && (b.submits ? b.gpuMS / b.submits : 0) <= (budget.gpuMS ?? Infinity), budget });
 };
 try {
@@ -149,6 +153,27 @@ try {
     await page.evaluate(() => new Promise(done => { let i = 0; const step = () => { window.__studioSetExplode(2 * ++i / 60); if (i < 60) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); }));
   });
   await page.evaluate(() => window.__studioSetExplode(0));
+  // G9: the pointer across the 120 brackets (each move picks faces, edges and instances) and a bracket clicked from idle;
+  // then the viewer's own picks over 500 pointers on this scene (DEV __studioViewer): the linear walk (`accelerate` off,
+  // the picks as before G9) against the scene trees — timed, and the same answers.
+  {
+    const ab = await page.locator('canvas.vp-canvas').boundingBox(), ax = ab.x + ab.width / 2, ay = ab.y + ab.height / 2;
+    await measure('hover: 60 moves across 120 brackets', BUDGET.hoverMany, async () => {
+      for (let i = 0; i < 60; i++) { await page.mouse.move(ax - 300 + 10 * i, ay - 40 + (i % 7) * 12); await page.waitForTimeout(16); }
+    });
+    await measure('pick: a bracket clicked from idle', BUDGET.pickMany, async () => { await page.mouse.click(ax + 13, ay + 7); });
+    await page.keyboard.press('Escape');
+    picks = await page.evaluate(() => {
+      const v = window.__studioViewer; if (!v || !('accelerate' in v)) return null;
+      const c = v.canvas, W = c.clientWidth, H = c.clientHeight; let seed = 5; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      const at = Array.from({ length: 500 }, () => [rand() * W, rand() * H]);
+      const key = h => h ? [h.mesh.id, h.instance ?? null, h.triangle ?? null, h.segment ?? null, ...h.point.map(x => Math.round(x * 1e9))].join(',') : '';
+      const run = () => { const t0 = performance.now(), ray = at.map(([x, y]) => key(v.raycast(x, y))), t1 = performance.now(), line = at.map(([x, y]) => key(v.pickLine(x, y, 6))), t2 = performance.now(); return { ray, line, rayMs: t1 - t0, lineMs: t2 - t1 }; };
+      v.accelerate = false; run(); const lin = run(); v.accelerate = true; run(); const acc = run();
+      let differ = 0, hits = 0; for (let i = 0; i < at.length; i++) { if (lin.ray[i] !== acc.ray[i]) differ++; if (lin.line[i] !== acc.line[i]) differ++; if (lin.ray[i]) hits++; }
+      return { pointers: at.length, hits, differ, linear: { ray: lin.rayMs, line: lin.lineMs }, trees: { ray: acc.rayMs, line: acc.lineMs } };
+    });
+  }
   // G2: the section plane dragged 60 steps across the 120 brackets — cut by the GPU's clip plane, then (the same build) by
   // clipMesh on the CPU as WebGL2 does; the exact section held back in both (only the drag's own cost).
   // (As a drag sets it: a new plane each animation frame, y from 20 to 160.)
@@ -178,5 +203,6 @@ try {
 } finally { await browser.close(); await server.close(); }
 // (The machine's load average: a budget is not set from numbers measured under load.)
 console.log(`load average ${loadAtStart.toFixed(1)} at the start, ${os.loadavg()[0].toFixed(1)} at the end${Math.max(loadAtStart, os.loadavg()[0]) > 4 ? ' — LOADED: compare, do not set budgets from this run' : ''}`);
-for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  wall ${r.wallMS} ms`);
-process.exit(rows.length === 12 && rows.every(r => r.ok) ? 0 : 1);
+for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  wall ${r.wallMS} ms  task total ${r.taskTotalMS} ms`);
+if (picks) console.log(`picks over 120 brackets, ${picks.pointers} pointers (${picks.hits} on a bracket), ${picks.differ} answers different: raycast ${picks.linear.ray.toFixed(1)} → ${picks.trees.ray.toFixed(1)} ms, pickLine ${picks.linear.line.toFixed(1)} → ${picks.trees.line.toFixed(1)} ms (linear walk → scene trees)`);
+process.exit(rows.length === 14 && rows.every(r => r.ok) && (!picks || picks.differ === 0) ? 0 : 1);
