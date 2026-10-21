@@ -176,7 +176,9 @@ test('R12c.1a refusals: INVALID_INPUT, COILS_OVERLAP (pitch d is below the solid
   // Touching coils wound at p = d overlap by a hair: the turns are d apart only at the geometric solid pitch (S0).
   assert.throws(() => compressionSpring({ ...base, pitchMM: 2, ends: 'open' }), e => code('COILS_OVERLAP')(e) && /2\.001014/.test(e.message));
   assert.throws(() => compressionSpring({ ...base, pitchMM: undefined, freeLengthMM: 14, ends: 'closed-ground' }), code('COILS_OVERLAP'));
-  for (const bad of [{ type: 'extension' }, { type: 'torsion' }, { body: 'conical' }, { wire: 'rectangular' }, { endCoils: 2, ends: 'closed' }])
+  // (Extension and torsion springs are hookedSpring's since R12c.1b, D154: compressionSpring refuses them as input.)
+  for (const bad of [{ type: 'extension' }, { type: 'torsion' }]) assert.throws(() => compressionSpring({ ...base, ...bad }), code('INVALID_INPUT'), JSON.stringify(bad));
+  for (const bad of [{ type: 'leaf' }, { body: 'conical' }, { wire: 'rectangular' }, { endCoils: 2, ends: 'closed' }])
     assert.throws(() => compressionSpring({ ...base, ...bad }), code('UNSUPPORTED_SPRING_KIND'), JSON.stringify(bad));
   // D/d 100 over 30 turns needs more than the 1024 pieces (S0: 1140 at the gears' rule).
   assert.throws(() => compressionSpring({ wireDiameterMM: 1, meanDiameterMM: 100, activeCoils: 30, pitchMM: 3, ends: 'open' }), code('PROFILE_BUDGET_EXCEEDED'));
@@ -199,7 +201,7 @@ test('R12c.1a part model: the `spring` kind placed on its axis, its report on th
   assert.ok(g0, 'the wire\'s start disc');
   const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, pitch: 5, ...f }])), e => e.code === c && e.message.includes(`[${tag}]`), tag);
   refused({ pitch: 2, ends: 'open' }, 'GEOMETRY', 'COILS_OVERLAP');
-  refused({ type: 'torsion' }, 'CAPABILITY', 'UNSUPPORTED_SPRING_KIND');
+  refused({ body: 'barrel' }, 'CAPABILITY', 'UNSUPPORTED_SPRING_KIND');  // (torsion until D154, which builds it)
   refused({ freeLength: 40 }, 'INPUT', 'INVALID_INPUT');
   assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, pitch: 5, generator: 'spring@9' }])), e => e.code === 'CAPABILITY');
 });

@@ -2661,6 +2661,24 @@ try {
     await snap('spring-ground');
   });
 
+  await check('Spring (R12c.1b, D154): an extension spring with machine loops and a torsion spring with legs from the palette — close-wound, their notes (length inside the hooks, the legs\' angle, the rates flagged)', async () => {
+    for (const [type, kind, label, note] of [['extension', 'extension', /Extension spring d2 × Ø20, 6 coils \(machine loops\)/, /^Length inside the hooks 34\.3779 mm/], ['torsion', 'torsion', /Torsion spring d2 × Ø20, 6 coils/, /^Legs 20 and 20 mm along the coil's tangent, 0° apart/]]) {
+      await page.click('[aria-label="New part"]'); await idle();
+      await press(' '); await page.locator('.palette input').fill('spring'); await press('Enter'); await hudReady();
+      await field('Type').selectOption(type); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await press('Enter');
+      await page.waitForFunction(k => window.__studioDoc.nodes[0]?.kind === 'spring' && window.__studioDoc.nodes[0]?.type === k && /1 bod/.test(document.querySelector('.outliner')?.textContent ?? ''), kind, { timeout: 60000 }); await idle();
+      assert.match(await page.textContent('.history'), label);
+      await page.locator('.outliner .ol').first().click();
+      await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+      const notes = await page.locator('[aria-label="Generator note"]').allInnerTexts();
+      assert.ok(notes.some(t => note.test(t.replace(/^warning /, ''))) && notes.some(t => /^(warning )?Rate .*an estimate for steel/.test(t)), notes.join(' | '));
+      await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+      await snap(`spring-${type}`);
+    }
+  });
+
   await check('R12b.7 the gears\' acceptance by the scripted agent through the real chat: a planetary set (its own mesh checks passing), a right-angle bevel pair, a worm reducer — each in one turn, its pairs clear in their notes (new in D138)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
@@ -5739,6 +5757,43 @@ try {
       await snap('im7a-cup');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
+  });
+
+  // ---- G6: analysis maps -------------------------------------------------------------------------------------------
+  await check('G6: the analysis maps — a moulded plate\'s wall thickness with its legend and the value under the pointer; its draft; what a 3-axis mill does not reach; its parting line; its two halves (48,000 mm³ above the parting plane), spread apart; off again', async () => {
+    const fs = await import('node:fs'), file = join(out, 'g6-plate.bcad');
+    // (IM7's plate: 60 × 40 × 10 with a Ø10 through hole, injection moulded along +Z.)
+    const plate = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, process: 'injection', mould: { version: 1, pull: [0, 0, 1], finish: 'smooth' },
+      nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] }, { kind: 'extrude', sketch: 0, height: 10 }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [30, 20], radius: 5 }],
+      outputs: { b2: { node: 2, side: 'solid' } } };
+    fs.writeFileSync(file, JSON.stringify(plate));
+    await openModel(file, 3); await idle(); await iso();
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForSelector('[aria-label="Map legend"]', { timeout: 10000 });
+    assert.match(await page.locator('[aria-label="Map legend"]').innerText(), /Wall thickness/);
+    // The value under the pointer: over the plate's top, its 10 mm wall (the inscribed sphere at a top triangle).
+    const box = await page.locator('canvas.vp-canvas').boundingBox();
+    let value = '—';
+    for (let k = 0; k < 12 && value === '—'; k++) { await page.mouse.move(box.x + box.width * (0.4 + 0.02 * k), box.y + box.height * 0.5); await page.waitForTimeout(80); value = await page.locator('[aria-label="Map value"]').innerText(); }
+    assert.match(value, /^\d+(\.\d+)? mm$/, `a value under the pointer: ${value}`);
+    await snap('g6-thickness');
+    // The draft (O-G6's per-vertex exact draft): its walls along the pull under the smooth finish's least draft, red.
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForFunction(() => /Draft against the pull/.test(document.querySelector('[aria-label="Map legend"]')?.textContent ?? ''), null, { timeout: 30000 });
+    await snap('g6-draft');
+    // What a 3-axis mill does not reach (O-G6's per-triangle access): the plate's every face reached.
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForFunction(() => /Not reached by a 3-axis mill/.test(document.querySelector('[aria-label="Map legend"]')?.textContent ?? ''), null, { timeout: 30000 });
+    await snap('g6-access');
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForFunction(() => /\d+ loops?/.test(document.querySelector('[aria-label="Parting loops"]')?.textContent ?? ''), null, { timeout: 30000 });
+    await snap('g6-parting');
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForSelector('[aria-label="Plus half"]', { timeout: 60000 });
+    assert.match(await page.locator('[aria-label="Plus half"]').innerText(), /48,000 mm³/);
+    await page.click('[aria-label="Spread the halves"]'); await page.waitForTimeout(400); await snap('g6-halves');
+    await page.click('[aria-label="Analysis map"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Mould legend"]') && !document.querySelector('[aria-label="Map legend"]'), null, { timeout: 5000 });
   });
 
   await check('command palette and light theme', async () => {

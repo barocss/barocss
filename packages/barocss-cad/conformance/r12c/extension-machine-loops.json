@@ -1,0 +1,63 @@
+{
+  "id": "r12c-extension-machine-loops",
+  "step": "R12c",
+  "decisions": [
+    "D154"
+  ],
+  "about": "R12c.1b: an extension spring \u2014 wire d 2 on mean \u00d820, 6 coils close-wound (turns d + 2\u00b7tol apart), a machine loop each end: a bend of radius d up the axis, a half loop centred on it.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "spring",
+          "type": "extension",
+          "wire": 2,
+          "diameter": 20,
+          "activeCoils": 6,
+          "generator": "spring@0"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 1405.3507892353666,
+          "relTol": 0.0004
+        },
+        "centroidMM": {
+          "value": [
+            0.137612,
+            0,
+            7.003736846987881
+          ],
+          "absTol": 0.005
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "s.end0",
+          "s.end1",
+          "s.hook0",
+          "s.hook1",
+          "s.wire"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "V = \u03c0a\u00b2\u00b7S, S the centreline's length by D154's recipe (the helix 2\u03c0n\u221a(R\u00b2 + h\u00b2) at the pitch keeping turns d + 2\u00b7tol apart, each bend d\u00b7acos(t\u00b7up), each loop \u03c1\u03c0 with \u03c1 the bend's end's distance from the axis), rebuilt in test/r12c-hooked-spring.test.mjs; relTol the fit's bound. The centroid's y 0 and z the coil's mid-height by the half turn about X there; its x by this kernel."
+}

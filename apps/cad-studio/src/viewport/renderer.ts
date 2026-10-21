@@ -28,6 +28,8 @@ export interface ViewState {
 export type ThemeName = 'dark' | 'light';
 /** A placed instance as the viewport draws it: its bodies (as placed) and the cosmetic thread rings on them (line segments). */
 export interface InstanceItem { id: string; bodies: BodyResult[]; threads?: Float32Array }
+/** The mould as the viewport shows it (G6): the loops (world polylines), the halves' bodies, the pull and the spread. */
+export interface MouldShown { pull: Vec3; loops: { points: Vec3[]; closed: boolean }[]; plus: BodyResult[]; minus: BodyResult[]; spread: number }
 /** A section's plane on the GPU (G2): kept where dot(normal, p) ≥ offset; `bodies`: the part's bodies cut by it too (not yet exact). */
 export interface SectionClip { normal: Vec3; offset: number; bodies: boolean }
 /** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
@@ -64,6 +66,18 @@ export interface ViewRenderer {
   setInstanceTransforms?(transforms: ReadonlyMap<string, Float64Array> | null): void;
   /** The section's clip plane (WebGPU only, G2): the placed parts cut and capped, the part's bodies too when `bodies`. */
   setClip?(clip: SectionClip | null): void;
+  /** Analysis maps on the bodies (WebGPU only, G6): each body's scalar field in its colour map; null: the bodies' own look. */
+  setScalarMaps?(maps: readonly import('./scalarMaps').ScalarMap[] | null): void;
+  /** The map's value under a point (WebGPU only, G6), or null off the mapped bodies. */
+  scalarAt?(x: number, y: number, camera: OrbitCamera): number | null;
+  /**
+   * The mould's view (WebGPU only, G6): its parting loops as lines and its halves see-through, spread apart along the pull
+   * by `spread` (mm); while the halves show, picks reach only them (pickHalf), the part's bodies none.
+   */
+  setMould?(view: MouldShown | null): void;
+  /** Isoclines (WebGPU only, G6): world polylines drawn with the draft map, or none. */
+  setIsoclines?(lines: readonly { points: readonly Vec3[]; closed: boolean }[] | null): void;
+  pickHalf?(x: number, y: number, camera: OrbitCamera): { half: '+' | '-'; index: number } | null;
   pickInstance?(x: number, y: number, camera: OrbitCamera): string | null;
   pickInstanceFace?(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number } | null;
   setInstanceFaces?(faces: readonly { id: string; body: number; face: number }[]): void;

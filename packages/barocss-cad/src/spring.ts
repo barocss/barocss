@@ -237,7 +237,7 @@ export function helicalSweep(id: string, spec: HelicalSweepSpec): HelicalSweepRe
 
 /** Version 0 of a compression spring's inputs (lengths in mm, G in MPa, loads in N). */
 export interface SpringSpec {
-  /** Only `compression` in this stage (extension and torsion are R12c.1b). */
+  /** `compression` (compressionSpring); `extension` and `torsion` are hookedSpring's (R12c.1b). */
   readonly type?: 'compression' | 'extension' | 'torsion';
   /** Only `cylindrical` (conical, barrel and variable-pitch bodies are not in R12c). */
   readonly body?: 'cylindrical' | 'conical' | 'barrel' | 'variable-pitch';
@@ -310,7 +310,7 @@ const positive = (v: number | undefined, what: string): number => (Number.isFini
 
 interface Resolved { readonly d: number; readonly D: number; readonly na: number; readonly ne: number; readonly tau: number; readonly ends: 'open' | 'closed' | 'closed-ground'; readonly hand: 'right' | 'left'; readonly p: number; readonly ps: number; readonly L0: number }
 function resolve(spec: SpringSpec): Resolved {
-  if (spec.type !== undefined && spec.type !== 'compression') fail('UNSUPPORTED_SPRING_KIND', `${String(spec.type)} springs are not in this stage (compression only)`);
+  if (spec.type !== undefined && spec.type !== 'compression') fail(spec.type === 'extension' || spec.type === 'torsion' ? 'INVALID_INPUT' : 'UNSUPPORTED_SPRING_KIND', spec.type === 'extension' || spec.type === 'torsion' ? `${spec.type} springs are hookedSpring's (compressionSpring builds compression springs)` : `${String(spec.type)} springs are not supported (compression, extension and torsion)`);
   if (spec.body !== undefined && spec.body !== 'cylindrical') fail('UNSUPPORTED_SPRING_KIND', `a ${String(spec.body)} body is not supported (cylindrical only)`);
   if (spec.wire !== undefined && spec.wire !== 'round') fail('UNSUPPORTED_SPRING_KIND', `${String(spec.wire)} wire is not supported (round only)`);
   const d = positive(spec.wireDiameterMM, 'wireDiameterMM');
@@ -418,4 +418,237 @@ export function compressionSpring(spec: SpringSpec, options: { readonly id?: str
   const diagnostics: SpringDiagnostic[] = [];
   if (dims.load?.lengthMM !== undefined && dims.load.lengthMM < dims.solidHeightMM) diagnostics.push({ code: 'COILS_OVERLAP', severity: 'warning', message: `the load of ${dims.load.forceN} N would compress it to ${dims.load.lengthMM.toFixed(3)} mm, below its solid height ${dims.solidHeightMM.toFixed(3)} mm` });
   return { brep, report: { generator: 'spring@0', type: 'compression', ends, hand, dimensions: dims, sweep: sw, manufacturingValidated: false, diagnostics } };
+}
+
+// ---- extension and torsion springs (R12c.1b, D154) ---------------------------------------------------------------------
+//
+// The body is the helical sweep above, close-wound: at the solid pitch of a wire d + 2·tol thick, so its turns stand
+// 2·tol apart and the fitted surfaces (each within tol of its pipe) never meet. The ends are exact pieces of pipe:
+// straight runs (the circle translated: degree 2 × 1) and bends (the circle turned about the bend's axis: the rational
+// torus, degree 2 × 2, a span per ≤ 90°), each starting on the frame where the last one ended — the section frame is
+// carried by the turn itself, so the level circles match exactly — and glued to its neighbour at their shared disc.
+// - Extension, `machine-loop` (default): a bend of radius r_b (default d) from the coil's tangent up the axis, then a
+//   loop centred on the axis in the plane through it, `loopAngle` (default 180°) — the end bent up over the body.
+// - Extension, `crossover`: a quarter bend toward the axis, a straight run to the axis, a loop of radius ρ (default D/2)
+//   standing on it in the plane of the run and the axis, centred above that point, `loopAngle` (default 270°).
+// - Torsion: straight legs along the coil's tangent at each end (`legLengths`, default D each).
+// The bottom end mirrors the top (built outward from the coil's start along −T). Any two pieces that are not
+// neighbours must keep their centrelines d apart (sampled): otherwise LEG_OVERLAP.
+
+/** A pipe's section frame: its centre, e1 and e2 (the section's x and y); the tangent is e1 × e2. */
+interface Frame { readonly o: Point; readonly e1: Point; readonly e2: Point }
+const vAdd = (a: Point, b: Point): Point => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const vSub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const vScl = (a: Point, s: number): Point => [a[0] * s, a[1] * s, a[2] * s];
+const vDot = (a: Point, b: Point): number => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const vCross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const vUnit = (a: Point): Point => vScl(a, 1 / Math.hypot(a[0], a[1], a[2]));
+const tangentOf = (f: Frame): Point => vCross(f.e1, f.e2);
+/** v turned by angle t about the unit axis k (Rodrigues). */
+function rotate(v: Point, k: Point, t: number): Point {
+  const c = Math.cos(t), s = Math.sin(t), kv = vDot(k, v), kx = vCross(k, v);
+  return [v[0] * c + kx[0] * s + k[0] * kv * (1 - c), v[1] * c + kx[1] * s + k[1] * kv * (1 - c), v[2] * c + kx[2] * s + k[2] * kv * (1 - c)];
+}
+/** The helix's section frame at φ (as sectionPoint). */
+function helixFrame(P: Prepared, phi: number): Frame {
+  const zz = zAt(runAt(P.runs, phi), phi), b = [0, 0, 0, 0, 0, 0];
+  sectionPoint(P.R, phi, zz, 0, 0, b); const o: Point = [b[0], b[1], b[2]];
+  sectionPoint(P.R, phi, zz, 1, 0, b); const e1 = vSub([b[0], b[1], b[2]], o);
+  sectionPoint(P.R, phi, zz, 0, 1, b); const e2 = vSub([b[0], b[1], b[2]], o);
+  return { o, e1, e2 };
+}
+/** A piece of pipe after a frame: a straight run, or a bend of `radius` through `angle` toward the unit `toward` (⟂ the tangent). */
+type PipePiece = { readonly kind: 'line'; readonly length: number } | { readonly kind: 'arc'; readonly radius: number; readonly angle: number; readonly toward: Point };
+/** The frame at the end of a piece, and its centreline point at s ∈ [0, 1]. */
+function pieceEnd(f: Frame, p: PipePiece): Frame {
+  const t = tangentOf(f);
+  if (p.kind === 'line') return { o: vAdd(f.o, vScl(t, p.length)), e1: f.e1, e2: f.e2 };
+  const O = vAdd(f.o, vScl(p.toward, p.radius)), k = vCross(t, p.toward);
+  return { o: vAdd(O, rotate(vSub(f.o, O), k, p.angle)), e1: rotate(f.e1, k, p.angle), e2: rotate(f.e2, k, p.angle) };
+}
+function piecePoint(f: Frame, p: PipePiece, s: number): Point {
+  const t = tangentOf(f);
+  if (p.kind === 'line') return vAdd(f.o, vScl(t, p.length * s));
+  const O = vAdd(f.o, vScl(p.toward, p.radius)), k = vCross(t, p.toward);
+  return vAdd(O, rotate(vSub(f.o, O), k, p.angle * s));
+}
+const pieceLength = (p: PipePiece): number => p.kind === 'line' ? p.length : p.radius * p.angle;
+
+/** One piece of pipe as a closed B-rep from frame f: faces `<name>.<tag>#k` from `first`, its discs `<id>.cap0/1` or named. */
+function pipeBrep(id: string, name: string, tag: string, f: Frame, piece: PipePiece, a: number, first: number, discs: readonly [string | null, string | null]): Brep {
+  const poles = sectionPoles(a), spans = piece.kind === 'line' ? 1 : Math.max(1, Math.ceil(piece.angle / (Math.PI / 2) - 1e-9));
+  const t = tangentOf(f), O = piece.kind === 'arc' ? vAdd(f.o, vScl(piece.toward, piece.radius)) : f.o, k = piece.kind === 'arc' ? vCross(t, piece.toward) : t;
+  const at = (fr: Frame, [x, y]: [number, number]): Point => vAdd(fr.o, vAdd(vScl(fr.e1, x), vScl(fr.e2, y)));
+  const frames: Frame[] = [f];
+  for (let j = 1; j <= spans; j++) frames.push(piece.kind === 'line' ? pieceEnd(f, piece) : pieceEnd(f, { ...piece, angle: piece.angle * j / spans }));
+  const vertices: { id: string; point: Point }[] = [], edges: { id: string; curve: Curve; vertices: [string, string] }[] = [], faces: BrepFaceInput[] = [];
+  frames.forEach((fr, j) => {
+    const q = poles.map(p => at(fr, p));
+    for (let i = 0; i < 4; i++) vertices.push({ id: `${id}_v${i}_${j}`, point: q[2 * i] });
+    for (let i = 0; i < 4; i++) edges.push({ id: `${id}_a${i}_${j}`, curve: { kind: 'curve', id: `${id}_a${i}_${j}c`, degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [q[2 * i], q[2 * i + 1], q[(2 * i + 2) % 8]], weights: [1, W, 1] }, vertices: [`${id}_v${i}_${j}`, `${id}_v${(i + 1) % 4}_${j}`] });
+  });
+  for (let j = 0; j < spans; j++) {
+    // Each section pole's path over the span: a segment, or its circle about the bend's axis (rational, weight cos(Δ/2)).
+    const D = piece.kind === 'arc' ? piece.angle / spans : 0, wm = Math.cos(D / 2);
+    const paths = poles.map(p => {
+      const p0 = at(frames[j], p), p2 = at(frames[j + 1], p);
+      if (piece.kind === 'line') return { cp: [p0, p2], w: [1, 1] };
+      const M = vAdd(O, vScl(k, vDot(vSub(p0, O), k))), mid = vAdd(O, rotate(vSub(p0, O), k, D / 2));
+      return { cp: [p0, vAdd(M, vScl(vSub(mid, M), 1 / wm)), p2], w: [1, wm, 1] };
+    });
+    const degV = piece.kind === 'line' ? 1 : 2, knotsV = degV === 1 ? [0, 0, 1, 1] : [0, 0, 0, 1, 1, 1];
+    for (let i = 0; i < 4; i++) edges.push({ id: `${id}_s${i}_${j}`, curve: { kind: 'curve', id: `${id}_s${i}_${j}c`, degree: degV, knots: knotsV, controlPoints: paths[2 * i].cp, weights: paths[2 * i].w }, vertices: [`${id}_v${i}_${j}`, `${id}_v${i}_${j + 1}`] });
+    for (let i = 0; i < 4; i++) {
+      const rows = [paths[2 * i], paths[2 * i + 1], paths[(2 * i + 2) % 8]], wu = [1, W, 1];
+      faces.push({ id: `${id}_f${i}_${j}`, name: `${name}.${tag}#${first + 4 * j + i}`, sense: 'forward',
+        surface: { kind: 'surface', id: `${id}_f${i}_${j}s`, degreeU: 2, degreeV: degV, knotsU: [0, 0, 0, 1, 1, 1], knotsV, controlPoints: rows.map(r => r.cp), weights: rows.map((r, u) => r.w.map(w => w * wu[u])) },
+        loops: [{ kind: 'outer', uses: [{ edge: `${id}_a${i}_${j}`, sense: 'forward' }, { edge: `${id}_s${(i + 1) % 4}_${j}`, sense: 'forward' }, { edge: `${id}_a${i}_${j + 1}`, sense: 'reversed' }, { edge: `${id}_s${i}_${j}`, sense: 'reversed' }] }] });
+    }
+  }
+  const disc = (fr: Frame, start: boolean, dtag: string): Surface => {
+    const q = 2 * a, P = (x: number, y: number) => at(fr, [x, y]);
+    return { kind: 'surface', id: `${id}_${dtag}s`, degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: start ? [[P(-q, -q), P(q, -q)], [P(-q, q), P(q, q)]] : [[P(-q, -q), P(-q, q)], [P(q, -q), P(q, q)]], weights: [[1, 1], [1, 1]] };
+  };
+  faces.push({ id: `${id}_end0`, name: discs[0] ?? `${id}.cap0`, sense: 'forward', surface: disc(f, true, 'end0'), loops: [{ kind: 'outer', uses: [3, 2, 1, 0].map(i => ({ edge: `${id}_a${i}_0`, sense: 'reversed' as const })) }] });
+  faces.push({ id: `${id}_end1`, name: discs[1] ?? `${id}.cap1`, sense: 'forward', surface: disc(frames[spans], false, 'end1'), loops: [{ kind: 'outer', uses: [0, 1, 2, 3].map(i => ({ edge: `${id}_a${i}_${spans}`, sense: 'forward' as const })) }] });
+  return buildBrep({ source: { family: 'spring', id }, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces, closed: true }] }] });
+}
+
+/** The pieces of an end, outward from frame f (`up`: the axis direction away from the body). */
+function endPieces(f: Frame, up: Point, kind: 'machine-loop' | 'crossover' | 'leg', o: { readonly bend: number; readonly loopRadius?: number; readonly loopAngle: number; readonly leg: number }): PipePiece[] {
+  const t = tangentOf(f);
+  if (kind === 'leg') return [{ kind: 'line', length: o.leg }];
+  if (kind === 'machine-loop') {
+    const n = vUnit(vSub(up, vScl(t, vDot(up, t)))), bend: PipePiece = { kind: 'arc', radius: o.bend, angle: Math.acos(Math.max(-1, Math.min(1, vDot(t, up)))), toward: n };
+    const p1 = pieceEnd(f, bend).o, h: Point = vSub(p1, vScl(up, vDot(p1, up))), rho = Math.hypot(h[0], h[1], h[2]);
+    return [bend, { kind: 'arc', radius: rho, angle: o.loopAngle, toward: vScl(h, -1 / rho) }];
+  }
+  // Crossover: a quarter bend toward the axis, straight to it, then the loop standing there.
+  const radial: Point = vSub(f.o, vScl(up, vDot(f.o, up))), inward = vUnit(vSub(vScl(radial, -1), vScl(t, vDot(vScl(radial, -1), t))));
+  const bend: PipePiece = { kind: 'arc', radius: o.bend, angle: Math.PI / 2, toward: inward }, f1 = pieceEnd(f, bend);
+  const along = tangentOf(f1), p1h = vSub(f1.o, vScl(up, vDot(f1.o, up))), run = -vDot(p1h, along);
+  if (!(run > 0)) fail('LEG_OVERLAP', `the crossover's bend of radius ${o.bend} mm passes the axis`);
+  return [bend, { kind: 'line', length: run }, { kind: 'arc', radius: o.loopRadius!, angle: o.loopAngle, toward: up }];
+}
+
+/** Version 0 of an extension or a torsion spring's own inputs (beside SpringSpec's wire, diameter and coils). */
+export interface HookedSpringSpec extends SpringSpec {
+  /** Extension: the hooks at both ends (default machine-loop). */
+  readonly hooks?: 'machine-loop' | 'crossover';
+  /** The bends' centreline radius (default d), the crossover's loop radius (default D/2), the loops' angle (degrees; 180 machine loop, 270 crossover). */
+  readonly bendRadiusMM?: number; readonly loopRadiusMM?: number; readonly loopAngleDeg?: number;
+  /** Extension: the initial tension, the user's figure (no data behind it), taken off the load before the rate. */
+  readonly initialTensionN?: number;
+  /** Torsion: the legs' lengths along the coil's tangent at its start and end (default D each). */
+  readonly legLengthsMM?: readonly [number, number];
+  /** Torsion: Young's modulus E for the rate (an input; `youngsModulusEstimate` flags an estimate), a working moment (N·mm). */
+  readonly youngsModulusMPa?: number; readonly youngsModulusEstimate?: boolean; readonly momentNmm?: number;
+}
+export interface HookedSpringDimensions {
+  readonly wireDiameterMM: number; readonly meanDiameterMM: number; readonly outerDiameterMM: number; readonly innerDiameterMM: number;
+  readonly springIndex: number; readonly activeCoils: number; readonly pitchMM: number; readonly helixAngleDeg: number;
+  /** The coil's height (its centreline's rise plus the wire), and the wire's whole centreline length. */
+  readonly bodyLengthMM: number; readonly wireLengthMM: number;
+  /** Extension: the length inside the hooks (the loops' inner extremes along the axis). */
+  readonly lengthInsideHooksMM?: number;
+  /** Extension: k = Gd⁴/(8D³n), the initial tension as given, at a load: the extension (F − F_i)/k, τ = K_W 8FD/(πd³). */
+  readonly rateNPerMM?: number; readonly shearModulusMPa?: number; readonly shearModulusEstimate?: boolean; readonly wahlFactor?: number; readonly initialTensionN?: number;
+  readonly load?: { readonly forceN: number; readonly extensionMM?: number; readonly shearStressMPa: number };
+  /** Torsion: k = Ed⁴/(64Dn) per radian and per degree, the free angle between the legs, at a moment: the turn and σ = K_b 32M/(πd³). */
+  readonly torsionalRateNmmPerRad?: number; readonly torsionalRateNmmPerDeg?: number; readonly youngsModulusMPa?: number; readonly youngsModulusEstimate?: boolean;
+  readonly legAngleDeg?: number; readonly legLengthsMM?: readonly [number, number]; readonly bendingFactor?: number;
+  readonly moment?: { readonly momentNmm: number; readonly turnDeg?: number; readonly bendingStressMPa: number };
+  /** The least distance found between the centrelines of pieces that are not neighbours (sampled), against d. */
+  readonly leastClearanceMM: number;
+}
+export interface HookedSpringReport {
+  readonly generator: 'spring@0'; readonly type: 'extension' | 'torsion'; readonly hooks?: 'machine-loop' | 'crossover'; readonly hand: 'right' | 'left';
+  readonly dimensions: HookedSpringDimensions;
+  readonly sweep: Omit<HelicalSweepResult, 'brep' | 'endZMM' | 'wireLengthMM'>;
+  readonly manufacturingValidated: false;
+  readonly diagnostics: readonly SpringDiagnostic[];
+}
+
+/** An extension or a torsion spring (spring@0) in its own frame: the coil's axis +Z, from z 0 (its lowest point), its wire starting on +X. */
+export function hookedSpring(spec: HookedSpringSpec, options: { readonly id?: string } = {}): { readonly brep: Brep; readonly report: HookedSpringReport } {
+  const id = (options.id ?? 'spring').replace(/[^A-Za-z0-9_.-]/g, '_'), type = spec.type;
+  if (type !== 'extension' && type !== 'torsion') return fail('INVALID_INPUT', 'hookedSpring builds extension and torsion springs');
+  if (spec.body !== undefined && spec.body !== 'cylindrical') fail('UNSUPPORTED_SPRING_KIND', `a ${String(spec.body)} body is not supported (cylindrical only)`);
+  if (spec.wire !== undefined && spec.wire !== 'round') fail('UNSUPPORTED_SPRING_KIND', `${String(spec.wire)} wire is not supported (round only)`);
+  if (spec.ends !== undefined || spec.endCoils !== undefined || spec.transitionDeg !== undefined) fail('INVALID_INPUT', `ends, endCoils and transitionDeg are a compression spring's (a${type === 'extension' ? 'n extension spring has hooks' : ' torsion spring has legs'})`);
+  if (spec.freeLengthMM !== undefined) fail('INVALID_INPUT', `give an ${type} spring's pitch, or leave it close-wound (no free length)`);
+  if (type === 'torsion' && (spec.hooks !== undefined || spec.initialTensionN !== undefined || spec.loopAngleDeg !== undefined || spec.loopRadiusMM !== undefined || spec.shearModulusMPa !== undefined || spec.loadN !== undefined)) fail('INVALID_INPUT', 'hooks, loops, initial tension, G and a load are an extension spring\'s (a torsion spring takes E and a moment)');
+  if (type === 'extension' && (spec.legLengthsMM !== undefined || spec.youngsModulusMPa !== undefined || spec.momentNmm !== undefined)) fail('INVALID_INPUT', 'legs, E and a moment are a torsion spring\'s');
+  const d = positive(spec.wireDiameterMM, 'wireDiameterMM'), given = [spec.meanDiameterMM, spec.outerDiameterMM, spec.innerDiameterMM].filter(v => v !== undefined).length;
+  if (given !== 1) fail('INVALID_INPUT', 'give exactly one of meanDiameterMM, outerDiameterMM and innerDiameterMM');
+  const D = spec.meanDiameterMM !== undefined ? positive(spec.meanDiameterMM, 'meanDiameterMM') : spec.outerDiameterMM !== undefined ? positive(spec.outerDiameterMM, 'outerDiameterMM') - d : positive(spec.innerDiameterMM, 'innerDiameterMM') + d;
+  if (!(D > d)) fail('INVALID_INPUT', `the mean diameter ${D} mm must exceed the wire's ${d} mm (spring index above 1)`);
+  const n = positive(spec.activeCoils, 'activeCoils'), hand = spec.hand ?? 'right', R = D / 2, a = d / 2;
+  if (hand !== 'right' && hand !== 'left') fail('INVALID_INPUT', `hand must be right or left (got ${String(hand)})`);
+  const tol = spec.profileToleranceMM ?? 2e-4 * a, ps = springSolidPitch(D, d), pc = springSolidPitch(D, d + 2 * tol);
+  const p = spec.pitchMM === undefined ? pc : positive(spec.pitchMM, 'pitchMM');
+  if (!(p >= ps)) fail('COILS_OVERLAP', `the body's pitch ${p.toFixed(6)} mm is below the geometric solid pitch ${ps.toFixed(6)} mm (D ${D}, d ${d}): neighbouring turns would overlap`);
+  const hooks = type === 'extension' ? spec.hooks ?? 'machine-loop' : undefined;
+  if (hooks !== undefined && hooks !== 'machine-loop' && hooks !== 'crossover') fail('INVALID_INPUT', `hooks must be machine-loop or crossover (got ${String(hooks)})`);
+  const bend = spec.bendRadiusMM === undefined ? d : positive(spec.bendRadiusMM, 'bendRadiusMM');
+  if (!(bend > a)) fail('SELF_INTERSECTION', `a bend of centreline radius ${bend} mm folds a wire of radius ${a} mm onto itself`);
+  const loopAngle = (spec.loopAngleDeg === undefined ? (hooks === 'crossover' ? 270 : 180) : positive(spec.loopAngleDeg, 'loopAngleDeg')) * Math.PI / 180;
+  if (loopAngle > 2 * Math.PI) fail('INVALID_INPUT', 'loopAngleDeg is at most 360');
+  const loopRadius = spec.loopRadiusMM === undefined ? R : positive(spec.loopRadiusMM, 'loopRadiusMM');
+  if (hooks === 'crossover' && !(loopRadius > a)) fail('SELF_INTERSECTION', `a loop of radius ${loopRadius} mm folds the wire onto itself`);
+  const legs = spec.legLengthsMM ?? [D, D];
+  if (type === 'torsion' && !(legs.length === 2 && legs.every(x => Number.isFinite(x) && x > 0))) fail('INVALID_INPUT', 'legLengthsMM must be two lengths above 0');
+  // The coil: the sweep from z aγ (its start disc's lowest point at 0, before the ends are added).
+  const gp = R / Math.hypot(R, p / (2 * Math.PI)), P = prepare({ helixRadiusMM: R, runs: [{ turns: n, pitchMM: p }], section: { kind: 'circle', radiusMM: a }, startZMM: a * gp, profileToleranceMM: tol });
+  const kind = type === 'torsion' ? 'leg' as const : hooks!, opts = { bend, loopRadius, loopAngle, leg: 0 };
+  const top = helixFrame(P, P.end), start0 = helixFrame(P, 0), bottom: Frame = { o: start0.o, e1: start0.e2, e2: start0.e1 };
+  const upPieces = endPieces(top, [0, 0, 1], kind, { ...opts, leg: legs[1] }), downPieces = endPieces(bottom, [0, 0, -1], kind, { ...opts, leg: legs[0] });
+  // Clearance: the centrelines of pieces that are not neighbours stay d apart (the coil against itself: by its pitch).
+  const chain: { frame: Frame; piece: PipePiece }[][] = [[], []];
+  [[bottom, downPieces], [top, upPieces]].forEach(([f0, list], e) => { let f = f0 as Frame; for (const pc of list as PipePiece[]) { chain[e].push({ frame: f, piece: pc }); f = pieceEnd(f, pc); } });
+  // (Points of the centreline at least πa apart along it — half a turn on the tightest bend a tube allows — keep d
+  // apart; nearer ones are the tube's own neighbourhood. The coil against itself is its pitch's.)
+  const samples: { at: Point; s: number; coil: boolean }[] = [], turnsN = Math.max(16, Math.ceil(64 * n));
+  for (let i = 0; i <= turnsN; i++) samples.push({ at: helixFrame(P, P.end * i / turnsN).o, s: P.wireLength * i / turnsN, coil: true });
+  chain.forEach((list, e) => { let s0 = 0; list.forEach(c => { const len = pieceLength(c.piece), m = Math.max(16, Math.ceil(len / (d / 4))); for (let i = 0; i <= m; i++) samples.push({ at: piecePoint(c.frame, c.piece, i / m), s: e ? P.wireLength + s0 + len * i / m : -(s0 + len * i / m), coil: false }); s0 += len; }); });
+  let least = Infinity;
+  for (let i = 0; i < samples.length; i++) for (let j = i + 1; j < samples.length; j++) {
+    const A = samples[i], B = samples[j];
+    if ((A.coil && B.coil) || Math.abs(A.s - B.s) < Math.PI * a) continue;
+    least = Math.min(least, Math.hypot(A.at[0] - B.at[0], A.at[1] - B.at[1], A.at[2] - B.at[2]));
+  }
+  if (least < d * (1 - 1e-9)) fail('LEG_OVERLAP', `the ${type === 'torsion' ? 'legs' : 'hooks'} come within ${least.toFixed(4)} mm of the wire elsewhere (centrelines; the wire is ${d} mm)`);
+  // The B-rep: the coil, each end's pieces glued on in turn at their shared discs.
+  const coil = sweepRange(`${id}_c`, id, P, 0, P.end, 1, 0, [true, true]), tag = type === 'torsion' ? 'leg' : 'hook';
+  let brep = coil.brep;
+  const glue = (b: Brep, extra: Brep): Brep => glueAtSharedFace(b, extra, { family: 'spring', id }) ?? fail('PROFILE_BUDGET_EXCEEDED', 'an end piece did not meet the wire at its disc');
+  chain.forEach((list, e) => { let k = 1; list.forEach((c, j) => {
+    const last = j === list.length - 1, piece = pipeBrep(`${id}_${e}_${j}`, id, `${tag}${e}`, c.frame, c.piece, a, k, [null, last ? `${id}.end${e}` : null]);
+    k += piece.faces.length - 2; brep = glue(brep, piece);
+  }); });
+  if (hand === 'left') brep = transformBrep(brep, { matrix: [1, 0, 0, 0, -1, 0, 0, 0, 1] });
+  // The report.
+  const C = D / d, KW = (4 * C - 1) / (4 * C - 4) + 0.615 / C, ends = chain.flat().reduce((s, c) => s + pieceLength(c.piece), 0), wire = P.wireLength + ends;
+  let inside: number | undefined;
+  if (type === 'extension') {
+    // The loops' inner extremes along the axis: the topmost centreline point of the top loop less a, the lowest of the bottom's plus a.
+    const ext = (list: typeof chain[0], sgn: number) => { const c = list[list.length - 1]; let m = -Infinity; for (let i = 0; i <= 720; i++) m = Math.max(m, sgn * piecePoint(c.frame, c.piece, i / 720)[2]); return sgn * m; };
+    inside = ext(chain[1], 1) - a - (ext(chain[0], -1) + a);
+  }
+  const G = spec.shearModulusMPa === undefined ? undefined : positive(spec.shearModulusMPa, 'shearModulusMPa'), E = spec.youngsModulusMPa === undefined ? undefined : positive(spec.youngsModulusMPa, 'youngsModulusMPa');
+  const Fi = spec.initialTensionN ?? 0;
+  if (!(Number.isFinite(Fi) && Fi >= 0)) fail('INVALID_INPUT', 'initialTensionN must be a number of N, 0 or more');
+  const rate = G === undefined ? undefined : G * d ** 4 / (8 * D ** 3 * n), krad = E === undefined ? undefined : E * d ** 4 / (64 * D * n), Kb = (4 * C * C - C - 1) / (4 * C * (C - 1));
+  let load: HookedSpringDimensions['load'], moment: HookedSpringDimensions['moment'];
+  if (spec.loadN !== undefined) { const F = spec.loadN; if (!(Number.isFinite(F) && F >= 0)) fail('INVALID_INPUT', 'loadN must be a number of N, 0 or more'); load = { forceN: F, ...(rate ? { extensionMM: Math.max(0, F - Fi) / rate } : {}), shearStressMPa: KW * 8 * F * D / (Math.PI * d ** 3) }; }
+  if (spec.momentNmm !== undefined) { const M = spec.momentNmm; if (!Number.isFinite(M)) fail('INVALID_INPUT', 'momentNmm must be a number of N·mm'); moment = { momentNmm: M, ...(krad ? { turnDeg: M / krad * 180 / Math.PI } : {}), bendingStressMPa: Kb * 32 * Math.abs(M) / (Math.PI * d ** 3) }; }
+  const frac = ((n % 1) + 1) % 1;
+  const dims: HookedSpringDimensions = {
+    wireDiameterMM: d, meanDiameterMM: D, outerDiameterMM: D + d, innerDiameterMM: D - d, springIndex: C, activeCoils: n, pitchMM: p, helixAngleDeg: Math.atan(p / (Math.PI * D)) * 180 / Math.PI,
+    bodyLengthMM: n * p + 2 * a * gp, wireLengthMM: wire, ...(inside !== undefined ? { lengthInsideHooksMM: inside } : {}),
+    ...(type === 'extension' ? { wahlFactor: KW, initialTensionN: Fi, ...(rate !== undefined ? { rateNPerMM: rate, shearModulusMPa: G, ...(spec.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}), ...(load ? { load } : {}) } : {}),
+    ...(type === 'torsion' ? { bendingFactor: Kb, legAngleDeg: frac * 360, legLengthsMM: [legs[0], legs[1]] as const, ...(krad !== undefined ? { torsionalRateNmmPerRad: krad, torsionalRateNmmPerDeg: krad * Math.PI / 180, youngsModulusMPa: E, ...(spec.youngsModulusEstimate ? { youngsModulusEstimate: true } : {}) } : {}), ...(moment ? { moment } : {}) } : {}),
+    leastClearanceMM: least,
+  };
+  return { brep, report: { generator: 'spring@0', type, ...(hooks ? { hooks } : {}), hand, dimensions: dims, sweep: { pieces: coil.pieces, segments: coil.segments, profileDeviationMM: coil.deviation, profileToleranceMM: P.tol, minCurvatureRadiusMM: Math.min(P.minRho, bend, ...(hooks === 'crossover' ? [loopRadius] : [])) }, manufacturingValidated: false, diagnostics: [] } };
 }

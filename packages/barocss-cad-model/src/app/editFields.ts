@@ -213,12 +213,27 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       number('d', 'Wire Ø', 'mm', n => num(g(n).wire), (n, v) => ({ ...g(n), wire: v }));
       number('D', 'Mean coil Ø', 'mm', n => num(g(n).diameter), (n, v) => ({ ...g(n), diameter: v }));
       number('n', 'Active coils', undefined, n => g(n).activeCoils, (n, v) => ({ ...g(n), activeCoils: v }));
-      if (node.freeLength !== undefined) number('L0', 'Free length', 'mm', n => num(g(n).freeLength ?? 0), (n, v) => ({ ...g(n), freeLength: v }));
+      if (node.type) {
+        // (R12c.1b, D154: an extension or torsion spring is close-wound at pitch 0.)
+        number('p', 'Pitch (0: close-wound)', 'mm', n => num(g(n).pitch ?? 0), (n, v) => { const next = { ...g(n) }; if (v > 0) next.pitch = v; else delete next.pitch; return next; });
+        if (node.type === 'extension') {
+          out.push({ kind: 'choice', key: 'hooks', label: 'Hooks', options: [{ value: 'machine-loop', label: 'Machine loops' }, { value: 'crossover', label: 'Crossover' }], get: n => self<typeof node>(n).hooks ?? 'machine-loop', set: (n, v) => replace(n, i, { ...self<typeof node>(n), hooks: v as 'machine-loop' | 'crossover' }) });
+          number('Fi', 'Initial tension (N, yours)', undefined, n => g(n).initialTension ?? 0, (n, v) => { const next = { ...g(n) }; if (v > 0) next.initialTension = v; else delete next.initialTension; return next; });
+        } else {
+          number('L0', 'Start leg', 'mm', n => (g(n).legLengths ?? [20, 20])[0], (n, v) => ({ ...g(n), legLengths: [v, (g(n).legLengths ?? [20, 20])[1]] }));
+          number('L1', 'End leg', 'mm', n => (g(n).legLengths ?? [20, 20])[1], (n, v) => ({ ...g(n), legLengths: [(g(n).legLengths ?? [20, 20])[0], v] }));
+        }
+      } else if (node.freeLength !== undefined) number('L0', 'Free length', 'mm', n => num(g(n).freeLength ?? 0), (n, v) => ({ ...g(n), freeLength: v }));
       else number('p', 'Pitch', 'mm', n => num(g(n).pitch ?? 0), (n, v) => ({ ...g(n), pitch: v }));
-      out.push({ kind: 'choice', key: 'ends', label: 'Ends', options: [{ value: 'closed-ground', label: 'Closed and ground' }, { value: 'closed', label: 'Closed' }, { value: 'open', label: 'Open' }], get: n => self<typeof node>(n).ends, set: (n, v) => replace(n, i, { ...self<typeof node>(n), ends: v as typeof node.ends }) });
+      if (!node.type) out.push({ kind: 'choice', key: 'ends', label: 'Ends', options: [{ value: 'closed-ground', label: 'Closed and ground' }, { value: 'closed', label: 'Closed' }, { value: 'open', label: 'Open' }], get: n => self<typeof node>(n).ends ?? 'closed-ground', set: (n, v) => replace(n, i, { ...self<typeof node>(n), ends: v as typeof node.ends }) });
       out.push({ kind: 'choice', key: 'hand', label: 'Hand', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }], get: n => self<typeof node>(n).hand, set: (n, v) => replace(n, i, { ...self<typeof node>(n), hand: v as 'right' | 'left' }) });
-      number('G', 'Shear modulus G (MPa)', undefined, n => g(n).shearModulus ?? 0, (n, v) => { const next = { ...g(n) }; delete next.shearModulusEstimate; if (v > 0) next.shearModulus = v; else delete next.shearModulus; return next; });
-      number('F', 'Working load (N)', undefined, n => g(n).load ?? 0, (n, v) => { const next = { ...g(n) }; if (v > 0) next.load = v; else delete next.load; return next; });
+      if (node.type === 'torsion') {
+        number('E', "Young's modulus E (MPa)", undefined, n => g(n).youngsModulus ?? 0, (n, v) => { const next = { ...g(n) }; delete next.youngsModulusEstimate; if (v > 0) next.youngsModulus = v; else delete next.youngsModulus; return next; });
+        number('M', 'Working moment (N·mm)', undefined, n => g(n).moment ?? 0, (n, v) => { const next = { ...g(n) }; if (v > 0) next.moment = v; else delete next.moment; return next; });
+      } else {
+        number('G', 'Shear modulus G (MPa)', undefined, n => g(n).shearModulus ?? 0, (n, v) => { const next = { ...g(n) }; delete next.shearModulusEstimate; if (v > 0) next.shearModulus = v; else delete next.shearModulus; return next; });
+        number('F', 'Working load (N)', undefined, n => g(n).load ?? 0, (n, v) => { const next = { ...g(n) }; if (v > 0) next.load = v; else delete next.load; return next; });
+      }
       number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
       break;
     }

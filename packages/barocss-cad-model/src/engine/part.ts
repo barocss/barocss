@@ -100,7 +100,9 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     }
     case 'spring': {
       // (R12c.1a, D153: a compression spring on its own axis.)
-      return { ...at, kind: 'spring', wire: node.wire, diameter: node.diameter, activeCoils: node.activeCoils, ...(node.pitch !== undefined ? { pitch: node.pitch } : {}), ...(node.freeLength !== undefined ? { freeLength: node.freeLength } : {}), hand: node.hand, ends: node.ends,
+      return { ...at, kind: 'spring', wire: node.wire, diameter: node.diameter, activeCoils: node.activeCoils, ...(node.pitch !== undefined ? { pitch: node.pitch } : {}), ...(node.freeLength !== undefined ? { freeLength: node.freeLength } : {}), hand: node.hand, ...(node.type ? { type: node.type } : { ends: node.ends ?? 'closed-ground' }),
+        ...(node.hooks ? { hooks: node.hooks } : {}), ...(node.initialTension ? { initialTension: node.initialTension } : {}), ...(node.legLengths ? { legLengths: node.legLengths } : {}), ...(node.moment ? { moment: node.moment } : {}),
+        ...(node.youngsModulus !== undefined ? { youngsModulus: node.youngsModulus, ...(node.youngsModulusEstimate ? { youngsModulusEstimate: true } : {}) } : {}),
         ...(node.shearModulus !== undefined ? { shearModulus: node.shearModulus, ...(node.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}), ...(node.load ? { load: node.load } : {}), center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}), generator: node.generator };
     }
     case 'worm': {

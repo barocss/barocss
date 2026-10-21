@@ -83,6 +83,8 @@ const X: V3 = [1, 0, 0], Y: V3 = [0, 1, 0], Z: V3 = [0, 0, 1];
  * Spring command and flagged as such on the node (the owner, R12c: "스프링 G는 추정값으로 표시해").
  */
 export const STEEL_G_ESTIMATE_MPA = 79300;
+/** Spring steel's Young's modulus E, MPa, for a torsion spring's rate: an estimate likewise (no source read), flagged. */
+export const STEEL_E_ESTIMATE_MPA = 206000;
 
 /** The one selected body when it is a spur gear as made (not built on further): its node and index. */
 /** The Internal gear command's default x2 (D132): unshifted, a ring's tip corners cut a rack-cut pinion's fillet at no backlash. */
@@ -219,18 +221,28 @@ export const primitives: Command[] = [
     },
   },
   {
-    id: 'spring', label: 'Spring', icon: 'cad-spring', hint: 'A compression spring: round wire on a coil — the wire\'s exact circle swept along it, fitted within 1e-4 of its diameter — with open, closed or closed and ground ends (a dead coil each end at the solid pitch). Its rate from the shear modulus G (steel\'s prefilled, an estimate), its solid heights and the stress at a working load in its notes. Not validated for manufacturing', group: 'create', keywords: 'spring coil compression helix helical wire ground closed rate stiffness plunger',
+    id: 'spring', label: 'Spring', icon: 'cad-spring', hint: 'A coil spring of round wire — the wire\'s exact circle swept along the coil, fitted within 1e-4 of its diameter: compression (open, closed, or closed and ground ends), extension (close-wound, machine-loop or crossover hooks) or torsion (close-wound, tangent legs). Its rate from G (E for torsion; steel\'s prefilled, an estimate), its lengths and the stress at a working load in its notes. Not validated for manufacturing', group: 'create', keywords: 'spring coil compression extension tension torsion helix helical wire hook loop leg ground closed rate stiffness plunger',
     available: () => ok,
-    fields: () => [{ key: 'd', label: 'Wire Ø', kind: 'mm', min: 0.1 }, { key: 'D', label: 'Mean coil Ø', kind: 'mm', min: 0.5 }, { key: 'n', label: 'Active coils', kind: 'number', min: 0.5, step: 0.5 }, { key: 'p', label: 'Pitch', kind: 'mm', min: 0.1 },
-      { key: 'ends', label: 'Ends', kind: 'choice', options: [{ value: 'closed-ground', label: 'Closed and ground' }, { value: 'closed', label: 'Closed' }, { value: 'open', label: 'Open' }] },
+    fields: () => [{ key: 'type', label: 'Type', kind: 'choice', options: [{ value: 'compression', label: 'Compression' }, { value: 'extension', label: 'Extension' }, { value: 'torsion', label: 'Torsion' }] },
+      { key: 'd', label: 'Wire Ø', kind: 'mm', min: 0.1 }, { key: 'D', label: 'Mean coil Ø', kind: 'mm', min: 0.5 }, { key: 'n', label: 'Active coils', kind: 'number', min: 0.5, step: 0.25 },
+      { key: 'p', label: 'Pitch', kind: 'mm', min: 0.1, when: v => v.type === 'compression' }, { key: 'pw', label: 'Pitch (0: close-wound)', kind: 'mm', min: 0, when: v => v.type !== 'compression' },
+      { key: 'ends', label: 'Ends', kind: 'choice', options: [{ value: 'closed-ground', label: 'Closed and ground' }, { value: 'closed', label: 'Closed' }, { value: 'open', label: 'Open' }], when: v => v.type === 'compression' },
+      { key: 'hooks', label: 'Hooks', kind: 'choice', options: [{ value: 'machine-loop', label: 'Machine loops' }, { value: 'crossover', label: 'Crossover' }], when: v => v.type === 'extension' },
+      { key: 'Fi', label: 'Initial tension (N, yours)', kind: 'number', min: 0, when: v => v.type === 'extension' },
+      { key: 'L0', label: 'Start leg', kind: 'mm', min: 0.1, when: v => v.type === 'torsion' }, { key: 'L1', label: 'End leg', kind: 'mm', min: 0.1, when: v => v.type === 'torsion' },
       { key: 'hand', label: 'Hand', kind: 'choice', options: [{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }] },
-      { key: 'G', label: 'Shear modulus G (MPa)', kind: 'number', min: 0 }, { key: 'F', label: 'Working load (N)', kind: 'number', min: 0 }, ...at],
-    defaults: ctx => ({ d: 2, D: 20, n: 6, p: 5, ends: 'closed-ground', hand: 'right', G: STEEL_G_ESTIMATE_MPA, F: 0, ...beside(ctx, 20) }),
+      { key: 'G', label: 'Shear modulus G (MPa)', kind: 'number', min: 0, when: v => v.type !== 'torsion' }, { key: 'E', label: 'Young\'s modulus E (MPa)', kind: 'number', min: 0, when: v => v.type === 'torsion' },
+      { key: 'F', label: 'Working load (N)', kind: 'number', min: 0, when: v => v.type !== 'torsion' }, { key: 'M', label: 'Working moment (N·mm)', kind: 'number', min: 0, when: v => v.type === 'torsion' }, ...at],
+    defaults: ctx => ({ type: 'compression', d: 2, D: 20, n: 6, p: 5, pw: 0, ends: 'closed-ground', hooks: 'machine-loop', Fi: 0, L0: 20, L1: 20, hand: 'right', G: STEEL_G_ESTIMATE_MPA, E: STEEL_E_ESTIMATE_MPA, F: 0, M: 0, ...beside(ctx, 20) }),
     handles: (_, v) => { const [D, x, y, zz] = n(v, 'D', 'x', 'y', 'z'); return [puck([x, y, zz]), arrow('D', [x + D / 2, y, zz], X, { scale: 2 })]; },
     build: (ctx, v) => {
-      const [d, D, na, p, G, F, x, y, zz] = n(v, 'd', 'D', 'n', 'p', 'G', 'F', 'x', 'y', 'z'), ends = v.ends === 'open' || v.ends === 'closed' ? v.ends : 'closed-ground' as const;
-      // (G prefilled with steel's is flagged an estimate, the owner's decision for R12c; a value typed in is the user's.)
-      return withNode(ctx.doc, { kind: 'spring', wire: d, diameter: D, activeCoils: na, pitch: p, hand: v.hand === 'left' ? 'left' : 'right', ends, ...(G > 0 ? { shearModulus: G, ...(G === STEEL_G_ESTIMATE_MPA ? { shearModulusEstimate: true } : {}) } : {}), ...(F > 0 ? { load: F } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'spring@0' });
+      const [d, D, na, p, pw, Fi, L0, L1, G, E, F, M, x, y, zz] = n(v, 'd', 'D', 'n', 'p', 'pw', 'Fi', 'L0', 'L1', 'G', 'E', 'F', 'M', 'x', 'y', 'z'), hand = v.hand === 'left' ? 'left' as const : 'right' as const, place = { center: [x, y] as [number, number], ...(zz ? { from: zz } : {}), generator: 'spring@0' as const };
+      // (G and E prefilled with steel's are flagged estimates, the owner's decision for R12c; a value typed in is the user's.)
+      const g = G > 0 ? { shearModulus: G, ...(G === STEEL_G_ESTIMATE_MPA ? { shearModulusEstimate: true } : {}) } : {};
+      if (v.type === 'torsion') return withNode(ctx.doc, { kind: 'spring', type: 'torsion', wire: d, diameter: D, activeCoils: na, ...(pw > 0 ? { pitch: pw } : {}), hand, legLengths: [L0, L1], ...(E > 0 ? { youngsModulus: E, ...(E === STEEL_E_ESTIMATE_MPA ? { youngsModulusEstimate: true } : {}) } : {}), ...(M > 0 ? { moment: M } : {}), ...place });
+      if (v.type === 'extension') return withNode(ctx.doc, { kind: 'spring', type: 'extension', wire: d, diameter: D, activeCoils: na, ...(pw > 0 ? { pitch: pw } : {}), hand, hooks: v.hooks === 'crossover' ? 'crossover' : 'machine-loop', ...(Fi > 0 ? { initialTension: Fi } : {}), ...g, ...(F > 0 ? { load: F } : {}), ...place });
+      const ends = v.ends === 'open' || v.ends === 'closed' ? v.ends : 'closed-ground' as const;
+      return withNode(ctx.doc, { kind: 'spring', wire: d, diameter: D, activeCoils: na, pitch: p, hand, ends, ...g, ...(F > 0 ? { load: F } : {}), ...place });
     },
   },
   {

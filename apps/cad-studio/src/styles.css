@@ -360,6 +360,16 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 @media (max-width: 640px) { .help-cols { grid-template-columns: 1fr; } }
 
 /* The section view's axis and side, above the views bar. */
+.map-legend { position: absolute; right: 0; bottom: calc(100% + 44px); width: 220px; padding: 6px 10px 6px; font: 500 11px var(--sans); color: var(--text-2); }
+.map-legend-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; color: var(--text); }
+.map-legend-bar { position: relative; display: flex; height: 8px; gap: 2px; }
+.map-legend-ramp { flex: 1; border-radius: 2px; }
+.map-legend-past { width: 12px; border-radius: 2px; }
+.map-legend-mark { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--text); }
+.map-legend-scale { position: relative; display: flex; justify-content: space-between; height: 14px; margin-top: 2px; margin-right: 14px; font-size: 10px; }
+.map-legend-scale span:not(:first-child):not(:last-child) { position: absolute; transform: translateX(-50%); }
+.map-legend-swatch { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px; }
+.map-legend button { height: 20px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); cursor: pointer; font: 500 11px var(--sans); }
 .section-bar { position: absolute; right: 0; bottom: calc(100% + 8px); display: flex; align-items: center; gap: 2px; padding: 3px 4px 3px 10px; }
 .section-bar button { height: 24px; min-width: 26px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); cursor: pointer; font: 500 11px var(--sans); }
 .section-bar button.on { background: var(--accent); color: var(--accent-ink); }

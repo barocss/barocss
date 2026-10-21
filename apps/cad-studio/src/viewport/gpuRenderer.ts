@@ -15,7 +15,8 @@ import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@b
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
-import type { EdgeRef, FaceRef, InstanceItem, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
+import type { EdgeRef, FaceRef, InstanceItem, MouldShown, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
+import type { ScalarMap } from './scalarMaps';
 
 /** Device pixels per CSS pixel, up to 3 (a high-density screen with the page zoomed in). */
 const pixelRatio = () => Math.min(3, Math.max(1, globalThis.devicePixelRatio || 1));
@@ -88,6 +89,11 @@ export class GpuRenderer implements ViewRenderer {
   private poses: ReadonlyMap<string, Float64Array> | null = null;
   /** The section's clip plane (G2), or none. */
   private clip: SectionClip | null = null;
+  /** Analysis maps on the bodies (G6), and which map each body's surface shows now. */
+  private scalarMaps: readonly ScalarMap[] | null = null;
+  private mapShown = new WeakMap<Mesh, ScalarMap | null>();
+  /** The mould's view (G6): its loops' line mesh and its halves' meshes, and what they were made from. */
+  private mould: { from: MouldShown; lines: Mesh | null; halves: { half: '+' | '-'; index: number; surface: Mesh; edges: Mesh | null }[] } | null = null;
   private instanceSelection: readonly string[] = [];
   /** Instances' display meshes (for the face under a pick). */
   private instanceMeshes = new Map<string, DisplayMesh[]>();
@@ -164,7 +170,80 @@ export class GpuRenderer implements ViewRenderer {
     for (const list of pool.values()) for (const b of list) { b.surface.remove(); b.edges?.remove(); this.dropHighlight(b); b.geometries.forEach(g => g.dispose()); }
     this.placeGround();
     this.applyClip();
+    this.applyMaps();
     this.viewer.requestRender();
+  }
+
+  /** Analysis maps on the bodies (G6). */
+  setScalarMaps(maps: readonly ScalarMap[] | null): void { this.scalarMaps = maps; this.applyMaps(); this.viewer.requestRender(); }
+  /** Each body's surface showing its map (its field set once per map), or its own look again. */
+  private applyMaps(): void {
+    for (const b of this.bodies) {
+      const map = this.scalarMaps?.find(m => m.body === b.result.key && m.values.length === (m.per === 'vertex' ? b.result.mesh.positions.length / 3 : b.result.mesh.indices.length / 3)) ?? null;
+      // (Never shown and none now: nothing to clear.)
+      if ((this.mapShown.get(b.surface) ?? null) === map) continue;
+      this.mapShown.set(b.surface, map);
+      b.surface.geometry.setScalars(map ? map.values : null, map?.per ?? 'vertex');
+      b.surface.colorMap = map ? { stops: map.legend.stops, above: map.above ?? null, below: map.below ?? null, missing: map.missing } : null;
+    }
+  }
+  /**
+   * The mould's view (G6): the loops as one line mesh (the accent, 2.4 px, depth-tested), each half's bodies see-through in
+   * its colour (+ along the pull blue, − against it amber) with their edges, spread ± along the pull; made again only when
+   * the loops or halves change, moved when only the spread does. While halves show, the part's bodies are not picked.
+   */
+  setMould(view: MouldShown | null): void {
+    const had = this.mould;
+    if (had && view && had.from.loops === view.loops && had.from.plus === view.plus && had.from.minus === view.minus) { had.from = view; this.placeHalves(); this.viewer.requestRender(); return; }
+    if (had) { for (const m of [had.lines, ...had.halves.flatMap(h => [h.surface, h.edges])]) if (m) { m.remove(); m.geometry.dispose(); } }
+    this.mould = null;
+    if (view) {
+      const segs: number[] = [];
+      for (const l of view.loops) for (let i = 0; i + 1 < l.points.length + (l.closed ? 1 : 0); i++) { const a = l.points[i], b = l.points[(i + 1) % l.points.length]; segs.push(a[0], a[1], a[2], b[0], b[1], b[2]); }
+      const lines = segs.length ? this.viewer.add({ positions: segs, topology: 'lines' }, { name: 'mould:parting', material: { color: ACCENT, unlit: true, lineWidth: 2.4 }, pickable: false, castShadow: false }) : null;
+      const halves = (['+', '-'] as const).flatMap(half => (half === '+' ? view.plus : view.minus).map((b, index) => {
+        const surface = this.viewer.add({ positions: b.mesh.positions, normals: b.mesh.normals, indices: b.mesh.indices }, { name: `half:${half}:${index}`, material: { color: half === '+' ? '#5b9bd5' : '#e0a040', roughness: 0.6, opacity: 0.6 }, castShadow: false });
+        const edges = b.mesh.edgeLines.length ? this.viewer.add({ positions: b.mesh.edgeLines, topology: 'lines' }, { material: { color: this.theme.edge, unlit: true, lineWidth: 1, opacity: 0.6 }, pickable: false, castShadow: false }) : null;
+        return { half, index, surface, edges };
+      }));
+      this.mould = { from: view, lines, halves };
+      this.placeHalves();
+    }
+    // (While halves show, picks reach only them.)
+    if (this.view) { for (const b of this.bodies) b.state = ''; this.setState(this.view); }
+    this.applyClip();
+    this.viewer.requestRender();
+  }
+  /** Each half moved ± along the pull by the spread. */
+  private placeHalves(): void {
+    const m = this.mould; if (!m) return;
+    const p = m.from.pull, k = m.from.spread;
+    for (const h of m.halves) { const s = h.half === '+' ? k : -k, t = translation([p[0] * s, p[1] * s, p[2] * s]); place(h.surface, t); if (h.edges) place(h.edges, t); }
+  }
+  /** Isoclines (G6): one line mesh (white, 1.6 px, depth-tested), made again when they change. */
+  setIsoclines(lines: readonly { points: readonly Vec3[]; closed: boolean }[] | null): void {
+    if (this.isoclines) { this.isoclines.remove(); this.isoclines.geometry.dispose(); this.isoclines = null; }
+    const segs: number[] = [];
+    for (const l of lines ?? []) for (let i = 0; i + 1 < l.points.length + (l.closed ? 1 : 0); i++) { const a = l.points[i], b = l.points[(i + 1) % l.points.length]; segs.push(a[0], a[1], a[2], b[0], b[1], b[2]); }
+    if (segs.length) this.isoclines = this.viewer.add({ positions: segs, topology: 'lines' }, { name: 'isoclines', material: { color: '#ffffff', unlit: true, lineWidth: 1.6 }, pickable: false, castShadow: false });
+    this.applyClip(); this.viewer.requestRender();
+  }
+  private isoclines: Mesh | null = null;
+
+  /** The half under a point (G6), or null. */
+  pickHalf(x: number, y: number, camera: OrbitCamera): { half: '+' | '-'; index: number } | null {
+    if (!this.mould?.halves.length) return null;
+    this.sync(camera);
+    const hit = this.viewer.raycast(x, y), h = hit && this.mould.halves.find(q => q.surface === hit.mesh);
+    return h ? { half: h.half, index: h.index } : null;
+  }
+
+  /** The map's value under a point (G6): the ray's hit on a mapped body, or null. */
+  scalarAt(x: number, y: number, camera: OrbitCamera): number | null {
+    if (!this.scalarMaps?.length) return null;
+    this.sync(camera);
+    const hit = this.viewer.raycast(x, y);
+    return hit && hit.scalar !== undefined && Number.isFinite(hit.scalar) && this.mapShown.get(hit.mesh) ? hit.scalar : null;
   }
 
   /**
@@ -304,11 +383,13 @@ export class GpuRenderer implements ViewRenderer {
         ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(0.35, look.opacity) : look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: this.mapFor(b.surface.geometry, b.result.mesh, look, b), alphaCutoff: look.cutout ?? 0 }
         : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? 0.35 : 1, shader: this.analysis, unlit: !!this.analysis, map: this.mapFor(b.surface.geometry, b.result.mesh, null, b), alphaCutoff: 0 };
       const hidden = !!view.hiddenBodies?.has(bi);
-      b.surface.pickable = !ghost && !hidden; b.surface.visible = !hidden;
+      // (While the mould's halves show, picks reach only them, G6.)
+      const halvesOn = !!this.mould?.halves.length;
+      b.surface.pickable = !ghost && !hidden && !halvesOn; b.surface.visible = !hidden;
       b.surface.outline = view.selectedBodies.includes(bi) ? ACCENT : view.hoverBody === bi ? HOVER : null;
       const moved = view.transforms?.get(bi) ?? translation(offset);
       for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = moved;
-      if (b.edges) { b.edges.material = { opacity: ghost ? 0.35 : 0.9 }; b.edges.pickable = !ghost && !hidden; b.edges.visible = !hidden && (this.settings ? this.settings.environment.edges : true); }
+      if (b.edges) { b.edges.material = { opacity: ghost ? 0.35 : 0.9 }; b.edges.pickable = !ghost && !hidden && !halvesOn; b.edges.visible = !hidden && (this.settings ? this.settings.environment.edges : true); }
     });
     this.applyClip();
   }
