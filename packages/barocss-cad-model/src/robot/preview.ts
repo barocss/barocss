@@ -12,14 +12,23 @@ export function posedBody(b: BodyResult, m: Motion): BodyResult {
 }
 const moved = (m: Motion) => m.t[0] !== 0 || m.t[1] !== 0 || m.t[2] !== 0 || m.R[0] !== 1 || m.R[4] !== 1 || m.R[8] !== 1 || m.R[1] !== 0 || m.R[2] !== 0 || m.R[3] !== 0 || m.R[5] !== 0 || m.R[6] !== 0 || m.R[7] !== 0;
 
-/** The placed instances as the joint values put them (an instance its link does not move: as it was). */
-export function posedInstances(instances: readonly { id: string; bodies: BodyResult[] }[], fk: FkResult): { id: string; bodies: BodyResult[] }[] {
-  const base = fk.motions.get(BASE), rel = base && moved(base) ? invert(base) : null, out: { id: string; bodies: BodyResult[] }[] = [];
-  for (const i of instances) {
-    const own = fk.motions.get(i.id);
-    if (!own) { out.push(i); continue; }
+/**
+ * Each instance's motion as the joint values put it, relative to the base part's (posedInstances moves the meshes by
+ * these; the studio's viewer moves its meshes' transforms by them instead, G1): only the instances that move.
+ */
+export function instanceMotions(ids: Iterable<string>, fk: FkResult): Map<string, Motion> {
+  const base = fk.motions.get(BASE), rel = base && moved(base) ? invert(base) : null, out = new Map<string, Motion>();
+  for (const id of ids) {
+    const own = fk.motions.get(id);
+    if (!own) continue;
     const m = rel ? composeInto({ R: new Float64Array(9), t: new Float64Array(3) }, rel, own) : own;
-    out.push(moved(m) ? { id: i.id, bodies: i.bodies.map(b => posedBody(b, m)) } : i);
+    if (moved(m)) out.set(id, m);
   }
   return out;
+}
+
+/** The placed instances as the joint values put them (an instance its link does not move: as it was). */
+export function posedInstances(instances: readonly { id: string; bodies: BodyResult[] }[], fk: FkResult): { id: string; bodies: BodyResult[] }[] {
+  const motions = instanceMotions(instances.map(i => i.id), fk);
+  return instances.map(i => { const m = motions.get(i.id); return m ? { id: i.id, bodies: i.bodies.map(b => posedBody(b, m)) } : i; });
 }
