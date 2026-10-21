@@ -21,6 +21,9 @@ import { verifyBundle, writeBundle } from '@barocss/cad-model/team/bundle';
 import { inProcessReopen, type Reopen } from '@barocss/cad-model/team/candidates';
 import { runBoardScenario, type BoardScenario } from '@barocss/cad-model/team/boardScenario';
 import { canonical } from '@barocss/cad-model/team/team';
+import { MARGIN_ESTIMATE_MM, mouldHalves, toolingPlan, type ToolingPlan } from '@barocss/cad-model/mould/tooling';
+import { partingLine } from '@barocss/cad-model/mould/parting';
+import { undercuts } from '@barocss/cad-model/mould/undercut';
 import { patternOf } from '@barocss/cad-model/casting/pattern';
 import { chooseStock, stockDoc, stockFile } from '@barocss/cad-model/machining/stock';
 import { camPreview, camSvg } from '@barocss/cad-model/machining/cam';
@@ -32,6 +35,8 @@ import { tmpdir } from 'node:os';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
 import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
 
+/** A mould plan as mould.json shows it: without the loops' points (the lumps' classifier's). */
+const withoutLoops = ({ loops: _, ...rest }: ToolingPlan) => rest;
 export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.
   --stl writes one file per body when there are several (part-b1.stl, part-b3.stl, …).
@@ -73,6 +78,11 @@ cad-cli pattern part.bcad -o folder
   A sand-cast part's pattern (IM8b): the machining allowance on the faces marked machined (set_casting) and the
   shrinkage, both from NPTEL's tables by the alloy and the part's size, or yours; writes pattern.step and pattern.json
   (the factors, their bands and pages). Exit 1 when it cannot be made, and why.
+cad-cli mould part.bcad -o folder [--margin mm]
+  A moulded part's two halves (IM7 S0) where no face needs a split: a block about the part (10 mm a side, an
+  estimate, or --margin), the part taken out, cut at the flat parting plane across the pull (the document's); writes
+  mould.step (both halves) and mould.json (the plane, the halves' volumes, shut-offs, side cores' directions, what is
+  not built). Exit 1 with the code when it cannot (a straddling face or a stepped parting line waits for D149).
 cad-cli cam-preview part.bcad -o folder [--tool mm]
   NOT FOR PRODUCTION. An optional 2.5D preview of outlines (CNC8): the recognised pockets' contour loops at each
   step-down and the holes' drill points, as cam-preview.json and one SVG a setup, each saying so in its first line. No
@@ -246,6 +256,32 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     writeAtomic(join(dir, 'pattern.json'), new TextEncoder().encode(JSON.stringify(p.file, null, 1) + '\n'));
     writeAtomic(join(dir, 'pattern.step'), new TextEncoder().encode(step.text));
     say(io.stdout, { ok: true, factor: p.file.shrink.factor, machining: p.file.machining?.mm ?? null, wrote: [join(dir, 'pattern.json'), join(dir, 'pattern.step')] });
+    return 0;
+  }
+  if (cmd === 'mould') {
+    // (IM7 S0, O110: the halves where no face straddles — mould.step and mould.json; exit 1 with the code otherwise.)
+    const oi = rest.indexOf('-o'), mi = rest.indexOf('--margin'), file = rest.find((a, i) => !a.startsWith('-') && !['-o', '--margin'].includes(rest[i - 1]));
+    if (!file || oi < 0 || !rest[oi + 1]) return usage('mould takes a .bcad file and -o folder [--margin mm]');
+    const margin = mi >= 0 ? Number(rest[mi + 1]) : MARGIN_ESTIMATE_MM;
+    if (!(margin > 0 && margin < 1000)) return usage('--margin is mm a side, more than 0');
+    const opened = await openModel(resolve(file));
+    if ('error' in opened) return failed(opened.error);
+    const s0 = await stateOf(opened.doc); if ('error' in s0) return failed(s0.error);
+    const pull = s0.doc.mould?.pull ?? null, parting = pull ? partingLine(s0.doc, s0.bodies, pull, s0.doc.mould?.sides ?? {}) : null;
+    const plan = toolingPlan(s0.bodies, pull, parting, pull ? undercuts(s0.bodies, pull).regions : [], margin);
+    if (!plan.ok) { say(io.stdout, { ok: false, code: plan.code, message: plan.message, waitsFor: plan.waitsFor }); return 1; }
+    const halves = mouldHalves(s0.doc, s0.bodies, plan.plan);
+    if (!halves.ok) { say(io.stdout, { ok: false, code: halves.code, message: halves.message }); return 1; }
+    const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
+    const step = stepFor(halves.doc, 'mould');
+    if ('error' in step) return failed(`the halves' STEP: ${step.error}`);
+    const vol = (bs: readonly { volumeMM3?: number | null }[]) => Math.round(bs.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0) * 1e3) / 1e3;
+    const shown = withoutLoops(plan.plan);
+    const json = { format: 'barocss-mould', version: 1, ...shown, halves: { plus: { label: 'moves along the pull (B side, usually the core)', lumps: halves.plus.length, volume_mm3: vol(halves.plus) }, minus: { label: 'fixed (A side, usually the cavity)', lumps: halves.minus.length, volume_mm3: vol(halves.minus) } },
+      lumps: halves.lumps.map(l => ({ key: l.body.key, half: l.half, basis: l.basis, volume_mm3: vol([l.body]) })), margin: { mm: margin, basis: mi >= 0 ? 'set' : 'estimate' } };
+    writeAtomic(join(dir, 'mould.json'), new TextEncoder().encode(JSON.stringify(json, null, 1) + '\n'));
+    writeAtomic(join(dir, 'mould.step'), new TextEncoder().encode(step.text));
+    say(io.stdout, { ok: true, plane: `${plan.plan.axis} = ${plan.plan.planeAt}`, shutOffs: plan.plan.shutOffs.length, sideCores: plan.plan.sideCores.length, wrote: [join(dir, 'mould.json'), join(dir, 'mould.step')] });
     return 0;
   }
   if (cmd === 'cam-preview') {

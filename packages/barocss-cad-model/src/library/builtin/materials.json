@@ -2152,6 +2152,17 @@
       "read": "2026-10-21",
       "label": "Standard draft for sand casting is 2 degrees with a minimum of about 1 degree for external and internal features."
      }
+    },
+    "sectionRatioMax": {
+     "value": 2,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a section change’s thickness ratio, at most, without a wedge between",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "If a section change of over 2:1 thickness ratio is unavoidable … use a wedge form between the unequal sections."
+     }
     }
    },
    "allowances": {

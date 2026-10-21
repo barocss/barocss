@@ -1,0 +1,89 @@
+{
+  "id": "sf-cylinder-isocline",
+  "step": "SF",
+  "decisions": [
+    "D149"
+  ],
+  "about": "A cylinder's wall half split along its isocline for a pull along +x (the generator at y = 10): quarters, the + one first, the cylinder unchanged.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 10
+        },
+        {
+          "id": "c",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 20
+        },
+        {
+          "id": "p",
+          "kind": "split-face",
+          "target": "c",
+          "face": "c.side0#1",
+          "pull": [
+            1,
+            0,
+            0
+          ],
+          "names": [
+            "c.wall.plus",
+            "c.wall.minus"
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 6283.185307179586,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            10
+          ],
+          "absTol": 0.000001
+        },
+        "areaMM2": {
+          "value": 1884.9555921538758,
+          "relTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "c.bottom",
+          "c.side0",
+          "c.top",
+          "c.wall.minus",
+          "c.wall.plus"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "closed form: π r² h, 2πr² + 2πrh"
+}

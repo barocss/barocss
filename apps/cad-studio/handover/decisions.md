@@ -8037,3 +8037,111 @@ The coordinator's review of D148 (judgement call 2): from a named face the cutte
 - App tsc clean. Studio 785/785, 94 s (the outer lane's additions since D148 in the count).
 - The full browser flow, on its own: 216/216 (the outer lane's new step included), 792 s.
 - RB: in the rows commit after this one.
+
+## D149 — a face split along a curve or its isocline: `splitFaceAlongCurve`, `splitFaceAlongIsocline` (2026-10-21)
+
+Kernel-lane queue item 2. IM5's two-half parting (O81) asks for a straddling face to be split along its isocline n·d = 0. The coordinator asked for an S0-style probe first, and for the Boolean's face cutting to be reused.
+
+**Reuse: the Boolean's own cutting, no second cutter.** A split runs the analytic Boolean's steps 1–2 on one face, then its stitch:
+- the curve clipped to the face (`intervals`);
+- mapped into the face's domain (`curve2`);
+- the domain region divided (`curveFaceRegions`);
+- every face stitched again (`stitch`).
+
+Nothing is classified and nothing is merged (merging would join the pieces again).
+- `cutPair` itself computes surface–surface intersections. A split already has its curve, so it calls the functions `cutPair` calls, not `cutPair`.
+- Every other face goes through unchanged: its region is read as `facesOf` reads it.
+- `stitch` takes a new `names` argument that keeps every other face's name exactly. Without it, the Boolean renumbers repeated base names by position.
+
+**API** (`@barocss/cad`, `analytic-boolean.ts`):
+- `splitFaceAlongCurve(brep, face, curves, { id?, names? })` returns `{ brep, pieces: [{ name, faces, side? }] }`.
+  - `face` is an id, a name, or a base name that names one face.
+  - `curves` is one NURBS curve or up to 64 of them. They may form a chain: an end may lie on another curve.
+  - Each curve must lie on the face's surface within the tolerance, which is 10 × the linear tolerance at the body's scale (1e-6 mm for bodies within 10 m). It is never projected.
+  - Each curve is clipped to the face. It must end on the boundary at an angle, or be closed.
+- `splitFaceAlongIsocline(brep, face, pull, options)` returns the same. Each piece carries `side`: +1 where the outward n·d > 0, −1 where it is below. The + pieces come first.
+- **Pieces** are named `<face>#1`, `<face>#2` …, + first, then by position; or by `names`. `#k` is matched by base name, as draft and hole match it.
+  - A piece across a full-turn cylinder's seam is joined into one face. This is the Boolean's `mergePieces`, run on that group alone.
+  - On a closed general face (a seam edge its loops use twice), a piece across the seam stays two faces that share the seam. `faces` lists them (`name`, `name#2`). None of the kernel's builders makes such a face today: revolve makes halves.
+- The body stays a valid closed solid (`checkBrep`). Its edges and vertices are new (`<id>_e…`).
+- **Refusals** (`face split: [TAG]`):
+  - INPUT: NO_FACE, AMBIGUOUS, NOT_SOLID (a sheet or an open shell), CURVES, PULL, NAMES.
+  - GEOMETRY: OFF_SURFACE (with the distance and where), OFF_FACE (on the surface but outside the face), ON_BOUNDARY (along the face's boundary), OPEN_END (ends inside the face), TANGENT (meets the boundary under 0.057°, or touches it), SELF_CROSSING (one curve's pieces crossing in the domain, as 64-chord polylines), NO_SPLIT (e.g. one generator of a full turn: a seam is not a dividing edge).
+  - For the isocline: WALL and NO_ISOCLINE.
+  - Facet faces: "not supported yet".
+- **Part feature `split-face`** (`target`, `face`, `curves` or `pull`, `names`). Its refusals map to REFERENCE (NO_FACE, AMBIGUOUS), INPUT (the input refusals), CAPABILITY (mesh faces) and GEOMETRY (the rest).
+
+**The isocline:**
+- **Plane:** none. WALL when n·d = 0, NO_ISOCLINE otherwise.
+- **Cylinder:** closed form. The two generators where the radial direction is square to the pull, as exact lines. WALL when the pull runs along the axis.
+- **General face:** `surfaceIsoclines(surface, pull)`, in the new module `surface-isocline.ts` (exported).
+  - Marching squares over a 32 × 32 grid, moved off the uniform one by 0.0123·sin, so that no grid line lies on a symmetric surface's isocline.
+  - Each crossing is bisected 60 times on the exact unit normal (from the first derivatives), and the crossings are chained.
+  - Points are added where the Catmull–Rom curve through them in the domain leaves the isocline by more than tol/4. Each new point is Newton-corrected onto n·d = 0.
+  - The edge is S(c(t)), which lies exactly on the surface. It is stored as the Boolean's fitted C¹ cubic chain within tol/4 (`fitPieces`), or as a line or an arc when it is one (`exactly`: a cone's generators, a sphere's equator and meridians).
+- **Degenerate domain sides.** Two kinds: a pole (a side collapsed to a point), and a side along which n·d = 0 throughout (a flat edge square to the pull).
+  - Such a side takes its nodes' sides and its crossings from the row inside it. An isocline that ends there is extrapolated from its next two points.
+  - The S0 found both. Without this, the sphere meridian's end was 2e-5 off in u and refinement ran to 1482 points. On a bump, the ridge rounded the corner where it met the flat edges: x 19.99974 instead of 20, and 116 edges.
+- **A cut's runs along the boundary are left out.** This covers n·d = 0 along an edge, before the isocline turns in (`offBoundary`): 256 samples; a run longer than 100 × tol is dropped, its ends bisected to tol/100.
+
+**Fixes in the Boolean's shared code** (found by the S0):
+- **`exactly()` turned a whole circle the wrong way.** It took the normal from the start, the middle and the quarter, in that order. As a result, a closed circular cut on a seamed cylinder lay outside the domain's window. The normal now runs from the start through the quarter to the middle. Open arcs are unchanged.
+- **`intervals()` cut a curve at a cylinder's seam, then joined the pieces again** (`insideIntervals` merges adjacent ranges).
+  - The seam scan is now `seamRanges`, which the split applies after clipping.
+  - A cut that ends on the seam takes the side its middle has (`intoWindow`).
+- These change the Boolean only for closed circular parametric cuts.
+
+**The S0 probe and its oracles** (`test/d149-split-face.test.mjs`, 6 tests; `test/d149-oracle.mjs`):
+- **The oracle:** a face's area and its flux ∫x·n dA on its exact surface, by Green's theorem in its domain.
+  - Each edge point is projected (K4, seeded off the pole nodes), with 8-point Gauss–Legendre inside and along the boundary.
+  - It is not the kernel's mass routine, which meshes trimmed general faces. With that routine, a sphere split at its equator changed volume by 1.4e-4 at the default quadrature (3e-8 relative), though the split itself is exact.
+  - On a box the oracle agrees with closed form to 1e-15; on a sphere, to 1e-11. It cannot read a full turn's seam, so the cylinder circle's pieces use the kernel's area, which is exact on cylinders.
+- **Plane** (the 40 × 30 top), all to 1e-12:
+  - a line: 525 and 675;
+  - a quarter arc about a corner: 25π and the rest;
+  - a closed circle: a disc, and a face with a hole (2 loops).
+
+  The volume holds to 1e-12, the other faces keep their names, and named pieces work.
+- **Cylinder** (a full turn with its seam):
+  - two generators: 25π and 75π, the piece across the seam one face;
+  - a cross-section circle, from the seam and from a quarter turn: 40π and 60π. This failed before the `exactly()` fix;
+  - the isocline for three pulls: 50π each, + and − by the outward normal.
+
+  Volumes hold to 1e-12; the circle's, through a full turn's pieces, to 1e-10.
+- **A biquadratic face** (sewn to five flat sides):
+  - u = ½: two equal halves;
+  - a diagonal in the domain, as an exact quartic: the area of v < 0.2 + 0.7u on the unsplit surface, to 1e-9;
+  - a closed chain of four isoparametric quartics: a patch, and a face with a hole;
+  - the isocline along x: the ridge u = ½ (n·d = 0 on its flat edges, which are left out). The halves hold to 1e-8, limited by the fitted edge; their sum holds to 1e-10.
+
+  Volumes hold to 1e-9, by the oracle.
+- **Isoclines on revolved faces:**
+  - a frustum: quarters π(R + r)s/4 to 1e-10, volume to 1e-10;
+  - a sphere half, across the axis (a meridian from pole to pole) and along it (the equator): 100π each, to 1e-10.
+- **Shared edges:** every one lies on the original surface within 1e-6 (projected at 33 points per edge).
+- **Refusals:** as listed above. The part feature's codes are covered too.
+- All of this fails on the previous HEAD: the functions did not exist.
+
+**Conformance** `conformance/sf/` (6 cases):
+- a plane split along a line (named pieces), and along a circle;
+- a cylinder half and a frustum half split along their isoclines: volume, centroid and area to 1e-9, names, a STEP round trip;
+- two refusals: OFF_SURFACE and NO_ISOCLINE.
+
+**For the outer lane** (`mould/parting.ts`, O81):
+- `splitFaceAlongIsocline(brep, face, pull)` splits a straddling face directly, and `pieces[k].side` is its half.
+- `surfaceIsoclines(surface, pull)` gives the traced isocline in a surface's domain.
+- The wiring is the outer lane's.
+
+**Limits, stated:**
+- The tolerance is tight. A curve fitted to points that lies more than 1e-6 mm off the surface is refused: use the isocline API, or project the curve first.
+- Self-crossing is found on 64-chord polylines per piece.
+- The isocline tracer finds loops larger than its grid cell, about 1/32 of the domain.
+- On a closed general face, a piece across the seam is two faces.
+
+**Checks — T2** (`analytic-boolean.ts`'s shared `exactly()`, `intervals()` and `stitch`, and `part-model.ts`), on b7e1d447a plus this change:
+- Kernel lint and type-check clean (9 s / 7 s); `d149-split-face` 6/6 (5 s); conformance `sf/` 6/6.
+- The full kernel suite, conformance included: 1416/1421 (4 skipped; 1421 = 1409 + 12, the new tests), in 314 s. Only the env-only "actual native Split source…" fails.
+- Test names against a run at b7e1d447a in a temporary worktree: none missing, the 12 new ones added.
+- App tsc clean (70 s). Studio 792/792 (216 s, beside the baseline run).
+- The full browser flow, on its own: 217/217, 717 s.
+- RB: in the rows commit after this one.

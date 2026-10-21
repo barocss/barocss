@@ -928,16 +928,17 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
     }
     case 'set_casting': {
       // (IM8b, O108: the casting pattern's — the faces machined after casting, by name, and the user's own allowance and shrinkage.)
-      const machined = args.machined, allowance = args.allowance, shrink = args.shrink;
-      if (machined === undefined && allowance === undefined && shrink === undefined) return fail(state, 'Give machined, allowance, shrink or any of them.');
+      const machined = args.machined, allowance = args.allowance, shrink = args.shrink, gate = args.gate;
+      if (machined === undefined && allowance === undefined && shrink === undefined && gate === undefined) return fail(state, 'Give machined, allowance, shrink, gate or any of them.');
+      if (gate !== undefined && !(Array.isArray(gate) && gate.length === 3 && gate.every(v => typeof v === 'number' && Number.isFinite(v)))) return fail(state, '[CASTING_GATE] gate is a point [x, y, z] (mm) on the part, where the metal comes in.');
       if (machined !== undefined && !(Array.isArray(machined) && machined.every(x => typeof x === 'string' && x))) return fail(state, '[CASTING_FACE] machined is a list of face names ("n1.top").');
       const faces = new Set(state.bodies.flatMap(b => b.mesh.faces.map(f => f.name))), missing = ((machined ?? []) as string[]).filter(n => !faces.has(n));
       if (missing.length) return fail(state, `[CASTING_FACE] not a face of the part: ${missing.join(', ')}. Use the names from the last result or query.summary.`);
       if (allowance !== undefined && !(typeof allowance === 'number' && allowance >= 0 && allowance < 100)) return fail(state, `[CASTING_ALLOWANCE] allowance is mm a machined face, 0 to 100: ${JSON.stringify(allowance)}.`);
       if (shrink !== undefined && !(typeof shrink === 'number' && shrink >= 0 && shrink < 0.1)) return fail(state, `[CASTING_SHRINK] shrink is a ratio (mm/mm), 0 to 0.1 (0.013 is 1.3 %): ${JSON.stringify(shrink)}.`);
-      const was = state.doc.casting ?? { version: 1 as const }, casting = { ...was, version: 1 as const, ...(machined !== undefined ? { machined: [...new Set(machined as string[])] } : {}), ...(allowance !== undefined ? { machiningAllowanceMM: allowance as number } : {}), ...(shrink !== undefined ? { shrink: shrink as number } : {}) };
+      const was = state.doc.casting ?? { version: 1 as const }, casting = { ...was, version: 1 as const, ...(machined !== undefined ? { machined: [...new Set(machined as string[])] } : {}), ...(allowance !== undefined ? { machiningAllowanceMM: allowance as number } : {}), ...(shrink !== undefined ? { shrink: shrink as number } : {}), ...(gate !== undefined ? { gate: [...(gate as number[])] as [number, number, number] } : {}) };
       const doc = { ...state.doc, casting };
-      return { state: { ...state, doc }, content: json({ ok: true, machined: casting.machined ?? [], allowance: casting.machiningAllowanceMM ?? null, shrink: casting.shrink ?? null }), isError: false, changed: true, summary: `casting: ${casting.machined?.length ?? 0} machined face${casting.machined?.length === 1 ? '' : 's'}` };
+      return { state: { ...state, doc }, content: json({ ok: true, machined: casting.machined ?? [], allowance: casting.machiningAllowanceMM ?? null, shrink: casting.shrink ?? null, gate: casting.gate ?? null }), isError: false, changed: true, summary: `casting: ${casting.machined?.length ?? 0} machined face${casting.machined?.length === 1 ? '' : 's'}` };
     }
     case 'mass_properties': {
       const keys = strings(args.bodies), shown = keys.length ? state.bodies.filter(b => keys.includes(b.key)) : state.bodies;
@@ -1265,8 +1266,8 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'set_casting',
-    description: 'Sets a casting pattern\'s inputs (IM8b): machined, the faces machined after casting (flat ones get the machining allowance on the pattern); allowance, your machining allowance (mm a face; unset: the process\'s table by the part\'s size); shrink, your shrinkage (a ratio, mm/mm; unset: the table\'s by the alloy and size). The manufacturability report shows both and their sources; cad-cli pattern writes the pattern.',
-    input_schema: { type: 'object', properties: { machined: { type: 'array', items: { type: 'string' } }, allowance: { type: 'number' }, shrink: { type: 'number' } }, additionalProperties: false },
+    description: 'Sets a casting pattern\'s inputs (IM8b): machined, the faces machined after casting (flat ones get the machining allowance on the pattern); allowance, your machining allowance (mm a face; unset: the process\'s table by the part\'s size); shrink, your shrinkage (a ratio, mm/mm; unset: the table\'s by the alloy and size); gate, where the metal comes in ([x, y, z] mm on the part: the report\'s hot spots are fed from it, IM8c). The manufacturability report shows them and their sources; cad-cli pattern writes the pattern.',
+    input_schema: { type: 'object', properties: { machined: { type: 'array', items: { type: 'string' } }, allowance: { type: 'number' }, shrink: { type: 'number' }, gate: { type: 'array', items: { type: 'number' } } }, additionalProperties: false },
   },
   {
     name: 'mass_properties',

@@ -6,13 +6,13 @@ import type { BodyResult } from '../engine/evaluate';
 import { materialIdOf } from '../app/bodies';
 import { materialData, processProfile } from '../library/materials';
 import { dispatchTool, type ChatState } from '../chat/tools';
-import { machinedFaces, machiningOf, machiningView, partExtent, shrinkOf, shrinkView, type MachiningAllowance, type ShrinkAllowance } from './allowances';
+import { machinedFaces, machiningOf, machiningView, partExtent, shrinkByDimension, shrinkOf, shrinkView, type MachiningAllowance, type ShrinkAllowance } from './allowances';
 
 type Evaluate = Parameters<typeof dispatchTool>[3];
 export type PatternCode = 'PATTERN_NOT_CASTING' | 'PATTERN_ONE_BODY' | 'PATTERN_MATERIAL' | 'PATTERN_SHRINK' | 'PATTERN_ALLOWANCE' | 'PATTERN_FACE' | 'PATTERN_BUILD';
 export interface PatternFile {
   readonly format: 'barocss-pattern'; readonly version: 1; readonly process: string; readonly material: string; readonly family: string;
-  readonly shrink: Omit<ShrinkAllowance, never> & { readonly factor: number };
+  readonly shrink: Omit<ShrinkAllowance, never> & { readonly factor: number; readonly simplification: string; readonly byDimension: readonly { axis: string; extentMM: number; factor: number; band: string }[] };
   readonly machining: (Omit<MachiningAllowance, never> & { readonly faces: readonly string[] }) | null;
   readonly pivot: readonly number[]; readonly part: { readonly min: readonly number[]; readonly max: readonly number[] }; readonly pattern: { readonly min: readonly number[]; readonly max: readonly number[] };
   readonly note: string;
@@ -53,7 +53,7 @@ export async function patternOf(doc: StudioDoc, bodies: readonly BodyResult[], e
   const after = partExtent(state.bodies), sv = shrinkView(shrink);
   const file: PatternFile = {
     format: 'barocss-pattern', version: 1, process: profile.id, material: m.id, family,
-    shrink: { ...sv, ratio: r6(sv.ratio), factor: r6(factor) },
+    shrink: { ...sv, ratio: r6(sv.ratio), factor: r6(factor), simplification: 'one factor by the largest extent, for the whole pattern; a pattern maker may scale each dimension by its own band (byDimension)', byDimension: sv.basis === 'table' ? shrinkByDimension(doc, profile, family, bodies) : [] },
     machining: machining?.ok ? { ...machiningView(machining), faces: marked.found.map(f => f.name) } : null,
     pivot, part: { min: box.min.map(r6), max: box.max.map(r6) }, pattern: { min: after.min.map(r6), max: after.max.map(r6) },
     note: `the pattern: ${machining?.ok ? `${machining.mm} mm on ${marked.found.length} machined face${marked.found.length === 1 ? '' : 's'}, then ` : ''}scaled ${r6(factor)} about the part's box centre; check the values with your foundry`,
