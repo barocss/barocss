@@ -6,7 +6,7 @@ import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { drawingInputs } from '../src/chat/drawing';
-import { drawingIssues, issueContext } from '../src/drawing/issues';
+import { drawingIssues, fixAll, issueContext } from '../src/drawing/issues';
 import { readDrawing, type ViewId } from '../src/drawing/types';
 import { inView } from '../src/drawing/dimensions';
 import { fromSheet } from '../src/drawing/views';
@@ -80,4 +80,19 @@ test('FRd2 a seam\'s arrow follows a parameter edit: a mitred L 40 × 40 × 3 wi
   const a = at(300), b = at(400);
   assert.equal(b.joint, a.joint); assert.equal(b.edge, a.edge); assert.equal(b.view, 'front');
   assert.ok(Math.abs(b.x - a.x - 100) <= 1e-6, `${a.x} → ${b.x}`);
+});
+
+test('FRd2 weld symbols in the issue list\'s overlap checks: the welded table on A3 with both lists — no clash of a symbol with another, a dimension or a table; a note put on W1\'s number — TEXT_OVERLAP naming the symbol, the note the one moved, Fix all clears it', async () => {
+  const s = await table();
+  const base = { ...readDrawing(s.doc.drawing), sheet: 'A3' as const, weldSymbols: true, tables: [{ id: 'cut-list', from: 'cut-list' }, { id: 'weld-list', from: 'weld-list' }] };
+  const i = drawingInputs(s.doc, base); assert.ok(typeof i !== 'string', String(i));
+  const ctx = issueContext({ ...i, meta: { ...i.meta, date: '2026-10-21' } });
+  assert.deepEqual(drawingIssues(ctx).filter(x => x.welds?.length), [], 'clear');
+  const w1 = ctx.sheet.groups.find(g => g.role === 'weld' && g.id === 'W1')!, label = w1.marks.find(m => m.kind === 'text' && (m as { text: string }).text === 'W1') as { at: [number, number] };
+  const crowded = { ...base, notes: [{ id: 'nt', text: 'GRIND ALL WELDS', at: [label.at[0] - 12, label.at[1]] as [number, number] }] };
+  const i2 = drawingInputs(s.doc, crowded); assert.ok(typeof i2 !== 'string');
+  const in2 = { ...i2, meta: { ...i2.meta, date: '2026-10-21' } }, issues = drawingIssues(issueContext(in2));
+  const clash = issues.find(x => x.code === 'TEXT_OVERLAP' && x.welds?.includes('W1'));
+  assert.ok(clash && /weld symbol W1/.test(clash.message) && clash.notes?.includes('nt') && clash.fix?.kind === 'move-note', JSON.stringify(issues.filter(x => x.welds)));
+  assert.deepEqual(fixAll(in2).left.filter(x => x.welds?.length), [], 'Fix all moves the note clear');
 });

@@ -4911,7 +4911,13 @@ FRd is split in two: FRd1 (joints, records, the list as a table) here, and FRd2 
   - Each arrow's tip is the midpoint of an edge named after its joint's end face, visible in its view.
   - The W-numbers appear in the SVG, PDF and DXF.
   - Coordinator's request: a mitred L with its corner at x = w, w 300 → 400. The corner's joint keeps its id, its arrow resolves by the same edge name, and it moves 100 along the front view's x.
-- **Not done**: the symbols are not yet in the issue list's overlap checks (they are placed clear of the views; a dimension or note crossing one is not flagged). Bead geometry stays the kernel lane's. A coped end (no plane) has no joint yet.
+- **Follow-up (coordinator's review, folded into FRe's checkpoint)**: the symbols are in the issue list's overlap checks.
+  - TEXT_OVERLAP covers symbol against symbol, against dimensions, notes, datums and tables. A weld symbol has no move of its own, so the other annotation is the one moved and fixed.
+  - TEXT_OVER_LINES covers a symbol's texts over a view's lines or another view.
+  - A dimension's text over a symbol's lines is flagged, and a dimension's move keeps clear of them. Issues name the symbols in `welds`.
+  - The checks found real clashes on the welded table (W10 against W11 between the front and right views, W3's text over the top view). So placement now seeks clearance: each symbol takes the first knee, along its nearest side in 7 mm steps from its tip and then the other sides, whose symbol (all but its leader) is clear of every view, the title block, the frame's edge and the symbols placed before it.
+  - On A3 with both lists the table is clear. A note planted on W1's number is flagged as overlapping weld symbol W1, the note is the one moved, and Fix all clears it.
+- **Open**: a coped end (FR3b `cope`, no plane) gives no joint until the kernel's FR geometry lands. Bead geometry stays the kernel lane's.
 - **Fixes found by the run**:
   - FRd1's two long flow step names made the screenshot's file name too long (ENAMETOOLONG), which killed the flow. They are shortened.
   - The read-tools contract test now runs `weld_list`.
