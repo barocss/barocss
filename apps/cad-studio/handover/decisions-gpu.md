@@ -668,3 +668,40 @@ Measured before anything was changed; the coordinator's order.
   WebGPU, before (`2c5a345e5`) and after, RM1–RM9c and the three cage steps: 13/13 both. Not run: the full flow (the
   coordinator's), the cad-model suite.
 
+## G15 — text labels, an SDF atlas (2026-10-22)
+
+- **Glyphs** (`viewer/glyphs.ts`): each character drawn once into a 64² cell by the browser's own 2D canvas
+  (`OffscreenCanvas`), 44 px to the em, in the label font — one the page already has; no font file is ours or downloaded
+  (the studio sets IBM Plex Mono, which its stylesheet already loads, and draws the glyphs again once that web font has
+  loaded: `redrawGlyphs`). The coverage, thresholded at a half, becomes a signed distance field by our own transform
+  (Felzenszwalb–Huttenlocher's exact squared Euclidean distance, two passes of 1D lower envelopes; the test checks it
+  against brute force on random seeds), ±8 px to 0 and 255, 128 on the edge. Cells in one 2048² r8 atlas (1 024 glyphs; a
+  full atlas draws no more and says so), uploaded as they are added and again after a lost device.
+- **Labels** (`Viewer.addLabels`, topology `labels`): a label's lines laid out at the glyphs' advances, 1.25 em apart,
+  placed at its anchor by `align` and `offset`; one 80-byte instance a glyph, two for a chip (its fill, its 1-pixel border).
+  A screen label is `size` CSS pixels high whatever the zoom, about its anchor's projection; a plane label lies along its
+  plane's right and up, `size` its height in world units. The shader cuts a glyph's edge at the field's middle over
+  `fwidth` of it — a device pixel at any magnification — and a chip's rounded box by its distance in device pixels. Depth:
+  the points' rules — tested at the anchor (screen) or the quad (plane), `lineOver`, `lineHidden` for the hidden parts.
+- **Studio**: `ViewRenderer.setOverlayLabels(key, …)` beside G7's lines and G8's points. The measure readout (at the line's
+  middle, hidden parts at the line's 0.75) and the box's size chip (above the box, 0.4 of its diagonal over its top, 0.6),
+  the SVG chip's colours a theme (`.dim-chip`, `.dim-text`: dark #121315 / #fff / the accent border, light #fff /
+  #1b232c); the underlays' texts on the drawing's plane at their height, anchored at the first line's baseline-left as the
+  SVG had them, #8a93a3 at 0.8, hidden parts at 0.35 (their lines'). Not moved: the sketch's dimension chips (hovered and
+  clicked to edit, in the sketch's own 2D overlay) and the gizmo's readout (it follows the pointer while dragging).
+- **G15-D1 (a label is tested at its anchor)**: a screen label takes its anchor's depth, so a surface in front of the anchor
+  hides — faintly, with `lineHidden` — the part of the label it covers; a readout whose anchor is inside a body (a measure
+  between two faces) is drawn faint as a whole. The box chip's anchor was lifted clear of the box for that reason.
+- **Evidence**: gpu `glyphs.test.mjs` (new, 3): the transform equal to brute force on four grids; a disc's field above 128
+  inside, below outside, 4.5 px out at the expected value; the layout's lines, advances, centring and the chip's two
+  instances. Browser test G15: a 16 px chip the same size three times as far (86 → 86 px wide, 12 high), its fill
+  #121315-dark and its border gold; a plane label twice as wide twice as near (100 → 210 px); magnified about 20 times,
+  each edge at most 1 pixel soft; under a box hidden (no pixel past the box's own), faint with `lineHidden`, over it with
+  `lineOver`; 16 glyphs for 16 distinct characters; a new font laid out again. Flow before (`eab5e666c`) and after on
+  measure, mass and box, O68, the light theme: 5/5 both; the readout and the note where they were (the readout faint, its
+  anchor inside the box), the size chip above the box; WebGL2 5/5 (its SVG).
+- **Bench**: the underlay row (100 texts) task 8.1–8.7 → 2.5–3.0 ms a frame, GPU 1.5–2.1 ms (load 17–33); its task budget
+  16 → 6. The one-frame select and clear rows' GPU floor 3 → 4 ms (one run at load 33 drew 3.07).
+- **Checks** (v2): gpu tsc and eslint clean, unit 80/80, browser 12/12; studio tsc and eslint clean, suite 194/194. Not run:
+  the full flow (the coordinator's), the cad-model suite.
+
