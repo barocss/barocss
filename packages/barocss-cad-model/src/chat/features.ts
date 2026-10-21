@@ -5,7 +5,7 @@
 // (engine/ids.ts), so they stay as they are.
 import { sketch3dRefusal, type Constraint3D, type V3 } from '../frames/sketch3d';
 import { followersOf } from '../frames/skeleton';
-import { frameGeometry, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type StudioDoc } from '../engine/doc';
+import { frameGeometry, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
@@ -60,6 +60,8 @@ const MEMBER_SECTIONS: Record<string, Spec> = {
 const MEMBER_SECTION_HELP = 'a section {"kind": "rect-tube" | "round-tube" | "angle" | "channel" | "tslot" | "sketch", …its dimensions} or {"kind": "library", "id"} (a row of the section library)';
 // (The section library's row ids that the node being checked may name: checkNode's.)
 let libraryIds: ReadonlySet<string> = new Set();
+// (FRf2: the placed parts a base frame may follow; null inside a placed part, which follows only its own features.)
+let partsCtx: readonly PartInstance[] | null = [];
 const PROFILE: Record<string, Spec> = {
   rectangle: { min: 'dim2', max: 'dim2' },
   circle: { center: 'dim2', radius: 'dim' },
@@ -92,9 +94,9 @@ export function checkSectionRow(row: unknown, parameters: Record<string, number>
 }
 
 /** Why the node cannot be appended to `nodes`, or null. */
-export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters: Record<string, number>, sections: readonly { id: string }[] = []): string | null {
+export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters: Record<string, number>, sections: readonly { id: string }[] = [], parts: readonly PartInstance[] | null = []): string | null {
   if (!isObj(node)) return 'A feature is an object with a "kind".';
-  libraryIds = new Set(sections.map(r => r.id));
+  libraryIds = new Set(sections.map(r => r.id)); partsCtx = parts;
   const kind = String(node.kind);
   if (kind === 'import' || kind === 'mesh') return 'STEP, STL and OBJ files are opened from a file, not written in chat.';
   let spec: Spec;
@@ -172,7 +174,13 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     case 'points3': return Array.isArray(v) && v.length >= 2 && v.length <= 1024 && v.every(p => Array.isArray(p) && p.length === 3 && p.every(dim)) ? null : '2 to 1024 [x, y, z] points';
     case 'segments': return Array.isArray(v) && v.length >= 1 && v.length <= 256 && v.every(g => Array.isArray(g) && g.length === 2 && g.every(i => Number.isInteger(i) && i >= 0)) ? null : '1 to 256 [from, to] point indices';
     case 'frame-follows': {
-      if (!isObj(v) || Object.keys(v).length !== 1 || !(Number.isInteger(v.skeleton) || Number.isInteger(v.sketch))) return 'a frame follows {"skeleton": k} or {"sketch": k} (an earlier feature)';
+      // (FRf2, O125: a placed part's sketch by its stable id — the base part's frames only; the revision pinned when linked.)
+      if (isObj(v) && typeof v.part === 'string') {
+        if (typeof v.sketch !== 'string' || Object.keys(v).some(k => !['part', 'sketch', 'revision'].includes(k)) || (v.revision !== undefined && typeof v.revision !== 'string')) return 'a frame follows a placed part\'s sketch as {"part": id, "sketch": its feature id, "revision"?: the part\'s revision}';
+        const g = frameGeometry(nodes, { kind: 'frame', follows: v, points: [], segments: [] } as never, parameters, partsCtx);
+        return 'code' in g ? `[${g.code}] ${g.error}` : null;
+      }
+      if (!isObj(v) || Object.keys(v).length !== 1 || !(Number.isInteger(v.skeleton) || Number.isInteger(v.sketch))) return 'a frame follows {"skeleton": k} or {"sketch": k} (an earlier feature), or {"part": id, "sketch": feature id}';
       const k = (v.skeleton ?? v.sketch) as number, src = nodes[k], want = v.skeleton !== undefined ? 'skeleton' : 'sketch';
       if (src?.kind !== want) return `[FRAME_${want.toUpperCase()}_UNKNOWN] feature ${k} is ${src ? `a ${src.kind}` : 'not there (an earlier feature)'}, not a ${want}`;
       const g = frameGeometry(nodes, { kind: 'frame', follows: v, points: [], segments: [] } as never, parameters);
@@ -269,9 +277,11 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   if (n.kind === 'loft') { (n as { sections: { sketch: number; z: unknown }[] }).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) })); if (n.from) (n as { from: number[] }).from = n.from.map(map); }
   if (n.kind === 'sketch' && n.on) (n as { on: BodyRef }).on = ref(n.on);
   if ((n.kind === 'gear' || n.kind === 'rack' || n.kind === 'bevel-gear' || n.kind === 'worm') && n.mesh) (n as { mesh: GearMesh }).mesh = { ...n.mesh, gear: map(n.mesh.gear) };
+  // (R12c.3b, D157: the shaft a key, ring or pin goes on, and a key's hub keyway.)
+  if (n.kind === 'key' || n.kind === 'retaining-ring' || n.kind === 'pin') { (n as { shaft: number }).shaft = map(n.shaft); if (n.kind === 'key' && n.hub !== undefined) (n as { hub: number }).hub = map(n.hub); }
   for (const key of ['parent', 'left', 'right', 'tool', 'addTo'] as const) if (isObj(n[key])) (n as Record<string, unknown>)[key] = ref(n[key] as unknown as BodyRef);
   // (FRf: the skeleton or sketch a frame follows.)
-  if (n.kind === 'frame' && n.follows) (n as { follows: unknown }).follows = 'skeleton' in n.follows ? { skeleton: map(n.follows.skeleton) } : { sketch: map(n.follows.sketch) };
+  if (n.kind === 'frame' && n.follows && !('part' in n.follows)) (n as { follows: unknown }).follows = 'skeleton' in n.follows ? { skeleton: map(n.follows.skeleton) } : { sketch: map(n.follows.sketch) };
   return n;
 }
 /** A node's names (fillet and chamfer edges, shell openings, draft faces) with feature ids replaced. */
@@ -281,10 +291,11 @@ function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode 
   if (node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief') return { ...node, edges: [r(node.edges[0])] };
   if (node.kind === 'shell') return { ...node, open: node.open.map(r) };
   if (node.kind === 'draft') return { ...node, faces: node.faces.map(r) };
+  if (node.kind === 'keyway') return { ...node, face: r(node.face) };
   return node;
 }
 /** The persistent names a node is built on. */
-const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' ? n.faces : [];
+const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' ? n.faces : n.kind === 'keyway' ? [n.face] : [];
 
 /** A drawing dimension's edge names, renamed (null when one of them is gone). */
 function renameDimension(d: DrawingDimension, rename: (name: string) => string | null): DrawingDimension | null {

@@ -40,7 +40,7 @@ import { checkFit, cutListCsv, fitLimits, FitError, type FitLimits } from '@baro
 import { partCutList } from '../app/cutList';
 import { nestCutList } from '../frames/nesting';
 import { editSections } from '../frames/sections';
-import { skeletonEditRefusal, solvedSkeleton, withFollowed } from '../frames/skeleton';
+import { followedStale, partEditRefusal, refreshFollowed, skeletonEditRefusal, solvedSkeleton, staleText, withFollowed } from '../frames/skeleton';
 import { weldList, type WeldRecord } from '../frames/welds';
 export { resolveNames, type NameSelection };
 
@@ -51,7 +51,7 @@ export { resolveNames, type NameSelection };
 /** `turnBase`: the part as the turn found it (the L2 gate weighs the turn's changes against it, D41). */
 /** `turns`: what the user typed in this conversation, sent by the studio (A6.2, O25), so a quote said to be theirs can be
  * checked; absent where no conversation is known (cad-cli, cad-mcp --doc, a plain script). */
-export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy; tx?: Transactions; turnBase?: StudioDoc; turns?: readonly string[] }
+export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; /** FRf2: a part-scoped call's placed part (its document the state's). */ partOf?: string; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy; tx?: Transactions; turnBase?: StudioDoc; turns?: readonly string[] }
 export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** `images`: PNGs to show the model along with the text (base64). */
 export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string; images?: { data: string; mediaType: 'image/png' }[] }
@@ -85,6 +85,10 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   gear: { selection: 'none', values: { m: 'module (mm): the pitch diameter is m × teeth', teeth: 'teeth, 6–200 (under 18 undercut without a profile shift: the refusal gives the least x)', b: 'face width (mm)', shift: 'profile shift coefficient x, −0.5 to 1 (0: none; + thickens the tooth, moves tip and root out by x·m)', helix: 'helix angle β in degrees, 0 (spur) to 45; helical: m is the normal module', hand: 'right | left (helical only; a meshing gear takes the opposite hand itself)', bore: 'bore diameter (0: none), leaving a rim of at least one module below the root', x: 'centre X', y: 'centre Y', z: 'Z it stands on' } },
   'gear-mesh': { selection: 'bodies: [one spur gear, as made] — or [one internal gear]: the new gear then meshes inside it (ratio +z1/z2, the same way) — or [one bevel gear]: its mate (teeth the selected one\'s mate teeth, the same apex; dir and bore only)', values: { shift: 'profile shift x of the new gear, −0.5 to 1 (the centre distance becomes the working one)', teeth: 'teeth of the new gear, 6–200 (ratio −z1/z2 to the selected one; inside a ring, fewer than its teeth — about 2/5 clears the interference conditions)', dir: 'direction from the selected gear\'s axis to the new one\'s, degrees from +X (a bevel mate: the way its axis leans, about the selected gear\'s axis)', bore: 'bore diameter (0: none)' } },
   // (R12b.2a, D132: an internal gear.)
+  key: { selection: 'bodies: [the shaft] (a shaft with a keyseat)', values: { seat: 'its keyseat, from 1', h: 'the key\'s height (the user\'s key data, else say the prefill is an estimate)', b: 'width (0: the seat\'s)', l: 'length (0: the seat\'s)', ends: 'auto (the seat\'s) | round | square', hub: 'none | a keyway node\'s index (its clearance over the key is checked)' } },
+  keyway: { selection: 'faces: [one bore: a cylindrical hole\'s face of the hub]', values: { b: 'width (the key\'s data, else an estimate)', t2: 'depth t2 from the bore\'s surface (the same)', angle: 'degrees about the bore from its reference direction (+X projected); over the key\'s seat' } },
+  'retaining-ring': { selection: 'bodies: [the shaft] (a shaft with a ring groove)', values: { groove: 'its groove, from 1', s: 'ring thickness (the ring\'s row, else an estimate)', D: 'outer diameter of its envelope (the same)' } },
+  pin: { selection: 'bodies: [the shaft] (a shaft with a cross hole)', values: { hole: 'its cross hole, from 1', d: 'diameter (0: the hole\'s; larger needs fit classes)', L: 'length (0: flush with the step)' } },
   shaft: { selection: 'none', values: { n: 'steps, 1–5', d1: 'step 1 diameter (mm)', l1: 'step 1 length (mm)', d2: 'step 2 diameter', l2: 'step 2 length', d3: 'step 3 diameter', l3: 'step 3 length', d4: 'step 4 diameter (n ≥ 4)', l4: 'step 4 length', d5: 'step 5 diameter (n 5)', l5: 'step 5 length', r: 'shoulder fillet radius (0: none)', c: 'end chamfers (0: none)', ks: 'the step with a keyseat (0: none)', kb: 'keyseat width — the key\'s from the user\'s own data, else say the prefill is an estimate', kt: 'keyseat depth t1 (the same)', kl: 'keyseat length', ko: 'keyseat start from its step\'s start', ke: 'end-mill (default) | square | disc', kr: 'disc cutter radius (ke disc)', gs: 'the step with a ring groove (0: none)', gd: 'groove bottom diameter (the ring\'s data, else an estimate)', gw: 'groove width', ga: 'groove start from its step\'s start', x: 'axis X', y: 'axis Y', z: 'Z it starts at' } },
   'fit-class': { selection: 'faces: [one cylindrical face — a bore or a shaft]', values: { class: 'a tolerance class from the loaded fit tables (a hole\'s capital letter H7, a shaft\'s small g6), or none to clear it; the user loads the tables (none built in): if none is loaded, say so' } },
   'fit-pair': { selection: 'faces: [the bore, the shaft], both with fit classes', values: { op: 'declare (default) | remove; the clearance and the pair at its limit sizes go into the shaft body\'s notes; a clearance fit the geometry contradicts is refused' } },
@@ -406,11 +410,14 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
   if (!inst) return fail(state, `No part "${String(part)}"; parts: base${(state.doc.instances ?? []).map(i => `, ${i.id}`).join('')}.`);
   if (name === 'select') return fail(state, 'The viewport selection shows the base part\'s faces only; select without "part".');
   const r = await evaluate(inst.doc);
-  const sub: ChatState = { doc: inst.doc, bodies: r?.ok ? r.bodies : [], ...(state.images ? { images: state.images } : {}) };
+  const sub: ChatState = { doc: inst.doc, bodies: r?.ok ? r.bodies : [], partOf: inst.id, ...(state.images ? { images: state.images } : {}) };
   const out = await runPartTool(sub, name, rest, evaluate);
   const content = out.content.replace(/^\{/, `{"part":${JSON.stringify(inst.id)},`);
   if (!out.changed) return { ...out, state, content };
-  const doc = { ...state.doc, instances: state.doc.instances!.map(i => i.id === inst.id ? { ...i, doc: out.state.doc } : i) };
+  // (FRf2, O125: base frames following this part's sketches keep every edge they use; their copies follow the edit.)
+  const held = partEditRefusal(state.doc, inst.id, out.state.doc);
+  if (held) return fail(state, held, { kept: 'the part is unchanged' });
+  const doc = refreshFollowed({ ...state.doc, instances: state.doc.instances!.map(i => i.id === inst.id ? { ...i, doc: out.state.doc } : i) });
   const solved = solveDoc(doc, state.doc.instances);
   return { ...out, state: { ...state, doc: solved.doc }, content: solved.problems.length ? content.replace(/}$/, `,"unmet_mates":${JSON.stringify(solved.problems)}}`) : content, summary: `${inst.id}: ${out.summary}` };
 }
@@ -722,9 +729,12 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       if (only && !state.bodies.some(b => b.key === only)) return fail(state, `No body "${only}"; bodies: ${state.bodies.map(b => b.key).join(', ') || 'none'}.`);
       const many = state.bodies.reduce((n, b) => n + b.mesh.faces.length + b.mesh.edges.length, 0) > 160, page = Math.max(1, Math.floor(Number(args.page) || 1));
       const list = describeBodies(state.doc, state.bodies, false).map((b, i) => responseFormat !== 'concise' && (only === b.key || (!only && (!many || responseFormat === 'detailed'))) ? describeBodies(state.doc, [state.bodies[i]], true, 60, page)[0] : b);
+      const stale = followedStale(state.doc);
       const body = { feature_count: state.doc.nodes.length, facts: factsOf(state.doc, state.bodies), parameters: state.doc.parameters,
         features: features(state.doc).map(f => responseFormat === 'concise' ? { index: f.index, label: f.label } : { ...f, node: f.node.kind === 'sketch' ? { kind: 'sketch', profile: f.node.profile } : f.node }),
-        bodies: list, ...(many && !only ? { note: 'Faces and edges are listed per body: call again with {"body": key}.' } : {}) };
+        bodies: list, ...(many && !only ? { note: 'Faces and edges are listed per body: call again with {"body": key}.' } : {}),
+        // (FRf2, O125: frames following a placed part's sketch that changed since linked — current geometry, to relink.)
+        ...(stale.length ? { followed_changed: stale.map(x => ({ frame: x.frame, part: x.part, sketch: x.sketch, was: x.was, now: x.now, message: staleText(x) })) } : {}) };
       return { state, content: json(body), isError: false, changed: false, summary: `${state.doc.nodes.length} features, ${state.bodies.length} bod${state.bodies.length === 1 ? 'y' : 'ies'}` };
     }
     case 'run_command': {
@@ -761,7 +771,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       }
       const solves: Record<string, unknown>[] = [];
       for (const [k, node] of list.entries()) {
-        const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections);
+        const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, state.partOf ? null : doc.instances ?? []);
         if (why) return fail(state, `Feature ${k + 1} of ${list.length} (would be index ${doc.nodes.length}): ${why}`, { kept: 'nothing was added' });
         // (A new feature takes the next stable id: one the call brings is not used, ids are never handed out twice.)
         const solved = solvedSkeleton(node as ModelNode);
@@ -776,7 +786,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       if (!Number.isInteger(index) || !nodes[index]) return fail(state, `There is no feature ${String(args.index)} (features 0–${nodes.length - 1}).`);
       let next: ModelNode[];
       if (args.feature !== undefined) {
-        const why = checkNode(args.feature, nodes.slice(0, index), state.doc.parameters, state.doc.frames?.sections);
+        const why = checkNode(args.feature, nodes.slice(0, index), state.doc.parameters, state.doc.frames?.sections, state.partOf ? null : state.doc.instances ?? []);
         if (why) return fail(state, `Feature ${index}: ${why}`);
         // (The replacement is the same feature: it keeps its id, so the names of its faces stay.)
         next = nodes.map((n, i) => i === index ? { ...withFollowed(state.doc, args.feature as ModelNode), id: n.id } : n);
@@ -1303,7 +1313,7 @@ const PART_TOOLS: ToolDefinition[] = [
 - {"kind":"sweep","sketch":i,"path":[{"kind":"straight","length":l} | {"kind":"bend","radius":r,"angleDegrees":deg,"toward":"x"|"-x"|"y"|"-y"}]} (from the sketch plane up +Z)
 - {"kind":"loft","sections":[{"sketch":i,"z":z},...],"smooth"?:bool}
 - Sheet metal (each with the sheet's rules: "thickness":T, "bendRadius":R (inner), and either "kFactor":K 0–1 (the neutral layer at R + K·T; K from the user's shop, else say it is an estimate) or "bendTable":{"id","sources":[{"id","label","url"?}],"rows":[{"thicknessMM","radiusMM","angleDegrees"?,"kFactor"|"allowanceMM"|"deductionMM","source":id | "estimate":true}]} — the shop's table, a bend outside it refused): {"kind":"sheet-base","sketch":i,…rules,"reverse"?:bool} (a plate T thick from a closed sketch) | {"kind":"sheet-contour","path":[[x,y],…],"side":"left"|"right","width":w,"plane"?:{origin,normal,xAxis},…rules} (an open path, one skin of the sheet, the material to its side looking along it, a bend at each corner, extruded w along the plane's normal; faces .leg<i>.a/.b, .bend<k>.inner/.outer, .start, .end, .front, .back) | {"kind":"sheet-flange","parent":Ref,"edges":[edge name],"length":L,"angleDegrees"?:deg,"bendRadius"?:r,"measure"?:"outer"|"inner"|"tangent","position"?:"material-inside"|"material-outside"|"bend-outside","offsets"?:[a,b],"relief"?:{"kind":"rectangular"|"obround","width":w,"depth":d} | {"kind":"none"}} (an edge flange on a sheet's straight skin edge, bent up from that skin; with offsets its relief is required, width and depth given — no defaults; the sheet's T is the usual estimate) | {"kind":"sheet-corner-relief","parent":Ref,"edges":[corner edge name],"shape":"square"|"round","size":s} (a plate's square corner cut off before flanging its two edges; size at least R + T, round √2 that)
-- Skeleton (FRf): {"kind":"skeleton","points":[[x,y,z],…],"segments":[[from,to],…],"constraints"?:[{"kind":"fixed"|"coincident"|"length"|"distance"|"angle"|"parallel"|"perpendicular"|"on-axis"|"on-plane"|"along",…}]} (FRg: solved on add and edit; the result's skeletons: status, dof, redundant, free) — no body; frames on it follow its edits ("follows":{"skeleton":k} in place of points and segments; {"sketch":k}: a sketch's straight edges).
+- Skeleton (FRf): {"kind":"skeleton","points":[[x,y,z],…],"segments":[[from,to],…],"constraints"?:[{"kind":"fixed"|"coincident"|"length"|"distance"|"angle"|"parallel"|"perpendicular"|"on-axis"|"on-plane"|"along",…}]} (FRg: solved on add and edit; the result's skeletons: status, dof, redundant, free) — no body; frames on it follow its edits ("follows":{"skeleton":k} in place of points and segments; {"sketch":k}: a sketch's straight edges; {"part":id,"sketch":feature id}: a placed part's sketch, base frames only, its revision pinned — get_part_summary's followed_changed says when to relink).
 - Frame (FR2): {"kind":"frame","points":[[x,y,z],…],"segments":[[from,to],…],"section":S,"anchor"?,"offset"?,"roll"?,"mirror"?:bool,"up"?,"overrides"?:[{"member":k,"section"?:S,"anchor"?,"offset"?,"roll"?,"mirror"?}]} — a member along each segment (point indices), each its own body (sides part0, part1, …); a member as frame-member's below; mirror turns the section over across its own y axis; faces .m<k>.<role>, .m<k>.start/.end. No two segments on the same points or overlapping on one line. "corners"?:{"default"?:"mitre"|"butt"|"none","at"?:[{"point":i,"kind","through"?:member}]} finishes points where exactly two members end (mitre: both on the halfway plane, the same section turned alike; butt: through runs on, the other ends on its face; none: square, overlapping); left out, no corner is finished; "multi":"order"|"none" (three or more ends: an ordered trim — the first, by "order" or the larger section, runs through, each next trimmed to the envelopes before it); "tee":"butt"|"cope"|"none" (a member ending on another's length); "at" kinds also "cope" (to the through member's envelope), "order" with "order":[members], and "trim":"face"|"envelope" on a butt (a butt on an open side — an angle's leg end, a round tube, a round corner — is refused BUTT_ON_OPEN_SIDE: trim to the envelope); faces .m<k>.start.mitre, .m<k>.end.butt, .m<k>.end.cope, .m<k>.end.trim. "trims"?:[{"member":k,"end":"start"|"end","plane":{"origin","normal"}} | {…,"body":Ref}] trims an end no joint finishes to a plane (run on to meet it) or to an earlier body (not consumed); crossing members are refused MEMBERS_CLASH
 - Structural member (FR1): {"kind":"frame-member","section":S,"start":[x,y,z],"end":[x,y,z],"anchor"?:"centroid"|"origin"|"bottom-left"|…|"top-right","offset"?:[dx,dy],"roll"?:deg,"up"?:[x,y,z]} — the section square to the line start→end, extruded its length; the anchor point on the line (default the centroid), the section moved by offset, its y along up (default +Z) made square to the line (a vertical line takes +X), turned roll°. S, every dimension given (no default sizes or radii; ask for the stock's or say they are estimates): {"kind":"rect-tube","width","height","wall","outerRadius","innerRadius"?} | {"kind":"round-tube","diameter","wall"} | {"kind":"angle","legX","legY","thickness","rootRadius","toeRadius"} | {"kind":"channel","height","width","web","flange","rootRadius"} | {"kind":"tslot","size","cells":1|2,"openSlots"?:0–4 (one cell),"opening","lip","undercut","depth","bore"} | {"kind":"sketch","sketch":i} (a closed sketch, holes allowed). Faces by role: .top/.bottom/.left/.right/.round.*, .bore.*, .back.x/.face.y/.root/.toe.x, .web/.tip.top, .<slot>.floor …, and the ends .start/.end
 - {"kind":"hole","parent":Ref,"center":[a,b],"radius":r,"axis"?:"x"|"y"|"z","side"?:"min"|"max","depth"?:d} (omit depth for through)

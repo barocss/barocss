@@ -8746,3 +8746,127 @@ Ran:
 
 Not run:
 - The full browser flow (the coordinator's).
+
+## D157 — R12c.3b: keys, hub keyways, retaining rings and pins on shafts (2026-10-22)
+
+R12c.3's second half (D156's split): what goes on a shaft, each part with its pair checks.
+- **Data:** the sizes are the user's, from their own rows. The commands' prefills are labelled estimates, and none is built in.
+- **Fits:** where a pair is a fit (a key's width in its seat and keyway, a pin in its hole), the classes and the user's tables go through R12c.2.
+- **Names:** indexed as D156's (`seat1`, `keyseat1`), never with a trailing `#k`.
+
+**Kernel** (`shaft-parts.ts`; exported `keySolid`, `keywayCut`, `ringSolid`, `pinSolid`, `ShaftPartError` and the types; the new codes `KEY_FIT`, `RING_FIT` and `PIN_FIT`):
+- **The shaft's placement.** The shaft kind's part now carries its placement (`shaftPlace`: its turn and offset). A key, ring or pin is built in the shaft's own frame and placed with it. It refers to the shaft feature without consuming it, as a meshing gear refers to its mate.
+- **A key** in keyseat k: { height (the user's), width and length (default the seat's), ends round | square (default round in an end-milled seat, else square) }.
+  - It sits on the seat's floor, centred along the seat, turned to the seat's angle.
+  - **Checks:**
+    - its length within the seat, a square-ended key in an end-milled seat having the straight part only;
+    - its width against the seat's: wider is KEY_FIT ("model it at the seat's width and declare its width fit");
+    - the seat play and how far it stands above the shaft (h − t1), reported.
+  - **With a hub keyway** (KEY_FIT otherwise for each):
+    - the bore on the shaft's axis (≤ 1e-6 mm off);
+    - the keyway over the seat (directions equal to 1e-9);
+    - the keyway's width against the key's;
+    - the top clearance (r_h + t2) − (R − t1 + h) > 0, which is t1 + t2 − h with the bore at the shaft's size.
+  - **With fit classes** `{ tables, key, seat?, hub? }`: `fitLimits` on the seat's and the hub's widths, at the seat's nominal width.
+    - As R12c.2's rule has it, the key is then modelled at that width: a 6.01 key with classes is refused, because the classes carry the limits.
+    - This is the same machinery as R12c.2. A width is planar, so `fitLimits` serves, not `checkFit`'s cylinders.
+- **A hub keyway** on a bore face: { width, depth t2 from the bore's surface on the centre line, angle about the bore from its reference direction (+X projected, else +Y) }.
+  - It is cut through the face's axial extent by the analytic Boolean (the tool starts inside the bore's air), its faces `<id>.keyway`.
+  - It reports the bore's radius, the floor's radius r + t2, the axis and the direction.
+  - KEY_FIT on a face that is no bore, or a keyway no narrower than its bore.
+- **A retaining ring** in groove g: { thickness, outer diameter (its envelope), row? }. The row is the user's ring row { shaftDiameter?, grooveDiameter?, grooveWidth?, source | estimate }.
+  - Its envelope runs from the groove's bottom to its outer diameter, centred in the groove.
+  - **RING_FIT:** a ring thicker than its groove, an outer diameter not above the groove's, or the row's sizes against the step's and the groove's (each naming both).
+  - Without a row, or with `estimate`, the report says estimate.
+- **A pin** in cross hole h: { diameter (default the hole's), length (default the step's diameter, flush) }, centred on the axis along the hole, its cylinder `<id>.side0` for a fit class.
+  - Larger than its hole is PIN_FIT unless `fit` says classes declare it. In the studio the classes go on the pin's and the hole's faces, and Fit pair checks them by `checkFit`.
+- **Part model:** the kinds `key` { shaft, keyseat, height, width?, length?, ends?, hub?, fit? }, `keyway` { target, face, width, depth, angle? } (consumes its target), `retaining-ring` { shaft, groove, thickness, outerDiameter, row? } and `pin` { shaft, hole, diameter?, length?, fit? }.
+  - The outputs' `key`, `keyway`, `ring` and `pin` are the reports.
+  - A key on a body that is no shaft is REFERENCE.
+
+**Oracles and tests** (`test/r12c-shaft-parts.test.mjs`, 5 tests, all failing on the previous HEAD):
+- **A round-ended 6 × 6 × 18 key** in the end-milled seat (D139 K1's sizes as test values): (l − b)bh + π(b/2)²h to 1e-9; on the floor at 6.5, its top at 12.5, z 5–23.
+- **The hub's keyway** 6 × 2.8 in a Ø20 bore, 18 long: L·∫_{|v|≤3}((r + t2) − √(r² − v²))dv in closed form, to 1e-6.
+- **The key's stand and clearance:** h − t1 = 2.5 and t1 + t2 − h = 0.3, S0's figure.
+- **KEY_FIT cases:**
+  - too long, and a square-ended key in the round-ended seat (12 mm only);
+  - too wide;
+  - 6.4 high under the keyway;
+  - a keyway turned 90° ("90° round from it");
+  - a bore 0.5 mm off the axis.
+- **Fits on the width:** N9/h9 on the seat is transition −30…+30 µm, JS9/h9 on the hub −15…+45 (test rows flagged estimates).
+- **A ring** 1.2 thick to Ø24 in the Ø19 × 1.3 groove (R1's sizes): π(12² − 9.5²)·1.2 to 1e-9, centred (z 30.05–31.25), the play 0.1, the row's source carried; RING_FIT for a thick ring and for two mismatched rows; INVALID_INPUT for a row with neither a source nor an estimate.
+- **A pin** Ø4 through the Ø25 step along Y: π·2²·25, flush ±12.5, at z 55; PIN_FIT for Ø4.01 unless `fit`.
+- **The part model:** the shaft turned 90° and moved to (50, 0, 10). The key follows: on +Y, z 15–33. The pin lies along X. The shaft stays an output. The four codes are mapped.
+- **Conformance `r12c/`:**
+  - `shaft-key-hub-ring-pin`: the five outputs' volumes by closed forms and S0's quadratures, all to 1e-8 (measured within 2e-10); the key's, ring's and pin's centroids by symmetry; the face names;
+  - `key-too-high-refused`.
+
+**Studio and model:**
+- **Nodes** `key`, `keyway`, `retaining-ring` and `pin`.
+  - A key, ring or pin refers to its shaft (and a key to its hub keyway) through `usesOf`, so the shaft cannot be deleted from under them.
+  - The keyway is built on its body (its parent).
+  - `renumber` and `renameNode` (`chat/features.ts`) carry their references and the keyway's face name: the one change there, needed for the references.
+  - Labels and kind lists.
+- **Commands** (icon `cad-key`):
+  - **Key** (create): a shaft selected; seat, height (estimate), width and length (0: the seat's), ends, the hub keyway (a choice of the document's keyways, the newest by default).
+  - **Keyway** (modify): one bore selected, its face's normal toward its axis; width and depth t2 (estimates), angle.
+  - **Retaining ring** (create): a shaft with a groove; groove, thickness and outer Ø (estimates; prefilled as the groove's width less 0.1, and its Ø + 5).
+  - **Pin** (create): a shaft with a cross hole; hole, Ø (0: the hole's), length (0: flush).
+- **Notes:**
+  - the key's plays, stand and clearance under the keyway, or a warning that no hub is checked;
+  - the keyway's sizes;
+  - the ring's play, with "an estimate: your ring's row gives them";
+  - the pin's clearance;
+  - "Sizes are yours … not validated".
+- **Not in the studio:** the key's width classes. Its classes would need planar faces in Fit class, which takes cylinders. They are in the kernel and the part model (`fit`). A ring row's source likewise: the studio's ring is an estimate until the user's row is loaded. A ring-row loader waits, like a table editor.
+- **Chat v2:** four features commands, their values behind `describe`. There is no new tool or enum, and tools-v2.json is unchanged.
+  - The per-turn guard is **22 252**, measured on 8788eafec plus this change: 22 228 with O124's fit_clearance, +24 for the four names.
+- **Tests:**
+  - `test/shaft-parts.test.ts` (3): the default shaft, a tube hub over its seat, its keyway, the key, a ring and a pin through the commands. Their notes and volumes check against the closed forms, and the shaft cannot be deleted from under them. Refusals; describe.
+  - Studio `chat.test`: contexts for the four commands.
+  - A flow step "Shaft parts (R12c.3b, D157)" through the scripted chat.
+
+**Not in this stage:**
+- Woodruff keys and tapered or gib-head keys;
+- key and shaft strength;
+- the ring's lugs and installed spread;
+- internal (bore) rings;
+- grooved or spring pins.
+
+**Checks** (rules v2: `part-model.ts` gained cases, so the full kernel suite ran), on 6d8115ef3 (this change's code before two fixes in the studio's tests and one label, below) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-shaft-parts` with `r12c-shaft`: 11/11.
+- The full kernel suite, conformance included: 1462/1470, 6 skipped, 300 s.
+  - It failed the env-only "actual native Split source…".
+  - It failed the timed D104 SubD test ("under 3.5 s"). That test passed alone in 1.9 s: a load flake, rerun alone as the rules say.
+- Conformance `r12c/`: 13/13.
+- `@barocss/cad-model`: type-check clean, 688/688, 177 s (the guard test: 22 252). Studio: type-check clean, 192/192, 29 s.
+- Test names against the saved lists: none missing (D104's counted from its rerun); +7 kernel, +16 cad-model (D157's 3 and the merged lanes'), studio unchanged.
+- `FLOW_ONLY` "Shaft parts (R12c": it failed at first, on the step's own fault. It picked the outliner's first row matching /Key/, which was "Tube · Keyway …", so it read the hub's notes.
+  - The step now matches the key's row. The key's label went from "Key = × 6 in keyseat 1" to "Key 6 high in keyseat 1", and its model test moved with it.
+  - Rerun alone: 1/1 (with the starter step), and `shaft-parts` 3/3.
+  - The snapshot shows the keyway in the hub over the seat.
+
+Not run:
+- RB and properties (the 1st kernel checkpoint since D156's run).
+- The full browser flow (the coordinator's).
+
+**D157 fix — the palette (2026-10-22, the coordinator's report on 8788eafec's window flow).**
+- **The failure.** 21 steps failed: every one that rounds or chamfers through the palette, step 31 alone too.
+  - D156's Shaft keywords held "fillet chamfer key groove …", so "fillet" + Enter opened Shaft, which has no Radius field.
+  - The palette keeps the commands available here first. Fillet is unavailable with nothing picked, so the always-available Shaft came ahead of it.
+- **The cause.** I ran FLOW_ONLY for my own steps only. A new command's label and keywords touch the palette, so the steps that drive the palette with nearby words are affected too.
+- **The fix** (579bddc47):
+  - The R12c commands' keywords name themselves only. Shaft is "shaft stepped axle turned" (its "spindle" held "pin"). Key, Keyway, Retaining ring, Spring and Fit class/pair are trimmed (they held "hole", "interference", "bore", "shaft", "clearance").
+  - The Pin's label is "Dowel pin", since the gears' "pinion" holds "pin".
+  - The palette's filter and order moved, unchanged, into `ui/paletteList.ts`.
+  - **The pin:** `test/palette.test.ts` types each command's label with nothing picked (an empty part, and a plate) and checks that the command comes first, plus the flow's own palette words. Six collisions older than R12c (Pipe, Sweep, Flange, Frame, Tube, Move) are named there; they wait for the outer lane's change that ranks an exact label first, and the list must only shrink.
+- **The rule from here:** run FLOW_ONLY on the palette-driven steps for nearby words with every new command, not only its own step.
+- **Checks:** the studio suite 193/193 with the new test. One chat-server test, "reports a missing CLI…", failed in the full run and passed alone (a load flake). cad-model's R12c and toolset tests: 22/22, the guard unchanged at 22 252. FLOW_ONLY 'fillet|chamfer|round|R10|Shaft|Key|Hole|Fit|Spring' on the fixed tree: below.
+- **FLOW_ONLY on the fixed tree** (579bddc47, the detached worktree; the machine loaded, its average up to 46, so 3181 s):
+  - 74 passed, among them every step the window flow failed on 8788eafec: 31, 33, 35, 65, 84, 93, 120, 121, 154–166, and the R12c steps.
+  - 8 failed. Rerun as the rules say, they are not regressions:
+    - seven pass alone: fastener at a Ø6.6, R11.2c-1, FR3b (a timing check), R14.1, A5.2, A6.4 and IM3;
+    - "refit a curve" failed alone too, because the regex's "Fit" caught "refit" without the steps that make its rail. With its chain (import a .barocad source … extend a surface) it is 7/7.

@@ -11,7 +11,7 @@ const no = (reason: string) => ({ ok: false as const, reason });
 const picked = (ctx: Ctx) => ctx.selection.faces.map(f => ctx.bodies[f.body]?.mesh.faces[f.face]).filter(f => f !== undefined);
 
 const fitClass: Command = {
-  id: 'fit-class', label: 'Fit class', icon: 'cad-fit', group: 'inspect', keywords: 'fit tolerance class iso 286 h7 g6 limits bore shaft seat clearance interference',
+  id: 'fit-class', label: 'Fit class', icon: 'cad-fit', group: 'inspect', keywords: 'fit tolerance iso 286 limits',
   hint: 'A tolerance class on a cylindrical face (a hole\'s capital letter, a shaft\'s small one), from your fit tables: its limits in the body\'s notes. None is built in',
   available: ctx => {
     if (!fitClasses(ctx.doc).length) return no('Load a fit table first (Library panel, FITS): none is built in.');
@@ -24,7 +24,7 @@ const fitClass: Command = {
 };
 
 const fitPair: Command = {
-  id: 'fit-pair', label: 'Fit pair', icon: 'cad-fit', group: 'inspect', keywords: 'fit pair hole shaft check clearance interference transition mmc lmc',
+  id: 'fit-pair', label: 'Fit pair', icon: 'cad-fit', group: 'inspect', keywords: 'fit pair mmc lmc',
   hint: 'Declare a hole and a shaft (two faces with fit classes) a fit: their clearance from your tables, and the pair at its limit sizes checked by an exact Boolean — a clearance fit the geometry contradicts is refused',
   available: ctx => {
     const f = picked(ctx);

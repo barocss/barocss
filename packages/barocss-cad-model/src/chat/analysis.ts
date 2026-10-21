@@ -28,7 +28,7 @@ export function massProperties(doc: StudioDoc, bodies: readonly BodyResult[]): R
     const mat = materialFact(doc, b), rho = materialOf(materialIdOf(doc, b)).gPerCm3;
     // (The kernel's inertia is for aluminium, 2.70 g/cm³: scaled to the body's density.)
     const inertia = b.inertia?.map(row => row.map(x => Number((x * rho / 2.7).toPrecision(6))));
-    return { body: b.key, ...mat, volume_mm3: b.volumeMM3 === null ? null : r3(b.volumeMM3), area_mm2: r3(b.mesh.faces.reduce((a, f) => a + f.areaMM2, 0)),
+    return { body: b.key, ...mat, volume_mm3: b.volumeMM3 === null ? null : r3(b.volumeMM3), area_mm2: r3(b.areaMM2 ?? b.mesh.faces.reduce((a, f) => a + f.areaMM2, 0)), ...(b.areaBasis === 'exact' ? {} : { area_basis: 'the display mesh\'s triangles (the kernel could not integrate it): a little low on curved faces' }),
       mass_g: b.volumeMM3 === null ? null : r3(b.volumeMM3 * rho / 1000), centroid: b.centroid ? v3(b.centroid) : null,
       ...(inertia ? { inertia_kg_m2_about_centroid: inertia } : {}), bbox: { min: v3(b.mesh.bounds.min), max: v3(b.mesh.bounds.max) } };
   });

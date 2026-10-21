@@ -1,0 +1,315 @@
+{
+  "id": "r12c-shaft-key-hub-ring-pin",
+  "step": "R12c",
+  "decisions": [
+    "D157"
+  ],
+  "about": "R12c.3b: a keyed \u00d820/\u00d825 shaft with a ring groove and a cross hole; a hub \u00d840 \u00d7 18 on its \u00d820 bore with a keyway 6 \u00d7 2.8; a round-ended 6 \u00d7 6 \u00d7 18 key in the end-milled seat under it; a retaining ring 1.2 thick to \u00d824 in the \u00d819 \u00d7 1.3 groove (the user's row, an estimate); a \u00d84 pin through the \u00d825 step (D139's K1 and R1 sizes as test values).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "shaft",
+          "steps": [
+            {
+              "diameter": 20,
+              "length": 40,
+              "keyseats": [
+                {
+                  "width": 6,
+                  "depth": 3.5,
+                  "length": 18,
+                  "offset": 5
+                }
+              ],
+              "grooves": [
+                {
+                  "diameter": 19,
+                  "width": 1.3,
+                  "at": 30
+                }
+              ]
+            },
+            {
+              "diameter": 25,
+              "length": 30
+            }
+          ],
+          "holes": [
+            {
+              "diameter": 4,
+              "at": 55
+            }
+          ],
+          "generator": "shaft@0"
+        },
+        {
+          "id": "o",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 20,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              5
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "oe",
+          "kind": "extrude",
+          "sketch": "o",
+          "height": 18
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 10,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "be",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 40
+        },
+        {
+          "id": "hb",
+          "kind": "difference",
+          "target": "oe",
+          "tool": "be"
+        },
+        {
+          "id": "kw",
+          "kind": "keyway",
+          "target": "hb",
+          "face": "be.side0",
+          "width": 6,
+          "depth": 2.8
+        },
+        {
+          "id": "k",
+          "kind": "key",
+          "shaft": "s",
+          "keyseat": 1,
+          "height": 6,
+          "hub": "kw"
+        },
+        {
+          "id": "r",
+          "kind": "retaining-ring",
+          "shaft": "s",
+          "groove": 1,
+          "thickness": 1.2,
+          "outerDiameter": 24,
+          "row": {
+            "shaftDiameter": 20,
+            "grooveDiameter": 19,
+            "grooveWidth": 1.3,
+            "estimate": true
+          }
+        },
+        {
+          "id": "p",
+          "kind": "pin",
+          "shaft": "s",
+          "hole": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 26602.824007886553,
+          "relTol": 1e-08
+        },
+        "centroidMM": {
+          "value": [
+            -0.1035835,
+            0,
+            39.0225647
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "s.end0",
+          "s.end1",
+          "s.groove1",
+          "s.groovewall1.1",
+          "s.groovewall1.2",
+          "s.hole1",
+          "s.keyseat1",
+          "s.seat1",
+          "s.seat1.2",
+          "s.seat2",
+          "s.shoulder1"
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 16645.77427537775,
+          "relTol": 1e-08
+        },
+        "centroidMM": {
+          "value": [
+            -0.2168334,
+            0,
+            14
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "be.side0",
+          "kw.keyway",
+          "oe.bottom",
+          "oe.side0",
+          "oe.top"
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 601.6460032938488,
+          "relTol": 1e-08
+        },
+        "centroidMM": {
+          "value": [
+            9.5,
+            0,
+            14
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "k.bottom",
+          "k.side0",
+          "k.side1",
+          "k.side2",
+          "k.side3",
+          "k.top"
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 202.63272615654165,
+          "relTol": 1e-08
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            30.65
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "r.bottom",
+          "r.hole0.side0",
+          "r.hole0.side1",
+          "r.side0",
+          "r.top"
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 314.1592653589793,
+          "relTol": 1e-08
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            55
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "p.bottom",
+          "p.side0",
+          "p.top"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "The shaft is \u03c0(10\u00b2\u00b740 + 12.5\u00b2\u00b730) less the groove \u03c0(10\u00b2 \u2212 9.5\u00b2)\u00b71.3, the keyseat (l \u2212 b)A + the disc ends (A in closed form, the ends by quadrature: S0's 20.087441 and 95.742473) and the cross hole \u222b4\u221a(\u03c1\u00b2 \u2212 x\u00b2)\u221a(R\u00b2 \u2212 x\u00b2)dx (quadrature). The hub is \u03c0(20\u00b2 \u2212 10\u00b2)\u00b718 less the keyway 18\u00b7\u222b_{|v|\u22643}(12.8 \u2212 \u221a(10\u00b2 \u2212 v\u00b2))dv in closed form. The key is (l \u2212 b)bh + \u03c0(b/2)\u00b2h, the ring \u03c0(12\u00b2 \u2212 9.5\u00b2)\u00b71.2, the pin \u03c02\u00b2\u00b725. The key's, ring's and pin's centroids by symmetry; the shaft's and hub's x by this kernel."
+}

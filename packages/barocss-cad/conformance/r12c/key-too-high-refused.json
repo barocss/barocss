@@ -1,0 +1,169 @@
+{
+  "id": "r12c-key-too-high-refused",
+  "step": "R12c",
+  "decisions": [
+    "D157"
+  ],
+  "about": "R12c.3b: a 6.4-high key in the 3.5-deep seat under the hub's 2.8-deep keyway reaches the keyway's floor (t1 + t2 \u2212 h \u2264 0): refused.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "shaft",
+          "steps": [
+            {
+              "diameter": 20,
+              "length": 40,
+              "keyseats": [
+                {
+                  "width": 6,
+                  "depth": 3.5,
+                  "length": 18,
+                  "offset": 5
+                }
+              ],
+              "grooves": [
+                {
+                  "diameter": 19,
+                  "width": 1.3,
+                  "at": 30
+                }
+              ]
+            },
+            {
+              "diameter": 25,
+              "length": 30
+            }
+          ],
+          "holes": [
+            {
+              "diameter": 4,
+              "at": 55
+            }
+          ],
+          "generator": "shaft@0"
+        },
+        {
+          "id": "o",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 20,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              5
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "oe",
+          "kind": "extrude",
+          "sketch": "o",
+          "height": 18
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 10,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "be",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 40
+        },
+        {
+          "id": "hb",
+          "kind": "difference",
+          "target": "oe",
+          "tool": "be"
+        },
+        {
+          "id": "kw",
+          "kind": "keyway",
+          "target": "hb",
+          "face": "be.side0",
+          "width": 6,
+          "depth": 2.8
+        },
+        {
+          "id": "k",
+          "kind": "key",
+          "shaft": "s",
+          "keyseat": 1,
+          "height": 6.4,
+          "hub": "kw"
+        },
+        {
+          "id": "r",
+          "kind": "retaining-ring",
+          "shaft": "s",
+          "groove": 1,
+          "thickness": 1.2,
+          "outerDiameter": 24,
+          "row": {
+            "shaftDiameter": 20,
+            "grooveDiameter": 19,
+            "grooveWidth": 1.3,
+            "estimate": true
+          }
+        },
+        {
+          "id": "p",
+          "kind": "pin",
+          "shaft": "s",
+          "hole": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "KEY_FIT"
+    }
+  },
+  "oracle": "3.5 + 2.8 \u2212 6.4 = \u22120.1 mm."
+}

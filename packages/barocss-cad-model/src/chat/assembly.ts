@@ -2,6 +2,7 @@
 // by passing `part`), their placement and grounding, and mates solved by the studio's own solver
 // (src/assembly/mates.ts) with its exact refusals. The assembly is re-solved after every change, as the
 // studio does, so mated parts follow edits of the parts they are mated to.
+import { partDeleteRefusal } from '../frames/skeleton';
 import { tslotInterfaces } from '../frames/interfaces';
 import { emptyDoc, type PartInstance, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
@@ -140,6 +141,9 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
     case 'delete_part': {
       const inst = byId(args.part);
       if (!inst) return fail(doc, `No part "${String(args.part)}"; parts: ${instances.map(i => i.id).join(', ') || 'none'}.`);
+      // (FRf2, O125: a part whose sketch a base frame follows stays.)
+      const held = partDeleteRefusal(doc, inst.id);
+      if (held) return fail(doc, held);
       const kept = mates.filter(m => m.a.part !== inst.id && m.b.part !== inst.id);
       return changed(doc, { ...doc, instances: instances.filter(i => i !== inst), mates: kept }, `deleted ${inst.id} "${inst.name}"${kept.length < mates.length ? ` and ${mates.length - kept.length} mate${mates.length - kept.length > 1 ? 's' : ''} on it` : ''}`, state.bodies, evaluate);
     }
