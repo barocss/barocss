@@ -1,6 +1,9 @@
 // The consolidated tool set (A5.3, O11; contract `barocss-cad-tools-v2`): 13 tools, each an `action` beside the
-// arguments of the v1 tool it stands for. A call is the v1 call: the same gates, results and refusals, so v1 and v2
-// are one tool layer listed two ways. The v1 names stay callable (aliases) until the A/B (A5.5) decides.
+// arguments of the handler it stands for. A call is the handler's call: the same gates, results and refusals. Since
+// O105 (the owner, 2026-10-21) this is the only list a model reads, and MCP calls only these names; the handlers keep
+// their own names inside (ops of a batch or a proposal, saved proposals, the tools' own tests). New capability is an
+// action here; a new command or feature kind needs no change here at all (the features tool names them, describe
+// gives their detail).
 // `describe` gives an action's full v1 description and schema, a command's values or a feature kind's JSON on request,
 // so the list a model reads every turn stays short.
 
@@ -126,8 +129,43 @@ export function v1Call(name: string, input: unknown): { name: string; args: Reco
  * `CAD_TOOLS_VIA_V2=1` sends every call this way, so the whole suite replays through the consolidated layer.
  */
 export function viaV2(name: string, input: unknown): [string, unknown] {
+  if (typeof process === 'undefined' || process.env?.CAD_TOOLS_VIA_V2 !== '1') return [name, input];
+  return v2Call(name, input) ?? [name, input];
+}
+/** A handler call as the v2 call a model makes (`measure {a}` → `query {action: "measure", a}`); null for a name that is not a handler. */
+export function v2Call(name: string, input: unknown): [string, Record<string, unknown>] | null {
   const to = V2_OF.get(name);
-  if (!to || typeof process === 'undefined' || process.env?.CAD_TOOLS_VIA_V2 !== '1') return [name, input];
+  if (!to) return null;
   const [group, action] = to.split('.');
-  return [group, { ...(input && typeof input === 'object' && !Array.isArray(input) ? input : {}), action }];
+  return [group, { ...(input && typeof input === 'object' && !Array.isArray(input) ? input as Record<string, unknown> : {}), action }];
+}
+
+/** A handler's name with an underscore, not already an action's (`assembly.add_part`). */
+const HANDLER_WORD = /(?<![.\w])[a-z]+(?:_[a-z]+)+\b/g;
+const actionOf = (w: string) => V2_OF.get(w) ?? w;
+const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+/** Where the handlers' texts write a one-word handler as a tool (propose; the rest only as English words). */
+const ONE_WORD: readonly [string, string][] = [['(propose)', '(proposals.propose)'], ['with propose,', 'with proposals.propose,']];
+/** Text as a v2 caller reads it (O105b): each handler named as its action (`get_part_summary` → `query.summary`). */
+export function v2Text(text: string): string {
+  let out = text.replace(HANDLER_WORD, actionOf);
+  for (const [a, b] of ONE_WORD) out = out.split(a).join(b);
+  return out;
+}
+/** A result's value as a v2 caller reads it: strings by v2Text, keys as they are, a stored call `{tool, args}` (a proposal's op) as its v2 call. */
+export function v2Value(v: unknown): unknown {
+  if (typeof v === 'string') return v2Text(v);
+  if (Array.isArray(v)) return v.map(v2Value);
+  if (!isRecord(v)) return v;
+  const out: Record<string, unknown> = {};
+  for (const k of Object.keys(v)) out[k] = k === 'tool' ? v[k] : v2Value(v[k]);
+  const call = typeof v.tool === 'string' && (v.args === undefined || isRecord(v.args)) ? v2Call(v.tool, out.args) : null;
+  if (call) { out.tool = call[0]; out.args = call[1]; }
+  return out;
+}
+/** A tool result's text as a v2 caller reads it: JSON through v2Value, other text through v2Text. */
+export function v2Result(text: string): string {
+  let parsed: unknown;
+  try { parsed = JSON.parse(text); } catch { return v2Text(text); }
+  return JSON.stringify(v2Value(parsed));
 }

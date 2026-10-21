@@ -7,24 +7,24 @@ import { join } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, withNode, rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { SYSTEM_PROMPT_JSON, toolsetOf } from '@barocss/cad-model/chat/toolset';
+import { TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { BRIEFS, type Arm } from '../server/ab/briefs';
 import { estimateTokens, oracleOf, reportAb, summarizeAb, type RunResult } from '../server/ab/harness';
 import { abMain } from '../server/ab/main';
 
-// A5.5 (O13): the A/B harness. Every brief's ideal calls pass its oracle in every variant and both arms; the oracle
-// fails a wrong part; the arms read what they should; a dry run through the real chat server; the live guard.
+// A5.5 (O13): the brief harness. Every brief's ideal calls pass its oracle in every variant; the oracle fails a wrong
+// part; the estimate; a dry run through the real chat server; the live guard. (O105: the json arm and the v1/v2 A/B went
+// with v1; the hybrid arm, on the v2 tools, is the one left.)
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 
-test('ten briefs; every variant\'s ideal calls pass the oracle in both arms (the json arm in v1 names, the hybrid in v2)', async () => {
+test('ten briefs; every variant\'s ideal calls pass the oracle, in v2 names', async () => {
   assert.equal(BRIEFS.length, 10);
   assert.equal(new Set(BRIEFS.map(b => b.id)).size, 10);
-  for (const b of BRIEFS) for (const [k, p] of b.variants.entries()) for (const arm of ['json', 'hybrid'] as Arm[]) {
+  for (const b of BRIEFS) for (const [k, p] of b.variants.entries()) for (const arm of ['hybrid'] as Arm[]) {
     let s: ChatState = { doc: emptyDoc(), bodies: [] };
     const calls = b.scripted[arm](p);
-    if (arm === 'json') assert.ok(calls.every(c => toolsetOf('json').tools.some(t => t.name === c.tool)), `${b.id}: v1 tools without run_script`);
-    else assert.ok(calls.every(c => toolsetOf('v2').tools.some(t => t.name === c.tool)), `${b.id}: v2 tools`);
+    assert.ok(calls.every(c => TOOLSET.tools.some(t => t.name === c.tool)), `${b.id}: v2 tools`);
     for (const c of calls) { const r = await dispatchTool(s, c.tool, c.args, evaluate); assert.ok(!r.isError, `${b.id} ${arm} #${k} ${c.tool}: ${r.content.slice(0, 300)}`); s = r.state; }
     const o = await oracleOf(s.doc, b, k);
     assert.ok(o.pass, `${b.id} ${arm} #${k}: ${JSON.stringify(o.oracle)}`);
@@ -43,39 +43,34 @@ test('the oracle fails a wrong part: no hole, the wrong size, two solids, no par
   assert.equal((await status(emptyDoc()))[0], false, 'nothing built');
 });
 
-test('what each arm reads: json has no run_script, hybrid the 13 tools; the estimate grows with each turn', () => {
-  assert.ok(!toolsetOf('json').tools.some(t => t.name === 'run_script'));
-  assert.equal(toolsetOf('json').tools.length, toolsetOf('v1').tools.length - 1);
-  assert.ok(!/run_script/.test(SYSTEM_PROMPT_JSON) && SYSTEM_PROMPT_JSON.length < toolsetOf('v1').prompt.length);
-  assert.equal(toolsetOf('v2').tools.length, 13);
-  const one = estimateTokens('json', 'brief', [{ args: 100, result: 1000 }]), two = estimateTokens('json', 'brief', [{ args: 100, result: 1000 }, { args: 100, result: 1000 }]);
-  assert.ok(two.input > 1.4 * one.input && two.output > one.output && one.estimated);
-  // (Each model turn reads the prompt and tools again: json about 4.4× hybrid a turn, 17.9k against 4.1k tokens.)
-  const j = estimateTokens('json', 'brief', []), h = estimateTokens('hybrid', 'brief', []);
-  assert.ok(j.input > 4 * h.input, `${j.input} vs ${h.input}`);
+test('what a turn reads: the 13 tools and the prompt; the estimate grows with each turn', () => {
+  assert.equal(TOOLSET.tools.length, 13);
+  const one = estimateTokens('brief', [{ args: 100, result: 1000 }]), two = estimateTokens('brief', [{ args: 100, result: 1000 }, { args: 100, result: 1000 }]);
+  assert.ok(two.input > 1.2 * one.input && two.output > one.output && one.estimated);
+  const none = estimateTokens('brief', []);
+  assert.ok(none.input * 4 >= TOOLSET.prompt.length + JSON.stringify(TOOLSET.tools).length * 0.9, String(none.input));
 });
 
-test('the summary: pass@k (any) and pass^k (all) per brief and arm; the report', () => {
-  const r = (brief: string, arm: Arm, pass: boolean, calls: number): RunResult => ({ brief, arm, run: 0, variant: 0, pass, oracle: [], calls, refusals: pass ? 0 : 1, tools: [], wallMs: 10, end: 'done', tokens: { input: 100, output: 10, newInput: 50, estimated: true } });
-  const s = summarizeAb([r('a', 'json', true, 4), r('a', 'json', false, 6), r('a', 'hybrid', true, 2), r('a', 'hybrid', true, 2)]);
-  assert.deepEqual([s.byBrief.a.json!.passAtK, s.byBrief.a.json!.passPowK, s.byBrief.a.json!.calls, s.byBrief.a.json!.refusals], [true, false, 5, 0.5]);
-  assert.deepEqual([s.byBrief.a.hybrid!.passAtK, s.byBrief.a.hybrid!.passPowK, s.byArm.hybrid!.passRate, s.byArm.json!.passRate], [true, true, 1, 0.5]);
-  assert.match(reportAb([r('a', 'json', true, 4)], 'scripted'), /\| a \| json \| 1\/1 \| yes \| yes \| 4 \|/);
+test('the summary: pass@k (any) and pass^k (all) per brief; the report', () => {
+  const r = (brief: string, pass: boolean, calls: number): RunResult => ({ brief, arm: 'hybrid', run: 0, variant: 0, pass, oracle: [], calls, refusals: pass ? 0 : 1, tools: [], wallMs: 10, end: 'done', tokens: { input: 100, output: 10, newInput: 50, estimated: true } });
+  const s = summarizeAb([r('a', true, 4), r('a', false, 6), r('b', true, 2), r('b', true, 2)]);
+  assert.deepEqual([s.byBrief.a.hybrid!.passAtK, s.byBrief.a.hybrid!.passPowK, s.byBrief.a.hybrid!.calls, s.byBrief.a.hybrid!.refusals], [true, false, 5, 0.5]);
+  assert.deepEqual([s.byBrief.b.hybrid!.passAtK, s.byBrief.b.hybrid!.passPowK, s.byArm.hybrid!.passRate], [true, true, 0.75]);
+  assert.match(reportAb([r('a', true, 4)], 'scripted'), /\| a \| hybrid \| 1\/1 \| yes \| yes \| 4 \|/);
 });
 
-test('a dry run of the real script through the real chat server and tool server: the scripted agent, two briefs, both arms', async () => {
+test('a dry run of the real script through the real chat server and tool server: the scripted agent, two briefs', async () => {
   const out = mkdtempSync(join(tmpdir(), 'cad-ab-test-'));
   const child = spawn(process.execPath, [join(process.cwd(), 'scripts/ab.mjs'), '--scripted', '--briefs', 'block-hole,pcb-enclosure', '--runs', '1', '--out', out], { stdio: ['ignore', 'pipe', 'pipe'] });
   let err = ''; child.stderr.on('data', d => { err += d; });
   assert.equal(await new Promise(res => child.on('close', res)), 0, err);
   const results = JSON.parse(readFileSync(join(out, 'results.json'), 'utf8')) as RunResult[];
-  assert.match(readFileSync(join(out, 'report.md'), 'utf8'), /^# A\/B dry run \(scripted agent\)/);
-  assert.equal(results.length, 4);
+  assert.match(readFileSync(join(out, 'report.md'), 'utf8'), /^# Briefs dry run \(scripted agent\)/);
+  assert.equal(results.length, 2);
   for (const r of results) { assert.ok(r.pass && r.end === 'done' && r.refusals === 0, JSON.stringify(r)); assert.ok(r.tokens.estimated && r.tokens.input > 0); }
   const by = (id: string, arm: Arm) => results.find(r => r.brief === id && r.arm === arm)!;
-  assert.deepEqual([by('block-hole', 'json').calls, by('block-hole', 'hybrid').calls, by('pcb-enclosure', 'json').calls, by('pcb-enclosure', 'hybrid').calls], [4, 2, 13, 2]);
+  assert.deepEqual([by('block-hole', 'hybrid').calls, by('pcb-enclosure', 'hybrid').calls], [2, 2]);
   assert.deepEqual(by('block-hole', 'hybrid').tools, ['model', 'requirements']);
-  assert.ok(by('pcb-enclosure', 'json').tokens.input > 10 * by('pcb-enclosure', 'hybrid').tokens.input);
 });
 
 test('live runs need --live and CAD_AB_LIVE=1: refused without them (exit 2), nothing run', async () => {
@@ -87,7 +82,6 @@ test('live runs need --live and CAD_AB_LIVE=1: refused without them (exit 2), no
     assert.equal(await abMain(['--live'], paths), 2);
     assert.equal(await abMain([], paths), 2);
     assert.equal(await abMain(['--scripted', '--briefs', 'nope'], paths), 2);
-    assert.equal(await abMain(['--scripted', '--arms', 'json,v9'], paths), 2);
   } finally { (process.stderr as { write: unknown }).write = write; if (was !== undefined) process.env.CAD_AB_LIVE = was; }
   assert.match(err.join(''), /set CAD_AB_LIVE=1 as well as --live/);
 });

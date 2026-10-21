@@ -1441,14 +1441,14 @@ try {
     const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
     const docOf = nodes => ({ ...empty, nodes, outputs: { [`b${nodes.length - 1}`]: { node: nodes.length - 1, side: 'solid' } } });
     const nodes = [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { kind: 'extrude', sketch: 0, height: 8 }];
-    const events = [{ type: 'text', delta: 'Plate first.' }, { type: 'tool', name: 'run_command', input: { command: 'box' }, summary: 'Box → 1 body, 16384 mm³', isError: false }, { type: 'state', doc: docOf(nodes) }];
+    const events = [{ type: 'text', delta: 'Plate first.' }, { type: 'tool', name: 'features', input: { action: 'command', command: 'box' }, summary: 'Box → 1 body, 16384 mm³', isError: false }, { type: 'state', doc: docOf(nodes) }];
     for (const [x, y] of [[6, 6], [58, 6], [6, 26], [58, 26]]) {
       nodes.push({ kind: 'hole', parent: { node: nodes.length - 1, side: 'solid' }, center: [x, y], radius: 4 });
-      events.push({ type: 'tool', name: 'run_command', input: { command: 'hole', faces: ['n1.top'], values: { d: 8, x, y } }, summary: 'Hole', isError: false }, { type: 'state', doc: docOf(nodes) });
+      events.push({ type: 'tool', name: 'features', input: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x, y } }, summary: 'Hole', isError: false }, { type: 'state', doc: docOf(nodes) });
     }
     nodes.push({ kind: 'fillet', parent: { node: 5, side: 'solid' }, edges: ['n1.side0|n1.side1', 'n1.side0|n1.side3', 'n1.side1|n1.side2', 'n1.side2|n1.side3'], radius: 2 });
     const expected = Math.round(64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8);
-    events.push({ type: 'tool', name: 'run_command', input: { command: 'fillet' }, summary: `Fillet {"radius":2,"endRadius":0,"shape":"circular"} → 1 body, ${expected} mm³`, isError: false }, { type: 'state', doc: docOf(nodes) },
+    events.push({ type: 'tool', name: 'features', input: { action: 'command', command: 'fillet' }, summary: `Fillet {"radius":2,"endRadius":0,"shape":"circular"} → 1 body, ${expected} mm³`, isError: false }, { type: 'state', doc: docOf(nodes) },
       { type: 'text', delta: 'Done: a 64 × 32 × 8 plate with four Ø8 holes and R2 vertical edges.' }, { type: 'done', doc: docOf(nodes), session: 'cli-session-1', end: 'done' });
     const requests = [];
     const statusUrl = u => u.pathname === '/api/chat/status', turnUrl = u => u.pathname === '/api/chat/turn';
@@ -1504,9 +1504,9 @@ try {
     const doc = { ...plate, instances: [{ id: 'p1', name: 'Pin', doc: pin, position: [32, 16, 8], rotation: [0, 0, 0] }],
       mates: [{ id: 'm1', kind: 'concentric', a: { part: 'base', face: 'n2.side0' }, b: { part: 'p1', face: 'n1.side0' } }, { id: 'm2', kind: 'coincident', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.bottom' } }] };
     const events = [
-      { type: 'tool', name: 'add_part', input: { name: 'Pin' }, summary: 'added part p1 "Pin"', isError: false },
-      { type: 'tool', name: 'add_mate', input: { kind: 'concentric' }, summary: 'added Concentric 1 (m1)', isError: false },
-      { type: 'tool', name: 'add_mate', input: { kind: 'coincident' }, summary: 'added Coincident 2 (m2)', isError: false },
+      { type: 'tool', name: 'assembly', input: { action: 'add_part', name: 'Pin' }, summary: 'added part p1 "Pin"', isError: false },
+      { type: 'tool', name: 'assembly', input: { action: 'add_mate', kind: 'concentric' }, summary: 'added Concentric 1 (m1)', isError: false },
+      { type: 'tool', name: 'assembly', input: { action: 'add_mate', kind: 'coincident' }, summary: 'added Coincident 2 (m2)', isError: false },
       { type: 'state', doc }, { type: 'text', delta: 'Pin mated into the plate.' }, { type: 'done', doc, session: 's-asm', end: 'done' },
     ];
     const statusUrl = u => u.pathname === '/api/chat/status', turnUrl = u => u.pathname === '/api/chat/turn';
@@ -2227,8 +2227,8 @@ try {
     const fs = await import('node:fs');
     const nodes = [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 8 }];
     const risk = { level: 'low', features_touched: 1, references_broken: 0, hard_requirements_changed: [], approval: [] };
-    const hole = (d, x = 10, y = 10) => ({ tool: 'run_command', args: { command: 'hole', faces: ['n1.top'], values: { d, x, y } } });
-    const box = { tool: 'add_features', args: { features: [{ kind: 'sketch', profile: 'rectangle', min: [50, 0], max: [60, 10] }, { kind: 'extrude', sketch: 4, height: 5 }] } };
+    const hole = (d, x = 10, y = 10) => ({ tool: 'features', args: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d, x, y } } });
+    const box = { tool: 'features', args: { action: 'add', features: [{ kind: 'sketch', profile: 'rectangle', min: [50, 0], max: [60, 10] }, { kind: 'extrude', sketch: 4, height: 5 }] } };
     const sse = events => events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
     // (Made on another part, base '0': stale from the start.)
     const proposals = [
@@ -2321,8 +2321,8 @@ try {
       };
       // The owner's exception: on an empty part the first turn builds directly (a box and a hole); one Undo takes the
       // whole build back.
-      const firstBox = { tool: 'run_command', args: { command: 'box', values: { w: 32, d: 32, h: 16, x: 0, y: 0, z: 0 } } };
-      await send([firstBox, { tool: 'run_command', args: { command: 'hole', faces: ['n1.top'], values: { d: 4, x: 8, y: 8 } } }]);
+      const firstBox = { tool: 'features', args: { action: 'command', command: 'box', values: { w: 32, d: 32, h: 16, x: 0, y: 0, z: 0 } } };
+      await send([firstBox, { tool: 'features', args: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 4, x: 8, y: 8 } } }]);
       await page.waitForFunction(() => window.__studioDoc.nodes.length === 3, null, { timeout: 20000 });
       await page.waitForSelector('.toast:has-text("Applied by the agent")', { timeout: 10000 });
       await page.click('.toast button:text-is("Undo")');
@@ -2331,15 +2331,15 @@ try {
       await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
       // A value of one feature: applied directly, said so with an undo.
       const h0 = (await doc()).nodes[1].height;
-      await send([{ tool: 'edit_feature', args: { index: 1, values: { h: h0 + 4 } } }]);
+      await send([{ tool: 'features', args: { action: 'edit', index: 1, values: { h: h0 + 4 } } }]);
       await page.waitForFunction(h => window.__studioDoc.nodes[1]?.height === h, h0 + 4, { timeout: 20000 }).catch(async e => { throw new Error(`${e.message.split('\n')[0]}: ${JSON.stringify((await doc()).nodes)} ${await page.locator('.chat-panel, .chat').first().innerText().catch(() => '')}`); });
       await page.waitForSelector('.toast:has-text("Applied by the agent")', { timeout: 10000 });
       await snap('l2-applied');
       await page.click('.toast button:text-is("Undo")');
       await page.waitForFunction(h => window.__studioDoc.nodes[1]?.height === h, h0, { timeout: 10000 });
       // Two features in one change: refused (needs_proposal), the part unchanged; proposed, it waits for the user.
-      const hole = { tool: 'run_command', args: { command: 'hole', faces: ['n1.top'], values: { d: 6, x: 10, y: 10 } } }, taller = { tool: 'edit_feature', args: { index: 1, values: { h: h0 + 4 } } };
-      await send([{ tool: 'apply_ops', args: { ops: [taller, hole] } }, { tool: 'propose', args: { title: 'Taller, with a hole', ops: [taller, hole] } }]);
+      const hole = { tool: 'features', args: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 6, x: 10, y: 10 } } }, taller = { tool: 'features', args: { action: 'edit', index: 1, values: { h: h0 + 4 } } };
+      await send([{ tool: 'features', args: { action: 'batch', ops: [taller, hole] } }, { tool: 'proposals', args: { action: 'propose', title: 'Taller, with a hole', ops: [taller, hole] } }]);
       assert.match(await page.locator('.chat-tool').nth(-2).innerText(), /L2|propos/i);
       await page.waitForSelector('[aria-label="Proposal P1"]', { timeout: 15000 });
       assert.deepEqual((await doc()).nodes.map(n => n.kind), ['sketch', 'extrude']);
@@ -2621,7 +2621,7 @@ try {
     try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       // (Each: the bodies, the last tool the agent called, and the body — by its name in the outliner — whose note says its pair is clear.)
-      for (const [name, bodies, tool, at, note] of [['planetary', 5, 'check_spec', 'Spur gear m2 z24', /Meshes with n1: centre distance 42\.928 mm, ratio −18:24/], ['bevel-pair', 2, 'get_part_summary', 'Bevel gear m3 z40/20', /Clear over a full tooth period on the heel sphere/], ['worm-reducer', 2, 'get_part_summary', 'Worm ZA m_x3 ×1 Ø44', /In contact along lines across the face/]]) {
+      for (const [name, bodies, tool, at, note] of [['planetary', 5, 'requirements.check', 'Spur gear m2 z24', /Meshes with n1: centre distance 42\.928 mm, ratio −18:24/], ['bevel-pair', 2, 'query.summary', 'Bevel gear m3 z40/20', /Clear over a full tooth period on the heel sphere/], ['worm-reducer', 2, 'query.summary', 'Worm ZA m_x3 ×1 Ø44', /In contact along lines across the face/]]) {
         const { calls } = JSON.parse(fs.readFileSync(join(root, `test/fixtures/gear-${name}.calls.json`), 'utf8'));
         await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
         await page.click('[aria-label="Chat"]');
@@ -2701,17 +2701,17 @@ try {
         await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
         await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       };
-      await send([{ tool: 'run_command', args: { command: 'subd-box', values: { w: 30, d: 20, h: 16, n: 2, x: 0, y: 0, z: 0 } } }, { tool: 'subd_cage', args: { index: 0 } }]);
+      await send([{ tool: 'features', args: { action: 'command', command: 'subd-box', values: { w: 30, d: 20, h: 16, n: 2, x: 0, y: 0, z: 0 } } }, { tool: 'subd', args: { action: 'cage', index: 0 } }]);
       await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'subd' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
       const before = (await doc()).nodes[0].cage;
       // A move of the cage: the feature's values — applied, with an undo.
-      await send([{ tool: 'subd_move', args: { index: 0, vertices: [0], delta: [0, 0, 2] } }]);
+      await send([{ tool: 'subd', args: { action: 'move', index: 0, vertices: [0], delta: [0, 0, 2] } }]);
       await page.waitForFunction(z => window.__studioDoc.nodes[0].cage.positions[2] === z, before.positions[2] + 2, { timeout: 20000 });
       await page.waitForSelector('.toast:has-text("Applied by the agent")', { timeout: 10000 });
       assert.deepEqual((await doc()).nodes[0].cage.faces, before.faces);
       // An extrusion changes the cage's topology: at L2 refused, then proposed; accepted, the cage has four faces more.
-      const extrude = { tool: 'subd_extrude', args: { index: 0, faces: [0], distance: 3 } };
-      await send([extrude, { tool: 'propose', args: { title: 'A bump', ops: [extrude] } }]);
+      const extrude = { tool: 'subd', args: { action: 'extrude', index: 0, faces: [0], distance: 3 } };
+      await send([extrude, { tool: 'proposals', args: { action: 'propose', title: 'A bump', ops: [extrude] } }]);
       assert.match(await page.locator('.chat-tool').nth(-2).innerText(), /L2|propos/i);
       await page.waitForSelector('[aria-label="Proposal P1"]', { timeout: 15000 });
       assert.equal((await doc()).nodes[0].cage.faces.length, 24);
@@ -2841,7 +2841,7 @@ try {
       await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'subd' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
       // The rest changes the cage's topology: at L2 one proposal of them all, accepted.
       const t0 = Date.now();
-      await send([{ tool: 'propose', args: { title: 'Pipe clamp', ops: calls.slice(1).map(c => ({ tool: c.tool, args: c.args })) } }], 240000);
+      await send([{ tool: 'proposals', args: { action: 'propose', title: 'Pipe clamp', ops: calls.slice(1).map(c => ({ tool: c.tool, args: c.args })) } }], 240000);
       await page.waitForSelector('[aria-label="Proposal P1"]', { timeout: 15000 });
       await page.locator('[aria-label="Proposal P1"] button', { hasText: /^Accept/ }).click();
       await page.waitForFunction(n => window.__studioDoc.nodes[0].cage.faces.length === n && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), want.input.partDocument.features[0].cage.faces.length, { timeout: 120000 }); await idle();
@@ -3543,7 +3543,7 @@ try {
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
       // (The agent's cut list: five rows, 9160 mm in all.)
       const line = await page.locator('.chat-tool').last().innerText();
-      assert.ok(line.includes('cut_list'), line);
+      assert.ok(line.includes('query.cutlist'), line);
       await page.click('[aria-label="Close chat"]');
       await page.waitForFunction(() => /12 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
       // (A sharp 40 × 40 × 3 tube: A = 1600 − 34² = 444 mm²; the first member, the top's front rail, A·1000 — the panel rounds to 1 mm³.)
@@ -4364,7 +4364,7 @@ try {
         await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       };
       const source = 'const p = box({w: 80, d: 40, h: 8, x: 0, y: 0, z: 0})\nfor (const i of range(3)) { hole(p.top, {d: 5, x: 20 + 20 * i, y: 20}) }\nfillet([edge(p.top, p.side0)], {radius: 1})';
-      await send([{ tool: 'run_script', args: { source } }]);
+      await send([{ tool: 'model', args: { action: 'run', source } }]);
       await page.waitForFunction(() => window.__studioDoc.nodes.length === 6 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
       assert.deepEqual((await doc()).nodes.map(n => n.kind), ['sketch', 'extrude', 'hole', 'hole', 'hole', 'fillet']);
       await page.waitForSelector('.toast:has-text("Applied by the agent")', { timeout: 10000 });
@@ -4372,7 +4372,7 @@ try {
       await page.click('.toast button:text-is("Undo")');
       await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 10000 });
       // A refused second line: nothing applied, the line named in the tool's result.
-      await send([{ tool: 'run_script', args: { source: 'const p = box({w: 20, d: 20, h: 5})\nbox({w: 10, d: 10, h: 10, q: 1})' } }]);
+      await send([{ tool: 'model', args: { action: 'run', source: 'const p = box({w: 20, d: 20, h: 5})\nbox({w: 10, d: 10, h: 10, q: 1})' } }]);
       assert.match(await page.locator('.chat-tool').last().innerText(), /line 2/);
       assert.equal((await doc()).nodes.length, 0);
       await page.click('[aria-label="Close chat"]');
@@ -4380,9 +4380,9 @@ try {
   });
 
   // ---- A5.3 (O11): the consolidated tools ---------------------------------------------------------------------------
-  await check('A5.3: the chat server with CAD_TOOLSET=v2 — describe, model, query and features calls build and read a part; the v1 name still answers', async () => {
+  await check('A5.3: the chat server on the v2 tools (the only ones, O105) — describe, model, query and features calls build and read a part; a handler\'s own name is refused', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
-    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_TOOLSET: 'v2', CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
       await page.click('[aria-label="New part"]'); await idle();
@@ -4403,7 +4403,8 @@ try {
       assert.deepEqual([d.nodes.map(x => x.kind), d.nodes[1].height], [['sketch', 'extrude', 'hole', 'hole'], 8]);
       const shown = await page.locator('.chat-tool').allInnerTexts();
       assert.equal(shown.length - tools, 5, shown.join('\n'));
-      assert.ok(!shown.slice(tools).some(t => /error|takes "action"/i.test(t)), shown.join('\n'));
+      assert.ok(!shown.slice(tools, -1).some(t => /error|takes "action"|unknown tool/i.test(t)), shown.join('\n'));
+      assert.match(shown.at(-1), /Unknown tool: mass_properties/, shown.join('\n'));
       await snap('a5-v2');
       await page.click('.toast button:text-is("Undo")').catch(() => {});
       await page.click('[aria-label="Close chat"]');
@@ -4579,7 +4580,7 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
-      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'motion_torques', args: { to: c.input.to, profile: c.input.profile, limits: c.input.limits } }];
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'assembly', args: { action: 'move', to: c.input.to, profile: c.input.profile, limits: c.input.limits } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const line = await page.locator('.chat-tool').last().innerText();
@@ -4601,7 +4602,7 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
-      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'size_actuators', args }];
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'assembly', args: { action: 'size', ...args } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const line = await page.locator('.chat-tool').last().innerText();
@@ -4623,7 +4624,7 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
-      const n = await page.locator('.chat-msg.assistant').count(), calls = c.input.patches.map(fields => ({ tool: 'set_brief', args: { fields } }));
+      const n = await page.locator('.chat-msg.assistant').count(), calls = c.input.patches.map(fields => ({ tool: 'requirements', args: { action: 'brief', fields } }));
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       await page.click('[aria-label="Close chat"]');
@@ -4657,8 +4658,8 @@ try {
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       // (Turn 1: the user's words, then the scripted calls; the purpose quotes the words, the finish is assumed.)
       const calls = [
-        { tool: 'set_brief', args: { fields: { purpose: { value: 'a wall bracket for a 30 mm pipe', basis: 'stated', source: 'A wall bracket for a 30 mm pipe' }, finish: { value: 'matte', basis: 'assumed', why: 'a bracket out of sight' } } } },
-        { tool: 'ask_user', args: { questions: [{ id: 'q1', text: 'How will it be made?', kind: 'choice', options: ['fdm', 'injection', 'cnc-milling'], blocks: { field: 'process' } }, { id: 'q2', text: 'What material?', kind: 'text', blocks: { field: 'material' } }] } },
+        { tool: 'requirements', args: { action: 'brief', fields: { purpose: { value: 'a wall bracket for a 30 mm pipe', basis: 'stated', source: 'A wall bracket for a 30 mm pipe' }, finish: { value: 'matte', basis: 'assumed', why: 'a bracket out of sight' } } } },
+        { tool: 'requirements', args: { action: 'ask', questions: [{ id: 'q1', text: 'How will it be made?', kind: 'choice', options: ['fdm', 'injection', 'cnc-milling'], blocks: { field: 'process' } }, { id: 'q2', text: 'What material?', kind: 'text', blocks: { field: 'material' } }] } },
       ];
       await turn(`A wall bracket for a 30 mm pipe. script ${JSON.stringify({ calls })}`);
       await page.click('[aria-label="Close chat"]');
@@ -4673,12 +4674,12 @@ try {
       await page.waitForFunction(() => [...document.querySelectorAll('.chat-msg.user')].some(m => /My answers to your questions \(batch 1\)/.test(m.textContent)) && !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 60000 });
       // (Turn 2: asking about the stated material again is refused; a requirement quoting the user is kept, verified.)
       const calls2 = [
-        { tool: 'ask_user', args: { questions: [{ id: 'q3', text: 'Which material?', kind: 'text', blocks: { field: 'material' } }] } },
-        { tool: 'set_requirements', args: { requirements: [{ id: 'R1', source: '30 mm pipe', hard: true, check: { op: '>=', query: { fn: 'bbox', axis: 'x' }, value: 40 } }] } },
+        { tool: 'requirements', args: { action: 'ask', questions: [{ id: 'q3', text: 'Which material?', kind: 'text', blocks: { field: 'material' } }] } },
+        { tool: 'requirements', args: { action: 'set', requirements: [{ id: 'R1', source: '30 mm pipe', hard: true, check: { op: '>=', query: { fn: 'bbox', axis: 'x' }, value: 40 } }] } },
       ];
       await turn(`Size it for the 30 mm pipe. script ${JSON.stringify({ calls: calls2 })}`);
       const lines = await page.locator('.chat-tool').allInnerTexts();
-      assert.ok(lines.some(l => /ask_user/.test(l) && /NOT_BLOCKING/.test(l)), lines.slice(-3).join(' | '));
+      assert.ok(lines.some(l => /requirements\.ask/.test(l) && /NOT_BLOCKING/.test(l)), lines.slice(-3).join(' | '));
       await page.waitForFunction(() => window.__studioDoc?.requirements?.[0]?.said === 'verified', null, { timeout: 15000 });
       assert.equal(await page.evaluate(() => window.__studioDoc.questions.batches.length), 1);
       await page.click('[aria-label="Close chat"]');
@@ -4772,7 +4773,7 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
-      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'standards_lookup', args: { table: 'fasteners-metric-coarse', row: 'M6', field: 'tap' } }];
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'library', args: { action: 'standards', table: 'fasteners-metric-coarse', row: 'M6', field: 'tap' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const line = await page.locator('.chat-tool').last().innerText();
@@ -4966,12 +4967,12 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
-      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'draft', args: { pull: [0, 0, 1], min_deg: 1 } }, { tool: 'check_printability', args: {} }];
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'query', args: { action: 'draft', pull: [0, 0, 1], min_deg: 1 } }, { tool: 'query', args: { action: 'manufacturability' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), draft = lines[lines.length - 2], report = lines[lines.length - 1];
       assert.ok(draft.includes('"face":"n1.side0","draft_deg":3,"min_deg":3,"max_deg":3,"class":"drafted"'), draft);
-      assert.match(report, /check_printability\s*injection: pull pass, finish pass, wall pass, wall-material \w+, wall-uniform \w+, rib [\w/]+, boss [\w/]+, inside-radius \w+, sink \w+, size pass, draft pass, undercut pass/, report);
+      assert.match(report, /query\.manufacturability\s*injection: pull pass, finish pass, wall pass, wall-material \w+, wall-uniform \w+, rib [\w/]+, boss [\w/]+, inside-radius \w+, sink \w+, size pass, draft pass, undercut pass/, report);
       await snap('im2-cone');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
@@ -4987,9 +4988,9 @@ try {
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [
-        { tool: 'run_command', args: { command: 'box', values: { w: 40, d: 30, h: 20, x: 0, y: 0, z: 0 } } },
-        { tool: 'run_command', args: { command: 'hole', values: { d: 6, x: 20, y: 10 }, faces: [{ normal: [0, -1, 0], pick: 'max' }] } },
-        { tool: 'check_printability', args: { direction: [0, 0, 1], finish: 'smooth' } }];
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 40, d: 30, h: 20, x: 0, y: 0, z: 0 } } },
+        { tool: 'features', args: { action: 'command', command: 'hole', values: { d: 6, x: 20, y: 10 }, faces: [{ normal: [0, -1, 0], pick: 'max' }] } },
+        { tool: 'query', args: { action: 'manufacturability', direction: [0, 0, 1], finish: 'smooth' } }];
       // (The process is the document's: injection, set in the Library panel first.)
       await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'injection'); await page.click('[aria-label="Close library"]');
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
@@ -5012,11 +5013,11 @@ try {
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [
-        { tool: 'run_command', args: { command: 'box', values: { w: 60, d: 40, h: 25, x: 0, y: 0, z: 0 } } },
-        { tool: 'run_command', args: { command: 'shell', values: { t: 2 }, faces: ['n1.top'] } },
-        { tool: 'run_command', args: { command: 'box', values: { w: 2, d: 36, h: 15, x: 30, y: 2, z: 2 } } },
-        { tool: 'run_command', args: { command: 'union', values: {}, bodies: ['b2', 'b4'] } },
-        { tool: 'check_printability', args: { direction: [0, 0, 1], finish: 'smooth' } }];
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 60, d: 40, h: 25, x: 0, y: 0, z: 0 } } },
+        { tool: 'features', args: { action: 'command', command: 'shell', values: { t: 2 }, faces: ['n1.top'] } },
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 2, d: 36, h: 15, x: 30, y: 2, z: 2 } } },
+        { tool: 'features', args: { action: 'command', command: 'union', values: {}, bodies: ['b2', 'b4'] } },
+        { tool: 'query', args: { action: 'manufacturability', direction: [0, 0, 1], finish: 'smooth' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), report = lines[lines.length - 1];
@@ -5037,9 +5038,9 @@ try {
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [
-        { tool: 'add_features', args: { features: [{ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { kind: 'extrude', sketch: 0, height: 40 }] } },
-        { tool: 'check_printability', args: { direction: [0, 0, 1], finish: 'smooth' } },
-        { tool: 'check_printability', args: { direction: [0, 0, 1], finish: 'smooth', sides: { 'n1.side0': '+' } } }];
+        { tool: 'features', args: { action: 'add', features: [{ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { kind: 'extrude', sketch: 0, height: 40 }] } },
+        { tool: 'query', args: { action: 'manufacturability', direction: [0, 0, 1], finish: 'smooth' } },
+        { tool: 'query', args: { action: 'manufacturability', direction: [0, 0, 1], finish: 'smooth', sides: { 'n1.side0': '+' } } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), split = lines[lines.length - 2], whole = lines[lines.length - 1];
@@ -5082,9 +5083,9 @@ try {
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [
-        { tool: 'run_command', args: { command: 'box', values: { w: 100, d: 60, h: 20, x: 0, y: 0, z: 0 } } },
-        { tool: 'set_material', args: { material: 'al6061' } },
-        { tool: 'check_printability', args: {} }];
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 100, d: 60, h: 20, x: 0, y: 0, z: 0 } } },
+        { tool: 'features', args: { action: 'material', material: 'al6061' } },
+        { tool: 'query', args: { action: 'manufacturability' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), report = lines[lines.length - 1];
@@ -5105,11 +5106,11 @@ try {
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [
-        { tool: 'run_command', args: { command: 'box', values: { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 } } },
-        { tool: 'run_command', args: { command: 'hole', values: { type: 'counterbore', d: 6.6, cd: 11, ch: 6, x: 15, y: 20 }, faces: ['n1.top'] } },
-        { tool: 'run_command', args: { command: 'hole', values: { type: 'tapped', thread: 'M6', tend: 'through', x: 45, y: 20 }, faces: ['n1.top'] } },
-        { tool: 'set_material', args: { material: 'al6061' } },
-        { tool: 'check_printability', args: {} }];
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 } } },
+        { tool: 'features', args: { action: 'command', command: 'hole', values: { type: 'counterbore', d: 6.6, cd: 11, ch: 6, x: 15, y: 20 }, faces: ['n1.top'] } },
+        { tool: 'features', args: { action: 'command', command: 'hole', values: { type: 'tapped', thread: 'M6', tend: 'through', x: 45, y: 20 }, faces: ['n1.top'] } },
+        { tool: 'features', args: { action: 'material', material: 'al6061' } },
+        { tool: 'query', args: { action: 'manufacturability' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), report = lines[lines.length - 1];
@@ -5132,13 +5133,13 @@ try {
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [
-        { tool: 'run_command', args: { command: 'box', values: { w: 120, d: 80, h: 12, x: 0, y: 0, z: 0 } } },
-        { tool: 'run_command', args: { command: 'box', values: { w: 50, d: 30, h: 20, x: 35, y: 25, z: 4 } } },
-        { tool: 'run_command', args: { command: 'difference', values: {}, bodies: ['b1', 'b3'] } },
-        { tool: 'set_material', args: { material: 'al6061' } },
-        { tool: 'check_printability', args: {} },
-        { tool: 'run_command', args: { command: 'fillet', values: { radius: 5 }, edges: [0, 1, 2, 3].map(k => ({ between: [`n3.side${k}`, `n3.side${(k + 1) % 4}`] })) } },
-        { tool: 'check_printability', args: {} }];
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 120, d: 80, h: 12, x: 0, y: 0, z: 0 } } },
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 50, d: 30, h: 20, x: 35, y: 25, z: 4 } } },
+        { tool: 'features', args: { action: 'command', command: 'difference', values: {}, bodies: ['b1', 'b3'] } },
+        { tool: 'features', args: { action: 'material', material: 'al6061' } },
+        { tool: 'query', args: { action: 'manufacturability' } },
+        { tool: 'features', args: { action: 'command', command: 'fillet', values: { radius: 5 }, edges: [0, 1, 2, 3].map(k => ({ between: [`n3.side${k}`, `n3.side${(k + 1) % 4}`] })) } },
+        { tool: 'query', args: { action: 'manufacturability' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const reports = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /cnc-milling:/.test(x)).slice(-2);
@@ -5166,8 +5167,8 @@ try {
         await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
         return (await page.locator('.chat-tool').allInnerTexts()).filter(x => /cnc-milling:/.test(x)).pop();
       };
-      const slot = (x, w) => [{ tool: 'run_command', args: { command: 'box', values: { w: 40, d: 30, h: 20, x: 0, y: 0, z: 0 } } }, { tool: 'run_command', args: { command: 'box', values: { w, d: 20, h: 6, x, y: 5, z: 7 } } },
-        { tool: 'run_command', args: { command: 'difference', values: {}, bodies: ['b1', 'b3'] } }, { tool: 'set_material', args: { material: 'al6061' } }, { tool: 'check_printability', args: {} }];
+      const slot = (x, w) => [{ tool: 'features', args: { action: 'command', command: 'box', values: { w: 40, d: 30, h: 20, x: 0, y: 0, z: 0 } } }, { tool: 'features', args: { action: 'command', command: 'box', values: { w, d: 20, h: 6, x, y: 5, z: 7 } } },
+        { tool: 'features', args: { action: 'command', command: 'difference', values: {}, bodies: ['b1', 'b3'] } }, { tool: 'features', args: { action: 'material', material: 'al6061' } }, { tool: 'query', args: { action: 'manufacturability' } }];
       let report = await run(slot(30, 15));
       assert.match(report, /access pass, setups pass/, report);
       await page.click('[aria-label="Close chat"]'); await page.click('[aria-label="New part"]'); await idle();
@@ -5195,9 +5196,9 @@ try {
         await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
         const out = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /cnc-milling:/.test(x)).pop(); await page.click('[aria-label="Close chat"]'); return out;
       };
-      let report = await run([{ tool: 'run_command', args: { command: 'box', values: { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 } } },
-        { tool: 'run_command', args: { command: 'hole', values: { type: 'tapped', thread: 'M6', tend: 'blind', depth: 12, x: 45, y: 20 }, faces: ['n1.top'] } },
-        { tool: 'set_material', args: { material: 'al6061' } }, { tool: 'check_printability', args: {} }]);
+      let report = await run([{ tool: 'features', args: { action: 'command', command: 'box', values: { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 } } },
+        { tool: 'features', args: { action: 'command', command: 'hole', values: { type: 'tapped', thread: 'M6', tend: 'blind', depth: 12, x: 45, y: 20 }, faces: ['n1.top'] } },
+        { tool: 'features', args: { action: 'material', material: 'al6061' } }, { tool: 'query', args: { action: 'manufacturability' } }]);
       assert.match(report, /drawing fail/, report);
       try {
         await page.click('.mode button:text-is("Drawing")');
@@ -5206,7 +5207,7 @@ try {
         await page.waitForFunction(() => window.__studioDrawing().dimensions.some(d => /M6×1/.test(d.text)), null, { timeout: 5000 });
         await snap('cnc5-drawing');
       } finally { await page.click('.mode button:text-is("Model")'); }
-      report = await run([{ tool: 'check_printability', args: {} }]);
+      report = await run([{ tool: 'query', args: { action: 'manufacturability' } }]);
       assert.match(report, /drawing warn/, report);
     } finally { chat.kill(); }
   });
@@ -5222,8 +5223,8 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [
-        { tool: 'run_command', args: { command: 'cylinder', values: { r: 10, h: 30, x: 0, y: 0, z: 0 } } }, { tool: 'set_material', args: { material: 'al6061' } }, { tool: 'check_printability', args: {} },
-        { tool: 'run_command', args: { command: 'box', values: { w: 10, d: 30, h: 40, x: 8, y: -15, z: -5 } } }, { tool: 'run_command', args: { command: 'difference', values: {}, bodies: ['b1', 'b3'] } }, { tool: 'check_printability', args: {} }];
+        { tool: 'features', args: { action: 'command', command: 'cylinder', values: { r: 10, h: 30, x: 0, y: 0, z: 0 } } }, { tool: 'features', args: { action: 'material', material: 'al6061' } }, { tool: 'query', args: { action: 'manufacturability' } },
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 10, d: 30, h: 40, x: 8, y: -15, z: -5 } } }, { tool: 'features', args: { action: 'command', command: 'difference', values: {}, bodies: ['b1', 'b3'] } }, { tool: 'query', args: { action: 'manufacturability' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const reports = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /cnc-turning:/.test(x)).slice(-2);
@@ -5245,11 +5246,11 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [
-        { tool: 'run_command', args: { command: 'box', values: { w: 120, d: 80, h: 20, x: 0, y: 0, z: 0 } } },
-        { tool: 'run_command', args: { command: 'box', values: { w: 30, d: 20, h: 20, x: 10, y: 10, z: 12 } } },
-        { tool: 'run_command', args: { command: 'difference', values: {}, bodies: ['b1', 'b3'] } },
-        { tool: 'run_command', args: { command: 'hole', values: { d: 6.6, x: 90, y: 20 }, faces: ['n1.top'] } },
-        { tool: 'set_material', args: { material: 'al6061' } }, { tool: 'check_printability', args: {} }];
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 120, d: 80, h: 20, x: 0, y: 0, z: 0 } } },
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 30, d: 20, h: 20, x: 10, y: 10, z: 12 } } },
+        { tool: 'features', args: { action: 'command', command: 'difference', values: {}, bodies: ['b1', 'b3'] } },
+        { tool: 'features', args: { action: 'command', command: 'hole', values: { d: 6.6, x: 90, y: 20 }, faces: ['n1.top'] } },
+        { tool: 'features', args: { action: 'material', material: 'al6061' } }, { tool: 'query', args: { action: 'manufacturability' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const report = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /cnc-milling:/.test(x)).pop();
@@ -5269,9 +5270,9 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [
-        { tool: 'run_command', args: { command: 'box', values: { w: 120, d: 80, h: 20, x: 0, y: 0, z: 0 } } }, { tool: 'set_material', args: { material: 'al6061' } },
-        { tool: 'set_stock', args: { rows: [{ id: 'P20', kind: 'block', size: [150, 100, 20], source: 'the shop' }, { id: 'B22', kind: 'block', size: [122, 82, 22], source: 'the shop' }] } },
-        { tool: 'check_printability', args: {} }];
+        { tool: 'features', args: { action: 'command', command: 'box', values: { w: 120, d: 80, h: 20, x: 0, y: 0, z: 0 } } }, { tool: 'features', args: { action: 'material', material: 'al6061' } },
+        { tool: 'features', args: { action: 'stock', rows: [{ id: 'P20', kind: 'block', size: [150, 100, 20], source: 'the shop' }, { id: 'B22', kind: 'block', size: [122, 82, 22], source: 'the shop' }] } },
+        { tool: 'query', args: { action: 'manufacturability' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const report = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /cnc-milling:/.test(x)).pop();

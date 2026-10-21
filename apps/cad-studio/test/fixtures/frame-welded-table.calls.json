@@ -2,8 +2,9 @@
  "about": "FR4b acceptance (D128): a welded table frame \u2014 a 1000 \u00d7 600 top of sharp 40 \u00d7 40 \u00d7 3 tubes mitred at its corners, four legs under it (730 to the top's underside), a lower rail 150 up between the legs butted on their faces (T-joints); its cut list. The section is the brief's (a test value).",
  "calls": [
   {
-   "tool": "add_features",
+   "tool": "features",
    "args": {
+    "action": "add",
     "features": [
      {
       "kind": "frame",
@@ -155,8 +156,9 @@
    }
   },
   {
-   "tool": "cut_list",
+   "tool": "query",
    "args": {
+    "action": "cutlist",
     "csv": true
    }
   }

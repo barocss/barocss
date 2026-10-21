@@ -6,6 +6,7 @@ import { checkBrep, subdBrep, validateCage } from '@barocss/cad';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { v1Call, v2Call } from '@barocss/cad-model/chat/groups';
 import { commitDrag, runOp, startSession, type CageSession } from '@barocss/cad-model/subd/cageEdit';
 
 // D84 (R8.3): the owner's acceptance part, a SubD pipe clamp (handover/notes/acceptance/subd-pipe-clamp.png), built
@@ -28,7 +29,8 @@ async function buildClamp(): Promise<{ calls: { tool: string; args: Record<strin
   const call = async (tool: string, args: Record<string, unknown>) => {
     const r = await dispatchTool(state, tool, args, evaluate);
     assert.ok(!r.isError, `${tool} ${JSON.stringify(args).slice(0, 200)}: ${r.content}`);
-    calls.push({ tool, args }); state = r.state;
+    // (Kept as the agent sends them: v2 calls, O105.)
+    const [v2, v2args] = v2Call(tool, args)!; calls.push({ tool: v2, args: v2args }); state = r.state;
     return JSON.parse(r.content) as Record<string, any>;
   };
   const ask = async (args: Record<string, unknown>) => {
@@ -143,14 +145,15 @@ test('D84 the pipe clamp built through the agent\'s cage tools: a tube with hold
   }
   assert.deepEqual(JSON.parse(readFileSync(CALLS, 'utf8')).calls, JSON.parse(JSON.stringify(calls)), 'the calls as kept (UPDATE_CLAMP=1 writes them)');
   assert.deepEqual(kept.input.partDocument.features[0].cage, JSON.parse(JSON.stringify(node.cage)), 'the cage as the conformance case keeps it');
-  const counts = calls.reduce<Record<string, number>>((m, c) => ({ ...m, [c.tool]: (m[c.tool] ?? 0) + 1 }), {});
-  assert.deepEqual(counts, { run_command: 1, subd_insert_loop: 12, subd_extrude: 6, subd_delete: 1, subd_move: 21, subd_bridge: 1 });
+  const counts = calls.reduce<Record<string, number>>((m, c) => { const k = `${c.tool}.${String(c.args.action)}`; return { ...m, [k]: (m[k] ?? 0) + 1 }; }, {});
+  assert.deepEqual(counts, { 'features.command': 1, 'subd.insert_loop': 12, 'subd.extrude': 6, 'subd.delete': 1, 'subd.move': 21, 'subd.bridge': 1 });
 });
 
 test('D84 the same clamp by the editor\'s own steps (what the cage editor runs for a person\'s picks and drags): the agent\'s cage, step for step', async () => {
   const { calls, state } = await clamp();
   let s: CageSession | null = null;
-  for (const { tool, args } of calls) {
+  for (const call of calls) {
+    const { name: tool, args } = v1Call(call.tool, call.args) as { name: string; args: Record<string, unknown> };
     if (tool === 'run_command') { const r = await dispatchTool({ doc: emptyDoc(), bodies: [] }, tool, args, evaluate); s = startSession(0, (r.state.doc.nodes[0] as Subd).cage); continue; }
     const sel = { vertices: (args.vertices as number[]) ?? [], faces: (args.faces as number[]) ?? [], edges: [...(args.edge ? [args.edge as [number, number]] : []), ...((args.edges as [number, number][]) ?? [])] };
     const at: CageSession = { ...s!, sel };

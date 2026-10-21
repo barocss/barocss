@@ -4433,3 +4433,90 @@ The coordinator set the next outer-lane work in roadmap order. IM7 needs the ker
   - `hollow.test.ts`'s "refused at once" (under 1000 ms) failed once with the full suite running beside it, then passed alone and in the next full suite;
   - flow step 109, R12b.6's throated worm wheel (the kernel lane's), timed out once, then passed with the worm and CNC steps rerun.
 - **Checks: T2**, since `chat/tools.ts`, the frozen contracts and `engine/doc.ts` changed (results in the checkpoint).
+
+## O103 — CNC8: an optional 2.5D CAM preview, NOT FOR PRODUCTION; the CNC track's roadmap items done (2026-10-21)
+
+The coordinator's limit: the contract has 355 characters left, so **no new tool**. The preview is a model function and a CLI command, as CNC7b's export is. README §4 forbids production G-code, and none is written.
+
+- **`machining/cam.ts`** (`camPreview`):
+  - **pockets** (CNC7a's, closed only): the floor's outline (its triangles' boundary edges walked into loops, the largest kept, collinear points dropped), offset inward by the tool's radius, then by the stepover, until it closes up. Each loop is the tool's centre. The **levels** run from the top down by the step-down, the last at the floor. The loops and the length (their perimeters × the levels) are in the floor's plane;
+  - **`inset`**: each edge moved in, the corners where the moved lines cross. An edge the offset turns against its own direction (a rounded corner's short chord, once the offset passes its radius) is dropped and the corners found again, so the corner turns sharp, as a contour offset does. It gives null once the outline closes up;
+  - **holes**: a drill point at each open end the hole is reached from: entry, axis into the part, depth, diameter;
+  - **slots and steps** are listed in `skipped`, not previewed (open on a side);
+  - **the tool** is given (`--tool`), else Ø6, an estimate. The stepover (40 %) and step-down (50 %) of its diameter are estimates, said;
+  - **not there**: G-code, feeds or speeds, a collision check, islands cleared around, a stock model.
+- **Marked everywhere it shows**: the preview's first key is its banner, "NOT FOR PRODUCTION — a 2.5D preview of outlines to look at, not a toolpath for a machine: no G-code, no feeds or speeds, no collision check". The SVG's first line is that banner as a comment, and it is drawn on the sheet in red.
+- **`cad-cli cam-preview part.bcad -o folder [--tool mm]`** writes `cam-preview.json` and one `cam-preview-<setup>.svg` per setup (pZ, mZ …): the loops as polygons, the drill points as circles.
+- **Tests** (`test/cnc-cam.test.ts`, 5), against closed forms:
+  - `inset`: 10 × 4 by 1 gives 8 × 2, and by 2 it closes up; a rounded square past its corner radius turns sharp (14 × 14);
+  - a 50 × 30 pocket 8 deep with Ø6 (an estimate):
+    - loops (44 − 4.8k) × (24 − 4.8k) for k = 0…4, at stepover 2.4;
+    - levels 3, 6, 8;
+    - length 3 · Σ 2(68 − 9.6k) = 1464;
+    - the floor's plane at z 12, +Z;
+    - the mutant, Ø32, gives no loop, "does not fit (30 wide)";
+  - filleted r 5: the same loop boxes; the first loop's length 2(44 + 24) − 16 + 4π within the chord; the third sharp-cornered (2(34.4 + 14.4) exactly);
+  - drill points: Ø6.6 through 20 from +Z at z 20 and from −Z at z 0, both 20 deep; Ø5 blind from +Z, 10. A slot is skipped. A given Ø4 is said given, and the SVG's first line carries the banner;
+  - `cad-cli cam-preview`, spawned: the two files, the JSON's first key the banner, the SVG's first line the banner, no G-code token (G0–G3, M3/M6) in any file.
+- **The CNC track's roadmap items** (CNC1–CNC8) are all done: O84–O89, O101–O103, with S0s O83 and O100. Still open: the title block's material and finish cells (R14), 5-axis and undercut cutters, and a quote package for machining.
+- **Checks: T1**. A model module, the CLI and a test; no UI and no T2 file, so no flow step is affected.
+
+## O104 — IM8 S0: casting — modulus, hot spots, allowances, die-casting draft; the plan (2026-10-21)
+
+The coordinator's order after CNC8: IM8 (casting presets, allowances, section and solidification checks), then the parts of IM7 that do not need the kernel's face split. Evidence is in `test/im8-s0.test.ts` (4 probes), each against a closed form. Before it, the integration branch was merged (K3, K4: the kernel's one point–triangle distance and nearest query).
+
+- **P1, the casting modulus** M = V/A, from exact volume and area:
+  - a 100 × 100 × 10 plate is 100000 / 24000 = 4.1667; a 20 mm cube is 20 / 6 = 3.3333;
+  - **Chvorinov's rule** (solidification time ∝ M²; the physics, derived and not copied) gives the ratio (M₁/M₂)² = 1.5625: the plate freezes last.
+- **P2, the hot spot of an L junction** (walls 4, a sharp inside corner):
+  - **a finding**: IM4's local thickness, an inscribed sphere at each face's inward ray, reads 4 everywhere. The junction's ball lies on no face's ray, so IM4 misses the hot spot;
+  - **the largest inscribed ball**, found along the corner's bisector with the kernel's exact nearest distance (`nearestDistance2`, K2–K4), is 2r = 2t(2 − √2) = 4.686 to 2e-3;
+  - so IM8's section check searches the distance field for its local maxima, the hot spots. It does not use the per-face sphere.
+- **P3, a pattern's shrink allowance**, from NPTEL's foundry lecture (`archive.nptel.ac.in/…/metalcasting/lecture3.htm`, read 2026-10-21; inches per foot by metal and size band):
+  - aluminium up to 4 ft, 0.155 in/ft: 100 mm cast is 101.2917 on the pattern;
+  - cast steel up to 2 ft, 0.251 in/ft: 102.0917.
+- **P4, die-casting draft per alloy** (Dynacast's die-cast design guide, read 2026-10-21: "0.5º is achievable for zinc", "1º-2º is achievable for aluminum"), on IM2's exact draft field: a block drafted 0.75° meets zinc's 0.5° and not aluminium's 1°.
+- **Sources found and not used for values**:
+  - Dynacast's FAQ (tolerances ±0.001–0.002 in for zinc, ±0.002–0.004 in for aluminium, walls "typically 2mm for aluminum") is to read page by page in IM8a;
+  - a handbook table seen only through a third-party upload is not used;
+  - percentage shrink figures disagree between sources, so the inch-per-foot table is the one used.
+- **The plan**, each stage with closed-form oracles, mutants and a flow step, in the one manufacturability report:
+  - **IM8a, casting presets**: process profiles `die-casting` (zinc, aluminium, magnesium by family) and `sand-casting`. Each value sourced page by page (W-WEB) or derived (W-DERIVED) or an estimate: draft, least wall, tolerance. The material's alloy family chooses.
+  - **IM8b, allowances**: shrink by alloy and size band (the lecture's table, W-WEB), the machining allowance (the user's or an estimate, as CNC7b's), draft by process. A pattern's dimensions are scaled, exported as a scaled STEP and the factors in JSON.
+  - **IM8c, sections and solidification**: the distance field's local maxima (the largest inscribed balls, the kernel's nearest query) as hot spots, each with its modulus. Chvorinov's ordering: a hot spot with no path of rising modulus to a feeder (the gate, set by the user) is an isolated hot spot, a shrink-porosity risk, warned with where it is. Section changes are steeper than a ratio, sourced or an estimate.
+  - **Then IM7's parts without the face split**: core and cavity halves from IM5's parting where faces do not straddle, side-core directions from IM3's undercut side actions, shut-off candidates. The split surfaces wait for the kernel.
+
+## O105 — v2 the only tool surface; v1 removed; one per-turn guard (2026-10-21)
+
+Owner, 2026-10-21, relayed by the coordinator. First: "앱 채팅과 MCP 기본값을 v2로 바꾸고 v1은 동결해. 새 기능은 v2 동작으로 넣고, 상한은 표면별 매 차례 전체 양(목록+프롬프트)으로 바꿔." Then, replacing the freeze: "우리는 릴리즈 한게 아니라서 toolset v1 은 없어도 돼" (we haven't released, so toolset v1 isn't needed).
+
+- **One surface.** The 13 v2 tools (`barocss-cad-tools-v2`, frozen in `tools-v2.json`) are what the app chat, MCP (`cad-mcp`) and the chat server's CLI see.
+  - Removed: `CAD_TOOLSET`, `cad-mcp --toolset` (now refused as an unknown option), `toolset()`/`toolsetOf()`, `TOOLS_V1` as a list, `tools-v1.json`, `TOOL_CONTRACT_VERSION`.
+  - `toolset.ts` exports one `TOOLSET {version, tools, prompt}`.
+  - MCP `tools/call` takes only the listed names. A handler's own name (`run_command`) is a JSON-RPC error −32602 that names the tools; a freeze would have had to keep it callable.
+- **`json` removed.** Only the A/B's json arm used it. The arm is gone, and the harness keeps the ten briefs on the v2 tools (`hybrid`) through the real chat server; live runs still need `CAD_AB_LIVE=1`.
+  - **A5.5's v1/v2 live A/B is dropped** by this decision. Its dry-run report stays as history (`notes/ab-dry-run-2026-10-20/`).
+- **The handlers are kept** (`chat/tools.ts`, its 83 tools and their annotations and output schemas in `contract.ts`). Each v2 action dispatches to one, so a v2 call is a handler call.
+  - In-process tests (`dispatchTool`, `runTool`) and saved proposals' ops may still name handlers. Ops naming v2 tools are stored as handler calls, as before, so saved documents replay.
+  - Conformance `a2/` and `a4/` are in-process handler cases and are unchanged.
+- **Moved to v2 names**:
+  - the nine `test/fixtures/*.calls.json`, nested proposal ops included: 84 scripted calls and 6 mocked chat events in the flow;
+  - the scripted agent's MCP calls in `chat.test.ts` and `cad-external.test.ts`;
+  - the MCP tests in `tool-contract.test.ts` and `toolset.test.ts`;
+  - `subdClamp.test.ts`, which now records the agent's calls as v2 calls (`v2Call`, a new export of `groups.ts`, which `viaV2` uses) and maps them back with `v1Call` for the editor's own steps.
+  - The scripted agent now reports a JSON-RPC error as a failed call, as the CLI does.
+  - The transcript labels a call `features.command` (tool.action).
+- **New capability only as v2**: a tool is a group action, with detail behind `describe`. A command or feature kind goes into the live registries; the features tool names them in its text (no enum) and `describe` gives the detail. If headroom runs low, the lists move behind `describe` too. This is in README §0 for both lanes.
+- **One guard**: per turn, tools/list JSON plus the system prompt, v2 ≤ 25,000 characters (`toolset.test.ts`).
+  - It replaces `listed − plain < 15000` (tool-contract) and `tools/list ≤ 15000` (toolset).
+  - At 7691e0c90 (the coordinator's measurement) v2 was 13,164 + 8,242 = 21,406, against v1's 118,495 + 7,922 = 126,417.
+- **Tests removed or renamed**: listed in the O105 checkpoint, each with its reason.
+
+## O105b — handler texts read as v2 tool.actions at the MCP boundary (2026-10-21)
+
+- The MCP server passes every tool result through `v2Result` (groups.ts). Prose goes through `v2Text`: an underscored handler name becomes its action (`get_part_summary` → `query.summary`), and "(propose)" and "with propose," become `proposals.propose`. A stored `{tool, args}` call in a result reads as its v2 call. Keys stay as they are; handlers keep their names internally. toolset.ts now uses `v2Text` for the prompt as well, and the per-turn size is unchanged at 21,406.
+- Tests (toolset.test.ts):
+  - every string literal in the model package that names a handler (≥ 60) reads, through `v2Text`, with no handler name left and every action it names real;
+  - through MCP, three refusals (no requirements, no snapshot, L2's proposal) name v2 tools;
+  - `v2Result` converts a stored op.
+- Verified so far: app tsc 0, toolset.test 11/11. **Not yet run:** the full studio suite name diff and FLOW_ONLY on the chat steps.

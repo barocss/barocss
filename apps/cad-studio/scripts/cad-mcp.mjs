@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // The external MCP server (A5.4): the studio's CAD tools over stdio on one local .bcad file (server/cadDoc.ts).
-//   node apps/cad-studio/scripts/cad-mcp.mjs --doc part.bcad [--toolset v1|v2] [--autonomy 1-4] [--libraries dir]
+//   node apps/cad-studio/scripts/cad-mcp.mjs --doc part.bcad [--autonomy 1-4] [--libraries dir]
 // In an MCP client's config: {"command": "node", "args": ["<repo>/apps/cad-studio/scripts/cad-mcp.mjs", "--doc", "<abs>/part.bcad"]}.
 // (Bundled from the TypeScript sources at start, as the chat server is; stdout carries only the protocol.)
 import { build } from 'esbuild';

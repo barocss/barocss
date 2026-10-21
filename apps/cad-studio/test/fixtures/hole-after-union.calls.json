@@ -2,8 +2,9 @@
  "about": "Fixed in D148 (was a known bug, O80): a hole on a cylinder's top face after the cylinder was united into a shelled box is refused — \"the hole at (15, 20) along z misses the target\" — though the face n4.top is on the united body. Drilled before the union, the same hole cuts (test/mould-walls.test.ts drills first). Expected: the hole cuts the boss, Ø2.5, 10 deep, coaxial with n4.side0.",
  "calls": [
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "box",
     "values": {
      "w": 60,
@@ -16,8 +17,9 @@
    }
   },
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "shell",
     "values": {
      "t": 2
@@ -28,8 +30,9 @@
    }
   },
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "cylinder",
     "values": {
      "r": 3,
@@ -41,8 +44,9 @@
    }
   },
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "union",
     "values": {},
     "bodies": [
@@ -52,8 +56,9 @@
    }
   },
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "hole",
     "values": {
      "type": "blind",

@@ -2,23 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import { starterDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { boxCage } from '@barocss/cad-model/app/primitives';
-import { dispatchTool, SYSTEM_PROMPT, TOOLS, type ChatState } from '@barocss/cad-model/chat/tools';
-import { TOOL_CONTRACT_VERSION, annotationsOf, breakingChanges, contractOf, outputSchemaOf, validate, type ContractEntry, type JsonSchema } from '@barocss/cad-model/chat/contract';
+import { dispatchTool, TOOLS, type ChatState } from '@barocss/cad-model/chat/tools';
+import { TOOL_CONTRACT_V2, annotationsOf, breakingChanges, outputSchemaOf, validate, type ContractEntry, type JsonSchema } from '@barocss/cad-model/chat/contract';
+import { GROUPS } from '@barocss/cad-model/chat/groups';
+import { TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { serveMcp, TOOLS_LISTED } from '../server/cadMcp';
 
-// A5.1 (O9): the tool layer's contract. Every tool classified; the names, input and output schemas and annotations
-// frozen in src/chat/tools-v1.json (UPDATE_TOOL_CONTRACT=1 rewrites it for a compatible change; a breaking one needs a
-// new version); every read tool's result matching its output schema; the MCP server listing and returning them.
+// A5.1 (O9): the tool layer's contract. Every handler classified; the breaking-change rules (the v2 list is frozen by
+// them in tools-v2.json, toolset.test.ts); every read handler's result matching its output schema; the MCP server
+// listing the v2 tools and returning them. (O105: the handlers' own list, v1, and its tools-v1.json are gone.)
 
-const FROZEN = resolve(process.cwd(), 'src/chat/tools-v1.json');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 
-test('every tool is classified, nothing reaches outside the document, read tools change nothing', () => {
+test('every handler is classified, nothing reaches outside the document, read handlers change nothing', () => {
   for (const t of TOOLS) {
     const a = annotationsOf(t.name);
     assert.equal(a.openWorldHint, false, t.name);
@@ -27,21 +28,6 @@ test('every tool is classified, nothing reaches outside the document, read tools
   assert.throws(() => annotationsOf('a_new_tool'), /does not classify/);
   // The read tools are exactly those the dispatcher never reports as changing the document (spot-checked by running them below).
   assert.deepEqual(TOOLS.filter(t => annotationsOf(t.name).readOnlyHint && !outputSchemaOf(t.name)).map(t => t.name), ['get_image_layers'], 'a read tool without a fixed result shape');
-});
-
-test('the contract is frozen: the current tools match tools-v1.json, and any difference that would break a client needs a new version', () => {
-  const now = contractOf(TOOLS);
-  if (process.env.UPDATE_TOOL_CONTRACT) {
-    const before: ContractEntry[] = JSON.parse(readFileSync(FROZEN, 'utf8')).tools;
-    const broken = breakingChanges(before, now);
-    assert.deepEqual(broken, [], `breaking changes need ${TOOL_CONTRACT_VERSION.replace(/v\d+$/, 'v2')}, not a rewrite`);
-    writeFileSync(FROZEN, JSON.stringify({ contract: TOOL_CONTRACT_VERSION, tools: now }, null, 1) + '\n');
-  }
-  const frozen = JSON.parse(readFileSync(FROZEN, 'utf8')) as { contract: string; tools: ContractEntry[] };
-  assert.equal(frozen.contract, TOOL_CONTRACT_VERSION);
-  const broken = breakingChanges(frozen.tools, now);
-  assert.deepEqual(broken, [], 'a breaking change to the tools: it needs a new contract version');
-  assert.deepEqual(now, frozen.tools, 'a compatible change to the tools: record it (UPDATE_TOOL_CONTRACT=1)');
 });
 
 test('the breaking-change rules: removals and narrowing break, additions do not', () => {
@@ -90,32 +76,35 @@ test('every read tool’s result matches its output schema and changes nothing',
   assert.deepEqual(TOOLS.filter(t => outputSchemaOf(t.name) && !seen.has(t.name)).map(t => t.name), []);
 });
 
-test('the MCP server: its contract version, tools with titles, annotations and output schemas, structured results', async () => {
+test('the MCP server: its contract version, the v2 tools with titles and annotations, structured results; a handler\'s own name refused', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'cad-contract-')), statePath = join(dir, 'state.json');
   writeFileSync(statePath, JSON.stringify({ doc: starterDoc(), changed: false }));
   const input = new PassThrough(), output = new PassThrough(), served = serveMcp(statePath, input, output);
-  type Rpc = { id?: number; result?: Record<string, any>; error?: { code: number } };
+  type Rpc = { id?: number; result?: Record<string, any>; error?: { code: number; message?: string } };
   const waiting = new Map<number | null, (m: Rpc) => void>(); let buf = '', id = 0;
   output.on('data', d => { buf += d; let nl; while ((nl = buf.indexOf('\n')) >= 0) { const m = JSON.parse(buf.slice(0, nl)) as Rpc; buf = buf.slice(nl + 1); waiting.get(m.id ?? null)?.(m); } });
   const request = (method: string, params?: unknown) => new Promise<Rpc>(res => { const n = ++id; waiting.set(n, res); input.write(JSON.stringify({ jsonrpc: '2.0', id: n, method, params }) + '\n'); });
   const init = await request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '0' } });
-  assert.deepEqual([init.result!.protocolVersion, init.result!.serverInfo.version, init.result!.capabilities.tools], ['2025-06-18', TOOL_CONTRACT_VERSION, {}]);
+  assert.deepEqual([init.result!.protocolVersion, init.result!.serverInfo.version, init.result!.capabilities.tools], ['2025-06-18', TOOL_CONTRACT_V2, {}]);
   const list = (await request('tools/list')).result!.tools as { name: string; title: string; annotations: { readOnlyHint: unknown }; inputSchema: { type: string }; outputSchema?: unknown }[];
-  assert.equal(list.length, TOOLS.length);
+  assert.deepEqual(list.map(t => t.name), Object.keys(GROUPS));
   for (const t of list) {
     assert.ok(t.title && t.annotations && typeof t.annotations.readOnlyHint === 'boolean' && t.inputSchema.type === 'object', t.name);
     assert.equal(!!t.outputSchema, !!outputSchemaOf(t.name), t.name);
   }
   // A read tool: its result as text and as structured content, the same, matching its schema.
-  const read = (await request('tools/call', { name: 'mass_properties', arguments: {} })).result!;
+  const read = (await request('tools/call', { name: 'query', arguments: { action: 'mass' } })).result!;
   assert.equal(read.isError, false);
   assert.deepEqual(read.structuredContent, JSON.parse(read.content[0].text));
   assert.deepEqual(validate(outputSchemaOf('mass_properties')!, read.structuredContent), []);
   // A change: no structured content (no output schema); a refused call: isError, none either.
-  const change = (await request('tools/call', { name: 'set_requirements', arguments: { requirements: [{ id: 'R1', source: '64 long', hard: true, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 64, tol: 0.1 } }] } })).result!;
+  const change = (await request('tools/call', { name: 'requirements', arguments: { action: 'set', requirements: [{ id: 'R1', source: '64 long', hard: true, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 64, tol: 0.1 } }] } })).result!;
   assert.equal(change.isError, false, change.content[0].text); assert.equal(change.structuredContent, undefined);
-  const refused = (await request('tools/call', { name: 'section', arguments: { axis: 'q', at: 1 } })).result!;
+  const refused = (await request('tools/call', { name: 'query', arguments: { action: 'section', axis: 'q', at: 1 } })).result!;
   assert.equal(refused.isError, true); assert.equal(refused.structuredContent, undefined);
+  // (A handler's own name is not a tool: a JSON-RPC error naming the tools, nothing run.)
+  const handler = await request('tools/call', { name: 'mass_properties', arguments: {} });
+  assert.equal(handler.error!.code, -32602); assert.match(String(handler.error!.message), /Unknown tool: mass_properties\. The tools are model, features, query/);
   // JSON-RPC errors: an unknown method, a line that is not JSON.
   assert.equal((await request('resources/list')).error!.code, -32601);
   const bad = new Promise<Rpc>(res => waiting.set(null, res)); input.write('not json\n');
@@ -123,11 +112,5 @@ test('the MCP server: its contract version, tools with titles, annotations and o
   input.end(); await served;
   // The change was saved to the state file.
   assert.ok(JSON.parse(readFileSync(statePath, 'utf8')).changed);
-  assert.deepEqual(TOOLS_LISTED.map(t => t.name), TOOLS.map(t => t.name));
-});
-
-test('what a model reads every turn (A5.3 measures against it): the tool list and the system prompt', () => {
-  const listed = JSON.stringify(TOOLS_LISTED).length, plain = JSON.stringify(TOOLS.map(t => ({ name: t.name, description: t.description, inputSchema: t.input_schema }))).length;
-  console.log(`tools ${TOOLS.length}; tools/list ${listed} characters (${plain} without annotations and output schemas); system prompt ${SYSTEM_PROMPT.length} characters`);
-  assert.ok(listed > plain && listed - plain < 15000, 'the contract adds at most 15k characters');
+  assert.deepEqual(TOOLS_LISTED.map(t => t.name), TOOLSET.tools.map(t => t.name));
 });

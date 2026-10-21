@@ -2,8 +2,9 @@
  "about": "RB9 rung 5 (R12.5, D121): a sheet-metal L-bracket \u2014 legs 40 and 30 to the outside of the bend, 30 wide, 1.5 mm sheet, inner radius 1.5, K 0.44 (the shop's, given in the brief), a \u00d85.5 hole through each leg.",
  "calls": [
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "sheet-profile",
     "values": {
      "shape": "l",
@@ -21,8 +22,9 @@
    }
   },
   {
-   "tool": "add_features",
+   "tool": "features",
    "args": {
+    "action": "add",
     "features": [
      {
       "kind": "sketch",

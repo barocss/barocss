@@ -47,21 +47,19 @@ export function docStore(path: string): McpStore {
   };
 }
 
-const USAGE = `cad-mcp --doc part.bcad [--toolset v1|v2] [--autonomy 1|2|3|4] [--libraries dir]
-  Serves the studio's CAD tools over stdio (MCP) on one local .bcad file, saving each change to it.
-  --toolset    the tool list: v1 (58 tools, the default) or v2 (13 consolidated tools)
+const USAGE = `cad-mcp --doc part.bcad [--autonomy 1|2|3|4] [--libraries dir]
+  Serves the studio's CAD tools (13, barocss-cad-tools-v2) over stdio (MCP) on one local .bcad file, saving each change to it.
   --autonomy   as in the studio (default 2): 1 proposes everything; 2 builds an empty part and edits values, and
                proposes the rest; 3 and 4 may also accept proposals. Proposals stay in the file for the studio.
   --libraries  a folder of team library files (.json) the library tools can use`;
 
 /** Parses `cad-mcp`'s arguments: the options, or the usage text and why. */
-export function mcpOptions(argv: readonly string[]): { doc: string; toolset?: 'v1' | 'v2'; autonomy?: string; libraries?: string } | { usage: string; error?: string } {
-  const o: { doc?: string; toolset?: 'v1' | 'v2'; autonomy?: string; libraries?: string } = {};
+export function mcpOptions(argv: readonly string[]): { doc: string; autonomy?: string; libraries?: string } | { usage: string; error?: string } {
+  const o: { doc?: string; autonomy?: string; libraries?: string } = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i], v = argv[i + 1];
     if (a === '--help' || a === '-h') return { usage: USAGE };
     if (a === '--doc' && v) { o.doc = resolve(v); i++; }
-    else if (a === '--toolset' && (v === 'v1' || v === 'v2')) { o.toolset = v; i++; }
     else if (a === '--autonomy' && /^[1-4]$/.test(v ?? '')) { o.autonomy = v; i++; }
     else if (a === '--libraries' && v) { o.libraries = resolve(v); i++; }
     else return { usage: USAGE, error: `cad-mcp: unknown or incomplete option "${a}"` };
@@ -77,8 +75,7 @@ export async function mcpMain(argv: readonly string[], stderr: NodeJS.WritableSt
   if ('usage' in o) { stderr.write(`${o.error ? `${o.error}\n` : ''}${o.usage}\n`); return o.error ? 2 : 0; }
   // (The tool layer reads these from the environment, as under the chat server.)
   if (o.autonomy) process.env.CAD_AUTONOMY = o.autonomy;
-  if (o.toolset) process.env.CAD_TOOLSET = o.toolset;
   registerTeamLibraries(o.libraries);
-  try { await serveMcp(docStore(o.doc), process.stdin, process.stdout, o.toolset); return 0; }
+  try { await serveMcp(docStore(o.doc), process.stdin, process.stdout); return 0; }
   catch (e) { stderr.write(`cad-mcp: ${e instanceof Error ? e.message : String(e)}\n`); return 1; }
 }

@@ -1,5 +1,6 @@
-// The A/B harness (A5.5, O13): each brief, each arm, each run, on a fresh document, through the real chat server
-// (server/chatServer.ts: the CLI spawned with the arm's tools and prompt, the MCP tool server on a state file). The
+// The brief harness (A5.5, O13): each brief, each run, on a fresh document, through the real chat server
+// (server/chatServer.ts: the CLI spawned with the v2 tools and prompt, the MCP tool server on a state file). It was
+// the v1/v2 A/B until O105 dropped v1 and the json arm with it; one arm is left, `hybrid`. The
 // agent is the `claude` CLI (live) or the scripted stand-in (dry run: test/fixtures/scripted-claude.mjs makes the
 // brief's ideal calls through the same path). The part it leaves is checked against the brief's oracle — hard
 // requirements the agent never sees — by the kernel. Measured per run: pass, the oracle's outcomes, tool calls,
@@ -10,11 +11,10 @@ import { join } from 'node:path';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { checkSpec } from '@barocss/cad-model/chat/spec';
-import { toolsetOf, type Toolset } from '@barocss/cad-model/chat/toolset';
+import { TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { createChatServer, stateNote, type TurnUsage } from '../chatServer';
 import type { Arm, Brief, Call } from './briefs';
 
-export const ARM_TOOLSET: Record<Arm, Toolset> = { json: 'json', hybrid: 'v2' };
 /** Characters a token, for the scripted estimate (an estimate: English and JSON run about 3.5–4.5). */
 export const CHARS_PER_TOKEN = 4;
 
@@ -49,8 +49,8 @@ async function turn(url: string, body: object): Promise<{ events: { type: string
 }
 
 /** What a model reads and writes for the calls the scripted agent made (one call a model turn, then the answer). */
-export function estimateTokens(arm: Arm, userText: string, log: { args: number; result: number }[]): Tokens {
-  const set = toolsetOf(ARM_TOOLSET[arm]);
+export function estimateTokens(userText: string, log: { args: number; result: number }[]): Tokens {
+  const set = TOOLSET;
   // (The CLI sends the MCP tools as API tools: their names prefixed, description, input schema.)
   const fixed = set.prompt.length + JSON.stringify(set.tools.map(t => ({ name: `mcp__cad__${t.name}`, description: t.description, input_schema: t.input_schema }))).length + userText.length;
   const TOOL_USE = 60, TOOL_RESULT = 40, ANSWER = 300;
@@ -78,18 +78,18 @@ export async function oracleOf(doc: StudioDoc, brief: Brief, variant: number): P
   return { pass: reqs.filter(q => q.hard).every(q => oracle.find(o => o.id === q.id)?.status === 'pass'), oracle };
 }
 
-/** Runs the A/B: every brief × arm × run, one at a time (the arm is the chat server's tool set for that turn). */
+/** Runs every brief × arm × run, one at a time. */
 export async function runAb(o: AbOptions): Promise<RunResult[]> {
   const handler = createChatServer({ claude: o.claude, ...(o.model ? { model: o.model } : {}), mcpScript: o.mcpScript, workDir: o.workDir, origins: [ORIGIN] });
   const server: Server = createServer((req, res) => { void handler(req, res); });
   await new Promise<void>(res => server.listen(0, '127.0.0.1', res));
   const url = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
-  const saved = { set: process.env.CAD_TOOLSET, log: process.env.CAD_AB_LOG }, out: RunResult[] = [];
+  const saved = { log: process.env.CAD_AB_LOG }, out: RunResult[] = [];
   try {
     for (const brief of o.briefs) for (let run = 0; run < o.runs; run++) for (const arm of o.arms) {
       const variant = run % brief.variants.length, p = brief.variants[variant], prompt = brief.prompt(p);
       const logDir = mkdtempSync(join(o.workDir, 'ab-')), logPath = join(logDir, 'calls.jsonl');
-      process.env.CAD_TOOLSET = ARM_TOOLSET[arm]; process.env.CAD_AB_LOG = logPath;
+      process.env.CAD_AB_LOG = logPath;
       const calls: Call[] | undefined = o.mode === 'scripted' ? brief.scripted[arm](p) : undefined;
       const text = calls ? `${prompt}\n\nscript ${JSON.stringify({ calls })}` : prompt;
       const t0 = Date.now(), { events } = await turn(url, { text, doc: emptyDoc(), autonomy: 2 }), wallMs = Date.now() - t0;
@@ -98,14 +98,13 @@ export async function runAb(o: AbOptions): Promise<RunResult[]> {
       const { pass, oracle } = await oracleOf(doc, brief, variant);
       let log: { args: number; result: number }[] = [];
       try { log = readFileSync(logPath, 'utf8').trim().split('\n').filter(Boolean).map(l => JSON.parse(l)); } catch { /* live: none */ }
-      const tokens = o.mode === 'scripted' ? estimateTokens(arm, `${stateNote(emptyDoc(), 2)}\n\n${prompt}`, log) : fromUsage(done?.usage);
+      const tokens = o.mode === 'scripted' ? estimateTokens(`${stateNote(emptyDoc(), 2)}\n\n${prompt}`, log) : fromUsage(done?.usage);
       const r: RunResult = { brief: brief.id, arm, run, variant, pass, oracle, calls: tools.length, refusals: tools.filter(e => e.isError).length, tools: tools.map(e => String(e.name)), wallMs, end: String(done?.end ?? 'none'), ...(done?.error ? { error: String(done.error) } : {}), tokens };
       out.push(r);
       o.log?.(`${brief.id} ${arm} #${run}: ${pass ? 'pass' : 'FAIL'} — ${r.calls} calls, ${r.refusals} refused, ${tokens.input} in / ${tokens.output} out tokens${tokens.estimated ? ' (est.)' : ''}, ${wallMs} ms`);
       rmSync(logDir, { recursive: true, force: true });
     }
   } finally {
-    if (saved.set === undefined) delete process.env.CAD_TOOLSET; else process.env.CAD_TOOLSET = saved.set;
     if (saved.log === undefined) delete process.env.CAD_AB_LOG; else process.env.CAD_AB_LOG = saved.log;
     await new Promise<void>(res => server.close(() => res()));
   }
@@ -140,8 +139,8 @@ export function reportAb(results: readonly RunResult[], mode: 'scripted' | 'live
   const s = summarizeAb(results), arms = [...new Set(results.map(r => r.arm))];
   const row = (id: string, arm: Arm, a: ArmSummary) => `| ${id} | ${arm} | ${a.passed}/${a.runs} | ${a.passAtK ? 'yes' : 'no'} | ${a.passPowK ? 'yes' : 'no'} | ${a.calls} | ${a.refusals} | ${a.tokens.input} | ${a.tokens.newInput} | ${a.tokens.output} | ${a.wallMs} |`;
   return [
-    `# A/B ${mode === 'scripted' ? 'dry run (scripted agent)' : 'live run'}`, '',
-    `Arms: json (v1 tools without run_script) and hybrid (v2 tools with model.run). Tokens ${mode === 'scripted' ? `estimated at ${CHARS_PER_TOKEN} characters a token from what each model turn would read (one tool call a turn)` : 'as the CLI reported them'}; "new" is input not read from the prompt cache.`, '',
+    `# Briefs ${mode === 'scripted' ? 'dry run (scripted agent)' : 'live run'}`, '',
+    `Arm: hybrid (the v2 tools with model.run; the json arm went with v1, O105). Tokens ${mode === 'scripted' ? `estimated at ${CHARS_PER_TOKEN} characters a token from what each model turn would read (one tool call a turn)` : 'as the CLI reported them'}; "new" is input not read from the prompt cache.`, '',
     '| brief | arm | passed | pass@k | pass^k | calls | refused | input tokens | new input | output | wall ms |', '|---|---|---|---|---|---|---|---|---|---|---|',
     ...Object.entries(s.byBrief).flatMap(([id, a]) => arms.filter(arm => a[arm]).map(arm => row(id, arm, a[arm]!))), '',
     '| arm | briefs | pass rate | calls a brief | refused | input tokens a brief | new input | output |', '|---|---|---|---|---|---|---|---|',

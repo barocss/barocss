@@ -19,6 +19,9 @@ type Item =
   | { kind: 'assistant' | 'notice'; text: string }
   | { kind: 'tool'; name: string; input: unknown; summary: string; isError: boolean };
 
+/** A call as the transcript names it: the tool and its action (`features.command`), O105. */
+const toolLabel = (name: string, input: unknown) => { const a = input && typeof input === 'object' ? (input as { action?: unknown }).action : undefined; return typeof a === 'string' ? `${name}.${a}` : name; };
+
 export interface ChatPanelProps {
   /** The part a new turn starts from (the evaluated document). */
   base(): StudioDoc;
@@ -170,7 +173,7 @@ export function ChatPanel(props: ChatPanelProps) {
         {enabled && !items.length && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges” — or attach a sketch, photo or drawing of it.<br />Your messages are kept in the part’s design history, saved with the file.</div>}
         {items.map((it, i) => it.kind === 'tool'
           ? <details key={i} className={'chat-tool' + (it.isError ? ' err' : '')}>
-              <summary><Icon name={it.isError ? 'error' : 'build'} small /><span className="mono">{it.name}</span> <span className="chat-sum">{it.summary}</span></summary>
+              <summary><Icon name={it.isError ? 'error' : 'build'} small /><span className="mono">{toolLabel(it.name, it.input)}</span> <span className="chat-sum">{it.summary}</span></summary>
               <code>{brief(it.input)}</code>
             </details>
           : <div key={i} className={'chat-msg ' + it.kind}>

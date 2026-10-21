@@ -22,6 +22,7 @@ import { inProcessReopen, type Reopen } from '@barocss/cad-model/team/candidates
 import { runBoardScenario, type BoardScenario } from '@barocss/cad-model/team/boardScenario';
 import { canonical } from '@barocss/cad-model/team/team';
 import { chooseStock, stockDoc, stockFile } from '@barocss/cad-model/machining/stock';
+import { camPreview, camSvg } from '@barocss/cad-model/machining/cam';
 import { turningOf } from '@barocss/cad-model/machining/turning';
 import { holesOf } from '@barocss/cad-model/machining/holes';
 import { spawnSync } from 'node:child_process';
@@ -67,6 +68,10 @@ cad-cli stock part.bcad -o folder [--list stock.json] [--allowance mm]
   The stock a part is machined from (CNC7b): the smallest block (milled) or bar (turned) on the shop's list — the part's
   own, or one given — around it with the allowance a face (yours, else 1 mm, an estimate); writes stock.json and
   stock.step. Exit 1 when none is loaded or none fits.
+cad-cli cam-preview part.bcad -o folder [--tool mm]
+  NOT FOR PRODUCTION. An optional 2.5D preview of outlines (CNC8): the recognised pockets' contour loops at each
+  step-down and the holes' drill points, as cam-preview.json and one SVG a setup, each saying so in its first line. No
+  G-code, no feeds or speeds, no collision check. The tool's diameter given, else 6 mm (an estimate).
 cad-cli replay part.bcad
   Reads a saved part as the studio opens it and evaluates it afresh: prints its facts and its requirements' verdicts
   (A7.5's replay gate reads an accepted part back with it). Exit 1 when it does not read.
@@ -219,6 +224,21 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     writeAtomic(join(dir, 'stock.json'), new TextEncoder().encode(JSON.stringify(stockFile(r.choice), null, 1) + '\n'));
     writeAtomic(join(dir, 'stock.step'), new TextEncoder().encode(step.text));
     say(io.stdout, { ok: true, row: r.choice.row.id, size: r.choice.size, allowance: r.choice.allowance, wrote: [join(dir, 'stock.json'), join(dir, 'stock.step')] });
+    return 0;
+  }
+  if (cmd === 'cam-preview') {
+    // (CNC8, O103: an optional 2.5D preview of outlines — NOT FOR PRODUCTION, said in every file's first line; no G-code.)
+    const oi = rest.indexOf('-o'), ti = rest.indexOf('--tool'), file = rest.find((a, i) => !a.startsWith('-') && !['-o', '--tool'].includes(rest[i - 1]));
+    if (!file || oi < 0 || !rest[oi + 1]) return usage('cam-preview takes a .bcad file and -o folder [--tool mm]');
+    const opened = await openModel(resolve(file));
+    if ('error' in opened) return failed(opened.error);
+    const s0 = await stateOf(opened.doc); if ('error' in s0) return failed(s0.error);
+    const p = camPreview(s0.doc, s0.bodies, ti >= 0 ? { toolMM: Number(rest[ti + 1]) } : {}), dir = resolve(rest[oi + 1]);
+    mkdirSync(dir, { recursive: true });
+    const wrote = [join(dir, 'cam-preview.json')];
+    writeAtomic(wrote[0], new TextEncoder().encode(JSON.stringify(p, null, 1) + '\n'));
+    for (const setup of [...new Set(p.operations.map(o => o.setup))]) { const f = join(dir, `cam-preview-${setup.replace('−', '-').replace('+', 'p').replace('-', 'm')}.svg`); writeAtomic(f, new TextEncoder().encode(camSvg(p, setup))); wrote.push(f); }
+    say(io.stdout, { notForProduction: true, banner: p.banner, operations: p.operations.length, skipped: p.skipped, wrote });
     return 0;
   }
   if (cmd === 'robot-check') {

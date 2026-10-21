@@ -2,8 +2,9 @@
  "about": "D84: the SubD pipe clamp as agent cage-tool calls (test/subdClamp.test.ts makes them; the browser flow replays them).",
  "calls": [
   {
-   "tool": "run_command",
+   "tool": "features",
    "args": {
+    "action": "command",
     "command": "subd-tube",
     "values": {
      "r": 20,
@@ -18,8 +19,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      16,
@@ -29,8 +31,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      22,
@@ -40,8 +43,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      30,
@@ -51,8 +55,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      24,
@@ -62,8 +67,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      23,
@@ -73,8 +79,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      480,
@@ -84,8 +91,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      31,
@@ -95,8 +103,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      529,
@@ -106,8 +115,9 @@
    }
   },
   {
-   "tool": "subd_extrude",
+   "tool": "subd",
    "args": {
+    "action": "extrude",
     "index": 0,
     "faces": [
      2,
@@ -124,8 +134,9 @@
    }
   },
   {
-   "tool": "subd_extrude",
+   "tool": "subd",
    "args": {
+    "action": "extrude",
     "index": 0,
     "faces": [
      2,
@@ -142,8 +153,9 @@
    }
   },
   {
-   "tool": "subd_extrude",
+   "tool": "subd",
    "args": {
+    "action": "extrude",
     "index": 0,
     "faces": [
      2,
@@ -160,8 +172,9 @@
    }
   },
   {
-   "tool": "subd_extrude",
+   "tool": "subd",
    "args": {
+    "action": "extrude",
     "index": 0,
     "faces": [
      3,
@@ -177,8 +190,9 @@
    }
   },
   {
-   "tool": "subd_delete",
+   "tool": "subd",
    "args": {
+    "action": "delete",
     "index": 0,
     "faces": [
      593,
@@ -193,8 +207,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      594,
@@ -208,8 +223,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      596,
@@ -223,8 +239,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      598,
@@ -238,8 +255,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      606,
@@ -253,8 +271,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      609,
@@ -268,8 +287,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      612,
@@ -283,8 +303,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      615,
@@ -298,8 +319,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      618,
@@ -313,8 +335,9 @@
    }
   },
   {
-   "tool": "subd_extrude",
+   "tool": "subd",
    "args": {
+    "action": "extrude",
     "index": 0,
     "edges": [
      [
@@ -358,8 +381,9 @@
    }
   },
   {
-   "tool": "subd_extrude",
+   "tool": "subd",
    "args": {
+    "action": "extrude",
     "index": 0,
     "edges": [
      [
@@ -403,8 +427,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      620,
@@ -418,8 +443,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      621,
@@ -433,8 +459,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      622,
@@ -448,8 +475,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      623,
@@ -463,8 +491,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      624,
@@ -478,8 +507,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      625,
@@ -493,8 +523,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      626,
@@ -508,8 +539,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      627,
@@ -523,8 +555,9 @@
    }
   },
   {
-   "tool": "subd_bridge",
+   "tool": "subd",
    "args": {
+    "action": "bridge",
     "index": 0,
     "edges": [
      [
@@ -595,8 +628,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      627,
@@ -606,8 +640,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      636,
@@ -617,8 +652,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      10,
@@ -628,8 +664,9 @@
    }
   },
   {
-   "tool": "subd_insert_loop",
+   "tool": "subd",
    "args": {
+    "action": "insert_loop",
     "index": 0,
     "edge": [
      653,
@@ -639,8 +676,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      10,
@@ -656,8 +694,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      12,
@@ -673,8 +712,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      16,
@@ -690,8 +730,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      18,
@@ -707,8 +748,9 @@
    }
   },
   {
-   "tool": "subd_move",
+   "tool": "subd",
    "args": {
+    "action": "move",
     "index": 0,
     "vertices": [
      614,
