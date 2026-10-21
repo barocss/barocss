@@ -41,7 +41,7 @@ const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
 /** `section`: section A–A's projection and cut-face rings (view coordinates), drawn when the layout places it. */
 /** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
 /** `meta.tableContent`: a table's content from its source (O49; absent: a sourced table says it was not filled). */
-export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[] }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string, diameterMM?: number) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[] }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
   const groups: MarkGroup[] = [];
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
@@ -199,8 +199,9 @@ function tableContentOf(t: DrawingTable, contentOf?: (t: DrawingTable) => TableC
  * What a dimension reads: a diameter on a hole its callout, and `count` before it (`4× Ø6.6 THRU`, `3× 20`) in
  * place of a callout's own count (R14.1, O2).
  */
-export function dimensionText(r: Extract<Resolved, { ok: true }>, callout?: (edge: string) => string | null): string {
-  const base = (r.kind === 'diameter' && callout ? callout(r.dim.edge) : null) ?? r.text;
+export function dimensionText(r: Extract<Resolved, { ok: true }>, callout?: (edge: string, diameterMM?: number) => string | null): string {
+  // (D155: the diameter measured goes with it — a face's fit class reads its limits at that size, drawing/fits.ts.)
+  const base = (r.kind === 'diameter' && callout ? callout(r.dim.edge, 2 * r.radius) : null) ?? r.text;
   return r.dim.count ? `${r.dim.count}× ${base.replace(/^\d+× /, '')}` : base;
 }
 

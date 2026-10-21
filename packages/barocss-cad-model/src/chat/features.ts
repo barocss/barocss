@@ -3,6 +3,7 @@
 // bodies that are still visible, and no unknown fields. Also deleting a feature (with the sketches only
 // it used) and renumbering the later ones; persistent face and edge names carry stable feature ids
 // (engine/ids.ts), so they stay as they are.
+import { sketch3dRefusal, type Constraint3D, type V3 } from '../frames/sketch3d';
 import { followersOf } from '../frames/skeleton';
 import { frameGeometry, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
@@ -40,7 +41,7 @@ const SPECS: Record<string, Spec> = {
   // (FR1, D123: a structural member, its section by kind and dimensions — none defaulted — or a closed sketch.)
   // (FR2, D124: a frame on a skeleton; overrides set members apart.)
   // (FRf, O121: a skeleton several frames follow; a frame on one — or on a sketch's straight edges — names it in `follows`.)
-  skeleton: { points: 'points3', segments: 'segments', 'name?': 'text' },
+  skeleton: { points: 'points3', segments: 'segments', 'name?': 'text', 'constraints?': 'any' },
   frame: { 'follows?': 'frame-follows', 'points?': 'points3', 'segments?': 'segments', section: 'member-section', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'mirror?': 'bool', 'up?': 'vec3', 'overrides?': 'frame-overrides', 'corners?': 'frame-corners', 'trims?': 'frame-trims' },
   'frame-member': { section: 'member-section', start: 'dim3', end: 'dim3', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'up?': 'vec3' },
   'sheet-contour': { path: 'points2', 'plane?': 'plane', side: 'enum:left|right', width: 'dim', thickness: 'dim', bendRadius: 'dim', 'kFactor?': 'num', 'bendTable?': 'any' },
@@ -118,6 +119,13 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   // (FRf, O121: a frame follows a skeleton or a sketch, or has its own points and segments; a skeleton's segments name its points.)
   if (kind === 'frame' && node.follows === undefined && (node.points === undefined || node.segments === undefined)) return 'frame: give "points" and "segments", or "follows" {"skeleton": k} | {"sketch": k}.';
   if (kind === 'skeleton') { const P = (node.points as unknown[]).length, bad = (node.segments as number[][]).findIndex(g => g.some(i => i >= P)); if (bad >= 0) return `skeleton: segment ${bad} names a point it does not have (${P} points).`; }
+  // (FRg, O122: its constraints by kind, indices in range; a point bound to a parameter is not solved for.)
+  if (kind === 'skeleton' && node.constraints !== undefined) {
+    if (!Array.isArray(node.constraints)) return 'skeleton.constraints: a list of 3D constraints ({"kind": "length", "segment": k, "value": mm} …)';
+    if ((node.points as unknown[][]).some(p => p.some(v => typeof v !== 'number'))) return 'skeleton: a skeleton with constraints has numbers for its points (the solver moves them)';
+    const why = sketch3dRefusal(node.points as V3[], node.segments as [number, number][], node.constraints as Constraint3D[]);
+    if (why) return `[SKETCH3D_INPUT] skeleton.${why}`;
+  }
   return null;
 }
 

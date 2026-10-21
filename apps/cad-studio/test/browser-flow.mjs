@@ -3735,6 +3735,24 @@ try {
     await snap('fit-pin');
   });
 
+  await check('D155 fit callouts: the bore and pin left by the Fits step, auto-dimensioned on A3 — the bore\'s diameter reads Ø12 H7/g6 with both rows\' limits, flagged an estimate, in the SVG; no FIT_ROW_MISSING', async () => {
+    const fs = await import('node:fs');
+    if (!(await page.evaluate(() => window.__studioDoc.fits?.pairs?.length === 1))) throw new Error('the Fits step left no pair');
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDrawing?.()?.dimensions ?? []).some(d => /H7\/g6/.test(d.text ?? '')), null, { timeout: 30000 });
+      const dims = await page.evaluate(() => window.__studioDrawing().dimensions.map(d => d.text));
+      assert.ok(dims.some(t => /Ø12.* H7\/g6 \(\+0\.018\/0, -0\.006\/-0\.017\) \(est\.\)$/.test(t ?? '')), JSON.stringify(dims));
+      const issues = await page.evaluate(() => window.__studioDrawing().issues);
+      assert.ok(!issues.some(i => i.code === 'FIT_ROW_MISSING'), JSON.stringify(issues));
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes('H7/g6 (+0.018/0, -0.006/-0.017) (est.)'), 'in the SVG');
+      await snap('d155-fit-callout');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
   await check('FRc the section library in the Library panel: a row, a frame on it via the chat (133 200 mm³), the row edited (172 800), a used row kept (O117)', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
@@ -3895,6 +3913,30 @@ try {
       assert.equal(await page.evaluate(() => window.__studioDoc.nodes.length), 3, 'the skeleton kept');
       await page.click('[aria-label="Close chat"]');
       await snap('frf-skeleton');
+    } finally { chat.kill(); }
+  });
+
+  await check('FRg a constrained 3D skeleton via the chat: a rough rectangle solved to 600 × 400 square on add, a frame on it — its first member 444 · 600 mm³ (O122)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const constraints = [{ kind: 'fixed', point: 0 }, { kind: 'along', segment: 0, axis: 'x' }, { kind: 'on-plane', point: 2, plane: { origin: [0, 0, 0], normal: [0, 0, 1] } }, { kind: 'length', segment: 0, value: 600 }, { kind: 'length', segment: 1, value: 400 },
+        { kind: 'perpendicular', a: 0, b: 1 }, { kind: 'parallel', a: 0, b: 2 }, { kind: 'parallel', a: 1, b: 3 }];
+      const skeleton = { kind: 'skeleton', points: [[0, 0, 0], [590, 10, 0], [610, 390, 5], [-5, 405, 3]], segments: [[0, 1], [1, 2], [2, 3], [3, 0]], constraints };
+      const frame = { kind: 'frame', follows: { skeleton: 0 }, section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { default: 'mitre' } };
+      const n = await page.locator('.chat-msg.assistant').count();
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'add', features: [skeleton, frame] } }] })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+      await page.waitForFunction(() => /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+      // (Solved: the second corner at (600, 0, 0), the third on z = 0, all square.)
+      const pts = await page.evaluate(() => window.__studioDoc.nodes[0].points);
+      assert.ok(Math.abs(pts[1][0] - 600) < 1e-6 && Math.abs(pts[1][1]) < 1e-6 && Math.abs(pts[2][2]) < 1e-6, JSON.stringify(pts));
+      const vol = await bodyVolume(); assert.ok(Math.abs(vol - 444 * 600) <= 1, String(vol));
+      await snap('frg-skeleton-solved');
     } finally { chat.kill(); }
   });
 

@@ -7,7 +7,7 @@ import { editFields } from '../app/editFields';
 import { measureBetween, measureItem, type MeasurePick } from '../app/measure';
 import { featureLabel, prefixDoc, withNode, type DocPlane, type ModelNode, type FrameStockRow, type StockRow, type StudioDoc } from '../engine/doc';
 type Vec3T = [number, number, number];
-import type { BodyResult, EvalResult } from '../engine/evaluate';
+import { partBreps, type BodyResult, type EvalResult } from '../engine/evaluate';
 import type { ToolDefinition } from './api';
 import { CAGE_MUTATORS, CAGE_TOOL_NAMES, CAGE_TOOLS, runCageTool } from './cageTools';
 import { DRAWING_CHANGES, DRAWING_TOOL_NAMES, DRAWING_TOOLS, runDrawingTool } from './drawing';
@@ -36,11 +36,11 @@ import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, approvalOf, riskOf,
 import { checkRequirement, checkSpec, expectedOf, modelHash, newPolicy, runCheck, updatePolicy, validateSuite, type Policy, type Requirement } from './spec';
 import { captureSignatures, refreshSignatures, verifyReferences } from '../engine/references';
 import { rememberedEvaluate } from '../engine/evalMemo';
-import { cutListCsv } from '@barocss/cad';
+import { checkFit, cutListCsv, fitLimits, FitError, type FitLimits } from '@barocss/cad';
 import { partCutList } from '../app/cutList';
 import { nestCutList } from '../frames/nesting';
 import { editSections } from '../frames/sections';
-import { skeletonEditRefusal, withFollowed } from '../frames/skeleton';
+import { skeletonEditRefusal, solvedSkeleton, withFollowed } from '../frames/skeleton';
 import { weldList, type WeldRecord } from '../frames/welds';
 export { resolveNames, type NameSelection };
 
@@ -209,6 +209,10 @@ function checkValues(fields: Field[], values: Values): string | null {
   return null;
 }
 
+/** D155: a fit's limits as a result shows them (each row's deviations, sizes, table and row, estimate and source). */
+const fitView = (l: FitLimits) => ({ kind: l.kind, clearanceMinUM: l.clearanceMinUM, clearanceMaxUM: l.clearanceMaxUM, estimate: l.estimate,
+  hole: { class: l.hole.class, nominalMM: l.hole.nominalMM, upperUM: l.hole.upperUM, lowerUM: l.hole.lowerUM, minMM: l.hole.minMM, maxMM: l.hole.maxMM, table: l.hole.table, row: l.hole.row, estimate: l.hole.estimate, ...(l.hole.source ? { source: l.hole.source } : {}) },
+  shaft: { class: l.shaft.class, nominalMM: l.shaft.nominalMM, upperUM: l.shaft.upperUM, lowerUM: l.shaft.lowerUM, minMM: l.shaft.minMM, maxMM: l.shaft.maxMM, table: l.shaft.table, row: l.shaft.row, estimate: l.shaft.estimate, ...(l.shaft.source ? { source: l.shaft.source } : {}) } });
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const strings = (v: unknown) => Array.isArray(v) ? v.map(String) : [];
 /** A list of names or selectors (objects kept as they are). */
@@ -755,13 +759,17 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         const pl = isObj(node) ? (node as Record<string, unknown>).plane : undefined;
         if (isObj(pl) && typeof pl.datum === 'string') { try { list[k] = { ...(node as object), plane: datumPlane(readReferences(doc.references), pl.datum) }; } catch (e) { return fail(state, e instanceof ReferenceError ? e.message : String(e)); } }
       }
+      const solves: Record<string, unknown>[] = [];
       for (const [k, node] of list.entries()) {
         const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections);
         if (why) return fail(state, `Feature ${k + 1} of ${list.length} (would be index ${doc.nodes.length}): ${why}`, { kept: 'nothing was added' });
         // (A new feature takes the next stable id: one the call brings is not used, ids are never handed out twice.)
-        doc = withNode(doc, { ...withFollowed(doc, node as ModelNode), id: undefined });
+        const solved = solvedSkeleton(node as ModelNode);
+        if ('error' in solved) return fail(state, `Feature ${k + 1} of ${list.length}: ${solved.error}`, { kept: 'nothing was added' });
+        if (solved.solve) solves.push({ feature: doc.nodes.length, ...solved.solve });
+        doc = withNode(doc, { ...withFollowed(doc, solved.node), id: undefined });
       }
-      return accept(state, doc, evaluate, `added ${list.length} feature${list.length > 1 ? 's' : ''}`, { added: doc.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, doc.nodes)}`) });
+      return accept(state, doc, evaluate, `added ${list.length} feature${list.length > 1 ? 's' : ''}`, { added: doc.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, doc.nodes)}`), ...(solves.length ? { skeletons: solves } : {}) });
     }
     case 'edit_feature': {
       const index = Number(args.index), nodes = state.doc.nodes;
@@ -784,6 +792,10 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
           else next = f.set(next, Boolean(v));
         }
       }
+      // (FRg, O122: a skeleton with constraints solved again from its edit.)
+      const solved = solvedSkeleton(next[index]);
+      if ('error' in solved) return fail(state, `Feature ${index}: ${solved.error}`, { kept: 'the part is unchanged' });
+      next = next.map((n, k) => k === index ? solved.node : n);
       // (FRf, O121: a skeleton frames follow keeps every point and segment they use.)
       const held = skeletonEditRefusal(nodes, index, next[index]);
       if (held) return fail(state, held);
@@ -1008,6 +1020,28 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const w = weldList(state.doc, state.bodies);
       if (!w.joints.length && !w.orphaned.length) return fail(state, 'The part has no weld joints: frame members meeting at a corner, a butt or a face.');
       return { state, content: json({ joints: w.joints.map((j, k) => ({ label: `W${k + 1}`, ...j })), totals: w.totals, orphaned: w.orphaned, notes: w.notes }), isError: false, changed: false, summary: `${w.totals.count} welds, ${w.totals.seamMM} mm of seam` };
+    }
+    case 'fit_clearance': {
+      // (D155: a hole and a shaft — two faces with their classes, or two classes at a size — their limits from the user's
+      // tables and, for faces, the pair at MMC and LMC by the kernel's checkFit. Read only; a class with no row says what to load.)
+      const tables = state.doc.fits?.tables ?? [];
+      try {
+        if (typeof args.hole === 'string' && typeof args.shaft === 'string') {
+          const classOfFace = (f: string) => state.doc.fits?.faces?.find(x => x.face === f || x.face === f.replace(/#\d+$/, ''))?.class;
+          const hc = typeof args.hole_class === 'string' ? args.hole_class : classOfFace(args.hole), sc = typeof args.shaft_class === 'string' ? args.shaft_class : classOfFace(args.shaft);
+          if (!hc || !sc) return fail(state, `[FIT_FACE] ${!hc ? args.hole : args.shaft} carries no tolerance class: give hole_class / shaft_class, or set the face's class first.`);
+          const breps = partBreps(state.doc), find = (name: string) => { for (const b of breps) { const f = b.brep.faces.find(x => x.name === name) ?? b.brep.faces.find(x => x.name?.replace(/#\d+$/, '') === name); if (f) return { brep: b.brep, face: f.id }; } return null; };
+          const h = find(args.hole), sh = find(args.shaft);
+          if (!h || !sh) return fail(state, `[FIT_FACE] no face ${!h ? args.hole : args.shaft} on the part (names from query.summary).`);
+          const c = checkFit(tables, { ...h, class: hc }, { ...sh, class: sc });
+          return { state, content: json({ ...fitView(c.limits), offsetMM: c.offsetMM, lengthMM: c.lengthMM, marginMM: c.marginMM, mmc: c.mmc, lmc: c.lmc, contradicted: c.contradicted, message: c.message }), isError: false, changed: false, summary: `${hc}/${sc}: ${c.limits.kind}, ${c.limits.clearanceMinUM} … ${c.limits.clearanceMaxUM} µm` };
+        }
+        if (typeof args.hole_class === 'string' && typeof args.shaft_class === 'string' && typeof args.size === 'number') {
+          const l = fitLimits(tables, args.hole_class, args.shaft_class, args.size);
+          return { state, content: json(fitView(l)), isError: false, changed: false, summary: `${args.hole_class}/${args.shaft_class} at Ø${args.size}: ${l.kind}` };
+        }
+        return fail(state, 'Give hole and shaft (faces; their classes, or hole_class and shaft_class), or hole_class, shaft_class and size (mm).');
+      } catch (e) { if (e instanceof FitError) return fail(state, e.message); throw e; }
     }
     case 'mass_properties': {
       const keys = strings(args.bodies), shown = keys.length ? state.bodies.filter(b => keys.includes(b.key)) : state.bodies;
@@ -1269,7 +1303,7 @@ const PART_TOOLS: ToolDefinition[] = [
 - {"kind":"sweep","sketch":i,"path":[{"kind":"straight","length":l} | {"kind":"bend","radius":r,"angleDegrees":deg,"toward":"x"|"-x"|"y"|"-y"}]} (from the sketch plane up +Z)
 - {"kind":"loft","sections":[{"sketch":i,"z":z},...],"smooth"?:bool}
 - Sheet metal (each with the sheet's rules: "thickness":T, "bendRadius":R (inner), and either "kFactor":K 0–1 (the neutral layer at R + K·T; K from the user's shop, else say it is an estimate) or "bendTable":{"id","sources":[{"id","label","url"?}],"rows":[{"thicknessMM","radiusMM","angleDegrees"?,"kFactor"|"allowanceMM"|"deductionMM","source":id | "estimate":true}]} — the shop's table, a bend outside it refused): {"kind":"sheet-base","sketch":i,…rules,"reverse"?:bool} (a plate T thick from a closed sketch) | {"kind":"sheet-contour","path":[[x,y],…],"side":"left"|"right","width":w,"plane"?:{origin,normal,xAxis},…rules} (an open path, one skin of the sheet, the material to its side looking along it, a bend at each corner, extruded w along the plane's normal; faces .leg<i>.a/.b, .bend<k>.inner/.outer, .start, .end, .front, .back) | {"kind":"sheet-flange","parent":Ref,"edges":[edge name],"length":L,"angleDegrees"?:deg,"bendRadius"?:r,"measure"?:"outer"|"inner"|"tangent","position"?:"material-inside"|"material-outside"|"bend-outside","offsets"?:[a,b],"relief"?:{"kind":"rectangular"|"obround","width":w,"depth":d} | {"kind":"none"}} (an edge flange on a sheet's straight skin edge, bent up from that skin; with offsets its relief is required, width and depth given — no defaults; the sheet's T is the usual estimate) | {"kind":"sheet-corner-relief","parent":Ref,"edges":[corner edge name],"shape":"square"|"round","size":s} (a plate's square corner cut off before flanging its two edges; size at least R + T, round √2 that)
-- Skeleton (FRf): {"kind":"skeleton","points":[[x,y,z],…],"segments":[[from,to],…]} — no body; frames on it follow its edits ("follows":{"skeleton":k} in place of points and segments; {"sketch":k}: a sketch's straight edges).
+- Skeleton (FRf): {"kind":"skeleton","points":[[x,y,z],…],"segments":[[from,to],…],"constraints"?:[{"kind":"fixed"|"coincident"|"length"|"distance"|"angle"|"parallel"|"perpendicular"|"on-axis"|"on-plane"|"along",…}]} (FRg: solved on add and edit; the result's skeletons: status, dof, redundant, free) — no body; frames on it follow its edits ("follows":{"skeleton":k} in place of points and segments; {"sketch":k}: a sketch's straight edges).
 - Frame (FR2): {"kind":"frame","points":[[x,y,z],…],"segments":[[from,to],…],"section":S,"anchor"?,"offset"?,"roll"?,"mirror"?:bool,"up"?,"overrides"?:[{"member":k,"section"?:S,"anchor"?,"offset"?,"roll"?,"mirror"?}]} — a member along each segment (point indices), each its own body (sides part0, part1, …); a member as frame-member's below; mirror turns the section over across its own y axis; faces .m<k>.<role>, .m<k>.start/.end. No two segments on the same points or overlapping on one line. "corners"?:{"default"?:"mitre"|"butt"|"none","at"?:[{"point":i,"kind","through"?:member}]} finishes points where exactly two members end (mitre: both on the halfway plane, the same section turned alike; butt: through runs on, the other ends on its face; none: square, overlapping); left out, no corner is finished; "multi":"order"|"none" (three or more ends: an ordered trim — the first, by "order" or the larger section, runs through, each next trimmed to the envelopes before it); "tee":"butt"|"cope"|"none" (a member ending on another's length); "at" kinds also "cope" (to the through member's envelope), "order" with "order":[members], and "trim":"face"|"envelope" on a butt (a butt on an open side — an angle's leg end, a round tube, a round corner — is refused BUTT_ON_OPEN_SIDE: trim to the envelope); faces .m<k>.start.mitre, .m<k>.end.butt, .m<k>.end.cope, .m<k>.end.trim. "trims"?:[{"member":k,"end":"start"|"end","plane":{"origin","normal"}} | {…,"body":Ref}] trims an end no joint finishes to a plane (run on to meet it) or to an earlier body (not consumed); crossing members are refused MEMBERS_CLASH
 - Structural member (FR1): {"kind":"frame-member","section":S,"start":[x,y,z],"end":[x,y,z],"anchor"?:"centroid"|"origin"|"bottom-left"|…|"top-right","offset"?:[dx,dy],"roll"?:deg,"up"?:[x,y,z]} — the section square to the line start→end, extruded its length; the anchor point on the line (default the centroid), the section moved by offset, its y along up (default +Z) made square to the line (a vertical line takes +X), turned roll°. S, every dimension given (no default sizes or radii; ask for the stock's or say they are estimates): {"kind":"rect-tube","width","height","wall","outerRadius","innerRadius"?} | {"kind":"round-tube","diameter","wall"} | {"kind":"angle","legX","legY","thickness","rootRadius","toeRadius"} | {"kind":"channel","height","width","web","flange","rootRadius"} | {"kind":"tslot","size","cells":1|2,"openSlots"?:0–4 (one cell),"opening","lip","undercut","depth","bore"} | {"kind":"sketch","sketch":i} (a closed sketch, holes allowed). Faces by role: .top/.bottom/.left/.right/.round.*, .bore.*, .back.x/.face.y/.root/.toe.x, .web/.tip.top, .<slot>.floor …, and the ends .start/.end
 - {"kind":"hole","parent":Ref,"center":[a,b],"radius":r,"axis"?:"x"|"y"|"z","side"?:"min"|"max","depth"?:d} (omit depth for through)
@@ -1360,6 +1394,11 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     name: 'weld_list',
     description: 'The frame\'s weld joints read off the geometry (FRd1): {joints [{label W1…, id, kind mitre | butt | on-face, body, end, meets, face, seamMM (the end face\'s outer loop), seamBasis exact | mesh, innerLoop {mm, welded: yours, null when not said} | null, weldMM, at, centre, weld {kind, sizeMM, sizeBasis set | estimate | none, allRound, notes?}}], totals {count, seamMM}, orphaned (records whose joint is gone), notes}. Say estimated sizes are estimates.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'fit_clearance',
+    description: 'A hole–shaft fit from the user\'s fit tables (none built in): hole and shaft faces (their classes as set, or hole_class / shaft_class) — the limits, the least and greatest clearance (µm, negative interference) and kind, and the pair at MMC and LMC by the kernel (overlap, the axes\' offset, the margin; contradicted when a clearance fit meets at MMC); or hole_class, shaft_class and size (mm) alone — the limits. A class with no row for the size says what to load (FIT_TABLE_MISS). Say an estimate row is an estimate.',
+    input_schema: { type: 'object', properties: { hole: { type: 'string' }, shaft: { type: 'string' }, hole_class: { type: 'string' }, shaft_class: { type: 'string' }, size: { type: 'number' } }, additionalProperties: false },
   },
   {
     name: 'mass_properties',

@@ -4993,3 +4993,84 @@ The GPU lane's G6 shows the analyses on the model as colour maps and lines. Only
   - Every refusal above is tested.
 - **Flow step "FRf …"** through the chat: 8 members; the skeleton's points moved by a value edit (L2 applies it); the first member is 444 · 800 mm³; deleting the skeleton is refused and it stays.
 - **Open**: a sketch in another placed part (an instance) is not followed. That would be a reference across parts' documents, which neither the mates' faces nor the evaluation carry today. Followed sketches here are the same part's features, as the frame command's edge pick was.
+
+## O122 — FRg: the 3D skeleton sketch's model and solver, our own (2026-10-21)
+
+- **The model** (`frames/sketch3d.ts`): a skeleton's `constraints` among its points and segments.
+  - Point constraints: coincident, fixed (at a point, default the origin), distance, on-axis (x, y, z or a line), on-plane.
+  - Segment constraints: length, angle (0–180°, exclusive), parallel (either sense), perpendicular, along (an axis or a direction).
+  - Indices and values are checked, refused as SKETCH3D_INPUT. A skeleton with constraints has numbers for its points.
+- **The solver** is our own: Levenberg–Marquardt with no WASM and no numeric library.
+  - Each constraint is a residual with its analytic Jacobian. Parallel, on-axis and along are cross products, three rows of rank two.
+  - The step solves (JᵀJ + λI)δ = −Jᵀr by Cholesky; λ is divided by 3 on a step that lowers ‖r‖² and multiplied by 4 on one that does not.
+  - It stops at ‖r‖ ≤ 1e-10, at 200 iterations, or when no step lowers ‖r‖.
+  - The residual function's helpers are module-level, with no closures in its loop.
+- **Diagnosis** at the solution:
+  - `dof` is 3N less the rank of the rows, each normalised and orthogonalised in order (Gram–Schmidt twice, 1e-8).
+  - `redundant` lists constraints adding no rank to those before them. `unmet` lists those whose residual stays above 1e-9.
+  - `free` lists points with a coordinate outside the rows' span.
+  - `status` is well, under, over or conflict. A sketch with nothing fixed keeps its rigid motions (6, or 3 for a point).
+- **In the document**: a skeleton with constraints is solved when added and on every edit, from its points as given, and stored solved. Frames that follow it (FRf) follow the solved points.
+  - A conflict is refused: `[SKETCH3D_CONFLICT]`, naming each unmet constraint and its residual.
+  - add_features returns each solved skeleton's status, dof, redundant and free.
+  - The prompt's skeleton line names the constraints. Per turn 22,039 (+7).
+- **Closed forms** (package test sketch3d, 5 tests):
+  - A tetrahedron of edges 3, √5, √6, √8, 3, √5, with p0 fixed, p1 on the x axis and p2 on the xy plane: well constrained, 0 freedoms, every corner at (3,0,0), (1,±2,0), (1,±1,±2) to 1e-9. Edges 3–8, which bound no tetrahedron (Cayley–Menger negative), are a conflict.
+  - A rectangle 30 × 20 from a tilted start, with p0 fixed, its two lengths, a square corner and opposite sides parallel: every side to 1e-9 and every corner 90° to 1e-7, with 3 freedoms left (turning about p0). With its first side along x, 1 freedom.
+  - A free segment of length 10 has 5 freedoms; two coincident points 3; two free points 6.
+  - A triangle 1 1 5 is a conflict with its lengths named. A length given twice is over, the second redundant.
+  - Through the chat: a rough rectangle solved to 600 × 400 with a mitred frame on it (A · L); its length edited to 800, solved again, the frame following; a contradicting distance refused.
+- **Flow step "FRg …"**: the rough rectangle and a frame through the chat. The solved corners are (600, 0, 0) and z = 0, and the first member is 444 · 600 mm³.
+- **The viewport's tool** is the GPU lane's (G17), built on `solveSketch3D` and its diagnosis.
+- **Not done**: constraint values bound to parameters (they are numbers), and a dragged point's solve (the tool's, G17).
+- **The FR queue (O114) is done**: FRa through FRg, items 1–7. What waits on the kernel lane's FR geometry (gussets, beads, end caps, coped joints, a cross-part followed sketch) is said in each stage.
+
+## O123 — FRf2 S0: a frame following another part's sketch — the reference across parts, frozen (2026-10-21)
+
+The coordinator asked for this as its own stage (D122's "a frame cannot follow another part's sketch", in scope since the owner said all of FR). The design question is the reference across part documents. It uses A7's revisions and A8's digests, with no new link. Evidence is in `packages/barocss-cad-model/test/frf2-s0.test.ts` (4 probes).
+
+- **What a "part" is here**: a placed instance (`doc.instances[k]`) whose document the assembly holds inline. Parts are not separate files; a team bundle carries the one assembly document. So the reference crosses part documents inside one assembly document, not files.
+- **Probes**:
+  - **P1**: a placed part's sketch, lifted by its plane and placed by the instance's `rotationMatrix(rotation)·p + position`, is where the part's own body stands (a 300 × 200 plate at (100, 50, 0) turned 90° about z: its box to 1e-9). The transform is the mates' own.
+  - **P2**: freshness's `modelInput` already holds each part's own model, recursively. A base frame following a part's sketch has its results go stale when the part changes. **No freshness change.**
+  - **P3**: A7's `revisionOf(part doc)` follows a part's content, not its placement; A8's `partDigest` follows both. So the link pins the revision, and the placement is read live.
+  - **P4**: a part is deleted today whatever refers to it.
+  - **P5**: the base's evaluation input (`evaluatedPart`) holds its parts' documents; a part's own evaluation holds no siblings.
+- **The reference, frozen**: `follows: { part: '<instance id>', sketch: '<the sketch's stable feature id in that part>', revision: '<A7 revisionOf of that part's document when linked>' }`.
+  - It names the feature by stable id (FR's other references use indices within one document; across documents only ids survive the other part's reordering).
+- **Live**: the geometry is the part's sketch now, lifted and placed by the instance's placement now, at every evaluation of the base. A change in the other part reaches the base on the base's next evaluation: the evaluation memo's key already includes the instances' documents (evaluatedPart), and the studio's `evaluated` memo will also follow the followed parts (App.tsx's core memo, as FRc did for the section library).
+- **Staleness**: the geometry is always current. The pinned `revision` says which version the person linked. When the part's revision differs, the frame's member notes, its result and the issue list say "the followed sketch changed since it was linked (a → b)" until the person relinks (`features.edit` with the new revision, no new action). Results go stale by freshness as P2 shows, and baselines already pin each part's digest (A8.4b), so an approval sees the part changed.
+- **Refusals**, typed, naming the frames:
+  - FRAME_PART_UNKNOWN: no such placed part.
+  - FRAME_PART_FEATURE_GONE: no feature with that id in it.
+  - FRAME_SKETCH_UNKNOWN or FRAME_SKETCH_CURVED: not a straight-edged sketch. All of these at add or edit and at evaluation.
+  - FRAME_PART_IN_USE: deleting a followed part (delete_part), or deleting or replacing its sketch with a curved one through the part-scoped tools.
+- **Scope, and the one assembly-wide change, said before building**:
+  - v1 lets **the base part's frames** follow placed parts' sketches. That needs no assembly-wide evaluation change (P5: the base already holds its parts).
+  - A frame **inside a placed part** following a sibling would need each part evaluated with its siblings, an assembly-wide evaluation change (parts are evaluated alone today: describe, placedBodies, the mates' solve). Refused there, FRAME_PART_SCOPE, until decided.
+  - A sub-assembly's nested parts are reached through their instance only (`part` is a top-level instance id).
+- **Next**: FRf2 itself, after the coordinator's reply on this S0.
+
+## O124 — D155 on the drawing and the A3 query: fit callouts with their limits; fit_clearance (2026-10-22)
+
+The kernel lane's request (D139 puts these with the outer lane), queued after FRg and before FRf2's build.
+
+- **Fit callouts** (`drawing/fits.ts`):
+  - A diameter dimension on a face that carries a tolerance class (`doc.fits.faces`, the kernel lane's D155) reads the class and its limits from the user's tables at the dimension's own size. For example `Ø12 H7 (+0.018/0)`, or for a declared hole–shaft pair `Ø12 H7/g6 (+0.018/0, -0.006/-0.017)`. The limits come from the kernel's `lookupFit` / `fitLimits` and are written as the row gives them.
+  - `(est.)` follows when a row is an estimate.
+  - The deviations are in mm with an ASCII sign (+0.025, 0, -0.009), as the PDF's fonts show.
+  - The size and a hole's callout come first: `Ø12 THRU H7/g6 …`.
+  - The callout function now also takes the measured diameter (`(edge, diameterMM?)`, compatible with every caller). The issue checks that compare hole callouts call it without one, so they are unchanged.
+- **A class with no row** for that size keeps its class alone in the callout and is a typed issue in the drawing's list: `FIT_ROW_MISSING` (error), with the kernel's FIT_TABLE_MISS saying what to load. Never a guessed limit.
+  - The model's evaluation already refuses such a document (D155). The drawing builds from the bodies' B-reps without that check, so the issue is what the drawing shows when a row is gone.
+- **`fit_clearance`** (v2 `query.fit_clearance`, read only) takes either form:
+  - The hole and shaft faces, with their classes as set or given: the limits, the least and greatest clearance (µm, negative for interference), the kind, and the kernel's `checkFit` at MMC and LMC (overlaps, the axes' offset, the margin, `contradicted`).
+  - Two classes and a size: the limits.
+  - A class with no row is refused, typed (FIT_TABLE_MISS). A face with no class is FIT_FACE.
+  - Recorded in tools-v2.json (compatible). Per turn 22,211 (+168 over 22,043).
+- **Closed forms** (package test fit-drawing, 3 tests; the kernel test's tube and pin):
+  - The callouts and deviations.
+  - The bore's auto diameter on the sheet reads its fit, with no issue. Its class changed to H8 (no row), it reads H8/g6 and raises FIT_ROW_MISSING.
+  - fit_clearance on the faces: clearance from 0 − (−6) = 6 to 18 − (−17) = 35 µm, limits 12 … 12.018 and 11.983 … 11.994, clear at MMC. The classes at Ø12 give the same. At Ø30, FIT_TABLE_MISS. The pin 0.01 off the axis is contradicted at MMC (an undeclared pair, since a declared one refuses the evaluation).
+  - The read-tools contract test runs it.
+- **Flow step "D155 fit callouts …"** follows the kernel lane's Fits step: auto-dimensioned on A3, the bore's callout in the SVG, no FIT_ROW_MISSING.
