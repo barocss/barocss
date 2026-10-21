@@ -5490,3 +5490,21 @@ S1 is built.
   - the overrides: the key made (no line), the shaft bought (a line, `override`);
   - a ring with no row gives an estimate line.
 - **No flow step for S1**: the studio shows no BOM yet, and S2's element table is where the lines become visible. The browser side is covered by the verify's machine-element and library steps, which carry the new field over the worker's wire.
+
+## O144 — R12c on drawings and in the BOM, S2: the element, spring and gland tables (2026-10-22)
+
+S2 of O142, built on S1's data (`BodyResult.element`, `elementLines`). There are three new table sources (drawing/elementTables.ts) in `TABLE_SOURCES`. Column titles are our own words; every value is the model's (the user's rows, the kernel's report).
+
+- **`elements`** (MACHINE ELEMENTS): item, kind, size [mm], row, source, bought (made / bought, "(set)" when the person's override decided it), est., mass [g]. Under it, each estimate's why, and "Sizes and rows are yours (none built in)…".
+- **`springs`** (SPRING DATA): one row a spring, with type, wire Ø, mean Ø, outer Ø, active and total coils, free (or body) length, pitch, solid height, ends or hooks, hand, and rate (— with no G). Under it, each spring's G and E with "an estimate" where flagged, and a torsion spring's rate in N·mm/°.
+- **`glands`** (O-RING GLANDS): kind, ring, the ring's ID and section, groove Ø, width and depth, stretch, squeeze (free and stretched) and fill (of the stretched section, as it is judged). Under it, the ranges judged by with their source and "(an estimate)", an estimate row, and each warning.
+- A part without the kind: the source's error, drawn NOT AVAILABLE with why.
+- **The studio**: the Drawing workspace offers Element list, Spring data and Gland table checkboxes, each only when the part has that kind (the element list also when a node is marked bought).
+- **Tests** (`test/element-tables.test.ts`):
+  - the shaft-parts scene's element list exactly, and a spring's estimate marked and said;
+  - the default spring's data equal to D153's figures: wire 2, mean 20, outer 22, 6 active of 8, free length 34.00, pitch 5, solid 16.01, closed-ground, right hand, rate Gd⁴/(8D³n) = 3.304;
+  - the piston gland equal to D159's S0: 214, 24.99 × 3.53, groove Ø25.5 × 4.7 × 2.8, stretch 2.0, squeeze 20.7 (20.0 stretched), fill 73.1 % stretched, Fictiv's ranges an estimate, the fill warning;
+  - NOT AVAILABLE for each on a box;
+  - the tables' texts in the SVG, the PDF and the DXF.
+  `drawing-table.test`'s list of sources is updated.
+- **Flow step** "element tables (O144)…": a spring from the palette, its A3 drawing with both tables by their checkboxes, no gland table offered, the SVG holding them and the estimate line.

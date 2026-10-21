@@ -3854,6 +3854,28 @@ try {
   });
 
 
+
+  // ---- O144: machine elements' drawing tables — the spring data and the element list ---------------------------------------
+  await check('element tables (O144): a spring from the palette; on its A3 drawing the Spring data and Element list tables by their checkboxes — in the SVG', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await press(' '); await page.locator('.palette input').fill('Spring'); await page.locator('.palette input').press('Enter');
+    await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'spring' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForSelector('[aria-label="Spring data table"]', { timeout: 20000 });
+      assert.equal(await page.locator('[aria-label="Gland table"]').count(), 0, 'no gland, no gland table offered');
+      await page.check('[aria-label="Spring data table"]'); await page.check('[aria-label="Element list table"]');
+      await page.waitForFunction(() => { const t = window.__studioDrawing?.()?.tables; return t?.length === 2 && t.every(x => !x.error); }, null, { timeout: 30000 });
+      await snap('element-tables');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      for (const t of ['SPRING DATA', 'MACHINE ELEMENTS', 'WIRE Ø [mm]', 'compression', 'closed-ground', 'bought']) assert.ok(svg.includes(`>${t}</text>`), `SVG: ${t}`);
+      assert.ok(svg.includes('>n0: its shear modulus G is an estimate</text>'), 'the estimate said under the element list');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   // ---- O139: retaining-ring rows loaded in the Library panel (none built in) ---------------------------------------------
   await check('ring rows (O139): a row loaded in the Library panel; a ring on it via the chat cites it, no estimate; the used row stays', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
