@@ -33,6 +33,8 @@ const READ: Record<string, JsonSchema | null> = {
   check_spec: o({ model_hash: str, summary: obj, failures: arr, unknowns: arr, policy: obj, validation: obj }, ['model_hash', 'summary']),
   // (FR4a, D127: a frame's cut list.)
   cut_list: o({ rows: arr, totals: obj, densities: str, nesting: obj, csv: str }, ['rows', 'totals', 'densities', 'nesting']),
+  // (D155: a hole–shaft fit.)
+  fit_clearance: o({ kind: str, clearanceMinUM: num, clearanceMaxUM: num, estimate: bool, hole: obj, shaft: obj, offsetMM: num, lengthMM: num, marginMM: num, mmc: obj, lmc: obj, contradicted: bool, message: str }, ['kind', 'clearanceMinUM', 'clearanceMaxUM', 'estimate', 'hole', 'shaft']),
   // (FRd1, O118: a frame's welds.)
   weld_list: o({ joints: arr, totals: obj, orphaned: arr, notes: arr }, ['joints', 'totals', 'orphaned', 'notes']),
   diff: o({ from: str, to: str, diff: obj }, ['diff']),

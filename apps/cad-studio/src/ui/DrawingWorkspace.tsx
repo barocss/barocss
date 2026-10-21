@@ -3,6 +3,7 @@
 // points, or one straight edge, then where the dimension line goes), Diameter and Radius (a circle
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
+import { fitMiss, withFit } from '@barocss/cad-model/drawing/fits';
 import { weldList } from '@barocss/cad-model/frames/welds';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
@@ -112,7 +113,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const cut = settings.section && section?.ok ? section : undefined;
   const layout = useMemo(() => views && layoutSheet(views, settings, cut?.projection), [views, settings, cut]);
   // Diameter dimensions on a hole read as its callout (count, size or thread, depth, counterbore or countersink).
-  const callout = useCallback((edge: string) => holeCallout(doc.nodes, edge), [doc.nodes]);
+  // (D155: a diameter on a face with a fit class shows the class and its limits; a class with no row, an issue.)
+  const callout = useMemo(() => withFit(doc, (edge: string) => holeCallout(doc.nodes, edge)), [doc.nodes, doc.fits]);
+  const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
   const threads = useMemo(() => threadsOf(doc.nodes), [doc.nodes]);
   // (Each sourced table's content once a document (O49): the bend table from the bodies' flat patterns.)
   const sourced = useMemo(() => new Map((settings.tables ?? []).filter(x => x.from).map(x => [x.id, tableContent(x, { doc, ...(bodies ? { bodies } : {}) })])), [settings.tables, doc, bodies]);
@@ -123,12 +126,12 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const weldJoints = useMemo(() => settings.weldSymbols && bodies ? weldList(doc, bodies).joints : undefined, [settings.weldSymbols, doc, bodies]);
   const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints }, cut), [views, layout, settings, title, cut, callout, threads, tableContentOf, weldJoints]);
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
-  const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
+  const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout, fitMiss: fitMissOf }) : [], [views, layout, settings, sheet, callout, fitMissOf]);
   // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.
   const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
   const acceptEvery = () => {
     if (!views) return;
-    const r = acceptAll({ views, settings, callout, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(cut ? { section: cut } : {}) });
+    const r = acceptAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(cut ? { section: cut } : {}) });
     onChange(r.settings);
     const est = r.accepted.filter(x => x.estimate).length;
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
@@ -136,7 +139,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const fixIssue = (x: DrawingIssue) => { if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout }, x.fix)); };
   const fixEvery = () => {
     if (!views) return;
-    const r = fixAll({ views, settings, callout, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(cut ? { section: cut } : {}) });
+    const r = fixAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(cut ? { section: cut } : {}) });
     onChange(r.settings);
     onToast({ title: `${r.applied.length} fix${r.applied.length === 1 ? '' : 'es'} applied`, hint: r.left.length ? `${r.left.length} issue${r.left.length === 1 ? '' : 's'} left: ${r.left[0].message}` : 'The drawing has no issues.', detail: r.left.slice(1).map(x => x.message).join('\n') });
   };
@@ -359,7 +362,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, section: turned.settings.section && r.section?.ok ? r.section : undefined };
     }
-    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, callout, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(base.section ? { section: base.section } : {}) });
+    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(base.section ? { section: base.section } : {}) });
     onChange(next);
     const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts;
     const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';

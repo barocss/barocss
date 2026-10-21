@@ -7,7 +7,7 @@ import { editFields } from '../app/editFields';
 import { measureBetween, measureItem, type MeasurePick } from '../app/measure';
 import { featureLabel, prefixDoc, withNode, type DocPlane, type ModelNode, type FrameStockRow, type StockRow, type StudioDoc } from '../engine/doc';
 type Vec3T = [number, number, number];
-import type { BodyResult, EvalResult } from '../engine/evaluate';
+import { partBreps, type BodyResult, type EvalResult } from '../engine/evaluate';
 import type { ToolDefinition } from './api';
 import { CAGE_MUTATORS, CAGE_TOOL_NAMES, CAGE_TOOLS, runCageTool } from './cageTools';
 import { DRAWING_CHANGES, DRAWING_TOOL_NAMES, DRAWING_TOOLS, runDrawingTool } from './drawing';
@@ -36,7 +36,7 @@ import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, approvalOf, riskOf,
 import { checkRequirement, checkSpec, expectedOf, modelHash, newPolicy, runCheck, updatePolicy, validateSuite, type Policy, type Requirement } from './spec';
 import { captureSignatures, refreshSignatures, verifyReferences } from '../engine/references';
 import { rememberedEvaluate } from '../engine/evalMemo';
-import { cutListCsv } from '@barocss/cad';
+import { checkFit, cutListCsv, fitLimits, FitError, type FitLimits } from '@barocss/cad';
 import { partCutList } from '../app/cutList';
 import { nestCutList } from '../frames/nesting';
 import { editSections } from '../frames/sections';
@@ -208,6 +208,10 @@ function checkValues(fields: Field[], values: Values): string | null {
   return null;
 }
 
+/** D155: a fit's limits as a result shows them (each row's deviations, sizes, table and row, estimate and source). */
+const fitView = (l: FitLimits) => ({ kind: l.kind, clearanceMinUM: l.clearanceMinUM, clearanceMaxUM: l.clearanceMaxUM, estimate: l.estimate,
+  hole: { class: l.hole.class, nominalMM: l.hole.nominalMM, upperUM: l.hole.upperUM, lowerUM: l.hole.lowerUM, minMM: l.hole.minMM, maxMM: l.hole.maxMM, table: l.hole.table, row: l.hole.row, estimate: l.hole.estimate, ...(l.hole.source ? { source: l.hole.source } : {}) },
+  shaft: { class: l.shaft.class, nominalMM: l.shaft.nominalMM, upperUM: l.shaft.upperUM, lowerUM: l.shaft.lowerUM, minMM: l.shaft.minMM, maxMM: l.shaft.maxMM, table: l.shaft.table, row: l.shaft.row, estimate: l.shaft.estimate, ...(l.shaft.source ? { source: l.shaft.source } : {}) } });
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const strings = (v: unknown) => Array.isArray(v) ? v.map(String) : [];
 /** A list of names or selectors (objects kept as they are). */
@@ -1016,6 +1020,28 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       if (!w.joints.length && !w.orphaned.length) return fail(state, 'The part has no weld joints: frame members meeting at a corner, a butt or a face.');
       return { state, content: json({ joints: w.joints.map((j, k) => ({ label: `W${k + 1}`, ...j })), totals: w.totals, orphaned: w.orphaned, notes: w.notes }), isError: false, changed: false, summary: `${w.totals.count} welds, ${w.totals.seamMM} mm of seam` };
     }
+    case 'fit_clearance': {
+      // (D155: a hole and a shaft — two faces with their classes, or two classes at a size — their limits from the user's
+      // tables and, for faces, the pair at MMC and LMC by the kernel's checkFit. Read only; a class with no row says what to load.)
+      const tables = state.doc.fits?.tables ?? [];
+      try {
+        if (typeof args.hole === 'string' && typeof args.shaft === 'string') {
+          const classOfFace = (f: string) => state.doc.fits?.faces?.find(x => x.face === f || x.face === f.replace(/#\d+$/, ''))?.class;
+          const hc = typeof args.hole_class === 'string' ? args.hole_class : classOfFace(args.hole), sc = typeof args.shaft_class === 'string' ? args.shaft_class : classOfFace(args.shaft);
+          if (!hc || !sc) return fail(state, `[FIT_FACE] ${!hc ? args.hole : args.shaft} carries no tolerance class: give hole_class / shaft_class, or set the face's class first.`);
+          const breps = partBreps(state.doc), find = (name: string) => { for (const b of breps) { const f = b.brep.faces.find(x => x.name === name) ?? b.brep.faces.find(x => x.name?.replace(/#\d+$/, '') === name); if (f) return { brep: b.brep, face: f.id }; } return null; };
+          const h = find(args.hole), sh = find(args.shaft);
+          if (!h || !sh) return fail(state, `[FIT_FACE] no face ${!h ? args.hole : args.shaft} on the part (names from query.summary).`);
+          const c = checkFit(tables, { ...h, class: hc }, { ...sh, class: sc });
+          return { state, content: json({ ...fitView(c.limits), offsetMM: c.offsetMM, lengthMM: c.lengthMM, marginMM: c.marginMM, mmc: c.mmc, lmc: c.lmc, contradicted: c.contradicted, message: c.message }), isError: false, changed: false, summary: `${hc}/${sc}: ${c.limits.kind}, ${c.limits.clearanceMinUM} … ${c.limits.clearanceMaxUM} µm` };
+        }
+        if (typeof args.hole_class === 'string' && typeof args.shaft_class === 'string' && typeof args.size === 'number') {
+          const l = fitLimits(tables, args.hole_class, args.shaft_class, args.size);
+          return { state, content: json(fitView(l)), isError: false, changed: false, summary: `${args.hole_class}/${args.shaft_class} at Ø${args.size}: ${l.kind}` };
+        }
+        return fail(state, 'Give hole and shaft (faces; their classes, or hole_class and shaft_class), or hole_class, shaft_class and size (mm).');
+      } catch (e) { if (e instanceof FitError) return fail(state, e.message); throw e; }
+    }
     case 'mass_properties': {
       const keys = strings(args.bodies), shown = keys.length ? state.bodies.filter(b => keys.includes(b.key)) : state.bodies;
       if (keys.length && shown.length !== keys.length) return fail(state, `No body ${keys.filter(k => !state.bodies.some(b => b.key === k)).join(', ')} (bodies: ${state.bodies.map(b => b.key).join(', ')}).`);
@@ -1367,6 +1393,11 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     name: 'weld_list',
     description: 'The frame\'s weld joints read off the geometry (FRd1): {joints [{label W1…, id, kind mitre | butt | on-face, body, end, meets, face, seamMM (the end face\'s outer loop), seamBasis exact | mesh, innerLoop {mm, welded: yours, null when not said} | null, weldMM, at, centre, weld {kind, sizeMM, sizeBasis set | estimate | none, allRound, notes?}}], totals {count, seamMM}, orphaned (records whose joint is gone), notes}. Say estimated sizes are estimates.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'fit_clearance',
+    description: 'A hole–shaft fit from the user\'s fit tables (none built in): hole and shaft faces (their classes as set, or hole_class / shaft_class) — the limits, the least and greatest clearance (µm, negative interference) and kind, and the pair at MMC and LMC by the kernel (overlap, the axes\' offset, the margin; contradicted when a clearance fit meets at MMC); or hole_class, shaft_class and size (mm) alone — the limits. A class with no row for the size says what to load (FIT_TABLE_MISS). Say an estimate row is an estimate.',
+    input_schema: { type: 'object', properties: { hole: { type: 'string' }, shaft: { type: 'string' }, hole_class: { type: 'string' }, shaft_class: { type: 'string' }, size: { type: 'number' } }, additionalProperties: false },
   },
   {
     name: 'mass_properties',

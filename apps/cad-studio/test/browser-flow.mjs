@@ -3719,6 +3719,24 @@ try {
     await snap('fit-pin');
   });
 
+  await check('D155 fit callouts: the bore and pin left by the Fits step, auto-dimensioned on A3 — the bore\'s diameter reads Ø12 H7/g6 with both rows\' limits, flagged an estimate, in the SVG; no FIT_ROW_MISSING', async () => {
+    const fs = await import('node:fs');
+    if (!(await page.evaluate(() => window.__studioDoc.fits?.pairs?.length === 1))) throw new Error('the Fits step left no pair');
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDrawing?.()?.dimensions ?? []).some(d => /H7\/g6/.test(d.text ?? '')), null, { timeout: 30000 });
+      const dims = await page.evaluate(() => window.__studioDrawing().dimensions.map(d => d.text));
+      assert.ok(dims.some(t => /Ø12.* H7\/g6 \(\+0\.018\/0, -0\.006\/-0\.017\) \(est\.\)$/.test(t ?? '')), JSON.stringify(dims));
+      const issues = await page.evaluate(() => window.__studioDrawing().issues);
+      assert.ok(!issues.some(i => i.code === 'FIT_ROW_MISSING'), JSON.stringify(issues));
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes('H7/g6 (+0.018/0, -0.006/-0.017) (est.)'), 'in the SVG');
+      await snap('d155-fit-callout');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
   await check('FRc the section library in the Library panel: a row, a frame on it via the chat (133 200 mm³), the row edited (172 800), a used row kept (O117)', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });

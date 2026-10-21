@@ -46,6 +46,7 @@ export const GROUPS: Record<string, Group> = {
       section: ['section', 'axis, at'],
       wall: ['wall_thickness', 'body?, below?'],
       draft: ['draft', 'body?, pull?, min_deg?'],
+      fit_clearance: ['fit_clearance', 'hole?, shaft?, hole_class?, shaft_class?, size? — a hole–shaft fit\u2019s limits and clearance from your fit tables (D155)'],
       welds: ['weld_list', '— the frame\'s weld joints, seams from the geometry, sizes yours or estimated (FRd1)'],
       cutlist: ['cut_list', 'csv? — a frame\u2019s members to cut: rows of identical ones, lengths, end cuts, mass (FR4a); nested into the stock lengths (FRb)'],
       render: ['render_views', 'highlight?, section? — pictures of the part'],

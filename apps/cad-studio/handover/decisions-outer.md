@@ -5050,3 +5050,27 @@ The coordinator asked for this as its own stage (D122's "a frame cannot follow a
   - A frame **inside a placed part** following a sibling would need each part evaluated with its siblings, an assembly-wide evaluation change (parts are evaluated alone today: describe, placedBodies, the mates' solve). Refused there, FRAME_PART_SCOPE, until decided.
   - A sub-assembly's nested parts are reached through their instance only (`part` is a top-level instance id).
 - **Next**: FRf2 itself, after the coordinator's reply on this S0.
+
+## O124 — D155 on the drawing and the A3 query: fit callouts with their limits; fit_clearance (2026-10-22)
+
+The kernel lane's request (D139 puts these with the outer lane), queued after FRg and before FRf2's build.
+
+- **Fit callouts** (`drawing/fits.ts`):
+  - A diameter dimension on a face that carries a tolerance class (`doc.fits.faces`, the kernel lane's D155) reads the class and its limits from the user's tables at the dimension's own size. For example `Ø12 H7 (+0.018/0)`, or for a declared hole–shaft pair `Ø12 H7/g6 (+0.018/0, -0.006/-0.017)`. The limits come from the kernel's `lookupFit` / `fitLimits` and are written as the row gives them.
+  - `(est.)` follows when a row is an estimate.
+  - The deviations are in mm with an ASCII sign (+0.025, 0, -0.009), as the PDF's fonts show.
+  - The size and a hole's callout come first: `Ø12 THRU H7/g6 …`.
+  - The callout function now also takes the measured diameter (`(edge, diameterMM?)`, compatible with every caller). The issue checks that compare hole callouts call it without one, so they are unchanged.
+- **A class with no row** for that size keeps its class alone in the callout and is a typed issue in the drawing's list: `FIT_ROW_MISSING` (error), with the kernel's FIT_TABLE_MISS saying what to load. Never a guessed limit.
+  - The model's evaluation already refuses such a document (D155). The drawing builds from the bodies' B-reps without that check, so the issue is what the drawing shows when a row is gone.
+- **`fit_clearance`** (v2 `query.fit_clearance`, read only) takes either form:
+  - The hole and shaft faces, with their classes as set or given: the limits, the least and greatest clearance (µm, negative for interference), the kind, and the kernel's `checkFit` at MMC and LMC (overlaps, the axes' offset, the margin, `contradicted`).
+  - Two classes and a size: the limits.
+  - A class with no row is refused, typed (FIT_TABLE_MISS). A face with no class is FIT_FACE.
+  - Recorded in tools-v2.json (compatible). Per turn 22,211 (+168 over 22,043).
+- **Closed forms** (package test fit-drawing, 3 tests; the kernel test's tube and pin):
+  - The callouts and deviations.
+  - The bore's auto diameter on the sheet reads its fit, with no issue. Its class changed to H8 (no row), it reads H8/g6 and raises FIT_ROW_MISSING.
+  - fit_clearance on the faces: clearance from 0 − (−6) = 6 to 18 − (−17) = 35 µm, limits 12 … 12.018 and 11.983 … 11.994, clear at MMC. The classes at Ø12 give the same. At Ø30, FIT_TABLE_MISS. The pin 0.01 off the axis is contradicted at MMC (an undeclared pair, since a declared one refuses the evaluation).
+  - The read-tools contract test runs it.
+- **Flow step "D155 fit callouts …"** follows the kernel lane's Fits step: auto-dimensioned on A3, the bore's callout in the SVG, no FIT_ROW_MISSING.
