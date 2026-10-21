@@ -2,12 +2,12 @@
 // min(k − G, k + G)), cut to the cavity (φ_c = depth − t) and kept off the drains, meshed by marching tetrahedra into a
 // separate facet body named `lattice` — the shell's B-rep unchanged (option B: a lattice mesh is far past the kernel's
 // mesh Boolean). Its loose fragments dropped; each empty region it leaves (a sheet gyroid's two labyrinths) drained.
-import { meshVolume } from '@barocss/cad';
+import { marchingTetrahedra, meshVolume, VOXEL_CORNERS, VOXEL_TETRAHEDRA, voxelNode } from '@barocss/cad';
 import { withNode, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
 import { evaluatePart, type BodyResult } from '../engine/evaluate';
 import { positionsArray } from '../engine/blobs';
 import type { Vec3 } from '../engine/mesh';
-import { CORNER, TETS, cavityField, depthAt, depthBins, marchingTetrahedra, meshPieces, nodeAt, putNow, type DepthBins, type Grid } from './hollow';
+import { cavityField, depthAt, depthBins, meshPieces, putNow, type DepthBins, type Grid } from './hollow';
 
 export type LatticeCode = 'NOT_HOLLOW' | 'BAD_VALUES' | 'GRID_TOO_FINE' | 'NO_LATTICE' | 'UNDRAINED';
 const MAX_DRAIN_ROUNDS = 64;
@@ -59,7 +59,7 @@ const ACTIVE_BAND_UP = 0, ACTIVE_BAND_DOWN = 1, ACTIVE_WALL = 2, ACTIVE_DRAIN = 
 export function latticeField(cav: Grid, o: Vec3, L: number, k: number, columns: readonly Column[], up: number): { psi: Float64Array; active: Uint8Array } {
   const N = cav.phi.length, psi = new Float64Array(N), active = new Uint8Array(N), [a, b] = [0, 1, 2].filter(x => x !== up);
   for (let id = 0; id < N; id++) {
-    const p = nodeAt(cav, id), G = gyroid(p, o, L);
+    const p = voxelNode(cav, id), G = gyroid(p, o, L);
     let v = k - G, act = ACTIVE_BAND_UP;
     if (k + G < v) { v = k + G; act = ACTIVE_BAND_DOWN; }
     if (cav.phi[id] < v) { v = cav.phi[id]; act = ACTIVE_WALL; }
@@ -79,9 +79,9 @@ export const weldTau = (size: number, L: number) => 10 * Math.max(1e-9, size * 1
 /** The tetrahedra a surface ψ = 0 crosses whose corners' least terms differ (O57's ε_mix count). */
 export function mixedTetrahedra(g: Grid, psi: Float64Array, active: Uint8Array): number {
   let n = 0; const ids = new Int32Array(4);
-  for (let k = 0; k + 1 < g.n[2]; k++) for (let j = 0; j + 1 < g.n[1]; j++) for (let i = 0; i + 1 < g.n[0]; i++) for (const tet of TETS) {
+  for (let k = 0; k + 1 < g.n[2]; k++) for (let j = 0; j + 1 < g.n[1]; j++) for (let i = 0; i + 1 < g.n[0]; i++) for (const tet of VOXEL_TETRAHEDRA) {
     let pos = 0;
-    for (let q = 0; q < 4; q++) { const c = CORNER[tet[q]]; ids[q] = ((k + c[2]) * g.n[1] + (j + c[1])) * g.n[0] + (i + c[0]); if (psi[ids[q]] > 0) pos++; }
+    for (let q = 0; q < 4; q++) { const c = VOXEL_CORNERS[tet[q]]; ids[q] = ((k + c[2]) * g.n[1] + (j + c[1])) * g.n[0] + (i + c[0]); if (psi[ids[q]] > 0) pos++; }
     if (pos === 0 || pos === 4) continue;
     if (active[ids[0]] !== active[ids[1]] || active[ids[0]] !== active[ids[2]] || active[ids[0]] !== active[ids[3]]) n++;
   }
@@ -98,25 +98,25 @@ export function emptyRegions(g: Grid, psi: Float64Array, active: Uint8Array, up:
     label[s] = c; stack.push(s);
     while (stack.length) {
       const v = stack.pop()!; members.push(v); if (active[v] === ACTIVE_DRAIN) drained = true;
-      const at = nodeAt(g, v); if (at[up] < low) low = at[up];
+      const at = voxelNode(g, v); if (at[up] < low) low = at[up];
       const i = v % g.n[0], r = (v - i) / g.n[0], j = r % g.n[1], kk = (r - j) / g.n[1], ijk = [i, j, kk];
       for (let ax = 0; ax < 3; ax++) for (let d = -1; d <= 1; d += 2) { const q = ijk[ax] + d; if (q < 0 || q >= g.n[ax]) continue; const w = v + d * step[ax]; if (empty(w) && label[w] < 0) { label[w] = c; stack.push(w); } }
     }
     let sa = 0, sb = 0, nf = 0;
-    for (const v of members) { const at = nodeAt(g, v); if (at[up] <= low + 1e-9) { sa += at[a]; sb += at[b]; nf++; } }
+    for (const v of members) { const at = voxelNode(g, v); if (at[up] <= low + 1e-9) { sa += at[a]; sb += at[b]; nf++; } }
     // (Its drain: of its floor's nodes, the one nearest the floor's centroid whose column is clear of every other by 2r + h,
     // with a hole of its own; failing that, its lowest node whose column overlaps another's by h — joined to that drain, no
     // hole (two holes too near meet along an edge in the B-rep, or one inside another cuts nothing); failing both, the
     // floor's nearest the centroid, with a hole.)
     let best = -1, bestD = Infinity, join = -1, joinZ = Infinity;
     for (const v of members) {
-      const at = nodeAt(g, v); let gap = Infinity; for (const c of columns) gap = Math.min(gap, Math.hypot(at[a] - c.a, at[b] - c.b));
+      const at = voxelNode(g, v); let gap = Infinity; for (const c of columns) gap = Math.min(gap, Math.hypot(at[a] - c.a, at[b] - c.b));
       if (gap <= 2 * r - g.h) { if (at[up] < joinZ) { joinZ = at[up]; join = v; } continue; }
       if (at[up] > low + 1e-9 || gap < 2 * r + g.h) continue;
       const dd = (at[a] - sa / nf) ** 2 + (at[b] - sb / nf) ** 2; if (dd < bestD) { bestD = dd; best = v; }
     }
     let floorBest = members[0], floorD = Infinity;
-    if (best < 0 && join < 0) for (const v of members) { const at = nodeAt(g, v); if (at[up] > low + 1e-9) continue; const dd = (at[a] - sa / nf) ** 2 + (at[b] - sb / nf) ** 2; if (dd < floorD) { floorD = dd; floorBest = v; } }
+    if (best < 0 && join < 0) for (const v of members) { const at = voxelNode(g, v); if (at[up] > low + 1e-9) continue; const dd = (at[a] - sa / nf) ** 2 + (at[b] - sb / nf) ** 2; if (dd < floorD) { floorD = dd; floorBest = v; } }
     out.push({ nodes: members.length, lowest: best >= 0 ? best : join >= 0 ? join : floorBest, drained, hole: best >= 0 || join < 0 });
   }
   return out;
@@ -150,7 +150,7 @@ export function snapToWall(mesh: { positions: number[]; edges: Float64Array }, g
     const key = mesh.edges[v], e0 = Math.floor(key / N), e1 = key - e0 * N, [i, x] = psi[e0] > 0 ? [e0, e1] : [e1, e0];
     // (The outside node within the wall (its depth computed, ≤ t): the depth is decreasing through t along the edge.)
     if (!(g.phi[x] <= 0 && g.phi[x] > -t)) continue;
-    const pi = nodeAt(g, i), px = nodeAt(g, x);
+    const pi = voxelNode(g, i), px = voxelNode(g, x);
     for (let q = 0; q < 3; q++) { PI3[q] = pi[q]; PO3[q] = px[q]; }
     let lo = 0, hi = 1;
     for (let it = 0; it < 52; it++) { const m = (lo + hi) / 2; if (depthAt(d, pi[0] + m * (px[0] - pi[0]), pi[1] + m * (px[1] - pi[1]), pi[2] + m * (px[2] - pi[2])) - t > 0) lo = m; else hi = m; }
@@ -203,7 +203,7 @@ export function planLattice(doc: StudioDoc, bodies: readonly BodyResult[], o: La
     const undrained = emptyRegions(cav, field.psi, field.active, up, columns, r0).filter(x => !x.drained);
     if (!undrained.length) break;
     let u = undrained[0]; for (const x of undrained) if (x.nodes > u.nodes) u = x;
-    const p = nodeAt(cav, u.lowest);
+    const p = voxelNode(cav, u.lowest);
     columns.push({ a: p[a], b: p[b], top: p[up], r: r0 });
     if (u.hole) added.push({ at: p, depth: p[up] - floor }); else joined++;
     field = latticeField(cav, origin, L, k, columns, up);

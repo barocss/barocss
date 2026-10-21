@@ -1,4 +1,4 @@
-import { meshVolume } from '@barocss/cad';
+import { marchingTetrahedra, meshVolume, voxelInsideFlags } from '@barocss/cad';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluatePart, stepFor, type BodyResult } from '@barocss/cad-model/engine/evaluate';
@@ -6,7 +6,7 @@ import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { interference, massProperties } from '@barocss/cad-model/chat/analysis';
 import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
-import { cavityField, insideFlags, marchingTetrahedra, planHollow } from '@barocss/cad-model/print/hollow';
+import { cavityField, planHollow } from '@barocss/cad-model/print/hollow';
 import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, LatticeError, mixedTetrahedra, planLattice, weldTau } from '@barocss/cad-model/print/lattice';
 
 // AM7b (O57): a gyroid lattice infill, a separate mesh body inside an exactly hollowed part. Its solid fraction against the
@@ -54,7 +54,7 @@ test('filled: the solid one component, nothing loose; every empty region drained
   // solid one 6-connected component; every empty voxel reached from outside.)
   const hc = 0.25, lo = shell.mesh.bounds.min, hi = shell.mesh.bounds.max, o: [number, number, number] = [lo[0] - 0.8, lo[1] - 0.87, lo[2] - 0.91], n = [0, 1, 2].map(q => Math.ceil((hi[q] - o[q] + 0.8) / hc) + 1);
   const solid = new Uint8Array(n[0] * n[1] * n[2]);
-  for (const b of [shell, ...lats]) { const P = b.mesh.positions, I = b.mesh.indices, T = new Float64Array(I.length * 3); for (let j = 0; j < I.length; j++) { T[j * 3] = P[I[j] * 3]; T[j * 3 + 1] = P[I[j] * 3 + 1]; T[j * 3 + 2] = P[I[j] * 3 + 2]; } const f = insideFlags(T, o, hc, n); for (let s = 0; s < f.length; s++) solid[s] |= f[s]; }
+  for (const b of [shell, ...lats]) { const f = voxelInsideFlags(b.mesh.positions, b.mesh.indices, o, hc, n); for (let s = 0; s < f.length; s++) solid[s] |= f[s]; }
   const step = [1, n[0], n[0] * n[1]], flood = (seed: number, want: number, seen: Uint8Array) => { const stack = [seed]; seen[seed] = 1; while (stack.length) { const v = stack.pop()!, i = v % n[0], r = (v - i) / n[0], j = r % n[1], kk = (r - j) / n[1], ijk = [i, j, kk]; for (let ax = 0; ax < 3; ax++) for (const d of [-1, 1]) { const q = ijk[ax] + d; if (q < 0 || q >= n[ax]) continue; const w = v + d * step[ax]; if (solid[w] === want && !seen[w]) { seen[w] = 1; stack.push(w); } } } };
   const outside = new Uint8Array(solid.length); flood(0, 0, outside);
   let voids = 0; for (let s = 0; s < solid.length; s++) if (!solid[s] && !outside[s]) voids++;

@@ -578,6 +578,8 @@ export { meshClearance, type MeshClearance, type MeshClearanceOptions } from './
 export { closestPointOnSurface, surfaceSeedGrid, surfaceD1Near, type SurfaceClosestPoint, type SurfaceClosestOptions, type SurfaceSeedGrid } from './surface-closest.js';
 // K5 (D144): section properties of polygons, a symmetric 3 × 3 eigen solver, a mesh's volume.
 export { polygonSectionProperties, symmetricEigen3, symmetricEigen3InPlace, meshVolume, type SectionProperties, type Matrix3, type Vector3 } from './section-properties.js';
+// K6 (D145): a mesh on a voxel grid (inside flags, capped depth) and marching tetrahedra.
+export { voxelInsideFlags, voxelDepth, marchingTetrahedra, voxelNode, VOXEL_CORNERS, VOXEL_TETRAHEDRA, type VoxelField, type VoxelPoint } from './voxel-field.js';
 // K1 (D140): generic convex geometry moved down from the studio's robot track.
 export { convexHull, HullError, type ConvexHull, type HullErrorCode } from './convex-hull.js';
 export { convexDistance } from './convex-distance.js';

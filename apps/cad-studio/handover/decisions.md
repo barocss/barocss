@@ -7904,3 +7904,39 @@ Track K's fifth step (the PKG design note's G10, G11 and G8's `meshVolume`). Thr
 - Studio: tsc clean; eslint on the changed tests 0 errors (the engine probe's two console warnings, as before); the suite 767/768 with the known `todo` (O80), 0 fail.
 - The full browser flow, on its own: 215/215, 696 s.
 - RB: in the rows commit after this one.
+
+## D145 — K6: a mesh on a voxel grid and marching tetrahedra; the hollowing's brute-force ray on the K2 tree (2026-10-21)
+
+Track K's sixth step (the PKG design note's G7). The studio's hollowing (`print/hollow.ts`, AM7a, O53) held the voxel core the lattice (AM7b) also uses: inside flags by ray parity along +X, a node's depth below the surface through triangles binned on a grid, the cavity field, marching tetrahedra — and a brute-force ray over every triangle for its wall measure. The generic core moves into the kernel on (positions, indices); the doc-level planning stays.
+
+**Decision:**
+- **Kernel** `src/voxel-field.ts`, exported:
+  - `voxelInsideFlags(positions, indices, o, h, n)`: the studio's ray parity along +X per grid row (triangles binned by the rows their YZ boxes cover; the crossings sorted), unchanged; its sort comparator hoisted to module level.
+  - `voxelDepth(positions, indices, o, h, n, cap, inside)`: each inside node's distance to the nearest triangle, capped — through the K2 hierarchy's bounded nearest query instead of the studio's triangle bins.
+  - `marchingTetrahedra({ o, h, n, phi })` → `{ positions, indices, edges }`: the studio's, unchanged (six tetrahedra a cell about its diagonal, vertices shared by grid edge, each nudged 1e-9 of its edge off a node, triangles turned outward); `voxelNode`, `VOXEL_CORNERS`, `VOXEL_TETRAHEDRA`; types `VoxelField`, `VoxelPoint`.
+- **In `@barocss/cad-model`:**
+  - `print/hollow.ts`: `cavityField` now the kernel's flags and depth (its grid layout, irrational offsets and MAX_NODES refusal stay); `Grid` is the kernel's `VoxelField`; `depthBins` / `depthAt` keep their names for the lattice and the chord test but are the kernel's tree and bounded nearest query; `wallOf` and `onOuter` cast through one K2 tree per mesh (`rayHit` from 1e-7, the sampled triangle skipped) instead of every triangle per ray; `enclosedVoids` takes the kernel's flags. Removed: `trianglesOf`, `insideFlags`, `dist2`, the bins, `marchingTetrahedra` and its helpers, `nodeAt`, `CORNER`, `TETS`, the private ray. `cavityComponents`, `meshPieces`, `planHollow` and the errors stay.
+  - `print/lattice.ts`: takes `marchingTetrahedra`, `voxelNode`, `VOXEL_CORNERS`, `VOXEL_TETRAHEDRA` from the kernel.
+  - Tests: `hollow` and `lattice` take `marchingTetrahedra` (and `voxelInsideFlags`, for the lattice's void check, in place of its own triangle packing) from the kernel.
+  - No tool file and nothing under `chat/**` touched (O105 is the outer lane's).
+
+**Results matched** (a before/after snapshot, not kept: on the 40 × 30 × 20 box at t 3, h 0.75 and the R 15 sphere at t 2.5, h 0.5 — the cavity field φ (hashed), its marching-tetrahedra mesh (positions and indices hashed, counts), `wallOf`, `enclosedVoids`, `depthAt` at five points; `planHollow` on the box by both routes (the reports); `planLattice` on the hollowed box (report and mesh hashed)): identical, bit for bit. On a separate 28 800-triangle mesh one node's depth of 274 625 differed in the last bit (2.4193548243607160 against …155, a tie at a triangle's region boundary).
+
+**Speed** (side by side in one process, a bumpy 28 800-triangle sphere, a 65³ grid):
+- 200 000 depth queries: the bins 2.7–3.4 s, the kernel 0.38–0.49 s (7×);
+- the field's depth over its inside nodes: 1.8–1.9 s → 0.23–0.25 s (7.8×);
+- 1200 axis-parallel rays (the wall measure's kind): 250–291 ms → 11–21 ms (about 20×);
+- the inside flags: the same code, 8–13 ms both.
+- The test files as a whole, run alone before and after: `hollow` 6.38 → 6.28 s, `chord` 3.57 → 2.48 s, `lattice` 10.84 → 12.19 s — their time is the kernel's Booleans, decimation and evaluation, not the voxel core; the lattice's difference is within this machine's load swing (load average 12–36 across the two runs).
+
+**Oracles** (`packages/barocss-cad/test/k6-voxel-field.test.mjs`, 3 tests, 0.7 s; none of them the kernel's):
+- a box: every node inside exactly when strictly within it (by coordinates), its depth the nearest face's distance capped, to 1e-12;
+- a UV sphere mesh (R 10, 48 bands): deep nodes inside, the depth R − |p| within twice the chord error, every node beyond R outside;
+- marching tetrahedra: a linear field's surface exactly on its plane (1e-12); an analytic sphere's field (r 6) meshed closed and consistently oriented (each directed edge once, with its reverse), χ = 2, every vertex used, the volume below 4/3·πr³ and its error 8.02, 2.02, 0.503 at h 0.8, 0.4, 0.2 (×3.98, ×4.01: h²); vertices on crossing edges.
+- The test fails on the previous HEAD: none of the exports existed.
+
+**Checks — T1:**
+- Kernel lint and type-check clean; `k6-voxel-field` 3/3.
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed tests 0 errors; the suite 767/768 with the known `todo` (O80), 0 fail.
+- The full kernel suite, conformance, the flow and RB not run (T1; no kernel core file touched).
