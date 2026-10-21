@@ -5101,3 +5101,14 @@ Built as the S0 (O123) froze it, and as the coordinator approved.
   - Every refusal above; deleting an unfollowed part is fine.
   - The prompt's skeleton line names the part form; per turn unchanged (22,211).
 - **Flow step "FRf2 …"**: a saved assembly with the plate, and a frame following its sketch through the chat. 4 members, the revision pinned.
+
+## O126 — a body's surface area is the kernel's exact one, not the display mesh's sum (2026-10-22)
+
+The coordinator's queue, item 1. The Selection panel's "Surface area" summed the display mesh's triangles, which reads 0.11 % low on the D84 pipe clamp (11 007 vs 11 019.5 mm²). `mass_properties`' `area_mm2` did the same.
+
+- **Now**: each body carries `areaMM2` from the kernel's `brepSurfaceArea`, over its exact surfaces as mass properties integrate them. It is computed once a B-rep (cached like the masses) with `areaBasis: 'exact'`.
+  - Where the kernel cannot integrate a body, it falls back to the display mesh's triangles with `areaBasis: 'display mesh'`, labelled "(mesh)" in the panel and as `area_basis` in mass_properties.
+- **Tests** (package surface-area, 2):
+  - A cylinder r 10 × 20 is 600π to 1e-9, with the mesh's sum below it; a box 40 × 30 × 10 is 3800; mass_properties gives the same.
+  - The D84 pipe clamp is its conformance area 11 019.522 to within 1e-4, where the mesh's sum is more than 0.05 % low.
+- App.tsx: only the props panel's area line, not the viewport or the GPU lane's paths.
