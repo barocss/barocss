@@ -2,6 +2,7 @@
 // cable hole and vents; a snap-fit box (below). The checker reads the part: the standoffs' exact cylinders on the
 // board's hole pattern, the board's component space as a keep-out checked by the studio's own keep-out check, the vents
 // by the kernel's section through their wall, the wall by the FDM profile's minimum.
+import { meshClearance } from '@barocss/cad';
 import { dispatchTool, type ChatState } from '../chat/tools';
 import { processProfile } from '../library/materials';
 import type { Call, Evaluate, Outcome, Params, Rung } from './core';
@@ -9,7 +10,6 @@ import { axisDistance, boxIs, cylindersOf, distinctCylinders, holds, parallel, p
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { ModelNode } from '../engine/doc';
-import { meshDistance } from '../robot/sweep';
 type LibraryNode = Extract<ModelNode, { kind: 'library' }>;
 
 const num = (p: Params, k: string) => p[k] as number;
@@ -134,7 +134,7 @@ export const RUNG8: Rung = {
     const need = (y - G) * b - 1e-3;
     const fit = await onCopy(doc, bodies, evaluate, [['interference', {}]]) as { pairs?: { overlap_mm3?: number }[] };
     // (Each hook clear of the box by the fit gap: its own triangles against the body they do not belong to.)
-    const gaps = hooks.map(h => { const pm = partMesh(bodies, h.n.prefix), other = bodies.find(x => !x.mesh.faces.some(f => f.name.startsWith(`${h.n.prefix}_`))); return pm && other ? meshDistance(pm.p, pm.i, other.mesh.positions, other.mesh.indices) : null; });
+    const gaps = hooks.map(h => { const pm = partMesh(bodies, h.n.prefix), other = bodies.find(x => !x.mesh.faces.some(f => f.name.startsWith(`${h.n.prefix}_`))); return pm && other ? meshClearance(pm.p, pm.i, other.mesh.positions, other.mesh.indices).distanceMM : null; });
     const flex = await studioChecks(doc, evaluate, hooks.flatMap(h => ['strain', 'yield'].map(check => ({ id: `${h.id}.${check}`, source: `${h.id} ${check}`, hard: true, check: { op: '<=', query: { fn: 'library_check', feature: h.id, check }, value: 1 } } as never))));
     return [boxIs('box', bodies, [W, D, H + tl]), holds('solids', bodies.length === 2, bodies.length, 'two solids: the box and its lid'),
       holds('hooks', hooks.length === 2 * hookYs(p).length, hooks.length, `${2 * hookYs(p).length} snap hooks`),

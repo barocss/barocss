@@ -1,11 +1,11 @@
 // IM2 (O78): the draft field — each face's draft against the pull from its exact normal, never the display mesh's (IM S0:
 // a 3° cone's mesh normals are off by 0.014°). A plane's normal is its exact plane's; a cylinder's the radial from its
 // exact axis; any other face's (a cone, a fillet, a torus …) from the B-rep's NURBS, each sample projected onto it
-// (Gauss–Newton on its first derivatives, from a parameter grid); a facet face's are its triangles'. The draft at a
+// (the kernel's `closestPointOnSurface`: Gauss–Newton on its first derivatives, from a parameter grid); a facet face's are its triangles'. The draft at a
 // sample is asin(n·d): 0 a wall along the pull, ±90° a face across it. A face is drafted when every sample's |draft|
 // reaches the minimum on one side, steep when some sample's does not, straddling when n·d takes both signs: the
 // isocline n·d = 0 crosses it (a parting line runs there, IM5) — its points found on the exact surface.
-import { evaluateSurfaceD1, surfaceDomain, type Brep } from '@barocss/cad';
+import { closestPointOnSurface, surfaceSeedGrid, type Brep, type SurfaceSeedGrid } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import { partBreps, type BodyResult } from '../engine/evaluate';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
@@ -28,45 +28,17 @@ export interface DraftFace {
 export interface DraftField { pull: Vec3; minDeg: number; faces: DraftFace[]; method: string }
 const DEG = 180 / Math.PI, SIGN = 1e-12, GRID = 24;
 
-type Surf = Parameters<typeof evaluateSurfaceD1>[0];
-interface Piece { s: Surf; sense: 1 | -1; D: { u: [number, number]; v: [number, number] }; grid: Float64Array }
+type Surf = Parameters<typeof closestPointOnSurface>[0];
+interface Piece { s: Surf; sense: 1 | -1; grid: SurfaceSeedGrid }
 /** A NURBS face piece, with its parameter grid's points for a projection's start. */
-function pieceOf(s: Surf, sense: 'forward' | 'reversed'): Piece {
-  const D = surfaceDomain(s), grid = new Float64Array(3 * (GRID + 1) * (GRID + 1));
-  for (let i = 0; i <= GRID; i++) for (let j = 0; j <= GRID; j++) {
-    const p = d1(s, D.u[0] + (D.u[1] - D.u[0]) * i / GRID, D.v[0] + (D.v[1] - D.v[0]) * j / GRID, D).point, k = 3 * (i * (GRID + 1) + j);
-    grid[k] = p[0]; grid[k + 1] = p[1]; grid[k + 2] = p[2];
-  }
-  return { s, sense: sense === 'forward' ? 1 : -1, D, grid };
-}
-const NUDGE: readonly (readonly [number, number])[] = [[1e-11, 0], [-1e-11, 0], [0, 1e-11], [0, -1e-11], [1e-11, 1e-11], [-1e-11, -1e-11], [1e-11, -1e-11], [-1e-11, 1e-11]];
-/** First derivatives at (u, v); exactly on a C0 knot (a circle's quadrant joins, G1 in space) just off it, inside. */
-function d1(s: Surf, u: number, v: number, D: Piece['D']) {
-  try { return evaluateSurfaceD1(s, u, v); } catch { /* on a knot */ }
-  for (const [eu, ev] of NUDGE) {
-    const uu = Math.min(D.u[1], Math.max(D.u[0], u + eu * (D.u[1] - D.u[0]))), vv = Math.min(D.v[1], Math.max(D.v[0], v + ev * (D.v[1] - D.v[0])));
-    try { return evaluateSurfaceD1(s, uu, vv); } catch { /* the next */ }
-  }
-  throw new Error(`draft: no derivative near (${u}, ${v})`);
-}
-/** A point's foot on a piece: its distance and the outward unit normal there (into `n`). */
+function pieceOf(s: Surf, sense: 'forward' | 'reversed'): Piece { return { s, sense: sense === 'forward' ? 1 : -1, grid: surfaceSeedGrid(s, GRID) }; }
+const query = new Float64Array(3);
+/** A point's foot on a piece (the kernel's `closestPointOnSurface`, K4): its distance and the outward unit normal there (into `n`). */
 function foot(P: Piece, x: number, y: number, z: number, n: Float64Array): number {
-  let best = 0, bd = Infinity;
-  for (let k = 0; k < P.grid.length; k += 3) { const dx = P.grid[k] - x, dy = P.grid[k + 1] - y, dz = P.grid[k + 2] - z, d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; best = k / 3; } }
-  const D = P.D;
-  let u = D.u[0] + (D.u[1] - D.u[0]) * Math.floor(best / (GRID + 1)) / GRID, v = D.v[0] + (D.v[1] - D.v[0]) * (best % (GRID + 1)) / GRID;
-  for (let it = 0; it < 30; it++) {
-    const e = d1(P.s, u, v, D), rx = e.point[0] - x, ry = e.point[1] - y, rz = e.point[2] - z;
-    const a = e.du[0] * e.du[0] + e.du[1] * e.du[1] + e.du[2] * e.du[2], b = e.du[0] * e.dv[0] + e.du[1] * e.dv[1] + e.du[2] * e.dv[2], c = e.dv[0] * e.dv[0] + e.dv[1] * e.dv[1] + e.dv[2] * e.dv[2];
-    const gu = rx * e.du[0] + ry * e.du[1] + rz * e.du[2], gv = rx * e.dv[0] + ry * e.dv[1] + rz * e.dv[2], det = a * c - b * b;
-    if (!(Math.abs(det) > 1e-300)) break;
-    const du = -(c * gu - b * gv) / det, dv = -(a * gv - b * gu) / det;
-    u = Math.min(D.u[1], Math.max(D.u[0], u + du)); v = Math.min(D.v[1], Math.max(D.v[0], v + dv));
-    if (Math.abs(du) + Math.abs(dv) < 1e-15) break;
-  }
-  const e = d1(P.s, u, v, D), nx = e.du[1] * e.dv[2] - e.du[2] * e.dv[1], ny = e.du[2] * e.dv[0] - e.du[0] * e.dv[2], nz = e.du[0] * e.dv[1] - e.du[1] * e.dv[0], l = Math.hypot(nx, ny, nz) * P.sense;
-  n[0] = nx / l; n[1] = ny / l; n[2] = nz / l;
-  return Math.hypot(e.point[0] - x, e.point[1] - y, e.point[2] - z);
+  query[0] = x; query[1] = y; query[2] = z;
+  const f = closestPointOnSurface(P.s, query, { grid: P.grid });
+  n[0] = f.normal[0] * P.sense; n[1] = f.normal[1] * P.sense; n[2] = f.normal[2] * P.sense;
+  return f.distance;
 }
 
 /** How a display face's exact normal is had at a point. */

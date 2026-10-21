@@ -7791,3 +7791,85 @@ Track K's second step (the PKG design note's G4–G6; the coordinator's 2026-10-
 - `@barocss/cad-model` lint and type-check clean.
 - Studio: tsc clean; eslint on the changed tests 0 errors; the suite 756/758 with the known `todo` (O80) and one failure, `hollow`'s sphere cavity test on its "refused at once" (< 1000 ms) wall-clock assert under the full suite's load — `print/hollow.ts` uses none of the changed code, and it passed alone twice and in the suite's next full run.
 - The flow and RB not run (no studio-visible behaviour changed; the coordinator's verify worktree runs the flow).
+
+## D142 — K3: the exact clearance between two meshes, one point–triangle (2026-10-21)
+
+Track K's third step (the PKG design note's G3 and G12). The studio measured how far apart two meshes are in two ways of its own: the robot sweep's `meshDistance` (RM6/RM9a: every triangle pair, pruned by the pairs' boxes; also used by keep-out checks, the assembly gate and an RB9 rung) and the analysis tool's `clearance` (A2.2: each mesh's vertices against the other's triangles, by brute force). Both, and one more private point–triangle (the display mesh's chord measure), now use the kernel.
+
+**Decision:**
+- **Kernel** `src/mesh-clearance.ts`, exported: `meshClearance(pa, ia, pb, ib, { bvhA?, bvhB? })` → `{ distanceMM, pointA, pointB, triangleA, triangleB }`.
+  - The least distance between the two surfaces over every pair of triangles, with the closest points on each and their triangles. **0 where they touch or cross** (an edge of one through the other), Infinity when either mesh has no triangle.
+  - A dual descent of the two meshes' K2 hierarchies: a pair of nodes is split on its larger box, the nearer child pair taken first; a pair whose boxes are as far apart as the best found is skipped. It stops at 0.
+  - Two triangles: 0 when an edge of one crosses the other; else the least of the six corner–triangle (Ericson 5.1.5) and nine edge–edge (5.1.9) distances — the sweep's own formulas, so its distances are reproduced.
+  - Prebuilt trees can be passed (`bvhA`, `bvhB`) for meshes that do not move.
+  - The name is kept apart from R9's `meshDistance`, which is one-way (the largest distance from one mesh's samples to the other's surface) and stays as it was.
+- **`@barocss/cad-model`:**
+  - `robot/sweep.ts`: `meshDistance` and its private point–triangle, segment–segment and box helpers removed; the sweep's exact step uses `meshClearance(…).distanceMM`. `meshesMeet` (the contact test, with its containment parity) stays.
+  - The other three users (`chat/references` keep-outs, `team/assembly`'s gate, `rb9/rungs-enclosure`'s hook gaps) and the two robot tests take the kernel's.
+  - `chat/analysis.ts`: `clearance` is `meshClearance`; its private `pointTriangle2` removed. `near` is now the closest point on the pair's first body (the old one was a vertex of either).
+  - `engine/mesh.ts`: the chord measure's private point–triangle replaced by the kernel's `pointTriangleDistance2` (K2).
+  - Not here: `app/measure.ts`'s `closestOnTriangle` (it returns the point, and belongs with K4's closest-point queries) and `print/hollow.ts`'s (K6).
+
+**A defect fixed in the analysis clearance:** vertices against triangles miss edge–edge minima. Two 40 × 10 × 10 bars turned 45° about X and about Y, one 16 above the other, cross edge to edge 16 − 10√2 = 1.858 mm apart: the `interference` tool said 15.713 mm (a corner against a face), the kernel says 1.858. On parts whose closest features are a face and a corner (the boxes and cylinders below) nothing changed but `near`.
+
+**Results matched** (a before/after snapshot, not kept: three parts — three boxes, a box with two cylinders, the crossed bars — every pair's `meshDistance` and the `interference` tool):
+- The sweep's distances: identical to the last bit (1.8578643798828125 on the crossed bars, 25.355339061882727 between the cylinders).
+- `interference`: the same clearances but the crossed bars' (the defect above); `near` moved to the first body's side (on a tie of a whole face, another point of the same face).
+
+**Speed:** two bumpy spheres of 28 800 triangles each, about 1 mm apart: the sweep's box-pruned all-pairs search 5283 ms, the kernel 38 ms (139×; both trees built in the call).
+
+**Oracles** (`packages/barocss-cad/test/k3-mesh-clearance.test.mjs`, 3 tests, 1.8 s; none of them the kernel's):
+- an all-pairs brute force written apart (a point to a triangle by its plane and edges, segments by the lines' interior solution or the end distances, a crossing by an edge's sign change), on 60 random triangle soups, crossing and apart (both counts asserted), within 1e-9; the witnesses: |pA − pB| is the distance, pA on A's surface and pB on B's (by the K2 nearest query);
+- closed forms: 40 random box pairs (the per-axis gaps' norm) to 1e-12; the crossed bars 16 − 10√2 to 1e-12, at the crossing over the origin; a box inside a box 2 (surfaces, not volumes); touching and overlapping boxes 0;
+- coarse sphere meshes against the brute force; 28 800 × 28 800 triangles in well under its bound, between the bumps' limits; the one-way `meshDistance` a different quantity on the same pair; prebuilt trees the same.
+- The brute force itself first gave NaN on the sphere meshes' degenerate pole triangles (a zero-area plane, a zero-length edge); the kernel did not. The oracle was fixed (a triangle of no area is its edges), not the kernel.
+- The test fails on the previous HEAD: `meshClearance` did not exist.
+
+**Checks — T1** (no kernel source but the new file and the index):
+- Kernel lint and type-check clean; `k3-mesh-clearance` 3/3.
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed tests 0 errors; the suite 760/762 with the known `todo` (O80) and the known `hollow` "at once" timing flake (logged at K2), which passed in the next full run.
+- Conformance, the full kernel suite, the flow and RB not run (T1).
+
+## D143 — K4: the nearest point of a surface, and of a triangle (2026-10-21)
+
+Track K's fourth step (the PKG design note's G9, with G14's `nearest` and `app/measure.ts`'s triangle foot). The studio projected points onto NURBS faces three ways — the draft field's foot (IM2: Gauss–Newton on exact first derivatives from a 24 × 24 grid), the trim loops' `nearest` and the display mesh's chord measure (`invertOn` and `nearestOnGrid`; both Gauss–Newton on central differences) — and found a triangle's nearest point with its own copy. They now use the kernel's.
+
+**Decision:**
+- **Kernel** `src/surface-closest.ts`, exported:
+  - `closestPointOnSurface(surface, p, { seed?, grid?, iterations = 30 })` → `{ u, v, point, distance, normal, iterations }`: from the seed, or the nearest node of a seed grid (prebuilt or its n, default 24), Gauss–Newton on the exact first derivatives, each step clamped to the domain; the unit normal du × dv there ([0, 0, 0] at a pole).
+  - `surfaceSeedGrid(surface, n = 24)`, built once per surface and passed to every query.
+  - `surfaceD1Near(surface, u, v, U, V)`: first derivatives, taken just off an exact C0 knot (the rational circle's quadrant joins, where `evaluateSurfaceD1` refuses) — the draft field's nudges.
+  - **Two safeguards the studio's copies lacked,** found by this step's own tests:
+    - a step that would take the surface farther is halved until it does not. Far from a convex surface (beyond its radius of curvature) Gauss–Newton's whole step overshoots by about 1 + distance × curvature and swings round it: a point 15 mm outside a Ø20 cylinder converged to a foot 23 mm away, on the wrong side;
+    - where it converges linearly (two steps running shrinking by less than 3⅓: far off the surface, or near the centre of curvature on the concave side, where the rate is about distance × curvature), Newton's step with the second derivatives is tried as well, kept when it ends nearer and the full Hessian is positive definite. A point near a cylinder's axis needed more than 30 Gauss–Newton steps; now 10.
+    - Second derivatives cost about 30 first ones (84 µs against 2.5 µs here), so they are taken only then, never for a step of rounding's size; the step's size is the one taken, after the clamp — at a domain edge the raw step keeps pointing out, and the studio's draft foot ran its 30 iterations there.
+    - Neither changes a query near the surface: the whole Gauss–Newton step is taken, as before.
+- **Kernel** `closestPointOnTriangle(p, a, b, c, out?)` in `src/triangle-bvh.ts` (Ericson 5.1.5, returning the point), beside K2's `pointTriangleDistance2`.
+- **In `@barocss/cad-model`:**
+  - `mould/draft.ts`: its pieces carry a `surfaceSeedGrid`; `foot` is `closestPointOnSurface` (its normal times the face's sense); its private `d1`, nudges and Gauss–Newton gone.
+  - `engine/trim.ts`: `nearest` is `closestPointOnSurface` from its seed (20 iterations, as before); the central differences gone.
+  - `engine/mesh.ts`: the chord measure's `invertOn` and `nearestOnGrid` replaced (seeded from the last vertex, then from a seed grid made once per face; the coarse samples' 8 iterations kept, and the seed's own distance kept when lower, as `invertOn` did).
+  - `app/measure.ts`: `closestOnTriangle` is the kernel's `closestPointOnTriangle`.
+  - Not here: the kernel's own private projections in `brep-tessellate.ts`, `offset-cavity.ts` and `rolling-ball.ts` (each on its own evaluator and seeds; tessellation is a T2 core file) — candidates for a later step, named.
+
+**Results matched** (a before/after snapshot, not kept: the draft field of a 3° cone and a filleted box, `measureChords` on the O59 SubD cube at qualities 1, 2 and 4, `projectLoop` of two circles onto a bicubic saddle):
+- The draft fields: identical, bit for bit.
+- The chord depths: within 2e-14 relative, except two faces at quality 4 that rose 1.05e-7 relative (0.3372926 → 0.3372926017). Those two are mirror images of each other: before they differed by 2e-11 (the central differences' noise), now they agree to 1e-14.
+- The trim loops' (u, v): within 1.7e-11 relative, the central differences' error.
+
+**Speed** (the same process and load; this machine's load average was 80–160 throughout, so only side-by-side figures are given):
+- 1440 queries on the SubD cube's 24 patches, 0.05 mm off them, seeded nearby: the studio's central-difference `invertOn` 70–72 ms, the kernel 38–40 ms (1.8×). The kernel's feet are nearer: the 1440 distances sum to 40.98376 against 41.00349 (the old one stopped short).
+- 240 draft-field feet on a fillet: the old foot 1.4 ms, the kernel 2.0 ms — 6 second-derivative evaluations among the 240 (the near-converged steps at a domain edge); the old foot spent 30 iterations at such edges instead.
+
+**Oracles** (`packages/barocss-cad/test/k4-closest-point.test.mjs`, 3 tests, about 2.5 s; none of them the kernel's):
+- closed-form feet on exact surfaces the part model builds: a cylinder's side (500 points inside and outside, the radial foot and distance to 1e-9, the normal radial), exactly on the rational circle's quadrant joins (no refusal), past the patch's end (the top circle's distance); a sphere (||p| − R|, to 1e-8, points from 0.2R to 2.2R); a torus (|√((ρ − R)² + y²) − r|, to 1e-8);
+- a freeform bicubic patch: the foot against a 200 × 200 parameter scan polished by window halving (never nearer than Gauss–Newton's, and within 1e-7 of it), a prebuilt grid the same, a query seeded at its own foot the same;
+- triangles: 300 random triangles and points — the point's distance squared the K2 `pointTriangleDistance2` to 1e-9, and never farther than a barycentric scan of the triangle.
+- The test fails on the previous HEAD: none of the exports existed.
+
+**Checks — T1:**
+- Kernel lint and type-check clean; `k4-closest-point` 3/3.
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; the suite 761/762 with the known `todo` (O80), 0 fail.
+- The full kernel suite, conformance, the flow and RB not run (T1); the coordinator's 4th-checkpoint T2 falls at K5.

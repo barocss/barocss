@@ -8,13 +8,13 @@
 // (exact), else the distance between the meshes (exact on the triangles), which is the true distance within the two
 // meshes' chord tolerance (a curved face's sag, r(1 − cos(π/32)) at the studio's 8 segments a quarter); a verdict
 // within that tolerance of the limit is **undecided**, never a pass.
+import { meshClearance } from '@barocss/cad';
 import type { StudioDoc, DocPlane, ModelNode } from '../engine/doc';
 import { emptyDoc, withNode } from '../engine/doc';
 import { partBreps, placeBody, type BodyResult, type EvalResult } from '../engine/evaluate';
 import { measureChords, unmeasured, type DisplayMesh, type Vec3 } from '../engine/mesh';
 import { rotationMatrix } from '../assembly/mates';
 import { symmetricEigen, type Mat3 } from '../robot/inertia';
-import { meshDistance } from '../robot/sweep';
 import { refOf } from '../app/bodyRef';
 import { bodyKeyFor } from '../engine/ids';
 import { stepLengthUnit } from '../engine/stepUnits';
@@ -299,7 +299,7 @@ export async function checkKeepouts(doc: StudioDoc, bodies: readonly BodyResult[
         const r2 = await evaluate(p2); overlap = r2?.ok ? r2.bodies.find(x => x.key === bodyKeyFor(p2.nodes, p2.nodes.length - 1))?.volumeMM3 ?? 0 : 0;
       }
       measureBody(doc, b);
-      const d = overlap > 1e-6 ? 0 : meshDistance(b.mesh.positions, b.mesh.indices, kb.mesh.positions, kIdx), chord = chordOf(b.mesh) + chordOf(kb.mesh), v = verdictOf(overlap, d, k.clearance, chord);
+      const d = overlap > 1e-6 ? 0 : meshClearance(b.mesh.positions, b.mesh.indices, kb.mesh.positions, kIdx).distanceMM, chord = chordOf(b.mesh) + chordOf(kb.mesh), v = verdictOf(overlap, d, k.clearance, chord);
       out.push({ keepout: k.id, body: b.key, verdict: v.verdict, overlapMM3: overlap, clearanceMM: overlap > 1e-6 ? null : d, requiredMM: k.clearance, chordMM: chord, why: v.why });
     }
   }
