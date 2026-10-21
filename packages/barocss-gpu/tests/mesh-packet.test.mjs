@@ -125,3 +125,13 @@ test('conversion rejects overflow, coordinate limits and float32 collapsed trian
   const collapsed = options(); collapsed.mmToSceneUnit = 1e-9; collapsed.translate = [1, 1, 1]; assert.throws(() => prepareMesh(patch(), collapsed), /Float32 GPU.*zero area|Native Surface coordinate underflows in Float32 display/);
   const boundary = options(); boundary.mmToSceneUnit = 200; assert.equal(prepareMesh(patch(), boundary).positions[6], 1000);
 });
+
+test('G5 (the old review\'s fuzz R1): an array that answers differently on a later read (a Proxy) leaves no NaN in an accepted result', () => {
+  // Its descriptors say finite numbers (what the check reads); its reads say NaN (what a returned caller's array would give).
+  const lying = values => new Proxy(values, { get: (target, key, receiver) => typeof key === 'string' && /^\d+$/.test(key) ? NaN : Reflect.get(target, key, receiver) });
+  const accepted = validateMeshOptions({ ...options(), color: lying([1, 0.5, 0]), translate: lying([0, 0, 0]) });
+  assert.deepEqual([...accepted.color], [1, 0.5, 0]);
+  assert.deepEqual([...accepted.translate], [0, 0, 0]);
+  const packet = validatePreviewPacket({ ...patch(), positions: lying(patch().positions) });
+  assert.ok([...packet.positions].every(Number.isFinite), JSON.stringify([...packet.positions]));
+});

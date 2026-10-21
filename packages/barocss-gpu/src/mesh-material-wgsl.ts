@@ -56,8 +56,18 @@ function resultBudget(value: LoweredMeshMaterialWGSL): void {
 }
 
 /** Reconstruct legacy opaque source once and lower its typed tree directly to WGSL. */
-export function lowerMeshMaterialWGSL(input: unknown): LoweredMeshMaterialWGSL {
-  const material = validateMeshMaterialIR(input);
+/**
+ * A colour literal's linear value: the material language's own (its gamma-2.2 decode, which its GLSL and older WGSL
+ * renderers encode back with 1/2.2), or with `srgb` the exact sRGB decode of its hex — for a renderer that encodes sRGB
+ * exactly (the viewer), so an authored #808080 shows as #808080 there too (G5).
+ */
+export function colorLiteralLinear(node: { hex: string; linear: readonly number[] }, srgb: boolean): readonly number[] {
+  if (!srgb) return node.linear;
+  return [1, 3, 5].map(i => { const c = parseInt(node.hex.slice(i, i + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
+}
+
+export function lowerMeshMaterialWGSL(input: unknown, options: { srgb?: boolean } = {}): LoweredMeshMaterialWGSL {
+  const material = validateMeshMaterialIR(input), srgb = options.srgb === true;
   const uniformLayout = material.uniforms.map((uniform, index) => {
     executed(uniform.min); executed(uniform.max); executed(uniform.default);
     return { ...uniform, index, byteOffset: 4 * index,
@@ -69,7 +79,7 @@ export function lowerMeshMaterialWGSL(input: unknown): LoweredMeshMaterialWGSL {
     if (++visits > 256 || depth > 16) fail('BUDGET', 'Material WGSL tree exceeds256 nodes or depth16');
     switch (node.kind) {
       case 'float': return literal(node.value);
-      case 'color': return 'vec3<f32>(' + node.linear.map(literal).join(',') + ')';
+      case 'color': return 'vec3<f32>(' + colorLiteralLinear(node, srgb).map(literal).join(',') + ')';
       case 'uniform': {
         const access = uniforms.get(node.name);
         if (access === undefined) fail('IR', 'Reconstructed material uniform layout is missing');

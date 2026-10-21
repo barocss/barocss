@@ -47,9 +47,10 @@ function resultBudget(result: LoweredNativeSurfaceUV01MaterialWGSL): void {
 }
 
 /** Reconstruct the original native UV01 source once; no frame or device work. */
-export function lowerNativeSurfaceUV01MaterialWGSL(input: unknown): LoweredNativeSurfaceUV01MaterialWGSL {
+export function lowerNativeSurfaceUV01MaterialWGSL(input: unknown, options: { srgb?: boolean } = {}): LoweredNativeSurfaceUV01MaterialWGSL {
   const material = validateNativeSurfaceUV01MaterialIR(input);
-  const lowered = lowerNativeSurfaceUV01WGSLBody(material);
+  // (`srgb`: colour literals by the exact sRGB decode, for the viewer: lowerMeshMaterialWGSL's option.)
+  const lowered = lowerNativeSurfaceUV01WGSLBody(material, options.srgb === true);
   const result: LoweredNativeSurfaceUV01MaterialWGSL = {
     format: 'barocss-gpu-native-surface-uv01-material-wgsl', version: 0,
     profile: 'native-surface-opaque-uv01-fragment-wgsl-v0', material, ...lowered,
