@@ -222,3 +222,48 @@ analyses, 6 scene-level pick acceleration, 7 benches for these. This session tak
   A6.4, IM6, CNC1) — 16/16 in 76 s; that full run's other 208 steps passed, every canvas-picking step among them, with G3
   in. The section shots against the CPU's: strong pixels 75, 178 and 244 (≤ 0.02 %). Not run: the full flow (the
   coordinator's, per merge window), the cad-model suite (not touched), the benches (nothing they measure changed).
+
+## G4 — bench scenarios with budgets, a GPU budget beside the CPU's (2026-10-21)
+
+- **What**:
+  - `test/bench-browser.mjs` (`pnpm bench:browser`): one budget table (`BUDGET`) for its ten rows; every row now has a GPU
+    budget beside its CPU ones — the GPU's time a submit, from the submit until the queue reports that work done (wall
+    time, so it holds the queue's own wait: an upper bound of the GPU's work, not a timestamp query; the viewer's device is
+    made inside the viewer, without the `timestamp-query` feature). A new row: **cloud** — the 2R arm's workspace map
+    shown (RM9b, 20 000 poses; its voxels drawn as an SVG overlay today, G8's point primitive later) and orbited 60 steps.
+    The joint, explode and section rows (G1, G2) are the joint-play, explode and section-drag scenarios.
+  - `test/bench-assembly.mjs` (`pnpm bench:assembly`, the large assembly: 120 holed brackets): budgeted for 120 copies —
+    time until every copy shows, draw calls a frame, CPU a frame, GPU a submit, buffers made; the GPU time measured as in
+    bench-browser; exits 1 over a budget.
+  - `test/bench-mesh-browser.mjs` (the big meshes: organic 200k and 1000k triangles): budgeted per fixture — read, open,
+    save, reopen (ms) and the saved file's MB; exits 1 over a budget or when the file is not a container or not shown.
+  - Each prints the machine's load average at its start and end and says `LOADED` above 4: a budget is not set from a
+    loaded run (the coordinator's rule).
+- **Measured** alone (no flow beside them), at a load average of 8–11: the machine did not come below 4 while the other
+  lanes worked, and the owner had them run then ("이제 해도 돼") rather than wait. Budgets are about twice these, as D82's
+  were, with the CPU's 2 ms floor and a 4 ms floor for the GPU's; a second run straight after held every one.
+
+  | Scenario | CPU (frame callback / task a frame) | GPU a submit | Other | Budget |
+  |---|---|---|---|---|
+  | hover, 60 moves | 0.27 / 10.2 ms | 2.0 ms | 11 submits | GPU 4 |
+  | select a face | 0.3 / 27 ms | 11.6 ms | 1 submit | GPU 24 |
+  | clear (Escape) | 0.1 / 10.3 ms | 1.9 ms | 1 submit | GPU 4 |
+  | orbit 60 | 0.22 / 2.9 ms | 2.0 ms | 59 submits | GPU 4 |
+  | orbit 60, outlined | 0.24 / 3.6 ms | 2.6 ms | 61 submits | GPU 6 |
+  | joint played (pose) | 0.13 / 10.0 ms | 15.7 ms | 3.2 KiB, 0 buffers | task 20, GPU 32 |
+  | cloud: 400 voxels, orbit 60 | 0.23 / 3.5 ms | 2.2 ms | 2.3 KiB, 0 buffers | task 8, KiB 6, GPU 6 |
+  | explode, 120 brackets | 0.41 / 14.4 ms | 21.4 ms | 62.5 KiB, 0 buffers | task 28, GPU 44 |
+  | section drag, GPU | 0.28 / 15.0 ms | 22.1 ms | 2.4 KiB, 0 buffers | task 30, GPU 44 |
+  | section drag, CPU clipMesh | 0.33 / 18.5 ms | 26.2 ms | 187 KiB, 2 706 buffers | (for comparison) |
+  | large assembly, 120 brackets (bench:assembly) | 0.46 ms CPU a frame | 3.0 ms | shown 289 ms, 242 draws, 739 buffers | shown 600, draws 500, CPU 2, GPU 6, buffers 1 500 |
+  | mesh 200k (bench-mesh-browser) | read 59, open 782, save 37, reopen 338 ms | — | 3.4 MB | 120, 1 600, 80, 700 ms; 3.8 MB |
+  | mesh 1000k | read 252, open 2 793, save 80, reopen 1 271 ms | — | 17.2 MB | 500, 5 600, 160, 2 600 ms; 19 MB |
+
+  The GPU times a frame that draw the shadow map again (a pose, an explode, a section: a caster moved) are 15–22 ms on
+  this machine against about 2 ms for a camera move — the shadow map's 2048² pass; what G14 (display LOD) will measure
+  first. The point cloud is small (400 voxels of 10 mm for the 2R arm): G8's point primitive will add a larger cloud.
+- **Not done**: budgets re-checked on a quiet machine (load under 4) — a run then may tighten them; a timestamp-query GPU
+  time (the viewer would have to ask its device for the feature).
+- **Checks**: no product code changed (benches only): the three benches twice each, alone (all within budget the second
+  time); gpu unit 74/74 and browser 6/6 (10 s); studio 186/186 (16 s), on the merge `7733e3a3d` of integration's
+  `6d4b80e75`. Not run: the flow (no product code), the cad-model suite (not touched).

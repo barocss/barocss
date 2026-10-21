@@ -1,6 +1,8 @@
 // A big mesh through the studio in a real Chromium (M1, R3.3): open the STL (read, weld, blobs, evaluate, show),
 // save it (the container), open the saved file again, each timed, with the file's size against the old inline
-// JSON. Opt-in, no budgets: PW_DIR=… [CHROME=…] node test/bench-mesh-browser.mjs [organic-200k organic-1000k scan-200k]
+// JSON; each fixture against a budget (G4, 2026-10-21: about twice what was measured alone at a load average of 8–11 —
+// 200k: read 59, open 782, save 37, reopen 338 ms, 3.4 MB; 1000k: 252, 2793, 80, 1271 ms, 17.2 MB —, the file's size within
+// 10 %; a fixture without one prints only). Opt-in: PW_DIR=… [CHROME=…] node test/bench-mesh-browser.mjs [organic-200k organic-1000k scan-200k]
 import { createRequire } from 'node:module';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -23,6 +25,12 @@ page.on('dialog', d => d.accept());
 const names = process.argv.slice(2).length ? process.argv.slice(2) : ['organic-200k', 'organic-1000k'];
 const settled = () => page.waitForFunction(() => window.__studioDoc?.nodes[0]?.kind === 'mesh' && /1 body|bodies/.test(document.querySelector('.outliner')?.textContent ?? '') && !/Computing|Working/.test(document.body.innerText), null, { timeout: 600000, polling: 100 });
 const MB = n => +(n / 2 ** 20).toFixed(1);
+// (ms to read, open, save and open again; the saved file's MB.)
+const BUDGET = {
+  'organic-200k': { readMS: 120, openMS: 1600, saveMS: 80, reopenMS: 700, fileMB: 3.8 },
+  'organic-1000k': { readMS: 500, openMS: 5600, saveMS: 160, reopenMS: 2600, fileMB: 19 },
+};
+const os = await import('node:os'), loadAtStart = os.loadavg()[0];
 const rows = [];
 try {
   await page.goto(server.resolvedUrls.local[0]);
@@ -55,5 +63,10 @@ try {
     console.error(JSON.stringify(rows.at(-1)));
   }
 } finally { await browser.close(); await server.close(); rmSync(out, { recursive: true, force: true }); }
-console.log('\nfixture          tris      read ms  open ms  save ms  file MB  inline JSON MB  reopen ms');
-for (const r of rows) console.log(`${r.name.padEnd(16)} ${String(r.triangles).padEnd(9)} ${String(r.readMS).padEnd(8)} ${String(r.openMS).padEnd(8)} ${String(r.saveMS).padEnd(8)} ${String(r.fileMB).padEnd(8)} ${String(r.inlineJSONMB).padEnd(15)} ${r.reopenMS}`);
+console.log('\n     fixture          tris      read ms  open ms  save ms  file MB  inline JSON MB  reopen ms');
+for (const r of rows) {
+  const b = BUDGET[r.name], over = b ? Object.entries(b).filter(([k, v]) => r[k] > v) : [], bad = !r.container || !r.shown;
+  console.log(`${!b ? '    ' : over.length || bad ? 'SLOW' : 'ok  '} ${r.name.padEnd(16)} ${String(r.triangles).padEnd(9)} ${String(r.readMS).padEnd(8)} ${String(r.openMS).padEnd(8)} ${String(r.saveMS).padEnd(8)} ${String(r.fileMB).padEnd(8)} ${String(r.inlineJSONMB).padEnd(15)} ${r.reopenMS}${over.length ? `  over: ${over.map(([k, v]) => `${k} > ${v}`).join(', ')}` : ''}${bad ? '  (not saved as a container, or not shown)' : ''}`);
+  if (over.length || bad) process.exitCode = 1;
+}
+console.log(`load average ${loadAtStart.toFixed(1)} at the start, ${os.loadavg()[0].toFixed(1)} at the end${Math.max(loadAtStart, os.loadavg()[0]) > 4 ? ' — LOADED: compare, do not set budgets from this run' : ''}`);
