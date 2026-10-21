@@ -9,6 +9,7 @@ import { UNLICENSED } from '@barocss/cad-model/library/sharing';
 import { CASTING_PROCESSES, type CastingProcess } from '@barocss/cad-model/casting/report';
 import { MATERIALS_DATA, processProfile } from '@barocss/cad-model/library/materials';
 import { Icon } from './atoms';
+import { BearingRows } from './BearingRows';
 import { FitTables } from './FitTables';
 import { FrameSections } from './FrameSections';
 
@@ -81,6 +82,8 @@ export function LibraryPanel({ doc, onCommit, onError, onClose, onQuote }: { doc
     <FrameSections doc={doc} onCommit={onCommit} onError={onError} />
     {/* (R12c.2, D155: the person's own fit tables.) */}
     <FitTables doc={doc} onCommit={onCommit} onError={onError} />
+    {/* (R12c.4, D158: the person's own bearing rows.) */}
+    <BearingRows doc={doc} onCommit={onCommit} onError={onError} />
     {SOURCES.map(({ source, title }) => {
       const list = all.filter(e => e.source === source);
       return <section key={source} aria-label={`${title} libraries`}>

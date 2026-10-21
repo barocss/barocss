@@ -55,6 +55,8 @@ export interface ShaftReport {
   readonly keyseats: readonly ShaftKeyseatReport[];
   readonly grooves: readonly { readonly index: number; readonly step: number; readonly diameterMM: number; readonly widthMM: number; readonly fromMM: number }[];
   readonly holes: readonly { readonly index: number; readonly diameterMM: number; readonly atMM: number; readonly angleDeg: number }[];
+  /** Each shoulder s (between steps s and s + 1): where it stands, the two diameters, its fillet and undercut (R12c.4's seats read them). */
+  readonly shoulders: readonly { readonly index: number; readonly atMM: number; readonly beforeMM: number; readonly afterMM: number; readonly filletMM: number; readonly undercut?: { readonly widthMM: number; readonly depthMM: number } }[];
   readonly manufacturingValidated: false;
 }
 
@@ -212,5 +214,6 @@ export function shaftSolid(spec: ShaftSpec, options: { readonly id?: string } = 
     holes.push({ index: j + 1, diameterMM: dh, atMM: at, angleDeg: a });
   });
   const steps = spec.steps.map((s, k) => ({ index: k + 1, diameterMM: s.diameterMM, fromMM: z[k], toMM: z[k + 1] }));
-  return { brep, report: { generator: 'shaft@0', lengthMM: L, steps, keyseats, grooves, holes, manufacturingValidated: false } };
+  const shoulders = spec.steps.slice(0, -1).map((s, k) => ({ index: k + 1, atMM: z[k + 1], beforeMM: s.diameterMM, afterMM: spec.steps[k + 1].diameterMM, filletMM: s.filletMM ?? 0, ...(s.undercut ? { undercut: s.undercut } : {}) }));
+  return { brep, report: { generator: 'shaft@0', lengthMM: L, steps, keyseats, grooves, holes, shoulders, manufacturingValidated: false } };
 }

@@ -113,4 +113,29 @@ const pinCommand: Command = {
   build: (ctx, v) => { const d = n(v, 'd'), L = n(v, 'L'); return withNode(ctx.doc, { kind: 'pin', shaft: pickedShaft(ctx)!.index, hole: Math.round(n(v, 'hole')), ...(d > 0 ? { diameter: d } : {}), ...(L > 0 ? { length: L } : {}) }); },
 };
 
-export const shaftCommands: Command[] = [shaftCommand, keyCommand, keywayCommand, ringCommand, pinCommand];
+// ---- R12c.4 (D158): a bearing on a shaft's seat ----------------------------------------------------------------------
+
+const bearingCommand: Command = {
+  id: 'bearing', label: 'Bearing', icon: 'cad-bearing', group: 'create', keywords: 'bearing rolling ball roller',
+  hint: 'A rolling bearing\'s envelope from your catalogue rows (none built in) on a step of the selected shaft, against a shoulder: the shoulder checked against the row\'s da and ra, the other side\'s location, an optional housing\'s bore and the seats\' fit classes from your fit tables. Not for structural calculation',
+  available: ctx => !ctx.doc.bearings?.rows.length ? no('Load your bearing rows first (Library panel, BEARINGS): none is built in.') : pickedShaft(ctx) ? ok : no('Select a shaft (from the Shaft command).'),
+  fields: ctx => {
+    const rows = ctx.doc.bearings?.rows ?? [], bodies = ctx.doc.nodes.map((n, i) => ({ n, i })).filter(x => x.n.kind !== 'sketch' && x.i !== pickedShaft(ctx)?.index), classes = [...new Set((ctx.doc.fits?.tables ?? []).flatMap(t => t.rows.map(r => r.class)))];
+    return [{ key: 'row', label: 'Bearing row', kind: 'choice', options: rows.map(r => ({ value: r.id, label: `${r.designation ?? r.id} · Ø${r.boreMM} × Ø${r.outsideMM} × ${r.widthMM}${r.estimate ? ' (estimate)' : ''}` })) },
+      { key: 'step', label: 'On step', kind: 'count', min: 1, max: Math.max(1, pickedShaft(ctx)?.node.steps.length ?? 1) },
+      { key: 'against', label: 'Against the shoulder at', kind: 'choice', options: [{ value: 'start', label: 'The step\'s start' }, { value: 'end', label: 'The step\'s end' }] },
+      { key: 'housing', label: 'Housing', kind: 'choice', options: [{ value: 'none', label: 'None' }, ...bodies.map(b => ({ value: String(b.i), label: `n${b.i}: ${featureLabel(b.n, b.i, ctx.doc.nodes)}` }))] },
+      { key: 'sc', label: 'Shaft seat class', kind: 'choice', options: [{ value: 'none', label: 'None' }, ...classes.filter(c => /^[a-z]/.test(c)).map(c => ({ value: c, label: c }))] },
+      { key: 'hc', label: 'Housing seat class', kind: 'choice', options: [{ value: 'none', label: 'None' }, ...classes.filter(c => /^[A-Z]/.test(c)).map(c => ({ value: c, label: c }))] }];
+  },
+  defaults: ctx => {
+    // (The first step and side whose shoulder holds the first row's bore: else step 1 against its end.)
+    const s = pickedShaft(ctx)?.node, row = ctx.doc.bearings?.rows[0], d = (x: { diameter: unknown }) => Number(x.diameter);
+    let step = 1, against: 'start' | 'end' = 'end';
+    if (s && row) for (let k = 0; k < s.steps.length; k++) if (Math.abs(d(s.steps[k]) - row.boreMM) < 1e-6) { if (k > 0 && d(s.steps[k - 1]) > row.boreMM) { step = k + 1; against = 'start'; break; } if (k + 1 < s.steps.length && d(s.steps[k + 1]) > row.boreMM) { step = k + 1; against = 'end'; break; } }
+    return { row: row?.id ?? '', step, against, housing: 'none', sc: 'none', hc: 'none' };
+  },
+  build: (ctx, v) => withNode(ctx.doc, { kind: 'bearing', row: String(v.row), shaft: pickedShaft(ctx)!.index, step: Math.round(n(v, 'step')), against: v.against === 'start' ? 'start' : 'end', ...(v.housing !== 'none' && v.housing !== undefined ? { housing: Number(v.housing) } : {}), ...(v.sc !== 'none' && v.sc ? { shaftClass: String(v.sc) } : {}), ...(v.hc !== 'none' && v.hc ? { housingClass: String(v.hc) } : {}) }),
+};
+
+export const shaftCommands: Command[] = [shaftCommand, keyCommand, keywayCommand, ringCommand, pinCommand, bearingCommand];

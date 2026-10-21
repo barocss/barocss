@@ -8870,3 +8870,115 @@ Not run:
   - 8 failed. Rerun as the rules say, they are not regressions:
     - seven pass alone: fastener at a Ø6.6, R11.2c-1, FR3b (a timing check), R14.1, A5.2, A6.4 and IM3;
     - "refit a curve" failed alone too, because the regex's "Fit" caught "refit" without the steps that make its rail. With its chain (import a .barocad source … extend a surface) it is 7/7.
+
+## D158 — R12c.4: bearing envelopes from the user's rows, on shaft seats and in housings (2026-10-22)
+
+R12c.4 as D139 froze it, under the owner's data rule: bearing envelopes come from the user's catalogue rows, none built in. The seats use D155's fits.
+
+**Kernel** (`bearing.ts`; exported `seatedBearing`, `bearingEnvelope`, `bearingRowProblem`, `BearingError` and the types; the codes `SEAT_ABUTMENT`, `SEAT_FIT` and INVALID_INPUT):
+- **A row** is `{ id, designation?, boreMM, outsideMM, widthMM, chamferMM?, daMinMM?, daMaxMM?, DaMaxMM?, raMaxMM?, boreDeviationUM?, outsideDeviationUM?, source | estimate }`.
+  - The deviations are the rings' [upper, lower] µm, the user's data.
+  - `bearingRowProblem` refuses:
+    - an unknown field, a non-positive size, D ≤ d;
+    - a corner too large for the section, da min above da max;
+    - a deviation not [upper ≥ lower];
+    - a row with both a source and an estimate, or neither.
+- **The envelope:** the section d…D × B with its four corners rounded r, revolved exactly (side tags).
+  - Faces `<id>.bore`, `.outside`, `.face0`, `.face1`, `.corner1–4`.
+  - A simplified envelope: not for structural calculation. There are no rolling elements, load ratings or life.
+- **`seatedBearing(row, shaft, { step, against, housing?, fit? })`:** the bearing on step k of a placed shaft, its face against the shoulder at the step's start or end.
+  - **The shaft report** (D156's) now carries each shoulder: where it stands, its two diameters, its fillet and undercut.
+  - **SEAT_FIT:** the step's diameter is not the bore's. The seat is modelled at the bore's size, and its class carries the limits, as R12c.2's rule has it.
+  - **SEAT_ABUTMENT:**
+    - no shoulder at that side, or one that steps down;
+    - the shoulder outside da min … da max;
+    - its fillet past ra max, or past the bearing's own corner r when the row has no ra max;
+    - a seat shorter than B;
+    - the shaft less the bearing losing volume (the analytic Boolean): an overlap.
+  - **The other side's location:** a ring groove on the step whose near wall lies within 1 mm of the bearing's face, or a shoulder there. Otherwise a warning: a spacer is not modelled.
+  - **In a housing:** a bore of D on the bearing's axis (SEAT_FIT otherwise). If its axial extent does not cover the bearing, that is a warning. An overlap (housing less the bearing) is SEAT_ABUTMENT.
+  - **Fits** (R12c.2): the shaft's class at d and the housing's at D, looked up in the user's tables. A class they lack is SEAT_FIT, naming the row to load.
+    - Against the rings' deviations from the row, the clearance is hole − shaft: the bearing's bore over the shaft's class, the housing's class over the OD. The kind comes from it.
+    - Without the deviations, only the seat's limits are given, and the notes say the ring's tolerance is not in its row.
+  - **Da max:** recorded from the row, not checked. The housing's shoulder is not found from its faces in this stage.
+- **Part model:** the kind `bearing` { row (inline), shaft, step, against, housing?, fit? }.
+  - It refers to the shaft and the housing without consuming them, as D157's parts do.
+  - The output's `bearing` is the report.
+
+**Oracles and tests** (`test/r12c-bearing.test.mjs`, 5 tests, all failing on the previous HEAD):
+- **The row:** D139's B1, the NSK 6204 page: d 20, D 47, B 14, r 1; da 25–26.5, Da max 42, ra max 1. It is a test row citing that page. The rings' deviations and the fit rows are test values flagged estimates.
+- **The envelope:** Pappus on the rounded section, S0's construction (the rectangle less four corner squares plus quarter discs): 19800.6522 mm³, to 1e-6; valid, genus 1, the faces named.
+- **The rows refused:** seven cases.
+- **On the Ø20 seat against the Ø25 shoulder:**
+  - z 30–44, D/2 23.5;
+  - its other side by the ring groove 0.2 mm off;
+  - the overlap 0, to 1e-9 of the shaft, as S0's "untouched";
+  - a fillet r 0.8 clears the bearing's r 1 corner.
+  - Against the seat's end there is no shoulder, so it is refused. With no groove, or a groove 2 mm off, the side is not located.
+- **Refusals:**
+  - SEAT_ABUTMENT: Ø27 above da max 26.5, Ø24.5 below da min 25, a fillet r 1.5 past ra max 1, a seat 10 long, and without ra max a fillet r 1.2 past the corner's r 1;
+  - SEAT_FIT: a Ø20.5 seat.
+- **A housing** Ø70 with a Ø47 bore, 20 long, on the axis: covered, no overlap.
+  - Off by 0.5 is SEAT_FIT; a short housing is a warning.
+- **Fits:**
+  - k5 (+11/+2) against the bore's [0, −10] is interference −21…−2 µm;
+  - H7 (+25/0) against the OD's [0, −11] is clearance 0…+36;
+  - m6, not loaded, is SEAT_FIT;
+  - without the deviations, the limits 20.002–20.011.
+- **The part model:** the shaft turned 30° and moved, the bearing at z 35 about x 60, in the housing; the shaft and the housing stay outputs; the codes mapped.
+- **Conformance `r12c/`:**
+  - `bearing-6204-seat`: the shaft, the housing and the envelope by their closed forms to 1e-9, their centroids by their moments;
+  - `bearing-shoulder-above-da-refused`.
+
+**Studio and model:**
+- **The document's `bearings`** { version 1, rows } is in STUDIO_DOC_FIELDS. It crosses to the engine worker with the fit tables (`evaluatedPart`).
+- **`editBearingRows`** checks each row. A row in use stays.
+- **The node** `bearing` { row (an id), shaft, step, against, housing?, shaftClass?, housingClass? }.
+  - `usesOf` gives the shaft and the housing; `renumber` carries them (`chat/features.ts`, the same justified touch as D157's).
+  - Its part feature takes the row inline and the document's fit tables.
+  - A row the document no longer holds is the typed `[BEARING_ROW_UNKNOWN]`.
+- **The Bearing command** (create; keywords "bearing rolling ball roller", none of them another command's label):
+  - a shaft selected; unavailable with no rows: "Load your bearing rows first (Library panel, BEARINGS): none is built in.";
+  - the row, the step, against start or end (defaulted to the first step and side whose shoulder holds the row's bore), the housing (a body), the shaft seat's and the housing seat's classes from the fit tables.
+- **The Library panel's BEARINGS** (`ui/BearingRows.tsx`): "Add a bearing rows file…", the rows with their sizes and sources, remove.
+- **Notes:**
+  - the row and its source (a warning when an estimate);
+  - the seat (its span, the shoulder, the other side's location);
+  - the housing;
+  - each fit's limits and its kind with the ring;
+  - the warnings;
+  - "A simplified envelope: not for structural calculation".
+- **Friendly errors** for `[BEARING_ROW_UNKNOWN]`, `[SEAT_ABUTMENT]` and `[SEAT_FIT]`.
+- **The icon** `cad-bearing`.
+- **Chat v2:** a features command, its values behind `describe`; no tool or enum. The agent cannot load rows (the user's).
+- **Tests:**
+  - `test/bearing.test.ts` (3): no rows then the user's row, the default shaft, a housing, k5, the notes, the worker crossing, a row in use kept, the shaft not deletable, the refusals, describe;
+  - `fields.test.ts` gained `bearings`;
+  - studio `chat.test`: a context for Bearing;
+  - `palette.test`: Bearing first for "Bearing".
+- **A flow step** "Bearing (R12c.4, D158)": the rows loaded in the Library panel, the shaft and the bearing through the scripted chat, the notes.
+
+**Not in this stage:**
+- the housing's shoulder against Da max (found from its faces);
+- spacers as parts;
+- load ratings, life and internal clearance;
+- angular-contact pairs and preload;
+- bearings as LIB1 library parts: the kind takes the row instead, the same data.
+
+**Checks** (rules v2: `part-model.ts` gained a case, so the full kernel suite ran), on 273b06d7e (this change's code before one test's type fix) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-bearing`: 5/5.
+- The full kernel suite, conformance included: 1470/1477, 6 skipped. The machine was loaded and it took 3761 s. Only the env-only "actual native Split source…" failed.
+- Conformance `r12c/`: 15/15.
+- `@barocss/cad-model`: 696/696, 91 s.
+  - Its type-check failed there on `bearing.test.ts`: a deviation literal typed number[] where the row takes [number, number]. My local type-check had run before that test was written.
+  - Fixed with the tuple; the type-check is now clean, and `bearing` is 3/3.
+- Studio: type-check clean, 194/194 (`palette.test` and the Bearing context in `chat.test` included).
+- Test names against the saved lists: none missing; +7 kernel, +8 cad-model, +2 studio.
+- `FLOW_ONLY` "Bearing (R12c" and "fillet a box top edge from the palette": 2/2 (with the starter step).
+  - No palette word in the flow holds the Bearing command's keywords ("bearing rolling ball roller"), so the palette steps' sample was fillet's.
+
+Not run:
+- RB and properties (the 2nd kernel checkpoint since D156's run).
+- The full browser flow (the coordinator's).

@@ -27,6 +27,8 @@ export function evaluatedPart(doc: StudioDoc): StudioDoc {
   if (doc.frames?.sections?.length) out.frames = { version: 1, sections: doc.frames.sections };
   // (R12c.2, D155: the fits are evaluated with the part — their limits in the notes, a miss or a contradicted pair a refusal.)
   if (doc.fits?.faces?.length) out.fits = doc.fits;
+  // (R12c.4, D158: a bearing's row and its seats' classes are model input.)
+  if (doc.bearings?.rows.length) { out.bearings = doc.bearings; if (doc.fits) out.fits = doc.fits; }
   return out;
 }
 const stripInstance = (i: PartInstance): PartInstance => ({ ...i, doc: evaluatedPart(i.doc) });
