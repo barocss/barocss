@@ -5112,3 +5112,20 @@ The coordinator's queue, item 1. The Selection panel's "Surface area" summed the
   - A cylinder r 10 × 20 is 600π to 1e-9, with the mesh's sum below it; a box 40 × 30 × 10 is 3800; mass_properties gives the same.
   - The D84 pipe clamp is its conformance area 11 019.522 to within 1e-4, where the mesh's sum is more than 0.05 % low.
 - App.tsx: only the props panel's area line, not the viewport or the GPU lane's paths.
+
+## O127 — the narrow-window top bar: the right-hand tools fold into More tools (2026-10-22)
+
+The coordinator's queue, item 2: O90's follow-up. Below about 1100 px the bar's controls clipped at the window's edge.
+
+- **`src/ui/ToolsTray.tsx`**: the right-hand tools (Chat … Insert part) show as many as the bar has room for, and the rest go from the right into a **More tools** menu.
+  - The tray counts the shapes strip at its least (its More button alone), so the shapes give way first, then the tools.
+  - Measured again on any size change (ResizeObserver, inside `ui/`).
+  - The menu closes on a pick, a click outside it, or Escape. Templates keeps its own dropdown open inside it.
+- **Spacing**: the tray keeps the bar's 10 px between tools.
+- **App.tsx**: the same 14 tool nodes, passed to the tray (keys added). This is the top bar only, not the viewport or the GPU lane's paths.
+- **Flow step "narrow window top bar …"** at 1024 and 800 px:
+  - the whole bar fits, and the page never scrolls sideways;
+  - every mode button is inside the window;
+  - every tool is on the bar or under More tools, none lost (at 800 some fold);
+  - Parameters opened from the menu opens its panel.
+  - O90's step is unchanged.

@@ -5680,6 +5680,35 @@ try {
   });
 
   // ---- the shapes strip's overflow: a More menu, never a sideways page --------------------------------------------
+  await check('narrow window top bar: at 1024 and 800 the whole bar fits — no sideways page, every mode button in the window, every tool on the bar or under More tools (O127)', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    const TOOLS = ['Chat', 'Undo', 'Redo', 'New part', 'New from a template', 'Library', 'Parameters', 'Open', 'Save', 'Export STL', 'Export 3MF', 'Export STEP', 'Insert part'];
+    try {
+      for (const width of [1024, 800]) {
+        await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(300);
+        const w = await page.evaluate(() => ({ page: document.documentElement.scrollWidth - window.innerWidth, scrolled: document.scrollingElement.scrollLeft,
+          bar: Math.max(...[...document.querySelectorAll('.topbar > *')].filter(e => getComputedStyle(e).display !== 'none').map(e => e.getBoundingClientRect().right)) - window.innerWidth,
+          modes: Math.max(...[...document.querySelectorAll('.mode button')].map(e => e.getBoundingClientRect().right)) - window.innerWidth }));
+        assert.ok(w.page <= 0 && w.scrolled === 0 && w.bar <= 0.5 && w.modes <= 0, `${width}: ${JSON.stringify(w)}`);
+        const onBar = await page.evaluate(() => [...document.querySelectorAll('.tools-tray > .tool, .tools-tray > span:not(.tools-more-anchor) > .tool')].map(e => e.getAttribute('aria-label')));
+        let inMenu = [];
+        if (await page.locator('[aria-label="More tools"]').count()) {
+          await page.click('[aria-label="More tools"]');
+          inMenu = await page.evaluate(() => [...document.querySelectorAll('[role="menu"][aria-label="More tools"] .tool')].map(e => e.getAttribute('aria-label')).filter(l => !/^Remove template/.test(l ?? '')));
+          await page.keyboard.press('Escape');
+        }
+        const reach = new Set([...onBar, ...inMenu]);
+        assert.deepEqual(TOOLS.filter(t => !reach.has(t)), [], `${width}: on the bar ${onBar}; in More tools ${inMenu}`);
+        assert.ok(width > 1000 || inMenu.length > 0, `${width}: some fold under More tools`);
+      }
+      // (A tool from the menu works: Parameters opens its panel.)
+      await page.click('[aria-label="More tools"]'); await page.click('[role="menu"][aria-label="More tools"] [aria-label="Parameters"]');
+      await page.waitForSelector('[aria-label="Parameters panel"], .params', { timeout: 5000 });
+      await snap('top-bar-800');
+      await page.click('[aria-label="More tools"]'); await page.click('[role="menu"][aria-label="More tools"] [aria-label="Parameters"]');
+    } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
+  });
+
   await check('shapes strip: no sideways page scroll at 1440, 1100 or 860; what has no room goes under More shapes, none lost; a pick from it starts', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     // (Nothing wider than the window: the page's own width, and every top-bar control's right edge.)

@@ -95,6 +95,11 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .shapes-more-anchor { position: relative; display: inline-flex; }
 .shapes-more { position: absolute; top: 34px; left: 0; z-index: 30; display: grid; grid-template-columns: repeat(6, 30px); gap: 2px; padding: 6px; }
 .shapes .tool { width: 30px; height: 30px; }
+/* The right-hand tools (ui/ToolsTray.tsx): the bar's spacing between them; the rest in More tools, under its button at the right. */
+.tools-tray { display: flex; flex: 0 0 auto; align-items: center; gap: 10px; }
+.tools-more-anchor { position: relative; display: inline-flex; }
+.tools-more { position: absolute; top: 34px; right: 0; z-index: 30; display: grid; grid-template-columns: repeat(4, 30px); gap: 6px; padding: 8px; }
+.tools-more .tpl-anchor { position: relative; }
 .shapes .tool[draggable='true'] { cursor: grab; }
 .mode { display: flex; gap: 2px; padding: 2px; border-radius: 6px; background: #2a2c30; }
 .mode button { height: 24px; padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: #9a9ea6; cursor: pointer; }
