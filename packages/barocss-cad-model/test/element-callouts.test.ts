@@ -90,4 +90,11 @@ test('S3b (O146) auto-dimension: the keyseat\'s width b 6 and d − t1 16.5 on t
   // (None of them in an issue.)
   const ids = new Set(settings.dimensions.filter(d => d.auto && /keyseat|keyway/.test(JSON.stringify(d))).map(d => d.id));
   assert.deepEqual(drawingIssues(ctx).filter(x => x.dims?.some(d => ids.has(d)) && x.severity === 'error').map(x => x.message), []);
+  // (The keyseat under its hub is hidden in every standard view: its two dimensions sit on hidden lines, said — a section
+  // through the seat would show them, none added. The hub's keyway, seen from the top, is not.)
+  const hidden = drawingIssues(ctx).filter(x => x.code === 'DIM_ON_HIDDEN'), on = new Set(hidden.flatMap(x => x.dims ?? []));
+  const valueOf = (id: string) => { const r = ctx.sheet.dimensions.find(x => x.dim.id === id); return r?.ok ? +r.value.toFixed(6) : NaN; };
+  assert.ok([...on].map(valueOf).includes(16.5), `d − t1 on a hidden line: ${[...on].map(valueOf)}`);
+  assert.ok(!settings.dimensions.some(d => d.auto && on.has(d.id) && /keyway/.test(JSON.stringify(d)) && valueOf(d.id) === 6), 'the keyway width is seen');
+  assert.match(hidden[0].message, /measures to (a )?hidden lines? in the \w+ view: a section through it would show it \(none is added for it\)\.$/);
 });

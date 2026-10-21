@@ -5548,3 +5548,13 @@ The rest of O142's S3. Auto-dimension (drawing/auto.ts `keyPlans`, given `SheetI
   - R14's auto-dimension and layout conformance is unchanged;
   - the O145 flow step now also checks b 6 and d − t1 16.5 on the sheet.
 - **R12c on drawings and in the BOM is done** (S1–S3b, O143–O146).
+
+### O146 addendum — dimensions on hidden lines said, not hidden (2026-10-22)
+
+The coordinator's drawing-practice point: avoid dimensioning to hidden lines.
+- **The view**: `keyPlans` already takes the view where both ends are visible; a seat facing a view shows there (the default shaft's keyseat, in the right view: b on visible lines).
+- **Hidden in every view** (a keyseat under its hub; d − t1, which only edge-on views show): the dimension is kept, and the issue list warns `DIM_ON_HIDDEN`. "Dimension … measures to a hidden line in the front view: a section through it would show it (none is added for it)."
+  - It covers any linear dimension, the person's too.
+  - A point is hidden only when no visible edge of the view ends there: a corner that a hidden edge also ends at is a seen point. With that rule, R14's conformance raises none (79/79 drawing tests).
+- **No section is added.** A section through the seat is R14's view logic, an open item (§0).
+- **Test**: the shaft-parts scene under its hub warns d − t1 (16.5) on a hidden line, and not the hub's keyway width, which the top view shows.

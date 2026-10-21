@@ -34,7 +34,7 @@ import { VIEW_IDS, type DimPoint, type DrawingDimension, type DrawingSettings, t
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
-export type DrawingIssueCode = 'DATUM_LOST' | 'FRAME_LOST' | 'DATUM_UNDEFINED' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED';
+export type DrawingIssueCode = 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'DATUM_UNDEFINED' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED';
 export type DrawingFix =
   | { kind: 'remove'; dim: string }
   | { kind: 'move'; dim: string; place: XY }
@@ -199,6 +199,15 @@ export interface IssueContext {
   rebuild?: (settings: DrawingSettings) => IssueContext;
 }
 
+/** Whether a visible edge of the view ends at a point (model coordinates). */
+function seenAt(pr: BrepProjection, p: readonly number[]): boolean {
+  const u = p[0] * pr.right[0] + p[1] * pr.right[1] + p[2] * pr.right[2], v = p[0] * pr.up[0] + p[1] * pr.up[1] + p[2] * pr.up[2];
+  for (const e of pr.edges) if (e.ends && e.pieces.some(x => x.visible)) for (const q of e.ends) {
+    const qu = q[0] * pr.right[0] + q[1] * pr.right[1] + q[2] * pr.right[2], qv = q[0] * pr.up[0] + q[1] * pr.up[1] + q[2] * pr.up[2];
+    if (Math.abs(qu - u) <= 1e-6 && Math.abs(qv - v) <= 1e-6) return true;
+  }
+  return false;
+}
 export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   const { layout, settings, sheet } = ctx, out: DrawingIssue[] = [];
   if (!layout.fits) {
@@ -220,6 +229,14 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   }
   for (const r of sheet.dimensions) {
     if (!r.ok) { out.push({ code: 'DIMENSION_LOST', severity: 'error', message: `A ${r.dim.kind} dimension in the ${r.dim.view} view is lost: ${r.reason}`, dims: [r.dim.id], view: r.dim.view, fix: { kind: 'remove', dim: r.dim.id } }); continue; }
+    // (O146: a linear dimension measuring to a hidden line — a keyseat under its hub, say — is said; a section through it
+    // would show it. No section is added here: that is R14's view logic, an open item.)
+    if (r.dim.kind === 'linear') {
+      // (A point is on a hidden line when no visible edge of the view ends there: a corner a hidden edge also ends at is seen.)
+      const pr = ctx.views[r.dim.view];
+      const on = pr ? [r.dim.a, r.dim.b].filter(p => p.at === 'end' && !seenAt(pr, p.near)) : [];
+      if (on.length) out.push({ code: 'DIM_ON_HIDDEN', severity: 'warning', message: `Dimension ${r.text} measures to ${on.length > 1 ? 'hidden lines' : 'a hidden line'} in the ${r.dim.view} view: a section through it would show it (none is added for it).`, dims: [r.dim.id], view: r.dim.view });
+    }
     if (rematched(r.dim)) out.push({ code: 'REMATCHED', severity: 'warning', message: `Dimension ${r.text}: an edge it measures was matched again after an edit. Check it measures what you meant.`, dims: [r.dim.id], view: r.dim.view, fix: { kind: 'accept', dim: r.dim.id } });
   }
   // What lies on the sheet: annotations and the lines they must keep clear of.
