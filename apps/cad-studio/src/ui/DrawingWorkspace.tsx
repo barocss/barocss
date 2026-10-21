@@ -372,7 +372,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     }
     const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(base.section ? { section: base.section } : {}) });
     onChange(next);
-    const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts;
+    const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts + report.dimensions.keys;
     const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';
     const where = `${report.sheet} at ${scaleLabel(report.scale)}${side}${report.dropped.length ? `, without the ${report.dropped.join(' and ')} view (it shows nothing the others do)` : ''}`;
     const notes = [...report.dimensions.skipped.map(x => `${x.what} (${x.view}): ${x.why}`), ...report.left.map(x => x.message), ...(report.readable ? [] : [`The smallest hole is under ${MIN_HOLE_ON_PAPER_MM} mm on paper at this scale: a larger sheet reads better.`])];

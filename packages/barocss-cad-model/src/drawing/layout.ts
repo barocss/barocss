@@ -122,7 +122,7 @@ export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report:
         const s: DrawingSettings = { ...base, scale, ...(Object.keys(room).length ? { room } : {}) };
         const layout = issueContext({ ...i, settings: s }).layout;
         if (!layout.fits) break;
-        const auto = autoDimensions(i.views, layout, s, i.callout), placed: DrawingSettings = withElementNotes({ ...s, dimensions: auto.dimensions }, i.elements ? elementNotes(i.views, layout, i.elements) : []);
+        const auto = autoDimensions(i.views, layout, s, i.callout, i.elements), placed: DrawingSettings = withElementNotes({ ...s, dimensions: auto.dimensions }, i.elements ? elementNotes(i.views, layout, i.elements) : []);
         // Once every side has room: the issue list's moves for what still overlaps (a short dimension's text, a callout
         // over lines). While a side is crowded, more room comes first.
         const moved = auto.report.crowded.length ? { settings: placed, left: drawingIssues(issueContext({ ...i, settings: placed })) } : fixAll({ ...i, settings: placed }, 40, f => f.kind === 'move' || f.kind === 'move-note');

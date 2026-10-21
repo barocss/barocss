@@ -3878,7 +3878,7 @@ try {
   });
 
   // ---- O145: machine elements on their dimensions — a key's leader note by Auto-dimension ------------------------------
-  await check('element notes (O145): the default shaft and its key from the palette; Auto-dimension on A3 adds the key\'s leader note, clear — in the SVG', async () => {
+  await check('element notes and key dimensions (O145, O146): a shaft and its key from the palette; Auto-dimension on A3 — the key\'s leader note, the keyseat\'s b 6 and d − t1 16.5; in the SVG', async () => {
     const fs = await import('node:fs');
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
@@ -3895,6 +3895,9 @@ try {
       const note = await page.evaluate(() => window.__studioDoc.drawing.notes.find(n => n.id.startsWith('el-')));
       assert.ok(note.leader && /^key [\d.]+ × [\d.]+ × [\d.]+$/.test(note.text), JSON.stringify(note));
       assert.deepEqual(await page.evaluate(() => (window.__studioDrawing?.()?.issues ?? []).filter(x => x.code === 'TEXT_OVERLAP').length), 0);
+      // (O146: the default shaft's keyseat — b 6, and d − t1 = 20 − 3.5 from the far side of its step.)
+      const values = await page.evaluate(() => (window.__studioDrawing?.()?.dimensions ?? []).map(d => d.value).filter(v => typeof v === 'number'));
+      for (const want of [6, 16.5]) assert.ok(values.some(v => Math.abs(v - want) < 1e-6), `${want} among ${values}`);
       await snap('element-key-note');
       const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
       assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes(`>${note.text}</text>`), 'the note in the SVG');

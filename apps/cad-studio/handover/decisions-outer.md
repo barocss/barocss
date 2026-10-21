@@ -5531,3 +5531,20 @@ The first part of O142's S3, as the coordinator answered: text after the dimensi
   - Auto layout's two notes with their leaders, no issue about them, and made again without doubling.
   - The flow step "element notes (O145)…": a shaft and its key from the palette, then Auto-dimension on A3. The key's note is there with its leader, there is no text overlap, and it is in the SVG.
 - **Still to do (S3b)**: the key and keyway dimensions in auto-dimension, i.e. the keyseat's width b and d − t1 on the shaft, and the keyway's width and d + t2 on the hub. They need references the auto-dimension does not make today: the far silhouette of the shaft and the far side of the bore, not edge ends. That is the next checkpoint.
+
+## O146 — R12c on drawings and in the BOM, S3b: keyseats and keyways dimensioned (2026-10-22)
+
+The rest of O142's S3. Auto-dimension (drawing/auto.ts `keyPlans`, given `SheetInputs.elements`) adds four dimensions:
+- for each shaft keyseat: its width **b**, and **d − t1**, from the step's far side to the seat's floor;
+- for each hub keyway: its width, and **d + t2**, from the bore's far side to the keyway's floor.
+
+- **How it finds them**: each is a pair of edge ends found by their faces' names, exactly the report's distance apart along a view axis. The width's two ends also sit level across it.
+  - keyseat: `<shaft>.keyseat<j>`; the floor is an edge between two of the seat's own faces; the far side is the step's silhouette `<shaft>.seat<k>~sil`;
+  - keyway: `<keyway>.keyway`, against the bore's face, whose circle has an end at its far side.
+  - The view chosen is the one where both ends lie on visible edges, else the first that has them (dashed: the keyseat is seen through the shaft in the front and side views). One not found is skipped, with why.
+- **Counting**: they are counted in `report.keys`, apart from `added`, whose exact shape R14's conformance cases pin. The studio's message adds them in.
+- **Tests**:
+  - in `test/element-callouts.test.ts`, the shaft-parts scene's Auto layout gives 4 key dimensions, with values 6 (b), 16.5 (20 − 3.5), 6 (the keyway) and 22.8 (20 + 2.8), and no error issue on them;
+  - R14's auto-dimension and layout conformance is unchanged;
+  - the O145 flow step now also checks b 6 and d − t1 16.5 on the sheet.
+- **R12c on drawings and in the BOM is done** (S1–S3b, O143–O146).

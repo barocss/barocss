@@ -97,7 +97,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
     }
     case 'auto_dimension': {
       if (args.layout === false) {
-        const ctx = issueContext(i), r = autoDimensions(i.views, ctx.layout, i.settings, i.callout);
+        const ctx = issueContext(i), r = autoDimensions(i.views, ctx.layout, i.settings, i.callout, i.elements);
         return set(withElementNotes({ ...i.settings, dimensions: r.dimensions }, i.elements ? elementNotes(i.views, ctx.layout, i.elements) : []), 'drawing dimensioned', { added: r.report.added, kept: r.report.kept, skipped: r.report.skipped, crowded: r.report.crowded });
       }
       // The front's side by information, when nothing placed by hand ties it (R14.3b): the part projected for it first.

@@ -75,3 +75,19 @@ test('Auto layout: a leader note for the key and the dowel pin (no dimension of 
   const again = autoLayout({ ...i, settings: { ...settings, notes: [...(settings.notes ?? []), { id: 'mine', text: 'MY NOTE', at: [20, 20] }] } }).settings;
   assert.deepEqual((again.notes ?? []).map(n => n.id).sort(), ['el-n1', 'el-n2', 'mine']);
 });
+
+test('S3b (O146) auto-dimension: the keyseat\'s width b 6 and d − t1 16.5 on the shaft, the hub keyway\'s width 6 and d + t2 22.8 — each in a view that shows it', () => {
+  let doc = cmd('shaft').build!(blank, cmd('shaft').defaults!(blank));
+  const tube = cmd('tube'); doc = tube.build!({ ...blank, doc }, { ...tube.defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 });
+  doc = run(doc, 'keyway', { face: `n${doc.nodes.length - 1}.hole0.side0` }, { b: 6, t2: 2.8 });
+  doc = run(doc, 'key', { bodies: [0] }, { h: 6 });
+  const i = drawingInputs(doc, { ...readDrawing(doc.drawing), sheet: 'A3' }); assert.ok(typeof i !== 'string', String(i));
+  const { settings, report } = autoLayout(i);
+  assert.equal(report.dimensions.keys, 4, JSON.stringify(report.dimensions.skipped));
+  const ctx = issueContext({ ...i, settings });
+  const keyDims = ctx.sheet.dimensions.filter(r => r.ok && /keyseat|keyway/.test(JSON.stringify(r.dim)) && r.dim.kind === 'linear').map(r => r.ok ? +r.value.toFixed(6) : NaN).sort((a, b) => a - b);
+  for (const want of [6, 6, 16.5, 22.8]) assert.ok(keyDims.includes(want), `${want} in ${keyDims}`);
+  // (None of them in an issue.)
+  const ids = new Set(settings.dimensions.filter(d => d.auto && /keyseat|keyway/.test(JSON.stringify(d))).map(d => d.id));
+  assert.deepEqual(drawingIssues(ctx).filter(x => x.dims?.some(d => ids.has(d)) && x.severity === 'error').map(x => x.message), []);
+});
