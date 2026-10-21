@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { processProfile, type ProcessProfile } from '@barocss/cad-model/library/materials';
-import { machinability } from '../src/machining/report';
-import { holesOf, onDrillTable, tappedHoles } from '../src/machining/holes';
+import { machinability } from '@barocss/cad-model/machining/report';
+import { holesOf, onDrillTable, tappedHoles } from '@barocss/cad-model/machining/holes';
 
 // CNC2 (O85): holes and threads against closed forms — depths and diameters as built (the oracle is the construction,
 // not the geometry read back), an enumerated drill table against the step rule, tapped holes against the fastener

@@ -5,7 +5,7 @@ import { roundCorner } from '../sketch/corner';
 import {
   applyConstraint, circleDimensionKeys, circlePairKeys, constraintEntries, constraintOptions, dimensionKey, pointDimensionKeys, removeConstraint, samePick,
   type ConstraintKind, type Polygon, type SketchPick,
-} from '../sketch/rules';
+} from '@barocss/cad-model/sketch/rules';
 import './constraints.css';
 
 const TOOLS: { kind: ConstraintKind; sym: string; label: string; short: string }[] = [

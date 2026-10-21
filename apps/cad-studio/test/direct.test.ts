@@ -172,8 +172,8 @@ test('direct: a loft through curves of different degrees and knots makes them al
 test('curves made in the studio: a sketch outline, a circle and model edges as exact curves', async () => {
   const { outlineCurve, circleCurve, edgeCurve, curvesSource } = await import('@barocss/cad-model/engine/curveSource');
   const { xyPlane } = await import('@barocss/cad-model/sketch/plane');
-  const { evaluateDoc } = await import('../src/engine/evaluate');
-  const { rectanglePart, withNode } = await import('../src/engine/doc');
+  const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
+  const { rectanglePart, withNode } = await import('@barocss/cad-model/engine/doc');
   const t = Math.tan(Math.PI / 8), plane = xyPlane(5);
   // 20 × 10 with one R2 corner (a quarter arc), closed; and a Ø8 circle.
   const outline = outlineCurve(plane, [[0, 0], [18, 0], [20, 2], [20, 10], [0, 10]], [0, t, 0, 0, 0], true);
@@ -195,8 +195,8 @@ test('curves made in the studio: a sketch outline, a circle and model edges as e
 test('direct: a curve\'s crossings with a plane; two surfaces\' intersection curve; a point in or out of a body', async () => {
   const { curvePlaneCrossings, surfaceIntersection } = await import('@barocss/cad-model/engine/direct');
   const { pointInBody } = await import('@barocss/cad-model/app/measure');
-  const { evaluateDoc } = await import('../src/engine/evaluate');
-  const { rectanglePart } = await import('../src/engine/doc');
+  const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
+  const { rectanglePart } = await import('@barocss/cad-model/engine/doc');
   const d = importSource(emptyDirect(), STUDY, 'study'), arc = byName(d, 'arc');
   // The arc (0,0)…(20,0), bulging to y = 5 at x = 10: X = 10 once, Y = 2 twice, Y = 9 never.
   const one = curvePlaneCrossings(d, arc, 'x', 10);
@@ -228,9 +228,9 @@ test('direct geometry: poles listed by key and moved one at a time', () => {
 test('Sweep along a picked curve: the newest sketch carried along it, a bent rod of the area times the path', async () => {
   // (The app loads the direct tools with the document's direct geometry; here, before the command asks.)
   await loadDirect();
-  const { commands } = await import('../src/app/commands');
-  const { evaluateDoc } = await import('../src/engine/evaluate');
-  const { emptyDoc, withNode, featureLabel } = await import('../src/engine/doc');
+  const { commands } = await import('@barocss/cad-model/app/commands');
+  const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
+  const { emptyDoc, withNode, featureLabel } = await import('@barocss/cad-model/engine/doc');
   const w = Math.SQRT1_2, direct = importSource(emptyDirect(), `@model bend { version: 0; length-unit: mm;
   @curve #quarter { type: nurbs; degree: 2; knots: [0,0,0,1,1,1]; control-points: [[20,0,0],[20,0,20],[0,0,20]]; weights: [1,${w},1]; } }`, 'bend');
   const doc = { ...withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 2 }), direct };

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { editFields, type EditField } from '../src/app/editFields';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { editFields, type EditField } from '@barocss/cad-model/app/editFields';
 
 const field = (nodes: readonly ModelNode[], i: number, key: string): EditField => {
   const f = editFields(nodes, i).find(x => x.key === key);

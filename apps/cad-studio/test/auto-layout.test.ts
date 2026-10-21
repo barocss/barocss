@@ -2,15 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { brepsFor } from '../src/engine/evaluate';
-import { rectanglePart, starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { projectViews } from '../src/drawing/project';
-import { holeCallout } from '../src/drawing/callout';
-import { snapPoints } from '../src/drawing/dimensions';
-import { drawingIssues, issueContext, type SheetInputs } from '../src/drawing/issues';
-import { MIN_HOLE_ON_PAPER_MM, autoLayout, chooseViews, rightAddsNothing } from '../src/drawing/layout';
-import { layoutSheet } from '../src/drawing/views';
-import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
+import { brepsFor } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, starterDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { projectViews } from '@barocss/cad-model/drawing/project';
+import { holeCallout } from '@barocss/cad-model/drawing/callout';
+import { snapPoints } from '@barocss/cad-model/drawing/dimensions';
+import { drawingIssues, issueContext, type SheetInputs } from '@barocss/cad-model/drawing/issues';
+import { MIN_HOLE_ON_PAPER_MM, autoLayout, chooseViews, rightAddsNothing } from '@barocss/cad-model/drawing/layout';
+import { layoutSheet } from '@barocss/cad-model/drawing/views';
+import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '@barocss/cad-model/drawing/types';
 
 // R14.3 (O4): views chosen and laid out for their dimensions. Conformance cases packages/barocss-cad/conformance/r14/
 // layout-<name>/case.json: a studio document and drawing settings; the views shown, the sheet and scale chosen, whether

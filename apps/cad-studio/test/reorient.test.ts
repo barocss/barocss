@@ -2,18 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { brepsFor, evaluatePart } from '../src/engine/evaluate';
-import { rectanglePart, starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { projectViews } from '../src/drawing/project';
-import { holeCallout } from '../src/drawing/callout';
-import { resolveDimension } from '../src/drawing/dimensions';
-import { issueContext, drawingIssues } from '../src/drawing/issues';
-import { autoLayout, frontByInformation } from '../src/drawing/layout';
-import { reorient } from '../src/drawing/reorient';
-import { sectionOf } from '../src/drawing/section';
-import { VIEWS, layoutSheet, viewsFor, type Orientation } from '../src/drawing/views';
-import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { brepsFor, evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, starterDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { projectViews } from '@barocss/cad-model/drawing/project';
+import { holeCallout } from '@barocss/cad-model/drawing/callout';
+import { resolveDimension } from '@barocss/cad-model/drawing/dimensions';
+import { issueContext, drawingIssues } from '@barocss/cad-model/drawing/issues';
+import { autoLayout, frontByInformation } from '@barocss/cad-model/drawing/layout';
+import { reorient } from '@barocss/cad-model/drawing/reorient';
+import { sectionOf } from '@barocss/cad-model/drawing/section';
+import { VIEWS, layoutSheet, viewsFor, type Orientation } from '@barocss/cad-model/drawing/views';
+import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '@barocss/cad-model/drawing/types';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 
 // R14.3b (O7): the front view's side. A versioned setting (none: −Y, every drawing saved before); turning re-maps every
 // annotation to the view showing its axes or is refused, typed. Conformance packages/barocss-cad/conformance/r14/

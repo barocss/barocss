@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { rectanglePart, withNode } from '../src/engine/doc';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
 
 // A 32×32×16 box: its top front edge joins a 32 mm top and a 16 mm front wall.
 const finish = (kind: 'fillet' | 'chamfer', size: number) => evaluateDoc(withNode(rectanglePart(32, 32, 16), kind === 'fillet'

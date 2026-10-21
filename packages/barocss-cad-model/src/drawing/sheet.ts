@@ -1,0 +1,440 @@
+// The sheet as a display list in sheet millimetres (y down): frame, title block, the projected views
+// and the dimensions. The SVG and PDF writers and the workspace all draw from it.
+import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
+import { fmtMM, resolveDimension, resolveLine, type Resolved } from './dimensions';
+import { centreMarks } from './centres';
+import { threadMarks } from './threads';
+import type { FaceThread } from '../app/threads';
+import { fitText, textCorners, textWidth } from './text';
+import { VIEWS, scaleLabel, toSheet, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
+import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSettings, DrawingTable, DrawingViews, Tolerance, ViewId, XY } from './types';
+import { tableLayout, type TableContent } from './table';
+import { VIEW_IDS } from './types';
+
+/** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), centre 0.25 chain, frame 0.7. */
+export type Pen = 'visible' | 'hidden' | 'thin' | 'center' | 'frame';
+export const PENS: Record<Pen, { width: number; dash?: number[] }> = {
+  visible: { width: 0.5 }, hidden: { width: 0.35, dash: [3, 1.5] }, thin: { width: 0.25 }, center: { width: 0.25, dash: [8, 1.5, 1.5, 1.5] }, frame: { width: 0.7 },
+};
+export type Mark =
+  | { kind: 'line'; a: XY; b: XY; pen: Pen }
+  /** `center + u·cos t + v·sin t`, t from t0 to t1 (sheet mm). */
+  | { kind: 'arc'; center: XY; u: XY; v: XY; t0: number; t1: number; pen: Pen }
+  | { kind: 'polyline'; points: XY[]; pen: Pen }
+  | { kind: 'fill'; points: XY[] }
+  /** Parallel lines `spacing` apart at `angle` degrees (counter-clockwise as read) over rings, even–odd (R11b, O1: kept as one mark so a DXF gets a HATCH; SVG and PDF draw its lines). */
+  | { kind: 'hatch'; rings: XY[][]; spacing: number; angle: 45; pen: Pen }
+  /** `angle`: degrees, counter-clockwise as read on the sheet. */
+  | { kind: 'text'; at: XY; text: string; size: number; anchor: 'start' | 'middle' | 'end'; angle?: number; bold?: boolean };
+/** `datum`, `control` (R14.4, O5): a datum feature symbol, a feature control frame. */
+/** `table` (O49): a drawing table, its id the table's. */
+export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table'; id?: string; view?: ViewId; marks: Mark[] }
+/** `tables`: each table placed (its box), or why its source gave nothing (drawn with the reason). */
+export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string }[] }
+
+export const TEXT = 3.5;
+const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
+
+/** `section`: section A–A's projection and cut-face rings (view coordinates), drawn when the layout places it. */
+/** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
+/** `meta.tableContent`: a table's content from its source (O49; absent: a sourced table says it was not filled). */
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string } }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
+  const groups: MarkGroup[] = [];
+  const [W, H] = layout.size, f = layout.frame;
+  groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
+  groups.push({ role: 'title', marks: titleBlock(layout, settings, meta) });
+  for (const id of VIEW_IDS) {
+    const v = layout.views[id], pr = views[id], marks: Mark[] = [];
+    if (v.hidden) continue;
+    const showHidden = settings.hidden && id !== 'iso';
+    // Hidden pieces first, so visible ink covers them where they touch.
+    for (const visible of [false, true]) for (const e of pr.edges) for (const p of e.pieces) {
+      if (p.visible !== visible || (!visible && !showHidden)) continue;
+      marks.push(curveMark(v, p.curve, !visible ? 'hidden' : e.tangent ? 'thin' : 'visible'));
+    }
+    if (id !== 'iso' && settings.centers !== false) marks.push(...centreMarks(v, pr));
+    if (id !== 'iso' && meta.threads) marks.push(...threadMarks(v, pr, meta.threads, showHidden));
+    groups.push({ role: 'view', view: id, marks });
+  }
+  // (A dimension in a view not shown (R14.3) is kept, unresolved, so the issue list names it.)
+  const dimensions: Resolved[] = settings.dimensions.map((d): Resolved => layout.views[d.view].hidden ? { ok: false, dim: d, reason: `Its view (${d.view}) is not shown.` } : resolveDimension(views, d)).map((r): Resolved => r.ok ? { ...r, text: dimensionText(r, meta.callout) } : r);
+  for (const r of dimensions) if (r.ok) {
+    const marks = dimensionMarks(layout.views[r.dim.view], r);
+    if (r.dim.basic) marks.push(...basicBox(marks));
+    groups.push({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks });
+  }
+  // Datum features and feature control frames (R14.4, O5): a frame under its dimension's text.
+  for (const d of settings.datums ?? []) { if (layout.views[d.view].hidden) continue; const marks = datumMarks(layout, views, d); if (marks) groups.push({ role: 'datum', id: d.id, view: d.view, marks }); }
+  for (const f of settings.frames ?? []) {
+    const g = groups.find(x => x.role === 'dimension' && x.id === f.dim), main = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
+    if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f) });
+  }
+  for (const n of settings.notes ?? []) groups.push({ role: 'note', id: n.id, marks: noteMarks(layout, n) });
+  // Each view's name under it, below any dimension placed under the view.
+  for (const id of VIEW_IDS) {
+    if (layout.views[id].hidden) continue;
+    const [x0, , x1, y1] = layout.views[id].box;
+    let below = y1;
+    for (const g of groups) if ((g.role === 'dimension' || g.role === 'datum' || g.role === 'control') && g.view === id) for (const m of g.marks) for (const p of markPoints(m)) if (p[0] >= x0 - 2 && p[0] <= x1 + 2 && p[1] > below) below = p[1];
+    groups.push({ role: 'label', view: id, marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: VIEWS[id].label, size: 2.5, anchor: 'middle' }] });
+  }
+  if (section && layout.section && settings.section) {
+    // Section A–A under the front view's name (dimensions under the front view push it down).
+    const front = groups.find(g => g.role === 'label' && g.view === 'front')!.marks[0] as Extract<Mark, { kind: 'text' }>;
+    const shift = Math.max(0, front.at[1] + 6 - layout.section.box[1]), at = layout.section;
+    const placed = { ...at, origin: [at.origin[0], at.origin[1] + shift] as XY, box: [at.box[0], at.box[1] + shift, at.box[2], at.box[3] + shift] as [number, number, number, number] };
+    groups.push({ role: 'section', marks: sectionMarks({ ...layout, section: placed }, views, section, settings.section.y) });
+    const [x0, , x1, y1] = placed.box;
+    groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, y1 + 7], text: 'SECTION A–A', size: 2.5, anchor: 'middle' }] });
+  }
+  // (Tables last: an auto-placed one finds room clear of everything else on the sheet, O49.)
+  const tables = tableGroups(layout, settings, groups, meta.tableContent);
+  groups.push(...tables.groups);
+  return { size: [W, H], groups, dimensions, ...(tables.placed.length ? { tables: tables.placed } : {}) };
+}
+
+type Rect = [number, number, number, number];
+const meets = (a: Rect, b: Rect, gap = 1) => a[0] < b[2] + gap && b[0] < a[2] + gap && a[1] < b[3] + gap && b[1] < a[3] + gap;
+/** What an auto-placed table must keep clear of: the views' and the section's areas, every text on the sheet so far, the title block. */
+function takenOf(layout: SheetLayout, groups: readonly MarkGroup[]): Rect[] {
+  const out: Rect[] = [layout.title];
+  for (const id of VIEW_IDS) if (!layout.views[id].hidden) out.push(layout.views[id].box);
+  if (layout.section) out.push(layout.section.box);
+  for (const g of groups) if (g.role !== 'frame' && g.role !== 'title' && g.role !== 'view') for (const m of g.marks) if (m.kind === 'text') { const q = textCorners(m.at, m.text, m.size, m.anchor, m.angle ?? 0, !!m.bold); out.push([Math.min(...q.map(p => p[0])), Math.min(...q.map(p => p[1])), Math.max(...q.map(p => p[0])), Math.max(...q.map(p => p[1]))]); }
+  return out;
+}
+/**
+ * Each table laid out (O49): at its anchor, or — without one — the first place clear of the views, the texts and the
+ * tables already placed, searched from just above the title block at its right edge, upward then leftward in 5 mm steps
+ * inside the frame; none clear, it stays at the first place (the issue list then says what it meets).
+ */
+function tableGroups(layout: SheetLayout, settings: DrawingSettings, before: readonly MarkGroup[], contentOf?: (t: DrawingTable) => TableContent | { error: string }): { groups: MarkGroup[]; placed: NonNullable<Sheet['tables']> } {
+  const groups: MarkGroup[] = [], placed: NonNullable<Sheet['tables']> = [], taken = takenOf(layout, before);
+  for (const t of settings.tables ?? []) if (t.at) { const c = tableContentOf(t, contentOf); taken.push(tableLayout(c.content, t.at, t.corner ?? 'top-left').box); }
+  for (const t of settings.tables ?? []) {
+    const { content, error } = tableContentOf(t, contentOf);
+    let l = t.at ? tableLayout(content, t.at, t.corner ?? 'top-left') : tableLayout(content, [layout.title[2], layout.title[1] - 3], 'bottom-right');
+    if (!t.at) { const at = roomIn(layout, taken, l.box[2] - l.box[0], l.box[3] - l.box[1]); if (at) l = tableLayout(content, at, 'top-left'); taken.push(l.box); }
+    groups.push({ role: 'table', id: t.id, marks: l.marks });
+    placed.push({ id: t.id, box: l.box, ...(error ? { error } : {}) });
+  }
+  return { groups, placed };
+}
+/** The first top-left corner for a w × h box clear of `taken`: from just above the title block's right end, upward then leftward in 5 mm steps, inside the frame; null when none is. */
+function roomIn(layout: SheetLayout, taken: readonly Rect[], w: number, h: number): XY | null {
+  const [fx0, fy0, fx1] = layout.frame, right = layout.title[2], bottom = layout.title[1] - 3;
+  for (let dx = 0; right - dx - w >= fx0; dx += 5) for (let dy = 0; bottom - dy - h >= fy0; dy += 5) {
+    const box: Rect = [right - dx - w, bottom - dy - h, right - dx, bottom - dy];
+    if (box[2] <= fx1 && !taken.some(r => meets(box, r))) return [box[0], box[1]];
+  }
+  return null;
+}
+/** Room for a table of `box`'s size on a built sheet, clear of everything but itself (O49: the issue list's fix for a table). */
+export function tableRoom(layout: SheetLayout, sheet: Sheet, id: string): XY | null {
+  const self = sheet.tables?.find(x => x.id === id); if (!self) return null;
+  const taken = [...takenOf(layout, sheet.groups.filter(g => !(g.role === 'table' && g.id === id))), ...(sheet.tables ?? []).filter(x => x.id !== id).map(x => x.box)];
+  return roomIn(layout, taken, self.box[2] - self.box[0], self.box[3] - self.box[1]);
+}
+/** A table's content, or — its source giving nothing — its title and the reason (never an empty table that reads as "no rows"). */
+function tableContentOf(t: DrawingTable, contentOf?: (t: DrawingTable) => TableContent | { error: string }): { content: TableContent; error?: string } {
+  const c = t.from ? contentOf?.(t) ?? { error: 'its source was not run for this sheet' } : { ...(t.title ? { title: t.title } : {}), columns: t.columns ?? [], rows: t.rows ?? [] };
+  return 'error' in c ? { content: { title: t.title ?? (t.from ?? t.id).toUpperCase(), columns: [{ key: 'why', label: 'NOT AVAILABLE' }], rows: [[c.error]] }, error: c.error } : { content: c };
+}
+
+/**
+ * What a dimension reads: a diameter on a hole its callout, and `count` before it (`4× Ø6.6 THRU`, `3× 20`) in
+ * place of a callout's own count (R14.1, O2).
+ */
+export function dimensionText(r: Extract<Resolved, { ok: true }>, callout?: (edge: string) => string | null): string {
+  const base = (r.kind === 'diameter' && callout ? callout(r.dim.edge) : null) ?? r.text;
+  return r.dim.count ? `${r.dim.count}× ${base.replace(/^\d+× /, '')}` : base;
+}
+
+export function curveMark(v: ViewPlacement, c: ProjectedCurve, pen: Pen): Mark {
+  if (c.kind === 'line') return { kind: 'line', a: toSheet(v, c.a), b: toSheet(v, c.b), pen };
+  if (c.kind === 'polyline') return { kind: 'polyline', points: c.points.map(p => toSheet(v, p)), pen };
+  return { kind: 'arc', center: toSheet(v, c.center), u: [v.scale * c.u[0], -v.scale * c.u[1]], v: [v.scale * c.v[0], -v.scale * c.v[1]], t0: c.t0, t1: c.t1, pen };
+}
+
+/** Points a mark reaches (a text's baseline point; an arc sampled). */
+function markPoints(m: Mark): XY[] {
+  switch (m.kind) {
+    case 'line': return [m.a, m.b];
+    case 'polyline': case 'fill': return m.points;
+    case 'hatch': return m.rings.flat();
+    case 'text': return [m.at];
+    case 'arc': return Array.from({ length: 9 }, (_, k) => { const t = m.t0 + (m.t1 - m.t0) * k / 8; return [m.center[0] + m.u[0] * Math.cos(t) + m.v[0] * Math.sin(t), m.center[1] + m.u[1] * Math.cos(t) + m.v[1] * Math.sin(t)] as XY; });
+  }
+}
+
+const rect = ([x0, y0, x1, y1]: readonly number[], pen: Pen): Mark[] => [
+  { kind: 'line', a: [x0, y0], b: [x1, y0], pen }, { kind: 'line', a: [x1, y0], b: [x1, y1], pen },
+  { kind: 'line', a: [x1, y1], b: [x0, y1], pen }, { kind: 'line', a: [x0, y1], b: [x0, y0], pen },
+];
+
+/** The title's room: from 2 mm in to 2 mm short of the projection symbol (its left edge at 59 mm from the right). */
+export const TITLE_ROOM = TITLE_BLOCK.width - 2 - 59 - 2;
+
+function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string }): Mark[] {
+  const [x0, y0, x1, y1] = layout.title, marks: Mark[] = rect(layout.title, 'frame');
+  const mid = y0 + 14, cols = [x0, x0 + 24, x0 + 42, x0 + 72, x0 + 90, x1];
+  marks.push({ kind: 'line', a: [x0, mid], b: [x1, mid], pen: 'thin' });
+  for (const x of cols.slice(1, -1)) marks.push({ kind: 'line', a: [x, mid], b: [x, y1], pen: 'thin' });
+  marks.push({ kind: 'text', at: [x0 + 2, y0 + 4], text: 'TITLE', size: 1.8, anchor: 'start' });
+  // Each field fits its cell: shrunk to a floor, then cut with an ellipsis. The title runs up to the projection symbol.
+  marks.push({ kind: 'text', at: [x0 + 2, y0 + 11], ...fitText(meta.title, 5, true, TITLE_ROOM, 3), anchor: 'start', bold: true });
+  marks.push({ kind: 'text', at: [x1 - 2, y0 + 4], text: 'barocss cad-studio', size: 1.8, anchor: 'end' });
+  const cells: [string, string][] = [['SCALE', scaleLabel(layout.scale)], ['UNITS', 'mm'], ['DATE', meta.date], ['REV', settings.revision ?? '-'], ['SHEET', settings.sheet]];
+  cells.forEach(([k, val], i) => {
+    marks.push({ kind: 'text', at: [cols[i] + 2, mid + 4], text: k, size: 1.8, anchor: 'start' });
+    marks.push({ kind: 'text', at: [cols[i] + 2, mid + 12], ...fitText(val, 3.5, true, cols[i + 1] - cols[i] - 4, 2.2), anchor: 'start', bold: true });
+  });
+  marks.push(...projectionSymbol([x1 - 52, y0 + 7], settings.projection));
+  marks.push({ kind: 'text', at: [x1 - 42, y0 + 11.5], text: settings.projection === 'third' ? 'THIRD ANGLE' : 'FIRST ANGLE', size: 1.8, anchor: 'start' });
+  return marks;
+}
+
+/** The projection symbol: a truncated cone's side view and end view (side view left for third angle). */
+function projectionSymbol([cx, cy]: XY, projection: DrawingSettings['projection']): Mark[] {
+  const cone = (x: number): Mark[] => [
+    { kind: 'line', a: [x - 3, cy - 1.5], b: [x + 3, cy - 3], pen: 'thin' }, { kind: 'line', a: [x + 3, cy - 3], b: [x + 3, cy + 3], pen: 'thin' },
+    { kind: 'line', a: [x + 3, cy + 3], b: [x - 3, cy + 1.5], pen: 'thin' }, { kind: 'line', a: [x - 3, cy + 1.5], b: [x - 3, cy - 1.5], pen: 'thin' },
+  ];
+  const end = (x: number): Mark[] => [
+    { kind: 'arc', center: [x, cy], u: [3, 0], v: [0, 3], t0: 0, t1: 2 * Math.PI, pen: 'thin' },
+    { kind: 'arc', center: [x, cy], u: [1.5, 0], v: [0, 1.5], t0: 0, t1: 2 * Math.PI, pen: 'thin' },
+  ];
+  return projection === 'third' ? [...cone(cx - 4), ...end(cx + 4)] : [...end(cx - 4), ...cone(cx + 4)];
+}
+
+const unit = (v: XY): XY => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+const add = (a: XY, b: XY, k = 1): XY => [a[0] + b[0] * k, a[1] + b[1] * k];
+const sub = (a: XY, b: XY): XY => [a[0] - b[0], a[1] - b[1]];
+const dot2 = (a: XY, b: XY) => a[0] * b[0] + a[1] * b[1];
+
+/** A filled arrowhead with its tip at `tip`, pointing along `dir`. */
+function arrow(tip: XY, dir: XY): Mark {
+  const d = unit(dir), n: XY = [-d[1], d[0]], base = add(tip, d, -ARROW);
+  return { kind: 'fill', points: [tip, add(base, n, ARROW_HALF), add(base, n, -ARROW_HALF)] };
+}
+
+/** Text along a direction, turned to read from below or from the right (angle in (-90°, 90°]). */
+function readAngle(dir: XY): number {
+  let angle = -Math.atan2(dir[1], dir[0]) * 180 / Math.PI;
+  if (angle > 90.001) angle -= 180; else if (angle < -89.999) angle += 180;
+  return Math.round(angle * 1000) / 1000;
+}
+
+/** A deviation as written: +0.1, -0.05 (an ASCII minus, which every font and PDF encoding has), 0. */
+const signed = (v: number, unit: string) => v === 0 ? '0' : (v > 0 ? '+' : '-') + fmtMM(Math.abs(v)) + unit;
+/** A tolerance on one line (the panel; ± and fits print so on the sheet too). */
+export function toleranceText(t: Tolerance, unit = ''): string {
+  return t.kind === 'symmetric' ? `±${fmtMM(t.value)}${unit}` : t.kind === 'fit' ? t.code : `${signed(t.upper, unit)}/${signed(t.lower, unit)}`;
+}
+
+/**
+ * A dimension's value with its tolerance, as text at `at` (its baseline; `angle` as read): ± and fits
+ * follow the value on its line; deviations stack after it in smaller text, the upper one raised.
+ */
+export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | 'end', value: string, tol?: Tolerance, unit = ''): Mark[] {
+  const a = angle * Math.PI / 180, x: XY = [Math.cos(a), -Math.sin(a)], up: XY = [-Math.sin(a), -Math.cos(a)];
+  const main = tol && tol.kind !== 'deviation' ? `${value} ${toleranceText(tol, unit)}` : value;
+  const small = 2.5, devs = tol?.kind === 'deviation' ? [signed(tol.upper, unit), signed(tol.lower, unit)] : null;
+  const wMain = textWidth(main, TEXT, false), wDev = devs ? 0.8 + Math.max(...devs.map(d => textWidth(d, small, false))) : 0, total = wMain + wDev;
+  const from = add(at, x, anchor === 'start' ? 0 : anchor === 'middle' ? -total / 2 : -total);
+  const marks: Mark[] = [{ kind: 'text', at: from, text: main, size: TEXT, anchor: 'start', ...(angle ? { angle } : {}) }];
+  if (devs) {
+    const col = add(from, x, wMain + 0.8);
+    marks.push({ kind: 'text', at: add(col, up, 1.5), text: devs[0], size: small, anchor: 'start', ...(angle ? { angle } : {}) },
+      { kind: 'text', at: add(col, up, -0.6), text: devs[1], size: small, anchor: 'start', ...(angle ? { angle } : {}) });
+  }
+  return marks;
+}
+
+export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true }>): Mark[] {
+  if (r.kind === 'pcd') {
+    // A pitch circle (R14.5): the circle in chain line through the holes' centres, a leader to it like a diameter's.
+    const C = toSheet(v, r.center), R = r.radius * v.scale;
+    const asDiameter = { ...r, kind: 'diameter', dim: { ...r.dim, kind: 'diameter', edge: '', near: [0, 0, 0] } } as unknown as Extract<Resolved, { ok: true; kind: 'diameter' }>;
+    return [{ kind: 'arc', center: C, u: [R, 0], v: [0, R], t0: 0, t1: 2 * Math.PI, pen: 'center' }, ...dimensionMarks(v, asDiameter)];
+  }
+  const marks: Mark[] = [];
+  const place = toSheet(v, r.dim.place);
+  if (r.kind === 'angle') {
+    // An arc about the vertex through the placement, between the two rays; arrows at its ends, extension
+    // lines out from the edges when the arc lies beyond them, the value just outside its middle.
+    const X = toSheet(v, r.vertex), R = Math.hypot(place[0] - X[0], place[1] - X[1]);
+    const f: XY = [r.from[0], -r.from[1]], g: XY = [-r.from[1], -r.from[0]], theta = r.value * Math.PI / 180;
+    const u: XY = [f[0] * R, f[1] * R], w: XY = [g[0] * R, g[1] * R];
+    const at = (t: number): XY => [X[0] + u[0] * Math.cos(t) + w[0] * Math.sin(t), X[1] + u[1] * Math.cos(t) + w[1] * Math.sin(t)];
+    const tangent = (t: number): XY => [-u[0] * Math.sin(t) + w[0] * Math.cos(t), -u[1] * Math.sin(t) + w[1] * Math.cos(t)];
+    marks.push({ kind: 'arc', center: X, u, v: w, t0: 0, t1: theta, pen: 'thin' });
+    const t0 = tangent(0), t1 = tangent(theta);
+    marks.push(arrow(at(0), [-t0[0], -t0[1]]), arrow(at(theta), t1));
+    for (const dir of [r.from, r.to]) {
+      // The extension along a ray reaches out from the edge end lying along it (none along the ray behind it).
+      const d: XY = [dir[0], -dir[1]], reach = Math.max(0, ...r.ends.map(e => { const E = toSheet(v, e), q = (E[0] - X[0]) * d[0] + (E[1] - X[1]) * d[1]; return Math.abs((E[0] - X[0]) * d[1] - (E[1] - X[1]) * d[0]) < 1e-6 * (1 + Math.abs(q)) ? q : 0; }));
+      if (R > reach + GAP) marks.push({ kind: 'line', a: add(X, d, reach + GAP), b: add(X, d, R + OVER), pen: 'thin' });
+    }
+    const mid = at(theta / 2), out = unit(sub(mid, X));
+    marks.push(...valueMarks(add(add(mid, out, 2.5), [0, 1.2]), 0, out[0] > 0.3 ? 'start' : out[0] < -0.3 ? 'end' : 'middle', r.text, r.dim.tol, '°'));
+    return marks;
+  }
+  if (r.kind === 'linear') {
+    const A = toSheet(v, r.a), B = toSheet(v, r.b), orient = r.dim.orient;
+    const d: XY = orient === 'horizontal' ? [1, 0] : orient === 'vertical' ? [0, 1] : unit(sub(B, A)), n: XY = [-d[1], d[0]];
+    const A2 = add(A, n, dot2(sub(place, A), n)), B2 = add(B, n, dot2(sub(place, B), n));
+    for (const [P, Q] of [[A, A2], [B, B2]] as const) {
+      const out = sub(Q, P), l = Math.hypot(out[0], out[1]);
+      if (l > GAP) { const e = unit(out); marks.push({ kind: 'line', a: add(P, e, GAP), b: add(Q, e, OVER), pen: 'thin' }); }
+    }
+    const along = sub(B2, A2), len = Math.hypot(along[0], along[1]), e = unit(along);
+    if (len >= 2 * ARROW + 1) {
+      marks.push({ kind: 'line', a: A2, b: B2, pen: 'thin' }, arrow(A2, [-e[0], -e[1]]), arrow(B2, e));
+    } else {
+      // Too short for arrows inside: arrows outside, pointing in.
+      marks.push({ kind: 'line', a: add(A2, e, -ARROW - 3), b: add(B2, e, ARROW + 3), pen: 'thin' }, arrow(A2, e), arrow(B2, [-e[0], -e[1]]));
+    }
+    // Text over the line (the side away from the measured points' middle when the line is beside them).
+    const mid = add(A2, along, 0.5), up: XY = textUp(e);
+    marks.push(...valueMarks(add(mid, up, 1.2), readAngle(e), 'middle', r.text, r.dim.tol));
+    return marks;
+  }
+  const C = toSheet(v, r.center), R = r.radius * v.scale, toPlace = sub(place, C), dist = Math.hypot(toPlace[0], toPlace[1]);
+  const e = dist > 1e-9 ? unit(toPlace) : [1, 0] as XY, rim = add(C, e, R);
+  if (dist > R + 1) {
+    // A leader from the rim out to the text, with a short shoulder.
+    const start = r.kind === 'radius' ? C : rim;
+    marks.push({ kind: 'line', a: start, b: place, pen: 'thin' });
+    marks.push(r.kind === 'radius' ? arrow(rim, e) : arrow(rim, [-e[0], -e[1]]));
+    const right = e[0] >= 0, shoulder = add(place, [right ? 1 : -1, 0], 3);
+    marks.push({ kind: 'line', a: place, b: shoulder, pen: 'thin' });
+    marks.push(...valueMarks(add(shoulder, [right ? 1 : -1, 0], 0.8), 0, right ? 'start' : 'end', r.text, r.dim.tol));
+    if (r.kind === 'radius') marks.push({ kind: 'fill', points: circlePoints(C, 0.4) });
+    return marks;
+  }
+  // Inside the circle: a diameter across it (or a radius from the centre), text along it.
+  const far = add(C, e, -R);
+  if (r.kind === 'diameter') marks.push({ kind: 'line', a: far, b: rim, pen: 'thin' }, arrow(rim, e), arrow(far, [-e[0], -e[1]]));
+  else marks.push({ kind: 'line', a: C, b: rim, pen: 'thin' }, arrow(rim, e), { kind: 'fill', points: circlePoints(C, 0.4) });
+  const mid = r.kind === 'diameter' ? add(C, e, R * 0.45) : add(C, e, R * 0.5);
+  marks.push(...valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol));
+  return marks;
+}
+
+/** The side of a line its text sits on: above it (or left of a vertical line), as read. */
+function textUp(e: XY): XY {
+  let n: XY = [e[1], -e[0]];
+  if (n[1] > 1e-9 || (Math.abs(n[1]) <= 1e-9 && n[0] > 0)) n = [-n[0], -n[1]];
+  return n;
+}
+
+const circlePoints = (c: XY, r: number): XY[] => Array.from({ length: 12 }, (_, k) => [c[0] + r * Math.cos(k * Math.PI / 6), c[1] + r * Math.sin(k * Math.PI / 6)] as XY);
+
+/**
+ * Section A–A: the cut part's visible edges (sections show no hidden lines), its cut faces hatched at
+ * 45°, and in the top view the cutting plane — a chain line, thick at its ends, with arrows pointing the
+ * way the section is seen (+Y) and the letter A at each end.
+ */
+function sectionMarks(layout: SheetLayout, views: DrawingViews, section: { projection: BrepProjection; rings: XY[][] }, y: number): Mark[] {
+  const v = layout.section!, marks: Mark[] = [];
+  for (const e of section.projection.edges) for (const p of e.pieces) if (p.visible) marks.push(curveMark(v, p.curve, 'visible'));
+  marks.push({ kind: 'hatch', rings: section.rings.map(r => r.map(q => toSheet(v, q))), spacing: 2.5, angle: 45, pen: 'thin' });
+  const top = layout.views.top, pr = views.top, k = 6 / top.scale;
+  const a = toSheet(top, [pr.min[0] - k, y]), b = toSheet(top, [pr.max[0] + k, y]);
+  marks.push({ kind: 'line', a, b, pen: 'center' });
+  for (const [end, inward] of [[a, 1], [b, -1]] as const) {
+    marks.push({ kind: 'line', a: end, b: [end[0] + inward * 5, end[1]], pen: 'frame' });
+    const foot: XY = [end[0] + inward * 2, end[1]], tip: XY = [foot[0], foot[1] - 7];
+    marks.push({ kind: 'line', a: foot, b: [tip[0], tip[1] + ARROW], pen: 'thin' }, arrow(tip, [0, -1]));
+    marks.push({ kind: 'text', at: [tip[0] - inward * 2.5, tip[1] + 2], text: 'A', size: TEXT, anchor: inward > 0 ? 'end' : 'start', bold: true });
+  }
+  return marks;
+}
+
+/** Parallel hatch lines `spacing` apart at 45° over rings (even–odd: holes stay clear). */
+export function hatch(rings: readonly (readonly XY[])[], spacing: number): Extract<Mark, { kind: 'line' }>[] {
+  // In coordinates turned by −45°, the hatch lines are horizontal: scan them and pair the crossings.
+  const c = Math.SQRT1_2, to = (p: XY): XY => [c * p[0] + c * p[1], -c * p[0] + c * p[1]], back = (q: XY): XY => [c * q[0] - c * q[1], c * q[0] + c * q[1]];
+  const rs = rings.map(r => r.map(to)), ys = rs.flat().map(p => p[1]);
+  if (!ys.length) return [];
+  const marks: Extract<Mark, { kind: 'line' }>[] = [], lo = Math.min(...ys), hi = Math.max(...ys);
+  for (let yy = Math.ceil(lo / spacing) * spacing; yy <= hi; yy += spacing) {
+    const xs: number[] = [];
+    for (const r of rs) for (let i = 0; i < r.length; i++) {
+      const p = r[i], q = r[(i + 1) % r.length];
+      if ((p[1] <= yy) !== (q[1] <= yy)) xs.push(p[0] + (yy - p[1]) / (q[1] - p[1]) * (q[0] - p[0]));
+    }
+    xs.sort((m, n) => m - n);
+    for (let i = 0; i + 1 < xs.length; i += 2) if (xs[i + 1] - xs[i] > 1e-9) marks.push({ kind: 'line', a: back([xs[i], yy]), b: back([xs[i + 1], yy]), pen: 'thin' });
+  }
+  return marks;
+}
+
+export const NOTE_LINE = 5;
+/** A note's lines (top left at `at`) and its leader: from the nearer end of the first line, a short shoulder, then out to an arrow on the view point. */
+export function noteMarks(layout: SheetLayout, n: DrawingNote): Mark[] {
+  const lines = n.text.split('\n'), marks: Mark[] = lines.map((t, k) => ({ kind: 'text', at: [n.at[0], n.at[1] + TEXT * 0.85 + k * NOTE_LINE] as XY, text: t, size: TEXT, anchor: 'start' }));
+  if (n.leader && !layout.views[n.leader.view].hidden) {
+    const tip = toSheet(layout.views[n.leader.view], n.leader.at), w = Math.max(0, ...lines.map(t => textWidth(t, TEXT, false)));
+    const y = n.at[1] + TEXT * 0.45, left = tip[0] < n.at[0] + w / 2, start: XY = left ? [n.at[0] - 1, y] : [n.at[0] + w + 1, y], knee: XY = [start[0] + (left ? -3 : 3), y];
+    marks.push({ kind: 'line', a: start, b: knee, pen: 'thin' }, { kind: 'line', a: knee, b: tip, pen: 'thin' }, arrow(tip, sub(tip, knee)));
+  }
+  return marks;
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// Geometric tolerancing (R14.4, O5)
+
+/** A box round a dimension's text (its first text): a basic (theoretically exact) dimension. */
+export function basicBox(marks: readonly Mark[]): Mark[] {
+  const t = marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
+  if (!t) return [];
+  const q = textCorners(t.at, t.text, t.size, t.anchor, t.angle ?? 0, !!t.bold), pad = 0.8;
+  // Grown by `pad` along the text's own axes.
+  const ux = unit(sub(q[1], q[0])), uy = unit(sub(q[3], q[0]));
+  const p0 = add(add(q[0], ux, -pad), uy, -pad), p1 = add(add(q[1], ux, pad), uy, -pad), p2 = add(add(q[2], ux, pad), uy, pad), p3 = add(add(q[3], ux, -pad), uy, pad);
+  return [{ kind: 'polyline', points: [p0, p1, p2, p3, p0], pen: 'thin' }];
+}
+
+/** Sheet mm: a datum symbol's box, its triangle's base and height. */
+const DATUM_BOX = 6, DATUM_BASE = 3, DATUM_HEIGHT = 2.6;
+/** A datum feature symbol: its letter boxed at its place, a leader to a filled triangle on its edge (null: the edge is gone). */
+export function datumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatum): Mark[] | null {
+  const v = layout.views[d.view], line = resolveLine(views[d.view], d.edge);
+  if (!line) return null;
+  const a = toSheet(v, line[0]), b = toSheet(v, line[1]), P = toSheet(v, d.place), ab = sub(b, a), l2 = dot2(ab, ab);
+  if (l2 < 1e-12) return null;
+  // The foot on the edge nearest the box, kept off its ends; past an end, on the edge's extension line (drawn).
+  const t0 = dot2(sub(P, a), ab) / l2, past = t0 < 0 || t0 > 1, t = past ? t0 : Math.max(0.1, Math.min(0.9, t0)), F = add(a, ab, t), e = unit(ab);
+  let n: XY = [-e[1], e[0]]; if (dot2(sub(P, F), n) < 0) n = [-n[0], -n[1]];
+  const apex = add(F, n, DATUM_HEIGHT), h = DATUM_BOX / 2;
+  const extension: Mark[] = past ? [{ kind: 'line', a: add(t0 < 0 ? a : b, e, t0 < 0 ? -1 : 1), b: add(F, e, t0 < 0 ? -(DATUM_BASE / 2 + 1) : DATUM_BASE / 2 + 1), pen: 'thin' }] : [];
+  const marks: Mark[] = [...extension,
+    { kind: 'fill', points: [add(F, e, DATUM_BASE / 2), add(F, e, -DATUM_BASE / 2), apex] },
+    { kind: 'polyline', points: [[P[0] - h, P[1] - h], [P[0] + h, P[1] - h], [P[0] + h, P[1] + h], [P[0] - h, P[1] + h], [P[0] - h, P[1] - h]], pen: 'thin' },
+    { kind: 'text', at: [P[0], P[1] + 1.3], text: d.letter, size: TEXT, anchor: 'middle' },
+  ];
+  // The leader from the box's edge to the triangle's apex.
+  const dir = sub(apex, P), m = Math.max(Math.abs(dir[0]), Math.abs(dir[1]));
+  if (m > h + 0.5) marks.push({ kind: 'line', a: add(P, dir, h / m), b: apex, pen: 'thin' });
+  return marks;
+}
+
+/** Sheet mm: a frame's height and its symbol and datum cells' widths. */
+const FRAME_H = 6, FRAME_SYMBOL = 7, FRAME_DATUM = 6;
+/** A feature control frame under a text: the position symbol, Ø and the value, the datums in order. */
+export function frameMarks(under: Extract<Mark, { kind: 'text' }>, f: DrawingFrame): Mark[] {
+  const q = textCorners(under.at, under.text, under.size, under.anchor, 0, !!under.bold);
+  const x0 = Math.min(q[0][0], q[3][0]), y0 = under.at[1] + 1.6, value = `Ø${fmtMM(f.value)}`, vw = textWidth(value, TEXT, false) + 2.5;
+  const cells = [FRAME_SYMBOL, vw, ...f.datums.map(() => FRAME_DATUM)], x1 = x0 + cells.reduce((s, w) => s + w, 0), y1 = y0 + FRAME_H;
+  const marks: Mark[] = [{ kind: 'polyline', points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]], pen: 'thin' }];
+  let x = x0;
+  cells.forEach((w, k) => { if (k) marks.push({ kind: 'line', a: [x, y0], b: [x, y1], pen: 'thin' }); x += w; });
+  // The position symbol: a circle with a cross through it.
+  const c: XY = [x0 + FRAME_SYMBOL / 2, y0 + FRAME_H / 2], r = 1.7, arm = 2.3;
+  marks.push({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'thin' }, { kind: 'line', a: [c[0] - arm, c[1]], b: [c[0] + arm, c[1]], pen: 'thin' }, { kind: 'line', a: [c[0], c[1] - arm], b: [c[0], c[1] + arm], pen: 'thin' });
+  marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + vw / 2, y0 + 4.5], text: value, size: TEXT, anchor: 'middle' });
+  f.datums.forEach((l, k) => marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + vw + FRAME_DATUM * (k + 0.5), y0 + 4.5], text: l, size: TEXT, anchor: 'middle' }));
+  return marks;
+}

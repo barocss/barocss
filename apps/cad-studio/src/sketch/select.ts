@@ -1,8 +1,8 @@
 // Picking outline points and edges in the viewport (screen pixels), and what a click does with the
 // Select and Dimension tools.
-import type { SketchShape, SketchState } from './types';
+import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 import { sampleSegment, type P2 } from '@barocss/cad-model/sketch/profile';
-import { angleKey, circlePairKeys, distanceKey, edgeCircleKey, isSettled, samePick, type Polygon, type SketchPick } from './rules';
+import { angleKey, circlePairKeys, distanceKey, edgeCircleKey, isSettled, samePick, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import { segmentDistance as toSegment } from '@barocss/cad-model/engine/geom2';
 
 /** Plane coordinates → screen pixels. */

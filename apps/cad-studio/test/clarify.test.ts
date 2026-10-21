@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { readBrief, saidIn } from '../src/chat/brief';
-import { acceptAssumptions, answerBatch, assumptionsOf, readQuestions } from '../src/chat/questions';
-import type { Requirement } from '../src/chat/spec';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { readBrief, saidIn } from '@barocss/cad-model/chat/brief';
+import { acceptAssumptions, answerBatch, assumptionsOf, readQuestions } from '@barocss/cad-model/chat/questions';
+import type { Requirement } from '@barocss/cad-model/chat/spec';
 import { stateFileStore } from '../server/cadMcp';
 
 // A6.2 (O25): the clarifying policy and the user's say. A stated quote must be in what the user typed this conversation

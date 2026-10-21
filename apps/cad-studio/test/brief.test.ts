@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { applyBrief, briefGaps, confirmField, patchBrief, readBrief, type Brief } from '../src/chat/brief';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { applyBrief, briefGaps, confirmField, patchBrief, readBrief, type Brief } from '@barocss/cad-model/chat/brief';
 
 // A6.1 (O24): the brief. The conformance fixtures (hand-written: their expected gaps and what the studio does with the
 // process and material) through the tool; an assumption never replacing what the user stated; the studio's confirm;

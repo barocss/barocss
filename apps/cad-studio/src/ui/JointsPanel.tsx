@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { PartInstance } from '../engine/doc';
-import { BASE } from '../assembly/mates';
-import type { JointTree, JointType } from '../robot/joints';
-import { sliderRange } from '../robot/fk';
-import type { LinkInertia } from '../robot/inertia';
+import type { PartInstance } from '@barocss/cad-model/engine/doc';
+import { BASE } from '@barocss/cad-model/assembly/mates';
+import type { JointTree, JointType } from '@barocss/cad-model/robot/joints';
+import { sliderRange } from '@barocss/cad-model/robot/fk';
+import type { LinkInertia } from '@barocss/cad-model/robot/inertia';
 
 const TYPE_LABEL: Record<JointType, string> = { fixed: 'Fixed', revolute: 'Revolute', continuous: 'Continuous', prismatic: 'Prismatic' };
 const axisText = (a: readonly number[]) => { const k = a.findIndex(x => Math.abs(Math.abs(x) - 1) < 1e-9); return k >= 0 ? `${a[k] < 0 ? '−' : '+'}${'XYZ'[k]}` : `[${a.map(x => x.toFixed(3)).join(', ')}]`; };

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart } from '../src/engine/evaluate';
-import { cylinderPart, emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
-import { faceTableOf } from '../src/assembly/faces';
-import { flattenAssembly } from '../src/assembly/flatten';
-import { BASE, eulerOf, lockRel, rotationMatrix, rotationSteps, solveAssembly, type FaceTable, type Mate } from '../src/assembly/mates';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { cylinderPart, emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { faceTableOf } from '@barocss/cad-model/assembly/faces';
+import { flattenAssembly } from '@barocss/cad-model/assembly/flatten';
+import { BASE, eulerOf, lockRel, rotationMatrix, rotationSteps, solveAssembly, type FaceTable, type Mate } from '@barocss/cad-model/assembly/mates';
 
 const near = (a: number, e: number, tol = 1e-9) => Math.abs(a - e) < tol;
 const inst = (id: string, doc: StudioDoc, position: [number, number, number] = [0, 0, 0], rotation: [number, number, number] = [0, 0, 0]): PartInstance =>

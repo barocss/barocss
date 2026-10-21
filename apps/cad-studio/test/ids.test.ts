@@ -2,15 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { emptyDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
-import { evaluateDoc, evaluatePart } from '../src/engine/evaluate';
-import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '../src/chat/features';
-import { flattenAssembly } from '../src/assembly/flatten';
-import { featureIdsOf, nextSerial, nodeIndexOf, renameFeatureIds, withIds } from '../src/engine/ids';
-import { toPartDocument } from '../src/engine/part';
+import { emptyDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { evaluateDoc, evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '@barocss/cad-model/chat/features';
+import { flattenAssembly } from '@barocss/cad-model/assembly/flatten';
+import { featureIdsOf, nextSerial, nodeIndexOf, renameFeatureIds, withIds } from '@barocss/cad-model/engine/ids';
+import { toPartDocument } from '@barocss/cad-model/engine/part';
 import { readStudioDoc } from '../src/engine/migrate';
 import { defaultRender } from '@barocss/cad-model/engine/render';
-import { lookOf, withLook } from '../src/app/bodies';
+import { lookOf, withLook } from '@barocss/cad-model/app/bodies';
 
 // Stable feature ids (A1): a face's name keeps its feature's id however the history around it changes.
 const volumes = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies.map(b => Math.round(b.volumeMM3! * 1000) / 1000); };

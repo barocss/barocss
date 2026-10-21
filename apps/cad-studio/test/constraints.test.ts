@@ -5,7 +5,7 @@ import { arcOf, bulgeThrough, type P2 } from '@barocss/cad-model/sketch/profile'
 import {
   applyConstraint, commitDimension, constraintEntries, constraintOptions, dimensionKey, redundancy, removeConstraint, solveShape,
   type Polygon, type SketchPick,
-} from '../src/sketch/rules';
+} from '@barocss/cad-model/sketch/rules';
 import { nextPicks, pickSketch, sketchClick } from '../src/sketch/select';
 import type { SketchState } from '../src/viewport/Viewport';
 import { xyPlane } from '@barocss/cad-model/sketch/plane';
@@ -172,7 +172,7 @@ test('Select / Dimension turn a rectangle into an outline with its H/V edges; wi
 });
 
 test('horizontal and vertical distances between points, also when the points line up', async () => {
-  const { pointDimensionKeys, dimensionValue, dimensionLabel } = await import('../src/sketch/rules');
+  const { pointDimensionKeys, dimensionValue, dimensionLabel } = await import('@barocss/cad-model/sketch/rules');
   // A quadrilateral whose points 2 and 4 share neither X nor Y.
   let s = close([[0, 0], [40, 0], [36, 21], [3, 23]]);
   assert.deepEqual(pointDimensionKeys(3, 1), { dist: 'dist1_3', dx: 'dx1_3', dy: 'dy1_3' });
@@ -199,7 +199,7 @@ test('horizontal and vertical distances between points, also when the points lin
 });
 
 test('angle dimensions between two lines: at a shared corner, between separate edges, out of range refused', async () => {
-  const { angleKey, dimensionValue, dimensionLabel } = await import('../src/sketch/rules');
+  const { angleKey, dimensionValue, dimensionLabel } = await import('@barocss/cad-model/sketch/rules');
   const { edgeAngle } = await import('@barocss/cad-model/sketch/terms');
   let s = quad();
   // Edges 1 and 2 meet at point 2: the corner between them.
@@ -241,7 +241,7 @@ test('sketch history steps back and forward through outline edits, and only over
 });
 
 test('overlapping shapes in one sketch are refused with a reason, never cut or crashed', async () => {
-  const { profileOf } = await import('../src/sketch/loops');
+  const { profileOf } = await import('@barocss/cad-model/sketch/loops');
   const rect = (a: P2, b: P2) => ({ kind: 'rectangle' as const, a, b }), circle = (c: P2, r: number) => ({ kind: 'circle' as const, c, r });
   const refused = (shapes: Parameters<typeof profileOf>[0]) => { const r = profileOf(shapes); assert.ok('error' in r, JSON.stringify(r)); return (r as { error: string }).error; };
   // U43, U41, U42: two crossing rectangles; a circle across the top or the right edge.
@@ -257,11 +257,11 @@ test('overlapping shapes in one sketch are refused with a reason, never cut or c
 });
 
 test('a finished outline keeps its constraints in the sketch node; the feature editor drives its dimensions', async () => {
-  const { shapeNode } = await import('../src/sketch/loops');
-  const { featureOf } = await import('../src/engine/part');
-  const { editFields } = await import('../src/app/editFields');
-  const { evaluateDoc } = await import('../src/engine/evaluate');
-  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  const { shapeNode } = await import('@barocss/cad-model/sketch/loops');
+  const { featureOf } = await import('@barocss/cad-model/engine/part');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
+  const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
+  const { emptyDoc, withNode } = await import('@barocss/cad-model/engine/doc');
   let s = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
   s = (commitDimension(s, 'len0', 60) as { shape: Polygon }).shape;
   s = (commitDimension(s, 'dist0_2', 65) as { shape: Polygon }).shape;
@@ -290,8 +290,8 @@ test('a finished outline keeps its constraints in the sketch node; the feature e
 });
 
 test('a finished sketch node comes back as its shapes: the kept outline with its constraints, loops, regions and holes', async () => {
-  const { sketchShapes, loopShape } = await import('../src/sketch/reopen');
-  const { shapeNode, profileOf } = await import('../src/sketch/loops');
+  const { sketchShapes, loopShape } = await import('@barocss/cad-model/sketch/reopen');
+  const { shapeNode, profileOf } = await import('@barocss/cad-model/sketch/loops');
   const { outlineSegments } = await import('@barocss/cad-model/sketch/profile');
   // A constrained outline round-trips with every constraint.
   let s = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
@@ -318,9 +318,9 @@ test('a finished sketch node comes back as its shapes: the kept outline with its
 
 test('a Rectangle-tool rectangle stays a rectangle after Select / Dimension while it still is one (QA S3, K29)', async () => {
   const { rectangleOutline } = await import('../src/sketch/select');
-  const { shapeNode } = await import('../src/sketch/loops');
-  const { editFields } = await import('../src/app/editFields');
-  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  const { shapeNode } = await import('@barocss/cad-model/sketch/loops');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
+  const { emptyDoc, withNode } = await import('@barocss/cad-model/engine/doc');
   const outline = rectangleOutline({ kind: 'rectangle', a: [0, 0], b: [40, 20] })!;
   assert.deepEqual(shapeNode(outline), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] });
   // A typed width keeps it a rectangle; the editor then offers width, depth and corner.
@@ -340,11 +340,11 @@ test('a Rectangle-tool rectangle stays a rectangle after Select / Dimension whil
 
 test('a circle is placed from the outline: picked from the sketch, centre distances, diameter, saved, reopened, edited', async () => {
   const { sketchClick, attachCircle, pickSketch } = await import('../src/sketch/select');
-  const { profileOf, shapeNode } = await import('../src/sketch/loops');
-  const { sketchShapes } = await import('../src/sketch/reopen');
-  const { editFields } = await import('../src/app/editFields');
-  const { evaluateDoc } = await import('../src/engine/evaluate');
-  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  const { profileOf, shapeNode } = await import('@barocss/cad-model/sketch/loops');
+  const { sketchShapes } = await import('@barocss/cad-model/sketch/reopen');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
+  const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
+  const { emptyDoc, withNode } = await import('@barocss/cad-model/engine/doc');
   const plate = (commitDimension(close([[0, 0], [40, 0], [40, 20], [0, 20]]), 'len0', 40) as { shape: Polygon }).shape;
   const hole = { kind: 'circle' as const, c: [12, 9] as P2, r: 3 };
   // The Dimension tool: point 1, then the finished circle, opens the distance to its centre and attaches the circle.
@@ -395,9 +395,9 @@ test('Select / Dimension after drawing a circle edit the outline drawn before it
 
 test('circles are placed from horizontal / vertical edges and from each other', async () => {
   const { sketchClick } = await import('../src/sketch/select');
-  const { edgeCircleKey, circlePairKeys, dimensionLabel } = await import('../src/sketch/rules');
-  const { outlineFields } = await import('../src/sketch/outlineFields');
-  const { profileOf } = await import('../src/sketch/loops');
+  const { edgeCircleKey, circlePairKeys, dimensionLabel } = await import('@barocss/cad-model/sketch/rules');
+  const { outlineFields } = await import('@barocss/cad-model/sketch/outlineFields');
+  const { profileOf } = await import('@barocss/cad-model/sketch/loops');
   let s: Polygon = { ...close([[0, 0], [60, 0], [60, 30], [0, 30]]), circles: [{ c: [12, 10], r: 3 }, { c: [40, 18], r: 3 }] };
   s = (commitDimension(s, 'len0', 60) as { shape: Polygon }).shape; s = (commitDimension(s, 'len1', 30) as { shape: Polygon }).shape;
   // Bottom edge 1 (horizontal): measured along Y; left edge 4 (vertical): along X; a slanted edge has no such key.
@@ -427,7 +427,7 @@ test('circles are placed from horizontal / vertical edges and from each other', 
 });
 
 test('a dimension may not push an attached circle across the outline or off it; Finish refuses a crossing one', async () => {
-  const { profileOf } = await import('../src/sketch/loops');
+  const { profileOf } = await import('@barocss/cad-model/sketch/loops');
   const plate = { ...close([[0, 0], [60, 0], [60, 25], [0, 25]]), circles: [{ c: [30, 12] as P2, r: 4 }] };
   const off = commitDimension(plate, 'cdx0_0', 70);
   assert.ok(!off.ok && /off the outline/.test(off.reason), JSON.stringify(off));

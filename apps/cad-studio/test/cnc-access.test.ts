@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { processProfile } from '@barocss/cad-model/library/materials';
-import { machinability } from '../src/machining/report';
-import { accessOf } from '../src/machining/access';
+import { machinability } from '@barocss/cad-model/machining/report';
+import { accessOf } from '@barocss/cad-model/machining/access';
 
 // CNC4 (O87): access from ±X, ±Y, ±Z with the tool's side, and greedy setups, against closed forms — a box's faces
 // (the first setup the axis whose end and sides see the most, the second its opposite face), a sealed box void's

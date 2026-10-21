@@ -1,9 +1,9 @@
 // AM5 (D76): the part (and its shown instances) as a 3MF model — each visible body an object with its material, colour
 // and face colours; with a print direction (AM4) the build items are turned so it points up, set down on the bed and
 // centred on the printer's bed when one is chosen.
-import type { StudioDoc } from '../engine/doc';
-import type { BodyResult } from '../engine/evaluate';
-import { bodyName, lookOf } from '../app/bodies';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { bodyName, lookOf } from '@barocss/cad-model/app/bodies';
 import { materialData, printerProfile } from '@barocss/cad-model/library/materials';
 import type { ThreeMfModel, ThreeMfObject } from '@barocss/cad-model/print/threemf';
 

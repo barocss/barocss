@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, stepFor } from '../src/engine/evaluate';
+import { evaluateDoc, stepFor } from '@barocss/cad-model/engine/evaluate';
 import { importStep, checkBrep, brepMassProperties } from '@barocss/cad';
-import { cylinderPart, emptyDoc, featureLabel, leafBodies, loftTop, prefixDoc, rectanglePart, starterDoc, withNode } from '../src/engine/doc';
+import { cylinderPart, emptyDoc, featureLabel, leafBodies, loftTop, prefixDoc, rectanglePart, starterDoc, withNode } from '@barocss/cad-model/engine/doc';
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 
 // Signed volume of a closed, outward-wound triangle mesh.

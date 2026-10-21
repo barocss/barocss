@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readRecovery, writeRecovery, RECOVERY_LIMIT } from '../src/app/recovery';
-import type { ModelNode, StudioDoc } from '../src/engine/doc';
+import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
 
 // A browser's local storage, with a quota (in characters, as the browsers count) or refusing everything.
 class Storage {

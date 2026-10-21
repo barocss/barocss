@@ -1,9 +1,9 @@
 // The joint-slider preview (RM2, O15): the instances shown moved by forward kinematics, the base part still (when the
 // robot's base link is an instance, every motion is shown relative to the base part's, the same relative motion).
 // Bodies are copied before they are moved: the evaluated ones stay as they were.
-import { placeBody, type BodyResult } from '../engine/evaluate';
-import { BASE } from '../assembly/mates';
-import { composeInto, invert, type FkResult, type Motion } from './fk';
+import { placeBody, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { BASE } from '@barocss/cad-model/assembly/mates';
+import { composeInto, invert, type FkResult, type Motion } from '@barocss/cad-model/robot/fk';
 
 /** A body moved by a motion, on its own copy of the mesh arrays. */
 export function posedBody(b: BodyResult, m: Motion): BodyResult {

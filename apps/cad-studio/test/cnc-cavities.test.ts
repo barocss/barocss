@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { MATERIALS_DATA, checkMaterials, processProfile, type MaterialsData, type ProcessProfile } from '@barocss/cad-model/library/materials';
-import { machinability } from '../src/machining/report';
-import { cavitiesOf, narrowest } from '../src/machining/cavities';
+import { machinability } from '@barocss/cad-model/machining/report';
+import { cavitiesOf, narrowest } from '@barocss/cad-model/machining/cavities';
 
 // CNC3 (O86): inside corners, cavities, small features and tall walls against closed forms — every oracle the
 // construction (a pocket's depth, width and corner radius as built), with mutants: a tighter radius, a moved limit, a

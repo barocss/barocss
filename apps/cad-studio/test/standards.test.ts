@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, SYSTEM_PROMPT, TOOLS } from '../src/chat/tools';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, SYSTEM_PROMPT, TOOLS } from '@barocss/cad-model/chat/tools';
 import { SYSTEM_PROMPT_V2, TOOLS_V2 } from '../src/chat/toolset';
 import { GROUPS } from '@barocss/cad-model/chat/groups';
-import { FASTENER_SIZES } from '../src/app/fasteners';
-import { ALLOWED_LICENCES, checkTables, NAMED_STANDARDS, STANDARD_SOURCES, STANDARD_TABLES, type StdSource, type StdTable } from '../src/standards/provenance';
+import { FASTENER_SIZES } from '@barocss/cad-model/app/fasteners';
+import { ALLOWED_LICENCES, checkTables, NAMED_STANDARDS, STANDARD_SOURCES, STANDARD_TABLES, type StdSource, type StdTable } from '@barocss/cad-model/standards/provenance';
 
 // A6.5 (O29): standards data with provenance. Every value of the standards-derived tables has a source and every source
 // a licence a table may carry (GPL, share-alike, non-commercial and unknown refused); the fastener values are the ones

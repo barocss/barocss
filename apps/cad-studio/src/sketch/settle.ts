@@ -1,8 +1,8 @@
 // Keeps a closed outline consistent with its constraints after every edit: the viewport and the
 // sketch panel both go through settleShape, so geometry on screen always satisfies the solver.
-import type { SketchShape } from './types';
+import type { SketchShape } from '@barocss/cad-model/sketch/types';
 import { inferArcRelations, inferredHV, inferTangents, samePair, type ArcPair, type P2 } from '@barocss/cad-model/sketch/profile';
-import { checkEdit, redundancy, solveShape, type Polygon } from './rules';
+import { checkEdit, redundancy, solveShape, type Polygon } from '@barocss/cad-model/sketch/rules';
 
 type Relations = { tangents: number[]; equalRadii: ArcPair[]; concentric: ArcPair[] };
 const settled = (s: SketchShape | null): s is Polygon => s?.kind === 'polygon' && s.closed && !s.pending;

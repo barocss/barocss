@@ -1,9 +1,9 @@
-import { rememberFaceTable } from '../assembly/faces';
-import type { EvalResult, PartSlot } from './evaluate';
+import { rememberFaceTable } from '@barocss/cad-model/assembly/faces';
+import type { EvalResult, PartSlot } from '@barocss/cad-model/engine/evaluate';
 import { MeshReceiver, type WireResult } from './meshWire';
-import type { StudioDoc } from './doc';
-import type { DrawingResult } from '../drawing/project';
-import { WireSender } from './wireDoc';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { DrawingResult } from '@barocss/cad-model/drawing/project';
+import { WireSender } from '@barocss/cad-model/engine/wireDoc';
 import type { MeshDiagnosis, MeshRepairResult, MeshRepairSteps } from '@barocss/cad';
 
 /** An evaluation's face table kept on this side (by the part's content), so face reads here do not evaluate it again (PERF3 A1). */

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { latestPump, reshareNodes } from '../src/chat/pump';
-import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
+import { rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 
 test('latestPump: one run at a time, a burst runs its first and its latest only, a superseded result is dropped, close stops it', async () => {
   const ran: number[] = [], shown: number[] = [];

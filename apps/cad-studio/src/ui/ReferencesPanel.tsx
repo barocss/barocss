@@ -2,8 +2,8 @@
 // each placed by the user (an explicit, recorded placement), its datums taken from its faces, and the keep-outs with
 // their verdicts — clear, violated or undecided, the chord tolerance said.
 import { useState } from 'react';
-import type { BodyResult } from '../engine/evaluate';
-import type { KeepoutResult, Placement, ReferenceSet } from '../chat/references';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import type { KeepoutResult, Placement, ReferenceSet } from '@barocss/cad-model/chat/references';
 
 export interface ReferencesPanelProps {
   set: ReferenceSet;

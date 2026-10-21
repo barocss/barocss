@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { checkBrep, subdBrep, validateCage } from '@barocss/cad';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { commitDrag, runOp, startSession, type CageSession } from '@barocss/cad-model/subd/cageEdit';
 
 // D84 (R8.3): the owner's acceptance part, a SubD pipe clamp (handover/notes/acceptance/subd-pipe-clamp.png), built

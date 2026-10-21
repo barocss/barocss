@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart, stepFor, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { interference, massProperties } from '../src/chat/analysis';
+import { evaluatePart, stepFor, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { interference, massProperties } from '@barocss/cad-model/chat/analysis';
 import { threeMfModelOf } from '../src/print/export3mf';
-import { cavityField, insideFlags, marchingTetrahedra, planHollow } from '../src/print/hollow';
-import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, LatticeError, meshVolume, mixedTetrahedra, planLattice, weldTau } from '../src/print/lattice';
+import { cavityField, insideFlags, marchingTetrahedra, planHollow } from '@barocss/cad-model/print/hollow';
+import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, LatticeError, meshVolume, mixedTetrahedra, planLattice, weldTau } from '@barocss/cad-model/print/lattice';
 
 // AM7b (O57): a gyroid lattice infill, a separate mesh body inside an exactly hollowed part. Its solid fraction against the
 // gyroid's own f(k) within the derived ε_MT + ε_mix + 4σ; the solid one component, nothing loose; every empty region

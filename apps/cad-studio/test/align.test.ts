@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { commands, type Ctx, type Values } from '../src/app/commands';
-import { turnAbout, turnOnto } from '../src/app/alignCommand';
+import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { commands, type Ctx, type Values } from '@barocss/cad-model/app/commands';
+import { turnAbout, turnOnto } from '@barocss/cad-model/app/alignCommand';
 
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const make = (id: string, doc: StudioDoc, v: Values) => { const c = commands.find(x => x.id === id)!; return c.build!({ ...blank, doc }, { ...c.defaults!({ ...blank, doc }), ...v }); };

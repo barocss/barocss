@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { bodyName, lastFeature, lookKey, lookOf, rootOf, withLook } from '../src/app/bodies';
-import { deleteFeature } from '../src/chat/features';
+import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { bodyName, lastFeature, lookKey, lookOf, rootOf, withLook } from '@barocss/cad-model/app/bodies';
+import { deleteFeature } from '@barocss/cad-model/chat/features';
 
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok); return r.bodies; };
 
@@ -33,8 +33,8 @@ test('a body’s look stays with it as features are added, and as features befor
 });
 
 test('a body’s steps: its features from first to last, a several-step shape as one', async () => {
-  const { bodySteps } = await import('../src/app/bodies');
-  const { commands } = await import('../src/app/commands');
+  const { bodySteps } = await import('@barocss/cad-model/app/bodies');
+  const { commands } = await import('@barocss/cad-model/app/commands');
   let doc = withNode(withNode(rectanglePart(40, 20, 8), { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [10, 10], radius: 3 }), { kind: 'translate', parent: { node: 2, side: 'solid' }, offset: [1, 0, 0] });
   assert.deepEqual(bodySteps(doc.nodes, 3), [1, 2, 3]);
   const f = commands.find(c => c.id === 'fastener')!, blank = { doc: { ...doc, nodes: [] }, bodies: [], selection: { faces: [], edges: [], bodies: [] } };

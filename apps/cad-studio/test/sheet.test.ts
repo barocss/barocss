@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { commands } from '../src/app/commands';
-import { profilePath } from '../src/app/sheetCommands';
-import { evaluateDoc, evaluatePart, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, featureLabel, withNode, type StudioDoc } from '../src/engine/doc';
+import { commands } from '@barocss/cad-model/app/commands';
+import { profilePath } from '@barocss/cad-model/app/sheetCommands';
+import { evaluateDoc, evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, featureLabel, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { editFields } from '../src/app/editFields';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { editFields } from '@barocss/cad-model/app/editFields';
 
 // R12.1 (D116): sheet metal in the studio — a plate from a sketch and a bent profile from the palette, their rules and
 // bends in the body's panel (the K-factor's prefill said to be an estimate), and the agent's commands and raw nodes.

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { featureLabel, rectanglePart, type StudioDoc } from '../src/engine/doc';
-import { commandById, patchValues, type Ctx } from '../src/app/commands';
+import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { featureLabel, rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { commandById, patchValues, type Ctx } from '@barocss/cad-model/app/commands';
 
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.title + ' ' + r.error.hint); return r.bodies; };
 const plate = rectanglePart(32, 32, 8), pb = bodiesOf(plate);
@@ -33,7 +33,7 @@ test('tapped hole: the tap drill of its thread, the thread noted on the feature'
 });
 
 test('hole patterns: a row and a bolt circle, one history step each; the count edits later', async () => {
-  const { editFields } = await import('../src/app/editFields');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
   const ctx = faceCtx('n1.top'), base = { ...hole.defaults!(ctx), d: 4, x: 6, y: 6 };
   const row = hole.build!(ctx, { ...base, pat: 'row', pn: 4, pa: 6, pb: 0 }), rn = row.nodes.at(-1)!;
   assert.equal(row.nodes.length, plate.nodes.length + 1, 'one node');
@@ -52,7 +52,7 @@ test('hole patterns: a row and a bolt circle, one history step each; the count e
 });
 
 test('hole callouts: count, size or thread, through or deep, counterbore and countersink', async () => {
-  const { holeCallout } = await import('../src/drawing/callout');
+  const { holeCallout } = await import('@barocss/cad-model/drawing/callout');
   const ctx = faceCtx('n1.top'), base = { ...hole.defaults!(ctx), x: 8, y: 8 }, last = (v: Record<string, unknown>) => hole.build!(ctx, { ...base, ...v } as never).nodes;
   const k = plate.nodes.length; // the hole's node
   assert.equal(holeCallout(last({ d: 6.6 }), `n${k}.side0|n1.top`), 'Ø6.6 THRU');

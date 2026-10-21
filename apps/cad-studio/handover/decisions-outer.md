@@ -4245,3 +4245,29 @@ The coordinator called the joint PKG boundary: the kernel lane had finished R12b
   - every file in the package imports nothing back into the app by a relative path, and no `react` or `@barocss/gpu`;
   - the gizmo's `Axis3` and `ui/files`' `meshToStl` re-exports now come from the package specifier;
   - the frozen tool contracts pass without `UPDATE_TOOL_CONTRACT`.
+
+## O96 — PKG-e: the 105-file SCC moved to `@barocss/cad-model` in one commit; PKG-d skipped (2026-10-21)
+
+The coordinator merged PKG-c as 16f409e41 and agreed to skip PKG-d. That leaves one mechanical move of the whole SCC, with the same checks.
+
+- **The SCC at HEAD**: 105 files (20,955 lines), recomputed after PKG-c. No file in it imports the app; 48 dependents remain.
+- **The move** (the same script):
+  - `git mv` to the same subtree.
+  - **232 importers** re-pointed, 1,116 specifiers to `@barocss/cad-model/<path>`.
+  - Inside the package, the moving files' **97 own `@barocss/cad-model/…` imports** (from PKG-c's rewrite) become relative again, since a package does not import itself by name.
+  - Each of the 105 files is **byte-identical to its content before PKG-c** (`git show e0083c045^:…` against the moved file, all 105 the same). Against HEAD, 48 are R100 and 57 are R094–R099, differing only by those specifiers.
+  - The empty `src/library/` folder is gone; its JSON moved in PKG-c.
+- **What is left in the app** (all app files, plus the 48 dependents for PKG-f):
+  - app: `App.tsx`, `main.tsx`, `ui/`, `viewport/`, `app/{recovery,templates}`, `assembly/{useAssembly,faceClient,faces.worker}`, `chat/{client,images}`, `engine/{client,engine.worker}`, `subd/useCageEditor`;
+  - the dependents: `rb9/`, part of `robot/`, `sketch/{corner,dxf,history,offset,select,settle,trim}`, part of `team/`, `engine/{container,meshWire,migrate}`, and the rest of `chat/`, `drawing/`, `assembly/`, `app/`, `mould/` and `print/`;
+  - `chat/tools-v1/v2.json` stay (risk 2).
+- **A second changeset** (minor) names the document core.
+- **`test/pkg-boundary.test.ts`**: the library's storage check now reads the moved `library/` (no `localStorage`). The sketch types' re-export comes from the package specifier. At least 140 package files are checked for imports back into the app, `react` or `@barocss/gpu`.
+- **Checks**:
+  - kernel suite 1368: 1363 pass, the 1 known environmental failure (`actual native Split source…`, Node pinned), the rest skipped;
+  - conformance 201/201;
+  - studio suite 754 = 753 pass + 1 todo, its test names unchanged;
+  - the frozen contracts pass without the update flag;
+  - app tsc 0; the package's type-check 0 and lint 0;
+  - lint on the 232 edited studio files: 0 errors (91 existing `no-explicit-any` warnings in tests);
+  - full flow 213/213.

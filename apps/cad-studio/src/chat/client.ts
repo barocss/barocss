@@ -1,8 +1,8 @@
 // The browser side of the chat server (server/chatServer.ts, reached through the dev server's
 // /api/chat proxy): whether chat is available, and one turn streamed as server-sent events.
-import type { StudioDoc } from '../engine/doc';
-import { blobRefs, blobsAsBase64 } from '../engine/blobs';
-import type { NameSelection } from './tools';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { blobRefs, blobsAsBase64 } from '@barocss/cad-model/engine/blobs';
+import type { NameSelection } from '@barocss/cad-model/chat/tools';
 
 export interface ChatStatus { enabled: boolean; model?: string; via?: string; reason?: string }
 export type TurnEvent =

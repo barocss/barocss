@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { subdBrep, checkBrep, brepMassProperties, validateCage } from '@barocss/cad';
-import { boxCage } from '../src/app/primitives';
+import { boxCage } from '@barocss/cad-model/app/primitives';
 import { commitDrag, dragged, fullCage, openRun, pickCage, previewLevels, previewTriangles, redoSession, runOp, select, selectionCentre, startSession, undoSession, validationOf, type CageSession } from '@barocss/cad-model/subd/cageEdit';
 
 // R8.2 (D81): the cage-editing session — picking, selection with loops, dragging and extruding on a drag, the

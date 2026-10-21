@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateSurfaceD1, surfaceDomain, faceGeometry, type Brep } from '@barocss/cad';
-import { evaluatePart, partBreps, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { buildBvh, rayHit } from '../src/print/orient';
-import { wallThickness } from '../src/chat/analysis';
+import { evaluatePart, partBreps, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { buildBvh, rayHit } from '@barocss/cad-model/print/orient';
+import { wallThickness } from '@barocss/cad-model/chat/analysis';
 
 // IM S0 (O76): what the injection-moulding track can measure today, exactly, without a kernel-core change — each probe
 // against a closed form or a constructed case. The kernel's B-rep faces are NURBS (an exact cone, cylinder, torus …);
@@ -101,7 +101,7 @@ test('IM S0 P2: a cylinder lying across the pull — the exact cylinder (faceGeo
 });
 
 test('IM S0 P3: undercuts by ±d visibility — a side hole across the pull is hidden from both +z and −z; a hole along it is seen', async () => {
-  const { dispatchTool } = await import('../src/chat/tools');
+  const { dispatchTool } = await import('@barocss/cad-model/chat/tools');
   const evaluate = async (d: StudioDoc) => evaluatePart(d, 1);
   let s = { doc: emptyDoc(), bodies: [], turnBase: emptyDoc() } as never as Parameters<typeof dispatchTool>[0];
   for (const [tool, args] of [['run_command', { command: 'box', values: { w: 40, d: 30, h: 20, x: 0, y: 0, z: 0 } }], ['run_command', { command: 'hole', values: { d: 6, x: 6, y: 6 }, faces: ['n1.top'] }],

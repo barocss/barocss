@@ -4,10 +4,10 @@
 // frame and title block are one block (TITLE_BLOCK); each dimension is a DIMENSION entity showing exactly what
 // the sheet draws, with its definition points from the model; the section's hatching is a HATCH.
 import { writeDxf, type BrepProjection, type DxfDocument, type DxfEntity, type DxfLayer, type DxfVersion, type DxfWriteResult, type DxfXY, type ProjectedCurve } from '@barocss/cad';
-import { toleranceText, type Mark, type MarkGroup, type Pen, type Sheet } from './sheet';
-import { toSheet, type SheetLayout, type ViewPlacement } from './views';
-import type { Resolved } from './dimensions';
-import type { XY } from './types';
+import { toleranceText, type Mark, type MarkGroup, type Pen, type Sheet } from '@barocss/cad-model/drawing/sheet';
+import { toSheet, type SheetLayout, type ViewPlacement } from '@barocss/cad-model/drawing/views';
+import type { Resolved } from '@barocss/cad-model/drawing/dimensions';
+import type { XY } from '@barocss/cad-model/drawing/types';
 
 export const SHEET_DXF_VERSION = 'cad-studio-sheet-dxf-v1';
 

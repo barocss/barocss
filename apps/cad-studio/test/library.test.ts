@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { checkFits, insertLibraryPart, libraries, libraryById, libraryInstance, regenerateLibraryNode, registerLibrary, snapByInterfaces, unregisterLibrary } from '../src/library/libraries';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { checkFits, insertLibraryPart, libraries, libraryById, libraryInstance, regenerateLibraryNode, registerLibrary, snapByInterfaces, unregisterLibrary } from '@barocss/cad-model/library/libraries';
 import { readStudioDoc } from '../src/engine/migrate';
-import { solveDoc } from '../src/chat/assembly';
-import { BASE } from '../src/assembly/mates';
+import { solveDoc } from '@barocss/cad-model/chat/assembly';
+import { BASE } from '@barocss/cad-model/assembly/mates';
 
 // LIB2–LIB3 (D62–D63): the built-in T-slot 20 series; its fits; library parts inserted as features kept with the
 // document; regenerated from the library; snapped onto each other by interfaces with real mates.

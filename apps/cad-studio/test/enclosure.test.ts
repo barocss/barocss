@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { rectanglePart, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { addLibraryPartToBody, libraryById, thicknessAt } from '../src/library/libraries';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { addLibraryPartToBody, libraryById, thicknessAt } from '@barocss/cad-model/library/libraries';
 import { loadCadLibrary, instantiateLibraryPart } from '@barocss/cad';
 
 // R6b.1 (D65): a screw boss from the built-in enclosure library, added to a body as one step: placed on a face by its
@@ -60,7 +60,7 @@ test('added to a body as one step: on the top face — the wall measured there (
 });
 
 test('the agent tool add_library_part: on a plate\'s top face by its name and a point, the wall measured, warnings returned; a face that is not flat refused', async () => {
-  const { dispatchTool } = await import('../src/chat/tools');
+  const { dispatchTool } = await import('@barocss/cad-model/chat/tools');
   const evaluate = async (d: StudioDoc) => evaluateDoc(d, 1);
   const s = { doc: plate(2.5), bodies: bodies(plate(2.5)) };
   const r = await dispatchTool(s, 'add_library_part', { library: 'enclosure', part: 'screw-boss', variant: 'M3', face: 'n1.top', point: [20, 20, 2.5] }, evaluate);
@@ -73,7 +73,7 @@ test('the agent tool add_library_part: on a plate\'s top face by its name and a 
 });
 
 test('library_check as a requirement: a boss\'s rule margins on the plate (met), on a thin wall (not met, the margin), unknown for a rule it lacks', async () => {
-  const { runCheck } = await import('../src/chat/spec');
+  const { runCheck } = await import('@barocss/cad-model/chat/spec');
   const r = addLibraryPartToBody(plate(1.2), 'enclosure', 'screw-boss', { variant: 'M3' }, top(1.2, 20, 20)) as { doc: StudioDoc };
   const b = bodies(r.doc), ev = async () => evaluateDoc(r.doc, 1);
   const id = r.doc.nodes[2].id!;
@@ -106,8 +106,8 @@ test('R6b.2 heat-set insert hole: cut into a boss\'s top — the material under 
 
 test('R6b.2 PCB standoffs and hole alignment: four standoffs on a floor under an imported board (a STEP with four Ø3.2 holes) line up to 1e-9; one moved 0.3 mm is off by 0.3 — as a requirement it fails, said', async () => {
   const { evaluateCadPart, exportStep } = await import('@barocss/cad');
-  const { emptyDoc, withNode } = await import('../src/engine/doc');
-  const { runCheck } = await import('../src/chat/spec');
+  const { emptyDoc, withNode } = await import('@barocss/cad-model/engine/doc');
+  const { runCheck } = await import('@barocss/cad-model/chat/spec');
   const holes = [[4, 4], [46, 4], [4, 36], [46, 36]];
   const board = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [50, 40] }, { id: 'pcb', kind: 'extrude', sketch: 's', height: 1.6 },
@@ -135,8 +135,8 @@ test('R6b.2 PCB standoffs and hole alignment: four standoffs on a floor under an
 test('R6b.7 materials and process profiles: the data checked (every value sourced, the densities as before); the boss\'s thresholds from the process — FDM allows what moulding warns, no process leaves them unknown, said; a material value read from the body\'s material, unknown while it is assumed', async () => {
   const { MATERIALS_DATA, checkMaterials, materialData } = await import('@barocss/cad-model/library/materials');
   const { MATERIALS } = await import('@barocss/cad-model/app/materials');
-  const { registerLibrary } = await import('../src/library/libraries');
-  const { withLook } = await import('../src/app/bodies');
+  const { registerLibrary } = await import('@barocss/cad-model/library/libraries');
+  const { withLook } = await import('@barocss/cad-model/app/bodies');
   assert.deepEqual(checkMaterials(MATERIALS_DATA), []);
   assert.deepEqual(MATERIALS.slice(0, 8).map(m => [m.id, m.gPerCm3]), [['al6061', 2.7], ['steel', 7.85], ['ss304', 8], ['brass', 8.5], ['ti64', 4.43], ['abs', 1.04], ['pla', 1.24], ['pa12', 1.01]]);
   assert.ok(MATERIALS_DATA.materials.every(m => m.estimate && Object.keys(m.sources).length >= 5));
@@ -167,8 +167,8 @@ test('R6b.7 materials and process profiles: the data checked (every value source
 });
 
 test('R6b.3 cantilever snap hook: its volume the closed form; its root strain read against the body\'s material — met on ABS, warned on PLA, refused past PLA\'s yield, unknown without a material; library_check gives ε / allowable', async () => {
-  const { withLook } = await import('../src/app/bodies');
-  const { runCheck } = await import('../src/chat/spec');
+  const { withLook } = await import('@barocss/cad-model/app/bodies');
+  const { runCheck } = await import('@barocss/cad-model/chat/spec');
   const doc = plate(3), b0 = bodies(doc)[0];
   const snap = (material: string | null, params: Record<string, number> = {}, d: StudioDoc = doc) => addLibraryPartToBody(material ? withLook(d, b0, { material }) : d, 'enclosure', 'snap-hook', { params }, top(3, 30, 20));
   // (A uniform beam: ε = 1.5 × 1.5 × 1 / 12² = 0.015625.)
@@ -242,11 +242,11 @@ test('R6b.3 the hook latched under its ledge (a declared fit): no overlap, in co
 
 test('R6b.4 enclosure halves: the base (lip round the inside of its rim) and the lid (groove) build, their volumes the closed forms; the lid snapped onto the base by their rims; the declared fit clear and touching — a lip wider than the groove overlaps by exactly its excess ring; the clearance against the process (FDM wants more); a rim too thin refused', async () => {
   const { checkLibraryFit } = await import('@barocss/cad');
-  const { emptyDoc } = await import('../src/engine/doc');
-  const { libraryInstance, snapByInterfaces } = await import('../src/library/libraries');
+  const { emptyDoc } = await import('@barocss/cad-model/engine/doc');
+  const { libraryInstance, snapByInterfaces } = await import('@barocss/cad-model/library/libraries');
   const lib = libraryById('enclosure')!, ctx = { minWall: 0.6, fitClearance: 0.1 };
   const L = 80, W = 50, w = 2, lt = 1, lh = 2, c = 0.2, hs = 20, Hl = 10, inner = (L - 2 * w) * (W - 2 * w);
-  const { insertLibraryPart } = await import('../src/library/libraries');
+  const { insertLibraryPart } = await import('@barocss/cad-model/library/libraries');
   const build = (part: string) => bodies(insertLibraryPart(emptyDoc(), 'enclosure', part))[0].volumeMM3!;
   assert.ok(Math.abs(build('enclosure-base') - (L * W * hs - inner * (hs - w) + ((L - 2 * w + 2 * lt) * (W - 2 * w + 2 * lt) - inner) * lh)) < 1e-6);
   assert.ok(Math.abs(build('enclosure-lid') - (L * W * Hl - inner * (Hl - w) - ((L - 2 * w + 2 * (lt + c)) * (W - 2 * w + 2 * (lt + c)) - inner) * (lh + c))) < 1e-6);
@@ -275,8 +275,8 @@ test('R6b.4 enclosure halves: the base (lip round the inside of its rim) and the
 });
 
 test('R6b.5 vents and grilles: cut through the wall as deep as it is there (no further); the material taken exactly the openings; the open ratio reported; webs against the process (refused under its minimum, warned under its recommendation); in a box\'s side wall the far wall untouched', async () => {
-  const { emptyDoc } = await import('../src/engine/doc');
-  const { insertLibraryPart } = await import('../src/library/libraries');
+  const { emptyDoc } = await import('@barocss/cad-model/engine/doc');
+  const { insertLibraryPart } = await import('@barocss/cad-model/library/libraries');
   const plate2 = { ...rectanglePart(60, 40, 2), process: 'injection' };
   const before = bodies(plate2)[0].volumeMM3!;
   const vent = addLibraryPartToBody(plate2, 'enclosure', 'slot-vent', {}, top(2, 30, 20)) as { doc: StudioDoc; node: LibraryNode };
@@ -305,7 +305,7 @@ test('R6b.5 vents and grilles: cut through the wall as deep as it is there (no f
 });
 
 test('R6b.6 living hinge: a groove across a PP plate leaving its thickness — the material taken exactly; its thickness and strain against PP\'s living-hinge values; ABS is not a living-hinge material (unknown, said); FDM warned; a short land strained past PP\'s value warned; a hinge as thick as the plate refused', async () => {
-  const { withLook } = await import('../src/app/bodies');
+  const { withLook } = await import('@barocss/cad-model/app/bodies');
   const pl = { ...rectanglePart(60, 40, 2), process: 'injection' }, b0 = bodies(pl)[0];
   const at = { ...top(2, 30, 20), xDir: [1, 0, 0] as [number, number, number] };
   const hinge = (material: string, doc: StudioDoc = pl, params: Record<string, number> = {}) => addLibraryPartToBody(withLook(doc, b0, { material }), 'enclosure', 'living-hinge', { params }, at);
@@ -327,7 +327,7 @@ test('R6b.6 living hinge: a groove across a PP plate leaving its thickness — t
 });
 
 test('O72: a snap hook in a part whose brief states its material takes strain and yield from it — no context numbers; an assumed brief material, none; the body\'s own material first', async () => {
-  const { dispatchTool } = await import('../src/chat/tools'), { withLook } = await import('../src/app/bodies');
+  const { dispatchTool } = await import('@barocss/cad-model/chat/tools'), { withLook } = await import('@barocss/cad-model/app/bodies');
   const stated = (value: string, basis: 'stated' | 'assumed' = 'stated'): StudioDoc => ({ ...plate(3), brief: { version: 1, material: { value, basis, ...(basis === 'stated' ? { source: value } : { why: 'a guess' }) } } as never });
   type Hook = { doc: StudioDoc; node: { context?: Record<string, number>; warnings: string[] } };
   const abs = addLibraryPartToBody(stated('abs'), 'enclosure', 'snap-hook', {}, top(3, 30, 20)) as Hook;
@@ -349,7 +349,7 @@ test('O72: a snap hook in a part whose brief states its material takes strain an
 });
 
 test('O72: two library parts in one turn through the agent\'s tools — the second finds the body the first was united into (the state\'s bodies re-evaluated)', async () => {
-  const { dispatchTool } = await import('../src/chat/tools'), { emptyDoc } = await import('../src/engine/doc');
+  const { dispatchTool } = await import('@barocss/cad-model/chat/tools'), { emptyDoc } = await import('@barocss/cad-model/engine/doc');
   const ev = async (d: StudioDoc) => evaluateDoc(d, 1);
   let s = { doc: emptyDoc(), bodies: [], turnBase: emptyDoc() } as never as Parameters<typeof dispatchTool>[0];
   for (const [tool, args] of [['run_command', { command: 'box', values: { w: 100, d: 70, h: 30, x: 0, y: 0, z: 0 } }], ['run_command', { command: 'shell', values: { t: 2 }, faces: ['n1.top'] }],
@@ -361,7 +361,7 @@ test('O72: two library parts in one turn through the agent\'s tools — the seco
 });
 
 test('O73: set_material — a body of the base part or of a placed part made of a library material: its mass, the BOM and a library part\'s context read it; an unknown id refused with the list', async () => {
-  const { dispatchTool } = await import('../src/chat/tools'), { emptyDoc } = await import('../src/engine/doc'), { bomView } = await import('../src/team/assembly');
+  const { dispatchTool } = await import('@barocss/cad-model/chat/tools'), { emptyDoc } = await import('@barocss/cad-model/engine/doc'), { bomView } = await import('@barocss/cad-model/team/assembly');
   const ev = async (d: StudioDoc) => evaluateDoc(d, 1);
   let s = { doc: emptyDoc(), bodies: [], turnBase: emptyDoc() } as never as Parameters<typeof dispatchTool>[0];
   const call = async (tool: string, args: Record<string, unknown>) => { const r = await dispatchTool(s, tool, args, ev); assert.ok(!r.isError, `${tool}: ${r.content}`); s = r.state; return JSON.parse(r.content); };

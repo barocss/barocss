@@ -2,17 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart, placeBody, type BodyResult } from '../src/engine/evaluate';
-import { rectanglePart, type StudioDoc } from '../src/engine/doc';
-import { rotationMatrix } from '../src/assembly/mates';
-import { solveDoc } from '../src/chat/assembly';
-import { dispatchTool } from '../src/chat/tools';
-import { treeOfDoc } from '../src/chat/robot';
-import { applyTo, forwardKinematics } from '../src/robot/fk';
+import { evaluatePart, placeBody, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
+import { solveDoc } from '@barocss/cad-model/chat/assembly';
+import { dispatchTool } from '@barocss/cad-model/chat/tools';
+import { treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { applyTo, forwardKinematics } from '@barocss/cad-model/robot/fk';
 import { convexHull } from '@barocss/cad-model/robot/hull';
 import { convexDistance } from '@barocss/cad-model/robot/gjk';
-import { meshDistance, meshesMeet, pathOf, reaches, sweepLinks, sweepPath } from '../src/robot/sweep';
-import type { Joint, JointTree } from '../src/robot/joints';
+import { meshDistance, meshesMeet, pathOf, reaches, sweepLinks, sweepPath } from '@barocss/cad-model/robot/sweep';
+import type { Joint, JointTree } from '@barocss/cad-model/robot/joints';
 
 // RM6 (O19): the collision sweep — GJK against the polytopes' brute-force distance, the motion bound against dense
 // forward kinematics, a 2R arm swept into a grounded post with its first contact against a separating-axis oracle in

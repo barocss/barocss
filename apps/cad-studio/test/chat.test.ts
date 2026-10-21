@@ -6,19 +6,19 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
-import { commandById, type Ctx, type Selection } from '../src/app/commands';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { acceptProposal, CHAT_COMMANDS, COMMAND_DOCS, dispatchTool, resolveNames, runTool, TOOLS, type ChatState } from '../src/chat/tools';
-import { checkNode, deleteFeature } from '../src/chat/features';
+import { commandById, type Ctx, type Selection } from '@barocss/cad-model/app/commands';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { acceptProposal, CHAT_COMMANDS, COMMAND_DOCS, dispatchTool, resolveNames, runTool, TOOLS, type ChatState } from '@barocss/cad-model/chat/tools';
+import { checkNode, deleteFeature } from '@barocss/cad-model/chat/features';
 import { eventParser, type TurnEvent } from '../src/chat/client';
 import { serveMcp } from '../server/cadMcp';
 import { checkImages, claudeArgs, createChatServer, DEFAULT_ORIGINS, fromStudio, stateNote, summarize, userMessage } from '../server/chatServer';
 import { fitSize } from '../src/chat/images';
-import { planHollow } from '../src/print/hollow';
+import { planHollow } from '@barocss/cad-model/print/hollow';
 import { simplify, traceImage, traceLoops } from '@barocss/cad-model/chat/trace';
 import { defaultRender } from '@barocss/cad-model/engine/render';
-import { defaultDrawing } from '../src/drawing/types';
+import { defaultDrawing } from '@barocss/cad-model/drawing/types';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function stateOf(doc: StudioDoc): Promise<ChatState> {
@@ -626,7 +626,7 @@ test('deleting a feature keeps the names mates and drawing dimensions use and th
 });
 
 test('mesh blobs reach the chat server once a conversation: later turns name them; a server without them answers 409 with their hashes', async () => {
-  const { putBlob, blobsAsBase64 } = await import('../src/engine/blobs');
+  const { putBlob, blobsAsBase64 } = await import('@barocss/cad-model/engine/blobs');
   const P = await putBlob(Float32Array.from([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1])), I = await putBlob(Uint32Array.from([0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3]));
   const doc = withNode(emptyDoc(), { kind: 'mesh', name: 'tet', unit: 'mm', blob: { positions: P, indices: I }, representation: 'facets' });
   const seen: string[] = [];

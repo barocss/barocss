@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { commands, type Ctx } from '../src/app/commands';
+import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { commands, type Ctx } from '@barocss/cad-model/app/commands';
 import { editCommand } from '../src/app/editCommand';
 
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.title); return r.bodies; };
@@ -93,7 +93,7 @@ test('Hole types: to a depth, and counterbored (a wider hole to its depth on the
 });
 
 test('Split across any plane: a mitre x + y = at through the middle, its arrow along the normal, two bodies', async () => {
-  const { featureLabel, planeText } = await import('../src/engine/doc');
+  const { featureLabel, planeText } = await import('@barocss/cad-model/engine/doc');
   const ctx = picked(rectanglePart(40, 20, 10)), split = cmd('split');
   const v = split.derive!(ctx, { ...split.defaults!(ctx), axis: 'n', nx: 1, ny: 1, nz: 0 }, ['axis']);
   assert.equal(v.at, 30, 'x + y at the centre (20, 10)');
@@ -110,7 +110,7 @@ test('Split across any plane: a mitre x + y = at through the middle, its arrow a
 });
 
 test('Draft: one side face turned about its bottom; every side of an extrusion is its own draft; faces that meet are refused', async () => {
-  const { featureLabel } = await import('../src/engine/doc');
+  const { featureLabel } = await import('@barocss/cad-model/engine/doc');
   const draft = cmd('draft'), doc = rectanglePart(20, 20, 10), bodies = bodiesOf(doc), mesh = bodies[0].mesh;
   const faceOf = (name: string) => ({ body: 0, face: mesh.faces.find(f => f.name === name)!.index });
   const ctx = (names: string[]): Ctx => ({ doc, bodies, selection: { faces: names.map(faceOf), edges: [], bodies: [] } });

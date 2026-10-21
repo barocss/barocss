@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, type ModelNode } from '../src/engine/doc';
-import { commands, type Ctx, type Values } from '../src/app/commands';
+import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type ModelNode } from '@barocss/cad-model/engine/doc';
+import { commands, type Ctx, type Values } from '@barocss/cad-model/app/commands';
 import { editCommand } from '../src/app/editCommand';
 
 const ctx: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
@@ -106,7 +106,7 @@ test('SubD torus (SD1, D51): a subd node from a regular cage — a smooth ring n
 });
 
 test('Spur gear (R6a, issue #2167, D54; R12b.1a, D130): a gear node from the command — the root the rack cuts (spur-gear@1), the volume of the exact generated profile, faces named per tooth, its report as notes; edited to more teeth; the schematic root by the Root field; an undercut pinion', async () => {
-  const { editFields } = await import('../src/app/editFields');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
   const cmd = commands.find(c => c.id === 'gear')!, doc = cmd.build!(ctx, { ...cmd.defaults!(ctx), m: 2, teeth: 20, b: 10, bore: 8, x: 0, y: 0, z: 0 });
   const node = doc.nodes[0] as Extract<ModelNode, { kind: 'gear' }>;
   assert.deepEqual([node.kind, node.module, node.teeth, node.faceWidth, node.bore, node.generator], ['gear', 2, 20, 10, 8, 'spur-gear@1']);
@@ -143,8 +143,8 @@ test('Spur gear (R6a, issue #2167, D54; R12b.1a, D130): a gear node from the com
 });
 
 test('Meshing gear (R6a.4b, D56): beside the selected gear at the centre distance, turned to mesh — the pair\'s verdict in the panel; turning the driver turns it (clear still); a phase off, the teeth cross; the driver cannot go first or be deleted from under it', async () => {
-  const { deleteFeature, moveFeature } = await import('../src/chat/features');
-  const { editFields } = await import('../src/app/editFields');
+  const { deleteFeature, moveFeature } = await import('@barocss/cad-model/chat/features');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
   const gear = commands.find(c => c.id === 'gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!;
   const one = gear.build!(ctx, { ...gear.defaults!(ctx), m: 2, teeth: 20, b: 10, bore: 8, x: 5, y: 3, z: 0 }), r1 = evaluateDoc(one, 1);
   assert.ok(r1.ok);
@@ -189,8 +189,8 @@ test('Profile shift (R6a.5a, D57): a 12-tooth pinion at x 0.6 from the command, 
 });
 
 test('Internal gear (R12b.2a, D132): a ring from the command (x2 0.5 by default) — its volume, its notes; a pinion inside it by Meshing gear with the ring selected — at the internal pair\'s distance, ratio +24:60, clear, radial assembly clear; its Centre distance field; the ring cannot go from under it', async () => {
-  const { editFields } = await import('../src/app/editFields');
-  const { deleteFeature } = await import('../src/chat/features');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
+  const { deleteFeature } = await import('@barocss/cad-model/chat/features');
   const cmd = commands.find(c => c.id === 'internal-gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!;
   const one = cmd.build!(ctx, { ...cmd.defaults!(ctx), x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 1);
   assert.ok(r1.ok, r1.ok ? '' : r1.error.hint);
@@ -239,8 +239,8 @@ test('Internal gear (R12b.2a, D132): a ring from the command (x2 0.5 by default)
 });
 
 test('Bevel gear (R12b.3, D134): a straight bevel pinion from the command (m 2, z 20 for 40, Σ 90°, its toe on At Z) — its volume, its notes; its mate by Meshing gear with it selected — the same apex, ratio 20:40, clear; the mate follows the pinion\'s teeth; a phase off crosses; the pinion cannot go from under it', async () => {
-  const { editFields } = await import('../src/app/editFields');
-  const { deleteFeature } = await import('../src/chat/features');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
+  const { deleteFeature } = await import('@barocss/cad-model/chat/features');
   const cmd = commands.find(c => c.id === 'bevel-gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!;
   const one = cmd.build!(ctx, { ...cmd.defaults!(ctx), x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 1);
   assert.ok(r1.ok, r1.ok ? '' : r1.error.hint);
@@ -280,8 +280,8 @@ test('Bevel gear (R12b.3, D134): a straight bevel pinion from the command (m 2, 
 });
 
 test('Spiral bevel gear (R12b.4, D135): an ideal model, said so — K1\'s spiral pinion from the command (m 3, z 20 for 40, β_m 35° left, r_c 60): its label, the ideal-model warning first in its notes, ideal_model in the agent\'s body list; its volume; its mate by Meshing gear — the other hand, five spheres clear, the face contact ratio, the thrust; the cutter radius left 0 an estimate', async () => {
-  const { describeBodies } = await import('../src/chat/tools');
-  const { featureLabel } = await import('../src/engine/doc');
+  const { describeBodies } = await import('@barocss/cad-model/chat/tools');
+  const { featureLabel } = await import('@barocss/cad-model/engine/doc');
   const cmd = commands.find(c => c.id === 'bevel-gear')!, mesh = commands.find(c => c.id === 'gear-mesh')!;
   const one = cmd.build!(ctx, { ...cmd.defaults!(ctx), m: 3, teeth: 20, mate: 40, b: 20, bore: 10, spiral: 35, hand: 'left', rc: 60, x: 0, y: 0, z: 0 }), r1 = evaluateDoc(one, 1);
   assert.ok(r1.ok, r1.ok ? '' : r1.error.hint);
@@ -313,9 +313,9 @@ test('Spiral bevel gear (R12b.4, D135): an ideal model, said so — K1\'s spiral
 });
 
 test('Worm gear pair (R12b.5, D136): K1\'s pair from the command (m_x 3, double thread, d1 44, z2 30) — the wheel a helical gear at the lead angle, the worm meshing with it and long enough for the mesh zone; its volume, its notes, the pair clear; the worm follows the wheel\'s teeth and its form; the wheel cannot go from under it', async () => {
-  const { editFields } = await import('../src/app/editFields');
-  const { deleteFeature } = await import('../src/chat/features');
-  const { featureLabel } = await import('../src/engine/doc');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
+  const { deleteFeature } = await import('@barocss/cad-model/chat/features');
+  const { featureLabel } = await import('@barocss/cad-model/engine/doc');
   const cmd = commands.find(c => c.id === 'worm-pair')!;
   const doc = cmd.build!(ctx, { ...cmd.defaults!(ctx), x: 0, y: 0, z: 0 }), r = evaluateDoc(doc, 1);
   assert.ok(r.ok, r.ok ? '' : r.error.hint);
@@ -338,7 +338,7 @@ test('Worm gear pair (R12b.5, D136): K1\'s pair from the command (m_x 3, double 
 });
 
 test('Throated worm wheel (R12b.6, D137): K1\'s pair from the Worm gear pair command with a throated wheel — the wheel cut by a hob of its ZA worm, the worm meshing with it; the wheel\'s volume and notes, the pair in contact along lines', async () => {
-  const { featureLabel } = await import('../src/engine/doc');
+  const { featureLabel } = await import('@barocss/cad-model/engine/doc');
   const cmd = commands.find(c => c.id === 'worm-pair')!;
   const doc = cmd.build!(ctx, { ...cmd.defaults!(ctx), wheel: 'throated', x: 0, y: 0, z: 0 }), r = evaluateDoc(doc, 1);
   assert.ok(r.ok, r.ok ? '' : r.error.hint);
@@ -353,8 +353,8 @@ test('Throated worm wheel (R12b.6, D137): K1\'s pair from the Worm gear pair com
 });
 
 test('Gear rack (R6a.5b, D58): on its own (the basic rack on a bar, its exact volume); meshing with the selected gear — under it, the verdict in its notes, travelling as the gear turns; a slide off its place crosses; gear queries on the pair', async () => {
-  const { editFields } = await import('../src/app/editFields');
-  const { runCheck } = await import('../src/chat/spec');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
+  const { runCheck } = await import('@barocss/cad-model/chat/spec');
   const rack = commands.find(c => c.id === 'gear-rack')!, gear = commands.find(c => c.id === 'gear')!;
   const alone = rack.build!(ctx, { ...rack.defaults!(ctx), m: 2, teeth: 10, b: 10, h: 10, x: 0, y: 0, z: 0 }), ra = evaluateDoc(alone, 1);
   assert.ok(ra.ok, ra.ok ? '' : ra.error.hint);
@@ -454,8 +454,8 @@ test('SubD tube (D84): a thick-walled tube open at both ends from a regular cage
 });
 
 test('SubD caps shown (D79): the box\'s notes give the caps and their deviation from the limit as a share of its size; a half star round a boundary vertex warns past 0.2%; the subd_deviation query reads the same figure, unknown for a cage regular everywhere', async () => {
-  const { runCheck } = await import('../src/chat/spec');
-  const { withNode } = await import('../src/engine/doc');
+  const { runCheck } = await import('@barocss/cad-model/chat/spec');
+  const { withNode } = await import('@barocss/cad-model/engine/doc');
   const box = make('subd-box', { w: 30, d: 20, h: 16, n: 3, x: 0, y: 0, z: 0 });
   assert.equal(box.notes?.length, 1, JSON.stringify(box.notes));
   assert.match(box.notes![0].text, /^Caps: G1 at 8 irregular vertices \(24 caps, 1 Catmull–Clark step\); max deviation from the limit surface [\d.]+ mm \([\d.]+% of its size\)$/);

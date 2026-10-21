@@ -3,17 +3,17 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { booleanAnalytic, brepMassProperties, cutList, cutPiece, dxfText, evaluateCadPart } from '@barocss/cad';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { toPartDocument } from '../src/engine/part';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { drawingInputs } from '../src/chat/drawing';
-import { drawingIssues, fixAll, issueContext } from '../src/drawing/issues';
-import { readDrawing } from '../src/drawing/types';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { toPartDocument } from '@barocss/cad-model/engine/part';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { drawingInputs } from '@barocss/cad-model/chat/drawing';
+import { drawingIssues, fixAll, issueContext } from '@barocss/cad-model/drawing/issues';
+import { readDrawing } from '@barocss/cad-model/drawing/types';
 import { sheetSvg } from '../src/drawing/svg';
 import { sheetPdf } from '../src/drawing/pdf';
 import { sheetDxf } from '../src/drawing/dxf';
-import { cutListSource } from '../src/app/cutList';
+import { cutListSource } from '@barocss/cad-model/app/cutList';
 
 // FR4b (D128): the frames' acceptance — a welded table frame and a 2020-class T-slot frame, each built by the agent's
 // tools in one turn from the calls in test/fixtures (the flow sends the same calls through the real chat), and the cut

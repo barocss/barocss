@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart } from '../src/engine/evaluate';
-import { rectanglePart, type StudioDoc } from '../src/engine/doc';
-import { runTool, type ChatState } from '../src/chat/tools';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
 
 // PERF3 A3 (D82): how many evaluations an agent's batch costs. A block with four filleted corners (references by name)
 // and two hard requirements that pass; five holes added in one apply_ops.

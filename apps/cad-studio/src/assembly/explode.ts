@@ -1,7 +1,7 @@
 // The exploded view of an assembly: each part instance pushed out from the middle of everything along
 // the line from it to its own middle (straight up when it sits in the middle), by `k` times that
 // distance — for display only: the parts, their placements and their mates stay as they are.
-import type { BodyResult } from '../engine/evaluate';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 
 const centre = (bs: readonly BodyResult[]): Vec3 => { const lo = [0, 1, 2].map(k => Math.min(...bs.map(b => b.mesh.bounds.min[k]))), hi = [0, 1, 2].map(k => Math.max(...bs.map(b => b.mesh.bounds.max[k]))); return [0, 1, 2].map(k => (lo[k] + hi[k]) / 2) as Vec3; };

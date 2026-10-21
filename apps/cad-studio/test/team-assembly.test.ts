@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool } from '../src/chat/tools';
-import { bomView, checkAssembly, checkBom, deriveBom } from '../src/team/assembly';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool } from '@barocss/cad-model/chat/tools';
+import { bomView, checkAssembly, checkBom, deriveBom } from '@barocss/cad-model/team/assembly';
 import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 
 // A8.4 (O36): the Assembly integrator's whole-assembly gate and the BOM agent. A part moved after its acceptance caught

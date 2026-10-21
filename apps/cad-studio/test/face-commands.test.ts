@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { faceProfile, fitLoop } from '../src/app/faceProfile';
-import { extrudeCommand } from '../src/app/profileCommands';
-import { carrySelection, commands, type Ctx, type Selection } from '../src/app/commands';
+import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { faceProfile, fitLoop } from '@barocss/cad-model/app/faceProfile';
+import { extrudeCommand } from '@barocss/cad-model/app/profileCommands';
+import { carrySelection, commands, type Ctx, type Selection } from '@barocss/cad-model/app/commands';
 import { editCommand, featureOfPick } from '../src/app/editCommand';
-import { bodyNodes, deleteFeatures } from '../src/chat/features';
+import { bodyNodes, deleteFeatures } from '@barocss/cad-model/chat/features';
 
 function bodiesOf(doc: StudioDoc): BodyResult[] { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.title); return r.bodies; }
 const faceNamed = (b: BodyResult, name: string) => b.mesh.faces.findIndex(f => f.name.split('+').includes(name));

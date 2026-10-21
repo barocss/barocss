@@ -2,14 +2,14 @@
 // cable hole and vents; a snap-fit box (below). The checker reads the part: the standoffs' exact cylinders on the
 // board's hole pattern, the board's component space as a keep-out checked by the studio's own keep-out check, the vents
 // by the kernel's section through their wall, the wall by the FDM profile's minimum.
-import { dispatchTool, type ChatState } from '../chat/tools';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { processProfile } from '@barocss/cad-model/library/materials';
 import type { Call, Evaluate, Outcome, Params, Rung } from './core';
 import { axisDistance, boxIs, cylindersOf, distinctCylinders, holds, parallel, planeFace, studioChecks } from './measure';
-import type { StudioDoc } from '../engine/doc';
-import type { BodyResult } from '../engine/evaluate';
-import type { ModelNode } from '../engine/doc';
-import { meshDistance } from '../robot/sweep';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import type { ModelNode } from '@barocss/cad-model/engine/doc';
+import { meshDistance } from '@barocss/cad-model/robot/sweep';
 type LibraryNode = Extract<ModelNode, { kind: 'library' }>;
 
 const num = (p: Params, k: string) => p[k] as number;

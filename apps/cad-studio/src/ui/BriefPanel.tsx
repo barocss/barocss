@@ -1,6 +1,6 @@
 // The brief in the Browser (A6.1, O24): each field with its basis and the user's words, the gaps counted, and an
 // assumed or ambiguous field confirmed as it is (stated since, by the user). Editing values is A6.2's Specify panel.
-import { BRIEF_FIELDS, briefGaps, REQUIRED, type Brief, type BriefKey, type Field } from '../chat/brief';
+import { BRIEF_FIELDS, briefGaps, REQUIRED, type Brief, type BriefKey, type Field } from '@barocss/cad-model/chat/brief';
 
 const LABEL: Record<BriefKey, string> = { purpose: 'Purpose', process: 'Process', material: 'Material', quantity: 'Quantity', envelope: 'Envelope', interfaces: 'Interfaces', loads: 'Loads', finish: 'Finish', notes: 'Notes' };
 /** A field's value as a line. */

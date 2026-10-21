@@ -1,7 +1,7 @@
 // A part's cut list (FR4a, D127): a row a group of identical members — quantity, section, material, axis length, long
 // point, each end's cut, mass — the totals, and its CSV. The densities are the materials library's estimates.
 import { cutListCsv, type CutEnd } from '@barocss/cad';
-import type { PartCutList } from '../app/cutList';
+import type { PartCutList } from '@barocss/cad-model/app/cutList';
 import { downloadBytes } from './files';
 import { Icon } from './atoms';
 

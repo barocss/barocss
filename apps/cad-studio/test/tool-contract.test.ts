@@ -4,10 +4,10 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { PassThrough } from 'node:stream';
-import { evaluatePart } from '../src/engine/evaluate';
-import { starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { boxCage } from '../src/app/primitives';
-import { dispatchTool, SYSTEM_PROMPT, TOOLS, type ChatState } from '../src/chat/tools';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { starterDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { boxCage } from '@barocss/cad-model/app/primitives';
+import { dispatchTool, SYSTEM_PROMPT, TOOLS, type ChatState } from '@barocss/cad-model/chat/tools';
 import { TOOL_CONTRACT_VERSION, annotationsOf, breakingChanges, contractOf, outputSchemaOf, validate, type ContractEntry, type JsonSchema } from '@barocss/cad-model/chat/contract';
 import { serveMcp, TOOLS_LISTED } from '../server/cadMcp';
 

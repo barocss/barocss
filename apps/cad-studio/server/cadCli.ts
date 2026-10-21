@@ -6,13 +6,13 @@
 //   cad-cli check part.bcad
 import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
-import { mjcfOfDoc, urdfOfDoc } from '../src/chat/robot';
+import { mjcfOfDoc, urdfOfDoc } from '@barocss/cad-model/chat/robot';
 import { readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
 import { readUrdf } from '@barocss/cad-model/robot/urdfCheck';
 import { encodeStudioFile } from '../src/engine/container';
-import { evaluateDoc, stepFor, stlFor } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { evaluateDoc, stepFor, stlFor } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { meshToStl } from '@barocss/cad-model/engine/stl';
 import { notLocalModel, openModel, writeAtomic } from './cadDoc';
 import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '../src/team/scripted';
@@ -20,12 +20,12 @@ import { metricsOf, type Labelled } from '../src/team/metrics';
 import { verifyBundle, writeBundle } from '../src/team/bundle';
 import { inProcessReopen, type Reopen } from '../src/team/candidates';
 import { runBoardScenario, type BoardScenario } from '../src/team/boardScenario';
-import { canonical } from '../src/team/team';
+import { canonical } from '@barocss/cad-model/team/team';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { quotePackage } from '../src/mould/quote';
-import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '../src/chat/robot';
+import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
 
 export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.

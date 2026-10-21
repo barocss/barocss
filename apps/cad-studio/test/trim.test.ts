@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { trimAt, trimPreview } from '../src/sketch/trim';
-import { profileOf } from '../src/sketch/loops';
+import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { sampleOutline } from '@barocss/cad-model/sketch/profile';
 import type { SketchShape } from '../src/viewport/Viewport';
 

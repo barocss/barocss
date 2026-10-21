@@ -11,13 +11,13 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
-import type { StudioDoc } from '../src/engine/doc';
-import type { NameSelection } from '../src/chat/tools';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { NameSelection } from '@barocss/cad-model/chat/tools';
 import { toolset, toolsetOf } from '../src/chat/toolset';
 import { v1Call } from '@barocss/cad-model/chat/groups';
-import { PROMPT_CHARS } from '../src/chat/proposals';
+import { PROMPT_CHARS } from '@barocss/cad-model/chat/proposals';
 import type { StateFile } from './cadMcp';
-import type { BlobType, WireBlobs } from '../src/engine/blobs';
+import type { BlobType, WireBlobs } from '@barocss/cad-model/engine/blobs';
 import { createHash } from 'node:crypto';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';

@@ -2,11 +2,11 @@
 // evaluates them with the same code the worker runs (evaluateDoc / stepFor / stlFor) and compares
 // volume, face counts and bounds with hand-computed values. Prints one JSON line per case.
 //   node test/qa/run-engine-probe.mjs
-import { evaluateDoc, stepFor, stlFor } from '../../src/engine/evaluate';
+import { evaluateDoc, stepFor, stlFor } from '@barocss/cad-model/engine/evaluate';
 import { importStep, brepMassProperties } from '@barocss/cad';
-import { emptyDoc, loftTop, prefixDoc, rectanglePart, starterDoc, withNode, type ModelNode, type StudioDoc } from '../../src/engine/doc';
+import { emptyDoc, loftTop, prefixDoc, rectanglePart, starterDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
-import { editFields } from '../../src/app/editFields';
+import { editFields } from '@barocss/cad-model/app/editFields';
 
 type Row = { id: string; name: string; ok: boolean; expected?: unknown; actual?: unknown; note?: string };
 const rows: Row[] = [];

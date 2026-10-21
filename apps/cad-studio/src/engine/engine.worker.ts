@@ -1,9 +1,9 @@
 /// <reference lib="webworker" />
-import { brepsFor, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, evaluateVolumes, shareMeshes, stepFor, stlFor, type PartSlot } from './evaluate';
+import { brepsFor, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, evaluateVolumes, shareMeshes, stepFor, stlFor, type PartSlot } from '@barocss/cad-model/engine/evaluate';
 import { MeshSender } from './meshWire';
-import { projectViews } from '../drawing/project';
-import { sectionOf } from '../drawing/section';
-import { WireReceiver, type WireDoc } from './wireDoc';
+import { projectViews } from '@barocss/cad-model/drawing/project';
+import { sectionOf } from '@barocss/cad-model/drawing/section';
+import { WireReceiver, type WireDoc } from '@barocss/cad-model/engine/wireDoc';
 import { diagnoseMesh, repairMesh, stepMeshes, stepSizeProblem, stepTessellatedChars, type MeshRepairSteps } from '@barocss/cad';
 
 export type WorkerRequest =

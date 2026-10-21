@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { commands, type Command, type Ctx } from '../app/commands';
+import { commands, type Command, type Ctx } from '@barocss/cad-model/app/commands';
 import { Icon, Kbd } from './atoms';
 
 export interface MenuAction { label: string; icon: string; shortcut?: string; run(): void }

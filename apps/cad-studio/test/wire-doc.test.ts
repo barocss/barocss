@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { WireReceiver, WireSender } from '../src/engine/wireDoc';
-import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
+import { WireReceiver, WireSender } from '@barocss/cad-model/engine/wireDoc';
+import { rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 
 test('wire documents: each node crosses once, the worker rebuilds the document, both sides forget alike', () => {
   const send = new WireSender(), recv = new WireReceiver();

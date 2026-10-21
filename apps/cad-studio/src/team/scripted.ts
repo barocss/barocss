@@ -3,13 +3,13 @@
 // patch, "done", or "rebase" — the last patch made again on the current revision, explicitly) and the Verifier's rules
 // (checks of the view it is given: the total mass, a body's box). Live roles (model adapters) take their place in the
 // comparison the owner is to approve (O30).
-import type { StudioDoc } from '../engine/doc';
-import { emptyDoc } from '../engine/doc';
-import type { ChatState, Evaluate } from '../chat/tools';
-import type { Op } from '../chat/proposals';
-import type { ArchitectRole, Interfaces, Lease, PartAgentRole, PartsRun } from './parts';
-import { runParts } from './parts';
-import { rebase, runTeam, type DesignerRole, type DrafterRole, type Patch, type RequirementsRole, type ReviewerName, type ReviewerRole, type ReviewView, type TeamRun, type VerifierRole, type VerifierView } from './team';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { emptyDoc } from '@barocss/cad-model/engine/doc';
+import type { ChatState, Evaluate } from '@barocss/cad-model/chat/tools';
+import type { Op } from '@barocss/cad-model/chat/proposals';
+import type { ArchitectRole, Interfaces, Lease, PartAgentRole, PartsRun } from '@barocss/cad-model/team/parts';
+import { runParts } from '@barocss/cad-model/team/parts';
+import { rebase, runTeam, type DesignerRole, type DrafterRole, type Patch, type RequirementsRole, type ReviewerName, type ReviewerRole, type ReviewView, type TeamRun, type VerifierRole, type VerifierView } from '@barocss/cad-model/team/team';
 
 export type DesignerStep = { patch: { id: string; ops: Op[]; rationale?: string; /** "stale": made on an old revision (a fixed one no part has). */ base?: 'stale'; /** Kept against soft findings, because… */ keep?: string } } | 'done' | 'rebase';
 export type VerifierRule = { kind: 'max_mass_g'; value: number } | { kind: 'max_size'; axis: 'x' | 'y' | 'z'; value: number } | { kind: 'min_bodies'; value: number };

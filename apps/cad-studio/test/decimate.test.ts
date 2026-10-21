@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { organicTorus } from './bench/mesh-fixtures';
-import { commands } from '../src/app/commands';
-import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, featureLabel, withNode, type StudioDoc } from '../src/engine/doc';
+import { commands } from '@barocss/cad-model/app/commands';
+import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, featureLabel, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { evaluatePart } from '../src/engine/evaluate';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 
 // R9 (D85): "Simplify mesh" — the kernel's decimate feature on a mesh body, from the palette and from the agent.
 const torus = organicTorus(80, 40);

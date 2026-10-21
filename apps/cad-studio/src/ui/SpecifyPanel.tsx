@@ -3,8 +3,8 @@
 // blocked: the agent carries on with its assumptions whatever the user does here. Our own layout, following a
 // required / worth-a-check / accept-all pattern only.
 import { useState } from 'react';
-import type { StudioDoc } from '../engine/doc';
-import { assumptionsOf, readQuestions } from '../chat/questions';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { assumptionsOf, readQuestions } from '@barocss/cad-model/chat/questions';
 
 const shown = (v: unknown) => (v === undefined ? '—' : Array.isArray(v) ? v.join('; ') : v && typeof v === 'object' ? Object.values(v).join(' × ') : String(v));
 

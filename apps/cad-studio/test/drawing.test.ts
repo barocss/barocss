@@ -1,19 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { brepsFor } from '../src/engine/evaluate';
-import { emptyDoc, starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { projectViews } from '../src/drawing/project';
-import { layoutSheet, scaleLabel, toSheet } from '../src/drawing/views';
-import { angleBetween, orientFor, resolveDimension, snapPoints } from '../src/drawing/dimensions';
-import { buildSheet, type Mark } from '../src/drawing/sheet';
-import { centreMarks } from '../src/drawing/centres';
-import { sectionOf } from '../src/drawing/section';
-import { hatch, noteMarks, TITLE_ROOM, toleranceText, valueMarks } from '../src/drawing/sheet';
+import { brepsFor } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, starterDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { projectViews } from '@barocss/cad-model/drawing/project';
+import { layoutSheet, scaleLabel, toSheet } from '@barocss/cad-model/drawing/views';
+import { angleBetween, orientFor, resolveDimension, snapPoints } from '@barocss/cad-model/drawing/dimensions';
+import { buildSheet, type Mark } from '@barocss/cad-model/drawing/sheet';
+import { centreMarks } from '@barocss/cad-model/drawing/centres';
+import { sectionOf } from '@barocss/cad-model/drawing/section';
+import { hatch, noteMarks, TITLE_ROOM, toleranceText, valueMarks } from '@barocss/cad-model/drawing/sheet';
 import { fitText, textWidth } from '@barocss/cad-model/drawing/text';
-import type { PartInstance } from '../src/engine/doc';
+import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import { arcPath, sheetSvg } from '../src/drawing/svg';
 import { sheetPdf } from '../src/drawing/pdf';
-import { defaultDrawing, readDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
+import { defaultDrawing, readDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '@barocss/cad-model/drawing/types';
 
 const viewsOf = (doc: StudioDoc): DrawingViews => {
   const b = brepsFor(doc); assert.ok('breps' in b, JSON.stringify(b));
@@ -342,15 +342,15 @@ test('notes: lines of text on the sheet, a leader that follows its view, kept in
 });
 
 test('drawing revision: the next one after A, Z, 01 and none; the REV cell shows it', async () => {
-  const { nextRevision, modelPrint } = await import('../src/drawing/types');
+  const { nextRevision, modelPrint } = await import('@barocss/cad-model/drawing/types');
   assert.deepEqual(['A', 'Z', 'AZ', '01', '9', undefined].map(r => nextRevision(r)), ['B', 'AA', 'BA', '02', '10', 'A']);
   assert.notEqual(modelPrint([{ kind: 'box' }]), modelPrint([{ kind: 'box', w: 2 }]));
 });
 
 test('cosmetic threads on the drawing (ISO 6410): a tapped hole’s crest hidden along it and a ¾ circle seen end on; a bolt’s root thin', async () => {
-  const { threadsOf } = await import('../src/app/threads');
-  const { threadMarks, minorDiameter } = await import('../src/drawing/threads');
-  const { commands } = await import('../src/app/commands');
+  const { threadsOf } = await import('@barocss/cad-model/app/threads');
+  const { threadMarks, minorDiameter } = await import('@barocss/cad-model/drawing/threads');
+  const { commands } = await import('@barocss/cad-model/app/commands');
   // The starter plate's hole made a tapped M10 (its tap drill Ø8.5).
   const d0 = starterDoc(), tapped = { ...d0, nodes: d0.nodes.map(n => n.kind === 'hole' ? { ...n, radius: 4.25, thread: 'M10×1.5' } : n) };
   const v = viewsOf(tapped), settings = { ...defaultDrawing(), hidden: true }, layout = layoutSheet(v, settings), t = threadsOf(tapped.nodes);

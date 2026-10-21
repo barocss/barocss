@@ -2,14 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type SketchNode, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { confirmDimension, draftWarning, readDrafts, unconfirmed } from '../src/chat/drafts';
-import { dwgRelease, readDxfSketch } from '../src/sketch/dxfRead';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { confirmDimension, draftWarning, readDrafts, unconfirmed } from '@barocss/cad-model/chat/drafts';
+import { dwgRelease, readDxfSketch } from '@barocss/cad-model/sketch/dxfRead';
 import { sketchDxf } from '../src/sketch/dxf';
 import { traceImage } from '@barocss/cad-model/chat/trace';
-import { answerBatch } from '../src/chat/questions';
+import { answerBatch } from '@barocss/cad-model/chat/questions';
 
 // A6.4 (O28): images and drawings give drafts only. Our DXF reader against our own writer's files (both versions) and a
 // hand-written one in inches, by the closed forms of the profile's area; its typed refusals; a dimension confirmed at

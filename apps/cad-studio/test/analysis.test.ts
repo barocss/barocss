@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { runTool, type ChatState } from '../src/chat/tools';
-import { withLook } from '../src/app/bodies';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { runTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { withLook } from '@barocss/cad-model/app/bodies';
 
 // Analysis tools (A2.2): mass properties, interference and clearance, section, wall thickness, draft.
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);

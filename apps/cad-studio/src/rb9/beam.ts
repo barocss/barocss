@@ -2,10 +2,10 @@
 // its B-rep edges (exact endpoints, double precision), chained into loops, and its area, centroid and second moments by
 // Green's theorem on those loops — no handbook section table. Straight edges only: a curved boundary is refused (the
 // beam rung's sections are polygons; a curved one would need its arcs' exact moments).
-import { withNode, type StudioDoc } from '../engine/doc';
-import type { BodyResult } from '../engine/evaluate';
-import { bodyKeyFor } from '../engine/ids';
-import { refOf } from '../app/bodyRef';
+import { withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { bodyKeyFor } from '@barocss/cad-model/engine/ids';
+import { refOf } from '@barocss/cad-model/app/bodyRef';
 import type { Evaluate } from './core';
 
 /** A section across x in the (y, z) plane: second moments about its own centroid; c the farthest fibre in z. */

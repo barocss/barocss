@@ -3,7 +3,7 @@
 // Rectangles, circles and slots keep their kind; an outline has each edge moved out along its normal — a
 // line parallel, an arc about its centre — with new corners where the moved pieces meet (cut back, or run on
 // to meet across the gap); where an arc joins its neighbour tangentially (a rounded corner) they still meet there.
-import type { SketchShape } from './types';
+import type { SketchShape } from '@barocss/cad-model/sketch/types';
 import { arcOf } from '@barocss/cad-model/sketch/profile';
 
 type P2 = [number, number];

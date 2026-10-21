@@ -3,16 +3,16 @@
 // lines by pen and compares their positions with the model geometry mapped through the view placement;
 // centre marks, hidden lines, instances, the title block and the PDF's stroke count are checked too.
 //   node test/qa/run-engine-probe.mjs drawing-svg-probe.ts
-import { brepsFor } from '../../src/engine/evaluate';
-import { rectanglePart, starterDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../../src/engine/doc';
-import { projectViews } from '../../src/drawing/project';
-import { layoutSheet, toSheet } from '../../src/drawing/views';
-import { buildSheet, PENS } from '../../src/drawing/sheet';
+import { brepsFor } from '@barocss/cad-model/engine/evaluate';
+import { rectanglePart, starterDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { projectViews } from '@barocss/cad-model/drawing/project';
+import { layoutSheet, toSheet } from '@barocss/cad-model/drawing/views';
+import { buildSheet, PENS } from '@barocss/cad-model/drawing/sheet';
 import { sheetSvg } from '../../src/drawing/svg';
 import { sheetPdf } from '../../src/drawing/pdf';
-import { resolveDimension, snapPoints } from '../../src/drawing/dimensions';
+import { resolveDimension, snapPoints } from '@barocss/cad-model/drawing/dimensions';
 import { textWidth } from '@barocss/cad-model/drawing/text';
-import { defaultDrawing, type DrawingSettings, type DrawingViews, type ViewId } from '../../src/drawing/types';
+import { defaultDrawing, type DrawingSettings, type DrawingViews, type ViewId } from '@barocss/cad-model/drawing/types';
 
 type Row = { id: string; area: string; name: string; ok: boolean; expected?: unknown; actual?: unknown };
 const rows: Row[] = [], A = '[drawing]';

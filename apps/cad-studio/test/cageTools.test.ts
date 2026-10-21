@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkBrep, subdBrep, validateCage } from '@barocss/cad';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type ModelNode, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, runTool, TOOLS, type ChatState } from '../src/chat/tools';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, runTool, TOOLS, type ChatState } from '@barocss/cad-model/chat/tools';
 import { fullCage } from '@barocss/cad-model/subd/cageEdit';
 
 // R8.2 (D83): the agent's SubD cage tools — the editor's steps on a subd node, each one checked: the cage a manifold,

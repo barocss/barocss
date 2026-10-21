@@ -3,16 +3,16 @@
 // {doc, selection?, changed}. Tools run in Node on the same engine as the studio (src/chat/tools.ts).
 import { readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { registerLibrary } from '../src/library/libraries';
+import { registerLibrary } from '@barocss/cad-model/library/libraries';
 import { createInterface } from 'node:readline';
-import { evaluateDoc } from '../src/engine/evaluate';
-import type { StudioDoc } from '../src/engine/doc';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { ImageTrace } from '@barocss/cad-model/chat/trace';
-import { runTool, TOOLS, type ChatState } from '../src/chat/tools';
+import { runTool, TOOLS, type ChatState } from '@barocss/cad-model/chat/tools';
 import { outputSchemaOf } from '@barocss/cad-model/chat/contract';
 import { v1Call } from '@barocss/cad-model/chat/groups';
 import { listed, toolsetOf, type Toolset } from '../src/chat/toolset';
-import { arrayOf, putKnownBlob, type BlobType } from '../src/engine/blobs';
+import { arrayOf, putKnownBlob, type BlobType } from '@barocss/cad-model/engine/blobs';
 
 /** `images`: the traces of the conversation's attached images (read only). */
 /** `blobFiles`: the document's mesh blobs (M1, D45), files the chat server checked and kept for the conversation, read into the store before the first call. */

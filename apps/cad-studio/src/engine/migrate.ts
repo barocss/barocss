@@ -1,8 +1,8 @@
 // Reading a saved .bcad file: its format and schema checked, an older one brought up to the current
 // schema with what was filled in said, one from a newer studio or with unknown features refused — the
 // file itself is left as it is until it is saved again.
-import { prefixDoc, type StudioDoc } from './doc';
-import { bodyKeyFor, withIds } from './ids';
+import { prefixDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { bodyKeyFor, withIds } from '@barocss/cad-model/engine/ids';
 
 /**
  * 2: every feature has a stable id (engine/ids.ts); a schema-1 file's node i becomes `n<i>`, its names unchanged.

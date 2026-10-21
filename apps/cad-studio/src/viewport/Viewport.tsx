@@ -1,5 +1,5 @@
 import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 'react';
-import type { BodyResult } from '../engine/evaluate';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
 import { Renderer, type EdgeRef, type FaceRef, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
@@ -10,8 +10,8 @@ import { regionMesh, type ToolRegion } from '../app/holeRegion';
 import { bulgeThrough, arcOf, sampleOutline, sampleSlot, type P2 } from '@barocss/cad-model/sketch/profile';
 import { extendPreview, splitPreview, trimPreview } from '../sketch/trim';
 import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
-import { shapeOutline } from '../sketch/loops';
-import { hvOf, isSettled, type SketchPick } from '../sketch/rules';
+import { shapeOutline } from '@barocss/cad-model/sketch/loops';
+import { hvOf, isSettled, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import { pickSketch } from '../sketch/select';
 import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
 import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
@@ -24,8 +24,8 @@ import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } f
 import { splineOutline } from '@barocss/cad-model/sketch/spline';
 import type { Analysis } from './analysis';
 
-export type { SketchTool, SketchShape, SketchAnchor, SketchState, Make } from '../sketch/types';
-import type { SketchShape, SketchState } from '../sketch/types';
+export type { SketchTool, SketchShape, SketchAnchor, SketchState, Make } from '@barocss/cad-model/sketch/types';
+import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
 export type { FeatureHandle, TransformGizmo } from './gizmo';
 
 export interface ViewportHandle {

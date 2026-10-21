@@ -1,6 +1,6 @@
 // The sheet as a one-page vector PDF at true size: lines and polylines as paths, arcs as cubic Béziers
 // (a quarter turn or less each), text in the standard Helvetica fonts (WinAnsi, so Ø and ° print).
-import { PENS, hatch, type Mark, type Sheet } from './sheet';
+import { PENS, hatch, type Mark, type Sheet } from '@barocss/cad-model/drawing/sheet';
 import { textWidth } from '@barocss/cad-model/drawing/text';
 
 const PT = 72 / 25.4;

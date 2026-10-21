@@ -2,14 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { evaluatePart } from '../src/engine/evaluate';
-import type { StudioDoc } from '../src/engine/doc';
-import { tablesFor } from '../src/assembly/faces';
-import { solveDoc } from '../src/chat/assembly';
-import { dispatchTool } from '../src/chat/tools';
-import { treeOfDoc } from '../src/chat/robot';
-import { jointTreeOf, type Joint, type JointTree } from '../src/robot/joints';
-import { applyTo, composeInto, forwardKinematics, gearPairAt, screwInto, sliderRange, type Motion } from '../src/robot/fk';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import { tablesFor } from '@barocss/cad-model/assembly/faces';
+import { solveDoc } from '@barocss/cad-model/chat/assembly';
+import { dispatchTool } from '@barocss/cad-model/chat/tools';
+import { treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { jointTreeOf, type Joint, type JointTree } from '@barocss/cad-model/robot/joints';
+import { applyTo, composeInto, forwardKinematics, gearPairAt, screwInto, sliderRange, type Motion } from '@barocss/cad-model/robot/fk';
 import { posedInstances } from '../src/robot/preview';
 
 // RM2 (O15): forward kinematics over the joint tree — the planar 2R closed form to 1e-9, the product of exponentials
@@ -120,7 +120,7 @@ test('the forward_kinematics tool: placements as place_part takes them, the gear
 test('the preview: instances moved on copies, the evaluated bodies untouched; nothing moved at home', async () => {
   const doc = caseDoc('revolute'), s = solveDoc(doc), inst = s.doc.instances![0];
   const r = await evaluate(inst.doc); assert.ok(r.ok);
-  const { placeBody } = await import('../src/engine/evaluate'), { rotationMatrix } = await import('../src/assembly/mates');
+  const { placeBody } = await import('@barocss/cad-model/engine/evaluate'), { rotationMatrix } = await import('@barocss/cad-model/assembly/mates');
   const placed = r.bodies.map(b => placeBody({ ...b, mesh: { ...b.mesh, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), edgeLines: b.mesh.edgeLines.slice() } }, rotationMatrix(inst.rotation), inst.position));
   const before = Float32Array.from(placed[0].mesh.positions), t = treeOf(doc);
   const home = posedInstances([{ id: 'arm', bodies: placed }], forwardKinematics(t, {}));

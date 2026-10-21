@@ -4,7 +4,7 @@
 import type { ReactNode } from 'react';
 import type { SketchShape } from '../viewport/Viewport';
 import { arcOf, sampleSegment, type P2 } from '@barocss/cad-model/sketch/profile';
-import { dimensionLabel, dimensionValue, isDriving, samePick, type Polygon, type SketchPick } from '../sketch/rules';
+import { dimensionLabel, dimensionValue, isDriving, samePick, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import type { Project } from '../sketch/select';
 import './constraints.css';
 

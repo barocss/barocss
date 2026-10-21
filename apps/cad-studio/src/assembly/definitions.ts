@@ -2,8 +2,8 @@
 // definition, so a new revision accepted for it is every one of theirs; a copy made independent gets a
 // definition of its own. A new revision is loaded on purpose and waits beside the assembly until it is
 // accepted (each instance keeps its place, its mates re-solve) or dismissed.
-import type { PartInstance, StudioDoc } from '../engine/doc';
-import { nextRevision } from '../drawing/types';
+import type { PartInstance, StudioDoc } from '@barocss/cad-model/engine/doc';
+import { nextRevision } from '@barocss/cad-model/drawing/types';
 
 /** A definition id not yet used by any instance or pending revision. */
 export function freshPartId(doc: StudioDoc): string {

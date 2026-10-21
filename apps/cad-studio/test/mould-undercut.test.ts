@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { withLook } from '../src/app/bodies';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { undercuts } from '../src/mould/undercut';
-import { printability } from '../src/print/rules';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { withLook } from '@barocss/cad-model/app/bodies';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { undercuts } from '@barocss/cad-model/mould/undercut';
+import { printability } from '@barocss/cad-model/print/rules';
 import { summarize } from '../server/chatServer';
 
 // IM3 (O79): undercuts by ±d visibility, on constructed cases — a side hole across the pull (hidden both ways, freed

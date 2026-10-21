@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { runDrawingTool } from '../src/chat/drawing';
-import { defaultDrawing, type DrawingSettings } from '../src/drawing/types';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
+import { runDrawingTool } from '@barocss/cad-model/chat/drawing';
+import { defaultDrawing, type DrawingSettings } from '@barocss/cad-model/drawing/types';
 import { processProfile } from '@barocss/cad-model/library/materials';
-import { machinability } from '../src/machining/report';
-import { DRAWING_PAGES, drawingCheck } from '../src/machining/drawing';
+import { machinability } from '@barocss/cad-model/machining/report';
+import { DRAWING_PAGES, drawingCheck } from '@barocss/cad-model/machining/drawing';
 
 // CNC5 (O88): the drawing a machined part goes with, on the studio's own (R14): needed (threads go on a drawing; with
 // neither threads nor tolerances the standard ±0.125 holds), and on it each item a shop needs — every item's oracle the

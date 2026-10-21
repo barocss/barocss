@@ -1,8 +1,8 @@
 // QA probe: one sketch with overlapping closed shapes (what the sketch builder makes when a second shape
 // overlaps the first without being inside it): the extruded volume vs the union of the areas.
-import { evaluateDoc } from '../../src/engine/evaluate';
-import { emptyDoc, withNode } from '../../src/engine/doc';
-import { profileOf } from '../../src/sketch/loops';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
+import { profileOf } from '@barocss/cad-model/sketch/loops';
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 const meshVol = (m: DisplayMesh) => { let v = 0; const p = m.positions, i = m.indices; for (let t = 0; t < i.length; t += 3) { const a = i[t] * 3, b = i[t + 1] * 3, c = i[t + 2] * 3; v += (p[a] * (p[b + 1] * p[c + 2] - p[b + 2] * p[c + 1]) - p[a + 1] * (p[b] * p[c + 2] - p[b + 2] * p[c]) + p[a + 2] * (p[b] * p[c + 1] - p[b + 1] * p[c])) / 6; } return v; };
 const lens = (r: number, d: number) => 2 * r * r * Math.acos(d / (2 * r)) - d / 2 * Math.sqrt(4 * r * r - d * d);

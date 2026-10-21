@@ -1,18 +1,18 @@
 // RB9 rungs 12 and 14 (O70): assemblies placed by mates. The checker reads the assembly as the studio solves it: each
 // part's box where the mates put it, the joint tree (RM1) for every part's freedoms, the assembly gate (A8.4) for parts
 // meeting or touching undeclared, the mass against its closed form, the BOM view's rows.
-import { robotCheckOfDoc, robotOfDoc, treeOfDoc, urdfOfDoc } from '../chat/robot';
-import { forwardKinematics } from '../robot/fk';
-import { treeInertia } from '../robot/inertia';
+import { robotCheckOfDoc, robotOfDoc, treeOfDoc, urdfOfDoc } from '@barocss/cad-model/chat/robot';
+import { forwardKinematics } from '@barocss/cad-model/robot/fk';
+import { treeInertia } from '@barocss/cad-model/robot/inertia';
 import { readUrdf, urdfFk } from '@barocss/cad-model/robot/urdfCheck';
 import { workspaceMap } from '../robot/workspace';
-import type { Duty } from '../robot/harness';
+import type { Duty } from '@barocss/cad-model/robot/harness';
 import { materialData } from '@barocss/cad-model/library/materials';
-import { assemblyBodies, bomView, checkAssembly } from '../team/assembly';
+import { assemblyBodies, bomView, checkAssembly } from '@barocss/cad-model/team/assembly';
 import { prng, type Call, type Evaluate, type Outcome, type Params, type Rung } from './core';
 import { boxOf, cylindersOf, holds, near } from './measure';
-import type { StudioDoc } from '../engine/doc';
-import type { BodyResult } from '../engine/evaluate';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 
 const num = (p: Params, k: string) => p[k] as number;
 const cmd = (part: string, command: string, values: Record<string, unknown>, sel: Record<string, unknown> = {}): Call => ({ tool: 'run_command', args: { part, command, values, ...sel } });

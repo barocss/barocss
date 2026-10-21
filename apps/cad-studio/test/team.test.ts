@@ -4,10 +4,10 @@ import { mkdtempSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Writable } from 'node:stream';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, TOOLS } from '../src/chat/tools';
-import { canonicalOf, integrate, rebase, revisionOf, VERIFIER_VIEW_KEYS, verifierView, type Patch, type VerifierView } from '../src/team/team';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { dispatchTool, TOOLS } from '@barocss/cad-model/chat/tools';
+import { canonicalOf, integrate, rebase, revisionOf, VERIFIER_VIEW_KEYS, verifierView, type Patch, type VerifierView } from '@barocss/cad-model/team/team';
 import { runScenario, runSummary, scriptedVerifier, STALE_REVISION, type Scenario } from '../src/team/scripted';
 import { cliMain } from '../server/cadCli';
 
@@ -79,7 +79,7 @@ test('the REFERENCE_LOCKED exemption is narrow: datums and keep-outs may be adde
   const P = [0, 0, 0, 20, 0, 0, 20, 20, 0, 0, 20, 0, 0, 0, 5, 20, 0, 5, 20, 20, 5, 0, 20, 5], I = [0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7];
   let s = (await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'run_command', { command: 'box', values: { w: 10, d: 10, h: 10, x: 0, y: 0, z: 0 } }, evaluate)).state;
   s = (await dispatchTool(s, 'add_reference', { name: 'slab', mesh: { positions: P, indices: I }, at: { position: [0, 0, 30], rotation: [0, 0, 0] } }, evaluate)).state;
-  const face = (await (await import('../src/chat/references')).referenceLocal(s.doc.references!.references[0], evaluate))[0].mesh.faces[0].name;
+  const face = (await (await import('@barocss/cad-model/chat/references')).referenceLocal(s.doc.references!.references[0], evaluate))[0].mesh.faces[0].name;
   // (Allowed: a datum and a keep-out from it, and deleting them — in a batch too.)
   const ok = await dispatchTool(s, 'apply_ops', { ops: [{ tool: 'add_datum', args: { reference: 'ref1', face, kind: 'plane' } }, { tool: 'add_keepout', args: { around: 'ref1', offset: 1 } }] }, evaluate);
   assert.ok(!ok.isError, ok.content);

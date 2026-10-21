@@ -4,18 +4,18 @@
 // with its pins. A manifest lists every other file with its SHA-256 and size, and what is missing or stale: it is
 // complete only when nothing is. Read back — in a fresh process, from the files alone — every pin is checked again,
 // and what is missing, changed or stale is listed; it is never said complete when something is.
-import type { StudioDoc } from '../engine/doc';
-import type { BodyResult } from '../engine/evaluate';
-import type { Evaluate } from '../chat/tools';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import type { Evaluate } from '@barocss/cad-model/chat/tools';
 import { encodeStudioFile, readStudioFile } from '../engine/container';
-import { lookOf } from '../app/bodies';
-import { briefMaterial } from '../chat/brief';
+import { lookOf } from '@barocss/cad-model/app/bodies';
+import { briefMaterial } from '@barocss/cad-model/chat/brief';
 import { MATERIALS_DATA, materialData } from '@barocss/cad-model/library/materials';
-import { readBaselines, verifyBaseline, type Baseline } from './baseline';
-import { digestOf, sha256Hex } from './digest';
-import { readEcrs, verifyEcrPin, type Ecr } from './ecr';
-import { bomResult, freshnessOf, massResult, requirementResults, type Freshness, type Result } from './freshness';
-import { revisionContent } from './team';
+import { readBaselines, verifyBaseline, type Baseline } from '@barocss/cad-model/team/baseline';
+import { digestOf, sha256Hex } from '@barocss/cad-model/team/digest';
+import { readEcrs, verifyEcrPin, type Ecr } from '@barocss/cad-model/team/ecr';
+import { bomResult, freshnessOf, massResult, requirementResults, type Freshness, type Result } from '@barocss/cad-model/team/freshness';
+import { revisionContent } from '@barocss/cad-model/team/team';
 
 export const BUNDLE_FILES = { document: 'document.bcad', baseline: 'baseline.json', materials: 'materials.json', results: 'results.json', ecrs: 'ecrs.json', manifest: 'manifest.json' } as const;
 export interface BundleFile { path: string; sha256: string; bytes: number }

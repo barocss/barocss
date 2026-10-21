@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart, stepFor } from '../src/engine/evaluate';
-import { placedDoc, rectanglePart, type PartInstance } from '../src/engine/doc';
+import { evaluatePart, stepFor } from '@barocss/cad-model/engine/evaluate';
+import { placedDoc, rectanglePart, type PartInstance } from '@barocss/cad-model/engine/doc';
 
 test('instances: a part placed by rotation then a move, in display and in STEP', () => {
   const part = rectanglePart(20, 10, 4);
@@ -22,8 +22,8 @@ test('instances: a part placed by rotation then a move, in display and in STEP',
 
 test('exploded view: instances pushed out from the middle by the factor; the meshes moved, not the parts', async () => {
   const { explodeOffsets, movedBody } = await import('../src/assembly/explode');
-  const { evaluateDoc } = await import('../src/engine/evaluate');
-  const { rectanglePart } = await import('../src/engine/doc');
+  const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
+  const { rectanglePart } = await import('@barocss/cad-model/engine/doc');
   const r = evaluateDoc(rectanglePart(10, 10, 10), 1); assert.ok(r.ok);
   const b = r.bodies[0], right = movedBody(b, [30, 0, 0]), left = movedBody(b, [-30, 0, 0]);
   const off = explodeOffsets([b], [{ id: 'r', bodies: [right] }, { id: 'l', bodies: [left] }], 1);

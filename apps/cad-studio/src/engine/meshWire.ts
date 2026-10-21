@@ -2,7 +2,7 @@
 // worker remembers the meshes of its slot's last reply, and a body whose mesh was among them goes back as that mesh's
 // token alone: no copy made, nothing sent. The client keeps the same last reply's meshes by token and puts them back.
 // Both sides keep exactly the last reply of each slot, in the order the worker posts them.
-import type { BodyResult, EvalResult } from './evaluate';
+import type { BodyResult, EvalResult } from '@barocss/cad-model/engine/evaluate';
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 
 /** A body as posted: its mesh and the token it goes by, or only the token of a mesh the client holds. */

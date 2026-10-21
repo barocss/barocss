@@ -1,6 +1,6 @@
 // A recovery copy of unsaved work in this browser: written a moment after each change while the
 // document is unsaved, cleared when it is saved or replaced, offered back when the studio opens.
-import type { ModelNode, StudioDoc } from '../engine/doc';
+import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
 
 const KEY = 'studio.recovery';
 export interface Recovery { fileName: string; savedAt: number; doc: StudioDoc }

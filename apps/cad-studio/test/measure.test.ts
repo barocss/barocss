@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
-import { cylinderPart, emptyDoc, rectanglePart, withNode } from '../src/engine/doc';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { cylinderPart, emptyDoc, rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
 import { measureBetween, measureItem } from '@barocss/cad-model/app/measure';
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 
@@ -57,8 +57,8 @@ test('measure: between two bodies, the closest points span the gap', () => {
 });
 
 test('measure: two round faces on one axis are coaxial; off it, by how much', async () => {
-  const { evaluateDoc } = await import('../src/engine/evaluate');
-  const { rectanglePart, withNode } = await import('../src/engine/doc');
+  const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
+  const { rectanglePart, withNode } = await import('@barocss/cad-model/engine/doc');
   const { measureBetween, roundFaceAxis } = await import('@barocss/cad-model/app/measure');
   let doc = rectanglePart(40, 20, 10);
   doc = withNode(doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [10, 10], radius: 3 });

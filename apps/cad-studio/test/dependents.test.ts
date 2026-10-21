@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { rectanglePart, withNode } from '../src/engine/doc';
-import { deleteFeature, deleteFeatures, featureDependents } from '../src/chat/features';
+import { rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
+import { deleteFeature, deleteFeatures, featureDependents } from '@barocss/cad-model/chat/features';
 
 test('dependents: what is built on a feature, directly, through others and by naming its edges', () => {
   let doc = rectanglePart(32, 32, 8);
@@ -19,8 +19,8 @@ test('dependents: what is built on a feature, directly, through others and by na
 });
 
 test('reorder: a step moves past one it does not depend on, names kept (A1); not before what it is built on', async () => {
-  const { moveFeature } = await import('../src/chat/features');
-  const { evaluateDoc } = await import('../src/engine/evaluate');
+  const { moveFeature } = await import('@barocss/cad-model/chat/features');
+  const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
   let doc = rectanglePart(32, 32, 8);                                                                              // 0, 1
   doc = withNode(doc, { kind: 'chamfer', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], distance: 1 }); // 2
   doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [40, 0], max: [50, 10] });                      // 3

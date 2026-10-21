@@ -5,12 +5,12 @@
 // material and wall are not judged).
 // 7, a lap joint: two plates mated, their clearance holes on one pattern and coaxial (exact axes), every hole ≥ 1.5 Ø from
 // its plate's edges (the brief's rule), no interference; the bolt itself waits for R12c's fasteners.
-import { treeOfDoc } from '../chat/robot';
-import type { BodyResult } from '../engine/evaluate';
-import { assemblyBodies, checkAssembly } from '../team/assembly';
+import { treeOfDoc } from '@barocss/cad-model/chat/robot';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { assemblyBodies, checkAssembly } from '@barocss/cad-model/team/assembly';
 import type { Call, Outcome, Params, Rung } from './core';
 import { axisDistance, boxIs, boxOf, cylindersOf, holds, near, parallel, volumeOf } from './measure';
-import { machinability } from '../machining/report';
+import { machinability } from '@barocss/cad-model/machining/report';
 import { processProfile } from '@barocss/cad-model/library/materials';
 
 const num = (p: Params, k: string) => p[k] as number;

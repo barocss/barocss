@@ -3,7 +3,7 @@
 // edges) → resolve colour + depth → screen-space ambient occlusion composite to the canvas.
 // An ID pass serves face picking. Resources persist: camera moves only write uniforms and
 // selection changes only rewrite small state buffers.
-import type { BodyResult } from '../engine/evaluate';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
 

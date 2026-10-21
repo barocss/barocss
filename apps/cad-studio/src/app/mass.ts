@@ -1,7 +1,7 @@
 // Mass properties as the Body panel shows them: a body's mass and inertia in its own material (the kernel
 // works them out for aluminium; both scale with density), inertia about its centre of mass or another
 // point (the parallel-axis rule), and several bodies' combined mass and centre of mass.
-import type { BodyResult } from '../engine/evaluate';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 
 type V3 = [number, number, number];
 const AL = 2.7; // g/cm³, the density the kernel's figures are for

@@ -2,7 +2,7 @@
 // everywhere it is used, deleted with its uses keeping its value; a configuration is a saved set of
 // values, applied in one step. Feature values are bound to a parameter in the feature editor (ƒ).
 import { useState } from 'react';
-import type { ModelNode, StudioDoc } from '../engine/doc';
+import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
 import { Icon } from './atoms';
 
 const NAME = /^[A-Za-z_][A-Za-z0-9_]{0,31}$/;
