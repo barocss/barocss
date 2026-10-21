@@ -6,7 +6,7 @@
 export const MAX_DIRECTIONAL = 4, MAX_POINT = 8, MAX_SPOT = 4;
 /** Byte sizes and offsets of the uniform blocks (kept with the WGSL below and packFrame in lights.ts). */
 export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 32;
-export const OBJECT_BYTES = 176, OBJECT_STRIDE = 256;
+export const OBJECT_BYTES = 192, OBJECT_STRIDE = 256;
 
 const common = /* wgsl */ `
 struct DirLight { direction: vec4f, color: vec4f }
@@ -45,6 +45,8 @@ struct Object {
   color: vec4f,
   params: vec4f,
   pick: vec4u,
+  // Its cap's colour (linear; w 1 when set, else the frame's), times its material colour (G2b).
+  cap: vec4f,
 }
 @group(0) @binding(0) var<uniform> frame: Frame;
 @group(0) @binding(1) var shadowMap: texture_depth_2d;
@@ -239,8 +241,9 @@ struct CapOut { @location(0) color: vec4f, @builtin(frag_depth) depth: f32 }
   let z = capDepth(q);
   if (z < 0.0) { discard; }
   let n = -normalize(frame.clip.xyz);
-  var c = frame.clipColor.rgb;
-  if (object.params.w < 0.5) { c = shade(q.xyz, n, frame.clipColor.rgb, object.params.x, object.params.y, 0.0, (object.pick.z & 1u) == 1u); }
+  let base = select(frame.clipColor.rgb, object.cap.rgb * object.color.rgb, object.cap.w > 0.5);
+  var c = base;
+  if (object.params.w < 0.5) { c = shade(q.xyz, n, base, object.params.x, object.params.y, 0.0, (object.pick.z & 1u) == 1u); }
   var o: CapOut;
   o.color = vec4f(c, 1.0);
   o.depth = z;

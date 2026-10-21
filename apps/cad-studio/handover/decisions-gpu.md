@@ -177,3 +177,48 @@ analyses, 6 scene-level pick acceleration, 7 benches for these. This session tak
   (clipMesh drew none either).
 - **Binds**: a view that cuts the model for display goes through `Viewer.clipPlane` and `Mesh.clipped`/`cap`, not through
   cut copies; any CPU query of the viewer honours it. WebGL2 keeps clipMesh.
+
+## G2b — each mesh's cap in its own colour (2026-10-21)
+
+- **Why** (the coordinator's review of G2): G2 drew every cap in one colour; the CPU's section painted each body's cut face
+  in the body's own colour mixed with the accent, so in an assembly section the parts stayed apart. One colour for all was
+  a visible regression.
+- **What**: `Mesh.capColor` (`AddMeshOptions.capColor`; sRGB, or null for the plane's colour) in the object block, which
+  grows 176 → 192 bytes (`OBJECT_BYTES`; the stride stays 256): `cap` (linear, w 1 when set). `fsCap` takes it times the
+  mesh's material colour, as a face of the mesh in that vertex colour is lit; without one, the plane's colour as before.
+  Studio: a body's cap is what the CPU's section painted its cut face — selected: the body's own colour (or the theme's
+  base, or white under render settings) mixed with the accent, 0.42; an instance's cap its base colour (the CPU never
+  selected an instance's cut face).
+- **Evidence**: the gpu browser test G2b (an own colour, a colour times the material's, the plane's for none, a change and
+  back, exact pixels on unlit meshes); the studio's renderer test (each instance surface's cap colour the base). The flow's
+  GPU-against-CPU section shots do not move with it (strong pixels 51, 211, 472, as at G2): in the section step the body's
+  cap colour was already the plane's (the base mixed with the accent), and in the instance and posed views the instances'
+  caps face away from the camera.
+- **Limits kept (stated)**: a ghosted (see-through) body is cut but not capped; the cap casts no shadow (G2).
+
+## G3 — line picks pass over what a surface hides (2026-10-21)
+
+- **Before**: `pickLine` (viewer.ts ~1212) was a screen-space search over every line mesh with no depth test: an edge at
+  the back of a body, or behind another body, was picked through the faces in front of it — for hover and for picks. The
+  studio's WebGL2 `pickEdge` does the same (no depth either; G16 is WebGL2 parity).
+- **What**: for each line mesh, the nearest segment is tested at its nearest point: the eye's ray to it against every
+  visible opaque triangle mesh and its instances (`meshRay`: the clip plane's kept side, its caps); a hit more than about a
+  pixel and a half in front of the point (in world units at its depth: lines lie on their faces, and the depth test's bias
+  lets them show a little behind) hides it, and the next nearest is tried with the hidden ones left out (`nearestSegment`'s
+  new `skip`; up to 16 a mesh). `pickLine(x, y, radius, { throughSurfaces: true })` keeps the old search. The studio's
+  `pickEdge` and `pickDirect` take the default: hidden edges are no longer hovered or picked.
+- **Oracle**: the GPU's own depth — a line shows where it passes the depth test, so the surface the GPU pick finds at a
+  point's pixel says whether the point is shown.
+- **Evidence** (`tests/viewer-pose-clip-browser.test.mjs`, G3): a lit box with its 12 edges and another box in front of part
+  of it, 300 random pointer positions over it, with and without a clip plane: no depth-aware hit lies behind a surface (by
+  the GPU's depth at its pixel, two pixels' slack), and every through-surfaces hit the GPU shows is found by the depth-aware
+  pick, or a nearer one — 0 and 0 in both runs, 48 found, 30 of the through-surfaces hits hidden (5 with the plane). The
+  back vertical edge: not found, found through surfaces; cut open by a plane (no cap) it shows and is found; capped, the cap
+  hides it. On the old behaviour the test fails (its hidden through-surfaces hits would be found).
+- **Checks for G2b and G3** (the coordinator's v2 rules: no full flow at a checkpoint), on the merge `0c3735079` of
+  integration's `f567478ab`, in a detached verify worktree: gpu unit 74/74 and browser 6/6 (11 s); studio 185/185 (27 s);
+  `FLOW_ONLY` over the section, instance and RM steps and the twelve steps that had timed out in a full run made before the
+  rules changed (one run of 55 min on a machine at load 30–90: FR2, FR3a, R10.3a, R11b, R14.1, R14.3, R14.3b, A5.2, A5.3,
+  A6.4, IM6, CNC1) — 16/16 in 76 s; that full run's other 208 steps passed, every canvas-picking step among them, with G3
+  in. The section shots against the CPU's: strong pixels 75, 178 and 244 (≤ 0.02 %). Not run: the full flow (the
+  coordinator's, per merge window), the cad-model suite (not touched), the benches (nothing they measure changed).

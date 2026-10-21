@@ -763,6 +763,12 @@ acceleration → benches.
   the studio's bodies and instances shown whole and cut by it (`viewport/sectionView.ts`), the exact section still replacing
   the bodies; WebGL2 keeps clipMesh (pinned). Bench `section:` rows: 120 brackets, 2.3 KiB and 0 buffers a frame against
   clipMesh's 190 KiB and 2 706. Against the CPU's section through one viewer, ≤ 0.07 % of pixels differ by more than 96.
+- **G2b** (2026-10-21): done. Each mesh's cap in its own colour (`Mesh.capColor`, times its material colour): the bodies'
+  as the CPU painted their cut faces, the instances' their base colour.
+- **G3** (2026-10-21): done. `pickLine` passes over a segment whose nearest point a visible opaque surface hides (the
+  eye's ray, the clip plane and caps honoured, a pixel and a half of slack); `throughSurfaces` keeps the old search. The
+  studio's edge and curve picks take it. Against the GPU's depth at 300 random pointers: nothing behind, nothing shown
+  missed.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
