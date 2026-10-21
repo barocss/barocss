@@ -868,6 +868,12 @@ acceleration → benches.
   and a revealage, summed in any order, then composited); outlines and caps untouched, see-through lines and points drawn
   over it as before. Two interpenetrating see-through boxes give the same frame in either draw order (the sorted path
   differed on 8 829 pixels); one layer as the sorted path drew it. 120 ghosted brackets orbited: GPU 2.67 → 2.83 ms.
+- **G13** (2026-10-22): done. The benches' GPU column was the queue's wait (15–22 ms on pose, explode and section), not
+  the GPU's time (1–2.7 ms by render-pass timestamps, now read); the shadow map needs no change. The explode row's 2-in-one
+  frame was two frame batches stamped alike (frames now counted by batch). The viewer's allocations a frame cut (an orbit
+  10.6 → 4.7 MiB, an explode 22.9 → 4.1 MiB sampled); the outline mask scissored; uvs optional; the view cube drawn only
+  when the camera turns. Every bench budget re-measured (three runs, load 12–17). The hover and click rows are React's
+  development build re-rendering the App's panels (36 of 55 ms of a click) — for the UI side.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
