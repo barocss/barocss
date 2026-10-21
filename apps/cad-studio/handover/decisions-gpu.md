@@ -301,3 +301,45 @@ against the code as it is now:
   steps that compile shader materials): 4/4 in 12 s, on `acbf60deb` in the verify worktree. Not run: the full flow, the cad-model suite (not touched),
   benches (no frame path changed).
 
+## G6 — scalar colour maps with a legend; the parting line and the mould's halves (2026-10-21, first part)
+
+- **Data shape** (proposed and approved before building, the coordinator relaying to the outer lane): an analysis map is
+  `ScalarMap { body, per: 'vertex' | 'triangle', values (NaN none), unit, range, thresholds, legend }` per body, worked out
+  when chosen or when the bodies change, never per frame. IM4 thickness, the parting loops and the halves exist in
+  cad-model; IM2's per-vertex exact draft (`draftSamples`), CNC's per-triangle access (`accessSamples`) and the isoclines
+  as polylines (`isoclinePolylines`) are the outer lane's (O-G6), wired here when they land.
+- **Viewer** (`packages/barocss-gpu`):
+  - `Geometry.setScalars(values, per)`: one value per vertex (interpolated) or per triangle (flat: the triangles' own
+    positions and normals laid out unindexed, made once per field), NaN none (a sentinel on the GPU: WGSL promises nothing
+    about NaN). `Mesh.colorMap = { stops: [value, sRGB][]; below?; above?; missing?; bands? } | null`: a 256-texel
+    `rgba8unorm-srgb` ramp per mesh, interpolated in linear light (`packColorMap`), drawn by its own pipeline (`vsMap`,
+    `fsMap`: the surface's lighting, flat when unlit), the material back with null. The pick, outline-mask, shadow and cap
+    passes draw the indexed geometry as before; a mapped mesh under the clip plane caps in its cap colour.
+  - `PickHit.scalar`: the field at the hit — its triangle's, or its vertices' by barycentric weights — for the legend.
+- **Studio**:
+  - The **Analysis map** button (beside Analyse, whose click count the flow relies on): Thickness, then for a moulded part
+    Parting and Halves, then off. `viewport/scalarMaps.ts`: IM4's thickness per display triangle (`wallSamples(body).local`),
+    thin red → the nominal (the area-weighted median) green → the thick-section limit (nominal / 0.6, the wall report's
+    ratio) orange, past it purple, no wall grey; the threshold sources as cited, pending the outer lane's confirmation.
+  - The legend (`ui/MapLegend.tsx`): one small DOM element — title, unit, the ramp with its thresholds marked, the colour past
+    it, the value under the pointer (`scalarAt`, a ray on pointer moves while a map shows); the mould's legend its loops,
+    each half's bodies and volume, or why the halves cannot be built, and a Spread toggle.
+  - The mould's view (`engine/mouldView.ts`, run in the engine worker — the halves are Booleans): the moulding report's chain —
+    IM5's parting line, IM7b's straddling faces split, IM3's undercuts, IM7's plan, IM7a's halves. The loops are one line mesh
+    (the accent, 2.4 px, depth-tested), the halves see-through (+ blue, − amber, 0.6) with their edges, spread ± along the
+    pull by G1's transforms; while the halves show the part's bodies are not picked and App's picks wait.
+- **Evidence**:
+  - gpu browser (G6): a box with z as a per-vertex field on a blue → red ramp (each sample the ramp's colour at its value
+    within 0.02 in linear light), a per-triangle field in 4 bands (a NaN triangle the missing colour, the top band white),
+    below and above colours, picks reading 1, −0.5 and a triangle's own value (ray exact, GPU within 0.05), the cap of a
+    mapped mesh under a plane its cap colour, the material back with null, no buffer made over ten turned frames.
+  - studio `analysis-maps.test.ts`: the thickness map's values are the wall samples', a shelled box's nominal its 2 mm
+    shell, the limit nominal / 0.6; the mould's view on IM7's plate — closed flat loops, the + half 48,000 mm³ and both
+    halves the block less the part (1e-6, as IM7's own test); none without a pull; the renderer sets a field once per map
+    and clears it, draws the loops and halves, spreads them without making anything, and keeps the part from picks.
+  - Flow step G6 (new): a moulded holed plate — Thickness with its legend and a value under the pointer, Parting, Halves
+    (+ half 48,000 mm³), Spread, off.
+- **Not done (waits)**: the IM2 draft and CNC access maps and the isoclines (the outer lane's O-G6 exports); the minimum-wall
+  threshold (its source to be confirmed). A legend for several bodies shows the first map's scale (they share it when one
+  body; per-body scales would differ).
+

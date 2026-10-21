@@ -4,7 +4,9 @@ import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate
 import { rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { refOf } from '@barocss/cad-model/app/bodyRef';
 import { wallSamples } from '@barocss/cad-model/chat/analysis';
-import { thicknessMap } from '../src/viewport/scalarMaps';
+import { thicknessLimits, thicknessMap } from '../src/viewport/scalarMaps';
+import { wallsOf } from '@barocss/cad-model/mould/walls';
+import { processProfile } from '@barocss/cad-model/library/materials';
 import { mouldView } from '../src/engine/mouldView';
 import { GpuRenderer } from '../src/viewport/gpuRenderer';
 
@@ -20,14 +22,21 @@ const holedPlate = (): StudioDoc => {
   return { ...d, process: 'injection', mould: { version: 1, pull: [0, 0, 1], finish: 'smooth' } };
 };
 
-test('G6 the thickness map: one value a display triangle, the wall samples\' local thickness; a shelled box\'s nominal its shell, the thick limit nominal / 0.6', () => {
-  const [b] = bodiesOf(shelled()), m = thicknessMap(b), w = wallSamples(b);
+test('G6 the thickness map: one value a display triangle, the wall samples\' local thickness; its range and thresholds from the wall report and the moulding rules (O-G6)', () => {
+  const doc = shelled(), [b] = bodiesOf(doc), m = thicknessMap(doc, b), w = wallSamples(b), report = wallsOf(doc, [b], 0.6)[0];
   assert.equal(m.per, 'triangle'); assert.equal(m.values.length, b.mesh.indices.length / 3); assert.equal(m.body, b.key);
   for (let t = 0; t < m.values.length; t++) assert.ok(Number.isFinite(w.local[t]) ? Math.abs(m.values[t] - w.local[t]) < 1e-5 : Number.isNaN(m.values[t]));
+  // (No process: the nominal and the thick limit at the default ratio 0.6; the range [0, max(2 × nominal, thick95)].)
   const nominal = m.thresholds.find(x => x.label === 'nominal')!.value;
-  assert.ok(Math.abs(nominal - 2) < 0.05, `nominal ${nominal}`);
-  assert.ok(Math.abs(m.range[1] - nominal / 0.6) < 1e-9 && m.range[0] === 0 && m.above);
-  assert.deepEqual(m.legend.stops.map(s => s[0]), [0, nominal, nominal / 0.6]);
+  assert.ok(Math.abs(nominal - 2) < 0.05 && Math.abs(nominal - report.nominalMM!) < 1e-12, `nominal ${nominal}`);
+  assert.deepEqual(m.range, [0, Math.max(2 * nominal, report.thick95MM ?? 0)]);
+  assert.deepEqual(m.thresholds.map(x => x.label), ['nominal', 'thick (nominal / 0.6)']);
+  assert.ok(Math.abs(m.thresholds[1].value - nominal / 0.6) < 1e-12);
+  // Moulded: the process's thinnest wall marked, and red under it.
+  const moulded = { ...doc, process: 'injection' }, mm = thicknessMap(moulded, b), lim = thicknessLimits(moulded, b);
+  assert.ok(lim.minWallMM !== null && mm.thresholds.some(x => x.label === 'the process\'s thinnest' && x.value === lim.minWallMM), JSON.stringify(mm.thresholds));
+  assert.equal(lim.ratio, processProfile('injection')!.thresholds.adjacentWallRatio?.value ?? 0.6);
+  if (lim.minWallMM! < nominal) assert.deepEqual(mm.legend.stops.slice(0, 2).map(x => x[1]), ['#d7301f', '#d7301f']);
 });
 
 test('G6 the mould\'s view: IM7\'s plate with a Ø10 hole along +Z — one flat closed loop; its halves 48000 and the block less the part less that (as the tooling\'s, 1e-6); none without a pull', () => {
@@ -67,7 +76,7 @@ test('G6 the renderer: a body\'s field set once per map and cleared; the mould\'
   const view = { hoverFace: null, hoverEdge: null, selectedFaces: [], selectedEdges: [], selectedBodies: [], offsets: new Map(), ghostBodies: new Set<number>() };
   r.setState(view);
   const surface = (r as unknown as { bodies: { surface: { colorMap: unknown; pickable: boolean; geometry: { field?: unknown } } }[] }).bodies[0].surface;
-  const map = thicknessMap(bodies[0]);
+  const map = thicknessMap(doc, bodies[0]);
   r.setScalarMaps([map]); r.setScalarMaps([map]);
   assert.equal(log.scalars, 1, 'set once for the same map'); assert.ok(surface.colorMap); assert.equal(surface.geometry.field, map.values);
   r.setScalarMaps(null);

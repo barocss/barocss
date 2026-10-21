@@ -99,7 +99,7 @@ export class EngineClient {
         resolve({ pull: d.mould.pull, loops: d.mould.loops, why: d.mould.why, plus: bodies.slice(0, d.mould.plus), minus: bodies.slice(d.mould.plus) });
       });
       this.slots.set(id, 'mould');
-      this.worker.postMessage({ type: 'mould', id, doc: this.wire.pack(doc), revision, halves });
+      this.worker.postMessage({ type: 'mould', id, doc: this.wire.pack(doc), revision, halves, mould: doc.mould });
     });
   }
 

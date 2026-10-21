@@ -1633,7 +1633,7 @@ export function App() {
   const sectioned = !!(section && sectionBodies && !sketch && !previewBodies);
   // (G2: the viewer's clip plane while the section is open on WebGPU — on the bodies until their exact section is shown,
   // on the placed parts always; none in a sketch, where the section is not shown.)
-  const scalarMaps = useMemo(() => mapKind === 'thickness' && !rendering && !sketch && !previewBodies ? mapsOf(mapKind, shownBodies) : null, [mapKind, rendering, sketch, previewBodies, shownBodies]);
+  const scalarMaps = useMemo(() => mapKind === 'thickness' && !rendering && !sketch && !previewBodies ? mapsOf(mapKind, doc, shownBodies) : null, [mapKind, rendering, sketch, previewBodies, shownBodies, doc]);
   // (The mould's view: asked again when the part, its pull or its sides change; none outside its two maps.)
   const mouldWanted = (mapKind === 'parting' || mapKind === 'halves') && !rendering && !sketch && !previewBodies && !!doc.mould?.pull;
   useEffect(() => {

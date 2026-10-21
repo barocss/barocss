@@ -841,6 +841,10 @@ acceleration → benches.
 - **G5** (2026-10-21): done. The old review's four points: axes confirmed fine (each path declares its basis; the studio
   uses neither); the viewer's material colours by the exact sRGB decode; a non-f32 literal refused at compile time for both
   backends (the viewer's entry no longer throws); the mesh packet's arrays copied (no NaN through a Proxy).
+- **G6** (2026-10-21): first part done. Scalar colour maps in the viewer (`Geometry.setScalars`, `Mesh.colorMap`,
+  `PickHit.scalar`); the studio's Analysis map button — IM4 wall thickness with a DOM legend and the value under the pointer,
+  a moulded part's parting line and its two halves (built in the engine worker, see-through, spread). IM2 draft, CNC access
+  and isoclines wait for the outer lane's exports (O-G6).
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
