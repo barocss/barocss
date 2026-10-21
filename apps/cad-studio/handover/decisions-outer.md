@@ -4870,3 +4870,23 @@ Owner, relayed by the coordinator: "FR 에서 1, 2, 3, 모두 하고 그 밖에 
 - **Found by the flow step**: the studio's evaluated document followed only the nodes and parameters, so a row written before the frame never reached the evaluation, and the frame was refused FRAME_SECTION_UNKNOWN. `evaluated` now also follows `doc.frames.sections` (App.tsx, the core memo, not the GPU lane's paths). The editor's form and buttons are keyed apart (React reused the file input as the Name field).
   - The same step then found the engine worker's view of the document (`evaluatedPart`, wireDoc.ts) without the library, which also left the evaluation memo's key blind to it. The library now crosses the wire (the stock list stays behind). `evaluationKey` follows from that, and `contentKey` (face tables, rendered views) also takes the rows when there are some. A package test sends a frame on a row over the wire and checks the keys change with an edited row.
 - **Not done**: a sketch section as a library row (it belongs to one part's features), and sharing rows across parts. A library file stays the person's own; the team libraries (LIB4) are for parts, not sections.
+
+## O118 — FRd1: a frame's weld joints read off the geometry, the person's welds, the weld list (2026-10-21)
+
+FRd is split in two: FRd1 (joints, records, the list as a table) here, and FRd2 (the symbols in the views) next.
+
+- **Joints** (`frames/welds.ts`, `weldList`), where a member's end meets another member:
+  - **mitre**: two members cut on one plane at a corner (the kernel's `with`). One joint per corner, named by the lesser of its two end ids. Seam: the mitre face's outer loop. A butt weld by default.
+  - **butt**: an end on the face of a member running through (`with`). Seam: the end face's loop. A fillet.
+  - **on-face**: a square end lying on other members' faces with no corner between them (a leg under a top), found by contact: the end face's plane on an opposite, coplanar face of another member, their outlines overlapping. A fillet, meeting every member it touches.
+  - Ids are `<body>.<end>`, stable while the frame's members are.
+- **Seam lengths**: the end face's outer loop on the display mesh (FR S0's P1). `seamBasis: exact` where the section's outer sides are straight (a sharp RHS, an angle or channel with zero radii). `mesh` along a curved side: within the mesh's chord tolerance, said in the list's notes.
+- **Records** (`doc.frames.welds`, the person's, by joint): kind, size (mm), all round, notes. Unset, the rule's weld: a butt weld at a mitre, a fillet elsewhere, the size the thinner wall of the members. That size is an estimate, a rule of thumb rather than a calculation, and is said. A section with no wall (a sketch, a T-slot) gives no size and says so. A record whose joint is gone (corners changed) is kept and listed as orphaned, not dropped.
+- **Surfaces**:
+  - v2 `features.welds` (set_welds): refuses WELD_JOINT_UNKNOWN (listing the ids), WELD_FIELD and WELD_NO_JOINTS.
+  - v2 `query.welds` (weld_list): joints labelled W1…, totals and orphaned records.
+  - The drawing's 'weld-list' table and its "Weld list" checkbox beside the cut list's: W1… with the members as cut-list items, estimated sizes starred, the seams' total.
+  - v2 recorded (compatible). Per turn 22,014 characters (+206).
+- **Closed forms**, the welded table: 4 mitres at 2(40 + 40√2), 8 butts and 4 legs at 160 each, 16 joints and 2692.548 mm of seam. Every size is 3 mm, an estimate. An RHS 20 × 20 × 2 with 3 mm corners butted in a T: the seam below 2(20 + 20) − 24 + 6π = 74.850 and within 0.5 %, basis mesh, size 2.
+- **Tests**: package frame-welds (4). Flow step "FRd1 …": the welds through the chat and the weld list on an A3 drawing, clear and in the SVG.
+- **Waits**: bead geometry is the kernel lane's (after R12c). A coped end (FR3b `cope`) has no plane, so it is no joint here yet; said for FRd2.

@@ -51,6 +51,13 @@ interface Hover { q: XY; view: ViewId; at: XY; snap: SnapPoint | null; edge: Pro
 
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
+/** The settings with a source's table on or off (its id the source's name); no tables left, none kept. */
+function withTable(settings: DrawingSettings, from: string, on: boolean): DrawingSettings {
+  const rest = (settings.tables ?? []).filter(x => x.from !== from), tables = on ? [...rest, { id: from, from }] : rest;
+  const { tables: _t, ...base } = settings; void _t;
+  return tables.length ? { ...base, tables } : base;
+}
+
 export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onChange, onToast }: {
   engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string;
   onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
@@ -480,7 +487,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
         <label className="field"><span>Tangent edges</span><input type="checkbox" className="check" aria-label="Tangent edges" checked={!!settings.tangent} onChange={e => { const rest = { ...settings }; delete rest.tangent; onChange(e.target.checked ? { ...rest, tangent: true } : rest); }} /></label>
         <label className="field"><span>Centre lines</span><input type="checkbox" className="check" aria-label="Centre lines" checked={settings.centers !== false} onChange={e => { const rest = { ...settings }; delete rest.centers; onChange(e.target.checked ? rest : { ...rest, centers: false }); }} /></label>
         {hasSheet && <label className="field"><span>Bend table</span><input type="checkbox" className="check" aria-label="Bend table" checked={!!settings.tables?.some(x => x.from === 'bends')} onChange={e => { const rest = (settings.tables ?? []).filter(x => x.from !== 'bends'); const tables = e.target.checked ? [...rest, { id: 'bends', from: 'bends' }] : rest; const { tables: _t, ...base } = settings; void _t; onChange(tables.length ? { ...base, tables } : base); }} /></label>}
-        {hasFrame && <label className="field"><span>Cut list</span><input type="checkbox" className="check" aria-label="Cut list table" checked={!!settings.tables?.some(x => x.from === 'cut-list')} onChange={e => { const rest = (settings.tables ?? []).filter(x => x.from !== 'cut-list'); const tables = e.target.checked ? [...rest, { id: 'cut-list', from: 'cut-list' }] : rest; const { tables: _t, ...base } = settings; void _t; onChange(tables.length ? { ...base, tables } : base); }} /></label>}
+        {hasFrame && <label className="field"><span>Cut list</span><input type="checkbox" className="check" aria-label="Cut list table" checked={!!settings.tables?.some(x => x.from === 'cut-list')} onChange={e => onChange(withTable(settings, 'cut-list', e.target.checked))} /></label>}
+        {/* (FRd1, O118: the frame's welds as a table, W1… with the cut list's items.) */}
+        {hasFrame && <label className="field"><span>Weld list</span><input type="checkbox" className="check" aria-label="Weld list table" checked={!!settings.tables?.some(x => x.from === 'weld-list')} onChange={e => onChange(withTable(settings, 'weld-list', e.target.checked))} /></label>}
         <label className="field"><span>Title</span><input aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}
           onBlur={() => { if (titleDraft !== null) { const rest = { ...settings }; delete rest.title; onChange(titleDraft.trim() && titleDraft.trim() !== fileName ? { ...rest, title: titleDraft.trim() } : rest); setTitleDraft(null); } }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>

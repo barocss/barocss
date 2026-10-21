@@ -3692,6 +3692,40 @@ try {
     await snap('frc-section-library');
   });
 
+  await check('FRd1 the welded table\'s welds through the real chat: 16 joints read off the geometry (4 mitres, 8 butts, 4 legs on the top), one set to a 4 mm fillet; the weld list on an A3 drawing by its checkbox — W1–W16, the seams 2692.5 mm, clear and in the SVG (new in O118)', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      const { calls } = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad-model/test/fixtures/frame-welded-table.calls.json'), 'utf8'));
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      let n = await page.locator('.chat-msg.assistant').count();
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [calls[0], { tool: 'query', args: { action: 'welds' } }] })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      assert.ok((await page.locator('.chat-tool').last().innerText()).includes('query.welds'));
+      // (The first mitre's id: the frame's members are the bodies b0_part0…, the corner named by its lesser end, b0_part0.start.)
+      n = await page.locator('.chat-msg.assistant').count();
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'welds', welds: [{ joint: 'b0_part0.start', kind: 'fillet', size: 4 }] } }] })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+      await page.waitForFunction(() => window.__studioDoc.frames?.welds?.length === 1 && /12 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    } finally { chat.kill(); }
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForSelector('[aria-label="Weld list table"]', { timeout: 20000 });
+      await page.check('[aria-label="Weld list table"]');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.tables?.some(t => t.id === 'weld-list' && !t.error), null, { timeout: 30000 });
+      const issues = await page.evaluate(() => window.__studioDrawing?.()?.issues ?? []);
+      assert.ok(!issues.some(i => (i.tables ?? []).includes('weld-list')), JSON.stringify(issues));
+      await snap('frd1-weld-list');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      for (const t of ['WELD LIST', 'W1', 'W16', 'MITRE', 'ON FACE', 'FILLET', '4', '3*', '16 welds, seams 2692.5 mm in all']) assert.ok(svg.includes(`>${t}</text>`), `SVG: ${t}`);
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

@@ -121,6 +121,7 @@
        "stock",
        "frame_stock",
        "frame_sections",
+       "welds",
        "casting",
        "batch"
       ],
@@ -323,6 +324,7 @@
        "section",
        "wall",
        "draft",
+       "welds",
        "cutlist",
        "render",
        "select",
