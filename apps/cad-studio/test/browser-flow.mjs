@@ -5958,6 +5958,28 @@ try {
     } finally { chat.kill(); }
   });
 
+  // ---- PERF3 B13 (O135): mesh blobs no step reaches evicted at idle; nothing reachable dropped -------------------------
+  await check('blob eviction: an STL opened, the idle sweeps run (the DEV counter), its arrays kept while undo holds them — undo and redo build it, no dropped blob asked for (O135)', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, '../../packages/barocss-cad-model/test/fixtures/block-cm.stl'));
+    await page.waitForSelector('[aria-label="Mesh units"]'); await page.selectOption('[aria-label="Mesh unit"]', 'cm');
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    const sweeps0 = await page.evaluate(() => window.__studioBlobs?.sweeps ?? 0);
+    await page.click('[aria-label="New part"]'); await idle();
+    // (Two sweeps: two seconds after each change; the mesh's document is an undo step, so its blobs stay.)
+    await page.waitForFunction(n => (window.__studioBlobs?.sweeps ?? 0) >= n + 1, sweeps0, { timeout: 15000 });
+    await page.waitForTimeout(2500);
+    const b = await page.evaluate(() => window.__studioBlobs);
+    console.log(`    (blob sweeps ${b.sweeps}, last freed ${b.lastFreed} bytes, ${b.freed} in all, ${b.kept} kept)`);
+    assert.deepEqual(b.evictedAsked, []);
+    await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await press('Meta+z'); await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.deepEqual(await page.evaluate(() => window.__studioBlobs.evictedAsked), []);
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
