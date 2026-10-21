@@ -7970,3 +7970,22 @@ Track K's last step (the PKG design note's G13: "equivalence check first"). The 
 - (c) only the fill and extend surfaces through the certified kernel (they fit its limits exactly, and are within 1.8e-14 mm), the curves left in the studio — at 100× the cost per surface (235 ms), which a user would notice on every fill.
 
 **Checks — T1:** no product code changed. `k7-fit-equivalence` 4/4; app tsc clean; eslint clean on the new file. FLOW_ONLY not run: nothing on a flow path changed (the fill and refit steps run the same `engine/fit.ts`). Kernel and studio suites not rerun (no source change).
+
+## D147 — K7b: plain B-spline fitting in the kernel; the studio's `engine/fit.ts` removed (2026-10-21)
+
+The coordinator's decision on D146: option (b) — "the boundary proposal (G13) puts generic fitting in the kernel, and 'one copy' is the reason track K exists"; (c) out, 235 ms a fill being too slow. This ends track K.
+
+**Decision:**
+- **Kernel** `src/fit-plain.ts`, exported: `interpolateCurvePlain(points, p = 3, params?, knots?)`, `approximateCurvePlain(points, count, p = 3)`, `interpolateSurfacePlain(grid, p = 3, q = 3)`, `removeCurveKnotPlain(curve, u, tol)`, `chordParameters`, `averagedKnots`, `plainBasis`, `plainFindSpan`; types `PlainFitCurve`, `PlainFitSurface`, `PlainPoint`. The studio's algorithms and arithmetic unchanged — chord-length parameters for any number of points, a degree lowered to n for n + 1 points, repeated points refused ("cannot be fitted", now a RangeError), no coordinate bound; least squares with the ends kept (A9.7); the surface tensor on averaged parameters; knot removal (A5.8), a rational curve's weights kept. The closures it built per row or pole (the collocation row, the pole combination, the averaging) are module functions.
+- **Named plainly as uncertified:** the file's head says these produce no report and no certificate (no basis matrix, pivots, observations or bounds), and that documents needing those take `buildInterpolatingCurve` / `buildInterpolatingSurface`, which these equal to rounding where both apply. The certified path is untouched.
+- **`@barocss/cad-model`:** `engine/fit.ts` deleted; `engine/direct.ts` (fill, extend, refit, knot removal) and `test/fit.test.ts` take the kernel's. One copy remains. Nothing under `chat/**` touched.
+- **Tests moved:** D146's comparison (`apps/cad-studio/test/k7-fit-equivalence.test.ts`) is now the kernel's `test/k7b-fit-plain.test.mjs`, the module's oracle: plain against certified where both apply, and plain against the studio's old outputs for the rest — the cases in `test/k7b-fit-cases.mjs`, the outputs of the old `engine/fit.ts` frozen before the move in `test/fixtures/k7b-fit-plain.json` (12 interpolations including 64 points, 40 points at 25 m, two and three points; 5 least-squares fits including 64 → 64; 4 knot removals, two that come out and two that stay; 3 surfaces, 16 × 16, 24 × 9 at degrees 3 × 2, 3 × 2; a repeated point's refusal).
+
+**Oracles** (`k7b-fit-plain`, 4 tests, about 6 s, most of it the certified builds):
+- plain against certified: 31 point sets × degrees 1–3 — knots within 1.1e-16, poles within 4.2e-14 mm, curves within 3.0e-14 mm; the fill's 16 × 16 surface within 1.8e-14 mm, its knots its averaged parameters';
+- plain against the old studio outputs: equal bit for bit (JSON's shortest round-tripping decimals, equal text being equal bits) — the move changed no number;
+- the kinds: the plain path takes 64 points, 25 m and two points at degree 3 (lowered) where the certified one refuses (`INPUT`); a closed loop the same on both; more poles than points refused;
+- cost: a 16-point cubic 19 µs plain against 5.9 ms certified; the 16 × 16 surface 1.1 ms plain.
+- The test fails on the previous HEAD: none of the plain exports existed.
+
+**Checks — T3** (track K's boundary; times as run, this machine shared with other sessions): see the hand-over block at the top of README §0, which records them per check.

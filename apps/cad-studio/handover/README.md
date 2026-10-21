@@ -7,7 +7,59 @@ no npm publish.
 
 ## 0. Start here — hand-over of 2026-10-18 (read this section first)
 
-### Kernel lane: hand-over at the R12b → next boundary (2026-10-21) — read this block first
+### Kernel lane: hand-over at the track K → queue boundary (2026-10-21) — read this block first
+
+The kernel lane goes on in a new session at each track boundary (the owner, 2026-10-19). This block is that hand-over.
+Since the R12b → next block below: the R12c S0 (D139, its stages frozen, the owner's data decision recorded) and **track K**,
+generic geometry moved down from the studio into `@barocss/cad` with the copies in `@barocss/cad-model` removed in the same
+step (K1–K7b, D140–D147). **The next step is the kernel-lane queue** below (the coordinator clears and re-briefs this
+lane for it). The R12b → next block is kept as history.
+
+**State**
+- Branch `review/cad-gpu-engine-2026-10-14` (local only). The tip is K7b's commit, which adds this block, then its RB-rows commit (`git log -2`). PKG is fully done (PKG-c … PKG-g2): the app keeps only its UI, viewport, workers and storage; the model is `@barocss/cad-model`.
+- **Track K, done** (each step replaced the studio's copies and proved the kernel's against independent oracles and a before/after snapshot of every user):
+  - K1 (D140): `convexHull` (quickhull), `convexDistance` (GJK) — the robot track's; output order kept (the frozen USD export).
+  - K2 (D141): one `triangleBvh` with `rayHit`, `nearestDistance2`, `pointTriangleDistance2` — the facet classification's, the mesh distance's, print/mould/machining's, the wall grid and a brute-force ray, all one tree; the studio tree's axis-parallel NaN slab miss fixed.
+  - K3 (D142): `meshClearance` — exact least distance with witnesses (0 where meshes cross); the analysis tool's edge–edge miss fixed (15.713 → 1.858 mm on crossed bars); 139× on 28.8k × 28.8k triangles.
+  - K4 (D143): `closestPointOnSurface`, `surfaceSeedGrid`, `surfaceD1Near`, `closestPointOnTriangle` — the draft, trim and chord projections; backtracking past the radius of curvature and a gated Newton step (both found by K4's tests).
+  - K5 (D144): `polygonSectionProperties`, `symmetricEigen3` (+ in place), `meshVolume`.
+  - K6 (D145): `voxelInsideFlags`, `voxelDepth`, `marchingTetrahedra`, `voxelNode` — the hollowing's core; its brute-force wall ray on the K2 tree.
+  - K7 (D146): the curve-fit equivalence check; K7b (D147): `interpolateCurvePlain`, `approximateCurvePlain`, `interpolateSurfacePlain`, `removeCurveKnotPlain` (uncertified, beside the untouched certified interpolation); `engine/fit.ts` gone.
+  - Left in the studio, named in their records: the kernel's own private surface projections (brep-tessellate, offset-cavity, rolling-ball: D143), `cavityComponents` and `meshPieces` (hollow's planning), `rotateInertia`, `meshesMeet`.
+- **R12c S0** (D139): springs (helical sweep of the exact normal-plane circle), fits (user-loaded ISO 286 rows; the IT factor reproduces 55/91), shafts, bearings, O-ring glands, cams, power transmission, profiles and connectors frozen as R12c.1a–R12c.8, with their oracles and refusals. Owner (2026-10-21): "R12c 기본값 세 가지 그대로 가. 끼워맞춤 표는 사용자가 불러오고, O-링 범위와 스프링 G는 추정값으로 표시해."
+- Checks at K7b (T3), with the time each took on this shared machine:
+
+  | Check | Result | Time |
+  |---|---|---|
+  | build:library (kernel) | ok | 84 s |
+  | lint / type-check: kernel | clean / clean | 56 s / 27 s |
+  | lint / type-check: cad-model | clean / clean | 14 s / 17 s |
+  | lint / type-check: gpu | clean / clean | 8 s / 13 s |
+  | app tsc; studio eslint src test | clean; 0 errors (119 warnings) | 33 s; 6 s |
+  | Kernel suite, conformance included | 1401/1406 (4 skipped; +7: K6 3, K7b 4); only "actual native Split source…" fails (environment) | 330 s |
+  | Studio suite | 767/768, the O80 `todo`, 0 fail | 110 s |
+  | Full browser flow, on its own | 215/215 | 806 s |
+  | RB | in the rows commit after this one | — |
+  | Properties | in the rows commit after this one | — |
+
+**The kernel-lane queue** (the coordinator's order)
+1. The hole-after-union refusal — a hole on a boss's top after the boss was united into a shell is refused "misses the target" (O80); repro `apps/cad-studio/test/fixtures/hole-after-union.calls.json`, the `todo` test in `test/known-bugs.test.ts`.
+2. A face split along a curve or an isocline (`splitFaceAlongCurve`), for IM5's two-half parting.
+3. The analytic Boolean's "inputs touch along an edge" refusal on a 16/20 bevel pair 6° off (D134).
+4. STEP export performance for many-face bodies (the throated wheel's 724 faces about 15 s, all tessellation; D137, D138).
+5. Then R12c's stages as D139 froze them (R12c.1a springs first).
+
+**Rules that came up since the R12b → next block** (all standing):
+- **Agent tools (owner, 2026-10-21):** "앱 채팅과 MCP 기본값을 v2로 바꾸고 v1은 동결해. 새 기능은 v2 동작으로 넣고, 상한은 표면별 매 차례 전체 양(목록+프롬프트)으로 바꿔." then "우리는 릴리즈 한게 아니라서 toolset v1 은 없어도 돼". The outer lane removed v1 (O105). A new feature kind or command (R12c's springs, shafts …) goes in only as a v2 group action, its detail behind `describe`, under the 25 000-per-turn guard (tools/list + prompt), following the rule the outer lane wrote into this §0. Nothing goes into v1.
+- **Verification tiers:** T1 every checkpoint (changed packages' lint and tsc, the stage's tests, the studio suite when a studio-visible API changes, touched conformance dirs) **and `FLOW_ONLY` for every flow step that runs the stage's code**, even when no studio-visible API changed (the coordinator, K6); T2 every 4th checkpoint or a core file; T3 at track boundaries. Name the tier and the time per check.
+- Known timing flakes, budgets unchanged: B9 (mass-polyhedral), C16 (cageEdit), the studio `hollow` sphere's "at once" assert, flow step 109 (the throated worm wheel's waitForSelector), the flow's screenshot timeout.
+
+**How to resume**
+1. Read this block, then D139 (R12c) and D140–D147 (track K) in `decisions.md`.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`); `pnpm build:library` in `packages/barocss-cad` before kernel tests; the flow with `CAD_STUDIO_CHAT_PORT=52491`, on its own; RB by `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record` then `scripts/rb/props.mjs --record`.
+3. Each step: a D-record (the next is D148), tests failing on the previous HEAD, conformance where it fits, the tier's checks, a §0 row, a commit, RB rows at T2/T3, a checkpoint to the coordinator; then end the turn and wait.
+
+### Kernel lane: hand-over at the R12b → next boundary (2026-10-21) (history: track K is done, see the block above)
 
 The kernel lane goes on in a new session at each track boundary (the owner, 2026-10-19). This block is that hand-over.
 R12b gears+ is complete (S0 and R12b.1a–R12b.7, D129–D138): generated roots, internal, bevel (straight and the ideal
@@ -64,7 +116,7 @@ track boundary); after it the kernel lane's queue below. The FR → R12b block b
 - **Load capacity** (bending and contact stress, life): not attempted, and it would need the standards' factors (no ISO/AGMA/DIN text, by the data rule).
 
 **Kernel-lane queue after PKG** (README §0 "Roadmap" item 4 and what R12b found)
-1. **Track K** (generic geometry moved down from the studio): K1 hull + GJK (done: D140, 2026-10-21); K2 one `triangleBvh(positions, indices)` with ray and nearest queries (supersedes the studio dual-tree, withdrawn 2026-10-21; done: D141, 2026-10-21); K3 an exact `meshClearance` with one point–triangle (done: D142, 2026-10-21); K4 `closestPointOnSurface` (done: D143, 2026-10-21); K5 polygon section properties, a 3×3 symmetric eigen solver, `meshVolume` (done: D144, 2026-10-21); K6 a voxel SDF and marching tetrahedra (done: D145, 2026-10-21); K7 curve-fit equivalence (checked: D146, 2026-10-21 — equal where both apply, not a replacement; a decision pending).
+1. **Track K** (generic geometry moved down from the studio): K1 hull + GJK (done: D140, 2026-10-21); K2 one `triangleBvh(positions, indices)` with ray and nearest queries (supersedes the studio dual-tree, withdrawn 2026-10-21; done: D141, 2026-10-21); K3 an exact `meshClearance` with one point–triangle (done: D142, 2026-10-21); K4 `closestPointOnSurface` (done: D143, 2026-10-21); K5 polygon section properties, a 3×3 symmetric eigen solver, `meshVolume` (done: D144, 2026-10-21); K6 a voxel SDF and marching tetrahedra (done: D145, 2026-10-21); K7 curve-fit equivalence (checked: D146; K7b done: D147, 2026-10-21 — **track K done**).
 2. **The outer lane's three requests** (queued 2026-10-21):
    - the hole-after-union refusal — a hole on a boss's top after the boss was united into a shell is refused "misses the target" (O80); repro `apps/cad-studio/test/fixtures/hole-after-union.calls.json`, the `todo` test in `test/known-bugs.test.ts`;
    - a face split along a curve or an isocline (`splitFaceAlongCurve`), for IM5's two-half parting;

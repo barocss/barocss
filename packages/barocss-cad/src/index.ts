@@ -580,6 +580,8 @@ export { closestPointOnSurface, surfaceSeedGrid, surfaceD1Near, type SurfaceClos
 export { polygonSectionProperties, symmetricEigen3, symmetricEigen3InPlace, meshVolume, type SectionProperties, type Matrix3, type Vector3 } from './section-properties.js';
 // K6 (D145): a mesh on a voxel grid (inside flags, capped depth) and marching tetrahedra.
 export { voxelInsideFlags, voxelDepth, marchingTetrahedra, voxelNode, VOXEL_CORNERS, VOXEL_TETRAHEDRA, type VoxelField, type VoxelPoint } from './voxel-field.js';
+// K7b (D147): plain (uncertified) B-spline fitting — interpolation, least squares, the surface tensor, knot removal.
+export { interpolateCurvePlain, approximateCurvePlain, interpolateSurfacePlain, removeCurveKnotPlain, chordParameters, averagedKnots, plainBasis, plainFindSpan, type PlainFitCurve, type PlainFitSurface, type PlainPoint } from './fit-plain.js';
 // K1 (D140): generic convex geometry moved down from the studio's robot track.
 export { convexHull, HullError, type ConvexHull, type HullErrorCode } from './convex-hull.js';
 export { convexDistance } from './convex-distance.js';
