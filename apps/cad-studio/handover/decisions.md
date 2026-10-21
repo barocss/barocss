@@ -9106,7 +9106,7 @@ Not run:
 
 R12c.6a as D139 froze it, with the coordinator's rule: the motion laws come from closed forms derived and cited, never a table, and the pressure angle and the undercut are checked against closed forms.
 
-**The laws** (`cam.ts`, `camLaw(law, u)` → f, f', f'' on u ∈ [0, 1], f(0) = 0, f(1) = 1), each integrated by hand in the module's header; Norton's *Cam Design and Manufacturing Handbook* gives the same functions (cited from memory, not re-read):
+**The laws** (`cam.ts`, `camLaw(law, u)` → f, f', f'' on u ∈ [0, 1], f(0) = 0, f(1) = 1), each integrated by hand in the module's header, from no table or handbook:
 - **uniform** f = u. Its velocity steps at both ends, so it is always refused (below).
 - **harmonic** f = (1 − cos πu)/2. Its acceleration steps at a dwell: an ACCELERATION_STEP warning (infinite jerk).
 - **cycloidal** f = u − sin(2πu)/(2π).
@@ -9144,7 +9144,7 @@ R12c.6a as D139 froze it, with the coordinator's rule: the motion laws come from
 - So uniform stays in the law set and its refusal says why. The command's form does not offer it.
 
 **The pressure angle's limit** defaults to 30° translating and 35° oscillating.
-- These are a rule of thumb (Norton, *Design of Machinery*, cited from memory and not re-read for this stage), flagged estimates, like O2's ranges (D159). A user's limit replaces them, and a PRESSURE_ANGLE warning is raised above the limit.
+- These are rule-of-thumb estimates, flagged, like O2's ranges (D159). (Wording fixed after review, D160 fix: they are attributed to no source, since none was read.) A user's limit replaces them, and a PRESSURE_ANGLE warning is raised above the limit.
 
 **The fit:** Hermite cubics in θ per segment, pieces broken at the segment joints. Each segment starts at ⌈32 β/2π⌉ pieces, doubling until its parameter-matched deviation (23 samples a piece, an upper bound on the distance) is within the tolerance.
 - The tolerance defaults to 1e-4 of the base radius.

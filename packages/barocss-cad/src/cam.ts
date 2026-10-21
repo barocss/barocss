@@ -6,8 +6,8 @@
 // +y on the line x = e (its offset); an oscillating one swings about a pivot at (a, 0), its arm at angle ψ from the line to
 // the cam's centre, ψ = ψ0 + s(θ). The cam's profile is drawn in its own frame, the world turned back by θ: Rot(−θ).
 //
-// The laws, on u ∈ [0, 1] with f(0) = 0, f(1) = 1, integrated by hand (Norton's Cam Design and Manufacturing Handbook
-// gives the same functions, cited from memory; the forms here are derived, not read from its tables):
+// The laws, on u ∈ [0, 1] with f(0) = 0, f(1) = 1, integrated by hand (derived here, from no table
+// or handbook):
 // - uniform: f = u. Its velocity steps at both ends, a corner in the cam's path: always refused (below).
 // - harmonic: f = (1 − cos πu)/2, f' = (π/2) sin πu, f'' = (π²/2) cos πu. The acceleration steps at a dwell: a warning.
 // - cycloidal: f = u − sin(2πu)/(2π), f' = 1 − cos 2πu, f'' = 2π sin 2πu.
@@ -75,7 +75,7 @@ export interface CamSpec {
   readonly boreDiameterMM?: number;
   /** The least rim round a bore, below the base circle; default 1 mm (geometry only: not a strength check). */
   readonly minimumRimMM?: number;
-  /** Default 30° translating, 35° oscillating: a rule of thumb (Norton, Design of Machinery, cited from memory), an estimate. */
+  /** Default 30° translating, 35° oscillating: a rule-of-thumb estimate, attributed to no source (the user sets their own). */
   readonly pressureAngleLimitDeg?: number;
   /** Default 1e-4 of the base radius. */
   readonly profileToleranceMM?: number;
@@ -387,7 +387,7 @@ export function camProfile(spec: CamSpec): { pieces: { name: string; curve: Curv
       const be = g.b - g.a, d = Math.abs(g.p1 - g.p0), pk = g.law ? camLawPeaks(g.law) : { cv: 0, ca: 0 };
       return { index: i + 1, motion: g.motion, ...(g.law ? { law: g.law } : {}), startDeg: r6(deg(g.a)), endDeg: r6(deg(g.b)), from: u(g.p0), to: u(g.p1), peakVelocity: u(d * pk.cv / be), peakAcceleration: u(d * pk.ca / (be * be)) };
     }),
-    pressureAngle: { maxDeg: r6(deg(phiMax)), atDeg: r6(deg(phiAt)), limitDeg: limit, limitEstimate: est, ...(est ? { limitSource: 'a rule of thumb (Norton, Design of Machinery, cited from memory): an estimate' } : {}) },
+    pressureAngle: { maxDeg: r6(deg(phiMax)), atDeg: r6(deg(phiAt)), limitDeg: limit, limitEstimate: est, ...(est ? { limitSource: 'a rule-of-thumb estimate, attributed to no source' } : {}) },
     curvature: { ...(spec.follower === 'roller' ? { leastPitchRadiusMM: r6(leastPitch) } : {}), leastProfileRadiusMM: r6(leastRho), atDeg: r6(deg(leastAt)) },
     ...(spec.follower === 'flat' ? { faceContactMM: [r6(along[0]), r6(along[1])] as const } : {}),
     profilePieces: flat.length, profileDeviationMM: deviation, profileToleranceMM: tol, sweep, warnings, manufacturingValidated: false,
