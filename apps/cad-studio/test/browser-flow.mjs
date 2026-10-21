@@ -3647,6 +3647,51 @@ try {
     } finally { chat.kill(); }
   });
 
+  await check('FRc the section library in the Library panel: a row written there (RHS 40 × 40 × 3, the shop\'s), a frame on it through the real chat — A · 300 = 133 200 mm³; the row edited to 50 × 30 × 4 — the frame follows, 172 800; a row in use not removable (new in O117)', async () => {
+    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const fill = async (dims) => { for (const [k, v] of Object.entries(dims)) await page.fill(`[aria-label="Section ${k}"]`, String(v)); };
+    await page.click('[aria-label="Library"]');
+    try {
+      await page.click('[aria-label="Add section"]');
+      await page.fill('[aria-label="Section id"]', 'R40'); await page.fill('[aria-label="Section name"]', 'RHS 40');
+      await page.selectOption('[aria-label="Section kind"]', 'rect-tube');
+      await fill({ width: 40, height: 40, wall: 3, outerRadius: 0 });
+      await page.fill('[aria-label="Section source"]', 'the shop');
+      await page.click('[aria-label="Save section"]');
+      await page.waitForFunction(() => window.__studioDoc.frames?.sections?.length === 1, null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Section R40"]'), /RHS 40.*RHS 40×40×3 · the shop/);
+    } finally { await page.click('[aria-label="Close library"]'); }
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count();
+      const frame = { kind: 'frame', points: [[0, 0, 0], [300, 0, 0]], segments: [[0, 1]], section: { kind: 'library', id: 'R40' } };
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'add', features: [frame] } }] })}`);
+      await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    // (A sharp RHS: A = wh − (w − 2t)(h − 2t); 40 × 40 × 3 is 444 mm².)
+    let vol = await bodyVolume(); assert.ok(Math.abs(vol - 133200) <= 1, String(vol));
+    await page.click('[aria-label="Library"]');
+    try {
+      await page.click('[aria-label="Edit section R40"]');
+      assert.ok(await page.isDisabled('[aria-label="Section id"]'), 'an edited row keeps its id');
+      await fill({ width: 50, height: 30, wall: 4 });
+      await page.click('[aria-label="Save section"]');
+      await page.waitForFunction(() => window.__studioDoc.frames.sections[0].section.width === 50, null, { timeout: 10000 });
+      assert.ok(await page.isDisabled('[aria-label="Remove section R40"]'), 'a row in use stays');
+    } finally { await page.click('[aria-label="Close library"]'); }
+    await idle();
+    // (50 × 30 × 4: 576 mm², the frame on the row follows.)
+    vol = await bodyVolume(); assert.ok(Math.abs(vol - 172800) <= 1, String(vol));
+    await snap('frc-section-library');
+  });
+
   await check('R10.2a a pipe tee (a file): its junction filleted in the studio — a rolling-ball fillet round the whole loop from one of its edges, between two cylinders', async () => {
     const fs = await import('node:fs'), file = join(out, 'pipe-tee.bcad');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 5, outputs: {}, nodes: [

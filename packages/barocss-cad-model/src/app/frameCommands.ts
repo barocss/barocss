@@ -1,7 +1,7 @@
 // Frames (FR1, D123): a structural member — a section square to a line from one point to another, extruded its length.
 // The kernel takes no section size and no radius by default (D122: a catalogue of sizes is the user's own data); the
 // palette's prefills are estimates for a first try, said so in their labels, and every one is a field to change.
-import { withNode, type FrameAnchor, type MemberSection, type ModelNode } from '../engine/doc';
+import { sectionLabel, withNode, type FrameAnchor, type MemberSection, type ModelNode } from '../engine/doc';
 import type { Command, Ctx, Field, Values } from './commands';
 
 const ok = { ok: true as const };
@@ -9,9 +9,10 @@ const KINDS = [{ value: 'rect-tube', label: 'Rectangular tube' }, { value: 'roun
 const ANCHORS: FrameAnchor[] = ['centroid', 'origin', 'bottom-left', 'bottom', 'bottom-right', 'left', 'center', 'right', 'top-left', 'top', 'top-right'];
 const is = (...kinds: string[]) => (v: Values) => kinds.includes(String(v.section));
 
-/** The section's fields by kind; a radius prefill's label says it is an estimate. */
-const sectionFields: Field[] = [
-  { key: 'section', label: 'Section', kind: 'choice', options: KINDS },
+/** The section's fields by kind; a radius prefill's label says it is an estimate. FRc (O117): with a section library, its rows too. */
+const sectionFields = (ctx: Ctx): Field[] => { const rows = ctx.doc.frames?.sections ?? []; return [
+  { key: 'section', label: 'Section', kind: 'choice', options: rows.length ? [...KINDS, { value: 'library', label: 'From your library' }] : KINDS },
+  ...(rows.length ? [{ key: 'row', label: 'Library row', kind: 'choice', options: rows.map(r => ({ value: r.id, label: `${r.name ?? r.id} · ${sectionLabel(r.section, String)}${r.estimate ? ' (estimate)' : ''}` })), when: is('library') } as Field] : []),
   { key: 'w', label: 'Width', kind: 'mm', min: 0.1, when: is('rect-tube', 'channel') },
   { key: 'h', label: 'Height', kind: 'mm', min: 0.1, when: is('rect-tube', 'channel') },
   { key: 't', label: 'Wall', kind: 'mm', min: 0.1, when: is('rect-tube', 'round-tube') },
@@ -25,12 +26,14 @@ const sectionFields: Field[] = [
   { key: 'r1', label: 'Root radius (estimate)', kind: 'mm', min: 0, when: is('angle', 'channel') },
   { key: 'r2', label: 'Toe radius (estimate)', kind: 'mm', min: 0, when: is('angle') },
   { key: 'cells', label: 'Size', kind: 'choice', options: [{ value: '1', label: '20 × 20' }, { value: '2', label: '20 × 40' }], when: is('tslot') },
-];
+]; };
 /** First-try values for each kind: sizes to start from, the radii and the T-slot's slot estimates (the tslot-20 library's). */
 const PREFILL = { section: 'rect-tube', w: 40, h: 40, t: 3, ro: 6, d: 33.7, a: 50, b: 50, th: 5, tw: 5, tf: 8, r1: 6, r2: 3, cells: '1' } as const;
 /** The tslot-20 library part's slot sizes, every one an estimate there (D122): written out as the section's own. */
 const TSLOT = { size: 20, opening: 6.2, lip: 1.8, undercut: 11, depth: 6.1, bore: 4.2 } as const;
 
+/** The library's first row as the row choice's start (the section kind stays the palette's until picked). */
+const firstRow = (ctx: Ctx): Values => { const r = ctx.doc.frames?.sections?.[0]; return r ? { row: r.id } : {}; };
 /** The section of the values; throws with a reason the HUD shows. */
 export function sectionOf(v: Values): MemberSection {
   const n = (k: string) => Number(v[k]);
@@ -40,6 +43,7 @@ export function sectionOf(v: Values): MemberSection {
     case 'angle': return { kind: 'angle', legX: n('a'), legY: n('b'), thickness: n('th'), rootRadius: n('r1'), toeRadius: n('r2') };
     case 'channel': return { kind: 'channel', height: n('h'), width: n('w'), web: n('tw'), flange: n('tf'), rootRadius: n('r1') };
     case 'tslot': return v.cells === '2' ? { kind: 'tslot', cells: 2, ...TSLOT } : { kind: 'tslot', cells: 1, openSlots: 4, ...TSLOT };
+    case 'library': if (v.row) return { kind: 'library', id: String(v.row) }; throw new Error('Pick a row of your section library.');
   }
   throw new Error('Pick a section kind.');
 }
@@ -59,8 +63,8 @@ export const memberCommand: Command = {
   id: 'frame-member', label: 'Structural member', icon: 'cad-frame-member', group: 'create', keywords: 'frame weldment member tube rhs shs pipe angle channel t-slot extrusion profile beam',
   hint: 'A structural member: a tube, angle, channel or T-slot section along a line between two points (the prefilled sizes and radii are estimates)',
   available: () => ok,
-  fields: () => [
-    ...sectionFields,
+  fields: ctx => [
+    ...sectionFields(ctx),
     { key: 'x0', label: 'Start X', kind: 'mm' }, { key: 'y0', label: 'Start Y', kind: 'mm' }, { key: 'z0', label: 'Start Z', kind: 'mm' },
     { key: 'x1', label: 'End X', kind: 'mm' }, { key: 'y1', label: 'End Y', kind: 'mm' }, { key: 'z1', label: 'End Z', kind: 'mm' },
     { key: 'anchor', label: 'Line through', kind: 'choice', options: ANCHORS.map(a => ({ value: a, label: a })) },
@@ -68,7 +72,7 @@ export const memberCommand: Command = {
   ],
   defaults: ctx => {
     const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity), x = Number.isFinite(right) ? Math.round(right + 40) : 0;
-    return { ...PREFILL, x0: x, y0: 0, z0: 0, x1: x, y1: 300, z1: 0, anchor: 'centroid', roll: 0 };
+    return { ...PREFILL, ...firstRow(ctx), x0: x, y0: 0, z0: 0, x1: x, y1: 300, z1: 0, anchor: 'centroid', roll: 0 };
   },
   build: (ctx, v) => {
     const start = (['x0', 'y0', 'z0'] as const).map(k => Number(v[k])) as [number, number, number], end = (['x1', 'y1', 'z1'] as const).map(k => Number(v[k])) as [number, number, number];
@@ -117,12 +121,12 @@ export const frameCommand: Command = {
   id: 'frame', label: 'Frame', icon: 'cad-frame', group: 'create', keywords: 'frame weldment skeleton structure table stand rack members tubes',
   hint: 'A frame: a member along each segment of a skeleton — a table, box or rectangle, or the straight edges you picked — each its own body (the prefilled sizes and radii are estimates)',
   available: () => ok,
-  fields: () => [
+  fields: ctx => [
     { key: 'skeleton', label: 'Skeleton', kind: 'choice', options: SKELETONS },
     { key: 'W', label: 'Width (X)', kind: 'mm', min: 1, when: preset }, { key: 'D', label: 'Depth (Y)', kind: 'mm', min: 1, when: preset },
     { key: 'H', label: 'Height (Z)', kind: 'mm', min: 1, when: v => preset(v) && v.skeleton !== 'rectangle' },
     { key: 'x', label: 'At X', kind: 'mm', when: preset }, { key: 'y', label: 'At Y', kind: 'mm', when: preset }, { key: 'z', label: 'At Z', kind: 'mm', when: preset },
-    ...sectionFields,
+    ...sectionFields(ctx),
     { key: 'anchor', label: 'Lines through', kind: 'choice', options: ANCHORS.map(a => ({ value: a, label: a })) },
     { key: 'roll', label: 'Roll', kind: 'deg', min: -360, max: 360, step: 15 },
     { key: 'corners', label: 'Corners (two members)', kind: 'choice', options: CORNERS },
@@ -131,7 +135,7 @@ export const frameCommand: Command = {
   ],
   defaults: ctx => {
     const right = ctx.bodies.reduce((m, b) => Math.max(m, b.mesh.bounds.max[0]), -Infinity), x = Number.isFinite(right) ? Math.round(right + 60) : 0;
-    return { ...PREFILL, skeleton: edgesSkeleton(ctx) ? 'edges' : 'table', W: 600, D: 400, H: 700, x, y: 0, z: 0, anchor: 'centroid', roll: 0, corners: 'mitre', multi: 'order', tee: 'butt' };
+    return { ...PREFILL, ...firstRow(ctx), skeleton: edgesSkeleton(ctx) ? 'edges' : 'table', W: 600, D: 400, H: 700, x, y: 0, z: 0, anchor: 'centroid', roll: 0, corners: 'mitre', multi: 'order', tee: 'butt' };
   },
   steps: (ctx, v) => {
     if (v.skeleton !== 'edges') return [];
