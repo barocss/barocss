@@ -4334,3 +4334,37 @@ The coordinator's plan after O98. Without DOM the package had 8 type errors: Ind
   - collecting with no document empties the store;
   - `engine/blobs.ts` names no IndexedDB, and the package's lib has no DOM.
 - **Checks: T2**, since `App.tsx` changed (results in the checkpoint).
+
+## O100 — CNC7 S0: feature recognition and stock — what reads exactly today, and the plan for CNC7 and CNC8 (2026-10-21)
+
+The coordinator set the next outer-lane work in roadmap order. IM7 needs the kernel's face split (queued), so machining comes first: CNC7, feature recognition and stock export, then CNC8, an optional 2.5D CAM preview marked "not for production". README §4 forbids production G-code. Evidence is in `test/cnc7-s0.test.ts` (3 probes). Every oracle is the construction: a 120 × 80 × 20 plate with one of each feature.
+
+- **P1, floors by their walls**, per setup: the planes a tool along +Z faces, looking out, with a wall rising at their edge.
+  - Classified by the in-plane directions their walls bound on both sides: all of them, a **pocket**; some, a **slot**; none, a **step**.
+  - The pocket 30 × 20 reads 8 deep and 20 wide; the slot 6 deep and 10 wide; the step 5 deep.
+  - The step's floor comes in two faces, because the slot runs through it: one feature, two floors. CNC7 groups them.
+  - Two rules the probe found:
+    - floors are per setup direction. An L's riser faces a tool along Y, so it is that setup's floor and not this one's;
+    - a rising wall counts only at the floor's edge. A boss standing inside the top face does not make the top a floor.
+- **P2, holes and bosses**:
+  - CNC2's holes are already features: Ø6.6 through 20 and Ø5 blind 10 deep, with type and steps;
+  - a **boss** is a convex exact cylinder whose base lies on a plane facing along its axis: Ø12, 8 high.
+- **P3, stock from the user's list**: the smallest block whose sorted sides hold the part's sorted sides plus twice an allowance.
+  - The part with its boss is 120 × 80 × 28. With a 1 mm allowance, the list gives 122 × 82 × 30.
+  - A turned Ø20 × 52 takes the smallest bar of at least Ø22, cut to 54.
+  - When none fits, that is said.
+  - **No stock list is built in**, the owner's pattern (D121, bend tables; FR's sections): the user loads their shop's list. The allowance is a flagged estimate until the user sets it.
+- **The plan**, each stage with oracles, mutants where it is a check, and a flow step:
+  - **CNC7a, feature recognition** (`machining/features.ts`):
+    - per setup direction (CNC4's), pockets, slots and steps from floors classed by their bounding walls; the floors of one feature (a step crossed by a slot) grouped by their walls;
+    - holes by CNC2 (through, blind, counterbored, tapped) and bosses;
+    - each feature with its exact size, depth, faces and the setup that reaches it;
+    - a `features` section in the machining report and an agent-readable list (through `check_printability`, no new tool unless the contract has room).
+  - **CNC7b, stock**:
+    - a stock list the user loads (blocks, plates, bars; each row its source, or the user's own) and an allowance (an estimate until set);
+    - the smallest block or bar around the part in the setup's frame; refused by name when none fits (STOCK_NONE_FITS);
+    - **stock export**: `stock.json` (size, placement against the part, allowance with its basis, the row chosen) and the stock as STEP through the kernel's writer, for a CAM program to read.
+  - **CNC8, an optional 2.5D CAM preview**, marked **"not for production"** wherever it shows (the viewport, the report, every file):
+    - outlines only, for the recognised pockets (offset contours at the tool's radius, stepped by depth) and holes (drill points);
+    - **no G-code**, no feeds or speeds.
+- **Then** IM8 (casting presets, allowances, section and solidification checks), and the parts of IM7 that do not need the face split.
