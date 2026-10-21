@@ -769,6 +769,9 @@ acceleration → benches.
   eye's ray, the clip plane and caps honoured, a pixel and a half of slack); `throughSurfaces` keeps the old search. The
   studio's edge and curve picks take it. Against the GPU's depth at 300 random pointers: nothing behind, nothing shown
   missed.
+- **G4** (2026-10-21): done. Bench budgets: every `bench:browser` row has a GPU-ms budget beside its CPU ones, a point-cloud
+  row (the workspace map orbited), and `bench:assembly` and `bench-mesh-browser` exit 1 over their budgets; each prints the
+  load average and says LOADED above 4. Measured at a load of 8–11 (the owner's go); budgets about twice.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
