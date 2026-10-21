@@ -416,6 +416,11 @@ function fromCentre(I: number[]): number[] {
  * loop as long as that boundary (to 1e-3, both measured as 64-segment polylines a curve). A closed loop made
  * only of boundary pieces, as long as the boundary, goes round it once: the face is the full domain.
  */
+/** A test of whether a face of `brep` is its surface's whole patch, bounded by the four sides of its domain (D151: exact extremes). */
+export function wholePatchTest(brep: Brep): (face: BrepFace) => boolean {
+  const maps: Maps = { loops: new Map(brep.loops.map(l => [l.id, l])), coedges: new Map(brep.coedges.map(c => [c.id, c])), edges: new Map(brep.edges.map(e => [e.id, e])) };
+  return face => face.surface.kind === 'surface' && wholePatch(face, maps);
+}
 function wholePatch(face: BrepFace, maps: Maps): boolean {
   if (face.loops.length !== 1) return false;
   const S = face.surface as Surface, at = surfaceEvaluator(S), { u: U, v: V } = surfaceDomain(S);
