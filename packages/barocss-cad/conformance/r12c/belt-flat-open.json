@@ -1,0 +1,63 @@
+{
+  "id": "r12c-belt-flat-open",
+  "step": "R12c",
+  "decisions": [
+    "D161"
+  ],
+  "about": "R12c.6b: an open flat belt (a test row, 40 wide, 3 thick; an estimate) on pitch radii 40 and 25 at a 150 centre distance, as a band about its pitch path.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "b",
+          "kind": "belt",
+          "row": {
+            "kind": "flat-belt",
+            "id": "flat-a",
+            "widthMM": 40,
+            "thicknessMM": 3,
+            "estimate": true
+          },
+          "pitchRadii": [
+            40,
+            25
+          ],
+          "centerDistance": 150
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 60684.573150020326,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [
+            64.16158774802388,
+            0,
+            20
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "L = 2√(C² − (R1 − R2)²) + 2R1(π − acos((R1 − R2)/C)) + 2R2 acos((R1 − R2)/C); the band between the path's offsets at ±t/2 has area L·t (Steiner), × w. The centroid: the straight runs' rectangles at their midpoints, the arcs' annular sectors (2/3)(r_o³ − r_i³)/(r_o² − r_i²)·sin(α/2)/(α/2) along their bisectors."
+}

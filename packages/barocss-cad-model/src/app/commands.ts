@@ -7,6 +7,7 @@ import { primitives, puck } from './primitives';
 import { fitCommands } from './fitCommands';
 import { shaftCommands } from './shaftCommands';
 import { glandCommands } from './glandCommands';
+import { driveCommands } from './driveCommands';
 import { alignCommand } from './alignCommand';
 import { FASTENER_SIZES, fastenerCommand } from './fasteners';
 import { duplicateBody } from '../chat/features';
@@ -305,6 +306,7 @@ const allCommands: Command[] = [
   ...fitCommands,
   ...shaftCommands,
   ...glandCommands,
+  ...driveCommands,
   {
     id: 'box', label: 'Box', icon: 'cad-box', hint: 'A block by width, depth and height', shortcut: 'B', group: 'create', keywords: 'cube block plate',
     available: () => ok,

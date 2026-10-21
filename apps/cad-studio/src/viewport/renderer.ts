@@ -35,6 +35,8 @@ export interface InstanceItem { id: string; bodies: BodyResult[]; threads?: Floa
 /** The mould as the viewport shows it (G6): the loops (world polylines), the halves' bodies, the pull and the spread. */
 export interface MouldShown { pull: Vec3; loops: { points: Vec3[]; closed: boolean }[]; plus: BodyResult[]; minus: BodyResult[]; spread: number }
 /** A section's plane on the GPU (G2): kept where dot(normal, p) ≥ offset; `bodies`: the part's bodies cut by it too (not yet exact). */
+/** A proposal's added and removed material (G12): the view triad's green and red. */
+export const PROPOSAL_ADDED = '#57b26b', PROPOSAL_REMOVED = '#e5534b';
 /** World points for an overlay (G8): a colour each (sRGB 0–1, rgb) or one; size and border in CSS pixels. */
 export interface OverlayPoints {
   positions: ArrayLike<number>;
@@ -43,6 +45,18 @@ export interface OverlayPoints {
   size: number;
   shape?: 'circle' | 'square';
   border?: { width: number; color: string };
+  opacity?: number;
+  over?: boolean;
+  hidden?: number;
+}
+/**
+ * Text labels for an overlay (G15): each at a world point, sized in CSS pixels (or on a plane, in world units); one look
+ * for the set — a colour, a chip behind each (fill and border), its opacity and depth rule as the overlay lines'.
+ */
+export interface OverlayLabels {
+  labels: { text: string; at: ArrayLike<number>; size?: number; align?: readonly [number, number]; offset?: readonly [number, number]; plane?: { right: ArrayLike<number>; up: ArrayLike<number> } | null }[];
+  color: string;
+  chip?: { fill: string; border?: string; padding?: number } | null;
   opacity?: number;
   over?: boolean;
   hidden?: number;
@@ -112,8 +126,17 @@ export interface ViewRenderer {
   setOverlayLines?(key: string, lines: OverlayLines | null): void;
   /** Overlay points drawn by the engine (WebGPU only, G8): sprites at world points under a key (the overlay lines' keys apart). */
   setOverlayPoints?(key: string, points: OverlayPoints | null): void;
+  /**
+   * A proposal's diff (WebGPU only, G12): the material it adds (green) and takes away (red) as see-through decals over the
+   * bodies, with their edges and a volume chip each; null removes them. (Its faces' tint goes through faceColors.)
+   */
+  setProposalOverlay?(view: import('../engine/client').ProposalOverlay | null): void;
+  /** Overlay labels drawn by the engine (WebGPU only, G15) under a key — readouts, chips and drawings' texts. */
+  setOverlayLabels?(key: string, labels: OverlayLabels | null): void;
   /** The overlay lines and points shown, segments or points a key (G7, G8; for the flow). */
   overlayLines?(): Record<string, number>;
+  /** The overlay labels' texts, a key (G15; for the flow). */
+  overlayTexts?(): Record<string, string[]>;
   pickHalf?(x: number, y: number, camera: OrbitCamera): { half: '+' | '-'; index: number } | null;
   pickInstance?(x: number, y: number, camera: OrbitCamera): string | null;
   pickInstanceFace?(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number } | null;

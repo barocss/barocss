@@ -231,6 +231,28 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
       break;
     }
+    case 'sprocket': case 'pulley': case 'coupling': case 'belt': {
+      // (R12c.6b, D161: the sizes the node holds; a belt's rounding of links.)
+      const g = (n: ModelNode) => n as Record<string, unknown> & ModelNode, has = (k: string) => (node as Record<string, unknown>)[k] !== undefined;
+      const keyed = (key: string, label: string, unit: 'mm' | '°' | undefined, k: string, drop = false) => number(key, label, unit, n => Number(g(n)[k] ?? 0), (n, v) => { const next = { ...g(n) }; if (drop && !(v > 0)) delete next[k]; else next[k] = v; return next as ModelNode; });
+      if (node.kind === 'sprocket') { keyed('teeth', 'Teeth', undefined, 'teeth'); keyed('tip', 'Tip Ø', 'mm', 'tip'); keyed('w', 'Tooth width', 'mm', 'width'); }
+      if (node.kind === 'pulley') { if (has('teeth')) keyed('teeth', 'Grooves (teeth)', undefined, 'teeth'); if (has('diameter')) keyed('d', 'Diameter', 'mm', 'diameter'); if (has('grooves')) keyed('n', 'Grooves', undefined, 'grooves'); if (has('width')) keyed('w', 'Face width', 'mm', 'width'); }
+      if (node.kind === 'sprocket' || node.kind === 'pulley') keyed('bore', 'Bore Ø (0: none)', 'mm', 'bore', true);
+      if (node.kind === 'belt') out.push({ kind: 'choice', key: 'links', label: 'Links (a chain)', options: [{ value: 'whole', label: 'Whole' }, { value: 'even', label: 'Even' }], get: n => self<typeof node>(n).rounding ?? 'whole', set: (n, v) => replace(n, i, { ...self<typeof node>(n), rounding: v as 'whole' | 'even' }) });
+      if (node.kind !== 'belt') keyed('rot', 'Rotation', '°', 'rotation');
+      break;
+    }
+    case 'cam': {
+      // (R12c.6a, D160: the lift scales every position of the program alike; the laws and angles stay.)
+      const g = (n: ModelNode) => n as typeof node, top = (n: ModelNode) => Math.max(...g(n).segments.map(x => x.to ?? 0));
+      number('rb', 'Base circle radius', 'mm', n => g(n).base, (n, v) => ({ ...g(n), base: v }));
+      if (node.follower === 'roller') number('rr', 'Roller radius', 'mm', n => g(n).roller ?? 0, (n, v) => ({ ...g(n), roller: v }));
+      number('h', node.motion === 'oscillating' ? 'Swing' : 'Lift', node.motion === 'oscillating' ? '°' : 'mm', top, (n, v) => { const k = top(n) > 0 ? v / top(n) : 0; return { ...g(n), segments: g(n).segments.map(x => x.to === undefined ? x : { ...x, to: x.to * k }) }; });
+      number('t', 'Thickness', 'mm', n => g(n).thickness, (n, v) => ({ ...g(n), thickness: v }));
+      number('bore', 'Bore Ø (0: none)', 'mm', n => g(n).bore ?? 0, (n, v) => { const next = { ...g(n) }; if (v > 0) next.bore = v; else delete next.bore; return next; });
+      number('rot', 'Rotation', '°', n => g(n).rotation ?? 0, (n, v) => ({ ...g(n), rotation: v }));
+      break;
+    }
     case 'spring': {
       // (R12c.1a, D153: a compression spring; editing G drops its estimate flag — the value is the user's then.)
       const g = (n: ModelNode) => n as typeof node;

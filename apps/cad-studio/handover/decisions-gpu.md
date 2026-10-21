@@ -580,3 +580,159 @@ against the code as it is now:
 - **Checks** (v2): gpu tsc and eslint clean, unit 77/77, browser 11/11; studio tsc clean, suite 193/193; the flow and bench
   above. Not run: the full flow (the coordinator's), the cad-model suite.
 
+## G13 — hygiene (2026-10-22)
+
+Measured before anything was changed; the coordinator's order.
+
+- **1. Shadow-map redraws (G13-D1: the metric, not the map)**. With the main thread otherwise idle — the 120 brackets moved
+  by their meshes' transforms through the DEV viewer, `render()` then the queue's `onSubmittedWorkDone` — the GPU's own
+  time a frame is 2.2 ms still, 2.7 ms with every caster moving (the shadow redraw ≈ 0.5 ms; a 1024² map 0.2 ms less; AO
+  off 0.1 ms less). The bench's 15–22 ms on the pose, explode and section rows was its GPU column — the wall time from a
+  submit until that promise resolved, which waits on the main thread (14–17 ms of task a frame on those rows; 2.7 on the
+  orbit, where it read 2.3). So the shadow map is left as it is. `bench:browser` and `bench:assembly` now ask the device
+  for timestamp queries and add every render pass's begin–end (`GPU`), keeping the old figure as `queue`; with them the
+  pose reads 0.97 ms, the explode 1.24, the section 1.83. One real GPU cost shows: the 100 000-point cloud, 8–10 ms (for
+  G14, display LOD).
+- **2. The explode row's "2 in one frame"** (1 run in 8 here): both submits were the Viewport's own frame callback
+  (`Viewport.tsx`, by their stacks), 2 ms apart under one timestamp — two frame batches headless Chromium stamped alike
+  under load; one Viewport, one guard, so no double draw. The bench now counts a frame as a batch of animation-frame
+  callbacks (a new one when the timestamp changes or a message posted from the last has arrived — tasks run between
+  batches only) and reports `frames stamped as the last` when it happens. In the 4 full runs since, rows saw such
+  frames (the pattern row twice, the explode and CPU-section rows once, one frame each), counted apart — and no batch had 2 submits.
+- **3. The App's hover and pick** (CPU profiles of the 120-bracket rows): a hover move is ≈ 0.5 ms of JavaScript, most of it
+  React's scheduling; the viewer's share is the scene bounds per pick (`unionBox`, 1.2 ms over 60 moves — fixed under 4)
+  and the scene tree's one build (1.1 ms). A click on a bracket is 55 ms, 36 of them `jsxDEV`: React's development build
+  making the App's panels again on a selection change (the bench runs the dev server). In the viewport: the view cube is
+  now drawn only when the camera turns (`memo` on its basis; its callbacks read the viewport's refs) and its parts keyed by
+  face and cell, not by their points (React made each polygon again on every turn). The App's panels — memoised against a
+  selection change, or measured on a production build — are the UI side's; noted for the coordinator.
+- **4. Per frame**: V8's sampling heap profiler over a 60-step orbit and a 60-step explode of the 120 brackets, the viewer's
+  functions in its top 22: 10 645 → 4 732 KiB (orbit), 22 927 → 4 069 KiB (explode); all sampled, React included, 20 973 →
+  14 098 and 135 965 → 110 120. What changed: the shadow key in a kept typed array (an array of numbers emptied and filled
+  was a new store a frame: 4.4 MiB); `sceneBounds` grown in one box (`growBox`); `transformBox` without corner arrays;
+  the object block written in place (`normalMatrixInto`, its words, its colour); the visible lists and transparent entries
+  kept, numeric sort keys (`pipelineOrder`); the frame block and a draw's dynamic offset reused; the studio renderer's
+  bounds kept while their inputs are the same objects. Left: `transformBox`/`multiply` for each moved mesh (its new world
+  box, the copy's matrix), render-pass descriptors.
+  - **The outline mask** draws only the meshes whose screen box meets the outline's rectangle (outlined ones always),
+    scissored to it — the output reads the mask there alone.
+  - **Optional uvs**: a geometry without them keeps none (`PreparedGeometry.uvs` null) and binds one zero buffer the viewer
+    shares (grown by doubling); `setUVs` gives it its own. For a 120-bracket assembly's geometries, 8 bytes a vertex less
+    kept and uploaded.
+- **5. Budgets** (`bench:browser`, `bench:assembly`, `bench-mesh-browser`): every row from three runs alone at a load of
+  12–17 — the machine had no quieter window with the other lanes working — about twice the worst of the three, the GPU's
+  (timestamps) with a 3 ms floor. Notable: pose GPU 32 → 3, explode 44 → 4, section 44 → 6 (they were the queue's wait);
+  the 100 000-voxel cloud 14 → 17 (its GPU time is real); bench:assembly's buffers 1 500 → 60 (24 since load with G10's
+  sharing). All 17 `bench:browser` rows pass on the new table; bench:assembly 3/3; bench-mesh-browser 3/3 but one run's
+  million-triangle save (318 ms; 113 and 128 in the others), its budget from that run.
+- **Evidence and checks** (v2): gpu tsc and eslint clean, unit 77/77 (one updated: no uvs given, none kept), browser 11/11;
+  studio tsc and eslint clean, suite 193/193; FLOW_ONLY before (`2a770898e`) and after over render looks, measure, mass,
+  proposals, double-click, RM1, RM2's posed sections, O68, G6, G10 (11 steps): the same pass/fail both (surface analysis
+  fails in both, for want of earlier steps), and every viewport screenshot identical (0 pixels past 8) — the only
+  differences a render's progress readout (2.48 / 2.45). Not run: the full flow (the coordinator's), the cad-model suite.
+
+## G14 — display LOD: measured, two fixes, stopped (2026-10-22)
+
+- **Measured** (the bench harness with render-pass timestamps; orbit 60 steps and 30 still frames; load 15–35):
+
+  | case | GPU a frame, orbit / still |
+  |---|---|
+  | 100 000 points spread over a 120 mm cube | 3.0 / 2.6 ms |
+  | the same around the 2R arm (the bench's cloud row: dense on screen) | 8.26 / 7.33 ms |
+  | — its hidden-parts pass off | 4.68 ms |
+  | — points of 1 px | 4.64 ms |
+  | — 25 000 points | 3.53 ms |
+  | 200 000-triangle mesh (organic) | 1.5–2.5 / 1.5–2.5 ms |
+  | 1 000 000-triangle mesh | 3.0 / 2.7–4.2 ms |
+
+  The dense cloud is fill and blending (≈ 2.5 M fragments a pass piling onto the same pixels), and a second pass for its
+  hidden parts (G7's `lineHidden`, 0.35) that shaded every point again.
+- **Fix 1 — no discard in the point shader**: a point writes no depth and always blends, so where it does not cover (or the
+  clip plane cuts it) it returns transparent black instead of discarding; a pipeline without discard keeps the depth test
+  ahead of the fragment shader. The hidden pass 3.6 → 1.4 ms; orbit 8.26 → 6.11 ms.
+- **Fix 2 — quads half a pixel smaller**: a point's quad reached a whole pixel past its half size; its coverage ends half a
+  pixel past (a point of 3 drew 5 × 5, now 4 × 4). Orbit 6.11 → 4.67 ms, still 4.75 → 4.23 ms, 25 000 points 2.0 ms. The
+  edge fringe — pixels under half covered — now keeps only the multisamples inside the quad: RM9b's screenshot within 42 of
+  765 (ΣRGB) of before at 994 pixels, the cage's pole rings and vertices as before (the other differences in those flow
+  shots are a panel's preview time and a picked face's SVG tint caught at another moment).
+- **Stopped (G14-D1)**: no density LOD for points — a cap on the points drawn where they pile up would take most of the
+  remaining ≈ 3.5 ms but change which voxels (and colours) show, and 4.7 ms is a quarter of a 60 Hz frame. No levels of
+  detail for meshes — a million triangles orbit in ≈ 3 ms of GPU; simplified levels would cost their memory (≈ 1.3× the
+  mesh), popping between levels and the question of which level a pick is against, for at most ≈ 2 ms. The million-triangle
+  orbit's main-thread time (6.4 ms a frame, 3.5 for 200 000) is React's development build re-rendering the App (`jsxDEV`,
+  39 ms over 60 frames), not the viewer: with G13's panel item for the UI side — which the outer lane measured on a
+  production build (O141): about 1.5 ms of JavaScript a later click, so no memoisation was needed. Worth revisiting for meshes past ≈ 5 M
+  triangles or clouds past ≈ 500 000 points, neither of which the studio makes today.
+- **Bench**: `bench:browser`'s cloud row 4.03–4.73 ms of GPU in two runs (load 34–113); its budget 17 → 10.
+- **Checks** (v2): gpu unit 77/77, browser 11/11 (G8's shapes, rings, picks unchanged); studio suite 194/194; FLOW_ONLY on
+  WebGPU, before (`2c5a345e5`) and after, RM1–RM9c and the three cage steps: 13/13 both. Not run: the full flow (the
+  coordinator's), the cad-model suite.
+
+## G15 — text labels, an SDF atlas (2026-10-22)
+
+- **Glyphs** (`viewer/glyphs.ts`): each character drawn once into a 64² cell by the browser's own 2D canvas
+  (`OffscreenCanvas`), 44 px to the em, in the label font — one the page already has; no font file is ours or downloaded
+  (the studio sets IBM Plex Mono, which its stylesheet already loads, and draws the glyphs again once that web font has
+  loaded: `redrawGlyphs`). The coverage, thresholded at a half, becomes a signed distance field by our own transform
+  (Felzenszwalb–Huttenlocher's exact squared Euclidean distance, two passes of 1D lower envelopes; the test checks it
+  against brute force on random seeds), ±8 px to 0 and 255, 128 on the edge. Cells in one 2048² r8 atlas (1 024 glyphs; a
+  full atlas draws no more and says so), uploaded as they are added and again after a lost device.
+- **Labels** (`Viewer.addLabels`, topology `labels`): a label's lines laid out at the glyphs' advances, 1.25 em apart,
+  placed at its anchor by `align` and `offset`; one 80-byte instance a glyph, two for a chip (its fill, its 1-pixel border).
+  A screen label is `size` CSS pixels high whatever the zoom, about its anchor's projection; a plane label lies along its
+  plane's right and up, `size` its height in world units. The shader cuts a glyph's edge at the field's middle over
+  `fwidth` of it — a device pixel at any magnification — and a chip's rounded box by its distance in device pixels. Depth:
+  the points' rules — tested at the anchor (screen) or the quad (plane), `lineOver`, `lineHidden` for the hidden parts.
+- **Studio**: `ViewRenderer.setOverlayLabels(key, …)` beside G7's lines and G8's points. The measure readout (at the line's
+  middle, hidden parts at the line's 0.75) and the box's size chip (above the box, 0.4 of its diagonal over its top, 0.6),
+  the SVG chip's colours a theme (`.dim-chip`, `.dim-text`: dark #121315 / #fff / the accent border, light #fff /
+  #1b232c); the underlays' texts on the drawing's plane at their height, anchored at the first line's baseline-left as the
+  SVG had them, #8a93a3 at 0.8, hidden parts at 0.35 (their lines'). Not moved: the sketch's dimension chips (hovered and
+  clicked to edit, in the sketch's own 2D overlay) and the gizmo's readout (it follows the pointer while dragging).
+- **G15-D1 (a label is tested at its anchor)**: a screen label takes its anchor's depth, so a surface in front of the anchor
+  hides — faintly, with `lineHidden` — the part of the label it covers; a readout whose anchor is inside a body (a measure
+  between two faces) is drawn faint as a whole. The box chip's anchor was lifted clear of the box for that reason.
+- **Evidence**: gpu `glyphs.test.mjs` (new, 3): the transform equal to brute force on four grids; a disc's field above 128
+  inside, below outside, 4.5 px out at the expected value; the layout's lines, advances, centring and the chip's two
+  instances. Browser test G15: a 16 px chip the same size three times as far (86 → 86 px wide, 12 high), its fill
+  #121315-dark and its border gold; a plane label twice as wide twice as near (100 → 210 px); magnified about 20 times,
+  each edge at most 1 pixel soft; under a box hidden (no pixel past the box's own), faint with `lineHidden`, over it with
+  `lineOver`; 16 glyphs for 16 distinct characters; a new font laid out again. Flow before (`eab5e666c`) and after on
+  measure, mass and box, O68, the light theme: 5/5 both; the readout and the note where they were (the readout faint, its
+  anchor inside the box), the size chip above the box; WebGL2 5/5 (its SVG).
+- **Bench**: the underlay row (100 texts) task 8.1–8.7 → 2.5–3.0 ms a frame, GPU 1.5–2.1 ms (load 17–33); its task budget
+  16 → 6. The one-frame select and clear rows' GPU floor 3 → 4 ms (one run at load 33 drew 3.07).
+- **Checks** (v2): gpu tsc and eslint clean, unit 80/80, browser 12/12; studio tsc and eslint clean, suite 194/194. Not run:
+  the full flow (the coordinator's), the cad-model suite.
+- **G15-D2 (the coordinator's change to D1, 2026-10-22)**: the measure readout and the box's size chip are drawn over the
+  scene (`over`), at full strength, as the SVG drew them — a readout anchored between two faces is almost always inside the
+  body, and a faint readout fails at the one thing it is for. The anchor's depth rule (with the hidden share) stays for the
+  underlays' texts and other world labels.
+
+## G12 — a proposal's two-colour overlay (2026-10-22)
+
+- **On the outer lane's `proposalDiff`** (O136, integration `d2e4c1860`, merged here as `7351f2348`): added and removed
+  material as display meshes with their volumes (the analytic Boolean of each side's united bodies), the changed faces by
+  persistent name, the method (`faces` with why where the Boolean refuses).
+- **Where it runs**: the engine worker (`proposalDiff` request): both sides evaluated in part slots of their own — the
+  base in `read`, the proposal in `agent` (where its preview was just made) — then `proposalDiffFor`, kept by the base's
+  revision (`modelHash`) and the proposal with what is left out; the two meshes in a reply slot. The App asks whenever the
+  proposal shown changes (previewed, rebased, a feature ticked); none without one.
+- **Drawn** (`GpuRenderer.setProposalOverlay`): the added material `#57b26b` and the removed `#e5534b` (the view triad's
+  green and red), each a see-through (0.5) two-sided surface through G11's order-independent pass, with its edges (0.9,
+  hidden parts 0.35) and a chip of its volume (+500 mm³ / −101 mm³) over the scene as readouts are (G15-D2). The surfaces
+  are **decals** (`Material.decal`, new: the surfaces' depth bias reversed, a `D` variant of the surface pipelines and of
+  shader materials'), so where the removed material shares the base's faces (the before view) or the added shares the
+  proposal's (the after view), the overlay wins without z-fighting. The blue preview tint is off while the overlay shows.
+- **Faces instead** (`proposalTint`): where the method is `faces`, or on WebGL2 (no overlay), the shown bodies' faces are
+  tinted through `faceColors`: those added or changed green on the after view, removed or changed red on the before view.
+- **Evidence**: flow step G12 (new, before the theme step) — a 40 × 20 × 8 plate, a proposal of a Ø4 through hole and a
+  10 × 10 × 5 block beside it: method `boolean`, added 500.0 mm³, removed 100.53 (π·2²·8), 9 faces changed; on WebGPU the
+  two overlay meshes drawn, the block's pixel green-led (green over red by 20 and over blue by 10 — with the blue preview
+  tint still on it was cyan, 119/187/201, which is why the tint is dropped), the hole's red-led (over green by 20); before and after both shown (the screenshots: the red core in the hole after, the red disc on the top and
+  the floating green block before); rejected, the overlay gone. WebGL2: the faces tinted (`tinted: true`). Step 98 (the
+  proposals' rebase, accept in part, reject) passes on both renderers with the tint change.
+- **Checks** (v2): gpu tsc and eslint clean, unit 80/80, browser 12/12; studio tsc and eslint clean, suite 196/196;
+  FLOW_ONLY (G12 and step 98) 3/3 on WebGPU and 3/3 on WebGL2. Not run: the full flow (the coordinator's), the cad-model
+  suite (not touched), benches (no frame path changed but the decal pipelines' creation).
+

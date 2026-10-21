@@ -26,9 +26,11 @@ const names = process.argv.slice(2).length ? process.argv.slice(2) : ['organic-2
 const settled = () => page.waitForFunction(() => window.__studioDoc?.nodes[0]?.kind === 'mesh' && /1 body|bodies/.test(document.querySelector('.outliner')?.textContent ?? '') && !/Computing|Working/.test(document.body.innerText), null, { timeout: 600000, polling: 100 });
 const MB = n => +(n / 2 ** 20).toFixed(1);
 // (ms to read, open, save and open again; the saved file's MB.)
+// (G13, 2026-10-22: re-measured, three runs alone at a load of 16–17 — about twice the worst of the three; the
+// million-triangle save ran 113, 128 and 318 ms, its budget from the slowest. The file sizes are the same every run.)
 const BUDGET = {
-  'organic-200k': { readMS: 120, openMS: 1600, saveMS: 80, reopenMS: 700, fileMB: 3.8 },
-  'organic-1000k': { readMS: 500, openMS: 5600, saveMS: 160, reopenMS: 2600, fileMB: 19 },
+  'organic-200k': { readMS: 220, openMS: 1600, saveMS: 110, reopenMS: 830, fileMB: 3.8 },
+  'organic-1000k': { readMS: 560, openMS: 5700, saveMS: 640, reopenMS: 3200, fileMB: 19 },
 };
 const os = await import('node:os'), loadAtStart = os.loadavg()[0];
 const rows = [];

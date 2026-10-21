@@ -1,7 +1,7 @@
 // The view cube, as CAD tools have it: a small cube turned with the camera, its faces named (Top, Front,
 // Right …). A click on a face looks straight at it; on a corner, from that corner (isometric); on an edge,
 // from between its two faces. Dragging it orbits. Hovered parts light up.
-import { useRef, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
 const FACES: { n: Vec3; label: string }[] = [
@@ -15,13 +15,20 @@ const SIZE = 96, HALF = 26, CUT = 0.28;
  * `basis`: the camera's right, up and forward (world). `onLook(dir)`: look along −dir (from dir, a unit
  * vector from the target to the eye). `onOrbit(dx, dy)`: a drag on the cube, in pixels.
  */
-export function ViewCube({ right, up, forward, onLook, onOrbit }: { right: Vec3; up: Vec3; forward: Vec3; onLook(from: Vec3): void; onOrbit(dx: number, dy: number): void }) {
+type ViewCubeProps = { right: Vec3; up: Vec3; forward: Vec3; onLook(from: Vec3): void; onOrbit(dx: number, dy: number): void };
+const sameVec = (a: readonly number[], b: readonly number[]) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+/**
+ * (G13: drawn again only when the camera turns — the overlay renders on every frame and on every App update; the
+ * callbacks are the viewport's, which read its refs, so the ones from an earlier render do the same.)
+ */
+export const ViewCube = memo(ViewCubeView, (a: ViewCubeProps, b: ViewCubeProps) => sameVec(a.right, b.right) && sameVec(a.up, b.up) && sameVec(a.forward, b.forward));
+function ViewCubeView({ right, up, forward, onLook, onOrbit }: ViewCubeProps) {
   const [hot, setHot] = useState<string | null>(null);
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const c = SIZE / 2, P = (p: Vec3): [number, number] => [c + dot(p, right) * HALF, c - dot(p, up) * HALF];
   const toward = (n: Vec3) => -dot(n, forward);
   // Each face as its middle square, with eight bevel pieces round it (edges and corners) to click.
-  type Part = { id: string; from: Vec3; pts: [number, number][]; depth: number; face?: string };
+  type Part = { id: string; key: string; from: Vec3; pts: [number, number][]; depth: number; face?: string };
   const parts: Part[] = [];
   for (const f of FACES) {
     if (toward(f.n) <= 0.02) continue;
@@ -35,7 +42,7 @@ export function ViewCube({ right, up, forward, onLook, onOrbit }: { right: Vec3;
       if (b !== 1) from[j] = b === 0 ? -1 : 1;
       const id = from.map(x => x > 0 ? '+' : x < 0 ? '-' : '0').join('');
       const pts = [at(u0, v0), at(u1, v0), at(u1, v1), at(u0, v1)].map(P);
-      parts.push({ id, from, pts, depth: toward(f.n), ...(a === 1 && b === 1 ? { face: f.label } : {}) });
+      parts.push({ id, key: `${f.label}${a}${b}`, from, pts, depth: toward(f.n), ...(a === 1 && b === 1 ? { face: f.label } : {}) });
     }
   }
   parts.sort((p, q) => p.depth - q.depth);
@@ -48,7 +55,8 @@ export function ViewCube({ right, up, forward, onLook, onOrbit }: { right: Vec3;
       onPointerLeave={() => setHot(null)}>
       {parts.map(p => {
         const on = hot === p.id, face = !!p.face;
-        return <polygon key={p.id + (p.face ?? '') + p.pts[0].join()} points={p.pts.map(q => q.map(x => x.toFixed(1)).join(',')).join(' ')} data-view={p.id}
+        // (Keyed by its face and cell: a turn updates its points rather than making it again.)
+        return <polygon key={p.key} points={p.pts.map(q => q.map(x => x.toFixed(1)).join(',')).join(' ')} data-view={p.id}
           className={'vc-part' + (face ? ' face' : '') + (on ? ' hot' : '')} style={{ ['--shade' as string]: String(0.55 + 0.45 * p.depth) }}
           onPointerEnter={() => setHot(p.id)} onClick={() => { if (!drag.current?.moved) onLook(unit(p.from)); }} />;
       })}

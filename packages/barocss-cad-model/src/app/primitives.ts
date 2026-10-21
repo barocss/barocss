@@ -2,7 +2,7 @@
 // feature): sphere, cone (or frustum), torus, tube, wedge and regular polygon prism. They stand on Z = At Z
 // at the given X, Y, to the right of what is there by default.
 import { bevelGearDimensions, wormDimensions, wormWheelSpec, checkWormPair } from '@barocss/cad';
-import { withNode, type LoopSegment, type ModelNode, type StudioDoc } from '../engine/doc';
+import { withNode, type CamLawName, type LoopSegment, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { Command, Ctx, HandleSpec, Values } from './commands';
 
 const ok = { ok: true as const };
@@ -86,6 +86,8 @@ export const STEEL_G_ESTIMATE_MPA = 79300;
 /** Spring steel's Young's modulus E, MPa, for a torsion spring's rate: an estimate likewise (no source read), flagged. */
 export const STEEL_E_ESTIMATE_MPA = 206000;
 
+/** The cam's laws in its form (R12c.6a, D160). */
+const LAW_OPTIONS: { value: CamLawName; label: string }[] = [{ value: 'cycloidal', label: 'Cycloidal' }, { value: 'polynomial-345', label: '3-4-5 polynomial' }, { value: 'modified-trapezoid', label: 'Modified trapezoid' }, { value: 'harmonic', label: 'Harmonic' }];
 /** The one selected body when it is a spur gear as made (not built on further): its node and index. */
 /** The Internal gear command's default x2 (D132): unshifted, a ring's tip corners cut a rack-cut pinion's fillet at no backlash. */
 const RING_SHIFT = 0.5;
@@ -243,6 +245,30 @@ export const primitives: Command[] = [
       if (v.type === 'extension') return withNode(ctx.doc, { kind: 'spring', type: 'extension', wire: d, diameter: D, activeCoils: na, ...(pw > 0 ? { pitch: pw } : {}), hand, hooks: v.hooks === 'crossover' ? 'crossover' : 'machine-loop', ...(Fi > 0 ? { initialTension: Fi } : {}), ...g, ...(F > 0 ? { load: F } : {}), ...place });
       const ends = v.ends === 'open' || v.ends === 'closed' ? v.ends : 'closed-ground' as const;
       return withNode(ctx.doc, { kind: 'spring', wire: d, diameter: D, activeCoils: na, pitch: p, hand, ends, ...g, ...(F > 0 ? { load: F } : {}), ...place });
+    },
+  },
+  {
+    id: 'cam', label: 'Cam', icon: 'cad-cam', hint: 'A disc cam for a roller or flat-faced follower, translating or oscillating: a rise, a dwell, a return and a dwell under closed-form laws (cycloidal, 3-4-5, modified trapezoid, harmonic). The profile fitted within 1e-4 of the base radius; the pressure angle, undercut and the follower on the built profile in its notes. Not validated for manufacturing', group: 'create', keywords: 'cam follower',
+    available: () => ok,
+    fields: () => [{ key: 'follower', label: 'Follower', kind: 'choice', options: [{ value: 'roller', label: 'Roller' }, { value: 'flat', label: 'Flat face' }] },
+      { key: 'motion', label: 'Motion', kind: 'choice', options: [{ value: 'translating', label: 'Translating' }, { value: 'oscillating', label: 'Oscillating' }] },
+      { key: 'rb', label: 'Base circle radius', kind: 'mm', min: 1 }, { key: 'rr', label: 'Roller radius', kind: 'mm', min: 0.5, when: v => v.follower !== 'flat' },
+      { key: 'e', label: 'Offset', kind: 'mm', when: v => v.motion !== 'oscillating' }, { key: 'a', label: 'Pivot distance', kind: 'mm', min: 1, when: v => v.motion === 'oscillating' },
+      { key: 'l', label: 'Arm length', kind: 'mm', min: 1, when: v => v.motion === 'oscillating' && v.follower !== 'flat' }, { key: 'c', label: 'Face offset from the pivot', kind: 'mm', when: v => v.motion === 'oscillating' && v.follower === 'flat' },
+      { key: 'h', label: 'Lift (mm; swing ° when oscillating)', kind: 'number', min: 0.1 },
+      { key: 'br', label: 'Rise angle', kind: 'deg', min: 1, max: 359 }, { key: 'lr', label: 'Rise law', kind: 'choice', options: LAW_OPTIONS },
+      { key: 'd1', label: 'Dwell after the rise', kind: 'deg', min: 0, max: 358 },
+      { key: 'bf', label: 'Return angle', kind: 'deg', min: 1, max: 359 }, { key: 'lf', label: 'Return law', kind: 'choice', options: LAW_OPTIONS },
+      { key: 't', label: 'Thickness', kind: 'mm', min: 0.5 }, { key: 'bore', label: 'Bore Ø (0: none)', kind: 'mm', min: 0 }, ...at],
+    defaults: ctx => ({ follower: 'roller', motion: 'translating', rb: 20, rr: 5, e: 0, a: 50, l: 40, c: 0, h: 8, br: 120, lr: 'cycloidal', d1: 60, bf: 120, lf: 'cycloidal', t: 10, bore: 8, ...beside(ctx, 30) }),
+    handles: (_, v) => { const [rb, x, y, zz] = n(v, 'rb', 'x', 'y', 'z'); return [puck([x, y, zz]), arrow('rb', [x + rb, y, zz], X, { scale: 1 })]; },
+    build: (ctx, v) => {
+      const [rb, rr, e, a, l, c, h, br, d1, bf, t, bore, x, y, zz] = n(v, 'rb', 'rr', 'e', 'a', 'l', 'c', 'h', 'br', 'd1', 'bf', 't', 'bore', 'x', 'y', 'z');
+      const follower = v.follower === 'flat' ? 'flat' as const : 'roller' as const, osc = v.motion === 'oscillating', law = (k: string) => LAW_OPTIONS.some(o => o.value === v[k]) ? v[k] as CamLawName : 'cycloidal';
+      // (The rest of the turn is the dwell before the rise; the kernel refuses a program off 360°.)
+      const rest = 360 - br - d1 - bf, segments = [{ angle: br, to: h, law: law('lr') }, ...(d1 > 0 ? [{ angle: d1 }] : []), { angle: bf, to: 0, law: law('lf') }, ...(Math.abs(rest) > 1e-9 ? [{ angle: rest }] : [])];
+      return withNode(ctx.doc, { kind: 'cam', follower, ...(osc ? { motion: 'oscillating' as const, pivotDistance: a, ...(follower === 'roller' ? { armLength: l } : c ? { faceOffset: c } : {}) } : e ? { offset: e } : {}), base: rb, ...(follower === 'roller' ? { roller: rr } : {}),
+        segments, thickness: t, ...(bore > 0 ? { bore } : {}), center: [x, y], ...(zz ? { from: zz } : {}), generator: 'cam@0' });
     },
   },
   {

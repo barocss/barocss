@@ -196,6 +196,16 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-shaft': <><path d="M2.5 9.5h6v-2h7v2h6v5h-6v2h-7v-2h-6z" style={tone(TONE.right)} />{ac('M10.2 7.5h3.6')}<path d="M8.5 7.5v9M15.5 7.5v9" strokeOpacity={0.55} /></>,
   // A fit (R12c.2): a shaft in its bore, the gap between them in the accent colour.
   'cad-fit': <><circle cx="12" cy="12" r="9" style={tone(TONE.right)} /><circle cx="12" cy="12" r="5.6" style={dark} /><circle cx="12" cy="12" r="4.6" style={tone(TONE.top)} />{ac('M17.6 12h3.4M3 12h3.4')}</>,
+  // A sprocket (R12c.6b): its teeth round the seats, the bore; the seats' circle in the accent colour.
+  'cad-sprocket': <><path d="M18.96 10.15L21.35 11.06L21.35 12.94L18.96 13.85L18.95 13.88L20.57 15.86L19.63 17.49L17.10 17.08L17.08 17.10L17.49 19.63L15.86 20.57L13.88 18.95L13.85 18.96L12.94 21.35L11.06 21.35L10.15 18.96L10.12 18.95L8.14 20.57L6.51 19.63L6.92 17.10L6.90 17.08L4.37 17.49L3.43 15.86L5.05 13.88L5.04 13.85L2.65 12.94L2.65 11.06L5.04 10.15L5.05 10.12L3.43 8.14L4.37 6.51L6.90 6.92L6.92 6.90L6.51 4.37L8.14 3.43L10.12 5.05L10.15 5.04L11.06 2.65L12.94 2.65L13.85 5.04L13.88 5.05L15.86 3.43L17.49 4.37L17.08 6.90L17.10 6.92L19.63 6.51L20.57 8.14L18.95 10.12Z" style={tone(TONE.right)} /><circle cx="12" cy="12" r="2.4" style={dark} />{ac('M12 4.8a7.2 7.2 0 1 1 -0.01 0')}</>,
+  // A pulley (R12c.6b): a V-grooved wheel seen across, the groove in the accent colour.
+  'cad-pulley': <><path d="M6 3h12v6l-3 3 3 3v6H6v-6l3-3-3-3z" style={tone(TONE.right)} />{ac('M9 12h6')}<path d="M12 3v18" strokeOpacity={0.4} /></>,
+  // A belt drive (R12c.6b): two wheels and the belt round them in the accent colour.
+  'cad-belt': <><circle cx="7" cy="12" r="3.4" style={tone(TONE.right)} /><circle cx="18" cy="12" r="2.2" style={tone(TONE.right)} />{ac('M7 7.2L18 8.4a3.6 3.6 0 0 1 0 7.2L7 16.8a4.8 4.8 0 0 1 0-9.6z')}</>,
+  // A coupling (R12c.6b): a sleeve joining two shaft ends, the sleeve in the accent colour.
+  'cad-coupling': <><path d="M2.5 10h6v4h-6zM15.5 10h6v4h-6z" style={tone(TONE.top)} /><path d="M8.5 7h7v10h-7z" style={tone(TONE.right)} />{ac('M8.5 7h7v10h-7z')}</>,
+  // A disc cam (R12c.6a): its lobed profile round a bore, the roller follower on top and its stem in the accent colour.
+  'cad-cam': <><path d="M17.76 15.5L17.56 16.23L17.33 16.93L17.08 17.6L16.76 18.25L16.36 18.85L15.89 19.39L15.35 19.86L14.75 20.26L14.1 20.58L13.42 20.81L12.72 20.95L12 21L11.28 20.95L10.58 20.81L9.9 20.58L9.25 20.26L8.65 19.86L8.11 19.39L7.64 18.85L7.24 18.25L6.92 17.6L6.69 16.92L6.55 16.22L6.5 15.5L6.55 14.78L6.69 14.08L6.91 13.39L7.18 12.72L7.48 12.03L7.83 11.33L8.27 10.63L8.8 9.95L9.44 9.31L10.19 8.76L11.06 8.33L12 8.06L12.99 7.97L13.99 8.08L14.95 8.39L15.82 8.89L16.57 9.55L17.17 10.33L17.6 11.2L17.88 12.1L18.01 13.01L18.01 13.89L17.92 14.72Z" style={tone(TONE.right)} /><circle cx="12" cy="15.5" r="1.6" style={dark} /><circle cx="12" cy="6.25" r="1.8" style={tone(TONE.top)} />{ac('M12 4.45V1.5')}</>,
   // A compression spring (R12c.1a): its coil between the ground plates.
   'cad-spring': <>{ghost(SPRING.back)}{line(SPRING.front)}{ac('M4 4.2h16M4 20.4h16')}</>,
   // A rack: a bar with trapezoid teeth along its top.

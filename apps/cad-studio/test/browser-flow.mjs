@@ -2691,6 +2691,21 @@ try {
     }
   });
 
+  await check('Cam (R12c.6a, D160): a disc cam from the palette — S0\'s roller cam, cycloidal rise and return; its notes (the program, the pressure angle against a rule of thumb, the pitch curve\'s least radius above the roller, the fit and the follower on the built profile)', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('cam'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'cam' && /1 bod/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    assert.match(await page.textContent('.history'), /Cam for a roller follower, base R20, lift 8/);
+    await page.locator('.outliner .ol').first().click();
+    await page.waitForSelector('[aria-label="Generator note"]', { timeout: 10000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning /, ''));
+    assert.ok(notes.some(t => /^Motion: rise to 8 mm over 0–120° \(cycloidal\), dwell to 180°/.test(t)) && notes.some(t => /^Pressure angle at most 14\.8683° .*a rule of thumb, an estimate/.test(t)) && notes.some(t => /least convex radius 23\.6902 .* no undercut/.test(t)) && notes.some(t => /^Profile within .* the follower found on the built profile/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Top")'); await press('f'); await page.waitForTimeout(500);
+    await snap('cam-roller');
+  });
+
   await check('R12b.7 the gears\' acceptance by the scripted agent through the real chat: a planetary set (its own mesh checks passing), a right-angle bevel pair, a worm reducer — each in one turn, its pairs clear in their notes (new in D138)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
@@ -3800,6 +3815,42 @@ try {
     assert.ok(notes.includes('Stretch 2 %, the section 3.5006 stretched; squeeze 20.7 % (20 % stretched); fill 73.1 %') && notes.some(t => /\(estimates: Fictiv/.test(t)), notes.join(' | '));
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('oring-gland');
+  });
+
+  await check('Chain drive (R12c.6b, D161): the user\'s drive rows loaded (none built in); two sprockets and a chain on them through the scripted chat — the second moved to the distance for whole links, the links and the tooth form in their notes', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const rows = [{ kind: 'chain', id: 'chain-a', pitchMM: 12.7, rollerDiameterMM: 8.51, innerWidthMM: 7.75, plateHeightMM: 11.8, estimate: true }];
+    const file = join(out, 'drive-rows.json'); fs.writeFileSync(file, JSON.stringify(rows));
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="Drive rows"]'), /No drive rows: load your own .* None is built in/);
+      await page.setInputFiles('input[aria-label="Drive rows file"]', file);
+      await page.waitForFunction(() => window.__studioDoc.drives?.rows?.length === 1, null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Drive row chain-a"]'), /chain-a chain p 12\.7, roller Ø8\.51 · estimate/);
+    } finally { await page.click('[aria-label="Close library"]'); }
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), cmd = (command, values, extra = {}) => ({ tool: 'features', args: { action: 'command', command, values, ...extra } });
+      const calls = [cmd('sprocket', { row: 'chain-a', teeth: 17, tip: 75, w: 7, x: 0, y: 0, z: 0 }), cmd('sprocket', { row: 'chain-a', teeth: 34, tip: 145, w: 7, x: 200, y: 0, z: 0 }), cmd('belt-drive', { links: 'whole', snap: 'move' }, { bodies: ['b0', 'b1'] })];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`);
+      await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(x => x.kind === 'belt') && /3 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    const moved = await page.evaluate(() => window.__studioDoc.nodes[1].center[0]);
+    assert.ok(Math.abs(moved - 203.0145565) < 1e-4, String(moved));
+    const row = await page.evaluate(() => [...document.querySelectorAll('.outliner .ol')].findIndex(e => /^\s*chain-a on features 1 and 2/.test(e.textContent ?? '')));
+    await page.locator('.outliner .ol').nth(row).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /58 links/.test(x.textContent ?? '')), null, { timeout: 30000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning\s*/, '').trim());
+    assert.ok(notes.some(t => /^Chain chain-a \(an estimate\): length 736\.6 mm/.test(t)) && notes.some(t => /^58 pitches: 58 links/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Top")'); await press('f'); await page.waitForTimeout(500);
+    await snap('chain-drive');
   });
 
   await check('Fits (R12c.2, D155): a fit table loaded in the Library panel (none built in); a bore and a pin given H7 and g6 and declared a pair through the chat — the limits and the clearance in the notes', async () => {
@@ -5580,7 +5631,8 @@ try {
     // (Its polylines the engine's lines on WebGPU (G7), its texts SVG.)
     const underlayDrawn = () => page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayLines?.()['underlay:U1'] ?? 0) > 0 && !!document.querySelector('[aria-label="Underlay drawing U1"]') : !!document.querySelector('[aria-label="Underlay drawing U1"] path'));
     await page.waitForFunction(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayLines?.()['underlay:U1'] ?? 0) > 0 : !!document.querySelector('[aria-label="Underlay drawing U1"] path'), null, { timeout: 10000 });
-    assert.match(await page.locator('[aria-label="Underlay drawing U1"]').innerHTML(), /PLATE 3MM/);
+    // (Its texts the engine's labels on WebGPU, G15; SVG on WebGL2.)
+    assert.match(await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu' ? (window.__studioOverlayTexts?.()['underlay:text:U1'] ?? []).join('\n') : document.querySelector('[aria-label="Underlay drawing U1"]')?.innerHTML ?? ''), /PLATE 3MM/);
     await snap('o68-underlay');
     await page.click('[aria-label="Hide underlay U1"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Underlay drawing U1"]') && !window.__studioOverlayLines?.()['underlay:U1']);
     assert.equal(await underlayDrawn(), false);
@@ -6299,6 +6351,48 @@ try {
     assert.deepEqual(after.own, [false], 'its surface not shared');
     const kept = Object.keys(before).filter(k => k !== 'inst:r5' && before[k] === after.ids[k]).length;
     assert.equal(kept, 23, 'the other copies kept their meshes');
+  });
+
+  // ---- G12: a proposal's two-colour overlay ----------------------------------------------------------------------------
+  await check('G12: a proposal previewed with what it adds (green) and takes away (red) — a Ø4 hole in a 40 × 20 × 8 plate and a 10 × 10 × 5 block beside it: 500 mm³ added, 100.5 removed, by the Boolean; cleared with the preview', async () => {
+    const fs = await import('node:fs');
+    const nodes = [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 8 }];
+    const risk = { level: 'low', features_touched: 1, references_broken: 0, hard_requirements_changed: [], approval: [] };
+    const ops = [{ tool: 'features', args: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 4, x: 30, y: 10 } } },
+      { tool: 'features', args: { action: 'add', features: [{ kind: 'sketch', profile: 'rectangle', min: [50, 0], max: [60, 10] }, { kind: 'extrude', sketch: 3, height: 5 }] } }];
+    const proposals = [{ id: 'P9', title: 'A Ø4 hole and a block', status: 'open', by: { agent: 'chat' }, at: '2026-10-22T00:00:00Z', base: '0', ops, risk, summary: '3 added' }];
+    const file = join(out, 'g12-proposal.bcad');
+    fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes, proposals }));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForSelector('[aria-label="Proposal P9"]', { timeout: 15000 }); await idle();
+    await page.locator('[aria-label="Proposal P9"] button', { hasText: 'Rebase & preview' }).click();
+    await page.waitForSelector('[aria-label="Proposal P9"] [aria-label="Volume change"]', { timeout: 15000 });
+    await page.waitForFunction(() => !!window.__studioProposalOverlay?.(), null, { timeout: 30000 }); await page.waitForTimeout(600);
+    const o = await page.evaluate(() => window.__studioProposalOverlay());
+    console.log(`  G12 overlay: ${JSON.stringify(o)}`);
+    assert.equal(o.method, 'boolean');
+    assert.ok(Math.abs(o.added - 500) < 1, `500 mm³ added ${JSON.stringify(o)}`);
+    assert.ok(Math.abs(o.removed - Math.PI * 4 * 8) < 1.5, `the hole's π·2²·8 removed ${JSON.stringify(o)}`);
+    assert.ok(o.faces > 0);
+    if (await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu')) {
+      // Drawn: the two materials (and their edges and chips); green over the block, red at the hole.
+      const names = await page.evaluate(() => window.__studioViewer.meshList.map(m => m.name).filter(n => n?.startsWith('proposal:')));
+      assert.deepEqual(names.sort(), ['proposal:added', 'proposal:removed']);
+      assert.equal(o.tinted, false, 'no faces tinted: the Boolean drew it');
+      const c = await page.evaluate(async () => {
+        const v = window.__studioViewer, img = await v.capture(), M = v.camera.viewProjection(v.aspect), W = v.canvas.width, H = v.canvas.height;
+        const at = p => { const q = [0, 1, 3].map(k => M[k] * p[0] + M[4 + k] * p[1] + M[8 + k] * p[2] + M[12 + k]); const x = Math.round((q[0] / q[2] * 0.5 + 0.5) * W), y = Math.round((0.5 - q[1] / q[2] * 0.5) * H), i = (y * W + x) * 4; return [...img.data.slice(i, i + 3)]; };
+        return { block: at([55, 5, 5]), hole: at([30, 10, 8]) };
+      });
+      assert.ok(c.block[1] > c.block[0] + 20 && c.block[1] > c.block[2] + 10, `green over the block ${JSON.stringify(c)}`);
+      assert.ok(c.hole[0] > c.hole[1] + 20, `red at the hole ${JSON.stringify(c)}`);
+    } else assert.equal(o.tinted, true, 'WebGL2: its faces tinted');
+    await snap('g12-proposal');
+    // Before and after: the overlay stays; the preview cleared, it goes.
+    await page.click('[aria-label="Proposal P9"] [aria-label="Before or after"]'); await page.waitForTimeout(500); await snap('g12-proposal-before');
+    assert.ok(await page.evaluate(() => !!window.__studioProposalOverlay()));
+    await page.locator('[aria-label="Proposal P9"] button', { hasText: 'Reject' }).click();
+    await page.waitForFunction(() => !window.__studioProposalOverlay?.(), null, { timeout: 10000 });
   });
 
   await check('command palette and light theme', async () => {

@@ -115,6 +115,8 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.worm ? [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] : []),
     ...(o.wormWheel ? wormWheelNotes(o.wormWheel) : []),
     ...(o.spring ? springNotes(o.spring) : []),
+    ...(o.cam ? camNotes(o.cam) : []),
+    ...(o.sprocket || o.pulley || o.belt || o.coupling ? driveNotes(o) : []),
     ...(o.shaft ? shaftNotes(o.shaft) : []),
     ...(o.key || o.keyway || o.ring || o.pin ? shaftPartNotes(o) : []),
     ...(o.bearing ? bearingNotes(o.bearing) : []),
@@ -556,6 +558,50 @@ function springNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['spring']
     { text: `Wire within ${s.sweep.profileDeviationMM.toExponential(1)} mm of the exact pipe (${s.sweep.pieces} cubic pieces on ${s.sweep.segments} segments); wire length ${mm(s.sweep.wireLengthMM)} mm` },
     { text: 'Not validated for manufacturing: no buckling, fatigue or relaxation check', warning: true },
     ...s.diagnostics.map(x => ({ text: x.message.replace(/^spring: /, ''), warning: x.severity === 'warning' })),
+  ];
+}
+/** A drive element's report as lines (R12c.6b, D161): a sprocket's, a pulley's, a belt's or chain's, a coupling's. */
+function driveNotes(o: CadPartSnapshot['outputs'][number]): { text: string; warning?: boolean }[] {
+  const mm = (x: number) => +x.toFixed(4), d1 = (x: number) => +x.toFixed(1), whose = (est: boolean, src?: string) => est ? 'an estimate' : `your row, ${src}`;
+  const tail = (ws: readonly string[]) => ws.map(w => ({ text: w, warning: true }));
+  const not = { text: 'Not validated for manufacturing: no strength, wear or life check', warning: true };
+  if (o.sprocket) {
+    const r = o.sprocket;
+    return [{ text: `Sprocket z${r.teeth} for chain ${r.chain} (${whose(r.chainEstimate, r.chainSource)}): pitch ${mm(r.pitchMM)}, roller Ø${mm(r.rollerDiameterMM)}; pitch Ø${mm(r.pitchDiameterMM)}` },
+      { text: `Tooth form pivot-clearance (derived here, not ISO 606's): seats Ø${mm(r.seatDiameterMM)}, root Ø${mm(r.rootDiameterMM)}, flanks r ${mm(r.flankRadiusMM)} about the neighbouring seats, tip Ø${mm(r.tipDiameterMM)} (pointed at Ø${mm(r.pointedTipDiameterMM)})` },
+      { text: `A roller turning out of its seat clears the teeth by ${mm(r.engagementClearanceMM)} mm (measured on the built teeth)` }, ...tail(r.warnings.filter(w => !/is an estimate$/.test(w))), not];
+  }
+  if (o.pulley) {
+    const r = o.pulley, what = r.type === 'timing' ? `Timing pulley z${r.teeth}: pitch Ø${mm(r.pitchDiameterMM)}, outside Ø${mm(r.outsideDiameterMM)}, grooves to Ø${mm(r.grooveBottomDiameterMM!)}` : r.type === 'v' ? `V pulley, ${r.grooves} groove${r.grooves === 1 ? '' : 's'}: datum Ø${mm(r.pitchDiameterMM)}, outside Ø${mm(r.outsideDiameterMM)}, grooves to Ø${mm(r.grooveBottomDiameterMM!)}` : `Flat pulley Ø${mm(r.outsideDiameterMM)}${r.crownMM ? `, crowned ${mm(r.crownMM)}` : ''}`;
+    return [{ text: `${what}, ${mm(r.widthMM)} wide, for belt ${r.belt} (${whose(r.beltEstimate, r.beltSource)})` }, ...tail(r.warnings.filter(w => !/is an estimate$/.test(w))), not];
+  }
+  if (o.belt) {
+    const r = o.belt, kind = r.kind === 'chain' ? 'Chain' : r.kind === 'timing-belt' ? 'Timing belt' : r.kind === 'v-belt' ? 'V-belt' : 'Flat belt';
+    return [{ text: `${kind} ${r.row} (${whose(r.rowEstimate, r.rowSource)}): length ${mm(r.lengthMM)} mm on pitch radii ${mm(r.pitchRadiiMM[0])} and ${mm(r.pitchRadiiMM[1])} at ${mm(r.centerDistanceMM)}; wraps ${d1(r.wrapDeg[0])}° and ${d1(r.wrapDeg[1])}°` },
+      ...(r.chain ? [{ text: `${mm(r.chain.pitches)} pitches: ${r.chain.links} links (their centre distance ${mm(r.chain.centerDistanceMM)}); the chain's polygon on the sprockets (the chordal effect) is not modelled` }] : []),
+      { text: `Shown as a band ${mm(r.bandThicknessMM)} × ${mm(r.bandWidthMM)} about its pitch path` }, ...tail(r.warnings)];
+  }
+  const r = o.coupling!;
+  return [{ text: `Coupling ${r.row}${r.type ? ` (${r.type})` : ''} (${whose(r.estimate, r.source)}): Ø${mm(r.outsideMM)} × ${mm(r.lengthMM)}, bores Ø${mm(r.boreMM[0])}${r.boreMM[0] !== r.boreMM[1] ? ` and Ø${mm(r.boreMM[1])} stepped at ${mm(r.boreStepMM)}` : ''}; its envelope only` },
+    { text: `Bought${r.bought.partNumber ? `: part ${r.bought.partNumber}` : ''}${r.bought.supplier ? ` from ${r.bought.supplier}` : ''}${!r.bought.partNumber && !r.bought.supplier ? ' (no part number or supplier in its row)' : ''}` }];
+}
+/** A disc cam's report as lines (R12c.6a, D160): its follower, program, pressure angle, curvature and the fit. */
+function camNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['cam']>): { text: string; warning?: boolean }[] {
+  const mm = (x: number) => +x.toFixed(4), d1 = (x: number) => +x.toFixed(1), u = r.units === 'deg' ? '°' : ' mm', osc = r.motion === 'oscillating', flat = r.follower === 'flat';
+  const who = flat ? `${osc ? 'an oscillating' : 'a translating'} flat-faced follower` : `${osc ? 'an oscillating' : 'a translating'} roller follower (r ${mm(r.rollerRadiusMM!)}, prime circle R ${mm(r.primeRadiusMM!)})`;
+  const where = osc ? `, pivot ${mm(r.pivotDistanceMM!)} off the centre${r.armLengthMM !== undefined ? `, arm ${mm(r.armLengthMM)}` : ''}${r.faceOffsetMM ? `, the face ${mm(r.faceOffsetMM)} from the pivot` : ''}, at rest ${d1(r.restAngleDeg!)}°` : r.offsetMM ? `, offset ${mm(r.offsetMM)}` : '';
+  const program = r.segments.map(g => g.motion === 'dwell' ? `dwell to ${d1(g.endDeg)}°` : `${g.motion} to ${mm(g.to)}${u} over ${d1(g.startDeg)}–${d1(g.endDeg)}° (${g.law})`).join(', ');
+  const c = r.curvature, pa = r.pressureAngle;
+  return [
+    { text: `Disc cam for ${who}${where}: base R ${mm(r.baseRadiusMM)}, ${osc ? 'swing' : 'lift'} ${mm(r.stroke)}${u}` },
+    { text: `Motion: ${program}` },
+    { text: `Peak velocity ${r.segments.filter(g => g.law).map(g => `${mm(g.peakVelocity)}`).join(' / ')} ${r.units}/rad, acceleration ${r.segments.filter(g => g.law).map(g => `${mm(g.peakAcceleration)}`).join(' / ')} ${r.units}/rad² (rise / return, per radian of the cam's turn)` },
+    { text: flat && !osc ? 'Pressure angle 0° (the face square to the follower\'s motion)' : `Pressure angle at most ${mm(pa.maxDeg)}° at ${d1(pa.atDeg)}°, against ${pa.limitDeg}°${pa.limitEstimate ? ' (a rule of thumb, an estimate)' : ''}`, ...(pa.maxDeg > pa.limitDeg ? { warning: true } : {}) },
+    { text: flat ? `Least radius of curvature ${mm(c.leastProfileRadiusMM)} at ${d1(c.atDeg)}° (ρ = h + h_ββ > 0: no undercut); the face touches from ${mm(r.faceContactMM![0])} to ${mm(r.faceContactMM![1])} mm ${osc ? 'from the pivot' : 'about the follower\'s line'}`
+      : `The pitch curve's least convex radius ${mm(c.leastPitchRadiusMM!)} at ${d1(c.atDeg)}°, above the roller's ${mm(r.rollerRadiusMM!)}: no undercut (the profile's ${mm(c.leastProfileRadiusMM)})` },
+    { text: `Profile within ${r.profileDeviationMM.toExponential(1)} mm of its closed form (${r.profilePieces} cubic pieces, tolerance ${r.profileToleranceMM.toExponential(1)}); the follower found on the built profile within ${r.sweep.deviationMM.toExponential(1)} mm of the law (${r.sweep.samples} positions)` },
+    ...r.warnings.filter(w => w.code !== 'PRESSURE_ANGLE').map(w => ({ text: w.message, warning: true })),
+    { text: 'Not validated for manufacturing: no forces, contact stress, wear or follower dynamics', warning: true },
   ];
 }
 /** An O-ring gland's report as lines (R12c.5, D159). */

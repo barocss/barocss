@@ -1,5 +1,5 @@
 // Axis-aligned boxes, their transforms and the view frustum test the viewer culls with.
-import { transformPoint, type Mat4, type Vec3 } from './math.js';
+import type { Mat4, Vec3 } from './math.js';
 
 export interface Box3 { readonly min: Vec3; readonly max: Vec3 }
 
@@ -16,12 +16,20 @@ export function boxOfPositions(positions: ArrayLike<number>): Box3 | null {
 
 /** The box around a box's eight corners after a transform. */
 export function transformBox(m: Mat4, b: Box3): Box3 {
-  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  // (No arrays a corner, G13: the box's eight corners transformed as numbers.)
+  let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
   for (let i = 0; i < 8; i++) {
-    const p = transformPoint(m, [i & 1 ? b.max[0] : b.min[0], i & 2 ? b.max[1] : b.min[1], i & 4 ? b.max[2] : b.min[2]]);
-    for (let k = 0; k < 3; k++) { if (p[k] < min[k]) min[k] = p[k]; if (p[k] > max[k]) max[k] = p[k]; }
+    const x = i & 1 ? b.max[0] : b.min[0], y = i & 2 ? b.max[1] : b.min[1], z = i & 4 ? b.max[2] : b.min[2];
+    const w = m[3] * x + m[7] * y + m[11] * z + m[15];
+    const px = (m[0] * x + m[4] * y + m[8] * z + m[12]) / w, py = (m[1] * x + m[5] * y + m[9] * z + m[13]) / w, pz = (m[2] * x + m[6] * y + m[10] * z + m[14]) / w;
+    if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; if (pz < z0) z0 = pz; if (pz > z1) z1 = pz;
   }
-  return { min: [min[0], min[1], min[2]], max: [max[0], max[1], max[2]] };
+  return { min: [x0, y0, z0], max: [x1, y1, z1] };
+}
+/** A box grown in place to hold another (G13: no box a step, as unionBox makes). */
+export function growBox(into: Box3, b: Box3): void {
+  const lo = into.min as unknown as number[], hi = into.max as unknown as number[];
+  for (let k = 0; k < 3; k++) { if (b.min[k] < lo[k]) lo[k] = b.min[k]; if (b.max[k] > hi[k]) hi[k] = b.max[k]; }
 }
 
 export function unionBox(a: Box3 | null, b: Box3 | null): Box3 | null {

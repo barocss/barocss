@@ -35,6 +35,8 @@ export function evaluatedPart(doc: StudioDoc): StudioDoc {
   if (doc.orings?.rows.length) { out.orings = doc.orings; if (doc.fits) out.fits = doc.fits; }
   // (O139: a retaining ring's row.)
   if (doc.rings?.rows.length) out.rings = doc.rings;
+  // (R12c.6b, D161: a wheel's, a belt's or a coupling's drive row.)
+  if (doc.drives?.rows.length) out.drives = doc.drives;
   return out;
 }
 const stripInstance = (i: PartInstance): PartInstance => ({ ...i, doc: evaluatedPart(i.doc) });

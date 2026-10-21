@@ -1,6 +1,7 @@
 // Geometry kept on the CPU (so it can be re-uploaded after a device loss and ray-cast for picking) and
 // its vertex data as the viewer uploads it: positions, normals and linear RGBA8 colours.
 import { boxOfPositions, type Box3 } from './bounds.js';
+import type { LabelInput } from './glyphs.js';
 import { dot, invert, srgbToLinear, transformDirection, transformPoint, type Vec3 } from './math.js';
 
 export interface GeometryInput {
@@ -14,8 +15,10 @@ export interface GeometryInput {
   colors?: ArrayLike<number>;
   /** Triangles (or segment pairs for lines, or one vertex a point); vertices in order when left out. */
   indices?: ArrayLike<number>;
-  /** Triangles (default), line segments or points (G8: screen-space sprites, Material.pointSize). */
-  topology?: 'triangles' | 'lines' | 'points';
+  /** Triangles (default), line segments, points (G8: screen-space sprites, Material.pointSize) or text labels (G15). */
+  topology?: 'triangles' | 'lines' | 'points' | 'labels';
+  /** Labels (topology 'labels'): their text, anchors and looks (positions are then their anchors). */
+  labels?: readonly LabelInput[];
   /** An id per triangle (a CAD face, say), reported by picking. */
   faces?: ArrayLike<number>;
   /** An id per line segment (a CAD edge, say), reported by line picking. */
@@ -23,8 +26,11 @@ export interface GeometryInput {
 }
 
 export interface PreparedGeometry {
-  topology: 'triangles' | 'lines' | 'points';
-  positions: Float32Array; normals: Float32Array; colors: Uint8Array; uvs: Float32Array;
+  topology: 'triangles' | 'lines' | 'points' | 'labels';
+  /** A label geometry's labels (laid out against the viewer's glyph atlas when uploaded), else null. */
+  labels: readonly LabelInput[] | null;
+  /** uvs: null when the input had none (G13: they read as zero, from one buffer the viewer shares). */
+  positions: Float32Array; normals: Float32Array; colors: Uint8Array; uvs: Float32Array | null;
   indices: Uint32Array | Uint16Array | null;
   faces: Uint32Array | null;
   edges: Uint32Array | null;
@@ -88,7 +94,9 @@ export function scalarAt(g: PreparedGeometry, t: number, p: ArrayLike<number>): 
 }
 
 export function prepareGeometry(input: GeometryInput): PreparedGeometry {
-  const topology = input.topology ?? 'triangles', positions = Float32Array.from(input.positions);
+  const topology = input.topology ?? 'triangles';
+  if (topology === 'labels') return prepareLabels(input);
+  const positions = Float32Array.from(input.positions);
   if (positions.length % 3) throw new RangeError('positions must hold three numbers per vertex');
   const vertexCount = positions.length / 3;
   for (let i = 0; i < positions.length; i++) if (!Number.isFinite(positions[i])) throw new RangeError(`positions[${i}] is not finite`);
@@ -114,9 +122,15 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
     if (topology !== 'lines' || input.edges.length !== elementCount / 2) throw new RangeError('edges must hold one id per segment');
     edges = Uint32Array.from(input.edges);
   }
-  const uvs = input.uvs ? Float32Array.from(input.uvs) : new Float32Array(vertexCount * 2);
-  if (uvs.length !== vertexCount * 2) throw new RangeError('uvs must hold two numbers per vertex');
-  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), uvs, indices, faces, edges, vertexCount, elementCount, bounds: boxOfPositions(positions), scalars: null };
+  const uvs = input.uvs ? Float32Array.from(input.uvs) : null;
+  if (uvs && uvs.length !== vertexCount * 2) throw new RangeError('uvs must hold two numbers per vertex');
+  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), uvs, indices, faces, edges, vertexCount, elementCount, bounds: boxOfPositions(positions), scalars: null, labels: null };
+}
+/** Labels (G15): their anchors as the positions — for the bounds, the frustum and the scene tree — one element each. */
+function prepareLabels(input: GeometryInput): PreparedGeometry {
+  const labels = input.labels ?? [], positions = new Float32Array(labels.length * 3);
+  labels.forEach((l, i) => { for (let k = 0; k < 3; k++) { const v = Number(l.at[k]); if (!Number.isFinite(v)) throw new RangeError(`labels[${i}].at is not finite`); positions[3 * i + k] = v; } });
+  return { topology: 'labels', positions, normals: new Float32Array(positions.length), colors: vertexColors(undefined, labels.length), uvs: null, indices: null, faces: null, edges: null, vertexCount: labels.length, elementCount: labels.length, bounds: boxOfPositions(positions), scalars: null, labels: labels.map(l => ({ ...l })) };
 }
 
 /** sRGB colours (three or four per vertex, 0–1) as linear RGBA8; white when left out. */

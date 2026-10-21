@@ -9101,3 +9101,307 @@ Ran:
 Not run:
 - RB and properties (the 3rd kernel checkpoint since D156's run; the 4th, R12c.6a, runs them).
 - The full browser flow (the coordinator's).
+
+## D160 — R12c.6a: disc cams and followers under closed-form laws; pressure angle and undercut against closed forms (2026-10-22)
+
+R12c.6a as D139 froze it, with the coordinator's rule: the motion laws come from closed forms derived and cited, never a table, and the pressure angle and the undercut are checked against closed forms.
+
+**The laws** (`cam.ts`, `camLaw(law, u)` → f, f', f'' on u ∈ [0, 1], f(0) = 0, f(1) = 1), each integrated by hand in the module's header, from no table or handbook:
+- **uniform** f = u. Its velocity steps at both ends, so it is always refused (below).
+- **harmonic** f = (1 − cos πu)/2. Its acceleration steps at a dwell: an ACCELERATION_STEP warning (infinite jerk).
+- **cycloidal** f = u − sin(2πu)/(2π).
+- **polynomial-345** f = 10u³ − 15u⁴ + 6u⁵: the least degree with f, f' and f'' fixed at both ends.
+- **modified-trapezoid:** the acceleration is a quarter sine to u = 1/8, flat A to 3/8, a half cosine through zero to −A at 5/8, flat to 7/8, then a quarter sine back to 0.
+  - Integrated twice piece by piece, f(1) = 1 gives A(1/8 + 1/(4π)) = 1, so A = 8π/(π + 2) = 4.8881. The peak velocity is A(1/4 + 1/(2π)) = 2.
+- **The peaks** `camLawPeaks` (Cv, Ca), from the same forms: harmonic π/2 and π²/2; cycloidal 2 and 2π; 3-4-5 15/8 and 10/√3 (where f''' = 0, u = (3 − √3)/6); modified trapezoid 2 and 8π/(π + 2).
+- **A segment** from p0 to p1 over β: s = p0 + Δf(u), s' = Δf'/β, s'' = Δf''/β², per radian of the cam's turn.
+
+**The frame:** the cam turns counter-clockwise about +Z by θ, and the follower sits above it.
+- A translating follower moves along +Y on the line x = e (its offset).
+- An oscillating follower swings about a pivot at (a, 0), the arm at ψ = ψ0 + s from the line to the centre.
+- The profile is in the cam's frame, Rot(−θ) of the world.
+
+**Roller followers** (the pitch curve P = Rot(−θ)C, C the roller centre's world path):
+- P' = Rot(−θ)(C' − JC) and P'' = Rot(−θ)(C'' − 2JC' − C), so κ = (Q1 × Q2)/|Q1|³ in the world frame. P runs clockwise, so κ < 0 where it is convex.
+- **The profile** is P less r_r along the outward normal JQ1/|Q1|. Its tangent is P'(1 + r_r κ), exact, so the Hermite fit takes exact end tangents.
+- **Undercut** (CAM_UNDERCUT): the pitch curve's least convex radius is at most r_r. The search is dense sampling per segment plus golden section.
+- **Pressure angle:** the angle between the pitch curve's normal and the follower's motion.
+  - Translating: tan φ = (s' − e)/(d + s), d = √(R_p² − e²) (Norton's form).
+  - Oscillating: C = (a − l cos ψ, l sin ψ), cos ψ0 = (a² + l² − R_p²)/(2al), the motion ⊥ the arm.
+
+**Flat-faced followers** (the face is a line n·X = h; in the cam's frame at angle β):
+- The profile is the lines' envelope K = h m + h_β Jm, its radius of curvature ρ = h + h_ββ and its tangent ρβ'Jm.
+  - Translating: h = r_b + s, so ρ = r_b + s + s'' (Norton's form). The contact is at s' along the face, and the pressure angle is 0.
+  - Oscillating: n = (sin ψ, cos ψ), h = a sin ψ − c (the face c from the pivot toward the cam), sin ψ0 = (r_b + c)/a.
+    - The pressure angle is atan(c/t), t the contact's distance from the pivot along the face: 0 for a face through the pivot.
+- **Undercut** where ρ ≤ 0, or where the face turns faster than the cam (1 + ψ' ≤ 0).
+- **The face's contact** range is reported; `faceWidthMM` is checked against it: a FACE_WIDTH warning.
+
+**A velocity step** at a joint is a corner in the cam's path.
+- Every law but uniform starts and ends at rest. So any cam with a uniform segment has a step at which the velocity drops.
+- For a roller, or for a translating flat face, that step is a convex corner: radius of curvature 0 (or ρ → −∞). It is refused CAM_UNDERCUT, naming the step and where it is.
+- For an oscillating flat face the sense depends on cos ψ. A step with no convex corner is refused INVALID_INPUT ("the profile would need a flat there, not built").
+- So uniform stays in the law set and its refusal says why. The command's form does not offer it.
+
+**The pressure angle's limit** defaults to 30° translating and 35° oscillating.
+- These are rule-of-thumb estimates, flagged, like O2's ranges (D159). (Wording fixed after review, D160 fix: they are attributed to no source, since none was read.) A user's limit replaces them, and a PRESSURE_ANGLE warning is raised above the limit.
+
+**The fit:** Hermite cubics in θ per segment, pieces broken at the segment joints. Each segment starts at ⌈32 β/2π⌉ pieces, doubling until its parameter-matched deviation (23 samples a piece, an upper bound on the distance) is within the tolerance.
+- The tolerance defaults to 1e-4 of the base radius.
+- The budget is 2048 pieces (PROFILE_BUDGET_EXCEEDED).
+- S0's cam: 34 pieces, 3.8e-4 mm.
+
+**The follower's displacement on the built profile** (D139's check), every half degree, from the law's position by secant steps:
+- a roller: the least distance from its centre to the built pieces (sampled, golden-section refined) less r_r;
+- a flat face: its offset less the built profile's support along its normal.
+- S0's cam: within 3.8e-4 mm of the law.
+
+**Solid and part model:**
+- **`discCam`:** the profile is extruded through `extrudedProfile`, with a bore (`minimumRimMM`, default 1, below the base circle).
+  - Faces `<id>.rise1#k`, `.dwell1#k`, `.return1#k` (the motions counted by kind, pieces in θ), `.bore#1/#2`, `.face0/.face1`.
+- **Exports:** `camProfile`, `camMotion`, `camLaw`, `camLawPeaks`, `CAM_LAWS`, `CamError` and the types.
+- **The kind `cam`** { base, thickness, follower, motion?, roller?, offset?, pivotDistance?, armLength?, faceOffset?, faceWidth?, segments [{ angle, to?, law? }], bore?, minimumRim?, pressureAngleLimit?, profileTolerance?, center?, from?, rotation?, generator 'cam@0' }.
+  - The output's `cam` is the report.
+  - Refusals: CAM_UNDERCUT → GEOMETRY, INVALID_INPUT → INPUT, PROFILE_BUDGET_EXCEEDED → CAPABILITY, each with its own code kept in the message. An unknown segment field is refused.
+
+**Oracles and tests** (`test/r12c-cam.test.mjs`, 9 tests, all failing on the previous HEAD: the module did not exist). Every oracle is written in the test, apart from the kernel's code:
+- **The laws:**
+  - f(0), f(1), and f', f'' against central differences;
+  - Cv and Ca against dense sampling;
+  - the ends at rest (uniform's velocity 1, harmonic's acceleration π²/2).
+- **The modified trapezoid:** its acceleration shape integrated twice by Simpson's rule, scaled so the rise is 1. A = 8π/(π + 2) comes out, not in. Cv = 2 and f within 1e-10.
+- **S0's cam** (base 20, roller 5, cycloidal 8 over 120°, 60° dwells):
+  - the pitch curve's least convex radius by the polar formula ρ = (r² + r'²)^{3/2}/(r² + 2r'² − r r''): 23.690158, S0's figure;
+  - the pressure angle by Norton's form;
+  - the volume against Green's theorem on the exact profile;
+  - the lift found on the built solid's own face curves (the highest roller centre on x = 0 touching any sampled point), within the fit's deviation over cos φ;
+  - the face names and the segments' peaks.
+- **An offset roller** (e 6): Norton's form with the offset; ρ by finite differences of the parametric pitch curve; a PRESSURE_ANGLE warning at a given 20°, not flagged an estimate.
+- **A flat translating follower** (3-4-5 rise, modified-trapezoid return):
+  - ρ = r_b + s + s'';
+  - the contact from −2·8/β to 15/8·8/β;
+  - the pressure angle 0;
+  - FACE_WIDTH at 15 mm;
+  - the lift on the built curves.
+- **An oscillating roller** (pivot 50, arm 40):
+  - ψ0;
+  - the pressure angle through Kennedy's instant centre a s'/(1 + s') on the line of centres, an independent construction;
+  - ρ by finite differences;
+  - two ACCELERATION_STEP warnings for the harmonic return;
+  - the arm's angle found on the built curves.
+- **An oscillating flat face** (pivot 60, c 0 and 5):
+  - the contact as the instant centre's foot on the face line;
+  - its range from the pivot;
+  - ρ by finite differences of those points;
+  - the pressure angle 0 and atan(c/t_min).
+- **Refusals:**
+  - uniform's step −3.819719 mm/rad at 120°;
+  - a roller 15 on base 6 with ρ 11.8433 by the polar formula;
+  - a flat face on a fast rise (ρ < 0);
+  - INVALID_INPUT: off 360°, not back at 0, no law, a position below 0, an offset past the prime circle, a bore through the base circle, an arm that never reaches the prime circle.
+- **The part model:** placed and turned with a bore (the bore's π·16·10 off S0's volume), the codes mapped, an unknown segment field, an unknown generator; `camMotion`.
+- **Conformance `r12c/`** (independent oracles: the exact profiles' area and centroid by Green's theorem, from a script that uses no kernel geometry):
+  - `cam-roller-cycloidal`: S0's cam with a Ø8 bore, relTol 1e-4;
+  - `cam-flat-345`: relTol 2e-4;
+  - `cam-oscillating-roller`: relTol 1e-4;
+  - `cam-uniform-refused`.
+
+**Studio and model:**
+- **The node `cam`** maps to the kind.
+  - Its label is "Cam for a roller follower, base R20, lift 8" (or "an oscillating flat-faced follower … swing 10°").
+  - `usesOf`, `leafBodies`, `flatten` and `migrate` know it.
+- **The Cam command** (create, keywords "cam follower", icon `cad-cam`):
+  - follower, motion, base, roller, offset, pivot, arm, face offset;
+  - the program as rise (lift, angle, law), a dwell after it, a return (angle, law); the rest of 360° is the dwell before the rise;
+  - thickness, bore, place;
+  - defaults: S0's cam with a Ø8 bore.
+  - The laws offered are cycloidal, 3-4-5, modified trapezoid and harmonic.
+- **Edit fields:** base, roller, lift or swing (scaling every position alike), thickness, bore, rotation.
+- **Notes:**
+  - the follower and its geometry;
+  - the program;
+  - the peaks;
+  - the pressure angle against its limit ("a rule of thumb, an estimate"; a warning above it);
+  - the least convex radius against the roller, or ρ and the face's contact;
+  - the fit and the sweep;
+  - the warnings;
+  - "Not validated for manufacturing".
+- **A friendly error** for `[CAM_UNDERCUT]`.
+- **Chat v2:** a features command, its values behind `describe`. The per-turn total is 22,279 (was 22,274; cap 25,000).
+- **Tests:** `test/cam.test.ts` (3):
+  - the default against the conformance volume, the notes and the label;
+  - an oscillating flat face, the lift edited, an undercut's title;
+  - describe and a features command.
+  - `palette.test` checks "cam" gives Cam first.
+- **A flow step** "Cam (R12c.6a, D160)".
+
+**Not in this stage:**
+- the follower's own solid (a roller or a lever, as library parts or the user's bodies);
+- forces, contact stress, wear, follower jump and spring sizing;
+- globoidal, cylindrical and face cams;
+- the arm's clearance with the cam;
+- the profile's flats that a velocity step would need.
+
+**Checks** (rules v2: `part-model.ts` gained a case, so the full kernel suite ran; the 4th kernel checkpoint since D156's run, so RB and properties ran), on f9eacc907 (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-cam`: 9/9.
+- The full kernel suite, conformance included: 1491/1498, 6 skipped, 1219 s (the load average up to 48). It failed only the env-only "actual native Split source…".
+- Conformance `r12c/`: 21/21.
+- `@barocss/cad-model`: type-check clean, 716/716. Studio: type-check clean, 194/194 (`palette.test` with "cam").
+- Test names against the saved lists: none missing; +13 kernel, +17 cad-model (3 of them this stage's, the rest the integration's O133), studio unchanged.
+- `FLOW_ONLY` "Cam (R12c" with the palette steps' neighbours (fillet, chamfer, round, R10, Shaft, Key, Hole, Fit, Spring): 82/85, the Cam step passing.
+  - Three failed under the load: "refit a curve" (its chain not selected: with the curve steps 49–55, 8/8), "fastener at a Ø6.6" and the FR3b frame gap. Each passed rerun alone.
+  - No flow palette word holds the new keywords ("cam follower").
+- RB: 398 cases, no new failures. The non-OK totals are unchanged (4 refused, 3 invalid, 5 wrong): the 8 known TODOs.
+- Properties: 11/11.
+
+Not run:
+- The full browser flow (the coordinator's).
+
+## D161 — R12c.6b: sprockets and chain, pulleys and belts, couplings from the user's rows; the tooth form derived (2026-10-22)
+
+R12c.6b as D139 froze it, with the coordinator's data rule:
+- chain pitch, belt sections and coupling sizes come from the user's rows;
+- the tooth forms come from closed-form geometry derived here;
+- couplings, which are bought items, carry `bought` defaults for the outer lane's BOM S1.
+
+No chain, belt or coupling table is built in, and no row in the tests or conformance is named after a standard size: they are test rows flagged estimates.
+
+**Rows** (`drive.ts`, `driveRowProblem`): one list of kinds, each citing its source or flagged an estimate, no unknown field, and sizes checked.
+- chain { pitchMM, rollerDiameterMM (< pitch), innerWidthMM?, plateHeightMM? };
+- timing-belt { pitchMM, pitchLineOffsetMM, groove: points [x along the land, depth below the outside circle], the ends on or above it, the inner points below, x not falling, thicknessMM? };
+- v-belt { angleDeg, datumWidthMM, aboveDatumMM, belowDatumMM, spacingMM, edgeMM, thicknessMM? }: the bottom width must stay above 0, the spacing and edge must take the top width;
+- flat-belt { widthMM, thicknessMM };
+- coupling { type?, boreMM [d1, d2], outsideMM, lengthMM, boreStepMM?, partNumber?, supplier? }.
+
+**Sprockets** (`sprocket`, `sprocketProfile`, `sprocketLimits`, `sprocketPitchDiameter`):
+- The seats are centred on the pitch circle R = p/(2 sin(π/z)), where neighbouring seats are p apart. The seat Ø defaults to the roller's and must be at least that.
+- **The tooth form `pivot-clearance`**, derived here and not ISO 606's (D139 found ISO 606's formulas only behind tables, not as public text):
+  - A roller leaving seat k turns about its neighbour's centre P_{k±1} at distance p. So the flank that just clears it is the circle of radius p − r_s about P_{k±1}.
+  - That circle and the seat (r_s about P_k) have radii summing to p, the distance between their centres. They touch where the chord P_kP_{k±1} crosses the seat: seat and flank meet tangentially.
+  - The seat arc spans π − 2π/z; the tip circle is the user's.
+  - Its limits come from the same construction: above where the flanks leave the seats, 2√((R − r_s sin(π/z))² + (r_s cos(π/z))²), and below the flanks' meeting point on the tooth's bisector, 2(R cos(π/z) + √((p − r_s)² − p²/4)), where the tooth is pointed (TOOTH_FORM).
+  - Any other form is UNSUPPORTED_TOOTH_FORM.
+- **Exact arcs:** every piece is an exact circular arc (rational quadratic), four per tooth: `flank<2k−1>`, `seat<k>`, `flank<2k>`, `tip<k>`. It is extruded through the user's width, with a bore below the roots.
+- **The engagement check, on the built teeth:** a roller (the row's Ø) turning out of seat 0 about seat 1's centre, swung until it clears the tip circle. Its least gap to every built piece is r_s − r_1 (0.145 mm for a Ø8.8 seat on a Ø8.51 roller).
+
+**Pulleys** (`pulley`; the belt row's kind picks the type):
+- **timing:**
+  - pitch Ø pz/π, outside Ø pz/π − 2u;
+  - each groove is the row's profile in its own frame, its first and last segments cut at the outside circle (the nearer root of the segment's quadratic);
+  - the lands are arcs of that circle between the grooves; grooves with no land between them are TOOTH_FORM;
+  - extruded; faces `groove<k>.<j>`, `land<k>`.
+- **V:** the row's trapezoid grooves (half-angle α/2, w_d at the datum, b above and h_f below) at e spacing with f edges, revolved round the user's datum Ø.
+- **flat:** a face of the user's Ø and width. Its crown is a circular arc through the edges' radius r − h and the crown r, ρ = (h² + W²/4)/(2h).
+  - FACE_WIDTH warns when the belt is wider than the face.
+- V and flat pulleys are revolved sections, so they need a bore.
+
+**Belts and chains** (`openBeltLength`, `chainLinks`, `beltBand`):
+- **The open length:** sin β = (R1 − R2)/C; L = 2C cos β + (π + 2β)R1 + (π − 2β)R2; the wraps π ± 2β.
+  - BELT_GEOMETRY when the pitch circles overlap, or when the band is thicker than a wheel is round.
+- **A chain on its sprockets' pitch circles:**
+  - L/p pitches, rounded up to whole or even links;
+  - the centre distance for that count solved by bisection (L increases with C);
+  - CHAIN_LINKS warns when the given distance does not give whole links.
+  - The chain's polygon on the sprockets (the chordal effect) is not modelled.
+- **The band:** the path's offsets at ±t/2 (arcs and tangent lines with the same normals), the hole clockwise, extruded through the width.
+  - t is the row's thickness or a chain's plate height; a stand-in is said to be one.
+  - Its area between the offsets is L·t exactly (Steiner: each offset's length differs from L by πt).
+
+**Couplings** (`couplingEnvelope`):
+- The row's envelope is revolved: a sleeve of its outside Ø and length, the bores d1 to the step (default the middle) and d2 beyond.
+- The report carries `bought` { bought: true, partNumber?, supplier?, source? } from the row and `envelopeOnly: true`, for the outer lane's BOM S1 (BodyResult.element).
+
+**Part model:**
+- Kinds:
+  - `sprocket` { row, teeth, tip, width, seat?, toothForm?, bore? };
+  - `pulley` { row, teeth? | diameter?, grooves?, width?, crown?, bore? };
+  - `belt` { row, pitchRadii [R1, R2], centerDistance, rounding?, width? };
+  - `coupling` { row }.
+  - Each takes its row inline and is placed by centre, from and rotation.
+- Outputs: `sprocket`, `pulley`, `belt`, `coupling`.
+- Codes: INVALID_INPUT → INPUT, UNSUPPORTED_TOOTH_FORM → CAPABILITY, TOOTH_FORM and BELT_GEOMETRY → GEOMETRY, each with its own code kept.
+
+**Oracles and tests** (`test/r12c-drive.test.mjs`, 8 tests, all failing on the previous HEAD: the module did not exist). Oracles are written in the test:
+- **The rows:** their refusals.
+- **A sprocket** (z 17, seat Ø8.8, tip Ø75, 7 wide, Ø20 bore):
+  - the pitch Ø, root, flank radius and the pointed tip by the formulas;
+  - its volume by integrating, ray by ray, a membership test of the region: the tip disc, less each seat's circle, less the gap above its seats' tangent line outside both flank circles. The transitions are bisected; the result agrees within 2e-5;
+  - a roller of seat 5 turning out about seat 6 measured against the built faces' own curves: its gap r_s − r_1;
+  - refusals: pointed, under the seats' edge, a seat under the roller, another form, a bore through the roots.
+- **A timing pulley:** the disc less each groove, its polygon cut at the circle by a quadratic solved in the test, plus the circular segment under its chord. A pulley with no lands is refused.
+- **V and crowned flat pulleys:** Pappus on their sections by hand, the trapezoid's centroid and the circular segment's 4ρ sin³(θ/2)/(3(θ − sin θ)). Also FACE_WIDTH.
+- **The belt's length** by another form, 2√(C² − (R1 − R2)²) + 2R1(π − acos((R1 − R2)/C)) + 2R2 acos((R1 − R2)/C), both ways round.
+  - The band's volume L·t·w.
+  - The chain's pitches, whole and even links, and the distance for 58 links checked back. CHAIN_LINKS. Overlapping wheels refused.
+- **The coupling** by Pappus (two annuli) and its `bought`.
+- **The part model:** the four kinds placed, their reports, the refusals' codes.
+- **Conformance `r12c/`** (from a script with no kernel geometry):
+  - `sprocket-z17`: ray integration, relTol 2e-5;
+  - `pulley-v-two-grooves`: Pappus;
+  - `belt-flat-open`: L·t·w; its centroid from the runs' rectangles and the arcs' annular sectors;
+  - `coupling-stepped-sleeve`: Pappus, with its face names;
+  - `sprocket-pointed-refused`.
+
+**Studio and model:**
+- **The document's `drives`** { version 1, rows } is in STUDIO_DOC_FIELDS and crosses to the worker. `editDriveRows` keeps a row in use.
+- **Nodes:**
+  - `sprocket`, `pulley`, `coupling` { row (an id), sizes, center, from?, rotation? };
+  - `belt` { row, wheels [i, j], rounding? }.
+  - A belt refers to its wheels (`usesOf`), not built on them. `renumber` and `flatten` carry the wheels.
+- **`beltFeature`** maps the belt from its wheels:
+  - each must be a sprocket or pulley of the belt's row, both at one Z ([DRIVE_WHEELS]);
+  - the pitch radii: a sprocket p/(2 sin(π/z)); a timing pulley pz/(2π); a V pulley its datum; a flat one its face plus half the belt's thickness, the belt's centre line;
+  - the band from the first wheel turned toward the second, across the wheel where the belt runs: centred, or in a V pulley's first groove.
+- **Commands** (create):
+  - Sprocket ("sprocket"): its tip prefilled ¾ of the way from the seats' edge to the point, said so in its label;
+  - Pulley ("pulley sheave"): the fields follow the row's kind;
+  - Belt or chain ("belt chain drive"): two picked wheels of one row; for a chain, whole or even links, and the second sprocket moved to the distance they need, or left with the warning;
+  - Coupling ("coupling").
+  - Each is unavailable with no rows ("none is built in").
+- **Notes:**
+  - a sprocket: chain, pitch Ø, the tooth form "(derived here, not ISO 606's)", the engagement gap;
+  - a pulley: its type's sizes;
+  - a belt: its length, wraps, pitches and links, "the chordal effect is not modelled", the band's sizes;
+  - a coupling: its envelope and "Bought: part … from …".
+  - The rows' estimates are named.
+- **Friendly errors** for [DRIVE_ROW_UNKNOWN], [DRIVE_WHEELS], [TOOTH_FORM], [UNSUPPORTED_TOOTH_FORM] and [BELT_GEOMETRY].
+- **Edit fields:** the sizes the node holds, a belt's links.
+- **The Library panel's DRIVES** (`ui/DriveRows.tsx`) and the icons `cad-sprocket`, `cad-pulley`, `cad-belt`, `cad-coupling`.
+- **Chat v2:** four features commands, their values behind `describe`. The per-turn total is 22,319 (was 22,279; cap 25,000).
+- **Tests:** `test/drive.test.ts` (4):
+  - the sprocket at the conformance case's volume, its notes and the tip's prefill by the formulas;
+  - the chain with the second sprocket moved so that L = 58p, the band 58·p·t·w;
+  - flat pulleys and their belt on R = d/2 + t/2, the coupling's notes, two refusals' titles;
+  - describe and a features command.
+  - `fields.test` gained `drives`. The studio `chat.test` gained contexts.
+  - `palette.test` checks the new labels and words.
+  - A new palette test reads every word the browser flow types into the palette and finds none opening a drive command it did not mean.
+- **A flow step** "Chain drive (R12c.6b, D161)": the rows loaded in the Library panel, two sprockets and the chain through the scripted chat, the second moved to 203.0146, the links in the chain's notes.
+
+**Not in this stage:**
+- standard tooth forms and groove tables (rows the user loads, or a form refused);
+- the chain's links as solids and its chordal speed variation;
+- crossed belts, idlers and tensioners;
+- a coupling placed on and checked against shaft ends (it is placed by hand);
+- the BOM itself: the outer lane's S1, with `bought` here.
+- (The D160 fix, 6988793c9: the pressure-angle limits and the cam laws are attributed to no unread source.)
+
+**Checks** (rules v2: `part-model.ts` gained cases, so the full kernel suite ran; the 1st kernel checkpoint since D160's RB run, so no RB), on 4c5008b70 (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-drive`: 8/8.
+- The full kernel suite, conformance included: 1504/1511, 6 skipped, 293 s. It failed only the env-only "actual native Split source…".
+- Conformance `r12c/`: 26/26.
+- `@barocss/cad-model`: type-check clean, 736/736. Studio: type-check clean, 197/197 (the new palette test included).
+- Test names against the saved lists:
+  - kernel: none missing, +13;
+  - cad-model: +21 (4 this stage's); one missing, "PERF3 B13 S0 P2 …", renamed by the integration's O135 to "… (fixed in O135) …", not by this stage;
+  - studio: none missing, +3.
+- `FLOW_ONLY` "Chain drive (R12c" with the Cam, Spring and Shaft steps and "fillet a box top edge": 7/7 (with the starter step).
+  - The flow's palette words are covered by the new palette test.
+
+Not run:
+- RB and properties: next at the 4th kernel checkpoint since D160.
+- The full browser flow (the coordinator's).
