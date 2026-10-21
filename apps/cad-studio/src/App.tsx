@@ -51,7 +51,7 @@ import { MatePanel } from './ui/MatePanel';
 import { JointsPanel } from './ui/JointsPanel';
 import { jointTreeOf } from '@barocss/cad-model/robot/joints';
 import { forwardKinematics, gearPairAt, sliderRange } from '@barocss/cad-model/robot/fk';
-import { posedInstances } from '@barocss/cad-model/robot/preview';
+import { posedBody } from '@barocss/cad-model/robot/preview';
 import { treeInertia } from '@barocss/cad-model/robot/inertia';
 import { gravityTorques, linkMasses } from '@barocss/cad-model/robot/dynamics';
 import { exportUrdf } from '@barocss/cad-model/robot/urdf';
@@ -69,6 +69,7 @@ import { fastenerName, fastenerThread } from '@barocss/cad-model/app/fasteners';
 import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/cad-model/app/holeRegion';
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import type { Analysis } from './viewport/analysis';
+import { boundsUnder, instancePoses, motionOf } from './viewport/instancePose';
 import { edgeChain } from '@barocss/cad-model/app/edgeChain';
 import { offsetShape } from '@barocss/cad-model/sketch/offset';
 import { extendAt, joinOpen, splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
@@ -87,7 +88,6 @@ import { confirmDimension, draftWarning, liveDrafts, runDraftTool } from '@baroc
 import { DraftsPanel } from './ui/DraftsPanel';
 import { extrudeProfile } from '@barocss/cad-model/app/profileCommands';
 import { editCommand, featureOfPick } from '@barocss/cad-model/app/editCommand';
-import { explodeOffsets, movedBody } from '@barocss/cad-model/assembly/explode';
 import { flattenAssembly } from '@barocss/cad-model/assembly/flatten';
 import { acceptRevision, dismissRevision, freshPartId, makeIndependent, offerRevision, revisionOf, sharing } from '@barocss/cad-model/assembly/definitions';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from '@barocss/cad-model/assembly/drag';
@@ -605,20 +605,20 @@ export function App() {
   const instancesPlaced = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ id: i.id, bodies: instanceBodies.get(i.id)!.bodies })), [doc.instances, instanceBodies]);
   // The exploded view (display only): each instance pushed out from the middle by the explode factor.
   const [explode, setExplode] = useState(0);
-  const instancesExploded = useMemo(() => {
-    const posed = jointFk ? posedInstances(instancesPlaced, jointFk) : instancesPlaced;
-    if (!explode) return posed;
-    const off = explodeOffsets(bodies, posed, explode);
-    return posed.map(i => { const d = off.get(i.id); return d ? { id: i.id, bodies: i.bodies.map(b => movedBody(b, d)) } : i; });
-  }, [instancesPlaced, explode, bodies, jointFk]);
+  // (Dev/bench: any explode factor, as a drag would set it frame by frame; the button steps 0, 0.5, 1, 2.)
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioSetExplode: (k: number) => void }).__studioSetExplode = setExplode; }, []);
+  // (G1: posed and exploded by a matrix per instance on its meshes, not by moved copies of them: the meshes are made once.)
+  const instancePoseMap = useMemo(() => instancePoses(bodies, instancesPlaced, jointFk, explode), [instancesPlaced, explode, bodies, jointFk]);
   // (The flow's view of what is shown, RM2: each instance's bounds as placed, posed or exploded.)
-  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioInstanceBounds: () => unknown }).__studioInstanceBounds = () => instancesExploded.map(i => ({ id: i.id, min: i.bodies[0]?.mesh.bounds.min, max: i.bodies[0]?.mesh.bounds.max })); }, [instancesExploded]);
-  // The section view cuts the placed parts too (their meshes clipped and capped, as the part's while dragged).
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioInstanceBounds: () => unknown }).__studioInstanceBounds = () => instancesPlaced.map(i => { const b = i.bodies[0]?.mesh, M = instancePoseMap.get(i.id), box = b && M ? boundsUnder(b.positions, M) : b?.bounds; return { id: i.id, min: box?.min, max: box?.max }; }); }, [instancesPlaced, instancePoseMap]);
+  // The section view cuts the placed parts too (their meshes moved, clipped and capped, as the part's while dragged).
   const instancesShown = useMemo(() => {
-    if (!section || sketch) return instancesExploded;
+    if (!section || sketch) return instancesPlaced;
     const k = 'xyz'.indexOf(section.axis) as 0 | 1 | 2;
-    return instancesExploded.map(i => ({ id: i.id, bodies: i.bodies.flatMap(b => { const mesh = clipMesh(b.mesh, k, section.at, section.keep, 'section'); return mesh ? [{ ...b, mesh }] : []; }) }));
-  }, [instancesExploded, section, sketch]);
+    return instancesPlaced.map(i => { const M = instancePoseMap.get(i.id), m = M && motionOf(M); return { id: i.id, bodies: i.bodies.flatMap(b => { const mesh = clipMesh(m ? posedBody(b, m).mesh : b.mesh, k, section.at, section.keep, 'section'); return mesh ? [{ ...b, mesh }] : []; }) }; });
+  }, [instancesPlaced, instancePoseMap, section, sketch]);
+  // (The clipped copies are already moved; otherwise the meshes take the matrices.)
+  const instanceTransforms = section && !sketch ? undefined : instancePoseMap;
   const insertPart = async (file: File) => {
     try {
       const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
@@ -1762,13 +1762,17 @@ export function App() {
     if (rendering || section || previewBodies) return new Float32Array();
     const out: number[] = [], own = threadsOf(evaluated.nodes);
     for (const b of bodies) out.push(...threadLines(own, b.mesh));
-    for (const it of instancesShown) {
-      const inst = doc.instances?.find(i => i.id === it.id); if (!inst || inst.hidden) continue;
-      const t = threadsOf(flattenAssembly(inst.doc).nodes);
-      for (const b of it.bodies) out.push(...threadLines(t, b.mesh));
-    }
     return new Float32Array(out);
-  }, [bodies, evaluated.nodes, instancesShown, doc.instances, rendering, section, previewBodies]);
+  }, [bodies, evaluated.nodes, rendering, section, previewBodies]);
+  // (The placed parts' rings go with their meshes, G1: posed and exploded by the same matrix.)
+  const instancesDrawn = useMemo(() => {
+    if (rendering || section || previewBodies) return instancesShown;
+    return instancesShown.map(it => {
+      const inst = doc.instances?.find(i => i.id === it.id), t = inst ? threadsOf(flattenAssembly(inst.doc).nodes) : null, out: number[] = [];
+      if (t) for (const b of it.bodies) out.push(...threadLines(t, b.mesh));
+      return out.length ? { ...it, threads: new Float32Array(out) } : it;
+    });
+  }, [instancesShown, doc.instances, rendering, section, previewBodies]);
 
   // A hole's whole region, see-through, while it is placed or edited: where it runs off the part's edge
   // only a notch shows of it otherwise.
@@ -1806,7 +1810,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesShown} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}

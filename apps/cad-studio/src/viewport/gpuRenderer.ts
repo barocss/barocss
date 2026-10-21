@@ -15,7 +15,7 @@ import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@b
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
-import type { EdgeRef, FaceRef, ThemeName, ViewRenderer, ViewState } from './renderer';
+import type { EdgeRef, FaceRef, InstanceItem, ThemeName, ViewRenderer, ViewState } from './renderer';
 
 /** Device pixels per CSS pixel, up to 3 (a high-density screen with the page zoomed in). */
 const pixelRatio = () => Math.min(3, Math.max(1, globalThis.devicePixelRatio || 1));
@@ -29,12 +29,21 @@ const ACCENT: Vec3 = [0.910, 0.761, 0.353];
 const HOVER: Vec3 = [0.62, 0.55, 0.36];
 /** A direction in the camera's frame (x right, y up, z toward the eye) as the world's, negated: where a light shines (PERF3 C17: module level). */
 const toward = (right: Vec3, up: Vec3, forward: Vec3, x: number, y: number, z: number): Vec3 => [-(x * right[0] + y * up[0] - z * forward[0]), -(x * right[1] + y * up[1] - z * forward[1]), -(x * right[2] + y * up[2] - z * forward[2])];
+/** The identity transform: a mesh as placed. */
+const IDENTITY = translation([0, 0, 0]);
+/** Whether a mesh's transform is already `m` (setting it marks the mesh's block to send again). */
+const sameTransform = (a: ArrayLike<number>, m: ArrayLike<number>) => { for (let i = 0; i < 16; i++) if (a[i] !== m[i]) return false; return true; };
+/** A mesh moved to `m`, when it is not there already. */
+const place = (mesh: Mesh, m: ArrayLike<number>) => { if (!sameTransform(mesh.transform, m)) mesh.transform = m; };
+/** The same rings (by identity, or by content). */
+const sameLines = (a: Float32Array | undefined, b: Float32Array | undefined) => { if (a === b) return true; if (!a || !b || a.length !== b.length) return false; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false; return true; };
 /** A box grown to hold another. */
 const grow = (min: Vec3, max: Vec3, b: { min: readonly number[]; max: readonly number[] }) => { for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.min[k]); max[k] = Math.max(max[k], b.max[k]); } };
 const mix = (a: Vec3, b: Vec3, k: number): Vec3 => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
 /** `state`: what setState last showed it as (hover, picks, colours, ghost, placement), so an unchanged body is left alone. */
 /** `runs` and `painted`: the surface's vertices by face, and what its colours show (a hover repaints only what changed). */
+interface PlacedInstance { id: string; sigs: string[]; threadLines: Float32Array | undefined; surfaces: Mesh[]; edges: Mesh[]; threads: Mesh | null }
 interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string; state: string; tile?: number; runs: FaceRuns; painted: Painted | null }
 
 /** A mesh's content in a few numbers (sizes, bounds and a sample of positions): equal for a re-evaluation that changed nothing. */
@@ -67,9 +76,16 @@ export class GpuRenderer implements ViewRenderer {
   /** Colour maps by image (null while one loads), and the tiling each instance surface has. */
   private maps = new Map<string, ImageTexture | null>();
   private instanceTiles = new WeakMap<Mesh, { tile?: number }>();
+  /** What each instance surface's vertex colours show (the display mesh and its colours' key). */
+  private instancePainted = new WeakMap<Mesh, { mesh: DisplayMesh; key: string }>();
   private threads: Mesh | null = null;
-  /** Placed instances of other parts: their bodies' surfaces and edges. */
-  private instances: { id: string; surfaces: Mesh[]; edges: Mesh[] }[] = [];
+  /**
+   * Placed instances of other parts: their bodies' surfaces and edges and their thread rings, and what they were made from
+   * (the bodies' signatures and the rings), so an unchanged instance keeps its meshes (G1).
+   */
+  private instances: PlacedInstance[] = [];
+  /** The instances shown moved (posed, exploded): a matrix each on their meshes (G1). */
+  private poses: ReadonlyMap<string, Float64Array> | null = null;
   private instanceSelection: readonly string[] = [];
   /** Instances' display meshes (for the face under a pick). */
   private instanceMeshes = new Map<string, DisplayMesh[]>();
@@ -400,17 +416,40 @@ export class GpuRenderer implements ViewRenderer {
     this.viewer.requestRender();
   }
 
-  /** Instances of other parts: lit like bodies, with their edges; the selected ones outlined. */
-  setInstances(items: { id: string; bodies: BodyResult[] }[], selected: readonly string[]): void {
-    for (const it of this.instances) for (const m of [...it.surfaces, ...it.edges]) { m.remove(); m.geometry.dispose(); }
+  /**
+   * Instances of other parts: lit like bodies, with their edges and thread rings; the selected ones outlined. An instance
+   * whose bodies and rings are as they were keeps its meshes (a new selection, a re-evaluation that changed nothing, G1):
+   * only new or changed ones are made, and gone ones released.
+   */
+  setInstances(items: InstanceItem[], selected: readonly string[]): void {
+    const had = new Map(this.instances.map(it => [it.id, it]));
     this.instanceMeshes = new Map(items.map(it => [it.id, it.bodies.map(b => b.mesh)]));
-    this.instances = items.map(it => ({
-      id: it.id,
-      surfaces: it.bodies.map(b => this.viewer.add({ positions: b.mesh.positions, normals: b.mesh.normals, indices: b.mesh.indices }, { name: 'inst:' + it.id })),
-      edges: it.bodies.filter(b => b.mesh.edgeLines.length).map(b => this.viewer.add({ positions: b.mesh.edgeLines, topology: 'lines' }, { name: 'inst:' + it.id, material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false, pickable: false })),
-    }));
+    this.instances = items.map(it => {
+      const sigs = it.bodies.map(signature), old = had.get(it.id);
+      if (old && old.sigs.length === sigs.length && old.sigs.every((x, i) => x === sigs[i]) && sameLines(old.threadLines, it.threads)) { had.delete(it.id); return old; }
+      return this.makeInstance(it, sigs);
+    });
+    for (const it of had.values()) this.dropInstance(it);
     this.instanceSelection = selected;
     this.paintInstances(); this.placePreview();
+  }
+
+  private makeInstance(it: InstanceItem, sigs: string[]): PlacedInstance {
+    return {
+      id: it.id, sigs, threadLines: it.threads,
+      surfaces: it.bodies.map(b => this.viewer.add({ positions: b.mesh.positions, normals: b.mesh.normals, indices: b.mesh.indices }, { name: 'inst:' + it.id })),
+      edges: it.bodies.filter(b => b.mesh.edgeLines.length).map(b => this.viewer.add({ positions: b.mesh.edgeLines, topology: 'lines' }, { name: 'inst:' + it.id, material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, castShadow: false, pickable: false })),
+      threads: it.threads?.length ? this.viewer.add({ positions: it.threads, topology: 'lines' }, { material: { color: this.theme.edge, unlit: true, lineWidth: 1, opacity: 0.55 }, pickable: false, castShadow: false }) : null,
+    };
+  }
+
+  private dropInstance(it: PlacedInstance): void {
+    for (const m of [...it.surfaces, ...it.edges, ...(it.threads ? [it.threads] : [])]) { m.remove(); m.geometry.dispose(); }
+  }
+
+  /** The instances shown moved, by a matrix each (G1): their meshes' transforms only, nothing made or uploaded. */
+  setInstanceTransforms(transforms: ReadonlyMap<string, Float64Array> | null): void {
+    this.poses = transforms; this.placePreview();
   }
 
   /** Instances' look: the modelling base, or their render appearance (by key inst:<id>). */
@@ -428,11 +467,16 @@ export class GpuRenderer implements ViewRenderer {
         const mesh = this.instanceMeshes.get(it.id)?.[bi];
         if (!mesh) return;
         const base: Vec3 = look ? [1, 1, 1] : this.theme.base, on = mix(base, ACCENT, 0.42), picked = new Set(this.instanceFaces.filter(f => f.id === it.id && f.body === bi).map(f => f.face));
+        // (The same colours on the same mesh as last time: nothing written. A new selection repaints none of them.)
+        const key = JSON.stringify([base, [...picked]]);
+        if (this.instancePainted.get(m)?.mesh === mesh && this.instancePainted.get(m)?.key === key) return;
+        this.instancePainted.set(m, { mesh, key });
         const colors = new Float32Array(mesh.positions.length);
         for (let v = 0; v < colors.length / 3; v++) colors.set(picked.has(mesh.faceOfVertex[v]) ? on : base, v * 3);
         m.geometry.setColors(colors);
       });
       for (const e of it.edges) { e.material = { color: this.theme.edge }; e.visible = env ? env.edges : true; }
+      if (it.threads) it.threads.material = { color: this.theme.edge };
     }
     this.viewer.requestRender();
   }
@@ -442,9 +486,16 @@ export class GpuRenderer implements ViewRenderer {
     this.instancePreview = preview; this.placePreview();
   }
   private instancePreview: { id: string; matrix: Float64Array } | null = null;
+  /** Each instance's meshes where it is shown: its pose (if any), then the gizmo's drag of it (if it is the one dragged). */
   private placePreview(): void {
     const p = this.instancePreview;
-    for (const it of this.instances) for (const m of [...it.surfaces, ...it.edges]) m.transform = p && p.id === it.id ? p.matrix : translation([0, 0, 0]);
+    for (const it of this.instances) {
+      const pose = this.poses?.get(it.id), drag = p && p.id === it.id ? p.matrix : null;
+      const m = drag && pose ? multiply(drag, pose) : drag ?? pose ?? IDENTITY;
+      for (const mesh of it.surfaces) place(mesh, m);
+      for (const mesh of it.edges) place(mesh, m);
+      if (it.threads) place(it.threads, m);
+    }
     this.viewer.requestRender();
   }
 
