@@ -745,6 +745,12 @@ acceleration → benches.
   instance, moved with it. Bench rows `pose:` and `explode:` in `bench:browser`: a played joint 35.8 → 3.1 KiB uploaded
   and 1 116 → 0 buffers made; a 120-bracket explode drag 2 MiB → 62 KiB a frame, 35 280 → 0 buffers, task 22.3 → 13.3 ms
   a frame. Checks: studio 787/787; T2 full flow 217/217; posed/exploded/sectioned frames within 16 (ΣRGB) of the CPU path's on ≤ 75 pixels.
+- **G2** (2026-10-21): done. The section view while its plane moves on the GPU: `Viewer.clipPlane` (a frame-block plane,
+  discarded in the surface, line, pick, outline-mask and shadow passes), a cap from back faces seen through the cut at the
+  plane's depth (a front-depth prepass keeps it off kept faces), `raycast`/`pick`/`pickLine` honouring it (`PickHit.cap`);
+  the studio's bodies and instances shown whole and cut by it (`viewport/sectionView.ts`), the exact section still replacing
+  the bodies; WebGL2 keeps clipMesh (pinned). Bench `section:` rows: 120 brackets, 2.3 KiB and 0 buffers a frame against
+  clipMesh's 190 KiB and 2 706. Against the CPU's section through one viewer, ≤ 0.07 % of pixels differ by more than 96.
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.
