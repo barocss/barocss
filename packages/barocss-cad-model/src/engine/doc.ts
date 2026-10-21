@@ -361,6 +361,8 @@ export interface StudioDoc {
   /** IM8b (O108): casting's pattern — the faces machined after casting (by name), and the user's own machining allowance (mm a face) and shrinkage (a ratio, mm/mm); unset, the table's. */
   casting?: { version: 1; machined?: string[]; machiningAllowanceMM?: number; shrink?: number; /** IM8c (O109): where the metal comes in (a point on the part, mm), the person's: hot spots are fed from it. */ gate?: [number, number, number] };
   /** FRb (O116): how frames are cut — the shop's stock lengths (loaded by the user, none built in) and the saw's kerf (mm; unset, an estimate is taken and said). */
+  /** R12c.2 (D155): fit tables the user loads (none built in), cylindrical faces' classes by face name, declared hole–shaft pairs (engine/fits.ts). */
+  fits?: import('./fits').StudioFits;
   frames?: { version: 1; stock?: FrameStockRow[]; kerfMM?: number; /** FRc (O117): the user's section library — none built in (D122); a frame's section may name a row. */ sections?: FrameSectionRow[]; /** FRd1 (O118): the person's welds, by joint id (frames/welds.ts) — kind, size (mm), all round, the bore welded or not (theirs alone), notes; unset, the rule's. */ welds?: { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; allRound?: boolean; inner?: boolean; notes?: string }[] };
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
@@ -486,7 +488,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'frames'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'frames', 'fits'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);

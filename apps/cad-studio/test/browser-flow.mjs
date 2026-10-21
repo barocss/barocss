@@ -3682,6 +3682,39 @@ try {
     } finally { chat.kill(); }
   });
 
+  await check('Fits (R12c.2, D155): a fit table loaded in the Library panel (none built in); a bore and a pin given H7 and g6 and declared a pair through the chat — the limits and the clearance in the notes', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const table = { id: 'shop-fits', rows: [{ class: 'H7', overMM: 10, upToMM: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', overMM: 10, upToMM: 18, upperUM: -6, lowerUM: -17, estimate: true }] };
+    const file = join(out, 'shop-fits.json'); fs.writeFileSync(file, JSON.stringify(table));
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="Fit tables"]'), /No fit tables: load your own .* None is built in/);
+      await page.setInputFiles('input[aria-label="Fit table file"]', file);
+      await page.waitForFunction(() => window.__studioDoc.fits?.tables?.length === 1, null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Fit table shop-fits"]'), /shop-fits 2 rows · H7 g6 · 2 estimates/);
+    } finally { await page.click('[aria-label="Close library"]'); }
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), cmd = (command, values, faces) => ({ tool: 'features', args: { action: 'command', command, values, ...(faces ? { faces } : {}) } });
+      const calls = [cmd('tube', { r: 10, ri: 6, h: 24, x: 0, y: 0, z: 0 }), cmd('cylinder', { r: 6, h: 24, x: 0, y: 0, z: -5 }), cmd('fit-class', { class: 'H7' }, ['n1.hole0.side0']), cmd('fit-class', { class: 'g6' }, ['n3.side0']), cmd('fit-pair', {}, ['n1.hole0.side0', 'n3.side0'])];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`);
+      await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc.fits?.pairs?.length === 1 && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    await page.locator('.outliner .ol').nth(1).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /^(warning )?\s*Fit n1\.hole0\.side0/.test((x.textContent ?? '').trim())), null, { timeout: 30000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning\s*/, '').trim());
+    assert.ok(notes.some(t => /^n3\.side0: Ø12 g6 −0\.006\/−0\.017 mm — 11\.983 to 11\.994 \(shop-fits row 1, an estimate\)/.test(t)) && notes.some(t => /^Fit n1\.hole0\.side0 \/ n3\.side0: H7\/g6 at Ø12: clearance fit, clearance \+6 to \+35 µm; at MMC clear, at LMC clear/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('fit-pin');
+  });
+
   await check('FRc the section library in the Library panel: a row, a frame on it via the chat (133 200 mm³), the row edited (172 800), a used row kept (O117)', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluateCadPart, tessellateBrep, exportStep, importStep, checkBrep, brepMassProperties, brepSurfaceArea, subdReport, flatPattern, cutPiece, cutList } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, exportStep, importStep, checkBrep, brepMassProperties, brepSurfaceArea, subdReport, flatPattern, cutPiece, cutList, checkFit } from '../dist/index.js';
 import { openEdges } from '../scripts/rb/stages.mjs';
 
 // Every conformance case (conformance/<step>/*.json) against this kernel: see conformance/README.md.
@@ -85,6 +85,17 @@ for (const file of cases) {
       assert.ok(r.deviation.maxMM <= want.capDeviationMaxMM, `subd caps ${r.deviation.maxMM} mm from the limit`);
       assert.ok(r.caps.minJacobianRatio >= want.minJacobianRatio, `subd |Su × Sv| down to ${r.caps.minJacobianRatio} of its median`);
       assert.ok(r.caps.maxNormalTurnDeg <= want.maxNormalTurnDeg, `subd cap normals turn ${r.caps.maxNormalTurnDeg}°`);
+    }
+    if (c.expect.fitChecks) {
+      // Fits (R12c.2, D155): a hole face and a shaft face of two outputs, their classes from the case's tables — the
+      // kind, the least and greatest clearance (µm), the overlap at MMC and LMC (mm³), contradicted or not; or the refusal.
+      for (const w of c.expect.fitChecks) {
+        const face = (f) => ({ brep: outputs.find(o => o.id === f.output).brep, face: f.face, class: f.class });
+        if (w.error) { assert.throws(() => checkFit(w.tables, face(w.hole), face(w.shaft)), e => e.code === w.error.code && e.message.includes(w.error.messageIncludes)); continue; }
+        const r = checkFit(w.tables, face(w.hole), face(w.shaft)), close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `fit ${what}: ${x} vs ${y}`);
+        assert.deepEqual([r.limits.kind, r.limits.clearanceMinUM, r.limits.clearanceMaxUM, r.contradicted], [w.kind, w.clearanceUM[0], w.clearanceUM[1], w.contradicted], 'fit');
+        close(r.mmc.overlapMM3, w.mmcOverlapMM3, 'MMC overlap'); close(r.lmc.overlapMM3, w.lmcOverlapMM3, 'LMC overlap');
+      }
     }
     if (c.expect.cutList) {
       // A frame's cut list (FR4a, D127): its rows in order — quantity, pieces, axis length, long point, each end's cut, mass — and the totals.

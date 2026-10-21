@@ -25,6 +25,8 @@ export function evaluatedPart(doc: StudioDoc): StudioDoc {
   if (doc.instances?.length) out.instances = doc.instances.map(stripInstance);
   // (FRc, O117: the section library a frame's section may name is model input; the rest of `frames` is not.)
   if (doc.frames?.sections?.length) out.frames = { version: 1, sections: doc.frames.sections };
+  // (R12c.2, D155: the fits are evaluated with the part — their limits in the notes, a miss or a contradicted pair a refusal.)
+  if (doc.fits?.faces?.length) out.fits = doc.fits;
   return out;
 }
 const stripInstance = (i: PartInstance): PartInstance => ({ ...i, doc: evaluatedPart(i.doc) });

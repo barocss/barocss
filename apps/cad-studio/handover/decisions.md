@@ -8555,3 +8555,103 @@ Ran:
 Not run:
 - RB and properties (the 2nd kernel checkpoint after the T3).
 - The full browser flow (the coordinator's).
+
+## D155 — R12c.2: fits and tolerances from the user's tables (2026-10-21)
+
+R12c's third stage, as D139 froze it, under the owner's rule "끼워맞춤 표는 사용자가 불러오고": the fit tables are the user's, and no ISO 286 row is built in.
+- **No limit is ever computed.** S0 found that the IT tolerance factor reproduces only 55 of 91 table values, so no formula stands in, even as a fallback.
+- **A missing row is a typed refusal** that names what to load.
+
+**Kernel** (`fits.ts`; exported `fitTableProblem`, `lookupFit`, `fitLimits`, `checkFit`, `isHoleClass`, `FitError` and the types):
+- **A fit table**, as D120's bend tables: `{ id, sources?: [{ id, label, url?, read?, note? }], rows }`.
+  - A row is `{ class, overMM, upToMM, upperUM, lowerUM, source | estimate }`: a class's deviations in µm over a range of nominal sizes, over < size ≤ up to.
+  - A class is ISO 286's form: its fundamental-deviation letters, capitals for a hole (A … ZC, JS) and small for a shaft, then an IT grade (01, 0–18).
+- **`fitTableProblem`** returns the reason as text, prefixed `[FIT_TABLE]` where the studio shows it. It refuses:
+  - a class not of that form;
+  - a range that is not over ≥ 0 and below up to;
+  - upper below lower;
+  - a row with neither a source nor an estimate, or with both;
+  - a source the table does not hold;
+  - an unknown field;
+  - two ranges of one class overlapping (adjacent ranges are fine).
+- **`lookupFit`:** a class's row at a nominal size, from the first table holding one, giving the limit sizes, the table and row, and the estimate flag.
+  - Otherwise `[FIT_TABLE_MISS]` says what to load: "load a row for g6 whose range holds 20 mm", with the class's loaded ranges listed (or "no g6 rows loaded"), and that limits are never computed.
+- **`fitLimits`:** a hole class and a shaft class at one nominal size.
+  - The least clearance is EI − es and the greatest ES − ei (µm).
+  - The kind is clearance (least ≥ 0), interference (greatest ≤ 0) or transition.
+  - A hole's class on a shaft, or the reverse, is `FIT_FACE`.
+- **`checkFit(tables, hole, shaft)`:** two faces of B-reps, each by name or id with its class.
+  - **Refused** (each says which face and why):
+    - `FIT_FACE`: a face that is not a cylinder, or not of its role (`faceGeometry`'s outward side: a hole's material is outside the cylinder, a shaft's inside);
+    - `FIT_PAIR`: axes that are not parallel, two nominal diameters (a fit's classes apply to one nominal size, so both are modelled at it), or faces that do not overlap along the axis.
+  - **Measured:** the axes' offset, and the length both faces cover (their loops' vertices projected on the hole's axis).
+  - **The pair at MMC and LMC, by the analytic Boolean** (S0's construction):
+    - MMC puts the hole at its least size and the shaft at its greatest; LMC the reverse.
+    - The shaft at its size over the overlap, on its own axis, less the hole's bore at its size, on the hole's axis and 1 mm longer each way so that no end is coplanar.
+    - What is left is where the shaft would stand in the hole's material.
+    - Coaxial and line to line, the surfaces coincide, so it is 0 by arithmetic.
+  - **The margin:** half the least clearance less the offset.
+  - **A clearance fit whose bodies overlap at MMC is `contradicted`**: the shaft stands off the hole's axis by more than its least clearance a side. The message gives the overlap.
+
+**Oracles and tests** (`test/r12c-fits.test.mjs`, 5 tests, all failing on the previous HEAD, where there is no `fits.ts`; about 0.4 s):
+- **The page's results** (D139's F2: https://en.wikipedia.org/wiki/Engineering_fit, the Ø50 worked examples, re-read through D139's record). The rows are those values cited to the page: test rows, not a shipped table.
+  - H8/f7 is clearance +25…+89; H7/k6 transition −18…+23; H7/p6 interference −42…−1.
+  - H7/h6, on an estimate row, is clearance 0…+41 and flagged.
+- **Ranges and misses:** over < size ≤ up to (30 misses, 50 holds). A class not loaded (g6) is a miss even though a formula could compute it.
+- **[FIT_TABLE]:** eight bad rows, overlapping ranges, adjacent ranges accepted, an empty table, a non-object.
+- **Coaxial:** at MMC and LMC the Boolean's overlap is πL(r_s² − r_h²) where the shaft is the bigger, else 0, to 1e-7, for all four fits (3–35 ms each). S0's figures come back: H7/k6 at MMC 28.2794 mm³, H7/p6 at LMC 1.5716.
+- **Off-axis:**
+  - H8/f7 with the shaft 10 µm off clears (margin 2.5 µm); 50 µm off it is contradicted.
+  - The overlap at each condition is L(πr_s² − A), A the two circles' common area (the lens, in closed form), to 1e-6.
+- **Refusals:** a plane, a shaft's face as the hole, the ring's outside as a hole, two nominal sizes, no overlap, a class not loaded.
+- **Conformance `r12c/`:** a new optional expectation, `fitChecks` (conformance/README.md; the harness `test/conformance.test.mjs` runs it). Each check gives the tables, the faces { output, face, class }, the kind, the clearance, the MMC and LMC overlaps and contradicted, or an error.
+  - `fits-ring-and-shaft`: the three fits and a miss on the coaxial pair.
+  - `fits-off-axis-contradicted`: H8/f7 with the shaft 0.05 mm off, by the lens.
+
+**Studio and model** (`@barocss/cad-model`):
+- **The document's `fits`** (`engine/fits.ts`, `StudioFits`): `{ version: 1, tables?, faces?: [{ face, class }], pairs?: [{ hole, shaft }] }`. Faces go by name as the studio shows them, so a cylinder the kernel keeps in halves (`#1`, `#2`) is one face.
+  - It is in `STUDIO_DOC_FIELDS`.
+  - It crosses to the engine worker with the part (`evaluatedPart`, as FRc's section library), so the evaluation key follows it.
+- **Evaluation** (`fitNotes`, after the outputs):
+  - Each class is resolved at its face's nominal size: a note on the body, for example "n1.hole0.side0: Ø12 H7 +0.018/0 mm — 12 to 12.018 (shop-fits row 0, an estimate)". An estimate row makes the note a warning.
+  - Each pair gets checkFit's message and the MMC and LMC verdicts on the shaft's body. Each pair's check is kept per pair of B-reps and classes.
+  - **Refusals** (as D139 froze them): a class with no row, a class on the wrong kind of face, or a contradicted clearance fit. Each has a friendly title and hint: "A fit class has no row in your fit tables", "A fit class does not suit its face", "The fit does not hold".
+- **Commands** (group inspect, icon `cad-fit`):
+  - **Fit class:** one cylindrical face. Its class is a choice of the loaded tables' classes, holes first, or none to clear it. With no table it is unavailable: "Load a fit table first (Library panel, FITS): none is built in."
+  - **Fit pair:** two classed faces, one a hole's and one a shaft's; declare or remove.
+- **The Library panel's FITS** (`ui/FitTables.tsx`): "Add a fit table file…" (JSON, one table or a list), each table with its rows, classes, estimates and sources (as a tooltip), remove, and the faces' classes and pairs.
+  - With no table it says "No fit tables: load your own … None is built in, and limits are never computed."
+- **Agent tools (v2):** fit-class and fit-pair are features commands, their values behind `describe`. No tool or enum is added, and tools-v2.json is unchanged.
+  - The agent cannot load a table: the user loads it, by the owner's rule. Its values say "if none is loaded, say so".
+  - The per-turn guard: 22 022 → **22 043** (the two commands' names in the features tool's list).
+- **Tests:** `test/fits.test.ts` (3); `fields.test.ts`' complete document gained `fits`.
+- **A flow step** "Fits (R12c.2, D155)":
+  - the empty FITS section; a table loaded from a file and listed;
+  - a tube and a pin, their classes and the pair through the scripted chat (features commands with faces by name);
+  - the notes, and a snapshot.
+
+**Asked of the outer lane** (D139: theirs):
+- the drawings' fit callouts showing limits from the loaded table (`model/drawing`);
+- the A3 query `fit_clearance` (`chat/spec.ts`).
+`fitLimits`, `checkFit` and the document's `fits` are what they read.
+
+**Not in this stage:**
+- GD&T beyond the size fit;
+- tolerance stack-ups;
+- fits on non-cylindrical features (keys' widths: R12c.3's pair checks will call `fitLimits` on a key's faces);
+- a table editor in the studio (the file is edited outside, as the bend tables).
+
+**Checks** (rules v2: no brep core changed, since `fits.ts` is new and calls the Boolean, so no full kernel suite), on 19a3ae560 (this change's code, before one studio test's fix) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean.
+- The R12c tests and the full conformance suite (its harness changed): 243/243, 161 s.
+- `@barocss/cad-model`: type-check clean, 665/665, 90 s; the guard test 22 043 a turn.
+- Studio: type-check clean, 191/192 at first. `chat.test` "every buildable command is exposed and documented" needs a context in which each command is available. Fit class and Fit pair got one (a tube and a pin with a table and classes), checking their documented keys against their fields. After that fix the studio suite is 192/192 (in this tree, 16 s).
+- Test names: none missing in what ran (cad-model +9: D155's 3 and the merged lanes'; studio unchanged; kernel +7 in the R12c and conformance scope).
+- `FLOW_ONLY` "Fits (R12c": 1/1 (with the starter step).
+
+Not run:
+- The full kernel suite (no brep core change).
+- RB and properties (the 3rd kernel checkpoint after the T3: the 4th is the next).
+- The full browser flow (the coordinator's).
