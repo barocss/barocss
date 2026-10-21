@@ -39,8 +39,8 @@ lane for it). The R12b → next block is kept as history.
   | Kernel suite, conformance included | 1401/1406 (4 skipped; +7: K6 3, K7b 4); only "actual native Split source…" fails (environment) | 330 s |
   | Studio suite | 767/768, the O80 `todo`, 0 fail | 110 s |
   | Full browser flow, on its own | 215/215 | 806 s |
-  | RB | in the rows commit after this one | — |
-  | Properties | in the rows commit after this one | — |
+  | RB | 370 cases, 0 new, the 8 known TODOs | 103 s |
+  | Properties | 11/11 | 335 s |
 
 **The kernel-lane queue** (the coordinator's order)
 1. The hole-after-union refusal — a hole on a boss's top after the boss was united into a shell is refused "misses the target" (O80); repro `apps/cad-studio/test/fixtures/hole-after-union.calls.json`, the `todo` test in `test/known-bugs.test.ts`.
