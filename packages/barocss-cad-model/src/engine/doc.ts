@@ -110,12 +110,12 @@ export type SketchNode =
  */
 export type ModelNode = ModelNodeBase & NodeExtras;
 /** What the studio keeps on any node besides the feature itself (see the fields above). */
-export type NodeExtras = { suppressed?: true; id?: string; rematched?: Record<string, string>; sigs?: Record<string, Sig>; held?: string };
+export type NodeExtras = { suppressed?: true; id?: string; rematched?: Record<string, string>; sigs?: Record<string, Sig>; held?: string; /** Bought or made, the person's override (O142: the BOM's default by kind when unset). */ bought?: boolean };
 /**
  * Every NodeExtras field, checked at compile time to be all of them: a test sets each and runs every path that
  * rebuilds nodes, so a new field is either carried or fails it (test/fields.test.ts).
  */
-export const NODE_EXTRA_FIELDS = ['suppressed', 'id', 'rematched', 'sigs', 'held'] as const satisfies readonly (keyof NodeExtras)[];
+export const NODE_EXTRA_FIELDS = ['suppressed', 'id', 'rematched', 'sigs', 'held', 'bought'] as const satisfies readonly (keyof NodeExtras)[];
 export const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_FIELDS[number]>] extends [never] ? true : never = true;
 type ModelNodeBase = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */

@@ -110,7 +110,9 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   }
   const fields = new Map(Object.entries(spec).map(([k, t]) => [k.replace(/\?$/, ''), { type: t, optional: k.endsWith('?') }]));
   // (`id`, a feature's stable id, and `rematched` may come along from a document read back; the studio keeps them.)
-  for (const key of Object.keys(node)) if (key !== 'kind' && !['id', 'rematched', 'sigs', 'held', 'suppressed'].includes(key) && !fields.has(key)) return `${kind}: unknown field "${key}" (fields: ${[...fields.keys()].join(', ')}).`;
+  // (O142: bought or made, the person's override — true or false.)
+  if ('bought' in node && typeof (node as { bought?: unknown }).bought !== 'boolean') return `${kind}: bought is true or false (unset: the BOM's default for its kind).`;
+  for (const key of Object.keys(node)) if (key !== 'kind' && !['id', 'rematched', 'sigs', 'held', 'suppressed', 'bought'].includes(key) && !fields.has(key)) return `${kind}: unknown field "${key}" (fields: ${[...fields.keys()].join(', ')}).`;
   const leaves = leafBodies(nodes);
   for (const [key, { type, optional }] of fields) {
     const v = node[key];

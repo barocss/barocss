@@ -18,7 +18,7 @@ function full(): StudioDoc {
   base = withNode(base, { kind: 'fillet', parent: { node: 2, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 1 });
   base = withNode(withNode(base, { kind: 'sketch', profile: 'rectangle', min: [60, 0], max: [70, 10] }), { kind: 'extrude', sketch: 4, height: 5 });
   const extras: { [K in keyof NodeExtras]-?: NonNullable<NodeExtras[K]> } = {
-    suppressed: true, id: 'n3', rematched: { 'n1.side0|n1.top': 'n1.side1|n1.top' }, sigs: { 'n1.side0|n1.top': { k: 'line', p: [20, 0, 8], d: [1, 0, 0], s: 40 } }, held: 'test hold',
+    suppressed: true, id: 'n3', rematched: { 'n1.side0|n1.top': 'n1.side1|n1.top' }, sigs: { 'n1.side0|n1.top': { k: 'line', p: [20, 0, 8], d: [1, 0, 0], s: 40 } }, held: 'test hold', bought: true,
   };
   // (The fillet carries every extra; it is held and suppressed, so the part still builds.)
   const nodes = base.nodes.map((n, i) => i === 3 ? { ...n, ...extras } as ModelNode : n);
