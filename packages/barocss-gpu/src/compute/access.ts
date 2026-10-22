@@ -87,7 +87,12 @@ struct Params { count: u32, pad0: u32, pad1: u32, pad2: u32 };
 @group(0) @binding(3) var<storage, read> side: array<u32>;
 @group(0) @binding(4) var<storage, read_write> outMask: array<u32>;
 @group(0) @binding(5) var<uniform> params: Params;
-const DIRS = array<vec3<f32>, 6>(vec3<f32>(1.0, 0.0, 0.0), vec3<f32>(-1.0, 0.0, 0.0), vec3<f32>(0.0, 1.0, 0.0), vec3<f32>(0.0, -1.0, 0.0), vec3<f32>(0.0, 0.0, 1.0), vec3<f32>(0.0, 0.0, -1.0));
+// (Direction d: axis d / 2, + for even d and − for odd — DIRECTIONS' order; built, not a const array indexed at run time.)
+fn direction(d: u32) -> vec3<f32> {
+  var v = vec3<f32>(0.0);
+  v[d / 2u] = select(1.0, -1.0, (d & 1u) == 1u);
+  return v;
+}
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
@@ -97,7 +102,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   var mask: u32 = 0u;
   for (var d: u32 = 0u; d < 6u; d = d + 1u) {
     if ((side[k] & (1u << d)) == 0u) { continue; }
-    if (rayHit(p, DIRS[d], 1e-6, 0xffffffffu) >= INF) { mask = mask | (1u << d); }
+    if (rayHit(p, direction(d), 1e-6, 0xffffffffu) >= INF) { mask = mask | (1u << d); }
   }
   outMask[k] = mask;
 }
