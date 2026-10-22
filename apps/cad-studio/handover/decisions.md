@@ -10708,3 +10708,46 @@ one real defect.
 - Per file: part-model, frk-s0, frk-3, frk-4-revolve, sweep-mass-overlap and sweep-solid give 55/56; the one failure
   is (c).
 - Not run: the full kernel suite, RB and properties (no brep core change here).
+
+## D177 — Trim strips close the gap to their edge: the ribbon from the surface's point to the edge's (2026-10-23)
+
+**Cause of D176 (c), the V notch at rel 1.42e-11 against 1e-11.**
+- Bisected over the ten `packages/barocss-cad/src` commits on Codex's `codex/cad-coordinator-handover-20261022`. The
+  first bad commit is `d456a616f` ("use one exact cylinder differential for trimmed mass"). At its parent
+  `67b34f907` the V notch was +4.1e-12; from it on, −1.42e-11.
+- Its analytic partials and projection are right: they agree with `frame.at` exactly. The earlier pass was the
+  finite-difference error (the central difference of a cosine scales Su by 1 − (h/r)²/6) cancelling the real one.
+- The real error: a plane's cut through a cylinder is an edge fitted as a cubic (49 control points), 2.1–2.4e-8 mm
+  radially off the cylinder; on the plane it is within 3e-11.
+  - The planar face is integrated by Green up to the edge E itself.
+  - The cylinder face's trim strips end at the projection P = S(C) of E on the surface.
+  - So the surface the divergence theorem is taken over has a ribbon-shaped gap along every fitted edge, and the
+    volume carries the flux through it.
+
+**Fix: in `strip` (`src/brep-mass-quadrature.ts`), each strip is continued from P out to E.**
+- The ruled ribbon Y(t, s) = P + s (E − P) is taken to first order in g = E − P: F(P + g/2)·(P′ × g) at each of the
+  strip's eight t nodes, oriented as the strip.
+- P′ = Su C′u + Sv C′v, from the analytic partials or from the finite-difference tangents the strip already has.
+- The ribbon goes into the vector area and the area as well.
+- What is left is second order, about |g|² · L (1e-15 mm³ here).
+- No closures: module-level typed arrays (owner rule).
+- Not covered: an edge integrated with no strip ("straight" in (u, v)) gets no ribbon. Those edges are exact (a
+  circle about the axis, a ruling).
+
+**Results, tolerances and oracles unchanged:**
+
+| Case | Before | After |
+|---|---|---|
+| V notch | rel −1.42e-11 | 9.2e-15 |
+| D126 ordered round-cornered table, members 4–7 (D126 oracles, the FRk6 test's endpoint substitutions) | −9.6e-10, 2.6e-10, −1.12e-9, 2.4e-10 | −4.9e-14, 5.4e-15, −1.9e-14, −2.1e-15 |
+
+- The table's member 6 is the one Codex's FRk6 failed at 1e-9 (its "member5", counted from 0 in the test).
+- Codex's route was tighter edge fits for capped joints (`edgeFitToleranceMM: 1e-11`, `2364ef71`). That is slower and
+  only moves the gap down. With the ribbon it is not needed, and FRk6 (D178) does not port it.
+- Mass time for the table: 219 → 244 ms.
+
+**Checks:**
+- T1: `packages/barocss-cad` lint 0 errors, type-check clean, `build:library`. 15 mass, frame and notch files
+  (frk-1 … frk-8b, frk-s0, mass-polyhedral, modeling-mass, ordered-trim-bead, sweep-*): 80/80.
+- **T2 pending** (brep core changed): the full kernel suite, then RB and properties, in a scratch worktree, on a slot
+  from the coordinator.
