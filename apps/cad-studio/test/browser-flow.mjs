@@ -42,11 +42,23 @@ page.on('dialog', d => d.accept());
 
 const results = [];
 let step = 0;
+// (A page load the flow did not ask for — a file under the dev server changed mid-run, so Vite reloaded the page — is
+// named in the failing step's line: the step's state is gone and the studio offers the unsaved part back. The flow's own
+// reloads say so first, `expectLoad`.)
+let loads = 0, expected = 0, sawLoad = 0;
+const changedFiles = [];
+const expectLoad = () => { expected++; };
+page.on('framenavigated', f => { if (f !== page.mainFrame()) return; loads++; if (loads > 1 && expected > 0) expected--; else if (loads > 1) sawLoad++; });
+server.watcher.on('change', f => changedFiles.push([step, f]));
 async function check(name, fn) {
   step++;
   if (process.env.FLOW_ONLY && step > 1 && !new RegExp(process.env.FLOW_ONLY, 'i').test(name)) return;
+  const before = sawLoad, files = changedFiles.length;
   try { await fn(); results.push({ step, name, ok: true }); }
-  catch (e) { results.push({ step, name, ok: false, error: String(e.message ?? e).split('\n')[0] }); if (process.env.FLOW_DEBUG) console.log(String(e.message ?? e).slice(0, 1500)); }
+  catch (e) {
+    const reloaded = sawLoad > before ? ` [the page reloaded during this step, not by the flow${changedFiles.length > files ? `: ${changedFiles.slice(files).map(x => x[1]).slice(0, 3).join(', ')} changed` : ''}]` : '';
+    results.push({ step, name, ok: false, error: String(e.message ?? e).split('\n')[0] + reloaded }); if (process.env.FLOW_DEBUG) console.log(String(e.message ?? e).slice(0, 1500));
+  }
   await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`) });
 }
 const outliner = () => page.locator('.outliner').innerText();
@@ -975,7 +987,7 @@ try {
     assert.ok(node.blob && !node.positions, 'the document names its arrays by hash');
     // Unsaved: the recovery copy, its blobs in IndexedDB, restored after a reload.
     await page.waitForTimeout(1500);
-    await page.reload();
+    expectLoad(); await page.reload();
     await page.waitForSelector('[aria-label="Recover unsaved work"]', { timeout: 15000 });
     await page.click('[aria-label="Recover unsaved work"] button:text-is("Restore")');
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
@@ -1308,7 +1320,7 @@ try {
   await check('unsaved work comes back after a reload', async () => {
     const before = await page.evaluate(() => window.__studioDoc.direct.objects.length);
     await page.waitForTimeout(1200);
-    await page.reload();
+    expectLoad(); await page.reload();
     await page.waitForSelector('[aria-label="Recover unsaved work"]', { timeout: 15000 });
     await page.click('[aria-label="Recover unsaved work"] button:text-is("Restore")');
     await page.waitForFunction(n => window.__studioDoc.direct?.objects.length === n, before);
@@ -4079,7 +4091,8 @@ try {
       await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
     }
     await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key'), null, { timeout: 30000 });
-    if (await page.locator('[aria-label="BOM"]').isVisible()) await page.click('[aria-label="BOM"]'); else { await page.click('[aria-label="More tools"]'); await page.click('[role="menu"][aria-label="More tools"] [aria-label="BOM"]'); }
+    // (The BOM is an inspect tool on the left toolbar, not on the top bar: O90's shapes strip keeps its room.)
+    await page.click('nav[aria-label="Tools"] [aria-label="BOM"]');
     try {
       await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 30000 });
       assert.match(await page.textContent('[aria-label="BOM line 1"]'), /Untitled/);
@@ -6824,5 +6837,7 @@ try {
 const failed = results.filter(r => !r.ok);
 for (const r of results) console.log(`${r.ok ? 'ok' : 'FAIL'} ${r.step} ${r.name}${r.ok ? '' : ' — ' + r.error}`);
 if (errors.length) console.log('page errors:', errors.slice(0, 5));
+if (sawLoad) console.log(`note: the page reloaded ${sawLoad} time${sawLoad > 1 ? 's' : ''} without the flow asking`);
+if (changedFiles.length) console.log(`note: ${changedFiles.length} file change${changedFiles.length > 1 ? 's' : ''} under the dev server during the run, the first in step ${changedFiles[0][0]}: ${changedFiles.slice(0, 3).map(x => x[1]).join(', ')}`);
 console.log(`screenshots: ${out}`);
 process.exit(failed.length || errors.length ? 1 : 0);

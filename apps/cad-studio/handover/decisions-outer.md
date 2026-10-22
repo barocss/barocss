@@ -5828,3 +5828,119 @@ X3 is built as the S0 froze it.
     - a keyway on a bore rotated 30° about X: the "no principal section" text, no fix.
   - `element-callouts.test.ts`: O146's message assertion now reads the fix text.
   - Flow step "the section a dimension needs (O148 X3)…": the file auto-dimensioned; the Fix button on 16.5 reads "Add B–B"; clicked, the sections are `[B, top, −15]`; Auto-dimension again; dimensions on section:B, no DIM_ON_HIDDEN.
+
+### O147 B1 correction — the BOM tool off the top bar (2026-10-22)
+
+The coordinator's window flow on f7d526c80 bisected a regression to the B1 merge (f1726b560). O90's shapes-strip step (242) failed at 1100 px: the bar was 1.375 px too wide and the strip showed no shapes. B1 had put a BOM tool in the top bar's tray. ToolsTray counts each tool as 30 px and keeps every tool before the shapes, so one more tool took the strip's room, and the estimate's slack ran out.
+- The fix: the BOM is an inspect tool on the left toolbar, after Interference and Measure, with its own generated icon (`cad-bom`: a sheet, its lines, the item marks in the accent). The top bar is as before B1.
+- The BOM panel's flow step clicks it there.
+- From now on, a top-bar change runs O90's shapes-strip step and O127's narrow-window step, the two layout guards (the coordinator).
+
+### Flow step 39's recovery prompt (the coordinator's flake, 2026-10-22)
+
+The coordinator saw step 39 ("draw a plate…") fail twice in full window flows on `locator.fill` timeouts, with "Unsaved work from … 'Untitled' was not saved" open at the bottom left. Steps 38–46 pass together.
+- **What blocks step 39 is not the prompt.** It is a `.toast` dialog with no modal layer and no focus taken, and the studio's keys do not check for it. But the studio offers recovery only when it starts: `useState(() => readRecovery())`, with no error boundary and no remount. So the prompt in step 39's screenshot means the page loaded again during the run.
+- **Why the page loads again.** The flow never reloads before step 39 (its only reloads are later recovery steps). vite.config has no React plugin, so any change to a file the dev server serves (src, or a package's dist that `build:library` writes) is a full page reload. A fresh Vite cache was tried with the Drawing workspace and the BOM opened, and there was no reload from dependency optimizing. The likeliest cause: files changed under that dev server during the run (a merge or a library build in the worktree the window flow serves).
+- **Flow side**: the flow now counts main-frame loads it did not ask for (its own `page.reload()` calls say `expectLoad()` first) and watches the dev server's files. A failing step's line then ends with "[the page reloaded during this step, not by the flow: <files> changed]", and the run ends with a note of both. The next such failure names its cause.
+- **App side: a real bug, though not the flake's cause.** While the prompt was open, the session's own recovery copies wrote over the copy offered (one key), and Discard removed the key, so it deleted the copy of the work done since. It also swept every recovery blob (`collectRecoveryBlobs(null)`), so the work since lost its mesh arrays.
+  - Now the copy offered is set aside under its own key (`offerRecovery`), and the session writes its own beside it. Restore and Discard settle only the offered one (`settleRecovery`).
+  - Discard keeps the current work's blobs; Save keeps a still-offered copy's.
+  - At start, of the last session's copy and one offered before and never answered, the newer is offered.
+  - Tested in recovery.test.ts.
+- **The kernel's suggestion (Keepout.fills)**, declined for now: the connector's keep-out lives only in the kernel's report, and none of it becomes a document keep-out that `checkKeepouts` reads. D163's fix (the keep-out from the plug's front) is where the "violated (±0.0058)" came from and went.
+- **SECTION_DIMENSIONS** now says what to do: "Remove the section's dimensions, or turn the drawing and add them again after." Carrying them through a reorient is queued (item 3).
+
+## Queue 1 — adjacent parts hatched apart in one section (2026-10-22)
+
+The coordinator's queue after O148, item 1: vary the hatch by part, as the GPU lane's G19.3 is to in the viewport (45°, 135°, 30°, 120°… by body).
+- **Which body each cut ring is**: `sectionOf` carries `ringBodies`, the part's output index of each ring's body. A body has the same hatch in every section of the part.
+- **The angles**: `hatchGroups` groups a section's rings by body. Body k is hatched at `HATCH_ANGLES[k mod 6]` = 45°, 135°, 30°, 120°, 60°, 150°, and past six with the spacing widened 40 % a round. A part of one body is hatched at 45°, 2.5 mm, exactly as before, so the DXF fixtures are unchanged.
+- **Drawing it**: `hatch(rings, spacing, angle)` scans at any angle, and at 45° keeps √½ both ways so its lines stay the same to the last digit. The sheet draws a hatch mark per body, the SVG and PDF draw their lines at the mark's angle, the sheet's DXF HATCH takes it (as before, `−angle` with y up), and the section-alone DXF writes a HATCH per body.
+- **Test** (section-dimensions.test.ts): the shaft, key and hub through B–B are three bodies with three angles (their HATCH_ANGLES). Every hatch line runs at its group's angle. The SVG and PDF draw them all, the sheet's DXF has the HATCHes, and the section-alone DXF has one per body at the same angles.
+
+## Queue 2 — balloons clear of a table pinned by `at` (2026-10-22)
+
+Balloons are placed before the tables, so a table pinned by `at` was not yet in their way. Now the pinned tables' boxes (laid out from their content and corner, as `tableGroups` lays them) are added to what a balloon keeps clear of. Auto-placed tables still go after and keep clear of the balloons.
+- Test (bom-balloons.test.ts): the BOM table pinned over where balloon 1 stood. Every balloon ends up off the table, none is unclear, and no issue names a balloon. The pinned table meeting the iso view's name is the person's placing, and the issue list says so as ever.
+
+## Queue 3 — section dimensions carried through a reorient (2026-10-22)
+
+SECTION_DIMENSIONS is gone. A section is kept through a turn only where its view's new depth runs along the old (else SECTION_ACROSS, as before), so its view either turns within its own plane (a top section: the top view's up follows the front) or is seen from the other side (a front or right section, y− ↔ y+). Either way, R14.3b's map for that view (`viewMap`: a view point through the model to the new view's axes, horizontal and vertical swapped where the axes swap) is the map for the section's dimensions. They stay on their section. Their edge references are by name and 3D point and don't change; the value check skips them, since the sheet has no section projection to read them from before cutting.
+- Test (section-dimensions.test.ts): the shaft and hub with B–B square to Z, auto-dimensioned, turned to a front from +X and from +Y. B–B is kept at −15. Drawn again (cut for the new side), its dimensions read the same values (6 and 16.5), with no DIMENSION_LOST. Adding a front section C still refuses the turn to +X (SECTION_ACROSS).
+
+## Queue 4 — S0: the drawing's annotations as model-space anchors (the data side of the GPU lane's G24) (2026-10-22)
+
+The coordinator's item 4: export the drawing's annotations, with world positions, leader targets by persistent name and their text, for the GPU lane to draw on the model with its SDF labels. This S0 needs the coordinator's and the GPU lane's reply before building.
+
+**What is exported** (pure, in cad-model `drawing/annotations3d.ts`): `modelAnnotations(inputs, sheet) → { version: 'model-annotations-v1', items: ModelAnnotation[], left: { id, why }[] }`, from the same resolved sheet the drawing draws (so the 3D text is exactly the sheet's).
+
+```ts
+type Vec3 = [number, number, number];
+/** A point on the model: where it is, and what it is on by persistent name (an instance's `<id>/` prefix kept). */
+interface Target { at: Vec3; edge?: string; face?: string; centre?: true }
+interface ModelAnnotation {
+  id: string;                         // the dimension's, datum's, frame's, weld joint's (W-number) or note's id
+  kind: 'dimension' | 'datum' | 'frame' | 'weld' | 'note';
+  from: DimView;                      // the drawing view (or section:B) it was placed in
+  /** The plane it lies in, as placed in its view: the view's toward (normal) and up, through `depth` along toward. */
+  plane: { normal: Vec3; up: Vec3; right: Vec3; depth: number };
+  /** Its text's anchor (the dimension line's middle, a leader's end), and its lines as drawn: value, tolerance, callout. */
+  anchor: Vec3; text: string[]; align: 'start' | 'middle' | 'end';
+  /** What it points at, in order (a linear dimension's two ends, a diameter's edge and centre, a leader's target). */
+  targets: Target[];
+  /** Its own lines in model mm (dimension and extension lines, the leader, the arrow tips), for a renderer that draws them. */
+  lines: [Vec3, Vec3][]; arrows: { tip: Vec3; dir: Vec3 }[];
+  /** By kind: the measure and its tolerance (fit code, ± or deviation, basic); the frame's characteristic, zone and datums;
+   *  the datum's letter; the weld's kind, size (an estimate flagged), all round, inner. */
+  dimension?: { measure: 'linear' | 'diameter' | 'radius' | 'pcd' | 'angle'; value: number; unit: 'mm' | 'deg'; tol?: Tolerance; basic?: true; count?: number; callout?: string };
+  frame?: { characteristic: 'position'; zone: 'diameter'; value: number; datums: string[]; dim: string };
+  datum?: { letter: string };
+  weld?: { kind: 'fillet' | 'butt'; sizeMM: number | null; estimate: boolean; allRound: boolean; inner: boolean; joint: string };
+}
+```
+
+- **Lifting a view's point into the model**: a point (u, v) placed in a view is `u·right + v·up + depth·toward`, with the view's own axes (orientation honoured). `depth` is its targets' mean depth along the view's toward, so a dimension stands in the plane through what it measures. A section's annotations use its cut plane's depth.
+- **Targets**:
+  - by the references the drawing already keeps: a linear dimension's `DimPoint`s (edge name, `end` or `center`, 3D `near`), a diameter's or radius's edge and its circle's centre, a pitch circle's member centres, a datum's edge, a weld symbol's seam edge, a note leader's view point lifted;
+  - so they follow the model as its names do, the same rule as the sheet.
+- **Text**: the sheet's own strings — `dimensionText` with its callout and count (`4× Ø6.6 THRU`, `Ø20 H7`), the tolerance lines as `toleranceText` gives them, the frame's cells (`⌖ | Ø0.1 | A | B`), the datum letter, the weld's size and W-number.
+- **Left out, said in `left`**: a lost dimension (its reason); a note with no leader (it is placed on the paper, not on the model); tables and balloons (sheet-only for v1); a dimension in the isometric view.
+- **Where it runs**: cad-model, pure. The studio computes it from the drawing's inputs when the viewport asks. The GPU lane's toggle, its prop and the drawing are theirs, so my side ends at the data and a test hook `__studioAnnotations()`. A chat read can follow later if wanted.
+- **Oracles** (when built):
+  - the starter plate auto-dimensioned: every dimension's targets are its references' 3D points exactly, its anchor projected back into its view equals its sheet place (1e-9), and its text equals the sheet's;
+  - a fit callout `Ø8 H7` and a ± tolerance carry their strings;
+  - a datum and a position frame on the geometric plate carry their letters and cells;
+  - the welded table's symbols: their seam edges by name, size `3*` with the estimate flag;
+  - after a parameter edit, the same ids and targets by the same names, moved.
+
+**Questions for the GPU lane**:
+- (a) Billboard text or planar in `plane`? Both are given.
+- (b) Do they want our `lines`/`arrows`, or draw their own from `targets` and `anchor`?
+- (c) Instance prefixes: targets keep `<inst>/`, as the edge names do — fine?
+
+## Queue 5a — FRk1's gussets and end caps as plates, and their seams as welds (2026-10-22)
+
+The kernel lane's FRk1 (D165) is in (integration 7f9c31f0b, merged here as b3ae7e0c9). The outer lane's side:
+- **Elements** (`engine/elements.ts`):
+  - `gusset` and `end-cap` are ElementReports (`o.gusset`, `o.endCap`), made by default.
+  - Their size text: "plate 5 thick, legs 120 × 100, clipped 15"; "plate 4 thick, over, 1600 mm²".
+- **BOM** (`team/bomCore.ts`):
+  - `BomView.plates` holds each made plate: part, item, kind, thickness, area, volume, material and mass.
+  - `deriveBom` lists them after the parts, merged by kind, thickness, area and material (two copies → ×2), as a `BomLine.plate` with its item ("gusset plate 5 mm") and size ("5 mm plate, 5887.5 mm²"). `plateQty` counts them.
+  - `checkBom` checks each plate is on one plate line, with the line's sizes and the count.
+  - A plate is not also a made element (the panel's list), and it is not bought. A person can set one bought in the panel (a plate ordered in, laser-cut), and it then becomes a bought element line.
+  - The purchase list "with made parts" gives its kind and size. The BOM table shows it as made.
+  - A plate line's balloon points at the plate's own edges.
+- **Welds** (`frames/welds.ts`):
+  - New joint kinds `gusset` (one a seam, on each of its two members) and `cap` (round its member's end).
+  - The id is `<plate body>.<member body>`; `end` is the cap's end, or null for a gusset's seam. The face is the kernel's seam face, or the member's end face for a cap.
+  - The seam length is the kernel's (exact).
+  - The size, unset, is the thinner of the plate's thickness and the member's wall (an estimate, as O118's rule). The weld is a fillet by default.
+  - The weld list table says GUSSET and END CAP.
+  - FRk2's beads will map onto these ids.
+- **Tests** (`test/frame-plates.test.ts`), on the mitred L with a 120 × 100 × 5 gusset clipped 15 and a 4 mm cap over member 1's start:
+  - the element lines' sizes;
+  - the plate lines 5887.5 mm² × 5 = 29437.5 mm³ and 1600 × 4 = 6400 mm³, checked by `checkBom`; not made elements;
+  - the purchase CSV rows; two copies ×2 with their part ids;
+  - the joints `<gusset>.<m0>` 105, `<gusset>.<m1>` 85 and `<cap>.<m0>` 160 at `start`, each a fillet sized 3 (estimate), exact; the mitre joint stays; the table's words.
+- **For the coordinator**: integration's `test/weldment.test.ts` (the kernel lane's, b03719ada) fails the cad-model type-check: two calls of `fields?` possibly undefined (lines 23 and 42) and a sketch node cast (line 70). Not touched here.

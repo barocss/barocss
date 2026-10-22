@@ -4,7 +4,7 @@
 // frame and title block are one block (TITLE_BLOCK); each dimension is a DIMENSION entity showing exactly what
 // the sheet draws, with its definition points from the model; the section's hatching is a HATCH.
 import { writeDxf, type BrepProjection, type DxfDocument, type DxfEntity, type DxfLayer, type DxfVersion, type DxfWriteResult, type DxfXY, type ProjectedCurve } from '@barocss/cad';
-import { placementOf, toleranceText, type Mark, type MarkGroup, type Pen, type Sheet } from './sheet';
+import { hatchGroups, placementOf, toleranceText, type Mark, type MarkGroup, type Pen, type Sheet } from './sheet';
 import { toSheet, type SheetLayout, type ViewPlacement } from './views';
 import type { Resolved } from './dimensions';
 import type { XY } from './types';
@@ -28,8 +28,6 @@ export const DXF_LAYERS: DxfLayer[] = [
   { name: 'DIMENSIONS', color: 7, lineweight: 25 },
 ];
 const STYLES = [{ name: 'BC_TEXT', font: 'arial.ttf' }, { name: 'BC_BOLD', font: 'arialbd.ttf' }];
-/** The section's hatching (sheet mm), as the sheet draws it. */
-const HATCH_SPACING = 2.5;
 
 const TAU = 2 * Math.PI;
 const degOf = (r: number) => r * 180 / Math.PI;
@@ -150,9 +148,10 @@ export function curveEntity(c: ProjectedCurve, layer: string): DxfEntity {
  * Section A–A alone at 1:1 (model mm, seen like the front view: x along the part's X, y up its Z): the cut
  * part's visible edges and its cut faces hatched at 45°, 2.5 mm apart.
  */
-export function sectionDxfDocument(section: { projection: BrepProjection; rings: XY[][] }): DxfDocument {
+export function sectionDxfDocument(section: { projection: BrepProjection; rings: XY[][]; ringBodies?: number[] }): DxfDocument {
   const entities: DxfEntity[] = [];
   for (const e of section.projection.edges) for (const p of e.pieces) if (p.visible) entities.push(curveEntity(p.curve, e.tangent ? 'THIN' : 'VISIBLE'));
-  if (section.rings.length) entities.push({ type: 'hatch', loops: section.rings.map(r => ({ points: r.map(p => [p[0], p[1]] as DxfXY) })), fill: { kind: 'lines', angleDeg: 45, spacing: HATCH_SPACING }, layer: 'HATCH' });
+  // (O148: a body a HATCH, each at its own angle as on the sheet; one body as always.)
+  for (const g of hatchGroups(section.rings, section.ringBodies)) entities.push({ type: 'hatch', loops: g.rings.map(r => ({ points: r.map(p => [p[0], p[1]] as DxfXY) })), fill: { kind: 'lines', angleDeg: g.angle, spacing: g.spacing }, layer: 'HATCH' });
   return { units: 'mm', linetypes: DXF_LINETYPES, layers: DXF_LAYERS, entities };
 }

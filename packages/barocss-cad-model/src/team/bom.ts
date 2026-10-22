@@ -30,7 +30,7 @@ export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => Eva
     const e = evaluate(d); if (!e?.ok) continue;
     if (part === 'base') baseMass = e.bodies.reduce((s, b) => s + (b.massG ?? 0), 0);
     for (const l of elementLines(d, e.bodies)) {
-      if (l.bought) continue;
+      if (l.bought || l.kind === 'gusset' || l.kind === 'end-cap') continue; // (plates: their own BOM lines, FRk1)
       const id = `${part}:${l.item}`, row = l.row?.id ?? null, m = made.find(x => x.kind === l.kind && x.size === l.size && x.row === row);
       if (m) { m.parts.push(id); m.qty++; m.override = m.override || l.boughtBy === 'override'; }
       else made.push({ item: `${l.kind} ${l.size}`, parts: [id], qty: 1, kind: l.kind, size: l.size, row, override: l.boughtBy === 'override' });
@@ -68,7 +68,7 @@ export function purchaseCsv(p: BomPanelData, withMade = false): string {
   const lines = p.bom.lines.map((l, k) => ({ l, no: k + 1 }));
   for (const { l, no } of lines) if (isBoughtLine(l)) rows.push([no, l.item, l.qty, l.kind ?? 'part', l.size ?? '', l.row ?? '', l.catalogue ?? '', l.source ?? '', l.estimate ? 'estimate' : '']);
   if (withMade) {
-    for (const { l, no } of lines) if (!isBoughtLine(l)) rows.push([no, l.item, l.qty, 'part', '', '', '', '', '']);
+    for (const { l, no } of lines) if (!isBoughtLine(l)) rows.push(l.plate ? [no, l.item, l.qty, l.plate.kind, l.size ?? '', '', '', '', ''] : [no, l.item, l.qty, 'part', '', '', '', '', '']);
     p.made.forEach((m, k) => rows.push([lines.length + k + 1, m.item, m.qty, m.kind, m.size, m.row ?? '', '', '', '']));
   }
   return rows.map(r => r.map(cell).join(',')).join('\n') + '\n';

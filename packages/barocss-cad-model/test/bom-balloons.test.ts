@@ -102,3 +102,15 @@ test('balloons on the front view when the iso is not shown; a line with no visib
   assert.match(drawingIssues({ ...ctx, sheet: tight }).find(x => x.code === 'BALLOON_NOT_CLEAR')!.message, /^Balloons 1, 2, 3, 4: no clear room beside the iso view/);
   assert.deepEqual(i.meta.tableContent!({ id: 'x', from: 'bom' }) && issueContext({ ...i, meta: { ...i.meta, tableContent: () => ({ error: 'the BOM was not worked out for this sheet' }) } }).sheet.tables!.map(t => t.error), ['the BOM was not worked out for this sheet']);
 });
+
+test('balloons keep clear of a table pinned by `at`: the BOM table pinned where balloon 1 stood — the balloons move off it; nothing overlaps', () => {
+  const doc = asm(part()), { ctx } = sheetOf(doc), was = ctx.sheet.balloons!.placed.find(p => p.no === 1)!;
+  const at: XY = [was.at[0] - 6, was.at[1] - 6];
+  const { ctx: c2 } = sheetOf(doc, { tables: [{ id: 'bom', from: 'bom', at }] });
+  const t = c2.sheet.tables!.find(x => x.id === 'bom')!.box, R = 3.5;
+  assert.ok(t[0] <= was.at[0] && was.at[0] <= t[2] && t[1] <= was.at[1] && was.at[1] <= t[3], 'the table covers where balloon 1 was');
+  for (const p of c2.sheet.balloons!.placed) assert.ok(p.at[0] + R <= t[0] || p.at[0] - R >= t[2] || p.at[1] + R <= t[1] || p.at[1] - R >= t[3], `balloon ${p.no} at ${p.at} on the table ${t}`);
+  assert.deepEqual(c2.sheet.balloons!.unclear, []);
+  // (The table where it was pinned may meet a view's name — that is the person's placing, said as ever; no balloon is in it.)
+  assert.deepEqual(drawingIssues(c2).filter(x => /OVERLAP|OVER_LINES|BALLOON/.test(x.code) && /balloon/i.test(x.message)).map(x => x.message), []);
+});

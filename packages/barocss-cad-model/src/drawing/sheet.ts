@@ -27,18 +27,28 @@ export type Mark =
   | { kind: 'polyline'; points: XY[]; pen: Pen }
   | { kind: 'fill'; points: XY[] }
   /** Parallel lines `spacing` apart at `angle` degrees (counter-clockwise as read) over rings, even–odd (R11b, O1: kept as one mark so a DXF gets a HATCH; SVG and PDF draw its lines). */
-  | { kind: 'hatch'; rings: XY[][]; spacing: number; angle: 45; pen: Pen }
+  /** `angle`: the lines' direction on the sheet (degrees, y down the paper): 45 for one body, a body's own in a section of several. */
+  | { kind: 'hatch'; rings: XY[][]; spacing: number; angle: number; pen: Pen }
   /** `angle`: degrees, counter-clockwise as read on the sheet. */
   | { kind: 'text'; at: XY; text: string; size: number; anchor: 'start' | 'middle' | 'end'; angle?: number; bold?: boolean };
 /** `datum`, `control` (R14.4, O5): a datum feature symbol, a feature control frame. */
 /** `table` (O49): a drawing table, its id the table's. */
 /** `weld` (FRd2, O119): a weld symbol, its id the joint's W-number. */
 /** `balloon` (O147 B2): an item balloon, its id the BOM line's number. */
-/** O148 X1: a section as the sheet draws it — its letter, view and place along the view's depth, its projection and cut rings. */
-export interface SheetSection extends DrawingSection { projection: BrepProjection; rings: XY[][] }
+/** O148 X1: a section as the sheet draws it — its letter, view and place along the view's depth, its projection and cut rings (`ringBodies`: each ring's body, the part's output index). */
+export interface SheetSection extends DrawingSection { projection: BrepProjection; rings: XY[][]; ringBodies?: number[] }
+/** A body's hatch in a section of several (the viewport's order, the GPU lane's G19.3): 45°, 135°, 30°, 120°, 60°, 150°; past them, wider. */
+export const HATCH_ANGLES: readonly number[] = [45, 135, 30, 120, 60, 150];
+export const HATCH_SPACING = 2.5;
+/** A section's rings by body, each body's angle and spacing (no bodies given: one group at 45°). */
+export function hatchGroups(rings: readonly XY[][], bodies?: readonly number[]): { body: number; rings: XY[][]; angle: number; spacing: number }[] {
+  const by = new Map<number, XY[][]>();
+  rings.forEach((r, k) => { const b = bodies?.[k] ?? 0; (by.get(b) ?? by.set(b, []).get(b)!).push(r); });
+  return [...by].sort((a, b) => a[0] - b[0]).map(([body, rs]) => ({ body, rings: rs, angle: HATCH_ANGLES[body % HATCH_ANGLES.length], spacing: HATCH_SPACING * (1 + 0.4 * Math.floor(body / HATCH_ANGLES.length)) }));
+}
 /** The sections that cut (O148 X1), as the sheet draws them; one that failed is left out (its error is the caller's to say). */
-export const sheetSections = (cuts: readonly (DrawingSection & { result: { ok: true; projection: BrepProjection; rings: XY[][] } | { ok: false; error: string } })[]): SheetSection[] =>
-  cuts.flatMap(c => c.result.ok ? [{ id: c.id, view: c.view, at: c.at, projection: c.result.projection, rings: c.result.rings }] : []);
+export const sheetSections = (cuts: readonly (DrawingSection & { result: { ok: true; projection: BrepProjection; rings: XY[][]; ringBodies?: number[] } | { ok: false; error: string } })[]): SheetSection[] =>
+  cuts.flatMap(c => c.result.ok ? [{ id: c.id, view: c.view, at: c.at, projection: c.result.projection, rings: c.result.rings, ...(c.result.ringBodies ? { ringBodies: c.result.ringBodies } : {}) }] : []);
 /** The middle of the part along a section view's depth (O148 X1: where a new section is cut), from a view that sees that depth edge-on; null if none is shown. */
 export function sectionMiddle(views: DrawingViews, view: SectionViewId, orientation?: Orientation): number | null {
   const { k, sign } = sectionDepth(view, orientation);
@@ -157,8 +167,10 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   // (FRd2, O119: the weld symbols, before the tables so an auto-placed one keeps clear of their texts.)
   const welds = settings.weldSymbols && meta.welds?.length ? weldSymbols(layout, views, meta.welds) : null;
   if (welds) groups.push(...welds.groups);
-  // (O147 B2: the item balloons, after the weld symbols and before the tables: clear of the texts so far.)
-  const balloons = settings.balloons && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, takenOf(layout, groups)) : null;
+  // (O147 B2: the item balloons, after the weld symbols and before the tables: clear of the texts so far and of the pinned tables.)
+  // (Clear of the tables pinned by `at` too: they are placed after, where they were set.)
+  const pinned = (settings.tables ?? []).filter(t => t.at).map(t => tableLayout(tableContentOf(t, meta.tableContent).content, t.at!, t.corner ?? 'top-left').box as Rect);
+  const balloons = settings.balloons && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, [...takenOf(layout, groups), ...pinned]) : null;
   if (balloons) groups.push(...balloons.groups);
   // (Tables last: an auto-placed one finds room clear of everything else on the sheet, O49.)
   const tables = tableGroups(layout, settings, groups, meta.tableContent);
@@ -463,7 +475,9 @@ const circlePoints = (c: XY, r: number): XY[] => Array.from({ length: 12 }, (_, 
 function sectionMarks(v: SectionPlacement, section: SheetSection): Mark[] {
   const marks: Mark[] = [];
   for (const e of section.projection.edges) for (const p of e.pieces) if (p.visible) marks.push(curveMark(v, p.curve, 'visible'));
-  marks.push({ kind: 'hatch', rings: section.rings.map(r => r.map(q => toSheet(v, q))), spacing: 2.5, angle: 45, pen: 'thin' });
+  // (Each body its own hatch — the part's body k at HATCH_ANGLES[k], so adjacent parts read apart, and a body the same in
+  // every section; one body alone at 45° as always.)
+  for (const g of hatchGroups(section.rings, section.ringBodies)) marks.push({ kind: 'hatch', rings: g.rings.map(r => r.map(q => toSheet(v, q))), spacing: g.spacing, angle: g.angle, pen: 'thin' });
   return marks;
 }
 /** A section's cutting plane, in the first shown view that sees it edge-on (none shown: none). */
@@ -492,10 +506,12 @@ function cuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSe
 /** The views that may show a section's cutting plane edge-on, in the order tried. */
 const CUT_SHOWN: Record<SectionViewId, readonly ViewId[]> = { front: ['top', 'right'], top: ['front', 'right'], right: ['front', 'top'] };
 
-/** Parallel hatch lines `spacing` apart at 45° over rings (even–odd: holes stay clear). */
-export function hatch(rings: readonly (readonly XY[])[], spacing: number): Extract<Mark, { kind: 'line' }>[] {
-  // In coordinates turned by −45°, the hatch lines are horizontal: scan them and pair the crossings.
-  const c = Math.SQRT1_2, to = (p: XY): XY => [c * p[0] + c * p[1], -c * p[0] + c * p[1]], back = (q: XY): XY => [c * q[0] - c * q[1], c * q[0] + c * q[1]];
+/** Parallel hatch lines `spacing` apart at `angle` (45° by default) over rings (even–odd: holes stay clear). */
+export function hatch(rings: readonly (readonly XY[])[], spacing: number, angle = 45): Extract<Mark, { kind: 'line' }>[] {
+  // In coordinates turned by −angle, the hatch lines are horizontal: scan them and pair the crossings. (45° as it always
+  // was, √½ both ways, so its lines stay the same to the last digit.)
+  const t = angle * Math.PI / 180, cs = angle === 45 ? Math.SQRT1_2 : Math.cos(t), sn = angle === 45 ? Math.SQRT1_2 : Math.sin(t);
+  const to = (p: XY): XY => [cs * p[0] + sn * p[1], -sn * p[0] + cs * p[1]], back = (q: XY): XY => [cs * q[0] - sn * q[1], sn * q[0] + cs * q[1]];
   const rs = rings.map(r => r.map(to)), ys = rs.flat().map(p => p[1]);
   if (!ys.length) return [];
   const marks: Extract<Mark, { kind: 'line' }>[] = [], lo = Math.min(...ys), hi = Math.max(...ys);

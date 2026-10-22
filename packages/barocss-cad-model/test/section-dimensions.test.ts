@@ -8,7 +8,10 @@ import { autoLayout } from '../src/drawing/layout';
 import { applyFix, drawingIssues, issueContext, sectionFor } from '../src/drawing/issues';
 import { readDrawing, type DrawingSettings } from '../src/drawing/types';
 import { sheetSvg } from '../src/drawing/svg';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sectionDxfDocument, sheetDxf } from '../src/drawing/dxf';
+import { HATCH_ANGLES, hatch } from '../src/drawing/sheet';
+import { sheetPdf } from '../src/drawing/pdf';
+import { writeDxf } from '@barocss/cad';
 import { reorient } from '../src/drawing/reorient';
 import { encodeStudioFile } from '../src/engine/container';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -67,13 +70,29 @@ test('X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 1
   assert.deepEqual(readDrawing(JSON.parse(JSON.stringify(settings))).dimensions.filter(d => d.view === 'section:B').length, ids.size);
 });
 
-test('X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, named by its section); turning the front with one is refused (SECTION_DIMENSIONS)', () => {
+test('X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, named by its section)', () => {
   const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), { settings } = autoLayout(i);
   const dropped: DrawingSettings = { ...settings, sections: undefined }; delete dropped.sections;
   const ctx = issueContext({ ...i, settings: dropped }), lost = drawingIssues(ctx).filter(x => x.code === 'DIMENSION_LOST');
   assert.ok(lost.length === 2 && lost.every(x => /in section B–B is lost: Its section \(B–B\) is not on the sheet\.$/.test(x.message)), lost.map(x => x.message).join(' | '));
-  const r = reorient(i.views, i.views, settings, 'x+');
-  assert.ok(!r.ok && r.code === 'SECTION_DIMENSIONS' && /on a section \(B–B\)/.test(r.message));
+});
+
+test('queue 3: a section\'s dimensions carried through a reorient — B–B (square to Z) turned to a front from +X and from +Y: its dimensions stay on it and read 6 and 16.5 again; a section across the new front still refused', () => {
+  const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), { settings } = autoLayout(i);
+  const valuesOn = (c: ReturnType<typeof issueContext>) => c.sheet.dimensions.filter(r => r.dim.view === 'section:B').map(r => r.ok ? +r.value.toFixed(6) : NaN).sort((a, b) => a - b);
+  const want = valuesOn(issueContext({ ...i, settings }));
+  assert.ok(want.includes(6) && want.includes(16.5), `${want}`);
+  for (const side of ['x+', 'y+'] as const) {
+    const to = inputs(doc, { ...settings, orientation: side }).views, r = reorient(i.views, to, settings, side);
+    assert.ok(r.ok, !r.ok ? r.message : '');
+    assert.deepEqual(r.settings.sections, [{ id: 'B', view: 'top', at: -15 }]);
+    const after = inputs(doc, r.settings), ctx = issueContext({ ...after, settings: r.settings });
+    assert.deepEqual(valuesOn(ctx), want, `${side}: the same values on B–B`);
+    assert.deepEqual(drawingIssues(ctx).filter(x => x.code === 'DIMENSION_LOST').map(x => x.message), []);
+  }
+  // (A section across the new front: still refused, as A–A always was.)
+  const across = reorient(i.views, inputs(doc, { ...settings, orientation: 'x+' }).views, { ...settings, sections: [...settings.sections!, { id: 'C', view: 'front', at: 0 }] }, 'x+');
+  assert.ok(!across.ok && across.code === 'SECTION_ACROSS', JSON.stringify(across));
 });
 
 // (The scene as a model file for the browser flow's step: written with UPDATE_SECTION_FIXTURE=1, checked byte for byte here.)
@@ -116,4 +135,30 @@ test('X3: a keyway on a tilted bore — its axis along none of X, Y, Z — is sa
   const ends = i.views.front.edges.filter(e => e.ends && e.name.includes(`${way.id}.keyway`)).flatMap(e => e.ends!.map(p => ({ edge: e.name, at: 'end' as const, near: [p[0], p[1], p[2]] as [number, number, number] })));
   const r = sectionFor(ctx, { id: 'x', view: 'front', kind: 'linear', a: ends[0], b: ends[1], orient: 'aligned', place: [0, 0] });
   assert.ok(r && !r.fix && /its axis runs along none of X, Y and Z, so no principal section shows it/.test(r.text), JSON.stringify(r));
+});
+
+// ——— Queue 1 (after O148): adjacent parts hatched apart in one section
+test('a section through the shaft, its key and its hub: each body hatched at its own angle (45°, 135°, 30° by body), the same in the SVG, PDF and DXF; one body alone at 45° as before', () => {
+  const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), ctx = issueContext(i);
+  const B = i.sections!.find(x => x.id === 'B')!, bodies = [...new Set(B.ringBodies)];
+  assert.equal(bodies.length, 3, `three bodies cut: ${B.ringBodies}`);
+  const body = ctx.sheet.groups.find(g => g.role === 'section' && g.id === 'B' && !g.view)!;
+  const hatches = body.marks.filter((m): m is Extract<typeof m, { kind: 'hatch' }> => m.kind === 'hatch');
+  assert.deepEqual(hatches.map(h => h.angle), bodies.sort((a, b) => a - b).map(b => HATCH_ANGLES[b % HATCH_ANGLES.length]));
+  assert.equal(new Set(hatches.map(h => h.angle)).size, 3, 'three angles');
+  // (The lines drawn: each at its angle, on the sheet as in the files.)
+  for (const h of hatches) {
+    const lines = hatch(h.rings, h.spacing, h.angle);
+    assert.ok(lines.length > 0);
+    for (const l of lines) { const a = Math.atan2(l.b[1] - l.a[1], l.b[0] - l.a[0]) * 180 / Math.PI; assert.ok(Math.abs(((a - h.angle) % 180 + 180) % 180) < 1e-6 || Math.abs(((a - h.angle) % 180 + 180) % 180 - 180) < 1e-6, `${a} vs ${h.angle}`); }
+  }
+  const svg = sheetSvg(ctx.sheet, 'shaft'), pdf = new TextDecoder('latin1').decode(sheetPdf(ctx.sheet, 'shaft')), dxf = sheetDxf(ctx.sheet, ctx.layout).text;
+  const lineCount = hatches.reduce((n, h) => n + hatch(h.rings, h.spacing, h.angle).length, 0);
+  assert.ok((svg.match(/<line /g) ?? []).length >= lineCount, 'the SVG draws every hatch line');
+  assert.ok((pdf.match(/ l\b/g) ?? []).length >= lineCount, 'the PDF strokes them');
+  const dxfAngles = [...dxf.matchAll(/\nHATCH\n[\s\S]*?\n 52\n([-\d.]+)\n/g)].map(m => Number(m[1]));
+  assert.ok(dxfAngles.length >= 3, `DXF hatches: ${dxfAngles}`);
+  // (Alone as a 1:1 DXF: a HATCH a body, at the sheet's angles.)
+  const alone = writeDxf(sectionDxfDocument(B)).text, aloneAngles = [...alone.matchAll(/\nHATCH\n[\s\S]*?\n 52\n([-\d.]+)\n/g)].map(m => Number(m[1]));
+  assert.deepEqual(aloneAngles.sort((a, b) => a - b), hatches.map(h => h.angle).sort((a, b) => a - b));
 });

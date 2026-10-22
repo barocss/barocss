@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readRecovery, writeRecovery, RECOVERY_LIMIT } from '../src/app/recovery';
+import { offerRecovery, readRecovery, settleRecovery, writeRecovery, RECOVERY_LIMIT } from '../src/app/recovery';
 import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
 
 // A browser's local storage, with a quota (in characters, as the browsers count) or refusing everything.
@@ -29,4 +29,26 @@ test('recovery (D82 B13 follow-up): a copy past the limit, or one the browser re
   storage.quota = 10;
   assert.equal(writeRecovery('Part', doc([{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [11, 10] }])), 'refused');
   assert.equal(readRecovery(), null);
+});
+
+test('the copy offered at start is set aside until answered: the new session\'s copies do not write over it, Discard (settle) removes it and not the work since; of two, the newer is offered', () => {
+  storage.quota = Infinity; storage.map.clear();
+  const before = doc([{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [1, 1] }]), since = doc([{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [2, 2] }]);
+  assert.equal(writeRecovery('Old', before), 'ok');
+  // (The studio starts: the copy is offered and moved aside.)
+  const offered = offerRecovery();
+  assert.deepEqual([offered?.fileName, offered?.doc], ['Old', before]);
+  assert.equal(readRecovery(), null, 'the session\'s key is free');
+  // (The person works on a new part before answering: its copy is kept beside the offered one.)
+  assert.equal(writeRecovery('Untitled', since), 'ok');
+  assert.equal(readRecovery()?.fileName, 'Untitled');
+  // (A reload before answering: the newer of the two is offered — the work since.)
+  assert.equal(offerRecovery()?.fileName, 'Untitled');
+  // (Answered: set aside no more; nothing offered next time.)
+  settleRecovery();
+  assert.equal(offerRecovery(), null);
+  // (Discard after new work: the new work's copy, written after it, is untouched.)
+  assert.equal(writeRecovery('Old', before), 'ok'); offerRecovery(); assert.equal(writeRecovery('Untitled', since), 'ok');
+  settleRecovery();
+  assert.deepEqual(readRecovery()?.doc, since);
 });

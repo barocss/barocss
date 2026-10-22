@@ -28,7 +28,7 @@ function markSvg(m: Mark): string {
     return `<text fill="#000" stroke="none" x="${n(m.at[0])}" y="${n(m.at[1])}" font-size="${n(m.size)}"${m.anchor === 'start' ? '' : ` text-anchor="${m.anchor}"`}${m.bold ? ' font-weight="bold"' : ''}${rot}>${esc(m.text)}</text>`;
   }
   const pen = PENS[m.pen], style = `stroke-width="${pen.width}"${pen.dash ? ` stroke-dasharray="${pen.dash.join(' ')}"` : ''}`;
-  if (m.kind === 'hatch') return hatch(m.rings, m.spacing).map(markSvg).join('');
+  if (m.kind === 'hatch') return hatch(m.rings, m.spacing, m.angle).map(markSvg).join('');
   if (m.kind === 'line') return `<line x1="${n(m.a[0])}" y1="${n(m.a[1])}" x2="${n(m.b[0])}" y2="${n(m.b[1])}" ${style}/>`;
   if (m.kind === 'polyline') return `<polyline points="${m.points.map(p => `${n(p[0])},${n(p[1])}`).join(' ')}" ${style}/>`;
   return `<path d="${arcPath(m.center, m.u, m.v, m.t0, m.t1)}" ${style}/>`;

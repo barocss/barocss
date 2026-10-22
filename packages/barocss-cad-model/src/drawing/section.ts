@@ -10,7 +10,8 @@ import { sectionDepth, viewsFor, type Orientation } from './views';
 export { sectionDepth } from './views';
 import type { DrawingSection, SectionViewId, XY } from './types';
 
-export type SectionResult = { ok: true; projection: BrepProjection; rings: XY[][] } | { ok: false; error: string };
+/** `ringBodies`: each ring's body (the part's output index: one body hatched the same in every section). */
+export type SectionResult = { ok: true; projection: BrepProjection; rings: XY[][]; ringBodies: number[] } | { ok: false; error: string };
 /** O148 X1: a section of the drawing and what cutting it gave. */
 export type SectionCut = DrawingSection & { result: SectionResult };
 
@@ -19,21 +20,23 @@ export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 
   const { k, sign } = sectionDepth(view, orientation), axis = (['x', 'y', 'z'] as const)[k], at = sign * y;
   try {
     const part = toPartDocument(doc), outputs = evaluateCadPart(part).outputs;
-    const cuts: CadPartFeature[] = [], keep: string[] = [];
+    const cuts: CadPartFeature[] = [], keep: string[] = [], body: number[] = [];
     outputs.forEach((o, n) => {
       const X = tessellateBrep(o.brep, { segmentsPerQuarter: 4 }).positionsMM;
       let lo = Infinity, hi = -Infinity; for (let i = k; i < X.length; i += 3) { const v = sign * X[i]; lo = Math.min(lo, v); hi = Math.max(hi, v); }
       const tol = 1e-6 * Math.max(1, Math.abs(hi), Math.abs(lo));
       if (hi <= y + tol) return; // wholly in front of the plane
-      if (lo >= y - tol) { keep.push(o.id); return; } // wholly behind it
+      if (lo >= y - tol) { keep.push(o.id); body.push(n); return; } // wholly behind it
       cuts.push({ id: `section${n}`, kind: 'split', target: o.id, axis, at } as CadPartFeature);
-      keep.push(`section${n}/${sign > 0 ? 1 : 0}`);
+      keep.push(`section${n}/${sign > 0 ? 1 : 0}`); body.push(n);
     });
     if (!keep.length) return { ok: false, error: `Nothing of the part lies behind ${axis.toUpperCase()} = ${at}.` };
     const cut = evaluateCadPart({ ...part, features: [...part.features, ...cuts] });
     const breps = keep.map(id => cut.output(id).brep);
     const projection = projectBrepHiddenLines(breps, viewsFor(orientation)[view]);
-    return { ok: true, projection, rings: breps.flatMap(b => cutRings(b, at, projection, k)) };
+    const rings: XY[][] = [], ringBodies: number[] = [];
+    breps.forEach((b, i) => { for (const r of cutRings(b, at, projection, k)) { rings.push(r); ringBodies.push(body[i]); } });
+    return { ok: true, projection, rings, ringBodies };
   } catch (cause) { return { ok: false, error: cause instanceof Error ? cause.message : String(cause) }; }
 }
 /** O148 X1: every section of the drawing, cut. */
