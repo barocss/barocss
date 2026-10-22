@@ -371,6 +371,18 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
   // (A9-3: an argument the tool does not take is refused, named — never dropped, so a call never says it did what it ignored.)
   const unknown = unknownArguments(name, args);
   if (unknown) return fail(state, unknown);
+  // (A9-2: the report, the print orientation and the brief are a part's own: `part` runs them on that part's document.)
+  if (PART_SCOPED.has(name) && args.part !== undefined) {
+    const { part, ...rest } = args;
+    if (part === 'base') return runToolCounted(state, name, rest, evaluate);
+    const inst = state.doc.instances?.find(i => i.id === part);
+    if (!inst) return fail(state, `No part "${String(part)}"; parts: base${(state.doc.instances ?? []).map(i => `, ${i.id}`).join('')}.`);
+    const r = await evaluate(inst.doc);
+    const out = await runToolCounted({ doc: inst.doc, bodies: r?.ok ? r.bodies : [], partOf: inst.id, ...(state.turns ? { turns: state.turns } : {}) }, name, rest, evaluate);
+    const content = out.content.replace(/^\{/, `{"part":${JSON.stringify(inst.id)},`);
+    if (out.isError || !out.changed) return { ...out, state, content };
+    return { ...out, state: { ...state, doc: { ...state.doc, instances: state.doc.instances!.map(i => i.id === inst.id ? { ...i, doc: out.state.doc } : i) } }, content, summary: `${inst.id}: ${out.summary}` };
+  }
   // (The robot, RM1: the assembly's joint tree and its settings.)
   // (A locked reference, A6.3: no part or assembly change may use its faces, edges or body.)
   if ((MUTATORS.has(name) || BATCHABLE.has(name) || ASSEMBLY_CHANGES.has(name)) && name !== 'apply_ops' && name !== 'run_script' && !REFERENCE_TOOL_NAMES.has(name)) {
@@ -1572,6 +1584,10 @@ for (const t of PART_TOOLS) if (MUTATORS.has(t.name) || t.name === 'get_part_sum
 /** `because` on the tools that change the part (A3.2): why a change may break a hard requirement that passed. */
 for (const t of PART_TOOLS) if (MUTATORS.has(t.name) && t.name !== 'set_requirements') (t.input_schema as { properties: Record<string, unknown> }).properties.because = { type: 'string', description: 'Why this change may break a hard requirement that passed at the last check (else such a change is refused).' };
 
+/** A9-2: tools that are a part's own but not part tools (they read or write the document's settings): they take `part` too. */
+const PART_SCOPED: ReadonlySet<string> = new Set(['check_printability', 'orient_for_print', 'set_brief', 'get_brief']);
+const PART_ARGUMENT = { type: 'string', description: 'The part to work on: an instance id from add_part (default "base", the document\'s own part).' };
+const withPartArgument = (t: ToolDefinition): ToolDefinition => PART_SCOPED.has(t.name) ? { ...t, input_schema: { ...t.input_schema, properties: { ...(t.input_schema.properties as object), part: PART_ARGUMENT } } } : t;
 /** Each tool's arguments, from its schema (`part` on the part tools); null for a schema that takes any. */
 let argumentsOf: Map<string, ReadonlySet<string> | null> | null = null;
 /** Whether a tool takes an argument (a schema that takes any: yes). */
@@ -1589,10 +1605,10 @@ export function unknownArguments(name: string, args: Record<string, unknown>): s
 
 /** Part tools take `part` (an instance id; default the base part); then the assembly tools. */
 export const TOOLS: ToolDefinition[] = [
-  ...PART_TOOLS.map(t => t.name === 'select' ? t : { ...t, input_schema: { ...t.input_schema, properties: { ...(t.input_schema.properties as object), part: { type: 'string', description: 'The part to work on: an instance id from add_part (default "base", the document\'s own part).' } } } }),
-  ...ASSEMBLY_TOOLS,
+  ...PART_TOOLS.map(t => t.name === 'select' ? t : { ...t, input_schema: { ...t.input_schema, properties: { ...(t.input_schema.properties as object), part: PART_ARGUMENT } } }),
+  ...ASSEMBLY_TOOLS.map(withPartArgument),
   ...ROBOT_TOOLS,
-  ...BRIEF_TOOLS,
+  ...BRIEF_TOOLS.map(withPartArgument),
   ...QUESTION_TOOLS,
   ...REFERENCE_TOOLS,
   ...DRAFT_TOOLS,

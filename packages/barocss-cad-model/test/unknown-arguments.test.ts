@@ -6,12 +6,12 @@ import { dispatchTool, TOOLS, unknownArguments, type ChatState } from '../src/ch
 
 // A9-3: an argument a tool does not take is refused, typed and named, with what the tool takes — never dropped while
 // the call says ok (A9's probe: drawing.set {weldSymbols, balloons} answered ok and set nothing; query.manufacturability
-// {part} judged the base part). The part tools take `part`; a tool whose schema takes any argument is not checked.
+// {part} judged the base part — now it takes `part`, A9-2). The part tools take `part`; a tool whose schema takes any argument is not checked.
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const blank = () => ({ doc: emptyDoc(), bodies: [], turnBase: emptyDoc() }) as never as ChatState;
 const errorOf = (content: string) => String((JSON.parse(content) as { error: string }).error);
 
-test('A9-3: drawing.set {weldSymbols} and query.manufacturability {part} refused, named; the part unchanged; a known argument still runs', async () => {
+test('A9-3: drawing.set {weldSymbols} and assembly.get {part} refused, named; the part unchanged; a known argument still runs', async () => {
   const s0 = blank(), built = await dispatchTool(s0, 'features', { action: 'command', command: 'box', values: { w: 20, d: 20, h: 10, x: 0, y: 0, z: 0 } }, evaluate);
   assert.ok(!built.isError, built.content);
   const s = built.state;
@@ -19,8 +19,8 @@ test('A9-3: drawing.set {weldSymbols} and query.manufacturability {part} refused
   assert.ok(d.isError);
   assert.equal(errorOf(d.content), '[UNKNOWN_ARGUMENT] drawing.set takes no "weldSymbols", "balloons": its arguments are sheet, scale, projection, front, views, tolerancing, title, part.');
   assert.equal(d.state, s, 'nothing applied');
-  const m = await dispatchTool(s, 'query', { action: 'manufacturability', part: 'p1' }, evaluate);
-  assert.ok(m.isError && /^\[UNKNOWN_ARGUMENT\] query\.manufacturability takes no "part": .* It works on the whole document, not one part\.$/.test(errorOf(m.content)), m.content);
+  const m = await dispatchTool(s, 'assembly', { action: 'get', part: 'p1' }, evaluate);
+  assert.ok(m.isError && /^\[UNKNOWN_ARGUMENT\] assembly\.get takes no "part": .* It works on the whole document, not one part\.$/.test(errorOf(m.content)), m.content);
   // (The v1 name is refused the same way; the part tools take `part`.)
   const v1 = await dispatchTool(s, 'measure', { a: 'n1.top', b: 'n1.bottom', units: 'in' }, evaluate);
   assert.ok(v1.isError && /^\[UNKNOWN_ARGUMENT\] query\.measure takes no "units"/.test(errorOf(v1.content)), v1.content);
