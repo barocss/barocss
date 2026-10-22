@@ -34,7 +34,8 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   })();
   // This placeholder is only for disabled controls; an invalid persisted scope never reaches the engine.
   const scope: DrawingScope = scopeRead.scope ?? { kind: 'part' };
-  const scopeKey = JSON.stringify([scopeRead.scope, scopeRead.error]), sourceKey = canonicalOf(sourceDoc);
+  // (Inactive, the document is not canonicalised on every render: nothing is built from it then.)
+  const scopeKey = JSON.stringify([scopeRead.scope, scopeRead.error]), sourceKey = active ? canonicalOf(sourceDoc) : '';
   const scoped = useMemo(() => {
     try { return { doc: drawingDocument(sourceDoc, settings), authored: drawingSource(sourceDoc, settings), error: null }; }
     catch (cause) { return { doc: { ...sourceDoc, nodes: [], instances: [] } as StudioDoc, authored: null, error: cause instanceof Error ? cause.message : String(cause) }; }

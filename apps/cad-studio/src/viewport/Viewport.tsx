@@ -3,6 +3,8 @@ import { useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef }
 import type { PrintDisplay } from './printDisplay';
 import type { CamDisplay } from './camDisplay';
 import { camStockBounds } from './camOverlayGeometry';
+import type { ModelAnnotation } from '@barocss/cad-model/drawing/annotations3d';
+import { pmiDrawings, pmiFacingKey, pmiLabels, pmiPick } from './pmiGeometry';
 import { printPointToModel, printSceneBounds, projectPrintBodies } from './printProjection';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
@@ -66,6 +68,10 @@ interface Props {
   /** G23 CNC: the preview's stock, paths, remaining stock and tool (world coordinates), beside the native bodies. */
   camDisplay?: CamDisplay | null;
   camActive?: boolean;
+  /** G24: the drawing's annotations on the model (model-annotations-v1 items), the one picked, and a pick's callback. */
+  annotations?: readonly ModelAnnotation[] | null;
+  annotationSelected?: string | null;
+  onPickAnnotation?(id: string): void;
   /** Appearance only, on ordinary modelling solids; no document or selection store is created. */
   displayMode?: DisplayMode;
   /** The application's session request, before an unsupported scope falls back to the default. */
@@ -534,6 +540,15 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     } catch (error) { setCamError(`CNC preview (${backend ?? 'renderer'}) unavailable: ${error instanceof Error ? error.message : String(error)}`); }
     request();
   }, [props.camDisplay, backend]);
+  // (G24: the annotations' lines and heads on either renderer; their texts as WebGPU's planar labels, facing the eye when a
+  // plane is nearly edge-on — rebuilt only when which ones face it changes. WebGL2 draws the texts in the SVG overlay.)
+  useEffect(() => { renderer.current?.setAnnotationDrawings?.(props.annotations?.length ? pmiDrawings(props.annotations, props.annotationSelected ?? null) : null); request(); }, [props.annotations, props.annotationSelected, backend]);
+  const pmiForward = camera.current.basis().forward, pmiFacing = props.annotations?.length ? pmiFacingKey(props.annotations, pmiForward) : '';
+  useEffect(() => {
+    const r = renderer.current; if (!r?.setOverlayLabels) return;
+    const l = props.annotations?.length ? pmiLabels(props.annotations, camera.current.basis().forward, props.annotationSelected ?? null) : null;
+    r.setOverlayLabels('pmi:text', l?.plain.labels.length ? l.plain : null); r.setOverlayLabels('pmi:text:selected', l?.selected ?? null); request();
+  }, [props.annotations, props.annotationSelected, pmiFacing, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
   useEffect(() => { renderer.current?.setInstanceTransforms?.(props.instanceTransforms ?? null); request(); }, [props.instanceTransforms, backend]);
@@ -994,6 +1009,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     // A cage being edited takes the click (a miss clears its selection; the body under it is not picked).
     const cg = propsRef.current.cage;
     if (cg) { propsRef.current.onPickCage?.(pickCage(cg.cage, p => camera.current.project(p as Vec3, w, h), x, y, cg.mode), e.shiftKey); request(); return; }
+    // (G24: a click on an annotation's text or lines picks it, before the model under it.)
+    const pm = propsRef.current.annotations;
+    if (pm?.length && propsRef.current.onPickAnnotation) {
+      const id = pmiPick(pm, p => { const q = camera.current.project(p, w, h); return Number.isFinite(q[0]) && Number.isFinite(q[1]) ? [q[0], q[1]] : null; }, x, y);
+      if (id) { propsRef.current.onPickAnnotation(id); request(); return; }
+    }
     const sk = propsRef.current.sketch;
     if (sk) {
       const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
@@ -1099,6 +1120,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   };
 
   // Overlay: sketch preview, dimension labels and the move gizmo, projected each frame.
+  /** G24 on WebGL2 (no engine labels): each annotation text at its point, facing the eye, in the SVG overlay. */
+  const pmiSvg = (items: readonly ModelAnnotation[], selected: string | null) => {
+    const c = canvas.current; if (!c) return null;
+    const w = c.clientWidth, h = c.clientHeight, texts: React.ReactNode[] = [];
+    for (const a of items) for (const [k, t] of a.texts.entries()) {
+      const q = camera.current.project(t.at as Vec3, w, h);
+      if (!Number.isFinite(q[0]) || !Number.isFinite(q[1])) continue;
+      texts.push(<text key={a.id + ':' + k} x={q[0]} y={q[1]} textAnchor={t.align} className={'pmi-text' + (a.id === selected ? ' sel' : '')}>{t.text}</text>);
+    }
+    return <svg className="vp-overlay pmi" width={w} height={h} aria-hidden="true">{texts}</svg>;
+  };
   const overlay = () => {
     /** The overlay lines are the engine's (G7): only their labels, points and texts stay SVG. */
     const engineLines = !!renderer.current?.setOverlayLines;
@@ -1334,6 +1366,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
           if (p.cage) { const { x, y, w, h } = local(e), hit = pickCage(p.cage.cage, q => camera.current.project(q as Vec3, w, h), x, y, 'edge'); if (hit) p.onPickCage?.(hit, e.shiftKey, e.altKey ? 'ring' : 'loop'); return; } const { x, y } = local(e), { face, edge } = pickAt(r, x, y); if (edge && p.onPickChain) p.onPickChain(edge.body, edge.edge); else if (face) p.onPickBody?.(face.body); }}
         onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
       {overlay()}
+      {!renderer.current?.setOverlayLabels && !!props.annotations?.length && pmiSvg(props.annotations, props.annotationSelected ?? null)}
       {error && <div className="vp-error" role="alert">{error}</div>}
       {printError && <div className="vp-error" role="alert">{printError}</div>}
       {camError && <div className="vp-error" role="alert">{camError}</div>}
