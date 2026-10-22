@@ -4,8 +4,12 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
-import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { acceptProposal, dispatchTool, type ChatState } from '../src/chat/tools';
 import { resolveShopTree } from '../src/engine/shopRows';
+import { bomView, deriveBom } from '../src/team/assembly';
+import { draftBaseline, moveBaseline } from '../src/team/baseline';
+import { userToken } from '../src/team/ecr';
+import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { applyFill, assemblyPlacedBodies, clearanceMap, fillOverlap } from '../src/team/clearanceMap';
 import { receivePersonRowFiles, type PersonRowFiles } from '../src/chat/rowFiles';
 
@@ -213,4 +217,69 @@ test('A9 steps 4 and 8: the weldment\'s gussets, caps and beads; the parts place
   const near = map.pairs.filter(p => p.state === 'near');
   assert.deepEqual(near.map(p => [p.a, p.b]), [['p2/b0', 'p3/b4']]);
   assert.ok(near[0].minGapMM <= COVER_CLEARANCE_MM && near[0].minGapMM >= COVER_CLEARANCE_MM - 0.02, String(near[0].minGapMM));
+});
+
+test('A9 steps 9–11: a drawing per made part; the BOM and the purchase CSV; the bundle on the person\'s approval; reopened, the same files', async () => {
+  assert.equal(s.doc.instances?.length, 3, 'steps 1–8 first');
+  // 9. A drawing per made part: the weldment on the base's own drawing, each placed part on its own (part-scoped), each
+  // set by a proposal the person accepts, then auto-dimensioned and fixed. Every one is drawn; the plate's is clean; no
+  // drawing is short of a fit row. (What is still left on the others is O165's F8, not asserted here.)
+  const propose = async (title: string, args: Record<string, unknown>) => {
+    const pr = await dispatchTool(s, 'proposals', { action: 'propose', title, ops: [{ tool: 'drawing', args: { action: 'set', ...args } }] }, evaluate);
+    assert.ok(!pr.isError, pr.content);
+    const a = await acceptProposal(pr.state, pr.state.doc.proposals!.at(-1)!.id, evaluate); assert.ok(!('error' in a), JSON.stringify(a)); s = a.state;
+  };
+  const issues: Record<string, { code: string; severity: string }[]> = {};
+  for (const [title, part, args] of [
+    ['Weldment drawing', undefined, { sheet: 'A3', views: ['front', 'top', 'right', 'iso'], weldSymbols: true, balloons: true, tables: [{ id: 'bom', from: 'bom' }, { id: 'cut', from: 'cut-list' }, { id: 'welds', from: 'weld-list' }] }],
+    ['Plate drawing', 'p1', { sheet: 'A3' }], ['Shaft drawing', 'p2', { sheet: 'A3' }], ['Cover drawing', 'p3', { sheet: 'A3' }],
+  ] as const) {
+    const P = part ? { part } : {};
+    await propose(title, { ...args, ...P });
+    for (const action of ['auto', 'fix']) await call('drawing', { action, ...P });
+    issues[part ?? 'base'] = (await call('drawing', { action: 'issues', ...P }) as { issues: { code: string; severity: string }[] }).issues;
+  }
+  for (const id of ['p1', 'p2', 'p3']) assert.equal(s.doc.instances!.find(i => i.id === id)!.doc.drawing?.sheet, 'A3', `${id} has its own drawing`);
+  assert.ok(s.doc.drawing?.weldSymbols && s.doc.drawing.balloons && s.doc.drawing.tables?.length === 3);
+  assert.deepEqual(issues.p1, [], 'the plate\'s drawing is clean');
+  assert.deepEqual(Object.values(issues).flat().filter(x => x.code === 'FIT_ROW_MISSING'), []);
+
+  // 10. The BOM and the purchase CSV through v2. The CSV holds exactly the bought lines — the key (no row, no source, an
+  // estimate: A9-11), the 6204 and the 214 with their rows and sources; the BOM's made parts their materials' masses
+  // (the plate's: its exact volume · 2.7 g/cm³). (The frame's members and the four M6 screws are not BOM lines: F9, F10.)
+  const bomOut = await call('query', { action: 'bom' }) as { files: { text: string }[] };
+  const bom = JSON.parse(bomOut.files[0].text).bom as { lines: { item: string; qty: number; kind?: string; row?: string | null; source?: string | null; estimate?: boolean; massG: number }[] };
+  const plateLine = bom.lines.find(l => l.item === 'Plate')!;
+  assert.ok(Math.abs(plateLine.massG - 801794.9075 * 2.7e-3) < 1e-2, String(plateLine.massG));
+  assert.deepEqual(bom.lines.filter(l => l.kind).map(l => [l.kind, l.qty, l.row ?? null, l.estimate]), [['key', 1, null, true], ['bearing', 1, '6204', false], ['oring', 1, '214', false]]);
+  const csvOut = await call('query', { action: 'purchase_csv' }) as { files: { text: string }[] }, csv = csvOut.files[0].text.trim().split('\n');
+  assert.equal(csv.length, 4); assert.equal(csv[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');
+  assert.match(csv[1], /^\d+,key 6 × 6 × 18,1,key,6 × 6 × 18,,,,estimate$/);
+  assert.match(csv[2], /^\d+,bearing 20 × 47 × 14,1,bearing,20 × 47 × 14,6204,,"B1 \(D139\): NSK, ""6204 Series"", https:\/\/www\.oss\.nsk\.com\/6204-dgbb-sr\.html",$/);
+  assert.match(csv[3], /^\d+,oring 24\.99 × 3\.53,1,oring,24\.99 × 3\.53,214,,"O1 \(D139\): Global O-Ring,/);
+
+  // 11. The bundle (A8.6): refused while no baseline is approved; the agent's own approval refused (APPROVAL_IS_THE_USERS);
+  // the person approves (the script plays the person with the user's token); then complete, intact, verified.
+  assert.match(String((JSON.parse((await dispatchTool(s, 'assembly', { action: 'bundle' }, evaluate)).content) as { error: string }).error), /^\[OUTPUT_BUNDLE_INCOMPLETE\] an approved BOM baseline: none/);
+  const evalDoc = async (d: StudioDoc) => evaluateDoc(d, 1);
+  const view = await bomView(s.doc, evalDoc), draft = draftBaseline(s.doc, deriveBom(view), view);
+  await assert.rejects(moveBaseline(draft.doc, draft.baseline.id, 'review', { by: 'user', at: 0 } as never), /APPROVAL_IS_THE_USERS/);
+  const review = await moveBaseline(draft.doc, draft.baseline.id, 'review', userToken('the person'));
+  s = { ...s, doc: (await moveBaseline(review.doc, draft.baseline.id, 'approved', userToken('the person'), evalDoc)).doc };
+  const bundle = await call('assembly', { action: 'bundle' }) as { check: { complete: boolean; intact: boolean; missing: unknown[]; changed: unknown[]; stale: unknown[] }; files: { path: string }[] };
+  assert.deepEqual([bundle.check.complete, bundle.check.intact, bundle.check.missing, bundle.check.changed, bundle.check.stale], [true, true, [], [], []]);
+  assert.deepEqual(bundle.files.map(f => f.path), ['document.bcad', 'baseline.json', 'materials.json', 'results.json', 'ecrs.json', 'manifest.json']);
+
+  // Reopened: the saved file opened again gives the same BOM, CSV, clearance map and bundle check.
+  const opened = await readStudioFile(encodeStudioFile(s.doc)); assert.ok('doc' in opened, JSON.stringify(opened));
+  const again = { ...s, doc: opened.doc };
+  for (const action of ['bom', 'purchase_csv', 'clearance'] as const) {
+    const [a, b] = [await dispatchTool(s, 'query', { action }, evaluate), await dispatchTool(again, 'query', { action }, evaluate)];
+    assert.ok(!a.isError && !b.isError, a.content + b.content);
+    // (The clearance map carries its own timing (ms), which differs run to run; the rest is the same.)
+    const texts = (r: typeof a) => (JSON.parse(r.content) as { files: { text: string }[] }).files.map(f => action === 'clearance' ? JSON.stringify({ ...JSON.parse(f.text), timing: undefined }) : f.text);
+    assert.deepEqual(texts(b), texts(a), action);
+  }
+  const reopenedBundle = JSON.parse((await dispatchTool(again, 'assembly', { action: 'bundle' }, evaluate)).content) as { check: { complete: boolean; intact: boolean } };
+  assert.deepEqual([reopenedBundle.check.complete, reopenedBundle.check.intact], [true, true]);
 });
