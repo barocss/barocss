@@ -9405,3 +9405,490 @@ Ran:
 Not run:
 - RB and properties: next at the 4th kernel checkpoint since D160.
 - The full browser flow (the coordinator's).
+
+## D162 — R12c.7: section tables and connector envelopes from the user's rows (2026-10-22)
+
+R12c.7 as D139 froze it: a section table loader for FR's kinds, and connector envelopes (the opening, the body, a keep-out) with their fit checked as a declared fit. USB-C comes from U1's values as the test row, not a built-in.
+- No section or connector table is built in.
+- The section rows in the tests are test rows flagged estimates.
+- The connector row cites D139's U1 (Wikipedia, "USB hardware", read for D139), the source of its values.
+
+**Section tables** (`section-table.ts`):
+- **A table** is `{ id, kind (rect-tube | round-tube | angle | channel | tslot), label?, source | estimate, rows: [{ size, …the kind's dimensions, source? | estimate? }] }`.
+  - A T-slot's own size dimension is `sizeMM` in a table, because `size` names the row.
+- **`sectionTableProblem` checks the table whole:**
+  - its kind, an id, at least one size;
+  - each size listed once;
+  - every dimension of the kind, numbers 0 or more;
+  - no unknown field;
+  - a source or the estimate flag per size, its own or the table's (never both on one, never neither);
+  - and each size builds by FR1's closed forms: a `FrameSectionError` is named with its size.
+- **`lookupSection`** returns the size's spec, whether it is an estimate and where it is from. A miss names the sizes held.
+- **The part model:**
+  - a member's, a frame's or an override's section may be `{ kind: 'table', table, size }`, with the table inline, as the bend tables (D120);
+  - `[SECTION_TABLE] …` and `[SECTION_TABLE_MISS] …` (PARAMETER);
+  - the member's section label names the table, the size, and the estimate or the source.
+- **In the studio:** the outer lane's section library (FRc, O117) already holds rows by their dimensions, so a table loads into it.
+  - `frames/sectionTables.ts` (`isSectionTable`, `sectionTableRows`) turns a table, checked whole by the kernel first, into one library row a size: `<table>:<size>`, named `<label> <size>`, with its source or the estimate flag.
+  - The library's sections file input (`ui/FrameSections.tsx`, a three-line change in the outer lane's file) takes either library rows or a table.
+
+**Connectors** (`connector.ts`; a composition of existing features):
+- **A row** is `{ id, name?, opening { shape stadium | rect | round, widthMM, heightMM, cornerRadiusMM? (rect), depthMM }, body? { the same, lengthMM }, keepOut? { marginMM, depthMM }, source | estimate }`.
+  - Checked: a stadium's width is at least its height, a round's sizes are equal, a rect's corner is under half its side, the body is no larger than its opening.
+- **Areas in closed form** (`connectorSectionArea`): a stadium (w − h)h + πh²/4, a rounded rectangle wh − (4 − π)r², a circle πw²/4.
+- **The frame** (`connectorFrame`) on a flat face:
+  - z is the face's outward normal;
+  - x is world X projected on the face (world Y when the face is square to X), turned `rotation` about z;
+  - y = z × x.
+- **The opening** (`connectorOpening`; the kind `connector-opening` { target, face, row, center, rotation? }):
+  - the section is extruded from the face down its depth (and a hair proud) and cut by the analytic Boolean; faces `<id>.opening<k>` and `<id>.opening.bottom`;
+  - CONNECTOR_PLACEMENT: a face that is not flat; a centre off the face's plane; an opening that takes less than its full A·depth (it runs off the face, or through a thinner panel), the two volumes named.
+- **The body** (`connectorBody`; the kind `connector-body` { opening }, which refers to its opening):
+  - the row's body section, from the opening's bottom out its length along the axis;
+  - its fit is a declared fit checked by exact overlap with the panel (the analytic intersection): touching at most, else CONNECTOR_FIT with the overlap;
+  - the report gives its gaps across, (W − w)/2 and (H − h)/2, and how far it stands out, L − depth.
+  - U1: gaps 0.045 and 0.080, 0.31 out (S0's figures).
+- **The keep-out** (`connectorKeepOut`): the body's section (or the opening's) grown by the margin, the row's depth out from the face, in A6.3's form: a box from its frame's origin along x, normal × x and normal, clearance 0.
+  - It is the space the mating plug and its cable need in front of the opening.
+- Codes: INVALID_INPUT → INPUT, CONNECTOR_PLACEMENT and CONNECTOR_FIT → GEOMETRY, each with its own code kept.
+
+**Oracles and tests** (`test/r12c-standards.test.mjs`, 5 tests, all failing on the previous HEAD: the modules did not exist). Oracles are written in the test:
+- **The table's refusals and lookups:** a size's own source over the table's estimate; a miss naming the sizes.
+- **Members on two sizes:** their volumes A·L by the rounded tube's closed form w·h − (4 − π)r_o² − ((w − 2t)(h − 2t) − (4 − π)r_i²) to 1e-6, their labels, [SECTION_TABLE] and [SECTION_TABLE_MISS].
+- **The connector rows' refusals.**
+- **U1's opening in a 40 × 20 × 10 panel's top:**
+  - the removal A·6.2 to 1e-7, the body A_b·6.51;
+  - the gaps, the 0.31, no overlap, the body from z 3.8 to 10.31;
+  - the keep-out's frame and size;
+  - turned 90°, x along world Y.
+- **A square-cornered body in the stadium:** its corners beyond the round ends, ∫ 2(1.2 − √(1.28² − (x − 2.89)²)) dx from 2.89 to 4.125 (Simpson), × 2 ends × 6.2. The kernel's CONNECTOR_FIT overlap matches it to 1e-5.
+- **Refusals:** off the face, off its plane, on a cylinder.
+- **Conformance `r12c/`** (from a script with no kernel geometry):
+  - `connector-usb-c-opening`: the panel and the body by the stadium's area, centroids by moments;
+  - `connector-square-body-refused`;
+  - `frame-member-section-table`: A·L;
+  - `frame-member-section-table-miss`.
+
+**Studio and model:**
+- **The document's `connectors`** { version 1, rows } is in STUDIO_DOC_FIELDS and crosses to the worker. `editConnectorRows` keeps a row in use.
+- **Nodes:**
+  - `connector-opening` { parent, face, row, center, rotation? }: it consumes its body;
+  - `connector-body` { opening }: it refers to its opening.
+  - `usesOf`, `renumber`, `renameNode` and the named faces, `flatten` and `migrate` know them.
+- **The Connector opening command** (modify, "connector port receptacle"):
+  - one flat face picked and a row, offsets along and across the face from its centroid, a rotation;
+  - it adds the opening, the body when the row has one, and the row's keep-out to the part's keep-outs (`doc.references.keepouts`, A6.3), where the outer lane's keep-out check takes it.
+  - The keep-out is placed with the opening, and kept if the opening moves (said in its note).
+- **Notes:**
+  - the opening: its row and source, section, depth and area;
+  - the body: its gaps and how far it stands out;
+  - the keep-out;
+  - "Envelopes only: not the receptacle's housing, contacts or tongue";
+  - the body's own note: touching nothing, overlap 0.
+- **Friendly errors** for [CONNECTOR_ROW_UNKNOWN], [CONNECTOR_PLACEMENT], [CONNECTOR_FIT], [SECTION_TABLE] and [SECTION_TABLE_MISS].
+- **Panels and icon:** the Library panel's CONNECTORS (`ui/ConnectorRows.tsx`), the icon `cad-connector`.
+- **Chat v2:** a features command, its values behind `describe`. The per-turn total is 22,330 (was 22,319; cap 25,000).
+- **Tests:** `test/connector.test.ts` (4):
+  - the opening at a plate's centre through the command, the volumes, notes, labels and the keep-out written;
+  - moved and turned;
+  - a square body's and an off-face opening's titles;
+  - a section table read into the library and a member on one of its sizes, A·L;
+  - describe.
+  - `fields.test` gained `connectors`; the studio `chat.test` a context; `palette.test` the word, its flow-word test the connector command.
+- **A flow step** "Connector opening (R12c.7, D162)": the row loaded in the Library panel, a box and the opening through the scripted chat, the keep-out in the document, the body's gaps in the notes.
+- **Fixed in passing:** the cad-model's patterned-hole copies are cast to a feature. The new kind with a target and a centre made the spread's type widen.
+
+**Not in this stage:**
+- receptacle housings, contacts and the tongue (envelopes only);
+- connectors on curved faces;
+- the keep-out following its opening when the opening is edited;
+- connectors as LIB manifests: the opening cuts a panel, which LIB parts (bodies added) do not;
+- table rows shared across parts.
+
+**Checks** (rules v2: `part-model.ts` gained cases, so the full kernel suite ran; the 2nd kernel checkpoint since D160's RB run, so no RB), on 6ec2afee6 (this change's code) in the detached worktree, under a load average of 40–60:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-standards`: 5/5.
+- The full kernel suite, conformance included: 1513/1520, 6 skipped, 309 s. It failed only the env-only "actual native Split source…".
+- Conformance `r12c/`: 30/30.
+- `@barocss/cad-model`: type-check clean, 743/743. Studio: type-check clean, 197/197.
+- Test names against the saved lists:
+  - kernel: none missing, +9;
+  - cad-model: none missing, +7;
+  - studio: one renamed by this stage (the palette's flow-word test, now naming connectors), +1.
+- `FLOW_ONLY` "Connector opening (R12c", "Chain drive (R12c", FRc (the outer lane's section library step, since `FrameSections.tsx` changed) and "fillet a box top edge": 4/5.
+  - The connector step failed on the test's own pattern: the opening's outliner row reads "Box · Connector opening for usb-c", and the step matched it anchored at the start. Fixed in 856070515 (the pattern anywhere in the row); rerun alone, it passes.
+  - FRc passes.
+
+Not run:
+- RB and properties: next at the 4th kernel checkpoint since D160.
+- The full browser flow (the coordinator's).
+
+Asked of the coordinator (after the fact, the new rule): the stage changed the outer lane's `ui/FrameSections.tsx` (the sections file input takes a table: three lines) and `ui/LibraryPanel.tsx` (the DRIVES and CONNECTORS sections, one line each).
+
+## D163 — R12c.8: acceptance by the agent, a gearbox output shaft and a spring-loaded plunger (2026-10-22)
+
+The last R12c stage frozen in D139. Two assemblies are built by the agent's v2 tools in one chat turn each, starting from the user's rows (the agent cannot load rows), and accepted by closed forms written in the test, none read from the build. **R12c is done** with this step; the R12c → FR geometry hand-over block is at the top of README §0.
+
+**Acceptance** (`packages/barocss-cad-model/test/r12c-acceptance.test.ts`, 2 tests). Each turn comes from the calls in `test/fixtures/r12c-*.calls.json`, sent through `dispatchTool` as the chat does. Every call is a v2 action an agent has (`features.command` with its values, faces or bodies by name, `query.interference`). The flow sends both through the real chat.
+- **A gearbox output shaft** (`r12c-gearbox-shaft.calls.json`). The rows: B1's 6204, O1's AS568-214, a k5 test row flagged an estimate.
+  - The shaft (Ø20 × 14, Ø25 × 30 with an end-milled keyseat 8 × 4 × 18, Ø20 × 30 with a Ø19 × 1.3 ring groove, Ø25 × 20; fillets and chamfers 0.5).
+  - A spur gear m2 z30 × 20 on the Ø25 step, bore 25; a keyway 8 × 3.3 in its bore; a key 8 × 7 in the seat, under the hub's keyway.
+  - Two 6204 envelopes: on step 1 against the end shoulder, and on step 3 against the start shoulder with its seat k5.
+  - A retaining ring in the groove.
+  - A cover (a tube Ø70, bore Ø25.1, 10 long) on the Ø25 end; an O-ring rod gland in its bore sealing on the Ø25 (groove Ø30.648 × 4.4), and the ring.
+  - Then the agent's `query.interference`.
+  - **Oracles:**
+    - the shaft by Pappus, π∫r(z)²dz, with the fillets r_s + ρ − √(ρ² − (z − z_c)²) in the concave corners and the chamfers linear (Simpson); less the groove π(10² − 9.5²)·1.3; less the end-milled keyseat (l − b)∫(√(R² − x²) − (R − t))dx + ∫2√((b/2)² − x²)(√(R² − x²) − (R − t))dx; to 1e-7. Its z-centroid by moments;
+    - the keyed gear: the gear built alone less the keyed one equals the keyway 20∫_{|v|≤4}(15.8 − √(12.5² − v²))dv to 1e-7. The gear's own volume is this kernel's (its generated root, D131's trochoid, has no closed form here); its reference, tip, root and base Ø by m z, m(z + 2), m(z − 2.5) and m z cos α;
+    - the key (l − b)bh + π(b/2)²h; the ring π(12² − 9.5²)·1.2;
+    - each bearing's rounded section turned, Pappus with the four corner spandrels at c(10 − 3π)/(3(4 − π)), to 1e-7; their spans 0–14 and 44–58;
+    - the second bearing's "its other side by ring groove 1";
+    - the cover π(35² − 12.55²)·10 less the groove π(15.324² − 12.55²)·4.4;
+    - the O-ring 2π²(ID/2 + r)r², the free ring's volume kept as it stretches, to 1e-7;
+    - squeeze and fill with the stretched section r'²(12.5 + r') = r²(ID/2 + r) by bisection;
+    - **the one overlap** the agent's interference query finds is the ring's squeeze into the cover: Pappus on the circular segment beyond the groove's bottom, 2π(R' + ȳ)A, R' = 12.5 + r', 136.508 mm³ to 1e-3 (the query's three decimals). The ring's own note agrees.
+- **A spring-loaded plunger** (`r12c-plunger.calls.json`):
+  - a housing Ø30 × 50 with a Ø24 blind bore 40 deep;
+  - a compression spring, closed and ground (wire Ø2, mean Ø20, 6 active at pitch 5, steel's G prefilled as an estimate, 20 N), on the bore's bottom;
+  - a plunger Ø23 × 15 at the free length 44.002 that the spring's note gives;
+  - `query.interference`.
+  - **Oracles:**
+    - the rate Gd⁴/(8D³n);
+    - the solid pitch solved in the test: the least chord between the centreline at θ and θ + φ, √(4R² sin²(φ/2) + p²φ²/4π²), equal to d. It gives 2.0010140, D153's figure;
+    - the solid height n_t p_s and the free length 2p_s + n_a p, checked in the notes; the spring from z 10 to 10 + L0;
+    - the spring's volume, D153's closed form for these sizes (conformance `r12c/spring-closed-ground`, 1541.1998773, the fit's bound 4e-4);
+    - the housing π15²·50 − π12²·40, the plunger π11.5²·15;
+    - the interference query: three pairs, two touching, none overlapping. The radial room in the bore is (24 − 22)/2 = 1.
+- **Conformance** `r12c/` (+2, 32):
+  - `accept-gearbox-shaft`, `accept-plunger`, written by the test (`WRITE_ACCEPTANCE=1`), which also checks they hold the part the agent built;
+  - expected values from the closed forms above (the gear's from this kernel, said so), centroids by symmetry or moments where they are on an axis and by this kernel otherwise;
+  - one body each, the genus of each; a STEP round trip.
+- **A flow step** "R12c.8 R12c's acceptance …":
+  - the three rows' files loaded in the Library panel;
+  - each turn through the real chat on a new part;
+  - the bodies (8, 3) and the agent's last tool (`query.interference`);
+  - the second bearing's and the spring's notes;
+  - a screenshot of each.
+
+**Found by the acceptance, fixed here:**
+- **The O-ring gland command read a whole bore as a shaft** (D159). A full 360° face's centroid lies on its axis, so the bore-or-shaft test (the centroid's radial direction against the face's normal) gave 0, which counted as a piston. It now takes one vertex's radial direction and that vertex's normal (`app/glandCommands.ts`). D159's command tests had a piston and a face gland only.
+- **A rod gland's ring lost volume** (D159). Its stretched section came from the ring stretched on the rod, but it was set on the groove's bottom (outward): 833.5 mm³ for the free ring's 876.9.
+  - It now rests on the rod, where it is stretched, as a piston's rests on its groove's bottom. Its overlap is with the groove's bottom (the squeeze's displaced volume, on its outer side).
+  - The free ring's volume is kept, 2π²(ID/2 + r)r², as D159 stated.
+  - The kernel test's rod oracle is now 2π(R' + ȳ)A with c = R_g − R' (renamed; it also checks the ring's volume). The note says "overlaps what squeezes it" for all three kinds.
+- **The connector's keep-out held its own plug** (D162; the coordinator's report from the outer lane's run).
+  - It started at the face, and the seated body stands 0.31 out of the face, so the keep-out check found the plug inside it: 5.755 mm³ = A_body·0.31, "violated". The panel touched it at the face: "undecided" within the chord.
+  - It now starts at the seated body's front (or at the face with no body). The panel is clear of it (0.31), and the plug only touches its base.
+  - That touch reads "undecided" within the meshes' chord (0.0058 mm), because the check counts every body. Asked of the coordinator: the outer lane's `checkKeepouts` could skip a keep-out's own bodies (a field such as `fills: [node]` on the Keepout). It is not built here: it is the outer lane's file.
+
+**Not in this stage:**
+- a housing for the gearbox (the bearings' outer rings are not seated: `housing` none);
+- the gear's mate;
+- a live model as the agent (the scripted one, L2; a live run needs the owner's OK);
+- loads, life and stresses (the bearings' and the shaft's: not for structural calculation).
+
+**Checks** (R12c's track boundary: T3, your parts, the coordinator's request) on 26265b0f8 (this change's code) and 2f43b4778 (two test fixes) in the detached worktree, the kernel suite at concurrency 4:
+
+Ran:
+- **Kernel:** lint and type-check clean. The full kernel suite, full conformance included: 1515/1522, 6 skipped, 546 s at a load of 30–45. It failed only the env-only "actual native Split source…".
+  - Conformance `r12c/`: 32/32.
+- **RB:** 409 cases, no new failures; the non-OK totals unchanged (4 refused, 3 invalid, 5 wrong: the 8 known TODOs); 91 s.
+- **Properties:** 11/11, 197 s.
+- **`@barocss/cad-model`:** type-check clean, 754/754 (on 2f43b4778).
+  - The first run, on 26265b0f8, did not compile: the acceptance test's renamed title held an unquoted apostrophe. Fixed in 2f43b4778.
+- **Studio:** type-check clean, 197/197.
+- **Test names against the saved lists:**
+  - kernel: +3; one renamed by this stage (the rod gland's test, now naming the fix);
+  - cad-model: none missing, +11;
+  - studio: unchanged.
+- **`FLOW_ONLY`** "R12c.8 acceptance", "O-ring gland (R12c" and "Connector opening (R12c" (the steps this stage's fixes touch): 4/4 with the starter step, on 2f43b4778.
+  - The first run, on 26265b0f8, stopped: the new step's long title made its screenshot's file name too long for the file system. Shortened in 2f43b4778.
+
+Not run:
+- The full browser flow (the coordinator's window flow).
+
+Asked of the coordinator: the outer lane's `chat/references.ts` `checkKeepouts` could skip a keep-out's own bodies (the connector's plug touching its keep-out reads "undecided" within the chord). It is their file.
+
+## D164 — FRk S0: feasibility of the kernel half of FR completion (2026-10-22)
+
+**FRk S0.** The feasibility checkpoint before the kernel lane's share of roadmap item 5, FR completion (owner, 2026-10-21: "FR 에서 1, 2, 3, 모두 하고 그 밖에 남은 것도 하고"; the coordinator's list). The track is named **FRk** (k for the kernel lane; the outer lane's FR items are FRa–FRg). There is no research note; this record is the design input. The questions:
+- Can today's kernel build a gusset, an end cap and a fillet weld bead exactly, and what do the outer lane's weld list and BOM need to read from them?
+- Tapered-flange channels and I/H beams: closed-form areas with root and toe radii between lines at any angle?
+- Members along arcs, bent or curved: what builds them, how exactly, at what cost?
+- Weld end gaps and saddle notches other than a full cope: what is already there, what is new?
+- Where do the round-cornered ordered table's 5.7–7.5 s go (D126)?
+- The SubD display folds (D79's TODO): where are they?
+- D158's housing shoulder against Da max, and the trimmed-face mass quadrature (D151, D152): what is wrong, and how is it checked?
+
+Evidence: `packages/barocss-cad/test/frk-s0.test.mjs` (kept, 10 tests, 7 s alone; the bevel pair's survey under `FR_SURVEY=1`, 30 s more), against closed forms and Gauss–Legendre quadratures written in the test, none of them the kernel's. No product code changed. Every size is a test value: no standard, catalogue or supplier row is read or used.
+
+**Today, as it stands:**
+- **Fillet weld beads are exact by today's features.** A bead of leg z on a square end landing on a plane is the end's outer loop offset by z, extruded z with a 45° draft (`extrude` with `draft`: lines become sloping planes, arcs cones), less the member's envelope.
+  - Its volume is ∫₀^z [A(s) − A₀] ds over the offset loop's area A(s) = A₀ + P·s + c·s²: **V = P·z²/2 + c·z³**, with c = 4/3 for a sharp outline (four mitred corners, each ∫∫(z − max(dx, dy)) = z³/3) and π/3 for a smooth one (its arcs turn 2π in all). Derived here.
+  - Sharp 40 × 40 × 3, round-cornered (ro 6) and round Ø30 × 2 tubes, z 3: to 1e-11 (the sharp one exactly); one body, valid; welded with the member and its plate (the analytic Boolean), one body of their sum to 1e-10. 24–140 ms each.
+  - A sharp outline's bead corners come out mitred: the two sides' sloping planes meet in an edge. That is what two fillets meeting at a corner give; a rounded corner would be a choice (below).
+  - Not probed, and not exact this way: an oblique end (a 60° butt; the bead's legs on the member's side and the plate are no longer one offset), a cope's seam (a space curve on a cylinder), the bore's inner loop (an inward offset: P·z²/2 − c·z³, derived, not built).
+  - A groove (butt) weld at a mitre, O118's default there, adds no fillet: its seam is the mitre face's loop, and its reinforcement is not modelled.
+- **Gussets and end caps are exact prisms placed by the members' faces.**
+  - A clipped triangular gusset (legs 120, clip 15, 5 thick) in the corner of a mitred L, centred on the members' plane, on their inner faces (z 20 to 140 from the B-rep): (l² − c²)/2·t exactly; welded to both members, one body of their sum (sharp 1e-15, round-cornered 1e-9 at the cut cylinders' quadrature, as FR3a).
+  - A cap over a square end (the envelope's outline, 4 thick) and a plug in the bore (the bore's outline, 4 deep): A_env·t and A_bore·t exactly; each welded to the member, one body of their sum (to 1e-11).
+  - Nothing places them yet: the probe sketched each by hand from the members' report (lines, section frames, box).
+- **Tapered-flange sections are closed-form polygons with fillets.**
+  - An I section whose flanges' inner faces slope k (thicker at the web), with root radii r1 and toe radii r2 between lines at any interior angle α: A = the polygon's shoelace ± r²(cot(α/2) − (π − α)/2) per fillet (added at a root, taken at a toe). Derived here.
+  - Three sections (slopes 0.14, 0.08 and 0; the last a parallel-flange I with no toe radius): the closed form, Green's theorem on the loop of lines and arcs, and the kernel's A·L (a sketch extruded 1000) agree to 1e-14; valid.
+  - No such kind exists: FR1's `channel` has parallel flanges and a root radius only, and there is no I/H kind. A tapered channel is half of this I's loop.
+- **Members along arcs: revolve and sweep build them, each one loop only.**
+  - `revolve` takes one loop ("revolve takes a sketch of one loop (no regions or holes) yet"), so a tube is its outer loop revolved less its bore revolved (the analytic Boolean).
+  - A round Ø30 × 2 tube on R 150 through 90° and a 20 × 40 × 2 (ro 4) tube on R 200 through 60°: A·r̄·θ by Pappus to 1e-11 (the mass by quadrature, 1.3–1.9e-12 off); one body, valid; 170–220 ms (most of it the Boolean).
+  - A tube bent between two straights (200, R 100 through 90°, 150) by `sweep` (outer less bore): A(L₁ + Rθ + L₂) to 5.9e-8 only, 365 ms. `sweepBrep` keeps each piece's mass in closed form, but the difference body's goes to the quadrature, and its pieces' glued seams cost accuracy there. A member built from its pieces directly keeps Pappus exact.
+  - There is no arc in the skeleton: segments are point pairs (D124).
+- **Weld end gaps already build with FR3b's plane trims** (on ends a joint leaves square):
+  - a mitred L opened by a root gap g 2: each member cut on the mitre plane moved g/2, A(L − (g/2)/cos θ), to 1e-12;
+  - a T rail held g off its post's face: A(L − b/2 − g), to 1e-12.
+  - What is missing is the setting: a `gap` on the joint itself, so a gap stays with its corner as points move, and the cut list and weld list read it.
+- **Saddle notches other than a full cope are exact by a cutter's Boolean:**
+  - a hole saw larger than the main tube (R 26 and 30 on a Ø30 branch), the branch on the main's axis or 5–6 off it: the removed volume ∫∫ over the branch's annulus of √(Rc² − (y + e)²), a 1D Gauss–Legendre quadrature per disk (s = r sin u), to 1e-10; one body, valid; 110–260 ms;
+  - a saw-cut V (two planes meeting on the branch's middle, kept z ≥ h₀ − k|y|): removed h₀A − k·4(r_o³ − r_i³)/3, closed form here, to 4e-12.
+  - Today's cope is always the other member's whole envelope, and a T-joint needs the end on the through member's line (D126): an eccentric branch is no joint yet.
+- **The round-cornered ordered trim: the cost is the analytic Boolean's general curves, not the count of Booleans.**
+  - One corner of three round-cornered tubes: 10 ms left square, 1.2–1.5 s ordered; the 600 × 400 × 700 table ordered 5.7–5.9 s at a load of 10–30 (7.5 s at D126); a sharp-tube table ordered 86–100 ms.
+  - A single difference measured alone is 38–79 ms (a rail's tube less a leg's envelope; an envelope less an envelope). The corner's four (rail 1 less envelope 0; envelope 1 less envelope 0, the trimmed envelope; rail 2 less envelope 0, then less the trimmed envelope 1) cost far more, because a trimmed envelope's faces are Boolean results, so their curves are general (projected) ones.
+  - A CPU profile of the corner (3 runs, 4.2 s): `memo`'s closure in `analytic-boolean` (a curve's domain map cached in a `Map` by its float parameter) 1.0 s self, B-spline `basisInto` 0.64 s, GC 0.41 s, `curved-arrangement` `paramOf` 0.32 s, the cylinder–cylinder sections (`analytic-boolean.js` 985–999: 720 samples a section) 0.5 s.
+  - Candidates, for the stage to decide by test: (1) a later envelope run on only to the joint's point, where that equals the trimmed envelope (no stub to drop), so no envelope Boolean and no general faces in the tool; (2) the domain map's cache keyed by sample index, not a float in a `Map`; (3) the rounds' sections, cylinders with meeting axes and equal radii, taken as their two planes' ellipses (the branch exists) rather than sampled.
+- **The SubD display folds are slivers inside single faces, not at caps' boundaries.** On the pipe clamp (conformance `r8/subd-pipe-clamp`, 8 segments a quarter): 45 concave folds over 15° (42 inside one face), 12 over 20°, one over 30° (88.6°), that one inside face `clamp_f210` between slivers whose height is under 0.02 of their longest side squared. D84 said so; the README's "cap-boundary" wording was D79's first guess (its box folds sat at boundaries before its chord splits). The general B-spline face tessellator (`surfaceTriangles` in `brep-tessellate.ts`) bisects interior bent triangles but never splits a boundary chord, and its Lawson flips leave slivers along near-straight boundaries.
+- **D158's housing shoulder is findable from the faces; nothing checks it.** A stepped housing (seat Ø47 14 deep, then Ø40): the vertices on the seat's end plane are at radii 20 and 23.5, the planar annulus between them the shoulder. `bearing.ts` reads `DaMaxMM` only as a row field (`bearingRowProblem`), and its housing block finds the bore, its fit and its overlap, no shoulder.
+- **The trimmed-face quadrature: accurate on simple trimmed patches, 1.4 % off on the bevel pair, and the kernel is the one off.**
+  - A sphere cut by a cylinder off its axis (trimmed sphere and cylinder patches; R 20, r 6 at 9 and r 5 at 14): against a two-variable Gauss–Legendre oracle (x = c + a sin u, so no root at the disk's edge), 1e-10 to 7e-10; 100–170 ms each.
+  - The whole 16/20 bevel pair at 4° (`FR_SURVEY=1`; 24 s to build): the kernel 39.1093; its mesh at 16, 32, 64 segments a quarter 37.847, 38.342, 38.497 (and 38.497 again at 128: the tessellator caps its refinement); D149's Green oracle 38.571 (D152). The mesh and the oracle converge together; the kernel stands 1.4 % above both, so it is an accuracy defect, not only D151's speed (meshing twice).
+  - Where it can leak (`brep-mass-quadrature.ts`, read for this record): a boundary strip that fails to invert is skipped silently (`strip`), strips are skipped on faces reaching a pole, and two sanity checks accept a face 5 % off. The stage finds the face(s) by comparing per-face integrals with the Green oracle's.
+
+**Kernel versus app versus the outer lane:**
+- **Kernel:** the gusset, end-cap and weld-bead kinds and their reports; the new section kinds; arc members and bends (and revolve with holes); gaps and notch cutters on joints; the ordered trim's speed; the tessellator's slivers; the housing shoulder check; the quadrature.
+- **Studio (kernel lane's files, as in FR):** `frameCommands.ts` (Structural member, Frame) for the new sections, arcs, bends, gaps and notches; two new v2 features commands, Gusset and End cap; the agent's nodes; flow steps.
+- **Outer lane (asked through the coordinator, not built here):**
+  - the weld list and symbols reading the beads, gussets and caps (O118's joints gain gusset and cap seams);
+  - the BOM's lines for gussets and caps (plates);
+  - `engine/elements.ts`'s `ElementReport` gaining `gusset`, `end-cap` and `weld-bead`;
+  - weld beads made from the person's weld records (below).
+
+**What the kernel exposes for the outer lane's weld symbols and BOM** (frozen here, built at FRk1–FRk2; each a body with a report, as `member` is on a member):
+- **`gusset`** (a feature: `{ kind: 'gusset', frame, point, members?: [a, b], legs: [l1, l2], thickness, clip?, offset? }`; its output a body). Report `gusset`:
+  - `frame`, `point`, `members: [a, b]` (the two members whose faces it sits on), `legsMM`, `thicknessMM`, `clipMM`;
+  - `plane: { origin, normal }` (its mid-plane), `areaMM2`, `volumeMM3` (closed form);
+  - `outline` (its corners in the part);
+  - `seams: [{ member, lengthMM, face }]`: each edge lying on a member's face, the weld seam there (exact: a straight edge's length).
+- **`end-cap`** (`{ kind: 'end-cap', frame, member, end, fit: 'over' | 'inset', thickness }`). Report `endCap`: `frame`, `member`, `end`, `fit`, `thicknessMM`, `areaMM2`, `volumeMM3`, `outline` (the section's loop, as placed), `seam: { lengthMM, exact }` (the loop's perimeter, exact for lines and arcs).
+- **`weld-bead`** (`{ kind: 'weld-bead', frame, on: { member, end } | { gusset } | { cap }, leg, inner?: boolean }`). Report `bead`:
+  - `frame`, `on`, `kind: 'fillet'`, `legMM`, `throatMM` (leg/√2);
+  - `meets` (the members, gusset or plate it lands on);
+  - `seam: { lengthMM, exact: true, inner? }` (the outer loop's perimeter; the bore's too when `inner`);
+  - `volumeMM3` (P·z²/2 + c·z³, closed form), `corner: 'mitred'`.
+- **Keys the outer lane can join on:** a bead's `on` is the kernel's (member index, end). O118's joint id is the studio's `<body>.<end>`, and the studio maps one to the other (the member's body is the frame's output k).
+- **Mass and the BOM:** gussets and caps are plates: `thicknessMM`, `areaMM2`, `volumeMM3`, the material the frame's (or the feature's own). Beads have mass but are no BOM line; the weld list totals their volume and seam length.
+
+**Verdict — FRk in these stages, this order:**
+- **FRk1 — gussets and end caps.**
+  - **Kernel:** the kinds `gusset` and `end-cap` (above).
+    - A gusset at a two-member joint (a corner, or a T): in the two members' plane, its legs along their inner faces from the corner, clipped `clip` (default 0, given), centred on the plane or moved `offset`.
+    - Refused `GUSSET_FIT`: the members not in one plane, a leg past its member's length, a clip not under the legs, a face that is not flat where a leg lies (a round tube, a round corner), not a joint of two.
+    - An end cap on a square end only: over the envelope's outline, or inset to the bore's (a section with a bore). Refused `CAP_END` (an end cut by a mitre, a cope or a trim; inset on a section with no bore).
+  - **Oracles:** (l1·l2 − c²)/2·t (and the general triangle's); A_env·t, A_bore·t; welded with the members, their sum; centroids by moments.
+  - **Studio:** the Gusset and End cap commands (v2 features commands, values behind `describe`), edit fields, notes; the agent's nodes; a flow step.
+- **FRk2 — fillet weld beads.**
+  - **Kernel:** `weld-bead` on an end landing on a plane (a butt, a T butt, an end on another member's face, a trim to a plane), on a cap, on a gusset's edges: the drafted offset less the envelope (above), the bore's inner loop when `inner`.
+  - Square ends first; an oblique end with a sharp convex outline as the polytope of each side's hypotenuse plane less the member (its oracle the test's own plane intersections); an oblique curved outline refused.
+  - Refused `BEAD_KIND` (a groove weld at a mitre: the seam only), `BEAD_SEAM_NOT_PLANAR` (a cope's seam), `BEAD_ANGLE` (a curved outline on an oblique end), `BEAD_SIZE` (a leg not positive, or past the faces it sits on).
+  - **Oracles:** P·z²/2 + c·z³ (outer), P·z²/2 − c·z³ (inner); the seams' lengths by the sections' closed-form perimeters; welded, their sum.
+  - **Studio:** the beads from the person's weld records (O118: a fillet record's size is the leg), the outer lane's mapping or the kernel lane's with their leave (asked); notes; a flow step.
+- **FRk3 — tapered-flange channels and I/H beams.**
+  - **Kernel:** the kind `i-beam` (height, width, web, flange, `rootRadius`, `toeRadius`, `flangeSlope`, 0 for parallel flanges), and `channel` gaining `flangeSlope` and `toeRadius` (both default 0: today's channel unchanged, no saved document changes). The flange thickness is given at the overhang's middle, said in the label.
+  - Area and centroid in closed form (the polygon and each fillet's spandrel at its angle); faces by role; the box; `reversible`; FR3's butts and the open-side spans on the flange tips; section tables (D162) take the new kinds.
+  - Refused `SECTION_DIMENSIONS` (a slope leaving no flat, a fillet past its lines, a web or flange too thin).
+  - **Oracles:** the closed form against Green's on the loop and the kernel's A·L; the centroid by moments.
+- **FRk4 — members along arcs, curved or bent.**
+  - **Kernel:** `revolve` with holes (the bore's walls in the same turn; a partial turn's caps with their holes), so a member along an arc is one body with Pappus's exact mass.
+    - A **curved member:** a skeleton segment with `through` (a third point) or `center` is an arc; the section placed square to its tangent at the start (the up rule there), revolved about the arc's axis.
+    - A **bent member:** `bends: [{ point, radius }]` at a two-member corner: the two members one body, straight + bend + straight, each straight shortened by R·tan(θ/2).
+    - The report: the arc (centre, axis, radius, angle), the centroidal arc's length; the cut list's developed length on the centroidal line (geometric; a bender's own allowance is the user's data, not built in).
+    - Corners at an arc's end take its tangent there (mitres, butts onto it refused `BUTT_ON_CURVED_MEMBER`: a cope instead).
+    - Refused `ARC_MEMBER` (a radius under the section's reach towards the centre, an angle of 360° or more, three points in line), `BEND_RADIUS` (the tangent points past the members' other ends).
+  - **Oracles:** A·r̄·θ by Pappus; the bent member's A(L₁' + R̄θ + L₂'); the section's frame along the arc (dot products); welded at its joints, their sum.
+- **FRk5 — weld end gaps and saddle notches.**
+  - **Kernel:** `gap` on a corner or T (`corners.at[].gap`, `corners.gap` for all): a mitre's members cut back g/2 each square to the mitre plane; a butt's or a tee's member held g off.
+    - Notches at a T-joint or corner as a cutter: `notch: { kind: 'holesaw', diameter, offset? }` (a cylinder on the through member's axis, or moved), `{ kind: 'v', depth, angle }` (two saw planes), beside today's `cope`.
+    - An eccentric branch: an end inside the through member's section but off its line is a T-joint for a cope or a notch (a butt keeps needing its face).
+    - The report's `ends` gain `gapMM` and the notch.
+    - Refused `NOTCH_CUTTER` (a hole saw not covering the branch, a V deeper than the branch is wide), `GAP_SIZE` (a gap not under the members' length).
+  - **Oracles:** A(L − (g/2)/cos θ), A(L − b/2 − g); the hole saw's 1D quadrature, the V's closed form (above).
+- **FRk6 — the round-cornered ordered trim's speed.** The candidates above, chosen by measurement, in this order: the run-on capped at the joint where it equals the trimmed envelope (a proof by the same volumes), the curve map's cache, the rounds' sections. The volumes stay D126's to 1e-9 and their welds' sums; the table's time in the test and the flow's responsiveness step; the target 2 s or under for the table.
+- **FRk7 — the SubD display folds.** In `surfaceTriangles`: no sliver left inside a face (a boundary chord split, or the sliver's edge flipped or collapsed, decided by test).
+  - **Oracles:** every triangle's normal within a step of the exact normals at its corners; the pipe clamp's worst fold under 25° (today 88.6°; D84's no-worse bound tightened); D79's box cases; watertight; the volumes and areas unchanged (the tessellation only).
+- **FRk8a — the housing's shoulder against Da max (D158).** The housing's shoulder found from its faces: the planar annulus at the bearing's outer-ring face, its bore by its inner loop. Refused `SEAT_ABUTMENT` above Da max; a warning when the housing has no shoulder on the located side. Oracles: a stepped housing at Da max ± 0.5; B1-type row values are test values here, flagged.
+- **FRk8b — the trimmed-face mass quadrature.**
+  - First the defect: the bevel pair's kernel volume against its mesh refined and D149's Green oracle, face by face, to the face whose integral is off; a test failing on HEAD.
+  - Then the speed: a trimmed patch integrated over its exact trims in its domain (Green in (u, v)), replacing the two meshing passes and Richardson where it applies.
+  - **Oracles:** the bevel pair within 1e-4 of the oracle and the mesh's extrapolation; the sphere–cylinder cases at 1e-9 (above); D151's throated wheel's export time before and after; every conformance volume within its tolerance.
+- **FRk9 — acceptance by the agent.** In one turn each: a welded table frame with gussets at its corners, caps on its legs and beads on every butt; a portal of tapered I beams; a bent-tube handrail. Closed forms; the cut list and the beads' report; conformance `frk/accept-*`; the FRk → next hand-over.
+
+**Every stage:** a D-record, a test failing on the previous HEAD, `conformance/frk/` fixtures (studio ones in subfolders), the studio's command or fields, notes and agent node where it has one, a flow step (FLOW_ONLY its own and their prerequisites), RB and properties at T3 or every 4th checkpoint, the per-turn count of the v2 tool surface, a checkpoint.
+
+**New public codes** (announced here, added at their stages): `GUSSET_FIT`, `CAP_END`, `BEAD_KIND`, `BEAD_SEAM_NOT_PLANAR`, `BEAD_ANGLE`, `BEAD_SIZE`, `ARC_MEMBER`, `BEND_RADIUS`, `BUTT_ON_CURVED_MEMBER`, `NOTCH_CUTTER`, `GAP_SIZE`; `SEAT_ABUTMENT` gains the housing's shoulder.
+
+**Data:** no sizes are built in (the owner, D122: "프레임 단면 치수도 굽힘표처럼 내장하지 말고 사용자가 불러오게 해"). New section kinds come in through D162's section tables as the user's rows; gusset and cap thicknesses, legs and weld legs are the user's (O118's rule-of-thumb leg stays the outer lane's flagged estimate); a bender's allowance is the user's data if ever wanted. Tapered-flange slopes are inputs, never a standard's value.
+
+**The v2 tool surface:** two new features commands (Gusset, End cap); the rest are fields of the existing Structural member and Frame commands, behind `describe`. Each stage reports the per-turn count (22,330 at D163; cap 25,000).
+
+**Not in FRk** (for the owner to place):
+- groove weld preparations (bevels, root faces) and their beads' reinforcement; intermittent (stitch) welds; weld distortion;
+- beads along a cope's saddle seam (a space curve);
+- members along general curves (splines) or helices, and twisted members;
+- a bender's springback and allowance tables;
+- T-slot hardware and stock nesting (the outer lane's FR items).
+
+**For the owner** (defaults taken, reversible; asked through the coordinator):
+- **A groove weld at a mitre:** the seam only, no bead modelled (default), or a reinforcement bead of a given height.
+- **A sharp outline's bead corners:** mitred, as two fillets meet (default), or rounded.
+- **Where beads come from:** from the person's weld records (O118's `doc.frames.welds`, one source; default, needing the outer lane's mapping or their leave), or their own nodes made by a Weld bead command.
+
+**Checks:** S0 changed no product code. The tier: T1 (the new test, lint of the new file). `pnpm build:library` in `packages/barocss-cad` before it. frk-s0 10/10, 7.1 s alone at a load of 9–15; with `FR_SURVEY=1` the bevel pair's survey too (10/10, 37 s). `eslint test/frk-s0.test.mjs` clean. Not run: the kernel suite, conformance, studio, flow, RB and properties (no source change, as at D115, D122, D129 and D139).
+
+## D165 — FRk1: gussets and end caps on a frame's members (2026-10-22)
+
+The first FRk stage frozen in D164. **The coordinator's review of D164** (accepted): the three owner defaults stand as taken (a groove weld at a mitre shows its seam only; a sharp outline's bead corners are mitred; beads come from the person's O118 weld records, the record → bead mapping in cad-model's evaluate, built by the outer lane at FRk2 on the kernel's `weld-bead` and `bead`), and one reorder: the bevel pair's wrong mass outranks speed, so FRk8b's first half moves up. **The order now:** FRk1, FRk2, FRk8b (the defect), FRk3, FRk4, FRk5, FRk6, FRk7, FRk8a, FRk8b (exact domain-trim integration, if still needed), FRk9.
+
+**Kernel** (`frame-weldment.ts` for the reports and the loops' closed forms; the planner in `part-model.ts`):
+- **A frame's members keep their placement as built** (`memberPlace` on the part, internal: the section on its line, its length, how far each end runs on, its faces' prefix), so a later feature places plates by them. A feature refers to the frame by id and does not consume it: the members stay outputs.
+- **`gusset`** `{ frame, point, members?: [a, b], along?: 1 | −1, legs: [l1, l2], thickness, clip?, offset? }`:
+  - the joint is a place: the members ending within 1e-6 mm of the point, and a member whose line passes through it inside its length (a T; `along` says which way its leg runs);
+  - in the two members' plane, normal a × b of their directions away from the joint; mid-plane through their lines, or moved `offset` along it;
+  - its corner where the two inner faces' lines meet: (h_b sin φ + s cos φ, h_a) with s = (h_a + h_b cos φ)/sin φ, h the distance of each member's box side from its line;
+  - legs along each, the corner clipped `clip` along both (`.clip`); faces `.on.m<a>`, `.on.m<b>`, `.free`, `.clip`, `.front`, `.back`;
+  - its mass is the prism's, moved: closed form.
+- **`end-cap`** `{ frame, member, end, fit: 'over' | 'inset', thickness }`: over the end's outline (outside it) or a plug in the bore (inside it, flush); on the end as built, so a through end where it runs on to. Faces `.seat` (over) or `.inner` (inset), `.face`, sides by the tag.
+- **Reports** (the shapes D164 froze for the outer lane): `gusset` — frame, point, members, legsMM, thicknessMM, clipMM, offsetMM, angleDegrees, plane, areaMM2 ((l₁l₂ − c²)·sin φ/2), volumeMM3, outline (mid-plane, anticlockwise about the normal), seams `[{ member, lengthMM: l − c, face }]` (the member's face by its role, `f.m0.top`); `endCap` — frame, member, end, fit, thicknessMM, areaMM2, volumeMM3, plane (the end, its normal out of the member), seam `{ lengthMM, exact: true }`. Reports write −0 as 0.
+- **`loopArea`, `loopPerimeter`** (exported): a loop of lines and arcs by Green's theorem and r·|sweep|, closed form.
+- **Refused by name:**
+  - `[GUSSET_FIT]`: no member ends at the point; not two members there (and `members` not given), or a named member not there; members in line; a member meeting it at an edge of its section (turned); no flat face under it across its thickness (a round tube, a round corner — the side's flat spans named); a leg past its member (the face left from the corner named); a clip not under the legs.
+  - `[CAP_END]`: an end cut by a mitre, a butt, a cope or a trim; a plug in a section with no bore, or several.
+  - INPUT: legs not two, `along` not ±1 or missing at a T, a fit or an end unknown; PARAMETER for a thickness or leg not positive; REFERENCE when the frame is not a frame.
+
+**Oracles** (`test/frk-1.test.mjs`, 4 tests; written there):
+- **A gusset in a mitred L** (sharp and round-cornered 40 × 40 × 3, legs 120 and 100, clip 15, 5 thick): (l₁l₂ − c²)/2·t to 1e-12; its box from the B-rep, x 20–140, y ±2.5, z 20–120 (on both inner faces); the report's fields, outline and seams (105 on `f.m0.top`, 85 on `f.m1.top`); its face names; welded with both members, one body of their sum (1e-9).
+- **At 120°:** (l₁l₂)·sin φ/2·t; its corner on the bisector, 20·cot(φ/2) along (the two inner faces 20 from their lines), to 1e-12; welded, their sum. **At a T:** two gussets, `along` 1 and −1, moved 8 off the plane: their boxes (x 20–120 from the post's face, z 420–520 and 280–380 on the rail's, |y| 6–10), the T and both welded to one body of their sum (1e-12).
+- **End caps:** over a round-cornered tube's end (A_env·t, centroid at 302) and a plug in its start (A_bore·t, flush, centroid at 3); the seams 8h − 8r + 2πr; a round tube's cap πr²t, seam πd; a table leg's through end at 720 (the cap's centroid 721.5); welded, their sum. `loopArea` and `loopPerimeter` on a clockwise circle and a triangle.
+- **Refusals:** 18 cases.
+- **Conformance** `conformance/frk/` (4 cases; generator `scripts/frk1-conformance.mjs`, closed forms only): `gusset-butt-l` (the rail through A·620, the post A·580, the gusset by the shoelace on its clipped triangle, its seams), `end-caps-over-inset`, `refuse-gusset-fit`, `refuse-cap-end`. The runner checks a new `plate` expectation (the report's area, volume and seams).
+
+**Studio:**
+- **Nodes** `gusset` and `end-cap` (cad-model `engine/doc.ts`): they refer to the frame node (`usesOf`, not `parentsOf`), each a body of its own; labels `Gusset 120 × 100 × 5 at point 1 of n0`, `End cap over member 1's end, 4 thick`; saved (`migrate.ts`), renumbered on delete (`chat/features.ts`), shifted when flattened into an assembly (`assembly/flatten.ts`); to the kernel in `engine/part.ts`.
+- **Commands** (`app/weldmentCommands.ts`, new; v2 features commands, their values behind `describe`):
+  - **Gusset**: two members of one frame picked; where they meet found from the frame's skeleton now (its own points, or the skeleton or sketch it follows); legs, thickness, clip, offset, and at a T the leg's way along the member passing through. Keyword: `gusset`.
+  - **End cap**: one member picked; its end, over or inset, thickness. Keywords: `cap plug`.
+  - The palette's values (legs 100, clip 10, 5 thick; caps 4) are a first try, not data: no flag.
+- **Notes** (`engine/evaluate.ts`'s list): a gusset's place, size and seams; an end cap's fit, size and seam.
+- **Errors** (`engine/errors.ts`): titles and hints for GUSSET_FIT and CAP_END.
+- **Icons** `cad-gusset`, `cad-end-cap`.
+- **Tests:** cad-model `test/weldment.test.ts` (4: the commands, their nodes, notes and labels, a T's `along`, the refusals' titles, the flatten, the agent's v2 commands on bodies by key and `describe`); the studio's `chat.test.ts` documents both commands' value keys against their HUD fields (the gusset at a T, so `along` shows).
+- **A flow step** "FRk1 gusset and end cap (D165)": the palette's mitred rectangle, two members picked, the Gusset (24 750 mm³, seams 90 and 90); a table's first leg, the End cap over its through top (6400 mm³, seam 160); a screenshot of each.
+- **The v2 tool surface:** two features commands; per turn **22,347** (+17, the two names; cap 25,000).
+
+**For the outer lane** (relayed by the coordinator at D164): `gusset` and `endCap` are on the outputs (`CadPartSnapshot.outputs[].gusset` / `.endCap`). `engine/elements.ts`'s `ElementReport` does not carry them yet (their file), nor the weld list's gusset and cap seams (`frames/welds.ts`). The BOM can read them from the outputs now.
+
+**Judgement calls:**
+- **Placed by the members as built**, not by the frame's input again: a member's run-on, mirror, offset and roll are already in its placement, and the gusset reads the same numbers the member was built from.
+- **A gusset needs flat faces under its whole thickness.** A round corner's flat spans are checked as the open-side butt's (D126) are: a gusset never rests on a round.
+- **No check that the gusset misses other members** (a third member at the joint): the gusset sits in the region between the two inner faces; a third member there would overlap it. Not seen in the tests; the weld of all members proves no overlap where it is used.
+- **End caps only on square and through ends.** A cap on a mitre or a cope would need its outline cut obliquely: refused, not approximated.
+
+**Checks** (T1 on the kernel, the cad-model and studio suites whole; RB and properties at T3 or the 4th checkpoint):
+
+Ran:
+- Kernel: lint (the changed files) and type-check clean; `pnpm build:library`; the FR and FRk tests and the whole conformance runner (it changed), `--test-concurrency=4`: 295/295, 184 s at a load of 11–28. Brep core unchanged, so not the full kernel suite.
+- `@barocss/cad-model`: type-check, lint clean; 763/763.
+- Studio: type-check clean, lint 0 errors (32 warnings in the two files, none new); 203/203.
+- `FLOW_ONLY` "FRk1" with the starter step: 2/2.
+- Test names: saved in the scratchpad (`names/*.D165.txt`) for the next comparisons; this session had no earlier lists, so none compared now.
+
+Not run: the full kernel suite (no brep core change), RB and properties (not T3, 2nd checkpoint), the full browser flow (the coordinator's window flow).
+
+## D166 — FRk2: fillet weld beads on a frame's joints (2026-10-22)
+
+The second FRk stage frozen in D164 (order after review: FRk1, FRk2, then FRk8b's defect). The kernel's feature and report. Beads come from the person's O118 weld records (owner default, D165). The record → bead mapping belongs to the outer lane, in cad-model's evaluate, built on this feature; the coordinator relays it.
+
+**Kernel** (`part-model.ts`; `BeadReport` in `frame-weldment.ts`):
+- **`weld-bead`** `{ frame, on: { member, end } | { gusset } | { cap }, leg, inner? }`:
+  - it refers to the frame (and the gusset) and consumes nothing;
+  - its body is the fillet, its `bead` the report.
+- **On a member's end** landing square on other members' flat faces (a butt, a T's butt, a square end on a face; a plane trim square to the axis):
+  - The bead is the end's outer loop offset by the leg z, drafted 45° back along the member (`draftedExtrusion`: lines become sloping planes, arcs cones), less the member's envelope.
+  - At a start, the section's x and y are swapped, so the axis turns and the loop's frame stays right-handed.
+  - Concave corners and concave rounds offset as the drafted extrusion's lines meet (a root round under the leg is refused).
+  - **Kept on the faces it lands on.** The faces are read off the B-reps as built: the other members' planar faces lying in the end's plane and facing back at it, so a mitre's cut is kept. Only those under the end's footprint count. Where the footprint does not lie inside one convex face, the bead is cut to them: one slab of the faces' outline, extruded the leg deep.
+    - Faces meeting along whole edges (two mitred rails' undersides) are merged into one loop: edges run both ways are dropped, a loop the other way round is a hole.
+    - Where two fillets would meet only along a line (an end's corner at the faces' inside corner), no single solid exists. Each face's piece becomes a body of its own, ids prefixed and names `#k`.
+  - **`inner`:** the bore's fillet as well: the bore's prism less the bore drafted 45° inwards.
+- **On a gusset:** the fillets along both seams, on both faces: right-triangle prisms of legs z, (l − c)·z² a seam, four bodies. The gusset's placement is kept as built (`gussetPlace`, internal).
+- **The report** (`bead`):
+  - frame, on, `kind: 'fillet'`, legMM, throatMM (z/√2), `meets` (the members whose faces it lands on), `corner: 'mitred'`;
+  - `seam: { lengthMM, flushMM, exact: true, inner? }`: the welded loop's length, as O118's seam (the end's outline and the bore's when `inner`; a gusset's four runs). `flushMM` is the part of an end's outline lying on the edge of a face it lands on, which carries no fillet (a corner weld, not modelled);
+  - `volumeMM3`: the body's, or a gusset's in closed form.
+- **Refused by name:**
+  - `[BEAD_KIND]`: a mitred end (a groove weld: its seam only, owner default); a cap (it sits flush: a corner weld, owner default); an end landing on no member's flat face; `inner` on a section with no bore or several;
+  - `[BEAD_SEAM_NOT_PLANAR]`: a coped end, or one trimmed to envelopes or a body;
+  - `[BEAD_ANGLE]`: an end meeting its face off square. **Narrowed from D164:** D164 froze oblique ends with a sharp convex outline as a polytope of hypotenuse planes, with the curved outline refused. No independent oracle for that polytope was found cheaply: its corners are not a sum of closed forms, and a 2D quadrature of a kinked height converges poorly. So all oblique ends are refused here, and the seam is still listed by O118. Listed below for the owner;
+  - `[BEAD_SIZE]`: a leg past a concave round or the bore's rounds (the drafted offset collapses); a gusset whose clip is under the leg (the corner leaves the fillets no room); a gusset's fillets running off a member's flat face; nothing left on the faces;
+  - INPUT (`on`, `on.end`, `inner`), PARAMETER (a leg not positive), REFERENCE (no frame, no gusset, a gusset of another frame).
+
+**Oracles** (`test/frk-2.test.mjs`, 5 tests; written there):
+- **The offset area integrated:** A(s) = A₀ + P·s + c·s² (c 4 for a sharp outline's mitred corners, π for a smooth one) gives V = P·z²/2 + (c/3)z³.
+  - A 40 × 40 rail butted on an 80 × 80 post: 756, exactly. Its centroid (P·z³/6 + z⁴/3)/V off the face, to 1e-12. The report's fields; face names `w.fillet.*`, `w.on.m1.*`.
+  - Welded with the rail and the post: one body of their sum, to 1e-12.
+  - Round-cornered (ro 6 on ro 8): P·z²/2 + (π/3)z³, to 1e-11; its seam 8h − 8r + 2πr.
+- **The bore's fillet:** P_i·z²/2 − (c/3)z³, sharp (1332 with the outer) and round-cornered (ri 4 over a leg of 3), two bodies (the wall between them).
+- **A start end** (a post standing on a beam's top): 756 again; its centroid above the beam.
+- **Flush sides:**
+  - a rail as wide as its post: only the top and bottom runs, 40·z², two bodies, flush 80 of 160; welded, their sum;
+  - a leg under a mitred top's corner, on rails 4 and 7: the inner sides' runs 2·40·z²/2, two bodies, valid, flush 80.
+- **A gusset's beads:** (105 + 85)·z², four bodies. Their centroid is the four prisms' (each the triangle's at a third of the legs, the seam's middle). Welded with both members and the gusset, one body of their sum (1e-9).
+- **Refusals:** 13 cases.
+- **Conformance** `conformance/frk/` (+5, 9 cases; generator `scripts/frk2-conformance.mjs`, closed forms only): `bead-tee-wide-post` (genus 1: the ring round the rail), `bead-tee-flush` (two bodies), `bead-gusset` (four), `refuse-bead-mitre`, `refuse-bead-angle`. The runner checks a new `bead` expectation (leg, seam, flush, meets, volume).
+
+**Studio** (no command: beads come from the weld records, the outer lane's mapping):
+- **Notes** (`engine/evaluate.ts`): the bead's joint, leg and throat, the members it lands on, its seam and volume, a warning on its flush length.
+- **Errors** (`engine/errors.ts`): titles and hints for BEAD_KIND, BEAD_SEAM_NOT_PLANAR, BEAD_ANGLE, BEAD_SIZE.
+- Neither is exercised by a studio test yet. No node makes a bead until the mapping lands.
+- **A feature-level flow step** "FRk2 weld beads (D166) …":
+  - the kernel's features (a post, a rail butted on it with its bead, a top beam butted with a gusset and the gusset's beads) are evaluated in the flow;
+  - exported to STEP and opened in the studio: 9 bodies;
+  - the T's bead body reads 756 mm³ in the panel; a screenshot.
+- The v2 tool surface is unchanged (per turn 22,347).
+
+**For the outer lane's mapping** (relayed by the coordinator):
+- A record's joint `<body>.<end>` (O118) is the frame's member k (its body `part<k>`, or `solid` for one) and that end: `{ kind: 'weld-bead', frame: <the frame's feature id>, on: { member: k, end }, leg: <the record's size>, inner: <the record's inner> }`.
+- Which records map:
+  - fillet records only;
+  - a mitre's (a groove weld) and a cap's (flush) are refused BEAD_KIND, by the owner's defaults: do not map them;
+  - an `on-face` joint maps as its own end: the kernel finds every face it lands on (`meets`).
+- A gusset's seams map to `{ on: { gusset: <its feature id> } }` once their weld list lists them.
+- The output's `bead` carries the seam, flush part, volume and members for the weld list and symbols.
+
+**Corrected here, from D165:** FRk1's cad-model test (`test/weldment.test.ts`) did not type-check (two `fields` calls not asserted, a sketch node with the wrong fields). D165's "type-check clean" was run before the test was written; the suite runs through esbuild, which does not type-check. Fixed in this commit; cad-model's type-check is clean now.
+
+**Judgement calls:**
+- **The landing faces come from the B-reps as built**, not from the members' section boxes and lengths. A box face's strip runs past a mitre's cut and would hang the bead outside the frame's corner; the first build did that before the faces were read off the B-reps.
+- **Flush sides carry no fillet** and are said (`flushMM`, the note's warning). A fillet that hangs off its face's edge is not built.
+- **Two fillets meeting only along a line are separate bodies**, never a non-manifold solid.
+
+**Not in FRk2** (for the owner): beads on oblique ends (D164's polytope, narrowed above); groove welds' preparations and reinforcement; corner welds on flush sides and caps; beads along a cope's saddle seam.
+
+**Checks** (T1; the kernel FR/FRk files and the whole conformance runner; cad-model and studio whole):
+
+Ran:
+- **Kernel:** type-check and lint clean (the changed files); `pnpm build:library`. FR, FRk and the conformance runner, `--test-concurrency=4`: 305/305 at a load of 27–36. Brep core unchanged.
+- **`@barocss/cad-model`:** type-check clean (after the D165 test fix); lint clean on the changed files; 770/770 (+7 from the merged O148).
+- **Studio:** type-check clean; 203/203; lint 0 errors on the flow file.
+- **`FLOW_ONLY` "FRk2"** with the starter step: 2/2.
+- **Test names against `names/*.D165.txt`:** none missing. New: kernel +10 (5 tests, 5 conformance cases); cad-model +7 (the outer lane's O148 X1–X3); studio unchanged.
+
+Not run: the full kernel suite (no brep core change); RB and properties (3rd checkpoint, not T3); the full browser flow (the coordinator's window flow).

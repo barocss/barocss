@@ -37,6 +37,8 @@ export function evaluatedPart(doc: StudioDoc): StudioDoc {
   if (doc.rings?.rows.length) out.rings = doc.rings;
   // (R12c.6b, D161: a wheel's, a belt's or a coupling's drive row.)
   if (doc.drives?.rows.length) out.drives = doc.drives;
+  // (R12c.7, D162: a connector's row.)
+  if (doc.connectors?.rows.length) out.connectors = doc.connectors;
   return out;
 }
 const stripInstance = (i: PartInstance): PartInstance => ({ ...i, doc: evaluatedPart(i.doc) });

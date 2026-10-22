@@ -325,6 +325,22 @@ type ModelNodeBase = SketchNode
    */
   | { kind: 'oring-gland'; parent: BodyRef; face: string; gland: 'piston' | 'rod' | 'face'; ring: string; diameter: number; width: number; at?: number; depth?: number; center?: [number, number, number]; seal?: number; sealClass?: string; grooveClass?: string }
   | { kind: 'oring'; gland: number }
+  /**
+   * R12c.7 (D162): a connector's opening cut into a flat `face` of its body at `center`, its width turned `rotation`
+   * degrees about the face's normal, from the user's connector row `row` (an id in `connectors`; none built in); a
+   * `connector-body` is the row's mating body seated in that opening (it refers to it). The command also writes the
+   * row's keep-out, in front of the opening, to the part's keep-outs (A6.3).
+   */
+  | { kind: 'connector-opening'; parent: BodyRef; face: string; row: string; center: [number, number, number]; rotation?: number }
+  | { kind: 'connector-body'; opening: number }
+  /**
+   * FRk1 (D165): a `gusset` in the corner of two members of the frame node `frame` at its skeleton `point` (`members`
+   * where more meet; `along` 1 or −1 on a member running through), legs [l1, l2] along their inner faces, `clip` off the
+   * corner, `thickness`, `offset` off the members' plane; an `end-cap` over a member's square end or `inset` in its bore.
+   * Each refers to the frame (not built on it) and is a body of its own.
+   */
+  | { kind: 'gusset'; frame: number; point: number; members?: [number, number]; along?: 1 | -1; legs: [number, number]; thickness: number; clip?: number; offset?: number }
+  | { kind: 'end-cap'; frame: number; member: number; end: 'start' | 'end'; fit: 'over' | 'inset'; thickness: number }
   | { kind: 'bearing'; row: string; shaft: number; step: number; against: 'start' | 'end'; housing?: number; shaftClass?: string; housingClass?: string }
   | { kind: 'key'; shaft: number; keyseat: number; height: number; width?: number; length?: number; ends?: 'round' | 'square'; hub?: number }
   | { kind: 'keyway'; parent: BodyRef; face: string; width: number; depth: number; angle?: number }
@@ -437,6 +453,8 @@ export interface StudioDoc {
   orings?: { version: 1; rows: import('@barocss/cad').ORingRow[] };
   /** R12c.6b (D161): the user's drive rows — chains, belts (timing, V, flat) and couplings; none built in, each citing its source or flagged an estimate. */
   drives?: { version: 1; rows: import('@barocss/cad').DriveRow[] };
+  /** R12c.7 (D162): the user's connector rows — the opening, the mating body, the keep-out — none built in, each citing its source or flagged an estimate. */
+  connectors?: { version: 1; rows: import('@barocss/cad').ConnectorRow[] };
   /** The user's retaining-ring rows (O139): none built in. */
   rings?: { version: 1; rows: import('./rings').StudioRingRow[] };
   frames?: { version: 1; stock?: FrameStockRow[]; kerfMM?: number; /** FRc (O117): the user's section library — none built in (D122); a frame's section may name a row. */ sections?: FrameSectionRow[]; /** FRd1 (O118): the person's welds, by joint id (frames/welds.ts) — kind, size (mm), all round, the bore welded or not (theirs alone), notes; unset, the rule's. */ welds?: { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; allRound?: boolean; inner?: boolean; notes?: string }[] };
@@ -564,7 +582,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'drives'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'drives', 'connectors'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);
@@ -597,7 +615,7 @@ export interface RackMesh { gear: number; direction?: number; centerDistance?: D
  * What a node depends on: what it is built on (`parentsOf`), and what it only refers to — a meshing gear's other
  * gear. Deleting and moving features keep to these; a body's own line (its look, its steps) follows `parentsOf`.
  */
-export const usesOf = (node: ModelNode): number[] => node.kind === 'oring' ? [node.gland] : node.kind === 'belt' ? [...node.wheels] : node.kind === 'bearing' ? [node.shaft, ...(node.housing !== undefined ? [node.housing] : [])] : node.kind === 'key' ? [node.shaft, ...(node.hub !== undefined ? [node.hub] : [])] : node.kind === 'retaining-ring' || node.kind === 'pin' ? [node.shaft]
+export const usesOf = (node: ModelNode): number[] => node.kind === 'oring' ? [node.gland] : node.kind === 'connector-body' ? [node.opening] : node.kind === 'gusset' || node.kind === 'end-cap' ? [node.frame] : node.kind === 'belt' ? [...node.wheels] : node.kind === 'bearing' ? [node.shaft, ...(node.housing !== undefined ? [node.housing] : [])] : node.kind === 'key' ? [node.shaft, ...(node.hub !== undefined ? [node.hub] : [])] : node.kind === 'retaining-ring' || node.kind === 'pin' ? [node.shaft]
   : (node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear' || node.kind === 'worm') && node.mesh ? [node.mesh.gear]
   // (A frame refers to the bodies its members are trimmed to, FR3b: not built on them.)
   : node.kind === 'frame' && node.trims?.some(t => 'body' in t) ? [...parentsOf(node), ...node.trims.flatMap(t => 'body' in t ? [t.body.node] : [])] : parentsOf(node);
@@ -608,7 +626,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'belt': case 'coupling': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
+    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'belt': case 'coupling': case 'connector-body': case 'gusset': case 'end-cap': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
     case 'frame': return [...(node.follows && followsIndex(node.follows) !== null ? [followsIndex(node.follows)!] : []), ...[node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : [])];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
@@ -625,7 +643,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
+    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -768,6 +786,10 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'bearing': return `Bearing ${node.row} on step ${node.step}`;
     case 'oring-gland': return `O-ring gland (${node.gland}) for ${node.ring}`;
     case 'oring': return `O-ring in n${node.gland}`;
+    case 'connector-opening': return `Connector opening for ${node.row}`;
+    case 'connector-body': return `Connector body in n${node.opening}`;
+    case 'gusset': return `Gusset ${fmt(node.legs[0])} × ${fmt(node.legs[1])} × ${fmt(node.thickness)} at point ${node.point} of n${node.frame}`;
+    case 'end-cap': return `End cap ${node.fit === 'over' ? 'over' : 'in'} member ${node.member + 1}'s ${node.end}, ${fmt(node.thickness)} thick`;
     case 'key': return `Key ${node.width !== undefined ? `${fmt(node.width)} wide, ` : ''}${fmt(node.height)} high${node.length !== undefined ? `, ${fmt(node.length)} long` : ''} in keyseat ${node.keyseat}`;
     case 'keyway': return `Keyway ${fmt(node.width)} × ${fmt(node.depth)}`;
     case 'retaining-ring': return `Retaining ring ${fmt(node.thickness)} to Ø${fmt(node.outerDiameter)} in groove ${node.groove}`;

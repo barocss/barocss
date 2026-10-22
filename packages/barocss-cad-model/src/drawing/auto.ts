@@ -18,7 +18,9 @@
 import type { BrepProjection, ProjectedEdge } from '@barocss/cad';
 import { fmtMM, pitchCircle, resolveDimension, roundIn, snapPoints, type SnapPoint } from './dimensions';
 import type { SheetLayout } from './views';
-import type { DimPoint, DrawingDimension, DrawingSettings, DrawingViews, ViewId, XY } from './types';
+import { isSectionRef, sectionLetter, type DimPoint, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type SectionRef, type ViewId, type XY } from './types';
+import { placementOf, type SheetSection } from './sheet';
+import type { PartElement } from './elementCallouts';
 
 export const AUTO_DIMENSIONS_VERSION = 'cad-studio-auto-dimensions-v1';
 
@@ -37,22 +39,82 @@ const ORTHO: readonly ViewId[] = ['top', 'front', 'right'];
 export interface AutoDimensionReport {
   contract: typeof AUTO_DIMENSIONS_VERSION;
   added: { overall: number; levels: number; holePositions: number; pitches: number; callouts: number };
+  /** O146: the keyseats' and keyways' widths and depths added (apart from `added`, whose shape R14's conformance pins). */
+  keys: number;
   /** Kept as they were: dimensions placed by hand; and auto ones that a hand-placed one already gives. */
   kept: number;
   skipped: { view: ViewId; what: string; why: string }[];
   /** Sides of a view whose rows need more sheet room than there is at this scale and sheet (they overlap what is next to them). */
-  crowded: { view: ViewId; side: 'above' | 'below' | 'left' | 'right'; neededMM: number; roomMM: number }[];
+  crowded: { view: DimView; side: 'above' | 'below' | 'left' | 'right'; neededMM: number; roomMM: number }[];
   /** The sheet room (mm) each view side's dimensions take, from the view's edge (a view's name below not counted): what the layout gives room for (R14.3). */
-  needs: Partial<Record<ViewId, Record<'above' | 'below' | 'left' | 'right', number>>>;
+  needs: Partial<Record<DimView, Record<'above' | 'below' | 'left' | 'right', number>>>;
 }
 
 export interface Hole { view: ViewId; at: XY; radius: number; ref: DimPoint; edge: ProjectedEdge; callout: string | null }
 type Side = 'above' | 'below' | 'left' | 'right';
 type Unplaced = Omit<Extract<DrawingDimension, { kind: 'linear' }>, 'id' | 'place'> | Omit<Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>, 'id' | 'place'> | Omit<Extract<DrawingDimension, { kind: 'pcd' }>, 'id' | 'place'>;
-interface Planned { dim: Unplaced; row: number; kind: keyof AutoDimensionReport['added']; along: 'u' | 'v' | 'leader'; span: [XY, XY]; radius?: number }
+interface Planned { dim: Unplaced; row: number; kind: keyof AutoDimensionReport['added'] | 'keys'; along: 'u' | 'v' | 'leader'; span: [XY, XY]; radius?: number }
 
 const r6 = (v: number) => Math.round(v / SAME) * SAME;
 const sameXY = (a: XY, b: XY) => Math.abs(a[0] - b[0]) <= SAME && Math.abs(a[1] - b[1]) <= SAME;
+
+// ——— O146 (R12c on drawings, S3b): keyseats and keyways dimensioned — a keyseat's width b and the shaft's d − t1 (from the
+// far side of the shaft to the seat's floor), a hub keyway's width and d + t2 (from the far side of the bore to its
+// floor). Each is a pair of edge ends found by the faces' names (`<shaft>.keyseat<j>`, its step's silhouette
+// `<shaft>.seat<k>~sil`; `<keyway>.keyway`, the bore's face) at exactly the report's distance apart along a view axis — in the
+// view where both ends are on visible edges, else the first that has them (dashed). One not found is skipped, said.
+interface EndAt { at: XY; ref: DimPoint; visible: boolean; faces: string[] }
+// (O148 X2: in a section, the plane's own cut face — `section<k>.cut…` — is left out: an edge of the seat's floor and the cut is the seat's.)
+const SECTION_CUT = /^section\d+\.cut(\.|$)/;
+const facesOfEdge = (name: string) => name.split('|').map(f => f.replace(/~sil\d*$/, '').replace(/(#\d+)+$/, '')).filter(f => !SECTION_CUT.test(f));
+function endsOf(pr: BrepProjection): EndAt[] {
+  const out: EndAt[] = [];
+  for (const e of pr.edges) if (e.ends) { const faces = facesOfEdge(e.name), visible = e.pieces.some(p => p.visible); for (const p of e.ends) out.push({ at: inViewOf(pr, p), ref: { edge: e.name, at: 'end', near: [p[0], p[1], p[2]] }, visible, faces }); }
+  return out;
+}
+const inViewOf = (pr: BrepProjection, p: readonly number[]): XY => [p[0] * pr.right[0] + p[1] * pr.right[1] + p[2] * pr.right[2], p[0] * pr.up[0] + p[1] * pr.up[1] + p[2] * pr.up[2]];
+/** Two ends, one of each set, `want` apart along an axis (and level across it when `level`), the visible ones first. */
+function pairApart(as: readonly EndAt[], bs: readonly EndAt[], want: number, level: boolean): { a: EndAt; b: EndAt; k: 0 | 1 } | null {
+  let best: { a: EndAt; b: EndAt; k: 0 | 1; score: number } | null = null;
+  for (const k of [0, 1] as const) for (const a of as) for (const b of bs) {
+    if (Math.abs(Math.abs(a.at[k] - b.at[k]) - want) > 1e-6 * Math.max(1, want)) continue;
+    if (level && Math.abs(a.at[1 - k] - b.at[1 - k]) > SAME) continue;
+    const score = Number(a.visible) + Number(b.visible);
+    if (!best || score > best.score) best = { a, b, k, score };
+  }
+  return best && { a: best.a, b: best.b, k: best.k };
+}
+function keyPlans(views: DrawingViews, layout: SheetLayout, elements: readonly PartElement[], report: AutoDimensionReport, sections: readonly SheetSection[] = []): Planned[] {
+  const want: { what: string; a: (f: string[]) => boolean; b: (f: string[]) => boolean; mm: number; level: boolean }[] = [];
+  for (const { id, element: e } of elements) {
+    if (e.kind === 'shaft') for (const s of e.report.keyseats) {
+      const seat = `${id}.keyseat${s.index}`, step = e.report.steps[s.step - 1], d = step ? step.diameterMM : NaN;
+      want.push({ what: `keyseat ${s.index}'s width`, a: f => f.includes(seat), b: f => f.includes(seat), mm: s.widthMM, level: true });
+      // (Its floor: an edge between two of the seat's own faces; the far side: its step's silhouette.)
+      if (Number.isFinite(d)) want.push({ what: `d − t1 at keyseat ${s.index}`, a: f => f.length > 0 && f.every(x => x === seat), b: f => f.some(x => x === `${id}.seat${s.step}` || x.startsWith(`${id}.seat${s.step}.`)), mm: d - s.depthMM, level: false });
+    }
+    if (e.kind === 'keyway') {
+      const way = `${id}.keyway`, bore = e.report.face;
+      want.push({ what: `keyway ${id}'s width`, a: f => f.includes(way), b: f => f.includes(way), mm: e.report.widthMM, level: true });
+      want.push({ what: `d + t2 at keyway ${id}`, a: f => f.includes(way) && !f.includes(bore), b: f => f.includes(bore) && !f.includes(way), mm: 2 * e.report.boreRadiusMM + e.report.depthMM, level: false });
+    }
+  }
+  const out: Planned[] = [];
+  // (O148 X2: the sections the layout placed too, after the views: one moves there only where it shows more ends visible.)
+  const where: [DimView, BrepProjection][] = [...ORTHO.filter(v => !layout.views[v].hidden).map(v => [v, views[v]] as [DimView, BrepProjection]),
+    ...sections.filter(x => layout.sections?.some(p => p.section === x.id)).map(x => [`section:${x.id}` as SectionRef, x.projection] as [DimView, BrepProjection])];
+  for (const w of want) {
+    let found: { view: DimView; a: EndAt; b: EndAt; k: 0 | 1; visible: number } | null = null;
+    for (const [v, pr] of where) {
+      const ends = endsOf(pr), p = pairApart(ends.filter(x => w.a(x.faces)), ends.filter(x => w.b(x.faces)), w.mm, w.level);
+      if (p && (!found || Number(p.a.visible) + Number(p.b.visible) > found.visible)) found = { view: v, ...p, visible: Number(p.a.visible) + Number(p.b.visible) };
+    }
+    if (!found) { report.skipped.push({ view: 'front', what: w.what, why: 'no two edge ends at that distance in a shown view' }); continue; }
+    const [a, b] = found.a.at[found.k] <= found.b.at[found.k] ? [found.a, found.b] : [found.b, found.a];
+    out.push({ dim: linear(found.view, a.ref, b.ref, found.k), row: 0.5, kind: 'keys', along: found.k === 0 ? 'u' : 'v', span: [a.at, b.at] });
+  }
+  return out;
+}
 
 /** The edge end at a view's extreme along an axis (`k` 0: u, 1: v), the lowest along the other on ties. */
 function extreme(snaps: readonly SnapPoint[], k: 0 | 1, max: boolean): SnapPoint | null {
@@ -67,9 +129,9 @@ function extreme(snaps: readonly SnapPoint[], k: 0 | 1, max: boolean): SnapPoint
 }
 
 /** Free sheet room beside a view on each side: up to the nearest other view, the section, the title block or the frame. */
-function room(layout: SheetLayout, id: ViewId): Record<Side, number> {
-  const [x0, y0, x1, y1] = layout.views[id].box, f = layout.frame;
-  const others = [...ORTHO.filter(o => o !== id), 'iso' as const].filter(o => !layout.views[o].hidden).map(o => layout.views[o].box).concat(layout.section ? [layout.section.box] : [], [layout.title]);
+function room(layout: SheetLayout, id: DimView): Record<Side, number> {
+  const own = placementOf(layout, undefined, id)!, [x0, y0, x1, y1] = own.box, f = layout.frame;
+  const others = [...ORTHO.filter(o => o !== id), 'iso' as const].filter(o => !layout.views[o].hidden).map(o => layout.views[o].box).concat((layout.sections ?? []).filter(x => x !== own).map(x => x.box), [layout.title]);
   const out: Record<Side, number> = { above: y0 - f[1], below: f[3] - y1, left: x0 - f[0], right: f[2] - x1 };
   for (const [a0, b0, a1, b1] of others) {
     const overlapsX = a0 < x1 && a1 > x0, overlapsY = b0 < y1 && b1 > y0;
@@ -169,10 +231,15 @@ function pitchRuns(xs: readonly number[]): [number, number][] {
  * The dimensions Auto-dimension gives the part's views, with the hand-placed ones kept and its own earlier ones
  * replaced. `callout`: a hole's callout by an edge of it (null: not a hole feature).
  */
-export function autoDimensions(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null): { dimensions: DrawingDimension[]; report: AutoDimensionReport } {
+export function autoDimensions(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements: readonly PartElement[] = [], sections: readonly SheetSection[] = []): { dimensions: DrawingDimension[]; report: AutoDimensionReport } {
   const manual = settings.dimensions.filter(d => !d.auto);
-  const report: AutoDimensionReport = { contract: AUTO_DIMENSIONS_VERSION, added: { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 }, kept: manual.length, skipped: [], crowded: [], needs: {} };
-  const holes = holesOf(views, callout), planned: Record<ViewId, Planned[]> = { front: [], top: [], right: [], iso: [] };
+  const report: AutoDimensionReport = { contract: AUTO_DIMENSIONS_VERSION, added: { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 }, keys: 0, kept: manual.length, skipped: [], crowded: [], needs: {} };
+  const holes = holesOf(views, callout), planned: Partial<Record<DimView, Planned[]>> & Record<ViewId, Planned[]> = { front: [], top: [], right: [], iso: [] };
+  // (O146: the keyseats' and the keyways' sizes, each in the view — or, O148 X2, the section — that shows it best.)
+  for (const p of keyPlans(views, layout, elements, report, sections)) (planned[p.dim.view] ??= []).push(p);
+  // (A section's dimensions are read from its projection, as a view's are from the view's.)
+  const dimViews: Partial<Record<DimView, BrepProjection>> = { ...views, ...Object.fromEntries(sections.map(x => [`section:${x.id}`, x.projection])) };
+  const base = (v: DimView): ViewId => isSectionRef(v) ? sections.find(x => x.id === sectionLetter(v))?.view ?? 'front' : v;
   for (const id of ORTHO) {
     // (A view not shown (R14.3) gets nothing; a hole that shows round only there is the issue list's VIEW_NEEDED.)
     if (layout.views[id].hidden) continue;
@@ -244,21 +311,22 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
   }
   // Placement: rows outward from the view on its freer side, inner rows the shorter.
   const out: DrawingDimension[] = [...manual], used = new Set(manual.map(d => d.id));
-  const manualSpans = new Set(manual.map(m => spanKey(views, m)).filter((k): k is string => !!k));
+  const manualSpans = new Set(manual.map(m => spanKey(dimViews, m, base)).filter((k): k is string => !!k));
   const nextId = () => { let n = 1; while (used.has(`d${n}`)) n++; used.add(`d${n}`); return `d${n}`; };
-  for (const id of ORTHO) {
-    if (layout.views[id].hidden) continue;
-    const pr = views[id], v = layout.views[id], free = room(layout, id), s = v.scale, usedOpposite = { u: 0, v: 0 };
+  const onSections = sections.filter(x => layout.sections?.some(p => p.section === x.id)).map(x => `section:${x.id}` as SectionRef);
+  for (const id of [...ORTHO.filter(o => !layout.views[o].hidden), ...onSections] as DimView[]) {
+    if (!planned[id]?.length && isSectionRef(id)) continue;
+    const pr = dimViews[id]!, v = placementOf(layout, undefined, id)!, free = room(layout, id), s = v.scale, usedOpposite = { u: 0, v: 0 };
     const uSide: Side = free.above >= free.below ? 'above' : 'below', vSide: Side = free.left >= free.right ? 'left' : 'right';
     const opposite: Record<Side, Side> = { above: 'below', below: 'above', left: 'right', right: 'left' };
     for (const along of ['u', 'v'] as const) {
       // The freer side takes as many rows as fit (the longest, the overall size outermost); the shortest go to the other side.
-      const rows = planned[id].filter(p => p.along === along).sort((a, b) => a.row - b.row), side = along === 'u' ? uSide : vSide;
+      const rows = planned[id]!.filter(p => p.along === along).sort((a, b) => a.row - b.row), side = along === 'u' ? uSide : vSide;
       const fit = Math.max(1, Math.floor((free[side] - FIRST_ROW - TEXT_ROOM) / ROW) + 1), spill = Math.max(0, rows.length - fit);
       const placeAt = (p: Planned, k: number, at: Side) => {
         const off = (FIRST_ROW + ROW * k) / s, mid = (p.span[0][along === 'u' ? 0 : 1] + p.span[1][along === 'u' ? 0 : 1]) / 2;
         const place: XY = along === 'u' ? [mid, at === 'above' ? pr.max[1] + off : pr.min[1] - off] : [at === 'left' ? pr.min[0] - off : pr.max[0] + off, mid];
-        add(out, manual, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, manualSpans, views);
+        add(out, manual, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, manualSpans, dimViews, base);
       };
       rows.slice(0, spill).forEach((p, k) => placeAt(p, k, opposite[side]));
       rows.slice(spill).forEach((p, k) => placeAt(p, k, side));
@@ -266,11 +334,11 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
     }
     // Callouts: leaders out past the view's edge on the side the rows do not use, a row each, sideways away from them.
     const down = uSide === 'above', toRight = vSide === 'left';
-    const leaders = planned[id].filter(p => p.along === 'leader');
+    const leaders = planned[id]!.filter(p => p.along === 'leader');
     // What each side needs: its rows (the spilled ones on the far side), the callouts past them, a view's name below.
     const need: Record<Side, number> = { above: 0, below: 0, left: 0, right: 0 };
     const rowsOn = (n: number) => n ? FIRST_ROW + ROW * (n - 1) + TEXT_ROOM : 0;
-    const uRows = planned[id].filter(p => p.along === 'u').length, vRows = planned[id].filter(p => p.along === 'v').length;
+    const uRows = planned[id]!.filter(p => p.along === 'u').length, vRows = planned[id]!.filter(p => p.along === 'v').length;
     need[uSide] = rowsOn(uRows - usedOpposite.u); need[opposite[uSide]] = Math.max(rowsOn(usedOpposite.u), leaders.length ? CALLOUT_ROW + ROW * (leaders.length - 1 + usedOpposite.u) + TEXT_ROOM : 0);
     need[vSide] = rowsOn(vRows - usedOpposite.v); need[opposite[vSide]] = rowsOn(usedOpposite.v);
     report.needs[id] = { ...need };
@@ -279,7 +347,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
     leaders.sort((a, b) => a.span[0][0] - b.span[0][0]).forEach((p, k) => {
       const [x] = p.span[0], r = p.radius!, off = (CALLOUT_ROW + ROW * (k + usedOpposite.u)) / s;
       const place: XY = [x + (toRight ? 1 : -1) * (r + CALLOUT_RUN / s), down ? pr.min[1] - off : pr.max[1] + off];
-      add(out, manual, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, manualSpans, views);
+      add(out, manual, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, manualSpans, dimViews, base);
     });
   }
   return { dimensions: out, report };
@@ -287,7 +355,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
 
 function pointOf(x: number, k: 0 | 1, pr: BrepProjection): XY { return k === 0 ? [x, pr.min[1]] : [pr.min[0], x]; }
 
-function linear(view: ViewId, a: DimPoint, b: DimPoint, k: 0 | 1): Omit<Extract<DrawingDimension, { kind: 'linear' }>, 'id' | 'place'> {
+function linear(view: DimView, a: DimPoint, b: DimPoint, k: 0 | 1): Omit<Extract<DrawingDimension, { kind: 'linear' }>, 'id' | 'place'> {
   return { view, kind: 'linear', a, b, orient: k === 0 ? 'horizontal' : 'vertical', auto: true };
 }
 
@@ -309,19 +377,19 @@ export function axisOf(view: ViewId, k: 0 | 1): string {
 }
 
 /** What a horizontal or vertical dimension measures: the model axis and the two positions along it (null for others). */
-function spanKey(views: DrawingViews, d: DrawingDimension): string | null {
+function spanKey(views: Partial<Record<DimView, BrepProjection>>, d: DrawingDimension, base: (v: DimView) => ViewId): string | null {
   if (d.kind !== 'linear' || d.orient === 'aligned') return null;
   const r = resolveDimension(views, d);
   if (!r.ok || r.kind !== 'linear') return null;
   const k = d.orient === 'horizontal' ? 0 : 1, lo = Math.min(r.a[k], r.b[k]), hi = Math.max(r.a[k], r.b[k]);
-  return `${axisOf(d.view, k)}|${r6(lo)}|${r6(hi)}|${d.count ?? 1}`;
+  return `${axisOf(base(d.view), k)}|${r6(lo)}|${r6(hi)}|${d.count ?? 1}`;
 }
 
-function add(out: DrawingDimension[], manual: readonly DrawingDimension[], d: DrawingDimension, nextId: () => string, report: AutoDimensionReport, kind: keyof AutoDimensionReport['added'], manualSpans: ReadonlySet<string>, views: DrawingViews): void {
+function add(out: DrawingDimension[], manual: readonly DrawingDimension[], d: DrawingDimension, nextId: () => string, report: AutoDimensionReport, kind: keyof AutoDimensionReport['added'] | 'keys', manualSpans: ReadonlySet<string>, views: Partial<Record<DimView, BrepProjection>>, base: (v: DimView) => ViewId): void {
   if (manual.some(m => sameAs(d, m))) return;
   // (One a hand-placed dimension gives already, in this view or one sharing the axis.)
-  const key = spanKey(views, d);
+  const key = spanKey(views, d, base);
   if (key && manualSpans.has(key)) return;
   out.push({ ...d, id: nextId() });
-  report.added[kind]++;
+  if (kind === 'keys') report.keys++; else report.added[kind]++;
 }

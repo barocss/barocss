@@ -1,0 +1,166 @@
+{
+  "id": "frk-bead-tee-wide-post",
+  "step": "FRk",
+  "decisions": [
+    "D166"
+  ],
+  "about": "FRk2: a fillet bead (leg 3) round a 40 × 40 rail's end butted on an 80 × 80 post's face: the outline offset by the leg, drafted 45°, less the rail — P·z²/2 + (4/3)z³, its centroid (P·z³/6 + z⁴/3)/V off the face.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              800
+            ],
+            [
+              500,
+              0,
+              400
+            ],
+            [
+              0,
+              0,
+              400
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 80,
+            "height": 80,
+            "wall": 4,
+            "outerRadius": 0
+          },
+          "overrides": [
+            {
+              "member": 1,
+              "section": {
+                "kind": "rect-tube",
+                "width": 40,
+                "height": 40,
+                "wall": 3,
+                "outerRadius": 0
+              }
+            }
+          ],
+          "corners": {
+            "tee": "butt"
+          }
+        },
+        {
+          "id": "w",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 1,
+            "end": "end"
+          },
+          "leg": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 972800,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            400
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 204240,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            270,
+            0,
+            400
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 756,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            40.98809523809524,
+            0,
+            400
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "bead": {
+          "legMM": 3,
+          "seam": 160,
+          "flush": 0,
+          "meets": [
+            0
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: the offset areas A₀ + P·s + 4s² integrated over the leg; the rail from the post's face at x 40 to 500."
+}

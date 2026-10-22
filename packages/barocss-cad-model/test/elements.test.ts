@@ -83,3 +83,41 @@ test('the BOM: 2 copies of the shaft part — the part ×2, and each bought elem
   const eb = deriveBom(await bomView(asm(scene(false)), evaluate));
   assert.equal(eb.lines.find(l => l.kind === 'retaining-ring')!.estimate, true);
 });
+
+test('D160/D161 in the element lines and the BOM: a cam and pulleys made, a belt and a coupling bought — the coupling as its row says, its part number and supplier carried', async () => {
+  const { editDriveRows } = await import('../src/engine/drives');
+  const FLAT = { kind: 'flat-belt', id: 'flat-a', widthMM: 40, thicknessMM: 3, estimate: true };
+  const COUPLING = { kind: 'coupling', id: 'sleeve-a', type: 'rigid sleeve', boreMM: [12, 14], outsideMM: 30, lengthMM: 40, boreStepMM: 18, partNumber: 'TEST-1', supplier: 'a test supplier', estimate: true };
+  let doc = (editDriveRows(emptyDoc(), [FLAT, COUPLING]) as { doc: StudioDoc }).doc;
+  const build = (d: StudioDoc, id: string, values: Record<string, string | number>, sel: number[] = []) => {
+    const bodies = evaluated(d), ctx: Ctx = { doc: d, bodies, selection: { faces: [], edges: [], bodies: sel.map(n => bodies.findIndex(b => b.ref?.node === n)) } }, c = cmd(id);
+    assert.ok(c.available(ctx).ok); return c.build!(ctx, { ...c.defaults!(ctx), ...values });
+  };
+  doc = build(doc, 'pulley', { d: 80, w: 50, bore: 20, x: 0, y: 0, z: 0 }); doc = build(doc, 'pulley', { d: 50, w: 50, bore: 12, x: 150, y: 0, z: 0 });
+  doc = build(doc, 'belt-drive', {}, [0, 1]); doc = build(doc, 'coupling', { x: 0, y: 80, z: 0 }); doc = build(doc, 'cam', { x: 0, y: -80, z: 0 });
+  const bodies = evaluated(doc);
+  for (const b of bodies) if (b.element) assert.deepEqual(structuredClone(b.element), b.element);
+  const lines = elementLines(doc, bodies), by = (k: string) => lines.filter(l => l.kind === k);
+  assert.deepEqual(lines.map(l => [l.kind, l.bought]), [['pulley', false], ['pulley', false], ['belt', true], ['coupling', true], ['cam', false]]);
+  assert.deepEqual([by('coupling')[0].size, by('coupling')[0].catalogue, by('coupling')[0].row], ['Ø12 / Ø14 bores, Ø30 × 40', 'TEST-1, a test supplier', { id: 'sleeve-a', estimate: true }]);
+  assert.deepEqual([by('belt')[0].row, by('belt')[0].estimate], [{ id: 'flat-a', estimate: true }, true]);
+  assert.match(by('cam')[0].size, /^translating roller, base R20, stroke 8 mm$/);
+  const bom = deriveBom(await bomView({ ...emptyDoc(), instances: [{ id: 'i0', name: 'drive', doc, position: [0, 0, 0], rotation: [0, 0, 0] }] }, async d => evaluateDoc(d, 4)));
+  assert.deepEqual(bom.lines.filter(l => l.kind).map(l => [l.kind, l.qty, l.row, l.catalogue ?? null, l.estimate]), [['belt', 1, 'flat-a', null, true], ['coupling', 1, 'sleeve-a', 'TEST-1, a test supplier', true]]);
+});
+
+test('D162 in the element lines and the BOM: a connector\'s opening made, its body bought — named from the user\'s row, the row cited', async () => {
+  const { editConnectorRows } = await import('../src/engine/connectors');
+  const { rectanglePart } = await import('../src/engine/doc');
+  const U1 = { id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, body: { shape: 'stadium', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 }, keepOut: { marginMM: 1, depthMM: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' };
+  const plate = (editConnectorRows(rectanglePart(40, 20, 10), [U1]) as { doc: StudioDoc }).doc, r0 = evaluated(plate);
+  const face = r0[0].mesh.faces.findIndex(f => f.name.endsWith('.top')), c = cmd('connector'), ctx: Ctx = { doc: plate, bodies: r0, selection: { faces: [{ body: 0, face }], edges: [], bodies: [] } };
+  const doc = c.build!(ctx, { ...c.defaults!(ctx) }), bodies = evaluated(doc);
+  for (const b of bodies) if (b.element) assert.deepEqual(structuredClone(b.element), b.element);
+  const lines = elementLines(doc, bodies);
+  assert.deepEqual(lines.map(l => [l.kind, l.bought, l.size, l.row]), [
+    ['connector-opening', false, 'USB-C receptacle opening, stadium 8.34 × 2.56 × 6.2 deep; its body 0.045 / 0.08 clear across', { id: 'usb-c', source: U1.source, estimate: false }],
+    ['connector-body', true, 'USB-C receptacle envelope stadium 8.25 × 2.4 × 6.51', { id: 'usb-c', source: U1.source, estimate: false }]]);
+  const bom = deriveBom(await bomView({ ...emptyDoc(), instances: [{ id: 'i0', name: 'panel', doc, position: [0, 0, 0], rotation: [0, 0, 0] }] }, async d => evaluateDoc(d, 4)));
+  assert.deepEqual(bom.lines.filter(l => l.kind).map(l => [l.kind, l.qty, l.row, l.source]), [['connector-body', 1, 'usb-c', U1.source]]);
+});

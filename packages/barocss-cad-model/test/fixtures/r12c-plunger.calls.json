@@ -1,0 +1,79 @@
+{
+ "about": "R12c.8 acceptance (D163): a spring-loaded plunger — a Ø30 × 50 housing with a Ø24 blind bore 40 deep, a compression spring with closed and ground ends (wire Ø2, mean Ø20, 6 active coils at pitch 5, steel's G an estimate) standing on the bore's bottom, and a Ø23 × 15 plunger resting on it. Built by the agent's tools in one turn.",
+ "rows": {},
+ "calls": [
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "cylinder",
+    "values": {
+     "r": 15,
+     "h": 50,
+     "x": 0,
+     "y": 0,
+     "z": 0
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "hole",
+    "values": {
+     "type": "blind",
+     "d": 24,
+     "depth": 40,
+     "x": 0,
+     "y": 0,
+     "pat": "one"
+    },
+    "faces": [
+     "n1.top"
+    ]
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "spring",
+    "values": {
+     "type": "compression",
+     "d": 2,
+     "D": 20,
+     "n": 6,
+     "p": 5,
+     "ends": "closed-ground",
+     "hand": "right",
+     "G": 79300,
+     "F": 20,
+     "x": 0,
+     "y": 0,
+     "z": 10
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "cylinder",
+    "values": {
+     "r": 11.5,
+     "h": 15,
+     "x": 0,
+     "y": 0,
+     "z": 44.002
+    }
+   }
+  },
+  {
+   "tool": "query",
+   "args": {
+    "action": "interference"
+   }
+  }
+ ]
+}

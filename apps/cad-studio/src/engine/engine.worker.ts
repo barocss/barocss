@@ -2,7 +2,8 @@
 import { brepsFor, evaluateDoc, evaluatePart, evaluatePlaced, evaluatePreview, evaluateVolumes, shareMeshes, stepFor, stlFor, type PartSlot } from '@barocss/cad-model/engine/evaluate';
 import { MeshSender } from '@barocss/cad-model/engine/meshWire';
 import { projectViews } from '@barocss/cad-model/drawing/project';
-import { sectionOf } from '@barocss/cad-model/drawing/section';
+import { sectionsCut } from '@barocss/cad-model/drawing/section';
+import type { DrawingSection } from '@barocss/cad-model/drawing/types';
 import { WireReceiver, type WireDoc } from '@barocss/cad-model/engine/wireDoc';
 import { mouldView } from './mouldView';
 import { proposalDiffFor } from '@barocss/cad-model/chat/proposalDiff';
@@ -24,7 +25,7 @@ export type WorkerRequest =
   | { type: 'step'; id: number; doc: WireDoc; name: string; meshes?: 'auto' | 'tessellated' | 'planar' }
   /** A STEP file's meshes when it holds nothing else (R3.5), for the repair gate. */
   | { type: 'stepMeshes'; id: number; step: string }
-  | { type: 'drawing'; id: number; doc: WireDoc; options?: { tangentEdges?: boolean; section?: { y: number }; orientation?: 'x+' | 'y+' | 'x-' } }
+  | { type: 'drawing'; id: number; doc: WireDoc; options?: { tangentEdges?: boolean; sections?: DrawingSection[]; orientation?: 'x+' | 'y+' | 'x-' } }
   /** A mesh checked and repaired (M3, D47), off the main thread; a repair posts its stages as it goes. */
   | { type: 'diagnose'; id: number; positions: ArrayLike<number>; indices: ArrayLike<number> }
   | { type: 'repair'; id: number; positions: ArrayLike<number>; indices: ArrayLike<number>; steps: MeshRepairSteps };
@@ -87,7 +88,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   } else if (request.type === 'drawing') {
     const r = brepsFor(request.doc);
     const drawing = 'error' in r ? { ok: false as const, error: r.error } : projectViews(r.breps, r.prefixes, request.options);
-    if (drawing.ok && request.options?.section) drawing.section = sectionOf(request.doc, request.options.section.y, request.options.orientation);
+    if (drawing.ok && request.options?.sections?.length) drawing.sections = sectionsCut(request.doc, request.options.sections, request.options.orientation);
     (self as unknown as Worker).postMessage({ id: request.id, drawing });
   } else if (request.type === 'step') {
     (self as unknown as Worker).postMessage({ id: request.id, step: stepFor(request.doc, request.name, request.meshes) });

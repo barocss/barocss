@@ -5490,3 +5490,457 @@ S1 is built.
   - the overrides: the key made (no line), the shaft bought (a line, `override`);
   - a ring with no row gives an estimate line.
 - **No flow step for S1**: the studio shows no BOM yet, and S2's element table is where the lines become visible. The browser side is covered by the verify's machine-element and library steps, which carry the new field over the worker's wire.
+
+## O144 — R12c on drawings and in the BOM, S2: the element, spring and gland tables (2026-10-22)
+
+S2 of O142, built on S1's data (`BodyResult.element`, `elementLines`). There are three new table sources (drawing/elementTables.ts) in `TABLE_SOURCES`. Column titles are our own words; every value is the model's (the user's rows, the kernel's report).
+
+- **`elements`** (MACHINE ELEMENTS): item, kind, size [mm], row, source, bought (made / bought, "(set)" when the person's override decided it), est., mass [g]. Under it, each estimate's why, and "Sizes and rows are yours (none built in)…".
+- **`springs`** (SPRING DATA): one row a spring, with type, wire Ø, mean Ø, outer Ø, active and total coils, free (or body) length, pitch, solid height, ends or hooks, hand, and rate (— with no G). Under it, each spring's G and E with "an estimate" where flagged, and a torsion spring's rate in N·mm/°.
+- **`glands`** (O-RING GLANDS): kind, ring, the ring's ID and section, groove Ø, width and depth, stretch, squeeze (free and stretched) and fill (of the stretched section, as it is judged). Under it, the ranges judged by with their source and "(an estimate)", an estimate row, and each warning.
+- A part without the kind: the source's error, drawn NOT AVAILABLE with why.
+- **The studio**: the Drawing workspace offers Element list, Spring data and Gland table checkboxes, each only when the part has that kind (the element list also when a node is marked bought).
+- **Tests** (`test/element-tables.test.ts`):
+  - the shaft-parts scene's element list exactly, and a spring's estimate marked and said;
+  - the default spring's data equal to D153's figures: wire 2, mean 20, outer 22, 6 active of 8, free length 34.00, pitch 5, solid 16.01, closed-ground, right hand, rate Gd⁴/(8D³n) = 3.304;
+  - the piston gland equal to D159's S0: 214, 24.99 × 3.53, groove Ø25.5 × 4.7 × 2.8, stretch 2.0, squeeze 20.7 (20.0 stretched), fill 73.1 % stretched, Fictiv's ranges an estimate, the fill warning;
+  - NOT AVAILABLE for each on a box;
+  - the tables' texts in the SVG, the PDF and the DXF.
+  `drawing-table.test`'s list of sources is updated.
+- **Flow step** "element tables (O144)…": a spring from the palette, its A3 drawing with both tables by their checkboxes, no gland table offered, the SVG holding them and the estimate line.
+
+## O145 — R12c on drawings and in the BOM, S3a: the elements on their dimensions, and leader notes (2026-10-22)
+
+The first part of O142's S3, as the coordinator answered: text after the dimension (as D155's fits), and a leader note only where an element has no dimension of its own.
+
+- **Callouts** (drawing/elementCallouts.ts `withElements`), built from the part's elements:
+  - the studio passes its evaluated bodies' (`elementsOfBodies`), since none are evaluated on the page;
+  - the chat's and the servers' drawings use `partElements(doc)`, the kernel's snapshot.
+  They wrap the hole and fit callouts in both places, DrawingWorkspace and chat/drawing.ts. What they add:
+  - **a bearing**: a diameter dimension on its seat (the shaft's `seat<step>` face, at the bearing's bore) or on its housing's bore (a face of the housing node, at its outside diameter) adds "bearing 6204 (B1 (D139))". That is its designation or row, with the row's source or "(est.)".
+  - **a retaining ring**: a diameter on its groove's bottom (`groove<g>`, at the groove's Ø) adds "× 1.3 · ring r20 (the maker's sheet)", the groove's width being the ring's thickness plus its play. Without a row it reads "· ring (est.)".
+  - Another diameter on the same face adds nothing.
+- **Leader notes** (`elementNotes`, `withElementNotes`): a key and a dowel pin have no dimension of their own.
+  - Auto layout (the studio's Auto-dimension, and the chat's `drawing.auto_dimension`) gives each a note `el-<feature>`, worded as the element list's ("key 6 × 6 × 18", "dowel pin Ø4 × 20").
+  - Its leader runs to the middle of a visible edge of its faces in the first view (front, top, right) that shows one; the note goes just outside that view's nearest side.
+  - The issue list's moves clear one that overlaps. Each pass makes them again, keeping the person's own notes.
+  - `SheetInputs.elements` carries the elements to Auto layout.
+- **Tests** (`test/element-callouts.test.ts`):
+  - the bearing's seat Ø20 and housing Ø47 callouts, and after a fit's text;
+  - the ring groove's with and without a row, and on a hand-placed diameter dimension on the sheet;
+  - Auto layout's two notes with their leaders, no issue about them, and made again without doubling.
+  - The flow step "element notes (O145)…": a shaft and its key from the palette, then Auto-dimension on A3. The key's note is there with its leader, there is no text overlap, and it is in the SVG.
+- **Still to do (S3b)**: the key and keyway dimensions in auto-dimension, i.e. the keyseat's width b and d − t1 on the shaft, and the keyway's width and d + t2 on the hub. They need references the auto-dimension does not make today: the far silhouette of the shaft and the far side of the bore, not edge ends. That is the next checkpoint.
+
+## O146 — R12c on drawings and in the BOM, S3b: keyseats and keyways dimensioned (2026-10-22)
+
+The rest of O142's S3. Auto-dimension (drawing/auto.ts `keyPlans`, given `SheetInputs.elements`) adds four dimensions:
+- for each shaft keyseat: its width **b**, and **d − t1**, from the step's far side to the seat's floor;
+- for each hub keyway: its width, and **d + t2**, from the bore's far side to the keyway's floor.
+
+- **How it finds them**: each is a pair of edge ends found by their faces' names, exactly the report's distance apart along a view axis. The width's two ends also sit level across it.
+  - keyseat: `<shaft>.keyseat<j>`; the floor is an edge between two of the seat's own faces; the far side is the step's silhouette `<shaft>.seat<k>~sil`;
+  - keyway: `<keyway>.keyway`, against the bore's face, whose circle has an end at its far side.
+  - The view chosen is the one where both ends lie on visible edges, else the first that has them (dashed: the keyseat is seen through the shaft in the front and side views). One not found is skipped, with why.
+- **Counting**: they are counted in `report.keys`, apart from `added`, whose exact shape R14's conformance cases pin. The studio's message adds them in.
+- **Tests**:
+  - in `test/element-callouts.test.ts`, the shaft-parts scene's Auto layout gives 4 key dimensions, with values 6 (b), 16.5 (20 − 3.5), 6 (the keyway) and 22.8 (20 + 2.8), and no error issue on them;
+  - R14's auto-dimension and layout conformance is unchanged;
+  - the O145 flow step now also checks b 6 and d − t1 16.5 on the sheet.
+- **R12c on drawings and in the BOM is done** (S1–S3b, O143–O146).
+
+### O146 addendum — dimensions on hidden lines said, not hidden (2026-10-22)
+
+The coordinator's drawing-practice point: avoid dimensioning to hidden lines.
+- **The view**: `keyPlans` already takes the view where both ends are visible; a seat facing a view shows there (the default shaft's keyseat, in the right view: b on visible lines).
+- **Hidden in every view** (a keyseat under its hub; d − t1, which only edge-on views show): the dimension is kept, and the issue list warns `DIM_ON_HIDDEN`. "Dimension … measures to a hidden line in the front view: a section through it would show it (none is added for it)."
+  - It covers any linear dimension, the person's too.
+  - A point is hidden only when no visible edge of the view ends there: a corner that a hidden edge also ends at is a seen point. With that rule, R14's conformance raises none (79/79 drawing tests).
+- **No section is added.** A section through the seat is R14's view logic, an open item (§0).
+- **Test**: the shaft-parts scene under its hub warns d − t1 (16.5) on a hidden line, and not the hub's keyway width, which the top view shows.
+
+### O143 addendum — D160's cam and D161's drives in the element data (2026-10-22)
+
+The coordinator's note with integration cadfe4700, merged here as 26b88406b. The kernel's cam and drive notes were already folded into the one notes list, after the spring's.
+- **`BodyElement`** gains `cam`, `sprocket`, `pulley`, `belt` (a belt or a chain) and `coupling`, each with its row: a sprocket's chain, a pulley's belt, a belt's row, a coupling's row, each with its source or estimate.
+- **Bought by default**: belts and chains are bought. A coupling is bought as its kernel report's `bought` says (from its row). Cams, sprockets and pulleys are made.
+- A coupling's part number and supplier are carried as the line's `catalogue`, into the BOM line and the element list's source cell.
+- **Sizes**, our words from the reports:
+  - cam: "translating roller, base R20, stroke 8 mm";
+  - sprocket: "17 teeth, p 12.7, Ø… pitch";
+  - pulley: "flat, Ø80 pitch × 50";
+  - belt: "flat-belt, L … at 150";
+  - coupling: "Ø12 / Ø14 bores, Ø30 × 40".
+  Why an estimate: a cam's pressure-angle limit, a belt's band section.
+- **Test**: two pulleys, their belt, a coupling and a cam (the kernel lane's test rows):
+  - lines with pulleys made, belt bought, coupling bought, cam made;
+  - the coupling's catalogue "TEST-1, a test supplier";
+  - the BOM's belt and coupling lines;
+  - every element's data structured-cloned.
+
+### O143 addendum 2 — D162's connectors in the element data (2026-10-22)
+
+With integration 36bfcb970 (merged here as 3f30f8dc1; D162's two UI edits, a section-table read in FrameSections and ConnectorRows in the Library panel, fight nothing in flight).
+- **`BodyElement`** gains `connector-opening` (the kernel's ConnectorReport, its row cited) and `connector-body` (its row, with source and estimate from `doc.connectors`).
+- **Bought by default**: the body is bought; the opening, cut in the panel, is made.
+- **Sizes**, in our words from the user's row. The row's name loses a trailing "opening", and the line says which part it is:
+  - "USB-C receptacle opening, stadium 8.34 × 2.56 × 6.2 deep; its body 0.045 / 0.08 clear across" (the declared fit's gaps);
+  - "USB-C receptacle envelope stadium 8.25 × 2.4 × 6.51".
+- **Test**: D139's U1 row (the kernel lane's test row):
+  - both lines exactly, with the row cited;
+  - the BOM's connector-body line;
+  - both elements' data structured-cloned.
+
+## O147 — S0: the BOM made visible and usable (2026-10-22)
+
+The coordinator approved this gap: S1's BOM data (O143) is shown to no one. Constraints: src/ui only; App.tsx call sites only; the viewport untouched. This S0 needs the coordinator's reply before building.
+
+**B1 — the BOM panel, the bought toggle, the CSV.**
+- **Panel** (`ui/BomPanel.tsx`, opened by a "BOM" tool in the top bar's tray):
+  - It shows `deriveBom(bomView(doc, evaluate))`, its evaluations through the engine worker (`engine.part`, the 'agent' slot), never the page.
+  - A part with no placed parts shows one line for the part itself and its bought elements; an assembly shows its parts' lines and the bought elements' lines.
+  - Columns: item no., item, qty, kind, size, row or catalogue, source or "estimate" (with its why on hover), bought or made ("set" when overridden).
+  - Totals under it: parts, bought elements, the mass (the parts' only, as S1).
+- **The bought/made toggle**, one per element line:
+  - It writes the `bought` override as one undoable edit: on the base part's node, or, for an element in placed parts, on that node in every instance document the line merges.
+  - A "default" choice clears the override.
+  - Undo restores all of it at once.
+- **CSV** ("Export purchase list"), the panel's button and a chat-free download:
+  - The bought lines only, as `item no., item, qty, kind, size, row, catalogue, source, estimate`.
+  - A checkbox "with made parts" adds the part lines and the made elements.
+  - Text cells are quoted; the numbers are the BOM's.
+- **Oracles**:
+  - S1's scene of 2 copies with a key, a ring and a pin: 4 lines (the part ×2, key ×2, ring ×2 on r20, pin ×2); the CSV has 3 rows (the bought ones), 4 with made parts.
+  - The key toggled to made: its line leaves the BOM and the CSV; one ⌘Z brings it back.
+  - A ring with no row: its line and CSV row read "estimate".
+- **Flow step**: the panel on a two-copy assembly, the toggle and its undo, the CSV download's rows.
+
+**B2 — the drawing's BOM table and balloons.**
+- **`from: 'bom'`** (BILL OF MATERIALS): the same lines and item numbers as the panel.
+  - The BOM is worked out by the caller (the studio: the panel's, through the worker; the chat: awaited before the sheet) and given to the table's context (`TableSourceContext.bom`). It is never evaluated on the page.
+- **Balloons** (a Drawing workspace checkbox, `settings.balloons`):
+  - One balloon a line on the assembly's iso view: a circle with the item number, and a leader to the middle of a visible edge of one instance of that item.
+  - For a part line, an edge of `<instance>/…`; for a bought element, an edge of that element's faces in that instance (`<instance>/<node>.…`, or `<node>.…` in the base part).
+  - Item numbers match the table's.
+  - Placement seeks clearance as the weld symbols do (O119): knees out past the view's sides in steps, clear of the views, the title, the tables and the balloons before. A balloon with no clear place keeps its nearest place and raises an issue, `BALLOON_NOT_CLEAR`.
+  - An item with no visible edge in the iso view gets no balloon, with an issue `BALLOON_NO_EDGE` (the table still lists it).
+- **Oracles**:
+  - The two-copy assembly: 4 table rows equal to the panel's lines, and 4 balloons numbered 1–4.
+  - Each leader's tip on a visible iso edge of its item (by the edge's name), and no balloon issue on the A3 sheet.
+  - The table's texts and the balloons' numbers in the SVG, the PDF and the DXF.
+- **Flow step**: Auto layout of the assembly with the BOM table and balloons, then the SVG.
+
+**Not in scope**: a BOM for a placed part's own sub-assembly (one level, as S1), costs, or suppliers' quantities.
+
+## O148 — S0: section views for what the standard views hide (2026-10-22)
+
+The coordinator approved this as the next gap, after O147. Today there is one section, A–A, square to the front view's depth at `y` and placed under the front view, with no dimension on it. O146 warns DIM_ON_HIDDEN where only hidden lines would carry a dimension. This S0 needs the coordinator's reply before building.
+
+**X1 — sections as a list, on any principal plane.**
+- **`settings.sections`**: `[{ id: 'A', view: 'front' | 'top' | 'right', at }]`.
+  - Each is the part cut by the plane square to that view's depth at `at`, seen as that view, with the material in front taken away.
+  - Its cut rings are hatched, as A–A's are. The engine worker's `sectionOf` takes the view and `at`.
+  - The old `section: { y }` reads as `[{ id: 'A', view: 'front', at: y }]`, so files and R14's section conformance stay as they are.
+- **Layout**: each section goes beside its view, on the side away from its neighbour: a front's below it as today, a top's to its side, a right's below it. It carries "SECTION A–A" under it, and a cutting-plane line with arrows and letters across its parent view. The layout's fit and Auto layout's scale count them all.
+- **Exports**: SVG, PDF and DXF draw them all. "Section alone as a 1:1 DXF" takes the one chosen.
+- **Oracles**:
+  - A–A unchanged (R14's section conformance);
+  - a second section B–B square to the top view through a shaft: its ring the step's circle (πr² hatched), its letters on the top view;
+  - the layout clean on A3.
+
+**X2 — dimensions on sections.**
+- `DrawingDimension.view` may name a section (`section:A`). Its snap points and edges come from the section's projection, and its marks are placed and checked like a view's.
+- Auto-dimension's key pass (O146) looks in the sections as well as the views, and prefers visible ends. So a measurement a section shows moves there, and DIM_ON_HIDDEN no longer fires for it.
+- **Oracle**: with a section through the keyseat, b 6 and d − t1 16.5 are placed on the section with visible ends, with no DIM_ON_HIDDEN; the hub's d + t2 22.8 is there too, where the section crosses the hub.
+
+**X3 — the section a dimension needs, as a fix.**
+- DIM_ON_HIDDEN gets a fix, `add-section`, applied like the issue list's other fixes (never on its own):
+  - the plane square to the axis of the feature the dimension measures (a keyseat's or a keyway's: the shaft's or the bore's axis), through the feature's centre;
+  - mapped to the principal plane it is (a shaft along Z gives a section square to the top view's depth, at the seat's middle);
+  - the next free letter.
+- A feature whose axis is no principal axis is said, with no fix.
+- Auto layout does not add sections itself: the person, or the agent through the drawing tools as a proposal, applies the fix.
+- **Oracles**:
+  - the shaft-and-hub scene: DIM_ON_HIDDEN on d − t1 carries `add-section` at the keyseat's middle (z 15);
+  - applied, auto-dimension moves b and d − t1 onto it, and the warnings are gone;
+  - a tilted shaft gives no fix, said.
+
+**Each stage gets a flow step and FLOW_ONLY on the section, R14 and DXF steps only.**
+
+## O147 B1 — the BOM panel, the bought/made choice, the purchase list (2026-10-22)
+
+The coordinator approved O147. B1 is built.
+
+- **The model** (`team/bom.ts`):
+  - `bomPanelData(doc, evaluate, name)` gives S1's BOM. A part with no placed parts is its own line. It also gives the **made** elements as lines, merged as the bought ones are, so that a person can mark one bought.
+  - `setBought(doc, parts, true | false | null)` writes the override on every `part:feature` a line merges (every copy's node) as one document change. Null clears it, back to the default for its kind.
+  - `purchaseCsv(data, withMade)` is the purchase list: item no., item, qty, kind, size, row, catalogue, source, estimate. It holds the bought lines: the bought elements, and the library parts as catalogue parts. "With made parts" adds the part lines and the made elements after them. Text cells are quoted where needed.
+- **The panel** (`ui/BomPanel.tsx`; a BOM tool in the top bar's tray; App.tsx has only the tool and the panel's call):
+  - lines numbered, with item, qty, row or catalogue, and source or "estimate" (its why on hover);
+  - a bought / made / default choice on each element line. Its tooltip says it "applies to all N copies" where a line merges several, and the change is one Undo;
+  - the made elements below, each with the same choice;
+  - the totals: the parts, the bought elements, and the parts' mass;
+  - "Export purchase list", with its "With made parts" tick.
+  The panel's evaluations go through the engine worker (`engine.part`, the 'read' slot).
+- **Tests** (`test/bom-panel.test.ts`):
+  - S1's two-copy part: lines part ×2, key, ring on r20 and pin ×2; the shaft a made element ×2;
+  - the CSV's 3 bought rows exactly, and the made rows with the tick;
+  - a ring with no row gives an estimate row;
+  - the key made: written on both copies, its line gone and a made element instead, out of the list; default clears both;
+  - a single part as its own line.
+  - Flow step "BOM panel (O147)…": a shaft and its key from the palette; the panel's lines and made elements; the key made and its line gone; one ⌘Z back; the CSV's header and the key's row.
+
+## O147 B2 — the BOM on the drawing: its table and the item balloons (2026-10-22)
+
+B2 is built as frozen. The BOM is worked out by the caller and passed in, so the drawing stays pure.
+
+- **The BOM's synchronous core** (`team/bomCore.ts`, split from `team/assembly.ts`, which re-exports it):
+  - `bomViewOf(doc, evaluate)`, `deriveBom(view)` and the Bom types;
+  - `bomPanelDataOf` (team/bom.ts) builds the panel's data from evaluations given at once.
+  - Why the split: chat/drawing.ts reading team/assembly.ts made an import cycle through chat/tools.ts (team/parts imports it). `DRAWING_CHANGES` was undefined when tools.ts's module body ran. bomCore imports nothing of the chat's tools; checked with an esbuild metafile.
+- **The 'bom' table source** (`drawing/tables.ts`, from `TableSourceContext.bom`):
+  - a row a BOM line: NO., ITEM, QTY, MATERIAL, ROW (with the catalogue), SOURCE ("estimate" where it is one), BOUGHT (made / bought / bought (set) / bought (library part)), MASS;
+  - its numbers are the panel's and the purchase list's;
+  - with no BOM given it says "the BOM was not worked out for this sheet" (TABLE_SOURCE).
+- **Balloons** (`drawing/balloons.ts`; `settings.balloons`, off by default; role `balloon`):
+  - one per BOM line on the iso view, or the front view when the iso is not shown.
+  - Each leads to the middle of the longest visible piece of an edge of an instance of its item, found by name:
+    - a placed part: `<inst>/…`;
+    - an element: its node's faces `<node>.…`, in a placed part `<inst>/<node>.…`;
+    - a part's balloon leaves out its bought elements' edges, so it points at its own made shape.
+  - Placement is as the weld symbols' (O119): along the side nearest the tip in 9 mm steps, then the other sides. A clear place is inside the frame and clear of the views, the title block, the texts so far and the balloons before it. Balloons sorted by side and along it, so neighbours' leaders don't cross.
+  - The glyph is our own: a circle with the number, and a thin leader to a filled arrow on the edge.
+  - Built after the weld symbols and before the tables; an auto-placed table keeps clear of each balloon's circle (takenOf).
+  - Issues (warnings):
+    - `BALLOON_NOT_CLEAR`: no clear room, so the balloon sits at its nearest place;
+    - `BALLOON_NO_EDGE`: a line none of whose items shows an edge in the view; the table holds it.
+  - Balloon texts are checked as the weld symbols' are (TEXT_OVER_LINES, overlaps, OFF_SHEET), and balloon leaders count as lines for dimension texts.
+- **Callers**:
+  - The studio (DrawingWorkspace) works out the BOM through the engine worker (`bomPanelData`, 'read' slot), only when the BOM table or the balloons are on.
+  - The chat's `drawingInputs` works it out synchronously (`bomPanelDataOf` with `evaluatePart(…, 'read')`), only then.
+  - Checkboxes "BOM table" and "Balloons" appear for an assembly or a part with machine elements.
+  - `__studioDrawing().balloons` gives the placed (no., item, view, edge), unclear and noEdge.
+- **Tests** (`test/bom-balloons.test.ts`):
+  - S1's two-copy assembly on A3: table rows 1–4 (shaft 0 ×2, key, ring, pin), made/bought.
+  - Balloons 1–4 on the iso view: each tip exactly on a visible piece of its named edge, the part's on the shaft's own edges, the elements' on their nodes'.
+  - Nothing clashes: the only issues are the four "missing dimensions" a bare sheet has.
+  - Circles, numbers and arrows are in the SVG (4 `balloon` groups), the PDF and the DXF; off by default (no BOM worked out).
+  - With the iso hidden, on the front view.
+  - A line with no edge gives BALLOON_NO_EDGE; no room gives BALLOON_NOT_CLEAR (all four); a missing BOM gives the table error.
+  - Flow step "BOM table and balloons (O147 B2)…": shaft and key on A3, both checkboxes; the table with no error; balloons 1–2 on the iso view, balloon 2 on the key's edge; no balloon or overlap issues; the SVG.
+- **Left open** (recorded, not built): balloons avoid only tables placed after them; a table pinned by `at` is not in their way yet. Leaders may cross another balloon's leader when the sides fill.
+
+## O148 X1 — sections as a list, on any principal plane (2026-10-22)
+
+X1 is built as the S0 froze it, with one correction (below).
+
+- **Settings** (`drawing/types.ts`):
+  - `sections?: [{ id, view: 'front' | 'top' | 'right', at }]`, where `at` runs along the view's depth (as A–A's `y` always did: Y = y for the default front; a top's depth is −Z, so its `at` is −z).
+  - `sectionsOf(settings)` reads the old `section: { y }` as `[{ A, front, y }]`.
+  - `withSections` writes one A on the front back as `section`, so such files stay byte for byte as they were.
+  - `readDrawing` keeps valid entries only: a letter A–Z (two at most), a principal view, a finite `at`, letters unique.
+  - `nextSectionId` gives the next free letter.
+- **Cutting** (`drawing/section.ts`):
+  - `sectionOf(doc, at, orientation, view)` cuts square to any principal view's depth. It uses the kernel's split along x, y or z (`sectionDepth` in views.ts) and projects as that view.
+  - `sectionsCut` cuts the whole list. The engine worker takes `options.sections`, and the drawing result carries `sections` (each with its result or error).
+- **Layout** (`layoutSheet`; `SheetLayout.sections`, each placement with its letter and view):
+  - A front's or a right's section goes in a row under the views, in its view's column and in projection with it. A–A is placed exactly as before. A later one moves along the row past the one before where they would meet.
+  - A top's section goes beside the top view, on the side away from its neighbour (third angle: left; first angle: right), in its row.
+  - The fit and Auto layout's scale count them all: the side column's width, the row's height, and the row's width when two or more share it.
+- **Sheet**:
+  - Each section is drawn (visible edges, hatch) with "SECTION X–X" under it. A front's or a right's is moved under its view's name, as A–A always was.
+  - Its cutting plane goes in the first shown view that sees the plane edge-on: a front's in the top view, then the right; a top's in the front view, then the right; a right's in the front view, then the top. It is a chain line, thick at its ends, with arrows the way it is seen and its letter at each end.
+  - The cutting planes are worked out before the views' names, so a name goes below its view's cutting-plane ends (a right section's vertical line on the front view no longer hits FRONT).
+  - The cutting-plane group is pushed right after its section's drawing, as A–A's marks always were, so the DXF fixtures keep their entity order. They pass unchanged.
+- **Correction to the S0**: the S0 said B–B's letters go "on the top view". A plane square to the top view's depth is parallel to that view and cannot show there as a line, so its cutting plane is drawn on the front view, where it is edge-on.
+- **Elsewhere**:
+  - Reorient (R14.3b) turns each section along its view's new depth (`turnSections`). A top's always stays. One cut across is refused (SECTION_ACROSS, naming it; A–A's message as before).
+  - The issue list, the weld symbols, auto-dimension's room and the tables keep clear of every section's box.
+  - The chat's drawingInputs cuts the list (`sheetSections`).
+- **Studio** (DrawingWorkspace):
+  - "Section A–A" and "Cut at Y" work as before.
+  - "Add section" adds the next letter from B (A belongs to the front checkbox) on the top view (then the right), at the part's middle along that depth (`sectionMiddle`).
+  - Each other section has a row: its view (select; a change re-centres it), its `at`, and Remove.
+  - "Export section DXF" takes the section chosen (a select when there are two or more); the file is `…-section-X-X.dxf`.
+  - `__studioDrawing()` gives `sections` (id, view, at, rings/edges or error) and `placedSections`; `section` stays A's for the older flow steps.
+- **Tests** (`test/sections.test.ts`):
+  - B–B square to the top view through a stepped shaft (Ø20 × 30, Ø30 × 40) at the Ø30 step's middle:
+    - one ring, every vertex on the Ø30 circle, its area between its inscribed polygon's and πr²;
+    - A–A under the front view, B–B left of the top view in its row (first angle: right of it); the sheet fits on A3;
+    - its cutting plane at Z across the front view with B at both ends; hatched; no overlap, over-lines, off-sheet or fit issues;
+    - in the SVG, PDF and DXF.
+  - Files: old `section` → A on the front; two written as `sections`, back to one as `section`; invalid lists dropped; the next letter.
+  - Reorient: a top section kept; a right section across x+ refused.
+  - drawing.test and dxf.test read A–A's drawing group (`!view`); all R14 section and DXF fixtures pass unchanged.
+  - Flow step "sections (O148 X1)…": a box on A3; Add section gives B–B on the top view, beside it, one cut face, clean, in the SVG; its view → right, still one; B–B alone as DXF with a hatch; removed.
+
+## O148 X2 — dimensions on sections (2026-10-22)
+
+X2 is built as frozen, with one oracle change (below).
+
+- **Where a dimension sits**: `DrawingDimension.view` is a `DimView`: a view, or a section by its letter (`section:B`). `readDrawing` keeps both kinds (`isDimView`).
+- **On the sheet** (buildSheet):
+  - Dimensions on views are resolved as before.
+  - One on a section is resolved after its section is placed (moved under its view's name), against the section's projection. It is drawn as a view's would be (boxed if basic, with its frames), and the section's name goes below its dimensions.
+  - One on a section the sheet lacks is kept unresolved: DIMENSION_LOST, "in section B–B is lost: Its section (B–B) is not on the sheet."
+  - `sheet.sections` carries each section's placement and projection.
+  - `placementOf` and `projectionOf` find a view's or a section's; the issue list, its fixes, tolerance suggestions, the DXF's DIMENSION entities and the studio all use them.
+- **Auto-dimension**:
+  - The O146 key pass looks in the placed sections after the views and moves a measurement to a section only where the section shows more of its ends visible. The section's cut face (`section<k>.cut…`) is left out of an edge's faces, so an edge of the seat's floor and the cut counts as the seat's.
+  - The sections take rows like a view's: room round their box, the same placing.
+  - `autoDimensions`, `autoLayout`, the chat's drawing tools and the issue list's auto-dimension fix pass the sections.
+- **Oracle change**: the S0 said the hub's d + t2 22.8 lands on the section too. Its keyway is seen whole from the top (both ends visible), so it stays on the top view. A section is taken only where it shows more, so measurements well shown in a standard view are not moved.
+- **DUPLICATE**: the same span on features with nothing in common is not "given twice" — a hub keyway's 6 on the top view and its shaft keyseat's b 6 on the section. Features are read from the ends' face names, a placed part's prefix kept, the cut face left out. All earlier duplicate cases still fire, since they share a feature.
+- **Reorient**: a drawing with dimensions on a section is refused, typed SECTION_DIMENSIONS ("… on a section (B–B): those are not turned yet. Remove them first …"). A section's view turns or mirrors with the front.
+- **Studio**:
+  - The dimension tools work on sections: hover picks a section's placed box too, snaps come from its projection, edges and circles from it, and placing and dragging use its placement.
+  - Note leaders stay on views.
+  - `__studioDrawingAt` takes `section:B`.
+- **Tests** (`test/section-dimensions.test.ts`; the fixture `test/fixtures/shaft-hub-keyseat.bcad` is checked byte for byte against the scene and written with UPDATE_SECTION_FIXTURE=1):
+  - O146's shaft and hub with B–B at Z 15: Auto layout adds the 4 key dimensions; b 6 and d − t1 16.5 land on section:B, every end on a visible edge of the section; 22.8 stays on the top view.
+  - No DIM_ON_HIDDEN for them; no DUPLICATE; no errors on them.
+  - Drawn there (groups on section:B), in the SVG and as DXF DIMENSIONs, and read back from the file.
+  - Without the section: both lost, said; reorient refused.
+  - Flow step "dimensions on sections (O148 X2)…": the file opened; Add section, B at −15; Auto-dimension; 6 and 16.5 on section:B, no DIM_ON_HIDDEN or DUPLICATE; the SVG; the dimension tool snaps at the shaft's centre on the section.
+- **Open** (README): the section's edge names carry the split's index (`section<k>`), so a dimension on a section is re-matched if the part's bodies are reordered. Adjacent parts in one section are hatched alike.
+
+## O148 X3 — the section a dimension needs, as a fix (2026-10-22)
+
+X3 is built as the S0 froze it.
+
+- **DIM_ON_HIDDEN's fix** (`sectionFor` in issues.ts) applies when the dimension measures a keyseat or a keyway:
+  - **The axis**: a keyseat's is its shaft step's round edges (centre and normal, from the standard views); a keyway's comes from its report (`axisPoint`, `axis`).
+  - **The middle**: half way between the ends of the feature's edges along that axis.
+  - **The plane**: the principal plane the axis is along, the section view whose depth runs that way (a shaft along Z: square to the top view's depth), `at` signed along that depth (Z 15 → −15).
+  - **The letter**: the next free one from B; A only for a front section while it is free (A is the front checkbox's).
+  - **The message**: "section B–B, square to its axis (Z) through its middle (Z 15), would show it — the fix adds it."
+  - **A section already there**: "section B–B through it shows it: Auto-dimension puts it there." The fix is Auto-dimension, not another section. That also keeps Fix all from adding letter after letter.
+  - **An axis along none of X, Y and Z**: said, with no fix ("an aligned section is not drawn yet"; the open item).
+  - **No keyseat or keyway**: the old text, no fix.
+- **Applying** (`applyFix`, `add-section`) adds the section to the list, so the old `section` is written as `sections` when needed. It is applied like the other fixes: by the person's Fix (button "Add B–B"), Fix all, or the chat's fix tool as a proposal. Auto layout applies only moves, so it never adds a section on its own.
+- **Studio**: the issue list and its fixes get the part's elements and the sections cut (`IssueContext.elements`, `sections`).
+- **A tilted shaft**: after a rotate, the kernel's output carries no shaft report, so Auto-dimension finds no key dimensions there and no section is offered. A hand-placed one gets the old text. A keyway on a tilted bore keeps its report and gets the "no principal section" text. Both are covered.
+- **Tests**:
+  - `section-dimensions.test.ts`, X3 (2):
+    - the shaft-and-hub scene auto-dimensioned: d − t1's DIM_ON_HIDDEN carries `{ add-section, B, top, −15 }` with its words;
+    - applied: the section in the settings; drawn again and auto-dimensioned, no DIM_ON_HIDDEN, and 6 and 16.5 on section:B;
+    - the section there but the dimensions still on the views: every fix is Auto-dimension;
+    - a keyway on a bore rotated 30° about X: the "no principal section" text, no fix.
+  - `element-callouts.test.ts`: O146's message assertion now reads the fix text.
+  - Flow step "the section a dimension needs (O148 X3)…": the file auto-dimensioned; the Fix button on 16.5 reads "Add B–B"; clicked, the sections are `[B, top, −15]`; Auto-dimension again; dimensions on section:B, no DIM_ON_HIDDEN.
+
+### O147 B1 correction — the BOM tool off the top bar (2026-10-22)
+
+The coordinator's window flow on f7d526c80 bisected a regression to the B1 merge (f1726b560). O90's shapes-strip step (242) failed at 1100 px: the bar was 1.375 px too wide and the strip showed no shapes. B1 had put a BOM tool in the top bar's tray. ToolsTray counts each tool as 30 px and keeps every tool before the shapes, so one more tool took the strip's room, and the estimate's slack ran out.
+- The fix: the BOM is an inspect tool on the left toolbar, after Interference and Measure, with its own generated icon (`cad-bom`: a sheet, its lines, the item marks in the accent). The top bar is as before B1.
+- The BOM panel's flow step clicks it there.
+- From now on, a top-bar change runs O90's shapes-strip step and O127's narrow-window step, the two layout guards (the coordinator).
+
+### Flow step 39's recovery prompt (the coordinator's flake, 2026-10-22)
+
+The coordinator saw step 39 ("draw a plate…") fail twice in full window flows on `locator.fill` timeouts, with "Unsaved work from … 'Untitled' was not saved" open at the bottom left. Steps 38–46 pass together.
+- **What blocks step 39 is not the prompt.** It is a `.toast` dialog with no modal layer and no focus taken, and the studio's keys do not check for it. But the studio offers recovery only when it starts: `useState(() => readRecovery())`, with no error boundary and no remount. So the prompt in step 39's screenshot means the page loaded again during the run.
+- **Why the page loads again.** The flow never reloads before step 39 (its only reloads are later recovery steps). vite.config has no React plugin, so any change to a file the dev server serves (src, or a package's dist that `build:library` writes) is a full page reload. A fresh Vite cache was tried with the Drawing workspace and the BOM opened, and there was no reload from dependency optimizing. The likeliest cause: files changed under that dev server during the run (a merge or a library build in the worktree the window flow serves).
+- **Flow side**: the flow now counts main-frame loads it did not ask for (its own `page.reload()` calls say `expectLoad()` first) and watches the dev server's files. A failing step's line then ends with "[the page reloaded during this step, not by the flow: <files> changed]", and the run ends with a note of both. The next such failure names its cause.
+- **App side: a real bug, though not the flake's cause.** While the prompt was open, the session's own recovery copies wrote over the copy offered (one key), and Discard removed the key, so it deleted the copy of the work done since. It also swept every recovery blob (`collectRecoveryBlobs(null)`), so the work since lost its mesh arrays.
+  - Now the copy offered is set aside under its own key (`offerRecovery`), and the session writes its own beside it. Restore and Discard settle only the offered one (`settleRecovery`).
+  - Discard keeps the current work's blobs; Save keeps a still-offered copy's.
+  - At start, of the last session's copy and one offered before and never answered, the newer is offered.
+  - Tested in recovery.test.ts.
+- **The kernel's suggestion (Keepout.fills)**, declined for now: the connector's keep-out lives only in the kernel's report, and none of it becomes a document keep-out that `checkKeepouts` reads. D163's fix (the keep-out from the plug's front) is where the "violated (±0.0058)" came from and went.
+- **SECTION_DIMENSIONS** now says what to do: "Remove the section's dimensions, or turn the drawing and add them again after." Carrying them through a reorient is queued (item 3).
+
+## Queue 1 — adjacent parts hatched apart in one section (2026-10-22)
+
+The coordinator's queue after O148, item 1: vary the hatch by part, as the GPU lane's G19.3 is to in the viewport (45°, 135°, 30°, 120°… by body).
+- **Which body each cut ring is**: `sectionOf` carries `ringBodies`, the part's output index of each ring's body. A body has the same hatch in every section of the part.
+- **The angles**: `hatchGroups` groups a section's rings by body. Body k is hatched at `HATCH_ANGLES[k mod 6]` = 45°, 135°, 30°, 120°, 60°, 150°, and past six with the spacing widened 40 % a round. A part of one body is hatched at 45°, 2.5 mm, exactly as before, so the DXF fixtures are unchanged.
+- **Drawing it**: `hatch(rings, spacing, angle)` scans at any angle, and at 45° keeps √½ both ways so its lines stay the same to the last digit. The sheet draws a hatch mark per body, the SVG and PDF draw their lines at the mark's angle, the sheet's DXF HATCH takes it (as before, `−angle` with y up), and the section-alone DXF writes a HATCH per body.
+- **Test** (section-dimensions.test.ts): the shaft, key and hub through B–B are three bodies with three angles (their HATCH_ANGLES). Every hatch line runs at its group's angle. The SVG and PDF draw them all, the sheet's DXF has the HATCHes, and the section-alone DXF has one per body at the same angles.
+
+## Queue 2 — balloons clear of a table pinned by `at` (2026-10-22)
+
+Balloons are placed before the tables, so a table pinned by `at` was not yet in their way. Now the pinned tables' boxes (laid out from their content and corner, as `tableGroups` lays them) are added to what a balloon keeps clear of. Auto-placed tables still go after and keep clear of the balloons.
+- Test (bom-balloons.test.ts): the BOM table pinned over where balloon 1 stood. Every balloon ends up off the table, none is unclear, and no issue names a balloon. The pinned table meeting the iso view's name is the person's placing, and the issue list says so as ever.
+
+## Queue 3 — section dimensions carried through a reorient (2026-10-22)
+
+SECTION_DIMENSIONS is gone. A section is kept through a turn only where its view's new depth runs along the old (else SECTION_ACROSS, as before), so its view either turns within its own plane (a top section: the top view's up follows the front) or is seen from the other side (a front or right section, y− ↔ y+). Either way, R14.3b's map for that view (`viewMap`: a view point through the model to the new view's axes, horizontal and vertical swapped where the axes swap) is the map for the section's dimensions. They stay on their section. Their edge references are by name and 3D point and don't change; the value check skips them, since the sheet has no section projection to read them from before cutting.
+- Test (section-dimensions.test.ts): the shaft and hub with B–B square to Z, auto-dimensioned, turned to a front from +X and from +Y. B–B is kept at −15. Drawn again (cut for the new side), its dimensions read the same values (6 and 16.5), with no DIMENSION_LOST. Adding a front section C still refuses the turn to +X (SECTION_ACROSS).
+
+## Queue 4 — S0: the drawing's annotations as model-space anchors (the data side of the GPU lane's G24) (2026-10-22)
+
+The coordinator's item 4: export the drawing's annotations, with world positions, leader targets by persistent name and their text, for the GPU lane to draw on the model with its SDF labels. This S0 needs the coordinator's and the GPU lane's reply before building.
+
+**What is exported** (pure, in cad-model `drawing/annotations3d.ts`): `modelAnnotations(inputs, sheet) → { version: 'model-annotations-v1', items: ModelAnnotation[], left: { id, why }[] }`, from the same resolved sheet the drawing draws (so the 3D text is exactly the sheet's).
+
+```ts
+type Vec3 = [number, number, number];
+/** A point on the model: where it is, and what it is on by persistent name (an instance's `<id>/` prefix kept). */
+interface Target { at: Vec3; edge?: string; face?: string; centre?: true }
+interface ModelAnnotation {
+  id: string;                         // the dimension's, datum's, frame's, weld joint's (W-number) or note's id
+  kind: 'dimension' | 'datum' | 'frame' | 'weld' | 'note';
+  from: DimView;                      // the drawing view (or section:B) it was placed in
+  /** The plane it lies in, as placed in its view: the view's toward (normal) and up, through `depth` along toward. */
+  plane: { normal: Vec3; up: Vec3; right: Vec3; depth: number };
+  /** Its text's anchor (the dimension line's middle, a leader's end), and its lines as drawn: value, tolerance, callout. */
+  anchor: Vec3; text: string[]; align: 'start' | 'middle' | 'end';
+  /** What it points at, in order (a linear dimension's two ends, a diameter's edge and centre, a leader's target). */
+  targets: Target[];
+  /** Its own lines in model mm (dimension and extension lines, the leader, the arrow tips), for a renderer that draws them. */
+  lines: [Vec3, Vec3][]; arrows: { tip: Vec3; dir: Vec3 }[];
+  /** By kind: the measure and its tolerance (fit code, ± or deviation, basic); the frame's characteristic, zone and datums;
+   *  the datum's letter; the weld's kind, size (an estimate flagged), all round, inner. */
+  dimension?: { measure: 'linear' | 'diameter' | 'radius' | 'pcd' | 'angle'; value: number; unit: 'mm' | 'deg'; tol?: Tolerance; basic?: true; count?: number; callout?: string };
+  frame?: { characteristic: 'position'; zone: 'diameter'; value: number; datums: string[]; dim: string };
+  datum?: { letter: string };
+  weld?: { kind: 'fillet' | 'butt'; sizeMM: number | null; estimate: boolean; allRound: boolean; inner: boolean; joint: string };
+}
+```
+
+- **Lifting a view's point into the model**: a point (u, v) placed in a view is `u·right + v·up + depth·toward`, with the view's own axes (orientation honoured). `depth` is its targets' mean depth along the view's toward, so a dimension stands in the plane through what it measures. A section's annotations use its cut plane's depth.
+- **Targets**:
+  - by the references the drawing already keeps: a linear dimension's `DimPoint`s (edge name, `end` or `center`, 3D `near`), a diameter's or radius's edge and its circle's centre, a pitch circle's member centres, a datum's edge, a weld symbol's seam edge, a note leader's view point lifted;
+  - so they follow the model as its names do, the same rule as the sheet.
+- **Text**: the sheet's own strings — `dimensionText` with its callout and count (`4× Ø6.6 THRU`, `Ø20 H7`), the tolerance lines as `toleranceText` gives them, the frame's cells (`⌖ | Ø0.1 | A | B`), the datum letter, the weld's size and W-number.
+- **Left out, said in `left`**: a lost dimension (its reason); a note with no leader (it is placed on the paper, not on the model); tables and balloons (sheet-only for v1); a dimension in the isometric view.
+- **Where it runs**: cad-model, pure. The studio computes it from the drawing's inputs when the viewport asks. The GPU lane's toggle, its prop and the drawing are theirs, so my side ends at the data and a test hook `__studioAnnotations()`. A chat read can follow later if wanted.
+- **Oracles** (when built):
+  - the starter plate auto-dimensioned: every dimension's targets are its references' 3D points exactly, its anchor projected back into its view equals its sheet place (1e-9), and its text equals the sheet's;
+  - a fit callout `Ø8 H7` and a ± tolerance carry their strings;
+  - a datum and a position frame on the geometric plate carry their letters and cells;
+  - the welded table's symbols: their seam edges by name, size `3*` with the estimate flag;
+  - after a parameter edit, the same ids and targets by the same names, moved.
+
+**Questions for the GPU lane**:
+- (a) Billboard text or planar in `plane`? Both are given.
+- (b) Do they want our `lines`/`arrows`, or draw their own from `targets` and `anchor`?
+- (c) Instance prefixes: targets keep `<inst>/`, as the edge names do — fine?
+
+## Queue 5a — FRk1's gussets and end caps as plates, and their seams as welds (2026-10-22)
+
+The kernel lane's FRk1 (D165) is in (integration 7f9c31f0b, merged here as b3ae7e0c9). The outer lane's side:
+- **Elements** (`engine/elements.ts`):
+  - `gusset` and `end-cap` are ElementReports (`o.gusset`, `o.endCap`), made by default.
+  - Their size text: "plate 5 thick, legs 120 × 100, clipped 15"; "plate 4 thick, over, 1600 mm²".
+- **BOM** (`team/bomCore.ts`):
+  - `BomView.plates` holds each made plate: part, item, kind, thickness, area, volume, material and mass.
+  - `deriveBom` lists them after the parts, merged by kind, thickness, area and material (two copies → ×2), as a `BomLine.plate` with its item ("gusset plate 5 mm") and size ("5 mm plate, 5887.5 mm²"). `plateQty` counts them.
+  - `checkBom` checks each plate is on one plate line, with the line's sizes and the count.
+  - A plate is not also a made element (the panel's list), and it is not bought. A person can set one bought in the panel (a plate ordered in, laser-cut), and it then becomes a bought element line.
+  - The purchase list "with made parts" gives its kind and size. The BOM table shows it as made.
+  - A plate line's balloon points at the plate's own edges.
+- **Welds** (`frames/welds.ts`):
+  - New joint kinds `gusset` (one a seam, on each of its two members) and `cap` (round its member's end).
+  - The id is `<plate body>.<member body>`; `end` is the cap's end, or null for a gusset's seam. The face is the kernel's seam face, or the member's end face for a cap.
+  - The seam length is the kernel's (exact).
+  - The size, unset, is the thinner of the plate's thickness and the member's wall (an estimate, as O118's rule). The weld is a fillet by default.
+  - The weld list table says GUSSET and END CAP.
+  - FRk2's beads will map onto these ids.
+- **Tests** (`test/frame-plates.test.ts`), on the mitred L with a 120 × 100 × 5 gusset clipped 15 and a 4 mm cap over member 1's start:
+  - the element lines' sizes;
+  - the plate lines 5887.5 mm² × 5 = 29437.5 mm³ and 1600 × 4 = 6400 mm³, checked by `checkBom`; not made elements;
+  - the purchase CSV rows; two copies ×2 with their part ids;
+  - the joints `<gusset>.<m0>` 105, `<gusset>.<m1>` 85 and `<cap>.<m0>` 160 at `start`, each a fillet sized 3 (estimate), exact; the mitre joint stays; the table's words.
+- **For the coordinator**: integration's `test/weldment.test.ts` (the kernel lane's, b03719ada) fails the cad-model type-check: two calls of `fields?` possibly undefined (lines 23 and 42) and a sketch node cast (line 70). Not touched here.

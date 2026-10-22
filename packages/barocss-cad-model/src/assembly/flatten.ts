@@ -38,6 +38,8 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'skeleton': return node;
     // (R12c.6b, D161: the wheels a belt runs on.)
     case 'belt': return { ...node, wheels: [node.wheels[0] + k, node.wheels[1] + k] };
+    case 'connector-body': return { ...node, opening: node.opening + k };
+    case 'gusset': case 'end-cap': return { ...node, frame: node.frame + k };
     case 'frame': {
       const shift = (sec: MemberSection): MemberSection => sec.kind === 'sketch' ? { kind: 'sketch', sketch: sec.sketch + k } : sec;
       return { ...node, ...(node.follows && !('part' in node.follows) ? { follows: 'skeleton' in node.follows ? { skeleton: node.follows.skeleton + k } : { sketch: node.follows.sketch + k } } : {}), section: shift(node.section), ...(node.overrides ? { overrides: node.overrides.map(o => o.section ? { ...o, section: shift(o.section) } : o) } : {}), ...(node.trims ? { trims: node.trims.map(t => 'body' in t ? { ...t, body: ref(t.body) } : t) } : {}) };

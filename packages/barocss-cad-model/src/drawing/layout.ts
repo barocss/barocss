@@ -9,9 +9,11 @@
 // - Scale and sheet: first the scales at which the smallest hole is at least MIN_HOLE_ON_PAPER_MM across on paper,
 //   largest first (or the one set), on the sheet set then A3 for an A4 sheet: the first giving nothing crowded and no
 //   error on the issue list. Only if none: the largest clean scale below them. Else the attempt with the fewest errors.
+import { elementNotes, withElementNotes } from './elementCallouts';
 import { autoDimensions, holesOf, levels, type AutoDimensionReport } from './auto';
 import { roundIn } from './dimensions';
 import { drawingIssues, fixAll, issueContext, type DrawingIssue, type SheetInputs } from './issues';
+import { sectionExtents } from './sheet';
 import { ORIENTATIONS, SCALES, layoutSheet, viewsFor, type Orientation } from './views';
 import { ROOM_SIDES, VIEW_IDS, type DrawingSettings, type DrawingViews, type ViewId, type ViewRoom } from './types';
 
@@ -113,7 +115,7 @@ export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report:
     const base: DrawingSettings = { ...i.settings, sheet, views: shown, dimensions: manual };
     delete base.room; delete base.scale;
     // Scales: the one set (on its own sheet) or the largest that fits the views alone, then the smaller ones.
-    const first = sheet === i.settings.sheet && i.settings.scale !== undefined ? i.settings.scale : layoutSheet(i.views, base, i.section && base.section ? i.section.projection : undefined).scale;
+    const first = sheet === i.settings.sheet && i.settings.scale !== undefined ? i.settings.scale : layoutSheet(i.views, base, sectionExtents(base, i.sections)).scale;
     for (const scale of SCALES.filter(s => s <= first + 1e-12 && (smallest * s >= MIN_HOLE_ON_PAPER_MM - SAME) === readable)) {
       let room: ViewRoom = {};
       for (let round = 0; round < ROUNDS; round++) {
@@ -121,7 +123,7 @@ export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report:
         const s: DrawingSettings = { ...base, scale, ...(Object.keys(room).length ? { room } : {}) };
         const layout = issueContext({ ...i, settings: s }).layout;
         if (!layout.fits) break;
-        const auto = autoDimensions(i.views, layout, s, i.callout), placed: DrawingSettings = { ...s, dimensions: auto.dimensions };
+        const auto = autoDimensions(i.views, layout, s, i.callout, i.elements, i.sections), placed: DrawingSettings = withElementNotes({ ...s, dimensions: auto.dimensions }, i.elements ? elementNotes(i.views, layout, i.elements) : []);
         // Once every side has room: the issue list's moves for what still overlaps (a short dimension's text, a callout
         // over lines). While a side is crowded, more room comes first.
         const moved = auto.report.crowded.length ? { settings: placed, left: drawingIssues(issueContext({ ...i, settings: placed })) } : fixAll({ ...i, settings: placed }, 40, f => f.kind === 'move' || f.kind === 'move-note');
@@ -147,7 +149,7 @@ export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report:
 /** The chosen settings, the scale left automatic where the layout would pick it anyway. */
 function finish(i: SheetInputs, settings: DrawingSettings, dims: AutoDimensionReport, left: DrawingIssue[], views: ViewId[], dropped: ViewId[], tried: number, readable: boolean): { settings: DrawingSettings; report: AutoLayoutReport } {
   const scale = settings.scale!, { scale: _s, ...rest } = settings; void _s;
-  const auto = layoutSheet(i.views, rest, i.section && rest.section ? i.section.projection : undefined).scale;
+  const auto = layoutSheet(i.views, rest, sectionExtents(rest, i.sections)).scale;
   const out: DrawingSettings = i.settings.scale === undefined && auto === scale ? rest : settings;
   return { settings: out, report: { contract: AUTO_LAYOUT_VERSION, views, dropped, scale, sheet: settings.sheet, tried, readable, dimensions: dims, left } };
 }

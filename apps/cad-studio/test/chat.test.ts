@@ -99,6 +99,21 @@ test('tool schemas: every buildable command is exposed and documented with the H
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
       continue;
     }
+    if (id === 'connector') {
+      // (An opening takes one flat face and the user's connector rows: R12c.7, D162.)
+      const ctx: Ctx = { doc: { ...s.doc, connectors: { version: 1, rows: [{ id: 'u', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, estimate: true }] } }, bodies: s.bodies, selection: sel({ faces: [{ body: 0, face: top.index }] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    if (id === 'gusset' || id === 'end-cap') {
+      // (FRk1, D165: plates on a frame's picked members; the gusset at a T, so its along field shows.)
+      const tee = await stateOf(withNode(emptyDoc(), { kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400]], segments: [[0, 1], [2, 3]], section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { tee: 'butt' } }));
+      const ctx: Ctx = { doc: tee.doc, bodies: tee.bodies, selection: sel({ bodies: id === 'gusset' ? [1, 0] : [0] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
     if (id === 'sprocket' || id === 'pulley' || id === 'coupling' || id === 'belt-drive') {
       const ctx: Ctx = { doc: chained.doc, bodies: chained.bodies, selection: id === 'belt-drive' ? sel({ bodies: [0, 1] }) : sel({}) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);

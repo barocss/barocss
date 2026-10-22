@@ -16,7 +16,7 @@
 // round zone). Values are rounded down to 0.01 mm (tighter, never looser). Holes the data does not place: an estimate.
 import { holesOf } from './auto';
 import { FASTENER_SIZES, sizeForHole } from '../app/fasteners';
-import { datumMarks } from './sheet';
+import { datumMarks, projectionOf } from './sheet';
 import { fixAll, issueContext, marksClear, type IssueContext, type SheetInputs } from './issues';
 import { inView, resolveLine, type Resolved } from './dimensions';
 import type { DrawingDatum, DrawingDimension, DrawingFrame, DrawingSettings, EdgeRef, ViewId, XY } from './types';
@@ -94,10 +94,10 @@ function locating(ctx: IssueContext, given: readonly Centre[]): string[] {
   const out: string[] = [];
   // (Holes of a pitch circle: the circle itself, and its centre's location, R14.5.)
   const centres: Centre[] = [...given];
-  for (const r of ctx.sheet.dimensions) if (r.ok && r.kind === 'pcd' && given.some(({ c }) => { const p = inView(ctx.views[r.dim.view], c); return r.members.some(m => Math.abs(m[0] - p[0]) <= SAME && Math.abs(m[1] - p[1]) <= SAME); })) { out.push(r.dim.id); centres.push({ c: r.center3, n: given[0].n }); }
+  for (const r of ctx.sheet.dimensions) if (r.ok && r.kind === 'pcd' && given.some(({ c }) => { const p = inView(projectionOf(ctx.views, ctx.sheet, r.dim.view)!, c); return r.members.some(m => Math.abs(m[0] - p[0]) <= SAME && Math.abs(m[1] - p[1]) <= SAME); })) { out.push(r.dim.id); centres.push({ c: r.center3, n: given[0].n }); }
   for (const r of ctx.sheet.dimensions) {
     if (!r.ok || r.kind !== 'linear' || r.dim.orient === 'aligned') continue;
-    const k = r.dim.orient === 'horizontal' ? 0 : 1, pr = ctx.views[r.dim.view], step = r.b[k] - r.a[k];
+    const k = r.dim.orient === 'horizontal' ? 0 : 1, pr = projectionOf(ctx.views, ctx.sheet, r.dim.view)!, step = r.b[k] - r.a[k];
     // (A counted pitch locates the holes it reaches, not the one it starts from.)
     const ends = r.dim.count ? [r.b[k], ...Array.from({ length: r.dim.count - 1 }, (_, j) => r.a[k] + step * (j + 2))] : [r.a[k], r.b[k]];
     // (Along an axis square to the hole's: a position along its own axis is not where the hole is.)

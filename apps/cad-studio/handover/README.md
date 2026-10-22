@@ -7,7 +7,79 @@ no npm publish.
 
 ## 0. Start here — hand-over of 2026-10-18 (read this section first)
 
-### Kernel lane: hand-over at the queue → R12c boundary (2026-10-21) — read this block first
+### Kernel lane: hand-over at the R12c → FR geometry boundary (2026-10-22) — read this block first
+
+The kernel lane goes on in a new session at each track boundary (the owner, 2026-10-19). This block is that hand-over. Since the
+queue → R12c block below, **R12c is done**: machine and power-transmission elements, D153–D163 (D139 its S0). **The next step is
+roadmap item 5, the kernel half of FR completion** (below); the coordinator clears and re-briefs this lane for it. The queue → R12c
+block is kept as history.
+
+**State**
+- Branch `review/cad-gpu-engine-2026-10-14` (local only). The tip is D163's checks commit (`git log -4`: D163, its two test fixes, the RB rows, the checks).
+- **R12c, done** (each a D-record with its oracles, conformance in `packages/barocss-cad/conformance/r12c/`, 32 cases):
+  - D153–D154: springs (compression, extension, torsion) on the exact helical sweep;
+  - D155: fits from the user's tables;
+  - D156–D157: shafts, keys and keyways, retaining rings, pins;
+  - D158: bearing envelopes on seats;
+  - D159: O-ring glands (the rod gland's ring fixed in D163);
+  - D160: disc cams under closed-form laws;
+  - D161: sprockets with a derived pivot-clearance form, pulleys, belts and chains, couplings as bought items;
+  - D162: section tables, connector envelopes;
+  - D163: the acceptance by the agent.
+- **The data rule held throughout** (the owner, R12c): no table is built in. Fits, bearings, O-rings, rings, chains, belts, couplings, sections and connectors are the user's rows, each citing its source or flagged an estimate. The O-ring ranges, steel's G and E and the cam's pressure-angle limits ship as flagged estimates. No value is attributed to a source that was not read, and test rows are not named after standard sizes.
+- **Rules that came up in R12c** (all standing; in memory too):
+  - never `commit --amend`, rebase or reset on this branch: the coordinator merges into it while checks run. A correction is a new commit; a soft reset is told first;
+  - before changing another lane's file (the outer lane's sections, Library panel, drawing or BOM; the GPU lane's viewport), name the file and the change to the coordinator first;
+  - the machine is shared: the kernel suite with `--test-concurrency=4`; `FLOW_ONLY` the stage's own steps and their prerequisites; check `sysctl -n vm.loadavg` before long runs (above about 40, wait);
+  - a new command's keywords name itself only. `apps/cad-studio/test/palette.test.ts` reads every word the flow types into the palette and fails one that opens a new command it did not mean;
+  - new kinds' notes go into `engine/evaluate.ts`'s one notes list, as `...(o.x ? xNotes(o.x) : [])`;
+  - new commands go in as v2 features commands (their values behind `describe`) under the 25,000-a-turn guard: now 22,330.
+- **Checks at this boundary (T3 part)**, on D163 (26265b0f8, its fixes 2f43b4778):
+
+  | Check | Result | Time |
+  |---|---|---|
+  | lint / type-check: kernel | clean / clean | — |
+  | Kernel suite (concurrency 4), full conformance included | 1515/1522 (6 skipped); only the env-only "actual native Split source…" fails | 546 s |
+  | `@barocss/cad-model` / studio | 754/754 / 197/197 | 146 s / 20 s |
+  | Test names against the saved lists | none missing but the rod gland's test, renamed by D163 | — |
+  | `FLOW_ONLY`: the acceptance, O-ring gland and connector steps | 4/4 | 134 s |
+  | RB (T3) | 409 cases, 0 new, the 8 known TODOs | 91 s |
+  | Properties (T3) | 11/11 | 197 s |
+  | Full browser flow | the coordinator's window flow | — |
+
+**Next: roadmap item 5, FR completion (the kernel lane's half)**, as the coordinator listed it. Each item gets an S0 first.
+- gussets, end caps and weld beads (FR6 geometry; the outer lane's weld records, O118–O119, give the joints and sizes);
+- tapered-flange channels and I/H beams;
+- members along arcs (bent or curved);
+- weld end gaps and tube-to-tube saddle notches other than a full cope;
+- the 7.5 s round-cornered ordered trim's speed (D126);
+- the SubD cap-boundary display folds (D79's TODO: 14–38°, 88.6° on the pipe clamp).
+- Also open from R12c: the housing's shoulder against the row's Da max (D158: found from its faces, not checked yet), and the trimmed-face mass quadrature (below).
+
+**FRk S0 done: D164** (2026-10-22; the kernel lane's track is named FRk). Probe `packages/barocss-cad/test/frk-s0.test.mjs`, 10 tests. Found: fillet beads, gussets and caps are exact by today's features (a bead is the end's loop offset by its leg, drafted 45°, less the envelope: P·z²/2 + c·z³); tapered-flange I sections are closed-form polygons with fillets at any angle; arc members build by revolve (one loop only yet) with Pappus exact; gaps build by today's plane trims and hole-saw and V notches by a cutter's Boolean; the round table's time is the analytic Boolean's general curves on trimmed envelopes (one corner 1.2–1.5 s, the table 5.7 s now); the SubD folds are slivers inside single faces (one over 30°, 88.6°), not at caps' boundaries; D158's housing shoulder is findable, unchecked; the bevel pair's kernel volume is 1.4 % above its converging mesh and D149's oracle (an accuracy defect). Stages frozen: FRk1 gussets and end caps → FRk2 weld beads → FRk3 tapered channels and I/H → FRk4 arc members and bends → FRk5 gaps and notches → FRk6 the ordered trim's speed → FRk7 the SubD slivers → FRk8a Da max, FRk8b the quadrature → FRk9 acceptance. The shape exposed for the outer lane's weld symbols and BOM (`gusset`, `endCap`, `bead` reports) and three owner defaults are in D164.
+
+**Order after review (coordinator, D165):** FRk1 → FRk2 → FRk8b (the bevel pair's wrong mass first) → FRk3 → FRk4 → FRk5 → FRk6 → FRk7 → FRk8a → FRk8b (exact domain-trim integration, if still needed) → FRk9. The three defaults stand. **FRk1 done: D165** (the `gusset` and `end-cap` kinds placed by the members as built, their `gusset` / `endCap` reports on the outputs; GUSSET_FIT, CAP_END; conformance `frk/` 4 cases; the Gusset and End cap v2 commands; per turn 22,347). **FRk2 done: D166** (the `weld-bead` feature — an end's loop offset by the leg, drafted 45°, less the member, kept on the faces it lands on as built, flush sides said; a gusset's seams; the `bead` report; BEAD_KIND, BEAD_SEAM_NOT_PLANAR, BEAD_ANGLE (all oblique ends, narrowed from D164), BEAD_SIZE; conformance `frk/` 9 cases; no studio command: the outer lane maps O118's records onto it). Next: FRk8b, the bevel pair's wrong mass (the defect first).
+
+**Open, unscheduled:**
+- **The mass quadrature of trimmed general faces** (from the queue → R12c block): slow (it meshes twice) and 1–2 % off on bodies like the bevel pair's intersection (D149, D151, D152).
+- **A keep-out's own bodies** (D163): the outer lane's `checkKeepouts` counts the connector's plug against its own keep-out, where it touches: "undecided" within the chord. Asked of the coordinator (the outer lane's file).
+- **Sprocket and pulley standard forms:** rows the user loads, or the derived form (D161). ISO 606's formulas were not read.
+
+**How to resume**
+1. Read this block, then the FR records (D122–D128) and the FR hand-over block below, then the coordinator's brief.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+3. For a flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>`, in `apps/cad-studio`, on its own. Keep titles short: the step's screenshot is named by its title.
+4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`.
+5. Each step needs:
+   - a D-record (the next is D164);
+   - tests that fail on the previous HEAD;
+   - conformance where it fits;
+   - the v2 checks;
+   - a §0 row, a commit, and a checkpoint to the coordinator.
+
+   Then end the turn and wait.
+
+### Kernel lane: hand-over at the queue → R12c boundary (2026-10-21) (history: R12c is done, see the block above)
 
 The kernel lane goes on in a new session at each track boundary (the owner, 2026-10-19). This block is that hand-over. Since the
 track K → queue block below, the **kernel-lane queue** is done: five items, D148–D152 (D148b with D148). **The next step is R12c.1a**
@@ -52,7 +124,7 @@ track K → queue block below, the **kernel-lane queue** is done: five items, D1
   | Properties (T3) | 11/11 | 166 s |
   | Full browser flow | the coordinator's, per merge window (rules v2) | — |
 
-**Next: R12c** (D139: its stages frozen R12c.1a–R12c.8, with their oracles and refusals). Springs come first. **R12c.1a done: D153** (compression springs on the helical sweep of the exact normal-plane circle; the `spring` kind, the Spring command as a v2 features command). **R12c.1b done: D154** (extension springs with machine-loop or crossover hooks, torsion springs with tangent legs; the same `spring` kind and command). **R12c.2 done: D155** (fits from the user's tables, none built in; a class on cylindrical faces, declared pairs checked at MMC and LMC by the analytic Boolean). **R12c.3a done: D156** (the `shaft` kind: steps, fillets, chamfers, undercuts, ring grooves, keyseats square, end-mill or disc, cross holes). **R12c.3b done: D157** (keys in keyseats checked against hub keyways, retaining rings in grooves against the user's row, pins in cross holes; the key's width fit through R12c.2). Open from it: the key's width classes in the studio (Fit class takes cylinders: planar faces needed), and a loader for the user's ring rows (the studio's ring is an estimate until then). The palette fix after it (D157 fix): a new command's keywords name itself only; FLOW_ONLY the palette steps for nearby words. **R12c.4 done: D158** (bearing envelopes from the user's rows, on shaft seats against shoulders and in housings, the seats' fits through R12c.2). Open from it: the housing's shoulder against the row's Da max (found from its faces) is not checked yet. **R12c.5 done: D159** (O-ring glands from the user's rows, piston, rod and face; O2's ranges shipped as estimates; the ring as an exact torus with its free overlap measured). **R12c.6a done: D160** (disc cams for roller or flat-faced followers, translating or oscillating, under closed-form laws derived by hand — harmonic, cycloidal, 3-4-5, modified trapezoid; uniform refused at its velocity steps; the pressure angle and undercut checked against closed forms, the follower found on the built profile). **R12c.6b done: D161** (sprockets for the user's chain rows with a derived pivot-clearance tooth form, timing, V and flat pulleys for their belt rows, belts and chains as bands on two wheels with the chain rounded to whole links, couplings' envelopes as bought items; no chain, belt or coupling table built in). Next: R12c.7 (D139). Asked of the outer lane: the coupling's `bought` defaults (its row's part number and supplier, in the kernel report) for BOM S1's BodyResult.element. Asked of the outer lane: drawings' fit callouts showing limits, the A3 query `fit_clearance` (D155). Owner (2026-10-21): "R12c 기본값 세 가지 그대로 가. 끼워맞춤 표는 사용자가 불러오고, O-링 범위와 스프링 G는 추정값으로 표시해." New commands go in as v2 group actions only, under the 25 000-per-turn guard. After R12c, the FR completion share (roadmap item 5, kernel lane).
+**Next: R12c** (D139: its stages frozen R12c.1a–R12c.8, with their oracles and refusals). Springs come first. **R12c.1a done: D153** (compression springs on the helical sweep of the exact normal-plane circle; the `spring` kind, the Spring command as a v2 features command). **R12c.1b done: D154** (extension springs with machine-loop or crossover hooks, torsion springs with tangent legs; the same `spring` kind and command). **R12c.2 done: D155** (fits from the user's tables, none built in; a class on cylindrical faces, declared pairs checked at MMC and LMC by the analytic Boolean). **R12c.3a done: D156** (the `shaft` kind: steps, fillets, chamfers, undercuts, ring grooves, keyseats square, end-mill or disc, cross holes). **R12c.3b done: D157** (keys in keyseats checked against hub keyways, retaining rings in grooves against the user's row, pins in cross holes; the key's width fit through R12c.2). Open from it: the key's width classes in the studio (Fit class takes cylinders: planar faces needed), and a loader for the user's ring rows (the studio's ring is an estimate until then). The palette fix after it (D157 fix): a new command's keywords name itself only; FLOW_ONLY the palette steps for nearby words. **R12c.4 done: D158** (bearing envelopes from the user's rows, on shaft seats against shoulders and in housings, the seats' fits through R12c.2). Open from it: the housing's shoulder against the row's Da max (found from its faces) is not checked yet. **R12c.5 done: D159** (O-ring glands from the user's rows, piston, rod and face; O2's ranges shipped as estimates; the ring as an exact torus with its free overlap measured). **R12c.6a done: D160** (disc cams for roller or flat-faced followers, translating or oscillating, under closed-form laws derived by hand — harmonic, cycloidal, 3-4-5, modified trapezoid; uniform refused at its velocity steps; the pressure angle and undercut checked against closed forms, the follower found on the built profile). **R12c.6b done: D161** (sprockets for the user's chain rows with a derived pivot-clearance tooth form, timing, V and flat pulleys for their belt rows, belts and chains as bands on two wheels with the chain rounded to whole links, couplings' envelopes as bought items; no chain, belt or coupling table built in). **R12c.7 done: D162** (section tables of FR's kinds as the user's rows, checked whole, a size by `{kind: 'table'}` or read into the section library; connector envelopes from the user's rows — the opening cut into a flat face, the mating body seated and its fit checked by exact overlap, the keep-out in A6.3's form; USB-C from D139's U1 as the test row). **R12c.8 done: D163** (acceptance by the agent: a gearbox output shaft and a spring-loaded plunger, one turn each, by closed forms; conformance `r12c/accept-*`) — **R12c is done**; see the R12c → FR geometry block above. Asked of the outer lane: the coupling's `bought` defaults (its row's part number and supplier, in the kernel report) for BOM S1's BodyResult.element. Asked of the outer lane: drawings' fit callouts showing limits, the A3 query `fit_clearance` (D155). Owner (2026-10-21): "R12c 기본값 세 가지 그대로 가. 끼워맞춤 표는 사용자가 불러오고, O-링 범위와 스프링 G는 추정값으로 표시해." New commands go in as v2 group actions only, under the 25 000-per-turn guard. After R12c, the FR completion share (roadmap item 5, kernel lane).
 
 **Open, unscheduled** (also under Open TODOs):
 - **The mass quadrature of trimmed general faces.** It meshes them twice for Richardson extrapolation, which is slow: the 724-face wheel's 180 trimmed tori take 1.9 s of its 2.2 s STEP export (D151). It is also inexact on bodies like the bevel pair's intersection: there the kernel, D149's Green's-theorem oracle and a mesh disagree by 1–2%, and the kernel's value moves 0.3% with the edges' split (D152).
@@ -196,7 +268,11 @@ track boundary); after it the kernel lane's queue below. The FR → R12b block b
 - Run the full flow on its own (beside the kernel suite some drawing and A5 steps time out).
 - PKG's rule until it runs: no new imports from domain code into `src/ui/` or `src/viewport/`, no new browser globals outside them.
 - FRg's 3D skeleton constraints: values bound to parameters done (O140, model side, re-solved on a parameter change); G17's drag tool is the GPU lane's.
+- R14's view logic, open (the coordinator, 2026-10-22): aligned sections through off-axis features — O148's sections stay principal-only and an off-axis feature is reported with no fix.
+- R14's view logic (O146 → O148 X3, done): a dimension that can only sit on hidden lines is warned DIM_ON_HIDDEN; for a keyseat or a keyway the fix adds the principal section square to its axis through its middle, and Auto-dimension then puts it on that section. Open: aligned sections for an axis along none of X, Y, Z.
 - A known first-run cost, kept (the coordinator, 2026-10-22, O141): a session's first selection click costs 40–100 ms of main-thread task (V8 running the selection's code paths for the first time, not panels re-created); later clicks about 5 ms, hover about 1.8 ms a move, on dev and production builds alike. No panel memoisation and no idle-time warming (`test/bench-panels.mjs` measures it).
+- The BOM on drawings, open (O147 B2): when a view's sides fill, a balloon's leader may cross another's (balloons keep clear of every table, pinned ones too, since queue 2).
+- Sections, open (O148 X2): a section's edge names carry the split's index (`section<k>`), so a dimension on a section is re-matched if the part's bodies are reordered; adjacent parts in one section are hatched apart (each body its own angle, queue 1); section dimensions are carried through a reorient (queue 3; a section across the new front is still refused, SECTION_ACROSS).
 - FRf2's sibling scope, **decided-deferred** (owner, 2026-10-22: "둘다 제안한대로 해줘"): a placed part's frame following a sibling stays the typed refusal FRAME_PART_SCOPE, with no assembly-wide evaluation change now; it is built only when a real need appears (O131).
 
 **How to resume**
@@ -581,7 +657,7 @@ Done:
 - **Merging:** the coordinator merges the outer lane's steps into this branch, in order, only while the kernel lane is idle after a checkpoint with a clean tree. It then runs the checks.
 
 **Next, in this order:**
-1. Kernel lane: **R11** general shell/offset (R10 done: D87–D103; R11 S0 done: D105; R11.1a done: D106; R11.1b done: D107; R11.1c done: D108 — R11.1 done; R11.2a done: D110; R11.2b done: D111; R11.2c-1 done: D112; R11.2c-2 done: D113 — R11.2 done; R11.3 done: D114 — **R11 done**) → **R12** sheet metal (S0 done: D115; R12.1 done: D116; R12.2 done: D117; R12.3a done: D118; R12.3b done: D119; R12.4 done: D120; R12.5 done: D121 — **R12 done**) → **FR1–FR4** frames (S0 done: D122; FR1 done: D123; FR2 done: D124; FR3a done: D125; FR3b done: D126; FR4a done: D127; FR4b done: D128 — **FR done**) → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root; S0 done: D129; R12b.1a done: D130; R12b.1b done: D131; R12b.2a done: D132; R12b.2b done: D133; R12b.3 done: D134; R12b.4 done: D135; R12b.5 done: D136; R12b.6 done: D137; R12b.7 done: D138 — **R12b done**) → **R12c** machine elements (S0 done: D139, ahead of its turn by the coordinator's order; track K and the queue done: D140–D152; R12c.1a done: D153; R12c.1b done: D154; R12c.2 done: D155; R12c.3a done: D156; R12c.3b done: D157; R12c.4 done: D158; R12c.5 done: D159; R12c.6a done: D160; R12c.6b done: D161) (IM1–IM6 and CNC1–CNC6 moved to the outer lane, below). Outer lane: **R11b DXF writer** → R14 drawings → A5 (DSL/MCP) → RM1–RM6 robot kinematics → RD1–RD3 dynamics and actuator sizing (moved from the kernel lane, coordinator 2026-10-20: they sit on the outer lane's `src/robot` model). → **IM1–IM6 injection moulding, then CNC1–CNC6 machining** (moved from the kernel lane by the coordinator, 2026-10-21: DFM analyses, drawings and process rules, like the outer lane's AM printability; each track with an S0; a stage that needs a kernel-core change stops and goes back to the kernel lane). A6–A8 (inputs, multi-agent) were not named in the two-lane decision; the coordinator assigns them.
+1. Kernel lane: **R11** general shell/offset (R10 done: D87–D103; R11 S0 done: D105; R11.1a done: D106; R11.1b done: D107; R11.1c done: D108 — R11.1 done; R11.2a done: D110; R11.2b done: D111; R11.2c-1 done: D112; R11.2c-2 done: D113 — R11.2 done; R11.3 done: D114 — **R11 done**) → **R12** sheet metal (S0 done: D115; R12.1 done: D116; R12.2 done: D117; R12.3a done: D118; R12.3b done: D119; R12.4 done: D120; R12.5 done: D121 — **R12 done**) → **FR1–FR4** frames (S0 done: D122; FR1 done: D123; FR2 done: D124; FR3a done: D125; FR3b done: D126; FR4a done: D127; FR4b done: D128 — **FR done**) → **R12b** gears+ (internal, bevel, worm; including the R6a.6 trochoid root; S0 done: D129; R12b.1a done: D130; R12b.1b done: D131; R12b.2a done: D132; R12b.2b done: D133; R12b.3 done: D134; R12b.4 done: D135; R12b.5 done: D136; R12b.6 done: D137; R12b.7 done: D138 — **R12b done**) → **R12c** machine elements (S0 done: D139, ahead of its turn by the coordinator's order; track K and the queue done: D140–D152; R12c.1a done: D153; R12c.1b done: D154; R12c.2 done: D155; R12c.3a done: D156; R12c.3b done: D157; R12c.4 done: D158; R12c.5 done: D159; R12c.6a done: D160; R12c.6b done: D161; R12c.7 done: D162; R12c.8 done: D163 — **R12c done**) (IM1–IM6 and CNC1–CNC6 moved to the outer lane, below). Outer lane: **R11b DXF writer** → R14 drawings → A5 (DSL/MCP) → RM1–RM6 robot kinematics → RD1–RD3 dynamics and actuator sizing (moved from the kernel lane, coordinator 2026-10-20: they sit on the outer lane's `src/robot` model). → **IM1–IM6 injection moulding, then CNC1–CNC6 machining** (moved from the kernel lane by the coordinator, 2026-10-21: DFM analyses, drawings and process rules, like the outer lane's AM printability; each track with an S0; a stage that needs a kernel-core change stops and goes back to the kernel lane). A6–A8 (inputs, multi-agent) were not named in the two-lane decision; the coordinator assigns them.
    - R10 / R11: design input `handover/notes/research-r10-r11-fillet-shell-2026-10-18.md` (stages R10.1–R10.5 taken as R10's order by its S0, D87; R11.1–R11.3 taken as R11's order by its S0, D105, with its changes).
    - R12: no research note; its S0, D115, is the design input (stages R12.1–R12.5, data rules, what is not in R12).
    - A5 (DSL, one tool layer for the chat and an external MCP server): design input `handover/notes/research-cad-server-2026-10-18.md` (the owner, 2026-10-18: option 0 — order unchanged, the note kept as A5/A7 design input only).
@@ -607,6 +683,15 @@ Done:
    - Large assemblies: G9 scene-level pick acceleration (a top-level BVH); G10 copies turned about Z sharing one tessellation (P6).
    - Quality: G11 order-independent (or depth-peeled) transparency for ghosted bodies; G12 the proposal's added/removed two-colour overlay (D40); G13 hygiene (per-frame allocations, the outline mask pass, optional uv).
    - Then: G14 display LOD for 1M-triangle meshes (measure first with G4's benches); G15 3D text labels (SDF atlas); G16 WebGL2 parity (curves and surfaces, a dragged body's turn); G17 the 3D skeleton sketch tool (item 5); G18 the docs items deferred earlier (WebGPU shader demo hosts with repeating-UV materials lowered to WGSL, docs screenshots, gpu `test:consumer`, the gpu bundle's CAD externalisation), last, unless the owner keeps them deferred.
+   - **After G18** (owner, 2026-10-22: G19 "좋아 그렇게 진행해줘"; the rest "좋아 로드맵을 채워줘"; status: G1–G18 done):
+     - G19 section-view upgrades (S0 approved): G19.1 several clip planes in the viewer and CPU paths; G19.2 the section bar's plane / box / planes modes, a plane from a picked face, WebGL2 clipMeshPlane, the chained exact section; G19.3 world-space hatching on caps (both renderers); G19.4 caps on ghosted bodies; G19.5 the Render workspace keeps the section.
+     - G20 the quarter cut-out ("3/4 section": a union of two half-space removals).
+     - G21 CAD display: silhouette edges of curved faces (screen-space), display modes (shaded with edges, hidden lines removed, hidden lines dashed, wireframe, x-ray), isolate / hide with the rest faded.
+     - G22 assembly checks on screen: an interference and clearance colour map between parts (overlaps red, near gaps amber, from the exact checks where they exist), and collision highlights during joint play or a motion study.
+     - G23 manufacturing previews: CNC material removal along CNC8's 2.5D paths (stock as a height field or dexels on the GPU; uncut and overcut coloured), and a 3D-print layer preview (a layer slider, supports and overhangs). No mould-fill or other CAE simulation (owner, #2177).
+     - G24 3D annotations on the model (MBD/PMI): fit callouts, tolerances, GD&T frames and weld symbols drawn in 3D with G15's labels, from the outer lane's drawing data.
+     - G25 analyses on the GPU for interactive speed: wall thickness and tool access by GPU rays (display only; the exact values stay the kernel's), and a scan-versus-CAD deviation colour map.
+     - Later, when measured need appears: GPU occlusion culling for very large assemblies (G14's thresholds), progressive photoreal rendering and turntable / exploded-animation video export.
 
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 

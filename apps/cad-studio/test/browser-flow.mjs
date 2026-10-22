@@ -42,11 +42,23 @@ page.on('dialog', d => d.accept());
 
 const results = [];
 let step = 0;
+// (A page load the flow did not ask for — a file under the dev server changed mid-run, so Vite reloaded the page — is
+// named in the failing step's line: the step's state is gone and the studio offers the unsaved part back. The flow's own
+// reloads say so first, `expectLoad`.)
+let loads = 0, expected = 0, sawLoad = 0;
+const changedFiles = [];
+const expectLoad = () => { expected++; };
+page.on('framenavigated', f => { if (f !== page.mainFrame()) return; loads++; if (loads > 1 && expected > 0) expected--; else if (loads > 1) sawLoad++; });
+server.watcher.on('change', f => changedFiles.push([step, f]));
 async function check(name, fn) {
   step++;
   if (process.env.FLOW_ONLY && step > 1 && !new RegExp(process.env.FLOW_ONLY, 'i').test(name)) return;
+  const before = sawLoad, files = changedFiles.length;
   try { await fn(); results.push({ step, name, ok: true }); }
-  catch (e) { results.push({ step, name, ok: false, error: String(e.message ?? e).split('\n')[0] }); if (process.env.FLOW_DEBUG) console.log(String(e.message ?? e).slice(0, 1500)); }
+  catch (e) {
+    const reloaded = sawLoad > before ? ` [the page reloaded during this step, not by the flow${changedFiles.length > files ? `: ${changedFiles.slice(files).map(x => x[1]).slice(0, 3).join(', ')} changed` : ''}]` : '';
+    results.push({ step, name, ok: false, error: String(e.message ?? e).split('\n')[0] + reloaded }); if (process.env.FLOW_DEBUG) console.log(String(e.message ?? e).slice(0, 1500));
+  }
   await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`) });
 }
 const outliner = () => page.locator('.outliner').innerText();
@@ -979,7 +991,7 @@ try {
     assert.ok(node.blob && !node.positions, 'the document names its arrays by hash');
     // Unsaved: the recovery copy, its blobs in IndexedDB, restored after a reload.
     await page.waitForTimeout(1500);
-    await page.reload();
+    expectLoad(); await page.reload();
     await page.waitForSelector('[aria-label="Recover unsaved work"]', { timeout: 15000 });
     await page.click('[aria-label="Recover unsaved work"] button:text-is("Restore")');
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
@@ -1312,7 +1324,7 @@ try {
   await check('unsaved work comes back after a reload', async () => {
     const before = await page.evaluate(() => window.__studioDoc.direct.objects.length);
     await page.waitForTimeout(1200);
-    await page.reload();
+    expectLoad(); await page.reload();
     await page.waitForSelector('[aria-label="Recover unsaved work"]', { timeout: 15000 });
     await page.click('[aria-label="Recover unsaved work"] button:text-is("Restore")');
     await page.waitForFunction(n => window.__studioDoc.direct?.objects.length === n, before);
@@ -2711,6 +2723,45 @@ try {
     await snap('cam-roller');
   });
 
+  // (The user's bearing, O-ring and fit rows loaded in the Library panel first — none built in, the agent cannot load rows;
+  // the second bearing held by the ring, the spring's solid height in its notes.)
+  await check('R12c.8 acceptance by the scripted agent in the real chat: a gearbox output shaft (8 bodies) and a spring-loaded plunger (3), one turn each (D163)', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      for (const [name, bodies, at, note] of [['gearbox-shaft', 8, 'Bearing 6204 on step 3', /^On step 3 from 44 to 58, against the Ø25 shoulder \(fillet r 0\.5\); its other side by ring groove 1; no overlap with the shaft$/], ['plunger', 3, 'Ground spring d2', /^Solid height 16\.0081 mm/]]) {
+        const fixture = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad-model/test/fixtures/r12c-${name}.calls.json`), 'utf8'));
+        await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+        if (fixture.rows.bearings) {
+          // (The user's rows, loaded in the Library panel: the agent cannot load rows.)
+          const files = [['Bearing rows file', 'bearings', fixture.rows.bearings.rows], ['O-ring rows file', 'orings', fixture.rows.orings.rows], ['Fit table file', 'fits', fixture.rows.fits.tables[0]]];
+          await page.click('[aria-label="Library"]');
+          try {
+            for (const [label, field, data] of files) {
+              const file = join(out, `r12c-8-${field}.json`); fs.writeFileSync(file, JSON.stringify(data));
+              await page.setInputFiles(`input[aria-label="${label}"]`, file);
+              await page.waitForFunction(f => (f === 'fits' ? window.__studioDoc.fits?.tables?.length : window.__studioDoc[f]?.rows?.length) === 1, field, { timeout: 10000 });
+            }
+          } finally { await page.click('[aria-label="Close library"]'); }
+        }
+        await page.click('[aria-label="Chat"]');
+        await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+        const n = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: fixture.calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 240000 });
+        const line = await page.locator('.chat-tool').last().innerText();
+        assert.ok(line.includes('query.interference'), line);
+        await page.click('[aria-label="Close chat"]');
+        await page.waitForFunction(k => new RegExp(`${k} bodies`).test(document.querySelector('.outliner')?.textContent ?? ''), bodies, { timeout: 120000 }); await idle();
+        await page.locator('.outliner .ol').filter({ hasText: at }).first().click();
+        await page.waitForFunction(re => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => new RegExp(re).test((x.textContent ?? '').replace(/^warning\s*/, '').trim())), note.source, { timeout: 60000 });
+        await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+        await snap(`r12c-8-${name}`);
+      }
+    } finally { chat.kill(); }
+  });
+
   await check('R12b.7 the gears\' acceptance by the scripted agent through the real chat: a planetary set (its own mesh checks passing), a right-angle bevel pair, a worm reducer — each in one turn, its pairs clear in their notes (new in D138)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
@@ -3546,6 +3597,69 @@ try {
     await snap('fr3a-mitred-rectangle');
   });
 
+  await check('FRk1 gusset and end cap (D165): a gusset in a mitred rectangle\'s corner (two members picked), a cap over a table leg\'s top', async () => {
+    const frameOf = async (skeleton, bodies) => {
+      await page.click('[aria-label="New part"]');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await press(' '); await page.locator('.palette input').fill('skeleton'); await press('Enter'); await hudReady();
+      await field('Skeleton').selectOption(skeleton); await hudReady();
+      await field('Outer corner radius (estimate)').fill('0'); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await page.waitForTimeout(300); await press('Enter');
+      await page.waitForFunction(n => new RegExp(`${n} bodies`).test(document.querySelector('.outliner')?.textContent ?? ''), bodies, { timeout: 60000 }); await idle();
+    };
+    const plate = async (word, kind, bodies) => {
+      await press(' '); await page.locator('.palette input').fill(word); await press('Enter'); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await page.waitForTimeout(300); await press('Enter');
+      await page.waitForFunction(k => window.__studioDoc.nodes.at(-1)?.kind === k, kind, { timeout: 30000 });
+      await page.waitForFunction(n => new RegExp(`${n} bodies`).test(document.querySelector('.outliner')?.textContent ?? ''), bodies, { timeout: 60000 }); await idle();
+      const row = await page.evaluate(k => [...document.querySelectorAll('.outliner .ol')].findIndex(e => new RegExp(k).test(e.textContent ?? '')), kind === 'gusset' ? 'Gusset' : 'End cap');
+      await page.locator('.outliner .ol').nth(row).click();
+      await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+      return { volume: Number(/Volume\s*([\d,.]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, '')), notes: (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.trim()) };
+    };
+    await frameOf('rectangle', 4);
+    const rows = page.locator('.outliner .ol'); await rows.nth(0).click(); await rows.nth(1).click({ modifiers: ['Shift'] });
+    // The palette's gusset: legs 100 and 100, clip 10, 5 thick — (100² − 10²)/2·5 = 24 750 mm³.
+    const g = await plate('gusset', 'gusset', 5);
+    assert.ok(Math.abs(g.volume - 24750) <= 1, `${g.volume}`);
+    assert.ok(g.notes.some(t => /^Seams: 90 on member 1 .*, 90 on member 2/.test(t)), g.notes.join(' | '));
+    await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('frk1-gusset');
+    // A table's first leg runs through at its top (to 720): the cap over it, 40 × 40 × 4.
+    await frameOf('table', 8);
+    await page.locator('.outliner .ol').nth(0).click();
+    const c = await plate('end cap', 'end-cap', 9);
+    assert.ok(Math.abs(c.volume - 6400) <= 1, `${c.volume}`);
+    assert.ok(c.notes.some(t => /^Seam 160 mm round its outline \(exact\)$/.test(t)), c.notes.join(' | '));
+    await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('frk1-end-cap');
+  });
+
+  await check('FRk2 weld beads (D166): a T and a gusset welded by the kernel\'s beads, opened as STEP', async () => {
+    // (The beads come from the person's weld records through the outer lane's mapping; here the kernel's features alone.)
+    const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
+    const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, WIDE = { kind: 'rect-tube', width: 80, height: 80, wall: 4, outerRadius: 0 };
+    const part = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+      { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400], [0, 0, 800], [400, 0, 800]], segments: [[0, 1], [2, 3], [4, 5]], section: WIDE, overrides: [{ member: 1, section: SHARP }, { member: 2, section: WIDE }], corners: { tee: 'butt', default: 'butt' } },
+      { id: 'w', kind: 'weld-bead', frame: 'f', on: { member: 1, end: 'end' }, leg: 3 },
+      { id: 'g', kind: 'gusset', frame: 'f', point: 1, legs: [150, 150], thickness: 8, clip: 12 },
+      { id: 'gw', kind: 'weld-bead', frame: 'f', on: { gusset: 'g' }, leg: 4 }] });
+    const bead = part.output('w'), gw = part.output('gw');
+    assert.ok(Math.abs(bead.bead.volumeMM3 - 756) < 1e-9 && Math.abs(gw.bead.volumeMM3 - 2 * (138 + 138) * 16 / 2) < 1e-9, `${bead.bead.volumeMM3}, ${gw.bead.volumeMM3}`);
+    const file = join(out, 'frk2-welded.step'); (await import('node:fs')).writeFileSync(file, exportStep(part.outputs.map(o => o.brep), { name: 'frk2-welded' }));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.locator('input[aria-label="Model file"]').setInputFiles(file);
+    // Three members, the gusset, the T's bead (one ring) and the gusset's four runs: 9 solids.
+    await page.waitForFunction(() => /9 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    await page.locator('.outliner .ol').nth(3).click();
+    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.match(await page.textContent('.props'), /Volume\s*756 mm³/);
+    await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('frk2-beads');
+  });
+
   await check('FR3b a table of sharp tubes from the palette, its corners trimmed in order: legs through (A·720), rails between them (A·560, A·360), the order in the notes (new in D126)', async () => {
     await page.click('[aria-label="New part"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
@@ -3858,6 +3972,43 @@ try {
     await snap('chain-drive');
   });
 
+  await check('Connector opening (R12c.7, D162): the user\'s connector row loaded (none built in; U1\'s USB-C opening, a test row citing it); the opening in a plate\'s top through the scripted chat — the body seated, its gaps in the notes, the keep-out in the part\'s keep-outs', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    const rows = [{ id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, body: { shape: 'stadium', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 }, keepOut: { marginMM: 1, depthMM: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' }];
+    const file = join(out, 'connector-rows.json'); fs.writeFileSync(file, JSON.stringify(rows));
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="Connector rows"]'), /No connector rows: load your own .* None is built in/);
+      await page.setInputFiles('input[aria-label="Connector rows file"]', file);
+      await page.waitForFunction(() => window.__studioDoc.connectors?.rows?.length === 1, null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Connector row usb-c"]'), /USB-C receptacle opening stadium 8\.34 × 2\.56, 6\.2 deep/);
+    } finally { await page.click('[aria-label="Close library"]'); }
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await page.click('[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+      const n = await page.locator('.chat-msg.assistant').count(), cmd = (command, values, extra = {}) => ({ tool: 'features', args: { action: 'command', command, values, ...extra } });
+      const calls = [cmd('box', { w: 40, d: 20, h: 10, x: 0, y: 0, z: 0 }), cmd('connector', { row: 'usb-c', u: 0, v: 0, rot: 0 }, { faces: ['n1.top'] })];
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`);
+      await page.locator('[aria-label="Chat message"]').press('Enter');
+      await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
+      await page.click('[aria-label="Close chat"]');
+    } finally { chat.kill(); }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(x => x.kind === 'connector-body') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    const keepouts = await page.evaluate(() => window.__studioDoc.references?.keepouts ?? []);
+    // (From the plug body's front, 0.31 out of the face: the panel is clear of it, the plug only touches its base.)
+    assert.ok(keepouts.length === 1 && keepouts[0].shape.size.join() === '10.25,4.4,15' && Math.abs(keepouts[0].frame.origin[2] - 10.31) < 1e-6, JSON.stringify(keepouts));
+    const row = await page.evaluate(() => [...document.querySelectorAll('.outliner .ol')].findIndex(e => /Connector opening for usb-c/.test(e.textContent ?? '')));
+    await page.locator('.outliner .ol').nth(row).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /gaps 0\.045 and 0\.08/.test(x.textContent ?? '')), null, { timeout: 30000 });
+    const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning\s*/, '').trim());
+    assert.ok(notes.some(t => /^Its body stadium 8\.25 × 2\.4 × 6\.51: gaps 0\.045 and 0\.08 each side, standing 0\.31 out of the face$/.test(t)) && notes.some(t => /^Keep-out in front of it: 10\.25 × 4\.4, 15 out/.test(t)), notes.join(' | '));
+    await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('connector-usb-c');
+  });
+
   await check('Fits (R12c.2, D155): a fit table loaded in the Library panel (none built in); a bore and a pin given H7 and g6 and declared a pair through the chat — the limits and the clearance in the notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
@@ -3910,6 +4061,114 @@ try {
   });
 
 
+
+  // ---- O144: machine elements' drawing tables — the spring data and the element list ---------------------------------------
+  await check('element tables (O144): a spring from the palette; on its A3 drawing the Spring data and Element list tables by their checkboxes — in the SVG', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await press(' '); await page.locator('.palette input').fill('Spring'); await page.locator('.palette input').press('Enter');
+    await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'spring' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForSelector('[aria-label="Spring data table"]', { timeout: 20000 });
+      assert.equal(await page.locator('[aria-label="Gland table"]').count(), 0, 'no gland, no gland table offered');
+      await page.check('[aria-label="Spring data table"]'); await page.check('[aria-label="Element list table"]');
+      await page.waitForFunction(() => { const t = window.__studioDrawing?.()?.tables; return t?.length === 2 && t.every(x => !x.error); }, null, { timeout: 30000 });
+      await snap('element-tables');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      for (const t of ['SPRING DATA', 'MACHINE ELEMENTS', 'WIRE Ø [mm]', 'compression', 'closed-ground', 'bought']) assert.ok(svg.includes(`>${t}</text>`), `SVG: ${t}`);
+      assert.ok(svg.includes('>n0: its shear modulus G is an estimate</text>'), 'the estimate said under the element list');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+
+
+  // ---- O147 B1: the BOM panel — its lines, the bought/made choice (one undo), the purchase list --------------------------
+  await check('BOM panel (O147): a shaft and its key from the palette; the panel lists the part and the key; the key set made leaves it (one Undo back); the purchase list CSV', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
+      if (pickShaft) { await page.locator('.outliner .ol', { hasText: /^Shaft/ }).first().click(); await page.waitForTimeout(300); }
+      await press(' '); await page.locator('.palette input').fill(label); await page.locator('.palette input').press('Enter');
+      await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key'), null, { timeout: 30000 });
+    // (The BOM is an inspect tool on the left toolbar, not on the top bar: O90's shapes strip keeps its room.)
+    await page.click('nav[aria-label="Tools"] [aria-label="BOM"]');
+    try {
+      await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 30000 });
+      assert.match(await page.textContent('[aria-label="BOM line 1"]'), /Untitled/);
+      assert.match(await page.textContent('[aria-label="BOM line 2"]'), /key [\d.]+ × [\d.]+ × [\d.]+/);
+      assert.match(await page.textContent('[aria-label="Made elements"]'), /shaft 3 steps/);
+      // The key made: its line leaves, it is a made element; one Undo brings it back.
+      await page.locator('[aria-label="BOM line 2"] select').selectOption('made');
+      await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.kind === 'key')?.bought === false && !document.querySelector('[aria-label="BOM line 2"]'), null, { timeout: 30000 });
+      await page.evaluate(() => document.activeElement?.blur?.()); await press('Meta+z');
+      await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.kind === 'key')?.bought === undefined && !!document.querySelector('[aria-label="BOM line 2"]'), null, { timeout: 30000 });
+      await snap('bom-panel');
+      const [csvFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export purchase list"]')]);
+      const rows = fs.readFileSync(await csvFile.path(), 'utf8').trim().split('\n');
+      assert.equal(rows[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');
+      assert.equal(rows.length, 2, rows.join(' | ')); assert.match(rows[1], /^2,key [\d.]+ × [\d.]+ × [\d.]+,1,key,/);
+    } finally { if (await page.locator('[aria-label="Close BOM"]').count()) await page.click('[aria-label="Close BOM"]'); }
+  });
+  // ---- O147 B2: the BOM on the drawing — its table and the item balloons, numbered alike -----------------------------------
+  await check('BOM table and balloons (O147 B2): a shaft and its key; on A3 the BOM table and 2 balloons numbered as its lines, on the iso view; in the SVG', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
+      if (pickShaft) { await page.locator('.outliner .ol', { hasText: /^Shaft/ }).first().click(); await page.waitForTimeout(300); }
+      await press(' '); await page.locator('.palette input').fill(label); await page.locator('.palette input').press('Enter');
+      await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForSelector('[aria-label="BOM table"]', { timeout: 20000 });
+      await page.check('[aria-label="BOM table"]'); await page.check('[aria-label="Balloons"]');
+      // (The BOM is worked out in the engine worker: waited for, not read at once.)
+      await page.waitForFunction(() => { const d = window.__studioDrawing?.(); return d?.tables?.length === 1 && !d.tables[0].error && d.balloons?.placed.length === 2; }, null, { timeout: 60000 });
+      const b = await page.evaluate(() => window.__studioDrawing().balloons);
+      assert.deepEqual(b.placed.map(p => [p.no, p.view]), [[1, 'iso'], [2, 'iso']], JSON.stringify(b));
+      assert.deepEqual([b.unclear, b.noEdge], [[], []]);
+      assert.ok(/(^|\|)n1\./.test(b.placed[1].edge), `balloon 2 on the key's edge: ${b.placed[1].edge}`);
+      assert.deepEqual(await page.evaluate(() => (window.__studioDrawing().issues ?? []).filter(x => /^BALLOON_|TEXT_OVER|OFF_SHEET/.test(x.code)).map(x => x.code)), []);
+      await snap('bom-balloons');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      assert.ok(svg.includes('>BILL OF MATERIALS</text>'), 'the BOM table in the SVG');
+      assert.equal(svg.split('<g class="balloon"').length - 1, 2, 'two balloons in the SVG');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  // ---- O145: machine elements on their dimensions — a key's leader note by Auto-dimension ------------------------------
+  await check('element notes and key dimensions (O145, O146): a shaft and its key from the palette; Auto-dimension on A3 — the key\'s leader note, the keyseat\'s b 6 and d − t1 16.5; in the SVG', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
+      if (pickShaft) { await page.locator('.outliner .ol', { hasText: /^Shaft/ }).first().click(); await page.waitForTimeout(300); }
+      await press(' '); await page.locator('.palette input').fill(label); await page.locator('.palette input').press('Enter');
+      await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.notes?.some(n => n.id.startsWith('el-') && /^key /.test(n.text)), null, { timeout: 60000 });
+      const note = await page.evaluate(() => window.__studioDoc.drawing.notes.find(n => n.id.startsWith('el-')));
+      assert.ok(note.leader && /^key [\d.]+ × [\d.]+ × [\d.]+$/.test(note.text), JSON.stringify(note));
+      assert.deepEqual(await page.evaluate(() => (window.__studioDrawing?.()?.issues ?? []).filter(x => x.code === 'TEXT_OVERLAP').length), 0);
+      // (O146: the default shaft's keyseat — b 6, and d − t1 = 20 − 3.5 from the far side of its step.)
+      // (The sheet is built after the document changes: waited for, not read at once.)
+      await page.waitForFunction(() => { const v = (window.__studioDrawing?.()?.dimensions ?? []).map(d => d.value).filter(x => typeof x === 'number'); return [6, 16.5].every(w => v.some(x => Math.abs(x - w) < 1e-6)); }, null, { timeout: 30000 });
+      await snap('element-key-note');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes(`>${note.text}</text>`), 'the note in the SVG');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   // ---- O139: retaining-ring rows loaded in the Library panel (none built in) ---------------------------------------------
   await check('ring rows (O139): a row loaded in the Library panel; a ring on it via the chat cites it, no estimate; the used row stays', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
@@ -4808,6 +5067,79 @@ try {
   });
 
   // ---- R14.1 (O2): Auto-dimension -------------------------------------------------------------------------------
+  // ---- O148 X1: sections as a list on any principal plane -------------------------------------------------------------
+  await check('sections (O148 X1): a box drawn on A3; Add section gives B–B square to the top view beside it, its cut hatched; its view changed to the right; B–B alone as DXF; removed', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Add section"]');
+      await page.waitForFunction(() => { const d = window.__studioDrawing?.(); return d?.sections?.some(x => x.id === 'B' && x.rings === 1) && d.placedSections?.some(x => x.id === 'B' && x.of === 'top'); }, null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.map(x => [x.id, x.view]), [['B', 'top']]);
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => /OVERLAP|OVER_LINES|OFF_SHEET|DONT_FIT/.test(x.code)).map(x => x.code)), []);
+      await snap('section-b-top');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes('>SECTION B–B</text>'), 'B–B named in the SVG');
+      // Its view changed: square to the right view's depth, through the middle; still one cut face.
+      await page.selectOption('[aria-label="Section B view"]', 'right');
+      await page.waitForFunction(() => { const d = window.__studioDrawing?.(); return d?.sections?.some(x => x.id === 'B' && x.view === 'right' && x.rings === 1) && d.placedSections?.some(x => x.id === 'B' && x.of === 'right'); }, null, { timeout: 30000 });
+      const [dxfFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export section DXF"]')]);
+      assert.match(dxfFile.suggestedFilename(), /section-B-B\.dxf$/);
+      assert.ok(fs.readFileSync(await dxfFile.path(), 'latin1').includes('\nHATCH\n'), 'its hatch');
+      await page.click('[aria-label="Remove section B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.sections && !window.__studioDoc.drawing?.section && !(window.__studioDrawing?.()?.placedSections ?? []).length, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
+    const fs = await import('node:fs');
+    await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Add section"]');
+      await page.waitForSelector('[aria-label="Section B at"]', { timeout: 20000 });
+      await page.fill('[aria-label="Section B at"]', '-15'); await page.press('[aria-label="Section B at"]', 'Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.at === -15 && x.rings >= 2), null, { timeout: 30000 });
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDoc.drawing?.dimensions ?? []).filter(d => d.view === 'section:B').length >= 2, null, { timeout: 90000 });
+      // (The sheet is built after the document changes: waited for, not read at once.)
+      await page.waitForFunction(() => { const on = new Set(window.__studioDoc.drawing.dimensions.filter(d => d.view === 'section:B').map(d => d.id)); const v = (window.__studioDrawing?.()?.dimensions ?? []).filter(d => on.has(d.id)).map(d => d.value); return [6, 16.5].every(w => v.some(x => Math.abs(x - w) < 1e-6)); }, null, { timeout: 30000 });
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => x.code === 'DIM_ON_HIDDEN' || x.code === 'DUPLICATE').map(x => x.code)), []);
+      await snap('section-dimensions');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      assert.ok(svg.includes('>SECTION B–B</text>') && svg.includes('>16.5</text>'), 'B–B and d − t1 in the SVG');
+      // (The dimension tool on the section: the shaft's centre there is a snap point.)
+      await press('d');
+      const p = await page.evaluate(() => window.__studioDrawingAt('section:B', 0, 0));
+      await page.mouse.move(p.x - 3, p.y); await page.mouse.move(p.x, p.y);
+      await page.waitForFunction(() => !!document.querySelector('.dw-snap'), null, { timeout: 10000 });
+      await press('Escape');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('the section a dimension needs (O148 X3): the shaft-and-hub file auto-dimensioned; d − t1 on hidden lines offers Add B–B; applied and auto-dimensioned again, its dimensions on B–B and no DIM_ON_HIDDEN', async () => {
+    await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDrawing?.()?.issues ?? []).some(x => x.code === 'DIM_ON_HIDDEN' && x.fix === 'add-section'), null, { timeout: 90000 });
+      const fix = page.locator('button[aria-label^="Fix: Dimension 16.5 measures to"]').first();
+      assert.equal((await fix.textContent()).trim(), 'Add B–B');
+      await fix.click();
+      await page.waitForFunction(() => JSON.stringify(window.__studioDoc.drawing?.sections) === JSON.stringify([{ id: 'B', view: 'top', at: -15 }]), null, { timeout: 20000 });
+      await page.waitForFunction(() => window.__studioDrawing?.()?.placedSections?.some(x => x.id === 'B'), null, { timeout: 30000 });
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDoc.drawing?.dimensions ?? []).filter(d => d.view === 'section:B').length >= 2 && !(window.__studioDrawing?.()?.issues ?? []).some(x => x.code === 'DIM_ON_HIDDEN'), null, { timeout: 90000 });
+      await snap('section-fix');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('R14.1: Auto-dimension places overall sizes, the hole position and its callout; a hand-placed one is kept', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
@@ -6619,5 +6951,7 @@ try {
 const failed = results.filter(r => !r.ok);
 for (const r of results) console.log(`${r.ok ? 'ok' : 'FAIL'} ${r.step} ${r.name}${r.ok ? '' : ' — ' + r.error}`);
 if (errors.length) console.log('page errors:', errors.slice(0, 5));
+if (sawLoad) console.log(`note: the page reloaded ${sawLoad} time${sawLoad > 1 ? 's' : ''} without the flow asking`);
+if (changedFiles.length) console.log(`note: ${changedFiles.length} file change${changedFiles.length > 1 ? 's' : ''} under the dev server during the run, the first in step ${changedFiles[0][0]}: ${changedFiles.slice(0, 3).map(x => x[1]).join(', ')}`);
 console.log(`screenshots: ${out}`);
 process.exit(failed.length || errors.length ? 1 : 0);

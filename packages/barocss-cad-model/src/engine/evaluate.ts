@@ -117,11 +117,16 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.spring ? springNotes(o.spring) : []),
     ...(o.cam ? camNotes(o.cam) : []),
     ...(o.sprocket || o.pulley || o.belt || o.coupling ? driveNotes(o) : []),
+    ...(o.connector ? connectorNotes(o.connector) : []),
+    ...(o.gusset ? gussetNotes(o.gusset) : []),
+    ...(o.endCap ? endCapNotes(o.endCap) : []),
+    ...(o.bead ? beadNotes(o.bead) : []),
+    ...(o.connectorBody ? [{ text: `Connector body for ${o.connectorBody.row}: seated in its opening, touching nothing of the panel (overlap ${+o.connectorBody.overlapMM3.toFixed(6)} mm³, by the Boolean); an envelope only` }] : []),
     ...(o.shaft ? shaftNotes(o.shaft) : []),
     ...(o.key || o.keyway || o.ring || o.pin ? shaftPartNotes(o) : []),
     ...(o.bearing ? bearingNotes(o.bearing) : []),
     ...(o.gland ? glandNotes(o.gland) : []),
-    ...(o.oring ? [{ text: `O-ring ${o.oring.ring}, its section ${+o.oring.stretchedCrossSectionMM.toFixed(4)} stretched; the free ring overlaps its sealing surface by ${+o.oring.overlapMM3.toFixed(4)} mm³ (the squeeze's displaced volume, by the Boolean); its squeezed shape is not modelled`, warning: false }] : []),
+    ...(o.oring ? [{ text: `O-ring ${o.oring.ring}, its section ${+o.oring.stretchedCrossSectionMM.toFixed(4)} stretched; the free ring overlaps what squeezes it by ${+o.oring.overlapMM3.toFixed(4)} mm³ (the squeeze's displaced volume, by the Boolean); its squeezed shape is not modelled`, warning: false }] : []),
     ...(o.bevelGear ? [...bevelGearNotes(o.bevelGear, node), ...bevelMeshNotes(o.bevelGearPlacement)] : []),
     ...(o.rack ? [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] : []),
     ...(o.subd && o.subd.caps ? subdNotes(o.subd) : []),
@@ -430,6 +435,14 @@ export function stlFor(doc: StudioDoc, key: string): Uint8Array | null {
  * The part's visible bodies and its shown instances' as B-reps (for drawings), with a name prefix for
  * each (an instance's `<id>/`, so its edges are told apart), or the reason they cannot be evaluated.
  */
+/** The part's machine elements, by node (O144 S3: what the drawing's callouts read without the bodies). */
+export function partElements(doc: StudioDoc): { node: number; element: BodyElement }[] {
+  try {
+    const out: { node: number; element: BodyElement }[] = [];
+    for (const o of snapshotOf(skeletonsNow(doc)).outputs) { const at = keyed(o.id, doc.nodes), e = elementOf(o, at.ref ? doc.nodes[at.ref.node] : undefined); if (e && at.ref) out.push({ node: at.ref.node, element: e }); }
+    return out;
+  } catch { return []; }
+}
 export function brepsFor(doc: StudioDoc): { breps: Brep[]; prefixes: string[] } | { error: string } {
   try {
     const breps = snapshotOf(doc).outputs.map(o => o.brep), prefixes = breps.map(() => '');
@@ -551,6 +564,34 @@ function springNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['spring']
     { text: 'Not validated for manufacturing: no buckling, fatigue or relaxation check', warning: true },
     ...s.diagnostics.map(x => ({ text: x.message.replace(/^spring: /, ''), warning: x.severity === 'warning' })),
   ];
+}
+/** A gusset's report as lines (FRk1, D165): where it sits, its size, its seams (the weld list's). */
+function gussetNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['gusset']>): { text: string }[] {
+  const mm = (x: number) => +x.toFixed(4);
+  return [{ text: `Gusset at point ${r.point}, between members ${r.members[0] + 1} and ${r.members[1] + 1} (${mm(r.angleDegrees)}°): legs ${mm(r.legsMM[0])} and ${mm(r.legsMM[1])}${r.clipMM ? `, corner clipped ${mm(r.clipMM)}` : ''}, ${mm(r.thicknessMM)} thick${r.offsetMM ? `, ${mm(r.offsetMM)} off the members' plane` : ''}` },
+    { text: `Plate ${mm(r.areaMM2)} mm² × ${mm(r.thicknessMM)}: ${mm(r.volumeMM3)} mm³` },
+    { text: `Seams: ${r.seams.map(s => `${mm(s.lengthMM)} on member ${s.member + 1}${s.face ? ` (${s.face})` : ''}`).join(', ')}` }];
+}
+/** An end cap's report as lines (FRk1, D165). */
+function endCapNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['endCap']>): { text: string }[] {
+  const mm = (x: number) => +x.toFixed(4);
+  return [{ text: `End cap ${r.fit === 'over' ? 'over' : 'inset in the bore of'} member ${r.member + 1}'s ${r.end}: ${mm(r.thicknessMM)} thick, ${mm(r.areaMM2)} mm², ${mm(r.volumeMM3)} mm³` },
+    { text: `Seam ${mm(r.seam.lengthMM)} mm round its ${r.fit === 'over' ? 'outline' : 'bore'} (exact)` }];
+}
+/** A weld bead's report as lines (FRk2, D166): where it is, its leg and throat, its seam and the part of it flush. */
+function beadNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['bead']>): { text: string; warning?: boolean }[] {
+  const mm = (x: number) => +x.toFixed(4), on = 'gusset' in r.on ? `gusset ${r.on.gusset}'s seams, both faces` : `member ${r.on.member + 1}'s ${r.on.end}`;
+  return [{ text: `Fillet weld on ${on}: leg ${mm(r.legMM)}, throat ${mm(r.throatMM)}, on member${r.meets.length > 1 ? 's' : ''} ${r.meets.map(k => k + 1).join(', ')}` },
+    { text: `Seam ${mm(r.seam.lengthMM)} mm${r.seam.inner ? ' with the bore' : ''}; bead ${mm(r.volumeMM3)} mm³` },
+    ...(r.seam.flushMM > 0 ? [{ text: `${mm(r.seam.flushMM)} mm of it flush with the edge of the face it lands on: no fillet there (a corner weld, not modelled)`, warning: true }] : [])];
+}
+/** A connector opening's report as lines (R12c.7, D162): the opening, the body's fit, the keep-out. */
+function connectorNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['connector']>): { text: string; warning?: boolean }[] {
+  const mm = (x: number) => +x.toFixed(4), shape = (s: { shape: string; widthMM: number; heightMM: number }) => s.shape === 'round' ? `round Ø${mm(s.widthMM)}` : `${s.shape} ${mm(s.widthMM)} × ${mm(s.heightMM)}`;
+  return [{ text: `Connector opening ${r.name ?? r.row} (${r.estimate ? 'an estimate' : `your row, ${r.source}`}): ${shape(r.opening)}, ${mm(r.opening.depthMM)} deep, ${mm(r.opening.areaMM2)} mm²` },
+    ...(r.body ? [{ text: `Its body ${shape(r.body)} × ${mm(r.body.lengthMM)}: gaps ${mm(r.body.gapWidthMM)} and ${mm(r.body.gapHeightMM)} each side, standing ${mm(r.body.standsOutMM)} out of the face` }] : []),
+    ...(r.keepOut ? [{ text: `Keep-out in front of it: ${mm(r.keepOut.size[0])} × ${mm(r.keepOut.size[1])}, ${mm(r.keepOut.size[2])} out from the seated body's front (the part's keep-outs, when the command added it)` }] : []),
+    { text: 'Envelopes only: not the receptacle\'s housing, contacts or tongue', warning: true }];
 }
 /** A drive element's report as lines (R12c.6b, D161): a sprocket's, a pulley's, a belt's or chain's, a coupling's. */
 function driveNotes(o: CadPartSnapshot['outputs'][number]): { text: string; warning?: boolean }[] {

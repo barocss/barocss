@@ -180,6 +180,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-interference': <><g transform="translate(-3.4 -1.6)">{block(0.05, 0.05, 0.1, 0.62, 0.62, 0.7)}</g><g transform="translate(3.4 1.6)">{block(0.05, 0.05, 0.1, 0.62, 0.62, 0.7)}</g>{face('M10.2 8.6l3.6 1.8v3.8l-3.6-1.8z', 0, true)}{ac('M10.2 8.6l3.6 1.8v3.8l-3.6-1.8z')}</>,
   // A rule with ticks.
   'cad-measure': <>{face('M2.8 15.6L15.6 2.8l5.6 5.6L8.4 21.2z', TONE.right)}{line('M2.8 15.6L15.6 2.8l5.6 5.6L8.4 21.2z')}{ac('M6.2 12.2l2.2 2.2M9 9.4l1.5 1.5M11.8 6.6l2.2 2.2M14.6 3.8l1.5 1.5')}</>,
+  // A parts list: a sheet with its lines, their item marks in the accent (O147's BOM).
+  'cad-bom': <>{face('M5 2.8h10.4l3.6 3.6v14.8H5z', TONE.right)}{line('M5 2.8h10.4l3.6 3.6v14.8H5z')}{line('M10.4 9.2h5.6M10.4 13h5.6M10.4 16.8h4')}{ac('M7.4 9.2h1.2M7.4 13h1.2M7.4 16.8h1.2')}</>,
   // Primitive solids.
   'cad-box': <>{block(0, 0, 0, 1, 1, 1)}</>,
   'cad-cylinder': <>{cylinder(0.5, 0.5, -0.05, 0.95)}</>,
@@ -196,6 +198,12 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-shaft': <><path d="M2.5 9.5h6v-2h7v2h6v5h-6v2h-7v-2h-6z" style={tone(TONE.right)} />{ac('M10.2 7.5h3.6')}<path d="M8.5 7.5v9M15.5 7.5v9" strokeOpacity={0.55} /></>,
   // A fit (R12c.2): a shaft in its bore, the gap between them in the accent colour.
   'cad-fit': <><circle cx="12" cy="12" r="9" style={tone(TONE.right)} /><circle cx="12" cy="12" r="5.6" style={dark} /><circle cx="12" cy="12" r="4.6" style={tone(TONE.top)} />{ac('M17.6 12h3.4M3 12h3.4')}</>,
+  // A gusset (FRk1): an L of two members, the clipped plate in its corner in the accent colour.
+  'cad-gusset': <><path d="M3 3h4v14h14v4H3z" style={tone(TONE.right)} /><path d="M7 9.5v7.5h7.5z" style={dark} />{ac('M7 9.5v7.5h7.5z')}</>,
+  // An end cap (FRk1): a tube seen along its end, the cap over it in the accent colour.
+  'cad-end-cap': <><path d="M4 9h11v10H4z" style={tone(TONE.right)} /><path d="M6.5 11.5h6v5h-6z" style={dark} /><path d="M15 7.5h2.5v13H15z" style={tone(TONE.top)} />{ac('M15 7.5h2.5v13H15z')}</>,
+  // A connector opening (R12c.7): a panel with a stadium opening, the opening in the accent colour.
+  'cad-connector': <><path d="M3 5h18v14H3z" style={tone(TONE.right)} /><path d="M8.5 10.5h7a1.5 1.5 0 0 1 0 3h-7a1.5 1.5 0 0 1 0-3z" style={dark} />{ac('M8.5 10.5h7a1.5 1.5 0 0 1 0 3h-7a1.5 1.5 0 0 1 0-3z')}</>,
   // A sprocket (R12c.6b): its teeth round the seats, the bore; the seats' circle in the accent colour.
   'cad-sprocket': <><path d="M18.96 10.15L21.35 11.06L21.35 12.94L18.96 13.85L18.95 13.88L20.57 15.86L19.63 17.49L17.10 17.08L17.08 17.10L17.49 19.63L15.86 20.57L13.88 18.95L13.85 18.96L12.94 21.35L11.06 21.35L10.15 18.96L10.12 18.95L8.14 20.57L6.51 19.63L6.92 17.10L6.90 17.08L4.37 17.49L3.43 15.86L5.05 13.88L5.04 13.85L2.65 12.94L2.65 11.06L5.04 10.15L5.05 10.12L3.43 8.14L4.37 6.51L6.90 6.92L6.92 6.90L6.51 4.37L8.14 3.43L10.12 5.05L10.15 5.04L11.06 2.65L12.94 2.65L13.85 5.04L13.88 5.05L15.86 3.43L17.49 4.37L17.08 6.90L17.10 6.92L19.63 6.51L20.57 8.14L18.95 10.12Z" style={tone(TONE.right)} /><circle cx="12" cy="12" r="2.4" style={dark} />{ac('M12 4.8a7.2 7.2 0 1 1 -0.01 0')}</>,
   // A pulley (R12c.6b): a V-grooved wheel seen across, the groove in the accent colour.

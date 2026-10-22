@@ -473,6 +473,12 @@ button.chip.snap:hover { background: #3a3c41; }
 .references select, .references .req-edit input { min-width: 0; flex: 1 1 40%; max-width: 100%; }
 .references .req-edit button { flex: 0 0 auto; }
 .references .req-row { overflow-wrap: anywhere; }
+/* The BOM panel (O147): its lines and the made elements, compact. */
+.bom-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.bom-table th, .bom-table td { padding: 2px 4px; text-align: left; vertical-align: middle; }
+.bom-table th { color: var(--text-2); font-weight: 500; }
+.bom-table tr + tr td { border-top: 1px solid var(--line-soft); }
+.bom-table select { font-size: 11px; padding: 1px 2px; }
 /* G17: the 3D sketch's marks (SkeletonMarks.tsx). */
 .vp-overlay .skel-faint { stroke: #9aa3b2; stroke-width: 1; stroke-dasharray: 4 3; opacity: 0.6; pointer-events: none; }
 .vp-overlay .skel-plane { fill: none; stroke: rgba(160, 166, 176, 0.28); stroke-width: 1; pointer-events: none; }

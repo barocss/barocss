@@ -239,11 +239,12 @@ test('section A–A: the plate cut through its hole, the cut faces hatched, the 
   assert.deepEqual([r.projection.min, r.projection.max], [[0, 0], [64, 8]]);
   const v = viewsOf(doc), settings: DrawingSettings = { ...defaultDrawing(), section: { y: 16 } };
   const layout = layoutSheet(v, settings, r.projection);
-  assert.ok(layout.section && layout.section.box[1] > layout.views.front.box[3], 'under the front view');
-  assert.ok(near(toSheet(layout.section!, [10, 0])[0], toSheet(layout.views.front, [10, 0])[0]), 'in projection with it');
-  const sheet = buildSheet(v, layout, settings, { title: 't', date: 'd' }, r), svg = sheetSvg(sheet, 't');
+  const sec = layout.sections?.[0];
+  assert.ok(sec && sec.box[1] > layout.views.front.box[3], 'under the front view');
+  assert.ok(near(toSheet(sec, [10, 0])[0], toSheet(layout.views.front, [10, 0])[0]), 'in projection with it');
+  const sheet = buildSheet(v, layout, settings, { title: 't', date: 'd' }, [{ id: 'A', view: 'front', at: 16, projection: r.projection, rings: r.rings }]), svg = sheetSvg(sheet, 't');
   assert.ok(svg.includes('>SECTION A–A</text>')); assert.equal((svg.match(/>A<\/text>/g) ?? []).length, 2, 'A at both ends of the cutting plane');
-  const g = sheet.groups.find(x => x.role === 'section')!;
+  const g = sheet.groups.find(x => x.role === 'section' && !x.view)!;
   const h = g.marks.find((m): m is Extract<Mark, { kind: 'hatch' }> => m.kind === 'hatch');
   assert.ok(h && hatch(h.rings, h.spacing).length > 10, 'hatched (one mark, drawn as its lines; a DXF HATCH, R11b)');
   assert.ok(g.marks.every(m => !('pen' in m) || m.pen !== 'hidden'), 'a section shows no hidden lines');
