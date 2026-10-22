@@ -1693,3 +1693,32 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - A 69-deep chain is refused.
 - **Checks** (T1): gpu `test` 184/184; gpu type-check 0; eslint (compute, index) 0; `build:library` ok.
 - **Next**: G25a, the WGSL kernels (thickness) and their browser spec against the CPU map. The spec waits for the slot.
+
+## G-R11 — G25a: wall thickness as a WGSL compute pass, with its CPU mirror (roadmap G6, 2026-10-23)
+
+- **What** (`packages/barocss-gpu/src/compute/thickness.ts`, experimental): the studio's IM4 rule, one to one.
+  - `wallRays` gives each display triangle's centre and its normal reversed. A degenerate triangle gets a zero direction,
+    meaning no ray: WGSL may optimise a NaN test away, so none is used.
+  - `WALL_THICKNESS_WGSL` runs one invocation per triangle:
+    - the depth is the nearest hit inward, skipping the triangle itself;
+    - the local thickness is twice the nearest-surface distance from the ray's midpoint, bounded by half the depth;
+    - both traversals use a fixed 64-entry stack, the same slab test, Möller–Trumbore and Ericson's regions as the kernel.
+  - `gpuWallThickness(device, packed, rays)`:
+    - one pass and two read-backs;
+    - its buffers are released after;
+    - the pipeline is compiled once per device;
+    - the WebGPU types are structural, as the viewer's are.
+  - `cpuWallThickness` is its mirror on the same packed words.
+- **Tests**:
+  - `tests/compute-thickness.test.mjs` (3, in gpu `test`):
+    - a 40 × 30 × 8 box's top and bottom triangles read 8 deep and 8 thick;
+    - a Ø60/Ø50 tube 40 high with 96 sides reads 5 across its wall;
+    - every triangle equals the kernel's rayHit + nearestDistance2 composed the same way (1e-5 of the size);
+    - a degenerate triangle reads Infinity.
+  - `tests/compute-thickness-browser.test.mjs` (in gpu `test:browser`): the GPU pass against the CPU mirror per
+    triangle, within 1e-4 of the size, with hits and misses the same. Cases: the box and a 20 000-triangle sphere shell
+    (R 30, r 25). GPU and CPU times are printed with the load.
+- **Checks** (T1): gpu `test` 187/187; type-check 0; eslint 0; `build:library` ok; the browser spec passes `node --check`.
+- **Not run**: the browser spec, which needs the slot; so the WGSL has not yet been compiled by a device. Also next:
+  the studio's thickness map on WebGPU ("GPU estimate", with the CPU's numbers in the panel), checked against
+  `thicknessMap` on the CNC8 plate (its 8 mm floor), the r14 plate and a curved part.
