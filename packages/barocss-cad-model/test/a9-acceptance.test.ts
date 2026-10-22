@@ -121,7 +121,14 @@ test('A9 steps 1–7: the person\'s rows (the fixture), a brief per part, and th
     await call('requirements', { action: 'brief', part, fields: { purpose: stated(`the bench drive unit's ${part}`), process: stated(process), material: stated(material) } });
     const dfm = exclude(await call('query', { action: 'manufacturability', part }));
     assert.deepEqual([dfm.part, dfm.process], [part, process]);
+    // (O160, F1: the process judges only what it makes — the shaft's turning size is its own Ø25 × 95, not the 6204's Ø47.)
+    if (part === 'p2') assert.match((dfm.rules as { id: string; message: string }[]).find(r => r.id === 'size')!.message, /^Ø25 × 95 mm along its axis/);
   }
+  // (O160, F1: the cover's print layers are the cover's, not its bought O-ring's: 8 mm at 0.2 is 40 layers, no support —
+  // the groove opens upward.)
+  const layers = await call('print', C({ action: 'layers', layerMM: 0.2 })) as { files: { text: string }[] };
+  const print = JSON.parse(layers.files[0].text) as { count: number; supportColumns: unknown[]; heightMM: number };
+  assert.deepEqual([print.count, print.supportColumns.length, +print.heightMM.toFixed(6)], [40, 0, 8]);
 
   // 5 (the plate's CAM package, G23 B, from its own document on the base's inherited stock): the pocket's levels 11, 8, 6
   // at step-down 3 in the +Z setup; the stock a box from B1 with the allowance 1.
@@ -131,4 +138,11 @@ test('A9 steps 1–7: the person\'s rows (the fixture), a brief per part, and th
   assert.deepEqual([pkg.stock.kind, pkg.stock.max.map((v, k) => v - pkg.stock.min[k])], ['box', [210, 310, 16]]);
   const top = pkg.setups.find(x => x.setup === '+Z')!;
   assert.deepEqual([...new Set(top.moves.filter(m => m.kind === 'feed').map(m => +m.a[2].toFixed(6)))], [11, 8, 6]);
+  // (O160, F1: the shaft's CAM with its key and bearing sizes the bare shaft, 95 × 25 × 25 — milled stock cannot hold it
+  // from the block list, refused alike with and without the bought bodies; with the 6204 counted it would say 47.)
+  const shaftOnly = { ...s.doc, instances: s.doc.instances!.map(i => i.id === 'p2' ? { ...i, doc: { ...i.doc, nodes: i.doc.nodes.filter(n => n.kind !== 'key' && n.kind !== 'bearing') } } : i) };
+  const camRefusal = async (doc: StudioDoc) => { const r = await dispatchTool({ ...s, doc }, 'query', { action: 'cam', part: 'p2' }, evaluate); assert.ok(r.isError, r.content); return String((JSON.parse(r.content) as { error: string }).error); };
+  const refusal = await camRefusal(s.doc);
+  assert.match(refusal, /^\[STOCK_NONE_FITS\] .*the part's 95 × 25 × 25/);
+  assert.equal(await camRefusal(shaftOnly), refusal);
 });

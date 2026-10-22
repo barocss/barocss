@@ -833,7 +833,8 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 | `9d498b1b1` O155 | `remove: [ids]` on set_stock and set_frame_stock (O150's open item, closed) | person-rows 10/10, cnc-stock 6/6, toolset 9/9, tsc, eslint |
 | `fcdc7e3bf` O157 | the CAM package's pockets where they are: the floor plane's origin added once (G23's overcut, found by the GPU lane) | cam-package 4/4 with an absolute oracle on +Z, −Z and +X; tsc; eslint |
 | `070cb5993` O158 | O3: the A9 brief's 6204 moves from step 1 to step 3, off the key; no clash in the map | clearance-designed 5/5, tsc, eslint |
-| O159 | O5, first half: conformance/a9/rows (a test fixture standing in for the person's files; the owner's own acceptance pending) and the A9 run's steps 1–7; findings F1–F4 | a9-acceptance 1/1, tsc, eslint |
+| `11ef04b5b` O159 | O5, first half: conformance/a9/rows (a test fixture standing in for the person's files; the owner's own acceptance pending) and the A9 run's steps 1–7; findings F1–F4 | a9-acceptance 1/1, tsc, eslint |
+| O160 | F1: `madeBodies` — bought elements stay out of DFM, print layers and CAM (the BOM's rule) | a9 (shaft Ø25 × 95, cover 40 layers no support, CAM unchanged), made-bodies, 21 model + 7 studio files, tsc, eslint |
 
 **Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). 
 
