@@ -9504,3 +9504,24 @@ R12c.7 as D139 froze it: a section table loader for FR's kinds, and connector en
 - the keep-out following its opening when the opening is edited;
 - connectors as LIB manifests: the opening cuts a panel, which LIB parts (bodies added) do not;
 - table rows shared across parts.
+
+**Checks** (rules v2: `part-model.ts` gained cases, so the full kernel suite ran; the 2nd kernel checkpoint since D160's RB run, so no RB), on 6ec2afee6 (this change's code) in the detached worktree, under a load average of 40–60:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-standards`: 5/5.
+- The full kernel suite, conformance included: 1513/1520, 6 skipped, 309 s. It failed only the env-only "actual native Split source…".
+- Conformance `r12c/`: 30/30.
+- `@barocss/cad-model`: type-check clean, 743/743. Studio: type-check clean, 197/197.
+- Test names against the saved lists:
+  - kernel: none missing, +9;
+  - cad-model: none missing, +7;
+  - studio: one renamed by this stage (the palette's flow-word test, now naming connectors), +1.
+- `FLOW_ONLY` "Connector opening (R12c", "Chain drive (R12c", FRc (the outer lane's section library step, since `FrameSections.tsx` changed) and "fillet a box top edge": 4/5.
+  - The connector step failed on the test's own pattern: the opening's outliner row reads "Box · Connector opening for usb-c", and the step matched it anchored at the start. Fixed in 856070515 (the pattern anywhere in the row); rerun alone, it passes.
+  - FRc passes.
+
+Not run:
+- RB and properties: next at the 4th kernel checkpoint since D160.
+- The full browser flow (the coordinator's).
+
+Asked of the coordinator (after the fact, the new rule): the stage changed the outer lane's `ui/FrameSections.tsx` (the sections file input takes a table: three lines) and `ui/LibraryPanel.tsx` (the DRIVES and CONNECTORS sections, one line each).
