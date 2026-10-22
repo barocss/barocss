@@ -7169,3 +7169,29 @@ No studio expectation relied on an overcut drill: cnc-cam tests the preview.
 - **The decision above.** It would end the shaft's DIM_ON_HIDDEN and the cover's hole count.
 - **BALLOON_NO_EDGE** (the weldment's BOM line 3).
 - **WELD_NOT_SHOWN** (12 welds with no visible edge in front, top and right).
+
+## O173 — F8: every weld has its symbol; BALLOON_NO_EDGE on the end caps is right (2026-10-23)
+
+**WELD_NOT_SHOWN.** A9's frame drawing said 12 welds had no visible edge in front, top or right, so they got no symbol. Two misreadings in `seamEdge` (drawing/welds.ts), which finds a joint's seam edge by its end face's name:
+- **A trimmed end face comes in pieces:** the projection names them `n0_env1#1` and `n0_env1#2`. The seam's face is `n0_env1`, and the names were compared exactly, so every rail end that butts a leg had no seam in any view. A piece is now the face's (`onFace`, stripping `#n`).
+- **An edge with no pieces lies wholly on visible ink,** by BrepProjection's contract: it coincides with a visible line another edge draws. It was read as unseen. It is now visible.
+- **Stability:** an arrow still follows its seam by name through an edit (FRd2). The seam edge is chosen with an edge drawn in its own visible pieces before one only on another's ink, then the longer, then by name.
+
+**BALLOON_NO_EDGE stays, by design.** On the weldment it is BOM line 3, the end caps: inset plugs inside the legs' feet, with no visible edge from the iso view's side. The warning says so, and the BOM table lists them.
+
+**Expectation changed** (frame-weld-symbols, FRd2's own test):
+- It pinned W8 and W13–W16 as unshown, "behind other members". By the projection's contract they were not hidden: their seams lie on another member's visible outline, as edges with no pieces.
+- All 16 joints are now shown, and WELD_NOT_SHOWN is not raised.
+- Its `onEdge` helper accepts an edge on ink as visible and a pieced face name as the face's.
+- The edit-follow test still holds, the same edge before and after, by the selection order above.
+
+**Tests:**
+- weldment-drawing (O171's) now also asserts all 20 welds placed, none unshown, and the one issue left BALLOON_NO_EDGE;
+- frame-weld-symbols 3/3.
+
+**Verified (T1):**
+- model: every test file on drawings or welds, all passing; a9-acceptance 3/3;
+- studio: every test file on drawings or welds, all passing;
+- tsc of model and studio; eslint 0 errors.
+
+**F8 now:** the weldment drawing has only BALLOON_NO_EDGE (correct). The shaft's DIM_ON_HIDDEN and the cover's hole count wait on the coordinator's decision (O172: a part's views without its bought elements). The A4/A3-only limit is recorded.

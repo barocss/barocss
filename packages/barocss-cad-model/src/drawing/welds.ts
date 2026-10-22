@@ -26,13 +26,28 @@ const sidesFrom = (first: Side): Side[] => [first, ...SIDES.filter(x => x !== fi
 export interface WeldPlaced { readonly label: string; readonly joint: string; readonly view: ViewId; readonly tip: XY; readonly edge: string }
 export interface WeldSymbols { readonly groups: MarkGroup[]; readonly placed: readonly WeldPlaced[]; readonly unshown: readonly string[] }
 
-/** A joint's seam edge in a view: a visible straight edge of its end face (its name holds the face's), its midpoint in view coordinates. */
+/** Whether an edge bounds a face, its pieces counted as the face (`n0_env1#2` is `n0_env1`'s, O173). */
+const PIECE = /#\d+$/;
+function onFace(edge: string, face: string): boolean {
+  for (const f of edge.split('|')) if (f === face || f.replace(PIECE, '') === face) return true;
+  return false;
+}
+/**
+ * A joint's seam edge in a view: a visible straight edge of its end face (its name holds the face's), its midpoint in view
+ * coordinates. A trimmed end face comes in pieces (`#1`, `#2`), each the face's; and an edge with no pieces lies wholly on
+ * visible ink (BrepProjection) — a seam on its member's outline, visible though another edge draws it (O173, F8: both read
+ * as unseen, 12 of A9's frame's welds had no symbol).
+ */
 export function seamEdge(pr: BrepProjection, face: string): { name: string; mid: XY } | null {
-  let best: { name: string; mid: XY; len: number } | null = null;
+  // (An edge drawn in its own pieces before one only on another's ink, then the longer, then by name: the same edge
+  // whatever order the view lists them in, so an arrow follows its seam through an edit.)
+  let best: { name: string; mid: XY; len: number; own: boolean } | null = null;
   for (const e of pr.edges) {
-    if (!e.ends || !e.name.split('|').includes(face) || !e.pieces.some(p => p.visible)) continue;
-    const a = inView(pr, e.ends[0]), b = inView(pr, e.ends[1]), len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    if (len > 1e-6 && (!best || len > best.len)) best = { name: e.name, mid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], len };
+    if (!e.ends || !onFace(e.name, face) || (e.pieces.length > 0 && !e.pieces.some(p => p.visible))) continue;
+    const a = inView(pr, e.ends[0]), b = inView(pr, e.ends[1]), len = Math.hypot(b[0] - a[0], b[1] - a[1]), own = e.pieces.length > 0;
+    if (len <= 1e-6) continue;
+    const better = !best || (own !== best.own ? own : Math.abs(len - best.len) > 1e-6 ? len > best.len : e.name < best.name);
+    if (better) best = { name: e.name, mid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], len, own };
   }
   return best && { name: best.name, mid: best.mid };
 }
