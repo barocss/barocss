@@ -12,12 +12,6 @@
     "note": "D25 (RB5): a box edge 10 nm (10 tolerances) into the wall: refused as non-manifold (a typed error, not a wrong body). The sliver is thinner than the stitch's vertex merge radius (20 tolerances); X- and Y-turned boxes refuse from about 3 to 30 tolerances. Needs tolerant stitching of grazing contacts. K9 (D187 notes, open): typed. The right result needs a lens thinner than the 20·tol merge radius recognised and dropped (the wall's lens hole filled, the box's sliver piece dropped); the same would build D186's 1 nm case. Medium–large, at the tolerance scale."
   },
   {
-    "case": "corpus/oracle/cylinder-box-graze-y1-in0_01-intersect.json",
-    "stage": "tessellate",
-    "status": "INVALID",
-    "note": "D25 (RB5): a 10 µm lens between a plane and the cylinder, thinner than the chord error at 8 and 32 segments a quarter: both faces triangulate the same boundary samples and share a diagonal (four uses, balanced: a fold, no crack). The B-rep is strictly valid and its volume exact to 4e-9. Needs interior samples on faces thinner than their chord error. K9 (D187 notes, open): the body is right (rel 4e-12); the lens's cylinder face and plane face triangulate the same boundary samples with the same diagonal (4 uses: a fold). A fix bisects such a shared diagonal on the curved face at its projected midpoint, extending the face's quadrature parameters with it; display only, medium."
-  },
-  {
     "case": "corpus/oracle/gear-helical-pair-crossing-intersect.json",
     "stage": "evaluate",
     "status": "WRONG",
@@ -36,12 +30,6 @@
     "note": "K10 L4 fuzz finding (D188, seed 20261023 case 149), unfixed: the union of an upright cylinder r 2 and a shelled box 7 × 7 × 6, t 0.5 (snapped: the cylinder through the shell's walls): a face's loops cross (strict L0). Its expect is the ray oracle's volume and centroid."
   },
   {
-    "case": "corpus/fuzz/fuzz-20261023-118.json",
-    "stage": "tessellate",
-    "status": "INVALID",
-    "note": "K10 L4 fuzz finding (D188, seed 20261023 case 118), unfixed: the intersection of two cylinders (generic, one turned about Y and X): the tessellation has 1 edge not used exactly twice (the volume holds). Its expect is the ray oracle's volume and centroid."
-  },
-  {
     "case": "corpus/fuzz/fuzz-20261023-35.json",
     "stage": "validate",
     "status": "INVALID",
@@ -58,11 +46,5 @@
     "stage": "tessellate",
     "status": "INVALID",
     "note": "K10 L4 fuzz finding (D188, seed 20261023 case 56), unfixed: a box (turned 180° about Y and X, snapped) less an upright cylinder r 2: the tessellation has 2 edges not used exactly twice (the volume holds). Its expect is the ray oracle's volume and centroid."
-  },
-  {
-    "case": "corpus/fuzz/fuzz-20261023-5.json",
-    "stage": "tessellate",
-    "status": "INVALID",
-    "note": "K10 L4 fuzz finding (D190's rerun, seed 20261023 case 5; hidden before by the empty-operand refusal), unfixed: an upright cylinder r 2.5 less a shelled box turned twice about Y (generic): the tessellation has 1 edge not used exactly twice (the volume holds). Its expect is the ray oracle's volume and centroid."
   }
 ]

@@ -11397,3 +11397,31 @@ stays in the squared part, so what is left beside the pole is still extrapolated
 **Test (closed form):** a cone (r 3, h 4, apex up) ∩ the slab x ≥ 1. The plane trims the apex face along a hyperbola.
 The kernel gives 8.0124838588; the exact value, ∫ (r² acos(d/r) − d √(r² − d²)) dz by Gauss–Legendre on 4000 panels,
 is 8.0124838639 (−6.3e-10 relative).
+
+## D193 — A cylinder face keeps no triangle whose corners all lie on one smooth run of its boundary (2026-10-23)
+
+**Findings.**
+- L4 fuzz 5 (a cylinder less a closed shell tilted 182.8° about Y) and 118 (two crossed cylinders): one mesh edge
+  used four times.
+- The notch tees of D182 (a branch coped with a V, or with a hole saw): 4 and 23 such edges, since D182. No full RB
+  run had seen them since.
+- The B-reps were valid.
+
+**Cause.** In 5, the edge between the cylinder and the shell's inner wall lies in the wall's plane, sampled A, M, B.
+The cylinder face clipped the ear A–M–B (narrowest in U first), and so did the planar wall. The two triangles are the
+same one, wound opposite: the volume was right, but chord AB was used four times.
+
+In the tees the run is the coped cut, split into 64 short edges. The cylinder takes fans of such triangles across
+several samples, as the V's plane does. Any triangle whose corners all lie on one smooth run of the boundary has no
+point off it. Where the run is planar, a plane's cut in one edge or several, the triangle lies in that plane. It is
+the plane's own triangle, not the cylinder's.
+
+**Fix (`src/brep-tessellate.ts`, `cylinderTriangles`).** After the ear clipping, the boundary is split into smooth runs
+(cut at each point where it turns by 45° or more, in space). A triangle with all three corners on one run is turned
+over with its neighbour, a convex quadrilateral in the domain, while that leaves fewer of them. A corner's ear stays.
+
+A first try, trying such ears last in the ear clipping, fixed 5 and 118 but left the tees at 7 and 53. It was
+replaced.
+
+**Test:** `test/tessellate-cylinder-ears.test.mjs`. Fuzz 5's and 118's documents and both tees, every mesh edge used
+exactly twice. It fails before the fix.
