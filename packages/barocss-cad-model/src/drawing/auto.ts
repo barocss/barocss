@@ -201,10 +201,16 @@ const dot3 = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] 
 export interface Mark { x: number; ref: DimPoint; hole: boolean }
 
 /** Straight visible edges across `k` (constant along it): their position and an end to measure from. */
+/**
+ * A frame member's bore (a tube's inside, `n<frame>.m<member>.bore…`): its wall is its section's, said in the cut list and
+ * the section's callout, so its edges are no levels to dimension a weldment by (O171, F8) — they crowded A9's frame drawing
+ * with a 3 and a 37 at every member end.
+ */
+const FRAME_BORE = /(?:^|\|)n\d+\.m\d+\.bore\b/;
 export function levels(pr: BrepProjection, k: 0 | 1): Mark[] {
   const out: Mark[] = [];
   for (const e of pr.edges) {
-    if (!e.ends || e.circle || (e.kind !== 'line' && e.kind !== 'silhouette') || !e.pieces.some(p => p.visible)) continue;
+    if (!e.ends || e.circle || (e.kind !== 'line' && e.kind !== 'silhouette') || !e.pieces.some(p => p.visible) || FRAME_BORE.test(e.name)) continue;
     const a = e.ends[0], b = e.ends[1], ax = a[0] * pr.right[0] + a[1] * pr.right[1] + a[2] * pr.right[2], ay = a[0] * pr.up[0] + a[1] * pr.up[1] + a[2] * pr.up[2];
     const bx = b[0] * pr.right[0] + b[1] * pr.right[1] + b[2] * pr.right[2], by = b[0] * pr.up[0] + b[1] * pr.up[1] + b[2] * pr.up[2];
     const pa = k === 0 ? ax : ay, pb = k === 0 ? bx : by, qa = k === 0 ? ay : ax, qb = k === 0 ? by : bx;
