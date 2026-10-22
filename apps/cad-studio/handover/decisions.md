@@ -10875,3 +10875,47 @@ unaffected. The facet test is a module function (`facetAgreement`; owner rule).
 **Checks:** with D179's (same run).
 - **T2 pending:** the full kernel suite, RB and properties. A visual check in the studio, on both renderers, is for
   the GPU lane or the coordinator's window.
+
+## D181 — FRk8a: the housing's shoulder from its faces, against the row's Da max (2026-10-23)
+
+As D164 froze it. D158 recorded Da max from the row and did not check it; the housing's shoulder was not found from its
+faces.
+
+**Kernel (`src/bearing.ts`, `seatedBearing` in a housing):**
+- **Finding the shoulder (`housingShoulder`, a module function):** a planar face of the housing that is
+  - square to the bearing's axis,
+  - at one of the bearing's faces (from or to, within 1e-6 mm),
+  - with its outward normal toward the bearing,
+  - reaching the Ø D bore and stepping in from it.
+  Its diameter is its edges' nearest approach to the axis, each edge sampled 33 times. The largest such face at a
+  side stands for that side.
+- **Above the row's Da max, at either face:** `SEAT_ABUTMENT` ("the outer ring would not bear on it").
+- **None at the shaft's located side (`against`):** a warning, naming the other side when the shoulder is only there.
+- **The report:** `housing.shoulder` = { at, diameterMM } (rounded like the report's other sizes), or null when there
+  is none at either face.
+- Without a Da max in the row, the shoulder is found and reported, not checked.
+
+**Changed expectation:** R12c.4's plain through-bore housing (`test/r12c-bearing.test.mjs`) now carries the
+no-shoulder warning and `shoulder: null`, as D164's FRk8a says. Nothing else changed in its test.
+
+**Oracles (`test/frk-8a-housing-shoulder.test.mjs`, 3 tests):**
+- The turned profiles are written in the test, and the oracle is each profile's own shoulder radius.
+- **D164's "a stepped housing at Da max ± 0.5":**
+  - Ø40 and Ø41.5 are found at the located face and held, with no warning;
+  - Ø42.5 is refused;
+  - without Da max it is reported, not checked.
+- **A shoulder on the other face only:** reported there with the warning; above Da max there, refused.
+- **Through the part model:** the bearing output's report carries the shoulder; above Da max it is GEOMETRY
+  [SEAT_ABUTMENT].
+- The row is B1's 6204 (D139), a test row citing its page.
+
+**Consumers:**
+- `@barocss/cad-model`'s bearing, housing, drawing and acceptance tests: 90/90.
+- Its type-check is clean (the field is additive).
+- Its evaluate text (`engine/evaluate.ts:679`) could show the shoulder. That is the outer lane's to take, offered
+  through the coordinator.
+
+**Checks (T1):**
+- `packages/barocss-cad` lint 0 errors, type-check clean, build.
+- Bearing, shaft and housing files: 74/74.
+- No brep core change.

@@ -12,7 +12,9 @@
 //   ring groove whose near wall lies within 1 mm of the bearing's face, or a shoulder there — else a warning. The shaft less
 //   the bearing keeps its volume (the analytic Boolean): no overlap.
 // - In a housing (optional): a bore of the bearing's outside diameter on the bearing's axis (SEAT_FIT otherwise), covering
-//   its width; the housing less the bearing keeps its volume.
+//   its width; the housing less the bearing keeps its volume. Its shoulder (FRk8a, D181): the planar annulus at a face of
+//   the bearing stepping in from the bore, found from its faces, refused (SEAT_ABUTMENT) above the row's Da max; a warning
+//   when there is none at the shaft's located side.
 // - Fits (R12c.2): the shaft's class at d and the housing's at D from the user's fit tables (a class they lack is
 //   SEAT_FIT), against the rings' deviations from the row when it gives them: the clearance (bore − shaft, housing − OD).
 import type { Brep } from './brep-core.js';
@@ -20,6 +22,7 @@ import { booleanAnalytic, faceGeometry } from './analytic-boolean.js';
 import { brepMassProperties } from './solid-mass.js';
 import { transformBrep, type BrepAffine } from './brep-transform.js';
 import { evaluateCadPart } from './part-model.js';
+import { evaluateCurve, curveDomain } from './math.js';
 import { lookupFit, FitError, type FitLimit, type FitTable } from './fits.js';
 import type { PlacedShaft } from './shaft-parts.js';
 import type { Point } from './types.js';
@@ -46,7 +49,11 @@ export interface BearingReport {
   readonly estimate: boolean; readonly source?: string;
   /** On its shaft: the step, the side against a shoulder, the bearing's span, the shoulder's diameter and fillet, the other side's location. */
   readonly seat?: { readonly step: number; readonly against: 'start' | 'end'; readonly fromMM: number; readonly toMM: number; readonly shoulderMM: number; readonly shoulderFilletMM: number; readonly located: string | null; readonly overlapMM3: number };
-  readonly housing?: { readonly boreMM: number; readonly overlapMM3: number; readonly covered: boolean };
+  /**
+   * In its housing: the bore, the overlap, whether the bore covers the bearing, and its shoulder (FRk8a, D181): the planar
+   * annulus at a face of the bearing stepping in from the bore, its diameter its inner edge's (null: none at either face).
+   */
+  readonly housing?: { readonly boreMM: number; readonly overlapMM3: number; readonly covered: boolean; readonly shoulder: { readonly at: 'start' | 'end'; readonly diameterMM: number } | null };
   readonly shaftFit?: BearingRingFit; readonly housingFit?: BearingRingFit;
   readonly warnings: readonly string[];
   readonly notForStructuralCalculation: true;
@@ -116,6 +123,33 @@ function ringFit(tables: readonly FitTable[], cls: string, size: number, ring: r
   return { limit: limit!, clearanceMinUM: min, clearanceMaxUM: max, kind: min >= 0 ? 'clearance' : max <= 0 ? 'interference' : 'transition' };
 }
 
+/**
+ * The housing's shoulder at a face of the bearing (FRk8a, D181): a planar face square to the axis at `t` along it, its
+ * outward normal toward the bearing (`toward`: +1 along the axis, −1 against), reaching the bore (Ø`D`) and stepping in
+ * from it. Its diameter is its edges' nearest approach to the axis (each edge sampled), else null.
+ */
+function housingShoulder(housing: Brep, origin: Point, axis: Point, D: number, t: number, toward: 1 | -1): number | null {
+  const loops = new Map(housing.loops.map(l => [l.id, l])), coedges = new Map(housing.coedges.map(c => [c.id, c])), edges = new Map(housing.edges.map(e => [e.id, e]));
+  let best: number | null = null;
+  for (const f of housing.faces) {
+    const g = faceGeometry(f);
+    if (g.kind !== 'plane' || Math.abs(dot(g.n as Point, axis) - toward) > 1e-9) continue;
+    const at = (g.o[0] - origin[0]) * axis[0] + (g.o[1] - origin[1]) * axis[1] + (g.o[2] - origin[2]) * axis[2];
+    if (Math.abs(at - t) > EPS) continue;
+    let lo = Infinity, hi = -Infinity;
+    for (const l of f.loops) for (const cid of loops.get(l)!.coedges) {
+      const curve = edges.get(coedges.get(cid)!.edge)!.curve, [t0, t1] = curveDomain(curve);
+      for (let k = 0; k <= 32; k++) {
+        const p = evaluateCurve(curve, t0 + (t1 - t0) * k / 32), x = p[0] - origin[0], y = p[1] - origin[1], z = p[2] - origin[2], al = x * axis[0] + y * axis[1] + z * axis[2];
+        const r = Math.hypot(x - axis[0] * al, y - axis[1] * al, z - axis[2] * al);
+        if (r < lo) lo = r; if (r > hi) hi = r;
+      }
+    }
+    if (hi < D / 2 - EPS || !(lo < D / 2 - EPS)) continue;
+    if (best === null || 2 * lo > best) best = 2 * lo;
+  }
+  return best;
+}
 /** A bearing from `row`, on step `step` of a placed shaft against the shoulder at its `against` end; optionally in a housing. */
 export function seatedBearing(row: BearingRow, shaft: PlacedShaft & { readonly brep: Brep }, spec: { readonly step: number; readonly against: 'start' | 'end'; readonly housing?: Brep; readonly fit?: BearingFitClasses }, id: string): { readonly brep: Brep; readonly report: BearingReport } {
   const env = bearingEnvelope(row, id), d = row.boreMM, D = row.outsideMM, B = row.widthMM, c = row.chamferMM ?? 0, warnings: string[] = [];
@@ -156,7 +190,13 @@ export function seatedBearing(row: BearingRow, shaft: PlacedShaft & { readonly b
     if (!covered) warnings.push(`the housing's bore (${mm(lo)} to ${mm(hi)} along the axis) does not cover the bearing (${mm(from)} to ${mm(to)})`);
     const hOverlap = overlapOf(spec.housing, brep);
     if (hOverlap > 1e-6 * vol(brep)) fail('SEAT_ABUTMENT', `the bearing overlaps the housing by ${+hOverlap.toPrecision(4)} mm³`);
-    housing = { boreMM: D, overlapMM3: hOverlap, covered };
+    // FRk8a (D181): the housing's shoulder, from its faces, against the row's Da max.
+    const start = housingShoulder(spec.housing, originW, axisW, D, from, 1), end = housingShoulder(spec.housing, originW, axisW, D, to, -1);
+    for (const [at, dia] of [['start', start], ['end', end]] as const) if (dia !== null && row.DaMaxMM !== undefined && dia > row.DaMaxMM + EPS) fail('SEAT_ABUTMENT', `the housing's shoulder Ø${mm(dia)} at the bearing's ${at} is above Da max ${row.DaMaxMM} (bearing ${row.id}): the outer ring would not bear on it`);
+    const mine = spec.against === 'start' ? start : end, other = spec.against === 'start' ? end : start, otherSide: 'start' | 'end' = spec.against === 'start' ? 'end' : 'start';
+    const shoulder = mine !== null ? { at: spec.against, diameterMM: mm(mine) } : other !== null ? { at: otherSide, diameterMM: mm(other) } : null;
+    if (mine === null) warnings.push(other !== null ? `the housing has no shoulder at the bearing's ${spec.against} (its shaft's located side), only at its ${otherSide}` : 'the housing has no shoulder at either face of the bearing: its outer ring is not located (a cover or a ring is not modelled)');
+    housing = { boreMM: D, overlapMM3: hOverlap, covered, shoulder };
   }
   const shaftFit = spec.fit?.shaft ? ringFit(spec.fit.tables, spec.fit.shaft, d, row.boreDeviationUM, true) : undefined;
   const housingFit = spec.fit?.housing && spec.housing ? ringFit(spec.fit.tables, spec.fit.housing, D, row.outsideDeviationUM, false) : undefined;

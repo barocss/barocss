@@ -68,7 +68,8 @@ test('R12c.4 housing and fits: a Ø47 bore on the axis covers it, no overlap; k5
     { id: 'c', kind: 'sketch', profile: 'circle', center: [dx, 0], radius: 23.5, plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'ce', kind: 'extrude', sketch: 'c', height: 100 }, { id: 'h', kind: 'difference', target: 'oe', tool: 'ce' }])).output('h').brep;
   const row = { ...ROW, boreDeviationUM: [0, -10], outsideDeviationUM: [0, -11] };
   const b = seatedBearing(row, shaft(), { step: 2, against: 'start', housing: housing(0), fit: { tables: FITS, shaft: 'k5', housing: 'H7' } }, 'b');
-  assert.deepEqual([b.report.housing.covered, b.report.warnings], [true, []]); near(b.report.housing.overlapMM3, 0, 1e-6, 'housing');
+  // (A plain through bore has no shoulder: FRk8a says so, D181.)
+  assert.deepEqual([b.report.housing.covered, b.report.housing.shoulder, b.report.warnings], [true, null, ['the housing has no shoulder at either face of the bearing: its outer ring is not located (a cover or a ring is not modelled)']]); near(b.report.housing.overlapMM3, 0, 1e-6, 'housing');
   assert.deepEqual([b.report.shaftFit.kind, b.report.shaftFit.clearanceMinUM, b.report.shaftFit.clearanceMaxUM], ['interference', -21, -2]);
   assert.deepEqual([b.report.housingFit.kind, b.report.housingFit.clearanceMinUM, b.report.housingFit.clearanceMaxUM], ['clearance', 0, 36]);
   assert.throws(() => seatedBearing(row, shaft(), { step: 2, against: 'start', housing: housing(0.5) }, 'b'), e => code('SEAT_FIT')(e) && /no Ø47 bore on the bearing's axis/.test(e.message));

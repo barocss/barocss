@@ -42,7 +42,8 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | D177's ribbon on facet-mesh rims: three gaps in the strip coverage closed; two r6 centroids corrected to their closed forms (they pinned the old output) | D179 | done (T1+); T2 pending |
 | FRk7: SubD display folds flipped onto the surface (pipe clamp worst 88.6° → 21.6°, none ≥ 25°) | D180 | done (T1+); T2 pending |
 | Open: `r6/facet-cube-sphere-intersect` pins ȳ 17.74954826 against the symmetric 17.75 (4.5e-4) | — | found (D179) |
-| FRk5 leftovers, FRk8a, FRk8b second half, FRk9 | — | queued (`notes/claude-resume-2026-10-23/kernel.md`) |
+| FRk8a: the housing's shoulder from its faces against Da max (SEAT_ABUTMENT above it; a warning when none at the located side) | D181 | done (T1) |
+| FRk5 leftovers, FRk8b second half, FRk9 | — | queued (`notes/claude-resume-2026-10-23/kernel.md`) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 
