@@ -6547,3 +6547,38 @@ Rule (b) itself is unchanged.
 - eslint of cad-model's src and test: 0 errors.
 
 **Not run:** the full package and studio suites, which need a coordinator slot. The window's remaining model failures are separate checkpoints: enclosure O73, shop-rows (inherited-context identity), tool-contract (read-tool output schema) and toolset (the frozen v2 contract).
+
+## O151 — the read-tool contract covers Codex's output tools; a part-scoped result's shopRows (2026-10-23)
+
+**tool-contract.** "every read tool's result matches its output schema" failed at `99da385a1`. Codex had given six output tools an output schema in contract.ts but never ran them in the test: `output_bom`, `output_purchase_csv`, `output_clearance`, `output_print_layers`, `output_cam_package` and `output_bundle`.
+
+The test now runs each one through `dispatchTool`, which also exercises O149's lazy load, on a document where it succeeds:
+- a 20 × 15 × 4 plate for BOM, CSV, clearance and print layers;
+- for the CAM package, a placed plate on the document's test stock row (written into the document directly, not through a tool);
+- for the bundle, the plate approved through draft → review → approved with a user token.
+
+Each result conforms to its schema, reports `changed: false`, and leaves the document as it was.
+
+**enclosure O73.** A part-scoped `set_material` result now begins with `shopRows`, the provenance of the shop rows the part sees. That is the coordinator's A9-8 decision ("reports state the row's origin"), which Codex built. The part has no rows, so the expectation adds `shopRows: []`. Nothing else changes.
+
+**Verified (T1):** tool-contract 3/3, enclosure 17/17, chat-outputs 7/7, bom-panel 4/4.
+
+## O152 — an assembly without a cross-part housing link keeps its identity (2026-10-23)
+
+**The defect.**
+- Codex's A9-7 (`7e8dece38`, 10-23) made `resolveShopTree(root)` always return a new view of an assembly root: the root and every instance carried a bearing-context symbol.
+- That broke A9-10's guarantee from the day before (`1e00c2f52`, "empty inherited context preserves legacy document and instance identity").
+- Identity is what the resolved-tree caches and the studio's reference comparisons key on.
+
+**The fix.**
+- `bearingAssemblyView` builds the context only when a bearing of the root or of an immediate part has a raw `housingRef`. Otherwise it returns the root itself.
+- `bearingPartView`, a part draft in part dispatch or the feature editor, still always gets its context from the root, because the draft may be adding the first link.
+- Nothing else reads the context without a `housingRef` node: part.ts and wireDoc use it only for linked bearings, and the Housing choice falls back to `ctx.bearingAssembly` or the root's instances.
+- `linksHousing` is a module-level loop with no closures, as the hot-path rule requires.
+
+**Verified (T1):**
+- shop-rows 9/9; bearing-housing-context 8/8 (A9-7's own tests);
+- the 57 model test files that touch instances, bearings or the shop tree, all passing;
+- tsc of model and studio; eslint 0 errors.
+
+**Not run:** the full package and studio suites, and A9-7's studio UI. The GPU lane is porting `8789e468`, so it should check that the Housing path still gets its context from part dispatch.
