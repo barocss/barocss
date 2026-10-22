@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, writeFile, readdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { readFile, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { packedConsumer } from './packed.mjs';
 
 const exec = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -14,17 +14,8 @@ const repo = path.resolve(root, '../..');
 
 test('packed additive mesh ESM and declarations work in an independent consumer without source', async () => {
   const literal = JSON.parse(await readFile(path.join(repo, 'examples/gpu-scene/mesh-flat-packet.json'), 'utf8'));
-  const scratch = await mkdtemp(path.join(tmpdir(), 'barocss-gpu-mesh-consumer-'));
+  const { scratch } = await packedConsumer('barocss-gpu-mesh-consumer-');
   try {
-    await exec('pnpm', ['pack', '--pack-destination', scratch], { cwd: root, timeout: 30_000 });
-    const archives = (await readdir(scratch)).filter((name) => name.endsWith('.tgz'));
-    assert.equal(archives.length, 1);
-    const installed = path.join(scratch, 'node_modules/@barocss/gpu');
-    await mkdir(installed, { recursive: true });
-    await exec('tar', ['-xzf', path.join(scratch, archives[0]), '--strip-components=1', '-C', installed], { timeout: 30_000 });
-    assert(!(await readdir(installed)).includes('src'), 'Packed consumer must not contain source');
-    const manifest = JSON.parse(await readFile(path.join(installed, 'package.json'), 'utf8'));
-    assert.equal(manifest.private, true);
     await writeFile(path.join(scratch, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
     await writeFile(path.join(scratch, 'consumer.mjs'), `
 import assert from 'node:assert/strict';
