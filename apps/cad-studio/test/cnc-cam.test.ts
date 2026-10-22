@@ -54,13 +54,19 @@ test('CNC8 the pocket filleted r 5, Ø6: the first loop 44 × 24 with corners r 
   assert.ok(Math.abs(per(pk.loops[2]) - 2 * (34.4 + 14.4)) <= 1e-6, 'sharp by the third loop');
 });
 
-test('CNC8 holes and the rest: Ø6.6 through 20 — drill points from +Z at z 20 and from −Z at z 0, 20 deep; Ø5 blind — from +Z, 10; a slot listed, not previewed; a given tool said given', async () => {
+test('CNC8 holes and the rest: Ø6.6 through 20 — from +Z down to z 0 and from −Z up to z 20, 20 deep; Ø5 blind — from +Z, 10; both wider than the Ø4 tool, so circular pockets (O161, F3), a hole of the tool\'s size a drill point; a slot listed, not previewed; a given tool said given', async () => {
   const s = await build([cmd('box', { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 }), cmd('hole', { d: 6.6, x: 15, y: 20 }, { faces: ['n1.top'] }), cmd('hole', { type: 'blind', d: 5, depth: 10, x: 45, y: 20 }, { faces: ['n1.top'] }),
     cmd('box', { w: 8, d: 60, h: 20, x: 26, y: -10, z: 16 }), ['run_command', { command: 'difference', values: {}, bodies: ['b3', 'b5'] }]]);
-  const p = camPreview(s.doc, s.bodies, { toolMM: 4 }), dr = p.operations.filter((o): o is DrillPoint => o.kind === 'drill').map(d => [d.setup, d.at[2], d.axis[2], d.depthMM, d.diameterMM]);
-  assert.deepEqual(dr, [['+Z', 20, -1, 20, 6.6], ['−Z', 0, 1, 20, 6.6], ['+Z', 20, -1, 10, 5]]);
+  const p = camPreview(s.doc, s.bodies, { toolMM: 4 });
+  // (The preview lists each direction a hole is reachable from; the package makes each once, O161 F2.)
+  const bores = p.operations.filter((o): o is PocketPass => o.kind === 'pocket' && !!o.note).map(o => [o.setup, o.plane.origin[2], o.plane.normal[2], o.levels.at(-1), o.note]);
+  assert.deepEqual(bores, [['+Z', 0, 1, 20, 'Ø6.6 is wider than the Ø4 tool: milled as a circular pocket, not drilled'], ['−Z', 20, -1, 20, 'Ø6.6 is wider than the Ø4 tool: milled as a circular pocket, not drilled'], ['+Z', 10, 1, 10, 'Ø5 is wider than the Ø4 tool: milled as a circular pocket, not drilled']]);
+  assert.deepEqual(p.operations.filter((o): o is DrillPoint => o.kind === 'drill'), []);
+  const fit = camPreview(s.doc, s.bodies, { toolMM: 5 }).operations.filter((o): o is DrillPoint => o.kind === 'drill').map(d => [d.setup, d.at[2], d.axis[2], d.depthMM, d.diameterMM]);
+  assert.deepEqual(fit, [['+Z', 20, -1, 10, 5]], 'the Ø5 hole with a Ø5 tool: a drill point');
   assert.deepEqual(p.skipped.map(x => x.why), ['a slot is open on a side: not previewed']); assert.deepEqual(p.tool, { diameterMM: 4, basis: 'given' });
-  const svg = camSvg(p, '+Z'); assert.ok(svg.startsWith(`<!-- ${NOT_FOR_PRODUCTION} -->`)); assert.match(svg, /<circle /);
+  const svg = camSvg(camPreview(s.doc, s.bodies, { toolMM: 5 }), '+Z'); assert.ok(svg.startsWith(`<!-- ${NOT_FOR_PRODUCTION} -->`)); assert.match(svg, /<circle /);
+  assert.match(camSvg(p, '+Z'), /<polygon /, 'the circular pockets\' loops');
 });
 
 test('CNC8 cad-cli cam-preview: the JSON\'s first key and each SVG\'s first line say NOT FOR PRODUCTION; no G-code in any file', async () => {

@@ -75,24 +75,24 @@ export function camPackage(doc: StudioDoc, all: readonly BodyResult[], o: { tool
     setups.set(setup, prog);
     return prog;
   };
-  // (O161: a hole reachable from several setups — a through hole, from both ends — is drilled once, by the first of them
-  // in setup order, the order the operations bring the setups in; each other setup that has work of its own says so.)
+  // (O161: a feature reachable from several setups — a through hole, or a bore milled as a circular pocket, from both ends
+  // — is made once, by the first of them in setup order, the order the operations bring the setups in; each other setup
+  // that has work of its own says so.)
   const order: string[] = [];
   for (const op of p.operations) if (!order.includes(op.setup)) order.push(op.setup);
-  const drillSetup = new Map<string, string>(), alsoFrom = new Map<string, string[]>();
+  const madeIn = new Map<string, string>(), alsoFrom = new Map<string, string[]>();
   for (const op of p.operations) {
-    if (op.kind !== 'drill') continue;
-    const had = drillSetup.get(op.feature);
-    if (had === undefined || order.indexOf(op.setup) < order.indexOf(had)) drillSetup.set(op.feature, op.setup);
-    alsoFrom.set(op.feature, [...(alsoFrom.get(op.feature) ?? []), op.setup]);
+    const had = madeIn.get(op.feature);
+    if (had === undefined || order.indexOf(op.setup) < order.indexOf(had)) madeIn.set(op.feature, op.setup);
+    const from = alsoFrom.get(op.feature) ?? []; if (!from.includes(op.setup)) from.push(op.setup); alsoFrom.set(op.feature, from);
   }
   for (const op of p.operations) {
-    if (op.kind === 'pocket') pocketMoves(programOf(op.setup), op);
-    else if (drillSetup.get(op.feature) === op.setup) drillMoves(programOf(op.setup), op);
+    if (madeIn.get(op.feature) !== op.setup) continue;
+    if (op.kind === 'pocket') pocketMoves(programOf(op.setup), op); else drillMoves(programOf(op.setup), op);
   }
   for (const [feature, from] of alsoFrom) {
-    const by = drillSetup.get(feature)!;
-    for (const setup of from) { const s = setup === by ? undefined : setups.get(setup); if (s) (s.notes ??= []).push(`${feature}: drilled in the ${by} setup, not again here`); }
+    const by = madeIn.get(feature)!;
+    for (const setup of from) { const s = setup === by ? undefined : setups.get(setup); if (s) (s.notes ??= []).push(`${feature}: ${p.operations.some(o => o.feature === feature && o.kind === 'drill') ? 'drilled' : 'milled'} in the ${by} setup, not again here`); }
   }
   for (const s of setups.values()) { const last = s.moves.at(-1); if (last && last.b[2] < s.safeZ.mm) s.moves.push({ kind: 'retract', a: last.b, b: [last.b[0], last.b[1], s.safeZ.mm] }); }
   return { banner: NOT_FOR_PRODUCTION, notForProduction: true, version: CAM_PACKAGE_VERSION, tool, stepoverMM: p.stepoverMM, stepdownMM: p.stepdownMM, basis: p.basis, stock, setups: [...setups.values()], skipped: p.skipped };
