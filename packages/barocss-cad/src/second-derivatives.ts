@@ -1,6 +1,6 @@
 import { CadNumericPolicy } from './numeric-policy.js';
 import { basis, validateCurve, validateSurface } from './math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
+import { evaluateCurveD1, surfaceD1Evaluator } from './derivatives.js';
 import type { Curve, Surface, Point } from './types.js';
 
 export const NativeSecondDerivativeDiagnosticCode = Object.freeze({ INPUT: 'INPUT', CONTINUITY: 'CONTINUITY', ARITHMETIC: 'ARITHMETIC', NATIVE: 'NATIVE' } as const);
@@ -260,19 +260,28 @@ export function evaluateCurveD2(curveInput: Curve, parameter: number): CurveD2Re
 
 /** Analytic tensor partials in original U/V knot units. Zero tangents remain valid. */
 export function evaluateSurfaceD2(surfaceInput: Surface, u: number, v: number): SurfaceD2Result {
+  return surfaceD2Evaluator(surfaceInput)(u, v);
+}
+/**
+ * `evaluateSurfaceD2` for one surface, admitted once (its snapshot and validation): each call admits only its
+ * parameters, the same arithmetic bit for bit (K8, D185: a point's foot asks for second derivatives some 12 times).
+ */
+export function surfaceD2Evaluator(surfaceInput: Surface): (u: number, v: number) => SurfaceD2Result {
   const surface = admittedSurface(surfaceInput), countU = surface.controlPoints.length, countV = surface.controlPoints[0].length;
-  admitParameter(surface.knotsU, surface.degreeU, countU, u);
-  admitParameter(surface.knotsV, surface.degreeV, countV, v);
-  const d1 = native(() => evaluateSurfaceD1(surface, u, v), 'Native Surface D1 evaluation failed');
-  const bu = [0, 1, 2].map(order => derivativeBasis(surface.knotsU, surface.degreeU, countU, u, order));
-  const bv = [0, 1, 2].map(order => derivativeBasis(surface.knotsV, surface.degreeV, countV, v, order));
-  const get = surfaceCoefficients(surface);
-  const h = surfaceSum(bu[0], bv[0], 0, 0, get);
-  const hu = surfaceSum(bu[1], bv[0], 1, 0, get), hv = surfaceSum(bu[0], bv[1], 0, 1, get);
-  const huu = surfaceSum(bu[2], bv[0], 2, 0, get), huv = surfaceSum(bu[1], bv[1], 1, 1, get);
-  const hvv = surfaceSum(bu[0], bv[2], 0, 2, get);
-  return { point: copyPoint(d1.point), du: copyPoint(d1.du), dv: copyPoint(d1.dv),
-    duu: secondPartial(huu, hu[3], hu[3], d1.du, d1.du, d1.point, h[3]),
-    duv: secondPartial(huv, hu[3], hv[3], d1.du, d1.dv, d1.point, h[3]),
-    dvv: secondPartial(hvv, hv[3], hv[3], d1.dv, d1.dv, d1.point, h[3]) };
+  const get = surfaceCoefficients(surface), d1Of = surfaceD1Evaluator(surface);
+  return (u, v) => {
+    admitParameter(surface.knotsU, surface.degreeU, countU, u);
+    admitParameter(surface.knotsV, surface.degreeV, countV, v);
+    const d1 = native(() => d1Of(u, v), 'Native Surface D1 evaluation failed');
+    const bu = [0, 1, 2].map(order => derivativeBasis(surface.knotsU, surface.degreeU, countU, u, order));
+    const bv = [0, 1, 2].map(order => derivativeBasis(surface.knotsV, surface.degreeV, countV, v, order));
+    const h = surfaceSum(bu[0], bv[0], 0, 0, get);
+    const hu = surfaceSum(bu[1], bv[0], 1, 0, get), hv = surfaceSum(bu[0], bv[1], 0, 1, get);
+    const huu = surfaceSum(bu[2], bv[0], 2, 0, get), huv = surfaceSum(bu[1], bv[1], 1, 1, get);
+    const hvv = surfaceSum(bu[0], bv[2], 0, 2, get);
+    return { point: copyPoint(d1.point), du: copyPoint(d1.du), dv: copyPoint(d1.dv),
+      duu: secondPartial(huu, hu[3], hu[3], d1.du, d1.du, d1.point, h[3]),
+      duv: secondPartial(huv, hu[3], hv[3], d1.du, d1.dv, d1.point, h[3]),
+      dvv: secondPartial(hvv, hv[3], hv[3], d1.dv, d1.dv, d1.point, h[3]) };
+  };
 }

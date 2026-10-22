@@ -47,8 +47,8 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K6 FRk9: acceptance by the agent — the weldment table (gussets, caps, beads with shared-seam ownership), the tapered-I portal, the bent-tube rail; `conformance/frk/accept-*` | D183 | done (T1) |
 | K5 FRk8b second half | — | not needed (D178 met the speed) |
 | K7: r6 sphere-intersect ȳ — the facet rims' gap beside a pole closed by the ribbon alone; the pin (the kernel's output) to 17.75 | D184 | done (T1+) |
-| K8: F5, the A9 shaft's cnc-turning report time (profile) | — | next |
-| K9: RB TODOs — the graze cases, then helical × helical | — | queued |
+| K8: F5, the cnc-turning report — the kernel admitted the surface per derivative call; once per surface now (a9-acceptance 55 → 15 s) | D185 | done (T1+) |
+| K9: RB TODOs — the graze cases, then helical × helical | — | next |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first

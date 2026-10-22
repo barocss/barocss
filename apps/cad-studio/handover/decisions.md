@@ -11069,3 +11069,45 @@ eighth of the ball) pinned ȳ 17.74954826.
 - Every test file that tessellates, builds SubD or takes mass (87 files), in a detached scratch worktree: 878/879,
   1 skipped, 0 failing.
 - T2 (full suite, RB, properties) rides the coordinator's window.
+
+## D185 — K8 (the outer lane's F5): the cnc-turning report's time was the kernel's per-call surface admission (2026-10-23)
+
+**The finding.** The A9 shaft's cnc-turning manufacturability report took about 50 s, so `a9-acceptance` took about a
+minute.
+
+**The profile** (`node --cpu-prof` on the bundled `a9-acceptance` in a detached scratch worktree, load 22): 55.0 s in
+all, 46.2 s of it under `turningOf`.
+- The path: cad-model's `turningOf` → `mould/draft.ts`'s `foot` → the kernel's `closestPointOnSurface`.
+- The kernel part:
+  - 40.6 s in `evaluateSurfaceD2`;
+  - 31.5 s of that in `admittedSurface`'s snapshot copy (`second-derivatives.ts` copies and validates the surface on
+    every call, a public entry's defence);
+  - plus `validateSurface` on every `evaluateSurfaceD1`.
+- Counts: 72 914 foot queries, 887 602 second-derivative calls (about 12 a query, the slow, linearly converging case)
+  and 4 220 974 first-derivative calls.
+- So the time is the kernel's. No cad-model file changed.
+
+**The fix: the same arithmetic, with the admission done once per surface.**
+- `derivatives.ts`: `surfaceD1Evaluator(surface)` validates once, as `curveD1Evaluator` does for curves.
+  `evaluateSurfaceD1` calls the same internal `surfaceD1`.
+- `second-derivatives.ts`: `surfaceD2Evaluator(surface)` admits once (snapshot and validation) and keeps its
+  coefficient cache. Each call admits only its parameters. `evaluateSurfaceD2` is that evaluator, used once.
+- `surface-closest.ts`:
+  - a `SurfaceSeedGrid` now carries the surface it was built for and its evaluators (additive fields), so a query
+    passing that grid for that surface uses them; the second derivatives are admitted on first use;
+  - without a grid, a query builds its own once;
+  - `surfaceD1Near` keeps its signature.
+- Every result is bit for bit as before, because the admitted copy holds the same numbers and the arithmetic is unchanged.
+
+**Results:**
+
+| Measure | Before | After |
+|---|---|---|
+| `a9-acceptance` | 55 s | 15 s |
+| `turningOf` | 46.2 s | 7.5 s |
+| The rest of the report | — | its 4.2 M first derivatives, the queries' own iterations (left as they are) |
+
+**Checks:**
+- Kernel: lint 0 errors, type-check clean, build. In a scratch worktree, 121 files that tessellate, take mass, project
+  or differentiate: 970/971, 1 skipped, 0 failing.
+- cad-model's mould, draft, cnc and A9 files: 69/69.
