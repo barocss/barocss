@@ -30,8 +30,7 @@ await page.addInitScript(() => {
   if (w.GPUAdapter) { const rd = GPUAdapter.prototype.requestDevice; GPUAdapter.prototype.requestDevice = function (d = {}) { return rd.call(this, this.features.has('timestamp-query') ? { ...d, requiredFeatures: [...(d.requiredFeatures ?? []), 'timestamp-query'] } : d); }; }
   if (w.GPUDevice) {
     const ce = GPUDevice.prototype.createCommandEncoder;
-    GPUDevice.prototype.createCommandEncoder = function (d) {
-      const enc = ce.call(this, d), dev = this;
+    const instrument = (dev, enc) => {
       if (!dev.features.has('timestamp-query')) return enc;
       const pool = dev.__ts ??= [], qs = pool.pop() ?? dev.createQuerySet({ type: 'timestamp', count: 32 });
       let n = 0;
@@ -43,6 +42,7 @@ await page.addInitScript(() => {
       };
       return enc;
     };
+    GPUDevice.prototype.createCommandEncoder = function (d) { return instrument(this, ce.call(this, d)); };
   }
   if (w.GPUQueue) { const s = GPUQueue.prototype.submit; GPUQueue.prototype.submit = function (...a) {
     w.__bench.submits++; const t0 = performance.now(), r = s.apply(this, a), mine = pending.splice(0);

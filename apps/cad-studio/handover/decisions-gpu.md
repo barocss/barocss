@@ -1394,3 +1394,12 @@ GPU G STOP record was reviewed at `0eff11097ebe3e795f4c5173211eb861214c76a2`. It
 with the final window. That documentation review does not adopt the branch's
 unverified product source. See [handback](notes/codex-handback-2026-10-23.md) and
 state for exact WIP, process cleanup, blockers and first resume steps.
+
+## G-R1 — resumed by Claude after Codex: the studio lint error (2026-10-23)
+
+- **What**: `apps/cad-studio/test/bench-assembly.mjs:34`, `no-this-alias` (the one studio lint error in the
+  coordinator's window at 99da385a1). The bench's timestamp-query wrapper of `GPUDevice.createCommandEncoder` aliased
+  `this` as `dev`. The wrapper's body moved to `instrument(dev, enc)`, and the patched method passes `this` and the
+  encoder to it; what it measures is unchanged.
+- **Checks** (T1): studio eslint on the file, 0 errors (4 `no-console` warnings, as before); `node --check`. Not run:
+  `bench:assembly` itself (a browser bench; it needs a heavy-run slot and low load).
