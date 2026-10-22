@@ -206,7 +206,8 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     // twice would add its strip twice.)
     // (A pole counts where the face reaches it: a ball's patch away from both poles — a corner blend's, D93 — is a plain
     // trimmed face.)
-    const span = Math.max(du, dv, 1e-300), pole = polesOf(surfaces.get(face.faceId)!).some(q => uv.some(x => Math.abs(x[q.along === 0 ? 1 : 0] - q.at) <= 1e-9 * span)), users = new Map<string, { t: number; e: number }[]>();
+    const span = Math.max(du, dv, 1e-300), poles = polesOf(surfaces.get(face.faceId)!).filter(q => uv.some(x => Math.abs(x[q.along === 0 ? 1 : 0] - q.at) <= 1e-9 * span)).map(q => q.point);
+    const pole = poles.length > 0, users = new Map<string, { t: number; e: number }[]>();
     for (let t = 0; t < domain.length; t++) {
       const [i, j, k] = domain[t], qa = uv[i - off], qb = uv[j - off], qc = uv[k - off];
       // (A triangle with two corners at one point bounds nothing; one of three distinct points in a line — three samples
@@ -228,8 +229,10 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
         const pa = point(a), fromA = seg.from[0] === pa[0] && seg.from[1] === pa[1] && seg.from[2] === pa[2];
         sink.ev = curveEvaluator(seg.curve); sink.d1 = curveD1Evaluator(seg.curve);
         // (Beside a pole the strips stay out, their chord error extrapolated; the ribbon to the edge is no step's error,
-        // and goes in alone: the facet rims about an exact ball, D184.)
-        if (pole) ribbonOnly(sink, uv[a - off], uv[b - off], fromA ? seg.tFrom : seg.tTo, fromA ? seg.tTo : seg.tFrom);
+        // and goes in alone: the facet rims about an exact ball, D184. Only beside it: a chord farther from the pole than
+        // four of its lengths is inverted as well as on any face, and takes its strip. Without them, a cone's long trims
+        // kept their whole chord error, its square still 6e-6 of the volume after the extrapolation: L4 fuzz 93, D192.)
+        if (pole && besidePole(pa, point(b), poles)) ribbonOnly(sink, uv[a - off], uv[b - off], fromA ? seg.tFrom : seg.tTo, fromA ? seg.tTo : seg.tFrom);
         else strip(sink, uv[a - off], uv[b - off], fromA ? seg.tFrom : seg.tTo, fromA ? seg.tTo : seg.tFrom);
       }
     }
@@ -251,6 +254,12 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
   return { integrals: fromCentre(I.map((x, k) => x + squared[k] + cubed[k])), meshed: true, squared: fromCentre(squared), cubed: fromCentre(cubed), dropped };
 }
 
+/** Whether chord a → b lies within four of its lengths of one of `poles` (points). */
+function besidePole(a: Point, b: Point, poles: readonly Point[]): boolean {
+  const l = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+  for (const P of poles) if (Math.min(Math.hypot(a[0] - P[0], a[1] - P[1], a[2] - P[2]), Math.hypot(b[0] - P[0], b[1] - P[1], b[2] - P[2])) < 4 * l) return true;
+  return false;
+}
 /** A face's flat triangles' integrals (and area) into a part of the sum. */
 function flatInto(part: number[], flat: readonly number[], area: number): void { for (let k = 0; k < 10; k++) part[k] += flat[k]; part[10] += area; }
 /** A facet patch's ten integrals and area by the faces' common field F·N, the triangle rule exact for it (degree 4). */

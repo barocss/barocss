@@ -11375,3 +11375,25 @@ before. A line from the arc's end across it is still reported.
 
 **After it:** 83 passes every RB stage. 93 validated, and its STEP round trip then showed a volume error (D192).
 
+
+## D192 — A pole face's trims far from the pole take their strips (2026-10-23)
+
+**Finding (from 93).** RB's round trip moved 93's volume by 1.25e-6 of it (bound 1e-6). The kernel's own volume,
+147.9224772 mm³, was off the ray oracle at 2048² × 8, 147.9216297 ± 6.9e-6 (e), by 8.5e-4: 123 e.
+
+By face, the error was the two cone faces that reach their apex. They take the pole route (D184), which keeps every
+trim's chord error and extrapolates it as the square of the step. At 8 segments a quarter that square is not yet
+asymptotic: errors 0.0916 / 0.0356 / 0.0095 at 4 / 8 / 16, ratios 2.6 and 3.7. Richardson from 8 and 16 left 8.5e-4.
+More segments did not converge either (q 12: +1.35e-3).
+
+**Fix (`src/brep-mass-quadrature.ts`).** On a face that reaches a pole, only a chord within four of its lengths of
+the pole keeps the ribbon alone (D184). Every other chord is inverted as on any face and takes its strip. The face
+stays in the squared part, so what is left beside the pole is still extrapolated as before.
+
+**Result on 93:**
+- q 8 and q 16 both give 147.9216303, the oracle 147.9216297 ± 6.9e-6;
+- the STEP round trip agrees.
+
+**Test (closed form):** a cone (r 3, h 4, apex up) ∩ the slab x ≥ 1. The plane trims the apex face along a hyperbola.
+The kernel gives 8.0124838588; the exact value, ∫ (r² acos(d/r) − d √(r² − d²)) dz by Gauss–Legendre on 4000 panels,
+is 8.0124838639 (−6.3e-10 relative).

@@ -8,10 +8,6 @@
     "note": "D188: a box (turned 180° about Y and X, snapped) less an upright cylinder r 2: the tessellation has 2 edges not used exactly twice (the volume holds); replay robustness/corpus/fuzz/fuzz-20261023-56.json"
   },
   {
-    "case": "20261023:93",
-    "note": "D188: the union of two cones (generic placements, one turned about Y and X): a face's loops cross (strict L0); replay robustness/corpus/fuzz/fuzz-20261023-93.json"
-  },
-  {
     "case": "20261023:118",
     "note": "D188: the intersection of two cylinders (generic, one turned about Y and X): the tessellation has 1 edge not used exactly twice (the volume holds); replay robustness/corpus/fuzz/fuzz-20261023-118.json"
   },

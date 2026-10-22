@@ -64,11 +64,5 @@
     "stage": "tessellate",
     "status": "INVALID",
     "note": "K10 L4 fuzz finding (D190's rerun, seed 20261023 case 5; hidden before by the empty-operand refusal), unfixed: an upright cylinder r 2.5 less a shelled box turned twice about Y (generic): the tessellation has 1 edge not used exactly twice (the volume holds). Its expect is the ray oracle's volume and centroid."
-  },
-  {
-    "case": "corpus/fuzz/fuzz-20261023-93.json",
-    "stage": "roundtrip",
-    "status": "WRONG",
-    "note": "K10 L4 fuzz finding (D188, seed 20261023 case 93), unfixed after D191: its STEP read-back moves the volume by 1.25e-6 of it; the kernel volume is 8.5e-4 mm³ off a 2048² × 8 oracle (the pole route, D192)."
   }
 ]
