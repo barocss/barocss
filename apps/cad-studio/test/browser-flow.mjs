@@ -7170,6 +7170,40 @@ try {
     await snap('k2-refuse-notch-v-depth');
   });
 
+  // ---- K2 (FRk5, D175): the L gap frame Codex saw black on WebGPU's first canvas — drawn, on either renderer ------------------
+  await check('K2 FRk5 L gap: a mitred L of 40 × 40 × 3 tubes with a 2 mm joint gap — two bodies, the first canvas after they arrive drawn (not black), and after Iso; the gap kept after Save, New and Open', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const doc = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, outputs: {}, nextId: 1, nodes: [{ id: 'n0', kind: 'frame', points: [[0, 0, 0], [400, 0, 0], [400, 300, 0]], segments: [[0, 1], [1, 2]], section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { default: 'mitre', gap: 2 } }] };
+    const file = join(out, 'k2-l-gap.bcad'); fs.writeFileSync(file, JSON.stringify(doc));
+    const shot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+    const differs = (a, b) => page.evaluate(async ([x, y]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(x), B = await load(y); let n = 0, dark = 0;
+      for (let k = 0; k < A.length; k += 4) { if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++; if (B[k] + B[k + 1] + B[k + 2] < 12) dark++; }
+      return { changed: n / (A.length / 4), black: dark / (A.length / 4) };
+    }, [a, b]);
+    const bodies = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 2 && b.bodies.every(x => x.volumeMM3 > 0); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await press('f'); await page.waitForTimeout(300); const empty = await shot();
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    const first = await bodies();
+    // (The first frame with the bodies: not black, and changed from the empty view.)
+    await page.waitForTimeout(250); const firstShot = await differs(empty, await shot());
+    console.log(`  K2 L gap (${renderer}): first frame ${(100 * firstShot.changed).toFixed(2)} % changed, ${(100 * firstShot.black).toFixed(2)} % black`);
+    assert.ok(firstShot.black < 0.5, `${renderer}: the first canvas is black (${(100 * firstShot.black).toFixed(1)} %)`);
+    await iso(); const after = await differs(empty, await shot());
+    assert.ok(after.changed > 0.005 && after.black < 0.5, `${renderer}: the L is not drawn after Iso (${JSON.stringify(after)})`);
+    await snap('k2-l-gap');
+    // (A mitred L with a 2 mm gap: the two members' volumes equal, each less than an ungapped mitre's by its share of the gap.)
+    assert.ok(Math.abs(first[0].volumeMM3 - first[1].volumeMM3) / first[0].volumeMM3 < 0.4, JSON.stringify(first));
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const again = join(out, 'saved-k2-l-gap.bcad'); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', again);
+    const reopened = await bodies();
+    for (const b of first) assert.ok(reopened.some(r => Math.abs(r.volumeMM3 - b.volumeMM3) <= 1e-9 * b.volumeMM3), `reopened: ${JSON.stringify(reopened)} vs ${JSON.stringify(first)}`);
+  });
+
   // ---- G23 CNC (G-R3–G-R5): material removal along the Model's program, on either renderer --------------------------------
   await check('G23 CNC: CNC8\'s pocket from its machining stock — NOT FOR PRODUCTION first; 0, the middle and the end of its program; no overcut, the floor reached; Print layers closes it; reopened, the same', async () => {
     // (The plate and pocket the Model's own commands make, with a stock row the fixture writes: not agent-loaded rows.)
