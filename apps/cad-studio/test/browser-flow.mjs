@@ -3880,7 +3880,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.some(x => x.kind === 'connector-body') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
     const keepouts = await page.evaluate(() => window.__studioDoc.references?.keepouts ?? []);
     assert.ok(keepouts.length === 1 && keepouts[0].shape.size.join() === '10.25,4.4,15', JSON.stringify(keepouts));
-    const row = await page.evaluate(() => [...document.querySelectorAll('.outliner .ol')].findIndex(e => /^\s*Connector opening for usb-c/.test(e.textContent ?? '')));
+    const row = await page.evaluate(() => [...document.querySelectorAll('.outliner .ol')].findIndex(e => /Connector opening for usb-c/.test(e.textContent ?? '')));
     await page.locator('.outliner .ol').nth(row).click();
     await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /gaps 0\.045 and 0\.08/.test(x.textContent ?? '')), null, { timeout: 30000 });
     const notes = (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.replace(/^warning\s*/, '').trim());
