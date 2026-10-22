@@ -1,19 +1,22 @@
-// In the engine worker: section A–A, the part cut by the plane square to the front view's depth at `y` along it
-// (Y = y for the default front from −Y; R14.3b: X = ±y or Y = −y for the others) and seen like the front view,
-// with the material in front of the plane taken away. The kernel's split cuts each body the
-// plane crosses (the far side is kept); a body wholly behind the plane stays whole, one wholly in front
-// goes. The cut faces (planar faces on the plane) come back as rings in view coordinates, to hatch.
+// In the engine worker: a section, the part cut by the plane square to a view's depth at `at` along it, seen as that
+// view with the material in front of the plane taken away (O148 X1: the front, top or right view; section A–A of older
+// drawings is the front's — Y = y for the default front from −Y; R14.3b: X = ±y or Y = −y for the others). The kernel's
+// split cuts each body the plane crosses (the far side is kept); a body wholly behind the plane stays whole, one wholly
+// in front goes. The cut faces (planar faces on the plane) come back as rings in view coordinates, to hatch.
 import { evaluateCadPart, faceGeometry, projectBrepHiddenLines, tessellateBrep, type Brep, type BrepProjection, type CadPartFeature } from '@barocss/cad';
 import { toPartDocument } from '../engine/part';
 import type { StudioDoc } from '../engine/doc';
-import { depthOf, viewsFor, type Orientation } from './views';
-import type { XY } from './types';
+import { sectionDepth, viewsFor, type Orientation } from './views';
+export { sectionDepth } from './views';
+import type { DrawingSection, SectionViewId, XY } from './types';
 
 export type SectionResult = { ok: true; projection: BrepProjection; rings: XY[][] } | { ok: false; error: string };
+/** O148 X1: a section of the drawing and what cutting it gave. */
+export type SectionCut = DrawingSection & { result: SectionResult };
 
-export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 'y-'): SectionResult {
+export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 'y-', view: SectionViewId = 'front'): SectionResult {
   // The depth axis (k) and its sign: the plane is dot(p, d) = y, the far side (kept) dot(p, d) > y.
-  const d = depthOf(orientation), k = d[0] ? 0 : 1, sign = d[k], axis = k === 0 ? 'x' : 'y', at = sign * y;
+  const { k, sign } = sectionDepth(view, orientation), axis = (['x', 'y', 'z'] as const)[k], at = sign * y;
   try {
     const part = toPartDocument(doc), outputs = evaluateCadPart(part).outputs;
     const cuts: CadPartFeature[] = [], keep: string[] = [];
@@ -29,13 +32,15 @@ export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 
     if (!keep.length) return { ok: false, error: `Nothing of the part lies behind ${axis.toUpperCase()} = ${at}.` };
     const cut = evaluateCadPart({ ...part, features: [...part.features, ...cuts] });
     const breps = keep.map(id => cut.output(id).brep);
-    const projection = projectBrepHiddenLines(breps, viewsFor(orientation).front);
+    const projection = projectBrepHiddenLines(breps, viewsFor(orientation)[view]);
     return { ok: true, projection, rings: breps.flatMap(b => cutRings(b, at, projection, k)) };
   } catch (cause) { return { ok: false, error: cause instanceof Error ? cause.message : String(cause) }; }
 }
+/** O148 X1: every section of the drawing, cut. */
+export const sectionsCut = (doc: StudioDoc, list: readonly DrawingSection[], orientation: Orientation = 'y-'): SectionCut[] => list.map(x => ({ ...x, result: sectionOf(doc, x.at, orientation, x.view) }));
 
 /** The loops of a B-rep's faces on the plane square to axis `k` (1: Y) at `y`, as rings in the projection's view coordinates. */
-export function cutRings(brep: Brep, y: number, pr: BrepProjection, k: 0 | 1 = 1): XY[][] {
+export function cutRings(brep: Brep, y: number, pr: BrepProjection, k: 0 | 1 | 2 = 1): XY[][] {
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: 16 }), samples = new Map(mesh.edges.map(e => [e.edgeId, e.pointsMM]));
   const loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
   const P = (x: number, yy: number, z: number): XY => [x * pr.right[0] + yy * pr.right[1] + z * pr.right[2], x * pr.up[0] + yy * pr.up[1] + z * pr.up[2]];

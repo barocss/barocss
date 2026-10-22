@@ -3,11 +3,11 @@ import { projectBrepHiddenLines, type Brep } from '@barocss/cad';
 import { viewsFor, type Orientation } from './views';
 import { VIEW_IDS, type DrawingViews } from './types';
 
-import type { SectionResult } from './section';
+import type { SectionCut } from './section';
 
-/** `section`: section A–A when asked for (it can fail on its own: the views still come). */
+/** `sections` (O148 X1): the sections asked for, each cut (one can fail on its own: the views still come). */
 /** `empty`: the part has no body yet (nothing is wrong with it). */
-export type DrawingResult = { ok: true; views: DrawingViews; ms: number; section?: SectionResult } | { ok: false; error: string; empty?: true };
+export type DrawingResult = { ok: true; views: DrawingViews; ms: number; sections?: SectionCut[] } | { ok: false; error: string; empty?: true };
 
 /** `orientation` (R14.3b): the side the front view looks from (default −Y). */
 export function projectViews(breps: readonly Brep[], prefixes?: readonly string[], options: { tangentEdges?: boolean; orientation?: Orientation } = {}): DrawingResult {

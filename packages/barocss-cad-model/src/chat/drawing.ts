@@ -13,14 +13,15 @@ import { tableContent } from '../drawing/tables';
 import { bomPanelDataOf } from '../team/bom';
 import type { Bom } from '../team/bomCore';
 import { holeCallout } from '../drawing/callout';
-import { sectionOf } from '../drawing/section';
+import { sectionsCut } from '../drawing/section';
+import { sheetSections } from '../drawing/sheet';
 import { threadsOf } from '../app/threads';
 import { autoDimensions } from '../drawing/auto';
 import { autoLayout, frontByInformation } from '../drawing/layout';
 import { reorient } from '../drawing/reorient';
 import { drawingIssues, fixAll, issueContext, type DrawingIssueCode, type SheetInputs } from '../drawing/issues';
 import { acceptAll, applySuggestion, toleranceSuggestions } from '../drawing/tolerance';
-import { readDrawing, VIEW_IDS, type DrawingSettings, type ViewId } from '../drawing/types';
+import { readDrawing, sectionsOf, VIEW_IDS, type DrawingSettings, type ViewId } from '../drawing/types';
 import { SCALES, scaleLabel } from '../drawing/views';
 
 export const DRAWING_TOOL_NAMES = new Set(['drawing_issues', 'tolerance_suggestions', 'auto_dimension', 'fix_drawing', 'accept_tolerances', 'set_drawing']);
@@ -60,14 +61,14 @@ export const DRAWING_TOOLS = [
   },
 ];
 
-/** What the drawing is built from: the part's views, its drawing settings, callouts, threads and section A–A. */
+/** What the drawing is built from: the part's views, its drawing settings, callouts, threads and sections (O148 X1). */
 export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDrawing(doc.drawing)): SheetInputs | string {
   const b = brepsFor(doc);
   if ('error' in b) return `The part could not be evaluated: ${b.error}`;
   const r = projectViews(b.breps, b.prefixes, { tangentEdges: !!settings.tangent, ...(settings.orientation ? { orientation: settings.orientation } : {}) });
   if (!r.ok) return r.empty ? 'There is no body to draw yet.' : `The views could not be projected: ${r.error}`;
-  const section = settings.section ? sectionOf(doc, settings.section.y, settings.orientation) : undefined, elements = partElements(doc), bom = bomOf(doc, settings);
-  return { views: r.views, settings, elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(doc).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}) }, ...(section?.ok ? { section } : {}) };
+  const sections = sheetSections(sectionsCut(doc, sectionsOf(settings), settings.orientation)), elements = partElements(doc), bom = bomOf(doc, settings);
+  return { views: r.views, settings, elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(doc).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}) }, ...(sections.length ? { sections } : {}) };
 }
 
 /** O147 B2: the BOM, when a table or the balloons read it (each document evaluated on its own, synchronously). */

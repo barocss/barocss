@@ -94,6 +94,12 @@ export interface DrawingSettings {
   balloons?: boolean;
   /** Section A–A: the part cut by the plane square to the front view's depth at `y` along it (Y = y from −Y), seen like the front view, under it (none: no section). */
   section?: { y: number };
+  /**
+   * O148 X1: the sections, each the part cut by the plane square to its view's depth at `at` along it, seen as that view
+   * (front, top or right) with the material in front taken away. A file with only `section` reads as `[{ A, front, y }]`
+   * (`sectionsOf`); one section A on the front is written back as `section`, so such files stay as they were.
+   */
+  sections?: DrawingSection[];
   /** The title block's part name (default: the file name). */
   title?: string;
   /** The drawing's revision (A, B, … or 01), shown in the title block's REV cell (default: -). */
@@ -118,12 +124,37 @@ export interface DrawingSettings {
   datums?: DrawingDatum[];
   frames?: DrawingFrame[];
 }
+/** O148 X1: a section — its letter, the view whose depth its plane is square to, and where along that depth (mm). */
+export interface DrawingSection { id: string; view: SectionViewId; at: number }
+export type SectionViewId = 'front' | 'top' | 'right';
+export const SECTION_VIEWS: readonly SectionViewId[] = ['front', 'top', 'right'];
+/** The drawing's sections: its list, or the one `section` older files have (A on the front view). */
+export const sectionsOf = (s: Pick<DrawingSettings, 'section' | 'sections'>): DrawingSection[] => s.sections ?? (s.section ? [{ id: 'A', view: 'front', at: s.section.y }] : []);
+/** The settings with these sections: one A on the front as `section` (as files have always had it), more as `sections`. */
+export function withSections(s: DrawingSettings, list: readonly DrawingSection[]): DrawingSettings {
+  const rest = { ...s }; delete rest.section; delete rest.sections;
+  if (!list.length) return rest;
+  if (list.length === 1 && list[0].id === 'A' && list[0].view === 'front') return { ...rest, section: { y: list[0].at } };
+  return { ...rest, sections: list.map(x => ({ ...x })) };
+}
+/** The next free section letter (A, B, … Z; then AA, AB, …). */
+export function nextSectionId(list: readonly DrawingSection[]): string {
+  const used = new Set(list.map(x => x.id));
+  for (let k = 0; ; k++) { const id = k < 26 ? String.fromCharCode(65 + k) : String.fromCharCode(64 + Math.floor(k / 26)) + String.fromCharCode(65 + k % 26); if (!used.has(id)) return id; }
+}
 export type RoomSide = 'above' | 'below' | 'left' | 'right';
 export type ViewRoom = Partial<Record<ViewId, Partial<Record<RoomSide, number>>>>;
 export const ROOM_SIDES: readonly RoomSide[] = ['above', 'below', 'left', 'right'];
 
 export const defaultDrawing = (): DrawingSettings => ({ sheet: 'A4', projection: 'third', hidden: true, dimensions: [] });
 
+/** A saved section list: each with a letter (A–Z, two at most), a principal view and a finite position, letters unique; none valid, none. */
+function readSections(raw: unknown): DrawingSection[] | null {
+  if (!Array.isArray(raw)) return null;
+  const out: DrawingSection[] = [];
+  for (const x of raw) if (x && typeof x.id === 'string' && /^[A-Z]{1,2}$/.test(x.id) && SECTION_VIEWS.includes(x.view) && typeof x.at === 'number' && Number.isFinite(x.at) && !out.some(o => o.id === x.id)) out.push({ id: x.id, view: x.view, at: x.at });
+  return out.length ? out : null;
+}
 /** Reads drawing settings from a saved file, keeping what is valid. */
 export function readDrawing(raw: unknown): DrawingSettings {
   const d = defaultDrawing(), r = (raw ?? {}) as Partial<DrawingSettings>;
@@ -137,6 +168,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(r.weldSymbols === true ? { weldSymbols: true } : {}),
     ...(r.balloons === true ? { balloons: true } : {}),
     ...(r.section && typeof r.section.y === 'number' && Number.isFinite(r.section.y) ? { section: { y: r.section.y } } : {}),
+    ...(readSections(r.sections) ? { sections: readSections(r.sections)! } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),
     ...(typeof r.revisedModel === 'string' ? { revisedModel: r.revisedModel } : {}),

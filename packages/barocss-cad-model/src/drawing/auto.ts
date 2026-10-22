@@ -126,7 +126,7 @@ function extreme(snaps: readonly SnapPoint[], k: 0 | 1, max: boolean): SnapPoint
 /** Free sheet room beside a view on each side: up to the nearest other view, the section, the title block or the frame. */
 function room(layout: SheetLayout, id: ViewId): Record<Side, number> {
   const [x0, y0, x1, y1] = layout.views[id].box, f = layout.frame;
-  const others = [...ORTHO.filter(o => o !== id), 'iso' as const].filter(o => !layout.views[o].hidden).map(o => layout.views[o].box).concat(layout.section ? [layout.section.box] : [], [layout.title]);
+  const others = [...ORTHO.filter(o => o !== id), 'iso' as const].filter(o => !layout.views[o].hidden).map(o => layout.views[o].box).concat((layout.sections ?? []).map(x => x.box), [layout.title]);
   const out: Record<Side, number> = { above: y0 - f[1], below: f[3] - y1, left: x0 - f[0], right: f[2] - x1 };
   for (const [a0, b0, a1, b1] of others) {
     const overlapsX = a0 < x1 && a1 > x0, overlapsY = b0 < y1 && b1 > y0;

@@ -16,13 +16,13 @@ import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
-import { buildSheet, curveMark, dimensionMarks } from '@barocss/cad-model/drawing/sheet';
+import { buildSheet, curveMark, dimensionMarks, sectionExtents, sectionMiddle, sheetSections } from '@barocss/cad-model/drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '@barocss/cad-model/drawing/svg';
 import { toleranceText } from '@barocss/cad-model/drawing/sheet';
 import { pdfMissing, sheetPdf } from '@barocss/cad-model/drawing/pdf';
 import { sectionDxfDocument, sheetDxf } from '@barocss/cad-model/drawing/dxf';
 import { MIN_HOLE_ON_PAPER_MM, autoLayout, frontByInformation } from '@barocss/cad-model/drawing/layout';
-import { reorient } from '@barocss/cad-model/drawing/reorient';
+import { reorient, turnSections } from '@barocss/cad-model/drawing/reorient';
 import { applyFix, drawingIssues, fixAll, type DrawingIssue } from '@barocss/cad-model/drawing/issues';
 import { acceptAll, applySuggestion, toleranceSuggestions, type ToleranceSuggestion } from '@barocss/cad-model/drawing/tolerance';
 import { writeDxf, type DxfVersion } from '@barocss/cad';
@@ -30,10 +30,10 @@ import { holeCallout } from '@barocss/cad-model/drawing/callout';
 import { threadsOf } from '@barocss/cad-model/app/threads';
 import { ORIENTATIONS, SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '@barocss/cad-model/drawing/dimensions';
-import { VIEW_IDS, modelPrint, nextRevision, type DimPoint, type DrawingNote, type DrawingTable, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
+import { SECTION_VIEWS, VIEW_IDS, modelPrint, nextRevision, nextSectionId, sectionsOf, withSections, type SectionViewId, type DimPoint, type DrawingNote, type DrawingTable, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
 import { Icon, Kbd } from './atoms';
-import type { SectionResult } from '@barocss/cad-model/drawing/section';
+import type { SectionCut } from '@barocss/cad-model/drawing/section';
 import '../drawing/drawing.css';
 
 /** The front view's sides, as the SHEET card names them (R14.3b). */
@@ -71,9 +71,12 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   // The views as projected, with the front side they were projected for (R14.3b): only those of the drawing's side are used.
   const [projected, setProjected] = useState<{ views: DrawingViews; side: string } | null>(null);
   const views = projected && projected.side === (settings.orientation ?? 'y-') ? projected.views : null;
-  /** Section A–A as last projected (or why it could not be cut). */
-  const [section, setSection] = useState<SectionResult | null>(null);
+  /** The sections as last cut (O148 X1; each with why it could not be cut). */
+  const [cutsMade, setCutsMade] = useState<SectionCut[] | null>(null);
   const [sectionY, setSectionY] = useState<string | null>(null);
+  const [sectionAt, setSectionAt] = useState<{ id: string; text: string } | null>(null);
+  const [dxfSection, setDxfSection] = useState<string | null>(null);
+  const sectionList = sectionsOf(settings), sectionKey = JSON.stringify(sectionList);
   const [error, setError] = useState<string | null>(null);
   /** The part has no body yet: the panel says so, and nothing is raised as an error. */
   const [empty, setEmpty] = useState(false);
@@ -104,18 +107,20 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   useEffect(() => {
     let live = true; setBusy(true);
     const side = settings.orientation ?? 'y-';
-    engine.drawing(model, { tangentEdges: !!settings.tangent, ...(settings.section ? { section: settings.section } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}) }).then(r => {
+    engine.drawing(model, { tangentEdges: !!settings.tangent, ...(sectionList.length ? { sections: sectionList } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}) }).then(r => {
       if (!live) return;
       setBusy(false);
       setEmpty(!r.ok && !!r.empty);
-      if (r.ok) { setProjected({ views: r.views, side }); setSection(r.section ?? null); setError(null); } else { setProjected(null); setSection(null); setError(r.error); }
+      if (r.ok) { setProjected({ views: r.views, side }); setCutsMade(r.sections ?? null); setError(null); } else { setProjected(null); setCutsMade(null); setError(r.error); }
     });
     return () => { live = false; };
-  }, [engine, model, settings.tangent, settings.section?.y, settings.orientation]);
+  }, [engine, model, settings.tangent, sectionKey, settings.orientation]);
 
   const title = settings.title ?? fileName;
-  const cut = settings.section && section?.ok ? section : undefined;
-  const layout = useMemo(() => views && layoutSheet(views, settings, cut?.projection), [views, settings, cut]);
+  // (The sections the settings list, as cut for them: one whose letter, view or place changed is cut again first.)
+  const cuts = useMemo(() => sheetSections((cutsMade ?? []).filter(c => sectionList.some(x => x.id === c.id && x.view === c.view && x.at === c.at))), [cutsMade, sectionKey]);
+  const sectionA = sectionList.find(x => x.id === 'A' && x.view === 'front'), cutA = cutsMade?.find(c => c.id === 'A' && c.view === 'front');
+  const layout = useMemo(() => views && layoutSheet(views, settings, sectionExtents(settings, cuts)), [views, settings, cuts]);
   // Diameter dimensions on a hole read as its callout (count, size or thread, depth, counterbore or countersink).
   // (D155: a diameter on a face with a fit class shows the class and its limits; a class with no row, an issue.)
   // (O145: and the machine elements' callouts — a bearing's seat, a ring's groove.)
@@ -144,14 +149,14 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const kinds = new Set((bodies ?? []).flatMap(b => b.element ? [b.element.kind] : [])), hasBought = (bodies ?? []).some(b => b.ref && doc.nodes[b.ref.node]?.bought === true);
   // (FRd2, O119: the frame's weld joints for the symbols, when they are shown.)
   const weldJoints = useMemo(() => settings.weldSymbols && bodies ? weldList(doc, bodies).joints : undefined, [settings.weldSymbols, doc, bodies]);
-  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cut), [views, layout, settings, title, cut, callout, threads, tableContentOf, weldJoints, bom]);
+  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bom]);
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
   const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout, fitMiss: fitMissOf, followedChanged }) : [], [views, layout, settings, sheet, callout, fitMissOf, followedChanged]);
   // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.
   const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
   const acceptEvery = () => {
     if (!views) return;
-    const r = acceptAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cut ? { section: cut } : {}) });
+    const r = acceptAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
     onChange(r.settings);
     const est = r.accepted.filter(x => x.estimate).length;
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
@@ -159,7 +164,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const fixIssue = (x: DrawingIssue) => { if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout }, x.fix)); };
   const fixEvery = () => {
     if (!views) return;
-    const r = fixAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cut ? { section: cut } : {}) });
+    const r = fixAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
     onChange(r.settings);
     onToast({ title: `${r.applied.length} fix${r.applied.length === 1 ? '' : 'es'} applied`, hint: r.left.length ? `${r.left.length} issue${r.left.length === 1 ? '' : 's'} left: ${r.left[0].message}` : 'The drawing has no issues.', detail: r.left.slice(1).map(x => x.message).join('\n') });
   };
@@ -352,14 +357,16 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     };
     w.__studioDrawing = () => sheet && { scale: layout?.scale, dimensions: sheet.dimensions.map(r => r.ok ? { id: r.dim.id, text: r.text, value: r.value } : { id: r.dim.id, lost: r.reason }),
       hidden: Object.fromEntries(VIEW_IDS.map(id => [id, views![id].edges.reduce((n, e) => n + e.pieces.filter(p => !p.visible).length, 0)])),
-      section: section ? (section.ok ? { rings: section.rings.length, edges: section.projection.edges.length } : { error: section.error }) : null,
+      section: cutA ? (cutA.result.ok ? { rings: cutA.result.rings.length, edges: cutA.result.projection.edges.length } : { error: cutA.result.error }) : null,
+      sections: (cutsMade ?? []).map(c => ({ id: c.id, view: c.view, at: c.at, ...(c.result.ok ? { rings: c.result.rings.length, edges: c.result.projection.edges.length } : { error: c.result.error }) })),
+      placedSections: (layout?.sections ?? []).map(p => ({ id: p.section, of: p.of, box: p.box })),
       issues: issues.map(x => ({ code: x.code, severity: x.severity, ...(x.fix ? { fix: x.fix.kind } : {}), ...(x.tables ? { tables: x.tables } : {}) })),
       tables: (sheet.tables ?? []).map(x => ({ id: x.id, box: x.box, ...(x.error ? { error: x.error } : {}) })),
       ...(sheet.welds ? { welds: { placed: sheet.welds.placed.map(p => ({ label: p.label, view: p.view })), unshown: sheet.welds.unshown } } : {}),
       ...(sheet.balloons ? { balloons: { placed: sheet.balloons.placed.map(p => ({ no: p.no, item: p.item, view: p.view, edge: p.edge })), unclear: sheet.balloons.unclear, noEdge: sheet.balloons.noEdge } } : {}),
       suggestions: suggestions.map(x => ({ id: x.id, kind: x.kind, estimate: x.estimate })) };
     return () => { delete w.__studioDrawingAt; delete w.__studioDrawing; };
-  }, [layout, sheet, views, section, issues, suggestions]);
+  }, [layout, sheet, views, cutsMade, issues, suggestions]);
 
   const exportSvg = () => { if (sheet) downloadBytes(new TextEncoder().encode(sheetSvg(sheet, title)), `${fileName}.svg`, 'image/svg+xml'); };
   const exportPdf = () => {
@@ -376,14 +383,15 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const autoDimension = async () => {
     if (!views) return;
     // The front's side by information (R14.3b), when nothing placed by hand ties it: the part projected for it first.
-    let base = { views, settings, section: cut };
+    let base = { views, settings, sections: cuts };
     const pick = frontByInformation(views, settings);
     if (pick) {
-      const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(settings.section ? { section: settings.section } : {}), ...(pick.orientation !== 'y-' ? { orientation: pick.orientation as 'x+' } : {}) });
+      const ts = turnSections(settings, pick.orientation), list = Array.isArray(ts) ? ts : [];
+      const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(list.length ? { sections: list } : {}), ...(pick.orientation !== 'y-' ? { orientation: pick.orientation as 'x+' } : {}) });
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
-      if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, section: turned.settings.section && r.section?.ok ? r.section : undefined };
+      if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, sections: sheetSections(r.sections ?? []) };
     }
-    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(base.section ? { section: base.section } : {}) });
+    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(base.sections.length ? { sections: base.sections } : {}) });
     onChange(next);
     const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts + report.dimensions.keys;
     const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';
@@ -412,9 +420,11 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       if (r.report.r12) { const x = r.report.r12, n = x.ellipses + x.splines; onToast({ title: 'DXF R12 written', hint: `${n ? `${n} curve${n > 1 ? 's' : ''} as polylines within 0.001 mm; ` : ''}${x.hatches ? 'hatching as lines; ' : ''}no line weights or units in R12 (the drawing is in mm).`, detail: '' }); }
     } catch (e) { dxfFailed(e); }
   };
+  // (O148 X1: the section chosen — the first by default — alone as a 1:1 DXF.)
+  const dxfCut = cuts.find(c => c.id === dxfSection) ?? cuts[0];
   const exportSectionDxf = () => {
-    if (!cut) return;
-    try { downloadBytes(writeDxf(sectionDxfDocument(cut), { version: dxfVersion }).bytes, `${fileName}-section-A-A.dxf`, 'image/vnd.dxf'); } catch (e) { dxfFailed(e); }
+    if (!dxfCut) return;
+    try { downloadBytes(writeDxf(sectionDxfDocument(dxfCut), { version: dxfVersion }).bytes, `${fileName}-section-${dxfCut.id}-${dxfCut.id}.dxf`, 'image/vnd.dxf'); } catch (e) { dxfFailed(e); }
   };
   useEffect(() => { if (error && !empty) onToast({ title: 'Could not draw the part', hint: 'Fix the model’s errors first, then open the drawing again.', detail: error }); }, [error, empty]);
 
@@ -457,9 +467,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   // The dimension being dragged is drawn where it goes.
   const shownMarkup = useMemo(() => {
     if (!drag || 'pan' in drag || !views || !layout || !sheet) return sheetMarkup;
-    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cut), selected);
+    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), selected);
     const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(views[d.view], d.a), pointIn(views[d.view], d.b), drag.place) } : { ...d, place: drag.place }) : d);
-    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cut), selected);
+    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), selected);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, weldJoints, bom]);
 
   const hint = message ?? (pending ? (pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
@@ -498,16 +508,36 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
         <label className="field"><span>Projection</span><select aria-label="Projection" value={settings.projection} onChange={e => onChange({ ...settings, projection: e.target.value as 'third' })}>
           <option value="third">Third angle</option><option value="first">First angle</option></select></label>
         <label className="field"><span>Hidden lines</span><input type="checkbox" className="check" aria-label="Hidden lines" checked={settings.hidden} onChange={e => onChange({ ...settings, hidden: e.target.checked })} /></label>
-        <label className="field"><span>Section A–A</span><input type="checkbox" className="check" aria-label="Section A–A" checked={!!settings.section} onChange={e => {
-          const rest = { ...settings }; delete rest.section;
+        <label className="field"><span>Section A–A</span><input type="checkbox" className="check" aria-label="Section A–A" checked={!!sectionA} onChange={e => {
+          const rest = sectionList.filter(x => !(x.id === 'A' && x.view === 'front'));
           // By default through the middle of the part, front to back.
-          onChange(e.target.checked && views ? { ...rest, section: { y: Math.round((views.top.min[1] + views.top.max[1]) / 2 * 100) / 100 } } : rest);
+          const at = views ? sectionMiddle(views, 'front', settings.orientation) : null;
+          onChange(withSections(settings, e.target.checked && at !== null && !rest.some(x => x.id === 'A') ? [{ id: 'A', view: 'front', at }, ...rest] : rest));
         }} /></label>
-        {settings.section && <label className="field"><span>Cut at Y</span><span className="num"><input type="number" step="any" aria-label="Section Y" value={sectionY ?? settings.section.y}
+        {sectionA && <label className="field"><span>Cut at Y</span><span className="num"><input type="number" step="any" aria-label="Section Y" value={sectionY ?? sectionA.at}
           onChange={e => setSectionY(e.target.value)}
-          onBlur={() => { const y = Number(sectionY); if (sectionY !== null && sectionY.trim() !== '' && Number.isFinite(y)) onChange({ ...settings, section: { y } }); setSectionY(null); }}
+          onBlur={() => { const y = Number(sectionY); if (sectionY !== null && sectionY.trim() !== '' && Number.isFinite(y)) onChange(withSections(settings, sectionList.map(x => x === sectionA ? { ...x, at: y } : x))); setSectionY(null); }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /><em>mm</em></span></label>}
-        {settings.section && section && !section.ok && <div className="empty" style={{ color: 'var(--warn)' }}>Section A–A: {section.error}</div>}
+        {sectionA && cutA && !cutA.result.ok && <div className="empty" style={{ color: 'var(--warn)' }}>Section A–A: {cutA.result.error}</div>}
+        {/* (O148 X1: more sections, each square to the front, top or right view's depth; letters in order.) */}
+        {sectionList.filter(x => x !== sectionA).map(x => {
+          const made = cutsMade?.find(c => c.id === x.id && c.view === x.view && c.at === x.at);
+          return <div key={x.id} className="field" aria-label={`Section ${x.id}`}>
+            <span>Section {x.id}–{x.id}</span>
+            <select aria-label={`Section ${x.id} view`} value={x.view} onChange={e => { const view = e.target.value as SectionViewId, at = views ? sectionMiddle(views, view, settings.orientation) : null; if (at !== null) onChange(withSections(settings, sectionList.map(y => y === x ? { ...y, view, at } : y))); }}>
+              {SECTION_VIEWS.map(v => <option key={v} value={v}>{VIEWS[v].label.toLowerCase()}</option>)}</select>
+            <span className="num"><input type="number" step="any" aria-label={`Section ${x.id} at`} value={sectionAt?.id === x.id ? sectionAt.text : x.at}
+              onChange={e => setSectionAt({ id: x.id, text: e.target.value })}
+              onBlur={() => { const v = Number(sectionAt?.text); if (sectionAt?.id === x.id && sectionAt.text.trim() !== '' && Number.isFinite(v)) onChange(withSections(settings, sectionList.map(y => y === x ? { ...y, at: v } : y))); setSectionAt(null); }}
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /><em>mm</em></span>
+            <button className="tool tiny" aria-label={`Remove section ${x.id}`} title={`Remove section ${x.id}–${x.id}`} onClick={() => onChange(withSections(settings, sectionList.filter(y => y !== x)))}><Icon name="close" small /></button>
+            {made && !made.result.ok && <div className="empty" style={{ color: 'var(--warn)' }}>{made.result.error}</div>}
+          </div>;
+        })}
+        <button className="ghost small" aria-label="Add section" disabled={!views} title="Another section, square to the top view's depth (change its view and place after)" onClick={() => {
+          const view: SectionViewId = sectionList.some(x => x.view === 'top') ? 'right' : 'top', at = views ? sectionMiddle(views, view, settings.orientation) : null;
+          if (at !== null) onChange(withSections(settings, [...sectionList, { id: nextSectionId(sectionList), view, at }]));
+        }}>Add section</button>
         {(['right', 'iso'] as const).map(v => <label key={v} className="field"><span>{v === 'right' ? 'Right view' : 'Isometric view'}</span><input type="checkbox" className="check" aria-label={v === 'right' ? 'Right view' : 'Isometric view'} checked={!settings.views || settings.views.includes(v)} onChange={e => {
           const on = new Set(settings.views ?? VIEW_IDS); if (e.target.checked) on.add(v); else on.delete(v);
           const next = { ...settings }; delete next.views; onChange(on.size === VIEW_IDS.length ? next : { ...next, views: VIEW_IDS.filter(x => on.has(x)) });
@@ -619,7 +649,8 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
           <select aria-label="DXF version" value={dxfVersion} onChange={e => setDxfVersion(e.target.value as DxfVersion)} title="DXF 2000, or R12 for older programs (curves as polylines)">
             <option value="AC1015">2000</option><option value="AC1009">R12</option>
           </select>
-          {cut && <button className="ghost" onClick={exportSectionDxf} aria-label="Export section DXF" title="Section A–A alone, 1:1 in model mm">A–A DXF</button>}
+          {cuts.length > 1 && <select aria-label="Section for DXF" value={dxfCut?.id} onChange={e => setDxfSection(e.target.value)} title="The section to export alone">{cuts.map(c => <option key={c.id} value={c.id}>{c.id}–{c.id}</option>)}</select>}
+          {dxfCut && <button className="ghost" onClick={exportSectionDxf} aria-label="Export section DXF" title={`Section ${dxfCut.id}–${dxfCut.id} alone, 1:1 in model mm`}>{dxfCut.id}–{dxfCut.id} DXF</button>}
         </div>
         {sheet && <div className="empty">{scaleLabel(layout!.scale)} · {settings.sheet} · {VIEW_IDS.map(id => `${VIEWS[id].label.toLowerCase()} ${views![id].edges.length}`).join(', ')} edges</div>}
       </aside>

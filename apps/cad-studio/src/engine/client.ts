@@ -12,6 +12,7 @@ export interface ProposalOverlay {
 }
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { DrawingResult } from '@barocss/cad-model/drawing/project';
+import type { DrawingSection } from '@barocss/cad-model/drawing/types';
 import { WireSender } from '@barocss/cad-model/engine/wireDoc';
 import type { MeshDiagnosis, MeshRepairResult, MeshRepairSteps } from '@barocss/cad';
 
@@ -199,7 +200,7 @@ export class EngineClient {
   }
 
   /** The part's drawing views (hidden-line projections), never dropped as stale. */
-  drawing(doc: StudioDoc, options: { tangentEdges?: boolean; section?: { y: number }; orientation?: 'x+' | 'y+' | 'x-' } = {}): Promise<DrawingResult> {
+  drawing(doc: StudioDoc, options: { tangentEdges?: boolean; sections?: DrawingSection[]; orientation?: 'x+' | 'y+' | 'x-' } = {}): Promise<DrawingResult> {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { drawing: DrawingResult }).drawing));

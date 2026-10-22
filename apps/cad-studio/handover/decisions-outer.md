@@ -5729,3 +5729,47 @@ B2 is built as frozen. The BOM is worked out by the caller and passed in, so the
   - A line with no edge gives BALLOON_NO_EDGE; no room gives BALLOON_NOT_CLEAR (all four); a missing BOM gives the table error.
   - Flow step "BOM table and balloons (O147 B2)…": shaft and key on A3, both checkboxes; the table with no error; balloons 1–2 on the iso view, balloon 2 on the key's edge; no balloon or overlap issues; the SVG.
 - **Left open** (recorded, not built): balloons avoid only tables placed after them; a table pinned by `at` is not in their way yet. Leaders may cross another balloon's leader when the sides fill.
+
+## O148 X1 — sections as a list, on any principal plane (2026-10-22)
+
+X1 is built as the S0 froze it, with one correction (below).
+
+- **Settings** (`drawing/types.ts`):
+  - `sections?: [{ id, view: 'front' | 'top' | 'right', at }]`, where `at` runs along the view's depth (as A–A's `y` always did: Y = y for the default front; a top's depth is −Z, so its `at` is −z).
+  - `sectionsOf(settings)` reads the old `section: { y }` as `[{ A, front, y }]`.
+  - `withSections` writes one A on the front back as `section`, so such files stay byte for byte as they were.
+  - `readDrawing` keeps valid entries only: a letter A–Z (two at most), a principal view, a finite `at`, letters unique.
+  - `nextSectionId` gives the next free letter.
+- **Cutting** (`drawing/section.ts`):
+  - `sectionOf(doc, at, orientation, view)` cuts square to any principal view's depth. It uses the kernel's split along x, y or z (`sectionDepth` in views.ts) and projects as that view.
+  - `sectionsCut` cuts the whole list. The engine worker takes `options.sections`, and the drawing result carries `sections` (each with its result or error).
+- **Layout** (`layoutSheet`; `SheetLayout.sections`, each placement with its letter and view):
+  - A front's or a right's section goes in a row under the views, in its view's column and in projection with it. A–A is placed exactly as before. A later one moves along the row past the one before where they would meet.
+  - A top's section goes beside the top view, on the side away from its neighbour (third angle: left; first angle: right), in its row.
+  - The fit and Auto layout's scale count them all: the side column's width, the row's height, and the row's width when two or more share it.
+- **Sheet**:
+  - Each section is drawn (visible edges, hatch) with "SECTION X–X" under it. A front's or a right's is moved under its view's name, as A–A always was.
+  - Its cutting plane goes in the first shown view that sees the plane edge-on: a front's in the top view, then the right; a top's in the front view, then the right; a right's in the front view, then the top. It is a chain line, thick at its ends, with arrows the way it is seen and its letter at each end.
+  - The cutting planes are worked out before the views' names, so a name goes below its view's cutting-plane ends (a right section's vertical line on the front view no longer hits FRONT).
+  - The cutting-plane group is pushed right after its section's drawing, as A–A's marks always were, so the DXF fixtures keep their entity order. They pass unchanged.
+- **Correction to the S0**: the S0 said B–B's letters go "on the top view". A plane square to the top view's depth is parallel to that view and cannot show there as a line, so its cutting plane is drawn on the front view, where it is edge-on.
+- **Elsewhere**:
+  - Reorient (R14.3b) turns each section along its view's new depth (`turnSections`). A top's always stays. One cut across is refused (SECTION_ACROSS, naming it; A–A's message as before).
+  - The issue list, the weld symbols, auto-dimension's room and the tables keep clear of every section's box.
+  - The chat's drawingInputs cuts the list (`sheetSections`).
+- **Studio** (DrawingWorkspace):
+  - "Section A–A" and "Cut at Y" work as before.
+  - "Add section" adds the next letter on the top view (then the right), at the part's middle along that depth (`sectionMiddle`).
+  - Each other section has a row: its view (select; a change re-centres it), its `at`, and Remove.
+  - "Export section DXF" takes the section chosen (a select when there are two or more); the file is `…-section-X-X.dxf`.
+  - `__studioDrawing()` gives `sections` (id, view, at, rings/edges or error) and `placedSections`; `section` stays A's for the older flow steps.
+- **Tests** (`test/sections.test.ts`):
+  - B–B square to the top view through a stepped shaft (Ø20 × 30, Ø30 × 40) at the Ø30 step's middle:
+    - one ring, every vertex on the Ø30 circle, its area between its inscribed polygon's and πr²;
+    - A–A under the front view, B–B left of the top view in its row (first angle: right of it); the sheet fits on A3;
+    - its cutting plane at Z across the front view with B at both ends; hatched; no overlap, over-lines, off-sheet or fit issues;
+    - in the SVG, PDF and DXF.
+  - Files: old `section` → A on the front; two written as `sections`, back to one as `section`; invalid lists dropped; the next letter.
+  - Reorient: a top section kept; a right section across x+ refused.
+  - drawing.test and dxf.test read A–A's drawing group (`!view`); all R14 section and DXF fixtures pass unchanged.
+  - Flow step "sections (O148 X1)…": a box on A3; Add section gives B–B on the top view, beside it, one cut face, clean, in the SVG; its view → right, still one; B–B alone as DXF with a hatch; removed.

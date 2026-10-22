@@ -4,11 +4,11 @@
 //   carried through the model; a horizontal or vertical dimension turns with the axes; the views shown turn with them;
 // - every dimension must then read what it read before (the same edges, the same value): if one does not, or no
 //   longer resolves, the change is refused (ORIENTATION_REMAP_FAILED) and nothing changes;
-// - section A–A is cut square to the front view's depth: when the new depth lies along the old one the plane is kept
-//   (its position turned with it); across it the change is refused (SECTION_ACROSS) — turn the section off first.
+// - a section is cut square to its view's depth (A–A: the front's): when the new depth lies along the old one the plane
+//   is kept (its position turned with it); across it the change is refused (SECTION_ACROSS) — turn the section off first.
 import { resolveDimension, type Resolved } from './dimensions';
-import type { DrawingSettings, DrawingViews, ViewId, XY } from './types';
-import { depthOf, type Orientation } from './views';
+import { sectionsOf, withSections, type DrawingSection, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
+import { sectionDepth, type Orientation } from './views';
 
 export const REORIENT_VERSION = 'cad-studio-reorient-v1';
 
@@ -35,17 +35,28 @@ function viewMap(from: DrawingViews, to: DrawingViews): Map<ViewId, { view: View
 
 const readOf = (r: Resolved) => r.ok ? `${r.text} (${r.value})` : `lost: ${r.reason}`;
 
+/** The sections turned to `next` (each kept along its view's new depth, its place turned with it), or the first cut across it. */
+export function turnSections(settings: DrawingSettings, next: Orientation): DrawingSection[] | { across: DrawingSection } {
+  const was = orientationOf(settings), kept: DrawingSection[] = [];
+  for (const x of sectionsOf(settings)) {
+    const along = dot(sectionDepth(x.view, was).d, sectionDepth(x.view, next).d);
+    if (Math.abs(along) < 0.5) return { across: x };
+    kept.push({ ...x, at: along * x.at });
+  }
+  return kept;
+}
 /** The settings turned to `next` (its views projected for it), or why not. */
 export function reorient(from: DrawingViews, to: DrawingViews, settings: DrawingSettings, next: Orientation): ReorientResult {
   const map = viewMap(from, to), was = orientationOf(settings);
   const base: DrawingSettings = { ...settings }; delete base.orientation;
   const turned: DrawingSettings = next === 'y-' ? base : { ...base, orientation: next };
   if (was === next) return { ok: true, settings, moved: [] };
-  // Section A–A: kept where the new depth runs along the old (its position along it turned), refused across it.
-  if (settings.section) {
-    const a = depthOf(was), b = depthOf(next), along = dot(a, b);
-    if (Math.abs(along) < 0.5) return { ok: false, code: 'SECTION_ACROSS', message: 'Section A–A is cut across the present front view: turn it off first, then turn the drawing.' };
-    turned.section = { y: along * settings.section.y };
+  // Sections (A–A, and O148 X1's on any principal view): each kept where its view's new depth runs along the old (its
+  // position along it turned), refused across it.
+  if (sectionsOf(settings).length) {
+    const kept = turnSections(settings, next);
+    if ('across' in kept) return { ok: false, code: 'SECTION_ACROSS', message: `Section ${kept.across.id}–${kept.across.id} is cut across the present ${kept.across.view} view: turn it off first, then turn the drawing.` };
+    const w = withSections(turned, kept); delete turned.section; delete turned.sections; Object.assign(turned, w);
   }
   const moved: { from: ViewId; to: ViewId }[] = [];
   for (const [f, m] of map) if (m.view !== f) moved.push({ from: f, to: m.view });
