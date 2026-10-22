@@ -1660,3 +1660,36 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - studio type-check 0; eslint 0; build ok.
 - **Not run**: the flow on both renderers (shown, picked, the same after Save/New/Open), and instance-prefixed targets'
   selection on placed parts. Both wait for the browser slot.
+
+## G-R10 — G25 step 1: the triangle hierarchy packed for WGSL, with a CPU mirror (roadmap G6, 2026-10-23)
+
+- **Approved S0** (coordinator):
+  - (a) `compute/` in @barocss/gpu, exported as **experimental**: `computeExperimental` from the package. It may change
+    without a version bump, and has no docs page yet.
+  - (b) **G25c, the scan-to-CAD deviation, is deferred** until a scan input is decided. The robot workspace cloud is not
+    a scan.
+  - (c) G25a thickness, then G25b access, each its own checkpoint. The CPU values stay authoritative in the panels; the
+    GPU map is labelled "GPU estimate".
+- **What** (`packages/barocss-gpu/src/compute/bvhPack.ts`): `packBvh` packs the kernel's `triangleBvh` (K2) into two
+  storage buffers.
+  - **Nodes**, 8 words each:
+    - the box low and high as f32, rounded outward from f64 (`f32Down`, `f32Up`);
+    - a link: an inner node's first child, or −1 − start for a leaf;
+    - a leaf's count.
+  - **Triangles**, 12 words each: in leaf order, f32 vertices, and the source triangle's index for `skip`.
+  - **Depth refusal**: a hierarchy deeper than the WGSL traversal's fixed 64-entry stack is refused (`[GPU_BVH_DEPTH]`).
+    A DFS that pushes both children holds at most depth + 1 entries; the median split keeps the depth near
+    log2(triangles / 4).
+  - **The CPU mirror**: `packedRayHit` and `packedNearestDistance2` run the kernel's algorithms (slab test, Möller–Trumbore,
+    Ericson's regions, nearer child first) on the packed words, as the shaders will. No allocation per query, and no
+    per-element closure.
+- **Tests** (`tests/compute-bvh-pack.test.mjs`, 5, in gpu `test`). Meshes: a box off the origin, a sphere of 2400
+  triangles, and a sphere of 10 000 triangles at r 0.9.
+  - The outward rounding is exact.
+  - Every triangle appears once in leaf order with its source index, each f32 vertex inside its leaf's f32 box.
+  - The mirror's ray hit equals the kernel's within 1e-5 of the mesh's size: 400 rays a mesh, hits and misses, plus an
+    inward ray skipping its own triangle.
+  - The nearest distance does too, bounded queries included.
+  - A 69-deep chain is refused.
+- **Checks** (T1): gpu `test` 184/184; gpu type-check 0; eslint (compute, index) 0; `build:library` ok.
+- **Next**: G25a, the WGSL kernels (thickness) and their browser spec against the CPU map. The spec waits for the slot.
