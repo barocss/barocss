@@ -5,7 +5,8 @@
 import type { ModelNode, StudioDoc } from '../engine/doc';
 import type { Evaluate } from '../chat/tools';
 import { elementLines } from '../engine/elements';
-import { bomView, deriveBom, type Bom, type BomLine, type BomView } from './assembly';
+import { bomViewOf, deriveBom, type Bom, type BomLine, type BomView } from './assembly';
+import type { EvalResult } from '../engine/evaluate';
 
 /** A made element's line (merged as the bought ones are): what the panel offers to mark bought. */
 export interface MadeLine { item: string; parts: string[]; qty: number; kind: string; size: string; row: string | null; override: boolean }
@@ -13,14 +14,20 @@ export interface BomPanelData { view: BomView; bom: Bom; made: MadeLine[]; /** A
 
 const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 
-/** The panel's data: the BOM, and the made elements by line. */
+/** The panel's data: the BOM, and the made elements by line (each document evaluated once, then `bomPanelDataOf`). */
 export async function bomPanelData(doc: StudioDoc, evaluate: Evaluate, name = 'this part'): Promise<BomPanelData> {
-  const view = await bomView(doc, evaluate), single = !(doc.instances ?? []).length;
+  const results = new Map<StudioDoc, EvalResult | null>();
+  for (const d of [doc, ...(doc.instances ?? []).map(i => i.doc)]) if (!results.has(d)) results.set(d, await evaluate(d));
+  return bomPanelDataOf(doc, d => results.get(d) ?? null, name);
+}
+/** The panel's data from evaluations given at once (the chat's drawings: synchronous). */
+export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResult | null, name = 'this part'): BomPanelData {
+  const view = bomViewOf(doc, evaluate), single = !(doc.instances ?? []).length;
   const docs: [string, StudioDoc][] = [['base', doc], ...(doc.instances ?? []).map(i => [i.id, i.doc] as [string, StudioDoc])];
   const made: MadeLine[] = [];
   let baseMass = 0;
   for (const [part, d] of docs) {
-    const e = await evaluate(d); if (!e?.ok) continue;
+    const e = evaluate(d); if (!e?.ok) continue;
     if (part === 'base') baseMass = e.bodies.reduce((s, b) => s + (b.massG ?? 0), 0);
     for (const l of elementLines(d, e.bodies)) {
       if (l.bought) continue;

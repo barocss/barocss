@@ -6,7 +6,7 @@
 // checked against the assembly (every instance counted once, the totals), with a library part's source named.
 import { meshClearance } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
-import type { BodyResult } from '../engine/evaluate';
+import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { Evaluate } from '../chat/tools';
 import { massProperties } from '../chat/analysis';
 import { materialIdOf } from '../app/bodies';
@@ -80,9 +80,16 @@ export interface BomRole { model: string; bom(view: BomView): Promise<Bom & Role
 const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** The BOM agent's view: each part's name, material, mass, its library origin and a fingerprint of its shape — nothing to change. */
 export async function bomView(doc: StudioDoc, evaluate: Evaluate): Promise<BomView> {
+  // (Each document evaluated once, then the view built from the results: the same as bomViewOf with a synchronous evaluation.)
+  const results = new Map<StudioDoc, EvalResult | null>();
+  for (const d of [doc, ...(doc.instances ?? []).map(i => i.doc)]) if (!results.has(d)) results.set(d, await evaluate(d));
+  return bomViewOf(doc, d => results.get(d) ?? null);
+}
+/** The BOM agent's view from evaluations given at once (O147: the chat's drawings build it synchronously). */
+export function bomViewOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResult | null): BomView {
   const parts: BomView['parts'] = [];
   for (const inst of doc.instances ?? []) {
-    const e = await evaluate(inst.doc), bodies = e?.ok ? e.bodies : [];
+    const e = evaluate(inst.doc), bodies = e?.ok ? e.bodies : [];
     const lib = inst.doc.nodes.find(n => n.kind === 'library') as { library?: { library?: string; version?: string; part?: string; variant?: string } } | undefined, o = lib?.library;
     parts.push({ id: inst.id, name: inst.name, material: bodies.length ? materialIdOf(inst.doc, bodies[0]) ?? null : null, massG: r6(massOf(inst.doc, bodies)), library: o ? `${o.library}@${o.version}/${o.part}${o.variant ? `:${o.variant}` : ''}` : null, shape: JSON.stringify(inst.doc.nodes) });
   }
@@ -91,8 +98,8 @@ export async function bomView(doc: StudioDoc, evaluate: Evaluate): Promise<BomVi
   const take = (part: string, d: StudioDoc, bodies: readonly BodyResult[]) => {
     for (const l of elementLines(d, bodies)) if (l.bought) elements.push({ part, item: l.item, kind: l.kind, size: l.size, row: l.row?.id ?? null, source: l.row?.source ?? null, estimate: l.estimate, why: l.why, by: l.boughtBy, massG: l.massG === null ? null : r6(l.massG), ...(l.catalogue ? { catalogue: l.catalogue } : {}) });
   };
-  const base = await evaluate(doc); if (base?.ok) take('base', doc, base.bodies);
-  for (const inst of doc.instances ?? []) { const e = await evaluate(inst.doc); if (e?.ok) take(inst.id, inst.doc, e.bodies); }
+  const base = evaluate(doc); if (base?.ok) take('base', doc, base.bodies);
+  for (const inst of doc.instances ?? []) { const e = evaluate(inst.doc); if (e?.ok) take(inst.id, inst.doc, e.bodies); }
   return JSON.parse(JSON.stringify({ parts, ...(elements.length ? { elements } : {}) })) as BomView;
 }
 /** The BOM checked against the assembly: every instance on one line once, each line's quantity its parts, the totals. */
