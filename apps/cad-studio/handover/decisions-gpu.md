@@ -1934,3 +1934,25 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   runs the CPU rays itself. Seeding the samples from the GPU would make the panels' numbers the GPU's. The GPU
   thickness pass stays built and tested for when the range can come from elsewhere.
 - **Checks**: gpu `test` 189/189; type-check 0 (gpu, studio); eslint 0; studio gpu-analyses and analysis-maps 8/8.
+
+## G-R19 — G20.2's cap-leak check made right for antialiased caps; viewer-pose-clip 18/18 (roadmap G7, 2026-10-23)
+
+- **The failure** (viewer-pose-clip #6, which could first run after G-R18): 77 cap pixels where the CPU's centre ray
+  meets no cap, against 10 allowed.
+- **What it was**: a probe on the test's own scene (a cut-out 40 × 20 × 10 plate with a shadow catcher), each cap pixel
+  classed by its colour and its neighbours:
+  - with antialiasing (Codex's per-sample caps), the 64 such pixels were all beside a CPU cap pixel, and none was the
+    pure cap colour. They are partly covered edge pixels: the cap on some of their samples. That is G7's antialiased
+    cap edge, not a leak.
+  - without antialiasing, 3, within the allowance.
+  - The leak G20.2 guarded against (660 pixels before its fix) covers whole pixels.
+- **The check now**:
+  - A leak is a pixel of the pure cap colour (every sample cap) where the CPU's ray meets no cap: 10 allowed, as before.
+  - Partly covered cap pixels must exist, so the cap edge is antialiased.
+  - Result: 11 050 cap pixels, 0 leaks, 77 partly covered (load 1m 11).
+- **viewer-pose-clip 18/18.** With G-R18, every gpu browser spec passes, one file each: viewer, scene-viewer,
+  pose-clip, uv-repeating, compute-thickness, compute-access.
+- **G7 so far**: antialiased cap edges are shown (the fringe), with no leaks and the caps' picks unchanged (pose-clip's
+  G2, G19 and G20 pick checks pass). Still open from its S0:
+  - AA on against off on a box at 0°, 30° and 45° and a cylinder (the interior unchanged, coverage at the edge);
+  - capFrontSamples' memory and the frame time.
