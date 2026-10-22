@@ -6917,3 +6917,55 @@ The A9 run's second test continues the first's state. It is one run on one docum
 **Still to do in O5:** step 9 (the drawings, one per made part in sequence: the document has one drawing and its scope picks the part), step 10 (the BOM and the purchase CSV), step 11 (the bundle), and reopened identical.
 
 **Verified (T1):** a9-acceptance 2/2 (about 65 s), tsc, eslint 0 errors.
+
+## O165 — O5 done as an automated run: drawings, BOM and CSV, the bundle, reopened the same; F8–F10 left open (2026-10-23)
+
+The A9 run (`test/a9-acceptance.test.ts`) is three tests on one state: steps 1–7 (O159–O160), steps 4 and 8 (O164), and now 9–11 with the reopen. It takes about 185 s at load 30–35; F5's turning report is most of the first test's time.
+
+**9. A drawing per made part.**
+- **The model:** a document has one drawing, and a part scope switches its subject. Once a sheet holds model references, switching is refused (DRAWING_SCOPE_REFERENCES). So the weldment is the base's own drawing, and each placed part has its own drawing, set part-scoped.
+- **Sequence:** each is set by a proposal the person accepts (`acceptProposal`), then `auto` and `fix` run.
+  - The weldment drawing: A3, front/top/right/iso, weld symbols, balloons, and the BOM, cut-list and weld-list tables.
+  - The plate, the shaft and the cover: A3 each.
+- **Asserted:**
+  - each part has its own drawing;
+  - the weldment's options are on;
+  - **the plate's drawing is clean**;
+  - no drawing is short of a fit row.
+
+**10. The BOM and the purchase CSV, through v2.**
+- **The CSV** holds exactly the three bought lines:
+  - the key: no row, no source, an estimate (A9-11);
+  - the 6204 and the 214, each with its row and its D139 source.
+- **The made lines' masses** are by material, for example the plate's 801 794.9075 mm³ · 2.7 g/cm³.
+
+**11. The bundle.**
+- Refused with no approved baseline (`[OUTPUT_BUNDLE_INCOMPLETE]`).
+- A forged user token's approval is refused (APPROVAL_IS_THE_USERS).
+- The person approves through review → approved with the user's token. The bundle is then complete and intact, with nothing missing, changed or stale, and its six files.
+- `cad-cli`'s fresh-process verify (A7.5's style) is not run here.
+
+**Reopened.** The document is encoded, read again, and gives the same BOM, CSV and clearance map (less the map's run-time `timing`), and a complete, intact bundle.
+
+**Open findings, not asserted:**
+- **F8. Drawing issues left after auto and fix:**
+  - **Weldment:**
+    - TEXT_OVERLAP, an error: the top view's name over weld symbol W1. At A3 1:10 it was TEXT_OVER_LINES.
+    - WELD_NOT_SHOWN: 12 welds have no visible edge in front/top/right, against the S0's "none with symbols on".
+    - BALLOON_NO_EDGE: BOM line 3.
+  - **Shaft:**
+    - TEXT_OVERLAP, an error: a note over the front view's name.
+    - DIM_ON_HIDDEN ×2: the keyseat's 12.5 and 25, with no section added. O148 X3's fix covers a keyseat, yet `fix` did not add it here.
+  - **Cover:** HOLE_NOT_LOCATED reports "4 holes" on a cover with one hole, plus the gland, so it is probably counting the gland's edges.
+  - **The sheet sizes** are A4 and A3 only.
+- **F9. The four M6 screws cannot be BOM lines.**
+  - The `fastener` command builds them from a built-in catalogue (FASTENER_SIZES), which the rows rule would replace with a person's row.
+  - No element kind makes a fastener a bought line.
+  - Needs a decision: a fastener row kind and element, or the screws left out of A9.
+- **F10. The frame's members are not BOM lines** and their mass is not in the BOM.
+  - `deriveBom` lists placed parts, plates and elements, but not the base part's own bodies.
+  - The S0 expects the members by cut-list row, and Σ volume · density with nothing assumed.
+
+**The owner's acceptance** with a real person-supplied row/fit file stays pending: the rows here are the fixture.
+
+**Verified (T1):** a9-acceptance 3/3 (about 185 s), tsc, eslint 0 errors. Not run: the full suites and any browser flow.
