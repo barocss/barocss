@@ -828,7 +828,8 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 | `d7e070e16` O153 | cad-cli `stock` and `nest`: `--list` received as the person's file; cnc-stock and chat fixtures; the studio runner takes names | the 14 studio files the window failed, each passing; tsc; eslint |
 | `d1bc7943e` O154 | S3: the frozen v2 contract re-recorded (additive only); load_rows moves from `library` to `features` | toolset 9/9 (23,180 of 25,000 characters a turn), person-rows 9/9, tsc, eslint |
 | `9d498b1b1` O155 | `remove: [ids]` on set_stock and set_frame_stock (O150's open item, closed) | person-rows 10/10, cnc-stock 6/6, toolset 9/9, tsc, eslint |
-| O157 | the CAM package's pockets where they are: the floor plane's origin added once (G23's overcut, found by the GPU lane) | cam-package 4/4 with an absolute oracle on +Z, −Z and +X; tsc; eslint |
+| `fcdc7e3bf` O157 | the CAM package's pockets where they are: the floor plane's origin added once (G23's overcut, found by the GPU lane) | cam-package 4/4 with an absolute oracle on +Z, −Z and +X; tsc; eslint |
+| O158 | O3: the A9 brief's 6204 moves from step 1 to step 3, off the key; no clash in the map | clearance-designed 5/5, tsc, eslint |
 
 **Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). 
 

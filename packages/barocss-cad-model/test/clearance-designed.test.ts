@@ -84,3 +84,20 @@ test('A9-6: an O-ring in a face gland, a plate placed on the cover — designed 
   const more = pairOf(filled(await assemblyPlacedBodies(pressed, evaluate)), ring.key, 'p1/b1');
   assert.ok(more.state === 'overlap' && more.designed && more.overlap && 'volumeMM3' in more.overlap && more.overlap.volumeMM3 > ring.squeeze!.mm3, JSON.stringify(more.state));
 });
+
+test('O3 (A9 brief): the default shaft and its key, the 6204 moved to step 3 against the Ø25 shoulder at k5 — both seats designed, no clash anywhere', async () => {
+  s = { doc: emptyDoc(), bodies: [] };
+  await run('features', { action: 'command', command: 'shaft', values: {} });
+  s = { ...s, doc: (editFitTables((editBearingRows(s.doc, [ROW]) as { doc: StudioDoc }).doc, [FITS]) as { doc: StudioDoc }).doc };
+  await run('features', { action: 'command', command: 'key', values: { h: 6 }, bodies: ['b0'] });
+  await run('features', { action: 'command', command: 'bearing', values: { sc: 'k5', step: 3, against: 'start' }, bodies: ['b0'] });
+  const bearing = s.doc.nodes.at(-1)!; assert.ok(bearing.kind === 'bearing'); assert.deepEqual([bearing.step, bearing.against], [3, 'start']);
+  const map = filled(await assemblyPlacedBodies(s.doc, evaluate));
+  assert.deepEqual([pairOf(map, 'b0', 'b1').state, pairOf(map, 'b0', 'b2').state], ['designed', 'designed']);
+  // (The key on step 1 at z 6–24 and the bearing on step 3 at z 70–84: apart, far beyond the map's 1 mm.)
+  const e = await evaluate(s.doc); assert.ok(e.ok);
+  const zs = (key: string) => { const P = e.bodies.find(b => b.key === key)!.mesh.positions; let lo = Infinity, hi = -Infinity; for (let i = 2; i < P.length; i += 3) { lo = Math.min(lo, P[i]); hi = Math.max(hi, P[i]); } return [+lo.toFixed(6), +hi.toFixed(6)]; };
+  assert.deepEqual([zs('b1'), zs('b2')], [[6, 24], [70, 84]]);
+  assert.deepEqual(map.pairs.filter(p => p.state === 'overlap').map(p => [p.a, p.b]), []);
+  assert.equal(map.pairs.find(p => (p.a === 'b1' && p.b === 'b2') || (p.a === 'b2' && p.b === 'b1')), undefined, JSON.stringify(map.pairs.map(p => [p.a, p.b, p.state])));
+});
