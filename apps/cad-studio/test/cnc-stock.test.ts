@@ -66,8 +66,9 @@ test('CNC7b a bar: a turned shaft Ø20 × 52 — the thinnest bar ≥ Ø22 (Ø25
   assert.deepEqual([r.choice.row.id, r.choice.size, Math.abs(p.axis[1]), p.length], ['R22', [22, 54], 1, 54]);
   assert.ok(Math.abs(p.start[1] * p.axis[1] + 1) <= 1e-6, JSON.stringify(p.start));
   assert.equal(rule(s, turning).status, 'pass');
-  // (A list with only a bar too short, on the shaft afresh: lists merge by id (O150), so the earlier R22 would stay.)
-  s = await build([stockList([{ id: 'R22s', kind: 'bar', diameter: 22, maxLength: 50, source: 'the shop' }])], shaft);
+  // (The good bars removed by name (O155) and a bar too short added: lists merge by id (O150).)
+  s = await build([['set_stock', { remove: ['R16', 'R25', 'R22'] }], stockList([{ id: 'R22s', kind: 'bar', diameter: 22, maxLength: 50, source: 'the shop' }])], s.doc);
+  assert.deepEqual(s.doc.machining?.stock?.map(r => r.id), ['R22s']);
   assert.equal(rule(s, turning).status, 'warn');
 });
 

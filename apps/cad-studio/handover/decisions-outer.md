@@ -6641,3 +6641,23 @@ Checked with git grep:
 - toolset 9/9: the frozen contract, `library` not destructive, the per-turn guard at 23,180 of 25,000 characters (13 tools, list 14,938, prompt 8,242);
 - shop-context-tools 3/3 (its own ≤ 25,000 guard), person-rows 9/9, tool-contract 3/3, sheet 8/8, drawing-table 5/5, studio chat 18/18;
 - tsc of model and studio; eslint 0 errors.
+
+## O155 — stock and frame-stock rows leave by name: `remove` on set_stock and set_frame_stock (2026-10-23)
+
+This closes O150's open item. O150 made rows merge by id, so a smaller file no longer drops rows. The coordinator chose a `remove: [ids]` argument mirroring `set_frame_sections`'s.
+
+- **The calls:** `set_stock {file?, remove?, allowance?}` and `set_frame_stock {file?, remove?, kerf?}`.
+  - The file merges first, then the named rows are dropped (`removeRows` in tools.ts, a module-level helper).
+  - An id the list does not have is refused with the list (`[STOCK_ROW_UNKNOWN]`, `[FRAME_STOCK_UNKNOWN]`), and the document is unchanged.
+  - The v2 hints and the descriptions name `remove`. Group inputs carry only the action enum, so the frozen contract is unchanged.
+- **On a placed part:**
+  - its own row goes;
+  - an inherited row is the base's, so removing it there is refused by A9-8's restore (SHOP_ROW_INHERITED_REMOVE), and the base keeps it.
+- **Nothing references a stock row by id** (CAM and nesting choose from the list), so no in-use check is needed. That differs from sections, which members name.
+- **cnc-stock's "one too short"** now removes R16, R25 and R22 by name and adds the short R22s, on the same shaft. O153 had needed a fresh document for this.
+
+**Verified (T1):**
+- person-rows 10/10, with the new O155 case: base remove, kerf with remove, unknown ids, file plus remove, and part-own versus inherited;
+- toolset 9/9 at 23,198 of 25,000 characters a turn; shop-context-tools 3/3, tool-contract 3/3, frame-nesting 5/5, batch-changes 6/6;
+- studio cnc-stock 6/6, frame-nest-cli 1/1, chat 18/18;
+- tsc of model and studio; eslint 0 errors.
