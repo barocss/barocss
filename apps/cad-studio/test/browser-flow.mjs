@@ -3852,6 +3852,8 @@ try {
       assert.ok(tools.some(t => t.includes('features.frame_stock')) && tools.at(-1).includes('query.cutlist'), tools.slice(-3).join(' | '));
       await page.click('[aria-label="Close chat"]');
       await page.waitForFunction(() => window.__studioDoc.frames?.stock?.length === 2 && window.__studioDoc.frames.kerfMM === 3, null, { timeout: 30000 }); await idle();
+      // (A member selected: its properties carry the cut list's button. FR4b, run before, leaves one selected; alone, this step picks it.)
+      if (!await page.locator('[aria-label="Show the cut list"]').count()) { await page.locator('.outliner .ol', { hasText: /^Frame/ }).first().click(); await page.waitForSelector('[aria-label="Show the cut list"]', { timeout: 15000 }); }
       await page.click('[aria-label="Show the cut list"]');
       await page.waitForSelector('[aria-label="Nesting"]');
       // (9320 mm of pieces: no sum of 4000s and 6000s lies in [9330, 10 000); one of each holds them — 10 000 − 9320 − 3 · 10.)
