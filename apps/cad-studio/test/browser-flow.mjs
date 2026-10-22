@@ -2706,7 +2706,9 @@ try {
     await snap('cam-roller');
   });
 
-  await check('R12c.8 R12c\'s acceptance by the scripted agent through the real chat: the user\'s bearing, O-ring and fit rows loaded in the Library panel (none built in), then a gearbox output shaft (8 bodies) and a spring-loaded plunger (3 bodies), each in one turn — the second bearing held by the ring, the spring\'s solid height in its notes (new in D163)', async () => {
+  // (The user's bearing, O-ring and fit rows loaded in the Library panel first — none built in, the agent cannot load rows;
+  // the second bearing held by the ring, the spring's solid height in its notes.)
+  await check('R12c.8 acceptance by the scripted agent in the real chat: a gearbox output shaft (8 bodies) and a spring-loaded plunger (3), one turn each (D163)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {

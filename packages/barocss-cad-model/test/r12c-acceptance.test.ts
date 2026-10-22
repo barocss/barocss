@@ -46,7 +46,7 @@ function caseFile(name: string, doc: StudioDoc, about: string, expect: object, o
 }
 const ONE = (v: number, relTol: number, c: number[], absTol: number, genus: number) => ({ volumeMM3: { value: v, relTol }, centroidMM: { value: c, absTol }, bodies: 1, topology: [{ shells: 1, genus }] });
 
-test('R12c.8 the gearbox output shaft by the agent: the shaft by Pappus less its groove and keyseat, the keyed gear, the key, two bearings on their seats against the Ø25 shoulders, the ring, the sealed cover and its O-ring — each by its closed form; only the O-ring's squeeze overlaps, by Pappus on its segment', async () => {
+test('R12c.8 the gearbox output shaft by the agent: the shaft by Pappus less its groove and keyseat, the keyed gear, the key, two bearings on their seats against the Ø25 shoulders, the ring, the sealed cover and its O-ring — each by its closed form; only the O-ring\'s squeeze overlaps, by Pappus on its segment', async () => {
   const { state, results } = await build('r12c-gearbox-shaft');
   assert.equal(state.bodies.length, 8);
   const snap = evaluateCadPart(toPartDocument(state.doc));
