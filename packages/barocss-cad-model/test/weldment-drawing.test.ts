@@ -31,6 +31,6 @@ test('O171: the welded table frame\'s drawing — after Auto-dimension and one F
   assert.deepEqual(fixed.issues.filter(x => x.severity === 'error').map(x => x.code), []);
   const i = drawingInputs(s.doc); if (typeof i === 'string') throw Error(i);
   const dims = issueContext(i).sheet.dimensions.filter((d): d is Extract<typeof d, { ok: true }> => d.ok);
-  assert.deepEqual(dims.filter(d => /n\d+\.m\d+\.bore/.test(JSON.stringify([d.dim.a, d.dim.b]))).map(d => d.text), []);
+  assert.deepEqual(dims.filter(d => /n\d+\.m\d+\.bore/.test(JSON.stringify(d.dim))).map(d => d.text), []);
   for (const t of ['400', '300', '320']) assert.ok(dims.some(d => d.text === t), `the overall ${t}`);
 });
