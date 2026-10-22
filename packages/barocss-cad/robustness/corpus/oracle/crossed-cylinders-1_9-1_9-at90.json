@@ -1,0 +1,79 @@
+{
+  "id": "crossed-cylinders-1_9-1_9-at90",
+  "about": "Two cylinders (r 1.9 and 1.9) whose axes cross at 90°, intersected.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "As",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [1.237, -0.481],
+          "radius": 1.9
+        },
+        {
+          "id": "A",
+          "kind": "extrude",
+          "sketch": "As",
+          "height": 22.8,
+          "from": -10.487
+        },
+        {
+          "id": "Bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [1.237, 0.913],
+          "radius": 1.9
+        },
+        {
+          "id": "B0",
+          "kind": "extrude",
+          "sketch": "Bs",
+          "height": 22.8,
+          "from": -10.919
+        },
+        {
+          "id": "B",
+          "kind": "rotate",
+          "target": "B0",
+          "axis": "x",
+          "angleDegrees": 90,
+          "pivot": [0, 0, 0]
+        },
+        {
+          "id": "X",
+          "kind": "intersect",
+          "target": "A",
+          "tool": "B"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 36.581333333333305,
+          "relTol": 0.000001,
+          "absTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [1.237, -0.481, 0.913],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "scripts/rb/oracle-cylinder-pair.mjs (parallel slices: ∫ 4√(a² − t²)√(b² − t²) dt / sin α; to rounding)"
+}

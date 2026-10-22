@@ -1,0 +1,37 @@
+{
+ "moves": [
+  {
+   "from": {},
+   "to": {
+    "base~l1": 1,
+    "l1~l2": 0.9,
+    "l2~l3": 0.6
+   },
+   "profile": "trapezoid",
+   "limits": {
+    "velocity": 1,
+    "acceleration": 3
+   },
+   "dwell_s": 0.5
+  },
+  {
+   "from": {
+    "base~l1": 1,
+    "l1~l2": 0.9,
+    "l2~l3": 0.6
+   },
+   "to": {
+    "base~l1": -0.8,
+    "l1~l2": -1,
+    "l2~l3": -0.7
+   },
+   "profile": "trapezoid",
+   "limits": {
+    "velocity": 1,
+    "acceleration": 3
+   },
+   "dwell_s": 0.5
+  }
+ ],
+ "life_h": 20000
+}

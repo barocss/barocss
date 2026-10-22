@@ -1,0 +1,56 @@
+{
+  "id": "r12b-internal-m2-z40",
+  "step": "R12b",
+  "decisions": [
+    "D132"
+  ],
+  "about": "An internal gear m 2, z 40, 10 wide in a Ø100 rim, built directly (its spaces a space gear's teeth): tip Ø76 inside, root Ø85; the volume (πR² − the spaces' exact area) × the width within the measured flank fit.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "r",
+          "kind": "internal-gear",
+          "module": 2,
+          "teeth": 40,
+          "faceWidth": 10,
+          "rim": 100
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 28083.5838,
+          "relTol": 2e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^r\\.(flankL|flankR|tip|root|rim|face0|face1)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "the spaces' area by the shoelace formula over the analytic involute (test/gear-internal.test.mjs ring/outline), apart from gear.ts"
+}

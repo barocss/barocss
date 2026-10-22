@@ -1,0 +1,41 @@
+{
+ "case": "non-library-material",
+ "step": "A6.1",
+ "note": "A material not in the library is kept as written; its density unknown, so it is not applied and a mass stays assumed. (O84: CNC milling has its rules now, so the stated process is applied.)",
+ "input": {
+  "patches": [
+   {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a bracket to hold a 30 mm pipe on a wall"
+    },
+    "process": {
+     "value": "cnc-milling",
+     "basis": "stated",
+     "source": "machined"
+    },
+    "material": {
+     "value": "Delrin 150",
+     "basis": "stated",
+     "source": "Delrin 150"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "gaps": [],
+  "complete": true,
+  "doc_process": "cnc-milling",
+  "process": {
+   "value": "cnc-milling",
+   "checked": true,
+   "applied": true
+  },
+  "material": {
+   "value": "Delrin 150",
+   "library": false,
+   "applied": false
+  }
+ }
+}

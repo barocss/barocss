@@ -1,0 +1,17 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "g",
+      "kind": "spur-gear",
+      "module": 3,
+      "teeth": 18,
+      "faceWidth": 8,
+      "bore": 10,
+      "generator": "spur-gear@0"
+    }
+  ]
+}

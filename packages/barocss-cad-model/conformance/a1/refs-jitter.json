@@ -1,0 +1,78 @@
+{
+  "id": "a1-refs-jitter",
+  "step": "A1",
+  "decisions": [
+    "D29",
+    "D30"
+  ],
+  "about": "A signature 1e-9 mm off the face it names (a kernel's accuracy changed): the name stands, nothing is matched again.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            10,
+            10
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5
+        }
+      ],
+      "nextId": 2,
+      "outputs": {},
+      "mates": [
+        {
+          "id": "m1",
+          "kind": "coincident",
+          "a": {
+            "part": "base",
+            "face": "n1.top",
+            "sig": {
+              "k": "plane",
+              "p": [
+                1e-09,
+                -1e-09,
+                5.000000001
+              ],
+              "d": [
+                0,
+                0,
+                1
+              ],
+              "s": 0
+            }
+          },
+          "b": {
+            "part": "p",
+            "face": "origin:xy"
+          }
+        }
+      ]
+    },
+    "verify": true
+  },
+  "expect": {
+    "changes": [],
+    "mates": [
+      {
+        "face": "n1.top"
+      }
+    ]
+  },
+  "oracle": "by construction (the face table's plane, 1e-9 mm off)"
+}

@@ -1,0 +1,83 @@
+{
+  "id": "rb4-oracle-graze-sliver-orientation",
+  "step": "RB4-ORACLE",
+  "decisions": [
+    "D25"
+  ],
+  "about": "A 100 nm sliver: its shell has no volume sign of its own (below the traced boundaries' accuracy) and is an outer shell by nesting; volume to 1e-12 mm³.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "As",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [-6.263901584426774, -0.3510000000000001],
+          "radius": 4.055
+        },
+        {
+          "id": "A",
+          "kind": "extrude",
+          "sketch": "As",
+          "height": 4.8999999999999995,
+          "from": 0.25831233433292855
+        },
+        {
+          "id": "Bs",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [-3.371, -3.944],
+          "max": [1.79, 2.502]
+        },
+        {
+          "id": "B0",
+          "kind": "extrude",
+          "sketch": "Bs",
+          "height": 4.469,
+          "from": 0.247
+        },
+        {
+          "id": "B",
+          "kind": "rotate",
+          "target": "B0",
+          "axis": "y",
+          "angleDegrees": 45,
+          "pivot": [0, 0, 0]
+        },
+        {
+          "id": "X",
+          "kind": "intersect",
+          "target": "A",
+          "tool": "B"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 3.037651891819527e-10,
+          "relTol": 0.000001,
+          "absTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [-2.20894444153608, -0.35100000000000015, 2.558312334332725],
+          "absTol": 0.03292016450907443
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "scripts/rb/oracle-cylinder-box.mjs (exact inner integral, Gauss–Legendre outer between the kinks; to rounding)"
+}

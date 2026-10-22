@@ -1,5 +1,6 @@
 import type { Curve, Point, Surface } from './types.js';
 import { evaluateCurve, evaluateSurface } from './math.js';
+import { encodeBinaryStl } from './stl.js';
 
 // Extruded profile solids: a closed XY loop of lines and circular arcs, swept straight along +Z.
 // Geometry is binary64 with explicit tolerances (not exact rationals); arcs are exact rational
@@ -362,17 +363,8 @@ function earClip(ring: readonly XY[]): [number, number, number][] {
 
 /** Binary STL (little-endian) from the watertight tessellation. */
 export function exportExtrudedProfileSolidStl(solid: ExtrudedProfileSolidResult, options: { readonly segmentsPerQuarter?: number } = {}): Uint8Array {
-  const mesh = tessellateExtrudedProfileSolid(solid, options); const tris = mesh.indices.length / 3;
-  const out = new Uint8Array(84 + tris * 50); const view = new DataView(out.buffer);
-  const header = `barocss extruded profile ${solid.id}`.slice(0, 80); for (let i = 0; i < header.length; i++) out[i] = header.charCodeAt(i) & 0x7f;
-  view.setUint32(80, tris, true); const p = mesh.positionsMM;
-  for (let t = 0; t < tris; t++) {
-    const [a, b, c] = [mesh.indices[t * 3] * 3, mesh.indices[t * 3 + 1] * 3, mesh.indices[t * 3 + 2] * 3];
-    const u = [p[b] - p[a], p[b + 1] - p[a + 1], p[b + 2] - p[a + 2]], w = [p[c] - p[a], p[c + 1] - p[a + 1], p[c + 2] - p[a + 2]];
-    let n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]]; const l = Math.hypot(n[0], n[1], n[2]) || 1; n = n.map(x => x / l);
-    const o = 84 + t * 50; [...n, p[a], p[a + 1], p[a + 2], p[b], p[b + 1], p[b + 2], p[c], p[c + 1], p[c + 2]].forEach((x, k) => view.setFloat32(o + k * 4, x, true));
-  }
-  return out;
+  const mesh = tessellateExtrudedProfileSolid(solid, options);
+  return encodeBinaryStl(mesh.positionsMM, mesh.indices, `barocss extruded profile ${solid.id}`);
 }
 
 const d3 = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);

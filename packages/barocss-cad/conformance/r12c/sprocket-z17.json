@@ -1,0 +1,66 @@
+{
+  "id": "r12c-sprocket-z17",
+  "step": "R12c",
+  "decisions": [
+    "D161"
+  ],
+  "about": "R12c.6b: a sprocket for a test chain row (chain-a, flagged an estimate), 17 teeth, the pivot-clearance form — seats Ø8.8 on the pitch circle p/sin(π/z), flanks of radius p − r_s about the neighbouring seats, a Ø75 tip — 7 wide with a Ø20 bore.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sprocket",
+          "row": {
+            "kind": "chain",
+            "id": "chain-a",
+            "pitchMM": 12.7,
+            "rollerDiameterMM": 8.51,
+            "innerWidthMM": 7.75,
+            "plateHeightMM": 11.8,
+            "estimate": true
+          },
+          "teeth": 17,
+          "tip": 75,
+          "width": 7,
+          "seat": 8.8,
+          "bore": 20
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 21697.230025256173,
+          "relTol": 0.00002
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            3.5
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^s\\.(seat|flank|tip)\\d+$|^s\\.bore$|^s\\.face[01]$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "The region's membership (the tip disc less each seat's circle and the gap above its tangent line outside both flank circles) integrated ray by ray, 6000 rays a tooth, transitions bisected; × 7."
+}

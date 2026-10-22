@@ -1,0 +1,111 @@
+{
+  "id": "fr-frame-trim-plane",
+  "step": "FR",
+  "decisions": [
+    "D126"
+  ],
+  "about": "FR3b: a sharp tube leg from z 0 to 500, its start trimmed to the plane z = 0.2x + 10 (run on to meet it, the floor's side cut off): A·490, its centroid by the cut prism's moments.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              500
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "trims": [
+            {
+              "member": 0,
+              "end": "start",
+              "plane": {
+                "origin": [
+                  0,
+                  0,
+                  10
+                ],
+                "normal": [
+                  -0.2,
+                  0,
+                  1
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 217560,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            -0.09374149659863946,
+            0,
+            254.99062585034014
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 500,
+          "centroid": [
+            0,
+            0
+          ],
+          "ends": [
+            {
+              "end": "start",
+              "kind": "trim",
+              "point": 0,
+              "angleDegrees": 11.309932474020213
+            }
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: at x across the section it runs from 0.2x + 10 to 500, so V = 490A, x̄ = −0.2 I/V, z̄ = (A(500² − 10²) − 0.04 I)/(2V), I = (40⁴ − 34⁴)/12."
+}

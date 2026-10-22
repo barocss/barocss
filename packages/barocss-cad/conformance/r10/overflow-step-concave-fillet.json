@@ -1,0 +1,145 @@
+{
+  "id": "r10-overflow-step-concave-fillet",
+  "step": "R10",
+  "decisions": [
+    "D97"
+  ],
+  "about": "D97: a step with oblique ends (x = y tan 10°, 40 + y tan 10°), its riser (6 mm flat below a round of 4 at its top) filleted 12 mm at its foot — a concave straight plane–plane edge past a smooth edge: the ball rolls over onto the round (the closed form carried the riser on: 121 % over before).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              45.28980942125395,
+              30
+            ],
+            [
+              5.289809421253949,
+              30
+            ]
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "q",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              42.644904710626975,
+              15
+            ],
+            [
+              2.6449047106269745,
+              15
+            ]
+          ]
+        },
+        {
+          "id": "f0",
+          "kind": "extrude",
+          "sketch": "q",
+          "height": 10,
+          "from": 10
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "e",
+          "tool": "f0"
+        },
+        {
+          "id": "g",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "f0.side2|f0.top"
+          ],
+          "radius": 4
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "g",
+          "edges": [
+            "e.top|f0.side2"
+          ],
+          "radius": 12
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 18702.48005682278,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [
+            22.24179759835763,
+            12.713865956220422,
+            8.414331064804454
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.top",
+          "f.face",
+          "f0.top",
+          "g.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "Closed form: a prism 40 long between parallel ends; its section the step (300 + 150) less the round's corner (1 − π/4) 4² plus the fillet's — the polygon between the ball's floor contact, the riser's foot and top, and the ball's contact on the round (the ball touching the floor and the round, |C − O| = r + 4), less the round's and the ball's circular segments."
+}

@@ -1,0 +1,18 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "z",
+      "kind": "worm",
+      "axialModule": 2,
+      "starts": 1,
+      "diameter": 32,
+      "hand": "right",
+      "length": 40,
+      "form": "ZA"
+    }
+  ]
+}

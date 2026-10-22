@@ -1,0 +1,57 @@
+{
+  "id": "r12b-rack-filleted-m2-n10",
+  "step": "R12b",
+  "decisions": [
+    "D131"
+  ],
+  "about": "A straight rack m 2, ten teeth, 10 wide, 8 high, with the basic rack's root fillets (spur-rack@1, ρ 0.38 m): the volume the closed form — the bar, the trapezoidal teeth and twenty corner fillets ρ²(cot(45° + α/2) − (π/2 − α)/2) — to 1e-9.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "k",
+          "kind": "spur-rack",
+          "module": 2,
+          "teeth": 10,
+          "faceWidth": 10,
+          "height": 8,
+          "generator": "spur-rack@1"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 4961.682738271426,
+          "relTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^k\\.(filletL|filletR|flankL|flankR|tip|root|back|end0|end1|face0|face1)$",
+        "centroidMM": {
+          "value": [
+            31.4159265359,
+            -3.8483072461,
+            5
+          ],
+          "absTol": 1e-08
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "volume: closed form (test/gear-generated-root-helical.test.mjs rackArea); centroid: symmetric along the rack and the width, its height by Green's theorem over the exact outline, 20 000 points an arc (an independent script, recorded in D131)"
+}

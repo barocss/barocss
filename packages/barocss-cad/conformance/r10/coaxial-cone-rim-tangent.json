@@ -1,0 +1,123 @@
+{
+  "id": "r10-coaxial-cone-rim-tangent",
+  "step": "R10",
+  "decisions": [
+    "D99"
+  ],
+  "about": "R10.B (D99): D88's TODO — a turned wall (R 9, 10 high) meeting a cone (top 0.537 R, 4.172 high), the rim filleted 1: the tool touches the cone along a circle. Not a manifold solid before (a band of the cone classified out on one half: the first ray grazed the tool).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              9,
+              0
+            ],
+            [
+              9,
+              10
+            ],
+            [
+              4.833,
+              14.172
+            ],
+            [
+              0,
+              14.172
+            ]
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "r",
+          "kind": "revolve",
+          "sketch": "s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          }
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "r",
+          "edges": [
+            "r.side1#1|r.side2#1"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 3189.448876544243,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            1.844931313865046e-11,
+            -8.032087898445514e-8,
+            6.350905497964614
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "f.face",
+          "r.side0",
+          "r.side1",
+          "r.side2",
+          "r.side3"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Pappus: the turned polygon's first moment about the axis less the fillet region's (between the wall, the cone and the ball's arc; Green over a 400 000-segment polyline), times 2π."
+}

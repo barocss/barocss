@@ -1,0 +1,107 @@
+{
+ "case": "bad-questions",
+ "step": "A6.2",
+ "note": "Malformed batches are refused (BAD_QUESTION): two questions on one gap, a choice without options, a process option that is not a process, a requirement asked as text.",
+ "input": {
+  "setup": {
+   "brief": {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a wall bracket for a 30 mm pipe"
+    }
+   },
+   "requirements": [
+    {
+     "id": "R1",
+     "source": "clamp bore",
+     "hard": true,
+     "basis": "assumed",
+     "assume": "a 30 mm pipe with 0.5 mm clearance",
+     "check": {
+      "op": "==",
+      "query": {
+       "fn": "bbox",
+       "axis": "x"
+      },
+      "value": 31,
+      "tol": 0.1
+     }
+    }
+   ]
+  },
+  "steps": [
+   {
+    "questions": [
+     {
+      "id": "q2",
+      "text": "What material?",
+      "kind": "text",
+      "blocks": {
+       "field": "material"
+      }
+     },
+     {
+      "id": "q9",
+      "text": "What material?",
+      "kind": "text",
+      "blocks": {
+       "field": "material"
+      }
+     }
+    ],
+    "expect": "BAD_QUESTION"
+   },
+   {
+    "questions": [
+     {
+      "id": "q1",
+      "text": "How will it be made?",
+      "kind": "choice",
+      "options": [
+       "fdm"
+      ],
+      "blocks": {
+       "field": "process"
+      }
+     }
+    ],
+    "expect": "BAD_QUESTION"
+   },
+   {
+    "questions": [
+     {
+      "id": "q1",
+      "text": "How will it be made?",
+      "kind": "choice",
+      "options": [
+       "fdm",
+       "laser"
+      ],
+      "blocks": {
+       "field": "process"
+      }
+     }
+    ],
+    "expect": "BAD_QUESTION"
+   },
+   {
+    "questions": [
+     {
+      "id": "q3",
+      "text": "What bore diameter do you need?",
+      "kind": "text",
+      "unit": "mm",
+      "blocks": {
+       "requirement": "R1"
+      }
+     }
+    ],
+    "expect": "BAD_QUESTION"
+   }
+  ]
+ },
+ "expect": {
+  "batches": []
+ }
+}

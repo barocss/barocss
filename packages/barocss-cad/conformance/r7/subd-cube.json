@@ -1,0 +1,122 @@
+{
+  "id": "r7-subd-cube",
+  "step": "R7",
+  "decisions": [
+    "D78"
+  ],
+  "about": "A plain cube cage: every vertex valence 3 (extraordinary). One Catmull–Clark step, 24 G1 caps; its limit's volume, area and centroid.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "subd",
+          "cage": {
+            "positions": [
+              0,
+              0,
+              0,
+              10,
+              0,
+              0,
+              10,
+              10,
+              0,
+              0,
+              10,
+              0,
+              0,
+              0,
+              10,
+              10,
+              0,
+              10,
+              10,
+              10,
+              10,
+              0,
+              10,
+              10
+            ],
+            "faces": [
+              [
+                0,
+                3,
+                2,
+                1
+              ],
+              [
+                4,
+                5,
+                6,
+                7
+              ],
+              [
+                0,
+                1,
+                5,
+                4
+              ],
+              [
+                1,
+                2,
+                6,
+                5
+              ],
+              [
+                2,
+                3,
+                7,
+                6
+              ],
+              [
+                3,
+                0,
+                4,
+                7
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 327.5523,
+          "relTol": 0.002
+        },
+        "centroidMM": {
+          "value": [
+            5,
+            5,
+            5
+          ],
+          "absTol": 0.01
+        },
+        "areaMM2": {
+          "value": 229.9396,
+          "relTol": 0.002
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^c\\.cap\\d+_\\d+$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-09
+    }
+  },
+  "oracle": "An independent Catmull–Clark written for this purpose (any polygon, OpenSubdiv sharp-edge rules), refined 5 and 6 times (the dart torus 4 and 5), each vertex taken to its limit position (smooth, crease and corner masks), the triangle mesh's volume, area and centroid extrapolated by Richardson (x6 + (x6 − x5)/3). The tolerance (2e-3) is the caps' deviation from the limit, not the oracle's error."
+}

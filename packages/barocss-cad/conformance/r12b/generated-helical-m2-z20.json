@@ -1,0 +1,58 @@
+{
+  "id": "r12b-generated-helical-m2-z20",
+  "step": "R12b",
+  "decisions": [
+    "D131"
+  ],
+  "about": "A helical gear m_n 2, β 20° right hand, z 20, 10 wide, its root the one the basic rack cuts (spur-gear@1): in the transverse plane the tool's tip round is an ellipse (ρ/cos β along the rack, ρ across); the volume the transverse profile's exact area × the width, within the flank, fillet and twist fits.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "spur-gear",
+          "normalModule": 2,
+          "helixAngle": 20,
+          "hand": "right",
+          "teeth": 20,
+          "faceWidth": 10,
+          "generator": "spur-gear@1"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 14046.7114,
+          "relTol": 3e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^g\\.(filletL\\d?|filletR\\d?|flankL|flankR|tip|root|face0|face1)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "the transverse area by Green's theorem over the envelope (in the ellipse's angle), involute and arcs built in test/gear-generated-root-helical.test.mjs (transverseArea), apart from gear.ts"
+}

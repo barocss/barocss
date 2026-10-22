@@ -1,0 +1,126 @@
+{
+  "id": "r10-corner-boss-uprights-and-foot",
+  "step": "R10",
+  "decisions": [
+    "D93"
+  ],
+  "about": "R10.3b: a box boss's foot and its four upright edges filleted 2 mm in one feature — at each corner a convex edge meeting two concave ones: the uprights rounded first, then the foot round them (refused at R10.3a: r10-refuse-vertex-blend).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "ps",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            -30,
+            -30
+          ],
+          "max": [
+            30,
+            30
+          ]
+        },
+        {
+          "id": "p",
+          "kind": "extrude",
+          "sketch": "ps",
+          "height": 10
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            -10,
+            -6
+          ],
+          "max": [
+            10,
+            6
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 15,
+          "from": 10
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "p",
+          "tool": "b"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "b.side0|p.top",
+            "b.side1|p.top",
+            "b.side2|p.top",
+            "b.side3|p.top",
+            "b.side0|b.side1",
+            "b.side0|b.side3",
+            "b.side1|b.side2",
+            "b.side2|b.side3"
+          ],
+          "radius": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 39602.89566113966,
+          "relTol": 2e-8
+        },
+        "centroidMM": {
+          "value": [
+            -4.9728755021570886e-15,
+            -1.2367403822548166e-16,
+            6.127494606318937
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "b.side0",
+          "b.side1",
+          "b.side2",
+          "b.side3",
+          "b.top",
+          "f.face",
+          "p.bottom",
+          "p.side0",
+          "p.side1",
+          "p.side2",
+          "p.side3",
+          "p.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "Closed form: the plate 36000 and the boss 3600; the uprights' rounds take (1 − π/4) r² × 15 each; the foot adds (1 − π/4) r² along its 64 − 8r mm of straight edge and, round each rounded corner, a quarter turn of that section about the round's axis (Pappus: (π/2)(r A + r³ (5/6 − π/4)))."
+}

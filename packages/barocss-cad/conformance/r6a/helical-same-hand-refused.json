@@ -1,0 +1,46 @@
+{
+  "id": "r6a-helical-same-hand-refused",
+  "step": "R6a",
+  "decisions": [
+    "D59"
+  ],
+  "about": "Two helical gears of the same hand do not mesh on parallel axes: a meshing gear of the same hand is refused (MATE_INCOMPATIBLE).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "a",
+          "kind": "spur-gear",
+          "normalModule": 3,
+          "helixAngle": 30,
+          "hand": "right",
+          "teeth": 12,
+          "faceWidth": 20
+        },
+        {
+          "id": "b",
+          "kind": "spur-gear",
+          "normalModule": 3,
+          "helixAngle": 30,
+          "hand": "right",
+          "teeth": 60,
+          "faceWidth": 20,
+          "bore": 20,
+          "mesh": {
+            "gear": "a"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "INPUT",
+      "messageIncludes": "MATE_INCOMPATIBLE"
+    }
+  }
+}

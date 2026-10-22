@@ -1,0 +1,102 @@
+{
+  "id": "a1-refs-ambiguous",
+  "step": "A1",
+  "decisions": [
+    "D29",
+    "D30"
+  ],
+  "about": "A mate's signature as near two faces alike (the tops of two boxes): the document opens as it is; the mate is listed as needing a choice, with both.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            10,
+            10
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5
+        },
+        {
+          "id": "n2",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            20,
+            0
+          ],
+          "max": [
+            30,
+            10
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "extrude",
+          "sketch": 2,
+          "height": 5
+        }
+      ],
+      "nextId": 4,
+      "outputs": {},
+      "mates": [
+        {
+          "id": "m1",
+          "kind": "coincident",
+          "a": {
+            "part": "base",
+            "face": "n1.top",
+            "sig": {
+              "k": "plane",
+              "p": [
+                10,
+                0,
+                5
+              ],
+              "d": [
+                0,
+                0,
+                1
+              ],
+              "s": 0
+            }
+          },
+          "b": {
+            "part": "p",
+            "face": "origin:xy"
+          }
+        }
+      ]
+    },
+    "verify": true
+  },
+  "expect": {
+    "changes": [],
+    "problems": [
+      {
+        "where": "mate m1",
+        "name": "n1.top",
+        "candidates": [
+          "n1.top",
+          "n3.top"
+        ]
+      }
+    ]
+  },
+  "oracle": "by construction (the face tables' planes: tops at (0, 0, 5) and (20, 0, 5))"
+}

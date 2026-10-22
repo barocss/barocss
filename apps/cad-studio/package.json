@@ -9,10 +9,20 @@
     "type-check": "tsc --noEmit",
     "test": "node scripts/test.mjs",
     "test:browser": "node test/browser-flow.mjs",
-    "chat": "node scripts/chat-server.mjs"
+    "bench": "node scripts/bench.mjs",
+    "bench:browser": "node test/bench-browser.mjs",
+    "bench:memory": "node test/memory-session.mjs",
+    "bench:assembly": "node test/bench-assembly.mjs",
+    "bench:mesh": "node scripts/bench-mesh.mjs",
+    "chat": "node scripts/chat-server.mjs",
+    "mcp": "node scripts/cad-mcp.mjs",
+    "cli": "node scripts/cad-cli.mjs",
+    "ab": "node scripts/ab.mjs",
+    "rb9": "node scripts/rb9.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*",
+    "@barocss/cad-model": "workspace:*",
     "@barocss/gpu": "workspace:*",
     "react": "19.2.3",
     "react-dom": "19.2.3"

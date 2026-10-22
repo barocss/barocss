@@ -1,0 +1,131 @@
+{
+  "id": "r3-facet-box",
+  "step": "R3",
+  "decisions": [
+    "D42"
+  ],
+  "about": "A 20 × 10 × 5 box mesh (12 triangles) imported as facet faces: six flat regions named m.region0–5, exact volume 1000, area 700, genus 0; watertight display; STEP round trip.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "mesh",
+          "positions": [
+            0,
+            0,
+            0,
+            20,
+            0,
+            0,
+            20,
+            10,
+            0,
+            0,
+            10,
+            0,
+            0,
+            0,
+            5,
+            20,
+            0,
+            5,
+            20,
+            10,
+            5,
+            0,
+            10,
+            5
+          ],
+          "indices": [
+            0,
+            3,
+            2,
+            0,
+            2,
+            1,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "representation": "facets"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 1000,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            10,
+            5,
+            2.5
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "m.region0",
+          "m.region1",
+          "m.region2",
+          "m.region3",
+          "m.region4",
+          "m.region5"
+        ],
+        "areaMM2": {
+          "value": 700,
+          "relTol": 1e-12
+        },
+        "tessellation": {
+          "watertight": true,
+          "segmentsPerQuarter": 4
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-09
+    }
+  }
+}

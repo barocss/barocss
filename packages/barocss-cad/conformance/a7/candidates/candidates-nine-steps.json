@@ -1,0 +1,612 @@
+{
+ "case": "candidates-nine-steps",
+ "step": "A7.5",
+ "note": "#2181's nine-step scenario (owner, 2026-10-21): R0 a 20 × 10 × 5 block (1000 mm³); candidates A (h 6, 1200) and B (h 7, 1400) built in isolation, R0 unchanged; an injected failure and a cancel leave everything intact; A accepted (R1), B refused stale, B rebuilt on R1 with new evidence; undo/redo against freshness, a token never reused; save → fresh open → re-edit; the negatives typed. Every volume by the closed form 20·10·h.",
+ "seed": [
+  {
+   "tool": "run_command",
+   "args": {
+    "command": "box",
+    "values": {
+     "w": 20,
+     "d": 10,
+     "h": 5,
+     "x": 0,
+     "y": 0,
+     "z": 0
+    }
+   }
+  },
+  {
+   "tool": "set_requirements",
+   "args": {
+    "requirements": [
+     {
+      "id": "H",
+      "source": "at most 10 high",
+      "hard": true,
+      "check": {
+       "op": "<=",
+       "query": {
+        "fn": "bbox",
+        "axis": "z"
+       },
+       "value": 10,
+       "tol": 0.01
+      }
+     }
+    ]
+   }
+  }
+ ],
+ "steps": [
+  {
+   "do": "start",
+   "op": "o1",
+   "candidate": "A",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 6
+      }
+     }
+    }
+   ]
+  },
+  {
+   "do": "start",
+   "op": "o2",
+   "candidate": "B",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 7
+      }
+     }
+    }
+   ]
+  },
+  {
+   "do": "run",
+   "op": "o3",
+   "candidate": "A"
+  },
+  {
+   "do": "run",
+   "op": "o4",
+   "candidate": "B"
+  },
+  {
+   "do": "start",
+   "op": "o5",
+   "candidate": "C",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 42,
+      "values": {
+       "h": 6
+      }
+     }
+    }
+   ]
+  },
+  {
+   "do": "run",
+   "op": "o6",
+   "candidate": "C"
+  },
+  {
+   "do": "start",
+   "op": "o7",
+   "candidate": "D",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 8
+      }
+     }
+    }
+   ]
+  },
+  {
+   "do": "run_cancelled",
+   "op": "o8",
+   "cancelOp": "o9",
+   "candidate": "D"
+  },
+  {
+   "do": "run",
+   "op": "o3",
+   "candidate": "A"
+  },
+  {
+   "do": "accept",
+   "op": "o10",
+   "candidate": "A"
+  },
+  {
+   "do": "accept",
+   "op": "o11",
+   "candidate": "B"
+  },
+  {
+   "do": "start",
+   "op": "o12",
+   "candidate": "B2",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 7
+      }
+     }
+    }
+   ]
+  },
+  {
+   "do": "run",
+   "op": "o13",
+   "candidate": "B2"
+  },
+  {
+   "do": "start",
+   "op": "o14",
+   "candidate": "E",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 8
+      }
+     }
+    }
+   ]
+  },
+  {
+   "do": "run",
+   "op": "o15",
+   "candidate": "E"
+  },
+  {
+   "do": "accept",
+   "op": "o16",
+   "candidate": "B2"
+  },
+  {
+   "do": "stamp",
+   "as": "m2"
+  },
+  {
+   "do": "undo",
+   "op": "o17"
+  },
+  {
+   "do": "fresh",
+   "of": "m2"
+  },
+  {
+   "do": "accept",
+   "op": "o18",
+   "candidate": "E"
+  },
+  {
+   "do": "redo",
+   "op": "o19"
+  },
+  {
+   "do": "fresh",
+   "of": "m2"
+  },
+  {
+   "do": "save_open"
+  },
+  {
+   "do": "start",
+   "op": "o20",
+   "candidate": "F",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 9
+      }
+     }
+    }
+   ]
+  },
+  {
+   "do": "run",
+   "op": "o21",
+   "candidate": "F"
+  },
+  {
+   "do": "accept",
+   "op": "o22",
+   "candidate": "F"
+  },
+  {
+   "do": "start",
+   "op": "o23",
+   "candidate": "G",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 12
+      }
+     }
+    }
+   ]
+  },
+  {
+   "do": "run",
+   "op": "o24",
+   "candidate": "G"
+  },
+  {
+   "do": "accept",
+   "op": "o25",
+   "candidate": "G"
+  },
+  {
+   "do": "start",
+   "op": "o26",
+   "candidate": "X1",
+   "ops": [
+    {
+     "tool": "drop_table",
+     "args": {}
+    }
+   ]
+  },
+  {
+   "do": "start",
+   "op": "o27",
+   "candidate": "X2",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 6
+      }
+     }
+    }
+   ],
+   "units": "in"
+  },
+  {
+   "do": "start",
+   "op": "o28",
+   "candidate": "X3",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 42,
+      "values": {
+       "h": 6
+      }
+     }
+    }
+   ]
+  },
+  {
+   "do": "run",
+   "op": "o29",
+   "candidate": "X3"
+  },
+  {
+   "do": "start",
+   "op": "o30",
+   "candidate": "X4",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 6
+      }
+     }
+    }
+   ],
+   "dependsOn": [
+    "ZZ"
+   ]
+  },
+  {
+   "do": "start",
+   "op": "o31",
+   "candidate": "X5",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 6
+      }
+     }
+    }
+   ],
+   "budget": {
+    "ops": 0
+   }
+  },
+  {
+   "do": "start",
+   "op": "o32",
+   "candidate": "X6",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 6
+      }
+     }
+    }
+   ],
+   "budget": {
+    "triangles": 1
+   }
+  },
+  {
+   "do": "run",
+   "op": "o33",
+   "candidate": "X6"
+  },
+  {
+   "do": "start",
+   "op": "o34",
+   "candidate": "X7",
+   "ops": [
+    {
+     "tool": "edit_feature",
+     "args": {
+      "index": 1,
+      "values": {
+       "h": 6
+      }
+     }
+    }
+   ],
+   "deadline": 1
+  },
+  {
+   "do": "tick",
+   "n": 2
+  },
+  {
+   "do": "run",
+   "op": "o35",
+   "candidate": "X7"
+  },
+  {
+   "do": "accept",
+   "op": "o22",
+   "candidate": "F"
+  },
+  {
+   "do": "open_corrupt"
+  }
+ ],
+ "expect": [
+  {
+   "ok": true,
+   "volume": 1000
+  },
+  {
+   "ok": true,
+   "volume": 1000
+  },
+  {
+   "ok": true,
+   "volume": 1000,
+   "candidate_volume": 1200
+  },
+  {
+   "ok": true,
+   "volume": 1000,
+   "candidate_volume": 1400
+  },
+  {
+   "ok": true,
+   "volume": 1000
+  },
+  {
+   "ok": false,
+   "code": "WRONG_TARGET",
+   "volume": 1000
+  },
+  {
+   "ok": true,
+   "volume": 1000
+  },
+  {
+   "ok": false,
+   "code": "CANCELLED",
+   "volume": 1000
+  },
+  {
+   "ok": true,
+   "code": "DUPLICATE",
+   "duplicate": true,
+   "volume": 1000,
+   "candidate_volume": 1200
+  },
+  {
+   "ok": true,
+   "volume": 1200
+  },
+  {
+   "ok": false,
+   "code": "STALE_BASE",
+   "volume": 1200
+  },
+  {
+   "ok": true,
+   "volume": 1200
+  },
+  {
+   "ok": true,
+   "volume": 1200,
+   "candidate_volume": 1400
+  },
+  {
+   "ok": true,
+   "volume": 1200
+  },
+  {
+   "ok": true,
+   "volume": 1200,
+   "candidate_volume": 1600
+  },
+  {
+   "ok": true,
+   "volume": 1400
+  },
+  {
+   "ok": true,
+   "volume": 1400
+  },
+  {
+   "ok": true,
+   "volume": 1200
+  },
+  {
+   "ok": true,
+   "volume": 1200,
+   "fresh": "stale"
+  },
+  {
+   "ok": false,
+   "code": "STALE_BASE",
+   "volume": 1200
+  },
+  {
+   "ok": true,
+   "volume": 1400
+  },
+  {
+   "ok": true,
+   "volume": 1400,
+   "fresh": "current"
+  },
+  {
+   "ok": true,
+   "volume": 1400
+  },
+  {
+   "ok": true,
+   "volume": 1400
+  },
+  {
+   "ok": true,
+   "volume": 1400,
+   "candidate_volume": 1800
+  },
+  {
+   "ok": true,
+   "volume": 1800
+  },
+  {
+   "ok": true,
+   "volume": 1800
+  },
+  {
+   "ok": true,
+   "volume": 1800,
+   "candidate_volume": 2400
+  },
+  {
+   "ok": false,
+   "code": "GATE_FAILED",
+   "volume": 1800
+  },
+  {
+   "ok": false,
+   "code": "UNSUPPORTED_OP",
+   "volume": 1800
+  },
+  {
+   "ok": false,
+   "code": "WRONG_UNIT",
+   "volume": 1800
+  },
+  {
+   "ok": true,
+   "volume": 1800
+  },
+  {
+   "ok": false,
+   "code": "WRONG_TARGET",
+   "volume": 1800
+  },
+  {
+   "ok": false,
+   "code": "MISSING_DEPENDENCY",
+   "volume": 1800
+  },
+  {
+   "ok": false,
+   "code": "BUDGET_EXCEEDED",
+   "volume": 1800
+  },
+  {
+   "ok": true,
+   "volume": 1800
+  },
+  {
+   "ok": false,
+   "code": "BUDGET_EXCEEDED",
+   "volume": 1800
+  },
+  {
+   "ok": true,
+   "volume": 1800
+  },
+  {
+   "ok": true,
+   "volume": 1800
+  },
+  {
+   "ok": false,
+   "code": "TIMED_OUT",
+   "volume": 1800
+  },
+  {
+   "ok": true,
+   "code": "DUPLICATE",
+   "duplicate": true,
+   "volume": 1800
+  },
+  {
+   "ok": false,
+   "code": "CORRUPT_FILE",
+   "volume": 1800
+  }
+ ]
+}

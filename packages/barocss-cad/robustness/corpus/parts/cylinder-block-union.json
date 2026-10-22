@@ -1,0 +1,41 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "c",
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [0, 0],
+      "radius": 5
+    },
+    {
+      "id": "cy",
+      "kind": "extrude",
+      "sketch": "c",
+      "height": 10
+    },
+    {
+      "id": "b",
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [-2, -2],
+      "max": [2, 2]
+    },
+    {
+      "id": "bl",
+      "kind": "extrude",
+      "sketch": "b",
+      "height": 6,
+      "from": 8
+    },
+    {
+      "id": "u",
+      "kind": "union",
+      "target": "cy",
+      "tool": "bl"
+    }
+  ]
+}

@@ -1,0 +1,444 @@
+{
+ "articulations": [
+  {
+   "bodies": 7,
+   "joints": 6,
+   "root": "/robot"
+  }
+ ],
+ "bodies": {
+  "base": {
+   "centerOfMass": [
+    0.05000000074505806,
+    0.05000000074505806,
+    0.004999999888241291
+   ],
+   "diagonalInertia": [
+    0.00022723326401319355,
+    0.00022723326401319355,
+    0.00044998913654126227
+   ],
+   "mass": 0.2686428427696228,
+   "position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "principalAxes": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "l1": {
+   "centerOfMass": [
+    0.0,
+    0.0,
+    0.03999999910593033
+   ],
+   "diagonalInertia": [
+    5.539957783184946e-06,
+    4.375136995804496e-05,
+    4.391061156638898e-05
+   ],
+   "mass": 0.07879985868930817,
+   "position": [
+    0.05000000074505806,
+    0.05000000074505806,
+    0.009999999776482582
+   ],
+   "principalAxes": [
+    0.5,
+    -0.5,
+    -0.5,
+    -0.5
+   ],
+   "rotation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "l2": {
+   "centerOfMass": [
+    0.0,
+    -0.019999999552965164,
+    0.009999999776482582
+   ],
+   "diagonalInertia": [
+    5.539957783184946e-06,
+    4.375136995804496e-05,
+    4.391061156638898e-05
+   ],
+   "mass": 0.07879985868930817,
+   "position": [
+    0.05000000074505806,
+    0.05999999865889549,
+    0.07000000029802322
+   ],
+   "principalAxes": [
+    0.0,
+    0.7071067690849304,
+    0.7071067690849304,
+    0.0
+   ],
+   "rotation": [
+    -0.7071067690849304,
+    0.7071067690849304,
+    0.0,
+    0.0
+   ]
+  },
+  "l3": {
+   "centerOfMass": [
+    0.0,
+    -0.019999999552965164,
+    0.009999999776482582
+   ],
+   "diagonalInertia": [
+    5.539957783184946e-06,
+    4.375136995804496e-05,
+    4.391061156638898e-05
+   ],
+   "mass": 0.07879985868930817,
+   "position": [
+    0.05000000074505806,
+    0.07999999821186066,
+    0.10999999940395355
+   ],
+   "principalAxes": [
+    0.0,
+    0.7071067690849304,
+    0.7071067690849304,
+    0.0
+   ],
+   "rotation": [
+    -0.7071067690849304,
+    0.7071067690849304,
+    0.0,
+    0.0
+   ]
+  },
+  "l4": {
+   "centerOfMass": [
+    0.0,
+    0.0,
+    0.03999999910593033
+   ],
+   "diagonalInertia": [
+    5.539957783184946e-06,
+    4.375136995804496e-05,
+    4.391061156638898e-05
+   ],
+   "mass": 0.07879985868930817,
+   "position": [
+    0.05000000074505806,
+    0.09000000357627869,
+    0.17000000178813934
+   ],
+   "principalAxes": [
+    0.5,
+    -0.5,
+    -0.5,
+    -0.5
+   ],
+   "rotation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "l5": {
+   "centerOfMass": [
+    0.0,
+    -0.019999999552965164,
+    0.009999999776482582
+   ],
+   "diagonalInertia": [
+    5.539957783184946e-06,
+    4.375136995804496e-05,
+    4.391061156638898e-05
+   ],
+   "mass": 0.07879985868930817,
+   "position": [
+    0.05000000074505806,
+    0.10000000149011612,
+    0.23000000417232513
+   ],
+   "principalAxes": [
+    0.0,
+    0.7071067690849304,
+    0.7071067690849304,
+    0.0
+   ],
+   "rotation": [
+    -0.7071067690849304,
+    0.7071067690849304,
+    0.0,
+    0.0
+   ]
+  },
+  "l6": {
+   "centerOfMass": [
+    0.0,
+    0.0,
+    0.03999999910593033
+   ],
+   "diagonalInertia": [
+    5.539957783184946e-06,
+    4.375136995804496e-05,
+    4.391061156638898e-05
+   ],
+   "mass": 0.07879985868930817,
+   "position": [
+    0.05000000074505806,
+    0.10999999940395355,
+    0.28999999165534973
+   ],
+   "principalAxes": [
+    0.5,
+    -0.5,
+    -0.5,
+    -0.5
+   ],
+   "rotation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ },
+ "composition_errors": [],
+ "file": "robot.usda",
+ "joints": {
+  "base_to_l1": {
+   "axis": "Z",
+   "body0": "base",
+   "body1": "l1",
+   "excludeFromArticulation": false,
+   "limit": {
+    "enabled": false,
+    "lower": null,
+    "upper": null
+   },
+   "localPose0Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose0Position": [
+    0.05000000074505806,
+    0.05000000074505806,
+    0.009999999776482582
+   ],
+   "localPose1Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose1Position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "type": "RevoluteJoint"
+  },
+  "l1_to_l2": {
+   "axis": "Z",
+   "body0": "l1",
+   "body1": "l2",
+   "excludeFromArticulation": false,
+   "limit": {
+    "enabled": false,
+    "lower": null,
+    "upper": null
+   },
+   "localPose0Orientation": [
+    0.7071068286895752,
+    -0.7071068286895752,
+    0.0,
+    0.0
+   ],
+   "localPose0Position": [
+    0.0,
+    0.009999999776482582,
+    0.05999999865889549
+   ],
+   "localPose1Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose1Position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "type": "RevoluteJoint"
+  },
+  "l2_to_l3": {
+   "axis": "Z",
+   "body0": "l2",
+   "body1": "l3",
+   "excludeFromArticulation": false,
+   "limit": {
+    "enabled": false,
+    "lower": null,
+    "upper": null
+   },
+   "localPose0Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose0Position": [
+    0.0,
+    -0.03999999910593033,
+    0.019999999552965164
+   ],
+   "localPose1Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose1Position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "type": "RevoluteJoint"
+  },
+  "l3_to_l4": {
+   "axis": "Z",
+   "body0": "l3",
+   "body1": "l4",
+   "excludeFromArticulation": false,
+   "limit": {
+    "enabled": false,
+    "lower": null,
+    "upper": null
+   },
+   "localPose0Orientation": [
+    0.7071068286895752,
+    0.7071068286895752,
+    0.0,
+    0.0
+   ],
+   "localPose0Position": [
+    0.0,
+    -0.05999999865889549,
+    0.009999999776482582
+   ],
+   "localPose1Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose1Position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "type": "RevoluteJoint"
+  },
+  "l4_to_l5": {
+   "axis": "Z",
+   "body0": "l4",
+   "body1": "l5",
+   "excludeFromArticulation": false,
+   "limit": {
+    "enabled": false,
+    "lower": null,
+    "upper": null
+   },
+   "localPose0Orientation": [
+    0.7071068286895752,
+    -0.7071068286895752,
+    0.0,
+    0.0
+   ],
+   "localPose0Position": [
+    0.0,
+    0.009999999776482582,
+    0.05999999865889549
+   ],
+   "localPose1Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose1Position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "type": "RevoluteJoint"
+  },
+  "l5_to_l6": {
+   "axis": "Z",
+   "body0": "l5",
+   "body1": "l6",
+   "excludeFromArticulation": false,
+   "limit": {
+    "enabled": false,
+    "lower": null,
+    "upper": null
+   },
+   "localPose0Orientation": [
+    0.7071068286895752,
+    0.7071068286895752,
+    0.0,
+    0.0
+   ],
+   "localPose0Position": [
+    0.0,
+    -0.05999999865889549,
+    0.009999999776482582
+   ],
+   "localPose1Orientation": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "localPose1Position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "type": "RevoluteJoint"
+  }
+ },
+ "kilogramsPerUnit": 1.0,
+ "metersPerUnit": 1.0,
+ "other": {
+  "MeshShape": [
+   "/robot/base/collision",
+   "/robot/l1/collision",
+   "/robot/l2/collision",
+   "/robot/l3/collision",
+   "/robot/l4/collision",
+   "/robot/l5/collision",
+   "/robot/l6/collision"
+  ]
+ },
+ "upAxis": "Z",
+ "usd": "0.26.8"
+}

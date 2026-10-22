@@ -1,0 +1,153 @@
+{
+  "id": "r12c-accept-plunger",
+  "step": "R12c",
+  "decisions": [
+    "D163"
+  ],
+  "about": "R12c.8 acceptance (D163): a spring-loaded plunger built by the agent in one turn — a Ø30 × 50 housing with a Ø24 blind bore 40 deep; a closed and ground compression spring (wire Ø2, mean Ø20, 6 active coils, pitch 5) on the bore's bottom; a Ø23 × 15 plunger on its top.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 15
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": "n0",
+          "height": 50
+        },
+        {
+          "id": "n2",
+          "kind": "hole",
+          "target": "n1",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 12,
+          "depth": 40,
+          "face": "n1.top"
+        },
+        {
+          "id": "n3",
+          "kind": "spring",
+          "wire": 2,
+          "diameter": 20,
+          "activeCoils": 6,
+          "pitch": 5,
+          "hand": "right",
+          "ends": "closed-ground",
+          "shearModulus": 79300,
+          "shearModulusEstimate": true,
+          "load": 20,
+          "center": [
+            0,
+            0
+          ],
+          "from": 10,
+          "generator": "spring@0"
+        },
+        {
+          "id": "n4",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 11.5
+        },
+        {
+          "id": "n5",
+          "kind": "extrude",
+          "sketch": "n4",
+          "height": 15,
+          "from": 44.002
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 17247.343668207966,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            19.754098360655735
+          ],
+          "absTol": 1e-7
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 1541.1998773110126,
+          "relTol": 0.0004
+        },
+        "centroidMM": {
+          "value": [
+            -0.13644217568516917,
+            3.3272307347688893e-10,
+            27.0010139861535
+          ],
+          "absTol": 0.005
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 6232.134426558752,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            51.502
+          ],
+          "absTol": 1e-7
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "The housing π15²·50 less the bore π12²·40, its centroid by moments; the spring D153's closed form πa²S − (4/3)a³R/h_s for these sizes (conformance r12c/spring-closed-ground; the fit's bound 4e-4), its centroid by this kernel to 0.005; the plunger π11.5²·15 centred on its axis."
+}

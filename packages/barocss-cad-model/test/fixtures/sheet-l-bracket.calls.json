@@ -1,0 +1,117 @@
+{
+ "about": "RB9 rung 5 (R12.5, D121): a sheet-metal L-bracket \u2014 legs 40 and 30 to the outside of the bend, 30 wide, 1.5 mm sheet, inner radius 1.5, K 0.44 (the shop's, given in the brief), a \u00d85.5 hole through each leg.",
+ "calls": [
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "sheet-profile",
+    "values": {
+     "shape": "l",
+     "a": 40,
+     "b": 30,
+     "angle": 90,
+     "w": 30,
+     "t": 1.5,
+     "r": 1.5,
+     "k": 0.44,
+     "x": 0,
+     "y": 0,
+     "z": 0
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "add",
+    "features": [
+     {
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [
+       25,
+       15
+      ],
+      "radius": 2.75,
+      "plane": {
+       "origin": [
+        0,
+        0,
+        -1
+       ],
+       "normal": [
+        0,
+        0,
+        1
+       ],
+       "xAxis": [
+        1,
+        0,
+        0
+       ]
+      }
+     },
+     {
+      "kind": "extrude",
+      "sketch": 1,
+      "height": 4
+     },
+     {
+      "kind": "difference",
+      "parent": {
+       "node": 0,
+       "side": "solid"
+      },
+      "tool": {
+       "node": 2,
+       "side": "solid"
+      }
+     },
+     {
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [
+       15,
+       20
+      ],
+      "radius": 2.75,
+      "plane": {
+       "origin": [
+        -1,
+        0,
+        0
+       ],
+       "normal": [
+        1,
+        0,
+        0
+       ],
+       "xAxis": [
+        0,
+        1,
+        0
+       ]
+      }
+     },
+     {
+      "kind": "extrude",
+      "sketch": 4,
+      "height": 4
+     },
+     {
+      "kind": "difference",
+      "parent": {
+       "node": 3,
+       "side": "solid"
+      },
+      "tool": {
+       "node": 5,
+       "side": "solid"
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

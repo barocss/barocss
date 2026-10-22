@@ -1,0 +1,109 @@
+{
+  "id": "r10-refuse-radius-exceeds-curvature",
+  "step": "R10",
+  "decisions": [
+    "D88"
+  ],
+  "about": "R10.1: a D shaft (a rod of radius 5 with a flat at 3), the flat's edge filleted 5 mm — the ball would sit inside the rod 5 − r = 0 from its axis (RADIUS_EXCEEDS_CURVATURE).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "cs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 5,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "ce",
+          "kind": "extrude",
+          "sketch": "cs",
+          "height": 40
+        },
+        {
+          "id": "b",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            -5,
+            3
+          ],
+          "max": [
+            45,
+            10
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              -10
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "be",
+          "kind": "extrude",
+          "sketch": "b",
+          "height": 20
+        },
+        {
+          "id": "d",
+          "kind": "difference",
+          "target": "ce",
+          "tool": "be"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "d",
+          "edges": [
+            "be.side0|ce.side0#1"
+          ],
+          "radius": 5
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[RADIUS_EXCEEDS_CURVATURE]"
+    }
+  },
+  "oracle": "Closed form: the convex fillet's centre lies r inside the cylinder, at radius 5 − r."
+}

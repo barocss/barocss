@@ -1,0 +1,40 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "a",
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [0, 0],
+      "radius": 6
+    },
+    {
+      "id": "ca",
+      "kind": "extrude",
+      "sketch": "a",
+      "height": 12
+    },
+    {
+      "id": "b",
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [4, 0],
+      "radius": 6
+    },
+    {
+      "id": "cb",
+      "kind": "extrude",
+      "sketch": "b",
+      "height": 12
+    },
+    {
+      "id": "i",
+      "kind": "intersect",
+      "target": "ca",
+      "tool": "cb"
+    }
+  ]
+}

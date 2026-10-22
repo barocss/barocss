@@ -1,0 +1,61 @@
+{
+  "id": "r6a-spur-m2-z40-bore",
+  "step": "R6a",
+  "decisions": [
+    "D53",
+    "D54"
+  ],
+  "about": "The fixture's mate: m 2, z 40, a Ø12 bore, centred at (5, −3): genus 1, the bore taken off the exact volume.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 40,
+          "faceWidth": 10,
+          "bore": 12,
+          "center": [
+            5,
+            -3
+          ],
+          "generator": "spur-gear@0"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 48696.908408671,
+          "relTol": 1e-05
+        },
+        "centroidMM": {
+          "value": [
+            5,
+            -3,
+            5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^g\\.(flankL|flankR|tip|root|rootL|rootR|bore|face0|face1)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  }
+}

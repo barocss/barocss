@@ -1,0 +1,32 @@
+{
+ "about": "R12b.7 acceptance (D138): a worm reducer 30 : 1 \u2014 a single-start ZA worm, axial module 3, reference \u00d844, right hand, and its throated wheel of 30 teeth, face width 20, bored 20 (the worm 12): the centre distance (d1 + m z2)/2 = 67. Built by the agent's tools in one turn.",
+ "calls": [
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "worm-pair",
+    "values": {
+     "m": 3,
+     "starts": 1,
+     "d1": 44,
+     "hand": "right",
+     "wheel": "throated",
+     "z2": 30,
+     "b": 20,
+     "bore": 20,
+     "wbore": 12,
+     "x": 0,
+     "y": 0,
+     "z": 0
+    }
+   }
+  },
+  {
+   "tool": "query",
+   "args": {
+    "action": "summary"
+   }
+  }
+ ]
+}

@@ -1,0 +1,305 @@
+{
+ "audit": {
+  "errors": [],
+  "fixes": []
+ },
+ "blocks": {},
+ "dxfversion": "AC1015",
+ "ezdxf": "1.4.5",
+ "insunits": 4,
+ "layers": [
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": -3,
+   "name": "0"
+  },
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": 50,
+   "name": "VISIBLE"
+  },
+  {
+   "color": 8,
+   "linetype": "BC_HIDDEN",
+   "lineweight": 35,
+   "name": "HIDDEN"
+  },
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": 25,
+   "name": "THIN"
+  },
+  {
+   "color": 1,
+   "linetype": "BC_CENTER",
+   "lineweight": 25,
+   "name": "CENTER"
+  },
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": 70,
+   "name": "FRAME"
+  },
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": 25,
+   "name": "TEXT"
+  },
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": 25,
+   "name": "HATCH"
+  },
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": 25,
+   "name": "DIMENSIONS"
+  },
+  {
+   "color": 7,
+   "linetype": "Continuous",
+   "lineweight": null,
+   "name": "Defpoints"
+  }
+ ],
+ "linetypes": [
+  {
+   "name": "ByBlock",
+   "pattern": []
+  },
+  {
+   "name": "ByLayer",
+   "pattern": []
+  },
+  {
+   "name": "Continuous",
+   "pattern": []
+  },
+  {
+   "name": "BC_HIDDEN",
+   "pattern": [
+    3.0,
+    -1.5
+   ]
+  },
+  {
+   "name": "BC_CENTER",
+   "pattern": [
+    8.0,
+    -1.5,
+    1.5,
+    -1.5
+   ]
+  }
+ ],
+ "modelspace": [
+  {
+   "a": [
+    64.0,
+    0.0
+   ],
+   "b": [
+    64.0,
+    8.0
+   ],
+   "layer": "VISIBLE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    0.0,
+    0.0
+   ],
+   "b": [
+    0.0,
+    8.0
+   ],
+   "layer": "VISIBLE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    0.0,
+    0.0
+   ],
+   "b": [
+    28.0,
+    0.0
+   ],
+   "layer": "VISIBLE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    28.0,
+    0.0
+   ],
+   "b": [
+    28.0,
+    8.0
+   ],
+   "layer": "VISIBLE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    0.0,
+    8.0
+   ],
+   "b": [
+    28.0,
+    8.0
+   ],
+   "layer": "VISIBLE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    28.0,
+    0.0
+   ],
+   "b": [
+    36.0,
+    0.0
+   ],
+   "layer": "VISIBLE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    36.0,
+    0.0
+   ],
+   "b": [
+    36.0,
+    8.0
+   ],
+   "layer": "VISIBLE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    28.0,
+    8.0
+   ],
+   "b": [
+    36.0,
+    8.0
+   ],
+   "layer": "VISIBLE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    64.0,
+    0.0
+   ],
+   "b": [
+    36.0,
+    0.0
+   ],
+   "layer": "VISIBLE",
+   "type": "LINE"
+  },
+  {
+   "a": [
+    64.0,
+    8.0
+   ],
+   "b": [
+    36.0,
+    8.0
+   ],
+   "layer": "VISIBLE",
+   "type": "LINE"
+  },
+  {
+   "layer": "HATCH",
+   "lines": [
+    {
+     "angle": 45.0,
+     "base": [
+      0.0,
+      0.0
+     ],
+     "offset": [
+      -1.7677669529663687,
+      1.7677669529663689
+     ]
+    }
+   ],
+   "loops": [
+    {
+     "bulges": null,
+     "points": [
+      [
+       0.0,
+       0.0
+      ],
+      [
+       28.0,
+       0.0
+      ],
+      [
+       28.0,
+       8.0
+      ],
+      [
+       0.0,
+       8.0
+      ],
+      [
+       0.0,
+       0.0
+      ]
+     ]
+    },
+    {
+     "bulges": null,
+     "points": [
+      [
+       36.0,
+       0.0
+      ],
+      [
+       64.0,
+       0.0
+      ],
+      [
+       64.0,
+       8.0
+      ],
+      [
+       36.0,
+       8.0
+      ],
+      [
+       36.0,
+       0.0
+      ]
+     ]
+    }
+   ],
+   "pattern": "_USER",
+   "rendered": {
+    "length": 179.00923471598918,
+    "lines": 21
+   },
+   "solid": false,
+   "type": "HATCH"
+  }
+ ],
+ "styles": [
+  {
+   "font": "txt",
+   "name": "Standard"
+  }
+ ]
+}

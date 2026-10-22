@@ -1,0 +1,19 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "k",
+      "kind": "spur-rack",
+      "normalModule": 2,
+      "helixAngle": 20,
+      "hand": "left",
+      "teeth": 8,
+      "faceWidth": 10,
+      "height": 8,
+      "generator": "spur-rack@1"
+    }
+  ]
+}

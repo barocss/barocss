@@ -1,0 +1,110 @@
+{
+  "id": "r10-refuse-not-analytic-pair",
+  "step": "R10",
+  "decisions": [
+    "D88"
+  ],
+  "about": "R10.1: two rods crossing at right angles, an edge of their saddle (a space curve) filleted \u2014 neither translational nor coaxial; general fillets are R10.2 (NOT_ANALYTIC_PAIR).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "as",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 5,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "a",
+          "kind": "extrude",
+          "sketch": "as",
+          "height": 40
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            20,
+            0
+          ],
+          "radius": 3,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              -10
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "bb",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 20
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "a",
+          "tool": "bb"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "a.side0#1|bb.side0#3#1"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "[NOT_ANALYTIC_PAIR]"
+    }
+  },
+  "oracle": "Two cylinders with perpendicular axes meet in a curve that is neither a line nor a circle.",
+  "supersededBy": {
+    "step": "R10",
+    "why": "R10.2a (D89) fillets closed general chains: the crossing rods' saddle builds (r10-general-crossing-rods); an open general chain is now the refusal (r10-refuse-open-general-chain)."
+  }
+}

@@ -1,0 +1,244 @@
+{
+  "id": "a4-l2-values-or-proposal",
+  "step": "A4.3",
+  "decisions": [
+    "D41"
+  ],
+  "about": "Autonomy L2 is the owner's option b: within one turn, value edits of one feature (a box's sketch and extrude are one) apply directly while every hard requirement that passed still passes; a second feature, a new feature, two edits in one batch, or a value breaking R1 is refused as needs_proposal, the part unchanged. The owner's exception: a turn starting on an empty part builds it directly (a box and a hole); the next turn, from that part, adding a feature is refused as needs_proposal.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            20
+          ],
+          "id": "n0"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 8,
+          "id": "n1"
+        },
+        {
+          "kind": "hole",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "radius": 3,
+          "center": [
+            10,
+            10
+          ],
+          "id": "n2"
+        }
+      ],
+      "outputs": {
+        "b2": {
+          "node": 2,
+          "side": "solid"
+        }
+      },
+      "nextId": 3,
+      "requirements": [
+        {
+          "id": "R1",
+          "source": "40 long",
+          "hard": true,
+          "check": {
+            "op": "==",
+            "query": {
+              "fn": "bbox",
+              "axis": "x"
+            },
+            "value": 40,
+            "tol": 0.1
+          }
+        }
+      ]
+    },
+    "l2": {
+      "turns": [
+        [
+          {
+            "tool": "edit_feature",
+            "args": {
+              "index": 2,
+              "values": {
+                "dia": 8
+              }
+            },
+            "expect": "applied"
+          },
+          {
+            "tool": "edit_feature",
+            "args": {
+              "index": 2,
+              "values": {
+                "dia": 7
+              }
+            },
+            "expect": "applied"
+          },
+          {
+            "tool": "edit_feature",
+            "args": {
+              "index": 1,
+              "values": {
+                "h": 10
+              }
+            },
+            "expect": "needs_proposal",
+            "why": "changes 2 features"
+          }
+        ],
+        [
+          {
+            "tool": "edit_feature",
+            "args": {
+              "index": 1,
+              "values": {
+                "h": 10,
+                "d": 25
+              }
+            },
+            "expect": "applied"
+          }
+        ],
+        [
+          {
+            "tool": "edit_feature",
+            "args": {
+              "index": 1,
+              "values": {
+                "w": 50
+              }
+            },
+            "expect": "needs_proposal",
+            "why": "hard requirement R1 failing"
+          }
+        ],
+        [
+          {
+            "tool": "run_command",
+            "args": {
+              "command": "hole",
+              "faces": [
+                "n1.top"
+              ],
+              "values": {
+                "d": 4,
+                "x": 30,
+                "y": 10
+              }
+            },
+            "expect": "needs_proposal",
+            "why": "adds 1 feature"
+          }
+        ],
+        [
+          {
+            "tool": "apply_ops",
+            "args": {
+              "ops": [
+                {
+                  "tool": "edit_feature",
+                  "args": {
+                    "index": 2,
+                    "values": {
+                      "dia": 5
+                    }
+                  }
+                },
+                {
+                  "tool": "edit_feature",
+                  "args": {
+                    "index": 1,
+                    "values": {
+                      "h": 9
+                    }
+                  }
+                }
+              ]
+            },
+            "expect": "needs_proposal",
+            "why": "changes 2 features"
+          }
+        ],
+        {
+          "start": "empty",
+          "calls": [
+            {
+              "tool": "run_command",
+              "args": {
+                "command": "box",
+                "values": {
+                  "w": 40,
+                  "d": 20,
+                  "h": 8,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              "expect": "applied"
+            },
+            {
+              "tool": "run_command",
+              "args": {
+                "command": "hole",
+                "faces": [
+                  "n1.top"
+                ],
+                "values": {
+                  "d": 6,
+                  "x": 10,
+                  "y": 10
+                }
+              },
+              "expect": "applied"
+            }
+          ],
+          "nodes": 3
+        },
+        {
+          "start": "previous",
+          "calls": [
+            {
+              "tool": "run_command",
+              "args": {
+                "command": "hole",
+                "faces": [
+                  "n1.top"
+                ],
+                "values": {
+                  "d": 4,
+                  "x": 30,
+                  "y": 10
+                }
+              },
+              "expect": "needs_proposal",
+              "why": "adds 1 feature"
+            }
+          ],
+          "nodes": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "level": 2
+  }
+}

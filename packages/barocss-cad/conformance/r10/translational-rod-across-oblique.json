@@ -1,0 +1,143 @@
+{
+  "id": "r10-translational-rod-across-oblique",
+  "step": "R10",
+  "decisions": [
+    "D90"
+  ],
+  "about": "R10.1/R10.2b: a rod (radius 4, its axis at the plate's top) lying across the plate at 10°, one foot filleted 1 mm — a concave fillet ending on the plate's oblique ends, cut by their planes (it stopped square before, D90).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            -20
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "p",
+          "height": 10
+        },
+        {
+          "id": "cs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            10
+          ],
+          "radius": 4,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "c0",
+          "kind": "extrude",
+          "sketch": "cs",
+          "height": 60,
+          "from": -10
+        },
+        {
+          "id": "c",
+          "kind": "rotate",
+          "target": "c0",
+          "axis": "z",
+          "angleDegrees": 10,
+          "pivot": [
+            20,
+            0,
+            10
+          ]
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "pe",
+          "tool": "c"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "c0.side0#2|pe.top#2"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 18001.362050722466,
+          "relTol": 2e-7
+        },
+        "centroidMM": {
+          "value": [
+            20.000000000006036,
+            0.0014791022281402612,
+            5.652223760227345
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "c0.bottom",
+          "c0.side0",
+          "c0.top",
+          "f.face",
+          "pe.bottom",
+          "pe.side0",
+          "pe.side1",
+          "pe.side2",
+          "pe.side3",
+          "pe.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "The body by this kernel (planes and cylinders, exact); the fillet in closed form: its section between the top and the rod (the triangle less two sectors) × 40 / cos 10°, the length between the plate's ends along the edge."
+}

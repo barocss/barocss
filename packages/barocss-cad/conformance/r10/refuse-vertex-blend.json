@@ -1,0 +1,87 @@
+{
+  "id": "r10-refuse-vertex-blend",
+  "step": "R10",
+  "decisions": [
+    "D92"
+  ],
+  "about": "R10.3a: the box boss's foot and one of its upright edges in one fillet \u2014 three finished edges at a corner: no ball rolls round an edge there, it is a vertex blend (R10.3b): VERTEX_BLEND_UNSUPPORTED.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "ps",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            -30,
+            -30
+          ],
+          "max": [
+            30,
+            30
+          ]
+        },
+        {
+          "id": "p",
+          "kind": "extrude",
+          "sketch": "ps",
+          "height": 10
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            -10,
+            -6
+          ],
+          "max": [
+            10,
+            6
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 15,
+          "from": 10
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "p",
+          "tool": "b"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "b.side0|p.top",
+            "b.side1|p.top",
+            "b.side2|p.top",
+            "b.side3|p.top",
+            "b.side0|b.side1"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "[VERTEX_BLEND_UNSUPPORTED]"
+    }
+  },
+  "oracle": "At the corner the foot edges meet the upright one: the round of all three there is a corner blend between a concave and a convex fillet, not a ball rolling round an unfinished edge.",
+  "supersededBy": {
+    "step": "R10",
+    "why": "R10.3b (D93) blends a corner of three finished edges the two ways round in two passes: the boss's upright edge first, then its foot round it (r10-corner-boss-uprights-and-foot)."
+  }
+}

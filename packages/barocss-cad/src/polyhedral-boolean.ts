@@ -51,6 +51,10 @@ const vnum = (a: V): Point => [num(a[0]), num(a[1]), num(a[2])];
 interface PFace {
   solid: 0 | 1; rings: V[][]; normal: V; offset: Q; axis: 0 | 1 | 2; i: 0 | 1 | 2; j: 0 | 1 | 2;
   min: Point; max: Point; cuts: [V, V][]; coplanar: number[]; name?: string;
+  /** The plane in binary64: normal, offset, |normal| and the face's reach from the origin (for error bounds). */
+  nf?: Point; of?: number; nn?: number; reach?: number;
+  /** The rings in binary64, projected on the face's (i, j) plane (made when first needed). */
+  flat?: Float64Array[];
 }
 /** A persistent name without its `#k` piece number. */
 export const baseName = (name: string) => name.replace(/#\d+$/, '');
@@ -65,17 +69,48 @@ function facesOf(brep: Brep, solid: 0 | 1): PFace[] {
       const p = vertices.get(c.sense === 'forward' ? e.vertices[0] : e.vertices[1])!; return p.map(qf) as V;
     }));
     // Exact Newell normal of the outer loop: points out of the solid (loops run counter-clockwise about it).
-    let normal: V = [ZERO, ZERO, ZERO];
-    const ring = rings[0];
-    ring.forEach((p, k) => { normal = vadd(normal, vcross(p, ring[(k + 1) % ring.length])); });
-    if (vzero(normal)) throw new BrepError('GEOMETRY', `polyhedral Boolean: face ${f.id} has no area`);
-    for (const r of rings) for (const p of r) if (cmp(vdot(normal, p), vdot(normal, ring[0])) !== 0) throw new BrepError('GEOMETRY', `polyhedral Boolean: face ${f.id} is not planar`);
+    const ring = rings[0], normal = newellNormal(rings);
+    if (!normal) throw new BrepError('GEOMETRY', `polyhedral Boolean: face ${f.id} has no area`);
+    if (normal === 'bent') throw new BrepError('GEOMETRY', `polyhedral Boolean: face ${f.id} is not planar`, undefined, 'NOT_PLANAR_WITHIN_FLOAT');
     const mag = normal.map(x => Math.abs(num(x))), axis = (mag[0] >= mag[1] && mag[0] >= mag[2] ? 0 : mag[1] >= mag[2] ? 1 : 2) as 0 | 1 | 2;
     let i = ((axis + 1) % 3) as 0 | 1 | 2, j = ((axis + 2) % 3) as 0 | 1 | 2; if (sgn(normal[axis]) < 0) [i, j] = [j, i];
     const flat = rings.flat().map(vnum), min = [0, 1, 2].map(k => Math.min(...flat.map(p => p[k]))) as Point, max = [0, 1, 2].map(k => Math.max(...flat.map(p => p[k]))) as Point;
-    return { solid, rings, normal, offset: vdot(normal, ring[0]), axis, i, j, min, max, cuts: [], coplanar: [], ...(f.name === undefined ? {} : { name: baseName(f.name) }) };
+    const offset = vdot(normal, ring[0]);
+    return { solid, rings, normal, offset, axis, i, j, min, max, cuts: [], coplanar: [], ...(f.name === undefined ? {} : { name: baseName(f.name) }), ...floatPlane(normal, offset, min, max) };
   });
 }
+/**
+ * The exact Newell normal of a face's outer ring (reduced to coprime integers), null when it has no area, or
+ * 'bent' when a vertex of any ring is off its plane. The corners are binary64 values, so on the common
+ * power-of-two denominator they are integers and the sums need no rational reductions.
+ */
+function newellNormal(rings: V[][]): V | null | 'bent' {
+  let K = 0n;
+  for (const r of rings) for (const p of r) for (const x of p) { const k = BigInt(x.d.toString(2).length - 1); if (k > K) K = k; }
+  const whole = rings.map(r => r.map(p => p.map(x => x.n << (K - BigInt(x.d.toString(2).length - 1)))));
+  const ring = whole[0];
+  let nx = 0n, ny = 0n, nz = 0n;
+  for (let k = 0; k < ring.length; k++) {
+    const a = ring[k], b = ring[(k + 1) % ring.length];
+    nx += a[1] * b[2] - a[2] * b[1]; ny += a[2] * b[0] - a[0] * b[2]; nz += a[0] * b[1] - a[1] * b[0];
+  }
+  if (nx === 0n && ny === 0n && nz === 0n) return null;
+  const g = bgcd(bgcd(nx, ny), nz); nx /= g; ny /= g; nz /= g;
+  const at = nx * ring[0][0] + ny * ring[0][1] + nz * ring[0][2];
+  for (const r of whole) for (const p of r) if (nx * p[0] + ny * p[1] + nz * p[2] !== at) return 'bent';
+  return [{ n: nx, d: 1n }, { n: ny, d: 1n }, { n: nz, d: 1n }];
+}
+/** The plane in binary64, with what its error bound needs (see `slack`). */
+function floatPlane(normal: V, offset: Q, min: Point, max: Point): { nf: Point; of: number; nn: number; reach: number } {
+  const nf = vnum(normal);
+  return { nf, of: num(offset), nn: Math.hypot(nf[0], nf[1], nf[2]), reach: Math.max(Math.abs(min[0]), Math.abs(max[0]), Math.abs(min[1]), Math.abs(max[1]), Math.abs(min[2]), Math.abs(max[2]), 1) };
+}
+/**
+ * A bound on the binary64 error of n·p − offset at a point of reach `pr`: the converted normal, offset and
+ * point are each within an ulp or two of the exact values, so 1e-9 of the terms' size is far beyond it.
+ */
+const slack = (g: PFace, pr: number) => 1e-9 * (g.nn! * Math.max(g.reach!, pr) + Math.abs(g.of!));
+
 const to2 = (f: PFace, p: V): ExactPoint2 => exactPoint2(p[f.i].n, p[f.i].d, p[f.j].n, p[f.j].d);
 function lift(f: PFace, x: Q, y: Q): V {
   const out: V = [ZERO, ZERO, ZERO]; out[f.i] = x; out[f.j] = y;
@@ -122,12 +157,27 @@ function pointInFace(f: PFace, p: V): number {
   return inside ? 1 : -1;
 }
 const RAYS: V[] = [[0.5773, 0.3419, 0.7413], [-0.2183, 0.8817, 0.4127], [0.6631, -0.5279, 0.3011], [-0.4421, -0.3137, 0.8401], [0.1931, 0.7349, -0.6503]].map(r => r.map(qf) as V);
+const RAYS_F: Point[] = RAYS.map(vnum);
 type Where = 'in' | 'out' | 'same' | 'opposite';
+/**
+ * Inside, outside, or on a coplanar face of `others` (same or opposite orientation), decided exactly. Faces
+ * the point is clearly off (binary64 plane distance past the face's slack) skip the exact coplanar test, and
+ * a ray skips the exact test of faces it clearly misses (its binary64 crossing point clearly outside the
+ * face's box, or clearly behind the point); what remains is decided as before, in exact rationals.
+ */
 function classify(p: V, normal: V, others: PFace[]): Where {
-  for (const g of others) if (cmp(vdot(g.normal, p), g.offset) === 0 && pointInFace(g, p) > 0) return sgn(vdot(g.normal, normal)) > 0 ? 'same' : 'opposite';
-  for (const r of RAYS) {
+  const pf = vnum(p), px = pf[0], py = pf[1], pz = pf[2], pr = Math.max(Math.abs(px), Math.abs(py), Math.abs(pz), 1);
+  for (const g of others) {
+    if (g.nf && Math.abs(g.nf[0] * px + g.nf[1] * py + g.nf[2] * pz - g.of!) > slack(g, pr)) continue;
+    if (cmp(vdot(g.normal, p), g.offset) === 0 && pointInFace(g, p) > 0) return sgn(vdot(g.normal, normal)) > 0 ? 'same' : 'opposite';
+  }
+  for (let k = 0; k < RAYS.length; k++) {
+    const r = RAYS[k], rf = RAYS_F[k];
     let crossings = 0, degenerate = false;
     for (const g of others) {
+      const clear = g.nf ? crossing(g, px, py, pz, pr, rf) : 0;
+      if (clear < 0) continue;
+      if (clear > 0) { crossings++; continue; }
       const denom = vdot(g.normal, r), dist = sub(g.offset, vdot(g.normal, p));
       if (denom.n === 0n) { if (dist.n === 0n) { degenerate = true; break; } continue; }
       const t = div(dist, denom); if (sgn(t) <= 0) continue;
@@ -139,26 +189,54 @@ function classify(p: V, normal: V, others: PFace[]): Where {
   }
   throw new BrepError('GEOMETRY', 'polyhedral Boolean: every classification ray was degenerate');
 }
+/**
+ * Whether the ray p + t·r (t > 0) clearly misses face g (−1: crossing its plane clearly behind p, or clearly
+ * outside the face) or clearly crosses it (1: the crossing point clearly inside, away from every edge), or
+ * 0 when only the exact test can tell.
+ */
+function crossing(g: PFace, px: number, py: number, pz: number, pr: number, r: Point): number {
+  const n = g.nf!, denom = n[0] * r[0] + n[1] * r[1] + n[2] * r[2], dist = g.of! - (n[0] * px + n[1] * py + n[2] * pz);
+  // (A ray nearly in the plane, or a point nearly on it, is left to the exact test.)
+  if (Math.abs(denom) < 1e-6 * g.nn! || Math.abs(dist) <= slack(g, pr)) return 0;
+  const t = dist / denom;
+  if (t < 0) return -1;
+  const x = px + t * r[0], y = py + t * r[1], z = pz + t * r[2], m = 1e-7 * (1 + t) * Math.max(pr, g.reach!);
+  if (x < g.min[0] - m || x > g.max[0] + m || y < g.min[1] - m || y > g.max[1] + m || z < g.min[2] - m || z > g.max[2] + m) return -1;
+  // (The point's error is at most m in 3D, so at most m in the projection: a point farther than m from every
+  // edge is on the side binary64 says.)
+  const c = [x, y, z];
+  return insideFlat(g, c[g.i], c[g.j], m);
+}
+/** 1 inside, −1 outside the face's projected rings, 0 within `m` of an edge. */
+function insideFlat(g: PFace, x: number, y: number, m: number): number {
+  if (!g.flat) g.flat = g.rings.map(ring => { const out = new Float64Array(2 * ring.length); ring.forEach((p, k) => { out[2 * k] = num(p[g.i]); out[2 * k + 1] = num(p[g.j]); }); return out; });
+  let inside = false;
+  for (const ring of g.flat) {
+    const len = ring.length / 2;
+    for (let k = 0; k < len; k++) {
+      const ax = ring[2 * k], ay = ring[2 * k + 1], b = (k + 1) % len, bx = ring[2 * b], by = ring[2 * b + 1];
+      const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey, s = l2 > 0 ? Math.max(0, Math.min(1, ((x - ax) * ex + (y - ay) * ey) / l2)) : 0;
+      if (Math.hypot(x - ax - s * ex, y - ay - s * ey) <= m) return 0;
+      if ((ay > y) !== (by > y) && x < ax + (bx - ax) * (y - ay) / (by - ay)) inside = !inside;
+    }
+  }
+  return inside ? 1 : -1;
+}
 
 /** A + B, A ∩ B or A − B for B-reps with planar faces and straight edges. */
 export function booleanPolyhedra(a: Brep, b: Brep, operation: PolyhedralBooleanOperation, options: { readonly id?: string } = {}): Brep {
   const A = facesOf(a, 0), B = facesOf(b, 1);
   // 1. Cuts.
-  const near = (f: PFace, g: PFace) => [0, 1, 2].every(k => f.min[k] <= g.max[k] + 1e-9 * (1 + Math.abs(g.max[k])) && g.min[k] <= f.max[k] + 1e-9 * (1 + Math.abs(f.max[k])));
-  for (const fa of A) for (const fb of B) {
-    if (!near(fa, fb)) continue;
-    const D = vcross(fa.normal, fb.normal);
-    if (vzero(D)) {
-      if (cmp(mul(fa.offset, fb.normal[fa.axis]), mul(fb.offset, fa.normal[fa.axis])) !== 0) continue; // parallel, apart
-      for (const r of fb.rings) r.forEach((p, k) => fa.cuts.push([p, r[(k + 1) % r.length]]));
-      for (const r of fa.rings) r.forEach((p, k) => fb.cuts.push([p, r[(k + 1) % r.length]]));
-      continue;
-    }
-    // A point on both planes: solve Na·x = da, Nb·x = db, D·x = 0 (Cramer).
-    const det = vdot(D, D), P0 = vscale(vadd(vscale(vcross(fb.normal, D), fa.offset), vscale(vcross(D, fa.normal), fb.offset)), div({ n: 1n, d: 1n }, det));
-    for (const [lo, hi] of overlap(intervals(fa, P0, D), intervals(fb, P0, D))) {
-      const s: [V, V] = [vadd(P0, vscale(D, lo)), vadd(P0, vscale(D, hi))]; fa.cuts.push(s); fb.cuts.push(s);
-    }
+  // (Pairs whose boxes meet, found through B's faces sorted by their lowest x; each A face's partners are
+  // then taken in B's order, so the cuts come in the order they always did.)
+  const byLowX = B.map((_, k) => k).sort((x, y) => B[x].min[0] - B[y].min[0]), lowX = Float64Array.from(byLowX, k => B[k].min[0]);
+  let widest = 0; for (const f of B) widest = Math.max(widest, f.max[0] - f.min[0]);
+  const partners: number[] = [];
+  for (const fa of A) {
+    partners.length = 0;
+    for (let at = lowerBound(lowX, fa.min[0] - widest - 1e-9 * (1 + Math.abs(fa.min[0]) + widest)); at < byLowX.length && lowX[at] <= fa.max[0] + 1e-9 * (1 + Math.abs(fa.max[0])); at++) if (near(fa, B[byLowX[at]])) partners.push(byLowX[at]);
+    partners.sort((x, y) => x - y);
+    for (const k of partners) cutPair(fa, B[k]);
   }
   // 2–3. Pieces and their classes.
   type Piece = { face: PFace; loops: V[][]; where: Where };
@@ -169,6 +247,8 @@ export function booleanPolyhedra(a: Brep, b: Brep, operation: PolyhedralBooleanO
     for (const rg of regions) {
       const outer = rg.outer.map(exactToXY), holes = rg.holes.map(h => h.map(exactToXY)), all = [...rg.outer, ...rg.holes.flat()];
       const tris = triangulatePolygonWithHoles(outer, holes);
+      // (A region of no area — a sliver where cuts meet at a corner — makes no face.)
+      if (!tris.length) continue;
       const big = tris.reduce((best, t) => { const ar = (u: [number, number, number]) => { const [p0, p1, p2] = u.map(k => exactToXY(all[k])); return Math.abs((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0])); }; return ar(t) > ar(best) ? t : best; }, tris[0]);
       const c = big.map(k => fromH(all[k])), third: Q = { n: 1n, d: 3n };
       const interior = lift(f, mul(add(add(c[0][0], c[1][0]), c[2][0]), third), mul(add(add(c[0][1], c[1][1]), c[2][1]), third));
@@ -196,13 +276,24 @@ function stitch(faces: { loops: V[][]; normal: V; name?: string }[], id: string)
   // Global vertices; split every loop edge at the vertices lying on it (T-junctions between pieces).
   const vertex = new Map<string, V>();
   for (const f of faces) for (const l of f.loops) for (const p of l) vertex.set(vkey(p), p);
+  // (Vertices sorted by x: an edge looks only at those within its x range, then its box, then exactly.)
   const all = [...vertex.values()], nums = new Map(all.map(p => [vkey(p), vnum(p)]));
+  const byX = all.map(p => ({ p, k: vkey(p), n: nums.get(vkey(p))! })).sort((a, b) => a.n[0] - b.n[0]), xs = Float64Array.from(byX, v => v.n[0]);
   const split = (l: V[]): V[] => l.flatMap((p, k) => {
-    const r = l[(k + 1) % l.length], pn = nums.get(vkey(p))!, rn = nums.get(vkey(r))!, d = vsub(r, p), dd = vdot(d, d);
-    const lo = [0, 1, 2].map(i => Math.min(pn[i], rn[i]) - 1e-9), hi = [0, 1, 2].map(i => Math.max(pn[i], rn[i]) + 1e-9);
-    const inner = all.filter(v => { const vn = nums.get(vkey(v))!; if (!vn.every((x, i) => x >= lo[i] && x <= hi[i])) return false;
-      const w = vsub(v, p); if (!vzero(vcross(d, w))) return false; const t = div(vdot(w, d), dd); return sgn(t) > 0 && cmp(t, { n: 1n, d: 1n }) < 0; });
-    inner.sort((u, v) => cmp(vdot(vsub(u, p), d), vdot(vsub(v, p), d)));
+    const r = l[(k + 1) % l.length], pk = vkey(p), rk = vkey(r), pn = nums.get(pk)!, rn = nums.get(rk)!;
+    let d: V | null = null, dd: Q = ZERO;
+    const lo = [0, 1, 2].map(i => Math.min(pn[i], rn[i]) - 1e-9 * (1 + Math.abs(pn[i]) + Math.abs(rn[i]))), hi = [0, 1, 2].map(i => Math.max(pn[i], rn[i]) + 1e-9 * (1 + Math.abs(pn[i]) + Math.abs(rn[i])));
+    const inner: V[] = [];
+    for (let at = lowerBound(xs, lo[0]); at < xs.length && xs[at] <= hi[0]; at++) {
+      const { p: v, n: vn, k: vk } = byX[at];
+      if (vk === pk || vk === rk || vn[1] < lo[1] || vn[1] > hi[1] || vn[2] < lo[2] || vn[2] > hi[2] || offLine(pn, rn, vn)) continue;
+      if (!d) { d = vsub(r, p); dd = vdot(d, d); }
+      const w = vsub(v, p); if (!vzero(vcross(d, w))) continue;
+      const t = div(vdot(w, d), dd); if (sgn(t) > 0 && cmp(t, { n: 1n, d: 1n }) < 0) inner.push(v);
+    }
+    if (!inner.length) return [p];
+    const along = d!;
+    inner.sort((u, v) => cmp(vdot(vsub(u, p), along), vdot(vsub(v, p), along)));
     return [p, ...inner];
   });
   const loopsOf = faces.map(f => f.loops.map(split));
@@ -218,7 +309,7 @@ function stitch(faces: { loops: V[][]; normal: V; name?: string }[], id: string)
   const parent = faces.map((_, i) => i), find = (x: number): number => { while (parent[x] !== x) x = parent[x] = parent[parent[x]]; return x; };
   const faceOfEdge = new Map<string, number>();
   faceUses.forEach((ls, fi) => ls.flat().forEach(u => { const o = faceOfEdge.get(u.edge); if (o === undefined) faceOfEdge.set(u.edge, fi); else parent[find(o)] = find(fi); }));
-  const shells = new Map<number, number[]>(); faces.forEach((_, i) => { const r = find(i); shells.set(r, [...(shells.get(r) ?? []), i]); });
+  const shells = new Map<number, number[]>(); faces.forEach((_, i) => { const r = find(i), list = shells.get(r); if (list) list.push(i); else shells.set(r, [i]); });
   // Signed volume per shell (divergence theorem over the loops' fan triangles).
   const volume = (members: number[]) => members.reduce((s, fi) => s + loopsOf[fi].reduce((t, l) => {
     const p = l.map(vnum); let v = 0; for (let k = 1; k + 1 < p.length; k++) { const [a, b, c] = [p[0], p[k], p[k + 1]]; v += (a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0])) / 6; }
@@ -241,14 +332,14 @@ function stitch(faces: { loops: V[][]; normal: V; name?: string }[], id: string)
   // Names: the piece's face name (numbered by position when repeated), edges by their two faces.
   const centre = (fi: number): Point => { const p = loopsOf[fi][0].map(vnum), n = p.length; return [0, 1, 2].map(k => p.reduce((s, x) => s + x[k], 0) / n) as Point; };
   const faceNames: string[] = [], counts = new Map<string, number[]>();
-  faces.forEach((f, fi) => { const b = f.name ?? `${id}.face`; counts.set(b, [...(counts.get(b) ?? []), fi]); });
+  faces.forEach((f, fi) => { const b = f.name ?? `${id}.face`, list = counts.get(b); if (list) list.push(fi); else counts.set(b, [fi]); });
   for (const [b, list] of counts) {
     if (list.length === 1) { faceNames[list[0]] = b; continue; }
     const keyed = list.map(fi => ({ fi, c: centre(fi) })).sort((x, y) => x.c[0] - y.c[0] || x.c[1] - y.c[1] || x.c[2] - y.c[2]);
     keyed.forEach(({ fi }, k) => { faceNames[fi] = `${b}#${k + 1}`; });
   }
   const facesOfEdge = new Map<string, number[]>();
-  faceUses.forEach((ls, fi) => ls.flat().forEach(u => facesOfEdge.set(u.edge, [...(facesOfEdge.get(u.edge) ?? []), fi])));
+  faceUses.forEach((ls, fi) => ls.flat().forEach(u => { const list = facesOfEdge.get(u.edge); if (list) list.push(fi); else facesOfEdge.set(u.edge, [fi]); }));
   const edgeList = [...edgeIds.values()].map(e => ({ id: e.id, curve: lineCurve(e.id, points.get(e.v[0])!, points.get(e.v[1])!), vertices: e.v, name: [...new Set((facesOfEdge.get(e.id) ?? []).map(fi => faceNames[fi]))].sort().join('|') }));
   nameEdges(edgeList);
   return buildBrep({ source: { family: 'polyhedral-boolean', id },
@@ -257,6 +348,38 @@ function stitch(faces: { loops: V[][]; normal: V; name?: string }[], id: string)
     bodies: bodies.map(bd => ({ id: bd.id, kind: 'solid' as const, shells: [bd.outer, ...bd.cavities].map((g, si) => ({ id: 's' + si, closed: true,
       faces: g.members.map(fi => ({ id: 'f' + fi, name: faceNames[fi], surface: planeSurface('p' + fi, faces[fi].normal, loopsOf[fi].flat().map(vnum)), sense: 'forward' as const,
         loops: faceUses[fi].map((uses, li) => ({ kind: li === 0 ? 'outer' as const : 'inner' as const, uses })) })) })) })) });
+}
+/** The cuts faces fa and fb make in each other: along their planes' line, or along each other's edges when coplanar. */
+function cutPair(fa: PFace, fb: PFace): void {
+  const D = vcross(fa.normal, fb.normal);
+  if (vzero(D)) {
+    if (cmp(mul(fa.offset, fb.normal[fa.axis]), mul(fb.offset, fa.normal[fa.axis])) !== 0) return; // parallel, apart
+    for (const r of fb.rings) r.forEach((p, k) => fa.cuts.push([p, r[(k + 1) % r.length]]));
+    for (const r of fa.rings) r.forEach((p, k) => fb.cuts.push([p, r[(k + 1) % r.length]]));
+    return;
+  }
+  // A point on both planes: solve Na·x = da, Nb·x = db, D·x = 0 (Cramer).
+  const det = vdot(D, D), P0 = vscale(vadd(vscale(vcross(fb.normal, D), fa.offset), vscale(vcross(D, fa.normal), fb.offset)), div({ n: 1n, d: 1n }, det));
+  for (const [lo, hi] of overlap(intervals(fa, P0, D), intervals(fb, P0, D))) {
+    const s: [V, V] = [vadd(P0, vscale(D, lo)), vadd(P0, vscale(D, hi))]; fa.cuts.push(s); fb.cuts.push(s);
+  }
+}
+/** Whether the boxes of two faces meet (with a relative margin). */
+function near(f: PFace, g: PFace): boolean {
+  for (let k = 0; k < 3; k++) if (f.min[k] > g.max[k] + 1e-9 * (1 + Math.abs(g.max[k])) || g.min[k] > f.max[k] + 1e-9 * (1 + Math.abs(f.max[k]))) return false;
+  return true;
+}
+/** Whether v is clearly off the line through p and r (binary64 distance far past rounding). */
+function offLine(p: Point, r: Point, v: Point): boolean {
+  const dx = r[0] - p[0], dy = r[1] - p[1], dz = r[2] - p[2], wx = v[0] - p[0], wy = v[1] - p[1], wz = v[2] - p[2];
+  const cx = dy * wz - dz * wy, cy = dz * wx - dx * wz, cz = dx * wy - dy * wx, scale = Math.max(Math.abs(p[0]), Math.abs(p[1]), Math.abs(p[2]), Math.abs(r[0]), Math.abs(r[1]), Math.abs(r[2]), Math.abs(v[0]), Math.abs(v[1]), Math.abs(v[2]), 1);
+  return Math.hypot(cx, cy, cz) > 1e-9 * scale * scale;
+}
+/** The first index whose value is at least x, in an ascending array. */
+function lowerBound(a: Float64Array, x: number): number {
+  let lo = 0, hi = a.length;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid] < x) lo = mid + 1; else hi = mid; }
+  return lo;
 }
 function frame(normal: V): { axis: 0 | 1 | 2; i: 0 | 1 | 2; j: 0 | 1 | 2 } {
   const mag = normal.map(x => Math.abs(num(x))), axis = (mag[0] >= mag[1] && mag[0] >= mag[2] ? 0 : mag[1] >= mag[2] ? 1 : 2) as 0 | 1 | 2;

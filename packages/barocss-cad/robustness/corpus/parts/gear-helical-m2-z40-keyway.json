@@ -1,0 +1,45 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "g",
+      "kind": "spur-gear",
+      "normalModule": 2,
+      "helixAngle": 20,
+      "hand": "right",
+      "teeth": 40,
+      "faceWidth": 10,
+      "bore": 12,
+      "generator": "spur-gear@0"
+    },
+    {
+      "id": "ks",
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        -2,
+        4
+      ],
+      "max": [
+        2,
+        8
+      ]
+    },
+    {
+      "id": "k",
+      "kind": "extrude",
+      "sketch": "ks",
+      "height": 12,
+      "from": -1
+    },
+    {
+      "id": "cut",
+      "kind": "difference",
+      "target": "g",
+      "tool": "k"
+    }
+  ]
+}

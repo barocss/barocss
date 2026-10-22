@@ -1,0 +1,102 @@
+{
+  "id": "a1-move-keeps-names",
+  "step": "A1",
+  "decisions": [
+    "D26"
+  ],
+  "about": "Moving a block with its sketch before a chamfered plate: each feature keeps its id, and the chamfer's edge name stays as it was.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 2,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            32,
+            32
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 8
+        },
+        {
+          "id": "n2",
+          "kind": "chamfer",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "edges": [
+            "n1.side0|n1.top"
+          ],
+          "distance": 1
+        },
+        {
+          "id": "n3",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            40,
+            0
+          ],
+          "max": [
+            50,
+            10
+          ]
+        },
+        {
+          "id": "n4",
+          "kind": "extrude",
+          "sketch": 3,
+          "height": 5
+        }
+      ],
+      "outputs": {},
+      "nextId": 5
+    },
+    "operations": [
+      {
+        "op": "move",
+        "index": 4,
+        "dir": -1
+      },
+      {
+        "op": "move",
+        "index": 3,
+        "dir": -1
+      }
+    ]
+  },
+  "expect": {
+    "ids": [
+      "n3",
+      "n4",
+      "n0",
+      "n1",
+      "n2"
+    ],
+    "nextId": 5,
+    "names": {
+      "4": [
+        "n1.side0|n1.top"
+      ]
+    },
+    "volumesMM3": [
+      500,
+      8176.0
+    ]
+  },
+  "oracle": "closed forms (box volumes; a fillet takes (4 − π) r² a unit of edge, a chamfer d²/2)"
+}

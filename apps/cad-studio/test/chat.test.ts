@@ -6,18 +6,20 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
-import { commandById, type Ctx, type Selection } from '../src/app/commands';
-import { evaluatePart } from '../src/engine/evaluate';
-import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
-import { CHAT_COMMANDS, COMMAND_DOCS, resolveNames, runTool, TOOLS, type ChatState } from '../src/chat/tools';
-import { checkNode, deleteFeature } from '../src/chat/features';
+import { commandById, type Ctx, type Selection } from '@barocss/cad-model/app/commands';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { acceptProposal, CHAT_COMMANDS, COMMAND_DOCS, dispatchTool, resolveNames, runTool, TOOLS, type ChatState } from '@barocss/cad-model/chat/tools';
+import { checkNode, deleteFeature } from '@barocss/cad-model/chat/features';
 import { eventParser, type TurnEvent } from '../src/chat/client';
 import { serveMcp } from '../server/cadMcp';
+import { TOOLS_V2 } from '@barocss/cad-model/chat/toolset';
 import { checkImages, claudeArgs, createChatServer, DEFAULT_ORIGINS, fromStudio, stateNote, summarize, userMessage } from '../server/chatServer';
 import { fitSize } from '../src/chat/images';
-import { simplify, traceImage, traceLoops } from '../src/chat/trace';
-import { defaultRender } from '../src/engine/render';
-import { defaultDrawing } from '../src/drawing/types';
+import { planHollow } from '@barocss/cad-model/print/hollow';
+import { simplify, traceImage, traceLoops } from '@barocss/cad-model/chat/trace';
+import { defaultRender } from '@barocss/cad-model/engine/render';
+import { defaultDrawing } from '@barocss/cad-model/drawing/types';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function stateOf(doc: StudioDoc): Promise<ChatState> {
@@ -43,7 +45,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
     assert.match(tool.name, /^[a-z_]+$/); assert.ok(tool.description.length > 40, tool.name);
     assert.equal(tool.input_schema.type, 'object'); assert.equal(tool.input_schema.additionalProperties, false, tool.name);
   }
-  assert.deepEqual(new Set(TOOLS.map(t => t.name)), new Set(['get_part_summary', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'get_image_layers', 'extrude_image_layer', 'inflate_image_layer', 'measure', 'select', 'get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate']));
+  assert.deepEqual(new Set(TOOLS.map(t => t.name)), new Set(['get_part_summary', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'get_image_layers', 'extrude_image_layer', 'inflate_image_layer', 'measure', 'mass_properties', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'set_frame_sections', 'set_welds', 'interference', 'section', 'wall_thickness', 'draft', 'set_requirements', 'check_spec', 'restore_best', 'apply_ops', 'run_script', 'checkpoint', 'restore', 'diff', 'propose', 'accept_proposal', 'list_proposals', 'render_views', 'inspect', 'select', 'get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'subd_cage', 'subd_select', 'subd_move', 'subd_extrude', 'subd_insert_loop', 'subd_bridge', 'subd_fill', 'subd_weld', 'subd_crease', 'subd_delete', 'drawing_issues', 'tolerance_suggestions', 'auto_dimension', 'fix_drawing', 'accept_tolerances', 'set_drawing', 'get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques', 'size_actuators', 'set_brief', 'get_brief', 'ask_user', 'get_references', 'add_reference', 'add_datum', 'add_keepout', 'delete_reference_item', 'check_keepouts', 'get_drafts', 'import_drawing', 'standards_lookup', 'cut_list', 'weld_list', 'fit_clearance']));
   const run = TOOLS.find(t => t.name === 'run_command')!;
   assert.deepEqual((run.input_schema.properties as any).command.enum, CHAT_COMMANDS);
   assert.deepEqual(new Set(Object.keys(COMMAND_DOCS)), new Set(CHAT_COMMANDS));
@@ -55,9 +57,85 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const selections: Record<string, Selection> = {
     hole: sel({ faces: [{ body: 0, face: top.index }] }), chamfer: sel({ edges: [{ body: 0, edge: 0 }] }), fillet: sel({ edges: [{ body: 0, edge: 0 }] }),
     union: sel({ bodies: [0, 1] }), difference: sel({ bodies: [0, 1] }), intersect: sel({ bodies: [0, 1] }),
+    draft: sel({ faces: [{ body: 0, face: s.bodies[0].mesh.faces.find(f => f.name === 'n1.side0')!.index }] }),
+    'offset-face': sel({ faces: [{ body: 0, face: top.index }] }),
   };
+  // The profile commands take the newest finished sketch: one drawn on the plate's top.
+  const sketched = withNode(s.doc, { kind: 'sketch', profile: 'circle', center: [20, 16], radius: 4, plane: { origin: [0, 0, 8], normal: [0, 0, 1], xAxis: [1, 0, 0] }, on: { node: 1, side: 'solid' } });
+  // A meshing gear takes a spur gear selected.
+  const geared = await stateOf(withNode(emptyDoc(), { kind: 'gear', module: 2, teeth: 20, faceWidth: 10, center: [0, 0], generator: 'spur-gear@0' }));
+  // Simplify mesh takes a mesh body (facet faces): a box of 12 triangles.
+  const meshed = await stateOf(withNode(emptyDoc(), { kind: 'mesh', name: 'cube', unit: 'mm', representation: 'facets', positions: [0, 0, 0, 10, 0, 0, 10, 10, 0, 0, 10, 0, 0, 0, 10, 10, 0, 10, 10, 10, 10, 0, 10, 10],
+    indices: [0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7] }));
+  // A flange takes a straight edge of a sheet (R12.3): a sheet plate's top edge.
+  const sheet = await stateOf(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }), { kind: 'sheet-base', sketch: 0, thickness: 1.5, bendRadius: 1.5, kFactor: 0.5 }));
+  const sheetEdge = sheet.bodies[0].mesh.edges.findIndex(e => e.names.includes('n1.side1|n1.top'));
+  // (Split to fit the bed takes a part of one body, on a printer: a 300 mm bar on the 256 mm FDM printer, AM6.)
+  const bar = await stateOf({ ...rectanglePart(300, 40, 20), printer: 'fdm-256', process: 'fdm' });
+  // (Hollowing takes one planar-faced body thick enough to hollow: a 40 × 30 × 20 box, AM7a.)
+  const hollowable = await stateOf(rectanglePart(40, 30, 20));
+  // (The lattice fills a part hollowed for printing: that box hollowed, AM7b.)
+  const hollowed = await stateOf(planHollow(hollowable.doc, hollowable.bodies, { t: 2, drain: 4 }).doc);
+  // (Fit class takes a cylindrical face with a fit table loaded; Fit pair two classed faces, a bore and a pin: R12c.2, D155.)
+  const tubeCmd = commandById('tube')!, cylCmd = commandById('cylinder')!, blank: Ctx = { doc: emptyDoc(), bodies: [], selection: sel({}) };
+  const pinned = cylCmd.build!({ ...blank, doc: tubeCmd.build!(blank, { ...tubeCmd.defaults!(blank), r: 10, ri: 6, x: 0, y: 0, z: 0 }) }, { ...cylCmd.defaults!(blank), r: 6, x: 0, y: 0, z: -5 });
+  const fitted = await stateOf({ ...pinned, fits: { version: 1, tables: [{ id: 't', rows: [{ class: 'H7', overMM: 10, upToMM: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', overMM: 10, upToMM: 18, upperUM: -6, lowerUM: -17, estimate: true }] }], faces: [{ face: 'n1.hole0.side0', class: 'H7' }, { face: 'n3.side0', class: 'g6' }] } });
+  const faceOf = (name: string) => { const body = fitted.bodies.findIndex(b => b.mesh.faces.some(f => f.name === name)); return { body, face: fitted.bodies[body].mesh.faces.findIndex(f => f.name === name) }; };
+  // (Key, Retaining ring and Pin take a shaft with a keyseat, a groove and a cross hole; Keyway a hub's bore: R12c.3b, D157.)
+  const shaftCmd = commandById('shaft')!, shaftDoc = shaftCmd.build!(blank, shaftCmd.defaults!(blank));
+  const holed = { ...shaftDoc, nodes: shaftDoc.nodes.map((n, i) => i === 0 ? { ...n, holes: [{ diameter: 4, at: 80 }] } as typeof n : n) };
+  const hubbed = await stateOf(tubeCmd.build!({ ...blank, doc: holed }, { ...tubeCmd.defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 }));
+  const boreOf = () => { const body = hubbed.bodies.findIndex(b => b.mesh.faces.some(f => /\.hole0\.side0$/.test(f.name))); return { body, face: hubbed.bodies[body].mesh.faces.findIndex(f => /\.hole0\.side0$/.test(f.name)) }; };
+  // (The drive commands take the user's drive rows; Belt or chain two sprockets of one chain row: R12c.6b, D161.)
+  const driveRows = { version: 1 as const, rows: [{ kind: 'chain' as const, id: 'c', pitchMM: 12.7, rollerDiameterMM: 8.51, estimate: true }, { kind: 'flat-belt' as const, id: 'f', widthMM: 40, thicknessMM: 3, estimate: true }, { kind: 'coupling' as const, id: 'k', boreMM: [12, 12] as [number, number], outsideMM: 30, lengthMM: 40, estimate: true }] };
+  const chained = await stateOf({ ...withNode(withNode(emptyDoc(), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [0, 0], generator: 'sprocket@0' }), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [150, 0], generator: 'sprocket@0' }), drives: driveRows });
   for (const id of CHAT_COMMANDS) {
-    const ctx: Ctx = { doc: s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };
+    const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
+    if (id === 'key' || id === 'keyway' || id === 'retaining-ring' || id === 'pin' || id === 'bearing') {
+      // (A bearing takes the user's rows loaded: R12c.4, D158.)
+      const withRows = id === 'bearing' ? { ...hubbed.doc, bearings: { version: 1 as const, rows: [{ id: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, estimate: true }] } } : hubbed.doc;
+      const ctx: Ctx = { doc: withRows, bodies: hubbed.bodies, selection: id === 'keyway' ? sel({ faces: [boreOf()] }) : sel({ bodies: [hubbed.bodies.findIndex(b => b.ref?.node === 0)] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    if (id === 'connector') {
+      // (An opening takes one flat face and the user's connector rows: R12c.7, D162.)
+      const ctx: Ctx = { doc: { ...s.doc, connectors: { version: 1, rows: [{ id: 'u', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, estimate: true }] } }, bodies: s.bodies, selection: sel({ faces: [{ body: 0, face: top.index }] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    if (id === 'gusset' || id === 'end-cap') {
+      // (FRk1, D165: plates on a frame's picked members; the gusset at a T, so its along field shows.)
+      const tee = await stateOf(withNode(emptyDoc(), { kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400]], segments: [[0, 1], [2, 3]], section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { tee: 'butt' } }));
+      const ctx: Ctx = { doc: tee.doc, bodies: tee.bodies, selection: sel({ bodies: id === 'gusset' ? [1, 0] : [0] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    if (id === 'sprocket' || id === 'pulley' || id === 'coupling' || id === 'belt-drive') {
+      const ctx: Ctx = { doc: chained.doc, bodies: chained.bodies, selection: id === 'belt-drive' ? sel({ bodies: [0, 1] }) : sel({}) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    if (id === 'oring-gland') {
+      // (A gland takes one face and the user's O-ring rows loaded: R12c.5, D159.)
+      const ctx: Ctx = { doc: { ...fitted.doc, orings: { version: 1, rows: [{ id: '214', insideDiameterMM: 24.99, crossSectionMM: 3.53, estimate: true }] } }, bodies: fitted.bodies, selection: sel({ faces: [faceOf('n3.side0')] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values).filter(k => k !== 'h')), id);
+      continue;
+    }
+    if (id === 'fit-class' || id === 'fit-pair') {
+      const ctx: Ctx = { doc: fitted.doc, bodies: fitted.bodies, selection: sel({ faces: id === 'fit-class' ? [faceOf('n1.hole0.side0')] : [faceOf('n1.hole0.side0'), faceOf('n3.side0')] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    const ctx: Ctx = id === 'hollow' ? { doc: hollowable.doc, bodies: hollowable.bodies, selection: sel({}) } : id === 'lattice' ? { doc: hollowed.doc, bodies: hollowed.bodies, selection: sel({}) } : id === 'split-bed' ? { doc: bar.doc, bodies: bar.bodies, selection: sel({}) } : id === 'gear-mesh' ? { doc: geared.doc, bodies: geared.bodies, selection: sel({ bodies: [0] }) } : id === 'decimate' ? { doc: meshed.doc, bodies: meshed.bodies, selection: sel({ bodies: [0] }) }
+      : id === 'sheet-flange' ? { doc: sheet.doc, bodies: sheet.bodies, selection: sel({ edges: [{ body: 0, edge: sheetEdge }] }) }
+      : id === 'sheet-corner-relief' ? { doc: sheet.doc, bodies: sheet.bodies, selection: sel({ edges: [{ body: 0, edge: sheet.bodies[0].mesh.edges.findIndex(e => e.names.includes('n1.side0|n1.side1')) }] }) } : { doc: profile ? sketched : s.doc, bodies: s.bodies, selection: selections[id] ?? sel({ bodies: [0] }) };
     const cmd = commandById(id)!;
     assert.ok(cmd.available(ctx).ok, id);
     assert.deepEqual(new Set((cmd.fields?.(ctx) ?? []).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
@@ -69,15 +147,15 @@ test('run_command applies the UI’s rules: availability reasons, value keys and
   let r = await runTool(s, 'run_command', { command: 'hole', values: { d: 8, x: 6, y: 6 } }, evaluate);
   assert.ok(r.isError); assert.match(parse(r.content).error, /Select the flat face where the hole goes in/);
   r = await runTool(s, 'run_command', { command: 'hole', faces: ['n1.side0'], values: { diameter: 8 } }, evaluate);
-  assert.match(parse(r.content).error, /no value "diameter"; its values are d \(Diameter\)/);
+  assert.match(parse(r.content).error, /no value "diameter"; its values are type \(Type\), d \(Diameter\)/);
   r = await runTool(s, 'run_command', { command: 'box', values: { w: 0 } }, evaluate);
   assert.match(parse(r.content).error, /"w" \(Width X\) must be at least 1/);
   r = await runTool(s, 'run_command', { command: 'linear-pattern', bodies: ['b1'], values: { count: 40 } }, evaluate);
   assert.match(parse(r.content).error, /at most 24/);
   r = await runTool(s, 'run_command', { command: 'fillet', edges: ['n9.nope'], values: { radius: 2 } }, evaluate);
   assert.match(parse(r.content).error, /No face, edge or body named "n9.nope"/);
-  r = await runTool(s, 'run_command', { command: 'draft' }, evaluate);
-  assert.match(parse(r.content).error, /Unknown command "draft"/);
+  r = await runTool(s, 'run_command', { command: 'emboss' }, evaluate);
+  assert.match(parse(r.content).error, /Unknown command "emboss"/);
   // The kernel's refusal comes back in the studio's words, and the part is unchanged.
   r = await runTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 200, y: 6 } }, evaluate);
   assert.ok(r.isError); assert.equal(r.changed, false); assert.equal(r.state, s);
@@ -93,30 +171,45 @@ test('run_command applies the UI’s rules: availability reasons, value keys and
 });
 
 test('a scripted model drives the MCP tool server: the plate with four corner holes and R2 vertical edges, correcting a refused hole', async () => {
+  // At the default L2 (D41, option b) the first build on an empty part applies, the whole turn; the next turn's new
+  // feature is a proposal. (This model runs at L4.)
+  const l2Path = join(scratch(), 'state-l2.json');
+  writeFileSync(l2Path, JSON.stringify({ doc: emptyDoc(), changed: false }));
+  const first = mcpClient(l2Path), built = await first.call('features', { action: 'command', command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } });
+  assert.ok(!built.isError, JSON.stringify(built.json));
+  assert.ok(!(await first.call('features', { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } })).isError, 'still the first turn');
+  await first.close();
+  const second = mcpClient(l2Path), refused = await second.call('features', { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 58, y: 6 } });
+  assert.ok(refused.isError); assert.equal(refused.json.code, 'needs_proposal');
+  await second.close();
+  assert.equal(JSON.parse(readFileSync(l2Path, 'utf8')).doc.nodes.length, 3);
   const statePath = join(scratch(), 'state.json');
   writeFileSync(statePath, JSON.stringify({ doc: emptyDoc(), changed: false }));
+  const level = process.env.CAD_AUTONOMY; process.env.CAD_AUTONOMY = '4';
   const mcp = mcpClient(statePath);
   const init = await mcp.request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '0' } });
   assert.deepEqual(init.result.capabilities, { tools: {} });
   const listed = (await mcp.request('tools/list')).result.tools;
-  assert.deepEqual(listed.map((t: any) => t.name), TOOLS.map(t => t.name));
-  assert.equal(listed[1].inputSchema.properties.command.enum.length, CHAT_COMMANDS.length);
+  // (The v2 tools, O105: every live command named in the features tool's text, for describe — never an enum.)
+  assert.deepEqual(listed.map((t: any) => t.name), TOOLS_V2.map(t => t.name));
+  assert.ok(listed.find((t: any) => t.name === 'features').description.includes(` Commands: ${CHAT_COMMANDS.join(', ')}.`));
   assert.equal((await mcp.request('nope')).error.code, -32601);
-  const box = await mcp.call('run_command', { command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } });
+  const box = await mcp.call('features', { action: 'command', command: 'box', values: { w: 64, d: 32, h: 8, x: 0, y: 0, z: 0 } });
   assert.ok(!box.isError);
   const top = box.json.bodies[0].faces.find((f: any) => f.normal[2] === 1).name;
   // Parallel calls run in order; the last hole is off the part on purpose and is refused.
-  const holes = await Promise.all([[6, 6], [58, 6], [6, 26], [158, 26]].map(([x, y]) => mcp.call('run_command', { command: 'hole', faces: [top], values: { d: 8, x, y } })));
+  const holes = await Promise.all([[6, 6], [58, 6], [6, 26], [158, 26]].map(([x, y]) => mcp.call('features', { action: 'command', command: 'hole', faces: [top], values: { d: 8, x, y } })));
   assert.deepEqual(holes.map(h => h.isError), [false, false, false, true]);
   assert.match(holes[3].json.error, /misses the body/);
-  const fixed = await mcp.call('run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 58, y: 26 } });
+  const fixed = await mcp.call('features', { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 58, y: 26 } });
   const vertical = fixed.json.bodies[0].edges.filter((e: any) => e.line === 'along z').map((e: any) => e.name);
   assert.equal(vertical.length, 4);
-  const fillet = await mcp.call('run_command', { command: 'fillet', edges: vertical, values: { radius: 2 } });
+  const fillet = await mcp.call('features', { action: 'command', command: 'fillet', edges: vertical, values: { radius: 2 } });
   assert.ok(!fillet.isError, JSON.stringify(fillet.json));
   const round = fillet.json.bodies[0].faces.filter((f: any) => f.radius === 2).map((f: any) => f.name);
-  assert.ok(!(await mcp.call('select', { faces: round })).isError);
+  assert.ok(!(await mcp.call('query', { action: 'select', faces: round })).isError);
   await mcp.close();
+  if (level === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = level;
   // The state file holds what the turn built, for the chat server to hand back.
   const saved = JSON.parse(readFileSync(statePath, 'utf8'));
   assert.equal(saved.changed, true); assert.equal(saved.selection.faces.length, 4);
@@ -124,16 +217,24 @@ test('a scripted model drives the MCP tool server: the plate with four corner ho
   const s = await stateOf(saved.doc);
   const expected = 64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8;
   assert.ok(Math.abs(volume(s) - expected) / expected < 1e-6, String(volume(s)));
-  assert.equal(summarize('run_command', JSON.stringify(fillet.json), false), `Fillet {"radius":2} → 1 body, ${Math.round(expected)} mm³`);
+  assert.equal(summarize('run_command', JSON.stringify(fillet.json), false), `Fillet {"radius":2,"endRadius":0,"shape":"circular"} → 1 body, ${Math.round(expected)} mm³`);
 });
 
 test('add_features checks nodes before the kernel; revolve and polygon profiles build', async () => {
   const s = await stateOf(rectanglePart(20, 20, 5));
   assert.match(checkNode({ kind: 'extrude', sketch: 1, height: 5 }, s.doc.nodes, {})!, /feature 1 is a extrude, not a sketch/);
-  assert.match(checkNode({ kind: 'fillet', parent: { node: 0, side: 'solid' }, edges: ['x'], radius: 1 }, s.doc.nodes, {})!, /b0 is not a visible body \(bodies now: b1\)/);
+  assert.match(checkNode({ kind: 'fillet', parent: { node: 0, side: 'solid' }, edges: ['x'], radius: 1 }, s.doc.nodes, {})!, /\{node 0, side solid\} \(body b0\) is not a visible body \(bodies now: \{node 1, side solid\} \(body b1\)\)/);
   assert.match(checkNode({ kind: 'extrude', sketch: 0, height: 5, depth: 2 }, s.doc.nodes, {})!, /unknown field "depth"/);
   assert.match(checkNode({ kind: 'sketch', profile: 'circle', center: [0, 0], radius: { parameter: 'r' } }, s.doc.nodes, {})!, /defined parameter/);
   assert.equal(checkNode({ kind: 'sketch', profile: 'circle', center: [0, 0], radius: { parameter: 'r' } }, s.doc.nodes, { r: 2 }), null);
+  // (A fillet's section, R10.5b, D103, and its varying radius, D100.)
+  const fillet = (extra: object) => checkNode({ kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], radius: 2, ...extra }, s.doc.nodes, {});
+  assert.equal(fillet({ section: { kind: 'conic', rho: 0.4 } }), null);
+  assert.equal(fillet({ section: { kind: 'g2' } }), null);
+  assert.equal(fillet({ radii: [{ at: [0, 0, 5], radius: 1 }, { at: [20, 0, 5], radius: 2 }] }), null);
+  assert.match(fillet({ section: { kind: 'conic', rho: 1 } })!, /fillet\.section: \{"kind": "conic", "rho": 0–1 exclusive\}/);
+  assert.match(fillet({ section: { kind: 'g2', tension: 0.5, rho: 0.2 } })!, /fillet\.section/);
+  assert.match(fillet({ radii: [{ at: [0, 0, 5], radius: 1 }] })!, /fillet\.radii: 2 to 16 points/);
   let r = await runTool(s, 'add_features', { features: [{ kind: 'sketch', profile: 'rectangle', min: [30, 0], max: [40, 10] }, { kind: 'extrude', sketch: 9, height: 4 }] }, evaluate);
   assert.ok(r.isError); assert.match(parse(r.content).error, /Feature 2 of 2 \(would be index 3\)/); assert.equal(r.state, s);
   // A ring: a rectangle beside the sketch's Y axis turned a full revolution, then a triangular prism.
@@ -148,7 +249,7 @@ test('add_features checks nodes before the kernel; revolve and polygon profiles 
   assert.ok(Math.abs(prism.volumeMM3! - 150) < 1e-6);
 });
 
-test('edit_feature uses the feature editor’s fields; delete_feature renumbers later features and names', async () => {
+test('edit_feature uses the feature editor’s fields; delete_feature renumbers later features, their names stay (A1)', async () => {
   let s = await stateOf(rectanglePart(64, 32, 8));
   let r = await runTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 32, y: 16 } }, evaluate); s = r.state;
   r = await runTool(s, 'edit_feature', { index: 2 }, evaluate);
@@ -159,16 +260,18 @@ test('edit_feature uses the feature editor’s fields; delete_feature renumbers 
   assert.ok(!r.isError, r.content);
   assert.ok(Math.abs(volume(r.state) - (80 * 32 * 10 - Math.PI * 25 * 10)) < 1e-3);
   assert.match(parse((await runTool(r.state, 'edit_feature', { index: 1, values: { width: 1 } }, evaluate)).content).error, /no value "width"/);
-  // Delete: refused while used; a box before a filleted box goes, with its sketch, and the names follow.
+  // Delete: refused while used; a box before a filleted box goes, with its sketch: the later features move down,
+  // and their names stay (the feature ids are stable, A1).
   assert.match(parse((await runTool(s, 'delete_feature', { index: 1 }, evaluate)).content).error, /used by feature 2/);
   let doc = rectanglePart(10, 10, 5);
   doc = withNode(withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [36, 16] }), { kind: 'extrude', sketch: 2, height: 16 });
   doc = withNode(doc, { kind: 'fillet', parent: { node: 3, side: 'solid' }, edges: ['n3.side0|n3.side1'], radius: 2 });
   const del = deleteFeature(doc, 1);
   assert.ok(!('error' in del)); assert.deepEqual(del.removed, [0, 1]);
-  assert.deepEqual(del.doc.nodes[2], { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.side1'], radius: 2 });
+  assert.deepEqual(del.doc.nodes[2], { kind: 'fillet', parent: { node: 1, side: 'solid' }, edges: ['n3.side0|n3.side1'], radius: 2, id: 'n4' });
+  assert.deepEqual(del.doc.nodes.map(n => n.id), ['n2', 'n3', 'n4']);
   r = await runTool(await stateOf(doc), 'delete_feature', { index: 1 }, evaluate);
-  assert.ok(!r.isError, r.content); assert.deepEqual(r.state.bodies.map(b => b.key), ['b2']);
+  assert.ok(!r.isError, r.content); assert.deepEqual(r.state.bodies.map(b => b.key), ['b4'], 'the body keeps its key (its feature n4)');
   assert.ok(Math.abs(volume(r.state) - (16 * 16 * 16 - (4 - Math.PI) * 16)) < 1e-3);
 });
 
@@ -227,15 +330,37 @@ async function turn(url: string, body: unknown, signal?: AbortSignal) {
   return { status: res.status, events };
 }
 
+test('the chat server sends a state only when a tool changed the part since the last one (version, PERF3 A3)', async () => {
+  const plate = rectanglePart(64, 32, 8);
+  const one = withNode(plate, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 4 });
+  const two = withNode(one, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [20, 6], radius: 4 });
+  const sid = '7235de6e-4fc3-4fc4-b479-410846a6528b';
+  const use = (id: string, name: string) => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', id, name: `mcp__cad__${name}`, input: {} }] }, session_id: sid });
+  const result = (id: string) => JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: id, content: [{ type: 'text', text: '{"ok":true}' }] }] }, session_id: sid });
+  const fake = fakeClaude((_args, statePath) => [
+    JSON.stringify({ type: 'system', subtype: 'init', session_id: sid, tools: TOOLS_V2.map(t => `mcp__cad__${t.name}`) }),
+    use('t1', 'features'), () => writeFileSync(statePath, JSON.stringify({ doc: one, changed: true, version: 1 })), result('t1'),
+    use('t2', 'describe'), result('t2'), use('t3', 'query'), result('t3'),
+    use('t4', 'features'), () => writeFileSync(statePath, JSON.stringify({ doc: two, changed: true, version: 2 })), result('t4'),
+    JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'Done.', session_id: sid }),
+  ]);
+  const srv = await serve(createChatServer({ mcpScript: '/x/cadMcp.mjs', spawn: fake.spawn, workDir: scratch() }));
+  try {
+    const { events } = await turn(srv.url, { text: 'two holes', doc: plate });
+    assert.deepEqual(events.map(e => e.type), ['tool', 'state', 'tool', 'tool', 'tool', 'state', 'done']);
+    assert.deepEqual((events[5] as { doc: StudioDoc }).doc, two);
+  } finally { await srv.close(); }
+});
+
 test('the chat server runs the claude CLI with only the studio tools and streams text, tool calls, previews and the result', async () => {
   const plate = rectanglePart(64, 32, 8);
   const built = withNode(plate, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 4 });
   const sid = '7235de6e-4fc3-4fc4-b479-410846a6528a';
   const fake = fakeClaude((args, statePath) => [
-    JSON.stringify({ type: 'system', subtype: 'init', session_id: sid, tools: TOOLS.map(t => `mcp__cad__${t.name}`) }),
+    JSON.stringify({ type: 'system', subtype: 'init', session_id: sid, tools: TOOLS_V2.map(t => `mcp__cad__${t.name}`) }),
     JSON.stringify({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Adding ' } }, session_id: sid, parent_tool_use_id: null }),
     JSON.stringify({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'a hole.' } }, session_id: sid, parent_tool_use_id: null }),
-    JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'Adding a hole.' }, { type: 'tool_use', id: 'toolu_1', name: 'mcp__cad__run_command', input: { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } } }] }, session_id: sid }),
+    JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'Adding a hole.' }, { type: 'tool_use', id: 'toolu_1', name: 'mcp__cad__features', input: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } } }] }, session_id: sid }),
     () => writeFileSync(statePath, JSON.stringify({ doc: built, changed: true, selection: { faces: ['n1.top'], edges: [], bodies: [] } })),
     JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: [{ type: 'text', text: JSON.stringify({ ok: true, did: 'Hole {"d":8,"x":6,"y":6}', bodies: [{ key: 'b2', volume_mm3: 15981.876 }] }) }] }] }, session_id: sid }),
     JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'Done.', session_id: sid }),
@@ -247,7 +372,7 @@ test('the chat server runs the claude CLI with only the studio tools and streams
     assert.equal((await turn(srv.url, { text: '' })).status, 400);
     const { events } = await turn(srv.url, { text: 'add a Ø8 hole 6 mm from the corner', doc: plate });
     assert.deepEqual(events.map(e => e.type), ['text', 'text', 'tool', 'state', 'done']);
-    assert.deepEqual(events[2], { type: 'tool', name: 'run_command', input: { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } }, summary: 'Hole {"d":8,"x":6,"y":6} → 1 body, 15982 mm³', isError: false });
+    assert.deepEqual(events[2], { type: 'tool', name: 'features', input: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } }, summary: 'Hole {"d":8,"x":6,"y":6} → 1 body, 15982 mm³', isError: false });
     assert.deepEqual((events[3] as { doc: StudioDoc }).doc, built);
     assert.deepEqual(events[4], { type: 'done', doc: built, selection: { faces: ['n1.top'], edges: [], bodies: [] }, session: sid, end: 'done' });
     const run = fake.spawned[1];
@@ -260,7 +385,7 @@ test('the chat server runs the claude CLI with only the studio tools and streams
     assert.match(sent.message.content[0].text, /Current part: 2 features[\s\S]*add a Ø8 hole/);
     assert.equal(flag('--output-format'), 'stream-json'); assert.equal(flag('--model'), 'claude-opus-5-5'); assert.equal(flag('--tools'), '');
     assert.ok(a.includes('--strict-mcp-config')); assert.ok(!a.includes('--resume'));
-    assert.equal(flag('--allowedTools'), TOOLS.map(t => `mcp__cad__${t.name}`).join(','));
+    assert.equal(flag('--allowedTools'), TOOLS_V2.map(t => `mcp__cad__${t.name}`).join(','));
     const mcp = JSON.parse(flag('--mcp-config')).mcpServers.cad;
     assert.equal(mcp.command, process.execPath); assert.deepEqual(mcp.args, ['/x/cadMcp.mjs']);
     // The next turn resumes the CLI conversation and carries an image before its text.
@@ -467,52 +592,70 @@ test('the chat server refuses other sites: Origin or Host must be the studio’s
   assert.equal(fromStudio({ headers: { origin: 'http://127.0.0.1:52020' } } as any, DEFAULT_ORIGINS), true);
 });
 
+test('assembly tools: an agent proposes assembly changes (refused directly at every level); proposed and accepted they apply', async () => {
+  const s0 = await stateOf(rectanglePart(64, 32, 8));
+  for (const level of ['2', '4']) {
+    process.env.CAD_AUTONOMY = level;
+    const direct = await runTool(s0, 'add_part', { name: 'Pin' }, evaluate), why = parse(direct.content);
+    assert.ok(direct.isError); assert.deepEqual([why.code, why.approval], ['needs_approval', ['assembly']]); assert.equal(direct.state, s0);
+  }
+  delete process.env.CAD_AUTONOMY;
+  const p = await runTool(s0, 'propose', { title: 'a pin', ops: [{ tool: 'add_part', args: { name: 'Pin' } }, { tool: 'run_command', args: { part: 'p1', command: 'cylinder', values: { r: 4, h: 20, x: 0, y: 0, z: 0 } } }] }, evaluate);
+  assert.ok(!p.isError, p.content); assert.deepEqual(parse(p.content).risk.approval, ['assembly']);
+  process.env.CAD_AUTONOMY = '4';
+  assert.match(parse((await runTool(p.state, 'accept_proposal', { id: 'P1' }, evaluate)).content).error, /always needs the user/);
+  delete process.env.CAD_AUTONOMY;
+  const a = await acceptProposal(p.state, 'P1', evaluate); assert.ok('state' in a, JSON.stringify(a));
+  assert.equal(a.state.doc.instances![0].doc.nodes.length, 2);
+});
+
 test('assembly tools: a pin added as its own part, built, mated into a plate’s hole through the real solver', async () => {
+  // (The tools themselves, through the dispatcher: an agent reaches them by proposals, above.)
   // The base part: a 64 × 32 × 8 plate with a Ø8 hole at (32, 16).
   let s = await stateOf(rectanglePart(64, 32, 8));
-  let r = await runTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 32, y: 16 } }, evaluate); s = r.state;
-  r = await runTool(s, 'add_part', { name: 'Pin' }, evaluate); s = r.state;
+  let r = await dispatchTool(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 32, y: 16 } }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'add_part', { name: 'Pin' }, evaluate); s = r.state;
   assert.equal(parse(r.content).part, 'p1');
-  r = await runTool(s, 'run_command', { part: 'p1', command: 'cylinder', values: { r: 4, h: 20, x: 0, y: 0, z: 0 } }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'run_command', { part: 'p1', command: 'cylinder', values: { r: 4, h: 20, x: 0, y: 0, z: 0 } }, evaluate); s = r.state;
   assert.ok(!r.isError, r.content); assert.equal(parse(r.content).part, 'p1');
   assert.equal(s.doc.nodes.length, 3); assert.equal(s.doc.instances![0].doc.nodes.length, 2);
-  assert.match(parse((await runTool(s, 'run_command', { part: 'p9', command: 'box' }, evaluate)).content).error, /No part "p9"; parts: base, p1/);
-  const asm = parse((await runTool(s, 'get_assembly', { faces_of: 'p1' }, evaluate)).content);
+  assert.match(parse((await dispatchTool(s, 'run_command', { part: 'p9', command: 'box' }, evaluate)).content).error, /No part "p9"; parts: base, p1/);
+  const asm = parse((await dispatchTool(s, 'get_assembly', { faces_of: 'p1' }, evaluate)).content);
   const pinSide = asm.instances[0].faces.find((f: any) => f.kind.startsWith('round (outer')).name;
-  const hole = parse((await runTool(s, 'get_assembly', { faces_of: 'base' }, evaluate)).content).base.faces.find((f: any) => f.kind.startsWith('round (inner')).name;
+  const hole = parse((await dispatchTool(s, 'get_assembly', { faces_of: 'base' }, evaluate)).content).base.faces.find((f: any) => f.kind.startsWith('round (inner')).name;
   // Concentric: the pin on the hole's axis; coincident: its bottom flush on the plate's top.
-  r = await runTool(s, 'add_mate', { kind: 'concentric', a: { part: 'base', face: hole }, b: { part: 'p1', face: pinSide } }, evaluate);
+  r = await dispatchTool(s, 'add_mate', { kind: 'concentric', a: { part: 'base', face: hole }, b: { part: 'p1', face: pinSide } }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   assert.deepEqual(parse(r.content).freedom_left, { turns: 1, slides: 1 });
-  r = await runTool(s, 'add_mate', { kind: 'coincident', a: { part: 'p1', face: 'n1.bottom' }, b: { part: 'base', face: 'n1.top' } }, evaluate);
+  r = await dispatchTool(s, 'add_mate', { kind: 'coincident', a: { part: 'p1', face: 'n1.bottom' }, b: { part: 'base', face: 'n1.top' } }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   // (b was the fixed base part: swapped, so the pin moves.)
   assert.deepEqual(s.doc.mates![1].b, { part: 'p1', face: 'n1.bottom' });
   const pin = s.doc.instances![0];
   assert.deepEqual([pin.position[0], pin.position[1], pin.position[2]], [32, 16, 8]);
   // A third mate that contradicts them is refused with the solver's reason; nothing changes.
-  r = await runTool(s, 'add_mate', { kind: 'coincident', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.top' } }, evaluate);
+  r = await dispatchTool(s, 'add_mate', { kind: 'coincident', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.top' } }, evaluate);
   assert.ok(r.isError); assert.match(parse(r.content).error, /Conflicts with/); assert.equal(r.state.doc.mates!.length, 2);
-  assert.match(parse((await runTool(s, 'add_mate', { kind: 'concentric', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: pinSide } }, evaluate)).content).error, /Concentric needs two round faces/);
-  assert.match(parse((await runTool(s, 'add_mate', { kind: 'distance', a: { part: 'base', face: 'nope' }, b: { part: 'p1', face: 'n1.bottom' } }, evaluate)).content).error, /"nope" is not a flat or round face of base/);
+  assert.match(parse((await dispatchTool(s, 'add_mate', { kind: 'concentric', a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: pinSide } }, evaluate)).content).error, /Concentric needs two round faces/);
+  assert.match(parse((await dispatchTool(s, 'add_mate', { kind: 'distance', a: { part: 'base', face: 'nope' }, b: { part: 'p1', face: 'n1.bottom' } }, evaluate)).content).error, /"nope" is not a flat or round face of base/);
   // A distance mate instead: edit it and the pin follows.
-  r = await runTool(s, 'delete_mate', { id: 'm2' }, evaluate); s = r.state;
-  r = await runTool(s, 'add_mate', { kind: 'distance', distance: 5, a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.bottom' } }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'delete_mate', { id: 'm2' }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'add_mate', { kind: 'distance', distance: 5, a: { part: 'base', face: 'n1.top' }, b: { part: 'p1', face: 'n1.bottom' } }, evaluate); s = r.state;
   assert.equal(s.doc.instances![0].position[2], 13);
-  r = await runTool(s, 'edit_mate', { id: s.doc.mates![1].id, distance: 2 }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'edit_mate', { id: s.doc.mates![1].id, distance: 2 }, evaluate); s = r.state;
   assert.equal(s.doc.instances![0].position[2], 10);
   // Editing the base part re-solves: a thicker plate lifts the pin with its top.
-  r = await runTool(s, 'edit_feature', { index: 1, values: { h: 12 } }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'edit_feature', { index: 1, values: { h: 12 } }, evaluate); s = r.state;
   assert.ok(!r.isError, r.content); assert.equal(s.doc.instances![0].position[2], 14);
   // A copy, grounded, placed by hand; grounding a mated part is refused.
-  r = await runTool(s, 'add_part', { name: 'Spare pin', copy_of: 'p1', position: [80, 0, 0], grounded: true }, evaluate); s = r.state;
+  r = await dispatchTool(s, 'add_part', { name: 'Spare pin', copy_of: 'p1', position: [80, 0, 0], grounded: true }, evaluate); s = r.state;
   assert.equal(s.doc.instances![1].doc.nodes.length, 2); assert.equal(s.doc.instances![1].grounded, true);
-  assert.match(parse((await runTool(s, 'place_part', { part: 'p1', grounded: true }, evaluate)).content).error, /mates move Pin/);
-  const summary = parse((await runTool(s, 'get_assembly', {}, evaluate)).content);
+  assert.match(parse((await dispatchTool(s, 'place_part', { part: 'p1', grounded: true }, evaluate)).content).error, /mates move Pin/);
+  const summary = parse((await dispatchTool(s, 'get_assembly', {}, evaluate)).content);
   assert.deepEqual(summary.instances.map((i: any) => [i.id, i.name, i.bodies]), [['p1', 'Pin', 1], ['p2', 'Spare pin', 1]]);
   assert.deepEqual(summary.instances[0].world_bounds, { min: [28, 12, 14], max: [36, 20, 34] });
   assert.equal(summary.mates.length, 2);
-  r = await runTool(s, 'delete_part', { part: 'p1' }, evaluate);
+  r = await dispatchTool(s, 'delete_part', { part: 'p1' }, evaluate);
   assert.equal(r.state.doc.instances!.length, 1); assert.equal(r.state.doc.mates!.length, 0);
   // The transcript's lines for assembly results.
   assert.equal(summarize('add_mate', JSON.stringify({ ok: true, did: 'added Concentric 1 (m1): p1.n1.side0 to base.n2.side0', parts: [] }), false), 'added Concentric 1 (m1): p1.n1.side0 to base.n2.side0');
@@ -522,7 +665,7 @@ test('assembly tools: a pin added as its own part, built, mated into a plate’s
   assert.equal((TOOLS.find(t => t.name === 'select')!.input_schema.properties as any).part, undefined);
 });
 
-test('deleting a feature renumbers the mates on the part, drawing dimensions and render keys; refuses a mate on its faces', () => {
+test('deleting a feature keeps the names mates and drawing dimensions use and the render keys (A1); refuses a mate on its faces', () => {
   let doc = rectanglePart(10, 10, 5);
   doc = withNode(withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [36, 16] }), { kind: 'extrude', sketch: 2, height: 16 });
   const mate = (face: string) => ({ id: 'm1', kind: 'coincident' as const, a: { part: 'base', face }, b: { part: 'p', face: 'origin:xy' } });
@@ -531,10 +674,34 @@ test('deleting a feature renumbers the mates on the part, drawing dimensions and
   const full = { ...doc, mates: [mate('n3.top')], drawing: { ...defaultDrawing(), dimensions: [dim('n1.side0|n1.side1'), dim('n3.side0|n3.side1')] }, render };
   const del = deleteFeature(full, 1);
   assert.ok(!('error' in del), JSON.stringify(del));
-  assert.equal(del.doc.mates![0].a.face, 'n1.top');
-  assert.deepEqual(del.doc.drawing!.dimensions.map(d => 'edge' in d && d.edge), ['n1.side0|n1.side1']);
+  assert.equal(del.doc.mates![0].a.face, 'n3.top');
+  assert.deepEqual(del.doc.drawing!.dimensions.map(d => 'edge' in d && d.edge), ['n3.side0|n3.side1']);
   assert.equal(del.droppedDimensions, 1);
-  assert.deepEqual(Object.keys(del.doc.render!.appearances), ['b1']);
+  assert.deepEqual(Object.keys(del.doc.render!.appearances), ['b3'], 'the deleted box’s look goes; the other keeps its key');
   const blocked = deleteFeature({ ...full, mates: [mate('n1.top')] }, 1);
   assert.ok('error' in blocked && /Coincident 1 uses the face "n1.top"/.test(blocked.error), JSON.stringify(blocked));
+});
+
+test('mesh blobs reach the chat server once a conversation: later turns name them; a server without them answers 409 with their hashes', async () => {
+  const { putBlob, blobsAsBase64 } = await import('@barocss/cad-model/engine/blobs');
+  const P = await putBlob(Float32Array.from([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1])), I = await putBlob(Uint32Array.from([0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3]));
+  const doc = withNode(emptyDoc(), { kind: 'mesh', name: 'tet', unit: 'mm', blob: { positions: P, indices: I }, representation: 'facets' });
+  const seen: string[] = [];
+  const fake = fakeClaude((_, statePath) => { const s = JSON.parse(readFileSync(statePath, 'utf8')); seen.push(JSON.stringify((s.blobFiles ?? []).map((b: { hash: string; dtype: string }) => [b.hash.slice(0, 6), b.dtype]))); return [JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'ok', session_id: 's' })]; });
+  const work = scratch(), session = 'abcdef0123456789';
+  const srv = await serve(createChatServer({ mcpScript: '/x/cadMcp.mjs', spawn: fake.spawn, workDir: work }));
+  try {
+    const blobs = blobsAsBase64(doc);
+    // The first turn carries them; the next names them only, and is served from what was kept.
+    assert.equal((await turn(srv.url, { text: 'hi', doc, blobSession: session, blobRefs: [P, I], blobs })).status, 200);
+    assert.equal((await turn(srv.url, { text: 'again', doc, blobSession: session, blobRefs: [P, I] })).status, 200);
+    const files = JSON.stringify([[P.slice(0, 6), 'f32'], [I.slice(0, 6), 'u32']]);
+    assert.deepEqual(seen.slice(-2), [files, files], 'both turns read the kept files');
+    // Another conversation (or a restarted server) has none: 409, saying which.
+    const r = await fetch(`${srv.url}/turn`, { method: 'POST', headers: JSON_POST, body: JSON.stringify({ text: 'x', doc, blobSession: 'fedcba9876543210', blobRefs: [P, I] }) });
+    assert.equal(r.status, 409); assert.deepEqual((await r.json()).missing, [P, I]);
+    // A blob that is not what its hash says: refused.
+    const bad = await fetch(`${srv.url}/turn`, { method: 'POST', headers: JSON_POST, body: JSON.stringify({ text: 'x', doc, blobSession: 'fedcba9876543210', blobRefs: [P], blobs: { [P]: blobs[I] } }) });
+    assert.equal(bad.status, 400);
+  } finally { await srv.close(); }
 });

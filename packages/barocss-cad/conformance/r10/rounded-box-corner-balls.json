@@ -1,0 +1,99 @@
+{
+  "id": "r10-rounded-box-corner-balls",
+  "step": "R10",
+  "decisions": [
+    "D99"
+  ],
+  "about": "R10.B (D99): D93's TODO — a 30 × 20 × 12 box, every edge rounded 3: its corner balls turned so their poles and seam lie off the patch, so the quadrature converges (1.7e-5 off before, the pole at the corner's apex inside the patch).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            30,
+            20
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 12
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "e",
+          "edges": [
+            "e.bottom|e.side0",
+            "e.side0|e.side1",
+            "e.side0|e.top",
+            "e.side0|e.side3",
+            "e.bottom|e.side1",
+            "e.side1|e.side2",
+            "e.side1|e.top",
+            "e.bottom|e.side2",
+            "e.side2|e.side3",
+            "e.side2|e.top",
+            "e.bottom|e.side3",
+            "e.side3|e.top"
+          ],
+          "radius": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 6757.168026350791,
+          "relTol": 3e-7
+        },
+        "centroidMM": {
+          "value": [
+            14.999999944042113,
+            9.99999996709831,
+            6.000000054854065
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.top",
+          "f.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 3e-7
+    }
+  },
+  "oracle": "Steiner's formula for the box rounded r: the inner box, its faces moved out r, quarter cylinders along its edges, an eighth of a ball at each corner."
+}

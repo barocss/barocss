@@ -1,0 +1,109 @@
+{
+  "id": "a1-delete-keeps-names",
+  "step": "A1",
+  "decisions": [
+    "D26"
+  ],
+  "about": "Deleting a box before a filleted one: the later features move down one index, their ids and the fillet's edge names stay, and a new feature takes the next id, not a freed one.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 2,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            10,
+            10
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5
+        },
+        {
+          "id": "n2",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            20,
+            0
+          ],
+          "max": [
+            36,
+            16
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "extrude",
+          "sketch": 2,
+          "height": 16
+        },
+        {
+          "id": "n4",
+          "kind": "fillet",
+          "parent": {
+            "node": 3,
+            "side": "solid"
+          },
+          "edges": [
+            "n3.side0|n3.side1"
+          ],
+          "radius": 2
+        }
+      ],
+      "outputs": {},
+      "nextId": 5
+    },
+    "operations": [
+      {
+        "op": "delete",
+        "index": 1
+      },
+      {
+        "op": "add",
+        "node": {
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            50,
+            0
+          ],
+          "max": [
+            60,
+            10
+          ]
+        }
+      }
+    ]
+  },
+  "expect": {
+    "ids": [
+      "n2",
+      "n3",
+      "n4",
+      "n5"
+    ],
+    "nextId": 6,
+    "names": {
+      "2": [
+        "n3.side0|n3.side1"
+      ]
+    },
+    "volumesMM3": [
+      4082.2654824574365
+    ]
+  },
+  "oracle": "closed forms (box volumes; a fillet takes (4 − π) r² a unit of edge, a chamfer d²/2)"
+}

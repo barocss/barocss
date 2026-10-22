@@ -1,0 +1,37 @@
+{
+ "case": "material-missing",
+ "step": "A6.1",
+ "note": "The material is not given: one required gap.",
+ "input": {
+  "patches": [
+   {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a bracket to hold a 30 mm pipe on a wall"
+    },
+    "process": {
+     "value": "injection",
+     "basis": "stated",
+     "source": "moulded, 5000 a year"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "gaps": [
+   {
+    "field": "material",
+    "why": "missing"
+   }
+  ],
+  "complete": false,
+  "doc_process": "injection",
+  "process": {
+   "value": "injection",
+   "checked": true,
+   "applied": true
+  },
+  "material": null
+ }
+}

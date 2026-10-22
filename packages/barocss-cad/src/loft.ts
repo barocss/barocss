@@ -23,6 +23,11 @@ export interface LoftInput {
   readonly name: string;
   /** Through three or more sections: one smooth (C1) side per edge instead of a ruled side per span. */
   readonly smooth?: boolean;
+  /**
+   * The first section's segment tags (R10a, D86): each side named `side[t]` by the segment of the first section it
+   * runs from (several from one segment numbered `#k`), instead of by position.
+   */
+  readonly sideTags?: readonly string[];
 }
 
 const startOf = (q: Piece): XY => q.kind === 'line' ? q.a : [q.c[0] + q.r * Math.cos(q.t0), q.c[1] + q.r * Math.sin(q.t0)];
@@ -73,13 +78,18 @@ export function loftSolid(input: LoftInput): { brep: Brep; mass: (densityKgPerM3
   for (let k = 1; k < S.length; k++) if (!(S[k].z > S[k - 1].z)) fail(`section ${k} must lie above section ${k - 1}`);
 
   // Each section's pieces (arcs in spans of at most 90°), counter-clockwise.
-  const sections = S.map(s => buildProfileLoop(s.profile).segments.flatMap((g): Piece[] => {
-    if (g.kind === 'line') return [{ kind: 'line', a: g.start, b: g.end }];
+  // (The first section's pieces each keep the authored segment they come from, for tagged names.)
+  const src0: number[] = [];
+  const sections = S.map((s, si) => { const loop = buildProfileLoop(s.profile), m = loop.segments.length; return loop.segments.flatMap((g, gi): Piece[] => {
+    const from = loop.reversed ? m - 1 - gi : gi;
+    if (g.kind === 'line') { if (si === 0) src0.push(from); return [{ kind: 'line', a: g.start, b: g.end }]; }
     const n = Math.max(1, Math.ceil(Math.abs(g.sweep) / (Math.PI / 2) - 1e-9));
+    if (si === 0) for (let k = 0; k < n; k++) src0.push(from);
     return Array.from({ length: n }, (_, k) => ({ kind: 'arc' as const, c: g.center, r: g.radiusMM, t0: g.startAngle + g.sweep * k / n, dt: g.sweep / n }));
-  }));
+  }); });
   const n = Math.max(...sections.map(p => p.length));
-  for (const p of sections) while (p.length < n) { let i = 0; p.forEach((q, j) => { if (lengthOf(q) > lengthOf(p[i])) i = j; }); p.splice(i, 1, ...half(p[i])); }
+  for (const p of sections) while (p.length < n) { let i = 0; p.forEach((q, j) => { if (lengthOf(q) > lengthOf(p[i])) i = j; }); p.splice(i, 1, ...half(p[i])); if (p === sections[0]) src0.splice(i, 1, src0[i], src0[i]); }
+  const tagged = taggedSides(src0, input.sideTags);
   // Turn each section to start nearest the previous one's start (directions about the centroids).
   const shape = (p: Piece[]) => { const pts = p.map(startOf), c = pts.reduce((m, q) => [m[0] + q[0] / n, m[1] + q[1] / n], [0, 0]), rms = Math.sqrt(pts.reduce((m, q) => m + (q[0] - c[0]) ** 2 + (q[1] - c[1]) ** 2, 0) / n) || 1; return pts.map(q => [(q[0] - c[0]) / rms, (q[1] - c[1]) / rms]); };
   for (let k = 1; k < sections.length; k++) {
@@ -93,8 +103,8 @@ export function loftSolid(input: LoftInput): { brep: Brep; mass: (densityKgPerM3
   const scale = Math.max(1, ...sections.flat().map(q => Math.max(...startOf(q).map(Math.abs))), ...z.map(Math.abs)), tol = 1e-9 * scale;
   // Each piece as a Bézier ending exactly where the next one starts (its vertex).
   const piece = (k: number, i: number): Bezier => { const b = bezier(sections[k][i]); return { p: [...b.p.slice(0, -1), startOf(sections[k][(i + 1) % n])], w: b.w }; };
-  if (input.smooth && K >= 2) return smoothLoft(sections.map((p, k) => p.map((_, i) => piece(k, i))), z, id, nm);
-  const sideName = (k: number, i: number) => K === 1 ? `${nm}.side${i}` : `${nm}.s${k}.side${i}`;
+  if (input.smooth && K >= 2) return smoothLoft(sections.map((p, k) => p.map((_, i) => piece(k, i))), z, id, nm, tagged);
+  const sideName = (k: number, i: number) => K === 1 ? `${nm}.${tagged ? tagged[i] : `side${i}`}` : `${nm}.s${k}.${tagged ? tagged[i] : `side${i}`}`;
   const vid = (k: number, i: number) => `v${k}_${i % n}`, rid = (k: number, i: number) => `r${k}_${i % n}`, lid = (k: number, i: number) => `l${k}_${i % n}`;
   const vertices = sections.flatMap((p, k) => p.map((q, i) => ({ id: vid(k, i), point: [...startOf(q), z[k]] as Point })));
   const edges: { id: string; curve: Curve; vertices: [string, string]; name?: string }[] = [];
@@ -152,7 +162,14 @@ export function loftSolid(input: LoftInput): { brep: Brep; mass: (densityKgPerM3
  * mass is the divergence theorem over the sides (Gauss quadrature on each span) and the caps (exact
  * section moments).
  */
-function smoothLoft(rows: Bezier[][], z: number[], id: string, nm: string): { brep: Brep; mass: (densityKgPerM3: number) => SolidMassProperties } {
+/** Side names from the first section's pieces' source segments and the tags (`side[t]`, `#k` when one segment gives several), or null untagged. */
+function taggedSides(src0: readonly number[], tags: readonly string[] | undefined): string[] | null {
+  if (!tags) return null;
+  const count = new Map<number, number>(), seen = new Map<number, number>();
+  for (const g of src0) count.set(g, (count.get(g) ?? 0) + 1);
+  return src0.map(g => { const k = (seen.get(g) ?? 0) + 1; seen.set(g, k); return count.get(g)! > 1 ? `side[${tags[g]}]#${k}` : `side[${tags[g]}]`; });
+}
+function smoothLoft(rows: Bezier[][], z: number[], id: string, nm: string, tagged: string[] | null = null): { brep: Brep; mass: (densityKgPerM3: number) => SolidMassProperties } {
   const K = rows.length - 1, n = rows[0].length, v = z.map(x => (x - z[0]) / (z[K] - z[0]));
   type H = [number, number, number, number];
   const hom = (p: XY, zz: number, w: number): H => [p[0] * w, p[1] * w, zz * w, w];
@@ -173,7 +190,7 @@ function smoothLoft(rows: Bezier[][], z: number[], id: string, nm: string): { br
   for (const net of nets) for (const col of net) for (const h of col) if (!(h[3] > 0)) throw new BrepError('GEOMETRY', 'loft: the sections are too far apart for a smooth side (a weight turned negative)');
   const point = (h: H): Point => [h[0] / h[3], h[1] / h[3], h[2] / h[3]];
   const curveOf = (col: H[], cid: string): Curve => ({ kind: 'curve', id: cid, degree: 3, knots: [...knotsV], controlPoints: col.map(point), weights: col.map(h => h[3]) });
-  const side = (i: number) => `${nm}.side${i}`;
+  const side = (i: number) => `${nm}.${tagged ? tagged[i] : `side${i}`}`;
   const vertices = rows.flatMap((r, k) => k === 0 || k === K ? r.map((b, i) => ({ id: `v${k}_${i}`, point: [b.p[0][0], b.p[0][1], z[k]] as Point })) : []);
   const edges: { id: string; curve: Curve; vertices: [string, string]; name?: string }[] = [];
   for (const k of [0, K]) rows[k].forEach((b, i) => edges.push({ id: `r${k}_${i}`, curve: curve3(b, z[k], `r${k}_${i}`), vertices: [`v${k}_${i}`, `v${k}_${(i + 1) % n}`], name: [k ? `${nm}.top` : `${nm}.bottom`, side(i)].sort().join('|') }));

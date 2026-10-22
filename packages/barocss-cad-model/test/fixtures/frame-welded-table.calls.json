@@ -1,0 +1,166 @@
+{
+ "about": "FR4b acceptance (D128): a welded table frame \u2014 a 1000 \u00d7 600 top of sharp 40 \u00d7 40 \u00d7 3 tubes mitred at its corners, four legs under it (730 to the top's underside), a lower rail 150 up between the legs butted on their faces (T-joints); its cut list. The section is the brief's (a test value).",
+ "calls": [
+  {
+   "tool": "features",
+   "args": {
+    "action": "add",
+    "features": [
+     {
+      "kind": "frame",
+      "points": [
+       [
+        0,
+        0,
+        750
+       ],
+       [
+        1000,
+        0,
+        750
+       ],
+       [
+        1000,
+        600,
+        750
+       ],
+       [
+        0,
+        600,
+        750
+       ],
+       [
+        0,
+        0,
+        730
+       ],
+       [
+        1000,
+        0,
+        730
+       ],
+       [
+        1000,
+        600,
+        730
+       ],
+       [
+        0,
+        600,
+        730
+       ],
+       [
+        0,
+        0,
+        0
+       ],
+       [
+        1000,
+        0,
+        0
+       ],
+       [
+        1000,
+        600,
+        0
+       ],
+       [
+        0,
+        600,
+        0
+       ],
+       [
+        0,
+        0,
+        150
+       ],
+       [
+        1000,
+        0,
+        150
+       ],
+       [
+        1000,
+        600,
+        150
+       ],
+       [
+        0,
+        600,
+        150
+       ]
+      ],
+      "segments": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        8,
+        4
+       ],
+       [
+        9,
+        5
+       ],
+       [
+        10,
+        6
+       ],
+       [
+        11,
+        7
+       ],
+       [
+        12,
+        13
+       ],
+       [
+        13,
+        14
+       ],
+       [
+        14,
+        15
+       ],
+       [
+        15,
+        12
+       ]
+      ],
+      "section": {
+       "kind": "rect-tube",
+       "width": 40,
+       "height": 40,
+       "wall": 3,
+       "outerRadius": 0
+      },
+      "corners": {
+       "default": "mitre",
+       "tee": "butt"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "tool": "query",
+   "args": {
+    "action": "cutlist",
+    "csv": true
+   }
+  }
+ ]
+}

@@ -1,0 +1,100 @@
+{
+  "id": "r12-flat-l-bracket-120",
+  "step": "R12",
+  "decisions": [
+    "D117"
+  ],
+  "about": "R12.2: an L bent 120° (outside 50 and 35 to its virtual sharp): its flat 85 − BD long.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "sheet-contour",
+          "path": [
+            [
+              0,
+              0
+            ],
+            [
+              50,
+              0
+            ],
+            [
+              32.50000000000001,
+              30.310889132455355
+            ]
+          ],
+          "side": "left",
+          "width": 20,
+          "thickness": 2,
+          "bendRadius": 3,
+          "kFactor": 0.4
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 3042.2828933553574,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            29.346261754516647,
+            7.282390494579832,
+            10
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "c.back",
+          "c.bend1.inner",
+          "c.bend1.outer",
+          "c.end",
+          "c.front",
+          "c.leg0.a",
+          "c.leg0.b",
+          "c.leg1.a",
+          "c.leg1.b",
+          "c.start"
+        ],
+        "flat": {
+          "areaMM2": {
+            "value": 1512.7638662681074,
+            "relTol": 1e-12
+          },
+          "box": {
+            "value": [
+              75.63819331340537,
+              20
+            ],
+            "absTol": 1e-9
+          },
+          "loops": 1,
+          "bends": [
+            {
+              "name": "c.bend1",
+              "direction": "down",
+              "angleDegrees": 120
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "oracle": "Flat: closed form, BD = 2(R + T)·tan 60° − (2π/3)(R + K·T). Volume and centroid by this kernel."
+}

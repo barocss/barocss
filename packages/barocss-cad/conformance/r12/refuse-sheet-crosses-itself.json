@@ -1,0 +1,56 @@
+{
+  "id": "r12-refuse-sheet-crosses-itself",
+  "step": "R12",
+  "decisions": [
+    "D116"
+  ],
+  "about": "R12.1: a path whose last leg crosses its first.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "sheet-contour",
+          "path": [
+            [
+              0,
+              0
+            ],
+            [
+              20,
+              0
+            ],
+            [
+              20,
+              10
+            ],
+            [
+              5,
+              10
+            ],
+            [
+              5,
+              -5
+            ]
+          ],
+          "side": "right",
+          "width": 40,
+          "thickness": 2,
+          "bendRadius": 3,
+          "kFactor": 0.4
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "[SHEET_CROSSES_ITSELF]"
+    }
+  },
+  "oracle": "By construction: the setbacks, the turn and the section's self-contact in closed form."
+}

@@ -1,10 +1,10 @@
 // QA probe: details behind engine-probe findings — non-manifold union (edge touch), over-sized fillet,
 // and how the sketch builder classifies a circle that crosses the outline (hole vs region).
 import { evaluateCadPart, checkBrep } from '@barocss/cad';
-import { evaluateDoc } from '../../src/engine/evaluate';
-import { toPartDocument } from '../../src/engine/part';
-import { emptyDoc, withNode, type StudioDoc } from '../../src/engine/doc';
-import { profileOf } from '../../src/sketch/loops';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { toPartDocument } from '@barocss/cad-model/engine/part';
+import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { profileOf } from '@barocss/cad-model/sketch/loops';
 const S = (n: number) => ({ node: n, side: 'solid' as const });
 const box = (w: number, d: number, h: number, x = 0, y = 0, doc = emptyDoc()) => { const s = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [x, y], max: [x + w, y + d] }); return withNode(s, { kind: 'extrude', sketch: s.nodes.length - 1, height: h }); };
 const check = (doc: StudioDoc) => { let snap; try { snap = evaluateCadPart(toPartDocument(doc)); } catch (e) { return 'REFUSED: ' + String((e as Error).message).slice(0, 160); } return snap.outputs.map(o => { const c = checkBrep(o.brep) as unknown as { ok?: boolean; valid?: boolean; issues?: unknown[]; errors?: unknown[] }; return { id: o.id, faces: o.brep.faces.length, shells: (o.brep as unknown as { shells?: unknown[] }).shells?.length, check: JSON.stringify(c).slice(0, 300) }; }); };

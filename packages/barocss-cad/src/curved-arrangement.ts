@@ -57,12 +57,38 @@ function integrate(s: CurveSegment2, g: (p: XY, d: XY) => number): number {
   return acc;
 }
 /** Points along a parametric curve's polyline (n pieces, both ends included). */
-const polyline = (s: CurveSegment2, n: number) => Array.from({ length: n + 1 }, (_, k) => segAt(s, k / n));
+const areas = new WeakMap<CurveSegment2, number>();
+const polyline = (s: CurveSegment2, n: number) => s.kind === 'curve' && n === CURVE_SAMPLES ? samplesOf(s) : Array.from({ length: n + 1 }, (_, k) => segAt(s, k / n));
+/** A general curve's CURVE_SAMPLES + 1 samples and their box padded by the longest chord, once per segment. */
+const sampled = new WeakMap<CurveSegment2, { ps: XY[]; lo: XY; hi: XY }>();
+function samples(s: CurveSegment2) {
+  let r = sampled.get(s);
+  if (!r) {
+    const ps = Array.from({ length: CURVE_SAMPLES + 1 }, (_, k) => segAt(s, k / CURVE_SAMPLES)), lo: XY = [Infinity, Infinity], hi: XY = [-Infinity, -Infinity];
+    let pad = 0;
+    for (let k = 0; k <= CURVE_SAMPLES; k++) {
+      for (const a of [0, 1]) { lo[a] = Math.min(lo[a], ps[k][a]); hi[a] = Math.max(hi[a], ps[k][a]); }
+      if (k) pad = Math.max(pad, Math.hypot(ps[k][0] - ps[k - 1][0], ps[k][1] - ps[k - 1][1]));
+    }
+    r = { ps, lo: [lo[0] - pad, lo[1] - pad], hi: [hi[0] + pad, hi[1] + pad] }; sampled.set(s, r);
+  }
+  return r;
+}
+const samplesOf = (s: CurveSegment2) => samples(s).ps;
+/** A general curve's 2 CURVE_SAMPLES + 1 samples (crossings with horizontal lines), once per segment. */
+const denseSampled = new WeakMap<CurveSegment2, XY[]>();
+function denseSamples(s: CurveSegment2): XY[] {
+  let r = denseSampled.get(s);
+  if (!r) { r = Array.from({ length: CURVE_SAMPLES * 2 + 1 }, (_, k) => segAt(s, k / (CURVE_SAMPLES * 2))); denseSampled.set(s, r); }
+  return r;
+}
+/** Whether p is surely farther than eps from a general curve (outside its padded sample box). */
+const surelyOff = (s: CurveSegment2, p: XY, eps: number) => { if (s.kind !== 'curve') return false; const { lo, hi } = samples(s); return p[0] < lo[0] - eps || p[1] < lo[1] - eps || p[0] > hi[0] + eps || p[1] > hi[1] + eps; };
 const CURVE_SAMPLES = 64;
 /** Area contribution ½∮(x dy − y dx) of a segment. */
 export function segArea(s: CurveSegment2): number {
   if (s.kind === 'line') return (s.a[0] * s.b[1] - s.b[0] * s.a[1]) / 2;
-  if (s.kind === 'curve') return integrate(s, (p, d) => (p[0] * d[1] - p[1] * d[0]) / 2);
+  if (s.kind === 'curve') { let a = areas.get(s); if (a === undefined) { a = integrate(s, (p, d) => (p[0] * d[1] - p[1] * d[0]) / 2); areas.set(s, a); } return a; }
   const t1 = s.t0 + s.sweep;
   return (s.r * s.r * s.sweep + s.c[0] * s.r * (Math.sin(t1) - Math.sin(s.t0)) - s.c[1] * s.r * (Math.cos(t1) - Math.cos(s.t0))) / 2;
 }
@@ -80,7 +106,8 @@ export function paramOf(s: CurveSegment2, p: XY): number {
   if (s.kind === 'curve') {
     // Nearest polyline sample, then golden-section search on the squared distance around it.
     const d2 = (u: number) => { const q = segAt(s, u); return (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2; };
-    let best = 0, bd = Infinity; for (let k = 0; k <= CURVE_SAMPLES; k++) { const v = d2(k / CURVE_SAMPLES); if (v < bd) { bd = v; best = k; } }
+    const ps = samplesOf(s);
+    let best = 0, bd = Infinity; for (let k = 0; k <= CURVE_SAMPLES; k++) { const q = ps[k], v = (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2; if (v < bd) { bd = v; best = k; } }
     let lo = Math.max(0, (best - 1) / CURVE_SAMPLES), hi = Math.min(1, (best + 1) / CURVE_SAMPLES);
     for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (d2(m1) < d2(m2)) hi = m2; else lo = m1; }
     return (lo + hi) / 2;
@@ -100,8 +127,50 @@ export function segDistance(s: CurveSegment2, p: XY): number {
 }
 /** Intersection points of two segments (crossings, tangencies, endpoints touching, overlap ends). */
 /** Points shared by two segments (crossings, tangencies, touching ends, overlap ends) within eps. */
+/**
+ * Whether m (at u on s) is a point of a touch at an end e of s lying on t (t's end, or a point inside it): s from e
+ * stays within eps of t up to m and past it, then leaves t away from t's ends — a curve meeting a line to second order
+ * (a G2 fillet's section at a planar face, R10.5b) lies that close to it for a while, and Newton, slow at a triple root,
+ * stops anywhere in there. e is a vertex already. (Where s leaves t at an end of t, or never, the two overlap: m is a
+ * point of the overlap. Nor at an end of either.)
+ */
+function touchOfEnd(s: CurveSegment2, t: CurveSegment2, u: number, m: XY, eps: number): boolean {
+  if ([segStart(s), segEnd(s), segStart(t), segEnd(t)].some(q => Math.hypot(q[0] - m[0], q[1] - m[1]) <= eps)) return false;
+  for (const [e, ue] of [[segStart(s), 0], [segEnd(s), 1]] as const) {
+    if (Math.abs(u - ue) > 0.25 || segDistance(t, e) > eps) continue;
+    let hug = true;
+    for (let k = 1; k < 8 && hug; k++) hug = segDistance(t, segAt(s, ue + (u - ue) * k / 8)) <= eps;
+    if (hug && leavesAwayFromEnds(s, t, e, ue, Math.abs(u - ue), eps)) return true;
+  }
+  return false;
+}
+/** Whether s, walked from its end e (at ue), leaves t (by eps) past `from` of its parameter, and not at an end of t (other than e). */
+function leavesAwayFromEnds(s: CurveSegment2, t: CurveSegment2, e: XY, ue: number, from: number, eps: number): boolean {
+  const dir = ue === 0 ? 1 : -1;
+  let prev = segAt(s, ue + dir * from);
+  for (let k = 1; k <= 64; k++) {
+    const x = from + (1 - from) * k / 64, q = segAt(s, ue + dir * x);
+    if (segDistance(t, q) > eps) {
+      const step = Math.hypot(q[0] - prev[0], q[1] - prev[1]) + eps;
+      return ![segStart(t), segEnd(t)].some(w => Math.hypot(w[0] - e[0], w[1] - e[1]) > eps && Math.hypot(w[0] - prev[0], w[1] - prev[1]) <= step);
+    }
+    prev = q;
+  }
+  return false;
+}
+/**
+ * Points shared by two segments where they run along each other (a curve and its copy over part of its length: two faces'
+ * sections by one plane, D152): only the ends of each such run. Between consecutive points along s, the middle of s lying on t
+ * makes them one run; its inner points were "crossings" found all along it, each a split of both curves into slivers.
+ */
+function overlapEnds(s: CurveSegment2, t: CurveSegment2, points: XY[], eps: number): XY[] {
+  if (points.length < 3) return points;
+  const at = points.map(p => ({ p, u: paramOf(s, p) })).sort((a, b) => a.u - b.u);
+  const along = at.slice(0, -1).map((a, i) => { const q = segAt(s, (a.u + at[i + 1].u) / 2); return segDistance(t, q) <= eps; });
+  return at.filter((_, i) => !(i > 0 && i < at.length - 1 && along[i - 1] && along[i])).map(a => a.p);
+}
 export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: number): XY[] {
-  const out: XY[] = [], on = (x: CurveSegment2, p: XY) => segDistance(x, p) <= eps;
+  const out: XY[] = [], on = (x: CurveSegment2, p: XY) => !surelyOff(x, p, eps) && segDistance(x, p) <= eps;
   const push = (p: XY) => { if (on(s, p) && on(t, p)) out.push(p); };
   const ends = () => { for (const p of [segStart(s), segEnd(s), segStart(t), segEnd(t)]) push(p); };
   if (s.kind === 'curve' || t.kind === 'curve') {
@@ -124,9 +193,9 @@ export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: numbe
         if (Math.abs(du) < 1e-15 && Math.abs(dv) < 1e-15) break;
       }
       const P = segAt(s, u), Q = segAt(t, v);
-      if (Math.hypot(P[0] - Q[0], P[1] - Q[1]) <= eps) { const m: XY = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2]; if (!out.some(o => Math.hypot(o[0] - m[0], o[1] - m[1]) <= eps)) push(m); }
+      if (Math.hypot(P[0] - Q[0], P[1] - Q[1]) <= eps) { const m: XY = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2]; if (!out.some(o => Math.hypot(o[0] - m[0], o[1] - m[1]) <= eps) && !touchOfEnd(s, t, u, m, eps) && !touchOfEnd(t, s, v, m, eps)) push(m); }
     }
-    ends(); return out;
+    ends(); return overlapEnds(s, t, out, eps);
   }
   if (s.kind === 'line' && t.kind === 'line') {
     const d1 = [s.b[0] - s.a[0], s.b[1] - s.a[1]], d2 = [t.b[0] - t.a[0], t.b[1] - t.a[1]], den = d1[0] * d2[1] - d1[1] * d2[0];
@@ -222,13 +291,50 @@ function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2
   };
   const outgoing = points.map(() => [] as number[]); half.forEach((h, i) => outgoing[h.from].push(i));
   const keyed = half.map(leaving);
-  outgoing.forEach(list => list.sort((a, b) => { const A = keyed[a], B = keyed[b], d = A.angle - B.angle; return Math.abs(d) > 1e-12 ? d : A.curvature - B.curvature; }));
+  // (Leaving along one tangent to within the data's rounding — a fillet's arc and the line it is tangent to, their
+  // shared vertex moved by the vertex tolerance, the arc's tangent then off the line's by eps / r — they are ordered as
+  // they lie a little way out, at δ = 10³ eps: by the chord's direction there, angle + κ δ / 2. R10.B, D99.)
+  // (Angles are read from the middle of the widest gap between a vertex's directions, not from −π: a direction along
+  // −x off by rounding to either side of ±π would otherwise jump to the other end of the order.)
+  const delta = 1e3 * eps, rel = new Float64Array(half.length), segLeaving = (h: number) => half[h].from === edges[half[h].edge].u ? edges[half[h].edge].seg : segReverse(edges[half[h].edge].seg);
+  for (const list of outgoing) {
+    const a = list.map(h => keyed[h].angle).sort((x, y) => x - y);
+    let from = -Math.PI, gap = -1;
+    for (let i = 0; i < a.length; i++) { const g = (i + 1 < a.length ? a[i + 1] : a[0] + TWO_PI) - a[i]; if (g > gap) { gap = g; from = a[i] + g / 2; } }
+    for (const h of list) rel[h] = ((keyed[h].angle - from) % TWO_PI + TWO_PI) % TWO_PI;
+    list.sort((x, y) => { const d = rel[x] - rel[y]; return Math.abs(d) > 1e-4 ? d : tangentOrder(segLeaving(x), segLeaving(y), rel[x], rel[y], from, d, keyed[x].curvature, keyed[y].curvature, delta); });
+  }
   const pos = new Map<number, number>(); outgoing.forEach(list => list.forEach((h, k) => pos.set(h, k)));
   for (const h of half) { const list = outgoing[h.to], k = pos.get(h.twin)!; h.next = list[(k - 1 + list.length) % list.length]; }
   const cycles: number[][] = [];
   half.forEach((h, i) => { if (h.face >= 0) return; const c: number[] = []; let g = i; do { half[g].face = cycles.length; c.push(g); g = half[g].next; } while (g !== i && c.length <= half.length); cycles.push(c); });
   const segOfHalf = (h: number) => half[h].from === edges[half[h].edge].u ? edges[half[h].edge].seg : segReverse(edges[half[h].edge].seg);
   return { points, edges, half, cycles, segOfHalf, eps };
+}
+
+/**
+ * Two half-edges leaving one vertex along one tangent (to 1e-4): ordered by their chords to the points a quarter of the
+ * shorter one's length out along each — they do not cross before their next vertices (a crossing is a vertex), so the
+ * chords keep their order; a curve touching a line to second order (a G2 fillet's section at a planar face, R10.5b)
+ * agrees with it in angle and curvature both. Where the chords also agree (a copy), by angle + κδ/2.
+ */
+function tangentOrder(a: CurveSegment2, b: CurveSegment2, relA: number, relB: number, from: number, d: number, ka: number, kb: number, delta: number): number {
+  const L = 0.25 * Math.min(segLength(a), segLength(b)), p0 = segAt(a, 0), pa = pointAlong(a, L), pb = pointAlong(b, L);
+  const ang = (q: XY) => ((Math.atan2(q[1] - p0[1], q[0] - p0[0]) - from) % TWO_PI + TWO_PI) % TWO_PI;
+  // (The chords' angles read about the same origin as the tangents: near ±π a chord off by rounding would wrap.)
+  const fix = (x: number, ref: number) => x - ref > Math.PI ? x - TWO_PI : ref - x > Math.PI ? x + TWO_PI : x;
+  const c = fix(ang(pa), relA) - fix(ang(pb), relB);
+  if (Math.abs(c) > 1e-12) return c;
+  const k = d + (ka - kb) * delta / 2;
+  return Math.abs(k) > 1e-15 ? k : ka - kb;
+}
+/** A segment's length by 64 chords. */
+function segLength(g: CurveSegment2): number { let l = 0, p = segAt(g, 0); for (let i = 1; i <= 64; i++) { const q = segAt(g, i / 64); l += Math.hypot(q[0] - p[0], q[1] - p[1]); p = q; } return l; }
+/** The point L along a segment from its start (by 64 chords, linearly between them). */
+function pointAlong(g: CurveSegment2, L: number): XY {
+  let acc = 0, p = segAt(g, 0);
+  for (let i = 1; i <= 64; i++) { const q = segAt(g, i / 64), d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (acc + d >= L && d > 0) { const t = (L - acc) / d; return [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t]; } acc += d; p = q; }
+  return p;
 }
 
 /** Every vertex of the arrangement of the rings (crossings, tangencies, touches, ring vertices). */
@@ -366,9 +472,10 @@ function crossingsAt(rings: readonly (readonly CurveSegment2[])[], y: number): n
     const g = ring[si], start = segEnd(ring[(si - 1 + ring.length) % ring.length]);
     // The segment as points at parameters, its first point replaced by the shared vertex.
     const us = g.kind === 'line' ? [0, 1] : g.kind === 'curve' ? Array.from({ length: CURVE_SAMPLES * 2 + 1 }, (_, k) => k / (CURVE_SAMPLES * 2)) : arcCuts(g);
-    const at = (u: number): XY => u === 0 ? start : segAt(g, u);
+    const dense = g.kind === 'curve' ? denseSamples(g) : null;
+    const at = (u: number, k: number): XY => u === 0 ? start : dense ? dense[k] : segAt(g, u);
     for (let k = 0; k + 1 < us.length; k++) {
-      let lo = us[k], hi = us[k + 1]; const a = at(lo), b = at(hi);
+      let lo = us[k], hi = us[k + 1]; const a = at(lo, k), b = at(hi, k + 1);
       if (above(a[1]) === above(b[1])) continue;
       if (g.kind === 'line') { xs.push(a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])); continue; }
       const aAbove = above(a[1]);
@@ -387,7 +494,7 @@ function arcCuts(g: Extract<CurveSegment2, { kind: 'arc' }>): number[] {
 /** Whether p is inside the region (boundary points: `boundary`, decided by tolerance). */
 export function locateInRegion(p: XY, region: CurveRegion2, tolerance: number): 'in' | 'out' | 'boundary' {
   const rings = [region.outer, ...region.holes];
-  for (const ring of rings) for (const g of ring) if (segDistance(g, p) <= tolerance) return 'boundary';
+  for (const ring of rings) for (const g of ring) if (!surelyOff(g, p, tolerance) && segDistance(g, p) <= tolerance) return 'boundary';
   return crossingsAt(rings, p[1]).filter(x => x > p[0]).length % 2 === 1 ? 'in' : 'out';
 }
 /**
@@ -408,7 +515,13 @@ export function regionInteriorPoint(region: CurveRegion2): XY | null {
     const y = y0 + (y1 - y0) * f, xs = crossingsAt(rings, y).sort((a, b) => a - b);
     for (let k = 0; k + 1 < xs.length; k += 2) {
       const p: XY = [(xs[k] + xs[k + 1]) / 2, y];
-      let d = Infinity; for (const ring of rings) for (const g of ring) d = Math.min(d, segDistance(g, p));
+      // (A candidate no farther from the boundary than the best so far is dropped at once; a general
+      // curve whose padded sample box is no nearer than the nearest so far is not measured.)
+      let d = Infinity;
+      scan: for (const ring of rings) for (const g of ring) {
+        if (g.kind === 'curve') { const { lo, hi } = samples(g); if (Math.hypot(Math.max(lo[0] - p[0], 0, p[0] - hi[0]), Math.max(lo[1] - p[1], 0, p[1] - hi[1])) >= d) continue; }
+        d = Math.min(d, segDistance(g, p)); if (d <= clearance) break scan;
+      }
       if (d > clearance) { clearance = d; best = p; }
     }
   }

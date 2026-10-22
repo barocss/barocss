@@ -1,0 +1,411 @@
+{
+ "case": "move-2r",
+ "step": "RD2",
+ "note": "The planar 2R of RD1 moved (1.2, −0.8) rad from upright along one S-curve on the path (limits 1 rad/s, 4 rad/s², 40 rad/s³ on the larger share): its duration by the closed form, d/v + v/a + a/j on the path; the peak torques from the 2R Lagrangian closed form along that profile, sampled by each segment's polynomial at 4 001 points including its ends, where the jerk switches (to 1e-6 of the sampler's refined peak).",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      20,
+      20
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 80,
+     "id": "n1",
+     "made": {
+      "command": "box",
+      "values": {
+       "w": 20,
+       "d": 20,
+       "h": 80,
+       "x": 0,
+       "y": 0,
+       "z": 0
+      }
+     }
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "radius": 4,
+     "center": [
+      10,
+      10
+     ],
+     "depth": 8,
+     "id": "n2"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 2,
+      "side": "solid"
+     },
+     "radius": 4,
+     "center": [
+      10,
+      10
+     ],
+     "side": "min",
+     "depth": 8,
+     "id": "n3"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 3,
+      "side": "solid"
+     },
+     "radius": 4,
+     "center": [
+      10,
+      20
+     ],
+     "axis": "y",
+     "id": "n4"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 4,
+      "side": "solid"
+     },
+     "radius": 4,
+     "center": [
+      10,
+      60
+     ],
+     "axis": "y",
+     "id": "n5"
+    }
+   ],
+   "outputs": {
+    "b5": {
+     "node": 5,
+     "side": "solid"
+    }
+   },
+   "nextId": 6,
+   "instances": [
+    {
+     "id": "l1",
+     "name": "l1",
+     "doc": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+       {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+         0,
+         0
+        ],
+        "max": [
+         20,
+         20
+        ],
+        "id": "n0"
+       },
+       {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 80,
+        "id": "n1",
+        "made": {
+         "command": "box",
+         "values": {
+          "w": 20,
+          "d": 20,
+          "h": 80,
+          "x": 0,
+          "y": 0,
+          "z": 0
+         }
+        }
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 1,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         10
+        ],
+        "depth": 8,
+        "id": "n2"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 2,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         10
+        ],
+        "side": "min",
+        "depth": 8,
+        "id": "n3"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 3,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         20
+        ],
+        "axis": "y",
+        "id": "n4"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 4,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         60
+        ],
+        "axis": "y",
+        "id": "n5"
+       }
+      ],
+      "outputs": {
+       "b5": {
+        "node": 5,
+        "side": "solid"
+       }
+      },
+      "nextId": 6
+     },
+     "position": [
+      0,
+      20,
+      40
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "id": "l2",
+     "name": "l2",
+     "doc": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+       {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+         0,
+         0
+        ],
+        "max": [
+         20,
+         20
+        ],
+        "id": "n0"
+       },
+       {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 80,
+        "id": "n1",
+        "made": {
+         "command": "box",
+         "values": {
+          "w": 20,
+          "d": 20,
+          "h": 80,
+          "x": 0,
+          "y": 0,
+          "z": 0
+         }
+        }
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 1,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         10
+        ],
+        "depth": 8,
+        "id": "n2"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 2,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         10
+        ],
+        "side": "min",
+        "depth": 8,
+        "id": "n3"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 3,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         20
+        ],
+        "axis": "y",
+        "id": "n4"
+       },
+       {
+        "kind": "hole",
+        "parent": {
+         "node": 4,
+         "side": "solid"
+        },
+        "radius": 4,
+        "center": [
+         10,
+         60
+        ],
+        "axis": "y",
+        "id": "n5"
+       }
+      ],
+      "outputs": {
+       "b5": {
+        "node": 5,
+        "side": "solid"
+       }
+      },
+      "nextId": 6
+     },
+     "position": [
+      0,
+      40,
+      80
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ]
+    }
+   ],
+   "mates": [
+    {
+     "id": "c1",
+     "kind": "concentric",
+     "a": {
+      "part": "base",
+      "face": "n5.side0"
+     },
+     "b": {
+      "part": "l1",
+      "face": "n4.side0"
+     }
+    },
+    {
+     "id": "f1",
+     "kind": "coincident",
+     "a": {
+      "part": "base",
+      "face": "n1.side2"
+     },
+     "b": {
+      "part": "l1",
+      "face": "n1.side0"
+     }
+    },
+    {
+     "id": "c2",
+     "kind": "concentric",
+     "a": {
+      "part": "l1",
+      "face": "n5.side0"
+     },
+     "b": {
+      "part": "l2",
+      "face": "n4.side0"
+     }
+    },
+    {
+     "id": "f2",
+     "kind": "coincident",
+     "a": {
+      "part": "l1",
+      "face": "n1.side2"
+     },
+     "b": {
+      "part": "l2",
+      "face": "n1.side0"
+     }
+    }
+   ]
+  },
+  "to": {
+   "base~l1": 1.2,
+   "l1~l2": -0.8
+  },
+  "profile": "s-curve",
+  "limits": {
+   "velocity": 1,
+   "acceleration": 4,
+   "jerk": 40
+  }
+ },
+ "expect": {
+  "duration_s": 1.55,
+  "peak_N_m": {
+   "base~l1": 0.050232170683482374,
+   "l1~l2": 0.006265768816246968
+  },
+  "tol_rel": 0.000001
+ }
+}

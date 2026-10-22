@@ -10,7 +10,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const bundle = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist/index.js');
-const page = `<!doctype html><meta charset="utf-8"><style>body{margin:0}canvas{display:block;width:320px;height:240px}</style><canvas id="c"></canvas>`;
+// (The bundle keeps CAD external, G18: the page maps @barocss/cad to CAD's built entry, served beside it.)
+const cadDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../barocss-cad/dist');
+const page = `<!doctype html><meta charset="utf-8"><script type="importmap">{"imports":{"@barocss/cad":"/cad/index.js"}}</script><style>body{margin:0}canvas{display:block;width:320px;height:240px}</style><canvas id="c"></canvas>`;
 
 test('CSS scenes show on the viewer', { timeout: 120000 }, async t => {
   if (!process.env.CHROME || !process.env.PW_DIR) { t.skip('CHROME and PW_DIR are required'); return; }
@@ -19,6 +21,7 @@ test('CSS scenes show on the viewer', { timeout: 120000 }, async t => {
     if (req.url === '/favicon.ico') { res.writeHead(204); res.end(); return; }
     if (req.url === '/') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(page); return; }
     if (req.url === '/gpu.js') { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(bundle)); return; }
+    if (/^\/cad\/[\w./-]+\.js$/.test(req.url) && !req.url.includes('..')) { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(path.join(cadDist, req.url.slice(5)))); return; }
     res.writeHead(404); res.end();
   });
   await new Promise(r => server.listen(0, '127.0.0.1', r));

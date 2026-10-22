@@ -1,0 +1,68 @@
+{
+  "id": "fr-refuse-skeleton-overlap",
+  "step": "FR",
+  "decisions": [
+    "D124"
+  ],
+  "about": "FR2: two segments on one line sharing 200 mm are refused by name (a member would run through another).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              100,
+              0,
+              0
+            ],
+            [
+              300,
+              0,
+              0
+            ],
+            [
+              0,
+              100,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 6
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[SKELETON_OVERLAP] segments 0 and 1 lie on one line and share 200 mm"
+    }
+  },
+  "oracle": "By construction: both on y = z = 0, [0, 300] and [100, 300] share [100, 300]."
+}

@@ -1,0 +1,102 @@
+{
+  "id": "r3-facet-fillet-refused",
+  "step": "R3",
+  "decisions": [
+    "D42"
+  ],
+  "about": "A fillet on a facet body is refused with CAPABILITY (general fillets on mesh faces arrive with R10).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "mesh",
+          "positions": [
+            0,
+            0,
+            0,
+            20,
+            0,
+            0,
+            20,
+            10,
+            0,
+            0,
+            10,
+            0,
+            0,
+            0,
+            5,
+            20,
+            0,
+            5,
+            20,
+            10,
+            5,
+            0,
+            10,
+            5
+          ],
+          "indices": [
+            0,
+            3,
+            2,
+            0,
+            2,
+            1,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "representation": "facets"
+        },
+        {
+          "id": "r",
+          "kind": "fillet",
+          "target": "m",
+          "edges": [
+            "m.region0|m.region2"
+          ],
+          "radius": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "fillet on mesh faces is not supported yet"
+    }
+  }
+}

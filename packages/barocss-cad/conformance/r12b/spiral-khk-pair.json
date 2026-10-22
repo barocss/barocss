@@ -1,0 +1,101 @@
+{
+  "id": "r12b-spiral-khk-pair",
+  "step": "R12b",
+  "decisions": [
+    "D135"
+  ],
+  "about": "K1's spiral-bevel example's system-independent numbers (m 3, z 20/40, Σ 90°, β_m 35°, α_n 20°: α_t 23.95680°, R 67.08204, b 20), as the ideal conjugate (flagged): a left-hand pinion and its right-hand mate by mesh on a 60 mm cutter radius, bores Ø10 and Ø20; each volume the straight section's of α_t (a turn keeps every sphere's area), each centroid on its own axis.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "bevel-gear",
+          "module": 3,
+          "teeth": 20,
+          "mateTeeth": 40,
+          "faceWidth": 20,
+          "bore": 10,
+          "spiral": {
+            "angle": 35,
+            "hand": "left",
+            "cutterRadius": 60
+          }
+        },
+        {
+          "id": "w",
+          "kind": "bevel-gear",
+          "module": 3,
+          "teeth": 40,
+          "mateTeeth": 20,
+          "faceWidth": 20,
+          "bore": 20,
+          "spiral": {
+            "angle": 35,
+            "hand": "right",
+            "cutterRadius": 60
+          },
+          "mesh": {
+            "gear": "p"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 41367.3882,
+          "relTol": 1e-06
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            55.05837
+          ],
+          "absTol": 1e-05
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^p\\.(flankL\\d?|flankR\\d?|tip|root|rootL|rootR|heel|toe|bore)(\\.\\d+)?$"
+      },
+      {
+        "volumeMM3": {
+          "value": 221439.7348,
+          "relTol": 1e-06
+        },
+        "centroidMM": {
+          "value": [
+            41.727756,
+            0,
+            0
+          ],
+          "absTol": 1e-05
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNamePattern": "^w\\.(flankL\\d?|flankR\\d?|tip|root|rootL|rootR|heel|toe|bore)(\\.\\d+)?$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "K1 (KHK, Calculation of Gear Dimensions, §4.4, retrieved 2026-10-20) for α_t and R; test/gear-bevel-spiral.test.mjs sectionArea (∮(1 − cos θ) dφ of the α_t spherical involute) × (Re³ − Ri³)/3 less the bore, the centroid by ∮ sin²θ/2 dφ × (Re⁴ − Ri⁴)/4 less the bore's"
+}

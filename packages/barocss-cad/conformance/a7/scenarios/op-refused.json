@@ -1,0 +1,117 @@
+{
+ "case": "op-refused",
+ "step": "A7",
+ "note": "A fillet on an edge that is not there: the validity gate fails (OP_REFUSED), the rest not reached.",
+ "requirements": {
+  "ops": [
+   {
+    "tool": "set_brief",
+    "args": {
+     "fields": {
+      "purpose": {
+       "value": "a 40 mm spacer block",
+       "basis": "stated",
+       "source": "a 40 mm spacer block"
+      },
+      "process": {
+       "value": "fdm",
+       "basis": "stated",
+       "source": "printed"
+      },
+      "material": {
+       "value": "pla",
+       "basis": "stated",
+       "source": "in PLA"
+      }
+     }
+    }
+   },
+   {
+    "tool": "set_requirements",
+    "args": {
+     "requirements": [
+      {
+       "id": "W",
+       "source": "40 wide",
+       "hard": true,
+       "check": {
+        "op": "==",
+        "query": {
+         "fn": "bbox",
+         "axis": "x"
+        },
+        "value": 40,
+        "tol": 0.1
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "designer": [
+  {
+   "patch": {
+    "id": "p1",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "box",
+       "values": {
+        "w": 40,
+        "d": 30,
+        "h": 10,
+        "x": 0,
+        "y": 0,
+        "z": 0
+       }
+      }
+     }
+    ]
+   }
+  },
+  {
+   "patch": {
+    "id": "p2",
+    "ops": [
+     {
+      "tool": "run_command",
+      "args": {
+       "command": "fillet",
+       "edges": [
+        "n9.side0|n9.side1"
+       ],
+       "values": {
+        "radius": 1
+       }
+      }
+     }
+    ]
+   }
+  },
+  "done"
+ ],
+ "expect": {
+  "decisions": [
+   "applied",
+   "applied",
+   "rejected"
+  ],
+  "stops": [
+   null,
+   null,
+   [
+    "validity",
+    "OP_REFUSED"
+   ]
+  ],
+  "accepted": 1,
+  "ended": "done",
+  "seeded": [
+   null,
+   null,
+   "validity"
+  ]
+ }
+}

@@ -1,14 +1,16 @@
 // The browser side of the chat server (server/chatServer.ts, reached through the dev server's
 // /api/chat proxy): whether chat is available, and one turn streamed as server-sent events.
-import type { StudioDoc } from '../engine/doc';
-import type { NameSelection } from './tools';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { TurnOp } from '@barocss/cad-model/chat/merge';
+import { blobRefs, blobsAsBase64 } from '@barocss/cad-model/engine/blobs';
+import type { NameSelection } from '@barocss/cad-model/chat/tools';
 
 export interface ChatStatus { enabled: boolean; model?: string; via?: string; reason?: string }
 export type TurnEvent =
   | { type: 'text'; delta: string }
   | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean }
-  | { type: 'state'; doc: StudioDoc }
-  | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string };
+  | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
+  | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; ops?: TurnOp[] };
 
 const OFF = 'The chat server is not running. Start it beside the studio with `pnpm --filter @barocss/cad-studio-app chat` (it uses the claude CLI and its sign-in).';
 
@@ -36,10 +38,24 @@ export function eventParser(onEvent: (e: TurnEvent) => void) {
 }
 
 /** One turn; resolves with its `done` event (an aborted or broken stream ends as one too). */
-export async function runServerTurn(o: { text: string; doc: StudioDoc; session?: string; images?: { media_type: string; data: string }[]; traces?: unknown[]; signal?: AbortSignal; onEvent(e: TurnEvent): void; base?: string }): Promise<Extract<TurnEvent, { type: 'done' }>> {
+/**
+ * The mesh blobs of a conversation (D45): sent to the chat server once — later turns name them only. `sent`: the
+ * hashes the server has; a server that lost some (restarted) answers 409 with them, and they are sent again once.
+ */
+export interface ChatBlobs { session: string; sent: Set<string> }
+export const newChatBlobs = (): ChatBlobs => ({ session: Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, '0')).join(''), sent: new Set() });
+
+/** One turn; resolves with its `done` event (an aborted or broken stream ends as one too). */
+export async function runServerTurn(o: { text: string; doc: StudioDoc; /** The user's own messages this conversation, this one last (A6.2). */ turns?: readonly string[]; session?: string; autonomy?: number; images?: { media_type: string; data: string }[]; traces?: unknown[]; signal?: AbortSignal; onEvent(e: TurnEvent): void; base?: string; blobs?: ChatBlobs }): Promise<Extract<TurnEvent, { type: 'done' }>> {
   let done: Extract<TurnEvent, { type: 'done' }> | null = null;
+  const refs = [...blobRefs(o.doc)], blobs = o.blobs ?? newChatBlobs();
+  const body = (send: readonly string[]) => JSON.stringify({ text: o.text, doc: o.doc, ...(o.turns ? { turns: o.turns } : {}), ...(refs.length ? { blobSession: blobs.session, blobRefs: refs, ...(send.length ? { blobs: blobsAsBase64(o.doc, send) } : {}) } : {}), ...(o.autonomy ? { autonomy: o.autonomy } : {}), ...(o.session ? { session: o.session } : {}), ...(o.images?.length ? { images: o.images.map(i => ({ media_type: i.media_type, data: i.data })) } : {}), ...(o.traces?.length ? { traces: o.traces } : {}) });
   try {
-    const res = await fetch(`${o.base ?? '/api/chat'}/turn`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: o.text, doc: o.doc, ...(o.session ? { session: o.session } : {}), ...(o.images?.length ? { images: o.images.map(i => ({ media_type: i.media_type, data: i.data })) } : {}), ...(o.traces?.length ? { traces: o.traces } : {}) }), signal: o.signal });
+    const post = (send: readonly string[]) => fetch(`${o.base ?? '/api/chat'}/turn`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: body(send), signal: o.signal });
+    let res = await post(refs.filter(h => !blobs.sent.has(h)));
+    // (The server lost blobs it had: they again, once.)
+    if (res.status === 409) { const missing = ((await res.json().catch(() => ({}))) as { missing?: string[] }).missing ?? refs; for (const h of missing) blobs.sent.delete(h); res = await post(missing); }
+    if (res.ok) for (const h of refs) blobs.sent.add(h);
     if (!res.ok || !res.body) {
       const t = await res.text().catch(() => '');
       let msg = t; try { msg = JSON.parse(t).error ?? t; } catch { /* plain text */ }

@@ -1,0 +1,85 @@
+{
+  "id": "a1-refs-mate-renumbered",
+  "step": "A1",
+  "decisions": [
+    "D29",
+    "D30"
+  ],
+  "about": "A mate's stored face name now names another face (as a kernel numbering faces otherwise would), its signature the face it was picked on: on open, with no prior document, it is matched to that face again and marked.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            10,
+            10
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5
+        }
+      ],
+      "nextId": 2,
+      "outputs": {},
+      "mates": [
+        {
+          "id": "m1",
+          "kind": "coincident",
+          "a": {
+            "part": "base",
+            "face": "n1.bottom",
+            "sig": {
+              "k": "plane",
+              "p": [
+                0,
+                0,
+                5
+              ],
+              "d": [
+                0,
+                0,
+                1
+              ],
+              "s": 0
+            }
+          },
+          "b": {
+            "part": "p",
+            "face": "origin:xy"
+          }
+        }
+      ]
+    },
+    "verify": true
+  },
+  "expect": {
+    "changes": [
+      {
+        "where": "mate m1",
+        "was": "n1.bottom",
+        "now": "n1.top"
+      }
+    ],
+    "mates": [
+      {
+        "face": "n1.top",
+        "was": "n1.bottom"
+      }
+    ]
+  },
+  "oracle": "by construction (a box's top as the part's face table reads it: its plane's point and normal)"
+}

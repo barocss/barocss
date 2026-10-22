@@ -1,0 +1,124 @@
+{
+ "units": "mm",
+ "linetypes": [
+  {
+   "name": "BC_CONSTRUCTION",
+   "description": "Construction _ _ _ (2, 1)",
+   "pattern": [
+    2,
+    -1
+   ]
+  }
+ ],
+ "layers": [
+  {
+   "name": "PROFILE",
+   "color": 7,
+   "lineweight": 35
+  },
+  {
+   "name": "HOLES",
+   "color": 5,
+   "lineweight": 35
+  },
+  {
+   "name": "CONSTRUCTION",
+   "color": 8,
+   "linetype": "BC_CONSTRUCTION",
+   "lineweight": 18
+  }
+ ],
+ "entities": [
+  {
+   "type": "lwpolyline",
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     50,
+     0
+    ],
+    [
+     50,
+     20
+    ],
+    [
+     50,
+     30
+    ],
+    [
+     0,
+     30
+    ]
+   ],
+   "bulges": [
+    0,
+    0,
+    0.9999999999999999,
+    0,
+    0
+   ],
+   "closed": true,
+   "layer": "PROFILE"
+  },
+  {
+   "type": "circle",
+   "center": [
+    10,
+    15
+   ],
+   "radius": 4,
+   "layer": "HOLES"
+  },
+  {
+   "type": "lwpolyline",
+   "points": [
+    [
+     32,
+     15
+    ],
+    [
+     28,
+     15
+    ]
+   ],
+   "bulges": [
+    -0.9999999999999999,
+    -0.9999999999999999
+   ],
+   "closed": true,
+   "layer": "HOLES"
+  },
+  {
+   "type": "lwpolyline",
+   "points": [
+    [
+     5,
+     3
+    ],
+    [
+     15,
+     3
+    ],
+    [
+     15,
+     7
+    ],
+    [
+     5,
+     7
+    ]
+   ],
+   "bulges": [
+    0,
+    0.9999999999999999,
+    0,
+    0.9999999999999999
+   ],
+   "closed": true,
+   "layer": "CONSTRUCTION"
+  }
+ ]
+}

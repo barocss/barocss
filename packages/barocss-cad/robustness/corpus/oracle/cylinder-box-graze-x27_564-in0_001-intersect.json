@@ -1,0 +1,79 @@
+{
+  "id": "cylinder-box-graze-x27_564-in0_001-intersect",
+  "about": "A box turned 27.564° about X, its outermost edge 0.001 mm into an upright cylinder's wall: intersect (found by the oracle property).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "As",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [-3.4675000000000002, -8.289466874993929],
+          "radius": 3.042
+        },
+        {
+          "id": "A",
+          "kind": "extrude",
+          "sketch": "As",
+          "height": 4.8999999999999995,
+          "from": 5.399234472471368
+        },
+        {
+          "id": "Bs",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [-4.352, -1.09],
+          "max": [-3.323, 0.774]
+        },
+        {
+          "id": "B0",
+          "kind": "extrude",
+          "sketch": "Bs",
+          "height": 6.728999999999999,
+          "from": 2.525
+        },
+        {
+          "id": "B",
+          "kind": "rotate",
+          "target": "B0",
+          "axis": "x",
+          "angleDegrees": 27.564,
+          "pivot": [0, 0, 0]
+        },
+        {
+          "id": "X",
+          "kind": "intersect",
+          "target": "A",
+          "tool": "B"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 1.0140649351279804e-7,
+          "relTol": 0.000001,
+          "absTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [-3.4674999999999994, -5.247895441949644, 7.698836250273776],
+          "absTol": 0.0000986130143503872
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "scripts/rb/oracle-cylinder-box.mjs (exact inner integral, Gauss–Legendre outer between the kinks; to rounding)"
+}

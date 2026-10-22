@@ -1,0 +1,56 @@
+{
+  "id": "r12b-bevel-m2-z20-z40",
+  "step": "R12b",
+  "decisions": [
+    "D134"
+  ],
+  "about": "A straight bevel pinion m 2, z 20 for a z 40 mate at Σ 90° (δ 26.56505°, R 44.72136), 10 wide: the spherical involute's flanks lifted exactly onto the spheres about the apex, tip and root cones through the apex, spherical heel and toe; the volume (Re³ − Ri³)/3 × the section's area on the unit sphere, the centroid on the axis by the section's first moment.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "bevel-gear",
+          "module": 2,
+          "teeth": 20,
+          "mateTeeth": 40,
+          "faceWidth": 10
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 10289.1052,
+          "relTol": 1e-06
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            37.997965
+          ],
+          "absTol": 1e-05
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^p\\.(flankL\\d?|flankR\\d?|tip|root|rootL|rootR|heel|toe|bore)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "test/gear-bevel.test.mjs sectionArea (∮(1 − cos θ) dφ over the spherical involute outline, 20000 points a flank) × (Re³ − Ri³)/3; the centroid by ∮ sin²θ/2 dφ × (Re⁴ − Ri⁴)/4"
+}

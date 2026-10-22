@@ -1,0 +1,277 @@
+{
+ "id": "r14-tol-cross-hole-geometric",
+ "step": "R14.4",
+ "decisions": [
+  "O5"
+ ],
+ "about": "geometric mode on a block with a hole along X: the hole’s frame in the right view, to datums A, B, C",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      60,
+      30
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 30,
+     "id": "n1"
+    },
+    {
+     "kind": "hole",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "center": [
+      15,
+      15
+     ],
+     "radius": 4,
+     "axis": "x",
+     "id": "n2"
+    }
+   ],
+   "nextId": 3,
+   "outputs": {
+    "b2": {
+     "node": 2,
+     "side": "solid"
+    }
+   }
+  },
+  "drawing": {
+   "sheet": "A4",
+   "projection": "third",
+   "hidden": true,
+   "dimensions": [
+    {
+     "view": "top",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.bottom|n1.side2",
+      "at": "end",
+      "near": [
+       0,
+       30,
+       0
+      ]
+     },
+     "orient": "vertical",
+     "auto": true,
+     "place": [
+      -10,
+      15
+     ],
+     "id": "d1"
+    },
+    {
+     "view": "front",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       60,
+       0,
+       0
+      ]
+     },
+     "orient": "horizontal",
+     "auto": true,
+     "place": [
+      30,
+      -10
+     ],
+     "id": "d2"
+    },
+    {
+     "view": "front",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.bottom|n1.side0",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.side0|n1.top",
+      "at": "end",
+      "near": [
+       0,
+       0,
+       30
+      ]
+     },
+     "orient": "vertical",
+     "auto": true,
+     "place": [
+      -10,
+      15
+     ],
+     "id": "d3"
+    },
+    {
+     "view": "right",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.side0|n1.side1",
+      "at": "end",
+      "near": [
+       60,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.side1|n2.side0#2",
+      "at": "center",
+      "near": [
+       60,
+       14.999999999999996,
+       15
+      ]
+     },
+     "orient": "horizontal",
+     "auto": true,
+     "place": [
+      7.499999999999998,
+      -10
+     ],
+     "id": "d4"
+    },
+    {
+     "view": "right",
+     "kind": "linear",
+     "a": {
+      "edge": "n1.side0|n1.side1",
+      "at": "end",
+      "near": [
+       60,
+       0,
+       0
+      ]
+     },
+     "b": {
+      "edge": "n1.side1|n2.side0#2",
+      "at": "center",
+      "near": [
+       60,
+       14.999999999999996,
+       15
+      ]
+     },
+     "orient": "vertical",
+     "auto": true,
+     "place": [
+      40,
+      7.5
+     ],
+     "id": "d5"
+    },
+    {
+     "view": "right",
+     "kind": "diameter",
+     "edge": "n1.side1|n2.side0#2",
+     "near": [
+      60,
+      14.999999999999996,
+      15
+     ],
+     "auto": true,
+     "place": [
+      4.9999999999999964,
+      36
+     ],
+     "id": "d6"
+    }
+   ],
+   "views": [
+    "front",
+    "top",
+    "right",
+    "iso"
+   ],
+   "tolerancing": "geometric"
+  }
+ },
+ "expect": {
+  "offered": [
+   {
+    "kind": "general-note",
+    "message": "A general tolerance note: linear ±0.2 mm, angular ±0.5° where a dimension says nothing.",
+    "estimate": true
+   },
+   {
+    "kind": "datum",
+    "message": "Datum A: the bottom (primary, the largest flat side).",
+    "estimate": false
+   },
+   {
+    "kind": "datum",
+    "message": "Datum B: the front side (secondary, the next largest flat side).",
+    "estimate": false
+   },
+   {
+    "kind": "datum",
+    "message": "Datum C: the left side (tertiary, the third flat side).",
+    "estimate": false
+   },
+   {
+    "kind": "position",
+    "message": "Ø8 THRU: position Ø0.2 to A, B, C; its 2 location dimensions basic.",
+    "estimate": true
+   }
+  ],
+  "after": {
+   "issues": [],
+   "datums": [
+    "A front",
+    "B top",
+    "C front"
+   ],
+   "frames": [
+    "Ø8 THRU: Ø0.2 A B C"
+   ],
+   "basic": 2,
+   "tolerances": [],
+   "left": 0
+  }
+ },
+ "oracle": "the fastener data’s ISO 273 clearances (app/fasteners.ts, sourced) and the floating / fixed fastener relations and T/(2√2), worked by hand; estimates said so; run by apps/cad-studio/test/tolerance.test.ts"
+}

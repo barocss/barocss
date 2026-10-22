@@ -1,0 +1,1725 @@
+{
+ "format": "barocss-cad-library",
+ "version": 1,
+ "id": "tslot-20",
+ "name": "T-slot 20 series",
+ "libraryVersion": "0.1.0",
+ "units": "mm",
+ "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
+ "provenance": "Written for this library from the shape of a typical 20-series B-type slot-6 system. No supplier's data was copied; every cross-section dimension is flagged an estimate, to be verified against the chosen supplier's datasheet.",
+ "parts": [
+  {
+   "id": "profile",
+   "name": "T-slot profile 20",
+   "category": "profiles",
+   "simplified": true,
+   "description": "Aluminium T-slot profile, 20 series, B-type slot 6: simplified internals (no cavities or webs beyond the slots and the core bore).",
+   "parameters": {
+    "a": {
+     "value": 20,
+     "unit": "mm",
+     "source": "the series' nominal size (20 mm)"
+    },
+    "cells": {
+     "value": 1,
+     "unit": "count",
+     "integer": true,
+     "min": 1,
+     "max": 2,
+     "source": "the size: 1 for 20×20, 2 for 20×40"
+    },
+    "L": {
+     "value": 100,
+     "unit": "mm",
+     "min": 10,
+     "max": 6000,
+     "source": "free: the length cut"
+    },
+    "openSlots": {
+     "value": 4,
+     "unit": "count",
+     "integer": true,
+     "min": 1,
+     "max": 4,
+     "source": "free: open slots on a 20×20 (clockwise from the top); a 20×40 has all six"
+    },
+    "wo": {
+     "value": 6.2,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical 20-series B-type slot-6 profile; verify against the supplier's datasheet before manufacture",
+     "description": "slot opening"
+    },
+    "tl": {
+     "value": 1.8,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical 20-series B-type slot-6 profile; verify against the supplier's datasheet before manufacture",
+     "description": "lip thickness"
+    },
+    "wu": {
+     "value": 11,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical 20-series B-type slot-6 profile; verify against the supplier's datasheet before manufacture",
+     "description": "undercut width under the lips"
+    },
+    "ds": {
+     "value": 6.1,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical 20-series B-type slot-6 profile; verify against the supplier's datasheet before manufacture",
+     "description": "slot depth from the face"
+    },
+    "bore": {
+     "value": 4.2,
+     "unit": "mm",
+     "estimate": true,
+     "source": "the core bore sized for tapping M5 (a common tap drill); written for this library as a typical 20-series B-type slot-6 profile; verify against the supplier's datasheet before manufacture"
+    },
+    "ho": {
+     "value": {
+      "expr": "wo / 2"
+     }
+    },
+    "hu": {
+     "value": {
+      "expr": "wu / 2"
+     }
+    },
+    "dt": {
+     "value": {
+      "expr": "tl + hu - ho"
+     },
+     "description": "depth where the 45° undercut taper meets the opening width"
+    },
+    "xr": {
+     "value": {
+      "expr": "a * cells - a / 2"
+     },
+     "description": "the right face's x"
+    }
+   },
+   "variants": [
+    {
+     "id": "2020",
+     "name": "20×20",
+     "values": {
+      "cells": 1
+     }
+    },
+    {
+     "id": "2040",
+     "name": "20×40",
+     "values": {
+      "cells": 2
+     }
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "-a / 2"
+      },
+      {
+       "expr": "-a / 2"
+      }
+     ],
+     "max": [
+      {
+       "expr": "xr"
+      },
+      {
+       "expr": "a / 2"
+      }
+     ]
+    },
+    {
+     "id": "body",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "L"
+     }
+    },
+    {
+     "id": "t1s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "0 + (-ho)"
+       },
+       {
+        "expr": "a / 2 - (-1)"
+       }
+      ],
+      [
+       {
+        "expr": "0 + (-ho)"
+       },
+       {
+        "expr": "a / 2 - (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "0 + (-hu)"
+       },
+       {
+        "expr": "a / 2 - (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "0 + (-ho)"
+       },
+       {
+        "expr": "a / 2 - (dt)"
+       }
+      ],
+      [
+       {
+        "expr": "0 + (-ho)"
+       },
+       {
+        "expr": "a / 2 - (ds)"
+       }
+      ],
+      [
+       {
+        "expr": "0 + (ho)"
+       },
+       {
+        "expr": "a / 2 - (ds)"
+       }
+      ],
+      [
+       {
+        "expr": "0 + (ho)"
+       },
+       {
+        "expr": "a / 2 - (dt)"
+       }
+      ],
+      [
+       {
+        "expr": "0 + (hu)"
+       },
+       {
+        "expr": "a / 2 - (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "0 + (ho)"
+       },
+       {
+        "expr": "a / 2 - (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "0 + (ho)"
+       },
+       {
+        "expr": "a / 2 - (-1)"
+       }
+      ]
+     ],
+     "when": "cells == 2 || openSlots >= 1"
+    },
+    {
+     "id": "t1x",
+     "kind": "extrude",
+     "sketch": "t1s",
+     "height": {
+      "expr": "L + 2"
+     },
+     "from": -1,
+     "when": "cells == 2 || openSlots >= 1"
+    },
+    {
+     "id": "t1c",
+     "kind": "difference",
+     "target": "body",
+     "tool": "t1x",
+     "when": "cells == 2 || openSlots >= 1"
+    },
+    {
+     "id": "t2s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "a + (-ho)"
+       },
+       {
+        "expr": "a / 2 - (-1)"
+       }
+      ],
+      [
+       {
+        "expr": "a + (-ho)"
+       },
+       {
+        "expr": "a / 2 - (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "a + (-hu)"
+       },
+       {
+        "expr": "a / 2 - (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "a + (-ho)"
+       },
+       {
+        "expr": "a / 2 - (dt)"
+       }
+      ],
+      [
+       {
+        "expr": "a + (-ho)"
+       },
+       {
+        "expr": "a / 2 - (ds)"
+       }
+      ],
+      [
+       {
+        "expr": "a + (ho)"
+       },
+       {
+        "expr": "a / 2 - (ds)"
+       }
+      ],
+      [
+       {
+        "expr": "a + (ho)"
+       },
+       {
+        "expr": "a / 2 - (dt)"
+       }
+      ],
+      [
+       {
+        "expr": "a + (hu)"
+       },
+       {
+        "expr": "a / 2 - (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "a + (ho)"
+       },
+       {
+        "expr": "a / 2 - (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "a + (ho)"
+       },
+       {
+        "expr": "a / 2 - (-1)"
+       }
+      ]
+     ],
+     "when": "cells == 2"
+    },
+    {
+     "id": "t2x",
+     "kind": "extrude",
+     "sketch": "t2s",
+     "height": {
+      "expr": "L + 2"
+     },
+     "from": -1,
+     "when": "cells == 2"
+    },
+    {
+     "id": "t2c",
+     "kind": "difference",
+     "target": "t1c",
+     "tool": "t2x",
+     "when": "cells == 2"
+    },
+    {
+     "id": "rs",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "xr - (-1)"
+       },
+       {
+        "expr": "0 + (-ho)"
+       }
+      ],
+      [
+       {
+        "expr": "xr - (tl)"
+       },
+       {
+        "expr": "0 + (-ho)"
+       }
+      ],
+      [
+       {
+        "expr": "xr - (tl)"
+       },
+       {
+        "expr": "0 + (-hu)"
+       }
+      ],
+      [
+       {
+        "expr": "xr - (dt)"
+       },
+       {
+        "expr": "0 + (-ho)"
+       }
+      ],
+      [
+       {
+        "expr": "xr - (ds)"
+       },
+       {
+        "expr": "0 + (-ho)"
+       }
+      ],
+      [
+       {
+        "expr": "xr - (ds)"
+       },
+       {
+        "expr": "0 + (ho)"
+       }
+      ],
+      [
+       {
+        "expr": "xr - (dt)"
+       },
+       {
+        "expr": "0 + (ho)"
+       }
+      ],
+      [
+       {
+        "expr": "xr - (tl)"
+       },
+       {
+        "expr": "0 + (hu)"
+       }
+      ],
+      [
+       {
+        "expr": "xr - (tl)"
+       },
+       {
+        "expr": "0 + (ho)"
+       }
+      ],
+      [
+       {
+        "expr": "xr - (-1)"
+       },
+       {
+        "expr": "0 + (ho)"
+       }
+      ]
+     ],
+     "when": "cells == 2 || openSlots >= 2"
+    },
+    {
+     "id": "rx",
+     "kind": "extrude",
+     "sketch": "rs",
+     "height": {
+      "expr": "L + 2"
+     },
+     "from": -1,
+     "when": "cells == 2 || openSlots >= 2"
+    },
+    {
+     "id": "rc",
+     "kind": "difference",
+     "target": "t2c",
+     "tool": "rx",
+     "when": "cells == 2 || openSlots >= 2"
+    },
+    {
+     "id": "b2s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "a - (-ho)"
+       },
+       {
+        "expr": "-a / 2 + (-1)"
+       }
+      ],
+      [
+       {
+        "expr": "a - (-ho)"
+       },
+       {
+        "expr": "-a / 2 + (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "a - (-hu)"
+       },
+       {
+        "expr": "-a / 2 + (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "a - (-ho)"
+       },
+       {
+        "expr": "-a / 2 + (dt)"
+       }
+      ],
+      [
+       {
+        "expr": "a - (-ho)"
+       },
+       {
+        "expr": "-a / 2 + (ds)"
+       }
+      ],
+      [
+       {
+        "expr": "a - (ho)"
+       },
+       {
+        "expr": "-a / 2 + (ds)"
+       }
+      ],
+      [
+       {
+        "expr": "a - (ho)"
+       },
+       {
+        "expr": "-a / 2 + (dt)"
+       }
+      ],
+      [
+       {
+        "expr": "a - (hu)"
+       },
+       {
+        "expr": "-a / 2 + (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "a - (ho)"
+       },
+       {
+        "expr": "-a / 2 + (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "a - (ho)"
+       },
+       {
+        "expr": "-a / 2 + (-1)"
+       }
+      ]
+     ],
+     "when": "cells == 2"
+    },
+    {
+     "id": "b2x",
+     "kind": "extrude",
+     "sketch": "b2s",
+     "height": {
+      "expr": "L + 2"
+     },
+     "from": -1,
+     "when": "cells == 2"
+    },
+    {
+     "id": "b2c",
+     "kind": "difference",
+     "target": "rc",
+     "tool": "b2x",
+     "when": "cells == 2"
+    },
+    {
+     "id": "b1s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "0 - (-ho)"
+       },
+       {
+        "expr": "-a / 2 + (-1)"
+       }
+      ],
+      [
+       {
+        "expr": "0 - (-ho)"
+       },
+       {
+        "expr": "-a / 2 + (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "0 - (-hu)"
+       },
+       {
+        "expr": "-a / 2 + (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "0 - (-ho)"
+       },
+       {
+        "expr": "-a / 2 + (dt)"
+       }
+      ],
+      [
+       {
+        "expr": "0 - (-ho)"
+       },
+       {
+        "expr": "-a / 2 + (ds)"
+       }
+      ],
+      [
+       {
+        "expr": "0 - (ho)"
+       },
+       {
+        "expr": "-a / 2 + (ds)"
+       }
+      ],
+      [
+       {
+        "expr": "0 - (ho)"
+       },
+       {
+        "expr": "-a / 2 + (dt)"
+       }
+      ],
+      [
+       {
+        "expr": "0 - (hu)"
+       },
+       {
+        "expr": "-a / 2 + (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "0 - (ho)"
+       },
+       {
+        "expr": "-a / 2 + (tl)"
+       }
+      ],
+      [
+       {
+        "expr": "0 - (ho)"
+       },
+       {
+        "expr": "-a / 2 + (-1)"
+       }
+      ]
+     ],
+     "when": "cells == 2 || openSlots >= 3"
+    },
+    {
+     "id": "b1x",
+     "kind": "extrude",
+     "sketch": "b1s",
+     "height": {
+      "expr": "L + 2"
+     },
+     "from": -1,
+     "when": "cells == 2 || openSlots >= 3"
+    },
+    {
+     "id": "b1c",
+     "kind": "difference",
+     "target": "b2c",
+     "tool": "b1x",
+     "when": "cells == 2 || openSlots >= 3"
+    },
+    {
+     "id": "ls",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "-a / 2 + (-1)"
+       },
+       {
+        "expr": "0 - (-ho)"
+       }
+      ],
+      [
+       {
+        "expr": "-a / 2 + (tl)"
+       },
+       {
+        "expr": "0 - (-ho)"
+       }
+      ],
+      [
+       {
+        "expr": "-a / 2 + (tl)"
+       },
+       {
+        "expr": "0 - (-hu)"
+       }
+      ],
+      [
+       {
+        "expr": "-a / 2 + (dt)"
+       },
+       {
+        "expr": "0 - (-ho)"
+       }
+      ],
+      [
+       {
+        "expr": "-a / 2 + (ds)"
+       },
+       {
+        "expr": "0 - (-ho)"
+       }
+      ],
+      [
+       {
+        "expr": "-a / 2 + (ds)"
+       },
+       {
+        "expr": "0 - (ho)"
+       }
+      ],
+      [
+       {
+        "expr": "-a / 2 + (dt)"
+       },
+       {
+        "expr": "0 - (ho)"
+       }
+      ],
+      [
+       {
+        "expr": "-a / 2 + (tl)"
+       },
+       {
+        "expr": "0 - (hu)"
+       }
+      ],
+      [
+       {
+        "expr": "-a / 2 + (tl)"
+       },
+       {
+        "expr": "0 - (ho)"
+       }
+      ],
+      [
+       {
+        "expr": "-a / 2 + (-1)"
+       },
+       {
+        "expr": "0 - (ho)"
+       }
+      ]
+     ],
+     "when": "cells == 2 || openSlots >= 4"
+    },
+    {
+     "id": "lx",
+     "kind": "extrude",
+     "sketch": "ls",
+     "height": {
+      "expr": "L + 2"
+     },
+     "from": -1,
+     "when": "cells == 2 || openSlots >= 4"
+    },
+    {
+     "id": "lc",
+     "kind": "difference",
+     "target": "b1c",
+     "tool": "lx",
+     "when": "cells == 2 || openSlots >= 4"
+    },
+    {
+     "id": "bs1",
+     "kind": "sketch",
+     "profile": "circle",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "bore / 2"
+     }
+    },
+    {
+     "id": "bx1",
+     "kind": "extrude",
+     "sketch": "bs1",
+     "height": {
+      "expr": "L + 2"
+     },
+     "from": -1
+    },
+    {
+     "id": "core1",
+     "kind": "difference",
+     "target": "lc",
+     "tool": "bx1"
+    },
+    {
+     "id": "bs2",
+     "kind": "sketch",
+     "profile": "circle",
+     "center": [
+      {
+       "expr": "a"
+      },
+      0
+     ],
+     "radius": {
+      "expr": "bore / 2"
+     },
+     "when": "cells == 2"
+    },
+    {
+     "id": "bx2",
+     "kind": "extrude",
+     "sketch": "bs2",
+     "height": {
+      "expr": "L + 2"
+     },
+     "from": -1,
+     "when": "cells == 2"
+    },
+    {
+     "id": "core2",
+     "kind": "difference",
+     "target": "core1",
+     "tool": "bx2",
+     "when": "cells == 2"
+    }
+   ],
+   "outputs": [
+    "core2"
+   ],
+   "interfaces": [
+    {
+     "id": "slot-t1",
+     "role": "t-slot",
+     "accepts": [
+      "slot-nut"
+     ],
+     "when": "cells == 2 || openSlots >= 1",
+     "frame": {
+      "origin": [
+       {
+        "expr": "0"
+       },
+       {
+        "expr": "a / 2 - tl"
+       },
+       0
+      ],
+      "z": [
+       0,
+       -1,
+       0
+      ],
+      "x": [
+       0,
+       0,
+       1
+      ]
+     },
+     "faces": {
+      "plane": "t1x.side1"
+     },
+     "description": "the top slot's lip underside, at the profile's start"
+    },
+    {
+     "id": "slot-t2",
+     "role": "t-slot",
+     "accepts": [
+      "slot-nut"
+     ],
+     "when": "cells == 2",
+     "frame": {
+      "origin": [
+       {
+        "expr": "a"
+       },
+       {
+        "expr": "a / 2 - tl"
+       },
+       0
+      ],
+      "z": [
+       0,
+       -1,
+       0
+      ],
+      "x": [
+       0,
+       0,
+       1
+      ]
+     },
+     "faces": {
+      "plane": "t2x.side1"
+     },
+     "description": "the top slot's lip underside, at the profile's start"
+    },
+    {
+     "id": "slot-r",
+     "role": "t-slot",
+     "accepts": [
+      "slot-nut"
+     ],
+     "when": "cells == 2 || openSlots >= 2",
+     "frame": {
+      "origin": [
+       {
+        "expr": "xr - tl"
+       },
+       {
+        "expr": "0"
+       },
+       0
+      ],
+      "z": [
+       -1,
+       0,
+       0
+      ],
+      "x": [
+       0,
+       0,
+       1
+      ]
+     },
+     "faces": {
+      "plane": "rx.side1"
+     },
+     "description": "the right slot's lip underside, at the profile's start"
+    },
+    {
+     "id": "slot-b2",
+     "role": "t-slot",
+     "accepts": [
+      "slot-nut"
+     ],
+     "when": "cells == 2",
+     "frame": {
+      "origin": [
+       {
+        "expr": "a"
+       },
+       {
+        "expr": "-a / 2 + tl"
+       },
+       0
+      ],
+      "z": [
+       0,
+       1,
+       0
+      ],
+      "x": [
+       0,
+       0,
+       1
+      ]
+     },
+     "faces": {
+      "plane": "b2x.side1"
+     },
+     "description": "the bottom slot's lip underside, at the profile's start"
+    },
+    {
+     "id": "slot-b1",
+     "role": "t-slot",
+     "accepts": [
+      "slot-nut"
+     ],
+     "when": "cells == 2 || openSlots >= 3",
+     "frame": {
+      "origin": [
+       {
+        "expr": "0"
+       },
+       {
+        "expr": "-a / 2 + tl"
+       },
+       0
+      ],
+      "z": [
+       0,
+       1,
+       0
+      ],
+      "x": [
+       0,
+       0,
+       1
+      ]
+     },
+     "faces": {
+      "plane": "b1x.side1"
+     },
+     "description": "the bottom slot's lip underside, at the profile's start"
+    },
+    {
+     "id": "slot-l",
+     "role": "t-slot",
+     "accepts": [
+      "slot-nut"
+     ],
+     "when": "cells == 2 || openSlots >= 4",
+     "frame": {
+      "origin": [
+       {
+        "expr": "-a / 2 + tl"
+       },
+       {
+        "expr": "0"
+       },
+       0
+      ],
+      "z": [
+       1,
+       0,
+       0
+      ],
+      "x": [
+       0,
+       0,
+       1
+      ]
+     },
+     "faces": {
+      "plane": "lx.side1"
+     },
+     "description": "the left slot's lip underside, at the profile's start"
+    },
+    {
+     "id": "end0",
+     "role": "profile-end",
+     "accepts": [
+      "end-cap"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "body.bottom"
+     }
+    },
+    {
+     "id": "end1",
+     "role": "profile-end",
+     "accepts": [
+      "end-cap"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       {
+        "expr": "L"
+       }
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "body.top"
+     }
+    },
+    {
+     "id": "face-top",
+     "role": "profile-face",
+     "accepts": [
+      "bracket-leg"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       {
+        "expr": "a / 2"
+       },
+       0
+      ],
+      "z": [
+       0,
+       1,
+       0
+      ],
+      "x": [
+       0,
+       0,
+       1
+      ]
+     },
+     "faces": {
+      "plane": "body.side2"
+     }
+    },
+    {
+     "id": "face-right",
+     "role": "profile-face",
+     "accepts": [
+      "bracket-leg"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "xr"
+       },
+       0,
+       0
+      ],
+      "z": [
+       1,
+       0,
+       0
+      ],
+      "x": [
+       0,
+       0,
+       1
+      ]
+     },
+     "faces": {
+      "plane": "body.side1"
+     }
+    }
+   ],
+   "tags": [
+    "t-slot",
+    "aluminium",
+    "profile",
+    "20 series"
+   ]
+  },
+  {
+   "id": "slot-nut-m5",
+   "name": "Slot nut M5 (20 series)",
+   "category": "fasteners",
+   "simplified": true,
+   "description": "A slot nut for the 20-series slot: trapezoid to the undercut with a clearance, M5 tap-drill hole (thread not modelled).",
+   "parameters": {
+    "wo": {
+     "value": 6.2,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical 20-series B-type slot-6 profile; verify against the supplier's datasheet before manufacture"
+    },
+    "wu": {
+     "value": 11,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical 20-series B-type slot-6 profile; verify against the supplier's datasheet before manufacture"
+    },
+    "c": {
+     "value": 0.2,
+     "unit": "mm",
+     "estimate": true,
+     "source": "clearance chosen for this library (written, not from a datasheet)"
+    },
+    "hb": {
+     "value": 0.6,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library"
+    },
+    "Ln": {
+     "value": 10,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library"
+    },
+    "drill": {
+     "value": 4.2,
+     "unit": "mm",
+     "estimate": true,
+     "source": "the hole sized for tapping M5 (a common tap drill)"
+    },
+    "ho": {
+     "value": {
+      "expr": "wo / 2"
+     }
+    },
+    "hu": {
+     "value": {
+      "expr": "wu / 2"
+     }
+    },
+    "taper": {
+     "value": {
+      "expr": "hu - ho"
+     }
+    }
+   },
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "-(hu - c)"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "-(ho - c)"
+       },
+       {
+        "expr": "-taper"
+       }
+      ],
+      [
+       {
+        "expr": "-(ho - c)"
+       },
+       {
+        "expr": "-taper - hb"
+       }
+      ],
+      [
+       {
+        "expr": "ho - c"
+       },
+       {
+        "expr": "-taper - hb"
+       }
+      ],
+      [
+       {
+        "expr": "ho - c"
+       },
+       {
+        "expr": "-taper"
+       }
+      ],
+      [
+       {
+        "expr": "hu - c"
+       },
+       0
+      ]
+     ]
+    },
+    {
+     "id": "n",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "Ln"
+     }
+    },
+    {
+     "id": "hs",
+     "kind": "sketch",
+     "profile": "circle",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "drill / 2"
+     },
+     "plane": {
+      "origin": [
+       0,
+       1,
+       {
+        "expr": "Ln / 2"
+       }
+      ],
+      "normal": [
+       0,
+       -1,
+       0
+      ],
+      "xAxis": [
+       1,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "hx",
+     "kind": "extrude",
+     "sketch": "hs",
+     "height": {
+      "expr": "taper + hb + 2"
+     }
+    },
+    {
+     "id": "nut",
+     "kind": "difference",
+     "target": "n",
+     "tool": "hx"
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "seat",
+     "role": "slot-nut",
+     "accepts": [
+      "t-slot"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       {
+        "expr": "Ln / 2"
+       }
+      ],
+      "z": [
+       0,
+       1,
+       0
+      ],
+      "x": [
+       0,
+       0,
+       1
+      ]
+     },
+     "faces": {
+      "plane": "n.side5"
+     },
+     "description": "the nut's top against the lips' underside"
+    }
+   ],
+   "tags": [
+    "t-slot",
+    "nut",
+    "M5"
+   ]
+  },
+  {
+   "id": "end-cap",
+   "name": "End cap 20×20",
+   "category": "accessories",
+   "parameters": {
+    "a": {
+     "value": 20,
+     "unit": "mm",
+     "source": "the series' nominal size (20 mm)"
+    },
+    "t": {
+     "value": 4,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library"
+    },
+    "hole": {
+     "value": 5.5,
+     "unit": "mm",
+     "estimate": true,
+     "source": "a clearance hole for an M5 screw into the core bore (written for this library)"
+    }
+   },
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "-a / 2"
+      },
+      {
+       "expr": "-a / 2"
+      }
+     ],
+     "max": [
+      {
+       "expr": "a / 2"
+      },
+      {
+       "expr": "a / 2"
+      }
+     ]
+    },
+    {
+     "id": "p",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "t"
+     }
+    },
+    {
+     "id": "h",
+     "kind": "hole",
+     "target": "p",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "hole / 2"
+     }
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "inner",
+     "role": "end-cap",
+     "accepts": [
+      "profile-end"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "p.bottom"
+     }
+    }
+   ],
+   "tags": [
+    "t-slot",
+    "cap"
+   ]
+  },
+  {
+   "id": "angle-bracket",
+   "name": "Angle bracket 20",
+   "category": "brackets",
+   "simplified": true,
+   "parameters": {
+    "leg": {
+     "value": 18,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library"
+    },
+    "t": {
+     "value": 3,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library"
+    },
+    "w": {
+     "value": 18,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library"
+    },
+    "hole": {
+     "value": 5.5,
+     "unit": "mm",
+     "estimate": true,
+     "source": "a clearance hole for M5 (written for this library)"
+    }
+   },
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       {
+        "expr": "leg"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "leg"
+       },
+       {
+        "expr": "t"
+       }
+      ],
+      [
+       {
+        "expr": "t"
+       },
+       {
+        "expr": "t"
+       }
+      ],
+      [
+       {
+        "expr": "t"
+       },
+       {
+        "expr": "leg"
+       }
+      ],
+      [
+       0,
+       {
+        "expr": "leg"
+       }
+      ]
+     ]
+    },
+    {
+     "id": "l",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "w"
+     }
+    },
+    {
+     "id": "h1",
+     "kind": "hole",
+     "target": "l",
+     "axis": "y",
+     "side": "min",
+     "center": [
+      {
+       "expr": "(leg + t) / 2"
+      },
+      {
+       "expr": "w / 2"
+      }
+     ],
+     "radius": {
+      "expr": "hole / 2"
+     }
+    },
+    {
+     "id": "h2",
+     "kind": "hole",
+     "target": "h1",
+     "axis": "x",
+     "side": "min",
+     "center": [
+      {
+       "expr": "(leg + t) / 2"
+      },
+      {
+       "expr": "w / 2"
+      }
+     ],
+     "radius": {
+      "expr": "hole / 2"
+     }
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "leg1",
+     "role": "bracket-leg",
+     "accepts": [
+      "profile-face"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "leg / 2"
+       },
+       0,
+       {
+        "expr": "w / 2"
+       }
+      ],
+      "z": [
+       0,
+       -1,
+       0
+      ],
+      "x": [
+       0,
+       0,
+       1
+      ]
+     },
+     "faces": {
+      "plane": "l.side0"
+     }
+    },
+    {
+     "id": "leg2",
+     "role": "bracket-leg",
+     "accepts": [
+      "profile-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       {
+        "expr": "leg / 2"
+       },
+       {
+        "expr": "w / 2"
+       }
+      ],
+      "z": [
+       -1,
+       0,
+       0
+      ],
+      "x": [
+       0,
+       0,
+       1
+      ]
+     },
+     "faces": {
+      "plane": "l.side5"
+     }
+    }
+   ],
+   "tags": [
+    "t-slot",
+    "bracket"
+   ]
+  }
+ ],
+ "fits": [
+  {
+   "id": "nut-in-top-slot",
+   "a": {
+    "part": "profile",
+    "variant": "2020",
+    "interface": "slot-t1"
+   },
+   "b": {
+    "part": "slot-nut-m5",
+    "interface": "seat"
+   },
+   "offset": [
+    30,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "nut-in-2040-slot",
+   "a": {
+    "part": "profile",
+    "variant": "2040",
+    "interface": "slot-t2"
+   },
+   "b": {
+    "part": "slot-nut-m5",
+    "interface": "seat"
+   },
+   "offset": [
+    50,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "cap-on-end",
+   "a": {
+    "part": "profile",
+    "variant": "2020",
+    "interface": "end1"
+   },
+   "b": {
+    "part": "end-cap",
+    "interface": "inner"
+   }
+  },
+  {
+   "id": "bracket-on-top",
+   "a": {
+    "part": "profile",
+    "variant": "2020",
+    "interface": "face-top"
+   },
+   "b": {
+    "part": "angle-bracket",
+    "interface": "leg1"
+   },
+   "offset": [
+    50,
+    0,
+    0
+   ]
+  }
+ ]
+}

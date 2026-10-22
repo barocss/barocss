@@ -1,0 +1,148 @@
+{
+  "id": "frk-end-caps-over-inset",
+  "step": "FRk",
+  "decisions": [
+    "D165"
+  ],
+  "about": "FRk1: a 40 × 40 × 3 tube (ro 6) from z 0 to 300, a cap 4 thick over its top (its outline, A_env·4) and a plug 6 deep in its bore at its foot (A_bore·6, flush); the seams the loops' perimeters.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              300
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 6
+          }
+        },
+        {
+          "id": "top",
+          "kind": "end-cap",
+          "frame": "f",
+          "member": 0,
+          "end": "end",
+          "fit": "over",
+          "thickness": 4
+        },
+        {
+          "id": "foot",
+          "kind": "end-cap",
+          "frame": "f",
+          "member": 0,
+          "end": "start",
+          "fit": "inset",
+          "thickness": 6
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 126246.90049407734,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            150
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 6276.3893421169305,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            302
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "plate": {
+          "kind": "endCap",
+          "areaMM2": 1569.0973355292326,
+          "seam": 149.6991118430775,
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 6889.6460032938485,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            3
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "plate": {
+          "kind": "endCap",
+          "areaMM2": 1148.2743338823082,
+          "seam": 130.84955592153875,
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: a rounded square's area 4h² − (4 − π)r² and perimeter 8h − 8r + 2πr (outline h 20, r 6; bore h 17, r 3)."
+}

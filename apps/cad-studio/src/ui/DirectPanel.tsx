@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react';
-import { analyzeCurve, analyzeSurface, curveLength, directOps, domainsOf, geometryOf, type DirectGeometry } from '../engine/direct';
+import { analyzeCurve, analyzeSurface, curveLength, curvePlaneCrossings, directOps, domainsOf, geometryOf, surfaceIntersection, type DirectGeometry } from '@barocss/cad-model/engine/direct';
 
 /**
  * The tools for selected direct curves and surfaces: one curve (split, knot, trim, reverse, poles), two
  * curves (join, ruled surface, sweep), one surface (split, region, iso-curve, reverse, knot, degree,
  * poles). Each tool is one undoable edit; a refusal comes back as a message.
  */
-export function DirectPanel({ direct, selected, onChange, onError, onHide }: {
+export function DirectPanel({ direct, selected, onChange, onError, onHide, onThicken, onSew }: {
   direct: DirectGeometry; selected: string[];
   onChange(next: DirectGeometry, select?: string[]): void;
   onError(message: string): void;
   onHide(ids: string[]): void;
+  /** A surface thickened into a body of the part. */
+  onThicken?(id: string, thickness: number, side: 'normal' | 'reverse' | 'both'): void;
+  /** Surfaces sewn along their edges into one closed body of the part (`tolerance` mm; 0: the kernel's own). */
+  onSew?(ids: string[], tolerance: number): void;
 }) {
+  const [gap, setGap] = useState(0), [keep, setKeep] = useState<'outside' | 'inside'>('outside');
   const objs = selected.map(id => direct.objects.find(o => o.id === id)).filter((o): o is NonNullable<typeof o> => !!o);
   const geoms = objs.map(o => { try { return geometryOf(direct, o); } catch { return null; } });
   const run = (op: () => DirectGeometry, select?: (next: DirectGeometry) => string[]) => {
@@ -30,12 +35,34 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide }: {
       {one ? <Rename key={one.id} name={one.name} onRename={n => run(() => directOps.rename(direct, one.id, n))} />
         : objs.map(o => <div key={o.id} className="kv">Name <b>{o.name}</b></div>)}
       <Transform onMove={by => run(() => directOps.move(direct, selected, by))} onRotate={(axis, deg) => run(() => directOps.rotate(direct, selected, axis, deg))}
-        onScale={k => run(() => directOps.scale(direct, selected, k))} onDuplicate={() => run(() => directOps.duplicate(direct, selected), added)} />
+        onScale={k => run(() => directOps.scale(direct, selected, k))} onDuplicate={() => run(() => directOps.duplicate(direct, selected), added)}
+        onStretch={k => run(() => directOps.stretch(direct, selected, k))} onShear={(a, b, k) => run(() => directOps.shear(direct, selected, a, b, k))} />
       {one && g?.kind === 'curve' && <CurveTools id={one.id} direct={direct} run={run} added={added} />}
-      {one && g?.kind === 'surface' && <SurfaceTools id={one.id} direct={direct} run={run} added={added} />}
+      {one && g?.kind === 'surface' && <SurfaceTools id={one.id} direct={direct} run={run} added={added} onThicken={onThicken} />}
       {objs.length >= 3 && curves && <div className="render-section">
         <div className="card-title" style={{ marginTop: 8 }}>{objs.length} CURVES</div>
-        <button className="ghost" title="A surface through the curves in the order they were picked" onClick={() => run(() => directOps.loft(direct, selected), added)}>Loft</button>
+        <div className="row-actions">
+          <button className="ghost" title="A surface through the curves in the order they were picked" onClick={() => run(() => directOps.loft(direct, selected), added)}>Loft</button>
+          {objs.length === 4 && <button className="ghost" aria-label="Fill the loop" title="A surface filling the loop the four curves make (a Coons patch)" onClick={() => run(() => directOps.fill(direct, selected), added)}>Fill</button>}
+        </div>
+      </div>}
+      {objs.length === 2 && geoms.some(x => x?.kind === 'surface') && geoms.some(x => x?.kind === 'curve') && (() => {
+        const s = selected[geoms.findIndex(x => x?.kind === 'surface')], c = selected[geoms.findIndex(x => x?.kind === 'curve')];
+        return <div className="render-section">
+          <div className="card-title" style={{ marginTop: 8 }}>TRIM</div>
+          <label className="field"><span>Keep</span><select aria-label="Trim keeps" value={keep} onChange={e => setKeep(e.target.value as typeof keep)}>
+            <option value="outside">Outside the loop (a hole)</option><option value="inside">Inside the loop</option></select></label>
+          <button className="ghost" aria-label="Trim by the curve" title="Project the closed curve onto the surface and cut along it; the surface itself stays whole underneath" onClick={() => run(() => directOps.trimByCurve(direct, s, c, keep), () => [s])}>Trim by the curve</button>
+        </div>;
+      })()}
+      {objs.length >= 2 && onSew && geoms.every(x => x?.kind === 'surface') && <div className="render-section">
+        <div className="card-title" style={{ marginTop: 8 }}>SEW</div>
+        <NumberField label="Gap" value={gap} onChange={setGap} />
+        <button className="ghost" aria-label="Sew into a body" title="Join the surfaces along their edges into one closed solid (edges closer than the gap meet; 0 keeps it tight)" onClick={() => onSew(selected, gap)}>Sew into a body</button>
+      </div>}
+      {objs.length === 2 && geoms.every(x => x?.kind === 'surface') && <div className="render-section">
+        <div className="card-title" style={{ marginTop: 8 }}>TWO SURFACES</div>
+        <button className="ghost" aria-label="Intersect the surfaces" title="The curves where the two surfaces meet" onClick={() => run(() => surfaceIntersection(direct, selected[0], selected[1]).direct, added)}>Intersection curves</button>
       </div>}
       {objs.length === 2 && curves && <div className="render-section">
         <div className="card-title" style={{ marginTop: 8 }}>TWO CURVES</div>
@@ -65,29 +92,54 @@ function NumberField({ label, value, onChange, lazy }: { label: string; value: n
 function CurveTools({ id, direct, run, added }: { id: string; direct: DirectGeometry; run: Run; added: (n: DirectGeometry) => string[] }) {
   const dom = domainsOf(direct, id), t = dom.kind === 'curve' ? dom.t : [0, 1] as [number, number];
   const mid = (t[0] + t[1]) / 2;
-  const [at, setAt] = useState(mid), [from, setFrom] = useState(t[0]), [to, setTo] = useState(t[1]);
+  const [at, setAt] = useState(mid), [from, setFrom] = useState(t[0]), [to, setTo] = useState(t[1]), [tol, setTol] = useState(0.01), [poles, setPoles] = useState(6);
   useEffect(() => { setAt(mid); setFrom(t[0]); setTo(t[1]); }, [id, t[0], t[1]]);
   const g = geometryOf(direct, direct.objects.find(o => o.id === id)!);
   return <div className="render-section">
     <div className="kv">Degree <b>{g.kind === 'curve' ? g.degree : ''}</b></div>
     <div className="kv">Domain <b>{t.map(v => Math.round(v * 1e4) / 1e4).join(' … ')}</b></div>
     <div className="kv">Length <b>{fmtNum(curveLength(direct, id), 4)} mm</b></div>
+    {g.kind === 'curve' && (() => { const a = g.controlPoints[0], b = g.controlPoints[g.controlPoints.length - 1], chord = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]), L = curveLength(direct, id);
+      return <div className="kv">Chord <b>{fmtNum(chord, 4)} mm{chord > 1e-9 ? ` · length ${fmtNum(L / chord, 4)}×` : ' · closed'}</b></div>; })()}
     <NumberField label="At t" value={at} onChange={setAt} />
     <Analysis run={() => { const a = analyzeCurve(direct, id, at); return [['Point', a.point.map(v => fmtNum(v, 3)).join(', ')], ['Radius', a.radius === null ? 'straight' : `${fmtNum(a.radius, 4)} mm`]]; }} />
     <div className="row-actions">
       <button className="ghost" onClick={() => run(() => directOps.splitCurve(direct, id, at), added)}>Split</button>
       <button className="ghost" onClick={() => run(() => directOps.insertCurveKnot(direct, id, at))}>Insert knot</button>
       <button className="ghost" onClick={() => run(() => directOps.reverseCurve(direct, id), added)}>Reverse</button>
+      <button className="ghost" onClick={() => run(() => directOps.elevateCurveDegree(direct, id))}>Raise degree</button>
     </div>
     <NumberField label="From t" value={from} onChange={setFrom} />
     <NumberField label="To t" value={to} onChange={setTo} />
     <button className="ghost" onClick={() => run(() => directOps.curveInterval(direct, id, from, to))}>Trim to interval</button>
+    <div className="card-title" style={{ marginTop: 8 }}>SIMPLIFY</div>
+    <NumberField label="Within mm" value={tol} onChange={setTol} />
+    <button className="ghost" aria-label="Remove the knot" title="Take out the knot nearest t, if the curve moves no more than the tolerance" onClick={() => run(() => directOps.removeCurveKnot(direct, id, at, tol), added)}>Remove knot near t</button>
+    <NumberField label="Poles" value={poles} onChange={setPoles} />
+    <button className="ghost" aria-label="Refit the curve" title="Fit the curve again with this many poles (least squares, cubic): its name says the largest gap" onClick={() => run(() => directOps.refitCurve(direct, id, poles), added)}>Refit</button>
+    <Crossings id={id} direct={direct} />
     {g.kind === 'curve' && <Poles rows={g.controlPoints.map((p, i) => ({ key: String(i), label: `P${i}`, point: p, weight: g.weights[i] }))}
       onEdit={(k, pole) => run(() => directOps.editCurvePole(direct, id, Number(k), pole))} />}
   </div>;
 }
 
-function SurfaceTools({ id, direct, run, added }: { id: string; direct: DirectGeometry; run: Run; added: (n: DirectGeometry) => string[] }) {
+/** Where the curve crosses a plane square to X, Y or Z, at a value. */
+function Crossings({ id, direct }: { id: string; direct: DirectGeometry }) {
+  const [axis, setAxis] = useState<'x' | 'y' | 'z'>('z'), [at, setAt] = useState(0), [found, setFound] = useState<ReturnType<typeof curvePlaneCrossings> | null>(null), [note, setNote] = useState<string | null>(null);
+  useEffect(() => { setFound(null); setNote(null); }, [id, axis, at]);
+  return <>
+    <div className="card-title" style={{ marginTop: 8 }}>CROSSINGS</div>
+    <label className="field"><span>Plane</span><select aria-label="Crossing plane" value={axis} onChange={e => setAxis(e.target.value as 'x' | 'y' | 'z')}><option value="x">X =</option><option value="y">Y =</option><option value="z">Z =</option></select></label>
+    <NumberField label="At" value={at} onChange={setAt} />
+    <button className="ghost" aria-label="Find crossings" onClick={() => { try { setFound(curvePlaneCrossings(direct, id, axis, at)); } catch (e) { setFound(null); setNote(e instanceof Error ? e.message : String(e)); } }}>Find crossings</button>
+    {note && !found && <div className="muted small">{note}</div>}
+    {found && (found.length ? found.map((c, k) => <div key={k} className="kv" aria-label="Crossing">t {fmtNum(c.t, 5)} <b>{c.point.map(v => fmtNum(v, 3)).join(', ')}</b></div>) : <div className="muted small">The curve does not cross {axis.toUpperCase()} = {at}.</div>)}
+  </>;
+}
+
+function SurfaceTools({ id, direct, run, added, onThicken }: { id: string; direct: DirectGeometry; run: Run; added: (n: DirectGeometry) => string[]; onThicken?(id: string, thickness: number, side: 'normal' | 'reverse' | 'both'): void }) {
+  const [wall, setWall] = useState(2), [wallSide, setWallSide] = useState<'normal' | 'reverse' | 'both'>('normal');
+  const [edge, setEdge] = useState<'u-min' | 'u-max' | 'v-min' | 'v-max'>('u-max'), [reach, setReach] = useState(5);
   const dom = domainsOf(direct, id), u = dom.kind === 'surface' ? dom.u : [0, 1] as [number, number], v = dom.kind === 'surface' ? dom.v : [0, 1] as [number, number];
   const [axis, setAxis] = useState<'u' | 'v'>('u');
   const range = axis === 'u' ? u : v, mid = (range[0] + range[1]) / 2;
@@ -95,9 +147,10 @@ function SurfaceTools({ id, direct, run, added }: { id: string; direct: DirectGe
   const [box, setBox] = useState<[number, number, number, number]>([u[0], u[1], v[0], v[1]]);
   useEffect(() => { setAt(mid); }, [id, axis, mid]);
   useEffect(() => { setBox([u[0], u[1], v[0], v[1]]); }, [id, u[0], u[1], v[0], v[1]]);
-  const g = geometryOf(direct, direct.objects.find(o => o.id === id)!);
+  const g = geometryOf(direct, direct.objects.find(o => o.id === id)!), trims = direct.objects.find(o => o.id === id)?.trims?.length ?? 0;
   return <div className="render-section">
     {g.kind === 'surface' && <div className="kv">Degree <b>{g.degreeU} × {g.degreeV}</b></div>}
+    {!!trims && <div className="kv">Trimmed <b>{trims} loop{trims > 1 ? 's' : ''}</b> <button className="ghost tiny" aria-label="Untrim" title="Take the trims off: the whole surface again" onClick={() => run(() => directOps.untrim(direct, id))}>Untrim</button></div>}
     <div className="kv">Domain <b>u {u.map(x => Math.round(x * 1e4) / 1e4).join('…')} · v {v.map(x => Math.round(x * 1e4) / 1e4).join('…')}</b></div>
     <label className="field"><span>Direction</span><select aria-label="Surface direction" value={axis} onChange={e => setAxis(e.target.value as 'u' | 'v')}><option value="u">U</option><option value="v">V</option></select></label>
     <NumberField label={`At ${axis}`} value={at} onChange={setAt} />
@@ -109,6 +162,18 @@ function SurfaceTools({ id, direct, run, added }: { id: string; direct: DirectGe
       <button className="ghost" onClick={() => run(() => directOps.reverseSurface(direct, id, axis), added)}>Reverse</button>
     </div>
     <SurfacePoint id={id} direct={direct} u={u} v={v} />
+    <div className="card-title" style={{ marginTop: 8 }}>EXTEND</div>
+    <label className="field"><span>Edge</span><select aria-label="Extend edge" value={edge} onChange={e => setEdge(e.target.value as typeof edge)}>
+      <option value="u-max">u end</option><option value="u-min">u start</option><option value="v-max">v end</option><option value="v-min">v start</option></select></label>
+    <NumberField label="Extend by" value={reach} onChange={setReach} />
+    <button className="ghost" aria-label="Extend the surface" title="Run the surface on past the edge, straight along its tangent there" onClick={() => run(() => directOps.extendSurface(direct, id, edge, reach), added)}>Extend</button>
+    {onThicken && <>
+      <div className="card-title" style={{ marginTop: 8 }}>THICKEN</div>
+      <NumberField label="Thickness" value={wall} onChange={setWall} />
+      <label className="field"><span>Side</span><select aria-label="Thicken side" value={wallSide} onChange={e => setWallSide(e.target.value as typeof wallSide)}>
+        <option value="normal">Along the normal</option><option value="reverse">Against it</option><option value="both">Half each way</option></select></label>
+      <button className="ghost" aria-label="Thicken into a body" onClick={() => onThicken(id, wall, wallSide)}>Thicken into a body</button>
+    </>}
     <div className="card-title" style={{ marginTop: 8 }}>REGION</div>
     {(['u from', 'u to', 'v from', 'v to'] as const).map((l, k) => <NumberField key={l} label={l} value={box[k]} onChange={x => setBox(b => b.map((y, j) => j === k ? x : y) as typeof b)} />)}
     <button className="ghost" onClick={() => run(() => directOps.surfaceRegion(direct, id, [box[0], box[1]], [box[2], box[3]]), added)}>Extract region</button>
@@ -158,7 +223,10 @@ function Rename({ name, onRename }: { name: string; onRename(n: string): void })
 }
 
 /** Move by a vector, turn about an axis through the centre, scale about the centre, or duplicate. */
-function Transform({ onMove, onRotate, onScale, onDuplicate }: { onMove(by: [number, number, number]): void; onRotate(axis: 'x' | 'y' | 'z', deg: number): void; onScale(k: number): void; onDuplicate(): void }) {
+type Ax = 'x' | 'y' | 'z';
+function Transform({ onMove, onRotate, onScale, onDuplicate, onStretch, onShear }: { onMove(by: [number, number, number]): void; onRotate(axis: Ax, deg: number): void; onScale(k: number): void; onDuplicate(): void; onStretch(k: [number, number, number]): void; onShear(along: Ax, by: Ax, k: number): void }) {
+  const [st, setSt] = useState<[number, number, number]>([1, 1, 2]), [along, setAlong] = useState<Ax>('x'), [byAx, setByAx] = useState<Ax>('z'), [sk, setSk] = useState(0.5);
+  const axisPick = (label: string, v: Ax, set: (a: Ax) => void) => <label className="field"><span>{label}</span><select aria-label={label} value={v} onChange={e => set(e.target.value as Ax)}><option value="x">X</option><option value="y">Y</option><option value="z">Z</option></select></label>;
   const [by, setBy] = useState<[number, number, number]>([0, 0, 10]);
   const [axis, setAxis] = useState<'x' | 'y' | 'z'>('z'), [deg, setDeg] = useState(90), [k, setK] = useState(2);
   return <div className="render-section">
@@ -170,5 +238,10 @@ function Transform({ onMove, onRotate, onScale, onDuplicate }: { onMove(by: [num
     <button className="ghost" onClick={() => onRotate(axis, deg)}>Rotate</button>
     <NumberField label="Factor" value={k} onChange={setK} />
     <div className="row-actions"><button className="ghost" onClick={() => onScale(k)}>Scale</button><button className="ghost" onClick={onDuplicate}>Duplicate</button></div>
+    {(['× X', '× Y', '× Z'] as const).map((l, i) => <NumberField key={l} label={l} value={st[i]} onChange={x => setSt(b => b.map((y, j) => j === i ? x : y) as typeof b)} />)}
+    <button className="ghost" onClick={() => onStretch(st)}>Stretch</button>
+    {axisPick('Shear moves', along, setAlong)}{axisPick('by', byAx, setByAx)}
+    <NumberField label="Shear factor" value={sk} onChange={setSk} />
+    <button className="ghost" onClick={() => onShear(along, byAx, sk)}>Shear</button>
   </div>;
 }

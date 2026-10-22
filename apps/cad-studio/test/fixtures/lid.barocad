@@ -1,0 +1,10 @@
+@model lid {
+  version: 0;
+  length-unit: mm;
+  @surface #dome { type: nurbs; degree-u: 2; degree-v: 2; knots-u: [0,0,0,1,1,1]; knots-v: [0,0,0,1,1,1]; control-points: [[[40,0,10],[40,5,13],[40,10,10]],[[45,0,13],[45,5,16],[45,10,13]],[[50,0,10],[50,5,13],[50,10,10]]]; weights: [[1,1,1],[1,1,1],[1,1,1]]; }
+  @surface #floor { type: nurbs; degree-u: 1; degree-v: 1; knots-u: [0,0,1,1]; knots-v: [0,0,1,1]; control-points: [[[40,0,0],[40,10,0]],[[50,0,0],[50,10,0]]]; weights: [[1,1],[1,1]]; }
+  @surface #front { type: nurbs; degree-u: 1; degree-v: 2; knots-u: [0,0,1,1]; knots-v: [0,0,0,1,1,1]; control-points: [[[40,0,0],[40,5,0],[40,10,0]],[[40,0,10],[40,5,13],[40,10,10]]]; weights: [[1,1,1],[1,1,1]]; }
+  @surface #back { type: nurbs; degree-u: 1; degree-v: 2; knots-u: [0,0,1,1]; knots-v: [0,0,0,1,1,1]; control-points: [[[50,0,0],[50,5,0],[50,10,0]],[[50,0,10],[50,5,13],[50,10,10]]]; weights: [[1,1,1],[1,1,1]]; }
+  @surface #left { type: nurbs; degree-u: 1; degree-v: 2; knots-u: [0,0,1,1]; knots-v: [0,0,0,1,1,1]; control-points: [[[40,0,0],[45,0,0],[50,0,0]],[[40,0,10],[45,0,13],[50,0,10]]]; weights: [[1,1,1],[1,1,1]]; }
+  @surface #right { type: nurbs; degree-u: 1; degree-v: 2; knots-u: [0,0,1,1]; knots-v: [0,0,0,1,1,1]; control-points: [[[40,10,0],[45,10,0],[50,10,0]],[[40,10,10],[45,10,13],[50,10,10]]]; weights: [[1,1,1],[1,1,1]]; }
+}

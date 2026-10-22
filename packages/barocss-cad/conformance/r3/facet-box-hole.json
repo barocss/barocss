@@ -1,0 +1,123 @@
+{
+  "id": "r3-facet-box-hole",
+  "step": "R3",
+  "decisions": [
+    "D3",
+    "D42"
+  ],
+  "about": "A hole of radius 2 through the 20 × 10 × 5 facet box: under the F0 threshold, through the planar path; volume 1000 − 20π.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "mesh",
+          "positions": [
+            0,
+            0,
+            0,
+            20,
+            0,
+            0,
+            20,
+            10,
+            0,
+            0,
+            10,
+            0,
+            0,
+            0,
+            5,
+            20,
+            0,
+            5,
+            20,
+            10,
+            5,
+            0,
+            10,
+            5
+          ],
+          "indices": [
+            0,
+            3,
+            2,
+            0,
+            2,
+            1,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "representation": "facets"
+        },
+        {
+          "id": "h",
+          "kind": "hole",
+          "target": "m",
+          "center": [
+            10,
+            5
+          ],
+          "radius": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 937.1681469282041,
+          "relTol": 1e-08
+        },
+        "centroidMM": {
+          "value": [
+            10,
+            5,
+            2.5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ]
+  }
+}

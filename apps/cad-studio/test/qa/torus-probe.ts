@@ -1,6 +1,6 @@
 // QA probe: two tori that overlap in volume (one turned about Z), joined; and the circular pattern of them.
-import { evaluateDoc } from '../../src/engine/evaluate';
-import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '../../src/engine/doc';
+import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
+import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 const add = (doc: StudioDoc, ...nodes: ModelNode[]) => nodes.reduce((d, n) => withNode(d, n), doc);
 const S = (n: number) => ({ node: n, side: 'solid' as const });
 const torus = add(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [30, 10], radius: 5 }, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });

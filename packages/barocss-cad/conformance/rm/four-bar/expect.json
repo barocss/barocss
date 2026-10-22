@@ -1,0 +1,158 @@
+{
+ "dims": {
+  "a": 0.02,
+  "b": 0.07,
+  "c": 0.05,
+  "d": 0.06
+ },
+ "branch": 1,
+ "ground": {
+  "A": [
+   0.02,
+   0.02
+  ],
+  "D": [
+   0.08,
+   0.02
+  ]
+ },
+ "pins": {
+  "crank": {
+   "body": "crank",
+   "local": [
+    0.02,
+    -1.734723475976807e-18,
+    0.004999999999999999
+   ]
+  },
+  "rocker": {
+   "body": "rocker",
+   "local": [
+    0.050000000000000024,
+    -6.418476861114186e-17,
+    0.004999999999999999
+   ]
+  },
+  "coupler_b": {
+   "body": "coupler",
+   "local": [
+    9.295653009419711e-18,
+    3.1444128780788364e-18,
+    0
+   ]
+  }
+ },
+ "static": {
+  "tol_m": 1e-9,
+  "tol_rad": 1e-9,
+  "samples": [
+   {
+    "crank": 1.0471975511965976,
+    "values": {
+     "base_to_crank": 0,
+     "crank_to_coupler": 0,
+     "base_to_rocker": 0
+    }
+   },
+   {
+    "crank": 1.5707963267948966,
+    "values": {
+     "base_to_crank": 0.5235987755982988,
+     "crank_to_coupler": -0.5416215742907635,
+     "base_to_rocker": 0.19181904610983522
+    }
+   },
+   {
+    "crank": 2.0943951023931953,
+    "values": {
+     "base_to_crank": 1.0471975511965976,
+     "crank_to_coupler": -1.030495736079716,
+     "base_to_rocker": 0.41401964415619524
+    }
+   },
+   {
+    "crank": 2.617993877991494,
+    "values": {
+     "base_to_crank": 1.5707963267948966,
+     "crank_to_coupler": -1.4773516867986447,
+     "base_to_rocker": 0.6205354609838595
+    }
+   },
+   {
+    "crank": 3.141592653589793,
+    "values": {
+     "base_to_crank": 2.0943951023931953,
+     "crank_to_coupler": -1.886662636932154,
+     "base_to_rocker": 0.7814068742577378
+    }
+   },
+   {
+    "crank": 3.6651914291880923,
+    "values": {
+     "base_to_crank": 2.6179938779914944,
+     "crank_to_coupler": -2.2673135445394155,
+     "base_to_rocker": 0.8777711544396863
+    }
+   },
+   {
+    "crank": 4.1887902047863905,
+    "values": {
+     "base_to_crank": 3.141592653589793,
+     "crank_to_coupler": -2.639763090281941,
+     "base_to_rocker": 0.8991473923471665
+    }
+   },
+   {
+    "crank": 4.71238898038469,
+    "values": {
+     "base_to_crank": 3.6651914291880923,
+     "crank_to_coupler": -3.0397131190872724,
+     "base_to_rocker": 0.8353201549031207
+    }
+   },
+   {
+    "crank": 5.235987755982988,
+    "values": {
+     "base_to_crank": 4.1887902047863905,
+     "crank_to_coupler": -3.5218438602827264,
+     "base_to_rocker": 0.666946344503664
+    }
+   },
+   {
+    "crank": 5.759586531581287,
+    "values": {
+     "base_to_crank": 4.71238898038469,
+     "crank_to_coupler": -4.151926122666322,
+     "base_to_rocker": 0.3785934841102057
+    }
+   },
+   {
+    "crank": 6.283185307179586,
+    "values": {
+     "base_to_crank": 5.235987755982989,
+     "crank_to_coupler": -4.9200082617152505,
+     "base_to_rocker": 0.05645017786910797
+    }
+   },
+   {
+    "crank": 6.8067840827778845,
+    "values": {
+     "base_to_crank": 5.759586531581287,
+     "crank_to_coupler": -5.659429320948238,
+     "base_to_rocker": -0.0817121629751144
+    }
+   }
+  ]
+ },
+ "dynamic": {
+  "seconds": 2,
+  "timestep": 0.0001,
+  "gravity": [
+   0,
+   -9.81,
+   0
+  ],
+  "tol_m": 0.0001,
+  "tol_rad": 0.001
+ }
+}

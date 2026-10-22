@@ -1,0 +1,205 @@
+{
+ "about": "FR4b acceptance (D128): a 2020-class T-slot frame 400 \u00d7 300 \u00d7 500 \u2014 four uprights, and rails at the bottom and the top between their faces, every member cut square (no welds: brackets join T-slot); its cut list. The slot sizes are the tslot-20 library's estimates.",
+ "calls": [
+  {
+   "tool": "features",
+   "args": {
+    "action": "add",
+    "features": [
+     {
+      "kind": "frame",
+      "points": [
+       [
+        0,
+        0,
+        0
+       ],
+       [
+        400,
+        0,
+        0
+       ],
+       [
+        400,
+        300,
+        0
+       ],
+       [
+        0,
+        300,
+        0
+       ],
+       [
+        0,
+        0,
+        500
+       ],
+       [
+        400,
+        0,
+        500
+       ],
+       [
+        400,
+        300,
+        500
+       ],
+       [
+        0,
+        300,
+        500
+       ],
+       [
+        10,
+        0,
+        10
+       ],
+       [
+        390,
+        0,
+        10
+       ],
+       [
+        10,
+        300,
+        10
+       ],
+       [
+        390,
+        300,
+        10
+       ],
+       [
+        0,
+        10,
+        10
+       ],
+       [
+        0,
+        290,
+        10
+       ],
+       [
+        400,
+        10,
+        10
+       ],
+       [
+        400,
+        290,
+        10
+       ],
+       [
+        10,
+        0,
+        490
+       ],
+       [
+        390,
+        0,
+        490
+       ],
+       [
+        10,
+        300,
+        490
+       ],
+       [
+        390,
+        300,
+        490
+       ],
+       [
+        0,
+        10,
+        490
+       ],
+       [
+        0,
+        290,
+        490
+       ],
+       [
+        400,
+        10,
+        490
+       ],
+       [
+        400,
+        290,
+        490
+       ]
+      ],
+      "segments": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        5
+       ],
+       [
+        2,
+        6
+       ],
+       [
+        3,
+        7
+       ],
+       [
+        8,
+        9
+       ],
+       [
+        10,
+        11
+       ],
+       [
+        12,
+        13
+       ],
+       [
+        14,
+        15
+       ],
+       [
+        16,
+        17
+       ],
+       [
+        18,
+        19
+       ],
+       [
+        20,
+        21
+       ],
+       [
+        22,
+        23
+       ]
+      ],
+      "section": {
+       "kind": "tslot",
+       "size": 20,
+       "cells": 1,
+       "openSlots": 4,
+       "opening": 6.2,
+       "lip": 1.8,
+       "undercut": 11,
+       "depth": 6.1,
+       "bore": 4.2
+      }
+     }
+    ]
+   }
+  },
+  {
+   "tool": "query",
+   "args": {
+    "action": "cutlist"
+   }
+  }
+ ]
+}

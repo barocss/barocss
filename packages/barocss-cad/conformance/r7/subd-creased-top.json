@@ -1,0 +1,140 @@
+{
+  "id": "r7-subd-creased-top",
+  "step": "R7",
+  "decisions": [
+    "D78"
+  ],
+  "about": "A cube cage with its top ring creased: each top corner a crease vertex of 3 edges (sectors of 1 and 2 faces, irregular); the crease runs as the B-spline of its vertices.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "t",
+          "kind": "subd",
+          "cage": {
+            "positions": [
+              0,
+              0,
+              0,
+              10,
+              0,
+              0,
+              10,
+              10,
+              0,
+              0,
+              10,
+              0,
+              0,
+              0,
+              10,
+              10,
+              0,
+              10,
+              10,
+              10,
+              10,
+              0,
+              10,
+              10
+            ],
+            "faces": [
+              [
+                0,
+                3,
+                2,
+                1
+              ],
+              [
+                4,
+                5,
+                6,
+                7
+              ],
+              [
+                0,
+                1,
+                5,
+                4
+              ],
+              [
+                1,
+                2,
+                6,
+                5
+              ],
+              [
+                2,
+                3,
+                7,
+                6
+              ],
+              [
+                3,
+                0,
+                4,
+                7
+              ]
+            ],
+            "creases": [
+              [
+                4,
+                5
+              ],
+              [
+                5,
+                6
+              ],
+              [
+                6,
+                7
+              ],
+              [
+                7,
+                4
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 497.3121,
+          "relTol": 0.002
+        },
+        "centroidMM": {
+          "value": [
+            5,
+            5,
+            6.1552
+          ],
+          "absTol": 0.01
+        },
+        "areaMM2": {
+          "value": 328.7522,
+          "relTol": 0.002
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^t\\.cap\\d+_\\d+$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-09
+    }
+  },
+  "oracle": "An independent Catmull–Clark written for this purpose (any polygon, OpenSubdiv sharp-edge rules), refined 5 and 6 times (the dart torus 4 and 5), each vertex taken to its limit position (smooth, crease and corner masks), the triangle mesh's volume, area and centroid extrapolated by Richardson (x6 + (x6 − x5)/3). The tolerance (2e-3) is the caps' deviation from the limit, not the oracle's error."
+}

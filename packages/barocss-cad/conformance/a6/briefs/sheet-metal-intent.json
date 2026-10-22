@@ -1,0 +1,55 @@
+{
+ "case": "sheet-metal-intent",
+ "step": "A6.1",
+ "note": "Sheet metal is recorded as intent: not checked, the part's process unchanged.",
+ "input": {
+  "patches": [
+   {
+    "purpose": {
+     "value": "a wall bracket for a 30 mm pipe",
+     "basis": "stated",
+     "source": "a bracket to hold a 30 mm pipe on a wall"
+    },
+    "process": {
+     "value": "sheet-metal",
+     "basis": "stated",
+     "source": "bent from 2 mm sheet"
+    },
+    "material": {
+     "value": "ss304",
+     "basis": "stated",
+     "source": "stainless 304"
+    },
+    "envelope": {
+     "value": {
+      "x": 80,
+      "y": 40,
+      "z": 60
+     },
+     "basis": "assumed",
+     "why": "fits behind the panel, as the sketch suggests"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "gaps": [
+   {
+    "field": "envelope",
+    "why": "assumed"
+   }
+  ],
+  "complete": true,
+  "doc_process": null,
+  "process": {
+   "value": "sheet-metal",
+   "checked": false,
+   "applied": false
+  },
+  "material": {
+   "value": "ss304",
+   "library": true,
+   "applied": true
+  }
+ }
+}

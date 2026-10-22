@@ -1,0 +1,82 @@
+{
+  "id": "a2-facts-hole",
+  "step": "A2",
+  "decisions": [
+    "D32"
+  ],
+  "about": "A 40 × 20 × 8 plate, then a Ø8 hole through its top at (20, 10): the facts before and after, and what changed.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nextId": 2,
+      "outputs": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 8
+        }
+      ]
+    },
+    "call": {
+      "tool": "run_command",
+      "args": {
+        "command": "hole",
+        "faces": [
+          {
+            "feature": 1,
+            "role": "top"
+          }
+        ],
+        "values": {
+          "d": 8,
+          "x": 20,
+          "y": 10
+        }
+      }
+    }
+  },
+  "expect": {
+    "before": {
+      "solids": 1,
+      "volume_mm3": 6400,
+      "mass_g": 17.28,
+      "centroid": [
+        20,
+        10,
+        4
+      ],
+      "faces": 6,
+      "edges": 12,
+      "vertices": 8
+    },
+    "after": {
+      "solids": 1,
+      "volume_mm3": 5997.876,
+      "faces": 7
+    },
+    "change": {
+      "volume_mm3": -402.124,
+      "faces": 1
+    },
+    "tolerance": 0.002
+  },
+  "oracle": "closed forms (a box less a cylinder; aluminium 2.70 g/cm³)"
+}

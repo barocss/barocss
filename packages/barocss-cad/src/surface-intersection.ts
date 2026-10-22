@@ -90,6 +90,8 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   readonly step: number; readonly tolerance: number; readonly grid?: number;
   /** Seeds to leave out (points of an intersection the caller already has). */
   readonly skip?: (x: Point) => boolean;
+  /** Whether x lies within r of that intersection: facet crossings that close are not refined at all. */
+  readonly skipNear?: (x: Point, r: number) => boolean;
   /** At most this many marching steps in all (default 200 000), so a degenerate pair fails, not hangs. */
   readonly budget?: number;
   /**
@@ -116,26 +118,33 @@ export function intersectPatches(A: Patch, B: Patch, options: {
   const boxOf = (T: { min: Point; max: Point }[]) => T.reduce((m, t) => ({ min: [0, 1, 2].map(k => Math.min(m.min[k], t.min[k])) as Point, max: [0, 1, 2].map(k => Math.max(m.max[k], t.max[k])) as Point }), { min: [Infinity, Infinity, Infinity] as Point, max: [-Infinity, -Infinity, -Infinity] as Point });
   const within = (t: { min: Point; max: Point }, b: { min: Point; max: Point }) => [0, 1, 2].every(k => t.max[k] >= b.min[k] - tol && t.min[k] <= b.max[k] + tol);
   const allA = tris(GA), allB = tris(GB), bA = boxOf(allA), bB = boxOf(allB), TA = allA.filter(t => within(t, bB)), TB = allB.filter(t => within(t, bA));
-  const seeds: { pa: XY; pb: XY; x: Point }[] = [];
+  // Facet crossings, refined onto both surfaces only when reached (most lie on a chain traced by then).
+  const raw: { x: Point; ua: XY; ub: XY }[] = [];
   for (const a of TA) for (const b of TB) {
     if (a.max[0] < b.min[0] - tol || b.max[0] < a.min[0] - tol || a.max[1] < b.min[1] - tol || b.max[1] < a.min[1] - tol || a.max[2] < b.min[2] - tol || b.max[2] < a.min[2] - tol) continue;
     // Facets nearly parallel are a tangency or one surface twice: no curve to trace there.
     const na = cross(sub(a.pts[1], a.pts[0]), sub(a.pts[2], a.pts[0])), nb = cross(sub(b.pts[1], b.pts[0]), sub(b.pts[2], b.pts[0]));
     if (len(cross(na, nb)) <= 1e-4 * len(na) * len(nb)) continue;
-    for (const x of triangleCrossings(a.pts, b.pts)) {
-      const s = onBoth(A, B, project(A, x, a.uv[0]), project(B, x, b.uv[0]));
-      if (s && len(sub(A.at(s.pa), B.at(s.pb))) <= tol && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9)) seeds.push(s);
-    }
-  }
-  // Given points first: each from the nearest grid point of either patch.
-  if (options.seeds?.length) {
-    const nearest = (G: { p: XY; x: Point }[][], x: Point) => { let best = G[0][0]; for (const row of G) for (const c of row) if (len(sub(c.x, x)) < len(sub(best.x, x))) best = c; return best.p; };
-    const given = options.seeds.flatMap(x => { const s = onBoth(A, B, project(A, x, nearest(GA, x)), project(B, x, nearest(GB, x))); return s && len(sub(A.at(s.pa), B.at(s.pb))) <= tol && len(sub(s.x, x)) <= 100 * tol && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9) ? [s] : []; });
-    seeds.unshift(...given);
+    for (const x of triangleCrossings(a.pts, b.pts)) raw.push({ x, ua: a.uv[0], ub: b.uv[0] });
   }
   const chains: IntersectionChain[] = [];
-  const covered = (x: Point) => chains.some(c => c.points.some((p, i) => { if (len(sub(p, x)) <= 2 * h) return true; const q = c.points[i + 1]; if (!q) return false; const d = sub(q, p), t = Math.max(0, Math.min(1, dot(sub(x, p), d) / (dot(d, d) || 1))); return len(sub(add(p, scale(d, t)), x)) <= h; }));
-  for (const seed of seeds) {
+  const near = (x: Point, r: number) => chains.some(c => c.points.some((p, i) => { if (len(sub(p, x)) <= 2 * r) return true; const q = c.points[i + 1]; if (!q) return false; const d = sub(q, p), t = Math.max(0, Math.min(1, dot(sub(x, p), d) / (dot(d, d) || 1))); return len(sub(add(p, scale(d, t)), x)) <= r; }));
+  const covered = (x: Point) => near(x, h);
+  // Given points first: each from the nearest grid point of either patch.
+  const nearest = (G: { p: XY; x: Point }[][], x: Point) => { let best = G[0][0]; for (const row of G) for (const c of row) if (len(sub(c.x, x)) < len(sub(best.x, x))) best = c; return best.p; };
+  function* seeds() {
+    for (const x of options.seeds ?? []) {
+      const s = onBoth(A, B, project(A, x, nearest(GA, x)), project(B, x, nearest(GB, x)));
+      if (s && len(sub(A.at(s.pa), B.at(s.pb))) <= tol && len(sub(s.x, x)) <= 100 * tol && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9)) yield s;
+    }
+    for (const c of raw) {
+      // A crossing well within a traced chain's reach refines onto that chain: skipped unrefined.
+      if (near(c.x, h / 2) || options.skipNear?.(c.x, h / 2)) continue;
+      const s = onBoth(A, B, project(A, c.x, c.ua), project(B, c.x, c.ub));
+      if (s && len(sub(A.at(s.pa), B.at(s.pb))) <= tol && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9)) yield s;
+    }
+  }
+  for (const seed of seeds()) {
     if (covered(seed.x) || options.skip?.(seed.x)) continue;
     // Tangent contact (normals within about 0.006°, above the differencing noise at a domain edge): not traced.
     if (len(cross(normalOf(A, seed.pa), normalOf(B, seed.pb))) < 1e-4) continue;

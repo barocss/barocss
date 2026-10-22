@@ -1,0 +1,161 @@
+{
+  "id": "sf-plane-disc",
+  "step": "SF",
+  "decisions": [
+    "D149"
+  ],
+  "about": "A box's top split along a closed circle inside it (r 5 about (20, 15)): a disc and a holed face, the box unchanged.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            30
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "p",
+          "kind": "split-face",
+          "target": "b",
+          "face": "b.top",
+          "curves": [
+            {
+              "degree": 2,
+              "knots": [
+                0,
+                0,
+                0,
+                0.25,
+                0.25,
+                0.5,
+                0.5,
+                0.75,
+                0.75,
+                1,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  25,
+                  15,
+                  10
+                ],
+                [
+                  25,
+                  20,
+                  10
+                ],
+                [
+                  20,
+                  20,
+                  10
+                ],
+                [
+                  15,
+                  20,
+                  10
+                ],
+                [
+                  15,
+                  15,
+                  10
+                ],
+                [
+                  15,
+                  10,
+                  10
+                ],
+                [
+                  20,
+                  10,
+                  10
+                ],
+                [
+                  25,
+                  10,
+                  10
+                ],
+                [
+                  25,
+                  14.999999999999998,
+                  10
+                ]
+              ],
+              "weights": [
+                1,
+                0.7071067811865476,
+                1,
+                0.7071067811865476,
+                1,
+                0.7071067811865476,
+                1,
+                0.7071067811865476,
+                1
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 12000,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            20,
+            15,
+            5
+          ],
+          "absTol": 0.000001
+        },
+        "areaMM2": {
+          "value": 3800,
+          "relTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "b.bottom",
+          "b.side0",
+          "b.side1",
+          "b.side2",
+          "b.side3",
+          "b.top"
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "closed form (the box); the disc 25π and the rest 1200 − 25π are pinned in test/d149-split-face.test.mjs"
+}

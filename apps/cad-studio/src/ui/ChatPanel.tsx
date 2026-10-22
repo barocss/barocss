@@ -2,11 +2,20 @@
 // preview. Turns run on the chat server (the claude CLI with the studio's tools); the part changes here
 // only through `onCommit`, once per turn, so one undo takes a turn back.
 import { useEffect, useRef, useState } from 'react';
-import type { StudioDoc } from '../engine/doc';
-import type { BodyResult } from '../engine/evaluate';
-import type { NameSelection } from '../chat/tools';
-import { chatStatus, runServerTurn, type ChatStatus } from '../chat/client';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import type { NameSelection } from '@barocss/cad-model/chat/tools';
+import { chatStatus, newChatBlobs, runServerTurn, type ChatStatus } from '../chat/client';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
+import { diffLine, withHistory } from '@barocss/cad-model/chat/proposals';
+import { treeDiff } from '@barocss/cad-model/chat/transactions';
+import { latestPump, reshareNodes } from '@barocss/cad-model/chat/pump';
+import { modelHash } from '@barocss/cad-model/chat/spec';
+import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
+import { nextSerial } from '@barocss/cad-model/engine/ids';
+import { changedDuring, mergeTurn, type Merged, type TurnOp } from '@barocss/cad-model/chat/merge';
+import { revisionOf } from '@barocss/cad-model/team/revision';
+import { holdSweeps } from '@barocss/cad-model/engine/blobs';
 import { Icon } from './atoms';
 import './chat.css';
 
@@ -14,6 +23,9 @@ type Item =
   | { kind: 'user'; text: string; images?: ChatImage[] }
   | { kind: 'assistant' | 'notice'; text: string }
   | { kind: 'tool'; name: string; input: unknown; summary: string; isError: boolean };
+
+/** A call as the transcript names it: the tool and its action (`features.command`), O105. */
+const toolLabel = (name: string, input: unknown) => { const a = input && typeof input === 'object' ? (input as { action?: unknown }).action : undefined; return typeof a === 'string' ? `${name}.${a}` : name; };
 
 export interface ChatPanelProps {
   /** The part a new turn starts from (the evaluated document). */
@@ -23,10 +35,29 @@ export interface ChatPanelProps {
   /** Why chat cannot start now (a command or sketch is open), or null. */
   blocked: string | null;
   onPreview(bodies: BodyResult[] | null): void;
-  onCommit(doc: StudioDoc, selection?: NameSelection): void;
+  /** The whole evaluation of a document (the merge of a turn onto edits made during it checks each step, O133). */
+  check(doc: StudioDoc): Promise<EvalResult | null>;
+  /** The turn's part, once; `merged`: it was merged onto edits the person made while it ran (O133). */
+  onCommit(doc: StudioDoc, selection?: NameSelection, merged?: Merged): void;
+  /** What is selected in the viewport, by name: offered as context chips for the next message (A4.3). */
+  context: { kind: 'face' | 'edge' | 'body'; name: string }[];
   /** A turn that only selected (the part unchanged). */
   onSelect(selection: NameSelection): void;
   onClose(): void;
+  /** A message the studio sends as the user's (the Specify panel's answers, A6.2): sent once, when the chat is free. */
+  outbox?: { id: number; text: string } | null;
+  onOutboxSent?(id: number): void;
+}
+
+/** What each autonomy level lets the agent do (D41). */
+const AUTONOMY_TIPS = [
+  'L1 · Propose only: every change is a proposal you accept',
+  'L2 · Values: the agent edits values of one feature or parameters directly, and builds an empty part; anything more is a proposal you accept',
+  'L3 · Edit and accept low or medium risk proposals changing no hard requirement',
+  'L4 · Edit and accept proposals breaking no hard requirement',
+];
+function readAutonomy(): number {
+  try { const n = Number(localStorage.getItem('studio.autonomy')); return n >= 1 && n <= 4 ? n : 2; } catch { return 2; }
 }
 
 const brief = (input: unknown) => {
@@ -45,11 +76,27 @@ export function ChatPanel(props: ChatPanelProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   /** The CLI conversation the next turn resumes. */
   const session = useRef<string | undefined>(undefined);
+  // (What the user typed this conversation, as typed: the tools check a quote said to be theirs against it, A6.2.)
+  const said = useRef<string[]>([]);
   /** The traces of every image attached in this conversation (image 1 first). */
   const traces = useRef<ChatImage['trace'][]>([]);
   const abort = useRef<AbortController | null>(null);
+  /** The mesh blobs this conversation has sent the server (each once, D45). */
+  const chatBlobs = useRef(newChatBlobs());
   const log = useRef<HTMLDivElement>(null);
+  /** How far the agent may go on its own (D41), kept in this browser. */
+  const [autonomy, setAutonomy] = useState(readAutonomy);
+  /** Context chips the user removed (by name), until the selection changes. */
+  const [dropped, setDropped] = useState<string[]>([]);
+  const contextKey = props.context.map(c => c.name).join(' ');
+  useEffect(() => { setDropped([]); }, [contextKey]);
+  const chips = props.context.filter(c => !dropped.includes(c.name));
 
+  // (The studio's message as the user's — the Specify panel's answers — once the chat is free.)
+  useEffect(() => {
+    const o = props.outbox; if (!o || running || !status?.enabled || props.blocked) return;
+    props.onOutboxSent?.(o.id); void send(o.text);
+  }, [props.outbox?.id, running, status?.enabled, props.blocked]);
   useEffect(() => { let live = true; chatStatus().then(s => { if (live) setStatus(s); }); return () => { live = false; }; }, []);
   useEffect(() => { log.current?.scrollTo({ top: log.current.scrollHeight }); }, [items]);
   useEffect(() => () => abort.current?.abort(), []);
@@ -62,40 +109,80 @@ export function ChatPanel(props: ChatPanelProps) {
     }
   };
 
-  const send = async () => {
+  const send = async (typed?: string) => {
+    const said0 = typed ?? text;
     const attached = images;
     const first = traces.current.length + 1;
     const note = attached.length ? `\n\n[Attached: ${attached.map((img, k) => `image ${first + k} (${img.name}, traced into ${img.trace.layers.length} layers: ${img.trace.layers.map(l => l.id).join(', ')})`).join('; ')}]` : '';
-    const message = (text.trim() || (attached.length ? 'Model what the image shows.' : '')) + note;
+    // (The selection as context: names the tools take, A4.3.)
+    const sel = chips.length ? `\n\n[Selected in the viewport: ${(['face', 'edge', 'body'] as const).flatMap(k => { const n = chips.filter(c => c.kind === k).map(c => c.name); return n.length ? [`${k}${n.length > 1 ? 's' : ''} ${n.join(', ')}`] : []; }).join('; ')}]` : '';
+    const message = (said0.trim() || (attached.length ? 'Model what the image shows.' : '')) + (said0.trim() || attached.length ? sel : '') + note;
     if (!message || running || !status?.enabled || props.blocked) return;
-    setText(''); setImages([]); setRunning(true);
+    if (typed === undefined) setText(''); setImages([]); setRunning(true);
+    // (No blob sweep while the turn runs: its base, built and shared states and their meshes are held here, O135.)
+    const release = holdSweeps();
+    try {
     traces.current = [...traces.current, ...attached.map(i => i.trace)];
-    setItems(list => [...list, { kind: 'user', text: text.trim(), ...(attached.length ? { images: attached } : {}) }]);
+    if (said0.trim()) said.current = [...said.current, said0.trim()];
+    setItems(list => [...list, { kind: 'user', text: said0.trim(), ...(attached.length ? { images: attached } : {}) }]);
     const controller = new AbortController(); abort.current = controller;
     // Streamed text goes into the last assistant item until a tool call starts a new one.
-    let open = false, built: StudioDoc | null = null, previewing = 0;
+    let open = false, built: StudioDoc | null = null;
+    /** The turn's calls that changed the part, as the tool server captured them (O133). */
+    const ops: TurnOp[] = [];
+    const base = props.base();
+    // (The previews: one evaluation at a time, the latest state waiting; nodes a state did not change are the ones
+    // already sent, PERF3 A3.)
+    let shared = base;
+    const previews = latestPump((d: StudioDoc) => latest.current.evaluate(d), bodies => { if (abort.current === controller && bodies) latest.current.onPreview(bodies); });
     const done = await runServerTurn({
-      text: message, images: attached, traces: traces.current, doc: props.base(), session: session.current, signal: controller.signal,
+      text: message, turns: said.current, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, signal: controller.signal,
       onEvent: e => {
         if (e.type === 'text') {
           const wasOpen = open; open = true;
           setItems(list => wasOpen ? [...list.slice(0, -1), { kind: 'assistant', text: (list[list.length - 1] as { text: string }).text + e.delta }] : [...list, { kind: 'assistant', text: e.delta }]);
         } else if (e.type === 'tool') { open = false; setItems(list => [...list, { kind: 'tool', name: e.name, input: e.input, summary: e.summary, isError: e.isError }]); }
         else if (e.type === 'state') {
-          built = e.doc; const n = ++previewing;
-          void latest.current.evaluate(e.doc).then(bodies => { if (n === previewing && abort.current === controller && bodies) latest.current.onPreview(bodies); });
+          if (e.ops) ops.push(...e.ops);
+          built = shared = reshareNodes(shared, e.doc); previews.push(built);
         }
       },
     });
+    previews.close();
+    if (done.ops) ops.push(...done.ops);
     if (done.session) session.current = done.session;
     abort.current = null; setRunning(false);
     // An aborted turn keeps what it had built when it stopped.
-    const doc = done.doc ?? (done.end === 'aborted' ? built : null);
+    let doc = done.doc ? reshareNodes(shared, done.doc) : done.end === 'aborted' ? built : null;
+    // (Edited during the turn: its calls merged onto the part as it is now, the conflicting ones a proposal, O133. Edited
+    // again while merging: merged again, twice at most; then every call waits.)
+    let merged: Merged | undefined, from = base;
+    if (doc && ops.length && changedDuring(base, latest.current.base())) {
+      const patch = { id: `${session.current ?? 'turn'}#${said.current.length}`, by: { agent: 'chat', ...(status?.model ? { model: status.model } : {}) }, base: revisionOf(base), nextId: nextSerial(base), ops };
+      try {
+        for (let tries = 0; ; tries++) {
+          const now = latest.current.base();
+          merged = await mergeTurn(base, now, patch, latest.current.check, tries < 3 ? {} : { deferAll: 'you kept editing the part while the turn was merged onto it' });
+          from = now;
+          if (tries === 3 || !changedDuring(now, latest.current.base())) break;
+        }
+        doc = merged.doc;
+      } catch (e) {
+        setItems(list => [...list, { kind: 'notice', text: `The turn could not be merged with your edits: ${e instanceof Error ? e.message : String(e)}. Nothing of it was applied.` }]);
+        doc = null; merged = undefined;
+      }
+    }
+    // (The turn in the design history, saved with the part: the message capped, the model, what it changed.)
+    if (doc) {
+      const hash = modelHash(doc), line = [diffLine(treeDiff(from, doc)), merged ? `merged over your edits: ${merged.applied.length} of ${ops.length} applied${merged.proposal ? `, the rest ${merged.proposal}` : ''}` : ''].filter(Boolean).join('; ');
+      doc = withHistory(doc, { kind: 'prompt', by: { agent: 'chat', ...(status?.model ? { model: status.model } : {}) }, prompt: message, ...(line ? { summary: line } : {}), ...(hash !== modelHash(from) ? { model_hash: hash } : {}) });
+    }
     if (done.end === 'error') setItems(list => [...list, { kind: 'notice', text: done.error ?? 'The chat request failed.' }]);
     if (done.end === 'aborted') setItems(list => [...list, { kind: 'notice', text: doc ? 'Stopped. The changes made so far are kept (one undo removes them).' : 'Stopped.' }]);
     latest.current.onPreview(null);
-    if (doc) latest.current.onCommit(doc, done.selection);
+    if (doc) latest.current.onCommit(doc, done.selection, merged);
     else if (done.selection) latest.current.onSelect(done.selection);
+    } finally { release(); }
   };
 
   const enabled = !!status?.enabled;
@@ -105,7 +192,10 @@ export function ChatPanel(props: ChatPanelProps) {
       onDrop={e => { if (!e.dataTransfer.files.length) return; e.preventDefault(); if (enabled && !running) void attach(e.dataTransfer.files); }}>
       <div className="card-title">CHAT <span className="muted">{status?.model ?? ''}</span>
         <span className="grow" />
-        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; traces.current = []; setItems([]); }}><Icon name="restart_alt" small /></button>
+        <select className="chat-autonomy" aria-label="Autonomy" title={AUTONOMY_TIPS[autonomy - 1]} value={autonomy} disabled={running}
+          onChange={e => { const n = Number(e.currentTarget.value); setAutonomy(n); try { localStorage.setItem('studio.autonomy', String(n)); } catch { /* private mode */ } }}>
+          {AUTONOMY_TIPS.map((t, i) => <option key={i} value={i + 1} title={t}>L{i + 1}</option>)}</select>
+        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; said.current = []; traces.current = []; chatBlobs.current = newChatBlobs(); setItems([]); }}><Icon name="restart_alt" small /></button>
         <button className="tool small" aria-label="Close chat" title="Close" onClick={props.onClose}><Icon name="close" small /></button>
       </div>
       <div className="chat-log" ref={log} aria-live="polite">
@@ -114,10 +204,10 @@ export function ChatPanel(props: ChatPanelProps) {
           <code>pnpm --filter @barocss/cad-studio-app chat</code>
           It runs the claude CLI with its own sign-in; the browser only talks to the local server.
         </div>}
-        {enabled && !items.length && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges” — or attach a sketch, photo or drawing of it.</div>}
+        {enabled && !items.length && <div className="chat-empty muted">Describe a part or a change, e.g. “a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges” — or attach a sketch, photo or drawing of it.<br />Your messages are kept in the part’s design history, saved with the file.</div>}
         {items.map((it, i) => it.kind === 'tool'
           ? <details key={i} className={'chat-tool' + (it.isError ? ' err' : '')}>
-              <summary><Icon name={it.isError ? 'error' : 'build'} small /><span className="mono">{it.name}</span> <span className="chat-sum">{it.summary}</span></summary>
+              <summary><Icon name={it.isError ? 'error' : 'build'} small /><span className="mono">{toolLabel(it.name, it.input)}</span> <span className="chat-sum">{it.summary}</span></summary>
               <code>{brief(it.input)}</code>
             </details>
           : <div key={i} className={'chat-msg ' + it.kind}>
@@ -128,6 +218,8 @@ export function ChatPanel(props: ChatPanelProps) {
       {!!images.length && <div className="chat-thumbs pending" aria-label="Attached images">{images.map((img, k) => <span key={k} className="chat-thumb">
         <img src={imageUrl(img)} alt={img.name} title={`${img.name} · ${img.width}×${img.height}`} />
         <button type="button" aria-label={`Remove ${img.name}`} onClick={() => setImages(list => list.filter((_, j) => j !== k))}><Icon name="close" small /></button></span>)}</div>}
+      {!!chips.length && <div className="chat-chips" aria-label="Selection sent as context">{chips.map(c => <span key={c.name} className="chat-chip" title={`The ${c.kind} selected in the viewport, sent with the next message`}>{c.name}
+        <button type="button" aria-label={`Leave out ${c.name}`} onClick={() => setDropped(d => [...d, c.name])}><Icon name="close" small /></button></span>)}</div>}
       <form className="chat-input" onSubmit={e => { e.preventDefault(); void send(); }}>
         <input ref={fileInput} type="file" accept={ACCEPT} multiple hidden aria-label="Chat image file" onChange={e => { if (e.target.files) void attach([...e.target.files]); e.target.value = ''; }} />
         <button type="button" className="tool" aria-label="Attach image" title="Attach a sketch, photo or drawing (or paste / drop one)" disabled={!enabled || running || images.length >= 4} onClick={() => fileInput.current?.click()}><Icon name="image" /></button>

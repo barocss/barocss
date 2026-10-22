@@ -1,0 +1,9959 @@
+# Decision records (kernel and studio)
+
+Short ADR-style records: what was decided, why, and what it binds. Newest last. Each R/RB step adds its
+records here. Conformance fixtures for the same steps live in `packages/barocss-cad/conformance/`.
+
+## D1 — One body kind: B-rep with analytic, NURBS or facet faces (2026-10-18, owner)
+Decided: meshes, SubD and modelled solids are all B-rep bodies; a face's geometry is an analytic or NURBS
+surface or a facet patch (a Parasolid "convergent" subset). Imported meshes become facet faces grouped into
+regions, never a B-rep face per triangle. SubD is a cage feature that converts to exact bicubic NURBS faces.
+Why: one topology for picking, naming, mates, drawings and Booleans. Per-triangle faces measured 10.5 s to
+convert, 3.8–85 s to display and 2.2 GB at 200k triangles (R1 / M0).
+
+## D2 — No WASM or external numeric libraries; our own TypeScript (2026-10-18, owner)
+Decided: no manifold-3d, meshoptimizer or Rust core; `@barocss/cad` stays dependency-free. Hot loops get better
+algorithms (culling, BVH, caches, filtered predicates, no allocation). If one still dominates, the numbers go
+to the owner. WASM is not proposed unprompted.
+Why: own the capability; manifold-3d's 1M-triangle union at 0.45–0.6 s was measured as a reference only.
+
+## D3 — Small STL Booleans through the planar path until F2 (2026-10-18, owner)
+Decided: during F0, a Boolean or split on a facet body under a size threshold explodes it to the per-triangle
+planar B-rep and runs the polyhedral Boolean; above it, a clear refusal names the missing capability. One named
+code path with a test; removed in the step that lands F2. The mesh node is versioned so old `<id>.facetK`
+names resolve.
+Why: STL Booleans work today; F0 must not take that away before F1/F2 replace it.
+
+## D4 — Mitred fillet tools applied one by one; repeated names renumbered by position (2026-10-17)
+Decided: overlapping fillet/chamfer tools go to the body one at a time, not unioned first. The finish's repeated
+face names are renumbered `#k` by face position, and edges are named again from their faces. Where one step meets
+the last along an edge (concave tangent chains, drafted walls), the tools are joined first as before.
+Why: four mitred top fillets 110 → 56 ms. Cost: three mitred fillets can swap `#1`/`#2` against the old
+key-ordered numbering (`25a98599e`).
+
+## D5 — STEP imports have their own 32 MiB limit; the writer shares directions (2026-10-17, owner)
+Decided: `CadPartLimits.stepBytes = 32 << 20`, separate from the 4 MiB part-document `fileBytes`.
+Why: a modelled M8 bolt's STEP was 23.6 MB (18.9 MB after sharing directions) and could not be reopened. 32 MiB
+bounds parse memory and time for an untrusted file (`3134a3868`).
+
+## D6 — Cylinders touching at a point are built, not refused (2026-10-16)
+Decided: two cylinders of different radii whose walls touch from inside are cut at the touch: the intersection's
+branches are split at double zeros, so every piece ends there. Touching from outside (not a manifold) is still
+refused.
+Why: the result depended on operand order. The plate case is within 5e-6 of the exact volume (`5d24f6374`).
+
+## D7 — A hole's miss check reads the result's faces, with a volume fallback (2026-10-17)
+Decided: a hole that removes nothing is detected from the result's faces. When the hole has no faces of its own
+(a copy coinciding with a bore), it falls back to comparing volumes.
+Why: two volume computations per hole were slow; the face test alone refused valid coincident copies
+(`dafa648bc`, `77c06d2b9`).
+
+## D8 — Helical threads stay internal; faceted remains the default (2026-10-17)
+Decided: `threadSolid({ form: 'helical' })` (@internal) builds half-turn ruled B-spline faces with quarter-turn
+cubic spans. The default stays faceted until mass, display density and section split are fast enough. R2
+re-measures this and proposes a switch.
+Why (S2, M8×30): helical STEP is 273 kB against 19.4 MB, its split 18 s against 553 s, and its mate faces are named.
+But its mass took 7.3 s against 0.25 s, and its display had 51k triangles against 28k.
+
+## D9 — Binary64 filters in front of exact predicates; exactness kept (2026-10-18, R2)
+Decided: the polyhedral Boolean decides clear cases (plane distance, ray crossing, point in face, collinearity) in
+binary64 with a bound of 1e-9 of the terms' size, far beyond the conversion error. Only the uncertain cases reach
+the exact rationals. Face pairs and T-junctions are found through x-sorted indexes.
+Why: 66% of a mesh union was BigInt gcd. The 20k-triangle union went 409 → 3.2 s, and its volume agrees with an
+independent mesh Boolean to 0.02 mm³ (`014e2f821`, `44cbb33bc`).
+
+## D10 — Whole B-spline patches integrated without tessellation (2026-10-18, R2)
+Decided: a curved face whose single loop lies on its patch's domain boundary, and is as long as that boundary,
+is integrated by tensor Gauss–Legendre per knot span with analytic derivatives. The length test is required: a
+union's seamed wall had a 315° surface under a full-circle loop.
+Why: helical bolt mass 5.9 → 0.43 s at the same volume (`16028c0d7`).
+
+## D11 — Far points are rejected by the control-point box in curved Booleans (2026-10-18, R2)
+Decided: `offSurface` takes its caller's threshold. Past it, the distance from a NURBS patch's control-point
+box is returned as a lower bound, without inverting the point. Patch sample grids are made on demand.
+Why: helical bolt split 5.7 → 1.8 s with the same result (`189c0f9e8`).
+
+## D12 — Mesh measurements are opt-in without budgets; fixtures are generated, never downloaded (2026-10-18, R1)
+Decided: `pnpm bench:mesh` (and `--facets`) runs deterministic generated fixtures, each in its own process
+with a timeout, and reports the first failure. It has no budgets until the facet path exists.
+Why: honest numbers for M0/F0 without network fixtures or flaky CI gates (`f5d237c9f`).
+
+## D13 — Twisted ruled faces get rows by their twist (2026-10-18, R2)
+Decided: a twisted ruled face is cut across its rulings into ⌈twist / (π/2/perQuarter)⌉ rows: at least 2,
+at most the old 2·perQuarter. The twist is the largest angle its normal turns along a ruling.
+Why: a thread flank 0.7 mm across had 16 rows. The helical bolt's display went from 51k to 9.3k triangles with
+the same chord error (`afdf0dbe5`).
+
+## D14 — Sewing is hashed and evaluates once-validated (2026-10-18, R2)
+Decided: `sewSolid` welds corners through tolerance-sized cells, keeping the lowest index within tol as the
+scan did. It pairs sides through their two corners, and evaluates through `curveEvaluator`/`surfaceEvaluator`.
+Why: identical output, 2.1× faster at 1536 patches (`984872627`).
+
+## D15 — Conformance cases are part documents with toleranced expectations (2026-10-18, owner rule)
+Decided: `packages/barocss-cad/conformance/<step>/*.json` holds an input part document and the expected
+outputs: volume (relative tolerance), centroid (absolute), bodies, shells and genus per body, and face names
+or a name pattern. A refusal is expected as an error code plus message text. Face and edge counts are never
+compared. `test/conformance.test.mjs` checks every case, and `scripts/conformance-gen.mjs` regenerates the
+kernel-measured values; a changed value is a changed contract.
+Why: a spec plus conformance suite for a later reimplementation, and goldens for RB.
+
+## D16 — The helical thread is the default; thread nodes say their form (2026-10-18, owner approved)
+Proposal: switch `thread` to the helical B-spline form. On the R2 code (M8×30):
+- split works in 3.7 s (faceted fails as non-manifold after 13 s);
+- interference 2.6 s against 9.0 s;
+- display 9.3k triangles against 28k;
+- drawing 0.69 s against 0.98 s;
+- STEP 273 kB against 19.4 MB;
+- mate faces are named.
+
+Its mass takes 0.47 s against 0.26 s.
+
+Owner: "D16 승인: 나사산 기본값을 helical로 바꾸고, thread 노드에 버전을 붙여 예전 문서의 .facetK 이름이 계속 풀리게 해줘."
+Decided:
+- `threadSolid` defaults to helical.
+- The part document's `thread` feature takes `form: 'helical' | 'faceted'`; left out, it builds faceted. So
+  documents written before keep their `.facetK` names and mates without being renamed.
+- The studio writes `form: 'helical'` on every new thread node (fastener inserts). Its faces are named
+  `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`.
+
+Conformance `rb1/thread-legacy-faceted` and `rb1/thread-helical`.
+
+## D17 — Robustness runs: a fixed taxonomy, known failures as TODO, trend rows per commit (2026-10-18, RB1)
+Decided: `pnpm rb` (`packages/barocss-cad/scripts/rb/`) runs each case in a worker process with a SIGKILL
+timeout. Each stage is classified as OK / REFUSED / INVALID / WRONG / CRASH / TIMEOUT / TOL_BLOWUP.
+- A kernel's own error type is a REFUSED; a built-in type (TypeError, RangeError…) escaping is a CRASH.
+- A refusal where outputs were expected is WRONG.
+- Tessellation must be watertight by position.
+- Known failures live in `robustness/todo.json`: TODO while they fail, IMPROVEMENT once fixed. Anything else
+  failing is NEW and fails the run.
+- `--record` appends a trend row keyed by commit and dataset hash.
+- The seed corpus is generated (`rb:seed`): part families, broken meshes, STEP exports of our models.
+
+Why: one honest pass-rate table per commit, comparable over time, before the larger corpora (RB6/RB8).
+The first run found a STEP round-trip bug (duplicate face names and open edges after re-importing a
+countersunk plate; TODO). By exact position, the helical builder's direct output has 342 open tessellation
+edges (for RB2).
+
+## D18 — Strict L0 validation is opt-in; outputs report it, imports are reported rather than refused (2026-10-18, RB2)
+Decided: `checkBrep(brep, { strict: true })` adds four checks (`brep-check-geometry.ts`):
+- every edge lies on the surfaces of its faces (9 samples per curve, 3 per line), within 10× its tolerance or
+  1e-6 of the model's size, whichever is larger;
+- no loop crosses or touches itself or another loop of its face, in the face's parameters (faces with a seam
+  or pole are skipped: their parameter map is ambiguous there);
+- no planar sliver, i.e. a face whose width 2A/P is under its edges' tolerance;
+- no tolerance past 1e-3 of the model's size.
+
+The builders' own `assertValidBrep` stays as it was (no extra cost, no new refusals). Every part output gets
+`validate()` (strict, cached), so an imported STEP body carries a report instead of being refused. RB and the
+conformance runner validate strictly.
+Why: today's checks miss geometry that topology cannot see. On the first strict run, the corner patches of a
+box filleted on every edge share edges 0.18–0.36 mm off their surfaces (radius 2), in the part and through
+STEP. These are recorded as TODO for R10's vertex blends.
+
+## D19 — Tessellation corners are the B-rep vertices' points (2026-10-18, RB2, `0d6da686d`)
+Decided: an edge's first and last tessellation samples are its vertices' points, not its curve evaluated at
+its ends.
+Why: two curves meeting at a vertex evaluate their ends a few ulps apart, so the faces' rings disagreed at
+corners. The helical bolt had 342 open mesh edges by exact position, in its display mesh and its STL.
+Now there are none, and the volume is unchanged.
+
+## D20 — Surface area is exact; STEP carries CAx-IF validation properties; RB checks the round trip (2026-10-18, RB3)
+Decided:
+- `brepSurfaceArea` (and `output.surfaceArea()`) integrates area in the same exact quadrature as mass, as an
+  eleventh integral: Green's theorem along planar faces' edges, |Su × Sv| by tensor Gauss over whole patches,
+  per-triangle rules over the parameter domains of trimmed faces. A fine tessellation is the fallback.
+- `exportStep` writes the part's geometric validation properties by default: volume, surface area, centroid
+  (CAx-IF: a PROPERTY_DEFINITION 'geometric validation property' → REPRESENTATION 'volume' / 'surface area' /
+  'centroid') and a 'bounding box' (two points). Options `validationProperties: false` skips them.
+- `stepValidationProperties` reads them, and `compareValidationProperties` checks a model against them with
+  CAx-IF's limits (volume and area 1 %, centroid 0.1 % of the box diagonal).
+- RB stages `roundtrip` (STEP out and back in: volume, area, centroid to 1e-6, the same V/E/F/S/genus, strictly
+  valid) and `gvp` (an incoming file's properties against what was read).
+Why: the L1 round trip is our own conformance; GVPs let other systems (and we) check what was exchanged.
+Every corpus and conformance output round-trips within 1e-6 (typically 1e-11).
+
+## D21 — Repeated names in a STEP file are numbered in file order on import (2026-10-18, RB3)
+Decided: when a file repeats face or edge names (several bodies exported with the same feature names), the
+repeats become `name#1`, `name#2`… in file order (the kernel's split-piece convention); unrepeated names stay.
+Why: a B-rep's names are unique; a two-body export broke that on re-import (the countersunk TODO). That TODO
+was itself a corpus mistake: its holes branched the plate into two bodies (fixed: holes chain).
+
+## D22 — The all-edge fillet corner is exact; the corner ball keeps its pole at the apex, so names hold (2026-10-18, after RB3, owner)
+Finding: the reported 0.18–0.36 mm "corner gap" (D18's first strict run) was a false positive. The corner
+patches' edges lie exactly on the ball (every sample 2.000000 mm from its centre). The validator's inversion
+failed at the patch's pole; fixed in `d6c19b84d` with seeds off collapsed sides and Levenberg–Marquardt. No
+kernel geometry fix was needed.
+Tried and reverted: turning the ball so no pole lies in the corner (`071705e31`) made mass and area 5× more
+accurate (volume 3.6e-5 → 7.5e-6 at r = 4.99). But it reassigned every `f.face#k` of an all-edge fillet,
+cylinder pieces included, because pieces are numbered by position across all of them. Mates, faces picked for
+holes and sketches, and chat references store those names, and D16's rule is that saved documents keep
+resolving. Versioning the fillet feature was not worth a 5× gain inside an already small error, so the ball
+keeps its pole at the corner apex and the numbering is exactly as before (checked face by face).
+Stated accuracy: rounded 40 × 30 × 10 box against its closed form, volume and area within 5e-5 relative
+(3.6e-5 at r = 4.99, shrinking with finer quadrature: 2e-7 at q = 32). Strict gaps ≤ 1e-9; watertight across
+r = 0.25–4.99.
+Future: pole-aware quadrature for trimmed patches (re-parametrize near a pole) would give the accuracy without
+moving any geometry or name.
+
+## D23 — Mass quadrature about the body's centre, with trims' curved strips integrated (2026-10-18, RB4)
+Decided:
+- The divergence-theorem integrals are taken about the centre of the box of the faces' control points, then
+  moved to the world origin (parallel-axis relations), so a body's mass no longer depends on where it sits.
+- On meshed (Boolean-trimmed) faces, the parabolic strip between each boundary chord and its edge, in the face's
+  parameters, is integrated; the remaining error is extrapolated as h³ (h² beside a surface's pole, where no strip
+  is added).
+Why: RB4's rigid-motion property found 8e-5 between a body and the same body moved. Closed forms:
+- top-edge fillet box 4.8e-6 → 8.6e-9;
+- oblique holed-plate split 8.9e-6 → 5e-7 a half;
+- countersinks 1e-9.
+The vertices' box was tried as the centre and rejected: it put a torus cut by a box off-centre (`087f5d9db`).
+
+## D24 — Property tests: our own harness, tolerances by mass method, known failures as TODO (2026-10-18, RB4)
+Decided: `scripts/rb/property.mjs` holds the harness (seeded mulberry32, shrinking to the smallest failing value,
+crashes as failures) and eight properties:
+- inclusion–exclusion;
+- difference;
+- commutativity;
+- exact rigid motions;
+- uniform scale;
+- knot insertion and degree elevation;
+- fillet monotone and Lipschitz;
+- quadrature against tessellation.
+
+Generators tilt half the primitives, so the general Booleans run, not just the upright family. Volumes
+compare within the accuracy their mass method claims: 1e-9 closed form or planar, 2e-5 quadrature,
+2e-3 tessellated. `pnpm rb:props` runs about 200 cases a property with seed 20261018 (RB_PROPERTY_SEED=random
+nightly), `--record` appends to `robustness/properties.jsonl`, and `pnpm test` runs a 5-case slice. Known
+failures live in `robustness/properties-todo.json`: their failures show as TODO, and passing again shows as
+IMPROVEMENT.
+Why: metamorphic checks find what fixed tests miss. Findings (TODO, with an exact oracle in
+`robustness/corpus/oracle`, `scripts/rb/oracle-cylinder-box.mjs`):
+- an upright cylinder minus a box turned 80.79° about X encloses 6.8e-5 too little (the Boolean result);
+- its intersection integrates 8.7e-4 high at default quadrature;
+- the rigid-motion property still misses by 2.2e-5 on two tilted cylinders.
+
+(Corrected by D25: the Boolean result was exact. All three were the trimmed faces' quadrature.)
+
+## D25 — Trimmed-face mass by exact strips; grazing slivers; exact-oracle families (2026-10-18, owner: before A1)
+Root cause of RB4's cylinder − turned-box defect: not the Boolean. Against exact per-face areas the result's
+faces are right: its planar faces to 1e-7, and the trimmed cylinder face's area is 9.3965144. The mass
+quadrature was wrong. D23's strips were keyed by vertex index; a face's vertex list repeats points, so most
+boundary chords got no strip and some got two. The same mechanism explains the 9e-6 mm STEP centroid drift:
+the re-imported edges are sampled differently, so different strips went missing.
+
+Decided:
+- **Strips.** Strips are found by position. Each strip, the region between a chord and its edge in the face's
+  parameters, is integrated once:
+  - a ruled map from the chord to the edge's (u, v) curve, Φ(t, s) = L + s (C − L);
+  - C′ from the surface's tangents;
+  - Gauss–Legendre 8 × 4.
+
+  An edge straight in (u, v) to rounding gets no strip. Its probes evaluate points only, because a circle's C0
+  knots have no derivative.
+- **Coverage guards.**
+  - The domain's area is checked against the flat mesh before the strips.
+  - The face's vector area is checked against the exact ½∮ x × dx along its edges. That is computed once per
+    curve per pass, with 4 points a span for polynomial cubics (exact) and 12 for rational curves.
+  - A failure falls back to the tessellation.
+
+  The old single check, against the coarse mesh's chords, rejected thin faces. Such a face fell back to the mesh
+  and came out 2–38% low on 10 µm slivers.
+- **Shell signs (analytic Boolean).** A shell's volume about the origin is good to about tol × reach × its
+  boundary length. When |v| is within that, its nesting decides: a shell inside an odd number of other shells is
+  a cavity. Before, a 100 nm sliver could come out as "a cavity in no outer shell" (refused).
+- **Plane normals.** A bilinear plane patch takes its normal from its corners. The difference quotient across a
+  sliver's 1e-4 mm width tilted STEP planes by 2e-6 rad, and the re-imported sliver's volume then depended on the
+  centre.
+- **Cylinder tessellation frame.** The frame is right-handed (e1 × e2 = a). An axis at 45° ties its two largest
+  components, so `a` flipped sign with rounding. One face of two crossed cylinders was then wound inside out:
+  the B-rep was valid, but mass fell back to the mesh and came out 38% low.
+- **Accuracy (stated).**
+  - Quadrature mass: 1e-6 relative, with an absolute floor of 1e-12 mm³, since a sliver's volume is known
+    absolutely.
+  - Centroids: max(1e-6, 1e-11 / V) mm.
+  - Conformance `volumeMM3` takes an optional `absTol`. RB's round trip uses the same floor.
+
+Evidence:
+- **RB4 pair.**
+  - |A ∩ B| = 5.652209677: off by −1.8e-10, −1.5e-10 and −2.1e-10 at q 8, 16 and 32 (before: 8.7e-4).
+  - |A − B| = 229.905016958: off by 2.3e-11 (before: −6.8e-5).
+  - Centroids within 1.6e-8 mm; through STEP within 5e-11 mm (before: 9e-6).
+- **Families against independent oracles.**
+  - Box turned about X, Y or Z at 0.01–135°: worst 6.2e-9.
+  - Grazes 10 µm and 100 nm in: 100 nm slivers of 3e-10 mm³ within 9e-15 mm³.
+  - Crossed cylinders at 15–90°, including equal radii (Steinmetz, 16 r³/3 at 90°): worst 1.6e-8.
+- **Property sweep.** The oracle property found no wrong result in 1200 random cases over 6 seeds.
+- **Cost.** Mass of the 16-hole plate is about 30% slower (0.36 s against 0.28 s); its evaluation is unchanged.
+  All studio bench scenarios are within budget; the 16-hole plate's cold evaluate is 1.2 s against 3 s.
+- **Suites.** All conformance cases pass (7 new in `conformance/rb4-oracle`). The other suites:
+
+  | Suite | Result |
+  |---|---|
+  | kernel | 896 pass; the one failure is the known environmental Node-version test |
+  | studio | 235/235 |
+  | RB | 0 NEW |
+  | props | 0 failing |
+  | browser split/section steps | pass |
+
+Oracles:
+- `scripts/rb/oracle-cylinder-box.mjs`: an upright cylinder against a box turned about X, Y or Z. Volume and
+  first moments come from an exact piecewise-polynomial inner integral, with Gauss–Legendre in φ between every
+  kink of the outer one, to rounding.
+- `scripts/rb/oracle-cylinder-pair.mjs`: crossed cylinders by parallel slices, ∫ 4√(a² − t²)√(b² − t²) dt / sin α.
+- `scripts/rb/oracle-cases.mjs`: builds the cases. The seed writes 93 of them; the property "exact oracles"
+  runs nightly with a random seed; `pnpm test` runs the fixed slice.
+
+Known, for RB5 (`robustness/todo.json`):
+- Within 1–30 tolerances of the wall, X- and Y-turned boxes refuse (typed: the sliver is thinner than the
+  stitch's 20-tolerance vertex merge).
+- At 1 nm, X at 30° and 45° return a body that fails strict L0 (loops cross; 534 mm³ against 253 mm³). This is
+  RB5's first item.
+
+  A guard was tried after review (owner's delegate): the strict loop and edge-on-surface checks on the
+  Boolean's cut faces only, with an analytic chart for cylinder pieces. It cost 1–2% of Boolean time (the
+  16-hole plate; the corpus), but it was not adopted:
+  - L0's "cross or touch" also refuses results the kernel accepts on purpose: cylinder walls touching from
+    inside, schema-1 seams, shell slabs (4 kernel tests).
+  - Counting proper crossings only misses this case.
+
+  A discriminating check is needed, such as each cut face's vector area from its loops against its piece's
+  region, or tolerant stitching.
+- Two random X-turned grazes at 10 µm and 1 µm refuse (an edge with one use).
+- A 10 µm lens's tessellation folds: two faces share a diagonal; it has no crack.
+
+## D26 — Stable feature ids: a face keeps its feature's name, a body its key, through deletes, moves and inserts (2026-10-18, A1.1, A1.1b)
+Decided:
+- **Ids.** Every studio node carries `id`, `n<k>`. The serial k is handed out once by `StudioDoc.nextId` and
+  never again, and the kernel feature is that id.
+  - A document built by appending numbers its features as they come (node i is `n<i>`), so names read exactly
+    as before.
+  - A node without an id takes `n<i>` when that is free and was never handed out (i ≥ `nextId`), else the next
+    serial (`withIds`, engine/ids.ts).
+- **Schema 2.** A schema-1 file reads with node i as `n<i>`: every stored name, whether a fillet's edges, a
+  mate's face or a drawing dimension's edge, resolves unchanged. A note says the ids were given. Nothing is
+  renamed (the D16 rule).
+- **History edits rename nothing.** Deleting, moving or rebuilding a range renumbers only index references
+  (parents, sketches, body keys `b<i>`); names keep their ids.
+  - A replaced range keeps the old nodes' ids in order.
+  - `edit_feature` with a whole feature keeps the feature's id.
+  - `add_features` ignores ids an agent sends, and `checkNode` accepts `id`, so a document read back can be
+    sent again.
+- **New features.**
+  - A duplicated body is new features: fresh ids, and its fillets name the copies' edges.
+  - Parts folded into an assembly move their ids past the assembly's own (by serial; with nothing deleted, by
+    node count, as before).
+  - A section's splits are the next ids: their cut faces are `n<next>.cut…`.
+- **Readers by name.** Every reader of names now goes by id: threads (keyed by feature id), hole callouts,
+  edit handles, picking a face's feature, dependents, reorder checks, flatten, part conversion and output body
+  keys.
+
+Why: A1's first need is that a name an agent or a user stored keeps meaning the same face when the history
+changes around it. Before, deleting or moving a feature renamed every later name (`renameIds`), and a name kept
+outside the document (an agent's plan, a note) went stale.
+
+Evidence:
+- Studio 243/243, with 5 new A1 tests:
+  - ids are never reused;
+  - names survive insert, move and delete, with volumes checked;
+  - a duplicate gets fresh ids;
+  - a rebuilt range keeps its ids;
+  - flattened instances get unique ids.
+- 3 conformance cases (`apps/cad-studio/conformance/a1`): schema-1 read, delete, move.
+- The full browser flow passes (102 + 1 updated: the older-file step now reads schema 2 with ids n0 and n1).
+- Bench unchanged.
+
+A1.1b, body keys (owner's delegate, after review). Bodies are keyed by the stable id of the feature that makes
+them: `b<k>` for `n<k>`, `b<k>_<side>` for split halves, `b<k>_part<j>` for a file's or a separation's solids.
+- **Why.** The maps keyed by body are document state: looks (colour, material, name, hidden, face colours),
+  render appearances and animation tracks. With index keys, a delete or move either rewrote them, so holders
+  outside the document went stale, or attached them to the wrong body.
+- **What changes.** Nothing is re-keyed on move. A delete drops only the deleted features' keys. A rebuilt range
+  gives its solid the old last node's id, so the shape keeps its key. A document built by appending has the
+  same keys as before.
+- **Schema 3.** A schema-2 file's index-keyed maps move to the id keys once on read, with a note; schema-1 files
+  are identical.
+- **Code.** `BodyResult.ref` carries the body's node and side now (`refOf`). Agent tools return and accept the id
+  keys, and `checkNode` names a bad reference with its body key.
+- **Tests.** A coloured, brass, animated body keeps its look, appearance and track through a move and a delete
+  above it, plus the schema-2 → 3 migration. The conformance case is `conformance/a1/body-keys`.
+
+Next in A1 (open):
+- **A1.2 selectors.** `{feature, role}` and `{on, normal, pick}`, each resolved to its name and returning it.
+  Exposed to the agent tools; no kernel indices.
+- **A1.3 re-match.** A stored name that no longer resolves after an edit is matched again by geometric
+  signature (surface kind, normal or axis, area, centroid), and refused with the candidates when ambiguous.
+- **A1.4 sketch-entity side names.** `side[sk.l3]` instead of `side3`, versioned per node as D16 did, so that
+  editing a sketch does not renumber the sides.
+
+## D27 — Selectors: a face or edge said by what it is, resolved to its name (2026-10-18, A1.2)
+Decided: wherever the agent tools take a face or an edge (`run_command` faces and edges, `select`, `measure`
+a and b), a selector may stand in for the name. Each resolves to the persistent name(s) it stands for, and the
+result reports them (`resolved: [{selector, names}]`), so the agent learns the name and uses it afterwards.
+- **`{feature, role}`.** The feature is an index or a stable id. The role is exact (`top`, `bottom`, `side2`,
+  `cut`) or a family (`side`, one of its sides).
+- **`{normal, pick}`.** The flat face facing the direction (to 1e-9 in cosine), the farthest along it (`max`,
+  the default) or the nearest (`min`).
+- **`on` and `all`.** Either may take `on` (a body key) and `all: true` (every face that fits).
+- **`{between: [face, face]}`.** The edge two faces share.
+
+Several faces fitting is refused with them listed; none fitting is refused with what there is (the feature's
+faces, the bodies). No mesh index is exposed. The system prompt and tool schemas say so; selectors are JSON
+objects next to names (`anyOf` string or object).
+
+Why: A1 asks that an agent can say "the top of feature 1" or "the face at +X" without first reading the name
+list. Refusing ambiguity, rather than picking one, keeps a plan from silently acting on the wrong face.
+
+Evidence:
+- Studio 249/249, including 3 selector tests: roles, families, directions, `on`, refusals, and a fillet and a
+  measure through `runTool`.
+- Conformance case `conformance/a1/selectors` (7 selectors, two of them refusals).
+
+## D28 — Re-matching stored names an edit renumbered (2026-10-18, A1.3; A1.3b and A1.3c to follow)
+Decided: `edit_feature` (the agent's edit of an existing feature) runs `rematchNames(before, after)`
+(engine/rematch.ts) before it accepts.
+- **Scope.** Every later fillet, chamfer, shell or draft whose parent body the edit changed has its parent body
+  evaluated as it was and as it is.
+- **When names are trusted.** If that body's names are the same, each of the same kind facing the same way, every
+  stored name is trusted. A dimension edit therefore never guesses.
+- **When names are re-matched.** Otherwise each stored name is matched by its geometry before the edit (face:
+  kind, normal, centroid; edge: straight or curved, direction, midpoint). Among the new faces or edges of the same
+  kind facing the same way (1°, an edge either way), the nearest wins when it is clearly the nearest: the next is
+  at least twice as far. That rule is scale-free, so no absolute length enters it.
+- **Substitutions.** A substitution replaces the stored name and is reported to the agent (`rematched: [{feature,
+  was, now}]`). It is also kept on the node (`rematched`, new → old) until the user confirms it, so a wrong
+  guess cannot hide.
+- **Refusals.** When the match is unclear the edit is refused with the candidates. When nothing alike is left it
+  is refused as gone. The part is unchanged either way.
+
+Why: an edit that renumbers sides, such as a sketch given another corner, left a fillet's edge name naming
+another corner. That was silent and wrong; see the conformance case where the old name lands on the corner at
+(10, 0).
+
+Split (owner's delegate asked for persisted signatures and a visible notice; recorded as the next steps):
+- **A1.3b.** Each stored reference keeps a compact signature: mates, placement faces, fillet, chamfer, shell and
+  draft names, drawing dimensions, per-face colours. On evaluate, a name that does not resolve, or resolves to
+  geometry unlike its signature beyond a tolerance relative to the model's size, is matched against the stored
+  signature. This covers a reopened file on a kernel that numbers differently, where there is no prior document.
+- **A1.3c.** The studio shows a re-matched reference on its feature in the tree, with confirm or pick another
+  candidate. Confirming clears `rematched`.
+
+Evidence:
+- Studio 254/254, with 2 tests and 3 conformance cases (`conformance/a1/rematch-*`):
+  - a corner inserted renumbers sides and the fillet follows its corner, by closed-form volume;
+  - a dimension change keeps names;
+  - a cut-off corner is refused naming both edges.
+
+## D29 — Stored references keep a signature; verified on open by the same matcher (2026-10-18, A1.3b)
+Decided:
+- **Where.** Every stored face or edge reference keeps a compact signature of what it named (engine/references.ts):
+  - fillet and chamfer edges, shell open faces and draft faces (`node.sigs`, by name);
+  - mate faces on the base part (`sig`);
+  - drawing dimensions' edges (`sig`);
+  - per-face colours (`look.faceSigs`).
+- **What.** A signature records kind, normal or direction, centroid or midpoint (to 1e-6 mm), size, and radius.
+- **Written.** With the reference, from the bodies it was picked on: an agent tool's `accept`, or the studio's
+  `commit`. A document replaced whole, as on open, is not captured from the old part's bodies.
+- **Refreshed.** Only after an accepted `edit_feature`, which has first gone through the prior-document match
+  (D28), and never for a reference still marked re-matched. Never on open, a plain re-evaluation or a kernel
+  change. Otherwise a renumbering that still resolves, to the wrong face, would overwrite the good signature with
+  the wrong face's geometry.
+- **Verified on open.** No prior document is needed (`verifyReferences`). The one matcher
+  (`rematch.matchSignature`) runs against each stored signature:
+  - its clear best is the stored name: the reference stands;
+  - its clear best is another name: substituted and marked (`was`, `rematched`, `facesWas`), with a toast;
+  - several as near: refused, naming them;
+  - none alike: refused as gone.
+- **Tolerances.** No equality tolerance is used. Kind, direction (1°) and radius (relative 1e-6) gate what is
+  alike, and the clearly-nearest rule (the next at least twice as far) decides. A kernel moving centroids by 1e-9
+  changes nothing.
+- **Cost.** `captureSignatures` copies the document only when some reference lacks a signature.
+
+Why: a file reopened on a kernel that numbers faces otherwise has no prior document (D16's thread names, D22's
+corner numbers); its references must carry their own evidence.
+
+Evidence:
+- Studio 259/259.
+- A signature-writing test: a mate on the base part, a fillet by an agent, and a marked reference not refreshed.
+- 4 conformance cases (`conformance/a1/refs-*`):
+  - a mate whose stored name now names another face is matched back on open;
+  - 1e-9 jitter: no re-match;
+  - a dimension edit, then reopen: no re-match;
+  - two tops as near: refused.
+- Full browser flow 103/103.
+- Bench unchanged.
+
+## D30 — References shown and settled; every part's mates signed; a reference that cannot be told holds only its feature (2026-10-18, A1.3c)
+Decided:
+- **Shown.** A "References" card says "N matched again, M need a choice" at once on open. Each re-matched
+  reference is listed with *was → now*, **Confirm** and **Pick another** (the alike candidates nearest its stored
+  signature). Each problem is listed with its candidates, or "gone; pick it again on the feature". A history step
+  holding a mark or held is underlined, and its tooltip says what was matched or why it is held.
+- **Settled.** Confirming or picking (`confirmReference`) clears the mark, takes the signature from that face or
+  edge as the part now stands, and releases a feature held for it. It is one undoable change.
+- **A refusal on open no longer stops the open.** `verifyReferences` lists problems (ambiguous: the candidates;
+  gone: none) instead of failing.
+  - The feature storing such a reference is held, `suppressed` with `held` saying why, so the rest of the part
+    builds and a reference that cannot be told is never built on.
+  - A mate, dimension or colour with a problem is listed only.
+  - Nothing else changes.
+- **Coverage.**
+  - Mates on every part, the base and each instance (sub-assemblies too), are signed from that part's face table
+    (plane: point and normal; cylinder or bore: axis point, axis one way, radius), in the part's own coordinates.
+  - Holes and face-anchored sketches store their placement as geometry (a centre and an axis; a `DocPlane`), not
+    a face name, so there is nothing to match.
+  - Agent-held selections are not stored in the document. A4's proposals will join this list when they hold some.
+
+Evidence:
+- Studio 260/260. New conformance case `refs-gone`: the file opens, the fillet is held with its reason and listed,
+  and the box builds at 600 mm³. The mate cases now use face-table signatures; ambiguity is a problem, not an
+  abort.
+- Browser flow 104/104, with a new step:
+  - a file whose fillet edge a renumbering kernel would name otherwise opens with it matched again;
+  - the card says "1 matched again" and the step is marked;
+  - Confirm clears the mark;
+  - a file with a gone reference opens with the fillet held, "1 needs a choice", and the box built.
+- Bench unchanged.
+
+## D31 — Sketch-entity side names (A1.4) deferred; A1 closes on stable ids, selectors and signatures (2026-10-18)
+Decided: A1.4, naming an extrusion's sides by a stable sketch-entity id (`side[s3]`) instead of position
+(`side3`), is deferred and recorded here rather than shipped.
+
+Scope found:
+- **Kernel.** The kernel names sides by position in five generators: prismatic, drafted, loft, revolve, and the
+  part-model loops. Stable side names need a new public part-document field (per-segment tags) honoured by all
+  of them, and a per-node version so old documents keep `sideK` (D16).
+- **Studio.** The sketcher has no stable segment identity: its constraints and driving dimensions are indexed by
+  segment as well.
+
+Why deferred (policy 6, risk over value now): the harm, a name landing on another side after a sketch edit, is
+already caught.
+- On edit, the names are matched again by geometry (D28).
+- On open, they are verified against stored signatures (D29).
+- Ambiguity is refused and shown (D30).
+
+Stable side names would mainly avoid the re-match notices.
+
+Plan for when it is taken up, best alongside the sketcher's entity ids (R-track sketch work):
+1. Segment ids in polygon and loop profiles, kept through vertex insertion.
+2. An optional `sideTags` on the kernel profile, used by every generator for `side[tag]`.
+3. A studio sketch node version 2 that sends the tags.
+4. Conformance: a vertex inserted keeps every other side's name.
+
+## D32 — Observation: facts after every change, what changed, and detail on request (2026-10-18, A2.1)
+Decided:
+- **Facts.** Every accepted change returns `facts`, and `get_part_summary` carries them too (chat/observe.ts):
+  - built;
+  - solids;
+  - volume;
+  - mass, by each body's material (aluminium by default; the materials are in app/materials.ts);
+  - volume-weighted centroid;
+  - bounding box;
+  - face, edge and vertex counts, vertices being the distinct ends of edges.
+- **Change.** Every accepted change also returns `change`: only what moved since the step before.
+- **Detail.** `inspect` (faces and edges, by name or selector, D27) gives the detail.
+  - A face: kind, area, normal or axis (a round face's axis from its mesh), radius, centre, its adjacent faces,
+    and the feature that made it (index and label).
+  - An edge: its ends, chord, line (along an axis, oblique) or curve, its two faces, and its maker.
+- **No indices.** No mesh index is exposed anywhere. The system prompt tells the agent to read the facts and the
+  change after each step.
+
+Why: A2 asks that the agent observe what each step did without parsing the face lists, and see a face's
+context (neighbours, maker) when it needs it.
+
+Next in A2:
+- **A2.2.** Mass properties, interference and clearance, section, wall thickness and draft tools.
+- **A2.3.** `render_views`: orthographic views plus isometric with face labels, rendered at milestones and
+  cached by model hash.
+- **A2.4.** `response_format` concise or detailed, with pagination.
+
+Evidence:
+- Studio 263/263: facts and change for a plate and a hole; inspect of a top, a bore and an edge.
+- Conformance case `conformance/a2/facts-hole`, checked against closed forms.
+
+## D33 — Analysis tools; a mass from an assumed material is said so (2026-10-18, A2.2)
+Decided: five agent tools analyse the part without changing it (chat/analysis.ts).
+- **`mass_properties`.** Per body: volume, surface area, and mass by its material. Also the centroid, the
+  inertia about it (the kernel's aluminium inertia scaled to the density) and the box.
+- **`interference`.** Every pair of bodies, or those given: an overlap by the kernel's intersection volume; the
+  others' smallest clearance and where.
+- **`section`.** Across x, y or z at a position, by the kernel's split: each body cut, with the cut's area,
+  regions and box.
+- **`wall_thickness`.** Inward rays from every triangle's centre: the thinnest wall, where and on which face, and
+  the faces thinner than `below`.
+- **`draft`.** Each flat wall's draft angle against a pull (default +Z; negative is an undercut), and those under
+  `min_deg`. Curved faces are said not to be judged.
+- **Stated accuracy.** Clearance, wall thickness and draft are on the display mesh, good to its chord error,
+  and say so. Overlap volume, section area and mass are the kernel's.
+- **Assumed material (owner's delegate).** A body without a material is taken as aluminium, and the facts and
+  mass properties say so: `materials: [{body, material, assumed}]`, `mass_assumed`. The system prompt tells the
+  agent to set the material, or state the assumption, before checking a mass against a requirement. A3 treats a
+  mass check on an assumed material as unknown, not as pass or fail.
+- **Roadmap.** The A1.4 plan is placed in the roadmap as R10a, before R10, whose fillets name sides.
+
+Evidence (studio 266/266), each against closed forms:
+- **Mass.** A plate: area 2560, mass 17.28 g assumed. As steel: 50.24 g, not assumed, with I_zz = m(a² + b²)/12.
+- **Interference.** An overlap of 250 mm³; clearances 15 and 20.
+- **Section.** A cut area of 160; refused off the part.
+- **Wall.** 8 mm.
+- **Draft.** Four walls at 0°, all under 1°.
+
+## D34 — render_views: exact line views on one PNG sheet, faces numbered with a legend (2026-10-18, A2.3)
+Decided: `render_views` returns one 1000 × 1000 PNG and its legend (chat/views.ts).
+- **Layout.** Four views: front, top, right and isometric, third-angle.
+- **Edges.** From the kernel's exact hidden-line projection (`projectBrepHiddenLines`, as drawings use): visible
+  edges solid, hidden ones thin and dashed. Line views are used rather than a shaded render because shading
+  hides CAD-specific faults.
+- **Faces.**
+  - A light fill where a face shows, from our own z-buffer of the display mesh in the same projection.
+  - A Set-of-Mark number on each face that shows at least 60 px, placed at the pixel deepest inside what shows
+    (a chamfer distance transform; among nearly-deepest pixels, the one nearest its centre). So a face with a
+    hole is not labelled at its rim.
+  - The legend maps number → face name; `views.<id>.visible_faces` lists every face that shows in a view, and
+    `mm_per_px` gives the scale.
+- **Options.**
+  - `highlight` fills faces red and rings their labels; it is meant for A3's failed checks.
+  - `section` cuts the part first, keeping the side whose cut faces look at the matching view (y > at for the
+    front, x < at for the right, z < at for the top).
+- **Own code, no dependency.** Antialiased lines, a 3 × 5 digit font and the PNG encoding (CRC, filter 0) are our
+  own. The deflate is the web-standard `CompressionStream`, so the module works in Node, where the MCP server
+  runs the tools, and in the browser bundle.
+- **Image delivery.** Tool outcomes carry `images`, and the MCP server returns them as image content.
+- **Cost.** Rendered only on request (the description says: at milestones or when something seems wrong) and
+  cached by model and options. A plate with a hole renders in well under a second; the cached repeat in under
+  50 ms.
+- **Stated accuracy.** Edges are exact; fill and labels follow the display mesh's chord error.
+
+Evidence: studio 267/267. A view test checks:
+- the PNG signature and 1000 × 1000 size, at 34 kB;
+- the top labelled, and the bore seen in the isometric view through the hole;
+- the top view showing the top and not the bottom;
+- the cache;
+- a y-section whose front view shows the cut face.
+
+The sheet was inspected by eye.
+
+## D35 — Response format and pages; A2 closed (2026-10-18, A2.4)
+Decided:
+- **`response_format`.** The tools that list the part (every mutator, and `get_part_summary`) take one:
+  - `concise`: the facts and what changed, with the features by index and label only;
+  - `detailed`: every body's faces and edges;
+  - absent: as before, them when the part is small, otherwise one body at a time.
+  The default is kept, so agents written against it see no change.
+- **Pages.** A body's faces and edges come 60 to a page (`page`, from 1). Each page says how many there are and
+  how to ask for the next. This replaces a silent truncation.
+
+Why: an agent's context is the scarce resource. A concise step costs a few hundred tokens and a detailed one is
+asked for. A big body is read in pages rather than cut off.
+
+Evidence: studio 268/268 (concise and detailed results; a 30-hole plate's faces in two pages that differ; a
+concise summary). A2 is closed: facts and inspect (D32), analysis (D33), views (D34), format (D35).
+
+## D36 — Requirements as declarative checks, kept in the document (2026-10-18, A3.1)
+Decided:
+- **Where.** The brief is kept in the document as `requirements` (chat/spec.ts). Each requirement has an `id`, a
+  quoted `source`, `hard`, a `basis` (stated, assumed or ambiguous), and optional `subject` and `assume`.
+- **The predicate.** It is declarative JSON, never code that gets evaluated: `{op: == | <= | >= | between,
+  query: {fn, …}, value | min and max, tol?, unit?}`.
+- **Query functions.**
+
+  | Query | Arguments |
+  |---|---|
+  | `bbox` | axis, body? |
+  | `volume`, `mass` | body? |
+  | `count_solids` | — |
+  | `count_faces_of_kind` | kind, body? |
+  | `distance_between` | a, b |
+  | `radius`, `hole_diameter` | face |
+  | `min_wall` | body? |
+  | `draft_min` | body?, pull? |
+  | `clearance` | a, b (body keys) |
+
+  They measure with the agent's own facts, measure and analysis. Subjects are names or selectors, so they keep
+  to the feature's stable id (A1).
+- **Tools.** `set_requirements` checks and keeps them: it adds, replaces by id, or with `replace` replaces all, and
+  refuses a malformed one saying what is missing. `check_spec` runs them and reports `{model_hash, summary {pass,
+  fail, unknown, hard_failing}, failures [{req_id, check, measured, expected, delta, entities, feature, hint}],
+  unknowns [{req_id, why}]}`, with passes as counts only.
+- **Unknown, with why.** An assumed material (D33), a reference that does not resolve, or an analysis that does
+  not apply (curved faces for draft).
+- **Prompt.** The system prompt says to write the requirements before modelling and to run `check_spec` after
+  changes and before finishing.
+
+Why: A3 turns a brief into checks the part can fail, so an agent and a user can see what holds without
+re-reading the prose. Being data rather than code keeps them deterministic, safe, serialisable, and portable into
+the conformance format.
+
+Next in A3:
+- **A3.2.** Mutation check of a suite: driving parameters ±15%, the subject's feature suppressed, and the trivial
+  stub. Plus the iteration policy kept by the tool layer: the best snapshot, a refused regression of passed hard
+  requirements, repair rounds counted, and a restart hint after two rounds without progress.
+- **A3.3.** The checklist panel.
+
+Evidence:
+- Studio 270/270. A brief of 7 checks on a plate with a hole gives 5 pass, R2 failing by 2 mm (hard), and the
+  mass unknown. Malformed requirements are refused.
+- Conformance case `conformance/a3/plate-brief`.
+
+## D37 — Checks tried on mutants; the iteration policy kept by the tools (2026-10-18, A3.2)
+Decided:
+- **Mutation check (`check_spec {validate: true}`).** The suite runs on at most 8 cheap mutants
+  (`MAX_MUTANTS`), each one evaluation and one run of the suite:
+  - every body scaled ×1.15 and ×0.87;
+  - the first two parameters ±15%, or with none the first extrusion's height;
+  - the features the subjects come from suppressed;
+  - the trivial stub, a box as big as the part.
+
+  The report states how many were tried and built, their labels, and the time.
+- **Vacuous, unverified, invariant.**
+  - A mutant that does not build, or on which a check is unknown (its subject gone), does not apply to that
+    check. It is never a pass.
+  - A check that passes on the model and on every mutant it applies to is **vacuous**: it cannot tell this model
+    from a changed one. The exception is a requirement declared `invariant: true` with an `invariant_reason`
+    (one piece, no interference), which is listed as **invariant**.
+  - Fewer than two applicable mutants makes a check **unverified**, not vacuous.
+- **Policy, in the tool layer, not only in the prompt.** `ChatState.policy` remembers across a session:
+  - **best snapshot:** most checks passing, then the least relative miss;
+  - **rounds:** each failing requirement's rounds without a smaller miss;
+  - **passedHard:** the hard requirements that passed at the last check;
+  - **calls:** the tool calls made.
+
+  Every `check_spec` reports the best snapshot (`this_is_best`), the rounds without progress, the tool calls and
+  the turn budget (`CAD_MAX_TURNS`, passed by the chat server). After two rounds without progress on a
+  requirement it adds a hint: start again from the brief, the checks and the best snapshot.
+- **Regression guard.** A change that breaks a hard requirement that passed at the last check is refused, naming
+  it with its measured and expected values, unless it carries `because`.
+- **`restore_best`.** It puts the best snapshot back.
+- **Refused calls.** A refused call leaves the state the very same object.
+
+Why: CADTests-style mutation catches always-passing checks before they are trusted, and an iteration policy kept
+by the tools holds even when the agent's loop forgets it.
+
+Evidence (studio 272/272):
+- A bbox length check and a hole-diameter check are not vacuous (the mutants change them). "Under 100 tall" is
+  vacuous. "One piece" is a declared invariant.
+- With no mutant building, every check is unverified.
+- Three checks without progress give rounds T: 2 and the restart hint.
+- Scaling the plate ×1.5 is refused for breaking L (measured 60) and made with `because`. `restore_best` brings
+  back the 40 mm plate.
+
+## D38 — The requirements panel: checked as the part changes, a person warned and never blocked (2026-10-18, A3.3)
+Decided:
+- **The panel.** The studio's Browser lists the requirements.
+  - Each row: ✓, ✗ or ?, the id, the source quote, the measured value against what it asks for, hard or soft,
+    and its basis (stated, assumed or ambiguous).
+  - The header gives counts and says "checking…" or "stale".
+  - A filter shows the failing only.
+- **Click.** Clicking a row selects its subject faces and edges in the viewport.
+- **Editable assumptions.** An assumed or ambiguous requirement is editable in place: a value and **Confirm**.
+  Confirming makes it stated and records `confirmed: {by: 'user', at}`, so a later reviewer or agent can tell
+  what the user agreed to and what the AI assumed.
+- **When checks run.** After evaluation settles: debounced (350 ms), a stale run dropped, and none while a command
+  previews, a sketch is open or the engine is busy. The panel runs only when there are requirements, so the
+  bench paths are untouched.
+- **People are warned, never blocked.** A person's edit is never refused. A hard requirement that passed and now
+  fails is said at once in a toast ("W now fails", what it measures, "your change is kept"). Only agent tool
+  calls meet the regression guard (D37).
+- **Fix: requirements carried over on commit.** Commands build on the evaluated document, which follows model
+  edits only. `commit` now carries the document's requirements over, like render, drawing and instances.
+  Before, a nudge after a confirmation reverted the confirmation.
+- **Cost.** `min_wall` traces its rays through a uniform grid of the triangles (Amanatides–Woo, early exit)
+  instead of testing every triangle: 4k triangles 447 → 78 ms, 8k 115 ms, same results.
+
+Evidence:
+- Studio 272/272.
+- Browser flow 105/105, with a new step:
+  - a brief opens as 1 ✓ 1 ✗;
+  - the assumed height is set and confirmed: stated, confirmed by user, 2 ✓;
+  - the second box is moved 10 mm left by the user: "W now fails" is said and the move is kept.
+- Bench unchanged.
+
+A3 is closed: requirements and `check_spec` (D36), mutants and policy (D37), the panel (D38).
+
+## D39 — Transactions: batches all or nothing, dry runs, op ids, checkpoints and diffs; one field registry (2026-10-18, A4.1)
+Decided:
+- **Field registry (owner's delegate: the requirements carry-over bug is a class).**
+  - `STUDIO_DOC_FIELDS` and `NODE_EXTRA_FIELDS` list every document and node field. Each is checked against
+    its type at compile time, so a field added to the type but not to the list fails type-check.
+  - `carryOver` (used by `commit`) carries every field but the model's own nodes and outputs. A field a command
+    did not touch is never dropped because the command was built on the evaluated document.
+  - `test/fields.test.ts` sets every field, typed so it cannot miss one. It runs carry-over, delete, move,
+    duplicate, replaceRange, flatten, and opening at schemas 2 and 3, and asserts every field survives.
+  - Flatten now renames the keys of `sigs` and `rematched` with the shifted ids.
+- **`apply_ops`.** Tool calls as one change: `ops [{tool, args, opId?}]` run in order, each on what the one before
+  left (set_requirements, run_command, add_features, edit_feature, delete_feature).
+  - **All or nothing:** a refused op means none is applied and the state stays the same object.
+  - **`dryRun`:** returns what would change — the feature-tree diff, the facts' change, and references that
+    would break (`verifyReferences`) — without applying.
+  - **Op ids:** an `opId` applied before is skipped (`already applied`), so a retried batch does not apply twice.
+    The last 500 are remembered.
+- **Checkpoints.** `checkpoint` names the part as it is (this session, the last 20), `restore` puts it back, and
+  `diff` compares checkpoints, "best" or "current".
+- **Tree diff.** By stable feature id: added, changed (before → after labels), deleted, moved, and parameter and
+  requirement changes. Signatures and marks are ignored: they are what the studio keeps, not the feature.
+
+Why: A4 starts from changes an agent can try and take back whole. The registry keeps A4's branches and proposals,
+which add more fields, from dropping any.
+
+Evidence: studio 276/276.
+- Fields guard: every path.
+- `apply_ops`: a dry run unchanged; applied; a retry skipped; a refusal applying nothing; no batch inside a batch.
+- Checkpoint, diff and restore: added 2, changed n1 8 → 10, then back; the diff afterwards empty.
+
+Next: A4.2, proposals on a branch with a ghost preview and a risk badge, and the history kept in the document.
+
+
+## D40 — Proposals with a ghost preview and a risk badge; the design history in the document, under a budget (2026-10-18, A4.2)
+Decided:
+- **`propose`.** An agent proposes a change instead of making it: `{title, ops, plan?, requirements?}`, the ops as
+  `apply_ops` takes them. They run on a copy; the part is unchanged (its model hash the same).
+  - The result: the feature-tree diff, the facts' change, references that would break, the checks before and
+    after (`checkSpec` both sides: counts, newly failing, newly passing) and a risk badge.
+  - A proposal keeps its ops and the model hash it was made on (`base`), not a copy of the part: its result is
+    the ops replayed. Recorded with it: agent and model (`CAD_MODEL`), the user's message (`CAD_PROMPT`, capped
+    at 2,000 characters), the plan (500), requirement ids, a one-line summary.
+  - The regression guard (D37) does not refuse a proposal: what it does to hard requirements is the badge.
+  - `list_proposals` gives the open ones (all: decided too), stale when the part changed since.
+- **Risk badge.** `features_touched` (added, changed, deleted, moved), `references_broken`,
+  `hard_requirements_changed` (outcome flipped or definition changed), a level, and `approval`.
+  - Level: high when a hard requirement changes, a reference breaks or a feature is deleted; medium when more than
+    three features change, one moves or a parameter changes; else low.
+  - `approval` lists why it always needs a person: an assembly, mates, a drawing, a part from a file.
+    (Amended in D41: these are the *changes* to the assembly, mates, drawing or a locked part, compared
+    before and after, not their mere presence; and an agent makes them only through proposals.) **Pending
+    decision (reversible default):** the document has no "locked" flag yet; a placed part with a `source` file
+    counts as locked. In A4.2 every proposal needs a person anyway; A4.3's autonomy levels read this list.
+- **Accept and reject (studio).** The Proposals list in the Browser:
+  - **Preview** shows the ghost: the bodies the proposal leaves, the changed ones tinted. **Before/After**
+    switches between it and the part as it is. The volume change shows in mm³ and per cent.
+  - **Accept** replays the ops on the part as it is now, one undoable commit. On a part changed since, it is
+    replayed and that is recorded ("replayed on a part changed since it was proposed"). If an op no longer
+    applies, nothing changes, the reason is shown and the proposal stays open. Accepting while rolled back is
+    refused with a hint.
+  - **Reject** keeps the proposal, marked rejected with who and when (and a note, from the API).
+  - Decided ones are hidden behind a filter, never deleted.
+  - The volume overlay is numeric plus tinted changed bodies. A region overlay (material added and removed, in
+    two colours) needs a Boolean per body each way; deferred, recorded here.
+- **Design history (`StudioDoc.history`).** A compact record per entry: id, time, kind (prompt, change,
+  proposal, accept, reject, compacted), agent and model, prompt (2,000 characters), plan (500), summary (240),
+  requirement ids, the model hash produced, the proposal id and its risk.
+  - A chat turn that changes the document adds one `prompt` entry when it ends: the message (attachment names
+    only), the diff in a few words, the model hash when the model changed. A turn that changes nothing adds
+    none (it makes no commit).
+  - No transcripts, tool outputs or images are stored. Full diffs are recomputed from ops and checkpoints.
+  - A person's own edits are not entries: undo covers them, and the history is about agents and decisions.
+  - **Budget:** the history's JSON is at most a tenth of the 4 MiB file limit (419,430 bytes). Over it, the oldest
+    half is folded into one `compacted` entry: how many entries, by kind, and their time span. Folds fold
+    again; ids keep counting.
+- **Privacy.** The history and the proposals' prompts are saved with the part.
+  - The Browser says so under Design history, with **Save a copy without it**: `<name>-shared.bcad`, the
+    history removed and the proposals kept without prompts and plans (`stripHistory`).
+  - The chat's empty state says messages are kept in the part's design history.
+- **Chat base.** The chat now starts from the current document's own fields (requirements, proposals, history),
+  not those of the evaluated copy, which follows model edits only. Before, an agent could see stale requirements.
+- Both new fields are in `STUDIO_DOC_FIELDS`; the fields test sets them and they survive every path.
+- **Fix: D39's carry-over, found by the full browser flow.** It was too wide in two ways.
+  - A new or opened document (`replaceDoc`: New part, Open, templates, mesh and STEP import) went through
+    `carryOver`. The previous document's own fields leaked into it: body names and looks, requirements, and now
+    the history. That is a privacy leak once prompts are stored. `commit(next, capture, whole)` now skips the
+    carry-over for a whole document.
+  - A change built on the document itself, not on the evaluated copy, had what it cleared carried back. "Show
+    all bodies" removes the hidden looks, and they returned. `carryOver` now leaves such a change as it is. It
+    recognises one when the change's nodes are the document's own, or when it holds a field that only the
+    document has.
+  - Guarded by a new fields test, and by the browser step, which checks that a new part has no history,
+    proposals, looks or requirements.
+
+Why: a proposal lets the user see what an agent would do before it happens, and the history keeps who asked for
+what in the file it changed. The budget keeps a long-lived part's file from being taken over by its history.
+
+Evidence: studio 282/282; browser flow 106/106; bench within budget (16-hole plate 1.27 s of 3 s); lint clean.
+- `test/proposals.test.ts`:
+  - propose: model unchanged; diff n2; checks 1/1/0 → 1/1/0; risk low; refusals keep nothing; a bigger hole
+    makes R2 newly passing (risk high); listed, then stale after an edit.
+  - Accept replays the ops. A proposal made before another accepted one is replayed on the changed part, and
+    that is noted. Each proposal is decided once.
+  - Reject keeps the proposal. History kinds come in order. A proposal whose face is gone is refused on accept.
+    Save and open round-trips.
+  - History: a prompt capped at 2,000 characters; 200 × 2 kB entries under a 40 kB budget are folded with every
+    entry accounted for; ids stay unique and keep counting; stripping leaves no prompt or plan.
+  - Approval for an assembly and a part from a file.
+- Conformance `a4/propose-plate`: R2 (≤ 6200 mm³) fails at 6400 and passes at 6173.81 after the proposed Ø6
+  hole. Risk high (R2); accepted gives 3 features and history proposal → accept.
+- Browser flow, new step:
+  - a document with two proposals opens;
+  - the P1 ghost shows −226.19 mm³ (−3.53%), and Before/After switches;
+  - Accept makes the hole (3 features, history prompt → accept); P2 is rejected and kept;
+  - the history lists 3 entries;
+  - the shared copy has no history, prompt or plan, and keeps the proposals.
+
+Next: A4.3. Accept a proposal per feature, dependency-aware: unticking a parent unticks its children, with a
+rebuild preview. Then autonomy levels L1–L4 reading `risk.approval`, and viewport selections sent to chat as
+context chips.
+
+## D41 — Stale proposals are rebased before they are accepted; accept in part, dependency-aware; autonomy L1–L4; the selection as chat context (2026-10-18, A4.3)
+Decided:
+- **No blind accept of a stale proposal (peer's decision, under the delegation).** A proposal made on a part that has
+  changed since (its `base` is not the model hash now) is refused by `acceptProposal` as stale.
+  - `rebaseProposal` makes it again on the part as it is: ops replayed, and the diff, facts' change, broken
+    references, checks' delta and risk all recomputed. It stays open, keeping
+    `rebased: {original, from, at, risk_was}`.
+  - The history records a `rebase` entry (`base_was` → `model_hash`). The accept entry carries `base_was`, the
+    original base.
+  - In the studio a stale proposal shows "stale", and its only way forward is **Rebase & preview**: it commits the
+    rebased proposal (undoable), then shows its ghost. Accept appears only on the rebased version. A rebase that no
+    longer applies shows why, and the proposal stays open.
+  - An agent's `accept_proposal` on a stale proposal rebases it and returns the new preview with
+    `accepted: false`; accepting takes a second call.
+- **Accept in part.** `proposalParts(base, after)` lists the proposal's features: added, changed, deleted (sketches
+  go with their features).
+  - An added feature's children are the proposal's features that depend on it (built on it, or naming its faces and
+    edges). A changed feature has none: put back, what is built on it stands as it did before.
+  - `leaveOutClosure`: unticking a part unticks its children. `toggledLeaveOut`: ticking one back brings its
+    parents back.
+  - `partialDoc`: changed features left out are put back as they were (references renumbered to where those
+    features are now; refused when one was built on a feature the proposal deletes). Added ones are deleted with
+    the sketches only they use. Deletions are all or nothing (no tick).
+  - The studio lists the parts with ticks under a previewed proposal. Each tick rebuilds the ghost, and Accept
+    becomes "Accept 1 of 2".
+  - The decision records `left_out`; a part left out that would leave the part unbuildable is refused with the
+    kernel's reason.
+- **An approved change carries its provenance.** The accept history entry holds who decided (`by`), who proposed it
+  (`proposed_by`, agent and model), the prompt, plan and requirement ids, the risk, the model hash made, and
+  `base_was` after a rebase.
+- **Autonomy levels.** Set in the chat header (L1–L4, kept per browser). They are sent with each turn
+  (`autonomy` → `CAD_AUTONOMY`) and stated to the agent in the turn's note.
+  - L1: propose only. Part-changing tools are refused (requirements and dry runs allowed).
+  - L2 (default): the agent changes the part; the user accepts proposals. **Owner decided option (b), 2026-10-18 — see
+    "L2 is option (b)" below.**
+  - L3: the agent also accepts proposals of low or medium risk that change no hard requirement.
+  - L4: the agent accepts any proposal that breaks no hard requirement (newly failing).
+  - At every level, a proposal with `approval` reasons (an assembly, mates, a drawing, a locked part) is the user's.
+  - A rebased proposal is the agent's to accept only when its risk is no higher than `risk_was` and it changes no
+    hard requirement.
+  - **Changes that always need approval go through proposals at every level (peer's override of the earlier
+    default).** `approvalOf(a, b)` compares the assembly's parts (added, removed, built, moved — mates moving them
+    too), the mates, the drawing and parts placed from a file before and after.
+    - An agent's direct tool call that makes any of these changes is refused at every level, the state unchanged.
+      The refusal is typed: `code: 'needs_approval'` and `approval: [...]`, with the hint "propose it; this kind
+      of change always needs the user's approval".
+    - Such changes are possible only through `propose`. Its ops may now hold the assembly tools and part tools with
+      `"part"` (add_part ids run p1, p2, … so later ops can name them). Their `approval[]` keeps them the user's at
+      L3 and L4.
+    - The user's own edits in the studio are unaffected. The tools themselves stay reachable through
+      `dispatchTool`, the dispatcher proposals replay; tests use it too.
+    - A base-part edit that moves mated parts is an assembly change too, so an agent proposes it.
+    - The system prompt now asks the agent to build the base part directly and to propose the rest of an assembly.
+- **The selection as context chips.** The viewport selection (faces, edges and bodies by persistent name, up to 12)
+  shows as chips above the chat input; a chip can be removed. They are sent with the message as
+  `[Selected in the viewport: face n1.top; …]`, names the tools take.
+- **Small fixes.** History times are shown in local time. A rebased accept is noted "rebased before it was
+  accepted", not with a hash.
+
+Why: the reviewer must see what will happen before it happens. A proposal replayed on a changed part is a different
+change, so it is shown again. Accepting part of a proposal and setting the agent's autonomy let a person take what
+they want from an agent's work at the pace they choose.
+
+Evidence: studio 287/287 after the override (285 before it); browser flow 106/106; bench within budget; lint clean.
+- Override: an agent's add_part is refused at L2 and L4 (`needs_approval`, [assembly]). Proposed, it carries
+  [assembly]; L4 cannot accept it; the user's accept builds the pin. Moving a placed part from a file gives
+  [assembly, locked part]; a hole beside it needs none. A drawing changed gives [drawing]. In conformance
+  `a4/assembly-needs-approval`, the direct move is refused at L1–L4, then proposed, refused to the agent and
+  accepted by the user. In the browser, a proposal shows "needs you (drawing)".
+- `test/proposals.test.ts`:
+  - stale refused, then rebased (both bases kept, nothing built) and accepted; the history reads proposal,
+    proposal, accept, rebase, accept, proposal, reject;
+  - in part: without the hole, with the plate 10 tall; without the edit, the plate put back at 8 with the hole and
+    block kept; a fillet goes with its block;
+  - autonomy: L1 refuses a change but allows a dry run and requirements; L1 and L2 refuse an agent's accept, L3
+    accepts; stale is rebased on the first call (`may_accept: true`) and accepted on the second; the rules table
+    (L3 high refused, L4 newly passing hard allowed and newly failing refused, approval always refused, a rebase
+    whose risk rose refused).
+- Conformance `a4/stale-rebase`: refused stale; rebased (original 00000000; n2, n3, n4 added; R2 fails before and
+  after); accepted without n4: sketch, extrude, hole.
+- Browser flow, the proposals step:
+  - P1 stale → Rebase & preview → −226.19 mm³ (−3.53%) → Before → Accept;
+  - P2 rejected;
+  - P3 rebased, its block unticked ("Accept 1 of 2"), then accepted: two holes, one extrude, `left_out` [n5];
+  - 6 history entries;
+  - the shared copy is stripped;
+  - the chat shows the n1.top chip and L1 is chosen: the turn is sent with `autonomy: 1` and the selection line;
+  - a new part starts clean.
+
+A4 is closed: transactions (D39), proposals and history (D40), rebase, partial accept, autonomy and chips (D41).
+Next on the roadmap: R3.
+
+**L2 is option (b): the owner decided it (2026-10-18).** It applies on the tool server to each call that changes the
+part, against the part as the turn found it (`turnBase`), so a run of small calls cannot add up past it.
+- **What applies directly.**
+  - Value edits of one feature (numbers, or a value bound to a parameter) and parameter values. A sketch counts as part
+    of the feature built from it, so a box's width and height are one feature's values.
+  - Only while every hard requirement that passed at the turn's start still passes.
+- **What becomes a proposal.** Everything else in the turn is refused with `code: 'needs_proposal'` and the part left
+  as it was; the agent proposes it instead. That covers:
+  - a second feature;
+  - a new, deleted or moved feature;
+  - a change to what a feature is built on, its kind or options (`parent`, `tool`, `sketch`, `edges`, `count`, `axis`
+    …);
+  - a parameter added or removed;
+  - a hard requirement broken.
+- **Unchanged.** L1, L3 and L4; the always-approval kinds (assembly, mates, drawing, locked part) at every level.
+- **Owner: the first build on an empty part applies at L2 (2026-10-18).** A turn whose `turnBase` has no features
+  makes the part's features and parameters directly, as many calls as the turn takes. Each call is still checked and
+  refused as usual; the always-approval kinds (assembly, mates, drawing, locked part) are still proposals. The next
+  turn starts from that part, and the L2 rule applies there. The studio shows the same "Applied by the agent" toast;
+  its Undo takes the whole first build back (the chat commits once per turn).
+  - Tests:
+    - the MCP test's default L2 builds a box and a hole on an empty part, and the next session's hole is
+      `needs_proposal`;
+    - the L2 test has a first build and a next turn refused;
+    - conformance `a4/l2-values-or-proposal` gains an empty-part turn (box and hole applied, 3 nodes) and a
+      following turn whose hole is `needs_proposal`;
+    - the browser step builds an empty part through the chat, one Undo leaves no features, and it builds again.
+- **What the studio shows.** A turn that changed the part's features or parameters shows "Applied by the agent: …"
+  with an **Undo** button, which takes the turn back. The L2 tooltip, the turn note and the system prompt say the
+  rule.
+- **Evidence.**
+  - Studio `proposals.test.ts`, the L2 test:
+    - a hole's diameter twice in a turn applies;
+    - the box's height after that is refused ("changes 2 features");
+    - the box's height and depth together apply;
+    - a width that breaks R1 is refused;
+    - a new hole is refused ("adds 1 feature"), and so is a two-edit batch;
+    - propose works, and L3 builds as before.
+  - Conformance `conformance/a4/l2-values-or-proposal.json` holds the same rules in five turns.
+  - The MCP test checks that the default L2 refuses a model's first box with `needs_proposal`; the scripted build runs
+    at L4.
+  - Browser flow, a new step through the real chat server and the real tool server (`test/fixtures/scripted-claude.mjs`
+    stands in for the CLI and makes the calls):
+    - a height edit applies, the toast's Undo restores it;
+    - `apply_ops` with the height and a hole is refused at L2, then `propose` gives P1 (1 added, 1 changed, low risk);
+      the part stays a sketch and an extrude.
+  - Found and fixed on the way: the toast's Undo first ran a stale undo. It now runs the latest one.
+
+## D42 — Facet faces (F0): mesh regions as typed arrays, polyline edges, exact mass; small meshes through the planar path until F2 (2026-10-18, R3.1)
+Decided:
+- **One union, checked by the compiler.** `BrepFace.surface` is `Surface | FacetPatch`.
+  - A `FacetPatch` is `{kind: 'facets', id, positions: Float64Array, indices: Uint32Array, bounds}`: a region's
+    own triangles, wound outward for a forward face.
+  - Widening the type made `tsc` list the 106 places that read `controlPoints`/`degreeU`. Each now has a facet
+    branch, or narrows through `nurbsOf(face, what)`, which throws a typed GEOMETRY "faceted (mesh) faces are
+    not supported yet" that part-model maps to CAPABILITY.
+  - Typed arrays never enter the document or features (they cannot be frozen or JSON-copied, f0-audit risks).
+    They live only in results.
+- **`facetBrepFromTriangles`.**
+  - The mesh is welded on numeric cell hashes (no strings).
+  - Degenerate triangles are dropped.
+  - It must be closed, consistently wound and one piece; refusals as before (`MeshBrepError`), plus "more than one
+    piece".
+  - It is turned outward by signed volume.
+  - **Regions** grow across edges whose normals turn by less than 30°.
+    - When there are more than 1000, triangle normals are smoothed over neighbours (1, 2, 4, 8 rounds) and grown
+      again.
+    - If still too many, the smallest regions merge into the neighbour sharing the most edges.
+    - A region that is the whole mesh is halved, so every face has a boundary.
+    - Faces are the edge-connected pieces, numbered by first triangle and named `<id>.region<k>`: the same file
+      gives the same names.
+  - **Edges** are degree-1 polylines through the mesh's own vertices, between corners: vertices where the
+    boundary is not one face pair passing through.
+    - A closed boundary without a corner gets one at its lowest vertex.
+    - An edge holds at most 64 points (the curve check's limit); a longer boundary gets a vertex there.
+    - Coedges are forward on the face an edge was traced from and reversed across, and loops are cut at corners.
+    - The longest loop is "outer"; on a facet face that is only a convention.
+- **Checks.**
+  - `checkBrep` validates a patch: finite values, indices in range, no triangle without area.
+  - It compares a face's boundary vector area (all loops, exactly along the polylines) with its triangles'
+    vector area. That is an exact identity for polyhedral surfaces and replaces the surface-normal test.
+  - Strict mode checks that every polyline vertex is one of the patch's.
+- **Kernel consumers.**
+  - **Tessellation** emits a facet face's own triangles: area-weighted normals smooth within the face, turned
+    over for reversed. A polyline edge is sampled at exactly its knots, so there are no cracks or T-junctions.
+  - **Mass** is exact by tetrahedra over the triangles, about the body's centre, in the quadrature pass. A
+    facet-only body reports "planar-exact".
+  - **Area** is the exact triangle sum.
+  - **Transform** maps the positions; an identity map (a rename) shares the arrays; a mirror flips the face's
+    sense only.
+  - **`faceGeometry`** returns a plane for an exactly flat region and "other" otherwise. It never throws, so
+    sketches, mates, glue and sections keep working on flat mesh faces.
+  - **Hidden lines** recognise mesh faces by kind as well as by the old name.
+  - The **analytic Boolean** and the **general shell** refuse facets at entry.
+  - **STEP** writes a facet body as the planar B-rep of its triangles (AP242 tessellated comes in R3.5) and reads
+    back with the same volume.
+- **Versioned node (D16).** The mesh node takes `representation: 'facets'`. The studio sets it on new imports.
+  Nodes without it stay the planar per-flat-group solid, so old documents' `<id>.facetK` names resolve unchanged.
+- **F0 fallback (owner, D3), one named path: `FACET_EXPLODE_TRIANGLES = 5000`, `explodeFacets` in part-model.**
+  - Booleans, holes and splits on a facet body with at most 5000 triangles go through the planar per-triangle
+    B-rep and the exact polyhedral Boolean. R2 timings: a polyhedral union with a box takes 0.94 s at 5k and
+    3.2 s at 20k, so 5000 keeps it interactive.
+  - Above that, the operation is refused with CAPABILITY: "Booleans on large meshes arrive with F1/F2 (this mesh
+    has N triangles; up to 5000 go through the planar path)".
+  - Fillets, chamfers and drafts on mesh faces are refused with CAPABILITY, because region edge names would not
+    survive the planar path; shells are refused through the general shell.
+  - The fallback is removed in the step that lands F2.
+- **Studio.**
+  - Imports are facet bodies.
+  - Flat regions show as planes and curved ones as curved (no radius probe).
+  - Region edges are drawn as creases, with no per-vertex normal search.
+  - The import toast says regions and the 5000-triangle Boolean limit.
+  - The 100k triangle cap stays until M1's binary storage (R3.3).
+
+- **Follow-up (peer's adjustments under the delegation, same day).**
+  - **A mesh in several pieces opens, one body per piece; it is no longer refused.** Printed kits, figures with
+    separate eyes, and scans with floaters are common.
+    - `facetBrepsFromTriangles` builds each closed, edge-connected piece, in file order, as its own B-rep:
+      body `<id>_part<j>`, faces `<id>.part<j>.region<k>`. Each piece is turned outward on its own (a cavity's
+      shell comes in as a solid; R3.4 tells them apart).
+    - `facetPieces` counts the pieces and gives each one's triangles and volume.
+    - The mesh node records `pieces` (as a STEP import records `solids`). The kernel feature takes `each`, so its
+      outputs are `id/j` and the studio keys them `b<k>_part<j>`.
+    - The import toast says how many pieces there are and names the tiny ones (under 1% of the largest one's
+      volume) as likely stray bits. Removing floaters is R3.4's repair.
+    - `facetBrepFromTriangles` (one piece expected) still refuses, saying how many pieces it found.
+  - **Two limits instead of one.**
+    - Previews: `FACET_PREVIEW_TRIANGLES = 5000`, about a second (R2: 0.94 s at 5k), so a preview stays live.
+    - Committed evaluations: `FACET_EXPLODE_TRIANGLES`, first 20000 (R2: 3.2 s at 20k against 409 s before R2;
+      that is what D3 meant by keeping Booleans on small meshes). D43 lowers it to 16000 after profiling.
+    - The studio worker passes the preview limit (`evaluateCadPart(doc, cache, {facetExplodeTriangles})`).
+      Between the two limits a preview is refused with "… not previewed (this mesh has N): apply to run it (up to
+      20000)". Above 20000, every evaluation is refused with "Booleans on large meshes arrive with F1/F2".
+    - In the browser, an 18k-triangle sphere drilled through takes 9.7 s.
+  - **Long computations can be stopped.** After a second, a "Working… Cancel" bar shows at the top centre (not
+    under the toasts). Cancel ends the worker and starts a new one (`EngineClient.restart`, caches empty); every
+    waiting request is refused "Stopped", and the change that started it is taken back (undo).
+  - **The typed-array path (part of R3.2, done here).**
+    - A mesh feature may carry `Float64Array`/`Float32Array` positions and `Uint32Array` indices.
+    - Admission no longer JSON-copies the document: mesh arrays are shared as they are, never frozen, checked
+      once per array object, and keyed for reuse by a hash worked out once per array.
+    - `save()` writes them as plain arrays.
+    - The studio turns a node's arrays into typed arrays once per node array; the worker keeps nodes by identity
+      (wireDoc), so an unchanged mesh is reused, not re-hashed.
+
+Why:
+- F0 is the base of the mesh-body roadmap (F1, F2, SubD, QEM). A face per triangle made a 200k mesh unusable.
+- The kind-tagged union lets the compiler find every place that assumed a surface.
+- The fallback keeps today's STL Booleans working, as the owner required.
+
+Evidence:
+- Follow-up:
+  - Kernel facet tests 8/8. The new pieces test: a box and a floater give 2 bodies `k_part0/1` with per-piece
+    names; in a part, outputs `m/0` and `m/1`; typed arrays are not copied, are saved as plain arrays, and the mesh
+    is reused on re-evaluation.
+  - The 6240-triangle hole is made committed and refused as a preview; 25 280 triangles are refused naming
+    F1/F2.
+  - Conformance: `r3/sphere-hole` (6240 triangles, committed, genus 1) replaces the refused case; 31/31 pass.
+  - Studio 289/289, with a pieces test (`b0_part0/1`, `n0.part1.region*`, 7 mm³ each).
+  - Browser flow 107/107.
+    - A kit STL (a sphere and a floater) opens as 2 bodies with "1 of the pieces is tiny".
+    - A part with a hole through an 18k sphere shows "Working… Cancel", and Cancel takes the open back to the
+      kit.
+    - The STEP step now waits for the bodies as well as the name (a race the new step exposed).
+- Kernel `test/facet-brep.test.mjs` (7):
+  - box: 6 regions, 12 edges, valid strict, volume 1000, area 700, planes;
+  - sphere: halved into 2, volume and centroid exact;
+  - cylinder: 3 regions, 2 closed rims of 25 points, tessellated edges exactly the vertices; 26 regions at 10°;
+  - transforms: moved, mirrored, and renamed with shared arrays;
+  - noisy sphere: capped at 50 regions, exact volume;
+  - open, flipped and two-piece meshes refused;
+  - part model: faceted versus planar names; hole exact; fillet refused; a 6240-triangle hole refused;
+  - STEP round trip.
+- Kernel suite 903/904; the one failure is the known environmental demo-spawn test.
+- Conformance `conformance/r3` (5):
+  - facet box, with STEP round trip;
+  - facet frame: genus 1, 10 regions, volume 96, area 192;
+  - facet box with a hole: 1000 − 20π;
+  - fillet refused;
+  - large Boolean refused.
+- Studio 288/288, with a new import test (10 plane regions, 7000 mm³; the old planar node keeps `.facetK`). The
+  browser STL step passes and the node says facets.
+- `MESH_REP=facets pnpm bench:mesh`:
+
+  | Fixture | Before (R1, per-triangle faces) | F0 facets |
+  |---|---|---|
+  | 200k | convert 10.5 s, display 3.8–85 s, 2.2–2.6 GB | convert 0.2 s, display 76 ms, exact mass 53 ms, RSS 282 MB |
+  | noisy scan 200k | — | 449 regions, 0.26 s |
+  | 1M | 84 s + 32 s, 6.4 GB | convert 1.3 s, display 0.28 s, mass 83 ms, RSS 845 MB |
+
+- Bench within budget (16-hole plate 1.26 s of 3 s).
+
+Next:
+- R3.2: BVH point containment and the typed-array path.
+- R3.3: M1 binary mesh blob, then lift the 100k cap.
+- R3.4: M3 import repair.
+- R3.5: AP242 tessellated STEP.
+
+## D43 — Points against facet bodies through a BVH; the stitch and coplanar merge indexed; the committed mesh limit 16000 (2026-10-18, R3.2)
+Decided:
+- **`classifyPointInFacets(brep, point, tol?)`** returns inside, outside or on.
+  - It is the parity of a ray's crossings with the body's triangles. The rays go through a BVH over all facet faces
+    (median split on the longest centre extent, flat typed arrays), built once per B-rep (`facetBvh`, a WeakMap).
+  - A ray that grazes an edge, a vertex or a triangle seen edge-on says nothing, and the next of eight fixed
+    irrational directions is tried. Three clean rays vote: two agreeing settle it.
+  - A point within the tolerance of a triangle (by plane distance and barycentric slack; default 1e-9 of the
+    body's size) is "on".
+  - A body with non-facet faces is refused (typed GEOMETRY).
+  - The search allocates nothing per triangle or per ray; its stack grows only when needed.
+  - It is the containment F1's facet Booleans will use. The studio's Point test keeps its display-mesh answer.
+- **The 9.7 s hole (peer's request), profiled.**
+  - A hole's tool is a cylinder, so the exploded mesh went through the analytic Boolean, not the polyhedral path
+    R2 measured.
+  - Two quadratic steps dominated, and both are now indexed. Semantics are unchanged, as the identical RB rows
+    show.
+    - The stitch tested every vertex against every curve (about 9k × 54k). A uniform grid over the vertices
+      (about two to a cell) now gives each curve only the vertices in its box widened by the tolerance: a line's
+      ends, an arc's circle, a traced curve's sampled box. That is exactly the set `onCurve` could accept. A
+      curve spanning most of the body falls back to every vertex.
+    - `mergePieces` grouped coplanar pieces with a linear search. Planes are now bucketed by quantized facing
+      normal and offset; a piece checks its own and the neighbouring buckets (3⁴) and joins the earliest group it
+      matches, as before.
+    - `loopVectorArea` takes straight and polyline edges by their corners, which is exact, instead of 16 samples.
+  - The kernel time for the 18k hole fell from 10.8 s to 4.1 s. In the studio's whole evaluation (Boolean, mass
+    and display), as the worker runs it:
+
+    | Mesh | Time |
+    |---|---|
+    | 12k | 3.6 s |
+    | 15.9k | 4.8 s |
+    | 18k | 5.1–5.4 s |
+    | 20k | 6.1 s |
+
+  - **`FACET_EXPLODE_TRIANGLES` is now 16000:** about 5 s at the worst, a hole. A polyhedral union with a box is
+    faster.
+  - The 5000-triangle preview limit and the Cancel bar stay.
+  - Not contained: the analytic Boolean's cutting of a cylinder against thousands of planes (about 1.1 s) and the
+    checks (about 1 s). These go with F1/F2, which replace the explode path.
+
+Evidence:
+- Kernel facet tests 9/9. The new classification test:
+  - box: inside and outside; on a face, an edge and a corner; 1e-6 above the box is outside; points level with
+    edges are told apart;
+  - sphere: 2000 random points agree with the distance from the centre (outside a 0.2 mm band);
+  - frame: the hole is outside, the wall inside;
+  - a planar B-rep is refused.
+- Kernel suite 910/911; the one failure is the known environmental test.
+- RB rows are identical to before the change (the known graze TODOs only). All property tests are ok.
+- Bench, classification:
+
+  | Mesh | BVH build | 1000 points | Wrong |
+  |---|---|---|---|
+  | 199k triangles | 71 ms | 5.4 ms | 0 |
+  | 998k triangles | 249 ms | 6.9 ms | 0 |
+
+- Studio 289/289. The browser cancel step uses a 15.9k sphere, under the limit, and its Cancel still takes the open
+  back.
+
+Next: R3.3, M1 — a binary mesh blob in .bcad, then lift the 100k cap.
+
+## D44 — M1: mesh arrays as SHA-256 blobs; the .bcad container; recovery blobs in IndexedDB; the mesh cap lifted to 2M (2026-10-18, R3.3)
+Decided (container design per the peer, under the delegation):
+- **Blobs.** A mesh node names its arrays: `blob: {positions, indices}`, the SHA-256 (WebCrypto, browser and Node)
+  of each array's bytes.
+  - The arrays live in a blob store (`engine/blobs.ts`): `Float64Array` positions, `Uint32Array` indices.
+  - The document stays small whatever the mesh, so undo copies, the recovery copy, the worker wire and JSON
+    comparisons stop carrying megabytes.
+  - Identical arrays are one blob (nodes, undo steps, pieces).
+  - The store keeps every blob of the session; nothing is evicted.
+  - New imports are blobs. Inline nodes (`positions`/`indices`, files from before M1) still evaluate and open as
+    before.
+- **The .bcad container (`engine/container.ts`), our own, no dependencies.**
+  - A document naming no blobs is written as plain JSON, as always.
+  - One that names blobs is written as:
+    - a header: `BCADPACK` · u32 version 1 · u32 chunk count;
+    - chunks: u32 header bytes · u32 payload bytes · UTF-8 JSON header · payload, each padded to 8 bytes, so arrays
+      map aligned;
+    - chunk 0 is `{kind: 'document'}` with the JSON;
+    - then `{kind: 'blob', sha256, dtype: 'f64' | 'u32', count}` with the raw little-endian bytes.
+  - No base64 and no compression in the file.
+  - Reading:
+    - checks each blob's SHA-256 against its name ("does not match its hash: the file is damaged");
+    - refuses a cut-short file, or one from a newer container version;
+    - refuses a document naming blobs it does not hold.
+  - Saving a document whose blob is not loaded is refused, not written incomplete.
+- **Where blobs travel.**
+  - Worker: `WireSender` sends each blob once, beside the nodes. A restarted worker gets them again.
+  - Chat server: the turn's JSON carries the document's blobs as base64; the MCP process checks them and puts them
+    in its store. The document still names them, so the chat's result keeps blob nodes.
+  - Templates (they stand alone in localStorage): written back inline, and refused if a blob is missing.
+- **Recovery.** The localStorage copy names the blobs, and the blobs go to IndexedDB (`studio.blobs`, keyed by hash)
+  beside it. Restore loads them first; if they are gone it says so and does not restore a part it cannot build.
+  Saving or discarding garbage-collects the IndexedDB blobs.
+- **The cap.** `CadPartLimits.meshTriangles` is now 2,000,000 for facet meshes, lifted after the browser round trip
+  below. Planar mesh solids (old nodes, a B-rep face per flat group) keep 100,000 as `planarMeshTriangles`. The
+  Boolean limits of D43 (16000 committed, 5000 preview) are unchanged.
+
+Why: a mesh's arrays were the document — 55 MB of JSON at 1M triangles, copied through every undo step, recovery
+write and wire message — and the reason for the 100k cap.
+
+Evidence:
+- Studio 293/293. `test/container.test.ts`:
+  - The fixture pair `test/fixtures/block-inline.bcad` (plain JSON, inline) and `block-container.bcad` (blobs) open
+    as the same bodies, volumes and face names (7000 mm³).
+  - inline → blobs → container → read gives the same summary; inline again (templates) gives the old file's part.
+  - Two nodes with one mesh are deduplicated to 2 blobs.
+  - A flipped byte is refused by hash; a ghost blob is refused on open and on save; version 9 is refused; a
+    cut-short file is refused.
+  - The wire sends blobs once; base64 round-trips and an altered blob is refused.
+- Browser flow 108/108. The new step:
+  - an STL opens as blobs;
+  - unsaved, it is reloaded and restored from the IndexedDB blobs;
+  - saved as `BCADPACK`, it reopens as the same 7000 mm³ body.
+- Kernel 910/911; the one failure is the known environmental test. Lint clean.
+- `test/bench-mesh-browser.mjs` (Chromium, headless WebGPU). Read is from file to the units dialog; open includes
+  the blobs, evaluation and display.
+
+  | Mesh | Read | Open | Save | File | Old inline JSON | Reopen |
+  |---|---|---|---|---|---|---|
+  | 200k | 0.18 s | 0.66 s | 0.06 s | 4.6 MB | 10.5 MB | 0.64 s |
+  | 1M | 0.64 s | 3.5 s | 0.21 s | 22.9 MB | 55.3 MB | 3.3 s |
+
+Next:
+- R3.4: M3 import repair — weld, orient, own Liepa hole fill with fairing, degenerate and floater removal, with a
+  diagnostics badge.
+- R3.5: AP242 tessellated STEP.
+
+## D45 — Chat sends each blob once per conversation; positions stored at their source precision (2026-10-18, R3.3b)
+Decided (peer's follow-ups under the delegation):
+- **Chat: blobs once per conversation.** The studio gives each conversation a blob session (a random id, renewed by
+  New conversation) and remembers which hashes it has sent.
+  - A turn names all of its document's blobs (`blobRefs`) and carries only the unsent ones (`blobs`, base64).
+  - The chat server checks each blob's SHA-256 when it arrives (`node:crypto`; refused with 400 if it does not
+    match), and keeps it on disk for the conversation (`blobs-<session>/<hash>.<dtype>`): the last four
+    conversations, an hour unused at most.
+  - The MCP process reads the kept files (`blobFiles` in the state file).
+  - A turn naming blobs the server lacks (another conversation, a restarted server) is answered 409 with the
+    missing hashes. The studio sends those once and retries.
+- **Positions at their source precision.**
+  - Blobs carry a `dtype` (`f64`, `f32`, `u32`).
+  - Positions are stored as `f32` when every value is single precision: an STL's are, kept as `Math.fround` of the
+    scaled value, with no 1e-6 rounding. Otherwise they are `f64`: an OBJ with any coordinate that does not round
+    trip through f32.
+  - The kernel widens on read (the mesh feature takes `Float32Array`; facet patches stay `Float64Array`), so
+    geometry is as before.
+  - Container chunks, IndexedDB, the wire and chat carry the dtype.
+  - The import's welding key still rounds to 1e-6 mm.
+
+Evidence:
+- Studio 294/294.
+  - The fixture pair is regenerated: `block-container.bcad` is 1264 bytes (1456 before), and opens to the same 7000
+    mm³ and names as the inline file.
+  - The chat test:
+    - a first turn with blobs gives 200;
+    - a second turn naming them only gives 200, both reading the kept f32 and u32 files;
+    - another session gives 409 with both hashes;
+    - a mismatched blob gives 400.
+- Browser steps (STL, pieces, container, chat) pass. Lint clean.
+- Chat with a 1M mesh, measured on a local server:
+
+  | Turn | Body | Client encoding | Round trip |
+  |---|---|---|---|
+  | Before: every turn | 22.9 MB | 340 ms base64 | — |
+  | Now: first turn | 22.9 MB | 340 ms base64 | 56 ms |
+  | Now: later turns | 0 MB of blobs | none | 9 ms |
+
+- Container sizes (`test/bench-mesh-browser.mjs`):
+
+  | Mesh | File | Before (f64) | Old inline JSON | Open | Reopen |
+  |---|---|---|---|---|---|
+  | 200k | 3.4 MB | 4.6 MB | 10.5 MB | 0.68 s | 0.64 s |
+  | 1M | 17.2 MB | 22.9 MB | 55.3 MB | 3.4 s | 3.2 s |
+
+  The 1M file is positions f32 (6 MB) plus indices u32 (12 MB). The peer estimated about 15 MB.
+
+## D46 — Mesh diagnosis and repair as explicit steps; fill patches as faces; open sheets said so; crossings refused (2026-10-18, R3.4a)
+Decided (repair as a recorded step, per the peer under the delegation; this is the kernel part, the studio follows
+in R3.4b):
+- **`diagnoseMesh(positions, indices)`** changes nothing. It counts:
+  - welded corners, degenerate and duplicate triangles;
+  - edges of more than two triangles;
+  - two-triangle edges run the same way;
+  - holes (each with its edge count, perimeter and centre);
+  - pieces with their volumes, and floaters (under 1% of the largest);
+  - self-intersections.
+  
+  It also says whether the mesh is closed as it is.
+- **`repairMesh(positions, indices, steps)`** takes explicit steps (`DEFAULT_REPAIR`: all on, floaters under 1%) and
+  returns new arrays, a report of what each step did, and per triangle the fill patch it belongs to. The caller keeps
+  the original; the studio stores the result as its own blob (R3.4b).
+  - **weld:** numeric cell hashes (the facet builder's).
+  - **degenerate:** a repeated corner, no area at the weld size, or the same three corners twice either way round.
+  - **fins:** at each edge of more than two triangles, the pieces (through two-triangle edges) meeting there other
+    than the largest, when open or enclosing no volume.
+  - **orient:** breadth first across two-triangle edges, each neighbour turned to run the edge the other way; then
+    each closed piece outward. Both kinds of turn are counted.
+  - **fill:** our own Liepa fill.
+    - A minimum-area triangulation by dynamic programming (O(n³), up to 120 corners); past that, an ear clipping in
+      the loop's Newell plane.
+    - Liepa's refinement: a triangle is split at its centroid when √2 × the distance to each corner exceeds both
+      densities.
+    - Relaxation by Delaunay flips (opposite angles past π), on an incrementally kept edge map and a work queue.
+    - Umbrella fairing of the new vertices (30 rounds, the rim fixed).
+    - A safety cap of 64 × the initial triangles + 20000.
+    - Holes can be skipped by number. Reported: holes filled and left, fill triangles, the largest perimeter, the
+      area added.
+  - **floaters:** closed pieces under `minFraction` of the largest volume (reported with their volume), or kept
+    (`floaters: false`).
+  - After the steps, the report says whether the result is closed and manifold, and how many self-intersections
+    and non-manifold edges remain.
+- **Fill patches are faces of their own.** `facetBrepFromTriangles(…, {groups})`: regions do not cross a group's
+  edge and are not merged across it, and a group k's faces are named `<prefix>.fill<k>.region<f>`. The studio can
+  then show the guessed surface as what it is.
+- **Open sheets are said so, never faked.** `{open: true}` (the mesh node's `open`) takes an open mesh as a `sheet`
+  body: an open shell, boundary edges with one use, corners along an open boundary counted as if it had a twin. Then:
+  - its mass refuses: "an open mesh (a sheet) encloses no volume";
+  - Booleans refuse: "… need a closed solid: this mesh is open (a sheet)".
+  
+  Without `open`, an open mesh is refused as before.
+- **Self-intersections are reported, not repaired.**
+  - Found with a uniform grid over triangle boxes (a cell about twice a mean edge; each pair tested once, in the
+    first cell the two share) and an exact-enough segment–triangle test (strict interior; shared corners skip).
+  - The count and up to 64 positions are given.
+  - A Boolean on a facet body that crosses itself (checked when the F0 path explodes it) is refused with GEOMETRY
+    "… need a mesh that does not cross itself: this one does in N places (near x, y, z); repair does not fix that
+    yet".
+  - Repairing crossings (remeshing the intersection curves) is out of scope until F3 (facet × facet).
+
+Evidence:
+- Kernel `test/mesh-repair.test.mjs` 8/8:
+  - clean box: nothing reported;
+  - square hole in a flat top: 1 hole of 30 mm perimeter; filled flat to exactly 1000 mm³ with 50 mm² added; the
+    patch is its own face `m.fill0.region*`; skipped, it is open and builds only as a sheet;
+  - spherical cap hole: refined past its rim, closed, volume between the open mesh and the whole;
+  - 3 flipped triangles and a fully inside-out mesh: counted, exact volume;
+  - fin, degenerate and duplicates: 1 fin, 2 degenerate, 2 duplicates, closed, exact;
+  - floaters: 3 of 1 mm³ each dropped (3 mm³), the 216 mm³ piece kept;
+  - a box with a corner pushed through its bottom: crossings found and a hole refused;
+  - open sheet: no mass, no hole.
+- Studio `test/mesh-repair-corpus.test.ts` runs the M0 broken set on the 20k organic torus:
+  - hole: 1, filled, volume within 1%;
+  - flipped: 50, exact;
+  - non-manifold: 1 fin, exact;
+  - degenerate: 10;
+  - shells: 4 pieces, 3 floaters, 24 mm³;
+  - self-intersect: crossings found.
+- Conformance `r3` 34/34, with three new cases (which RB runs too):
+  - `mesh-filled`: the repaired box with its fill group, 1000 mm³ and 700 mm² exactly, watertight;
+  - `mesh-crossing-hole-refused`;
+  - `mesh-sheet-hole-refused`.
+- Kernel suite 921/922; the one failure is the known environmental test. Studio 295/295.
+- Bench, a sphere with a cap off:
+
+  | Mesh | Diagnose | Repair | Fill added |
+  |---|---|---|---|
+  | 11k | 39 ms | 74 ms | +1812 triangles |
+  | 196k | 0.42 s | 1.5 s | +45k triangles |
+  | 991k (1000-edge hole) | 2.4 s | 9.2 s | +212k triangles |
+
+  At first the relaxation made one swap per pass and the closing check copied the index array per edge (22.9 s at
+  11k); both are fixed.
+
+## D47 — The mesh repair gate: checked in the worker, repaired as a recorded step, badges for what was guessed (2026-10-18, R3.4b)
+Decided (per the peer's R3.4 guidance, under the delegation):
+- **Checked first, in the worker.** Opening an STL or OBJ, the worker diagnoses it (`engine.diagnose`) behind the
+  "Working… checking the mesh" bar, which can be cancelled.
+  - A clean mesh opens as before.
+  - Anything a step would change (open, degenerate or duplicate triangles, floaters), or crossings to report, opens
+    the repair gate instead.
+- **The gate (`ui/MeshRepairPanel.tsx`).**
+  - It shows what was found and the steps: degenerate and duplicates, fins, orient, fill, and floaters under 1%.
+    All are on by default and each can be turned off.
+  - Holes are listed by size, largest first (8 with ticks; the rest follow the fill tick). A coarser fill (half the
+    rim's resolution, `fill.coarseness: 2`: about a quarter of the triangles) can be chosen.
+  - **Check the repair** runs it in the worker. The bar names its stage (weld, fins, orient, fill k of n, floaters,
+    check) and can be cancelled, leaving nothing changed.
+  - The report comes before anything is applied: corners welded, triangles dropped, fins, triangles turned, holes
+    filled with how many triangles and the area added, tiny pieces and their volume, and whether the mesh closes
+    (or opens as a sheet).
+  - "Open as it is" is offered only when the mesh is closed as it is.
+- **The repair is a recorded, reversible step on the mesh node.**
+  - The node keeps its import's `blob`. `repair: {steps, result: {positions, indices, fill}, report}` names the
+    result's own blobs; `fill` is an `i32` blob giving each triangle's patch.
+  - The kernel feature takes the result with its fill groups, so fill patches are faces of their own. If the mesh
+    is still open, it is taken as a sheet (`open: true`).
+  - Opening the repair again (its badge) diagnoses the import anew with the steps as they were. Applying replaces
+    the record. "Remove the repair" is offered when the import is closed on its own; an open import would not build.
+  - Undo takes any of these back. Crossings are kept on the node (`crossings: {count, at}`).
+- **Badges on the mesh body** in the Browser:
+  - "repaired · N mm² filled": its tooltip is the report; clicking it selects the filled faces in the viewport and
+    opens the repair;
+  - "open sheet" when the repair could not close it;
+  - "crosses itself · N": clicking it marks the crossing places as points in the viewport.
+- The open toast says a repaired mesh's filled area and pieces, a sheet's limits, crossings, and tiny pieces kept.
+- **Kernel additions.** `fill.coarseness` scales each rim density, so refinement stops at longer edges.
+  `repairMesh(…, progress)` names its stages. `MeshDiagnosis.selfIntersectionAt` gives up to 64 crossing places.
+
+Evidence:
+- Kernel 922/923; the one failure is the known environmental test. The new mesh-repair test checks:
+  - coarseness 2 gives 15–45% of the default's fill triangles;
+  - the stages come in order (weld, fins, orient, fill 1 of 1, floaters, check).
+- Studio 296/296. The recorded repair on the M0 broken hole:
+  - 5 blobs: the import plus the result;
+  - the fill is its own face and the volume matches the repaired arrays;
+  - the container round trip keeps it;
+  - without the record the open import is refused, not faked closed.
+- Browser flow 109/109. The new step:
+  - a sphere with its cap off gives 1 hole, and no "Open as it is";
+  - with the coarser fill checked, the report reads "1 hole filled with N triangles … Closed";
+  - applied, the node keeps its blob and a repair with `coarseness: 2`;
+  - its badge "repaired · 78 mm² filled" selects the filled cap (a 77.65 mm² planar face) and reopens the repair as
+    it was.
+  
+  The kit step now passes through the gate (its floater is a finding) and opens as it is.
+- Lint clean.
+
+## D48 — AP242 tessellated STEP: mesh bodies written tessellated or as planar faces; tessellated files read as facet faces; mesh-only files through the repair gate (2026-10-18, R3.5)
+Decided (per the peer's guidance under the delegation):
+- **Export option `meshes`: 'auto' | 'tessellated' | 'planar'.**
+  - **Tessellated (AP242, compact).** Each mesh body is written as one `COORDINATES_LIST` (its faces' corners, shared
+    ones once). Each facet face becomes a `TRIANGULATED_FACE` carrying its own name, with corners by number into the
+    list and triangles wound outward. The body is a `TESSELLATED_SOLID`; an open sheet is a `TESSELLATED_SHELL`.
+    These sit in a `TESSELLATED_SHAPE_REPRESENTATION`. If the file also has B-rep solids, that representation is
+    related to their advanced B-rep one by `SHAPE_REPRESENTATION_RELATIONSHIP`. The schema is then AP242, and AP214
+    stays for files without meshes.
+  - **Planar faces (compatible).** The triangles become planar B-rep faces, merged where flat; any reader takes them.
+  - **Auto** (the default) writes planar up to `MESH_PLANAR_TRIANGLES = 5000` triangles a body and tessellated above.
+    Planar costs about 1 kB a triangle and tessellated about 0.05 kB (measured: 194 MB against 9.4 MB at 200k), so
+    5k triangles is about 5 MB as planar faces. Small meshes stay readable by older CAD, CAM and slicers, and large
+    ones stay writable.
+  - Planar faces are refused past `MESH_PLANAR_LIMIT = 250000` triangles a body: about 250 MB of text, near what one
+    string can hold (1M overflows it). The refusal says to write tessellated.
+  - Validation properties (volume, area, centroid, box) are written in both modes, for mesh bodies too.
+  - **Studio:** Export STEP on a part with mesh bodies asks "Mesh bodies in the STEP file as…" (Auto, Tessellated, or
+    Planar), explains the trade-off, and remembers the answer in this browser.
+- **Import.** `TESSELLATED_SOLID` and `TESSELLATED_SHELL` with their `TRIANGULATED_FACE`s (coordinates lists shared
+  or per face, `pnindex` or direct corners) come in as facet bodies.
+  - Each triangulated face keeps to a face of its own, named as in the file. Repeated names are numbered; a group
+    that splits gets `#n` (the facet builder's new `groupName`).
+  - A mixed file (B-rep solids and tessellated bodies, the convergent case) comes in as both, in one B-rep.
+  - A tessellated solid that does not close, or a tessellated shell, comes in as an open sheet. It is never closed
+    by guessing.
+  - Not yet: `COMPLEX_TRIANGULATED_FACE` and strips/fans (refused by name).
+- **Mesh-only files through the gate.** `stepMeshes(text)` gives a file's meshes when it holds no B-rep solid (scan
+  data, other systems' AP242 exports). On open, the studio reads them in the worker, scales them by the file's unit,
+  and diagnoses them.
+  - Closed and clean, the file imports as before (an import node, its faces' names kept).
+  - Otherwise it opens the repair gate as an STL does, and becomes a mesh node with its repair (D47).
+  - Pending (reversible default): a mixed file whose tessellated body is open imports that body as a sheet. Its
+    repair from the gate would need the import split into a mesh node beside it, which is left for when that comes
+    up.
+- **A fix found on the way.** The STEP reader spread a shell's faces into one `push(...)`, which overflowed the stack
+  past about 100k faces (a big planar mesh file). It now pushes them one at a time. The repair's floater pass had the
+  same spread; fixed too.
+
+Evidence:
+- Kernel `test/step-tessellated.test.mjs` 4/4:
+  - tessellated round trip: an AP242 schema, 3 triangulated faces, no advanced faces; read back valid with the same
+    face names, volume, area and centroid to 1e-9; the validation-property volume agrees;
+  - auto: planar for a small mesh, tessellated for 6240 triangles; planar more than 10× larger; both read back;
+  - mixed plate and mesh ball: 2 bodies, the volume sum to 1e-6; `stepMeshes` gives null;
+  - another system's open quad shell: a sheet with face `top`; `stepMeshes` gives its 2 triangles.
+- Kernel suite 926/927; the one failure is the known environmental test. Studio 296/296.
+- Browser flow 110/110. The new step:
+  - Export STEP on the repaired cup asks; tessellated is AP242 with triangulated faces;
+  - opened again, it is the same 4022 mm³ body;
+  - a mesh-only STEP pyramid without a base goes through the repair gate (1 hole) and becomes a closed mesh node.
+- Lint clean.
+- Organic torus fixtures, Node:
+
+  | Mesh | Tessellated | Planar |
+  |---|---|---|
+  | 200k | 9.4 MB; write 0.2 s, read 0.4 s; volume exact | 194 MB; write 9.6 s, read 10.2 s; 199,712 faces |
+  | 1M | 49.9 MB; write 0.7 s, read 3.2 s; volume exact | past the string limit (now refused, with the reason) |
+
+R3 is done: F0 facet faces (D42), point classification (D43), M1 container (D44–D45), M3 repair (D46–D47), AP242
+tessellated STEP (D48). Next on the roadmap: R4, F1 (facet × plane split and section with an exact planar cap).
+
+## D49 — STEP size caps: 32 MiB of B-rep, 64 MiB when the rest is tessellated meshes (2026-10-18, R3.5 follow-up)
+
+The peer found that our own 1M-triangle tessellated export (49.9 MB) could not be opened again. The import feature
+refused any STEP text past `CadPartLimits.stepBytes` (32 MiB), and the studio's Open STEP of a closed, clean mesh
+file goes through that feature. Only an unclean mesh file went the other way, through the repair gate as a mesh
+node, and that path had no cap at all.
+
+Measured on the organic torus fixtures, exported tessellated, in Node 22. Peak RSS is sampled every 5 ms.
+
+| File | importStep | Part import (+ names) | Studio gate in one process (stepMeshes → diagnose → part → mass) |
+|---|---|---|---|
+| 200k, 9.4 MB | 0.5 s, 283 MB | 0.5 s, 405 MB | 1.1 s, 408 MB |
+| 1M, 49.9 MB | 3.2 s, 803 MB (base 207) | 3.3 s, 885 MB | 6.1 s, 1284 MB |
+| 2M, 101.6 MB | 6.7 s, +316 MB over a 1.19 GB base | 7.0 s, 1825 MB | not run (est. about 2.5 GB) |
+
+The 2M file was built in memory: the disk was full. Its base therefore includes the generator; its peak is the
+number to read.
+
+A tessellated file costs about 13× its text while read into a part. The 32 MiB note for B-rep files gives about 17×.
+
+Decision (a reversible default; the owner's call is pending, see the README):
+- **The rule.**
+  - `CadPartLimits.stepTessellatedBytes = 64 MiB` caps the whole text.
+  - What is not tessellated must still fit `stepBytes` (32 MiB).
+  - So B-rep files keep their cap, and a mixed file may exceed 32 MiB only by its meshes.
+- **How "tessellated" is measured.**
+  - `stepTessellatedChars(text)` is a scan with no parse.
+  - It counts the characters from each `COORDINATES_LIST(` or `TRIANGULATED_FACE(` (COMPLEX_ alike) to the next
+    `;`.
+  - A `;` inside a quoted name cuts the count short, never long.
+  - Our files score 0.9997.
+- **Where it applies.** `stepSizeProblem(text)` returns the reason or null. It is checked:
+  - before the part import reads the file;
+  - in the studio worker, before `stepMeshes` parses it.
+  - The worker also skips that parse when the file has no tessellated record. Before this, a B-rep file was parsed
+    twice on Open STEP.
+- **What the studio shows.** The worker's refusal is shown directly: "Could not open this file: The STEP file is
+  larger than 64 MiB; a mesh that large opens from a .bcad file …". The open part is unchanged.
+- **The triangle cap applies to STEP too.** After a read, the facet triangles are counted against `meshTriangles`
+  (2M). Before, STEP meshes came in with no triangle limit.
+- **Why 64 MiB and not the suggested 128 MiB.**
+  - The peer's bar was about 1–1.5 GB in the worker. The whole gate peaks at 1.28 GB at 49.9 MB, and scales about
+    linearly.
+  - At 64 MiB: about 1.1 GB for the part import, and about 1.65 GB for the gate in one process. In the browser, the
+    gate is split across the main thread and the worker.
+  - At 128 MiB: about 1.8 GB for the import alone, and about 3 GB for the gate.
+  - 64 MiB holds our 1M export with 34% to spare, for writers whose numbers run longer.
+  - Meshes from 1.3M up to the 2M triangle cap open from the .bcad container: 17 MB for 1M, binary arrays, 3.4 s in
+    the browser (D44).
+
+Not done: an import node keeps its STEP text in the document. It crosses to the worker once (nodes go by id), but it
+is saved in the .bcad file as JSON text, and the chat sends it with the document. Recorded as a TODO: keep an import
+node's text as a blob, like the mesh arrays.
+
+Evidence:
+- Kernel `test/step-tessellated.test.mjs` 5/5. The new test checks three cases:
+  - a mesh file padded past 32 MiB inside its coordinates list reads, with the same volume;
+  - the same padding outside the meshes is refused: "larger than 32 MiB outside its meshes (32.0 MiB)";
+  - past 64 MiB it is refused, pointing to .bcad.
+- Kernel suite 927/928; the one failure is the known environmental test. Studio 296/296. Type-check and lint clean.
+- Browser flow, STEP and meshes step:
+  - the cup padded to 33 MiB opens as an import body;
+  - padded to 65 MiB, it shows the refusal, and the part is unchanged.
+  - A full run before this step's extension had no other failure; the mesh steps were rerun after it.
+
+**Owner decided 128 MiB (2026-10-18), with the B-rep portion at 32 MiB and the 2M triangle cap unchanged.** Re-measured
+at that size with a 2M-triangle export (101.6 MB). Node figures are fresh processes reading the file:
+
+| Path | 2M, 101.6 MB |
+|---|---|
+| importStep | 7.6 s, 1527 MB peak RSS (base 375 with the text loaded) |
+| stepMeshes | 1.9 s, 1348 MB |
+| Part import | 7.6 s, 1659 MB |
+| Whole gate in one process | 14.4 s, 2380 MB |
+| Studio in Chrome, Open STEP | opens in 11.2 s; renderer process peak 3057 MB (base 366) |
+| The same for the 1M file | 5.0 s, 1912 MB |
+
+- The Chrome row is a closed, clean mesh, so stepMeshes → diagnose → import, then display. The renderer process holds
+  the page, its worker and the uploaded mesh.
+- It works in practice; nothing failed. This machine has headroom; a 4 GB browser tab limit would be near at the cap.
+- The refusal now reads "larger than 128 MiB; a mesh that large opens from a .bcad file".
+- Tests:
+  - kernel: 65 MiB opens, past 128 MiB refused;
+  - browser flow: the cup padded to 33 MiB and to 65 MiB opens, to 129 MiB is refused, and the part stays.
+
+## D50 — F1: a facet body split by a plane on its own triangles, each side closed by an exact planar cap; oblique splits of planar bodies fixed (2026-10-18, R4)
+
+Before, a split of a mesh body went through F0's explode, to the planar per-triangle B-rep. It was refused past
+16,000 triangles (5,000 in a preview), and so was the drawing's section A–A, which is built on the split.
+
+Decision (`splitFacetBrep` in `facet-split.ts`, used by the part model's split for a body of mesh faces only):
+- **Vertex sides.**
+  - Each vertex's side is decided once, from its distance to the plane.
+  - One tie rule: a vertex within the tie distance is on the plane. It is moved onto it and counted above.
+  - The tie is twice the weld the sides are built with (1e-6 of the mesh's size). So a cut point is never within the
+    weld of a vertex off the plane, and the rebuild cannot collapse a sliver.
+  - A triangle wholly on the plane goes to the side it faces away from. A step's face at the cut stays with the
+    material it bounds; otherwise it would leave a zero-thickness flange on the other side.
+- **Cutting.**
+  - Each crossed edge is cut once, cached by its vertex pair, so both triangles at the edge share the point.
+  - Faces meet at shared corners, welded once at 1e-12 of the size first.
+  - A cut triangle's piece on each side (3 or 4 corners, convex) is fanned.
+- **The cap.**
+  - It is built from that side's open edges with both ends on the plane, reversed, chained into loops. Where loops
+    touch at a corner, the leftmost turn keeps material on the left.
+  - Holes come from containment: each hole goes to the smallest material loop that holds it. A loop wound against its
+    depth is refused as GEOMETRY ("the cut crosses itself").
+  - Each material loop and its holes are triangulated with the kernel's polygon triangulation, from those very
+    points. Nothing is added: the cap is the section, exactly planar.
+- **Names.**
+  - Faces keep their names; a face cut in two is a face on each side.
+  - The cap is `<at>.cut.top` below and `<at>.cut.bottom` above, as the analytic split names the box's faces. More
+    than one cap face on a side is numbered `#n`.
+- **Sheets.** An open mesh (a sheet) splits into two sheets with no cap.
+- **No limit.** No explode and no triangle limit. A preview runs the same split.
+
+Found on the way and fixed (contained): an oblique split (a normal not along an axis) of a planar body always failed
+"face … is not planar".
+- Cause: the half-space tool was a box rotated to the normal, and its quads are not exactly coplanar in binary64. The
+  exact polyhedral Boolean refuses that.
+- Fix: the tool is now a tetrahedron per side. Its base triangle lies on the plane (inradius 2R about the target's
+  centre) and its apex is 4R off it, so it holds everything within R. Both sides use the same three base corners, so
+  they share one exact plane.
+- Faces are named as before: `<at>.cut.top` / `.bottom`, and `<at>.cut.side<k>` (never on a result).
+- The mitre split in the browser flow (normal 1, 1, 0) happened to pass before; a [1, 1, 1] split of a cube did not.
+
+Evidence:
+- Kernel `test/facet-split.test.mjs` 6/6:
+  - cube splits across, through grid vertices, along Y and obliquely: volumes exact to 1e-9 (370/630, 500/500,
+    284/716, 250/750); both sides valid; every cap point on the plane to 1e-12;
+  - torus: an annulus cap across the midplane (genus 1, halves to 1e-9); two discs a side through the axis; a tilted
+    cut that sums;
+  - the stepped block at the step, and at the step + 1e-9 (the tie): 500 and 80, valid;
+  - an open sheet: two sheets, no cap;
+  - part model, 32,000-triangle torus: axis, flipped normal, oblique; the sum to 1e-9; a miss is SELECTION;
+  - D50's fix: a cube split by x + y + z = 12 gives 284/716 with its cap names; the 4 mm slab's corner is 124/6; a
+    holed cube split by (1, 0, 1) sums to 1000 − 40π.
+- Conformance `conformance/r4/`: 5 cases.
+  - facet cube across, where the volumes and centroids are known by hand;
+  - facet cube oblique, checked against the exact polyhedral split of the upright cube, an independent path;
+  - facet torus annulus;
+  - a miss refused;
+  - the upright cube's oblique split.
+- Kernel suite 938/939; the one failure is the known environmental test.
+- Studio 297/297, with a new drawing test: section A–A of a 30,000-triangle torus mesh, past the old limit, gives two
+  rings at x ∈ [−25, −15] and [15, 25].
+- Browser flow 111/111 in a full run. New step: a 30,000-triangle STL torus opens; the toast says "Splits and sections work at any size";
+  Split previews and applies to 2 bodies, the negative half 4,930 of 9,860 mm³. The mitre split still passes.
+- Lint and type-check clean.
+- Organic torus fixtures, Node:
+
+  | Mesh | Split at z = 0.3 | Volume sum |
+  |---|---|---|
+  | 200k | 0.3 s | to 3e-11 |
+  | 1M | 2.0 s (building the mesh body itself takes 2.0 s) | to 3e-12 |
+
+  Two cap loops; one body a side.
+
+RB found that its STEP round-trip stage marked mesh bodies WRONG on topology. These were R3's `mesh-filled`, a
+regression from R3.5 that the R3.5 run missed, and the new R4 cases.
+- Cause: `auto` export writes a small mesh as planar faces, and each polyline edge's segments become edges of their
+  own. Volume, area and centroid matched; only the counts changed.
+- Fix: the stage now takes mesh bodies out tessellated (AP242, faces kept) and checks topology there. The planar
+  fallback is held to volume, area and centroid only.
+- Result: tessellated round trips keep every case's topology, with the volume exact. Full RB after: 932 rows, 0 NEW,
+  the 7 known TODO.
+
+Still with the planar path (explode, 16k): Booleans and holes against mesh bodies. That is F2, next on the facet
+track.
+
+## D51 — SD1: a SubD cage as its exact limit surface, bicubic B-spline faces built from the cage's topology (2026-10-18, R5)
+
+Decision (`subdBrep` in `subd.ts`; the part model's `subd` feature; the studio's `subd` node and its "SubD torus"
+command):
+- **The cage.** Positions, quads counter-clockwise from outside, and optional infinitely sharp creases (pairs of
+  vertex numbers). It is stored as the node's own data: no 64-surface limit and no inline surfaces, as `sew` has.
+  The part limit is 100,000 vertices and faces.
+- **What becomes exact.** Where every vertex is regular, the Catmull–Clark limit surface is exactly the uniform
+  bicubic B-spline whose control net is the cage. Each quad takes its 4 × 4 net from its neighbours, placed in one
+  frame.
+- **Boundaries, creases and corners (OpenSubdiv rules, "edge and corner" boundary interpolation).**
+  - Across a boundary or an infinitely sharp crease, the missing neighbours are mirrored phantoms, 2·P(edge) −
+    P(inside). Along it, the limit is then the cubic B-spline of its vertices: the crease and boundary rule.
+  - With both sides mirrored, a corner is interpolated: the corner rule. That applies to a boundary vertex of two
+    edges, and to a vertex whose every edge is sharp.
+- **Regular means:**
+  - inside: valence 4, and either no sharp edge or two opposite ones (a crease line);
+  - on a boundary: 3 edges, or 2 at a corner;
+  - or every edge sharp.
+- **Refused as CAPABILITY, naming SD2 (R7):** extraordinary vertices (valence ≠ 4), n-gons, darts (a crease ending
+  inside the surface), and sharp edges not running straight through.
+- **Refused as INPUT:** non-manifold or inconsistently wound cages, unknown vertices, and creases that are not cage
+  edges.
+- **Faces.**
+  - Regular regions are packed into blocks: rows grown along u, then along v, up to 13 × 13 quads (16 × 16 poles, the
+    surface limit).
+  - A block never wraps onto itself, never crosses a sharp edge, and stops at a quad turned more than 90° from its
+    seed's. So each face stays a graph over its plane, which is how the validator tells its side; a 32 × 12 torus
+    packed by size alone made one face span 330° of the tube, and the validator misread it.
+  - Each block's net is clamped by Boehm knot insertion (knots 0…K).
+  - Faces are named `<id>.patch<k>`, after the block's seed quad.
+- **Edges.** A face's boundary is cut into runs of cage edges that end at a corner of either face. Each run is made
+  once, as the limit curve along it (the net's line averaged across, (1, 4, 1)/6, clamped), so neighbours share it
+  exactly. Vertices are the cage vertices at run ends.
+- **Body kind.** A solid when the cage is closed (a cage wound inward is turned outward), a sheet when it has a
+  boundary.
+- **Studio.**
+  - "SubD torus" makes a regular nu × nv cage. Its radii are grown so the limit over the cage's vertices sits at the
+    ring radius and, across the tube, the tube radius: within 3% of a true torus at 16 × 8.
+  - The node holds the cage inline (JSON numbers).
+  - The cage editor is SD3 (R8); the chat writes a SubD through the command for now.
+
+Evidence:
+- **Kernel `test/subd.test.mjs` 5/5.**
+  - Tori 16 × 8, 32 × 12 and 30 × 30: one Catmull–Clark step, written apart in the test, gives the same volume and
+    area to 1e-12. All valid, genus 1, poles ≤ 16 × 16.
+  - A creased torus (two crease rings) and a bumpy open sheet agree with a Catmull–Clark step the same way. The crease
+    ring's edges lie on z = 0, and the sheet passes through its four corners to 1e-12.
+  - Exact by construction: a flat 4 × 3 grid has area 1200; an all-creased cube is 1000 mm³ and 600 mm², the same
+    when wound inward.
+  - Refusals: a plain cube (valence 3), a triangle and a dart are CAPABILITY; a bad vertex, a bad crease and a
+    doubled face are INPUT.
+  - Part model: patch names; the STEP round-trip volume to 1e-9; a cube cage is CAPABILITY; a split of the SubD
+    torus through the analytic path sums to 1e-6.
+- **Conformance `conformance/r5/`, 4 cases:**
+  - the creased cube (1000 mm³, 600 mm², centroid (5, 5, 5), STEP round trip);
+  - the 16 × 8 torus (STEP round trip);
+  - the extraordinary cube refused;
+  - the dart refused.
+- **Suites and RB.** Kernel 947/948 (the known environmental test). RB on the conformance set: 232 rows, all OK.
+  Studio 300/300 (new: the SubD torus command).
+- **Browser flow 113/113.** New step: "SubD torus" from the palette gives 128 quads and 1 body, the volume within 3%
+  of 2π²Rr². A split across X gives 2 bodies.
+- **Numbers (Node), a 200 × 100 torus cage of 20,000 quads:**
+
+  | Stage | Time |
+  |---|---|
+  | Build (128 faces) | 58 ms |
+  | Validator | 10 ms |
+  | Mass properties | 3.9 s |
+
+  Mass is quadrature over every span: B0's per-span Gauss, 20k spans.
+  - **Follow-up, done the same day (the peer asked for it before SD3).** The profile showed 2.26 s of the 3.9 s in
+    `validateSurface`, called by `evaluateSurfaceD1` at every Gauss point, plus a constant-axis scan of every pole
+    per call.
+  - Whole-patch faces (any untrimmed NURBS face, SubD or not) now integrate batched:
+    - each direction's basis values and first derivatives at the Gauss points are worked out once per span
+      (Cox–de Boor);
+    - the poles are kept homogeneous in one array;
+    - the u sums are made once per Gauss point in u and reused along v;
+    - no evaluator call, validation or allocation runs per point.
+  - The Gauss order and the integrand are unchanged.
+  - Result: a 20k-quad torus takes 3.9 s → 0.22 s, the volume the same to 3e-16. A 2,048-quad torus takes 35 ms.
+  - Kernel 947/948, RB on the conformance set 232/232 OK, the property tests pass, and the SubD Catmull–Clark checks
+    still agree to 1e-12.
+- **Display, against the analytic (revolved) torus of the same size:**
+
+  | Quality | SubD torus | Revolved torus |
+  |---|---|---|
+  | 8 | 3,442 triangles, worst turn 17.1° | 2,048, 12.5° |
+  | 16 | 11,316, 8.9° | 8,192, 7.1° |
+
+  In line with the analytic torus.
+
+## D52 — F2: Booleans of a mesh body with an exact body, the mesh near the tool alone through the exact Boolean, the tool's faces kept exact (2026-10-18, R6)
+
+Before, a Boolean or hole on a mesh body went through F0's explode: the whole mesh became the planar per-triangle
+B-rep, and it was refused past 16,000 triangles.
+
+Decision (`facetBoolean` in `facet-boolean.ts`; the part model's `boolean()` takes it whenever one side has mesh faces
+and the other none — union and intersection either way round, difference with the mesh first):
+- **Only the mesh near the tool takes part.**
+  - The mesh is clipped, as a triangle soup, to a box round the tool by F1's split (`splitSoup`, refactored out of
+    `splitFacetBrep`). The box is a tenth of the tool's smallest extent larger. Each step caps the part kept; the
+    parts cut away stay triangles, with no body built.
+  - That near part becomes planar faces (`brepFromTriangles` with groups) and goes through the exact analytic Boolean
+    with the tool: planes, cylinders, spheres, cones and B-spline faces, as it handles today.
+- **One soup again.**
+  - The near result is tessellated (32 segments a quarter) and joined to the cut-away triangles, the caps dropped.
+  - T-junctions along the cut lines are mended: the cuts run one after another, so a piece cut away early lacks the
+    corners later cuts add on its line. They lie exactly on it, so each triangle is split there.
+  - The soup becomes a facet body. Every face is grouped by its source through tokens, so mesh faces keep their
+    names. Crease splitting is off, so a far face is never renamed.
+- **The tool's faces get their exact surfaces back.**
+  - The sense is chosen by a vote of the five largest triangles.
+  - The rim, where an exact face meets the mesh, is a polyline whose corners lie on both. Its edges carry the
+    chords' sagitta as their tolerance: L²κ/8 from three corners in a row, which needs no projection (a pole stalls
+    one). A single-chord edge takes its midpoint's measured distance, at most half the chord.
+- **Mixed bodies go on.** A body holding both kinds goes into further F2 Booleans and F1 splits through the same soup,
+  its exact faces tessellated and given back.
+- **Refusals.** A mesh that crosses itself is refused as before (D46), checked once per body; 1.06 s at 1M. A sheet is
+  GEOMETRY. More than 16,000 triangles near the tool (5,000 in a preview) is CAPABILITY, saying how many.
+- **Mesh × mesh stays on F0's planar path until F3.** D3's fallback was to be removed when F2 landed; it is kept for
+  this case only. Removing it would take away small STL-with-STL Booleans that work today. The refusal now says "of
+  two large meshes arrive with F3".
+- **Mass of mixed bodies.** Facet faces used tetrahedra from the centre, exact faces the field F·N. Summed over a
+  closed surface they agree; face by face they do not, so a mixed body's volume was off by percent. Beside exact
+  faces, facet faces now take the same field, exact on each triangle (the degree-8 rule). All-facet bodies keep the
+  tetrahedra.
+- **STEP of a mixed body.** It goes out as a mesh body, tessellated (AP242), its exact faces sampled at 64 segments a
+  quarter and named. `planar` is refused for it: a sampled face can hold slivers no planar reader takes. RB's round
+  trip holds such bodies to 1e-3 and does not compare topology.
+- **Found on the way and fixed:**
+  - `weldVertices` looked only in a corner's own grid cell, so two corners a hair apart across a cell boundary stayed
+    two. It now also looks in the neighbouring cells on the near side, and welds only within the weld distance.
+  - `adjacency` used a Map over all half-edges. It now uses a per-vertex typed list, at 1M about twice as fast.
+
+Not done, and why:
+- **A robustness limit of the exact analytic Boolean on dense planar faces.**
+  - On a 25,600-triangle torus, a cylinder of radius 2 centred on the y = 0 or x = 0 symmetry plane fails "not a
+    manifold solid". So does a radius-2 hole at (0.3, 0.2) through a 25k sphere near its pole.
+  - It is the analytic Boolean itself: called directly on the exploded torus, it fails the same way, while 0.37 mm
+    off-centre it succeeds, and radius 1.5 passes everywhere tried.
+  - The failures sit on the rim where it crosses mesh edges in the tool's symmetry plane. Two things were tried
+    without effect and not kept: turning the cylinder's seam off the plane, and a tie rule moving mesh vertices off
+    the tool's surfaces.
+  - F2 refuses these as GEOMETRY with the Boolean's message. TODO (RB5): the analytic Boolean with thousands of small,
+    nearly coplanar planar faces.
+- **At 1M triangles,** 5 of 8 hole positions succeed (median 4.9 s); the other 3 fail as above. 200k: 8/8, median
+  1.2 s. 20k: 8/8, median 0.41 s.
+
+Evidence:
+- **Kernel `test/facet-boolean.test.mjs` 4/4:**
+  - facet cube with a through hole, blind hole, boss, sphere bite and sphere ∩: volumes to 1e-9 (the bite 7e-6, its
+    planar mesh faces bounded by the sampled rim);
+  - exact tool faces, mesh names kept; the rim tolerance is the sagitta for 32 segments a quarter;
+  - part model on a 25,600-triangle torus: a hole, a second hole on the mixed result (4 exact walls), a split of it
+    (sum to 1e-6), a union with a box; box − mesh is F3 CAPABILITY;
+  - refusals (near count, sheet);
+  - mixed STEP round trip within the sampling.
+- **`facet-brep.test.mjs` updated:** holes on 6,240 and 25,280-triangle spheres, previewed and committed; mesh −
+  mesh past 16k refused naming F3.
+- **Conformance `conformance/r6/`, 4 cases:** facet cube hole (8000 − 180π mm³, centroid (10, 10, 10), genus 1),
+  blind hole (8000 − 72π), boss (8000 + 45π), sphere intersection (36π), all to 1e-9. R3's fillet refusal now reads
+  "is not supported yet".
+- **Suites.** Kernel 955/956 (the known environmental test). RB on the conformance set: 256/256 OK. Studio 300/300.
+- **Browser flow,** a new step: a 30,000-triangle ring with a hole opens from a part file in 640 ms, volume 9737 of
+  9860 mm³. The stop-a-long-Boolean step now unites two meshes, still F0's path, since a hole is no longer slow.
+  - A full run was 113/114. The new step read the properties panel before it changed, so it now waits for the ring;
+    it was rerun with its neighbours.
+
+## D53 — R6a.1–2: the involute spur gear's first stage — dimensions, the profile with a measured fit, the solid and bore (2026-10-18, issue #2167)
+
+This follows owner issue [#2167](https://github.com/barocss/barocss/issues/2167) (GEAR-01/02) and its points as the
+peer relayed them; they take precedence over the first gear brief.
+
+Decision (`gear.ts`: `spurGearDimensions`, `spurGearProfile`, `spurGear`, `spurGearPairNominal`):
+- **Scope of this stage.** External, parallel axes, straight teeth, α = 20°, x = 0. Everything else is refused with
+  its code, never approximated:
+  - another pressure angle: UNSUPPORTED_GEAR_KIND;
+  - x ≠ 0: UNSUPPORTED_PROFILE_SHIFT;
+  - an undercut tooth count, z < 2/sin²α ≈ 17.1: UNSUPPORTED_PROFILE_SHIFT, saying the shift that would avoid it,
+    x = 1 − z/z_min;
+  - more than 200 teeth: INVALID_INPUT;
+  - any other root policy: INVALID_INPUT.
+- **Formulas.** Textbook involute geometry, with KHK's technical reference cited in the issue as provenance; no
+  standard text.
+  - d = mz, db = d cos α, da = d + 2m, df = d − 2.5m.
+  - s = πm/2 − Δs, where Δs is the gear's `toothThicknessReductionMM` at the reference circle.
+  - The half thickness at radius r is ψ(r) = s/d + inv α − inv φ(r).
+  - A tooth coming to a point below its tip, or teeth meeting at the root: SELF_INTERSECTION.
+- **Flanks.**
+  - Each flank is a cubic B-spline of C¹ Hermite pieces on the involute's roll parameter, X(t) = rb(cos t + t sin t),
+    Y(t) = rb(sin t − t cos t).
+  - It takes the fewest pieces meeting `profileToleranceMM` (default 1e-4·m), at most 5: a side face holds 16 poles.
+  - The deviation is measured, as the distance along the circle to the involute at the same radius (a bound), and
+    reported apart from any render chord. Past 5 pieces: PROFILE_BUDGET_EXCEEDED, never a looser tolerance.
+  - The S0 check: 3 pieces give ≤ 2.6e-5·m and 5 give ≤ 3.7e-6·m, at z 18–200.
+- **Root.** The involute is never carried below the base circle. Where the root circle lies under it (z < 42 here), a
+  radial line joins them, then the root arc; above, the flank meets the root arc at a corner. Either way the report
+  says `rootPolicy: 'schematic-radial'`, `manufacturingValidated: false` and gives the warning
+  ROOT_TRANSITION_UNVALIDATED. Tool-generated roots come last (GEAR-05).
+- **Solid.**
+  - The profile is extruded through the face width by a B-rep built directly: side faces are the curves extruded; the
+    end faces are planar with the profile and the bore as loops.
+  - Faces: `<id>.flankL#k`, `.flankR#k`, `.tip#k`, `.root#k`, the radial joins `.rootL#k` / `.rootR#k`, `.face0` /
+    `.face1`, `.bore#1/#2`.
+  - The bore must leave `minimumRimMM` (default 1 m) below the root circle; else BORE_INTERSECTION, giving the
+    largest allowed. That is a geometric margin, not a strength claim.
+- **Pair, nominal values only.** `spurGearPairNominal`:
+  - a = m(z1 + z2)/2 and the speed ratio −z1/z2;
+  - the ideal transverse εα by the formula;
+  - backlash Δs1 + Δs2 at that centre distance;
+  - differing modules or angles: MATE_INCOMPATIBLE.
+  - The real pair checks (phase, clearance over a rotation, the usable flank) are R6a.4.
+
+Evidence — kernel `test/gear.test.mjs` 5/5:
+- **The issue's fixture (m 2, z 20/40):**
+  - d 40, db 37.5877048314 (1e-9), da 44, df 35;
+  - a 60, ratio −0.5, εα 1.6351859636 (1e-9);
+  - backlash 0.05 + 0.07 = 0.12;
+  - MATE_INCOMPATIBLE for module 2.5.
+- **Solids** m2 z20, m2 z40 with bore and reduction, m1 z60, m3 z18 with bore:
+  - valid;
+  - volume equal to the exact profile's area × b, the area by Green's theorem over the analytic involute densely
+    sampled, apart from the generator, to within 2z·deviation·flank length·b (observed 4e-7 to 5e-6 relative);
+  - names per tooth.
+- **Tolerance:** 1e-2 takes fewer pieces than 1e-5; 1e-9 is PROFILE_BUDGET_EXCEEDED. The schematic root is reported.
+- **Every refusal code,** with the undercut shift x = 0.298 for z 12 and the largest bore Ø31.
+- **STEP round trip:** the same volume to 1e-6, the names kept.
+- **Times:** 1–3 ms a gear (z 18–60).
+
+Next: R6a.3 — the part feature (persisted with its generator version), the studio's Gear command, export, and
+conformance fixtures from the issue's values.
+
+## D54 — R6a.3: the spur gear as a part feature and a studio command, persisted with its generator version, its report in the body's panel (2026-10-18, issue #2167)
+
+Decision:
+- **Kernel feature `spur-gear`.**
+  - Fields: module, teeth, faceWidth, bore, thicknessReduction, center, from, profileTolerance, pressureAngle,
+    profileShift, and `generator: 'spur-gear@0'`. A generator version the kernel does not know is CAPABILITY.
+  - Gear codes map to the part model's: INVALID_INPUT → INPUT; the UNSUPPORTED codes and PROFILE_BUDGET_EXCEEDED →
+    CAPABILITY; SELF_INTERSECTION and BORE_INTERSECTION → GEOMETRY. The gear's own code stays in the message
+    (`[UNSUPPORTED_PROFILE_SHIFT] …`).
+  - The output carries the gear's report as `output.gear`: dimensions, the measured flank deviation and the
+    diagnostics.
+- **Studio `gear` node and command.**
+  - The node holds the parameters and `generator`. The "Spur gear" command (module, teeth 18–200, face width, bore,
+    position) has its own generated icon and chat command docs.
+  - The feature editor edits module, teeth, face width, bore and "thinner by" (the thickness reduction).
+  - The body's panel shows the report as notes: reference, tip, root and base diameters and the tooth thickness; the
+    flank fit (deviation, pieces, the tolerance asked); and the warning "Schematic root: not the cutting tool's, not
+    validated for manufacturing".
+- **Identity.** A changed tooth count changes the topology: faces `.tip#k` and others come and go. References to them
+  go through A1.3's re-match or refusal like any feature's; nothing is reassigned silently.
+- **Export.** STEP keeps the B-spline flanks exact (the round trip in RB).
+
+Evidence:
+- **Conformance `conformance/r6a/`, 5 cases:**
+  - the issue's z 20 gear and its z 40 mate with a bore, off-centre. Each volume is the exact profile's area (Green's
+    theorem over the analytic involute, apart from the generator) × width, minus the bore, to 1e-5 (the flank fit);
+    the centroid on the axis at mid-width; genus 0 / 1; base face names; STEP round trip.
+  - refused: a profile shift (UNSUPPORTED_PROFILE_SHIFT), an undercut z 12 (naming x = 0.298), a bore into the rim
+    (BORE_INTERSECTION).
+- **RB seeds** in `robustness/corpus/parts/`: gear m2 z20; m3 z18 with a bore; m0.5 z200 with a bore; m2 z40 with a
+  keyway cut (a Boolean through the B-spline flanks). Every stage OK: evaluate, validate, mass, tessellate, round
+  trip.
+- **Studio test** (primitives): the command's node; the volume equal to the exact profile less the bore, to 0.05 mm³;
+  20 tips, 20 left flanks; the notes with the warning; edited to 30 teeth, 30 tips; z 12 refused naming x = 0.298.
+  Studio 301/301.
+- **Browser flow,** a new step: "spur gear" from the palette gives one body "Spur gear m2 z20". Its notes show
+  "Reference Ø40, tip Ø44, root Ø35" and the schematic-root warning; the top view shows the 20 teeth and the bore.
+- Kernel 965/966 (the known environmental test). Lint clean.
+
+Next: R6a.4, the pair checks — compatibility, centre distance and phase, clearance and interference over the full
+rotation period with refinement until it converges, the contact ratio from the usable flank, and a gear mate.
+
+## D55 — R6a.4a: spur-gear pair checks — compatibility, working geometry, backlash, the usable contact ratio, and a sweep over the full tooth period (2026-10-18, issue #2167)
+
+Decision (`checkSpurGearPair` in `gear.ts`):
+- **Compatibility.** The same module and pressure angle; else MATE_INCOMPATIBLE. Base circles that overlap at the
+  given centre distance are MATE_INCOMPATIBLE too.
+- **Working geometry at the centre distance a′** (nominal a = m(z1 + z2)/2 by default):
+  - α_w = acos(a cos α / a′); working pitch diameters 2a′z/(z1 + z2);
+  - the circumferential backlash at the working pitch circle, p_w − s_w1 − s_w2, with s_w = 2r_w(s/d + inv α −
+    inv α_w): at the nominal distance Δs1 + Δs2, negative when the teeth jam;
+  - the tip clearances a′ − ra1 − rf2 and a′ − ra2 − rf1.
+- **Contact ratio, two of them.** The ideal formula, and the one the usable flanks allow. The second keeps the part
+  of the line of action where each gear's radius lies between the start of its involute flank, max(rb, rf), and its
+  tip; below the ideal, a warning says so.
+- **The sweep.**
+  - Both gears' exact outlines go in: the analytic involute at 150 points a flank, not the fitted flanks, plus the
+    arcs and radial joins.
+  - Gear 2 is set with a tooth space facing gear 1, then turned by `relativePhaseDeg`. Gear 1 turns through one tooth
+    period, since the configuration repeats every pitch, with gear 2 at −z1/z2.
+  - The least clearance comes from 64 samples and from 128, refined by golden section. It is converged when the two
+    agree; otherwise a warning says more samples are needed. A few frames are not taken as proof.
+  - Where the outlines cross: interference (SELF_INTERSECTION), its depth the deepest point of one gear inside the
+    other.
+- **Performance.** The sweep compares only segments near the other gear, with bounding-box pruning and no closures in
+  the loops: 0.5–0.7 s for a clean pair, 4–5 s when interfering.
+
+Evidence — kernel `test/gear.test.mjs` 6/6. Every value is checked against a formula independent of the sweep:
+- **Nominal 20/40:** a 60, α_w 20°, backlash 0, tip clearances 0.5 / 0.5, εα 1.6351859636 = the usable ratio; the
+  sweep touches (|clearance| < 1e-5) over the whole period and converges.
+- **Reductions 0.05 + 0.05:** backlash 0.1; the least clearance 0.0469846 = 0.1·cos 20°/2, half the normal backlash
+  per side, to 1e-5.
+- **a′ = 60.5:** α_w = acos(60 cos 20°/60.5) = 21.262849°; the clearance equals backlash·cos α_w/2 (0.1762392); the
+  usable contact ratio falls (1.394862).
+- **a′ = 59.8:** backlash −0.143255; interference found, its depth −0.0675316 = backlash·cos α_w/2 to 1e-4.
+- **A phase error of 1°** with the 0.1 backlash is found as interference.
+- Module 3 against 2: MATE_INCOMPATIBLE.
+
+Next: R6a.4b — the gear mate in assemblies (ratio −z1/z2, centre distance and phase from the pair), A3 query
+functions (`gear_center_distance`, `gear_backlash`, `gear_contact_ratio`, the interference sweep), and the studio's
+rotation preview.
+
+## D56 — R6a.4b: meshing gears — a gear placed and turned by the one it meshes with, the pair's verdict in the panel, gear queries for requirements (2026-10-18, issue #2167)
+
+Decision:
+- **Kernel feature (`spur-gear`).**
+  - `rotation` (degrees about its axis; tooth 1 on +X at 0).
+  - `mesh: { gear, direction?, centerDistance?, phase? }` places a gear beside an earlier spur gear:
+    - on that gear's face plane, at `centerDistance` along `direction` (the nominal m(z1 + z2)/2 by default);
+    - turned so that a tooth space faces the other's tooth on the line of centres, plus `phase`;
+    - following the other's turn by −z1/z2: rot2 = φ + π − π/z2 − (rot1 − φ)·z1/z2 + phase.
+  - The other gear is referenced, not consumed: both stay outputs.
+  - Another module is refused (INPUT, `[MATE_INCOMPATIBLE]`); a reference that is not a spur gear is REFERENCE.
+  - Outputs carry `gearPlacement`: spec, centre, face plane, turn, and for a meshing gear the other's placement.
+- **`checkPlacedSpurGears(g1, g2, options)`** takes the centre distance from the two centres and the relative phase
+  from the two turns, modulo gear 2's pitch angle; a phase within 1e-9 of a pitch counts as 0, which also lets the
+  cache hit. Faces that do not overlap along the axis are MATE_INCOMPATIBLE. The pair checks are D55's.
+- **Studio.**
+  - The gear node has `rotation?` and `mesh?: GearMesh` (the other gear by node index, renumbered with the history).
+  - `usesOf(node)` — `parentsOf` plus the meshed gear — guards delete, move and dependents. The other gear cannot be
+    deleted from under the follower or moved after it.
+  - `parentsOf` is unchanged, so a body's own line stays its own: its look, its steps, Duplicate.
+  - Suppressing the other gear takes the follower with it.
+  - Command **Meshing gear** needs one spur gear selected (as made), with teeth (default 2 × z1), direction and bore;
+    module, face width and thickness reduction come from the selected gear.
+  - Edit fields: Rotation for a free gear; Direction, Centre distance and Phase for a meshing one.
+- **The panel.**
+  - A meshing gear's notes give the centre distance, ratio, backlash and contact ratio, then the verdict: "Clear over
+    a full tooth period (checked in N ms)", or a warning that the teeth cross, with where and at which phase.
+  - The verdict comes from `checkPlacedSpurGears` in verdict mode, which stops at the first crossing; the kernel
+    caches it by both gears, centre distance and phase.
+  - **Rotation preview:** editing the driver's Rotation turns the follower with it, re-checked each time.
+- **A3 queries:** `gear_center_distance`, `gear_backlash`, `gear_contact_ratio` (verdict mode) and `gear_clearance`
+  (the full sweep, minus the depth when the teeth cross). `a` and `b` are the gears' feature ids. A gear built on
+  further, such as one with a hole added, is a body, not a gear, here: unknown, with why.
+
+Evidence:
+- **Kernel** `test/gear.test.mjs` 8/8. The new test:
+  - z18/z18 with 0.05 + 0.05 reductions, the driver turned 7° and the follower at 30°: the exact Boolean intersection
+    of the two solids is empty. This is independent of the sweep.
+  - For driver turns 0, 7 and 13.25°, the follower stands at 36 mm along 30° (to 1e-12), the placed check gives
+    phase 0 and is clear, and the follower's turn changes by −z1/z2 of the driver's.
+  - Phase 10° (half a pitch) crosses; refusals for another module, a non-gear and faces apart.
+- **Probe (z20/z40, intersection):** empty at phases of 0 and multiples of the pitch, 197 mm³ at half a pitch.
+- **Conformance** r6a 7 cases (54 overall): `spur-mesh-pair` (driver turned 5°, follower along 90° with a bore:
+  centroid [0, 60, 5], volumes as the single-gear fixtures, the follower genus 1) and `spur-mesh-module-refused`.
+- **Studio** `primitives.test.ts` (command, notes, the driver turned and still clear, phase 4.5° crossing, delete and
+  move guarded, suppression) and `spec.test.ts`:
+  - with 0.1 + 0.1 reductions: centre distance 60, backlash 0.2 within 0.1–0.3, contact ratio ≥ 1.4, clearance
+    ≥ 0.05 all pass;
+  - an unknown gear is unknown;
+  - half a pitch out, the clearance fails at below −1 mm, said as a crossing;
+  - a malformed query is refused.
+  Studio 303/303; browser flow: the Spur gear step adds Meshing gear (2 bodies, notes "centre distance 60 mm, ratio
+  −20:40" and "Clear over a full tooth period (checked in 192 ms)").
+- **Timings (m 2, z 20/40, 150 points a flank):**
+  - verdict: clean 185–191 ms cold and 0 ms cached; interfering 0–1 ms (it stops at the first crossing);
+  - report: clean 650 ms, interfering 4.2–4.5 s.
+
+Limits, recorded:
+- The mesh is between gears as generated. A gear moved, or built on, after it was made does not carry its follower.
+  The assembly-level gear mate between instances goes to RM1, as a coupled joint (URDF `mimic`, MJCF equality)
+  taking ratio, centre distance and phase from `checkPlacedSpurGears` (peer, 2026-10-18).
+- The rotation preview is the edit field. The animated turn goes to RM2's joint-slider preview, with the pair
+  turning together and the clearance verdict shown.
+- Pair checks are per pair; trains are chains of pairs.
+
+Next: R6a.5 — profile shift and rack, then helical.
+
+## D57 — R6a.5a: profile shift — the shifted spur gear and the working centre distance of a shifted pair (2026-10-18, issue #2167)
+
+Decision:
+- `profileShiftCoefficient` x from −0.5 to 1. Outside that range: UNSUPPORTED_PROFILE_SHIFT, never clamped.
+- The shifted gear is cut by the standard rack (addendum m, dedendum 1.25 m) moved out by x m:
+  - ra = r + m(1 + x), rf = r − m(1.25 − x);
+  - the reference tooth thickness m(π/2 + 2x tan α), less the thickness reduction.
+- The undercut limit becomes z ≥ 2(1 − x)/sin²α. The refusal names the least x for the tooth count:
+  1 − z sin²α/2.
+- A pointed tip from a large shift on few teeth is SELF_INTERSECTION. The report carries `profileShift`.
+- **No tip shortening.** The KHK-style addendum (1 + y − x_mate)m depends on the mate. A gear stays one part: its tip
+  is the standard one. The pair checks report the tip clearances, and the sweep finds any tip interference.
+  Pending, reversible: a pair-level tip-shortening option.
+- **Centre distance of a pair without backlash.**
+  - Unshifted: m(z1 + z2)/2.
+  - Shifted: m(z1 + z2) cos α / (2 cos α_w), with inv α_w = inv α + 2 tan α (x1 + x2)/(z1 + z2) solved by Newton's
+    method.
+  - It is `spurGearCenterDistance`, the pair checks' and `spurGearPairNominal`'s default, and a meshing gear's
+    default distance.
+  - The ideal contact ratio now uses α_w.
+- **Studio:**
+  - "Profile shift x" on the Spur gear and Meshing gear commands (key `shift`) and in the edit fields;
+  - the command's tooth minimum is now 6, the kernel's undercut refusal giving the least x;
+  - the notes begin "Profile shift x …" when shifted.
+
+Evidence:
+- **KHK's worked example** (m 3, z 12 and 24, x 0.6 and 0.36):
+  - a = 56.4999 and α_w = 26.0886° to 1e-4; df1 = 32.1 and df2 = 66.66 exactly; s1 = 3(π/2 + 1.2 tan 20°);
+  - the formula's backlash is 0 there, and the exact-profile sweep touches (|clearance| < 1e-5) without crossing,
+    converged — the geometry agrees with the inv α_w formula;
+  - at 54 mm the shifted teeth jam;
+  - the part model places the meshing gear at 56.4999.
+- **Volumes** of shifted solids (z 12 at x 0.6, z 24 at x 0.36 with a bore and reduction, z 30 at x −0.3) equal the
+  analytic shifted profile's area (Green's theorem) × the face width, within the measured flank deviation.
+- **Refusals:** x 1.2 and −0.6 are out of range; 12 teeth at x 0.2 are undercut (below 13.7, x ≥ 0.298); 10 teeth at
+  x 1 come to a point.
+- **Conformance** 55: `r6a-spur-shifted-pair` is new, with volumes from the exact area within 6e-6; `spur-shift-refused`
+  now uses x 1.3.
+- **Studio:** the shifted pinion's notes; the meshing gear at x 0.36 at 56.4999 mm, clear. Kernel 972/973 (the known environmental test); studio 304/304.
+
+Next: R6a.5b — the rack (a straight-toothed bar meshing with a spur gear) and its pair checks; then R6a.5c helical.
+
+## D58 — R6a.5b: the rack — the basic rack on a bar, gear-and-rack checks, a rack meshing with a gear (2026-10-18, issue #2167)
+
+Decision:
+- **`spurRack(spec)`** (`gear-rack.ts`): the basic 20° rack.
+  - Straight flanks; addendum m, dedendum 1.25 m; the tooth πm/2 on the pitch line, less its thickness reduction.
+  - On a bar `heightMM` from the pitch line to the back. The back must be at least 2.25 m from the pitch line: the
+    dedendum plus a rim of m, a geometric margin, not a strength check.
+  - n teeth over n·πm, a half gap at each end. The faces are planes: `.flankL#k`, `.flankR#k`, `.tip#k`, `.root#k`
+    (n + 1 of them), `.back`, `.end0`, `.end1`, `.face0`, `.face1`.
+  - The root corner is schematic, as for gears. A pointed tooth and meeting roots are SELF_INTERSECTION.
+- **Shared extrusion:** the gear's extrusion code became `extrudedProfile`, used by both the gear and the rack, with
+  identical output.
+- **`checkSpurGearRack(gear, rack, {centerDistanceMM, rackPhaseMM, mode})`** — the gear axis D from the rack's pitch
+  line, by default r + x m:
+  - **Backlash** p − s_rack − s_gear + 2(D − r) tan α, zero for a shifted gear at r + x m. The working pressure angle
+    is α at any distance.
+  - **Tip clearances:** D − ra + 1.25 m for the gear's tip, D − rf − m for the rack's.
+  - **Contact ratio:** the ideal εα = [√(ra² − rb²) − r sin α + (m − x m − d)/sin α]/(π m cos α), and the usable one
+    with the rack's part ending where the gear's usable flank starts.
+  - **The sweep:** the gear's exact outline against the rack's straight one over a tooth period, the rack travelling
+    r θ and taken as long as the mesh needs. Report and verdict modes and the cache work as in D55.
+  - **Touching is not crossing:** a crossing no deeper than 1e-9 m is contact, 0. At zero backlash the straight rack
+    flank passes through the involute's sample points to rounding.
+- **`checkPlacedSpurRack(gear, rack)`:**
+  - D and u come from the rack's frame; the phase is (−u − r θ) mod p, with θ the gear's turn from the direction.
+  - Teeth facing away from the gear, or faces apart along the axis, are MATE_INCOMPATIBLE.
+- **Part feature `spur-rack`.**
+  - Standing alone: origin, angle and from.
+  - With `mesh: {gear, direction (default −90°), centerDistance, phase (mm)}`: under the gear, its pitch line at D
+    across the direction, its middle gap at the gear's tooth. The direction is counted from the nearest whole tooth
+    angle — the same mesh, whole pitches along, so the rack's middle stands at the gear.
+  - A meshing rack travels r per radian of the gear's turn, continuously.
+  - The other gear is referenced, not consumed. Outputs carry `rack` and `rackPlacement`.
+- **Studio.**
+  - The `rack` node is guarded by `usesOf`; suppression carries through.
+  - **Gear rack** command: on its own, with module, teeth, face width, height and position; with a spur gear selected,
+    meshing with it, with teeth, height and direction (module and face width from the gear).
+  - Edit fields: Angle when on its own; Direction and Slide when meshing.
+  - Notes: length, pitch, tooth and tip; "Meshes with n0: pitch line D mm from its axis, πmz mm a turn, backlash,
+    contact ratio", then the verdict with its time.
+  - The A3 gear queries take a gear and a rack, either way round.
+
+Evidence:
+- **Kernel** `test/gear-rack.test.mjs` 3/3.
+  - The rack's volume equals the closed form, bar plus trapezoids, to 1e-9, over three sizes; valid; names; STEP
+    round trip.
+  - **Checks** (m 2, z 20):
+    - D 20: backlash 0, tips 0.5/0.5, touching over the period, not crossing;
+    - εα = 1.768824 by the formula, equal to the usable ratio;
+    - reductions 0.05 + 0.05: least clearance 0.1 cos 20°/2 to 1e-5;
+    - D 20.3: backlash 2·0.3 tan 20° and the clearance backlash·cos α/2;
+    - D 19.8: crossing, the depth equal to backlash·cos α/2 to 1e-4;
+    - a 0.5 mm slide with 0.1 backlash crosses.
+  - A shifted pinion (z 12, x 0.6) at 19.8: backlash 0, touching, and εα by the shifted formula.
+  - **Placed** (z 18, D 18; turns 0, 7 and 13.25°):
+    - the exact Boolean intersection of gear and rack is empty, independent of the sweep (also probed at 30°);
+    - the rack travels 18·θ;
+    - the placed check gives phase 0, clear;
+    - a 1 mm slide crosses;
+    - a rack turned away is refused.
+- **Conformance** 57: `rack-m2-n10` (closed-form volume and centroid to 1e-9, STEP) and `rack-height-refused`.
+- **Studio** 305/305:
+  - a rack alone, its volume exact;
+  - meshing with the selected gear: notes, the bar under the gear, the gear turned 10° and the rack 20·10° along,
+    still clear;
+  - a 1 mm slide is a warning;
+  - gear queries on the pair.
+  Browser flow: the Spur gear step adds a 10-tooth rack at 180° to the first gear; the panel reads "pitch line 20 mm…
+  Clear over a full tooth period (checked in 11 ms)".
+- **Kernel** 977/978 (the known environmental test).
+- **Timings** (z 20, rack 30):
+  - report: clean 37–55 ms, crossing 113–145 ms;
+  - verdict: clean 9 ms, crossing 0–1 ms.
+
+Next: R6a.5c — helical gears.
+
+## D59 — R6a.5c: helical gears — normal module, helix angle and hand; the transverse involute turned along the helix (2026-10-18, issue #2167)
+
+Decision, following the peer's conventions:
+- **Inputs.** `normalModuleMM` m_n, `helixAngleDeg` β (above 0, at most 45°) and `hand`, named so a spur-style
+  module is never misread.
+  - `moduleMM` together with a helix angle is refused, naming `normalModuleMM`; a missing hand is refused.
+  - `pressureAngleDeg` is the normal one, α_n = 20°.
+  - Transverse values follow: m_t = m_n/cos β, tan α_t = tan α_n/cos β, d = z m_t; addendum and dedendum in m_n.
+  - The tooth is m_t(π/2 + 2 x_n tan α_n) on the reference circle.
+- **Undercut** by the virtual tooth number z_v = z/cos³β against 2(1 − x_n)/sin²α_n. The refusal names the least x.
+- **Geometry.** The transverse involute profile turns by z tan β / r as it rises (lead 2πr/tan β; a right hand turns
+  counter-clockwise going up +Z). A helix has no exact NURBS form, so the side faces are A(v)·C(u):
+  - C is the fitted transverse curve; A(v) is a cubic Hermite fit of the rotation e^{iθ(v)}, exact at the piece ends.
+  - The surface lies within the flank deviation plus `twistDeviationMM` at the tip circle (both reported) of the
+    involute helicoid.
+  - At most four cubic pieces to an axial segment. Longer twists split the faces along the axis (`#k.2`, …); the
+    seams are exactly turned profile curves. Past 64 segments: PROFILE_BUDGET_EXCEEDED, never a looser fit.
+  - The bore and end faces are unchanged. The report carries `helix` (normal and transverse module, α_t, β, hand,
+    lead, twist, its fit, segments, pieces).
+- **Pairs.**
+  - Equal m_n and α_n, and equal β of opposite hands; anything else is MATE_INCOMPATIBLE, with why (same hand, other
+    angle, spur with helical).
+  - Centre distance m_t(z1 + z2)/2, or from inv α_wt = inv α_t + 2 tan α_n (x1 + x2)/(z1 + z2) when shifted.
+  - The sweep runs in the transverse plane: every section meshes alike, turned along the helix.
+  - Reported: εα (transverse, usable and ideal); εβ = b sin β/(π m_n) over the narrower face; εγ = usable εα + εβ.
+  - `axialThrust` as words, with no load: a right-handed gear 1 driving counter-clockwise from +Z is pushed toward +Z,
+    its mate toward −Z.
+  - Placed pairs are compared at the same height (each section turned along its helix).
+- **Racks.** The helical rack is not made in this stage: a helical gear with a rack is UNSUPPORTED_GEAR_KIND, and the
+  studio command says why. Pending: the rack's hand convention against the reference, which was not retrieved.
+- **Part feature `spur-gear`:** `normalModule`, `helixAngle` and `hand`. A meshing gear's hands and angles are checked
+  before it is placed.
+- **Studio.**
+  - The gear node's `module` is the normal module when helical; the label reads "Normal module".
+  - `helixAngle` and `hand` are fields on the Spur gear command and in the edit fields.
+  - A meshing gear takes the other's angle with the opposite hand itself (`helixOf`), so a pair cannot be set
+    inconsistently.
+  - The history label reads "Helical gear mn… z…".
+  - Notes: the helix line; "contact ratio εα + overlap εβ = εγ"; the axial thrust.
+
+Evidence:
+- **Kernel** `test/gear-helical.test.mjs` 4/4. The worked example is KHK's: m_n 3, β 30°, z 12 right-hand and 60
+  left-hand.
+  - Published values reproduced: m_t 3.4641, α_t 22.79588°, d 41.569 / 207.846, db1 38.322, da1 47.569, df1 34.069,
+    a 124.7077.
+  - εα checked by the independent form [z1(tan α_a1 − tan α_t) + z2(tan α_a2 − tan α_t)]/2π, and εβ by its formula.
+  - The published εγ was not retrieved: a web search found no KHK table, so εγ is checked as the sum only. Pending
+    against the KHK page.
+  - The sweep touches at a (|c| < 1e-5), converged.
+  - A shifted helical pair: inv α_wt and a_w by the formulas, touching.
+- **Solids** (KHK z 12; z 25 at β 45° and 60 wide, two axial segments; z 40, β 15°, shifted and reduced):
+  - valid; twist and lead by formula; the top edges the exactly turned profile;
+  - the volume equals the analytic transverse area × b within (2ε + ε²) of the twist fit plus the flank slack. A
+    probe gave 3–7e-6.
+  - STEP round trip within 1e-6.
+- **Placed helical meshing** (z 18/18, β 20°): sections of the B-rep's own side faces at five heights are checked
+  for crossings, independent of the sweep and its formulas.
+  - Meshed at turns 0/7° and directions 0/30°: none cross. A 3° phase crosses at every height. The placed verdict
+    agrees.
+  - The exact Boolean intersection fails here (non-manifold on the twisted B-spline faces, the analytic Boolean's
+    RB5 limit). That is why the section check is used.
+- **Refusals:** module with helix, no hand, β 50°, z_v undercut (10 teeth at 15°: virtual 11.10, x ≥ 0.351), a
+  10 m face past 64 segments, same hand, other angle, spur with helical, helical with rack.
+- **Conformance** 59: `helical-khk-pair` (a 124.7077; volumes from the exact transverse area within 2e-5; STEP) and
+  `helical-same-hand-refused`.
+- **Studio** 306/306: the helical command, notes, a meshing gear of the opposite hand at 57.4656 mm with "+ overlap
+  0.653", thrust, and no rack. The browser flow adds a "Helical gear" step: the pair's notes, clear in 172 ms.
+- **Kernel** 983/984 (the known environmental test).
+
+Next: R6a.6, the tool-generated (trochoid) root — #2167's last item. Manufacturing validation needs physical evidence and stays pending. Then LIB1–LIB4.
+
+## D60 — R6a.5c (cont.): the helical rack by geometry; the trochoid root moved to R12b; the twisted × twisted Boolean recorded for RB5 (2026-10-18, issue #2167; peer's decisions)
+
+Decision:
+- **The helical rack is defined by geometry, not by a naming rule.**
+  - In the common pitch plane, the rack's tooth line coincides with the gear's tooth trace at the pitch cylinder.
+  - It is the z → ∞ external gear of the pair. Its transverse section uses pitch π m_t, α_t and heights in m_n.
+  - The section slides along the rack by tan β per mm up the face: a sheared extrusion, planar faces, exact.
+  - **The hand label follows from the external-pair rule:** opposite to its gear. A left-hand rack (teeth toward +Y)
+    slides +X going up and meshes with right-hand gears.
+  - Meshing, the label is derived from the gear, never taken as an input; a contrary helix is refused,
+    MATE_INCOMPATIBLE, naming the one required.
+  - Standing alone, a rack takes `normalModuleMM`, `helixAngleDeg` and `hand`, as gears do (`moduleMM` with a helix is
+    refused).
+  - The report carries `helix` (β, hand, normal module, shear).
+- **Gear-and-rack checks** take helical pairs: the same m_n, α_n and β with opposite hands, else MATE_INCOMPATIBLE (a
+  same-hand rack, a straight rack with a helical gear). The sweep runs in the transverse plane; εβ = b sin β/(π m_n);
+  εγ.
+- **Placed racks** are compared at the same height: the gear's section turned along its helix, the rack's slid along
+  its shear.
+- **Studio.** Gear rack under a helical gear takes the module, β and hand from the gear (the opposite hand). Notes:
+  "Helical rack β … left hand …: its teeth slide … mm along per mm up the face"; contact ratio "+ overlap".
+- **R6a.6, the trochoid root, is skipped for now** and goes to R12b with internal, bevel and worm gears. The current
+  gears flag their schematic root honestly with ROOT_TRANSITION_UNVALIDATED. Manufacturing validation stays pending,
+  since it needs physical evidence.
+- **RB5:**
+  - Two crossing helical gears (twisted × twisted B-spline flanks): the analytic Boolean refuses their intersection
+    as "not a manifold solid" — a WRONG TODO in `robustness/todo.json`, oracle case
+    `corpus/oracle/gear-helical-pair-crossing-intersect.json`.
+    - Its expected 24.1495 mm³ and centroid come from an independent scanline integration of the exact profiles,
+      turned along their helices, at 60 heights. It is converged to 1e-5.
+    - The same integrator on a spur pair 4.5° off gives 196.7188 mm³ against the exact Boolean's 196.7163.
+  - A keyway, a slot across the teeth and a hole through a tooth of a helical gear (twisted × planar and cylindrical)
+    pass every RB stage. They are corpus seeds now: `gear-helical-m2-z40-{keyway,slot,tooth-hole}.json`.
+  - So the limit is narrower than D59 said: only two twisted faces meeting.
+
+Evidence (`test/gear-helical.test.mjs`, the new fifth test):
+- The rack: valid, all faces degree 1 × 1, shear tan 20° exactly; volume equals the closed-form sheared prism to 1e-9.
+- With a right-hand gear: backlash 0, touching, εβ = 8 sin 20°/2π, εγ the sum. A right-hand rack, and a straight one
+  with a helical gear, are MATE_INCOMPATIBLE.
+- **In the part model, by sections of the solids' own faces at five heights, independent of the sweep:**
+  - meshed at turns 0/7° and directions −90/30°: no crossings, and the hand derived is left;
+  - slid 0.6 mm: crossings at every height;
+  - the same placement with a right-hand rack: crossings above the face it starts on;
+  - the placed verdict agrees;
+  - a contrary helix given is refused.
+- **Conformance** 60: `helical-rack-mesh` (rack volume closed form to 1e-9; gear from the transverse area; STEP).
+- **RB:** exit 0. The three helical seeds are OK at every stage; the crossing pair is the recorded WRONG TODO.
+
+Next: LIB1–LIB4, the library system.
+
+## D61 — LIB1: part libraries as data — the format, a safe expression language, the loader and instantiation (2026-10-18)
+
+Decision (`packages/barocss-cad/src/library.ts`; owner's library system, after R6a):
+- **The manifest:** `{ format: 'barocss-cad-library', version: 1, id, name, libraryVersion (major.minor.patch),
+  units: 'mm', license?, provenance?, parts }`. Limits: 500 parts, 200 parameters, 200 variants, 200 recipe
+  features, 500-character expressions, depth 32.
+- **A part:** `{ id, name, category?, parameters, variants?, recipe, outputs?, interfaces?, simplified?, tags? }`.
+  - **Parameters:** `{ value: number | { expr }, unit?, min?, max?, integer?, source? | estimate: true }`.
+    - A value given outright needs its source, or says it is an estimate; there is no third way.
+    - Derived values are expressions over other parameters, ordered by their dependencies; a cycle is refused,
+      naming it.
+  - **Variants** are rows of the table: they set given parameters only, never derived ones.
+  - **The recipe** is existing part-model features. Any value may be `{ expr }`; `when` keeps a feature only when it
+    holds.
+    - References (`sketch`, `target`, `tool`, `gear`) must name earlier features; face and edge names in `edges`,
+      `faces` and `open` are renamed with them.
+  - **Outputs** default to the last feature. An output left out by its `when` (an optional finish) is the body it
+    would have changed, back along `target`. A left-out maker is refused.
+  - **Interfaces:** `{ id, role, … }` with expressions, evaluated for LIB2.
+- **The expression language** is parsed by our own recursive descent into plain records and evaluated by a switch.
+  Nothing is ever run as code.
+  - Numbers, parameter names, + − * / %, ^ (right-associative), unary − and !, comparisons, && || (short-circuit),
+    c ? a : b, parentheses.
+  - Functions: min, max (two or more), round, floor, ceil, abs, sqrt, sin, cos, tan, atan2 (degrees); `pi`.
+  - Anything else is refused: unknown functions, strings, member access, a name that is not a parameter (own
+    properties only: `toString` is not one), a non-finite result.
+- **Loading checks everything before any use.** Typed refusals (`CadLibraryError`: FORMAT, VERSION, PARAMETER,
+  EXPRESSION, REFERENCE, RECIPE) say where, e.g. `test-plates/plate:s.max[1]: reads height, which is not a
+  parameter`.
+- **`instantiateLibraryPart(lib, part, { variant?, params?, prefix? })`:**
+  - Values come from the defaults, then the variant row, then the values given — given parameters only, within
+    their limits, whole when `integer`.
+  - Features are kept by `when` and their expressions replaced by numbers; ids and references are prefixed
+    `<prefix>_`.
+  - Returns the features, outputs, `origin { library, version, part, variant?, params }` for LIB3, the evaluated
+    interfaces, and warnings:
+    - every estimate used, unless the caller gave that value;
+    - "simplified internals — not for structural calculation".
+- **Placement of the data:** library data lives outside the kernel; built-in libraries come with the studio (LIB4).
+  The FreeCAD extrusion library is a structural reference only, not copied.
+
+Evidence: kernel `test/library.test.mjs` 3/3.
+- **The language:** precedence, associativity, logic and short-circuit, functions in degrees, pi. Injection-shaped
+  input (`constructor.constructor(...)`, `alert(1)`, strings) and malformed input are refused; so are unknown names,
+  including `toString`, and division by zero.
+- **A test library (a plate in two sizes):**
+  - variant B gives 80 × 60 × 5 with a chamfer kept by `when`; prefixed ids, references and edge names; origin;
+    warnings;
+  - the features evaluate, the volume equal to the plate less the hole and the 0.5 mm chamfer to 1e-6;
+  - defaults with t given: no estimate warning, the chamfer left out, the output falling back to the hole;
+  - instantiation refusals: an unknown part or variant, a value out of range or not whole, a derived parameter set,
+    an unknown parameter, a bad prefix.
+- **Load refusals:** JSON, format, version, ids, a value without a source, `pi` as a name, a cycle, a variant setting
+  a derived or unknown parameter, an expression reading a non-parameter (with its path), a forward reference, a
+  duplicate id, an empty recipe, a malformed `when` and `{ expr }`, bad outputs, an interface expression.
+
+Next: LIB2 — interfaces with roles, placement by snapping one onto a face or interface (real mates), and fit checks of
+declared pairs; with the T-slot 20 series library as the first data.
+
+## D62 — LIB2: interfaces, placement by interfaces, declared fits checked by building them; the T-slot 20 series as data (2026-10-18)
+
+Decision:
+- **An interface:** `{ id, role, accepts?, frame: { origin, z, x }, faces?, when? }` in the part's own coordinates,
+  numbers or expressions.
+  - `z` points out of the part (the mating face's outward normal); `x` runs along it. They must be perpendicular,
+    which instantiation checks.
+  - `faces` names, by key, the faces mates are made on: `plane` (flat, flush) and `axis` (round, on one axis).
+  - `when` makes an interface present only with its feature, e.g. a slot left closed has no slot interface.
+- **`placeByInterfaces(a, b, offset)`** (`library-fit.ts`) is exact: R takes b's (x, y, z) to (x_a, −y_a, −z_a), so
+  the frames face each other, and b's origin goes to a's moved by `offset` in a's frame.
+- **Declared fits** (`fits` in the manifest: two ends of part, variant, values and interface, plus an offset) are
+  checked on load: the parts and interfaces exist, and the roles accept each other.
+- **`checkLibraryFit`** builds both parts, places b, and measures their overlap with the exact Boolean intersection.
+  It also checks contact: b pushed 0.01 mm further into a must overlap. Parts standing apart do not pass. ok when
+  both hold.
+- **Recipe references** to a step left out by its `when` resolve back along its `target`, as outputs do, so optional
+  slot cuts chain.
+- **Variant ids** may begin with a digit (2020).
+- **Fixed in passing:** `booleanAnalytic` silently ran another operation's selection for an unknown operation name
+  ('intersect'). It now refuses (INPUT).
+- **Studio: `snapByInterfaces(doc, a, b, offset)`.**
+  - b, an instance, is placed exactly through a's placement.
+  - Real mates are added on the faces both interfaces name: coincident for `plane`, concentric for `axis`. The solver
+    keeps b where it was placed; the remaining freedom (sliding along the slot) stays free.
+  - Refused: roles that do not mate, the base part as b, a grounded b, an unknown interface.
+- **The built-in "T-slot 20 series"** (`apps/cad-studio/src/library/builtin/tslot-20.json`, 0.1.0) is written for
+  BaroCSS from the shape of a typical B-type slot-6 system. No supplier data was copied.
+  - Every cross-section value is flagged an estimate, to verify against a datasheet. The license is "CC0-1.0,
+    legal review before release".
+  - **Profile** (20×20 with 1–4 open slots, 20×40 with six): 45°-tapered undercut slots, which leave diagonal webs,
+    and a core bore. Simplified internals. Interfaces: each slot's lip underside, both ends, two faces.
+  - **Slot nut M5:** trapezoidal, 0.2 mm clearance, tap-drill hole.
+  - **End cap 20×20** and an **angle bracket** with clearance holes.
+  - Fits: a nut in a 20×20 and in a 20×40 slot, a cap on the end, a bracket on the top face.
+
+Evidence:
+- **Kernel** `test/library.test.mjs` 4/4 (+1). A key in its pocket (0.1 mm clearance a side):
+  - the placement exact, R a quarter turn about Z, the foot on the floor; overlap 0 with contact;
+  - a 6.5 mm key overlaps by 6.25 × 4 = 25 mm³;
+  - 1 mm along the pocket overlaps by 0.9 × 5.8 × 4;
+  - lifted 1 mm: no overlap, no contact, not ok;
+  - fit declarations refused on load: an unknown part, an unknown interface, roles that do not accept each other, a
+    duplicate.
+- **Studio** `test/library.test.ts`:
+  - every T-slot part builds valid in each variant (slot interfaces 4, 1 and 6), its estimates said;
+  - the four declared fits: overlap 0, contact, 20–80 ms each;
+  - a nut snapped 30 mm along the top slot sits with its top at the lip underside (y 8.2, upright), with one
+    coincident mate on `lib1_t1x.side1`/`lib1_n.side5`;
+  - solved again, it stays; the rail moved up 100, the nut follows to 108.2;
+  - refusals.
+
+## D63 — LIB3: a library part as a node — its features kept with the document, regenerated from the library (2026-10-18)
+
+Decision:
+- **Node `library`:** `{ name, library: origin, prefix, features, outputs, interfaces, warnings }`.
+  - The features are ordinary part-model features as the library made them, ids prefixed `lib<k>`, unique in the
+    document. The node's own feature passes the output on under the node's id, so its body is keyed as any other.
+  - The document opens and evaluates without the library.
+- **Origin:** `params` holds the values the caller gave; `values` holds every value used. Regenerating
+  (`regenerateLibraryNode`, when the library is there) keeps the given values and the variant, and takes everything
+  else — the row, defaults, estimates — from the library as it is now, at its version.
+- **Face names hold:** the same prefix and recipe give the same names, so mates and references survive. A changed
+  recipe goes through A1.3's re-match like any edit.
+- **Notes on the body:** "From <library> <version>: <part> (<variant>)", then the warnings (each estimate used,
+  simplified internals).
+- **Insertion:** into a part's own tree (`insertLibraryPart`), or as a new assembly instance holding the part
+  (`libraryInstance`).
+
+Evidence (`test/library.test.ts`):
+- A 250 mm 20×20 profile: origin and name; the notes from the library, the wo estimate and the caveat.
+- Saved, its library id changed to one not installed, and read back: the same volume and faces; not regenerated.
+- A copy of the library at 0.2.0 with a 6.0 opening: regenerated at 0.2.0 with L 250 kept and wo 6.0. The volume
+  gains exactly 4 slots × the section difference (43.58 → 42.85 mm²) × 250. The interface face names are unchanged.
+- Studio 309/309.
+
+## D64 — LIB4: the library panel, team and user libraries under the data rules, agent tools; the acceptance flow (2026-10-18)
+
+Decision. The data rules are the peer's, from what community model sites teach (mixed formats, unclear licences):
+- **Licence.** A team or user library without `license` still loads, but as "unlicensed — private use only". It is
+  never shared. The panel and `list_library` show each library's licence.
+- **Provenance:** LIB1's rule holds (every given value sourced or flagged an estimate). Each library's estimate count
+  is shown.
+- **The check before sharing** (`src/library/sharing.ts`, kernel only, so the studio and the chat server run the
+  same one):
+  - the library loads, every part builds valid in every variant, and its declared fits pass;
+  - the result (ok, problems, time, kernel version, library and version, parts built, fits) is kept beside it;
+  - `CAD_KERNEL_VERSION` is held equal to package.json's by a test.
+- **No third-party models in libraries.** Recipes may not use `import`, `mesh` or `sew` (LIB1 refuses them, RECIPE). A
+  downloaded STEP or STL stays an import in the user's own document.
+- **Agent-written libraries:** `add_library` checks the library at once and keeps it in the document
+  (`StudioDoc.libraries`, carried like every field) marked `authoredBy: 'agent'`, unconfirmed. It is shared only after
+  a person confirms it. Adding one changes no model, so it applies at any autonomy level.
+- **The team folder** is the chat server's `CAD_STUDIO_TEAM_LIBRARIES`.
+  - `GET /api/chat/libraries` lists `<id>.json` with `<id>.check.json`.
+  - `POST` writes both only when the server's own run of the check passes, the library is licensed, and an agent's
+    library is confirmed. Otherwise 422 with why.
+  - The agent's MCP process registers the same folder, so `insert_part` finds team libraries.
+  - Without the chat server, the dev server answers the GET with an empty list instead of a proxy error.
+- **User libraries** are added from a JSON file and kept in this browser (localStorage: a convenience; the files are
+  the user's).
+- **The panel** (toolbar "Library"): built-in, team and yours, each with licence, estimates, the agent mark with
+  Confirm, and its parts with a variant choice. Insert puts the part into this part; Place makes it a new placed part.
+  Yours can be shared with the team.
+- **Agent tools:**
+  - `list_library` (parts, variants, parameters with estimates, interfaces and roles, fits, licence);
+  - `insert_part` (as a new placed part; estimates warned);
+  - `snap_part` (by interfaces, real mates);
+  - `add_library`.
+  - Insertions and snaps change the assembly, so at every level the agent proposes them and the user accepts (D41).
+- Estimate warnings say the value and that it is an estimate; the source stays with the library, where
+  `list_library` gives it.
+
+Evidence (`test/library-tools.test.ts`, `test/library.test.ts`):
+- **Acceptance through the agent's own path:**
+  - it lists the T-slot library (CC0, estimates, parts, variants, slot interfaces);
+  - inserting directly is refused, `needs_approval`;
+  - it proposes inserting a 200 mm rail and a nut and snapping the nut into the top slot 40 mm along (approval:
+    assembly and mates), and the user accepts;
+  - one coincident mate holds the nut, its top at the lip underside (y 8.2, its origin at 35);
+  - a nut onto an end is refused, saying why;
+  - saved and reopened: the same volumes and the mate.
+- **The agent's spacer library:**
+  - checked at once (2 variants built, 0 fits), licence CC0, 1 estimate, kept in the document as the agent's,
+    unconfirmed; its part inserts;
+  - not shared before a person confirms it, then shareable;
+  - unlicensed: private use only, refused;
+  - a library whose bore is wider than the tube fails its check;
+  - a library with a STEP import is refused.
+- **Team folder over HTTP:**
+  - refused for unconfirmed, unlicensed and failing libraries (422);
+  - accepted when confirmed, writing the library and its check (ok, kernel 0.0.0-experimental, version, 2 built,
+    time);
+  - listed back;
+  - the agent's process registers the folder.
+- The insertion and its properties: licence and estimates shown; a 20×20 profile inserted, "From tslot-20 0.1.0:
+  profile (2020)" with its estimates and caveat; a nut placed as a part.
+- Kernel library 4/4 (with the refused kinds and the version); studio 311/311; lint 0 errors.
+- Browser flow: a new "Library" step, the T-slot profile on screen with its slots.
+
+The library system's acceptance (README): the T-slot 20 series from data ✓; fits pass ✓; insert, save and reopen
+without the library give the same bodies ✓; an agent lists, inserts and snaps a nut into a slot ✓.
+
+Next: R6b, enclosure elements, built as library items where they can be (owner: "after it, R6b, much of R12c and FR
+are built as library items").
+
+## D65 — R6b.1: declared checks with context, "add to body" as one step, the screw boss as a library item (2026-10-18)
+
+Decision (the peer approved the plan, with its refinements):
+- **Checks in the library format:** `checks: [{ id, expr, level: 'recommended' | 'feasible', message, value? }]`.
+  These are process rules as data:
+  - a recommended rule that fails is a warning on the part, with its margin (`value`);
+  - a feasible rule that fails refuses the instance (PARAMETER), naming the rule and its margin;
+  - the instance reports every rule (`checks`: met, not met, or unknown).
+- **Context inputs:** `context: { wall: { unit, description, from } }` — what the checks need from where the part goes.
+  - Given at instantiation. Only checks read them; recipes cannot (the geometry does not depend on the target).
+  - A check reading a context input that was not given is unknown, with why ("needs wall (…)"), never passed.
+  - Context names may not shadow parameters, pi or functions.
+- **Variant ids** may hold a dot (M2.5).
+- **Add to body** (`addLibraryPartToBody`; agent tool `add_library_part`):
+  - The part's `base` interface goes on a picked flat face at a point, the frames facing, then the part is united
+    with the body.
+  - It is one step: a `library` node with `placement` (kernel turns and a move, `<prefix>_placed`), `addTo` (the
+    body, consumed as a Boolean's first) and `on` (the face's name and the point, for A1.3's re-match).
+  - Suppressed, the body passes on as it was. Its look is the body's (it builds on it).
+  - **The wall there:** given, or measured: the ray from the point inward through the body's mesh.
+  - **Refused, with why — never added half on, never dropped:**
+    - the footprint (the placed part's points on the face plane, each pushed 0.05 mm in) is not all inside the
+      body: "k of n points of its footprint fall off it";
+    - its base is off the face;
+    - the union does not build;
+    - a feasible rule fails.
+- **A3:** `library_check { feature, check }` gives the rule's margin (or 1 or 0), unknown without its context or its
+  library.
+- **The built-in "Enclosure elements" library** (0.1.0, CC0, legal review before release). Its first part is a
+  **screw boss** for a thread-forming screw.
+  - Variants M2–M5 (pilot holes as estimates); OD = 2d + 0.4; free height; 0 or 4 triangular gussets (thickness an
+    estimate) on vertical planes.
+  - Rules against the wall:
+    - boss wall within [0.6, 1.0] of it, recommended;
+    - gusset ≤ 0.6 wall, recommended (sink), and ≤ the wall, feasible;
+    - engagement ≥ 2d, recommended.
+  - Interfaces `base` (its foot) and `screw` (the pilot's axis).
+- **Next step: R6b.7.** The material and process profiles (injection, FDM, SLA) and their thresholds with source
+  IDs come next, moved up to right after R6b.2.
+
+Evidence:
+- **Kernel** `library.test.mjs` 5/5. A rib's rules on a 2.5 mm wall are met (0.48); on 1.6, one warning (0.75); on
+  1.0, refused (1.2); without a wall, both wall rules unknown and said, the height rule still checked. Bad context
+  and check declarations are refused.
+- **The bosses:** all ten (M2–M5 × gussets) valid. The M3 without gussets equals π·3.2²·8 − π·1.25²·7.4 to 1e-6 on
+  the plate.
+- **Studio** `test/enclosure.test.ts`:
+  - on a 60 × 40 × 2.5 plate: the wall measured 2.5, no rule warned, one body, 10.5 high;
+  - on 1.2: boss-wall-thick (1.625) and rib-sink (0.833) warned;
+  - on 0.8: refused, rib-wall (1.25);
+  - half off the edge: refused, saying how many footprint points fall off;
+  - on the side face: lying along X to 68;
+  - suppressed: the plate's volume;
+  - no wall where the ray leaves nothing: unknown;
+  - `add_library_part` by face name and point, with "not a flat face" refused;
+  - `library_check` as requirements: rib-sink 0.8333 fails ≤ 0.6, engagement passes, an unknown rule is unknown.
+- Studio 315/315; lint 0 errors.
+
+## D66 — R6b.2: heat-set insert holes (cut from a body), PCB standoffs, and the hole-pattern alignment check (2026-10-18)
+
+Decision:
+- **Library `operation: 'add' | 'cut'`** (LIB format). A cut part added to a body is taken from it: a library node
+  with `cut`, the kernel's difference, still one step.
+  - A cut's footprint check is wider than a boss's: every point of the tool, brought onto the face and pushed a hair
+    in, must fall inside the body, so its whole outline opens on the face.
+- **Context measured where it goes:**
+  - `depth`/`wall`: the body's thickness inward from the point. A hole part (one with `dh`) is measured at its rim,
+    just outside its radius, so a pilot hole already on the axis does not cut the measure short (it read 7.4, the
+    pilot's bottom, instead of 10.5);
+  - `around`: the least material round the axis, eight rays across it, halfway down the part's depth `Lh`, from the
+    hole's own radius out.
+- **Insert hole** ("Enclosure elements" 0.2.0).
+  - Variants M2–M5: hole Ø, depth and the insert's Ø, all estimates written for this library (no supplier's table).
+  - The tool runs into the body along +z of its base frame. It has an `insert` axis interface for the screw.
+  - Rules:
+    - depth ≥ Lh + 0.4 (feasible: it would break through);
+    - around − dh/2 ≥ 0.8 (feasible: material round the insert);
+    - around ≥ the insert's Ø (recommended: a boss about twice its diameter across).
+- **PCB standoff:** M2–M3; OD = 2d + 1.2; free height; pilot hole. Rules: its wall against the nominal wall, and
+  engagement ≥ 1.5d. A `screw` interface (role `pcb-mount`) carries the seat plane and the screw axis.
+- **Hole alignment** (`src/library/alignment.ts`; A3 `hole_alignment { board, features? }`):
+  - the board's holes are the inner cylinders of its exact faces (an imported PCB STEP as a placed part, or the base
+    part), moved into place;
+  - the standoffs' screw axes come from their interfaces as placed;
+  - each axis is compared with the nearest parallel hole, its offset being the distance between the axes; the
+    largest offset is the measure;
+  - a standoff with no parallel hole is unknown, said, and so is a missing board.
+
+Evidence (`test/enclosure.test.ts` 6/6):
+- **An M3 insert into the top of an M3 boss on a 2.5 mm plate:**
+  - depth 10.5; around 3.2 (the boss's radius, at 45° clear of the gussets);
+  - boss-size warned (0.696: an M3 boss is small for an insert);
+  - the volume drops by exactly π(2² − 1.25²)·5, the hole beyond the pilot, to 1e-6.
+- Into the bare plate: refused, breaks-through (−2.5). Its mouth over the edge: refused.
+- **Four M2.5 standoffs** on a 70 × 60 × 2 floor under a 50 × 40 × 1.6 board, exported to STEP with four Ø3.2 holes,
+  imported and placed on their tops:
+  - `hole_alignment` 0 to 1e-9; passes ≤ 0.05;
+  - one standoff 0.3 mm off: measured 0.3, fails, with the worst pair named;
+  - a missing board: unknown.
+- Studio 317/317; kernel library 5/5; lint 0 errors.
+
+Next: R6b.7, the material library and process profiles (moved up, peer). Then R6b.3 snap-fits, whose strain checks
+read them.
+
+## D67 — R6b.7: the material library and process profiles, read by library checks (moved up before R6b.3, peer) (2026-10-18)
+
+Decision:
+- **`src/library/builtin/materials.json`** (barocss-materials 0.1.0, CC0, legal review before release): 13 materials.
+  - The studio's eight, their densities unchanged, plus PC, PP, PETG, POM and a standard SLA resin.
+  - Each has density, elastic modulus, yield, allowable strain (a snap-fit's), shrink, a wall range per process it
+    suits, and its processes.
+  - Every value names a source id: S-TYP, S-DENS, P-INJ, P-FDM, P-SLA, each a BaroCSS-written typical value or rule
+    of thumb (no datasheet, catalogue or standard text). Every material is flagged an estimate.
+- **Process profiles** (injection, FDM, SLA): thresholds with a value, unit, source id and description — ribRec,
+  ribMax, bossWallMin, bossWallMax, minWallRec, minWall, draftRecDeg.
+  - Moulding is strict on ribs (0.6 recommended, 1.0 at most). FDM allows a rib as thick as the wall (1.0 / 2.0) and
+    needs no draft. SLA sits between.
+- **`checkMaterials`:** every number finite (density, modulus and yield above 0), every field sourced by a known id,
+  wall ranges ordered, every threshold's source known.
+- The studio's material list (mass) now comes from this library.
+- **`StudioDoc.process`** is the profile the part is made by, chosen in the Library panel ("Not chosen (rules
+  unknown)" by default) and carried like every document field.
+- **Library context reads them:** `from: ['material.<field>']` (also `material.wallMin`/`wallMax` for the process)
+  and `['profile.<threshold>']`.
+  - Material values come from the body's material only when set: an assumed (default) material is no value.
+  - What cannot be resolved is said on the part as "context <name>: <why>" ("the body's material is not set", "no
+    process is chosen"), and the checks reading it are unknown.
+- **The enclosure library 0.3.0:** the boss and standoff rules take their thresholds from the process instead of
+  fixed numbers.
+
+Evidence (`test/enclosure.test.ts` 7/7):
+- The data checks clean; the eight densities are as before; every material is sourced.
+- **The same M3 boss on a 1.2 mm wall:**
+  - moulding warns boss-wall-thick and rib-sink;
+  - FDM warns neither;
+  - no process: the rules unknown, "context ribRec: no process is chosen".
+- **A test part reading `material.allowableStrain`:**
+  - unknown while the body's material is assumed;
+  - on ABS 0.025, met;
+  - on PLA 0.015, warned.
+- The earlier boss and insert tests run under injection, with the thresholds in their context.
+- Studio 318/318. The browser Library step chooses FDM.
+
+Next: R6b.3, the cantilever snap-fit (ε = 1.5·t·y/L² against the material's allowable strain, through this
+library).
+
+## D68 — R6b.3: the cantilever snap hook — tapered-beam strain derived and checked by integration, push-on and pull-off forces, the ledge it latches under, FDM print plane (2026-10-18)
+
+Decision (with the peer's notes):
+- **Snap hook** ("Enclosure elements" 0.4.0), added to a wall by its root:
+  - a beam of length L, root thickness t, tip ratio r (1: uniform; down to 0.4) and width b;
+  - a hook with undercut y and head height hh;
+  - a retaining face at `ar` from the push-on direction (90: square), a lead face at α = atan(y/(hh − y/tan ar)).
+- **The tapered beam is derived here, not taken from a table** (provenance in the parameter's description).
+  - Euler–Bernoulli with a tip load, thickness falling linearly from t to r·t: y = 12 P L³ F(r)/(E b t³), where
+    F(r) = ∫₀¹ s²/(r + (1 − r)s)³ ds = (−ln r + 2r − r²/2 − 3/2)/(1 − r)³, and 1/3 at r = 1.
+  - Root strain ε = 6PL/(E b t²) = (1/(3F(r)))·1.5·t·y/L²: the uniform formula times the taper's factor.
+- **Rules:**
+  - feasible:
+    - ε ≤ σy/E (it would yield);
+    - μ tan α < 1 (a lead so steep it locks);
+    - hh > the retaining face's rise + 0.1 (shape);
+  - recommended:
+    - ε ≤ the material's allowable strain;
+    - FDM: the bend in the print plane — unknown until the orientation is known (AM2/AM4), warned when given out of
+      it, not asked for other processes.
+- **Reports** (a new library item: a quantity with its unit, unknown when its context is missing):
+  - deflection force P;
+  - push-on W = P(μ + tan α)/(1 − μ tan α);
+  - pull-off by the same form with the retaining angle, −1 when it locks.
+  - μ is the material library's (an estimate per material, `friction`, S-TYP) or given.
+- **Snap ledge**, the catch, added to the mating wall: as deep as the undercut, as wide as the hook plus its
+  clearance. It has a `ledge` interface; the hook's `hook` interface is its retaining face.
+- **Declared fits** `hook-on-ledge` (straight and tapered): the hook latched under the ledge, moved off its wall by
+  the clearance. The fit's own checks read both parts' values (`a_<p>`, `b_<p>`, a new fit item): the engagement
+  |e − y| ≤ c, and the width.
+- **Kernel library additions:**
+  - `ln`, `exp`, `atan`;
+  - `reports`;
+  - a check is unknown only when its evaluation reaches a missing context input — a short-circuit past it decides
+    (`isFdm == 0 || …`);
+  - instances carry every value, derived ones too;
+  - fit checks.
+- **Materials 0.2.0:** `friction` per material (estimates) and the profiles' `isFdm`. A `print.*` context is unknown
+  until AM2/AM4.
+
+Evidence:
+- **Kernel** `library.test.mjs` 6/6:
+  - ln/exp/atan;
+  - a report with its value, and unknown naming E;
+  - a check decided past missing context, and unknown when it reaches it;
+  - a fit check over both parts;
+  - refusals.
+- **Studio** `enclosure.test.ts` 11/11:
+  - **Integration, independent:** the tapered strain and deflection force agree with Simpson integration of the
+    beam's deflection (20 000 steps) to 1e-9 at r = 1, 0.8, 0.6 and 0.45;
+  - the volume equals the closed form;
+  - against the body's material: ABS met (0.625), PLA warned (1.0417), PLA with y 1.5 refused (yield 1.49), no
+    material unknown;
+  - forces equal the formula by hand: P = Ebt³y/4L³ = 6.445 N, push-on 8.594 N, square pull-off −1, 30° pull-off
+    finite;
+  - a locking lead and a short head are refused;
+  - FDM: unknown, said; out of plane: warned;
+  - no μ: forces unknown;
+  - fits: overlap 0, contact, engaged, for straight and tapered hooks; a ledge 0.25 short fails its engagement rule.
+- Studio 322/322; kernel 991/992 (the known environmental test); lint 0 errors.
+
+Next: R6b.4, enclosure lip and groove and the split between halves.
+
+## D69 — R6b.4: enclosure halves with lip and groove, their fit checked for interference and contact (2026-10-18)
+
+Decision:
+- **Rectangular enclosure halves as library parts** ("Enclosure elements" 0.5.0).
+  - **Base:** open at the split `hs`, floor `w`, a lip of thickness lt and height lh round the inside of its rim.
+  - **Lid:** height Hl, closed top, a groove lt + c wide and lh + c deep round the inside of its rim.
+  - Both share L, W, w, lt, lh and c. Their `rim` interfaces (roles enclosure-rim and enclosure-lid-rim) snap the lid
+    onto the base with one coincident mate.
+- **Rules,** with thresholds from the process profile (materials 0.3.0 adds `fitClearance`: injection 0.1, FDM 0.2,
+  SLA 0.1):
+  - feasible: the base's rim beside the lip ≥ minWall; the lip ≥ minWall; the lid's wall beside the groove ≥ minWall;
+    the lid deep enough for its groove and top;
+  - recommended: the clearance ≥ the process's fitClearance.
+- **The declared fit `lid-on-base`:** overlap and contact, plus the fit's own rules over both halves — the same box
+  and wall, and the groove at least as wide and deep as the lip (side and top clearance as values).
+- **Limit, recorded:** splitting an arbitrary user body into halves with a lip that follows its outline needs an
+  offset of its section. It is pending (with R11 shell offsets) and is not done here.
+
+Evidence (`test/enclosure.test.ts` 12/12):
+- The volumes equal the closed forms exactly (17568 and 11375.168 mm³).
+- The fit: overlap 0, contact, the rules met, a side clearance of 0.2.
+- A lid with a 0.7 lip-band groove (0.9 wide for a 1.0 lip) overlaps by exactly the 0.1 ring × 2 (50.32 mm³) and
+  fails its rule.
+- Snapped in an assembly: the lid at z 20 with one coincident mate.
+- A clearance of 0.15 is met for moulding and short for FDM.
+- A 1.6 lip leaves a 0.4 rim: refused.
+- Studio 323/323.
+
+Next: R6b.5 vents and grilles, then R6b.6 the living hinge.
+
+## D70 — R6b.5: vents and grilles — slots and staggered hexagons cut as deep as the wall (2026-10-18)
+
+Decision ("Enclosure elements" 0.6.0):
+- **Slot vent:** n slots, sl × sw, pitch p, centred on the point. One slot is cut and patterned along the row.
+- **Hex grille:** nx × ny openings s across their flats, with webs wb, in staggered rows (pitch s + wb, rows
+  (s + wb)·√3/2 apart). Odd rows are a second pattern, left out by `when` for a single row.
+- **Depth:** a cut with a `cutDepth` parameter goes as deep as the wall measured at the point, plus 0.5 mm. It does
+  not go through to what lies beyond, such as a box's far wall. Unmeasurable: refused, asking for cutDepth.
+- **Rules:** web ≥ the process's minWall (feasible) and ≥ its minWallRec (recommended).
+- **Reports:**
+  - the open area;
+  - the open ratio: n·sw/span for slots; s²/(s + wb)² over the lattice for hexagons;
+  - the openings.
+
+Evidence (`test/enclosure.test.ts` 13/13):
+- On a 2 mm plate (cutDepth 2.5): the material taken equals exactly 6 × 12 × 1.5 × 2 for the slots, and 20 and 5
+  hexagons × (√3/2)·16 × 2 for the grilles.
+- Open ratios 9/19 and 16/5.2².
+- Webs: 0.5 refused, 0.8 warned under moulding.
+- In an enclosure base's side wall, only the near wall is cut.
+- Studio tests pass.
+
+## D71 — R6b.6: the living hinge; R6b closed (2026-10-18)
+
+Decision:
+- **Living hinge** ("Enclosure elements" 0.7.0), a cut across a plate: a groove of land Lh along the bend and span
+  along its axis, as deep as leaves `th`.
+  - The plate's thickness `wallT` is measured where it goes, as `cutDepth` is.
+  - Surface strain folded through θ, the land bent to an arc: ε = th·θ/(2·Lh).
+- **Rules:**
+  - feasible: it thins the plate (th ≤ wallT − 0.2);
+  - recommended:
+    - the thickness within the material's living-hinge range;
+    - ε within its living-hinge strain;
+    - not printed in layers (FDM), or else mould it or use a pin hinge.
+- **Materials 0.4.0:** polypropylene alone carries `livingHingeStrain`, `livingHingeTMin` and `livingHingeTMax`
+  (estimates, S-TYP). For any other material the context says "<material> is not a living-hinge material" and the
+  rules reading it are unknown.
+
+Evidence (`test/enclosure.test.ts` 14/14):
+- On a PP plate 2 thick: wallT measured as 2, the material taken equals exactly 1.5 × 40 × 1.7, no rule warned.
+- ABS: unknown, said.
+- FDM: warned.
+- A 0.5 land: ε 0.942, warned (1.88 of PP's).
+- A 0.8 hinge: thickness warned.
+- A 1.9 hinge in a 2 plate: refused.
+- Studio tests pass; lint 0 errors.
+
+**R6b is closed:** R6b.1–R6b.7 (D65–D71), every element a library item with process- and material-driven rules,
+built and checked from data.
+- Pending:
+  - the general split of an arbitrary body with a following lip (R11 offsets);
+  - the print orientation for the FDM rules (AM2/AM4).
+
+Next in the roadmap: AM1–AM5.
+
+## D72 — AM1: process and printer profiles for 3D printing (2026-10-18)
+
+Decision (the peer approved the AM1–AM5 plan; its notes are folded into each step):
+- **Process profiles** (materials 0.5.0) now include SLS and MJF beside injection, FDM and SLA. Each printing
+  (`additive`) profile carries the printing thresholds, each with a source id (P-FDM, P-SLA, P-SLS, P-MJF; BaroCSS
+  rules of thumb, written):
+  - minWallUnsupported;
+  - maxOverhangDeg (90 for powder: it supports itself);
+  - maxBridgeMM;
+  - minHoleMM;
+  - fitGap (parts printed together do not fuse);
+  - escapeHoleMM and escapeHoles (powder and resin; none for FDM);
+  - horizontalHoleMM (the largest horizontal hole that prints round unsupported; for AM3's sag rule).
+- **Materials:**
+  - `warpRisk` 0–1 per polymer (for AM3's warp warning);
+  - PA12 suits SLS and MJF, with wall ranges.
+- **Printer profiles:** five generic printers of their class, under names written here, not product datasheets
+  (P-PRN): FDM 256³, FDM 220 × 220 × 250, desktop SLA, SLS 300³, MJF 380 × 284 × 380. Each has its process, build
+  volume, layer, and nozzle or bed where they apply.
+- **`checkMaterials`** also requires every printing threshold on every printing profile, and every printer on a
+  printing process with a positive build volume and layer and a known source.
+- **`StudioDoc.printer`** is chosen in the Library panel among the printers of the chosen process; changing the
+  process drops a printer of another one.
+
+Evidence:
+- `test/printing.test.ts`: the data checks clean; every printing threshold is sourced; powder has no overhang limit
+  and wants escape holes, FDM none; the printers and their volumes; a printer on a moulding process and a missing
+  threshold are caught.
+- Studio 326/326; lint 0 errors.
+
+Next: AM2, the overhang map — exact normals for planar faces, display triangles only for curved ones (accurate to
+the chord error).
+
+## D73 — AM2: the overhang map (2026-10-18)
+
+Decision (`src/print/overhang.ts`):
+- **The rule:** against the build direction b (+Z by default), a surface needs support when −n·b > sin θ, with θ the
+  printing process's `maxOverhangDeg` from the vertical: 45 for FDM, 30 for SLA, 90 for powder, which never needs
+  support. Its angle from the vertical is asin(−n·b).
+- **Bed faces** — facing straight down at the part's lowest point along b — rest on the bed. They are left out and
+  reported apart.
+- **Exactness (peer):**
+  - a planar face is judged whole by its exact normal from the B-rep face table, its area the face's;
+  - a curved face is judged triangle by triangle on the display mesh. The report says `approximate`: accurate only
+    to the chord error.
+- **A3 `overhang_area { body?, direction? }`:** the overhanging area. Unknown without a printing process (moulding is
+  not printing; none chosen). The hint names the limit and says when curved faces made it approximate.
+- **Viewport:** the Analyse button's third look, offered for a printing process, is the overhang map. Past the limit
+  is red, deepening with the angle; the bed grey; the rest pale. It is a WGSL shader material beside zebra and
+  curvature, its limit and bed height as parameters.
+- Pending: the map follows +Z until AM4 chooses an orientation.
+
+Evidence (`test/printing.test.ts` 3/3):
+- A box on the bed: none, its 400 mm² bottom on the bed.
+- A T: its arms' undersides, exactly 300 mm², 90°, exact.
+- A slope 60° from the vertical counts its exact area against 45°; one at 30° does not.
+- Built along −X: another bed and other overhangs.
+- A cylinder lying along Y: the band within 45° of straight down, 5·π/2·20, matched within 3% by triangles, marked
+  approximate.
+- As requirements: FDM fails with 300; SLS passes with 0; moulding and no process are unknown.
+- The browser flow shows the overhang look with FDM. Studio tests pass; lint 0 errors.
+
+Next: AM3, printability rule checks.
+
+## D74 — AM3: printability rules (2026-10-18)
+
+Decision (`src/print/rules.ts`; with the peer's notes):
+- **`printability(doc, bodies, evaluate, { direction? })`** reports each rule as pass, warn (recommended, not met),
+  fail (feasible, not met), unknown (with why) or n/a, with value, limit, unit and the limit's source id.
+  - The direction is given, else the document's `print.direction` (a new field, AM4 fills it).
+  - Without a printing process every rule is unknown, said.
+- **The rules:**
+  - **wall:** the thinnest wall vs minWall (feasible) and minWallRec (recommended).
+  - **hole:** the smallest inner cylinder from the exact face table vs minHoleMM (feasible: it closes up).
+  - **horizontal-hole:** holes whose axes lie across the build direction, wider than `horizontalHoleMM` (FDM 6, SLA
+    10), sag at their tops: a teardrop or support (recommended). Unknown without an orientation.
+  - **gap:** bodies printed together — overlapping fails (they print as one); a clearance under `fitGap` warns (they
+    may fuse). n/a for one body.
+  - **cavity:** enclosed voids (the display mesh's surface pieces inside the outer one). For powder and resin,
+    feasible: give `escapeHoles` holes of at least `escapeHoleMM`. For FDM, filled or infill: no drain needed.
+  - **bed-fit:** the part's extents across the bed (either way round) and its height within the printer's build volume
+    (feasible). Unknown without a printer.
+  - **overhang:** AM2's area past the limit (recommended: supports).
+  - **warp** (corner lift, the peer's form): warp = warpRisk × (longest footprint extent / Lref) × (bed contact /
+    footprint box). A heuristic, sourced by the profile's new `warpLrefMM` (FDM 100, SLA 150, SLS/MJF 200); warned
+    above 0.5. Unknown when a body's material is not set or has no warp risk.
+  - **tip** (lifting or tipping): height / √(bed contact) against the profile's new `tipRatio` (FDM 4, SLA 6); n/a for
+    powder (the part lies in powder). With nothing flat on the bed: a brim, a raft or another orientation.
+- **A3 `print_rule { rule, direction? }`** gives a rule's value; unknown or n/a, said. **Agent tool
+  `check_printability`** is read only.
+- **Limits, said:** wall thickness, cavities and curved contact areas come from the display mesh (chord error). The
+  cavity test is by boxes: a separate piece fully inside another's box would count. The warp form is a heuristic.
+
+Evidence (`test/printing.test.ts` 5/5):
+- An ABS plate 60 × 40 × 2 flat on FDM 256³: every rule passes; warp 0.8 × 0.6 × 1 = 0.48 (P-FDM).
+- A 100 mm plate: 0.8, warned. A 300 mm plate: off the bed (300/256).
+- No orientation: bed-fit, overhang, warp, tip and horizontal-hole unknown, said. Moulding: all unknown.
+- A block with a Ø1 hole: fails the hole rule (Ø2). Its Ø8 hole along X: warned built up Z, passing built along X.
+- A Ø4 × 40 pin: tip ≈ 40/√(4π) within 1% (its round foot's display area), warned.
+- A closed box with a void: SLS fails ("traps powder: give it 2 escape holes of at least Ø5 mm"), tip n/a; FDM
+  passes.
+- Two blocks 0.1 apart: the gap warned; as a requirement ≥ 0.3, it fails with 0.1.
+- Studio 330/330; lint 0 errors.
+
+Next: AM4, the orientation search.
+
+## D75 — AM4: print orientation search (2026-10-18)
+
+Decision (`src/print/orient.ts`; with the peer's notes):
+- **Candidates:** 64 fixed Fibonacci-sphere directions, then the large planar faces set down on the bed (their exact
+  normals' opposites from the face table, faces ≥ 1% of the area, at most 32, by area then name), duplicates dropped.
+- **Score, lower better, of normalised terms**, each reported per candidate:
+  w_s·support / (area·diag) + w_o·overhang / area + w_h·height / diag − w_c·contact / area.
+  - The weights sit in each printing profile (`orientWSupport` 2, `orientWOverhang` 1, `orientWHeight` 0.5,
+    `orientWContact` 0.5), source id `P-ORI`: a BaroCSS heuristic, a default to adjust.
+  - Overhang and bed contact are AM2's (exact planar normals; curved faces by triangles, said approximate).
+  - Support volume only for the eight best by the cheaper terms: a ray straight down from each overhanging triangle
+    through a bounding-volume tree of the display mesh (median split, typed arrays, an iterative slab test and
+    Möller–Trumbore, no closures in the loop), to what is below it or the bed.
+- **Deterministic:** by score, then the lower height, then the candidate's index. The top three are reported with
+  their terms, the weights and the time.
+- **`orientPart`** takes the largest body and the profile's limit and weights; refused (said) without a printing
+  process. **Agent tool `orient_for_print { apply? }`** writes the best direction to `doc.print.direction` (−0
+  cleaned); `apply: false` only scores.
+- **The print plane for library checks:** `print.bendInPlane` (the snap hook's FDM rule) now resolves from
+  `doc.print`: the part bends in the layers when its normal lies within 15° of the bed's plane.
+- **Cavities (the peer's note on AM3):** counted by the B-rep's inner shells where the body has them; the display
+  mesh's pieces only for facet bodies, the method said per body in the rule's `why`.
+- **Limits, said:** support is a ray-sampled estimate from triangle centroids (not a slicer's support); the candidate
+  set is fixed, not a continuous optimum.
+
+Evidence (`test/printing.test.ts` 8/8):
+- A T (stem 10 × 10 × 20, bar 40 × 10 × 5): best lies on its flat side — height 10, contact 400 mm², overhang 0,
+  support 0. Upright its bar overhangs 300 mm²; upside down 0. The same answer twice; top three ordered, terms finite,
+  the profile's weights.
+- A 60 × 40 × 2 plate: flat (±Z).
+- The ray tree against a brute force over every triangle: 200 rays, identical hits.
+- 99 904 triangles, 64 candidates: 590–650 ms (limit 2 s).
+- The snap hook on an FDM plate: printed up +Z it is warned (bending across the layers); up +X not.
+- `orient_for_print`: dry run unchanged, applied direction equals the reported best, refused with no process.
+- The hollow box's cavity counted by B-rep shells.
+- Studio 333/333; lint 0 errors.
+
+Next: AM5, 3MF export.
+
+## D76 — AM5: 3MF export (2026-10-18)
+
+Decision (`src/io/zip.ts`, `src/print/threemf.ts`, `src/print/export3mf.ts`; with the peer's notes):
+- **Own package writer:**
+  - The ZIP and CRC-32 are our own code. UTF-8 names; entries stored, or raw-deflated when that is smaller.
+  - The deflate is the web-standard CompressionStream, 'deflate-raw' or zlib with its header and trailer stripped.
+  - No ZIP64: past 4 GiB, or past 65 535 entries, it is refused.
+  - The PNG encoder (`chat/views.ts`) now shares the same CRC-32 and deflate.
+- **The model:** `[Content_Types].xml`, `_rels/.rels`, `3D/3dmodel.model`.
+  - The model is in millimetres, with Title, Application and (when dated) CreationDate metadata.
+  - Objects:
+    - each visible body (and each shown instance's, already in place) is one object;
+    - vertices are welded at bit-identical 32-bit points (the display mesh repeats them per face; the B-rep tessellation shares edge points, so welding closes it);
+    - triangles that collapse are dropped and counted;
+    - coordinates are written as the shortest decimal that reads back as the same float.
+  - **Base materials:** one per (material, colour) — the material's label, the body's colour or the default grey.
+  - **Face colours:**
+    - by default, further base materials (core 3MF: every reader);
+    - optionally, a Materials-extension colour group, and then `requiredextensions="m"`, because a reader that ignores the group would leave dangling references.
+  - **Production extension:** UUIDs on every object, the build and every item. They are random by default; the caller may supply its own.
+  - **Build items:** one per object.
+    - With an AM4 print direction, every item is turned by the shortest rotation that brings the direction to +Z.
+    - The lowest point is set at z 0, centred on the chosen printer's bed (else x and y are left as modelled).
+    - The same transform goes on every item, so assemblies keep their layout.
+  - Stats: objects, items, triangles, vertices in and out, dropped triangles, open and repeated directed edges, model XML bytes, package bytes, ms. Open or repeated edges are reported (and toasted), not refused.
+- **Studio:** an Export 3MF button beside STL.
+- **Refusals, said:** nothing visible, no item, an item naming a missing object, a transform that is not 12 finite numbers.
+
+Evidence (`test/threemf.test.ts` 4/4; read back by an independent reader — Node's zlib for inflate and CRC-32, the test's own ZIP and XML scan — and by Python's zipfile (`testzip`) and ElementTree):
+- 20 × 10 × 5 ABS box:
+  - the three parts and their content types and relationship;
+  - welded to 8 vertices and 12 triangles, no open or repeated edges;
+  - volume read back exactly 1000 mm³;
+  - base material ABS #CC3333;
+  - 3 UUIDs;
+  - the same inputs give the same bytes;
+  - Python reads 8, 12, millimeter.
+- Top face green: 2 triangles point at a second base material; as a colour group, `requiredextensions="m"` and 2 `pid="2" p1="0"`.
+- One object built twice (a quarter turn and 50 mm along X): extents 40–50 × 0–20, volume 1000.
+- Refusals as said.
+- Standing on its end (+X up) on the 256 mm FDM bed: z from 0 to 20, centred at (128, 128), volume 1000.
+- The rotation onto +Z: exact and orthonormal for six directions.
+- 200 344 triangles: model XML 13.93 MB, 3MF 2.17 MB (15.5%), written in 377–420 ms. Coordinates read back as the same 32-bit floats. Closed.
+- Studio 337/337; lint 0 errors.
+
+Not done, said:
+- No slicer on this machine (PrusaSlicer, Bambu, Orca, Cura absent): opening in a slicer is left to be checked by hand.
+- No thumbnail is written yet.
+
+Browser evidence (added at the peer's review):
+- **Browser flow:** a new step clicks Export 3MF on a new box and captures the download.
+  - It reads the download back independently: CRCs by zlib, entries inflated by zlib; Python's zipfile `testzip` and ElementTree read 1 object, 8 vertices, 12 triangles, 1 item, millimeter.
+  - The volume read back is the box's from its sketch and height. There are 3 UUIDs.
+  - The toast reads "3MF written: 1 body, 12 triangles … As modelled" and nothing open.
+- **Full flow:** 118 steps; the first run had one failure, step 100 (F2 ring with a hole).
+  - Cause: a race in the test. While the 30k-triangle ring evaluated, the body panel showed the previous part's body (a 32 × 32 × 16 box, 16,384 mm³) under the new document's name ("Mesh ring").
+  - The engine gives 9,737 mm³ in Node, as D52 recorded.
+  - The step now waits for the ring's own bounds (50 × …) before reading the volume; its volume check is unchanged.
+  - Rerun after step 99: passes. The full flow was not rerun after the fix.
+- The body panel paired the new document's names with the previous evaluation's bodies until the new one arrived. Fixed in D77.
+
+Next: R7 (SD2).
+
+## D77 — Stale evaluation results never shown under the new document (2026-10-18)
+
+Found by the AM5 browser flow; fixed at the peer's review (contained defect, fixed now).
+
+The fault: the studio kept the last evaluation's bodies while a new document evaluated (a 30k-triangle mesh takes
+about a second). The body panel named them from the new document. A box's 16,384 mm³ showed as "Mesh ring".
+
+Decision (`src/App.tsx`):
+- **Each body list is tagged with the evaluated document it was computed for** (`bodiesFor`, by identity).
+  - A command's preview bodies, set at once on Apply, are claimed by the document that commit produces. So the step back to old bodies stays avoided (D-preview) without a stale tag.
+  - Fresh means `bodiesFor === evaluated`.
+- **While stale:**
+  - The outliner's count reads "evaluating…" (or "not up to date" after a failed evaluation).
+  - The bodies are listed dimmed, not interactive, named from the document they were computed for.
+  - A selected body's card says it is evaluating and shows no name or values.
+  - The part summary (mass, centre, bounds) and a proposal's volume change are hidden.
+  - The requirement checks do not run.
+  - The chat's selection context is empty.
+  - STL and 3MF export refuse with "still evaluating".
+  - STEP, drawings and the chat evaluate the document themselves, and so were already current.
+- The viewport keeps drawing the old bodies until the new ones land: that is geometry with its own face names, not paired with the new document.
+
+Evidence:
+- Browser flow step 100 is now a test of this:
+  - a box is made; the ring file is opened, and the first outliner row is clicked at once;
+  - a MutationObserver checks every DOM change until the ring is current.
+- Against the previous `App.tsx` it fails with "props: Mesh ring with 16384 mm³" (several times). With the fix it passes, and the evaluating state was seen.
+- Full browser flow 118/118; studio 337/337; lint 0 errors.
+
+## D78 — R7 SD2: extraordinary vertices, n-gons and darts as G1 caps (2026-10-18)
+
+Decision (`packages/barocss-cad/src/subd-sd2.ts`, `subd.ts`, `subd-report.ts`; studio "SubD box"):
+- **When SD1 is left.** A cage regular everywhere (only quads; every vertex valence 4, or a straight crease, or an
+  all-sharp corner, or a regular boundary) is SD1's, unchanged: the same faces and names.
+  - Otherwise one Catmull–Clark step is taken (OpenSubdiv: sharp edges midpoint, crease vertices (a + 6v + b)/8, corners fixed, darts smooth).
+  - A second step is taken when a quad would hold two irregular corners: an n-gon's face point beside an irregular vertex.
+  - `steps: 2` asks for the second step anyway: caps a quarter of the area, nearer the limit, four times the faces.
+  - Not a *local* step as the roadmap first said: refining only round the vertex leaves T-junctions. The global step keeps every regular region exact (B-spline refinement).
+- **Exact where it can be.** A quad whose corners are all regular is SD1's exact bicubic B-spline, packed into faces as before.
+- **Caps.** A quad at an irregular vertex is one face: a bicubic patch split once each way at τ = ¼ from the vertex, with double knots `0 0 0 0 ¼ ¼ 1 1 1 1` (2 × 2 Bézier pieces, C1 inside).
+  - **Start:** the generalised B-spline-to-Bézier averages:
+    - face points (4c + 2a + 2d + o)/9;
+    - edge points the mean of the two faces' points, or (2v + a)/3 along a sharp edge;
+    - corners at the exact limit position (smooth (n²v + 4Σe + Σd)/(n(n + 5)), crease (a + 4v + b)/6, corner v).
+    - These reproduce SD1's B-spline wherever all four corners are regular.
+  - **Held:**
+    - the rows next to a regular neighbour (C1 with it, and with the limit there);
+    - the irregular vertex at its limit position;
+    - crease and boundary edges as their B-spline (G0 across them).
+  - **G1 conditions** along every edge out of the vertex that is not sharp: ∂(left) + ∂(right) = α(t)·b′(t), with α = 2 cos θ (1 − t/τ)² on the part at the vertex and 0 beyond.
+    - That part of the edge is kept quadratic (third difference 0), so α·b′ is cubic like the cross derivatives.
+    - The condition, a polynomial of degree ≤ 4 on each part, is imposed at five points of each.
+    - **θ:** 2π/n round a smooth vertex or a dart; π/k across k faces between a crease's two edges or at a boundary; φ/k at a corner.
+    - A dart's sharp edge is shared (G0), not G1.
+  - **Solved per vertex.** The conditions are made orthonormal (modified Gram–Schmidt, twice). A dependent condition must already hold within 1e-9 of the cage's size, else CAPABILITY.
+  - **Fitted.** Within the conditions (null-space least squares), the cap is fitted to the limit surface itself.
+    - Samples: a 9 × 9 grid per cap, refining its one-ring three times.
+    - Each of four rounds moves every sample's parameters to its closest point on the cap just fitted, so the surface is fitted, not the limit's non-polynomial parametrisation.
+    - A slight pull μ = 1e-6 to the start covers what the samples leave free.
+- **Found and fixed while measuring: folded caps.**
+  - The first form, α = 2 cos θ (1 − 2t) on the half at the vertex and 0 beyond, has a kink at the double knot where it is 0. A cap's cross derivatives are C1 along the edge there, so the kink forces the edge's derivative to 0 at the knot.
+  - The caps collapsed and folded: |Su × Sv| ≈ 1e-15, normals 180° apart, tessellation never settled (RB TIMEOUT).
+  - G1 along the edges and a small closest-point distance (0.031 mm) both passed. So the report now measures the caps' shape (below), and the tests tessellate every case.
+  - With α C1 at τ: |Su × Sv| ≥ 0.15 of its median, normals turn ≤ 1.8°, and the cube's deviation fell to 0.0033 mm.
+- **Measured and not taken:**
+  - α nonzero on the far part (c (1 − s)², that part quadratic): no solution for one case; folds at τ = ¼.
+  - α from the limit's own edge directions at a crease vertex (not evenly spread: 4 faces 59.7°, 30.3°, 30.3°, 59.7°): deviated more (half star of 4: 0.26 mm against 0.13 mm).
+  - τ: the cube cage gives 0.0020 mm at τ = 0.2, 0.0033 at ¼, 0.0105 at ½. The half star of 5 gives 0.26, 0.16 and 0.21: ¼ is the compromise.
+- **Names.** Refined quads are labelled by face and corner (`<face>_<corner>`, `<face>_<corner>_<corner>` after two steps). Caps are `<id>.cap<label>`; exact faces `<id>.patch<label>` (SD1 cages keep `<id>.patch<k>`).
+- **Refused.**
+  - INPUT: a vertex whose faces are not one fan (a bowtie), a face of fewer than three sides, and the earlier input refusals.
+  - CAPABILITY: more than 32 edges at a vertex or sides on a face; a cap with no G1 solution.
+- **Promised:** C2 away from irregular vertices; C1 between caps and exact faces; G1 at and round irregular vertices; G0 across creases; never G2.
+- **The report** (`subdReport`):
+  - Steps, irregular vertices, caps.
+  - **G1:** along every edge that is not sharp, both faces' normals at 9 points by their own parameters (the largest angle) and the largest gap between them.
+  - **Caps' shape**, on a 33 × 33 grid per cap: the smallest |Su × Sv| against its median, and the largest angle between neighbouring normals. A one-face crease sector's corner (a straight angle, as in the limit) is left out.
+  - **Deviation:** limit samples on a 17 × 17 grid per cap, refining its one-ring four times. Given as the distance to the closest point on that cap, and at the same parameters.
+  - **Exact quads**, measured the same way as a check of the measure (≈ 1e-14).
+- **Studio:** "SubD box": a box cage of n quads along each side, its eight corners valence 3. The history label says faces when the cage has other polygons.
+
+Evidence:
+- **Kernel `test/subd.test.mjs` 10/10.** Every SD2 case is checked for: strictly valid; G1 ≤ 1.7e-6°; gaps ≤ 1e-12 mm; |Su × Sv| ≥ 0.05 of median; normals turn < 15°; it tessellates.
+- Volumes are checked against an independent Catmull–Clark written in the test (any polygon, sharp rules, limit masks; levels 5 and 6 extrapolated).
+
+  | Case | Steps | Deviation (mm) | Volume against the limit |
+  |---|---|---|---|
+  | Cube cage (24 caps) | 1 | 0.0033 | −4.5e-5 |
+  | Tetrahedron | 2 | 0.0007 | |
+  | Pentagonal prism | 2 | 0.0036 | |
+  | Hexagonal prism | 2 | 0.0093 | |
+  | Creased-top cube | 1 | 0.0034 | |
+  | Dart torus (8 × 6) | 1 | 0.050 | |
+  | Stars of 3, 5, 6 | 1 | 0.0001–0.012 | |
+  | Half stars round a boundary vertex of 3, 4 faces | 1 | 0.066 / 0.140 | |
+
+  - The cube's STEP round trip holds to 1e-9; the inward-wound cage gives the same body.
+  - Refusals: bowtie, two-sided face, valence 33.
+- **The weak spot:** boundary and crease vertices, at up to 0.7% of a 20 mm sheet with one step. With `steps: 2` the 4-face half star is 0.084 mm and the cube 0.0007 mm.
+  - TODO: the limit's own characteristic map for crease sectors (eigen-analysis), so caps there follow the limit's uneven edges.
+- **Conformance `conformance/r7/`, 7 cases:**
+  - cube, creased top, tetrahedron, pentagonal prism, dart torus: volume, area and centroid against the independent oracle to 2e-3; STEP round trip;
+  - refusals: valence and bowtie.
+  - R5's two refusal cases (extraordinary vertices, darts) are kept as the record and marked `supersededBy: R7`; the harness skips such cases (README).
+- **Speed (Node):** cube cage build 70–150 ms (24 caps, fit included); tessellation of every case under 0.11 s.
+- Studio 338/338, primitives 12/12 (SubD box). Browser flow "SubD box":
+  - default box 30 × 20 × 16, 3 quads a side: 60 faces, 24 of them caps, volume 8,638 mm³, inside its box;
+  - in the kernel: deviation 0.0025 mm, |Su × Sv| ≥ 0.10 of median, turn ≤ 1.7°;
+  - its display mesh: 2,588 triangles, watertight, smallest 0.019 mm².
+  - "SubD torus" still passes.
+- **Observed, not fixed:** the box's screenshot shows a short dotted dark stroke on its top face near a corner.
+  - Its mesh is watertight with no sliver, and the cap there is G1, unfolded, within 0.0025 mm.
+  - So it is in the viewport's drawing (likely ambient occlusion on a shallow ridge of triangles), not the geometry.
+  - TODO: look at it with AO off and with zebra.
+- Kernel 1001/1002 (the known environmental test); lint clean. RB over conformance and corpus: 1,102 rows, every R7 row OK, the WRONG/INVALID rows the known TODOs.
+- RB now skips superseded cases too.
+
+## D79 — SubD shading, dents, and cap deviation shown (2026-10-18)
+
+Asked at the R7 review: verify the dark stroke on the SubD box (it was called "likely AO", unverified), and show users the caps' deviation.
+
+**Standing rule (from R7):** every SubD test checks, besides G1 and deviation:
+- the caps' shape: |Su × Sv| against its median, and the turn between neighbouring normals;
+- tessellation.
+
+Folded caps once passed G1 (1e-6°) and deviation (0.031 mm) both.
+
+**The stroke: shading and tessellation, not geometry.**
+- Looked at in the browser, before and after, close up on the box's corner:
+  - **AO off:** the stroke went. That pointed at the depth-based AO, which samples the triangles' depth, not the normals.
+  - **Zebra:** before, broken across faces with a glitch at the stroke; after, continuous.
+  - **Cap highlight:** cap selected and drawn; nothing there.
+- **Display normals compared with the exact surface normals at the same vertices.**
+  - Each face averaged its own triangles' normals: up to 8° off on caps and 17° on exact faces.
+  - Two faces meeting at a G1 edge got different normals at the same point: a shading seam at every face edge.
+  - **Fix (`brep-tessellate.ts`):** a parametric face's vertex normal is now the surface's own (Su × Sv by its tessellator's differences, turned by the face's sense; a pole keeps the average): ≤ 1e-4° off.
+- **The stroke itself: a dent.**
+  - Triangles on an edge chord tilted from the surface: the chord lies below it by its sagitta, and the face's points are near it, with a 2.1 mm chord and a point 0.16 mm off.
+  - Neighbouring faces' triangles then folded 51° concave where they met. On the 6-a-side box an old triangle was folded 180°.
+  - **Fix:** after a pass, any edge chord whose triangle is tilted more than one step (π/2/segmentsPerQuarter) from its corners' surface normals gets its midpoint added to that edge. Both faces share it, so the mesh stays watertight. Every face is tessellated again, up to three rounds.
+
+  | Box (quads a side) | Largest concave fold before | After |
+  |---|---|---|
+  | 3 | 51° | 18° |
+  | 6 | 180° | 38° |
+
+  - The browser render shows no stroke with AO on.
+  - Tried and dropped: splitting tilted triangles inside a face (it never settled at boundary chords, and hung the 6-a-side box).
+- **TODO:** the remaining folds of 14–38° are near-collinear slivers along boundaries, in the general B-spline face tessellator.
+- **Cost:** 6-a-side box tessellation 374 ms (241 before); 3-a-side 159 ms.
+
+**Cap deviation shown.**
+- The kernel's subd output carries `subd: SubdSummary`: steps, irregular vertices, caps, the caps' largest distance from the limit surface, that at crease/corner/boundary vertices, and the size (refined cage's bounding diagonal).
+- Each cap's distance is measured at build time on the limit sampled 17 × 17 by closest points, the same as `subdReport`: cube 0.0033 mm in both. Build cost: box 3 a side 259 ms (was 150).
+- **Body notes:** "Caps: G1 at N irregular vertices (k caps, s Catmull–Clark steps); max deviation from the limit surface X mm (Y% of its size)".
+- **Warning:** at crease, corner or boundary vertices past 0.2% of the size, naming the cause and the to-do. The limit's edges there are not evenly spread and the caps use even angles; the limit's own characteristic map is to do. The 4-face half star (0.14 mm, 0.63%) is warned; the SubD box (0.0025 mm, 0.0063%) is not.
+- **A3:** `subd_deviation {body?, at?: all | crease}`, in mm, with the share of size in its hint; unknown for a cage regular everywhere (exact).
+
+Evidence:
+- Kernel `subd.test` 11/11. New:
+  - vertex normals within 0.01° of the surface's;
+  - folds < 25° (3 a side), < 45° (6 a side);
+  - watertight.
+- Studio primitives 13/13. New:
+  - the box's note text;
+  - the half star's warning;
+  - `subd_deviation` failing a ≤ 0.05 mm requirement on the half star, passing on the box, unknown on the torus.
+- Screenshots (before / after) kept in this session's scratchpad, not committed.
+- **Caught by the suites:** splitting an edge of a facet face broke its exact mass (r6 facet cube ∩ sphere: 112.98 against 113.10 mm³). A facet face triangulates its own mesh points, not the edge samples, so facet faces' edges are never split now.
+- **Suites:**
+  - kernel 1002/1003 (the known environmental test);
+  - conformance all;
+  - RB 1,100 rows, nothing new — WRONG rows 7 → 5: two known oracle rows (grazing cylinder–box) now pass;
+  - studio 339/339;
+  - full browser flow 119/119;
+  - lint clean.
+
+## D80 — R8.1 SD3: the cage's topology and edits as pure functions (2026-10-18)
+
+Decision (`packages/barocss-cad/src/subd-cage.ts`, exported from `@barocss/cad`). At the peer's note they live in the kernel, not the studio: the studio's editor, the agent tools (R8.2) and headless use share one implementation. Each function takes a cage `{positions, faces, creases?}` and gives a new one, or refuses with SubdError INPUT.
+- **Topology:** half-edges, edges with their faces, each vertex's faces and neighbours.
+- **Validation (for the overlay):**
+  - non-manifold edges (three faces, or a side used twice the same way);
+  - non-manifold vertices (faces not one fan, found by walking face to face);
+  - poles (inside valence ≠ 4, boundary ≠ 3 or 2);
+  - n-gons, boundary edges, darts, unused vertices.
+  - Valid means no non-manifold edge or vertex and no unused vertex.
+- **Selection:**
+  - **Edge loop:** straight across each valence-4 vertex of four quads, stopping at a pole, a boundary or the start.
+  - **Edge ring:** across each quad to its opposite edge, oriented alike, stopping at a non-quad, a boundary or the start.
+  - A selection's vertices, from vertices, edges and faces.
+- **Edits:**
+  - **move;**
+  - **extrude faces as one region:** the region's vertices are copied along its normal (the mean of its faces' Newell normals), with a side quad on every border edge, wound to meet both sides as twins;
+  - **extrude boundary edges:** a quad out along a delta, shared along a chain;
+  - **insert an edge loop** across a ring at t: each quad split in two; a face at a ring's open end takes the point and becomes an n-gon (R7 builds it); creases on ring edges stay creased on both halves;
+  - **delete faces**, then **compact** (unused vertices dropped and renumbered; creases kept where their edges remain);
+  - **fill a hole** with one face run against the boundary (an n-gon);
+  - **bridge** two boundary loops or chains of equal length: quads meet both as twins, at the offset with the shortest bridge;
+  - **weld** a group, or pairs within a tolerance (all at once): faces losing a side keep the rest, faces under 3 sides go, and it is refused if the result is not a manifold;
+  - **creases** on and off.
+- **Mirror:** one plane through the origin across X, Y or Z.
+  - The half's vertices on the plane are shared and the rest copied with faces wound back; creases are copied. A face in the plane is refused.
+  - `keepOnPlane` puts on-plane vertices back after a move.
+  - The studio will keep the half and the axis on the node and send the kernel the full cage (R8.2).
+
+Evidence (`test/subd-cage.test.mjs` 5/5). Every edit's result is a valid cage and a valid kernel body.
+- Validation:
+  - the cube: valid, 8 poles of valence 3;
+  - a 3 × 2 sheet: 10 boundary edges;
+  - a bowtie, a doubled face, an unused vertex and two darts flagged.
+- Selection:
+  - a torus loop closed at 8 edges; a ring round the tube of 6;
+  - a grid row loop open to the boundary at 4; a grid ring of 4.
+- Extrude and insert:
+  - the cube's top extruded 5 mm: 10 faces, the copies at z 15, taller;
+  - a sheet's boundary chain extruded;
+  - an edge loop round the cube (10 faces) and across a torus (54);
+  - a ring ending at a grid's boundary.
+- Delete, fill, bridge, weld, crease:
+  - the cube's top deleted (5 faces, 4 boundary edges) and filled: the cube's volume to 1e-12;
+  - two open boxes bridged: one closed body, genus 0, 14 faces;
+  - an edge's ends welded: 7 vertices;
+  - two sheets welded by distance: 6 vertices;
+  - every edge creased: 1000 mm³ exactly.
+- Mirror:
+  - a half box mirrored is the same body as the whole 2 × 1 × 1 box cage: volume to 1e-12, centroid on the plane;
+  - a move kept on the plane;
+  - a face in the plane refused.
+- Refusals: mismatched bridge, an open fill, not an edge.
+
+## D81 — R8.2a SD3: the studio cage editor, first part (2026-10-18; paused for PERF3)
+
+Done (`src/subd/cageEdit.ts`, `useCageEditor.ts`, `ui/CagePanel.tsx`, `viewport/CageMarks.tsx`; kernel `subdPreviewMesh`, `halfCage`, `extrudeFaces` with `noWall`):
+- **Session on a subd node** ("Edit cage" in the palette).
+  - The cage, or its half with `mirror` on the node; the studio sends the kernel the full cage (`mirrorCage`).
+  - Its own undo and redo (⌘Z inside the session).
+  - Done writes the node once: one document undo step, the same timeline feature. Cancel drops it. Done is refused while the cage is not a manifold.
+- **Picking and selection:**
+  - vertex, edge and face modes (keys 1 2 3); Shift adds;
+  - double-click an edge for its loop (Alt: its ring);
+  - the cage is drawn over the body, each kind of mark as one SVG path.
+- **Gizmo:** moves the selection; Shift held as the drag starts extrudes faces or boundary edges first; mirrored cages keep the plane's vertices on it and put no wall in the plane.
+- **Operations** (panel and keys): extrude (E), insert loop (L), loop and ring, bridge (B), fill (F), weld (W), weld near, crease (C) and smooth edges, delete (⌫), mirror across X, Y or Z (refused if a face crosses the plane), mirror off.
+- **Box / Smooth** (Tab). While dragging, a quick limit preview: the kernel's uniform Catmull–Clark at levels 1–3, chosen so the preview stays under about 20 000 triangles. After each step, the exact body: one kernel build per step, never per pointer move.
+- **Validation overlay:** red non-manifold, ringed poles, tinted n-gons, open edges, plus the counts in the panel.
+- Measured in Chrome (WebGPU), dragging a top face:
+
+  | Cage | Per pointer move | Frame time | Preview |
+  |---|---|---|---|
+  | 6-a-side box (216 faces) | 26 ms | 16.7 ms (p95 16.7) | 5 ms |
+  | ~2k-face box (1 944 faces) | 48 ms | 16.7 ms (p95 16.8) | 10 ms |
+
+  - Each pointer move includes Playwright's own round trip.
+  - Before two fixes the ~2k cage took 114 ms per move (p95 117): the overlay was redrawn as 3 900 elements, and the validation was recomputed on every move (now the session's, since a move keeps the topology).
+  - A render loop was caught in the same run: the preview time was set every render.
+- Evidence:
+  - `test/cageEdit.test.ts` 4/4: picking; drag; extrude on drag; undo and redo; loop; insert loop; crease; delete and fill; mirror (exact); preview levels.
+  - Kernel `subd-cage` 5/5 (halfCage, mirror round trip exact).
+  - Studio 343/343.
+  - A scripted Chrome run: SubD box → Edit cage → top face picked → Shift-drag up 4.1 mm (54 → 58 faces) → Done (one node, cage 58) → ⌘Z (54).
+
+Still to do in R8.2 (after PERF3):
+- agent tools (`subd_select`, `subd_extrude`, `subd_insert_loop`, `subd_bridge`, `subd_fill`, `subd_weld`, `subd_crease`, `subd_move`; under D41, proposals at L2 for topology);
+- a browser-flow step;
+- the cap cache by one-ring hash, so a drag rebuilds only nearby caps (PERF3 A4).
+
+## D82 — PERF3: second performance review (2026-10-18; owner: before R8.2)
+
+The owner asked for it ("PERF3 성능 개선을 R8.2 앞에 넣어서 엔진 리뷰 세션에 전달해줘"). It came from a read-only review of f4648d8e6 by four agents (kernel, app, GPU, benches). Each finding is confirmed in code before it is changed, and measured before and after.
+- **Baseline** (`pnpm bench`, Node 22, Apple M-series):
+
+  | Bench | Time |
+  |---|---|
+  | 16-hole plate, cold | 1 397 ms |
+  | filleted box: tessellate / mass | 37.6 / 449 ms |
+  | 20-feature chain, unchanged | 0.13 ms |
+  | stepped body × 12 | 694 ms |
+  | 120-hole drawing | 1 283 ms |
+  | pole drag | 4.1 ms |
+
+### A1 — requirement checks after every edit
+- **Confirmed and measured:** eight requirements on the 16-hole plate printed on FDM took **4 075 ms** after every edit, on the main thread.
+  - `faceTableOf` evaluated the whole part (≈ 1 s) on every call. It ran once for `overhang_area` and again inside every `printability()`, which every `print_rule` also re-ran in full.
+  - `wallThickness` ≈ 25 ms each time; facts ≈ 0.
+- **Fix:**
+  - The worker and in-process evaluations hand back the face table built from the B-rep they already have (`faceTableFrom`, a few ms). The client registers it on the main thread (`rememberFaceTable`, by the part's content).
+  - `faceTableOf` reads that cache before it would evaluate; `tableOf` is now the same function.
+  - One printability report per evaluation (its bodies array), process, printer, direction and looks.
+  - Wall thickness kept per mesh.
+- **After: 22 ms** (×185). The new bench `check_spec: 8 requirements after an edit` has a budget of 50 ms.
+- Studio 343/343.
+
+### A2 — two draws per state change
+- **Confirmed:**
+  - GpuRenderer's mesh setters call the viewer's `requestRender`, which schedules its own animation frame and draws.
+  - The viewport then asks for its frame, and its `render()` draws again in the same frame. The viewer's `render()` cancels only a draw still pending, and by then the viewer's had already run.
+- **Fix:** a viewer option `onRequestRender` (`@barocss/gpu`): host-driven frames.
+  - The viewer hands its requests to the host. GpuRenderer routes them to the viewport's request (`setRequestHost`), which draws once per animation frame.
+  - Viewers without the option schedule their own frames as before.
+- **Bench (`bench:browser`):** now counts submits by animation frame (timestamp shared by every callback of one frame), and has two new scenarios: a face clicked from idle, and the selection cleared. Every scenario's budget is one submit per frame.
+
+  | Scenario | Before | After |
+  |---|---|---|
+  | hover, 60 moves | 34 submits, 2 per frame | 17, 1 |
+  | face clicked | 2 in one frame | 1 per frame |
+  | Escape | 2 in one frame | 1 |
+  | orbit, 60 steps | 61, 2 in one frame | 60, 1 |
+
+- GPU package 70/70.
+
+### A3 — an agent's turn evaluates the same parts again
+- **Confirmed (new `test/evalCount.test.ts`):**
+  - Five holes in one `apply_ops`, on a block with four filleted corners and two hard requirements that pass, cost **9** evaluations: one per op, plus one per fillet for the reference check at the batch end. Those four are prefixes that did not change: the fillets' own batch had evaluated them.
+  - The same five holes as a proposal cost **5**, and accepting it **5 more**: the same ops on the same part.
+  - Server: the MCP's `changed` flag stays set for the rest of the turn, so the chat server re-sent the whole part after every tool result, read-only ones too.
+  - Client: the chat panel evaluated every state it received, and none was dropped. Each was parsed from JSON, so every node was a new object, which the worker wire re-sent and the evaluator's chain did not reuse.
+- **Fix:**
+  - `rememberedEvaluate` (`engine/evalMemo.ts`): evaluations kept by what they read (`evaluatedPart`: nodes, parameters, outputs, instances), the last 16. Refusals and superseded runs are not kept. Every ops run (apply_ops, propose, accept, rebase) and every reference check or signature refresh goes through it.
+  - `StateFile.version`: the MCP bumps it on each change, and the chat server sends a state only when it rose. A state file without it is sent as before.
+  - The panel's previews go through `latestPump` (`chat/pump.ts`): one evaluation at a time, and a state that arrives meanwhile replaces the one waiting, so a burst costs at most two evaluations. `reshareNodes` gives each received state the node objects of the one before wherever they are equal, so the wire and the chain see only what changed.
+- **After:**
+
+  | Flow | Evaluations before | After |
+  |---|---|---|
+  | five-hole `apply_ops` | 9 | 5 (one per op is the floor: a later op names faces of the body the one before left) |
+  | propose | 5 | 5 |
+  | accept | 5 | 0 |
+
+  - In Node the batch went from 120 ms to 107 ms; evaluation is 101 of the 104 ms left.
+  - In the studio each evaluation saved is a worker round trip that posts meshes.
+- **Measured, not done:**
+  - Deferring the guard, facts and description to the batch end would save about 3 ms of that 104.
+  - Caching `checkSpec` by model hash: after A1 a check is about 1 ms on this part and 22 ms on the 16-hole plate, and a proposal runs two of them.
+- Studio 348/348 (343 before): new tests for evaluation counts (2), the pump and resharing (2), and the server's version rule (1).
+- **The memo's key (peer's review of dfae081e1):** whole-part JSON on every lookup cost too much on large parts.
+
+  | Part | Whole JSON per lookup |
+  |---|---|
+  | 5 MB STEP import | 12 ms |
+  | 30 MB STEP import | 69 ms |
+  | 200k-triangle inline mesh | 53 ms |
+  | 2k-face cage | 0.6 ms |
+  | 20 plain nodes | ≈ 0 ms |
+
+  A batch looks up about one part per op and per reference, so this brought back the whole-document JSON that PERF2 had removed.
+  - **Now `evaluationKey`:**
+    - each node's text is kept per node object;
+    - texts over 64 KB stand in as an exact id from a map of the last 8 texts (content-compared, never reused);
+    - number arrays over 4 096 entries stand in as their length plus two 32-bit FNV-1a hashes of their doubles, kept per array.
+  - **After:**
+
+    | Part | Same nodes | Nodes made again | Read again from JSON |
+    |---|---|---|---|
+    | 30 MB import | 0.00 ms | 0.01 ms | 4.0 ms |
+    | 200k-triangle mesh | 0.00 ms | | 4.2 ms |
+    | 2k cage | | | 0.47 ms |
+
+  - `test/evalMemo.test.ts`: equal parts share a key whatever their objects; a changed character, number or parameter changes it; timings.
+  - Studio 351/351.
+
+### A4 — SubD builds
+- **Confirmed (profile):** the G1 caps were 97% of a build. Of that:
+  - `limitGrid` 42%. Each face's one-ring was refined three times for the fit's samples and again four times for the deviation's, and `polyMesh` (a `Map` of every half-edge, a throw per rim vertex of a one-ring, `Array.from` on typed arrays) was most of it.
+  - Closest-point solves 40%. Every evaluation allocated, and every solve ended with a line search that tried all 20 halvings after the step had stopped moving (u, v): 1.37 M trials for 70 k solves on the bump cage.
+  - The fit 12%, which walked each sample's dense row once per free direction.
+- **Fix (`subd-sd2.ts`):**
+  - `limitGrids`: one refinement chain gives both levels.
+  - `polyMesh`: half-edges indexed by their start vertex instead of a `Map`; a rim vertex of a lenient mesh is a corner without a throw.
+  - `gridAt`: scratch buffers, the same sums in the same order.
+  - `fitWithin`: walks only a row's nonzero entries, ascending.
+  - **Caps kept by their vertex's 2-ring** (`keptCapsAt`, the last 512). They are worked out on a copy of the 2-ring with its faces in the cage's order: every fan starts and runs as in the cage, so the caps are the same to the bit (checked against the caps before the change on three cages). The copy's content is the key, so an edit outside a vertex's 2-ring reuses its caps, and a build never depends on what was built before.
+- **Bit for bit**, every change above except one leaves the caps as they were. The exception: a solve now stops when a step moves (u, v) by less than 1e-13 instead of halving it 20 times. On the three cages this moves poles by at most 2.3e-8 mm and deviations by at most 6.6e-10 mm (1.4e-7 relative). The G1 conditions hold exactly whatever the sample parameters, and the caps' own deviation from the limit is hundredths of a millimetre. Without the stop the builds below are about 25% slower.
+- **After** (old and new built alternately under the same load):
+
+  | Build | Before | After |
+  |---|---|---|
+  | box cage (6 quads), cold | 149 ms | 66 ms |
+  | ~2k-face cage (box of 18 a side), cold | 190 ms | 103 ms |
+  | 6-a-side box with 4 extruded bumps (24 irregular vertices), cold | 945 ms | 438 ms |
+  | ~2k-face cage, one vertex moved | 183 ms | 24 ms (the caps reused; the rest is the cage's quads) |
+  | bump cage, one vertex moved | 945 ms | 4 ms |
+
+  The SubD box's tessellation is 27 ms, unchanged; that is A5.
+- **Not done:** refining a vertex's whole 2-ring once for all of its faces, instead of each face's one-ring. It would change the sums' order (a different mesh numbers the fans differently), so the caps would differ in the last bits, and the cache already removes the cost for edits.
+- **Tests:**
+  - Kernel `subd.test.mjs` 12/12. The new test: the same cage again gives the same caps; a vertex moved outside every irregular vertex's 2-ring leaves them all; one inside a corner's changes that corner's three caps only.
+  - Kernel suite 1011/1012; the one failure is the known environmental Node-version test.
+  - RB: nothing new; the TODO rows are the known open items.
+  - Studio 351/351.
+- **Benches (`pnpm bench`, budgets about 2× the values above):**
+
+  | Bench | Time | Budget |
+  |---|---|---|
+  | `subd: box cage build (cold)` | 64 ms | 150 ms |
+  | `subd: 6-a-side box, 4 bumps (cold)` | 457 ms | 900 ms |
+  | `subd: ~2k-face cage, one vertex moved` | 22 ms | 60 ms |
+  | `tessellate: SubD box` | 22 ms | 60 ms |
+
+### A5 — tessellation's D79 split rounds
+- **Confirmed:** each of up to three rounds re-tessellated every face.
+  - It also re-evaluated every edge's samples, rebuilt the segment index over every edge (facet edges too, then skipped at lookup), and rebuilt `segments` for mass every round.
+  - `emit` summed the per-position normals (`byPos`) even where every point had an exact one.
+  - In `surfaceTriangles`' Delaunay flips, `across` copied a `Set` to an array per call, `flat3(t)` was worked out for each of a triangle's three edges, and `len2` (two `Math.hypot`) twice for one value.
+- **Fix (`brep-tessellate.ts`):**
+  - Each face's mesh is kept from round to round and joined in the faces' order at the end. After a round, only the faces with a split edge in their loops are tessellated again. A face's mesh reads its own loops' samples only, so the others stand.
+  - Only split edges are sampled again, and the segment index (without facet edges) is updated for those.
+  - `segments` are filled once, at the end.
+  - `byPos` is worked out only when some point has no exact normal.
+  - In the flips, the same values are worked out once.
+  - The loops' topology check runs once, before anything walks the loops (it ran per round).
+- **The mesh is the same to the bit:** positions, normals, indices, faces, edge samples, `segments` and `parameters`, on ten cases (SubD box, ~2k-face body, bump body, filleted box, patterned holes; 4 and 8 segments a quarter).
+- **After (best of 4, 8 a quarter):**
+
+  | Body | Before | After |
+  |---|---|---|
+  | SubD body of the ~2k-face cage (414 faces, 23k triangles) | 2 050 ms | 1 025 ms |
+  | bump body | 394 ms | 191 ms |
+  | SubD box | 26 ms | 26 ms (its faces all split) |
+
+- **Left:** the flips run full passes over all triangles (up to 50). A worklist would visit far fewer, but on cocircular points (grid-like domains) it can choose other diagonals, so the mesh would change; noted for C16.
+- **Tests:**
+  - Kernel 1012/1013 (the known Node-version test).
+  - RB: nothing new.
+  - Studio 351/351.
+  - Bench `tessellate: SubD body of a ~2k-face cage`: 1 007 ms, budget 2 000 ms.
+
+### A6 — copies and hashes on every change
+- **Confirmed:**
+  - `referencesOf` deep-copied the whole document (`structuredClone`), including an imported STEP text: 7.4 ms with a 30 MB import. Every node became a new object, so the worker wire and the evaluation memo saw them all as new.
+  - `markedReferences`, run on every change, only reads.
+  - `modelHash` (JSON plus FNV over nodes, parameters and bodies: 98 ms with a 30 MB import) ran on every change for `hashNow`, again in every `checkSpec`, and in proposals.
+- **Fix:**
+  - `referencesOf` copies only what its setters change (`writable`): a referencing feature and its list, mate sides, dimension points and body looks. The rest is shared.
+  - `referencesOf(doc, true)` is a read-only walk, used by `markedReferences`.
+  - `modelHash` keeps its value: it is persisted in proposal bases and history. It is kept per `doc.nodes` array with the same parameters and bodies objects, so one walk serves an edit.
+  - `hashNow` is worked out only while a proposal is open.
+- **Test:** `test/referencesCopy.test.ts`:
+  - the setters on a deep-frozen document change only the copy, and untouched nodes stay the same objects;
+  - the read-only walk returns the document itself;
+  - `modelHash` matches the whole walk's value.
+- Studio 353/353.
+
+### D18 — budgets about twice the latest values
+- **Why:** the old budgets were a few times the 2026-10-17 values, set before A1–A6; most rows had grown 2.5–40× room, so a lost cache could double a cost and still pass.
+- **Node (`pnpm bench`, best of the runs, three runs of the whole suite):**
+
+  | Bench | Latest | Budget before | Budget now |
+  |---|---|---|---|
+  | `evaluate: 16-hole plate (cold)` | 1 359–1 368 ms | 3 000 | 2 800 |
+  | `tessellate: 12-edge filleted box` | 33–36 ms | 120 | 70 |
+  | `mass: 12-edge filleted box` | 385–388 ms | 900 | 800 |
+  | `evaluate: 20-feature chain, unchanged` | 0.24–0.28 ms | 10 | 1 (a 1 ms floor below a millisecond) |
+  | `evaluate: stepped body patterned × 12` | 645–690 ms | 1 500 | 1 400 |
+  | `drawing: 120-hole plate, 4 views (cold)` | 1 253–1 299 ms | 4 000 | 2 600 |
+  | `direct: pole-drag step (warped sheet)` | 4.2–4.3 ms | 20 | 10 |
+
+  The A1/A4/A5 rows already had about 2× budgets and keep them.
+- **Browser (`bench:browser`, two runs):**
+
+  | Scenario | Latest | Budget before | Budget now |
+  |---|---|---|---|
+  | hover, 60 moves | 17 submits, 0.25–0.30 ms a frame | 60, 8 ms | 34, 2 ms |
+  | face clicked | 1–2 submits, 0.2–0.3 ms | 2, 8 ms | 2, 2 ms |
+  | Escape | 1, 0.2–0.3 ms | 2, 8 ms | 2, 2 ms |
+  | orbit, 60 steps | 60, 0.33 ms | 90, 12 ms | 64, 2 ms |
+
+  Frame CPU has a 2 ms floor (headless scheduling noise); the orbit is one submit per step, so its budget is a few submits over 60, not twice. One submit per frame stays the budget everywhere.
+- All 13 Node rows and all 4 browser rows pass on the new budgets.
+
+### D19 — the missing benches
+- **Added to `pnpm bench`** (`test/bench/node-bench.ts`), each at about twice the value measured (three runs of the suite):
+
+  | Bench | What it runs | Time | Budget |
+  |---|---|---|---|
+  | `mass: 16-hole plate` | the output's `massProperties(2700)` (the body card's numbers), quadrature over the curved holes | 294–323 ms | 650 |
+  | `mass: SubD torus, 2,048 quads` | the `subd-torus` command at its maximum, 64 × 32, the same call | 31–33 ms | 70 |
+  | `gear: verdict, clear pair (m2, 20/40)` | `checkSpurGearPair(…, { mode: 'verdict' })`, as `evaluateDoc`'s mesh notes run it | 215–217 ms | 450 |
+  | `gear: report, interfering pair (a 59.8)` | the same in `report` mode (the `gear_clearance` query) at a centre distance where the teeth cross | 5 766–5 866 ms | 11 500 |
+  | `library: tslot-20 fits (all)` | `checkFits`: every declared fit built, placed and its overlap measured (LIB2) | 116–123 ms | 250 |
+  | `step: tessellated read, 200k triangles` | `stepMeshes` on a 200k-triangle tessellated STEP (the worker's read) | 150–159 ms | 300 |
+  | `facet: F1 split, 200k triangles` | `splitFacetBrep` at z = 1 of a 400 × 250 torus | 181–186 ms | 380 |
+  | `facet: F2 hole, 20k triangles` | `facetBoolean` difference of a Ø4 cylinder through a 100 × 100 torus | 522–601 ms | 1 100 |
+  | `print: orientation search, 100k triangles` | `searchOrientation` on the AM4 test's 100k facet body | 508–592 ms | 1 200 |
+  | `print: printability, 16-hole plate` | `printability` on the FDM-printed plate after an edit | 20–22 ms | 45 |
+  | `print: 3MF of 200k triangles` | `write3mf` of the AM5 test's 200k bump sphere (weld, XML, deflate, ZIP) | 350–397 ms | 800 |
+
+- **Caches kept out of the times:** `evaluateDoc` keeps masses per B-rep, the pair check its last 64 answers by its arguments, the facet Boolean its crossings and the facet BVH per B-rep, and the wall thickness is kept per mesh. So every run gets its own B-rep, bodies or arguments (a face width the 2D sweep does not read, for the gears).
+- **Already there:** the SubD box build and tessellation and the ~2k-cage drag (A4), and the agent-turn evaluation count (`test/evalCount.test.ts`, A3).
+- **Seen, for later items:** the interfering pair's report is the slowest row by far: 5.9 s against 0.5 ms for its verdict (which stops at the first crossing) and 0.66 s for a clear pair's report. It goes with C16's gear sweep item. The 2,048-quad torus here is the SubD one; B9 (mesh-body mass) adds a mesh torus when it changes that path.
+- All 27 Node rows pass; type-check clean; lint 0 errors.
+
+### Items still open, as the peer listed them (copied here from the previous account's transcript)
+- **B7** hover rewrites the whole colour buffer.
+- **B8** picking paths without the BVH.
+- **B9** mesh-body mass and area through tessellation → facet integrals plus a WeakMap.
+- **B10** F2 rebuild costs.
+- **B11** mesh repair adjacency.
+- **B12** worker reply payload: unchanged bodies by id, volume-only and signature-only requests, one snapshot slot per purpose.
+- **B13** memory: uv, undo sharing, blob eviction, recovery writes, transferable mesh posts.
+- **C14** outline cost. **C15** App re-renders during drags.
+- **C16** smaller items: STEP parser sticky regexes; gear sweep cache key; SubD topology recheck, `opposite()`, JSON reuse key, fit allocations and closures; library memo; render_views; per-frame allocations; D25/D22 costs; the Delaunay flips' full passes (A5).
+- **C17** nested functions (about 20 sites).
+- **D20** RB bookkeeping: trend.jsonl rows for D50/D78/D79 and later; refresh todo.json (two graze rows now pass); keep the open items visible (1 nm graze wrong body, helical × helical refused, F2 at 1M positions).
+
+### B7 — a hover rewrote the whole colour buffer
+- **Confirmed:** every change of hover or selection repainted the body from scratch. `paint` made a new `Float32Array` of every vertex's colour with two `Map` lookups a vertex. `setColors` then converted every vertex to linear bytes (three `Math.pow` a vertex) and sent the whole buffer to the GPU. On the 120-hole plate (15 864 vertices, 126 faces) that is **0.44 ms and 62 KiB a hover**; on a 100k-triangle facet body, 1.37 ms and 196 KiB.
+- **Fix:**
+  - `@barocss/gpu`: `Geometry.fillColors(first, count, color)` sets one colour on a vertex range and sends only that range (`writeBuffer` with an offset). It is built on `fillVertexColors`, which writes the bytes `vertexColors` would. `vertexColors` now converts a run of one colour once instead of every vertex (the same bytes; tested against the formula).
+  - Studio, `viewport/facePaint.ts`:
+    - `faceRuns` keeps each face's vertices as runs, worked out once per body.
+    - `paintFaces` takes a key of the colours (base, theme, body and face colours). With the same key as last time, it writes only the faces whose state changed, one `fillColors` per run. A new key, or changes covering more than half the vertices, gives one whole write.
+  - `GpuRenderer.paint` goes through it.
+- **After:**
+
+  | Body | Before, per hover | After, per hover |
+  |---|---|---|
+  | 120-hole plate | 0.44 ms, 62 KiB sent | 0.009 ms, 0.8 KiB |
+  | 100k-triangle facet body (2 faces) | 1.37 ms, 196 KiB | 0.98 ms (one face is most of the body: a whole write, cheaper by the conversion) |
+
+  - New bench `viewport: 10 hovers repainted, 120-hole plate`: 0.05 ms, budget 1 ms (the whole repaint took 4.4 ms for the ten).
+- **Tests:**
+  - `test/facePaint.test.ts`: runs; after each of eight hover and selection steps the bytes equal a whole repaint's, and the vertices written are exactly the changed faces'; a new key paints the whole body once, and so does selecting most of it.
+  - gpu `viewer-core`: a filled range gives the same bytes as a whole conversion.
+  - Studio 356/356; GPU 70/70.
+- **Browser** (WebGPU, `bench:browser` and a pixel check): hover, a second face, moving off to the background, select and Escape show the same pixels as at HEAD. Submits are unchanged (hover 17, 1 per frame).
+- **Defect found while checking it, fixed (same commit series):** moving the pointer from a face straight onto a panel or the toolbar left the face lit. The canvas had no pointer-leave handler, so the last hover stayed until the pointer came back. Now `onPointerLeave` clears the hover, except during a drag. The pixel check passes: a face, then the toolbar, gives the base colour. HEAD showed the same stale hover.
+- **Lint:** the changed files are clean. `tests/viewer-core.test.mjs:128` has an older `no-regex-spaces` error from a test this change does not touch.
+
+### B8 — picking paths without the BVH
+- **Confirmed:**
+  - Face picks (`raycast`, `pick`) already go through the triangle BVH, from 1 024 triangles up.
+  - The edge pick that runs with them on every hover (`pickLine`) walked every segment of every edge mesh. Each segment allocated: two clip arrays, `map` copies when clipped, two closures. On the 120-hole plate (7 692 segments) that is **0.267 ms a pick**.
+  - The vertex snap (`vertexAt`) projects the hovered body's merged edge ends only (hundreds). It is left as it is.
+- **Fix (`@barocss/gpu`, `viewer/geometry.ts`):**
+  - `nearestSegment(g, M, x, y, cw, ch, radius, earlier)`:
+    - The same arithmetic, in the same order, as the walk, with no allocation (module-level scratch).
+    - From 256 segments, a hierarchy of segment boxes, built once per geometry by the triangle BVH's builder (now for either topology).
+    - A node is passed over when its eight corners are all in front of the eye and their screen rectangle is farther than the best so far, with a hair of slack for rounding.
+    - Ties go to the lowest segment, and a mesh only as near as an earlier one loses, as in the walk.
+  - `pickLine` keeps its whole-mesh rectangle test and calls it.
+- **Same answers:**
+  - gpu test: segment, distance and parameter equal to the walk (copied into the test as the reference). It covers 3 eyes × 2 geometries × 400 points, over 1 000 hits. Every fourth point is on a grid vertex where segments tie exactly, and some segments cross the eye's plane. A mesh as near as an earlier one is never chosen.
+  - On the plate, 300 of 300 points are the same.
+- **After:**
+  - The plate's edge pick: 0.267 → 0.014 ms (×19).
+  - Bench `viewport: 100 edge picks, 120-hole plate`: 0.3 ms, budget 1 ms (the walk took about 27 ms).
+  - GPU 72/72.
+- **Left for C17:** `rayTriangles` still makes its `test` closure per call.
+- (B7 and B8 together: the browser flow, 119/119, on the tree with both and the hover fix.)
+
+### B9 — mesh bodies' mass and area
+- **Confirmed (cold, a fresh B-rep each call):**
+
+  | Mesh body | Mass, before | Area, before | How |
+  |---|---|---|---|
+  | 200k-triangle facet body | 16.9 ms | 5.7 ms | mass through a tessellation of every facet face; area by quadrature, already exact |
+  | 40k-triangle planar body (how an STL opens: a planar face per triangle when nothing is flat) | 355 ms | 651 ms | mass through a tessellation; area by Green quadrature, 48 points an edge |
+  | 4k-triangle planar body | 36.7 ms | 58.8 ms | the same |
+
+  - The F1 split's check (`volumeOfSolid`, part-model) works out the same volumes three times, with the quadrature off.
+- **Fix (`solid-mass.ts`):**
+  - `polyhedralIntegrals(brep)` covers a body whose every face is a facet patch, or a planar face bounded by straight edges.
+    - Its ten volume integrals and area are exact and need no tessellation: tetrahedra from the body's centre over each facet triangle (`facetIntegrals`) and over a fan of each planar loop.
+    - A fan's signed triangles cover the loop's region, holes and concave outlines too. The loops turn about the outward normal, so a face's area along it is positive; otherwise the function refuses (null) and the old path runs.
+    - Kept per B-rep in a WeakMap; a B-rep is a value.
+  - `brepMassProperties` and `brepSurfaceArea` try it first. The method stays `planar-exact`.
+  - Bodies with any curved face, or any curved edge on a planar face, take the old paths unchanged.
+- **After (cold):**
+
+  | Mesh body | Mass | Area | Again |
+  |---|---|---|---|
+  | 200k facets | 6.0 ms | 5.9 ms | 0.01 ms |
+  | 40k planar | 70 ms (half of it the id maps, once per B-rep) | 73 ms | |
+  | 4k planar | 4.5 ms | 4.5 ms | |
+
+  - Part model, 200k mesh with a split: 364 → 345 ms.
+- **Values:**
+  - On the toruses, volume equal to every printed digit, area within 2e-15 relative.
+  - Kernel test `mass-polyhedral.test.mjs` against tetrahedra over the input triangles (an independent sum in the test): volume 1e-12, centroid 1e-11 mm, inertia 1e-11, area 1e-12.
+  - A block with a square hole through it, as its closed form (volume, area, centroid).
+  - An L prism equal to the prismatic closed form, inertia within 1e-12.
+  - A cylinder keeps `quadrature`.
+  - Conformance `perf3/`: a square frame of 32 triangles, planar (10 faces, two with a hole) and as facets: 168 mm³, 280 mm², centroid (5, 5, 1), to 1e-12.
+- **Checks:**
+  - Kernel 1012/1013 (the known Node-version test); conformance 67/67.
+  - RB: no NEW row, the TODO rows the known ones.
+  - Studio 356/356.
+  - Benches `mass: 200k-triangle facet body (cold)` 6.25 ms (budget 15) and `mass and area: 40k-triangle planar mesh (cold)` 76 ms (budget 160).
+
+### B10 — F2 rebuild costs
+- **Confirmed** (the F2 hole bench: a Ø4 hole through a torus mesh), stage by stage, 20k / 180k triangles:
+
+  | Stage | 20k | 180k |
+  |---|---|---|
+  | soup | 6 | 34 |
+  | self-crossing check | 30–40 | 130 |
+  | box split | 15 | 66 |
+  | near part as planar faces | 29 | 104 |
+  | **exact Boolean** | **420–540** | **1 300–1 400** |
+  | the soup again, T-junctions, facet faces, names | about 60 | about 280 |
+
+  - The exact Boolean dominates, and grows with the triangles near the tool: 357 at 20k, 1 107 at 80k, 2 249 at 180k.
+  - Inside it at 20k:
+    - face-pair cuts: 145 ms over 288 pairs;
+    - pieces: 120 ms;
+    - merging coplanar pieces: 115 ms (459 → 120);
+    - stitching: 55 ms.
+  - Two causes, both confirmed:
+    - **Cuts:** each probe curve (the plane's ellipse on the cylinder, say) was searched on both faces before their overlap was taken. On the cylinder that is a 256-step seam scan and a boundary crossing, even where the curve misses the planar face entirely, which is most pairs.
+    - **Caps:** the box split's cut points are interpolated, so they land a few ulps off the cap plane. `brepFromTriangles` joins only exactly coplanar triangles, so the caps' 1 025 triangles reached the Boolean as 156 faces (3 009 as 284 at 180k). Every one was a piece to classify, merge back by a region union, and stitch.
+- **Fix:**
+  - `cutPair` (`analytic-boolean.ts`): each probe on the first face; where it misses, the second face's search is skipped. The overlap of nothing is nothing, so the cuts are the same.
+  - `splitSoup` (`facet-split.ts`): on a plane square to an axis (every F2 box plane, and an F1 split along x, y or z), a cut point's coordinate along that axis is the plane's exactly, and the other two are interpolated as before. The caps are then exactly flat: 4 cap faces instead of 156 (20k) or 284 (180k). An oblique plane is unchanged.
+- **After:**
+
+  | Case | Before | After |
+  |---|---|---|
+  | `facetBoolean`, 20k | 586 ms | 460 ms |
+  | `facetBoolean`, 80k | 1 192 ms | 872 ms |
+  | `facetBoolean`, 180k | 1 900 ms (stages) | 1 530 ms |
+  | Inside the Boolean at 20k: cuts | 145 | 80 |
+  | Inside the Boolean at 20k: merging | 115 | 57 |
+  | Benches `facet: F2 hole, 20k triangles` | 522–601 ms | 424 ms (budget 1 100 → 900) |
+
+  - New bench `facet: F2 hole, 80k triangles`: 827 ms (budget 1 800).
+  - The volumes are equal to every printed digit: 14 044.918930113969 and 14 058.897223463451 before and after.
+- **Tests:**
+  - Kernel: `facet-split.test.mjs` adds a test that a split square to x, y or z puts the section loops and both caps' corners on the plane to the bit, and that the volumes add up. It fails on the code before.
+  - Kernel 1014/1015 (the known Node-version test); conformance 67/67; RB no NEW row.
+  - Studio 356/356.
+- **Not done, measured:**
+  - The rest is the exact Boolean's work per near face (pieces, regions on the cylinder's arrangement, merging the mesh's coplanar quads back, stitching) and the rebuild of the whole facet body (about 280 ms at 180k).
+  - Narrowing the near region (a prism round the tool instead of a box), carrying the self-crossing check over to an F2 result, or rebuilding only the near faces would each change what the Boolean sees or builds. They go with F3.
+- **Also seen:** at 400 × 250 (200k), the same hole is refused, typed, as "not a manifold solid (… the inputs touch along an edge or at a vertex)". This is the known F2-at-fine-meshes item, unchanged by this step.
+
+### B11 — mesh repair adjacency
+- **Confirmed (200k-triangle STL-like soup, 190 holes, turned patches):**
+  - diagnose and repair together took 1 241 ms. Of that:
+    - the final check, 300 ms;
+    - orient, 136–183 ms;
+    - fins and floaters, about 90 ms each;
+    - diagnose, 370 ms.
+  - The profile:
+    - **`edgeSides`** built a `Map` of arrays, one per edge, keyed lo·nv + hi. It was built five times in a repair (fins, orient, holes, floaters, check) and once in diagnose: 433 ms across them.
+    - **`selfIntersections`** (in diagnose and in the check): a `Map` of arrays for its grid cells. Its narrow phase ran six segment-through-triangle tests for every pair of nearby triangles that share no corner: 420 ms in `segmentThrough`.
+- **Fix (`mesh-repair.ts`):**
+  - **`edgeSides`** now uses typed arrays. Half-edges are bucketed by their lower vertex, each matched to the first one with the same upper vertex in its bucket. The edges are numbered in the order of their first half-edge, which is the order the map gave, with each edge's half-edges ascending. Every consumer walks the groups the way it walked the map.
+  - **`selfIntersections`:**
+    - The cells are typed runs: entries sorted by cell with two stable 16-bit counting passes, each cell taken at its first entry. These are the same pairs in the same order, so the first 64 crossing points are the same too.
+    - A pair is passed over when one triangle lies clear on one side of the other's plane: every corner farther than a millionth of the two boxes' size, the same side. Then no edge of either passes through the other, so the strict test cannot count it. A millionth is far beyond the test's own 1e-9 and rounding.
+- **The same results:** `diagnoseMesh` and `repairMesh` outputs were hashed whole, old code against new, and are identical:
+  - every bench fixture (organic 2k–200k, scan 200k, the six broken ones);
+  - the 200k soup;
+  - two tori through each other, with 2 614 crossings.
+- **Defect found while measuring, fixed:** `report.flipped` counted every turn of either pass. When the orient pass starts from a triangle inside a turned patch, it turns all the others, and the outward pass turns them all back. On the 200k soup, about 5 300 triangles were wrong and the report said "393 667 triangles turned"; the panel shows that number. Now a triangle counts once, if it ends the other way round from how it came and is kept. New test: three turned triangles, the first among them; the code before reported 109.
+- **After:**
+
+  | | Before | After |
+  |---|---|---|
+  | organic-200k, diagnose + repair | 1 255 ms | 677 ms |
+  | scan-200k | 1 442 ms | 830 ms |
+  | 200k soup | 1 241 ms | 829 ms |
+  | two crossing tori | 48 ms | 29 ms |
+
+  - Bench `mesh: diagnose and repair, 200k soup`: 639 ms, budget 1 300.
+- **Checks:**
+  - Kernel 1016/1017 (the known Node-version test); `mesh-repair.test.mjs` 10/10.
+  - Conformance 67/67; RB no NEW row.
+  - Studio 356/356, with the mesh repair corpus.
+
+### B12 — the worker's replies
+- **Confirmed:**
+  - **Every mesh, every reply.** Every evaluation reply carried every body's display mesh: six typed arrays copied out of the kept tessellation (`meshOf`), then transferred. That held even when the body was the same B-rep as in the last reply: a 200k-triangle mesh body beside a plate being edited was 5.31 MiB copied and sent per edit.
+  - **The face-table key.** That edit also cost the worker 33 ms, of which 30 ms was `rememberFaceTable`'s key: `faceKey` was `JSON.stringify([nodes, parameters])`, which writes out the mesh node's 200k-triangle arrays on every evaluation. It runs in the worker and on the main thread (and in faceClient).
+  - **One `part` snapshot for everything.** The worker's single `part` snapshot (`lastPart`) was shared by:
+    - requirement checks,
+    - reference checks,
+    - an agent's proposals and the chat previews,
+    - file reads,
+    - clash probes,
+    - placed instances.
+
+    Each one in between threw away what the others had reused.
+  - **Clash probes.** They evaluated each overlapping pair's intersection with full meshes, and read only its volume.
+- **Fix:**
+  - **`engine/meshWire.ts`:** `MeshSender` in the worker and `MeshReceiver` on the client.
+    - Each kind of request is a slot: `evaluate`, `preview`, `section`, `placed`, `part:<purpose>`.
+    - A body whose kept mesh was in that slot's last reply goes back as its token alone, with no copy and nothing sent. A new mesh is a copy with a token, its buffers transferred. One mesh twice in a reply is sent once.
+    - Both sides keep exactly the slot's last reply, in the order posted. Stale replies are unpacked too, and a refusal empties the slot.
+    - A token the client does not hold is an error result ("Evaluation lost"), never a guess. `restart` clears both sides.
+    - The worker hands out the kept meshes as they are (`shareMeshes(true)`, only there). `placeBody` copies before it moves one. The main thread was checked to write into no received mesh array.
+  - **`faceKey`** is the evaluation memo's per-node key (`contentKey`): each node's text kept per node object, long arrays by length and digest.
+  - **Snapshot slots per purpose:** `evaluatePart(…, slot)` with `PartSlot` = `part`, `check`, `refs`, `agent`, `read`, `probe`. `evaluatePlaced` has its own.
+  - **App callers:** checks `check`, references `refs`, proposals and chat `agent`, mesh and STEP reads `read`.
+  - **Clash probes** use the new `volumes` request: volumes only, no mesh made or sent.
+- **After (the worker's side of one edit beside the 200k mesh):** 33 ms and 5.31 MiB → **2 ms and 0 MiB**. Only the edited plate's mesh goes, a few KiB.
+  - Bench `worker: an edit beside a 200k mesh body`: 1.9 ms, budget 5 ms; it fails if the unchanged mesh is sent.
+- **Browser flow:** 119/119 with the worker path (WebGPU).
+- **Tests:** `test/meshWire.test.ts` (3):
+  - the protocol: tokens, slots apart, the last reply only, a refusal, a receiver out of step;
+  - the worker's path in-process, packed and unpacked, against a plain evaluation, array for array. The same part again sends nothing; a larger hole sends only the plate.
+  - volumes equal to the full evaluation's, and slots taking turns.
+- Studio 359/359.
+- **Not done:** signature-only replies for the reference checks. The evaluation memo (`kept`) is shared by every evaluate function, so a reply without meshes could be handed to a caller that reads them (a requirement's wall thickness). Unchanged prefix meshes now go back as tokens anyway.
+
+### B13 — memory: what an edit writes out and copies
+- **Confirmed and changed:**
+  - **Recovery writes.** 800 ms after every change, `writeRecovery` wrote the whole document out as one JSON for local storage. A document with an inline mesh (older files, before blobs) or an imported STEP text is written out in full every time. A 200k-triangle inline mesh is 8.8 M characters and 36 ms per edit, and a copy that size never fits local storage (about 5 MiB): it failed after the cost, every edit.
+    - Now `recoveryText` keeps each node's JSON per node object and joins them. The text is exactly the old text (tested), and a copy past `RECOVERY_LIMIT` is not tried.
+    - As before, a copy that cannot be written leaves the stored one as it was.
+    - After an edit beside the 200k mesh: 36 ms → 0.76 ms with no limit, and nothing when over it.
+  - **Undo sharing.** Renaming or removing a parameter deep-copied every node through JSON (`renameParameter`). Every node became a new object, so undo held two full copies (a mesh's or a STEP file's data included), and the worker's wire and the evaluation memo saw the whole part as changed. `parameterUses` wrote out every node per parameter on every render of the panel.
+    - The rename is now copy-on-write: only the nodes along the way to a reference are copied.
+    - The count is a read-only walk.
+    - Both are tested against the old functions: the same result, untouched nodes the same objects.
+  - **Mesh posts.** A STEP file's meshes were gathered into number lists before the worker's check. Posting those clones element by element, and twice the memory of typed arrays. They are now typed arrays, posted as bytes.
+  - **Opening an STL.** `meshInMM`, the weld to mm, made three arrays and a text key a corner, with closures inside the loop: 165 ms for 200k triangles.
+    - Now the rounded coordinates are hashed into buckets and compared exactly: the same vertices in the same order, the size as before (a NaN corner makes it NaN, as `Math.min` did).
+    - Tested against the old weld (repeated and near corners, −0, NaN, single precision, three units).
+    - 165 → 27 ms.
+- **Benches:**
+
+  | Bench | Time | Budget |
+  |---|---|---|
+  | `mesh: open a 200k-triangle STL (weld to mm)` | 27 ms | 60 |
+  | `recovery: an edit beside a 200k inline mesh` | 0.76 ms | 2 |
+
+- **Tests:** `test/memory.test.ts` (3). Studio 362/362; browser flow 119/119.
+- **Follow-up (the coordinator's review of d7d766635): no stale recovery copy.** When a copy was not written (too large, or the browser refused it), the copy from before stayed. After a reload it would be offered back as the latest unsaved work, although it was older than the last edits. This predates B13, but B13 made the skip deliberate.
+  - **Decision: clear it.** Marking it stale would offer work known to be out of date.
+  - `writeRecovery` now returns `'ok' | 'too-large' | 'refused'` and removes the older copy when it does not write.
+  - The studio says so once per document with a toast, again only after a copy has been written in between:
+    - too large: "Crash recovery is off for this document";
+    - refused: "No recovery copy".
+  - `test/recovery.test.ts`, with a storage of its own (quota or refusal): a small copy, then an over-limit edit, leaves nothing to restore; a refused write the same.
+- **Measured, not changed:**
+  - **uv:** every body's geometry has texture coordinates, 8 bytes a vertex, even without a colour map. The viewer's pipelines read the attribute, so leaving it out needs a second vertex layout in `@barocss/gpu`. For a 200k-triangle body that is under 1 MiB. Left.
+  - **Blob eviction:** the blob store keeps every mesh blob of the session, in the studio and in the worker (by design, D45/M1). Evicting safely needs every holder known: the document, undo and redo, proposals, a repair waiting, the chat's states, and the worker's wire, whose sender believes the worker still has what it sent once. That is a design change. Recorded as a TODO in README §0 with that list.
+
+### C14 — the selection outline
+- **Confirmed** (`bench:browser`, a new scenario: the plate picked whole from the outliner, then orbited 60 steps):
+
+  | DPR | Without the outline | With it | Its cost |
+  |---|---|---|---|
+  | 1 | 3.4–4.2 ms GPU a frame | 4.7–5.0 ms | 0.8–1.3 ms |
+  | 2 | 5.3–5.9 ms | 8.0–8.9 ms | 2.1–3.6 ms |
+
+  - Two parts:
+    - the mask pass draws every opaque mesh again (to hide what is behind);
+    - the output pass searched a (2r + 1)² square of the mask for **every pixel of the screen**: r = 3 at DPR 1 and 5 at DPR 2, so 121 texture reads a pixel over 5 M pixels.
+- **Fix (`@barocss/gpu`):** the output block carries `outlineRect`, the outlined meshes' screen box (`screenRect` of their world boxes) widened by the outline's reach and two pixels. The shader searches only inside it.
+  - Outside, no mask pixel is within reach, so the search found nothing there before either: the result is the same.
+  - A box with a corner behind the eye leaves the rectangle unbounded, as before.
+- **After:**
+
+  | DPR | Outline's cost |
+  |---|---|
+  | 1 | 0.6–0.8 ms |
+  | 2 | 0.9–1.1 ms (the rest is the mask pass) |
+
+  - The canvas with the outline is pixel-identical to HEAD's at DPR 1 and 2 (screenshots compared).
+- **Tests:**
+  - gpu `viewer-core`: the rectangle holds every projected point of the box; a corner behind the eye gives none; the block's last four floats.
+  - GPU 73/73; browser flow 119/119.
+- **Left:** the mask pass's redraw of the opaque meshes. Testing against the main pass's depth instead needs the mask multisampled like it (with MSAA on), which would change the outline's edge.
+
+### C15 — App re-renders during drags: measured, no change
+- **Measured:** a feature handle dragged 60 steps over 2 s (the starter plate's hole centre). Main-thread time from CDP `Performance.getMetrics`, plus a CPU profile.
+
+  | Build | Script | Of it |
+  |---|---|---|
+  | Dev server | 968 ms (16 ms a move) | 781 ms self in React's development `jsxDEV` (element owner stacks); `App` 704 ms inclusive, its toolbar buttons 295 ms |
+  | Production build, two runs | 86–106 ms (about 1.6 ms a move) | `App` 15 ms over the whole drag (0.25 ms a move); `Viewport` 15 ms; the frame's draw 17 ms; layout 35 ms; one `focus()` of 21 ms when the drag opens the feature's HUD (once) |
+
+- **Decision: no code change.** In production the re-renders are a quarter of a millisecond a move, inside a 16.7 ms frame. Memoising App's toolbar and panels would put stale closures at risk for no measurable gain. The dev-server number is React's development build, which users do not run. Note that the browser flow and `bench:browser` run on the dev server, so frame CPU there reads high for this reason.
+- **The script:** `test/tools/cdp-drag.mjs`. Run it from `apps/cad-studio`:
+  `VITE_URL=$(node --input-type=module -e "console.log(import.meta.resolve('vite'))") PW_DIR=… node test/tools/cdp-drag.mjs "$PWD" <out-dir>`
+  `PROD=<dir>` builds and previews production, and `NOMIN=1` keeps names.
+
+### C16 — small items
+**Gears: the interfering report, and the sweep's key**
+- **Confirmed (profile):** a pair check in report mode on a pair whose teeth cross took 5.8 s (m2, 20/40 at a = 59.8). `depthInside` and its `pointSegment` were 14 of 18 s across five cases, for three reasons:
+  - the pair loop in `profileClearance` went on measuring every remaining pair after a crossing, although the answer is then only the depth;
+  - `depthInside` measured each point twice, since consecutive segments share an end;
+  - each point's nearest-segment search started from nothing, so few boxes were passed over.
+  - Also, the cache key held the face widths, which the 2D sweep does not read, so changing a gear's thickness ran the whole sweep again.
+- **Fix (`gear.ts`):**
+  - The pair loop stops at the first crossing (report mode).
+  - A point equal to the one just measured is skipped.
+  - Each search starts from the previous point's nearest segment and keeps the first of the nearest in order, as the walk from the first segment did. The boxes are passed over only when strictly farther.
+  - The cache key leaves the widths out. They are validated first, as the check does, and the axial and total contact ratios are worked out again for the widths asked.
+- **The same results:** five cases (report interfering at 59.8, 59.5, 59.95; report clear; verdict clear) hashed whole, before and after: identical.
+- **After:**
+
+  | Bench | Before | After | Budget |
+  |---|---|---|---|
+  | `gear: report, interfering pair (a 59.8)` | 5.8 s | 1.17 s | 11.5 s → 2.4 s |
+  | `gear: verdict, clear pair` | 215 ms | 146 ms | 450 → 300 |
+
+  - The benches now vary the phase by a billionth of a degree a run (the face width is no longer in the key).
+- **Test** (kernel `gear.test.mjs`): another width gives the same sweep with its own ratios (equal to the nominal formula's), kept (under 5 ms); a width out of range is still refused when the pair is kept. Gear tests 10/10; conformance 67/67; studio 362/362.
+
+**SubD: the caps' key, the topology built twice, `opposite()`** (found by a read-only review agent, confirmed and measured here)
+- **The caps' key held the size.** `keptCapsAt`'s key began with `scale`, the whole refined cage's extent. Any edit that moved the cage's highest or lowest point changed every key, so every cap was built again. On the ~2k-face cage, raising a top vertex took 109–162 ms against 22–38 ms for an inner one.
+  - The size is read only by the G1 rows' tolerance check (`orthonormalRows`). The poles and deviations do not depend on it.
+  - The key now leaves it out. Each dependent condition's miss and norm are kept with the caps, in the order they were met, and checked again at the size asked: the same refusal, at the same condition, with the same message.
+- **The SD2 topology was built twice.** `buildSubd` made `polyMesh` of the refined quads and then `topology()` of the same quads, which rebuilt half-edges, twins and sharp edges with a `Map`. The mesh's own (start 4k, twin, sharp, P, F) are the same, and it has made every check, so `topoOf(mesh)` reads them. The SD1 path does the same from the fan mesh and still runs `checkVertices` (kept rather than argued away).
+- **`opposite()`** scanned every face per crease vertex. It is now counted per vertex in `checkVertices`' own pass. `topology()` is gone.
+- **The same results:** builds hashed whole, old code against new, identical.
+  - SD2: ~2k-face cage cold, three top-raised and three inner moves, the bump cage, the bump cage ×3 (another scale), the SubD box.
+  - SD1: the 64 × 32 torus, the torus with 64 crease edges, the torus wound inward.
+- **After:**
+
+  | Build | Before | After |
+  |---|---|---|
+  | ~2k cage, top raised | 109–162 ms | 35–69 ms |
+  | Bench `subd: ~2k-face cage, its top raised (new extent)` (new) | | 19.8 ms (budget 60) |
+  | ~2k cage, one inner vertex moved | | 19.3 ms (it was 24) |
+  | SD1 torus pair | 25 ms | 21 ms |
+
+- **Tests:**
+  - Kernel `subd.test.mjs`: the top's centre raised (a new extent) reuses every cap, under half a cold build. It fails on the code before (89 against 175 ms).
+  - Kernel 1018/1019 (the known Node-version test); conformance 67/67.
+
+**Kernel: the quadrature run twice, an import's text in every key, the STEP tokens**
+- **Mass and area.** `brepSurfaceArea` ran the same two-pass quadrature (`quadrature(brep, 8)`) as `brepMassProperties`, and a STEP export's validation properties ask for both. `quadrature` is now kept per B-rep and step in a WeakMap.
+
+  | | Before | After |
+  |---|---|---|
+  | 16-hole plate, mass and area | 779 ms | 468 ms |
+  | 16-hole plate, STEP export | 732 ms | 512 ms |
+  | fillet box, mass and area | 853 ms | 478 ms |
+  | fillet box, STEP export | 890 ms | 552 ms |
+
+  Values and the exported text are identical (hashed).
+- **An import's text in the reuse key.** The part model's per-feature key (`resolvedDefinition`) wrote an imported STEP text out whole, on every evaluation: 27 ms an edit beside a 10.4 MB import (about 80 ms at 30 MB). Texts over 64 KB now stand as an exact id from a map of the last 8 texts. A Map compares the text by content, so an id is never shared; a text fallen out of the map only misses. After: 1 ms.
+- **STEP tokens.** `parseData` matched each token with a `^` expression on a fresh `slice` of the rest of the text, tested white space with `/\s/` a character, and built strings a character at a time. Now:
+  - sticky expressions at the reader's place;
+  - white space by its code (`/\s/` only past ASCII);
+  - strings by `indexOf`;
+  - the comment pass skipped when there is no comment.
+
+  | Read | Before | After |
+  |---|---|---|
+  | tessellated 10.4 MB, `stepMeshes` | 175 ms | 141 ms |
+  | tessellated 10.4 MB, `importStep` | 355 ms | 307 ms |
+  | planar 13.6 MB, `stepMeshes` | 240 ms | 178 ms |
+  | planar 13.6 MB, `importStep` | 713 ms | 657 ms |
+
+  `importStep` and `stepMeshes` outputs are identical (hashed) on a B-rep plate, an odd text (comments, a doubled quote, a non-breaking space), a planar mesh and a tessellated one.
+- **Tests:** kernel `perf3-c16.test.mjs` (3): mass and area share one run with the same values; an edit beside a long import reuses it, and another text is read anew; odd tokens and an unterminated string. Kernel 1018/1019 before these; conformance 67/67; RB no NEW.
+
+**Studio: the cage editor's frames, render_views, library fits**
+- **Cage overlay (`CageMarks`).** Every frame rebuilt eight Sets of string keys from the selection and the validation, which change with the overlay, not from frame to frame. Every frame also wrote each vertex's coordinates out about four times. Now:
+  - the edges' kinds, the vertices' kinds and sizes, and the tinted faces are prepared once per overlay (WeakMap);
+  - a frame projects, writes each vertex's text once, and joins the same paths.
+
+  The rendered element tree is identical (60 frames on the 2k-face cage, two modes, a selection, a crease, the poles: JSON hashed). 3.61 → 1.48 ms a frame.
+- **Cage validation.** `validationOf` validated the whole cage (4.4 ms on 2k faces) on every frame of an extrusion's drag, and again for Done. It reads only faces, creases and the vertex count, and an extrusion's topology does not change while it is dragged. It now keeps the last result and reuses it when the full cage's faces, creases and vertex count are equal, compared face by face. Test (`cageEdit.test.ts`): five drag steps share one validation, equal to a fresh one, under half its time; another topology is validated anew.
+- **render_views.**
+  - Each face's name is split out once, not at every pixel it covers.
+  - The four hidden-line projections are kept for the last B-reps: a highlight-only call reuses them, since the highlight changes only the fill.
+  - The cache key is the evaluation memo's per-node key, not the whole document's JSON (a STEP import's text included).
+
+  Outputs are byte-identical (16-hole plate: first, two highlights, a section). A highlight call takes 215–263 → 83–106 ms. The section path is left: its probe evaluation (with mass) is most of it, and evaluating it as a preview would change mesh limits.
+- **Library fits.** Each fit end was built cold, though the T-slot library builds its profile three times. Ends are now kept per library (WeakMap; a library is a value once loaded) by part, variant, values, interface and prefix; a failed build is not kept. Results are identical. A first run barely changes (215 → 209 ms: the overlap Booleans dominate). A repeated check (the share check, `add_library`) goes 131 → 74 ms on tslot-20 and 27 → 12 ms on the enclosure.
+- **Per-frame allocations** in the viewer and renderer: measured by the review agent at microseconds a frame (`packFrame` 1.6 µs, the key Map and sort for 50 meshes 6.3 µs). Hoisting them is GC hygiene with no measurable gain; left. The site list is in `handover/notes/c16-review-findings.md`.
+- **Not done:**
+  - **Cold SubD cap fits.** `limitGrids`' meshes per level, `closestOnGrid`'s layout, `formAt`'s copies: 38 + 14 + 7 ms per cold build. Each is a restructuring of numeric code to keep bit-identical; with C17's nested functions, or later.
+  - **Delaunay flips.** A worklist would change cocircular diagonals (A5): left.
+- Studio 364/364; kernel library tests 6/6; browser flow 119/119.
+
+### C17 — functions made inside hot paths
+Sites from the review agent's list (`handover/notes/c16-review-findings.md`), each hoisted to module level or written out, with the same arithmetic in the same order.
+
+| Where | How often | Change |
+|---|---|---|
+| `rayTriangles` (gpu `geometry.ts`) | per pick, per mesh | its `test` closure is a module function with module-level ray state (as `nearestSegment`); the bounds no longer spread into an array |
+| `vertexNormals` (gpu `geometry.ts`) | per triangle | `at`, `sub`, `cross` and the `[a, b, c]` array written out |
+| `frustumPlanes` (gpu `bounds.ts`) | per frame | `row`, five `map`s and a `forEach` → `plane()` in place |
+| `requestRender` (gpu `viewer.ts`) | per request | `run` → one bound field |
+| `visibleMeshes` (gpu `viewer.ts`) | per frame | the key Map and the two comparators → a kept map and module comparators |
+| `lights()` / `bounds()` (studio `gpuRenderer.ts`) | per frame | `toward` and `grow` at module level |
+| `vertexAt` (studio `Viewport.tsx`) | per pointer move | no `[e.a, e.b]` array an edge |
+| `bodyMesh` (studio `engine/mesh.ts`) | per evaluated body | `pair`/`near` hoisted; the mate looked for among the display edges of the same two faces (the first that fits, as before; it was an O(E²) `find`); `facesOfEdge` and the groups by `push`, not a spread copy each; a face map for `brep.faces.find`; segments pushed without spreads |
+| `netOf` (kernel `subd.ts`) | per quad of a build | `pt`, `mirror`, the corner table and the `[1, 2]` loops at module level |
+| `twoIrregular` (kernel `subd.ts`) | per face | a loop, no `filter` array |
+
+- **The same results:**
+  - `vertexNormals` and 4 000 rays hashed (40k and 200 triangles);
+  - `bodyMesh` hashed on five bodies (smooth 40k planar mesh, low-poly mesh, a sharp 12k mesh with 6 000 display edges, the SubD ~2k body, the 120-hole plate);
+  - the SubD builds' hashes unchanged.
+- **Measured where it shows:**
+  - `bodyMesh` on the sharp 12k mesh: 270 → 161 ms (tessellation 100 ms of it);
+  - the smooth 40k planar mesh: 543 → 502 ms;
+  - 2 000 rays at 40k: 28.0 → 25.7 ms.
+  - The per-frame sites are microseconds; the change is the rule.
+- **The AM4 wall-clock test** (`printing.test.ts`, 100k triangles oriented) had a 2 s bound and failed once under parallel load (about 0.6 s alone). It now has a 6 s bound with a comment; the measure is the bench row `print: orientation search, 100k triangles` (budget 1.2 s). The README TODO is removed.
+- **Left:** the cap fit's numeric helpers (`fanOf`, `refine`, `limitGrids`, `capsAt`'s `formAt`/`gridOf`/`polesOf`) and `cageTopology`'s template keys, listed in `handover/notes/c16-review-findings.md`. These are per vertex or face of a cold SubD build, where keeping the caps bit-identical needs care. They go with a cold-build pass, as do the viewer's per-frame object allocations (GC only).
+- GPU 73/73; studio 364/364; kernel SubD 18/18; browser flow 119/119; `bench:browser` within budget.
+
+### D20 — RB bookkeeping
+- **Trend.** The last trend row was `b7a924fa7` (2026-10-17, 156 cases). The steps since (R4 F1 D50 through R8.1 and PERF3) were not recorded as they landed. A row for HEAD `8f49f6d5d` now covers them all, keyed by the dataset's hash (`b9bce8f88c06e704`):
+
+  | Cases | OK | REFUSED | INVALID | WRONG | CRASH / TIMEOUT | New | TODO | Improvement |
+  |---|---|---|---|---|---|---|---|---|
+  | 205 | 1 099 | 5 | 3 | 5 | 0 | 0 | 8 | 0 |
+
+  The steps in between are not rebuilt one by one: that needs each commit's own build.
+- **Properties:** `properties.jsonl` row for the same commit (seed 20261018, 200 runs a property). Every property passes; two runs refused (the uniform scale, the cylinder-box oracles).
+- **todo.json:** refreshed by checking, not by editing. All eight rows still fail as recorded, and the run lists no improvement:
+  - the 1 nm graze, a wrong body: four rows on `x45-in0_000001`, `x45-in0_00001`;
+  - three graze intersects refused as non-manifold where the oracle has a body: `x52_389-in0_01`, `x27_564-in0_001`, and `y1-in0_01` tessellate;
+  - helical × helical refused.
+
+  The peer's note that two graze rows pass no longer holds, so the file stands as it is. F2 at 1M positions (3 of 8 holes) is not an RB row; it stays in README §0's open TODOs.
+- **PERF3 is done:** A1–A6, D18, D19, B7–B13, C14–C17, D20.
+
+## D83 — R8.2b SD3: the agent's SubD cage tools (2026-10-18)
+
+The rest of R8.2 after PERF3: the cage editor's operations for the agent, and a browser-flow step through the chat.
+- **Tools** (`src/chat/cageTools.ts`; in `TOOLS`, so in the MCP server and the chat server's allowed list):
+
+  | Tool | Does | Kind |
+  |---|---|---|
+  | `subd_cage` | counts, creases, mirror plane, bounds, validation (poles, n-gons, open edges, non-manifold) | read only |
+  | `subd_select` | faces by outward `normal` (within `within_deg`, default 30) and/or a `box` on their centres; vertices in a `box`; the `loop` or `ring` through an `edge`; the `boundary` (open edges) | read only, up to `limit` (200) items with centres and normals, the rest counted |
+  | `subd_move` | `vertices`, or those of `edges` or `faces`, by `delta` | value edit |
+  | `subd_extrude` | `faces` as one region (walled) by `offset`, or `distance` along their mean normal; or open `edges` by `offset` | topology; the new faces or edges named in the result |
+  | `subd_insert_loop` | the loop across `edge`'s ring, at its middle | topology |
+  | `subd_bridge` | two open loops of equal length in `edges` | topology |
+  | `subd_fill` | the hole round open `edges` | topology |
+  | `subd_weld` | `vertices` into one, or those within `tolerance` | topology |
+  | `subd_crease` | `edges` (or the sides of `faces`) sharp, or smooth with `on: false` | beyond values |
+  | `subd_delete` | `faces` | topology |
+
+  All of them act on a subd feature by `index`.
+- **The same steps as the editor:** each tool is a cage session step (`cageEdit.ts`: `commitDrag`, `runOp`), so a mirrored node behaves as it does in the editor.
+  - Indices are the cage's as the node keeps it: the half, on the + side of the plane.
+  - The plane's vertices stay on it, and no wall is put in the plane.
+- **Refusals:** a result that is not a manifold is refused, as the editor's Done refuses it. So is an index or edge not in the cage, nothing to move, or a step that changes nothing. Each refusal is typed and says why; the part stays unchanged.
+- **Autonomy (D41, the owner's L2 = (b)):**
+  - A move is a value edit of the feature and applies directly. `valuesOnly` now reads a `cage` with the same faces and creases, and as many positions, as values. `positions` stays structural elsewhere (mesh nodes).
+  - Every other change touches what the cage is made of, so at L2 it is refused with `needs_proposal` and proposed. A proposal of cage ops replays them (they are batchable in `apply_ops` and `propose`).
+- **System prompt:** a paragraph on making smooth organic shapes from `subd-box` or `subd-torus` with these tools.
+- **Tests (`test/cageTools.test.ts`, 5):**
+  - the tools listed; read-only queries (4 top faces of a 2-a-side box; one in a box);
+  - extrude by distance (28 faces, the volume up, the top raised), a loop inserted, a crease on and off, a face's vertices moved (faces unchanged);
+  - delete → boundary query → fill (closed again), an edge's ends welded, refusals;
+  - a mirrored cage (indices of the half, an extrusion keeping the plane's vertices on it, the body whole);
+  - L2: a move applies, an extrusion is refused with `needs_proposal` and proposed (the part unchanged).
+  - Every result's kernel body passes `checkBrep`, and its cage is valid.
+  - `chat.test.ts`' tool list includes the ten.
+  - Studio 369/369; browser flow 120/120.
+- **Browser flow:** a step through the real chat server and tool server, with the scripted stand-in for the CLI (no model):
+  1. a SubD box built on an empty part (the first build, applied);
+  2. a cage vertex moved: applied with "Applied by the agent";
+  3. a face extruded: refused at L2, proposed, P1 accepted in the studio's panel; the cage has 28 faces and the body is one solid.
+- **Pending decision (reversible default):** the hand-over listed "the browser-flow step" under R8.2, and the original R8 plan made R8.3 "the browser flow: a SubD box edited end to end (extrude, loop, crease, mirror, undo), with screenshots". Taken here as follows:
+  - the R8.2 step is the agent's tools through the chat (above);
+  - R8.3 is the person's end-to-end edit in the cage editor;
+  - R8.3 also covers the plan's other item, reusing `direct.ts`' pole gizmo driven by cage data, if it fits.
+
+## D84 — R8.3 SD3: the cage editor end to end, and the owner's pipe clamp (2026-10-18)
+
+R8.3 as D83's default took it (the person's end-to-end cage edit in the browser flow), with an acceptance part the owner added on 2026-10-18 through the coordinating session ("그렇게 해줘"): a SubD-modelled pipe clamp, from a reference image now at `handover/notes/acceptance/subd-pipe-clamp.png`.
+- **The part** (as the image shows it):
+  - a thick-walled tube, open at both ends, its rims rounded by holding loops;
+  - a flat lug rising from the tube's wall, its plane holding the tube's axis;
+  - a round hole through the lug, its axis square to the tube's;
+  - the lug's top an arc round the hole, a small square step at one end, the lug blended into the tube with no hard edge.
+  - The coordinating session's message said the lug's plane is square to the tube's axis and the hole's axis parallel to it. The image shows it the other way: the lug runs along the tube, and the hole looks across it. The image is followed; the other reading is a different cage (the lug from a ring of rim faces) and can be added on request.
+  - Axis along Z (the studio's tube and the SubD primitives stand on Z); the lug points along +X.
+- **What was added for it:**
+  - **`subd-tube`** primitive (`primitives.ts` `tubeCage`; palette and `run_command`): outer and inner radius, length, quads round (6–64) and along (1–24). Every vertex valence 4, so the limit is exact B-spline faces. Its first column is centred on +X, so a lug extruded from it is square to X. The radii are grown by the ring's limit factor, as the torus' are.
+  - **`subd_insert_loop`'s `t`**: the fraction along the edge from its first vertex (default 0.5); `runOp`'s insert-loop takes it too. A holding loop is a loop near an edge.
+  - **`subd_select` `boundary` with a `box`**: the open edges with both ends in it, for one hole among several.
+  - **A hole's rim by double-click** (`openRun` in `cageEdit.ts`): a double-click on an open edge selects the whole rim round the hole (Shift: added), to fill or bridge. Before, the loop of an open edge stopped at its ends.
+  - **The cage editor ends its session when the part changes under it** (a new part, a file opened, the agent's edit): nothing written, a toast says so. Found by the browser flow: a new part while a cage was open crashed the panel (`featureLabel` of a node that was gone), and Done would have written over the change.
+  - **A drag of nothing is no step** (`commitDrag`): a Shift-press on the gizmo with no movement extruded the picked faces by 0 (copies on the faces they came from, which the kernel refuses: 8 new poles and no body). Found when a Shift-click to add a face landed on the gizmo's arrow. The E key still extrudes in place for the gizmo to drag.
+  - **Esc no longer throws steps away:** with nothing picked it left the session as Cancel does, dropping every step unasked (a second Esc did it). Now it leaves only when there is nothing to lose, and otherwise says that Done keeps the steps and Cancel drops them.
+  - `__studioCage` (dev only) returns the session's selection, cage, creases, mirror and undo depth, for the browser flow.
+- **Built by the agent's cage tools** (`test/subdClamp.test.ts`), as an agent would: each pick found by `subd_select` (faces by normal and box, vertices by box, open edges by box) or read off the cage, each change one tool call. 43 calls, kept as `test/fixtures/subd-pipe-clamp.calls.json`:
+  1. `run_command subd-tube` r 20, ri 17, h 40, 24 round, 7 along;
+  2. eight holding loops at the rims, 0.6 mm from each corner: on each wall near each end, and on each rim near both corners;
+  3. the lug: the five outer faces of column 0 in rows 1–5 extruded out along +X three times (4, 5.71, 5.71 mm), then four of them once more (5.71 mm): the first row stops a level short, which is the step;
+  4. the hole: the 2 × 2 side faces at levels 2–3 of rows 3–4 deleted on both sides; the old rims moved onto a circle of 5.2 mm; each rim's open edges pulled 0.6 mm into the lug (a short funnel, the mouth's holding ring) and the new edges moved onto the hole's circle of 4.2 mm; the two mouths bridged;
+  5. holding loops in the hole near both mouths, and along both faces of the lug (their ring runs on round the tube's column 0);
+  6. the lug's top moved onto an arc of radius 11.4 mm round the hole's centre, its right end down the side, its left end a little down to the step.
+  - Every call's result is a body the kernel builds; the tool refuses one that is not. The first recipe pulled the rims out by 0 to drag afterwards, as the editor's gizmo does; that leaves coincident vertices, which the kernel refuses ("a singular surface or a degenerate loop cannot be tessellated"). The funnel replaced it.
+  - The same calls through the editor's own session steps (`commitDrag`, `runOp`: what the editor runs for a person's picks and drags) give the same cage, number for number.
+  - 43 calls take 60 s in the unit test: each evaluates the part (1–2 s for the clamp, its tessellation most of it).
+- **The result** (kernel conformance case `conformance/r8/subd-pipe-clamp.json`, its cage the one the agent's calls make):
+
+  | Measure | Value | Bound |
+  |---|---|---|
+  | Body | one solid, 1 shell, genus 2; 424 faces (exact patches and 88 caps); 20 irregular vertices, one Catmull–Clark step | |
+  | G1 between faces along smooth edges | 1.9e-6° | 1e-5° |
+  | Seams | 2.2e-14 mm | 1e-12 mm |
+  | Caps' largest distance from the limit | 0.0120 mm (rms 0.0006; 0.0145% of the 83 mm size) | 0.02 mm |
+  | Smallest \|Su × Sv\| against its cap's median | 0.068 | > 0.05 |
+  | Largest turn between neighbouring normals in a cap | 3.3° | < 15° |
+  | Volume | 16 476.176 mm³; the independent oracle 16 476.177 (5e-8) | relTol 1e-4 |
+  | Area | 11 019.525 mm²; oracle 11 019.522 (3.4e-7) | relTol 1e-4 |
+  | Centroid | [4.41189, 0, 19.99865] mm; oracle within 3e-6 mm | absTol 1e-3 mm |
+  | Tessellation (8 a quarter) | 56 060 triangles, watertight, 1.06 s | |
+  | STEP | 1.8 MB, written and read in 4.3 s; volume and area equal to rounding; strict check valid | relTol 1e-9 |
+
+  - The oracle is the independent Catmull–Clark in `test/subd.test.mjs` (its limit-mesh volume, now also area and centroid: `limitMeasures`), refined 4 and 5 times and extrapolated; 3 and 4 times differs by 6e-8.
+  - **Known open item, not loosened (D79, A5):** the tessellation has concave folds up to **88.6°** (69.7° at 12 a quarter) between sliver triangles about 0.01 mm high, inside exact B-spline patches along the rims' tight holding loops. It is the general B-spline face tessellator's D79 to-do, not a fold of the surface and not at a cap's boundary: the caps' normals turn 3.3° at most. The kernel test holds it below 89° (no worse) and the case's `notes` records it. The studio's render shows no mark there.
+  - The conformance runner reads a new optional `expect.subd`: the standing SubD promises as bounds on the named feature's cage (`conformance/README.md`).
+- **Tests:**
+  - Kernel `subd.test` (D84): every SD2 promise on the clamp; 1 shell, genus 2; volume the oracle's to 1e-6; folds < 89°. Conformance r8 1/1.
+  - Studio `subdClamp.test.ts` (2): the build through the tools (the calls and the cage as kept; `UPDATE_CLAMP=1` writes both again), and through the editor's steps.
+  - `primitives.test`: the SubD tube (regular, no caps, genus 1, between its radii and length, column 0 centred on +X, refused inside out).
+  - `cageEdit.test`: a hole's rim by double-click (in order, closed; a second rim added; bridged: genus 1).
+- **Browser flow:**
+  - **R8.3, by hand on a SubD box** (4 a side): a top face picked and Shift-dragged up the gizmo's Z arrow (extruded, 100 faces); a front edge picked, L (a loop round the box, 116), C (the new loop creased, 16 edges); Mirror X (the + half, the body the half and its image); ⌘Z in the session (whole again, the loop and creases kept); Done (one node edit); the document's ⌘Z (the box as it was) and ⇧⌘Z. Screenshots after each.
+  - **D84, by the agent through the real chat and tool servers** (the scripted CLI stand-in): the tube built on the empty part (applied), then the other 42 calls as one proposal at L2, accepted in the studio: one body, its cage the conformance case's exactly, its volume shown (16 476 mm³); STEP exported and opened again: one solid, the same volume. 100 s through the chat.
+  - **D84, by hand in the cage editor**: a SubD tube from the palette with its sizes typed; a holding loop at the top rim (L); the lug's five faces picked (Right view), Shift-dragged out twice, the lowest taken out of the pick (Shift-click), the rest out twice more; in an orthographic front view the hole's four faces on the front deleted, then the same places take the four behind them, deleted too (in perspective the faces behind are drawn a little aside, and a click there took a front face beside the hole); the two rims double-clicked (the second with Shift) in an iso view and bridged (B); Done: one body, the cage valid and closed, the kernel's body one shell of genus 2. By hand the hole stays square (rounded by the limit) and the rims have one holding loop: the agent's path places every vertex, a person's drags are coarser; the topology is the same kind.
+- **Suites:**
+  - kernel 1022/1028: 4 skipped as before; the known environmental `actual native Split source…`; and the B9 wall-clock test (40k planar mass in 417 ms against its 400 ms bound) while the studio suite ran beside it — 75 ms alone, where it passes. Load-sensitive as AM4 was.
+  - conformance all, the clamp's case 9.5 s; RB over 206 cases: nothing new, the 8 known TODOs, the clamp's case through every stage;
+  - studio 374/374;
+  - bench all within budget, the new row `subd: the pipe clamp (cold)` 299 ms (budget 600);
+  - lint (0 errors) and type-check clean;
+  - browser flow: full run 123/123 (the three new steps; the clamp through the chat 95 s).
+- **The pole gizmo item (D83; R8's plan: "the pole gizmo from `direct.ts` driven by cage data, not source-text edits"):** nothing left to do. The cage editor's gizmo is the viewport's `TransformGizmo`, the one `direct.ts`' poles use, and it edits the cage's data itself (a session step), never source text.
+- Picks in the flow click a face halfway to its lower-left corner and in an order that keeps each next face below or left of the gizmo's middle: its arrows point up and right from there. The view is framed by its button (F is Fill while a cage is edited).
+- **Follow-up seen, not in this step:** the Selection panel's "Surface area" is the tessellation's (11 007 mm² for the clamp, 0.11% under the exact 11 019.5); the exact area is the kernel's.
+
+## D85 — R9 (M4): our own QEM decimation, attribute-aware, with a measured error (2026-10-18)
+
+The roadmap's line: "our own QEM decimation, attribute-aware, with a reported error". There was no spec beyond it, so this record sets what each word means here.
+- **Kernel `decimateMesh`** (`src/mesh-decimate.ts`; own TypeScript, typed arrays, no dependency):
+  - Edge collapse under the quadric error metric (Garland & Heckbert 1997). Plane quadrics are unweighted, so a collapse's cost is a sum of squared distances (mm²); its square root bounds the distance to every plane it gathered.
+  - Placement: the quadric's minimum when its 3 × 3 part is well conditioned and within two edge lengths of the edge, else the better of the ends and the middle.
+  - Each vertex's cheapest collapse sits in an indexed min-heap (ties by vertex number: the result is deterministic).
+  - After a collapse: the merged vertex is priced again; a neighbour whose cheapest collapse involved the merged pair is refreshed; any other neighbour is offered its collapse with the merged vertex if cheaper. A price gone stale is re-queued at pop time, not made.
+- **"Attribute-aware": what the mesh says is kept.** Meshes here carry no normals, UVs or colours (STL, OBJ positions, facet patches). What they do carry:
+  - open boundaries;
+  - per-triangle groups: a repair's fill patches, and in the `decimate` feature each source face (region);
+  - creases (a dihedral past `featureDegrees`; default 40° for the kernel call; the feature's default is none, its regions carry the creases).
+  - Those are feature lines:
+    - a feature vertex slides only along its line (both ends on lines, the edge itself a feature), placed on the edge segment (the quadric's least along it), so a line keeps to where it ran;
+    - a vertex off the lines collapses onto a feature vertex (placed there);
+    - corners and ends never move: three or more feature edges, one, or two turning past the angle (a sheet's corner, a patch's);
+    - penalty planes (weight 100) through each open or creased feature edge, square to its triangles;
+    - a group seam where the surface is smooth (under 20°) gets no penalty. It still only slides along itself, but straightens as cheaply as the surface lets it. Found in the browser: a torus' halving seam (D42) stayed a jagged band of small triangles.
+  - Every triangle keeps its winding and its group.
+- **Never a fold or a broken manifold:**
+  - the link condition: the neighbours common to both ends equal the shared triangles;
+  - two valence-3 vertices sharing two triangles are refused (a tetrahedron's edge);
+  - no triangle may turn more than 75° in one collapse or flatten;
+  - no triangle may face away from the surface its corners stand for. Each vertex carries the area-weighted normal sum of the original triangles it replaces, merged as it merges.
+    - The first try compared a triangle with its own starting normal. On a noisy sphere that let folds through near jagged feature lines: a starting triangle can be tilted 60°.
+  - Refusals are counted in the report.
+- **"Reported error": measured, not estimated.** `meshDistance` (`src/mesh-distance.ts`) takes each sample of one mesh (vertices and triangle centres) to the nearest point of the other's surface. It uses a hierarchy of its triangles (median splits along the longest axis, leaves of up to 4) and a branch-and-bound search, nearer child first.
+  - The report gives the distance both ways, the Hausdorff (the larger), the RMS and the sample count. These are samples, not a bound: a surface point between samples may be further.
+  - It also gives the counts, why it stopped (`target`, `error`: the quadric bound reached, `exhausted`: nothing left it may collapse), the largest quadric bound made, the refusals and the time.
+- **Part feature `decimate`** `{ target, triangles? | ratio? | maxError?, featureAngle? }`:
+  - Only on a mesh body (facet faces), refused otherwise (`CAPABILITY`). Its triangles are gathered wound outward and welded; each face is a group.
+  - The result goes through `facetBrepFromTriangles` with `groups` and `groupName`, each face named as its source face with `creaseDegrees` 180. The faces keep their names, so A1 references and selectors keep resolving across a decimation.
+  - The output carries `decimate` (the report).
+- **Studio:**
+  - a `decimate` node (`{ parent, ratio?, triangles?, maxError?, featureAngle? }`); the label "Simplify mesh to 25%";
+  - a "Simplify mesh" command (modify; a mesh body selected), with fields Keep % (25), Max error (0: none) and Crease angle (0: regions only);
+  - its icon: a block whose top is fine triangles near and two coarse ones, in the accent, far;
+  - the edit fields Keep %, Max error and Crease angle (so `edit_feature`, and at autonomy L2 a value edit); `features.ts` spec;
+  - the report as the body's notes: "Simplified: 10,000 → 1,000 triangles (stopped at the asked count)", "Measured distance from the original: at most … (… to it, … back; RMS …, over … points)", and the refused collapses;
+  - `run_command decimate` (bodies, keep, maxError, crease).
+- **Numbers** (Node 22, Apple M-series; decimation without the measurement, then the measurement both ways):
+
+  | Mesh | Triangles | Decimate | Measured Hausdorff (RMS) | Measure |
+  |---|---|---|---|---|
+  | icosphere r 10 | 20 480 → 2 048 | 85 ms | 0.029 mm | 2 × 25 ms |
+  | icosphere r 10 | 327 680 → 32 768 | 1.2 s | 0.0022 mm | 2 × 0.3 s |
+  | organic torus 200k (bench fixture) | 199 712 → 19 970 | 0.84 s | 0.072 mm (0.012) | 0.46 s |
+  | organic torus 1M | 999 698 → 99 968 | 4.8 s | 0.014 mm (0.002) | 1.6 s |
+  | scan sphere 200k (jittered; creases off) | 201 612 → 20 160 | 1.46 s | 0.29 mm (0.062) | 0.6 s |
+  | gridded box 1 200 | → 12 | 18 ms | 2.5e-15 mm | |
+
+  - meshoptimizer's 1M → 100k in 0.4 s (noted in §4) stays a reference; we are about twelve times slower in TypeScript with the feature, fold and manifold checks. Profiled after three rounds (feature scans in one pass, a cached feature degree, kept unit normals, partial re-pricing, no allocation in the loops): 2.3 s → 1.2 s on the 328k sphere. Most of what is left is pricing and the feature scans.
+  - On a noisy scan the 40° crease angle reads noise as creases and stops early (the 200k scan sphere at 94k, "exhausted"). The feature therefore takes its creases from its regions.
+- **Tests:**
+  - kernel `mesh-decimate.test` 7/7: the gridded box to its 12 (corners exact, volume 1000); the sphere to 10% and 2% (closed, wound, within 0.05 and 0.25 mm, the report's distances equal to `meshDistance`'s, deterministic); a noisy sphere (as a scan every triangle facing out; with creases nothing past 95°); a group patch kept (square and area); an open sheet (flat: two triangles; wavy: its boundary on the square); the error bound; the feature (names kept, refusals);
+  - conformance `r9/decimate-grid-box` (exact) and `r9/decimate-sphere` (within 0.4 mm both ways, volume 3%, area 1%), with a new optional `expect.outputs[].decimate` (`trianglesAtMost`, `hausdorffMMAtMost`);
+  - studio `decimate.test` 3/3: the command (offered for a mesh body only), names and volume, notes, label, saved and read back; `run_command`; `edit_feature` Keep at L2;
+  - bench rows `mesh: decimate 200k organic to 10%` (budget 1 700 ms) and `mesh: distance both ways, 200k and its 10%` (1 000 ms);
+  - browser flow `R9 Simplify mesh`: a 10 000-triangle lumpy torus STL opened, simplified to 10% from the palette, the notes in its panel, undone.
+- **Suites:**
+  - kernel 1032/1037: 4 skipped (`modeling-offset`'s trapped cases, run only with `CAD_MODEL_OFFSET_ADMISSION_TRAP=1`) and the known environmental `actual native Split source…`;
+  - conformance all, with `r9/` 2/2; RB: nothing new, the 8 known TODOs, both `r9/` cases through every stage;
+  - studio 377/377 (`chat.test`'s schema test gives `decimate` a mesh body, as `gear-mesh` a gear);
+  - bench all within budget (decimate 845 ms, distance 368 ms);
+  - lint (0 errors) and type-check clean;
+  - browser flow: full run 124/124.
+- **Pending decision (reversible default):** the meaning of "attribute-aware" above (boundaries, groups and regions, creases; no UV or normal attributes, since none are read). Taken for meshes as they come in today; when OBJ normals or UVs are read, they join the quadric as attribute terms.
+
+## D86 — R10a: stable sketch-entity side names (2026-10-18)
+
+D31's plan, taken up as R10a, with the coordinating session's research note (`handover/notes/research-sketch-solver-2026-10-18.md` §3 S2) as design input: stable ids for a sketch's lines, arcs and circles; constraints carried by them; a versioned node so saved documents keep resolving.
+- **Kernel: `sideTags` on the sketch feature** `{ outer, regions?, holes? }`:
+  - one tag for each side of the outer loop (a rectangle's 4, a circle's 1, a polygon's points, a loop's segments), of each region loop and of each hole loop;
+  - a tag is letters, digits, `_` or `-` (1 to 32), so it never meets the name parsers' `.`, `|`, `+`; tags are unique in the sketch;
+  - refused with `INPUT` when it is the wrong count, a tag twice, or not a tag.
+  - With tags, every wall a body makes of the sketch is `<feature>.side[<tag>]`, whatever loop it is in. The prefix `region<r>.`/`hole<h>.` falls away, since tags are unique.
+  - **Every side-naming generator honours them** (D31's five, plus the shell's section ring):
+    - upright extrude (`prismaticFromProfile`: outer, regions and holes);
+    - drafted extrude;
+    - revolve (a full-turn circle: its halves and parts all `side[t]#k`);
+    - loft: each side by the source segment of the first section it runs from, and several from one segment (arcs split into ≤ 90° spans, pieces halved to match counts) numbered `#k`;
+    - sweep: each straight and bend piece, `.s<k>.side[t]`;
+    - the revolved and swept shell's `sectionRing`: the names it opens faces by.
+    - Each maps the built loop back to the authored segment, a clockwise loop being reversed (`side-names.ts` `sideName`).
+  - Without tags nothing changes: `side<k>`, `region<r>.side<k>`, `hole<h>.side<k>` (D16: documents written before keep their names).
+- **Studio: sides with ids** (`src/sketch/entityIds.ts`):
+  - Every sketcher shape carries `ids`, one a side, of the form `e<k>`, unique in the sketch. A rectangle's and a slot's run in the shape's own corner order, a circle has one, and a polygon has one a point (point i's is segment i's). A polygon's attached circles carry `circleIds`.
+  - `withIds` gives missing ids after the highest, deterministically. `profileOf` writes them on the node as `sideTags`, matched to the node's loops by their segments' ends (a polygon saved as a rectangle runs from its lowest corner, whichever corner it was drawn from).
+  - **Edits keep them:**
+    - Split (K): the piece's first part keeps its id, the new point's piece gets a new one, and every other id stays.
+    - The outline's constraints and dimensions are carried through by the ids (`carryPolygon`: lengths, radii, tangents, equal radii, concentric, H/V, rules), where before every one was dropped. The split piece's own length or radius goes.
+    - Round corner: both edges keep theirs, and the arc gets a new one.
+    - Trim, extend and join: ids inherited by where each piece starts.
+    - Offset: new shapes, new ids.
+  - **Reopen:** a node with `sideTags` gives its shapes back their ids. A node from before (no tags) gives its shapes new ids in the order its sides were numbered, and remembers which positional name each id takes over (`side2` → `side[e3]`).
+  - On Finish, the features built straight on it (extrude, revolve) have their references renamed once, exactly. That covers later features' edge and face names, looks' face colours and mates, as a string or an object key, alone, in `a|b` or in `a+b`, with any `#k`.
+    - Only ids the sketch still has are renamed; a side removed in the edit goes to the re-match (D28) as before.
+    - Loft and sweep pieces (positional pieces, not segments) also go to the re-match as before.
+- **Versioning (D16 pattern):** a sketch node with `sideTags` is the new form; without, the old.
+  - Sketches written by commands (primitives, fasteners, profiles, the library, the agent's `add_features`) stay as they were: their walls are `side<k>` until the sketch is edited in the sketcher, which gives it ids and renames as above.
+  - So no existing document, test or library file changes its names: the box command's `n1.side0|n1.top` is still that.
+  - `sideTags` is structural for autonomy (D41): changing it renames.
+- **Names consumers:**
+  - selectors' role family (`role: "side"` matches `side3` and `side[e3]`);
+  - the mate panel's label ("Side face e3");
+  - Draft's all-sides check;
+  - the agent's tool docs (`side[e3]`, "stay as the sketch is edited");
+  - `features.ts` accepts `sideTags` on a sketch.
+- **S2, what was taken and what was not:**
+  - Taken: stable ids for edges (lines, arcs) and circles; constraints carried by those ids through every renumbering edit; the versioned node.
+    - The constraints are still stored by position in the outline, in the same order as its ids. That is the solver's input as before. An id-keyed store would change every rule's form (S1's native residuals would rewrite them anyway).
+  - Not taken: multi-entity sketches with loops derived from the graph. Today a sketch is one outline plus circles and separate shapes; nothing in R10a needed more.
+  - S1 and S3–S6 (native residuals, decomposition, sparse algebra, drag, diagnosis): none was needed.
+- **Tests:**
+  - kernel `side-tags.test` 2/2: every generator; a clockwise loop by its authored order; holes; a revolved circle; a vertex inserted keeps the others; a fillet on a tagged edge; untagged unchanged; the refusals.
+  - conformance `r10a/` 3/3: a tagged prism with a hole; the same with a vertex inserted (every name kept, `side[x]` added); a tagged revolve with its section out of order. Closed-form volumes and centroids.
+  - studio `sketchIds.test` 4/4:
+    - ids and tags;
+    - a vertex inserted by the sketcher's split: the fillet needs no re-match, and a kept length carried;
+    - a rectangle drawn from its top-right corner; a rounded corner; a trim;
+    - a sketch from before reopened and renamed (fillet edge, face colour), then reopened again with its ids.
+  - `constraints.test` and `plane.test` expect the ids and tags now.
+  - browser flow `R10a`: a quad drawn by hand, extruded, a corner filleted by its name; reopened, an edge split with K; Finish keeps the fillet's edge, nothing re-matched, the other four walls' names kept.
+- **Suites:**
+  - kernel 1037/1042: 4 skipped (env-gated) and the known environmental Split test;
+  - conformance all, `r10a/` 3/3; RB nothing new;
+  - studio 381/381; bench all within budget; lint (0 errors) and type-check clean;
+  - browser flow 125/125. The full run's three chat steps first failed with EADDRINUSE: another tool's vite dev server held the flow's default chat port 52091. Rerun with `CAD_STUDIO_CHAT_PORT=52191`, they pass (README §0, How to run).
+- **Pending decisions (reversible defaults):**
+  - Command-made sketches stay positional until edited in the sketcher.
+  - The ids read `e<k>`.
+  - Constraints are stored by index alongside the ids.
+
+## D87 — R10 S0: feasibility of general fillets (2026-10-19)
+
+The roadmap's feasibility checkpoint before R10, with the coordinating session's research note (`handover/notes/research-r10-r11-fillet-shell-2026-10-18.md`) as design input. The question: does the research note's R10.1 hold on the method fillets use today (`edge-finish.ts`: a rolling-ball tool, the region between the two faces and the fillet surface grown a little into the air or the body, one analytic Boolean), or does it need the contact-trimming the note gives R10.2?
+
+The method's risk is the Boolean meeting a tool tangent to a curved face: along a line for a cylinder, along a circle for a cone. The note lists it ("tangential contact is the marcher's worst case") and the intersections' notes say grazing cylinders are refused.
+
+- **Probed with the tools built by hand** (`packages/barocss-cad/test/r10-s0.test.mjs`, kept as evidence; closed-form volumes):
+
+  | Class (R10.1) | Case | Tool | Result |
+  |---|---|---|---|
+  | (a) translational, concave | a rod (R 5, axis along X at the plate's top) on a plate: the junction along its ruling | the 2D fillet region (line, circle, fillet arc) extruded along X, unioned | valid; added volume = (triangle C–T1–F − fillet sector − rod sector) × 40 to 1e-13, r 1, 2, 3; 16–39 ms |
+  | (a) translational, convex | a groove (the rod cut away), its rim | the same, below the top, subtracted | valid; to 2e-12 |
+  | (b) coaxial, convex | a cylinder under a cone (one axis), the rim circle | the meridian fillet region revolved, subtracted | valid; removed volume = 2π × (kite − 45° sector)'s first moment to 1e-9 |
+
+  - Tangent contact with a cylinder along a ruling, and with a cone along a circle, goes through the analytic Boolean exactly. The refused grazing is the crossing of two cylinders' surfaces, not a tool face tangent to a body face, which the plane/plane fillets have always relied on.
+- **Today** (the same file, which R10.1 turns over in plain sight):
+  - the rod's junction is refused: "straight edges can be finished between two planes only";
+  - the cone rim is refused: "only edges between planes and cylinders can be finished yet";
+  - **`faceReach` confirmed as a defect.** A block whose top bows in on its far side (10 mm deep at its ends, 7.93 at the middle) takes a fillet of 8.5 mm. It is admitted, because `faceReach` is the farthest control point (10). The result is a valid solid but no quarter round: the round runs off the top into the bowed wall.
+- **Verdict: R10.1 as the research note gives it, on today's method.** No new trimming machinery is needed for it.
+  - **(a) translational:** a straight edge along d between faces extruded along d (planes ∥ d, cylinders with axis ∥ d). Solve the 2D fillet in the cross-section (line/line, line/circle, circle/circle; convex or concave), extrude the region along the edge, with today's runs past the ends and tangent chains.
+  - **(b) coaxial:** an edge between surfaces of revolution about one axis (plane ⊥ axis, cylinder, cone, sphere, torus). Solve in the meridian plane and revolve, as `arcTool` does for plane/cylinder.
+  - **Typed refusals:** `TANGENT_FACES`, `RADIUS_EXCEEDS_FACE` (the true reach) and `NOT_ANALYTIC_PAIR` (→ R10.2).
+  - **`faceReach`:** a true reach replaces it: the face's least extent across the edge along its length.
+  - **Fixtures:** each class's volume in closed form (as here); name stability across a radius change; RB4's fillet properties extended.
+  - R10.2 (marched spines, contact trimming), R10.3 (vertex blends), R10.4 (overflow) and R10.5 (variable radius) stay as the note orders them.
+- **Not decided here:** whether the pipe-clamp lug's B-rep version (the note's §5) is R10.1's acceptance part. It needs R10.1(a) for the blend and R10.3 for the lug's own corners; taken as a later fixture, not R10.1's.
+
+## D88 — R10.1: translational and coaxial fillets in closed form, typed refusals, the true face reach (2026-10-19)
+
+R10.1 as D87's verdict and the research note (`handover/notes/research-r10-r11-fillet-shell-2026-10-18.md`) give it, on the method fillets already use (a rolling-ball tool, one analytic Boolean). Fillets only; chamfers of the new pairs are refused for now.
+
+- **The section solver** (`packages/barocss-cad/src/fillet-section.ts`, new): a fillet's cross-section where both faces are lines or circles in the section.
+  - The ball's centre is where the two curves, offset by r towards the corner, meet: line/line, line/circle and circle/circle, exactly. Of the meetings, the nearest whose contacts lie ahead of the edge on both faces.
+  - The contacts are the centre's feet on the curves.
+  - The tool: the region between the faces and the fillet arc, grown by g outside the corner along the faces' own outward offsets (exact lines and concentric arcs, so the growth stays on the faces' far side however they curve). g shrinks where a circle would shrink past half its radius.
+  - The profile's last segment is the fillet arc, tagged `f`; the tool's faces are named from the tags (`<id>.face` and `<id>.tool`), not by a marker.
+- **(a) Translational** (`translationalTool`): a straight edge between planes along it and cylinders whose axis runs along it. Solved in the section square to the edge and extruded, with the runs past the ends of a straight tool. New pairs: plane × cylinder along a ruling (a rod on a plate, a groove's rim, a D shaft's flat) and parallel cylinder × cylinder.
+- **(b) Coaxial** (`coaxialTool`): a circular edge between surfaces of revolution about the circle's axis (planes square to it, cylinders, and cones, spheres and tori through `revolutionOf`). Solved in the meridian and revolved, as `arcTool` does. New pairs include cylinder × cone, cone × plane, plane × cone (concave), cylinder × sphere, and any coaxial pair of these.
+  - A face of revolution's outward side comes from the parametric normal at its patch's middle.
+  - A curved edge's tangent chain now also crosses a seam between halves of its faces when the normals there agree. A revolve's rim halves share no face, so before this one half was filleted alone. One half selected now rounds the whole circle, as one closed tool.
+  - Only the profile turns, so the axis check is the profile's least ρ, an arc's leftmost point included, not the ball's.
+- **Unchanged paths:** plane/plane edges (`straightTool`, `cornerProfile`) and plane × square cylinder (`arcTool`) keep their geometry and names. The corner blends, mitres and chain logic are as before.
+- **Typed refusals:** `B-rep: <SELECTION|PARAMETER|CAPABILITY>: [<code>] …`, mapped to the part error as before. The studio's `engine/errors.ts` gives each a hint.
+  - `TANGENT_FACES` (SELECTION): faces meeting tangentially, e.g. a round's own tangent edge.
+  - `RADIUS_EXCEEDS_FACE` (PARAMETER): a contact past a face's true reach. Also the plane/plane wall check and the wedge chamfer, whose wording "too large for walls" is kept.
+  - `RADIUS_EXCEEDS_CURVATURE` (PARAMETER): a ball that does not fit inside a face's circle (r ≥ ρ), or no ball touching both faces.
+  - `NOT_ANALYTIC_PAIR` (CAPABILITY): neither translational nor coaxial; general fillets are R10.2.
+- **The true reach** replaces `faceReach`'s farthest control point, an upper bound (the defect D87 confirmed). It is the face's least extent across the edge over the edge's length, in the face's own measure: a line's distance along w, a circle's angle.
+  - **Which boundary edges count:** those beside the edge (along it within its length, or its sweep), except:
+    - those touching the edge's ends;
+    - those lying where the edge ends (the body ends there, not the face);
+    - for a finish that removes material, another loop's convex edges (a hole's rim: the cut runs into the void, as part-model's "brep-core step 7" chamfer beside a hole requires).
+  - A boss's foot limits it; for a finish that adds material, every boundary does.
+  - Across a smooth edge (a seam between halves of one surface), the neighbour's boundaries count instead. Without this the property below found 42 in 200 grooves falsely refused at a cylinder's seam 17.8° from the rim.
+  - **Precision:** sampled 64 times an edge, then refined to rounding (crossings by bisection, minima by golden section).
+  - It now applies to the convex plane/plane check, the wedge chamfer, `arcTool` (both senses) and both new tools.
+  - The bowed block's 8.5 mm fillet is refused at a reach of 7.928932 (15 − √50).
+- **Evidence:**
+  - `test/r10-1.test.mjs` (4 tests). Every volume is the region between the corner and the fillet arc, worked out by hand and integrated exactly (Green's theorem over lines and arcs; Pappus):
+    - **Translational:** rod on plate r 1–3, D shaft r 0.5 and 1.5, two parallel rods r 0.5–2, all to 1e-9 relative. The fillet surface is within 1e-12 of the cylinder about the ball's centre line.
+    - **Coaxial:** cylinder × cone, cone × plane and plane × cone (foot) to 1e-10 of the part (torus quadrature); the fillet surface is within 1e-12 of the torus about the ball's centre circle.
+    - **Cylinder × sphere:** the surface is exact to 1e-12, the volume to 1e-7 of the part (6e-8 measured: quadrature over the sphere face trimmed by the torus).
+    - **Refusals:** each typed code, the reach exactly met (r 37.5 on a 15 mm top) and just passed (r 40).
+    - **Names:** every face and edge name is unchanged across r 1–7.5; a sketch-tagged rod keeps `ce.side[w]`.
+  - `test/r10-s0.test.mjs`'s "today" test now records then and now: both S0 refusals filleted, and the 8.5 mm defect refused by name.
+  - **Conformance `conformance/r10/`** (6 cases):
+    - translational rod on plate (volume and centroid closed form, STEP round trip);
+    - coaxial cone rim (volume closed form; centroid by this kernel, x and y 0 by symmetry);
+    - one refusal for each typed code.
+  - **RB4 properties** (`scripts/rb/property.mjs`):
+    - "translational fillets": a random rod or groove (radius 2–8, axis −0.8ρ to 0.8ρ about the top, r 0.2–3) against the closed-form section, 200/200 at the fixed seed and three random seeds;
+    - "coaxial fillets": a random wall-and-cone body against Pappus, to the result's mass method.
+  - **Studio:** errors.ts hints; a flow step opens a rod-on-plate file, fillets the junction in the studio (volume = the closed form to the panel's 1 mm³), and has the other junction's 40 mm refused as too large.
+- **Found and kept as known, not fixed here** (`robustness/properties-todo.json`):
+  - **The analytic Boolean** fails on some coaxial cone-rim tools: 9 in 200 at the fixed seed, 8 at another. It leaves a sliver of the body's seam edge (the seam opposite the edge's start, from the corner to the contact on the cone): "not a manifold solid". The smallest is R 9, h 10, a cone of about 45°, r 1.
+    - D87's hand-built tool fails identically, so the defect is the Boolean's with a tool tangent to a cone, not R10.1's.
+    - Rotating the tool's seam by ±1e-12 or ±1e-9 changes nothing (structural, not rounding). A generic seam angle makes it far worse (192 in 200).
+    - The coaxial line/arc tangency test in `profileCrossings` was ruled out: disc against tol² looked suspect, but a distance test changed nothing and was not kept.
+    - The other 191 in 200 are exact.
+    - The property is a TODO, so the harness stops at its first failure there. Its coverage meanwhile comes from `r10-1.test.mjs` and the conformance cases.
+    - **Next:** R10.2's contact pcurves, or a Boolean repair of seam slivers.
+  - **Mass:** where quadrature's finer pass (q 16) cannot place a mesh point on such a torus, the result's mass falls back to the tessellation (5 in 200 there). It is reported honestly as `tessellated`, up to 4.4e-4 of the part off at the default chords in those seen (the removed 13.20 mm³ against 11.33); the coarse pass alone is exact there. A quadrature robustness item.
+- **Not done:** chamfers of the new pairs (refused with CAPABILITY); the pipe-clamp lug's B-rep version (needs R10.3 too, D87); variable radius, vertex blends and overflow (R10.2–R10.5).
+
+## D89 — R10.2a: the rolling-ball fillet of closed chains between any two faces (2026-10-19)
+
+R10.2 split in two, as the research note's R10.2 is large. **R10.2a** (this): closed chains, any faces. **R10.2b** (next): open chains (their ends).
+- **Method:** the tool + analytic Boolean method of R10.1, with a lofted NURBS tool. The note warned against a NURBS-tool Boolean; the risk it names (marching tangential contact) is met by telling the Boolean where the tool touches (below), not by contact-pcurve surgery.
+- **The ball** (`packages/barocss-cad/src/rolling-ball.ts`):
+  - At stations along the chain, the ball of radius r touching both faces is solved: centre c = S_A + σ_A·r·n_A = S_B + σ_B·r·n_B, in the plane through the station square to the chain. That is four equations in the contacts' (u, v), solved by damped Newton from the last station, with finite-difference normals.
+  - Derivatives are central inside the domain and second-order one-sided at its edges: one-sided O(h) normals at a seam left a 2.8e-6 mm residual.
+  - The solved balls' |c − p| − r is 1e-10 to 1e-9 mm.
+  - Each station's section lies in the ball's plane through both contacts: the contacts, the faces' tangent lines grown g = r/2 outside the corner, their corner, and the fillet arc (rational quadratic).
+- **The loft:**
+  - **Along the chain:** a C² cubic B-spline through the stations, solved by collocation, with end tangents from five-point stencils (one-sided at a stretch's ends, so O(h⁴): stencils across a stretch's ends made it O(h²)). Up to 13 spans a patch within the 16-pole limit.
+  - The arc's middle row is interpolated in homogeneous coordinates.
+  - Five faces a patch: the fillet `<id>.face`; the walls at both contacts and the grown corner `<id>.tool`.
+- **The breaks:** the tool's patches break where a contact crosses from one face to the next (a seam between halves), found by bisection to rounding. A tool contact edge crossing a body seam inside a patch broke the Boolean: the cone and rod case.
+  - Stations are spaced evenly in length within each stretch.
+  - A stretch's first station is seeded by a fresh inversion: the last stretch's (u, v) belong to the face across the seam.
+- **Refinement:** the station count starts from max(64, length / (r/4)). It grows as the h⁴ rate predicts, until the lofted contacts lie within a quarter of the Boolean's tolerance (2.5e-7 mm at this scale) of their faces. Past 4096 stations it is refused, `APPROX_TOLERANCE_NOT_MET`.
+- **The Boolean** (`analytic-boolean.ts`): a new option `contactFaces`, the tool's faces that meet the body only along their own edges lying on it (the fillet and the two contact walls). For such a pair (and an edge of it on the other's surface), those edges become the cuts and nothing is marched.
+  - Without it the march along the wall's edge and the edge-on-surface cut overlapped. With the option kept on `exactly()`'s arc refit, neighbouring pieces' ends moved 1.5e-6 apart and the face was not split. The result failed erratically with the station count: the boss passed at 240 and 300 stations and failed at 248–264.
+  - Each rolling-ball tool is applied in its own Boolean, before the other tools.
+- **Where it applies:** a closed component of the selected edges' tangent chain containing an edge no closed form finishes (R10.1's `NOT_ANALYTIC_PAIR` cases) gets one ring tool for the whole loop.
+  - The sides' faces are sorted by shared faces, then by normals at the loop's vertices; convexity comes from the first edge.
+  - `finishBrepEdges(…, { general: true })` forces the path on loops that have a closed form, for testing.
+  - The output carries `fillet: FilletReport[]`: stations, patches, `contactMM`, `normalDeg` (fillet against face normals at the contacts), `sectionMM` (lofted against true sections between stations), `ballMM`.
+- **Refusals:**
+  - An open chain of general edges: `[NOT_ANALYTIC_PAIR] … open general chains arrive with R10.2b`.
+  - A contact off all the side faces: `[CONTACT_LEAVES_FACE]` (rolling over is R10.4).
+  - `[APPROX_TOLERANCE_NOT_MET]`.
+  - Chamfers between general faces: CAPABILITY.
+- **Evidence** (`test/r10-2.test.mjs`, 5 tests):
+  - **Against the closed forms**, the general path forced: boss foot (concave) and hole rim (convex) to 1.7e-7 of the fillet's volume; cone rim to 2.8e-6. That is the loft's ~2e-7 mm section deviation over the fillet's area.
+  - **Pipe tee (radius 10 and 5, r 2) and crossing rods (5 and 3, r 1):**
+    - valid, the loop from one edge;
+    - contacts 0.7–1.4e-7 mm off their faces;
+    - G1 to 2e-5–7e-5°;
+    - sections 1–2.2e-7 mm off the true ones;
+    - volume within 1e-6 of a loft through twice the stations.
+  - **Names:** every face but the fillet's keeps its name across r 1 and 2. The fillet's faces are `f.face#k`, one a patch; their count follows the refinement, so the fillet's own face names are not stable across a radius change.
+  - **Conformance:**
+    - `r10/general-tee` and `r10/general-crossing-rods` (this kernel's volume to 1e-7 of the part, about 1e-4 of the fillet; STEP round trip);
+    - `r10/refuse-open-general-chain` (an oblique groove's rim) and `r10/refuse-contact-leaves-face` (a branch too short for r 3);
+    - `r10/refuse-not-analytic-pair` superseded: the crossing rods now build. R10.1's test uses the oblique groove instead.
+  - **Studio:** errors.ts hints; a flow step opens a pipe-tee file and fillets the junction in the UI (+15.71 mm³, as the conformance case).
+- **The coordinator's probe, the pipe clamp's lug as a B-rep** (in `r10-2.test.mjs`): a tube along X with a lug standing on it, broad faces along the axis, narrow ends square to it, the hole square to the broad faces.
+  - The broad faces meet the tube in **rulings** (translational, R10.1) and the narrow ends in **arcs** (plane × square cylinder). The note's wording holds for this orientation.
+  - R10.1 fillets each of the four edges alone. The loop in one feature is refused at its four inside corners ("inside corner of their face"): there the ball rolls round the lug's convex vertical edge, a mixed corner, R10.3. It is kept as a conformance case once R10.3 builds it.
+- **Cost (known):** a general fillet takes 3–5 s for one loop (tee, boss, crossing rods) and 11 s for the cone and rod (30 patches). The studio's evaluation took 9 s for the tee.
+  - The Boolean takes most of it: the march, the curved arrangement of the many cut pieces, and stitching.
+  - Candidates: fewer patches (a higher-order loft), and the Boolean's arrangement of many short cuts.
+- **Not done:** open chains (R10.2b); variable radius, vertex blends, overflow (R10.3–R10.5); general chamfers.
+- **Names across a radius edit (settled in R10.2b, the coordinator's question; tests in `apps/cad-studio/test/filletNames.test.ts`):** the kernel's fillet faces stay `f.face#k`, one a patch, and they are not made independent of the patch count.
+  - **Face references resolve.** The studio shows a fillet's patches as one face by its base name (`n5.face`), and a document refers to that name (a colour, a shell opening, a mate face, a drawing's face). On the pipe tee, a colour on the fillet keeps its key across r 2 → 1 with nothing re-matched.
+  - **Ring edges:** a closed fillet meets both faces tangentially, so the studio shows no edge along it; there is nothing to reference.
+  - **Edges of an open fillet** (R10.2b, its end edges on a crease): a reference is one piece's name, `…#k`. On a radius edit, the D28 prior-document match finds the edge again by its signature. It resolves, marked re-matched until confirmed (one change, tested on the oblique groove, r 1 → 0.7).
+    - That needed two studio fixes. First, candidates with identical signatures (the pieces of one shown edge) count as one in `matchSignature`. Second, a display-edge piece shorter than the weld distance joins as a point, so it no longer collapses the edge.
+  - **Why not one name per contact chain:** the 16-pole limit forces several faces along one chain. The base pair of faces is not unique either (a pattern of holes gives the same pair many times). A stable-parameter index would still renumber when a break moves. No saved name changed, so no D16 version step.
+
+## D90 — R10.2b: open chains of general edges, R10.1's oblique ends, contact cuts once (2026-10-19)
+
+The rolling-ball fillet (D89) for an **open** tangent chain: its ends, plus three fixes found on the way.
+- **Chains** (`edge-finish.ts`):
+  - Selected edges join into a chain by tangent continuation only, no longer by any shared vertex.
+  - A chain's smooth continuations (a seam into the same surface) are excluded from the end tests (`smoothAt`).
+  - A branching chain is refused (CAPABILITY "its chain branches").
+- **An end**, for each end of the chain, looking at the faces there other than the two sides (faces parallel to the edge ignored, coplanar pieces merged):
+  - **Run past:** the body ends past a convex end. The station march continues beyond the edge's end, a step at a time, until the section clears the end face's plane. Past the end the true junction is marched: an r = 0 station solve over all face pairs, with Hermite stations between the samples. The Boolean trims the tool where the body ends.
+    - The faces it marches on are extended: a full-turn analytic cylinder for a cylinder face (`runSheet`, its seam opposite the face's middle), else the surface extended linearly ×2 in its non-periodic directions (`extendedSurface`).
+  - **Clip:** a concave end where the body ends, or a convex one at a wall. The tool runs on and is cut by that end face's plane, a half-space Boolean.
+  - **Refused (CAPABILITY):**
+    - an end square on a face (its last section in that face's plane), since the cap would lie in the face; the coplanar cut gave a wrong 374 mm² region;
+    - an end at a curved face or at more than one face (R10.3);
+    - an end meeting another finished edge (a vertex blend, R10.3).
+  - The tool's open path ends exactly at the edge's end point; it fell 1e-12 short before. Breaks closer than 1e-6 of the length merge, and path-joint breaks within 2h of another break are dropped (no slivers).
+  - A sliver body after the Boolean (the round running off the top before the rim ends, the groove on a plate from 0 to 40) is refused `[CONTACT_LEAVES_FACE] … cuts a piece free` (overflow is R10.4).
+- **R10.1's oblique ends (a fix):** R10.1's closed-form tools (planes, translational pairs) stopped square at the edge's ends, so at an oblique end face the fillet was 0.6–1.5 % too large. Seen with a rib turned 10° and 25° on a plate, and a rod lying across one at 10°.
+  - Now a tool at a single oblique planar end face runs past and is clipped by that plane, as above.
+  - No earlier conformance case had an oblique end; their values are unchanged.
+- **Contact cuts once (a fix, found on the tee):** each tool contact edge cut every body face it touched, once per touching pair. Coincident duplicate cuts split each patch edge into up to 64 pieces: the pipe tee had 3109 edges.
+  - Contact cuts are now made once per source curve (`contactCuts`).
+  - A cut that is a piece of an input edge stays that curve: the exact piece by knot insertion (`curve-segment.ts`, Boehm in homogeneous coordinates, exact to 4e-15), its knots normalised to [0, 1], instead of fitted Hermite pieces.
+  - The tee now has 82 edges and takes 1.8 s, down from 3–5 s; the volume is unchanged (15.709223).
+  - The Boolean's `contactWith` keeps a tool's contact faces to the side faces by base name.
+- **Evidence** (`packages/barocss-cad/test/r10-2b.test.mjs`, 4 tests):
+  - **Against closed forms, the general path forced:**
+    - a groove along a plate (convex, run past both ends) to 6e-12;
+    - a rod lying across the plate at 10° (concave, clipped by both oblique ends) to 5.7e-7;
+    - contacts ≤ 2.5e-7 mm, G1 < 1e-3°.
+  - **An oblique groove** (a rod of 4 tilted 10° about Y cut from a plate from 8 to 32, rims ellipse arcs, r 1): both rims build, one body, valid. It took 0.5 s, 7 patches, 109 stations, contacts 6e-8 mm, sections 2.4e-7 mm. On a plate from 0 to 40 it is refused CONTACT_LEAVES_FACE.
+  - **R10.1's rib** at 0°, 10° and 25°: (1 − π/4) r² · 40 / cos θ a foot, to 2e-7. The rod at 10° by R10.1: to 2e-6.
+  - **Refusals:** a square end (forced); an end meeting another finished edge.
+  - **Conformance (`conformance/r10/`):**
+    - `general-oblique-groove`: this kernel's volume. Its mass is by tessellation, since quadrature's finer pass declines here (the D88 item); the value is at 64 segments a quarter (128 the same), tolerance 5e-5 of the part (the default 32 is 2.7e-5 off), STEP round trip 5e-5.
+    - `translational-rod-across-oblique` (closed form, 2.3e-10) and `plane-rib-oblique-ends` (closed form, 6e-11).
+    - `refuse-overflow-end`.
+    - `refuse-open-general-chain` superseded.
+  - **Studio:** errors.ts hints for the three new refusals (and the general-fillet scope text). A flow step opens an oblique-groove file and fillets one rim in the UI (8983 mm³, as the conformance case). Names: D89's last bullet.
+- **Known:**
+  - At a run-past end, where the end plane meets the tangent contacts, the result can keep a tiny edge (4e-4 mm on the groove; 1e-4 to 3e-5 mm seen while building).
+  - A filleted oblique groove's mass is by tessellation (above).
+  - General fillets still take seconds where there are many patches.
+  - Square ends, ends at curved or several faces, vertex blends and overflow are refused: R10.3–R10.4.
+- **Not done:** R10.3 (vertex blends, mixed corners such as the pipe clamp's lug loop, the ends refused here), R10.4 (overflow), R10.5; general chamfers.
+
+## D91 — Mass by quadrature on trimmed patches: the D88/D90 tessellation fallbacks fixed (2026-10-19)
+
+The coordinator asked whether R10.3 changes how general-fillet mass stands: quadrature declined on some trimmed patches and the mass fell back to tessellation (D88's coaxial torus item; D90's oblique groove). Two causes, both fixed, in the order found:
+- **A derivative's stencil off the domain** (`brep-mass-quadrature.ts`): each Gauss point's surface derivative is a central difference u ± h. A trimmed patch's mesh reaches its domain edge (a lofted fillet's contact row is that edge), and there u − h left the knot domain. The evaluator threw, so the whole quadrature returned null.
+  - Now the stencil's centre moves a step inside (`stencilU`/`stencilV`) when u is within a step of an edge. The derivative moves by at most a step's curvature, 1e-6 of the face's span, on a band one step wide.
+  - Points outside the domain (a surface evaluated round its seam) are left alone.
+- **Zero-area slivers along an iso-line trim** (`brep-tessellate.ts`): a revolved face cut at a circle has its boundary on a parameter line. Inverted point by point, it wobbles about that line: by rounding, and by 1e-8 where a Boolean's fitted pieces stand for the trim.
+  - Ear-clipping then stacked zero-area triangles on both sides of the line. In space these are chords across the face's opening: 494 triangles on one cone band where 53 suffice.
+  - The quadrature's area check then saw 10–30 % more flat area than surface area and declined.
+  - Now runs of three or more boundary points the same to 1e-7 of the span in one coordinate are set to one value (`snapIsoRuns`), for the triangulation only. Afterwards the boundary's own (u, v) are put back: the triangles are still a triangulation of the ring as inverted, so their signed areas sum to its area, and the quadrature's domain is the face's, not the snap's.
+  - A first version kept the snapped values. It moved the R10 S0 coaxial case by 2.8e-9 (over its 1e-9) and was not kept.
+  - The Lawson flips' pass cap rose from 50 to 50 + the triangle count: a flat triangle always flips once its neighbour across has.
+- **Result:**
+  - 200 random coaxial cone-rim fillets (the D88 property's generator, its seed): with the stencil fixed but not yet the slivers, 180 by quadrature, 7 tessellated, 13 refused. With both fixed, 187 by quadrature, 0 tessellated, 13 refused (the Boolean TODO, unchanged). D88 counted 5 in 200 on its own run.
+  - The oblique groove (D90) is now by quadrature too. Forced through the general path on the groove at 0° and the rod at 10°, quadrature matches the closed forms to 2.5e-12 and 3.5e-7 of the fillet. Tessellation at 64 segments was 0.36 % and 0.79 % off.
+  - The fallback had also hidden a defect in tessellated fillet volumes: the chords miss part of a fillet. `r10/general-oblique-groove`'s value was the tessellation's, 9.3e-6 of the part high. It is now quadrature's, 8983.14946924587, at relTol 1e-7, STEP 1e-7 and centroid 1e-5, its oracle saying so.
+- **Pole points (`brep-tessellate.ts`, found with D92):** a boundary point at a surface's pole now takes the boundary's own point, the vertex's, instead of the surface's evaluation of its pole, one rounding apart. The faces round a horn torus's apex cracked there.
+- **Evidence:**
+  - the kernel suite;
+  - `rb:props` (mass by quadrature against finer tessellations, the coaxial and translational properties);
+  - the coaxial count above;
+  - `r10/general-oblique-groove`.
+
+## D92 — R10.3a: the rolling ball round an edge at a corner (2026-10-19)
+
+R10.3 is split, as R10.2 was:
+- **R10.3a (this):** where the ball rolls round an unfinished edge at an inside corner, plus mitres of a rolling-ball chain with another finished edge at a convex corner.
+- **R10.3b:** corners of three or more finished edges (vertex blends: sphere-patch corners, setbacks).
+- **R10.3c:** R10.2b's remaining end refusals (square ends, ends at curved or several faces).
+
+- **The case:** two finished edges meet at a vertex at an inside corner of the face they share (S), and the edge k between their other faces is not finished. Before, this was refused ("inside corner of their face"), for example a box boss's whole foot or the pipe clamp's lug loop. If k turns the other way to the fillet (convex for a concave fillet, concave for a convex one), the ball leaves the first face at k, rolls round k touching S and k, and goes on along the next face.
+  - The fillet surface there is a canal surface about k. Where S is a plane square to k, it is a horn torus quarter: the contacts on k are one point, its apex.
+  - `cornerJoin` (`edge-finish.ts`) joins such edges into one chain. Excluded: tangent continuations, smooth k (a seam between halves of one surface), corners not clearly inside, and convexities that do not match.
+- **The solve** (`rolling-ball.ts`, `solveCorner`): the ball on S at distance r from k, its foot square to k, at the fraction θ of the turn from the first face's normal to the second's (slerp in the plane square to k). Newton in (u, v, t), with the faces' normals at the foot held, then updated.
+  - The turn's last ball is stepped to in eighths: Newton from across the turn did not find it.
+- **The chain in spans** (`cornerFillet`): edge spans (stations square to the chain, on the span's own faces only; a station plane can meet a parallel face of the side as well, a lug's far end) alternate with corner spans (stations by θ).
+  - An edge span ends where its station plane passes through the corner's first ball's centre (bisection), and the next starts at its last ball's.
+  - Tangents inside a span are central differences. Within a step of a corner they are second-order one-sided: a first-order difference tilted the station plane by 3.4e-6 rad, moved the contact 2.8e-6 mm off k, and the Boolean then could not split the lug's end face.
+  - Open chains are supported: their ends run past or are clipped as in R10.2b, using `marchPast`/`pastAt` taken out of `ringFillet`.
+- **The tool beside a corner:** a contact's growth into the material (the wall) normally goes square into its face. Beside a corner that lies along the other face (a 90° wedge), which was near-coincident and broke the Boolean.
+  - Within 2r of a corner the growth turns smoothly (C¹) to halfway between the wedge's bisector and that face's inward normal. Round the corner it turns on to halfway towards the next face's, so the grown points sweep an arc even where the feet are one point.
+  - A loft patch whose contact row is one point has no edge there (`loftTool`): its two faces meet that row in one vertex, a pole.
+  - Contacts at a corner's first or last foot, to rounding, are set to that foot.
+- **The analytic Boolean:** a contact face's edge lying wholly off a planar face (a section edge in the plane of the lug's end face, beside it) is not cut into that face. Planes only: on a curved face a contact's (u, v) can fall a period over, off the region as drawn, and filtering there broke R10.2's cone rim and the groove.
+- **Refinement:** the loft now also refines until the fillet lies within 4 × tolMM of the true sections, not only its contacts within tolMM of their faces. On planes the contacts are exact at any count, and the corner sections then set the count.
+  - `sectionMM` now measures the fillet face only (its contacts and arc middle). The tool's inner faces, which the Boolean drops, bend more where they turn into a wedge and say nothing of the fillet.
+  - R10.2's rings already met the new bound, so their counts are unchanged.
+- **Mitres** (`edge-finish.ts`): an open rolling-ball chain whose end meets one other finished edge sharing a face at a convex corner of it, the same way round, runs past until its section clears that edge's own face. That edge's tool runs past too (R10.1's mitre), and the Boolean makes the mitre.
+  - Planes only for now (the end edge's faces and the other's own face). An oblique groove's rim meeting the plate's end gave the Boolean a sliver and stays refused.
+- **Refusals:** CAPABILITY `[VERTEX_BLEND_UNSUPPORTED]` for:
+  - a joint of the chain that neither continues it tangentially nor rolls round a corner (a third finished edge there: the boss's foot with one upright edge, R10.3b);
+  - a ball meeting k past the corner (a setback);
+  - corners at the ends of an edge leaving none of it.
+  - Chamfers round a corner stay as they were.
+- **Evidence** (`packages/barocss-cad/test/r10-3a.test.mjs`, 4 tests):
+  - **Box boss's foot** (20 × 12 boss on a plate, all four edges, r 1, 2, 4): (1 − π/4) r² × 64 + 4 × (π/2) r³ (5/6 − π/4) (Pappus about the upright edge) to 1.4e-9; contacts exact on the planes; sections 5e-8 mm.
+  - **L-plate's top** (convex):
+    - its two inner edges round the inner upright edge, (1 − π/4) r² × 40 + the quarter turn, to 1e-8;
+    - all six edges (the five outer corners mitred, two convex fillets overlapping by r³ (5/3 − π/2)) to 2e-8, held at 5e-8.
+  - **The pipe clamp's lug loop** (r 2; also built at r 1 and 3): valid, one body; contacts 1.1e-8 mm, G1 2e-6°, sections 3.2e-8 mm; volume within 1e-6 of a loft through twice the stations. 3 s.
+    - Each edge alone (R10.1) adds more than the loop: the arcs' square ends overhang the corners.
+  - **Refusal:** the three-edge corner.
+  - The R10.2 lug probe and part-model's L-plate refusal now build.
+  - **Conformance (`conformance/r10/`):**
+    - `corner-lug-loop` (the coordinator's case, this kernel's value with its oracle);
+    - `corner-box-boss-foot` (closed form, 2e-8);
+    - `corner-l-plate-top` (closed form, 5e-8);
+    - `refuse-vertex-blend`.
+  - **Studio:** errors.ts hints; a flow step opens a box-boss file, picks its four foot edges and fillets them (+57.35 mm³, the closed form).
+- **Mass (the coordinator's question):** every R10.3a case is by quadrature. R10.3a needed no new mass method: D91 removed both fallback causes, and the corner patches (poles included) integrate like any trimmed patch.
+- **Known:**
+  - Chamfers round inside corners still stop square.
+  - Mitres with curved faces are refused.
+  - The lug loop takes about 3 s; the box boss 3.5 s (1356 stations, set by the corner sections).
+- **Not done:** R10.3b (vertex blends), R10.3c (R10.2b's end refusals), R10.4 (overflow), R10.5; general chamfers.
+
+## D93 — R10.3b: corners of three finished edges — concave sphere corners, mixed corners in two passes (2026-10-19)
+
+R10.3b: corners where three finished edges meet.
+- Three planes all convex (a box's corner) already had the ball's eighth (D22).
+- **All concave** (a pocket's corner) now has it too. The ball is in the air, r out from each plane: `solve3` with +r, and the same corner tool (the cone from the ball's centre bounded by the planes through it square to the edges, less the ball), added rather than removed.
+  - Added, the cone reaches well past the vertex and would add material outside a wall thinner than its reach. So it is kept within g = r/2 of the air side of each face (three half-space cuts), and applied after the edge tools.
+- **The two ways round** (a boss's upright edge meeting its two foot edges; an L-plate's inner upright edge meeting its two top edges) are blended in two passes in one feature: the odd one out first, then the others.
+  - The boss's uprights are rounded down to the plate. The foot then runs tangentially round each round (a torus quarter, R10.1's plane–cylinder tool, or the rolling ball where other corners need it).
+  - The second pass finds its edges by their faces' names: the first pass shortens them, or cuts them in pieces, and the new edges round its round continue them tangentially.
+  - Refused (CAPABILITY `[VERTEX_BLEND_UNSUPPORTED]`): more than three finished edges at a mixed corner; an edge that is odd one out at one corner and not at another.
+  - Corners of three edges the same way round between faces other than planes keep their R10.1 behaviour (mitres): not yet the ball touching three curved faces.
+- **Evidence** (`packages/barocss-cad/test/r10-3b.test.mjs`, 3 tests; closed forms by Pappus about each round's axis):
+  - **Pocket corner** (30 × 20 pocket, 10 deep, floor and uprights, r 2): A = (1 − π/4) r² along each edge less r at each corner, plus 4 × (1 − π/6) r³. The result is 2.1e-4 of the fillet high (5.8e-7 of the part), the corner patch's quadrature (below).
+  - **Box boss's foot with its four uprights:** A (64 − 8r) + 4 (π/2)(r A + M) − 4 A × 15 (M = r³ (5/6 − π/4)), to 1e-13. The same as the two fillets one after the other, to 1e-9.
+  - **Box boss's foot with one upright** (one corner the two ways round, three rolling round their uprights, R10.3a): to 1e-10.
+  - **L-plate's top with its inner upright edge:** −A × 10 + A (160 − 2r) − 5 r³ (5/3 − π/2) + (π/2)(r A + M), to 2e-10.
+  - **R10.3a's refusal** (the foot and one upright) now builds: `r10/refuse-vertex-blend` is superseded.
+  - **Conformance:**
+    - `r10/corner-pocket` (closed form, relTol 1e-6 of the part, its oracle naming the quadrature);
+    - `r10/corner-boss-uprights-and-foot` (2e-8);
+    - `r10/corner-l-plate-top-and-inner-upright` (5e-8).
+  - **Studio:** the VERTEX_BLEND hint reworded (up to three can meet). A flow step opens a box-boss file, picks its foot and four uprights (8 edges) and fillets them (+2.90 mm³, the closed form).
+- **Mass at a ball's corner (found here, recorded as a TODO):** the corner patch is a piece of a revolved ball with its pole at the corner's apex, inside the patch. There the quadrature over the trimmed domain does not converge cleanly: on the pocket corner, q 8, 16, 32 and 64 give 1.3e-4, −3.3e-5, 3.4e-6 and −1.3e-4 of the fillet. The convex box corner (D22) is the same, which is why its test holds 5e-5 of the part.
+  - Turning the ball so that its poles and seam lie off the patch makes the patch integrate exactly (one convex corner to 1.7e-10). But the analytic Boolean's march along the ball's tangent circles with the edge tools then failed on some boxes ("a straight edge on a cylinder runs across its axis direction"), so it was not kept.
+  - A pole now counts in the quadrature only where the face's domain reaches it, a no-op for these patches.
+  - Next: exact integration of a ball patch, or the march along tangent circles.
+- **Not done:** the ball touching three curved faces; corners of four or more finished edges; R10.3c (R10.2b's refused ends); R10.4–R10.5.
+
+## D94 — R10.3c: closed-form fillets cut at a cylinder at their ends; the general ends R10.2b refused stay refused (2026-10-19)
+
+R10.3c took R10.2b's refused ends: square on a plane, at a curved face, at several faces. One part builds; the rest stays refused, with the reasons measured.
+- **R10.1's closed-form tools at a cylinder across the edge** (a rod's feet on a round plate, ending at its rim). As D90 did for an oblique plane, the tool runs past (1 / max(|w|, 0.25)) and is cut by that cylinder (`clipTool`, `EndClip`).
+  - Before, they stopped square at the vertex. The fillet's section then stuck out past the curving rim: 1.7 % over at r 1, 3.9 % at r 2, 6.5 % at r 3 on the rod across a disc.
+  - The cut is made near that end only: `tool − ((the half-space beyond a plane 4r in from the end) ∩ or − the cylinder)`. A whole-tool cut by the cylinder trimmed the tool's other end too.
+  - The cut cylinder's faces split where the body's faces on that cylinder meet (their seams, `seamsOf`).
+- **Fallbacks, so nothing builds worse than before:**
+  - Where the tool's end would lie across a seam of the body's faces on that cylinder, it stops square as before. Laid across a seam, the analytic Boolean lost a face there. The span is the section's reach into each face and the material behind it about the axis.
+  - Where the whole finish still fails with a cylinder cut, it is made again with those ends square (`squareAtCylinders`).
+  - A rod across a disc at 30° with r 3 fails in HEAD too (an older defect, not this step's).
+- **Evidence** (`packages/barocss-cad/test/r10-3c.test.mjs`, 2 tests):
+  - **Rod across a round plate** (R 20) at 0°, 45°, 60°, 90° and 25°, r 1–2: against the two feet's ∫ of the section across the disc's chord 2 √(R² − y²), to 1e-6 (this kernel 1.5e-8–6.7e-7: the rim's cuts are fitted curves).
+  - At 10°, where one foot's ends lie across the rim's seams: valid, those ends square (within 2 % over).
+  - **Refusal:** a tilted rod's foot (a general chain) ending at the rim.
+  - **Conformance:** `r10/translational-rod-across-disc` (45°, quadrature of the section, 1e-7) and `r10/refuse-general-end-at-cylinder`.
+  - **Studio:** a flow step opens a rod-on-disc file and fillets both feet in the UI (+12.04 mm³; it was +12.24 square).
+  - **Flow harness:** the R10.2–R10.3 steps pick their edges by name, polled until the opened file's bodies are shown (just after it opens, the last part's still are). They read the body's volume through `bodyVolume()` (a click on its row can take it out of the selection). Run in a different order, two of them had failed on that timing.
+- **Tried and refused, as before (the analytic Boolean is the blocker in each):**
+  - **A general (rolling-ball) fillet ending square on a plane.** With the refusal lifted, the rod lying straight across a plate (forced) built only for one foot at r ≤ 1; the other foot and r ≥ 1.5 failed ("not a manifold solid" along the end section). The section lies in the end face's plane, partly on the end face and partly along the side face's continuation.
+  - **A general fillet ending at a cylinder:** the lofted tool cut by a cylinder fails ("an arc on a cylinder is not a cross-section circle", "not a manifold solid") on the tilted rod on a disc, even near the end only.
+  - **Ends at more than one face.**
+  - Next for all three: the Boolean's handling of a tool face coinciding with, or lying along, a body face (coplanar sections, coincident cylinders across a seam). That is a Boolean robustness step, not a fillet step.
+
+## D95 — R10.4a: overflow over smooth edges — the ball rolls on over a round already made (2026-10-19)
+
+R10.4 (overflow) is split. **R10.4a (this):** a contact running off its face across a smooth edge onto a tangent face. **R10.4b:** rolling onto a sharp edge (a cliff edge), not started.
+- **The rolling ball** (`rolling-ball.ts`, `growSides`): where no station solves on the sides' faces, the faces beyond smooth edges of the last contacts' faces (or, at the chain's start, of any side face) join that side, and the station is solved again (up to three rings).
+  - A smooth edge here is one whose two faces share their normal at its middle.
+  - The ring's result now names its final sides, so the Boolean's contact faces include them.
+- **R10.1's closed forms:** the true reach (D88) went on across every smooth edge, so a closed-form section could reach past one onto another surface.
+  - Example: a boss with its top edge rounded, its foot filleted larger than the wall below the round. The section then lay on the wall's cylinder carried on, not on the round. The result was valid but 7.8 % too much at r 5 (311.6 mm³ against 289.0).
+  - Now the reach goes on only across a smooth edge between faces on one surface (halves of a cylinder, a split plane; `sameSurfaceAcross`).
+  - Past a smooth edge onto another surface, the closed form throws `Overflow`. The finish is made again with that chain by the rolling ball (`generalEdges`; whole circles too, not grouped into one closed tool). The reports of a failed attempt are dropped.
+  - Where the ball cannot follow either: CONTACT_LEAVES_FACE.
+- **Evidence** (`packages/barocss-cad/test/r10-4a.test.mjs`): a boss (R 8, 6 high) on a plate, its top edge rounded 2.
+  - The foot filleted at r 4.5, 5 and 6 (contacts above the wall's 4 mm, on the round) matches Pappus (the meridian region between plate, wall, round and ball, by Green over fine polylines) to 9e-8, as a feature and forced through the rolling ball.
+  - At r 3 (contact on the wall) R10.1's closed form stays, to 1e-9.
+  - **Conformance:** `r10/overflow-boss-rounded-top` (r 5, 1e-7).
+  - **Studio:** a flow step opens the boss file, rounds its top 2, then fillets the foot 5 in the UI (+289.0 mm³).
+- **Not done:** R10.4b (rolling onto a sharp edge, the cliff edge: CONTACT_LEAVES_FACE as before); closed-form straight edges between planes whose face runs smoothly onto a round (their reach check, `planeReach`, still walks across); R10.5.
+
+## D96 — R10.4b: overflow onto a sharp edge — the ball rolls on along the edge (a cliff) (2026-10-19)
+
+- **The case:** where a rolling-ball fillet's contact would run off its face across a sharp (not smooth) edge of it, the ball rolls on touching the other side's face and that edge. The fillet meets the edge along a curve on it, and the face beyond is untouched (NX's "roll onto edges"). It goes on until the ball can touch a face again: that face, or the one beyond the edge.
+  - Example: a tee whose branch stands 12 high, its junction filleted 3, refused at R10.2a. The ball touches the branch up to 13, so near y = 0 it rolls along the branch's top rim.
+- **The span machinery** (`cornerFillet`, now any chain of spans): edge spans, corner spans (R10.3a) and cliff spans.
+  - A chain with no corner that the plain ring cannot finish (a station off its faces after `growSides`) is sent here.
+  - Each edge span is walked (`cliffsIn`). Where a station fails, the ball on the last faces is solved unchecked on their surfaces carried on (`extendedSurface`: past a face's end its own patch stops). The side whose contact runs off its face says which face; its nearest edge (not one of the chain's own) is the cliff's edge.
+  - The ball is solved touching the other face and that edge, its centre in the station's plane (`solveCliff`). It must lie in the wedge outside the edge's two faces (`withinWedge`).
+  - The span is cut where the face ball's contact reaches the edge and where the edge ball leaves the wedge (bisection). Cliff spans are cut again where the other contact crosses a seam of its side, or the foot runs off the end of its edge onto the one going on from there (a rim's halves): `nextCfg`. At a shared vertex the new span starts with the old one's last ball, on the new faces' terms.
+  - A ring wholly on a cliff starts off the chain's vertices.
+  - The neighbours of an edge span (corner or cliff) now give its seeds and the targets of its growth blend, not span indices.
+  - Cliff stations are sections with the edge's side on the edge, grown along the wedge's bisector (as R10.3a's corners).
+- **R10.1 unchanged:** a closed-form fillet larger than its face, the face ending at a sharp edge (a boss's foot larger than the boss), still refuses RADIUS_EXCEEDS_FACE. Only the rolling ball rolls onto edges.
+- **Evidence** (`packages/barocss-cad/test/r10-4b.test.mjs`, 2 tests):
+  - **A boss's foot larger than the boss** (R 8, 4 high, forced through the rolling ball, r 4.5, 5, 6): the ball touches the plate and the sharp top rim all round. Against Pappus (the meridian region between plate, wall, rim point and the ball's arc) to 7e-8.
+  - **The short-branch tee:**
+    - valid, one body;
+    - contacts 4.8e-8 mm, G1 3.7e-5°, sections 8.7e-8 mm;
+    - fillet edges on the rim (b.top);
+    - volume within 1e-6 of a loft through twice the stations;
+    - 2.5 s.
+  - **Conformance:** `r10/cliff-tee-short-branch` (this kernel's value, relTol 1e-7); `r10/refuse-contact-leaves-face` superseded.
+  - **Studio:** a flow step opens the short-branch tee and fillets its junction 3 in the UI (+32.34 mm³).
+- **Not done:**
+  - a cliff running to an open chain's end;
+  - cliffs within R10.1's closed forms (they refuse);
+  - a cliff whose ball would then roll onto the face beyond the edge across another edge of it;
+  - R10.5 (variable radius).
+- **Sequencing (the coordinator's check, 2026-10-19):** R10.4a and R10.4b did not need the analytic Boolean's coincident and along-face robustness.
+  - R10.4a's sides grow onto tangent faces whose contacts are ordinary edge-on-surface cuts.
+  - R10.4b's cliffs meet the body along its edge, as R10.3a's corners do. The wedge growth keeps the tool's faces off the body's.
+  - That robustness is now the common blocker behind four items: the coaxial cone-rim seam sliver (D88), general fillets ending square or at cylinders or several faces (D94), and the pole-off ball turn (D93). So it comes next, as **R10.B**, before R10.5.
+
+
+## D97 — the plane–plane reach past a round (the coordinator's planeReach fix) (2026-10-19)
+
+- **The defect** (same class as D95's, found by the coordinator): a closed-form finish of a straight edge between two planes checked its reach only when convex. A concave one was not checked at all.
+  - So a concave fillet or chamfer whose face runs onto a round already made built valid but wrong: its section lay on the riser carried on past the round.
+  - Reproduced on HEAD (`f1f4e00cb`): a step with oblique ends, its riser 10 high with its top rounded 4 (6 mm of flat riser). The foot filleted 7 built 422.30 mm³ against the closed form's 408.86 (3.3 % over); filleted 12, 1853.45 against 839.83 (121 % over). Chamfered 8, 2046 against a square form of 1280 (the true form is refused).
+  - The convex check already counted smooth edges onto another surface since D95, but refused where the ball could roll on.
+- **The fix** (`edge-finish.ts`, the straight plane–plane check; `part-model.ts`, `wedgeChamfer`):
+  - Both convex and concave finishes are checked. For a concave (adding) finish every boundary of the face bounds it, as `trueReach` already did for added material.
+  - Where the binding limit is a smooth edge onto another surface, a fillet throws `Overflow`: the rolling ball takes it (R10.4a's retry). A chamfer has no rolling ball and is refused RADIUS_EXCEEDS_FACE (the wedge chamfer too: `faceReach` takes `removes`).
+- **A second hole, in the rolling ball's own check** (`rolling-ball.ts`): within reach (2r) of an end run past, no contact was checked at all, so a contact could run off its face sideways.
+  - On an open chain shorter than 4r, that was the whole chain. The step's foot at r 12 went through the rolling ball and still built 121 % over.
+  - Now only a contact lying beyond such an end, by more than rounding, goes unchecked (`contactOk`, `Check`, `pastEnds`). A contact in the end's plane is checked: there it would be off its face across the side, not across the end.
+  - (Carrying the contact back along the chain to the end and checking it there was tried. It fails the oblique groove's ends, R10.2b, where the rim curves within that distance.)
+- **The analytic Boolean** cannot close most radii of the overflowing concave foot: the tool's end cap is coplanar with the body's end faces. A retry that fails there is refused as CAPABILITY [CONTACT_LEAVES_FACE] ("…leaves the analytic Boolean a result it cannot close…"), not left untyped. The square-ended step's foot is refused as before (its end square on a face, D90).
+- **Evidence** (`packages/barocss-cad/test/r10-reach.test.mjs`, 3 tests; the first and third fail on HEAD):
+  - **Concave:** the oblique step's foot at r 7 and 12 matches the closed form (the polygon between the ball's floor contact, the riser and its contact on the round, less the round's and the ball's circular segments, × 40) to 1e-7 (2.4e-8 at r 12). The report is in bounds.
+  - **Convex:** a block with oblique ends, its bottom edge rounded 8, its top edge filleted 2.5, 3 and 4 (2 mm of flat wall). The ball rolls round onto the round from inside; matches the closed form to 1e-7 (4e-8 to 7e-8). Refused RADIUS_EXCEEDS_FACE on HEAD.
+  - **Refusals, none built wrong:**
+    - the concave chamfer 8 (RADIUS_EXCEEDS_FACE, walls of 6 and 15 mm);
+    - the oblique step's fillet 8 (the Boolean, CAPABILITY);
+    - the square step's fillet 8 (end square).
+    - Within the flat riser, fillet 5 and chamfer 5 keep the closed form.
+  - **Conformance:** `r10/overflow-step-concave-fillet` (r 12, the closed form, relTol 1e-7; STEP round trip); `r10/refuse-concave-chamfer-past-round`.
+  - **Studio:** a flow step opens the oblique step, rounds the riser's top 4, then fillets its foot 12 in the UI (+839.83 mm³).
+- **Found, not fixed (a different defect, reported):** the concave wedge chamfer stops square at its ends. At oblique ends it adds material past the end face: the oblique step's foot chamfered 5 adds 532.33 mm³ against 500, 6.5 % over. The convex one is grown past both ends and trimmed, so it is right. The fix is R10.2b's end clip for the wedge.
+- **Not done:** R10.B (the Boolean behind the refused radii) → R10.5.
+
+## D98 — the wedge chamfer's ends (found at D97) (2026-10-19)
+
+- **The defect** (found at D97, fixed on the coordinator's word before R10.B): the wedge chamfer (a straight edge between two planes, `wedgeChamfer`) ended its prism square to the edge.
+  - A filling (concave) wedge stopped square at both ends. At an oblique end face it added material past the body's end on one side and left a gap on the other.
+  - A cutting (convex) wedge ran d past both ends. Where the body ends that is trimmed away, but at a wall it notched the wall.
+  - On HEAD (`f2015c295`), a step's foot chamfered 2 and 5 with ends at 10° was 2.6 % and 6.5 % over; at 25°, 6.8 % and 17 % over. With the riser's top rounded, the result at 5 was also invalid.
+  - A rib's top edge chamfered 2 where it meets a wall was 30 % over square (28 % with the wall turned 10°). Its concave foot was 0.27 % under at the turned wall.
+- **The fix** (`part-model.ts`):
+  - `endPlaneOf` finds the plane of the faces meeting the edge at each end, other than its own two. That is one face, or several in one plane (a step's two blocks' ends), planar and not along the edge, with its normal out of the body. Otherwise it returns null, and the end stays as before.
+  - The wedge's corners at that end are carried along the edge onto the plane, so its cap lies in it.
+  - A cutting wedge still runs d past an end where the body ends (the end face's normal points away along the edge). Only a wall stops it.
+  - A wedge with a cap in an end plane goes to the analytic Boolean even on a planar body: the polyhedral one fails on the coplanar cap (non-manifold at 10° and 25°, invalid at 25° d 2).
+- **Evidence** (`packages/barocss-cad/test/r10-wedge-ends.test.mjs`, 2 tests, both failing on HEAD):
+  - **The step's foot:** ends at 0°, 10° and 25°, the riser's top rounded or not, chamfered 2 and 5: d²/2 × 40 to 1e-12, all valid.
+  - **The rib into a wall** (square, and turned 10°): the top edge stops at the wall and the foot fills to it. Each matches the prism's section × its length at the section's centroid to 1e-12.
+  - `r10-reach.test.mjs` now checks the oblique step's chamfer 5 too (to 1e-9).
+  - **Conformance:** `r10/wedge-chamfer-oblique-ends` (25°, d 5) and `r10/wedge-chamfer-into-wall` (10°, d 2). Both are closed forms, relTol 1e-9, with a STEP round trip.
+  - **Studio:** a flow step opens the 25° step and chamfers its foot 5 in the UI (+500 mm³; +585.5 before).
+- **Not done:**
+  - an end at several faces not in one plane, or at a curved face (square as before);
+  - wedge chamfers of more than one edge meeting at a corner (unchanged).
+  - Next: R10.B, then R10.5.
+
+## D99 — R10.B: the analytic Boolean with tool faces coinciding with or lying along body faces (2026-10-19)
+
+R10.B took the five items blocked on the analytic Boolean, each with a fixture that was refused or failed before. Four build; one stays refused, with the reason measured.
+
+- **The coplanar end caps (D97):** the rolling ball's tool, capped in an end face's plane, is united with a body whose end face lies in that plane. Most radii failed. Three causes, each fixed where it arose:
+  - **The tool's patch break** where a contact leaves its face across an end run past was found on the face's sampled outline in (u, v). It lay up to 1.6e-5 off the end plane. The clip plane then passed a hair beside the tool's vertex, cutting a 1e-4 corner off one patch: too short for the march, so the loop of cuts stayed open. Now the break is bisected onto the plane itself (`breakOnEnd`, rolling-ball.ts).
+  - **A marched cut's ends** were found where its tabulated (u, v) curve crosses a face's outline, to about 1e-5. The cut of the neighbouring patch ended elsewhere along the shared edge. Now, where one face is a plane, each end is moved onto the exact point where a boundary edge of either face crosses the other surface (`snapEnds`, `edgeCrossing`; within 300 tol, the rest of the curve carried along linearly).
+    - An edge lying on that surface crosses it nowhere and is skipped.
+    - Only plane pairs: on tool–tool pairs (an L-plate's mitred tools) snapping one cut's end left a neighbour's apart.
+  - **The same curve twice** on a plane face: the coplanar face's boundary copied in, and the same tool edge lying in the plane copied by the march's along-path. Equal to the bit, the arrangement cut the two at every sample where they "crossed" (128 pieces) and lost its cycles.
+    - Now a curve cut lying along a longer one end to end is dropped.
+    - On a plane, so is a same-length copy, keeping the most exact (an exact curve, then one with its own 3D curve, then the earlier).
+    - Not on curved faces: there the copies of a cone's cross-section circle are kept, as they were (dropping one moved a revolved body's volume by 2e-9).
+- **The arrangement's order at a tangent vertex** (curved-arrangement.ts), the second blocker for both caps and square ends. A fillet's arc leaves its contact along the line it is tangent to, to within the vertex tolerance (eps / r, about 1e-7 rad), not to 1e-12. So the curvature tie-break never applied, and the arc was read on the wrong side of the line.
+  - Now directions within 1e-4 are ordered by the chord at δ = 10³ eps (angle + κδ/2).
+  - Angles are read from the middle of the widest gap between a vertex's directions, not from −π: an arc leaving along −x at −π + 1.35e-12 had jumped to the other end of the order.
+- **General fillets ending square on a face** (D90, D94): built since this step. The end's refusal is lifted. Where the Boolean still cannot close it, it is refused with the same message as before, now saying so (`squareRefusal`).
+- **The coaxial cone-rim TODO (D88):** a band of the cone, between the corner and the tool's tangent contact circle, was classified out on one half and in on the other. The first ray grazed the tool, and the patch's grid triangles missed the graze.
+  - Now two rays that agree decide. Where they disagree, the majority of all six does.
+  - The property's 200 runs: 200 pass (187 and 13 failing before). `robustness/properties-todo.json` is empty.
+- **The corner ball's pole (D93):** the ball is turned so its poles and seam lie off the corner patch (its axis square to the direction towards the corner, its seam opposite it). The quadrature now converges.
+  - Rounded boxes match Steiner's formula to 1.1e-7 (1.2e-5–2.5e-5 before, over 120 random boxes).
+  - The pocket's corners match to 8e-7 of the fillet (3e-4 before).
+  - At D93 the Boolean failed on some boxes with this turn; with the changes above it does not, on 120 random boxes.
+  - **Found on the way:** one random box failed in HEAD too, as "unexpected kernel failure: Parameter is outside the knot domain". A ray test's Newton step became NaN and evaluated the patch there. A non-finite step now makes that ray degenerate, and another is cast.
+- **Evidence** (`packages/barocss-cad/test/r10-b.test.mjs`, 4 tests, each failing on HEAD):
+  - **The step's foot past its round:** r 6.5–15 with 10° ends, and r 6.5–14 with square ends. Each matches D97's closed form × 40 to 1e-7 (2e-8–6e-8; square ends 1e-12).
+  - **The rod lying straight across a plate** (forced general, both feet, r 0.25–3): the R10.1 section × 40 to 1e-9. The one foot that still fails (r 2) is refused, typed.
+  - **D88's counterexamples:** Pappus to 1e-9 of the part.
+  - **Five rounded boxes and the NaN box:** Steiner's formula to 3e-7.
+  - `r10-3b` now holds the pocket to 2e-6 of the fillet (3e-4 before).
+  - `r10-2b`'s square-end refusal and D97's oblique fillet-8 refusal are removed: both build now.
+  - **Conformance:** `r10/overflow-step-square-ends` (closed form, 1e-7), `r10/coaxial-cone-rim-tangent` (Pappus, 1e-9), `r10/rounded-box-corner-balls` (Steiner, 3e-7).
+  - **Studio:** a flow step opens a square-ended step, rounds the riser's top 4 and fillets its foot 8 in the UI (+503.14 mm³; refused before).
+- **Still refused (measured):** a general fillet ending at a cylinder (the tilted rod's foot at a round plate's rim). It was tried again, the tool run past the rim's tangent plane and cut by the cylinder near its end, as R10.3c's are.
+  - With a circle on the rim that is not a cross-section mapped as a general curve (it was refused "an arc on a cylinder is not a cross-section circle"), the cylinder cut of the lofted tool closes. In the union, though, the rod's face keeps the rim's cut of the rod as a slit: it no longer meets the clipped contact (all four feet, r 1). Both changes were reverted with the attempt.
+  - Ends at more than one face were not tried. Both keep their refusals.
+- **Tried and not kept:**
+  - snapping cut ends to a nearby vertex (it moved the cap off its plane);
+  - joining loose cut ends across a corner (not needed once the break lies on the plane);
+  - dropping sliver pieces;
+  - snapping on cylinder pairs (no help for the rim, above).
+- **Next:** R10.5 (variable radius).
+
+## D100 — R10.5a: variable-radius fillets (2026-10-19)
+
+R10.5 is split. **R10.5a (this):** the radius varying along the chain. **R10.5b:** conic and G2 sections.
+- **The contract** (`part-model.ts`, versioned as D16 asks: an optional field, old documents unchanged): a fillet gives `radius` (one radius) or `radii` (2–16 points `{ at: [x, y, z], radius }`), not both.
+  - Each point must lie on one of the chains filleted (within 1e-6 of the model's size), else SELECTION.
+  - Along each chain the radius is a shape-preserving (Fritsch–Carlson) cubic Hermite through its points by arc length, so it never overshoots the values given. Two points give a linear radius.
+  - On a closed chain it is periodic: the slopes round the loop come from neighbours on either side, and a repeated knot keeps one slope.
+  - On an open chain, past its outer points it goes on at its end slope (C¹), never below half the least radius. It must stay positive to the chain's ends, else PARAMETER. A chain carrying only one of the points takes that radius, constant.
+  - A variable-radius body is not recorded for shell (its hollow would need the radius offset along the chain).
+- **The section** (`rolling-ball.ts`): at each station, as before, the ball centred in the plane square to the chain touching both faces, now of radius r(s). Its section is the arc of that ball between the contacts.
+  - On planes along the edge (and round a circle between coaxial faces) that is the circle of radius r(s) in the plane square to the chain. So the volume is ∫ A(r(s)) ds, or round a circle the meridian section's first moment integrated over θ.
+  - The surface is tangent to both faces along its contacts: there the arc meets the face square to its normal, and the contact runs on the face.
+  - The tool's patches also break at the profile's inner points, where its second derivative jumps (inside a patch the loft would converge more slowly), unless within two steps of another break.
+- **Plumbing:**
+  - Every chain with `radii` is the rolling ball's (`general`). No closed form, no three-edge corner ball, no two-pass mixed corners.
+  - A chain that rolls round an edge at a corner, or onto a cliff, is refused (CAPABILITY).
+  - The open chain's end logic now takes several faces in one plane (a step's two blocks' ends) as one end plane. That also lifts a refusal ("meets more than one face") for constant radii there.
+- **Two fixes found here:**
+  - **Breaks at Boolean-trimmed ends.** R10.B's break on an end plane (`breakOnEnd`) is now used only where the tool is cut at that end by its plane (`clipped`). Where the Boolean trims the run past (a convex end where the body ends), a tool vertex in the body's end face is a touch at a point, and one groove case failed there.
+  - **Quadrature on tiny faces.** A face of less than 1e-6 of the body's size squared that fails one of the quadrature's checks is now taken by its flat triangles (`flatInto`), not the whole body by tessellation. A 1.8e-4 mm² sliver at a trimmed end had moved the body's mass method from quadrature to tessellation: 8 % of the fillet, 3e-5 of the part.
+- **Evidence** (`packages/barocss-cad/test/r10-5.test.mjs`, 5 tests):
+  - **A box's top edge** (convex, square planes):
+    - 1→3, 3→1 and 0.5→4 match (1 − π/4) L (r0² + r0 r1 + r1²)/3 to 1e-9 (1e-11).
+    - Three points (1, 2, 4 at x 0, 10, 40) match (1 − π/4) ∫ r² ds of a monotone cubic written apart in the test.
+    - Contacts, sections and G1 are in bounds.
+  - **A concave step foot**, 1→4: to 1e-9.
+  - **A boss's foot round its circle** at 1, 2, 1, 2 (and 0.5, 3): ∫ of the meridian section's first moment to 1e-7 (1.3e-8–2.6e-8).
+  - **An oblique groove's rim** (curved faces), 0.6→1.2:
+    - valid and G1, the report in bounds, its volume between the constant fillets at 0.6 and 1.2;
+    - within 1e-7 of the part of a loft through twice the stations.
+    - **Not tighter:** at some station counts (200 here) a sliver of the run past at the trimmed end becomes a two-vertex face and the result loses 1e-4 mm³ (2e-5 of the fillet, 1e-8 of the part). At the default count, and at 300, 600 and 1200, the results agree to 2e-7 of the fillet.
+  - **Refusals:**
+    - a point off the edges (SELECTION);
+    - `radius` and `radii` both, or one point (INPUT);
+    - the box boss's foot, which rolls round its corners (CAPABILITY).
+  - **Conformance:** `r10/variable-radius-linear` (1e-9) and `r10/variable-radius-boss-foot` (1e-8). Both are closed forms with a STEP round trip.
+  - **Studio:** the Fillet HUD has an End radius (0: the same). With it, the radius varies from the picked chain's end nearer the first edge's start to its other end; the picked edges must form one open chain. The history reads "Fillet R1→3", and the edit panel has Start and End radius.
+    - The agent's tool schema documents `endRadius` for the command and `radii` for add_features. A run_command result now echoes `endRadius: 0` among the values, and its summary test moved with it.
+    - A flow step opens a box and fillets its top edge 1→3 in the UI (−37.20 mm³).
+- **Found, not fixed (follow-ups):**
+  - The trimmed-end sliver above: a Boolean end case, not this step's.
+  - ~~Within one process, the same fillet at the same fixed station count gave different results depending on what ran before (seen at 342 stations).~~ A misdiagnosis: the runs compared were at 342 and 350 stations. There is no order dependence (D101); the station-count sensitivity is the trimmed-end sliver above.
+- **Next:** R10.5b (conic / G2 sections), then R11.
+
+## D101 — determinism: no state outlives an evaluation (the "order dependence" of D100 was a misdiagnosis) (2026-10-19)
+
+- **The report (D100):** the same variable-radius fillet at the same fixed station count seemed to give different results depending on what the process had run before ("seen at 342").
+  - Reproduced as asked (A, then B, then A, compared to the bit), it does not occur.
+  - The two runs compared were at different counts: the test's "twice the stations" was 2 × 175 = 350, and the script it was checked against ran 342.
+  - At 350 (and 200) the groove's run past leaves a two-vertex sliver at its trimmed end and loses 1e-4 mm³. At 342, 300, 400 and 600 it does not.
+  - Each count gives one result, to the bit, in any order: 200 and 350 always 8983.117241379, 342 always 8983.117143146.
+  - The station-count sensitivity is real, and it is D100's follow-up (the Boolean's trimmed-end sliver). It is not state.
+- **Checked, all to the bit** (vertex coordinates hashed, face counts, volumes):
+  - every conformance case (109) and every RB corpus part (131), each evaluated in order, in reverse and again, in one process: 0 differ;
+  - the D97/R10.B step foot at 12 radii, in one process and each alone: identical (the R10.B-time observation that r 11 built only in a sequence can no longer be reproduced; the code it ran on is gone);
+  - the variable-radius groove at 200, 342 and 350 interleaved with other models.
+- **Module-level state reviewed** (`src/*.ts`). None of it can change a result:
+  - **Per-object WeakMaps** (keyed by B-reps, faces, curves, segments, surfaces, libraries, parameters): `contactCuts`, `sampled` (analytic-boolean, curved-arrangement), `areas`, `denseSampled`, `ruledFrames`, `quadratures`, `polyhedral`, `faceGeometries`, `meshes`, `built` (facet BVH), `crossings`, `builds`, `checkedArrays`, `arrayHashes` and modeling's four. They hold derived values of immutable inputs.
+  - **Keyed LRUs:**
+    - the spur-gear pair and rack checks, keyed by both specs (widths left out and the width-dependent ratios redone, as documented);
+    - SubD's `keptCaps`, keyed by the local cage's exact positions, faces and creases, with the size-dependent conditions re-checked per call;
+    - part-model's long-text ids, a memo key only (a miss, never a wrong reuse);
+    - the evaluation cache, which is per document and handed on by `withDocument`.
+  - **Scratch buffers** fully written before read: `faceScratch`, mesh-decimate's `place`, facet BVH's `stack`, SubD's evaluation vectors.
+  - **Test hooks:** `fixedStations` (`setRingStations`), the traces, `facetLimit`, `observationTolerance`, all reset by their tests.
+- **Kept:** `packages/barocss-cad/test/determinism.test.mjs`. Eight models are evaluated in order, in reverse and again, and must match to the bit: the groove at 200, 342 and its default count, R10.B's capped step foot, a rounded box, the mitred L-plate top, the cone rim and a gear pair.
+- **Not covered:** the browser worker against Node. The kernel is the same code in both, but no test runs one model in both and compares them.
+- **Next:** R10.5b. The trimmed-end sliver (D100) remains a follow-up.
+
+## D102 — no sliver at a trimmed end: a tool's patch edge moved off the end face; strict checks flag lenses (2026-10-19)
+
+- **The defect** (D100's follow-up, seen since D101 as a station-count sensitivity): where a rolling-ball tool runs past an end the Boolean trims (a convex end where the body ends), a break of the tool's patches near that end gave its patch edge, a section of the tool, straddling the end face's plane.
+  - Where the chain meets the end face nearly square (the oblique groove's rims at the plate's end, 10° off), that section dips a hair inside the face. The Boolean's cut leaves a lens of the patch beyond: a face of two edges between two vertices, 1e-3 mm wide.
+  - It depended on where the breaks fell. The variable-radius groove had it at 175 (its default count), 200 and 350 stations, 1e-4 mm³ off.
+  - The constant r 1 groove had it on one of its two mirror-image rims: the rims came out 2.8e-3 mm³ apart (3e-7 of the part, 4e-4 of the fillet).
+  - Both were silent: valid, strict checks clean.
+- **The fix** (`rolling-ball.ts`, `breakBeyond`): near an end the Boolean trims, a break whose section straddles that end's plane is moved on, a quarter step at a time, until its section lies wholly beyond the plane. This applies to the contact-crossing breaks and the run-past break at the chain's end.
+  - Not where the section lies in the plane to rounding: a square end's section is the end face's edge exactly, and that break stays, as its curvature jump needs.
+  - Not at ends the tool is clipped at (D99's `breakOnEnd` puts those breaks in the plane).
+  - (Dropping those breaks instead was tried. It broke the plate-0-to-40 groove's typed refusal, which became an untyped Boolean failure.)
+- **The check** (`brep-check-geometry.ts`, strict): a face is a sliver if it has one loop of two edges between the same two vertices, the edges lie within 1e-2 of their chord of each other, and one of them is a seam to a tangent face (normals within 1e-4 rad at its middle). That is a piece of one smooth surface split a hair beside the face that cut it.
+  - It flags every lens above on HEAD's tool (the seam there: 1.2e-6 rad).
+  - The first version, without the tangency condition, flagged real geometry too. RB found 9 new failures: cylinders grazing a box by 1e-4 make lenses as thin (1.75e-3 of the chord), and so does one STEP round trip. Their faces meet at 1.75e-2 rad or more. That version's RB rows went in with the fix commit (87d772843: 9 new); the corrected check is recorded in the next rows.
+  - Two-edge faces in general (a lens between two arcs, a disc's one-edge loop) are not flagged.
+- **Evidence** (`test/r10-5.test.mjs`, new test, failing on HEAD):
+  - the variable-radius groove at 150, 175, 200, 250, 300, 350 and 400 stations: strict-valid, the same body faces, the same volume to 1e-9 (8983.1172428 at every count);
+  - the groove's two rims filleted 1: strict-valid, equal to 1e-11 of the part (2e-12).
+  - `r10-5`'s curved-faces test is back to 1e-6 of the fillet against twice the stations.
+  - The volume the counts now agree on is the one HEAD's lens counts had (to 1.5e-6 mm³), not the one its lens-free counts had (1e-4 apart). That it is the right one rests on the agreement across seven counts and on the rims' mirror symmetry above. Why HEAD's lens-free counts differed was not traced.
+  - Every kernel test and conformance case is unchanged; the forced straight groove, which has square ends, stays at 1e-11 of its closed form.
+- **The fillet face count still follows the station count** (the loft's pieces of at most 13 spans, D89): that is by design. The body's own faces and the topology class do not change with it.
+
+## D103 — R10.5b: conic and G2 fillet sections (2026-10-19)
+
+- **The contract** (optional field; no version change, D16): a fillet takes `section`:
+  - `{ kind: 'circular' }` (the default: the rolling ball's arc, unchanged);
+  - `{ kind: 'conic', rho }`, rho in (0, 1);
+  - `{ kind: 'g2', tension? }`, tension in (0, 1), 0.5 when left out.
+  - A conic or G2 section is the rolling ball's (R10.2a): every chain goes to the general path, as a variable radius does (D100). The closed forms of R10.1, the phased corners and the corner balls are skipped. It combines with `radii`.
+- **The sections** (`rolling-ball.ts`, `sectionOf`): at each station the ball's contacts T1 and T2 stay as for the circle, and so does Q, the intersection of the faces' tangents in the station's plane.
+  - **Conic:** the rational quadratic T1, Q, T2 with weight ρ/(1 − ρ). The circle is ρ = w/(1 + w), with w = cos(θ/2). 0.5 is a parabola; smaller is flatter, larger fuller.
+  - **G2:** a quartic with poles T1, P1, P2, P3, T2 and weights 1.
+    - P1 and P3 lie a fraction `tension` of the way from T1 and T2 to Q, so the section is tangent at the contacts.
+    - P2 is placed so that the section's curvature across each contact equals the face's normal curvature in that direction: (P2 − T)·n = 4/3 κ |P1 − T|² at both ends, two conditions in the station's plane.
+    - κ is read by central differences of the face's own surface (`normalCurvature`, a step of 2e-3 mm along the section's direction projected on the face). On planes κ = 0 and P2 = Q.
+    - Matching the curvature in that one direction is enough for G2 across the contact: along the contact, the fillet and the face share the curve.
+  - **The tool:** the fillet face is degree 4 across (G2) or rational quadratic (conic), cubic along as before. Its section edges match. The fillet face's outward test is now against the ball's centre, not the corner centroid: a full conic (ρ 0.7) or a G2 section crosses the old reference, and that gave a "2 uses" edge.
+- **Refused:** rho or tension outside (0, 1), or an unknown kind (INPUT at the part, PARAMETER at the kernel). A section shape on a chamfer is refused PARAMETER. A conic or G2 fillet where the ball rolls round an edge at a corner (R10.3a) is CAPABILITY: the corner patch is a canal surface of the circle. No history is recorded for shelling past it, as with a variable radius.
+- **Two defects in the curved arrangement, found by G2's second-order contact** (`curved-arrangement.ts`). Neither shows with circular sections.
+  - **Half-edge order at a vertex:** a G2 section leaving a vertex along a planar face's edge agrees with it in angle and in curvature. The κδ/2 tie-break (D99) could not order them, so a groove's end faces lost their regions. Now `tangentOrder` compares the chords to points a quarter of the shorter one's length out (they cannot cross before their next vertices), then falls back to κδ/2.
+  - **Spurious crossings at a touch:** where such a section ends on a line (its contact), it stays within eps of the line for a while (distance ~ s³). Newton, slow at the triple root, stopped anywhere in there and reported a crossing 1e-4 mm from the contact.
+    - It made slivers: on a step's foot at the end plane, two corner faces 1.2e-4 wide. The volumes were off 1e-6 to 1e-4 relative, depending on where the stations fell.
+    - Now `touchOfEnd` drops a point when s ran within eps of t from one of its ends lying on t (t's end or a point inside it), and leaves t further on, away from t's ends.
+    - An overlap is kept: two copies of one curve, as the coaxial revolved tools have, run along each other to an end. The first version, without the "leaves t" condition, dropped those points too and broke two coaxial Pappus tests (R10.1, R10 S0) by 1e-10 of the part.
+- **Evidence** (`test/r10-5b.test.mjs`, 5 tests; the feature is new, so all fail on HEAD):
+  - **A box's top edge and a step's foot, r 3** (convex and concave planes): ρ at the circle's value, 0.3, 0.5 and 0.7, and G2 at tension 0.3, 0.5 and 0.8. Each is checked against the region between the corner and the exact curve × 40, to 1e-9. The circle's ρ matches the circular fillet's (1 − π/4) r² L to 1e-9.
+    - Without the arrangement fix, the step's G2 is off 1.3e-6.
+    - Measured at L 20, 40 and 80 and tension 0.3 and 0.5, every case is within 2e-10 of the reference, which is itself a 200 000-chord integral.
+  - **With a varying radius** (1 → 3 along the box edge): parabola and G2, against the integrated closed forms to 1e-10 (3.6e-12 measured).
+  - **G2 on a curved face:** a groove's rim (a plate and a cylinder of R 4), filleted r 1. Across each contact the fillet's own surface curves as the face does, to 1e-5: 1/4 at the cylinder, 0 at the plate. This is read by one-sided differences with Richardson extrapolation. The circular fillet reads 1/r there (G1 only).
+  - **Round a boss's foot** (a closed loop), G2 and ρ 0.6, by Pappus:
+    - At the default station count (252), the volume is within the loft's own reported deviation (`sectionMM`, 1.8e-7 mm) × the fillet's area. That is 3.5e-7 of the fillet (G2).
+    - At 1024 stations it is within 1e-8 (4.7e-9 measured).
+    - This is the loft's discretisation, the same as for the circle: a conic at the circle's ρ, through the loft, is 1.7e-7 off the circular fillet's closed form there. The error converges with the station count (252 → 512 → 1024: 3.5e-7 → 1.8e-8 → 4.7e-9).
+    - **Stated honestly:** closed loops round curved paths are as accurate as the loft's reported deviation, not to 1e-9.
+  - **Refusals** as listed above.
+  - **The full kernel suite:** 1114 pass, and the one known environment failure (native Split source).
+- **Conformance:** `r10/conic-parabola-box-edge` and `r10/g2-step-foot`, both closed forms to 1e-9 with a STEP round trip.
+  - Parabola: its segment is 2/3 of the control triangle, so 12000 − r² L / 6 = 11940.
+  - G2 at tension 0.5: the region is r²/10, so 18000 + r² L / 10 = 18036.
+- **Studio:** the Fillet HUD has a Section choice (Circular, Conic, Curvature (G2)), with Rho and Tension shown for the one chosen. The history reads "Fillet R3 conic ρ0.5" or "… G2", and the edit panel has Rho or Tension.
+  - The tool schema documents `section` for add_features, and shape, rho and tension for run_command. A run_command result now echoes `shape` among the values, and its summary test moved with it.
+  - The chat checker (`checkNode`) accepts `section`, and also `radii`: D100 documented `radii` for add_features but the checker refused it as an unknown field, so that is fixed here.
+  - A flow step opens a box and fillets its top edge r 3 with a conic section of rho 0.5 in the UI (−60 mm³).
+- **Not done:**
+  - A G2 or conic corner (the ball round an edge at a corner) is refused, not built.
+  - Variable rho or tension along the chain.
+  - G2 continuity at the chain's ends, which are square or clipped as before.
+- **Next:** R11 (general shell and offset), as §0 lists it.
+
+## D104 — the tessellation's flat-flip cycle: a SubD bench 7 s → 0.7 s (2026-10-19)
+
+- **The report** (the outer lane, through the coordinator, on the D102 tip `4055ec1d9`): the studio bench "tessellate: SubD body of a ~2k-face cage" ran 7.04 s and 7.05 s against its 2 s budget. PERF3 A5 (D82) had it at about 1 s. Reproduced at `cc1e16fee`: 7.0 s, the same in three runs.
+- **Bisect, by profile and history:** 44 % of the time was in `flipAll` (`brep-tessellate.ts`), 70 % with its helpers.
+  - Since PERF3 A5, one commit touched that file: `889ce7bec` (D91/D92). It raised the Lawson flips' pass cap from 50 to 50 + the triangle count.
+  - Counted per call on this body: 48 of 504 `flipAll` calls ran exactly to the cap, 1 644 passes at most.
+  - Every flip in those passes was a flat triangle flipping into flat triangles: about 91 000 of them.
+  - **The cause:** a flat triangle (three points on one line) is flipped "whenever it can be". Among points on one line (a SubD face's long straight boundary, sampled finely), flat triangles flip into flat triangles for ever. Under the old cap that cycle cost 50 passes a face; under D91's cap it cost about n² per face.
+- **The fix:** a flat triangle is flipped only if the flip leaves fewer flat triangles (of t and its neighbour) than before.
+  - The D91 cap stays: D91 needed more than 50 passes on real faces, and those flips are not flat cycles.
+  - No tolerance changed.
+- **Evidence:**
+  - The bench body's mesh is the same to the bit: the positions, normals and indices hash equal. The cycle ended where it began.
+  - The bench is 659 ms (budget 2 000 ms); the other 36 benches in the run were within budget.
+  - `test/tessellate-flips.test.mjs` (new) tessellates the same 18-quads-a-side box cage, built inline. It asserts under 3.5 s and every welded mesh edge used twice.
+    - It fails on HEAD (6 855 ms) and takes 0.7–1.7 s with the fix (1.7 s under the full suite's concurrency).
+    - It is a wall-clock bound, so it has headroom: 7 s against under 1.
+  - Kernel 1118/1123 (only the env-only Split test fails); studio 384/384; full flow 138/138.
+- **Next:** R11 (unchanged); this was a fix at the R10 boundary.
+
+## D105 — R11 S0: feasibility of general shell and offset (2026-10-19)
+
+The roadmap's feasibility checkpoint before R11, with the research note's R11.1–R11.3 (`handover/notes/research-r10-r11-fillet-shell-2026-10-18.md`) as design input. The questions: does today's method — the wall as the union of a slab per face, each face's region grown by the wall within its own surface and reaching 1.37t out (`general-shell.ts`), the shell the body within it — hold on the faces it takes now, and can it take B-spline and mesh faces? Evidence: `packages/barocss-cad/test/r11-s0.test.mjs` (kept), against closed forms and Steiner's formula; hand-built slabs and fitted offsets, no product code changed.
+
+- **Today, as it stands:**
+  - Exact where it is exact: a hollow sphere (the revolve route) is 4/3 π (R³ − (R − t)³) to 1e-9.
+  - Refused by name: a SubD body (freeform faces); the filleted pipe tee (its branch, a cylinder trimmed by the junction's saddle, before its fillet face); a box edge with a conic fillet (D103 records no shell history; its end faces are bounded by the conic); a mesh body (facets).
+  - `thicken` folds silently: a quarter cylinder R 10 thickened 12 towards its axis is a valid solid whose inner sheet has crossed the axis (radius 2 on the far side). Nothing checks t·κ ≥ 1.
+- **Two silent over-thick walls found** (bodies that reach `generalShell`: unions and other non-upright bodies; upright, revolved and swept bodies have their own exact routes):
+  - **A slab grown across a smooth edge into a concave face.** A rod R 5 on a plate with both junctions filleted 2 (R10.1, closed form): a prism along X, so its hollow is the section eroded (A − Pt + 4t², the section having no reflex corner and ∫κ ds = 0) times L − 2t. Today's shell is 6.9e-4 over at t 0.5, 2.65e-3 at 1, 6.4e-3 at 1.5 and 7.9 % at 2.5, valid. The plate's top, grown t past its tangent edge, sits under the concave fillet deeper than t; so does the rod's slab grown round past its contact.
+    - Built by hand, today's grown slabs reproduce the error to 1e-9 of the shell: the growth is the cause.
+    - Not grown across the four tangent edges, the slabs meet there in one plane (the normal at the contact): coincident side walls, which the analytic Boolean takes. The shell is then exact to 1e-12 (seen 1e-14) at t 0.5 and 1.
+  - **A cylinder slab past a concave junction.** A rod r 1 half sunk in a plate, a wall of 2: the rod is all wall, so the hollow is the plate's eroded box. Today's shell is 3.4 % over.
+    - The rod slab's inner radius is clamped to 1e-3 r, so its angular growth t / (1e-3 r) closes it into a full ring of radius r + 1.37t, which reaches 1.74 below the plate's top.
+    - By hand (the rod's slab the half disc above the plate, not grown; the plate's top grown across the sharp junction): exact to 1e-12.
+    - A rod r 5 at t 1 is 1.1 % over even the sharp (intersection) join's wall, the thicker of the two joins: the rod slab's outer band, carried past the junction by its angular growth t / (r − t), lies inside the plate. A hand-built version with the outer band not grown there was not completed: hand slabs with coincident heights made the Boolean fail. R11.1 proves that case in code.
+- **R11.2's offsets as faces on the body's own topology.** A closed body whose faces all meet smoothly (a SubD body) needs no slab: its cavity is its faces offset, with no Boolean.
+  - Built here: every face's surface offset and fitted (cubic; its knots refined; each interior knot once more), every edge and vertex offset along a face's normal, and the cavity built with `buildBrep` on the body's own loops, edges and vertices.
+  - `sewSolid` does not apply: SubD faces meet at T-junctions, 4–8 edges a loop.
+  - The oracle is Steiner's formula, V(−t) = V − At + Mt² − (2πχ/3)t³, with A, M = ∫H dA and ∫K dA taken by quadrature from the body's own curvature (χ 2.000000 and 0.000000). The exact offset's own divergence integral agrees with it to 1e-8.
+  - The SubD cube (24 caps, C1 knots), t 0.5: a valid B-rep; fit deviation 9e-6 mm; the enclosed volume 9e-7 off Steiner.
+  - The SubD torus 8 × 6, t 1: valid; deviation 7.6e-5 mm; 4.5e-6 off Steiner.
+  - **Findings for R11.2:**
+    - (a) An offset is one order less continuous at each knot. Fitted without the extra knot, the cube cap's C1 knot leaves 5e-3 → 3e-4 mm; with it, 3e-5 at four pieces a span.
+    - (b) The kernel caps a surface at 16 × 16 control points. A torus face of 13 spans cannot be refined at all; the 16 × 8 torus cage's faces fit only to 1e-1 mm. Offset faces must be split, or the cap raised (a contract question for R11.2).
+    - (c) The error gathers beside a cap's extraordinary corner. Graded refinement is needed there, not uniform.
+    - (d) The kernel's mass quadrature does not take these fitted faces as whole patches, because their edges lie within the fit's tolerance of the patch boundaries, not on them. Its mass of the cube's cavity is 7.7e-5 off the faces' own integral. The offset faces' edges should be their exact boundaries (with the neighbour within tolerance), or the whole-patch test should take tolerant edges.
+  - **Folding:** t·κmax ≥ 1 on the convex side predicts the turn-over. On the SubD cube 1/κmax = 1.509 mm: the offset map's Jacobian against the face's is positive at t 1.5 (at the curvature's peak, and nowhere turned on an 8 × 8 grid a span) and negative at 1.6 at the peak. `OFFSET_FOLDS` can come from `local-curvature.ts`, as the note proposes.
+    - *Corrected at D110:* those samples were interior points only. The tightest curvature lies on a cap's side beside its extraordinary corner, 1.480 mm. The cube folds from t 1.480, not 1.509.
+- **Verdict — R11 in three stages, the note's order, with these changes:**
+  - **R11.1 — fix the slabs of the faces taken now, then extend them.**
+    - Grow a slab's region only across sharp edges. Across a smooth edge, the slabs share the normal plane as a coincident wall (probed exact).
+    - Grow its outer band (the part reaching outside) only across convex edges.
+    - No clamp: a convex cylinder, sphere or torus thinner than the wall gets a slab with no inner band (a sector to the axis).
+    - Closed-form fixtures: the prism oracle (any union that is a prism along an axis: eroded section × (L − 2t)); the hollow sphere; a torus and a hole thinner than the wall; walls thinner than 2t; a fillet below the wall, sharp inside.
+    - Typed refusals where a slab cannot be made.
+    - The history route for variable-radius fillets: r(s) − t on the same spine is exact. Conic and G2 sections have no exact offset and go to R11.2.
+  - **R11.2 — offset sheets on the body's topology.**
+    - (a) A closed body whose faces meet smoothly: the cavity directly, with the fit's deviation reported and kept within the stated accuracy, splitting faces past the 16-pole cap, knots +1 at each interior knot, graded near poles. Typed refusals: `OFFSET_FOLDS(face, u, v, minRadius)` at t·κmax ≥ 1; walls closer than 2t (the cavity meets itself); tolerances never loosened.
+    - (b) Bodies with sharp edges and freeform or otherwise trimmed faces (the tee's saddle-trimmed cylinders, the conic fillet's ends): a slab per smooth region, made of its inner and outer offset sheets and walls at its sharp boundary, grown there by extending the surfaces, then through the analytic Boolean as now.
+  - **R11.3 — mesh bodies:** an offset mesh as the cavity, with the wall it achieves reported, and refusals for inverted triangles (folds) and self-intersection (mesh repair's grid). `thicken`'s fold-over becomes the same refusal. Not probed here; a mini-probe at its step.
+- **Not decided here:** splitting offset faces or raising the kernel's 16-control-point cap (finding b); which join (sharp or arc) a concave edge gets in the hollow — sharp, as today and as upright shells do, unless the owner asks.
+- Checks: no product code changed. Kernel 1134/1139 (only the env-only "actual native Split source…" fails; r11-s0 5/5, 20 s); lint clean; studio, flow and RB not rerun (no source change), as at D87.
+
+## D106 — R11.1a: the general shell's slabs stop at smooth edges and at concave edges beside curved faces, whose corners are filled apart (2026-10-19)
+
+The coordinator accepted D105 and asked for fixes (A) and (B) first, each with a test that fails on HEAD. `general-shell.ts` now classifies every edge between two slabbed faces and grows each slab per side.
+
+- **Edge kinds.** Each edge between two faces with slabs is smooth, convex or concave.
+  - The test uses the two faces' outward normals at the edge's middle and the first face's loop direction T. Loops run counter-clockwise about the outward normal, so (nA × nB)·T > 0 means convex. This was checked on a box, an L-body, a rod on a plate and a groove.
+  - An edge is smooth when the normals agree to 1e-6 rad.
+  - Edges next to an opened face are left out, so they grow as before and the hollow still runs out through the opening.
+- **Growth per side** (`stopsAt`):
+  - Across a **convex** edge, and a **concave edge between two planes**, the slab grows by the wall, as before.
+  - Across a **smooth** edge the slab stops. The two slabs meet in the normal plane there, as coincident walls; S0 probed that this is exact.
+  - Across a **concave edge beside a curved face** the slab stops, and the corner is filled apart (below).
+- **How stopping is done, per face kind:**
+  - Planes: the strip beyond each such side is taken off the grown region, and the face's own region is added back.
+  - Cylinders: each side of the (angle, height) rectangle has its own flag.
+  - Surfaces of revolution: each end of the meridian strip, and each end of the turn, has its own flag.
+- **Corner fills (fix B).** At a concave edge beside a curved face, the corner is solved in 2D: in the plane across a straight edge whose two faces run along it, or in the meridian of a circular edge whose two faces turn about its axis.
+  - The region near the edge's point E must lie beyond both faces' normals at E and within the wall of both faces' offsets: on the near side of a line's offset, outside a convex circle's, inside a concave one's. This is the sharp join of the offsets.
+  - Its size is set by where the offsets meet. Where a convex circle's offset is gone, or does not reach the other offset, the region runs to the circle's centre.
+  - The 2D regions of one straight run (the same direction and extent) are joined and extruded once. Those of one axis whose circles are whole (an edge, or its pieces) are joined and turned once. No two fills then overlap along a face: overlapping fills had left 1.1e-4 at t 3 on the torus ring.
+  - Edges that are neither case are refused typed (`CAPABILITY`), as are walls whose offsets do not meet.
+- **No clamp:** a convex cylinder no wider than the wall gets a slab that reaches its axis. Its angular growth is t / max(inner radius, r/4), capped at π/2. Before, the inner radius was clamped to 1e-3 r and the slab closed into a ring.
+- **The reach of a concave face's slab** towards its centre is 1.29t, unlike the 1.37t of other faces. A concave round's slab then never meets a plane slab's outer face tangentially. At 1.37t both reached exactly 10 + 1.37t, which made an untyped Boolean failure at t 0.5 on the filleted rod.
+- **Evidence, against closed forms.** Each case was wrong on HEAD (804ee65ef); `test/r11-1.test.mjs` is new; every result passes the strict check.
+
+  | Case | Oracle | HEAD | Now |
+  |---|---|---|---|
+  | Rod R 5 on a plate, both junctions filleted 2, t 0.5–2.5 | the prism's eroded section, A − Pt + 4t² | 6.9e-4 – 7.9 % over | 1e-14 |
+  | Rod half sunk in a plate, r 5/3/2/1 at t 0.5–2 | sharp join: the plate box eroded plus the rod's offset disc above the plate's offset | 1.1–7.8 % over | ≤ 4e-15 |
+  | The same, rod shorter than the plate (x 10–30) | the same | | exact; its junctions end at the caps' chords, concave edges of two planes grown as before |
+  | Torus ring R0 15, r 4 half sunk in a round plate, t 0.5–3.5 | Pappus | 0.5–18 % over; untyped Boolean failures from t 2.5 | ≤ 2.3e-12 |
+
+  - Where the rod's or ring's offset disc no longer meets the plate's hollow, the result has a second cavity, and the tests count it.
+  - S0's "today" tests (`r11-s0`) now read as then and now: the shell is exact, and the hand-built grown slabs still show the old error.
+  - Conformance `r11/shell-filleted-rod-on-plate`, `shell-rod-on-plate-sharp-join`, `shell-torus-ring-in-disc` (closed-form volumes, STEP round trip).
+  - A flow step: the rod on the plate shelled 1, its volume the closed form.
+- **Not fixed here (R11.1b, next).** Concave edges between two planes still grow by t. That is exact only at right angles.
+  - D105's prism oracle shows it: a 225° inside corner is 2.5e-3 over at t 1 and 5e-3 at t 2; a 315° one is 5e-4 over at t 1. These are bodies of planes only, wrong on HEAD as well.
+  - Filling those corners too (as above) makes both exact (1e-15), but it fails on a concave vertex: a box with its corner notched, where three concave edges meet. The pieces touch along the vertex's vertical edge and the analytic Boolean refuses.
+  - HEAD under-fills that vertex (−1.2e-5 at t 1, −5.1e-5 at t 2, against the cube-erosion closed form) and fails, untyped, at t 3.
+  - R11.1b fills concave vertices where all edges are concave (the region within the wall of every face there), then fills plane–plane corners.
+- **Found, not decided (for the owner):**
+  - The upright route erodes each section in 2D, so its vertical concave edges get an arc join. An L-section extruded 20 and shelled 2 is 6610.27 mm³ (with a t²(1 − π/4) round).
+  - The general route gives the same body 6624 mm³ (sharp join).
+  - Ledges are sharp in both. Kept as is; say which join a concave edge should get, and the other route follows.
+- Checks: lint and type-check clean; kernel 1140/1145 (only the env-only Split test fails); conformance 108/108; studio 413/413; full flow 143/143 (new step: the rod on the plate shelled). RB rows in the next commit.
+
+## D107 — R11.1b: concave plane–plane edges at any angle and vertices of concave edges; the join as one switch (2026-10-20)
+
+The coordinator accepted D106 and asked for vertex fills first, then concave plane–plane corners off a right angle. The owner has not yet decided the join, so the join kind is one switch, not baked in.
+
+- **Concave edges between two planes.** A plane's slab grows across such an edge by t·tan(θ/2), where θ is the angle between the two normals.
+  - That is as far as the two offsets reach before they meet. The band beyond the edge (depth 0 to t) then lies within both walls, for θ ≤ 90°.
+  - At a right angle the growth is the wall exactly (snapped), as before.
+  - For θ > 90°, a band of either plane, however wide, misses the far corner of the offsets' meeting. Those edges are filled apart, as R11.1a fills edges beside curved faces.
+- **Vertices.** Where two growing sides of a plane region turn away from each other at a concave edge between lines, the bands are joined by a mitre instead of a round: the corner of the two grown lines, or a bevel past 10× the growth.
+  - Under the sharp join, the planes' growth then meets at a vertex of concave edges with no extra piece.
+  - First tried: fills along every concave edge plus a vertex fill (near the vertex, within the wall of every face's offset there).
+    - Pieces touched only along the vertex's edge, so the analytic Boolean refused the result. With the fills placed first, the volume was exact.
+    - Coplanar fill faces then left a slit edge in a hollow face, which failed the strict check. Not kept.
+  - Every other region is grown as before, to the bit: when each side grows by t or not at all and no corner needs a mitre, the region is still the round dilation less the strips.
+  - The fills still go after the slabs, as in R11.1a. Putting them first changed which intermediate unions meet, and a ray test degenerated on the r 1, t 0.5 rod.
+- **The join switch:** `generalShell(…, join: ShellJoin = 'sharp')`.
+  - Under `'arc'`, every concave edge stops and is filled with the disc of the wall about E, beyond both normals: every point within the wall of the boundary, and no other.
+  - A vertex where concave edges meet is refused typed under `'arc'`: the ball there meets its edges' rounds tangentially along their end circles, and the Boolean fails, even with the ball clipped to the region beyond every edge.
+  - Part documents still get the sharp join. The switch is internal until the owner decides, and a document setting would be a versioned shell node (D16).
+- **Evidence** (`test/r11-1b.test.mjs`, new; each case fails on HEAD 519606e7e; every result passes the strict check):
+
+  | Case | Oracle | HEAD | Now |
+  |---|---|---|---|
+  | Prism, 225° inside corner, t 1–2 | sharp-join inset of the section × (L − 2t) | 2.5e-3 – 5.0e-3 over | exact |
+  | Prism, 315° inside corner, t 1–2 | the same | 5.2e-4 – 1.05e-3 over | ≤ 5e-15 |
+  | Prism, 270° inside corner | the same | exact | unchanged |
+  | Box with a notched corner (three concave edges), t 1–4 | cube erosion, (A − 2t)(B − 2t)(C − 2t) − (A − a)(B − b)(C − c) | −1.2e-5 to −2.4e-4: under-filled, a wall thinner than t at the vertex | exact |
+  | L-prism, arc join | the upright route's value (6610.265 at t 2) | not run | 1e-12 |
+  | Rod on a plate, arc join | sharp shell less 2 × (kite − quarter disc) × 38, t 1 | not run | 1e-12 |
+
+  - The kite in the rod row is the polygon E, E − t·n, the offsets' meeting point, E − t·n′ less its circular segment.
+  - Conformance `r11/shell-inside-corner-225`, `shell-notched-corner`; a flow step (the notched box, 9 024 mm³).
+- **Not fixed (TODO, Boolean robustness):** the notched box at t 2.9–3.1 fails, untyped ("not a manifold solid"), as on HEAD. Three slabs' bounding planes meet along one short edge there (x = A − t, y = b + t, z from c + 1.37t to C − t). t 2.5 and t 3.5 build exactly.
+- **Next:** R11.1 is done apart from that TODO. The note's remaining R11.1 items are typed refusals for slabs that cannot be made, and the history route for variable-radius fillets (r(s) − t on the same spine). Then R11.2.
+- Checks: lint and type-check clean; kernel 1145/1150 (only the env-only Split test fails); conformance 110/110; studio 429/429; full flow 146/146 (new step: the notched box shelled 2; also the first full flow on the R14.5 merge 519606e7e, every R14 and drawing step passing). RB rows in the next commit.
+
+## D108 — R11.1c: the rest of R11.1 — the wall's union retried, typed refusals, shells past a variable-radius fillet (2026-10-20)
+
+The coordinator asked to finish R11.1 before R11.2: the typed refusals and the variable-radius history route, and the notched box's untyped failure at t 2.9–3.1, which counts as a defect.
+
+- **The notched box at t 2.9–3.1.** The wall's union fails in one order only.
+  - Bisected to four slabs: the end face's, the top's, the notch floor's and one notch wall's. No pair or triple of them fails.
+  - Of the 24 orders of those four, the 6 that add the wall's slab last, after the other three, fail. So do the in-order union of all nine and a retry that defers the failing slab to the end.
+  - The union of the other three leaves a convex edge of the end slab 0.89 mm long, between the floor slab's outer face and the top slab's inner face. The wall's slab swallows that edge whole, and the analytic Boolean reports an edge with one use.
+  - The root, in the analytic Boolean, is not traced; it is a TODO, with that repro.
+  - **Fix:** `joined()` unions the slabs in order. Only where the analytic Boolean fails a step does it retry the same union by halves, then in the reverse order. Union is associative, so the result is the same solid; only the intermediate meetings differ. Every case that built before is bit-identical, since the in-order union is tried first.
+  - The sweep t 2.5–5, in steps down to 0.05 across 2.9–3.1, is exact to 7e-16 against the cube erosion. Conformance `r11/shell-notched-corner-t3`.
+- **Typed refusals.** `generalShell` turns every failure into a typed refusal (`CAPABILITY`):
+  - Refusals by name (`CAPABILITY: shell: …`) pass through.
+  - Any other failure (a profile builder's error, or an analytic Boolean that cannot close the result) becomes `[SHELL_NOT_CLOSED] a wall of t mm cannot be closed on this body: <cause>`.
+  - A union that fails in every order tried becomes `[SHELL_WALL_UNION]`. No test reaches either one now; the wrapper is there so that none can leave untyped.
+  - **`[WALL_NEAR_RADIUS]`:** a convex round face (a cylinder, or a sphere or torus meridian) whose radius the wall all but reaches is refused. Its offset would be a core under 0.01 mm across, below the kernel's least arc; HEAD built a rod r 2 at t 1.995 with a 0.005 mm core.
+  - r − t is snapped to 0 within the model tolerance, so a wall of exactly the radius is all wall. The rod's recognised radius is 2 + 4.4e-16; at first that read as just short. t 2 and t 1.99 are the closed forms.
+- **The variable-radius history route.** A body with a variable-radius fillet now keeps its shell history: `Finish.radii`, with conic and G2 still excluded. Its hollow is rounded on the same spine with radius r(s) − t.
+  - For a straight chain (its edges on one line) with a linear law (two radii), the hollow chain's ends take the outer law's value less the wall. The ball's planes are the same along a straight line, so this is exact.
+  - The wall at or past the radius all along leaves the hollow's edge sharp.
+  - Refused by name (`[SHELL_VARIABLE_RADIUS]`):
+    - the radius falling to the wall partway (the hollow's round would run out there);
+    - three or more radii (Fritsch–Carlson end slopes depend on the outer knots, so the hollow chain's law is not the outer one less t);
+    - a curved chain (its arc length differs from the outer one's).
+  - Closed form, the box edge rounded 2 → 4 (and 3 → 5), open below and closed: (1 − π/4)∫r² for the round, (1 − π/4)∫(r − t)² over the hollow's edge. Exact to 1.6e-14.
+  - Conformance `r11/shell-variable-radius-box-edge`; a flow step.
+- Evidence: `test/r11-1c.test.mjs` (new). Each case fails on HEAD 44399c726: untyped there; built there with its core; or refused by "no shell history" there.
+- **R11.1 is done.** The note's R11.1 also listed a fillet radius below the wall giving a sharp inner corner, which already holds on the history route (`part-model.test`: a fillet of 1 under a wall of 2 leaves the hollow sharp). Next: **R11.2**, offset sheets (D105's verdict).
+- Checks: lint and type-check clean; kernel 1150/1155 (only the env-only Split test fails); conformance 112/112; studio 429/429; full flow 147/147 (new step: the box edge rounded 2 → 4, shelled). RB rows in the next commit.
+
+## D109 — the step-116 flake: a flow step read the previous step's body, not a wrong body (2026-10-20)
+
+The outer lane reported step 116, "R10.3c a rod across a round plate", failing once in four full flows on unchanged kernel code: 39603 → 14594 where +12.04 was expected, at a load average of about 8. The coordinator asked to suspect the studio's evaluation path first, then anything time-based in the kernel, and to reproduce under load.
+
+- **Cause: the flow's wait, not the studio or the kernel.**
+  - **The body was right.** The failing run's screenshot (`notes/flaky-step116-flow12.png`, in the outer lane's worktree) shows the filleted rod on its disc at 14594 mm³. The kernel gives the unfilleted body 14582.04, and the fillet adds 12.04.
+  - **"Before" was the previous step's body.** 39603 is R10.3b's filleted box boss: 60·60·10 + 20·12·15 + 2.9 = 39602.9, read off the panel.
+  - **Why.** R10.3b's document ends with 6 nodes and 1 body, and R10.3c waited only for "6 nodes and 1 body" after choosing its file. When the file is read slowly (a loaded machine), that wait passes on the old document, and the body's panel shows the old body.
+- **Ruled out:**
+  - The studio's evaluation already guards against stale results. A cancelled or superseded evaluation never applies (`live`), and `bodiesFor` records which document the shown bodies belong to (`fresh`).
+  - The kernel has no deadline or time budget; only decimation reports its milliseconds.
+  - The studio's one time-based path, stopping a slow computation, is a button the user presses.
+- **Fix:**
+  - `App.tsx` (development builds only) sets `window.__studioFresh = fresh && !busy`. It is set in the same commit that changes the document, since `evaluated` derives from it in the same render.
+  - The flow's `openModel(file, nodes)` waits for a document other than the last one, with that node count, whose bodies are fresh. The 16 file-loading steps that waited on a node count use it, as does the R14.5 flange (the outer lane's step, the same latent race).
+  - The other count waits follow "New part" and a command, from 0 nodes, so they cannot match the last document. They are left as they are.
+- **Stress test:** a flow step opens two files of one node count back to back, six times (a 40 × 30 × 10 plate and a 50 × 5 × 4 bar), and checks each volume read is its own.
+
+  | Wait | Failed runs (8 each) | Load average |
+  |---|---|---|
+  | Old (node count only) | 2 | 60–210, under a kernel suite in a loop and the other lane's runs |
+  | `openModel` | 0 | the same |
+
+  - Reproducing the original R10.3b → R10.3c pair alone took more than 6 rounds without a failure, at loads up to 30.
+- No kernel change; nothing in R10.3c's geometry was wrong.
+- Checks: studio 429/429, type-check clean; full flow 148/148 (new step: the back-to-back opens). Kernel unchanged (1150/1155 at D108), so RB not rerun.
+
+## D110 — R11.2a: a smooth closed freeform body shelled as its offset cavity (2026-10-20)
+
+D105's verdict for R11.2: a closed body whose faces meet smoothly needs no slab, since its cavity is its faces offset. This step builds that cavity for SubD bodies. The open decision from D105 (finding b) is taken: offset faces are split into cells, and the kernel's 16-pole cap stays a fixed contract.
+
+- **Route** (`offset-cavity.ts`, new): `smoothClosedBody` takes a body with one closed shell, every face an untrimmed NURBS patch (one outer loop on its natural boundary), and every edge between two faces smooth (normals within 1e-6 rad).
+  - `shellPart` takes this route when `generalShell` refuses freeform faces and the body qualifies. The shell is `withCavities(body, cavity)`, with no Boolean.
+  - Opening a face of such a body is refused by name (R11.2b).
+- **The cavity's faces.** Each face's exact offset, p − t·n with n from the first derivatives, is interpolated at the Greville points of a cubic spline space.
+  - The space has the face's own knots, each interior one once more, since an offset is one order less continuous there (D105's finding a). Each span is cut into r pieces.
+  - The face is split into a grid of cells: spans grouped so a cell starts under the cap. Each cell raises r while it fits the cap, until within the target, 1e-6 of the body's size.
+  - Where the cap comes first, the grid is cut through the middle of every cell that missed, both ways, and fitted again (at most 64 × 64). Cuts gather where the error does, beside an extraordinary corner. A cell that cannot reach the target is refused (`[APPROX_TOLERANCE_NOT_MET]`).
+  - Deviation is measured at the quarters and middles between the interpolation points.
+- **The cavity's topology is the body's.**
+  - Each body edge is cut where a grid line of either face meets it; the cuts snap to the edge's own knots within rounding, and the same cut seen from two faces is kept once. A first version left a 1e-16 span (0.25 against 0.2500000000000001), which made the fit singular.
+  - Each piece's offset is fitted in its face's side parameter, with no projection a point. The first version projected each point from scratch, about 450 evaluations a point, and never finished the edges of a torus.
+  - Grid edges inside a face are the cells' own boundary curves.
+  - Vertices are registered by their position on the body (1e-7 of its size).
+  - Each cell's loop runs counter-clockwise about the outward normal, through the pieces along its sides or the grid edges.
+  - Every entity's tolerance is twice the measured deviation.
+- **Refusals by name:**
+  - `[OFFSET_FOLDS]` where t·κ ≥ 1. Each knot span is sampled on a 9 × 9 grid with its edges, nudged off C1 knots where the second derivatives are not defined. From the six largest samples overall, a hill climb (golden section in u, then v, the step halving) finds the local largest.
+    - This corrects D105: the cube's tightest radius is 1.480 mm, on a cap's side beside its extraordinary corner, not 1.509 inside.
+    - With interior samples only, t 1.49 folded unrefused.
+  - `[WALL_TOO_THIN]` where an offset point comes nearer than the wall to the body. Candidates are triangles of the body's tessellation within the wall, on a grid of the wall's size. The deciding distance is a Newton projection onto that face's surface, an upper bound of the true one, so the refusal is never false.
+  - `[APPROX_TOLERANCE_NOT_MET]`.
+- **Speed.** The kernel's evaluators check the surface at every call, and second derivatives copy it: 80 % of the time.
+  - The route has its own evaluator per face: rational point and first and second derivatives (Piegl & Tiller A2.3, the quotient rule), the surface checked once. It is the kernel's to 2.4e-14 on SubD and rational revolved faces (a test).
+  - Curvature now comes from the fundamental forms.
+  - The cube at t 0.5: 4.9 s → 0.9 s. The 16 × 8 torus: 0.5 s.
+- **Supporting changes (kernel core):**
+  - `buildBrep` takes an optional per-vertex and per-edge `toleranceMM`, and `withCavities` keeps each entity's. Before, it rebuilt everything at the default and lost a tolerant cavity's.
+  - The mass quadrature's whole-patch test accepts an edge within its own tolerance (D105's finding d: the cube's cavity was 7.7e-5 off; now the same to rounding, as `r11-s0` reads).
+  - STEP: the writer's distance accuracy is the bodies' largest entity tolerance where that exceeds 1e-6. The reader takes a distance accuracy above 1e-6 as its entities' tolerance, at most 1e-5 of the model's size. Exact bodies are unchanged both ways. A SubD shell's STEP round trip keeps its volume to 1e-9; it failed before.
+- **Evidence** (`test/r11-2a.test.mjs`, new; the shells were refused on HEAD 52f800a48; every result strictly valid, mass by quadrature):
+
+  | Body (χ) | Wall | Cells | Deviation | Volume against Steiner |
+  |---|---|---|---|---|
+  | SubD cube (2) | 0.5 | 216 | 8.6e-6 mm (target 9.2e-6) | −8.5e-7 |
+  | SubD cube (2) | 1 | 216 | 9e-6 mm | −7.3e-7 |
+  | SubD cube (2) | 1.47, next to its fold | 216 | | within the bound |
+  | Torus 8 × 6 (0) | 1 | 35 | 2.3e-5 mm (target 2.5e-5) | −2.1e-6 |
+  | Torus 8 × 6 (0) | 2 | 92 | 2.1e-5 mm | −2.1e-6 |
+  | Torus 16 × 8 (0), faces of 13 spans, past the cap | 1 | 114 | 2.0e-5 mm | −1.5e-6 |
+  | Torus 16 × 8 (0) | 2 | 114 | 2.4e-5 mm | −2.1e-6 |
+  | Membrane in a rim (2) | 0.2–0.5 | | | 2.4e-6 – 7e-6 of the shell |
+
+  - The oracle is Steiner's formula: the hollow encloses V − At + Mt² − (2πχ/3)t³. A, M = ∫H dA and ∫K dA are by quadrature of the limit surface, and χ comes out 2.000000 and 0.000000. The bound checked is area × target.
+  - Refused by name: the cube at 1.49 (`OFFSET_FOLDS`, radius 1.48015); the membrane at 0.6 (`WALL_TOO_THIN`, top and bottom membranes 0.5x mm apart); an opened face (R11.2b).
+  - Conformance `r11/shell-subd-cube`, `shell-subd-torus-16x8` (Steiner's volume, the tolerance from the accuracy contract, STEP round trip 1e-9), `refuse-shell-subd-folds`, `refuse-shell-wall-too-thin`.
+  - A flow step: the SubD cube shelled 0.5 from a file.
+- **Not done:** opened faces (R11.2b). Bodies with sharp edges and freeform faces (region slabs) are R11.2b and R11.2c. Creased SubD bodies have sharp edges and are not on this route.
+- Checks: lint and type-check clean; kernel 1157/1162 (only the env-only Split test fails; r11-s0's two S0 records read then and now); conformance with the 4 new cases; studio 453/453; full flow 151/151 on 52f800a48 plus this step (every R14 and A5 step passing). RB rows in the next commit.
+
+## D111 — R11.2b: a smooth closed freeform body shelled with faces opened (2026-10-20)
+
+D110 refused a shell that opens faces of a smooth freeform body. A shell's wall is the union of its kept faces' normal bands. So opening a face only takes its band away, and this step builds the opened shell from D110's cavity with no Boolean.
+
+- **Route** (`offsetShell` in `offset-cavity.ts`; `shellPart` takes it when `open` is not empty). The shell's faces:
+  - the kept faces as they are, with their names;
+  - their offset: D110's cells, fitted the same way, turned inside out and named `<shell>.in.<face>.c<i>_<j>`;
+  - along each edge between a kept face and an opened one, the wall's end: the band from the edge to its offset, ruled along the kept face's normal, named `<shell>.rim.<edge>#k`.
+  - Only the kept faces are offset, fold-checked and fitted. A face that folds can be opened.
+- **The wall's ends.** The offset's cells cut the opening's edges, so each band joins one cell side.
+  - Each rim edge is split at those cuts into exact pieces of its curve. Each knot is inserted to full multiplicity (Boehm, on homogeneous points) and the middle segment kept, to 2.7e-15 on a rational cubic.
+  - Each piece has its own band: cubic along the edge (the face's side knots each once more, refined until both rows are within the target, at most 16 poles), linear across.
+  - Without the pieces, a band along a whole cap edge needed more than 16 poles.
+  - Radial edges are straight lines from each rim vertex (cut vertices included) to its offset.
+  - Each band runs out of the kept face towards the opening. Its sense comes from the kept face's coedge.
+  - The kept faces' loops run through the pieces. Rim entities take the cavity's tolerance, twice the measured deviation.
+- **Refusals by name:**
+  - `[OPENING_AT_A_VERTEX]`: the opening touches itself at a vertex, where kept and opened faces alternate more than once round it. The wall's ends would share one radial there, four uses of one edge. For example, two diagonal caps of the cube's top. Before the check, this gave a non-manifold result.
+  - `[WALL_TOO_THIN] … runs out through the opened face …`: a kept face's offset crosses an opened face (its signed distance outside the opened face's outward normal).
+    - The opened face is no wall. The wall may come nearer to it than t (what lies between runs out through the opening), but not cross it.
+    - The first version skipped opened faces in the thin check and would have let a wall poke out of the body.
+    - The membrane in a rim, its top opened: t 0.6 and 1.0 are made (refused closed at 0.6); t 1.1 is refused 0.0525 mm past the top.
+  - `every face is opened`.
+  - Faces that are not on the body are refused by `shellPart` as before (`SELECTION`).
+  - A kept face still folds by name (`[OFFSET_FOLDS]`).
+- **Evidence** (`test/r11-2b.test.mjs`, new; every case refused on HEAD 05679aff2 with "not supported yet (R11.2b)"; every result strictly valid, one shell, mass by quadrature):
+
+  | Body, opened | Wall | Cells | Wall's ends | Deviation (target) | Volume against the bands | Time |
+  |---|---|---|---|---|---|---|
+  | SubD cube, its top (4 caps) | 0.5 | 180 | 24 | 8.6e-6 (9.2e-6) mm | 1.9e-6 | 0.9 s |
+  | SubD cube, one cap | 1 | 207 | 12 | 9.0e-6 (9.2e-6) mm | 5.9e-7 | 1.4 s |
+  | SubD cube, top and bottom (a tube) | 0.5 | 144 | 48 | 8.6e-6 (9.2e-6) mm | 1.9e-6 | 0.7 s |
+  | Torus 8 × 6, one patch | 1 | 31 | 7 | 2.3e-5 (2.5e-5) mm | 3.5e-6 | 0.4 s |
+  | Membrane in a rim, its top (24 faces) | 0.6 | 119 | 38 | 5.9e-5 (6.0e-5) mm | 1.1e-5 | 1.5 s |
+
+  - The oracle: each kept face's normal band is ∫∫ (t − Ht² + Kt³/3) dA (H > 0 convex), by 8 × 8 Gauss–Legendre on halves of the limit surface's knot spans. The bands of a smooth body meet only along the normals at their common edges, so the shell is their sum. The bound checked is kept area × target.
+  - Every kept face keeps its name; no opened face appears.
+  - Refused by name: the diagonal caps, every face, the membrane's top at 1.1, a kept cap at 1.49.
+  - Conformance `r11/shell-subd-cube-open-top`, `shell-subd-torus-open-patch` (the bands' volume, the tolerance from the accuracy contract, STEP round trip 1e-9), `refuse-shell-opening-at-a-vertex`.
+  - A flow step: the SubD cube shelled 0.5 from a file, its top opened (85.04 mm³).
+  - `r11-2a`'s opened-face refusal is removed (noted in place).
+- **Not done:** bodies with sharp edges and freeform faces (region slabs) are R11.2c. Creased SubD bodies have sharp edges and are not on this route. A wall's end is square to its kept face; there is no option for an end square to the opened face.
+- Checks: lint and type-check clean (kernel and studio); kernel 1162/1167 (4 skipped; only the env-only Split test fails); conformance 119/119 with the 3 new cases; studio 474/474; full flow 154/154 on 05679aff2 plus this change, the new step included (every R14 and A5 step passing; the file has 154 steps, against the 155 the coordinator counted after the merge). RB rows in the next commit.
+
+## D112 — R11.2c-1: trimmed planes and cylinders in the offset route; a filleted pipe tee shelled with its ends opened (2026-10-20)
+
+R11.2c is D105's verdict (b): bodies with sharp edges and freeform or trimmed faces. It is split in two:
+- **R11.2c-1 (this step):** the offset route's faces. Planes and cylinders however trimmed join it, beside fitted patches. That covers bodies whose kept faces form one smooth region once the opening takes the sharp edges away: a pipe fitting with its ends open.
+- **R11.2c-2 (next):** sharp edges between kept faces, by region slabs through the analytic Boolean (the closed tee, the conic-filleted box).
+
+R11.2c-1 builds what R11.2c-2's region slabs need too: the inner and outer sheets of trimmed analytic faces.
+
+- **Route** (`offset-cavity.ts`). A kept face is taken in one of two ways:
+  - an untrimmed patch whose edges all run along its domain's sides (fitted cells, as D110);
+  - else an **exact face**: a plane or a circular cylinder (`faceGeometry`) with any loops.
+  - An exact face's offset is an affine map of its own NURBS surface and edges, so it is exact and keeps its trims. A plane moves along its normal; a cylinder scales about its axis, a convex one to r − t and a hole to r + t.
+  - An edge with a patch on it is fitted from the patch's side, as before. An edge of exact faces only is the face's map of it, cut so no piece has more than 16 poles (a band goes on each).
+  - A rim band along an exact face is the ruled surface between the piece and its map, so it is exact.
+  - Faces keep all their loops: the main pipe's half has its hole.
+- **The gate** (`smoothOffsetBody(body, open)`): one closed body; every kept face a patch or an exact face; every edge between two kept faces smooth.
+  - The pipe tee's rolling-ball fillet meets its cylinders within 1.5e-5 rad (at the edges' middles). The route's smooth threshold is now 1e-4 rad (0.006°).
+  - The offsets part by t times the kink along such an edge. That gap (the largest kink, sampled along each edge at its ends, quarters and middle) is counted in the deviation, so the tolerances cover it.
+  - `shellPart` takes the route when `generalShell` refuses a face's kind or trim (freeform, a curve-trimmed cylinder, a plane bounded by a free curve) and the gate passes. Every other refusal of the slab route stands, `[WALL_NEAR_RADIUS]` among them.
+- **Checks for exact faces:**
+  - `[OFFSET_FOLDS]` where a convex cylinder is no wider than the wall.
+  - The thin-wall check samples each exact face's tessellation points, mapped. A distance to an exact face is the one to its foot on the surface (along the normal), taken only where the foot lies on that triangle. Elsewhere another triangle's foot decides, so a trim does not count as a wall.
+- **Three latent bugs found by the tee:**
+  - **The cell fit's span search** (`spanOf`, D110) never ended when the first Greville point, (a + a + a)/3, rounded below a. One fillet patch's last cell hung the route. It now returns the first span there.
+  - **The tessellator's boundary check** took a small cell's edges for off its surface beyond 1e-5 of the cell's own size. The tee's fillet cells are 1–2 mm, so that is 3e-5 mm, while their edges are tolerant to 1.2e-4 mm (1e-6 of the 60 mm body, twice). It now accepts an edge within its own tolerance, as `checkBrep` does (kernel core, `brep-tessellate.ts`).
+  - **The tessellator's mean of a run of one parameter** (`snapIsoRuns`) could round one ulp past the domain's end ("Parameter is outside the knot domain" at 16 a quarter). It is now kept within the run's own values (kernel core).
+- **Evidence** (`test/r11-2c1.test.mjs`, new; refused on HEAD bc468b3e9 "a cylinder trimmed by a curve other than its rulings and circles"; every result strictly valid, one shell, mass by quadrature):
+
+  | Pipe tee (R along X, r up Z, fillet), ends opened | Wall | Faces (hollow, rim) | Deviation (target) | Volume against the bands | Time |
+  |---|---|---|---|---|---|
+  | R 10, r 5, fillet 2 | 0.5 | 333 (297, 8) | 5.9e-5 (6.0e-5) mm | −1.6e-6 | 1.5 s |
+  | R 10, r 5, fillet 2 | 1 | 333 (297, 8) | 5.9e-5 mm | −1.6e-6 | 1.8 s |
+  | R 10, r 5, fillet 2 | 2 | 333 (297, 8) | 5.9e-5 mm | −1.6e-6 | 2.2 s |
+  | R 10, r 6, fillet 1.5 | 1 | 343 (309, 8) | 6.0e-5 mm | −1.5e-6 | 1.8 s |
+
+  - The oracle: each kept face's normal band ∫∫ (t − Ht² + Kt³/3) dA.
+    - A cylinder's band is A·(t − t²/2r), with its area r ∮ −h dθ over its own edges (Green's theorem on the cylinder; the main pipe's two halves give 3635.32 of 3769.91 mm², the junction's hole taken).
+    - A fillet patch's band is by quadrature of its curvature. The bound checked is kept area × target.
+  - The shells tessellate at 8 and 16 a quarter.
+  - Refused by name:
+    - the wall at 4.1, past the fillet's convex radius of 4.048 mm where it turns round the branch (`[OFFSET_FOLDS]`, a fillet patch);
+    - an end kept, which leaves a sharp edge between kept faces: the slab route's refusal stands until R11.2c-2.
+  - Conformance `r11/shell-pipe-tee-open-ends` (the bands' volume, the tolerance from the accuracy contract, STEP round trip 1e-9) and `refuse-shell-pipe-tee-fillet-folds`.
+  - A flow step: the tee from a file, shelled 1 with its ends opened (3955 mm³).
+  - R11.2a/b and S0 unchanged: their tests pass as they were.
+- **Not done:**
+  - Sharp edges between kept faces: R11.2c-2's region slabs (the closed tee, the conic-filleted box).
+  - Trimmed freeform patches, and exact faces other than planes and cylinders (cones, spheres, tori trimmed).
+  - The exact faces' thin-wall path has no case of its own that refuses: none of the tees comes near it.
+- Checks: lint and type-check clean (kernel and studio); kernel 1166/1171 (4 skipped; only the env-only Split test fails); conformance 121/121 with the 2 new cases; studio 482/482; full flow 156/156 on bc468b3e9 plus this change, the new step included (every outer-lane step passing). RB rows in the next commit.
+
+## D113 — R11.2c-2: shells of bodies whose smooth regions meet bounding planes at sharp edges (2026-10-20)
+
+D105's verdict (b), finished: bodies with sharp edges and freeform or trimmed faces. The targets were the closed pipe tee and the conic-filleted box; both were refused on HEAD: a cylinder trimmed by a curve, and a plane bounded by a curve that is not a line or an arc.
+
+- **Route** (`region-shell.ts`, new). The wall is the union of a slab per piece of the boundary, and the shell is the body within it (the slab route's way, D105–D108). Two kinds of slab need no growth across an edge.
+  - **A bounding plane's band.** A plane bounds the body when every point of the body lies on its inner side (its tessellation's points, within 1e-6 of the size).
+    - Its band runs from the wall inside to 1.37 walls out and is unbounded along the plane: a square 4 sizes across, each band's a little apart so no far faces coincide.
+    - Inside the body, a point within the wall of such a plane is within the wall of the boundary, because the segment to the plane leaves the body. So the band needs neither the face's outline nor any growth: a plane bounded by a conic or a trimmed curve is as any other.
+    - The faces of one plane joined by flat edges form one band.
+  - **A smooth region's slab** (`regionSlab`, offset-cavity.ts):
+    - the region (faces joined by edges within 1e-4 rad) offset in by the wall (the inner sheet, turned inside out) and out by its reach;
+    - closed along every edge of the region by bands ruled along its normals.
+    - The reach is 1.37 walls, or half the tightest concave radius where that is less: the outer sheet must not fold.
+    - The two sheets share one grid of cells a face (each refitted on the other's until neither cuts it further), so the bands pair their pieces.
+  - At a sharp edge between a region and a bounding plane, the region's end lies inside the plane's band: its normal there lies in the plane at a right angle, and near it otherwise. So the slabs, the body and each other meet transversally, and every face of the union inside the body is the hollow's.
+  - **Closed:** the union's voids are the hollow, so the shell is the body with them as cavities (`withCavities`): no Boolean with the body. The closed tee takes 7.9 s instead of 22 s.
+  - **Opened, beside a region:**
+    - The body is first extended through the opened face: a prism on it, two walls deep, glued on (`glueAtSharedFace`). The slabs are the extended body's, so the region's run out past the opening.
+    - The shell is the original body within them (one analytic Boolean).
+    - A face opened beside bounding planes only needs nothing.
+- **Planes and cylinders are now always exact faces in the offset route** (they were patches when untrimmed, D112). An untrimmed half cylinder fitted as cells was 1.6e-5 off on a capped cylinder; exact, it is 4e-15. The opened tee of D112 improves from −1.6e-6 to −2.6e-7. R11.2a/b are unchanged: their SubD faces are neither.
+- **Kernel core fixes found by the region slabs' cells** (domains such as [12/13, 1], where a sum of steps rounds past the end):
+  - The analytic Boolean's curve table evaluated a face at its parameters scaled and back, which could lie past the domain: now clamped.
+  - Its 25 × 25 sample grid's last row, and its arc-length estimate's last step, could round past the domain: now the end itself.
+  - The tessellator's grids (`spaced`): the same.
+  - **The analytic Boolean's result tolerance** was its own 1e-5 whatever its inputs. A fitted region slab's pieces lost their 1.2e-4, and the tessellator then refused them. It is now the inputs' largest entity tolerance where that is more, as `withCavities` keeps them (D110).
+- **Refusals by name:**
+  - `[SHELL_REGIONS_SHARP]`: two smooth regions meeting at a sharp edge (an unfilleted tee's cylinders at their concave saddle).
+  - `[SHELL_PLANE_NOT_BOUNDING]`: a plane the body crosses (a step, a pocket) at a sharp edge beside a region.
+  - `[SHELL_OPENING_NOT_PLANAR]`: an opened curved face beside a region.
+  - `[SHELL_FACE_KIND]`: a face of another kind beside a sharp edge.
+  - `[SHELL_NOT_CLOSED]` for any other failure, with its reason.
+- **Evidence** (`test/r11-2c2.test.mjs`, new; every case refused on HEAD c885e6c0e; every result strictly valid, mass by quadrature):
+
+  | Body | Wall, opened | Faces | Volume against the closed form | Time |
+  |---|---|---|---|---|
+  | Box 40 × 30 × 20, an edge conic-filleted (ρ 0.5, 3) | 1 closed | 51 | −9.1e-9 | 1.5 s |
+  | the same | 2 closed | 135 | +9.9e-9 | 2.9 s |
+  | the same | 1, bottom | 50 | −1.2e-8 | 2.0 s |
+  | the same | 2, bottom | 134 | +1.3e-8 | 4.6 s |
+  | Pipe tee R 10 / r 5, filleted 2 (D112) | 1 closed | 328 | −2.3e-7 | 7.9 s |
+  | the same | 2 closed | 328 | −2.0e-7 | 8.9 s |
+  | the same | 1, branch end | 327 | −2.3e-7 | 19.7 s |
+
+  - The box is a prism along X, so its hollow is its section eroded over 40 − 2t. The section's turning is three right angles and the conic's quarter turn, so it erodes to A − Pt + (3 + π/4)t². With the bottom open it is A − (P − 30)t + (1 + π/4)t².
+    - A and P come from the end face's own edges, by Green's theorem and arc length; A agrees with the body's volume / 40 to 1e-9.
+  - The closed tee's wall is the faces' normal bands (D112's), plus each kept cap's disc πr²t, less each cap's overlap with its pipe, the square ring 2π(r − t/2)t².
+  - The closed tee tessellates at 8 and 16 a quarter.
+  - Refused by name: the unfilleted tee, a pocket in the conic box's floor, an opened fillet face.
+  - Conformance `r11/shell-conic-box-closed`, `shell-conic-box-open-bottom`, `shell-pipe-tee-closed` (STEP round trip 1e-9) and `refuse-shell-regions-sharp`.
+  - A flow step: the conic box from a file, shelled 2 with its bottom opened (7096 mm³).
+  - R11 S0's two refusals (the filleted tee, the conic box) and R11.2c-1's kept-end refusal now shell; their tests say then and now. A box with a lofted boss (part-model's shell test) is refused by name for the box's top the boss crosses (`[SHELL_PLANE_NOT_BOUNDING]`) instead of for its freeform faces.
+- **Not done** (each refused by name):
+  - concave sharp edges between regions, or between a region and a plane the body crosses (a boss on a curved face, a pocket);
+  - openings that are curved faces beside a region;
+  - trimmed freeform patches, and exact faces other than planes and cylinders.
+  - The opened case's one Boolean takes about 20 s on the tee (327 faces).
+  - R11.3 (mesh offsets) is next.
+- Checks: lint and type-check clean (kernel and studio); kernel 1173/1178 (4 skipped; only the env-only Split test fails); conformance 125/125 with the 4 new cases; studio 505/505; full flow 160/160 on c885e6c0e plus this change, the new step included (every outer-lane step passing). A first full run made beside the kernel suite timed out six drawing and A5 steps (5–30 s waits) and logged one page error. Those steps all passed on their own, and the run alone was clean. RB rows in the next commit.
+
+## D114 — R11.3: a mesh body's shell, and thicken's fold refused by name (2026-10-20)
+
+D105's R11.3: mesh bodies get an offset mesh as their cavity, with the wall it achieves reported. Folds and self-intersections are refused, and `thicken`'s unchecked fold-over (S0) is refused by name. This step ends R11.
+
+- **Route** (`mesh-offset.ts`, new; `shellOf` takes a body of facet faces first):
+  - The mesh's triangles, welded (`facetTriangles`), must be closed and wound one way.
+  - Each vertex moves to the least-squares point of its triangles' planes moved in by the wall, each weighted by the triangle's angle at the vertex. The solve is Σ w n nᵀ d = −t Σ w n, through the 3 × 3 matrix's eigenvectors (Jacobi), leaving out directions it spans less than 1e-4 of its largest.
+  - So where up to three planes meet it is their sharp join exactly: a box's corner, a mitre on an edge, a flat point along its normal. Round a smooth vertex the wall lies within the spread of its normals.
+  - The cavity is the same triangles at the moved points (a facet B-rep, its faces named `<shell>.in.<face>`), added as a void (`withCavities`). The mass is polyhedral, exact.
+  - **The wall it achieves**, measured: the least and largest distance from the offset (its vertices and triangles' centres) to the mesh's surface, through D85's distance tree (`meshDistanceRange`, new). It is on the output as `shell: { wallMM, wallMinMM, wallMaxMM, triangles }`.
+- **Refusals by name:**
+  - `[OFFSET_FOLDS]`, a triangle turned over: an offset triangle facing against its own. The wall is deeper than the mesh curves there, or than half its thickness (a U-prism's 2 mm slot floor at 1.5).
+  - `[OFFSET_FOLDS]`, turned inside out: the offset's signed volume is not positive. Each triangle still faces its own way, so only the whole tells; for example a ball shelled past its radius.
+  - `[WALL_TOO_THIN]`: the inner surface meets itself or the mesh. The mesh and its offset are taken together and crossing pairs found through mesh repair's grid (`selfIntersections`). Example: a pocket's floor 2 above the bottom at 1.5. No triangle joins the two there, so none turns over: the offsets just cross.
+  - `[MESH_WALL_THIN]`: the wall achieved is more than 1 % thinner than asked, a mesh too coarse for its offset.
+  - `[SHELL_MESH_NOT_CLOSED]`.
+  - Opening a face of a mesh body, and a mesh sheet, are refused ("not supported yet"; a sheet: "thicken it instead").
+- **thicken** (`thicken-solid.ts`):
+  - Refused where the offset turns over towards the side it curves to, `[OFFSET_FOLDS]`: the shell's check (D110), each knot span sampled with its edges and climbed, against the side or sides thickened into. Surfaces of degree above 3 are sampled on a 64 × 64 grid of principal curvatures.
+  - The quarter cylinder R 10 thickened 12 towards its axis (S0's fold) is refused, its radius 10 against 12; so is 21 both ways (10.5 a side). 9 towards it, 12 away and 19 both ways are made, within 2e-3 of their volumes (the sampled mesh).
+- **STEP, for hollow mesh bodies** (kernel core, `step.ts`, `step-import.ts`). HEAD wrote a facet body's faces as planar faces in one shell, so a hollow one's two shells became one, and reading it back refused it as "not connected". Now:
+  - each shell is written apart and the voids are put back (`withCavities`);
+  - a tessellated solid that reads in pieces takes the largest as its outside and the pieces inside it as its voids (others are refused as before);
+  - a hollow 1280-triangle mesh round-trips both ways to 1e-9, and a 20 480-triangle one the same.
+- **Evidence** (`test/r11-3.test.mjs`, new; every case refused, or the fold made, on HEAD 3f2bf159b; every result strictly valid, two shells):
+
+  | Mesh body | Wall | Volume against the closed form | Wall achieved |
+  |---|---|---|---|
+  | Octahedron \|x\| + \|y\| + \|z\| ≤ 10 | 1, 3 | exact (rounding): (4/3)(a³ − (a − √3t)³) | t to rounding |
+  | Box 40 × 30 × 20 (12 triangles) | 2 | exact: 24000 − 36·26·16 | 2 |
+  | U-prism (a slot down to 2 above its floor), tessellated | 0.5, 0.9 | exact: its section inset with the slot grown, (40 − 2t)(20 − 2t) − (10 + 2t)·18, over 30 − 2t | t |
+  | Box with a blind pocket, tessellated | 0.9 | exact: the box inset less the pocket grown | 0.9 … 1.1 (the pocket's inside corners, sharply joined) |
+  | Icosphere R 10, 1280 triangles | 1, 5 | (no closed form) | within 5e-4 of t |
+  | Icosphere, 80 triangles | 3 | | 2.981 … 3.007 |
+  | Icosahedron | 3 | | t |
+
+  - Refused by name: the U at 1.5 (a fold), the icosphere at 11 (inside out), the pocketed box at 1.5 (crossing), an opened mesh face, thicken at 12 and at 21 both ways.
+  - Conformance `r11/shell-mesh-octahedron`, `shell-mesh-pocketed-box` (exact, STEP round trip 1e-9), `refuse-shell-mesh-wall-too-thin`, `refuse-thicken-folds`.
+  - A flow step: the octahedron mesh from a file, shelled 3 (1185.5 mm³).
+  - R11 S0's mesh refusal and its unchecked thicken fold now say then and now.
+- **Not done:** opened faces on mesh bodies; round (arc) joins at a mesh's concave edges (the sharp join, as the slab route's default); the mesh's offset is a vertex move, so a mesh coarser than its curvature is refused (`MESH_WALL_THIN`) rather than refined; thicken's sheets are still a sampled grid.
+- Checks: lint and type-check clean (kernel and studio); kernel 1182/1187 (4 skipped; only the env-only Split test fails); conformance 129/129 with the 4 new cases; studio 519/519; full flow 164/164 on 3f2bf159b plus this change, run on its own, the new step included (every outer-lane step passing). RB rows in the next commit.
+
+## D115 — R12 S0: feasibility of sheet metal (2026-10-20)
+
+The roadmap's feasibility checkpoint before R12 (§4 item 12: base flange from a sketch, edge flange, bend with radius and K-factor, reliefs, flat pattern, its DXF, bend table data in the part). There is no research note; this record is the design input. The questions:
+- Does today's kernel build a sheet's pieces exactly?
+- Can a sheet's B-rep be unfolded, and against which oracles?
+- What is kernel work, and what is app work?
+
+Evidence: `packages/barocss-cad/test/r12-s0.test.mjs` (kept), against closed forms and the kernel's own volume. The probe unfolder lives in the test. No product code changed.
+
+**The standard model** (the definitions only; no data values):
+- A sheet has thickness T. A bend is a cylinder piece of inner radius R turned θ.
+- Its neutral layer lies at R + K·T. The K-factor is defined by the bend allowance BA = θ(R + K·T), the developed length of the bend.
+- Outside setback OSSB = (R + T)·tan(θ/2). Bend deduction BD = 2·OSSB − BA (θ < 180°).
+- Flat length = Σ legs + Σ BA, or the outside dimensions to the virtual sharps less Σ BD.
+- Real values of K (and of BA/BD tables) come from a shop's bend tests. Data rules below.
+
+**Today, as it stands:**
+- **Construction is exact.**
+  - **A contour flange.** An L-bracket's section (lines and two arcs, R and R + T) as one `loop` sketch, extruded: volume W(aT + bT + θT(R + T/2)) to 1e-16, area to 3.5e-14, valid.
+  - **An edge flange.** The flange's section (bend and leg) extruded along the edge and united onto a plate: every angle 30°–175°, up and down, full or part width; valid, volume to ≤ 1.7e-12 (asserted 1e-11).
+  - **A rectangular relief** at each end of a part-width flange, by difference: exact.
+  - **A tray**: a plate, four 90° flanges a gap g short of each corner, a hole in the plate and one in a flange. Valid, 2.8e-12, 42 faces, 60–120 ms.
+  - `sweep` (straight runs and bends up to 180°, `toward` ±x/±y; `sweepBrep`) is a second route for contour flanges.
+  - `thicken` is not a route: its sheet is a sampled grid (faceted).
+- **Missing sheet semantics.** Faces are named after the sections' sides and split by the Booleans: an L-bracket's bends are `e.side3` and `e.side7`; a tray's flange side is `fe3.side3#1` … `#4`. Thickness, K and the bends are recorded nowhere.
+- **A silent wrong sheet.** Flanges leaning in (turned past 90°) cross their neighbours near the corners. The union takes the overlap once and returns a valid solid, under its pieces' sum by 0.88 % (120°), 1.8 % (150°), and 0.32 % at a 5 mm gap. No sheet folds into it, and nothing says so.
+- **No gap at a corner is fine.** The neighbouring bends' ends meet only along the plate's corner edge, a reflex edge of a valid solid (90° and 60°, exact). In the flat, the tabs touch at the plate's corner.
+
+**Unfolding the B-rep (the probe):**
+- **The method.**
+  - Fix a planar face. Its skin is the faces joined to it across smooth edges (normals agreeing to 1e-9). The thickness's side faces meet it at sharp edges.
+  - Planes move rigidly into the fixed face's plane.
+  - A bend (a cylinder by `faceGeometry`) develops by angle × its neutral radius: ρ − T + K·T when its normal points away from its axis (the skin is the outer side), else ρ + K·T.
+  - Each new face's frame comes from the tangent line it shares with the face before.
+  - The flat's outline is the skin's edges not shared by two skin faces. Its area comes from Green's theorem on their developed images.
+- **Oracles**, all independent of the unfolder:
+  - **The area identity**, flat area = V/T + (K − ½)·T·Σθw. At K = ½ the neutral layer is the middle, so the flat is the volume over T. V is the kernel's mass quadrature.
+  - **The textbook reach**: a flange's far edge lies h + θ(R + K·T) beyond the plate's edge.
+  - **Agreement**: each edge between skin faces lands at one place from both sides. Either skin, fixed, gives the same flat.
+- **Results:**
+  - Internal edges coincide to ≤ 7e-15.
+  - The area identity holds to ≤ 4.7e-12 (asserted 1e-11) for K 0.5, 0.44 and 0.33. It holds on the tray with holes, at no gap, at 30°–175° up and down, and from either skin.
+  - It also holds after a **STEP round trip**: the imported body (no names, no history) unfolds to the same flat, its fixed face found by its plane.
+  - The reach holds to 4e-15.
+  - The outline's images are lines and circles to 3.7e-14: planar edges move rigidly, and a bend's end arcs develop straight.
+  - The tray unfolds in 25–30 ms.
+- **The DXF writer (R11b) needs nothing new** (O1 said so). The tray's flat as 28 LINEs and 4 ARCs on layers OUTLINE and BEND_UP (a DASHED line type) through `writeDxf`.
+  - ezdxf 1.4.5's audit (`scripts/dxf-oracle.py`, by hand, L1): no errors, no fixes.
+  - The 28 lines include collinear pieces where the Booleans split the plate's edges; the flat merges them.
+- **So the flat comes from the B-rep itself, given T and K.** It works for any sheet whose cuts are normal to it, made by any feature, and for imported sheets. The sheet features need only carry the rules and name the bends.
+
+**Kernel versus app:**
+- **Kernel:**
+  - the sheet features and their B-rep with role names;
+  - the rules and a bend list on the output (`sheet`: T, K or table, each bend's faces, axis, R, θ, up/down, BA);
+  - the flat pattern (outline loops, bend lines, bend notes), and the flat's DXF document for `writeDxf`;
+  - bend-table lookup;
+  - typed refusals.
+- **App (studio):**
+  - commands, HUDs and node kinds;
+  - picking a flange's edge;
+  - a flat-pattern view and "Export flat DXF";
+  - the agent's sheet tools.
+- **The outer lane (R14, drawings):** a flat on a drawing sheet and a drawing's bend table, from the kernel's flat and bend data.
+
+**Verdict — R12 in five stages, this order:**
+- **R12.1 — sheet rules, base flange, contour flange.**
+  - **New kinds:**
+    - a base flange from a closed sketch (a plate T thick, either side of its plane);
+    - a contour flange from an open path of lines in a sketch plane: a bend of radius R at every corner, the material on a chosen side, extruded a width.
+  - **The rules on the feature:**
+    - T, R and K are explicit.
+    - The kernel has no hidden default (a data value, below).
+    - R is overridable per bend later.
+  - **Faces named by role**, e.g. `<id>.bend<k>.inner/outer`, the skins, the legs, sides by the sketch's tags (D86). They are new kinds, so no migration.
+  - **The output's `sheet` report.**
+  - **Oracles:** closed-form volume and area, and BA.
+  - **Refusals** by name:
+    - a path crossing itself;
+    - a bend that does not fit between its legs (a leg shorter than its setbacks);
+    - θ at 0 or 180°;
+    - T or R not positive.
+  - **Studio:** node, command, chat spec, a flow step.
+- **R12.2 — the flat pattern and its DXF.**
+  - **The unfolder** as probed, in product code with hoisted functions.
+  - **The flat:**
+    - outline loops, collinear pieces merged, lines, arcs and circles;
+    - bend lines: the centre and both tangent lines;
+    - bend notes (up/down, θ, R, K, BA).
+  - **The sheet report** carries through a `difference` whose target is a sheet, so holes and cuts normal to a flat face reach the flat.
+  - **A body with no sheet report** (an import, a plain extrusion) unfolds when T and K are given with it. T is checked against the body's own skins, not trusted.
+  - **Refusals** by name:
+    - `NOT_A_SHEET`: a face of neither skin nor side, or the opposite skin not at T;
+    - `NON_NORMAL_CUT`: a side face not square to the skin;
+    - `BEND_NOT_CYLINDRICAL`;
+    - `FLAT_OVERLAPS`: the developed outline crosses itself;
+    - an image neither line nor arc, such as a cut across a bend, refused until a later step.
+  - **Oracles:**
+    - the area identity, with a cut bend's θw taken as its inner face's area over R (the kernel's face area);
+    - the textbook lengths;
+    - a refold: developed vertices mapped back lie on the body to 1e-9;
+    - either skin;
+    - a STEP round trip.
+  - **DXF** through `writeDxf`:
+    - layers OUTLINE, BEND_UP, BEND_DOWN and BEND_NOTES;
+    - expected DXF files and ezdxf readings committed as `conformance/r12/` data, as R11b did.
+  - **Studio:** a flat-pattern view, "Export flat DXF", a flow step.
+  - **Why second:** the unfolder is the oracle-heavy core, and every later stage then checks its own flat.
+- **R12.3 — edge flanges, reliefs and corners.**
+  - **(a) Edge flange.** On a straight edge of a skin face (by name or selector), with:
+    - an angle in (0°, 180°);
+    - a length to the outer or inner virtual sharp, or to the tangent;
+    - a position: material inside, material outside, or bend outside;
+    - a part width by offsets from the edge's ends;
+    - its own radius;
+    - end reliefs for a part width: rectangular, obround or none, with width and depth.
+  - It is built as a section piece united on (exact, probed).
+  - **Refusals:**
+    - `FLANGES_COLLIDE`: the union's volume under its pieces' sum, the S0 case;
+    - an edge that is not a straight edge of a skin;
+    - a flange or relief that does not fit.
+  - **Oracles:** the closed-form volume, the flange face at OSSB, the flat length A + B − BD.
+  - **(b) Corners of neighbouring flanges:** a corner gap, and corner reliefs (square, round) through both bend zones. Closed corners are not in R12.
+- **R12.4 — bend tables.**
+  - **A table in the part:** rows (T, R, θ) → K, BA or BD, each row with a source id or `estimate: true`.
+  - **Lookup:** an exact row, or linear inside the table's grid; outside it, refused by name.
+  - **Conversions** between K, BA and BD in closed form.
+  - **The report and the flat** name the row used.
+  - **Data:** see below.
+- **R12.5 — acceptance.**
+  - The RB9 ladder's rungs 5 and 10: a sheet-metal L-bracket and a sheet-metal PCB enclosure (base, four flanges, corner reliefs, mounting holes).
+  - Both are built by the agent through the real chat with the sheet tools.
+  - Their flats are exported to DXF and audited.
+  - RB rows; the R12 → FR hand-over.
+
+**Every stage:** a D-record, tests failing on the previous HEAD where a defect is fixed, `conformance/r12/` fixtures, a flow step, RB rows, a checkpoint.
+
+**Data and defaults:**
+- **No K, BA or BD values are built in** unless a named public source with a record is found (R12.4). Reading public pages for that needs the owner's OK through the coordinator; it is asked at R12.4. Otherwise values are flagged estimates, and a shop's own table is entered as data in the part.
+- **The studio's prefill for a new sheet is a reversible default, flagged an estimate wherever shown:**
+  - T 1.5 mm;
+  - R = T;
+  - K 0.5: the mid-plane, no material data. Real air bends usually lie lower, so a flat at K 0.5 is long.
+- **Relief defaults** (width T, depth T past the bend zone) are estimates, flagged likewise.
+
+**Not in R12** (listed for the owner to place):
+- hems, jogs, sketched bends, miter and lofted flanges;
+- closed corners, louvres and forming tools;
+- cuts across a bend made in the flat (unfold, cut, refold);
+- converting a solid or shell to sheet metal;
+- sheet DFM rules (minimum flange, hole-to-bend distance, minimum radius per material), as a process profile with warn and error levels and sourced values, like AM/IM/CNC.
+
+**Checks:** no product code changed. Kernel 1186/1191 (4 skipped; only the env-only "actual native Split source…" fails; r12-s0 4/4, 1.5 s). Lint clean. Studio, flow and RB were not rerun, as at D87/D105 (no source change).
+
+## D116 — R12.1: sheet rules, the base flange and the contour flange (2026-10-20)
+
+R12's first stage as D115 froze it: sheet-metal features that carry their rules, name their faces by role and report their bends, with typed refusals.
+
+**Kernel** (`sheet-metal.ts`, `part-model.ts`):
+- **Two feature kinds.**
+  - `sheet-base`: a plate from a closed sketch, one outer loop with holes allowed, T thick from its plane (`reverse`: against its normal). It is the upright route, so its mass is exact. Its faces are an extrude's: `top`, `bottom`, the sides by the sketch's tags.
+  - `sheet-contour`: an open `path` of 2–64 points in a plane (default XY), extruded `width` along the plane's normal.
+    - The path is one skin of the sheet, the material T thick to its `side` (left or right, looking along it).
+    - At each corner, a bend: the path's skin there has radius R + T where the material lies inside the turn (the path is the outer skin, its corner the outer virtual sharp), else R. The other skin is the concentric offset, so the inner radius is R either way.
+    - The section (lines and arcs) is extruded on the upright route: exact mass, valid B-rep, any plane.
+- **The rules on every sheet feature**, none defaulted: `thickness` T, `bendRadius` R and `kFactor` K. K must lie from 0 to 1 (the neutral layer within the sheet).
+- **Faces by role.** `.leg<i>.a` (the path's skin) and `.leg<i>.b`; `.bend<k>.inner` / `.outer` (k the corner's point); `.start` / `.end` (the thickness at the path's ends); `.front` (in the plane) and `.back`.
+  - `prismaticFromProfile` takes whole names for the walls and caps (`names`) for this. It is a new optional input; every other caller is unchanged.
+- **The output's `sheet` report:** T, R, K and each bend with:
+  - its name and its two faces;
+  - R and θ;
+  - its axis (in the part's frame);
+  - BA = θ(R + K·T), OSSB = (R + T)·tan(θ/2) and BD = 2·OSSB − BA (`bendAllowance`, `outsideSetback`, `bendDeduction`, exported).
+- **Refusals** by name:
+  - `[BEND_ANGLE]` (PARAMETER): a path point in line with its neighbours (no silent merge); a turn of 180° (a hem, not in R12).
+  - `[BEND_DOES_NOT_FIT]` (PARAMETER): a leg shorter than its corners' setbacks along it, the numbers given; coincident points.
+  - `[SHEET_CROSSES_ITSELF]` (GEOMETRY): the section meets or touches itself, with where and which faces.
+    - The test is closed-form (line–line, line–circle, circle–circle, arcs by angle) over every pair of segments that are not neighbours. It is not sampled.
+    - A path coming back to touch its start is refused; a millimetre short, it builds.
+  - The rules: K outside 0–1 and T or R not positive (PARAMETER); side and path (INPUT); a base sketch with regions (CAPABILITY).
+- **The sheet report is on the feature's own output only.** Carrying it through later features (a `difference` cutting holes) is R12.2, with the flat.
+
+**Oracles:** textbook relations written in the tests, not the kernel's construction.
+- **The middle line.** Each leg is measured to a corner of the path. At a corner where the path is the outer skin, the leg loses 2(R + T)·tan(θ/2) and gains θ(R + T/2) (the bend deduction at K = ½). Where the path is the inner skin, it loses 2R·tan(θ/2) and gains the same arc. The volume is T × the middle line × the width.
+- **Results:**
+  - An L at 30°–170°, either side (the path the outer or the inner skin): to 1e-12.
+  - A hat with both kinds of corner, a zed, a channel either way, the channel on the XZ plane: to 1e-12. The channel's STEP round trip holds to 1e-9.
+  - The bend faces are cylinders of radius R and R + T, coaxial with the reported axis, to 1e-12.
+  - BA, OSSB and BD agree with their definitions to 1e-12.
+  - A base plate 80 × 50 with a Ø10 hole: volume, centroid (±T/2 either way) and area exact.
+
+**Studio:**
+- **Nodes** `sheet-base` and `sheet-contour`, mapped one to one. They are new kinds, so no migration; `KINDS` takes them.
+- **Two commands:**
+  - **Sheet plate** (from a finished sketch, up or down).
+  - **Sheet profile**: an L at any bend angle, a U, a Z or a hat, standing on the XZ plane from y to y + width.
+    - Its base, leg and lip are measured to the path's side: the outside of the first bend and of a hat's crown; a Z's second bend and a hat's brims to their inside.
+- **The rules' fields** show "K-factor (0.5: estimate)".
+- **The prefill** (T 1.5, R = T, K 0.5) is D115's reversible default, on the owner's confirm list.
+- **The body's panel:**
+  - the rules;
+  - a warning when K is 0.5: an estimate, the sheet's middle, so the flat runs long; use the shop's value;
+  - one line a bend (θ, BA, OSSB, BD).
+- **The feature editor:** thickness, bend radius, K, width.
+- **The agent:**
+  - both commands (documented) and both raw nodes in `add_features` (`points2`: 2 to 64 points);
+  - the K advice in its docs: ask for the shop's value, or say it is an estimate.
+- **Icons** `cad-sheet-plate` and `cad-sheet-profile` (an L of sheet with its bend in the accent colour), also in the history.
+
+**Tests:**
+- Kernel `test/r12-1.test.mjs` (5) and studio `test/sheet.test.ts` (3). Both fail on HEAD f14204d7c, where the kinds are unknown.
+- Conformance `r12/`:
+  - `contour-l-bracket`: volume and area in closed form;
+  - `contour-hat-channel`, on XZ;
+  - `base-plate-with-hole`;
+  - `refuse-bend-does-not-fit`, `refuse-sheet-crosses-itself`, `refuse-bend-angle`.
+- The conformance runner gains an optional `sheet` expectation (rules, each bend's name, angle and BA).
+- A flow step: the hat from the palette (5406.17 mm³ by the middle line; its notes and the estimate warning; `Sheet profile T1.5 · 4 bends`).
+
+**Judgement calls:**
+1. **The contour's path is inline points**, not a sketch. The kernel's sketches are closed loops, and an open sketch would change the sketch format; the sketcher drawing an open path for it is a later UI step.
+2. **The skins are named `a` (the path's) and `b`**: legs have no inside or outside, bends do.
+3. **The studio's profile measures to the path's side**, so a Z and a hat mix outside and inside dimensions; the docs say which.
+
+**Not done:** a radius per bend; a 180° fold (a hem); the sheet report through later features (R12.2).
+
+**Shared file:** the studio's tool contract `src/chat/tools-v1.json` (A5.1, the outer lane's) takes the two new commands in `run_command`'s enum. This is a compatible change recorded with `UPDATE_TOOL_CONTRACT=1` (its own procedure); no tool's shape changed otherwise.
+
+**Checks** on 60ac5bd00 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel and studio; the studio's ESLint shows warnings only, in files not touched) |
+| Kernel | 1197/1202 (4 skipped; only the env-only Split test fails) |
+| Conformance | 135/135, with the 6 new cases |
+| Studio | 539/539 |
+| Full flow | 168/168, run on its own; the new step included, every outer-lane step passing |
+
+RB rows are in the next commit.
+
+**RB at R12.1** (a follow-up commit):
+- **The runner took every JSON file under `conformance/` as a part document.** These were the other steps' fixtures: DXF cases and their oracle readings, drawing, robot, DSL and brief cases, 86 files. They were counted as refused part documents, and the outer lane's A6 brief cases (merged at 60ac5bd00) showed as 3 NEW WRONG.
+  - It now takes only part documents and conformance cases holding one (`scripts/rb/run.mjs`).
+  - The trend's case count drops from 359 to 273 on this basis. Its REFUSED count falls with it, from 87 to 4.
+- **The two r12 contour cases' volume tolerance is now 1e-9**, as the other exact cases have.
+  - RB measures by the B-rep quadrature: 1.4e-12 on the L-bracket, past the 1e-12 first written.
+  - The kernel's prismatic integration, which the unit tests keep at 1e-12, is not the only route an implementation may take.
+
+## D117 — R12.2: the flat pattern and its DXF (2026-10-20)
+
+R12's second stage as D115 froze it. The probe's unfolder (D115) is now product code, `sheet-flat.ts`, working on the B-rep with only T and K. Its refusals are typed, and the sheet's report reaches it through holes and cuts.
+
+**The flat** (`flatPattern(brep, { thicknessMM, kFactor, fixedFace?, bendNames? })`; an output's `flatPattern({ fixedFace?, kFactor? })` uses the sheet's own rules):
+- **The fixed face.**
+  - The named face; a name split by Booleans (`#k`) takes its largest piece.
+  - Otherwise the sheet's own: a plate's `top`, a profile's `leg0.a`. Each sheet report now names it (`fixedFace`).
+  - Otherwise, for a body without the rules, the largest planar face; a tie goes to the first by id.
+  - The flat lies in that face's plane, seen from its outside: its x is world X in the plane (else Y), its y = n × x.
+- **The skin**: the faces joined to it across smooth edges (normals agreeing to 1e-9 at three points).
+  - Planes move rigidly.
+  - A cylinder unrolls at its neutral radius: ρ − T + K·T where the skin is its outside, else ρ + K·T.
+  - Each new face's frame is made across a straight tangent line, from the face before. The image of the direction into the face before, turned round, is the direction into the next face. This is one rule for plane→cylinder, cylinder→plane and cylinder→cylinder.
+  - Coplanar pieces, and pieces of one cylinder, share a development.
+  - A smooth neighbour that is neither a plane nor a cylinder is refused: `BEND_NOT_CYLINDRICAL`.
+- **The outline** is walked through the B-rep's own loops: from a boundary coedge, its loop's next, crossing an edge between two skin faces to the coedge on the other side. Tabs that touch at a corner (D115's no-gap tray) therefore make one outline through that point.
+  - Each piece is an exact image: a line; a circular arc (from a plane's circles); a spline (any other planar curve, its control points moved by the plane's affine map).
+  - On a bend only lines (its straight edges, and its arcs square to the axis).
+  - Consecutive collinear lines and arcs of one circle are joined; two half circles become a CIRCLE.
+  - The flat is moved so its box starts at 0, 0.
+- **Bends**: the skin's pieces of one cylinder, however reached.
+  - Each bend gives: its angle (its developed width over rn); its inner radius; its K; its BA (its developed width); its two tangent lines; its centre line; its faces; and its name, the sheet report's where a face matches, else `bend<k>`.
+  - `up` where the fixed skin is the bend's inside (towards the viewer), `down` where it is the outside.
+- **The sheet's report carries through** `difference` and `hole` features on a sheet (holes, cuts). The flat is worked out again from the B-rep, which decides whether it still is a sheet.
+
+**Refusals** (`FlatPatternError`, an output's as GEOMETRY with the code in its message; `CUT_ACROSS_BEND` as CAPABILITY):
+- `NOT_A_SHEET`:
+  - mesh faces, a body in pieces, or no planar face;
+  - a face facing a skin plane at another distance than T (`qe.top lies 5 mm from the skin face b.bottom, not the sheet's 2 mm`: a boss; a T given wrong);
+  - a face neither on the skins nor a cut through them;
+  - **the volume identity:** the body's volume against T × its skin at the middle — planes' area, bends' developed area × (R + T/2)/(R + K·T) — to 1e-7.
+  - The opposite skin is matched face by face: a plane at −T, or a coaxial cylinder at radius ρ ∓ T.
+- `NON_NORMAL_CUT`: a face of neither skin meeting a skin face off square at its edges' quarter points (`he.side0 meets the sheet's face b.bottom 13.82° off square`: a hole drilled 16.7° off).
+- `BEND_NOT_CYLINDRICAL`: a smooth continuation that is not a cylinder. The case is a thin parallelogram swept round a bend, its skin a cone.
+- `FLAT_OVERLAPS`, two tests:
+  - no two pieces of the outline cross, or overlap along a line. A touch at a point is allowed. The arcs are sampled at π/64, with a uniform grid so it is not all pairs.
+  - a point inside every skin face, developed, lies inside the outline once (a winding of 2 is two faces on one place).
+  - The case: a window 20 mm wide with a 30 mm flange on its edge (refused); at 10 mm the flange fits and unfolds.
+- `CUT_ACROSS_BEND`: an edge on a bend that does not develop straight.
+  - Square cuts across a bend develop straight: walls square to the axis or containing it, as a notch through a corner does (tested). No cut today's features make square to the sheet reaches this refusal, so it is a guard, untested by a case. A cut made in the flat and refolded is later work (D115).
+
+**DXF** (`flatPatternDxf(flat)`, through the R11b writer, unchanged):
+- Layers:
+  - OUTLINE (7): LINE, ARC, CIRCLE, SPLINE.
+  - BEND_UP (3) and BEND_DOWN (1): each bend's centre line, on the line type DASHED (5, −2.5).
+  - BEND_NOTES (2): a TEXT at the line's middle, along it and upright: `DOWN 90° R2`.
+- mm units.
+- Conformance `r12/flat-dxf/{channel-hole, tray-holes}/`:
+  - `case.json` holds the part document and the flat's options;
+  - `expected.AC1015.dxf` / `.AC1009.dxf` are reproduced byte for byte;
+  - `oracle.*.json` is ezdxf 1.4.5's reading (run outside the product, `scripts/flat-dxf-fixtures.mjs`; the `~/.cache/barocss-ezdxf` venv R11b set up, nothing downloaded). It audits clean (no errors, no fixes), and every entity is on its layer at its coordinates to 1e-9, with the notes' text.
+
+**Oracles**, none computed by the unfolder:
+- **The textbook flat length**, the outside dimensions to the virtual sharps less BD = 2(R + T)·tan(θ/2) − θ(R + K·T):
+  - a channel 30 + 40 + 30 with a hole: length and width to 1e-12, area L·W − π r² to 1e-12;
+  - an L at 30°–150°: length and area to 1e-12;
+  - another K (0.33) moves the flat by exactly its BD.
+- **The K-factor's area identity**, V/T + (K − ½)·T·Σθw: to 1e-11 on the channel, the tray with holes and with no gap, and the window flange that fits.
+- **Bend data:** each bend's centre line where the leg's flat length less the setback plus BA/2 puts it, to 1e-11; its strip BA wide.
+- **Closed forms of cut-outs:** a notch through an L's corner across its bend, 30·L − 6·(2(10 − R − T) + (π/2)(R + K·T)), to 1e-12.
+- **Either skin:** the same flat from the other skin to 1e-12, its bends `up`.
+- **Through STEP** (no names, no history): the same flat to 1e-9.
+- **Time:** the channel 15 ms; the tray with a hole 25–30 ms.
+
+**Studio:**
+- A sheet body's flat is worked out with its evaluation (once a B-rep; refusals kept). The body's panel shows `Flat pattern 94.357 × 25 mm, 2 bends`, or `No flat pattern: [CODE] …` as a warning.
+- A **Flat** button opens the flat pattern: drawn to scale, bends dashed (up green, down red) with their notes, and "DXF" (2000 or R12) to download it.
+- The R12.1 profile's body notes gain the flat line.
+
+**Tests:**
+- Kernel `test/r12-2.test.mjs` (6) and studio `test/sheet.test.ts` (+1). Both fail on HEAD b33f8da75, where there is no flat.
+- Conformance:
+  - `r12/flat-channel-hole`, `flat-l-bracket-120`;
+  - `refuse-flat-non-normal-cut`, `refuse-flat-overlaps`;
+  - the DXF cases above.
+- The conformance runner gains an optional `flat` expectation: area, box, loops, bends by name and direction, or the flat's error.
+- A flow step: a channel with a hole opened from a file. It checks the panel's line, the dialog's two `down` bends and its summary, and the DXF downloaded (four layers, one CIRCLE, two TEXTs).
+
+**Judgement calls:**
+1. **The flat's x axis** is world X projected into the fixed plane, else Y. A profile standing on XZ, unfolded from a vertical leg, therefore runs along Y. Its outline is the same either way.
+2. **A tie for the largest planar face** (a plate's top and bottom) goes to the first by id. Only bodies without the sheet's rules meet it; the tests name the face.
+3. **The sheet's report is carried through `difference` and `hole` only.**
+   - Moves, patterns and mirrors leave it behind: their bends' reported axes would be stale.
+   - A union makes something else, so it takes the kernel's `flatPattern` with T and K.
+   - Carrying it further is a later step if wanted.
+
+**Not done:** a cut across a bend made in the flat; bend reliefs and edge flanges (R12.3); a drawing sheet of the flat and a bend table on it (the outer lane's R14, from this data).
+
+**The flat's window:** it opens in the middle, above toasts.
+- The first full flow had it in the toast corner, where a toast left over from an earlier step (an STL opened) covered its DXF button.
+- The flow step also handles its download's promise at once. A failed click had left that promise waiting, and when it timed out it ended the whole flow, not just the step.
+
+**Checks** on b33f8da75 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel and studio) |
+| Kernel | 1207/1212 (4 skipped; only the env-only Split test fails) |
+| Conformance | 139/139, with the 4 new cases; the 2 DXF cases in `r12-2.test.mjs` |
+| Studio | 545/545 |
+| Full flow | 170/170, run on its own; the new step included, every outer-lane step passing |
+
+RB rows are in the next commit.
+
+## D118 — R12.3a: edge flanges and their reliefs; FLANGES_COLLIDE; the sheet's report dropped past moves (2026-10-20)
+
+R12.3's first half, as D115 froze it. Corners of neighbouring flanges (corner reliefs) are R12.3b, next.
+
+**Kernel** (`sheet-flange`, `part-model.ts` `sheetFlange`; `flangeSection` in `sheet-metal.ts`):
+- **What it takes.** A sheet (its rules from its report; else `[NOT_A_SHEET]` CAPABILITY) and a straight `edge` between a planar skin face S and a planar thickness face E.
+  - S and E are square to each other and to the edge, and E has an edge along this one T below S over some of its length. E may run on beyond, merged with a flange's end beside it, as after a full-length flange on the next edge.
+  - The plate lies behind E.
+  - Else `[EDGE_NOT_SHEET]`.
+  - The edge is found by its name, else by its faces' names without piece numbers (one such edge; several → SELECTION, listed).
+- **The flange's frame:** x out across the edge (E's normal), y up from S, z along the edge. It bends `angleDegrees` (default 90, in (0, 180); else `[BEND_ANGLE]`, 180° is a hem) towards S's outside, inner radius `bendRadius` (default the sheet's).
+- **Where it sits** (`position`), by its virtual sharps:
+  - `material-inside` (default): the outer sharp on the edge, the plate trimmed (R + T)·tan(θ/2).
+  - `material-outside`: the inner sharp on the edge, trimmed R·tan(θ/2).
+  - `bend-outside`: the bend from the edge, no trim.
+- **Its length** (`measure`): to the outer sharp (default), the inner one, or from the bend's tangent. A length inside its setback is `[BEND_DOES_NOT_FIT]`, and so is a trim deeper than the plate behind the edge.
+- **Part width:** `offsets` [from the edge's start, from its end].
+  - At each end inside the edge, a relief: `rectangular` (default), `obround` (its deep end a half circle; depth ≥ half its width), or `none`.
+  - Its `width` and `depth` past the bend's start default to T each: estimates, flagged so in the studio.
+  - A relief wider than its offset is `[BEND_DOES_NOT_FIT]`.
+- **The cut into the plate is one tool:** the trim and both reliefs as one loop, taken down through the plate.
+  - Two cuts sharing a face's plane (a trim, then an obround relief beside it) failed the analytic Boolean as "not a manifold".
+  - Bend outside, each relief is its own loop.
+- **The flange's section** (`root`, bend, leg, `tip`) is extruded along the edge on the upright route and united on at its root.
+- **Faces:** `<id>.bend.inner/outer`, `.leg.inner/outer`, `.tip`, `.start`, `.end`, the cut's `<id>.trim.*`, `<id>.relief<k>.*`. Coplanar faces merge as Booleans do.
+- **The sheet's report gains the bend** (`<id>.bend`: faces, R, θ, axis along the edge, BA, OSSB, BD), so the flat names it.
+- **`FLANGES_COLLIDE`** (GEOMETRY):
+  - the union's volume short of the trimmed plate's plus the flange's. Volumes by the exact surfaces (quadrature), to 1e-8. This is D115's silent overlap: two neighbouring flanges leaning in at 135°.
+  - also the Boolean meeting another bend along an edge, as when a second flange's trim 2 mm from a corner reaches the first one's bend (its setback 3 mm). The message gives the setback to keep.
+- **`SHEET_IN_PIECES`** (GEOMETRY): reliefs of neighbouring flanges that meet and cut a corner's square off. It was found by the tray at 5 mm from the corners, where the result had been 5 bodies.
+
+**The sheet's report past other features** (the coordinator's check on D117's call 3):
+- Moves, turns, mirrors, patterns and unions drop it; nothing carries it stale.
+- After them, `output.sheet` is undefined, the output's `flatPattern()` is refused (CAPABILITY, "not made as sheet metal"), and a flange on it is refused `[NOT_A_SHEET]`.
+- The kernel's `flatPattern(brep, { T, K })` unfolds a moved or turned body again from its own B-rep, to the same area (1e-11). No old axis is used: the flat reads only the B-rep.
+
+**Oracles:** definitions written in the tests, not the construction.
+- Each position sits its outer sharp on the edge, T·tan(θ/2) past it, or (R + T)·tan(θ/2) past it. The outer length is L, L + T·tan(θ/2) (`inner`) or L + (R + T)·tan(θ/2) (`tangent`).
+- **The flat:** the outside less BD.
+  - Results: 3 positions × 30°, 90°, 120°, 150° × 3 measures, each to 1e-12; an own radius (4) too.
+- **The volume:** the plate less its trim, plus θ·T(R + T/2) + T × the leg, × the width.
+  - Results: the same 36 cases to 1e-11.
+- **Part width** with rectangular, obround (T·(w(t + d − w/2) + πw²/8) each) or no reliefs: the volume to 1e-11, the flat by the area identity to 1e-11.
+- **A tray of four flanges in turn,** 10 mm from the corners: the flat's area identity to 1e-11, four bends up, the volume to 1e-11.
+
+**Studio:**
+- **The Flange command** (modify): one straight edge of a sheet body (one with a flat or a flat's refusal).
+  - Fields: length, angle, position, measure, radius (0: the sheet's), offsets, relief, its width and depth (0: T, estimate).
+- **The node** `sheet-flange` keeps its edge as `edges: [name]`, so the fillet's machinery serves it unchanged: references, signatures, re-matching on edit, renaming in assemblies and on delete.
+- **Edit fields** (length, angle, offsets); a label (`Flange 20 · 90°`); an icon; the history icon.
+- **The agent:** the command (documented) and the raw node.
+- **The tool contract records the command** (`tools-v1.json`, a compatible change, A5.1's procedure).
+- **The Sheet profile command no longer has "flange" among its keywords.** The palette's search for "flange" found it before Flange.
+
+**Also:** the PERF3 C16 cage-edit test (`cageEdit.test.ts`, the coordinator's note from the outer lane). The warm step is now the median of the four warm samples, not their maximum: one sub-millisecond sample caught by a stall failed it about once a full suite. The 0.5 limit stays.
+
+**Tests:**
+- Kernel `test/r12-3.test.mjs` (5) and studio `sheet.test.ts` (+1); both fail on HEAD 1d83930f5. `chat.test.ts`'s docs check gains a sheet edge for the command.
+- Conformance `r12/`: `flange-material-inside-120` (volume, the report's bend, the flat, a STEP round trip), `flange-part-width-obround`, `refuse-flanges-collide`, `refuse-flange-edge-not-sheet`.
+- A flow step: a plate opened from a file, its edge picked by name, Flange from the palette. Volume 7315.07 mm³; flat 97.393 × 50 mm, 1 bend.
+
+**Not done:**
+- Corner reliefs where two flanges meet, and closed corners (R12.3b next; the closed corner stays out of R12, D115).
+- Flanges on curved edges.
+- Several edges in one flange feature.
+- A flange's own reliefs at the edge's ends beside another flange (offsets keep them apart today).
+
+**Checks** on 1d83930f5 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel and studio) |
+| Kernel | 1216/1221 (4 skipped; only the env-only Split test fails) |
+| Conformance | 143/143, with the 4 new cases |
+| Studio | 551/551 |
+| Full flow | 172/172, run on its own; the new step included, every outer-lane step passing |
+
+RB rows are in the next commit.
+
+## D119 — R12.3b: no relief defaults in the kernel (RELIEF_REQUIRED); corner reliefs (2026-10-20)
+
+R12.3's second half. First the coordinator's check on D118: the flange's relief took hidden kernel defaults, against D115 call 3. Then corner reliefs. **R12.3 done.**
+
+**No relief defaults** (the coordinator's check, agreed before this step):
+- **What D118 did:** a part-width flange left without a `relief` got 'rectangular', and a relief without `width` or `depth` got T for each, silently (`part-model.ts`, the case's parse).
+- The `?? 0` the check named could make no zero-size relief: it was reached only with the relief 'none', where nothing is cut. It is now an explicit branch.
+- **Now:**
+  - A relief, when given, is `{ kind: 'rectangular' | 'obround', width, depth }` or `{ kind: 'none' }`. A cut without its width or its depth is `[RELIEF_REQUIRED]` (PARAMETER), naming the field.
+  - A flange with an end inside its edge and no relief is `[RELIEF_REQUIRED]`, saying what to give.
+  - A flange the whole edge long needs none.
+- **The studio's Flange** writes the relief whole: its width and depth where given, else the sheet's T, still labelled an estimate. Bodies carry their sheet's rules for it (`BodyResult.sheet`).
+- **The contract changed in place:** `sheet-flange` is new and unreleased, so it is not versioned. The conformance case `flange-part-width-obround` now spells out its relief (1.5 × 1.5), and the tests theirs.
+- **Tests:** a part-width flange with no relief, a rectangular relief without its width, and an obround one without its depth are each refused.
+
+**Corner reliefs** (`sheet-corner-relief`; `part-model.ts` `sheetCornerRelief`):
+- **What it takes.** A sheet, and its plate's corner named by the corner's edge: the straight edge, T long, between two planar thickness faces.
+  - Else `[EDGE_NOT_SHEET]`.
+  - The corner must be square and convex; else `[CORNER_NOT_SQUARE]` (CAPABILITY), giving its angle, e.g. a triangle's 56.31°.
+- **What it cuts,** through the sheet: a `square` of side `size` along both edges, or a `round` quarter of radius `size` about the corner. The corner's frame is x and y into the plate along its edges, z along the thickness.
+- **It must take exactly the plate's corner** (s²T or πs²T/4, to 1e-8) and leave one piece; else `[CORNER_NOT_CLEAR]`. That covers a hole already there, or a size past the plate.
+  - A flange on one of the corner's edges trims the corner away, so its edge is gone: refused as SELECTION, no such edge.
+- **The sheet's report carries through**, so flanges follow it.
+- **The intended order:** reliefs on the plate's corners, then flanges on both edges, full length. Each stops `size` from the corner.
+  - With `size` at least the setback (R + T for a square bend), the bends meet nowhere: an open-corner box.
+  - A round quarter must cover both bends' corner square, √2 that. At the setback's radius it leaves a sliver of plate held at a point.
+- **The flat now names a sliver** cut off in the skin's plane: `[NOT_A_SHEET] … lies in the skin's plane but is cut off from it (held only at a point)`. It had said only "neither on the sheet's skins nor a cut".
+
+**Oracles** (closed forms, as at D118):
+- The reliefs alone: plate − 4s²T (square, s 3 and 4.5) and plate − 4·(π/4)s²T (round, s 4.5 and 6), each to 1e-12.
+- **The open-corner box:**
+  - flat (80 + 2(20 − BD)) × (50 + 2(20 − BD)) to 1e-12;
+  - volume (each flange on its edge less 2s, less its trim, plus its section) to 1e-11;
+  - the flat's area identity to 1e-11;
+  - four bends up, one outline.
+- **Refused:**
+  - at s 2 (short of the 3 mm setback): `FLANGES_COLLIDE`;
+  - round at 3: the sliver's `NOT_A_SHEET`.
+
+**Studio:**
+- **Corner relief** (modify): one edge of a sheet body; shape and size, defaulting to the sheet's R + T (the setback of a square bend, derived, not material data).
+- **The node** keeps its corner as `edges: [name]`, so the flange's and the fillet's reference machinery serves it.
+- Label `Corner relief square 3`, edit field (size), icon, history icon, the agent's command and raw node.
+- **The tool contract records it** (`tools-v1.json`, compatible).
+
+**Tests:**
+- Kernel `test/r12-3.test.mjs` (+2, and the R12.3a tests with explicit reliefs) and studio `sheet.test.ts` (+1). Both fail on HEAD 8ef9efdf4.
+- Conformance `r12/corner-relief-box-square` (volume, flat box and area, four bends, a STEP round trip) and `refuse-corner-not-square`.
+- A flow step: a plate from a file, its corner picked by name, Corner relief from the palette (5986.5 mm³), then Flange on each of the corner's edges. Both build; the flat has two bends.
+
+**Not done:**
+- Closed corners: the flanges' ends meeting, overlapped or butted (out of R12, D115).
+- Reliefs at corners that are not square.
+- A flange's own corner treatment: the order today is reliefs first.
+
+**Checks** on 8ef9efdf4 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel and studio) |
+| Kernel | 1220/1225 (4 skipped; only the env-only Split test fails) |
+| Conformance | 145/145, with the 2 new cases and the obround one updated |
+| Studio | 563/563 |
+| Full flow | 175/175, run on its own; the new step included, every outer-lane step passing |
+
+RB rows are in the next commit.
+
+## D120 — R12.4: bend tables in the part (2026-10-20)
+
+R12.4 as D115 froze it: a sheet's K from a table of the shop's rows, each row cited, with typed refusals; plus the sourcing pass D115 deferred here.
+
+**Kernel** (`sheet-metal.ts`, `part-model.ts`, `sheet-flat.ts`):
+- **A sheet's K.** Every sheet feature (`sheet-base`, `sheet-contour`) takes **either** `kFactor` **or** `bendTable`: one of them, no default. Neither, or both, is PARAMETER.
+- **A bend table:** `{ id, sources?: [{ id, label, url?, read?, note? }], rows }`.
+  - A row is: `thicknessMM`, `radiusMM` (inner), `angleDegrees?`, and exactly one of `kFactor`, `allowanceMM` or `deductionMM`. An allowance or a deduction needs its angle; a K row without an angle holds at any angle.
+  - Each row cites a `source` id from the table, or says `estimate: true`; never neither.
+  - `bendTableProblem` checks all this, plus no (T, R, angle) given twice and each row's K inside the sheet (0–1). Its failure is `[BEND_TABLE]` (PARAMETER).
+- **A row's K** (`rowKFactor`): given; from BA, K = (BA/θ − R)/T; from BD, BA = 2·OSSB − BD first.
+- **Lookup** (`lookupBend`, a bend's T, inner R and angle):
+  - the exact row (one with its angle before one for any angle);
+  - else bilinear in R and the angle inside a grid of four rows of its T (two where one value matches);
+  - else linear in R between rows for any angle;
+  - else `[BEND_TABLE_MISS]` (PARAMETER), saying what is missing. A missing T is said as such.
+  - It returns the rows used, `exact` or `interpolated`, and whether any is an estimate.
+- **The report:**
+  - Each bend now carries its `kFactor` and, from a table, `table` (the rows).
+  - Its BA, OSSB and BD use that K.
+  - The sheet's report holds `kFactor` or `bendTable`; its `kFactor` is now optional (R12.1's type changed in place, unreleased).
+  - A flange looks up its own radius and angle; a bend the table lacks is refused there.
+- **The flat:** `flatPattern(brep, { thicknessMM, kFactor | bendTable })`.
+  - With a table, it develops twice. First it finds each bend's angle (its pieces' widest turn) and inner radius, which do not depend on K. Then it looks each bend's K up, and develops with them.
+  - Each flat bend names its rows. A miss is `BEND_TABLE_MISS`.
+  - An output's `flatPattern()` uses the sheet's table, or a `kFactor` given to it.
+
+**Oracles** (each row's value is what the flat must honour):
+- An L whose 90° bend takes a row's BD 4.2: flat 50 + 35 − 4.2 to 1e-12, the report's BD 4.2.
+- Its 120° bend on a row's BA 7.5: 85 − (2·OSSB − 7.5).
+- A K row for any angle at 60° and 150°: outside less BD(K).
+- K from BA and from BD by hand to 1e-15.
+- **Bilinear at the grid's middle:** the four rows' mean K. **On an exact R:** along the angle only, (¾, ¼). **Linear in R:** 0.33 + ¾·0.09.
+- **A flat on the grid** by that K's BD to 1e-12.
+- **A plate on a table with two flanges** (R 1.5 at K 0.4; its own R 4 at K 0.46): flat 80 + 20 − BD₁ + 20 − BD₂ to 1e-12. Through STEP with the table given: the same to 1e-9.
+
+**Studio:**
+- Sheet nodes take `kFactor` or `bendTable`.
+- **"Bend table…"** in a sheet body's panel loads a JSON file, checks it with the kernel's `bendTableProblem`, and sets it on the sheet feature the body starts from (its K removed).
+- **The body's notes:**
+  - "K from bend table shop-2mm (n rows)";
+  - each bend's rows: "K 0.3462 from row 0", or "from rows 0, 1 (interpolated)";
+  - "an estimate among them" as a warning.
+- No K field in the feature editor then.
+- The agent: `bendTable` in its raw sheet nodes (documented).
+
+**Sourcing** (the coordinator's terms: public HTML only, read only, no sign-in, nothing downloaded; URL, date and label per value; values only; no PDF):
+- A pass found two sources with per-thickness values; `handover/notes/research-r12-bend-data-2026-10-20.md` has their values, labels and URLs:
+  - SendCutSend's bending-calculator page: air bending, 90° rows of K and BD for 5052, mild steel and 304;
+  - vedge.org's K table, a copy of Machinery's Handbook.
+- Radius guidance came from Fictiv and Protolabs, as ranges only.
+- **Neither source's reuse is cleared:** © on SendCutSend, no licence found; vedge copies a copyrighted handbook. The standing rules exclude unclear-licence datasets, so **no table is built in**. The note gives the values for the owner to decide.
+- The check of SendCutSend's own rows: BD from its K and R agrees with its BD to about 0.002 in, except 5052 at 0.063 in (0.0995 against 0.096). A table should take one of the two.
+
+**Pending decision (closed in D121: not bundled, the owner, 2026-10-20):** whether SendCutSend's 90° rows may be bundled as a built-in, cited table. Taken: not bundled; the user loads the shop's table. To change: the owner clears the source's terms, and the rows go in as data with their citations.
+
+**Tests:**
+- Kernel `test/r12-4.test.mjs` (4) and studio `sheet.test.ts` (+1). Both fail on HEAD f4a7851f6, where there is no `bendTable`.
+- Conformance `r12/table-l-bracket-deduction` (the flat 50 + 35 − 4.2) and `refuse-bend-table-miss`.
+- A flow step: an L opened from a file, the shop's table loaded from its panel. The notes name the table and row; the flat is 80.8 × 20.
+
+**Not done:**
+- A table editor in the studio (the file is edited outside).
+- Tables per material from a library.
+- A drawing's bend table (the outer lane's R14, from this data).
+
+**Checks** on f4a7851f6 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel and studio) |
+| Kernel | 1226/1259 (4 skipped). The 29 failures are the env-only Split test and the 28 known `a7/` and `a8/` conformance files from the outer lane's merge. Those sit at the runner's top level and are being moved by the outer lane; every one of the 28 is in `a7/` or `a8/`. |
+| Conformance | 147 pass, 28 known a7/a8 failures; the 2 new r12 cases pass |
+| Studio | 576/576 |
+| Full flow | 176/176, run on its own; the new step included, every outer-lane step passing |
+
+RB rows are in the next commit.
+
+## D121 — R12.5: acceptance, RB9 rungs 5 and 10 by the agent (2026-10-20)
+
+**What:** the RB9 ladder's two sheet-metal rungs, each built by the agent's tools in one chat turn on a new part, accepted by closed forms that are not read from the build.
+- **Rung 5, an L-bracket** (`test/fixtures/sheet-l-bracket.calls.json`): `run_command sheet-profile` (an L, outside legs 40 and 30, 30 wide, T 1.5, R 1.5, K 0.44), then `add_features` with a Ø5.5 hole through each leg (a circle sketch on the leg's plane, an extrude, a difference).
+- **Rung 10, a PCB enclosure** (`test/fixtures/sheet-pcb-enclosure.calls.json`): one `add_features` call:
+  - a 100 × 70 sketch and its `sheet-base` (T 1.5, R 1.5, K 0.44);
+  - four square corner reliefs of 3 (R + T) on the plate's corner edges, named `n1.side0|n1.side1` …;
+  - four 25 mm flanges on the plate's top edges, named `n1.sideK|n1.top`;
+  - four Ø3.2 `hole` nodes for standoffs;
+  - a 20 × 8 connector slot through the front flange.
+- The agent uses only tools that existed before this step; no product code changed in R12.5.
+
+**Oracles** (`apps/cad-studio/test/sheet-acceptance.test.ts`):
+- The L-bracket's volume: the middle line 70 − 2(R + T) + (π/2)(R + T/2), times 30 × T, less two holes. Its flat: (70 − BD) × 30, BD = 2(R + T) − (π/2)(R + K·T), to 1e-12; three loops, the two holes as arcs of 2.75; one bend down; the DXF has 2 circles and 1 note.
+- The enclosure's volume: the plate less the reliefs; each flange its edge less 2 × 3 long, its trim (R + T) off and its section on; less the holes and the slot. Its flat: (100 + 2(25 − BD)) × (70 + 2(25 − BD)) to 1e-12; six loops; four bends up; the flat's area by the K-factor's identity V/T + (K − ½)·T·Σθw on that volume, to 1e-11; the DXF's layer counts.
+- Kernel conformance `r12/accept-l-bracket` and `r12/accept-pcb-enclosure` hold the part documents the agent built, with volume, bodies, topology (genus 2 and 5), the flat (area, loops, bends; the enclosure's box) and a STEP round trip. The studio test checks that the files hold exactly the part the tools build (`WRITE_ACCEPTANCE=1` rewrites them).
+- `r12/flat-dxf/pcb-enclosure/`: the enclosure's flat as DXF 2000 and R12. ezdxf 1.4.5 (outside the product) audits both clean and reads 16 outline lines, 4 circles, 4 lines on BEND_UP and 4 notes; `test/r12-2.test.mjs` compares that reading with the flat.
+- **A flow step** sends both fixtures' calls through the real chat server with the scripted agent, one turn each on a new part. It then checks the volume against the conformance case (the panel rounds to 1 mm³) and the flat note (30 × 67.393 mm, 1 bend; 144.786 × 114.786 mm, 4 bends). It opens the flat view (1 bend down; 4 up) and exports the DXF (layers, circles, notes).
+
+**Judgement calls:**
+- **Evidence level:** the agent here is the scripted one, so this is L2. It shows that the tools build both rungs in one turn, and that what they build is right. It does not show that a live model chooses these calls; that needs a live run, which needs the owner's OK.
+- **K 0.44 is the brief's value, not a sourced one.** Both parts run on a K given in the part (the owner's decision below). The flats are right for that K; whether 0.44 suits a material is the shop's.
+- **The enclosure is built from raw nodes, not the flange command.** The command takes a picked edge; the agent names edges in `add_features`, which is how it reaches all four at once.
+- **Full-length flanges with corner reliefs.** No flange is shortened; each corner relief of R + T clears both bend zones (D119), so the four flanges build without FLANGES_COLLIDE.
+- **The vedge.org correction** (the coordinator, after D120) is in this commit: the research note keeps one line that the page was found and rejected, and no numbers from it.
+
+**The owner's decision on bend tables** (D120's pending item, closed; relayed by the coordinator, 2026-10-20): "SendCutSend 굽힘표는 내장하지 말고, 사용자가 자기 공장 표를 불러오게 해." (Don't bundle the SendCutSend bend table; users load their own shop's table.)
+- No table is built in. The SendCutSend values stay in `notes/research-r12-bend-data-2026-10-20.md` as a reference only.
+- README §0's pending item is closed and the decision is listed under "Owner decisions so far".
+
+**Seen, not fixed (open items):**
+- The body's notes list a flange's bend as "bend:": the report names it `n6.bend`, and the notes keep only the last part of the name (`evaluate.ts` `sheetNotes`, right for a contour's `bend1` …). Four flanges show four "bend:" lines that can't be told apart. A one-line studio fix, left for the next step so that R12.5 changes no product code.
+- The flat dialog's title lists the box's axes in its own order (30 × 67.393 for the L).
+
+**Tests:** studio `test/sheet-acceptance.test.ts` (2), kernel conformance `r12/accept-l-bracket`, `r12/accept-pcb-enclosure` and the `pcb-enclosure` flat-DXF case in `test/r12-2.test.mjs`; a flow step. They are acceptance tests, not defect fixes: no code changed, so none fails on HEAD e18ecb86a beyond the files being absent. Test names compared with a run at e18ecb86a: none missing, the four new ones added.
+
+**Checks** on e18ecb86a plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; the studio's type-check and its changed files. `eslint src test` in the studio also reports two older unused variables, in `test/library-tools.test.ts` and `test/tools/cdp-drag.mjs`, untouched here) |
+| Kernel | 1228/1233 (4 skipped); only the env-only Split test fails |
+| Conformance | 149/149 (the 2 new accept cases included) |
+| Studio | 586/586 |
+| Full flow | 177/177, run on its own; the new step included |
+
+RB rows are in the next commit.
+
+## D122 — FR S0: feasibility of frames and weldments; two fixes before it (2026-10-20)
+
+**Before S0, two small fixes** (commit `7e3c1dc9e`, the coordinator's list):
+- A sheet's notes named each bend by its name's last part, so a PCB enclosure's four flanges all read "bend:". Now a bend reads by its last part when one feature makes all the sheet's bends (a contour's `bend1`, `bend2`; one flange's `bend`), and by its whole name otherwise (`n3.bend`, `n4.bend`: the feature its faces carry when picked). A studio test (fails on `ef2d68963`) and the R12.5 flow step (the enclosure's four bends read apart).
+- `eslint src test` in the studio: the two older unused variables fixed (`test/library-tools.test.ts`, `test/tools/cdp-drag.mjs`); 0 errors (119 warnings, as before).
+
+**FR S0.** The roadmap's feasibility checkpoint before FR1–FR4 (§4 "FR — weldments and frames"). There is no research note; this record is the design input. The questions:
+- Does today's kernel build a structural member exactly — a profile's section placed square to any 3D segment, with roll?
+- Can its ends be mitred, butted, coped and trimmed in order at a joint of three, and against which oracles?
+- What can a cut list read from the result: axis length, long-point length, end angles, mass?
+- What is kernel work, what is app work, and what belongs to the outer lane?
+
+Evidence: `packages/barocss-cad/test/fr-s0.test.mjs` (kept, 7 tests), against closed forms and quadratures written in the test. No product code changed. The section sizes in it are test values, not catalogue data.
+
+**The model** (definitions only, no data values):
+- A *section* is a closed 2D profile with holes; its area A and centroid in closed form. Its *envelope* is the outer loop filled (the tube with its bore closed).
+- A *member* is a section placed square to a skeleton segment p0 → p1 (the section's anchor on the segment; the section's x and y by an up reference and a roll about the axis) and extruded. A prism cut by planes holds A × (its centroidal axis between the planes), whatever the planes' tilt, so a member with planar end cuts has V = A·L_c exactly when the section's centroid lies on the segment.
+- A *mitre* at a joint p between u1 (into the joint) and u2 (out of it) is the plane through p square to u1 + u2. The end angle from square is θ = acos(u1·m). The cut face's area is A / cos θ; the long point lies (c)·tan θ past the joint, c the section's reach towards the corner's outside (b/2 for a box section in the corner's plane).
+- A *butt* ends one member on the other's face; a *cope* subtracts the other member's envelope (a fish mouth for round tubes); an *ordered trim* at a joint of 3+ takes the members in a list, each trimmed to the envelopes of those before it.
+
+**Today, as it stands:**
+- **Sections and members are exact, by extrusion** (a sketch on any plane takes `holes`; lines and arcs):
+  - a rectangular tube (corners sharp, ro 5, ro 6 with the bore concentric), an angle with root and toe radii, a channel with root radii, along an oblique 3D segment: V = A·L to 1e-12, valid, one body, mass ρ·A·L to 1e-12;
+  - roll: the same tube turned 0°, 30°, 90°, 137° about its axis: A·L each; its wide sides square to u × x exactly.
+  - `sweep` is not the route (no holes: "one loop … yet"); `sweep-curve` is faceted. Members are extrusions.
+- **Mitres by today's `split`** (any normal, both pieces kept):
+  - square, open (120°) and 3D joints of round-cornered tubes: θ to 1e-12 from the cut face's plane, the long point L + (b/2)·tan θ to 1e-12 from the B-rep's vertices; the pair's volume to the quadrature's accuracy (below). A pair's split takes 100–140 ms; the analytic union of a round-cornered pair 0.75–0.95 s.
+  - The two cut faces coincide: the analytic Boolean unites a pair into one body of exactly the sum (sharp tubes 1e-12, round-cornered at the quadrature's 1e-9).
+  - The off-cuts stay outputs: nothing trims and keeps one side.
+- **A defect in the planar route** (FR3 fixes it):
+  - Two bodies whose faces are all planes go to the exact rational polyhedral Boolean. It needs each face's vertices exactly coplanar, and a member off the axes, or a split's oblique cut, has float vertices only to ~1e-15 off its plane. It refuses: `polyhedral Boolean: face … is not planar`.
+  - So today a sharp-cornered tube on a 120° or 3D corner cannot be split, and two mitred sharp tubes on a square corner cannot be united by the part's `union`.
+  - The analytic Boolean unites that same pair exactly (155 400 mm³, 1e-15). Round-cornered tubes never meet this (their cylinders send them analytic).
+- **Mass on cut round corners is quadrature:** a cylinder face cut obliquely is integrated, not closed form: 1.5–1.6e-9 relative on mitred 40 × 40 × 3 tubes (3e-9 on a frame member cut at both ends). Planar members are exact. So the cut list takes ρ·A·L_c for planar end cuts (exact) and checks the kernel's mass against it; copes have no closed form and take the kernel's quadrature, stated.
+- **Trims must be against the envelope:**
+  - trimmed to the tube itself, a member keeps stubs inside the other's bore (3 bodies for sharp 40 × 40 × 3);
+  - to the envelope, one body: an ordered trim of three sharp tubes at a corner (X through, Y to X, Z to X then Y) gives A(L + b/2), A(L − b/2), A(L − b/2) to 1e-12, and the three united weigh their sum (no overlap);
+  - a butt to a plane (`split` on the side face) gives the same A(L − b/2).
+- **Round corners make a body trim differ from a plane's butt:** trimmed to a round-cornered envelope, the member reaches into its rounds: 2·∫[w_o(s) − w_i(s)](6 − √(36 − s²)) ds more (486.004 mm³ on a 40 × 40 × 3 tube with ro 6) by a Gauss–Legendre quadrature; the kernel agrees to 1.1e-10. FR3 offers both, named; the cut list reports the length each gives.
+- **A fish-mouth cope works:** a Ø25 × 2 tube onto a Ø50 × 2 one, square: the removed volume by a 1D quadrature of the two cylinders' overlap (∫ 2r²cos²t √(R² − r²sin²t) dt; 3411.69 mm³) and the kernel's volume agree to 8.7e-11; valid, one body, 80 ms; welded on, the pair weighs its sum. At 60° it also closes (the pair weighs its sum; no closed form).
+- **A rectangular frame of four mitred round-cornered tubes** (600 × 400, 40 × 40 × 3): long points L + b to 1e-12, masses to the quadrature (3e-9), grouped two and two, the frame's mass the sum; 0.7 s.
+- **Missing:**
+  - a 3D skeleton: the studio's sketches are 2D; the nearest is `doc.direct`'s free NURBS curves ("Edge as a curve"); the kernel has no 3D sketch;
+  - a section type in the kernel (sections are plain sketches) and in the library (LIB parts are 3D recipes only; the tslot-20 part is a box with slots subtracted in 3D, its slot sizes estimates, no URL record);
+  - any structural profile data: none in the repo;
+  - a member/weldment feature, its report, corner treatments, a trim keeping one side, a cut list;
+  - a drawing table: drawings have dimensions, datums, frames and notes, no table (the outer lane's branch has none either). The studio's BOM (`src/team/assembly.ts` `deriveBom`) groups identical parts, close to the cut list's grouping;
+  - material densities: every one is an estimate (`S-DENS`), so a cut list's mass is flagged an estimate unless the user's material says otherwise.
+
+**Kernel versus app:**
+- **Kernel:** section kinds (closed-form A and centroid, envelope, side names, anchors); the frame feature (members from a skeleton, one output per member); corner treatments and trims; the planar-route fix; the frame report; the cut list (data); typed refusals.
+- **App (studio):** a 3D skeleton node (points and segments in space), commands and HUDs for frames and corners, a cut-list panel and CSV, the agent's tools, flow steps.
+- **The outer lane:** a table entity on drawing sheets (FR4b needs one; R14's bend table would use the same). Asked of the coordinator at FR4b, before touching drawing files.
+
+**Verdict — FR in six stages, this order:**
+- **FR1 — sections and a straight member.**
+  - **Section kinds** in the part model: `rect-tube` (b, h, t, outer corner ro; inner ri = ro − t by default, or given), `round-tube` (d, t), `angle` (a, b, t, root r1, toe r2), `channel` (h, b, tw, tf, root r; parallel flanges), `tslot` (the tslot-20 part's parameters, its section as one loop with the slots and the bore a hole), and `sketch` (any closed sketch, holes allowed). Each with A and centroid in closed form, the envelope, side names (`outer.top`, `bore.left`, `slot1.*` …) and anchors (centroid and the box's nine points).
+  - **A straight member** (`frame-member`: one segment, the section, anchor, roll, up reference), so FR1 is visible and testable in the studio.
+  - **Oracles:** V = A·L to 1e-12 for each kind on oblique segments; the centroid against the kernel's mass centroid; the T-slot section's A·L against the library part's own 3D volume at the same L (two independent constructions).
+  - **Refusals:** `SECTION_DIMENSIONS` (t ≥ b/2, a radius that does not fit, ro in (0, t) with a concentric bore, a toe past the thickness …), `SEGMENT_ZERO_LENGTH`.
+  - **Studio:** the member command and node, the section's fields; the agent's raw node; a flow step.
+- **FR2 — members along a 3D skeleton, alignment and roll.**
+  - **The skeleton:** a studio node of points and segments in space (typed points, snaps to existing points and vertices), passed to the kernel as data.
+  - **The `frame` feature:** one member per segment, one output each (`<id>/<k>`, never united); per member section (default the frame's), anchor, offsets, roll, mirror. The up rule: the section's y along the up reference (default world Z) projected square to the member; a member within 1e-9 of parallel to it takes world X instead, and the report says so.
+  - **The frame report:** each member's segment, axis, section frame, anchor, section and length.
+  - **Oracles:** A·L each; section frames by dot products to 1e-12; roll by the angle between x axes; members of a closed skeleton meeting at their joints' points.
+  - **Refusals:** `SEGMENT_ZERO_LENGTH`, `SKELETON_OVERLAP` (collinear segments sharing length), `MEMBER_DUPLICATE`.
+  - **Studio:** the skeleton editor (points, segments), the Frame command, the agent's tools; a flow step.
+- **FR3a — two-member corners, and the planar-route fix.**
+  - **First, the defect:** planar bodies whose faces are coplanar only to float precision go to the analytic Boolean when the polyhedral one finds a face "not planar" (or its vertices are snapped onto their face's plane first; the step decides by test). A test failing on HEAD: the sharp tube's split on the 120° and 3D corners and the square pair's union (the probe's assertions flip).
+  - **Corners** at a skeleton point with two members: `mitre` (the default when both have the same section, mirrored in the mitre plane), `butt` (`through`: which member runs on; the other ends on its face plane or its envelope, named), `none`; a per-corner override list keyed by the skeleton point; each member's ends trimmed keeping the piece on its own segment.
+  - **Oracles:** V = A·L_c (planar 1e-12; round corners at the kernel's quadrature, about 1e-9, stated); θ = acos(u1·m) to 1e-12; long point L + c·tan θ to 1e-12; the pair united weighs its sum (no overlap).
+  - **Refusals:** `MITRE_SECTIONS_DIFFER` (offer a butt), `CORNER_ANGLE` (members in line or folded back), `CORNER_NOT_A_JOINT`.
+  - **Studio:** corner HUD and override; a flow step.
+- **FR3b — joints of three or more, copes, trims to a plane or a body.**
+  - **An ordered trim:** the members at a joint in a list; the first runs through, each next trimmed to the envelopes of all before it.
+  - **A cope:** the member less the other's envelope (round tubes: a fish mouth).
+  - **A trim to a plane or a body:** a member's end to a named plane or another body.
+  - Always against the envelope (the probe's bore stubs); the piece kept is the one holding the member's segment; anything else refused.
+  - **Oracles:** sharp sections by closed forms A(L ± b/2); round-cornered envelopes by the corner quadrature (1e-9); a round cope by the two-cylinder quadrature; all members united weigh their sum.
+  - **Refusals:** `TRIM_EMPTY`, `TRIM_LEAVES_PIECES`, `MEMBERS_CLASH` (after treatment two members still overlap; the pair named).
+  - **Studio:** joint order editor, cope and trim commands; a flow step.
+- **FR4a — the cut list.**
+  - **Kernel `cutList()`** on the frame's outputs: per member the section label, material, length on the axis (L_c), long-point length (the B-rep's extent along the axis), end cuts (kind square / mitre / butt / cope / trim; for planar ends the mitre angle about the section's y and the bevel about its x), mass (ρ·A·L_c for planar ends; the kernel's quadrature for copes, stated), quantity.
+  - **Grouping:** identical members on one row — the same section, material, lengths to 1e-6 mm and end cuts as an unordered pair (a handed section's mirror kept apart). Totals: count, length, mass.
+  - **Oracles:** the closed forms above; Σ quantity = members; Σ mass = ρ·A·ΣL_c; grouping by hand.
+  - **Studio:** a cut-list panel, CSV export, the agent's `cut_list` tool; a flow step.
+- **FR4b — the drawing table and acceptance.**
+  - The cut list on a drawing sheet as a table, and in its DXF through `writeDxf`. It needs a table entity in drawings (the outer lane's area): the coordinator decides who adds it.
+  - **Decided at review (the coordinator):** the outer lane adds a generic drawing table (O49: `doc.drawing.tables`, sources in `src/drawing/tables.ts`), shared with R14's bend table. FR4b writes a pure function from `cutList()`'s data to its `TableContent`, registered as `cut-list` by the outer lane through the coordinator. If the table is not there when FR4b starts, stop and tell the coordinator.
+  - **Acceptance:** two frames built by the agent's tools in one chat turn each: a welded table frame (top rectangle mitred, four legs butted or ordered-trimmed, a lower rail), and a 2020-class T-slot frame (members cut square, no welds). Their cut lists against closed forms; conformance `fr/accept-*`; RB rows; the FR → R12b hand-over.
+
+**Every stage:** a D-record, tests failing on the previous HEAD where a defect is fixed, `conformance/fr/` fixtures (subfolders for non-kernel fixtures), a flow step, RB rows, a checkpoint.
+
+**Data and defaults:**
+- **No section sizes are built in.** Sections are parametric; their dimensions are the user's. A catalogue of sizes is data the user loads (rows of named sizes, each citing a source or flagged `estimate`), as with bend tables (D121).
+  - **Decided (the owner, 2026-10-20, relayed by the coordinator):** "프레임 단면 치수도 굽힘표처럼 내장하지 말고 사용자가 불러오게 해." (Like the bend tables, don't build in frame section sizes; users load them.) No catalogue is built in, and no supplier-page research for one. The studio's prefills stay estimate-flagged; the tslot-20 slot sizes stay estimates.
+- **No hidden kernel defaults:** corner radii, root and toe radii are given. The studio's prefill (rectangular tube ro = 2t, angle r1 = t, r2 = t/2, channel r = tf) is a reversible default, flagged an estimate wherever shown.
+- **T-slot:** the tslot-20 part's slot sizes are already estimates without a URL record; its section inherits the flags.
+- **Mass:** densities are the materials library's (all estimates, `S-DENS`); a cut list says so unless the material is the user's.
+
+**Not in FR1–FR4** (FR5–FR6 and beyond, listed for the owner to place):
+- T-slot hardware (FR5); gussets, end caps, weld beads, weld metadata and symbols, stock nesting (FR6);
+- tapered-flange channels and beams (I/H), bent or curved members (members along arcs);
+- end gaps for welds, notches for tube-to-tube saddles other than a full cope;
+- a 3D sketch with constraints (the skeleton is points and segments, typed or snapped).
+
+**Checks:** S0 changed no product code. The two fixes before it: studio 603/603 (+1, the new test; names compared with the test files at `ef2d68963`: none missing), studio lint 0 errors and type-check clean, the full flow 177/177 run on its own. Kernel 1234/1240 (4 skipped; +7, the fr-s0 tests; 1240 = 1233 + 7, so none missing): the env-only "actual native Split source…" fails, and `B9 performance` (mass-polyhedral's wall-clock budget, a known load-sensitive item in the open TODOs) failed once in the full parallel run at 170 ms and passes 3/3 alone — a known flake under parallel load (the coordinator, at review); its budget is left as it is. fr-s0 7/7, 12.5 s alone (most of it the four round-cornered welds through the feature, about 1 s each). Lint clean on the new file. Conformance, RB: not rerun, as at D115 (no kernel source change).
+
+## D123 — FR1: structural sections and a straight member (2026-10-20)
+
+The first FR stage frozen in D122: section kinds in the kernel, and one straight member so the stage is visible and testable in the studio.
+
+**Kernel** (`frame-section.ts`, the `frame-member` feature in `part-model.ts`):
+- **Section kinds**, every dimension given — no size, radius or slot value is defaulted (D122):
+  - `rect-tube`: width, height, wall, `outerRadius` (0: sharp), `innerRadius` (by default concentric, ro − t; a ro in (0, t) has no concentric bore, so its ri must be given). **The ro − t default is a derived geometric rule** — the bore's corners concentric with the outer ones, the wall t all round — not a material or catalogue value, so it belongs in the kernel (the coordinator, at FR1's review). It is never hidden: the report's `derived` says `{ innerRadius: 'concentric: ro − t' }` (`'sharp: 0, as the outer corners'` for ro 0), and the label reads `ro 6, ri 3 (concentric)`. A given ri derives nothing (commit after `2f066cb5e`, a test failing on it, the conformance case's `derived`);
+  - `round-tube`: diameter, wall;
+  - `angle`: `legX`, `legY`, thickness, `rootRadius`, `toeRadius`; the heel at the origin;
+  - `channel` (parallel flanges): height, width, web, flange, `rootRadius`; its back on x 0, its bottom on y 0;
+  - `tslot`: the tslot-20 library part's shape as one loop — `size`, `cells` 1 or 2, `openSlots` (one cell: 0–4 clockwise from the top, as the library opens them; given, not defaulted), `opening`, `lip`, `undercut` (45° back to the opening), `depth`, a core `bore` per cell;
+  - `sketch`: a closed sketch's loops in its own XY (holes allowed; its area and centroid by the prism's exact mass).
+- **Each kind's closed forms**: area; centroid by moments (legs and webs as rectangles, the root's quarter-disk spandrel added and the toes' taken off, a spandrel's centroid r(10 − 3π)/(3(4 − π)) from its corner; a slot's opening and two 45° wings); box.
+- **Faces by role**: `top`, `round.tr`, `bore.left` (tubes); `outside`, `bore` (round); `back.x`, `face.y`, `root`, `toe.x`, `end.y` (angle); `web`, `inside.top`, `root.bottom`, `tip.top` (channel); `top.0`, `t1.floor`, `r.taper0`, `core0` (T-slot); a sketch's by its sides. The ends are `<id>.start` and `<id>.end`. `prismaticFromProfile` takes whole names for holes now (its `names.outer` optional).
+- **Placement**: the `anchor` (default `centroid`; also `origin` and the box's nine points) lies on the line `start` → `end`; the section then moves by `offset` in its own XY. Its y runs along `up` (default +Z) made square to the line, x = y × u, both turned `roll` degrees (quarter turns exact). A line along `up` takes +X (or +Y), and the report says so (`upFallback`).
+- **The output's `member` report**: kind and description, area, centroid, anchor, offset, roll, the line, its length, the section's x, y and the axis, and the centroidal line (where A·L is measured; FR4's cut list reads it).
+- **Mass is closed form**: the member is a prism moved by an affine map, so even an oblique member's mass is the prism's exact one (`method: 'closed-form'`).
+- **Refused by name**: `[SECTION_DIMENSIONS]` (a wall leaving no bore, a radius leaving no flat side or past the thickness, legs too short for root and toe, a slot reaching the bore or its neighbours, an undercut no wider than the opening, a slot with no straight part), `[SEGMENT_ZERO_LENGTH]`. An unknown kind, a bad anchor, a T-slot of one cell without `openSlots`: INPUT.
+
+**Oracles** (`test/fr-1.test.mjs`, 5 tests; none of them the module's):
+- Each kind on an oblique 3D line: V = A·L to 1e-12 against the textbook area written in the test; the report's area to 1e-12.
+- The centroid by Green's theorem over the section's loop, lines and arcs integrated in closed form in the test (one 1-form per moment for every segment), to 1e-12; anchored at the centroid, the body's centre of mass is the line's midpoint to 1e-12.
+- **The T-slot section against the tslot-20 library part**, built by its own 3D Booleans (a box less slot prisms and bores): the same volume to 1e-12 at 250 mm, for 20 × 20 with 1–4 slots and for 20 × 40. Two independent constructions agree.
+- Placement by the B-rep's box: top-right on the line, bottom-left moved (5, −2), roll 90° (exact), roll 30° (the wide sides' normals ±y to 1e-15), a vertical line's fallback; the angle's centroidal line by Green's centroid.
+- Faces by role; a sketch section with a hole; dimensions by parameter and `withParameters`.
+- Refusals: 15 cases.
+
+**Conformance** `conformance/fr/` (8 cases; expectations by closed form in the generator `scripts/fr1-conformance.mjs`, not by the kernel): a round-cornered rectangular tube on an oblique line (area (Po + Pi)·L + 2A), an angle anchored at its heel, a channel rolled 90°, a vertical round tube (the fallback), a 20 × 40 T-slot (genus 2), a sketch section; two refusals. Each with a STEP round trip at 1e-9. The runner checks a new `member` expectation (area, length, centroid, axes, fallback).
+- Their volumes are held to 1e-9, as the other exact cases (D116). RB's B-rep quadrature (an implementation's other route) measures 1.7e-12 on the angle and 1.2e-12 on the tube. The first RB run flagged both at the generator's first 1e-12 (fixed in the commit after FR1's). The unit tests keep 1e-12 on the prismatic route.
+
+**Studio**:
+- The node `frame-member` (section kinds, or a sketch by its node; `estimates`: the section's fields still at a first-try value). Saved and read back; the agent's `add_features` spec checks each kind's fields (every dimension required, no unknown field).
+- **"Structural member"** in the palette: a section kind and its sizes, start and end points, the anchor, the roll. Its prefills are a first try: the radii (rect-tube ro 6, angle r1 6 and r2 3, channel r 6) and the T-slot's slot sizes (the tslot-20 library's, themselves estimates) are labelled estimates and written to `estimates`. The body's panel flags them ("Estimates, not your stock's: …"), and editing one in the feature editor drops its flag.
+- The body's panel: the section, its area and length, the line's anchor and the section's x and y (and the fallback).
+- The feature editor: the section's dimensions, the length along the line, the roll.
+- Labels `Member RHS 40×40×3 · 300 mm`, `Member T-slot 20×40 · 300 mm`; an icon.
+- The tool contract records the new command (`UPDATE_TOOL_CONTRACT=1`, a compatible change).
+- Studio tests `test/frame.test.ts` (2).
+- A flow step: the palette's tube and a 20 × 40 T-slot, A·L each, the panel's notes and estimates (`fr1-members`).
+
+**Judgement calls**:
+- `offset` moves the section, so with bottom-left and (5, −2) the box's corner is at (5, −2) from the line. The first build had it the other way round; the placement test caught it before commit.
+- The vertical fallback takes +X as the section's y, so x = y × u = −Y. It is stated in the record and the report.
+- `estimates` lives on the node (the studio's, not the kernel's). It is the K 0.5 pattern of D116, made explicit, so an edited value never stays flagged.
+- A member is never united with another. Each is its own output, as FR2's frame will make them.
+
+**Not in FR1** (as D122): the skeleton and many members (FR2), corners and trims (FR3), the cut list (FR4).
+
+**Checks** on 89346cd24 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; studio type-check; `eslint src test` 0 errors, 119 warnings as before) |
+| Kernel | 1248/1253 (4 skipped; +13: 5 fr-1 tests and 8 conformance cases); only the env-only "actual native Split source…" fails |
+| Conformance | 157/157 |
+| Studio | 609/609 (+2 of FR1, +4 from the merged RM8 step; test names compared, none missing) |
+| Full flow | 178/178, run on its own; the new step included |
+| RB | 299 cases (+8: the fr cases), 0 new, the 8 known TODOs (after the fix commit `ed76a9921`) |
+| Properties | 11/11, no failures |
+
+RB rows are in the commit after the fix.
+
+## D124 — FR2: frames on a skeleton, alignment and roll (2026-10-20)
+
+The second FR stage frozen in D122: many members along a skeleton's segments, each its own body, sharing a section and its placement unless set apart.
+
+**Kernel** (the `frame` feature in `part-model.ts`):
+- **The skeleton is data on the feature**: `points` (2–1024 [x, y, z], parameters allowed) and `segments` (1–256 pairs of point indices, from → to). A member runs along each segment, each as FR1's `frame-member` (D123), and is its own body (`<id>/<k>` for segment k, a plain `<id>` for one), never united.
+- **Shared placement**: the frame's `section`, `anchor`, `offset`, `roll` and `mirror` hold for every member; `up` for all.
+- **`overrides`** sets one member apart (its own section, anchor, offset, roll or mirror; what it leaves out stays the frame's). A member named twice, or past the segments, is INPUT.
+- **`mirror`** turns the section over across its own y axis (x ↦ −x: lines' starts, arcs' centres and their direction). The face names keep their roles, the area stays, and the centroid and the box turn with it. The report says `mirrored` and the label `…, mirrored`.
+- **Faces**: `<id>.m<k>.<role>` and `<id>.m<k>.start` / `.end`. Each member's faces are its own, so FR3's trims can name another member's face.
+- **The member report** gains `frame: { member, from, to }`. The frame's report is its members' reports.
+- **Refused by name**:
+  - `[SEGMENT_ZERO_LENGTH]`: a point used twice, or two points together within 1e-6 mm;
+  - `[MEMBER_DUPLICATE]`: two segments on the same two points, either way round (by position, not index);
+  - `[SKELETON_OVERLAP]`: two segments on one line sharing more than 1e-6 mm, where a member would run through another;
+  - the sections' `[SECTION_DIMENSIONS]`.
+  - Two collinear segments that only touch end to end are allowed (a straight run of two members).
+- The section and placement code of FR1 is shared, not copied: `memberShape`, `memberLook`, `memberUp` and `buildMember` serve both features, and the skeleton's pair test is hoisted (no closures in its loop).
+
+**Oracles** (`test/fr-2.test.mjs`, 5 tests, closed forms written there):
+- **A 600 × 400 × 700 box frame of 12 round-cornered tubes**:
+  - one body each, `f/0 … f/11`;
+  - A·L each to 1e-12, and the frame's total;
+  - each centroidal line on its segment's points to 1e-12 (anchored at the centroid);
+  - the frames orthonormal, right-handed and square to their lines to 1e-15;
+  - the legs' y from the fallback (+X), the rails' along +Z;
+  - 12 members in well under 3 s.
+- **Overrides**: legs as a sharp 50 × 50 × 4 tube rolled 45° (their A·L, x turned 45° exactly), and a rail anchored on its top face (its centroid 20 below the line); the rest keep the frame's.
+- **Mirror**: two angle stiles, the second mirrored. The same A·L, the centroid's x̄ negated in its frame (1e-15), the B-rep's box on the other side, the role names kept.
+- **An oblique tetrahedron of round tubes**: A·L each, y square to each line; a point by parameter moves with `withParameters`.
+- **Refusals**: 10 cases.
+- **Conformance** `conformance/fr/` (+4; generator `scripts/fr2-conformance.mjs`, closed forms only):
+  - the 12-member box (each member's volume, centroid at its edge's midpoint, axes by the up rule, the derived bore radius);
+  - the two mirrored angle stiles (centroids by moments, x̄ negated);
+  - `refuse-skeleton-overlap` and `refuse-member-duplicate`.
+
+**Studio**:
+- **The node** `frame`: points, segments, section, placement, overrides, `estimates` as a member's.
+  - Its bodies are its members: side `part<k>` (one segment: `solid`), named `Frame RHS 40×40×3 · 8 members · member 3`.
+  - Saved and read back. (A sketch section's index is shifted when a part is flattened into an assembly, as `frame-member`'s; not exercised by a test yet.)
+- **"Frame" in the palette**: a preset skeleton sized by width, depth and height from a corner, or the straight edges picked on bodies.
+  - The presets: a table (top and legs, 8 members), a box (12), a rectangle (4).
+  - The picked edges: a layout box or sketch's edges, their ends shared within 1e-6 mm, so a layout box's 12 edges give 8 points.
+  - This is the stage's skeleton editor: typed points (the presets, the editor's point fields) and points snapped to vertices (the picked edges). A free 3D point-and-segment drawing tool in the viewport is not in FR2 (below).
+- **The body's panel**: "Frame member 6 of 8: point 6 → point 7" above the member's section and frame notes. A member with its own section (an override) shows no prefill estimates.
+- **The feature editor**: the frame's section dimensions (an edited one drops its estimate flag), the roll, and every point's X, Y and Z (moving the top's points lengthens the legs).
+- **The agent**:
+  - `add_features` checks the points (2–1024), the segments (1–256 index pairs) and each override's fields;
+  - the kernel's refusals come back by name;
+  - `run_command frame` documents every HUD key.
+  - The tool contract records the command (`UPDATE_TOOL_CONTRACT=1`).
+- An icon.
+- **Studio tests** `test/frame.test.ts` (+3): the table preset (8 bodies, A·L, names, notes, the editor's points), a frame on a box's 12 picked edges (8 shared points, 12 members, saved), and the agent's frame with a mirrored override and its refusals.
+- **A flow step** (`fr2-table-frame`): the palette's table frame, 8 bodies, the leg's volume, its notes and its name. The corners overlap there: FR3 trims them.
+
+**Judgement calls**:
+- **The skeleton lives on the frame** (kernel and studio), not in a separate skeleton feature. One frame has one skeleton, and overrides give its members different sections. FR3's corners are the frame's own points.
+  - A skeleton shared by several frames would need a skeleton node that is not a body. The studio treats every non-sketch node as a body, so that change reaches further than FR2 needs.
+- **The skeleton editor** is the presets, the picked edges (snapped to vertices) and typed point coordinates.
+  - Drawing new points and segments in the viewport, as a 3D sketch with snapping, is not in FR2. The agent and the file can write any skeleton.
+  - Listed below for the owner.
+- **Duplicate and overlap are tested by position**, so two points at one place are the same point for these refusals.
+
+**Not in FR2** (the owner may place them):
+- a 3D-sketch tool in the viewport (draw points and segments with snapping; constraints);
+- skeletons shared by several frames;
+- members along arcs.
+- Corners and trims are FR3; the cut list is FR4.
+
+**Checks** on b19ad3445 + 2f066cb5e + 8688b7111 (the innerRadius commit) plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; studio `eslint src test` 0 errors, 119 warnings as before; studio type-check) |
+| Kernel | 1258/1263 (4 skipped; +10: the derived-bore test, 5 fr-2 tests, 4 conformance cases; names compared, none missing); only the env-only "actual native Split source…" fails |
+| Conformance | 161/161 |
+| Studio | 623/623 (+3 of FR2, +11 from the merged RD9/RD10/O49–O50; names compared, none missing) |
+| Full flow | 180/180, run on its own; the new step included |
+| RB | 303 cases (+4: the fr frame cases), 0 new, the 8 known TODOs |
+| Properties | 11/11, no failures |
+
+RB rows are in the next commit.
+
+## D125 — FR3a: two-member corners, and the planar Boolean's fix (2026-10-20)
+
+The third FR stage frozen in D122: first the defect S0 found, then the corners where two members of a frame end at one point.
+
+**The planar route's fix** (`part-model.ts` `planarBoolean`):
+- Two bodies of planes only went to the exact rational polyhedral Boolean. It needs each face's vertices exactly coplanar; a member off the axes, or a split's slanted cut, has them so to binary64 (~1e-15), and it refused the face ("not planar", D122).
+- Now that refusal, and only that one, hands the pair to the analytic Boolean, which works on the planes in binary64. Both callers take it: the general `boolean()` dispatch and the planar chamfer's wedge.
+- A test failing on the previous HEAD (`e85509dbf`, with the kernel rebuilt from its sources): a sharp tube on a 120° corner split and two mitred sharp tubes united by the part's own features (it failed with "face … is not planar"); now one body, 1e-12.
+- The S0 probe's two assertions of the refusal are turned to its fixed behaviour (the sharp cases at 120° and 3D split and weld exactly).
+- **The outer lane's report** (a facet mesh subtracted from a curved B-rep: slow, "not a manifold", F3): not touched. That pair has a curved body, so it never reaches the planar branch; the fallback runs only where the polyhedral route refused a face as not planar.
+
+**Corners** (the `frame` feature's `corners`):
+- `corners: { default?, at? }`:
+  - `default` (mitre when left out) finishes every place where exactly two members end;
+  - `at: [{ point, kind, through? }]` sets a point apart;
+  - `corners` left out finishes nothing, so a saved FR2 frame builds as it did.
+- **Joints are places**: points within 1e-6 mm are one point.
+- **A place where three or more members end** (a table's top corners) is left square and reported so; the ordered trim is FR3b. A point set apart there is refused.
+- **Mitre**: both members are cut on the plane through the point square to u1 + u2 (u1 into the point, u2 out). Each is run on past the point far enough to fill it (its section's reach × (tan θ + 1) + 1) before the cut.
+  - The cut faces are `<id>.m<k>.start.mitre` / `.end.mitre`.
+  - It is refused unless the second section is the first reflected in that plane (their vertices, lines' starts and arcs' centres, compared to 1e-9 of the size): `MITRE_SECTIONS_DIFFER`. That covers different sections and the same section turned differently. A 60 × 30 tube up a leg and along a rail meets face to face (the box is symmetric); rolled a quarter turn, it does not.
+- **Butt**: one member runs through: the `through` given, else the larger section, else the lower index.
+  - It runs on, square, far enough to cover the other's section there: the farthest of the other's box corners along it, (b/2)·sin φ for square tubes at an angle φ.
+  - The other is run on into it and cut on the plane of the through member's section box facing it (`.end.butt`). That side must be a face of the box (the approach square to a section axis): else `BUTT_NOT_ON_A_FACE` (a member rolled 30° offers an edge).
+  - Trimming to the through member's envelope, and to any plane or body, is FR3b.
+- **Members in line** (in-line ends at a point) or **folded back**: `CORNER_ANGLE`.
+- A cut leaving a member in pieces: `TRIM_LEAVES_PIECES` (a guard; none of the tests reaches it).
+- **The member report's `ends`**: each end's kind (square, mitre, butt, through), its point, the other member, the cut's angle from square, the cut plane, or how far a through member runs on. The cut list (FR4) reads them.
+- **Placement and building are split** (`placeMember`, `buildMember` with its runs-on and cuts), so corners plan from every member's frame before any is built. The tool ids for the half-spaces take no dots (the analytic Boolean refuses them).
+
+**Oracles** (`test/fr-3a.test.mjs`, 6 tests; closed forms written there):
+- **The planar route** (above).
+- **A mitred 600 × 400 rectangle of sharp tubes**:
+  - each A·L to 1e-12 (a prism cut by planes through the centroidal line's ends);
+  - the long points L + b from the B-rep;
+  - both ends' angles 45°, the cut faces by name at 45° to the line;
+  - the four welded (the analytic Boolean): one body, their sum to 1e-12, so they meet face to face with no overlap or gap.
+- **Round-cornered tubes at 120° and at a 3D corner** (up = the corner plane's normal):
+  - A·L to 1e-8 (the kernel's quadrature on cut cylinders, as S0 measured);
+  - θ = acos(u1·m) to 1e-12, the long point L + (b/2)·tan θ to 1e-12;
+  - the pair welded: one body, their sum.
+- **Butts square and at 60°**: the through member A(L + (b/2)·sin φ), the other A(L − (b/2)/sin φ), each to 1e-12; the butt's angle 90° − φ; welded, one body and their sum. By default a 50 × 50 leg runs through under a 40 × 40 rail (A(700 + 20), A(600 − 25)).
+- **Corners left alone**:
+  - no `corners` gives A·L and no ends;
+  - a table mitred by default leaves its three-member corners square and says so;
+  - a rectangle with one butt (member 1 through), one `none`, the rest mitred: each end's kind as set, A(600 − 20) and A(400 + 20).
+- **Refusals** by name (8 cases), and a two-section corner that is refused as a mitre but builds as a butt.
+- **Conformance** `conformance/fr/` (+4; generator `scripts/fr3a-conformance.mjs`, closed forms only):
+  - the mitred rectangle: each member's volume, and its centroid moved outwards by 2I/(L·A), since the section at y runs from y to L − y;
+  - the 60° butt: the cut prism's centroid s̄ = (A c0² + cot²φ·I)/(2V), ξ̄ = cot φ·I/V;
+  - `refuse-mitre-sections-differ`;
+  - `refuse-corner-not-a-joint`.
+  - The runner checks a member's `ends` (end, kind, point, angle).
+
+**Studio**:
+- **The frame node** gains `corners`. "Frame" in the palette has **Corners (two members)**: Mitre (the default for a new frame), Butt or None (overlap).
+- **The feature editor**:
+  - the frame's corners;
+  - a **Corner at point k** for each point where two members end: as the frame, mitre, butt with either member through, none (`corners.at`; "as the frame" removes the entry).
+- **The body's panel**:
+  - "Ends: start mitre 45° with member 4; end mitre 45° with member 2";
+  - a through member's run-on;
+  - a butt's angle;
+  - a warning on an end left square where three or more members meet ("an ordered trim comes with FR3b").
+- **The agent**: `corners` in `add_features` is checked (kinds, the at-list's fields); the kernel's refusals come back by name; `run_command frame` documents `corners`.
+- **The flatten test the coordinator asked for**: a frame on a sketch section (a plate with a hole), butted, as an assembly instance. Flattened, its section is the sketch's new index (2, after the base part's two nodes). Its members' volumes are by closed form, A(300 + x̄) and A(170 + x̄), with x̄ the section's centroid. Their faces are the frame's (`.m0.start`, `.m1.start.butt`, `.m1.hole0.side0`).
+- Studio tests `test/frame.test.ts` (+2): the palette's mitred rectangle, a table's warnings, the editor's corner fields, and the flatten and agent test.
+- A flow step (`fr3a-mitred-rectangle`): the palette's rectangle of sharp tubes, mitred, A·L and the ends in the notes.
+
+**Judgement calls**:
+- **The fallback is narrow**: only the polyhedral route's "not planar" refusal goes to the analytic Boolean. Exact rational planar Booleans keep their route where they work.
+- **A mitre needs the sections to meet face to face, checked by geometry**, so a symmetric section turned by its symmetry is accepted, and anything else is refused rather than left with a gap.
+- **A butt ends on the through member's section box**, so for an open section (an angle) that is the box's side, not necessarily material. Trimming to the member's actual envelope or any body is FR3b.
+- **Corners are off unless asked**: `corners` absent keeps FR2 frames as they were (no silent change to saved documents). The studio writes `{ default: 'mitre' }` for new frames.
+
+**Not in FR3a** (FR3b next): ordered trims at joints of three or more, copes, trims to the envelope, to a plane or to a body, and T-joints (a member ending on another's middle).
+
+**Checks** on e85509dbf plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; studio `eslint src test` 0 errors, 119 warnings as before; studio type-check) |
+| Kernel | 1268/1273 (4 skipped; +10: 6 fr-3a tests, 4 conformance cases; names compared, none missing); only the env-only "actual native Split source…" fails |
+| Conformance | 165/165 |
+| Studio | 628/628 (+2 of FR3a; names compared, none missing) |
+| Full flow | 182/182, run on its own; the new step included |
+| RB | 307 cases (+4: the fr corner cases), 0 new, the 8 known TODOs (totals as before: 4 refused, 3 invalid, 5 wrong) |
+| Properties | 11/11, no failures |
+
+RB rows are in the next commit.
+
+## D126 — FR3b: ordered trims, copes and envelope trims, T-joints, trims to a plane or a body; the two hardening points (2026-10-20)
+
+The fourth FR stage frozen in D122, and first the two points from FR3a's review.
+
+**The hardening points** (both with tests failing on `bbc642572`, rebuilt from its sources):
+- **The planar fallback reads a typed reason, not the words.**
+  - `BrepError` gains an optional `reason` (`BrepErrorReason`). The polyhedral Boolean's refusal of a face coplanar only within binary64 carries `NOT_PLANAR_WITHIN_FLOAT`.
+  - `planarBoolean` dispatches on it.
+  - The test calls `booleanPolyhedra` on two oblique sharp tubes and requires the reason, then unites them through the part.
+- **A butt never leaves a silent gap.**
+  - A butt on the through member's box face must land on material: the side's straight segments of its outer loop, merged into spans along the section's other axis, must cover the butting member's end there.
+  - Else it is refused `BUTT_ON_OPEN_SIDE`, naming the side (`+x` …), the end's span and the material's spans, and pointing to a trim to the envelope or a cope.
+  - It covers an angle's leg end (material only below the toe's round, 0 to 3), a round tube (none) and a round-cornered tube (its flat side −14 to 14 against a 40-wide end).
+  - On an angle's back (0 to 60) the butt builds.
+  - D125's butts were all on sharp tubes or a sketch rectangle, so none of its cases changes.
+
+**FR3b** (the `frame` feature's `corners` and `trims`):
+- **A joint is a place** where members end, and where a member's line passes through inside its length (a T-joint).
+  - Two members passing through one place, or two lines crossing inside both their lengths, are refused `MEMBERS_CLASH` (split one at the crossing to make a joint).
+- **Settings, all opt-in** (`corners` left out builds an FR2 frame; FR3a's documents keep their meaning):
+  - `default` for two-member corners;
+  - `multi: 'order' | 'none'` (three or more ends; default none, FR3a's "left square");
+  - `tee: 'butt' | 'cope' | 'none'` (T-joints; default none);
+  - `at` kinds now also `cope`, `order` (with `order`: the members, the first running through) and `trim: 'face' | 'envelope'` on a butt.
+  - A setting that does not fit its joint (an order at two members, a mitre at a T-joint) is `CORNER_NOT_A_JOINT`.
+- **Ordered trim**:
+  - the first (by `order`, else the larger section, then the lower index) runs on to cover the others' sections there;
+  - each next is run on into the joint and trimmed to the earlier members' envelopes, each envelope as trimmed itself (its own envelope less those before it, the piece reaching its own way kept). So the tool is exactly the space the earlier members take.
+  - The first build trimmed to the earlier envelopes untrimmed. On a round-cornered table that over-trimmed the third member by a leg's round sliver (227.6 mm³ at each such corner): a gap. The trimmed envelopes fixed it before commit.
+  - The report: `trim`, its rank and the members it is trimmed to.
+- **Cope / envelope butt**: the ending member run on through the other and less its envelope; of the pieces, the one reaching its own way is kept (a stub out the far side dropped). The report: `cope`.
+- **T-joints**: each member ending on another's length, butted on its face (the open-side check holds) or coped; the member passing through is untouched.
+- **`trims: [{ member, end, plane: { origin, normal } } | { member, end, body }]`**, on ends no joint finishes (else INPUT):
+  - **A plane**: the member run on to meet it (its line's crossing, its section's reach past it), cut keeping its other end's side. Refused `TRIM_PARALLEL` (the line along the plane) and `TRIM_EMPTY` (the plane at or past the other end).
+  - **A body** (an earlier feature, referenced and not consumed, so it stays a body): taken from the member, the piece holding its other end kept. Refused `TRIM_MISSES` when nothing is taken, `TRIM_EMPTY` when nothing is left.
+- **The member report's `ends` kinds** now also `cope` and `trim` (with `rank`, `against`).
+
+**Oracles** (`test/fr-3b.test.mjs`, 8 tests; closed forms and S0's quadratures written there):
+- The two hardening tests (above).
+- **To the envelope**:
+  - a 40 × 40 round-cornered tube butted to the other's envelope reaches into its rounds: A·280 + 2∫[w_o − w_i](6 − √(36 − s²))ds to 1e-9 (S0's quadrature);
+  - the through member A·320; welded, one body and their sum.
+- **A fish-mouth cope at a T-joint** (Ø25 × 2 onto the middle of Ø50 × 2): A·150 less the two-cylinder overlap ∫2r²cos²u √(R² − r²sin²u) du to 1e-9; the through tube untouched.
+- **A T-joint butt**: a rail on a post's middle, A·480; the post A·800; welded, their sum. Without `tee`, left square.
+- **Ordered trims**:
+  - three at a corner: X A(L + 20), Y and Z A(L − 20), welded to one body and their sum;
+  - a table of sharp tubes: legs A·720, rails A·560 and A·360, welded to their sum, in under 10 s;
+  - an order given (Z first).
+- **Round-cornered ordered table**: legs A·720 exactly; each rail between A(L − 40) and that plus two rounds' reach; welded, one body and their sum to 1e-9. No overlap is proven; no gap holds by construction. 7.5 s (below).
+- **Trims to a plane**:
+  - an inclined floor z = 0.2x + 10, A·490, its angle atan 0.2;
+  - a plane below the start: run on, A·520.
+- **Trims to a body**: a base plate, A·490, and the plate still a body. TRIM_PARALLEL, TRIM_EMPTY, TRIM_MISSES.
+- **Refusals**: MEMBERS_CLASH (crossing, and two through one point), CORNER_NOT_A_JOINT (an order at two, a mitre at a T-joint), a wrong order, a trim with both a plane and a body, a trim on a finished end, an unknown corners field.
+- **Conformance** `conformance/fr/` (+5; generator `scripts/fr3b-conformance.mjs`, closed forms only):
+  - the ordered three-member corner (each centroid at its line's middle);
+  - the T-joint butt;
+  - the inclined-floor trim (the cut prism's x̄ = −0.2I/V, z̄ = (A(500² − 10²) − 0.04I)/(2V));
+  - `refuse-butt-on-open-side`;
+  - `refuse-members-clash`.
+
+**Studio**:
+- **The frame node** gains `corners.multi`, `corners.tee`, the new `at` kinds and `trims` (plane, or a body by its `BodyRef`). The body trims are in `usesOf`, not `parentsOf`, so a member's body is never named after the plate it is trimmed to. Flatten shifts them.
+- **"Frame" in the palette**: Three or more members (Ordered trim, the default for new frames, or None) and T-joints (Butt, the default, Cope or None). The palette's table now has its legs through and its rails between.
+- **The feature editor**: the frame's Three or more members and T-joints, and each two-member point's choices including Cope with either member through.
+- **The body's panel**: the ends read "trimmed to members 1, 5 (3 in order)", "coped to member 2" and "trimmed to a plane (11.31° from square)". The three-member warning now says to set "Three or more members" to an ordered trim.
+- **The agent**:
+  - `corners` (multi, tee, the new kinds and fields) and `trims` (plane, or a body Ref) are checked in `add_features`;
+  - the kernel's refusals come back by name;
+  - `run_command frame` documents multi and tee.
+  - The tool contract is unchanged.
+- **Studio tests**: `test/frame.test.ts` (+1): the palette's ordered table of sharp tubes (A·720, A·560, A·360, the order in the notes, no warning), the editor's joint fields, and the agent's T-joint with a plane trim and its refusals (BUTT_ON_OPEN_SIDE, a trim without plane or body, a bad tee). FR2's and FR3a's tests now ask for `multi: 'none'` where they test what those stages built.
+- **Flow**:
+  - FR2's step reads its leg at A·720 (the palette's ordered trim);
+  - FR3a's step reads its corners with multi and tee;
+  - a new step (`fr3b-ordered-table`): the palette's table of sharp tubes, the leg A·720, the first rail A·560, its order in the notes.
+
+**Cost:**
+- A table of sharp tubes trims in order in well under a second (0.07–0.11 s).
+- A round-cornered table takes 7.5 s, against 1.9 s before the trimmed envelopes. The envelopes' Booleans on curved tubes (the analytic route) are the cost, and the studio's prefill tube is round-cornered.
+- Candidates: trimmed envelopes shared across a joint, cheaper envelopes (a box where the section's own rounds do not matter), or the analytic Boolean's speed itself.
+- **The studio does not freeze** (the coordinator's check, after review). Measured in the flow (`FR3b a round-cornered table from the palette …`, added with FR4a's commit), the palette's default table of round-cornered tubes:
+  - The preview and the evaluation run in the engine worker, so the page stays live. In one run the preview arrived after 6.7–7.9 s; meanwhile the page answered a round trip within 1–19 ms on 64–73 polls, and the longest gap between 10 ms main-thread ticks was 39–52 ms.
+  - The HUD said "evaluating…" all the while.
+  - On Enter, the bodies arrived 1.4 s later (the preview's result reused).
+  - The flow step holds the gap under 500 ms and the answers under 500 ms.
+- **So the 7.5 s is a performance follow-up, not a bug**: the speed-ups above. The prefill stays round-cornered (not changed to hide it).
+
+**Judgement calls**:
+- **Refuse, not report, the open-side butt**: the coordinator gave the choice. A refusal names the side and the spans and points to the envelope trim, which FR3b adds, so no butt leaves a gap and there is always a way to build it.
+- **Trimmed envelopes, not untrimmed**: exact by construction, at the Booleans' cost above.
+- **Joints of three or more and T-joints stay off unless asked** (`multi`, `tee`). The studio turns them on for new frames, so saved FR2 and FR3a documents build as they did.
+- **No pairwise overlap check of all members** (a Boolean per pair is seconds on round tubes). Overlaps are prevented by construction at every finished joint and refused where lines cross; tests prove no overlap by welding.
+
+**Not in FR3b** (the owner may place them; FR5/FR6 as D122): end gaps for welds, notches other than a full cope, members along arcs, a joint of members passing through each other (refused).
+
+**Checks** on bbc642572 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; studio `eslint src test` 0 errors, 119 warnings as before; studio type-check) |
+| Kernel | 1281/1286 (4 skipped; +13: 8 fr-3b tests, 5 conformance cases; names compared, none missing); only the env-only "actual native Split source…" fails |
+| Conformance | 170/170 |
+| Studio | 635/635 (+1 of FR3b, +6 from the merged AM7a/A6.3; names compared, none missing) |
+| Full flow | 184/184, run on its own; the new step included |
+| RB | 312 cases (+5: the fr cases), 0 new, the 8 known TODOs (totals as before: 4 refused, 3 invalid, 5 wrong) |
+| Properties | 11/11, no failures |
+
+RB rows are in the next commit.
+
+## D127 — FR4a: the cut list (2026-10-20)
+
+The fifth FR stage frozen in D122: a frame's cut list in the kernel, the studio's panel and CSV, and the agent's tool. Before it, the coordinator's responsiveness check of D126's 7.5 s table, recorded in D126: the studio does not freeze, so it is a performance follow-up.
+
+**Kernel** (`frame-cutlist.ts`):
+- **`cutPiece(output, { volumeMM3? })`**: a frame member's output as a piece to cut. Refused `[NOT_A_MEMBER]` for any other body. The second argument is an options object, so `outputs.map(cutPiece)` cannot pass an index as a volume (the first test caught that).
+  - **Axis length**: the centroidal line between its two end planes, in closed form. A square end is at its point, a through end at its run-on, and a mitre, butt or plane trim where the line meets its plane. Where an end is no plane (a cope, an ordered trim to the envelopes, a body trim), it is the volume over the area (`fromVolume`).
+  - **Long point**: the body's extent along its line: vertices, and curved edges at 64 points each.
+  - **Each end's cut**: kind, point, the other member, and for a plane its tilt about the section's y (`mitreDegrees`, a mitre box's angle) and about its x (`bevelDegrees`, the saw's bevel); null where it is no plane.
+  - **`reversible`**: the section symmetric about its own x or y through its centroid (a tube, a channel; not an angle). It is now in the member report too.
+- **`cutList(pieces, { densityKgPerM3, material? })`**: identical pieces on one row. Identical means:
+  - the same section (mirrored apart), material and density;
+  - axis length and long point to 1e-6 mm;
+  - end cuts (kind, a through end counted square; angles to 1e-6°) as an unordered pair for a reversible piece, in order otherwise;
+  - for a piece measured by volume, the volume to 1e-3 mm³.
+  - Rows are in first-seen order. A piece may carry its own material and density.
+  - **Mass**: ρ·A·L (closed form) where both ends are planes, else ρ·V (the body's).
+  - **Totals**: quantity, length and mass.
+  - Refused `[DENSITY]` for a density not above 0.
+- **`cutListCsv`**: a header; a row a group (item, quantity, section, material, axis length "(by volume)" where so, long point, start and end cuts, mass each and the row's, pieces); the total. RFC 4180 quoting.
+
+**Oracles** (`test/fr-4a.test.mjs`, 5 tests; written there):
+- **A mitred 600 × 400 rectangle of sharp tubes**: two rows of two; axis lengths 600 and 400 and long points L + 40 to 1e-12; 45° both ends with no bevel; mass ρ·A·L to 1e-12, and against the bodies' own (planar, exact).
+- **An ordered table**: legs 720 (square, through) × 4, rails 560 and 360 × 2 by volume (exact on planar bodies); its mass.
+- **A 60° butt**: the through piece 400 + 20 sin 60°, the other 300 − 20/sin 60° with a 30° cut and no bevel, its long point L_c + 20 tan 30°.
+- **A compound mitre**: a 3D corner, both members rolled ρ (0, 30, 60°). Each mitred end's mitre is atan(cos ρ·tan θ) and its bevel atan(sin ρ·tan θ), to 1e-9, with θ = acos(u1·m) from the skeleton.
+- **Grouping**:
+  - a Z of flat tubes: the first and last pieces are the same piece reversed, one row of two;
+  - by hand, the same two pieces non-reversible are two rows;
+  - reversibility from the shape (a tube and a channel yes, an angle no);
+  - two angle stiles one row, one of them mirrored two rows;
+  - a coped T-joint by volume, its mass the body's.
+- **The CSV** and its total; a piece in its own material and density apart; NOT_A_MEMBER, DENSITY.
+- **Conformance** `conformance/fr/` (+2; generator `scripts/fr4a-conformance.mjs`): `cutlist-rectangle-mitre` and `cutlist-butt-60`. Their outputs are checked as before, and a new `cutList` expectation in the runner checks rows (quantity, pieces, axis length, long point, by volume or not, each end's kind with mitre and bevel, mass) and totals at a density.
+
+**Studio**:
+- **A member's body carries its `cutPiece`**, worked out where the body's mass already is (its volume passed in).
+- **`partCutList(doc, bodies, material)`** (`app/cutList.ts`): every member's body as a piece in its own material (its look's, else the part's), densities from the materials library — every one an estimate, D67 — flagged `densityEstimate`.
+- **The body's panel**: "Cut list" with the member's axis length. The dialog has:
+  - a row a group: #, quantity, section, material, length "(by volume)", long point, start, end, mass each;
+  - the totals;
+  - a warning that the masses use the library's estimated densities;
+  - "CSV": the kernel's CSV, its pieces named by their bodies.
+- **The agent's `cut_list`** (`query.cutlist` in v2), read only:
+  - rows with the bodies' names, the totals, `densities: "estimates (the materials library's)"`, and the CSV on asking;
+  - a part with no members says so.
+  - Classified READ in `contract.ts` with its output schema. The read-tool contract test runs it on a two-member frame.
+  - The tool contract is recorded (`UPDATE_TOOL_CONTRACT=1`: tools-v1.json, tools-v2.json; a compatible change).
+- **Studio tests** `test/frame.test.ts` (+1): the palette's mitred rectangle's cut list (two rows of two, masses in aluminium to 1e-12, the estimate flag, the cut text), a member in steel its own row by steel's density, and the agent's tool with its CSV and its refusal.
+- **A flow step** (`fr4a-cut-list`): the palette's mitred rectangle; the dialog's two rows (600 and 400, mitre 45° both ends, 0.719 and 0.48 kg in aluminium); the totals and the warning; the CSV downloaded and read.
+- **The responsiveness step** (D126) is in the flow too.
+
+**Shared files touched** (the agent's tool infrastructure, needed for the kernel's new tool): `src/chat/contract.ts` (READ entry), `src/chat/groups.ts` (the v2 action), and `test/chat.test.ts` / `test/tool-contract.test.ts` (the tool listed and run). No drawing files: the drawing table is FR4b.
+
+**Judgement calls**:
+- **Axis length by closed form where both ends are planes, else by volume**, said so per row. A cope's "length" has no single plane, and its long point is the cutter's measure.
+- **Mitre and bevel as the plane's tilts about the section's y and x**, measured from square. For a plane rolled out of the section's axes both are nonzero (a compound cut).
+- **Reversible pieces group end for end; an angle's do not.** A mirrored piece is always its own row.
+- **Mass from each piece's material.** The studio's densities are all estimates, so the dialog, the agent's result and the panel say so.
+
+**Not in FR4a**: the drawing table (FR4b, on the outer lane's O49 API), stock nesting (FR6), weld gaps.
+
+**Checks** on 843ab46c6 plus this change:
+
+| Check | Result |
+|---|---|
+| Lint and type-check | Clean (kernel; studio `eslint src test` 0 errors, 119 warnings as before; studio type-check) |
+| Kernel | 1288/1293 (4 skipped; +7: 5 fr-4a tests, 2 conformance cases; names compared, none missing); only the env-only "actual native Split source…" fails |
+| Conformance | 172/172 |
+| Studio | 639/639 (+1 of FR4a, +3 from the merged AM7b; names compared, none missing) |
+| Full flow | 187/187, run on its own; the two new steps included (the responsiveness step: preview after 7.4 s, the slowest answer 3 ms, the longest main-thread gap 49 ms) |
+| RB | 314 cases (+2: the cut-list cases), 0 new, the 8 known TODOs (totals as before) |
+| Properties | 11/11, no failures |
+
+RB rows are in the next commit.
+
+## D128 — FR4b: the cut list as a drawing table; acceptance by the agent, a welded table frame and a 2020 T-slot frame (2026-10-20)
+
+The last FR stage frozen in D122. The cut list goes onto a drawing sheet as a table (the outer lane's O49), and two frames are built by the agent's tools in one chat turn each and accepted by closed forms that are not read from the build. **FR is done** with this step; the FR → R12b hand-over block is at the top of README §0.
+
+**The drawing table** (`app/cutList.ts`):
+- **`cutListTable(list)`**: a `PartCutList` as `TableContent`, titled CUT LIST. A row a group:
+  - item, quantity, section (with "(mirrored)"), material, length [mm] and long point [mm] to 0.1, start and end, mass each [kg] to 0.001;
+  - each end as SQUARE, `MITRE 45`, `MITRE 30 / BEVEL 10`, or what finishes it where it is no plane (COPE, TRIM);
+  - notes: the totals; the items measured by volume, where any; that the masses use the materials library's densities, which are estimates.
+- **`cutListSource(ctx)`**: the tables' `cut-list` source. It uses the bodies given (the drawing's), else evaluates the part. A part with no frame members is refused with "no frame members (make a frame or a structural member)", which the sheet shows as TABLE_SOURCE, as for any source.
+- **Registered** in `drawing/tables.ts` (`TABLE_SOURCES['cut-list']`, one line and its import, as the coordinator agreed).
+- **The drawing panel**: a "Cut list" checkbox where the part has a frame member, beside "Bend table" and built the same way (`DrawingWorkspace.tsx`).
+
+**Acceptance** (`test/frame-acceptance.test.ts`, 2 tests). Each frame comes from one `add_features` call of a `frame` node, then `cut_list`, sent through `dispatchTool` as the chat does. The flow sends the first through the real chat.
+- **A welded table frame** (`test/fixtures/frame-welded-table.calls.json`), sharp 40 × 40 × 3 tubes, corners mitred, tees butted:
+  - a 1000 × 600 top, on its centre line at z 750;
+  - four legs, 0 to 730, under the top's corners;
+  - four lower rails at z 150, between the legs.
+  - **Oracles**, A = 1600 − 34² = 444 mm²:
+    - every member A·L to 1e-12: the top rails 1000 and 600; the legs 730; the lower rails L − 40 (960 and 560), butted on the legs' faces;
+    - the twelve united into one body of their sum, to 1e-12 (welded, with no overlap);
+    - the cut list: rows 2 × 1000 and 2 × 600 mitre/mitre (long point L + 40), 4 × 730 square, 2 × 960 and 2 × 560 butt/butt; the total 9160 mm; mass in steel (7850, a test value) ρ·A·L to 1e-12;
+    - the agent's result and its CSV;
+    - the drawing on A3: the table on the sheet, R14's issue list empty on it, and every text of it in the SVG, the PDF and the DXF.
+- **A 2020-class T-slot frame** (`test/fixtures/frame-tslot.calls.json`), 400 × 300 × 500: four uprights and eight rails between their faces at z 10 and 490, all square. The slot sizes are the tslot-20 library's estimates (D123), given in the call.
+  - **Oracles**, A = 400 − 4(6.2·6.1 + (11 − 6.2)²/4) − π·2.1²:
+    - every member A·L to 1e-12 (uprights 500, rails 380 and 280);
+    - the twelve united to their sum, to 1e-9, so no two overlap;
+    - the cut list: 3 rows of 4, all square;
+    - the member note's area against A to its three decimals;
+    - no warnings.
+- **Conformance** `conformance/fr/` (+2): `accept-welded-table` and `accept-tslot-frame`, written by the test (`WRITE_ACCEPTANCE=1`). The test also checks that they hold the part the agent built. Expected:
+  - every output's volume by the closed form (relTol 1e-9), its centroid by this kernel, one body of genus 1;
+  - the cut list's rows and totals by the closed forms (steel; aluminium 2700 as a test value for the T-slot);
+  - a STEP round trip.
+- **A flow step** (`fr4b-cut-list-drawing`):
+  - the welded table by the scripted agent through the real chat; the first member's volume 444 000 mm³;
+  - the cut-list dialog: 5 rows, 12 pieces, 9160 mm;
+  - in Drawing: A3, the "Cut list" checkbox, the table on the sheet with no issue on it;
+  - its texts in the downloaded SVG, PDF and DXF.
+
+**Found, the outer lane's (a follow-up, not fixed here):** on A4, the 166 mm wide cut list is auto-placed over the right view's name. The issue list reports TEXT_OVERLAP with no fix, so "Fix all" cannot clear it. The test holds this as the known A4 result, so a fix in the table's placement will show there. A3 is clean.
+
+**Outer-lane files touched** (each needed for the cut list's table; the coordinator agreed the registration):
+- `src/drawing/tables.ts`: the registration and its import.
+- `src/ui/DrawingWorkspace.tsx`: the checkbox and `hasFrame`.
+- `test/drawing-table.test.ts`, two expectations:
+  - the unknown-source message now lists `bends, cut-list`;
+  - the refusal case used `cut-list` as its unknown source. It is now a known source that refuses (no frame members), so it checks that refusal: the same TABLE_SOURCE, drawn with the new reason.
+
+**Judgement calls**:
+- **The welded frame is in sharp tubes**, so every member has a closed form. Round-cornered members were accepted in FR1–FR3, and their ordered table takes 7.5 s (D126).
+- **The welded table's legs are cut square and stand under the top**, their tops on the top rails' undersides (z 730). D122's acceptance named the legs "butted or ordered-trimmed". A leg's end is no skeleton joint with a rail, so the kernel reports it square, which is the cut a welder makes there. The lower rails are the butted members.
+- **The T-slot frame is butted and cut square.** Such frames are joined by brackets or end fasteners, not welded, so no corner treatment is asked for. Its slot sizes are flagged as the library's estimates in the case's text.
+- **Acceptance on A3.** The A4 overlap belongs to the outer lane's placement and is recorded above. It is not hidden by moving the table by hand.
+- **The agent is the scripted one (L2).** A live model building the frames needs the owner's OK.
+
+**Checks** (names compared with FR4a's runs: none missing):
+
+| Check | Result |
+|---|---|
+| Kernel lint, type-check | clean (no kernel source changed) |
+| Kernel | 1290/1295 (4 skipped; +2: the accept cases); only the env-only "actual native Split source…" fails |
+| Conformance | 174/174 (+2) |
+| Studio lint, type-check | 0 errors (119 warnings, none new), type-check clean |
+| Studio | 643/643 (+2 of FR4b, +2 from the merged O59/O60) |
+| Full flow | 188/188, run on its own (+1, `fr4b-cut-list-drawing`) |
+| RB | 316 cases (+2: the accept cases), 0 new, the 8 known TODOs (totals as before but OK, +100 by the two cases' outputs) |
+| Properties | 11/11, no failures |
+
+## D129 — R12b S0: feasibility of internal, bevel and worm gears and the tool-generated root (2026-10-20)
+
+**R12b S0.** The roadmap's feasibility checkpoint before R12b (§4 "R12b — internal, bevel and worm gears", with the trochoid root moved here from R6a.6, D60). There is no research note; this record is the design input. The questions:
+- What do R6a's gears (D53–D60) already give an internal gear, and what are an internal pair's interference conditions, checked how?
+- Does the rack-generated root's parametric envelope agree with an independent cut, and with the textbook form circle?
+- Straight and spiral bevels: Tredgold's back-cone approximation, the octoid, or the exact spherical involute — which, and why? Can a flank on the sphere be held exactly on it?
+- Worms: which thread forms, and what do they need of the helical machinery? The worm wheel: cylindrical or throated?
+
+Evidence: `packages/barocss-cad/test/r12b-s0.test.mjs` (kept, 7 tests), against oracles written in the test, apart from `gear.ts`: closed forms, a brute-force cutting simulation, and sweeps of the analytic outlines (on the plane, and on the sphere by the gnomonic projection). No product code changed.
+
+**Sources** (public HTML, read-only, retrieved 2026-10-20 by a read-only research helper; no standard text copied, numbers as facts, formulas in our words):
+- K1: "Calculation of Gear Dimensions | KHK", https://khkgears.net/new/gear_knowledge/gear_technical_reference/calculation_gear_dimensions.html — internal gears §4.2 (Tables 4.6–4.8), straight bevel §4.4 (Tables 4.15–4.17), spiral bevel (4.18–4.20), cylindrical worms (4.22–4.24). Most equations there are images: only the text and the published numbers were used, and a formula the text does not state is used only where it reproduces the published numbers. (The helper read the page's HTML once with curl; the same public page, no file downloaded.)
+- K2: "Involute Gear Profile | KHK", https://khkgears.net/new/gear_knowledge/gear_technical_reference/involute_gear_profile.html — the basic rack: addendum 1.00 m, dedendum 1.25 m, root fillet radius 0.38 m (facts).
+- Second sources for thresholds: Gear Solutions, B. Dengel, "Internal ring gears – design and considerations" (2019-12-15), https://gearsolutions.com/departments/tooth-tips/internal-ring-gears-design-and-considerations/; Gear Solutions, W. P. Crosher, "The five standardized worm gear tooth forms…" (2007-03-01), https://gearsolutions.com/departments/tooth-tips/tooth-tips-william-crosher-8/ (ZA, ZN, ZI, ZK, ZC defined); Wikipedia "Bevel gear", https://en.wikipedia.org/wiki/Bevel_gear (traditional generators cut an octoid).
+- Not found as public text: the internal pair's interference inequalities (K1's are images), a z2 − z1 table (only "z2 − z1 > 9" for 20° standard pairs, and "z2 > 34" for an internal tip above its base circle), the form-circle formula, any trochoid equations from KHK, KHK's view on octoid vs spherical involute. Those below are derived and marked so; each is checked against an independent construction here.
+- Found faulty in K1 (recorded, not used): the internal example's caption says x2 = 0.5, its table uses 0.516; the external root diameter's "+2h"; the "standard" straight-bevel table (4.17) repeats the Gleason one; the spiral bevel's θa1 entry.
+
+**Today, as it stands:**
+- **An internal gear is already exact, as an annulus less a "space gear"**: a spur gear at x = 0.25 thinned by 2·0.25·m·tan α has tip r + 1.25 m (the ring's root), root r − m (the ring's tip) and a reference thickness πm/2 (the ring's space). Through the part model as it stands (`spur-gear` + circle `extrude` + `difference`): m 2, z 40 in Ø100 × 10 is valid, one body, V 28083.6735 against the closed form (π R² − the space gear's analytic area) × b = 28083.5863 (3.1e-6 relative, inside the measured flank slack), 164 faces — in 14.7 s, the analytic Boolean through 160 B-spline flanks. R12b builds it directly (the space outline as the inner loop of `extrudedProfile`), not by a Boolean.
+  - Below z = 2/(1 − cos α) = 33.2 an unshifted ring's tip r − m falls under its base circle (K1's z2 > 34). The space gear then joins it by radial lines: a tip no internal gear may have.
+- **An internal pair's sweep, apart from `gear.ts`** (the analytic outlines, the ring turning θ z1/z2 the same way, a uniform grid of segments): m 2, z 24 in z 60 clears by 0.04698416 for j 0.1 and 9.3509e-5 for j 2e-4, against j cos α/2 = 0.04698463 and 9.3969e-5 — conjugate, the remainder the chords' sag (0.9 s a sweep of 96 samples).
+- **The interference conditions agree with the sweep on all nine pairs probed** (j 2e-4, 128 samples). They are in the commonly published form (K1's images not read; derived here, so the sweep is the authority):
+  - involute: z1/z2 ≥ 1 − tan α_a2 / tan α_w;
+  - trochoid: θ1 z1/z2 + inv α_w − inv α_a2 ≥ θ2, with θ1 = acos((ra2² − ra1² − a²)/(2a·ra1)) + inv α_a1 − inv α_w and θ2 = acos((a² + ra2² − ra1²)/(2a·ra2)).
+  - Ring z 40 with pinions 24–36: margins +0.0117 … +0.0019 clear (31/40), −0.0006 crosses at 32 of 128 phases (32/40), −0.0078 and −0.0218 cross at all (34, 36). K1's "z2 − z1 > 9": 31/40 is the last clear.
+  - z 20 in z 60 breaches the involute condition by −0.0037: the sweep is short of j cos α/2 by 2.2e-5 (the ring's tip reaches under the pinion's base circle, where today's pinion has its schematic radial root). z 24 in z 60 clears both.
+  - Trimming (radial assembly) is not a rotation: R12b.2 checks it by a radial-insertion sweep, not by the rotation sweep.
+- **The rack-generated root is a closed form, and exact:**
+  - **The tool:** the basic rack, addendum 1.25 m into the gear, flanks at α, the tooth πm/2 on its reference line, the tip rounded by ρ (0.38 m by default; K2's fact), its reference line at r + x m. The round's centre sits hc = 1.25 m − ρ below the line and xc = πm/4 − hc tan α − ρ/cos α off the tooth's centre. At ρ = 0.38 m, xc = 0.0644 m: a short flat between the rounds; the rounds meet when ρ > (πm/4 − 1.25 m tan α)/(1/cos α − tan α) = 0.4719 m.
+  - **The envelope:** at the gear's turn φ, the round's centre is (xc − rφ, yc). It touches the gear at its point on the line to the pitch point, on the far side; that point is turned back by −φ. The flat generates the root circle r − (1.25 − x)m exactly.
+  - **The oracle:** a brute-force cutting simulation, the least first entry of each ray over the tool's travel (scan, bisection, golden section). The envelope agrees to ≤ 5.7e-14 mm at 41 points each, on m2 z20, m3 z12 x 0.6, m2 z30 x −0.3, m1 z40 (about 20 ms each).
+  - **The form circle** (derived; not found as public text): r_F = √(rb² + (r sin α − hF/sin α)²), with hF = (1.25 − x)m − ρ(1 − sin α), the round–flank tangent point's depth below the pitch line. The envelope's end lies on it to 1e-9·m, on the involute at its polar angle to 1e-9, and G1 there (cos of the angle to the radius = rb/r_F, 2e-5 by a finite difference). m2 z20: Ø37.640133 against base Ø37.587705.
+  - **The undercut limit:** ρ = 0.38 m puts hF at 0.99997 m, so the limit z ≥ 2hF/(m sin²α) is the sharp rack's 2/sin²α to 6e-4 teeth.
+  - **Undercut (z 12, x 0):** the simulated cut reaches 0.7339 mm inside the involute at r 11.389 (base 11.276). The round's envelope alone is then not the boundary: the flank's own envelope below the interference point cuts the involute, and the profile is the least of the three envelopes (flat, round, flank) and the involute — computed, never assumed.
+- **Bevel gears: the spherical involute is conjugate; Tredgold's profile is close, but not conjugate.**
+  - **The spherical involute:** the trace on the unit sphere of a great circle rolling on the base cone sin δb = sin δ cos α. At roll t its point lags the tangent point by the arc s = t sin δb, and cos θ = cos δb cos s. A tooth is the involute turned by ±ψ, ψ = π/(2z) + its azimuth at the pitch cone. Tip and root cones are δ ± atan(m/R), atan(1.25m/R); a meridian joins it under the base cone.
+  - **Tredgold's:** the virtual spur gear z_v = z/cos δ drawn on the back cone's development (radius R tan δ), wrapped back (azimuth = developed angle / cos δ), seen from the apex.
+  - **The sweep on the sphere,** gear 2 turning −θ z1/z2, read by the gnomonic projection at the pitch point (great circles to lines), j 2e-4. The spherical involute clears by the same amount at every phase:
+    - z 20/40, Σ 90° (R 44.72): 9.4046e-5…9.4607e-5 (j cos α/2 = 9.397e-5; the spread, 5.6e-7, is the chords and the projection's stretch);
+    - z 16/24, Σ 60°: 6.1e-7.
+  - Tredgold's spreads 7.4e-6 and 1.43e-5 (13× and 23×): not conjugate, though by micrometres at these sizes.
+  - Both are fitted curves at the same cost, so the exact one is chosen.
+- **A flank can lie exactly on its sphere:** a C¹ cubic fitted to the spherical involute's stereographic image lifts, by the inverse projection, to a rational curve exactly on the unit sphere (3e-16 off it). It is within 1e-4·m in 3 pieces: 6.6e-5, 1.6e-4 and 7.5e-5 mm at the heel, for m2 z20 δ 26.6°, m2 z40 δ 63.4° and m3 z12 δ 30°.
+  - The flank is then the cone through the apex over that curve: degree 1 radially, exact through the apex. Its edges on the heel and toe spheres lie exactly on them, its edges on the tip and root cones are straight lines.
+  - The only inexactness is the flank's measured distance from the true spherical involute.
+- **Worms: a ZI worm is a helical gear of z1 teeth at β = 90° − γ.** Today it is refused past 45° (`UNSUPPORTED_GEAR_KIND`, asserted). By the existing rotation fit within 1e-4·m_n (m_x 2–4, q 8–16, z1 1–4, 40–90 long, γ 3.6°–21.8°):
+  - the twist takes 45–314 cubic pieces, 12–79 axial segments. All fit today's 64 but m1 q16 single-start 40 long, 12.7 turns: 79.
+  - The transverse flank's long involute takes 4–11 Hermite pieces: more than the five a gear flank allows (a side face's 16 poles) for single starts.
+  - A cylindrical worm wheel (a helical gear at β = γ, the worm's hand) builds today: m_n = m_x cos γ, z 40, d2 = z2 m_x = 80 to 1e-9, valid.
+
+**The choices, and why:**
+- **Bevels: the exact spherical involute,** with tip and root cones through the apex, heel and toe on spheres.
+  - It is conjugate on every sphere (shown above), and costs what Tredgold's profile costs (both fitted curves).
+  - The stereographic lift keeps its edges exactly on the end spheres. The solid is self-similar about the apex, so its volume has an independent closed form: V = Ω·(Re³ − Ri³)/3, where Ω is the section's area on the unit sphere by quadrature.
+  - Tredgold's z_v stays only as the *reported* virtual numbers (the undercut estimate, the textbook contact ratio), named as approximations beside the exact spherical ones.
+  - The octoid, which Gleason-type generators cut (Wikipedia), is not built: it needs the generating crown gear's simulation and has no closed form; its difference from the spherical involute is the machine's, recorded as `manufacturingValidated: false`.
+- **Spiral bevels: the ideal conjugate one.**
+  - The spherical-involute section is turned along the cone distance by φ(R), with φ2 = −φ1·z1/z2, so every sphere's pair stays a meshing pair.
+  - The tooth trace is a circular arc of cutter radius r_c on the crown plane through the mean point at β_m, in closed form.
+  - The surface is built as the helical gears are: the rotation's Hermite fit along R times the lifted section, the deviation measured.
+  - The report says so: "ideal spiral bevel (line contact), not a face-milled or face-hobbed tooth: no crowning, no machine settings".
+  - Hypoid offset: refused.
+- **Worms: ZI and ZA.**
+  - ZI (involute helicoid) is the helical machinery at large β.
+  - ZA (straight axial profile, the lathe's) has an Archimedean spiral as its transverse section, fitted and measured the same way. Its axial section is a straight-sided rack, so a throated wheel's mid-plane profile is the closed-form involute of z2 (R12b.6's oracle).
+  - ZN, ZK, ZC: refused (`UNSUPPORTED_GEAR_KIND`), named.
+- **The generated root: the envelope, fitted.**
+  - The root arc is exact (the flat's envelope). The fillet is the round's envelope, by C¹ Hermite pieces on φ with the deviation measured, as the flanks are; past the budget, `PROFILE_BUDGET_EXCEEDED`.
+  - Undercut gears become buildable: the involute is trimmed where the envelopes cut it, with an `UNDERCUT` warning and the usable flank's start reported.
+  - The schematic root stays for documents written with it.
+
+**Verdict — R12b in these stages, this order:**
+- **R12b.1a — the generated root on external spur and shifted gears.**
+  - **Inputs:** `rootPolicy: 'generated'` with `toolTipRadiusMM` ρ (default 0.38 m). Generator `spur-gear@1` (CAPABILITY on an unknown one, as now). `@0` documents rebuild unchanged, with the schematic root. The studio's new gears take the generated root.
+  - **Geometry:** the fillet as above. Undercut accepted under this policy: the involute trimmed by the flank's and round's envelopes, warning `UNDERCUT` with the trimmed start radius. The schematic policy keeps today's undercut refusal.
+  - **Report:** the form circle r_F, the tool, ρ. The warning `ROOT_TRANSITION_UNVALIDATED` gives way to "generated by the basic rack, tip radius ρ"; `manufacturingValidated` stays false (no physical evidence).
+  - **Pairs:** the usable flank starts at r_F, or at the trimmed start, not at max(rb, rf). The sweep runs on the generated outline.
+  - **Oracles:**
+    - the simulated cut (the probe's, kept as test code) to ≤ 1e-7·m;
+    - r_F closed form to 1e-9·m;
+    - G1 at r_F;
+    - the root circle exact;
+    - the volume against the area of the simulated boundary (Green's theorem), within the measured deviation;
+    - an undercut gear's trimmed start against the simulated cut.
+  - **Refusals:**
+    - `INVALID_INPUT` when ρ ≤ 0 or ρ > the largest that leaves a flat, (πm/4 − 1.25m tan α)/(1/cos α − tan α), named;
+    - a pointed tooth: `SELF_INTERSECTION`, as now.
+  - A test failing on HEAD: the generated policy is refused today.
+- **R12b.1b — helical gears and the rack's root.**
+  - **Helical:** the transverse section of the normal round is an ellipse, semi-axes ρ along the depth and ρ/cos β along the pitch line. Its envelope comes by the same normal-through-the-pitch-point rule, solved per φ.
+  - **The rack part:** its root fillet is the basic rack's own, ρ, a circular arc tangent to flank and root line: exact.
+  - **Oracles:** the simulated cut with the elliptical tip; the rack's closed-form volume.
+- **R12b.2a — internal gears.**
+  - **Inputs:** an `internal-gear` kind (spur or helical), tip r − (1 − x)m and root tip + 2.25m (K1), the outer rim diameter given.
+  - **Built directly:** the space outline as the inner loop of `extrudedProfile`, not a Boolean.
+  - **Refusals:**
+    - a tip under the base circle: `UNSUPPORTED_PROFILE_SHIFT`, naming the least x that lifts it, x ≥ 1 − z(1 − cos α)/2;
+    - a rim thinner than its minimum: `BORE_INTERSECTION`'s twin, `RIM_INTERSECTION`.
+  - **The root:** schematic, flagged. The ring is cut by a pinion-type cutter, not a rack (R12b.2b).
+  - **Pairs** (`checkInternalGearPair`):
+    - a = m(z2 − z1)/2, or with shifts by inv α_w = 2 tan α (x2 − x1)/(z2 − z1) + inv α (verified against K1 Table 4.6's numbers);
+    - ratio +z1/z2 (the same sense);
+    - backlash; the internal contact ratio [√(ra1² − rb1²) − √(ra2² − rb2²) + a sin α_w]/(π m cos α), and the usable one;
+    - the sweep, inside: the planar sweep generalised to the same sense, the pinion within the ring;
+    - the involute, trochoid and trimming conditions as error diagnostics `INVOLUTE_INTERFERENCE`, `TROCHOID_INTERFERENCE`, `TRIMMING_INTERFERENCE`, the first two cross-checked by the sweep, the third by a radial-insertion sweep (the pinion moved in along the line of centres at each phase).
+  - **Part feature, placement and studio:** `mesh` inside a ring; the studio's command, notes and agent node.
+  - **Oracles:**
+    - the volume by (πR² − the analytic space area) × b;
+    - K1 Table 4.6, m 3, z 16 in z 24, x2 0.516: inv α_w 0.061857, α_w 31.321258°, a 13.2, da2 69.096, df2 82.596;
+    - the conditions against the sweep, on the probe's nine pairs.
+- **R12b.2b — the shaper-cut internal root.**
+  - **Inputs:** the cutter's teeth z0, shift x0 and tip radius ρ0.
+  - **Geometry:** the ring's root fillet is the envelope of the rotating cutter's tip round: an epitrochoid offset, in closed form, fitted.
+  - **Oracles:** the same simulated cut with a rotating cutter. K1 Table 4.8(1)'s least ring tooth count for a cutter z0 (sourced values: K1, retrieved 2026-10-20, "Table 4.8(1)"; z0 15→34, 20→38, 30→48, 40→58, 60→78, 100→118 among others) as a check of the cutter's own involute interference.
+- **R12b.3 — straight bevel gears.**
+  - **Inputs:** shaft angle Σ in (0°, 180°), default 90°; tan δ1 = sin Σ/(z2/z1 + cos Σ); R = m z/(2 sin δ); face width b.
+  - **Tooth proportions:** standard (addendum m, dedendum 1.25 m at the heel; tip and root cones through the apex).
+  - **Faces:**
+    - flanks: the lifted stereographic cubic times the cone distance, rational, degree 1 radially;
+    - heel and toe: sphere faces;
+    - tip and root: cones;
+    - a meridian join under the base cone, schematic and flagged;
+    - a bore by a cylinder.
+  - **Pairs:** the spherical sweep (one sphere suffices: the pair is self-similar); the exact spherical contact ratio (arc of the great circle of action between the tip cones, over the base pitch angle) beside Tredgold's.
+  - **Oracles:**
+    - V = Ω(Re³ − Ri³)/3 by spherical-area quadrature, within the measured deviation;
+    - K1's straight-bevel example's system-independent numbers (m 3, z 20/40, Σ 90°: δ 26.56505°/63.43495°, R 67.08204);
+    - the sweep's constant clearance (≤ 2e-6, as probed);
+    - STEP round trip.
+  - **Refusals:**
+    - b > R/3 is a warning (K1's rule of proportion), b ≥ R `INVALID_INPUT`;
+    - toe teeth vanishing or meeting: `SELF_INTERSECTION`;
+    - the Gleason uniform-clearance system and back-cone ends: `UNSUPPORTED_GEAR_KIND` until R12b.3b (on the owner's word);
+    - different modules or a Σ mismatch: `MATE_INCOMPATIBLE`;
+    - an undercut by the exact spherical condition: `UNSUPPORTED_PROFILE_SHIFT`, with Tredgold's z_v reported as the estimate.
+- **R12b.4 — spiral bevel gears** (the ideal conjugate, above).
+  - **Inputs:** β_m, hand, cutter radius r_c.
+  - **Faces:** the section's rotation along R, fitted (segments as helical gears).
+  - **Pairs:** opposite hands; the thrust in words; spherical sweeps at five cone distances; sections of the B-rep by spheres checked for crossings.
+  - **Oracles:** K1's spiral example's system-independent numbers (m 3, β_m 35°, α_t 23.95680°, z 20/40); the spheres' sweeps; volume by quadrature.
+  - **Refusals:** a hypoid offset, a face-hobbed (epicycloidal) trace: `UNSUPPORTED_GEAR_KIND`.
+  - *The owner may drop this stage* (see below).
+- **R12b.5 — cylindrical worms and their wheel.**
+  - **Worms:** ZI and ZA, z1 1–4, q, γ = atan(z1/q).
+  - **The budget, stated (never a looser fit):**
+    - a worm's flank may be split radially into several faces, each within the 16 poles, rather than refused at five pieces;
+    - the axial segments for worms go to 128 (the probe's finest needs 79).
+  - **The wheel:** a cylindrical helical gear, β = γ, the worm's hand.
+  - **Pairs:**
+    - crossed at 90°, a = (d1 + d2)/2 (+ x m), ratio z2/z1;
+    - the lead and hand checked, `MATE_INCOMPATIBLE` with why;
+    - the mesh checked by sections of both B-reps by planes square to the wheel's axis (as D59), at the mid-plane and on either side.
+  - **Oracles:**
+    - K1's axial example (m_x 3, double thread, z2 30: d1 44, γ 7.76517°, d2 90, a 67.000, d_a1 50, d_f1 36.5);
+    - the twist and lead by formula;
+    - the volume against the transverse area × length within the fits;
+    - STEP round trip.
+  - **Refusals:** ZN, ZK, ZC; double-enveloping; shaft angles other than 90°: `UNSUPPORTED_GEAR_KIND`.
+- **R12b.6 — the throated (single-enveloping) wheel of a ZA worm,** conditional on its own check inside the stage.
+  - **Geometry:** the envelope of the worm's thread in the relative motion, by the meshing equation sampled, then fitted.
+  - **Oracles:**
+    - the mid-plane profile against the closed-form involute of z2 (the ZA's axial section is a straight rack);
+    - off the mid-plane, the swept worm's penetration ≥ −1e-4·m at sampled points.
+  - **If the fit cannot hold 1e-4·m within the budget:** `UNSUPPORTED_GEAR_KIND` ("throated wheel") and the cylindrical wheel stays.
+- **R12b.7 — acceptance and hand-over.** The agent builds, in one turn each:
+  - a planetary set: sun, three planets and a ring, z_r = z_s + 2z_p, assembly (z_s + z_r)/N whole, ratio 1 + z_r/z_s, all meshes clear;
+  - a right-angle straight bevel pair;
+  - a worm reducer.
+  - Each against its closed forms; conformance `r12b/accept-*`; the R12b → R12c hand-over block.
+
+**Every stage:** a D-record, a test failing on the previous HEAD, `conformance/r12b/` fixtures (studio ones in subfolders), the studio's command, notes and agent node, a flow step, RB rows and properties, a checkpoint, and the passing test names compared with the last run.
+
+**New public codes** (`GearDiagnosticCode`, an API addition, recorded here):
+- `UNDERCUT` (warning);
+- `INVOLUTE_INTERFERENCE`, `TROCHOID_INTERFERENCE`, `TRIMMING_INTERFERENCE` (pair errors);
+- `RIM_INTERSECTION`.
+
+Mapped to the part model as now: INPUT, CAPABILITY, GEOMETRY.
+
+**Data:**
+- No tables are built in. The basic rack's 1/1.25/0.38 m and 20° are facts (K2).
+- KHK's worked examples are test oracles only, each cited by its table label.
+- Table 4.8 is used only as R12b.2b's check, with its source record.
+- Formulas K1 shows only as images are used only where they reproduce K1's numbers ("verified by numbers"), or are derived here and checked by an independent construction (the interference conditions by the sweep, the form circle by the simulated cut).
+
+**Not in R12b** (for the owner to place):
+- the octoid and the Gleason uniform-clearance bevels (unless R12b.3b is asked for);
+- back-cone ends;
+- hypoid gears;
+- face gears;
+- ZN, ZK and ZC worms;
+- double-enveloping worms;
+- crossed helical pairs at angles other than 90°;
+- non-circular gears;
+- pressure angles other than 20°;
+- tip and root relief, crowning and lead modification;
+- strength and rating (no load claims, as before);
+- the shaper-generated root of external gears.
+
+**For the owner:**
+- **Spiral bevels** (R12b.4): keep the ideal conjugate spiral bevel (line contact, no crowning, honestly flagged), or drop the stage. The default taken: keep it.
+- **The throated wheel** (R12b.6): attempt it, with the refusal as the fallback (default), or stop at the cylindrical wheel.
+- **Decided (the owner, 2026-10-20, relayed by the coordinator):** "R12b.4 스파이럴 베벨은 이상적 모델이라고 분명히 표시해서 유지하고, R12b.6 목 있는 웜 휠은 시도하되 안 되면 이유를 밝혀 거부해." (Keep R12b.4, the spiral bevel, clearly marked as an ideal model; attempt R12b.6, the throated worm wheel, and if it cannot be done, refuse it with the reason stated.)
+  - **R12b.4:** the "ideal model" flag is shown wherever a user meets the gear: the body's notes, the kernel's report (`idealModel: true` and its warning) and the agent's tool output.
+  - **R12b.6:** attempted; if the fit cannot hold, a typed refusal (`UNSUPPORTED_GEAR_KIND`) whose message states why (the measured deviation against the tolerance and budget). The cylindrical wheel stays.
+
+**Checks:** S0 changed no product code.
+- r12b-s0: 7/7, 42 s alone; most of it the nine-pair interference sweep and the ring's 14.7 s Boolean.
+- Lint clean on the new file.
+- Kernel 1297/1302 (4 skipped; +7, the r12b-s0 tests; 1302 = 1295 + 7 and 1297 = 1290 + 7, so none missing). The env-only "actual native Split source…" fails, as always.
+- Conformance, RB, studio and the flow: not rerun, as at D115 and D122 (no source change).
+
+## D130 — R12b.1a: the generated root on external spur gears, generator spur-gear@1 (2026-10-20)
+
+**Decision** (`gear.ts`: `RackRoot`, `filletPoint`, the fillet's fit; `spurGearDimensions`, `spurGearProfile`, `exactProfile`; the part model's `spur-gear`; the studio's gear node, command, edit fields and notes):
+- **Inputs.**
+  - `rootPolicy: 'generated'` with `toolTipRadiusMM` ρ (default 0.38 m, the basic rack's root fillet radius, K2's fact). In the part model: generator `spur-gear@1`, with `toolTipRadius`.
+  - `@0`, or no generator, is the schematic root. Documents written with it rebuild unchanged (conformance r6a, the RB seeds, the determinism test: all as before).
+  - Spur gears only: a helical gear with a generated root is `UNSUPPORTED_GEAR_KIND`, naming R12b.1b.
+- **The tool,** as D129 froze it:
+  - the basic rack, addendum 1.25 m into the gear, flanks at α;
+  - its tooth πm/2 + Δs on its reference line, Δs the gear's thickness reduction, so the reduction is cut, not drawn;
+  - the reference line at r + x m;
+  - tip rounds ρ tangent to the flank and to a flat between them.
+  - `INVALID_INPUT` when ρ ≤ 0 or ρ reaches (πm/4 + Δs/2 − 1.25 m tan α)/(1/cos α − tan α), where the rounds meet. It is named: 0.943821 mm at m 2.
+- **The profile per tooth,** counter-clockwise:
+  - the left fillet, root to involute;
+  - the involute from where the fillet ends;
+  - the tip;
+  - the right flank and fillet down;
+  - the root arc the flat cuts, ±xc/r about the space's middle, exactly.
+  - **The fillet:** the round's envelope in closed form. At the gear's turn φ, the round's point on the line from its centre (xc − rφ, yc), away from the pitch point (0, r), is turned back by −φ. Its derivative is in closed form too, checked against finite differences.
+  - **Not undercut,** r sin α − hF/sin α ≥ 0 with hF = (1.25 − x)m − ρ(1 − sin α): the fillet meets the involute tangentially at the form circle √(rb² + (r sin α − hF/sin α)²).
+  - **Undercut:**
+    - The envelope crosses the involute above the base circle. The fillet ends there, found by bisection on the envelope's polar angle against the involute's at the same radius.
+    - The involute below is cut away. The flank starts there, warning `UNDERCUT` with the diameter.
+    - The schematic policy keeps today's undercut refusal.
+  - **Refusals:**
+    - the cut reaching the tip, or the fillet crossing the tooth's or the space's middle: `SELF_INTERSECTION`;
+    - fewer than 6 teeth: `INVALID_INPUT`, not in this stage.
+- **The fillet's fit.**
+  - C¹ Hermite cubic pieces on φ, the fewest within `profileToleranceMM` (1e-4·m, as the flanks).
+  - The breaks are spread to equal tangent turning (plus a little length): the envelope bends hardest near the root.
+  - At most five pieces to a face (the 16-pole convention of extrusion validation and offsets) and three faces, so 15 pieces. Past that: `PROFILE_BUDGET_EXCEEDED`, never a looser fit.
+  - The deviation is measured against the envelope at the same φ, a bound.
+  - **Found:** the curve is smooth (curvature radius 0.9–2.9 mm at m 2), but in φ its higher derivatives are large (r/L ≈ 11). Five uniform pieces come to 1.5e-3 mm, converging as h⁴; equal turning brings it to 6–9 pieces within 1e-4·m.
+  - A fit in the contact normal's angle ψ (φ(ψ) closed form) was worse (1.1e-2 at five pieces): not used.
+- **Names:** `.filletL#k`, `.filletR#k`, the later faces of a fillet `#k.2`, `#k.3` from the root outward. No `.rootL`/`.rootR` radial joins.
+- **Report:**
+  - `generator: 'spur-gear@1'` and `rootPolicy: 'generated'`;
+  - `generatedRoot: { toolTipRadiusMM, formDiameterMM, undercut, filletPieces, filletDeviationMM }`;
+  - `manufacturingValidated` stays false (no physical evidence);
+  - no `ROOT_TRANSITION_UNVALIDATED`.
+  - `UNDERCUT` joins `GearDiagnosticCode`: an API addition, mapped to GEOMETRY, never thrown.
+- **Pairs.** A gear's involute start is `rs`: max(rb, rf) schematic, the form circle or the undercut's crossing generated.
+  - The usable contact ratio of spur pairs and gear-and-rack checks starts there.
+  - The sweeps' exact outlines sample the envelope itself (`exactProfile`).
+- **Studio.**
+  - The gear node takes `generator: 'spur-gear@0' | 'spur-gear@1'` and `toolTipRadius?`.
+  - The Spur gear command makes spur gears `@1`, helical ones `@0`.
+  - Meshing gear: `@1` unless the gear it meshes with is helical (`helixOf`).
+  - **Edit fields:**
+    - Root ("Cut by the rack" / "Schematic") on spur gears;
+    - Tool tip radius on `@1` gears (0.38 m shown, not stored, when default);
+    - a helix given to an `@1` gear turns it `@0` (helical roots are schematic in this stage).
+  - **Notes:** "Root cut by the basic rack (tip radius … mm): the involute from Ø… (the form circle | undercut); fillets within … mm of the tool's envelope (n cubic pieces). Not validated for manufacturing", and the undercut warning. The command's hint says so.
+  - The Gear rack command is unchanged; the rack's own root is R12b.1b.
+- **Found at the rack pair:** a rack part (addendum m, sharp tip corners) meshing with a generated gear clears by 0.0467726 mm, not the flanks' j cos α/2 = 0.0469846.
+  - The rack's tip reaches depth m, 3e-5·m past the form circle's 0.99997 m. Its corner passes the fillet a little nearer.
+  - The corner's own path against the test's outline gives 0.0467779, apart from the sweep (agreeing to 5e-6, the sweep's chords).
+  - It is real geometry, recorded, not a defect.
+- **Volume:** the generated root keeps more material than the schematic radial joins. m2 z20's profile area is 1237.1969 against 1226.1057 mm² (+0.9%); m2 z12's is 438.4967 (undercut, built now).
+
+**Evidence:**
+- **Kernel** `test/gear-generated-root.test.mjs`, 7/7, every oracle in the file apart from `gear.ts`. The first test fails on 18d81bdd7: the generated policy was refused there, "only 'schematic-radial' in this stage".
+  - **The B-rep's own profile curves lie on the cut boundary.** The oracle is the tool's true signed distance (flat, round, flank, by symmetry), maximised over its travel (scan, golden section): 0 on the boundary, + where it ever enters.
+    - Seven gears: m2 z20; m3 z12 x 0.6 Δs 0.05; m2 z30 x −0.3; m1 z60 Δs 0.02; the undercut m2 z12, m2 z8 and m2 z6 x 0.4.
+    - The fillets come to |penetration| ≤ their reported fit (1.1e-4 … 1.8e-4 mm against fits 1.1e-4 … 2.4e-4, 6–8 pieces), the flanks ≤ theirs (4.1e-5 … 1.4e-4), the root arcs ≤ 7.1e-15.
+    - D129's ray oracle does not hold for undercut teeth: they are not star-shaped from the centre. The ray finds the pocket's lower edge, not the overhang.
+  - **Form circle:** r_F by the formula to 1e-9·m on the four not undercut; the root circle r − (1.25 − x)m exactly.
+  - **Undercut:** the crossing against the test's own scan-and-bisection to 1e-9·m; the involute 0.01 m above it untouched (|pen.| < 1e-9·m), 0.002 m below it cut (> 1e-6·m).
+  - **Volume:** the area of the boundary built in the test (its own envelope, involute and arcs, 20 000 points each, Green's theorem) × b, within 2z(flank dev·1.25m + fillet dev·1.5m)·b, on all seven.
+  - **Pairs:**
+    - generated 20/40 with 0.05 + 0.05: least clearance 0.0469850 against j cos α/2 = 0.0469846, converged;
+    - the undercut z12 with z40: the usable contact ratio by the formula from the crossing radius and the mate's form circle, to 1e-9, clear;
+    - the rack: the corner's path, above.
+  - **Refusals:**
+    - ρ just above the limit (0.471913·m computed) and 0;
+    - ρ 0.9 accepted;
+    - a helical gear (R12b.1b named);
+    - 5 teeth;
+    - ρ without the policy;
+    - the schematic z12 still refused, the generated one undercut;
+    - the part model's `@1` (an undercut z14 with ρ 0.6, `filletL#1` named), `toolTipRadius` without `@1` (INPUT), `spur-gear@2` (CAPABILITY), z14 with no generator (CAPABILITY, UNSUPPORTED_PROFILE_SHIFT).
+  - **STEP round trip:** the volume to 1e-6, the fillets' names kept.
+- **Conformance** `conformance/r12b/`, 3 cases (177 overall):
+  - `generated-m2-z20`: V 11869.3141 = 1237.19688 × 10 less the bore, relTol 3e-5 (the fits' slack); centroid; genus 1; names; STEP;
+  - `generated-undercut-z12`: V 4384.9665, genus 0;
+  - `tool-tip-refused`: ρ 1 on m 2, INPUT, "below 0.943821".
+- **RB seeds** in `robustness/corpus/parts/`, every stage OK: `gear-generated-m2-z20`, `-m2-z12-undercut`, `-m2-z40-keyway` (through the bore), `-m2-z40-slot` (a Boolean across teeth, through the fillet faces).
+- **Studio** `primitives.test.ts` "Spur gear":
+  - the command's node is `@1`;
+  - the volume is (1237.1969 × 10 − the bore) within the fits' 0.32 mm³ (40 flanks and fillets × deviation × length × b; observed 0.11). The schematic test's 0.05 was its own fits' bound;
+  - fillet faces, no radial joins;
+  - the notes, "the involute from Ø37.6401 (the form circle)";
+  - 30 teeth;
+  - the Root field to Schematic gives R6a's volume and warning; the Tool tip radius field reads 0.76;
+  - 12 teeth build undercut ("below Ø22.6054"), while the schematic root refuses them naming x = 0.298;
+  - a helix turns it `@0`.
+- **Browser flow:**
+  - the Spur gear step now reads the generated root's note, no schematic warning;
+  - a new step "Generated root (R12b.1a, D130)": a 12-tooth pinion from the palette is `@1`, its notes say undercut at Ø22.6054; in the node editor, Root and Tool tip radius 0.76; tip radius 0.6 applied, its note follows; then 20 teeth with Root Schematic applied, the schematic warning back.
+
+**Checks:**
+- Kernel 1307/1312 (4 skipped; +10: the 7 tests and 3 conformance cases; the passing names compared with D129's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 177/177 (+3). Kernel lint clean, type-check clean.
+- Studio 658/658: the R6a Spur gear test rewritten in place, 14 tests in the file before and after. Studio lint 0 errors (119 warnings, as before), type-check clean.
+- The full flow 192/192 run on its own (+1, the generated-root step).
+- RB and properties: the rows commit after this one.
+
+**Not in this stage:** helical gears' generated root and the rack's root fillet (R12b.1b); internal gears (R12b.2a); the pair-level tip relief; manufacturing validation.
+
+Next: R12b.1b — the helical gears' generated root (the elliptical transverse tip) and the rack's root fillet.
+
+## D131 — R12b.1b: the generated root on helical gears (the elliptical transverse tip), the rack's root fillet (spur-rack@1) (2026-10-20)
+
+**Decision:**
+- **Helical gears take the generated root** (`spur-gear@1`, `rootPolicy: 'generated'`; R12b.1a's helical refusal removed).
+  - **In the transverse plane:** the normal rack's tip round is a cylinder along the tooth, at β to the axis. Cut by that plane it is an ellipse, a = ρ/cos β along the pitch line and b = ρ across.
+    - It is tangent to the transverse flank (at α_t, tan α_t = tan α_n/cos β) and to the flat tip, its centre xc = π m_t/4 + Δs/2 − (1.25 m_n − ρ) tan α_t − √(a² cos² α_t + b² sin² α_t)/cos α_t.
+    - The pitch is π m_t, the heights m_n, Δs the transverse reduction, as the gear's own.
+  - **The envelope in closed form, by the ellipse's angle θ:** the ellipse touches the gear where its normal (b cos θ, a sin θ) passes through the pitch point, at the turn φ(θ) = [xc + a cos θ + (b/a)(r − yc − b sin θ) cot θ]/r.
+    - θ runs from −π/2 (the root) to the flank's tangent point θ_F = −atan((b/a) tan α_t).
+    - The fit stays on φ, as for spur gears (`thetaAt` inverts φ(θ): bisection, then Newton; θ′ = 1/φ′(θ) in closed form).
+    - Spur gears keep their circle's closed forms (a = b), bit for bit.
+  - **The form circle:** hF = r − (yc + b sin θ_F), the tangent point's depth. Undercut: the crossing, as D130.
+  - **ρ's upper limit:** (π m_t/4 + Δs/2 − 1.25 m_n tan α_t)/(k/cos α_t − tan α_t), k = √(cos² α_t/cos² β + sin² α_t).
+  - **The twist:** the transverse profile, fillets included, turned along the helix as before (D59). The fillet faces split along the axis like the flanks.
+- **Names:** a fillet's later faces become `filletL2#k`, `filletL3#k`, the tooth last. R12b.1a's `filletL#k.2` would have collided with a helical gear's axial segments (`#k.2`).
+  - This is a change to an `@1` name made in D130. No document but this branch's tests and conformance carried it; they are updated.
+- **The rack's root fillet** (`rootPolicy: 'filleted'`, `rootFilletRadiusMM` ρ, default 0.38 m; generator `spur-rack@1`; `@0` the schematic corner, unchanged): the basic rack's own fillet, tangent to the flank and the root line.
+  - **Shape:** a circle when straight; in a helical rack's transverse section the ellipse a = ρ/cos β, b = ρ. Each is one rational quadratic arc, exact. Its centre lies b above the root line, √(a² cos² α + b² sin² α)/cos α − b tan α along it from the flank's foot. It is tangent to the flank at θ_T = π + atan((b/a) tan α).
+  - **Faces:** `.filletL#k`, `.filletR#k`. A helical rack's are sheared like the rest, ruled and exact.
+  - **Report:** `rootFillet { radiusMM, flankEndDepthMM }` (the straight flank ends 1.25m − ρ(1 − sin α_n) below the pitch line); no `ROOT_TRANSITION_UNVALIDATED`.
+  - **Refusal:** two fillets meeting across a gap, `INVALID_INPUT` naming the largest ρ: (p − s − 2·1.25m tan α)/(2(k/cos α − tan α)) = 0.943821 mm at m 2 (0.4719 m), the same limit as the tool's rounds.
+  - **Gear-and-rack checks:** the gear's side of the path of contact stops where the rack's flank ends, min(A, (depth + x m + d)/sin α); the rack sweep's outline takes the fillets.
+    - Found: an unshifted gear's tip meets the line of action above that depth at any finite z (z 20: 1.572 mm against 1.99994), so the basic rack's fillet changes nothing there.
+    - A larger fillet does (z 200 with ρ 0.9: the flank ends 1.908 mm down, the tip reaches 1.929).
+- **Part model:** `spur-rack@1` with `rootFillet`; `rootFillet` without it is INPUT; an unknown generator is CAPABILITY.
+- **Studio:**
+  - Spur gear and Meshing gear make `@1` gears, helical too; a helix no longer turns a gear `@0`. The Root and Tool tip radius fields are on every gear.
+  - Gear rack makes `spur-rack@1`, with a Root field ("Filleted (the basic rack)" / "Schematic") and Root fillet on `@1`.
+  - The rack's notes: "Root fillets … mm (the basic rack's): the straight flank ends … mm below the pitch line. Not validated for manufacturing", or the schematic warning on `@0`. The commands' hints say so.
+  - The agent's tool contracts are unchanged (the command docs in `chat/tools.ts` are not touched).
+
+**Evidence:**
+- **Kernel** `test/gear-generated-root-helical.test.mjs`, 5/5, the oracles written there apart from `gear.ts`/`gear-rack.ts`. The first test fails on 07ed789a4: the helical generated root was refused there, UNSUPPORTED_GEAR_KIND.
+  - **The B-rep's own transverse curves (z 0) lie on the cut boundary.** The oracle is the transverse tool's true signed distance (flat, ellipse arc by a point-to-ellipse minimisation, flank), maximised over its travel.
+    - Five gears: m_n 2 z 20 β 20°; m_n 3 z 12 β 30°; m_n 2 z 25 β 45°; m_n 2 z 40 β 15° x 0.3 Δs 0.05; the undercut m_n 2 z 9 β 15°.
+    - The fillets come to |penetration| 1.15–1.57e-4 mm against their fits 1.44–1.85e-4 (6–8 pieces), the flanks within theirs, the root arcs ≤ 7.1e-15.
+  - **Form circle:** the transverse r_F with the ellipse's tangent point, to 1e-9·m_n; the z 9 crossing against the test's own scan in θ, to 1e-8·m_n.
+  - **Volume:** the transverse area built in the test (its own envelope in θ, involute and arcs, Green's theorem) × b, within the flank, fillet and twist fits.
+  - **Pairs:**
+    - generated 18/30 at β 20° with 0.05 + 0.05: 0.0466251 against j cos α_t/2 = 0.0466248, converged;
+    - with a filleted helical rack of the opposite hand: clear.
+  - **The rack, straight and helical** (m 2, 1.5, 3; β 0, 20°, 35°; ρ 0.38 m, 0.5, 0.9; a reduction):
+    - valid;
+    - the volume the closed form to 1e-9: the bar, the trapezoids and 2n corner fillets ρ²(cot(45° + α_n/2) − (π/2 − α_n)/2)/cos β, the corner seen in the frame scaled along the rack by cos β, where the ellipse is a circle and the flank at α_n;
+    - every fillet arc on its ellipse to 1e-12, tangent to the root line and to the flank (|slope| = tan α_t to 1e-9);
+    - the flank's end depth to 1e-12.
+  - **Filleted rack with a generated gear:**
+    - the usable contact ratio's change by the formula, to 1e-12 (none at z 20; at z 200, ρ 0.9, the stop at the flank's end);
+    - the least clearance the same as with the sharp root (the rack's tip corner by the gear's fillet, D130) to 1e-9.
+  - **Refusals:** ρ past 0.943821 and `rootFilletRadiusMM` without the policy; the part model's `spur-rack@1` (ρ 0.6, `filletR#1`), `rootFillet` alone (INPUT), `spur-rack@2` (CAPABILITY).
+  - **A helical `spur-gear@1` in the part model; STEP round trips** of it and of a filleted helical rack (volume 1e-6, fillet names).
+  - `test/gear-generated-root.test.mjs` (R12b.1a), updated: the `filletL2#k` names, the helical refusal removed (the test's title shortened in place).
+- **Conformance** `r12b/`, 6 (180 overall):
+  - `generated-helical-m2-z20` (V 14046.7114, relTol 3e-5; centroid; genus 0; STEP);
+  - `rack-filleted-m2-n10`: V 4961.682738 to 1e-9; centroid [10π, −3.8483072461, 5] — the height by Green's theorem over the exact outline, 20 000 points an arc, by an independent script; along the rack and the width by symmetry;
+  - `rack-fillet-refused`.
+  - R12b.1a's two patterns updated for `filletL2`.
+- **RB seeds**, every stage OK: `gear-generated-helical-m2-z20`, `gear-generated-helical-m2-z40-slot` (a Boolean across twisted fillet faces), `rack-filleted-m2-n10`, `rack-filleted-helical-m2-n8`.
+- **Studio** `primitives.test.ts`:
+  - Gear rack: the command's rack is `@1`, its volume the closed form with its 20 corners to 1e-9, its notes ("flank ends 1.9999 mm"). The Root field to Schematic gives R6a's closed form to 1e-9 and its warning.
+  - Spur gear: a helix keeps `@1`, its notes the rack's root and the helix.
+  - **The coordinator's confirm on D130's call 4:** the Spur gear test still holds the schematic `@0` gear to R6a's 0.05 mm³. The Root field set to Schematic on the same m2 z20 gear, its volume against 12261.057 − the bore within 0.05 (`primitives.test.ts`, the line after `root.set(doc.nodes, 'spur-gear@0')`). Only the `@1` gear takes its fits' 0.32.
+- **Browser flow:** a new step "Generated root on a helical gear, the rack's root fillet (R12b.1b, D131)": a β 20° gear from the palette is `@1`, its notes the rack's root and no schematic warning; a rack under it is `spur-rack@1`, its notes "Root fillets 0.76 mm (the basic rack's)", left hand, clear.
+
+**Checks:**
+- Kernel 1315/1320 (4 skipped; +8: the 5 tests and 3 conformance cases). The passing names compared with D130's run: none missing; the R12b.1a refusals test's title shortened in place. The env-only "actual native Split source…" fails.
+- Conformance 180/180. Kernel lint clean, type-check clean.
+- Studio 658 → 666 with the merged O68–O71; 666/666, the differences from D130's run all the outer lane's (O68–O71). Studio lint 0 errors, type-check clean.
+- The full flow 194/194 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Not in this stage:** the shaper-cut root (R12b.2b); tip relief; manufacturing validation.
+
+Next: R12b.2a — internal gears and their pair checks.
+
+## D132 — R12b.2a: internal gears built directly, and the internal pair's checks, the radial insertion for trimming (2026-10-21)
+
+**Decision** (`gear-internal.ts`: `internalGear`, `internalGearDimensions`, `internalGearCenterDistance`, `checkInternalGearPair`, `checkPlacedInternalGears`, `pinionTurnInside`; the part model's `internal-gear` and a `spur-gear` meshing inside it; the studio's Internal gear command and node):
+- **The ring is built directly,** as D129 found, not by a Boolean.
+  - **Its spaces** are the teeth of a "space gear": the spur machinery's gear at x2 + 0.25, its tooth thickened to the ring's space m_t(π/2 + 2 x2 tan α_n) + j.
+  - **Its dimensions:** tip r − (1 − x2)m inside, root r + (1.25 + x2)m outside — K1's internal addendum (1 − x2)m and depth 2.25 m.
+  - **Its profile:** the space gear's, turned by −π/z so the ring's tooth 1 stands on +X, reversed into the clockwise hole of `extrudedProfile` inside a plain rim.
+  - **Helical:** a helical ring's hole turns along its helix (`extrudedProfile`'s new `twistHole`; the twist code shared as `helixTwist`).
+  - **Speed:** 1–5 ms against S0's 14.7 s Boolean, the same volume to 6e-4.
+- **Names:** `.flankL#k`, `.flankR#k` (tooth k's), `.tip#k` (inside), `.root#k` (the space before tooth k), `.rim#1/#2`, `.face0/.face1`; a helical ring's along the axis as a helical gear's.
+- **The root:** schematic (the flank meets the root arc at a corner; a pinion-type cutter would round it, R12b.2b), flagged `ROOT_TRANSITION_UNVALIDATED`, `manufacturingValidated: false`.
+- **Refusals:**
+  - teeth outside 8–200: `INVALID_INPUT`;
+  - x2 outside −0.5–0.75: `UNSUPPORTED_PROFILE_SHIFT`;
+  - a reduction past 0.5 m_t tan α_n: `INVALID_INPUT`, naming it;
+  - **the tip inside its base circle** (K1: z2 > 34 unshifted): `UNSUPPORTED_PROFILE_SHIFT`, naming the least x2 = 1 − (r − rb)/m;
+  - a rim thinner than a module beyond the root: the new `RIM_INTERSECTION`, naming the least diameter;
+  - spaces or teeth coming to a point: `SELF_INTERSECTION`, in the ring's words.
+- **The internal pair:**
+  - **Compatibility:** the same module and pressure angle, both straight or **both helical of one hand** (an internal pair), else `MATE_INCOMPATIBLE`; a pinion as large as the ring "does not fit".
+  - **The centre distance:** m_t(z2 − z1)/2, or with shifts from inv α_w = 2 tan α_n (x2 − x1)/(z2 − z1) + inv α_t (K1's form, verified by its numbers), Newton on inv.
+  - **Ratio** +z1/z2, the same way.
+  - **Backlash** on the working pitch circles: the ring's space 2 rw2(ψ_s − inv α_w) less the pinion's tooth.
+  - **Tip clearances:** rf2 − a − ra1 and ra2 − a − rf1.
+  - **The contact ratio:** the ideal [√(ra1² − rb1²) − √(ra2² − rb2²) + a sin α_w]/(π m_t cos α_t), and the usable one from where the pinion's involute starts.
+  - **The sweep:** the two exact outlines (the pinion's and the space gear's), the ring turning θ z1/z2 the same way, one pinion tooth period, converged and refined as D55; only what can meet (the pinion beyond the ring's tip circle, the ring within the pinion's tip circle); distances by a uniform grid (cell m/4).
+  - **The conditions,** derived (K1's are images; D129) and checked against the sweep, as margins and error diagnostics:
+    - `INVOLUTE_INTERFERENCE`: z1/z2 − (1 − tan α_a2/tan α_w);
+    - `TROCHOID_INTERFERENCE`: θ1 z1/z2 + inv α_w − inv α_a2 − θ2;
+    - `formMargin`, informational: the ring's tip against where the pinion's involute starts, along the line of action (below).
+  - **Trimming,** by a radial-insertion sweep:
+    - the pinion moved from the ring's centre to a along the line of centres, in its meshing phase, not turning, 96 offsets with every local least refined;
+    - a crossing deeper than contact before the working distance is `TRIMMING_INTERFERENCE`;
+    - a pinion whose tip circle does not fit inside the ring's cannot start concentric: "radial assembly impossible — assemble it axially".
+  - **Placed** (`checkPlacedInternalGears`): the distance and phase from where they stand, both taken at the height where their faces begin to overlap.
+- **Touching is not crossing.** The ring's outline is chords of its involutes, which stand into its spaces by up to their sag (rb t δt²/8). So at contact a pinion on the true involute can seem that far into the ring. A crossing no deeper than that bound is contact.
+- **The depth of a crossing** (both modes: only the depth tells contact from crossing):
+  - **Inside or not:** by the ray from the gear's centre against its star-shaped outline (each tooth's polar angle rises along it). Undercut teeth, which are not star-shaped, fall back to the nearest segment's side, at a shared vertex by the pseudo-normal.
+  - **How deep:** to the other's nearest segment among a set a module wider than the clearance's.
+- **Part model:**
+  - `internal-gear` (module or normalModule/helixAngle/hand, teeth, faceWidth, rim, profileShift, thicknessReduction, center, from, rotation; generator `internal-gear@0`); its output carries `internalGear` and `internalGearPlacement`.
+  - A `spur-gear` whose `mesh.gear` is an internal gear stands inside it: at the internal distance along the direction from the ring's centre, a tooth in the ring's space there, turning with the ring by z2/z1 the same way plus `phase` (`pinionTurnInside`). Its placement carries `ring`.
+- **Studio:**
+  - **Nodes and commands:** an `internal-gear` node and Internal gear command (module, teeth, face width, rim Ø, shift, helix, hand, position); its label "Internal gear m… z…".
+  - **Meshing gear:** with an internal gear selected, a pinion inside it (2/5 of its teeth by default, `spur-gear@1`); a helical ring's pinion takes the same hand (`helixOf`).
+  - **Edit fields:** the ring's; the pinion's Centre distance nominal is the internal one.
+  - **Notes:**
+    - the ring's dimensions, the flank fit and the schematic root;
+    - the pinion's "Meshes inside n0: centre distance …, ratio +z1:z2 (the same way), backlash, contact ratio";
+    - the verdict;
+    - "Radial assembly clear" or its warning;
+    - the conditions' errors.
+  - **Lists:** migrate, flatten (the assembly's node switch: the one line, declared), `parentsOf`.
+  - **The agent:** the command docs for `internal-gear`, and `gear-mesh`'s new selection, so `tools-v1.json` gains the command by `UPDATE_TOOL_CONTRACT=1` (one line; v2 unchanged).
+- **The studio's Internal gear command defaults to x2 0.5** (reversible, below). The kernel's default x2 stays 0.
+
+**Found:**
+- **A rack-cut pinion inside an unshifted ring, at no backlash, interferes.**
+  - **What happens:** the ring's tooth-tip corners sweep deeper into the pinion than an external mate's tip; they cut the pinion's generated fillet, which stands where the schematic root was cut away.
+  - **Measured at zero backlash:**
+    - 24 in 60: 0.026 mm (0.0218 with 0.01 backlash, 0.0044 with 0.05, clear with 0.1);
+    - 24 in 40 at x2 0.25: 0.0118 mm.
+  - **The exact Boolean confirms it, apart from the sweep:** the solids turned to the sweep's pose overlap by 1.68e-3 mm³; at x2 0.5 or with 0.05 + 0.05, the intersection is empty.
+  - **The schematic pinion clears.**
+  - **x2 0.5 clears every pair surveyed at no backlash:** 24/60, 20/60, 30/80, 16/40, 40/100, 12/30. K1's text points the same way: internal gears are shifted positive. Hence the studio's default.
+- **`formMargin` is no verdict.** The ring's tip often runs below the pinion's form circle and passes the fillet clear (24 in 60: −1.07 mm along the line of action, clear at 0.1 backlash). It stays in the report; the contact ratio already ends there; the sweep decides.
+- **The trimming condition against the exact radial insertion** (zero backlash) agrees on 21 of 23 pairs:
+  - rings of 40, 60 and 80; at 60 and 80 the boundary falls where the condition's margin crosses 0 (44/60 at −1e-5, 64/80 at +5e-5);
+  - **24/40 and 25/40:** the condition says slight interference (−0.00058, −0.0029); the insertion finds them clear. So does this test's own polyline insertion (100 offsets, its own outlines), and the product's at 3000 offsets.
+  - The condition is recalled, not sourced, so the exact insertion is the authority. The two are recorded and asserted as such.
+- **The involute and trochoid conditions against the sweep** agree on D129's nine pairs (in the product now).
+- **K1 Table 4.6:** d2 72, db2 67.658, da2 69.096, df2 82.596, inv α_w 0.061857 (5e-7), a 13.19995 against K1's 13.2 (its y rounded to 0.4000). K1's α_w 31.321258° follows from that rounded a; the exact a gives 31.32092°.
+- **Four defects in the sweep, found and fixed in this stage before the commit:**
+  - a point's side by its nearest segment misled at a shared vertex (now the pseudo-normal);
+  - the depth's nearest segment taken from a filtered set (now a module wider);
+  - the ring's chords' sag read as crossings at zero backlash (now the computed touch bound);
+  - a narrow trimming dip between insertion samples (now every local least refined).
+- **Timings** (m 2):
+  - a ring 1–5 ms;
+  - a pair's verdict 0.4–0.8 s clean (the radial insertion included);
+  - a report 1.5 s clean, about 6 s crossing (the depth at every sample), as D55's external crossing reports took seconds.
+
+**Evidence:**
+- **Kernel** `test/gear-internal.test.mjs`, 5/5, the oracles written there apart from `gear.ts`/`gear-internal.ts`. The first test fails on 3057e8275: no `internalGear`.
+  - **Rings** (z 40, z 60 with a reduction, K1's z 24 at x2 0.516, a helical z 50 at β 20°): valid, one body.
+    - The volume against (πR² − the spaces' area by the shoelace formula over the analytic involute, 1500 points a flank) × b, within the flank fit (and the twist's): observed 3e-6 to 9e-6.
+    - Tip, root and space by K1's formulas to 1e-12; names; tooth 1's tip arc centred on +X at the tip radius.
+    - K1's dimensions as above.
+  - **Refusals:**
+    - the tip inside its base circle names x = 0.095 (1 − 30(1 − cos 20°)/2 to 1e-3), and x + 1e-3 builds;
+    - the rim (Ø129.000 named);
+    - the shift, the reduction (0.36397 named), the teeth;
+    - another module, a pinion as large, the hand (one hand), a spur pinion in a helical ring.
+  - **The pair:**
+    - z 24 in z 60 with j 0.1: a 36, ratio 0.4, α_w 20°, backlash 0.1, tip clearances 0.5 and 0.5, εα by the formula to 1e-12, the sweep's least 0.1 cos α/2 to 1e-5, no diagnostics;
+    - K1's shifted pair at its working distance without backlash: touching (|c| < 2e-5), clear;
+    - a helical pair (β 15°, both right): a by m_t(z2 − z1)/2, j cos α_t/2, εβ by its formula.
+  - **The conditions:** the product's margins equal the test's to 1e-12; the sweep's breach equals the conditions' on the nine pairs; the radial insertion equals the trimming condition on 14 pairs (rings 40, 60, 80), the two disagreements as above, the test's own insertion with the product's; a 36 in 40 "impossible".
+  - **Placed** (the part model's z 40 ring at x2 0.25 and a z 24 `@1` pinion, 0.05 + 0.05):
+    - the centre at a by the test's own Newton, along each direction (0°, 30°, 200°);
+    - phase 0, clear; the pinion turning 40/24 of the ring's turn, the same way;
+    - the exact Boolean intersection empty when meshed, 1 mm³ and more 9° off (and the placed check crossing);
+    - the unshifted ring crossing, and the Boolean overlap at the sweep's pose, as above;
+    - refusals in the part model;
+    - a helical ring and pinion of one hand, clear;
+    - STEP round trips of a ring and a helical ring (volume 1e-6, names).
+- **Conformance** `r12b/`, 9 (183 overall):
+  - `internal-m2-z40` (V 28083.5838 by the spaces' area, relTol 2e-5; genus 1);
+  - `internal-khk-pair` (the ring 34372.8886; the `@1` pinion 17719.8777 by R12b.1a's generated area, at [13.19995, 0, 5]);
+  - `internal-tip-refused` (x = 0.095).
+- **RB seeds**, every stage OK: `gear-internal-m2-z60`, `gear-internal-helical-m2-z50`, `gear-internal-pinion-inside`, `gear-internal-m2-z40-bolt-holes` (a Boolean through the rim).
+- **Studio** `primitives.test.ts` "Internal gear":
+  - the command's node (x2 0.5);
+  - its volume against 3684.5980 mm² × 10 by the kernel test's own outline, within the fits' 0.6 mm³;
+  - its notes and 60 tips;
+  - Meshing gear with the ring selected: 24 teeth, `@1`, "Meshes inside n0: centre distance 36.9185 mm, ratio +24:60 (the same way), backlash 0 mm", clear, "Radial assembly clear"; the Centre distance field 36.91848518 (K1's form, the test's Newton);
+  - a 36 in a 40 ring "Radial assembly impossible";
+  - the ring guarded from deletion ("used by feature 1");
+  - a helical ring's pinion of the same hand, clear.
+- **Browser flow:** a new step "Internal gear (R12b.2a, D132)": a ring from the palette (x2 0.5, its notes); Meshing gear with it selected adds "Spur gear m2 z24" inside, its notes "Meshes inside n0: centre distance 36.9185 mm, ratio +24:60 (the same way)", clear, "Radial assembly clear".
+
+**Checks:**
+- Kernel 1323/1328 (4 skipped; +8: the 5 tests and 3 conformance cases; the names against D131's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 183/183. Kernel lint clean, type-check clean.
+- Studio 669/669 (+1; the names: none missing, the new test and the merged O72's). Studio lint 0 errors, type-check clean. `tools-v1.json` +1 line by `UPDATE_TOOL_CONTRACT=1`.
+- The full flow 195/195 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** the studio ring's default x2 0.5 (a remedy for its tips against rack-cut pinions; the kernel's default stays 0).
+
+**Not in this stage:**
+- the shaper-cut ring root (R12b.2b);
+- a ring placed round an existing pinion (the mesh goes pinion → ring only);
+- planetary sets with a carrier (R12b.7's acceptance);
+- the pinion's tip relief.
+
+Next: R12b.2b — the shaper-cut internal root.
+
+## D133 — R12b.2b: the shaper-cut internal root (internal-gear@1), K1 Table 4.8 reproduced, trimming by condition or insertion (2026-10-21)
+
+**Decision** (`gear-internal.ts`: `ShaperRoot`, `shaperOf`, `shaperCutRing`; `gear.ts`'s shared `Envelope` fit; the part model's `internal-gear@1` with `cutter`; the studio's Internal gear command, Root and Cutter fields, notes):
+- **The ring's root as a pinion-type cutter cuts it** (`rootPolicy: 'shaper-cut'`, `cutter: { teeth, profileShiftCoefficient?, tipRadiusMM? }`; generator `internal-gear@1`):
+  - **The cutter:** z0 teeth, shift x0, addendum 1.25 m + x0 m, tooth m(π/2 + 2 x0 tan α), a tip round of radius ρ0.
+  - **Where it cuts:** rolling inside the ring at a_c, inv α_c = (z2 ψ_s − z0 ψ0)/(z2 − z0) (the internal working distance with the ring's space and the cutter's tooth, no backlash), Newton on inv.
+  - **The root circle:** a_c + ra0 (replacing the schematic r + (1.25 + x2)m; equal when x0 = 0 and α_c = α).
+  - **The fillets:** the envelope of the cutter's tip round, closed form (`ShaperRoot.point`/`derivative`; the contact on the line from the round's centre away from the pitch point; φ at the root (π/2 − χ)·z0/z2), from the root circle to where it meets the ring's involute tangentially (the form circle) or crosses it (`crossing`).
+  - **The fit:** D130's C¹ Hermite pieces on φ at breaks of equal turning (`envelopeBreaks`/`envelopePoles`/`envelopeDeviation`, shared with `gear.ts`), as few as the profile tolerance (1e-4 m) asks, at most five a face, at most 15. Observed 6–7 pieces, 1.6e-4 to 1.7e-4 mm at m 2 (tolerance 2e-4).
+  - **The pieces of a space,** built in a +Y frame and turned: involute (flank fit), fillet, root arc (exact), the mirrors, the tip arc. Names as R12b.2a's plus `filletR#k`/`filletL#k` (more faces `filletR2#k`… when the fillet takes more than five pieces).
+  - **The sweep's outline** of a shaper-cut ring is its own (`shaperOutline`), so pairs with an `@1` ring check its real root.
+- **The default tip radius is an estimate,** flagged on the ring: min(0.38 m, 0.8 × the largest the cutter's tooth holds). Diagnostic: "the cutter's tip radius … mm is an estimate for a pinion-type cutter's (the basic rack's 0.38 m, or 80% of the largest its tooth holds): give the toolmaker's". The basic rack's 0.38 m alone did not fit small cutters (their tips are narrower than the rack's).
+- **Refusals** (typed, no silent geometry):
+  - cutter teeth outside 8 … z2 − 4, or its shift outside −0.5 … 0.75: `INVALID_INPUT` / `UNSUPPORTED_PROFILE_SHIFT`;
+  - **trimming when fed in:** the trimming condition θ1 + inv α_a1 − inv α_w ≥ (z2/z1)(θ2 + inv α_a2 − inv α_w) with the cutter as the pinion, at the cutting distance: `TRIMMING_INTERFERENCE`, citing K1 Table 4.8 ("a cutter of fewer teeth, or more ring teeth");
+  - **the cutter's involute interference:** `INVOLUTE_INTERFERENCE` (the ring's tips below the cutter's base circle), naming "a ring shift x2 > 0" as the remedy;
+  - a tip radius the cutter cannot hold: `INVALID_INPUT`, naming the most;
+  - fillets crossing the tip or each other: `SELF_INTERSECTION`;
+  - a helical shaper-cut ring (a helical cutter is not modelled): `UNSUPPORTED_GEAR_KIND`; a `cutter` without the policy (or without `@1`): `INVALID_INPUT`, "a shaper-cut internal gear needs its cutter".
+- **Trimming in a pair is now either verdict** (revises D132): `interference.trimming.interference` is the radial-insertion sweep's crossing **or** the condition's margin < 0. The report keeps both (`sweepInterference`, `conditionMargin`); a condition-only verdict gets its own diagnostic, saying the straight insertion clears.
+  - **Why:** D132 took the insertion as the authority because the condition was recalled, not sourced. K1 Table 4.8(1) (sourced, below) is reproduced by the condition, row for row, and where the two disagree (small cutters, below) the table sides with the condition. A straight radial path is not the only one a gear or cutter takes (a shaper's infeed, an assembly's), so a crossing the straight path misses is not proof of clearance.
+  - **Effect:** 24/40 and 25/40 at zero backlash, clear in D132, are now flagged (margins −0.00058, −0.0029).
+- **Part model:** `internal-gear` with `generator: 'internal-gear@1'` and `cutter: { teeth, shift?, tipRadius? }`; `@1` without a cutter is refused, a cutter on `@0` too. `@0` is unchanged bit for bit.
+- **Studio:**
+  - **The Internal gear command** builds `@1` with a 24-tooth cutter by default (field "Cutter teeth (estimate: the shop's; 0 schematic)"); helical rings and 0 build `@0`.
+  - **The x2 0.5 default is visible** (coordinator's note 1): the command's field "Profile shift x (default 0.5: clears rack-cut pinions, D132)", and while the shift is the default the node carries `shiftDefault` and its notes begin "Profile shift 0.5 (default: clears rack-cut pinions; see D132)", flagged as the estimates are. Editing the shift removes the flag.
+  - **Edit fields:** Root (Cut by a pinion-type cutter / Schematic), Cutter teeth, Cutter shift, Cutter tip radius.
+  - **Notes:** "Root cut by a N-tooth pinion-type cutter (shift …), tip radius … mm, at … mm: the involute to Ø…; fillets within … mm", and the ring's diagnostics (the tip radius estimate); the schematic warning only on `@0`.
+  - **The agent:** `internal-gear`'s docs gain `cutter` (no tool-contract line change: the command list is unchanged).
+- **The gear survey behind a flag** (coordinator's note 2): `GEAR_SURVEY=1` runs every pair and row; the default suite keeps a representative subset (clear, crossing and trimming cases, one helical, the K1 rows 24/42, 30/48, 40/58, 60/78). Run the survey at track boundaries and with RB.
+
+**Found:**
+- **K1 Table 4.8(1) reproduced** (the least ring for a cutter, x0 = x2 = 0, radial infeed): for every row surveyed (cutters 24–60; 18 rows) the table's z2 builds and z2 − 1 is refused by the trimming condition.
+- **The straight insertion against the table:** the cutter-shaped pinion (addendum 1.25 m, tooth πm/2) moved straight in crosses exactly where the table says for cutters of 27 teeth and more (9 rows, up to 100/118). For 24/41 and 25/42 the straight path clears one ring tooth below the table; the condition flags them, as the table does. Hence the combined verdict.
+- **Involute interference of small cutters:** a 20-tooth cutter in an unshifted 60-tooth ring is refused (K1 notes cutters of 15–22 teeth cause it); the same ring at x2 0.5 builds.
+- **The cutter's tip round** does not fit small cutters at 0.38 m (the default above).
+- **`a_c` equals the pinion's internal distance** when x0 = x1 and the pinion is rack-cut: the studio's 24 in 60 at x2 0.5 shows 36.9185 mm for both.
+- **Timings:**
+  - a shaper-cut ring 8–13 ms at m 2 (the schematic 1–5 ms);
+  - `gear-internal.test.mjs` 78 s by default, 167 s with `GEAR_SURVEY=1` (173 s before the split);
+  - `gear-internal-shaper.test.mjs` about 6 s by default, 36 s with `GEAR_SURVEY=1`;
+  - the kernel suite's wall time 223 s.
+
+**Evidence:**
+- **Kernel** `test/gear-internal-shaper.test.mjs`, 4/4, its oracles written there apart from `gear.ts`/`gear-internal.ts`. The first test fails on 3e92e74a6 (no shaper-cut root).
+  - **Rings** (m 2: z60 x2 0.5 cutter 24; z48 cutter 30; z80 x2 0.25 cutter 30 x0 0.2; the survey more): valid, one body; a_c by the test's own `cutting()` to 1e-9; the root circle a_c + ra0; every fillet, root and flank curve of the B-rep against the cutter's own signed distance over its travel (`cutterDistance`, `maxPenetration`): fillets within their fits, the root arc to 1e-9·m, the flanks within the flank fit.
+  - **K1 Table 4.8(1)** as above; the involute refusal and its x2 0.5 clearance.
+  - **The straight insertion** as above (the default suite 27/45 and 40/58; 24/41 and 25/42 asserted: `sweepInterference` false, `conditionMargin` < 0, `interference` true).
+  - **Volume** (z48 cutter 30): against (πR² − the spaces' area by this file's own envelope and Green's area) × b, within the fits; the fillet's end by its own tangency condition; refusals; the part model's `@1` and a pinion inside it; STEP round trip (volume, names).
+- **`test/gear-internal.test.mjs`:** the survey split; `internal-gear@2` now the unknown generator; the disagreement block asserts the sweep's verdict, the condition's margin and the combined verdict.
+- **Conformance** `r12b/`, 12 (186 overall): `shaper-m2-z48-c30` (V 52090.336, relTol 3e-5), `shaper-trimming-refused`, `shaper-involute-refused`.
+- **RB seeds**, every stage OK: `gear-internal-shaper-m2-z60-c24`, `gear-internal-shaper-m2-z48-c30`, `gear-internal-shaper-pinion-inside`.
+- **Studio** `primitives.test.ts` "Internal gear": the command's node `@1` with `cutter {teeth: 24}` and `shiftDefault`; volume 36927.4805 within 1.04 mm³; notes "Profile shift 0.5 (default: …; see D132)", root Ø126.837, "Root cut by a 24-tooth pinion-type cutter, tip radius 0.5895 mm, at 36.9185 mm"; Root → Schematic gives 36845.980 (D132's) within 0.6; the shift edit drops the flag; tight and helical variants `@0` without a cutter.
+- **Browser flow:** the step "Internal gear (R12b.2a, D132; R12b.2b, D133)" expects the visible default and "Root cut by a 24-tooth pinion-type cutter".
+
+**Checks:**
+- Kernel 1330/1335 (4 skipped; +7: the 4 tests and 3 conformance cases; the names against D132's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 186/186. Kernel lint clean, type-check clean.
+- Studio 678/678 (the names: none missing). Studio lint 0 errors, type-check clean. `tools-v1.json`, `tools-v2.json` unchanged.
+- The full flow 195/195 on its own.
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** the default cutter tip radius (an estimate, flagged); the studio's default 24-tooth cutter (an estimate, flagged in its field); the combined trimming verdict (back to the insertion alone if a sourced reason appears).
+
+**Not in this stage:**
+- helical shaper-cut rings (a helical cutter);
+- the cutter's own wear, protuberance or chamfer;
+- a pinion cut by a shaper (pinions stay rack-cut).
+
+Next: R12b.3 — the straight bevel gear (spherical involute).
+
+## D134 — R12b.3: straight bevel gears — the spherical involute, standard proportions, spherical ends (bevel-gear@0) (2026-10-21)
+
+**Decision** (`gear-bevel.ts`: `bevelGear`, `bevelGearDimensions`, `checkBevelGearPair`, `checkPlacedBevelGears`, `bevelMatePlacement`, `bevelGearMatrix`; the part model's `bevel-gear` and its `mesh`; the studio's Bevel gear command and node, Meshing gear for a bevel):
+- **The gear, as D129 froze it:** the exact spherical involute of the base cone sin δb = sin δ cos α; standard proportions converging at the apex (addendum m, dedendum 1.25 m at the heel: θa = atan(m/R), θf = atan(1.25 m/R), the tip and root cones through the apex); the heel and toe spheres about the apex.
+  - **Inputs:** module at the heel, teeth, the mate's teeth, shaft angle Σ (90° by default), face width along the cone, bore, thickness reduction (at the heel's pitch circle; scaled along the cone with it). tan δ = sin Σ/(z_mate/z + cos Σ); R = m z/(2 sin δ).
+  - **Its frame:** apex at the origin, axis +Z, the teeth above the apex, tooth 1 on +X.
+  - **Faces:** flanks (`flankL#k`, `flankR#k`; more than three pieces on `flankL2#k` …, root outward), `tip#k` and `root#k` (cones), `rootL#k`/`rootR#k` (meridian planes, when the root cone lies under the base cone: the schematic join), `heel`, `toe` (spheres), `bore#1/#2` (cylinder halves).
+- **The flanks lie exactly on their spheres — by conics, not D129's cubics.**
+  - **Why the change:** D129's cubic in the stereographic plane lifts to a rational curve of degree 6; the kernel's curves and surfaces stop at degree 5 (`math.ts`, everywhere downstream). A conic (rational quadratic) lifts to degree 4.
+  - **The fit:** conic arcs on the involute's stereographic image, uniform in roll: each through its ends with the curve's tangents (P1 where they meet: G1 at the joins), its shoulder on the curve (where the curve crosses the chord's middle–P1 line, by bisection). Lifted by (2UW, 2VW, W² − U² − V²)/(W² + U² + V²) in Bernstein products: exactly on the unit sphere.
+  - **The face:** the cone through the apex over the lifted curve, degree 1 along the cone distance. Its heel and toe edges lie on their spheres exactly, its tip and root edges are lines through the apex.
+  - **Tolerance and budget:** as many pieces as 1e-4·m at the heel asks (measured along the circle of latitude to the involute, as the spur gear's), at most six, at most three to a face (4·3 + 1 = 13 poles, within the 16 a side face holds); past that `PROFILE_BUDGET_EXCEEDED`, never a looser tolerance.
+  - **Observed:** 1–4 pieces (a grid of 427 buildable pairs, z 5–200, Σ 30°–150°: at most 5, at z 8/5 Σ 120°).
+- **The ends are one face each, with no pole and no seam:** the sphere as the inverse stereographic map of a square, rational biquadratic in two Bézier spans a direction (u²'s coefficients a², 0, 0, 0, a², so the weights 1 + u² + v² never drop below 1). The heel's outline (and the bore) trim it. A gear with no bore needs no pole either.
+- **The undercut, by the exact spherical condition** (derived here; no public text found, D129):
+  - The generating crown gear (δ 90°, base cone 90° − α, working depth m) reaches from the pitch point along the great circle of action by asin(sin θa / sin α). The gear's base-cone tangent point is acos(cos δ / cos δb) away.
+  - Undercut when the reach passes it: `UNSUPPORTED_PROFILE_SHIFT`, naming both lengths at the heel and Tredgold's virtual teeth z/cos δ as the estimate. A shift (the Gleason system) is not built, so the remedy named is more teeth on this gear or fewer on its mate.
+- **The pair** (`checkBevelGearPair`):
+  - **Compatibility:** one module, one shaft angle, and each gear the other's mate (else `MATE_INCOMPATIBLE`: their pitch cones belong to another pair).
+  - **Values:** ratio z2/z1; backlash at the heel (the two reductions); the heel's tip clearances R(θf2 − θa1), R(θf1 − θa2).
+  - **Contact ratio,** exact spherical: the arc of the great circle of action between the two tip cones, over the base pitch 2π sin δb / z; the usable one from where each flank starts; Tredgold's virtual spur pair's beside it, named an estimate.
+  - **The sweep:** one tooth period of gear 1 on the heel sphere (the pair is the same on every sphere about the apex). Gear 1 turns θ about its axis, gear 2 turns −θ z1/z2 about its own; 64, then 128 samples, then a golden-section refinement, as D55.
+    - The gnomonic plane at the pitch point is used only to prune and to find crossings (great circles map to lines, so chords map to segments exactly).
+    - The least clearance is measured on the sphere. Pruning is sound: a pair e apart in the plane is at least e·k² apart on the sphere, k the least cosine of the segments' ends from the pitch point.
+    - The outlines are chords, 150 a flank, inside each convex tooth. So the least can only come out larger than the true one, by at most the reported `chordSagMM`.
+- **Placed** (`checkPlacedBevelGears`, `bevelMatePlacement`):
+  - The apexes must coincide, and the axes must stand at Σ (else `MATE_INCOMPATIBLE`).
+  - The relative phase comes from each gear's turn against the pitch line, gear 1's carried through the ratio.
+  - A mate by `mesh: { gear, direction, phase }` gets the same apex. Its axis stands at Σ in the plane of the driver's axis and the direction (degrees about the driver's axis from its X), its X toward the pitch line, and it is turned π/z2 − (ρ1 − φ) z1/z2 + phase.
+- **Refusals** (typed):
+  - a pitch angle of 90° or more (a crown gear, an internal bevel): `UNSUPPORTED_GEAR_KIND`;
+  - a pressure angle other than 20°, a profile shift, `system: 'gleason'`: `UNSUPPORTED_GEAR_KIND` (the Gleason uniform-clearance system is R12b.3b, on the owner's word);
+  - b ≥ R, Σ outside (0°, 180°), teeth outside 5–200, a reduction leaving no tooth: `INVALID_INPUT`;
+  - b > R/3: a warning (the usual proportion);
+  - the root cone past the axis, a pointed tooth, teeth meeting at the root: `SELF_INTERSECTION`;
+  - a bore leaving less than the rim (m by default) under the root cone at the toe: `BORE_INTERSECTION`, naming the largest.
+- **Part model:** `bevel-gear` (module, teeth, mateTeeth, shaftAngle, faceWidth, bore, thicknessReduction, center, from, rotation, mesh; generator `bevel-gear@0`). Standing alone, its apex is at (`center`, `from`) with its axis +Z. Its output carries `bevelGear` and `bevelGearPlacement`.
+- **Studio:**
+  - **The Bevel gear command:** module (heel), teeth, mate's teeth, shaft angle, face width, bore, position; its toe stands on At Z (the apex below by (R − b) cos(δ + θa)). Its label is "Bevel gear m2 z20/40".
+  - **Meshing gear with a bevel gear selected:** its mate (direction and bore only).
+  - **A meshing gear's module, teeth, mate and shaft angle are its driver's,** kept in step: editing the pinion's teeth changes the mate's label, notes and solid.
+  - **Edit fields:** the gear's values, and a mate's direction and phase.
+  - **Notes:** the dimensions, the flanks' fit "exactly on the spheres about the apex", Tredgold's virtual teeth as an estimate, the schematic root; a mate's "Meshes with n0: the same apex, shaft angle 90°, ratio 20:40, backlash … at the heel, contact ratio … (spherical; Tredgold's estimate …)" and the verdict.
+  - **The agent:** `bevel-gear`'s command docs and `gear-mesh`'s new selection; `tools-v1.json` +1 line by `UPDATE_TOOL_CONTRACT=1` (v2 unchanged).
+  - **Declared outside the kernel's own files** (a new node kind needs them): `src/assembly/flatten.ts` (its node switch: one case) and `src/chat/features.ts` (`renumber`'s mesh reference: one condition).
+
+**Found:**
+- **Tredgold's estimate misjudges the undercut near its limit:** 16 teeth for a 40-tooth mate at Σ 90° gives z_v 17.23 (clear by 2/sin²α = 17.1), but the crown gear reaches 5.8594 mm along the line of action against the base cone's 5.8575: undercut. The construction in space (the test's) agrees with the condition on every pair tried (12 by default, 20 in the survey).
+- **The spherical contact ratio against Tredgold's:** 20/40 Σ 90° 1.71372 against 1.71218; 13/13 1.53866 against 1.53526; 18/30 Σ 120° 1.76050 against 1.75621. Tredgold's is low by 0.05–0.25%.
+- **The analytic Boolean fails on one phase-off pair:** the intersection of a 16/20 pair turned 6° off is refused as "not a manifold solid … the inputs touch along an edge or at a vertex". 3°, 4°, 5° and 9° work (24.4–88.1 mm³). This is a Boolean robustness gap, not the gears' (each is valid alone, and the meshed pair's intersection is empty). It is logged for the Boolean, not fixed here.
+- **Timings** (m 2):
+  - a gear 1–5 ms; its mass by quadrature about 0.5 s;
+  - a pair's report 1–2 s, its verdict less;
+  - the pair's exact Boolean about 20 s;
+  - `gear-bevel.test.mjs` 29 s by default (the meshed Boolean 20 s of it), 59 s with `GEAR_SURVEY=1`;
+  - the kernel suite's wall time 259 s (D133's 223 s).
+
+**Evidence:**
+- **Kernel** `test/gear-bevel.test.mjs`, 5/5, its oracles written there apart from `gear-bevel.ts`. The first test fails on 452aec902 (no `bevelGear`).
+  - **Gears** (m 2 z 20/40; K1's m 3 z 20/40 with a bore; z 40/20 with a bore; z 16/24 Σ 60°; the survey adds 18/30 Σ 120°, 13/13, 30/30 Σ 45° and 25/60 thinned):
+    - valid, one body; the dimensions by the test's own formulas to 1e-12; K1's δ 26.56505°/63.43495° and R 67.08204 to 5e-6;
+    - every face sampled: the ends on their spheres and tips and roots on their cones to 1e-12; the meridian joins in their planes; the flanks on the toe and heel spheres to 1e-9·R and ruled through the apex to 1e-12;
+    - the flanks against the involute written there within the reported fit (sampled 6.33e-5 to 2.00e-4 mm against fits 6.35e-5 to 2.08e-4);
+    - the face count and names;
+    - the volume against (R³ − Ri³)/3 × the section's area on the unit sphere (∮(1 − cos θ) dφ over a dense outline) less the bore's closed form: observed 1.3e-7 to 2.2e-7 relative.
+  - **The undercut:** the great circle of action built in space, its tangent point found on the base cone (to 1e-9), the crown gear's tip cone along it by bisection; refused exactly where the crown reaches past it; the message names z_v.
+  - **Refusals and warnings,** each with its code; `MATE_INCOMPATIBLE` for another module, shaft angle or mate.
+  - **The pair:**
+    - The test's own sweep (outlines of 600 points a flank, the gnomonic plane, a grid) clears by j cos α/2 at every phase: spread ≤ 2e-6 + 2e-3·j (the plane's stretch).
+    - The product's least lies between j cos α/2 and that plus its reported sag.
+    - A phase a third of a pitch off crosses, in both.
+    - The contact ratio equals the great circle of action cut by both tip cones (bisection in space) to 1e-9.
+    - Tredgold's ratio, the tip clearance, the backlash and the ratio by their formulas.
+  - **The part model:**
+    - mates by mesh at directions 0°, 30° and 200° from a turned pinion: the same apex, the axes at Σ, the axis toward the direction, the mate's turn by the test's formula;
+    - phase 0 and clear by `checkPlacedBevelGears`; both valid, the heel about the shared apex;
+    - the exact Boolean intersection empty when meshed; 4° off it overlaps (survey);
+    - refusals in the part model; a STEP round trip (volume 1e-6, names, valid).
+- **Conformance** `r12b/`, 15 (189 overall):
+  - `bevel-m2-z20-z40` (V 10289.1052, relTol 1e-6; centroid z 37.997965 by the section's first moment);
+  - `bevel-khk-pair` (K1's pair with bores: 41132.2793 and 221158.136, centroids on their own axes);
+  - `bevel-undercut-refused` (16/40, "virtual spur gear has 17.23 teeth").
+- **RB seeds,** every stage OK: `gear-bevel-m2-z20-z40`, `gear-bevel-pair-sigma60`, `gear-bevel-m3-z40-z20-bored`.
+- **Studio** `primitives.test.ts` "Bevel gear":
+  - the command's node, its toe on At Z (apex at −(R − b) cos(δ + θa) to 1e-9);
+  - the volume against 9785.1487 mm³ by the kernel test's construction (within 0.02);
+  - its notes, 20 tips, heel and toe;
+  - Meshing gear's fields (direction, bore); the mate z 40/20: "Meshes with n0: the same apex, shaft angle 90°, ratio 20:40, backlash 0 mm at the heel, contact ratio 1.714 (spherical; Tredgold's estimate 1.712)", clear; its volume 54305.1392 (within 0.05); its fields;
+  - the pinion edited to 18 teeth: the mate follows (ratio 18:40), clear;
+  - a phase 3° off crosses; the pinion guarded from deletion.
+- **Browser flow:** a new step "Bevel gear (R12b.3, D134)": a pinion from the palette (its notes), its mate by Meshing gear — "Bevel gear m2 z40/20", "Meshes with n0: the same apex, shaft angle 90°, ratio 20:40", clear on the heel sphere.
+
+**Checks:**
+- Kernel 1338/1343 (4 skipped; +8: the 5 tests and 3 conformance cases; the names against D133's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 189/189. Kernel lint clean, type-check clean.
+- Studio 690/690 (+1; the merged IM1/IM2's included). Studio lint 0 errors (119 warnings, as before), type-check clean. `tools-v1.json` +1 line by `UPDATE_TOOL_CONTRACT=1`.
+- The full flow 198/198 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** conics instead of D129's cubics (forced by degree 5; cubics would come back if the kernel's degree limit rose); the studio placing the toe on At Z (the apex below).
+
+**Not in this stage:**
+- the Gleason uniform-clearance system, profile shifts and back-cone ends (R12b.3b, on the owner's word);
+- the octoid;
+- crown and internal bevel gears;
+- a separate involute-interference condition for the pair (the sweep is the check);
+- the generated root (the root is schematic, flagged);
+- spiral bevels (R12b.4).
+
+Next: R12b.4 — spiral bevel gears (the ideal conjugate, flagged as an ideal model in notes, report and agent output).
+
+## D135 — R12b.4: spiral bevel gears — the ideal conjugate, flagged as an ideal model (bevel-gear@0 with `spiral`) (2026-10-21)
+
+**Decision** (`gear-bevel.ts`: `spiral` on `BevelGearSpec`, `spiralTrace`, `twistedRing`, the pair's five spheres, `thrustWords`; the part model's `bevel-gear.spiral`; the studio's Bevel gear command, notes and agent output). As D129 froze it, on the owner's word that the stage stays, clearly marked as an ideal model:
+- **The model:** on every sphere about the apex, the section is R12b.3's spherical involute, of the transverse pressure angle tan α_t = tan α_n / cos β_m (α_n 20°). It is turned along the cone distance by φ(R) = h ψ(R) / sin δ (h +1 right-hand), ψ(R) being the crown-plane angle of the tooth trace.
+  - A mate of the other hand turns by −φ z1/z2, so every sphere's pair stays a meshing pair.
+  - This is the ideal conjugate: line contact, no crowning, no machine settings — not a face-milled or face-hobbed tooth.
+- **The trace:** a circle of the cutter's radius r_c on the crown plane through the mean point (Rm = R − b/2) at the mean spiral angle β_m, its centre on the side the trace turns toward (q² = Rm² + r_c² − 2 Rm r_c sin β_m from the apex).
+  - sin β(R) = (R² − Rm²)/(2 R r_c) + (Rm/R) sin β_m. It grows toward the heel on a small cutter and falls on a large one: K1's pinion goes 30.73° → 39.96° on r_c 60, and 42.3° → 30.4° on r_c 500.
+  - ψ(R) is closed form (the circle's branch through M).
+  - Refused when β leaves (0°, 90°) within the face (`INVALID_INPUT`, naming where and which way).
+- **The hand:** right means that, seen from the gear's apex along its axis, the tooth turns clockwise from the toe to the heel (in its frame, the azimuth grows toward the heel). A pair is of opposite hands.
+- **The faces:** each side face is the section's curve swept by G(R) = R e^{iφ(R)}: (Re G p̂, Im G p̂, R p_z), p̂ = p_x + i p_y.
+  - G is a cubic Hermite fit (G' = e^{iφ}(1 + i R φ')), exact at its knots. So the levels' edges are the exactly turned curves, and the heel and toe edges lie on their spheres exactly; the heel and toe stay R12b.3's stereographic patches.
+  - At most five pieces to an axial segment (16 poles), at most 16 segments; faces after the first segment are named `.2` … as a helical gear's.
+  - The flank tolerance is shared: three quarters for the section's conic fit, a quarter for the twist, the sum within 1e-4·m. A budget past that is `PROFILE_BUDGET_EXCEEDED`.
+  - Observed: twists of 14.8°–31.7° in 3–5 pieces and one segment, within 2.5e-5 to 6.4e-5 mm.
+- **The flag**, wherever a user meets the gear:
+  - **The kernel's report:** `idealModel: true` and `kind: 'spiral'`. The warning `IDEAL_MODEL` (a new `GearDiagnosticCode`, an API addition) reads "an ideal spiral bevel gear (line contact): the conjugate of its mate on every sphere about the apex, not a face-milled or face-hobbed tooth — no crowning, no machine settings". Straight gears report `idealModel: false`.
+  - **The body's notes:** the first line, a warning, is "Ideal model: a spiral bevel gear in line contact — …".
+  - **The label** (history, outliner and the agent's `made_by`): "Spiral bevel gear m3 z20/40 (ideal model)".
+  - **The agent's body list:** an `ideal_model` field with the kernel's warning; the `bevel-gear` command doc says "an IDEAL MODEL … say so to the user".
+- **The report** (`spiral`): β_m, hand, r_c, Rm, β at the toe and heel, α_t, and the normal pressure angle it gives at the toe and heel (tan α_n = tan α_t cos β). The ideal model keeps α_t on every sphere; a cut gear keeps α_n. It also gives the twist, its pieces, segments and deviation.
+- **Refusals:**
+  - an epicycloidal (face-hobbed) trace, a hypoid offset: `UNSUPPORTED_GEAR_KIND`;
+  - β_m outside (0°, 45°], a missing hand, a cutter radius ≤ 0: `INVALID_INPUT`.
+- **The pair:**
+  - **Compatibility:** both spiral or both straight; opposite hands; one β_m and r_c; one face width (a pair shares its trace through the mean point). Else `MATE_INCOMPATIBLE`.
+  - **Five spheres:** the R12b.3 sweep on five spheres from the toe to the heel, each section turned by its own φ(R). The heel's is refined; the others are the least of `samples`.
+  - **Contact ratios:** the face ratio |ψ(Re) − ψ(Ri)| over the crown pitch 2π sin δ1 / z1, and the total with the transverse one.
+- **The thrust** (`axialThrust`, a straight pair's too):
+  - Computed at the mean point on the pitch cone, from the driver's leading flank's outward normal n (R turning clockwise seen from its apex, L the other way). The driver takes −n and the driven +n, each read along its axis: "pushed away from / toward its apex". A direction, no load.
+  - For a straight pair it gives the textbook "away from the apex" both ways.
+- **Placed:** unchanged. The tooth is centred at the mean cone distance (φ(Rm) = 0), so `bevelMatePlacement` and `checkPlacedBevelGears` hold.
+- **Part model:** `bevel-gear.spiral: { angle, hand, cutterRadius }` (the radius a length; a mate gives its own, the other hand).
+- **Studio:**
+  - **The Bevel gear command:** "Spiral angle β (0 straight; above 0: an ideal model)", Hand, "Cutter radius (0: the mean cone distance, an estimate)". Left 0, the node keeps `cutterEstimate` and the note says "(an estimate: the mean cone distance; give the shop's)" as a warning.
+  - **A mate by Meshing gear** takes the driver's spiral, the other hand, kept in step as R12b.3's module and teeth.
+  - **Edit fields:** spiral angle, hand, cutter radius (a radius given drops the estimate flag).
+  - **Mesh notes:** "+ face … = …", "Clear over a full tooth period on 5 spheres from the toe to the heel", "Axial thrust: n0 driving clockwise seen from its apex is pushed toward its apex, this gear away from its own; …".
+  - **Tool contract:** `tools-v1.json` and v2 unchanged (the command's values docs are not in the contract).
+- **The coordinator's timing note** (one Boolean per gear kind in the default suite):
+  - The bevel kind's default Boolean is now a small meshed pair, 13/13 4 wide (11 s against the 16/20 pair's 20 s). The 16/20 pair and its phase-off case moved to `GEAR_SURVEY=1`.
+  - The spiral pair's Boolean is in the survey. By default, the spiral pair is checked by cutting both B-reps with spheres (below), which is faster and measures more.
+
+**Found:**
+- **The B-reps mesh on every sphere, as built.** K1's spiral pair (j 0.1) is placed by `mesh`, and both B-reps are cut by five spheres about the shared apex, the sections made from the faces' own surfaces. They are clear by j R/Re cos α_t / 2: at the heel 0.04573 against 0.045693, at the toe 0.03214 against 0.032070, within the fits. This holds at two turns (three in the survey); 4° off they cross. So the hands, the turn's sign and the −z1/z2 law hold on the solids, not only in the formula.
+- **The thrust** of K1's pair: the left-hand pinion driving clockwise seen from its apex is pushed toward its apex and the mate away from its own; counter-clockwise, both are pushed away. The B-rep's own flank normal agrees with the first clause.
+- **Contact ratios,** K1's pair: ε_α 1.54411 (Tredgold 1.54333), ε_β 1.75989, ε_γ 3.30400.
+- **The ideal model's normal pressure angle varies along the face:** 20.90° at the toe and 18.81° at the heel for K1's pinion, against the 20° a cutter gives everywhere. This is one measure of what "ideal" leaves out.
+- **Timings:**
+  - a spiral gear 2–7 ms; its mass about 0.6 s;
+  - a pair's report about 3.9 s (five spheres; the heel refined), its verdict less;
+  - `gear-bevel-spiral.test.mjs` 16 s by default, 50 s with `GEAR_SURVEY=1`;
+  - `gear-bevel.test.mjs` 21 s (D134's 29 s) by default, 70 s in the survey;
+  - the kernel suite's wall time 244 s (D134's 259 s).
+
+**Evidence:**
+- **Kernel** `test/gear-bevel-spiral.test.mjs`, 4/4, its oracles written there apart from `gear-bevel.ts`. The first test fails on ebdecdb01 (no spiral).
+  - **Gears** (K1's m 3 z 20/40 left with a bore, and its z 40/20 right; m 2 z 16/24 Σ 60° β 25°; the survey four more, β 20°–45°):
+    - valid; the ideal-model flag and its warning;
+    - α_t and δb by the test's own formulas; K1's α_t 23.95680°, R 67.08204 and Rm 57.08204 to 5e-6;
+    - the trace built in the test (bisection along the cutter's circle): β at the toe and heel and the twist to 1e-9, ψ' = tan β / R;
+    - every face sampled: the levels' radii to 1e-9·R; the flanks against the section turned by the test's φ(R), within the section's fit plus the twist's; tips and roots off their cones by no more than the twist's fit; the ends on their spheres;
+    - the hand by the B-rep's toe and heel azimuths;
+    - the volume against the α_t section's area on the sphere × (R³ − Ri³)/3 less the bore (a turn keeps every sphere's area): 2.5e-7 to 6.5e-7 relative, within perimeter × b × the fits.
+  - **Refusals and `MATE_INCOMPATIBLE`,** each with its code.
+  - **The pair:**
+    - five spheres, each within [j R/Re cos α_t/2, + its sag]; a phase a third of a pitch off crosses;
+    - ε_α by the great circle of action built in space to 1e-9, ε_β by the test's trace to 1e-9;
+    - the thrust's first clause by the B-rep's own flankR#1 normal at the mean point (Newton on the face's surface);
+    - the straight pair's thrust, both away.
+  - **The part model:**
+    - the B-rep sphere sections as above;
+    - `checkPlacedBevelGears` phase 0 and clear;
+    - refusals (the same hand, a missing hand);
+    - a STEP round trip (volume 1e-6, names, valid);
+    - the exact Boolean empty when meshed (survey).
+- **`test/gear-bevel.test.mjs`:** the default Boolean on the 13/13 pair, the 16/20 pair and the phase-off case in the survey.
+- **Conformance** `r12b/`, 18 (192 overall):
+  - `spiral-khk-pair` (41367.3882 and 221439.7348 by the α_t section's area, centroids on their axes by its first moment, relTol 1e-6);
+  - `spiral-same-hand-refused`;
+  - `spiral-cutter-refused` (r_c 16: "takes the spiral angle to 90°").
+- **RB seeds,** every stage OK: `gear-bevel-spiral-khk-pinion`, `gear-bevel-spiral-pair`, `gear-bevel-spiral-sigma60`.
+- **Studio** `primitives.test.ts` "Spiral bevel gear":
+  - K1's pinion from the command: its label "… (ideal model)", the ideal-model warning first, the spiral note, `idealModel` on the body, and in `describeBodies` both the `made_by` label and `ideal_model`;
+  - the volume against 41367.3882 (within 0.05);
+  - its mate by Meshing gear: the other hand, "contact ratio 1.544 (spherical; Tredgold's estimate 1.543) + face 1.760 = 3.304", clear on 5 spheres, the thrust; its volume 221439.7348 (within 0.2);
+  - the cutter radius left 0: 57.082 and the estimate's warning.
+- **Browser flow:** a new step "Spiral bevel gear (R12b.4, D135)": from the palette with β 35° on r_c 40, the history's "(ideal model)" label, "Ideal model: …" first in its notes; its mate's other hand, five spheres clear, the thrust.
+
+**Checks:**
+- Kernel 1345/1350 (4 skipped; +7: the 4 tests and 3 conformance cases). The names against D134's run: none missing — one renamed, the straight part-model test's title (its Boolean's pair). The env-only "actual native Split source…" fails.
+- Conformance 192/192. Kernel lint clean, type-check clean.
+- Studio 704/705 with the one known todo (the hole-after-union repro, O80), 0 fail (+1 test). Studio lint 0 errors (119 warnings, as before), type-check clean.
+- The full flow 202/202 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** the tolerance's three-to-one split (section, twist); the studio's default cutter radius (the mean cone distance, an estimate, flagged).
+
+**Not in this stage:**
+- face-milled or face-hobbed tooth generation (machine settings, crowning, the Gleason system);
+- epicycloidal traces; hypoid offsets;
+- Zerol (β_m 0 with a curved trace);
+- spiral angles over 45°;
+- a mate of another face width.
+
+Next: R12b.5 — ZI and ZA worms and their cylindrical wheel.
+
+## D136 — R12b.5: cylindrical worms, ZI and ZA, and their cylindrical wheel (worm@0) (2026-10-21)
+
+**Decision** (`gear-worm.ts`: `worm`, `wormDimensions`, `wormWheelSpec`, `checkWormPair`, `wormPlacement`, `wormMatrix`, `checkPlacedWormPair`; the part model's `worm` with `mesh` to a helical `spur-gear`; the studio's Worm gear pair command and worm node). As D129 froze it, budgets raised and never the tolerance:
+- **The worm:** its own frame has the axis +Z from z 0 to its length, thread 1 centred on +X at z 0.
+  - **Proportions** (the axial module system, K1's): d1 = q m_x, tan γ = z1 m_x / d1 (z1 1–4, γ at most 45°), addendum m_x, dedendum 1.25 m_x, the thread's axial thickness π m_x / 2 at the reference cylinder, α_n 20° there.
+  - **Its section** (square to the axis) turns by z/p as it rises (p = z1 m_x / 2; counter-clockwise for a right hand), so the faces are the section's curves swept by that turn: the helical gear's `extrudedProfile` twist (D59) at β = 90° − γ.
+  - **ZI** (involute helicoid): the section is the involute of r1 cos α_t, tan α_t = tan α_n / sin γ — a helical gear of z1 teeth. Below its base circle (not met in practice) the join is radial and schematic, flagged.
+  - **ZA** (the lathe's straight axial sides at tan α_x = tan α_n / cos γ): the section is the Archimedean spiral, its half-thickness angle ψ(r) = s_x/(z1 m_x) − (r − r1) tan α_x / p, fitted by C¹ Hermite pieces in r. It is the new curve here.
+  - **Refused:** ZN, ZK, ZC (named, `UNSUPPORTED_GEAR_KIND`); double-enveloping worms; pressure angles other than 20°; a lead angle past 45°. Starts outside 1–4 and a diameter leaving no root are `INVALID_INPUT`; pointed or meeting threads `SELF_INTERSECTION`; a bore past the rim `BORE_INTERSECTION`.
+- **The tolerance and the raised budgets:**
+  - The section's fit and the twist's together stay within 1e-4 m_n: three quarters for the section and a quarter for the twist, as D135.
+  - The budgets rise as D129 asked. A flank of more than five cubic pieces is split radially onto several faces (`flankL2#k` …, 16 poles a face), up to 20 pieces. The twist may take up to 128 axial segments of four pieces each.
+  - D129's finest worm (m_x 1, q 16, one start, 40 long: 12.7 turns), past the old 64 segments, now builds in 111 segments within 2.5e-5 mm.
+- **The wheel:** a cylindrical helical `spur-gear` at β = γ of the worm's hand, its normal module m_x cos γ (`wormWheelSpec`), so d2 = z2 m_x. With a ZI worm it is a crossed helical pair at 90° (point contact); with a ZA worm it is conjugate in the mid-plane only.
+- **The pair** (`checkWormPair`):
+  - **Compatibility:** the wheel helical, of the worm's hand, at its lead angle (1e-9 rad) and normal module (else `MATE_INCOMPATIBLE`, saying which).
+  - **Values:** a = r1 + r2 + x m_n, the ratio z2/z1, backlash along the axis, the tip clearances, and the mid-plane contact ratio (the worm's axial section as a rack: exact for ZA, an estimate for ZI). Also the mesh zone where the wheel's tips reach the thread (a worm shorter than it is warned of).
+  - **The sections:** square to the wheel's axis — the mid-plane and ±b/3 — each swept through one axial pitch of the worm (the mid-plane refined).
+    - The worm's section in a plane comes from its exact transverse outline: each point (ρ, φ0) is carried along its helix to where it crosses the plane on the wheel's side, x = (asin(c/ρ) − φ0 − θ) p / h, y = √(ρ² − c²) − a, the copies a lead apart.
+    - The wheel's section is its transverse profile turned by its own twist to that plane.
+    - Distances are found through a grid of a module's cells: past a module a clearance comes back as one.
+    - Touching is not crossing: segments crossing by no more than 1e-9 a are contact (at no backlash a ZA worm and the wheel touch along the line of action, and rounding crosses them).
+    - The chords' sag is reported; a clearance can only come out larger, by up to it.
+  - Mid-plane conjugacy holds: at backlash j 0.1, ZA and ZI give j cos α_x / 2 = 0.0469336 to 1e-7.
+- **Placed:**
+  - `wormPlacement` puts the worm's axis square to the wheel's, at a toward `direction` in the wheel's mid-plane, its length centred on the line of centres, its X toward the wheel. It is turned so a thread meets a space in the mid-plane: θ from the wheel's mid-plane tooth angle (its own twist to the mid-plane included), less the half length's twist.
+  - `checkPlacedWormPair` requires the axes square, the distance, and the mid-plane (else `MATE_INCOMPATIBLE`). It reads the relative phase as the worm's extra turn.
+- **Part model:** `worm` (axialModule, starts, diameter, hand, length, form, bore, thicknessReduction, center, from, rotation, mesh; generator `worm@0`).
+  - A worm meshing with a helical gear and left without its axial module, diameter or hand takes them from it: m_x = m_n / cos β, d1 = z1 m_x / tan β, its hand.
+  - Outputs: `worm` and `wormPlacement`.
+- **Studio:**
+  - **Worm gear pair** (axial module, starts, worm Ø, hand, form, wheel teeth and face width, bores) adds the wheel — a helical gear node at γ, with its root schematic (below) — then the worm node meshing with it. The worm is long enough for the mesh zone and an axial pitch on either side (66 mm for K1's pair).
+  - **The worm node** keeps its starts, form, length, bore and reduction; its module, diameter and hand are the wheel's, so it follows the wheel's edits (its teeth: the distance and ratio follow).
+  - **Notes:** the worm's dimensions, the fits and the twist, "Meshes with n0: crossed at 90°, centre distance …, ratio 30:2 (15:1), backlash … along the worm's axis, mid-plane contact ratio …", and "Clear over an axial pitch in the wheel's mid-plane and ±… mm" or the crossing.
+  - **The agent:** the `worm-pair` command docs; `tools-v1.json` +1 command by `UPDATE_TOOL_CONTRACT=1` (v2 unchanged).
+  - **Declared one-line touches** for the new node kind: `src/assembly/flatten.ts`, `src/chat/features.ts`.
+
+**Found:**
+- **A rack-generated wheel root meets an axial-module worm's crest.**
+  - K1's wheel cut by the basic rack (`spur-gear@1`, at m_n = m_x cos γ) has its form circle at Ø85.599 (r 42.80). The worm's crest line reaches a − ra1 = 42 mm from its axis.
+  - At no backlash a ZA worm's crest corner therefore cuts the wheel's generated fillet, and the sections cross. The schematic root (`@0`) clears, touching. With a 0.05 mm backlash the generated one clears (0.0228 mm against the involute's 0.0235).
+  - A worm wheel is hobbed by a hob of the worm's own form, not by the basic rack, so neither root is the cut one. The studio's pair takes the schematic root, flagged as such, rather than claim the rack's.
+- **Off the mid-plane the cylindrical wheel stands clear of the worm:** at ±b/3 the least is 0.219 (ZA) and 0.227 (ZI) mm at no backlash. The cylindrical wheel touches a ZA worm only in its mid-plane, a ZI worm at points. This is what a throated wheel (R12b.6) would add contact for.
+- **The top bar's shapes strip is full** at the flow's 1440 px. The Worm gear pair command, first a placed one, pushed the page sideways, and the flow's right-click step (72) missed its body twice running. So it sits in the side toolbar (which scrolls), positioned by its fields. A placed command added later will need room made there (logged).
+- **Timings:**
+  - a worm 2–10 ms; its mass 0.2–0.5 s;
+  - a pair's report about 0.5 s (a module's grid, the mesh band only; first written brute force, 11 s);
+  - `gear-worm.test.mjs` 8 s by default, 14 s with `GEAR_SURVEY=1`;
+  - the kernel suite's wall time 218 s.
+
+**Evidence:**
+- **Kernel** `test/gear-worm.test.mjs`, 4/4, its oracles written there apart from `gear-worm.ts`. The first test fails on 9beab5f16 (no worm).
+  - **Worms** (K1's ZI with a bore and ZA left-hand; m_x 2 single-start ZI q 10; the survey adds ZA single-start, ZI four-start q 8 at 26.6°, D129's m_x 1 q 16, ZA three-start thinned):
+    - valid; the dimensions by the test's own formulas; K1's γ 7.76517° (5e-6), d1 44, d_a1 50, d_f1 36.5;
+    - every face sampled: the flanks against the section turned by z/p within the fits (sampled 5.5e-5 to 2.3e-4 against 6e-5 to 2.3e-4); tips and roots on their cylinders within the twist's fit;
+    - the normal pressure angle 20° at the reference cylinder, from the B-rep's own surface normals where each flank crosses r1 (observed within 1e-4 rad);
+    - a ZA flank carried along its helix to the axial half-plane is a straight line at α_x (to 1e-4 rad), within the fits;
+    - the faces radially and the segments within budget;
+    - the volume against (π rf² + z1 ∫ 2ψ r dr) × L less the bore: 3.4e-6 to 1.0e-5 relative, within perimeter × L × the fits. (A first oracle, a shoelace over coarse root arcs, was itself short by 4e-5 and was replaced by the radial integral.)
+  - **Refusals and `MATE_INCOMPATIBLE`,** each with its code.
+  - **K1's pair** (ZA and ZI, j 0.1):
+    - a 67, ratio 15, the wheel's d2 90;
+    - the mid-plane within [j cos α_x/2, + the sag], the sections ±b/3 clear;
+    - a phase off crosses;
+    - the generated-root finding above.
+  - **The part model:**
+    - K1's wheel as a helical `spur-gear` and its worm by `mesh` (directions −90°, 30° and 200°, the wheel turned): m_x 3 and d1 44 from the wheel, the worm at 67 mm in the mid-plane, square, toward the direction;
+    - `checkPlacedWormPair` phase 0 and clear;
+    - the two B-reps cut by planes square to the wheel's axis (sections from the faces' own surfaces): never crossing; the mid-plane equal to the pair check's (0.04697 against 0.04693), off it no nearer than the check's least;
+    - the mesh phase 60° off crosses;
+    - refusals (a straight wheel, the other hand, ZK);
+    - a STEP round trip (volume 1e-6, names, valid).
+- **Conformance** `r12b/`, 21 (195 overall):
+  - `worm-khk-pair` (the wheel 119279.7884 and the worm 84310.8648 by their sections' areas × lengths, centroids on their axes; relTol 2e-5);
+  - `worm-za-m2_5` (28372.9298);
+  - `worm-zk-refused`.
+- **RB seeds,** every stage OK: `gear-worm-khk-pair`, `gear-worm-za-single`, `gear-worm-zi-four-start`.
+- **Studio** `primitives.test.ts` "Worm gear pair":
+  - the wheel node at γ (7.765166018425334°, m_n 3 cos γ), the worm 66 mm, the label "Worm ZI m_x3 ×2 Ø44";
+  - the worm's volume against 92741.95 (within 0.6);
+  - its notes and the pair clear;
+  - the wheel edited to 40 teeth: the worm follows (82 mm, 40:2), clear; the worm to ZA: clear;
+  - the wheel guarded from deletion.
+- **Browser flow:** a new step "Worm gear pair (R12b.5, D136)": K1's pair from the palette, the history's "Helical gear mn2.97 z30 … Worm ZI m_x3 ×2 Ø44", the worm's notes, clear.
+
+**Checks:**
+- Kernel 1352/1357 (4 skipped; +7: the 4 tests and 3 conformance cases; the names against D135's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 195/195. Kernel lint clean, type-check clean.
+- Studio 717/718 with the known todo (O80), 0 fail (+1). Studio lint 0 errors (119 warnings), type-check clean. `tools-v1.json` +1 line by `UPDATE_TOOL_CONTRACT=1`.
+- The full flow 205/205 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** the studio's schematic wheel root (until a hob of the worm's form generates it); the worm's default length (the mesh zone and a pitch either side).
+
+**Not in this stage:**
+- ZN, ZK and ZC worms; double-enveloping worms; shaft angles other than 90°;
+- the throated (single-enveloping) wheel (R12b.6, to be attempted);
+- a hob-generated wheel root;
+- thread end chamfers;
+- strength and efficiency.
+
+Next: R12b.6 — the throated wheel of a ZA worm, attempted (refused with the reason if the fit cannot hold).
+
+## D137 — R12b.6: the throated (single-enveloping) wheel of a ZA worm — attempted and built (worm-wheel@0) (2026-10-21)
+
+**The owner's word (D129):** attempt the throated wheel; if the fit cannot hold, refuse it with the reason and keep the cylindrical wheel. It held. The refusal path is built too, and is tested.
+
+**Decision** (`gear-worm-wheel.ts`: `throatedWormWheel`, `throatedWheelGeom`, `checkThroatedWormPair`, `throatedWormPlacement`, `checkPlacedThroatedPair`; the part model's `worm-wheel` and a worm meshing with it; the studio's Worm gear pair with Wheel: Throated):
+- **The hob:** the wheel is what a hob of its ZA worm's own thread cuts as the two turn together. Its sides are the worm's, its crest raised by the 0.25 m_x clearance (K1's root d2 − 2.5 m_x) and sharp-cornered. The wheel's backlash widens the hob's thread along its axis.
+- **The section in each plane square to the wheel's axis** (z = c from the mid-plane):
+  - **The hob's section is a fixed curve that slides as the worm turns:** D136's carrying of the worm's outline along its helices, x = (asin(c/ρ) ± ψ(ρ)) p/h, y = √(ρ² − c²) − a. It is a rack moving with the wheel's pitch circle (displacement d ⇔ wheel turn d/r2).
+  - **The wheel's section is that rack's envelope, in closed form point by point.** A rack point is in contact where its normal passes the pitch point (0, −r2): d = (y + r2) N_x/N_y − x, and the point carried is Rot(−d/r2)(x + d, y). The hob's flanks give the wheel's flanks, its crest corners their root trochoids, its crest the root circle.
+  - **The wheel's tip** is its throat torus about the wheel's axis: minor radius R_t = a − r2 − m_x about the worm's axis circle, so the tip radius is a − √(R_t² − c²). Its root is the hob crest's torus (R_h = r1 + 1.25 m_x). Both are rational and exact.
+  - **The flank's run in each plane** goes from the crest corner's point up to where it reaches the throat (bisection on ρ).
+- **The faces:**
+  - Flanks and fillets are bicubic Hermite patches over (the section's parameter, z), from the closed form's derivatives by central differences. z is exact along them (linear in v), so the end faces are planes.
+  - Up to 15 pieces across (three faces of five) and 20 along (four segments of five). The flank, fillet, tip and root share one set of levels along the axis and one count along it, so shared edges are one curve to the last bit.
+  - Tips and roots are torus patches a pitch wide, trimmed by the fitted neighbours' edges. Those edges are tolerant by twice the fits; the vertices are exact on the tori.
+  - Names: `filletL#k`, `flankL#k` (`flankL2#k` …), `tip#k`, `flankR#k`, `filletR#k`, `root#k`, `face0`, `face1`, `bore#1/2`, segments `.2` ….
+  - Tooth 1 is centred on +X in the mid-plane; the frame's axis is +Z from z 0, the mid-plane at b/2.
+- **The measure and the refusal:**
+  - Each fitted face is measured as built, in its own planes, against the exact section (a 400-point polyline), at 4 × 8 samples per piece. The flank and fillet must each come within the tolerance (1e-4 m_n), or the wheel is refused. Twice: the fit at the budget, then the faces as built.
+  - The refusal is `UNSUPPORTED_GEAR_KIND`: "throated wheel: its generated flank fits within … mm at the budget (… × … bicubic pieces; at most 15 across and 20 along), not … mm — the cylindrical wheel stays". It is tested at a tolerance of 1e-7.
+  - Also refused: a ZI worm (only ZA: its mid-plane is an involute only then), a flank that turns back (undercut), teeth below 18, a face of 1.6 R_t or more (the throat arc's reach), a bore past the rim.
+- **The pair** (`checkThroatedWormPair`):
+  - The worm must be the one the wheel was cut for (else `MATE_INCOMPATIBLE`).
+  - Sections at the mid-plane, ±b/4 and ±b/2.2, each swept over an axial pitch: the worm's section as D136's, the wheel's exact sections (the closed form) near the mesh.
+  - The two touch along lines, so sections nearer than the touch bound — twice the tolerance plus the chords — are contact, not crossing.
+- **Placed:** `throatedWormPlacement` puts the worm square at a in the mid-plane, as D136, turned so a thread meets a space as the hob did. Δ = rotation + (π/2 + π/z2) − (φ + π/2) is the wheel's turn from its cutting pose in the pair's frame, and Δ = −h θ z1/z2. `checkPlacedThroatedPair` reads the phase back.
+- **Part model:** `worm-wheel` (worm {axialModule, starts, diameter, hand}, teeth, faceWidth, bore, thicknessReduction, center, from, rotation; generator `worm-wheel@0`). A `worm` meshing with it takes the wheel's worm (m_x, d1, hand; it must be ZA).
+- **Studio:**
+  - **Worm gear pair** gains "Wheel: Cylindrical (helical gear) | Throated (enveloping; ZA worm)". Throated adds a `worm-wheel` node ("Throated worm wheel m_x3 z30") and the ZA worm meshing with it.
+  - **The wheel's fields:** its worm's module, starts, Ø and hand, its teeth, width, bore, widening, rotation (the worm follows).
+  - **Notes:** the wheel's throat, root and fits; the worm's "Meshes with n0, enveloping it: …" and "In contact along lines across the face — touching or clear in the mid-plane and 4 sections either side".
+  - **The agent:** the `worm-pair` docs gain `wheel` (no tool-contract change).
+  - **Declared one-line touches:** `src/assembly/flatten.ts` (the node switch).
+
+**Found:**
+- **It holds, with room:** K1's wheel (m_x 3, double thread, z2 30, b 20) builds in 0.8 s with 724 faces. Its flanks come within 1.28e-4 mm (6 × 12 pieces) and its fillets within 5.2e-5 mm (2 × 12), against 2.97e-4. The survey's other two wheels (single-start m_x 2 z 40; three-start m_x 2.5 z 45) come within 6.6e-5 to 8.5e-5.
+- **K1's Table 4.23 wheel values come out of the construction:** throat Ø96, throat surface radius 19, root Ø82.5, a 67, d2 90.
+- **The mid-plane is the involute of r2 cos α_x** to 1.9e-6 mm, the oracle D129 named.
+- **It envelops its worm:** 468 points of tooth 1's flanks, both sides and every segment, with the worm turning through tooth 1's whole engagement (eight pitches of the worm).
+  - The worm's thread never enters them by more than 1.14e-4 mm (the bound 1e-4 m = 3e-4, measured along the axis: an upper bound on the depth).
+  - Every point is touched by the thread, within 5.6e-6 mm.
+  - Points the hob's 0.25 m_x of extra crest cut, below where the worm's own crest reaches, are left out.
+- **The pair, against the cylindrical wheel:**
+  - With the worm 0.1 mm thinner, every section is clear by about j cos α_x / 2: 0.046934 in the mid-plane, 0.04652 at ±b/4, 0.04650 at ±b/2.2.
+  - At no backlash every section touches.
+  - D136's cylindrical wheel stood 0.266 mm off at ±b/3: the throated wheel is in contact across its face, where the cylindrical one touches only in its mid-plane.
+- **STEP export of the 724-face wheel takes about 15 s** (its tessellated copy: `brep-tessellate`'s flips and links). The round trip is in the survey; logged for the kernel lane.
+- **Timings:**
+  - the K1 wheel 0.8 s, its mass 1.9 s;
+  - a pair's report about 3 s (five sections), its verdict less;
+  - `gear-worm-wheel.test.mjs` 16 s by default, 41 s with `GEAR_SURVEY=1`;
+  - the kernel suite's wall time 275 s (D136's 218 s: this file, three conformance wheels and their masses).
+
+**Evidence:**
+- **Kernel** `test/gear-worm-wheel.test.mjs`, 5/5, its oracles written there apart from `gear-worm-wheel.ts`: the hob's section carried along the helices, the rack's envelope by the normal through the pitch point, the trochoid and the throat, each this file's own. The first test fails on d9131f34e (no throated wheel).
+  - **Wheels** (K1's with a bore; the survey's single-start left-hand m_x 2 z 40 b 16 and three-start m_x 2.5 z 45 with a bore):
+    - valid; K1's numbers as above;
+    - tips on the throat torus and roots on the root torus to 1e-9 (their own surfaces);
+    - the mid-plane against the involute (r2 cos α_x, half-thickness π m_x/(4 r2) + inv α_x) within the flank fit;
+    - the fits within the tolerance.
+  - **Enveloping,** as above.
+  - **Refusals,** each with its code, the budget refusal's message, and a worm not the wheel's.
+  - **The pair,** as above: a 67, ratio 15, a phase off crossing.
+  - **The part model:**
+    - m_x, d1 and hand from the wheel; square at 67 mm in the mid-plane; valid; the placed check phase 0 and clear;
+    - the volume against the sections' areas (½∮ r² dφ round this file's own envelope) by Simpson along the face, less the bore: 4.2e-6 relative at 10 planes (the conformance value at 40 planes, 7.7e-7);
+    - a ZI worm refused;
+    - STEP (survey).
+- **Conformance** `r12b/`, 24 (198 overall):
+  - `worm-wheel-khk` (123789.333 by the sections' areas, 40 planes and 3000 points a side, relTol 2e-6);
+  - `worm-wheel-pair` (the wheel and its ZA worm 84364.8631);
+  - `worm-wheel-zi-refused`.
+- **RB seeds,** every stage OK: `gear-worm-wheel-khk`, `gear-worm-wheel-pair`, `gear-worm-wheel-single-start`.
+- **Studio** `primitives.test.ts` "Throated worm wheel":
+  - the nodes and labels;
+  - the wheel's volume against 123789.333 (within 0.3);
+  - its notes; the worm's "enveloping it" and "In contact along lines across the face".
+- **Browser flow:** a new step "Throated worm wheel (R12b.6, D137)": the pair from the palette with Wheel: Throated, the history, the wheel's notes and the worm's contact.
+
+**Checks:**
+- Kernel 1360/1365 (4 skipped; +8: the 5 tests and 3 conformance cases; the names against D136's run: none missing). The env-only "actual native Split source…" fails.
+- Conformance 198/198. Kernel lint clean, type-check clean.
+- Studio 739/740 with the known todo, 0 fail (+1). Studio lint 0 errors (119 warnings), type-check clean. Tool contract unchanged.
+- The full flow 210/210 on its own (+1).
+- RB and properties: the rows commit after this one.
+
+**Pending, reversible:** the hob's sharp crest corner and its 0.25 m_x clearance (a shop's hob has a tip round and an oversize); the tip on the throat torus to the faces (K1's blank is turned to an outside diameter, Ø99 for its example: not modelled; the report gives the tip at the faces, Ø101.69 at b 20).
+
+**Not in this stage:**
+- throated wheels of ZI, ZN, ZK and ZC worms;
+- a turned outside diameter;
+- hob oversize and resharpening;
+- double-enveloping (globoid) worms.
+
+Next: R12b.7 — acceptance (a planetary set, a right-angle bevel pair, a worm reducer) and the R12b → R12c hand-over.
+
+## D138 — R12b.7: acceptance by the agent, a planetary set, a right-angle bevel pair and a worm reducer (2026-10-21)
+
+The last R12b stage frozen in D129. Three gear sets are built by the agent's tools in one chat turn each and accepted by closed forms that are not read from the build. Every pair is then checked by the kernel's full sweep of the two exact profiles as placed, including the pairs no placement made. No product code changed. **R12b is done** with this step; the R12b → next hand-over block is at the top of README §0.
+
+**Acceptance** (`apps/cad-studio/test/gear-acceptance.test.ts`, 3 tests). Each set comes from the calls in `test/fixtures/gear-*.calls.json`, sent through `dispatchTool` as the chat does; the flow sends all three through the real chat.
+- **A planetary set** (`gear-planetary.calls.json`), module 2, 15 wide: a ring of 60 (`Internal gear`, x2 0.5 — the default — its root cut by a 24-tooth pinion cutter, an estimate), three planets of 18 (x 0) meshing inside it at 0°, 120° and 240° (`Meshing gear` with the ring selected), and a sun of 24 (x 0.5) meshing with the first planet (`Meshing gear` with it selected, toward 180°). The agent then sets three requirements (the sun's `gear_clearance` with each planet ≥ 0, assumed) and runs `check_spec`: 3 pass.
+  - **Why these numbers:** zr = zs + 2zp, and x_s = x2 − 2x_p, so the ring–planet pair (z difference 42, x difference 0.5) and the sun–planet pair (z sum 42, x sum 0.5) have one working centre distance; (zs + zr)/3 = 28 is whole, so all three planets can mesh with both. A first try with the planets at x 0.25 (the sun at 0) crossed the ring: the ring's tip corners ran into the planets' root fillets (x2 − x1 0.25 against D132's 0.5). The studio said so in each planet's notes ("The teeth cross … interference", "Radial assembly: the teeth cross"), and the fixture is the corrected set.
+  - **Oracles:**
+    - the working centre distance (zΣ m/2) cos α / cos α_w with inv α_w = 2 tan α xΣ/zΣ + inv α (inverted by Newton in the test): 42.9280 mm for both pairs, equal to 1e-15;
+    - the planets at that distance at 0°, 120°, 240° and the sun on the ring's axis (placed through planet 1: the chain closes), to 1e-12;
+    - diameters by the shifted standard proportions: planet tip m(z + 2) = 40 and root m(z − 2.5) = 31; sun 54 and 45; the ring's tip m(z − 2 + 2x2) = 118, inside;
+    - **all six pairs** by the full sweep (`checkPlacedInternalGears`, `checkPlacedSpurGears`, report mode): the ring with each planet least clearance 0, the sun with each 1.7e-6 mm, none crossing (touching at no backlash); the sun with planets 2 and 3 were placed by no rule that relates them;
+    - **the control:** planet 2 moved to 110° still meshes with the ring, and the sweep finds it crossing the sun by 1.97 mm, so the check can fail;
+    - **turned:** the ring 7.5° (the carrier held), each planet +zr/zp of it the same way and the sun −zr/zs, to 1e-12; all six pairs still clear;
+    - no warnings but the ring's cutter tip radius (an estimate, D133); each planet's "Radial assembly clear";
+    - each body's volume that of its gear built alone, to 1e-9 (placed rigidly).
+- **A right-angle straight bevel pair** (`gear-bevel-pair.calls.json`): `Bevel gear` m3 z20, mate 40, Σ 90°, face width 18, bore 12, its toe on Z 0; `Meshing gear` with it selected (direction 0°, bore 20).
+  - **Oracles:** δ1 = atan(z1/z2) = 26.5651°, δ2 = 90° − δ1; Re = m z1/(2 sin δ1) = 67.0820 mm, Ri = Re − b; θa = atan(m/Re), θf = atan(1.25 m/Re); the heel's tip and root diameters 2Re sin(δ ± θ); one apex, the pinion's axis +Z and the mate's +X; the apex Ri cos(δ1 + θa) = 42.8758 mm below the toe's plane; Tredgold's contact ratio by its formula (the virtual spur pair on the back cones, radii Re tan δ) equal to the report's 1.71218 to 1e-9, and the exact spherical one 1.71372 within 1% of it; the sweep on the heel sphere clear (least 4.7e-9 mm, within its chord sag 5.6e-5); turned 9°, the mate 4.5°, still clear.
+  - Warnings: each gear's schematic root (D134), as expected.
+- **A worm reducer, 30 : 1** (`gear-worm-reducer.calls.json`): `Worm gear pair` with m_x 3, one start, d1 44, right hand, Wheel: Throated (D137), z2 30, face width 20, bores 20 and 12.
+  - **Oracles:** a = (d1 + m z2)/2 = 67; the worm's middle at (a, 0, b/2), its axis along Y, square to the wheel's axis and the line of centres; γ = atan(z1 m/d1) = 3.9005°, the lead π m z1, ZA's axial sides atan(tan α / cos γ); the worm's tip d1 + 2m and root d1 − 2.5m; the wheel's d2 = m z2, the throat d2 + 2m = 96, its torus R_t = a − d2/2 − m = 19, the root 2(a − R_h) = 82.5 with R_h = d1/2 + 1.25 m the hob's crest; **at the faces** (c = b/2) the tip on the throat torus 2(a − √(R_t² − c²)) = 101.689 and the root on the hob crest's 2(a − √(R_h² − c²)) = 86.542; the pair check (`checkPlacedThroatedPair`, report, 16 samples) touching or clear in all 5 sections (least 0 to 5.3e-8 mm, touch 6.6e-4); turned 5°, the worm 150°, still in contact.
+  - Warnings: the wheel's hob note (D137), as expected.
+- **Conformance** `r12b/` (+3, 27; 201 overall): `accept-planetary`, `accept-bevel-pair`, `accept-worm-reducer`, written by the test (`WRITE_ACCEPTANCE=1`), which also checks they hold the part the agent built. Expected: each output's volume by this kernel (relTol 1e-6; 2e-6 for the worm set), the centroids by the closed forms where they are on an axis (the planetary set, the wheel) and by this kernel otherwise, one body of genus 1; a STEP round trip for the planetary and bevel sets (the throated wheel's STEP export takes about 15 s, D137, so not here).
+- **A flow step** "R12b.7 the gears' acceptance …": each set by the scripted agent through the real chat on a new part; the bodies (5, 2, 2); the agent's last tool (`check_spec`, `get_part_summary`); the planetary set's three requirements; the sun's "Meshes with n1: centre distance 42.928 mm, ratio −18:24" and "Clear over a full tooth period"; the bevel mate's "Clear over a full tooth period on the heel sphere"; the worm's "In contact along lines across the face"; a screenshot of each (`r12b-7-*`).
+
+**Timings:** the acceptance test 29 s (planetary 10 s, bevel 4 s, worm reducer 14 s). The studio's first evaluation of the worm reducer took 23 s in a cold run: no single hot spot (B-spline basis evaluation 2.3 s, the wheel's section functions about 1.5 s, the pair check 3.2 s, tessellation and its validation the rest). Added to the kernel queue beside STEP export.
+
+**Not in this stage:**
+- a carrier: the planetary set is held at its carrier (a star arrangement); the carrier's ratio 1 + zr/zs = 3.5 with the ring fixed is not modelled, nor a carrier body or pins;
+- an assembly of parts with mates (each set is one part of separate bodies, as the R12b commands build them);
+- housings, shafts and bearings (R12c machine elements);
+- a live model as the agent (the scripted one, L2; a live run needs the owner's OK).
+
+**Checks:**
+- Kernel 1363/1368 (4 skipped; +3, the accept cases; the names against D137's run: none missing). The env-only "actual native Split source…" fails. No kernel source changed.
+- Conformance 201/201.
+- Studio 746/747 with the known todo, 0 fail (+3). Studio lint 0 errors (119 warnings), type-check clean. Tool contract unchanged.
+- The full flow 212/212 on its own (+1). Its first run failed the new step on its own selector (the outliner's rows taken by position: an extra row put planet 3 where the sun was expected); the rows are now taken by name, and the step passes alone and in the full run.
+- RB: 370 cases (+3), 0 new, the 8 known TODOs; the rows commit after this one.
+- The kernel suite 302 s; the five slowest files alone in the hand-over block.
+
+Next: the R12b → next hand-over (README §0), then the joint PKG boundary, which the coordinator runs.
+
+## D139 — R12c S0: feasibility of machine and power-transmission elements (2026-10-21)
+
+**R12c S0.** The roadmap's feasibility checkpoint before R12c (§4 "R12c — machine and power-transmission elements"), run now by the coordinator's order while PKG is under way (the stages themselves wait: track K, then the queued requests, then R12c, as the R12b → next block orders them). There is no research note; this record is the design input. The questions:
+- Can today's kernel build a coil spring's wire exactly enough — the pipe of a helix — and cut its ground ends, against which oracles?
+- What do fits and tolerances need: computed ISO 286 limits, or loaded ones? How do they feed a clearance check?
+- Shafts, keys and keyways, ring grooves, pins and dowels; bearing envelopes and seats; O-ring glands: kernel geometry, or composition of existing features?
+- Pulleys, belts, sprockets, chain, couplings, cams, linkages and hinges; standard profiles and connector envelopes: which part is kernel work, which library data, which the outer lane's?
+
+Evidence: `packages/barocss-cad/test/r12c-s0.test.mjs` (kept, 10 tests, 6 s alone), against closed forms and quadratures written in the test, none of them the kernel's. No product code changed. The sizes in it are test values; those from public pages are recorded below, per value.
+
+**Sources** (public HTML, read 2026-10-21 by this session with curl or the fetch tool, page text only, nothing downloaded or kept; values as facts, no standard text, formulas in our words):
+- F1: "IT Grade", Wikipedia, https://en.wikipedia.org/wiki/IT_Grade — label "ISO 286 - Table 1": IT5–IT11 for the 13 ranges to 500 mm (µm), e.g. over 18 to 30: IT5 9, IT6 13, IT7 21, IT8 33, IT9 52, IT10 84, IT11 130; over 30 to 50: 11, 16, 25, 39, 62, 100, 160. Also the page's rule that from IT6 each fifth grade is ×10.
+- F2: "Engineering fit", Wikipedia, https://en.wikipedia.org/wiki/Engineering_fit — the worked examples at Ø50: H8 0/+39 µm and f7 −50/−25 (clearance +25…+89); H7 0/+25 and k6 +2/+18 (+23…−18); H7 0/+25 and p6 +26/+42 (−1…−42). The page's own results are the arithmetic's oracle.
+- B1: "6204 Series", NSK, https://www.oss.nsk.com/6204-dgbb-sr.html — d 20, D 47, B 14, r (min.) 1; abutment da (min.) 25, da (max.) 26.5, Da (max.) 42, ra (max.) 1 (mm).
+- R1: "Retaining Ring, External, Steel … 20mm", Lawson Products, https://www.lawsonproducts.com/products/retaining-ring-external-steel-20mm-97020 — for Ø20 (stated to meet DIN 471): groove Ø19.0, groove width 1.30, ring thickness 1.20. (A search summary saw the same on pgb-europe.com's DIN 471 Ø20 page; not read here.)
+- K1: "DIN 6885-1 Standard Dimensions for Parallel keys", fasten.it, https://fasten.it/Norms/Norm/DIN_6885-1 — shafts 17–22: key 6 × 6, shaft seat depth t1 3.5, hub t2 2.8 (by a search summary of the page; the page marks the norm withdrawn). To be re-read before any use beyond this probe.
+- O1: "AS568 O-Ring Size Chart", Global O-Ring, https://www.globaloring.com/as568-size-chart/ — dash 214: cross-section 0.139 in (3.53 mm), ID 0.984 in ± .010 (24.99 mm).
+- O2: "O-Ring Groove (Gland) Design Guide", Fictiv, https://www.fictiv.com/articles/o-ring-groove-gland-design-guide — squeeze: static male–female 18–25 %, face 20–30 %, reciprocating 10–20 %, rotary 0–10 %; fill 75–85 %; installed ID stretch ideally ≤ 5 %. (MN Rubber's guide, https://www.mnrubber.com/tools-resources/design-guide/rubber-standard-parts/groove-design-o-ring-seals/: fill ≤ about 90 %, stretch above about 3 % may need the next size.) Guidance ranges, not limits.
+- U1: "USB hardware", Wikipedia, https://en.wikipedia.org/wiki/USB_hardware — the connector dimensions table: USB-C receptacle opening 8.34 × 2.56 × 6.2 mm, plug body 8.25 × 2.4 × 6.51 mm; the page notes the receptacle figures are the opening only. (Its "USB-C" article gives the same opening, 6.20 deep.)
+- S1: compression-spring formula pages, https://www.compressionspring.com/helical-spring-formulas-and-equations.html and https://acxesspring.com/compression-spring-rate.html (by search summary): k = Gd⁴/(8D³n) on active coils; solid height d·n_t with ground ends, d(n_t + 1) otherwise. The rate is re-derived in the test from the wire's torsion energy; the end conventions are a supplier's, recorded as such.
+- Not found as public HTML: ISO 286's fundamental deviations as text (only tables; the shift letters need rows like the IT grades), ISO 606 sprocket tooth-form formulas, timing-belt tooth profiles (maker-specific), V-belt groove tables. Not attempted: any PDF (Parker's O-ring handbook, bearing catalogues, USB-IF's specification).
+
+**Today, as it stands:**
+- **Springs: no helical sweep of a section exists.** `thread-helical.ts` sweeps an axial radius profile ρ(φ) (a thread), not a section square to the path; `sweep-curve` is faceted (and has no self-overlap check); `sweep` has straight runs and bends only; the gears' twisted extrusion turns a *transverse* (z-plane) profile, and a round wire's transverse section is not a circle.
+- **A spring's wire is buildable exactly enough by the gears' own construction, generalised to a 3D section** (built in the test with `buildBrep`):
+  - The helix C(φ) = (R cos φ, R sin φ, hφ), h = p/2π, has its Frenet frame carried by the screw motion M(φ) (turn φ about Z, rise hφ). So the pipe of radius a is exactly M(φ) applied to the circle in the normal plane at φ = 0. The motion is affine in the section point, so a face is the circle's exact rational quarter (degree 2) times the rotation's cubic Hermite fit (exact at the piece ends, as `rotationPoles` in `gear.ts`), with z = hφ exact. The circle edges at every segment end are exact.
+  - D 20, d 2, p 5, 6 turns: 22 pieces a turn for 1e-4·d (36 segments × 4 pieces, 146 faces), valid, genus 0, one body; built in 3 ms.
+  - **Its distance from the centreline** (an independent check: Newton on the helix for each sampled surface point) is a within 1.34e-4 mm, equal to the fit's bound (R + a)·dev(step) (the rotation fit's error per unit radius, sampled).
+  - **Its volume** against πa²·L (a tube square to its path, a below the curvature radius R(1 + (h/R)²): Pappus–Guldin for tubes): 1188.0811 against 1188.0966, rel 1.30e-5, inside the bound 2πa·L·(the measured distance error). Mass 154 ms; STEP round trip 674 ms, valid, the same volume to 1e-9.
+  - **The budget:** pieces a turn within 1e-4·d grow with D/d: 22 (D/d 10), 26 (20), 29 (31), 31 (40), 38 (100). A 30-turn spring of D/d 100 needs 1140 pieces. Faces keep ≤ 4 pieces (13 poles, the 16-pole convention).
+- **A plane square to the axis cuts away exactly πa²·L·z0/h** — a closed form derived here: in the pipe's coordinates (s, ρ, θ), dV = ρ(1 − κρ cos θ) dρ dθ ds and a point's height is hφ + ρ sin θ·R/L, so below z0 (clear of the start disc, z0 ≥ aR/L) the wire holds L/h ∫∫ ρ(1 − κρ cos θ)(z0 − ρ sin θ R/L) dρ dθ = πa²·L·z0/h; the odd terms vanish. **The ground ends by today's analytic Boolean** (two boxes off a 3-turn coil): valid, 62 faces, 1.07 s, V 431.6695 against 431.6751 (rel 1.3e-5, the fit's, inside its bound).
+- **The coils' clearance is not p ≥ d:** the least distance between neighbouring turns of the centreline falls short of the pitch by the helix angle, so turns of pitch d overlap by a hair. For D 20, d 2 the turns are d apart at pitch 2.001011. Closed ends wound "touching" must be modelled at that geometric pitch or refused as overlapping; the supplier's solid height d·n_t is reported beside the geometric one.
+- **The rate:** k = Gd⁴/(8D³n_a) agrees with the wire's torsion energy (torque FD/2 over πD n_a, J = πd⁴/32; Castigliano, the shear of direct load and curvature neglected) to 1e-12; Wahl's K_W = (4C − 1)/(4C − 4) + 0.615/C, 1.1448 at C 10.
+- **Fits: the IT tolerance factor does not reproduce the table.** i = 0.45∛D + 0.001D µm on each range's geometric mean, times 7, 10, 16, 25, 40, 64, 100 for IT5–IT11, rounded to the µm: 55 of F1's 91 values agree; 36 differ, by up to 10 % (IT9 0–3: 22 against 25; IT11 400–500: 389 against 400), because the standard rounds by its own rules. So limits are loaded rows, never computed; the formula is not used, even as a fallback.
+  - **Limits to clearances** by arithmetic reproduce F2's own results exactly (H8/f7 +25…+89, H7/k6 +23…−18, H7/p6 −1…−42).
+  - **The kernel at the limit sizes** (a Ø50 + δ bore in a ring, a Ø50 + ε shaft, 20 long; ring less shaft): every clearance case removes nothing; every interference removes πL((d_s/2)² − (d_h/2)²) to 1e-6 (H7/k6 at MMC 18 µm: 28.2794 mm³; H7/p6 at LMC 1 µm: 1.5716 mm³). Coaxial cylinders 1 µm apart Boolean cleanly.
+- **Today's hole feature** has a countersink only; the studio's hole command has counterbores and tapped holes; no fit or tolerance attribute exists on a face. Drawings carry `{ kind: 'fit', code }` callouts checked only against a pattern, with no limits behind them (outer lane, `model/drawing/types.ts`).
+- **Shafts are exact today by revolve and Booleans:**
+  - a stepped Ø25/Ø20 shaft with a DIN 471-size groove (R1: Ø19, 1.30 wide) at the bearing's face: Pappus to 1e-12, valid;
+  - a 6 × 6 keyseat (K1: t1 3.5) square-ended, 18 long: the removed volume Aseg·L with Aseg = ∫(√(R² − x²) − (R − t1))dx over |x| ≤ b/2 in closed form (20.087441 mm²), to 1e-8;
+  - end-milled (a stadium extruded down): the straight part plus the two half-disc ends, ∫∫_{disc b/2}(√(R² − x²) − (R − t1)) by Gauss–Legendre on x = (b/2) sin u (95.742473 mm³), to 1e-7; 36 ms;
+  - the key 6 high stands 2.5 above the shaft; the hub's t2 2.8 leaves 0.3 over it.
+- **A bearing envelope on its seat:** a 6204 (B1) as a revolved section with corners r 1: Pappus in closed form (19800.6522 mm³) to 1e-11; on its Ø20 seat against the Ø25 shoulder (coincident bore and seat, face and shoulder) the shaft less the bearing is untouched to 1e-9. The abutment rules are arithmetic on loaded values (da min ≤ shoulder ≤ da max, housing shoulder ≤ Da max, fillet ≤ ra max).
+- **An O-ring on a piston gland** (O1's AS568-214 on a test gland: groove Ø25.5, bore Ø31.1, 4.7 wide):
+  - stretch 2.04 %; volume kept, the section 3.53 → 3.5006 (r'²(Dg/2 + r') = r²(ID/2 + r));
+  - squeeze 20.7 % nominal, 20.0 % stretched; fill 74.4 % (πCS²/4 over w·h);
+  - the torus exact (2π²Rr² to 1e-10);
+  - **the bore's displacement of the free ring** (the torus intersected with a sleeve beyond the bore) against Pappus on the circular segment, A = r'² acos(c/r') − c√(r'² − c²), ȳ = (2/3)(r'² − c²)^{3/2}/A, V = 2π(R' + ȳ)A: 136.48580 mm³ both, rel 6.8e-10; torus–cylinder by today's analytic Boolean, 0.75 s.
+  - The squeezed ring's shape is not modelled (an elastomer's deformation, out of scope); the checks are on the free ring and the gland.
+- **A connector opening:** U1's USB-C opening (a stadium 8.34 × 2.56, 6.2 deep) in a panel and the plug body (8.25 × 2.4) seated in it: areas in closed form to 1e-12; the plug touches nothing (gaps 0.045 across, 0.080 through); its 6.51 stands 0.31 out of the opening — an opening, not the receptacle's housing or tongue, so an envelope is only a keep-out and an opening.
+- **A disc cam for a roller follower** (base 20, roller 5, a cycloidal rise of 8 over 120°, dwells of 60°): the pitch curve's inner offset fitted by C¹ Hermite pieces through the gears' `extrudedProfile`: 32 pieces within 1e-4·r_r (measured against the exact offset's polyline), valid; the volume against Green's theorem on the exact offset (periodic trapezoids), rel 5.2e-6, inside perimeter × deviation; the pitch curve's least convex radius of curvature 23.69 > r_r: no undercut.
+- **Elsewhere, already:**
+  - the outer lane's fastener table (A6.5, `model/app/fasteners.ts`: ISO 4017/4762/10642/4032/7089 sizes, ISO 273 clearances, tap drill d − P; built in, with `model/standards/provenance.ts`'s per-value source records);
+  - the library system (LIB1–LIB4): manifests with sourced or estimated parameters, interfaces and declared fits checked by exact Boolean overlap (`library-fit.ts`); the built-in tslot-20 and enclosure libraries (the enclosure's living hinge);
+  - FR's sections (rect-tube, round-tube, angle, channel, tslot, sketch) with no sizes; **no section-catalogue loader exists** (FR's rule says users load sizes; nothing loads them yet);
+  - user-loaded tables done once: the bend table (D120: rows each citing a source or `estimate: true`, validated, `[BEND_TABLE]` and `[BEND_TABLE_MISS]`, a JSON file input);
+  - mates (coincident, concentric, distance, angle, tangent, lock), the robot track's joints (revolute, prismatic, chains) and RM8's planar loop closure (four-bar linkages, outer lane);
+  - A3 requirements (`clearance`, `gear_*`, `hole_diameter`, `library_check`, `keepout` …) and A6.3's box and cylinder keep-outs.
+- **Missing:** any spring, fit table or fit attribute, shaft, keyseat, ring groove, key, ring, pin or dowel part, bearing, O-ring gland, pulley, belt, sprocket, chain, coupling, cam or follower, hinge part, connector envelope.
+
+**Kernel, library or outer lane:**
+- **Kernel** (new geometry or maths): the helical sweep and springs; fit tables (validation, lookup, limit arithmetic, the MMC/LMC check by Boolean); the shaft kind with keyseats and ring grooves (named faces for mates); the bearing-seat and O-ring-gland checks and the gland feature; cams (motion laws, the profile, checks); sprocket and pulley outlines where a closed form or the user's profile exists; belt and chain length; the section-table validator.
+- **Library items** (composition of existing features, data the user loads): keys, retaining rings, pins and dowels, bearing envelopes, O-rings as parts, couplings, hinges, connector envelopes, T-slot hardware. The library's fits check them.
+- **Outer lane:** drawing callouts with limits from the loaded fit table, A3 queries (`fit_clearance`, `spring_rate`, `seat_check` …), linkages as mechanisms (the robot track's joints and loop closure), the studio panels where they are the outer lane's. Asked of the coordinator at each stage that needs them.
+
+**Verdict — R12c in these stages, this order:**
+- **R12c.1a — the helical sweep, and compression springs.**
+  - **Kernel:** `helicalSweep(section, helix)`: a closed planar section of lines and arcs (circle first) placed in the helix's normal plane at φ 0, carried by the screw motion; the faces the section's exact curves times the rotation's Hermite fit, ≤ 4 pieces a face, segments as needed; the fit within `profileToleranceMM` (1e-4·d by default), measured; past a budget of 1024 pieces, `PROFILE_BUDGET_EXCEEDED`, never a looser fit.
+  - **The kind `spring`** (generator `spring@0`): wire d, mean D (or outer or inner), active coils n_a, pitch or free length L0, hand, ends `open` | `closed` | `closed-ground` (and the number of end coils, default 1 each).
+    - Closed ends: the pitch goes from the body's to the geometric solid pitch (the least that keeps turns d apart, found as in S0) over a transition (default 90° each side). There the centreline is not a helix: the section's motion is the variable helix's frame, fitted the same way, its deviation measured against that centreline's own pipe (the distance oracle generalises). If it cannot hold the tolerance in the budget, `PROFILE_BUDGET_EXCEEDED` with the measured figures.
+    - Ground ends: the plane cuts by the analytic Boolean (S0: 1.07 s on 3 turns), or built directly if a longer spring makes the Boolean the cost (decided by test inside the stage).
+  - **Report:** k (G given, or the material's estimate, flagged), the spring index C, the pitch and helix angle, the solid heights (the supplier's convention d·n_t or d(n_t + 1), and the geometric one), the stress at a given load with K_W, L0/D; `manufacturingValidated: false`; no buckling, fatigue or relaxation claims.
+  - **Oracles:** V = πa²·L within the measured bound; the distance from the centreline; the ground cut's πa²·L·Δz/h; k by the torsion energy; the geometric solid pitch by the least centreline distance; STEP round trip.
+  - **Refusals:** `INVALID_INPUT` (d ≤ 0, D ≤ d, n_a ≤ 0 …); `SELF_INTERSECTION` (a ≥ the helix's curvature radius); `COILS_OVERLAP` (a pitch below the geometric solid pitch, named with both); `PROFILE_BUDGET_EXCEEDED`; `UNSUPPORTED_SPRING_KIND` (conical, barrel, variable-pitch bodies, rectangular wire until asked).
+  - **Studio:** the Spring command, edit fields, notes (the rate, solid heights), the agent's node; a flow step.
+- **R12c.1b — extension and torsion springs.** Extension: body at pitch d's geometric solid pitch, initial tension reported as the user's input (no data); hooks as torus arcs and straight pipes (machine loop, crossover), exact. Torsion: legs as straight pipes tangent to the coil, the torsional rate Ed⁴/(64Dn) reported (the energy oracle again, bending). Oracles: volumes by parts (πa²·L per piece, tori by Pappus); refusals as 1a plus `LEG_OVERLAP`.
+- **R12c.2 — fits and tolerances.**
+  - **A fit table** the user loads, as the bend table: rows `{ class: 'H7' | 'g6' | …, over, upTo, upperUM, lowerUM, source | estimate }`, sources as D120's. Validation `[FIT_TABLE]` (bad class, ranges overlapping or out of order, upper < lower, no source and no estimate); lookup `[FIT_TABLE_MISS]` naming the class and size. No formula fallback (S0).
+  - **A tolerance attribute** on cylindrical faces (a hole's bore, a shaft's seat, a gear's bore): `{ class }` resolved against the table at the face's nominal size.
+  - **`fitCheck(hole, shaft)`:** the limits, min and max clearance, the kind (clearance, transition, interference); the bodies at MMC and LMC checked by exact Boolean (S0's construction), so a declared clearance fit that the geometry contradicts is an error.
+  - **Oracles:** F2's examples; the Boolean against πL Δ(r²) at both limits.
+  - **Studio and outer lane:** the "Fit table…" file input; drawings' fit callouts showing limits (the outer lane, asked); the A3 query `fit_clearance`.
+- **R12c.3 — shafts, keys and keyways, rings, pins and dowels.**
+  - **The kind `shaft`:** steps `{ diameter, length, chamfer?, fillet?, undercut? }` along an axis, revolved exactly; named faces `seat#k`, `shoulder#k`, `fillet#k`, `end0`/`end1`.
+  - **Options on a step:** `keyseat` (width, depth t1, length, offset, ends `square` | `end-mill` | `disc` with the cutter's radius), `ring-groove` (diameter, width, at), cross holes (pins).
+  - **Library items (data loaded):** parallel keys (b, h, l, ends), retaining rings (an envelope: thickness, free and installed diameters, lug space), pins and dowels; the hub keyway t2 on a bore.
+  - **Pair checks:** the key's width fit (via R12c.2), its top clearance h − t1 against t2, its length within the seat; a ring's groove against the ring's rows; a pin's hole fit.
+  - **Oracles:** Pappus; the keyseat's disc segment in closed form; the end-mill ends by quadrature (S0); a disc cutter's run-out as a cylinder's segment by quadrature.
+  - **Refusals:** `SHAFT_STEPS` (non-positive sizes, a fillet larger than the step), `KEYSEAT_DIMENSIONS` (t1 ≥ R, b ≥ the step's diameter, the seat crossing a step), `GROOVE_DIMENSIONS`.
+- **R12c.4 — bearing envelopes and seats.**
+  - **Library item:** a rolling bearing's envelope (d, D, B, r; optional abutment values), loaded rows, its interfaces (bore, outside, faces); simplified internals flagged "not for structural calculation".
+  - **`seatCheck`:** shaft and housing seats against the envelope: the seat diameters' fit classes (R12c.2), the shoulder heights within da min … da max and ≤ Da max, the fillet ≤ ra max, the axial location (a shoulder, a ring groove or a spacer on each side); the bodies' Boolean (no overlap, contact on the seats).
+  - **Oracles:** Pappus on the rounded section (S0); B1's abutment values.
+  - **Refusals:** `SEAT_ABUTMENT` (an error when the shoulder misses the band or the fillet exceeds ra max), `SEAT_FIT` (a seat class the table lacks), warnings for an unlocated side. No load ratings or life (no data, no claims).
+- **R12c.5 — O-ring glands.**
+  - **The feature `oring-gland`** on a cylinder or a face: kind `piston` | `rod` | `face`; the O-ring's ID and CS (a loaded row or given); the groove from the target squeeze or the depth given, the width from the target fill; its corner radii.
+  - **Checks:** stretch, the stretched CS by volume, squeeze (nominal and stretched, at the fit's extremes when the bore and groove have classes), fill, against guidance ranges that are data (O2's as estimates, user-overridable); warnings `SQUEEZE_RANGE`, `FILL_RANGE`, `STRETCH_RANGE`; an error `GLAND_DIMENSIONS` (fill > 100 %, squeeze ≤ 0, the groove through the wall).
+  - **The O-ring** as an exact torus part (library or built); the free ring's overlap with the bore by Boolean, checked against S0's Pappus segment.
+- **R12c.6a — cams and followers.** Disc cams with a roller or flat-faced follower, translating or oscillating; motion laws uniform, harmonic, cycloidal, 3-4-5 polynomial; dwells. The profile the pitch curve's offset (roller) or envelope (flat face), fitted (S0: 32 pieces), its deviation measured. Checks: the pressure angle's maximum (warning above a given limit), undercut (the pitch curve's convex radius against r_r; a flat face's ρ + s against zero), the follower's displacement by a sweep of the built profile against the law. Refusals `CAM_UNDERCUT`, `INVALID_INPUT`.
+- **R12c.6b — sprockets and chain, pulleys and belts, couplings.**
+  - Sprockets: pitch diameter p/sin(180°/z) and the tooth gap from the user's roller diameter; the tooth form only from a loaded definition or refused (`UNSUPPORTED_TOOTH_FORM`): ISO 606's formulas were not found as public text.
+  - Timing pulleys: pitch diameter p z/π and the pitch line offset as given; the tooth profile the user's sketch (maker-specific).
+  - V and flat pulleys: a revolved groove profile from loaded rows.
+  - Belt and chain length between two wheels in closed form (open: 2C cos β + (π + 2β)R + (π − 2β)r, sin β = (R − r)/C; the chain in pitches, rounded to whole links, the centre distance back from it).
+  - Couplings: library items.
+  - Hinges and linkages: library parts with interfaces; their motion is the outer lane's joints and loop closure. No new kernel kinematics.
+- **R12c.7 — standard profiles and connector envelopes.**
+  - A section table loader for FR's kinds (rows of named sizes, each sourced or estimated, `[SECTION_TABLE]`, `[SECTION_TABLE_MISS]`), as the bend table; the studio's file input.
+  - Connector envelopes as library items: the opening (U1's kind of data), the body, a keep-out (A6.3); fit checks as declared fits. USB-C from U1's values as the test row, not a built-in.
+- **R12c.8 — acceptance.** The agent builds, in one turn each: a gearbox output shaft (a stepped shaft, a keyed spur gear, two bearings on seats with rings, an O-ring sealed cover) and a spring-loaded plunger (a compression spring with ground ends in a bore, its rate and solid height against closed forms); each against its closed forms; conformance `r12c/accept-*`; the R12c → next hand-over.
+
+**Every stage:** a D-record, a test failing on the previous HEAD, `conformance/r12c/` fixtures (studio ones in subfolders), the studio's command, notes and agent node, a flow step (at T2/T3), RB rows (at T2/T3), a checkpoint with its tier.
+
+**New public codes** (announced here, added at their stages): `SpringDiagnosticCode` (`INVALID_INPUT`, `SELF_INTERSECTION`, `COILS_OVERLAP`, `PROFILE_BUDGET_EXCEEDED`, `UNSUPPORTED_SPRING_KIND`, `LEG_OVERLAP`); `[FIT_TABLE]`, `[FIT_TABLE_MISS]`, `[SECTION_TABLE]`, `[SECTION_TABLE_MISS]`; `SHAFT_STEPS`, `KEYSEAT_DIMENSIONS`, `GROOVE_DIMENSIONS`, `SEAT_ABUTMENT`, `SEAT_FIT`, `GLAND_DIMENSIONS` (errors); `SQUEEZE_RANGE`, `FILL_RANGE`, `STRETCH_RANGE` (warnings); `CAM_UNDERCUT`, `UNSUPPORTED_TOOTH_FORM`. Mapped to the part model as INPUT, CAPABILITY, GEOMETRY.
+
+**Data:**
+- **No tables are built in.** ISO 286 limits, keys, rings, pins, bearings, O-rings, belts, chains, sections and connectors are rows the user loads, each citing a source (URL, date read, label) or flagged `estimate`, as the bend tables (D120) and frame sections (D122). Built-in tables wait for the owner's OK.
+- The values above are test oracles only, each cited by its source id here. K1 and S1 came through search summaries: re-read before any further use.
+- Guidance ranges (squeeze, fill, stretch; a spring index's usual band) are data too: loaded, or the estimates above flagged as such.
+- Material shear and Young's moduli: the user's, or an estimate flagged (the materials library has densities only, all estimates).
+
+**Not in R12c** (for the owner to place):
+- conical, barrel and variable-pitch spring bodies, rectangular wire, wave and disc (Belleville) springs, gas springs;
+- spring fatigue, buckling, relaxation; bearing load ratings and life; key and shaft strength; O-ring material compatibility and the squeezed ring's shape;
+- splines and serrations (involute splines are a gear's sibling: a candidate for R12b's machinery later);
+- ISO 606 sprocket tooth forms unless a public source of the formulas is found, or the user loads a definition;
+- GD&T beyond the size fit (position, runout) — the outer lane's drawings;
+- tolerance stack-ups.
+
+**For the owner:**
+- **Built-in tables:** keep every size table user-loaded (default), or build in a small set (for example ISO 286's preferred fits H7/g6, H7/h6, H7/k6, H7/p6, H8/f7 to 500 mm from F1-type pages, each value sourced). The default taken: none.
+- **Guidance ranges:** ship O2's squeeze, fill and stretch ranges as flagged estimates the user can override (default), or require the user to load them.
+- **Spring materials:** prefill G for steel as a flagged estimate (default), or require it.
+- **Decided (the owner, 2026-10-21, relayed by the coordinator):** "R12c 기본값 세 가지 그대로 가. 끼워맞춤 표는 사용자가 불러오고, O-링 범위와 스프링 G는 추정값으로 표시해." (Keep the three R12c defaults: fit tables are user-loaded; the O-ring ranges and the spring's G are shown as estimates.) So:
+  1. no built-in fit tables (or any other size table): all user-loaded;
+  2. O2's squeeze, fill and stretch ranges shipped as flagged estimates the user can override;
+  3. the spring's G prefilled for steel in the studio as a flagged estimate; no default in the kernel (G is an input).
+- **At review:** K1 and S1 are re-read at their sources before any use beyond the S0 probe.
+
+**Checks:** S0 changed no product code. The tier: T1 (lint of the new file, the new test). r12c-s0 10/10, 6 s alone; lint clean. Kernel `pnpm build:library` before it. The full kernel suite, conformance, studio, flow and RB not rerun (no source change, as at D115, D122 and D129).
+
+## D140 — K1: the convex hull and the convex distance (GJK) moved into the kernel (2026-10-21)
+
+Track K's first step (README §0 "Roadmap" item 4; the PKG design note's G1 and G2, `handover/notes/research-package-boundary-2026-10-21.md`), started on the coordinator's "PKG done (except PKG-g2)". Two generic routines the robot track wrote for itself (RM4's hull, O17; RM6's GJK, O19) move down into `@barocss/cad`; the copies in `@barocss/cad-model` go in the same step.
+
+**Decision:**
+- **Kernel** `src/convex-hull.ts`: `convexHull(points)` → `ConvexHull { positions, indices }` (triangles counter-clockwise from outside), `HullError` with `HullErrorCode` `TOO_FEW` | `DEGENERATE` — the studio's quickhull, the same algorithm and the same output. Two changes, neither visible in the output:
+  - its working state (the points, faces, edge map) is per call, not module-level (the studio's kept the points in a module variable, unsafe if a hull were ever built inside another);
+  - the next face to expand is found by one forward cursor instead of a scan of every face each round: points are only ever given to the newest faces, so the first face holding outside points never moves back. The faces' order, and so the output's, stays the one the RM4 hull made — the studio's frozen USD export (`robot-sdf-usd`, its collision meshes) depends on it. A first try with a stack (last face first) changed the triangle order and that test caught it; it was dropped.
+  - The `add` closure inside the hull loop is a module function now (the hot-path rule).
+- **Kernel** `src/convex-distance.ts`: `convexDistance(a, b, tol = 1e-10)` — the studio's GJK with Ericson's closest-point regions, unchanged in result; the tetrahedron's per-iteration closure and the progress test's `some` callback are module functions.
+- **Exports** from `src/index.ts`: `convexHull`, `HullError`, `ConvexHull`, `HullErrorCode`, `convexDistance` (an API addition, recorded here). No kernel changeset, as for R12b's additions.
+- **`@barocss/cad-model`:** `src/robot/hull.ts` and `src/robot/gjk.ts` deleted; their five importers (`chat/robot`, `rb9/captive`, `robot/urdf`, `robot/sweep`, `robot/workspace`) and the studio's six (`App.tsx`, `test/robot-{ccd,sweep,urdf,workspace}.test.ts`, `test/bench/node-bench.ts`) take the kernel's. The `Hull` type had no importer. The subpaths `@barocss/cad-model/robot/hull` and `/robot/gjk` are gone (the package is unpublished; its PKG changesets are still pending).
+
+**Oracles** (`packages/barocss-cad/test/k1-convex.test.mjs`, 6 tests, 0.5 s; none of them the kernel's):
+- **A brute-force hull:** every triple of points with all the others on one side is a facet (general position). On 42 random sets of 4–40 points the kernel's facets, mapped back to the input by exact coordinates, are exactly the brute force's; each closed (every directed edge once with its twin, V − E + F = 2) and outward (no point in front of a facet beyond 1e-9).
+- **Closed forms:** a unit cube with 60 points on its faces, 12 on its edges and 100 inside: 8 corners, V = 1 to 1e-15 (the divergence theorem on the triangles); the regular octahedron 4a³/3 and icosahedron (5/12)(3 + √5)·2³ to 1e-12, 8 and 20 faces.
+- **All extreme:** 4000 points on a sphere: 4000 corners, closed, every point inside, the volume just below the sphere's; at 1e6 times the size and reversed, the same corners and the volume scaled to 1e-9. About 52 000 points in a ball: closed, all inside. Each well under the 2 s bound (the whole file 0.5 s).
+- **Refusals:** three points `TOO_FEW`; one point, a line and a plane `DEGENERATE`.
+- **A brute-force distance:** the least over vertex–triangle and edge–edge pairs of the two brute-force hulls, each in closed form (point–triangle by the prism test and edges; segment–segment by the lines' interior solution or the four end distances), zero when a corner lies inside the other or an edge crosses a facet. 120 random pairs (both meeting and apart, the counts asserted): GJK within 1e-9, and symmetric.
+  - The oracle's first form missed an edge piercing a facet with no corner inside; GJK said 0, a million sampled separating axes agreed (the best −1.48), and the oracle gained the crossing test. Recorded because the oracle, not the kernel, was wrong.
+- **Closed forms:** 200 random axis-aligned box pairs (the per-axis gaps' norm), a point and a box (the clamp), skew segments (|(p2 − p1)·(d1 × d2)|/|d1 × d2|), touching faces and a shared corner (0).
+- The test fails on the previous HEAD: the kernel exported neither.
+
+**Not done here:** conformance fixtures (neither is a part feature); a witness pair from GJK (the closest points), which K3's exact `meshClearance` may want — added then if it does.
+
+**Checks — T1:**
+- Kernel lint and type-check clean; `k1-convex` 6/6. No other kernel source changed (the index's export lines only).
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed files 0 errors (node-bench's two console warnings, as before); the suite 753/754 with the known `todo` (O80), 0 fail; the robot tests 87/87, the frozen USD stages included.
+- Conformance, the full kernel suite, the flow and RB not run (T1; no kernel core file touched).
+
+## D141 — K2: one triangle hierarchy with ray and nearest-point queries, shared by the kernel and the studio (2026-10-21)
+
+Track K's second step (the PKG design note's G4–G6; the coordinator's 2026-10-21 withdrawal of a studio dual tree reopened as this). Five trees and searches over triangle meshes had grown apart: the kernel's facet classification tree (F0, R3.2), the kernel's mesh-distance tree (R9), the studio's print/mould/machining BVH (`print/orient.ts`, AM4), the studio's uniform grid for wall rays (`chat/analysis.ts`, A2.2) and a brute-force ray over every triangle (`library/libraries.ts` `thicknessAt`). They are now one.
+
+**Decision:**
+- **Kernel** `src/triangle-bvh.ts`, exported:
+  - `triangleBvh(positions, indices, { leafSize = 4 })` → `TriangleBvh` (positions, indices, per node a box, its first child or −1, a leaf's run of `order`; `nodes`; `size`, the largest coordinate's magnitude for tolerances). Median splits by quickselect on the longest side of a node's box, an explicit stack. A Float64Array and a Uint32Array are taken as they are; a display mesh's Float32Array positions are copied to Float64 (the same values).
+  - `rayHit(bvh, o, d, minT = 1e-6, skip = −1, detTol = 1e-14)` → the nearest t beyond `minT`, or Infinity. Möller–Trumbore with the studio BVH's own arithmetic (divisions by the determinant; edges count; a determinant within `detTol` passed), so its results are the studio's bit for bit. `skip` drops one triangle (the wall rays' own); `detTol` lets `thicknessAt` keep its 1e-12.
+  - `nearestDistance2(bvh, x, y, z, bound2 = ∞)` → the squared distance to the surface when below the bound, else the bound (branch and bound, the nearer child first): the mesh distance's search, and the wall analysis's "nearest within r".
+  - `pointTriangleDistance2(P, I, k, x, y, z)` (Ericson 5.1.5), the mesh distance's, now public: K3 folds the studio's five private copies into it.
+- **Inside the kernel:** `facetBvh(brep)` builds `triangleBvh` (its type is now `TriangleBvh`; its ray parity code unchanged); `meshDistance` and `meshDistanceRange` search it with `nearestDistance2` (their private tree, quickselect and point–triangle gone).
+- **In `@barocss/cad-model`:**
+  - `print/orient.ts`: its `TriangleBvh`, `buildBvh` and `rayHit` removed; the orientation search and its five other users (`machining/access`, `machining/holes`, `machining/cavities`, `mould/undercut`, `mould/walls`) and four studio tests (`printing`, `im-s0`, `cnc-s0`, `cnc7-s0`) take the kernel's (`triangleBvh(m.positions, m.indices)`). The studio's default ray start, 1e-6, is the kernel's default.
+  - `chat/analysis.ts`: the uniform grid (`gridOf`, `gridRay`, `nearestWithin`) and its private ray removed; `wallSamples` and `wallThickness` cast through the kernel's tree (start 1e-9 and the own triangle skipped, as the grid did) and ask `nearestDistance2` for the inscribed sphere. Its brute-force `clearance` and `pointTriangle2` stay for K3 (`meshClearance`).
+  - `library/libraries.ts`: `thicknessAt` (and `aroundAt` through it) casts through a tree kept per display mesh (a WeakMap), not over every triangle.
+  - Not here: `print/hollow.ts`'s brute-force ray, part of the hollowing core K6 moves down.
+- **A defect fixed in the studio tree:** its slab test computed (box − o)·(1/d) for every axis, so a ray along an axis whose origin lay exactly on a box's face plane met 0·∞ = NaN and the box was dropped, with every hit in it. A 10-mm box's 12 triangles, a ray straight down at x = 0 (the box's own face plane): the studio tree said Infinity, the brute force and the kernel 10 (reproduced in this session against the removed code). The machining and mould rays are along the axes from points on faces, where this can happen. The kernel tests such an axis by comparison instead of by its slab. On the three snapshot parts below no result changed by it; it is a latent miss, now closed.
+
+**Results matched** (a before/after snapshot, not kept, of every user on three parts — a T, a plate with a through and a blind hole, a cup — the orientation search's top three, wall thickness and wall samples, `thicknessAt` and `aroundAt` at 40 points each, undercuts, machining access, holes, mould walls, cavities):
+- Everything through the old orient tree, `thicknessAt` and `aroundAt`: identical.
+- `wallSamples`: 98 of its depths and local thicknesses differ in the last bit (at most 2.1e-16 relative), because the grid's private ray multiplied by the determinant's inverse and the kernel divides by it. That flips one exact tie: the cup's 3 mm floor read 2.9999999999999996 before and 3.0000000000000004 now, so `wallThickness(b, 3)`'s `faces_below` lost `n1.bottom` (thickness 3.000 either way, against `below: 3`). Recorded, not chased: a tie at the last bit has no right side.
+
+**Speed** (Node 22, this machine; a bumpy sphere of 100 352 triangles, or a two-shell one of 102 400):
+- building the tree: the studio's 228 ms, the kernel's 62 ms (3.7×; quickselect instead of a full sort at every node);
+- 20 000 rays from inside: the studio's 19.2 ms, the kernel's 18.1 ms (identical t's);
+- `wallSamples` 1758 → 488 ms (3.6×), `wallThickness` 487 → 205 ms (2.4×) — the grid's per-cell lists against the tree;
+- 200 `thicknessAt` calls 198 → 45 ms (4.4×), the tree built once per mesh where the brute force read every triangle per call.
+- A first kernel version with the slab in a helper and swap-based branches was 15 % slower per ray than the studio's; the slab now sits in the loop with Math.min/max and only the zero axes branch.
+
+**Oracles** (`packages/barocss-cad/test/k2-triangle-bvh.test.mjs`, 5 tests, 0.4 s; none of them the tree):
+- the tree's invariants: every triangle in exactly one leaf, every node's box holding its triangles, leaves ≤ leafSize, depth ≤ ⌈log₂(n/leaf)⌉ + 1 (leaf sizes 1, 4, 8);
+- 1500 rays (inside out, outside in, misses, `skip`, `minT`, non-unit d) equal to a brute force over every triangle with the same arithmetic, exactly;
+- axis-parallel rays on a box's face planes (the defect above), from inside along each axis to the far faces at the closed-form gaps, the chords of a sphere mesh against its radius;
+- 600 nearest points against a brute force, exactly; the bound returned when nothing is nearer; the box's face and edge distances in closed form;
+- facet classification and the mesh distance through the shared tree; 100k triangles built and 20 000 rays queried, each well under its bound.
+- The tests fail on the previous HEAD: none of the four exports existed.
+
+**Checks — T2** (the facet classification is under the facet Booleans, so the whole kernel suite with its conformance was run):
+- Kernel lint and type-check clean; `k2-triangle-bvh` 5/5. The full kernel suite (conformance included) 1384/1389 (4 skipped): 1389 = D138's 1368 + r12c-s0's 10 + k1's 6 + k2's 5, so none missing; only the env-only "actual native Split source…" fails. 349 s.
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed tests 0 errors; the suite 756/758 with the known `todo` (O80) and one failure, `hollow`'s sphere cavity test on its "refused at once" (< 1000 ms) wall-clock assert under the full suite's load — `print/hollow.ts` uses none of the changed code, and it passed alone twice and in the suite's next full run.
+- The flow and RB not run (no studio-visible behaviour changed; the coordinator's verify worktree runs the flow).
+
+## D142 — K3: the exact clearance between two meshes, one point–triangle (2026-10-21)
+
+Track K's third step (the PKG design note's G3 and G12). The studio measured how far apart two meshes are in two ways of its own: the robot sweep's `meshDistance` (RM6/RM9a: every triangle pair, pruned by the pairs' boxes; also used by keep-out checks, the assembly gate and an RB9 rung) and the analysis tool's `clearance` (A2.2: each mesh's vertices against the other's triangles, by brute force). Both, and one more private point–triangle (the display mesh's chord measure), now use the kernel.
+
+**Decision:**
+- **Kernel** `src/mesh-clearance.ts`, exported: `meshClearance(pa, ia, pb, ib, { bvhA?, bvhB? })` → `{ distanceMM, pointA, pointB, triangleA, triangleB }`.
+  - The least distance between the two surfaces over every pair of triangles, with the closest points on each and their triangles. **0 where they touch or cross** (an edge of one through the other), Infinity when either mesh has no triangle.
+  - A dual descent of the two meshes' K2 hierarchies: a pair of nodes is split on its larger box, the nearer child pair taken first; a pair whose boxes are as far apart as the best found is skipped. It stops at 0.
+  - Two triangles: 0 when an edge of one crosses the other; else the least of the six corner–triangle (Ericson 5.1.5) and nine edge–edge (5.1.9) distances — the sweep's own formulas, so its distances are reproduced.
+  - Prebuilt trees can be passed (`bvhA`, `bvhB`) for meshes that do not move.
+  - The name is kept apart from R9's `meshDistance`, which is one-way (the largest distance from one mesh's samples to the other's surface) and stays as it was.
+- **`@barocss/cad-model`:**
+  - `robot/sweep.ts`: `meshDistance` and its private point–triangle, segment–segment and box helpers removed; the sweep's exact step uses `meshClearance(…).distanceMM`. `meshesMeet` (the contact test, with its containment parity) stays.
+  - The other three users (`chat/references` keep-outs, `team/assembly`'s gate, `rb9/rungs-enclosure`'s hook gaps) and the two robot tests take the kernel's.
+  - `chat/analysis.ts`: `clearance` is `meshClearance`; its private `pointTriangle2` removed. `near` is now the closest point on the pair's first body (the old one was a vertex of either).
+  - `engine/mesh.ts`: the chord measure's private point–triangle replaced by the kernel's `pointTriangleDistance2` (K2).
+  - Not here: `app/measure.ts`'s `closestOnTriangle` (it returns the point, and belongs with K4's closest-point queries) and `print/hollow.ts`'s (K6).
+
+**A defect fixed in the analysis clearance:** vertices against triangles miss edge–edge minima. Two 40 × 10 × 10 bars turned 45° about X and about Y, one 16 above the other, cross edge to edge 16 − 10√2 = 1.858 mm apart: the `interference` tool said 15.713 mm (a corner against a face), the kernel says 1.858. On parts whose closest features are a face and a corner (the boxes and cylinders below) nothing changed but `near`.
+
+**Results matched** (a before/after snapshot, not kept: three parts — three boxes, a box with two cylinders, the crossed bars — every pair's `meshDistance` and the `interference` tool):
+- The sweep's distances: identical to the last bit (1.8578643798828125 on the crossed bars, 25.355339061882727 between the cylinders).
+- `interference`: the same clearances but the crossed bars' (the defect above); `near` moved to the first body's side (on a tie of a whole face, another point of the same face).
+
+**Speed:** two bumpy spheres of 28 800 triangles each, about 1 mm apart: the sweep's box-pruned all-pairs search 5283 ms, the kernel 38 ms (139×; both trees built in the call).
+
+**Oracles** (`packages/barocss-cad/test/k3-mesh-clearance.test.mjs`, 3 tests, 1.8 s; none of them the kernel's):
+- an all-pairs brute force written apart (a point to a triangle by its plane and edges, segments by the lines' interior solution or the end distances, a crossing by an edge's sign change), on 60 random triangle soups, crossing and apart (both counts asserted), within 1e-9; the witnesses: |pA − pB| is the distance, pA on A's surface and pB on B's (by the K2 nearest query);
+- closed forms: 40 random box pairs (the per-axis gaps' norm) to 1e-12; the crossed bars 16 − 10√2 to 1e-12, at the crossing over the origin; a box inside a box 2 (surfaces, not volumes); touching and overlapping boxes 0;
+- coarse sphere meshes against the brute force; 28 800 × 28 800 triangles in well under its bound, between the bumps' limits; the one-way `meshDistance` a different quantity on the same pair; prebuilt trees the same.
+- The brute force itself first gave NaN on the sphere meshes' degenerate pole triangles (a zero-area plane, a zero-length edge); the kernel did not. The oracle was fixed (a triangle of no area is its edges), not the kernel.
+- The test fails on the previous HEAD: `meshClearance` did not exist.
+
+**Checks — T1** (no kernel source but the new file and the index):
+- Kernel lint and type-check clean; `k3-mesh-clearance` 3/3.
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed tests 0 errors; the suite 760/762 with the known `todo` (O80) and the known `hollow` "at once" timing flake (logged at K2), which passed in the next full run.
+- Conformance, the full kernel suite, the flow and RB not run (T1).
+
+## D143 — K4: the nearest point of a surface, and of a triangle (2026-10-21)
+
+Track K's fourth step (the PKG design note's G9, with G14's `nearest` and `app/measure.ts`'s triangle foot). The studio projected points onto NURBS faces three ways — the draft field's foot (IM2: Gauss–Newton on exact first derivatives from a 24 × 24 grid), the trim loops' `nearest` and the display mesh's chord measure (`invertOn` and `nearestOnGrid`; both Gauss–Newton on central differences) — and found a triangle's nearest point with its own copy. They now use the kernel's.
+
+**Decision:**
+- **Kernel** `src/surface-closest.ts`, exported:
+  - `closestPointOnSurface(surface, p, { seed?, grid?, iterations = 30 })` → `{ u, v, point, distance, normal, iterations }`: from the seed, or the nearest node of a seed grid (prebuilt or its n, default 24), Gauss–Newton on the exact first derivatives, each step clamped to the domain; the unit normal du × dv there ([0, 0, 0] at a pole).
+  - `surfaceSeedGrid(surface, n = 24)`, built once per surface and passed to every query.
+  - `surfaceD1Near(surface, u, v, U, V)`: first derivatives, taken just off an exact C0 knot (the rational circle's quadrant joins, where `evaluateSurfaceD1` refuses) — the draft field's nudges.
+  - **Two safeguards the studio's copies lacked,** found by this step's own tests:
+    - a step that would take the surface farther is halved until it does not. Far from a convex surface (beyond its radius of curvature) Gauss–Newton's whole step overshoots by about 1 + distance × curvature and swings round it: a point 15 mm outside a Ø20 cylinder converged to a foot 23 mm away, on the wrong side;
+    - where it converges linearly (two steps running shrinking by less than 3⅓: far off the surface, or near the centre of curvature on the concave side, where the rate is about distance × curvature), Newton's step with the second derivatives is tried as well, kept when it ends nearer and the full Hessian is positive definite. A point near a cylinder's axis needed more than 30 Gauss–Newton steps; now 10.
+    - Second derivatives cost about 30 first ones (84 µs against 2.5 µs here), so they are taken only then, never for a step of rounding's size; the step's size is the one taken, after the clamp — at a domain edge the raw step keeps pointing out, and the studio's draft foot ran its 30 iterations there.
+    - Neither changes a query near the surface: the whole Gauss–Newton step is taken, as before.
+- **Kernel** `closestPointOnTriangle(p, a, b, c, out?)` in `src/triangle-bvh.ts` (Ericson 5.1.5, returning the point), beside K2's `pointTriangleDistance2`.
+- **In `@barocss/cad-model`:**
+  - `mould/draft.ts`: its pieces carry a `surfaceSeedGrid`; `foot` is `closestPointOnSurface` (its normal times the face's sense); its private `d1`, nudges and Gauss–Newton gone.
+  - `engine/trim.ts`: `nearest` is `closestPointOnSurface` from its seed (20 iterations, as before); the central differences gone.
+  - `engine/mesh.ts`: the chord measure's `invertOn` and `nearestOnGrid` replaced (seeded from the last vertex, then from a seed grid made once per face; the coarse samples' 8 iterations kept, and the seed's own distance kept when lower, as `invertOn` did).
+  - `app/measure.ts`: `closestOnTriangle` is the kernel's `closestPointOnTriangle`.
+  - Not here: the kernel's own private projections in `brep-tessellate.ts`, `offset-cavity.ts` and `rolling-ball.ts` (each on its own evaluator and seeds; tessellation is a T2 core file) — candidates for a later step, named.
+
+**Results matched** (a before/after snapshot, not kept: the draft field of a 3° cone and a filleted box, `measureChords` on the O59 SubD cube at qualities 1, 2 and 4, `projectLoop` of two circles onto a bicubic saddle):
+- The draft fields: identical, bit for bit.
+- The chord depths: within 2e-14 relative, except two faces at quality 4 that rose 1.05e-7 relative (0.3372926 → 0.3372926017). Those two are mirror images of each other: before they differed by 2e-11 (the central differences' noise), now they agree to 1e-14.
+- The trim loops' (u, v): within 1.7e-11 relative, the central differences' error.
+
+**Speed** (the same process and load; this machine's load average was 80–160 throughout, so only side-by-side figures are given):
+- 1440 queries on the SubD cube's 24 patches, 0.05 mm off them, seeded nearby: the studio's central-difference `invertOn` 70–72 ms, the kernel 38–40 ms (1.8×). The kernel's feet are nearer: the 1440 distances sum to 40.98376 against 41.00349 (the old one stopped short).
+- 240 draft-field feet on a fillet: the old foot 1.4 ms, the kernel 2.0 ms — 6 second-derivative evaluations among the 240 (the near-converged steps at a domain edge); the old foot spent 30 iterations at such edges instead.
+
+**Oracles** (`packages/barocss-cad/test/k4-closest-point.test.mjs`, 3 tests, about 2.5 s; none of them the kernel's):
+- closed-form feet on exact surfaces the part model builds: a cylinder's side (500 points inside and outside, the radial foot and distance to 1e-9, the normal radial), exactly on the rational circle's quadrant joins (no refusal), past the patch's end (the top circle's distance); a sphere (||p| − R|, to 1e-8, points from 0.2R to 2.2R); a torus (|√((ρ − R)² + y²) − r|, to 1e-8);
+- a freeform bicubic patch: the foot against a 200 × 200 parameter scan polished by window halving (never nearer than Gauss–Newton's, and within 1e-7 of it), a prebuilt grid the same, a query seeded at its own foot the same;
+- triangles: 300 random triangles and points — the point's distance squared the K2 `pointTriangleDistance2` to 1e-9, and never farther than a barycentric scan of the triangle.
+- The test fails on the previous HEAD: none of the exports existed.
+
+**Checks — T1:**
+- Kernel lint and type-check clean; `k4-closest-point` 3/3.
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; the suite 761/762 with the known `todo` (O80), 0 fail.
+- The full kernel suite, conformance, the flow and RB not run (T1); the coordinator's 4th-checkpoint T2 falls at K5.
+
+## D144 — K5: polygon section properties, a symmetric 3 × 3 eigen solver, a mesh's volume (2026-10-21)
+
+Track K's fifth step (the PKG design note's G10, G11 and G8's `meshVolume`). Three small routines lived in the studio (and one of them twice, once in the kernel): the RB9 beam rung's Green's-theorem section integrals (`rb9/beam.ts`, O73), the robot track's `symmetricEigen` (`robot/inertia.ts`; the kernel's mesh offset had its own `jacobi3`), and the lattice's `meshVolume` (`print/lattice.ts`; the QA engine probe had another).
+
+**Decision:**
+- **Kernel** `src/section-properties.ts`, exported:
+  - `polygonSectionProperties(loops)` → `{ area, centroid, Ixx, Iyy, Ixy, I1, I2, angle, loops }`: straight-edged loops of (x, y) corners in either orientation, a loop inside an odd number of others a hole (the beam rung's rule); Green's theorem for A, ∫x, ∫y, ∫x², ∫y² and, new, ∫xy (Σ (x₀y₁ − x₁y₀)(2x₀y₀ + x₀y₁ + x₁y₀ + 2x₁y₁)/24); about the centroid by the parallel-axis theorem; the principal moments m ± √(((Ixx − Iyy)/2)² + Ixy²) and I1's axis atan2(−2Ixy, Ixx − Iyy)/2. Ixx is ∫(y − cy)² dA (about the x axis), Iyy ∫(x − cx)² dA.
+  - `symmetricEigen3(S)` → `{ values (ascending), vectors (columns, row-major) }` and `symmetricEigen3InPlace(A, V)` for hot paths: the cyclic Jacobi rotations both copies used (up to 50 sweeps, done at off² ≤ 1e-30 diag²).
+  - `meshVolume(positions, indices)`: Σ a·(b × c)/6, signed.
+  - Types `SectionProperties`, `Matrix3`, `Vector3`.
+- **Inside the kernel:** `mesh-offset.ts`'s private `jacobi3` replaced by `symmetricEigen3InPlace` (32 sweeps before, 50 now; both stop long before).
+- **In `@barocss/cad-model`:**
+  - `rb9/beam.ts`: `beamSection` takes the kernel's section properties on its (y, z) loops (its `Iy` is the kernel's Ixx, its `Iz` the Iyy); its private `green` and `inside` gone. The loop chaining stays (it reads the B-rep's cut edges).
+  - `robot/inertia.ts`: `symmetricEigen` removed; it, `robot/usd.ts`, `chat/references.ts` and three robot tests (`inertia`, `urdf`, `mjcf`) take the kernel's `symmetricEigen3`. `rotateInertia` stays (it is the robot frame's).
+  - `print/lattice.ts`: `meshVolume` removed; it and `test/lattice.test.ts`, `test/qa/engine-probe.ts` (whose own copy also goes) take the kernel's `(positions, indices)` form.
+
+**Results matched** (a before/after snapshot, not kept: `beamSection` of an I-beam at three cuts and of a hollow box, `symmetricEigen` on five matrices — general, diagonal with a repeated value, nearly repeated (1e-9), a dense one, the identity — and `meshVolume` of a tetrahedron): identical, bit for bit.
+
+**Oracles** (`packages/barocss-cad/test/k5-section-eigen-volume.test.mjs`, 4 tests, 0.3 s; none of them the routines):
+- sections: a rectangle's bh³/12 and hb³/12 (Ixy 0, I1's axis along x); a hollow rectangle with its hole either way round; an I-beam as one outline against its parts (2(100·10³/12 + 1000·45²) + 10·80³/12); a right triangle's bh³/36, hb³/36 and Ixy = −b²h²/72; an island inside a hole counted as material; a rectangle turned by four angles about another point — I1 and I2 unchanged, I1's axis turned with it (mod π); an equal angle's axes at ±45° (Ixx = Iyy); FR's own sharp rectangular tube (D123) — the area and centroid of its closed forms;
+- eigen: 500 random symmetric matrices — AV = VΛ to 1e-12‖A‖, VᵀV = I to 1e-12, ascending, the trace and the determinant; [[2, 1, 0], [1, 3, 1], [0, 1, 4]]'s 3 − √3, 3, 3 + √3 to 1e-14; a repeated value; the identity's vectors; the in-place form the same values;
+- volume: a unit tetrahedron 1/6 and reversed −1/6; a 4 × 3 × 2 box 24, moved anywhere; the K1 hull of 2000 sphere points just under 4/3·πR³.
+- The test fails on the previous HEAD: none of the exports existed.
+
+**Checks — T2** (the 4th checkpoint since the last full run):
+- Kernel lint and type-check clean; `k5-section-eigen-volume` 4/4. The full kernel suite, conformance included, 1394/1399 (4 skipped): 1399 = D141's 1389 + K3's 3 + K4's 3 + K5's 4, so none missing; only the env-only "actual native Split source…" fails. 376 s (the machine under load from other sessions).
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed tests 0 errors (the engine probe's two console warnings, as before); the suite 767/768 with the known `todo` (O80), 0 fail.
+- The full browser flow, on its own: 215/215, 696 s.
+- RB: in the rows commit after this one.
+
+## D145 — K6: a mesh on a voxel grid and marching tetrahedra; the hollowing's brute-force ray on the K2 tree (2026-10-21)
+
+Track K's sixth step (the PKG design note's G7). The studio's hollowing (`print/hollow.ts`, AM7a, O53) held the voxel core the lattice (AM7b) also uses: inside flags by ray parity along +X, a node's depth below the surface through triangles binned on a grid, the cavity field, marching tetrahedra — and a brute-force ray over every triangle for its wall measure. The generic core moves into the kernel on (positions, indices); the doc-level planning stays.
+
+**Decision:**
+- **Kernel** `src/voxel-field.ts`, exported:
+  - `voxelInsideFlags(positions, indices, o, h, n)`: the studio's ray parity along +X per grid row (triangles binned by the rows their YZ boxes cover; the crossings sorted), unchanged; its sort comparator hoisted to module level.
+  - `voxelDepth(positions, indices, o, h, n, cap, inside)`: each inside node's distance to the nearest triangle, capped — through the K2 hierarchy's bounded nearest query instead of the studio's triangle bins.
+  - `marchingTetrahedra({ o, h, n, phi })` → `{ positions, indices, edges }`: the studio's, unchanged (six tetrahedra a cell about its diagonal, vertices shared by grid edge, each nudged 1e-9 of its edge off a node, triangles turned outward); `voxelNode`, `VOXEL_CORNERS`, `VOXEL_TETRAHEDRA`; types `VoxelField`, `VoxelPoint`.
+- **In `@barocss/cad-model`:**
+  - `print/hollow.ts`: `cavityField` now the kernel's flags and depth (its grid layout, irrational offsets and MAX_NODES refusal stay); `Grid` is the kernel's `VoxelField`; `depthBins` / `depthAt` keep their names for the lattice and the chord test but are the kernel's tree and bounded nearest query; `wallOf` and `onOuter` cast through one K2 tree per mesh (`rayHit` from 1e-7, the sampled triangle skipped) instead of every triangle per ray; `enclosedVoids` takes the kernel's flags. Removed: `trianglesOf`, `insideFlags`, `dist2`, the bins, `marchingTetrahedra` and its helpers, `nodeAt`, `CORNER`, `TETS`, the private ray. `cavityComponents`, `meshPieces`, `planHollow` and the errors stay.
+  - `print/lattice.ts`: takes `marchingTetrahedra`, `voxelNode`, `VOXEL_CORNERS`, `VOXEL_TETRAHEDRA` from the kernel.
+  - Tests: `hollow` and `lattice` take `marchingTetrahedra` (and `voxelInsideFlags`, for the lattice's void check, in place of its own triangle packing) from the kernel.
+  - No tool file and nothing under `chat/**` touched (O105 is the outer lane's).
+
+**Results matched** (a before/after snapshot, not kept: on the 40 × 30 × 20 box at t 3, h 0.75 and the R 15 sphere at t 2.5, h 0.5 — the cavity field φ (hashed), its marching-tetrahedra mesh (positions and indices hashed, counts), `wallOf`, `enclosedVoids`, `depthAt` at five points; `planHollow` on the box by both routes (the reports); `planLattice` on the hollowed box (report and mesh hashed)): identical, bit for bit. On a separate 28 800-triangle mesh one node's depth of 274 625 differed in the last bit (2.4193548243607160 against …155, a tie at a triangle's region boundary).
+
+**Speed** (side by side in one process, a bumpy 28 800-triangle sphere, a 65³ grid):
+- 200 000 depth queries: the bins 2.7–3.4 s, the kernel 0.38–0.49 s (7×);
+- the field's depth over its inside nodes: 1.8–1.9 s → 0.23–0.25 s (7.8×);
+- 1200 axis-parallel rays (the wall measure's kind): 250–291 ms → 11–21 ms (about 20×);
+- the inside flags: the same code, 8–13 ms both.
+- The test files as a whole, run alone before and after: `hollow` 6.38 → 6.28 s, `chord` 3.57 → 2.48 s, `lattice` 10.84 → 12.19 s — their time is the kernel's Booleans, decimation and evaluation, not the voxel core; the lattice's difference is within this machine's load swing (load average 12–36 across the two runs).
+
+**Oracles** (`packages/barocss-cad/test/k6-voxel-field.test.mjs`, 3 tests, 0.7 s; none of them the kernel's):
+- a box: every node inside exactly when strictly within it (by coordinates), its depth the nearest face's distance capped, to 1e-12;
+- a UV sphere mesh (R 10, 48 bands): deep nodes inside, the depth R − |p| within twice the chord error, every node beyond R outside;
+- marching tetrahedra: a linear field's surface exactly on its plane (1e-12); an analytic sphere's field (r 6) meshed closed and consistently oriented (each directed edge once, with its reverse), χ = 2, every vertex used, the volume below 4/3·πr³ and its error 8.02, 2.02, 0.503 at h 0.8, 0.4, 0.2 (×3.98, ×4.01: h²); vertices on crossing edges.
+- The test fails on the previous HEAD: none of the exports existed.
+
+**Checks — T1:**
+- Kernel lint and type-check clean; `k6-voxel-field` 3/3.
+- `@barocss/cad-model` lint and type-check clean.
+- Studio: tsc clean; eslint on the changed tests 0 errors; the suite 767/768 with the known `todo` (O80), 0 fail.
+- The full kernel suite, conformance, the flow and RB not run (T1; no kernel core file touched).
+
+## D146 — K7: the curve-fit equivalence check — equal where both apply, not a replacement; stopped for a decision (2026-10-21)
+
+Track K's last step (the PKG design note's G13: "equivalence check first"). The studio's `engine/fit.ts` (133 lines, used by `engine/direct.ts`'s fill, extend, refit and knot removal) against the kernel's certified interpolation (`buildInterpolatingCurve`, `buildInterpolatingSurface`). No product code changed; the comparison is kept as `apps/cad-studio/test/k7-fit-equivalence.test.ts` (4 tests, about 1 s).
+
+**What each has:**
+- Studio: global interpolation with chord-length parameters and averaged knots (any count, any degree up to n, all weights 1); least-squares approximation with its ends kept (NURBS Book A9.7: `refitCurve`, 64 samples); surface interpolation as the tensor of curve interpolations on averaged parameters (`fill`, `extend`: 16 × 16 grids); knot removal (A5.8).
+- Kernel: through-point interpolation on caller-given parameters, degree 1–3, at most 16 points a direction, coordinates and parameters within 10 000, a deterministic scaled-pivot solve, and a complete report (basis matrix, pivots, eliminations, through-point observations), source and model, validated bit for bit; the tensor surface the same way. No least squares, no knot removal, no tangent, curvature or periodic constraints (its report says so).
+
+**Where both apply — equal to rounding:**
+- curves: 31 point sets (the `fit.test` 9-point curve and 30 random sets of 2–16 points) × degrees 1–3 on the same chord parameters: the knots within 1.1e-16 (the same averages, summed differently — the kernel from the first parameter as origin + Σ offsets/p), the poles within 4.2e-14 mm, the curves within 3.0e-14 mm at 2001 equal parameters, the through-points within 2.1e-14 mm. Continuity is the same by construction (the same degree and knots: Cᵖ⁻¹ at each simple interior knot).
+- surfaces: the fill's 16 × 16 Coons grid on the studio's averaged parameters: the kernel's surface within 1.8e-14 mm of the studio's at 1681 samples, the knots the studio's own.
+- a closed loop (the first point repeated last): both clamped and open in parameter, the ends meeting in position only, 1.8e-15 mm apart; neither periodic.
+
+**Where they differ in kind:**
+- more than 16 points (the refit's 64 samples, and its interpolation fallback when the pole count equals the samples): the studio fits, the kernel refuses (`INPUT`);
+- coordinates past 10 000 mm (a 25 m run): the studio fits, the kernel refuses;
+- two points at degree 3: the studio lowers the degree to 1, the kernel refuses (it must be asked for degree 1);
+- a repeated point: both refuse (the studio's "cannot be fitted", the kernel's `INPUT`);
+- least squares and knot removal: the studio only;
+- cost: a 16-point cubic 13–31 µs in the studio against 2.7–3.4 ms for the kernel's certified build (110–210×); the 16 × 16 surface 2.3 ms against 235 ms (100×) — the report, source and model the kernel builds and checks every time.
+
+**Verdict: not equivalent as a replacement.** The kernel's interpolation is the studio's mathematics where both apply, but it covers only part of what the studio fits (no least squares, no knot removal, 16 points), and the certified build costs two orders of magnitude more per fit, for a report the direct geometry does not read. Per the coordinator's rule ("if they are not equivalent, stop and report rather than replacing") nothing is moved. `engine/fit.ts` stays in `@barocss/cad-model`.
+
+**For the coordinator (and the owner if it is theirs):**
+- (a) leave `engine/fit.ts` where it is (default; nothing changes);
+- (b) move it into the kernel as a plain, uncertified fitting module beside the certified one (interpolation with chord parameters and any count, least squares, knot removal, the surface tensor), with this file's comparison as its first oracle, so one copy exists and the certified path stays for documents that need its report;
+- (c) only the fill and extend surfaces through the certified kernel (they fit its limits exactly, and are within 1.8e-14 mm), the curves left in the studio — at 100× the cost per surface (235 ms), which a user would notice on every fill.
+
+**Checks — T1:** no product code changed. `k7-fit-equivalence` 4/4; app tsc clean; eslint clean on the new file. FLOW_ONLY not run: nothing on a flow path changed (the fill and refit steps run the same `engine/fit.ts`). Kernel and studio suites not rerun (no source change).
+
+## D147 — K7b: plain B-spline fitting in the kernel; the studio's `engine/fit.ts` removed (2026-10-21)
+
+The coordinator's decision on D146: option (b) — "the boundary proposal (G13) puts generic fitting in the kernel, and 'one copy' is the reason track K exists"; (c) out, 235 ms a fill being too slow. This ends track K.
+
+**Decision:**
+- **Kernel** `src/fit-plain.ts`, exported: `interpolateCurvePlain(points, p = 3, params?, knots?)`, `approximateCurvePlain(points, count, p = 3)`, `interpolateSurfacePlain(grid, p = 3, q = 3)`, `removeCurveKnotPlain(curve, u, tol)`, `chordParameters`, `averagedKnots`, `plainBasis`, `plainFindSpan`; types `PlainFitCurve`, `PlainFitSurface`, `PlainPoint`. The studio's algorithms and arithmetic unchanged — chord-length parameters for any number of points, a degree lowered to n for n + 1 points, repeated points refused ("cannot be fitted", now a RangeError), no coordinate bound; least squares with the ends kept (A9.7); the surface tensor on averaged parameters; knot removal (A5.8), a rational curve's weights kept. The closures it built per row or pole (the collocation row, the pole combination, the averaging) are module functions.
+- **Named plainly as uncertified:** the file's head says these produce no report and no certificate (no basis matrix, pivots, observations or bounds), and that documents needing those take `buildInterpolatingCurve` / `buildInterpolatingSurface`, which these equal to rounding where both apply. The certified path is untouched.
+- **`@barocss/cad-model`:** `engine/fit.ts` deleted; `engine/direct.ts` (fill, extend, refit, knot removal) and `test/fit.test.ts` take the kernel's. One copy remains. Nothing under `chat/**` touched.
+- **Tests moved:** D146's comparison (`apps/cad-studio/test/k7-fit-equivalence.test.ts`) is now the kernel's `test/k7b-fit-plain.test.mjs`, the module's oracle: plain against certified where both apply, and plain against the studio's old outputs for the rest — the cases in `test/k7b-fit-cases.mjs`, the outputs of the old `engine/fit.ts` frozen before the move in `test/fixtures/k7b-fit-plain.json` (12 interpolations including 64 points, 40 points at 25 m, two and three points; 5 least-squares fits including 64 → 64; 4 knot removals, two that come out and two that stay; 3 surfaces, 16 × 16, 24 × 9 at degrees 3 × 2, 3 × 2; a repeated point's refusal).
+
+**Oracles** (`k7b-fit-plain`, 4 tests, about 6 s, most of it the certified builds):
+- plain against certified: 31 point sets × degrees 1–3 — knots within 1.1e-16, poles within 4.2e-14 mm, curves within 3.0e-14 mm; the fill's 16 × 16 surface within 1.8e-14 mm, its knots its averaged parameters';
+- plain against the old studio outputs: equal bit for bit (JSON's shortest round-tripping decimals, equal text being equal bits) — the move changed no number;
+- the kinds: the plain path takes 64 points, 25 m and two points at degree 3 (lowered) where the certified one refuses (`INPUT`); a closed loop the same on both; more poles than points refused;
+- cost: a 16-point cubic 19 µs plain against 5.9 ms certified; the 16 × 16 surface 1.1 ms plain.
+- The test fails on the previous HEAD: none of the plain exports existed.
+
+**Checks — T3** (track K's boundary; times as run, this machine shared with other sessions): see the hand-over block at the top of README §0, which records them per check.
+
+## D148 — the hole after a union: a hole's depth from the face it is drilled into, by name (2026-10-21)
+
+The kernel-lane queue's first item (O80; repro `apps/cad-studio/test/fixtures/hole-after-union.calls.json`, until now the `todo` test in `test/known-bugs.test.ts`). A Ø2.5 blind hole 10 deep on a boss's top, after the boss (a cylinder standing on the floor of a shelled 60 × 40 × 25 box, its top at z 14) was united into the box, was refused "the hole at (15, 20) along z misses the target". Drilled before the union it cut.
+
+**Cause:** the kernel's `hole` measured a blind hole's depth (and placed a countersink) from the target's extreme along the axis on its `side` — the bounding box's top, z 25 for the united body — not from the face the user picked. From z 25 down 10 the tool lay in the shell's open cavity: no material, a miss. Before the union the boss alone was the target, and its own top was the extreme.
+
+**Decision:**
+- **Kernel** (`part-model.ts`, the `hole` feature): an optional `face` — the planar face it is drilled into, by name (a base name, `#k` pieces matched as `draft` matches them). Its plane, square to the axis, sets where the depth and the countersink start, and its outward normal sets the side. A face's name keeps the hole on it through parameter edits (a number would not).
+  - From a named face the tool reaches past it by 1 % of the depth, at most 1 mm — nothing above the face is cut (it is the outside there, and near it); from the extreme, 1 mm as before.
+  - A through hole is unchanged (the whole body); with a countersink, the cone sits on the named face.
+  - Refusals: `REFERENCE` (no such face on the target), `SELECTION` (not a flat face square to the hole's axis), `INPUT` (a `side` contradicting the face's normal; an empty name).
+  - Documents without `face` evaluate exactly as before.
+- **`@barocss/cad-model`:** the studio's `hole` node gains `face` (engine/doc.ts; engine/part.ts passes it on), and the Hole command (app/commands.ts) writes the picked face's name, so every new hole is drilled from its face. No tool file or `chat/**` changed: the command's fields and the agent's `run_command` are as they were.
+
+**Oracles:**
+- `packages/barocss-cad/test/d148-hole-face.test.mjs` (2 tests): a 40 × 40 × 10 block with a 10 × 10 × 30 tower — the block's top z 10, the body's z 40: a hole into `b.top` beside the tower takes π r² d (to 1e-9); without `face` it still misses (`SELECTION`, the old behaviour kept); into `b.bottom` it goes up from z 0; a countersink sits on the named face (the frustum Ø10 → Ø6 in closed form plus the rest of the bore, to 1e-6); the block's height edited to 8, 10, 15 — the hole follows its face; the refusals above.
+- `apps/cad-studio/test/known-bugs.test.ts`: the repro, now a test (its `todo` off) — the Ø2.5 bore coaxial with the boss at (15, 20), the material taken π·1.25²·10 (to 1e-6).
+- Both fail on the previous HEAD (the `face` input did not exist; the repro was the `todo`).
+
+**Checks — T2** (`part-model.ts` is a core file), on the merged tree c80ac5c47 (D148 with the outer lane's CNC8, IM8 S0, O105, O105b):
+- Kernel lint and type-check clean; `d148-hole-face` 2/2. The full kernel suite, conformance included, 1403/1408 (4 skipped; +2, the new tests; 1408 = 1406 + 2, none missing); only the env-only "actual native Split source…" fails. 403 s. (A first run during the merge, beside another session's flow, also failed `B9 performance` — the known load-sensitive timing flake.)
+- `@barocss/cad-model` lint and type-check clean; app tsc clean.
+- Studio: 777/777, no `todo` left (D148's repro now passes; the outer lane's additions in the count). 94 s.
+- The full browser flow, on its own: 215/215, 702 s (its hole steps now write `face`).
+- RB: in the rows commit after this one.
+
+## D148b — a hole's overshoot above its named face capped by the free space there (2026-10-21)
+
+The coordinator's review of D148 (judgement call 2): from a named face the cutter reached 1 % of the depth past it, up to 1 mm, so a lip or an overhang closer than that above the face, over the hole, was cut with no refusal — a wrong body. Fixed rather than kept.
+
+**Decision** (`part-model.ts`, the `hole` feature, a blind hole with `face`):
+- **The free space above the face** over the hole: rays from the face's plane out along its normal — from the hole's centre, 16 points on its rim and 8 at half its radius — against the body's tessellation (8 segments a quarter) through K2's tree; the least hit (`clearanceAbove`).
+- **The overshoot** is min(1 % of the depth, 1 mm, half that free space): the cutter stops short of anything above.
+- **Refused** when the free space is under 1e-3 mm: `GEOMETRY` with `[OBSTRUCTED_ABOVE] material <distance> mm above <face> over the hole at (x, y)` — the cutter has no room to stop short of it.
+- Holes without `face`, and through holes, are unchanged (no rays).
+- Limits, stated: a feature above the face that slips between the 25 sample rays (thinner than about 2πr/16 at the rim) is not seen; the tessellation's chord error enters only for curved faces above.
+
+**Oracles** (`packages/barocss-cad/test/d148-hole-face.test.mjs`, now 3 tests):
+- a 60-tall block with a 20 × 20 lip 0.5 mm above its top (held by a post): a 55-deep hole into `b.top` under the lip takes exactly π·9·55 (to 1e-9) — the lip whole. With the cap taken out (checked by hand on the built `dist`), the same hole took π·9·0.05 more: the lip cut, the test failing;
+- the lip 0.0005 mm above: refused `GEOMETRY [OBSTRUCTED_ABOVE] material 0.0005 mm above b.top`.
+- D148's tests unchanged (the tower beside the hole, far from it: the overshoot as before).
+
+**Checks — T2** (`part-model.ts`), on 6b2c4375d plus this change:
+- Kernel lint and type-check clean; `d148-hole-face` 3/3. The full kernel suite, conformance included, 1404/1409 (4 skipped; +1; 1409 = 1408 + 1, none missing); only the env-only "actual native Split source…" fails. 242 s.
+- App tsc clean. Studio 785/785, 94 s (the outer lane's additions since D148 in the count).
+- The full browser flow, on its own: 216/216 (the outer lane's new step included), 792 s.
+- RB: in the rows commit after this one.
+
+## D149 — a face split along a curve or its isocline: `splitFaceAlongCurve`, `splitFaceAlongIsocline` (2026-10-21)
+
+Kernel-lane queue item 2. IM5's two-half parting (O81) asks for a straddling face to be split along its isocline n·d = 0. The coordinator asked for an S0-style probe first, and for the Boolean's face cutting to be reused.
+
+**Reuse: the Boolean's own cutting, no second cutter.** A split runs the analytic Boolean's steps 1–2 on one face, then its stitch:
+- the curve clipped to the face (`intervals`);
+- mapped into the face's domain (`curve2`);
+- the domain region divided (`curveFaceRegions`);
+- every face stitched again (`stitch`).
+
+Nothing is classified and nothing is merged (merging would join the pieces again).
+- `cutPair` itself computes surface–surface intersections. A split already has its curve, so it calls the functions `cutPair` calls, not `cutPair`.
+- Every other face goes through unchanged: its region is read as `facesOf` reads it.
+- `stitch` takes a new `names` argument that keeps every other face's name exactly. Without it, the Boolean renumbers repeated base names by position.
+
+**API** (`@barocss/cad`, `analytic-boolean.ts`):
+- `splitFaceAlongCurve(brep, face, curves, { id?, names? })` returns `{ brep, pieces: [{ name, faces, side? }] }`.
+  - `face` is an id, a name, or a base name that names one face.
+  - `curves` is one NURBS curve or up to 64 of them. They may form a chain: an end may lie on another curve.
+  - Each curve must lie on the face's surface within the tolerance, which is 10 × the linear tolerance at the body's scale (1e-6 mm for bodies within 10 m). It is never projected.
+  - Each curve is clipped to the face. It must end on the boundary at an angle, or be closed.
+- `splitFaceAlongIsocline(brep, face, pull, options)` returns the same. Each piece carries `side`: +1 where the outward n·d > 0, −1 where it is below. The + pieces come first.
+- **Pieces** are named `<face>#1`, `<face>#2` …, + first, then by position; or by `names`. `#k` is matched by base name, as draft and hole match it.
+  - A piece across a full-turn cylinder's seam is joined into one face. This is the Boolean's `mergePieces`, run on that group alone.
+  - On a closed general face (a seam edge its loops use twice), a piece across the seam stays two faces that share the seam. `faces` lists them (`name`, `name#2`). None of the kernel's builders makes such a face today: revolve makes halves.
+- The body stays a valid closed solid (`checkBrep`). Its edges and vertices are new (`<id>_e…`).
+- **Refusals** (`face split: [TAG]`):
+  - INPUT: NO_FACE, AMBIGUOUS, NOT_SOLID (a sheet or an open shell), CURVES, PULL, NAMES.
+  - GEOMETRY: OFF_SURFACE (with the distance and where), OFF_FACE (on the surface but outside the face), ON_BOUNDARY (along the face's boundary), OPEN_END (ends inside the face), TANGENT (meets the boundary under 0.057°, or touches it), SELF_CROSSING (one curve's pieces crossing in the domain, as 64-chord polylines), NO_SPLIT (e.g. one generator of a full turn: a seam is not a dividing edge).
+  - For the isocline: WALL and NO_ISOCLINE.
+  - Facet faces: "not supported yet".
+- **Part feature `split-face`** (`target`, `face`, `curves` or `pull`, `names`). Its refusals map to REFERENCE (NO_FACE, AMBIGUOUS), INPUT (the input refusals), CAPABILITY (mesh faces) and GEOMETRY (the rest).
+
+**The isocline:**
+- **Plane:** none. WALL when n·d = 0, NO_ISOCLINE otherwise.
+- **Cylinder:** closed form. The two generators where the radial direction is square to the pull, as exact lines. WALL when the pull runs along the axis.
+- **General face:** `surfaceIsoclines(surface, pull)`, in the new module `surface-isocline.ts` (exported).
+  - Marching squares over a 32 × 32 grid, moved off the uniform one by 0.0123·sin, so that no grid line lies on a symmetric surface's isocline.
+  - Each crossing is bisected 60 times on the exact unit normal (from the first derivatives), and the crossings are chained.
+  - Points are added where the Catmull–Rom curve through them in the domain leaves the isocline by more than tol/4. Each new point is Newton-corrected onto n·d = 0.
+  - The edge is S(c(t)), which lies exactly on the surface. It is stored as the Boolean's fitted C¹ cubic chain within tol/4 (`fitPieces`), or as a line or an arc when it is one (`exactly`: a cone's generators, a sphere's equator and meridians).
+- **Degenerate domain sides.** Two kinds: a pole (a side collapsed to a point), and a side along which n·d = 0 throughout (a flat edge square to the pull).
+  - Such a side takes its nodes' sides and its crossings from the row inside it. An isocline that ends there is extrapolated from its next two points.
+  - The S0 found both. Without this, the sphere meridian's end was 2e-5 off in u and refinement ran to 1482 points. On a bump, the ridge rounded the corner where it met the flat edges: x 19.99974 instead of 20, and 116 edges.
+- **A cut's runs along the boundary are left out.** This covers n·d = 0 along an edge, before the isocline turns in (`offBoundary`): 256 samples; a run longer than 100 × tol is dropped, its ends bisected to tol/100.
+
+**Fixes in the Boolean's shared code** (found by the S0):
+- **`exactly()` turned a whole circle the wrong way.** It took the normal from the start, the middle and the quarter, in that order. As a result, a closed circular cut on a seamed cylinder lay outside the domain's window. The normal now runs from the start through the quarter to the middle. Open arcs are unchanged.
+- **`intervals()` cut a curve at a cylinder's seam, then joined the pieces again** (`insideIntervals` merges adjacent ranges).
+  - The seam scan is now `seamRanges`, which the split applies after clipping.
+  - A cut that ends on the seam takes the side its middle has (`intoWindow`).
+- These change the Boolean only for closed circular parametric cuts.
+
+**The S0 probe and its oracles** (`test/d149-split-face.test.mjs`, 6 tests; `test/d149-oracle.mjs`):
+- **The oracle:** a face's area and its flux ∫x·n dA on its exact surface, by Green's theorem in its domain.
+  - Each edge point is projected (K4, seeded off the pole nodes), with 8-point Gauss–Legendre inside and along the boundary.
+  - It is not the kernel's mass routine, which meshes trimmed general faces. With that routine, a sphere split at its equator changed volume by 1.4e-4 at the default quadrature (3e-8 relative), though the split itself is exact.
+  - On a box the oracle agrees with closed form to 1e-15; on a sphere, to 1e-11. It cannot read a full turn's seam, so the cylinder circle's pieces use the kernel's area, which is exact on cylinders.
+- **Plane** (the 40 × 30 top), all to 1e-12:
+  - a line: 525 and 675;
+  - a quarter arc about a corner: 25π and the rest;
+  - a closed circle: a disc, and a face with a hole (2 loops).
+
+  The volume holds to 1e-12, the other faces keep their names, and named pieces work.
+- **Cylinder** (a full turn with its seam):
+  - two generators: 25π and 75π, the piece across the seam one face;
+  - a cross-section circle, from the seam and from a quarter turn: 40π and 60π. This failed before the `exactly()` fix;
+  - the isocline for three pulls: 50π each, + and − by the outward normal.
+
+  Volumes hold to 1e-12; the circle's, through a full turn's pieces, to 1e-10.
+- **A biquadratic face** (sewn to five flat sides):
+  - u = ½: two equal halves;
+  - a diagonal in the domain, as an exact quartic: the area of v < 0.2 + 0.7u on the unsplit surface, to 1e-9;
+  - a closed chain of four isoparametric quartics: a patch, and a face with a hole;
+  - the isocline along x: the ridge u = ½ (n·d = 0 on its flat edges, which are left out). The halves hold to 1e-8, limited by the fitted edge; their sum holds to 1e-10.
+
+  Volumes hold to 1e-9, by the oracle.
+- **Isoclines on revolved faces:**
+  - a frustum: quarters π(R + r)s/4 to 1e-10, volume to 1e-10;
+  - a sphere half, across the axis (a meridian from pole to pole) and along it (the equator): 100π each, to 1e-10.
+- **Shared edges:** every one lies on the original surface within 1e-6 (projected at 33 points per edge).
+- **Refusals:** as listed above. The part feature's codes are covered too.
+- All of this fails on the previous HEAD: the functions did not exist.
+
+**Conformance** `conformance/sf/` (6 cases):
+- a plane split along a line (named pieces), and along a circle;
+- a cylinder half and a frustum half split along their isoclines: volume, centroid and area to 1e-9, names, a STEP round trip;
+- two refusals: OFF_SURFACE and NO_ISOCLINE.
+
+**For the outer lane** (`mould/parting.ts`, O81):
+- `splitFaceAlongIsocline(brep, face, pull)` splits a straddling face directly, and `pieces[k].side` is its half.
+- `surfaceIsoclines(surface, pull)` gives the traced isocline in a surface's domain.
+- The wiring is the outer lane's.
+
+**Limits, stated:**
+- The tolerance is tight. A curve fitted to points that lies more than 1e-6 mm off the surface is refused: use the isocline API, or project the curve first.
+- Self-crossing is found on 64-chord polylines per piece.
+- The isocline tracer finds loops larger than its grid cell, about 1/32 of the domain.
+- On a closed general face, a piece across the seam is two faces.
+
+**Checks — T2** (`analytic-boolean.ts`'s shared `exactly()`, `intervals()` and `stitch`, and `part-model.ts`), on b7e1d447a plus this change:
+- Kernel lint and type-check clean (9 s / 7 s); `d149-split-face` 6/6 (5 s); conformance `sf/` 6/6.
+- The full kernel suite, conformance included: 1416/1421 (4 skipped; 1421 = 1409 + 12, the new tests), in 314 s. Only the env-only "actual native Split source…" fails.
+- Test names against a run at b7e1d447a in a temporary worktree: none missing, the 12 new ones added.
+- App tsc clean (70 s). Studio 792/792 (216 s, beside the baseline run).
+- The full browser flow, on its own: 217/217, 717 s.
+- RB: in the rows commit after this one.
+
+## D150 — the 6° bevel pair: a general face's domain map across C0 knots (2026-10-21)
+
+Kernel-lane queue item 3 (D134). The exact intersection of the 16/20 straight bevel pair turned 6° off was refused: "not a manifold solid (edge … has 1 uses; the inputs touch along an edge or at a vertex)". 3°, 4°, 5° and 9° worked. The coordinator asked for a minimal reproduction first, then a fix or a typed refusal. **Fixed.**
+
+**Reproduction:**
+- Each gear is cropped (an exact intersection) to a 1.6 mm box about the failing edge, (18.172, −3.677, 16.515). That leaves 7 and 11 faces.
+- Their intersection fails the same way in 1.3 s, against 21 s for the whole pair.
+- The corner is where the two flanks (`p.flankL2`, `w.flankR`) and the toe sphere that both gears share (`p.toe`, `w.toe`, one surface) all meet.
+
+**Cause, found by narrowing:**
+- **Not the cuts.** The flank–flank cut ends exactly at the triple point. The toe edges meet there at 33°, not at a grazing angle. Both toes' arrangements cross the two toe edges at that point.
+- **The failing edge** runs from the triple point to Q, 9.7e-4 mm along `w.flankR|w.toe`. It is a piece of that edge, used only by `w.flankR`'s piece.
+- **The flank's own domain map of that edge was off.** In `w.flankR`'s domain the arrangement split the edge at the right domain point. Mapping that point back through the edge's parameter, which is how `stitch` cuts a source edge, landed 9.7e-4 mm away.
+- **The 129-sample Hermite table** (`tabulated`) of the edge's map into the flank's domain was 1.75e-3 mm off beside t = 0.5:
+  - The edge is two degree-4 spans joined C0 at t = 0.5 (knot multiplicity 4).
+  - The flank surface is two spans joined C0 along u = 1, the same line.
+  - The sample at t = 0.5 took one central-difference tangent across both joins, so both intervals beside it were wrong.
+- The 6° phase only puts the corner within that interval. That explains why the other phases worked.
+
+**Fix** (`analytic-boolean.ts`, `tabulated`, the map of a curve into a general face's domain):
+- The source curve's interior knots (`breaks`, passed by `curve2` for a source edge) become samples of the table, in place of the uniform sample within 1e-9 of each.
+- At such a sample the table keeps a tangent from each side: one-sided second-order differences of the curve, each within its own span.
+- Each side's surface Jacobian is taken toward that side of the domain. Across a C0 knot line of the surface, the two sides' Jacobians differ.
+- Hermite runs piece by piece; evaluation finds its interval by binary search over the now uneven samples. Pole samples keep their derivative from their neighbours (second-order, for uneven spacing).
+- With this, that edge's map is within 8e-8 mm. Curves without knots are tabulated exactly as before.
+
+**Oracles** (`test/d150-bevel-pair.test.mjs`):
+- **The cropped corner** (default run, about 6 s): the result is valid (checkBrep), with 7 and 11 faces in, and the volume 0.70557 mm³. A voxel count of the two tessellated bodies, inside both by ray parity (K6, h 0.005), gives 0.7037, within 0.5%.
+  - The count converges from below: 0.7003, 0.7037 and 0.7053 at h 0.01, 0.005 and 0.0025. It never runs the analytic Boolean.
+  - This test fails on the previous HEAD with D134's message.
+- **Survey** (`GEAR_SURVEY=1`): the whole pair at 3°, 4°, 5°, 6° and 9° — each valid, the volume growing with the phase: 24.360, 38.986, 52.939, 66.393, 88.075 mm³. The four that worked before are unchanged from D134 (24.4–88.1). Each takes 26–46 s.
+- **Conformance** `conformance/bp/bevel-6deg-corner`: the cropped corner as a part document. The volume, centroid and area are pinned to 1e-6 (this kernel's values, the voxel cross-check in the test), with names, topology and a STEP round trip.
+- `gear-bevel.test.mjs`'s note about 6° now points here.
+
+**Side note:** the corner's result has 9 faces and 258 edges. Its traced cuts are stored as many fitted pieces (`fitPieces`). Not looked into here.
+
+**Checks** (`analytic-boolean.ts` is brep core, so the full kernel suite ran), on 2d85090e7 plus this change. The verification rules changed during the run (the coordinator's v2); what was run and what was not:
+
+Ran:
+- Kernel lint and type-check: clean.
+- `d150-bevel-pair`: 1 pass, plus the survey (skipped by default). The test fails on b435c0b87 (run there before the fix).
+- Conformance `bp/`: 1/1 (7 s).
+- The full kernel suite, conformance included: 1418/1424, 5 skipped, 338 s. Only the env-only "actual native Split source…" fails.
+- `@barocss/cad-model`: 626/626, 88 s on its own. An earlier run beside other suites failed the modelled thread's 8 s budget at 9.8 s; alone it takes 3.05 s on both trees.
+- Studio: 181/181, 51 s. App tsc: clean, 31 s.
+- Test names: diffed once against a b435c0b87 run of all three suites, before rule 1. The union 2228 → 2231: none missing, the 3 new ones added. From now on, this run's passing names are saved per suite (scratchpad `names/`) for the next diff.
+- `FLOW_ONLY` for the steps that run Booleans on general faces (bevel, spiral bevel and worm gears, R12b.7, R10.x, R11.x, fillet, loft, sweep): 40/40, 235 s.
+
+Not run (rules v2):
+- The full browser flow: stopped partway when the rules arrived. The coordinator runs it on integration.
+- RB and properties: this is not a 4th kernel checkpoint.
+
+## D151 — STEP export without a mesh: the bounding-box validation property taken exactly (2026-10-21)
+
+Kernel-lane queue item 4 (D137, D138): STEP export of the 724-face throated wheel took about 15 s. The coordinator asked for a profile first, and asked why the export tessellates at all, since an AP203/214 B-rep needs no mesh.
+
+**Profile** (K1's wheel: m_x 3, double thread, z2 30, b 20 — 724 faces, 1686 edges; on this machine):
+
+| Part | Time |
+|---|---|
+| `exportStep`, everything | 19.7 s |
+| `exportStep` with `validationProperties: false` | 0.1 s (the B-rep entities themselves) |
+| the bounding-box validation property: a tessellation at 16 segments a quarter (770 912 triangles), kept only for six numbers | 14.1 s |
+| the volume, area and centroid (`brepMassProperties`, `brepSurfaceArea`: one quadrature, cached per B-rep) | 1.9 s |
+
+- **The B-rep itself needs no mesh.** It is written as `ADVANCED_BREP_SHAPE_REPRESENTATION` (B-spline curves and surfaces). Only the CAx-IF geometric validation properties computed anything, and the box was the cost.
+- **The quadrature:**
+  - The 540 flank and fillet faces are whole patches, integrated exactly.
+  - The 180 tip and root faces (torus patches trimmed inside their domain) are meshed, at 8 and 16 segments a quarter, for Richardson extrapolation.
+  - The two planar faces are exact.
+- **The importer** uses the box only as the scale of the centroid's limit (0.1% of its diagonal). Still, the box the file states should be the part's.
+
+**Decision** (`brep-bounds.ts`, `brepBounds`; `step.ts` takes its box from it):
+- **Vertices:** each grows the box.
+- **Edges:** each curve is sampled 8 times a knot span, then refined by a golden section about its extreme samples.
+- **Planar faces:** add nothing; their extremes lie on their edges.
+- **Whole patches** (the mass routine's test, now exported as `wholePatchTest`): the surface's exact extremes over its domain. A grid of 4 a span, then alternating golden sections in the cells about the best sample.
+- **Other curved faces** (trimmed): only their own tessellation's vertices, at 16 a quarter, as before.
+- **Facet faces:** their positions.
+- **Skipping:** a curve or patch whose control net lies within the box so far is skipped, because positive weights keep it inside its hull. That covers most of them once the vertices are in.
+
+**Result:**
+- The wheel's export takes 2.2 s, down from 19.7: the box 0.09 s, the quadrature 1.9 s. Its box is unchanged (here every extreme lies on an edge, within 1.4e-14).
+- On a face whose highest point lies inside the patch, the old box was wrong: a bicubic bump peaking at z 11.96911 was written as 11.92857, 0.04 mm low. The mesh's vertices missed the peak. It is exact now.
+
+**Oracles** (`test/d151-step-bounds.test.mjs`, 2 tests, both failing on the previous HEAD):
+- **The wheel:**
+  - The export is under 8 s. It took 17.6 s at the previous HEAD.
+  - The box holds a mesh's vertices and matches its stated values to 1e-9.
+- **A 40 × 30 block with an uneven bicubic top:**
+  - The STEP box's top equals the patch's highest point to 1e-9. The test finds that point itself, with a 401 × 401 grid and then Newton on the gradient of z.
+  - A mesh at 16 a quarter falls short of it by more than 1e-7.
+  - The other five sides of the box are exact.
+
+**What D150's many-piece edges cost here** (the coordinator's question): nothing for the wheel, which is not a Boolean result (2.3 edges a face). Boolean results are another matter.
+- The 6° bevel corner (D150) has 9 faces and 258 edges.
+- One edge that should be a single exact piece, `p.toe|w.flankR` (a piece of the source edge eB), is stitched as 34 pieces. The toe's section by the crop box, `p.toe|x1.side2`, is 117 pieces, the shortest 4e-5 mm long.
+- The likely cause: traced copies of exact edges leave vertices along them (chains running partly along an `along` edge), and `stitch` splits the edge at each one.
+- Its STEP file is 220 kB for 9 faces, exported in 0.7 s.
+- Proposed to the coordinator as a follow-up, not done here.
+
+**The remaining 1.9 s:** the quadrature of the 180 trimmed torus faces, meshed twice. Integrating a trimmed patch exactly (by its trims in the domain) would remove it. That is not done here.
+
+**Checks** (rules v2; `brep-bounds.ts` and `brep-mass-quadrature.ts` are brep-*, so the full kernel suite ran), on f567478ab plus this change:
+
+Ran:
+- Kernel lint and type-check: clean.
+- `d151-step-bounds`: 2/2. Both fail on f567478ab (17.6 s; the box 0.04 mm low).
+- The full kernel suite, conformance included: 1419/1426, 5 skipped, 339 s. It failed the new wheel test once, at 8.5 s against its first 8 s budget, inside the parallel suite. The budget is now 12 s, and the test passes alone. Otherwise only the env-only "actual native Split source…" fails.
+- `@barocss/cad-model`: 630/630, 82 s. Studio: 185/185, 16 s.
+- Test names against the saved lists:
+  - kernel: none missing, the 2 new ones added;
+  - cad-model: none missing, +4 (the outer lane's FR S0, merged);
+  - studio: 2 renamed by the outer lane's IM7b merge (the IM7 S0 cad-cli and refusal tests), +6 (G2, IM7).
+- `FLOW_ONLY` for the steps that write or read STEP (export, STEP and meshes, open a STEP file, A6.3, IM6 quote, IM7, the throated wheel): all pass.
+  - Step 45, "STEP and meshes", needs step 44's mesh body. Run without it, it timed out. With it, both pass (9 s).
+
+Not run:
+- The full browser flow (rules v2).
+- RB and properties: this is not a 4th kernel checkpoint.
+- App tsc: no studio source changed.
+
+## D152 — curve cuts lying along each other share only their run's ends: a Boolean result's exact edges stay whole (2026-10-21)
+
+Kernel-lane queue item 5, from D151's side finding. The 6° bevel corner (D150) came out with 258 edges for 9 faces:
+- `p.toe|w.flankR`, one exact source edge, in 34 pieces;
+- the toe's section by the crop box in 117 pieces, the shortest 4e-5 mm.
+
+The coordinator asked where the vertices along exact edges come from, and for a fix so that an exact edge stays one piece, or the fewest pieces the topology needs.
+
+**Where they came from.** The cause is in the arrangement, not in `stitch`'s T-junction splitting:
+- **The split happens before stitching.** The final intersection's `p.toe` region left `curveFaceRegions` already as 220 boundary segments, not 4 + 8.
+- **Its 12 cuts are 6 curves, each twice**, once each way:
+  - B's toe boundary, brought in by the coincident-surface rule (two general faces on one surface cut each other by their boundaries);
+  - B's flank edges, brought in again because they lie on A's toe surface (the `along` rule).
+- **`dedupeCuts` didn't catch it.** It keeps one of two equal-length copies only on planes.
+- **The arrangement then split them.** `intersectSegments` crosses two `curve` segments by their polylines' crossings, refined by Newton. Two copies of one curve "cross" at every sample pair along their overlap, and each point split both curves.
+- **With the copies removed, partial overlaps did the same.** These were two faces' sections by one plane: the two crop boxes share their side planes. That still gave 161 edges.
+- **So the fix belongs in `intersectSegments`.** For lines and arcs, an overlap already gives only its ends; for `curve` segments it gave a point at every sample.
+
+**Fix** (`curved-arrangement.ts`, `overlapEnds`, applied to every curve–curve result):
+- The points two curves share are sorted along the first.
+- Wherever the first curve's middle between two consecutive points lies on the second (within the arrangement's eps), those points belong to one run along each other, and only the run's ends are kept.
+- Two crossings with a lens between them are unchanged, since the middle of the lens is off the other curve.
+
+`dedupeCuts` stays as it was: the arrangement now treats a copy like any other overlap.
+- On the 4° pair, the 1260 runs collapsed were full-length copies, with a gap of at most 3e-14 along them, and clusters of three points over a span shorter than 1e-4. None left out a crossing.
+
+**Results:**
+
+| Case | Faces | Edges before → after |
+|---|---|---|
+| the 6° bevel corner | 9 | 258 → 23 (`p.toe|w.flankR` one piece; the shortest edge over 1e-3 mm) |
+| the whole pair at 4° | 22 | 766 → 48 |
+| the whole pair at 6° | 25 | 809 → 57 |
+| RB corpus, parts and oracle (152 outputs) | — | only the corner changed; 151 unchanged, no count up, every refusal as before |
+
+**The same solids.** For the corner and the whole pair at 4° and 6°, the old and new results:
+- have the same faces on the same surfaces (control points equal to 1e-9);
+- have edges on each other: every old edge's points lie on the new edges to 6.5e-9 mm, and every new edge's on the old to 5.5e-9.
+
+**Their volumes by the integrators.** These moved, within the integrators' own error on these bodies:
+
+| Integrator | Corner (old → new) | Whole pair at 4° (old → new) |
+|---|---|---|
+| kernel (quadrature) | 1.33e-9 | 38.986 → 39.109 mm³ |
+| Green's-theorem oracle (D149) | 1.9e-10 | 38.538 → 38.571 |
+| a 32-segment mesh | — | 38.376 → 38.342 |
+
+- On the corner the Green's-theorem oracle's area also holds, to 7e-12.
+- On the whole pair the three integrators disagree with each other by 1–2%, whatever the edges. That is an open item (below), not this fix: the B-reps are the same.
+
+**Oracles and tests** (`test/d152-overlapping-cuts.test.mjs`, 3 tests; the first two fail on the previous HEAD):
+- **`intersectSegments`:** an arc and its reversed copy share 2 points; an arc and a copy over part of it share 2, at π/3 and π; two circles crossing twice keep both crossings, at (6, ±8).
+- **The corner:** valid, 9 faces, at most 30 edges (it was 258), `p.toe|w.flankR` one edge, no edge under 1e-3 mm.
+- **The survey** (`GEAR_SURVEY=1`): the whole pair at 4° and 6°, valid, at most 60 and 70 edges.
+- **Conformance `bp/bevel-6deg-corner`:** re-pinned to this kernel. The volume moved by 1.3e-9, the area by 4.0e-6 and the centroid by 8e-9 mm, all the quadrature's own change on identical faces.
+
+**Open, not scheduled:**
+- **The mass quadrature of trimmed general faces.** It is slow: the 724-face wheel's 180 trimmed tori are meshed twice (D151, 1.9 s). It is also inexact on bodies like the bevel pair's intersection: there the kernel, the Green's-theorem oracle and a mesh disagree by 1–2%, and the kernel's value depends on how the edges are split (0.3%).
+
+**Two tests' tolerances, moved with their reasons** (both tests run on the same inputs as before):
+- `facet-boolean` "sphere bite": 1e-5 → 1.5e-5. The facet Boolean tessellates its exact part at the default 32 segments a quarter. While spurious crossings split the bite's quarter arc and its copy into 41 edges, each tessellated on its own, the rim was finer than that by accident: 6.4e-6 off. At 32 a quarter it is 1.008e-5 off.
+- `r10-s0` (b) coaxial: 1e-9 → 3e-9 on the removed 5.34 mm³. That is the difference of two quadratures of about 4120 mm³ each, so 1e-9 of it is 1.3e-12 of theirs. The cut's edges lie on the earlier ones to 1e-11 (62 edges then, 14 now). Its quadrature moved 1.4e-8 mm³, which is 1.9e-9 of the difference.
+
+**Checks** (rules v2; `curved-arrangement.ts` is brep core), on 6d4b80e75 plus this change:
+
+Ran:
+- Kernel lint and type-check: clean.
+- `d152-overlapping-cuts`: 2 pass, plus the survey (skipped by default). Both fail on 6d4b80e75.
+- The full kernel suite, conformance included: 1420/1429, 6 skipped, 300 s. Besides the env-only "actual native Split source…", it failed the two tolerances above, which then pass alone.
+- `@barocss/cad-model`: 635/635, 112 s. Studio: 186/186, 22 s.
+- Test names against the saved lists: none missing; +3 kernel (D152), +5 cad-model, +1 studio (the merged lanes').
+- `FLOW_ONLY` for the steps that run Booleans on general faces (bevel, spiral bevel and worm gears, R12b.7, R10.x, R11.x, fillet, loft, sweep, IM7): 42/42, 251 s.
+- RB and properties: on this commit, in the rows commit after it (this is the queue's T3).
+
+Not run:
+- The full browser flow (rules v2; the coordinator runs it per merge window).
+
+## D153 — R12c.1a: the helical sweep of the wire's exact normal-plane circle, and compression springs (2026-10-21)
+
+R12c's first stage, as D139 froze it. The kernel generator first, with its closed-form oracles, then the studio's command as a v2 features command.
+
+**Kernel** (`packages/barocss-cad/src/spring.ts`; exported: `helicalSweep`, `compressionSpring`, `springDimensions`, `springSolidPitch`, `SpringError` and the types):
+- **The centreline** C(φ) = (R cos φ, R sin φ, z(φ)) is made of runs: a constant pitch, or a pitch easing from one value to the next by the smoothstep 3t² − 2t³ in φ. So z is C² and the wire is tangent-continuous across runs.
+- **The section** is the exact circle of radius a in the plane normal to C, on the frame e1 = (−cos φ, −sin φ, 0) (toward the axis) and e2 = T × e1 = (σ sin φ, −σ cos φ, γ), with σ = z′/L, γ = R/L, L = √(R² + z′²). A section point (x, y) is P(φ; x, y) = ((R − x) cos φ + yσ sin φ, (R − x) sin φ − yσ cos φ, z + yγ).
+  - P is affine in (x, y). So each of the circle's four rational quarters is carried along φ by its three control points' paths.
+  - Each path is fitted by cubic Hermite pieces, exact in value and φ-derivative at the piece ends. On a constant pitch this is S0's construction, the gears' `rotationPoles`, with z exact.
+  - A face is a quarter times its paths' fits: degree 2 × 3, at most 4 pieces (13 poles, the 16-pole convention). The level circles are exact; the ends are the normal discs.
+- **The deviation.** The surface's distance from the exact pipe, at the same parameters, is a positively weighted mean of its control paths' errors. So the largest path error, measured on every piece (15 points inside each), bounds it.
+  - That bound is the reported `profileDeviationMM`. Pieces are added until it is within the tolerance (1e-4·d by default), starting from the rotation fit's s⁴/384 at the outermost pole (R + a√2).
+  - Past 1024 pieces: `PROFILE_BUDGET_EXCEEDED`, with the measured figures, never a looser fit.
+  - The bound is a little stricter than S0's (R + a)·dev, and D 20, d 2 still takes 22 pieces a turn (132 for 6 turns).
+- **The quarters join at 45°, 135° …**, not at 0° and 90° as in S0. The ground plane passes through the start disc's centre line, crossing its boundary at θ 0 and π, so no vertex may sit there.
+- **`SELF_INTERSECTION`** when a reaches the centreline's least radius of curvature (R(1 + (h/R)²) on constant runs, sampled on easing runs) or a ≥ R.
+
+**A compression spring** (`spring@0`; the D139 inputs, ends `closed-ground` by default):
+- **Open ends:** one run at the pitch p. The centreline starts at z = aγ, so the start disc's lowest point is at 0. L0 = n_a p + 2aγ.
+- **Closed ends:** a dead coil each end at the geometric solid pitch p_s, easing to p over the transition (90° by default), centred on the dead coil's end. The transitions' mean pitch is (p_s + p)/2, so the rise is exactly 2 n_e p_s + n_a p. The start is at aγ_s, and L0 = rise + 2aγ_s.
+- **Closed and ground:** the same wire from z 0, cut square to the axis at the centreline's two end heights (faces `.ground0`, `.ground1`). L0 = 2 n_e p_s + n_a p. The start disc is halved and the ground face runs about half a turn. That is a convention, recorded; real springs are often ground over about 270°.
+- **p_s, the geometric solid pitch:** the least pitch at which neighbouring turns of the centreline are d apart (Newton on the least distance near one turn, then bisection on the pitch). It is 2.0010140 for D 20, d 2, as S0 found. A pitch below it is refused (`COILS_OVERLAP`, naming both), so a coil wound at p = d is refused.
+- **The ground ends: the Boolean on the end pieces only (D139's open question).**
+  - On the whole spring the analytic Boolean took 2.1 s (8 turns) and 5.0 s (22 turns), and refused D 40, d 1, 20 coils ("the inputs touch along an edge").
+  - Now each end piece, up to where the wire's underside clears the plane by a/4 (about half a turn), is built on its own and cut. It is then glued back to the body at their shared exact disc (`glueAtSharedFace`).
+  - That takes 0.70 s (8 turns), 0.61 s (22 turns) and 0.66 s (D 40, d 1, 20 coils), all valid.
+  - A spring too short for that is cut whole.
+  - The Boolean numbers a cut piece's faces by position: `<id>.wire#1 …` are the bottom piece's, then the body's, then the top piece's (renumbered after it).
+- **The left hand** is the right hand mirrored in XZ.
+- **`endCoils` above 1** is refused (`UNSUPPORTED_SPRING_KIND`): dead coils at p_s would touch each other.
+  - Also refused: extension and torsion (R12c.1b), conical, barrel and variable-pitch bodies, rectangular wire.
+- **The report** (`SpringReport`):
+  - sizes: d, D, outer and inner diameters, C, Wahl's K_W = (4C − 1)/(4C − 4) + 0.615/C;
+  - coils (active, end, total), the pitch and helix angle, L0, L0/D;
+  - the solid heights: the geometric one at p_s, and the supplier's rule (d·n_t ground, d·(n_t + 1) otherwise);
+  - the travel to solid;
+  - k = Gd⁴/(8D³n_a) when G is given (no default in the kernel), with its estimate flag;
+  - at a load: F/k, the length then, τ = K_W 8FD/(πd³) and the uncorrected value. A load past solid is a `COILS_OVERLAP` warning;
+  - the sweep's pieces, segments, measured bound, wire length (Gauss–Legendre on easing runs) and least curvature radius;
+  - `manufacturingValidated: false`: no buckling, fatigue or relaxation claim.
+- **S1, re-read at its source** (as D139 asked before any use beyond the probe): https://www.compressionspring.com/helical-spring-formulas-and-equations.html, read 2026-10-21 by this session with the fetch tool, page text only. It gives "Lsolid = dN" for ground ends and "d(N+1)" for all others (N the total coils), and k = Gd⁴/(8D³n_a). These are the supplier's rule as reported. acxesspring.com was not re-read and is not used.
+
+**Part model:** the kind `spring`:
+- inputs: `wire`; `diameter`, `outerDiameter` or `innerDiameter`; `activeCoils`; `pitch` or `freeLength`; `hand`, `ends`, `endCoils`, `transition`, `shearModulus`, `shearModulusEstimate`, `load`, `profileTolerance`;
+- refused unless compression, cylindrical and round: `type`, `body`, `wireSection`;
+- placement: `center`, `from`, `rotation`; `generator: 'spring@0'`;
+- its axis is +Z through the centre, from `from`;
+- the output's `spring` is the report;
+- codes: INVALID_INPUT → INPUT; SELF_INTERSECTION and COILS_OVERLAP → GEOMETRY; PROFILE_BUDGET_EXCEEDED and UNSUPPORTED_SPRING_KIND → CAPABILITY. Each message keeps the `[CODE]`.
+
+**Studio and model** (`@barocss/cad-model`):
+- **The `spring` node**, its label ("Ground spring d2 × Ø20, 6 coils"), its part feature, and the kind lists it joins (no parents, a body maker, migrate, flatten).
+- **The Spring command** (create; side toolbar, not placed at the pointer, as the worm pair):
+  - its defaults: d 2, D 20, 6 coils, p 5, closed and ground, right hand;
+  - G is 79 300 MPa, `STEEL_G_ESTIMATE_MPA`: an estimate with no source read, flagged `shearModulusEstimate` on the node (the owner's decision: "스프링 G는 추정값으로 표시해");
+  - a working load 0;
+  - a puck and a diameter arrow.
+- **Edit fields:** d, D, coils, pitch (or free length), ends, hand, G (typing it drops the estimate flag), load, rotation.
+- **Notes:** sizes; solid heights; the rate, a warning while G is the estimate; the load; the fit; "not validated for manufacturing".
+- **Friendly errors** for `[COILS_OVERLAP]` and `[UNSUPPORTED_SPRING_KIND]`.
+- **The icon** `cad-spring`.
+- **Agent tools (v2):** `spring` is a command of the features tool (`features` {action: "command", command: "spring"}), its values behind `describe` {"command": "spring"}. No new tool or enum. The per-turn guard: 21 808 → **21 816** characters (the command's name in the features tool's list), cap 25 000.
+
+**Oracles and tests** (`packages/barocss-cad/test/r12c-spring.test.mjs`, 7 tests, all failing on the previous HEAD since there was no `spring.ts`). Written in the test: the centreline re-derived from the pitch law, its length by composite Simpson, the distance from it by Newton on φ, the solid pitch by brute force.
+- **Open** (D 20, d 2, p 5, 6 turns): valid, genus 0; 132 pieces, 134 faces, 9 ms.
+  - The fit bound is 1.97e-4; sampled surface points lie 1.50e-4 off a.
+  - V 1188.074704 against πa²S 1188.096610: rel 1.84e-5, inside the bound 2πa·S·dev (rel 3.9e-4).
+  - z runs from 0 to L0 = n p + 2aγ.
+  - k agrees with the wire's torsion energy to 1e-12, and so do K_W, τ and F/k.
+  - At p_s the turns are d apart to 1e-7.
+- **Closed:** 180 pieces, 186 faces. The distance is 1.43e-4 off (bound 1.88e-4); V rel 1.69e-5 against πa²S on the variable centreline; the least curvature radius is 10.009. L0 = 2p_s + n_a p + 2aγ_s and the rise agree to 1e-12.
+- **Closed and ground: V = πa²S − (4/3)a³R/h_s**, a closed form derived in the test.
+  - In the pipe's coordinates a point's height is z(s) + yγ and dV = (1 − κx) dA ds. Where the pitch is constant, the section point (x, y) lies below the plane for s < −yR/h.
+  - So the cut takes ∫_{y<0} (1 − κx)(−yR/h) dA = (2/3)a³R/h. The x term vanishes by symmetry; the cut's band, φ up to aγ/h_s, lies in the dead coil.
+  - Result: 194 faces, 0.70 s; V 1541.175204 against 1541.199877, rel 1.60e-5 (bound 3.87e-4). The bounds are 0 and L0 to 1e-9; the face names are unique; STEP round trip.
+- **D 40, d 1, 20 coils, ground:** 672 pieces, 674 faces, 0.76 s, V rel 4.99e-6. The left hand is the right hand mirrored, vertex for vertex, and climbs the other way.
+- **L0 ↔ p** for each end type; OD and ID as D ± d.
+- **Refusals:**
+  - INVALID_INPUT: d 0, D ≤ d, n 0, both p and L0, neither diameter or two of them, bad ends, a transition too long;
+  - COILS_OVERLAP: p = d (the message names 2.001014), and an L0 below solid;
+  - UNSUPPORTED_SPRING_KIND: extension, torsion, conical, rectangular, 2 end coils;
+  - PROFILE_BUDGET_EXCEEDED: D/d 100 over 30 turns, as S0 predicted;
+  - SELF_INTERSECTION and a non-circle section (helicalSweep);
+  - a load past solid warns.
+- **Part model:** placed at the centre and from, turned; the report and the estimate flag on the output; the codes mapped.
+- **Conformance `r12c/`:**
+  - `spring-open`: V by the closed form, relTol 4e-4 (the fit's bound); the centroid (0, 0, L0/2), the turns whole;
+  - `spring-closed-ground`: V by the closed form; the centroid's y and z by the half-turn symmetry, its x by this kernel;
+  - `spring-touching-refused`: GEOMETRY, COILS_OVERLAP.
+- **Model** (`packages/barocss-cad-model/test/spring.test.ts`, 3 tests):
+  - the default command's node, label, volume (the closed form, rel 4e-4), bounds and notes;
+  - edit fields: G drops the flag; open; p 2 refused with the friendly title and the kernel's detail; left;
+  - the chat: describe and `features` {action: "command"}.
+- **Flow step** "Spring (R12c.1a, D153)": from the palette; the node's G and flag; the notes; a snapshot.
+
+**Open, not in this stage:** every volume falls 1.6–1.8e-5 below the closed form, inside the fit's bound. The ground spring's mass takes several seconds: the trimmed-general-face quadrature, the open item at D151 and D152.
+
+**Checks** (rules v2; `part-model.ts` gained a case, which counts as brep core, so the full kernel suite ran), on 05dd56309 (this change's code) in a detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-spring`: 7/7, 26 s alone (its mass and distance oracles on the ground springs take most of it).
+- The full kernel suite, conformance included: 1432/1439, 6 skipped, 275 s. Only the env-only "actual native Split source…" failed.
+- Conformance `r12c/`: 3/3.
+- `@barocss/cad-model`: type-check clean, 644/644, 136 s. Studio: type-check clean, 186/186, 24 s.
+- Test names against the saved lists: none missing. +10 kernel (D153's 7 and 3 conformance cases); +9 cad-model (D153's 3, and 6 FRc from the merged outer lane); studio unchanged.
+- `FLOW_ONLY` "Spring (R12c": 1/1 (with the starter step), 16 s.
+
+Not run:
+- RB and properties: the first kernel checkpoint after the T3 at D152.
+- The full browser flow (rules v2; the coordinator's per merge window).
+
+## D154 — R12c.1b: extension and torsion springs (2026-10-21)
+
+R12c's second stage, as D139 froze it.
+- **Extension springs:** a close-wound body; initial tension is the user's input, with no data behind it; hooks are exact torus arcs and straight pipes (machine loop, crossover).
+- **Torsion springs:** legs are straight pipes tangent to the coil, and the torsional rate is Ed⁴/(64Dn).
+- **New code:** `LEG_OVERLAP`.
+
+**Kernel** (`spring.ts`; `hookedSpring` and its types exported):
+- **The coil** is D153's helical sweep, close-wound. "Close-wound" is the solid pitch of a wire d + 2·tol thick: the turns stand 2·tol apart (4e-4 mm for d 2). Each fitted surface lies within tol of its pipe, so the two never meet.
+  - At p_s itself the fitted turns could cross by up to 2·tol.
+  - An open `pitch` ≥ p_s is accepted; below p_s it is `COILS_OVERLAP`, as in 1a.
+- **The ends are exact pieces of pipe.**
+  - A straight run is the section circle translated: degree 2 × 1.
+  - A bend is the circle turned about the bend's axis: the rational torus, degree 2 × 2, weights the product of the section's and the turn's cos(Δ/2), a span per ≤ 90°.
+  - Each piece starts on the frame where the last one ended, and the turn itself carries the frame. So the level circles match exactly, quarter joins at 45° included.
+  - Each piece is glued to the wire at their shared disc (`glueAtSharedFace`, as D153's ground ends).
+  - The bottom end mirrors the top: it is built outward from the coil's start along −T, its frame's e1 and e2 swapped so that its tangent points out.
+- **The recipes** (r_b is the bends' centreline radius, default d; above a, or `SELF_INTERSECTION`):
+  - **`machine-loop`** (default): a bend from the coil's tangent t up the axis, through acos(t·up). Then a loop centred on the axis, in the plane through it and the bend's end, its radius that point's distance from the axis, through `loopAngle` (default 180°). This is the end bent up over the body.
+  - **`crossover`:** a quarter bend toward the axis (in the plane of t and the inward radial, so it ends horizontal and inward), a straight run to the axis's nearest point, then a loop of radius ρ (default D/2) standing on it in the plane of the run and the axis, through `loopAngle` (default 270°).
+  - **Torsion:** a straight leg along t at each end, `legLengths` (default D each).
+- **`LEG_OVERLAP`, by the centreline.** Any two of its points at least πa apart along it must be d apart, sampled every d/4 on the ends and 64 a turn on the coil. πa is half a turn on the tightest bend a tube allows: nearer points are the tube's own neighbourhood. The coil against itself is covered by its pitch.
+  - A first version skipped neighbouring pieces whole. It missed a crossover loop of radius 1.2 whose 270° end sits 1.2·√2 from where the loop began, so the arc-length rule replaced it.
+  - The figure is reported (`leastClearanceMM`): 2.0014 for the default machine loops, where the bend leaves the last turn.
+- **The report** (`HookedSpringReport`, beside the compression `SpringReport`):
+  - sizes and C; the coils; the pitch and helix angle; the coil length; the wire's whole centreline length;
+  - **extension:** the length inside the hooks (the loops' inner extremes along the axis), the rate Gd⁴/(8D³n) when G is given, the initial tension as given; at a load, the extension (F − F_i)/k and τ = K_W 8FD/(πd³) in the coil. The hooks' stresses are not computed (no claim);
+  - **torsion:** k = Ed⁴/(64Dn) per radian and per degree when E is given, the free angle between the legs (the coils' fraction × 360°), the legs' lengths; at a moment, the turn M/k and σ = K_b 32M/(πd³), with K_b = (4C² − C − 1)/(4C(C − 1)) at the inner fibre;
+  - the least clearance; `manufacturingValidated: false`.
+- **Refused as INVALID_INPUT, as belonging to another type:**
+  - on an extension or torsion spring: `ends`, `endCoils`, `transition` and `freeLength`;
+  - on a torsion spring: hooks, loops, initial tension, G and a load;
+  - on an extension spring: legs, E and a moment.
+- **`compressionSpring` given type extension or torsion** is now INVALID_INPUT, which names hookedSpring. In D153 it was UNSUPPORTED_SPRING_KIND. Two D153 tests' expectations moved with that: compressionSpring's refusal, and the part model's `{type: 'torsion'}` refusal, now `{body: 'barrel'}`.
+
+**Part model:** the `spring` kind takes `type` extension or torsion, with `hooks`, `bendRadius`, `loopRadius`, `loopAngle`, `initialTension`, `legLengths`, `youngsModulus` (+ `youngsModulusEstimate`) and `moment`. These are refused on a compression spring.
+- Faces: `<id>.wire#k`, `.hook0#k` and `.hook1#k` (or `.leg0#k` and `.leg1#k`), `.end0` and `.end1`.
+
+**Studio and model:**
+- **The Spring command** gains a `type` choice. Its fields follow it:
+  - compression: pitch, ends, G, load;
+  - extension: pitch (0 for close-wound), hooks, initial tension (labelled "yours"), G, load;
+  - torsion: pitch (0), start and end legs, E, moment.
+- **E for steel**, 206 000 MPa, `STEEL_E_ESTIMATE_MPA`, is prefilled and flagged `youngsModulusEstimate`, as G is: an estimate with no source read, under the owner's rule for R12c. Editing it drops the flag.
+- **The node** gains `type`, `hooks`, `initialTension`, `legLengths`, `youngsModulus(Estimate)` and `moment`; `ends` is now optional (a compression spring's). The labels: "Extension spring d2 × Ø20, 6 coils (machine loops)", "Torsion spring d2 × Ø20, 5.25 coils".
+- **Edit fields** follow the type. The notes are per type. There is a friendly error for `[LEG_OVERLAP]`.
+- **Chat v2:** the spring command's `describe` values gained type, pw, hooks, Fi, L0, L1, E and M. There is no new command, tool or enum, and tools-v2.json is unchanged.
+  - The per-turn guard is **22 022**, measured on integration 3fa729fcb with FRd's welds in, and unchanged by this stage.
+
+**Oracles and tests** (`test/r12c-hooked-spring.test.mjs`, 5 tests, all failing on the previous HEAD). The centreline is rebuilt in the test from the recipe by plain vector algebra: the coil's end and tangent, the bends' angles, the loop's radius from the axis, the run to the axis.
+- **Machine loops** (D 20, d 2, 6 coils, G 79 300, F_i 4, F 14): valid, genus 0, one body, 158 faces, 90–185 ms.
+  - The close-wound gap is d + 2·tol by brute force, to 1e-7.
+  - The wire length is helix + d·acos(t·up) + ρπ at each end, to 1e-12.
+  - V 1405.328941 against πa²S 1405.350789: rel 1.55e-5, inside the fit's bound.
+  - Inside the hooks: 34.3779, to 1e-9. The bounds' height is that plus 4a.
+  - k by the torsion energy; the extension (14 − 4)/k; Wahl's τ.
+  - The face names are unique. STEP round trip.
+- **Crossover:** 174 faces; V rel 1.41e-5 against πa²(helix + πd/2 + run + 3πR/2) at each end; inside the hooks 50.1358.
+- **Torsion** (5¼ coils, legs 15 and 25, E 206 000, M 500): 126 faces; V rel 1.62e-5 against πa²(S + 40).
+  - The legs are 90° apart.
+  - k = M/θ with θ = ML/(EI), L = πDn, I = πd⁴/64 (the bending energy), to 1e-12. The turn and K_b's σ match too.
+  - The end leg's tip is ℓ along the tangent (the bounds).
+- **Hand and refusals:**
+  - the left hand mirrors the right, vertex for vertex;
+  - LEG_OVERLAP: a 300° machine loop (it comes back into the coil) and a crossover loop of radius 1.2;
+  - SELF_INTERSECTION: a bend of r_b 1 on a wire of radius 1;
+  - COILS_OVERLAP: pitch d;
+  - INVALID_INPUT: eight cases, each an argument of the wrong type or a bad value;
+  - UNSUPPORTED_SPRING_KIND: conical;
+  - an open pitch of 3 builds valid.
+- **Part model:** both types placed, the reports and flags on the outputs; LEG_OVERLAP → GEOMETRY and ends on a torsion spring → INPUT, each with its [CODE].
+- **Conformance `r12c/`:**
+  - `extension-machine-loops`: V by the closed form (rel 4e-4, the fit's bound); the centroid's y and z by the half turn about X at mid-height, its x by this kernel;
+  - `torsion-legs`: V by the closed form; the centroid by this kernel;
+  - `crossover-loop-overlap-refused`.
+- **Model** (`spring.test.ts`, +1 test): extension and torsion from the command; the volumes by those closed forms; the labels and notes (inside the hooks, the extension past the initial tension, the legs' angle, the flagged rates); hooks → crossover; E edited.
+- **Flow step** "Spring (R12c.1b, D154)": each type from the palette with its notes, and a snapshot.
+
+**Not in this stage:**
+- hook stresses (bending at the hook's bend);
+- the hooks' share of the rate (some suppliers add them to n_a);
+- extended hooks, side hooks and other hook forms;
+- torsion legs other than tangent (radial or bent legs);
+- the legs' share of the torsional rate ((ℓ1 + ℓ2)/(3πD) coils, a common correction): not applied, said in the formula.
+
+**Checks** (rules v2; `part-model.ts` changed, so the full kernel suite ran), on 526a8fa0c (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-hooked-spring` with `r12c-spring`: 12/12.
+- The full kernel suite, conformance included: 1440/1447, 6 skipped, 356 s. Only the env-only "actual native Split source…" failed.
+- Conformance `r12c/`: 6/6.
+- `@barocss/cad-model`: type-check clean, 656/656, 160 s (the guard test: 22 022 a turn). Studio: type-check clean, 186/186, 30 s.
+- Test names against the saved lists: none missing; +8 kernel (D154's 5 and 3 conformance cases), +12 cad-model (D154's 1, and the merged lanes' FRd1/FRd2 and O-G6), studio unchanged.
+- `FLOW_ONLY` "Spring (R12c": 1a's and 1b's steps, 2/2 (with the starter step), 22 s.
+  - The snapshots show the machine loops bent up over each end and the tangent legs.
+
+Not run:
+- RB and properties (the 2nd kernel checkpoint after the T3).
+- The full browser flow (the coordinator's).
+
+## D155 — R12c.2: fits and tolerances from the user's tables (2026-10-21)
+
+R12c's third stage, as D139 froze it, under the owner's rule "끼워맞춤 표는 사용자가 불러오고": the fit tables are the user's, and no ISO 286 row is built in.
+- **No limit is ever computed.** S0 found that the IT tolerance factor reproduces only 55 of 91 table values, so no formula stands in, even as a fallback.
+- **A missing row is a typed refusal** that names what to load.
+
+**Kernel** (`fits.ts`; exported `fitTableProblem`, `lookupFit`, `fitLimits`, `checkFit`, `isHoleClass`, `FitError` and the types):
+- **A fit table**, as D120's bend tables: `{ id, sources?: [{ id, label, url?, read?, note? }], rows }`.
+  - A row is `{ class, overMM, upToMM, upperUM, lowerUM, source | estimate }`: a class's deviations in µm over a range of nominal sizes, over < size ≤ up to.
+  - A class is ISO 286's form: its fundamental-deviation letters, capitals for a hole (A … ZC, JS) and small for a shaft, then an IT grade (01, 0–18).
+- **`fitTableProblem`** returns the reason as text, prefixed `[FIT_TABLE]` where the studio shows it. It refuses:
+  - a class not of that form;
+  - a range that is not over ≥ 0 and below up to;
+  - upper below lower;
+  - a row with neither a source nor an estimate, or with both;
+  - a source the table does not hold;
+  - an unknown field;
+  - two ranges of one class overlapping (adjacent ranges are fine).
+- **`lookupFit`:** a class's row at a nominal size, from the first table holding one, giving the limit sizes, the table and row, and the estimate flag.
+  - Otherwise `[FIT_TABLE_MISS]` says what to load: "load a row for g6 whose range holds 20 mm", with the class's loaded ranges listed (or "no g6 rows loaded"), and that limits are never computed.
+- **`fitLimits`:** a hole class and a shaft class at one nominal size.
+  - The least clearance is EI − es and the greatest ES − ei (µm).
+  - The kind is clearance (least ≥ 0), interference (greatest ≤ 0) or transition.
+  - A hole's class on a shaft, or the reverse, is `FIT_FACE`.
+- **`checkFit(tables, hole, shaft)`:** two faces of B-reps, each by name or id with its class.
+  - **Refused** (each says which face and why):
+    - `FIT_FACE`: a face that is not a cylinder, or not of its role (`faceGeometry`'s outward side: a hole's material is outside the cylinder, a shaft's inside);
+    - `FIT_PAIR`: axes that are not parallel, two nominal diameters (a fit's classes apply to one nominal size, so both are modelled at it), or faces that do not overlap along the axis.
+  - **Measured:** the axes' offset, and the length both faces cover (their loops' vertices projected on the hole's axis).
+  - **The pair at MMC and LMC, by the analytic Boolean** (S0's construction):
+    - MMC puts the hole at its least size and the shaft at its greatest; LMC the reverse.
+    - The shaft at its size over the overlap, on its own axis, less the hole's bore at its size, on the hole's axis and 1 mm longer each way so that no end is coplanar.
+    - What is left is where the shaft would stand in the hole's material.
+    - Coaxial and line to line, the surfaces coincide, so it is 0 by arithmetic.
+  - **The margin:** half the least clearance less the offset.
+  - **A clearance fit whose bodies overlap at MMC is `contradicted`**: the shaft stands off the hole's axis by more than its least clearance a side. The message gives the overlap.
+
+**Oracles and tests** (`test/r12c-fits.test.mjs`, 5 tests, all failing on the previous HEAD, where there is no `fits.ts`; about 0.4 s):
+- **The page's results** (D139's F2: https://en.wikipedia.org/wiki/Engineering_fit, the Ø50 worked examples, re-read through D139's record). The rows are those values cited to the page: test rows, not a shipped table.
+  - H8/f7 is clearance +25…+89; H7/k6 transition −18…+23; H7/p6 interference −42…−1.
+  - H7/h6, on an estimate row, is clearance 0…+41 and flagged.
+- **Ranges and misses:** over < size ≤ up to (30 misses, 50 holds). A class not loaded (g6) is a miss even though a formula could compute it.
+- **[FIT_TABLE]:** eight bad rows, overlapping ranges, adjacent ranges accepted, an empty table, a non-object.
+- **Coaxial:** at MMC and LMC the Boolean's overlap is πL(r_s² − r_h²) where the shaft is the bigger, else 0, to 1e-7, for all four fits (3–35 ms each). S0's figures come back: H7/k6 at MMC 28.2794 mm³, H7/p6 at LMC 1.5716.
+- **Off-axis:**
+  - H8/f7 with the shaft 10 µm off clears (margin 2.5 µm); 50 µm off it is contradicted.
+  - The overlap at each condition is L(πr_s² − A), A the two circles' common area (the lens, in closed form), to 1e-6.
+- **Refusals:** a plane, a shaft's face as the hole, the ring's outside as a hole, two nominal sizes, no overlap, a class not loaded.
+- **Conformance `r12c/`:** a new optional expectation, `fitChecks` (conformance/README.md; the harness `test/conformance.test.mjs` runs it). Each check gives the tables, the faces { output, face, class }, the kind, the clearance, the MMC and LMC overlaps and contradicted, or an error.
+  - `fits-ring-and-shaft`: the three fits and a miss on the coaxial pair.
+  - `fits-off-axis-contradicted`: H8/f7 with the shaft 0.05 mm off, by the lens.
+
+**Studio and model** (`@barocss/cad-model`):
+- **The document's `fits`** (`engine/fits.ts`, `StudioFits`): `{ version: 1, tables?, faces?: [{ face, class }], pairs?: [{ hole, shaft }] }`. Faces go by name as the studio shows them, so a cylinder the kernel keeps in halves (`#1`, `#2`) is one face.
+  - It is in `STUDIO_DOC_FIELDS`.
+  - It crosses to the engine worker with the part (`evaluatedPart`, as FRc's section library), so the evaluation key follows it.
+- **Evaluation** (`fitNotes`, after the outputs):
+  - Each class is resolved at its face's nominal size: a note on the body, for example "n1.hole0.side0: Ø12 H7 +0.018/0 mm — 12 to 12.018 (shop-fits row 0, an estimate)". An estimate row makes the note a warning.
+  - Each pair gets checkFit's message and the MMC and LMC verdicts on the shaft's body. Each pair's check is kept per pair of B-reps and classes.
+  - **Refusals** (as D139 froze them): a class with no row, a class on the wrong kind of face, or a contradicted clearance fit. Each has a friendly title and hint: "A fit class has no row in your fit tables", "A fit class does not suit its face", "The fit does not hold".
+- **Commands** (group inspect, icon `cad-fit`):
+  - **Fit class:** one cylindrical face. Its class is a choice of the loaded tables' classes, holes first, or none to clear it. With no table it is unavailable: "Load a fit table first (Library panel, FITS): none is built in."
+  - **Fit pair:** two classed faces, one a hole's and one a shaft's; declare or remove.
+- **The Library panel's FITS** (`ui/FitTables.tsx`): "Add a fit table file…" (JSON, one table or a list), each table with its rows, classes, estimates and sources (as a tooltip), remove, and the faces' classes and pairs.
+  - With no table it says "No fit tables: load your own … None is built in, and limits are never computed."
+- **Agent tools (v2):** fit-class and fit-pair are features commands, their values behind `describe`. No tool or enum is added, and tools-v2.json is unchanged.
+  - The agent cannot load a table: the user loads it, by the owner's rule. Its values say "if none is loaded, say so".
+  - The per-turn guard: 22 022 → **22 043** (the two commands' names in the features tool's list).
+- **Tests:** `test/fits.test.ts` (3); `fields.test.ts`' complete document gained `fits`.
+- **A flow step** "Fits (R12c.2, D155)":
+  - the empty FITS section; a table loaded from a file and listed;
+  - a tube and a pin, their classes and the pair through the scripted chat (features commands with faces by name);
+  - the notes, and a snapshot.
+
+**Asked of the outer lane** (D139: theirs):
+- the drawings' fit callouts showing limits from the loaded table (`model/drawing`);
+- the A3 query `fit_clearance` (`chat/spec.ts`).
+`fitLimits`, `checkFit` and the document's `fits` are what they read.
+
+**Not in this stage:**
+- GD&T beyond the size fit;
+- tolerance stack-ups;
+- fits on non-cylindrical features (keys' widths: R12c.3's pair checks will call `fitLimits` on a key's faces);
+- a table editor in the studio (the file is edited outside, as the bend tables).
+
+**Checks** (rules v2: no brep core changed, since `fits.ts` is new and calls the Boolean, so no full kernel suite), on 19a3ae560 (this change's code, before one studio test's fix) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean.
+- The R12c tests and the full conformance suite (its harness changed): 243/243, 161 s.
+- `@barocss/cad-model`: type-check clean, 665/665, 90 s; the guard test 22 043 a turn.
+- Studio: type-check clean, 191/192 at first. `chat.test` "every buildable command is exposed and documented" needs a context in which each command is available. Fit class and Fit pair got one (a tube and a pin with a table and classes), checking their documented keys against their fields. After that fix the studio suite is 192/192 (in this tree, 16 s).
+- Test names: none missing in what ran (cad-model +9: D155's 3 and the merged lanes'; studio unchanged; kernel +7 in the R12c and conformance scope).
+- `FLOW_ONLY` "Fits (R12c": 1/1 (with the starter step).
+
+Not run:
+- The full kernel suite (no brep core change).
+- RB and properties (the 3rd kernel checkpoint after the T3: the 4th is the next).
+- The full browser flow (the coordinator's).
+
+## D156 — R12c.3a: shafts — steps, fillets, chamfers, undercuts, ring grooves, keyseats and cross holes (2026-10-22)
+
+R12c.3 as D139 froze it, split in two by scope, as R12b.1 and R12c.1 were:
+- **R12c.3a (this record):** the shaft kind with its keyseats, ring grooves and cross holes.
+- **R12c.3b (next):** keys, hub keyways, rings and pins as parts, and their pair checks (the key's width fit through R12c.2, its top clearance h − t1 against t2, its length in the seat; a ring's groove against the ring's rows; a pin's hole fit).
+
+The owner's data rule holds: key, ring and pin sizes are the user's, and no standards table is built in. The command's prefills (a 6 × 3.5 seat on Ø20, a Ø19 × 1.3 groove: D139's K1 and R1 sizes) are labelled estimates in the HUD, as FR1's section prefills are.
+
+**Kernel** (`shaft.ts`; exported `shaftSolid`, `ShaftError` and the types):
+- **The shaft in its own frame:** axis +Z from z 0. Its half-section in y = 0 walks out along the first end, along each step and shoulder, and back down the last end to the axis.
+  - Each piece carries a side tag (R10a), so the revolved faces are named.
+  - It is revolved exactly: a part document's loop sketch and revolve.
+- **The profile's features:**
+  - **Fillet:** a shoulder fillet is a concave quarter circle in the smaller step's corner, on either side of the shoulder.
+  - **Undercut:** a rectangular relief { width, depth } in the smaller step against its shoulder (not with a fillet).
+  - **Chamfers:** 45° at the ends.
+  - **Ring groove:** { diameter (its bottom), width, at } on a step.
+- **Keyseats by the analytic Boolean:** { width b, depth t1, length, offset, ends, angle about the axis, cutterRadius }.
+  - **square:** a box from R − t1 out.
+  - **end-mill** (default): a stadium of radius b/2, `length` overall.
+  - **disc:** a flat floor `length` long that runs out at each end along the cutter's circle (radius R_c > t1, centre R − t1 + R_c from the axis). In the axial plane that is two quarter circles and the floor, extruded across b. The seat at the surface is longer by 2√(R_c² − (R_c − t1)²).
+- **Cross holes by the analytic Boolean:** { diameter, at, angle (default 90°, along Y) }, through the shaft.
+- **Face names:**
+  - `<id>.end0`, `.end1`, `.chamfer0`, `.chamfer1`;
+  - `.seatk` (a piece after a groove or an undercut `.seatk.2` …), `.shoulders`, `.fillets`, `.undercuts`, `.undercutwalls`;
+  - `.grooveg`, `.groovewallg.1/.2` (grooves counted along the shaft);
+  - `.keyseatj`, `.holej`.
+  - Each revolved face is in halves, `#1` and `#2`.
+  - **Changed from D139's `seat#k`:** the analytic Boolean reads a trailing `#k` as a piece number and numbers the pieces again by position. So after a keyseat every `keyseat#j` became `keyseat#1 … #15` and `shoulder#1` became `shoulder`. An index written into the name survives.
+- **Refusals** (codes INVALID_INPUT, SHAFT_STEPS, KEYSEAT_DIMENSIONS, GROOVE_DIMENSIONS, and the new HOLE_DIMENSIONS):
+  - **SHAFT_STEPS:** no steps; a non-positive size; two neighbouring steps of one diameter; a fillet past its shoulder's height or longer than its step; a fillet and an undercut on one shoulder; a fillet or an undercut on the last step; an undercut to the axis or longer than its step; a chamfer past its end step's radius or length.
+  - **KEYSEAT_DIMENSIONS:** t1 at or past the axis; b no narrower than the step's chord at the floor (the sides would not stand); an end-milled seat no longer than its width; a disc cutter not larger than t1; the seat, its disc run-out included, running off its step.
+  - **GROOVE_DIMENSIONS:** a bottom at or above the step; a groove off the seat between its fillets and chamfers; grooves and undercuts meeting.
+  - **HOLE_DIMENSIONS:** a hole off the shaft, crossing a shoulder, or no smaller than its step.
+- **The report** (`ShaftReport`): the length; the steps' spans; each keyseat (step, ends, sizes, floor radius, length at the surface, angle, cutter); each groove; each hole; `manufacturingValidated: false`.
+- **Part model:** the kind `shaft`, its dims taking parameters; placed by `center`, `from` and `rotation`. SHAFT_STEPS and INVALID_INPUT map to INPUT, the others to GEOMETRY, with the `[CODE]` in the message.
+
+**Oracles and tests** (`test/r12c-shaft.test.mjs`, 6 tests, all failing on the previous HEAD):
+- **Pappus**, V = π∫r(z)² dz on the test's own half-section, by Gauss–Legendre per piece:
+  - steps 25/20/30 with fillets 1 (down) and 1.5 (up) and chamfers 1 and 0.5: 34356.437003 against 34356.436902 (rel 3e-9; the Gauss pieces at the fillets' square-root ends carry the 1e-4);
+  - an undercut and a DIN 471-size groove (D139 R1's Ø19 × 1.30 on Ø20, test values): to 1e-6.
+  - The faces are named as above.
+  - STEP round trip.
+- **Keyseats on Ø20 with 6 × 3.5 × 18** (K1's sizes as test values):
+  - square: A(R − t1)·l with A in closed form (S0's 20.087441 mm² back): 361.573946 both;
+  - end-mill: (l − b)A plus the disc ends by quadrature (S0's 95.742473 back): 336.791766 against 336.791771;
+  - disc, R_c 8: l·A + 2∫₀^e A(r_c − √(R_c² − u²)) du: 544.872580 against 544.872581; the length at the surface l + 2e.
+  - Turned 180° about the axis: the same volume, on −X.
+- **A cross hole** Ø4 through Ø25: ∫4√(ρ² − x²)√(R² − x²) dx (x = ρ sin θ) to 1e-6; genus 1.
+- **Refusals:** seven SHAFT_STEPS, seven KEYSEAT_DIMENSIONS, four GROOVE_DIMENSIONS, three HOLE_DIMENSIONS.
+- **Part model:** a parameter for a diameter; placed and turned; the codes mapped.
+- **Conformance `r12c/`:**
+  - `shaft-steps-fillets`: Pappus' volume and centroid by Simpson, relTol 1e-8; the face names;
+  - `shaft-keyseat-square`: the closed form, the centroid's x from the cut prism's moment;
+  - `shaft-keyseat-crossing-refused`.
+- **A false alarm on the way:** the first model test was off by 0.01 mm³ on the 20/25/20 shaft. The kernel was right (each shaft to 1e-8). My own Simpson evaluated r(z) at a piece's end from the next piece. It now uses each piece's own r(z), as the kernel test always did.
+
+**Studio and model:**
+- **The `shaft` node:** steps with fillets, undercuts, grooves and keyseats; chamfers, holes, centre, from, rotation. Its label: "Shaft 3 steps Ø20–Ø25 × 95, keyed". It joins the kind lists (no parents, a body maker, migrate, flatten).
+- **The Shaft command** (create, icon `cad-shaft`):
+  - steps 1–5, each a diameter and a length, shown while the count reaches it;
+  - one fillet radius for every shoulder, and the end chamfers;
+  - a keyseat on a chosen step (width and depth labelled estimates, length, start, ends, the disc cutter's radius);
+  - a ring groove on a chosen step (diameter and width labelled estimates, start);
+  - the axis.
+  - The default is an output shaft: Ø20 × 30 keyed, Ø25 × 40, Ø20 × 25 grooved, fillets and chamfers 0.5.
+- **Edit fields:** each step's Ø and length; each keyseat's width, depth and length; each groove's Ø and width; the fillets together; the chamfers; the rotation.
+- **Notes:** the steps; each keyseat, groove and hole; "Sizes are yours … not validated" as a warning.
+- **Chat v2:** `shaft` is a features command, its values (d1–d5, l1–l5 …) behind `describe`. It adds no tool or enum, and tools-v2.json is unchanged. The per-turn guard is 22 043 → **22 060**.
+- **Tests:** `test/shaft.test.ts` (3), including the default's volume by Pappus less the end-milled seat. A flow step "Shaft (R12c.3a, D156)".
+
+**Not in this stage:**
+- R12c.3b's keys, keyways, rings and pins;
+- DIN 509-form undercuts (angled), splines;
+- keyseats across steps, threads on a step (the `thread` kind stands apart).
+
+**Checks** (rules v2: `part-model.ts` gained a case, so the full kernel suite ran; the 4th kernel checkpoint since D152's T3, so RB and properties ran too), on 4521fbe21 (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-shaft`: 6/6.
+- The full kernel suite, conformance included: 1456/1463, 6 skipped, 278 s. Only the env-only "actual native Split source…" failed.
+- Conformance `r12c/`: 11/11.
+- `@barocss/cad-model`: type-check clean, 672/672, 94 s (the guard test: 22 060). Studio: type-check clean, 192/192, 26 s.
+- Test names against the saved lists: none missing; +9 kernel (D156's 6 and 3 conformance cases), +7 cad-model (D156's 3 and the merged lanes'), studio unchanged.
+- `FLOW_ONLY` "Shaft (R12c": 1/1 (with the starter step).
+- **RB:** 388 cases (377 at D152, plus R12c's 11 conformance cases), 0 new, the 8 known TODOs (the cylinder–box grazes and the helical-pair crossing), 125 s. The row is in the commit after this one.
+- **Properties:** 11/11, 176 s.
+
+Not run:
+- The full browser flow (the coordinator's).
+
+## D157 — R12c.3b: keys, hub keyways, retaining rings and pins on shafts (2026-10-22)
+
+R12c.3's second half (D156's split): what goes on a shaft, each part with its pair checks.
+- **Data:** the sizes are the user's, from their own rows. The commands' prefills are labelled estimates, and none is built in.
+- **Fits:** where a pair is a fit (a key's width in its seat and keyway, a pin in its hole), the classes and the user's tables go through R12c.2.
+- **Names:** indexed as D156's (`seat1`, `keyseat1`), never with a trailing `#k`.
+
+**Kernel** (`shaft-parts.ts`; exported `keySolid`, `keywayCut`, `ringSolid`, `pinSolid`, `ShaftPartError` and the types; the new codes `KEY_FIT`, `RING_FIT` and `PIN_FIT`):
+- **The shaft's placement.** The shaft kind's part now carries its placement (`shaftPlace`: its turn and offset). A key, ring or pin is built in the shaft's own frame and placed with it. It refers to the shaft feature without consuming it, as a meshing gear refers to its mate.
+- **A key** in keyseat k: { height (the user's), width and length (default the seat's), ends round | square (default round in an end-milled seat, else square) }.
+  - It sits on the seat's floor, centred along the seat, turned to the seat's angle.
+  - **Checks:**
+    - its length within the seat, a square-ended key in an end-milled seat having the straight part only;
+    - its width against the seat's: wider is KEY_FIT ("model it at the seat's width and declare its width fit");
+    - the seat play and how far it stands above the shaft (h − t1), reported.
+  - **With a hub keyway** (KEY_FIT otherwise for each):
+    - the bore on the shaft's axis (≤ 1e-6 mm off);
+    - the keyway over the seat (directions equal to 1e-9);
+    - the keyway's width against the key's;
+    - the top clearance (r_h + t2) − (R − t1 + h) > 0, which is t1 + t2 − h with the bore at the shaft's size.
+  - **With fit classes** `{ tables, key, seat?, hub? }`: `fitLimits` on the seat's and the hub's widths, at the seat's nominal width.
+    - As R12c.2's rule has it, the key is then modelled at that width: a 6.01 key with classes is refused, because the classes carry the limits.
+    - This is the same machinery as R12c.2. A width is planar, so `fitLimits` serves, not `checkFit`'s cylinders.
+- **A hub keyway** on a bore face: { width, depth t2 from the bore's surface on the centre line, angle about the bore from its reference direction (+X projected, else +Y) }.
+  - It is cut through the face's axial extent by the analytic Boolean (the tool starts inside the bore's air), its faces `<id>.keyway`.
+  - It reports the bore's radius, the floor's radius r + t2, the axis and the direction.
+  - KEY_FIT on a face that is no bore, or a keyway no narrower than its bore.
+- **A retaining ring** in groove g: { thickness, outer diameter (its envelope), row? }. The row is the user's ring row { shaftDiameter?, grooveDiameter?, grooveWidth?, source | estimate }.
+  - Its envelope runs from the groove's bottom to its outer diameter, centred in the groove.
+  - **RING_FIT:** a ring thicker than its groove, an outer diameter not above the groove's, or the row's sizes against the step's and the groove's (each naming both).
+  - Without a row, or with `estimate`, the report says estimate.
+- **A pin** in cross hole h: { diameter (default the hole's), length (default the step's diameter, flush) }, centred on the axis along the hole, its cylinder `<id>.side0` for a fit class.
+  - Larger than its hole is PIN_FIT unless `fit` says classes declare it. In the studio the classes go on the pin's and the hole's faces, and Fit pair checks them by `checkFit`.
+- **Part model:** the kinds `key` { shaft, keyseat, height, width?, length?, ends?, hub?, fit? }, `keyway` { target, face, width, depth, angle? } (consumes its target), `retaining-ring` { shaft, groove, thickness, outerDiameter, row? } and `pin` { shaft, hole, diameter?, length?, fit? }.
+  - The outputs' `key`, `keyway`, `ring` and `pin` are the reports.
+  - A key on a body that is no shaft is REFERENCE.
+
+**Oracles and tests** (`test/r12c-shaft-parts.test.mjs`, 5 tests, all failing on the previous HEAD):
+- **A round-ended 6 × 6 × 18 key** in the end-milled seat (D139 K1's sizes as test values): (l − b)bh + π(b/2)²h to 1e-9; on the floor at 6.5, its top at 12.5, z 5–23.
+- **The hub's keyway** 6 × 2.8 in a Ø20 bore, 18 long: L·∫_{|v|≤3}((r + t2) − √(r² − v²))dv in closed form, to 1e-6.
+- **The key's stand and clearance:** h − t1 = 2.5 and t1 + t2 − h = 0.3, S0's figure.
+- **KEY_FIT cases:**
+  - too long, and a square-ended key in the round-ended seat (12 mm only);
+  - too wide;
+  - 6.4 high under the keyway;
+  - a keyway turned 90° ("90° round from it");
+  - a bore 0.5 mm off the axis.
+- **Fits on the width:** N9/h9 on the seat is transition −30…+30 µm, JS9/h9 on the hub −15…+45 (test rows flagged estimates).
+- **A ring** 1.2 thick to Ø24 in the Ø19 × 1.3 groove (R1's sizes): π(12² − 9.5²)·1.2 to 1e-9, centred (z 30.05–31.25), the play 0.1, the row's source carried; RING_FIT for a thick ring and for two mismatched rows; INVALID_INPUT for a row with neither a source nor an estimate.
+- **A pin** Ø4 through the Ø25 step along Y: π·2²·25, flush ±12.5, at z 55; PIN_FIT for Ø4.01 unless `fit`.
+- **The part model:** the shaft turned 90° and moved to (50, 0, 10). The key follows: on +Y, z 15–33. The pin lies along X. The shaft stays an output. The four codes are mapped.
+- **Conformance `r12c/`:**
+  - `shaft-key-hub-ring-pin`: the five outputs' volumes by closed forms and S0's quadratures, all to 1e-8 (measured within 2e-10); the key's, ring's and pin's centroids by symmetry; the face names;
+  - `key-too-high-refused`.
+
+**Studio and model:**
+- **Nodes** `key`, `keyway`, `retaining-ring` and `pin`.
+  - A key, ring or pin refers to its shaft (and a key to its hub keyway) through `usesOf`, so the shaft cannot be deleted from under them.
+  - The keyway is built on its body (its parent).
+  - `renumber` and `renameNode` (`chat/features.ts`) carry their references and the keyway's face name: the one change there, needed for the references.
+  - Labels and kind lists.
+- **Commands** (icon `cad-key`):
+  - **Key** (create): a shaft selected; seat, height (estimate), width and length (0: the seat's), ends, the hub keyway (a choice of the document's keyways, the newest by default).
+  - **Keyway** (modify): one bore selected, its face's normal toward its axis; width and depth t2 (estimates), angle.
+  - **Retaining ring** (create): a shaft with a groove; groove, thickness and outer Ø (estimates; prefilled as the groove's width less 0.1, and its Ø + 5).
+  - **Pin** (create): a shaft with a cross hole; hole, Ø (0: the hole's), length (0: flush).
+- **Notes:**
+  - the key's plays, stand and clearance under the keyway, or a warning that no hub is checked;
+  - the keyway's sizes;
+  - the ring's play, with "an estimate: your ring's row gives them";
+  - the pin's clearance;
+  - "Sizes are yours … not validated".
+- **Not in the studio:** the key's width classes. Its classes would need planar faces in Fit class, which takes cylinders. They are in the kernel and the part model (`fit`). A ring row's source likewise: the studio's ring is an estimate until the user's row is loaded. A ring-row loader waits, like a table editor.
+- **Chat v2:** four features commands, their values behind `describe`. There is no new tool or enum, and tools-v2.json is unchanged.
+  - The per-turn guard is **22 252**, measured on 8788eafec plus this change: 22 228 with O124's fit_clearance, +24 for the four names.
+- **Tests:**
+  - `test/shaft-parts.test.ts` (3): the default shaft, a tube hub over its seat, its keyway, the key, a ring and a pin through the commands. Their notes and volumes check against the closed forms, and the shaft cannot be deleted from under them. Refusals; describe.
+  - Studio `chat.test`: contexts for the four commands.
+  - A flow step "Shaft parts (R12c.3b, D157)" through the scripted chat.
+
+**Not in this stage:**
+- Woodruff keys and tapered or gib-head keys;
+- key and shaft strength;
+- the ring's lugs and installed spread;
+- internal (bore) rings;
+- grooved or spring pins.
+
+**Checks** (rules v2: `part-model.ts` gained cases, so the full kernel suite ran), on 6d8115ef3 (this change's code before two fixes in the studio's tests and one label, below) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-shaft-parts` with `r12c-shaft`: 11/11.
+- The full kernel suite, conformance included: 1462/1470, 6 skipped, 300 s.
+  - It failed the env-only "actual native Split source…".
+  - It failed the timed D104 SubD test ("under 3.5 s"). That test passed alone in 1.9 s: a load flake, rerun alone as the rules say.
+- Conformance `r12c/`: 13/13.
+- `@barocss/cad-model`: type-check clean, 688/688, 177 s (the guard test: 22 252). Studio: type-check clean, 192/192, 29 s.
+- Test names against the saved lists: none missing (D104's counted from its rerun); +7 kernel, +16 cad-model (D157's 3 and the merged lanes'), studio unchanged.
+- `FLOW_ONLY` "Shaft parts (R12c": it failed at first, on the step's own fault. It picked the outliner's first row matching /Key/, which was "Tube · Keyway …", so it read the hub's notes.
+  - The step now matches the key's row. The key's label went from "Key = × 6 in keyseat 1" to "Key 6 high in keyseat 1", and its model test moved with it.
+  - Rerun alone: 1/1 (with the starter step), and `shaft-parts` 3/3.
+  - The snapshot shows the keyway in the hub over the seat.
+
+Not run:
+- RB and properties (the 1st kernel checkpoint since D156's run).
+- The full browser flow (the coordinator's).
+
+**D157 fix — the palette (2026-10-22, the coordinator's report on 8788eafec's window flow).**
+- **The failure.** 21 steps failed: every one that rounds or chamfers through the palette, step 31 alone too.
+  - D156's Shaft keywords held "fillet chamfer key groove …", so "fillet" + Enter opened Shaft, which has no Radius field.
+  - The palette keeps the commands available here first. Fillet is unavailable with nothing picked, so the always-available Shaft came ahead of it.
+- **The cause.** I ran FLOW_ONLY for my own steps only. A new command's label and keywords touch the palette, so the steps that drive the palette with nearby words are affected too.
+- **The fix** (579bddc47):
+  - The R12c commands' keywords name themselves only. Shaft is "shaft stepped axle turned" (its "spindle" held "pin"). Key, Keyway, Retaining ring, Spring and Fit class/pair are trimmed (they held "hole", "interference", "bore", "shaft", "clearance").
+  - The Pin's label is "Dowel pin", since the gears' "pinion" holds "pin".
+  - The palette's filter and order moved, unchanged, into `ui/paletteList.ts`.
+  - **The pin:** `test/palette.test.ts` types each command's label with nothing picked (an empty part, and a plate) and checks that the command comes first, plus the flow's own palette words. Six collisions older than R12c (Pipe, Sweep, Flange, Frame, Tube, Move) are named there; they wait for the outer lane's change that ranks an exact label first, and the list must only shrink.
+- **The rule from here:** run FLOW_ONLY on the palette-driven steps for nearby words with every new command, not only its own step.
+- **Checks:** the studio suite 193/193 with the new test. One chat-server test, "reports a missing CLI…", failed in the full run and passed alone (a load flake). cad-model's R12c and toolset tests: 22/22, the guard unchanged at 22 252. FLOW_ONLY 'fillet|chamfer|round|R10|Shaft|Key|Hole|Fit|Spring' on the fixed tree: below.
+- **FLOW_ONLY on the fixed tree** (579bddc47, the detached worktree; the machine loaded, its average up to 46, so 3181 s):
+  - 74 passed, among them every step the window flow failed on 8788eafec: 31, 33, 35, 65, 84, 93, 120, 121, 154–166, and the R12c steps.
+  - 8 failed. Rerun as the rules say, they are not regressions:
+    - seven pass alone: fastener at a Ø6.6, R11.2c-1, FR3b (a timing check), R14.1, A5.2, A6.4 and IM3;
+    - "refit a curve" failed alone too, because the regex's "Fit" caught "refit" without the steps that make its rail. With its chain (import a .barocad source … extend a surface) it is 7/7.
+
+## D158 — R12c.4: bearing envelopes from the user's rows, on shaft seats and in housings (2026-10-22)
+
+R12c.4 as D139 froze it, under the owner's data rule: bearing envelopes come from the user's catalogue rows, none built in. The seats use D155's fits.
+
+**Kernel** (`bearing.ts`; exported `seatedBearing`, `bearingEnvelope`, `bearingRowProblem`, `BearingError` and the types; the codes `SEAT_ABUTMENT`, `SEAT_FIT` and INVALID_INPUT):
+- **A row** is `{ id, designation?, boreMM, outsideMM, widthMM, chamferMM?, daMinMM?, daMaxMM?, DaMaxMM?, raMaxMM?, boreDeviationUM?, outsideDeviationUM?, source | estimate }`.
+  - The deviations are the rings' [upper, lower] µm, the user's data.
+  - `bearingRowProblem` refuses:
+    - an unknown field, a non-positive size, D ≤ d;
+    - a corner too large for the section, da min above da max;
+    - a deviation not [upper ≥ lower];
+    - a row with both a source and an estimate, or neither.
+- **The envelope:** the section d…D × B with its four corners rounded r, revolved exactly (side tags).
+  - Faces `<id>.bore`, `.outside`, `.face0`, `.face1`, `.corner1–4`.
+  - A simplified envelope: not for structural calculation. There are no rolling elements, load ratings or life.
+- **`seatedBearing(row, shaft, { step, against, housing?, fit? })`:** the bearing on step k of a placed shaft, its face against the shoulder at the step's start or end.
+  - **The shaft report** (D156's) now carries each shoulder: where it stands, its two diameters, its fillet and undercut.
+  - **SEAT_FIT:** the step's diameter is not the bore's. The seat is modelled at the bore's size, and its class carries the limits, as R12c.2's rule has it.
+  - **SEAT_ABUTMENT:**
+    - no shoulder at that side, or one that steps down;
+    - the shoulder outside da min … da max;
+    - its fillet past ra max, or past the bearing's own corner r when the row has no ra max;
+    - a seat shorter than B;
+    - the shaft less the bearing losing volume (the analytic Boolean): an overlap.
+  - **The other side's location:** a ring groove on the step whose near wall lies within 1 mm of the bearing's face, or a shoulder there. Otherwise a warning: a spacer is not modelled.
+  - **In a housing:** a bore of D on the bearing's axis (SEAT_FIT otherwise). If its axial extent does not cover the bearing, that is a warning. An overlap (housing less the bearing) is SEAT_ABUTMENT.
+  - **Fits** (R12c.2): the shaft's class at d and the housing's at D, looked up in the user's tables. A class they lack is SEAT_FIT, naming the row to load.
+    - Against the rings' deviations from the row, the clearance is hole − shaft: the bearing's bore over the shaft's class, the housing's class over the OD. The kind comes from it.
+    - Without the deviations, only the seat's limits are given, and the notes say the ring's tolerance is not in its row.
+  - **Da max:** recorded from the row, not checked. The housing's shoulder is not found from its faces in this stage.
+- **Part model:** the kind `bearing` { row (inline), shaft, step, against, housing?, fit? }.
+  - It refers to the shaft and the housing without consuming them, as D157's parts do.
+  - The output's `bearing` is the report.
+
+**Oracles and tests** (`test/r12c-bearing.test.mjs`, 5 tests, all failing on the previous HEAD):
+- **The row:** D139's B1, the NSK 6204 page: d 20, D 47, B 14, r 1; da 25–26.5, Da max 42, ra max 1. It is a test row citing that page. The rings' deviations and the fit rows are test values flagged estimates.
+- **The envelope:** Pappus on the rounded section, S0's construction (the rectangle less four corner squares plus quarter discs): 19800.6522 mm³, to 1e-6; valid, genus 1, the faces named.
+- **The rows refused:** seven cases.
+- **On the Ø20 seat against the Ø25 shoulder:**
+  - z 30–44, D/2 23.5;
+  - its other side by the ring groove 0.2 mm off;
+  - the overlap 0, to 1e-9 of the shaft, as S0's "untouched";
+  - a fillet r 0.8 clears the bearing's r 1 corner.
+  - Against the seat's end there is no shoulder, so it is refused. With no groove, or a groove 2 mm off, the side is not located.
+- **Refusals:**
+  - SEAT_ABUTMENT: Ø27 above da max 26.5, Ø24.5 below da min 25, a fillet r 1.5 past ra max 1, a seat 10 long, and without ra max a fillet r 1.2 past the corner's r 1;
+  - SEAT_FIT: a Ø20.5 seat.
+- **A housing** Ø70 with a Ø47 bore, 20 long, on the axis: covered, no overlap.
+  - Off by 0.5 is SEAT_FIT; a short housing is a warning.
+- **Fits:**
+  - k5 (+11/+2) against the bore's [0, −10] is interference −21…−2 µm;
+  - H7 (+25/0) against the OD's [0, −11] is clearance 0…+36;
+  - m6, not loaded, is SEAT_FIT;
+  - without the deviations, the limits 20.002–20.011.
+- **The part model:** the shaft turned 30° and moved, the bearing at z 35 about x 60, in the housing; the shaft and the housing stay outputs; the codes mapped.
+- **Conformance `r12c/`:**
+  - `bearing-6204-seat`: the shaft, the housing and the envelope by their closed forms to 1e-9, their centroids by their moments;
+  - `bearing-shoulder-above-da-refused`.
+
+**Studio and model:**
+- **The document's `bearings`** { version 1, rows } is in STUDIO_DOC_FIELDS. It crosses to the engine worker with the fit tables (`evaluatedPart`).
+- **`editBearingRows`** checks each row. A row in use stays.
+- **The node** `bearing` { row (an id), shaft, step, against, housing?, shaftClass?, housingClass? }.
+  - `usesOf` gives the shaft and the housing; `renumber` carries them (`chat/features.ts`, the same justified touch as D157's).
+  - Its part feature takes the row inline and the document's fit tables.
+  - A row the document no longer holds is the typed `[BEARING_ROW_UNKNOWN]`.
+- **The Bearing command** (create; keywords "bearing rolling ball roller", none of them another command's label):
+  - a shaft selected; unavailable with no rows: "Load your bearing rows first (Library panel, BEARINGS): none is built in.";
+  - the row, the step, against start or end (defaulted to the first step and side whose shoulder holds the row's bore), the housing (a body), the shaft seat's and the housing seat's classes from the fit tables.
+- **The Library panel's BEARINGS** (`ui/BearingRows.tsx`): "Add a bearing rows file…", the rows with their sizes and sources, remove.
+- **Notes:**
+  - the row and its source (a warning when an estimate);
+  - the seat (its span, the shoulder, the other side's location);
+  - the housing;
+  - each fit's limits and its kind with the ring;
+  - the warnings;
+  - "A simplified envelope: not for structural calculation".
+- **Friendly errors** for `[BEARING_ROW_UNKNOWN]`, `[SEAT_ABUTMENT]` and `[SEAT_FIT]`.
+- **The icon** `cad-bearing`.
+- **Chat v2:** a features command, its values behind `describe`; no tool or enum. The agent cannot load rows (the user's).
+- **Tests:**
+  - `test/bearing.test.ts` (3): no rows then the user's row, the default shaft, a housing, k5, the notes, the worker crossing, a row in use kept, the shaft not deletable, the refusals, describe;
+  - `fields.test.ts` gained `bearings`;
+  - studio `chat.test`: a context for Bearing;
+  - `palette.test`: Bearing first for "Bearing".
+- **A flow step** "Bearing (R12c.4, D158)": the rows loaded in the Library panel, the shaft and the bearing through the scripted chat, the notes.
+
+**Not in this stage:**
+- the housing's shoulder against Da max (found from its faces);
+- spacers as parts;
+- load ratings, life and internal clearance;
+- angular-contact pairs and preload;
+- bearings as LIB1 library parts: the kind takes the row instead, the same data.
+
+**Checks** (rules v2: `part-model.ts` gained a case, so the full kernel suite ran), on 273b06d7e (this change's code before one test's type fix) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-bearing`: 5/5.
+- The full kernel suite, conformance included: 1470/1477, 6 skipped. The machine was loaded and it took 3761 s. Only the env-only "actual native Split source…" failed.
+- Conformance `r12c/`: 15/15.
+- `@barocss/cad-model`: 696/696, 91 s.
+  - Its type-check failed there on `bearing.test.ts`: a deviation literal typed number[] where the row takes [number, number]. My local type-check had run before that test was written.
+  - Fixed with the tuple; the type-check is now clean, and `bearing` is 3/3.
+- Studio: type-check clean, 194/194 (`palette.test` and the Bearing context in `chat.test` included).
+- Test names against the saved lists: none missing; +7 kernel, +8 cad-model, +2 studio.
+- `FLOW_ONLY` "Bearing (R12c" and "fillet a box top edge from the palette": 2/2 (with the starter step).
+  - No palette word in the flow holds the Bearing command's keywords ("bearing rolling ball roller"), so the palette steps' sample was fillet's.
+
+Not run:
+- RB and properties (the 2nd kernel checkpoint since D156's run).
+- The full browser flow (the coordinator's).
+
+## D159 — R12c.5: O-ring glands from the user's rows, the ranges as estimates, the ring as an exact torus (2026-10-22)
+
+R12c.5 as D139 froze it, under the owner's rule "O-링 범위와 스프링 G는 추정값으로 표시해".
+- **The gland's sizes** come from the user's rows: the ring's row, the groove the user gives. No ring is built in.
+- **The guidance ranges** are data. They ship as D139's O2 values flagged estimates, and the user's ranges citing their source take their place.
+
+**Kernel** (`oring.ts`; exported `glandCheck`, `glandCut`, `oringInGland`, `oringRowProblem`, `O2_RANGES`, `GlandError` and the types):
+- **A ring row** is `{ id, dash?, insideDiameterMM, crossSectionMM, source | estimate }` (checked: sizes above 0, a source or an estimate, no unknown field).
+- **The ranges** are `{ squeezePercent: [lo, hi], fillPercent: [lo, hi], stretchMaxPercent, source?, estimate? }`.
+  - The defaults are O2's (Fictiv's gland design guide, read for D139): squeeze 18–25 % for radial glands and 20–30 % for face glands; fill 75–85 %; stretch ≤ 5 %. They are `estimate: true`.
+- **`glandCheck`:**
+  - **The kinds:**
+    - piston: a shaft's groove sealing on a bore Ø; h = (D_bore − D_g)/2; the ring stretched on the groove's bottom;
+    - rod: a bore's groove sealing on a rod Ø; h = (D_g − D_rod)/2; the ring stretched on the rod;
+    - face: a flat face's groove, its depth h, its inner Ø.
+  - **The stretched section** by the torus's volume, r'²(R_b + r') = r²(ID/2 + r).
+  - **Squeeze** (CS − h)/CS, nominal and stretched.
+  - **Fill** πCS²/4 over w·h, nominal and stretched. The checks use the stretched values.
+  - **At the fit's extremes:** with the seal's and the groove's classes (R12c.2), the depth between their limit sizes gives the squeeze's range.
+  - **GLAND_DIMENSIONS:** no depth; no squeeze (h ≥ CS'), at nominal or at the extremes; fill ≥ 100 %; a class the tables lack.
+  - **Warnings**, each against the ranges, each saying "(an estimate)" when the ranges are:
+    - SQUEEZE_RANGE;
+    - FILL_RANGE;
+    - STRETCH_RANGE: above the maximum, or loose (negative).
+- **`glandCut`:** the groove cut by the analytic Boolean, faces `<id>.groove`.
+  - piston: an annulus from the groove's bottom out, on a shaft's outside, `at` along the face from its start;
+  - rod: from inside the bore's air to the groove's bottom, in a bore;
+  - face: an annulus of the inner Ø and the width, `depth` into a flat face about its centre.
+  - **GLAND_DIMENSIONS** (each saying which): a face of the wrong kind (a piston groove on a bore, or the reverse; a face groove off a flat face); the groove off the face's extent; its bottom not past the face; the centre off the face's plane; the groove cutting through the wall (the body splits).
+- **`oringInGland`:** the ring as the stretched torus at rest on the groove's bottom, centred along a radial groove, or on a face groove's bottom against its inner wall.
+  - **Its free overlap** with the sealing surface (beyond the bore, inside the rod, above the face) by the analytic Boolean: the ring less its own side of the surface, measured directly.
+  - A first version took the torus's whole volume less the kept part. It carried the quadrature's error of the whole, 2–3e-6 mm³, so the overlap is now measured directly.
+  - The squeezed ring's shape is not modelled: an elastomer's deformation, out of scope (D139).
+- **Part model:** the kinds
+  - `oring-gland` { target, face, gland, ring (inline), groove { diameter, width, at?, depth?, center? }, seal?, ranges?, fit? }: it consumes its target; the output's `gland` is the report;
+  - `oring` { gland }: it refers to the gland; the output's `oring` is { ring, overlapMM3, stretchedCrossSectionMM }.
+
+**Oracles and tests** (`test/r12c-oring.test.mjs`, 6 tests, all failing on the previous HEAD):
+- **The ring and the gland:** D139's O1 (AS568-214: CS 3.53, ID 24.99) is a test row citing its chart. S0's gland: groove Ø25.5, bore Ø31.1, 4.7 wide.
+- **The arithmetic,** with the stretched section by bisection (another solver than the kernel's iteration). S0's figures come back:
+  - stretch 2.04 %;
+  - the section 3.5006;
+  - squeeze 20.7 % nominal and 20.0 % stretched;
+  - fill 74.4 % nominal, 73.1 % stretched, which is under O2's 75 %: FILL_RANGE, "(an estimate)".
+- **The user's own ranges** with a source: no warning, nothing said to be an estimate.
+- **Refusals and warnings:**
+  - GLAND_DIMENSIONS: no depth, no squeeze, a full groove, a face gland without its depth;
+  - SQUEEZE_RANGE at a Ø30.6 bore;
+  - STRETCH_RANGE above 5 % and when loose;
+  - the rows and the ranges checked.
+- **The fit's extremes:** H8 on the bore and h9 on the groove (test rows) give the depth 2.8 … 2.8455, so the squeeze's range by hand. A class not loaded is refused.
+- **Piston:**
+  - the groove's removal π(R² − r²)w to 1e-6;
+  - the torus 2π²R'r'² to 1e-9;
+  - the free ring's overlap with the bore by Pappus on its circular segment, V = 2π(R' + ȳ)A, to 1e-6: 136.48580, S0's figure;
+  - centred at z 8.35.
+- **Rod** (a test ring flagged an estimate):
+  - the groove's removal;
+  - the ring at rest on the groove's bottom, its overlap with the rod on its inner side, 2π(R' − ȳ)A;
+  - the stretch on the rod.
+- **Face** (a plate's top, the ring ID 29.5):
+  - the groove's removal π((R + w)² − R²)h;
+  - its overlap under the flange, 2πR'A (the chord square to the axis);
+  - O2's face ranges.
+- **Cut refusals:** a piston groove on a bore, a groove off its face, a groove through a tube's wall.
+- **The part model:** the overlap 136.4858; the codes mapped; an O-ring on a body that is no gland is REFERENCE.
+- **Conformance `r12c/`:**
+  - `oring-piston-gland`: the grooved piston and the torus by their closed forms to 1e-9, centred at z 8.35;
+  - `oring-gland-no-squeeze-refused`.
+
+**Studio and model:**
+- **The document's `orings`** { version 1, rows } is in STUDIO_DOC_FIELDS and crosses to the worker with the fit tables. `editORingRows` keeps a row in use.
+- **Nodes:**
+  - `oring-gland` { parent, face, gland, ring (an id), diameter, width, at?, depth?, center?, seal?, sealClass?, grooveClass? }: built on its body; its part feature takes the row inline and the fit tables; a row gone is `[ORING_ROW_UNKNOWN]`;
+  - `oring` { gland }: `usesOf` gives its gland. `renumber`, `renameNode` and the named faces carry the gland and its face (`chat/features.ts`, as D157).
+- **The O-ring gland command** (modify, keywords "o-ring oring gland"):
+  - one face picked; its kind from it (a flat face, a bore, or a shaft's outside, by its normal against its axis);
+  - unavailable with no rows;
+  - the ring row; the seal Ø (piston: the face + 0.1, rod: − 0.1);
+  - the groove's bottom Ø from 20 % squeeze, its width from 80 % fill, centred along the face, each labelled "(… an estimate)". A face gland's inner Ø is the ring's ID and its depth comes from 25 % squeeze;
+  - it adds the gland and the ring.
+- **Notes:**
+  - the gland: the ring and its source, or an estimate; the groove;
+  - stretch, the stretched section, squeeze nominal and stretched (and at the extremes), fill;
+  - the ranges, with "estimates: Fictiv …" as a warning;
+  - each warning;
+  - the ring: its overlap, and "its squeezed shape is not modelled".
+- **The Library panel's O-RINGS** (`ui/ORingRows.tsx`), friendly errors for `[ORING_ROW_UNKNOWN]` and `[GLAND_DIMENSIONS]`, and the icon `cad-oring`.
+- **Chat v2:** a features command, its values behind `describe`. The agent cannot load rows.
+- **Tests:**
+  - `test/gland.test.ts` (3): no rows then O1, a piston gland at S0's sizes through the command, the prefills checked by hand, the notes and the overlap, the worker crossing, a row in use; a face gland about a plate's centre; a refusal; describe;
+  - `fields.test.ts` gained `orings`;
+  - studio `chat.test`: a context;
+  - `palette.test` passes with "O-ring gland".
+- **A flow step** "O-ring gland (R12c.5, D159)".
+
+**Not in this stage:**
+- the squeezed ring's shape, extrusion gaps and back-up rings;
+- dynamic (reciprocating, rotary) glands' own ranges: they are data the user can give, and O2's radial range is the static one;
+- material compatibility;
+- O-rings as LIB1 library parts: the gland takes the row instead.
+
+**Checks** (rules v2: `part-model.ts` gained cases, so the full kernel suite ran), on df549b020 (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-oring`: 6/6.
+- The full kernel suite, conformance included: 1477/1485, 6 skipped, 344 s.
+  - It failed the env-only "actual native Split source…".
+  - It failed the timed D151 test ("exports in a few seconds"). That test passed alone in 4.1 s; the load average was up to 41: a flake, rerun alone.
+- Conformance `r12c/`: 17/17.
+- `@barocss/cad-model`: type-check clean, 699/699, 118 s. Studio: type-check clean, 194/194, 22 s (`palette.test` with "O-ring gland").
+- Test names against the saved lists: none missing (D151's from its rerun); +8 kernel, +3 cad-model, studio unchanged.
+- `FLOW_ONLY` "O-ring gland (R12c" and "fillet a box top edge from the palette": 2/2 (with the starter step).
+  - No flow palette word holds the new keywords ("o-ring oring gland").
+
+Not run:
+- RB and properties (the 3rd kernel checkpoint since D156's run; the 4th, R12c.6a, runs them).
+- The full browser flow (the coordinator's).
+
+## D160 — R12c.6a: disc cams and followers under closed-form laws; pressure angle and undercut against closed forms (2026-10-22)
+
+R12c.6a as D139 froze it, with the coordinator's rule: the motion laws come from closed forms derived and cited, never a table, and the pressure angle and the undercut are checked against closed forms.
+
+**The laws** (`cam.ts`, `camLaw(law, u)` → f, f', f'' on u ∈ [0, 1], f(0) = 0, f(1) = 1), each integrated by hand in the module's header, from no table or handbook:
+- **uniform** f = u. Its velocity steps at both ends, so it is always refused (below).
+- **harmonic** f = (1 − cos πu)/2. Its acceleration steps at a dwell: an ACCELERATION_STEP warning (infinite jerk).
+- **cycloidal** f = u − sin(2πu)/(2π).
+- **polynomial-345** f = 10u³ − 15u⁴ + 6u⁵: the least degree with f, f' and f'' fixed at both ends.
+- **modified-trapezoid:** the acceleration is a quarter sine to u = 1/8, flat A to 3/8, a half cosine through zero to −A at 5/8, flat to 7/8, then a quarter sine back to 0.
+  - Integrated twice piece by piece, f(1) = 1 gives A(1/8 + 1/(4π)) = 1, so A = 8π/(π + 2) = 4.8881. The peak velocity is A(1/4 + 1/(2π)) = 2.
+- **The peaks** `camLawPeaks` (Cv, Ca), from the same forms: harmonic π/2 and π²/2; cycloidal 2 and 2π; 3-4-5 15/8 and 10/√3 (where f''' = 0, u = (3 − √3)/6); modified trapezoid 2 and 8π/(π + 2).
+- **A segment** from p0 to p1 over β: s = p0 + Δf(u), s' = Δf'/β, s'' = Δf''/β², per radian of the cam's turn.
+
+**The frame:** the cam turns counter-clockwise about +Z by θ, and the follower sits above it.
+- A translating follower moves along +Y on the line x = e (its offset).
+- An oscillating follower swings about a pivot at (a, 0), the arm at ψ = ψ0 + s from the line to the centre.
+- The profile is in the cam's frame, Rot(−θ) of the world.
+
+**Roller followers** (the pitch curve P = Rot(−θ)C, C the roller centre's world path):
+- P' = Rot(−θ)(C' − JC) and P'' = Rot(−θ)(C'' − 2JC' − C), so κ = (Q1 × Q2)/|Q1|³ in the world frame. P runs clockwise, so κ < 0 where it is convex.
+- **The profile** is P less r_r along the outward normal JQ1/|Q1|. Its tangent is P'(1 + r_r κ), exact, so the Hermite fit takes exact end tangents.
+- **Undercut** (CAM_UNDERCUT): the pitch curve's least convex radius is at most r_r. The search is dense sampling per segment plus golden section.
+- **Pressure angle:** the angle between the pitch curve's normal and the follower's motion.
+  - Translating: tan φ = (s' − e)/(d + s), d = √(R_p² − e²) (Norton's form).
+  - Oscillating: C = (a − l cos ψ, l sin ψ), cos ψ0 = (a² + l² − R_p²)/(2al), the motion ⊥ the arm.
+
+**Flat-faced followers** (the face is a line n·X = h; in the cam's frame at angle β):
+- The profile is the lines' envelope K = h m + h_β Jm, its radius of curvature ρ = h + h_ββ and its tangent ρβ'Jm.
+  - Translating: h = r_b + s, so ρ = r_b + s + s'' (Norton's form). The contact is at s' along the face, and the pressure angle is 0.
+  - Oscillating: n = (sin ψ, cos ψ), h = a sin ψ − c (the face c from the pivot toward the cam), sin ψ0 = (r_b + c)/a.
+    - The pressure angle is atan(c/t), t the contact's distance from the pivot along the face: 0 for a face through the pivot.
+- **Undercut** where ρ ≤ 0, or where the face turns faster than the cam (1 + ψ' ≤ 0).
+- **The face's contact** range is reported; `faceWidthMM` is checked against it: a FACE_WIDTH warning.
+
+**A velocity step** at a joint is a corner in the cam's path.
+- Every law but uniform starts and ends at rest. So any cam with a uniform segment has a step at which the velocity drops.
+- For a roller, or for a translating flat face, that step is a convex corner: radius of curvature 0 (or ρ → −∞). It is refused CAM_UNDERCUT, naming the step and where it is.
+- For an oscillating flat face the sense depends on cos ψ. A step with no convex corner is refused INVALID_INPUT ("the profile would need a flat there, not built").
+- So uniform stays in the law set and its refusal says why. The command's form does not offer it.
+
+**The pressure angle's limit** defaults to 30° translating and 35° oscillating.
+- These are rule-of-thumb estimates, flagged, like O2's ranges (D159). (Wording fixed after review, D160 fix: they are attributed to no source, since none was read.) A user's limit replaces them, and a PRESSURE_ANGLE warning is raised above the limit.
+
+**The fit:** Hermite cubics in θ per segment, pieces broken at the segment joints. Each segment starts at ⌈32 β/2π⌉ pieces, doubling until its parameter-matched deviation (23 samples a piece, an upper bound on the distance) is within the tolerance.
+- The tolerance defaults to 1e-4 of the base radius.
+- The budget is 2048 pieces (PROFILE_BUDGET_EXCEEDED).
+- S0's cam: 34 pieces, 3.8e-4 mm.
+
+**The follower's displacement on the built profile** (D139's check), every half degree, from the law's position by secant steps:
+- a roller: the least distance from its centre to the built pieces (sampled, golden-section refined) less r_r;
+- a flat face: its offset less the built profile's support along its normal.
+- S0's cam: within 3.8e-4 mm of the law.
+
+**Solid and part model:**
+- **`discCam`:** the profile is extruded through `extrudedProfile`, with a bore (`minimumRimMM`, default 1, below the base circle).
+  - Faces `<id>.rise1#k`, `.dwell1#k`, `.return1#k` (the motions counted by kind, pieces in θ), `.bore#1/#2`, `.face0/.face1`.
+- **Exports:** `camProfile`, `camMotion`, `camLaw`, `camLawPeaks`, `CAM_LAWS`, `CamError` and the types.
+- **The kind `cam`** { base, thickness, follower, motion?, roller?, offset?, pivotDistance?, armLength?, faceOffset?, faceWidth?, segments [{ angle, to?, law? }], bore?, minimumRim?, pressureAngleLimit?, profileTolerance?, center?, from?, rotation?, generator 'cam@0' }.
+  - The output's `cam` is the report.
+  - Refusals: CAM_UNDERCUT → GEOMETRY, INVALID_INPUT → INPUT, PROFILE_BUDGET_EXCEEDED → CAPABILITY, each with its own code kept in the message. An unknown segment field is refused.
+
+**Oracles and tests** (`test/r12c-cam.test.mjs`, 9 tests, all failing on the previous HEAD: the module did not exist). Every oracle is written in the test, apart from the kernel's code:
+- **The laws:**
+  - f(0), f(1), and f', f'' against central differences;
+  - Cv and Ca against dense sampling;
+  - the ends at rest (uniform's velocity 1, harmonic's acceleration π²/2).
+- **The modified trapezoid:** its acceleration shape integrated twice by Simpson's rule, scaled so the rise is 1. A = 8π/(π + 2) comes out, not in. Cv = 2 and f within 1e-10.
+- **S0's cam** (base 20, roller 5, cycloidal 8 over 120°, 60° dwells):
+  - the pitch curve's least convex radius by the polar formula ρ = (r² + r'²)^{3/2}/(r² + 2r'² − r r''): 23.690158, S0's figure;
+  - the pressure angle by Norton's form;
+  - the volume against Green's theorem on the exact profile;
+  - the lift found on the built solid's own face curves (the highest roller centre on x = 0 touching any sampled point), within the fit's deviation over cos φ;
+  - the face names and the segments' peaks.
+- **An offset roller** (e 6): Norton's form with the offset; ρ by finite differences of the parametric pitch curve; a PRESSURE_ANGLE warning at a given 20°, not flagged an estimate.
+- **A flat translating follower** (3-4-5 rise, modified-trapezoid return):
+  - ρ = r_b + s + s'';
+  - the contact from −2·8/β to 15/8·8/β;
+  - the pressure angle 0;
+  - FACE_WIDTH at 15 mm;
+  - the lift on the built curves.
+- **An oscillating roller** (pivot 50, arm 40):
+  - ψ0;
+  - the pressure angle through Kennedy's instant centre a s'/(1 + s') on the line of centres, an independent construction;
+  - ρ by finite differences;
+  - two ACCELERATION_STEP warnings for the harmonic return;
+  - the arm's angle found on the built curves.
+- **An oscillating flat face** (pivot 60, c 0 and 5):
+  - the contact as the instant centre's foot on the face line;
+  - its range from the pivot;
+  - ρ by finite differences of those points;
+  - the pressure angle 0 and atan(c/t_min).
+- **Refusals:**
+  - uniform's step −3.819719 mm/rad at 120°;
+  - a roller 15 on base 6 with ρ 11.8433 by the polar formula;
+  - a flat face on a fast rise (ρ < 0);
+  - INVALID_INPUT: off 360°, not back at 0, no law, a position below 0, an offset past the prime circle, a bore through the base circle, an arm that never reaches the prime circle.
+- **The part model:** placed and turned with a bore (the bore's π·16·10 off S0's volume), the codes mapped, an unknown segment field, an unknown generator; `camMotion`.
+- **Conformance `r12c/`** (independent oracles: the exact profiles' area and centroid by Green's theorem, from a script that uses no kernel geometry):
+  - `cam-roller-cycloidal`: S0's cam with a Ø8 bore, relTol 1e-4;
+  - `cam-flat-345`: relTol 2e-4;
+  - `cam-oscillating-roller`: relTol 1e-4;
+  - `cam-uniform-refused`.
+
+**Studio and model:**
+- **The node `cam`** maps to the kind.
+  - Its label is "Cam for a roller follower, base R20, lift 8" (or "an oscillating flat-faced follower … swing 10°").
+  - `usesOf`, `leafBodies`, `flatten` and `migrate` know it.
+- **The Cam command** (create, keywords "cam follower", icon `cad-cam`):
+  - follower, motion, base, roller, offset, pivot, arm, face offset;
+  - the program as rise (lift, angle, law), a dwell after it, a return (angle, law); the rest of 360° is the dwell before the rise;
+  - thickness, bore, place;
+  - defaults: S0's cam with a Ø8 bore.
+  - The laws offered are cycloidal, 3-4-5, modified trapezoid and harmonic.
+- **Edit fields:** base, roller, lift or swing (scaling every position alike), thickness, bore, rotation.
+- **Notes:**
+  - the follower and its geometry;
+  - the program;
+  - the peaks;
+  - the pressure angle against its limit ("a rule of thumb, an estimate"; a warning above it);
+  - the least convex radius against the roller, or ρ and the face's contact;
+  - the fit and the sweep;
+  - the warnings;
+  - "Not validated for manufacturing".
+- **A friendly error** for `[CAM_UNDERCUT]`.
+- **Chat v2:** a features command, its values behind `describe`. The per-turn total is 22,279 (was 22,274; cap 25,000).
+- **Tests:** `test/cam.test.ts` (3):
+  - the default against the conformance volume, the notes and the label;
+  - an oscillating flat face, the lift edited, an undercut's title;
+  - describe and a features command.
+  - `palette.test` checks "cam" gives Cam first.
+- **A flow step** "Cam (R12c.6a, D160)".
+
+**Not in this stage:**
+- the follower's own solid (a roller or a lever, as library parts or the user's bodies);
+- forces, contact stress, wear, follower jump and spring sizing;
+- globoidal, cylindrical and face cams;
+- the arm's clearance with the cam;
+- the profile's flats that a velocity step would need.
+
+**Checks** (rules v2: `part-model.ts` gained a case, so the full kernel suite ran; the 4th kernel checkpoint since D156's run, so RB and properties ran), on f9eacc907 (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-cam`: 9/9.
+- The full kernel suite, conformance included: 1491/1498, 6 skipped, 1219 s (the load average up to 48). It failed only the env-only "actual native Split source…".
+- Conformance `r12c/`: 21/21.
+- `@barocss/cad-model`: type-check clean, 716/716. Studio: type-check clean, 194/194 (`palette.test` with "cam").
+- Test names against the saved lists: none missing; +13 kernel, +17 cad-model (3 of them this stage's, the rest the integration's O133), studio unchanged.
+- `FLOW_ONLY` "Cam (R12c" with the palette steps' neighbours (fillet, chamfer, round, R10, Shaft, Key, Hole, Fit, Spring): 82/85, the Cam step passing.
+  - Three failed under the load: "refit a curve" (its chain not selected: with the curve steps 49–55, 8/8), "fastener at a Ø6.6" and the FR3b frame gap. Each passed rerun alone.
+  - No flow palette word holds the new keywords ("cam follower").
+- RB: 398 cases, no new failures. The non-OK totals are unchanged (4 refused, 3 invalid, 5 wrong): the 8 known TODOs.
+- Properties: 11/11.
+
+Not run:
+- The full browser flow (the coordinator's).
+
+## D161 — R12c.6b: sprockets and chain, pulleys and belts, couplings from the user's rows; the tooth form derived (2026-10-22)
+
+R12c.6b as D139 froze it, with the coordinator's data rule:
+- chain pitch, belt sections and coupling sizes come from the user's rows;
+- the tooth forms come from closed-form geometry derived here;
+- couplings, which are bought items, carry `bought` defaults for the outer lane's BOM S1.
+
+No chain, belt or coupling table is built in, and no row in the tests or conformance is named after a standard size: they are test rows flagged estimates.
+
+**Rows** (`drive.ts`, `driveRowProblem`): one list of kinds, each citing its source or flagged an estimate, no unknown field, and sizes checked.
+- chain { pitchMM, rollerDiameterMM (< pitch), innerWidthMM?, plateHeightMM? };
+- timing-belt { pitchMM, pitchLineOffsetMM, groove: points [x along the land, depth below the outside circle], the ends on or above it, the inner points below, x not falling, thicknessMM? };
+- v-belt { angleDeg, datumWidthMM, aboveDatumMM, belowDatumMM, spacingMM, edgeMM, thicknessMM? }: the bottom width must stay above 0, the spacing and edge must take the top width;
+- flat-belt { widthMM, thicknessMM };
+- coupling { type?, boreMM [d1, d2], outsideMM, lengthMM, boreStepMM?, partNumber?, supplier? }.
+
+**Sprockets** (`sprocket`, `sprocketProfile`, `sprocketLimits`, `sprocketPitchDiameter`):
+- The seats are centred on the pitch circle R = p/(2 sin(π/z)), where neighbouring seats are p apart. The seat Ø defaults to the roller's and must be at least that.
+- **The tooth form `pivot-clearance`**, derived here and not ISO 606's (D139 found ISO 606's formulas only behind tables, not as public text):
+  - A roller leaving seat k turns about its neighbour's centre P_{k±1} at distance p. So the flank that just clears it is the circle of radius p − r_s about P_{k±1}.
+  - That circle and the seat (r_s about P_k) have radii summing to p, the distance between their centres. They touch where the chord P_kP_{k±1} crosses the seat: seat and flank meet tangentially.
+  - The seat arc spans π − 2π/z; the tip circle is the user's.
+  - Its limits come from the same construction: above where the flanks leave the seats, 2√((R − r_s sin(π/z))² + (r_s cos(π/z))²), and below the flanks' meeting point on the tooth's bisector, 2(R cos(π/z) + √((p − r_s)² − p²/4)), where the tooth is pointed (TOOTH_FORM).
+  - Any other form is UNSUPPORTED_TOOTH_FORM.
+- **Exact arcs:** every piece is an exact circular arc (rational quadratic), four per tooth: `flank<2k−1>`, `seat<k>`, `flank<2k>`, `tip<k>`. It is extruded through the user's width, with a bore below the roots.
+- **The engagement check, on the built teeth:** a roller (the row's Ø) turning out of seat 0 about seat 1's centre, swung until it clears the tip circle. Its least gap to every built piece is r_s − r_1 (0.145 mm for a Ø8.8 seat on a Ø8.51 roller).
+
+**Pulleys** (`pulley`; the belt row's kind picks the type):
+- **timing:**
+  - pitch Ø pz/π, outside Ø pz/π − 2u;
+  - each groove is the row's profile in its own frame, its first and last segments cut at the outside circle (the nearer root of the segment's quadratic);
+  - the lands are arcs of that circle between the grooves; grooves with no land between them are TOOTH_FORM;
+  - extruded; faces `groove<k>.<j>`, `land<k>`.
+- **V:** the row's trapezoid grooves (half-angle α/2, w_d at the datum, b above and h_f below) at e spacing with f edges, revolved round the user's datum Ø.
+- **flat:** a face of the user's Ø and width. Its crown is a circular arc through the edges' radius r − h and the crown r, ρ = (h² + W²/4)/(2h).
+  - FACE_WIDTH warns when the belt is wider than the face.
+- V and flat pulleys are revolved sections, so they need a bore.
+
+**Belts and chains** (`openBeltLength`, `chainLinks`, `beltBand`):
+- **The open length:** sin β = (R1 − R2)/C; L = 2C cos β + (π + 2β)R1 + (π − 2β)R2; the wraps π ± 2β.
+  - BELT_GEOMETRY when the pitch circles overlap, or when the band is thicker than a wheel is round.
+- **A chain on its sprockets' pitch circles:**
+  - L/p pitches, rounded up to whole or even links;
+  - the centre distance for that count solved by bisection (L increases with C);
+  - CHAIN_LINKS warns when the given distance does not give whole links.
+  - The chain's polygon on the sprockets (the chordal effect) is not modelled.
+- **The band:** the path's offsets at ±t/2 (arcs and tangent lines with the same normals), the hole clockwise, extruded through the width.
+  - t is the row's thickness or a chain's plate height; a stand-in is said to be one.
+  - Its area between the offsets is L·t exactly (Steiner: each offset's length differs from L by πt).
+
+**Couplings** (`couplingEnvelope`):
+- The row's envelope is revolved: a sleeve of its outside Ø and length, the bores d1 to the step (default the middle) and d2 beyond.
+- The report carries `bought` { bought: true, partNumber?, supplier?, source? } from the row and `envelopeOnly: true`, for the outer lane's BOM S1 (BodyResult.element).
+
+**Part model:**
+- Kinds:
+  - `sprocket` { row, teeth, tip, width, seat?, toothForm?, bore? };
+  - `pulley` { row, teeth? | diameter?, grooves?, width?, crown?, bore? };
+  - `belt` { row, pitchRadii [R1, R2], centerDistance, rounding?, width? };
+  - `coupling` { row }.
+  - Each takes its row inline and is placed by centre, from and rotation.
+- Outputs: `sprocket`, `pulley`, `belt`, `coupling`.
+- Codes: INVALID_INPUT → INPUT, UNSUPPORTED_TOOTH_FORM → CAPABILITY, TOOTH_FORM and BELT_GEOMETRY → GEOMETRY, each with its own code kept.
+
+**Oracles and tests** (`test/r12c-drive.test.mjs`, 8 tests, all failing on the previous HEAD: the module did not exist). Oracles are written in the test:
+- **The rows:** their refusals.
+- **A sprocket** (z 17, seat Ø8.8, tip Ø75, 7 wide, Ø20 bore):
+  - the pitch Ø, root, flank radius and the pointed tip by the formulas;
+  - its volume by integrating, ray by ray, a membership test of the region: the tip disc, less each seat's circle, less the gap above its seats' tangent line outside both flank circles. The transitions are bisected; the result agrees within 2e-5;
+  - a roller of seat 5 turning out about seat 6 measured against the built faces' own curves: its gap r_s − r_1;
+  - refusals: pointed, under the seats' edge, a seat under the roller, another form, a bore through the roots.
+- **A timing pulley:** the disc less each groove, its polygon cut at the circle by a quadratic solved in the test, plus the circular segment under its chord. A pulley with no lands is refused.
+- **V and crowned flat pulleys:** Pappus on their sections by hand, the trapezoid's centroid and the circular segment's 4ρ sin³(θ/2)/(3(θ − sin θ)). Also FACE_WIDTH.
+- **The belt's length** by another form, 2√(C² − (R1 − R2)²) + 2R1(π − acos((R1 − R2)/C)) + 2R2 acos((R1 − R2)/C), both ways round.
+  - The band's volume L·t·w.
+  - The chain's pitches, whole and even links, and the distance for 58 links checked back. CHAIN_LINKS. Overlapping wheels refused.
+- **The coupling** by Pappus (two annuli) and its `bought`.
+- **The part model:** the four kinds placed, their reports, the refusals' codes.
+- **Conformance `r12c/`** (from a script with no kernel geometry):
+  - `sprocket-z17`: ray integration, relTol 2e-5;
+  - `pulley-v-two-grooves`: Pappus;
+  - `belt-flat-open`: L·t·w; its centroid from the runs' rectangles and the arcs' annular sectors;
+  - `coupling-stepped-sleeve`: Pappus, with its face names;
+  - `sprocket-pointed-refused`.
+
+**Studio and model:**
+- **The document's `drives`** { version 1, rows } is in STUDIO_DOC_FIELDS and crosses to the worker. `editDriveRows` keeps a row in use.
+- **Nodes:**
+  - `sprocket`, `pulley`, `coupling` { row (an id), sizes, center, from?, rotation? };
+  - `belt` { row, wheels [i, j], rounding? }.
+  - A belt refers to its wheels (`usesOf`), not built on them. `renumber` and `flatten` carry the wheels.
+- **`beltFeature`** maps the belt from its wheels:
+  - each must be a sprocket or pulley of the belt's row, both at one Z ([DRIVE_WHEELS]);
+  - the pitch radii: a sprocket p/(2 sin(π/z)); a timing pulley pz/(2π); a V pulley its datum; a flat one its face plus half the belt's thickness, the belt's centre line;
+  - the band from the first wheel turned toward the second, across the wheel where the belt runs: centred, or in a V pulley's first groove.
+- **Commands** (create):
+  - Sprocket ("sprocket"): its tip prefilled ¾ of the way from the seats' edge to the point, said so in its label;
+  - Pulley ("pulley sheave"): the fields follow the row's kind;
+  - Belt or chain ("belt chain drive"): two picked wheels of one row; for a chain, whole or even links, and the second sprocket moved to the distance they need, or left with the warning;
+  - Coupling ("coupling").
+  - Each is unavailable with no rows ("none is built in").
+- **Notes:**
+  - a sprocket: chain, pitch Ø, the tooth form "(derived here, not ISO 606's)", the engagement gap;
+  - a pulley: its type's sizes;
+  - a belt: its length, wraps, pitches and links, "the chordal effect is not modelled", the band's sizes;
+  - a coupling: its envelope and "Bought: part … from …".
+  - The rows' estimates are named.
+- **Friendly errors** for [DRIVE_ROW_UNKNOWN], [DRIVE_WHEELS], [TOOTH_FORM], [UNSUPPORTED_TOOTH_FORM] and [BELT_GEOMETRY].
+- **Edit fields:** the sizes the node holds, a belt's links.
+- **The Library panel's DRIVES** (`ui/DriveRows.tsx`) and the icons `cad-sprocket`, `cad-pulley`, `cad-belt`, `cad-coupling`.
+- **Chat v2:** four features commands, their values behind `describe`. The per-turn total is 22,319 (was 22,279; cap 25,000).
+- **Tests:** `test/drive.test.ts` (4):
+  - the sprocket at the conformance case's volume, its notes and the tip's prefill by the formulas;
+  - the chain with the second sprocket moved so that L = 58p, the band 58·p·t·w;
+  - flat pulleys and their belt on R = d/2 + t/2, the coupling's notes, two refusals' titles;
+  - describe and a features command.
+  - `fields.test` gained `drives`. The studio `chat.test` gained contexts.
+  - `palette.test` checks the new labels and words.
+  - A new palette test reads every word the browser flow types into the palette and finds none opening a drive command it did not mean.
+- **A flow step** "Chain drive (R12c.6b, D161)": the rows loaded in the Library panel, two sprockets and the chain through the scripted chat, the second moved to 203.0146, the links in the chain's notes.
+
+**Not in this stage:**
+- standard tooth forms and groove tables (rows the user loads, or a form refused);
+- the chain's links as solids and its chordal speed variation;
+- crossed belts, idlers and tensioners;
+- a coupling placed on and checked against shaft ends (it is placed by hand);
+- the BOM itself: the outer lane's S1, with `bought` here.
+- (The D160 fix, 6988793c9: the pressure-angle limits and the cam laws are attributed to no unread source.)
+
+**Checks** (rules v2: `part-model.ts` gained cases, so the full kernel suite ran; the 1st kernel checkpoint since D160's RB run, so no RB), on 4c5008b70 (this change's code) in the detached worktree:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-drive`: 8/8.
+- The full kernel suite, conformance included: 1504/1511, 6 skipped, 293 s. It failed only the env-only "actual native Split source…".
+- Conformance `r12c/`: 26/26.
+- `@barocss/cad-model`: type-check clean, 736/736. Studio: type-check clean, 197/197 (the new palette test included).
+- Test names against the saved lists:
+  - kernel: none missing, +13;
+  - cad-model: +21 (4 this stage's); one missing, "PERF3 B13 S0 P2 …", renamed by the integration's O135 to "… (fixed in O135) …", not by this stage;
+  - studio: none missing, +3.
+- `FLOW_ONLY` "Chain drive (R12c" with the Cam, Spring and Shaft steps and "fillet a box top edge": 7/7 (with the starter step).
+  - The flow's palette words are covered by the new palette test.
+
+Not run:
+- RB and properties: next at the 4th kernel checkpoint since D160.
+- The full browser flow (the coordinator's).
+
+## D162 — R12c.7: section tables and connector envelopes from the user's rows (2026-10-22)
+
+R12c.7 as D139 froze it: a section table loader for FR's kinds, and connector envelopes (the opening, the body, a keep-out) with their fit checked as a declared fit. USB-C comes from U1's values as the test row, not a built-in.
+- No section or connector table is built in.
+- The section rows in the tests are test rows flagged estimates.
+- The connector row cites D139's U1 (Wikipedia, "USB hardware", read for D139), the source of its values.
+
+**Section tables** (`section-table.ts`):
+- **A table** is `{ id, kind (rect-tube | round-tube | angle | channel | tslot), label?, source | estimate, rows: [{ size, …the kind's dimensions, source? | estimate? }] }`.
+  - A T-slot's own size dimension is `sizeMM` in a table, because `size` names the row.
+- **`sectionTableProblem` checks the table whole:**
+  - its kind, an id, at least one size;
+  - each size listed once;
+  - every dimension of the kind, numbers 0 or more;
+  - no unknown field;
+  - a source or the estimate flag per size, its own or the table's (never both on one, never neither);
+  - and each size builds by FR1's closed forms: a `FrameSectionError` is named with its size.
+- **`lookupSection`** returns the size's spec, whether it is an estimate and where it is from. A miss names the sizes held.
+- **The part model:**
+  - a member's, a frame's or an override's section may be `{ kind: 'table', table, size }`, with the table inline, as the bend tables (D120);
+  - `[SECTION_TABLE] …` and `[SECTION_TABLE_MISS] …` (PARAMETER);
+  - the member's section label names the table, the size, and the estimate or the source.
+- **In the studio:** the outer lane's section library (FRc, O117) already holds rows by their dimensions, so a table loads into it.
+  - `frames/sectionTables.ts` (`isSectionTable`, `sectionTableRows`) turns a table, checked whole by the kernel first, into one library row a size: `<table>:<size>`, named `<label> <size>`, with its source or the estimate flag.
+  - The library's sections file input (`ui/FrameSections.tsx`, a three-line change in the outer lane's file) takes either library rows or a table.
+
+**Connectors** (`connector.ts`; a composition of existing features):
+- **A row** is `{ id, name?, opening { shape stadium | rect | round, widthMM, heightMM, cornerRadiusMM? (rect), depthMM }, body? { the same, lengthMM }, keepOut? { marginMM, depthMM }, source | estimate }`.
+  - Checked: a stadium's width is at least its height, a round's sizes are equal, a rect's corner is under half its side, the body is no larger than its opening.
+- **Areas in closed form** (`connectorSectionArea`): a stadium (w − h)h + πh²/4, a rounded rectangle wh − (4 − π)r², a circle πw²/4.
+- **The frame** (`connectorFrame`) on a flat face:
+  - z is the face's outward normal;
+  - x is world X projected on the face (world Y when the face is square to X), turned `rotation` about z;
+  - y = z × x.
+- **The opening** (`connectorOpening`; the kind `connector-opening` { target, face, row, center, rotation? }):
+  - the section is extruded from the face down its depth (and a hair proud) and cut by the analytic Boolean; faces `<id>.opening<k>` and `<id>.opening.bottom`;
+  - CONNECTOR_PLACEMENT: a face that is not flat; a centre off the face's plane; an opening that takes less than its full A·depth (it runs off the face, or through a thinner panel), the two volumes named.
+- **The body** (`connectorBody`; the kind `connector-body` { opening }, which refers to its opening):
+  - the row's body section, from the opening's bottom out its length along the axis;
+  - its fit is a declared fit checked by exact overlap with the panel (the analytic intersection): touching at most, else CONNECTOR_FIT with the overlap;
+  - the report gives its gaps across, (W − w)/2 and (H − h)/2, and how far it stands out, L − depth.
+  - U1: gaps 0.045 and 0.080, 0.31 out (S0's figures).
+- **The keep-out** (`connectorKeepOut`): the body's section (or the opening's) grown by the margin, the row's depth out from the face, in A6.3's form: a box from its frame's origin along x, normal × x and normal, clearance 0.
+  - It is the space the mating plug and its cable need in front of the opening.
+- Codes: INVALID_INPUT → INPUT, CONNECTOR_PLACEMENT and CONNECTOR_FIT → GEOMETRY, each with its own code kept.
+
+**Oracles and tests** (`test/r12c-standards.test.mjs`, 5 tests, all failing on the previous HEAD: the modules did not exist). Oracles are written in the test:
+- **The table's refusals and lookups:** a size's own source over the table's estimate; a miss naming the sizes.
+- **Members on two sizes:** their volumes A·L by the rounded tube's closed form w·h − (4 − π)r_o² − ((w − 2t)(h − 2t) − (4 − π)r_i²) to 1e-6, their labels, [SECTION_TABLE] and [SECTION_TABLE_MISS].
+- **The connector rows' refusals.**
+- **U1's opening in a 40 × 20 × 10 panel's top:**
+  - the removal A·6.2 to 1e-7, the body A_b·6.51;
+  - the gaps, the 0.31, no overlap, the body from z 3.8 to 10.31;
+  - the keep-out's frame and size;
+  - turned 90°, x along world Y.
+- **A square-cornered body in the stadium:** its corners beyond the round ends, ∫ 2(1.2 − √(1.28² − (x − 2.89)²)) dx from 2.89 to 4.125 (Simpson), × 2 ends × 6.2. The kernel's CONNECTOR_FIT overlap matches it to 1e-5.
+- **Refusals:** off the face, off its plane, on a cylinder.
+- **Conformance `r12c/`** (from a script with no kernel geometry):
+  - `connector-usb-c-opening`: the panel and the body by the stadium's area, centroids by moments;
+  - `connector-square-body-refused`;
+  - `frame-member-section-table`: A·L;
+  - `frame-member-section-table-miss`.
+
+**Studio and model:**
+- **The document's `connectors`** { version 1, rows } is in STUDIO_DOC_FIELDS and crosses to the worker. `editConnectorRows` keeps a row in use.
+- **Nodes:**
+  - `connector-opening` { parent, face, row, center, rotation? }: it consumes its body;
+  - `connector-body` { opening }: it refers to its opening.
+  - `usesOf`, `renumber`, `renameNode` and the named faces, `flatten` and `migrate` know them.
+- **The Connector opening command** (modify, "connector port receptacle"):
+  - one flat face picked and a row, offsets along and across the face from its centroid, a rotation;
+  - it adds the opening, the body when the row has one, and the row's keep-out to the part's keep-outs (`doc.references.keepouts`, A6.3), where the outer lane's keep-out check takes it.
+  - The keep-out is placed with the opening, and kept if the opening moves (said in its note).
+- **Notes:**
+  - the opening: its row and source, section, depth and area;
+  - the body: its gaps and how far it stands out;
+  - the keep-out;
+  - "Envelopes only: not the receptacle's housing, contacts or tongue";
+  - the body's own note: touching nothing, overlap 0.
+- **Friendly errors** for [CONNECTOR_ROW_UNKNOWN], [CONNECTOR_PLACEMENT], [CONNECTOR_FIT], [SECTION_TABLE] and [SECTION_TABLE_MISS].
+- **Panels and icon:** the Library panel's CONNECTORS (`ui/ConnectorRows.tsx`), the icon `cad-connector`.
+- **Chat v2:** a features command, its values behind `describe`. The per-turn total is 22,330 (was 22,319; cap 25,000).
+- **Tests:** `test/connector.test.ts` (4):
+  - the opening at a plate's centre through the command, the volumes, notes, labels and the keep-out written;
+  - moved and turned;
+  - a square body's and an off-face opening's titles;
+  - a section table read into the library and a member on one of its sizes, A·L;
+  - describe.
+  - `fields.test` gained `connectors`; the studio `chat.test` a context; `palette.test` the word, its flow-word test the connector command.
+- **A flow step** "Connector opening (R12c.7, D162)": the row loaded in the Library panel, a box and the opening through the scripted chat, the keep-out in the document, the body's gaps in the notes.
+- **Fixed in passing:** the cad-model's patterned-hole copies are cast to a feature. The new kind with a target and a centre made the spread's type widen.
+
+**Not in this stage:**
+- receptacle housings, contacts and the tongue (envelopes only);
+- connectors on curved faces;
+- the keep-out following its opening when the opening is edited;
+- connectors as LIB manifests: the opening cuts a panel, which LIB parts (bodies added) do not;
+- table rows shared across parts.
+
+**Checks** (rules v2: `part-model.ts` gained cases, so the full kernel suite ran; the 2nd kernel checkpoint since D160's RB run, so no RB), on 6ec2afee6 (this change's code) in the detached worktree, under a load average of 40–60:
+
+Ran:
+- Kernel lint and type-check: clean. `r12c-standards`: 5/5.
+- The full kernel suite, conformance included: 1513/1520, 6 skipped, 309 s. It failed only the env-only "actual native Split source…".
+- Conformance `r12c/`: 30/30.
+- `@barocss/cad-model`: type-check clean, 743/743. Studio: type-check clean, 197/197.
+- Test names against the saved lists:
+  - kernel: none missing, +9;
+  - cad-model: none missing, +7;
+  - studio: one renamed by this stage (the palette's flow-word test, now naming connectors), +1.
+- `FLOW_ONLY` "Connector opening (R12c", "Chain drive (R12c", FRc (the outer lane's section library step, since `FrameSections.tsx` changed) and "fillet a box top edge": 4/5.
+  - The connector step failed on the test's own pattern: the opening's outliner row reads "Box · Connector opening for usb-c", and the step matched it anchored at the start. Fixed in 856070515 (the pattern anywhere in the row); rerun alone, it passes.
+  - FRc passes.
+
+Not run:
+- RB and properties: next at the 4th kernel checkpoint since D160.
+- The full browser flow (the coordinator's).
+
+Asked of the coordinator (after the fact, the new rule): the stage changed the outer lane's `ui/FrameSections.tsx` (the sections file input takes a table: three lines) and `ui/LibraryPanel.tsx` (the DRIVES and CONNECTORS sections, one line each).
+
+## D163 — R12c.8: acceptance by the agent, a gearbox output shaft and a spring-loaded plunger (2026-10-22)
+
+The last R12c stage frozen in D139. Two assemblies are built by the agent's v2 tools in one chat turn each, starting from the user's rows (the agent cannot load rows), and accepted by closed forms written in the test, none read from the build. **R12c is done** with this step; the R12c → FR geometry hand-over block is at the top of README §0.
+
+**Acceptance** (`packages/barocss-cad-model/test/r12c-acceptance.test.ts`, 2 tests). Each turn comes from the calls in `test/fixtures/r12c-*.calls.json`, sent through `dispatchTool` as the chat does. Every call is a v2 action an agent has (`features.command` with its values, faces or bodies by name, `query.interference`). The flow sends both through the real chat.
+- **A gearbox output shaft** (`r12c-gearbox-shaft.calls.json`). The rows: B1's 6204, O1's AS568-214, a k5 test row flagged an estimate.
+  - The shaft (Ø20 × 14, Ø25 × 30 with an end-milled keyseat 8 × 4 × 18, Ø20 × 30 with a Ø19 × 1.3 ring groove, Ø25 × 20; fillets and chamfers 0.5).
+  - A spur gear m2 z30 × 20 on the Ø25 step, bore 25; a keyway 8 × 3.3 in its bore; a key 8 × 7 in the seat, under the hub's keyway.
+  - Two 6204 envelopes: on step 1 against the end shoulder, and on step 3 against the start shoulder with its seat k5.
+  - A retaining ring in the groove.
+  - A cover (a tube Ø70, bore Ø25.1, 10 long) on the Ø25 end; an O-ring rod gland in its bore sealing on the Ø25 (groove Ø30.648 × 4.4), and the ring.
+  - Then the agent's `query.interference`.
+  - **Oracles:**
+    - the shaft by Pappus, π∫r(z)²dz, with the fillets r_s + ρ − √(ρ² − (z − z_c)²) in the concave corners and the chamfers linear (Simpson); less the groove π(10² − 9.5²)·1.3; less the end-milled keyseat (l − b)∫(√(R² − x²) − (R − t))dx + ∫2√((b/2)² − x²)(√(R² − x²) − (R − t))dx; to 1e-7. Its z-centroid by moments;
+    - the keyed gear: the gear built alone less the keyed one equals the keyway 20∫_{|v|≤4}(15.8 − √(12.5² − v²))dv to 1e-7. The gear's own volume is this kernel's (its generated root, D131's trochoid, has no closed form here); its reference, tip, root and base Ø by m z, m(z + 2), m(z − 2.5) and m z cos α;
+    - the key (l − b)bh + π(b/2)²h; the ring π(12² − 9.5²)·1.2;
+    - each bearing's rounded section turned, Pappus with the four corner spandrels at c(10 − 3π)/(3(4 − π)), to 1e-7; their spans 0–14 and 44–58;
+    - the second bearing's "its other side by ring groove 1";
+    - the cover π(35² − 12.55²)·10 less the groove π(15.324² − 12.55²)·4.4;
+    - the O-ring 2π²(ID/2 + r)r², the free ring's volume kept as it stretches, to 1e-7;
+    - squeeze and fill with the stretched section r'²(12.5 + r') = r²(ID/2 + r) by bisection;
+    - **the one overlap** the agent's interference query finds is the ring's squeeze into the cover: Pappus on the circular segment beyond the groove's bottom, 2π(R' + ȳ)A, R' = 12.5 + r', 136.508 mm³ to 1e-3 (the query's three decimals). The ring's own note agrees.
+- **A spring-loaded plunger** (`r12c-plunger.calls.json`):
+  - a housing Ø30 × 50 with a Ø24 blind bore 40 deep;
+  - a compression spring, closed and ground (wire Ø2, mean Ø20, 6 active at pitch 5, steel's G prefilled as an estimate, 20 N), on the bore's bottom;
+  - a plunger Ø23 × 15 at the free length 44.002 that the spring's note gives;
+  - `query.interference`.
+  - **Oracles:**
+    - the rate Gd⁴/(8D³n);
+    - the solid pitch solved in the test: the least chord between the centreline at θ and θ + φ, √(4R² sin²(φ/2) + p²φ²/4π²), equal to d. It gives 2.0010140, D153's figure;
+    - the solid height n_t p_s and the free length 2p_s + n_a p, checked in the notes; the spring from z 10 to 10 + L0;
+    - the spring's volume, D153's closed form for these sizes (conformance `r12c/spring-closed-ground`, 1541.1998773, the fit's bound 4e-4);
+    - the housing π15²·50 − π12²·40, the plunger π11.5²·15;
+    - the interference query: three pairs, two touching, none overlapping. The radial room in the bore is (24 − 22)/2 = 1.
+- **Conformance** `r12c/` (+2, 32):
+  - `accept-gearbox-shaft`, `accept-plunger`, written by the test (`WRITE_ACCEPTANCE=1`), which also checks they hold the part the agent built;
+  - expected values from the closed forms above (the gear's from this kernel, said so), centroids by symmetry or moments where they are on an axis and by this kernel otherwise;
+  - one body each, the genus of each; a STEP round trip.
+- **A flow step** "R12c.8 R12c's acceptance …":
+  - the three rows' files loaded in the Library panel;
+  - each turn through the real chat on a new part;
+  - the bodies (8, 3) and the agent's last tool (`query.interference`);
+  - the second bearing's and the spring's notes;
+  - a screenshot of each.
+
+**Found by the acceptance, fixed here:**
+- **The O-ring gland command read a whole bore as a shaft** (D159). A full 360° face's centroid lies on its axis, so the bore-or-shaft test (the centroid's radial direction against the face's normal) gave 0, which counted as a piston. It now takes one vertex's radial direction and that vertex's normal (`app/glandCommands.ts`). D159's command tests had a piston and a face gland only.
+- **A rod gland's ring lost volume** (D159). Its stretched section came from the ring stretched on the rod, but it was set on the groove's bottom (outward): 833.5 mm³ for the free ring's 876.9.
+  - It now rests on the rod, where it is stretched, as a piston's rests on its groove's bottom. Its overlap is with the groove's bottom (the squeeze's displaced volume, on its outer side).
+  - The free ring's volume is kept, 2π²(ID/2 + r)r², as D159 stated.
+  - The kernel test's rod oracle is now 2π(R' + ȳ)A with c = R_g − R' (renamed; it also checks the ring's volume). The note says "overlaps what squeezes it" for all three kinds.
+- **The connector's keep-out held its own plug** (D162; the coordinator's report from the outer lane's run).
+  - It started at the face, and the seated body stands 0.31 out of the face, so the keep-out check found the plug inside it: 5.755 mm³ = A_body·0.31, "violated". The panel touched it at the face: "undecided" within the chord.
+  - It now starts at the seated body's front (or at the face with no body). The panel is clear of it (0.31), and the plug only touches its base.
+  - That touch reads "undecided" within the meshes' chord (0.0058 mm), because the check counts every body. Asked of the coordinator: the outer lane's `checkKeepouts` could skip a keep-out's own bodies (a field such as `fills: [node]` on the Keepout). It is not built here: it is the outer lane's file.
+
+**Not in this stage:**
+- a housing for the gearbox (the bearings' outer rings are not seated: `housing` none);
+- the gear's mate;
+- a live model as the agent (the scripted one, L2; a live run needs the owner's OK);
+- loads, life and stresses (the bearings' and the shaft's: not for structural calculation).
+
+**Checks** (R12c's track boundary: T3, your parts, the coordinator's request) on 26265b0f8 (this change's code) and 2f43b4778 (two test fixes) in the detached worktree, the kernel suite at concurrency 4:
+
+Ran:
+- **Kernel:** lint and type-check clean. The full kernel suite, full conformance included: 1515/1522, 6 skipped, 546 s at a load of 30–45. It failed only the env-only "actual native Split source…".
+  - Conformance `r12c/`: 32/32.
+- **RB:** 409 cases, no new failures; the non-OK totals unchanged (4 refused, 3 invalid, 5 wrong: the 8 known TODOs); 91 s.
+- **Properties:** 11/11, 197 s.
+- **`@barocss/cad-model`:** type-check clean, 754/754 (on 2f43b4778).
+  - The first run, on 26265b0f8, did not compile: the acceptance test's renamed title held an unquoted apostrophe. Fixed in 2f43b4778.
+- **Studio:** type-check clean, 197/197.
+- **Test names against the saved lists:**
+  - kernel: +3; one renamed by this stage (the rod gland's test, now naming the fix);
+  - cad-model: none missing, +11;
+  - studio: unchanged.
+- **`FLOW_ONLY`** "R12c.8 acceptance", "O-ring gland (R12c" and "Connector opening (R12c" (the steps this stage's fixes touch): 4/4 with the starter step, on 2f43b4778.
+  - The first run, on 26265b0f8, stopped: the new step's long title made its screenshot's file name too long for the file system. Shortened in 2f43b4778.
+
+Not run:
+- The full browser flow (the coordinator's window flow).
+
+Asked of the coordinator: the outer lane's `chat/references.ts` `checkKeepouts` could skip a keep-out's own bodies (the connector's plug touching its keep-out reads "undecided" within the chord). It is their file.
+
+## D164 — FRk S0: feasibility of the kernel half of FR completion (2026-10-22)
+
+**FRk S0.** The feasibility checkpoint before the kernel lane's share of roadmap item 5, FR completion (owner, 2026-10-21: "FR 에서 1, 2, 3, 모두 하고 그 밖에 남은 것도 하고"; the coordinator's list). The track is named **FRk** (k for the kernel lane; the outer lane's FR items are FRa–FRg). There is no research note; this record is the design input. The questions:
+- Can today's kernel build a gusset, an end cap and a fillet weld bead exactly, and what do the outer lane's weld list and BOM need to read from them?
+- Tapered-flange channels and I/H beams: closed-form areas with root and toe radii between lines at any angle?
+- Members along arcs, bent or curved: what builds them, how exactly, at what cost?
+- Weld end gaps and saddle notches other than a full cope: what is already there, what is new?
+- Where do the round-cornered ordered table's 5.7–7.5 s go (D126)?
+- The SubD display folds (D79's TODO): where are they?
+- D158's housing shoulder against Da max, and the trimmed-face mass quadrature (D151, D152): what is wrong, and how is it checked?
+
+Evidence: `packages/barocss-cad/test/frk-s0.test.mjs` (kept, 10 tests, 7 s alone; the bevel pair's survey under `FR_SURVEY=1`, 30 s more), against closed forms and Gauss–Legendre quadratures written in the test, none of them the kernel's. No product code changed. Every size is a test value: no standard, catalogue or supplier row is read or used.
+
+**Today, as it stands:**
+- **Fillet weld beads are exact by today's features.** A bead of leg z on a square end landing on a plane is the end's outer loop offset by z, extruded z with a 45° draft (`extrude` with `draft`: lines become sloping planes, arcs cones), less the member's envelope.
+  - Its volume is ∫₀^z [A(s) − A₀] ds over the offset loop's area A(s) = A₀ + P·s + c·s²: **V = P·z²/2 + c·z³**, with c = 4/3 for a sharp outline (four mitred corners, each ∫∫(z − max(dx, dy)) = z³/3) and π/3 for a smooth one (its arcs turn 2π in all). Derived here.
+  - Sharp 40 × 40 × 3, round-cornered (ro 6) and round Ø30 × 2 tubes, z 3: to 1e-11 (the sharp one exactly); one body, valid; welded with the member and its plate (the analytic Boolean), one body of their sum to 1e-10. 24–140 ms each.
+  - A sharp outline's bead corners come out mitred: the two sides' sloping planes meet in an edge. That is what two fillets meeting at a corner give; a rounded corner would be a choice (below).
+  - Not probed, and not exact this way: an oblique end (a 60° butt; the bead's legs on the member's side and the plate are no longer one offset), a cope's seam (a space curve on a cylinder), the bore's inner loop (an inward offset: P·z²/2 − c·z³, derived, not built).
+  - A groove (butt) weld at a mitre, O118's default there, adds no fillet: its seam is the mitre face's loop, and its reinforcement is not modelled.
+- **Gussets and end caps are exact prisms placed by the members' faces.**
+  - A clipped triangular gusset (legs 120, clip 15, 5 thick) in the corner of a mitred L, centred on the members' plane, on their inner faces (z 20 to 140 from the B-rep): (l² − c²)/2·t exactly; welded to both members, one body of their sum (sharp 1e-15, round-cornered 1e-9 at the cut cylinders' quadrature, as FR3a).
+  - A cap over a square end (the envelope's outline, 4 thick) and a plug in the bore (the bore's outline, 4 deep): A_env·t and A_bore·t exactly; each welded to the member, one body of their sum (to 1e-11).
+  - Nothing places them yet: the probe sketched each by hand from the members' report (lines, section frames, box).
+- **Tapered-flange sections are closed-form polygons with fillets.**
+  - An I section whose flanges' inner faces slope k (thicker at the web), with root radii r1 and toe radii r2 between lines at any interior angle α: A = the polygon's shoelace ± r²(cot(α/2) − (π − α)/2) per fillet (added at a root, taken at a toe). Derived here.
+  - Three sections (slopes 0.14, 0.08 and 0; the last a parallel-flange I with no toe radius): the closed form, Green's theorem on the loop of lines and arcs, and the kernel's A·L (a sketch extruded 1000) agree to 1e-14; valid.
+  - No such kind exists: FR1's `channel` has parallel flanges and a root radius only, and there is no I/H kind. A tapered channel is half of this I's loop.
+- **Members along arcs: revolve and sweep build them, each one loop only.**
+  - `revolve` takes one loop ("revolve takes a sketch of one loop (no regions or holes) yet"), so a tube is its outer loop revolved less its bore revolved (the analytic Boolean).
+  - A round Ø30 × 2 tube on R 150 through 90° and a 20 × 40 × 2 (ro 4) tube on R 200 through 60°: A·r̄·θ by Pappus to 1e-11 (the mass by quadrature, 1.3–1.9e-12 off); one body, valid; 170–220 ms (most of it the Boolean).
+  - A tube bent between two straights (200, R 100 through 90°, 150) by `sweep` (outer less bore): A(L₁ + Rθ + L₂) to 5.9e-8 only, 365 ms. `sweepBrep` keeps each piece's mass in closed form, but the difference body's goes to the quadrature, and its pieces' glued seams cost accuracy there. A member built from its pieces directly keeps Pappus exact.
+  - There is no arc in the skeleton: segments are point pairs (D124).
+- **Weld end gaps already build with FR3b's plane trims** (on ends a joint leaves square):
+  - a mitred L opened by a root gap g 2: each member cut on the mitre plane moved g/2, A(L − (g/2)/cos θ), to 1e-12;
+  - a T rail held g off its post's face: A(L − b/2 − g), to 1e-12.
+  - What is missing is the setting: a `gap` on the joint itself, so a gap stays with its corner as points move, and the cut list and weld list read it.
+- **Saddle notches other than a full cope are exact by a cutter's Boolean:**
+  - a hole saw larger than the main tube (R 26 and 30 on a Ø30 branch), the branch on the main's axis or 5–6 off it: the removed volume ∫∫ over the branch's annulus of √(Rc² − (y + e)²), a 1D Gauss–Legendre quadrature per disk (s = r sin u), to 1e-10; one body, valid; 110–260 ms;
+  - a saw-cut V (two planes meeting on the branch's middle, kept z ≥ h₀ − k|y|): removed h₀A − k·4(r_o³ − r_i³)/3, closed form here, to 4e-12.
+  - Today's cope is always the other member's whole envelope, and a T-joint needs the end on the through member's line (D126): an eccentric branch is no joint yet.
+- **The round-cornered ordered trim: the cost is the analytic Boolean's general curves, not the count of Booleans.**
+  - One corner of three round-cornered tubes: 10 ms left square, 1.2–1.5 s ordered; the 600 × 400 × 700 table ordered 5.7–5.9 s at a load of 10–30 (7.5 s at D126); a sharp-tube table ordered 86–100 ms.
+  - A single difference measured alone is 38–79 ms (a rail's tube less a leg's envelope; an envelope less an envelope). The corner's four (rail 1 less envelope 0; envelope 1 less envelope 0, the trimmed envelope; rail 2 less envelope 0, then less the trimmed envelope 1) cost far more, because a trimmed envelope's faces are Boolean results, so their curves are general (projected) ones.
+  - A CPU profile of the corner (3 runs, 4.2 s): `memo`'s closure in `analytic-boolean` (a curve's domain map cached in a `Map` by its float parameter) 1.0 s self, B-spline `basisInto` 0.64 s, GC 0.41 s, `curved-arrangement` `paramOf` 0.32 s, the cylinder–cylinder sections (`analytic-boolean.js` 985–999: 720 samples a section) 0.5 s.
+  - Candidates, for the stage to decide by test: (1) a later envelope run on only to the joint's point, where that equals the trimmed envelope (no stub to drop), so no envelope Boolean and no general faces in the tool; (2) the domain map's cache keyed by sample index, not a float in a `Map`; (3) the rounds' sections, cylinders with meeting axes and equal radii, taken as their two planes' ellipses (the branch exists) rather than sampled.
+- **The SubD display folds are slivers inside single faces, not at caps' boundaries.** On the pipe clamp (conformance `r8/subd-pipe-clamp`, 8 segments a quarter): 45 concave folds over 15° (42 inside one face), 12 over 20°, one over 30° (88.6°), that one inside face `clamp_f210` between slivers whose height is under 0.02 of their longest side squared. D84 said so; the README's "cap-boundary" wording was D79's first guess (its box folds sat at boundaries before its chord splits). The general B-spline face tessellator (`surfaceTriangles` in `brep-tessellate.ts`) bisects interior bent triangles but never splits a boundary chord, and its Lawson flips leave slivers along near-straight boundaries.
+- **D158's housing shoulder is findable from the faces; nothing checks it.** A stepped housing (seat Ø47 14 deep, then Ø40): the vertices on the seat's end plane are at radii 20 and 23.5, the planar annulus between them the shoulder. `bearing.ts` reads `DaMaxMM` only as a row field (`bearingRowProblem`), and its housing block finds the bore, its fit and its overlap, no shoulder.
+- **The trimmed-face quadrature: accurate on simple trimmed patches, 1.4 % off on the bevel pair, and the kernel is the one off.**
+  - A sphere cut by a cylinder off its axis (trimmed sphere and cylinder patches; R 20, r 6 at 9 and r 5 at 14): against a two-variable Gauss–Legendre oracle (x = c + a sin u, so no root at the disk's edge), 1e-10 to 7e-10; 100–170 ms each.
+  - The whole 16/20 bevel pair at 4° (`FR_SURVEY=1`; 24 s to build): the kernel 39.1093; its mesh at 16, 32, 64 segments a quarter 37.847, 38.342, 38.497 (and 38.497 again at 128: the tessellator caps its refinement); D149's Green oracle 38.571 (D152). The mesh and the oracle converge together; the kernel stands 1.4 % above both, so it is an accuracy defect, not only D151's speed (meshing twice).
+  - Where it can leak (`brep-mass-quadrature.ts`, read for this record): a boundary strip that fails to invert is skipped silently (`strip`), strips are skipped on faces reaching a pole, and two sanity checks accept a face 5 % off. The stage finds the face(s) by comparing per-face integrals with the Green oracle's.
+
+**Kernel versus app versus the outer lane:**
+- **Kernel:** the gusset, end-cap and weld-bead kinds and their reports; the new section kinds; arc members and bends (and revolve with holes); gaps and notch cutters on joints; the ordered trim's speed; the tessellator's slivers; the housing shoulder check; the quadrature.
+- **Studio (kernel lane's files, as in FR):** `frameCommands.ts` (Structural member, Frame) for the new sections, arcs, bends, gaps and notches; two new v2 features commands, Gusset and End cap; the agent's nodes; flow steps.
+- **Outer lane (asked through the coordinator, not built here):**
+  - the weld list and symbols reading the beads, gussets and caps (O118's joints gain gusset and cap seams);
+  - the BOM's lines for gussets and caps (plates);
+  - `engine/elements.ts`'s `ElementReport` gaining `gusset`, `end-cap` and `weld-bead`;
+  - weld beads made from the person's weld records (below).
+
+**What the kernel exposes for the outer lane's weld symbols and BOM** (frozen here, built at FRk1–FRk2; each a body with a report, as `member` is on a member):
+- **`gusset`** (a feature: `{ kind: 'gusset', frame, point, members?: [a, b], legs: [l1, l2], thickness, clip?, offset? }`; its output a body). Report `gusset`:
+  - `frame`, `point`, `members: [a, b]` (the two members whose faces it sits on), `legsMM`, `thicknessMM`, `clipMM`;
+  - `plane: { origin, normal }` (its mid-plane), `areaMM2`, `volumeMM3` (closed form);
+  - `outline` (its corners in the part);
+  - `seams: [{ member, lengthMM, face }]`: each edge lying on a member's face, the weld seam there (exact: a straight edge's length).
+- **`end-cap`** (`{ kind: 'end-cap', frame, member, end, fit: 'over' | 'inset', thickness }`). Report `endCap`: `frame`, `member`, `end`, `fit`, `thicknessMM`, `areaMM2`, `volumeMM3`, `outline` (the section's loop, as placed), `seam: { lengthMM, exact }` (the loop's perimeter, exact for lines and arcs).
+- **`weld-bead`** (`{ kind: 'weld-bead', frame, on: { member, end } | { gusset } | { cap }, leg, inner?: boolean }`). Report `bead`:
+  - `frame`, `on`, `kind: 'fillet'`, `legMM`, `throatMM` (leg/√2);
+  - `meets` (the members, gusset or plate it lands on);
+  - `seam: { lengthMM, exact: true, inner? }` (the outer loop's perimeter; the bore's too when `inner`);
+  - `volumeMM3` (P·z²/2 + c·z³, closed form), `corner: 'mitred'`.
+- **Keys the outer lane can join on:** a bead's `on` is the kernel's (member index, end). O118's joint id is the studio's `<body>.<end>`, and the studio maps one to the other (the member's body is the frame's output k).
+- **Mass and the BOM:** gussets and caps are plates: `thicknessMM`, `areaMM2`, `volumeMM3`, the material the frame's (or the feature's own). Beads have mass but are no BOM line; the weld list totals their volume and seam length.
+
+**Verdict — FRk in these stages, this order:**
+- **FRk1 — gussets and end caps.**
+  - **Kernel:** the kinds `gusset` and `end-cap` (above).
+    - A gusset at a two-member joint (a corner, or a T): in the two members' plane, its legs along their inner faces from the corner, clipped `clip` (default 0, given), centred on the plane or moved `offset`.
+    - Refused `GUSSET_FIT`: the members not in one plane, a leg past its member's length, a clip not under the legs, a face that is not flat where a leg lies (a round tube, a round corner), not a joint of two.
+    - An end cap on a square end only: over the envelope's outline, or inset to the bore's (a section with a bore). Refused `CAP_END` (an end cut by a mitre, a cope or a trim; inset on a section with no bore).
+  - **Oracles:** (l1·l2 − c²)/2·t (and the general triangle's); A_env·t, A_bore·t; welded with the members, their sum; centroids by moments.
+  - **Studio:** the Gusset and End cap commands (v2 features commands, values behind `describe`), edit fields, notes; the agent's nodes; a flow step.
+- **FRk2 — fillet weld beads.**
+  - **Kernel:** `weld-bead` on an end landing on a plane (a butt, a T butt, an end on another member's face, a trim to a plane), on a cap, on a gusset's edges: the drafted offset less the envelope (above), the bore's inner loop when `inner`.
+  - Square ends first; an oblique end with a sharp convex outline as the polytope of each side's hypotenuse plane less the member (its oracle the test's own plane intersections); an oblique curved outline refused.
+  - Refused `BEAD_KIND` (a groove weld at a mitre: the seam only), `BEAD_SEAM_NOT_PLANAR` (a cope's seam), `BEAD_ANGLE` (a curved outline on an oblique end), `BEAD_SIZE` (a leg not positive, or past the faces it sits on).
+  - **Oracles:** P·z²/2 + c·z³ (outer), P·z²/2 − c·z³ (inner); the seams' lengths by the sections' closed-form perimeters; welded, their sum.
+  - **Studio:** the beads from the person's weld records (O118: a fillet record's size is the leg), the outer lane's mapping or the kernel lane's with their leave (asked); notes; a flow step.
+- **FRk3 — tapered-flange channels and I/H beams.**
+  - **Kernel:** the kind `i-beam` (height, width, web, flange, `rootRadius`, `toeRadius`, `flangeSlope`, 0 for parallel flanges), and `channel` gaining `flangeSlope` and `toeRadius` (both default 0: today's channel unchanged, no saved document changes). The flange thickness is given at the overhang's middle, said in the label.
+  - Area and centroid in closed form (the polygon and each fillet's spandrel at its angle); faces by role; the box; `reversible`; FR3's butts and the open-side spans on the flange tips; section tables (D162) take the new kinds.
+  - Refused `SECTION_DIMENSIONS` (a slope leaving no flat, a fillet past its lines, a web or flange too thin).
+  - **Oracles:** the closed form against Green's on the loop and the kernel's A·L; the centroid by moments.
+- **FRk4 — members along arcs, curved or bent.**
+  - **Kernel:** `revolve` with holes (the bore's walls in the same turn; a partial turn's caps with their holes), so a member along an arc is one body with Pappus's exact mass.
+    - A **curved member:** a skeleton segment with `through` (a third point) or `center` is an arc; the section placed square to its tangent at the start (the up rule there), revolved about the arc's axis.
+    - A **bent member:** `bends: [{ point, radius }]` at a two-member corner: the two members one body, straight + bend + straight, each straight shortened by R·tan(θ/2).
+    - The report: the arc (centre, axis, radius, angle), the centroidal arc's length; the cut list's developed length on the centroidal line (geometric; a bender's own allowance is the user's data, not built in).
+    - Corners at an arc's end take its tangent there (mitres, butts onto it refused `BUTT_ON_CURVED_MEMBER`: a cope instead).
+    - Refused `ARC_MEMBER` (a radius under the section's reach towards the centre, an angle of 360° or more, three points in line), `BEND_RADIUS` (the tangent points past the members' other ends).
+  - **Oracles:** A·r̄·θ by Pappus; the bent member's A(L₁' + R̄θ + L₂'); the section's frame along the arc (dot products); welded at its joints, their sum.
+- **FRk5 — weld end gaps and saddle notches.**
+  - **Kernel:** `gap` on a corner or T (`corners.at[].gap`, `corners.gap` for all): a mitre's members cut back g/2 each square to the mitre plane; a butt's or a tee's member held g off.
+    - Notches at a T-joint or corner as a cutter: `notch: { kind: 'holesaw', diameter, offset? }` (a cylinder on the through member's axis, or moved), `{ kind: 'v', depth, angle }` (two saw planes), beside today's `cope`.
+    - An eccentric branch: an end inside the through member's section but off its line is a T-joint for a cope or a notch (a butt keeps needing its face).
+    - The report's `ends` gain `gapMM` and the notch.
+    - Refused `NOTCH_CUTTER` (a hole saw not covering the branch, a V deeper than the branch is wide), `GAP_SIZE` (a gap not under the members' length).
+  - **Oracles:** A(L − (g/2)/cos θ), A(L − b/2 − g); the hole saw's 1D quadrature, the V's closed form (above).
+- **FRk6 — the round-cornered ordered trim's speed.** The candidates above, chosen by measurement, in this order: the run-on capped at the joint where it equals the trimmed envelope (a proof by the same volumes), the curve map's cache, the rounds' sections. The volumes stay D126's to 1e-9 and their welds' sums; the table's time in the test and the flow's responsiveness step; the target 2 s or under for the table.
+- **FRk7 — the SubD display folds.** In `surfaceTriangles`: no sliver left inside a face (a boundary chord split, or the sliver's edge flipped or collapsed, decided by test).
+  - **Oracles:** every triangle's normal within a step of the exact normals at its corners; the pipe clamp's worst fold under 25° (today 88.6°; D84's no-worse bound tightened); D79's box cases; watertight; the volumes and areas unchanged (the tessellation only).
+- **FRk8a — the housing's shoulder against Da max (D158).** The housing's shoulder found from its faces: the planar annulus at the bearing's outer-ring face, its bore by its inner loop. Refused `SEAT_ABUTMENT` above Da max; a warning when the housing has no shoulder on the located side. Oracles: a stepped housing at Da max ± 0.5; B1-type row values are test values here, flagged.
+- **FRk8b — the trimmed-face mass quadrature.**
+  - First the defect: the bevel pair's kernel volume against its mesh refined and D149's Green oracle, face by face, to the face whose integral is off; a test failing on HEAD.
+  - Then the speed: a trimmed patch integrated over its exact trims in its domain (Green in (u, v)), replacing the two meshing passes and Richardson where it applies.
+  - **Oracles:** the bevel pair within 1e-4 of the oracle and the mesh's extrapolation; the sphere–cylinder cases at 1e-9 (above); D151's throated wheel's export time before and after; every conformance volume within its tolerance.
+- **FRk9 — acceptance by the agent.** In one turn each: a welded table frame with gussets at its corners, caps on its legs and beads on every butt; a portal of tapered I beams; a bent-tube handrail. Closed forms; the cut list and the beads' report; conformance `frk/accept-*`; the FRk → next hand-over.
+
+**Every stage:** a D-record, a test failing on the previous HEAD, `conformance/frk/` fixtures (studio ones in subfolders), the studio's command or fields, notes and agent node where it has one, a flow step (FLOW_ONLY its own and their prerequisites), RB and properties at T3 or every 4th checkpoint, the per-turn count of the v2 tool surface, a checkpoint.
+
+**New public codes** (announced here, added at their stages): `GUSSET_FIT`, `CAP_END`, `BEAD_KIND`, `BEAD_SEAM_NOT_PLANAR`, `BEAD_ANGLE`, `BEAD_SIZE`, `ARC_MEMBER`, `BEND_RADIUS`, `BUTT_ON_CURVED_MEMBER`, `NOTCH_CUTTER`, `GAP_SIZE`; `SEAT_ABUTMENT` gains the housing's shoulder.
+
+**Data:** no sizes are built in (the owner, D122: "프레임 단면 치수도 굽힘표처럼 내장하지 말고 사용자가 불러오게 해"). New section kinds come in through D162's section tables as the user's rows; gusset and cap thicknesses, legs and weld legs are the user's (O118's rule-of-thumb leg stays the outer lane's flagged estimate); a bender's allowance is the user's data if ever wanted. Tapered-flange slopes are inputs, never a standard's value.
+
+**The v2 tool surface:** two new features commands (Gusset, End cap); the rest are fields of the existing Structural member and Frame commands, behind `describe`. Each stage reports the per-turn count (22,330 at D163; cap 25,000).
+
+**Not in FRk** (for the owner to place):
+- groove weld preparations (bevels, root faces) and their beads' reinforcement; intermittent (stitch) welds; weld distortion;
+- beads along a cope's saddle seam (a space curve);
+- members along general curves (splines) or helices, and twisted members;
+- a bender's springback and allowance tables;
+- T-slot hardware and stock nesting (the outer lane's FR items).
+
+**For the owner** (defaults taken, reversible; asked through the coordinator):
+- **A groove weld at a mitre:** the seam only, no bead modelled (default), or a reinforcement bead of a given height.
+- **A sharp outline's bead corners:** mitred, as two fillets meet (default), or rounded.
+- **Where beads come from:** from the person's weld records (O118's `doc.frames.welds`, one source; default, needing the outer lane's mapping or their leave), or their own nodes made by a Weld bead command.
+
+**Checks:** S0 changed no product code. The tier: T1 (the new test, lint of the new file). `pnpm build:library` in `packages/barocss-cad` before it. frk-s0 10/10, 7.1 s alone at a load of 9–15; with `FR_SURVEY=1` the bevel pair's survey too (10/10, 37 s). `eslint test/frk-s0.test.mjs` clean. Not run: the kernel suite, conformance, studio, flow, RB and properties (no source change, as at D115, D122, D129 and D139).
+
+## D165 — FRk1: gussets and end caps on a frame's members (2026-10-22)
+
+The first FRk stage frozen in D164. **The coordinator's review of D164** (accepted): the three owner defaults stand as taken (a groove weld at a mitre shows its seam only; a sharp outline's bead corners are mitred; beads come from the person's O118 weld records, the record → bead mapping in cad-model's evaluate, built by the outer lane at FRk2 on the kernel's `weld-bead` and `bead`), and one reorder: the bevel pair's wrong mass outranks speed, so FRk8b's first half moves up. **The order now:** FRk1, FRk2, FRk8b (the defect), FRk3, FRk4, FRk5, FRk6, FRk7, FRk8a, FRk8b (exact domain-trim integration, if still needed), FRk9.
+
+**Kernel** (`frame-weldment.ts` for the reports and the loops' closed forms; the planner in `part-model.ts`):
+- **A frame's members keep their placement as built** (`memberPlace` on the part, internal: the section on its line, its length, how far each end runs on, its faces' prefix), so a later feature places plates by them. A feature refers to the frame by id and does not consume it: the members stay outputs.
+- **`gusset`** `{ frame, point, members?: [a, b], along?: 1 | −1, legs: [l1, l2], thickness, clip?, offset? }`:
+  - the joint is a place: the members ending within 1e-6 mm of the point, and a member whose line passes through it inside its length (a T; `along` says which way its leg runs);
+  - in the two members' plane, normal a × b of their directions away from the joint; mid-plane through their lines, or moved `offset` along it;
+  - its corner where the two inner faces' lines meet: (h_b sin φ + s cos φ, h_a) with s = (h_a + h_b cos φ)/sin φ, h the distance of each member's box side from its line;
+  - legs along each, the corner clipped `clip` along both (`.clip`); faces `.on.m<a>`, `.on.m<b>`, `.free`, `.clip`, `.front`, `.back`;
+  - its mass is the prism's, moved: closed form.
+- **`end-cap`** `{ frame, member, end, fit: 'over' | 'inset', thickness }`: over the end's outline (outside it) or a plug in the bore (inside it, flush); on the end as built, so a through end where it runs on to. Faces `.seat` (over) or `.inner` (inset), `.face`, sides by the tag.
+- **Reports** (the shapes D164 froze for the outer lane): `gusset` — frame, point, members, legsMM, thicknessMM, clipMM, offsetMM, angleDegrees, plane, areaMM2 ((l₁l₂ − c²)·sin φ/2), volumeMM3, outline (mid-plane, anticlockwise about the normal), seams `[{ member, lengthMM: l − c, face }]` (the member's face by its role, `f.m0.top`); `endCap` — frame, member, end, fit, thicknessMM, areaMM2, volumeMM3, plane (the end, its normal out of the member), seam `{ lengthMM, exact: true }`. Reports write −0 as 0.
+- **`loopArea`, `loopPerimeter`** (exported): a loop of lines and arcs by Green's theorem and r·|sweep|, closed form.
+- **Refused by name:**
+  - `[GUSSET_FIT]`: no member ends at the point; not two members there (and `members` not given), or a named member not there; members in line; a member meeting it at an edge of its section (turned); no flat face under it across its thickness (a round tube, a round corner — the side's flat spans named); a leg past its member (the face left from the corner named); a clip not under the legs.
+  - `[CAP_END]`: an end cut by a mitre, a butt, a cope or a trim; a plug in a section with no bore, or several.
+  - INPUT: legs not two, `along` not ±1 or missing at a T, a fit or an end unknown; PARAMETER for a thickness or leg not positive; REFERENCE when the frame is not a frame.
+
+**Oracles** (`test/frk-1.test.mjs`, 4 tests; written there):
+- **A gusset in a mitred L** (sharp and round-cornered 40 × 40 × 3, legs 120 and 100, clip 15, 5 thick): (l₁l₂ − c²)/2·t to 1e-12; its box from the B-rep, x 20–140, y ±2.5, z 20–120 (on both inner faces); the report's fields, outline and seams (105 on `f.m0.top`, 85 on `f.m1.top`); its face names; welded with both members, one body of their sum (1e-9).
+- **At 120°:** (l₁l₂)·sin φ/2·t; its corner on the bisector, 20·cot(φ/2) along (the two inner faces 20 from their lines), to 1e-12; welded, their sum. **At a T:** two gussets, `along` 1 and −1, moved 8 off the plane: their boxes (x 20–120 from the post's face, z 420–520 and 280–380 on the rail's, |y| 6–10), the T and both welded to one body of their sum (1e-12).
+- **End caps:** over a round-cornered tube's end (A_env·t, centroid at 302) and a plug in its start (A_bore·t, flush, centroid at 3); the seams 8h − 8r + 2πr; a round tube's cap πr²t, seam πd; a table leg's through end at 720 (the cap's centroid 721.5); welded, their sum. `loopArea` and `loopPerimeter` on a clockwise circle and a triangle.
+- **Refusals:** 18 cases.
+- **Conformance** `conformance/frk/` (4 cases; generator `scripts/frk1-conformance.mjs`, closed forms only): `gusset-butt-l` (the rail through A·620, the post A·580, the gusset by the shoelace on its clipped triangle, its seams), `end-caps-over-inset`, `refuse-gusset-fit`, `refuse-cap-end`. The runner checks a new `plate` expectation (the report's area, volume and seams).
+
+**Studio:**
+- **Nodes** `gusset` and `end-cap` (cad-model `engine/doc.ts`): they refer to the frame node (`usesOf`, not `parentsOf`), each a body of its own; labels `Gusset 120 × 100 × 5 at point 1 of n0`, `End cap over member 1's end, 4 thick`; saved (`migrate.ts`), renumbered on delete (`chat/features.ts`), shifted when flattened into an assembly (`assembly/flatten.ts`); to the kernel in `engine/part.ts`.
+- **Commands** (`app/weldmentCommands.ts`, new; v2 features commands, their values behind `describe`):
+  - **Gusset**: two members of one frame picked; where they meet found from the frame's skeleton now (its own points, or the skeleton or sketch it follows); legs, thickness, clip, offset, and at a T the leg's way along the member passing through. Keyword: `gusset`.
+  - **End cap**: one member picked; its end, over or inset, thickness. Keywords: `cap plug`.
+  - The palette's values (legs 100, clip 10, 5 thick; caps 4) are a first try, not data: no flag.
+- **Notes** (`engine/evaluate.ts`'s list): a gusset's place, size and seams; an end cap's fit, size and seam.
+- **Errors** (`engine/errors.ts`): titles and hints for GUSSET_FIT and CAP_END.
+- **Icons** `cad-gusset`, `cad-end-cap`.
+- **Tests:** cad-model `test/weldment.test.ts` (4: the commands, their nodes, notes and labels, a T's `along`, the refusals' titles, the flatten, the agent's v2 commands on bodies by key and `describe`); the studio's `chat.test.ts` documents both commands' value keys against their HUD fields (the gusset at a T, so `along` shows).
+- **A flow step** "FRk1 gusset and end cap (D165)": the palette's mitred rectangle, two members picked, the Gusset (24 750 mm³, seams 90 and 90); a table's first leg, the End cap over its through top (6400 mm³, seam 160); a screenshot of each.
+- **The v2 tool surface:** two features commands; per turn **22,347** (+17, the two names; cap 25,000).
+
+**For the outer lane** (relayed by the coordinator at D164): `gusset` and `endCap` are on the outputs (`CadPartSnapshot.outputs[].gusset` / `.endCap`). `engine/elements.ts`'s `ElementReport` does not carry them yet (their file), nor the weld list's gusset and cap seams (`frames/welds.ts`). The BOM can read them from the outputs now.
+
+**Judgement calls:**
+- **Placed by the members as built**, not by the frame's input again: a member's run-on, mirror, offset and roll are already in its placement, and the gusset reads the same numbers the member was built from.
+- **A gusset needs flat faces under its whole thickness.** A round corner's flat spans are checked as the open-side butt's (D126) are: a gusset never rests on a round.
+- **No check that the gusset misses other members** (a third member at the joint): the gusset sits in the region between the two inner faces; a third member there would overlap it. Not seen in the tests; the weld of all members proves no overlap where it is used.
+- **End caps only on square and through ends.** A cap on a mitre or a cope would need its outline cut obliquely: refused, not approximated.
+
+**Checks** (T1 on the kernel, the cad-model and studio suites whole; RB and properties at T3 or the 4th checkpoint):
+
+Ran:
+- Kernel: lint (the changed files) and type-check clean; `pnpm build:library`; the FR and FRk tests and the whole conformance runner (it changed), `--test-concurrency=4`: 295/295, 184 s at a load of 11–28. Brep core unchanged, so not the full kernel suite.
+- `@barocss/cad-model`: type-check, lint clean; 763/763.
+- Studio: type-check clean, lint 0 errors (32 warnings in the two files, none new); 203/203.
+- `FLOW_ONLY` "FRk1" with the starter step: 2/2.
+- Test names: saved in the scratchpad (`names/*.D165.txt`) for the next comparisons; this session had no earlier lists, so none compared now.
+
+Not run: the full kernel suite (no brep core change), RB and properties (not T3, 2nd checkpoint), the full browser flow (the coordinator's window flow).
+
+## D166 — FRk2: fillet weld beads on a frame's joints (2026-10-22)
+
+The second FRk stage frozen in D164 (order after review: FRk1, FRk2, then FRk8b's defect). The kernel's feature and report. Beads come from the person's O118 weld records (owner default, D165). The record → bead mapping belongs to the outer lane, in cad-model's evaluate, built on this feature; the coordinator relays it.
+
+**Kernel** (`part-model.ts`; `BeadReport` in `frame-weldment.ts`):
+- **`weld-bead`** `{ frame, on: { member, end } | { gusset } | { cap }, leg, inner? }`:
+  - it refers to the frame (and the gusset) and consumes nothing;
+  - its body is the fillet, its `bead` the report.
+- **On a member's end** landing square on other members' flat faces (a butt, a T's butt, a square end on a face; a plane trim square to the axis):
+  - The bead is the end's outer loop offset by the leg z, drafted 45° back along the member (`draftedExtrusion`: lines become sloping planes, arcs cones), less the member's envelope.
+  - At a start, the section's x and y are swapped, so the axis turns and the loop's frame stays right-handed.
+  - Concave corners and concave rounds offset as the drafted extrusion's lines meet (a root round under the leg is refused).
+  - **Kept on the faces it lands on.** The faces are read off the B-reps as built: the other members' planar faces lying in the end's plane and facing back at it, so a mitre's cut is kept. Only those under the end's footprint count. Where the footprint does not lie inside one convex face, the bead is cut to them: one slab of the faces' outline, extruded the leg deep.
+    - Faces meeting along whole edges (two mitred rails' undersides) are merged into one loop: edges run both ways are dropped, a loop the other way round is a hole.
+    - Where two fillets would meet only along a line (an end's corner at the faces' inside corner), no single solid exists. Each face's piece becomes a body of its own, ids prefixed and names `#k`.
+  - **`inner`:** the bore's fillet as well: the bore's prism less the bore drafted 45° inwards.
+- **On a gusset:** the fillets along both seams, on both faces: right-triangle prisms of legs z, (l − c)·z² a seam, four bodies. The gusset's placement is kept as built (`gussetPlace`, internal).
+- **The report** (`bead`):
+  - frame, on, `kind: 'fillet'`, legMM, throatMM (z/√2), `meets` (the members whose faces it lands on), `corner: 'mitred'`;
+  - `seam: { lengthMM, flushMM, exact: true, inner? }`: the welded loop's length, as O118's seam (the end's outline and the bore's when `inner`; a gusset's four runs). `flushMM` is the part of an end's outline lying on the edge of a face it lands on, which carries no fillet (a corner weld, not modelled);
+  - `volumeMM3`: the body's, or a gusset's in closed form.
+- **Refused by name:**
+  - `[BEAD_KIND]`: a mitred end (a groove weld: its seam only, owner default); a cap (it sits flush: a corner weld, owner default); an end landing on no member's flat face; `inner` on a section with no bore or several;
+  - `[BEAD_SEAM_NOT_PLANAR]`: a coped end, or one trimmed to envelopes or a body;
+  - `[BEAD_ANGLE]`: an end meeting its face off square. **Narrowed from D164:** D164 froze oblique ends with a sharp convex outline as a polytope of hypotenuse planes, with the curved outline refused. No independent oracle for that polytope was found cheaply: its corners are not a sum of closed forms, and a 2D quadrature of a kinked height converges poorly. So all oblique ends are refused here, and the seam is still listed by O118. Listed below for the owner;
+  - `[BEAD_SIZE]`: a leg past a concave round or the bore's rounds (the drafted offset collapses); a gusset whose clip is under the leg (the corner leaves the fillets no room); a gusset's fillets running off a member's flat face; nothing left on the faces;
+  - INPUT (`on`, `on.end`, `inner`), PARAMETER (a leg not positive), REFERENCE (no frame, no gusset, a gusset of another frame).
+
+**Oracles** (`test/frk-2.test.mjs`, 5 tests; written there):
+- **The offset area integrated:** A(s) = A₀ + P·s + c·s² (c 4 for a sharp outline's mitred corners, π for a smooth one) gives V = P·z²/2 + (c/3)z³.
+  - A 40 × 40 rail butted on an 80 × 80 post: 756, exactly. Its centroid (P·z³/6 + z⁴/3)/V off the face, to 1e-12. The report's fields; face names `w.fillet.*`, `w.on.m1.*`.
+  - Welded with the rail and the post: one body of their sum, to 1e-12.
+  - Round-cornered (ro 6 on ro 8): P·z²/2 + (π/3)z³, to 1e-11; its seam 8h − 8r + 2πr.
+- **The bore's fillet:** P_i·z²/2 − (c/3)z³, sharp (1332 with the outer) and round-cornered (ri 4 over a leg of 3), two bodies (the wall between them).
+- **A start end** (a post standing on a beam's top): 756 again; its centroid above the beam.
+- **Flush sides:**
+  - a rail as wide as its post: only the top and bottom runs, 40·z², two bodies, flush 80 of 160; welded, their sum;
+  - a leg under a mitred top's corner, on rails 4 and 7: the inner sides' runs 2·40·z²/2, two bodies, valid, flush 80.
+- **A gusset's beads:** (105 + 85)·z², four bodies. Their centroid is the four prisms' (each the triangle's at a third of the legs, the seam's middle). Welded with both members and the gusset, one body of their sum (1e-9).
+- **Refusals:** 13 cases.
+- **Conformance** `conformance/frk/` (+5, 9 cases; generator `scripts/frk2-conformance.mjs`, closed forms only): `bead-tee-wide-post` (genus 1: the ring round the rail), `bead-tee-flush` (two bodies), `bead-gusset` (four), `refuse-bead-mitre`, `refuse-bead-angle`. The runner checks a new `bead` expectation (leg, seam, flush, meets, volume).
+
+**Studio** (no command: beads come from the weld records, the outer lane's mapping):
+- **Notes** (`engine/evaluate.ts`): the bead's joint, leg and throat, the members it lands on, its seam and volume, a warning on its flush length.
+- **Errors** (`engine/errors.ts`): titles and hints for BEAD_KIND, BEAD_SEAM_NOT_PLANAR, BEAD_ANGLE, BEAD_SIZE.
+- Neither is exercised by a studio test yet. No node makes a bead until the mapping lands.
+- **A feature-level flow step** "FRk2 weld beads (D166) …":
+  - the kernel's features (a post, a rail butted on it with its bead, a top beam butted with a gusset and the gusset's beads) are evaluated in the flow;
+  - exported to STEP and opened in the studio: 9 bodies;
+  - the T's bead body reads 756 mm³ in the panel; a screenshot.
+- The v2 tool surface is unchanged (per turn 22,347).
+
+**For the outer lane's mapping** (relayed by the coordinator):
+- A record's joint `<body>.<end>` (O118) is the frame's member k (its body `part<k>`, or `solid` for one) and that end: `{ kind: 'weld-bead', frame: <the frame's feature id>, on: { member: k, end }, leg: <the record's size>, inner: <the record's inner> }`.
+- Which records map:
+  - fillet records only;
+  - a mitre's (a groove weld) and a cap's (flush) are refused BEAD_KIND, by the owner's defaults: do not map them;
+  - an `on-face` joint maps as its own end: the kernel finds every face it lands on (`meets`).
+- A gusset's seams map to `{ on: { gusset: <its feature id> } }` once their weld list lists them.
+- The output's `bead` carries the seam, flush part, volume and members for the weld list and symbols.
+
+**Corrected here, from D165:** FRk1's cad-model test (`test/weldment.test.ts`) did not type-check (two `fields` calls not asserted, a sketch node with the wrong fields). D165's "type-check clean" was run before the test was written; the suite runs through esbuild, which does not type-check. Fixed in this commit; cad-model's type-check is clean now.
+
+**Judgement calls:**
+- **The landing faces come from the B-reps as built**, not from the members' section boxes and lengths. A box face's strip runs past a mitre's cut and would hang the bead outside the frame's corner; the first build did that before the faces were read off the B-reps.
+- **Flush sides carry no fillet** and are said (`flushMM`, the note's warning). A fillet that hangs off its face's edge is not built.
+- **Two fillets meeting only along a line are separate bodies**, never a non-manifold solid.
+
+**Not in FRk2** (for the owner): beads on oblique ends (D164's polytope, narrowed above); groove welds' preparations and reinforcement; corner welds on flush sides and caps; beads along a cope's saddle seam.
+
+**Checks** (T1; the kernel FR/FRk files and the whole conformance runner; cad-model and studio whole):
+
+Ran:
+- **Kernel:** type-check and lint clean (the changed files); `pnpm build:library`. FR, FRk and the conformance runner, `--test-concurrency=4`: 305/305 at a load of 27–36. Brep core unchanged.
+- **`@barocss/cad-model`:** type-check clean (after the D165 test fix); lint clean on the changed files; 770/770 (+7 from the merged O148).
+- **Studio:** type-check clean; 203/203; lint 0 errors on the flow file.
+- **`FLOW_ONLY` "FRk2"** with the starter step: 2/2.
+- **Test names against `names/*.D165.txt`:** none missing. New: kernel +10 (5 tests, 5 conformance cases); cad-model +7 (the outer lane's O148 X1–X3); studio unchanged.
+
+Not run: the full kernel suite (no brep core change); RB and properties (3rd checkpoint, not T3); the full browser flow (the coordinator's window flow).
+
+## D167 — FRk8b: the trimmed-face quadrature's wrong mass — the rule straddled knot spans; strips dropped at the domain's edge (2026-10-22)
+
+The defect half of FRk8b, moved up by the coordinator after FRk2 (a wrong mass outranks speed). D152 left it open. On the 16/20 bevel pair at 4°, the kernel gave 39.109 against D149's Green value of 38.571 and the 64-segment mesh's 38.497.
+
+**Found** (per face; the kernel's own field ∫x·n_x dA against an oracle using the same field):
+- **18 of the 22 faces agreed to 1e-14 … 5e-6:** the whole patches, the tips, the roots, heel#3 and toe#3.
+- **The four trimmed flank faces** (`p/w.flankR2#1`, `#2`) were 0.1–0.4 off, and moved between 8 and 16 segments a quarter (p.flankR2#1: 149.73 → 152.36, the oracle 152.32). Richardson's cube rate then made them worse.
+  - **The cause:** each such face had 5–6 domain triangles at 8 segments a quarter, and each triangle spanned several knot spans of the fitted flank. The 16-point rule straddled the spans' breaks, where the integrand is not smooth, so its error moved with the triangulation: 1–2 % of each face's area. Their areas showed it: the kernel 13.42, 13.66, 13.63 at 8, 16, 32 segments; the oracle 13.6555; the 64-segment mesh 13.6552.
+- **Strips dropped silently.** The boundary strips' inversion (Gauss–Newton by finite differences) stepped past the domain's edge, the evaluator refused, and the strip was dropped:
+  - 27 on the pair;
+  - 5764 over the conformance cases, half of them seeded on the domain's edge;
+  - plus 34 in the strip's own loop and 78 at its tangents.
+  - On the pair this did not move the value. Fixed with the rest.
+- **Neither earlier oracle was the truth on the spherical faces** (heels, toes, roots: rational biquadratic sphere patches):
+  - D149's Green in the domain does not converge there: heel#2 15.476, 15.473, 15.455, 15.426 at 24, 48, 96, 192 pieces; toe#2 −7.33, −7.51, −7.47, −7.43;
+  - the mesh is not in its asymptotic range there either: the 16/32/64 ratios are 2.1–2.9, and 64 and 128 segments give the same mesh;
+  - so D152's 38.571 and the mesh's 38.497 were both off.
+
+**Fixed** (`brep-mass-quadrature.ts`; `brep-tessellate.ts` marks its parameters):
+- **Each domain triangle is cut along the surface's knot lines** before the rule (`cellTriangles`: convex cuts, each piece fanned), so the rule runs within one polynomial span.
+  - Pieces of no area (a knot line through a vertex, to rounding) are left out: their rule's points at the domain's edge could fall an ulp outside it. The R11.2b SubD shell found that before commit.
+  - Splitting each piece in four as well changed the pair by 1e-11 at twice the time, so it is not done.
+- **Only where `uv` is the surface's own.** A ruled wall's frame parameters (a cylinder extruded: v in mm) are not the surface's: their knots and domain do not apply. `FaceParameters.own` says which.
+  - The first build took the surface's [0, 1] domain for every face, and its clamped inversions threw away half the strips on a sphere cut by a cylinder (1e-4 off). That was found by FRk S0's oracle before commit.
+- **The inversion keeps to the face's own domain:**
+  - its steps are clamped there and its differences taken inwards at the edge;
+  - a point held at the domain's edge must have reached the edge point (within 1e-6 of its size), else the point lies off the domain (across a seam) and gives no strip;
+  - inside the domain the nearest point stands as before: an intersection edge's fitted points lie a little off either surface. Requiring 1e-7 everywhere dropped half the strips.
+- **No strip is dropped silently.** Every strip that cannot be integrated (no inversion, far off its chord, no tangents) is counted (`dropped`), and its face is held to its vector area (∫n dA against ½∮x × dx) within 1e-9 of its area, not 5 %. A face that does not hold sends the B-rep to the tessellation's route, which its mass's `method` then says.
+  - Over the conformance cases: 48,212 strips integrated, 26,875 trims straight in (u, v) (no strip needed), 512 dropped.
+  - The dropped strips are all on 8 faces, whose vector areas hold within 7e-11: edges across a seam. Before: 5,842 dropped.
+  - `brepQuadratureIntegrals` returns `dropped`.
+
+**The pair now:** 38.559407 at every step (8, 16, 32 segments: 38.559383, 38.559404, 38.559172), no strip dropped.
+
+**The oracles** (`test/frk-8b.test.mjs`, 2 tests; none of them the kernel's):
+- **D149's Green theorem in a face's domain** where it converges: 24 and 48 pieces agree to 1e-9, as asserted in the test.
+- **On a face lying on a sphere,** Green's theorem in spherical coordinates, written for this record:
+  - about an axis square to the face's mean direction (no wrap in θ);
+  - ∬ g R² sin φ dφ dθ = ∮ G dθ, with the boundary the exact edges mapped by atan2 and acos, per knot span, 4 × 8 Gauss points;
+  - its orientation read off the loop's own signed area in (φ, θ), and the outward normal along the radius or against it from the surface's tangents and the face's sense;
+  - no surface parameters, no projection. It converges to 9 digits by 4 pieces a span.
+  - **Checked against closed forms:** a sphere's cap (two halves and a disc) πh²(3R − h)/3, to 4e-11; a sphere cut by a cylinder off its axis (FRk S0's two-variable Gauss–Legendre), to 2e-9.
+- **The pair's oracle volume: 38.5591836.** The kernel's 38.5594071 is within 5.8e-6, under the test's 1e-5 (HEAD fails it: 39.109, 1.4 %). It is the same at 8, 16 and 32 segments to 1e-5, no strip dropped.
+  - The residual sits on the four non-converging-for-Green sphere faces: 1.1e-4 to 2.6e-4 each (1.4e-5 relative) against the sphere oracle. heel#3 and toe#3 agree with it to 5e-6.
+- **The pair is a fixture** (`test/fixtures/frk8b-bevel-pair-4deg.brep.json`, 104 kB, built by the kernel at 56e11f3ae), so the test does not rebuild it (24 s); 3.4 s alone.
+
+**Conformance moved, and checked** (both were this kernel's own values; both now agree with D149's Green, converged at 24, 48 and 96 pieces, to 1e-11):
+- `rb2/helical-rod-watertight`: z̄ −12.499990699 → −12.499997178 (it was 6.5e-6 off; the oracle −12.4999971784); ȳ −0.006196303 → −0.006196767.
+- `rb3/helical-bolt-roundtrip`: area 1274.61606622 → 1274.616073813 (it was 6e-9 off; the oracle 1274.6160738).
+- Their `oracle` notes say so.
+
+**Cost** (load 30–35, both builds the same session, one run each, fresh B-reps):
+- the throated wheel (724 faces): mass 6.0 s at HEAD, 6.4 s now; its STEP export 5.2 s and 3.6 s (noise at this load); its volume the same to all printed digits;
+- the bevel pair: 724 ms at HEAD, 218 ms now.
+- D151's speed (meshing twice) is unchanged in kind. FRk8b's second half (integration over exact trims in the domain) is not needed for accuracy now; for speed it stays on the list, "if still needed".
+
+**Checks** (T2: brep core changed; the 4th checkpoint since R12c's T3, so RB and properties):
+- **Kernel:** type-check and lint clean (the changed files). The full kernel suite at concurrency 4, in a detached scratch worktree at 56e11f3ae with this change: 1545/1552, 6 skipped, 372 s. It failed only the env-only "actual native Split source…".
+  - Its first run (before the sliver and `own` fixes) failed the R11.2b SubD shell (a quadrature refused for an ulp) and the two helical cases (values moved, checked above).
+  - Test names: none of FR/FRk/conformance missing against `names/*.D166.txt`; the full list saved (`names/kernel-full.D167.txt`, 1552).
+- **RB:** 418 cases (+9: the frk cases since R12c's 409), no new failures. The non-OK totals are unchanged: 4 refused, 3 invalid, 5 wrong (the 8 known TODOs). 153 s.
+- **Properties:** 11/11, no failures, 174 s. Among them the coaxial fillets against Pappus (200 random cone rims) and "mass by quadrature and by a finer and finer tessellation agree" (200).
+- **Not run:** cad-model and studio (no change there; their masses go through this kernel, so the coordinator's merge checks cover them); the flow.

@@ -1,0 +1,139 @@
+{
+  "id": "a3-plate-brief",
+  "step": "A3",
+  "decisions": [
+    "D36"
+  ],
+  "about": "A 40 × 20 × 8 plate with a Ø8 hole against a four-line brief: length and hole pass, thickness fails by 2 mm (hard), the mass is unknown (no material set).",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nextId": 3,
+      "outputs": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 8
+        },
+        {
+          "id": "n2",
+          "kind": "hole",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "center": [
+            20,
+            10
+          ],
+          "radius": 4
+        }
+      ],
+      "requirements": [
+        {
+          "id": "R1",
+          "source": "a 40 mm long plate",
+          "hard": true,
+          "basis": "stated",
+          "check": {
+            "op": "==",
+            "query": {
+              "fn": "bbox",
+              "axis": "x"
+            },
+            "value": 40,
+            "tol": 0.1,
+            "unit": "mm"
+          }
+        },
+        {
+          "id": "R2",
+          "source": "no thicker than 6 mm",
+          "hard": true,
+          "basis": "stated",
+          "check": {
+            "op": "<=",
+            "query": {
+              "fn": "bbox",
+              "axis": "z"
+            },
+            "value": 6,
+            "unit": "mm"
+          }
+        },
+        {
+          "id": "R3",
+          "source": "an 8 mm hole",
+          "hard": true,
+          "basis": "stated",
+          "check": {
+            "op": "==",
+            "query": {
+              "fn": "hole_diameter",
+              "face": {
+                "feature": 2,
+                "role": "side0"
+              }
+            },
+            "value": 8,
+            "tol": 0.01,
+            "unit": "mm"
+          }
+        },
+        {
+          "id": "R4",
+          "source": "under 20 g",
+          "hard": false,
+          "basis": "stated",
+          "check": {
+            "op": "<=",
+            "query": {
+              "fn": "mass"
+            },
+            "value": 20,
+            "unit": "g"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "summary": {
+      "pass": 2,
+      "fail": 1,
+      "unknown": 1,
+      "hard_failing": 1
+    },
+    "failures": [
+      {
+        "req_id": "R2",
+        "check": "bbox",
+        "measured": 8,
+        "expected": "<= 6 mm",
+        "delta": 2
+      }
+    ],
+    "unknowns": [
+      "R4"
+    ]
+  },
+  "oracle": "closed forms (the plate's size; the hole's diameter)"
+}

@@ -15,25 +15,65 @@
 //                    by its two faces. Chamfers and fillets select edges by these names, so a selection
 //                    survives parameter edits that keep the topology.
 //   references       `id` (all parts of a feature) or `id/k` (part k: the sides of a split)
-import { BrepError, buildBrep, lineCurve, mergeBreps, type Brep } from './brep-core.js';
+import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, mergeBreps, nurbsOf, type Brep, type BrepCheckReport } from './brep-core.js';
 import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromProfile, prismaticVolume, transformPrismatic, PrismaticSolidError, type PrismaticSolid } from './prismatic-solid.js';
 import { erodeSection } from './section-offset.js';
 import { booleanCurveRegions, curveTolerance, regionMoments, sampleRing, segEnd, segReverse, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { booleanPolyhedra } from './polyhedral-boolean.js';
-import { booleanAnalytic, faceGeometry } from './analytic-boolean.js';
+import { booleanAnalytic, faceGeometry, splitFaceAlongCurve, splitFaceAlongIsocline } from './analytic-boolean.js';
 import { faceReach, finishBrepEdges } from './edge-finish.js';
 import { draftedExtrusion } from './drafted-extrusion.js';
-import { exportStep, importStep } from './step.js';
+import { exportStep, importStep, stepTessellatedChars } from './step.js';
+import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
+import { facetBrepFromTriangles, facetBrepsFromTriangles, weldVertices } from './facet-brep.js';
+import { splitFacetBrep, type FacetSplitResult } from './facet-split.js';
+import { facetBoolean, FacetBooleanError, splitMixedBrep } from './facet-boolean.js';
+import { selfIntersections } from './mesh-repair.js';
+import { threadSolid } from './thread-solid.js';
+import { sweepSolid } from './sweep-solid.js';
+import { validateCurve, validateSurface } from './math.js';
+import { thickenSolid } from './thicken-solid.js';
+import { sewSolid, SewError } from './sew-solid.js';
+import { buildSubd, subdSummary, SubdError, type SubdSummary } from './subd.js';
+import { decimateMesh, type DecimateReport } from './mesh-decimate.js';
+import type { FilletReport } from './rolling-ball.js';
+import { SIDE_TAG, type SideTags } from './side-names.js';
+import { spurRack, type SpurRackReport, type SpurRackSpec } from './gear-rack.js';
+import { spurGear, spurGearCenterDistance, spurGearDimensions, GearError, type GearDiagnosticCode, type SpurGearReport, type SpurGearSpec } from './gear.js';
+import { internalGear, internalGearCenterDistance, pinionTurnInside, type InternalGearReport, type InternalGearSpec, type PlacedInternalGear } from './gear-internal.js';
+import { bevelGear, bevelMatePlacement, bevelGearMatrix, type BevelGearReport, type BevelGearSpec, type PlacedBevelGear } from './gear-bevel.js';
+import { worm as wormSolid, wormPlacement, wormMatrix, type WormReport, type WormSpec, type PlacedWorm } from './gear-worm.js';
+import { glandCut, oringInGland, GlandError, type GlandCode, type GlandPlace, type GlandRanges, type GlandReport, type ORingRow } from './oring.js';
+import { seatedBearing, bearingRowProblem, BearingError, type BearingCode, type BearingReport, type BearingRow, type BearingFitClasses } from './bearing.js';
+import { keySolid, keywayCut, ringSolid, pinSolid, ShaftPartError, type KeyFitClasses, type KeyReport, type KeywayReport, type PinReport, type RingReport, type ShaftPartCode } from './shaft-parts.js';
+import type { FitTable } from './fits.js';
+import { shaftSolid, ShaftError, type ShaftDiagnosticCode, type ShaftReport, type ShaftSpec } from './shaft.js';
+import { sprocket, pulley, beltBand, couplingEnvelope, DriveError, type DriveCode, type DriveRow, type SprocketReport, type PulleyReport, type BeltReport, type CouplingReport } from './drive.js';
+import { lookupSection, sectionTableProblem, type SectionTable } from './section-table.js';
+import { connectorBody, connectorOpening, ConnectorError, type ConnectorCode, type ConnectorReport, type ConnectorRow } from './connector.js';
+import { discCam, CamError, type CamCode, type CamLaw, type CamReport, type CamSpec } from './cam.js';
+import { compressionSpring, hookedSpring, springDimensions, SpringError, type HookedSpringReport, type HookedSpringSpec, type SpringDiagnosticCode, type SpringReport, type SpringSpec } from './spring.js';
+import { throatedWormWheel, throatedWormPlacement, type ThroatedWheelReport, type ThroatedWheelSpec, type PlacedThroatedWheel } from './gear-worm-wheel.js';
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
+import { curveDomain, evaluateCurve } from './math.js';
 import { tessellateBrep } from './brep-tessellate.js';
-import { combineMassProperties, prismaticMassProperties, brepMassProperties, SolidMassError, type SolidMassProperties } from './solid-mass.js';
+import { rayHit, triangleBvh } from './triangle-bvh.js';
+import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, SolidMassError, type SolidMassProperties } from './solid-mass.js';
 import { glueAtSharedFace, withCavities } from './brep-glue.js';
 import { loftSolid } from './loft.js';
 import { generalShell } from './general-shell.js';
+import { offsetCavity, offsetShell, smoothOffsetBody } from './offset-cavity.js';
+import { regionShell } from './region-shell.js';
+import { meshInnerOffset, type MeshShellReport } from './mesh-offset.js';
+import { bendAllowance, bendDeduction, bendTableProblem, contourFlangeSection, flangeSection, lookupBend, outsideSetback, SheetMetalError, type BendTable, type BendTableUse, type SheetReport } from './sheet-metal.js';
+import { flatPattern as flatPatternOf, FlatPatternError, type FlatPattern } from './sheet-flat.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
-import type { Point } from './types.js';
+import { loopArea, loopPerimeter, type BeadReport, type EndCapReport, type GussetReport, type WeldmentSeam } from './frame-weldment.js';
+import { FRAME_ANCHORS, FrameSectionError, anchorPoint, frameSection, loopBox, type FrameAnchor, type FrameEndReport, type FrameMemberReport, type FrameSectionSpec } from './frame-section.js';
+import type { Curve, FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
+import { encodeBinaryStl } from './stl.js';
 
 export type CadPartDim = number | { readonly parameter: string };
 export type CadPartAxis = 'x' | 'y' | 'z';
@@ -52,7 +92,14 @@ export interface CadPartSketchPlane { readonly origin: CadPartPoint3; readonly n
  * `regions`: more closed loops of material beside the profile; `holes`: closed loops cut from them (a
  * plate with windows, two bosses at once). Only straight extrudes take them.
  */
-type Placed = { readonly plane?: CadPartSketchPlane; readonly regions?: readonly (readonly CadPartLoopSegment[])[]; readonly holes?: readonly (readonly CadPartLoopSegment[])[] };
+/**
+ * `sideTags` (R10a, D86): a stable id for each side of the outer loop (a rectangle's 4, a circle's 1, a polygon's points,
+ * a loop's segments), of each region loop and of each hole loop — letters, digits, `_`, `-`, unique in the sketch.
+ * With them every wall a body makes of the sketch is named `<id>.side[<tag>]` (a vertex inserted or a segment removed
+ * leaves the others' names); without, by position as before (`side<i>`, `region<r>.side<i>`, `hole<h>.side<i>`).
+ */
+type Placed = { readonly plane?: CadPartSketchPlane; readonly regions?: readonly (readonly CadPartLoopSegment[])[]; readonly holes?: readonly (readonly CadPartLoopSegment[])[]; readonly sideTags?: CadPartSideTags };
+export type CadPartSideTags = SideTags;
 export type CadPartFeature = Base & (
   | ({ readonly kind: 'sketch'; readonly profile: 'rectangle'; readonly min: CadPartPoint2; readonly max: CadPartPoint2 } & Placed)
   | ({ readonly kind: 'sketch'; readonly profile: 'circle'; readonly center: CadPartPoint2; readonly radius: CadPartDim } & Placed)
@@ -62,15 +109,17 @@ export type CadPartFeature = Base & (
   /** `draft` (degrees, |θ| < 89) leans every wall into the material away from the sketch plane. */
   | { readonly kind: 'extrude'; readonly sketch: string; readonly height: CadPartDim; readonly from?: CadPartDim; readonly draft?: number }
   /** About an axis in the sketch plane (through `origin`, along X or Y), by angleDegrees (default 360). */
-  | { readonly kind: 'revolve'; readonly sketch: string; readonly axis: { readonly origin: CadPartPoint2; readonly direction: 'x' | 'y' }; readonly angleDegrees?: number }
+  | { readonly kind: 'revolve'; readonly sketch: string; readonly axis: { readonly origin: CadPartPoint2; readonly direction: 'x' | 'y' | readonly [number, number] }; readonly angleDegrees?: number }
   | { readonly kind: 'union' | 'difference' | 'intersect'; readonly target: string; readonly tool: string }
   /**
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
    * the top for z). `center` is in the other two coordinates in order: z → [x, y], x → [y, z], y → [x, z].
+   * `face` (D148): the planar face it is drilled into, by name — the depth and the countersink measured from that face's
+   * plane rather than the target's extreme on `side` (a boss's top inside a shell); its normal along ±axis gives the side.
    */
-  | { readonly kind: 'hole'; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim; readonly axis?: CadPartAxis; readonly side?: 'min' | 'max' }
+  | { readonly kind: 'hole'; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim; readonly axis?: CadPartAxis; readonly side?: 'min' | 'max'; /** A 90° countersink: its diameter at the face (wider than the hole). */ readonly countersink?: CadPartDim; readonly face?: string }
   | { readonly kind: 'translate'; readonly target: string; readonly offset: CadPartPoint3 }
-  /** About Z by any angle; about X or Y by multiples of 90°. */
+  /** About an axis through `pivot` (default the origin) by any angle; off quarter turns about X or Y the body leaves the upright family. */
   | { readonly kind: 'rotate'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly pivot?: CadPartPoint3 }
   /** Mirror in a coordinate plane through the origin; `keep` also keeps the original (one body). */
   | { readonly kind: 'mirror'; readonly target: string; readonly plane: 'xy' | 'xz' | 'yz'; readonly keep?: boolean }
@@ -79,8 +128,11 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'linear-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
   /** Copies k·angleDegrees about the axis through `pivot` (about X or Y: multiples of 90°). */
   | { readonly kind: 'circular-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly count: number; readonly pivot?: CadPartPoint3 }
-  /** Parts /0 (below `at`) and /1 (above). */
-  | { readonly kind: 'split'; readonly target: string; readonly axis: CadPartAxis; readonly at: CadPartDim }
+  /**
+   * Parts /0 (below `at`) and /1 (above): across the plane `axis` = at, or with `normal` (any direction,
+   * not necessarily unit) across the plane normal·p = at — x + y = at for [1, 1, 0], a mitre.
+   */
+  | { readonly kind: 'split'; readonly target: string; readonly axis?: CadPartAxis; readonly normal?: CadPartPoint3; readonly at: CadPartDim }
   /**
    * The sketch's profile swept along a path through its centroid, from the sketch plane up +Z: straight
    * runs and bends of a radius (to the path) towards ±X or ±Y (as a pipe is bent), each from where the
@@ -99,12 +151,367 @@ export type CadPartFeature = Base & (
    * solid of the file is its own part (`id/k`, in file order) instead of one body holding them all.
    */
   | { readonly kind: 'import'; readonly step: string; readonly each?: boolean }
+  /**
+   * A closed triangle mesh (an STL or OBJ file's, in mm): `positions` x, y, z per vertex, `indices` three a
+   * triangle. `representation: 'facets'` (new imports, F0): facet faces, the mesh grouped into regions named
+   * `${id}.region${k}`. Absent (or 'planar', documents made before F0): a planar solid, triangles flat against
+   * each other one face, named `${id}.facet${k}` — kept so old documents' names resolve.
+   */
+  /**
+   * `each` (with facets): every closed piece of the mesh a part of its own (`id/j`), its faces `${id}.part${j}.region${k}`.
+   * `positions` and `indices` may be typed arrays (Float64Array or Float32Array; Uint32Array): taken as they are —
+   * not copied, frozen or written into the reuse key (hashed once per array); never changed after they are passed.
+   */
+  /**
+   * `open` (facets): an open mesh taken as a sheet body (what repair could not close: no volume, no Booleans), never
+   * assumed. `groups`: per triangle, the repair fill patch it belongs to (≥ 0, its own faces `….fill<k>.region<f>`) or −1.
+   */
+  | { readonly kind: 'mesh'; readonly positions: readonly number[] | Float64Array | Float32Array; readonly indices: readonly number[] | Uint32Array; readonly representation?: 'facets' | 'planar'; readonly each?: boolean; readonly open?: boolean; readonly groups?: readonly number[] | Int32Array }
+  /**
+   * A modelled ISO metric thread (faceted helix, one solid with no Boolean): a rod of `length` below
+   * `seat` on the axis through `center`; with `hex`, a hex head bolt (head above the seat), or with
+   * `hex.internal` a hex nut above the seat threaded through.
+   */
+  /**
+   * The sketch's profile swept along a curve (any NURBS path in mm): its middle starts on the path's
+   * start, square to it, carried along without twisting; the ends capped; holes run through. Faceted.
+   */
+  | { readonly kind: 'sweep-curve'; readonly sketch: string; readonly path: { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[] } }
+  /**
+   * Draft (taper) on chosen side faces for a pull along +Z: each planar face square to Z turns about its
+   * line on the neutral plane (default: the body's bottom) by `angleDegrees` — positive leans its top
+   * in (material taken off), negative out (material added). The faces by name.
+   */
+  | { readonly kind: 'draft'; readonly target: string; readonly faces: readonly string[]; readonly angleDegrees: number; readonly neutral?: CadPartDim }
+  /**
+   * D149: one face of a part split along NURBS curves lying on it (`curves`, mm), or along its isocline n·d = 0 for the pull
+   * `pull`; the face by name (a base name naming one face). The pieces are named `<face>#1`, `<face>#2` … (an isocline's +
+   * side first), or by `names`; every other face, its name and the volume are kept.
+   */
+  | { readonly kind: 'split-face'; readonly target: string; readonly face: string; readonly curves?: readonly { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[] }[]; readonly pull?: CadPartPoint3; readonly names?: readonly string[] }
+  /** An open NURBS surface thickened into a solid: `thickness` along its normal (or against it, or half each way). Faceted. */
+  | { readonly kind: 'thicken'; readonly surface: { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[] }; readonly thickness: CadPartDim; readonly side?: 'normal' | 'reverse' | 'both' }
+  /**
+   * Open NURBS surfaces sewn into one closed solid along their natural edges (each edge shared by exactly
+   * two of them within `tolerance` mm); the faces keep their exact surfaces.
+   */
+  /**
+   * SD1 (R5): a SubD cage — faces counter-clockwise from outside, optional infinitely sharp creases — as its limit
+   * surface (OpenSubdiv rules; boundary edges and corners interpolated): bicubic B-spline faces `${id}.patch<k>`, a
+   * solid when the cage is closed, a sheet when it has a boundary. SD2 (R7): with extraordinary vertices, n-gons or
+   * darts, one or two Catmull–Clark steps, exact faces `${id}.patch<label>` away from them and G1 caps
+   * `${id}.cap<label>` at them.
+   */
+  | { readonly kind: 'subd'; readonly cage: { readonly positions: readonly number[] | Float64Array; readonly faces: readonly (readonly number[])[]; readonly creases?: readonly (readonly [number, number])[] } }
+  | { readonly kind: 'sew'; readonly surfaces: readonly { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[] }[]; readonly tolerance?: number }
+  /**
+   * R6a (issue #2167, D53–D54): an involute spur gear on the XY plane, about `center`, from z `from` through
+   * `faceWidth` — 20°, no profile shift in this stage (other input refused with its code). Faces `<id>.flankL#k`,
+   * `.flankR#k`, `.tip#k`, `.root#k`, `.rootL#k`/`.rootR#k`, `.face0`/`.face1`, `.bore#1/2`; its report (dimensions,
+   * the measured flank deviation, the schematic root's warning) is the output's `gear`. `generator` records the
+   * version that made it.
+   */
+  | { readonly kind: 'spur-gear';
+    /** A spur gear's module; a helical gear (`helixAngle` and `hand`, R6a.5c) gives `normalModule` instead. */
+    readonly module?: CadPartDim; readonly normalModule?: CadPartDim; readonly helixAngle?: number; readonly hand?: 'right' | 'left'; readonly teeth: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number; readonly profileShift?: number; readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim;
+    /** Turned about its axis (degrees; tooth 1 on +X at 0). */
+    readonly rotation?: number;
+    /**
+     * Meshing with another spur gear (R6a.4, D56): placed beside it — on its face plane, at `centerDistance` (default
+     * the one without backlash: m(z1 + z2)/2, or the working one for shifted gears) along `direction` (degrees from +X) — and turned so its teeth mesh (a space facing the
+     * other's tooth on the line of centres, plus `phase` degrees), following the other's turn by −z1/z2. Its own
+     * `center`, `from` and `rotation` are then not used.
+     */
+    readonly mesh?: { readonly gear: string; readonly direction?: number; readonly centerDistance?: CadPartDim; readonly phase?: number };
+    /**
+     * The generator version: 'spur-gear@0' (the default) the schematic root; 'spur-gear@1' (R12b.1a, D130) the root the
+     * basic rack generates, its tip radius `toolTipRadius` (default 0.38 m) — spur and helical (R12b.1b), undercut taken as cut.
+     */
+    readonly generator?: 'spur-gear@0' | 'spur-gear@1'; readonly toolTipRadius?: CadPartDim }
+  /**
+   * A rack (R6a.5b, D58): its pitch line from `origin` along `angle` degrees (teeth to its left, the back `height` below
+   * the line), standing on z `from`; or, with `mesh`, under a spur gear — its pitch line `centerDistance` from the gear's
+   * axis (default r + x m) across `direction` (degrees from +X, the axis to the pitch point), on the gear's face plane,
+   * slid so its middle gap meets a tooth (plus `phase` mm) and travelling r per radian of the gear's turn.
+   */
+  | { readonly kind: 'spur-rack';
+    /** A straight rack's module; a helical rack's `normalModule`, `helixAngle` and `hand` (meshing: taken from the gear, the opposite hand). */
+    readonly module?: CadPartDim; readonly normalModule?: CadPartDim; readonly helixAngle?: number; readonly hand?: 'right' | 'left'; readonly teeth: number; readonly faceWidth: CadPartDim; readonly height: CadPartDim; readonly pressureAngle?: number; readonly thicknessReduction?: CadPartDim;
+    readonly origin?: CadPartPoint2; readonly angle?: number; readonly from?: CadPartDim;
+    readonly mesh?: { readonly gear: string; readonly direction?: number; readonly centerDistance?: CadPartDim; readonly phase?: CadPartDim };
+    /** 'spur-rack@0' (the default) the schematic root corner; 'spur-rack@1' (R12b.1b, D131) the basic rack's root fillet, radius `rootFillet` (default 0.38 m). */
+    readonly generator?: 'spur-rack@0' | 'spur-rack@1'; readonly rootFillet?: CadPartDim }
+  /**
+   * An internal (ring) gear (R12b.2a, D132): module (a helical one's normalModule, helixAngle and hand — its pinion's
+   * hand), teeth, face width and the rim's outer diameter `rim`; profile shift x2 (−0.5 to 0.75), thickness reduction;
+   * standing on z `from` about `center`, turned `rotation` degrees (tooth 1 on +X at 0). A spur gear meshes inside it by
+   * its `mesh: { gear: <this> }`.
+   */
+  | { readonly kind: 'internal-gear'; readonly module?: CadPartDim; readonly normalModule?: CadPartDim; readonly helixAngle?: number; readonly hand?: 'right' | 'left'; readonly teeth: number; readonly faceWidth: CadPartDim; readonly rim: CadPartDim;
+    readonly pressureAngle?: number; readonly profileShift?: number; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
+    /** 'internal-gear@0' (the default) the schematic root; 'internal-gear@1' (R12b.2b, D133) the root a pinion-type `cutter` cuts (its teeth, shift, tip radius). */
+    readonly generator?: 'internal-gear@0' | 'internal-gear@1'; readonly cutter?: { readonly teeth: number; readonly shift?: number; readonly tipRadius?: CadPartDim } }
+  /**
+   * A straight bevel gear (R12b.3, D134): the spherical involute, standard proportions (addendum m, dedendum 1.25 m at
+   * the heel, the cones through the apex), spherical ends. Its module and teeth, its mate's teeth `mateTeeth` and the
+   * shaft angle (90° by default) fix its pitch cone; face width along the cone; a bore, a thickness reduction. Its apex
+   * at (`center`, `from`), its axis +Z (the teeth above the apex), turned `rotation` degrees (tooth 1 on +X at 0); or,
+   * with `mesh`, beside the bevel gear it meshes with — the same apex, its axis at the shaft angle toward `direction`
+   * (degrees about the other's axis from its X), a space facing the other's tooth on the pitch line (plus `phase`
+   * degrees), following its turn by −z1/z2. Faces `<id>.flankL#k`, `.flankR#k` (`.flankL2#k` … root outward),
+   * `.tip#k`, `.root#k`, `.rootL#k`/`.rootR#k`, `.heel`, `.toe`, `.bore#1/2`.
+   */
+  | { readonly kind: 'bevel-gear'; readonly module: CadPartDim; readonly teeth: number; readonly mateTeeth: number; readonly shaftAngle?: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number;
+    readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
+    readonly mesh?: { readonly gear: string; readonly direction?: number; readonly phase?: number };
+    /**
+     * A spiral bevel gear (R12b.4, D135), the ideal conjugate (flagged as an ideal model): its mean spiral angle (degrees,
+     * at most 45), hand (right: seen from its apex, the tooth turns clockwise from the toe to the heel) and the circular
+     * trace's cutter radius. A mate takes the same angle and radius, the other hand, the same face width.
+     */
+    readonly spiral?: { readonly angle: number; readonly hand: 'right' | 'left'; readonly cutterRadius: CadPartDim };
+    /** 'bevel-gear@0' (the default): straight or spiral, standard, spherical involute, schematic meridian root. */
+    readonly generator?: 'bevel-gear@0' }
+  /**
+   * A cylindrical worm (R12b.5, D136): ZI (the default) or ZA, its axial module, starts (1–4), reference diameter, hand
+   * and length; a bore, an axial thickness reduction. On its own its axis is +Z through `center` from `from`, turned
+   * `rotation` degrees; or, with `mesh`, beside a helical spur gear (its wheel, at β = the worm's lead angle, of its hand):
+   * its axis square to the wheel's, at the centre distance toward `direction` (degrees from +X about the wheel's axis), in
+   * the wheel's mid-plane, its length centred there, turned to mesh (plus `phase` degrees of the worm's turn). A meshing
+   * worm left without its axial module, diameter or hand takes them from the wheel (m_x = m_n / cos β, d1 = z1 m_x / tan β).
+   * Faces `<id>.flankL#k`, `.flankR#k` (`.flankL2#k` …), `.tip#k`, `.root#k`, `.face0`, `.face1`, `.bore#1/2`, segments `.2` ….
+   */
+  | { readonly kind: 'worm'; readonly axialModule?: CadPartDim; readonly starts: number; readonly diameter?: CadPartDim; readonly hand?: 'right' | 'left'; readonly length: CadPartDim; readonly form?: 'ZI' | 'ZA' | 'ZN' | 'ZK' | 'ZC';
+    readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
+    readonly mesh?: { readonly gear: string; readonly direction?: number; readonly phase?: number };
+    /** 'worm@0' (the default). */
+    readonly generator?: 'worm@0' }
+  /**
+   * A throated (single-enveloping) worm wheel (R12b.6, D137): cut by a hob of its ZA worm's thread (`worm`: axialModule,
+   * starts, diameter, hand), teeth, face width (centred on its mid-plane), a bore, the spaces widened by
+   * `thicknessReduction`; its axis +Z through `center` from `from`, turned `rotation` degrees (tooth 1 on +X in the
+   * mid-plane). Its worm meshes with it by the worm's `mesh` (taking the wheel's worm). Faces `<id>.filletL#k`,
+   * `.flankL#k`, `.tip#k` (the throat torus), `.flankR#k`, `.filletR#k`, `.root#k` (the root torus), `.face0`, `.face1`, `.bore#1/2`, segments `.2` ….
+   */
+  | { readonly kind: 'worm-wheel'; readonly worm: { readonly axialModule: CadPartDim; readonly starts: number; readonly diameter: CadPartDim; readonly hand: 'right' | 'left' }; readonly teeth: number; readonly faceWidth: CadPartDim;
+    readonly bore?: CadPartDim; readonly thicknessReduction?: CadPartDim; readonly profileTolerance?: number; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
+    /** 'worm-wheel@0' (the default). */
+    readonly generator?: 'worm-wheel@0' }
+  /**
+   * A compression spring (R12c.1a, D153): round wire `wire` (d) on a coil of mean `diameter` (or `outerDiameter`, or
+   * `innerDiameter`: one of them), `activeCoils`, the body's `pitch` or the `freeLength` (one of them), `hand` (right),
+   * `ends` open | closed | closed-ground (the default), `endCoils` (dead coils at each closed end, default 1, at most 1),
+   * `transition` (the pitch's change to the dead coil, degrees, default 90); `shearModulus` (G, MPa — with
+   * `shearModulusEstimate` when it is one) for the rate, `load` (N) for the deflection and stress. Its axis +Z through
+   * `center` from `from` (its lowest point, or its ground plane), the wire starting `rotation` degrees from +X. A `type`,
+   * `body` or `wireSection` other than compression, cylindrical and round is refused (UNSUPPORTED_SPRING_KIND). The wire
+   * is the exact normal-plane circle swept along the coil, fitted within `profileTolerance` (default 1e-4·d). Faces
+   * `<id>.wire#k`, `.end0`, `.end1` (the wire's ends), `.ground0`, `.ground1` (the ground planes).
+   * R12c.1b (D154): `type` extension — close-wound (or at `pitch`), `hooks` machine-loop (default) or crossover, `bendRadius`,
+   * `loopRadius`, `loopAngle` (degrees), `initialTension` (N, the user's figure); torsion — tangent `legLengths` [start, end],
+   * `youngsModulus` (E, MPa, with `youngsModulusEstimate`), `moment` (N·mm). Faces `.hook0#k`/`.hook1#k` or `.leg0#k`/`.leg1#k`.
+   */
+  | { readonly kind: 'spring'; readonly wire: CadPartDim; readonly diameter?: CadPartDim; readonly outerDiameter?: CadPartDim; readonly innerDiameter?: CadPartDim; readonly activeCoils: number;
+    readonly pitch?: CadPartDim; readonly freeLength?: CadPartDim; readonly hand?: 'right' | 'left'; readonly ends?: 'open' | 'closed' | 'closed-ground'; readonly endCoils?: number; readonly transition?: number;
+    readonly shearModulus?: number; readonly shearModulusEstimate?: boolean; readonly load?: number; readonly profileTolerance?: number;
+    readonly hooks?: 'machine-loop' | 'crossover'; readonly bendRadius?: CadPartDim; readonly loopRadius?: CadPartDim; readonly loopAngle?: number; readonly initialTension?: number;
+    readonly legLengths?: readonly [CadPartDim, CadPartDim]; readonly youngsModulus?: number; readonly youngsModulusEstimate?: boolean; readonly moment?: number;
+    readonly type?: 'compression' | 'extension' | 'torsion'; readonly body?: 'cylindrical' | 'conical' | 'barrel' | 'variable-pitch'; readonly wireSection?: 'round' | 'rectangular';
+    readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
+    /** 'spring@0' (the default). */
+    readonly generator?: 'spring@0' }
+  /**
+   * A disc cam (R12c.6a, D160) for a `follower` roller | flat, its `motion` translating (the default; `offset` its line off
+   * the centre) or oscillating (`pivotDistance`, the roller's `armLength`, the face's `faceOffset`), the `roller` radius,
+   * the `base` circle, its `segments` — { angle (degrees), to (the follower's position, mm or the arm's degrees; omitted a
+   * dwell), law uniform | harmonic | cycloidal | polynomial-345 | modified-trapezoid } from 0 round to 0 over 360° —
+   * `thickness`, `bore`; `pressureAngleLimit` (degrees; default 30 translating, 35 oscillating, estimates), `faceWidth`
+   * checked, `profileTolerance` (default 1e-4·base). The cam turns counter-clockwise; the follower above it at `rotation` 0
+   * (degrees about +Z through `center`, from `from`). Faces `<id>.rise1#k`, `.dwell1#k`, `.return1#k`, `.bore#1`/`#2`,
+   * `.face0`/`.face1`. Refused: CAM_UNDERCUT, INVALID_INPUT.
+   */
+  | { readonly kind: 'cam'; readonly base: CadPartDim; readonly thickness: CadPartDim; readonly follower: 'roller' | 'flat'; readonly motion?: 'translating' | 'oscillating';
+    readonly roller?: CadPartDim; readonly offset?: CadPartDim; readonly pivotDistance?: CadPartDim; readonly armLength?: CadPartDim; readonly faceOffset?: CadPartDim; readonly faceWidth?: CadPartDim;
+    readonly segments: readonly { readonly angle: number; readonly to?: number; readonly law?: CamLaw }[];
+    readonly bore?: CadPartDim; readonly minimumRim?: CadPartDim; readonly pressureAngleLimit?: number; readonly profileTolerance?: number;
+    readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
+    /** 'cam@0' (the default). */
+    readonly generator?: 'cam@0' }
+  /**
+   * R12c.6b (D161): drive elements from the user's rows (`row` inline: a chain, a belt or a coupling row, citing its source
+   * or flagged an estimate). A `sprocket` for a chain row, `teeth`, `tip` Ø and `width` (the tooth form `pivot-clearance`,
+   * derived; `seat` Ø at least the roller's); a `pulley` for a belt row (timing: `teeth`, `width`; V: `diameter` the datum,
+   * `grooves`; flat: `diameter`, `width`, `crown`); a `belt` (its row a belt or a chain) as a band on two wheels' pitch
+   * radii `pitchRadii` at `centerDistance` along the turned +X (`rounding` a chain's links); a `coupling`'s envelope.
+   * Each on its axis +Z through `center` from `from`, turned `rotation` degrees. Faces in `drive.ts`.
+   */
+  | { readonly kind: 'sprocket'; readonly row: DriveRow; readonly teeth: number; readonly tip: CadPartDim; readonly width: CadPartDim; readonly seat?: CadPartDim; readonly toothForm?: string; readonly bore?: CadPartDim; readonly minimumRim?: CadPartDim; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'sprocket@0' }
+  | { readonly kind: 'pulley'; readonly row: DriveRow; readonly teeth?: number; readonly diameter?: CadPartDim; readonly grooves?: number; readonly width?: CadPartDim; readonly crown?: CadPartDim; readonly bore?: CadPartDim; readonly minimumRim?: CadPartDim; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'pulley@0' }
+  | { readonly kind: 'belt'; readonly row: DriveRow; readonly pitchRadii: readonly [CadPartDim, CadPartDim]; readonly centerDistance: CadPartDim; readonly rounding?: 'whole' | 'even'; readonly width?: CadPartDim; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'belt@0' }
+  | { readonly kind: 'coupling'; readonly row: DriveRow; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'coupling@0' }
+  /**
+   * R12c.7 (D162): a connector's opening cut into a flat `face` of `target` at `center` (on the face), its width turned
+   * `rotation` degrees about the face's normal, from the user's `row` inline (opening, body?, keepOut?; source or
+   * estimate); the output's `connector` is the report (the frame, the body's gaps, the keep-out in A6.3's form). A
+   * `connector-body` is the row's body envelope seated in that opening (it refers to it), its overlap with the panel
+   * checked: touching at most (`CONNECTOR_FIT`).
+   */
+  | { readonly kind: 'connector-opening'; readonly target: string; readonly face: string; readonly row: ConnectorRow; readonly center: CadPartPoint3; readonly rotation?: number }
+  | { readonly kind: 'connector-body'; readonly opening: string }
+  /**
+   * FRk1 (D165): a `gusset` — a plate in the plane of two members of `frame` meeting at its skeleton `point` (the two
+   * there, or `members` [a, b] where more meet; a member passing through takes `along` 1 or −1, its own direction or
+   * the other way), its legs `legs` [l1, l2] along their inner faces from the corner where those faces meet, the corner
+   * clipped `clip` along each leg, `thickness` thick, its mid-plane through the members' lines or moved `offset` along
+   * its normal. An `end-cap` — a plate `over` a member's square end (its section's outer loop) or `inset` in its bore,
+   * `thickness` thick. Each an output of its own; `gusset` / `endCap` its report. Refused GUSSET_FIT, CAP_END.
+   */
+  | { readonly kind: 'gusset'; readonly frame: string; readonly point: number; readonly members?: readonly [number, number]; readonly along?: number; readonly legs: readonly [CadPartDim, CadPartDim]; readonly thickness: CadPartDim; readonly clip?: CadPartDim; readonly offset?: CadPartDim }
+  | { readonly kind: 'end-cap'; readonly frame: string; readonly member: number; readonly end: 'start' | 'end'; readonly fit: 'over' | 'inset'; readonly thickness: CadPartDim }
+  /**
+   * FRk2 (D166): a fillet `weld-bead` of leg `leg` on a frame's joint: `on` a member's end landing square on other
+   * members' flat faces (a butt, a T's butt, a square end on a face; `inner` the bore's loop too), or `on` a gusset (both
+   * its seams, both faces). Its body the fillet (the end's loop offset by the leg, drafted 45°, less the member, kept on
+   * the faces it lands on); `bead` its report. Refused BEAD_KIND, BEAD_SEAM_NOT_PLANAR, BEAD_ANGLE, BEAD_SIZE.
+   */
+  | { readonly kind: 'weld-bead'; readonly frame: string; readonly on: { readonly member: number; readonly end: 'start' | 'end' } | { readonly gusset: string } | { readonly cap: string }; readonly leg: CadPartDim; readonly inner?: boolean }
+  /**
+   * A shaft (R12c.3a, D156): `steps` [{ diameter, length, fillet? (at the shoulder after it), undercut? { width, depth },
+   * grooves? [{ diameter, width, at }], keyseats? [{ width, depth, length, offset, ends? square | end-mill (default) |
+   * disc, cutterRadius?, angle? }] }] along +Z from `from` through `center`, `chamfers` [start, end], cross `holes`
+   * [{ diameter, at, angle? }], turned `rotation` degrees. Faces `<id>.seatk`, `.shoulders`, `.fillets`, `.undercuts`,
+   * `.grooveg`, `.keyseatj`, `.holej`, `.chamfer0/1`, `.end0/1` (each revolved one in halves `#1`, `#2`).
+   */
+  | { readonly kind: 'shaft'; readonly steps: readonly { readonly diameter: CadPartDim; readonly length: CadPartDim; readonly fillet?: CadPartDim; readonly undercut?: { readonly width: CadPartDim; readonly depth: CadPartDim };
+      readonly grooves?: readonly { readonly diameter: CadPartDim; readonly width: CadPartDim; readonly at: CadPartDim }[];
+      readonly keyseats?: readonly { readonly width: CadPartDim; readonly depth: CadPartDim; readonly length: CadPartDim; readonly offset: CadPartDim; readonly ends?: 'square' | 'end-mill' | 'disc'; readonly cutterRadius?: CadPartDim; readonly angle?: number }[] }[];
+    readonly chamfers?: readonly [CadPartDim, CadPartDim]; readonly holes?: readonly { readonly diameter: CadPartDim; readonly at: CadPartDim; readonly angle?: number }[];
+    readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number;
+    /** 'shaft@0' (the default). */
+    readonly generator?: 'shaft@0' }
+  /**
+   * R12c.3b (D157): what goes on a shaft. A parallel `key` in keyseat `keyseat` of the shaft feature `shaft` (width and
+   * length the seat's by default; its height; ends round | square), checked against the seat and, with `hub` (a keyway
+   * feature), against the hub's keyway; `fit` { tables, key, seat?, hub? } its width's classes (R12c.2). A `keyway` cut
+   * into `target`'s bore `face` (width, depth t2, angle). A `retaining-ring` envelope in groove `groove` (thickness, outer
+   * diameter; `row` the user's ring row). A `pin` in cross hole `hole` (diameter and length the hole's and the step's by
+   * default; `fit` true when its classes make an interference a declared fit). Sizes are the user's.
+   */
+  | { readonly kind: 'key'; readonly shaft: string; readonly keyseat: number; readonly width?: CadPartDim; readonly height: CadPartDim; readonly length?: CadPartDim; readonly ends?: 'round' | 'square'; readonly hub?: string; readonly fit?: { readonly tables: readonly FitTable[]; readonly key: string; readonly seat?: string; readonly hub?: string } }
+  | { readonly kind: 'keyway'; readonly target: string; readonly face: string; readonly width: CadPartDim; readonly depth: CadPartDim; readonly angle?: number }
+  | { readonly kind: 'retaining-ring'; readonly shaft: string; readonly groove: number; readonly thickness: CadPartDim; readonly outerDiameter: CadPartDim; readonly row?: { readonly shaftDiameter?: number; readonly grooveDiameter?: number; readonly grooveWidth?: number; readonly source?: string; readonly estimate?: boolean } }
+  /**
+   * R12c.4 (D158): a rolling bearing's envelope from the user's catalogue `row` (bore, outside, width, chamfer, the
+   * abutment values, the rings' deviations; source | estimate: none built in) on step `step` of the shaft feature `shaft`
+   * against the shoulder at the step's `against` end; `housing` a body whose bore takes it; `fit` the seats' classes
+   * { tables, shaft?, housing? } (R12c.2). Faces `<id>.bore`, `.outside`, `.face0/1`, `.corner1–4`.
+   */
+  /**
+   * R12c.5 (D159): an O-ring gland's groove cut into `target` at its `face` — `gland` piston (a shaft's outside, sealing
+   * on a bore of Ø `seal`), rod (a bore, sealing on a rod of Ø `seal`) or face (a flat face, the groove `depth` deep about
+   * `center`) — from the user's ring `ring` row { id, dash?, insideDiameter, crossSection, source | estimate } and the
+   * groove { diameter (its bottom, or a face groove's inner Ø), width, at (along the face) }; `ranges` the guidance (by
+   * default D139's O2, estimates); `fit` the seal's and the groove's classes. An `oring` is the ring in a gland feature.
+   */
+  | { readonly kind: 'oring-gland'; readonly target: string; readonly face: string; readonly gland: 'piston' | 'rod' | 'face'; readonly ring: { readonly id: string; readonly dash?: string; readonly insideDiameter: number; readonly crossSection: number; readonly source?: string; readonly estimate?: boolean };
+      readonly groove: { readonly diameter: CadPartDim; readonly width: CadPartDim; readonly at?: CadPartDim; readonly depth?: CadPartDim; readonly center?: CadPartPoint3 }; readonly seal?: CadPartDim; readonly ranges?: GlandRanges; readonly fit?: { readonly tables: readonly FitTable[]; readonly seal?: string; readonly groove?: string } }
+  | { readonly kind: 'oring'; readonly gland: string }
+  | { readonly kind: 'bearing'; readonly row: BearingRow; readonly shaft: string; readonly step: number; readonly against: 'start' | 'end'; readonly housing?: string; readonly fit?: BearingFitClasses }
+  | { readonly kind: 'pin'; readonly shaft: string; readonly hole: number; readonly diameter?: CadPartDim; readonly length?: CadPartDim; readonly fit?: boolean }
+  | { readonly kind: 'thread'; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2; readonly seat?: CadPartDim; readonly length?: CadPartDim; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean };
+    /** `helical` (B-spline faces `.thread#k`, `.end`, `.seat`, `.head`, `.hex0–5`…) or `faceted` (`.facet${k}`). Left out: faceted, the form documents written before helical became the default keep (their names keep resolving). New documents write `helical`. */
+    readonly form?: 'faceted' | 'helical' }
+  /**
+   * A body in several pieces (a cut right through it) as one part per piece, `id/0`, `id/1` … in the
+   * order of its B-rep's bodies; refused for a body in one piece.
+   */
+  | { readonly kind: 'separate'; readonly target: string }
+  /**
+   * R9 (M4, D85): a mesh body (facet faces) simplified by edge collapse under the quadric error metric — to
+   * `triangles`, or a `ratio` of its triangles, no collapse past `maxError` mm (its quadric bound). Its faces keep
+   * their regions and names: the regions' boundaries (where the mesh's creases are) and open edges are kept as lines,
+   * and with `featureAngle` (degrees) any edge sharper than it too — left out, none (a scan's noise is no crease). The
+   * output's `decimate` reports the counts and the measured distance both ways.
+   */
+  | { readonly kind: 'decimate'; readonly target: string; readonly triangles?: number; readonly ratio?: number; readonly maxError?: CadPartDim; readonly featureAngle?: number }
+  /**
+   * Sheet metal (R12.1, D116). Each sheet feature gives its rules, none defaulted: `thickness` T, `bendRadius` R (its
+   * bends' inner radius) and `kFactor` K from 0 to 1 (the neutral layer at R + K·T: a bend's developed length is
+   * θ(R + K·T)). The output reports them and its bends (`sheet`).
+   * `sheet-base`: a plate from a closed sketch (one loop, holes allowed), T thick from its plane along its normal
+   * (`reverse`: the other way); its faces an extrude's (`top`, `bottom`, the sides).
+   * `sheet-contour`: an open `path` of 2–64 points in a plane (`plane`, default XY) is one skin of the sheet, the material
+   * T thick to its `side` (looking along it), a bend of inner radius R at each corner, extruded `width` along the plane's
+   * normal. Faces: `.leg<i>.a` (on the path) and `.leg<i>.b`, `.bend<k>.inner` / `.outer` (k the corner's point),
+   * `.start` / `.end` (the path's ends), `.front` (in the plane) and `.back`.
+   */
+  | ({ readonly kind: 'sheet-base'; readonly sketch: string; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly reverse?: boolean } & CadPartSheetK)
+  | ({ readonly kind: 'sheet-contour'; readonly path: readonly CadPartPoint2[]; readonly plane?: CadPartSketchPlane; readonly side: 'left' | 'right'; readonly width: CadPartDim; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim } & CadPartSheetK)
+  /**
+   * A structural member (FR1, D123): a `section` placed square to the line `start` → `end` and extruded its length, one
+   * body. The section's `anchor` point (default its centroid) lies on the line, then the section moves by `offset` (in its own XY); the
+   * section's y runs along `up` (default +Z) made square to the line (a line along it takes +X, else +Y, and the report
+   * says so), then the section turns `roll` degrees about the line. Sections: `rect-tube`, `round-tube`, `angle`,
+   * `channel`, `tslot` (every dimension given: no sizes or radii built in, D122) or `sketch` (a closed sketch's loops in its
+   * own XY, holes allowed). Faces by the section's roles (`<id>.top`, `<id>.bore.left`, `<id>.root`, `<id>.t1.floor` …;
+   * a sketch's by its sides) and the ends `<id>.start` / `<id>.end`. The output's `member` reports the section, its area
+   * and centroid, the line and the section's frame. Refused by name: `SECTION_DIMENSIONS`, `SEGMENT_ZERO_LENGTH`.
+   */
+  /**
+   * A frame (FR2, D124): one member (as `frame-member`) along each of `segments` (pairs of indices into `points`, from →
+   * to), each its own body, `<id>/<k>` for segment k — never united. The frame's `section`, `anchor`, `offset`, `roll`
+   * and `mirror` (the section turned over across its own y axis) hold for every member unless `overrides` says otherwise
+   * for one; `up` for all. Faces `<id>.m<k>.<role>` and the ends `<id>.m<k>.start` / `.end`. Each output's `member`
+   * report carries its `frame` place (member, from, to). Refused by name: `SEGMENT_ZERO_LENGTH`, `MEMBER_DUPLICATE` (two
+   * segments on the same two points), `SKELETON_OVERLAP` (two on one line sharing a length), and the sections'
+   * `SECTION_DIMENSIONS`.
+   */
+  | { readonly kind: 'frame'; readonly points: readonly CadPartPoint3[]; readonly segments: readonly (readonly [number, number])[]; readonly section: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean; readonly up?: CadPartPoint3; readonly overrides?: readonly CadPartFrameOverride[]; readonly corners?: CadPartFrameCorners; readonly trims?: readonly CadPartFrameTrim[] }
+  | { readonly kind: 'frame-member'; readonly section: CadPartSection; readonly start: CadPartPoint3; readonly end: CadPartPoint3; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly up?: CadPartPoint3 }
+  /**
+   * An edge flange (R12.3, D118) on a sheet (its rules from its report): on a straight `edge` between a planar skin face
+   * and a thickness face, bent `angleDegrees` (default 90, in (0, 180)) towards that skin's outside, inner radius
+   * `bendRadius` (default the sheet's). `length` to the outer virtual sharp (`measure` 'outer', the default), the inner
+   * one ('inner'), or from the bend's tangent ('tangent'). `position`: 'material-inside' (the default: the outer virtual
+   * sharp on the edge, the plate trimmed back by (R + T)·tan(θ/2)), 'material-outside' (the inner one on the edge,
+   * trimmed R·tan(θ/2)) or 'bend-outside' (the bend from the edge). `offsets` [from the edge's start, from its end] (mm,
+   * default 0) narrow it; at an end inside the edge a `relief` is cut into the plate — 'rectangular' or 'obround', its
+   * `width` and `depth` past the bend given (no defaults, D119), or 'none'; left out there, refused `RELIEF_REQUIRED`. Faces `<id>.bend.inner/outer`,
+   * `.leg.inner/outer`, `.tip`, `.start`, `.end`, the plate's cut `<id>.trim.*` and `<id>.relief<k>.*`. Refused by name:
+   * `NOT_A_SHEET`, `EDGE_NOT_SHEET`, `BEND_ANGLE`, `BEND_DOES_NOT_FIT`, `FLANGES_COLLIDE`, `SHEET_IN_PIECES`, `RELIEF_REQUIRED`.
+   */
+  /**
+   * A corner relief (R12.3b, D119) on a sheet's plate, before the flanges of the corner's two edges: at the square convex
+   * corner whose thickness `corner` names (the edge between two thickness faces, T long), the plate's corner cut away — a
+   * `square` of side `size` along both edges, or a `round` quarter of radius `size` about the corner — through the sheet.
+   * Flanges then on both edges, full length, stop `size` from the corner: past their setback they meet nowhere. Refused
+   * by name: `NOT_A_SHEET`, `EDGE_NOT_SHEET`, `CORNER_NOT_SQUARE` (CAPABILITY), `CORNER_NOT_CLEAR` (the cut would take more
+   * or other than the plate's corner: a flange or a cut already there, a size past the plate).
+   */
+  | { readonly kind: 'sheet-corner-relief'; readonly target: string; readonly corner: string; readonly shape: 'square' | 'round'; readonly size: CadPartDim }
+  | { readonly kind: 'sheet-flange'; readonly target: string; readonly edge: string; readonly length: CadPartDim; readonly angleDegrees?: number; readonly bendRadius?: CadPartDim; readonly measure?: 'outer' | 'inner' | 'tangent'; readonly position?: 'material-inside' | 'material-outside' | 'bend-outside'; readonly offsets?: readonly [CadPartDim, CadPartDim]; readonly relief?: { readonly kind: 'rectangular' | 'obround'; readonly width: CadPartDim; readonly depth: CadPartDim } | { readonly kind: 'none' } }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
   | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] }
   | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim }
   /** Vertical edges of upright bodies. */
-  | { readonly kind: 'fillet'; readonly target: string; readonly edges: readonly string[]; readonly radius: CadPartDim }
+  /**
+   * `radius` rounds the edges with one radius. `radii` instead gives the radius at points of the edges (2–16, each on
+   * one of them; R10.5, D100): between them it varies smoothly by arc length along each chain (shape-preserving cubic,
+   * two points: linear), carried on at its end slopes past the outer points of an open chain (it must stay positive
+   * to the chain's ends), periodic round a closed one. Give one of them.
+   */
+  /**
+   * `section` (R10.5b, D103): the fillet's shape across — `circular` (the default, the rolling ball's arc); `conic` with
+   * `rho` in (0, 1) (0.5 a parabola, less flatter, more fuller); `g2`, curvature-continuous with the faces, `tension` in
+   * (0, 1) (0.5 when left out). Not circular: the rolling ball's chains, not where it rolls round or onto an edge.
+   */
+  | { readonly kind: 'fillet'; readonly target: string; readonly edges: readonly string[]; readonly radius?: CadPartDim; readonly radii?: readonly { readonly at: CadPartPoint3; readonly radius: CadPartDim }[]; readonly section?: { readonly kind: 'circular' } | { readonly kind: 'conic'; readonly rho: number } | { readonly kind: 'g2'; readonly tension?: number } }
 );
+/**
+ * A sheet's K (R12.4, D120): one `kFactor` for every bend, or a `bendTable` (rows of T, R, angle → K, BA or BD, each
+ * citing a source or saying it is an estimate) giving each bend's — one of them, no default.
+ */
+export type CadPartSheetK = { readonly kFactor: number; readonly bendTable?: undefined } | { readonly bendTable: BendTable; readonly kFactor?: undefined };
 export interface CadPartDocument {
   readonly format: 'barocss-cad-part'; readonly version: 1; readonly units: 'mm';
   readonly parameters: Readonly<Record<string, number>>;
@@ -112,6 +519,37 @@ export interface CadPartDocument {
 }
 export interface CadPartLoftSection { readonly sketch: string; readonly z: CadPartDim }
 export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: CadPartDim } | { readonly kind: 'bend'; readonly radius: CadPartDim; readonly angleDegrees: number; readonly toward: 'x' | '-x' | 'y' | '-y' };
+/**
+ * A frame's corners (FR3a, D125): where exactly two members end at a skeleton point, `default` finishes them — `mitre`
+ * (both cut on the plane halfway between them), `butt` (one runs through to cover the other, which ends on its face) or
+ * `none` (left square, overlapping); `mitre` when left out — and `at` sets a point apart (`through`: the member that runs
+ * on at a butt; by default the larger section, the lower index on a tie). `corners` left out: no corner is finished (an
+ * FR2 frame as it was).
+ * Points where three or more members end are left as they are (an ordered trim, FR3b) and reported square.
+ */
+export interface CadPartFrameCorners {
+  readonly default?: 'mitre' | 'butt' | 'none';
+  /** Where three or more members end (FR3b, D126): `order` (an ordered trim: the larger sections first, then the lower index) or `none` (the default: left square). */
+  readonly multi?: 'order' | 'none';
+  /** Where members end on another's length — a T-joint (FR3b): `butt` (on its box face), `cope` (to its envelope) or `none` (the default). */
+  readonly tee?: 'butt' | 'cope' | 'none';
+  /** A point set apart: `through` at a butt or cope; `trim` at a butt (`face`, the default, or `envelope`); `order` at an ordered trim (its members, the first running through). */
+  readonly at?: readonly { readonly point: number; readonly kind: 'mitre' | 'butt' | 'cope' | 'order' | 'none'; readonly through?: number; readonly trim?: 'face' | 'envelope'; readonly order?: readonly number[] }[];
+}
+/** A member's end trimmed to a plane (the side holding its other end kept) or to an earlier body (FR3b, D126). */
+export type CadPartFrameTrim = { readonly member: number; readonly end: 'start' | 'end' } & ({ readonly plane: { readonly origin: CadPartPoint3; readonly normal: CadPartPoint3 } } | { readonly body: string });
+/** One member of a frame set apart (FR2, D124): its own section, anchor, offset, roll or mirror. */
+export interface CadPartFrameOverride { readonly member: number; readonly section?: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean }
+/** A member's section (FR1, D123): a kind and its dimensions, or a closed sketch. */
+export type CadPartSection =
+  | { readonly kind: 'rect-tube'; readonly width: CadPartDim; readonly height: CadPartDim; readonly wall: CadPartDim; readonly outerRadius: CadPartDim; readonly innerRadius?: CadPartDim }
+  | { readonly kind: 'round-tube'; readonly diameter: CadPartDim; readonly wall: CadPartDim }
+  | { readonly kind: 'angle'; readonly legX: CadPartDim; readonly legY: CadPartDim; readonly thickness: CadPartDim; readonly rootRadius: CadPartDim; readonly toeRadius: CadPartDim }
+  | { readonly kind: 'channel'; readonly height: CadPartDim; readonly width: CadPartDim; readonly web: CadPartDim; readonly flange: CadPartDim; readonly rootRadius: CadPartDim }
+  | { readonly kind: 'tslot'; readonly size: CadPartDim; readonly cells: 1 | 2; readonly openSlots?: number; readonly opening: CadPartDim; readonly lip: CadPartDim; readonly undercut: CadPartDim; readonly depth: CadPartDim; readonly bore: CadPartDim }
+  | { readonly kind: 'sketch'; readonly sketch: string }
+  /** A size from a section table (R12c.7, D162): the user's rows of one kind, inline; checked whole, a size it lacks refused. */
+  | { readonly kind: 'table'; readonly table: SectionTable; readonly size: string };
 export type CadPartErrorCode = 'FORMAT' | 'INPUT' | 'PARAMETER' | 'REFERENCE' | 'SELECTION' | 'CAPABILITY' | 'GEOMETRY';
 export class CadPartError extends Error {
   constructor(readonly code: CadPartErrorCode, readonly feature: string | null, detail: string) { super(`${feature ? feature + ': ' : ''}${detail}`.slice(0, 1024)); this.name = 'CadPartError'; }
@@ -120,7 +558,7 @@ export interface CadPartOutput {
   /** The feature id, or `id/k` for one part of a multi-part feature. */
   readonly id: string; readonly feature: string;
   /** 'upright': a Z-prismatic solid (closed-form mass, curved Booleans); otherwise a general B-rep. */
-  readonly representation: 'upright' | 'planar' | 'curved';
+  readonly representation: 'upright' | 'planar' | 'curved' | 'faceted';
   readonly brep: Brep;
   readonly bodyCount: number;
   massProperties(densityKgPerM3: number): SolidMassProperties;
@@ -128,6 +566,72 @@ export interface CadPartOutput {
   exportStl(options?: { readonly segmentsPerQuarter?: number }): Uint8Array;
   /** STEP AP214 (exact B-rep: planes, B-spline surfaces and curves) of this output. */
   exportStep(options?: { readonly name?: string }): string;
+  /**
+   * The L0 validation of this output (checkBrep with `strict`): topology, and edges on their surfaces, loops
+   * that do not cross, no slivers, tolerances under the cap. Worked out on first call; an imported STEP body
+   * is reported here rather than refused.
+   */
+  validate(): BrepCheckReport;
+  /** The surface area (mm²) over the exact surfaces (brepSurfaceArea). */
+  surfaceArea(): number;
+  /** A generated gear's report: its dimensions, the measured flank deviation, its diagnostics (R6a). */
+  readonly gear?: SpurGearReport;
+  /** A gear's placement (spec, centre, face plane, turn; the gear it meshes with). */
+  readonly gearPlacement?: GearPlacement;
+  /** A rack's report and placement (R6a.5b). */
+  readonly rack?: SpurRackReport;
+  readonly rackPlacement?: RackPlacement;
+  /** An internal gear's report and placement (R12b.2a). */
+  readonly internalGear?: InternalGearReport;
+  readonly internalGearPlacement?: PlacedInternalGear;
+  /** A bevel gear's report and placement (R12b.3). */
+  readonly bevelGear?: BevelGearReport;
+  readonly bevelGearPlacement?: BevelGearPlacement;
+  /** A worm's report and placement (R12b.5). */
+  readonly worm?: WormReport;
+  readonly wormPlacement?: WormPlacement;
+  /** A throated worm wheel's report and placement (R12b.6). */
+  readonly wormWheel?: ThroatedWheelReport;
+  readonly wormWheelPlacement?: PlacedThroatedWheel;
+  /** A spring's report: its dimensions, rate and stresses, the sweep's measured fit (R12c.1a; extension and torsion R12c.1b). */
+  readonly spring?: SpringReport | HookedSpringReport;
+  /** A cam's report: its program, pressure angle, curvature, fit and the follower's sweep on the built profile (R12c.6a). */
+  readonly cam?: CamReport;
+  /** A drive element's report (R12c.6b): a sprocket's, a pulley's, a belt's or chain's, a coupling's (a bought item). */
+  readonly sprocket?: SprocketReport; readonly pulley?: PulleyReport; readonly belt?: BeltReport; readonly coupling?: CouplingReport;
+  /** A connector's opening report (R12c.7): its frame, the body's fit, the keep-out; on a body, its overlap with the panel. */
+  readonly connector?: ConnectorReport; readonly connectorBody?: { readonly row: string; readonly overlapMM3: number };
+  /** A shaft's report: its steps, keyseats, grooves and holes (R12c.3a). */
+  readonly shaft?: ShaftReport;
+  /** A key's, a keyway's, a ring's or a pin's report and checks (R12c.3b). */
+  readonly key?: KeyReport; readonly keyway?: KeywayReport; readonly ring?: RingReport; readonly pin?: PinReport;
+  /** A bearing's report: its row, seat, housing, fits and warnings (R12c.4). */
+  readonly bearing?: BearingReport;
+  /** An O-ring gland's check and the ring's free overlap with its sealing surface (R12c.5). */
+  readonly gland?: GlandReport; readonly oring?: { readonly ring: string; readonly overlapMM3: number; readonly stretchedCrossSectionMM: number };
+  /** A SubD body's make-up: steps, caps and their distance from the limit surface (R7, D79). */
+  readonly subd?: SubdSummary;
+  /** A decimated mesh's report: triangles before and after, why it stopped, the measured distance both ways (R9, D85). */
+  readonly decimate?: DecimateReport;
+  /** A general fillet's reports (R10.2, D89), one a rolling-ball tool: its stations, patches and measured deviations. */
+  readonly fillet?: readonly FilletReport[];
+  /** A mesh body's shell (R11.3, D114): the wall asked for and the wall its offset achieves, measured. */
+  readonly shell?: MeshShellReport;
+  /** A sheet-metal body's rules and bends (R12.1, D116); carried through holes and cuts (R12.2). */
+  readonly sheet?: SheetReport;
+  /** A structural member's section, line and frame (FR1, D123). */
+  readonly member?: FrameMemberReport;
+  /** A gusset's and an end cap's report (FRk1, D165): what the weld list and the BOM read. */
+  readonly gusset?: GussetReport; readonly endCap?: EndCapReport;
+  /** A fillet weld bead's report (FRk2, D166): its joint, leg, seam and volume. */
+  readonly bead?: BeadReport;
+  /**
+   * A sheet's flat pattern (R12.2, D117): its skin developed from `fixedFace` (default the sheet's own: a plate's top, a
+   * profile's first leg on its path), bends at R + K·T (`kFactor`, default the sheet's). Refused (GEOMETRY, its code in
+   * the message: NOT_A_SHEET, NON_NORMAL_CUT, BEND_NOT_CYLINDRICAL, FLAT_OVERLAPS; CAPABILITY: CUT_ACROSS_BEND) where it
+   * is no sheet, or for a body made without the sheet's rules (`flatPattern` of the kernel takes T and K for those).
+   */
+  flatPattern(options?: { readonly fixedFace?: string; readonly kFactor?: number }): FlatPattern;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -143,12 +647,32 @@ export interface CadPartSnapshot {
   withDocument(document: CadPartDocument): CadPartSnapshot;
   save(): string;
 }
-export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, lengthMM: 10000 });
+/**
+ * `stepBytes`: an imported STEP file's text. A STEP file is read whole, and a solid of many faces holds
+ * about 17 times its text in memory while it is built (a 19 MB faceted M8 bolt: about 320 MB): 32 MiB keeps
+ * that near half a gigabyte, within a browser worker, and holds the studio's own exports of modelled
+ * threads. The part document's own text stays at `fileBytes`. `stepTessellatedBytes`: a file whose excess over
+ * `stepBytes` is tessellated meshes (AP242: the studio's own mesh exports, scans) — see `stepSizeProblem`.
+ */
+export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, stepTessellatedBytes: 128 << 20, lengthMM: 10000, meshTriangles: 2_000_000, planarMeshTriangles: 100_000, subdVertices: 100_000 });
+/**
+ * Why a STEP file is too large to read, or null: its text past `stepTessellatedBytes`, or what is not tessellated in
+ * it (B-rep records and the rest) past `stepBytes` (D49). Tessellated records take about 13 times their text while
+ * read into a part (a 50 MB file of a million triangles: 680 MB; the owner's 128 MiB, D49, holds a 2M-triangle file) and a
+ * mesh that size is held as arrays after; a mesh larger still opens from a .bcad file. A scan, no parse: checked before a file is read (the studio's worker too).
+ */
+export function stepSizeProblem(text: string): string | null {
+  const MiB = (n: number) => `${n / 2 ** 20} MiB`;
+  if (text.length > CadPartLimits.stepTessellatedBytes) return `the STEP file is larger than ${MiB(CadPartLimits.stepTessellatedBytes)}; a mesh that large opens from a .bcad file (its arrays kept as binary)`;
+  if (text.length <= CadPartLimits.stepBytes) return null;
+  const other = text.length - stepTessellatedChars(text);
+  return other > CadPartLimits.stepBytes ? `the STEP file is larger than ${MiB(CadPartLimits.stepBytes)} outside its meshes (${(other / 2 ** 20).toFixed(1)} MiB); only tessellated meshes may take it up to ${MiB(CadPartLimits.stepTessellatedBytes)}` : null;
+}
 
 // ---- representation ------------------------------------------------------------------------------
 type Solid = { readonly kind: 'upright'; readonly solid: PrismaticSolid } | { readonly kind: 'brep'; readonly brep: Brep };
 /** `history`: an upright body of one section and the edge finishes applied to it since (for shell). */
-interface Finish { readonly kind: 'chamfer' | 'fillet'; readonly edges: readonly string[]; readonly size: number; readonly id: string }
+interface Finish { readonly kind: 'chamfer' | 'fillet'; readonly edges: readonly string[]; readonly size: number; readonly id: string; /** A variable radius (D100), the radius at points of the edges. */ readonly radii?: readonly { readonly at: Point; readonly radius: number }[] }
 /** `moved`: the part this one is a moved (turned, mirrored, uniformly scaled) copy of, for shell. */
 interface Part {
   readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => SolidMassProperties;
@@ -156,24 +680,170 @@ interface Part {
   readonly moved?: { readonly from: Part; readonly m: BrepAffine['matrix']; readonly o: Point };
   /** How a revolved or swept body was made (shell erodes its section and makes it again). */
   readonly revolved?: RevolveInput;
-  readonly swept?: { readonly profile: readonly ProfileSegmentInput[]; readonly steps: readonly SweepStep[] };
+  readonly swept?: { readonly profile: readonly ProfileSegmentInput[]; readonly steps: readonly SweepStep[]; readonly sideTags?: readonly string[] };
+  /** A generated gear's report (R6a), and where it stands (its spec, centre, face plane, turn). */
+  readonly gear?: SpurGearReport;
+  readonly gearPlace?: GearPlacement;
+  /** A generated rack's report and placement (R6a.5b). */
+  readonly rack?: SpurRackReport;
+  readonly rackPlace?: RackPlacement;
+  /** An internal gear's report and placement (R12b.2a). */
+  readonly internalGear?: InternalGearReport;
+  readonly internalPlace?: PlacedInternalGear;
+  readonly bevelGear?: BevelGearReport;
+  readonly bevelPlace?: BevelGearPlacement;
+  readonly worm?: WormReport;
+  readonly wormPlace?: WormPlacement;
+  readonly wormWheel?: ThroatedWheelReport;
+  readonly wormWheelPlace?: PlacedThroatedWheel;
+  readonly spring?: SpringReport | HookedSpringReport;
+  readonly cam?: CamReport;
+  readonly sprocket?: SprocketReport; readonly pulley?: PulleyReport; readonly belt?: BeltReport; readonly coupling?: CouplingReport;
+  readonly connector?: ConnectorReport; readonly connectorBody?: { readonly row: string; readonly overlapMM3: number };
+  readonly shaft?: ShaftReport;
+  readonly shaftPlace?: BrepAffine;
+  readonly key?: KeyReport; readonly keyway?: KeywayReport; readonly ring?: RingReport; readonly pin?: PinReport;
+  readonly bearing?: BearingReport;
+  readonly gland?: GlandReport; readonly glandPlace?: GlandPlace; readonly oring?: { readonly ring: string; readonly overlapMM3: number; readonly stretchedCrossSectionMM: number };
+  readonly subd?: SubdSummary;
+  readonly decimate?: DecimateReport;
+  readonly fillet?: readonly FilletReport[];
+  readonly shell?: MeshShellReport;
+  readonly sheet?: SheetReport;
+  readonly member?: FrameMemberReport;
+  /** A frame member's placement as built (FRk1): its section on its line, its length and how far each end runs on, its face prefix. */
+  readonly memberPlace?: MemberPlaced;
+  readonly gusset?: GussetReport; readonly endCap?: EndCapReport;
+  /** A gusset's placement as built (FRk2: its beads): its plane's frame and corner, its legs, clip, thickness and offset. */
+  readonly gussetPlace?: GussetPlaced;
+  readonly bead?: BeadReport;
 }
+/** A rack as placed: its pitch line from `origin` along `angle` (radians); the gear it meshes with, if any. */
+export interface RackPlacement { readonly spec: SpurRackSpec; readonly origin: XY; readonly angle: number; readonly from: number; readonly meshesWith?: string; readonly driver?: GearPlacement }
+/** A spur gear as placed: its spec, axis through `center` along +Z from `from`, turned by `rotation` (radians). */
+export interface GearPlacement {
+  readonly spec: SpurGearSpec; readonly center: XY; readonly from: number; readonly rotation: number;
+  /** A meshing gear: the feature it meshes with, and that gear's placement (for the pair checks, checkPlacedSpurGears). */
+  readonly meshesWith?: string; readonly driver?: GearPlacement;
+  /** A pinion meshing inside a ring (R12b.2a): the ring's placement (checkPlacedInternalGears). */
+  readonly ring?: PlacedInternalGear;
+}
+/** A worm as placed (R12b.5): its frame and turn; the wheel it meshes with and that one's placement. */
+export interface WormPlacement extends PlacedWorm { readonly meshesWith?: string; readonly wheel?: GearPlacement; readonly throatedWheel?: PlacedThroatedWheel }
+/** A bevel gear as placed (R12b.3): its apex, axis and turn; the bevel gear it meshes with and that one's placement. */
+export interface BevelGearPlacement extends PlacedBevelGear { readonly meshesWith?: string; readonly driver?: BevelGearPlacement }
+/** Gear diagnostics as the part model's codes (the gear's own code kept in the message). */
+const GEAR_CODES: Record<GearDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_PROFILE_SHIFT: 'CAPABILITY', UNSUPPORTED_GEAR_KIND: 'CAPABILITY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', SELF_INTERSECTION: 'GEOMETRY', ROOT_TRANSITION_UNVALIDATED: 'GEOMETRY', BORE_INTERSECTION: 'GEOMETRY', MATE_INCOMPATIBLE: 'INPUT', UNDERCUT: 'GEOMETRY', INVOLUTE_INTERFERENCE: 'GEOMETRY', TROCHOID_INTERFERENCE: 'GEOMETRY', TRIMMING_INTERFERENCE: 'GEOMETRY', RIM_INTERSECTION: 'GEOMETRY', IDEAL_MODEL: 'GEOMETRY' };
+/** Shaft diagnostics as the part model's codes (the shaft's own code kept in the message). */
+const SHAFT_CODES: Record<ShaftDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', SHAFT_STEPS: 'INPUT', KEYSEAT_DIMENSIONS: 'GEOMETRY', GROOVE_DIMENSIONS: 'GEOMETRY', HOLE_DIMENSIONS: 'GEOMETRY' };
+/** Glands' diagnostics as the part model's codes (their warnings stay in the report). */
+const GLAND_CODES: Record<GlandCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', GLAND_DIMENSIONS: 'GEOMETRY', SQUEEZE_RANGE: 'GEOMETRY', FILL_RANGE: 'GEOMETRY', STRETCH_RANGE: 'GEOMETRY' };
+/** Bearings' diagnostics as the part model's codes. */
+const BEARING_CODES: Record<BearingCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', SEAT_ABUTMENT: 'GEOMETRY', SEAT_FIT: 'GEOMETRY' };
+/** Shaft parts' diagnostics as the part model's codes. */
+const SHAFT_PART_CODES: Record<ShaftPartCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', KEY_FIT: 'GEOMETRY', RING_FIT: 'GEOMETRY', PIN_FIT: 'GEOMETRY' };
+/** Connector refusals as the part model's codes (R12c.7; the connector's own code kept in the message). */
+const CONNECTOR_CODES: Record<ConnectorCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', CONNECTOR_PLACEMENT: 'GEOMETRY', CONNECTOR_FIT: 'GEOMETRY' };
+/** Drive refusals as the part model's codes (R12c.6b; the element's own code kept in the message). */
+const DRIVE_CODES: Record<DriveCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_TOOTH_FORM: 'CAPABILITY', TOOTH_FORM: 'GEOMETRY', BELT_GEOMETRY: 'GEOMETRY' };
+/** Cam refusals as the part model's codes (the cam's own code kept in the message). */
+const CAM_CODES: Record<CamCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', CAM_UNDERCUT: 'GEOMETRY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY' };
+/** Spring diagnostics as the part model's codes (the spring's own code kept in the message). */
+const SPRING_CODES: Record<SpringDiagnosticCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', SELF_INTERSECTION: 'GEOMETRY', COILS_OVERLAP: 'GEOMETRY', PROFILE_BUDGET_EXCEEDED: 'CAPABILITY', UNSUPPORTED_SPRING_KIND: 'CAPABILITY', LEG_OVERLAP: 'GEOMETRY' };
 type SweepStep = { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' };
 /** x ↦ m·x + o from a sketch's own XY (Z along its normal) into the part. */
 type Frame = { readonly m: BrepAffine['matrix']; readonly o: Point };
-type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[]; readonly frame?: Frame; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[] } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
+type Result = { readonly kind: 'sketch'; readonly outer: readonly ProfileSegmentInput[]; readonly frame?: Frame; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly tags?: SideTags } | { readonly kind: 'solid'; readonly parts: readonly Part[] };
 
+/** A B-rep of several bodies as one B-rep per body (each with its own shells, faces, loops, edges and vertices). */
+function splitBodies(b: Brep): Brep[] {
+  if (b.bodies.length <= 1) return [b];
+  return b.bodies.map(body => {
+    const shells = b.shells.filter(x => x.body === body.id), faceIds = new Set(shells.flatMap(x => x.faces)), faces = b.faces.filter(f => faceIds.has(f.id));
+    const loopIds = new Set(faces.flatMap(f => f.loops)), loops = b.loops.filter(l => loopIds.has(l.id)), coIds = new Set(loops.flatMap(l => l.coedges));
+    const coedges = b.coedges.filter(c => coIds.has(c.id)), edgeIds = new Set(coedges.map(c => c.edge)), edges = b.edges.filter(e => edgeIds.has(e.id)), vIds = new Set(edges.flatMap(e => e.vertices));
+    return { ...b, bodies: [body], shells, faces, loops, coedges, edges, vertices: b.vertices.filter(v => vIds.has(v.id)) };
+  });
+}
 const empty = (s: Solid) => s.kind === 'upright' ? !s.solid.slabs.length : !s.brep.bodies.length;
 const lineOnly = (s: PrismaticSolid) => s.slabs.every(x => x.regions.every(r => [r.outer, ...r.holes].every(ring => ring.every(g => g.kind === 'line'))));
-const planarBrep = (b: Brep) => b.faces.every(f => f.surface.degreeU === 1 && f.surface.degreeV === 1 && f.surface.controlPoints.length === 2 && f.surface.controlPoints[0].length === 2) && b.edges.every(e => e.curve.degree === 1 && e.curve.controlPoints.length === 2);
-const representation = (s: Solid): CadPartOutput['representation'] => s.kind === 'upright' ? 'upright' : planarBrep(s.brep) ? 'planar' : 'curved';
+const planarBrep = (b: Brep) => b.faces.every(f => f.surface.kind === 'surface' && f.surface.degreeU === 1 && f.surface.degreeV === 1 && f.surface.controlPoints.length === 2 && f.surface.controlPoints[0].length === 2) && b.edges.every(e => e.curve.degree === 1 && e.curve.controlPoints.length === 2);
+const representation = (s: Solid): CadPartOutput['representation'] => s.kind === 'upright' ? 'upright' : s.brep.faces.some(isFacetFace) ? 'faceted' : planarBrep(s.brep) ? 'planar' : 'curved';
+/**
+ * F0 fallback (owner, 2026-10-18; D3, D42): a facet body (a mesh imported as facet faces) meets a Boolean,
+ * split, hole or draft only through the planar path until F1/F2 give facets their own — exploded back to the
+ * planar per-triangle B-rep when it has at most this many triangles, refused with CAPABILITY above it. Committed
+ * evaluations take up to this many: about 5 s at the worst, a hole (its cylinder takes the analytic path) through
+ * a 16k-triangle mesh in the studio's whole evaluation (4.8 s; 18k 5.1–5.4 s, 20k 6.1 s; a polyhedral union with a
+ * box is faster, 3.2 s at 20k in R2). Since F1 (D50) and F2 (D52) only a Boolean of two meshes takes it (F3); F2
+ * holds the same number for the mesh near an exact tool, the share its exact Boolean takes.
+ */
+export const FACET_EXPLODE_TRIANGLES = 16000;
+/** A preview's limit (CadPartEvaluationOptions.facetExplodeTriangles): about a second, so a preview stays live. */
+export const FACET_PREVIEW_TRIANGLES = 5000;
+/** The limit of the evaluation running now (evaluateCadPart is synchronous: set for its run, restored after). */
+let facetLimit = FACET_EXPLODE_TRIANGLES;
+function explodeFacets(b: Brep, at: string, what: string): Brep {
+  if (!b.faces.some(isFacetFace)) return b;
+  if (!b.faces.every(isFacetFace)) throw new CadPartError('CAPABILITY', at, `${what} on a body mixing mesh and other faces is not supported yet`);
+  if (b.bodies.some(x => x.kind === 'sheet')) throw new CadPartError('GEOMETRY', at, `${what} need a closed solid: this mesh is open (a sheet)`);
+  let count = 0; for (const f of b.faces) count += (f.surface as FacetPatch).indices.length / 3;
+  if (count > facetLimit) throw new CadPartError('CAPABILITY', at, count <= FACET_EXPLODE_TRIANGLES
+    ? `${what} on meshes over ${facetLimit} triangles are not previewed (this mesh has ${count}): apply to run it (up to ${FACET_EXPLODE_TRIANGLES})`
+    : `${what} of two large meshes arrive with F3 (this mesh has ${count} triangles; up to ${FACET_EXPLODE_TRIANGLES} go through the planar path)`);
+  // Every face's triangles, wound outward, into one planar mesh solid.
+  const positions: number[] = [], indices: number[] = [];
+  for (const f of b.faces) {
+    const F = f.surface as FacetPatch, base = positions.length / 3, X = F.indices, fw = f.sense === 'forward';
+    for (let i = 0; i < F.positions.length; i++) positions.push(F.positions[i]);
+    for (let t = 0; t < X.length; t += 3) indices.push(base + X[t], base + (fw ? X[t + 1] : X[t + 2]), base + (fw ? X[t + 2] : X[t + 1]));
+  }
+  // (A mesh crossing itself has no inside to cut: refused with where, D46. Its faces' vertices are welded first.)
+  const welded = weldVertices(positions, positions.length / 3, 1e-9 * Math.max(1, ...positions.map(Math.abs))), wi = Uint32Array.from(indices, v => welded.remap[v]);
+  const crossing = selfIntersections(welded.P, wi);
+  if (crossing.count) throw new CadPartError('GEOMETRY', at, `${what} need a mesh that does not cross itself: this one does in ${crossing.count} place${crossing.count > 1 ? 's' : ''} (near ${crossing.at[0].map(x => +x.toFixed(2)).join(', ')}); repair does not fix that yet`);
+  try { return brepFromTriangles(positions, indices, { id: b.bodies[0]?.id ?? at, maximumTriangles: count }); }
+  catch (cause) { if (cause instanceof MeshBrepError) throw new CadPartError('GEOMETRY', at, cause.message); throw cause; }
+}
 const brepOf = (part: Part, id: string): Brep => part.brep ??= part.solid.kind === 'upright' ? brepFromPrismatic(part.solid.solid, { id }) : part.solid.brep;
 
+/** Free space closer than this above a hole's face (mm) refuses it (D148b): the cutter has no room to stop short of it. */
+const OBSTRUCTION_MM = 1e-3;
+/** Unit vectors of the two coordinates a hole's `center` is in, for axis k: z → (x, y), x → (y, z), y → (x, z). */
+const HOLE_PLANE_AXES: readonly (readonly [number, number])[] = [[1, 2], [0, 2], [0, 1]];
+/**
+ * The free space above a hole's face along its axis (D148b): rays from the face's plane, out along its normal, from the
+ * hole's centre and 16 points on its rim and 8 at half its radius, against the body's tessellation (K2's tree); the
+ * least hit, or Infinity when nothing is above.
+ */
+function clearanceAbove(brep: Brep, k: number, dir: 1 | -1, face: number, c: XY, r: number): number {
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 8 }), bvh = triangleBvh(mesh.positionsMM, mesh.indices), [a, b] = HOLE_PLANE_AXES[k];
+  const o: Point = [0, 0, 0], d: Point = [0, 0, 0]; d[k] = dir;
+  let least = Infinity;
+  for (let s = 0; s < 25; s++) {
+    const rad = s === 0 ? 0 : s <= 16 ? r : r / 2, ang = s === 0 ? 0 : s <= 16 ? 2 * Math.PI * (s - 1) / 16 : 2 * Math.PI * (s - 17) / 8;
+    o[a] = c[0] + rad * Math.cos(ang); o[b] = c[1] + rad * Math.sin(ang); o[k] = face;
+    least = Math.min(least, rayHit(bvh, o, d, 1e-9));
+  }
+  return least;
+}
+/** A named planar face of a body square to coordinate axis k: its plane's coordinate and the side its outward normal faces (D148). */
+function holeFace(brep: Brep, name: string, k: number, fail: (code: CadPartErrorCode, detail: string) => never): { at: number; side: 'min' | 'max' } {
+  const face = brep.faces.find(x => x.name === name || (x.name ?? '').split('#')[0] === name);
+  if (!face) return fail('REFERENCE', `no face ${name} on the target`);
+  const g = faceGeometry(face);
+  if (g.kind !== 'plane' || Math.abs(Math.abs(g.n[k]) - 1) > 1e-9) return fail('SELECTION', `${name} is not a flat face square to the hole's axis`);
+  return { at: g.o[k], side: g.n[k] > 0 ? 'max' : 'min' };
+}
 function bounds(s: Solid): { min: Point; max: Point } {
   const min: Point = [Infinity, Infinity, Infinity], max: Point = [-Infinity, -Infinity, -Infinity];
   const take = (p: readonly number[]) => { for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); } };
   if (s.kind === 'upright') for (const slab of s.solid.slabs) for (const r of slab.regions) for (const p of sampleRing(r.outer, Math.PI / 64)) { take([p[0], p[1], slab.z0]); take([p[0], p[1], slab.z1]); }
-  else { for (const v of s.brep.vertices) take(v.point); for (const e of s.brep.edges) for (const p of e.curve.controlPoints) take(p); }
+  else {
+    for (const v of s.brep.vertices) take(v.point); for (const e of s.brep.edges) for (const p of e.curve.controlPoints) take(p);
+    // (A facet face can reach past its boundary's points: its patch's box.)
+    for (const f of s.brep.faces) if (f.surface.kind === 'facets') { const b = f.surface.bounds; take([b[0], b[1], b[2]]); take([b[3], b[4], b[5]]); }
+  }
   return { min, max };
 }
 
@@ -193,14 +863,63 @@ function admit(input: unknown): CadPartDocument {
     if (seen.has(f.id)) fail('duplicate feature id', f.id);
     seen.add(f.id);
   }
-  return JSON.parse(JSON.stringify(doc));
+  return copyDocument(doc) as CadPartDocument;
+}
+const isMeshArray = (v: unknown): v is Float64Array | Float32Array | Uint32Array | Int32Array => v instanceof Float64Array || v instanceof Float32Array || v instanceof Uint32Array || v instanceof Int32Array;
+/** A deep copy of the document's JSON values; a mesh's typed arrays shared as they are (they are never changed). */
+function copyDocument(v: unknown): unknown {
+  if (isMeshArray(v)) return v;
+  if (Array.isArray(v)) return v.map(copyDocument);
+  if (v && typeof v === 'object') { const out: Record<string, unknown> = {}; for (const [k, x] of Object.entries(v)) if (x !== undefined) out[k] = copyDocument(x); return out; }
+  if (typeof v === 'number' && !Number.isFinite(v)) return null;
+  return v;
+}
+/** Checked once per array object: x, y, z numbers within the length limit, or vertex numbers below `nv` (three a triangle, at most the limit). */
+const checkedArrays = new WeakMap<object, string>();
+function meshArrayOk(v: unknown, what: 'positions' | 'indices', nv = 0): boolean {
+  if (!Array.isArray(v) && !isMeshArray(v)) return false;
+  const a = v as ArrayLike<number>, key = `${what}:${nv}`;
+  if (checkedArrays.get(a as object) === key) return true;
+  if (a.length % 3) return false;
+  if (what === 'positions') { for (let i = 0; i < a.length; i++) { const x = a[i]; if (typeof x !== 'number' || !Number.isFinite(x) || Math.abs(x) > CadPartLimits.lengthMM) return false; } }
+  else { if (a.length / 3 > CadPartLimits.meshTriangles) return false; for (let i = 0; i < a.length; i++) { const x = a[i]; if (!Number.isInteger(x) || x < 0 || x >= nv) return false; } }
+  checkedArrays.set(a as object, key);
+  return true;
+}
+/** A typed array's reuse key: its kind, length and an FNV-1a hash of its bytes, worked out once per array. */
+const arrayHashes = new WeakMap<object, string>();
+function hashOfArray(a: Float64Array | Float32Array | Uint32Array | Int32Array): string {
+  let h = arrayHashes.get(a);
+  if (h === undefined) {
+    const bytes = new Uint32Array(a.buffer, a.byteOffset, a.byteLength >> 2);
+    let x = 0x811c9dc5, y = 0x01000193;
+    for (let i = 0; i < bytes.length; i++) { x = Math.imul(x ^ bytes[i], 0x01000193); y = Math.imul(y ^ (bytes[i] >>> 7), 0x85ebca6b); }
+    h = `${a.constructor.name}:${a.length}:${(x >>> 0).toString(16)}${(y >>> 0).toString(16)}`;
+    arrayHashes.set(a, h);
+  }
+  return h;
 }
 
 // ---- evaluation --------------------------------------------------------------------------------------
-type Cache = Map<string, Result>;
+/**
+ * Results by their feature's resolved definition, each with the inputs it was made from: a feature is
+ * reused when its definition is the same and every input is the very result (===) it was made from —
+ * reused inputs stay the same objects, so a key never has to spell out what is upstream of it.
+ */
+type Cache = Map<string, { deps: readonly Result[]; result: Result }[]>;
 
-export function evaluateCadPart(input: CadPartDocument, previous?: Cache): CadPartSnapshot {
-  const doc = admit(input), cache: Cache = new Map(), results = new Map<string, Result>(), keys = new Map<string, string>();
+/** `facetExplodeTriangles`: the F0 planar-path limit for this evaluation (FACET_PREVIEW_TRIANGLES for a preview; default FACET_EXPLODE_TRIANGLES). */
+export interface CadPartEvaluationOptions { readonly facetExplodeTriangles?: number }
+export function evaluateCadPart(input: CadPartDocument, previous?: Cache, options: CadPartEvaluationOptions = {}): CadPartSnapshot {
+  const was = facetLimit;
+  facetLimit = Math.min(FACET_EXPLODE_TRIANGLES, options.facetExplodeTriangles ?? FACET_EXPLODE_TRIANGLES);
+  try { return evaluateWith(input, previous, options); }
+  finally { facetLimit = was; }
+}
+function evaluateWith(input: CadPartDocument, previous: Cache | undefined, options: CadPartEvaluationOptions): CadPartSnapshot {
+  const doc = admit(input), cache: Cache = new Map(), results = new Map<string, Result>();
+  const lookup = (key: string, deps: readonly Result[]) => previous?.get(key)?.find(e => e.deps.length === deps.length && e.deps.every((d, i) => d === deps[i]))?.result;
+  const remember = (key: string, deps: readonly Result[], result: Result) => { const list = cache.get(key); if (list) list.push({ deps, result }); else cache.set(key, [{ deps, result }]); };
   const consumed = new Map<string, Set<number> | 'all'>(), features: { id: string; kind: CadPartFeature['kind']; dependencies: string[] }[] = [];
   const evaluated: string[] = [], reusedIds: string[] = [];
   for (const feature of doc.features) {
@@ -234,7 +953,6 @@ export function evaluateCadPart(input: CadPartDocument, previous?: Cache): CadPa
       const used = consumed.get(id); if (part === null) consumed.set(id, 'all'); else if (used !== 'all') consumed.set(id, (used ?? new Set()).add(part));
       return picked.filter(p => !empty(p.solid));
     };
-    const dependsKey = () => deps.map(d => keys.get(d)).join(';');
 
     let result: Result;
     const f = feature as CadPartFeature & Record<string, unknown>;
@@ -248,16 +966,20 @@ export function evaluateCadPart(input: CadPartDocument, previous?: Cache): CadPa
           if (!Array.isArray(list) || list.length > CadPartLimits.edges) fail('INPUT', `${key} must list up to 64 loops`);
           return { [key]: (list as unknown[]).map((segments, i) => sketchOuter({ profile: 'loop', segments }, xy, dim, (code, detail) => fail(code, `${key}[${i}]: ${detail}`))) };
         };
-        result = { kind: 'sketch', outer: sketchOuter(f, xy, dim, fail), ...(frame ? { frame } : {}), ...loops('regions'), ...loops('holes') };
-        keys.set(at, JSON.stringify(result));
+        const drawn = { outer: sketchOuter(f, xy, dim, fail), ...loops('regions'), ...loops('holes') } as { outer: ProfileSegmentInput[]; regions?: ProfileSegmentInput[][]; holes?: ProfileSegmentInput[][] };
+        const tags = f.sideTags === undefined ? undefined : sideTagsOf(f.sideTags, drawn, fail);
+        const sketch: Result = { kind: 'sketch', ...drawn, ...(frame ? { frame } : {}), ...(tags ? { tags } : {}) };
+        // (The same sketch as before is the same object, so what is built on it can be reused.)
+        const key = 'sketch:' + JSON.stringify(sketch);
+        result = lookup(key, []) ?? sketch;
+        remember(key, [], result);
       } else {
         const compute = operation(f, { dim, xy, xyz, integer, axisOf, solids, ref, fail, at });
-        const key = JSON.stringify([f.kind, resolvedDefinition(f, doc.parameters), dependsKey()]);
-        keys.set(at, key);
-        const reused = previous?.get(key);
+        const key = JSON.stringify([f.kind, resolvedDefinition(f, doc.parameters)]), inputs = deps.map(d => results.get(d)!);
+        const reused = lookup(key, inputs);
         result = reused ?? compute();
         (reused ? reusedIds : evaluated).push(at);
-        cache.set(key, result);
+        remember(key, inputs, result);
       }
     } catch (cause) {
       if (cause instanceof CadPartError) throw cause;
@@ -283,10 +1005,11 @@ export function evaluateCadPart(input: CadPartDocument, previous?: Cache): CadPa
     withParameters(edits) {
       const parameters = { ...doc.parameters };
       for (const [k, v] of Object.entries(edits)) { if (!Object.hasOwn(parameters, k)) throw new CadPartError('PARAMETER', null, `unknown parameter ${k}`); parameters[k] = v; }
-      return evaluateCadPart({ ...doc, parameters }, cache);
+      return evaluateCadPart({ ...doc, parameters }, cache, options);
     },
-    withDocument(next) { return evaluateCadPart(next, cache); },
-    save: () => JSON.stringify(doc) + '\n',
+    withDocument(next) { return evaluateCadPart(next, cache, options); },
+    // (A mesh's typed arrays written as plain arrays.)
+    save: () => JSON.stringify(doc, (_, v) => isMeshArray(v) ? Array.from(v) : v) + '\n',
   };
   return Object.freeze(snapshot);
 }
@@ -300,9 +1023,25 @@ export function loadCadPart(text: string): CadPartSnapshot {
 }
 export const emptyCadPart = (): CadPartDocument => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [] });
 
-function deepFreeze<T>(v: T): T { if (v && typeof v === 'object' && !Object.isFrozen(v)) { Object.freeze(v); for (const x of Object.values(v)) deepFreeze(x); } return v; }
+function deepFreeze<T>(v: T): T { if (v && typeof v === 'object' && !ArrayBuffer.isView(v) && !Object.isFrozen(v)) { Object.freeze(v); for (const x of Object.values(v)) deepFreeze(x); } return v; }
 /** The feature with parameters replaced by their values (the reuse key). */
+/**
+ * Long texts (an imported STEP file) stand in the reuse keys as an exact id from a map of the last few, compared by
+ * content — not written out again into every key (a 30 MB file was 70–90 ms an evaluation; PERF3 C16). An id is never
+ * given to another text; a text fallen out of the map gets a new one (a miss, not a wrong reuse).
+ */
+const LONG_TEXT = 1 << 16, TEXTS_KEPT = 8, textIds = new Map<string, number>();
+let nextTextId = 1;
+function textKey(t: string): string {
+  let id = textIds.get(t);
+  if (id === undefined) { id = nextTextId++; if (textIds.size >= TEXTS_KEPT) textIds.delete(textIds.keys().next().value!); }
+  else textIds.delete(t);
+  textIds.set(t, id);
+  return `\u0000text#${id}:${t.length}`;
+}
 function resolvedDefinition(f: unknown, parameters: Readonly<Record<string, number>>): unknown {
+  if (isMeshArray(f)) return hashOfArray(f);
+  if (typeof f === 'string' && f.length > LONG_TEXT) return textKey(f);
   if (Array.isArray(f)) return f.map(x => resolvedDefinition(x, parameters));
   if (isRecord(f)) { if (typeof f.parameter === 'string' && Object.keys(f).length === 1) return parameters[f.parameter]; return Object.fromEntries(Object.entries(f).filter(([k]) => k !== 'id').map(([k, v]) => [k, resolvedDefinition(v, parameters)])); }
   return f;
@@ -330,9 +1069,179 @@ function frameOf(plane: CadPartSketchPlane, xyz: Tools['xyz'], fail: Tools['fail
   const x = snap(unit(sub(x0, scale(n, dot(x0, n))))), y = snap(cross(n, x));
   return { m: [x[0], y[0], n[0], x[1], y[1], n[1], x[2], y[2], n[2]], o: xyz(plane.origin, 'plane origin') };
 }
+/** A point of a sketch's own XYZ in the part. */
+const framed = (frame: Frame | undefined, p: Point): Point => !frame ? p : [frame.m[0] * p[0] + frame.m[1] * p[1] + frame.m[2] * p[2] + frame.o[0], frame.m[3] * p[0] + frame.m[4] * p[1] + frame.m[5] * p[2] + frame.o[1], frame.m[6] * p[0] + frame.m[7] * p[1] + frame.m[8] * p[2] + frame.o[2]];
+/** A bend's K: the sheet's, or its table's for T, R and the angle (R12.4, D120); a bend outside the table refused by name. */
+function bendK(rules: { readonly kFactor?: number; readonly bendTable?: BendTable }, T: number, R: number, angle: number, what: string, fail: Tools['fail']): { kFactor: number; use?: BendTableUse } {
+  if (rules.kFactor !== undefined) return { kFactor: rules.kFactor };
+  const r = lookupBend(rules.bendTable!, T, R, angle);
+  if ('miss' in r) return fail('PARAMETER', `[BEND_TABLE_MISS] ${what}: ${r.miss}`);
+  return r;
+}
+/** A solid's volume by its exact surfaces (quadrature where curved): the flange's collision test. */
+const exactVolume = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : brepMassProperties(s.brep, 1).volumeMM3;
+/**
+ * An edge flange on a sheet (R12.3, D118; see the feature): its edge's frame (x out across the edge, y up from the picked
+ * skin, z along the edge), the plate trimmed and relieved, the flange's section extruded and united; refused where it
+ * meets the sheet anywhere but its root.
+ */
+function sheetFlange(o: { part: Part; sheet: SheetReport; at: string; edge: string; T: number; K: { kFactor: number; use?: BendTableUse }; R: number; th: number; trim: number; straight: number; off: [number, number]; relief: { kind: 'rectangular' | 'obround'; width: number; depth: number } | null | undefined; fail: Tools['fail'] }): Result {
+  const { part, sheet, at, T, K, R, th, trim, straight, off, relief, fail } = o, brep = brepOf(part, 'target');
+  const e = edgeNamed(brep, o.edge, fail);
+  const ends = e.curve.controlPoints, A = ends[0], B = ends[ends.length - 1], Le = len(sub(B, A));
+  const tol = 1e-9 * Math.max(1, ...A.map(Math.abs), ...B.map(Math.abs));
+  if (!(e.curve.degree === 1 && ends.length === 2 && Le > tol)) fail('PARAMETER', `[EDGE_NOT_SHEET] ${e.name} is not straight: a flange goes on a straight edge`);
+  const u = scale(sub(B, A), 1 / Le), loopFace = new Map(brep.loops.map(l => [l.id, l.face])), faceIds = brep.coedges.filter(c => c.edge === e!.id).map(c => loopFace.get(c.loop)!);
+  const faces = faceIds.map(id => brep.faces.find(x => x.id === id)!), geos = faces.map(x => faceGeometry(x));
+  // The picked skin S and the thickness face E: both planes, square to each other and the edge; E with an edge along this
+  // one T below S over some of its length (the sheet T thick there; E may run on, merged with a flange's end beside it),
+  // the plate behind E.
+  let frame: { n: Point; m: Point; S: number } | null = null;
+  for (const [s, k] of [[0, 1], [1, 0]] as const) {
+    const gs = geos[s], ge = geos[k];
+    if (faces.length !== 2 || gs.kind !== 'plane' || ge.kind !== 'plane' || Math.abs(dot(gs.n, ge.n)) > 1e-9 || Math.abs(dot(gs.n, u)) > 1e-9 || Math.abs(dot(ge.n, u)) > 1e-9) continue;
+    const behind = faceVertices(brep, faces[s].id).map(q => dot(sub(q, A), ge.n));
+    if (Math.max(...behind) <= tol && hasEdgeBelow(brep, faces[k].id, A, u, Le, gs.n, T)) { frame = { n: gs.n, m: ge.n, S: s }; break; }
+  }
+  if (!frame) return fail('PARAMETER', `[EDGE_NOT_SHEET] ${e.name} is not an edge between the sheet's skin and its ${T} mm thickness`);
+  const { n, m } = frame, w = cross(m, n), zB = dot(sub(B, A), w), zlo = Math.min(0, zB), zhi = Math.max(0, zB);
+  // (Offsets from the edge's start (A) and end (B).)
+  const z0 = zlo + (zB > 0 ? off[0] : off[1]), z1 = zhi - (zB > 0 ? off[1] : off[0]);
+  if (!(z1 - z0 > 1e-6)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] offsets ${off[0]} and ${off[1]} leave nothing of the ${+Le.toFixed(6)} mm edge`);
+  // The plate behind the edge must reach past the trim.
+  const depth = -Math.min(...faceVertices(brep, faces[frame.S].id).map(q => dot(sub(q, A), m)));
+  if (trim > 0 && !(depth > trim + tol)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] the sheet is ${+depth.toFixed(6)} mm deep behind ${e.name}; the bend takes ${+trim.toFixed(6)} mm of it`);
+  const F: BrepAffine['matrix'] = [m[0], n[0], w[0], m[1], n[1], w[1], m[2], n[2], w[2]];
+  const local = (outer: ProfileSegmentInput[], from: number, h: number, tag: string, names?: { outer: string[]; bottom: string; top: string }) => affine({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: h, fromMM: from, tag, ...(names ? { names } : {}) }) }, F, A);
+  // The cut into the plate, one tool (no two cuts with faces on one plane): the trim [−trim, 1] × [z0, z1] and a relief at
+  // each end inside the edge, `depth` past the bend's start, as one loop across the edge (x) and along it (z), taken down
+  // through the plate. (Bend outside: no trim, each relief its own loop.)
+  // An end inside the edge needs a relief said (kind, width and depth, or 'none'); 'none' cuts nothing there.
+  const inside0 = z0 > zlo + tol, inside1 = z1 < zhi - tol;
+  if ((inside0 || inside1) && relief === undefined) fail('PARAMETER', `[RELIEF_REQUIRED] the flange on ${e.name} ends inside the edge: give its relief — { kind: 'rectangular' | 'obround', width, depth } or { kind: 'none' }`);
+  const cut = relief ?? null, at0 = cut !== null && inside0, at1 = cut !== null && inside1;
+  const xd = cut ? -(trim + cut.depth) : -trim, r = cut ? cut.width / 2 : 0;
+  if ((at0 && z0 - 2 * r < zlo - tol) || (at1 && z1 + 2 * r > zhi + tol)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] a relief ${cut!.width} mm wide does not fit beside the flange on ${e.name} (offset it at least that far)`);
+  if (cut?.kind === 'obround' && cut.depth < r) fail('PARAMETER', `[BEND_DOES_NOT_FIT] an obround relief needs a depth of at least half its width (${r} mm)`);
+  const loops: ProfileSegmentInput[][] = [];
+  const tail = (y: number, out: ProfileSegmentInput[], up: boolean) => {
+    // A relief from the edge (x = 1) across to its deep end and back, between y and y ± width (up: towards +z).
+    const y1 = up ? y + 2 * r : y - 2 * r;
+    if (cut!.kind === 'rectangular') { out.push({ kind: 'line', start: [xd, up ? y1 : y] }, { kind: 'line', start: [xd, up ? y : y1] }); return; }
+    out.push({ kind: 'arc', start: [xd + r, up ? y1 : y], center: [xd + r, (y + y1) / 2], direction: 'ccw' }, { kind: 'line', start: [xd + r, up ? y : y1] });
+  };
+  if (trim > 0) {
+    const ya = at0 ? z0 - 2 * r : z0, yb = at1 ? z1 + 2 * r : z1, loop: ProfileSegmentInput[] = [{ kind: 'line', start: [1, ya] }, { kind: 'line', start: [1, yb] }];
+    if (at1) tail(z1, loop, true);
+    loop.push({ kind: 'line', start: [-trim, z1] }, { kind: 'line', start: [-trim, z0] });
+    if (at0) tail(z0, loop, false);
+    loops.push(loop);
+  } else {
+    if (at0) { const l: ProfileSegmentInput[] = [{ kind: 'line', start: [1, z0 - 2 * r] }, { kind: 'line', start: [1, z0] }]; tail(z0 - 2 * r, l, true); loops.push(l); }
+    if (at1) { const l: ProfileSegmentInput[] = [{ kind: 'line', start: [1, z1] }, { kind: 'line', start: [1, z1 + 2 * r] }]; tail(z1, l, true); loops.push(l); }
+  }
+  const G: BrepAffine['matrix'] = [m[0], w[0], -n[0], m[1], w[1], -n[1], m[2], w[2], -n[2]], top = add(A, n);
+  let plate = part.solid;
+  // (Where the cut or the flange reaches another bend of the sheet the Boolean meets it along an edge: said so by name.)
+  const collide = (cause: unknown): never => {
+    if (cause instanceof Error && /not a manifold solid|touch along an edge/.test(cause.message)) fail('GEOMETRY', `[FLANGES_COLLIDE] the flange on ${e!.name} or its cut into the plate meets the sheet's other bends or flanges: keep it at least its setback (${+Math.max(trim, (R + T) * Math.tan(th / 2)).toFixed(6)} mm) from them`);
+    throw cause;
+  };
+  try { loops.forEach((outer, k) => { plate = boolean(plate, affine({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: T + 2, fromMM: 0, tag: k ? `${at}.relief${k}` : trim > 0 ? `${at}.trim` : `${at}.relief0` }) }, G, top), 'difference', at); }); }
+  catch (cause) { collide(cause); }
+  const sec = flangeSection(at, T, R, th, trim, straight), piece = local([...sec.segments], z0, z1 - z0, at, { outer: [...sec.names], bottom: `${at}.start`, top: `${at}.end` });
+  // Joined at its root only: anything more is the flange running into the sheet (or another flange).
+  let out: Solid;
+  try { out = boolean(plate, piece, 'union', at); }
+  catch (cause) { collide(cause); }
+  // (Reliefs of neighbouring flanges may meet and cut a corner off: the sheet must stay one piece.)
+  const pieces = out!.kind === 'brep' ? out!.brep.bodies.length : 1;
+  if (pieces > 1) fail('GEOMETRY', `[SHEET_IN_PIECES] the flange on ${e.name} and its reliefs leave the sheet in ${pieces} pieces: move it, or its neighbour, further from the corner`);
+  const vp = exactVolume(plate), vf = exactVolume(piece), vu = exactVolume(out!);
+  if (vp + vf - vu > 1e-8 * (vp + vf)) fail('GEOMETRY', `[FLANGES_COLLIDE] the flange on ${e.name} runs into the sheet: ${+(vp + vf - vu).toPrecision(6)} mm³ of it overlaps`);
+  const c = add(A, add(scale(m, sec.center[0]), scale(n, sec.center[1])));
+  const bend = { name: `${at}.bend`, inner: `${at}.bend.inner`, outer: `${at}.bend.outer`, radiusMM: R, angleDegrees: th * 180 / Math.PI, axis: { origin: c, direction: w }, allowanceMM: bendAllowance(th, R, T, K.kFactor), setbackMM: outsideSetback(th, R, T), deductionMM: bendDeduction(th, R, T, K.kFactor), kFactor: K.kFactor, ...(K.use ? { table: K.use } : {}) };
+  return { kind: 'solid', parts: [{ solid: out!, sheet: { ...sheet, bends: [...sheet.bends, bend] } }] };
+}
+/** An edge of a B-rep by its name, else by its faces' names without their piece numbers (one such edge). */
+function edgeNamed(brep: Brep, name: string, fail: Tools['fail']): Brep['edges'][number] {
+  let e = brep.edges.find(x => x.name === name);
+  if (!e) {
+    const want = name.split('|').map(n => n.replace(/#\d+$/, '')).sort().join('|');
+    const like = brep.edges.filter(x => x.name && x.name.split('|').map(n => n.replace(/#\d+$/, '')).sort().join('|') === want);
+    if (like.length > 1) fail('SELECTION', `${name} names ${like.length} edges: ${like.map(x => x.name).join(', ')}`);
+    e = like[0];
+  }
+  if (!e) return fail('SELECTION', `no edge named ${name}; edges: ${brep.edges.slice(0, 12).map(x => x.name).join(', ')}${brep.edges.length > 12 ? ', …' : ''}`);
+  return e;
+}
+/**
+ * A corner relief on a sheet (R12.3b, D119; see the feature): the corner's frame (x and y into the plate along its two
+ * edges, z along the thickness), the square or the quarter disc cut through it; refused unless exactly the plate's corner
+ * goes (s² T or π s² T / 4) and the sheet stays one piece.
+ */
+function sheetCornerRelief(part: Part, sheet: SheetReport, at: string, corner: string, shape: 'square' | 'round', s: number, fail: Tools['fail']): Result {
+  const T = sheet.thicknessMM, brep = brepOf(part, 'target'), e = edgeNamed(brep, corner, fail);
+  const ends = e.curve.controlPoints, A = ends[0], B = ends[ends.length - 1], tol = 1e-9 * Math.max(1, ...A.map(Math.abs), ...B.map(Math.abs));
+  if (!(e.curve.degree === 1 && ends.length === 2 && Math.abs(len(sub(B, A)) - T) <= 1e-7 * Math.max(1, T))) fail('PARAMETER', `[EDGE_NOT_SHEET] ${e.name} is not a corner of the sheet: the straight edge, ${T} mm long, between two thickness faces`);
+  const d = scale(sub(B, A), 1 / len(sub(B, A))), loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
+  const faces = brep.coedges.filter(c => c.edge === e.id).map(c => brep.faces.find(x => x.id === loopFace.get(c.loop))!), geos = faces.map(x => faceGeometry(x));
+  if (faces.length !== 2 || geos.some(g => g.kind !== 'plane') || geos.some(g => Math.abs(dot((g as { n: Point }).n, d)) > 1e-9)) fail('PARAMETER', `[EDGE_NOT_SHEET] ${e.name} is not between two thickness faces of the sheet`);
+  const m1 = (geos[0] as { n: Point }).n, m2 = (geos[1] as { n: Point }).n;
+  if (Math.abs(dot(m1, m2)) > 1e-9) fail('CAPABILITY', `[CORNER_NOT_SQUARE] the corner ${e.name} is ${+(Math.acos(Math.max(-1, Math.min(1, -dot(m1, m2)))) * 180 / Math.PI).toFixed(6)}°: corner reliefs are made at square corners yet`);
+  // Convex: each face behind the other's plane.
+  const behind = (face: string, n: Point) => faceVertices(brep, face).every(q => dot(sub(q, A), n) <= tol);
+  if (!behind(faces[1].id, m1) || !behind(faces[0].id, m2)) fail('CAPABILITY', `[CORNER_NOT_SQUARE] the corner ${e.name} is not convex`);
+  const X = scale(m1, -1), Y = scale(m2, -1), Z = cross(X, Y), zB = dot(sub(B, A), Z), z0 = Math.min(0, zB) - 1, z1 = Math.max(0, zB) + 1;
+  const outer: ProfileSegmentInput[] = shape === 'square' ? [{ kind: 'line', start: [-1, -1] }, { kind: 'line', start: [s, -1] }, { kind: 'line', start: [s, s] }, { kind: 'line', start: [-1, s] }] : [{ kind: 'arc', start: [s, 0], center: [0, 0], direction: 'ccw' }];
+  const tool = affine({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: z1 - z0, fromMM: z0, tag: at }) }, [X[0], Y[0], Z[0], X[1], Y[1], Z[1], X[2], Y[2], Z[2]], A);
+  let out: Solid;
+  try { out = boolean(part.solid, tool, 'difference', at); }
+  catch (cause) { if (cause instanceof Error && /not a manifold solid|touch along an edge/.test(cause.message)) fail('GEOMETRY', `[CORNER_NOT_CLEAR] the relief at ${e.name} meets more than the plate's corner`); throw cause; }
+  const want = (shape === 'square' ? s * s : Math.PI * s * s / 4) * T, took = exactVolume(part.solid) - exactVolume(out!), pieces = out!.kind === 'brep' ? out!.brep.bodies.length : 1;
+  if (pieces > 1 || Math.abs(took - want) > 1e-8 * Math.max(want, exactVolume(part.solid))) fail('GEOMETRY', `[CORNER_NOT_CLEAR] the relief at ${e.name} would take ${+took.toPrecision(9)} mm³ (the plate's corner is ${+want.toPrecision(9)}): a flange or a cut is there already, or the size reaches past the plate`);
+  return { kind: 'solid', parts: [{ solid: out!, sheet }] };
+}
+/** Whether a face has a straight edge along u at T below the plane through A (normal n), overlapping [A, A + Le·u]. */
+function hasEdgeBelow(brep: Brep, face: string, A: Point, u: Point, Le: number, n: Point, T: number): boolean {
+  const loops = new Set(brep.loops.filter(l => l.face === face).map(l => l.id)), edges = new Map(brep.edges.map(x => [x.id, x])), tol = 1e-7 * Math.max(1, T);
+  for (const c of brep.coedges) {
+    if (!loops.has(c.loop)) continue;
+    const p = edges.get(c.edge)!.curve.controlPoints, a = p[0], b = p[p.length - 1], d = sub(b, a), l = len(d);
+    if (!(l > 0) || Math.abs(Math.abs(dot(d, u)) / l - 1) > 1e-9 || Math.abs(dot(sub(a, A), n) + T) > tol || Math.abs(dot(sub(b, A), n) + T) > tol) continue;
+    const s0 = Math.min(dot(sub(a, A), u), dot(sub(b, A), u)), s1 = Math.max(dot(sub(a, A), u), dot(sub(b, A), u));
+    if (Math.min(s1, Le) - Math.max(s0, 0) > tol) return true;
+  }
+  return false;
+}
+/** The points of a face's loops' vertices (its edges' ends). */
+function faceVertices(brep: Brep, face: string): Point[] {
+  const loops = new Set(brep.loops.filter(l => l.face === face).map(l => l.id)), edges = new Map(brep.edges.map(x => [x.id, x])), out: Point[] = [];
+  for (const c of brep.coedges) if (loops.has(c.loop)) { const p = edges.get(c.edge)!.curve.controlPoints; out.push(p[0], p[p.length - 1]); }
+  return out;
+}
+/** Parts made from sheets (holes, cuts) carrying their sheet's report, part for part (R12.2, D117). */
+const carrySheet = (r: Result, from: readonly Part[]): Result => r.kind === 'solid' && from.some(p => p.sheet) ? { kind: 'solid', parts: r.parts.map((q, i) => from[i]?.sheet ? { ...q, sheet: from[i].sheet } : q) } : r;
+/** A sheet feature's result: its one part carrying the sheet's report. */
+const withSheet = (r: Result, sheet: SheetReport): Result => r.kind === 'solid' ? { kind: 'solid', parts: r.parts.map(p => ({ ...p, sheet })) } : r;
 /** A result built on a sketch's own XY, moved onto its plane. */
 const placed = (frame: Frame | undefined, compute: () => Result): (() => Result) =>
   !frame ? compute : () => { const r = compute(); return r.kind === 'solid' ? moveAll(r.parts, frame.m, frame.o) : r; };
+
+/** A profile loop's points: its lines' starts and its arcs sampled (eight steps a quarter turn). */
+function loopPoints(loop: readonly ProfileSegmentInput[]): [number, number][] {
+  const out: [number, number][] = [];
+  loop.forEach((s, i) => {
+    out.push([s.start[0], s.start[1]]);
+    if (s.kind !== 'arc') return;
+    const end = loop[(i + 1) % loop.length].start, c = s.center, r = Math.hypot(s.start[0] - c[0], s.start[1] - c[1]);
+    const a0 = Math.atan2(s.start[1] - c[1], s.start[0] - c[0]), a1 = Math.atan2(end[1] - c[1], end[0] - c[0]);
+    let sweep = s.direction === 'ccw' ? a1 - a0 : a0 - a1; if (sweep <= 1e-12) sweep += 2 * Math.PI;
+    const n = Math.max(2, Math.ceil(sweep / (Math.PI / 16)));
+    for (let k = 1; k < n; k++) { const a = a0 + (s.direction === 'ccw' ? 1 : -1) * sweep * k / n; out.push([c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)]); }
+  });
+  return out;
+}
 
 function sketchOuter(f: Record<string, unknown>, xy: Tools['xy'], dim: Tools['dim'], fail: Tools['fail']): ProfileSegmentInput[] {
   if (f.profile === 'rectangle') {
@@ -357,6 +1266,28 @@ function sketchOuter(f: Record<string, unknown>, xy: Tools['xy'], dim: Tools['di
   return fail('INPUT', 'sketch profile must be rectangle, circle, polygon or loop');
 }
 
+/** A sketch's `sideTags` checked against its loops: one tag a side, each a name, none twice (R10a, D86). */
+function sideTagsOf(v: unknown, drawn: { outer: readonly unknown[]; regions?: readonly (readonly unknown[])[]; holes?: readonly (readonly unknown[])[] }, fail: Tools['fail']): SideTags {
+  if (!isRecord(v)) return fail('INPUT', 'sideTags must be { outer, regions?, holes? }');
+  const seen = new Set<string>();
+  const list = (x: unknown, n: number, what: string): string[] => {
+    if (!Array.isArray(x) || x.length !== n) fail('INPUT', `sideTags.${what} must give ${n} tag${n === 1 ? '' : 's'}, one a side`);
+    for (const t of x as unknown[]) {
+      if (typeof t !== 'string' || !SIDE_TAG.test(t)) fail('INPUT', `sideTags.${what}: ${JSON.stringify(t)} is not a tag (letters, digits, _ or -, 1 to 32)`);
+      if (seen.has(t as string)) fail('INPUT', `sideTags: ${t as string} is given twice`);
+      seen.add(t as string);
+    }
+    return [...x as string[]];
+  };
+  const lists = (key: 'regions' | 'holes') => {
+    const loops = drawn[key] ?? [], x = v[key];
+    if (x === undefined) { if (loops.length) fail('INPUT', `sideTags.${key} must tag the ${loops.length} ${key === 'regions' ? 'region' : 'hole'} loop${loops.length === 1 ? '' : 's'}`); return {}; }
+    if (!Array.isArray(x) || x.length !== loops.length) fail('INPUT', `sideTags.${key} must give one list a loop (${loops.length})`);
+    return { [key]: loops.map((l, i) => list((x as unknown[])[i], l.length, `${key}[${i}]`)) };
+  };
+  return { outer: list(v.outer, drawn.outer.length, 'outer'), ...lists('regions'), ...lists('holes') };
+}
+
 // ---- operations ---------------------------------------------------------------------------------------
 function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () => Result {
   const { dim, xy, xyz, integer, axisOf, solids, ref, fail, at } = t;
@@ -368,16 +1299,16 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
       const h = dim(f.height as CadPartDim, 'height'), from = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from');
       if (h === 0) fail('PARAMETER', 'height must not be zero');
-      const { outer, frame, regions, holes } = sketch as Extract<Result, { kind: 'sketch' }>;
+      const { outer, frame, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
       const draft = f.draft === undefined ? 0 : f.draft as unknown;
       if (typeof draft !== 'number' || !Number.isFinite(draft) || !(Math.abs(draft) < 89)) fail('INPUT', 'draft must be a number of degrees below 89 in size');
-      if (draft === 0) return placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(regions ? { regions } : {}), ...(holes ? { holes } : {}), heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) }));
+      if (draft === 0) return placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(regions ? { regions } : {}), ...(holes ? { holes } : {}), ...(tags ? { sideTags: tags } : {}), heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) }));
       if (regions?.length || holes?.length) fail('CAPABILITY', 'a drafted extrude takes one loop (no regions or holes) yet');
       // Built upwards from the sketch plane, then turned over for a downward extrude (the walls lean
       // away from the sketch plane either way).
       return placed(frame, () => {
         let brep: Brep;
-        try { brep = draftedExtrusion({ profile: outer, z0: 0, z1: Math.abs(h), draftDegrees: draft as number, tag: at, id: at }); }
+        try { brep = draftedExtrusion({ profile: outer, z0: 0, z1: Math.abs(h), draftDegrees: draft as number, tag: at, id: at, ...(tags ? { sideTags: tags.outer } : {}) }); }
         catch (cause) { if (cause instanceof BrepError) fail(/not supported yet/.test(cause.message) ? 'CAPABILITY' : 'PARAMETER', cause.message.replace(/^B-rep: drafted extrusion: /, '')); throw cause; }
         return one({ kind: 'brep', brep: transformBrep(brep!, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, h > 0 ? 1 : -1], offset: [0, 0, from] }) });
       });
@@ -387,10 +1318,13 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
       if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length || (sketch as Extract<Result, { kind: 'sketch' }>).holes?.length) fail('CAPABILITY', `${f.kind} takes a sketch of one loop (no regions or holes) yet`);
       const ax = f.axis as { origin?: CadPartPoint2; direction?: unknown } | undefined;
-      if (!isRecord(ax) || (ax.direction !== 'x' && ax.direction !== 'y')) fail('INPUT', 'axis must be { origin: [x, y], direction: "x" | "y" }');
+      // The axis lies in the sketch plane: along its X or Y, or any direction [dx, dy] there.
+      const free = Array.isArray(ax?.direction) && ax!.direction.length === 2 && ax!.direction.every(v => typeof v === 'number' && Number.isFinite(v)) && Math.hypot(...(ax!.direction as number[])) > 1e-12;
+      if (!isRecord(ax) || (ax.direction !== 'x' && ax.direction !== 'y' && !free)) fail('INPUT', 'axis must be { origin: [x, y], direction: "x" | "y" | [dx, dy] }');
       const origin = xy(ax!.origin, 'axis origin'), deg = f.angleDegrees === undefined ? 360 : f.angleDegrees as number;
       if (typeof deg !== 'number' || !(deg > 0 && deg <= 360)) fail('INPUT', 'angleDegrees must be in (0, 360]');
-      const input = { id: at, profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, axis: { origin, direction: (ax!.direction === 'x' ? [1, 0] : [0, 1]) as XY }, angleDegrees: deg };
+      const rtags = (sketch as Extract<Result, { kind: 'sketch' }>).tags;
+      const input = { id: at, profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, axis: { origin, direction: (free ? ax!.direction : ax!.direction === 'x' ? [1, 0] : [0, 1]) as XY }, angleDegrees: deg, ...(rtags ? { sideTags: rtags.outer } : {}) };
       return placed((sketch as Extract<Result, { kind: 'sketch' }>).frame, () => ({ kind: 'solid', parts: [{ solid: { kind: 'brep', brep: revolveProfile(input) }, mass: (density: number) => revolveMassProperties(input, density), revolved: input }] }));
     }
     case 'union': case 'difference': case 'intersect': {
@@ -399,27 +1333,62 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const joined = tool.reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), tool[0].solid);
         // Unions merge every target part into one; difference and intersection act on each part.
         if (op === 'union') return one(target.reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), joined));
-        return many(target.map(p => boolean(p.solid, joined, op, at)));
+        // (A sheet's holes and cuts: still the sheet, its rules carried on; R12.2, D117.)
+        const out = many(target.map(p => boolean(p.solid, joined, op, at)));
+        return op === 'difference' ? carrySheet(out, target) : out;
       };
     }
     case 'hole': {
       const target = solids(f.target, 'target'), c = xy(f.center as CadPartPoint2, 'center'), r = dim(f.radius as CadPartDim, 'radius', true);
       const depth = f.depth === undefined ? null : dim(f.depth as CadPartDim, 'depth', true), axis = f.axis === undefined ? 'z' : axisOf(f.axis);
-      const side = f.side === undefined ? 'max' : f.side;
-      if (side !== 'min' && side !== 'max') fail('INPUT', 'side must be min or max');
-      return () => many(target.map(p => {
+      const named = f.face === undefined ? null : f.face;
+      if (named !== null && (typeof named !== 'string' || !named)) fail('INPUT', 'face must be a face name');
+      const given = f.side;
+      if (given !== undefined && given !== 'min' && given !== 'max') fail('INPUT', 'side must be min or max');
+      const csk = f.countersink === undefined ? null : dim(f.countersink as CadPartDim, 'countersink', true);
+      if (csk !== null && !(csk / 2 > r)) fail('INPUT', 'a countersink must be wider than the hole');
+      return () => carrySheet(many(target.map(p => {
         // The tool: a cylinder along local z over [h0, h1], centred at local (c1, c2), turned onto the axis
         // by a cyclic permutation (x: local x, y, z → world y, z, x; y: → world z, x, y).
         const box = bounds(p.solid), k = 'xyz'.indexOf(axis), hi = box.max[k], lo = box.min[k];
-        const [h0, h1] = depth === null ? [lo - 1, hi + 1] : side === 'max' ? [hi - depth, hi + 1] : [lo - 1, lo + depth];
+        // (The face drilled into: the named planar face's plane, its outward normal along ±axis the side; else the
+        // target's extreme on `side`. From a named face the tool reaches past it by 1 % of the depth, at most 1 mm, and at
+        // most half the free space above the face over the hole (D148b: a lip or an overhang there stays whole); from the
+        // extreme, 1 mm as before.)
+        const start = named === null ? null : holeFace(brepOf(p, at), named, k, fail);
+        const side = start ? start.side : given ?? 'max';
+        if (start && given !== undefined && given !== start.side) fail('INPUT', `side ${given} does not match ${named}, which faces ${start.side === 'max' ? '+' : '-'}${axis}`);
+        const face = start ? start.at : side === 'max' ? hi : lo;
+        let over = 1;
+        if (start && depth !== null) {
+          const free = clearanceAbove(brepOf(p, at), k, side === 'max' ? 1 : -1, face, c, r);
+          if (free < OBSTRUCTION_MM) fail('GEOMETRY', `[OBSTRUCTED_ABOVE] material ${+free.toPrecision(3)} mm above ${named} over the hole at (${c[0]}, ${c[1]}): a blind hole from that face would cut it`);
+          over = Math.min(1, 0.01 * depth, free / 2);
+        }
+        const [h0, h1] = depth === null ? [lo - 1, hi + 1] : side === 'max' ? [face - depth, face + over] : [face - over, face + depth];
         const local: XY = axis === 'y' ? [c[1], c[0]] : c;
         const cylinder = prismaticFromProfile({ outer: [{ kind: 'arc', start: [local[0] + r, local[1]], center: local, direction: 'ccw' }], heightMM: h1 - h0, fromMM: h0, tag: at });
         const tool: Solid = axis === 'z' ? { kind: 'upright', solid: cylinder }
           : { kind: 'brep', brep: transformBrep(brepFromPrismatic(cylinder, { id: at + '_tool' }), { matrix: axis === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : [0, 1, 0, 0, 0, 1, 1, 0, 0] }) };
         const out = boolean(p.solid, tool, 'difference', at);
-        if (volumeOfSolid(p.solid) - volumeOfSolid(out) <= 1e-6 * volumeOfSolid(p.solid)) fail('SELECTION', `the hole at (${c[0]}, ${c[1]}) along ${axis} misses the target`);
-        return out;
-      }));
+        // A miss: no volume taken. A B-rep result with some of the tool's faces took some (measuring the
+        // volumes tessellates the whole body twice per hole); without them (off the body, or inside a hole
+        // already there) the volumes decide, as before.
+        const missed = out.kind === 'brep' && out.brep.faces.some(x => x.name?.startsWith(`${at}.`)) ? false : volumeOfSolid(p.solid) - volumeOfSolid(out) <= 1e-6 * volumeOfSolid(p.solid);
+        if (missed) fail('SELECTION', `the hole at (${c[0]}, ${c[1]}) along ${axis} misses the target`);
+        if (csk === null) return out;
+        // The countersink: a 90° cone from Ø csk at the face down to the hole, its rim a little above the
+        // face (so no face of it lies on the face). Revolved about its profile's Y (depth into the
+        // material), then carried to the hole: s along local x, depth down local z from the face, the
+        // revolve's z along ±local y (the map turning, not mirroring), then the hole's axis permutation.
+        const R = csk / 2, e = Math.min(0.5, R), t = R - r, down = side === 'max' ? -1 : 1;
+        const cone = revolveProfile({ id: `${at}_csk`, profile: [{ kind: 'line', start: [0, -e] }, { kind: 'line', start: [R + e, -e] }, { kind: 'line', start: [r, t] }, { kind: 'line', start: [0, t] }], axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
+        const M = [1, 0, 0, 0, 0, -down, 0, down, 0], P = axis === 'z' ? [1, 0, 0, 0, 1, 0, 0, 0, 1] : axis === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : [0, 1, 0, 0, 0, 1, 1, 0, 0];
+        const mul = (A: number[], B: number[]) => [0, 1, 2].flatMap(i => [0, 1, 2].map(j => A[3 * i] * B[j] + A[3 * i + 1] * B[3 + j] + A[3 * i + 2] * B[6 + j]));
+        const o: Point = [local[0], local[1], face], offset = [0, 1, 2].map(i => P[3 * i] * o[0] + P[3 * i + 1] * o[1] + P[3 * i + 2] * o[2]) as Point;
+        const placedCone = transformBrep(cone, { matrix: mul(P, M) as unknown as BrepAffine['matrix'], offset }, n => n.split('|').map(q => q.replace(`${at}_csk.`, `${at}.countersink-`)).join('|'));
+        return boolean(out, { kind: 'brep', brep: placedCone }, 'difference', at);
+      })), target);
     }
     case 'translate': {
       const target = solids(f.target, 'target'), o = xyz(f.offset as CadPartPoint3, 'offset');
@@ -428,7 +1397,6 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'rotate': {
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), deg = f.angleDegrees as number, pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');
       if (typeof deg !== 'number' || !Number.isFinite(deg) || Math.abs(deg) > 3600) fail('INPUT', 'angleDegrees must be a finite number of degrees');
-      if (axis !== 'z' && Math.round(deg / 90) * 90 !== deg) fail('CAPABILITY', 'rotations about X or Y must be multiples of 90°');
       return () => { const { m, o } = rotation(axis, deg, pivot); return moveAll(target, m, o); };
     }
     case 'mirror': {
@@ -447,9 +1415,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const target = solids(f.target, 'target'), axis = axisOf(f.axis), spacing = dim(f.spacing as CadPartDim, 'spacing'), count = integer(f.count, 'count', 1, CadPartLimits.copies);
       if (spacing === 0) fail('PARAMETER', 'spacing must not be zero');
       return () => many(target.map(p => {
-        let acc = p.solid;
-        for (let k = 1; k < count; k++) { const o: Point = [0, 0, 0]; o['xyz'.indexOf(axis)] = spacing * k; acc = boolean(acc, affine(p.solid, [1, 0, 0, 0, 1, 0, 0, 0, 1], o, n => `${n}@${k}`), 'union', at); }
-        return acc;
+        const copies = Array.from({ length: count }, (_, k) => { if (!k) return p.solid; const o: Point = [0, 0, 0]; o['xyz'.indexOf(axis)] = spacing * k; return affine(p.solid, [1, 0, 0, 0, 1, 0, 0, 0, 1], o, n => `${n}@${k}`); });
+        return unionAll(copies, at);
       }));
     }
     case 'circular-pattern': {
@@ -458,10 +1425,174 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (typeof deg !== 'number' || !Number.isFinite(deg) || deg === 0 || Math.abs(deg) > 360) fail('INPUT', 'angleDegrees must be a nonzero step of at most 360°');
       if (axis !== 'z' && Math.round(deg / 90) * 90 !== deg) fail('CAPABILITY', 'patterns about X or Y must step by multiples of 90°');
       return () => many(target.map(p => {
-        let acc = p.solid;
-        for (let k = 1; k < count; k++) acc = boolean(acc, rotate(p.solid, axis, deg * k, pivot, n => `${n}@${k}`), 'union', at);
-        return acc;
+        return unionAll(Array.from({ length: count }, (_, k) => k ? rotate(p.solid, axis, deg * k, pivot, n => `${n}@${k}`) : p.solid), at);
       }));
+    }
+    case 'frame-member': {
+      const start = xyz(f.start as CadPartPoint3, 'start'), end = xyz(f.end as CadPartPoint3, 'end'), L = len(sub(end, start));
+      if (!(L > MEMBER_MIN_MM)) fail('PARAMETER', `[SEGMENT_ZERO_LENGTH] a member runs from its start to its end: they are ${L} mm apart`);
+      const look = memberLook(f, '', dim, fail), up = memberUp(f.up, xyz, fail), shape = memberShape(f.section, 'section', { ref, dim, integer, fail });
+      return () => buildMember(shape, { start, end, L, ...look, up, at });
+    }
+    case 'frame': {
+      // FR2 (D124): one member per segment of a skeleton, each its own body (`<id>/<k>`), never united.
+      const pts = f.points as unknown, segs = f.segments as unknown;
+      if (!Array.isArray(pts) || pts.length < 2 || pts.length > CadPartLimits.points) fail('INPUT', `points must list 2 to ${CadPartLimits.points} [x, y, z] points`);
+      if (!Array.isArray(segs) || !segs.length || segs.length > FRAME_MAX_MEMBERS) fail('INPUT', `segments must list 1 to ${FRAME_MAX_MEMBERS} [from, to] point indices`);
+      const points = (pts as CadPartPoint3[]).map((p, i) => xyz(p, `points[${i}]`));
+      const pairs = (segs as unknown[]).map((g, k): [number, number] => {
+        if (!Array.isArray(g) || g.length !== 2) fail('INPUT', `segments[${k}] must be [from, to]`);
+        return [integer((g as unknown[])[0], `segments[${k}][0]`, 0, points.length - 1), integer((g as unknown[])[1], `segments[${k}][1]`, 0, points.length - 1)];
+      });
+      const lengths = pairs.map(([i, j], k) => {
+        const L = len(sub(points[j], points[i]));
+        if (!(L > MEMBER_MIN_MM)) fail('PARAMETER', `[SEGMENT_ZERO_LENGTH] segment ${k} runs from point ${i} to point ${j}: they are ${L} mm apart`);
+        return L;
+      });
+      const clash = skeletonClash(points, pairs);
+      if (clash) fail('PARAMETER', clash);
+      const base = { look: memberLook(f, '', dim, fail), shape: memberShape(f.section, 'section', { ref, dim, integer, fail }) }, up = memberUp(f.up, xyz, fail);
+      const per = pairs.map(() => base);
+      const list = f.overrides as unknown;
+      if (list !== undefined) {
+        if (!Array.isArray(list) || list.length > pairs.length) fail('INPUT', 'overrides must list up to one { member, … } per member');
+        const seen = new Set<number>();
+        (list as unknown[]).forEach((o, n) => {
+          if (!isRecord(o)) fail('INPUT', `overrides[${n}] must be { member, section?, anchor?, offset?, roll?, mirror? }`);
+          const r = o as Record<string, unknown>, k = integer(r.member, `overrides[${n}].member`, 0, pairs.length - 1);
+          if (seen.has(k)) fail('INPUT', `overrides[${n}]: member ${k} is overridden twice`);
+          seen.add(k);
+          const look = memberLook(r, `overrides[${n}].`, dim, fail, base.look);
+          per[k] = { look, shape: r.section === undefined ? base.shape : memberShape(r.section, `overrides[${n}].section`, { ref, dim, integer, fail }) };
+        });
+      }
+      const corners = frameCorners(f.corners, points, pairs, integer, fail), trims = frameTrims(f.trims, pairs.length, { ref, xyz, integer, fail });
+      return () => {
+        const places = pairs.map(([i, j], k) => placeMember(per[k].shape, { start: points[i], end: points[j], L: lengths[k], ...per[k].look, up }));
+        const plan = corners || trims.length ? (corners ? planCorners(corners, points, pairs, lengths, places, at, fail) : emptyPlan(pairs.length)) : null, parts: Part[] = [];
+        if (plan) planTrims(plan, trims, points, pairs, lengths, places, fail);
+        for (let k = 0; k < pairs.length; k++) {
+          const [i, j] = pairs[k], ends = plan ? { extend: plan.extend[k], cuts: plan.cuts[k], subtract: plan.subtract[k], report: [...plan.report[k]].sort((a, b) => a.end < b.end ? 1 : a.end > b.end ? -1 : 0) } : undefined;
+          const r = buildMember(per[k].shape, { start: points[i], end: points[j], L: lengths[k], ...per[k].look, up, at: `${at}.m${k}`, frame: { member: k, from: i, to: j }, ...(ends ? { ends } : {}) }) as Extract<Result, { kind: 'solid' }>;
+          parts.push(...r.parts);
+        }
+        return { kind: 'solid', parts };
+      };
+    }
+    case 'gusset': case 'end-cap': {
+      // FRk1 (D165): plates on a frame's members, placed by the members as built (referenced, not consumed).
+      const fr = ref(f.frame, 'frame'), built = fr.result.kind === 'solid' && fr.part === null ? fr.result.parts.filter(q => q.memberPlace && q.member?.frame) : [];
+      if (!built.length) fail('REFERENCE', `${String(f.frame)} is not a frame`);
+      const byMember = new Map(built.map(q => [q.member!.frame!.member, q])), last = Math.max(...byMember.keys()), frame = String(f.frame);
+      if (f.kind === 'end-cap') {
+        const k = integer(f.member, 'member', 0, last), end = f.end === 'end' ? 1 : f.end === 'start' ? 0 : fail('INPUT', 'end must be start or end');
+        if (f.fit !== 'over' && f.fit !== 'inset') fail('INPUT', 'fit must be over (the section\'s outline) or inset (in its bore)');
+        const t = dim(f.thickness, 'thickness', true), part = byMember.get(k);
+        if (!part) fail('REFERENCE', `${frame} has no member ${k}`);
+        return () => endCapOf(part!, frame, k, end as 0 | 1, f.fit, t, at, fail);
+      }
+      if (!Array.isArray(f.legs) || f.legs.length !== 2) fail('INPUT', 'legs must be [l1, l2]: along the first member and the second');
+      const legs: [number, number] = [dim(f.legs[0], 'legs[0]', true), dim(f.legs[1], 'legs[1]', true)];
+      const t = dim(f.thickness, 'thickness', true), clip = f.clip === undefined ? 0 : dim(f.clip, 'clip'), offset = f.offset === undefined ? 0 : dim(f.offset, 'offset');
+      if (clip < 0) fail('INPUT', 'clip must be 0 or more');
+      let pair: [number, number] | undefined;
+      if (f.members !== undefined) {
+        if (!Array.isArray(f.members) || f.members.length !== 2) fail('INPUT', 'members must be [a, b], two members of the frame');
+        pair = [integer(f.members[0], 'members[0]', 0, last), integer(f.members[1], 'members[1]', 0, last)];
+        if (pair[0] === pair[1]) fail('INPUT', 'members must be two different members');
+      }
+      if (f.along !== undefined && f.along !== 1 && f.along !== -1) fail('INPUT', 'along must be 1 (the member\'s own direction) or −1');
+      const point = integer(f.point, 'point', 0, CadPartLimits.points - 1);
+      return () => gussetOf(byMember, { frame, point, ...(pair ? { pair } : {}), ...(f.along !== undefined ? { along: f.along as 1 | -1 } : {}), legs, t, clip, offset }, at, fail);
+    }
+    case 'weld-bead': {
+      // FRk2 (D166): a fillet on a frame's joint, placed by the members (and gussets) as built; nothing consumed.
+      const fr = ref(f.frame, 'frame'), built = fr.result.kind === 'solid' && fr.part === null ? fr.result.parts.filter(q => q.memberPlace && q.member?.frame) : [];
+      if (!built.length) fail('REFERENCE', `${String(f.frame)} is not a frame`);
+      const byMember = new Map(built.map(q => [q.member!.frame!.member, q])), frame = String(f.frame), leg = dim(f.leg, 'leg', true), on = f.on as unknown;
+      if (f.inner !== undefined && typeof f.inner !== 'boolean') fail('INPUT', 'inner must be true or false');
+      if (!isRecord(on)) return fail('INPUT', 'on must be { member, end }, { gusset } or { cap }');
+      if ('cap' in on) { ref(on.cap, 'on.cap'); return fail('PARAMETER', '[BEAD_KIND] a cap sits flush with its member\'s outline: it is welded by a corner weld, not a fillet (its seam is in its endCap report)'); }
+      if ('gusset' in on) {
+        const g = ref(on.gusset, 'on.gusset').result, gp = g.kind === 'solid' && g.parts.length === 1 ? g.parts[0] : undefined;
+        if (!gp?.gussetPlace) return fail('REFERENCE', `${String(on.gusset)} is not a gusset`);
+        if (gp.gusset!.frame !== frame) fail('REFERENCE', `gusset ${String(on.gusset)} is on ${gp.gusset!.frame}, not ${frame}`);
+        return () => gussetBead(byMember, gp, frame, String(on.gusset), leg, at, fail);
+      }
+      const k = integer(on.member, 'on.member', 0, Math.max(...byMember.keys())), part = byMember.get(k);
+      if (on.end !== 'start' && on.end !== 'end') fail('INPUT', 'on.end must be start or end');
+      if (!part) return fail('REFERENCE', `${frame} has no member ${k}`);
+      return () => endBead(byMember, part, frame, k, on.end === 'end' ? 1 : 0, leg, f.inner === true, at, fail);
+    }
+    case 'sheet-base': case 'sheet-contour': {
+      const T = dim(f.thickness as CadPartDim, 'thickness', true), R = dim(f.bendRadius as CadPartDim, 'bendRadius', true), K = f.kFactor, table = f.bendTable as BendTable | undefined;
+      if ((K === undefined) === (table === undefined)) fail('PARAMETER', 'give the sheet a kFactor or a bendTable (one of them)');
+      if (K !== undefined && (typeof K !== 'number' || !Number.isFinite(K) || K < 0 || K > 1)) fail('PARAMETER', 'kFactor must be a number from 0 to 1 (the neutral layer lies within the sheet)');
+      const problem = table === undefined ? null : bendTableProblem(table);
+      if (problem) fail('PARAMETER', `[BEND_TABLE] ${problem}`);
+      const rules = K !== undefined ? { kFactor: K as number } : { bendTable: table! };
+      if (f.kind === 'sheet-base') {
+        const sketch = ref(f.sketch, 'sketch').result;
+        if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
+        const { outer, frame, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
+        if (regions?.length) fail('CAPABILITY', 'a sheet\'s base takes one outer loop (holes allowed) yet');
+        if (f.reverse !== undefined && typeof f.reverse !== 'boolean') fail('INPUT', 'reverse must be true or false');
+        const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, ...rules, fixedFace: `${at}.top`, bends: [] };
+        return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(holes ? { holes } : {}), ...(tags ? { sideTags: tags } : {}), heightMM: T, fromMM: f.reverse ? -T : 0, tag: at }) }))(), report);
+      }
+      const list = f.path as unknown;
+      if (!Array.isArray(list) || list.length < 2 || list.length > CadPartLimits.copies) fail('INPUT', 'path must list 2 to 64 points');
+      const path = (list as CadPartPoint2[]).map((p, i) => xy(p, `path[${i}]`));
+      if (f.side !== 'left' && f.side !== 'right') fail('INPUT', 'side must be left or right (where the material lies, looking along the path)');
+      const width = dim(f.width as CadPartDim, 'width', true), frame = f.plane === undefined ? undefined : frameOf(f.plane as CadPartSketchPlane, xyz, fail);
+      let section: ReturnType<typeof contourFlangeSection>;
+      try { section = contourFlangeSection(path, f.side as 'left' | 'right', T, R, at); }
+      catch (cause) { if (cause instanceof SheetMetalError) fail(cause.code, cause.message); throw cause; }
+      const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, ...rules, fixedFace: `${at}.leg0.a`, bends: section!.bends.map(b => {
+        const angle = Math.abs(b.angle), k = bendK(rules, T, R, angle, `bend${b.vertex}`, fail);
+        return { name: `${at}.bend${b.vertex}`, inner: b.inner, outer: b.outer, radiusMM: R, angleDegrees: angle * 180 / Math.PI, axis: { origin: framed(frame, [b.center[0], b.center[1], 0]), direction: frame ? [frame.m[2], frame.m[5], frame.m[8]] as Point : [0, 0, 1] as Point },
+          allowanceMM: bendAllowance(angle, R, T, k.kFactor), setbackMM: outsideSetback(angle, R, T), deductionMM: bendDeduction(angle, R, T, k.kFactor), kFactor: k.kFactor, ...(k.use ? { table: k.use } : {}) };
+      }) };
+      return () => withSheet(placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer: section!.segments, heightMM: width, fromMM: 0, tag: at, names: { outer: section!.names, bottom: `${at}.front`, top: `${at}.back` } }) }))(), report);
+    }
+    case 'sheet-corner-relief': {
+      const parts = solids(f.target, 'target');
+      if (parts.length !== 1) fail('SELECTION', 'a corner relief takes one sheet body');
+      const p = parts[0];
+      if (!p.sheet) return fail('CAPABILITY', '[NOT_A_SHEET] the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not)');
+      if (f.shape !== 'square' && f.shape !== 'round') fail('INPUT', 'shape must be square or round');
+      if (typeof f.corner !== 'string') fail('INPUT', 'corner must name the edge of the corner (between its two thickness faces)');
+      const size = dim(f.size as CadPartDim, 'size', true);
+      return () => sheetCornerRelief(p, p.sheet!, at, f.corner as string, f.shape as 'square' | 'round', size, fail);
+    }
+    case 'sheet-flange': {
+      const parts = solids(f.target, 'target');
+      if (parts.length !== 1) fail('SELECTION', 'a flange takes one sheet body');
+      const p = parts[0], sheet = p.sheet;
+      if (!sheet) return fail('CAPABILITY', '[NOT_A_SHEET] the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not)');
+      const T = sheet.thicknessMM, R = f.bendRadius === undefined ? sheet.bendRadiusMM : dim(f.bendRadius as CadPartDim, 'bendRadius', true), L = dim(f.length as CadPartDim, 'length', true);
+      const deg = f.angleDegrees === undefined ? 90 : f.angleDegrees;
+      if (typeof deg !== 'number' || !Number.isFinite(deg)) fail('INPUT', 'angleDegrees must be a number');
+      if (!((deg as number) > 1e-6 && (deg as number) < 180 - 1e-6)) fail('PARAMETER', `[BEND_ANGLE] a flange bends between 0 and 180° (not ${deg}°: 180° is a hem, not supported yet)`);
+      const measure = f.measure ?? 'outer', position = f.position ?? 'material-inside';
+      if (measure !== 'outer' && measure !== 'inner' && measure !== 'tangent') fail('INPUT', 'measure must be outer, inner or tangent');
+      if (position !== 'material-inside' && position !== 'material-outside' && position !== 'bend-outside') fail('INPUT', 'position must be material-inside, material-outside or bend-outside');
+      const offs = f.offsets === undefined ? [0, 0] : f.offsets as unknown;
+      if (!Array.isArray(offs) || offs.length !== 2) fail('INPUT', 'offsets must be [from the start, from the end]');
+      const off = (offs as CadPartDim[]).map((v, i) => { const x = dim(v, `offsets[${i}]`); if (x < 0) fail('PARAMETER', 'offsets must not be negative'); return x; }) as [number, number];
+      // (The relief has no defaults in the kernel (D119): its kind, and for a cut its width and depth, are given — or it
+      // is refused where an end lies inside the edge. Absent: undefined; 'none': null.)
+      const rl = f.relief as Record<string, unknown> | undefined;
+      if (rl !== undefined && !isRecord(rl)) fail('INPUT', 'relief must be { kind, width, depth }');
+      if (rl !== undefined && rl.kind !== 'rectangular' && rl.kind !== 'obround' && rl.kind !== 'none') fail('INPUT', 'relief.kind must be rectangular, obround or none');
+      for (const k of ['width', 'depth'] as const) if (rl !== undefined && rl.kind !== 'none' && rl[k] === undefined) fail('PARAMETER', `[RELIEF_REQUIRED] a ${String(rl.kind)} relief needs its ${k} (mm): the kernel takes no default`);
+      const relief = rl === undefined ? undefined : rl.kind === 'none' ? null : { kind: rl.kind as 'rectangular' | 'obround', width: dim(rl.width as CadPartDim, 'relief width', true), depth: dim(rl.depth as CadPartDim, 'relief depth', true) };
+      if (typeof f.edge !== 'string') fail('INPUT', 'edge must name an edge of the sheet');
+      const th = (deg as number) * Math.PI / 180, ossb = outsideSetback(th, R, T), issb = R * Math.tan(th / 2);
+      const straight = measure === 'outer' ? L - ossb : measure === 'inner' ? L - issb : L;
+      if (!(straight > 1e-6)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] a flange ${L} mm long (${measure}) is within its bend's setback of ${+(measure === 'inner' ? issb : ossb).toFixed(6)} mm`);
+      const trim = position === 'material-inside' ? ossb : position === 'material-outside' ? issb : 0, k = bendK(sheet, T, R, th, 'the flange', fail);
+      return () => sheetFlange({ part: p, sheet, at, edge: f.edge as string, T, K: k, R, th, trim, straight, off, relief, fail });
     }
     case 'sweep': {
       const sketch = ref(f.sketch, 'sketch').result;
@@ -480,8 +1611,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         }
         return fail('INPUT', `path[${i}].kind must be straight or bend`);
       });
-      const { outer, frame } = sketch as Extract<Result, { kind: 'sketch' }>;
-      return placed(frame, () => { const { brep, mass } = sweepBrep(outer, steps, at, fail); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass, swept: { profile: outer, steps } }] }; });
+      const { outer, frame, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
+      return placed(frame, () => { const { brep, mass } = sweepBrep(outer, steps, at, fail, undefined, tags?.outer); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass, swept: { profile: outer, steps, ...(tags ? { sideTags: tags.outer } : {}) } }] }; });
     }
     case 'loft': {
       const list = f.sections as unknown;
@@ -491,28 +1622,640 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const sketch = ref(sec.sketch, 'sketch').result;
         if (sketch.kind !== 'sketch') fail('REFERENCE', `${sec.sketch} is not a sketch`);
         if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length || (sketch as Extract<Result, { kind: 'sketch' }>).holes?.length) fail('CAPABILITY', 'loft sections are sketches of one loop (no regions or holes) yet');
-        const { outer, frame } = sketch as Extract<Result, { kind: 'sketch' }>;
-        return { profile: outer, z: dim(sec.z as CadPartDim, `sections[${i}].z`), frame };
+        const { outer, frame, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
+        return { profile: outer, z: dim(sec.z as CadPartDim, `sections[${i}].z`), frame, tags };
       });
       // The sections stack along one sketch plane's normal.
       const frame = sections[0].frame;
       if (sections.some(x => JSON.stringify(x.frame) !== JSON.stringify(frame))) fail('INPUT', 'loft sections must be sketched on the same plane');
       sections.forEach((s, i) => { if (i && !(s.z > sections[i - 1].z)) fail('PARAMETER', `sections[${i}] must lie above sections[${i - 1}] (z ${s.z} ≤ ${sections[i - 1].z})`); });
       if (f.smooth !== undefined && typeof f.smooth !== 'boolean') fail('INPUT', 'smooth must be true or false');
-      return placed(frame, () => { const { brep, mass } = loftSolid({ id: at, name: at, sections: sections.map(({ profile, z }) => ({ profile, z })), smooth: f.smooth === true }); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; });
+      return placed(frame, () => { const { brep, mass } = loftSolid({ id: at, name: at, sections: sections.map(({ profile, z }) => ({ profile, z })), smooth: f.smooth === true, ...(sections[0].tags ? { sideTags: sections[0].tags.outer } : {}) }); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass }] }; });
     }
     case 'import': {
       if (typeof f.step !== 'string' || !f.step.length) fail('INPUT', 'step must be the text of a STEP file');
-      if ((f.step as string).length > CadPartLimits.fileBytes) fail('INPUT', `the STEP file is larger than ${CadPartLimits.fileBytes} bytes`);
+      const tooLarge = stepSizeProblem(f.step as string); if (tooLarge) fail('INPUT', tooLarge);
       return () => {
         let brep: Brep;
         try { brep = importStep(f.step as string, { id: at }); }
         catch (cause) { if (cause instanceof BrepError) fail(/not supported/.test(cause.message) ? 'CAPABILITY' : 'INPUT', cause.message.replace(/^B-rep: STEP: /, '')); throw cause; }
+        let triangles = 0;
+        for (const x of brep!.faces) if (isFacetFace(x)) triangles += (x.surface as FacetPatch).indices.length / 3;
+        if (triangles > CadPartLimits.meshTriangles) fail('INPUT', `the STEP file's meshes hold ${triangles.toLocaleString('en-US')} triangles, more than ${CadPartLimits.meshTriangles.toLocaleString('en-US')}`);
         // Names in this part: the feature id before each face name (an edge's two names alike).
         const named = { ...brep!, faces: brep!.faces.map((x, i) => x.name ? x : { ...x, name: `face${i}` }) };
         const prefixed = transformBrep(named, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split('|').map(p => `${at}.${p}`).join('|'));
         if (f.each !== undefined && typeof f.each !== 'boolean') fail('INPUT', 'each must be true or false');
         return f.each ? many(brepBodies(prefixed).map(b => ({ kind: 'brep' as const, brep: b }))) : one({ kind: 'brep', brep: prefixed });
+      };
+    }
+    case 'draft': {
+      const target = solids(f.target, 'target'), names = f.faces as unknown, angle = f.angleDegrees as unknown;
+      if (!Array.isArray(names) || !names.length || names.length > CadPartLimits.edges || !names.every(x => typeof x === 'string')) fail('INPUT', 'faces must list 1 to 64 face names');
+      if (typeof angle !== 'number' || !Number.isFinite(angle) || angle === 0 || Math.abs(angle) >= 45) fail('INPUT', 'angleDegrees must be a number of degrees, not 0, below 45 in size');
+      if (target.length !== 1) fail('REFERENCE', 'draft one part at a time (name it as id/k)');
+      const neutral = f.neutral === undefined ? undefined : dim(f.neutral as CadPartDim, 'neutral');
+      return () => {
+        if (target[0].solid.kind === 'brep' && target[0].solid.brep.faces.some(isFacetFace)) fail('CAPABILITY', 'draft on mesh faces is not supported yet (general draft and offset arrive with R11)');
+        const brep = brepOf(target[0], at), box = bounds(target[0].solid), zN = neutral ?? box.min[2], R = len(sub(box.max, box.min)) + 2, a = (angle as number) * Math.PI / 180;
+        // (The turn's line a hair below the neutral plane, so a wedge does not touch the body's bottom along a line.)
+        const lift = 1e-6 * R;
+        const coedges = new Map(brep.coedges.map(c => [c.id, c])), edges = new Map(brep.edges.map(e => [e.id, e])), points = new Map(brep.vertices.map(v => [v.id, v.point]));
+        // Each face's wedge, from the body as it was: the face pushed in (or out) as deep as the turn takes
+        // its top, met with the half-space beyond its turned plane (through its line on the neutral plane).
+        const wedges = (names as string[]).map(name => {
+          const face = brep.faces.find(x => x.name === name || (x.name ?? '').split('#')[0] === name);
+          if (!face) return fail('REFERENCE', `no face ${name} on the target`);
+          const loop = brep.loops.find(l => l.id === face.loops[0])!;
+          const ring = loop.coedges.map(id => { const c = coedges.get(id)!, e = edges.get(c.edge)!; return points.get(c.sense === 'forward' ? e.vertices[0] : e.vertices[1])!; });
+          let nrm: Point = [0, 0, 0];
+          ring.forEach((p, i) => { const q = ring[(i + 1) % ring.length]; nrm = add(nrm, [(p[1] - q[1]) * (p[2] + q[2]), (p[2] - q[2]) * (p[0] + q[0]), (p[0] - q[0]) * (p[1] + q[1])]); });
+          const n = unit(nrm);
+          if (Math.abs(n[2]) > 1e-9 || face.loops.length > 1) fail('CAPABILITY', `${name}: a draft takes side faces square to the pull (Z) without holes`);
+          const zs = ring.map(p => p[2]), top = Math.max(...zs), height = top - zN;
+          if (!(height > 0) || Math.min(...zs) < zN - 1e-6) fail('SELECTION', `${name}: the neutral plane z = ${zN} must be at or below the face`);
+          // A frame on the face: X along it (level), Y up, Z into the body (draft in) or out of it (draft out).
+          const along: Point = a > 0 ? [-n[0], -n[1], -n[2]] : n, x = unit(cross([0, 0, 1], along)), y = cross(along, x);
+          const m: BrepAffine['matrix'] = [x[0], y[0], along[0], x[1], y[1], along[1], x[2], y[2], along[2]], o = ring[0];
+          const uv = ring.map(p => { const d = sub(p, o); return [dot(d, x), dot(d, y)]; });
+          // (A little wider and taller than the face, so the wedge's ends do not lie on its neighbours' planes.)
+          const e = 1e-3 * R, wide = a > 0 ? e : 0, u0 = Math.min(...uv.map(q => q[0])) - wide, u1 = Math.max(...uv.map(q => q[0])) + wide, v0 = Math.min(...uv.map(q => q[1])) - 2 * lift, v1 = Math.max(...uv.map(q => q[1])) + wide;
+          const depth = height * Math.tan(Math.abs(a)) + 1;
+          const outline: ProfileSegmentInput[] = [[u0, v0], [u1, v0], [u1, v1], [u0, v1]].map(start => ({ kind: 'line', start: start as XY }));
+          const prism = affine({ kind: 'upright', solid: prismaticFromProfile({ outer: outline, heightMM: depth, fromMM: a > 0 ? 0 : -1e-3, tag: `${at}.draft` }) }, m, o);
+          const n2: Point = [n[0] * Math.cos(a), n[1] * Math.cos(a), Math.sin(a)], side: Point = a > 0 ? n2 : [-n2[0], -n2[1], -n2[2]];
+          const hz = unit(cross(side, Math.abs(side[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0])), hy = cross(side, hz), q0: Point = [ring[0][0], ring[0][1], zN - lift];
+          const half = affine(boxSolid([-R, -R, 0], [R, R, R], `${at}.draft`), [hz[0], hy[0], side[0], hz[1], hy[1], side[1], hz[2], hy[2], side[2]], q0);
+          return boolean(prism, half, 'intersection', at);
+        });
+        // Faces that meet would need their wedges mitred where they join: not yet.
+        const edgesOf = (name: string) => { const face = brep.faces.find(x => x.name === name || (x.name ?? '').split('#')[0] === name)!; return new Set(face.loops.flatMap(l => brep.loops.find(x => x.id === l)!.coedges.map(c => coedges.get(c)!.edge))); };
+        const sets = (names as string[]).map(edgesOf);
+        sets.forEach((x, i) => sets.forEach((y, j) => { if (j > i && [...x].some(e => y.has(e))) fail('CAPABILITY', `${(names as string[])[i]} and ${(names as string[])[j]} meet along an edge: draft faces that do not touch (or every side of an extrusion with its draft)`); }));
+        // The wedges together, then off the body (or onto it) at once.
+        const all = wedges.filter(w => !empty(w)).reduce<Solid | null>((u, w) => u ? boolean(u, w, 'union', at) : w, null);
+        return one(all ? boolean(target[0].solid, all, a > 0 ? 'difference' : 'union', at) : target[0].solid);
+      };
+    }
+    case 'split-face': {
+      const target = solids(f.target, 'target'), face = f.face, given = f.curves as unknown, names = f.names as unknown;
+      if (typeof face !== 'string' || !face) fail('INPUT', 'face must be a face name');
+      if ((given === undefined) === (f.pull === undefined)) fail('INPUT', 'give curves, or pull for the isocline (one of them)');
+      if (target.length !== 1) fail('REFERENCE', 'split one part at a time (name it as id/k)');
+      if (names !== undefined && (!Array.isArray(names) || !names.every(n => typeof n === 'string'))) fail('INPUT', 'names must list the pieces\' names');
+      const pull = f.pull === undefined ? null : xyz(f.pull as CadPartPoint3, 'pull');
+      let curves: Curve[] | null = null;
+      if (given !== undefined) {
+        if (!Array.isArray(given) || !given.length || given.length > CadPartLimits.edges) fail('INPUT', 'curves must list 1 to 64 NURBS curves');
+        curves = (given as Record<string, unknown>[]).map((c, i) => {
+          if (!isRecord(c)) fail('INPUT', `curves[${i}] must be a NURBS curve { degree, knots, controlPoints, weights }`);
+          const curve = { kind: 'curve' as const, id: `split_curve${i}`, degree: c.degree as number, knots: c.knots as number[], controlPoints: c.controlPoints as Point[], weights: c.weights as number[] };
+          try { validateCurve(curve); } catch (cause) { fail('INPUT', `curves[${i}]: ${cause instanceof Error ? cause.message : String(cause)}`); }
+          return curve;
+        });
+      }
+      return () => {
+        const brep = brepOf(target[0], at), options = { id: at, ...(names === undefined ? {} : { names: names as string[] }) };
+        try { return one({ kind: 'brep', brep: (curves ? splitFaceAlongCurve(brep, face as string, curves, options) : splitFaceAlongIsocline(brep, face as string, pull!, options)).brep }); }
+        catch (cause) {
+          if (cause instanceof BrepError) fail(/not supported yet/.test(cause.message) ? 'CAPABILITY' : /\[(NO_FACE|AMBIGUOUS)\]/.test(cause.message) ? 'REFERENCE' : cause.code === 'INPUT' ? 'INPUT' : 'GEOMETRY', cause.message.replace(/^B-rep: /, ''));
+          throw cause;
+        }
+      };
+    }
+    case 'thicken': {
+      const g = f.surface as Record<string, unknown>, t = dim(f.thickness as CadPartDim, 'thickness', true), side = f.side ?? 'normal';
+      if (!isRecord(g)) fail('INPUT', 'surface must be a NURBS surface { degreeU, degreeV, knotsU, knotsV, controlPoints, weights }');
+      if (side !== 'normal' && side !== 'reverse' && side !== 'both') fail('INPUT', 'side must be normal, reverse or both');
+      const surface = { kind: 'surface' as const, id: 'surface', degreeU: g.degreeU as number, degreeV: g.degreeV as number, knotsU: g.knotsU as number[], knotsV: g.knotsV as number[], controlPoints: g.controlPoints as Point[][], weights: g.weights as number[][] };
+      try { validateSurface(surface); } catch (cause) { fail('INPUT', `surface: ${cause instanceof Error ? cause.message : String(cause)}`); }
+      return () => {
+        try { return one({ kind: 'brep', brep: thickenSolid({ id: at, surface, thickness: t, side: side as 'normal' }) }); }
+        catch (cause) {
+          const m = cause instanceof BrepError ? /CAPABILITY: shell: (.*)$/s.exec(cause.message) : null;
+          if (m) fail('CAPABILITY', m[1]);
+          if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message);
+          throw cause;
+        }
+      };
+    }
+    case 'subd': {
+      const cage = f.cage as Record<string, unknown> | undefined;
+      if (!isRecord(cage) || !(Array.isArray(cage.positions) || cage.positions instanceof Float64Array) || !Array.isArray(cage.faces)) fail('INPUT', 'cage must be { positions, faces, creases? }');
+      const { positions, faces, creases } = cage as { positions: ArrayLike<number>; faces: unknown[]; creases?: unknown };
+      if (positions.length > 3 * CadPartLimits.subdVertices || faces.length > CadPartLimits.subdVertices) fail('INPUT', `a cage has at most ${CadPartLimits.subdVertices} vertices and faces`);
+      if (!faces.every(x => Array.isArray(x) && x.every(v => Number.isInteger(v)))) fail('INPUT', 'cage faces must list vertex numbers');
+      if (creases !== undefined && !(Array.isArray(creases) && creases.every(c => Array.isArray(c) && c.length === 2 && c.every(v => Number.isInteger(v))))) fail('INPUT', 'cage creases must be pairs of vertex numbers');
+      return () => {
+        try {
+          const built = buildSubd({ positions, faces: faces as number[][], ...(creases ? { creases: creases as [number, number][] } : {}) }, { id: at });
+          return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: built.brep }, subd: subdSummary(built) }] };
+        }
+        catch (cause) { if (cause instanceof SubdError) fail(cause.code, cause.message.replace(/^SubD: /, '')); if (cause instanceof BrepError) fail('GEOMETRY', cause.message.replace(/^B-rep: /, '')); throw cause; }
+      };
+    }
+    case 'sew': {
+      const list = f.surfaces as unknown, tol = f.tolerance as unknown;
+      if (!Array.isArray(list) || list.length < 2 || list.length > CadPartLimits.edges) fail('INPUT', 'surfaces must list 2 to 64 NURBS surfaces');
+      if (tol !== undefined && !(typeof tol === 'number' && Number.isFinite(tol) && tol > 0 && tol <= 1)) fail('INPUT', 'tolerance must be a number of mm above 0, at most 1');
+      const surfaces = (list as unknown[]).map((g, k) => {
+        if (!isRecord(g)) fail('INPUT', `surfaces[${k}] must be a NURBS surface { degreeU, degreeV, knotsU, knotsV, controlPoints, weights }`);
+        const r = g as Record<string, unknown>, s = { kind: 'surface' as const, id: `surface${k}`, degreeU: r.degreeU as number, degreeV: r.degreeV as number, knotsU: r.knotsU as number[], knotsV: r.knotsV as number[], controlPoints: r.controlPoints as Point[][], weights: r.weights as number[][] };
+        try { validateSurface(s); } catch (cause) { fail('INPUT', `surfaces[${k}]: ${cause instanceof Error ? cause.message : String(cause)}`); }
+        return s;
+      });
+      return () => {
+        try { return one({ kind: 'brep', brep: sewSolid({ id: at, surfaces, ...(tol === undefined ? {} : { toleranceMM: tol as number }) }) }); }
+        catch (cause) { if (cause instanceof SewError) fail('GEOMETRY', cause.message); if (cause instanceof BrepError) fail('GEOMETRY', cause.message.replace(/^B-rep: /, '')); throw cause; }
+      };
+    }
+    case 'sweep-curve': {
+      const sketch = ref(f.sketch, 'sketch').result;
+      if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
+      const sk = sketch as Extract<Result, { kind: 'sketch' }>, path = f.path as Record<string, unknown>;
+      if (!isRecord(path)) fail('INPUT', 'path must be a NURBS curve { degree, knots, controlPoints, weights }');
+      const curve = { kind: 'curve' as const, id: 'path', degree: path.degree as number, knots: path.knots as number[], controlPoints: path.controlPoints as Point[], weights: path.weights as number[] };
+      try { validateCurve(curve); } catch (cause) { fail('INPUT', `path: ${cause instanceof Error ? cause.message : String(cause)}`); }
+      if (sk.regions?.length) fail('CAPABILITY', 'a sweep takes one shape (holes allowed, no separate regions) yet');
+      const m = sk.frame?.m ?? [1, 0, 0, 0, 1, 0, 0, 0, 1];
+      return () => {
+        try {
+          return one({ kind: 'brep', brep: sweepSolid({ id: at, outer: loopPoints(sk.outer), holes: (sk.holes ?? []).map(loopPoints), xAxis: [m[0], m[3], m[6]], yAxis: [m[1], m[4], m[7]], path: curve }) });
+        } catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
+      };
+    }
+    case 'spur-gear': {
+      if (f.generator !== undefined && f.generator !== 'spur-gear@0' && f.generator !== 'spur-gear@1') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      // (@1: the generated root; @0 and none: the schematic one, as documents written with it rebuild.)
+      const generatedRoot = f.generator === 'spur-gear@1';
+      if (!generatedRoot && f.toolTipRadius !== undefined) fail('INPUT', "toolTipRadius belongs to a generated root (generator 'spur-gear@1')");
+      // (Helical: the normal module, named so; the kernel refuses a module with a helix angle.)
+      const helical = f.helixAngle !== undefined && f.helixAngle !== 0;
+      if (helical && f.module !== undefined) fail('INPUT', 'a helical gear takes normalModule (the normal module), not module');
+      if (!helical && (f.normalModule !== undefined || f.hand !== undefined)) fail('INPUT', 'normalModule and hand belong to a helical gear: give helixAngle too (a spur gear takes module)');
+      const m = helical ? dim(f.normalModule as CadPartDim, 'normalModule', true) : dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true);
+      const bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
+      const spec: SpurGearSpec = { ...(helical ? { normalModuleMM: m, helixAngleDeg: f.helixAngle as number, hand: f.hand as 'right' | 'left' } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red,
+        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }),
+        ...(generatedRoot ? { rootPolicy: 'generated' as const, ...(f.toolTipRadius === undefined ? {} : { toolTipRadiusMM: dim(f.toolTipRadius as CadPartDim, 'toolTipRadius', true) }) } : {}) };
+      // Where it stands: its own centre, plane and turn, or beside the gear it meshes with.
+      let place: GearPlacement;
+      const mesh = f.mesh as Record<string, unknown> | undefined;
+      if (mesh !== undefined) {
+        if (!isRecord(mesh) || typeof mesh.gear !== 'string') fail('INPUT', 'mesh must be { gear, direction?, centerDistance?, phase? }');
+        // (Referenced, not consumed: the gear it meshes with stays an output of its own.)
+        const other = ref(mesh!.gear, 'mesh.gear').result;
+        const driver = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].gearPlace : undefined;
+        const ringPlace = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].internalPlace : undefined;
+        if (!driver && !ringPlace) fail('REFERENCE', `${String(mesh!.gear)} is not a spur gear or an internal gear`);
+        const dirDeg = mesh!.direction ?? 0, phaseDeg = mesh!.phase ?? 0;
+        if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg)) || !(typeof phaseDeg === 'number' && Number.isFinite(phaseDeg))) fail('INPUT', 'mesh.direction and mesh.phase must be numbers of degrees');
+        if (ringPlace) {
+          // Inside a ring (R12b.2a): at the internal pair's distance along the direction from the ring's centre, a tooth in
+          // the ring's space there, turning with the ring by z2/z1 the same way.
+          let a = 0;
+          try { a = internalGearCenterDistance(spec, ringPlace.spec); } catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing inside ${String(mesh!.gear)})` : ''}`); throw cause; }
+          if (mesh!.centerDistance !== undefined) a = dim(mesh!.centerDistance as CadPartDim, 'mesh.centerDistance', true);
+          const phi = (dirDeg as number) * Math.PI / 180;
+          place = { spec, center: [ringPlace.center[0] + a * Math.cos(phi), ringPlace.center[1] + a * Math.sin(phi)], from: ringPlace.from, rotation: pinionTurnInside(ringPlace, f.teeth as number, phi, (phaseDeg as number) * Math.PI / 180), meshesWith: String(mesh!.gear), ring: ringPlace };
+          return () => {
+            let made: ReturnType<typeof spurGear>;
+            try { made = spurGear(spec, { id: at }); }
+            catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+            const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
+            const brep = transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] });
+            return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, gear: made!.report, gearPlace: place }] };
+          };
+        }
+        const z1 = driver!.spec.teeth, z2 = f.teeth as number;
+        // (Whether they mesh at all — module, pressure angle, helix angle and hands — before where.)
+        let a = 0;
+        try { a = spurGearCenterDistance(driver!.spec, spec); } catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
+        if (mesh!.centerDistance !== undefined) a = dim(mesh!.centerDistance as CadPartDim, 'mesh.centerDistance', true);
+        const phi = (dirDeg as number) * Math.PI / 180;
+        place = { spec, center: [driver!.center[0] + a * Math.cos(phi), driver!.center[1] + a * Math.sin(phi)], from: driver!.from,
+          rotation: phi + Math.PI - Math.PI / z2 - (driver!.rotation - phi) * z1 / z2 + (phaseDeg as number) * Math.PI / 180, meshesWith: String(mesh!.gear), driver: driver! };
+      } else {
+        place = { spec, center: f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), from: f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
+      }
+      return () => {
+        let made: ReturnType<typeof spurGear>;
+        try { made = spurGear(spec, { id: at }); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
+        const brep = place.rotation || place.center[0] || place.center[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, gear: made!.report, gearPlace: place }] };
+      };
+    }
+    case 'internal-gear': {
+      if (f.generator !== undefined && f.generator !== 'internal-gear@0' && f.generator !== 'internal-gear@1') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      // (@1: the shaper-cut root, its cutter required; @0 and none: the schematic one.)
+      const shaperCut = f.generator === 'internal-gear@1', cut = f.cutter as Record<string, unknown> | undefined;
+      if (!shaperCut && cut !== undefined) fail('INPUT', "cutter belongs to a shaper-cut root (generator 'internal-gear@1')");
+      if (shaperCut && (!isRecord(cut) || !(typeof cut.teeth === 'number'))) fail('INPUT', "a shaper-cut internal gear needs its cutter: { teeth, shift?, tipRadius? }");
+      const helical = f.helixAngle !== undefined && f.helixAngle !== 0;
+      if (helical && f.module !== undefined) fail('INPUT', 'a helical internal gear takes normalModule (the normal module), not module');
+      if (!helical && (f.normalModule !== undefined || f.hand !== undefined)) fail('INPUT', 'normalModule and hand belong to a helical internal gear: give helixAngle too (a straight one takes module)');
+      const m = helical ? dim(f.normalModule as CadPartDim, 'normalModule', true) : dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), rim = dim(f.rim as CadPartDim, 'rim', true);
+      const red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
+      const spec: InternalGearSpec = { ...(helical ? { normalModuleMM: m, helixAngleDeg: f.helixAngle as number, hand: f.hand as 'right' | 'left' } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, rimDiameterMM: rim, toothThicknessReductionMM: red,
+        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileShift === undefined ? {} : { profileShiftCoefficient: f.profileShift as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }),
+        ...(shaperCut ? { rootPolicy: 'shaper-cut' as const, cutter: { teeth: cut!.teeth as number, ...(cut!.shift === undefined ? {} : { profileShiftCoefficient: cut!.shift as number }), ...(cut!.tipRadius === undefined ? {} : { tipRadiusMM: dim(cut!.tipRadius as CadPartDim, 'cutter.tipRadius', true) }) } } : {}) };
+      const place: PlacedInternalGear = { spec, center: f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), from: f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
+      return () => {
+        let made: ReturnType<typeof internalGear>;
+        try { made = internalGear(spec, { id: at }); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
+        const brep = place.rotation || place.center[0] || place.center[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, internalGear: made!.report, internalPlace: place }] };
+      };
+    }
+    case 'bevel-gear': {
+      if (f.generator !== undefined && f.generator !== 'bevel-gear@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const m = dim(f.module as CadPartDim, 'module', true), b = dim(f.faceWidth as CadPartDim, 'faceWidth', true);
+      const bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
+      if (f.shaftAngle !== undefined && !(typeof f.shaftAngle === 'number' && Number.isFinite(f.shaftAngle))) fail('INPUT', 'shaftAngle must be a number of degrees');
+      // (A spiral one, R12b.4: its angle and hand as given — the kernel refuses what it cannot take — its cutter radius a length.)
+      const spr = f.spiral as Record<string, unknown> | undefined;
+      if (spr !== undefined && !isRecord(spr)) fail('INPUT', 'spiral must be { angle, hand, cutterRadius }');
+      const spec: BevelGearSpec = { moduleMM: m, teeth: f.teeth as number, mateTeeth: f.mateTeeth as number, ...(f.shaftAngle === undefined ? {} : { shaftAngleDeg: f.shaftAngle as number }), faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red,
+        ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }), ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }),
+        ...(spr === undefined ? {} : { spiral: { angleDeg: spr.angle as number, hand: spr.hand as 'right' | 'left', cutterRadiusMM: dim(spr.cutterRadius as CadPartDim, 'spiral.cutterRadius', true) } }) };
+      const mesh = f.mesh as Record<string, unknown> | undefined;
+      let place: BevelGearPlacement;
+      if (mesh !== undefined) {
+        if (!isRecord(mesh) || typeof mesh.gear !== 'string') fail('INPUT', 'mesh must be { gear, direction?, phase? }');
+        const other = ref(mesh!.gear, 'mesh.gear').result;
+        const driver = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].bevelPlace : undefined;
+        if (!driver) fail('REFERENCE', `${String(mesh!.gear)} is not a bevel gear`);
+        const dirDeg = mesh!.direction ?? 0, phaseDeg = mesh!.phase ?? 0;
+        if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg)) || !(typeof phaseDeg === 'number' && Number.isFinite(phaseDeg))) fail('INPUT', 'mesh.direction and mesh.phase must be numbers of degrees');
+        let at2: PlacedBevelGear;
+        try { at2 = bevelMatePlacement(driver!, spec, (dirDeg as number) * Math.PI / 180, (phaseDeg as number) * Math.PI / 180); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
+        place = { ...at2!, meshesWith: String(mesh!.gear), driver: driver! };
+      } else {
+        const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center');
+        place = { spec, apex: [c[0], c[1], f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from')], axis: [0, 0, 1], xAxis: [1, 0, 0], rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
+      }
+      return () => {
+        let made: ReturnType<typeof bevelGear>;
+        try { made = bevelGear(spec, { id: at }); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        const T = bevelGearMatrix(place), moved = T.matrix.some((x, i) => x !== [1, 0, 0, 0, 1, 0, 0, 0, 1][i]) || T.offset.some(x => x !== 0);
+        const brep = moved ? transformBrep(made!.brep, T) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, bevelGear: made!.report, bevelPlace: place }] };
+      };
+    }
+    case 'worm': {
+      if (f.generator !== undefined && f.generator !== 'worm@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const L = dim(f.length as CadPartDim, 'length', true), bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
+      const mesh = f.mesh as Record<string, unknown> | undefined;
+      if (mesh !== undefined && (!isRecord(mesh) || typeof mesh.gear !== 'string')) fail('INPUT', 'mesh must be { gear, direction?, phase? }');
+      const other = mesh === undefined ? undefined : ref(mesh.gear, 'mesh.gear').result;
+      const wheel = other && other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].gearPlace : undefined;
+      const throated = other && other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].wormWheelPlace : undefined;
+      if (mesh !== undefined && !wheel && !throated) fail('REFERENCE', `${String(mesh.gear)} is not a spur gear or a worm wheel (a worm's wheel is a helical gear or a throated wheel)`);
+      // (Meshing, left out: the wheel's — m_x = m_n / cos β, d1 = z1 m_x / tan β, its hand.)
+      const z1 = f.starts as number, wd = wheel ? spurGearDimensions(wheel.spec) : undefined;
+      if (wd && !wd.beta) fail('INPUT', `[MATE_INCOMPATIBLE] ${String(mesh!.gear)} is straight: a worm's wheel is helical, at the worm's lead angle`);
+      // (A throated wheel's worm: the one its hob was, R12b.6.)
+      const tw = throated?.spec.worm;
+      const mx = f.axialModule !== undefined ? dim(f.axialModule as CadPartDim, 'axialModule', true) : tw ? tw.axialModuleMM : wd ? wd.mn / Math.cos(wd.beta) : dim(undefined as unknown as CadPartDim, 'axialModule', true);
+      const d1 = f.diameter !== undefined ? dim(f.diameter as CadPartDim, 'diameter', true) : tw ? tw.diameterMM : wd ? z1 * mx / Math.tan(Math.abs(wd.beta)) : dim(undefined as unknown as CadPartDim, 'diameter', true);
+      const hand = (f.hand as 'right' | 'left' | undefined) ?? (tw ? tw.hand : wd ? (wd.beta > 0 ? 'right' : 'left') : undefined);
+      const spec: WormSpec = { axialModuleMM: mx, starts: z1, diameterMM: d1, hand: hand as 'right' | 'left', lengthMM: L, ...(f.form === undefined ? {} : { form: f.form as WormSpec['form'] }), boreDiameterMM: bore, toothThicknessReductionMM: red, ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+      let place: WormPlacement;
+      try {
+        if (wheel || throated) {
+          const dirDeg = mesh!.direction ?? 0, phaseDeg = mesh!.phase ?? 0;
+          if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg)) || !(typeof phaseDeg === 'number' && Number.isFinite(phaseDeg))) fail('INPUT', 'mesh.direction and mesh.phase must be numbers of degrees');
+          const phi = (dirDeg as number) * Math.PI / 180, ph = (phaseDeg as number) * Math.PI / 180;
+          place = throated ? { ...throatedWormPlacement(throated, spec, phi, ph), meshesWith: String(mesh!.gear), throatedWheel: throated } : { ...wormPlacement(wheel!, spec, phi, ph), meshesWith: String(mesh!.gear), wheel: wheel! };
+        } else {
+          const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center');
+          place = { spec, origin: [c[0], c[1], f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from')], axis: [0, 0, 1], xAxis: [1, 0, 0], rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
+        }
+      } catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
+      return () => {
+        let made: ReturnType<typeof wormSolid>;
+        try { made = wormSolid(spec, { id: at }); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        const T = wormMatrix(place!), moved = T.matrix.some((x, i) => x !== [1, 0, 0, 0, 1, 0, 0, 0, 1][i]) || T.offset.some(x => x !== 0);
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: moved ? transformBrep(made!.brep, T) : made!.brep }, worm: made!.report, wormPlace: place! }] };
+      };
+    }
+    case 'worm-wheel': {
+      if (f.generator !== undefined && f.generator !== 'worm-wheel@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const ww = f.worm as Record<string, unknown> | undefined;
+      if (!isRecord(ww)) fail('INPUT', 'worm must be { axialModule, starts, diameter, hand }');
+      const b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), bore = f.bore === undefined ? 0 : dim(f.bore as CadPartDim, 'bore'), red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      if (f.rotation !== undefined && !(typeof f.rotation === 'number' && Number.isFinite(f.rotation))) fail('INPUT', 'rotation must be a number of degrees');
+      const spec: ThroatedWheelSpec = { worm: { axialModuleMM: dim(ww!.axialModule as CadPartDim, 'worm.axialModule', true), starts: ww!.starts as number, diameterMM: dim(ww!.diameter as CadPartDim, 'worm.diameter', true), hand: ww!.hand as 'right' | 'left', lengthMM: 1, form: 'ZA' },
+        teeth: f.teeth as number, faceWidthMM: b, boreDiameterMM: bore, toothThicknessReductionMM: red, ...(f.profileTolerance === undefined ? {} : { profileToleranceMM: f.profileTolerance as number }) };
+      const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center');
+      const place: PlacedThroatedWheel = { spec, center: [c[0], c[1]], from: f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
+      return () => {
+        let made: ReturnType<typeof throatedWormWheel>;
+        try { made = throatedWormWheel(spec, { id: at }); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        const cs = Math.cos(place.rotation), sn = Math.sin(place.rotation);
+        const brep = place.rotation || place.center[0] || place.center[1] || place.from ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, wormWheel: made!.report, wormWheelPlace: place }] };
+      };
+    }
+    case 'connector-opening': {
+      const target = solids(f.target, 'target');
+      if (target.length !== 1) fail('SELECTION', 'an opening is cut into one body');
+      if (typeof f.face !== 'string') fail('INPUT', 'face must name the face the opening is cut into');
+      const spec = { row: f.row as ConnectorRow, face: f.face as string, centerMM: xyz(f.center as CadPartPoint3, 'center'), ...(f.rotation !== undefined ? { rotationDeg: f.rotation as number } : {}) };
+      return () => {
+        let made: ReturnType<typeof connectorOpening> | undefined;
+        try { made = connectorOpening(brepOf(target[0], at), spec, at); }
+        catch (cause) { if (cause instanceof ConnectorError) fail(CONNECTOR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^connector: /, '')}`); throw cause; }
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, connector: made!.report }] };
+      };
+    }
+    case 'connector-body': {
+      const g = ref(f.opening, 'opening').result, gp = g.kind === 'solid' && g.parts.length === 1 ? g.parts[0] : undefined;
+      if (!gp?.connector) fail('REFERENCE', `${String(f.opening)} is not a connector's opening`);
+      return () => {
+        let made: ReturnType<typeof connectorBody> | undefined;
+        try { made = connectorBody(brepOf(gp!, at), gp!.connector!, at); }
+        catch (cause) { if (cause instanceof ConnectorError) fail(CONNECTOR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^connector: /, '')}`); throw cause; }
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, connectorBody: { row: gp!.connector!.row, overlapMM3: made!.overlapMM3 } }] };
+      };
+    }
+    case 'oring-gland': {
+      const target = solids(f.target, 'target');
+      if (target.length !== 1) fail('SELECTION', 'a gland is cut into one body');
+      if (typeof f.face !== 'string') fail('INPUT', 'face must name the face the groove is cut into');
+      const rg = f.ring as Record<string, unknown> | undefined, gr = f.groove as Record<string, unknown> | undefined;
+      if (!isRecord(rg) || !isRecord(gr)) fail('INPUT', 'ring and groove must be objects');
+      const ring: ORingRow = { id: String(rg!.id), ...(rg!.dash !== undefined ? { dash: String(rg!.dash) } : {}), insideDiameterMM: rg!.insideDiameter as number, crossSectionMM: rg!.crossSection as number, ...(rg!.source !== undefined ? { source: rg!.source as string } : {}), ...(rg!.estimate !== undefined ? { estimate: rg!.estimate as boolean } : {}) };
+      const spec = { kind: f.gland as 'piston' | 'rod' | 'face', ring, face: f.face as string, grooveDiameterMM: dim(gr!.diameter as CadPartDim, 'groove.diameter', true), widthMM: dim(gr!.width as CadPartDim, 'groove.width', true),
+        ...(gr!.at !== undefined ? { atMM: dim(gr!.at as CadPartDim, 'groove.at') } : {}), ...(gr!.depth !== undefined ? { depthMM: dim(gr!.depth as CadPartDim, 'groove.depth', true) } : {}), ...(gr!.center !== undefined ? { centerMM: xyz(gr!.center as CadPartPoint3, 'groove.center') } : {}),
+        ...(f.seal !== undefined ? { sealDiameterMM: dim(f.seal as CadPartDim, 'seal', true) } : {}), ...(f.ranges !== undefined ? { ranges: f.ranges as GlandRanges } : {}), ...(f.fit !== undefined ? { fit: f.fit as { tables: readonly FitTable[]; seal?: string; groove?: string } } : {}) };
+      return () => {
+        let made: ReturnType<typeof glandCut> | undefined;
+        try { made = glandCut(brepOf(target[0], at), spec, at); }
+        catch (cause) { if (cause instanceof GlandError) fail(GLAND_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gland: /, '')}`); throw cause; }
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, gland: made!.report, glandPlace: made!.place }] };
+      };
+    }
+    case 'oring': {
+      const g = ref(f.gland, 'gland').result, gp = g.kind === 'solid' && g.parts.length === 1 ? g.parts[0] : undefined;
+      if (!gp?.gland || !gp.glandPlace) fail('REFERENCE', `${String(f.gland)} is not an O-ring gland`);
+      return () => {
+        const made = oringInGland(gp!.gland!, gp!.glandPlace!, at);
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, oring: { ring: gp!.gland!.ring, overlapMM3: made.overlapMM3, stretchedCrossSectionMM: gp!.gland!.stretchedCrossSectionMM } }] };
+      };
+    }
+    case 'bearing': {
+      // (R12c.4, D158: on the shaft, referenced, not consumed; in the housing, referenced too.)
+      const p = bearingRowProblem(f.row); if (p) fail('INPUT', `[INVALID_INPUT] ${p}`);
+      const other = ref(f.shaft, 'shaft').result, sp = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0] : undefined;
+      if (!sp?.shaft || !sp.shaftPlace) fail('REFERENCE', `${String(f.shaft)} is not a shaft`);
+      if (!Number.isInteger(f.step) || (f.step as number) < 1) fail('INPUT', 'step must be a number from 1');
+      let housing: Part | undefined;
+      if (f.housing !== undefined) { const h = ref(f.housing, 'housing').result; if (h.kind !== 'solid' || h.parts.length !== 1) fail('REFERENCE', `${String(f.housing)} is not one body`); housing = (h as Extract<Result, { kind: 'solid' }>).parts[0]; }
+      const fit = f.fit === undefined ? undefined : isRecord(f.fit) && Array.isArray((f.fit as Record<string, unknown>).tables) ? f.fit as unknown as BearingFitClasses : fail('INPUT', 'fit must be { tables, shaft?, housing? }');
+      return () => {
+        let made: ReturnType<typeof seatedBearing> | undefined;
+        try { made = seatedBearing(f.row as BearingRow, { report: sp!.shaft!, place: sp!.shaftPlace!, brep: brepOf(sp!, String(f.shaft)) }, { step: f.step as number, against: f.against as 'start' | 'end', ...(housing ? { housing: brepOf(housing, String(f.housing)) } : {}), ...(fit ? { fit } : {}) }, at); }
+        catch (cause) { if (cause instanceof BearingError) fail(BEARING_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^bearing: /, '')}`); throw cause; }
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, bearing: made!.report }] };
+      };
+    }
+    case 'key': case 'retaining-ring': case 'pin': {
+      // (R12c.3b, D157: the shaft referenced, not consumed — it stays an output of its own, as a meshing gear's.)
+      const other = ref(f.shaft, 'shaft').result, sp = other.kind === 'solid' && other.parts.length === 1 ? other.parts[0] : undefined;
+      if (!sp?.shaft || !sp.shaftPlace) fail('REFERENCE', `${String(f.shaft)} is not a shaft`);
+      const placed = { report: sp!.shaft!, place: sp!.shaftPlace! };
+      const index = (v: unknown, what: string) => { if (!Number.isInteger(v) || (v as number) < 1) fail('INPUT', `${what} must be a number from 1`); return v as number; };
+      const optDim = (v: unknown, what: string) => v === undefined ? undefined : dim(v as CadPartDim, what, true);
+      const partFail = (cause: unknown): never => { if (cause instanceof ShaftPartError) fail(SHAFT_PART_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft part: /, '')}`); throw cause; };
+      let hub: KeywayReport | undefined;
+      if (f.kind === 'key' && f.hub !== undefined) { const h = ref(f.hub, 'hub').result, hp = h.kind === 'solid' && h.parts.length === 1 ? h.parts[0] : undefined; if (!hp?.keyway) fail('REFERENCE', `${String(f.hub)} is not a keyway`); hub = hp!.keyway; }
+      const fit = f.kind === 'key' && f.fit !== undefined ? (isRecord(f.fit) && Array.isArray((f.fit as Record<string, unknown>).tables) && typeof (f.fit as Record<string, unknown>).key === 'string' ? f.fit as unknown as KeyFitClasses : fail('INPUT', 'fit must be { tables, key, seat?, hub? }')) : undefined;
+      return () => {
+        try {
+          if (f.kind === 'key') { const made = keySolid(placed, { keyseat: index(f.keyseat, 'keyseat'), heightMM: dim(f.height as CadPartDim, 'height', true), ...(f.width !== undefined ? { widthMM: optDim(f.width, 'width') } : {}), ...(f.length !== undefined ? { lengthMM: optDim(f.length, 'length') } : {}), ...(f.ends !== undefined ? { ends: f.ends as 'round' | 'square' } : {}), ...(hub ? { hub } : {}), ...(fit ? { fit } : {}) }, at); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, key: made.report }] }; }
+          if (f.kind === 'retaining-ring') { const row = f.row as Record<string, unknown> | undefined; const made = ringSolid(placed, { groove: index(f.groove, 'groove'), thicknessMM: dim(f.thickness as CadPartDim, 'thickness', true), outerDiameterMM: dim(f.outerDiameter as CadPartDim, 'outerDiameter', true), ...(row ? { row: { ...(row.shaftDiameter !== undefined ? { shaftDiameterMM: row.shaftDiameter as number } : {}), ...(row.grooveDiameter !== undefined ? { grooveDiameterMM: row.grooveDiameter as number } : {}), ...(row.grooveWidth !== undefined ? { grooveWidthMM: row.grooveWidth as number } : {}), ...(row.source !== undefined ? { source: row.source as string } : {}), ...(row.estimate !== undefined ? { estimate: row.estimate as boolean } : {}) } } : {}) }, at); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, ring: made.report }] }; }
+          const made = pinSolid(placed, { hole: index(f.hole, 'hole'), ...(f.diameter !== undefined ? { diameterMM: optDim(f.diameter, 'diameter') } : {}), ...(f.length !== undefined ? { lengthMM: optDim(f.length, 'length') } : {}), ...(f.fit ? { fit: true } : {}) }, at);
+          return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, pin: made.report }] };
+        } catch (cause) { return partFail(cause); }
+      };
+    }
+    case 'keyway': {
+      const target = solids(f.target, 'target');
+      if (target.length !== 1) fail('SELECTION', 'a keyway is cut into one body');
+      if (typeof f.face !== 'string') fail('INPUT', 'face must name the bore');
+      const b = dim(f.width as CadPartDim, 'width', true), t2 = dim(f.depth as CadPartDim, 'depth', true);
+      if (f.angle !== undefined && !(typeof f.angle === 'number' && Number.isFinite(f.angle))) fail('INPUT', 'angle must be a number of degrees');
+      return () => {
+        let made: ReturnType<typeof keywayCut> | undefined;
+        try { made = keywayCut(brepOf(target[0], at), { face: f.face as string, widthMM: b, depthMM: t2, ...(f.angle !== undefined ? { angleDeg: f.angle as number } : {}) }, at); }
+        catch (cause) { if (cause instanceof ShaftPartError) fail(SHAFT_PART_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft part: /, '')}`); throw cause; }
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, keyway: made!.report }] };
+      };
+    }
+    case 'shaft': {
+      if (f.generator !== undefined && f.generator !== 'shaft@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const list = <T,>(v: unknown, what: string): T[] => { if (v === undefined) return []; if (!Array.isArray(v)) fail('INPUT', `${what} must be a list`); return v as T[]; };
+      const rec = (v: unknown, what: string): Record<string, unknown> => { if (!isRecord(v)) fail('INPUT', `${what} must be an object`); return v as Record<string, unknown>; };
+      const opt = (v: unknown, what: string) => v === undefined ? undefined : dim(v as CadPartDim, what);
+      const deg = (v: unknown, what: string) => { if (v !== undefined && !(typeof v === 'number' && Number.isFinite(v))) fail('INPUT', `${what} must be a number of degrees`); return v as number | undefined; };
+      const steps = list<unknown>(f.steps, 'steps').map((x, k) => {
+        const s = rec(x, `steps[${k}]`), at = `steps[${k}]`, u = s.undercut === undefined ? undefined : rec(s.undercut, `${at}.undercut`);
+        return { diameterMM: dim(s.diameter as CadPartDim, `${at}.diameter`), lengthMM: dim(s.length as CadPartDim, `${at}.length`), ...(s.fillet !== undefined ? { filletMM: opt(s.fillet, `${at}.fillet`) } : {}),
+          ...(u ? { undercut: { widthMM: dim(u.width as CadPartDim, `${at}.undercut.width`), depthMM: dim(u.depth as CadPartDim, `${at}.undercut.depth`) } } : {}),
+          grooves: list<unknown>(s.grooves, `${at}.grooves`).map((g, j) => { const r = rec(g, `${at}.grooves[${j}]`); return { diameterMM: dim(r.diameter as CadPartDim, 'groove diameter'), widthMM: dim(r.width as CadPartDim, 'groove width'), atMM: dim(r.at as CadPartDim, 'groove at') }; }),
+          keyseats: list<unknown>(s.keyseats, `${at}.keyseats`).map((g, j) => { const r = rec(g, `${at}.keyseats[${j}]`); return { widthMM: dim(r.width as CadPartDim, 'keyseat width'), depthMM: dim(r.depth as CadPartDim, 'keyseat depth'), lengthMM: dim(r.length as CadPartDim, 'keyseat length'), offsetMM: dim(r.offset as CadPartDim, 'keyseat offset'),
+            ...(r.ends !== undefined ? { ends: r.ends as 'square' | 'end-mill' | 'disc' } : {}), ...(r.cutterRadius !== undefined ? { cutterRadiusMM: opt(r.cutterRadius, 'keyseat cutterRadius') } : {}), ...(r.angle !== undefined ? { angleDeg: deg(r.angle, 'keyseat angle') } : {}) }; }) };
+      });
+      const ch = f.chamfers as unknown;
+      if (ch !== undefined && !(Array.isArray(ch) && ch.length === 2)) fail('INPUT', 'chamfers must be [start, end]');
+      const spec: ShaftSpec = { steps, ...(ch ? { chamfersMM: [dim((ch as CadPartDim[])[0], 'chamfers[0]'), dim((ch as CadPartDim[])[1], 'chamfers[1]')] as const } : {}),
+        holes: list<unknown>(f.holes, 'holes').map((h, j) => { const r = rec(h, `holes[${j}]`); return { diameterMM: dim(r.diameter as CadPartDim, 'hole diameter'), atMM: dim(r.at as CadPartDim, 'hole at'), ...(r.angle !== undefined ? { angleDeg: deg(r.angle, 'hole angle') } : {}) }; }) };
+      const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (deg(f.rotation, 'rotation') ?? 0) * Math.PI / 180;
+      return () => {
+        let made: ReturnType<typeof shaftSolid> | undefined;
+        try { made = shaftSolid(spec, { id: at }); } catch (cause) { if (cause instanceof ShaftError) fail(SHAFT_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft: /, '')}`); throw cause; }
+        const cs = Math.cos(turn), sn = Math.sin(turn);
+        const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, shaft: made!.report, shaftPlace: { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] } }] };
+      };
+    }
+    case 'spring': {
+      if (f.generator !== undefined && f.generator !== 'spring@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const opt = (k: string) => f[k as keyof typeof f] === undefined ? undefined : dim(f[k as keyof typeof f] as CadPartDim, k, true);
+      const num = (k: string) => { const v = f[k as keyof typeof f]; if (v !== undefined && !(typeof v === 'number' && Number.isFinite(v))) fail('INPUT', `${k} must be a number`); return v as number | undefined; };
+      if (f.shearModulusEstimate !== undefined && typeof f.shearModulusEstimate !== 'boolean') fail('INPUT', 'shearModulusEstimate must be true or false');
+      const spec: SpringSpec = { wireDiameterMM: dim(f.wire as CadPartDim, 'wire', true), activeCoils: num('activeCoils') as number,
+        ...(f.diameter !== undefined ? { meanDiameterMM: opt('diameter') } : {}), ...(f.outerDiameter !== undefined ? { outerDiameterMM: opt('outerDiameter') } : {}), ...(f.innerDiameter !== undefined ? { innerDiameterMM: opt('innerDiameter') } : {}),
+        ...(f.pitch !== undefined ? { pitchMM: opt('pitch') } : {}), ...(f.freeLength !== undefined ? { freeLengthMM: opt('freeLength') } : {}),
+        ...(f.hand !== undefined ? { hand: f.hand as SpringSpec['hand'] } : {}), ...(f.ends !== undefined ? { ends: f.ends as SpringSpec['ends'] } : {}), ...(f.endCoils !== undefined ? { endCoils: num('endCoils') } : {}), ...(f.transition !== undefined ? { transitionDeg: num('transition') } : {}),
+        ...(f.shearModulus !== undefined ? { shearModulusMPa: num('shearModulus'), ...(f.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}), ...(f.load !== undefined ? { loadN: num('load') } : {}), ...(f.profileTolerance !== undefined ? { profileToleranceMM: num('profileTolerance') } : {}),
+        ...(f.type !== undefined ? { type: f.type as SpringSpec['type'] } : {}), ...(f.body !== undefined ? { body: f.body as SpringSpec['body'] } : {}), ...(f.wireSection !== undefined ? { wire: f.wireSection as SpringSpec['wire'] } : {}) };
+      const springFail = (cause: unknown): never => { if (cause instanceof SpringError) fail(SPRING_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^spring: /, '')}`); throw cause; };
+      const hooked = f.type === 'extension' || f.type === 'torsion';
+      if (!hooked && (f.hooks !== undefined || f.bendRadius !== undefined || f.loopRadius !== undefined || f.loopAngle !== undefined || f.initialTension !== undefined || f.legLengths !== undefined || f.youngsModulus !== undefined || f.moment !== undefined)) fail('INPUT', 'hooks, bends, loops, initial tension, legs, E and a moment belong to an extension or a torsion spring (give its type)');
+      if (f.youngsModulusEstimate !== undefined && typeof f.youngsModulusEstimate !== 'boolean') fail('INPUT', 'youngsModulusEstimate must be true or false');
+      const legs = f.legLengths as unknown;
+      if (legs !== undefined && !(Array.isArray(legs) && legs.length === 2)) fail('INPUT', 'legLengths must be [start, end]');
+      const hspec: HookedSpringSpec | undefined = hooked ? { ...spec, ...(f.hooks !== undefined ? { hooks: f.hooks as HookedSpringSpec['hooks'] } : {}), ...(f.bendRadius !== undefined ? { bendRadiusMM: opt('bendRadius') } : {}), ...(f.loopRadius !== undefined ? { loopRadiusMM: opt('loopRadius') } : {}),
+        ...(f.loopAngle !== undefined ? { loopAngleDeg: num('loopAngle') } : {}), ...(f.initialTension !== undefined ? { initialTensionN: num('initialTension') } : {}),
+        ...(legs !== undefined ? { legLengthsMM: [dim((legs as CadPartDim[])[0], 'legLengths[0]', true), dim((legs as CadPartDim[])[1], 'legLengths[1]', true)] as const } : {}),
+        ...(f.youngsModulus !== undefined ? { youngsModulusMPa: num('youngsModulus'), ...(f.youngsModulusEstimate ? { youngsModulusEstimate: true } : {}) } : {}), ...(f.moment !== undefined ? { momentNmm: num('moment') } : {}) } : undefined;
+      if (!hspec) { try { springDimensions(spec); } catch (cause) { springFail(cause); } }
+      const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (num('rotation') ?? 0) * Math.PI / 180;
+      return () => {
+        let made: { readonly brep: Brep; readonly report: SpringReport | HookedSpringReport } | undefined;
+        try { made = hspec ? hookedSpring(hspec, { id: at }) : compressionSpring(spec, { id: at }); } catch (cause) { springFail(cause); }
+        const cs = Math.cos(turn), sn = Math.sin(turn);
+        const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, spring: made!.report }] };
+      };
+    }
+    case 'sprocket': case 'pulley': case 'belt': case 'coupling': {
+      const gen = `${f.kind}@0`;
+      if (f.generator !== undefined && f.generator !== gen) fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const opt = (key: string) => (f as Record<string, unknown>)[key] === undefined ? undefined : dim((f as Record<string, unknown>)[key] as CadPartDim, key);
+      const int = (key: string) => { const v = (f as Record<string, unknown>)[key]; if (v !== undefined && !(typeof v === 'number' && Number.isFinite(v))) fail('INPUT', `${key} must be a number`); return v as number | undefined; };
+      const row = (f as { row?: unknown }).row as DriveRow;
+      if (!row || typeof row !== 'object') fail('INPUT', 'row must be the drive row (a chain, a belt or a coupling row) inline');
+      const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (int('rotation') ?? 0) * Math.PI / 180;
+      const g = f as Record<string, unknown>, radii = g.pitchRadii as unknown;
+      if (f.kind === 'belt' && !(Array.isArray(radii) && radii.length === 2)) fail('INPUT', 'pitchRadii must be [first wheel, second wheel]');
+      const make = (): { brep: Brep; part: Record<string, unknown> } => {
+        switch (f.kind) {
+          case 'sprocket': { const m = sprocket({ chain: row as never, teeth: int('teeth') as number, tipDiameterMM: opt('tip') as number, widthMM: opt('width') as number, ...(g.seat !== undefined ? { seatDiameterMM: opt('seat') } : {}), ...(g.toothForm !== undefined ? { toothForm: g.toothForm as 'pivot-clearance' } : {}), ...(g.bore !== undefined ? { boreDiameterMM: opt('bore') } : {}), ...(g.minimumRim !== undefined ? { minimumRimMM: opt('minimumRim') } : {}) }, { id: at }); return { brep: m.brep, part: { sprocket: m.report } }; }
+          case 'pulley': { const m = pulley({ belt: row as never, ...(g.teeth !== undefined ? { teeth: int('teeth') } : {}), ...(g.diameter !== undefined ? { diameterMM: opt('diameter') } : {}), ...(g.grooves !== undefined ? { grooves: int('grooves') } : {}), ...(g.width !== undefined ? { widthMM: opt('width') } : {}), ...(g.crown !== undefined ? { crownMM: opt('crown') } : {}), ...(g.bore !== undefined ? { boreDiameterMM: opt('bore') } : {}), ...(g.minimumRim !== undefined ? { minimumRimMM: opt('minimumRim') } : {}) }, { id: at }); return { brep: m.brep, part: { pulley: m.report } }; }
+          case 'belt': { const r = radii as CadPartDim[], m = beltBand({ row: row as never, pitchRadiiMM: [dim(r[0], 'pitchRadii[0]', true), dim(r[1], 'pitchRadii[1]', true)], centerDistanceMM: dim(g.centerDistance as CadPartDim, 'centerDistance', true), ...(g.rounding !== undefined ? { rounding: g.rounding as 'whole' | 'even' } : {}), ...(g.width !== undefined ? { widthMM: opt('width') } : {}) }, { id: at }); return { brep: m.brep, part: { belt: m.report } }; }
+          default: { const m = couplingEnvelope(row as never, { id: at }); return { brep: m.brep, part: { coupling: m.report } }; }
+        }
+      };
+      return () => {
+        let made: { brep: Brep; part: Record<string, unknown> } | undefined;
+        try { made = make(); } catch (cause) { if (cause instanceof DriveError) fail(DRIVE_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^drive: /, '')}`); throw cause; }
+        const cs = Math.cos(turn), sn = Math.sin(turn);
+        const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, ...made!.part }] };
+      };
+    }
+    case 'cam': {
+      if (f.generator !== undefined && f.generator !== 'cam@0') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const opt = (key: string) => f[key as keyof typeof f] === undefined ? undefined : dim(f[key as keyof typeof f] as CadPartDim, key);
+      const num = (key: string) => { const v = f[key as keyof typeof f]; if (v !== undefined && !(typeof v === 'number' && Number.isFinite(v))) fail('INPUT', `${key} must be a number`); return v as number | undefined; };
+      const segs = f.segments as unknown;
+      if (!Array.isArray(segs)) fail('INPUT', 'segments must be a list of { angle, to?, law? }');
+      const keys = ['angle', 'to', 'law'];
+      (segs as Record<string, unknown>[]).forEach((g, i) => { if (!g || typeof g !== 'object') fail('INPUT', `segments[${i}] must be { angle, to?, law? }`); const extra = Object.keys(g).find(x => !keys.includes(x)); if (extra) fail('INPUT', `segments[${i}].${extra} is not angle, to or law`); });
+      const spec: CamSpec = { baseRadiusMM: dim(f.base as CadPartDim, 'base', true), thicknessMM: dim(f.thickness as CadPartDim, 'thickness', true), follower: f.follower as CamSpec['follower'],
+        ...(f.motion !== undefined ? { motion: f.motion as CamSpec['motion'] } : {}), ...(f.roller !== undefined ? { rollerRadiusMM: opt('roller') } : {}), ...(f.offset !== undefined ? { offsetMM: opt('offset') } : {}),
+        ...(f.pivotDistance !== undefined ? { pivotDistanceMM: opt('pivotDistance') } : {}), ...(f.armLength !== undefined ? { armLengthMM: opt('armLength') } : {}), ...(f.faceOffset !== undefined ? { faceOffsetMM: opt('faceOffset') } : {}),
+        ...(f.faceWidth !== undefined ? { faceWidthMM: opt('faceWidth') } : {}), ...(f.bore !== undefined ? { boreDiameterMM: opt('bore') } : {}), ...(f.minimumRim !== undefined ? { minimumRimMM: opt('minimumRim') } : {}),
+        ...(f.pressureAngleLimit !== undefined ? { pressureAngleLimitDeg: num('pressureAngleLimit') } : {}), ...(f.profileTolerance !== undefined ? { profileToleranceMM: num('profileTolerance') } : {}),
+        segments: (segs as { angle: number; to?: number; law?: CamLaw }[]).map(g => ({ angleDeg: g.angle, ...(g.to !== undefined ? { to: g.to } : {}), ...(g.law !== undefined ? { law: g.law } : {}) })) };
+      const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (num('rotation') ?? 0) * Math.PI / 180;
+      return () => {
+        let made: { readonly brep: Brep; readonly report: CamReport } | undefined;
+        try { made = discCam(spec, { id: at }); } catch (cause) { if (cause instanceof CamError) fail(CAM_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^cam: /, '')}`); throw cause; }
+        const cs = Math.cos(turn), sn = Math.sin(turn);
+        const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, cam: made!.report }] };
+      };
+    }
+    case 'spur-rack': {
+      if (f.generator !== undefined && f.generator !== 'spur-rack@0' && f.generator !== 'spur-rack@1') fail('CAPABILITY', `generator ${String(f.generator)} is not known to this kernel`);
+      const filletedRoot = f.generator === 'spur-rack@1';
+      if (!filletedRoot && f.rootFillet !== undefined) fail('INPUT', "rootFillet belongs to a filleted root (generator 'spur-rack@1')");
+      const b = dim(f.faceWidth as CadPartDim, 'faceWidth', true), H = dim(f.height as CadPartDim, 'height', true);
+      const red = f.thicknessReduction === undefined ? 0 : dim(f.thicknessReduction as CadPartDim, 'thicknessReduction');
+      if (f.angle !== undefined && !(typeof f.angle === 'number' && Number.isFinite(f.angle))) fail('INPUT', 'angle must be a number of degrees');
+      const mesh = f.mesh as Record<string, unknown> | undefined;
+      if (mesh !== undefined && (!isRecord(mesh) || typeof mesh.gear !== 'string')) fail('INPUT', 'mesh must be { gear, direction?, centerDistance?, phase? }');
+      const other = mesh === undefined ? undefined : ref(mesh.gear, 'mesh.gear').result;
+      const g = other && other.kind === 'solid' && other.parts.length === 1 ? other.parts[0].gearPlace : undefined;
+      if (mesh !== undefined && !g) fail('REFERENCE', `${String(mesh.gear)} is not a spur gear`);
+      // Its helix: its own (normalModule, helixAngle, hand); meshing, the gear's angle with the opposite hand (the rack
+      // as the z → ∞ gear of an external pair), a contrary one given refused.
+      const gHelix = g?.spec.helixAngleDeg ? { angle: g.spec.helixAngleDeg, hand: g.spec.hand === 'right' ? 'left' as const : 'right' as const } : null;
+      const ownAngle = f.helixAngle as number | undefined, ownHand = f.hand as 'right' | 'left' | undefined;
+      if (g && ((ownAngle ?? 0) !== 0 || ownHand !== undefined) && (!gHelix || ownAngle !== gHelix.angle || (ownHand ?? gHelix.hand) !== gHelix.hand))
+        fail('INPUT', `[MATE_INCOMPATIBLE] the rack's helix must be ${gHelix ? `${gHelix.angle}° ${gHelix.hand}-hand (the gear's angle, the opposite hand)` : 'none (the gear is straight)'} to mesh with ${String(mesh!.gear)}`);
+      const helix = g ? gHelix : ownAngle ? { angle: ownAngle, hand: ownHand as 'right' | 'left' } : null;
+      if (helix && f.module !== undefined) fail('INPUT', 'a helical rack takes normalModule (the normal module), not module');
+      const mGiven = helix ? f.normalModule : f.module;
+      const m = mGiven !== undefined ? dim(mGiven as CadPartDim, helix ? 'normalModule' : 'module', true) : g ? spurGearDimensions(g.spec).mn : dim(undefined as unknown as CadPartDim, 'module', true);
+      const spec: SpurRackSpec = { ...(helix ? { normalModuleMM: m, helixAngleDeg: helix.angle, hand: helix.hand } : { moduleMM: m }), teeth: f.teeth as number, faceWidthMM: b, heightMM: H, toothThicknessReductionMM: red, ...(f.pressureAngle === undefined ? {} : { pressureAngleDeg: f.pressureAngle as number }),
+        ...(filletedRoot ? { rootPolicy: 'filleted' as const, ...(f.rootFillet === undefined ? {} : { rootFilletRadiusMM: dim(f.rootFillet as CadPartDim, 'rootFillet', true) }) } : {}) };
+      let place: RackPlacement;
+      if (mesh !== undefined) {
+        const gd = spurGearDimensions(g!.spec);
+        if (gd.mn !== m) fail('INPUT', `[MATE_INCOMPATIBLE] module ${m} does not mesh with ${String(mesh.gear)}'s ${gd.mn}`);
+        const dirDeg = mesh.direction ?? -90;
+        if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg))) fail('INPUT', 'mesh.direction must be a number of degrees');
+        const r = gd.r, D = mesh.centerDistance === undefined ? r + (g!.spec.profileShiftCoefficient ?? 0) * m : dim(mesh.centerDistance as CadPartDim, 'mesh.centerDistance', true);
+        const phase = mesh.phase === undefined ? 0 : dim(mesh.phase as CadPartDim, 'mesh.phase');
+        // The rack's frame: +x along the pitch line (β = φ + 90°), +y toward the gear; a gap at r θ + phase from the
+        // gear's foot, θ the gear's turn from the direction, and the rack's middle gap there. (The direction counted
+        // from the nearest whole tooth angle: the same mesh, whole pitches along, the rack's middle at the gear.)
+        // Both at the gear's face plane, where the rack starts: the helices agree there.
+        const phi = (dirDeg as number) * Math.PI / 180, beta = phi + Math.PI / 2, tooth = 2 * Math.PI / g!.spec.teeth;
+        const x0 = r * (g!.rotation - (phi - tooth * Math.round(phi / tooth))) + phase - Math.PI * gd.mt * Math.round((f.teeth as number) / 2);
+        const cb = Math.cos(beta), sb = Math.sin(beta);
+        place = { spec, origin: [g!.center[0] + cb * x0 + sb * D, g!.center[1] + sb * x0 - cb * D], angle: beta, from: g!.from, meshesWith: String(mesh.gear), driver: g! };
+      } else {
+        place = { spec, origin: f.origin === undefined ? [0, 0] : xy(f.origin as CadPartPoint2, 'origin'), angle: ((f.angle as number | undefined) ?? 0) * Math.PI / 180, from: f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from') };
+      }
+      return () => {
+        let made: ReturnType<typeof spurRack>;
+        try { made = spurRack(spec, { id: at }); }
+        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        const c = Math.cos(place.angle), sn = Math.sin(place.angle);
+        const brep = place.angle || place.origin[0] || place.origin[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.origin[0], place.origin[1], place.from] }) : made!.brep;
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, rack: made!.report, rackPlace: place }] };
+      };
+    }
+    case 'thread': {
+      const d = dim(f.diameter as CadPartDim, 'diameter', true), p = dim(f.pitch as CadPartDim, 'pitch', true), c = f.center === undefined ? [0, 0] as XY : xy(f.center as CadPartPoint2, 'center');
+      const seat = f.seat === undefined ? 0 : dim(f.seat as CadPartDim, 'seat'), length = f.length === undefined ? undefined : dim(f.length as CadPartDim, 'length', true);
+      const h = f.hex as Record<string, unknown> | undefined;
+      if (h !== undefined && !isRecord(h)) fail('INPUT', 'hex must be { across, height, internal? }');
+      const hex = h ? { across: dim(h.across as CadPartDim, 'hex.across', true), height: dim(h.height as CadPartDim, 'hex.height', true), internal: h.internal === true } : undefined;
+      if (f.form !== undefined && f.form !== 'faceted' && f.form !== 'helical') fail('INPUT', "form must be 'helical' or 'faceted'");
+      // (Left out: the faceted form, as such documents were built before helical became the default.)
+      const form = (f.form as 'faceted' | 'helical' | undefined) ?? 'faceted';
+      return () => {
+        try { return one({ kind: 'brep', brep: threadSolid({ id: at, diameter: d, pitch: p, center: c, seat, form, ...(length === undefined ? {} : { length }), ...(hex ? { hex } : {}) }) }); }
+        catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('PARAMETER', cause.message); throw cause; }
+      };
+    }
+    case 'mesh': {
+      const P = f.positions as unknown, I = f.indices as unknown;
+      if (!meshArrayOk(P, 'positions')) fail('INPUT', 'positions must be x, y, z numbers within ±10000 mm');
+      const nv = (P as ArrayLike<number>).length / 3;
+      if (!meshArrayOk(I, 'indices', nv)) fail('INPUT', `indices must be three vertex numbers a triangle, at most ${CadPartLimits.meshTriangles} triangles`);
+      if (f.each !== undefined && typeof f.each !== 'boolean') fail('INPUT', 'each must be true or false');
+      if (f.open !== undefined && typeof f.open !== 'boolean') fail('INPUT', 'open must be true or false');
+      const G = f.groups as unknown;
+      if (G !== undefined && (!(Array.isArray(G) || G instanceof Int32Array) || (G as ArrayLike<number>).length * 3 !== (I as ArrayLike<number>).length)) fail('INPUT', 'groups must give one number a triangle');
+      // (A planar mesh solid — a face per flat group — stays under its own, lower limit: its faces are B-rep faces.)
+      if (f.representation !== 'facets' && (I as ArrayLike<number>).length / 3 > CadPartLimits.planarMeshTriangles) fail('INPUT', `a planar mesh solid takes at most ${CadPartLimits.planarMeshTriangles} triangles (import it as facets)`);
+      return () => {
+        const facets = f.representation === 'facets', opts = { id: at, maximumTriangles: CadPartLimits.meshTriangles, ...(f.open ? { open: true } : {}), ...(G !== undefined ? { groups: G as ArrayLike<number> } : {}) };
+        try {
+          if (facets && f.each) return many(facetBrepsFromTriangles(P as ArrayLike<number>, I as ArrayLike<number>, opts).map(brep => ({ kind: 'brep' as const, brep })));
+          return one({ kind: 'brep', brep: (facets ? facetBrepFromTriangles : brepFromTriangles)(P as ArrayLike<number>, I as ArrayLike<number>, opts) });
+        }
+        catch (cause) { if (cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
       };
     }
     case 'shell': {
@@ -522,30 +2265,150 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (target.length !== 1) fail('REFERENCE', 'shell one part at a time (name it as id/k)');
       return () => ({ kind: 'solid', parts: [shellOf(target[0], t, open as string[], at, fail)] });
     }
-    case 'split': {
-      const target = solids(f.target, 'target'), axis = axisOf(f.axis), cut = dim(f.at as CadPartDim, 'at');
-      if (target.length !== 1) fail('REFERENCE', 'split one part at a time (name it as id/k)');
+    case 'decimate': {
+      const target = solids(f.target, 'target');
+      if (target.length !== 1) fail('REFERENCE', 'decimate one part at a time (name it as id/k)');
+      const ratio = f.ratio === undefined ? undefined : f.ratio as unknown, triangles = f.triangles === undefined ? undefined : f.triangles as unknown;
+      if (ratio !== undefined && !(typeof ratio === 'number' && ratio > 0 && ratio < 1)) fail('INPUT', 'ratio must be a share of the triangles between 0 and 1');
+      if (triangles !== undefined && !(Number.isInteger(triangles) && (triangles as number) >= 4)) fail('INPUT', 'triangles must be a whole number, 4 or more');
+      const maxError = f.maxError === undefined ? undefined : dim(f.maxError as CadPartDim, 'maxError', true);
+      if (ratio === undefined && triangles === undefined && maxError === undefined) fail('INPUT', 'say how far: triangles, ratio or maxError');
+      const angle = f.featureAngle === undefined ? 180 : f.featureAngle as unknown;
+      if (!(typeof angle === 'number' && angle > 0 && angle <= 180)) fail('INPUT', 'featureAngle must be degrees between 0 and 180');
       return () => {
-        const s = target[0].solid, box = bounds(s), a = 'xyz'.indexOf(axis);
-        if (!(cut > box.min[a] && cut < box.max[a])) fail('SELECTION', `the split plane ${axis} = ${cut} does not cross the target (${box.min[a]} to ${box.max[a]})`);
-        const half = (lo: boolean) => { const min = box.min.map(v => v - 1) as Point, max = box.max.map(v => v + 1) as Point; if (lo) max[a] = cut; else min[a] = cut; return boxSolid(min, max, `${at}.cut`); };
-        return many([boolean(s, half(true), 'intersection', at), boolean(s, half(false), 'intersection', at)]);
+        const s = target[0].solid;
+        if (!facetBody(s) || s.kind !== 'brep' || !s.brep.faces.every(isFacetFace)) fail('CAPABILITY', 'decimate takes a mesh body (facet faces); a body of exact faces is not a mesh');
+        const brep = (s as { brep: Brep }).brep, mesh = facetTriangles(brep), sheet = brep.bodies.some(b => b.kind === 'sheet');
+        const r = decimateMesh(mesh.positions, mesh.indices, { ...(triangles !== undefined ? { targetTriangles: triangles as number } : {}), ...(ratio !== undefined ? { ratio: ratio as number } : {}), ...(maxError !== undefined ? { maxErrorMM: maxError } : {}), featureDegrees: angle as number, groups: mesh.groups });
+        try {
+          // (Each source face's triangles a group of its own, named as that face: its references keep resolving.)
+          const out = facetBrepFromTriangles(r.positions, r.indices, { id: at, maximumTriangles: CadPartLimits.meshTriangles, groups: r.groups!, groupName: g => mesh.names[g], creaseDegrees: 180, ...(sheet ? { open: true } : {}) });
+          return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: out }, decimate: r.report }] };
+        } catch (cause) { if (cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
+      };
+    }
+    case 'separate': {
+      const target = solids(f.target, 'target');
+      if (target.length !== 1) fail('REFERENCE', 'separate one part at a time (name it as id/k)');
+      return () => {
+        const pieces = splitBodies(brepOf(target[0], at));
+        if (pieces.length < 2) fail('SELECTION', 'the body is in one piece: there is nothing to separate');
+        return { kind: 'solid', parts: pieces.map(brep => ({ solid: { kind: 'brep', brep } as Solid })) };
+      };
+    }
+    case 'split': {
+      const target = solids(f.target, 'target'), level = dim(f.at as CadPartDim, 'at');
+      if (target.length !== 1) fail('REFERENCE', 'split one part at a time (name it as id/k)');
+      const normal = f.normal === undefined ? null : xyz(f.normal as CadPartPoint3, 'normal');
+      if (normal && !(len(normal) > 1e-12)) fail('INPUT', 'the split normal must not be zero');
+      const along = normal ? [0, 1, 2].filter(k => normal[k] !== 0) : [];
+      if (!normal || along.length === 1) {
+        // Across a coordinate plane (a normal along one axis is that axis, below and above as its sign says).
+        const a = normal ? along[0] : 'xyz'.indexOf(axisOf(f.axis)), axis = 'xyz'[a], cut = normal ? level / normal[a] : level, flip = !!normal && normal[a] < 0;
+        return () => {
+          const s = target[0].solid, box = bounds(s);
+          if (!(cut > box.min[a] && cut < box.max[a])) fail('SELECTION', `the split plane ${axis} = ${cut} does not cross the target (${box.min[a]} to ${box.max[a]})`);
+          if (facetBody(s)) { const e: Point = [0, 0, 0]; e[a] = 1; const pieces = splitFacets(s, e, cut, at); return many(flip ? pieces.reverse() : pieces); }
+          const half = (lo: boolean) => { const min = box.min.map(v => v - 1) as Point, max = box.max.map(v => v + 1) as Point; if (lo) max[a] = cut; else min[a] = cut; return boxSolid(min, max, `${at}.cut`); };
+          const pieces = [boolean(s, half(true), 'intersection', at), boolean(s, half(false), 'intersection', at)];
+          return many(flip ? pieces.reverse() : pieces);
+        };
+      }
+      return () => {
+        // An oblique plane: each side a box standing on the plane (its frame turned to the normal) round the target.
+        const s = target[0].solid, box = bounds(s), n = unit(normal), d = level / len(normal);
+        if (facetBody(s)) return many(splitFacets(s, n, d, at));
+        const corners = [0, 1, 2, 3, 4, 5, 6, 7].map(i => [i & 1 ? box.max[0] : box.min[0], i & 2 ? box.max[1] : box.min[1], i & 4 ? box.max[2] : box.min[2]] as Point).map(c => dot(n, c));
+        if (!(d > Math.min(...corners) && d < Math.max(...corners))) fail('SELECTION', 'the split plane does not cross the target');
+        const c = scale(add(box.min, box.max), 0.5), o = sub(c, scale(n, dot(n, c) - d)), R = len(sub(box.max, box.min)) + 2;
+        const x = unit(cross(n, Math.abs(n[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0])), y = cross(n, x);
+        const pieces = [boolean(s, obliqueHalf(o, n, x, y, R, true, at), 'intersection', at), boolean(s, obliqueHalf(o, n, x, y, R, false, at), 'intersection', at)];
+        if (pieces.some(empty)) fail('SELECTION', 'the split plane does not cross the target');
+        return many(pieces);
       };
     }
     case 'chamfer': case 'fillet': {
-      const target = solids(f.target, 'target'), size = dim((f.kind === 'chamfer' ? f.distance : f.radius) as CadPartDim, f.kind === 'chamfer' ? 'distance' : 'radius', true);
+      const target = solids(f.target, 'target'), varying = f.kind === 'fillet' && f.radii !== undefined;
+      if (varying && f.radius !== undefined) fail('INPUT', 'give radius or radii, not both');
+      if (varying && (!Array.isArray(f.radii) || f.radii.length < 2 || f.radii.length > 16)) fail('INPUT', 'radii must list 2 to 16 points, each { at: [x, y, z], radius }');
+      const radii = varying ? (f.radii as { at: CadPartPoint3; radius: CadPartDim }[]).map((p, k) => ({ at: xyz(p?.at, `radii[${k}].at`), radius: dim(p?.radius as CadPartDim, `radii[${k}].radius`, true) })) : undefined;
+      const sec = f.kind === 'fillet' ? f.section : undefined;
+      if (sec !== undefined && (typeof sec !== 'object' || !['circular', 'conic', 'g2'].includes((sec as { kind?: string }).kind ?? ''))) fail('INPUT', 'section must be { kind: circular | conic (rho) | g2 (tension?) }');
+      if (sec?.kind === 'conic' && !(typeof sec.rho === 'number' && sec.rho > 0 && sec.rho < 1)) fail('INPUT', 'a conic section needs rho between 0 and 1');
+      if (sec?.kind === 'g2' && sec.tension !== undefined && !(typeof sec.tension === 'number' && sec.tension > 0 && sec.tension < 1)) fail('INPUT', 'a G2 section\'s tension lies between 0 and 1');
+      const shape = sec?.kind === 'conic' ? { kind: 'conic' as const, rho: sec.rho } : sec?.kind === 'g2' ? { kind: 'g2' as const, tension: sec.tension ?? 0.5 } : undefined;
+      const size = radii ? Math.max(...radii.map(p => p.radius)) : dim((f.kind === 'chamfer' ? f.distance : f.radius) as CadPartDim, f.kind === 'chamfer' ? 'distance' : 'radius', true);
       if (!Array.isArray(f.edges) || !f.edges.length || f.edges.length > CadPartLimits.edges || !f.edges.every(e => typeof e === 'string')) fail('INPUT', 'edges must list 1 to 64 edge names');
       if (target.length !== 1) fail('REFERENCE', 'finish one part at a time (name it as id/k)');
       return () => {
-        const t = target[0], kind = f.kind as 'chamfer' | 'fillet', solid = finishEdges(t, f.edges as string[], size, kind, at, fail);
-        // A body that left the upright family keeps how it was made, so that it can still be shelled.
+        const t = target[0], kind = f.kind as 'chamfer' | 'fillet', reports: FilletReport[] = [], solid = finishEdges(t, f.edges as string[], size, kind, at, fail, reports, radii, shape);
+        // A body that left the upright family keeps how it was made, so that it can still be shelled — past a
+        // variable-radius fillet too (its hollow's radius is the outer one less the wall, D108), not past a conic or G2 one.
         const base = t.solid.kind === 'upright' ? t.solid.solid : t.history?.base, before = t.solid.kind === 'upright' ? [] : t.history?.finishes ?? [];
-        const history = solid.kind === 'brep' && base ? { base, finishes: [...before, { kind, edges: f.edges as string[], size, id: at }] } : undefined;
-        return { kind: 'solid', parts: [{ solid, ...(history ? { history } : {}) }] };
+        const history = solid.kind === 'brep' && base && !shape ? { base, finishes: [...before, { kind, edges: f.edges as string[], size, id: at, ...(radii ? { radii } : {}) }] } : undefined;
+        return { kind: 'solid', parts: [{ solid, ...(history ? { history } : {}), ...(reports.length ? { fillet: reports } : {}) }] };
       };
     }
   }
   return fail('INPUT', `unknown feature kind ${String((f as { kind?: unknown }).kind)}`);
+}
+
+/**
+ * One side of an oblique split plane round a target within R of o: a tetrahedron, its base a triangle on the plane
+ * (inradius 2R about o) and its apex 4R off it, so that it holds everything within R of o on its side. Triangles
+ * only: a rotated box's quads are not exactly planar in binary64 and the exact polyhedral Boolean refused them
+ * (D50). Both sides take the same three base corners, so they share one exact plane. Its base is `<at>.cut.top`
+ * below and `<at>.cut.bottom` above, as the axis split's box names it.
+ */
+function obliqueHalf(o: Point, n: Point, x: Point, y: Point, R: number, below: boolean, at: string, capName?: string): Solid {
+  const corner = (deg: number) => add(o, add(scale(x, 4 * R * Math.cos(deg * Math.PI / 180)), scale(y, 4 * R * Math.sin(deg * Math.PI / 180))));
+  const apex = add(o, scale(n, below ? -4 * R : 4 * R));
+  const positions = [...corner(90), ...corner(210), ...corner(330), ...apex];
+  // The base first (wound about +n below, −n above), then the sides against its edges.
+  const indices = below ? [0, 1, 2, 1, 0, 3, 2, 1, 3, 0, 2, 3] : [0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3];
+  const tool = brepFromTriangles(positions, indices, { id: `${at}_cut`, maximumTriangles: 4 });
+  const base = `${at}_cut.facet0`, cap = capName ?? `${at}.cut.${below ? 'top' : 'bottom'}`;
+  return { kind: 'brep', brep: transformBrep(tool, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, name => name.split('|').map(q => q === base ? cap : q.replace(`${at}_cut.facet`, `${at}.cut.side`)).join('|')) };
+}
+/** F2: a body with mesh faces and an exact body, `op`; refusals typed. */
+function facetWith(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string): Solid {
+  const B = b.kind === 'upright' ? brepFromPrismatic(b.solid, { id: at + '_tool' }) : b.brep;
+  try { return { kind: 'brep', brep: facetBoolean((a as Extract<Solid, { kind: 'brep' }>).brep, B, op, { id: at, nearTriangles: facetLimit }) }; }
+  catch (cause) { if (cause instanceof FacetBooleanError) throw new CadPartError(cause.code, at, cause.message); if (cause instanceof BrepError) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
+}
+/** A body of mesh faces only (F0): split on its own triangles (F1), any size. */
+const facetBody = (s: Solid) => s.kind === 'brep' && s.brep.faces.length > 0 && s.brep.faces.some(isFacetFace);
+/**
+ * A facet body's triangles as one welded mesh (its faces share their boundary points exactly), each triangle's group
+ * its face, and the faces' names (without a `#k`: a face split again keeps its source's name, numbered).
+ */
+function facetTriangles(brep: Brep): { positions: Float64Array; indices: Uint32Array; groups: Int32Array; names: string[] } {
+  let nv = 0, nt = 0;
+  for (const f of brep.faces) { const p = f.surface as FacetPatch; nv += p.positions.length / 3; nt += p.indices.length / 3; }
+  const P = new Float64Array(3 * nv), I = new Uint32Array(3 * nt), G = new Int32Array(nt), names: string[] = [];
+  let ov = 0, ot = 0;
+  brep.faces.forEach((f, g) => {
+    const p = f.surface as FacetPatch, fw = f.sense === 'forward', X = p.indices;
+    P.set(p.positions, 3 * ov);
+    // (Wound outward: a reversed face's triangles turned.)
+    for (let k = 0; k < X.length; k += 3) { I[3 * ot + k] = X[k] + ov; I[3 * ot + k + 1] = (fw ? X[k + 1] : X[k + 2]) + ov; I[3 * ot + k + 2] = (fw ? X[k + 2] : X[k + 1]) + ov; }
+    G.fill(g, ot, ot + p.indices.length / 3);
+    names.push((f.name ?? f.id).replace(/#\d+$/, ''));
+    ov += p.positions.length / 3; ot += p.indices.length / 3;
+  });
+  let size = 1; for (let k = 0; k < P.length; k++) size = Math.max(size, Math.abs(P[k]));
+  const { P: welded, remap } = weldVertices(P, nv, 1e-9 * size);
+  for (let k = 0; k < I.length; k++) I[k] = remap[I[k]];
+  return { positions: welded, indices: I, groups: G, names };
+}
+/** F1 (R4, D50): a facet body cut by n·p = d, below then above, each closed by an exact planar cap. */
+function splitFacets(s: Solid, n: Point, d: number, at: string): Solid[] {
+  let r: FacetSplitResult;
+  const brep = (s as Extract<Solid, { kind: 'brep' }>).brep;
+  try { r = brep.faces.every(isFacetFace) ? splitFacetBrep(brep, { normal: n, offset: d, at }) : { ...splitMixedBrep(brep, n, d, at), loops: [] }; }
+  catch (cause) { if (cause instanceof BrepError || cause instanceof FacetBooleanError) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
+  if (!r.below || !r.above) throw new CadPartError('SELECTION', at, 'the split plane does not cross the target');
+  return [{ kind: 'brep', brep: r.below }, { kind: 'brep', brep: r.above }];
 }
 
 function boxSolid(min: Point, max: Point, tag: string): Solid {
@@ -554,24 +2417,57 @@ function boxSolid(min: Point, max: Point, tag: string): Solid {
 }
 
 /** Upright Booleans stay upright; otherwise both bodies must be planar for the exact polyhedral Boolean. */
-function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string): Solid {
+function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string, check = true): Solid {
   if (empty(b)) return op === 'intersection' ? b : a;
   if (empty(a)) return op === 'union' ? b : a;
   if (a.kind === 'upright' && b.kind === 'upright') {
     const solid = booleanPrismatic(a.solid, b.solid, op);
-    if (touchingLumps(solid)) throw new CadPartError('GEOMETRY', at, 'the bodies touch along an edge or at a vertex only; the result is not a manifold solid');
+    if (check) checkLumps({ kind: 'upright', solid }, at);
     return { kind: 'upright', solid };
   }
+  // F2 (R6, D52): a mesh body with an exact one — the mesh near the tool through the exact Boolean, any size; union
+  // and intersection either way round. (Mesh with mesh, F3, still through F0's planar path, D3.)
+  const meshy = (s: Solid) => s.kind === 'brep' && s.brep.faces.some(isFacetFace);
+  if (meshy(a) && !meshy(b)) return facetWith(a, b, op, at);
+  if (meshy(b) && !meshy(a) && op !== 'difference') return facetWith(b, a, op, at);
+  // (F0: a facet body, small enough, goes through the planar path; else refused, see FACET_EXPLODE_TRIANGLES.)
+  if (a.kind === 'brep' && a.brep.faces.some(isFacetFace)) a = { kind: 'brep', brep: explodeFacets(a.brep, at, 'Booleans') };
+  if (b.kind === 'brep' && b.brep.faces.some(isFacetFace)) b = { kind: 'brep', brep: explodeFacets(b.brep, at, 'Booleans') };
   const A = a.kind === 'upright' ? (lineOnly(a.solid) ? brepFromPrismatic(a.solid, { id: at + '_a' }) : null) : a.brep;
   const B = b.kind === 'upright' ? (lineOnly(b.solid) ? brepFromPrismatic(b.solid, { id: at + '_b' }) : null) : b.brep;
-  if (A && B && planarBrep(A) && planarBrep(B)) return { kind: 'brep', brep: booleanPolyhedra(A, B, op, { id: at }) };
+  if (A && B && planarBrep(A) && planarBrep(B)) return { kind: 'brep', brep: planarBoolean(A, B, op, at) };
   // Planes and cylinders of any axis.
   const toBrep = (s: Solid) => s.kind === 'upright' ? brepFromPrismatic(s.solid, { id: at + '_in' }) : s.brep;
   try { return { kind: 'brep', brep: booleanAnalytic(toBrep(a), toBrep(b), op, { id: at }) }; }
   catch (cause) {
-    if (cause instanceof BrepError && /not supported yet/.test(cause.message)) throw new CadPartError('CAPABILITY', at, cause.message.replace(/^B-rep: analytic Boolean: /, ''));
+    if (cause instanceof BrepError && /not supported yet/.test(cause.message)) throw new CadPartError('CAPABILITY', at, cause.message.replace(/^B-rep: (analytic Boolean: )?/, ''));
     throw cause;
   }
+}
+/**
+ * Two bodies of planes only: the exact rational polyhedral Boolean. It needs each face's vertices exactly coplanar; a
+ * body off the axes (a member on an oblique line, a split's slanted cut) has them so only to binary64 (~1e-15), and the
+ * polyhedral route refuses the face (reason `NOT_PLANAR_WITHIN_FLOAT`, D126). Then the analytic Boolean, which works on the planes in binary64,
+ * takes the pair (FR3a, D125: a mitred sharp tube on a 120° or 3D corner, and two such tubes welded, were refused).
+ */
+function planarBoolean(a: Brep, b: Brep, op: 'union' | 'difference' | 'intersection', at: string): Brep {
+  try { return booleanPolyhedra(a, b, op, { id: at }); }
+  catch (cause) { if (!(cause instanceof BrepError && cause.reason === 'NOT_PLANAR_WITHIN_FLOAT')) throw cause; }
+  return booleanAnalytic(a, b, op, { id: at });
+}
+/**
+ * Copies united in a balanced tree (neighbours first, so each Boolean joins two bodies of like size, not
+ * one growing body and a copy); upright ones checked for lumps that only touch once, at the end.
+ */
+function unionAll(list: Solid[], at: string): Solid {
+  let level = list;
+  while (level.length > 1) { const next: Solid[] = []; for (let i = 0; i < level.length; i += 2) next.push(i + 1 < level.length ? boolean(level[i], level[i + 1], 'union', at, false) : level[i]); level = next; }
+  return checkLumps(level[0], at);
+}
+/** Refuses an upright result whose lumps meet only along an edge or at a point. */
+function checkLumps(s: Solid, at: string): Solid {
+  if (s.kind === 'upright' && touchingLumps(s.solid)) throw new CadPartError('GEOMETRY', at, 'the bodies touch along an edge or at a vertex only; the result is not a manifold solid');
+  return s;
 }
 /**
  * Whether separate lumps of an upright solid meet only along an edge or at a point (the analytic and
@@ -593,8 +2489,12 @@ function touchingLumps(solid: PrismaticSolid): boolean {
     const ab = sub(b, a), t = Math.max(0, Math.min(1, dot(sub(p, a), ab) / Math.max(dot(ab, ab), 1e-300)));
     return len(sub(p, add(a, scale(ab, t)))) <= tol;
   };
+  // (Each lump's box: a vertex outside another lump's box meets none of its edges.)
+  const boxes = new Map<string, { lo: Point; hi: Point }>();
+  for (const v of brep.vertices) { const b = vertexBody.get(v.id)!, x = boxes.get(b) ?? { lo: [Infinity, Infinity, Infinity] as Point, hi: [-Infinity, -Infinity, -Infinity] as Point }; for (let k = 0; k < 3; k++) { x.lo[k] = Math.min(x.lo[k], v.point[k]); x.hi[k] = Math.max(x.hi[k], v.point[k]); } boxes.set(b, x); }
+  const near = (p: Point, b: string) => { const x = boxes.get(b); return !!x && [0, 1, 2].every(k => p[k] >= x.lo[k] - tol && p[k] <= x.hi[k] + tol); };
   for (const v of brep.vertices) for (const e of brep.edges) {
-    if (edgeBody.get(e.id) === vertexBody.get(v.id)) continue;
+    if (edgeBody.get(e.id) === vertexBody.get(v.id) || !near(v.point, edgeBody.get(e.id)!)) continue;
     const q = e.curve.controlPoints;
     if (e.curve.degree === 1 && q.length === 2 ? onSegment(v.point, q[0], q[1]) : e.vertices.some(w => len(sub(point.get(w)!, v.point)) <= tol)) return true;
   }
@@ -613,6 +2513,816 @@ function affine(s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?
  * Parts moved by x ↦ m·x + o (m a rotation or reflection times a uniform scale): each remembers what it
  * was moved from, and its mass moves with it (exact when the original's was).
  */
+/** A member shorter than this is refused (FR1, D123). */
+const MEMBER_MIN_MM = 1e-6;
+/** A member's section ready to extrude: its loops and roles, and (a kind's) its closed-form area, centroid and box. */
+type MemberShape = { readonly kind: string; readonly label: string; readonly outer: readonly ProfileSegmentInput[]; readonly holes: readonly (readonly ProfileSegmentInput[])[]; readonly tags?: SideTags;
+  readonly outerNames?: readonly string[]; readonly holeNames?: readonly (readonly string[])[]; readonly areaMM2?: number; readonly centroid?: XY; readonly box?: { readonly min: XY; readonly max: XY }; readonly derived?: Readonly<Record<string, string>> };
+/** A frame's members at most (FR2, D124). */
+const FRAME_MAX_MEMBERS = 256;
+/** How a member's section sits on its line: its anchor, the offset it moves by, its roll, mirrored or not. */
+type MemberLook = { readonly anchor: FrameAnchor; readonly offset: XY; readonly roll: number; readonly mirror: boolean };
+/** A member's (or an override's: `base` for what it leaves out) anchor, offset, roll and mirror, checked. */
+function memberLook(r: Record<string, unknown>, at: string, dim: Tools['dim'], fail: Tools['fail'], base?: MemberLook): MemberLook {
+  const anchor = (r.anchor === undefined ? base?.anchor ?? 'centroid' : r.anchor) as FrameAnchor;
+  if (!(FRAME_ANCHORS as readonly unknown[]).includes(anchor)) fail('INPUT', `${at}anchor must be one of ${FRAME_ANCHORS.join(', ')}`);
+  const roll = r.roll === undefined ? base?.roll ?? 0 : r.roll;
+  if (typeof roll !== 'number' || !Number.isFinite(roll)) fail('INPUT', `${at}roll must be a number of degrees`);
+  let offset: XY = base?.offset ?? [0, 0];
+  if (r.offset !== undefined) {
+    if (!Array.isArray(r.offset) || r.offset.length !== 2) fail('INPUT', `${at}offset must be [x, y] in the section's plane`);
+    offset = [dim((r.offset as readonly CadPartDim[])[0], `${at}offset x`), dim((r.offset as readonly CadPartDim[])[1], `${at}offset y`)];
+  }
+  const mirror = r.mirror === undefined ? base?.mirror ?? false : r.mirror;
+  if (typeof mirror !== 'boolean') fail('INPUT', `${at}mirror must be true or false`);
+  return { anchor, offset, roll: roll as number, mirror: mirror as boolean };
+}
+/** The up reference (default +Z), not zero. */
+function memberUp(v: unknown, xyz: Tools['xyz'], fail: Tools['fail']): Point {
+  const up = v === undefined ? [0, 0, 1] as Point : xyz(v as CadPartPoint3, 'up');
+  if (!(len(up) > 1e-12)) fail('INPUT', 'up must not be zero');
+  return up;
+}
+/** A member's section ready to extrude (its names not yet under the member's id): a kind's, or a closed sketch's. */
+function memberShape(sec: unknown, what: string, t: Pick<Tools, 'ref' | 'dim' | 'integer' | 'fail'>): MemberShape {
+  if (!isRecord(sec)) t.fail('INPUT', `${what} must be { kind, … }: rect-tube, round-tube, angle, channel, tslot or sketch`);
+  const section = sec as Record<string, unknown>;
+  if (section.kind === 'sketch') {
+    const sketch = t.ref(section.sketch, `${what}.sketch`).result;
+    if (sketch.kind !== 'sketch') t.fail('REFERENCE', `${what}.sketch: ${String(section.sketch)} is not a sketch`);
+    const { outer, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
+    if (regions?.length) t.fail('CAPABILITY', 'a member\'s sketch section takes one outer loop (holes allowed) yet');
+    return { kind: 'sketch', label: `sketch ${String(section.sketch)}`, outer, holes: holes ?? [], ...(tags ? { tags } : {}) };
+  }
+  if (section.kind === 'table') {
+    const problem = sectionTableProblem(section.table);
+    if (problem) t.fail('PARAMETER', `[SECTION_TABLE] ${problem}`);
+    const r = lookupSection(section.table as SectionTable, section.size as string);
+    if ('miss' in r) return t.fail('PARAMETER', `[SECTION_TABLE_MISS] ${what}: ${r.miss}`);
+    const b = frameSection(r.spec), tag = `${(section.table as SectionTable).id} ${String(section.size)}${r.estimate ? ', an estimate' : r.source ? ` (${r.source})` : ''}`;
+    return { kind: r.spec.kind, label: `${tag}: ${b.label}`, outer: b.outer, holes: b.holes, outerNames: b.outerNames, holeNames: b.holeNames, areaMM2: b.areaMM2, centroid: b.centroid, box: b.box, ...(b.derived ? { derived: b.derived } : {}) };
+  }
+  try {
+    const b = frameSection(sectionSpec(section, t.dim, t.integer, t.fail));
+    return { kind: section.kind as string, label: b.label, outer: b.outer, holes: b.holes, outerNames: b.outerNames, holeNames: b.holeNames, areaMM2: b.areaMM2, centroid: b.centroid, box: b.box, ...(b.derived ? { derived: b.derived } : {}) };
+  } catch (cause) { if (cause instanceof FrameSectionError) return t.fail('PARAMETER', cause.message); throw cause; }
+}
+/** A section mirrored across its own y axis (x ↦ −x): its loops turned about, arcs the other way, its centroid and box with it. */
+function mirroredShape(s: MemberShape): MemberShape {
+  return { ...s, outer: s.outer.map(mirrorSegment), holes: s.holes.map(h => h.map(mirrorSegment)), ...(s.centroid ? { centroid: [-s.centroid[0], s.centroid[1]] as XY } : {}),
+    ...(s.box ? { box: { min: [-s.box.max[0], s.box.min[1]] as XY, max: [-s.box.min[0], s.box.max[1]] as XY } } : {}), label: `${s.label}, mirrored` };
+}
+function mirrorSegment(g: ProfileSegmentInput): ProfileSegmentInput {
+  return g.kind === 'line' ? { kind: 'line', start: [-g.start[0], g.start[1]] } : { kind: 'arc', start: [-g.start[0], g.start[1]], center: [-g.center[0], g.center[1]], direction: g.direction === 'ccw' ? 'cw' : 'ccw' };
+}
+const samePoint = (x: Point, y: Point): boolean => len(sub(x, y)) <= MEMBER_MIN_MM;
+/**
+ * Why a skeleton's segments cannot each be a member, or null: two on the same two points (`MEMBER_DUPLICATE`), or two
+ * on one line sharing a length (`SKELETON_OVERLAP`) — a member would run through another.
+ */
+function skeletonClash(points: readonly Point[], pairs: readonly (readonly [number, number])[]): string | null {
+  for (let a = 0; a < pairs.length; a++) for (let b = a + 1; b < pairs.length; b++) {
+    const p = points[pairs[a][0]], q = points[pairs[a][1]], r = points[pairs[b][0]], t = points[pairs[b][1]];
+    if ((samePoint(p, r) && samePoint(q, t)) || (samePoint(p, t) && samePoint(q, r))) return `[MEMBER_DUPLICATE] segments ${a} and ${b} join the same two points`;
+    const L = len(sub(q, p)), u = scale(sub(q, p), 1 / L);
+    if (len(cross(sub(r, p), u)) > MEMBER_MIN_MM || len(cross(sub(t, p), u)) > MEMBER_MIN_MM) continue;
+    const t0 = dot(sub(r, p), u), t1 = dot(sub(t, p), u), lo = Math.max(0, Math.min(t0, t1)), hi = Math.min(L, Math.max(t0, t1));
+    if (hi - lo > MEMBER_MIN_MM) return `[SKELETON_OVERLAP] segments ${a} and ${b} lie on one line and share ${+(hi - lo).toFixed(6)} mm of it`;
+  }
+  return null;
+}
+/** A section kind's dimensions resolved (parameters allowed); the kind's own checks follow in `frameSection`. */
+function sectionSpec(s: Record<string, unknown>, dim: Tools['dim'], integer: Tools['integer'], fail: Tools['fail']): FrameSectionSpec {
+  const n = (key: string) => dim(s[key] as CadPartDim, `section.${key}`);
+  switch (s.kind) {
+    case 'rect-tube': return { kind: 'rect-tube', width: n('width'), height: n('height'), wall: n('wall'), outerRadius: n('outerRadius'), ...(s.innerRadius !== undefined ? { innerRadius: n('innerRadius') } : {}) };
+    case 'round-tube': return { kind: 'round-tube', diameter: n('diameter'), wall: n('wall') };
+    case 'angle': return { kind: 'angle', legX: n('legX'), legY: n('legY'), thickness: n('thickness'), rootRadius: n('rootRadius'), toeRadius: n('toeRadius') };
+    case 'channel': return { kind: 'channel', height: n('height'), width: n('width'), web: n('web'), flange: n('flange'), rootRadius: n('rootRadius') };
+    case 'tslot': {
+      const cells = integer(s.cells, 'section.cells', 1, 2) as 1 | 2;
+      if (cells === 1 && s.openSlots === undefined) fail('INPUT', 'section.openSlots (0 to 4, clockwise from the top) must be given for one cell');
+      return { kind: 'tslot', size: n('size'), cells, openSlots: cells === 1 ? integer(s.openSlots, 'section.openSlots', 0, 4) : 6, opening: n('opening'), lip: n('lip'), undercut: n('undercut'), depth: n('depth'), bore: n('bore') };
+    }
+  }
+  return fail('INPUT', `section.kind must be rect-tube, round-tube, angle, channel, tslot or sketch (not ${String(s.kind)})`);
+}
+/** Components within rounding of 0 or ±1 are exactly that (an axis-aligned member stays exact). */
+const snapUnit = (v: Point): Point => v.map(c => Math.abs(c) < 1e-12 ? 0 : Math.abs(Math.abs(c) - 1) < 1e-12 ? Math.sign(c) : c) as unknown as Point;
+const ROLL_COS = [1, 0, -1, 0], ROLL_SIN = [0, 1, 0, -1];
+/**
+ * A member's section frame: y along `up` made square to the line u (a line along it takes +X, or +Y if along that too),
+ * x = y × u, then both turned `roll` degrees about u (quarter turns exact).
+ */
+function memberFrame(u: Point, up: Point, rollDegrees: number): { x: Point; y: Point; fallback?: Point } {
+  let r = unit(up), fallback: Point | undefined;
+  if (len(cross(u, r)) < 1e-9) { fallback = len(cross(u, [1, 0, 0])) < 1e-9 ? [0, 1, 0] : [1, 0, 0]; r = fallback; }
+  const y0 = unit(sub(r, scale(u, dot(r, u)))), x0 = cross(y0, u), q = rollDegrees / 90, k = Math.round(q);
+  const quarter = Math.abs(q - k) < 1e-12, i = ((k % 4) + 4) % 4, c = quarter ? ROLL_COS[i] : Math.cos(rollDegrees * Math.PI / 180), s = quarter ? ROLL_SIN[i] : Math.sin(rollDegrees * Math.PI / 180);
+  const x = snapUnit(add(scale(x0, c), scale(y0, s)));
+  return { x, y: snapUnit(cross(u, x)), ...(fallback ? { fallback } : {}) };
+}
+/** The point (sx, sy) of a section in its frame, from `base`. */
+const sectionPoint = (F: { x: Point; y: Point }, sx: number, sy: number, base: Point): Point => add(base, add(scale(F.x, sx), scale(F.y, sy)));
+/** A member built: its section extruded L in its own XY (ends `.start`, `.end`), moved onto its line, its report on it. */
+type JointKind = 'mitre' | 'butt' | 'cope' | 'order' | 'none';
+type CornerAt = { readonly kind: JointKind; readonly through?: number; readonly trim?: 'face' | 'envelope'; readonly order?: readonly number[] };
+type CornerSpec = { readonly fallback: 'mitre' | 'butt' | 'none'; readonly multi: 'order' | 'none'; readonly tee: 'butt' | 'cope' | 'none'; readonly at: ReadonlyMap<number, CornerAt> };
+/** A frame's `corners` checked (their points as the first point at the same place), or null when it has none. */
+function frameCorners(v: unknown, points: readonly Point[], pairs: readonly (readonly [number, number])[], integer: Tools['integer'], fail: Tools['fail']): CornerSpec | null {
+  if (v === undefined) return null;
+  if (!isRecord(v)) fail('INPUT', 'corners must be { default?, multi?, tee?, at? }');
+  const c = v as Record<string, unknown>;
+  const pick = <T extends string>(key: string, kinds: readonly T[], dflt: T): T => { if (c[key] !== undefined && !kinds.includes(c[key] as T)) fail('INPUT', `corners.${key} must be ${kinds.slice(0, -1).join(', ')} or ${kinds[kinds.length - 1]}`); return (c[key] as T | undefined) ?? dflt; };
+  const fallback = pick('default', ['mitre', 'butt', 'none'] as const, 'mitre'), multi = pick('multi', ['order', 'none'] as const, 'none'), tee = pick('tee', ['butt', 'cope', 'none'] as const, 'none');
+  const extra = Object.keys(c).find(k => !['default', 'multi', 'tee', 'at'].includes(k));
+  if (extra) fail('INPUT', `corners has no ${extra}`);
+  const at = new Map<number, CornerAt>();
+  if (c.at !== undefined) {
+    if (!Array.isArray(c.at) || c.at.length > CadPartLimits.points) fail('INPUT', 'corners.at must list { point, kind, through?, trim?, order? }');
+    (c.at as unknown[]).forEach((e, n) => {
+      if (!isRecord(e)) fail('INPUT', `corners.at[${n}] must be { point, kind, through?, trim?, order? }`);
+      const r = e as Record<string, unknown>, p = canonicalPoint(points, integer(r.point, `corners.at[${n}].point`, 0, points.length - 1));
+      if (!['mitre', 'butt', 'cope', 'order', 'none'].includes(r.kind as string)) fail('INPUT', `corners.at[${n}].kind must be mitre, butt, cope, order or none`);
+      if (at.has(p)) fail('INPUT', `corners.at[${n}]: point ${r.point} is set twice`);
+      const through = r.through === undefined ? undefined : integer(r.through, `corners.at[${n}].through`, 0, pairs.length - 1);
+      if (through !== undefined && r.kind !== 'butt' && r.kind !== 'cope') fail('INPUT', `corners.at[${n}]: through belongs to a butt or a cope`);
+      if (r.trim !== undefined && (r.kind !== 'butt' || (r.trim !== 'face' && r.trim !== 'envelope'))) fail('INPUT', `corners.at[${n}]: trim (face or envelope) belongs to a butt`);
+      let order: number[] | undefined;
+      if (r.order !== undefined) {
+        if (r.kind !== 'order' || !Array.isArray(r.order)) fail('INPUT', `corners.at[${n}]: order (a list of members) belongs to an ordered trim`);
+        order = (r.order as unknown[]).map((m, i) => integer(m, `corners.at[${n}].order[${i}]`, 0, pairs.length - 1));
+      }
+      at.set(p, { kind: r.kind as JointKind, ...(through !== undefined ? { through } : {}), ...(r.trim !== undefined ? { trim: r.trim as 'face' | 'envelope' } : {}), ...(order ? { order } : {}) });
+    });
+  }
+  return { fallback, multi, tee, at };
+}
+/** The first point at the same place as point i (within 1e-6 mm): a joint is a place, not an index. */
+function canonicalPoint(points: readonly Point[], i: number): number {
+  for (let k = 0; k < i; k++) if (samePoint(points[k], points[i])) return k;
+  return i;
+}
+/** The vertices of a section's loops (starts and arc centres) in the part, as placed at a point of its line. */
+function sectionVertices(P: MemberPlace, at: Point): Point[] {
+  const out: Point[] = [];
+  for (const loop of [P.shape.outer, ...P.shape.holes]) for (const g of loop) {
+    out.push(sectionPoint(P.F, g.start[0] - P.q[0], g.start[1] - P.q[1], at));
+    if (g.kind === 'arc') out.push(sectionPoint(P.F, g.center[0] - P.q[0], g.center[1] - P.q[1], at));
+  }
+  return out;
+}
+/** The corners of a section's box in the part, as placed at a point of its line. */
+const boxCorners = (P: MemberPlace, at: Point): Point[] => [[P.box.min[0], P.box.min[1]], [P.box.max[0], P.box.min[1]], [P.box.max[0], P.box.max[1]], [P.box.min[0], P.box.max[1]]].map(c => sectionPoint(P.F, c[0] - P.q[0], c[1] - P.q[1], at));
+/** Whether two point sets are the same (each of one within tol of one of the other, the counts equal). */
+function samePoints(a: readonly Point[], b: readonly Point[], tol: number): boolean {
+  if (a.length !== b.length) return false;
+  for (const p of a) { let hit = false; for (const r of b) if (len(sub(p, r)) <= tol) { hit = true; break; } if (!hit) return false; }
+  return true;
+}
+const reflect = (v: Point, m: Point): Point => sub(v, scale(m, 2 * dot(v, m)));
+/** A member's end trimmed to a plane (kept on its own side) or to an earlier body (FR3b, D126). */
+type FrameTrim = { readonly member: number; readonly end: 0 | 1; readonly plane?: { readonly o: Point; readonly n: Point }; readonly body?: readonly Solid[] };
+/** A frame's `trims`: each `{ member, end, plane: { origin, normal } }` or `{ member, end, body }` (an earlier feature, not consumed). */
+function frameTrims(v: unknown, members: number, t: Pick<Tools, 'ref' | 'xyz' | 'integer' | 'fail'>): FrameTrim[] {
+  if (v === undefined) return [];
+  if (!Array.isArray(v) || v.length > 2 * members) t.fail('INPUT', 'trims must list { member, end, plane | body } (two at most a member)');
+  const seen = new Set<string>();
+  return (v as unknown[]).map((e, n) => {
+    if (!isRecord(e)) t.fail('INPUT', `trims[${n}] must be { member, end, plane | body }`);
+    const r = e as Record<string, unknown>, member = t.integer(r.member, `trims[${n}].member`, 0, members - 1);
+    if (r.end !== 'start' && r.end !== 'end') t.fail('INPUT', `trims[${n}].end must be start or end`);
+    const end = r.end === 'end' ? 1 : 0, key = `${member}:${end}`;
+    if (seen.has(key)) t.fail('INPUT', `trims[${n}]: member ${member}'s ${r.end} is trimmed twice`);
+    seen.add(key);
+    if ((r.plane === undefined) === (r.body === undefined)) t.fail('INPUT', `trims[${n}] takes a plane or a body (one of them)`);
+    if (r.plane !== undefined) {
+      if (!isRecord(r.plane)) t.fail('INPUT', `trims[${n}].plane must be { origin, normal }`);
+      const pl = r.plane as Record<string, unknown>, n3 = t.xyz(pl.normal as CadPartPoint3, `trims[${n}].plane.normal`);
+      if (!(len(n3) > 1e-12)) t.fail('INPUT', `trims[${n}].plane.normal must not be zero`);
+      return { member, end, plane: { o: t.xyz(pl.origin as CadPartPoint3, `trims[${n}].plane.origin`), n: unit(n3) } } as FrameTrim;
+    }
+    const { part, result } = t.ref(r.body, `trims[${n}].body`);
+    if (result.kind !== 'solid') t.fail('REFERENCE', `trims[${n}].body: ${String(r.body)} is a sketch, not a body`);
+    const parts = (result as Extract<Result, { kind: 'solid' }>).parts;
+    return { member, end, body: (part === null ? parts : [parts[part]]).map(q => q.solid) } as FrameTrim;
+  });
+}
+const emptyPlan = (n: number): EndsPlan => ({ extend: Array.from({ length: n }, () => [0, 0] as [number, number]), cuts: Array.from({ length: n }, () => []), subtract: Array.from({ length: n }, () => []), report: Array.from({ length: n }, () => []) });
+/**
+ * Trims to a plane or a body (FR3b, D126), on ends no joint finishes. A plane: the member run on to meet it (the line's
+ * crossing, its section's reach past it), cut keeping its other end's side; `TRIM_PARALLEL` along it, `TRIM_EMPTY` where the
+ * plane lies past the member's other end. A body: taken from the member, the piece holding its other end kept; nothing
+ * taken is `TRIM_MISSES`.
+ */
+function planTrims(plan: EndsPlan, trims: readonly FrameTrim[], points: readonly Point[], pairs: readonly (readonly [number, number])[], lengths: readonly number[], places: readonly MemberPlace[], fail: Tools['fail']): void {
+  for (const tr of trims) {
+    const k = tr.member, P = places[k], a = points[pairs[k][0]], b = points[pairs[k][1]], here = tr.end ? b : a, away = tr.end ? scale(P.u, -1) : P.u;
+    if (plan.report[k].some(e => e.end === endName(tr.end) && e.kind !== 'square')) fail('INPUT', `trims: member ${k}'s ${endName(tr.end)} is finished by its joint already`);
+    if (tr.plane) {
+      const nu = dot(tr.plane.n, P.u);
+      if (Math.abs(nu) < 1e-9) fail('PARAMETER', `[TRIM_PARALLEL] member ${k} runs along the plane it is trimmed to`);
+      // The line's crossing, as a distance from this end towards the other (positive: inside the member).
+      const s = dot(tr.plane.n, sub(tr.plane.o, a)) / nu, inside = tr.end ? lengths[k] - s : s;
+      if (inside >= lengths[k] - MEMBER_MIN_MM) fail('PARAMETER', `[TRIM_EMPTY] member ${k}: the plane lies at or past its other end`);
+      const cos = Math.abs(nu), reach = reachOf(P, here);
+      plan.extend[k][tr.end] = Math.max(0, -inside) + reach * Math.sqrt(1 - cos * cos) / cos + reach + 1;
+      // Kept: the other end's side (n·x < n·o there).
+      const n = dot(tr.plane.n, sub(tr.end ? a : b, tr.plane.o)) < 0 ? tr.plane.n : scale(tr.plane.n, -1);
+      plan.cuts[k].push({ o: tr.plane.o, n, name: `${endName(tr.end)}.trim` });
+      plan.report[k] = plan.report[k].filter(e => e.end !== endName(tr.end));
+      plan.report[k].push({ end: endName(tr.end), point: pairs[k][tr.end], kind: 'trim', angleDegrees: Math.acos(Math.min(1, cos)) * 180 / Math.PI, plane: { origin: tr.plane.o, normal: n } });
+      continue;
+    }
+    for (const body of tr.body!) plan.subtract[k].push({ solid: body, name: `${endName(tr.end)}.trim`, keepFrom: here, toward: away, mustTouch: true });
+    plan.report[k] = plan.report[k].filter(e => e.end !== endName(tr.end));
+    plan.report[k].push({ end: endName(tr.end), point: pairs[k][tr.end], kind: 'trim' });
+  }
+}
+/** One member end meeting at a place: the member and which end. */
+type JointEnd = { readonly member: number; readonly end: 0 | 1 };
+/** Where one member's line passes through a place inside its length (a T-joint's through member). */
+type JointPass = { readonly member: number; readonly s: number };
+/** Per member, as planned: how far each end runs on, its plane cuts, the solids taken from it, what each end is. */
+type EndsPlan = { extend: [number, number][]; cuts: { o: Point; n: Point; name: string }[][]; subtract: MemberSubtract[][]; report: FrameEndReport[][] };
+const endName = (e: 0 | 1) => e ? 'end' : 'start';
+/** A member's envelope (its outer loop filled, no bore) along its line from `from` to `to` mm past its start: what other members are trimmed to. */
+function envelopeOf(P: MemberPlace, start: Point, from: number, to: number, name: string): Solid {
+  const solid = prismaticFromProfile({ outer: P.shape.outer, heightMM: to - from, fromMM: from, tag: name, names: { outer: P.shape.outer.map(() => name), bottom: name, top: name } });
+  const m: BrepAffine['matrix'] = [P.F.x[0], P.F.y[0], P.u[0], P.F.x[1], P.F.y[1], P.u[1], P.F.x[2], P.F.y[2], P.u[2]];
+  return (moveAll([{ solid: { kind: 'upright', solid } }], m, sectionPoint(P.F, -P.q[0], -P.q[1], start)) as Extract<Result, { kind: 'solid' }>).parts[0].solid;
+}
+/** The half-diagonal of a member's section box from its line: how far its section reaches from its line. */
+const reachOf = (P: MemberPlace, at: Point): number => Math.max(...boxCorners(P, at).map(v => len(sub(v, at))));
+/**
+ * Where a box side of T's section has material: the spans, along T's other section axis, of its outer loop's straight
+ * segments lying on that side (merged). A butt on the face may only land within them (FR3b, D126: no silent gap).
+ */
+function sideContact(P: MemberPlace, axis: 0 | 1, at: number): [number, number][] {
+  const loop = P.shape.outer, spans: [number, number][] = [], other = 1 - axis, tol = 1e-9 * Math.max(1, P.box.max[0] - P.box.min[0], P.box.max[1] - P.box.min[1]);
+  for (let i = 0; i < loop.length; i++) {
+    const g = loop[i], e = loop[(i + 1) % loop.length].start;
+    if (g.kind === 'line' && Math.abs(g.start[axis] - at) <= tol && Math.abs(e[axis] - at) <= tol) spans.push([Math.min(g.start[other], e[other]), Math.max(g.start[other], e[other])]);
+  }
+  spans.sort((a, b) => a[0] - b[0]);
+  const merged: [number, number][] = [];
+  for (const sp of spans) { const last = merged[merged.length - 1]; if (last && sp[0] <= last[1] + tol) last[1] = Math.max(last[1], sp[1]); else merged.push([sp[0], sp[1]]); }
+  return merged;
+}
+/**
+ * A butt of O on T's box face facing it, at `at` (O's end there): the face plane, the cut, how far O runs on into T, O's
+ * angle from square; refused where the side is no face of T's box (`BUTT_NOT_ON_A_FACE`) or where O's end would reach past
+ * the material on that side (`BUTT_ON_OPEN_SIDE`: an angle's or a channel's open side, a round tube, a round corner).
+ */
+function faceButt(PT: MemberPlace, PO: MemberPlace, inT: Point | null, inO: Point, at: Point, where: string, fail: Tools['fail']): { face: Point; w: Point; side: number; runO: number; deg: number } {
+  // The side of T that O comes from, square to T's line, in T's section axes.
+  const tAxis = inT ?? PT.u, w0 = sub(scale(inO, -1), scale(tAxis, dot(scale(inO, -1), tAxis))), wl = len(w0), w = scale(w0, 1 / wl), wx = dot(w, PT.F.x), wy = dot(w, PT.F.y);
+  const found: 0 | 1 | -1 = Math.abs(Math.abs(wx) - 1) < 1e-9 ? 0 : Math.abs(Math.abs(wy) - 1) < 1e-9 ? 1 : -1;
+  if (found < 0) return fail('PARAMETER', `[BUTT_NOT_ON_A_FACE] ${where} at an edge of its section, not a face (turn one, or mitre)`);
+  const axis = found as 0 | 1;
+  const sign = (axis === 0 ? wx : wy) > 0 ? 1 : -1, boxAt = sign > 0 ? PT.box.max[axis] : PT.box.min[axis], side = sign * (boxAt - PT.q[axis]);
+  // O's end spans, along T's other section axis (in T's section coordinates), what must all land on T's material there.
+  const otherDir = axis === 0 ? PT.F.y : PT.F.x, other = 1 - axis, ext = boxCorners(PO, at).map(v => dot(sub(v, at), otherDir) + PT.q[other]);
+  const lo = Math.min(...ext), hi = Math.max(...ext), contact = sideContact(PT, axis, boxAt), tol = 1e-9 * Math.max(1, hi - lo);
+  if (!contact.some(([a, b]) => a <= lo + tol && b >= hi - tol)) {
+    const names = ['x', 'y'], spans = contact.length ? contact.map(([a, b]) => `${+a.toFixed(3)} to ${+b.toFixed(3)}`).join(', ') : 'none';
+    fail('PARAMETER', `[BUTT_ON_OPEN_SIDE] ${where}: its end spans ${+lo.toFixed(3)} to ${+hi.toFixed(3)} mm along the through member's section ${names[other]}, but the side ${sign > 0 ? '+' : '−'}${names[axis]} of that section has material only at ${spans}: a gap would be left (trim it to the envelope, or cope it)`);
+  }
+  const sO = Math.max(...boxCorners(PO, at).map(v => dot(sub(v, at), w)));
+  return { face: add(at, scale(w, side)), w, side, runO: Math.max(0, (sO - side) / wl) + reachOf(PO, at) + 1, deg: Math.acos(Math.min(1, Math.abs(dot(inO, w)))) * 180 / Math.PI };
+}
+/** The part of T's line around a place: its envelope from E before to `on` past, along its own direction from its start (a pass: around s). */
+function envelopeAround(PT: MemberPlace, start: Point, L: number, at: { end?: 0 | 1; s?: number }, on: number, E: number, name: string): Solid {
+  if (at.s !== undefined) return envelopeOf(PT, start, Math.max(0, at.s - E), Math.min(L, at.s + E), name);
+  return at.end ? envelopeOf(PT, start, Math.max(0, L - E), L + on, name) : envelopeOf(PT, start, -on, Math.min(L, E), name);
+}
+/**
+ * Each member's ends at the frame's joints (FR3a D125, FR3b D126). A joint is a place (points within 1e-6 mm): the member
+ * ends there, and the members whose line passes through it inside its length.
+ * - Two ends, no pass: a corner — `mitre` (both on the plane square to u1 + u2; `MITRE_SECTIONS_DIFFER` unless the second
+ *   section is the first reflected in it), `butt` (`through` runs on to cover; the other ends on its box face, `trim:
+ *   'face'`, or on its envelope, `'envelope'`), `cope` (a butt to the envelope), `none`. `CORNER_ANGLE` in line or folded.
+ * - Three or more ends, no pass: an ordered trim (`order`, by default the larger sections first, then the lower index):
+ *   the first runs on to cover the rest, each next is trimmed to the envelopes of all before it.
+ * - Ends on a pass: a T-joint — each ending member butted (face or envelope) or coped to the member passing through;
+ *   two passes through one place cross (`MEMBERS_CLASH`).
+ * A setting that does not fit its joint is `CORNER_NOT_A_JOINT`.
+ */
+function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly (readonly [number, number])[], lengths: readonly number[], places: readonly MemberPlace[], at: string, fail: Tools['fail']): EndsPlan {
+  const plan: EndsPlan = { extend: pairs.map(() => [0, 0]), cuts: pairs.map(() => []), subtract: pairs.map(() => []), report: pairs.map(() => []) };
+  const ends = new Map<number, JointEnd[]>();
+  pairs.forEach(([i, j], k) => ([[i, 0], [j, 1]] as const).forEach(([p, end]) => { const c = canonicalPoint(points, p); if (!ends.has(c)) ends.set(c, []); ends.get(c)!.push({ member: k, end }); }));
+  // Members passing through each place inside their length; two crossing inside both: a clash.
+  const passes = new Map<number, JointPass[]>();
+  for (const p of ends.keys()) for (let k = 0; k < pairs.length; k++) {
+    const a = points[pairs[k][0]], s = dot(sub(points[p], a), places[k].u);
+    if (s > MEMBER_MIN_MM && s < lengths[k] - MEMBER_MIN_MM && len(sub(points[p], add(a, scale(places[k].u, s)))) <= MEMBER_MIN_MM) { if (!passes.has(p)) passes.set(p, []); passes.get(p)!.push({ member: k, s }); }
+  }
+  const clash = crossingMembers(points, pairs, lengths, places);
+  if (clash) fail('PARAMETER', clash);
+  for (const [p, list] of passes) if (list.length > 1) fail('PARAMETER', `[MEMBERS_CLASH] members ${list[0].member} and ${list[1].member} both run through point ${p}`);
+  for (const p of spec.at.keys()) if (!ends.has(p)) fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: no member ends there`);
+  const Rmax = Math.max(...places.map((P, k) => reachOf(P, points[pairs[k][0]])));
+  for (const [p, list] of ends) {
+    const there = points[p], pass = passes.get(p)?.[0], set = spec.at.get(p);
+    if (pass) {
+      // A T-joint: each member ending here meets the one passing through.
+      const kind = set?.kind ?? spec.tee;
+      if (kind !== 'butt' && kind !== 'cope' && kind !== 'none') fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: a T-joint (member ${pass.member} runs through) takes butt, cope or none, not ${kind}`);
+      if (kind === 'none') { squareEnds(plan, list, p); continue; }
+      const PT = places[pass.member], T0 = points[pairs[pass.member][0]];
+      for (const O of list) {
+        const PO = places[O.member], inO = O.end ? PO.u : scale(PO.u, -1);
+        if (len(cross(inO, PT.u)) < 1e-9) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: member ${O.member} runs along member ${pass.member}`);
+        teeOrButt(plan, kind === 'cope' || set?.trim === 'envelope', PT, PO, null, inO, there, O, pass.member, p, T0, lengths[pass.member], { s: pass.s }, 0, Rmax, at, fail);
+      }
+      continue;
+    }
+    if (list.length === 1) { squareEnds(plan, list, p); continue; }
+    if (list.length === 2) {
+      const kind = set?.kind ?? spec.fallback;
+      if (kind === 'order') fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: two members meet there; an ordered trim joins three or more`);
+      if (kind === 'none') { squareEnds(plan, list, p); continue; }
+      const [A, B] = list, PA = places[A.member], PB = places[B.member], inA = A.end ? PA.u : scale(PA.u, -1), inB = B.end ? PB.u : scale(PB.u, -1), c = dot(inA, inB);
+      if (c < -1 + 1e-12) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: members ${A.member} and ${B.member} are in line, no corner to finish`);
+      if (c > 1 - 1e-12) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: members ${A.member} and ${B.member} fold back on each other`);
+      if (kind === 'mitre') { mitre(plan, A, B, PA, PB, inA, inB, there, p, fail); continue; }
+      const through = set?.through ?? (PA.area > PB.area + 1e-9 ? A.member : PB.area > PA.area + 1e-9 ? B.member : Math.min(A.member, B.member));
+      if (through !== A.member && through !== B.member) fail('INPUT', `corners at point ${p}: through must be member ${A.member} or ${B.member}`);
+      const [T, O] = through === A.member ? [A, B] : [B, A], PT = places[T.member], PO = places[O.member], inT = T === A ? inA : inB, inO = T === A ? inB : inA;
+      // T runs on past the point to cover O's section there.
+      const runT = Math.max(0, ...boxCorners(PO, there).map(v => dot(sub(v, there), inT)));
+      plan.extend[T.member][T.end] = runT;
+      plan.report[T.member].push({ end: endName(T.end), point: p, kind: 'through', with: O.member, extendedMM: runT });
+      teeOrButt(plan, kind === 'cope' || set?.trim === 'envelope', PT, PO, inT, inO, there, O, T.member, p, points[pairs[T.member][0]], lengths[T.member], { end: T.end }, runT, Rmax, at, fail);
+      continue;
+    }
+    // Three or more: an ordered trim, the first running through.
+    const kind = set?.kind ?? spec.multi;
+    if (kind === 'none') { squareEnds(plan, list, p); continue; }
+    if (kind !== 'order') fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: ${list.length} member ends meet there; a ${kind} joins two (an ordered trim joins three or more)`);
+    const members = list.map(e => e.member), order = set?.order ?? [...members].sort((a, b) => (places[b].area - places[a].area) || a - b);
+    if (order.length !== members.length || !members.every(m => order.includes(m))) fail('INPUT', `corners at point ${p}: order must list members ${members.join(', ')}, each once`);
+    const byMember = new Map(list.map(e => [e.member, e])), first = byMember.get(order[0])!, P0 = places[first.member], in0 = first.end ? P0.u : scale(P0.u, -1);
+    const run0 = Math.max(0, ...order.slice(1).flatMap(m => boxCorners(places[m], there).map(v => dot(sub(v, there), in0))));
+    plan.extend[first.member][first.end] = run0;
+    plan.report[first.member].push({ end: endName(first.end), point: p, kind: 'through', with: order[1], extendedMM: run0 });
+    // Each next member is trimmed to the envelopes of all before it, each as trimmed itself (its own envelope less the
+    // earlier ones, the piece reaching its own way kept): exactly the space the earlier members take, no more.
+    const E = 3 * Rmax + 1, taken: Solid[] = [envelopeAround(P0, points[pairs[first.member][0]], lengths[first.member], { end: first.end }, run0, E, `${at}_env${first.member}`)];
+    order.slice(1).forEach((m, r) => {
+      const e = byMember.get(m)!, inE = e.end ? places[m].u : scale(places[m].u, -1), away = scale(inE, -1);
+      plan.extend[m][e.end] = 2 * Rmax + 1;
+      for (const solid of taken) plan.subtract[m].push({ solid, name: `${endName(e.end)}.trim`, keepFrom: there, toward: away });
+      plan.report[m].push({ end: endName(e.end), point: p, kind: 'trim', with: order[r], rank: r + 1, against: order.slice(0, r + 1) });
+      if (r + 2 < order.length) {
+        let env = envelopeAround(places[m], points[pairs[m][0]], lengths[m], { end: e.end }, plan.extend[m][e.end], E, `${at}_env${m}`);
+        for (const solid of taken) env = keepFarthest(boolean(env, solid, 'difference', `${at}_env${m}`), there, away);
+        taken.push(env);
+      }
+    });
+  }
+  return plan;
+}
+/** Ends left square at a place. */
+function squareEnds(plan: EndsPlan, list: readonly JointEnd[], p: number): void { for (const e of list) plan.report[e.member].push({ end: endName(e.end), point: p, kind: 'square' }); }
+/** A mitre between A (into the point) and B (out of it). */
+function mitre(plan: EndsPlan, A: JointEnd, B: JointEnd, PA: MemberPlace, PB: MemberPlace, inA: Point, inB: Point, at: Point, p: number, fail: Tools['fail']): void {
+  const u2 = scale(inB, -1), m = unit(add(inA, u2)), cos = dot(inA, m), tan = Math.sqrt(1 - cos * cos) / cos;
+  const vA = sectionVertices(PA, at).map(v => add(at, reflect(sub(v, at), m))), vB = sectionVertices(PB, at);
+  const size = Math.max(1, ...vB.map(v => len(sub(v, at))));
+  if (!samePoints(vA, vB, 1e-9 * size)) fail('PARAMETER', `[MITRE_SECTIONS_DIFFER] point ${p}: members ${A.member} and ${B.member} would not meet face to face on the mitre (different sections, or turned differently); give a butt`);
+  const deg = Math.acos(Math.min(1, cos)) * 180 / Math.PI;
+  for (const [E, n, P] of [[A, m, PA], [B, scale(m, -1), PB]] as const) {
+    const reach = reachOf(P, at);
+    plan.extend[E.member][E.end] = reach * tan + reach + 1;
+    plan.cuts[E.member].push({ o: at, n, name: `${endName(E.end)}.mitre` });
+    plan.report[E.member].push({ end: endName(E.end), point: p, kind: 'mitre', with: E === A ? B.member : A.member, angleDegrees: deg, plane: { origin: at, normal: n } });
+  }
+}
+/** O's end on T at a corner (T running on `on` past it) or a T-joint (T passing through): on T's box face, or to its envelope (a cope). */
+function teeOrButt(plan: EndsPlan, envelope: boolean, PT: MemberPlace, PO: MemberPlace, inT: Point | null, inO: Point, at: Point, O: JointEnd, T: number, p: number, T0: Point, LT: number, where: { end?: 0 | 1; s?: number }, on: number, Rmax: number, id: string, fail: Tools['fail']): void {
+  if (envelope) {
+    plan.extend[O.member][O.end] = 2 * Rmax + 1;
+    plan.subtract[O.member].push({ solid: envelopeAround(PT, T0, LT, where, on, 3 * Rmax + 1, `${id}_m${O.member}_on${T}`), name: `${endName(O.end)}.cope`, keepFrom: at, toward: scale(inO, -1) });
+    plan.report[O.member].push({ end: endName(O.end), point: p, kind: 'cope', with: T });
+    return;
+  }
+  const b = faceButt(PT, PO, inT, inO, at, `point ${p}: member ${O.member} meets member ${T}`, fail);
+  plan.extend[O.member][O.end] = b.runO;
+  plan.cuts[O.member].push({ o: b.face, n: scale(b.w, -1), name: `${endName(O.end)}.butt` });
+  plan.report[O.member].push({ end: endName(O.end), point: p, kind: 'butt', with: T, angleDegrees: b.deg, plane: { origin: b.face, normal: scale(b.w, -1) } });
+}
+/** Two members whose lines cross inside both their lengths (not at a joint): `MEMBERS_CLASH` — one would run through the other. */
+function crossingMembers(points: readonly Point[], pairs: readonly (readonly [number, number])[], lengths: readonly number[], places: readonly MemberPlace[]): string | null {
+  for (let a = 0; a < pairs.length; a++) for (let b = a + 1; b < pairs.length; b++) {
+    const pa = points[pairs[a][0]], pb = points[pairs[b][0]], ua = places[a].u, ub = places[b].u, w0 = sub(pa, pb);
+    const B = dot(ua, ub), d = dot(ua, w0), e = dot(ub, w0), den = 1 - B * B;
+    if (den < 1e-12) continue;
+    const s = (B * e - d) / den, t = (e - B * d) / den;
+    if (s <= MEMBER_MIN_MM || s >= lengths[a] - MEMBER_MIN_MM || t <= MEMBER_MIN_MM || t >= lengths[b] - MEMBER_MIN_MM) continue;
+    if (len(sub(add(pa, scale(ua, s)), add(pb, scale(ub, t)))) <= MEMBER_MIN_MM) return `[MEMBERS_CLASH] members ${a} and ${b} cross inside both their lengths (split one at the crossing to make a joint)`;
+  }
+  return null;
+}
+/** A member's section placed on its line: the (mirrored) shape, area, centroid, box, the line's direction, the frame, the line's section point. */
+type MemberPlace = { readonly shape: MemberShape; readonly area: number; readonly centroid: XY; readonly box: { readonly min: XY; readonly max: XY }; readonly u: Point; readonly F: { x: Point; y: Point; fallback?: Point }; readonly q: XY };
+function placeMember(given: MemberShape, o: MemberLook & { start: Point; end: Point; L: number; up: Point }): MemberPlace {
+  const shape = o.mirror ? mirroredShape(given) : given;
+  let area = shape.areaMM2, centroid = shape.centroid;
+  // (A sketch section: its area and centroid by a unit prism's exact mass.)
+  if (area === undefined || centroid === undefined) {
+    const m = prismaticMassProperties(prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), heightMM: 1, fromMM: 0 }), 1);
+    area = m.volumeMM3; centroid = [m.centroidMM[0], m.centroidMM[1]];
+  }
+  const box = shape.box ?? loopBox(shape.outer), u = snapUnit(scale(sub(o.end, o.start), 1 / o.L)), F = memberFrame(u, o.up, o.roll);
+  // (The section point on the line: the anchor's, less the offset the section is moved by.)
+  const p = anchorPoint(o.anchor, centroid, box);
+  return { shape, area, centroid, box, u, F, q: [p[0] - o.offset[0], p[1] - o.offset[1]] };
+}
+/** How a member's ends are finished at its frame's corners (FR3a, D125): how far each end runs on, the planes it is cut by (keeping n·x < n·o), what each end is. */
+type MemberEnds = { readonly extend: readonly [number, number]; readonly cuts: readonly { readonly o: Point; readonly n: Point; readonly name: string }[]; readonly subtract: readonly MemberSubtract[]; readonly report: readonly FrameEndReport[] };
+/**
+ * A solid taken from a member at one end (an envelope it is trimmed or coped to, a body it is trimmed to): of the pieces
+ * left, the one reaching farthest from `keepFrom` along `toward` (its own length's way) is kept. `mustTouch`: refused
+ * `TRIM_MISSES` when nothing is taken.
+ */
+type MemberSubtract = { readonly solid: Solid; readonly name: string; readonly keepFrom: Point; readonly toward: Point; readonly mustTouch?: boolean };
+/** A solid in several pieces: the one reaching farthest from `from` along `toward` (one piece: itself). */
+function keepFarthest(s: Solid, from: Point, toward: Point): Solid {
+  if (s.kind !== 'brep') return s;
+  const pieces = splitBodies(s.brep);
+  return pieces.length > 1 ? { kind: 'brep', brep: farthestPiece(pieces, from, toward) } : s;
+}
+/** A section's loop vertices (starts and arc centres) in its own XY. */
+function shapeVertices(shape: MemberShape): Point[] {
+  const out: Point[] = [];
+  for (const loop of [shape.outer, ...shape.holes]) for (const g of loop) { out.push([g.start[0], g.start[1], 0]); if (g.kind === 'arc') out.push([g.center[0], g.center[1], 0]); }
+  return out;
+}
+/** Whether a section is symmetric about its own x or y line through its centroid (its vertices map onto themselves). */
+function reversibleSection(shape: MemberShape, c: XY): boolean {
+  const v = shapeVertices(shape), size = Math.max(1, ...v.map(p => Math.hypot(p[0] - c[0], p[1] - c[1]))), tol = 1e-9 * size;
+  const aboutX = v.map(p => [p[0], 2 * c[1] - p[1], 0] as Point), aboutY = v.map(p => [2 * c[0] - p[0], p[1], 0] as Point);
+  return samePoints(aboutX, v, tol) || samePoints(aboutY, v, tol);
+}
+/** Of a member's pieces, the one whose points reach farthest from `from` along `toward`. */
+function farthestPiece(pieces: readonly Brep[], from: Point, toward: Point): Brep {
+  let best = pieces[0], reach = -Infinity;
+  for (const b of pieces) { let r = -Infinity; for (const v of b.vertices) r = Math.max(r, dot(sub(v.point, from), toward)); if (r > reach) { reach = r; best = b; } }
+  return best;
+}
+/** A member built: its section extruded along its line (run on past an end where a corner needs it, ends `.start`, `.end`), moved onto its line, cut at its corners, its report on it. */
+function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Point; L: number; up: Point; at: string; frame?: { member: number; from: number; to: number }; ends?: MemberEnds }): Result {
+  const P = placeMember(given, o), { shape, area, centroid, u, F, q } = P, pre = (n: string) => `${o.at}.${n}`, e0 = o.ends?.extend[0] ?? 0, e1 = o.ends?.extend[1] ?? 0;
+  const solid = prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), ...(shape.tags ? { sideTags: shape.tags } : {}), heightMM: o.L + e0 + e1, fromMM: -e0, tag: o.at,
+    names: { ...(shape.outerNames ? { outer: shape.outerNames.map(pre) } : {}), ...(shape.holeNames ? { holes: shape.holeNames.map(h => h.map(pre)) } : {}), bottom: `${o.at}.start`, top: `${o.at}.end` } });
+  const origin = sectionPoint(F, -q[0], -q[1], o.start), m: BrepAffine['matrix'] = [F.x[0], F.y[0], u[0], F.x[1], F.y[1], u[1], F.x[2], F.y[2], u[2]];
+  const member: FrameMemberReport = { sectionKind: shape.kind, section: shape.label, areaMM2: area, centroid, ...(shape.derived ? { derived: shape.derived } : {}), anchor: o.anchor, offset: o.offset, rollDegrees: o.roll, ...(o.mirror ? { mirrored: true } : {}), reversible: reversibleSection(shape, centroid), ...(o.frame ? { frame: o.frame } : {}),
+    start: o.start, end: o.end, lengthMM: o.L, axis: u, xAxis: F.x, yAxis: F.y, ...(F.fallback ? { upFallback: F.fallback } : {}),
+    centroidLine: { start: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.start), end: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.end) },
+    ...(o.ends ? { ends: o.ends.report } : {}) };
+  const r = moveAll([{ solid: { kind: 'upright', solid } }], m, origin) as Extract<Result, { kind: 'solid' }>;
+  const memberPlace: MemberPlaced = { place: P, lengthMM: o.L, extend: [e0, e1], at: o.at };
+  if (!o.ends?.cuts.length && !o.ends?.subtract.length) return { kind: 'solid', parts: r.parts.map(part => ({ ...part, member, memberPlace })) };
+  // Cut at its corners: each plane keeps the member's side (n·x < n·o); a half-space round it, R past every point of it.
+  let cut = r.parts[0].solid;
+  const R = o.L + e0 + e1 + 2 * Math.hypot(P.box.max[0] - P.box.min[0], P.box.max[1] - P.box.min[1]) + 1;
+  for (const c of o.ends.cuts) {
+    const x = unit(cross(c.n, Math.abs(c.n[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0])), y = cross(c.n, x);
+    // (The tool's own ids take no dots; its cap is named as the member's cut face.)
+    cut = boolean(cut, obliqueHalf(c.o, c.n, x, y, R, true, `${o.at}_${c.name}`.replace(/\./g, '_'), `${o.at}.${c.name}`), 'intersection', o.at.replace(/\./g, '_'));
+  }
+  if (cut.kind === 'brep' && cut.brep.bodies.length !== 1) throw new CadPartError('GEOMETRY', o.at, `[TRIM_LEAVES_PIECES] cut at its corners, member ${o.frame?.member ?? ''} is in ${cut.brep.bodies.length} pieces`);
+  // Then the solids taken from it (envelopes, bodies): of the pieces left, the one reaching farthest its own way is kept.
+  for (const t of o.ends.subtract) {
+    const before = t.mustTouch ? volumeOfSolid(cut) : 0, next = boolean(cut, t.solid, 'difference', `${o.at}_${t.name}`.replace(/\./g, '_'));
+    if (empty(next)) throw new CadPartError('PARAMETER', o.at, `[TRIM_EMPTY] member ${o.frame?.member ?? ''}: nothing is left of it`);
+    const pieces = next.kind === 'brep' ? splitBodies(next.brep) : null;
+    cut = pieces && pieces.length > 1 ? { kind: 'brep', brep: farthestPiece(pieces, t.keepFrom, t.toward) } : next;
+    if (t.mustTouch && Math.abs(volumeOfSolid(cut) - before) <= 1e-9 * Math.max(1, before)) throw new CadPartError('PARAMETER', o.at, `[TRIM_MISSES] member ${o.frame?.member ?? ''} does not reach the body it is trimmed to`);
+  }
+  return { kind: 'solid', parts: [{ solid: cut, member, memberPlace }] };
+}
+/** A frame member as built (FRk1): its section placed on its line, its length, how far each end runs on, its faces' prefix. */
+type MemberPlaced = { readonly place: MemberPlace; readonly lengthMM: number; readonly extend: readonly [number, number]; readonly at: string };
+/** The matrix of a member's frame (the section's x, y and its line's direction as columns) and the part point of its section's origin at its start. */
+function memberAffine(P: MemberPlace, start: Point): { m: BrepAffine['matrix']; o: Point } {
+  return { m: [P.F.x[0], P.F.y[0], P.u[0], P.F.x[1], P.F.y[1], P.u[1], P.F.x[2], P.F.y[2], P.u[2]], o: sectionPoint(P.F, -P.q[0], -P.q[1], start) };
+}
+/**
+ * An end cap (FRk1, D165): a plate over a member's square end (its section's outer loop) or inset in its bore (the bore's
+ * loop), `t` thick, on the end as built (a through end where it runs on to). Refused `CAP_END` on an end a joint cuts
+ * (a mitre, a butt, a cope, a trim) and for a plug where the section has no bore or several.
+ */
+function endCapOf(part: Part, frame: string, k: number, end: 0 | 1, fit: 'over' | 'inset', t: number, at: string, fail: Tools['fail']): Result {
+  const { place: P, lengthMM: L, extend } = part.memberPlace!, report = part.member!, e = report.ends?.find(x => x.end === endName(end));
+  if (e && e.kind !== 'square' && e.kind !== 'through') fail('PARAMETER', `[CAP_END] member ${k}'s ${endName(end)} is cut by a ${e.kind}: a cap sits on a square end`);
+  if (fit === 'inset' && P.shape.holes.length !== 1) fail('PARAMETER', `[CAP_END] member ${k}'s section has ${P.shape.holes.length ? `${P.shape.holes.length} bores` : 'no bore'}: a plug goes into one bore (give fit over)`);
+  const loop = fit === 'over' ? P.shape.outer : P.shape.holes[0], z = end ? L + extend[1] : -extend[0];
+  // Over: outside the end; inset: inside the bore, flush with the end.
+  const from = (fit === 'over') === (end === 1) ? z : z - t, out = end ? 1 : -1;
+  const names = fit === 'over' ? { bottom: end ? `${at}.seat` : `${at}.face`, top: end ? `${at}.face` : `${at}.seat` } : { bottom: end ? `${at}.inner` : `${at}.face`, top: end ? `${at}.face` : `${at}.inner` };
+  const solid = prismaticFromProfile({ outer: loop, heightMM: t, fromMM: from, tag: at, names });
+  const start = report.start as unknown as Point, { m, o } = memberAffine(P, start), A = loopArea(loop);
+  const endCap: EndCapReport = { frame, member: k, end: endName(end), fit, thicknessMM: t, areaMM2: A, volumeMM3: A * t, plane: { origin: noNegativeZero(add(start, scale(P.u, z))), normal: noNegativeZero(scale(P.u, out)) }, seam: { lengthMM: loopPerimeter(loop), exact: true } };
+  const r = moveAll([{ solid: { kind: 'upright', solid } }], m, o) as Extract<Result, { kind: 'solid' }>;
+  return { kind: 'solid', parts: [{ ...r.parts[0], endCap }] };
+}
+/** A report's point with −0 written as 0. */
+const noNegativeZero = (v: Point): Point => [v[0] + 0, v[1] + 0, v[2] + 0];
+/** A member at a joint: its index, its direction away from the joint, how far it reaches that way, and where its line lies. */
+type GussetArm = { readonly k: number; readonly away: Point; readonly reach: number; readonly part: Part };
+/**
+ * Where a member's side facing `w` (square to its line) lies, and whether it is flat over a plate's span (`n`-ward from
+ * the line, lo to hi): its distance from the line, and the name of the straight face there. Refused `GUSSET_FIT` at an
+ * edge of its section (turned) and where the side has no flat material over the span (a round tube, a round corner).
+ */
+function gussetSide(arm: GussetArm, w: Point, n: Point, lo: number, hi: number, fail: Tools['fail']): { h: number; face?: string } {
+  const { place: P, at } = arm.part.memberPlace!, wx = dot(w, P.F.x), wy = dot(w, P.F.y);
+  const axis = Math.abs(Math.abs(wx) - 1) < 1e-9 ? 0 : Math.abs(Math.abs(wy) - 1) < 1e-9 ? 1 : -1;
+  if (axis < 0) fail('PARAMETER', `[GUSSET_FIT] member ${arm.k} meets the gusset at an edge of its section, not a face (turn the member a quarter, or leave the gusset out)`);
+  const ax = axis as 0 | 1, sign = (ax === 0 ? wx : wy) > 0 ? 1 : -1, boxAt = sign > 0 ? P.box.max[ax] : P.box.min[ax], other = 1 - ax;
+  const nd = dot(n, ax === 0 ? P.F.y : P.F.x), a = P.q[other] + nd * lo, b = P.q[other] + nd * hi, s0 = Math.min(a, b), s1 = Math.max(a, b);
+  const tol = 1e-9 * Math.max(1, P.box.max[0] - P.box.min[0], P.box.max[1] - P.box.min[1]), loop = P.shape.outer;
+  for (let i = 0; i < loop.length; i++) {
+    const g = loop[i], e = loop[(i + 1) % loop.length].start;
+    if (g.kind !== 'line' || Math.abs(g.start[ax] - boxAt) > tol || Math.abs(e[ax] - boxAt) > tol) continue;
+    if (Math.min(g.start[other], e[other]) <= s0 + tol && Math.max(g.start[other], e[other]) >= s1 - tol) return { h: sign * (boxAt - P.q[ax]), ...(P.shape.outerNames ? { face: `${at}.${P.shape.outerNames[i]}` } : {}) };
+  }
+  const spans = sideContact(P, ax, boxAt).map(([p, q]) => `${+p.toFixed(3)} to ${+q.toFixed(3)}`).join(', ') || 'none';
+  return fail('PARAMETER', `[GUSSET_FIT] member ${arm.k} has no flat face under the gusset: it spans ${+s0.toFixed(3)} to ${+s1.toFixed(3)} mm across that side, whose flat material is at ${spans} (a round tube or a round corner)`);
+}
+/**
+ * A gusset (FRk1, D165) in the corner of two members of a frame at a skeleton point: in their plane (its normal a × b of
+ * their directions away from the joint), its legs along their inner faces from where those faces meet, the corner
+ * clipped. Refused `GUSSET_FIT`: no two members there (or not those named), members in line, a member meeting it at an
+ * edge or a round, a leg past its member, a clip not under the legs.
+ */
+function gussetOf(byMember: ReadonlyMap<number, Part>, g: { frame: string; point: number; pair?: readonly [number, number]; along?: 1 | -1; legs: readonly [number, number]; t: number; clip: number; offset: number }, at: string, fail: Tools['fail']): Result {
+  let p: Point | undefined;
+  for (const q of byMember.values()) { const fm = q.member!.frame!; if (fm.from === g.point) p = q.member!.start as unknown as Point; else if (fm.to === g.point) p = q.member!.end as unknown as Point; if (p) break; }
+  if (!p) return fail('PARAMETER', `[GUSSET_FIT] no member of ${g.frame} ends at point ${g.point}`);
+  const arms: GussetArm[] = [];
+  for (const [k, q] of byMember) {
+    const r = q.member!, s = r.start as unknown as Point, u = q.memberPlace!.place.u, L = r.lengthMM, d = dot(sub(p, s), u);
+    if (samePoint(s, p)) arms.push({ k, away: u, reach: L, part: q });
+    else if (samePoint(r.end as unknown as Point, p)) arms.push({ k, away: scale(u, -1), reach: L, part: q });
+    else if (d > MEMBER_MIN_MM && d < L - MEMBER_MIN_MM && len(sub(p, add(s, scale(u, d)))) <= MEMBER_MIN_MM) {
+      // (A member passing through: its leg runs `along` its own direction or the other way.)
+      if ((g.pair ? g.pair.includes(k) : true) && g.along === undefined) fail('INPUT', `member ${k} runs through point ${g.point}: along (1 or −1) says which way the gusset's leg runs on it`);
+      arms.push({ k, away: scale(u, g.along ?? 1), reach: (g.along ?? 1) > 0 ? L - d : d, part: q });
+    }
+  }
+  const chosen = g.pair ? g.pair.map(k => arms.find(a => a.k === k)) : arms.length === 2 ? arms : null;
+  if (!chosen) return fail('PARAMETER', `[GUSSET_FIT] ${arms.length} members meet at point ${g.point}${arms.length > 2 ? ': say which two (members)' : ''}`);
+  const missing = g.pair?.find((k, i) => !chosen[i]);
+  if (missing !== undefined) return fail('PARAMETER', `[GUSSET_FIT] member ${missing} does not meet point ${g.point}`);
+  const [A, B] = chosen as GussetArm[], cos = dot(A.away, B.away), axb = cross(A.away, B.away), sin = len(axb);
+  if (sin < 1e-9) return fail('PARAMETER', `[GUSSET_FIT] members ${A.k} and ${B.k} are in line at point ${g.point}: no corner for a gusset`);
+  const n = scale(axb, 1 / sin), ey = unit(sub(B.away, scale(A.away, cos))), wb = unit(sub(A.away, scale(B.away, cos))), lo = g.offset - g.t / 2, hi = g.offset + g.t / 2;
+  const sa = gussetSide(A, ey, n, lo, hi, fail), sb = gussetSide(B, wb, n, lo, hi, fail);
+  // The inner faces' meeting in the plate's plane (x along A, y towards B): y = h_a, and h_b·w_b + s·u_b.
+  const s = (sa.h + sb.h * cos) / sin, xV = sb.h * sin + s * cos, yV = sa.h, [l1, l2] = g.legs, c = g.clip;
+  if (!(c < Math.min(l1, l2))) fail('PARAMETER', `[GUSSET_FIT] a clip of ${c} mm leaves nothing of legs ${l1} and ${l2}`);
+  if (xV + l1 > A.reach + MEMBER_MIN_MM) fail('PARAMETER', `[GUSSET_FIT] leg ${l1} runs past member ${A.k}: ${+(A.reach - xV).toFixed(3)} mm of its face from the corner`);
+  if (s + l2 > B.reach + MEMBER_MIN_MM) fail('PARAMETER', `[GUSSET_FIT] leg ${l2} runs past member ${B.k}: ${+(B.reach - s).toFixed(3)} mm of its face from the corner`);
+  const at2 = (d: number, along: 'a' | 'b'): XY => along === 'a' ? [xV + d, yV] : [xV + d * cos, yV + d * sin];
+  const corners: XY[] = c > 0 ? [at2(c, 'a'), at2(l1, 'a'), at2(l2, 'b'), at2(c, 'b')] : [[xV, yV], at2(l1, 'a'), at2(l2, 'b')];
+  const outer: ProfileSegmentInput[] = corners.map(start => ({ kind: 'line', start }));
+  const names = [`${at}.on.m${A.k}`, `${at}.free`, `${at}.on.m${B.k}`, ...(c > 0 ? [`${at}.clip`] : [])];
+  const solid = prismaticFromProfile({ outer, heightMM: g.t, fromMM: 0, tag: at, names: { outer: names, bottom: `${at}.back`, top: `${at}.front` } });
+  const m: BrepAffine['matrix'] = [A.away[0], ey[0], n[0], A.away[1], ey[1], n[1], A.away[2], ey[2], n[2]], mid = add(p, scale(n, g.offset));
+  const area = (l1 * l2 - c * c) * sin / 2, seams: WeldmentSeam[] = [{ member: A.k, lengthMM: l1 - c, ...(sa.face ? { face: sa.face } : {}) }, { member: B.k, lengthMM: l2 - c, ...(sb.face ? { face: sb.face } : {}) }];
+  const gusset: GussetReport = { frame: g.frame, point: g.point, members: [A.k, B.k], legsMM: [l1, l2], thicknessMM: g.t, clipMM: c, offsetMM: g.offset, angleDegrees: Math.atan2(sin, cos) * 180 / Math.PI,
+    plane: { origin: noNegativeZero(mid), normal: noNegativeZero(n) }, areaMM2: area, volumeMM3: area * g.t, outline: corners.map(([x, y]) => noNegativeZero(add(mid, add(scale(A.away, x), scale(ey, y))))), seams };
+  const r = moveAll([{ solid: { kind: 'upright', solid } }], m, add(p, scale(n, lo))) as Extract<Result, { kind: 'solid' }>;
+  const gussetPlace: GussetPlaced = { p, n, ua: A.away, ey, ub: B.away, wb, xV, yV, s, legs: [l1, l2], clip: c, t: g.t, offset: g.offset, members: [A.k, B.k] };
+  return { kind: 'solid', parts: [{ ...r.parts[0], gusset, gussetPlace }] };
+}
+/** A gusset as built (FRk2): its corner's frame (p, n; ua, ey along member A; ub, wb along member B), its corner, legs, clip, thickness, offset. */
+type GussetPlaced = { readonly p: Point; readonly n: Point; readonly ua: Point; readonly ey: Point; readonly ub: Point; readonly wb: Point; readonly xV: number; readonly yV: number; readonly s: number;
+  readonly legs: readonly [number, number]; readonly clip: number; readonly t: number; readonly offset: number; readonly members: readonly [number, number] };
+/** A B-rep or a prism moved from a local frame (its columns X, Y, W) at `o` into the part. */
+function placedSolid(s: Solid, X: Point, Y: Point, W: Point, o: Point): Solid {
+  const m: BrepAffine['matrix'] = [X[0], Y[0], W[0], X[1], Y[1], W[1], X[2], Y[2], W[2]];
+  return s.kind === 'upright' ? (moveAll([{ solid: s }], m, o) as Extract<Result, { kind: 'solid' }>).parts[0].solid : { kind: 'brep', brep: transformBrep(s.brep, { matrix: m, offset: [o[0], o[1], o[2]] }) };
+}
+/** A flat face another member offers an end, in the end's plane: its loops in the plane's (a, b) from E, and the member. */
+type Landing = { readonly k: number; readonly outer: readonly XY[]; readonly holes: readonly (readonly XY[])[] };
+/** A B-rep face's loop as its vertices in order, or null where an edge is not straight (its midpoint off its chord). */
+function straightLoop(brep: Brep, loopId: string): Point[] | null {
+  const loop = brep.loops.find(l => l.id === loopId)!, pts: Point[] = [];
+  for (const cid of loop.coedges) {
+    const c = brep.coedges.find(x => x.id === cid)!, e = brep.edges.find(x => x.id === c.edge)!, [v0, v1] = e.vertices.map(v => brep.vertices.find(x => x.id === v)!.point);
+    const [t0, t1] = curveDomain(e.curve), mid = evaluateCurve(e.curve, (t0 + t1) / 2), chord = scale(add(v0, v1), 0.5);
+    if (len(sub(mid, chord)) > 1e-9 * Math.max(1, len(sub(v1, v0)))) return null;
+    pts.push(c.sense === 'forward' ? v0 : v1);
+  }
+  return pts;
+}
+/**
+ * The flat faces of the frame's other members lying in the plane through E square to `out` (an end's plane, `out` out of
+ * it) and facing back at it, as built (a mitre's cut kept): each face's loops in the plane's (a, b) from E.
+ */
+function landingFaces(byMember: ReadonlyMap<number, Part>, self: number, E: Point, out: Point, a: Point, b: Point, at: string): Landing[] {
+  const found: Landing[] = [];
+  for (const [k, q] of byMember) {
+    if (k === self) continue;
+    const P = q.memberPlace!.place;
+    // (Only a member with a box side in that plane facing back: then its faces lying there.)
+    const faces = [0, 1].some(ax => [1, -1].some(sign => Math.abs(dot(scale(ax === 0 ? P.F.x : P.F.y, sign), out) + 1) < 1e-9));
+    if (!faces) continue;
+    const brep = brepOf(q, `${at}_m${k}`), on = (v: Point) => Math.abs(dot(sub(v, E), out)) <= MEMBER_MIN_MM, uv = (v: Point): XY => [dot(sub(v, E), a), dot(sub(v, E), b)];
+    for (const f of brep.faces) {
+      const loops = f.loops.map(l => straightLoop(brep, l));
+      if (loops.some(l => !l || !l.every(on))) continue;
+      // (Facing back at the end: its outer loop runs anticlockwise about its outward normal, so its area vector is against `out`.)
+      const outer = loops[0]!, n = outer.reduce((acc, v, i) => add(acc, cross(v, outer[(i + 1) % outer.length])), [0, 0, 0] as Point);
+      if (dot(n, out) >= 0) continue;
+      found.push({ k, outer: outer.map(uv), holes: loops.slice(1).map(l => l!.map(uv)) });
+    }
+  }
+  return found;
+}
+/** A landing face as a slab `h` deep on the end's side of its plane (−out), in the end's plane frame (a, b, a × b) at E. */
+function landingSlab(f: Landing, a: Point, b: Point, E: Point, out: Point, h: number, at: string): Solid {
+  const W = cross(a, b), up = dot(W, out) < 0, line = (start: XY): ProfileSegmentInput => ({ kind: 'line', start });
+  const solid = prismaticFromProfile({ outer: f.outer.map(line), ...(f.holes.length ? { holes: f.holes.map(h2 => h2.map(line)) } : {}), heightMM: h, fromMM: up ? 0 : -h, tag: at });
+  return placedSolid({ kind: 'upright', solid }, a, b, W, E);
+}
+/**
+ * Landing faces meeting along whole edges (two mitred rails' undersides) as one loop each: their outer loops' edges, each
+ * pair run both ways (within 1e-6 mm) dropped, the rest chained. Null where that does not close up (faces overlapping
+ * along part of an edge, or with holes): then the slabs are united by Booleans.
+ */
+function mergedLandings(faces: readonly Landing[]): Landing[] | null {
+  if (faces.some(f => f.holes.length)) return null;
+  const same = (p: XY, q: XY) => Math.hypot(p[0] - q[0], p[1] - q[1]) <= MEMBER_MIN_MM;
+  const edges: [XY, XY][] = faces.flatMap(f => f.outer.map((p, i) => [p, f.outer[(i + 1) % f.outer.length]] as [XY, XY]));
+  const kept = edges.filter(([p, q]) => !edges.some(([r, t]) => same(p, t) && same(q, r)));
+  const loops: XY[][] = [], used = new Set<number>();
+  for (let i = 0; i < kept.length; i++) {
+    if (used.has(i)) continue;
+    const loop: XY[] = [kept[i][0]];
+    let at = i;
+    for (let guard = 0; guard <= kept.length; guard++) {
+      used.add(at);
+      const end = kept[at][1];
+      if (same(end, loop[0])) break;
+      loop.push(end);
+      const next = kept.findIndex((e, j) => !used.has(j) && same(e[0], end));
+      if (next < 0) return null;
+      at = next;
+    }
+    loops.push(loop);
+  }
+  // (Loops run as the faces' outer loops did: the other way round, a hole — in the outer loop it lies in.)
+  const area = (P: readonly XY[]) => P.reduce((A, p, i) => A + p[0] * P[(i + 1) % P.length][1] - P[(i + 1) % P.length][0] * p[1], 0) / 2;
+  const sign = Math.sign(area(faces[0].outer)), outers = loops.filter(l => Math.sign(area(l)) === sign), holes = loops.filter(l => Math.sign(area(l)) !== sign);
+  const within = (X: XY, P: readonly XY[]) => { let w = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > X[1]) !== (P[j][1] > X[1]) && X[0] < (P[j][0] - P[i][0]) * (X[1] - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0]) w = !w; return w; };
+  return outers.map(outer => ({ k: faces[0].k, outer, holes: holes.filter(h => within(h[0], outer)) }));
+}
+/** Whether segment A–B (in the plane's (a, b)) lies on an edge of a landing face's loops. */
+function onLandingEdge(A: XY, B: XY, f: Landing): boolean {
+  const tol = 1e-6;
+  for (const P of [f.outer, ...f.holes]) for (let i = 0; i < P.length; i++) {
+    const p = P[i], q = P[(i + 1) % P.length], l = Math.hypot(q[0] - p[0], q[1] - p[1]);
+    const off = (X: XY) => Math.abs((q[0] - p[0]) * (X[1] - p[1]) - (q[1] - p[1]) * (X[0] - p[0])) / l, along = (X: XY) => ((X[0] - p[0]) * (q[0] - p[0]) + (X[1] - p[1]) * (q[1] - p[1])) / l;
+    if (off(A) < tol && off(B) < tol && [A, B].every(X => along(X) >= -tol && along(X) <= l + tol)) return true;
+  }
+  return false;
+}
+/** The parts of a loop's straight sides (in the plane's (a, b)) lying on a landing face's edge: flush, no fillet there (mm). */
+function flushLength(loop: readonly ProfileSegmentInput[], toPlane: (p: XY) => XY, faces: readonly Landing[]): number {
+  let flush = 0;
+  for (let i = 0; i < loop.length; i++) {
+    const g = loop[i];
+    if (g.kind !== 'line') continue;
+    const A = toPlane(g.start), B = toPlane(loop[(i + 1) % loop.length].start);
+    if (faces.some(f => onLandingEdge(A, B, f))) flush += Math.hypot(B[0] - A[0], B[1] - A[1]);
+  }
+  return flush;
+}
+/** Whether point X lies inside (or on) a convex loop. */
+function inConvex(X: XY, P: readonly XY[]): boolean {
+  let sign = 0;
+  for (let i = 0; i < P.length; i++) {
+    const p = P[i], q = P[(i + 1) % P.length], c = (q[0] - p[0]) * (X[1] - p[1]) - (q[1] - p[1]) * (X[0] - p[0]);
+    if (Math.abs(c) <= 1e-9 * Math.max(1, Math.hypot(q[0] - p[0], q[1] - p[1]))) continue;
+    if (sign && Math.sign(c) !== sign) return false;
+    sign = Math.sign(c);
+  }
+  return true;
+}
+const convexLoop = (P: readonly XY[]): boolean => P.every((_, i) => inConvex(P[(i + 2) % P.length], P)) && P.length >= 3;
+/** A B-rep with every id prefixed (and every reference to one), so several can be merged into one as bodies of their own. */
+function prefixedIds(b: Brep, p: string): Brep {
+  const r = (x: string) => p + x;
+  return { ...b, bodies: b.bodies.map(x => ({ ...x, id: r(x.id), shells: x.shells.map(r) })), shells: b.shells.map(x => ({ ...x, id: r(x.id), body: r(x.body), faces: x.faces.map(r) })),
+    faces: b.faces.map(x => ({ ...x, id: r(x.id), shell: r(x.shell), loops: x.loops.map(r) })), loops: b.loops.map(x => ({ ...x, id: r(x.id), face: r(x.face), coedges: x.coedges.map(r) })),
+    coedges: b.coedges.map(x => ({ ...x, id: r(x.id), edge: r(x.edge), loop: r(x.loop), next: r(x.next), prev: r(x.prev), twin: x.twin === null ? null : r(x.twin) })),
+    edges: b.edges.map(x => ({ ...x, id: r(x.id), vertices: [r(x.vertices[0]), r(x.vertices[1])] as const })), vertices: b.vertices.map(x => ({ ...x, id: r(x.id) })) };
+}
+/** A loop in an end's own frame: as it is at an end; its x and y swapped at a start (so the axis turns and the frame stays right-handed). */
+function endLoop(loop: readonly ProfileSegmentInput[], end: 0 | 1): ProfileSegmentInput[] {
+  if (end) return [...loop];
+  return loop.map(g => g.kind === 'line' ? { kind: 'line', start: [g.start[1], g.start[0]] as XY } : { kind: 'arc', start: [g.start[1], g.start[0]] as XY, center: [g.center[1], g.center[0]] as XY, direction: g.direction === 'ccw' ? 'cw' : 'ccw' });
+}
+/** Whether a member's section box offset by z, in the end's plane (a, b) from E, lies within one convex landing face (no clipping needed). */
+function landsWithin(P: MemberPlace, E: Point, a: Point, b: Point, z: number, f: Landing): boolean {
+  if (f.holes.length || !convexLoop(f.outer)) return false;
+  const pts = boxCorners(P, E).map(v => [dot(sub(v, E), a), dot(sub(v, E), b)] as XY);
+  const lo = [Math.min(...pts.map(p => p[0])) - z, Math.min(...pts.map(p => p[1])) - z], hi = [Math.max(...pts.map(p => p[0])) + z, Math.max(...pts.map(p => p[1])) + z];
+  return ([[lo[0], lo[1]], [hi[0], lo[1]], [hi[0], hi[1]], [lo[0], hi[1]]] as XY[]).every(X => inConvex(X, f.outer));
+}
+/**
+ * A fillet bead on a member's end landing square on other members' flat faces (FRk2, D166): the end's outer loop offset
+ * by the leg, drafted 45° back along the member, less its envelope, kept on the faces it lands on; with `inner`, the
+ * bore's fillet too. Refused: a mitre (`BEAD_KIND`: a groove weld's seam only), an end that is no plane
+ * (`BEAD_SEAM_NOT_PLANAR`), an end at an angle to its face (`BEAD_ANGLE`), landing on no member (`BEAD_KIND`), a leg
+ * larger than a concave round or the bore's rounds allow (`BEAD_SIZE`).
+ */
+function endBead(byMember: ReadonlyMap<number, Part>, part: Part, frame: string, k: number, end: 0 | 1, z: number, inner: boolean, at: string, fail: Tools['fail']): Result {
+  const { place: P, lengthMM: L, extend } = part.memberPlace!, report = part.member!, e = report.ends?.find(x => x.end === endName(end)), where = `member ${k}'s ${endName(end)}`;
+  if (e?.kind === 'mitre') fail('PARAMETER', `[BEAD_KIND] ${where} is mitred: a mitre takes a groove weld (its seam only), not a fillet`);
+  if (e?.kind === 'cope' || (e?.kind === 'trim' && !e.plane)) fail('PARAMETER', `[BEAD_SEAM_NOT_PLANAR] ${where} is ${e.kind === 'cope' ? 'coped' : 'trimmed to an envelope or a body'}: its seam is no plane's loop`);
+  if (e?.angleDegrees !== undefined && Math.abs(e.angleDegrees) > 1e-9) fail('PARAMETER', `[BEAD_ANGLE] ${where} meets its face at ${+e.angleDegrees.toFixed(6)}° from square: fillets on oblique ends are not modelled yet`);
+  const start = report.start as unknown as Point, zE = e?.plane ? dot(sub(e.plane.origin as unknown as Point, start), P.u) : end ? L + extend[1] : -extend[0];
+  const out = end ? P.u : scale(P.u, -1), E = add(start, scale(P.u, zE));
+  let faces = landingFaces(byMember, k, E, out, P.F.x, P.F.y, at);
+  {
+    // (Only the faces under its footprint: the section's box offset by the leg.)
+    const pts = boxCorners(P, E).map(v => [dot(sub(v, E), P.F.x), dot(sub(v, E), P.F.y)]), lo = [Math.min(...pts.map(p => p[0])) - z, Math.min(...pts.map(p => p[1])) - z], hi = [Math.max(...pts.map(p => p[0])) + z, Math.max(...pts.map(p => p[1])) + z];
+    const overlaps = (f: Landing) => { const xs = f.outer.map(p => p[0]), ys = f.outer.map(p => p[1]); return Math.min(...xs) < hi[0] - 1e-9 && Math.max(...xs) > lo[0] + 1e-9 && Math.min(...ys) < hi[1] - 1e-9 && Math.max(...ys) > lo[1] + 1e-9; };
+    faces = faces.filter(overlaps);
+  }
+  if (!faces.length) fail('PARAMETER', `[BEAD_KIND] ${where} lands on no member's flat face of ${frame}: nothing to weld it to`);
+  // The end's own frame: the section's x and y (swapped at a start), W out of the end; the end's plane at zP.
+  const X = end ? P.F.x : P.F.y, Y = end ? P.F.y : P.F.x, o = sectionPoint(P.F, -P.q[0], -P.q[1], start), zP = end ? zE : -zE, id = at.replace(/\./g, '_');
+  const drafted = (loop: readonly ProfileSegmentInput[], draft: number, tag: string): Solid => {
+    try { return placedSolid({ kind: 'brep', brep: draftedExtrusion({ profile: endLoop(loop, end), z0: zP - z, z1: zP, draftDegrees: draft, tag, id: tag.replace(/\./g, '_') }) }, X, Y, out, o); }
+    catch (cause) { if (cause instanceof BrepError) return fail('PARAMETER', `[BEAD_SIZE] ${where}: a leg of ${z} mm does not fit its ${draft < 0 ? 'outline' : 'bore'} (a concave round or the bore's rounds under the leg)`); throw cause; }
+  };
+  const prism = (loop: readonly ProfileSegmentInput[], from: number, h: number, tag: string): Solid => placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer: endLoop(loop, end), heightMM: h, fromMM: from, tag }) }, X, Y, out, o);
+  let bead = boolean(drafted(P.shape.outer, -45, `${at}.fillet`), prism(P.shape.outer, zP - z - 1, z + 1, `${at}.on.m${k}`), 'difference', id);
+  if (inner) {
+    if (P.shape.holes.length !== 1) fail('PARAMETER', `[BEAD_KIND] ${where}: its section has ${P.shape.holes.length ? `${P.shape.holes.length} bores` : 'no bore'}: no inner fillet to weld`);
+    bead = boolean(bead, boolean(prism(P.shape.holes[0], zP - z, z, `${at}.bore`), drafted(P.shape.holes[0], 45, `${at}.inner`), 'difference', id), 'union', id);
+  }
+  // Kept on the faces it lands on: past a face's flat (a flush side), no fillet.
+  if (!faces.some(f => landsWithin(P, E, P.F.x, P.F.y, z, f))) {
+    const merged = faces.length > 1 ? mergedLandings(faces) : null, slabs = merged ?? faces, base = bead;
+    try {
+      let slab = landingSlab(slabs[0], P.F.x, P.F.y, E, out, z + 1, `${at}.cut`);
+      for (let i = 1; i < slabs.length; i++) slab = boolean(slab, landingSlab(slabs[i], P.F.x, P.F.y, E, out, z + 1, `${at}.cut`), 'union', id);
+      bead = boolean(base, slab, 'intersection', id);
+    } catch (cause) {
+      if (!(cause instanceof CadPartError || cause instanceof BrepError) || faces.length < 2) throw cause;
+      // (Two fillets meeting only along a line — an end's corner at the faces' inside corner — are no one solid: each
+      // face's piece is a body of its own.)
+      const pieces = faces.map((f, i) => boolean(base, landingSlab(f, P.F.x, P.F.y, E, out, z + 1, `${at}.cut`), 'intersection', `${id}_p${i}`)).filter(q => !empty(q));
+      bead = { kind: 'brep', brep: mergeBreps(pieces.map((q, i) => prefixedIds(transformBrep(brepOf({ solid: q }, `${id}_p${i}`), { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => `${n}#${i + 1}`), `p${i}:`)), { family: 'weld-bead', id }) };
+    }
+  }
+  if (empty(bead)) fail('PARAMETER', `[BEAD_SIZE] ${where}: no fillet is left on the faces it lands on`);
+  const flush = flushLength(P.shape.outer, q => [q[0] - P.q[0], q[1] - P.q[1]], (faces.length > 1 ? mergedLandings(faces) : null) ?? faces);
+  const perimeter = loopPerimeter(P.shape.outer) + (inner ? loopPerimeter(P.shape.holes[0]) : 0);
+  const bead_: BeadReport = { frame, on: { member: k, end: endName(end) }, kind: 'fillet', legMM: z, throatMM: z / Math.SQRT2, meets: [...new Set(faces.map(f => f.k))], seam: { lengthMM: perimeter, flushMM: flush, exact: true, ...(inner ? { inner: true as const } : {}) }, volumeMM3: volumeOfSolid(bead), corner: 'mitred' };
+  return { kind: 'solid', parts: [{ solid: bead, bead: bead_ }] };
+}
+/**
+ * The fillets along a gusset's two seams, on both its faces (FRk2, D166): each a right triangle of legs z on the
+ * member's face and the gusset's, run the seam's length: (l − c)·z² a seam. Refused `BEAD_SIZE` where the clip is under
+ * the leg (the corner leaves the fillets no room) or the fillets run off a member's flat face.
+ */
+function gussetBead(byMember: ReadonlyMap<number, Part>, gp: Part, frame: string, gusset: string, z: number, at: string, fail: Tools['fail']): Result {
+  const G = gp.gussetPlace!, [l1, l2] = G.legs, c = G.clip, id = at.replace(/\./g, '_');
+  if (c < z - 1e-9) fail('PARAMETER', `[BEAD_SIZE] gusset ${gusset}'s clip ${c} is under the leg ${z}: the corner leaves its fillets no room`);
+  const lo = G.offset - G.t / 2 - z, hi = G.offset + G.t / 2 + z;
+  for (let i = 0; i < 2; i++) {
+    // (Each member's face under the gusset and its fillets: flat across their whole width.)
+    const m = G.members[i];
+    try { gussetSide({ k: m, away: i ? G.ub : G.ua, reach: Infinity, part: byMember.get(m)! }, i ? G.wb : G.ey, G.n, lo, hi, fail); }
+    catch (cause) { if (cause instanceof CadPartError) fail('PARAMETER', `[BEAD_SIZE] gusset ${gusset}'s fillets run off member ${m}'s flat face (${z} mm each side of its ${G.t} mm)`); throw cause; }
+  }
+  const corner = add(G.p, add(scale(G.ua, G.xV), scale(G.ey, G.yV)));
+  // Seam A from c to l1 along member A's face (into the gusset: ey); seam B from c to l2 along B's (into it: wb).
+  const seams: readonly [Point, Point, Point, number][] = [[add(corner, scale(G.ua, c)), G.ua, G.ey, l1 - c], [add(corner, scale(G.ub, c)), G.ub, G.wb, l2 - c]];
+  let bead: Solid | null = null;
+  for (let i = 0; i < 2; i++) {
+    const [S0, sdir, d, L] = seams[i], m = cross(sdir, d);
+    for (const side of [1, -1]) {
+      const B0 = add(S0, scale(G.n, G.offset + side * G.t / 2)), tri = [B0, add(B0, scale(G.n, side * z)), add(B0, scale(d, z))];
+      const outer: ProfileSegmentInput[] = tri.map(Q => ({ kind: 'line', start: [dot(sub(Q, S0), d), dot(sub(Q, S0), m)] as XY }));
+      const piece = placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: L, fromMM: 0, tag: `${at}.m${G.members[i]}.${side > 0 ? 'front' : 'back'}` }) }, d, m, sdir, S0);
+      bead = bead ? boolean(bead, piece, 'union', id) : piece;
+    }
+  }
+  const length = 2 * (l1 - c) + 2 * (l2 - c);
+  const bead_: BeadReport = { frame, on: { gusset }, kind: 'fillet', legMM: z, throatMM: z / Math.SQRT2, meets: [...G.members], seam: { lengthMM: length, flushMM: 0, exact: true }, volumeMM3: length * z * z / 2, corner: 'mitred' };
+  return { kind: 'solid', parts: [{ solid: bead!, bead: bead_ }] };
+}
 function moveAll(parts: readonly Part[], m: BrepAffine['matrix'], o: Point): Result {
   return { kind: 'solid', parts: parts.map((p): Part => {
     const exact = p.mass ?? (p.solid.kind === 'upright' ? ((s: PrismaticSolid) => (d: number) => prismaticMassProperties(s, d))(p.solid.solid) : undefined);
@@ -628,11 +3338,12 @@ function movedMass(p: SolidMassProperties, m: BrepAffine['matrix'], o: Point): S
 }
 function rotation(axis: CadPartAxis, deg: number, pivot: Point): { m: BrepAffine['matrix']; o: Point } {
   let m: BrepAffine['matrix'];
-  if (axis === 'z') {
-    const quarter = Math.round(deg / 90) * 90 === deg;
-    if (quarter) m = quarterTurn('z', deg);
-    else { const r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r); m = [c, -sn, 0, sn, c, 0, 0, 0, 1]; }
-  } else m = quarterTurn(axis, deg);
+  // Quarter turns exactly; any other angle by its sine and cosine.
+  if (Math.round(deg / 90) * 90 === deg) m = quarterTurn(axis, deg);
+  else {
+    const r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
+    m = axis === 'z' ? [c, -sn, 0, sn, c, 0, 0, 0, 1] : axis === 'x' ? [1, 0, 0, 0, c, -sn, 0, sn, c] : [c, 0, sn, 0, 1, 0, -sn, 0, c];
+  }
   const mp = [m[0] * pivot[0] + m[1] * pivot[1] + m[2] * pivot[2], m[3] * pivot[0] + m[4] * pivot[1] + m[5] * pivot[2], m[6] * pivot[0] + m[7] * pivot[1] + m[8] * pivot[2]];
   return { m, o: [pivot[0] - mp[0], pivot[1] - mp[1], pivot[2] - mp[2]] };
 }
@@ -647,7 +3358,7 @@ function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?:
  * plane, a radius to its side), each placed where the last one ended; the pieces meet in whole
  * cross-sections and are joined.
  */
-function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly SweepStep[], at: string, fail: Tools['fail'], through?: XY): { brep: Brep; mass: (density: number) => SolidMassProperties } {
+function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly SweepStep[], at: string, fail: Tools['fail'], through?: XY, sideTags?: readonly string[]): { brep: Brep; mass: (density: number) => SolidMassProperties } {
   // The path runs through the profile's centroid (or a given point): the profile is moved there, the body back.
   const centre = through ?? buildProfileLoop(profile, { maximumSegments: 1024 }).centroidMM;
   const outer: ProfileSegmentInput[] = profile.map(g => g.kind === 'line' ? { kind: 'line', start: [g.start[0] - centre[0], g.start[1] - centre[1]] } : { ...g, start: [g.start[0] - centre[0], g.start[1] - centre[1]], center: [g.center[0] - centre[0], g.center[1] - centre[1]] });
@@ -660,7 +3371,7 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
   steps.forEach((st, k) => {
     const tag = `${at}_s${k}`;
     if (st.kind === 'straight') {
-      const prism = prismaticFromProfile({ outer, heightMM: st.length, tag });
+      const prism = prismaticFromProfile({ outer, heightMM: st.length, tag, ...(sideTags ? { sideTags: { outer: sideTags } } : {}) });
       masses.push({ local: d => prismaticMassProperties(prism, d), axes: [x, y, z], offset: o });
       pieces.push(place(brepFromPrismatic(prism, { id: tag }), k));
       o = add(o, scale(z, st.length));
@@ -670,7 +3381,7 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
     const side = st.toward, sx = side === 'x' ? 1 : side === '-x' ? -1 : 0, sy = side === 'y' ? 1 : side === '-y' ? -1 : 0;
     const origin: XY = [sx * st.radius, sy * st.radius], direction: XY = sx ? [0, 1] : [1, 0];
     let turned: Brep;
-    try { turned = revolveProfile({ id: tag, profile: outer, axis: { origin, direction }, angleDegrees: st.angle }); }
+    try { turned = revolveProfile({ id: tag, profile: outer, axis: { origin, direction }, angleDegrees: st.angle, ...(sideTags ? { sideTags } : {}) }); }
     catch (cause) { if (cause instanceof BrepError && /axis/.test(cause.message)) fail('PARAMETER', `bend ${k}: the profile reaches the bend's axis (use a radius larger than the profile's reach towards ${side})`); throw cause; }
     pieces.push(place(turned!, k));
     const input = { id: tag, profile: outer, axis: { origin, direction }, angleDegrees: st.angle };
@@ -681,7 +3392,7 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
   });
   // Consecutive pieces meet in a cross-section, each on its side of its plane: they are glued there,
   // exactly, unless pieces further apart may touch (then they are united by a Boolean).
-  const box = (b: Brep) => { const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity]; for (const f of b.faces) for (const row of f.surface.controlPoints) for (const p of row) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], p[i]); hi[i] = Math.max(hi[i], p[i]); } return { lo, hi }; };
+  const box = (b: Brep) => { const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity]; for (const f of b.faces) for (const row of nurbsOf(f).controlPoints) for (const p of row) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], p[i]); hi[i] = Math.max(hi[i], p[i]); } return { lo, hi }; };
   const boxes = pieces.map(box), apart = (i: number, j: number) => [0, 1, 2].some(k => boxes[i].hi[k] < boxes[j].lo[k] - 1e-6 || boxes[j].hi[k] < boxes[i].lo[k] - 1e-6);
   const separate = pieces.every((_, i) => pieces.every((__, j) => j <= i + 1 || apart(i, j)));
   let body = pieces[0];
@@ -697,6 +3408,23 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
  */
 /** The shell of a part, by how it was made (its mass exact when that can be). */
 function shellOf(part: Part, t: number, open: string[], at: string, fail: Tools['fail']): Part {
+  // A mesh body (facet faces): its cavity its triangles offset in, the wall it achieves measured (R11.3, D114).
+  const s = part.solid;
+  if (s.kind === 'brep' && s.brep.faces.length && s.brep.faces.every(isFacetFace)) {
+    if (open.length) fail('CAPABILITY', `opening a face of a mesh body (${open.join(', ')}) is not supported yet: shell it closed`);
+    if (s.brep.bodies.some(b => b.kind === 'sheet')) fail('CAPABILITY', 'a mesh sheet encloses nothing to shell: thicken it instead');
+    const mesh = facetTriangles(s.brep);
+    try {
+      const r = meshInnerOffset(mesh.positions, mesh.indices, t);
+      const cavity = facetBrepFromTriangles(r.positions, mesh.indices, { id: `${at}_in`, maximumTriangles: CadPartLimits.meshTriangles, groups: mesh.groups, groupName: g => `${at}.in.${mesh.names[g]}`, creaseDegrees: 180 });
+      return { solid: { kind: 'brep', brep: withCavities(s.brep, cavity, { family: 'shell', id: at }) }, shell: r.report };
+    } catch (cause) {
+      const m = cause instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(cause.message) : null;
+      if (m) fail('CAPABILITY', m[1]);
+      if (cause instanceof MeshBrepError) fail('GEOMETRY', cause.message);
+      throw cause;
+    }
+  }
   if (part.solid.kind !== 'upright') {
     if (part.revolved) return shellRevolved(part, part.revolved, t, open, at, fail);
     if (part.swept) return shellSwept(part, part.swept, t, open, at, fail);
@@ -710,6 +3438,8 @@ function shellOf(part: Part, t: number, open: string[], at: string, fail: Tools[
   return { solid: shellPart(part, t, open, at, fail) };
 }
 
+/** The slab route's refusals of a face's kind or trim, which the offset route may take instead (other refusals stand). */
+const OFFSET_ROUTE = /freeform faces joined to others|trimmed by a curve other than its rulings and circles|bounded by a curve that is not a line or an arc/;
 function shellPart(part: Part, t: number, open: string[], at: string, fail: Tools['fail']): Solid {
   if (part.solid.kind === 'upright') { const h = hollowOf(part.solid.solid, t, open, at, fail); return { kind: 'upright', solid: booleanPrismatic(part.solid.solid, h.hollow, 'difference') }; }
   if (!part.history) {
@@ -718,9 +3448,21 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
     for (const n of open) if (!names.has(n)) fail('SELECTION', `no face named ${n} to open; faces: ${[...names].slice(0, 12).join(', ')}`);
     try { return { kind: 'brep', brep: generalShell(body, t, new Set(open), at) }; }
     catch (cause) {
+      // A closed body of freeform faces meeting smoothly (a SubD body): its cavity, its faces offset (R11.2a, D110); kept
+      // faces trimmed planes and cylinders too, offset exactly, where the opening leaves no sharp edge (R11.2c-1, D112).
+      if (cause instanceof BrepError && OFFSET_ROUTE.test(cause.message) && smoothOffsetBody(body, new Set(open))) {
+        // Opened faces (R11.2b, D111): the kept faces, their offset and the wall's end at the opening's edges.
+        try { return { kind: 'brep', brep: open.length ? offsetShell(body, t, new Set(open), at, at).shell : withCavities(body, offsetCavity(body, t, `${at}_in`, at).cavity, { family: 'shell', id: at }) }; }
+        catch (inner) { const m = inner instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(inner.message) : null; if (m) fail('CAPABILITY', m[1]); throw inner; }
+      }
+      // Sharp edges between such faces' smooth regions and the planes that bound the body: bands and regions' slabs (R11.2c-2, D113).
+      if (cause instanceof BrepError && OFFSET_ROUTE.test(cause.message)) {
+        try { return { kind: 'brep', brep: regionShell(body, t, new Set(open), at) }; }
+        catch (inner) { const m = inner instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(inner.message) : null; if (m) fail('CAPABILITY', m[1]); throw inner; }
+      }
       const m = cause instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(cause.message) : null;
       if (m) fail('CAPABILITY', m[1]);
-      if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', cause.message.replace(/^B-rep: analytic Boolean: /, ''));
+      if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', cause.message.replace(/^B-rep: (analytic Boolean: )?/, ''));
       throw cause;
     }
   }
@@ -735,6 +3477,7 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
   const outer = brepOf(part, 'target'), faces = new Map(outer.faces.map(f => [f.name, f]));
   let hollow: Part = { solid: { kind: 'upright', solid: h.hollow } };
   for (const fin of finishes) {
+    if (fin.radii) { hollow = varyingHollow(hollow, fin, base, face, t, open, at, fail); continue; }
     // Edges by their offset size (a chamfer's depends on each corner's angle).
     const jobs = new Map<number, string[]>();
     for (const name of fin.edges) {
@@ -764,6 +3507,34 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
   return boolean(part.solid, inner, 'difference', at);
 }
 
+/**
+ * The hollow rounded after a variable-radius fillet (D108): the ball's spine is the outer fillet's, its radius the outer
+ * one less the wall — exact for a straight chain with its radius linear along it (two points): the radius at the hollow
+ * chain's ends from the outer law. Sharp where the wall reaches the radius all along; refused where it does partway, and
+ * for a curved chain or more points (their law along the hollow's chain is not the outer one's).
+ */
+function varyingHollow(hollow: Part, fin: Finish, base: PrismaticSolid, face: (n: string) => string | null, t: number, open: readonly string[], at: string, fail: Tools['fail']): Part {
+  const radii = fin.radii!, outer = brepOf({ solid: { kind: 'upright', solid: base } }, 'base');
+  const lines = fin.edges.map(name => {
+    if (name.split('|').some(n => open.includes(n))) fail('CAPABILITY', `${name} borders an open face: finish the opening's edges after the shell`);
+    const e = outer.edges.find(x => x.name === name || x.name === name.split('|').reverse().join('|'));
+    if (!e) return fail('CAPABILITY', `${fin.id} rounds ${name}, an edge made by an earlier finish: shell before that finish`);
+    if (!(e.curve.degree === 1 && e.curve.controlPoints.length === 2)) return fail('CAPABILITY', `[SHELL_VARIABLE_RADIUS] ${fin.id} varies its radius along a curved edge (${name}): its hollow's radius along the chain is not the outer one's less the wall; not supported yet`);
+    return e.curve.controlPoints as Point[];
+  });
+  if (radii.length !== 2) fail('CAPABILITY', `[SHELL_VARIABLE_RADIUS] ${fin.id} gives ${radii.length} radii: shell after a variable radius takes two (linear along a straight chain) yet`);
+  const p0 = radii[0].at, u = unit(sub(lines[0][1], lines[0][0]));
+  for (const [a, b] of lines) if (len(cross(sub(b, a), u)) > 1e-9 * Math.max(1, len(b)) || len(cross(sub(a, p0), u)) > 1e-6 * Math.max(1, len(a))) fail('CAPABILITY', `[SHELL_VARIABLE_RADIUS] ${fin.id}'s edges do not lie on one line: shell after a variable radius takes a straight chain yet`);
+  const s1 = dot(sub(radii[1].at, p0), u), r = (p: Point) => radii[0].radius + (radii[1].radius - radii[0].radius) * dot(sub(p, p0), u) / s1;
+  const names = fin.edges.map(name => { const m = name.split('|').map(face); if (m.some(n => n === null)) fail('CAPABILITY', `${fin.id} rounds ${name}, an edge made by an earlier finish: shell before that finish`); return (m as string[]).sort().join('|'); });
+  const inner = brepOf(hollow, `${at}_hollow`), ends = names.flatMap(n => { const e = inner.edges.find(x => x.name === n); if (!e) return fail('CAPABILITY', `the wall rounds the inside corner of ${n} already: shell inside corners finished by ${fin.id} is not supported yet`); return e.curve.controlPoints as Point[]; });
+  const along = ends.map(p => dot(sub(p, p0), u)), lo = ends[along.indexOf(Math.min(...along))], hi = ends[along.indexOf(Math.max(...along))];
+  const rLo = r(lo) - t, rHi = r(hi) - t;
+  if (!(rLo > 1e-9) && !(rHi > 1e-9)) return hollow;
+  if (!(rLo > 1e-9) || !(rHi > 1e-9)) fail('CAPABILITY', `[SHELL_VARIABLE_RADIUS] ${fin.id}'s radius falls to the wall (${t} mm) partway along: the hollow's round would run out there; not supported yet`);
+  return { solid: finishEdges(hollow, names, Math.max(rLo, rHi), 'fillet', `${at}_in_${fin.id}`, fail, undefined, [{ at: lo, radius: rLo }, { at: hi, radius: rHi }]) };
+}
+
 /** A body less hollows inside it: masses and moments subtracted (inertia via the origin). */
 function massLess(outer: SolidMassProperties, inner: readonly SolidMassProperties[]): SolidMassProperties {
   const about = (p: SolidMassProperties) => { const c = p.centroidMM.map(x => x * 1e-3), cc = c[0] ** 2 + c[1] ** 2 + c[2] ** 2; return p.inertiaCentroidKgM2.map((row, i) => row.map((v, j) => v + p.massKG * ((i === j ? cc : 0) - c[i] * c[j]))); };
@@ -782,11 +3553,13 @@ const profileOfRing = (ring: readonly CurveSegment2[]): ProfileSegmentInput[] =>
 });
 /** A profile's segments as a tagged section ring (`side<i>`, as the body's faces are named), and the loop. */
 type LineArc = Extract<CurveSegment2, { kind: 'line' } | { kind: 'arc' }>;
-function sectionRing(profile: readonly ProfileSegmentInput[]): LineArc[] {
-  const built = buildProfileLoop(profile, { maximumSegments: 1024 }).segments;
+function sectionRing(profile: readonly ProfileSegmentInput[], sideTags?: readonly string[]): LineArc[] {
+  const loop0 = buildProfileLoop(profile, { maximumSegments: 1024 }), built = loop0.segments;
+  // (Tagged: `side[t]`, by the authored segment, as revolve names them; a circle's halves both its one tag.)
+  const tagOf = (i: number) => sideTags ? `side[${sideTags[built.length > 1 ? (loop0.reversed ? built.length - 1 - i : i) : 0]}]` : `side${i}`;
   // A single circle is two halves (side0, side1), as the revolved body has it.
   const loop = built.length > 1 ? built : (() => { const a = built[0] as Extract<typeof built[number], { kind: 'arc' }>; return [{ ...a, sweep: a.sweep / 2 }, { ...a, startAngle: a.startAngle + a.sweep / 2, sweep: a.sweep / 2 }]; })();
-  return loop.map((g, i): LineArc => g.kind === 'line' ? { kind: 'line', a: g.start, b: g.end, tag: `side${i}` } : { kind: 'arc', c: g.center, r: g.radiusMM, t0: g.startAngle, sweep: g.sweep, tag: `side${i}` });
+  return loop.map((g, i): LineArc => g.kind === 'line' ? { kind: 'line', a: g.start, b: g.end, tag: tagOf(i) } : { kind: 'arc', c: g.center, r: g.radiusMM, t0: g.startAngle, sweep: g.sweep, tag: tagOf(i) });
 }
 const ringsOfRegions = (rs: readonly CurveRegion2[]) => rs.flatMap(r => [r.outer, ...r.holes]);
 /** Each body of a B-rep on its own: its shells, faces, loops, coedges, edges and vertices. */
@@ -808,7 +3581,7 @@ const renamed = (b: Brep, from: string, to: string) => transformBrep(b, { matrix
  */
 function shellRevolved(part: Part, input: RevolveInput, t: number, open: string[], at: string, fail: Tools['fail']): Part {
   if (input.angleDegrees !== 360) fail('CAPABILITY', 'shell works on bodies turned a full turn yet (this one stops at its start and end faces)');
-  const id = input.id!, ring = sectionRing(input.profile), tags = new Set(ring.map(g => g.tag!)), tol = curveTolerance([ring]);
+  const id = input.id!, ring = sectionRing(input.profile, input.sideTags), tags = new Set(ring.map(g => g.tag!)), tol = curveTolerance([ring]);
   const openTags = new Set(open.map(n => { const tag = n.startsWith(id + '.') ? n.slice(id.length + 1).replace(/#\d+$/, '') : ''; if (!tags.has(tag)) fail('SELECTION', `no face named ${n} to open; faces: ${[...tags].map(x => `${id}.${x}`).slice(0, 12).join(', ')}`); return tag; }));
   // The axis, its side the profile is on, and the mirror across it.
   const [dx, dy] = input.axis.direction, dl = Math.hypot(dx, dy), d: XY = [dx / dl, dy / dl], A = input.axis.origin, nrm: XY = [-d[1], d[0]];
@@ -848,7 +3621,7 @@ function shellSwept(part: Part, swept: NonNullable<Part['swept']>, t: number, op
   const names = new Set(brep.faces.map(f => f.name ?? '')), startName = [`${at}`].length ? [...names].find(n => /\.s0\.(bottom|start)$/.test(n)) : undefined, endName = [...names].find(n => new RegExp(`\\.s${last}\\.(top|end)$`).test(n));
   for (const n of open) if (n !== startName && n !== endName) fail(names.has(n) ? 'CAPABILITY' : 'SELECTION', names.has(n) ? `only a swept body's end faces can be opened yet (${startName}, ${endName})` : `no face named ${n} to open; faces: ${[startName, endName].join(', ')}`);
   const openStart = !!startName && open.includes(startName), openEnd = !!endName && open.includes(endName);
-  const ring = sectionRing(swept.profile), tol = curveTolerance([ring]), centre = buildProfileLoop(swept.profile, { maximumSegments: 1024 }).centroidMM;
+  const ring = sectionRing(swept.profile, swept.sideTags), tol = curveTolerance([ring]), centre = buildProfileLoop(swept.profile, { maximumSegments: 1024 }).centroidMM;
   const inner = erodeSection([{ outer: ring, holes: [] }], t, () => false, () => 'wall', tol);
   if (!inner.length) fail('PARAMETER', `a wall of ${t} mm leaves no hollow inside this section`);
   if (inner.length > 1 || inner[0].holes.length) fail('CAPABILITY', 'shell of a swept body whose hollow section falls apart is not supported yet');
@@ -911,17 +3684,21 @@ function hollowOf(solid: PrismaticSolid, t: number, open: string[], at: string, 
 }
 
 // ---- chamfers and fillets ------------------------------------------------------------------------------
-function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' | 'fillet', at: string, fail: Tools['fail']): Solid {
+function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' | 'fillet', at: string, fail: Tools['fail'], reports?: FilletReport[], radii?: readonly { at: Point; radius: number }[], shape?: { kind: 'conic'; rho: number } | { kind: 'g2'; tension: number }): Solid {
   // Vertical corners of an upright body keep it upright (its section is finished exactly); straight
   // chamfers elsewhere cut a wedge; every other edge (sloping or curved, on any body) gets a rolling-ball
   // tool (finishBrepEdges).
   const brep = brepOf(part, 'target'), byName = new Map(brep.edges.map(e => [e.name, e]));
+  // (F0: a mesh body's region edges cannot be rounded yet; its names would not survive the planar path.)
+  if (brep.faces.some(isFacetFace)) fail('CAPABILITY', `${kind} on mesh faces is not supported yet (general fillet and chamfer arrive with R10)`);
   const vertical: { x: number; y: number; z0: number; z1: number; name: string }[] = [], wedges: Brep['edges'][number][] = [], general: string[] = [];
   for (const name of names) {
     const e = byName.get(name);
     if (!e) fail('SELECTION', `no edge named ${name}; edges: ${brep.edges.slice(0, 12).map(x => x.name).join(', ')}${brep.edges.length > 12 ? ', …' : ''}`);
     const p = e!.curve.controlPoints, a = p[0], b = p[p.length - 1], straight = e!.curve.degree === 1 && p.length === 2;
     const tol = 1e-9 * Math.max(1, ...a.map(Math.abs), ...b.map(Math.abs));
+    // (A variable radius: every edge the rolling ball's, D100.)
+    if (radii || shape) { general.push(name); continue; }
     if (straight && part.solid.kind === 'upright' && Math.abs(a[0] - b[0]) <= tol && Math.abs(a[1] - b[1]) <= tol && uprightCorner(part.solid.solid, a[0], a[1], tol)) vertical.push({ x: a[0], y: a[1], z0: Math.min(a[2], b[2]), z1: Math.max(a[2], b[2]), name: name });
     else if (straight && kind === 'chamfer') wedges.push(e!);
     else general.push(name);
@@ -939,7 +3716,7 @@ function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' 
   for (const e of wedges) solid = wedgeChamfer(solid, brep, e, size, at, fail);
   if (general.length) {
     const body = solid.kind === 'upright' ? brepFromPrismatic(solid.solid) : solid.brep;
-    try { solid = { kind: 'brep', brep: finishBrepEdges(body, general, size, kind, at) }; }
+    try { solid = { kind: 'brep', brep: finishBrepEdges(body, general, size, kind, at, { reports, ...(radii ? { radii } : {}), ...(shape ? { shape } : {}) }) }; }
     catch (cause) {
       const m = cause instanceof BrepError ? /^B-rep: (SELECTION|CAPABILITY|PARAMETER): (.*)$/s.exec(cause.message) : null;
       if (m) fail(m[1] as CadPartErrorCode, m[2]);
@@ -1006,30 +3783,55 @@ function wedgeChamfer(solid: Solid, source: Brep, edge: Brep['edges'][number], d
   const P = edge.curve.controlPoints[0], Q = edge.curve.controlPoints[1], e = unit(sub(Q, P));
   const sides = uses.map(c => {
     const f = faceOf(c.loop), s = f.surface;
-    if (!(s.degreeU === 1 && s.degreeV === 1)) fail('CAPABILITY', `edge ${edge.name}: chamfers along horizontal edges need planar faces`);
+    if (s.kind !== 'surface' || !(s.degreeU === 1 && s.degreeV === 1)) fail('CAPABILITY', `edge ${edge.name}: chamfers along horizontal edges need planar faces`);
     const [[p00, p01], [p10]] = s.controlPoints as Point[][], n0 = cross(sub(p10, p00), sub(p01, p00)), n = unit(f.sense === 'forward' ? n0 : [-n0[0], -n0[1], -n0[2]]);
     const dir: Point = c.sense === 'forward' ? e : [-e[0], -e[1], -e[2]];
     return { n, w: unit(cross(n, dir)) }; // w: into the face, perpendicular to the edge
   });
   const [s1, s2] = sides, convex = dot(s2.w, s1.n) < 0;
-  // Cutting, the chamfer must fit on both faces: d at most each face's reach across the edge.
-  if (convex) {
-    const walls = uses.map((c, k) => faceReach(source, faceOf(c.loop).id, P, sides[k].w)), tol = 1e-6 * Math.max(1, ...P.map(Math.abs), ...Q.map(Math.abs));
-    if (walls.some(w => d > w + tol)) fail('PARAMETER', `edge ${edge.name}: chamfer ${d} mm is too large for walls of ${+walls[0].toFixed(6)} and ${+walls[1].toFixed(6)} mm`);
-  }
+  // The chamfer must fit on both faces: d at most each face's reach across the edge — cutting, or filling (where
+  // every boundary of the face bounds it: a round already made beside a concave edge too, D97).
+  const walls = uses.map((c, k) => faceReach(source, faceOf(c.loop).id, edge, sides[k].w, convex)), tol = 1e-6 * Math.max(1, ...P.map(Math.abs), ...Q.map(Math.abs));
+  if (walls.some(w => d > w + tol)) fail('PARAMETER', `[RADIUS_EXCEEDS_FACE] edge ${edge.name}: chamfer ${d} mm is too large for walls of ${+walls[0].toFixed(6)} and ${+walls[1].toFixed(6)} mm`);
   const corner = (X: Point) => {
     const A1 = add(X, scale(s1.w, d)), A2 = add(X, scale(s2.w, d)), M = scale(add(A1, A2), 0.5);
     // Grown about the chamfer line so no wedge face lies on a face of the body.
     return [sub(scale(A1, 2), A2), sub(scale(A2, 2), A1), sub(scale(X, 2), M)];
   };
-  const grow = convex ? d : 0, T0 = corner(sub(P, scale(e, grow))), T1 = corner(add(Q, scale(e, grow)));
+  // The wedge ends where the edge's end face is — oblique too: its corners carried along the edge onto that face's
+  // plane. A cutting one runs past an end where the body ends (the Boolean trims it) but not into a wall there; a filling
+  // one stops at either (it stopped square before, adding past an oblique end, and a cutting one notched a wall, D98).
+  const planes = [0, 1].map(k => endPlaneOf(source, edge, k as 0 | 1)), away = (k: number) => k ? e : scale(e, -1);
+  const ends = planes.map((pl, k) => pl && !(convex && dot(pl.n, away(k)) > 0) ? pl : null), past = planes.map((pl, k) => convex && !ends[k] ? d : 0);
+  const onto = (T: Point[], pl: { o: Point; n: Point } | null) => pl ? T.map(X => add(X, scale(e, dot(sub(pl.o, X), pl.n) / dot(e, pl.n)))) : T;
+  const T0 = onto(corner(sub(P, scale(e, past[0]))), ends[0]), T1 = onto(corner(add(Q, scale(e, past[1]))), ends[1]);
   const wedge = prismBrep(T0, T1, `${at}.face`);
   const body = solid.kind === 'upright' ? brepFromPrismatic(solid.solid) : solid.brep;
-  if (planarBrep(body)) return { kind: 'brep', brep: booleanPolyhedra(body, wedge, convex ? 'difference' : 'union', { id: at }) };
+  // (A wedge ending in an end face's plane: the analytic Boolean, which takes the coplanar cap; the polyhedral one does not, D98.)
+  if (planarBrep(body) && !ends.some(Boolean)) return { kind: 'brep', brep: planarBoolean(body, wedge, convex ? 'difference' : 'union', at) };
   try { return { kind: 'brep', brep: booleanAnalytic(body, wedge, convex ? 'difference' : 'union', { id: at }) }; }
   catch (cause) { if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', `edge ${edge.name}: the chamfer would cut a curved face at an angle (not supported yet)`); throw cause; }
 }
 
+/**
+ * The plane of the faces (not the edge's own two) meeting a straight edge at its end k — one face, or several in one
+ * plane (a step's two blocks' ends) — when planar and not along the edge, its normal out of the body; else null (the
+ * wedge stops square there, a cutting one run past).
+ */
+function endPlaneOf(source: Brep, edge: Brep['edges'][number], k: 0 | 1): { o: Point; n: Point } | null {
+  const v = edge.vertices[k], loopFace = new Map(source.loops.map(l => [l.id, l.face])), facesOf = (id: string) => source.coedges.filter(c => c.edge === id).map(c => loopFace.get(c.loop)!);
+  const own = new Set(facesOf(edge.id)), at = [...new Set(source.edges.filter(x => x.vertices.includes(v)).flatMap(x => facesOf(x.id)).filter(f => !own.has(f)))];
+  const p = edge.curve.controlPoints, e = unit(sub(p[p.length - 1], p[0])), tol = 1e-9 * Math.max(1, ...p.flat().map(Math.abs));
+  let plane: { o: Point; n: Point } | null = null;
+  for (const id of at) {
+    const face = source.faces.find(x => x.id === id)!, s = face.surface;
+    if (s.kind !== 'surface' || !(s.degreeU === 1 && s.degreeV === 1 && s.controlPoints.length === 2 && s.controlPoints[0].length === 2)) return null;
+    const [[p00, p01], [p10]] = s.controlPoints as Point[][], n0 = unit(cross(sub(p10, p00), sub(p01, p00))), n = face.sense === 'forward' ? n0 : scale(n0, -1);
+    if (!plane) plane = { o: p00, n };
+    else if (len(sub(n, plane.n)) > 1e-9 || Math.abs(dot(sub(p00, plane.o), plane.n)) > tol) return null;
+  }
+  return plane && Math.abs(dot(plane.n, e)) > 1e-6 ? plane : null;
+}
 /** A triangular prism between triangles T0 and T1 (corresponding corners), faces pointing out. */
 function prismBrep(T0: Point[], T1: Point[], name: string): Brep {
   const a = T0[0], A = T1[0];
@@ -1057,21 +3859,36 @@ function buildBrepLocal(pts: Point[], edges: { id: string; v: [number, number] }
 // ---- outputs --------------------------------------------------------------------------------------------
 function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
+  let validated: BrepCheckReport | undefined, area: number | undefined;
+  const flats = new Map<string, FlatPattern>();
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length,
-    massProperties(density: number) { return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 }); },
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}), ...(part.gusset ? { gusset: part.gusset } : {}), ...(part.endCap ? { endCap: part.endCap } : {}), ...(part.bead ? { bead: part.bead } : {}),
+    massProperties(density: number) {
+      // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
+      if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');
+      return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 });
+    },
     exportStl(options: { readonly segmentsPerQuarter?: number } = {}) { return stl(brep, options.segmentsPerQuarter ?? 16); },
     exportStep(options: { readonly name?: string } = {}) { return exportStep(brep, { name: options.name ?? id }); },
+    validate() { return validated ??= checkBrep(brep, { strict: true }); },
+    surfaceArea() { return area ??= brepSurfaceArea(brep); },
+    flatPattern(options: { readonly fixedFace?: string; readonly kFactor?: number } = {}) {
+      const s = part.sheet;
+      if (!s) throw new CadPartError('CAPABILITY', id, 'not made as sheet metal: give its thickness and K-factor to the kernel\'s flatPattern');
+      // (A K given here, else the sheet's K, else its bend table bend by bend.)
+      const k = options.kFactor ?? s.kFactor, key = `${options.fixedFace ?? s.fixedFace}|${k ?? 'table'}`;
+      const hit = flats.get(key); if (hit) return hit;
+      try {
+        const flat = flatPatternOf(brep, { thicknessMM: s.thicknessMM, ...(k !== undefined ? { kFactor: k } : { bendTable: s.bendTable! }), fixedFace: options.fixedFace ?? s.fixedFace, bendNames: s.bends.map(b => ({ name: b.name, faces: [b.inner, b.outer] })) });
+        flats.set(key, flat); return flat;
+      } catch (cause) {
+        if (cause instanceof FlatPatternError) throw new CadPartError(cause.code === 'CUT_ACROSS_BEND' ? 'CAPABILITY' : 'GEOMETRY', id, cause.message);
+        throw cause;
+      }
+    },
   });
 }
 function stl(brep: Brep, segmentsPerQuarter: number): Uint8Array {
-  const mesh = tessellateBrep(brep, { segmentsPerQuarter }), p = mesh.positionsMM, ix = mesh.indices, n = ix.length / 3;
-  const bytes = new Uint8Array(84 + 50 * n), view = new DataView(bytes.buffer);
-  new TextEncoder().encodeInto('barocss part (mm)', bytes);
-  view.setUint32(80, n, true);
-  for (let t = 0; t < n; t++) {
-    const v = [0, 1, 2].map(k => [p[ix[t * 3 + k] * 3], p[ix[t * 3 + k] * 3 + 1], p[ix[t * 3 + k] * 3 + 2]]), nn = cross(sub(v[1], v[0]), sub(v[2], v[0])), l = Math.hypot(...nn) || 1, o = 84 + 50 * t;
-    [nn[0] / l, nn[1] / l, nn[2] / l, ...v.flat()].forEach((x, k) => view.setFloat32(o + 4 * k, x, true));
-  }
-  return bytes;
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter });
+  return encodeBinaryStl(mesh.positionsMM, mesh.indices, 'barocss part (mm)');
 }

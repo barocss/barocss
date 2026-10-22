@@ -1,0 +1,21 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "r",
+      "kind": "internal-gear",
+      "module": 2,
+      "teeth": 60,
+      "faceWidth": 10,
+      "rim": 140,
+      "profileShift": 0.5,
+      "generator": "internal-gear@1",
+      "cutter": {
+        "teeth": 24
+      }
+    }
+  ]
+}

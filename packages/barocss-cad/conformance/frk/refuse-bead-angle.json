@@ -1,0 +1,93 @@
+{
+  "id": "frk-refuse-bead-angle",
+  "step": "FRk",
+  "decisions": [
+    "D166"
+  ],
+  "about": "FRk2: a bead on a brace butted at 60° from square is refused by name: fillets on oblique ends are not modelled yet.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              800
+            ],
+            [
+              300,
+              0,
+              919.6152422706632
+            ],
+            [
+              0,
+              0,
+              400
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 80,
+            "height": 80,
+            "wall": 4,
+            "outerRadius": 0
+          },
+          "overrides": [
+            {
+              "member": 1,
+              "section": {
+                "kind": "rect-tube",
+                "width": 40,
+                "height": 40,
+                "wall": 3,
+                "outerRadius": 0
+              }
+            }
+          ],
+          "corners": {
+            "tee": "butt"
+          }
+        },
+        {
+          "id": "w",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 1,
+            "end": "end"
+          },
+          "leg": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[BEAD_ANGLE] member 1's end meets its face at 60° from square"
+    }
+  },
+  "oracle": "By construction: the brace 30° off the post's axis."
+}

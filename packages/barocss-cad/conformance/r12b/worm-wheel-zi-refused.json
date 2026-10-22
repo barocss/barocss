@@ -1,0 +1,47 @@
+{
+  "id": "r12b-worm-wheel-zi-refused",
+  "step": "R12b",
+  "decisions": [
+    "D137"
+  ],
+  "about": "A ZI worm meshing with a throated wheel cut for a ZA worm: refused — the wheel meshes with the worm it was cut for.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "worm-wheel",
+          "worm": {
+            "axialModule": 3,
+            "starts": 2,
+            "diameter": 44,
+            "hand": "right"
+          },
+          "teeth": 30,
+          "faceWidth": 20,
+          "bore": 20
+        },
+        {
+          "id": "w",
+          "kind": "worm",
+          "starts": 2,
+          "length": 60,
+          "form": "ZI",
+          "mesh": {
+            "gear": "g"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "INPUT",
+      "messageIncludes": "the ZA worm it was cut for"
+    }
+  }
+}

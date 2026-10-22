@@ -1,0 +1,79 @@
+{
+  "id": "crossed-cylinders-2_4-2_39-at30",
+  "about": "Two cylinders (r 2.4 and 2.39) whose axes cross at 30°, intersected.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "As",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [1.237, -0.481],
+          "radius": 2.4
+        },
+        {
+          "id": "A",
+          "kind": "extrude",
+          "sketch": "As",
+          "height": 47.900000000000006,
+          "from": -21.290883561559372
+        },
+        {
+          "id": "Bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [1.237, 0.913],
+          "radius": 2.39
+        },
+        {
+          "id": "B0",
+          "kind": "extrude",
+          "sketch": "Bs",
+          "height": 47.900000000000006,
+          "from": -21.406637612689618
+        },
+        {
+          "id": "B",
+          "kind": "rotate",
+          "target": "B0",
+          "axis": "x",
+          "angleDegrees": 30,
+          "pivot": [0, 0, 0]
+        },
+        {
+          "id": "X",
+          "kind": "intersect",
+          "target": "A",
+          "tool": "B"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 146.52955711157153,
+          "relTol": 0.000001,
+          "absTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [1.237, -0.481, 2.6591164384406305],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "scripts/rb/oracle-cylinder-pair.mjs (parallel slices: ∫ 4√(a² − t²)√(b² − t²) dt / sin α; to rounding)"
+}

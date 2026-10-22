@@ -1,0 +1,76 @@
+{
+  "id": "rb3-helical-bolt-roundtrip",
+  "step": "RB3",
+  "decisions": [
+    "D20",
+    "D16"
+  ],
+  "about": "A helical M8 × 20 bolt: its area over the exact B-spline faces, kept with its volume through STEP.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "b",
+          "kind": "thread",
+          "diameter": 8,
+          "pitch": 1.25,
+          "length": 20,
+          "hex": {
+            "across": 13,
+            "height": 5.3
+          },
+          "form": "helical"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 1603.12372182,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            -3.879080157
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "b.end",
+          "b.head",
+          "b.hex0",
+          "b.hex1",
+          "b.hex2",
+          "b.hex3",
+          "b.hex4",
+          "b.hex5",
+          "b.seat",
+          "b.thread"
+        ],
+        "areaMM2": {
+          "value": 1274.616073813,
+          "relTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "this kernel (area by tensor Gauss over whole patches); the area re-taken at FRk8b (D167), when the trimmed faces' quadrature stopped straddling knot spans — agreeing with D149's Green theorem in the faces' domains (24, 48 and 96 pieces alike) to 1e-11 (1274.6160738; it was 6e-9 off)"
+}

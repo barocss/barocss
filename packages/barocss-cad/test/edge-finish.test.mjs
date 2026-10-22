@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { finishBrepEdges, brepFromPrismatic, prismaticFromProfile, transformBrep, checkBrep, tessellateBrep, brepMassProperties, BrepError } from '../dist/index.js';
+import { finishBrepEdges, brepFromPrismatic, prismaticFromProfile, transformBrep, checkBrep, tessellateBrep, brepMassProperties, BrepError, evaluateCadPart } from '../dist/index.js';
+import { openEdgesByBody } from '../scripts/rb/stages.mjs';
 
 const pi = Math.PI, corner = r => r * r * (1 - pi / 4), k = (10 - 3 * pi) / (12 - 3 * pi);
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
@@ -79,4 +80,23 @@ test('three fillets meeting at a corner round it with a sphere; all twelve edges
   assert.ok(watertight(all));
   assert.ok(near(volume(all), rounded(20, 10, 6, 1), 1e-4), String(volume(all)));
   assert.equal(all.faces.length, 6 + 12 + 16, 'six flats, twelve cylinders, eight corner spheres (two halves each)');
+});
+
+test('every edge of a box filleted: strictly valid, watertight, volume and area within 5e-5 of the rounded box for radii up to half the shortest edge', () => {
+  // The rounded a × b × c box: the inner box, its faces pushed out by r, quarter-cylinders along the edges, a ball's eighth at each corner.
+  const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f }), a = 40, b = 30, c = 10, pi = Math.PI;
+  const box = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [a, b] }, { id: 'e', kind: 'extrude', sketch: 's', height: c }];
+  const edges = evaluateCadPart(D(box)).outputs[0].brep.edges.map(e => e.name);
+  for (const r of [0.5, 2, 4.9]) {
+    const A = a - 2 * r, B = b - 2 * r, C = c - 2 * r;
+    const volume = A * B * C + 2 * r * (A * B + B * C + A * C) + pi * r * r * (A + B + C) + 4 / 3 * pi * r ** 3, area = 2 * (A * B + B * C + A * C) + 2 * pi * r * (A + B + C) + 4 * pi * r * r;
+    const o = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: r }])).outputs[0], m = o.massProperties(1), v = o.validate();
+    assert.equal(v.valid, true, `r ${r}: ${v.issues[0]}`); assert.ok(v.maximumEdgeSurfaceGapMM < 1e-8);
+    assert.equal(openEdgesByBody(o.brep, tessellateBrep(o.brep, { segmentsPerQuarter: 8 })), 0, `r ${r} watertight`);
+    // (The corner patches hold their ball's pole, where the quadrature over their trimmed domains is least
+    // accurate: 5e-5, shrinking with finer quadrature; the geometry itself is exact to 1e-9.)
+    assert.ok(Math.abs(m.volumeMM3 - volume) <= 5e-5 * volume, `r ${r} volume ${m.volumeMM3} vs ${volume}`);
+    assert.ok(Math.abs(o.surfaceArea() - area) <= 5e-5 * area, `r ${r} area ${o.surfaceArea()} vs ${area}`);
+    m.centroidMM.forEach((x, k) => assert.ok(Math.abs(x - [a / 2, b / 2, c / 2][k]) < 5e-4, `r ${r} centroid ${m.centroidMM}`));
+  }
 });

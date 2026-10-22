@@ -15,7 +15,12 @@
 //
 // A face once round with holes is cut where no hole is. Other entities (offset surfaces, vertex loops,
 // holes across a seam) are refused by name.
-import { BrepError, buildBrep, type Brep } from './brep-core.js';
+import { BrepError, buildBrep, mergeBreps, type Brep } from './brep-core.js';
+import { facetBrepFromTriangles, facetBrepsFromTriangles } from './facet-brep.js';
+import { withCavities } from './brep-glue.js';
+import { brepMassProperties } from './solid-mass.js';
+import { classifyPointInFacets } from './facet-bvh.js';
+import { MeshBrepError } from './mesh-brep.js';
 import { curveDomain, evaluateCurve } from './math.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import type { Curve, Point, Surface } from './types.js';
@@ -25,38 +30,51 @@ type Value = number | string | { ref: number } | { enum: string } | null | '*' |
 interface Entity { type: string; args: Value[]; parts?: { type: string; args: Value[] }[] }
 const refuse = (detail: string): never => { throw new BrepError('INPUT', 'STEP: ' + detail); };
 
+// (Tokens matched where the reader stands — sticky, without a copy of the rest of the text — and white space told by
+// its code, the regular expression only past ASCII: the same tokens as before, about a quarter faster; PERF3 C16.)
+const REF = /\d+/y, ENUM = /\.([A-Z0-9_]+)\./y, NUM = /[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?/y, WORD = /[A-Z_][A-Z0-9_]*/y, HEAD = /#(\d+)\s*=\s*/y;
+const sticky = (re: RegExp, s: string, at: number): RegExpExecArray | null => { re.lastIndex = at; return re.exec(s); };
+/** Whether a character is white space as /\s/ has it. */
+function space(s: string, i: number): boolean {
+  const c = s.charCodeAt(i);
+  return c === 32 || (c >= 9 && c <= 13) || (c > 127 && (c === 0xa0 || /\s/.test(s[i])));
+}
 /** The DATA section's instances: simple ones and complex ones (as their partial entities). */
 function parseData(source: string): Map<number, Entity> {
-  const data = /DATA;([\s\S]*?)ENDSEC;/.exec(source.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const data = /DATA;([\s\S]*?)ENDSEC;/.exec(source.includes('/*') ? source.replace(/\/\*[\s\S]*?\*\//g, '') : source);
   if (!data) refuse('no DATA section');
   const s = data![1], out = new Map<number, Entity>();
   let i = 0;
-  const ws = () => { while (i < s.length && /\s/.test(s[i])) i++; };
+  const ws = () => { while (i < s.length && space(s, i)) i++; };
   const value = (): Value => {
     ws();
     const c = s[i];
     if (c === '(') { i++; const list: Value[] = []; ws(); if (s[i] === ')') { i++; return list; } for (;;) { list.push(value()); ws(); if (s[i] === ',') { i++; continue; } if (s[i] === ')') { i++; return list; } refuse(`bad list near ${s.slice(i, i + 20)}`); } }
-    if (c === "'") { let t = ''; i++; for (;;) { if (i >= s.length) refuse('unterminated string'); if (s[i] === "'") { if (s[i + 1] === "'") { t += "'"; i += 2; continue; } i++; return t; } t += s[i++]; } }
-    if (c === '#') { i++; const m = /^\d+/.exec(s.slice(i))!; i += m[0].length; return { ref: Number(m[0]) }; }
-    if (c === '.') { const m = /^\.([A-Z0-9_]+)\./.exec(s.slice(i)); if (!m) refuse('bad enumeration'); i += m![0].length; return { enum: m![1] }; }
+    if (c === "'") {
+      // (A quote doubled is one quote.)
+      let t = ''; i++;
+      for (;;) { const q = s.indexOf("'", i); if (q < 0) refuse('unterminated string'); t += s.slice(i, q); if (s[q + 1] === "'") { t += "'"; i = q + 2; continue; } i = q + 1; return t; }
+    }
+    if (c === '#') { i++; const m = sticky(REF, s, i)!; i += m[0].length; return { ref: Number(m[0]) }; }
+    if (c === '.') { const m = sticky(ENUM, s, i); if (!m) refuse('bad enumeration'); i += m![0].length; return { enum: m![1] }; }
     if (c === '$') { i++; return null; }
     if (c === '*') { i++; return '*'; }
-    const num = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?/.exec(s.slice(i));
+    const num = sticky(NUM, s, i);
     if (num) { i += num[0].length; return Number(num[0]); }
-    const word = /^[A-Z_][A-Z0-9_]*/.exec(s.slice(i));
+    const word = sticky(WORD, s, i);
     if (word) { i += word[0].length; ws(); const args = value(); return { type: word[0], args: args as Value[] }; } // a typed parameter (LENGTH_MEASURE(…))
     return refuse(`unexpected ${s.slice(i, i + 20)}`);
   };
   while (i < s.length) {
     ws(); if (i >= s.length) break;
-    const head = /^#(\d+)\s*=\s*/.exec(s.slice(i)); if (!head) refuse(`expected an instance near ${s.slice(i, i + 30)}`);
+    const head = sticky(HEAD, s, i); if (!head) refuse(`expected an instance near ${s.slice(i, i + 30)}`);
     i += head![0].length; ws();
     if (s[i] === '(') {
       i++; const parts: { type: string; args: Value[] }[] = [];
-      for (;;) { ws(); if (s[i] === ')') { i++; break; } const w = /^[A-Z_][A-Z0-9_]*/.exec(s.slice(i)); if (!w) refuse('bad complex instance'); i += w![0].length; parts.push({ type: w![0], args: value() as Value[] }); }
+      for (;;) { ws(); if (s[i] === ')') { i++; break; } const w = sticky(WORD, s, i); if (!w) refuse('bad complex instance'); i += w![0].length; parts.push({ type: w![0], args: value() as Value[] }); }
       out.set(Number(head![1]), { type: 'COMPLEX', args: [], parts });
     } else {
-      const w = /^[A-Z_][A-Z0-9_]*/.exec(s.slice(i)); if (!w) refuse('expected an entity name');
+      const w = sticky(WORD, s, i); if (!w) refuse('expected an entity name');
       i += w![0].length; out.set(Number(head![1]), { type: w![0], args: value() as Value[] });
     }
     ws(); if (s[i] === ';') i++;
@@ -338,11 +356,14 @@ export function importStep(source: string, options: { readonly id?: string } = {
   for (const [n, e] of data) {
     if (e.type !== 'MANIFOLD_SOLID_BREP' && e.type !== 'BREP_WITH_VOIDS') continue;
     const shells = [e.args[1], ...(e.type === 'BREP_WITH_VOIDS' ? list(e.args[2]) : [])].map((sv, si) => {
-      const fs = shellFaces(sv).map(fv => faceOf(fv, k++)); faces.push(...fs); return { id: `${id}_sh${n}_${si}`, faces: fs };
+      // (One at a time: a big file's faces spread into one call would overflow the stack.)
+      const fs = shellFaces(sv).map(fv => faceOf(fv, k++)); for (const f of fs) faces.push(f); return { id: `${id}_sh${n}_${si}`, faces: fs };
     });
     bodies.push({ id: `${id}_b${n}`, shells });
   }
-  if (!bodies.length) refuse('no solid (MANIFOLD_SOLID_BREP) in the file');
+  // AP242 tessellated bodies (R3.5): facet faces, beside the B-rep solids (a convergent file holds both).
+  const meshes = tessellatedBreps(data, id);
+  if (!bodies.length) { if (meshes.length) return meshes.length === 1 ? meshes[0] : mergeBreps(meshes, { family: 'step', id }); refuse('no solid (MANIFOLD_SOLID_BREP, TESSELLATED_SOLID) in the file'); }
 
   // Splitting an edge at a fraction: a new vertex, two edges, every use replaced in loop order.
   let fresh = 0;
@@ -486,7 +507,21 @@ export function importStep(source: string, options: { readonly id?: string } = {
     return { surface, sense: (dot(own, natN) >= 0) === f.same ? 'forward' : 'reversed' };
   };
 
+  // Names a file repeats (several bodies exported with the same feature names) are numbered in file order,
+  // as pieces of one face are: name#1, name#2 (a B-rep's names are unique).
+  const faceNames = renumbered(bodies.flatMap(b => b.shells.flatMap(sh => sh.faces.map(f => f.name)))), edgeNames = renumbered([...edges.values()].map(e => e.name));
+  let fi = 0, ei = 0;
+  for (const b of bodies) for (const sh of b.shells) for (const f of sh.faces) { const n = faceNames[fi++]; if (n !== undefined) f.name = n; }
+  for (const e of edges.values()) { const n = edgeNames[ei++]; if (n !== undefined) e.name = n; }
+  // The file's distance accuracy, where it is larger than the 1e-6 mm this writer gives exact bodies (a tolerant B-rep's,
+  // D110): its entities' tolerance, at most 1e-5 of the model's size.
+  let accuracy = 0;
+  for (const e of data.values()) if (e.type === 'UNCERTAINTY_MEASURE_WITH_UNIT' && e.args[2] === 'distance_accuracy_value') { const m = e.args[0] as { type?: string; args?: Value[] } | number; const x = typeof m === 'number' ? m : Array.isArray(m?.args) ? m.args[0] as number : NaN; if (Number.isFinite(x)) accuracy = Math.max(accuracy, x); }
+  let extent = 0;
+  for (const p of points.values()) for (const x of p) extent = Math.max(extent, Math.abs(x));
+  const tolerant = accuracy > 1e-6 * (1 + 1e-9) ? Math.min(accuracy, 1e-5 * Math.max(1, extent)) : undefined;
   const brep = buildBrep({
+    ...(tolerant ? { toleranceMM: tolerant } : {}),
     source: { family: 'step', id },
     vertices: [...points].map(([vid, point]) => ({ id: vid, point })),
     edges: [...edges.values()].map(e => ({ id: e.id, curve: curves.get(e.id)!, vertices: e.v, ...(e.name ? { name: e.name } : {}) })),
@@ -500,5 +535,137 @@ export function importStep(source: string, options: { readonly id?: string } = {
   const byEdge = new Map<string, string[]>(); for (const c of brep.coedges) byEdge.set(c.edge, [...(byEdge.get(c.edge) ?? []), faceName.get(loopFace.get(c.loop)!)!]);
   const base = (eid: string) => [...new Set(byEdge.get(eid))].sort().join('|'), count = new Map<string, number>(), seen = new Map<string, number>();
   for (const e of brep.edges) if (!e.name) count.set(base(e.id), (count.get(base(e.id)) ?? 0) + 1);
-  return { ...brep, edges: brep.edges.map(e => { if (e.name) return e; const b = base(e.id), k = (seen.get(b) ?? 0) + 1; seen.set(b, k); return { ...e, name: count.get(b)! > 1 ? `${b}#${k}` : b }; }) };
+  const analytic: Brep = { ...brep, edges: brep.edges.map(e => { if (e.name) return e; const b = base(e.id), k = (seen.get(b) ?? 0) + 1; seen.set(b, k); return { ...e, name: count.get(b)! > 1 ? `${b}#${k}` : b }; }) };
+  return meshes.length ? mergeBreps([analytic, ...meshes], { family: 'step', id }) : analytic;
+}
+
+/** A STEP file's tessellated solids and shells as triangle meshes: each one's corners, triangles, faces (per triangle) and face names. */
+interface StepMesh { readonly id: string; readonly name: string; readonly positions: Float64Array; readonly indices: Uint32Array; readonly faces: Int32Array; readonly faceNames: readonly string[]; readonly shell: boolean }
+function tessellatedMeshes(data: Map<number, Entity>, id: string): StepMesh[] {
+  const get = (v: Value): Entity => { const e = v && typeof v === 'object' && 'ref' in v ? data.get((v as { ref: number }).ref) : undefined; if (!e) refuse('expected a reference to an instance in the file'); return e!; };
+  const out: StepMesh[] = [];
+  for (const [n, e] of data) {
+    if (e.type !== 'TESSELLATED_SOLID' && e.type !== 'TESSELLATED_SHELL') continue;
+    const positions: number[] = [], indices: number[] = [], faces: number[] = [], names: string[] = [], base = new Map<number, number>();
+    (e.args[1] as Value[]).forEach((fv, k) => {
+      const f = get(fv);
+      if (f.type !== 'TRIANGULATED_FACE') refuse(`${f.type} tessellated faces are not supported yet`);
+      const listRef = (f.args[1] as { ref: number }).ref, coords = get(f.args[1]);
+      if (coords.type !== 'COORDINATES_LIST') refuse(`${coords.type} coordinates are not supported`);
+      let at = base.get(listRef);
+      if (at === undefined) { at = positions.length / 3; base.set(listRef, at); for (const p of coords.args[2] as Value[]) for (const x of p as Value[]) positions.push(x as number); }
+      const pn = (f.args[5] as Value[]).map(x => x as number), count = (coords.args[2] as Value[]).length;
+      for (const t of f.args[6] as Value[]) {
+        const corner = (t as Value[]).map(x => x as number);
+        if (corner.length !== 3) refuse('a triangulated face with a triangle of other than three corners');
+        for (const c of corner) { const j = pn.length ? pn[c - 1] - 1 : c - 1; if (!(j >= 0 && j < count)) refuse('a triangle names a corner the coordinates list does not have'); indices.push(at + j); }
+        faces.push(k);
+      }
+      names.push(typeof f.args[0] === 'string' && f.args[0] ? f.args[0] : `face${k}`);
+    });
+    out.push({ id: `${id}_t${n}`, name: typeof e.args[0] === 'string' && e.args[0] ? e.args[0] : `mesh${n}`, positions: Float64Array.from(positions), indices: Uint32Array.from(indices), faces: Int32Array.from(faces), faceNames: renumbered(names).map(x => x!), shell: e.type === 'TESSELLATED_SHELL' });
+  }
+  return out;
+}
+/**
+ * The tessellated bodies as facet B-reps: each triangulated face's triangles kept to faces of their own, named as in
+ * the file. A tessellated solid that does not close, or a tessellated shell, comes in as an open sheet (said so,
+ * never closed by guessing: the studio offers its repair).
+ */
+function tessellatedBreps(data: Map<number, Entity>, id: string): Brep[] {
+  return tessellatedMeshes(data, id).map(m => {
+    const o = { id: m.id, groups: m.faces, groupName: (g: number) => m.faceNames[g], maximumTriangles: Infinity };
+    if (!m.shell) {
+      try { return facetBrepFromTriangles(m.positions, m.indices, o); }
+      catch (e) {
+        if (!(e instanceof MeshBrepError) || !/not closed|more than one piece|pieces/.test(e.message)) throw e;
+        // (A closed hollow solid — a mesh shelled, R11.3, D114 — in pieces: the largest its outside, the others its voids.)
+        if (!/not closed/.test(e.message)) {
+          const pieces = facetBrepsFromTriangles(m.positions, m.indices, o).map(b => ({ b, v: Math.abs(brepMassProperties(b, 1).volumeMM3) })).sort((x, y) => y.v - x.v);
+          // (Only pieces inside the largest are voids; lumps apart are the file's to name as bodies of their own.)
+          if (pieces.slice(1).every(p => classifyPointInFacets(pieces[0].b, p.b.vertices[0].point) === 'inside')) return pieces.slice(1).reduce((acc, p) => withCavities(acc, p.b, { family: 'step', id: m.id }), pieces[0].b);
+          throw e;
+        }
+      }
+    }
+    return facetBrepFromTriangles(m.positions, m.indices, { ...o, open: true });
+  });
+}
+/**
+ * A STEP file's tessellated meshes — every one when the file holds nothing else (no B-rep solid), else null — for the
+ * studio to check and repair as a mesh (M3) before it becomes a part.
+ */
+export function stepMeshes(source: string): { name: string; positions: Float64Array; indices: Uint32Array }[] | null {
+  const data = parseData(source);
+  for (const e of data.values()) if (e.type === 'MANIFOLD_SOLID_BREP' || e.type === 'BREP_WITH_VOIDS') return null;
+  const meshes = tessellatedMeshes(data, 'step');
+  return meshes.length ? meshes.map(m => ({ name: m.name, positions: m.positions, indices: m.indices })) : null;
+}
+const TESSELLATED_RECORDS = ['COORDINATES_LIST(', 'TRIANGULATED_FACE('];
+/**
+ * How many of a STEP file's characters hold tessellated geometry (its COORDINATES_LIST and TRIANGULATED_FACE records,
+ * COMPLEX_TRIANGULATED_FACE alike), found by a scan without parsing: the import's size caps tell a mesh file from a
+ * B-rep one by it (D49). A record runs from its keyword to the next ';' — a ';' in a quoted name ends it early, so
+ * it is counted short, never long.
+ */
+export function stepTessellatedChars(source: string): number {
+  let total = 0;
+  for (const word of TESSELLATED_RECORDS) {
+    for (let at = source.indexOf(word); at >= 0; at = source.indexOf(word, at)) {
+      const end = source.indexOf(';', at);
+      if (end < 0) { total += source.length - at; break; }
+      total += end - at; at = end;
+    }
+  }
+  return total;
+}
+
+/** Names, those that occur more than once numbered in order of occurrence (`name#1`, `name#2`…); missing ones stay missing. */
+function renumbered(names: readonly (string | undefined)[]): (string | undefined)[] {
+  const count = new Map<string, number>(), seen = new Map<string, number>();
+  for (const n of names) if (n) count.set(n, (count.get(n) ?? 0) + 1);
+  return names.map(n => { if (!n || count.get(n)! < 2) return n; const k = (seen.get(n) ?? 0) + 1; seen.set(n, k); return `${n}#${k}`; });
+}
+
+/** A STEP file's geometric validation properties (CAx-IF), as written for its part; each may be missing. */
+export interface StepValidationProperties {
+  readonly volumeMM3?: number; readonly areaMM2?: number; readonly centroidMM?: Point;
+  readonly box?: { readonly min: Point; readonly max: Point };
+}
+/**
+ * The validation properties a STEP file carries: PROPERTY_DEFINITIONs named 'geometric validation property'
+ * whose representations are 'volume', 'surface area', 'centroid' or 'bounding box' (values in mm).
+ */
+export function stepValidationProperties(source: string): StepValidationProperties {
+  const data = parseData(source), out: { volumeMM3?: number; areaMM2?: number; centroidMM?: Point; box?: { min: Point; max: Point } } = {};
+  const ref = (v: Value) => (v && typeof v === 'object' && 'ref' in v ? (v as { ref: number }).ref : -1);
+  const gvp = new Set<number>();
+  for (const [k, e] of data) if (e.type === 'PROPERTY_DEFINITION' && e.args[0] === 'geometric validation property') gvp.add(k);
+  for (const e of data.values()) {
+    if (e.type !== 'PROPERTY_DEFINITION_REPRESENTATION' || !gvp.has(ref(e.args[0]))) continue;
+    const rep = data.get(ref(e.args[1])); if (!rep || !Array.isArray(rep.args[1])) continue;
+    const items = (rep.args[1] as Value[]).map(v => data.get(ref(v))).filter((x): x is Entity => !!x);
+    const measure = () => { const m = items.find(x => x.type === 'MEASURE_REPRESENTATION_ITEM')?.args[1]; return m && typeof m === 'object' && 'args' in m ? Number((m as { args: Value[] }).args[0]) : undefined; };
+    const pointNamed = (name?: string) => { const p = items.find(x => x.type === 'CARTESIAN_POINT' && (name === undefined || x.args[0] === name)); return p ? (p.args[1] as Value[]).map(Number) as Point : undefined; };
+    if (rep.args[0] === 'volume') out.volumeMM3 = measure();
+    else if (rep.args[0] === 'surface area') out.areaMM2 = measure();
+    else if (rep.args[0] === 'centroid') out.centroidMM = pointNamed();
+    else if (rep.args[0] === 'bounding box') { const min = pointNamed('minimum point'), max = pointNamed('maximum point'); if (min && max) out.box = { min, max }; }
+  }
+  return out;
+}
+
+/** One property compared: the file's value, the model's, and the difference measured against its limit. */
+export interface ValidationCheck { readonly expected: number | Point; readonly actual: number | Point; readonly difference: number; readonly limit: number; readonly ok: boolean }
+/**
+ * The file's validation properties against the model read from it (its volume, area and centroid as measured
+ * here). Limits are CAx-IF's: volume and area within 1 %, the centroid within 0.1 % of the box's diagonal.
+ */
+export function compareValidationProperties(expected: StepValidationProperties, actual: { readonly volumeMM3: number; readonly areaMM2: number; readonly centroidMM: Point; readonly box: { readonly min: Point; readonly max: Point } }): { readonly volume?: ValidationCheck; readonly area?: ValidationCheck; readonly centroid?: ValidationCheck; readonly ok: boolean } {
+  const rel = (e: number, a: number): ValidationCheck => ({ expected: e, actual: a, difference: Math.abs(a - e) / Math.max(Math.abs(e), 1e-300), limit: 0.01, ok: Math.abs(a - e) <= 0.01 * Math.abs(e) });
+  const box = expected.box ?? actual.box, diagonal = Math.hypot(box.max[0] - box.min[0], box.max[1] - box.min[1], box.max[2] - box.min[2]);
+  const volume = expected.volumeMM3 === undefined ? undefined : rel(expected.volumeMM3, actual.volumeMM3);
+  const area = expected.areaMM2 === undefined ? undefined : rel(expected.areaMM2, actual.areaMM2);
+  const centroid = expected.centroidMM === undefined ? undefined : (() => { const d = Math.hypot(...[0, 1, 2].map(k => actual.centroidMM[k] - expected.centroidMM![k])); return { expected: expected.centroidMM!, actual: actual.centroidMM, difference: d, limit: 1e-3 * diagonal, ok: d <= 1e-3 * diagonal }; })();
+  return { ...(volume ? { volume } : {}), ...(area ? { area } : {}), ...(centroid ? { centroid } : {}), ok: [volume, area, centroid].every(c => !c || c.ok) };
 }

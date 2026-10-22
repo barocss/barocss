@@ -1,0 +1,29 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "r",
+      "kind": "internal-gear",
+      "module": 2,
+      "teeth": 60,
+      "faceWidth": 10,
+      "rim": 140,
+      "profileShift": 0.5
+    },
+    {
+      "id": "p",
+      "kind": "spur-gear",
+      "module": 2,
+      "teeth": 24,
+      "faceWidth": 10,
+      "mesh": {
+        "gear": "r",
+        "direction": 30
+      },
+      "generator": "spur-gear@1"
+    }
+  ]
+}

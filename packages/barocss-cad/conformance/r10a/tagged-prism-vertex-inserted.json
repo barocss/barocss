@@ -1,0 +1,124 @@
+{
+  "id": "r10a-tagged-prism-vertex-inserted",
+  "step": "R10a",
+  "decisions": [
+    "D86"
+  ],
+  "about": "The same sketch with a vertex inserted in its bottom side (a new tag x after a): the four sides and the hole keep their names, side[x] is added — R10a's promise (D31, D86).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              10,
+              -2
+            ],
+            [
+              20,
+              0
+            ],
+            [
+              20,
+              10
+            ],
+            [
+              0,
+              10
+            ]
+          ],
+          "holes": [
+            [
+              {
+                "kind": "arc",
+                "start": [
+                  7,
+                  5
+                ],
+                "center": [
+                  5,
+                  5
+                ],
+                "direction": "ccw"
+              }
+            ]
+          ],
+          "sideTags": {
+            "outer": [
+              "a",
+              "x",
+              "b",
+              "c",
+              "d"
+            ],
+            "holes": [
+              [
+                "h"
+              ]
+            ]
+          }
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 5
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 1037.1681469282041,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            10.3029009966122,
+            4.45364050337935,
+            2.5
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side[a]",
+          "e.side[b]",
+          "e.side[c]",
+          "e.side[d]",
+          "e.side[h]",
+          "e.side[x]",
+          "e.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: the prism, the triangle below it (20 × 2 / 2 × 5, its centroid at y −2/3), less the hole."
+}

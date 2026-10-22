@@ -1,0 +1,87 @@
+{
+  "id": "rb4-oracle-crossed-cylinders-45",
+  "step": "RB4-ORACLE",
+  "decisions": [
+    "D25"
+  ],
+  "about": "Two cylinders crossing at 45° (the axis ties between two components): every face wound outward in its tessellation; exact volume.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "As",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [1.237, -0.481],
+          "radius": 2.371
+        },
+        {
+          "id": "A",
+          "kind": "extrude",
+          "sketch": "As",
+          "height": 30.275201702492872,
+          "from": -13.3654238687998
+        },
+        {
+          "id": "Bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [1.237, 0.913],
+          "radius": 1.583
+        },
+        {
+          "id": "B0",
+          "kind": "extrude",
+          "sketch": "Bs",
+          "height": 30.275201702492872,
+          "from": -13.544364127744977
+        },
+        {
+          "id": "B",
+          "kind": "rotate",
+          "target": "B0",
+          "axis": "x",
+          "angleDegrees": 45,
+          "pivot": [0, 0, 0]
+        },
+        {
+          "id": "X",
+          "kind": "intersect",
+          "target": "A",
+          "tool": "B"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 49.660133305905426,
+          "relTol": 0.000001,
+          "absTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [1.237, -0.481, 1.7721769824466358],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/oracle-cylinder-pair.mjs (parallel slices: ∫ 4√(a² − t²)√(b² − t²) dt / sin α; to rounding)"
+}

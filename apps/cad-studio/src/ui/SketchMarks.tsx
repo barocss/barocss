@@ -3,9 +3,9 @@
 // points and edges, and the inline dimension editor.
 import type { ReactNode } from 'react';
 import type { SketchShape } from '../viewport/Viewport';
-import { arcOf, sampleSegment, type P2 } from '../sketch/profile';
-import { dimensionLabel, dimensionValue, isDriving, samePick, type Polygon, type SketchPick } from '../sketch/rules';
-import type { Project } from '../sketch/select';
+import { arcOf, sampleSegment, type P2 } from '@barocss/cad-model/sketch/profile';
+import { dimensionLabel, dimensionValue, isDriving, samePick, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
+import type { Project } from '@barocss/cad-model/sketch/select';
 import './constraints.css';
 
 export interface MarkHandlers {

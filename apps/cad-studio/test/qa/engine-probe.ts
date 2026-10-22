@@ -2,24 +2,15 @@
 // evaluates them with the same code the worker runs (evaluateDoc / stepFor / stlFor) and compares
 // volume, face counts and bounds with hand-computed values. Prints one JSON line per case.
 //   node test/qa/run-engine-probe.mjs
-import { evaluateDoc, stepFor, stlFor } from '../../src/engine/evaluate';
-import { importStep, brepMassProperties } from '@barocss/cad';
-import { emptyDoc, loftTop, prefixDoc, rectanglePart, starterDoc, withNode, type ModelNode, type StudioDoc } from '../../src/engine/doc';
-import type { DisplayMesh } from '../../src/engine/mesh';
-import { editFields } from '../../src/app/editFields';
+import { evaluateDoc, stepFor, stlFor } from '@barocss/cad-model/engine/evaluate';
+import { brepMassProperties, importStep, meshVolume } from '@barocss/cad';
+import { emptyDoc, loftTop, prefixDoc, rectanglePart, starterDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { editFields } from '@barocss/cad-model/app/editFields';
 
 type Row = { id: string; name: string; ok: boolean; expected?: unknown; actual?: unknown; note?: string };
 const rows: Row[] = [];
 let rev = 1;
 
-function meshVolume(m: DisplayMesh) {
-  let v = 0; const p = m.positions, i = m.indices;
-  for (let t = 0; t < i.length; t += 3) {
-    const a = i[t] * 3, b = i[t + 1] * 3, c = i[t + 2] * 3;
-    v += (p[a] * (p[b + 1] * p[c + 2] - p[b + 2] * p[c + 1]) - p[a + 1] * (p[b] * p[c + 2] - p[b + 2] * p[c]) + p[a + 2] * (p[b] * p[c + 1] - p[b + 1] * p[c])) / 6;
-  }
-  return v;
-}
 const rel = (a: number, b: number) => Math.abs(a - b) / Math.max(1e-9, Math.abs(b));
 const S = (n: number) => ({ node: n, side: 'solid' as const });
 const add = (doc: StudioDoc, ...nodes: ModelNode[]) => nodes.reduce((d, n) => withNode(d, n), doc);
@@ -36,7 +27,7 @@ const cyl = (r: number, h: number, cx: number, cy: number, z = 0, doc = emptyDoc
 function vol(id: string, name: string, doc: StudioDoc, expected: number, opts: { tol?: number; bodies?: number; faces?: number } = {}) {
   const r = evaluateDoc(doc, rev++);
   if (!r.ok) { rows.push({ id, name, ok: false, expected, actual: 'REFUSED: ' + r.error.title + ' | ' + r.error.detail }); return null; }
-  const kernel = r.bodies.reduce((s, b) => s + (b.volumeMM3 ?? NaN), 0), mesh = r.bodies.reduce((s, b) => s + meshVolume(b.mesh), 0);
+  const kernel = r.bodies.reduce((s, b) => s + (b.volumeMM3 ?? NaN), 0), mesh = r.bodies.reduce((s, b) => s + meshVolume(b.mesh.positions, b.mesh.indices), 0);
   const tol = opts.tol ?? 1e-4;
   const notes: string[] = [];
   let ok = rel(kernel, expected) < tol;
@@ -186,8 +177,8 @@ vol('T07', 'split X=8 of 32 box → two bodies', withNode(b32, { kind: 'split', 
 refuse('T08', 'split plane outside the body', withNode(b32, { kind: 'split', parent: S(1), axis: 'x', at: 100 }), /misses/);
 refuse('T09', 'split plane exactly on a face (x=0)', withNode(b32, { kind: 'split', parent: S(1), axis: 'x', at: 0 }), /misses/);
 vol('T10', 'rotate Z 30° keeps volume', withNode(b32, { kind: 'rotate', parent: S(1), axis: 'z', angleDegrees: 30 }), 16384);
-// Documented limit: only quarter turns about X/Y (refused with a plain reason).
-refuse('T11', 'rotate X 45° (non-quarter)', withNode(b32, { kind: 'rotate', parent: S(1), axis: 'x', angleDegrees: 45 }), /quarter turns/);
+// Any angle about X/Y (it was a documented limit: only quarter turns).
+vol('T11', 'rotate X 45° keeps volume', withNode(b32, { kind: 'rotate', parent: S(1), axis: 'x', angleDegrees: 45 }), 16384);
 refuse('T12', 'circular pattern ×6 about X (the UI never builds this; it steps by 90°)', withNode(box(10, 10, 5, 0, 20, 0), { kind: 'circular-pattern', parent: S(1), axis: 'x', angleDegrees: 60, count: 6 }), /quarter turns/);
 vol('T13', 'linear pattern of a holed plate ×2', withNode(starterDoc(), { kind: 'linear-pattern', parent: S(2), axis: 'y', spacing: 40, count: 2 }), 2 * (16384 - PI * 128));
 // --- Dependents / edits --------------------------------------------------------------------------

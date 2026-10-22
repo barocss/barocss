@@ -1,0 +1,10 @@
+{
+ "case": "type-error",
+ "step": "A5.2",
+ "note": "Arithmetic on a string.",
+ "script": "const b = box({w: \"a\" * 2, d: 40, h: 8})",
+ "error": {
+  "code": "script_type",
+  "line": 1
+ }
+}

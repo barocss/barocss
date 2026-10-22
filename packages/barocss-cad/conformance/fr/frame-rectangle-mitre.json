@@ -1,0 +1,268 @@
+{
+  "id": "fr-frame-rectangle-mitre",
+  "step": "FR",
+  "decisions": [
+    "D125"
+  ],
+  "about": "FR3a: a 600 × 400 rectangle of sharp 40 × 40 × 3 tubes mitred at every corner: A·L each (a prism cut by planes through the corners), the centroid moved outwards by 2I/(L·A), 45° ends.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              600,
+              0,
+              0
+            ],
+            [
+              600,
+              400,
+              0
+            ],
+            [
+              0,
+              400,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              3,
+              0
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "default": "mitre"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 266400,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            300,
+            -0.7655555555555555,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 600,
+          "centroid": [
+            0,
+            0
+          ],
+          "ends": [
+            {
+              "end": "start",
+              "kind": "mitre",
+              "point": 0,
+              "angleDegrees": 45
+            },
+            {
+              "end": "end",
+              "kind": "mitre",
+              "point": 1,
+              "angleDegrees": 45
+            }
+          ],
+          "derived": {
+            "innerRadius": "sharp: 0, as the outer corners"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 177600,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            601.1483333333333,
+            200,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 400,
+          "centroid": [
+            0,
+            0
+          ],
+          "ends": [
+            {
+              "end": "start",
+              "kind": "mitre",
+              "point": 1,
+              "angleDegrees": 45
+            },
+            {
+              "end": "end",
+              "kind": "mitre",
+              "point": 2,
+              "angleDegrees": 45
+            }
+          ],
+          "derived": {
+            "innerRadius": "sharp: 0, as the outer corners"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 266400,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            300,
+            400.7655555555556,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 600,
+          "centroid": [
+            0,
+            0
+          ],
+          "ends": [
+            {
+              "end": "start",
+              "kind": "mitre",
+              "point": 2,
+              "angleDegrees": 45
+            },
+            {
+              "end": "end",
+              "kind": "mitre",
+              "point": 3,
+              "angleDegrees": 45
+            }
+          ],
+          "derived": {
+            "innerRadius": "sharp: 0, as the outer corners"
+          },
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 177600,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            -1.1483333333333334,
+            200,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 400,
+          "centroid": [
+            0,
+            0
+          ],
+          "ends": [
+            {
+              "end": "start",
+              "kind": "mitre",
+              "point": 3,
+              "angleDegrees": 45
+            },
+            {
+              "end": "end",
+              "kind": "mitre",
+              "point": 0,
+              "angleDegrees": 45
+            }
+          ],
+          "derived": {
+            "innerRadius": "sharp: 0, as the outer corners"
+          },
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: across the member at y (towards the inside > 0) it runs from y to L − y, so V = ∫(L − 2y)dA = A·L and ȳ = −2I/(L·A), I = (b⁴ − (b − 2t)⁴)/12; θ = 45°."
+}

@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { build } from 'esbuild';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
@@ -14,22 +15,27 @@ const files = new Map([
   ['/mesh-fixtures.js', ['text/javascript; charset=utf-8', path.join(here, 'mesh-fixtures.mjs')]],
   ['/', ['text/html; charset=utf-8', path.join(here, 'index.html')]],
   ['/app.js', ['text/javascript; charset=utf-8', path.join(here, 'app.js')]],
-  ['/gpu.js', ['text/javascript; charset=utf-8', path.join(repo, 'packages/barocss-gpu/dist/index.js')]],
 ]);
+// The GPU package's bundle keeps CAD external (G18.1): served here with CAD's built entry folded in, so the pages
+// import one script (their CSP admits no inline import map). Built once, on the first request.
+let gpuBundle = null;
+const gpuScript = () => gpuBundle ??= build({
+  entryPoints: [path.join(repo, 'packages/barocss-gpu/dist/index.js')], bundle: true, format: 'esm', platform: 'browser', write: false,
+  alias: { '@barocss/cad': path.join(repo, 'packages/barocss-cad/dist/index.js') }, logLevel: 'silent',
+}).then(r => r.outputFiles[0].contents).catch(error => { gpuBundle = null; throw error; });
 
 export async function startServer(port = 0) {
   const server = createServer(async (req, res) => {
-    if (req.method !== 'GET' || !files.has(req.url)) {
+    if (req.method !== 'GET' || (!files.has(req.url) && req.url !== '/gpu.js')) {
       res.writeHead(404); res.end('Not found'); return;
     }
     try {
-      const [type, filename] = files.get(req.url);
-      const bytes = await readFile(filename);
+      const [type, bytes] = req.url === '/gpu.js' ? ['text/javascript; charset=utf-8', await gpuScript()] : [files.get(req.url)[0], await readFile(files.get(req.url)[1])];
       res.writeHead(200, { 'content-type': type, 'cache-control': 'no-store',
         'content-security-policy': "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'" });
       res.end(bytes);
     } catch {
-      res.writeHead(500); res.end('Build the GPU package before starting the example');
+      res.writeHead(500); res.end('Build the GPU and CAD packages (pnpm build:library in each) before starting the example');
     }
   });
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });

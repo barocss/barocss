@@ -1,0 +1,52 @@
+{
+  "id": "r12-refuse-bend-angle",
+  "step": "R12",
+  "decisions": [
+    "D116"
+  ],
+  "about": "R12.1: a path point in line with its neighbours: no bend there (no silent merge).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "c",
+          "kind": "sheet-contour",
+          "path": [
+            [
+              0,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              20,
+              0
+            ],
+            [
+              20,
+              10
+            ]
+          ],
+          "side": "left",
+          "width": 40,
+          "thickness": 2,
+          "bendRadius": 3,
+          "kFactor": 0.4
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[BEND_ANGLE] path point 1 is in line"
+    }
+  },
+  "oracle": "By construction: the setbacks, the turn and the section's self-contact in closed form."
+}

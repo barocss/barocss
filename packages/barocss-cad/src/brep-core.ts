@@ -8,8 +8,10 @@
 // (CadNumericPolicy.linearToleranceMM of the body's scale by default), not one global constant.
 import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain, validateCurve, validateSurface } from './math.js';
 import { CadNumericPolicy } from './numeric-policy.js';
-import type { Curve, Point, Surface } from './types.js';
+import type { Curve, FacetPatch, Point, Surface } from './types.js';
 import { cross, dot, sub } from './vec3.js';
+import { strictGeometry } from './brep-check-geometry.js';
+import { facetPatchProblem, facetVectorArea } from './facet-patch.js';
 
 export interface BrepVertex { readonly id: string; readonly point: Point; readonly toleranceMM: number }
 /** An edge runs along `curve` over its whole domain, from vertices[0] (domain start) to vertices[1] (domain end). */
@@ -26,7 +28,7 @@ export interface BrepCoedge {
 export interface BrepLoop { readonly id: string; readonly face: string; readonly kind: 'outer' | 'inner'; readonly coedges: readonly string[] }
 /** `sense: 'forward'` means the outward normal is ∂S/∂u × ∂S/∂v. */
 /** `name` (optional) is a persistent name: it follows the authored feature that made the face, not its id. */
-export interface BrepFace { readonly id: string; readonly shell: string; readonly surface: Surface; readonly sense: 'forward' | 'reversed'; readonly loops: readonly string[]; readonly name?: string }
+export interface BrepFace { readonly id: string; readonly shell: string; readonly surface: Surface | FacetPatch; readonly sense: 'forward' | 'reversed'; readonly loops: readonly string[]; readonly name?: string }
 export interface BrepShell { readonly id: string; readonly body: string; readonly faces: readonly string[]; readonly closed: boolean }
 export interface BrepBody { readonly id: string; readonly kind: 'solid' | 'sheet'; readonly shells: readonly string[] }
 export interface Brep {
@@ -46,22 +48,40 @@ export interface BrepCheckReport {
   /** Euler–Poincaré per body: V − E + F − (L − F) = 2(S − G), solved for the genus G. */
   readonly topology: readonly BrepBodyTopology[];
   readonly maximumVertexGapMM: number; readonly maximumPcurveGapMM: number;
+  /** With `strict`: the largest distance of an edge's sample from a surface of a face using it (else 0). */
+  readonly maximumEdgeSurfaceGapMM: number;
 }
 
+/**
+ * A B-rep refusal: its code, and for a refusal a caller acts on, a typed `reason` (never the message's wording):
+ * `NOT_PLANAR_WITHIN_FLOAT` — the polyhedral Boolean's face whose vertices are coplanar only to binary64 (FR3b, D126).
+ */
+export type BrepErrorReason = 'NOT_PLANAR_WITHIN_FLOAT';
 export class BrepError extends Error {
-  constructor(readonly code: 'INPUT' | 'TOPOLOGY' | 'GEOMETRY', detail: string, readonly report?: BrepCheckReport) { super(('B-rep: ' + detail).slice(0, 1024)); this.name = 'BrepError'; }
+  constructor(readonly code: 'INPUT' | 'TOPOLOGY' | 'GEOMETRY', detail: string, readonly report?: BrepCheckReport, readonly reason?: BrepErrorReason) { super(('B-rep: ' + detail).slice(0, 1024)); this.name = 'BrepError'; }
 }
 
+/**
+ * A face's surface where only a parametric one will do: a facet face (F0) is refused with a typed GEOMETRY error
+ * saying the operation does not take mesh faces yet (part-model maps "not supported yet" to CAPABILITY).
+ */
+export function nurbsOf(face: { readonly id: string; readonly surface: Surface | FacetPatch }, what = 'this operation'): Surface {
+  if (face.surface.kind === 'facets') throw new BrepError('GEOMETRY', `${what}: faceted (mesh) faces are not supported yet (face ${face.id})`);
+  return face.surface;
+}
+export const isFacetFace = (face: { readonly surface: Surface | FacetPatch }) => face.surface.kind === 'facets';
 const distance = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 /** ∂S/∂u × ∂S/∂v at the middle of the surface domain (central differences). */
 export function surfaceNormalAtCentre(surface: Surface): Point {
   const { u, v } = surfaceDomain(surface), um = (u[0] + u[1]) / 2, vm = (v[0] + v[1]) / 2, hu = (u[1] - u[0]) * 1e-4, hv = (v[1] - v[0]) * 1e-4;
   return cross(sub(evaluateSurface(surface, um + hu, vm), evaluateSurface(surface, um - hu, vm)), sub(evaluateSurface(surface, um, vm + hv), evaluateSurface(surface, um, vm - hv)));
 }
-/** Vector area (½∮ p × dp) of a loop of directed curve uses, sampled 16 times per use. */
+/** Vector area (½∮ p × dp) of a loop of directed curve uses: straight and polyline uses by their corners, others sampled 16 times. */
 export function loopVectorArea(uses: readonly { readonly curve: Curve; readonly sense: 'forward' | 'reversed' }[]): Point {
   const ring: Point[] = [];
   for (const u of uses) {
+    // (A straight or polyline edge: its own corners, exactly; a curve sampled 16 times.)
+    if (u.curve.degree === 1) { const p = u.curve.controlPoints, n = p.length; for (let k = 0; k + 1 < n; k++) ring.push(p[u.sense === 'forward' ? k : n - 1 - k] as Point); continue; }
     const [t0, t1] = curveDomain(u.curve);
     for (let k = 0; k < 16; k++) { const f = k / 16; ring.push(evaluateCurve(u.curve, u.sense === 'forward' ? t0 + (t1 - t0) * f : t1 - (t1 - t0) * f)); }
   }
@@ -82,8 +102,10 @@ export function coedgeVertices(brep: Brep, coedge: BrepCoedge, edges = new Map(b
 /**
  * Checks topology (references, loop cycles, twins, manifold edges and vertex links, Euler–Poincaré)
  * and geometry (edge ends on their vertices, pcurves on their surfaces) within entity tolerances.
+ * `strict` adds the L0 geometric checks (brep-check-geometry.ts): edges on their faces' surfaces, loops
+ * not crossing in a face's parameters, no sliver faces, tolerances under a cap of the model's size.
  */
-export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number } = {}): BrepCheckReport {
+export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number; readonly strict?: boolean } = {}): BrepCheckReport {
   const issues: string[] = [], add = (kind: string, detail: string) => { if (issues.length < 32) issues.push(`${kind}: ${detail}`); };
   const bodies = index(brep.bodies, 'body', issues), shells = index(brep.shells, 'shell', issues), faces = index(brep.faces, 'face', issues);
   const loops = index(brep.loops, 'loop', issues), coedges = index(brep.coedges, 'coedge', issues), edges = index(brep.edges, 'edge', issues), vertices = index(brep.vertices, 'vertex', issues);
@@ -102,7 +124,8 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
   }
   for (const f of brep.faces) {
     need(shells, f.shell, `face ${f.id}`);
-    try { validateSurface(f.surface); } catch (e) { add('geometry', `face ${f.id} surface: ${(e as Error).message}`); }
+    if (f.surface.kind === 'facets') { const why = facetPatchProblem(f.surface); if (why) add('geometry', `face ${f.id} facets: ${why}`); }
+    else try { validateSurface(f.surface); } catch (e) { add('geometry', `face ${f.id} surface: ${(e as Error).message}`); }
     if (f.loops.filter(l => loops.get(l)?.kind === 'outer').length !== 1) add('topology', `face ${f.id} needs exactly one outer loop`);
     for (const l of f.loops) { const loop = need(loops, l, `face ${f.id}`); if (loop && loop.face !== f.id) add('reference', `loop ${l} does not point back to face ${f.id}`); }
   }
@@ -163,14 +186,14 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
   for (const c of brep.coedges) {
     if (!c.pcurve) continue;
     const edge = edges.get(c.edge), face = faces.get(loops.get(c.loop)?.face ?? '');
-    if (!edge || !face) continue;
+    if (!edge || !face || face.surface.kind === 'facets') continue;
     const [t0, t1] = curveDomain(edge.curve), [p0, p1] = curveDomain(c.pcurve);
     if (p0 !== t0 || p1 !== t1) { add('geometry', `coedge ${c.id} pcurve domain differs from its edge`); continue; }
-    const { u, v } = surfaceDomain(face.surface);
+    const S = face.surface, { u, v } = surfaceDomain(S);
     for (let k = 0; k < samples; k++) {
       const t = t0 + (t1 - t0) * k / (samples - 1), uv = evaluateCurve(c.pcurve, t);
       if (uv[0] < u[0] - 1e-9 || uv[0] > u[1] + 1e-9 || uv[1] < v[0] - 1e-9 || uv[1] > v[1] + 1e-9) { add('geometry', `coedge ${c.id} pcurve leaves the surface domain`); break; }
-      const gap = distance(evaluateSurface(face.surface, Math.min(u[1], Math.max(u[0], uv[0])), Math.min(v[1], Math.max(v[0], uv[1]))), evaluateCurve(edge.curve, t));
+      const gap = distance(evaluateSurface(S, Math.min(u[1], Math.max(u[0], uv[0])), Math.min(v[1], Math.max(v[0], uv[1]))), evaluateCurve(edge.curve, t));
       maximumPcurveGapMM = Math.max(maximumPcurveGapMM, gap);
       if (gap > edge.toleranceMM) { add('geometry', `coedge ${c.id} pcurve is ${gap} mm off its edge`); break; }
     }
@@ -190,11 +213,23 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
   // Face sense: the outer loop runs counter-clockwise about the outward normal. Faces whose loop
   // encloses no net vector area (a full-turn wall between two rings) cannot be judged this way.
   for (const f of brep.faces) {
+    // A facet face: its boundary's vector area (all loops, exactly along the polylines) is the triangles' vector area.
+    if (f.surface.kind === 'facets') {
+      const A = facetVectorArea(f.surface), B: Point = [0, 0, 0];
+      for (const l of f.loops) for (const c of loops.get(l)?.coedges ?? []) {
+        const ce = coedges.get(c), e = ce && edges.get(ce.edge); if (!ce || !e) continue;
+        const p = ce.sense === 'forward' ? e.curve.controlPoints : [...e.curve.controlPoints].reverse();
+        for (let i = 0; i + 1 < p.length; i++) { const x = cross(p[i], p[i + 1]); B[0] += x[0] / 2; B[1] += x[1] / 2; B[2] += x[2] / 2; }
+      }
+      const s = f.sense === 'forward' ? 1 : -1, b = f.surface.bounds, size = Math.max(1, ...Array.from(b, Math.abs));
+      if (Math.hypot(B[0] - s * A[0], B[1] - s * A[1], B[2] - s * A[2]) > 1e-9 * size * size * Math.max(1, f.surface.indices.length / 3) ** 0.5) add('orientation', `face ${f.id}: its boundary does not run round its facets`);
+      continue;
+    }
     const outer = loops.get(f.loops.find(l => loops.get(l)?.kind === 'outer') ?? '');
     if (!outer) continue;
     const uses = outer.coedges.map(c => coedges.get(c)).filter((c): c is BrepCoedge => !!c && edges.has(c.edge)).map(c => ({ curve: edges.get(c.edge)!.curve, sense: c.sense }));
     if (uses.length !== outer.coedges.length) continue;
-    const area = loopVectorArea(uses), size = Math.hypot(...area), normal = surfaceNormalAtCentre(f.surface);
+    const area = loopVectorArea(uses), size = Math.hypot(...area), normal = surfaceNormalAtCentre(f.surface as Surface);
     let extent = 0; for (const u of uses) for (const p of u.curve.controlPoints) extent = Math.max(extent, ...p.map(Math.abs));
     if (size <= 1e-6 * Math.max(1, extent) ** 2 || Math.hypot(...normal) === 0) continue;
     if (dot(area, normal) * (f.sense === 'forward' ? 1 : -1) < 0) add('orientation', `face ${f.id} sense disagrees with its outer loop`);
@@ -211,10 +246,16 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
     return { body: b.id, vertices: V, edges: E, faces: F, loops: L, shells: S, genus };
   });
 
+  let maximumEdgeSurfaceGapMM = 0;
+  if (options.strict) {
+    let size = 1; for (const v of brep.vertices) for (const x of v.point) size = Math.max(size, Math.abs(x));
+    maximumEdgeSurfaceGapMM = strictGeometry(brep, { loops, coedges, edges }, size, add).maximumEdgeSurfaceGapMM;
+  }
+
   return {
     valid: issues.length === 0, issues,
     counts: { bodies: brep.bodies.length, shells: brep.shells.length, faces: brep.faces.length, loops: brep.loops.length, coedges: brep.coedges.length, edges: brep.edges.length, vertices: brep.vertices.length },
-    topology, maximumVertexGapMM, maximumPcurveGapMM,
+    topology, maximumVertexGapMM, maximumPcurveGapMM, maximumEdgeSurfaceGapMM,
   };
 }
 
@@ -230,12 +271,13 @@ export function assertValidBrep(brep: Brep): BrepCheckReport {
 // pairs twins by edge and fills tolerances.
 
 export interface BrepLoopInput { readonly kind: 'outer' | 'inner'; readonly uses: readonly { readonly edge: string; readonly sense: 'forward' | 'reversed'; readonly pcurve?: Curve | null }[] }
-export interface BrepFaceInput { readonly id: string; readonly surface: Surface; readonly sense: 'forward' | 'reversed'; readonly loops: readonly BrepLoopInput[]; readonly name?: string }
+export interface BrepFaceInput { readonly id: string; readonly surface: Surface | FacetPatch; readonly sense: 'forward' | 'reversed'; readonly loops: readonly BrepLoopInput[]; readonly name?: string }
 export interface BrepShellInput { readonly id: string; readonly faces: readonly BrepFaceInput[]; readonly closed: boolean }
 export interface BrepBuildInput {
   readonly source: Brep['source'];
-  readonly vertices: readonly { readonly id: string; readonly point: Point }[];
-  readonly edges: readonly { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string]; readonly name?: string }[];
+  /** (`toleranceMM` on a vertex or an edge: its own, for one that is tolerant — a fitted offset's, D110; else the B-rep's.) */
+  readonly vertices: readonly { readonly id: string; readonly point: Point; readonly toleranceMM?: number }[];
+  readonly edges: readonly { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string]; readonly name?: string; readonly toleranceMM?: number }[];
   readonly bodies: readonly { readonly id: string; readonly kind: 'solid' | 'sheet'; readonly shells: readonly BrepShellInput[] }[];
   /** Entity tolerance; defaults to CadNumericPolicy.linearToleranceMM at the geometry's scale. */
   readonly toleranceMM?: number;
@@ -244,6 +286,8 @@ export interface BrepBuildInput {
 export function buildBrep(input: BrepBuildInput): Brep {
   let scale = 0;
   for (const v of input.vertices) for (const x of v.point) scale = Math.max(scale, Math.abs(x));
+  // (A facet body has few vertices: its patches' extent counts too.)
+  for (const b of input.bodies) for (const s of b.shells) for (const f of s.faces) if (f.surface.kind === 'facets') for (const x of f.surface.bounds) scale = Math.max(scale, Math.abs(x));
   const tol = input.toleranceMM ?? Math.max(CadNumericPolicy.linearToleranceMM, CadNumericPolicy.relativeLinearTolerance * scale);
   const bodies: BrepBody[] = [], shells: BrepShell[] = [], faces: BrepFace[] = [], loops: BrepLoop[] = [], coedges: BrepCoedge[] = [];
   const mutable: { -readonly [K in keyof BrepCoedge]: BrepCoedge[K] }[] = [];
@@ -267,13 +311,14 @@ export function buildBrep(input: BrepBuildInput): Brep {
   }
   // Twins: the two uses of each edge (only when there are exactly two).
   const byEdge = new Map<string, typeof mutable>();
-  for (const c of mutable) byEdge.set(c.edge, [...(byEdge.get(c.edge) ?? []), c]);
+  for (const c of mutable) { const list = byEdge.get(c.edge); if (list) list.push(c); else byEdge.set(c.edge, [c]); }
   for (const uses of byEdge.values()) if (uses.length === 2 && uses[0].sense !== uses[1].sense) { uses[0].twin = uses[1].id; uses[1].twin = uses[0].id; }
-  coedges.push(...mutable);
+  // (One at a time: a spread of a large solid's coedges overflows a worker's call stack.)
+  for (const c of mutable) coedges.push(c);
   return {
     format: 'barocss-brep', version: 0, lengthUnit: 'mm', source: input.source, bodies, shells, faces, loops, coedges,
-    edges: input.edges.map(e => ({ id: e.id, curve: e.curve, vertices: [e.vertices[0], e.vertices[1]] as const, toleranceMM: tol, ...(e.name === undefined ? {} : { name: e.name }) })),
-    vertices: input.vertices.map(v => ({ id: v.id, point: [v.point[0], v.point[1], v.point[2]] as Point, toleranceMM: tol })),
+    edges: input.edges.map(e => ({ id: e.id, curve: e.curve, vertices: [e.vertices[0], e.vertices[1]] as const, toleranceMM: Math.max(tol, e.toleranceMM ?? 0), ...(e.name === undefined ? {} : { name: e.name }) })),
+    vertices: input.vertices.map(v => ({ id: v.id, point: [v.point[0], v.point[1], v.point[2]] as Point, toleranceMM: Math.max(tol, v.toleranceMM ?? 0) })),
   };
 }
 

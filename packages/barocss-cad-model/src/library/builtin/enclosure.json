@@ -1,0 +1,2754 @@
+{
+ "format": "barocss-cad-library",
+ "version": 1,
+ "id": "enclosure",
+ "name": "Enclosure elements",
+ "libraryVersion": "0.7.0",
+ "units": "mm",
+ "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
+ "provenance": "Written for BaroCSS from common plastic-design practice; no standard's or catalogue's text or tables. Every proportion is flagged an estimate: verify with your process (moulding or printing). Rule thresholds come from the material library's process profiles (D67).",
+ "parts": [
+  {
+   "id": "screw-boss",
+   "name": "Screw boss",
+   "category": "enclosure",
+   "simplified": true,
+   "description": "A boss for a thread-forming screw, with four gussets: added to a wall or floor by its base.",
+   "parameters": {
+    "d": {
+     "value": 3,
+     "unit": "mm",
+     "source": "the screw's nominal size (the variant's)",
+     "description": "screw size"
+    },
+    "dp": {
+     "value": 2.5,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS rule of thumb for plastic bosses (written for this library, not from a standard or a catalogue); verify with your moulder or printer",
+     "description": "pilot hole for a thread-forming screw"
+    },
+    "OD": {
+     "value": {
+      "expr": "2 * d + 0.4"
+     },
+     "unit": "mm",
+     "description": "boss outer diameter"
+    },
+    "h": {
+     "value": 8,
+     "unit": "mm",
+     "min": 2,
+     "max": 60,
+     "source": "free: the boss height"
+    },
+    "ribs": {
+     "value": 4,
+     "unit": "count",
+     "integer": true,
+     "min": 0,
+     "max": 4,
+     "source": "free: 0 or 4 gussets"
+    },
+    "rt": {
+     "value": 1.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS rule of thumb for plastic bosses (written for this library, not from a standard or a catalogue); verify with your moulder or printer",
+     "description": "gusset thickness"
+    },
+    "rl": {
+     "value": {
+      "expr": "d + 1"
+     },
+     "unit": "mm",
+     "description": "how far a gusset reaches out from the boss"
+    },
+    "rh": {
+     "value": {
+      "expr": "h * 0.75"
+     },
+     "unit": "mm",
+     "description": "gusset height on the boss"
+    },
+    "r0": {
+     "value": {
+      "expr": "OD / 2 - 0.2"
+     },
+     "unit": "mm"
+    }
+   },
+   "variants": [
+    {
+     "id": "M2",
+     "values": {
+      "d": 2,
+      "dp": 1.6
+     }
+    },
+    {
+     "id": "M2.5",
+     "values": {
+      "d": 2.5,
+      "dp": 2.0
+     }
+    },
+    {
+     "id": "M3",
+     "values": {
+      "d": 3,
+      "dp": 2.5
+     }
+    },
+    {
+     "id": "M4",
+     "values": {
+      "d": 4,
+      "dp": 3.3
+     }
+    },
+    {
+     "id": "M5",
+     "values": {
+      "d": 5,
+      "dp": 4.2
+     }
+    }
+   ],
+   "context": {
+    "wall": {
+     "unit": "mm",
+     "description": "the nominal wall of the body it is added to",
+     "from": [
+      "min_wall",
+      "given"
+     ]
+    },
+    "ribRec": {
+     "unit": "ratio",
+     "description": "the process's recommended rib-to-wall ratio",
+     "from": [
+      "profile.ribRec"
+     ]
+    },
+    "ribMax": {
+     "unit": "ratio",
+     "description": "the process's largest rib-to-wall ratio",
+     "from": [
+      "profile.ribMax"
+     ]
+    },
+    "bossWallMin": {
+     "unit": "ratio",
+     "description": "the process's least boss-wall-to-wall ratio",
+     "from": [
+      "profile.bossWallMin"
+     ]
+    },
+    "bossWallMax": {
+     "unit": "ratio",
+     "description": "the process's largest boss-wall-to-wall ratio",
+     "from": [
+      "profile.bossWallMax"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "boss-wall-thin",
+     "expr": "(OD - dp) / 2 >= bossWallMin * wall",
+     "value": "(OD - dp) / 2 / wall",
+     "level": "recommended",
+     "message": "the boss wall is thinner than the process recommends against the nominal wall (weak, hard to fill)"
+    },
+    {
+     "id": "boss-wall-thick",
+     "expr": "(OD - dp) / 2 <= bossWallMax * wall",
+     "value": "(OD - dp) / 2 / wall",
+     "level": "recommended",
+     "message": "the boss wall is thicker than the process recommends against the nominal wall (sink marks, voids)"
+    },
+    {
+     "id": "rib-sink",
+     "expr": "ribs == 0 || rt <= ribRec * wall",
+     "value": "rt / wall",
+     "level": "recommended",
+     "message": "a gusset thicker than the process recommends against the wall (sink marks)"
+    },
+    {
+     "id": "rib-wall",
+     "expr": "ribs == 0 || rt <= ribMax * wall",
+     "value": "rt / wall",
+     "level": "feasible",
+     "message": "a gusset thicker than the process allows against the wall it stands on"
+    },
+    {
+     "id": "engagement",
+     "expr": "h - 0.6 >= 2 * d",
+     "value": "(h - 0.6) / d",
+     "level": "recommended",
+     "message": "less than two screw diameters of thread engagement"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "circle",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "OD / 2"
+     }
+    },
+    {
+     "id": "b",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "h"
+     }
+    },
+    {
+     "id": "bh",
+     "kind": "hole",
+     "target": "b",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "dp / 2"
+     },
+     "depth": {
+      "expr": "h - 0.6"
+     }
+    },
+    {
+     "id": "g0s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "r0"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0 + rl"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0"
+       },
+       {
+        "expr": "rh"
+       }
+      ]
+     ],
+     "plane": {
+      "origin": [
+       {
+        "expr": "-0.0 * rt / 2"
+       },
+       {
+        "expr": "1.0 * rt / 2"
+       },
+       0
+      ],
+      "normal": [
+       0.0,
+       -1.0,
+       0.0
+      ],
+      "xAxis": [
+       1.0,
+       0.0,
+       0.0
+      ]
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g0x",
+     "kind": "extrude",
+     "sketch": "g0s",
+     "height": {
+      "expr": "rt"
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g0u",
+     "kind": "union",
+     "target": "bh",
+     "tool": "g0x",
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g1s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "r0"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0 + rl"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0"
+       },
+       {
+        "expr": "rh"
+       }
+      ]
+     ],
+     "plane": {
+      "origin": [
+       {
+        "expr": "-1.0 * rt / 2"
+       },
+       {
+        "expr": "0.0 * rt / 2"
+       },
+       0
+      ],
+      "normal": [
+       1.0,
+       0.0,
+       0.0
+      ],
+      "xAxis": [
+       0.0,
+       1.0,
+       0.0
+      ]
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g1x",
+     "kind": "extrude",
+     "sketch": "g1s",
+     "height": {
+      "expr": "rt"
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g1u",
+     "kind": "union",
+     "target": "g0u",
+     "tool": "g1x",
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g2s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "r0"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0 + rl"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0"
+       },
+       {
+        "expr": "rh"
+       }
+      ]
+     ],
+     "plane": {
+      "origin": [
+       {
+        "expr": "-0.0 * rt / 2"
+       },
+       {
+        "expr": "-1.0 * rt / 2"
+       },
+       0
+      ],
+      "normal": [
+       0.0,
+       1.0,
+       0.0
+      ],
+      "xAxis": [
+       -1.0,
+       0.0,
+       0.0
+      ]
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g2x",
+     "kind": "extrude",
+     "sketch": "g2s",
+     "height": {
+      "expr": "rt"
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g2u",
+     "kind": "union",
+     "target": "g1u",
+     "tool": "g2x",
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g3s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "r0"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0 + rl"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "r0"
+       },
+       {
+        "expr": "rh"
+       }
+      ]
+     ],
+     "plane": {
+      "origin": [
+       {
+        "expr": "1.0 * rt / 2"
+       },
+       {
+        "expr": "-0.0 * rt / 2"
+       },
+       0
+      ],
+      "normal": [
+       -1.0,
+       0.0,
+       0.0
+      ],
+      "xAxis": [
+       0.0,
+       -1.0,
+       0.0
+      ]
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g3x",
+     "kind": "extrude",
+     "sketch": "g3s",
+     "height": {
+      "expr": "rt"
+     },
+     "when": "ribs >= 4"
+    },
+    {
+     "id": "g3u",
+     "kind": "union",
+     "target": "g2u",
+     "tool": "g3x",
+     "when": "ribs >= 4"
+    }
+   ],
+   "outputs": [
+    "g3u"
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "boss-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "b.bottom"
+     },
+     "description": "its foot, on the face it is added to"
+    },
+    {
+     "id": "screw",
+     "role": "screw-hole",
+     "accepts": [
+      "screw"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       {
+        "expr": "h"
+       }
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "axis": "bh.side0"
+     }
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "boss",
+    "screw"
+   ]
+  },
+  {
+   "id": "insert-hole",
+   "name": "Heat-set insert hole",
+   "category": "enclosure",
+   "operation": "cut",
+   "description": "The hole a brass heat-set insert is pressed into: cut from a boss or a wall at a point on its face.",
+   "parameters": {
+    "d": {
+     "value": 3,
+     "unit": "mm",
+     "source": "the screw's nominal size (the variant's)",
+     "description": "screw size"
+    },
+    "dh": {
+     "value": 4.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical brass heat-set insert for plastics (no supplier's table copied); use your insert's own datasheet",
+     "description": "hole diameter"
+    },
+    "Lh": {
+     "value": 5.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical brass heat-set insert for plastics (no supplier's table copied); use your insert's own datasheet",
+     "description": "hole depth"
+    },
+    "De": {
+     "value": 4.6,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library as a typical brass heat-set insert for plastics (no supplier's table copied); use your insert's own datasheet",
+     "description": "the insert's outer diameter"
+    }
+   },
+   "variants": [
+    {
+     "id": "M2",
+     "values": {
+      "d": 2,
+      "dh": 3.2,
+      "Lh": 4.0,
+      "De": 3.6
+     }
+    },
+    {
+     "id": "M2.5",
+     "values": {
+      "d": 2.5,
+      "dh": 3.6,
+      "Lh": 4.6,
+      "De": 4.0
+     }
+    },
+    {
+     "id": "M3",
+     "values": {
+      "d": 3,
+      "dh": 4.0,
+      "Lh": 5.0,
+      "De": 4.6
+     }
+    },
+    {
+     "id": "M4",
+     "values": {
+      "d": 4,
+      "dh": 5.6,
+      "Lh": 6.6,
+      "De": 6.3
+     }
+    },
+    {
+     "id": "M5",
+     "values": {
+      "d": 5,
+      "dh": 6.4,
+      "Lh": 7.5,
+      "De": 7.1
+     }
+    }
+   ],
+   "context": {
+    "depth": {
+     "unit": "mm",
+     "description": "the material under the point, along the hole",
+     "from": [
+      "measured",
+      "given"
+     ]
+    },
+    "around": {
+     "unit": "mm",
+     "description": "the least material round the hole's axis, halfway down",
+     "from": [
+      "measured",
+      "given"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "breaks-through",
+     "expr": "depth >= Lh + 0.4",
+     "value": "depth - Lh",
+     "level": "feasible",
+     "message": "the hole would leave less than 0.4 mm under it, or break through"
+    },
+    {
+     "id": "wall-round",
+     "expr": "around - dh / 2 >= 0.8",
+     "value": "around - dh / 2",
+     "level": "feasible",
+     "message": "less than 0.8 mm of material round the insert"
+    },
+    {
+     "id": "boss-size",
+     "expr": "around >= De",
+     "value": "around / De",
+     "level": "recommended",
+     "message": "the boss round an insert should reach about twice its diameter across"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "circle",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "dh / 2"
+     }
+    },
+    {
+     "id": "x",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "Lh + 1"
+     },
+     "from": -1
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "cut-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "description": "its mouth on the face, the hole going in along +z"
+    },
+    {
+     "id": "insert",
+     "role": "insert-axis",
+     "accepts": [
+      "screw"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "axis": "x.side0"
+     }
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "insert",
+    "heat-set"
+   ]
+  },
+  {
+   "id": "pcb-standoff",
+   "name": "PCB standoff",
+   "category": "enclosure",
+   "simplified": true,
+   "description": "A standoff a board is screwed to: added to a floor by its base, the board on its top.",
+   "parameters": {
+    "d": {
+     "value": 2.5,
+     "unit": "mm",
+     "source": "the screw's nominal size (the variant's)",
+     "description": "screw size"
+    },
+    "dp": {
+     "value": 2.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS rule of thumb for printed or moulded PCB standoffs (written for this library); verify with your process",
+     "description": "pilot hole for a thread-forming screw"
+    },
+    "OD": {
+     "value": {
+      "expr": "2 * d + 1.2"
+     },
+     "unit": "mm",
+     "description": "standoff diameter"
+    },
+    "h": {
+     "value": 6,
+     "unit": "mm",
+     "min": 1,
+     "max": 60,
+     "source": "free: the board's height over the floor"
+    }
+   },
+   "variants": [
+    {
+     "id": "M2",
+     "values": {
+      "d": 2,
+      "dp": 1.6
+     }
+    },
+    {
+     "id": "M2.5",
+     "values": {
+      "d": 2.5,
+      "dp": 2.0
+     }
+    },
+    {
+     "id": "M3",
+     "values": {
+      "d": 3,
+      "dp": 2.5
+     }
+    }
+   ],
+   "context": {
+    "wall": {
+     "unit": "mm",
+     "description": "the nominal wall of the body it is added to",
+     "from": [
+      "min_wall",
+      "given"
+     ]
+    },
+    "bossWallMax": {
+     "unit": "ratio",
+     "description": "the process's largest boss-wall-to-wall ratio",
+     "from": [
+      "profile.bossWallMax"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "standoff-wall",
+     "expr": "(OD - dp) / 2 <= bossWallMax * wall",
+     "value": "(OD - dp) / 2 / wall",
+     "level": "recommended",
+     "message": "the standoff's wall is thicker than the process recommends against the nominal wall (sink marks)"
+    },
+    {
+     "id": "engagement",
+     "expr": "h - 0.6 >= 1.5 * d",
+     "value": "(h - 0.6) / d",
+     "level": "recommended",
+     "message": "less than one and a half screw diameters of thread engagement"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "circle",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "OD / 2"
+     }
+    },
+    {
+     "id": "b",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "h"
+     }
+    },
+    {
+     "id": "bh",
+     "kind": "hole",
+     "target": "b",
+     "center": [
+      0,
+      0
+     ],
+     "radius": {
+      "expr": "dp / 2"
+     },
+     "depth": {
+      "expr": "h - 0.6"
+     }
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "boss-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "b.bottom"
+     }
+    },
+    {
+     "id": "screw",
+     "role": "pcb-mount",
+     "accepts": [
+      "pcb-hole",
+      "screw"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       {
+        "expr": "h"
+       }
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "b.top",
+      "axis": "bh.side0"
+     },
+     "description": "the board's seat and the screw's axis"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "standoff",
+    "pcb"
+   ]
+  },
+  {
+   "id": "snap-hook",
+   "name": "Cantilever snap hook",
+   "category": "enclosure",
+   "description": "A cantilever, straight or tapered, with a hook at its tip, standing on a wall: its strain and forces on assembly checked against the body's material.",
+   "parameters": {
+    "L": {
+     "value": 12,
+     "unit": "mm",
+     "min": 2,
+     "max": 100,
+     "source": "free: the beam's length, root to the hook"
+    },
+    "t": {
+     "value": 1.5,
+     "unit": "mm",
+     "min": 0.4,
+     "max": 10,
+     "source": "free: the beam's thickness at its root (in the bending direction)"
+    },
+    "r": {
+     "value": 1,
+     "unit": "ratio",
+     "min": 0.4,
+     "max": 1,
+     "source": "free: the tip's thickness over the root's (1: a uniform beam)"
+    },
+    "b": {
+     "value": 6,
+     "unit": "mm",
+     "min": 1,
+     "max": 60,
+     "source": "free: the beam's width"
+    },
+    "y": {
+     "value": 1.0,
+     "unit": "mm",
+     "min": 0.1,
+     "max": 10,
+     "source": "free: the hook's undercut — the deflection on assembly"
+    },
+    "hh": {
+     "value": 2.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS starting proportion for a printed or moulded snap hook (written for this library); size it by its strain check",
+     "description": "the hook's height"
+    },
+    "ar": {
+     "value": 90,
+     "unit": "deg",
+     "min": 20,
+     "max": 90,
+     "source": "free: the retaining face's angle from the push-on direction (90: square, it does not let go)"
+    },
+    "tt": {
+     "value": {
+      "expr": "r * t"
+     },
+     "unit": "mm",
+     "description": "the beam's thickness at the hook"
+    },
+    "ry": {
+     "value": {
+      "expr": "y / tan(ar)"
+     },
+     "unit": "mm",
+     "description": "how far the retaining face rises across the undercut"
+    },
+    "alpha": {
+     "value": {
+      "expr": "atan(y / (hh - ry))"
+     },
+     "unit": "deg",
+     "description": "the lead (push-on) face's angle from the push-on direction"
+    },
+    "F": {
+     "value": {
+      "expr": "r >= 0.999 ? 1 / 3 : (0 - ln(r) + 2 * r - r ^ 2 / 2 - 1.5) / (1 - r) ^ 3"
+     },
+     "description": "BaroCSS derivation (written here, D68): a cantilever whose thickness falls linearly from t at the root to r·t at the tip, a load at the tip; by Euler–Bernoulli, y = 12 P L³ F(r) / (E b t³) with F(r) = ∫₀¹ s² / (r + (1 − r) s)³ ds = (−ln r + 2r − r²/2 − 3/2) / (1 − r)³ (1/3 when r = 1), and the root strain ε = 6 P L / (E b t²) = (1 / (3 F(r))) · 1.5 t y / L²"
+    },
+    "eps": {
+     "value": {
+      "expr": "1.5 * t * y / L ^ 2 / (3 * F)"
+     },
+     "unit": "ratio",
+     "description": "the root strain on assembly (tapered beams corrected, D68)"
+    }
+   },
+   "context": {
+    "epsAllow": {
+     "unit": "ratio",
+     "description": "the material's allowable strain",
+     "from": [
+      "material.allowableStrain"
+     ]
+    },
+    "E": {
+     "unit": "MPa",
+     "description": "the material's elastic modulus",
+     "from": [
+      "material.elasticModulusMPa"
+     ]
+    },
+    "ys": {
+     "unit": "MPa",
+     "description": "the material's yield strength",
+     "from": [
+      "material.yieldMPa"
+     ]
+    },
+    "mu": {
+     "unit": "ratio",
+     "description": "the coefficient of friction (the material's, an estimate, or given)",
+     "from": [
+      "material.friction",
+      "given"
+     ]
+    },
+    "isFdm": {
+     "unit": "flag",
+     "description": "whether the process lays it in layers (FDM)",
+     "from": [
+      "profile.isFdm"
+     ]
+    },
+    "bendInPlane": {
+     "unit": "flag",
+     "description": "1 when its bending lies in the print plane",
+     "from": [
+      "print.bendInPlane",
+      "given"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "shape",
+     "expr": "hh > ry + 0.1",
+     "value": "hh - ry",
+     "level": "feasible",
+     "message": "the hook is too short for its retaining face's rise"
+    },
+    {
+     "id": "strain",
+     "expr": "eps <= epsAllow",
+     "value": "eps / epsAllow",
+     "level": "recommended",
+     "message": "the beam is strained past the material's allowable strain on assembly"
+    },
+    {
+     "id": "yield",
+     "expr": "eps <= ys / E",
+     "value": "eps / (ys / E)",
+     "level": "feasible",
+     "message": "the beam would yield on assembly (ε past σy/E)"
+    },
+    {
+     "id": "lead-locks",
+     "expr": "1 - mu * tan(alpha) > 0",
+     "value": "mu * tan(alpha)",
+     "level": "feasible",
+     "message": "the lead face is so steep it locks: it cannot be pushed on"
+    },
+    {
+     "id": "print-plane",
+     "expr": "isFdm == 0 || bendInPlane == 1",
+     "level": "recommended",
+     "message": "printed in layers, the hook should bend in the print plane (bonds across layers are weak)"
+    }
+   ],
+   "reports": [
+    {
+     "id": "deflectionForce",
+     "value": "y * E * b * t ^ 3 / (12 * L ^ 3 * F)",
+     "unit": "N",
+     "message": "the force that bends the hook its undercut, P"
+    },
+    {
+     "id": "pushOn",
+     "value": "y * E * b * t ^ 3 / (12 * L ^ 3 * F) * (mu + tan(alpha)) / (1 - mu * tan(alpha))",
+     "unit": "N",
+     "message": "the push-on force, W = P (μ + tan α) / (1 − μ tan α), α the lead angle"
+    },
+    {
+     "id": "pullOff",
+     "value": "1 - mu * tan(ar) <= 0 ? -1 : y * E * b * t ^ 3 / (12 * L ^ 3 * F) * (mu + tan(ar)) / (1 - mu * tan(ar))",
+     "unit": "N",
+     "message": "the separation force by the same form with the retaining angle; −1: it locks (does not let go without releasing the hook)"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       {
+        "expr": "t"
+       },
+       0
+      ],
+      [
+       {
+        "expr": "tt"
+       },
+       {
+        "expr": "L"
+       }
+      ],
+      [
+       {
+        "expr": "tt + y"
+       },
+       {
+        "expr": "L + ry"
+       }
+      ],
+      [
+       {
+        "expr": "tt"
+       },
+       {
+        "expr": "L + hh"
+       }
+      ],
+      [
+       0,
+       {
+        "expr": "L + hh"
+       }
+      ]
+     ],
+     "plane": {
+      "origin": [
+       0,
+       {
+        "expr": "b / 2"
+       },
+       0
+      ],
+      "normal": [
+       0,
+       -1,
+       0
+      ],
+      "xAxis": [
+       1,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "h",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "b"
+     }
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "boss-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "t / 2"
+       },
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       0,
+       1,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "h.side0"
+     },
+     "description": "its root on the wall"
+    },
+    {
+     "id": "hook",
+     "role": "snap-hook",
+     "accepts": [
+      "snap-ledge"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "tt + y / 2"
+       },
+       0,
+       {
+        "expr": "L"
+       }
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       0,
+       1,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "h.side2"
+     },
+     "description": "its latch: the retaining face (square, ar 90), its undercut y across"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "snap-fit",
+    "cantilever"
+   ]
+  },
+  {
+   "id": "snap-ledge",
+   "name": "Snap ledge",
+   "category": "enclosure",
+   "description": "The catch a snap hook latches under: a ledge on the mating wall, as deep as the hook's undercut and wider by a clearance.",
+   "parameters": {
+    "e": {
+     "value": 1.0,
+     "unit": "mm",
+     "min": 0.1,
+     "max": 10,
+     "source": "free: how far the ledge stands off its wall — the hook's undercut"
+    },
+    "b": {
+     "value": 6,
+     "unit": "mm",
+     "min": 1,
+     "max": 60,
+     "source": "free: the hook's width"
+    },
+    "c": {
+     "value": 0.2,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library: a ledge the hook latches under; clearance an estimate",
+     "description": "the clearance round the hook"
+    },
+    "hl": {
+     "value": 1.5,
+     "unit": "mm",
+     "estimate": true,
+     "source": "written for this library: a ledge the hook latches under; clearance an estimate",
+     "description": "the ledge's height"
+    },
+    "w": {
+     "value": {
+      "expr": "b + 2 * c"
+     },
+     "unit": "mm"
+    }
+   },
+   "recipe": [
+    {
+     "id": "q",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      {
+       "expr": "-w / 2"
+      }
+     ],
+     "max": [
+      {
+       "expr": "e"
+      },
+      {
+       "expr": "w / 2"
+      }
+     ]
+    },
+    {
+     "id": "k",
+     "kind": "extrude",
+     "sketch": "q",
+     "height": {
+      "expr": "hl"
+     },
+     "from": {
+      "expr": "-hl"
+     }
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "boss-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       {
+        "expr": "-hl / 2"
+       }
+      ],
+      "z": [
+       -1,
+       0,
+       0
+      ],
+      "x": [
+       0,
+       1,
+       0
+      ]
+     },
+     "description": "its back on the mating wall"
+    },
+    {
+     "id": "ledge",
+     "role": "snap-ledge",
+     "accepts": [
+      "snap-hook"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "e / 2"
+       },
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       0,
+       1,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "k.top"
+     },
+     "description": "the face the hook's latch bears on"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "snap-fit",
+    "catch"
+   ]
+  },
+  {
+   "id": "enclosure-base",
+   "name": "Enclosure base",
+   "category": "enclosure",
+   "description": "The lower half of a rectangular enclosure, open at its split, with a lip round the inside of its rim for the lid's groove.",
+   "parameters": {
+    "L": {
+     "value": 80,
+     "unit": "mm",
+     "min": 10,
+     "max": 1000,
+     "source": "free: the outside length"
+    },
+    "W": {
+     "value": 50,
+     "unit": "mm",
+     "min": 10,
+     "max": 1000,
+     "source": "free: the outside width"
+    },
+    "w": {
+     "value": 2.0,
+     "unit": "mm",
+     "min": 0.4,
+     "max": 10,
+     "source": "free: the wall"
+    },
+    "lt": {
+     "value": 1.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the lip's thickness (the inner part of the wall)"
+    },
+    "lh": {
+     "value": 2.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the lip's height"
+    },
+    "c": {
+     "value": 0.2,
+     "unit": "mm",
+     "min": 0,
+     "max": 2,
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the clearance round the lip, in the groove"
+    },
+    "hs": {
+     "value": 20,
+     "unit": "mm",
+     "min": 2,
+     "max": 1000,
+     "source": "free: the split's height (the base's)"
+    }
+   },
+   "context": {
+    "minWall": {
+     "unit": "mm",
+     "description": "the process's thinnest wall",
+     "from": [
+      "profile.minWall"
+     ]
+    },
+    "fitClearance": {
+     "unit": "mm",
+     "description": "the process's recommended clearance for a sliding fit",
+     "from": [
+      "profile.fitClearance"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "rim",
+     "expr": "w - lt >= minWall",
+     "value": "w - lt",
+     "level": "feasible",
+     "message": "the rim beside the lip is thinner than the process can make"
+    },
+    {
+     "id": "lip",
+     "expr": "lt >= minWall",
+     "value": "lt",
+     "level": "feasible",
+     "message": "the lip is thinner than the process can make"
+    },
+    {
+     "id": "floor",
+     "expr": "hs > w + 0.5",
+     "value": "hs - w",
+     "level": "feasible",
+     "message": "the base is no taller than its floor"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "so",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      {
+       "expr": "L"
+      },
+      {
+       "expr": "W"
+      }
+     ]
+    },
+    {
+     "id": "ob",
+     "kind": "extrude",
+     "sketch": "so",
+     "height": {
+      "expr": "hs"
+     }
+    },
+    {
+     "id": "si",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "w"
+      },
+      {
+       "expr": "w"
+      }
+     ],
+     "max": [
+      {
+       "expr": "L - w"
+      },
+      {
+       "expr": "W - w"
+      }
+     ]
+    },
+    {
+     "id": "ci",
+     "kind": "extrude",
+     "sketch": "si",
+     "height": {
+      "expr": "hs"
+     },
+     "from": {
+      "expr": "w"
+     }
+    },
+    {
+     "id": "shell",
+     "kind": "difference",
+     "target": "ob",
+     "tool": "ci"
+    },
+    {
+     "id": "ls",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "w - lt"
+      },
+      {
+       "expr": "w - lt"
+      }
+     ],
+     "max": [
+      {
+       "expr": "L - w + lt"
+      },
+      {
+       "expr": "W - w + lt"
+      }
+     ],
+     "holes": [
+      [
+       {
+        "kind": "line",
+        "start": [
+         {
+          "expr": "w"
+         },
+         {
+          "expr": "w"
+         }
+        ]
+       },
+       {
+        "kind": "line",
+        "start": [
+         {
+          "expr": "L - w"
+         },
+         {
+          "expr": "w"
+         }
+        ]
+       },
+       {
+        "kind": "line",
+        "start": [
+         {
+          "expr": "L - w"
+         },
+         {
+          "expr": "W - w"
+         }
+        ]
+       },
+       {
+        "kind": "line",
+        "start": [
+         {
+          "expr": "w"
+         },
+         {
+          "expr": "W - w"
+         }
+        ]
+       }
+      ]
+     ]
+    },
+    {
+     "id": "lip",
+     "kind": "extrude",
+     "sketch": "ls",
+     "height": {
+      "expr": "lh"
+     },
+     "from": {
+      "expr": "hs"
+     }
+    },
+    {
+     "id": "base",
+     "kind": "union",
+     "target": "shell",
+     "tool": "lip"
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "rim",
+     "role": "enclosure-rim",
+     "accepts": [
+      "enclosure-lid-rim"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "L / 2"
+       },
+       {
+        "expr": "W / 2"
+       },
+       {
+        "expr": "hs"
+       }
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "ob.top"
+     },
+     "description": "its rim at the split, the lip standing on its inner part"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "lip",
+    "box"
+   ]
+  },
+  {
+   "id": "enclosure-lid",
+   "name": "Enclosure lid",
+   "category": "enclosure",
+   "description": "The upper half of a rectangular enclosure, closed at its top, with a groove round the inside of its rim taking the base's lip.",
+   "parameters": {
+    "L": {
+     "value": 80,
+     "unit": "mm",
+     "min": 10,
+     "max": 1000,
+     "source": "free: the outside length"
+    },
+    "W": {
+     "value": 50,
+     "unit": "mm",
+     "min": 10,
+     "max": 1000,
+     "source": "free: the outside width"
+    },
+    "w": {
+     "value": 2.0,
+     "unit": "mm",
+     "min": 0.4,
+     "max": 10,
+     "source": "free: the wall"
+    },
+    "lt": {
+     "value": 1.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the lip's thickness (the inner part of the wall)"
+    },
+    "lh": {
+     "value": 2.0,
+     "unit": "mm",
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the lip's height"
+    },
+    "c": {
+     "value": 0.2,
+     "unit": "mm",
+     "min": 0,
+     "max": 2,
+     "estimate": true,
+     "source": "BaroCSS starting proportion for an enclosure lip and groove (written for this library); size it by its checks",
+     "description": "the clearance round the lip, in the groove"
+    },
+    "Hl": {
+     "value": 10,
+     "unit": "mm",
+     "min": 2,
+     "max": 1000,
+     "source": "free: the lid's height (from the split)"
+    }
+   },
+   "context": {
+    "minWall": {
+     "unit": "mm",
+     "description": "the process's thinnest wall",
+     "from": [
+      "profile.minWall"
+     ]
+    },
+    "fitClearance": {
+     "unit": "mm",
+     "description": "the process's recommended clearance for a sliding fit",
+     "from": [
+      "profile.fitClearance"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "rim",
+     "expr": "w - lt - c >= minWall",
+     "value": "w - lt - c",
+     "level": "feasible",
+     "message": "the lid's wall beside the groove is thinner than the process can make"
+    },
+    {
+     "id": "clearance",
+     "expr": "c >= fitClearance",
+     "value": "c",
+     "level": "recommended",
+     "message": "less clearance round the lip than the process recommends (it may bind)"
+    },
+    {
+     "id": "ceiling",
+     "expr": "Hl >= lh + c + w + 0.5",
+     "value": "Hl - (lh + c + w)",
+     "level": "feasible",
+     "message": "the lid is too shallow for its groove and its top"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "so",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      0,
+      0
+     ],
+     "max": [
+      {
+       "expr": "L"
+      },
+      {
+       "expr": "W"
+      }
+     ]
+    },
+    {
+     "id": "lo",
+     "kind": "extrude",
+     "sketch": "so",
+     "height": {
+      "expr": "Hl"
+     }
+    },
+    {
+     "id": "si",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "w"
+      },
+      {
+       "expr": "w"
+      }
+     ],
+     "max": [
+      {
+       "expr": "L - w"
+      },
+      {
+       "expr": "W - w"
+      }
+     ]
+    },
+    {
+     "id": "lc",
+     "kind": "extrude",
+     "sketch": "si",
+     "height": {
+      "expr": "Hl - w + 1"
+     },
+     "from": -1
+    },
+    {
+     "id": "shell",
+     "kind": "difference",
+     "target": "lo",
+     "tool": "lc"
+    },
+    {
+     "id": "gs",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "w - lt - c"
+      },
+      {
+       "expr": "w - lt - c"
+      }
+     ],
+     "max": [
+      {
+       "expr": "L - w + lt + c"
+      },
+      {
+       "expr": "W - w + lt + c"
+      }
+     ]
+    },
+    {
+     "id": "gx",
+     "kind": "extrude",
+     "sketch": "gs",
+     "height": {
+      "expr": "lh + c + 1"
+     },
+     "from": -1
+    },
+    {
+     "id": "lid",
+     "kind": "difference",
+     "target": "shell",
+     "tool": "gx"
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "rim",
+     "role": "enclosure-lid-rim",
+     "accepts": [
+      "enclosure-rim"
+     ],
+     "frame": {
+      "origin": [
+       {
+        "expr": "L / 2"
+       },
+       {
+        "expr": "W / 2"
+       },
+       0
+      ],
+      "z": [
+       0,
+       0,
+       -1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "faces": {
+      "plane": "lo.bottom"
+     },
+     "description": "its rim, the groove inside it"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "groove",
+    "lid"
+   ]
+  },
+  {
+   "id": "slot-vent",
+   "name": "Slot vent",
+   "category": "enclosure",
+   "operation": "cut",
+   "description": "A row of straight slots cut through a wall, centred on the point picked.",
+   "parameters": {
+    "n": {
+     "value": 6,
+     "unit": "count",
+     "integer": true,
+     "min": 1,
+     "max": 200,
+     "source": "free: the slots"
+    },
+    "sl": {
+     "value": 12,
+     "unit": "mm",
+     "min": 1,
+     "max": 500,
+     "source": "free: a slot's length"
+    },
+    "sw": {
+     "value": 1.5,
+     "unit": "mm",
+     "min": 0.3,
+     "max": 50,
+     "source": "free: a slot's width"
+    },
+    "p": {
+     "value": 3.5,
+     "unit": "mm",
+     "min": 0.5,
+     "max": 100,
+     "source": "free: the slots' pitch"
+    },
+    "cutDepth": {
+     "value": 3,
+     "unit": "mm",
+     "min": 0.2,
+     "max": 100,
+     "source": "measured: the wall's thickness where it is cut, and half a millimetre (set when the part is added to a body)"
+    },
+    "span": {
+     "value": {
+      "expr": "(n - 1) * p + sw"
+     },
+     "unit": "mm",
+     "description": "the row's length"
+    }
+   },
+   "context": {
+    "minWall": {
+     "unit": "mm",
+     "description": "the process's thinnest wall",
+     "from": [
+      "profile.minWall"
+     ]
+    },
+    "minWallRec": {
+     "unit": "mm",
+     "description": "the process's thinnest recommended wall",
+     "from": [
+      "profile.minWallRec"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "web",
+     "expr": "p - sw >= minWall",
+     "value": "p - sw",
+     "level": "feasible",
+     "message": "the web between slots is thinner than the process can make"
+    },
+    {
+     "id": "web-rec",
+     "expr": "p - sw >= minWallRec",
+     "value": "p - sw",
+     "level": "recommended",
+     "message": "the web between slots is thinner than the process recommends"
+    }
+   ],
+   "reports": [
+    {
+     "id": "openArea",
+     "value": "n * sl * sw",
+     "unit": "mm²",
+     "message": "the open area"
+    },
+    {
+     "id": "openRatio",
+     "value": "n * sw / span",
+     "unit": "ratio",
+     "message": "the open area over the vent's footprint (its row's length × the slot length)"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "-span / 2"
+      },
+      {
+       "expr": "-sl / 2"
+      }
+     ],
+     "max": [
+      {
+       "expr": "-span / 2 + sw"
+      },
+      {
+       "expr": "sl / 2"
+      }
+     ]
+    },
+    {
+     "id": "x",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "cutDepth + 1"
+     },
+     "from": -1
+    },
+    {
+     "id": "row",
+     "kind": "linear-pattern",
+     "target": "x",
+     "axis": "x",
+     "spacing": {
+      "expr": "p"
+     },
+     "count": {
+      "expr": "n"
+     }
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "cut-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "description": "the vent's centre on the face, cut in along +z"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "vent",
+    "slots"
+   ]
+  },
+  {
+   "id": "hex-grille",
+   "name": "Hex grille",
+   "category": "enclosure",
+   "operation": "cut",
+   "description": "Hexagonal openings in staggered rows cut through a wall, centred on the point picked.",
+   "parameters": {
+    "nx": {
+     "value": 5,
+     "unit": "count",
+     "integer": true,
+     "min": 1,
+     "max": 100,
+     "source": "free: openings in a row"
+    },
+    "ny": {
+     "value": 4,
+     "unit": "count",
+     "integer": true,
+     "min": 1,
+     "max": 100,
+     "source": "free: rows"
+    },
+    "s": {
+     "value": 4,
+     "unit": "mm",
+     "min": 0.5,
+     "max": 50,
+     "source": "free: an opening's size across its flats"
+    },
+    "wb": {
+     "value": 1.2,
+     "unit": "mm",
+     "min": 0.2,
+     "max": 20,
+     "estimate": true,
+     "source": "BaroCSS starting proportion for vents (written for this library); size them by their checks",
+     "description": "the web between openings"
+    },
+    "cutDepth": {
+     "value": 3,
+     "unit": "mm",
+     "min": 0.2,
+     "max": 100,
+     "source": "measured: the wall's thickness where it is cut, and half a millimetre (set when the part is added to a body)"
+    },
+    "px": {
+     "value": {
+      "expr": "s + wb"
+     },
+     "unit": "mm",
+     "description": "the pitch along a row"
+    },
+    "dy": {
+     "value": {
+      "expr": "(s + wb) * sqrt(3) / 2"
+     },
+     "unit": "mm",
+     "description": "the pitch between rows"
+    },
+    "w0": {
+     "value": {
+      "expr": "(nx - 1) * px + (ny >= 2 ? px / 2 : 0)"
+     },
+     "unit": "mm",
+     "description": "the centres' spread along a row"
+    },
+    "h0": {
+     "value": {
+      "expr": "(ny - 1) * dy"
+     },
+     "unit": "mm",
+     "description": "the centres' spread across the rows"
+    }
+   },
+   "context": {
+    "minWall": {
+     "unit": "mm",
+     "description": "the process's thinnest wall",
+     "from": [
+      "profile.minWall"
+     ]
+    },
+    "minWallRec": {
+     "unit": "mm",
+     "description": "the process's thinnest recommended wall",
+     "from": [
+      "profile.minWallRec"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "web",
+     "expr": "wb >= minWall",
+     "value": "wb",
+     "level": "feasible",
+     "message": "the web between openings is thinner than the process can make"
+    },
+    {
+     "id": "web-rec",
+     "expr": "wb >= minWallRec",
+     "value": "wb",
+     "level": "recommended",
+     "message": "the web between openings is thinner than the process recommends"
+    }
+   ],
+   "reports": [
+    {
+     "id": "openings",
+     "value": "nx * ny",
+     "unit": "count",
+     "message": "the openings"
+    },
+    {
+     "id": "openArea",
+     "value": "nx * ny * sqrt(3) / 2 * s ^ 2",
+     "unit": "mm²",
+     "message": "the open area"
+    },
+    {
+     "id": "openRatio",
+     "value": "s ^ 2 / (s + wb) ^ 2",
+     "unit": "ratio",
+     "message": "the open area over the grille's area, for its lattice"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "ha",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * 0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * 0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * 0.0"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * 1.0"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * -0.866025403784438"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * 0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * -0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * -0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * -0.0"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * -1.0"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2) + s / sqrt(3) * 0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2) + s / sqrt(3) * -0.5"
+       }
+      ]
+     ]
+    },
+    {
+     "id": "hax",
+     "kind": "extrude",
+     "sketch": "ha",
+     "height": {
+      "expr": "cutDepth + 1"
+     },
+     "from": -1
+    },
+    {
+     "id": "ra",
+     "kind": "linear-pattern",
+     "target": "hax",
+     "axis": "x",
+     "spacing": {
+      "expr": "px"
+     },
+     "count": {
+      "expr": "nx"
+     }
+    },
+    {
+     "id": "ga",
+     "kind": "linear-pattern",
+     "target": "ra",
+     "axis": "y",
+     "spacing": {
+      "expr": "2 * dy"
+     },
+     "count": {
+      "expr": "ceil(ny / 2)"
+     }
+    },
+    {
+     "id": "hb",
+     "kind": "sketch",
+     "profile": "polygon",
+     "points": [
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * 0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * 0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * 0.0"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * 1.0"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * -0.866025403784438"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * 0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * -0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * -0.5"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * -0.0"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * -1.0"
+       }
+      ],
+      [
+       {
+        "expr": "(-w0 / 2 + px / 2) + s / sqrt(3) * 0.866025403784439"
+       },
+       {
+        "expr": "(-h0 / 2 + dy) + s / sqrt(3) * -0.5"
+       }
+      ]
+     ],
+     "when": "ny >= 2"
+    },
+    {
+     "id": "hbx",
+     "kind": "extrude",
+     "sketch": "hb",
+     "height": {
+      "expr": "cutDepth + 1"
+     },
+     "from": -1,
+     "when": "ny >= 2"
+    },
+    {
+     "id": "rb",
+     "kind": "linear-pattern",
+     "target": "hbx",
+     "axis": "x",
+     "spacing": {
+      "expr": "px"
+     },
+     "count": {
+      "expr": "nx"
+     },
+     "when": "ny >= 2"
+    },
+    {
+     "id": "gb",
+     "kind": "linear-pattern",
+     "target": "rb",
+     "axis": "y",
+     "spacing": {
+      "expr": "2 * dy"
+     },
+     "count": {
+      "expr": "floor(ny / 2)"
+     },
+     "when": "ny >= 2"
+    },
+    {
+     "id": "grille",
+     "kind": "union",
+     "target": "ga",
+     "tool": "gb",
+     "when": "ny >= 2"
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "cut-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "description": "the grille's centre on the face, cut in along +z"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "vent",
+    "grille",
+    "hex"
+   ]
+  },
+  {
+   "id": "living-hinge",
+   "name": "Living hinge",
+   "category": "enclosure",
+   "operation": "cut",
+   "description": "A groove across a plate leaving a thin band that bends: its thickness and strain checked against the material (a living-hinge material: polypropylene).",
+   "parameters": {
+    "Lh": {
+     "value": 1.5,
+     "unit": "mm",
+     "min": 0.2,
+     "max": 20,
+     "estimate": true,
+     "source": "BaroCSS starting proportion for a moulded living hinge (written for this library)",
+     "description": "the hinge's land (its length across the bend)"
+    },
+    "th": {
+     "value": 0.3,
+     "unit": "mm",
+     "min": 0.05,
+     "max": 5,
+     "estimate": true,
+     "source": "BaroCSS starting proportion for a moulded living hinge (written for this library)",
+     "description": "the hinge's thickness"
+    },
+    "span": {
+     "value": 40,
+     "unit": "mm",
+     "min": 1,
+     "max": 2000,
+     "source": "free: the hinge's length along its axis"
+    },
+    "theta": {
+     "value": 180,
+     "unit": "deg",
+     "min": 1,
+     "max": 360,
+     "source": "free: the angle it folds through"
+    },
+    "wallT": {
+     "value": 2,
+     "unit": "mm",
+     "min": 0.2,
+     "max": 100,
+     "source": "measured: the plate's thickness where it is cut (set when the part is added to a body)"
+    },
+    "eps": {
+     "value": {
+      "expr": "th * theta * pi / 180 / (2 * Lh)"
+     },
+     "unit": "ratio",
+     "description": "its surface strain folded through theta, its land bent to an arc"
+    }
+   },
+   "context": {
+    "hingeStrain": {
+     "unit": "ratio",
+     "description": "the material's allowable strain for a living hinge",
+     "from": [
+      "material.livingHingeStrain"
+     ]
+    },
+    "tMin": {
+     "unit": "mm",
+     "description": "the material's thinnest living hinge",
+     "from": [
+      "material.livingHingeTMin"
+     ]
+    },
+    "tMax": {
+     "unit": "mm",
+     "description": "the material's thickest living hinge",
+     "from": [
+      "material.livingHingeTMax"
+     ]
+    },
+    "isFdm": {
+     "unit": "flag",
+     "description": "whether the process lays it in layers (FDM)",
+     "from": [
+      "profile.isFdm"
+     ]
+    }
+   },
+   "checks": [
+    {
+     "id": "thins",
+     "expr": "th <= wallT - 0.2",
+     "value": "wallT - th",
+     "level": "feasible",
+     "message": "the hinge is not thinner than the plate it is cut in"
+    },
+    {
+     "id": "thickness",
+     "expr": "th >= tMin && th <= tMax",
+     "value": "th",
+     "level": "recommended",
+     "message": "the hinge's thickness is outside the material's range for living hinges"
+    },
+    {
+     "id": "strain",
+     "expr": "eps <= hingeStrain",
+     "value": "eps / hingeStrain",
+     "level": "recommended",
+     "message": "folded through its angle, the hinge is strained past the material's living-hinge strain"
+    },
+    {
+     "id": "process",
+     "expr": "isFdm == 0",
+     "level": "recommended",
+     "message": "a printed living hinge is weak across its layers: mould it, or make it as a separate pin hinge"
+    }
+   ],
+   "recipe": [
+    {
+     "id": "s",
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      {
+       "expr": "-Lh / 2"
+      },
+      {
+       "expr": "-span / 2"
+      }
+     ],
+     "max": [
+      {
+       "expr": "Lh / 2"
+      },
+      {
+       "expr": "span / 2"
+      }
+     ]
+    },
+    {
+     "id": "g",
+     "kind": "extrude",
+     "sketch": "s",
+     "height": {
+      "expr": "wallT - th + 1"
+     },
+     "from": -1
+    }
+   ],
+   "interfaces": [
+    {
+     "id": "base",
+     "role": "cut-base",
+     "accepts": [
+      "body-face"
+     ],
+     "frame": {
+      "origin": [
+       0,
+       0,
+       0
+      ],
+      "z": [
+       0,
+       0,
+       1
+      ],
+      "x": [
+       1,
+       0,
+       0
+      ]
+     },
+     "description": "the groove's middle on the face, its land along x, cut in along +z"
+    }
+   ],
+   "tags": [
+    "enclosure",
+    "hinge",
+    "living hinge",
+    "pp"
+   ]
+  }
+ ],
+ "fits": [
+  {
+   "id": "hook-on-ledge",
+   "a": {
+    "part": "snap-ledge",
+    "interface": "ledge"
+   },
+   "b": {
+    "part": "snap-hook",
+    "interface": "hook"
+   },
+   "offset": [
+    0,
+    0.2,
+    0
+   ],
+   "checks": [
+    {
+     "id": "engagement",
+     "expr": "abs(a_e - b_y) <= a_c",
+     "value": "a_e - b_y",
+     "message": "the ledge stands off as far as the hook's undercut, within the clearance"
+    },
+    {
+     "id": "width",
+     "expr": "a_w >= b_b + 2 * a_c - 1e-9",
+     "value": "a_w - b_b",
+     "message": "the ledge is as wide as the hook and its clearance"
+    }
+   ]
+  },
+  {
+   "id": "tapered-hook-on-ledge",
+   "a": {
+    "part": "snap-ledge",
+    "interface": "ledge"
+   },
+   "b": {
+    "part": "snap-hook",
+    "params": {
+     "r": 0.6
+    },
+    "interface": "hook"
+   },
+   "offset": [
+    0,
+    0.2,
+    0
+   ],
+   "checks": [
+    {
+     "id": "engagement",
+     "expr": "abs(a_e - b_y) <= a_c",
+     "value": "a_e - b_y",
+     "message": "the ledge stands off as far as the hook's undercut, within the clearance"
+    }
+   ]
+  },
+  {
+   "id": "lid-on-base",
+   "a": {
+    "part": "enclosure-base",
+    "interface": "rim"
+   },
+   "b": {
+    "part": "enclosure-lid",
+    "interface": "rim"
+   },
+   "checks": [
+    {
+     "id": "same-box",
+     "expr": "a_L == b_L && a_W == b_W && a_w == b_w",
+     "message": "the lid is the base's size and wall"
+    },
+    {
+     "id": "lip-side",
+     "expr": "b_lt + b_c - a_lt >= 0",
+     "value": "b_lt + b_c - a_lt",
+     "message": "the groove is at least as wide as the lip (its side clearance)"
+    },
+    {
+     "id": "lip-top",
+     "expr": "b_lh + b_c - a_lh >= 0",
+     "value": "b_lh + b_c - a_lh",
+     "message": "the groove is at least as deep as the lip (its top clearance)"
+    }
+   ]
+  }
+ ]
+}

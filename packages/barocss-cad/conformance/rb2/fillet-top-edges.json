@@ -1,0 +1,79 @@
+{
+  "id": "rb2-fillet-top-edges",
+  "step": "RB2",
+  "decisions": [
+    "D18",
+    "D23"
+  ],
+  "about": "A box with its four top edges filleted (radius 4): strictly valid (edges on their surfaces), watertight, its volume the closed form.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [0, 0],
+          "max": [40, 30]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "e",
+          "edges": [
+            "e.side0|e.top",
+            "e.side1|e.top",
+            "e.side2|e.top",
+            "e.side3|e.top"
+          ],
+          "radius": 4
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 11543.834693017458,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [20, 15, 4.8385142],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.top",
+          "f.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ]
+  },
+  "oracle": "closed form for the volume (straight runs and bicylinder corners); this kernel for the centroid"
+}

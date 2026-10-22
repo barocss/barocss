@@ -1,0 +1,108 @@
+{
+ "case": "inertia-cuboid",
+ "step": "RM3",
+ "note": "A 40 × 20 × 10 mm aluminium (2.70 g/cm³) cuboid from (15, −7, 3), turned 30° about Z then 50° about X through the origin: m = 0.0216 kg; I about its centre R·diag(m(d²+h²)/12, m(w²+h²)/12, m(w²+d²)/12)·Rᵀ, R = Rx(50°)·Rz(30°); in the part frame, SI.",
+ "input": {
+  "document": {
+   "format": "barocss-cad-model",
+   "schema": 3,
+   "units": "mm",
+   "parameters": {},
+   "nodes": [
+    {
+     "kind": "sketch",
+     "profile": "rectangle",
+     "min": [
+      15,
+      -7
+     ],
+     "max": [
+      55,
+      13
+     ],
+     "id": "n0"
+    },
+    {
+     "kind": "extrude",
+     "sketch": 0,
+     "height": 10,
+     "from": 3,
+     "id": "n1",
+     "made": {
+      "command": "box",
+      "values": {
+       "w": 40,
+       "d": 20,
+       "h": 10,
+       "x": 15,
+       "y": -7,
+       "z": 3
+      }
+     }
+    },
+    {
+     "kind": "rotate",
+     "parent": {
+      "node": 1,
+      "side": "solid"
+     },
+     "axis": "z",
+     "angleDegrees": 30,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "id": "n2"
+    },
+    {
+     "kind": "rotate",
+     "parent": {
+      "node": 2,
+      "side": "solid"
+     },
+     "axis": "x",
+     "angleDegrees": 50,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "id": "n3"
+    }
+   ],
+   "outputs": {
+    "b3": {
+     "node": 3,
+     "side": "solid"
+    }
+   },
+   "nextId": 4
+  }
+ },
+ "expect": {
+  "mass_kg": 0.021599999999999998,
+  "com_m": [
+   0.028810889132455355,
+   0.006790438822241872,
+   0.020538320476581245
+  ],
+  "inertia_kg_m2": [
+   0.0000014399999999999998,
+   -6.012040311645329e-7,
+   -7.164870640224534e-7,
+   -6.01204031164533e-7,
+   0.0000031537700159401426,
+   -5.317961866265921e-7,
+   -7.164870640224533e-7,
+   -5.317961866265923e-7,
+   0.0000029662299840598573
+  ],
+  "principal_kg_m2": [
+   9e-7,
+   0.00000306,
+   0.0000036
+  ]
+ },
+ "tol_rel": 1e-12
+}

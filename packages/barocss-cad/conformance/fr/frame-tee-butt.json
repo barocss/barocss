@@ -1,0 +1,145 @@
+{
+  "id": "fr-frame-tee-butt",
+  "step": "FR",
+  "decisions": [
+    "D126"
+  ],
+  "about": "FR3b: a rail ending on a post's middle (a T-joint), butted on its face: the post A·800 untouched, the rail A·480 from the face at x 20.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              800
+            ],
+            [
+              0,
+              0,
+              400
+            ],
+            [
+              500,
+              0,
+              400
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "tee": "butt"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 355200,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            400
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 800,
+          "centroid": [
+            0,
+            0
+          ],
+          "absTol": 1e-9
+        }
+      },
+      {
+        "volumeMM3": {
+          "value": 213120,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            260,
+            0,
+            400
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ],
+        "member": {
+          "areaMM2": 444,
+          "lengthMM": 500,
+          "centroid": [
+            0,
+            0
+          ],
+          "ends": [
+            {
+              "end": "start",
+              "kind": "square",
+              "point": 3
+            },
+            {
+              "end": "end",
+              "kind": "butt",
+              "point": 2,
+              "angleDegrees": 0
+            }
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: the rail runs x 20 to 500, the post z 0 to 800, both square."
+}

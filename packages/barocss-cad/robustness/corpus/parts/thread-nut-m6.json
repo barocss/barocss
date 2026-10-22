@@ -1,0 +1,19 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "n",
+      "kind": "thread",
+      "diameter": 6,
+      "pitch": 1,
+      "hex": {
+        "across": 10,
+        "height": 5,
+        "internal": true
+      }
+    }
+  ]
+}

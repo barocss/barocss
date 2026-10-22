@@ -1,10 +1,12 @@
 // Mass properties of B-rep solids: closed form for prismatic solids (area moments of each slab's
 // section times its height); for any other B-rep, quadrature over the exact surfaces (brep-mass-
 // quadrature.ts), else exact integration of the display tessellation (exact for planar faces; for curved
-// faces the chord error of the tessellation, reported).
+// faces the chord error of the tessellation, reported). Bodies of facet faces and straight-edged planar faces
+// (mesh bodies) are integrated exactly from their triangles and loops, once per B-rep.
 import { regionMoments } from './curved-arrangement.js';
-import { tessellateBrep } from './brep-tessellate.js';
+import { planar, tessellateBrep } from './brep-tessellate.js';
 import { brepQuadratureIntegrals } from './brep-mass-quadrature.js';
+import { facetIntegrals } from './facet-patch.js';
 import type { Brep } from './brep-core.js';
 import type { PrismaticSolid } from './prismatic-solid.js';
 import type { Point } from './types.js';
@@ -43,21 +45,69 @@ export function prismaticMassProperties(solid: PrismaticSolid, densityKgPerM3: n
 }
 
 /**
+ * The integrals over the exact surfaces (ten volume integrals and the area), extrapolated from q and 2q a
+ * quarter when any face was integrated over its tessellation; null when a face cannot be integrated so.
+ */
+/**
+ * The quadrature's integrals, kept per B-rep and step (PERF3 C16): mass properties and surface area read the same
+ * run — a STEP export's validation properties ask for both — and a B-rep is a value. Read only by the callers.
+ */
+const quadratures = new WeakMap<Brep, Map<number, number[] | null>>();
+function quadrature(brep: Brep, q: number): number[] | null {
+  let byQ = quadratures.get(brep);
+  if (!byQ) { byQ = new Map(); quadratures.set(brep, byQ); }
+  if (byQ.has(q)) return byQ.get(q)!;
+  const out = quadratureOf(brep, q);
+  byQ.set(q, out);
+  return out;
+}
+function quadratureOf(brep: Brep, q: number): number[] | null {
+  try {
+    // (Integrated without the tessellation, the result does not depend on q: no second pass.)
+    const coarse = brepQuadratureIntegrals(brep, q), fine = coarse?.meshed ? brepQuadratureIntegrals(brep, 2 * q) : coarse;
+    if (!coarse || !fine) return null;
+    if (!coarse.meshed) return coarse.integrals;
+    // Richardson per kind of meshed face: those with a pole err with the square of the step, the others (their
+    // trims' strips integrated) with its cube; the faces integrated exactly are the same on both.
+    const s0 = coarse.squared!, s1 = fine.squared!, c0 = coarse.cubed!, c1 = fine.cubed!;
+    return fine.integrals.map((x, k) => x - s1[k] - c1[k] + (4 * s1[k] - s0[k]) / 3 + (8 * c1[k] - c0[k]) / 7);
+  } catch { return null; }
+}
+
+/**
+ * The surface area of a B-rep (mm²): over its exact surfaces as mass properties are (planar faces by Green's
+ * theorem along their edges, whole B-spline patches by tensor Gauss, others over their parameter domains),
+ * else the area of its fine tessellation.
+ */
+export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): number {
+  const poly = polyhedralIntegrals(brep);
+  if (poly) return poly[10];
+  const q = options.quadratureSegments ?? 8, Q = q > 0 ? quadrature(brep, q) : null;
+  if (Q && Q[10] > 0) return Q[10];
+  const curved = brep.faces.some(f => f.surface.kind === 'surface' && (f.surface.degreeU > 1 || f.surface.degreeV > 1));
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positionsMM, ix = mesh.indices;
+  let area = 0;
+  for (let t = 0; t < ix.length; t += 3) {
+    const a = 3 * ix[t], b = 3 * ix[t + 1], c = 3 * ix[t + 2], ux = p[b] - p[a], uy = p[b + 1] - p[a + 1], uz = p[b + 2] - p[a + 2], vx = p[c] - p[a], vy = p[c + 1] - p[a + 1], vz = p[c + 2] - p[a + 2];
+    area += Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx) / 2;
+  }
+  return area;
+}
+
+/**
  * Curved B-reps by quadrature over their surfaces, on meshes of `quadratureSegments` a quarter (8 by
- * default; 0: none) and twice that, extrapolated (Richardson: the error left along trims that are not
- * straight in a face's parameters, and beside poles, falls with the square of the step; faces with none
+ * default; 0: none) and twice that, extrapolated (Richardson: with the curved strips along trims integrated,
+ * the error left falls with the cube of the step, beside a surface's pole with its square; faces with none
  * give the same value on both). Otherwise, or when that cannot integrate a face, tetrahedra from the
  * origin over the watertight tessellation (divergence theorem).
  */
 export function brepMassProperties(brep: Brep, densityKgPerM3: number, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): SolidMassProperties {
-  const curved = brep.faces.some(f => f.surface.degreeU > 1 || f.surface.degreeV > 1);
+  const poly = polyhedralIntegrals(brep);
+  if (poly && poly[0] > 0) return solidMassFromIntegrals(poly, densityKgPerM3, 'planar-exact');
+  const curved = brep.faces.some(f => f.surface.kind === 'surface' && (f.surface.degreeU > 1 || f.surface.degreeV > 1));
   const q = options.quadratureSegments ?? 8;
   if (curved && q > 0) {
-    let Q: number[] | null = null;
-    try {
-      const coarse = brepQuadratureIntegrals(brep, q), fine = coarse && brepQuadratureIntegrals(brep, 2 * q);
-      Q = coarse && fine ? fine.map((x, k) => (4 * x - coarse[k]) / 3) : null;
-    } catch { Q = null; }
+    const Q = quadrature(brep, q);
     if (Q && Q[0] > 0) return solidMassFromIntegrals(Q, densityKgPerM3, 'quadrature');
   }
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positionsMM, ix = mesh.indices;
@@ -93,4 +143,74 @@ export function combineMassProperties(parts: readonly { readonly props: SolidMas
     return a + w.I[i][j] + w.m * ((i === j ? dd : 0) - d[i] * d[j]);
   }, 0))) as [[number, number, number], [number, number, number], [number, number, number]];
   return { volumeMM3: V, massKG: M, centroidMM: C, inertiaCentroidKgM2: I, method: 'closed-form' };
+}
+
+// ---- Polyhedral bodies (PERF3 B9): facet faces and planar faces bounded by straight edges, the mesh bodies ----
+
+/** Each B-rep's polyhedral integrals (null: not polyhedral), worked out once: a B-rep is a value. */
+const polyhedral = new WeakMap<Brep, readonly number[] | null>();
+/**
+ * The ten volume integrals and the area (eleventh) of a body whose every face is a facet patch or a planar face
+ * bounded by straight edges, exactly and without a tessellation: tetrahedra from the body's centre over each
+ * facet triangle and over a fan of each planar loop (a fan's signed triangles cover the loop's region, holes
+ * too, so their cones add up to the face's). Null for any other body, or when a planar face's loops do not
+ * turn about its outward normal as the B-rep's do.
+ */
+export function polyhedralIntegrals(brep: Brep): readonly number[] | null {
+  if (polyhedral.has(brep)) return polyhedral.get(brep)!;
+  const out = polyhedralOf(brep);
+  polyhedral.set(brep, out);
+  return out;
+}
+function polyhedralOf(brep: Brep): readonly number[] | null {
+  if (!brep.faces.length) return null;
+  const loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c])), edges = new Map(brep.edges.map(e => [e.id, e]));
+  // The centre: the middle of the vertices' and facet patches' box, for well-conditioned products.
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const v of brep.vertices) for (let k = 0; k < 3; k++) { if (v.point[k] < lo[k]) lo[k] = v.point[k]; if (v.point[k] > hi[k]) hi[k] = v.point[k]; }
+  for (const f of brep.faces) if (f.surface.kind === 'facets') { const b = f.surface.bounds; for (let k = 0; k < 3; k++) { if (b[k] < lo[k]) lo[k] = b[k]; if (b[k + 3] > hi[k]) hi[k] = b[k + 3]; } }
+  const o: Point = [0, 1, 2].map(k => lo[k] <= hi[k] ? (lo[k] + hi[k]) / 2 : 0) as Point, I = Array(11).fill(0) as number[], J = faceScratch;
+  for (const f of brep.faces) {
+    const sign = f.sense === 'forward' ? 1 : -1;
+    if (f.surface.kind === 'facets') { facetIntegrals(f.surface, sign, o, I); continue; }
+    const plane = planar(f.surface); if (!plane) return null;
+    const nx = plane.normal[0] * sign, ny = plane.normal[1] * sign, nz = plane.normal[2] * sign;
+    J.fill(0);
+    let area2 = 0;
+    for (const lid of f.loops) {
+      const list = loops.get(lid)!.coedges;
+      // The loop's corners in its order (each coedge's start), every edge straight.
+      let ax = 0, ay = 0, az = 0, px = 0, py = 0, pz = 0;
+      for (let i = 0; i < list.length; i++) {
+        const co = coedges.get(list[i])!, c = edges.get(co.edge)!.curve;
+        if (!(c.degree === 1 && c.controlPoints.length === 2)) return null;
+        const s = c.controlPoints[co.sense === 'forward' ? 0 : 1], x = s[0] - o[0], y = s[1] - o[1], z = s[2] - o[2];
+        if (i === 0) { ax = x; ay = y; az = z; }
+        else if (i >= 2) area2 += fanTriangle(J, ax, ay, az, px, py, pz, x, y, z, nx, ny, nz);
+        px = x; py = y; pz = z;
+      }
+    }
+    // (The loops turn about the outward normal, outer one way and holes the other: their area is positive.)
+    if (!(area2 > 0)) return null;
+    for (let k = 0; k < 10; k++) I[k] += J[k];
+    I[10] += area2 / 2;
+  }
+  return fromCentreAt(I, o);
+}
+const faceScratch = new Float64Array(10);
+/** One fan triangle's cone from the centre (a, b, c about it) added to the ten integrals; its doubled area along n, signed. */
+function fanTriangle(I: Float64Array, ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number, nx: number, ny: number, nz: number): number {
+  const D = ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx);
+  const sx = ax + bx + cx, sy = ay + by + cy, sz = az + bz + cz;
+  I[0] += D / 6; I[1] += D / 24 * sx; I[2] += D / 24 * sy; I[3] += D / 24 * sz;
+  I[4] += D / 120 * (ax * ax + bx * bx + cx * cx + sx * sx); I[5] += D / 120 * (ay * ay + by * by + cy * cy + sy * sy); I[6] += D / 120 * (az * az + bz * bz + cz * cz + sz * sz);
+  I[7] += D / 120 * (ax * ay + bx * by + cx * cy + sx * sy); I[8] += D / 120 * (ax * az + bx * bz + cx * cz + sx * sz); I[9] += D / 120 * (ay * az + by * bz + cy * cz + sy * sz);
+  const ux = bx - ax, uy = by - ay, uz = bz - az, vx = cx - ax, vy = cy - ay, vz = cz - az;
+  return (uy * vz - uz * vy) * nx + (uz * vx - ux * vz) * ny + (ux * vy - uy * vx) * nz;
+}
+/** Integrals about o moved to the world origin (as the quadrature's fromCentre); the area unchanged. */
+function fromCentreAt(I: readonly number[], c: Point): number[] {
+  const [V, X, Y, Z, XX, YY, ZZ, XY, XZ, YZ] = I, [cx, cy, cz] = c;
+  return [V, X + cx * V, Y + cy * V, Z + cz * V, XX + 2 * cx * X + cx * cx * V, YY + 2 * cy * Y + cy * cy * V, ZZ + 2 * cz * Z + cz * cz * V,
+    XY + cx * Y + cy * X + cx * cy * V, XZ + cx * Z + cz * X + cx * cz * V, YZ + cy * Z + cz * Y + cy * cz * V, I[10]];
 }

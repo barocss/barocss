@@ -26,7 +26,8 @@ export function snapshot(input: unknown, owned = false): unknown {
     check(!ancestors.has(value), code, 'Cycles refused', path);
     const array = reflect(() => Array.isArray(value), path), prototype = reflect(() => Object.getPrototypeOf(value), path), keys = reflect(() => Reflect.ownKeys(value), path);
     check(array ? prototype === Array.prototype : prototype === Object.prototype || prototype === null, code, 'Foreign prototype refused', path);
-    check(keys.length <= (array ? (owned ? 257 : 65) : (owned ? 64 : 16)), owned ? 'OWNED' : 'LIMIT', 'Own field capacity exceeded', path);
+    // (Arrays up to 128 items: the -v1 profile's constraint list; each list's own limit is checked on admission.)
+    check(keys.length <= (array ? (owned ? 257 : 129) : (owned ? 64 : 16)), owned ? 'OWNED' : 'LIMIT', 'Own field capacity exceeded', path);
     const descriptors = reflect(() => Object.getOwnPropertyDescriptors(value), path);
     check(keys.every(key => typeof key === 'string' && key.length <= 128 && 'value' in descriptors[key]
       && (array && key === 'length' || descriptors[key].enumerable === true)), code, 'Accessors, symbols and hidden fields refused', path);
@@ -34,7 +35,7 @@ export function snapshot(input: unknown, owned = false): unknown {
     try {
       if (array) {
         const n = descriptors.length.value as number;
-        check(Number.isInteger(n) && n >= 0 && n <= (owned ? 256 : 64) && keys.length === n + 1, code, 'Dense bounded array required', path);
+        check(Number.isInteger(n) && n >= 0 && n <= (owned ? 256 : 128) && keys.length === n + 1, code, 'Dense bounded array required', path);
         return Array.from({ length: n }, (_, i) => { check(Object.hasOwn(descriptors, String(i)), code, 'Sparse or extra array fields refused', path); return copy(descriptors[String(i)].value, depth + 1, path + '[' + i + ']'); });
       }
       return Object.fromEntries((keys as string[]).map(key => [key, copy(descriptors[key].value, depth + 1, path + '.' + key)]));
@@ -68,26 +69,27 @@ function list(value: unknown, min: number, max: number, path: string): unknown[]
 }
 export function admit(input: unknown): XYNumericalSketchDocumentV0 {
   const d = record(snapshot(input), ['format', 'version', 'profile', 'id', 'lengthUnit', 'angleUnit', 'points', 'segments', 'constraints', 'branchGuards'], '$');
-  check(d.format === 'barocss-xy-numerical-sketch' && d.version === 0 && d.profile === 'bounded-length-angle-v0' && d.lengthUnit === 'mm' && d.angleUnit === 'rad', 'UNSUPPORTED', 'Numerical sketch v0 bounded-length-angle-v0/mm/rad required');
+  check(d.format === 'barocss-xy-numerical-sketch' && d.version === 0 && (d.profile === 'bounded-length-angle-v0' || d.profile === 'bounded-length-angle-v1') && d.lengthUnit === 'mm' && d.angleUnit === 'rad', 'UNSUPPORTED', 'Numerical sketch v0 bounded-length-angle-v0 (or -v1)/mm/rad required');
+  const profile = d.profile as 'bounded-length-angle-v0' | 'bounded-length-angle-v1', big = profile === 'bounded-length-angle-v1';
   const id = identifier(d.id, '$.id'), ids = new Set([id]);
   const unique = (v: unknown, p: string) => { const s = identifier(v, p); check(!ids.has(s), 'INVALID_DOCUMENT', 'Duplicate global ID #' + s, p); ids.add(s); return s; };
   const ref = (v: unknown, set: Set<string>, p: string) => { const s = identifier(v, p); check(set.has(s), 'REFERENCE', 'Unresolved reference #' + s, p); return s; };
-  const points = list(d.points, 2, 16, '$.points').map((v, i) => { const p = '$.points[' + i + ']', a = record(v, ['id', 'position'], p); return { id: unique(a.id, p), position: xy(a.position, p) }; });
+  const points = list(d.points, 2, big ? 64 : 16, '$.points').map((v, i) => { const p = '$.points[' + i + ']', a = record(v, ['id', 'position'], p); return { id: unique(a.id, p), position: xy(a.position, p) }; });
   const pointIds = new Set(points.map(p => p.id));
-  const segments = list(d.segments, 1, 16, '$.segments').map((v, i) => {
+  const segments = list(d.segments, 1, big ? 64 : 16, '$.segments').map((v, i) => {
     const p = '$.segments[' + i + ']', a = record(v, ['id', 'startPointId', 'endPointId'], p);
     const startPointId = ref(a.startPointId, pointIds, p), endPointId = ref(a.endPointId, pointIds, p);
     check(startPointId !== endPointId, 'REFERENCE', 'Distinct endpoint IDs required', p);
     return { id: unique(a.id, p), startPointId, endPointId };
   });
   const segmentIds = new Set(segments.map(s => s.id)); let rows = 0;
-  const constraints = list(d.constraints, 0, 32, '$.constraints').map((v, i): XYNumericalSketchConstraint => {
+  const constraints = list(d.constraints, 0, big ? 128 : 32, '$.constraints').map((v, i): XYNumericalSketchConstraint => {
     const p = '$.constraints[' + i + ']'; check(v !== null && typeof v === 'object' && !Array.isArray(v), 'INVALID_DOCUMENT', 'Constraint record required', p);
     const k = (v as Record<string, unknown>).kind;
     const fields = k === 'fixed' ? ['pointId', 'target'] : k === 'coincident' ? ['pointA', 'pointB'] : k === 'horizontal' || k === 'vertical' ? ['segmentId'] : k === 'length' ? ['segmentId', 'lengthMM'] : k === 'signed-angle' ? ['segmentA', 'segmentB', 'angleRad'] : k === 'equal-length' ? ['segmentA', 'segmentB'] : null;
     check(fields !== null, 'UNSUPPORTED', 'Unsupported constraint kind', p);
     const a = record(v, ['id', 'kind', ...fields], p), name = unique(a.id, p);
-    rows += k === 'fixed' || k === 'coincident' ? 2 : 1; check(rows <= 64, 'LIMIT', 'At most 64 scalar residuals', p);
+    rows += k === 'fixed' || k === 'coincident' ? 2 : 1; check(rows <= (big ? 256 : 64), 'LIMIT', `At most ${big ? 256 : 64} scalar residuals`, p);
     if (k === 'fixed') return { id: name, kind: k, pointId: ref(a.pointId, pointIds, p), target: xy(a.target, p) };
     if (k === 'coincident') return { id: name, kind: k, pointA: ref(a.pointA, pointIds, p), pointB: ref(a.pointB, pointIds, p) };
     if (k === 'horizontal' || k === 'vertical') return { id: name, kind: k, segmentId: ref(a.segmentId, segmentIds, p) };
@@ -96,7 +98,7 @@ export function admit(input: unknown): XYNumericalSketchDocumentV0 {
     check(typeof a.angleRad === 'number' && a.angleRad > -Math.PI && a.angleRad <= Math.PI, 'UNSUPPORTED', 'Signed angle must be (-pi,pi] radians', p);
     return { id: name, kind: 'signed-angle', segmentA: ref(a.segmentA, segmentIds, p), segmentB: ref(a.segmentB, segmentIds, p), angleRad: a.angleRad };
   });
-  const branchGuards = list(d.branchGuards, 0, 16, '$.branchGuards').map((v, i): XYNumericalSketchBranchGuard => {
+  const branchGuards = list(d.branchGuards, 0, big ? 32 : 16, '$.branchGuards').map((v, i): XYNumericalSketchBranchGuard => {
     const p = '$.branchGuards[' + i + ']'; check(v !== null && typeof v === 'object' && !Array.isArray(v), 'INVALID_DOCUMENT', 'Guard record required', p);
     const k = (v as Record<string, unknown>).kind;
     if (k === 'positive-projection') { const a = record(v, ['id', 'kind', 'segmentId', 'direction'], p), direction = xy(a.direction, p); check(Math.hypot(...direction) > 0, 'INVALID_DOCUMENT', 'Nonzero authored direction required', p); return { id: unique(a.id, p), kind: k, segmentId: ref(a.segmentId, segmentIds, p), direction }; }
@@ -105,5 +107,5 @@ export function admit(input: unknown): XYNumericalSketchDocumentV0 {
     check(a.orientation === 'ccw' || a.orientation === 'cw', 'UNSUPPORTED', 'Orientation must be ccw or cw', p);
     return { id: unique(a.id, p), kind: k, pointA: ref(a.pointA, pointIds, p), pointB: ref(a.pointB, pointIds, p), pointC: ref(a.pointC, pointIds, p), orientation: a.orientation };
   });
-  return { format: 'barocss-xy-numerical-sketch', version: 0, profile: 'bounded-length-angle-v0', id, lengthUnit: 'mm', angleUnit: 'rad', points, segments, constraints, branchGuards };
+  return { format: 'barocss-xy-numerical-sketch', version: 0, profile, id, lengthUnit: 'mm', angleUnit: 'rad', points, segments, constraints, branchGuards };
 }

@@ -1,0 +1,5 @@
+{
+ "case": "arm-3r",
+ "step": "RD9",
+ "note": "A 3R arm (axes Z, Y, Y) of three 20 x 20 x 80 aluminium blocks on a base plate, a 60 mm steel cube locked on the last, from its mates, with limits and ratings (robot.joints). duty.json: two moves, out and back, 0.5 s dwells, 20000 h life. RD9 checks it (cad-cli robot-check); RD10 sizes it."
+}

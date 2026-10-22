@@ -1,0 +1,83 @@
+{
+  "id": "r2-cylinder-block-union",
+  "step": "R2",
+  "decisions": [
+    "D10"
+  ],
+  "about": "A Ø10 × 10 cylinder with a 4 × 4 block rising through its top: volume 250π + 64.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "cs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [0, 0],
+          "radius": 5
+        },
+        {
+          "id": "c",
+          "kind": "extrude",
+          "sketch": "cs",
+          "height": 10
+        },
+        {
+          "id": "ts",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [-2, -2],
+          "max": [2, 2]
+        },
+        {
+          "id": "t",
+          "kind": "extrude",
+          "sketch": "ts",
+          "height": 6,
+          "from": 8
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "c",
+          "tool": "t"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 849.3981633974482,
+          "relTol": 1e-8
+        },
+        "centroidMM": {
+          "value": [0, 0, 5.527432268287556],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "c.bottom",
+          "c.side0",
+          "c.top",
+          "t.side0",
+          "t.side1",
+          "t.side2",
+          "t.side3",
+          "t.top"
+        ]
+      }
+    ]
+  },
+  "oracle": "closed form"
+}

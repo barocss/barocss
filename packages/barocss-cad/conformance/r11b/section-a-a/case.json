@@ -1,0 +1,17 @@
+{
+  "id": "r11b-section-a-a",
+  "step": "R11b",
+  "decisions": [
+    "O1"
+  ],
+  "about": "section A–A of the starter plate alone at 1:1 in model mm (cad-studio): the cut part's visible edges and its two cut faces hatched at 45°",
+  "input": {
+    "documentFile": "document.json",
+    "options": [
+      {
+        "version": "AC1015"
+      }
+    ]
+  },
+  "oracle": "the document is the studio's (apps/cad-studio/test/dxf.test.ts writes and checks it); ezdxf 1.4.5 (MIT) reads each file (scripts/dxf-oracle.py, outside the product): oracle.<version>.json, compared with the document to 1e-9 with a clean audit"
+}

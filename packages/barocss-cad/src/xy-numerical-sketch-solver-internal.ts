@@ -3,6 +3,12 @@ import type { XYNumericalSketchDocumentV0, XYNumericalSketchPoint, XYNumericalSk
 
 export const limits = Object.freeze({ points: 16, segments: 16, constraints: 32, scalarResiduals: 64, unknowns: 32, branchGuards: 16,
   coordinateAbsMM: 10000, minimumSegmentMM: .001, iterations: 100, evaluations: 1200 });
+/**
+ * `bounded-length-angle-v1`: the same solver and tolerances over larger bounded sketches (outlines with
+ * several placed circles). v0's limits are unchanged.
+ */
+export const limitsV1 = Object.freeze({ ...limits, points: 64, segments: 64, constraints: 128, scalarResiduals: 256, unknowns: 128, branchGuards: 32 });
+export const limitsFor = (profile: string) => profile === 'bounded-length-angle-v1' ? limitsV1 : limits;
 export const tolerances = Object.freeze({ linearMM: 1e-7, angularRad: 1e-9, rankRelative: 1e-10 });
 export function wrap(angle: number): number { const a = Math.atan2(Math.sin(angle), Math.cos(angle)); return a === -Math.PI ? Math.PI : a; }
 
@@ -71,10 +77,11 @@ export function evaluate(d: XYNumericalSketchDocumentV0, x: number[]): { jacobia
 export function solve(d: XYNumericalSketchDocumentV0): { points: XYNumericalSketchPoint[]; report: XYNumericalSketchReport } {
   let x = d.points.flatMap(p => p.position), current = evaluate(d, x), evaluations = 1, iterations = 0, damping = 1e-3;
   const satisfied = (e: ReturnType<typeof evaluate>) => e.residuals.every(r => Math.abs(r.residual) <= r.tolerance);
-  while (!satisfied(current) && iterations < limits.iterations) {
+  const lim = limitsFor(d.profile);
+  while (!satisfied(current) && iterations < lim.iterations) {
     iterations++; let accepted = false;
     for (let trial = 0; trial < 12; trial++) {
-      check(evaluations < limits.evaluations - 1, 'BUDGET', 'Evaluation cap reached');
+      check(evaluations < lim.evaluations - 1, 'BUDGET', 'Evaluation cap reached');
       const matrix = [...current.jacobian.map(row => [...row]), ...x.map((_, i) => x.map((__, j) => i === j ? Math.sqrt(damping) : 0))];
       const step = qr(matrix, [...current.residuals.map(r => -r.residual), ...x.map(() => 0)], x.length).solution;
       const candidate = x.map((v, i) => v + step[i]); evaluations++;
@@ -93,7 +100,7 @@ export function solve(d: XYNumericalSketchDocumentV0): { points: XYNumericalSket
   return { points: d.points.map((p, i) => ({ id: p.id, position: [x[2 * i], x[2 * i + 1]] })), report: {
     numericalRank: rank.rank, rankThreshold: rank.threshold, localDegreesOfFreedom: x.length - rank.rank, fullyConstrainedLocally: rank.rank === x.length,
     unknownCount: x.length, scalarResidualCount: final.residuals.length, residuals: final.residuals, objective: final.objective, iterations, evaluations, termination: 'residual-tolerances-met',
-    tolerances: { ...tolerances }, limits: { ...limits }, quality: { arithmetic: 'binary64-local-numerical', objectiveNormalization: 'linear/1mm-angular/1rad-sum-squares',
+    tolerances: { ...tolerances }, limits: { ...lim }, quality: { arithmetic: 'binary64-local-numerical', objectiveNormalization: 'linear/1mm-angular/1rad-sum-squares',
       rank: 'column-pivoted-householder-qr-local-not-exact-or-global', branch: 'authored-guards-on-seed-and-accepted-iterates', rootSelection: 'seed-dependent-no-global-closest-root-guarantee',
       constraints: 'authored-order-points-xy-order', damping: 'initial1e-3-accept/3-floor1e-12-reject*10-ceiling1e12', nativeGeometry: 'degree1-xy-z-zero',
       ownership: 'copied-cpu-data-gc-no-renderer-resources', topologyCertified: false, manufacturingToleranceCertified: false } } };

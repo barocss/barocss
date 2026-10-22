@@ -1,0 +1,194 @@
+{
+  "id": "frk-bead-gusset",
+  "step": "FRk",
+  "decisions": [
+    "D166"
+  ],
+  "about": "FRk2: the beads of a clipped gusset (legs 120 and 100, clip 15, 5 thick) in a butted L: both seams, both faces, (l − c)·z² a seam, four bodies; their centroid the four prisms'.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              600,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              600
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "default": "butt"
+          }
+        },
+        {
+          "id": "g",
+          "kind": "gusset",
+          "frame": "f",
+          "point": 1,
+          "legs": [
+            120,
+            100
+          ],
+          "thickness": 5,
+          "clip": 15
+        },
+        {
+          "id": "w",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "gusset": "g"
+          },
+          "leg": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 275280,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            290,
+            0,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 257520,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            310
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 29437.5,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            60.6687898089172,
+            0,
+            53.874734607218684
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 1710,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            57.75,
+            0,
+            46.276315789473685
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 4,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "bead": {
+          "legMM": 3,
+          "seam": 380,
+          "flush": 0,
+          "meets": [
+            0,
+            1
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: four right-triangle prisms of legs 3; seam A 105 long on z 20, x 35 to 140; seam B 85 long on x 20, z 35 to 120."
+}

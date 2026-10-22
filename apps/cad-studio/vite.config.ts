@@ -14,11 +14,13 @@ const listening = () => new Promise<boolean>(done => {
   const socket = connect(chatPort, '127.0.0.1'), end = (up: boolean) => { socket.destroy(); done(up); };
   socket.once('connect', () => end(true)); socket.once('error', () => end(false)); socket.setTimeout(500, () => end(false));
 });
+// (So too the team libraries' list, LIB4: none without the chat server.)
 const chatOff: Connect.NextHandleFunction = (req, res, next) => {
-  if (req.url?.split('?')[0] !== '/api/chat/status') return next();
+  const path = req.url?.split('?')[0];
+  if (path !== '/api/chat/status' && !(path === '/api/chat/libraries' && req.method === 'GET')) return next();
   void listening().then(up => {
     if (up) return next();
-    res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ enabled: false }));
+    res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(path === '/api/chat/status' ? { enabled: false } : { libraries: [], note: 'No chat server: no team libraries.' }));
   });
 };
 const chatStatusOff: Plugin = { name: 'cad-studio-chat-status-off', configureServer: s => { s.middlewares.use(chatOff); }, configurePreviewServer: s => { s.middlewares.use(chatOff); } };
@@ -28,5 +30,11 @@ export default defineConfig({
   worker: { format: 'es' },
   server: { host: '127.0.0.1', port: 52020, strictPort: true, fs: { allow: [repo] }, proxy: { '/api/chat': chat } },
   preview: { proxy: { '/api/chat': chat } },
-  build: { target: 'es2022', outDir: 'dist' },
+  build: {
+    target: 'es2022', outDir: 'dist',
+    // The kernel's modules have no side effects at load (checked: no top-level statements but declarations),
+    // so its parts that only lazily loaded code uses (the direct curve and surface tools) stay out of the
+    // first load instead of riding along in the chunk the app shares with them.
+    rolldownOptions: { treeshake: { moduleSideEffects: (id: string) => !/[\\/]packages[\\/]barocss-cad[\\/]src[\\/]/.test(id) } },
+  },
 });

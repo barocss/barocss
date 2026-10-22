@@ -47,6 +47,10 @@ export interface BrepProjection {
 }
 /** `prefixes`: put before the names of each B-rep's curves (parallel to the B-reps), to tell copies of one part apart. */
 /** `tangentEdges`: also the smooth joints between different surfaces (a fillet's boundaries), marked `tangent`. */
+/** A mesh solid's facet (brepFromTriangles names them `<id>.facet<k>`). */
+const FACET = /\.facet\d+$/;
+/** A face of a mesh solid: a planar mesh's by name, a facet face by kind (F0). */
+const meshy = (f: Brep['faces'][number]) => f.surface.kind === 'facets' || FACET.test(f.name ?? '');
 export interface HiddenLineOptions { readonly segmentsPerQuarter?: number; readonly prefixes?: readonly string[]; readonly tangentEdges?: boolean }
 
 type XY = [number, number];
@@ -71,6 +75,20 @@ const dist2 = (a: XY, b: XY) => Math.hypot(b[0] - a[0], b[1] - a[1]);
 type Own = { face: number; eps: number; rho: number };
 const lerp3 = (a: Point, b: Point, t: number): Point => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
+// Each face's plane or cylinder (or neither), read once per face object: every view asks for it.
+const faceGeometries = new WeakMap<object, ReturnType<typeof faceGeometry>>();
+function geometryOfFace(face: Brep['faces'][number]): ReturnType<typeof faceGeometry> {
+  let g = faceGeometries.get(face);
+  if (!g) { try { g = faceGeometry(face); } catch { g = { kind: 'other' }; } faceGeometries.set(face, g); }
+  return g;
+}
+// A B-rep's tessellation per quality, made once: a drawing projects the same part in several views.
+const meshes = new WeakMap<Brep, Map<number, ReturnType<typeof tessellateBrep>>>();
+function meshOf(b: Brep, perQuarter: number): ReturnType<typeof tessellateBrep> {
+  let byQuality = meshes.get(b); if (!byQuality) meshes.set(b, byQuality = new Map());
+  let m = byQuality.get(perQuarter); if (!m) byQuality.set(perQuarter, m = tessellateBrep(b, { segmentsPerQuarter: perQuarter }));
+  return m;
+}
 export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineView, options: HiddenLineOptions = {}): BrepProjection {
   const toward = unit(view.toward), right = unit(cross(view.up, toward));
   if (len(right) < 0.5) throw new Error('The view up direction is parallel to the view direction.');
@@ -81,7 +99,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
   // Occluders: every face's triangles in view coordinates.
   const tris: number[] = [], triFace: number[] = [], triAt: number[] = [], faceSag: number[] = [], faceSpan: number[] = [];
   const perQuarter = options.segmentsPerQuarter ?? 12;
-  const meshes = breps.map(b => tessellateBrep(b, { segmentsPerQuarter: perQuarter }));
+  const meshes = breps.map(b => meshOf(b, perQuarter));
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (const m of meshes) {
     const X = m.positionsMM;
@@ -137,8 +155,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
       if (g.kind === 'cylinder') { const rel = sub(p, g.c), t = dot(rel, g.a); return sub(rel, [g.a[0] * t, g.a[1] * t, g.a[2] * t]); }
       return normalAt(faceId, p);
     };
-    const geometry = new Map<string, ReturnType<typeof faceGeometry>>();
-    const geomOf = (id: string) => { let g = geometry.get(id); if (!g) { try { g = faceGeometry(faceById.get(id)!); } catch { g = { kind: 'other' }; } geometry.set(id, g); } return g; };
+    const geomOf = (id: string) => geometryOfFace(faceById.get(id)!);
     const polylineOf = new Map(mesh.edges.map(e => [e.edgeId, e.pointsMM]));
     const vertex = new Map(brep.vertices.map(v => [v.id, v.point]));
 
@@ -157,8 +174,16 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
         // the viewer along it (a silhouette on the joint).
         const exact = (g: ReturnType<typeof faceGeometry>) => g.kind === 'plane' || g.kind === 'cylinder';
         const na = normalOn(ga, fs[0], mid), nb = normalOn(gb, fs[1], mid);
+        // Facets of a mesh solid (a modelled thread, an STL) join smoothly within 20°: drawn only where
+        // the solid's outline runs along them (one facet towards the viewer, the other away).
+        const facets = meshy(faceById.get(fs[0])!) && meshy(faceById.get(fs[1])!);
+        if (facets && na && nb && dot(unit(na), unit(nb)) > Math.cos(Math.PI / 9)) {
+          if (Math.sign(dot(na, toward)) !== Math.sign(dot(nb, toward))) kind = 'silhouette';
+          else if (options.tangentEdges) kind = 'tangent';
+          else continue;
+        }
         const within = exact(ga) && exact(gb) ? Math.PI / 180 : 1.5 * Math.PI / 2 / perQuarter;
-        if (na && nb && Math.abs(dot(unit(na), unit(nb))) > Math.cos(within)) {
+        if (kind === 'edge' && na && nb && Math.abs(dot(unit(na), unit(nb))) > Math.cos(within)) {
           // (Between other surfaces, the silhouettes found on the faces run on across the joint.)
           if (exact(ga) && exact(gb) && Math.abs(dot(unit(na), toward)) < 1e-6) kind = 'silhouette';
           else if (options.tangentEdges && !sameSurface(ga, gb, faceById.get(fs[0])!.name ?? fs[0], faceById.get(fs[1])!.name ?? fs[1])) kind = 'tangent';

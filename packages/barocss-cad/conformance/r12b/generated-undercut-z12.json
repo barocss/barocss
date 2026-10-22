@@ -1,0 +1,57 @@
+{
+  "id": "r12b-generated-undercut-z12",
+  "step": "R12b",
+  "decisions": [
+    "D129",
+    "D130"
+  ],
+  "about": "Twelve teeth at 20°, no shift: refused under the schematic root (r6a-spur-undercut-refused), built under the generated one as the rack cuts it — undercut, the involute trimmed where the tip round's envelope crosses it (Ø22.6054); the volume the exact cut profile's area × the width.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 12,
+          "faceWidth": 10,
+          "generator": "spur-gear@1"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 4384.9665,
+          "relTol": 3e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^g\\.(filletL\\d?|filletR\\d?|flankL|flankR|tip|root|face0|face1)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  },
+  "oracle": "as r12b-generated-m2-z20; the crossing by this file's own bisection on the envelope against the involute"
+}

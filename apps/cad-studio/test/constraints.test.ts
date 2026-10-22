@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { settleShape } from '../src/sketch/settle';
-import { arcOf, bulgeThrough, type P2 } from '../src/sketch/profile';
+import { settleShape } from '@barocss/cad-model/sketch/settle';
+import { arcOf, bulgeThrough, type P2 } from '@barocss/cad-model/sketch/profile';
 import {
   applyConstraint, commitDimension, constraintEntries, constraintOptions, dimensionKey, redundancy, removeConstraint, solveShape,
   type Polygon, type SketchPick,
-} from '../src/sketch/rules';
-import { nextPicks, pickSketch, sketchClick } from '../src/sketch/select';
+} from '@barocss/cad-model/sketch/rules';
+import { nextPicks, pickSketch, sketchClick } from '@barocss/cad-model/sketch/select';
 import type { SketchState } from '../src/viewport/Viewport';
-import { xyPlane } from '../src/sketch/plane';
+import { xyPlane } from '@barocss/cad-model/sketch/plane';
 
 const E = (i: number): SketchPick => ({ kind: 'edge', i }), Pt = (i: number): SketchPick => ({ kind: 'point', i });
 const close = (points: P2[], bulges?: number[]): Polygon => {
@@ -156,7 +156,7 @@ test('picking points before edges in screen space, and the Select / Dimension cl
 });
 
 test('Select / Dimension turn a rectangle into an outline with its H/V edges; with none current, the last shape comes back', async () => {
-  const { rectangleOutline, startPicking } = await import('../src/sketch/select');
+  const { rectangleOutline, startPicking } = await import('@barocss/cad-model/sketch/select');
   const rect = { kind: 'rectangle' as const, a: [40, 20] as P2, b: [0, 0] as P2 };
   const outline = rectangleOutline(rect)!;
   assert.deepEqual(outline.points, [[0, 0], [40, 0], [40, 20], [0, 20]]);
@@ -172,7 +172,7 @@ test('Select / Dimension turn a rectangle into an outline with its H/V edges; wi
 });
 
 test('horizontal and vertical distances between points, also when the points line up', async () => {
-  const { pointDimensionKeys, dimensionValue, dimensionLabel } = await import('../src/sketch/rules');
+  const { pointDimensionKeys, dimensionValue, dimensionLabel } = await import('@barocss/cad-model/sketch/rules');
   // A quadrilateral whose points 2 and 4 share neither X nor Y.
   let s = close([[0, 0], [40, 0], [36, 21], [3, 23]]);
   assert.deepEqual(pointDimensionKeys(3, 1), { dist: 'dist1_3', dx: 'dx1_3', dy: 'dy1_3' });
@@ -199,8 +199,8 @@ test('horizontal and vertical distances between points, also when the points lin
 });
 
 test('angle dimensions between two lines: at a shared corner, between separate edges, out of range refused', async () => {
-  const { angleKey, dimensionValue, dimensionLabel } = await import('../src/sketch/rules');
-  const { edgeAngle } = await import('../src/sketch/terms');
+  const { angleKey, dimensionValue, dimensionLabel } = await import('@barocss/cad-model/sketch/rules');
+  const { edgeAngle } = await import('@barocss/cad-model/sketch/terms');
   let s = quad();
   // Edges 1 and 2 meet at point 2: the corner between them.
   assert.equal(dimensionKey(s, [E(0), E(1)]), 'ang0_1');
@@ -229,7 +229,7 @@ test('angle dimensions between two lines: at a shared corner, between separate e
 });
 
 test('sketch history steps back and forward through outline edits, and only over the shape it left', async () => {
-  const { SketchHistory } = await import('../src/sketch/history');
+  const { SketchHistory } = await import('@barocss/cad-model/sketch/history');
   const h = new SketchHistory(), a = quad();
   const b = ok(applyConstraint(a, [E(2)], 'horizontal')), c = removeConstraint(b, 'h:0');
   h.push(a, b); h.push(b, c);
@@ -241,7 +241,7 @@ test('sketch history steps back and forward through outline edits, and only over
 });
 
 test('overlapping shapes in one sketch are refused with a reason, never cut or crashed', async () => {
-  const { profileOf } = await import('../src/sketch/loops');
+  const { profileOf } = await import('@barocss/cad-model/sketch/loops');
   const rect = (a: P2, b: P2) => ({ kind: 'rectangle' as const, a, b }), circle = (c: P2, r: number) => ({ kind: 'circle' as const, c, r });
   const refused = (shapes: Parameters<typeof profileOf>[0]) => { const r = profileOf(shapes); assert.ok('error' in r, JSON.stringify(r)); return (r as { error: string }).error; };
   // U43, U41, U42: two crossing rectangles; a circle across the top or the right edge.
@@ -257,11 +257,11 @@ test('overlapping shapes in one sketch are refused with a reason, never cut or c
 });
 
 test('a finished outline keeps its constraints in the sketch node; the feature editor drives its dimensions', async () => {
-  const { shapeNode } = await import('../src/sketch/loops');
-  const { featureOf } = await import('../src/engine/part');
-  const { editFields } = await import('../src/app/editFields');
-  const { evaluateDoc } = await import('../src/engine/evaluate');
-  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  const { shapeNode } = await import('@barocss/cad-model/sketch/loops');
+  const { featureOf } = await import('@barocss/cad-model/engine/part');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
+  const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
+  const { emptyDoc, withNode } = await import('@barocss/cad-model/engine/doc');
   let s = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
   s = (commitDimension(s, 'len0', 60) as { shape: Polygon }).shape;
   s = (commitDimension(s, 'dist0_2', 65) as { shape: Polygon }).shape;
@@ -290,9 +290,9 @@ test('a finished outline keeps its constraints in the sketch node; the feature e
 });
 
 test('a finished sketch node comes back as its shapes: the kept outline with its constraints, loops, regions and holes', async () => {
-  const { sketchShapes, loopShape } = await import('../src/sketch/reopen');
-  const { shapeNode, profileOf } = await import('../src/sketch/loops');
-  const { outlineSegments } = await import('../src/sketch/profile');
+  const { sketchShapes, loopShape } = await import('@barocss/cad-model/sketch/reopen');
+  const { shapeNode, profileOf } = await import('@barocss/cad-model/sketch/loops');
+  const { outlineSegments } = await import('@barocss/cad-model/sketch/profile');
   // A constrained outline round-trips with every constraint.
   let s = close([[0, 0], [40, 0], [40, 20], [0, 20]]);
   s = (commitDimension(s, 'len0', 60) as { shape: Polygon }).shape;
@@ -309,17 +309,18 @@ test('a finished sketch node comes back as its shapes: the kept outline with its
   const r = profileOf([{ kind: 'rectangle', a: [0, 0], b: [40, 20] }, { kind: 'circle', c: [20, 10], r: 4 }, { kind: 'circle', c: [60, 10], r: 5 }]);
   assert.ok('node' in r);
   const shapes = sketchShapes(r.node);
-  assert.deepEqual(shapes.shape, { kind: 'rectangle', a: [0, 0], b: [40, 20] });
+  // (Each side with its id, R10a: the node's sideTags.)
+  assert.deepEqual(shapes.shape, { kind: 'rectangle', a: [0, 0], b: [40, 20], ids: ['e1', 'e2', 'e3', 'e4'] });
   assert.deepEqual(shapes.done.map(d => d.kind), ['circle', 'circle']);
   // And profiles again to the same node.
   assert.deepEqual(profileOf([shapes.shape!, ...shapes.done]), r);
 });
 
 test('a Rectangle-tool rectangle stays a rectangle after Select / Dimension while it still is one (QA S3, K29)', async () => {
-  const { rectangleOutline } = await import('../src/sketch/select');
-  const { shapeNode } = await import('../src/sketch/loops');
-  const { editFields } = await import('../src/app/editFields');
-  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  const { rectangleOutline } = await import('@barocss/cad-model/sketch/select');
+  const { shapeNode } = await import('@barocss/cad-model/sketch/loops');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
+  const { emptyDoc, withNode } = await import('@barocss/cad-model/engine/doc');
   const outline = rectangleOutline({ kind: 'rectangle', a: [0, 0], b: [40, 20] })!;
   assert.deepEqual(shapeNode(outline), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] });
   // A typed width keeps it a rectangle; the editor then offers width, depth and corner.
@@ -338,12 +339,12 @@ test('a Rectangle-tool rectangle stays a rectangle after Select / Dimension whil
 });
 
 test('a circle is placed from the outline: picked from the sketch, centre distances, diameter, saved, reopened, edited', async () => {
-  const { sketchClick, attachCircle, pickSketch } = await import('../src/sketch/select');
-  const { profileOf, shapeNode } = await import('../src/sketch/loops');
-  const { sketchShapes } = await import('../src/sketch/reopen');
-  const { editFields } = await import('../src/app/editFields');
-  const { evaluateDoc } = await import('../src/engine/evaluate');
-  const { emptyDoc, withNode } = await import('../src/engine/doc');
+  const { sketchClick, attachCircle, pickSketch } = await import('@barocss/cad-model/sketch/select');
+  const { profileOf, shapeNode } = await import('@barocss/cad-model/sketch/loops');
+  const { sketchShapes } = await import('@barocss/cad-model/sketch/reopen');
+  const { editFields } = await import('@barocss/cad-model/app/editFields');
+  const { evaluateDoc } = await import('@barocss/cad-model/engine/evaluate');
+  const { emptyDoc, withNode } = await import('@barocss/cad-model/engine/doc');
   const plate = (commitDimension(close([[0, 0], [40, 0], [40, 20], [0, 20]]), 'len0', 40) as { shape: Polygon }).shape;
   const hole = { kind: 'circle' as const, c: [12, 9] as P2, r: 3 };
   // The Dimension tool: point 1, then the finished circle, opens the distance to its centre and attaches the circle.
@@ -386,17 +387,17 @@ test('a circle is placed from the outline: picked from the sketch, centre distan
 });
 
 test('Select / Dimension after drawing a circle edit the outline drawn before it; the circle stays beside it', async () => {
-  const { startPicking, rectangleOutline } = await import('../src/sketch/select');
+  const { startPicking, rectangleOutline } = await import('@barocss/cad-model/sketch/select');
   const rect = { kind: 'rectangle' as const, a: [0, 0] as P2, b: [40, 20] as P2 }, hole = { kind: 'circle' as const, c: [10, 10] as P2, r: 3 };
   const s = startPicking({ plane: xyPlane(), tool: 'circle', shape: hole, done: [rect] }, 'dimension');
   assert.deepEqual(s.shape, rectangleOutline(rect)); assert.deepEqual(s.done, [hole]);
 });
 
 test('circles are placed from horizontal / vertical edges and from each other', async () => {
-  const { sketchClick } = await import('../src/sketch/select');
-  const { edgeCircleKey, circlePairKeys, dimensionLabel } = await import('../src/sketch/rules');
-  const { outlineFields } = await import('../src/sketch/outlineFields');
-  const { profileOf } = await import('../src/sketch/loops');
+  const { sketchClick } = await import('@barocss/cad-model/sketch/select');
+  const { edgeCircleKey, circlePairKeys, dimensionLabel } = await import('@barocss/cad-model/sketch/rules');
+  const { outlineFields } = await import('@barocss/cad-model/sketch/outlineFields');
+  const { profileOf } = await import('@barocss/cad-model/sketch/loops');
   let s: Polygon = { ...close([[0, 0], [60, 0], [60, 30], [0, 30]]), circles: [{ c: [12, 10], r: 3 }, { c: [40, 18], r: 3 }] };
   s = (commitDimension(s, 'len0', 60) as { shape: Polygon }).shape; s = (commitDimension(s, 'len1', 30) as { shape: Polygon }).shape;
   // Bottom edge 1 (horizontal): measured along Y; left edge 4 (vertical): along X; a slanted edge has no such key.
@@ -411,7 +412,7 @@ test('circles are placed from horizontal / vertical edges and from each other', 
   r = commitDimension(s, 'ccdx0_1', 25); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
   r = commitDimension(s, 'ccdy0_1', 12); assert.ok(r.ok, !r.ok ? r.reason : ''); s = r.shape;
   assert.deepEqual(s.circles![1].c, [40, 20]); assert.equal(dof(s), 0);
-  // One more is refused: over-defined, or past the solver's 16 points / segments with a clear reason.
+  // One more is refused: over-defined, or past the solver's 64 points / 64 segments / 128 constraints with a clear reason.
   assert.match((commitDimension(s, 'ccdist0_1', 30) as { reason: string }).reason, /over-define|conflict|Too many points/);
   assert.deepEqual(constraintEntries(s).filter(c => c.id.startsWith('rule')).map(c => c.label + ' ' + c.detail), [
     'Distance edge 1 – circle 1 = 8', 'Distance edge 4 – circle 1 = 15', 'Horizontal distance circle 1 – circle 2 = 25', 'Vertical distance circle 1 – circle 2 = 12']);
@@ -426,7 +427,7 @@ test('circles are placed from horizontal / vertical edges and from each other', 
 });
 
 test('a dimension may not push an attached circle across the outline or off it; Finish refuses a crossing one', async () => {
-  const { profileOf } = await import('../src/sketch/loops');
+  const { profileOf } = await import('@barocss/cad-model/sketch/loops');
   const plate = { ...close([[0, 0], [60, 0], [60, 25], [0, 25]]), circles: [{ c: [30, 12] as P2, r: 4 }] };
   const off = commitDimension(plate, 'cdx0_0', 70);
   assert.ok(!off.ok && /off the outline/.test(off.reason), JSON.stringify(off));
@@ -445,4 +446,59 @@ test('a dimension may not push an attached circle across the outline or off it; 
   // Drawn shapes: a circle across the plate's edge, with a sample exactly on it.
   const d = profileOf([{ kind: 'rectangle', a: [0, 0], b: [60, 25] }, { kind: 'circle', c: [58, 12], r: 4 }]);
   assert.ok('error' in d, JSON.stringify(d));
+});
+
+test('a plate with six fully placed holes solves (the kernel’s larger sketch profile)', async () => {
+  const { solveOutline } = await import('@barocss/cad-model/sketch/profile');
+  const pts: [number, number][] = [[0, 0], [80, 0], [80, 40], [0, 40]];
+  const circles: [number, number][] = [[10, 10], [40, 10], [70, 10], [10, 30], [40, 30], [70, 30]];
+  const rules = circles.flatMap((c, k) => [{ kind: 'cdx' as const, a: 0, circle: k, value: c[0] }, { kind: 'cdy' as const, a: 0, circle: k, value: c[1] }]);
+  const r = solveOutline(pts, { lengths: { 0: 80, 1: 40 }, rules, circles: circles.map(c => [c[0] + 0.4, c[1] - 0.3] as [number, number]) });
+  assert.ok(r.ok, r.ok ? '' : r.reason);
+  assert.deepEqual(r.ok && r.circles?.map(c => c.map(v => Math.round(v * 1e6) / 1e6)), circles);
+});
+
+test('concentric circles of an outline (radii kept, listed, removable); loose circles are refused', () => {
+  const C = (i: number): SketchPick => ({ kind: 'circle', i });
+  let s: Polygon = { ...close([[0, 0], [60, 0], [60, 30], [0, 30]]), circles: [{ c: [20, 15], r: 8 }, { c: [23, 14], r: 4 }, { c: [45, 12], r: 3 }] };
+  assert.equal(constraintOptions(s, [C(0), C(1)]).coincident, null);
+  s = ok(applyConstraint(s, [C(0), C(1)], 'coincident'));
+  const [a, b] = [s.circles![0].c, s.circles![1].c];
+  assert.ok(Math.hypot(a[0] - b[0], a[1] - b[1]) < 1e-6, `one centre: ${a} ${b}`);
+  assert.deepEqual([s.circles![0].r, s.circles![1].r], [8, 4], 'radii kept');
+  assert.equal(constraintOptions(s, [C(1), C(0)]).coincident, 'Already concentric');
+  assert.ok(constraintEntries(s).some(e => e.label === 'Concentric' && e.detail === 'circle 1 · circle 2'));
+  const id = constraintEntries(s).find(e => e.label === 'Concentric')!.id;
+  assert.equal(constraintEntries(removeConstraint(s, id)).some(e => e.label === 'Concentric'), false);
+  assert.match(constraintOptions(s, [{ kind: 'circle', i: 0, done: true } as SketchPick, C(1)]).coincident!, /on their own/);
+});
+
+test('tangent: an outline edge and one of its circles come to touch, the radius kept', () => {
+  const C = (i: number): SketchPick => ({ kind: 'circle', i });
+  // A 60 × 30 plate, a Ø10 circle 3 mm below the top edge (edge 2 runs from (60, 30) to (0, 30)).
+  let s: Polygon = { ...close([[0, 0], [60, 0], [60, 30], [0, 30]]), circles: [{ c: [20, 22], r: 5 }] };
+  assert.equal(constraintOptions(s, [E(2), C(0)]).tangent, null);
+  s = ok(applyConstraint(s, [E(2), C(0)], 'tangent'));
+  const c = s.circles![0].c, a = s.points[2], b = s.points[3];
+  const dist = Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])) / Math.hypot(b[0] - a[0], b[1] - a[1]);
+  assert.ok(Math.abs(dist - 5) < 1e-6, `the top edge is one radius from the centre: ${dist}`);
+  assert.equal(constraintOptions(s, [E(2), C(0)]).tangent, 'Already tangent');
+  assert.ok(constraintEntries(s).some(e => e.label === 'Tangent'));
+  assert.match(constraintOptions(s, [Pt(1), C(0)]).tangent!, /straight edge and a circle/);
+});
+
+test('symmetric: two points mirror each other across an edge’s line; two degrees of freedom less', () => {
+  // A dart with its first edge on the X axis: points 2 and 5 are near mirror images across it.
+  const s = close([[0, 0], [10, 0], [16, 7], [-5, 6], [-5, -6], [16, -8]]);
+  assert.match(constraintOptions(s, [Pt(2), Pt(5)]).symmetric ?? '', /two points and a straight edge/);
+  assert.match(constraintOptions(s, [Pt(1), Pt(5), E(0)]).symmetric ?? '', /own ends/);
+  const before = dof(s), t = ok(applyConstraint(s, [Pt(2), Pt(5), E(0)], 'symmetric'));
+  const [a, b] = [t.points[2], t.points[5]], L0 = t.points[0], L1 = t.points[1];
+  // Mirror of a across the line L0–L1 is b.
+  const d: P2 = [L1[0] - L0[0], L1[1] - L0[1]], l2 = d[0] * d[0] + d[1] * d[1], k = ((a[0] - L0[0]) * d[0] + (a[1] - L0[1]) * d[1]) / l2;
+  const foot: P2 = [L0[0] + d[0] * k, L0[1] + d[1] * k], mirror: P2 = [2 * foot[0] - a[0], 2 * foot[1] - a[1]];
+  assert.ok(Math.hypot(mirror[0] - b[0], mirror[1] - b[1]) < 1e-6, JSON.stringify({ a, b, mirror }));
+  assert.equal(dof(t), before - 2);
+  assert.match(constraintEntries(t).map(c => c.label + ' ' + c.detail).join(' | '), /Symmetric point 3 · point 6 about edge 1/);
+  assert.match(constraintOptions(t, [Pt(5), Pt(2), E(0)]).symmetric ?? '', /Already symmetric/);
 });

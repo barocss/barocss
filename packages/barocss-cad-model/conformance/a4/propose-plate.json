@@ -1,0 +1,137 @@
+{
+  "id": "a4-propose-plate",
+  "step": "A4.2",
+  "decisions": [
+    "D40"
+  ],
+  "about": "A 40 × 20 × 8 plate, a brief of two hard requirements (40 long; at most 6200 mm³): a proposed Ø6 hole leaves the part unchanged, would make the volume requirement pass (risk high: a hard requirement changes), and accepted replays to the same model.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nextId": 2,
+      "outputs": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 8
+        }
+      ],
+      "requirements": [
+        {
+          "id": "R1",
+          "source": "40 long",
+          "hard": true,
+          "basis": "stated",
+          "check": {
+            "op": "==",
+            "query": {
+              "fn": "bbox",
+              "axis": "x"
+            },
+            "value": 40,
+            "tol": 0.1,
+            "unit": "mm"
+          }
+        },
+        {
+          "id": "R2",
+          "source": "at most 6200 mm³",
+          "hard": true,
+          "basis": "stated",
+          "check": {
+            "op": "<=",
+            "query": {
+              "fn": "volume"
+            },
+            "value": 6200,
+            "unit": "mm3"
+          }
+        }
+      ]
+    },
+    "call": {
+      "tool": "propose",
+      "args": {
+        "title": "Lighter: a Ø6 through hole",
+        "plan": "A through hole near a corner takes about 226 mm³ off.",
+        "requirements": [
+          "R2"
+        ],
+        "ops": [
+          {
+            "tool": "run_command",
+            "args": {
+              "command": "hole",
+              "faces": [
+                "n1.top"
+              ],
+              "values": {
+                "d": 6,
+                "x": 10,
+                "y": 10
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expect": {
+    "model_unchanged": true,
+    "added": [
+      "n2"
+    ],
+    "checks": {
+      "before": {
+        "pass": 1,
+        "fail": 1,
+        "unknown": 0
+      },
+      "after": {
+        "pass": 2,
+        "fail": 0,
+        "unknown": 0
+      },
+      "newly_failing": [],
+      "newly_passing": [
+        "R2"
+      ]
+    },
+    "risk": {
+      "level": "high",
+      "features_touched": 1,
+      "references_broken": 0,
+      "hard_requirements_changed": [
+        "R2"
+      ],
+      "approval": []
+    },
+    "summary": "1 added, checks 1/1/0 → 2/0/0",
+    "accepted": {
+      "features": 3,
+      "history": [
+        "proposal",
+        "accept"
+      ]
+    }
+  },
+  "oracle": "The volume: 40·20·8 − π·3²·8 = 6400 − 226.19 = 6173.81 mm³ ≤ 6200; before, 6400 > 6200."
+}

@@ -2,17 +2,17 @@
 // (src/assembly/mates.ts) merged at 2d9c79bc: applies, refuses, removes and re-solves with the same
 // functions the panels call, and checks placements by evaluating the placed parts.
 //   node test/qa/run-engine-probe.mjs constraints-mates-probe.ts
-import { settleShape } from '../../src/sketch/settle';
-import { applyConstraint, commitDimension, constraintEntries, removeConstraint, solveShape, type Polygon, type SketchPick } from '../../src/sketch/rules';
-import { profileOf } from '../../src/sketch/loops';
-import { evaluatePart } from '../../src/engine/evaluate';
-import { cylinderPart, emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type StudioDoc } from '../../src/engine/doc';
-import { faceTableOf } from '../../src/assembly/faces';
-import { BASE, solveAssembly, type FaceTable, type Mate } from '../../src/assembly/mates';
-import type { P2 } from '../../src/sketch/profile';
-import { startPicking } from '../../src/sketch/select';
-import { xyPlane } from '../../src/sketch/plane';
-import { editFields } from '../../src/app/editFields';
+import { settleShape } from '@barocss/cad-model/sketch/settle';
+import { applyConstraint, commitDimension, constraintEntries, removeConstraint, solveShape, type Polygon, type SketchPick } from '@barocss/cad-model/sketch/rules';
+import { profileOf } from '@barocss/cad-model/sketch/loops';
+import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
+import { cylinderPart, emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { faceTableOf } from '@barocss/cad-model/assembly/faces';
+import { BASE, solveAssembly, type FaceTable, type Mate } from '@barocss/cad-model/assembly/mates';
+import type { P2 } from '@barocss/cad-model/sketch/profile';
+import { startPicking } from '@barocss/cad-model/sketch/select';
+import { xyPlane } from '@barocss/cad-model/sketch/plane';
+import { editFields } from '@barocss/cad-model/app/editFields';
 import type { SketchState } from '../../src/viewport/Viewport';
 
 type Row = { id: string; area: string; name: string; ok: boolean; expected?: unknown; actual?: unknown; note?: string };

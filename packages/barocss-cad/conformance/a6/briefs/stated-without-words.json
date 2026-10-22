@@ -1,0 +1,36 @@
+{
+ "case": "stated-without-words",
+ "step": "A6.1",
+ "note": "Stated without the user's words: refused (NO_SOURCE).",
+ "input": {
+  "patches": [
+   {
+    "material": {
+     "value": "petg",
+     "basis": "stated"
+    }
+   }
+  ]
+ },
+ "expect": {
+  "error": "NO_SOURCE",
+  "gaps": [
+   {
+    "field": "purpose",
+    "why": "missing"
+   },
+   {
+    "field": "process",
+    "why": "missing"
+   },
+   {
+    "field": "material",
+    "why": "missing"
+   }
+  ],
+  "complete": false,
+  "doc_process": null,
+  "process": null,
+  "material": null
+ }
+}

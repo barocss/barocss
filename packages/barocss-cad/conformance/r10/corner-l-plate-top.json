@@ -1,0 +1,113 @@
+{
+  "id": "r10-corner-l-plate-top",
+  "step": "R10",
+  "decisions": [
+    "D92"
+  ],
+  "about": "R10.3a: an L-shaped plate, its whole top rounded 2 mm in one feature — convex fillets, mitred at the five outer corners (R10.1), and at the inner corner the ball (inside the material) rolling round the inner upright edge (refused before: an inside corner of the top).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              40,
+              0
+            ],
+            [
+              40,
+              20
+            ],
+            [
+              20,
+              20
+            ],
+            [
+              20,
+              40
+            ],
+            [
+              0,
+              40
+            ]
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "e",
+          "edges": [
+            "e.side0|e.top",
+            "e.side1|e.top",
+            "e.side2|e.top",
+            "e.side3|e.top",
+            "e.side4|e.top",
+            "e.side5|e.top"
+          ],
+          "radius": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 11865.88726705836,
+          "relTol": 5e-8
+        },
+        "centroidMM": {
+          "value": [
+            16.657916749196303,
+            16.657916749312175,
+            4.948587741449349
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.side4",
+          "e.side5",
+          "e.top",
+          "f.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "Closed form: the L-plate 12000 less the fillet's (1 − π/4) r² along its 160 mm of top edge, less nothing twice at its five convex corners (two convex fillets mitred overlap by r³ (5/3 − π/2)), and the quarter turn about the inner upright edge (r³ (5/6 − π/4) × π/2) at its concave one."
+}

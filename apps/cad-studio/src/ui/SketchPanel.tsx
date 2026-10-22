@@ -1,9 +1,9 @@
-import { planeLabel } from '../sketch/plane';
-import { isConvex } from '../sketch/loops';
-import { useMemo } from 'react';
+import { planeLabel } from '@barocss/cad-model/sketch/plane';
+import { isConvex } from '@barocss/cad-model/sketch/loops';
+import { useMemo, useState } from 'react';
 import type { SketchAnchor, SketchShape, SketchState } from '../viewport/Viewport';
-import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, type ArcPair, type P2, type SolveResult } from '../sketch/profile';
-import { isSettled, redundancy, solveShape, type SketchPick } from '../sketch/rules';
+import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, type ArcPair, type P2, type SolveResult } from '@barocss/cad-model/sketch/profile';
+import { isSettled, redundancy, solveShape, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import { ConstraintTools } from './ConstraintTools';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
@@ -14,9 +14,16 @@ const NONE: SketchPick[] = [];
  * point 1 is anchored, drawn H/V edges stay H/V, typed lengths and radii become locked dimensions and
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`.
  */
-export function SketchPanel({ sketch, error, onShape, onPlace, onUi }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, error, onShape, onPlace, onUi, onOffset, onUseOutline, onToCurves }: { sketch: SketchState; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
-  onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void }) {
+  onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
+  /** Offsets the newest closed shape by `d` mm (out when positive) as a shape beside it. */
+  onOffset?(d: number): void;
+  /** Adds the face's own outline and holes (as references when `asRefs`); absent when not sketching on a face as it is. */
+  onUseOutline?(asRefs: boolean): void;
+  /** The sketch's lines, arcs and circles made curves (direct geometry), the sketch left. */
+  onToCurves?(): void }) {
+  const [offsetBy, setOffsetBy] = useState(2);
   const s = sketch.shape;
   const num = (id: string, label: string, value: number, set: (v: number) => void, min?: number) => (
     <label className="field" key={id}><span>{label}</span>
@@ -147,6 +154,25 @@ export function SketchPanel({ sketch, error, onShape, onPlace, onUi }: { sketch:
         {constraints.map((c, i) => <div className="kv" key={i}>{c.label}<b>{c.detail}</b></div>)}
       </>}
       {solved?.ok && <div className="kv solver">Solver<b>rank {solved.rank} · {solved.dof} DOF</b></div>}
+      {onUseOutline && <>
+        <div className="card-title" style={{ marginTop: 10 }}>FACE</div>
+        <div className="sk-offset">
+          <button className="ghost" aria-label="Use the face outline" data-tip="Use its outline" data-tip-desc="The face's edges (outline and holes) as shapes of this sketch" onClick={() => onUseOutline(false)}>Use its outline</button>
+          <button className="ghost" aria-label="Face outline as references" data-tip="As references" data-tip-desc="The face's edges as construction shapes: snapped to, not part of the profile" onClick={() => onUseOutline(true)}>As references</button>
+        </div>
+      </>}
+      {onOffset && <>
+        <div className="card-title" style={{ marginTop: 10 }}>OFFSET</div>
+        <div className="sk-offset">
+          <span className="num"><input aria-label="Offset distance" type="number" step="any" min={0.1} value={offsetBy} onChange={e => setOffsetBy(Number(e.target.value))} /><em>mm</em></span>
+          <button className="ghost" aria-label="Offset outward" data-tip="Offset out" data-tip-desc="A copy of the newest closed shape this far outside it (the ring between them is the profile)" onClick={() => onOffset(Math.abs(offsetBy))}>Out</button>
+          <button className="ghost" aria-label="Offset inward" data-tip="Offset in" data-tip-desc="A copy of the newest closed shape this far inside it (a wall)" onClick={() => onOffset(-Math.abs(offsetBy))}>In</button>
+        </div>
+      </>}
+      {onToCurves && <>
+        <div className="card-title" style={{ marginTop: 10 }}>CURVES</div>
+        <button className="ghost" aria-label="Make curves" data-tip="Make curves" data-tip-desc="Each shape of the sketch as a curve in space (for lofts, sweeps and ruled surfaces); the sketch is left" onClick={onToCurves}>Make curves of the sketch</button>
+      </>}
     </aside>
   );
 }

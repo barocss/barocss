@@ -1,0 +1,155 @@
+{
+  "id": "r10-wedge-chamfer-into-wall",
+  "step": "R10",
+  "decisions": [
+    "D98"
+  ],
+  "about": "D98: a rib on a plate running into a wall whose face is turned 10° (x = 40 + y tan 10°), its top edge (convex) chamfered 2: the cutting wedge stops in the wall's plane (it ran 2 mm past and notched the wall: 28 % over before).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            60,
+            30
+          ]
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "p",
+          "height": 5
+        },
+        {
+          "id": "r",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            10
+          ],
+          "max": [
+            50,
+            20
+          ]
+        },
+        {
+          "id": "re",
+          "kind": "extrude",
+          "sketch": "r",
+          "height": 5,
+          "from": 5
+        },
+        {
+          "id": "w",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              40,
+              0
+            ],
+            [
+              60,
+              0
+            ],
+            [
+              60,
+              30
+            ],
+            [
+              45.28980942125395,
+              30
+            ]
+          ]
+        },
+        {
+          "id": "we",
+          "kind": "extrude",
+          "sketch": "w",
+          "height": 20,
+          "from": 5
+        },
+        {
+          "id": "u1",
+          "kind": "union",
+          "target": "pe",
+          "tool": "re"
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "u1",
+          "tool": "we"
+        },
+        {
+          "id": "c",
+          "kind": "chamfer",
+          "target": "u",
+          "edges": [
+            "re.side2|re.top"
+          ],
+          "distance": 2
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 21458.48443256777,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            39.486055450052035,
+            14.616117616232522,
+            9.035001309111575
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "c.face",
+          "pe.bottom",
+          "pe.side0",
+          "pe.side1",
+          "pe.side2",
+          "pe.side3",
+          "pe.top",
+          "re.side0",
+          "re.side2",
+          "re.top",
+          "we.side3",
+          "we.top"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: the plate, the wall (its section a trapezoid, mean depth 20 − 15 tan 10°) and the rib up to the wall (mean length 40 + 15 tan 10°), less the chamfer's prism: its triangle 2²/2 times its length at the triangle's centroid, 40 + (20 − 2/3) tan 10°."
+}

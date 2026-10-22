@@ -1,0 +1,2406 @@
+{
+ "format": "barocss-materials",
+ "version": 1,
+ "id": "barocss-materials",
+ "libraryVersion": "0.7.0",
+ "license": "CC0-1.0 (written for BaroCSS; legal review before release)",
+ "provenance": "Typical values per material family and process rules of thumb, written for BaroCSS; no datasheet's, catalogue's or standard's text or tables. Every value is an estimate with a source id: verify against your grade's datasheet and your process.",
+ "sources": {
+  "S-TYP": "BaroCSS typical value for the material family, written for this table (not a grade's datasheet, not a standard's table): verify against your grade's datasheet",
+  "S-DENS": "BaroCSS typical density for the family, written for this table (the studio's earlier density list, kept)",
+  "P-INJ": "BaroCSS rule of thumb for injection moulding, written for this table (not a moulder's or a standard's text): verify with your moulder",
+  "P-FDM": "BaroCSS rule of thumb for FDM printing with a 0.4 mm nozzle, written for this table: verify with your printer and slicer",
+  "P-SLA": "BaroCSS rule of thumb for resin (SLA) printing, written for this table: verify with your printer and resin",
+  "P-SLS": "BaroCSS rule of thumb for powder-bed polymer sintering (SLS), written for this table: verify with your service or printer",
+  "P-MJF": "BaroCSS rule of thumb for multi-jet fusion (MJF), written for this table: verify with your service or printer",
+  "P-PRN": "BaroCSS generic printer, written for this table: a common build volume for its class, not a product's datasheet; set your own printer's",
+  "P-ORI": "BaroCSS heuristic for scoring print orientations, written for this table (weights of normalised terms): a default to adjust",
+  "W-WEB": "A public web page, read only, its value as printed there: each value names its page (URL), the date read and the page's own label (the value's `page`); converted from inches where the page gives both, the page's millimetres kept",
+  "W-DERIVED": "Derived from a public page by a stated rule, not a value as printed there: its `page` names the page read and its note the rule (e.g. a step read off the sizes the page lists)"
+ },
+ "materials": [
+  {
+   "id": "al6061",
+   "label": "Aluminium 6061",
+   "family": "metal",
+   "densityGPerCm3": 2.7,
+   "elasticModulusMPa": 68900,
+   "yieldMPa": 276,
+   "allowableStrain": 0.004,
+   "shrink": 0,
+   "processes": [
+    "cnc"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.6
+  },
+  {
+   "id": "steel",
+   "label": "Steel (mild)",
+   "family": "metal",
+   "densityGPerCm3": 7.85,
+   "elasticModulusMPa": 200000,
+   "yieldMPa": 250,
+   "allowableStrain": 0.0012,
+   "shrink": 0,
+   "processes": [
+    "cnc",
+    "sand-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.6,
+   "castFamily": "steel"
+  },
+  {
+   "id": "ss304",
+   "label": "Stainless 304",
+   "family": "metal",
+   "densityGPerCm3": 8.0,
+   "elasticModulusMPa": 193000,
+   "yieldMPa": 215,
+   "allowableStrain": 0.0011,
+   "shrink": 0,
+   "processes": [
+    "cnc"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.6
+  },
+  {
+   "id": "brass",
+   "label": "Brass",
+   "family": "metal",
+   "densityGPerCm3": 8.5,
+   "elasticModulusMPa": 100000,
+   "yieldMPa": 200,
+   "allowableStrain": 0.002,
+   "shrink": 0,
+   "processes": [
+    "cnc",
+    "die-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.5,
+   "castFamily": "copper"
+  },
+  {
+   "id": "ti64",
+   "label": "Titanium Ti-6Al-4V",
+   "family": "metal",
+   "densityGPerCm3": 4.43,
+   "elasticModulusMPa": 113800,
+   "yieldMPa": 880,
+   "allowableStrain": 0.0077,
+   "shrink": 0,
+   "processes": [
+    "cnc"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.5
+  },
+  {
+   "id": "abs",
+   "label": "ABS",
+   "family": "polymer",
+   "densityGPerCm3": 1.04,
+   "elasticModulusMPa": 2200,
+   "yieldMPa": 40,
+   "allowableStrain": 0.025,
+   "shrink": 0.005,
+   "processes": [
+    "injection",
+    "fdm"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP",
+    "wallMM.injection": "W-WEB",
+    "mouldShrink": "W-WEB"
+   },
+   "wallMM": {
+    "injection": [
+     1.143,
+     3.556
+    ],
+    "fdm": [
+     0.8,
+     4.0
+    ]
+   },
+   "friction": 0.5,
+   "warpRisk": 0.8,
+   "pages": {
+    "wallMM.injection": {
+     "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+     "read": "2026-10-21",
+     "label": "Wall Thickness by Material — ABS: RECOMMENDED WALL THICKNESS"
+    },
+    "mouldShrink": {
+     "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+     "read": "2026-10-21",
+     "label": "shrink ranges from 0.002 in./in. for stable resins like ABS and polycarbonate"
+    }
+   },
+   "mouldShrink": 0.002
+  },
+  {
+   "id": "pla",
+   "label": "PLA",
+   "family": "polymer",
+   "densityGPerCm3": 1.24,
+   "elasticModulusMPa": 3500,
+   "yieldMPa": 55,
+   "allowableStrain": 0.015,
+   "shrink": 0.003,
+   "processes": [
+    "fdm"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP"
+   },
+   "wallMM": {
+    "fdm": [
+     0.8,
+     4.0
+    ]
+   },
+   "friction": 0.45,
+   "warpRisk": 0.2
+  },
+  {
+   "id": "pa12",
+   "label": "Nylon PA12",
+   "family": "polymer",
+   "densityGPerCm3": 1.01,
+   "elasticModulusMPa": 1700,
+   "yieldMPa": 45,
+   "allowableStrain": 0.04,
+   "shrink": 0.01,
+   "processes": [
+    "injection",
+    "mjf",
+    "sla",
+    "sls"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP",
+    "wallMM.injection": "W-WEB"
+   },
+   "wallMM": {
+    "injection": [
+     0.762,
+     2.921
+    ],
+    "sla": [
+     0.8,
+     4.0
+    ],
+    "sls": [
+     0.8,
+     6.0
+    ],
+    "mjf": [
+     0.8,
+     6.0
+    ]
+   },
+   "friction": 0.35,
+   "warpRisk": 0.6,
+   "pages": {
+    "wallMM.injection": {
+     "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+     "read": "2026-10-21",
+     "label": "Wall Thickness by Material — Nylon: RECOMMENDED WALL THICKNESS",
+     "note": "the page's nylon family row, not PA12-specific"
+    }
+   }
+  },
+  {
+   "id": "pc",
+   "label": "Polycarbonate",
+   "family": "polymer",
+   "densityGPerCm3": 1.2,
+   "elasticModulusMPa": 2400,
+   "yieldMPa": 62,
+   "allowableStrain": 0.04,
+   "shrink": 0.006,
+   "processes": [
+    "injection"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP",
+    "wallMM.injection": "W-WEB",
+    "mouldShrink": "W-WEB"
+   },
+   "wallMM": {
+    "injection": [
+     1.016,
+     3.81
+    ]
+   },
+   "friction": 0.5,
+   "warpRisk": 0.7,
+   "pages": {
+    "wallMM.injection": {
+     "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+     "read": "2026-10-21",
+     "label": "Wall Thickness by Material — Polycarbonate: RECOMMENDED WALL THICKNESS"
+    },
+    "mouldShrink": {
+     "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+     "read": "2026-10-21",
+     "label": "shrink ranges from 0.002 in./in. for stable resins like ABS and polycarbonate"
+    }
+   },
+   "mouldShrink": 0.002
+  },
+  {
+   "id": "pp",
+   "label": "Polypropylene",
+   "family": "polymer",
+   "densityGPerCm3": 0.9,
+   "elasticModulusMPa": 1500,
+   "yieldMPa": 30,
+   "allowableStrain": 0.06,
+   "shrink": 0.015,
+   "processes": [
+    "injection"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP",
+    "livingHingeStrain": "S-TYP",
+    "livingHingeTMin": "S-TYP",
+    "livingHingeTMax": "S-TYP",
+    "warpRisk": "S-TYP",
+    "wallMM.injection": "W-WEB"
+   },
+   "wallMM": {
+    "injection": [
+     0.635,
+     3.81
+    ]
+   },
+   "friction": 0.35,
+   "livingHingeStrain": 0.5,
+   "livingHingeTMin": 0.2,
+   "livingHingeTMax": 0.5,
+   "warpRisk": 0.7,
+   "pages": {
+    "wallMM.injection": {
+     "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+     "read": "2026-10-21",
+     "label": "Wall Thickness by Material — Polypropylene: RECOMMENDED WALL THICKNESS"
+    }
+   }
+  },
+  {
+   "id": "petg",
+   "label": "PETG",
+   "family": "polymer",
+   "densityGPerCm3": 1.27,
+   "elasticModulusMPa": 2100,
+   "yieldMPa": 50,
+   "allowableStrain": 0.03,
+   "shrink": 0.003,
+   "processes": [
+    "fdm"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP"
+   },
+   "wallMM": {
+    "fdm": [
+     0.8,
+     4.0
+    ]
+   },
+   "friction": 0.45,
+   "warpRisk": 0.3
+  },
+  {
+   "id": "pom",
+   "label": "Acetal (POM)",
+   "family": "polymer",
+   "densityGPerCm3": 1.41,
+   "elasticModulusMPa": 2800,
+   "yieldMPa": 65,
+   "allowableStrain": 0.04,
+   "shrink": 0.02,
+   "processes": [
+    "injection"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP",
+    "wallMM.injection": "W-WEB"
+   },
+   "wallMM": {
+    "injection": [
+     0.762,
+     3.048
+    ]
+   },
+   "friction": 0.25,
+   "warpRisk": 0.6,
+   "pages": {
+    "wallMM.injection": {
+     "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+     "read": "2026-10-21",
+     "label": "Wall Thickness by Material — Acetal: RECOMMENDED WALL THICKNESS"
+    }
+   }
+  },
+  {
+   "id": "resin",
+   "label": "Standard resin (SLA)",
+   "family": "polymer",
+   "densityGPerCm3": 1.18,
+   "elasticModulusMPa": 2500,
+   "yieldMPa": 50,
+   "allowableStrain": 0.01,
+   "shrink": 0.002,
+   "processes": [
+    "sla"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-DENS",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "wallMM": "S-TYP",
+    "friction": "S-TYP",
+    "warpRisk": "S-TYP"
+   },
+   "wallMM": {
+    "sla": [
+     0.6,
+     4.0
+    ]
+   },
+   "friction": 0.45,
+   "warpRisk": 0.2
+  },
+  {
+   "id": "zamak3",
+   "label": "Zinc alloy (Zamak 3 class)",
+   "family": "metal",
+   "castFamily": "zinc",
+   "densityGPerCm3": 6.6,
+   "elasticModulusMPa": 96000,
+   "yieldMPa": 200,
+   "allowableStrain": 0.002,
+   "shrink": 0,
+   "processes": [
+    "die-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-TYP",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.4
+  },
+  {
+   "id": "a380",
+   "label": "Aluminium die-casting alloy (A380 class)",
+   "family": "metal",
+   "castFamily": "aluminium",
+   "densityGPerCm3": 2.7,
+   "elasticModulusMPa": 71000,
+   "yieldMPa": 150,
+   "allowableStrain": 0.002,
+   "shrink": 0,
+   "processes": [
+    "die-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-TYP",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.4
+  },
+  {
+   "id": "az91d",
+   "label": "Magnesium die-casting alloy (AZ91D class)",
+   "family": "metal",
+   "castFamily": "magnesium",
+   "densityGPerCm3": 1.8,
+   "elasticModulusMPa": 45000,
+   "yieldMPa": 150,
+   "allowableStrain": 0.002,
+   "shrink": 0,
+   "processes": [
+    "die-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-TYP",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.4
+  },
+  {
+   "id": "a356",
+   "label": "Aluminium casting alloy (A356 class)",
+   "family": "metal",
+   "castFamily": "aluminium",
+   "densityGPerCm3": 2.7,
+   "elasticModulusMPa": 72000,
+   "yieldMPa": 180,
+   "allowableStrain": 0.002,
+   "shrink": 0,
+   "processes": [
+    "sand-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-TYP",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.4
+  },
+  {
+   "id": "grey-iron",
+   "label": "Grey cast iron",
+   "family": "metal",
+   "castFamily": "iron",
+   "densityGPerCm3": 7.2,
+   "elasticModulusMPa": 110000,
+   "yieldMPa": 150,
+   "allowableStrain": 0.001,
+   "shrink": 0,
+   "processes": [
+    "sand-casting"
+   ],
+   "estimate": true,
+   "sources": {
+    "densityGPerCm3": "S-TYP",
+    "elasticModulusMPa": "S-TYP",
+    "yieldMPa": "S-TYP",
+    "allowableStrain": "S-TYP",
+    "shrink": "S-TYP",
+    "friction": "S-TYP"
+   },
+   "friction": 0.4
+  }
+ ],
+ "profiles": [
+  {
+   "id": "injection",
+   "label": "Injection moulding",
+   "thresholds": {
+    "ribRec": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a rib's thickness over the wall it stands on, recommended at most",
+     "page": {
+      "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+      "read": "2026-10-21",
+      "label": "Use rubs and gussets for strength: around 60 percent"
+     }
+    },
+    "ribMax": {
+     "value": 1.0,
+     "unit": "ratio",
+     "source": "P-INJ",
+     "description": "a rib's thickness over the wall, at most"
+    },
+    "bossWallMin": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "P-INJ",
+     "description": "a boss's wall over the nominal wall, recommended at least"
+    },
+    "bossWallMax": {
+     "value": 1.0,
+     "unit": "ratio",
+     "source": "P-INJ",
+     "description": "a boss's wall over the nominal wall, recommended at most"
+    },
+    "minWallRec": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "P-INJ",
+     "description": "the thinnest wall recommended"
+    },
+    "minWall": {
+     "value": 0.6,
+     "unit": "mm",
+     "source": "P-INJ",
+     "description": "the thinnest wall that fills"
+    },
+    "draftRecDeg": {
+     "value": 1.0,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "draft on walls along the pull, recommended at least (smooth finish)",
+     "page": {
+      "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+      "read": "2026-10-21",
+      "label": "We suggest a minimum of 1 degree draft"
+     }
+    },
+    "isFdm": {
+     "value": 0,
+     "unit": "flag",
+     "source": "P-INJ",
+     "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
+    },
+    "fitClearance": {
+     "value": 0.1,
+     "unit": "mm",
+     "source": "P-INJ",
+     "description": "the clearance recommended for a sliding fit between two parts"
+    },
+    "maxPartLongMM": {
+     "value": 751,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest part, its longest side",
+     "page": {
+      "url": "https://www.protolabs.com/services/injection-molding/",
+      "read": "2026-10-21",
+      "label": "What is the maximum part size for injection molding? 18.9 in. x 29.6 in. x 8 in. (480mm x 751mm x 203mm)"
+     }
+    },
+    "maxPartWideMM": {
+     "value": 480,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest part, its second side",
+     "page": {
+      "url": "https://www.protolabs.com/services/injection-molding/",
+      "read": "2026-10-21",
+      "label": "What is the maximum part size for injection molding? 18.9 in. x 29.6 in. x 8 in. (480mm x 751mm x 203mm)"
+     }
+    },
+    "maxPartDepthMM": {
+     "value": 203,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest part, its depth (taken along the pull)",
+     "page": {
+      "url": "https://www.protolabs.com/services/injection-molding/",
+      "read": "2026-10-21",
+      "label": "What is the maximum part size for injection molding? 18.9 in. x 29.6 in. x 8 in. (480mm x 751mm x 203mm)"
+     }
+    },
+    "tolMM": {
+     "value": 0.08,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the moulded tolerance, plus the resin tolerance per mm",
+     "page": {
+      "url": "https://www.protolabs.com/services/injection-molding/",
+      "read": "2026-10-21",
+      "label": "What are your tolerances for molded parts? +/- 0.003 in. (0.08mm)"
+     }
+    },
+    "tolResinMMPerMM": {
+     "value": 0.002,
+     "unit": "mm/mm",
+     "source": "W-WEB",
+     "description": "the resin tolerance, at least, per mm of the dimension",
+     "page": {
+      "url": "https://www.protolabs.com/services/injection-molding/",
+      "read": "2026-10-21",
+      "label": "resin tolerance no less than +/- 0.002 in./in."
+     }
+    },
+    "adjacentWallRatio": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a wall's thickness over its neighbour's, at least (the stricter end of the page's range)",
+     "page": {
+      "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+      "read": "2026-10-21",
+      "label": "Keep wall thickness consistent: adjacent walls should stay within 40% to 60% of each other's thickness",
+      "note": "read as a thickness ratio of at least 0.6, the range's stricter end"
+     }
+    },
+    "insideRadiusRatio": {
+     "value": 0.5,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "an inside corner's radius over the wall, at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/injection-molding/",
+      "read": "2026-10-21",
+      "label": "a fillet equal to 0.5x the wall thickness to internal corners"
+     }
+    },
+    "ribHeightRatio": {
+     "value": 3.0,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a rib's height over the wall, at most",
+     "page": {
+      "url": "https://www.hubs.com/guides/injection-molding/",
+      "read": "2026-10-21",
+      "label": "max. height equal to 3x the wall thickness"
+     }
+    }
+   },
+   "finishes": [
+    {
+     "id": "smooth",
+     "label": "Smooth (no texture)",
+     "draftMinDeg": 0.5,
+     "draftRecDeg": 1.0,
+     "source": "W-WEB",
+     "page": {
+      "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
+      "read": "2026-10-21",
+      "label": "it is always best practice to include AT LEAST 0.5 degrees of draft on all vertical faces"
+     }
+    },
+    {
+     "id": "pm-t1",
+     "label": "Light bead blast (PM-T1)",
+     "draftMinDeg": 3.0,
+     "source": "W-WEB",
+     "page": {
+      "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+      "read": "2026-10-21",
+      "label": "Bead-blasted texture, PM-T1: at least 3 degrees of draft"
+     }
+    },
+    {
+     "id": "pm-t2",
+     "label": "Medium bead blast (PM-T2)",
+     "draftMinDeg": 5.0,
+     "source": "W-WEB",
+     "page": {
+      "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
+      "read": "2026-10-21",
+      "label": "Bead-blasted texture, PM-T2: 5 degrees of draft"
+     }
+    }
+   ]
+  },
+  {
+   "id": "fdm",
+   "label": "FDM printing",
+   "thresholds": {
+    "ribRec": {
+     "value": 1.0,
+     "unit": "ratio",
+     "source": "P-FDM",
+     "description": "a rib's thickness over the wall: no sink in printing, kept at the wall"
+    },
+    "ribMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-FDM",
+     "description": "a rib's thickness over the wall, at most"
+    },
+    "bossWallMin": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "P-FDM",
+     "description": "a boss's wall over the nominal wall, recommended at least"
+    },
+    "bossWallMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-FDM",
+     "description": "a boss's wall over the nominal wall, recommended at most"
+    },
+    "minWallRec": {
+     "value": 1.2,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the thinnest wall recommended (three perimeters)"
+    },
+    "minWall": {
+     "value": 0.8,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the thinnest wall that prints (two perimeters)"
+    },
+    "draftRecDeg": {
+     "value": 0,
+     "unit": "deg",
+     "source": "P-FDM",
+     "description": "no draft needed"
+    },
+    "isFdm": {
+     "value": 1,
+     "unit": "flag",
+     "source": "P-FDM",
+     "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
+    },
+    "fitClearance": {
+     "value": 0.2,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the clearance recommended for a sliding fit between two parts"
+    },
+    "minWallUnsupported": {
+     "value": 1.2,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the thinnest wall standing free (unsupported on its other sides)"
+    },
+    "maxOverhangDeg": {
+     "value": 45,
+     "unit": "deg",
+     "source": "P-FDM",
+     "description": "the steepest overhang printed without support, from the vertical (90: self-supporting, powder)"
+    },
+    "maxBridgeMM": {
+     "value": 10,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the longest bridge printed without support"
+    },
+    "minHoleMM": {
+     "value": 2.0,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the smallest hole that prints open"
+    },
+    "fitGap": {
+     "value": 0.3,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the least gap between two parts printed together, so they do not fuse"
+    },
+    "escapeHoleMM": {
+     "value": 0,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the least escape hole for trapped powder or resin (0: none needed)"
+    },
+    "escapeHoles": {
+     "value": 0,
+     "unit": "count",
+     "source": "P-FDM",
+     "description": "escape holes a hollow needs (0: none)"
+    },
+    "horizontalHoleMM": {
+     "value": 6,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
+    },
+    "warpLrefMM": {
+     "value": 100,
+     "unit": "mm",
+     "source": "P-FDM",
+     "description": "the footprint length at which warp risk reaches the material's factor (a heuristic's reference)"
+    },
+    "tipRatio": {
+     "value": 4,
+     "unit": "ratio",
+     "source": "P-FDM",
+     "description": "height over the square root of the bed contact past which a part may lift or tip (brim or reorient)"
+    },
+    "orientWSupport": {
+     "value": 2,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of support volume / (surface area × bounding diagonal)"
+    },
+    "orientWOverhang": {
+     "value": 1,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of overhanging area / surface area"
+    },
+    "orientWHeight": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of height / bounding diagonal"
+    },
+    "orientWContact": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of bed contact / surface area (subtracted: more contact is better)"
+    }
+   },
+   "additive": true
+  },
+  {
+   "id": "sla",
+   "label": "Resin printing (SLA)",
+   "thresholds": {
+    "ribRec": {
+     "value": 0.8,
+     "unit": "ratio",
+     "source": "P-SLA",
+     "description": "a rib's thickness over the wall, recommended at most"
+    },
+    "ribMax": {
+     "value": 1.5,
+     "unit": "ratio",
+     "source": "P-SLA",
+     "description": "a rib's thickness over the wall, at most"
+    },
+    "bossWallMin": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "P-SLA",
+     "description": "a boss's wall over the nominal wall, recommended at least"
+    },
+    "bossWallMax": {
+     "value": 1.5,
+     "unit": "ratio",
+     "source": "P-SLA",
+     "description": "a boss's wall over the nominal wall, recommended at most"
+    },
+    "minWallRec": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the thinnest wall recommended"
+    },
+    "minWall": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the thinnest wall that prints"
+    },
+    "draftRecDeg": {
+     "value": 0,
+     "unit": "deg",
+     "source": "P-SLA",
+     "description": "no draft needed"
+    },
+    "isFdm": {
+     "value": 0,
+     "unit": "flag",
+     "source": "P-SLA",
+     "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
+    },
+    "fitClearance": {
+     "value": 0.1,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the clearance recommended for a sliding fit between two parts"
+    },
+    "minWallUnsupported": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the thinnest wall standing free (unsupported on its other sides)"
+    },
+    "maxOverhangDeg": {
+     "value": 30,
+     "unit": "deg",
+     "source": "P-SLA",
+     "description": "the steepest overhang printed without support, from the vertical (90: self-supporting, powder)"
+    },
+    "maxBridgeMM": {
+     "value": 5,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the longest bridge printed without support"
+    },
+    "minHoleMM": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the smallest hole that prints open"
+    },
+    "fitGap": {
+     "value": 0.2,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the least gap between two parts printed together, so they do not fuse"
+    },
+    "escapeHoleMM": {
+     "value": 3.5,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the least escape hole for trapped powder or resin (0: none needed)"
+    },
+    "escapeHoles": {
+     "value": 2,
+     "unit": "count",
+     "source": "P-SLA",
+     "description": "escape holes a hollow needs (0: none)"
+    },
+    "horizontalHoleMM": {
+     "value": 10,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
+    },
+    "warpLrefMM": {
+     "value": 150,
+     "unit": "mm",
+     "source": "P-SLA",
+     "description": "the footprint length at which warp risk reaches the material's factor (a heuristic's reference)"
+    },
+    "tipRatio": {
+     "value": 6,
+     "unit": "ratio",
+     "source": "P-SLA",
+     "description": "height over the square root of the bed contact past which a part may lift or tip (brim or reorient)"
+    },
+    "orientWSupport": {
+     "value": 2,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of support volume / (surface area × bounding diagonal)"
+    },
+    "orientWOverhang": {
+     "value": 1,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of overhanging area / surface area"
+    },
+    "orientWHeight": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of height / bounding diagonal"
+    },
+    "orientWContact": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of bed contact / surface area (subtracted: more contact is better)"
+    }
+   },
+   "additive": true
+  },
+  {
+   "id": "sls",
+   "label": "Powder-bed sintering (SLS)",
+   "thresholds": {
+    "ribRec": {
+     "value": 1.0,
+     "unit": "ratio",
+     "source": "P-SLS",
+     "description": "a rib's thickness over the wall, recommended at most"
+    },
+    "ribMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-SLS",
+     "description": "a rib's thickness over the wall, at most"
+    },
+    "bossWallMin": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "P-SLS",
+     "description": "a boss's wall over the nominal wall, recommended at least"
+    },
+    "bossWallMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-SLS",
+     "description": "a boss's wall over the nominal wall, recommended at most"
+    },
+    "minWallRec": {
+     "value": 1.2,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the thinnest wall recommended"
+    },
+    "minWall": {
+     "value": 0.8,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the thinnest wall that prints"
+    },
+    "draftRecDeg": {
+     "value": 0,
+     "unit": "deg",
+     "source": "P-SLS",
+     "description": "no draft needed"
+    },
+    "isFdm": {
+     "value": 0,
+     "unit": "flag",
+     "source": "P-SLS",
+     "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
+    },
+    "fitClearance": {
+     "value": 0.3,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the clearance recommended for a sliding fit between two parts"
+    },
+    "minWallUnsupported": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the thinnest wall standing free (unsupported on its other sides)"
+    },
+    "maxOverhangDeg": {
+     "value": 90,
+     "unit": "deg",
+     "source": "P-SLS",
+     "description": "the steepest overhang printed without support, from the vertical (90: self-supporting, powder)"
+    },
+    "maxBridgeMM": {
+     "value": 1000,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the longest bridge printed without support"
+    },
+    "minHoleMM": {
+     "value": 1.5,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the smallest hole that prints open"
+    },
+    "fitGap": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the least gap between two parts printed together, so they do not fuse"
+    },
+    "escapeHoleMM": {
+     "value": 5.0,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the least escape hole for trapped powder or resin (0: none needed)"
+    },
+    "escapeHoles": {
+     "value": 2,
+     "unit": "count",
+     "source": "P-SLS",
+     "description": "escape holes a hollow needs (0: none)"
+    },
+    "horizontalHoleMM": {
+     "value": 1000,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
+    },
+    "warpLrefMM": {
+     "value": 200,
+     "unit": "mm",
+     "source": "P-SLS",
+     "description": "the footprint length at which warp risk reaches the material's factor (a heuristic's reference)"
+    },
+    "orientWSupport": {
+     "value": 2,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of support volume / (surface area × bounding diagonal)"
+    },
+    "orientWOverhang": {
+     "value": 1,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of overhanging area / surface area"
+    },
+    "orientWHeight": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of height / bounding diagonal"
+    },
+    "orientWContact": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of bed contact / surface area (subtracted: more contact is better)"
+    }
+   },
+   "additive": true
+  },
+  {
+   "id": "mjf",
+   "label": "Multi-jet fusion (MJF)",
+   "thresholds": {
+    "ribRec": {
+     "value": 1.0,
+     "unit": "ratio",
+     "source": "P-MJF",
+     "description": "a rib's thickness over the wall, recommended at most"
+    },
+    "ribMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-MJF",
+     "description": "a rib's thickness over the wall, at most"
+    },
+    "bossWallMin": {
+     "value": 0.6,
+     "unit": "ratio",
+     "source": "P-MJF",
+     "description": "a boss's wall over the nominal wall, recommended at least"
+    },
+    "bossWallMax": {
+     "value": 2.0,
+     "unit": "ratio",
+     "source": "P-MJF",
+     "description": "a boss's wall over the nominal wall, recommended at most"
+    },
+    "minWallRec": {
+     "value": 1.2,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the thinnest wall recommended"
+    },
+    "minWall": {
+     "value": 0.8,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the thinnest wall that prints"
+    },
+    "draftRecDeg": {
+     "value": 0,
+     "unit": "deg",
+     "source": "P-MJF",
+     "description": "no draft needed"
+    },
+    "isFdm": {
+     "value": 0,
+     "unit": "flag",
+     "source": "P-MJF",
+     "description": "1 when the process lays the part in layers whose bonds are weak (FDM)"
+    },
+    "fitClearance": {
+     "value": 0.3,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the clearance recommended for a sliding fit between two parts"
+    },
+    "minWallUnsupported": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the thinnest wall standing free (unsupported on its other sides)"
+    },
+    "maxOverhangDeg": {
+     "value": 90,
+     "unit": "deg",
+     "source": "P-MJF",
+     "description": "the steepest overhang printed without support, from the vertical (90: self-supporting, powder)"
+    },
+    "maxBridgeMM": {
+     "value": 1000,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the longest bridge printed without support"
+    },
+    "minHoleMM": {
+     "value": 1.5,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the smallest hole that prints open"
+    },
+    "fitGap": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the least gap between two parts printed together, so they do not fuse"
+    },
+    "escapeHoleMM": {
+     "value": 5.0,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the least escape hole for trapped powder or resin (0: none needed)"
+    },
+    "escapeHoles": {
+     "value": 2,
+     "unit": "count",
+     "source": "P-MJF",
+     "description": "escape holes a hollow needs (0: none)"
+    },
+    "horizontalHoleMM": {
+     "value": 1000,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the largest horizontal hole that prints round without support (above it the top sags: a teardrop or support)"
+    },
+    "warpLrefMM": {
+     "value": 200,
+     "unit": "mm",
+     "source": "P-MJF",
+     "description": "the footprint length at which warp risk reaches the material's factor (a heuristic's reference)"
+    },
+    "orientWSupport": {
+     "value": 2,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of support volume / (surface area × bounding diagonal)"
+    },
+    "orientWOverhang": {
+     "value": 1,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of overhanging area / surface area"
+    },
+    "orientWHeight": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of height / bounding diagonal"
+    },
+    "orientWContact": {
+     "value": 0.5,
+     "unit": "weight",
+     "source": "P-ORI",
+     "description": "the weight of bed contact / surface area (subtracted: more contact is better)"
+    }
+   },
+   "additive": true
+  },
+  {
+   "id": "cnc-milling",
+   "label": "CNC milling",
+   "thresholds": {
+    "wallMetalRec": {
+     "value": 0.8,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a metal wall, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Metals: Recommended: 0.8 mm"
+     }
+    },
+    "wallMetalMin": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a metal wall, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Metals: Feasible: 0.5 mm"
+     }
+    },
+    "wallPlasticRec": {
+     "value": 1.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a plastic wall, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Plastics: Recommended: 1.5 mm"
+     }
+    },
+    "wallPlasticMin": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a plastic wall, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Plastics: Feasible depending on the plastic: 1.0 mm"
+     }
+    },
+    "tolMM": {
+     "value": 0.125,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the standard tolerance (±)",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Tolerances — Standard: ± 0.125 mm"
+     }
+    },
+    "tolFeasibleMM": {
+     "value": 0.025,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the tightest feasible tolerance (±)",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Tolerances — Feasible: ± 0.025 mm"
+     }
+    },
+    "insideRadiusDepthRatio": {
+     "value": 0.3333333333333333,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "an inside vertical edge's radius over its pocket's depth, recommended above",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Internal edges — Recommended: larger than ⅓ x pocket depth"
+     }
+    },
+    "pocketDepthWidthRatio": {
+     "value": 4,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a pocket's depth over its width, recommended at most",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Pockets — Recommended depth: 4 x pocket width"
+     }
+    },
+    "holeDepthRec": {
+     "value": 4,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a hole's depth over its diameter, recommended at most",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Holes — Recommended depth: 4 x nominal diameter"
+     }
+    },
+    "holeDepthMax": {
+     "value": 6,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a hole's depth over its diameter, at most",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Holes — Maximum depth: 6 x nominal diameter"
+     }
+    },
+    "threadLengthRatio": {
+     "value": 3,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a thread's length over its diameter, recommended",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Threads — Recommended length: 3x nominal diameter"
+     }
+    },
+    "threadRecMM": {
+     "value": 6,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a thread's size, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Threads — Recommended size: M6 or larger"
+     }
+    },
+    "threadMinMM": {
+     "value": 2,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a thread's size, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Threads — Feasible size: M2"
+     }
+    },
+    "featureRecMM": {
+     "value": 2.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a small feature, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Small features — Recommended: 2.5 mm"
+     }
+    },
+    "featureMinMM": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a small feature, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Small features — Feasible: 0.50 mm"
+     }
+    },
+    "tallFeatureRatio": {
+     "value": 4,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a feature's height over its width, at most",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Tall features: height / width is < 4"
+     }
+    },
+    "maxPartLongMM": {
+     "value": 400,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest milled part, its longest side",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Maximum part size — CNC milling: 400 x 250 x 150 mm (typically)"
+     }
+    },
+    "maxPartWideMM": {
+     "value": 250,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest milled part, its second side",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Maximum part size — CNC milling: 400 x 250 x 150 mm (typically)"
+     }
+    },
+    "maxPartDepthMM": {
+     "value": 150,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest milled part, its third side",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Maximum part size — CNC milling: 400 x 250 x 150 mm (typically)"
+     }
+    },
+    "maxMillDepthMM": {
+     "value": 50.8,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the deepest milled from either side",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-milling/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Maximum depth that can be milled is 2 in. (50.8mm) from either side of part"
+     }
+    },
+    "textWidthPlasticMM": {
+     "value": 0.457,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "engraved text's stroke in plastic and soft metals, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-milling/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Text — Plastic and soft metals: Minimum width of 0.018 in. (0.457mm)"
+     }
+    },
+    "textWidthMetalMM": {
+     "value": 0.838,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "engraved text's stroke in hard metals, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-milling/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Text — Hard metals: Minimum width of 0.033 in. (0.838mm)"
+     }
+    },
+    "textDepthMM": {
+     "value": 0.3,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "engraved text's depth",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-milling/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Text — depth of 0.0118 in. (0.3mm)"
+     }
+    },
+    "drillMinMM": {
+     "value": 0.35,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the drill table's smallest metric size",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 0.35 mm, the first size"
+     }
+    },
+    "drillMaxMM": {
+     "value": 25,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the drill table's largest metric size; above it a hole is milled, not drilled",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 25.0 mm, the last size"
+     }
+    },
+    "drillFineStepMM": {
+     "value": 0.05,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "the drill sizes' step up to drillFineToMM",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 0.35, 0.4, 0.45 … 2.7, 2.75",
+      "note": "derived: the step between the sizes listed from 0.35 to 2.75, not a value printed on the page"
+     }
+    },
+    "drillFineToMM": {
+     "value": 2.75,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the last size on the fine step",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — … 2.7, 2.75, 2.8"
+     }
+    },
+    "drillStepMM": {
+     "value": 0.1,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "the drill sizes' step from drillFineToMM to drillStepToMM",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 2.8, 2.9, 3.0 … 9.9, 10.0",
+      "note": "derived: the step between the sizes listed from 2.8 to 10.0, not a value printed on the page"
+     }
+    },
+    "drillQuarterStepMM": {
+     "value": 0.25,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "the quarter sizes also listed in the 0.1 mm range",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 3.25, 3.75 … 9.75",
+      "note": "derived: read as a pattern from the quarter sizes listed (3.25, 3.75 … 9.75), not a value printed on the page; each quarter size not checked one by one"
+     }
+    },
+    "drillStepToMM": {
+     "value": 10,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the last size on the 0.1 mm step",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — … 9.9, 10.0, 10.5"
+     }
+    },
+    "drillCoarseStepMM": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "the drill sizes' step above drillStepToMM",
+     "page": {
+      "url": "https://www.engineersedge.com/drill_sizes.htm",
+      "read": "2026-10-21",
+      "label": "ISO (Metric Size Drills) — 10.0, 10.5, 11.0 … 24.5, 25.0",
+      "note": "derived: the step between the sizes listed from 10.0 to 25.0, not a value printed on the page"
+     }
+    },
+    "holeDiameterRec": {
+     "value": 1,
+     "unit": "flag",
+     "source": "W-WEB",
+     "description": "a hole's diameter, recommended a standard drill size (1: the rule applies)",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Holes — Recommended diameter: standard drill bit sizes"
+     }
+    }
+   },
+   "toleranceClasses": {
+    "metal": "ISO 2768-1 f",
+    "plastic": "ISO 2768-1 m",
+    "page": {
+     "url": "https://www.protolabs.com/services/cnc-machining/",
+     "read": "2026-10-21",
+     "label": "Tolerances for Parts without Technical Drawing: +/- 0.005 in. (+/- 0.127mm) / ISO 2768-1-1989-f (metals), ISO 2768-1-1989-m (plastics)",
+     "note": "the classes named; their tolerance values are not copied"
+    }
+   }
+  },
+  {
+   "id": "cnc-turning",
+   "label": "CNC turning",
+   "thresholds": {
+    "wallMetalRec": {
+     "value": 0.8,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a metal wall, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Metals: Recommended: 0.8 mm"
+     }
+    },
+    "wallMetalMin": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a metal wall, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Metals: Feasible: 0.5 mm"
+     }
+    },
+    "wallPlasticRec": {
+     "value": 1.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a plastic wall, recommended at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Plastics: Recommended: 1.5 mm"
+     }
+    },
+    "wallPlasticMin": {
+     "value": 1.0,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a plastic wall, feasible at least",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Walls — Plastics: Feasible depending on the plastic: 1.0 mm"
+     }
+    },
+    "tolMM": {
+     "value": 0.13,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the machining tolerance (±)",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Machining tolerance: +/- 0.005 in. (0.13mm)"
+     }
+    },
+    "tolFeasibleMM": {
+     "value": 0.025,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the tightest feasible tolerance (±)",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Tolerances — Feasible: ± 0.025 mm"
+     }
+    },
+    "maxDiameterMM": {
+     "value": 500,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the largest turned diameter",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Maximum part size — CNC turning: Ø 500 mm x 1000 mm (typically)"
+     }
+    },
+    "maxLengthMM": {
+     "value": 1000,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the longest turned part",
+     "page": {
+      "url": "https://www.hubs.com/guides/cnc-machining/",
+      "read": "2026-10-21",
+      "label": "Maximum part size — CNC turning: Ø 500 mm x 1000 mm (typically)"
+     }
+    },
+    "minDiameterMM": {
+     "value": 0.76,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the least diameter in any region",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "should not be less than 0.030 in. (0.76mm)"
+     }
+    },
+    "wallMinTurnMM": {
+     "value": 0.51,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a turned wall, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum Dimensions — Wall Thickness: 0.020 in. / 0.51mm"
+     }
+    },
+    "grooveWidthMinMM": {
+     "value": 1.2,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an outside groove's width, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum OD groove width: 0.047 in. (1.2mm)"
+     }
+    },
+    "grooveDepthMaxMM": {
+     "value": 24.1,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an outside groove's depth, at most (with its width)",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Maximum OD groove depth: 0.95 in. (24.1mm)"
+     }
+    },
+    "holeMinAxialMM": {
+     "value": 1,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an on-axis hole, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum hole size — On-axis and axial: 0.04 in. (1mm)"
+     }
+    },
+    "holeMinRadialMM": {
+     "value": 2,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a radial hole, at least (1 mm in aluminium and brass)",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum hole size — Radial: 0.08 in. (2mm)"
+     }
+    },
+    "pointAngleMinDeg": {
+     "value": 30,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "a conical point's angle, at least",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "angles should be greater than 30 degrees"
+     }
+    },
+    "holeMinRadialSoftMM": {
+     "value": 1,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a radial hole's least diameter in aluminium and brass",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum hole size — Radial: 0.04 in (1mm) for aluminum and brass"
+     }
+    },
+    "grooveWidthMinSoftMM": {
+     "value": 0.5,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an outside groove's least width in aluminium and brass",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum OD groove width for aluminum and brass: 0.019 in (0.5mm)"
+     }
+    },
+    "minPartDiameterMM": {
+     "value": 4.07,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the part's least diameter",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum dimensions — Diameter: 0.16 in. (4.07mm)"
+     }
+    },
+    "minPartLengthMM": {
+     "value": 1.27,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "the part's least length",
+     "page": {
+      "url": "https://www.protolabs.com/services/cnc-machining/cnc-turning/design-guidelines/",
+      "read": "2026-10-21",
+      "label": "Minimum dimensions — Length: 0.05 in. (1.27mm)"
+     }
+    }
+   },
+   "toleranceClasses": {
+    "metal": "ISO 2768-1 f",
+    "plastic": "ISO 2768-1 m",
+    "page": {
+     "url": "https://www.protolabs.com/services/cnc-machining/",
+     "read": "2026-10-21",
+     "label": "Tolerances for Parts without Technical Drawing: +/- 0.005 in. (+/- 0.127mm) / ISO 2768-1-1989-f (metals), ISO 2768-1-1989-m (plastics)",
+     "note": "the classes named; their tolerance values are not copied"
+    }
+   }
+  },
+  {
+   "id": "die-casting",
+   "label": "Die casting",
+   "thresholds": {
+    "zincWallMinMM": {
+     "value": 0.6,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a zinc alloy’s least wall",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Zinc alloys — Min. Thickness 0.6 mm (0.025 in)"
+     }
+    },
+    "zincDraftMinDeg": {
+     "value": 0.25,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "a zinc alloy’s least draft",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Zinc alloys — Min. Draft Angle 0.25º"
+     }
+    },
+    "zincDraftRecDeg": {
+     "value": 0.5,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "a zinc alloy’s draft, achievable in general",
+     "page": {
+      "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+      "read": "2026-10-21",
+      "label": "For draft angles, in general, 0.5º is achievable for zinc 1º-2º is achievable for aluminum."
+     }
+    },
+    "zincTolMM": {
+     "value": 0.0508,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "a zinc alloy’s linear tolerance, ±",
+     "page": {
+      "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+      "read": "2026-10-21",
+      "label": "generally between ±0.001\" and ±0.002\" is possible for zinc",
+      "note": "derived: the looser end, 0.002 in × 25.4 mm/in"
+     }
+    },
+    "aluminiumWallMinMM": {
+     "value": 0.9,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an aluminium alloy’s least wall",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Aluminum alloys — Min. Thickness 0.9 mm (0.035 in)"
+     }
+    },
+    "aluminiumWallRecMM": {
+     "value": 2,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "an aluminium alloy’s typical wall",
+     "page": {
+      "url": "https://www.dynacast.com/resources/article/die-casting-design-faq",
+      "read": "2026-10-21",
+      "label": "Wall thickness, typically is 2mm for aluminum die casting."
+     }
+    },
+    "aluminiumDraftMinDeg": {
+     "value": 0.5,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "an aluminium alloy’s least draft",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Aluminum alloys — Min. Draft Angle 0.5º"
+     }
+    },
+    "aluminiumDraftRecDeg": {
+     "value": 1,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "an aluminium alloy’s draft, achievable in general (the low end of 1º–2º)",
+     "page": {
+      "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+      "read": "2026-10-21",
+      "label": "For draft angles, in general, 0.5º is achievable for zinc 1º-2º is achievable for aluminum."
+     }
+    },
+    "aluminiumTolMM": {
+     "value": 0.1016,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "an aluminium alloy’s linear tolerance, ±",
+     "page": {
+      "url": "https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design",
+      "read": "2026-10-21",
+      "label": "aluminum can hold between ±0.002\" and ±0.004\"",
+      "note": "derived: the looser end, 0.004 in × 25.4 mm/in"
+     }
+    },
+    "copperWallMinMM": {
+     "value": 1.25,
+     "unit": "mm",
+     "source": "W-WEB",
+     "description": "a copper alloy’s (brass’s) least wall",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Copper alloys (Brass) — Min. Thickness 1.25 mm (0.050 in)"
+     }
+    },
+    "copperDraftMinDeg": {
+     "value": 0.7,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "a copper alloy’s (brass’s) least draft",
+     "page": {
+      "url": "https://www.efunda.com/processes/metal_processing/die_casting.cfm",
+      "read": "2026-10-21",
+      "label": "Copper alloys (Brass) — Min. Draft Angle 0.7º"
+     }
+    }
+   }
+  },
+  {
+   "id": "sand-casting",
+   "label": "Sand casting",
+   "thresholds": {
+    "aluminiumWallMinMM": {
+     "value": 2.54,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "an aluminium alloy’s least wall or web",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "In general web or wall thickness should as a minimum be 0.10\" - Aluminum, .13 Magnesium and .13 for Steel.",
+      "note": "derived: 0.10 in × 25.4 mm/in"
+     }
+    },
+    "magnesiumWallMinMM": {
+     "value": 3.302,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "a magnesium alloy’s least wall or web",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "In general web or wall thickness should as a minimum be 0.10\" - Aluminum, .13 Magnesium and .13 for Steel.",
+      "note": "derived: 0.13 in × 25.4 mm/in"
+     }
+    },
+    "steelWallMinMM": {
+     "value": 3.302,
+     "unit": "mm",
+     "source": "W-DERIVED",
+     "description": "a steel’s least wall or web",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "In general web or wall thickness should as a minimum be 0.10\" - Aluminum, .13 Magnesium and .13 for Steel.",
+      "note": "derived: 0.13 in × 25.4 mm/in"
+     }
+    },
+    "draftMinDeg": {
+     "value": 1,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "the least draft, external and internal",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "Standard draft for sand casting is 2 degrees with a minimum of about 1 degree for external and internal features."
+     }
+    },
+    "draftRecDeg": {
+     "value": 2,
+     "unit": "deg",
+     "source": "W-WEB",
+     "description": "the standard draft",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "Standard draft for sand casting is 2 degrees with a minimum of about 1 degree for external and internal features."
+     }
+    },
+    "sectionRatioMax": {
+     "value": 2,
+     "unit": "ratio",
+     "source": "W-WEB",
+     "description": "a section change’s thickness ratio, at most, without a wedge between",
+     "page": {
+      "url": "https://www.engineersedge.com/sand_cast.htm",
+      "read": "2026-10-21",
+      "label": "If a section change of over 2:1 thickness ratio is unavoidable … use a wedge form between the unequal sections."
+     }
+    }
+   },
+   "allowances": {
+    "shrink": [
+     {
+      "family": "iron",
+      "label": "Grey Cast Iron",
+      "bands": [
+       {
+        "upToFt": 2,
+        "inPerFt": 0.125
+       },
+       {
+        "upToFt": 4,
+        "inPerFt": 0.105
+       },
+       {
+        "upToFt": null,
+        "inPerFt": 0.083
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+       "read": "2026-10-21",
+       "label": "Table 1: Rate of Contraction of Various Metals — Grey Cast Iron: up to 2 feet 0.125, 2 feet to 4 feet 0.105, over 4 feet 0.083 (inch/ft)",
+       "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+      }
+     },
+     {
+      "family": "steel",
+      "label": "Cast Steel",
+      "bands": [
+       {
+        "upToFt": 2,
+        "inPerFt": 0.251
+       },
+       {
+        "upToFt": 6,
+        "inPerFt": 0.191
+       },
+       {
+        "upToFt": null,
+        "inPerFt": 0.155
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+       "read": "2026-10-21",
+       "label": "Table 1: Rate of Contraction of Various Metals — Cast Steel: up to 2 feet 0.251, 2 feet to 6 feet 0.191, over 6 feet 0.155 (inch/ft)",
+       "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+      }
+     },
+     {
+      "family": "aluminium",
+      "label": "Aluminum",
+      "bands": [
+       {
+        "upToFt": 4,
+        "inPerFt": 0.155
+       },
+       {
+        "upToFt": 6,
+        "inPerFt": 0.143
+       },
+       {
+        "upToFt": null,
+        "inPerFt": 0.125
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+       "read": "2026-10-21",
+       "label": "Table 1: Rate of Contraction of Various Metals — Aluminum: up to 4 feet 0.155, 4 feet to 6 feet 0.143, over 6 feet 0.125 (inch/ft)",
+       "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+      }
+     },
+     {
+      "family": "magnesium",
+      "label": "Magnesium",
+      "bands": [
+       {
+        "upToFt": 4,
+        "inPerFt": 0.173
+       },
+       {
+        "upToFt": null,
+        "inPerFt": 0.155
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture3.htm",
+       "read": "2026-10-21",
+       "label": "Table 1: Rate of Contraction of Various Metals — Magnesium: up to 4 feet 0.173, over 4 feet 0.155 (inch/ft)",
+       "note": "the bands by the pattern dimension, as printed in feet (1 ft = 304.8 mm); the allowance in inches per foot, as printed: a ratio of allowance/12"
+      }
+     }
+    ],
+    "machining": [
+     {
+      "class": "iron",
+      "label": "Cast iron",
+      "bands": [
+       {
+        "upToIn": 12,
+        "in": 0.12
+       },
+       {
+        "upToIn": 20,
+        "in": 0.2
+       },
+       {
+        "upToIn": 40,
+        "in": 0.25
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture4.htm",
+       "read": "2026-10-21",
+       "label": "Table 3: Machining Allowances of Various Metals — Cast iron: up to 12 0.12, 12 to 20 0.20, 20 to 40 0.25 (inch)",
+       "note": "the bands and the allowance as printed in inches (1 in = 25.4 mm)"
+      }
+     },
+     {
+      "class": "steel",
+      "label": "Cast steel",
+      "bands": [
+       {
+        "upToIn": 6,
+        "in": 0.12
+       },
+       {
+        "upToIn": 20,
+        "in": 0.25
+       },
+       {
+        "upToIn": 40,
+        "in": 0.3
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture4.htm",
+       "read": "2026-10-21",
+       "label": "Table 3: Machining Allowances of Various Metals — Cast steel: up to 6 0.12, 6 to 20 0.25, 20 to 40 0.30 (inch)",
+       "note": "the bands and the allowance as printed in inches (1 in = 25.4 mm)"
+      }
+     },
+     {
+      "class": "nonferrous",
+      "label": "Non ferrous",
+      "bands": [
+       {
+        "upToIn": 8,
+        "in": 0.09
+       },
+       {
+        "upToIn": 12,
+        "in": 0.12
+       },
+       {
+        "upToIn": 40,
+        "in": 0.16
+       }
+      ],
+      "page": {
+       "url": "https://archive.nptel.ac.in/content/storage2/courses/112107144/metalcasting/lecture4.htm",
+       "read": "2026-10-21",
+       "label": "Table 3: Machining Allowances of Various Metals — Non ferrous: up to 8 0.09, 8 to 12 0.12, 12 to 40 0.16 (inch)",
+       "note": "the bands and the allowance as printed in inches (1 in = 25.4 mm)"
+      }
+     }
+    ]
+   }
+  }
+ ],
+ "printers": [
+  {
+   "id": "fdm-256",
+   "label": "Generic FDM 256³",
+   "process": "fdm",
+   "buildMM": [
+    256,
+    256,
+    256
+   ],
+   "layerMM": 0.2,
+   "nozzleMM": 0.4,
+   "heatedBed": true,
+   "source": "P-PRN"
+  },
+  {
+   "id": "fdm-220",
+   "label": "Generic FDM 220 × 220 × 250",
+   "process": "fdm",
+   "buildMM": [
+    220,
+    220,
+    250
+   ],
+   "layerMM": 0.2,
+   "nozzleMM": 0.4,
+   "heatedBed": true,
+   "source": "P-PRN"
+  },
+  {
+   "id": "sla-desktop",
+   "label": "Generic desktop SLA 145 × 145 × 185",
+   "process": "sla",
+   "buildMM": [
+    145,
+    145,
+    185
+   ],
+   "layerMM": 0.05,
+   "source": "P-PRN"
+  },
+  {
+   "id": "sls-300",
+   "label": "Generic SLS 300³",
+   "process": "sls",
+   "buildMM": [
+    300,
+    300,
+    300
+   ],
+   "layerMM": 0.1,
+   "source": "P-PRN"
+  },
+  {
+   "id": "mjf-380",
+   "label": "Generic MJF 380 × 284 × 380",
+   "process": "mjf",
+   "buildMM": [
+    380,
+    284,
+    380
+   ],
+   "layerMM": 0.08,
+   "source": "P-PRN"
+  }
+ ]
+}

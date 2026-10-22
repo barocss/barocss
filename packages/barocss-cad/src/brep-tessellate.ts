@@ -14,12 +14,12 @@
 //                      step apart inserted Delaunay-wise, then interior edges across which the normal
 //                      turns by more than 1.5 steps bisected conformingly
 //   other faces        refused (BrepError GEOMETRY): poles, seams inside one face, edges off the surface
-import { BrepError, type Brep, type BrepCoedge } from './brep-core.js';
+import { BrepError, type Brep, type BrepCoedge, type BrepEdge } from './brep-core.js';
 import { evaluateCurve, curveDomain, evaluateSurface, surfaceDomain, surfaceEvaluator } from './math.js';
-import type { Curve, Point, Surface } from './types.js';
+import type { Curve, FacetPatch, Point, Surface } from './types.js';
 import { cross, dot, sub, unit } from './vec3.js';
 
-export interface BrepMeshFace { readonly faceId: string; readonly kind: 'planar' | 'ruled' | 'trimmed'; readonly vertexOffset: number; readonly vertexCount: number; readonly indexOffset: number; readonly indexCount: number }
+export interface BrepMeshFace { readonly faceId: string; readonly kind: 'planar' | 'ruled' | 'trimmed' | 'facet'; readonly vertexOffset: number; readonly vertexCount: number; readonly indexOffset: number; readonly indexCount: number }
 export interface BrepMeshEdge { readonly edgeId: string; readonly pointsMM: Float64Array }
 export interface BrepMesh { readonly positionsMM: Float64Array; readonly normals: Float64Array; readonly indices: Uint32Array; readonly faces: readonly BrepMeshFace[]; readonly edges: readonly BrepMeshEdge[] }
 export interface BrepTessellationOptions { readonly segmentsPerQuarter?: number }
@@ -64,6 +64,9 @@ export function circleOf(curve: Curve): { c: Point; r: number; e1: Point; e2: Po
 function edgeParameters(curve: Curve, perQuarter: number): number[] {
   const [t0, t1] = curveDomain(curve);
   if (isLine(curve)) return [t0, t1];
+  // A polyline (a facet face's edge): exactly its corners, the mesh vertices both faces share — any other
+  // sample would leave a crack or a T-junction against the facets.
+  if (curve.degree === 1) { const out: number[] = []; for (const k of curve.knots) if (out[out.length - 1] !== k) out.push(k); return out; }
   const circle = circleOf(curve);
   if (circle) {
     const step = Math.PI / 2 / perQuarter, total = circle.spans.reduce((a, s) => a + s.phi, 0), out = [t0];
@@ -95,6 +98,74 @@ function edgeParameters(curve: Curve, perQuarter: number): number[] {
  * overlapping chords) are cut off as degenerate triangles, so every boundary segment stays in the
  * mesh. Orientation tests use a tolerance relative to the polygon's size.
  */
+const turn = (o: XY, a: XY, b: XY) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+const samePoint = (a: XY, b: XY) => a[0] === b[0] && a[1] === b[1];
+/** Whether y lies on the segment o–x (collinear, within its box). */
+const onSegment = (o: XY, x: XY, y: XY) => turn(o, x, y) === 0 && Math.min(o[0], x[0]) <= y[0] && y[0] <= Math.max(o[0], x[0]) && Math.min(o[1], x[1]) <= y[1] && y[1] <= Math.max(o[1], x[1]);
+/** Whether segment p–q crosses or touches a–b (sharing an end does not count). */
+function crosses(p: XY, q: XY, a: XY, b: XY): boolean {
+  if (samePoint(p, a) || samePoint(p, b) || samePoint(q, a) || samePoint(q, b)) return false;
+  const d1 = turn(a, b, p), d2 = turn(a, b, q), d3 = turn(p, q, a), d4 = turn(p, q, b);
+  if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) return true;
+  return onSegment(p, q, a) || onSegment(p, q, b);
+}
+/** A ring's points (each occurrence of each index) on a uniform grid over its box. */
+interface PointGrid { x0: number; y0: number; cell: number; nx: number; ny: number; cells: Map<number, number[]> }
+function gridOf(pts: readonly XY[], ring: readonly number[], x0: number, y0: number, x1: number, y1: number): PointGrid {
+  const n = Math.max(1, Math.ceil(Math.sqrt(ring.length))), cell = Math.max(x1 - x0, y1 - y0, 1e-300) / n;
+  const g: PointGrid = { x0, y0, cell, nx: Math.floor((x1 - x0) / cell) + 1, ny: Math.floor((y1 - y0) / cell) + 1, cells: new Map() };
+  for (const j of ring) { const k = gridKey(g, pts[j][0], pts[j][1]), list = g.cells.get(k); if (list) list.push(j); else g.cells.set(k, [j]); }
+  return g;
+}
+const gridCol = (g: PointGrid, x: number) => Math.min(g.nx - 1, Math.max(0, Math.floor((x - g.x0) / g.cell)));
+const gridRow = (g: PointGrid, y: number) => Math.min(g.ny - 1, Math.max(0, Math.floor((y - g.y0) / g.cell)));
+const gridKey = (g: PointGrid, x: number, y: number) => gridRow(g, y) * g.nx + gridCol(g, x);
+/** One occurrence of point j taken off the grid (it left the ring). */
+function gridRemove(g: PointGrid, pts: readonly XY[], j: number): void {
+  const list = g.cells.get(gridKey(g, pts[j][0], pts[j][1])); if (!list) return;
+  const i = list.indexOf(j); if (i >= 0) list.splice(i, 1);
+}
+/**
+ * Whether a ring point other than the ear's own lies in the ear a–b–c (counter-clockwise) or within the
+ * tolerance outside it — exactly the test over every ring point, asked of the grid cells under the ear
+ * grown by that tolerance (each edge's line moved out by eps / its length; the box of where the moved
+ * lines meet). A degenerate ear (moved lines all but parallel) is tested against the whole ring.
+ */
+function earBlocked(g: PointGrid, pts: readonly XY[], ring: readonly number[], ia: number, ib: number, ic: number, eps: number): boolean {
+  const a = pts[ia], b = pts[ib], c = pts[ic], box = grownBox(a, b, c, eps);
+  if (!box) { for (const j of ring) if (inEar(pts, j, ia, ib, ic, eps)) return true; return false; }
+  const c0 = gridCol(g, box[0]), c1 = gridCol(g, box[2]), r0 = gridRow(g, box[1]), r1 = gridRow(g, box[3]);
+  for (let r = r0; r <= r1; r++) for (let col = c0; col <= c1; col++) {
+    const list = g.cells.get(r * g.nx + col); if (!list) continue;
+    for (const j of list) if (inEar(pts, j, ia, ib, ic, eps)) return true;
+  }
+  return false;
+}
+/** Whether ring point j (not one of the ear's, nor on them) lies in the ear ia–ib–ic or within eps outside it. */
+function inEar(pts: readonly XY[], j: number, ia: number, ib: number, ic: number, eps: number): boolean {
+  const q = pts[j], a = pts[ia], b = pts[ib], c = pts[ic];
+  if (j === ia || j === ib || j === ic || samePoint(q, a) || samePoint(q, b) || samePoint(q, c)) return false;
+  return turn(a, b, q) >= -eps && turn(b, c, q) >= -eps && turn(c, a, q) >= -eps;
+}
+/** The box of the triangle a–b–c (counter-clockwise) with each edge moved out by eps / its length, padded; null if degenerate. */
+function grownBox(a: XY, b: XY, c: XY, eps: number): [number, number, number, number] | null {
+  const P = [a, b, c], lines: [number, number, number][] = [];
+  for (let i = 0; i < 3; i++) {
+    const p = P[i], q = P[(i + 1) % 3], dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy);
+    if (!(l > 0)) return null;
+    // Inside: n·x ≥ d with n the inward normal (left of p→q); moved out by eps / l.
+    const nx = -dy / l, ny = dx / l; lines.push([nx, ny, nx * p[0] + ny * p[1] - eps / l]);
+  }
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i < 3; i++) {
+    const [n1x, n1y, d1] = lines[(i + 2) % 3], [n2x, n2y, d2] = lines[i], det = n1x * n2y - n1y * n2x;
+    if (Math.abs(det) < 1e-12) return null;
+    const x = (d1 * n2y - d2 * n1y) / det, y = (n1x * d2 - n2x * d1) / det;
+    x0 = Math.min(x0, x, a[0], b[0], c[0]); y0 = Math.min(y0, y, a[1], b[1], c[1]); x1 = Math.max(x1, x, a[0], b[0], c[0]); y1 = Math.max(y1, y, a[1], b[1], c[1]);
+  }
+  const pad = 1e-9 * (Math.abs(x0) + Math.abs(x1) + Math.abs(y0) + Math.abs(y1) + (x1 - x0) + (y1 - y0)) + 1e-300;
+  return [x0 - pad, y0 - pad, x1 + pad, y1 + pad];
+}
 export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonly (readonly XY[])[], earCost?: (a: XY, b: XY, c: XY) => number): [number, number, number][] {
   const pts: XY[] = [...outer, ...holes.flat()];
   let ring = outer.map((_, i) => i), offset = outer.length;
@@ -102,25 +173,21 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const q of pts) { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); }
   const eps = 1e-12 * ((x1 - x0) ** 2 + (y1 - y0) ** 2 || 1);
-  const cr = (o: XY, a: XY, b: XY) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-  const same = (a: XY, b: XY) => a[0] === b[0] && a[1] === b[1];
+  const cr = turn, same = samePoint;
   const tris: [number, number, number][] = [];
-  const crosses = (p: XY, q: XY, a: XY, b: XY) => {
-    if (same(p, a) || same(p, b) || same(q, a) || same(q, b)) return false;
-    const d1 = cr(a, b, p), d2 = cr(a, b, q), d3 = cr(p, q, a), d4 = cr(p, q, b);
-    if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) return true;
-    const on = (o: XY, x: XY, y: XY) => cr(o, x, y) === 0 && Math.min(o[0], x[0]) <= y[0] && y[0] <= Math.max(o[0], x[0]) && Math.min(o[1], x[1]) <= y[1] && y[1] <= Math.max(o[1], x[1]);
-    return on(p, q, a) || on(p, q, b);
-  };
   const inWedge = (A: XY, V: XY, B: XY, P: XY) => { const l1 = cr(A, V, P) > 0, l2 = cr(V, B, P) > 0; return cr(A, V, B) > 0 ? l1 && l2 : l1 || l2; };
   // Holes, right to left. A hole sharing a point with the ring joins it there (the ring passes the
   // point twice); otherwise a bridge runs from the hole's rightmost vertex M to the nearest ring
   // vertex occurrence that M can see and whose interior wedge contains M.
   holeRings.sort((a, b) => Math.max(...b.map(i => pts[i][0])) - Math.max(...a.map(i => pts[i][0])));
+  // (The ring's points by position, kept as holes join it: a hole point shared with the ring is found
+  // without a scan of the ring.)
+  const onRing = new Set<string>(); for (const v of ring) onRing.add(`${pts[v][0]},${pts[v][1]}`);
   for (const [h, hole] of holeRings.entries()) {
     const rotate = (at: number) => [...hole.slice(at), ...hole.slice(0, at)];
     let joined = false;
     for (let j = 0; j < hole.length && !joined; j++) {
+      if (!onRing.has(`${pts[hole[j]][0]},${pts[hole[j]][1]}`)) continue;
       const M = pts[hole[j]], MA = pts[hole[(j - 1 + hole.length) % hole.length]], MB = pts[hole[(j + 1) % hole.length]];
       // A point just inside the material next to M (right of both hole edges: the hole runs clockwise).
       const nIn = [M[1] - MA[1], MA[0] - M[0]], nOut = [MB[1] - M[1], M[0] - MB[0]], len = (v: number[]) => Math.hypot(v[0], v[1]) || 1;
@@ -132,25 +199,31 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
       ring = [...ring.slice(0, k + 1), ...r.slice(1), r[0], ...ring.slice(k + 1)];
       joined = true;
     }
-    if (joined) continue;
+    if (joined) { for (const v of hole) onRing.add(`${pts[v][0]},${pts[v][1]}`); continue; }
     const mi = hole.reduce((best, i) => pts[i][0] > pts[best][0] ? i : best, hole[0]), M = pts[mi], at = hole.indexOf(mi);
     const MA = pts[hole[(at - 1 + hole.length) % hole.length]], MB = pts[hole[(at + 1) % hole.length]];
     const pending = holeRings.slice(h + 1);
-    let chosen = -1, bestD = Infinity;
-    for (let k = 0; k < ring.length; k++) {
+    // The nearest ring vertex that passes (the first by index among equally near ones): candidates tried
+    // nearest first, so the search stops at the first that passes rather than testing every vertex.
+    const order: number[] = [], dist: number[] = [];
+    for (let k = 0; k < ring.length; k++) { const V = pts[ring[k]]; dist.push(Math.hypot(V[0] - M[0], V[1] - M[1])); order.push(k); }
+    order.sort((x, y) => dist[x] - dist[y] || x - y);
+    let chosen = -1;
+    for (const k of order) {
+      if (dist[k] === 0) continue;
       const V = pts[ring[k]], A = pts[ring[(k - 1 + ring.length) % ring.length]], B = pts[ring[(k + 1) % ring.length]];
-      const d = Math.hypot(V[0] - M[0], V[1] - M[1]);
-      if (d >= bestD || d === 0) continue;
       // The bridge must leave M into the material (left of the clockwise hole) and enter V's interior wedge.
       if (!inWedge(A, V, B, M) || !inWedge(MA, M, MB, V)) continue;
       let blocked = false;
       for (let e = 0; e < ring.length && !blocked; e++) blocked = crosses(M, V, pts[ring[e]], pts[ring[(e + 1) % ring.length]]);
-      for (const other of [hole, ...pending]) for (let e = 0; e < other.length && !blocked; e++) blocked = crosses(M, V, pts[other[e]], pts[other[(e + 1) % other.length]]);
-      if (!blocked) { bestD = d; chosen = k; }
+      for (let e = 0; e < hole.length && !blocked; e++) blocked = crosses(M, V, pts[hole[e]], pts[hole[(e + 1) % hole.length]]);
+      for (const other of pending) for (let e = 0; e < other.length && !blocked; e++) blocked = crosses(M, V, pts[other[e]], pts[other[(e + 1) % other.length]]);
+      if (!blocked) { chosen = k; break; }
     }
     if (chosen < 0) throw new BrepError('GEOMETRY', 'A hole is not inside its face boundary');
     const rotated = rotate(at);
     ring = [...ring.slice(0, chosen + 1), ...rotated, mi, ...ring.slice(chosen)];
+    for (const v of hole) onRing.add(`${pts[v][0]},${pts[v][1]}`);
   }
   // Spikes: a vertex whose two edges fold back onto each other (zero width) is cut off.
   const despike = () => {
@@ -159,10 +232,12 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
       for (let k = 0; k < ring.length && ring.length > 3; k++) {
         const ia = ring[(k - 1 + ring.length) % ring.length], ib = ring[k], ic = ring[(k + 1) % ring.length], a = pts[ia], b = pts[ib], c = pts[ic];
         const back = (b[0] - a[0]) * (c[0] - b[0]) + (b[1] - a[1]) * (c[1] - b[1]) < 0;
-        if (same(a, b) || same(b, c) || (Math.abs(cr(a, b, c)) <= eps && back)) { if (!same(a, b) && !same(b, c)) tris.push([ia, ib, ic]); ring.splice(k, 1); k--; again = true; }
+        if (same(a, b) || same(b, c) || (Math.abs(cr(a, b, c)) <= eps && back)) { if (!same(a, b) && !same(b, c)) tris.push([ia, ib, ic]); gridRemove(grid, pts, ib); ring.splice(k, 1); k--; again = true; }
       }
     }
   };
+  // The ring's points on a grid (each occurrence), so that an ear is tested against the points near it only.
+  const grid = gridOf(pts, ring, x0, y0, x1, y1);
   despike();
   // Ear clipping over the bridged ring (bridge vertices appear twice; coincident points are ignored).
   let guard = 0;
@@ -173,26 +248,21 @@ export function triangulatePolygonWithHoles(outer: readonly XY[], holes: readonl
     for (const k of order) {
       const ia = ring[(k - 1 + ring.length) % ring.length], ib = ring[k], ic = ring[(k + 1) % ring.length], a = pts[ia], b = pts[ib], c = pts[ic];
       if (cr(a, b, c) <= eps) continue;
-      let blocked = false;
-      for (const j of ring) {
-        const q = pts[j];
-        if (j === ia || j === ib || j === ic || same(q, a) || same(q, b) || same(q, c)) continue;
-        if (cr(a, b, q) >= -eps && cr(b, c, q) >= -eps && cr(c, a, q) >= -eps) { blocked = true; break; }
-      }
-      if (blocked) continue;
-      tris.push([ia, ib, ic]); ring.splice(k, 1); clipped = true; break;
+      if (earBlocked(grid, pts, ring, ia, ib, ic, eps)) continue;
+      tris.push([ia, ib, ic]); gridRemove(grid, pts, ib); ring.splice(k, 1); clipped = true; break;
     }
     if (clipped) { despike(); continue; }
     // Degenerate leftovers: cut off a (near) zero-area vertex as a degenerate triangle, or give up.
     const k = ring.findIndex((ib, k2) => Math.abs(cr(pts[ring[(k2 - 1 + ring.length) % ring.length]], pts[ib], pts[ring[(k2 + 1) % ring.length]])) <= eps);
     if (k < 0) throw new BrepError('GEOMETRY', 'Planar face could not be triangulated');
-    tris.push([ring[(k - 1 + ring.length) % ring.length], ring[k], ring[(k + 1) % ring.length]]); ring.splice(k, 1);
+    tris.push([ring[(k - 1 + ring.length) % ring.length], ring[k], ring[(k + 1) % ring.length]]); gridRemove(grid, pts, ring[k]); ring.splice(k, 1);
   }
   if (ring.length === 3 && !same(pts[ring[0]], pts[ring[1]]) && !same(pts[ring[1]], pts[ring[2]]) && !same(pts[ring[2]], pts[ring[0]])) tris.push([ring[0], ring[1], ring[2]]);
   return tris;
 }
 
-function planar(surface: Surface): { origin: Point; normal: Point; e1: Point; e2: Point } | null {
+/** A flat bilinear patch's frame (its normal along ∂S/∂u × ∂S/∂v), or null when the surface is not one. */
+export function planar(surface: Surface): { origin: Point; normal: Point; e1: Point; e2: Point } | null {
   if (surface.degreeU !== 1 || surface.degreeV !== 1 || surface.controlPoints.length !== 2 || surface.controlPoints[0].length !== 2) return null;
   const [[p00, p01], [p10, p11]] = surface.controlPoints, u = sub(p10, p00), v = sub(p01, p00), n = cross(u, v);
   const corner = sub(p11, [p10[0] + v[0], p10[1] + v[1], p10[2] + v[2]]);
@@ -207,37 +277,48 @@ export interface FaceParameters {
   readonly uv: readonly XY[]; readonly at: (u: number, v: number) => Point;
   /** The triangles covering the domain (local indices) when they differ from the mesh's: on a pole side, those collapsed in space. */
   readonly domain?: readonly (readonly [number, number, number])[];
+  /** `uv` is the surface's own (u, v), `at` its own evaluator: its knots and domain apply (FRk8b, D167). Else a frame's (a ruled wall's) parameters. */
+  readonly own?: true;
 }
-/** The mesh with, for the faces triangulated in a parameter domain, each vertex's (u, v) there. */
-export function tessellateBrepWithParameters(brep: Brep, options: BrepTessellationOptions = {}): { mesh: BrepMesh; parameters: Map<string, FaceParameters> } {
-  const parameters = new Map<string, FaceParameters>();
-  return { mesh: tessellate(brep, options, parameters), parameters };
+/** The mesh with, for the faces triangulated in a parameter domain, each vertex's (u, v) there; `only`: just those faces (their edges sampled as for the whole B-rep). */
+/** An edge's stretch between two of its samples: its curve, and the parameters at `from` (a sample point) and at the other end. */
+export interface EdgeSegment { readonly curve: Curve; readonly from: Point; readonly tFrom: number; readonly tTo: number }
+export function tessellateBrepWithParameters(brep: Brep, options: BrepTessellationOptions = {}, only: ReadonlySet<string> | null = null): { mesh: BrepMesh; parameters: Map<string, FaceParameters>; segments: Map<string, EdgeSegment> } {
+  const parameters = new Map<string, FaceParameters>(), segments = new Map<string, EdgeSegment>();
+  return { mesh: tessellate(brep, options, parameters, only, segments), parameters, segments };
+}
+/** The key of a mesh segment between two sample points, the same either way round (for `segments`). */
+export function segmentKey(a: ArrayLike<number>, b: ArrayLike<number>): string {
+  const p = `${a[0]},${a[1]},${a[2]}`, q = `${b[0]},${b[1]},${b[2]}`;
+  return p < q ? `${p}|${q}` : `${q}|${p}`;
 }
 
-function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Map<string, FaceParameters> | null): BrepMesh {
+function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Map<string, FaceParameters> | null, only: ReadonlySet<string> | null = null, segments: Map<string, EdgeSegment> | null = null): BrepMesh {
   const perQuarter = Math.max(1, Math.min(64, Math.floor(options.segmentsPerQuarter ?? 8)));
   const edges = new Map(brep.edges.map(e => [e.id, e])), loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
   // Faces on a cylinder that are not two rails with straight sides: triangulated in their (r·θ, height) domain.
   const trimmed = new Map<string, CylinderFrame>(), params = new Map(brep.edges.map(e => [e.id, edgeParameters(e.curve, perQuarter)]));
   for (const face of brep.faces) {
-    if (planar(face.surface)) continue;
+    if (face.surface.kind === 'facets' || planar(face.surface)) continue;
     const frame = cylinderFrame(face.surface); if (!frame || railsOf(face, loops, coedges, edges) !== undefined) continue;
     trimmed.set(face.id, frame);
   }
-  const refined = new Set<string>(), gridded = new Set<string>(), rows = 2 * perQuarter;
+  const refined = new Set<string>(), gridded = new Map<string, number>(), rows = 2 * perQuarter;
   // Straight rails of a curved ruled face (a loft's side): sampled as finely as its other rail, or a
   // quarter turn's worth when both are straight (a twisted side), so the strip can follow the surface.
   for (const face of brep.faces) {
-    if (planar(face.surface) || trimmed.has(face.id) || flat(face.surface)) continue;
+    if (face.surface.kind === 'facets' || planar(face.surface) || trimmed.has(face.id) || flat(face.surface)) continue;
     const rails = railsOf(face, loops, coedges, edges); if (rails === undefined) continue;
     const ids = rails.map(r => coedges.get(loops.get(face.loops.find(l => loops.get(l)!.kind === 'outer')!)!.coedges[r])!.edge);
     const frame = ruledFrame(face.surface), outer = loops.get(face.loops.find(l => loops.get(l)!.kind === 'outer')!)!.coedges.map(c => coedges.get(c)!.edge);
-    // A twisted side (its normal turns along its rulings) is also cut into rows: its two straight
+    // A twisted side (its normal turns along its rulings) is also cut into rows, one per quarter
+    // turn's step of that twist (at least two, at most a quarter turn's worth): its two straight
     // sides sampled at the rows, so its neighbours share those points.
-    const sideIds = outer.filter((_, i) => i !== rails[0] && i !== rails[1]);
-    if (outer.length === 4 && frame.twisted() && sideIds.every(id => isLine(edges.get(id)!.curve) && (!refined.has(id) || params.get(id)!.length === rows + 1))) {
-      for (const id of sideIds) { const [t0, t1] = curveDomain(edges.get(id)!.curve); params.set(id, Array.from({ length: rows + 1 }, (_, j) => j === rows ? t1 : t0 + (t1 - t0) * j / rows)); refined.add(id); }
-      gridded.add(face.id);
+    const sideIds = outer.filter((_, i) => i !== rails[0] && i !== rails[1]), twist = outer.length === 4 ? frame.twist() : 0;
+    const across = Math.max(2, Math.min(rows, Math.ceil(twist / (Math.PI / 2 / perQuarter))));
+    if (twist > 0 && sideIds.every(id => isLine(edges.get(id)!.curve) && (!refined.has(id) || params.get(id)!.length === across + 1))) {
+      for (const id of sideIds) { const [t0, t1] = curveDomain(edges.get(id)!.curve); params.set(id, Array.from({ length: across + 1 }, (_, j) => j === across ? t1 : t0 + (t1 - t0) * j / across)); refined.add(id); }
+      gridded.set(face.id, across);
     }
     ids.forEach((id, k) => {
       const e = edges.get(id)!, o = edges.get(ids[1 - k])!; if (!isLine(e.curve) || refined.has(id)) return;
@@ -255,95 +336,170 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
       params.set(id, Array.from({ length: n + 1 }, (_, j) => j === n ? t1 : t0 + (t1 - t0) * j / n));
     });
   }
-  const samples = new Map(brep.edges.map(e => [e.id, params.get(e.id)!.map(t => evaluateCurve(e.curve, t))]));
-  const along = (c: BrepCoedge) => { const s = samples.get(c.edge)!; return c.sense === 'forward' ? s : [...s].reverse(); };
-  /** A loop as one ring of points (each coedge without its last point). */
-  const ring = (loopId: string) => loops.get(loopId)!.coedges.flatMap(id => along(coedges.get(id)!).slice(0, -1));
-
-  const positions: number[] = [], normals: number[] = [], indices: number[] = [], faces: BrepMeshFace[] = [];
-  const emit = (faceId: string, kind: BrepMeshFace['kind'], pts: Point[], tris: [number, number, number][], flat: Point | null) => {
-    const base = positions.length / 3, indexOffset = indices.length;
-    for (const p of pts) positions.push(p[0], p[1], p[2]);
-    const acc = pts.map(() => [0, 0, 0] as Point);
-    for (const [a, b, c] of tris) {
-      indices.push(base + a, base + b, base + c);
-      const n = cross(sub(pts[b], pts[a]), sub(pts[c], pts[a]));
-      for (const i of [a, b, c]) { acc[i][0] += n[0]; acc[i][1] += n[1]; acc[i][2] += n[2]; }
-    }
-    // Smooth within the face: points at one position (a seam) share one normal.
-    const key = (p: Point) => p.join(','), byPos = new Map<string, Point>();
-    acc.forEach((n, i) => { const k = key(pts[i]), s = byPos.get(k) ?? [0, 0, 0]; byPos.set(k, [s[0] + n[0], s[1] + n[1], s[2] + n[2]]); });
-    pts.forEach(p => { const n = flat ?? unit(byPos.get(key(p))!); normals.push(n[0], n[1], n[2]); });
-    faces.push({ faceId, kind, vertexOffset: base, vertexCount: pts.length, indexOffset, indexCount: indices.length - indexOffset });
-  };
-
+  // An edge's end samples are its vertices' points: every face meeting at a corner then has the very same
+  // position there (two curves evaluated at their ends differ in the last bits, which cracks the mesh).
+  const vertexPoint = new Map(brep.vertices.map(v => [v.id, v.point as Point]));
+  // Up to three rounds: an edge chord a curved face's triangles tilt from (the chord off the surface by its sagitta,
+  // the face's points near it — a dent where the faces meet, darkened by depth-based ambient occlusion, D79) has its
+  // midpoint added to its edge, which both faces share, and those faces are tessellated again (PERF3 A5: only those;
+  // a face's mesh reads its own loops' samples only, so the others' stand, and the mesh is the same).
+  // (Not an edge of a facet face: its points are the mesh's own, which it triangulates as they are.)
   for (const l of brep.loops) for (const id of l.coedges) { const c = coedges.get(id); if (!c || !edges.has(c.edge)) throw new BrepError('TOPOLOGY', `loop ${l.id}: coedge ${id} or its edge is missing`); }
-  for (const face of brep.faces) {
-    const sign = face.sense === 'forward' ? 1 : -1, plane = planar(face.surface);
-    const outerId = face.loops.find(l => loops.get(l)!.kind === 'outer')!, innerIds = face.loops.filter(l => l !== outerId);
-    if (plane) {
-      const normal: Point = [plane.normal[0] * sign, plane.normal[1] * sign, plane.normal[2] * sign], e2 = cross(normal, plane.e1);
-      const to2 = (p: Point): XY => { const d = sub(p, plane.origin); return [dot(d, plane.e1), dot(d, e2)]; };
-      const outer = ring(outerId), holes = innerIds.map(ring);
-      const tris = triangulatePolygonWithHoles(outer.map(to2), holes.map(h => h.map(to2)));
-      emit(face.id, 'planar', [...outer, ...holes.flat()], tris, normal);
-      continue;
-    }
-    const frame = trimmed.get(face.id);
-    if (frame) {
-      // Per coedge, so a full-turn wall's seam (an edge used twice) can be told apart.
-      const ids = [outerId, ...innerIds], used = ids.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge));
-      const seam = new Set(used.filter((e, i) => used.indexOf(e) !== i));
-      const parts = ids.map(l => loops.get(l)!.coedges.map(c => { const co = coedges.get(c)!; return { points: along(co).slice(0, -1), seam: seam.has(co.edge) }; }));
-      const { pts, tris, uv } = cylinderTriangles(face, frame, parts, Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null);
-      parameters?.set(face.id, { uv, at: frame.at }); continue;
-    }
-    const sides = loops.get(outerId)!.coedges.map(id => coedges.get(id)!), count = sides.length;
-    const rails = railsOf(face, loops, coedges, edges);
-    if (rails === undefined) {
-      // Any other parametric surface without a seam: triangulated in its (u, v) domain.
-      if (ring(outerId).length < 3 || !isSmoothPatch(face.surface)) throw new BrepError('GEOMETRY', `face ${face.id}: a singular surface or a degenerate loop cannot be tessellated`);
-      const { pts, tris, uv, domain } = surfaceTriangles(face, [ring(outerId), ...innerIds.map(ring)], Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null);
-      parameters?.set(face.id, { uv, at: surfaceEvaluator(face.surface), domain }); continue;
-    }
-    const [r1, r2] = rails, A = along(sides[r1]), B = [...along(sides[r2])].reverse();
-    const chain = (from: number, to: number) => { const out: Point[] = []; for (let i = (from + 1) % count; i !== to; i = (i + 1) % count) out.push(...along(sides[i]).slice(0, -1)); return out.slice(1); };
-    const right = chain(r1, r2), left = chain(r2, r1);
-    const pts = [...A, ...B, ...right, ...left], tris: [number, number, number][] = [];
-    // Zipper the two sides (A runs with the loop; B was reversed to run the same way), pairing the
-    // points by their parameter across the rails when the face is a ruled patch between two of its
-    // iso-lines (so the strip follows its rulings), else by their share of each side.
-    let i = 0, j = 0; const n = A.length - 1, m = B.length - 1, b0 = A.length;
-    const ruled = ruledFrame(face.surface), across = ruled.across(A, B), fa = (k: number) => across ? across.a[k] : k / n, fb = (k: number) => across ? across.b[k] : k / m;
-    if (gridded.has(face.id) && across && n === m && right.length === rows - 1 && left.length === rows - 1 && across.a.every((x: number, k: number) => Math.abs(x - across.b[k]) <= 1e-9)) {
-      // A twisted side with its rails paired point for point: rows between them on the surface (its
-      // straight sides were sampled at the rows), so it is followed across as well as along.
-      const r0 = b0 + B.length, l0 = r0 + right.length, base = l0 + left.length;
-      const index = (k: number, r: number) => r === 0 ? k : r === rows ? b0 + k : k === n ? r0 + r - 1 : k === 0 ? l0 + rows - 1 - r : base + (r - 1) * (n - 1) + k - 1;
-      const inner: Point[] = [];
-      for (let r = 1; r < rows; r++) for (let k = 1; k < n; k++) inner.push(ruled.between(across, k, r / rows));
-      const all = [...A, ...B, ...right, ...left, ...inner], cells: [number, number, number][] = [];
-      for (let r = 0; r < rows; r++) for (let k = 0; k < n; k++) cells.push([index(k, r), index(k + 1, r), index(k, r + 1)], [index(k + 1, r), index(k + 1, r + 1), index(k, r + 1)]);
-      emit(face.id, 'ruled', all, cells, null); continue;
-    }
-    while (i < n || j < m) {
-      const advanceA = j >= m || (i < n && fa(i + 1) <= fb(j + 1));
-      if (advanceA) { tris.push([i, i + 1, b0 + j]); i++; } else { tris.push([i, b0 + j + 1, b0 + j]); j++; }
-    }
-    // Side chains: the end triangle on each straight side becomes a fan over the chain's points.
-    const fan = (t: number, from: number, to: number, interior: number[]) => {
-      const x = tris[t].find(v => v !== from && v !== to)!, c = [from, ...interior, to];
-      tris.splice(t, 1, ...c.slice(0, -1).map((v, k): [number, number, number] => [v, c[k + 1], x]));
-    };
-    const r0 = b0 + B.length, l0 = r0 + right.length;
-    if (right.length) fan(tris.length - 1, n, b0 + m, right.map((_, k) => r0 + k));
-    if (left.length) fan(0, b0, 0, left.map((_, k) => l0 + k));
-    emit(face.id, 'ruled', pts, tris, null);
-  }
-  return {
-    positionsMM: new Float64Array(positions), normals: new Float64Array(normals), indices: new Uint32Array(indices), faces,
-    edges: brep.edges.map(e => ({ edgeId: e.id, pointsMM: new Float64Array(samples.get(e.id)!.flat()) })),
+  const facetEdges = new Set(brep.faces.filter(f => f.surface.kind === 'facets').flatMap(f => f.loops.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge))));
+  const edgesOf = new Map(brep.faces.map(f => [f.id, new Set(f.loops.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge)))]));
+  const sampled = (e: BrepEdge): Point[] => {
+    const s = params.get(e.id)!.map(t => evaluateCurve(e.curve, t)), a = vertexPoint.get(e.vertices[0]), b = vertexPoint.get(e.vertices[1]);
+    if (a && s.length) s[0] = [a[0], a[1], a[2]];
+    if (b && s.length > 1) s[s.length - 1] = [b[0], b[1], b[2]];
+    return s;
   };
+  const samples = new Map(brep.edges.map(e => [e.id, sampled(e)])), segIndex = new Map<string, [string, number]>();
+  const index = (id: string, add: boolean) => { const sm = samples.get(id)!; for (let j = 0; j + 1 < sm.length; j++) { const k = segmentKey(sm[j], sm[j + 1]); if (add) segIndex.set(k, [id, j]); else if (segIndex.get(k)?.[0] === id) segIndex.delete(k); } };
+  for (const e of brep.edges) if (!facetEdges.has(e.id)) index(e.id, true);
+  // Each face's mesh, kept from round to round (local indices), joined in the faces' order at the end.
+  interface FaceMesh { positions: number[]; normals: number[]; indices: number[]; faces: BrepMeshFace[] }
+  const meshes = new Map<string, FaceMesh>();
+  let dirty: Set<string> | null = null;
+  for (let round = 0; ; round++) {
+    const splits = new Map<string, Set<number>>();
+    const along = (c: BrepCoedge) => { const s = samples.get(c.edge)!; return c.sense === 'forward' ? s : [...s].reverse(); };
+    /** A loop as one ring of points (each coedge without its last point). */
+    const ring = (loopId: string) => loops.get(loopId)!.coedges.flatMap(id => along(coedges.get(id)!).slice(0, -1));
+
+    let positions: number[] = [], normals: number[] = [], indices: number[] = [], faces: BrepMeshFace[] = [];
+    // (`exact`: the surface's own normal at each point (along Su × Sv), where known: the shading then matches across
+    // a smooth edge between faces — an average of each face's own triangles differs on either side of it, D79.)
+    const emit = (faceId: string, kind: BrepMeshFace['kind'], pts: Point[], tris: [number, number, number][], flat: Point | null, exact: (Point | null)[] | null = null, sense = 1) => {
+      const base = positions.length / 3, indexOffset = indices.length;
+      for (const p of pts) positions.push(p[0], p[1], p[2]);
+      const acc = pts.map(() => [0, 0, 0] as Point);
+      for (const [a, b, c] of tris) {
+        indices.push(base + a, base + b, base + c);
+        const n = cross(sub(pts[b], pts[a]), sub(pts[c], pts[a]));
+        for (const i of [a, b, c]) { acc[i][0] += n[0]; acc[i][1] += n[1]; acc[i][2] += n[2]; }
+      }
+      // Smooth within the face: points at one position (a seam) share one normal (wanted only where there is no
+      // exact one).
+      const key = (p: Point) => p.join(','), byPos = new Map<string, Point>();
+      if (!flat && (!exact || exact.some(e => !e))) acc.forEach((n, i) => { const k = key(pts[i]), s = byPos.get(k) ?? [0, 0, 0]; byPos.set(k, [s[0] + n[0], s[1] + n[1], s[2] + n[2]]); });
+      pts.forEach((p, i) => {
+        // (Su × Sv is outward for a forward face, inward for a reversed one.)
+        const e = exact?.[i], n = flat ?? (e ? [sense * e[0], sense * e[1], sense * e[2]] : unit(byPos.get(key(p))!));
+        normals.push(n[0], n[1], n[2]);
+      });
+      faces.push({ faceId, kind, vertexOffset: base, vertexCount: pts.length, indexOffset, indexCount: indices.length - indexOffset });
+    };
+
+    for (const face of brep.faces) {
+      if (only && !only.has(face.id)) continue;
+      if (dirty && !dirty.has(face.id)) continue;
+      const mine: FaceMesh = { positions: [], normals: [], indices: [], faces: [] };
+      meshes.set(face.id, mine); ({ positions, normals, indices, faces } = mine);
+      // A facet face: its own triangles (the mesh's exact points, which its polyline edges pass through), smooth
+      // within the face, turned over when its sense is reversed.
+      if (face.surface.kind === 'facets') { emitFacets(face.id, face.surface, face.sense === 'forward', positions, normals, indices, faces); continue; }
+      const surface: Surface = face.surface, sign = face.sense === 'forward' ? 1 : -1, plane = planar(surface);
+      const outerId = face.loops.find(l => loops.get(l)!.kind === 'outer')!, innerIds = face.loops.filter(l => l !== outerId);
+      if (plane) {
+        const normal: Point = [plane.normal[0] * sign, plane.normal[1] * sign, plane.normal[2] * sign], e2 = cross(normal, plane.e1);
+        const to2 = (p: Point): XY => { const d = sub(p, plane.origin); return [dot(d, plane.e1), dot(d, e2)]; };
+        const outer = ring(outerId), holes = innerIds.map(ring);
+        const tris = triangulatePolygonWithHoles(outer.map(to2), holes.map(h => h.map(to2)));
+        emit(face.id, 'planar', [...outer, ...holes.flat()], tris, normal);
+        continue;
+      }
+      const frame = trimmed.get(face.id);
+      if (frame) {
+        // Per coedge, so a full-turn wall's seam (an edge used twice) can be told apart.
+        const ids = [outerId, ...innerIds], used = ids.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge));
+        const seam = new Set(used.filter((e, i) => used.indexOf(e) !== i));
+        const parts = ids.map(l => loops.get(l)!.coedges.map(c => { const co = coedges.get(c)!; return { points: along(co).slice(0, -1), seam: seam.has(co.edge) }; }));
+        const { pts, tris, uv } = cylinderTriangles(face, frame, parts, Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null);
+        parameters?.set(face.id, { uv, at: frame.at }); continue;
+      }
+      const sides = loops.get(outerId)!.coedges.map(id => coedges.get(id)!), count = sides.length;
+      const rails = railsOf(face, loops, coedges, edges);
+      if (rails === undefined) {
+        // Any other parametric surface without a seam: triangulated in its (u, v) domain.
+        if (ring(outerId).length < 3 || !isSmoothPatch(face.surface)) throw new BrepError('GEOMETRY', `face ${face.id}: a singular surface or a degenerate loop cannot be tessellated`);
+        // (Its edges' own tolerance: a fitted offset's edges lie within theirs of its cells, D112.)
+        const near = Math.max(0, ...[outerId, ...innerIds].flatMap(l => loops.get(l)!.coedges.map(c => edges.get(coedges.get(c)!.edge)!.toleranceMM)));
+        const { pts, tris, uv, domain, normals: exact } = surfaceTriangles(face, [ring(outerId), ...innerIds.map(ring)], Math.PI / 2 / perQuarter, near); emit(face.id, 'trimmed', pts, tris, null, exact, sign);
+        // (Its triangles on a boundary chord, tilted from the surface's normals at their corners by more than 1.5 steps.)
+        const cosTilt = Math.cos(Math.PI / 2 / perQuarter);
+        for (const [a, b, c] of tris) {
+          const na = exact[a], nb = exact[b], nc = exact[c]; if (!na || !nb || !nc) continue;
+          const g = cross(sub(pts[b], pts[a]), sub(pts[c], pts[a])), l = Math.hypot(g[0], g[1], g[2]), m = add3(add3(na, nb), nc), lm = Math.hypot(m[0], m[1], m[2]);
+          if (!(l > 0) || Math.abs(dot(g, m)) / (l * lm) >= cosTilt) continue;
+          for (const [x, y] of [[a, b], [b, c], [c, a]]) { const hit = segIndex.get(segmentKey(pts[x], pts[y])); if (hit) (splits.get(hit[0]) ?? splits.set(hit[0], new Set()).get(hit[0])!).add(hit[1]); }
+        }
+        parameters?.set(face.id, { uv, at: surfaceEvaluator(face.surface), domain, own: true }); continue;
+      }
+      const [r1, r2] = rails, A = along(sides[r1]), B = [...along(sides[r2])].reverse();
+      const chain = (from: number, to: number) => { const out: Point[] = []; for (let i = (from + 1) % count; i !== to; i = (i + 1) % count) out.push(...along(sides[i]).slice(0, -1)); return out.slice(1); };
+      const right = chain(r1, r2), left = chain(r2, r1);
+      const pts = [...A, ...B, ...right, ...left], tris: [number, number, number][] = [];
+      // Zipper the two sides (A runs with the loop; B was reversed to run the same way), pairing the
+      // points by their parameter across the rails when the face is a ruled patch between two of its
+      // iso-lines (so the strip follows its rulings), else by their share of each side.
+      let i = 0, j = 0; const n = A.length - 1, m = B.length - 1, b0 = A.length;
+      const ruled = ruledFrame(face.surface), across = ruled.across(A, B), fa = (k: number) => across ? across.a[k] : k / n, fb = (k: number) => across ? across.b[k] : k / m;
+      const gridRows = gridded.get(face.id) ?? 0;
+      if (gridRows && across && n === m && right.length === gridRows - 1 && left.length === gridRows - 1 && across.a.every((x: number, k: number) => Math.abs(x - across.b[k]) <= 1e-9)) {
+        // A twisted side with its rails paired point for point: rows between them on the surface (its
+        // straight sides were sampled at the rows), so it is followed across as well as along.
+        const r0 = b0 + B.length, l0 = r0 + right.length, base = l0 + left.length;
+        const index = (k: number, r: number) => r === 0 ? k : r === gridRows ? b0 + k : k === n ? r0 + r - 1 : k === 0 ? l0 + gridRows - 1 - r : base + (r - 1) * (n - 1) + k - 1;
+        const inner: Point[] = [];
+        for (let r = 1; r < gridRows; r++) for (let k = 1; k < n; k++) inner.push(ruled.between(across, k, r / gridRows));
+        const all = [...A, ...B, ...right, ...left, ...inner], cells: [number, number, number][] = [];
+        for (let r = 0; r < gridRows; r++) for (let k = 0; k < n; k++) cells.push([index(k, r), index(k + 1, r), index(k, r + 1)], [index(k + 1, r), index(k + 1, r + 1), index(k, r + 1)]);
+        emit(face.id, 'ruled', all, cells, null); continue;
+      }
+      while (i < n || j < m) {
+        const advanceA = j >= m || (i < n && fa(i + 1) <= fb(j + 1));
+        if (advanceA) { tris.push([i, i + 1, b0 + j]); i++; } else { tris.push([i, b0 + j + 1, b0 + j]); j++; }
+      }
+      // Side chains: the end triangle on each straight side becomes a fan over the chain's points.
+      const fan = (t: number, from: number, to: number, interior: number[]) => {
+        const x = tris[t].find(v => v !== from && v !== to)!, c = [from, ...interior, to];
+        tris.splice(t, 1, ...c.slice(0, -1).map((v, k): [number, number, number] => [v, c[k + 1], x]));
+      };
+      const r0 = b0 + B.length, l0 = r0 + right.length;
+      if (right.length) fan(tris.length - 1, n, b0 + m, right.map((_, k) => r0 + k));
+      if (left.length) fan(0, b0, 0, left.map((_, k) => l0 + k));
+      emit(face.id, 'ruled', pts, tris, null);
+    }
+    if (!splits.size || round === 2) {
+      // (For mass quadrature: each segment between an edge's samples with its curve and parameters, so the curved
+      // strip between the chord and the edge can be integrated too.)
+      if (segments) for (const e of brep.edges) {
+        const ts = params.get(e.id)!, s = samples.get(e.id)!;
+        for (let j = 0; j + 1 < s.length; j++) segments.set(segmentKey(s[j], s[j + 1]), { curve: e.curve, from: s[j], tFrom: ts[j], tTo: ts[j + 1] });
+      }
+      return { ...joined(brep.faces.flatMap(f => meshes.get(f.id) ?? [])), edges: brep.edges.map(e => ({ edgeId: e.id, pointsMM: new Float64Array(samples.get(e.id)!.flat()) })) };
+    }
+    dirty = new Set();
+    for (const [id, js] of splits) {
+      const ts = params.get(id)!, out: number[] = []; ts.forEach((t, j) => { out.push(t); if (js.has(j) && j + 1 < ts.length) out.push((t + ts[j + 1]) / 2); }); params.set(id, out);
+      index(id, false); samples.set(id, sampled(edges.get(id)!)); index(id, true);
+    }
+    for (const [face, ids] of edgesOf) for (const id of splits.keys()) if (ids.has(id)) { dirty.add(face); break; }
+  }
+}
+/** The faces' meshes as one (each face's local indices offset by the vertices before it). */
+function joined(parts: readonly { positions: number[]; normals: number[]; indices: number[]; faces: BrepMeshFace[] }[]): Pick<BrepMesh, 'positionsMM' | 'normals' | 'indices' | 'faces'> {
+  let nv = 0, ni = 0;
+  for (const p of parts) { nv += p.positions.length; ni += p.indices.length; }
+  const positionsMM = new Float64Array(nv), normals = new Float64Array(nv), indices = new Uint32Array(ni), faces: BrepMeshFace[] = [];
+  let v = 0, i = 0;
+  for (const p of parts) {
+    positionsMM.set(p.positions, v); normals.set(p.normals, v);
+    const base = v / 3; for (let k = 0; k < p.indices.length; k++) indices[i + k] = p.indices[k] + base;
+    for (const f of p.faces) faces.push({ ...f, vertexOffset: f.vertexOffset + base, indexOffset: f.indexOffset + i });
+    v += p.positions.length; i += p.indices.length;
+  }
+  return { positionsMM, normals, indices, faces };
 }
 
 /** All control points in one plane. */
@@ -361,13 +517,26 @@ const add3 = (a: Point, b: Point): Point => [a[0] + b[0], a[1] + b[1], a[2] + b[
  * for rails on opposite ones (a ruled patch's) each rail point's share of the way along them, with the
  * surface between paired points.
  */
+// A surface's ruled frame, made once per surface object (a face's tessellation asks for it more than once).
+const ruledFrames = new WeakMap<Surface, ReturnType<typeof makeRuledFrame>>();
 function ruledFrame(S: Surface) {
+  let f = ruledFrames.get(S); if (!f) ruledFrames.set(S, f = makeRuledFrame(S));
+  return f;
+}
+function makeRuledFrame(S: Surface) {
   const at = surfaceEvaluator(S), d = surfaceDomain(S), size = Math.max(1, ...S.controlPoints.flat().map(p => Math.hypot(...p))), tol = 1e-7 * size;
   const isos = [{ along: d.u, fix: d.v[0] }, { along: d.u, fix: d.v[1] }, { along: d.v, fix: d.u[0] }, { along: d.v, fix: d.u[1] }];
   const point = (i: number, t: number): Point => i < 2 ? at(t, isos[i].fix) : at(isos[i].fix, t);
+  // Each iso-line's coarse samples (the projection's starting search), worked out once per iso-line.
+  const N = 64, coarse: ({ t: number; p: Point }[] | null)[] = [null, null, null, null];
+  const samplesOf = (i: number) => {
+    let c = coarse[i];
+    if (!c) { const [t0, t1] = isos[i].along; c = []; for (let k = 0; k <= N; k++) { const t = t0 + (t1 - t0) * k / N; c.push({ t, p: point(i, t) }); } coarse[i] = c; }
+    return c;
+  };
   const project = (i: number, p: Point): [number, number] => {
-    const [t0, t1] = isos[i].along, N = 64; let best = t0, dist = Infinity;
-    for (let k = 0; k <= N; k++) { const t = t0 + (t1 - t0) * k / N, e = Math.hypot(...sub(point(i, t), p)); if (e < dist) { dist = e; best = t; } }
+    const [t0, t1] = isos[i].along; let best = t0, dist = Infinity;
+    for (const c of samplesOf(i)) { const e = Math.hypot(c.p[0] - p[0], c.p[1] - p[1], c.p[2] - p[2]); if (e < dist) { dist = e; best = c.t; } }
     let lo = Math.max(t0, best - (t1 - t0) / N), hi = Math.min(t1, best + (t1 - t0) / N);
     for (let it = 0; it < 60; it++) { const a = lo + (hi - lo) * 0.382, b = lo + (hi - lo) * 0.618; if (Math.hypot(...sub(point(i, a), p)) < Math.hypot(...sub(point(i, b), p))) hi = b; else lo = a; }
     const t = (lo + hi) / 2; return [t, Math.hypot(...sub(point(i, t), p))];
@@ -386,12 +555,14 @@ function ruledFrame(S: Surface) {
     return x.ia < 2 ? at(x.ta[k], fix) : at(fix, x.ta[k]);
   };
   /** The normal turns along the rulings (the v-lines): not a plane, cylinder or cone (not developable). */
-  const twisted = () => {
+  /** How far (radians) the normal turns along a ruling, the most over nine of them (0: not twisted). */
+  const twist = () => {
     const normal = (u: number, v: number): Point => { const hu = 1e-6 * (d.u[1] - d.u[0]), hv = 1e-6 * (d.v[1] - d.v[0]) * (v > (d.v[0] + d.v[1]) / 2 ? -1 : 1), p = at(u, v), n = cross(sub(at(u + hu, v), p), sub(at(u, v + hv), p)); return unit(hv < 0 ? [-n[0], -n[1], -n[2]] : n); };
-    for (let k = 0; k <= 8; k++) { const u = d.u[0] + (d.u[1] - d.u[0]) * (0.05 + 0.9 * k / 8); if (Math.hypot(...sub(normal(u, d.v[0]), normal(u, d.v[1]))) > 1e-4) return true; }
-    return false;
+    let most = 0;
+    for (let k = 0; k <= 8; k++) { const u = d.u[0] + (d.u[1] - d.u[0]) * (0.05 + 0.9 * k / 8), gap = Math.hypot(...sub(normal(u, d.v[0]), normal(u, d.v[1]))); if (gap > most) most = gap; }
+    return most > 1e-4 ? 2 * Math.asin(Math.min(1, most / 2)) : 0;
   };
-  return { isoOf, project, point, across, between, twisted };
+  return { isoOf, project, point, across, between, twist };
 }
 
 /** Two rails facing each other with straight sides between them (each one line or a chain of lines). */
@@ -415,7 +586,10 @@ function cylinderFrame(S: Surface): CylinderFrame | null {
   if (!S.controlPoints.every((r, i) => Math.hypot(...sub(sub(r[1], r[0]), axis)) <= 1e-9 * size && S.weights[i][0] === S.weights[i][1])) return null;
   const big = [0, 1, 2].reduce((m, i) => Math.abs(axis[i]) > Math.abs(axis[m]) ? i : m, 0), a = unit(axis[big] > 0 ? axis : [-axis[0], -axis[1], -axis[2]]);
   if (Math.abs(Math.abs(dot(cross(circle.e1, circle.e2), a)) - 1) > 1e-9) return null;
-  const e1 = circle.e1, e2 = circle.e2, c = circle.c, r = circle.r;
+  // θ counter-clockwise about a (e1 × e2 = a): then (U, V) is right-handed about the radial, which the winding
+  // relies on. (The arc may turn either way about a, and a's sign follows its largest component, which flips
+  // with rounding for an axis at 45°.)
+  const e1 = circle.e1, e2: Point = dot(cross(circle.e1, circle.e2), a) > 0 ? circle.e2 : [-circle.e2[0], -circle.e2[1], -circle.e2[2]], c = circle.c, r = circle.r;
   const u0 = S.knotsU[0], u1 = S.knotsU[S.knotsU.length - 1];
   const mid = evaluateSurfaceLocal(S, (u0 + u1) / 2, 0.5), d = sub(mid, c), ref = Math.atan2(dot(d, e2), dot(d, e1));
   const radial = unit(sub(d, [a[0] * dot(d, a), a[1] * dot(d, a), a[2] * dot(d, a)]));
@@ -484,7 +658,7 @@ function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, p
   // affine metric keeps Rivara's termination); ties are broken by index.
   const span = frame.r * step, width = (a: number, b: number) => Math.hypot(uv[a][0] - uv[b][0], (uv[a][1] - uv[b][1]) / 20) + 1e-15 * (a + b) / (a * b + 1);
   const widest = (t: number): [number, number] => { const [a, b, c] = tris[t]; return ([[a, b], [b, c], [c, a]] as [number, number][]).reduce((m, e) => width(e[0], e[1]) > width(m[0], m[1]) ? e : m); };
-  const across = (t: number, a: number, b: number) => [...(around.get(key(a, b)) ?? [])].find(x => x !== t);
+  const across = (t: number, a: number, b: number) => { const set = around.get(key(a, b)); if (set) for (const x of set) if (x !== t) return x; return undefined; };
   const bisect = (a: number, b: number) => {
     const m = pts.length, mid: XY = [(uv[a][0] + uv[b][0]) / 2, (uv[a][1] + uv[b][1]) / 2];
     pts.push(frame.at(mid[0], mid[1])); uv.push(mid);
@@ -544,54 +718,96 @@ function isSmoothPatch(S: Surface): boolean {
  * arc length), and refined by longest-edge bisection until the surface normals across every interior
  * edge differ by at most one angular step. Boundary edges are never split.
  */
-function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][] } {
-  const S = face.surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
+interface Inversion { readonly at: (u: number, v: number) => Point; readonly U: readonly [number, number]; readonly V: readonly [number, number]; readonly seeds: readonly { a: number; b: number; p: Point }[]; readonly done: number }
+/** Newton steps from a seed (a, b) to the surface point nearest p. */
+function newtonUV(x: Inversion, start: { a: number; b: number }, p: Point): XY {
+  const { at, U, V } = x;
+  let a = start.a, b = start.b;
+  for (let it = 0; it < 40; it++) {
+    const h = 1e-7, ia = inward(a, U, h), ib = inward(b, V, h), q = at(a, b), qa = at(ia, b), qb = at(a, ib), da = ia - a, db = ib - b;
+    const Su = scale3(sub(qa, q), 1 / da), Sv = scale3(sub(qb, q), 1 / db), r = sub(p, q);
+    const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), r1 = dot(r, Su), r2 = dot(r, Sv), det = g11 * g22 - g12 * g12;
+    if (Math.abs(det) < 1e-300) break;
+    const stepA = (r1 * g22 - r2 * g12) / det, stepB = (g11 * r2 - g12 * r1) / det;
+    a = Math.min(U[1], Math.max(U[0], a + stepA)); b = Math.min(V[1], Math.max(V[0], b + stepB));
+    if (Math.abs(stepA) < 1e-14 * (U[1] - U[0]) && Math.abs(stepB) < 1e-14 * (V[1] - V[0])) break;
+  }
+  return [a, b];
+}
+/** A boundary point's (u, v): Newton from the four nearest seeds (nearest first, ties in grid order). */
+function invert(x: Inversion, p: Point): XY {
+  const near: { a: number; b: number }[] = [], nd: number[] = [];
+  for (const g of x.seeds) {
+    const d = (g.p[0] - p[0]) ** 2 + (g.p[1] - p[1]) ** 2 + (g.p[2] - p[2]) ** 2;
+    if (near.length === 4 && d >= nd[3]) continue;
+    let k = near.length < 4 ? near.length : 3;
+    while (k > 0 && nd[k - 1] > d) k--;
+    near.splice(k, 0, g); nd.splice(k, 0, d); if (near.length > 4) { near.pop(); nd.pop(); }
+  }
+  let best: XY = [near[0].a, near[0].b], bd = Infinity;
+  for (const g of near) { const q = newtonUV(x, g, p), e = x.at(q[0], q[1]), d = Math.hypot(e[0] - p[0], e[1] - p[1], e[2] - p[2]); if (d < bd) { bd = d; best = q; } if (d <= x.done) break; }
+  return best;
+}
+/**
+ * A boundary ring's (u, v) with each run of three or more consecutive points along one parameter line (the coordinate
+ * the same to 1e-7 of its span — a trim along an iso-line: a revolved face cut at a circle) set to one value. Inverted
+ * one by one they wobble about the line (by rounding, and by a Boolean's fitted pieces of the trim, 1e-8 off it), and
+ * the ear-clipping then stacks zero-area triangles on both sides of it, which in space are chords across the face's
+ * opening (D91). (For the triangulation only: the points stay where they are, and their (u, v) are put back after.)
+ */
+function snapIsoRuns(ring: XY[], U: readonly number[], V: readonly number[]): XY[] {
+  const out = ring.map(q => [q[0], q[1]] as [number, number]), n = out.length;
+  for (const k of [0, 1] as const) {
+    const eps = 1e-7 * Math.abs(k === 0 ? U[1] - U[0] : V[1] - V[0]);
+    // (Runs start where the previous point is off the line: a ring that is one run is left as it is.)
+    let start = 0; while (start < n && Math.abs(out[start][k] - out[(start + n - 1) % n][k]) <= eps) start++;
+    if (start === n) continue;
+    for (let i = 0; i < n;) {
+      const a = (start + i) % n; let j = i + 1;
+      while (j < n && Math.abs(out[(start + j) % n][k] - out[a][k]) <= eps) j++;
+      // (The mean kept within the run's own values: (x + x + x) / 3 can round past x, at the domain's end outside it.)
+      if (j - i >= 3) { let m = 0, lo = Infinity, hi = -Infinity; for (let q = i; q < j; q++) { const x = out[(start + q) % n][k]; m += x; lo = Math.min(lo, x); hi = Math.max(hi, x); } m = Math.min(hi, Math.max(lo, m / (j - i))); for (let q = i; q < j; q++) out[(start + q) % n][k] = m; }
+      i = j;
+    }
+  }
+  return out;
+}
+/** The i-th of n steps across [D0, D1], the last D1 itself (D0 + (D1 − D0)·n/n can round past it, out of the domain). */
+const spaced = (D: readonly number[], i: number, n: number): number => i >= n ? D[1] : D[0] + (D[1] - D[0]) * i / n;
+function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number, near = 0): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][]; normals: (Point | null)[] } {
+  const S = face.surface as Surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   // Arc-length scale of each direction.
   let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; Lu += Math.hypot(...sub(at(U[1], b), at(U[0], b))) / 8; Lv += Math.hypot(...sub(at(a, V[1]), at(a, V[0]))) / 8; }
   const ku = (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]);
   const N = 24, grid: { a: number; b: number; p: Point }[] = [];
-  for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) { const a = U[0] + (U[1] - U[0]) * i / N, b = V[0] + (V[1] - V[0]) * j / N; grid.push({ a, b, p: at(a, b) }); }
+  for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) { const a = spaced(U, i, N), b = spaced(V, j, N); grid.push({ a, b, p: at(a, b) }); }
   const polar = new Set(polesOf(S).flatMap(q => grid.filter(g => q.along === 0 ? g.b === q.at : g.a === q.at)));
-  const newton = (start: { a: number; b: number }, p: Point): XY => {
-    let a = start.a, b = start.b;
-    for (let it = 0; it < 40; it++) {
-      const h = 1e-7, ia = inward(a, U, h), ib = inward(b, V, h), q = at(a, b), qa = at(ia, b), qb = at(a, ib), da = ia - a, db = ib - b;
-      const Su = scale3(sub(qa, q), 1 / da), Sv = scale3(sub(qb, q), 1 / db), r = sub(p, q);
-      const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), r1 = dot(r, Su), r2 = dot(r, Sv), det = g11 * g22 - g12 * g12;
-      if (Math.abs(det) < 1e-300) break;
-      const stepA = (r1 * g22 - r2 * g12) / det, stepB = (g11 * r2 - g12 * r1) / det;
-      a = Math.min(U[1], Math.max(U[0], a + stepA)); b = Math.min(V[1], Math.max(V[0], b + stepB));
-      if (Math.abs(stepA) < 1e-14 * (U[1] - U[0]) && Math.abs(stepB) < 1e-14 * (V[1] - V[0])) break;
-    }
-    return [a, b];
-  };
-  // From the nearest grid points off the poles (a pole's parameters say nothing about the free one).
-  const invert = (p: Point): XY => {
-    const near = grid.filter(g => !polar.has(g)).map(g => ({ g, d: (g.p[0] - p[0]) ** 2 + (g.p[1] - p[1]) ** 2 + (g.p[2] - p[2]) ** 2 })).sort((x, y) => x.d - y.d);
-    let best: XY = [near[0].g.a, near[0].g.b], bd = Infinity;
-    for (const { g } of near.slice(0, 4)) { const q = newton(g, p), e = at(q[0], q[1]), d = Math.hypot(e[0] - p[0], e[1] - p[1], e[2] - p[2]); if (d < bd) { bd = d; best = q; } if (d <= 1e-12 * (Lu + Lv + 1)) break; }
-    return best;
-  };
+  // (Inversion seeds: the grid off the poles, a pole's parameters saying nothing about the free one.)
+  const inv: Inversion = { at, U, V, seeds: grid.filter(g => !polar.has(g)), done: 1e-12 * (Lu + Lv + 1) };
   // A boundary point at a pole stands for a whole side of the domain: it becomes that side's two ends
   // (at its neighbours' free coordinate), so the domain polygon stays a polygon; the triangles on that
   // side collapse in space and are dropped at the end.
   const poles = polesOf(S), atPole = (p: Point) => poles.find(q => Math.hypot(p[0] - q.point[0], p[1] - q.point[1], p[2] - q.point[2]) <= 1e-9 * (Lu + Lv + 1));
-  const pts: Point[] = [], uv: XY[] = [], ringSizes: number[] = [];
+  const pts: Point[] = [], uv: XY[] = [], ringSizes: number[] = [], inverted: (XY | null)[] = [], polar3 = new Set<Point>();
   for (const r of rings) {
-    const base = r.map(invert), before = pts.length;
+    const exact = r.map(p => invert(inv, p)), base = snapIsoRuns(exact, U, V), before = pts.length;
     r.forEach((p, i) => {
       const q = atPole(p);
-      if (!q) { pts.push(p); uv.push(base[i]); return; }
+      if (!q) { pts.push(p); uv.push(base[i]); inverted.push(exact[i]); return; }
+      inverted.push(null, null);
       const free = (k: number) => base[(k + r.length) % r.length][q.along];
       const end = (f: number): XY => q.along === 0 ? [f, q.at] : [q.at, f];
-      pts.push(q.point, q.point); uv.push(end(free(i - 1)), end(free(i + 1)));
+      // (The boundary's own point — the vertex's, which every face meeting there shares — not the surface's evaluation of
+      // its pole, a rounding apart: the faces round a horn torus's apex would crack there, D92.)
+      pts.push(p, p); uv.push(end(free(i - 1)), end(free(i + 1))); polar3.add(p);
     });
     ringSizes.push(pts.length - before);
   }
   rings = []; { let o = 0; for (const n of ringSizes) { rings.push(pts.slice(o, o + n)); o += n; } }
   const flat = (q: XY): XY => [q[0] * ku, q[1] * kv];
-  // The boundary must lie on the surface (a curve off it would be projected, not tessellated).
-  const off3 = 1e-5 * (Lu + Lv) + 1e-6;
+  // The boundary must lie on the surface (a curve off it would be projected, not tessellated): within 1e-5 of the face's
+  // size, or its edges' own tolerance where that is more.
+  const off3 = Math.max(1e-5 * (Lu + Lv) + 1e-6, near);
   pts.forEach((p, i) => { const q = at(uv[i][0], uv[i][1]); if (Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]) > off3) throw new BrepError('GEOMETRY', `tessellation: an edge of face ${face.id} does not lie on its surface`); });
   let area = 0; const outerN = rings[0].length;
   for (let i = 0; i < outerN; i++) { const a = flat(uv[i]), b = flat(uv[(i + 1) % outerN]); area += a[0] * b[1] - b[0] * a[1]; }
@@ -614,10 +830,10 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   // already one step long and cannot be split).
   const interior = (x: number, y: number) => (around.get(key(x, y))?.size ?? 0) === 2;
   // Edges at a pole are left out: its normal depends on the direction it is approached from (a cone tip).
-  const polePoint = new Set(poles.map(q => q.point)), atPoleIdx = (i: number) => polePoint.has(pts[i]);
+  const atPoleIdx = (i: number) => polar3.has(pts[i]);
   // (A flat triangle is left too: bisecting it only makes flat triangles.)
   const bent = (t: number) => { const [a, b, c] = tris[t]; return !flat3(t) && ([[a, b], [b, c], [c, a]] as [number, number][]).some(([x, y]) => interior(x, y) && !atPoleIdx(x) && !atPoleIdx(y) && dot(nrm[x], nrm[y]) < cosStep); };
-  const across = (t: number, a: number, b: number) => [...(around.get(key(a, b)) ?? [])].find(x => x !== t);
+  const across = (t: number, a: number, b: number) => { const set = around.get(key(a, b)); if (set) for (const x of set) if (x !== t) return x; return undefined; };
   const bisect = (a: number, b: number) => {
     const m = pts.length, mid: XY = [(uv[a][0] + uv[b][0]) / 2, (uv[a][1] + uv[b][1]) / 2];
     pts.push(at(mid[0], mid[1])); uv.push(mid); nrm.push(normal(mid));
@@ -630,23 +846,36 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   // Lawson flips to the Delaunay triangulation (in the arc-length scaled domain) of the ear-clipped
   // polygon: ears along a nearly straight boundary are slivers spanning long chords, which no
   // bisection of interior edges would otherwise remove.
-  const P2 = (i: number) => mirror(flat(uv[i]));
-  const orient = (a: number, b: number, c: number) => { const A = P2(a), B = P2(b), C = P2(c); return (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]); };
+  // (The scaled, mirrored domain point's coordinates, without a vector per call: these run per edge.)
+  const X = (i: number) => flip ? -(uv[i][0] * ku) : uv[i][0] * ku, Y = (i: number) => uv[i][1] * kv;
+  const orient = (a: number, b: number, c: number) => { const ax = X(a), ay = Y(a); return (X(b) - ax) * (Y(c) - ay) - (Y(b) - ay) * (X(c) - ax); };
   const incircle = (a: number, b: number, c: number, d: number) => {
-    const [A, B, C, D] = [a, b, c, d].map(P2), r = [A, B, C].map(q => [q[0] - D[0], q[1] - D[1]]);
-    return r.reduce((acc, q, i) => { const s1 = r[(i + 1) % 3], s2 = r[(i + 2) % 3]; return acc + (q[0] * q[0] + q[1] * q[1]) * (s1[0] * s2[1] - s1[1] * s2[0]); }, 0) / 3;
+    const dx = X(d), dy = Y(d), r0x = X(a) - dx, r0y = Y(a) - dy, r1x = X(b) - dx, r1y = Y(b) - dy, r2x = X(c) - dx, r2y = Y(c) - dy;
+    return (0 + (r0x * r0x + r0y * r0y) * (r1x * r2y - r1y * r2x) + (r1x * r1x + r1y * r1y) * (r2x * r0y - r2y * r0x) + (r2x * r2x + r2y * r2y) * (r0x * r1y - r0y * r1x)) / 3;
   };
-  const flat3 = (t: number) => { const [a, b, c] = tris[t], l = Math.max(len2(a, b), len2(b, c), len2(c, a)); return Math.abs(orient(a, b, c)) <= 1e-9 * l * l; };
+  const flatOf = (a: number, b: number, c: number) => { const l = Math.max(len2(a, b), len2(b, c), len2(c, a)); return Math.abs(orient(a, b, c)) <= 1e-9 * l * l; };
+  const flat3 = (t: number) => { const [a, b, c] = tris[t]; return flatOf(a, b, c); };
   const flipAll = () => {
-    for (let pass = 0, changed = true; changed && pass < 50; pass++) {
+    for (let pass = 0, changed = true; changed && pass < 50 + tris.length; pass++) {
       changed = false;
-      for (let t = 0; t < tris.length; t++) for (let e = 0; e < 3; e++) {
+      for (let t = 0; t < tris.length; t++) {
+        // (t's flatness, worked out once for its three edges: it changes only when t flips, which ends them.)
+        let isFlat: boolean | undefined;
+        for (let e = 0; e < 3; e++) {
         const tri = tris[t], x = tri[e], y = tri[(e + 1) % 3], c = tri[(e + 2) % 3], o = across(t, x, y);
         if (o === undefined) continue;
-        const d = tris[o].find(v => v !== x && v !== y)!, scale2 = len2(x, y) ** 2 * len2(x, y) ** 2;
+        const d = third(tris[o], x, y), lxy = len2(x, y), scale2 = lxy ** 2 * lxy ** 2;
         // A flat triangle (three boundary points in a line) has no circumcircle: flip it whenever it can be.
-        if (!flat3(t) && incircle(x, y, c, d) <= 1e-9 * scale2 || orient(c, x, d) <= 1e-12 * len2(c, d) ** 2 || orient(d, y, c) <= 1e-12 * len2(c, d) ** 2) continue;
+        isFlat ??= flat3(t);
+        if (!isFlat && incircle(x, y, c, d) <= 1e-9 * scale2) continue;
+        const lcd2 = len2(c, d) ** 2;
+        if (orient(c, x, d) <= 1e-12 * lcd2 || orient(d, y, c) <= 1e-12 * lcd2) continue;
+        // (A flat triangle is flipped only if that leaves fewer flat ones: among points on one line — a long straight
+        // boundary sampled finely, a SubD face's — flat triangles flip into flat triangles for ever, and every pass
+        // up to the cap went round that cycle: a ~2k-face cage's tessellation 1 → 7 s.)
+        if (isFlat && (+flatOf(c, x, d) + +flatOf(d, y, c)) >= 1 + +flat3(o)) continue;
         unlink(t); unlink(o); tris[t] = [c, x, d]; tris[o] = [d, y, c]; link(t); link(o); changed = true; break;
+        }
       }
     }
   };
@@ -668,7 +897,7 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const turning = (along: 0 | 1) => {
     let worst = 0;
     for (let j = 0; j <= 8; j++) {
-      let acc = 0; const q = (k: number): XY => along === 0 ? [U[0] + (U[1] - U[0]) * k / 8, V[0] + (V[1] - V[0]) * j / 8] : [U[0] + (U[1] - U[0]) * j / 8, V[0] + (V[1] - V[0]) * k / 8];
+      let acc = 0; const q = (k: number): XY => along === 0 ? [spaced(U, k, 8), spaced(V, j, 8)] : [spaced(U, j, 8), spaced(V, k, 8)];
       for (let i = 0; i < 8; i++) acc += Math.acos(Math.min(1, Math.max(-1, dot(normal(q(i)), normal(q(i + 1))))));
       worst = Math.max(worst, acc);
     }
@@ -678,10 +907,10 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const boundary: [XY, XY][] = []; off = 0;
   for (const r of ringsUV) { for (let i = 0; i < r.length; i++) boundary.push([r[i], r[(i + 1) % r.length]]); off += r.length; }
   const cell = Math.min(Math.abs((U[1] - U[0]) * ku) / Math.max(nu, 1), Math.abs((V[1] - V[0]) * kv) / Math.max(nv, 1));
-  const orientP = (a: number, b: number, P: XY) => { const A = P2(a), B = P2(b); return (B[0] - A[0]) * (P[1] - A[1]) - (B[1] - A[1]) * (P[0] - A[0]); };
+  const orientP = (a: number, b: number, P: XY) => { const ax = X(a), ay = Y(a); return (X(b) - ax) * (P[1] - ay) - (Y(b) - ay) * (P[0] - ax); };
   const legalize = (t: number, x: number, y: number): void => {
     const o = across(t, x, y); if (o === undefined) return;
-    const m = tris[t].find(v => v !== x && v !== y)!, d = tris[o].find(v => v !== x && v !== y)!;
+    const m = third(tris[t], x, y), d = third(tris[o], x, y);
     if (incircle(x, y, m, d) <= 1e-9 * len2(x, y) ** 4) return;
     unlink(t); unlink(o); tris[t] = [m, x, d]; tris[o] = [d, y, m]; link(t); link(o);
     legalize(t, x, d); legalize(o, d, y);
@@ -703,7 +932,7 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
     return null;
   };
   if (nu > 1 || nv > 1) for (let i = 1; i < nu; i++) for (let j = 1; j < nv; j++) {
-    const q: XY = [U[0] + (U[1] - U[0]) * i / nu, V[0] + (V[1] - V[0]) * j / nv], P = mirror(flat(q));
+    const q: XY = [spaced(U, i, nu), spaced(V, j, nv)], P = mirror(flat(q));
     let inside = false, near = Infinity;
     for (const [A, B] of boundary) {
       if ((A[1] > P[1]) !== (B[1] > P[1]) && P[0] < A[0] + (B[0] - A[0]) * (P[1] - A[1]) / (B[1] - A[1])) inside = !inside;
@@ -720,19 +949,44 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
     } else {
       const x = tris[t][at3.edge], y = tris[t][(at3.edge + 1) % 3], c2 = tris[t][(at3.edge + 2) % 3], o = across(t, x, y);
       if (o === undefined) { pts.pop(); uv.pop(); nrm.pop(); continue; }
-      const d = tris[o].find(v => v !== x && v !== y)!;
+      const d = third(tris[o], x, y);
       unlink(t); unlink(o); tris[t] = [x, m, c2]; tris[o] = [y, m, d]; link(t); link(o);
       tris.push([m, y, c2]); link(tris.length - 1); tris.push([m, x, d]); link(tris.length - 1);
       legalize(t, c2, x); legalize(tris.length - 2, y, c2); legalize(o, d, y); legalize(tris.length - 1, x, d);
     }
   }
   refine(); flipAll(); refine();
+  // (The boundary's own (u, v) back: the triangles were made on the snapped ring, and stay a triangulation of the ring
+  // as inverted — their signed areas still sum to its area — so the quadrature's domain is the face's, not the snap's.)
+  inverted.forEach((q, i) => { if (q) uv[i] = q; });
   // Counter-clockwise in (u, v) is along Su × Sv; wound for the outward normal.
   const keep = (face.sense === 'forward') !== flip, same = (a: number, b: number) => pts[a] === pts[b];
   const wound = tris.map(([a, b, c]): [number, number, number] => keep ? [a, b, c] : [a, c, b]);
-  return { pts, uv, domain: wound, tris: wound.filter(([a, b, c]) => !same(a, b) && !same(b, c) && !same(c, a)) };
+  // (The surface's own normal at each point, along Su × Sv — none at a pole, whose normal depends on the way in.)
+  return { pts, uv, domain: wound, tris: wound.filter(([a, b, c]) => !same(a, b) && !same(b, c) && !same(c, a)), normals: nrm.map((n, i) => atPoleIdx(i) ? null : n) };
 }
 const scale3 = (a: Point, k: number): Point => [a[0] * k, a[1] * k, a[2] * k];
 const unit3 = (a: Point): Point => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
 /** x + h·(span) inside [lo, hi], or x − h·(span) at the upper end. */
+/** A triangle's corner that is neither x nor y. */
+const third = (tri: readonly number[], x: number, y: number) => tri[0] !== x && tri[0] !== y ? tri[0] : tri[1] !== x && tri[1] !== y ? tri[1] : tri[2];
 const inward = (x: number, [lo, hi]: readonly [number, number], h: number) => x + h * (hi - lo) <= hi ? x + h * (hi - lo) : x - h * (hi - lo);
+
+/**
+ * A facet face's triangles into the mesh: positions as they are, each vertex's normal the area-weighted sum of
+ * its triangles' (smooth within the face, so a curved mesh region shades smooth and its creases stay at region
+ * edges), winding and normals turned over for a reversed face. Typed-array loops, no per-vertex objects.
+ */
+function emitFacets(faceId: string, f: FacetPatch, forward: boolean, positions: number[], normals: number[], indices: number[], faces: BrepMeshFace[]): void {
+  const P = f.positions, X = f.indices, nv = P.length / 3, base = positions.length / 3, indexOffset = indices.length, acc = new Float64Array(P.length);
+  for (let i = 0; i < P.length; i++) positions.push(P[i]);
+  for (let t = 0; t < X.length; t += 3) {
+    const a = X[t], b = forward ? X[t + 1] : X[t + 2], c = forward ? X[t + 2] : X[t + 1];
+    indices.push(base + a, base + b, base + c);
+    const ux = P[3 * b] - P[3 * a], uy = P[3 * b + 1] - P[3 * a + 1], uz = P[3 * b + 2] - P[3 * a + 2], vx = P[3 * c] - P[3 * a], vy = P[3 * c + 1] - P[3 * a + 1], vz = P[3 * c + 2] - P[3 * a + 2];
+    const x = uy * vz - uz * vy, y = uz * vx - ux * vz, z = ux * vy - uy * vx;
+    acc[3 * a] += x; acc[3 * a + 1] += y; acc[3 * a + 2] += z; acc[3 * b] += x; acc[3 * b + 1] += y; acc[3 * b + 2] += z; acc[3 * c] += x; acc[3 * c + 1] += y; acc[3 * c + 2] += z;
+  }
+  for (let v = 0; v < nv; v++) { const x = acc[3 * v], y = acc[3 * v + 1], z = acc[3 * v + 2], l = Math.hypot(x, y, z) || 1; normals.push(x / l, y / l, z / l); }
+  faces.push({ faceId, kind: 'facet', vertexOffset: base, vertexCount: nv, indexOffset, indexCount: indices.length - indexOffset });
+}

@@ -1,0 +1,89 @@
+{
+  "id": "r11-shell-conic-box-closed",
+  "step": "R11",
+  "decisions": [
+    "D113"
+  ],
+  "about": "R11.2c-2: a 40 × 30 × 20 box with one edge rounded by a conic (ρ 0.5, 3), shelled 1 closed: its end faces (bounded by the conic) as bounding planes’ bands, the smooth region (top, conic, side) as one slab; refused before D113 (a plane bounded by a curve that is not a line or an arc).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "q",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            30
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "q",
+          "height": 20
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "e",
+          "edges": [
+            "e.side0|e.top"
+          ],
+          "radius": 3,
+          "section": {
+            "kind": "conic",
+            "rho": 0.5
+          }
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "f",
+          "thickness": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 4810.202547052704,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [
+            19.999999999992998,
+            15.116748741108179,
+            9.922540144623675
+          ],
+          "absTol": 0.001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 2,
+            "genus": 0
+          }
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "The body is a prism along X of its end face’s section (area A = 598.499999983 mm², perimeter P = 98.869675718 mm, by Green’s theorem and arc length over the end face’s own edges, Gauss–Legendre), so its hollow is the section eroded by t over 40 − 2t. The section turns through three right angles and the conic’s quarter turn: eroded, A − Pt + t²(Σ cot(α/2) + ½∫κ ds) = A − Pt + (3 + π/4)t² (t below the conic’s least radius). The shell is 40A − (40 − 2t)·that. The tolerance is the fit’s accuracy (1e-7). Centroid from this kernel."
+}

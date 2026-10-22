@@ -1,0 +1,292 @@
+// Interaction costs in a real Chromium, each against a budget (about twice what was measured when the
+// budget was set, PERF3 D18, 2026-10-18, Apple M-series, WebGPU; frame CPU has a 2 ms floor, and a count
+// that is one per step, the orbit's, a few submits over it): GPU submits and frame CPU time while the pointer
+// hovers across the starter plate, and while the camera orbits; then (G1, 2026-10-21) an assembly posed and
+// exploded frame by frame: a robot joint played, and 120 placed brackets exploded 0 → 2 over 60 frames. Their
+// rows add the main thread's whole task time per frame (React's render and effects run outside the animation
+// frame's callback), the bytes written to GPU buffers per frame and the GPU buffers made. Measured at G1 (2026-10-21):
+// the joint 9.8 ms task and 3.1 KiB a frame, the explode 13.3 ms and 62 KiB (each moved mesh's object block), no buffers
+// made in either; before G1 (meshes moved on copies and re-uploaded) 10.3 ms, 36 KiB, 1 116 buffers and 22.3 ms, 2.0 MiB,
+// 35 280 buffers, with 49 of the explode's 60 steps drawn. G2 (2026-10-21): the section plane dragged across them, 15.6 ms
+// task, 2.3 KiB and no buffers a frame on the GPU's clip plane; the CPU's clipMesh (WebGL2's path, unbudgeted, for the
+// comparison) 19.3 ms, 190 KiB and 45 buffers a frame. Opt-in (needs a browser):
+//   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] [BENCH_ONLY=pattern] node test/bench-browser.mjs
+import { createRequire } from 'node:module';
+import { join, resolve } from 'node:path';
+
+const root = resolve(import.meta.dirname, '..');
+if (!process.env.PW_DIR) { console.error('Set PW_DIR to a Playwright package directory.'); process.exit(2); }
+const { chromium } = createRequire(join(process.env.PW_DIR, 'package.json'))('playwright');
+const { createServer } = await import('vite');
+const server = await createServer({ root, configFile: join(root, 'vite.config.ts'), server: { port: 52041, strictPort: false }, logLevel: 'error' });
+await server.listen();
+const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: ['--enable-unsafe-webgpu'] });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: Number(process.env.DPR ?? 1) });
+// Counted from the page's start: queue submits, and the CPU time of each animation-frame callback.
+await page.addInitScript(() => {
+  // (`perFrame`: submits by the animation frame's timestamp — every callback of one frame shares it — so two draws in
+  // one frame, the viewer's and the viewport's, show as 2; PERF3 A2.)
+  const w = window; w.__bench = { submits: 0, frames: 0, frameMS: 0, gpuMS: 0, queueMS: 0, timed: false, perFrame: {}, t: -1, batch: 0, sameStamp: 0, bytes: 0, buffers: 0 };
+  // (G1: what goes up to the GPU — the bytes of every buffer write, and the buffers made.)
+  if (w.GPUQueue) { const write = GPUQueue.prototype.writeBuffer; GPUQueue.prototype.writeBuffer = function (buffer, offset, data, dataOffset, size) { w.__bench.bytes += size !== undefined ? size * (data.BYTES_PER_ELEMENT ?? 1) : data.byteLength - (dataOffset ?? 0) * (data.BYTES_PER_ELEMENT ?? 1); return write.apply(this, arguments); }; }
+  const make = w.GPUDevice ? GPUDevice.prototype.createBuffer : null;
+  if (w.GPUDevice) GPUDevice.prototype.createBuffer = function (d) { w.__bench.buffers++; return make.call(this, d); };
+  // (G13: the GPU's own time — every render pass's timestamps, begin to end, when the adapter has timestamp queries; the
+  // device asked for them. Before G13 the GPU column was the wall time from a submit until the queue reported it done,
+  // which waits on the main thread too: 15–22 ms on the pose, explode and section rows, where the GPU's own was ≈ 2.5 ms.
+  // That is kept as `queue`.)
+  const pending = [];
+  if (w.GPUAdapter) { const rd = GPUAdapter.prototype.requestDevice; GPUAdapter.prototype.requestDevice = function (d = {}) { return rd.call(this, this.features.has('timestamp-query') ? { ...d, requiredFeatures: [...(d.requiredFeatures ?? []), 'timestamp-query'] } : d); }; }
+  if (w.GPUDevice) {
+    const ce = GPUDevice.prototype.createCommandEncoder;
+    GPUDevice.prototype.createCommandEncoder = function (d) {
+      const enc = ce.call(this, d), dev = this;
+      if (!dev.features.has('timestamp-query')) return enc;
+      const pool = dev.__ts ??= [], qs = pool.pop() ?? dev.createQuerySet({ type: 'timestamp', count: 32 });
+      let n = 0;
+      const begin = enc.beginRenderPass.bind(enc), finish = enc.finish.bind(enc);
+      enc.beginRenderPass = desc => { if (desc.timestampWrites || n + 2 > 32) return begin(desc); const p = begin({ ...desc, timestampWrites: { querySet: qs, beginningOfPassWriteIndex: n, endOfPassWriteIndex: n + 1 } }); n += 2; return p; };
+      enc.finish = fd => {
+        if (n) {
+          const res = make.call(dev, { size: 256, usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC }), read = make.call(dev, { size: 256, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+          enc.resolveQuerySet(qs, 0, n, res, 0); enc.copyBufferToBuffer(res, 0, read, 0, n * 8);
+          pending.push({ dev, qs, res, read, n });
+        } else pool.push(qs);
+        return finish(fd);
+      };
+      return enc;
+    };
+  }
+  if (w.GPUQueue) { const submit = GPUQueue.prototype.submit; GPUQueue.prototype.submit = function (...a) {
+    w.__bench.submits++; w.__bench.perFrame[w.__bench.batch] = (w.__bench.perFrame[w.__bench.batch] ?? 0) + 1;
+    const t0 = performance.now(), r = submit.apply(this, a), mine = pending.splice(0);
+    this.onSubmittedWorkDone().then(() => { w.__bench.queueMS += performance.now() - t0; });
+    for (const q of mine) q.read.mapAsync(GPUMapMode.READ).then(() => {
+      const t = new BigInt64Array(q.read.getMappedRange(0, q.n * 8)); let ns = 0;
+      for (let i = 0; i + 1 < q.n; i += 2) ns += Number(t[i + 1] - t[i]);
+      w.__bench.gpuMS += ns / 1e6; w.__bench.timed = true;
+      q.read.unmap(); q.read.destroy(); q.res.destroy(); (q.dev.__ts ??= []).push(q.qs);
+    }, () => {});
+    return r;
+  }; }
+  const raf = w.requestAnimationFrame.bind(w);
+  // (G13: a frame is one batch of animation-frame callbacks — a new one when its timestamp changes, or when a message
+  // posted from the last one has arrived: tasks run between batches only. Headless Chromium under load can stamp two
+  // batches alike — `sameStamp` counts them — which, keyed by the timestamp before G13, showed as 2 submits in one frame.)
+  const chan = new MessageChannel(); let ended = true;
+  chan.port1.onmessage = () => { ended = true; };
+  w.requestAnimationFrame = cb => raf(t => {
+    if (ended || t !== w.__bench.t) { if (t === w.__bench.t) w.__bench.sameStamp++; w.__bench.batch++; ended = false; chan.port2.postMessage(0); }
+    const t0 = performance.now(); w.__bench.t = t; try { cb(t); } finally { w.__bench.frames++; w.__bench.frameMS += performance.now() - t0; } });
+});
+// The budgets (G4: one table): submits and their most in one frame, the animation frames' average CPU (a 2 ms floor), the
+// main thread's task time and the GPU's time a submit (from it until the queue reports it done: wall time, so it holds
+// the queue's wait too) a frame, the upload a frame and the buffers made. About twice what was measured alone (G4,
+// 2026-10-21, at a load average of 8–11 — the owner ran it rather than wait for a quiet machine; the GPU's with a 4 ms
+// floor, as the CPU's 2 ms; the earlier rows' submit and CPU budgets from PERF3 D18).
+const BUDGET = {
+  // (G13, 2026-10-22: every row re-measured, three runs alone at a load of 12–15 — the machine had no quieter window
+  // with the other lanes running — the GPU's own time now from timestamps (no longer the queue's wait); about twice the
+  // worst of the three, the GPU's with a 3 ms floor. The 100 000-voxel cloud was the one row the GPU's time led: 8.2 ms, G14.)
+  hover: { submits: 34, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
+  // (One frame each: a 4 ms floor — one run at a load of 33 drew it in 3.07 ms of GPU, 1.3 in the others.)
+  select: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
+  clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
+  orbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
+  orbitOutlined: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 5 },
+  pose: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3 },
+  cloud: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 3 },
+  explode: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 128, buffers: 4, gpuMS: 4 },
+  sectionGpu: { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 33, kb: 5, buffers: 4, gpuMS: 6 },
+  sectionCpu: { submits: 140, avgFrameMS: 2 },
+  // (G7: the pre-G7 SVG path took 30 ms of task a frame here; G15: its 100 texts engine labels too, 8.1–8.7 → 2.5–3.0 ms.)
+  underlay: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 4 },
+  // (G8: SVG squares took 55 ms of task a frame here. G14: 8.2 → 4.0–4.7 ms of GPU, its shader without discard and its
+  // quads half a pixel smaller; the budget about twice.)
+  cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 10 },
+  // (G9: the pointer's picks over 120 brackets — a frame only when the hovered thing changes; the task is the App's.)
+  hoverMany: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 140 },
+  pickMany: { submits: 4, avgFrameMS: 2, perFrame: 1, taskMS: 90, gpuMS: 5 },
+  // (G10: a patterned assembly opened.)
+  pattern: { submits: 8, avgFrameMS: 2, perFrame: 1 },
+  // (G11: the 120 brackets see-through, orbited.)
+  ghost: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
+};
+const os = await import('node:os'), loadAtStart = os.loadavg()[0];
+const rows = [];
+let picks = null;
+// (The main thread's task time, from the DevTools protocol: everything that ran, not only animation-frame callbacks.)
+const cdp = await page.context().newCDPSession(page); await cdp.send('Performance.enable');
+const taskTime = async () => (await cdp.send('Performance.getMetrics')).metrics.find(m => m.name === 'TaskDuration').value * 1000;
+// (BENCH_ONLY: a pattern — only the rows whose names match it are measured; the others' setup still runs, G19.)
+const only = process.env.BENCH_ONLY ? new RegExp(process.env.BENCH_ONLY, 'i') : null;
+const measure = async (name, budget, act) => {
+  if (only && !only.test(name)) return;
+  await page.waitForTimeout(500);
+  await page.evaluate(() => { Object.assign(window.__bench, { submits: 0, frames: 0, frameMS: 0, gpuMS: 0, queueMS: 0, perFrame: {}, sameStamp: 0, bytes: 0, buffers: 0 }); });
+  const task0 = await taskTime(), t0 = Date.now(); await act(); await page.waitForTimeout(400);
+  const b = await page.evaluate(() => window.__bench), wall = Date.now() - t0, task = await taskTime() - task0;
+  const avg = b.frames ? b.frameMS / b.frames : 0, most = Math.max(0, ...Object.values(b.perFrame)), drawn = Math.max(1, Object.keys(b.perFrame).length);
+  const taskPerFrame = task / drawn, kbPerFrame = b.bytes / 1024 / drawn, gpu = b.submits ? (b.timed ? b.gpuMS : b.queueMS) / b.submits : 0;
+  rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: +gpu.toFixed(2), queueMS: +(b.submits ? b.queueMS / b.submits : 0).toFixed(2), timed: b.timed, sameStamp: b.sameStamp, wallMS: wall, taskTotalMS: +task.toFixed(1), uploadTotalKiB: +(b.bytes / 1024).toFixed(0),
+    ok: b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity) && gpu <= (budget.gpuMS ?? Infinity), budget });
+};
+try {
+  await page.goto(server.resolvedUrls.local[0]);
+  await page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? '') && /Hole Ø8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+  const box = await page.locator('canvas.vp-canvas').boundingBox(), cx = box.x + box.width / 2, cy = box.y + box.height / 2;
+  // 60 pointer moves across the plate (faces, edges, the hole): a submit only when what is hovered changes.
+  await measure('hover: 60 moves across the plate', BUDGET.hover, async () => {
+    for (let i = 0; i < 60; i++) { await page.mouse.move(cx - 300 + 10 * i, cy - 40 + (i % 7) * 12); await page.waitForTimeout(16); }
+  });
+  // A click on a face from idle (the selection changes): one frame drawn, once.
+  await measure('select: a face clicked from idle', BUDGET.select, async () => { await page.mouse.click(cx + 40, cy + 30); });
+  await measure('select: cleared (Escape) from idle', BUDGET.clear, async () => { await page.keyboard.press('Escape'); });
+  // An orbit drag of 60 steps: one frame each.
+  await measure('orbit: 60-step drag', BUDGET.orbit, async () => {
+    await page.mouse.move(cx, cy); await page.mouse.down({ button: 'left' });
+    for (let i = 0; i < 60; i++) { await page.mouse.move(cx + 4 * i, cy + (i % 5)); await page.waitForTimeout(16); }
+    await page.mouse.up({ button: 'left' });
+  });
+  // (PERF3 C14: the same orbit with the plate picked whole — its selection outline drawn every frame.)
+  await page.locator('.outliner .ol-row', { hasText: 'Extrude 8' }).first().click(); await page.waitForTimeout(300);
+  await measure('orbit: 60 steps, body outlined', BUDGET.orbitOutlined, async () => {
+    await page.mouse.move(cx, cy); await page.mouse.down({ button: 'left' });
+    for (let i = 0; i < 60; i++) { await page.mouse.move(cx + 4 * i, cy + (i % 5)); await page.waitForTimeout(16); }
+    await page.mouse.up({ button: 'left' });
+  });
+  // ---- G1: posed and exploded assemblies -------------------------------------------------------------------------
+  const fs = await import('node:fs'), os = await import('node:os');
+  const tmp = fs.mkdtempSync(join(os.tmpdir(), 'cad-bench-')), open = async (name, doc, ready) => {
+    fs.writeFileSync(join(tmp, name), JSON.stringify(doc));
+    await page.setInputFiles('input[aria-label="Model file"]', join(tmp, name));
+    await page.waitForFunction(ready, null, { timeout: 60000 }); await page.waitForTimeout(1500);
+  };
+  // The 2R arm (conformance rm/chain-2r): its first joint played (a sine through its range, 4 s a period) for 1.5 s.
+  const arm = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/chain-2r/case.json'), 'utf8')).input.document;
+  await open('chain-2r.bcad', arm, () => window.__studioDoc?.instances?.length === 2 && window.__studioInstanceBounds?.().length === 2 && !!document.querySelector('[aria-label="Play joint base~a"]'));
+  await measure('pose: a joint of the 2R arm played', BUDGET.pose, async () => {
+    await page.click('[aria-label="Play joint base~a"]'); await page.waitForTimeout(1500); await page.click('[aria-label="Play joint base~a"]');
+  });
+  // G4: the arm's workspace map shown (RM9b: 20 000 poses, its voxels drawn as an overlay), orbited 60 steps.
+  await page.click('[aria-label="Joints home"]').catch(() => {});
+  await page.click('[aria-label="Map workspace"]'); await page.waitForSelector('[aria-label="Workspace summary"]', { timeout: 60000 }); await page.waitForTimeout(500);
+  const voxels = Number((await page.locator('[aria-label="Workspace summary"]').innerText()).match(/(\d+) voxels/)?.[1] ?? 0);
+  {
+    const vb = await page.locator('canvas.vp-canvas').boundingBox(), vx = vb.x + vb.width / 2, vy = vb.y + vb.height / 2;
+    await measure(`cloud: ${voxels} workspace voxels, orbit 60`, BUDGET.cloud, async () => {
+      await page.mouse.move(vx, vy); await page.mouse.down({ button: 'left' });
+      for (let i = 0; i < 60; i++) { await page.mouse.move(vx + 4 * i, vy + (i % 5)); await page.waitForTimeout(16); }
+      await page.mouse.up({ button: 'left' });
+    });
+  }
+  // G8: a synthetic map of 100 000 voxels around the arm (DEV __studioSetCloud), orbited 60 steps: SVG squares projected
+  // every frame before, engine points now.
+  {
+    const box = await page.evaluate(() => { const b = window.__studioInstanceBounds(); const min = [0, 1, 2].map(k => Math.min(...b.map(x => x.min[k]))), max = [0, 1, 2].map(k => Math.max(...b.map(x => x.max[k]))); return { min, max }; });
+    await page.evaluate(({ min, max }) => window.__studioSetCloud(100000, min, max), box);
+    // (Engine points, or the SVG's band paths before G8 and on WebGL2.)
+    await page.waitForFunction(() => window.__studioOverlayLines?.().cloud === 100000 || document.querySelectorAll('[aria-label="Workspace map"] path').length > 0, null, { timeout: 60000 }); await page.waitForTimeout(500);
+    const vb = await page.locator('canvas.vp-canvas').boundingBox(), vx = vb.x + vb.width / 2, vy = vb.y + vb.height / 2;
+    await measure('cloud: 100 000 voxels, orbit 60', BUDGET.cloud100k, async () => {
+      await page.mouse.move(vx, vy); await page.mouse.down({ button: 'left' });
+      for (let i = 0; i < 60; i++) { await page.mouse.move(vx + 4 * i, vy + (i % 5)); await page.waitForTimeout(16); }
+      await page.mouse.up({ button: 'left' });
+    });
+    await page.evaluate(() => window.__studioSetCloud(0));
+  }
+  await page.click('[aria-label="Hide workspace"]');
+  // 120 holed brackets (bench-assembly's), exploded from 0 to 2 one step an animation frame, 60 steps: an explode drag.
+  const bracket = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [
+    { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 12] }, { kind: 'extrude', sketch: 0, height: 6 },
+    { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 2 }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [24, 6], radius: 2 }],
+    outputs: { b1: { node: 3, side: 'solid' } } };
+  const N = 120, side = Math.ceil(Math.sqrt(N));
+  const many = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {},
+    instances: Array.from({ length: N }, (_, k) => ({ id: `i${k}`, name: `bracket ${k}`, doc: bracket, position: [40 * (k % side), 20 * Math.floor(k / side), 0], rotation: [0, 0, 0], part: { id: 'bracket', rev: 'A' } })) };
+  await open('brackets.bcad', many, () => window.__studioInstanceBounds?.().length === 120);
+  await measure('explode: 120 brackets, 60-step drag', BUDGET.explode, async () => {
+    await page.evaluate(() => new Promise(done => { let i = 0; const step = () => { window.__studioSetExplode(2 * ++i / 60); if (i < 60) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); }));
+  });
+  await page.evaluate(() => window.__studioSetExplode(0));
+  // G10: 120 copies of the bracket turned about Z in 3° steps, opened: what is uploaded and made, and the viewer's
+  // geometry bytes (each geometry once) — one tessellation shared by the copies, or each its own.
+  {
+    const turned = { ...many, instances: many.instances.map((i, k) => ({ ...i, id: `t${k}`, rotation: [0, 0, 3 * k], part: undefined })) };
+    await measure('pattern: 120 turned brackets opened', BUDGET.pattern, async () => {
+      await open('pattern.bcad', turned, () => window.__studioInstanceBounds?.().length === 120 && window.__studioInstanceBounds().every(b => b.id.startsWith('t')));
+    });
+    // (Not measured under BENCH_ONLY: no row to add it to.)
+    if (rows.at(-1)?.name.startsWith('pattern:')) rows[rows.length - 1].geometry = await page.evaluate(() => {
+      const v = window.__studioViewer; if (!v) return null;
+      const gs = new Set(v.meshList.filter(m => m.name?.startsWith('inst:')).map(m => m.geometry));
+      let bytes = 0; for (const g of gs) { const d = g.data; bytes += d.positions.byteLength + d.normals.byteLength + d.colors.byteLength + (d.uvs?.byteLength ?? 0) + (d.indices?.byteLength ?? 0); }
+      return { geometries: gs.size, meshes: v.meshList.filter(m => m.name?.startsWith('inst:')).length, kib: +(bytes / 1024).toFixed(0), heapMiB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null };
+    });
+    await open('brackets.bcad', many, () => window.__studioInstanceBounds?.().length === 120 && window.__studioInstanceBounds().every(b => b.id.startsWith('i')));
+  }
+  // G9: the pointer across the 120 brackets (each move picks faces, edges and instances) and a bracket clicked from idle;
+  // then the viewer's own picks over 500 pointers on this scene (DEV __studioViewer): the linear walk (`accelerate` off,
+  // the picks as before G9) against the scene trees — timed, and the same answers.
+  {
+    const ab = await page.locator('canvas.vp-canvas').boundingBox(), ax = ab.x + ab.width / 2, ay = ab.y + ab.height / 2;
+    await measure('hover: 60 moves across 120 brackets', BUDGET.hoverMany, async () => {
+      for (let i = 0; i < 60; i++) { await page.mouse.move(ax - 300 + 10 * i, ay - 40 + (i % 7) * 12); await page.waitForTimeout(16); }
+    });
+    await measure('pick: a bracket clicked from idle', BUDGET.pickMany, async () => { await page.mouse.click(ax + 13, ay + 7); });
+    await page.keyboard.press('Escape');
+    picks = await page.evaluate(() => {
+      const v = window.__studioViewer; if (!v || !('accelerate' in v)) return null;
+      const c = v.canvas, W = c.clientWidth, H = c.clientHeight; let seed = 5; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      const at = Array.from({ length: 500 }, () => [rand() * W, rand() * H]);
+      const key = h => h ? [h.mesh.id, h.instance ?? null, h.triangle ?? null, h.segment ?? null, ...h.point.map(x => Math.round(x * 1e9))].join(',') : '';
+      const run = () => { const t0 = performance.now(), ray = at.map(([x, y]) => key(v.raycast(x, y))), t1 = performance.now(), line = at.map(([x, y]) => key(v.pickLine(x, y, 6))), t2 = performance.now(); return { ray, line, rayMs: t1 - t0, lineMs: t2 - t1 }; };
+      v.accelerate = false; run(); const lin = run(); v.accelerate = true; run(); const acc = run();
+      let differ = 0, hits = 0; for (let i = 0; i < at.length; i++) { if (lin.ray[i] !== acc.ray[i]) differ++; if (lin.line[i] !== acc.line[i]) differ++; if (lin.ray[i]) hits++; }
+      return { pointers: at.length, hits, differ, linear: { ray: lin.rayMs, line: lin.lineMs }, trees: { ray: acc.rayMs, line: acc.lineMs } };
+    });
+    // G11: the brackets ghosted (their surfaces 0.35 opaque, through the DEV viewer), orbited 60 steps — sorted far to near
+    // as before, then through the order-independent pass.
+    const ghosted = await page.evaluate(() => { const v = window.__studioViewer; if (!v || !('orderIndependent' in v)) return false; for (const m of v.meshList) if (m.name?.startsWith('inst:') && m.geometry.topology === 'triangles') m.material = { opacity: 0.35 }; return true; });
+    if (ghosted) for (const oit of [false, true]) {
+      await page.evaluate(o => { window.__studioViewer.orderIndependent = o; }, oit);
+      await measure(`ghosted: 120 brackets, orbit 60 (${oit ? 'order-independent' : 'sorted'})`, BUDGET.ghost, async () => {
+        await page.mouse.move(ax, ay); await page.mouse.down({ button: 'left' });
+        for (let i = 0; i < 60; i++) { await page.mouse.move(ax + 4 * i, ay + (i % 5)); await page.waitForTimeout(16); }
+        await page.mouse.up({ button: 'left' });
+      });
+    }
+    await page.evaluate(() => { const v = window.__studioViewer; if (!v) return; v.orderIndependent = true; for (const m of v.meshList) if (m.name?.startsWith('inst:') && m.geometry.topology === 'triangles') m.material = { opacity: 1 }; });
+  }
+  // G2: the section plane dragged 60 steps across the 120 brackets — cut by the GPU's clip plane, then (the same build) by
+  // clipMesh on the CPU as WebGL2 does; the exact section held back in both (only the drag's own cost).
+  // (As a drag sets it: a new plane each animation frame, y from 20 to 160.)
+  const dragSection = () => page.evaluate(() => new Promise(done => { let i = 0; const step = () => { window.__studioSetSection({ axis: 'y', at: 20 + 140 * ++i / 60, keep: 'positive' }); if (i < 60) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); }));
+  await page.click('[aria-label="Section view"]'); await page.waitForFunction(() => window.__studioSection?.().clip !== undefined, null, { timeout: 10000 });
+  for (const [name, cpu, budget] of [['section: 120 brackets, 60-step drag (GPU)', false, BUDGET.sectionGpu], ['section: the same, CPU clipMesh (WebGL2\'s)', true, BUDGET.sectionCpu]]) {
+    await page.evaluate(c => window.__studioSectionDebug({ hold: true, cpu: c }), cpu); await page.waitForTimeout(800);
+    await measure(name, budget, dragSection);
+  }
+  await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false }));
+  // G7: a large DXF underlay (2 000 polylines of 20 points, 100 texts) over a small plate, orbited 60 steps: its lines
+  // were an SVG path projected every frame; they are an engine line mesh now.
+  await page.click('[aria-label="Section view"]').catch(() => {});
+  const polylines = Array.from({ length: 2000 }, (_, k) => Array.from({ length: 20 }, (_, i) => [(k % 50) * 8 + i * 0.35, Math.floor(k / 50) * 8 + Math.sin(i + k) * 2]));
+  const texts = Array.from({ length: 100 }, (_, k) => ({ at: [(k % 10) * 40, Math.floor(k / 10) * 32], text: `NOTE ${k}`, height: 3, angle: 0 }));
+  const drawing = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { kind: 'extrude', sketch: 0, height: 5 }], outputs: { b1: { node: 1, side: 'solid' } },
+    underlays: [{ id: 'U1', name: 'big', polylines, texts, counts: { LWPOLYLINE: 2000, TEXT: 100 } }] };
+  await open('underlay.bcad', drawing, () => window.__studioDoc?.underlays?.length === 1 && !!document.querySelector('[aria-label="Underlay drawing U1"]'));
+  {
+    const ub = await page.locator('canvas.vp-canvas').boundingBox(), ux = ub.x + ub.width / 2, uy = ub.y + ub.height / 2;
+    await measure('underlay: 40 000 points, 100 texts, orbit 60', BUDGET.underlay, async () => {
+      await page.mouse.move(ux, uy); await page.mouse.down({ button: 'left' });
+      for (let i = 0; i < 60; i++) { await page.mouse.move(ux + 4 * i, uy + (i % 5)); await page.waitForTimeout(16); }
+      await page.mouse.up({ button: 'left' });
+    });
+  }
+} finally { await browser.close(); await server.close(); }
+// (The machine's load average: a budget is not set from numbers measured under load.)
+console.log(`load average ${loadAtStart.toFixed(1)} at the start, ${os.loadavg()[0].toFixed(1)} at the end${Math.max(loadAtStart, os.loadavg()[0]) > 4 ? ' — LOADED: compare, do not set budgets from this run' : ''}`);
+for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${String(r.gpuMS).padStart(5)} ms/submit${r.timed ? '' : ' (queue: no timestamps)'}${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  queue ${r.queueMS} ms${r.sameStamp ? ` (${r.sameStamp} frames stamped as the last)` : ''}  wall ${r.wallMS} ms  task total ${r.taskTotalMS} ms${r.geometry ? `  uploaded ${r.uploadTotalKiB} KiB; ${r.geometry.meshes} meshes on ${r.geometry.geometries} geometries, ${r.geometry.kib} KiB; heap ${r.geometry.heapMiB} MiB` : ''}`);
+if (picks) console.log(`picks over 120 brackets, ${picks.pointers} pointers (${picks.hits} on a bracket), ${picks.differ} answers different: raycast ${picks.linear.ray.toFixed(1)} → ${picks.trees.ray.toFixed(1)} ms, pickLine ${picks.linear.line.toFixed(1)} → ${picks.trees.line.toFixed(1)} ms (linear walk → scene trees)`);
+process.exit(rows.length === 17 && rows.every(r => r.ok) && (!picks || picks.differ === 0) ? 0 : 1);

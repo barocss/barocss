@@ -1,0 +1,124 @@
+{
+  "id": "r12c-connector-usb-c-opening",
+  "step": "R12c",
+  "decisions": [
+    "D162"
+  ],
+  "about": "R12c.7: U1's USB-C receptacle opening (a stadium 8.34 × 2.56, 6.2 deep; a test row citing D139's U1, not a built-in) cut into a 40 × 20 × 10 panel's top at its centre, and the plug body (8.25 × 2.4 × 6.51) seated in it.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "ps",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "p",
+          "kind": "extrude",
+          "sketch": "ps",
+          "height": 10
+        },
+        {
+          "id": "o",
+          "kind": "connector-opening",
+          "target": "p",
+          "face": "p.top",
+          "row": {
+            "id": "usb-c",
+            "name": "USB-C receptacle opening",
+            "opening": {
+              "shape": "stadium",
+              "widthMM": 8.34,
+              "heightMM": 2.56,
+              "depthMM": 6.2
+            },
+            "body": {
+              "shape": "stadium",
+              "widthMM": 8.25,
+              "heightMM": 2.4,
+              "lengthMM": 6.51
+            },
+            "keepOut": {
+              "marginMM": 1,
+              "depthMM": 15
+            },
+            "source": "U1 (D139): Wikipedia, \"USB hardware\", the connector dimensions table"
+          },
+          "center": [
+            20,
+            10,
+            10
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "connector-body",
+          "opening": "o"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 7876.347290497422,
+          "relTol": 1e-10
+        },
+        "centroidMM": {
+          "value": [
+            20,
+            10,
+            4.970171433611321
+          ],
+          "absTol": 1e-7
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 120.85094617181214,
+          "relTol": 1e-10
+        },
+        "centroidMM": {
+          "value": [
+            20,
+            10,
+            7.055
+          ],
+          "absTol": 1e-7
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "The stadium (w − h)h + πh²/4: the panel 8000 less A_o·6.2, its centroid by moments; the body A_b·6.51 from z 3.8 to 10.31 (0.31 out of the face)."
+}

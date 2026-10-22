@@ -29,3 +29,5 @@
 .chat-thumb { position: relative; }
 .chat-thumb button { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--panel-solid); color: var(--text-2); display: grid; place-items: center; cursor: pointer; }
 .chat-input .tool { flex: none; }
+/* Beside the browser when it is open (both sit at the left). */
+body:has(.outliner:not(.closed)) .chat { left: 284px; }

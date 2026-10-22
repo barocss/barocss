@@ -1,0 +1,18 @@
+{
+  "format": "barocss-cad-part",
+  "version": 1,
+  "units": "mm",
+  "parameters": {},
+  "features": [
+    {
+      "id": "r",
+      "kind": "internal-gear",
+      "normalModule": 2,
+      "helixAngle": 20,
+      "hand": "right",
+      "teeth": 50,
+      "faceWidth": 12,
+      "rim": 130
+    }
+  ]
+}

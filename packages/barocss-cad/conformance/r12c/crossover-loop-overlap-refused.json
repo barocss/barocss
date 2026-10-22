@@ -1,0 +1,36 @@
+{
+  "id": "r12c-crossover-loop-overlap-refused",
+  "step": "R12c",
+  "decisions": [
+    "D154"
+  ],
+  "about": "R12c.1b: a crossover hook whose 270\u00b0 loop (radius 1.2) ends 1.2 above its own run of wire 2 thick is refused as overlapping.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "spring",
+          "type": "extension",
+          "hooks": "crossover",
+          "loopRadius": 1.2,
+          "wire": 2,
+          "diameter": 20,
+          "activeCoils": 4,
+          "generator": "spring@0"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "LEG_OVERLAP"
+    }
+  },
+  "oracle": "the loop's end, 270\u00b0 round a circle of radius 1.2 standing on the run, is 1.2\u00b7\u221a2 \u2248 1.70 from where the loop began: below d 2."
+}

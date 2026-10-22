@@ -18,12 +18,15 @@
 // operation's rule, split at shared vertices and stitched into shells; negative shells are cavities.
 // Works in binary64 with the numeric policy's tolerance at the inputs' scale.
 import { revolutionOf, profileCrossings, onPatch, type Revolution } from './surface-revolution.js';
-import { BrepError, buildBrep, checkBrep, lineCurve, type Brep, type BrepFace } from './brep-core.js';
+import { curvePiece, curveReversed } from './curve-segment.js';
+import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, nurbsOf as surfaceOfFace, type Brep, type BrepFace } from './brep-core.js';
+import { facetPlane } from './facet-patch.js';
 import { circleOf, polesOf } from './brep-tessellate.js';
-import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
+import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segDistance, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { nameEdges } from './prismatic-solid.js';
 import { baseName } from './polyhedral-boolean.js';
-import { evaluateCurve, evaluateSurface, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
+import { evaluateCurve, evaluateSurface, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator, validateCurve } from './math.js';
+import { catmullRom, chainNeighbours, surfaceIsoclines } from './surface-isocline.js';
 import { chainCurve, intersectPatches, SurfaceIntersectionError } from './surface-intersection.js';
 import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { linearToleranceMM } from './numeric-policy.js';
@@ -44,18 +47,32 @@ type Cylinder = { kind: 'cylinder'; c: P3; a: P3; e1: P3; e2: P3; r: number; s: 
  * Any other smooth surface patch: domain coordinates (ku·u, kv·v), scaled to arc length, with ku < 0 for
  * a reversed face so loops run counter-clockwise in the domain. Points map back by Newton projection.
  */
-type Nurbs = { kind: 'nurbs'; S: Surface; rev?: Revolution | null; ev: (u: number, v: number) => P3; ku: number; kv: number; U: [number, number]; V: [number, number]; sense: 1 | -1; grid: { p: XY; x: P3; pole?: boolean }[]; last: { p: XY }; size: number;
+type Nurbs = { kind: 'nurbs'; S: Surface; rev?: Revolution | null; ev: (u: number, v: number) => P3; ku: number; kv: number; U: [number, number]; V: [number, number]; sense: 1 | -1;
+  /** 25 × 25 samples of the patch (made on first use). */
+  readonly grid: { p: XY; x: P3; pole?: boolean }[]; last: { p: XY }; size: number;
+  /** The box of the control points: the patch lies inside it (positive weights). */
+  hullMin: P3; hullMax: P3;
   /** Domain sides collapsed to a point: `along` is the free coordinate (0: x, 1: y), `at` the fixed one (scaled). */
   poles: { along: 0 | 1; at: number; point: P3 }[] };
 type Surf = Plane | Cylinder | Nurbs;
 function nurbsOf(S: Surface, sense: 1 | -1): Nurbs {
   const { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
-  let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; for (let k = 0; k < 8; k++) { Lu += len(sub(at(U[0] + (U[1] - U[0]) * (k + 1) / 8, b), at(U[0] + (U[1] - U[0]) * k / 8, b))) / 8; Lv += len(sub(at(a, V[0] + (V[1] - V[0]) * (k + 1) / 8), at(a, V[0] + (V[1] - V[0]) * k / 8))) / 8; } }
-  const ku = sense * (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]), grid: { p: XY; x: P3; pole?: boolean }[] = [];
-  for (let i = 0; i <= 24; i++) for (let j = 0; j <= 24; j++) { const a = U[0] + (U[1] - U[0]) * i / 24, b = V[0] + (V[1] - V[0]) * j / 24; grid.push({ p: [a, b], x: at(a, b) }); }
+  let Lu = 0, Lv = 0; for (let i = 0; i < 8; i++) { const a = U[0] + (U[1] - U[0]) * (i + 0.5) / 8, b = V[0] + (V[1] - V[0]) * (i + 0.5) / 8; for (let k = 0; k < 8; k++) { Lu += len(sub(at(k === 7 ? U[1] : U[0] + (U[1] - U[0]) * (k + 1) / 8, b), at(U[0] + (U[1] - U[0]) * k / 8, b))) / 8; Lv += len(sub(at(a, k === 7 ? V[1] : V[0] + (V[1] - V[0]) * (k + 1) / 8), at(a, V[0] + (V[1] - V[0]) * k / 8))) / 8; } }
+  const ku = sense * (Lu || 1) / (U[1] - U[0]), kv = (Lv || 1) / (V[1] - V[0]);
   const poles = polesOf(S).map(q => ({ along: q.along, at: q.along === 0 ? q.at * kv : q.at * ku, point: q.point as P3 }));
-  for (const g of grid) g.pole = poles.some(o => len(sub(o.point, g.x)) <= 1e-12 * (Math.max(Lu, Lv) + 1));
-  return { kind: 'nurbs', S, ev: at, ku, kv, U: [U[0], U[1]], V: [V[0], V[1]], sense, grid, last: { p: [(U[0] + U[1]) / 2, (V[0] + V[1]) / 2] }, size: Math.max(Lu, Lv), poles };
+  const hullMin: P3 = [Infinity, Infinity, Infinity], hullMax: P3 = [-Infinity, -Infinity, -Infinity];
+  for (const row of S.controlPoints) for (const q of row) for (let k = 0; k < 3; k++) { if (q[k] < hullMin[k]) hullMin[k] = q[k]; if (q[k] > hullMax[k]) hullMax[k] = q[k]; }
+  let grid: { p: XY; x: P3; pole?: boolean }[] | null = null;
+  return { kind: 'nurbs', S, ev: at, ku, kv, U: [U[0], U[1]], V: [V[0], V[1]], sense, last: { p: [(U[0] + U[1]) / 2, (V[0] + V[1]) / 2] }, size: Math.max(Lu, Lv), poles, hullMin, hullMax,
+    get grid() { return grid ??= gridOf(at, U, V, poles, Math.max(Lu, Lv)); } };
+}
+/** 25 × 25 samples of a patch, those at a collapsed side marked (their free parameter is arbitrary). */
+function gridOf(at: (u: number, v: number) => P3, U: readonly number[], V: readonly number[], poles: readonly { point: P3 }[], size: number): { p: XY; x: P3; pole?: boolean }[] {
+  const grid: { p: XY; x: P3; pole?: boolean }[] = [];
+  // (The last row at the domain's end itself: U0 + (U1 − U0)·24/24 can round past it.)
+  for (let i = 0; i <= 24; i++) for (let j = 0; j <= 24; j++) { const a = i === 24 ? U[1] : U[0] + (U[1] - U[0]) * i / 24, b = j === 24 ? V[1] : V[0] + (V[1] - V[0]) * j / 24; grid.push({ p: [a, b], x: at(a, b) }); }
+  for (const g of grid) g.pole = poles.some(o => len(sub(o.point, g.x)) <= 1e-12 * (size + 1));
+  return grid;
 }
 /**
  * Surface parameters of the point of a NURBS patch nearest x. Newton from the last answer; a point it
@@ -95,11 +112,13 @@ const nurbsNormal = (s: Nurbs, p: XY): P3 => {
 };
 interface GFace {
   solid: 0 | 1; surf: Surf; region: CurveRegion2; out: 1 | -1; min: P3; max: P3; name?: string; cuts: CurveSegment2[];
+  /** The source face's id. */
+  id: string;
 }
 /** A 3D curve piece: a segment, or an arc about c in the plane ⊥ n from u through `sweep` (≥ 0, CCW about n). */
 type Curve3 = { kind: 'line'; p: P3; q: P3 } | { kind: 'arc'; c: P3; n: P3; r: number; u: P3; sweep: number }
   /** A smooth curve on the parameter range t0 → t1 (either order). */
-  | { kind: 'param'; at: (t: number) => P3; t0: number; t1: number; /** `at` is an exact curve (a line or arc's map onto a general face), not a fit. */ exact?: boolean };
+  | { kind: 'param'; at: (t: number) => P3; t0: number; t1: number; /** `at` is an exact curve (a line or arc's map onto a general face), not a fit. */ exact?: boolean; /** `at` is this input edge's curve (t its own parameter): its pieces stay it, exactly (D90). */ src?: Curve };
 const paramAt = (k: Extract<Curve3, { kind: 'param' }>, u: number) => k.at(k.t0 + (k.t1 - k.t0) * u);
 const arcAt = (k: Extract<Curve3, { kind: 'arc' }>, phi: number): P3 => add(k.c, add(scale(k.u, k.r * Math.cos(phi)), scale(cross(k.n, k.u), k.r * Math.sin(phi))));
 
@@ -149,13 +168,15 @@ function normalOut(f: GFace, x: P3): P3 {
 }
 
 function surfaceOf(face: BrepFace, tol: number): Surf {
-  const S = face.surface, sign = face.sense === 'forward' ? 1 : -1, [u0, u1] = surfaceDomain(S).u, [v0, v1] = surfaceDomain(S).v;
+  const S = surfaceOfFace(face, 'analytic Boolean'), sign = face.sense === 'forward' ? 1 : -1, [u0, u1] = surfaceDomain(S).u, [v0, v1] = surfaceDomain(S).v;
   const centre = evaluateSurface(S, (u0 + u1) / 2, (v0 + v1) / 2), du = 1e-6 * (u1 - u0), dv = 1e-6 * (v1 - v0);
   const nParam = unit(cross(sub(evaluateSurface(S, (u0 + u1) / 2 + du, (v0 + v1) / 2), centre), sub(evaluateSurface(S, (u0 + u1) / 2, (v0 + v1) / 2 + dv), centre)));
   const outward = scale(nParam, sign);
   if (S.degreeU === 1 && S.degreeV === 1 && S.controlPoints.length === 2 && S.controlPoints[0].length === 2) {
-    const [[p00], [p10]] = S.controlPoints as P3[][], e1 = unit(sub(p10, p00)), n = outward, e2 = cross(n, e1);
-    const p11 = S.controlPoints[1][1] as P3;
+    // (The normal from the corners, ∂u × ∂v at the centre: a difference quotient over a sliver's width loses
+    // digits, and a tilted plane no longer closes the shell.)
+    const [[p00, p01], [p10, p11]] = S.controlPoints as P3[][], e1 = unit(sub(p10, p00));
+    const n = scale(unit(cross(add(sub(p10, p00), sub(p11, p01)), add(sub(p01, p00), sub(p11, p10)))), sign), e2 = cross(n, e1);
     if (Math.abs(dot(sub(p11, p00), n)) > tol) throw new BrepError('GEOMETRY', `analytic Boolean: face ${face.id} is a twisted bilinear patch`);
     return { kind: 'plane', o: p00, n, e1, e2: unit(e2) };
   }
@@ -181,7 +202,7 @@ function curve3(c: Curve, forward: boolean): Curve3 {
   const [t0, t1] = curveDomain(c), p = evaluateCurve(c, t0), q = evaluateCurve(c, t1);
   if (c.degree === 1 && c.controlPoints.length === 2) return forward ? { kind: 'line', p, q } : { kind: 'line', p: q, q: p };
   const k = circleOf(c);
-  if (!k) { const at = curveEvaluator(c); return { kind: 'param', at, t0: forward ? t0 : t1, t1: forward ? t1 : t0 }; }
+  if (!k) { const at = curveEvaluator(c); return { kind: 'param', at, t0: forward ? t0 : t1, t1: forward ? t1 : t0, src: c }; }
   // The turning direction from the circle's own frame (robust for a full turn, where start = end).
   const total = k.spans.reduce((s, x) => s + x.phi, 0), n = scale(cross(k.e1, k.e2), k.sign);
   const from = forward ? p : q;
@@ -205,9 +226,11 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
       const toward = Math.abs(x - t0) < Math.abs(x - t1) ? 1 : -1, n1 = to2(f, at3(x + toward * 1e-3 * span), hint), n2 = to2(f, at3(x + toward * 2e-3 * span), hint);
       return q.along === 0 ? [2 * n1[0] - n2[0], q.at] : [q.at, 2 * n1[1] - n2[1]];
     };
-    return { kind: 'curve', f: tabulated(s, g, at3, t0, t1), t0, t1, src: at3, ...t, ...(k.kind !== 'param' || k.exact ? { exact: true } : {}) } as CurveSegment2;
+    // (The source curve's interior knots as fractions of the range: its pieces' joins, D150.)
+    const breaks = k.kind === 'param' && k.src ? [...new Set(k.src.knots)].map(x => (x - t0) / (t1 - t0)).filter(u => u > 0 && u < 1) : [];
+    return { kind: 'curve', f: tabulated(s, g, at3, t0, t1, breaks), t0, t1, src: at3, ...t, ...(k.kind !== 'param' || k.exact ? { exact: true } : {}), ...(k.kind === 'param' && k.src ? { srcCurve: k.src } : {}) } as CurveSegment2;
   }
-  if (k.kind === 'param') return { kind: 'curve', f: memo(x => to2(f, k.at(x))), t0: k.t0, t1: k.t1, src: k.at, ...t };
+  if (k.kind === 'param') return { kind: 'curve', f: memo(x => to2(f, k.at(x))), t0: k.t0, t1: k.t1, src: k.at, ...t, ...(k.src ? { srcCurve: k.src } : {}) } as CurveSegment2;
   if (k.kind === 'line') {
     const a = to2(f, k.p), b = to2(f, k.q);
     if (s.kind === 'cylinder' && Math.abs(a[0] - b[0]) > Math.max(tol, 1e-9 * s.r)) throw new BrepError('GEOMETRY', 'analytic Boolean: a straight edge on a cylinder runs across its axis direction');
@@ -229,46 +252,88 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
  * derivatives (the surface Jacobian's pseudo-inverse applied to the curve's tangent) and evaluated by
  * cubic Hermite interpolation: about (span / 128)⁴ off, far below tolerance, where every exact
  * evaluation would cost a Newton projection. Curves through a pole (a singular map) stay exact.
+ * `breaks` (fractions of the range): the source curve's interior knots, made samples too, each with its
+ * tangent from either side — a curve of C0 pieces (an edge of two fitted spans meeting at a corner) is
+ * interpolated piece by piece; one sample's tangent averaged across such a knot put both intervals beside
+ * it up to 4e-4 mm off (a bevel pair's toe edges, D150).
  */
-function tabulated(s: Nurbs, g: (x: number) => XY, at3: (x: number) => P3, t0: number, t1: number): (x: number) => XY {
+function tabulated(s: Nurbs, g: (x: number) => XY, at3: (x: number) => P3, t0: number, t1: number, breaks: readonly number[] = []): (x: number) => XY {
   const exact = memo(g), N = 128, span = t1 - t0;
-  let table: { p: XY[]; d: XY[] } | null | false = null;
+  // Sample fractions: the uniform 128 with the breaks among them (a uniform one within 1e-9 of a break gives way).
+  const inner = breaks.filter(b => b > 1e-9 && b < 1 - 1e-9).sort((a, b) => a - b);
+  const F: number[] = [], isBreak: boolean[] = [];
+  for (let i = 0, k = 0; i <= N; i++) {
+    const u = i / N;
+    while (k < inner.length && inner[k] < u - 1e-9) { F.push(inner[k]); isBreak.push(true); k++; }
+    if (k < inner.length && Math.abs(inner[k] - u) <= 1e-9) { F.push(inner[k]); isBreak.push(true); k++; continue; }
+    F.push(u); isBreak.push(false);
+  }
+  let table: { p: XY[]; dl: XY[]; dr: XY[] } | null | false = null;
   const build = () => {
-    const p: XY[] = [], d: (XY | null)[] = [];
-    for (let i = 0; i <= N; i++) {
-      const x = t0 + span * i / N, q = exact(x), P = at3(x);
-      p.push(q);
-      // At a pole the map's derivative comes from the neighbouring samples (below).
-      if (s.poles.some(o => len(sub(P, o.point)) <= 1e-6 * (s.size + 1))) { d.push(null); continue; }
-      const h = 1e-6 * span, xa = Math.max(Math.min(t0, t1), Math.min(Math.max(t0, t1), x - h)), xb = Math.max(Math.min(t0, t1), Math.min(Math.max(t0, t1), x + h));
-      const dP = scale(sub(at3(xb), at3(xa)), 1 / (xb - xa));
-      const u = q[0] / s.ku, v = q[1] / s.kv, hu = 1e-7 * (s.U[1] - s.U[0]), hv = 1e-7 * (s.V[1] - s.V[0]);
-      const ua = u + hu <= s.U[1] ? u + hu : u - hu, va = v + hv <= s.V[1] ? v + hv : v - hv, Q = s.ev(u, v);
+    const p: XY[] = [], dl: (XY | null)[] = [], dr: (XY | null)[] = [], n = F.length - 1;
+    const lo = Math.min(t0, t1), hi = Math.max(t0, t1);
+    /**
+     * The domain rate of the curve for its tangent dP at the domain point q (null where the Jacobian is singular). `toward`:
+     * the side of the domain the curve leaves q into, the surface's derivatives taken on that side (across a C0 knot line of
+     * the surface — a flank of two spans — the two sides' Jacobians differ).
+     */
+    const rate = (q: XY, dP: P3, toward?: XY): XY | null => {
+      const u = Math.min(s.U[1], Math.max(s.U[0], q[0] / s.ku)), v = Math.min(s.V[1], Math.max(s.V[0], q[1] / s.kv)), hu = 1e-7 * (s.U[1] - s.U[0]), hv = 1e-7 * (s.V[1] - s.V[0]);
+      const su = toward && toward[0] * s.ku < 0 ? -1 : 1, sv = toward && toward[1] * s.kv < 0 ? -1 : 1;
+      const ua = u + su * hu <= s.U[1] && u + su * hu >= s.U[0] ? u + su * hu : u - su * hu, va = v + sv * hv <= s.V[1] && v + sv * hv >= s.V[0] ? v + sv * hv : v - sv * hv, Q = s.ev(u, v);
       const Su = scale(sub(s.ev(ua, v), Q), 1 / (ua - u)), Sv = scale(sub(s.ev(u, va), Q), 1 / (va - v));
       const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), det = g11 * g22 - g12 * g12, r1 = dot(Su, dP), r2 = dot(Sv, dP);
-      if (!(det > 1e-24 * (g11 + g22) ** 2)) { d.push(null); continue; }
-      d.push([(r1 * g22 - r2 * g12) / det * s.ku, (g11 * r2 - g12 * r1) / det * s.kv]);
+      if (!(det > 1e-24 * (g11 + g22) ** 2)) return null;
+      return [(r1 * g22 - r2 * g12) / det * s.ku, (g11 * r2 - g12 * r1) / det * s.kv];
+    };
+    for (let i = 0; i <= n; i++) {
+      const x = t0 + span * F[i], q = exact(x), P = at3(x);
+      p.push(q);
+      // At a pole the map's derivative comes from the neighbouring samples (below).
+      if (s.poles.some(o => len(sub(P, o.point)) <= 1e-6 * (s.size + 1))) { dl.push(null); dr.push(null); continue; }
+      const h = 1e-6 * span;
+      if (isBreak[i]) {
+        // Either side's tangent by a one-sided second-order difference, within that side's piece.
+        const side = (sg: 1 | -1): XY | null => {
+          const a = at3(x + sg * h), b = at3(x + sg * 2 * h), qa = exact(x + sg * 2 * h);
+          return rate(q, scale(add(scale(P, -3), sub(scale(a, 4), b)), 1 / (2 * sg * h)), [qa[0] - q[0], qa[1] - q[1]]);
+        };
+        dl.push(side(-1)); dr.push(side(1));
+        continue;
+      }
+      const xa = Math.max(lo, Math.min(hi, x - h)), xb = Math.max(lo, Math.min(hi, x + h));
+      const d = rate(q, scale(sub(at3(xb), at3(xa)), 1 / (xb - xa)));
+      dl.push(d); dr.push(d);
     }
-    // Second-order one-sided (or central) differences where the Jacobian is singular.
-    const h = span / N, out: XY[] = [];
-    for (let i = 0; i <= N; i++) {
-      const di = d[i]; if (di) { out.push(di); continue; }
-      const diff = (a: XY, b: XY, c: XY, k: number): XY => [(-3 * a[0] + 4 * b[0] - c[0]) / (2 * h * k), (-3 * a[1] + 4 * b[1] - c[1]) / (2 * h * k)];
-      if (i + 2 <= N && (i === 0 || i < N / 2)) out.push(diff(p[i], p[i + 1], p[i + 2], 1));
-      else if (i - 2 >= 0) out.push(diff(p[i], p[i - 1], p[i - 2], -1));
-      else return false;
-    }
-    return { p, d: out };
+    // Second-order one-sided differences over the (uneven) samples where the Jacobian is singular.
+    const fill = (d: (XY | null)[]): XY[] | false => {
+      const out: XY[] = [];
+      for (let i = 0; i <= n; i++) {
+        const di = d[i]; if (di) { out.push(di); continue; }
+        const [j1, j2] = i + 2 <= n && (i === 0 || i < n / 2) ? [i + 1, i + 2] : i - 2 >= 0 ? [i - 1, i - 2] : [-1, -1];
+        if (j1 < 0) return false;
+        const h1 = span * (F[j1] - F[i]), h2 = span * (F[j2] - F[i]);
+        out.push([0, 1].map(k => ((p[j1][k] - p[i][k]) * h2 * h2 - (p[j2][k] - p[i][k]) * h1 * h1) / (h1 * h2 * (h2 - h1))) as XY);
+      }
+      return out;
+    };
+    const L = fill(dl), R = fill(dr);
+    return L && R ? { p, dl: L, dr: R } : false;
   };
+  const n = F.length - 1;
   return x => {
     if (table === null) table = build();
     if (table === false || !(span !== 0)) return exact(x);
-    const f = (x - t0) / span * N, i = Math.min(N - 1, Math.max(0, Math.floor(f))), u = f - i;
-    if (u === 0) return table.p[i];
-    if (i === N - 1 && u === 1) return table.p[N];
-    const u2 = u * u, u3 = u2 * u, h = span / N, a = table.p[i], b = table.p[i + 1], da = table.d[i], db = table.d[i + 1];
-    const h00 = 2 * u3 - 3 * u2 + 1, h10 = (u3 - 2 * u2 + u) * h, h01 = -2 * u3 + 3 * u2, h11 = (u3 - u2) * h;
-    return [a[0] * h00 + da[0] * h10 + b[0] * h01 + db[0] * h11, a[1] * h00 + da[1] * h10 + b[1] * h01 + db[1] * h11];
+    const f = (x - t0) / span;
+    // The interval holding f (binary search over the sample fractions).
+    let a = 0, b = n;
+    while (b - a > 1) { const m = (a + b) >> 1; if (F[m] <= f) a = m; else b = m; }
+    const h = F[b] - F[a], u = (f - F[a]) / h;
+    if (u <= 0) return table.p[a];
+    if (u >= 1) return table.p[b];
+    const u2 = u * u, u3 = u2 * u, H = h * span, P0 = table.p[a], P1 = table.p[b], D0 = table.dr[a], D1 = table.dl[b];
+    const h00 = 2 * u3 - 3 * u2 + 1, h10 = (u3 - 2 * u2 + u) * H, h01 = -2 * u3 + 3 * u2, h11 = (u3 - u2) * H;
+    return [P0[0] * h00 + D0[0] * h10 + P1[0] * h01 + D1[0] * h11, P0[1] * h00 + D0[1] * h10 + P1[1] * h01 + D1[1] * h11];
   };
 }
 /** A curve's domain map, remembered per parameter (each one costs a surface projection on a general surface). */
@@ -279,7 +344,7 @@ function memo(g: (x: number) => XY): (x: number) => XY {
 /** A 2D segment of a face's domain as a 3D curve. */
 function curve3Of(f: { surf: Surf }, g: CurveSegment2): Curve3 {
   const s = f.surf;
-  if (g.kind === 'curve') { const src = g.src as ((t: number) => P3) | undefined; return { kind: 'param', at: src ?? (x => to3(f, g.f(x))), t0: g.t0, t1: g.t1, ...(src && (g as { exact?: boolean }).exact ? { exact: true } : {}) }; }
+  if (g.kind === 'curve') { const src = g.src as ((t: number) => P3) | undefined, curve = (g as { srcCurve?: Curve }).srcCurve; return { kind: 'param', at: src ?? (x => to3(f, g.f(x))), t0: g.t0, t1: g.t1, ...(src && (g as { exact?: boolean }).exact ? { exact: true } : {}), ...(src && curve ? { src: curve } : {}) }; }
   if (s.kind === 'nurbs') { const seg = g; return { kind: 'param', at: x => to3(f, segAtAny(seg, x)), t0: 0, t1: 1 }; }
   if (s.kind === 'plane') {
     if (g.kind === 'line') return { kind: 'line', p: to3(f, g.a), q: to3(f, g.b) };
@@ -337,10 +402,13 @@ function facesOf(brep: Brep, solid: 0 | 1, tol: number): GFace[] {
     for (const lid of ordered) for (const cid of loops.get(lid)!.coedges) for (const p of edges.get(coedges.get(cid)!.edge)!.curve.controlPoints) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); }
     // A general patch bulges past its edges (a hemisphere bounded by two meridians in one plane): its
     // control net bounds it.
-    if (surf.kind === 'nurbs') for (const row of face.surface.controlPoints) for (const p of row) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); }
-    return { solid, surf, region: { outer: rings[0], holes: rings.slice(1) }, out: 1 as const, min, max, ...(face.name === undefined ? {} : { name: baseName(face.name) }), cuts: [] };
+    if (surf.kind === 'nurbs') for (const row of surfaceOfFace(face).controlPoints) for (const p of row) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], p[k]); max[k] = Math.max(max[k], p[k]); }
+    return { solid, surf, region: { outer: rings[0], holes: rings.slice(1) }, out: 1 as const, min, max, ...(face.name === undefined ? {} : { name: baseName(face.name) }), cuts: [], id: face.id };
   });
 }
+
+/** One root of a crossing-cylinder quadratic as a curve in the smaller cylinder's angle. */
+const branchOf = (point: (th: number, sign: number) => P3, sign: number) => (th: number) => point(th, sign);
 
 // ---- intersections ---------------------------------------------------------------------------------
 /** Parameter intervals of a curve (line: t along d from p; circle: φ from the frame's e1) inside a face. */
@@ -352,21 +420,7 @@ function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, nu
     at = k.at;
     // In a cylinder domain the curve is cut where it crosses the domain's seam (θ = ref ± π), so each
     // piece maps continuously.
-    const ranges: [number, number][] = [];
-    if (f.surf.kind === 'cylinder') {
-      const n = 256, U = (t: number) => to2(f, at(t))[0], jump = Math.PI * f.surf.r;
-      let start = k.lo, prev = U(k.lo);
-      for (let i = 1; i <= n; i++) {
-        let t = k.lo + (k.hi - k.lo) * i / n; const u = U(t);
-        if (Math.abs(u - prev) > jump) {
-          let a = k.lo + (k.hi - k.lo) * (i - 1) / n, b = t; const ua = U(a);
-          for (let it = 0; it < 60; it++) { const m = (a + b) / 2; if (Math.abs(U(m) - ua) > jump) b = m; else a = m; }
-          ranges.push([start, a]); start = b; t = b;
-        }
-        prev = U(t);
-      }
-      ranges.push([start, k.hi]);
-    } else ranges.push([k.lo, k.hi]);
+    const ranges = seamRanges(f, at, k.lo, k.hi);
     // (On a general face the probe's domain map is tabulated like any curve's.)
     const pieces = ranges.map(([a, b]) => f.surf.kind === 'nurbs' ? { ...(curve2(f, { kind: 'param', at, t0: a, t1: b }, tol) as Extract<CurveSegment2, { kind: 'curve' }>), t0: a, t1: b } : { kind: 'curve' as const, f: (x: number) => to2(f, at(x)), t0: a, t1: b });
     params.push(...ranges.flat());
@@ -397,6 +451,23 @@ function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, nu
   for (const pr of probe) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) params.push(param(to3(f, x)));
   return insideIntervals(f, params, at, tol);
 }
+/** A curve's parameter range cut where it crosses a cylinder face's domain seam (θ = ref ± π), so each piece maps continuously. */
+function seamRanges(f: GFace, at: (t: number) => P3, lo: number, hi: number): [number, number][] {
+  if (f.surf.kind !== 'cylinder') return [[lo, hi]];
+  const ranges: [number, number][] = [], n = 256, U = (t: number) => to2(f, at(t))[0], jump = Math.PI * f.surf.r;
+  let start = lo, prev = U(lo);
+  for (let i = 1; i <= n; i++) {
+    let t = lo + (hi - lo) * i / n; const u = U(t);
+    if (Math.abs(u - prev) > jump) {
+      let a = lo + (hi - lo) * (i - 1) / n, b = t; const ua = U(a);
+      for (let it = 0; it < 60; it++) { const m = (a + b) / 2; if (Math.abs(U(m) - ua) > jump) b = m; else a = m; }
+      ranges.push([start, a]); start = b; t = b;
+    }
+    prev = U(t);
+  }
+  ranges.push([start, hi]);
+  return ranges;
+}
 /** Sorted parameters → the intervals between them whose middles lie in the face. */
 function insideIntervals(f: GFace, params: number[], at: (t: number) => P3, tol: number, strict = false): [number, number][] {
   params.sort((a, b) => a - b);
@@ -416,22 +487,53 @@ const boxesMeet = (f: GFace, g: GFace, tol: number) => [0, 1, 2].every(k => f.mi
 
 class Refused extends BrepError { constructor(detail: string) { super('GEOMETRY', 'analytic Boolean: ' + detail); } }
 
-function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
+/** The source curves already cut into a face along a contact (each once). */
+const contactCuts = new WeakMap<GFace, Set<unknown>>();
+/** Whether one of f's boundary edges lies on g's surface. */
+function edgeOnSurface(f: GFace, g: GFace, tol: number): boolean {
+  for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
+    const k = curve3Of(f, seg);
+    if ([0, 0.25, 0.5, 0.75, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) return true;
+  }
+  return false;
+}
+function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = false): void {
+  // (Faces the caller says meet only along edges of one lying on the other — a fillet tool's contacts with the faces it
+  // rounds, D89 — are cut there, and nothing is computed: their contact is tangent or along a face's own boundary.)
+  if (touching) {
+    // (As the edges are: made exact arcs, neighbouring pieces' ends would move apart by their fit. An edge shared by
+    // two contact faces — the fillet and its wall — is one cut: two copies of a curve would cross all along it.)
+    for (const [f, g] of [[fa, fb], [fb, fa]] as const) for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
+      const k = curve3Of(f, seg), key = (k.kind === 'param' && k.src) || null, seen = contactCuts.get(g) ?? new Set<unknown>();
+      if (key && seen.has(key)) continue;
+      if (![0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) continue;
+      // (Not where it lies wholly off a planar face: a tool's section edge in the plane of a face it ends beside — a lug's
+      // end face, where the ball turns its corner, R10.3a — lies on that face's surface but off the face. Planes only:
+      // on a curved face a contact's (u, v) can fall a period over, off the region as drawn.)
+      const c2 = curve2(g, k, tol);
+      if (g.surf.kind === 'plane' && [0.2, 0.5, 0.8].every(u => locateInRegion(segAtAny(c2, u), g.region, 10 * tol) === 'out')) continue;
+      g.cuts.push(c2); if (key) { seen.add(key); contactCuts.set(g, seen); }
+    }
+    return;
+  }
   const addCut = (k: Curve3) => { fa.cuts.push(curve2(fa, k, tol)); fb.cuts.push(curve2(fb, k, tol)); };
+  // (Each probe on fa first: where it misses fa, fb's search — on a cylinder, its seam scan — is skipped; the overlap is empty either way.)
   const lineCuts = (p: P3, d: P3) => {
-    for (const [lo, hi] of overlaps(intervals(fa, { kind: 'line', p, d, lo: -span, hi: span }, tol), intervals(fb, { kind: 'line', p, d, lo: -span, hi: span }, tol)))
+    const ia = intervals(fa, { kind: 'line', p, d, lo: -span, hi: span }, tol); if (!ia.length) return;
+    for (const [lo, hi] of overlaps(ia, intervals(fb, { kind: 'line', p, d, lo: -span, hi: span }, tol)))
       if ((hi - lo) * len(d) > tol) addCut({ kind: 'line', p: add(p, scale(d, lo)), q: add(p, scale(d, hi)) });
   };
   const circleCuts = (c: P3, n: P3, e1: P3, r: number, lo: number) => {
-    const k = { kind: 'circle' as const, c, n, e1, r, lo };
-    for (const [a, b] of overlaps(intervals(fa, k, tol), intervals(fb, k, tol))) if ((b - a) * r > tol) {
+    const k = { kind: 'circle' as const, c, n, e1, r, lo }, ia = intervals(fa, k, tol); if (!ia.length) return;
+    for (const [a, b] of overlaps(ia, intervals(fb, k, tol))) if ((b - a) * r > tol) {
       const e2 = cross(n, e1), u = unit(add(scale(e1, Math.cos(a)), scale(e2, Math.sin(a))));
       addCut({ kind: 'arc', c, n, r, u, sweep: b - a });
     }
   };
-  const paramCuts = (at: (t: number) => P3, lo: number, hi: number) => {
-    for (const [a, b] of overlaps(intervals(fa, { kind: 'param', at, lo, hi }, tol), intervals(fb, { kind: 'param', at, lo, hi }, tol)))
-      if (len(sub(at(b), at(a))) > tol || b - a > 1e-6 * (hi - lo)) addCut({ kind: 'param', at, t0: a, t1: b });
+  const paramCuts = (at: (t: number) => P3, lo: number, hi: number, march = false) => {
+    const ia = intervals(fa, { kind: 'param', at, lo, hi }, tol); if (!ia.length) return;
+    for (const [a, b] of overlaps(ia, intervals(fb, { kind: 'param', at, lo, hi }, tol)))
+      if (len(sub(at(b), at(a))) > tol || b - a > 1e-6 * (hi - lo)) addCut(march && (A.kind === 'plane' || B.kind === 'plane') ? snapEnds(fa, fb, at, a, b, tol) : { kind: 'param', at, t0: a, t1: b });
   };
   const same = (g: GFace, into: GFace) => { for (const ring of [g.region.outer, ...g.region.holes]) for (const seg of ring) into.cuts.push(curve2(into, curve3Of(g, seg), tol)); };
   const A = fa.surf, B = fb.surf;
@@ -465,7 +567,7 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
         for (const [g, into] of [[fb, fa], [fa, fb]] as const) for (const ring of [g.region.outer, ...g.region.holes]) for (const seg of ring) {
           // (A boundary only partly on it, or along that face's own boundary, adds nothing.)
           const k = curve3Of(g, seg);
-          if (![0, 0.1, 0.3, 0.5, 0.7, 0.9, 1].every(u => offSurface(into, pointOf(k, u)) <= tol)) continue;
+          if (![0, 0.1, 0.3, 0.5, 0.7, 0.9, 1].every(u => offSurface(into, pointOf(k, u), tol) <= tol)) continue;
           if ([0.25, 0.5, 0.75].every(u => locateInRegion(to2(into, pointOf(k, u)), into.region, 10 * tol) === 'boundary')) continue;
           into.cuts.push(curve2(into, k, tol));
         }
@@ -477,19 +579,20 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
     const along: Curve3[] = [];
     for (const [f, g] of [[fa, fb], [fb, fa]] as const) if (f.surf.kind === 'nurbs') for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
       const k = exactly(curve3Of(f, seg), tol);
-      if ([0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u)) <= tol)) { g.cuts.push(curve2(g, k, tol)); along.push(k); }
+      if ([0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(g, pointOf(k, u), tol) <= tol)) { g.cuts.push(curve2(g, k, tol)); along.push(k); }
     }
-    const onAlong = (x: P3) => along.some(k => onCurve(k, x, 10 * tol) !== null || len(sub(x, startOf(k))) <= 10 * tol || len(sub(x, endOf(k))) <= 10 * tol);
+    const alongWithin = (x: P3, r: number) => along.some(k => onCurve(k, x, r) !== null || len(sub(x, startOf(k))) <= r || len(sub(x, endOf(k))) <= r);
+    const onAlong = (x: P3) => alongWithin(x, 10 * tol);
     const PA = { at: (p: XY) => to3Extended(fa, p), box: box(fa) }, PB = { at: (p: XY) => to3Extended(fb, p), box: box(fb) };
     let chains;
     // Ends of curves already found on either face (from their other neighbours) that lie on both surfaces.
-    const given = [fa, fb].flatMap(f => f.cuts.flatMap(g => [0, 1].map(u => to3(f, segAtAny(g, u))))).filter(x => offSurface(fa, x) <= 100 * tol && offSurface(fb, x) <= 100 * tol);
-    try { chains = intersectPatches(PA, PB, { step: Math.max(diag / 80, 50 * tol), tolerance: 100 * tol, ...(along.length ? { skip: onAlong } : {}), ...(given.length ? { seeds: given } : {}) }); }
+    const given = [fa, fb].flatMap(f => f.cuts.flatMap(g => [0, 1].map(u => to3(f, segAtAny(g, u))))).filter(x => offSurface(fa, x, 100 * tol) <= 100 * tol && offSurface(fb, x, 100 * tol) <= 100 * tol);
+    try { chains = intersectPatches(PA, PB, { step: Math.max(diag / 80, 50 * tol), tolerance: 100 * tol, ...(along.length ? { skip: onAlong, skipNear: alongWithin } : {}), ...(given.length ? { seeds: given } : {}) }); }
     catch (e) { if (e instanceof SurfaceIntersectionError) throw new Refused(`the surfaces of ${fa.name ?? 'a face'} and ${fb.name ?? 'a face'} meet along a curve that cannot be traced (${e.message.replace(/^Surface intersection: /, '')})`); throw e; }
     for (const chain of chains) {
       // A chain running along such an edge is that edge again.
       if (along.length && chain.points.every(onAlong)) continue;
-      paramCuts(chainCurve(chain, { A: PA, B: PB }), 0, 1);
+      paramCuts(chainCurve(chain, { A: PA, B: PB }), 0, 1, true);
     }
   };
   // Surfaces of revolution (cones, spheres, tori) meeting a plane square to their axis or through it,
@@ -519,7 +622,10 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
       return out.filter(([a, b]) => b - a > 1e-9 * Math.max(1, hi - lo));
     };
     const piece = (at: (t: number) => P3, lo: number, hi: number, make: (a: number, b: number) => Curve3) => {
-      for (const [l, h] of onPatches(at, lo, hi)) for (const [a, b] of overlaps(intervals(fa, { kind: 'param', at, lo: l, hi: h }, tol, true), intervals(fb, { kind: 'param', at, lo: l, hi: h }, tol, true))) if (len(sub(at(b), at(a))) > tol || b - a > 1e-6) addCut(make(a, b));
+      for (const [l, h] of onPatches(at, lo, hi)) {
+        const ia = intervals(fa, { kind: 'param', at, lo: l, hi: h }, tol, true); if (!ia.length) continue;
+        for (const [a, b] of overlaps(ia, intervals(fb, { kind: 'param', at, lo: l, hi: h }, tol, true))) if (len(sub(at(b), at(a))) > tol || b - a > 1e-6) addCut(make(a, b));
+      }
     };
     const arcAround = (centre: P3, n: P3, e1: P3, r: number) => {
       if (r <= tol) return;
@@ -531,7 +637,7 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
     const edgesOn = (g: GFace, into: GFace) => {
       for (const ring of [g.region.outer, ...g.region.holes]) for (const seg of ring) {
         const k = exactly(curve3Of(g, seg), tol);
-        if (![0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(into, pointOf(k, u)) <= tol)) continue;
+        if (![0, 0.2, 0.4, 0.6, 0.8, 1].every(u => offSurface(into, pointOf(k, u), tol) <= tol)) continue;
         if ([0.25, 0.5, 0.75].every(u => locateInRegion(to2(into, pointOf(k, u)), into.region, 10 * tol) === 'boundary')) continue;
         into.cuts.push(curve2(into, k, tol));
       }
@@ -664,6 +770,26 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
           if (Math.abs(disc(th)) > 1e-14 * L.r ** 4 * qa + 1e-300) { march(); return; }
           if (!doubles.some(z => Math.abs(z - th) < 1e-6)) doubles.push(th);
         }
+        // Unequal radii (equal ones meeting in a mitre are taken above): the smaller cylinder touches the
+        // larger one's wall from inside at each double zero, the curve's two loops meeting there where the
+        // walls are tangent. Each root t±(θ) is continuous but turns a corner at the touch, so each is cut
+        // into pieces between consecutive double zeros: every piece then ends exactly at a touch point, and
+        // the faces' arrangements and the stitch meet the four pieces there, not a curve passing through.
+        // (A fillet's tool touching along its tangent edges — on edges of both faces — comes out as the
+        // march made it; a touch outside either face is left to the march.)
+        if (Math.abs(A.r - B.r) > tol) {
+          let inside = false;
+          for (const th of doubles) {
+            const x = point(th, 1), wa = locateInRegion(to2(fa, x), fa.region, 10 * tol), wb = locateInRegion(to2(fb, x), fb.region, 10 * tol);
+            if (wa !== 'out' && wb !== 'out') inside = true;
+          }
+          if (inside) {
+            doubles.sort((a, b) => a - b);
+            for (const sign of [-1, 1]) for (let k = 0; k < doubles.length; k++)
+              paramCuts(branchOf(point, sign), doubles[k], k + 1 < doubles.length ? doubles[k + 1] : doubles[0] + TWO_PI);
+            return;
+          }
+        }
         if (!doubles.length || doubles.length % 2) { march(); return; }
         doubles.sort((a, b) => a - b);
         const sigma = (th: number) => { let k = 0; const t = ((th - (S.ref - Math.PI)) % TWO_PI + TWO_PI) % TWO_PI + S.ref - Math.PI; for (const z of doubles) if (z < t) k++; return k % 2 ? -1 : 1; };
@@ -724,6 +850,48 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number): void {
 
 /** Distance from x to a face's (untrimmed) surface. */
 /** Distance in a domain from a point to a line or arc cut. */
+/**
+ * A marched cut between t0 and t1 with its ends moved onto the exact points where they cross a boundary edge of either
+ * face (that edge meeting the other face's surface). The march traces the curve to its own tolerance (100 × tol), so
+ * the cuts of two faces sharing an edge — a lofted tool's patches — ended up to that far apart along it, and a loop of
+ * cuts across them did not close (R10.B, D99). Within 300 × tol of such a crossing; the rest of the curve is carried
+ * along linearly in t.
+ */
+function snapEnds(fa: GFace, fb: GFace, at: (t: number) => P3, t0: number, t1: number, tol: number): Curve3 {
+  const reach = 300 * tol, moves: P3[] = [];
+  for (const t of [t0, t1]) {
+    const x = at(t); let best: P3 | null = null, bd = reach;
+    for (const [f, g] of [[fa, fb], [fb, fa]] as const) for (const ring of [f.region.outer, ...f.region.holes]) for (const seg of ring) {
+      const c = edgeCrossing(curve3Of(f, seg), g, x, reach, tol), d = c ? len(sub(c, x)) : Infinity;
+      if (c && d <= bd) { best = c; bd = d; }
+    }
+    moves.push(best ? sub(best, x) : [0, 0, 0]);
+  }
+  if (moves.every(m => m[0] === 0 && m[1] === 0 && m[2] === 0)) return { kind: 'param', at, t0, t1 };
+  const [m0, m1] = moves, w = t1 - t0;
+  return { kind: 'param', at: t => add(at(t), add(scale(m0, (t1 - t) / w), scale(m1, (t - t0) / w))), t0, t1 };
+}
+/** Where the edge k meets g's surface, near x (within r of it, along k); null if it does not, to rounding. */
+function edgeCrossing(k: Curve3, g: GFace, x: P3, r: number, tol: number): P3 | null {
+  if (!boxNear(g, x, r)) return null;
+  const N = 32; let u0 = 0, d0 = Infinity;
+  for (let i = 0; i <= N; i++) { const d = len(sub(pointOf(k, i / N), x)); if (d < d0) { d0 = d; u0 = i / N; } }
+  if (d0 > r + len(sub(pointOf(k, 1 / N), pointOf(k, 0)))) return null;
+  let lo = Math.max(0, u0 - 1 / N), hi = Math.min(1, u0 + 1 / N);
+  for (let it = 0; it < 80 && hi - lo > 1e-15; it++) { const m1 = lo + (hi - lo) * 0.382, m2 = lo + (hi - lo) * 0.618; if (len(sub(pointOf(k, m1), x)) < len(sub(pointOf(k, m2), x))) hi = m2; else lo = m1; }
+  u0 = (lo + hi) / 2;
+  if (len(sub(pointOf(k, u0), x)) > r) return null;
+  const h = 1e-6, speed = len(sub(pointOf(k, Math.min(1, u0 + h)), pointOf(k, Math.max(0, u0 - h)))) / (Math.min(1, u0 + h) - Math.max(0, u0 - h));
+  if (!(speed > 0)) return null;
+  const off = (u: number) => offSurface(g, pointOf(k, u), Infinity);
+  lo = Math.max(0, u0 - 2 * r / speed); hi = Math.min(1, u0 + 2 * r / speed);
+  // (An edge lying on that surface — a face's edge in the plane it is cut by — crosses it nowhere in particular.)
+  if (off(lo) <= tol && off(hi) <= tol) return null;
+  for (let it = 0; it < 100 && hi - lo > 1e-16; it++) { const m1 = lo + (hi - lo) * 0.382, m2 = lo + (hi - lo) * 0.618; if (off(m1) < off(m2)) hi = m2; else lo = m1; }
+  const u = (lo + hi) / 2, c = pointOf(k, u);
+  return off(u) <= tol && len(sub(c, x)) <= r ? c : null;
+}
+const boxNear = (f: GFace, x: P3, r: number) => [0, 1, 2].every(i => x[i] >= f.min[i] - r && x[i] <= f.max[i] + r);
 function cutDistance(g: CurveSegment2, p: XY): number {
   if (g.kind === 'line') { const d = [g.b[0] - g.a[0], g.b[1] - g.a[1]], l2 = d[0] * d[0] + d[1] * d[1], t = l2 ? Math.max(0, Math.min(1, ((p[0] - g.a[0]) * d[0] + (p[1] - g.a[1]) * d[1]) / l2)) : 0; return Math.hypot(p[0] - g.a[0] - d[0] * t, p[1] - g.a[1] - d[1] * t); }
   if (g.kind === 'arc') {
@@ -733,13 +901,41 @@ function cutDistance(g: CurveSegment2, p: XY): number {
   }
   return Infinity;
 }
-function dedupeCuts(cuts: CurveSegment2[], tol: number): CurveSegment2[] {
+function dedupeCuts(cuts: CurveSegment2[], tol: number, planar = false): CurveSegment2[] {
   const exact = cuts.filter(g => g.kind !== 'curve'), eps = 10 * tol, at = (g: CurveSegment2, u: number) => segAtAny(g, u);
   const same = (g: CurveSegment2, h: CurveSegment2) => { const d = (x: XY, y: XY) => Math.hypot(x[0] - y[0], x[1] - y[1]) <= eps; return d(at(g, 0.5), at(h, 0.5)) && ((d(at(g, 0), at(h, 0)) && d(at(g, 1), at(h, 1))) || (d(at(g, 0), at(h, 1)) && d(at(g, 1), at(h, 0)))); };
+  const curves = cuts.filter(g => g.kind === 'curve'), lengths = new Map(curves.map(g => [g, polyLength(g)])), rank = (g: CurveSegment2) => g.kind !== 'curve' ? 0 : ((g as { exact?: boolean }).exact ? 4 : 0) + ((g as { srcCurve?: Curve }).srcCurve ? 2 : 0) + (g.src ? 1 : 0);
+  const apart = (g: CurveSegment2, h: CurveSegment2) => [0, 0.25, 0.5, 0.75, 1].every(u => curveDistance(h, at(g, u)) <= tol);
   return cuts.filter((g, i) => {
-    if (g.kind === 'curve') return !exact.length || ![0.1, 0.3, 0.5, 0.7, 0.9].every(u => { const p = at(g, u); return exact.some(e => cutDistance(e, p) <= eps); });
+    if (g.kind === 'curve') {
+      if (exact.length && [0.1, 0.3, 0.5, 0.7, 0.9].every(u => { const p = at(g, u); return exact.some(e => cutDistance(e, p) <= eps); })) return false;
+      // (Along a longer curve cut, end to end — a face's edge in the plane, copied whole as the coplanar face's boundary and
+      // again up to where it leaves the other face — it is that cut again: two copies of one curve, apart by rounding
+      // along it, would cross all along it, R10.B, D99.)
+      const lg = lengths.get(g)!;
+      // (On a plane, the same length and within rounding all along — one edge copied twice, the coplanar face's boundary
+      // and that edge lying in the plane — one copy is kept, the most exact (an exact curve, then one with its own 3D curve, then
+      // the earlier): the arrangement cut the two at every sample where they "crossed" and lost the cycles there.)
+      return !curves.some(h => h !== g && ((lengths.get(h)! > lg + eps && [0, 0.25, 0.5, 0.75, 1].every(u => curveDistance(h, at(g, u)) <= eps))
+        || (planar && Math.abs(lengths.get(h)! - lg) <= eps && (rank(h) > rank(g) || (rank(h) === rank(g) && cuts.indexOf(h) < i)) && apart(g, h))));
+    }
     return !cuts.slice(0, i).some(h => h.kind !== 'curve' && same(h, g));
   });
+}
+/** A curve cut's length along a 64-point polyline. */
+function polyLength(g: CurveSegment2): number {
+  let L = 0, p = segAtAny(g, 0);
+  for (let i = 1; i <= 64; i++) { const q = segAtAny(g, i / 64); L += Math.hypot(q[0] - p[0], q[1] - p[1]); p = q; }
+  return L;
+}
+/** The distance from p to a curve cut: nearest of 64 samples, refined by golden section either side. */
+function curveDistance(g: CurveSegment2, p: XY): number {
+  const d = (u: number) => { const q = segAtAny(g, u); return Math.hypot(q[0] - p[0], q[1] - p[1]); };
+  let u0 = 0, d0 = Infinity;
+  for (let i = 0; i <= 64; i++) { const x = d(i / 64); if (x < d0) { d0 = x; u0 = i / 64; } }
+  let lo = Math.max(0, u0 - 1 / 64), hi = Math.min(1, u0 + 1 / 64);
+  for (let it = 0; it < 60; it++) { const m1 = lo + (hi - lo) * 0.382, m2 = lo + (hi - lo) * 0.618; if (d(m1) < d(m2)) hi = m2; else lo = m1; }
+  return Math.min(d0, d((lo + hi) / 2));
 }
 /** A parametric curve that is a segment or a circular arc (to within `tol`), as one (exact domain maps, fast arrangements). */
 function exactly(k: Curve3, tol: number): Curve3 {
@@ -748,7 +944,9 @@ function exactly(k: Curve3, tol: number): Curve3 {
   const ab = sub(b, a), l = len(ab);
   if (l > tol && P.every(p => len(cross(sub(p, a), ab)) / l <= tol)) return { kind: 'line', p: a, q: b };
   // The circle through its ends and middle (a closed curve through a quarter instead).
-  const q = len(sub(b, a)) <= tol ? P[4] : b, u = sub(m, a), v = sub(q, a), n = cross(u, v), nn = dot(n, n);
+  // (Turning from the start through the middle to the end; a closed curve through its quarter to its middle — taken the
+  // other way round, the turn of a whole circle came out reversed, D149.)
+  const closed = len(sub(b, a)) <= tol, u = closed ? sub(P[4], a) : sub(m, a), v = closed ? sub(m, a) : sub(b, a), n = cross(u, v), nn = dot(n, n);
   if (nn <= tol * tol * tol * tol) return k;
   const c = add(a, scale(add(scale(cross(n, u), dot(v, v)), scale(cross(v, n), dot(u, u))), 1 / (2 * nn))), r = len(sub(a, c));
   if (!P.every(p => Math.abs(len(sub(p, c)) - r) <= tol && Math.abs(dot(sub(p, c), unit(n))) <= tol)) return k;
@@ -762,10 +960,19 @@ function exactly(k: Curve3, tol: number): Curve3 {
   if (len(sub(arcAt(arc, sweep), b)) > tol || len(sub(arcAt(arc, sweep / 2), paramAt(k, 0.5))) > tol) return k;
   return arc;
 }
-function offSurface(g: { surf: Surf }, x: P3): number {
+/**
+ * The distance from x to a face's surface, for a comparison with `limit`: when x is farther than `limit`
+ * from a NURBS patch's control-point box (which holds the patch), that box distance is returned instead
+ * (a lower bound, also past the limit) without inverting the point.
+ */
+function offSurface(g: { surf: Surf }, x: P3, limit: number): number {
   const s = g.surf;
   if (s.kind === 'plane') return Math.abs(dot(s.n, sub(x, s.o)));
-  if (s.kind === 'nurbs') return len(sub(to3(g, to2(g, x)), x));
+  if (s.kind === 'nurbs') {
+    const dx = Math.max(s.hullMin[0] - x[0], 0, x[0] - s.hullMax[0]), dy = Math.max(s.hullMin[1] - x[1], 0, x[1] - s.hullMax[1]), dz = Math.max(s.hullMin[2] - x[2], 0, x[2] - s.hullMax[2]), out = Math.hypot(dx, dy, dz);
+    if (out > limit) return out;
+    return len(sub(to3(g, to2(g, x)), x));
+  }
   const d = sub(x, s.c); return Math.abs(len(sub(d, scale(s.a, dot(d, s.a)))) - s.r);
 }
 
@@ -775,10 +982,13 @@ const RAYS: P3[] = [[0.5377, 0.3138, 0.7832], [-0.2961, 0.8573, 0.4213], [0.6993
 function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number): Where {
   if (normal) for (const g of faces) {
     if (![0, 1, 2].every(k => x[k] >= g.min[k] - 10 * tol && x[k] <= g.max[k] + 10 * tol)) continue;
-    const dist = offSurface(g, x);
+    const dist = offSurface(g, x, 10 * tol);
     if (dist > 10 * tol || locateInRegion(to2(g, x), g.region, 10 * tol) === 'out') continue;
     return dot(normal, normalOut(g, x)) > 0 ? 'same' : 'opposite';
   }
+  // (Two rays that agree decide; where they disagree — a ray passing a hair beside a patch it nearly touches, a tool
+  // tangent to a cone along a circle, its grid's triangles missing the graze — the majority of all of them, R10.B, D99.)
+  const votes: Where[] = [];
   for (const dir of RAYS) {
     let count = 0, bad = false;
     for (const g of faces) {
@@ -805,8 +1015,11 @@ function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number
       }
       if (bad) break;
     }
-    if (!bad) return count % 2 ? 'in' : 'out';
+    if (bad) continue;
+    votes.push(count % 2 ? 'in' : 'out');
+    if (votes.length === 2 && votes[0] === votes[1]) return votes[0];
   }
+  if (votes.length) { const ins = votes.filter(w => w === 'in').length; return 2 * ins > votes.length ? 'in' : 2 * ins < votes.length ? 'out' : votes[0]; }
   throw new BrepError('GEOMETRY', 'analytic Boolean: every test ray was degenerate');
 }
 
@@ -815,6 +1028,8 @@ function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number
  * Newton on (u, v, t). Null when a hit grazes the surface (degenerate ray).
  */
 function rayHits(s: Nurbs, x: P3, dir: P3, tol: number): number[] | null {
+  // (The patch lies in its control points' box: a ray that misses the box, widened, meets nothing.)
+  if (rayMissesBox(s.hullMin, s.hullMax, x, dir, 10 * tol)) return [];
   const n = 24, G = (i: number, j: number) => s.grid[i * 25 + j], out: number[] = [];
   for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) for (const tri of [[G(i, j), G(i + 1, j), G(i + 1, j + 1)], [G(i, j), G(i + 1, j + 1), G(i, j + 1)]]) {
     const e1 = sub(tri[1].x, tri[0].x), e2 = sub(tri[2].x, tri[0].x), h = cross(dir, e2), a = dot(e1, h);
@@ -833,6 +1048,9 @@ function rayHits(s: Nurbs, x: P3, dir: P3, tol: number): number[] | null {
       if (Math.abs(det) < 1e-12 * len(Su) * len(Sv)) return null; // grazing
       const inv = (r: number, c: number) => { const m = [0, 1, 2].filter(k => k !== r), q = [0, 1, 2].filter(k => k !== c); return ((r + c) % 2 ? -1 : 1) * (M[m[0]][q[0]] * M[m[1]][q[1]] - M[m[0]][q[1]] * M[m[1]][q[0]]) / det; };
       const du = inv(0, 0) * F[0] + inv(1, 0) * F[1] + inv(2, 0) * F[2], dv = inv(0, 1) * F[0] + inv(1, 1) * F[1] + inv(2, 1) * F[2], dt = inv(0, 2) * F[0] + inv(1, 2) * F[1] + inv(2, 2) * F[2];
+      // (A step that is not a number — the patch degenerate there, a ball's pole — makes the ray degenerate: another is
+      // cast, not the patch evaluated at NaN, R10.B, D99.)
+      if (!Number.isFinite(du) || !Number.isFinite(dv) || !Number.isFinite(dt)) return null;
       // Clamped to the domain (a hit beyond it is no hit: tested below).
       pu = Math.min(s.U[1], Math.max(s.U[0], pu - du)); pv = Math.min(s.V[1], Math.max(s.V[0], pv - dv)); t -= dt;
       if (len(F) < tol * 1e-3) { ok = true; break; }
@@ -841,6 +1059,19 @@ function rayHits(s: Nurbs, x: P3, dir: P3, tol: number): number[] | null {
     if (!out.some(o => Math.abs(o - t) <= 10 * tol)) out.push(t);
   }
   return out;
+}
+
+/** Whether the half-line x + t·dir (t ≥ −pad) misses the box [lo − pad, hi + pad]. */
+function rayMissesBox(lo: P3, hi: P3, x: P3, dir: P3, pad: number): boolean {
+  let near = -pad, far = Infinity;
+  for (let k = 0; k < 3; k++) {
+    const a = lo[k] - pad, b = hi[k] + pad;
+    if (Math.abs(dir[k]) < 1e-300) { if (x[k] < a || x[k] > b) return true; continue; }
+    let t0 = (a - x[k]) / dir[k], t1 = (b - x[k]) / dir[k]; if (t0 > t1) { const t = t0; t0 = t1; t1 = t; }
+    if (t0 > near) near = t0; if (t1 < far) far = t1;
+    if (near > far) return true;
+  }
+  return false;
 }
 
 // ---- the Boolean -------------------------------------------------------------------------------------
@@ -853,6 +1084,13 @@ interface Piece { face: GFace; region: CurveRegion2; out: 1 | -1; key: P3 }
  */
 export type FaceGeometry = { readonly kind: 'plane'; readonly o: P3; readonly n: P3 } | { readonly kind: 'cylinder'; readonly c: P3; readonly a: P3; readonly r: number; readonly out: 1 | -1 } | { readonly kind: 'other' };
 export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
+  // (A facet face: a plane when the whole region is flat — sketches, mates, glue and sections keep working on a
+  // flat mesh face — else other. Never thrown on.)
+  if (face.surface.kind === 'facets') {
+    const plane = facetPlane(face.surface); if (!plane) return { kind: 'other' };
+    const s = face.sense === 'forward' ? 1 : -1;
+    return { kind: 'plane', o: plane.origin, n: [plane.normal[0] * s, plane.normal[1] * s, plane.normal[2] * s] };
+  }
   const s = surfaceOf(face, linearToleranceMM(scaleMM) * 10);
   if (s.kind === 'plane') return { kind: 'plane', o: s.o, n: s.n };
   if (s.kind === 'cylinder') return { kind: 'cylinder', c: s.c, a: s.a, r: s.r, out: s.s };
@@ -863,19 +1101,26 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
  * Edges that are an exact curve's map onto a general face and lie on a circle are made that arc
  * (`exactEdges: false` keeps them fitted).
  */
-export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean } = {}): Brep {
+/** Each Boolean's pieces and their classes (debugging and tests; unset in use). */
+let booleanTrace: ((pieces: { face: string; solid: number; where: string; at: P3; area: number; cuts: number; ends: P3[][]; ring: P3[][]; raw: unknown }[]) => void) | null = null;
+export function setBooleanTrace(f: typeof booleanTrace): void { booleanTrace = f; }
+export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] } = {}): Brep {
+  // (An operation not named exactly is refused: it would otherwise fall through to another one's selection.)
+  if (operation !== 'union' && operation !== 'intersection' && operation !== 'difference') throw new BrepError('INPUT', `analytic Boolean: operation must be union, intersection or difference, not ${String(operation)}`);
   const id = options.id ?? `analytic-${operation}`;
+  for (const br of [a, b]) if (br.faces.some(isFacetFace)) throw new BrepError('GEOMETRY', 'analytic Boolean: faceted (mesh) faces are not supported yet');
   let scale = 1; for (const br of [a, b]) for (const v of br.vertices) for (const x of v.point) scale = Math.max(scale, Math.abs(x));
   const tol = linearToleranceMM(scale) * 10, span = 4 * scale + 1;
   const A = facesOf(a, 0, tol), B = facesOf(b, 1, tol);
   // 1. Cuts.
-  for (const fa of A) for (const fb of B) if (boxesMeet(fa, fb, tol)) cutPair(fa, fb, tol, span);
+  const contact = new Set(options.contactFaces ?? []), rounded = new Set((options.contactWith ?? []).map(baseName));
+  for (const fa of A) for (const fb of B) if (boxesMeet(fa, fb, tol)) cutPair(fa, fb, tol, span, contact.has(fb.id) && (!options.contactWith || rounded.has(fa.name ?? '')) && edgeOnSurface(fb, fa, tol));
   // A cut running along a face's own boundary (two finished edges meeting in a mitre already edged
   // there) adds nothing but slivers.
   for (const f of [...A, ...B]) f.cuts = f.cuts.filter(g => ![0.2, 0.5, 0.8].every(u => locateInRegion(segAtAny(g, u), f.region, 10 * tol) === 'boundary'));
   // A cut made twice (a face's edge on the other surface, and a coplanar face's boundary) is kept once,
   // the exact copy (a line or an arc) over a fitted one.
-  for (const f of [...A, ...B]) f.cuts = dedupeCuts(f.cuts, tol);
+  for (const f of [...A, ...B]) f.cuts = dedupeCuts(f.cuts, tol, f.surf.kind === 'plane');
   // 2–3. Pieces and their classes.
   const pieces: (Piece & { where: Where })[] = [];
   for (const f of [...A, ...B]) {
@@ -886,6 +1131,7 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
       pieces.push({ face: f, region, out: 1, key: x, where });
     }
   }
+  booleanTrace?.(pieces.map(p => ({ face: p.face.name ?? p.face.id, solid: p.face.solid, where: p.where, at: p.key, area: regionArea(p.region), cuts: p.face.cuts.length, ends: p.face.cuts.map(c => [to3(p.face, segAtAny(c, 0)), to3(p.face, segAtAny(c, 1))]), ring: [p.face.region.outer, ...p.face.region.holes].map(r => r.map(c => to3(p.face, segAtAny(c, 0)))), raw: { region: p.face.region, cuts: p.face.cuts, tol } })));
   // 4. Keep, flip, stitch.
   const keep = (p: { face: GFace; where: Where }): 'keep' | 'flip' | null => {
     const fromA = p.face.solid === 0, w = p.where;
@@ -897,7 +1143,287 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   const reverse = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(segReverse);
   const kept: Piece[] = pieces.flatMap(p => { const k = keep(p); if (!k) return [];
     return [{ face: p.face, out: k === 'flip' ? -1 : 1, key: p.key, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region }]; });
-  return stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false);
+  // (A tolerant input's — a fitted offset's, D110, D113 — pieces keep its tolerance: the result is tolerant as its worst.)
+  const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.toleranceMM), ...x.vertices.map(v => v.toleranceMM)]));
+  return stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol);
+}
+
+// ---- a face split along curves (D149) ---------------------------------------------------------------
+// A face cut along curves lying on it, as the Boolean cuts a face along its intersection curves: the curves clipped to the
+// face (`intervals`), mapped into its domain (`curve2`), the domain's region divided (`curveFaceRegions`) and every face
+// stitched again (`stitch`) — nothing classified or merged, so only the one face changes. The isocline n·d = 0 is such a
+// curve: closed form on a cylinder (two generators), traced on a general face (surface-isocline.ts), refused on a plane.
+/**
+ * One piece of a split face: its name in the result; `faces`, its result faces — one, or two either side of a closed
+ * general face's seam (`name` and `name#2`); for an isocline split, `side` +1 where its outward normal has n·d > 0, −1 below.
+ */
+export interface FaceSplitPiece { readonly name: string; readonly faces: readonly string[]; readonly side?: 1 | -1 }
+export interface FaceSplit { readonly brep: Brep; readonly pieces: readonly FaceSplitPiece[] }
+export interface FaceSplitOptions {
+  /** The result's id (its edges' and vertices' prefix; default `split`). */
+  readonly id?: string;
+  /** The pieces' names, in the order of `pieces` (default `<face>#1`, `<face>#2` …: the + side first, then by position). */
+  readonly names?: readonly string[];
+}
+/** A cut in the face's domain and the input curve it comes from (one curve's pieces must not cross each other). */
+interface SourcedCut { readonly seg: CurveSegment2; readonly source: number }
+const splitError = (code: 'INPUT' | 'GEOMETRY', tag: string, detail: string) => new BrepError(code, `face split: [${tag}] ${detail}`);
+const fmt3 = (x: readonly number[]) => `(${x.map(v => +v.toFixed(4)).join(', ')})`;
+
+/**
+ * The face (an id, a name, or a base name naming one face) cut along curves lying on it: each curve on its surface within
+ * the tolerance (10 × the linear tolerance at the body's scale), clipped to the face, ending on its boundary at an angle
+ * (or closed: a hole and a disc), not crossing itself. Every other face, edge name and the volume are kept.
+ * Refusals (`face split: [TAG]`): NO_FACE, AMBIGUOUS, NOT_SOLID, CURVES (INPUT); OFF_SURFACE, OFF_FACE, ON_BOUNDARY,
+ * OPEN_END, TANGENT (under 0.057° to the boundary, or touching it), SELF_CROSSING, NO_SPLIT (GEOMETRY).
+ */
+export function splitFaceAlongCurve(brep: Brep, face: string, curves: Curve | readonly Curve[], options: FaceSplitOptions = {}): FaceSplit {
+  const list: readonly Curve[] = Array.isArray(curves) ? curves : [curves as Curve];
+  if (!list.length || list.length > 64) throw splitError('INPUT', 'CURVES', 'give 1 to 64 curves');
+  list.forEach((c, i) => { try { validateCurve(c); } catch (cause) { throw splitError('INPUT', 'CURVES', `curve ${i}: ${cause instanceof Error ? cause.message : String(cause)}`); } });
+  return splitFace(brep, face, options, (f, tol) => list.flatMap((c, i) => curveCuts(f, c, i, tol)), null);
+}
+/**
+ * The face cut along its isocline n·d = 0 for the pull `pull`: its pieces each on one side (`side`). Refused on a plane
+ * (WALL when it lies along the pull, NO_ISOCLINE otherwise), on a cylinder along the pull (WALL), and where n·d keeps one
+ * sign over the face (NO_ISOCLINE); otherwise as `splitFaceAlongCurve` (an isocline crossing itself at a saddle: SELF_CROSSING).
+ */
+export function splitFaceAlongIsocline(brep: Brep, face: string, pull: readonly number[], options: FaceSplitOptions = {}): FaceSplit {
+  const l = Array.isArray(pull) && pull.length === 3 ? Math.hypot(pull[0], pull[1], pull[2]) : NaN;
+  if (!(l > 0) || !Number.isFinite(l)) throw splitError('INPUT', 'PULL', 'the pull must be a finite, nonzero [x, y, z]');
+  const d: P3 = [pull[0] / l, pull[1] / l, pull[2] / l];
+  return splitFace(brep, face, options, (f, tol, span) => isoclineCuts(f, d, tol, span), d);
+}
+
+/** A curve's pieces on the face, as domain cuts (lines and arcs kept exact; a piece of the curve itself otherwise). */
+function curveCuts(f: GFace, c: Curve, source: number, tol: number): SourcedCut[] {
+  const [t0, t1] = curveDomain(c), at = curveEvaluator(c);
+  let worst = 0, where: P3 = at(t0);
+  for (let k = 0; k <= 64; k++) { const x = at(t0 + (t1 - t0) * k / 64), e = offSurface(f, x, 1e3 * tol); if (e > worst) { worst = e; where = x; } }
+  if (worst > tol) throw splitError('GEOMETRY', 'OFF_SURFACE', `curve ${source} is ${worst.toPrecision(3)} mm off the face's surface at ${fmt3(where)} (the tolerance ${tol} mm)`);
+  const spans = intervals(f, { kind: 'param', at, lo: t0, hi: t1 }, tol, true);
+  if (!spans.length) throw splitError('GEOMETRY', 'OFF_FACE', `curve ${source} lies on the face's surface but outside the face`);
+  // (On a cylinder, pieces cut at its domain's seam, a piece of no length — a whole circle through the seam — left out.)
+  return spans.flatMap(([a, b]) => seamRanges(f, at, a, b)).filter(([a, b]) => Math.max(len(sub(at(b), at(a))), len(sub(at((a + b) / 2), at(a)))) > tol)
+    .map(([a, b]) => ({ source, seg: intoWindow(f, curve2(f, exactly({ kind: 'param', at, t0: a, t1: b, exact: true, src: c }, tol * 1e-3), tol), tol) }));
+}
+/**
+ * A cut on a cylinder face in its domain's window: an end on the seam maps to either side of it, so a line takes the side
+ * its middle has (moved whole by a turn), and a curve's points on the seam take their neighbours' side.
+ */
+function intoWindow(f: GFace, g: CurveSegment2, tol: number): CurveSegment2 {
+  const s = f.surf;
+  if (s.kind !== 'cylinder') return g;
+  const W = TWO_PI * s.r, w = [s.s * s.r * (s.ref - Math.PI), s.s * s.r * (s.ref + Math.PI)].sort((x, y) => x - y);
+  if (g.kind === 'line') {
+    const mid = segAtAny(g, 0.5), shift = Math.round((to2(f, to3(f, mid))[0] - mid[0]) / W) * W;
+    return shift ? { ...g, a: [g.a[0] + shift, g.a[1]], b: [g.b[0] + shift, g.b[1]] } : g;
+  }
+  if (g.kind !== 'curve') return g;
+  const f0 = g.f, t0 = g.t0, span = g.t1 - g.t0;
+  return { ...g, f: (t: number): XY => {
+    const q = f0(t); if (Math.abs(q[0] - w[0]) > tol && Math.abs(q[0] - w[1]) > tol) return q;
+    const n = f0(t + (t - t0 < span / 2 ? 1 : -1) * 1e-4 * span);
+    return [Math.abs(n[0] - w[0]) < Math.abs(n[0] - w[1]) ? w[0] : w[1], q[1]];
+  } };
+}
+/** The isocline's pieces on the face, as domain cuts. */
+function isoclineCuts(f: GFace, d: P3, tol: number, span: number): SourcedCut[] {
+  const s = f.surf;
+  if (s.kind === 'plane') {
+    const nd = dot(s.n, d);
+    if (Math.abs(nd) <= 1e-12) throw splitError('GEOMETRY', 'WALL', 'the face is flat and along the pull (n·d = 0 throughout): no isocline divides it');
+    throw splitError('GEOMETRY', 'NO_ISOCLINE', `the face is flat (n·d = ${nd.toPrecision(3)} throughout): it lies wholly on one side`);
+  }
+  const out: SourcedCut[] = [];
+  if (s.kind === 'cylinder') {
+    // The generators where the radial direction is square to the pull: ±(a × d⊥).
+    const perp = sub(d, scale(s.a, dot(d, s.a)));
+    if (len(perp) <= 1e-12) throw splitError('GEOMETRY', 'WALL', 'the face is a cylinder along the pull (n·d = 0 throughout): no isocline divides it');
+    const rho = unit(cross(s.a, perp));
+    [1, -1].forEach((sg, source) => {
+      const p = add(s.c, scale(rho, sg * s.r));
+      for (const [lo, hi] of intervals(f, { kind: 'line', p, d: s.a, lo: -span, hi: span }, tol)) if (hi - lo > tol) out.push({ source, seg: curve2(f, { kind: 'line', p: add(p, scale(s.a, lo)), q: add(p, scale(s.a, hi)) }, tol) });
+    });
+    if (!out.length) throw splitError('GEOMETRY', 'NO_ISOCLINE', 'the isocline misses the face: it lies wholly on one side');
+    return out;
+  }
+  // (n·d ≈ 0 all over: a general wall along the pull, a ruled sweep of the pull.)
+  let most = 0; for (let i = 1; i < 8; i++) for (let j = 1; j < 8; j++) { const u = s.U[0] + (s.U[1] - s.U[0]) * i / 8, v = s.V[0] + (s.V[1] - s.V[0]) * j / 8; most = Math.max(most, Math.abs(dot(nurbsNormal(s, [u, v]), d))); }
+  if (most <= 1e-9) throw splitError('GEOMETRY', 'WALL', 'the face lies along the pull (n·d = 0 throughout): no isocline divides it');
+  surfaceIsoclines(s.S, d, { toleranceMM: tol / 4 }).forEach((line, source) => {
+    const P = line.uv, M = line.closed ? P.length : P.length - 1;
+    if (M < 1) return;
+    const uvAt = (t: number): XY => {
+      const i = Math.min(M - 1, Math.max(0, Math.floor(t))), [p0, p1, p2, p3] = chainNeighbours(P, i, line.closed), q = catmullRom(p0, p1, p2, p3, t - i);
+      return [Math.min(s.U[1], Math.max(s.U[0], q[0])), Math.min(s.V[1], Math.max(s.V[0], q[1]))];
+    };
+    const at3 = (t: number): P3 => { const q = uvAt(t); return s.ev(q[0], q[1]); };
+    const seg = { kind: 'curve' as const, f: (t: number): XY => { const q = uvAt(t); return [q[0] * s.ku, q[1] * s.kv]; }, t0: 0, t1: M, src: at3, exact: true } as CurveSegment2 & { kind: 'curve' };
+    const params = [0, M];
+    for (const ring of [f.region.outer, ...f.region.holes]) for (const g of ring) for (const x of intersectSegments(seg, g, tol)) params.push(M * paramOfCurve(seg, x));
+    for (const [a, b] of insideIntervals(f, params, at3, tol, true)) out.push({ source, seg: { ...seg, t0: a, t1: b } });
+  });
+  if (!out.length) throw splitError('GEOMETRY', 'NO_ISOCLINE', 'n·d keeps one sign over the face: it lies wholly on one side');
+  return out;
+}
+
+/** The part of a segment between fractions u0 and u1. */
+function subSegment(g: CurveSegment2, u0: number, u1: number): CurveSegment2 {
+  if (g.kind === 'line') return { ...g, a: segAtAny(g, u0), b: segAtAny(g, u1) };
+  if (g.kind === 'arc') return { ...g, t0: g.t0 + g.sweep * u0, sweep: g.sweep * (u1 - u0) };
+  return { ...g, t0: g.t0 + (g.t1 - g.t0) * u0, t1: g.t0 + (g.t1 - g.t0) * u1 };
+}
+/**
+ * A cut without its runs along the face's boundary (an isocline along a face's flat edge, where n·d = 0, before it turns in):
+ * 256 samples, a run on the boundary (within 10 × tol) longer than 100 × tol left out, its ends found by bisection to a
+ * hundredth of the tolerance so the pieces left still end on the boundary. A cut wholly on it is left out.
+ */
+function offBoundary(f: GFace, c: SourcedCut, tol: number): SourcedCut[] {
+  const rings = [f.region.outer, ...f.region.holes], g = c.seg, N = 256;
+  const d = (u: number) => { const p = segAtAny(g, u); let m = Infinity; for (const ring of rings) for (const h of ring) m = Math.min(m, segDistance(h, p)); return m; };
+  const on = Array.from({ length: N + 1 }, (_, k) => d(k / N) <= 10 * tol);
+  if (!on.some(x => x)) return [c];
+  if (on.every(x => x)) return [];
+  // Runs on the boundary, by sample index.
+  const runs: [number, number][] = [];
+  for (let k = 0; k <= N; k++) if (on[k] && (k === 0 || !on[k - 1])) { let e = k; while (e < N && on[e + 1]) e++; runs.push([k, e]); }
+  const edge = (a: number, b: number) => { let lo = a, hi = b; for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (d(m) <= 1e-2 * tol) lo = m; else hi = m; } return lo; };
+  const cuts: [number, number][] = [];
+  let from = 0;
+  for (const [a, b] of runs) {
+    const u0 = a === 0 ? 0 : edge(a / N, (a - 1) / N), u1 = b === N ? 1 : edge(b / N, (b + 1) / N);
+    if (len(sub(to3(f, segAtAny(g, u1)), to3(f, segAtAny(g, u0)))) <= 100 * tol) continue;
+    if (u0 > from) cuts.push([from, u0]);
+    from = u1;
+  }
+  if (from < 1) cuts.push([from, 1]);
+  return cuts.filter(([a, b]) => len(sub(to3(f, segAtAny(g, b)), to3(f, segAtAny(g, a)))) > 10 * tol || len(sub(to3(f, segAtAny(g, (a + b) / 2)), to3(f, segAtAny(g, a)))) > 10 * tol)
+    .map(([a, b]) => ({ source: c.source, seg: a === 0 && b === 1 ? g : subSegment(g, a, b) }));
+}
+/** A 3D tangent of a domain segment at u (∈ [0, 1]), by a central difference through the face's map. */
+function tangent3(f: GFace, g: CurveSegment2, u: number): P3 {
+  const h = 1e-5, a = Math.max(0, u - h), b = Math.min(1, u + h);
+  return sub(to3(f, segAtAny(g, b)), to3(f, segAtAny(g, a)));
+}
+/** Whether segments ab and cd cross properly (each strictly across the other's line). */
+function crossesProperly(a: XY, b: XY, c: XY, d: XY): boolean {
+  const o = (p: XY, q: XY, r: XY) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+  return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0;
+}
+/** The cuts' ends on the boundary at an angle (or on another cut), their insides off it, no curve across itself. */
+function checkCuts(f: GFace, cuts: readonly SourcedCut[], tol: number, what: string): void {
+  const region = f.region, rings = [region.outer, ...region.holes], eps = 10 * tol;
+  for (const c of cuts) {
+    const k = curve3Of(f, c.seg);
+    if (len(sub(startOf(k), endOf(k))) > eps) for (const u of [0, 1]) {
+      const p = segAtAny(c.seg, u);
+      if (locateInRegion(p, region, eps) === 'boundary') {
+        const t1 = tangent3(f, c.seg, u);
+        for (const ring of rings) for (const g of ring) if (segDistance(g, p) <= eps) {
+          // (A domain side collapsed to a point — a pole — has no direction: nothing to meet at an angle.)
+          const t2 = tangent3(f, g, Math.min(1, Math.max(0, paramOfCurve(g, p)))); if (len(t2) <= 1e-9 * len(t1)) continue;
+          const sine = len(cross(t1, t2)) / (len(t1) * len(t2));
+          if (!(sine >= 1e-3)) throw splitError('GEOMETRY', 'TANGENT', `the ${what} meets the face's boundary at ${fmt3(to3(f, p))} at ${(Math.asin(Math.min(1, sine)) * 180 / Math.PI).toPrecision(3)}° (under 0.057°: a sliver)`);
+        }
+        continue;
+      }
+      if (cuts.some(o => o !== c && segDistance(o.seg, p) <= eps)) continue;
+      throw splitError('GEOMETRY', 'OPEN_END', `the ${what} ends inside the face at ${fmt3(to3(f, p))}: it must run to the boundary or close on itself`);
+    }
+    for (let i = 2; i <= 62; i++) {
+      const p = segAtAny(c.seg, i / 64);
+      if (locateInRegion(p, region, tol) === 'boundary') throw splitError('GEOMETRY', 'TANGENT', `the ${what} touches the face's boundary at ${fmt3(to3(f, p))}`);
+    }
+  }
+  // One curve's pieces, as 64-chord polylines in the domain, crossing each other (not at their ends).
+  const sources = [...new Set(cuts.map(c => c.source))];
+  for (const s of sources) {
+    const mine = cuts.filter(c => c.source === s), polys = mine.map(c => Array.from({ length: 65 }, (_, i) => segAtAny(c.seg, i / 64))), ends = polys.flatMap(p => [p[0], p[64]]);
+    for (let a = 0; a < polys.length; a++) for (let b = a; b < polys.length; b++) for (let i = 0; i < 64; i++) for (let j = a === b ? i + 2 : 0; j < 64; j++) {
+      if (a === b && i === 0 && j === 63) continue;
+      const A = polys[a], B = polys[b];
+      if (!crossesProperly(A[i], A[i + 1], B[j], B[j + 1])) continue;
+      const m: XY = [(A[i][0] + A[i + 1][0]) / 2, (A[i][1] + A[i + 1][1]) / 2];
+      if (ends.some(e => Math.hypot(e[0] - m[0], e[1] - m[1]) <= eps)) continue;
+      throw splitError('GEOMETRY', 'SELF_CROSSING', `the ${what} crosses itself near ${fmt3(to3(f, m))}`);
+    }
+  }
+}
+/** The fraction along k of the point nearest x, and its distance (64 samples, then a golden-section search). */
+function nearestOn(k: Curve3, x: P3): { t: number; d: number } {
+  const d = (u: number) => len(sub(pointOf(k, u), x));
+  let best = 0, bd = Infinity; for (let i = 0; i <= 64; i++) { const v = d(i / 64); if (v < bd) { bd = v; best = i / 64; } }
+  let lo = Math.max(0, best - 1 / 64), hi = Math.min(1, best + 1 / 64);
+  for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (d(m1) < d(m2)) hi = m2; else lo = m1; }
+  const t = (lo + hi) / 2, dt = d(t);
+  return dt < bd ? { t, d: dt } : { t: best, d: bd };
+}
+/** Domain pieces grouped by meeting across the face's seam (an edge its loops use twice): each group one piece of the face. */
+function seamGroups(brep: Brep, target: BrepFace, pieces: readonly Piece[], tol: number): Piece[][] {
+  const loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c])), edges = new Map(brep.edges.map(e => [e.id, e]));
+  const used = target.loops.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge));
+  const seams = [...new Set(used.filter((e, i) => used.indexOf(e) !== i))].map(e => curve3(edges.get(e)!.curve, true));
+  const root = pieces.map((_, i) => i), find = (x: number): number => { while (root[x] !== x) x = root[x] = root[root[x]]; return x; };
+  if (seams.length) {
+    // Each piece's spans along each seam (fractions of the seam edge).
+    const spans = pieces.map(p => {
+      const out: { seam: number; lo: number; hi: number }[] = [];
+      for (const ring of [p.region.outer, ...p.region.holes]) for (const g of ring) {
+        const k = curve3Of(p.face, g);
+        seams.forEach((sk, si) => {
+          if (![0.1, 0.5, 0.9].every(u => nearestOn(sk, pointOf(k, u)).d <= 10 * tol)) return;
+          const a = nearestOn(sk, pointOf(k, 0)).t, b = nearestOn(sk, pointOf(k, 1)).t;
+          out.push({ seam: si, lo: Math.min(a, b), hi: Math.max(a, b) });
+        });
+      }
+      return out;
+    });
+    for (let i = 0; i < pieces.length; i++) for (let j = i + 1; j < pieces.length; j++)
+      if (spans[i].some(a => spans[j].some(b => a.seam === b.seam && Math.min(a.hi, b.hi) - Math.max(a.lo, b.lo) > 1e-9))) root[find(i)] = find(j);
+  }
+  const groups = new Map<number, Piece[]>();
+  pieces.forEach((p, i) => { const r = find(i), list = groups.get(r); if (list) list.push(p); else groups.set(r, [p]); });
+  return [...groups.values()];
+}
+const byKey = (a: Piece, b: Piece) => a.key[0] - b.key[0] || a.key[1] - b.key[1] || a.key[2] - b.key[2];
+
+function splitFace(brep: Brep, ref: string, options: FaceSplitOptions, cutsOf: (f: GFace, tol: number, span: number) => SourcedCut[], pull: P3 | null): FaceSplit {
+  const what = pull ? 'isocline' : 'curve';
+  if (typeof ref !== 'string' || !ref) throw splitError('INPUT', 'NO_FACE', 'name the face to split (its id or name)');
+  if (brep.faces.some(isFacetFace)) throw new BrepError('GEOMETRY', 'face split: faceted (mesh) faces are not supported yet');
+  if (brep.bodies.some(b => b.kind !== 'solid') || brep.shells.some(s => !s.closed)) throw splitError('INPUT', 'NOT_SOLID', 'the body must be a closed solid');
+  const byBase = brep.faces.filter(x => x.name !== undefined && baseName(x.name) === ref);
+  const target = brep.faces.find(x => x.id === ref) ?? brep.faces.find(x => x.name === ref) ?? (byBase.length === 1 ? byBase[0] : undefined);
+  if (!target) throw splitError('INPUT', byBase.length ? 'AMBIGUOUS' : 'NO_FACE', byBase.length ? `${ref} names ${byBase.length} faces (${byBase.map(x => x.name).join(', ')}): name one` : `no face ${ref}`);
+  let scaleMM = 1; for (const v of brep.vertices) for (const x of v.point) scaleMM = Math.max(scaleMM, Math.abs(x));
+  const tol = linearToleranceMM(scaleMM) * 10, span = 4 * scaleMM + 1, index = brep.faces.indexOf(target);
+  const F = facesOf(brep, 0, tol), f = F[index];
+  // A cut along the face's own boundary divides nothing: those runs of it are left out.
+  const cuts = cutsOf(f, tol, span).flatMap(c => offBoundary(f, c, tol));
+  if (!cuts.length) throw splitError('GEOMETRY', 'ON_BOUNDARY', pull ? 'the isocline runs along the face\'s boundary: the face lies wholly on one side' : 'the curve runs along the face\'s boundary');
+  checkCuts(f, cuts, tol, what);
+  const segs = dedupeCuts(cuts.map(c => c.seg), tol, f.surf.kind === 'plane');
+  const regions = curveFaceRegions([f.region.outer, ...f.region.holes], segs, tol).filter(r => regionInteriorPoint(r) !== null && Math.abs(regionArea(r)) > tol * tol);
+  const mine: Piece[] = regions.map(region => ({ face: f, region, out: 1 as const, key: to3(f, regionInteriorPoint(region)!) }));
+  let groups = seamGroups(brep, target, mine, tol);
+  if (groups.length < 2) throw splitError('GEOMETRY', 'NO_SPLIT', `the ${what} does not divide the face (it only opens it along its seam)`);
+  // A piece across a cylinder's seam joins in one face (its domain centred in the gap the other pieces leave).
+  groups = groups.map(g => (g.length > 1 && f.surf.kind === 'cylinder' ? mergePieces(g, tol) : g).sort(byKey));
+  const sideOf = (g: Piece[]): 1 | -1 | undefined => pull ? (dot(normalOut({ ...g[0].face, out: g[0].out }, g[0].key), pull) >= 0 ? 1 : -1) : undefined;
+  const sides = new Map(groups.map(g => [g, sideOf(g)]));
+  groups.sort((a, b) => (sides.get(b) ?? 0) - (sides.get(a) ?? 0) || byKey(a[0], b[0]));
+  const base = target.name ?? target.id, given = options.names;
+  if (given !== undefined && (!Array.isArray(given) || given.length !== groups.length || !given.every(n => typeof n === 'string' && n) || new Set(given).size !== given.length))
+    throw splitError('INPUT', 'NAMES', `give ${groups.length} distinct names for the ${groups.length} pieces`);
+  const names = given ?? groups.map((_, k) => `${base}#${k + 1}`), taken = new Set(brep.faces.filter(x => x !== target).map(x => x.name));
+  const pieces: FaceSplitPiece[] = groups.map((g, k) => ({ name: names[k], faces: g.map((_, j) => j ? `${names[k]}#${j + 1}` : names[k]), ...(pull ? { side: sides.get(g)! } : {}) }));
+  for (const p of pieces) for (const n of p.faces) if (taken.has(n)) throw splitError('INPUT', 'NAMES', `${n} is already a face's name: give the pieces other names`);
+  const others = F.flatMap((g, i) => i === index ? [] : [{ face: g, region: g.region, out: 1 as const, key: to3(g, regionInteriorPoint(g.region) ?? segAtAny(g.region.outer[0], 0)) }]);
+  const all: Piece[] = [...others, ...groups.flat()];
+  const faceNames = [...brep.faces.filter((_, i) => i !== index).map(x => x.name), ...pieces.flatMap(p => p.faces)];
+  const inputTol = Math.max(0, ...brep.edges.map(e => e.toleranceMM), ...brep.vertices.map(v => v.toleranceMM));
+  return { brep: stitch(all, options.id ?? 'split', tol, true, inputTol, faceNames), pieces };
 }
 
 // ---- merging ----------------------------------------------------------------------------------------
@@ -906,6 +1432,8 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
  * in a common domain (the first piece's; for a cylinder, centred so its seam falls in a gap between
  * the pieces). The joined face keeps the first piece's name. A full turn of pieces stays as it is.
  */
+/** A bucket key of four integers (collisions only cost a check). */
+const planeKey = (a: number, b: number, c: number, d: number) => (Math.imul(a, 73856093) ^ Math.imul(b, 19349663) ^ Math.imul(c, 83492791) ^ Math.imul(d, 2654435761)) >>> 0;
 function mergePieces(pieces: Piece[], tol: number): Piece[] {
   const facing = (p: Piece): P3 => { const s = p.face.surf; return s.kind === 'plane' ? scale(s.n, p.out) : s.kind === 'cylinder' ? scale(s.a, s.s * p.out) : [0, 0, 0]; };
   const same = (a: Piece, b: Piece) => {
@@ -918,8 +1446,30 @@ function mergePieces(pieces: Piece[], tol: number): Piece[] {
     }
     return false;
   };
-  const groups: Piece[][] = [];
-  for (const p of pieces) { const g = groups.find(x => same(x[0], p)); if (g) g.push(p); else groups.push([p]); }
+  // (Planes indexed by their facing normal and offset, quantized coarsely: a piece is checked against the groups in
+  // its bucket and the neighbouring ones only, and still joins the earliest group it matches — a mesh-sized body
+  // of thousands of planar pieces is not every piece against every group.)
+  const groups: Piece[][] = [], others: number[] = [], planes = new Map<number, number[]>();
+  let size = 1; for (const p of pieces) if (p.face.surf.kind === 'plane') size = Math.max(size, Math.abs(dot(p.face.surf.n, p.face.surf.o)));
+  const qn = 1e-4, qc = Math.max(1e-4 * size, 1000 * tol);
+  for (const p of pieces) {
+    const S = p.face.surf;
+    if (S.kind !== 'plane') {
+      let g = -1; for (const i of others) if (same(groups[i][0], p)) { g = i; break; }
+      if (g >= 0) groups[g].push(p); else { others.push(groups.length); groups.push([p]); }
+      continue;
+    }
+    const f = facing(p), c = dot(f, S.o), key = [Math.round(f[0] / qn), Math.round(f[1] / qn), Math.round(f[2] / qn), Math.round(c / qc)];
+    let g = -1;
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let d = -1; d <= 1; d++) for (let e = -1; e <= 1; e++) {
+      const list = planes.get(planeKey(key[0] + a, key[1] + b, key[2] + d, key[3] + e)); if (!list) continue;
+      for (const i of list) if ((g < 0 || i < g) && same(groups[i][0], p)) g = i;
+    }
+    if (g >= 0) { groups[g].push(p); continue; }
+    const k = planeKey(key[0], key[1], key[2], key[3]), list = planes.get(k);
+    if (list) list.push(groups.length); else planes.set(k, [groups.length]);
+    groups.push([p]);
+  }
   return groups.flatMap(group => {
     if (group.length === 1) return group;
     const first = group[0], s0 = first.face.surf;
@@ -970,14 +1520,49 @@ const pointOf = (k: Curve3, u: number): P3 => k.kind === 'line' ? add(k.p, scale
 const startOf = (k: Curve3): P3 => k.kind === 'line' ? k.p : k.kind === 'param' ? k.at(k.t0) : arcAt(k, 0);
 const endOf = (k: Curve3): P3 => k.kind === 'line' ? k.q : k.kind === 'param' ? k.at(k.t1) : arcAt(k, k.sweep);
 const midOf = (k: Curve3): P3 => k.kind === 'line' ? scale(add(k.p, k.q), 0.5) : k.kind === 'param' ? paramAt(k, 0.5) : arcAt(k, k.sweep / 2);
+/** Points in the cells of a uniform grid (about two a cell), for the vertices near a curve. */
+interface VertexGrid { readonly points: readonly P3[]; readonly lo: P3; readonly cell: number; readonly n: readonly [number, number, number]; readonly cells: Map<number, number[]> }
+function vertexGrid(points: readonly P3[]): VertexGrid {
+  const lo: P3 = [Infinity, Infinity, Infinity], hi: P3 = [-Infinity, -Infinity, -Infinity];
+  for (const p of points) for (let k = 0; k < 3; k++) { if (p[k] < lo[k]) lo[k] = p[k]; if (p[k] > hi[k]) hi[k] = p[k]; }
+  const span = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2], 1e-12), cell = span / Math.max(1, Math.cbrt(points.length / 2));
+  const n: [number, number, number] = [0, 1, 2].map(k => Math.max(1, Math.ceil((hi[k] - lo[k]) / cell) + 1)) as [number, number, number], cells = new Map<number, number[]>();
+  points.forEach((p, v) => {
+    const key = cellOf(p[0], lo[0], cell, n[0]) + n[0] * (cellOf(p[1], lo[1], cell, n[1]) + n[1] * cellOf(p[2], lo[2], cell, n[2]));
+    const list = cells.get(key); if (list) list.push(v); else cells.set(key, [v]);
+  });
+  return { points, lo, cell, n, cells };
+}
+const cellOf = (x: number, lo: number, cell: number, n: number) => Math.min(n - 1, Math.max(0, Math.floor((x - lo) / cell)));
+/** The box lo–hi grown to take p padded by pad. */
+function widen(lo: P3, hi: P3, p: P3, pad: number): void { for (let i = 0; i < 3; i++) { if (p[i] - pad < lo[i]) lo[i] = p[i] - pad; if (p[i] + pad > hi[i]) hi[i] = p[i] + pad; } }
+/** The vertices whose cells meet the curve's box widened by eps (a line's ends, an arc's circle, a traced curve's samples): every vertex onCurve could take. */
+function nearCurve(g: VertexGrid, k: Curve3, eps: number): number[] {
+  const lo: P3 = [Infinity, Infinity, Infinity], hi: P3 = [-Infinity, -Infinity, -Infinity];
+  if (k.kind === 'line') { widen(lo, hi, k.p, eps); widen(lo, hi, k.q, eps); }
+  else if (k.kind === 'arc') widen(lo, hi, k.c, k.r + eps);
+  else { const pre = sampledOf(k); widen(lo, hi, pre.min, eps); widen(lo, hi, pre.max, eps); }
+  const a = [0, 1, 2].map(i => cellOf(lo[i], g.lo[i], g.cell, g.n[i])), b = [0, 1, 2].map(i => cellOf(hi[i], g.lo[i], g.cell, g.n[i]));
+  // (A curve across most of the body: every vertex, as before.)
+  if ((b[0] - a[0] + 1) * (b[1] - a[1] + 1) * (b[2] - a[2] + 1) > g.cells.size) return g.points.map((_, v) => v);
+  const out: number[] = [];
+  for (let z = a[2]; z <= b[2]; z++) for (let y = a[1]; y <= b[1]; y++) for (let x = a[0]; x <= b[0]; x++) {
+    const list = g.cells.get(x + g.n[0] * (y + g.n[1] * z)); if (list) for (const v of list) out.push(v);
+  }
+  return out;
+}
 /** Parameter in [0, 1] of a point on the curve, or null when it is not on it (within eps). */
 const sampled = new WeakMap<Curve3, { ps: P3[]; min: P3; max: P3 }>();
+function sampledOf(k: Extract<Curve3, { kind: 'param' }>): { ps: P3[]; min: P3; max: P3 } {
+  let pre = sampled.get(k);
+  if (!pre) { const ps = Array.from({ length: 65 }, (_, i) => paramAt(k, i / 64)), pad = len(sub(ps[1], ps[0])) + len(sub(ps[64], ps[63]));
+    pre = { ps, min: [0, 1, 2].map(a => Math.min(...ps.map(p => p[a])) - pad) as P3, max: [0, 1, 2].map(a => Math.max(...ps.map(p => p[a])) + pad) as P3 }; sampled.set(k, pre); }
+  return pre;
+}
 function onCurve(k: Curve3, x: P3, eps: number): number | null {
   if (k.kind === 'param') {
     // Samples and their box, once per curve: most vertices are far from most curves.
-    let pre = sampled.get(k);
-    if (!pre) { const ps = Array.from({ length: 65 }, (_, i) => paramAt(k, i / 64)), pad = len(sub(ps[1], ps[0])) + len(sub(ps[64], ps[63]));
-      pre = { ps, min: [0, 1, 2].map(a => Math.min(...ps.map(p => p[a])) - pad) as P3, max: [0, 1, 2].map(a => Math.max(...ps.map(p => p[a])) + pad) as P3 }; sampled.set(k, pre); }
+    const pre = sampledOf(k);
     if (![0, 1, 2].every(a => x[a] >= pre!.min[a] - eps && x[a] <= pre!.max[a] + eps)) return null;
     const d2 = (u: number) => { const p = paramAt(k, u); return (p[0] - x[0]) ** 2 + (p[1] - x[1]) ** 2 + (p[2] - x[2]) ** 2; };
     let best = 0, bd = Infinity; for (let i = 0; i <= 64; i++) { const p = pre.ps[i], v = (p[0] - x[0]) ** 2 + (p[1] - x[1]) ** 2 + (p[2] - x[2]) ** 2; if (v < bd) { bd = v; best = i; } }
@@ -998,9 +1583,18 @@ function part(k: Curve3, t0: number, t1: number, p: P3, q: P3): Curve3 {
   const e2 = cross(k.n, k.u), phi = k.sweep * t0;
   return { ...k, u: unit(add(scale(k.u, Math.cos(phi)), scale(e2, Math.sin(phi)))), sweep: k.sweep * (t1 - t0) };
 }
+/** An input edge's curve between two of its parameters (either order), exactly, its ends at the stitched vertices p, q. */
+function pieceOf(src: Curve, t0: number, t1: number, id: string, p: P3, q: P3): Curve {
+  const piece = curvePiece(src, Math.min(t0, t1), Math.max(t0, t1), id), c = t0 <= t1 ? piece : curveReversed(piece), cp = c.controlPoints.map(x => [...x] as P3);
+  cp[0] = p; cp[cp.length - 1] = q;
+  // (On [0, 1], as the kernel's other edges: a walk back along a coedge then ends on its domain, not an ulp off it.)
+  const lo = c.knots[0], span = c.knots[c.knots.length - 1] - lo;
+  return { ...c, id, controlPoints: cp, knots: c.knots.map((k, i) => i === c.knots.length - 1 ? 1 : (k - lo) / span) };
+}
 /** A curve as a NURBS edge: lines degree 1; arcs rational quadratic in spans of at most a quarter turn. */
 function nurbs(k: Curve3, id: string, p: P3, q: P3, tol = 0): Curve {
   if (k.kind === 'line') return lineCurve(id, p, q);
+  if (k.kind === 'param' && k.src) return pieceOf(k.src, k.t0, k.t1, id, p, q);
   if (k.kind === 'param') return fitCubic(k, id, p, q, tol);
   const spans = Math.max(1, Math.ceil(k.sweep / (Math.PI / 2) - 1e-12)), dt = k.sweep / spans, w = Math.cos(dt / 2);
   const cp: P3[] = [p], wt = [1], knots = [0, 0, 0];
@@ -1042,7 +1636,18 @@ function fitPieces(k: Curve3, tol: number, depth = 0): Curve3[] {
   return [...fitPieces({ ...k, t1: m }, tol, depth + 1), ...fitPieces({ ...k, t0: m }, tol, depth + 1)];
 }
 
-function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): Brep {
+/** A region's boundary length (its curves by 16 chords each). */
+function regionLength(region: CurveRegion2): number {
+  let total = 0;
+  for (const ring of [region.outer, ...region.holes]) for (const g of ring) {
+    let last = segAtAny(g, 0);
+    for (let k = 1; k <= 16; k++) { const q = segAtAny(g, k / 16); total += Math.hypot(q[0] - last[0], q[1] - last[1]); last = q; }
+  }
+  return total;
+}
+
+/** `names`: per piece, its face's name as given (a face split keeps every other face's name exactly, D149). */
+function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[]): Brep {
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
   // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
   const set = new PointSet3(20 * tol);
@@ -1055,7 +1660,8 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
   };
   // Curves of no length (a domain side at a pole) are not edges.
   const point = (k: Curve3) => [0.25, 0.5, 0.75, 1].every(u => len(sub(pointOf(k, u), startOf(k))) <= tol);
-  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(exactEdges && k.kind === 'param' && k.exact ? exactly(k, tol * 1e-3) : k).flatMap(x => fitPieces(x, tol / 4)); })));
+  // (A piece of an input edge's own curve stays that curve: no fit, D90.)
+  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(exactEdges && k.kind === 'param' && k.exact ? exactly(k, tol * 1e-3) : k).flatMap(x => x.kind === 'param' && x.src ? [x] : fitPieces(x, tol / 4)); })));
   for (const ps of rings) for (const ring of ps) for (const k of ring) { set.add(startOf(k)); set.add(endOf(k)); }
   const P = set.points;
   // Consecutive pieces of one ring meet at one vertex: a traced curve's end lands within its tracing
@@ -1078,9 +1684,12 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
     if (e === undefined) { e = edges.length; edges.push({ id: `${id}_e${e}`, k, v: [a, b], mid }); list.push(e); between.set(key, list); }
     return { edge: edges[e].id, sense: (edges[e].v[0] === a ? 'forward' : 'reversed') as 'forward' | 'reversed', index: e };
   };
+  // (Only the vertices in a curve's box can lie on it: a grid over them, so a mesh-sized body is not every
+  // vertex against every curve.)
+  const grid = vertexGrid(P);
   const loops = rings.map(ps => ps.map(ring => ring.flatMap(k => {
     const a = vertexOf(startOf(k)), b = vertexOf(endOf(k)), stops = [{ t: 0, v: a }];
-    P.forEach((x, v) => { if (v === a || v === b || alias[v] !== v) return; const t = onCurve(k, x, tol); if (t !== null) stops.push({ t, v }); });
+    for (const v of nearCurve(grid, k, tol)) { if (v === a || v === b || alias[v] !== v) continue; const t = onCurve(k, P[v], tol); if (t !== null) stops.push({ t, v }); }
     stops.sort((x, y) => x.t - y.t); stops.push({ t: 1, v: b });
     const out: ReturnType<typeof edgeOf>[] = [];
     for (let i = 0; i + 1 < stops.length; i++) if (stops[i].v !== stops[i + 1].v) out.push(edgeOf(part(k, stops[i].t, stops[i + 1].t, P[stops[i].v], P[stops[i + 1].v]), stops[i].v, stops[i + 1].v));
@@ -1097,7 +1706,7 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
   const vertexAt = (p: number, e: number) => { const r = vfind(`${p}|${e}`); let v = vertexIds.get(r); if (!v) { v = `${id}_v${vertexList.length}`; vertexIds.set(r, v); vertexList.push({ id: v, point: P[p] }); } return v; };
   // Every edge is used once in each direction.
   const uses = new Map<number, { piece: number; sense: string }[]>();
-  loops.forEach((ls, pi) => ls.flat().forEach(u => uses.set(u.index, [...(uses.get(u.index) ?? []), { piece: pi, sense: u.sense }])));
+  loops.forEach((ls, pi) => ls.flat().forEach(u => { const list = uses.get(u.index), use = { piece: pi, sense: u.sense }; if (list) list.push(use); else uses.set(u.index, [use]); }));
   for (const [e, list] of uses) if (list.length !== 2 || list[0].sense === list[1].sense)
     throw new BrepError('TOPOLOGY', `analytic Boolean: the result is not a manifold solid (edge ${e} from ${P[edges[e].v[0]].map(x => +x.toFixed(4))} to ${P[edges[e].v[1]].map(x => +x.toFixed(4))} has ${list.length} uses; the inputs touch along an edge or at a vertex)`);
   // Shells by connectivity, signed volume by the divergence theorem (exact on these pieces).
@@ -1126,19 +1735,29 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
     }
     return s.s * acc / 3;
   };
-  const shells = new Map<number, number[]>(); pieces.forEach((_, i) => shells.set(find(i), [...(shells.get(find(i)) ?? []), i]));
+  const shells = new Map<number, number[]>(); pieces.forEach((_, i) => { const r = find(i), list = shells.get(r); if (list) list.push(i); else shells.set(r, [i]); });
   const asFaces = (members: number[]): GFace[] => members.map(i => ({ ...pieces[i].face, region: pieces[i].region, out: pieces[i].out }));
   // With general surfaces the volume is approximate (domain-triangulated pieces): its sign comes from
   // whether a point just outside a face lies within the shell (a cavity's faces face its void).
+  const reach = P.reduce((r, x) => Math.max(r, len(x)), 1);
   const groups = [...shells.values()].map(m => {
     const v = m.reduce((acc, i) => acc + volume(i), 0);
-    if (!m.some(i => pieces[i].face.surf.kind === 'nurbs')) return { members: m, volume: v };
+    // (The pieces' traced boundaries are good to the tolerance, so the volume about the origin is good to about
+    // tol × reach × their length: a shell thinner than that — a sliver where an edge grazes a wall — has no
+    // sign of its own. Its nesting decides it below.)
+    if (!m.some(i => pieces[i].face.surf.kind === 'nurbs')) return { members: m, volume: v, unsure: Math.abs(v) <= tol * reach * m.reduce((acc, i) => acc + regionLength(pieces[i].region), 0) };
     // (A point by a seam or an edge can be misjudged: several pieces vote, the volume's sign breaks a tie.)
     const faces = asFaces(m), voters = m.filter((_, k) => k % Math.max(1, Math.floor(m.length / 7)) === 0).slice(0, 7);
     const votes = voters.reduce((acc, i) => { const p = pieces[i], x = p.key, n = normalOut({ ...p.face, out: p.out }, x); return acc + (classify(add(x, scale(n, 1000 * tol)), null, faces, tol) === 'in' ? 1 : -1); }, 0);
     const inward = votes > 0 || (votes === 0 && v < 0);
-    return { members: m, volume: (inward ? -1 : 1) * Math.max(Math.abs(v), tol) };
+    return { members: m, volume: (inward ? -1 : 1) * Math.max(Math.abs(v), tol), unsure: false };
   });
+  // A shell without a sure sign is a cavity when an odd number of the other shells enclose it, else an outer one.
+  for (const g of groups) {
+    if (!g.unsure) continue;
+    const x = pieces[g.members[0]].key, depth = groups.filter(o => o !== g && classify(x, null, asFaces(o.members), tol) === 'in').length;
+    g.volume = (depth % 2 ? -1 : 1) * Math.max(Math.abs(g.volume), tol * tol * tol);
+  }
   const bodies = groups.filter(g => g.volume > 0).map(g => ({ outer: g, cavities: [] as typeof groups }));
   for (const c of groups.filter(g => g.volume <= 0)) {
     const x = pieces[c.members[0]].key; let best = -1;
@@ -1148,19 +1767,22 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
   }
   // Names: the piece's face name (numbered by position when repeated); edges by their two faces.
   const faceNames: string[] = [], byName = new Map<string, number[]>();
-  pieces.forEach((p, i) => { const n = p.face.name ?? `${id}.face`; byName.set(n, [...(byName.get(n) ?? []), i]); });
+  pieces.forEach((p, i) => { const n = p.face.name ?? `${id}.face`, list = byName.get(n); if (list) list.push(i); else byName.set(n, [i]); });
   for (const [n, list] of byName) {
     if (list.length === 1) { faceNames[list[0]] = n; continue; }
     [...list].sort((x, y) => { const a = pieces[x].key, b = pieces[y].key; return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; }).forEach((i, k) => { faceNames[i] = `${n}#${k + 1}`; });
   }
-  const edgeList = edges.map(e => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], tol / 4), vertices: [vertexAt(e.v[0], edges.indexOf(e)), vertexAt(e.v[1], edges.indexOf(e))] as [string, string],
-    name: [...new Set((uses.get(edges.indexOf(e)) ?? []).map(u => faceNames[u.piece]))].sort().join('|') }));
+  if (names) names.forEach((n, i) => { if (n !== undefined) faceNames[i] = n; });
+  const edgeList = edges.map((e, i) => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], tol / 4), vertices: [vertexAt(e.v[0], i), vertexAt(e.v[1], i)] as [string, string],
+    name: [...new Set((uses.get(i) ?? []).map(u => faceNames[u.piece]))].sort().join('|') }));
   nameEdges(edgeList);
   const surface = (pi: number): { surface: Surface; sense: 'forward' | 'reversed' } => {
     const p = pieces[pi], s = p.face.surf, pts: XY[] = [];
-    for (const ring of loops[pi]) for (const u of ring) for (const x of edgeList[edges.findIndex(e => e.id === u.edge)].curve.controlPoints) pts.push(to2(p.face, x));
-    const u0 = Math.min(...pts.map(x => x[0])), u1 = Math.max(...pts.map(x => x[0])), v0 = Math.min(...pts.map(x => x[1])), v1 = Math.max(...pts.map(x => x[1]));
     if (s.kind === 'nurbs') return { surface: s.S, sense: s.sense * p.out > 0 ? 'forward' : 'reversed' };
+    // (A plane or cylinder piece is spanned over its edges' control points in its own coordinates.)
+    for (const ring of loops[pi]) for (const u of ring) for (const x of edgeList[u.index].curve.controlPoints) pts.push(to2(p.face, x));
+    let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+    for (const x of pts) { if (x[0] < u0) u0 = x[0]; if (x[0] > u1) u1 = x[0]; if (x[1] < v0) v0 = x[1]; if (x[1] > v1) v1 = x[1]; }
     if (s.kind === 'plane') {
       const at = (u: number, v: number) => to3(p.face, [u, v]), pad = tol;
       // ∂S/∂u × ∂S/∂v = e1 × e2 = n.
@@ -1179,7 +1801,7 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false): B
     edges: edgeList.filter((_, i) => uses.has(i)),
     bodies: bodies.map((bd, k) => ({ id: `${id}_body${k}`, kind: 'solid' as const, shells: [bd.outer, ...bd.cavities].map((g, si) => ({ id: 's' + si, closed: true,
       faces: g.members.map(pi => ({ id: 'f' + pi, name: faceNames[pi], ...surface(pi), loops: loops[pi].map((uses2, li) => ({ kind: li === 0 ? 'outer' as const : 'inner' as const, uses: uses2.map(u => ({ edge: u.edge, sense: u.sense })) })) })) })) })),
-    toleranceMM: tol });
+    toleranceMM: Math.max(tol, inputTol) });
   // Solids that touch at a vertex give a non-manifold result; refuse it plainly (as for edges).
   const report = checkBrep(result);
   if (!report.valid) throw new BrepError('TOPOLOGY', `analytic Boolean: the result is not a manifold solid (the inputs touch along an edge or at a vertex): ${report.issues[0]}`, report);

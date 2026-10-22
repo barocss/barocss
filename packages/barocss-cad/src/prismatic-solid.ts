@@ -26,6 +26,7 @@ import {
 import { BrepError, buildBrep, lineCurve, type Brep, type BrepFaceInput, type BrepLoopInput } from './brep-core.js';
 import { buildProfileLoop, capSurface, extrudedSurface, segmentCurve, type ProfileSegment, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Curve, Point, Surface } from './types.js';
+import { sideName, type SideTags } from './side-names.js';
 
 export interface PrismaticSlab { readonly z0: number; readonly z1: number; readonly regions: readonly CurveRegion2[] }
 /** An authored top or bottom: caps of the solid at height z inside these regions take its tag. */
@@ -38,13 +39,13 @@ export class PrismaticSolidError extends Error { constructor(detail: string) { s
 const ringsOf = (regions: readonly CurveRegion2[]) => regions.flatMap(r => [r.outer, ...r.holes]);
 const allRings = (slabs: readonly PrismaticSlab[]) => slabs.flatMap(s => ringsOf(s.regions));
 
-function normalize(slabs: readonly PrismaticSlab[], tolerance: number, caps: readonly PrismaticCapSource[] = []): PrismaticSolid {
+function normalize(slabs: readonly PrismaticSlab[], tolerance: number, caps: readonly PrismaticCapSource[] = [], merged = false): PrismaticSolid {
   const sorted = slabs.filter(s => s.regions.length).sort((a, b) => a.z0 - b.z0), out: PrismaticSlab[] = [];
   for (const s of sorted) {
     if (!(Number.isFinite(s.z0) && Number.isFinite(s.z1) && s.z1 > s.z0)) throw new PrismaticSolidError('every slab needs finite z0 < z1');
     const prev = out[out.length - 1];
     if (prev && s.z0 < prev.z1) throw new PrismaticSolidError('slabs overlap in Z');
-    if (prev && prev.z1 === s.z0 && !booleanCurveRegions(ringsOf(prev.regions), ringsOf(s.regions), 'xor', tolerance).length) { out[out.length - 1] = { ...prev, z1: s.z1 }; continue; }
+    if (!merged && prev && prev.z1 === s.z0 && !booleanCurveRegions(ringsOf(prev.regions), ringsOf(s.regions), 'xor', tolerance).length) { out[out.length - 1] = { ...prev, z1: s.z1 }; continue; }
     out.push(s);
   }
   const levels = new Set(out.flatMap(x => [x.z0, x.z1])), kept = caps.filter(c => levels.has(c.z));
@@ -68,19 +69,25 @@ const reverseRing = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(
  * walls are named `tag.side<i>` (i: the authored segment) and `tag.hole<h>.side<i>`, caps `tag.top`
  * and `tag.bottom`.
  */
-export function prismaticFromProfile(input: { readonly outer: readonly ProfileSegmentInput[]; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly heightMM: number; readonly fromMM?: number; readonly tag?: string }): PrismaticSolid {
-  const budget = { maximumSegments: 1024 }, z0 = input.fromMM ?? 0, z1 = z0 + input.heightMM, tag = input.tag;
+export function prismaticFromProfile(input: { readonly outer: readonly ProfileSegmentInput[]; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly heightMM: number; readonly fromMM?: number; readonly tag?: string; readonly sideTags?: SideTags;
+  /**
+   * Whole names for the outer loop's walls (one an authored segment) and the caps, in place of the tag's (R12.1 sheet roles,
+   * D116); the holes' walls too, each hole's list in its order (FR1 section roles, D123). A loop left out is named by the tag.
+   */
+  readonly names?: { readonly outer?: readonly string[]; readonly holes?: readonly (readonly string[])[]; readonly bottom: string; readonly top: string } }): PrismaticSolid {
+  const budget = { maximumSegments: 1024 }, z0 = input.fromMM ?? 0, z1 = z0 + input.heightMM, tag = input.tag, tags = input.sideTags, names = input.names;
   // A clockwise authored loop is reversed; segment k then runs along authored segment n − 1 − k.
-  const loop = (segments: readonly ProfileSegmentInput[], prefix: string) => {
+  const loop = (segments: readonly ProfileSegmentInput[], prefix: string, own?: readonly string[], whole?: readonly string[]) => {
     const built = buildProfileLoop(segments, budget), n = built.segments.length;
-    return built.segments.map((s, k) => toCurve2(s, tag === undefined ? undefined : `${prefix}.side${built.reversed ? n - 1 - k : k}`));
+    return built.segments.map((s, k) => { const i = built.reversed ? n - 1 - k : k; return toCurve2(s, whole ? whole[i] : tag === undefined ? undefined : sideName(prefix, i, own)); });
   };
-  // More outer loops (`regions`) join the first; their walls are named `${tag}.region${i}.side${k}`.
-  const outers = [loop(input.outer, String(tag)), ...(input.regions ?? []).map((r, i) => loop(r, `${tag}.region${i}`))];
-  const holes = (input.holes ?? []).map((h, i) => loop(h, `${tag}.hole${i}`));
+  // More outer loops (`regions`) join the first; their walls are named `${tag}.region${i}.side${k}` — with tags,
+  // every wall is `${tag}.side[t]`, its segment's tag (unique in the sketch).
+  const outers = [loop(input.outer, String(tag), tags?.outer, names?.outer), ...(input.regions ?? []).map((r, i) => loop(r, tags ? String(tag) : `${tag}.region${i}`, tags?.regions?.[i]))];
+  const holes = (input.holes ?? []).map((h, i) => loop(h, tags ? String(tag) : `${tag}.hole${i}`, tags?.holes?.[i], names?.holes?.[i]));
   // The outer boundaries minus the holes (holes may touch or cross them; the difference is exact either way).
   const tol = curveTolerance([...outers, ...holes]), regions = booleanCurveRegions(outers, holes, 'difference', tol);
-  const caps = tag === undefined ? [] : [{ z: z0, regions, tag: tag + '.bottom' }, { z: z1, regions, tag: tag + '.top' }];
+  const caps = names ? [{ z: z0, regions, tag: names.bottom }, { z: z1, regions, tag: names.top }] : tag === undefined ? [] : [{ z: z0, regions, tag: tag + '.bottom' }, { z: z1, regions, tag: tag + '.top' }];
   return normalize([{ z0, z1, regions }], tol, caps);
 }
 
@@ -104,7 +111,8 @@ export function transformPrismatic(solid: PrismaticSolid, transform: { readonly 
   const z = (v: number) => zs * v + zo;
   const slabs = solid.slabs.map(s => ({ z0: Math.min(z(s.z0), z(s.z1)), z1: Math.max(z(s.z0), z(s.z1)), regions: s.regions.map(region) }));
   const caps = (solid.caps ?? []).map(cp => ({ z: z(cp.z), regions: cp.regions.map(region), tag: transform.retag ? transform.retag(cp.tag) : cp.tag }));
-  return normalize(slabs, curveTolerance(allRings(slabs)), caps);
+  // (A similarity keeps distinct neighbouring sections distinct: they need no merging check.)
+  return normalize(slabs, 0, caps, true);
 }
 
 /** Slab-wise Boolean: split at every level of either solid, 2D Boolean of each pair of sections. */

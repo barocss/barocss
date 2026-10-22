@@ -2,7 +2,8 @@
 // unchanged, so lines, circles and planes stay exact). A map that reverses orientation (det < 0) also
 // reverses every loop and face sense, so faces still point out of the solid.
 import { BrepError, type Brep, type BrepCoedge, type BrepFace, type BrepLoop } from './brep-core.js';
-import type { Curve, Point, Surface } from './types.js';
+import type { Curve, FacetPatch, Point, Surface } from './types.js';
+import { transformFacetPatch } from './facet-patch.js';
 
 /** x' = M·x + t with M row-major 3×3. */
 export interface BrepAffine { readonly matrix: readonly [number, number, number, number, number, number, number, number, number]; readonly offset?: readonly [number, number, number] }
@@ -13,7 +14,9 @@ export function transformBrep(brep: Brep, map: BrepAffine, rename?: (name: strin
   if (!(Number.isFinite(det) && det !== 0)) throw new BrepError('INPUT', 'an invertible finite affine map is required');
   const at = (p: readonly number[]): Point => [m[0] * p[0] + m[1] * p[1] + m[2] * p[2] + t[0], m[3] * p[0] + m[4] * p[1] + m[5] * p[2] + t[1], m[6] * p[0] + m[7] * p[1] + m[8] * p[2] + t[2]];
   const curve = (c: Curve): Curve => ({ ...c, controlPoints: c.controlPoints.map(at) });
-  const surface = (s: Surface): Surface => ({ ...s, controlPoints: s.controlPoints.map(row => row.map(at)) });
+  // (A facet patch: its positions mapped into new arrays, shared untouched by an identity map — a rename.)
+  const identity = m[0] === 1 && m[1] === 0 && m[2] === 0 && m[3] === 0 && m[4] === 1 && m[5] === 0 && m[6] === 0 && m[7] === 0 && m[8] === 1 && t[0] === 0 && t[1] === 0 && t[2] === 0;
+  const surface = (s: Surface | FacetPatch): Surface | FacetPatch => s.kind === 'facets' ? (identity ? s : transformFacetPatch(s, m, t)) : { ...s, controlPoints: s.controlPoints.map(row => row.map(at)) };
   const flip = det < 0, nameOf = <T extends { name?: string }>(x: T) => rename && x.name !== undefined ? { name: rename(x.name) } : {};
   const loops: BrepLoop[] = brep.loops.map(l => flip ? { ...l, coedges: [...l.coedges].reverse() } : l);
   const coedges: BrepCoedge[] = brep.coedges.map(c => flip ? { ...c, sense: c.sense === 'forward' ? 'reversed' : 'forward', next: c.prev, prev: c.next } : c);

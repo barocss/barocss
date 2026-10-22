@@ -1,0 +1,144 @@
+{
+  "id": "r11-shell-filleted-rod-on-plate",
+  "step": "R11",
+  "decisions": [
+    "D106"
+  ],
+  "about": "R11.1a: a rod (R 5) on a plate, both junctions filleted 2 (R10.1), shelled 1 closed: the slabs stop at the four tangent edges (D105 found them grown there, 2.65e-3 over).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "p",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            -20
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "pe",
+          "kind": "extrude",
+          "sketch": "p",
+          "height": 10
+        },
+        {
+          "id": "c",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            10
+          ],
+          "radius": 5,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "ce",
+          "kind": "extrude",
+          "sketch": "c",
+          "height": 40
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "pe",
+          "tool": "ce"
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "ce.side0|pe.top#1",
+            "ce.side0|pe.top#2"
+          ],
+          "radius": 2
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "f",
+          "thickness": 1
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 4700.328931816026,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            20.00000000000002,
+            -1.8748293971453868e-15,
+            5.678746829481616
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 2,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "ce.bottom",
+          "ce.side0",
+          "ce.top",
+          "f.face",
+          "pe.bottom",
+          "pe.side0",
+          "pe.side2",
+          "pe.top",
+          "sh_c0_0.side3",
+          "sh_c1_0.side1",
+          "sh_c2_0.side1",
+          "sh_p0.bottom",
+          "sh_p1.bottom",
+          "sh_p2.bottom",
+          "sh_p3.bottom",
+          "sh_p4.bottom",
+          "sh_p5.bottom"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: a prism along X, so the hollow is the section eroded, A − Pt + t²(Σ cot(α/2) + ½∫κ ds) = A − Pt + 4t² (four right-angled corners, ∫κ ds = 0 over the tangent arcs), times L − 2t. Centroid from this kernel."
+}

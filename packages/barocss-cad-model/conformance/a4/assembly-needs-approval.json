@@ -1,0 +1,119 @@
+{
+  "id": "a4-assembly-needs-approval",
+  "step": "A4.3",
+  "decisions": [
+    "D41"
+  ],
+  "about": "A plate with a pin placed beside it: an agent moving the pin directly is refused at every autonomy level (needs_approval: assembly), the part unchanged; the same move proposed carries approval [assembly], which no agent may accept, and the user's accept applies it.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nextId": 2,
+      "outputs": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 8
+        }
+      ],
+      "instances": [
+        {
+          "id": "p1",
+          "name": "Pin",
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nextId": 2,
+            "outputs": {},
+            "nodes": [
+              {
+                "id": "n0",
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  4,
+                  4
+                ]
+              },
+              {
+                "id": "n1",
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 10
+              }
+            ]
+          },
+          "position": [
+            50,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "direct": {
+      "tool": "place_part",
+      "args": {
+        "part": "p1",
+        "position": [
+          60,
+          0,
+          0
+        ]
+      },
+      "levels": [
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  },
+  "expect": {
+    "refusal": {
+      "code": "needs_approval",
+      "approval": [
+        "assembly"
+      ]
+    },
+    "proposed_approval": [
+      "assembly"
+    ],
+    "agent_accept": "always needs the user",
+    "accepted_position": [
+      60,
+      0,
+      0
+    ]
+  },
+  "oracle": "The rule, not geometry: a change to the assembly always needs the user (D41)."
+}

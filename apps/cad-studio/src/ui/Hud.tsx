@@ -1,11 +1,11 @@
-import { shownFields } from '../app/commands';
+import { shownFields } from '@barocss/cad-model/app/commands';
 import { useEffect, useRef } from 'react';
-import type { Command, Ctx, Values } from '../app/commands';
-import type { FriendlyError } from '../engine/errors';
+import type { Command, Ctx, Values } from '@barocss/cad-model/app/commands';
+import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { Icon, Kbd } from './atoms';
 
 interface Props {
-  active: { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx };
+  active: { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean };
   onChange(key: string, value: number | string): void; onApply(): void; onCancel(): void;
 }
 
@@ -13,11 +13,17 @@ interface Props {
 export function Hud({ active, onChange, onApply, onCancel }: Props) {
   const first = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
   useEffect(() => { first.current?.focus(); if (first.current instanceof HTMLInputElement) first.current.select(); }, [active.cmd.id]);
-  const fields = shownFields(active.cmd.fields?.(active.ctx) ?? [], active.values);
+  const fields = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values);
   return (
     <div className="card hud" role="dialog" aria-label={active.cmd.label}>
       <div className="hud-title"><Icon name={active.cmd.icon} small className="accent" />{active.cmd.label}
         <span className="grow" /><span className={'status ' + active.preview}>{active.preview === 'busy' ? 'evaluating…' : active.preview === 'ok' ? 'preview' : 'refused'}</span></div>
+      {active.cmd.place && <div className="hud-steps"><div className={'hud-step' + (active.placing ? '' : ' done')}>
+        <Icon name={active.placing ? 'radio_button_unchecked' : 'check_circle'} small /><b>Place</b><span>{active.placing ? 'click where it goes (on the ground or a top face)' : 'placed — drag its arrows to size it'}</span></div></div>}
+      {active.cmd.steps && <div className="hud-steps">
+        {active.cmd.steps(active.ctx, active.values).map(s => <div key={s.label} className={'hud-step' + (s.done ? ' done' : '')}>
+          <Icon name={s.done ? 'check_circle' : 'radio_button_unchecked'} small /><b>{s.label}</b><span>{s.text}</span></div>)}
+      </div>}
       <div className="hud-fields">
         {fields.map((f, i) => (
           <label key={f.key} className="field"><span>{f.label}</span>
@@ -26,7 +32,7 @@ export function Hud({ active, onChange, onApply, onCancel }: Props) {
                 {f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
               : <span className="num"><input ref={i === 0 ? el => { first.current = el; } : undefined} type="number" step={f.kind === 'count' ? 1 : 'any'} min={f.min} max={f.max}
                 value={String(active.values[f.key] ?? '')} onChange={e => onChange(f.key, e.target.value === '' ? '' : Number(e.target.value))} />
-                {f.kind === 'mm' && <em>mm</em>}{f.kind === 'deg' && <em>°</em>}</span>}
+                {f.kind === 'mm' && <em>mm</em>}{f.kind === 'deg' && <em>°</em>}{f.kind === 'ratio' && <em>×</em>}</span>}
           </label>))}
       </div>
       {active.preview === 'error' && active.error && <div className="hud-error" role="status">
@@ -34,7 +40,7 @@ export function Hud({ active, onChange, onApply, onCancel }: Props) {
         {active.error.detail && <details><summary>Kernel detail</summary><code>{active.error.detail}</code></details>}
       </div>}
       <div className="hud-actions">
-        <span className="muted"><Kbd>Tab</Kbd> next <Kbd>Enter</Kbd> apply <Kbd>Esc</Kbd> cancel</span>
+        <span className="muted"><Kbd>Tab</Kbd> next <Kbd>Enter</Kbd> apply <Kbd>⇧Enter</Kbd> again <Kbd>Esc</Kbd> cancel</span>
         <span className="grow" />
         <button className="ghost" onClick={onCancel}>Cancel</button>
         <button className="primary" disabled={active.preview !== 'ok'} onClick={onApply}>Apply</button>

@@ -1,0 +1,166 @@
+{
+  "id": "r11-shell-torus-ring-in-disc",
+  "step": "R11",
+  "decisions": [
+    "D106"
+  ],
+  "about": "R11.1a: a torus ring (R0 15, r 4) half sunk in a round plate, shelled 3 closed — past the ring's offset meeting the plate's: two cavities, the ring's own (HEAD at D105: an untyped Boolean failure).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "d",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              30,
+              0
+            ],
+            [
+              30,
+              8
+            ],
+            [
+              0,
+              8
+            ]
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "dr",
+          "kind": "revolve",
+          "sketch": "d",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          }
+        },
+        {
+          "id": "c",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            15,
+            8
+          ],
+          "radius": 4,
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "cr",
+          "kind": "revolve",
+          "sketch": "c",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          }
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "dr",
+          "tool": "cr"
+        },
+        {
+          "id": "sh",
+          "kind": "shell",
+          "target": "u",
+          "thickness": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 20111.64194114136,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            -6.307164054108417e-16,
+            4.1335353267997197e-16,
+            4.612168132638031
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 3,
+            "genus": 1
+          }
+        ],
+        "faceNames": [
+          "cr.side0",
+          "dr.side0",
+          "dr.side1",
+          "dr.side2",
+          "sh_c0_0.side3",
+          "sh_k0_0.side5",
+          "sh_p0.bottom",
+          "sh_p1.bottom",
+          "sh_v0_0.side2",
+          "sh_v1_0.side2"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form by Pappus: the body πRp²H + π²r²R0; the hollow's meridian, the plate eroded ((Rp − t) × (H − 2t), first moment (Rp − t)²/2 · (H − 2t)) and the ring's offset disc (radius r − t = 1, wholly above z = H − t, first moment R0 · π(r − t)²), turned 2π. Centroid from this kernel."
+}

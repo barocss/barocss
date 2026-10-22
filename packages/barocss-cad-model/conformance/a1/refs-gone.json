@@ -1,0 +1,78 @@
+{
+  "id": "a1-refs-gone",
+  "step": "A1",
+  "decisions": [
+    "D30"
+  ],
+  "about": "A fillet whose stored edge is gone (nothing alike its signature is left): the document still opens, that fillet is held (suppressed, saying why) and listed with its error, and the rest of the part builds.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nextId": 3,
+      "outputs": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            10,
+            10
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 6
+        },
+        {
+          "id": "n2",
+          "kind": "fillet",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "edges": [
+            "n1.side1|n1.side2"
+          ],
+          "radius": 2,
+          "sigs": {
+            "n1.side1|n1.side2": {
+              "k": "curve",
+              "p": [
+                10,
+                10,
+                3
+              ],
+              "s": 6
+            }
+          }
+        }
+      ]
+    },
+    "verify": true
+  },
+  "expect": {
+    "changes": [],
+    "problems": [
+      {
+        "where": "feature 2",
+        "name": "n1.side1|n1.side2",
+        "candidates": []
+      }
+    ],
+    "held": {
+      "2": "\"n1.side1|n1.side2\" is gone"
+    },
+    "volumeMM3": 600
+  },
+  "oracle": "by construction (a box has no curved edge); the box alone builds, 10 × 10 × 6"
+}

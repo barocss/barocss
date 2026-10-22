@@ -1,0 +1,32 @@
+{
+  "id": "r6a-spur-undercut-refused",
+  "step": "R6a",
+  "decisions": [
+    "D53",
+    "D54"
+  ],
+  "about": "Twelve teeth at 20° without a shift are undercut (below 17.1): refused, naming the shift that would avoid it.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 12,
+          "faceWidth": 10
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "CAPABILITY",
+      "messageIncludes": "x = 0.298"
+    }
+  }
+}

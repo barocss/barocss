@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { compileGpu, materialShader } from '@barocss/gpu';
-import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderSettings } from '../engine/render';
+import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderSettings } from '@barocss/cad-model/engine/render';
 import { Icon } from './atoms';
 
 /**
  * The Render workspace's panel: the appearance of the selected bodies (or of every body without one),
  * the lights, the environment and the saved camera. Every change is one undoable edit of the settings.
  */
-export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available }: {
+export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov, onError }: {
   render: RenderSettings;
   /** Body keys the appearance edits apply to; empty: the default appearance. */
   selectedKeys: string[];
@@ -17,6 +17,9 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   onExport(): void;
   /** False when the viewport draws without WebGPU (no rendering). */
   available: boolean;
+  /** The view's vertical field of view (degrees), and setting it. */
+  fov: number; onFov(degrees: number): void;
+  onError?(message: string): void;
 }) {
   const [tab, setTab] = useState<'look' | 'lights' | 'scene' | 'source'>('look');
   const current: Appearance = selectedKeys.length ? render.appearances[selectedKeys[0]] ?? render.defaultAppearance : render.defaultAppearance;
@@ -62,6 +65,21 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {slider('Metallic', current.metallic, v => setLook({ metallic: v }))}
         {slider('Roughness', current.roughness, v => setLook({ roughness: v }))}
         {slider('Opacity', current.opacity, v => setLook({ opacity: v }), 0.05)}
+        {check('Two-sided', !!current.twoSided, v => setLook({ twoSided: v || undefined }))}
+        <div className="field"><span>Texture</span>
+          <span className="texture-row">
+            {current.texture && <img className="texture-thumb" src={current.texture.image} alt="" />}
+            <label className="ghost small file-button">{current.texture ? 'Replace…' : 'Image…'}
+              <input type="file" accept="image/*" aria-label="Texture image" hidden onChange={async e => {
+                const file = e.target.files?.[0]; e.target.value = ''; if (!file) return;
+                try { setLook({ texture: { image: await textureImage(file), scale: current.texture?.scale ?? 20 } }); }
+                catch { onError?.('That file is not an image the browser can read.'); }
+              }} /></label>
+            {current.texture && <button className="tool tiny" aria-label="Remove texture" onClick={() => setLook({ texture: undefined })}><Icon name="close" small /></button>}
+          </span></div>
+        {current.texture && slider('Cut out below', current.cutout ?? 0, v => setLook({ cutout: v > 0 ? v : undefined }))}
+        {current.texture && <label className="field"><span>Repeat every</span><span className="num"><input type="number" aria-label="Texture repeat" min={0.1} step="any" value={current.texture.scale}
+          onChange={e => { const v = Number(e.target.value); if (v > 0) setLook({ texture: { ...current.texture!, scale: v } }); }} onKeyDown={e => e.stopPropagation()} /><em>mm</em></span></label>}
         <label className="field"><span>Shader</span>
           <select aria-label="Shader material" value={current.shader ?? ''} onChange={e => setLook({ shader: e.target.value || undefined })}>
             <option value="">None</option>
@@ -84,6 +102,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
               <label className="field" key={a}><span>{a}</span><span className="num"><input type="number" step="any" aria-label={`Light ${i + 1} ${a}`} value={l.position[k]}
                 onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) { const p = [...l.position] as [number, number, number]; p[k] = v; setLight(i, { ...l, position: p }); } }} /><em>mm</em></span></label>))}
             {l.kind === 'spot' && slider('Cone', l.angle, v => setLight(i, { ...l, angle: v }), 5, 80, 1)}
+            {l.kind !== 'directional' && <>{slider('Range', l.range, v => setLight(i, { ...l, range: v }), 0, 1000, 5)}<div className="muted small">{l.range ? `Fades out over ${l.range} mm` : 'Range 0: no fall-off with distance'}</div></>}
             {slider('Intensity', l.intensity, v => setLight(i, { ...l, intensity: v }), 0, 5)}
             {color('Colour', l.color, v => setLight(i, { ...l, color: v }))}
             {l.kind === 'directional' && check('Shadow', l.castShadow, v => onChange({ ...render, lights: render.lights.map((x, k) => x.kind === 'directional' ? { ...x, castShadow: k === i ? v : v ? false : x.castShadow } : x) }))}
@@ -102,6 +121,18 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {color('Top', env.top, v => setEnv({ top: v }))}
         {color('Bottom', env.bottom, v => setEnv({ bottom: v }))}
         {slider('Ambient', env.ambient, v => setEnv({ ambient: v }), 0, 2)}
+        <div className="field"><span>Environment</span>
+          <span className="texture-row">
+            {env.map && <img className="texture-thumb" src={env.map.image} alt="" />}
+            <label className="ghost small file-button" title="An equirectangular image (its top row overhead) that lights the part in place of the sky and ground">{env.map ? 'Replace…' : 'Image…'}
+              <input type="file" accept="image/*" aria-label="Environment image" hidden onChange={async e => {
+                const file = e.target.files?.[0]; e.target.value = ''; if (!file) return;
+                try { setEnv({ map: { image: await textureImage(file, 2048), intensity: env.map?.intensity ?? 1 } }); }
+                catch { onError?.('That file is not an image the browser can read.'); }
+              }} /></label>
+            {env.map && <button className="tool tiny" aria-label="Remove environment" onClick={() => setEnv({ map: undefined })}><Icon name="close" small /></button>}
+          </span></div>
+        {env.map && slider('Environment strength', env.map.intensity, v => setEnv({ map: { ...env.map!, intensity: v } }), 0, 4)}
         {slider('Exposure', env.exposure, v => setEnv({ exposure: v }), 0.1, 4)}
         <label className="field"><span>Tone map</span>
           <select aria-label="Tone mapping" value={env.toneMapping} onChange={e => setEnv({ toneMapping: e.target.value as 'none' | 'aces' })}>
@@ -111,6 +142,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {check('Grid', env.grid, v => setEnv({ grid: v }))}
         {check('Edges', env.edges, v => setEnv({ edges: v }))}
         <div className="card-title" style={{ marginTop: 10 }}>CAMERA</div>
+        {slider('Field of view', fov, onFov, 10, 90, 1)}
         <div className="row-actions">
           <button className="ghost" onClick={onSaveCamera}>Save this view</button>
           <button className="ghost" disabled={!render.camera} onClick={onUseCamera}>Go to saved view</button>
@@ -171,4 +203,12 @@ function SourceTab({ render, onChange }: { render: RenderSettings; onChange(next
     </div>)}
     <button className="ghost" onClick={addMaterial}>Add material</button>
   </div>;
+}
+
+/** An image file as a data URL for a texture, at most `most` (1024) pixels across (PNG keeps transparency; others JPEG). */
+async function textureImage(file: File, most = 1024): Promise<string> {
+  const bitmap = await createImageBitmap(file), k = Math.min(1, most / Math.max(bitmap.width, bitmap.height));
+  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(bitmap.width * k)); c.height = Math.max(1, Math.round(bitmap.height * k));
+  c.getContext('2d')!.drawImage(bitmap, 0, 0, c.width, c.height); bitmap.close();
+  return c.toDataURL(file.type === 'image/png' || file.type === 'image/gif' ? 'image/png' : 'image/jpeg', 0.9);
 }

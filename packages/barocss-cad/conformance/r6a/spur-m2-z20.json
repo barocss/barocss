@@ -1,0 +1,60 @@
+{
+  "id": "r6a-spur-m2-z20",
+  "step": "R6a",
+  "decisions": [
+    "D53",
+    "D54"
+  ],
+  "about": "The issue #2167 fixture gear: m 2, z 20, α 20°, x 0, 10 wide. Its volume is the exact profile's area (Green's theorem over the analytic involute, apart from the generator) × 10, to the flank fit (1e-5); centroid on its axis at mid-width.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "g",
+          "kind": "spur-gear",
+          "module": 2,
+          "teeth": 20,
+          "faceWidth": 10,
+          "center": [
+            0,
+            0
+          ],
+          "generator": "spur-gear@0"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 12261.056995277,
+          "relTol": 1e-05
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            5
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNamePattern": "^g\\.(flankL|flankR|tip|root|rootL|rootR|bore|face0|face1)$"
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-06
+    }
+  }
+}

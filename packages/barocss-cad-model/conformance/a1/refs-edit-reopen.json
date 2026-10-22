@@ -1,0 +1,92 @@
+{
+  "id": "a1-refs-edit-reopen",
+  "step": "A1",
+  "decisions": [
+    "D29",
+    "D30"
+  ],
+  "about": "A fillet's edge after a dimension edit (signatures refreshed by the accepted edit), then reopened: no reference is matched again.",
+  "input": {
+    "file": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "id": "n0",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              10,
+              10
+            ],
+            [
+              0,
+              10
+            ]
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 6
+        },
+        {
+          "id": "n2",
+          "kind": "fillet",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "edges": [
+            "n1.side1|n1.side2"
+          ],
+          "radius": 2
+        }
+      ],
+      "nextId": 3,
+      "outputs": {}
+    },
+    "edit": {
+      "index": 0,
+      "feature": {
+        "kind": "sketch",
+        "profile": "polygon",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            12,
+            10
+          ],
+          [
+            0,
+            10
+          ]
+        ]
+      }
+    },
+    "verify": true
+  },
+  "expect": {
+    "changes": []
+  },
+  "oracle": "by construction (a box's faces; signatures written as the studio stores them)"
+}

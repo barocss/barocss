@@ -1,0 +1,124 @@
+{
+  "id": "r10-overflow-boss-rounded-top",
+  "step": "R10",
+  "decisions": [
+    "D95"
+  ],
+  "about": "R10.4a: a boss (radius 8, 6 high) on a plate, its top edge rounded 2 mm, then its foot filleted 5 mm — more than the wall below the round (4 mm): the ball rolls over the smooth edge onto the round (R10.1's closed form would lie on the wall carried on: 7.8 % over before).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "as",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            -30,
+            -30
+          ],
+          "max": [
+            30,
+            30
+          ]
+        },
+        {
+          "id": "a",
+          "kind": "extrude",
+          "sketch": "as",
+          "height": 10
+        },
+        {
+          "id": "bs",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 8
+        },
+        {
+          "id": "b",
+          "kind": "extrude",
+          "sketch": "bs",
+          "height": 6,
+          "from": 10
+        },
+        {
+          "id": "u",
+          "kind": "union",
+          "target": "a",
+          "tool": "b"
+        },
+        {
+          "id": "g",
+          "kind": "fillet",
+          "target": "u",
+          "edges": [
+            "b.side0#1|b.top",
+            "b.side0#2|b.top"
+          ],
+          "radius": 2
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "g",
+          "edges": [
+            "a.top|b.side0#1",
+            "a.top|b.side0#2"
+          ],
+          "radius": 5
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 37454.62982348434,
+          "relTol": 1e-7
+        },
+        "centroidMM": {
+          "value": [
+            1.0136428673873059e-14,
+            -5.973615448774739e-13,
+            5.2924679525321965
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "a.bottom",
+          "a.side0",
+          "a.side1",
+          "a.side2",
+          "a.side3",
+          "a.top",
+          "b.top",
+          "f.face",
+          "g.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-7
+    }
+  },
+  "oracle": "The rounded boss by this kernel (D88's coaxial round, by quadrature); the foot's fillet by Pappus: in the meridian, the region between the plate, the wall up to the round, the round's arc and the ball's (touching the plate and the round), its first moment about the axis (Green over 400 000-segment polylines) times 2π. relTol 1e-7 of the part is about 1e-4 of the fillet; this kernel is 8e-8 of the fillet off."
+}

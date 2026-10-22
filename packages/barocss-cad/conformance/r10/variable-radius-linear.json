@@ -1,0 +1,105 @@
+{
+  "id": "r10-variable-radius-linear",
+  "step": "R10",
+  "decisions": [
+    "D100"
+  ],
+  "about": "R10.5 (D100): a 40 × 30 × 10 box, its top edge on y = 0 filleted from 1 mm at x 0 to 3 mm at x 40 (radii at the two ends: linear).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            30
+          ]
+        },
+        {
+          "id": "e",
+          "kind": "extrude",
+          "sketch": "s",
+          "height": 10
+        },
+        {
+          "id": "f",
+          "kind": "fillet",
+          "target": "e",
+          "edges": [
+            "e.side0|e.top"
+          ],
+          "radii": [
+            {
+              "at": [
+                0,
+                0,
+                10
+              ],
+              "radius": 1
+            },
+            {
+              "at": [
+                40,
+                0,
+                10
+              ],
+              "radius": 3
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 11962.802348322224,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            19.98086496633142,
+            15.045038837182732,
+            4.986055592525398
+          ],
+          "absTol": 0.00001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "faceNames": [
+          "e.bottom",
+          "e.side0",
+          "e.side1",
+          "e.side2",
+          "e.side3",
+          "e.top",
+          "f.face"
+        ],
+        "tessellation": {
+          "segmentsPerQuarter": 8,
+          "watertight": true
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed form: each section square to the edge the corner less a quarter disc, (1 − π/4) r(x)²; r linear, ∫ = (1 − π/4) L (r0² + r0 r1 + r1²) / 3."
+}

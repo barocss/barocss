@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!-- barocss-urdf-v1: barocss CAD Studio. SI units; each link's frame at its joint, Z on the axis; joint values 0 at the pose the mates solve to. -->
+<robot name="robot">
+  <link name="base">
+    <inertial>
+      <origin xyz="0.049999999999999954 0.01999999999999998 0.005" rpy="0 0 0"/>
+      <mass value="0.10375884991765376"/>
+      <inertia ixx="0.000015238149894632589" ixy="0" ixz="0" iyy="0.00008702111482052155" iyz="0" izz="0.0001005299505498599"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="meshes/base.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="meshes/base_collision.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="a">
+    <inertial>
+      <origin xyz="0.020000000000000035 0 0.0025" rpy="0 0 0"/>
+      <mass value="0.01407942495882689"/>
+      <inertia ixx="5.560785413235568e-7" ixy="0" ixz="0" iyy="0.000004027848524854294" iyz="0" izz="0.000004525262795516072"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="meshes/a.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="meshes/a_collision.stl"/></geometry>
+    </collision>
+  </link>
+  <link name="b">
+    <inertial>
+      <origin xyz="0.02000000000000005 0 0.0025" rpy="0 0 0"/>
+      <mass value="0.01407942495882689"/>
+      <inertia ixx="5.560785413235568e-7" ixy="0" ixz="0" iyy="0.000004027848524854294" iyz="0" izz="0.000004525262795516072"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="meshes/b.stl"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="meshes/b_collision.stl"/></geometry>
+    </collision>
+  </link>
+  <joint name="base_to_a" type="continuous">
+    <parent link="base"/>
+    <child link="a"/>
+    <origin xyz="0.019999999999999993 0.02 0.01" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="a_to_b" type="continuous">
+    <parent link="a"/>
+    <child link="b"/>
+    <origin xyz="0.03999999999999999 0 0.005" rpy="0 0 0"/>
+    <axis xyz="0 0 0.9999999999999999"/>
+  </joint>
+</robot>
