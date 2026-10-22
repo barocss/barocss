@@ -52,7 +52,7 @@ test('the element list: each machine element — kind, our size, the user\'s row
   const t = content(shaftScene(), 'elements');
   assert.equal(t.title, 'MACHINE ELEMENTS');
   assert.deepEqual(shown(t).map(r => r.slice(0, 7)), [
-    ['n0', 'shaft', '3 steps Ø20–Ø25 × 95', '—', '—', 'made', ''], ['n3', 'keyway', '6 × 2.8 in Ø20', '—', '—', 'made', ''], ['n4', 'key', '6 × 6 × 18', '—', '—', 'bought', ''],
+    ['n0', 'shaft', '3 steps Ø20–Ø25 × 95', '—', '—', 'made', ''], ['n3', 'keyway', '6 × 2.8 in Ø20', '—', '—', 'made', ''], ['n4', 'key', '6 × 6 × 18', '—', '—', 'bought', 'est.'],
     ['n5', 'retaining-ring', 'Ø19 / Ø24 × 1.2', 'r20', 'the maker\'s sheet', 'bought', ''], ['n6', 'pin', 'Ø4 × 20', '—', '—', 'bought', '']]);
   assert.match(t.notes!.at(-1)!, /none built in/);
   // (A spring's G estimate: marked, and said under the table.)

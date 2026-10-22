@@ -83,7 +83,7 @@ test('the BOM table and its balloons: 2 copies — 4 lines numbered 1–4, 4 bal
   assert.ok(pdf.includes('(BILL OF MATERIALS) Tj') && [1, 2, 3, 4].every(n => pdf.includes(`(${n}) Tj`)), 'PDF');
   assert.ok(dxf.includes('\nBILL OF MATERIALS\n') && [1, 2, 3, 4].every(n => dxf.includes(`\n${n}\n`)), 'DXF');
   // (Off by default: no balloons, and no BOM worked out when nothing reads it.)
-  const off = drawingInputs(doc, { ...readDrawing(doc.drawing), sheet: 'A3' }); assert.ok(typeof off !== 'string');
+  const off = drawingInputs(doc, { ...readDrawing(doc.drawing), scope: { kind: 'assembly' }, sheet: 'A3' }); assert.ok(typeof off !== 'string');
   assert.equal(off.meta.bom, undefined);
   assert.equal(issueContext({ ...off, meta: { ...off.meta, date: '2026-10-22' } }).sheet.groups.filter(g => g.role === 'balloon').length, 0);
 });

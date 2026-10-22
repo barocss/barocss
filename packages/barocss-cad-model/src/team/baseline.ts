@@ -11,6 +11,7 @@ import { isUserToken, type UserToken } from './ecr';
 import { readInterfaces, type Interfaces } from './parts';
 import { freshnessOf, type Result } from './freshness';
 import type { Evaluate } from '../chat/tools';
+import { incompleteBeadReason } from '../frames/beadAccounting';
 
 export type BaselineState = 'draft' | 'review' | 'approved' | 'rejected';
 export interface Pins { interfaces: string; bom: string; parts: Record<string, string> }
@@ -70,6 +71,8 @@ export async function moveBaseline(doc: StudioDoc, id: string, to: BaselineState
   if (b.state === 'approved' || b.state === 'rejected') throw new BaselineError('BASELINE_FROZEN', `${id} is ${b.state}: it is never changed; draft a new baseline with ${id} as its parent`);
   if (!NEXT[b.state].includes(to)) throw new BaselineError('BAD_TRANSITION', `${id} is ${b.state}: it moves to ${NEXT[b.state].join(' or ')}, not ${to}`);
   if (to === 'approved') {
+    const incomplete = incompleteBeadReason(b.content.bom.beadAccounting);
+    if (incomplete) throw new BaselineError('RESULT_NOT_OK', `${id}: ${incomplete}`);
     const changed = changedSince(doc, b); if (changed.length) throw new BaselineError('STALE_BASELINE', `${id} was drafted on another state: ${changed.join(', ')} changed since; draft it again`);
     for (const r of b.cites ?? []) {
       if (r.status !== 'ok') throw new BaselineError('RESULT_NOT_OK', `${id} cites ${r.id}, which is ${r.status}${r.why ? ` (${r.why})` : ''}: not a result to approve on`);

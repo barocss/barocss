@@ -1,15 +1,32 @@
 // End-to-end flow in a real Chromium: starts the Vite dev server, drives the studio like a user,
 // asserts on visible state and writes a screenshot per step.
-//   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] [FLOW_RENDERER=webgpu|webgl2] [FLOW_ONLY=regex] node test/browser-flow.mjs [out-dir]
+//   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] [FLOW_RENDERER=webgpu|webgl2] [FLOW_ONLY=regex] [FLOW_DPR=1..3] node test/browser-flow.mjs [out-dir]
 // FLOW_ONLY runs the first step and the steps whose names match (for steps that start from a new part).
 // The viewport draws with WebGPU when the browser has it; FLOW_RENDERER=webgl2 runs the WebGL2 fallback.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createServer as createNetServer } from 'node:net';
 
+// Pure runner contracts, also checked without starting Vite or a browser.
+function parseFlowDpr(value = '1') {
+  const input = value.trim(), dpr = Number(input);
+  if (!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(input) || !Number.isFinite(dpr) || dpr < 1 || dpr > 3) {
+    throw new RangeError('FLOW_DPR must be a decimal number from 1 to 3 (the viewport pixel-ratio range)');
+  }
+  return dpr;
+}
+
+function flowDisplayMatches(display, dpr) {
+  const { devicePixelRatio, cssWidth, cssHeight, backingWidth, backingHeight } = display;
+  return [devicePixelRatio, cssWidth, cssHeight, backingWidth, backingHeight].every(Number.isFinite) &&
+    Math.abs(devicePixelRatio - dpr) < 1e-6 && cssWidth > 0 && cssHeight > 0 &&
+    backingWidth === Math.round(cssWidth * dpr) && backingHeight === Math.round(cssHeight * dpr);
+}
+
+const flowDpr = parseFlowDpr(process.env.FLOW_DPR);
 const root = resolve(import.meta.dirname, '..');
 if (!process.env.PW_DIR) { console.error('Set PW_DIR to a Playwright package directory.'); process.exit(2); }
 const { chromium } = createRequire(join(process.env.PW_DIR, 'package.json'))('playwright');
@@ -32,7 +49,7 @@ const renderer = process.env.FLOW_RENDERER ?? 'webgpu';
 const url = server.resolvedUrls.local[0] + (renderer === 'webgl2' ? '?renderer=webgl2' : '');
 // WebGPU on the machine's adapter; the WebGL2 run uses SwiftShader (which offers no WebGPU adapter).
 const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: (process.env.FLOW_RENDERER ?? 'webgpu') === 'webgl2' ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] : ['--enable-unsafe-webgpu'] });
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: flowDpr });
 const errors = [];
 // (With its first stack lines: which code threw, not only what — a page error in a long flow is hard to place by its message.)
 page.on('pageerror', e => errors.push(`${String(e)}${e.stack ? `\n${e.stack.split('\n').slice(1, 7).join('\n')}` : ''}`));
@@ -94,6 +111,24 @@ try {
   await check('starter plate loads', async () => {
     await idle(); assert.match(await outliner(), /Hole Ø8/);
     await page.waitForSelector(`.viewport[data-renderer="${renderer}"]`, { timeout: 15000 });
+    let display;
+    try {
+      await page.waitForFunction(dpr => {
+        const c = document.querySelector('canvas.vp-canvas');
+        return c && c.clientWidth > 0 && c.clientHeight > 0 &&
+          c.width === Math.round(c.clientWidth * dpr) && c.height === Math.round(c.clientHeight * dpr);
+      }, flowDpr, { timeout: 15000 });
+    } finally {
+      display = await page.evaluate(() => {
+        const c = document.querySelector('canvas.vp-canvas');
+        return { renderer: document.querySelector('.viewport')?.dataset.renderer, devicePixelRatio: window.devicePixelRatio,
+          cssWidth: c?.clientWidth ?? 0, cssHeight: c?.clientHeight ?? 0, backingWidth: c?.width ?? 0, backingHeight: c?.height ?? 0 };
+      });
+      const evidence = { requestedDpr: flowDpr, ...display };
+      writeFileSync(join(out, 'display.json'), JSON.stringify(evidence, null, 2) + '\n');
+      console.log(`flow display: ${JSON.stringify(evidence)}`);
+    }
+    assert.ok(flowDisplayMatches(display, flowDpr), `requested DPR and canvas backing: ${JSON.stringify(display)}`);
   });
 
   await check('new part and box', async () => {

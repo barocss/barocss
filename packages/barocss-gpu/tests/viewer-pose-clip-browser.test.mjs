@@ -22,7 +22,7 @@ async function serve() {
     if (!file) { res.writeHead(404); res.end(); return; }
     res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(file));
   });
-  await new Promise(r => server.listen(0, '127.0.0.1', r));
+  await new Promise(r => server.listen(Number(process.env.GPU_TEST_PORT ?? 0), '127.0.0.1', r));
   return { url: `http://127.0.0.1:${server.address().port}`, close: () => new Promise(r => server.close(r)) };
 }
 
@@ -1136,6 +1136,49 @@ test('G15 labels: a chip the same size at any zoom; a plane label scaling with i
     assert.ok(r.tests.over.bright > 40, `over the scene ${JSON.stringify(r.tests)}`);
     assert.equal(r.glyphs, r.distinct, 'each character drawn once');
     assert.ok(r.refont.n > 80, `a new font, laid out again ${JSON.stringify(r.refont)}`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
+// The review ray sees the cube's original front at t=5, before the same mesh's cap at t=6.
+// Read actual WebGPU id/depth/instance targets, including the triangle, face and scalar reconstruction.
+test('G20 pick readback: a kept quarter-cutout front wins over its own rear cap, with and without instances', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    t.diagnostic(`adapter: ${s.adapter}`);
+    const rows = await s.p.evaluate(async () => {
+      const { api, box, screen } = window, canvas = document.getElementById('c');
+      canvas.style.width = '321px'; canvas.style.height = '241px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, camera: { position: [-6, 1.65, 0], target: [0, -0.15, 0], up: [0, 0, 1], projection: 'perspective', fovY: 32 } });
+      const mesh = viewer.add(box(2, 2, 2).surface, { cap: true });
+      mesh.geometry.setScalars(Array(mesh.geometry.data.vertexCount).fill(7), 'vertex');
+      const rows = [];
+      for (const instanced of [false, true]) {
+        const shift = instanced ? 3 : 0;
+        mesh.setInstances(instanced ? { transforms: [...api.translation([30, 0, 0]), ...api.translation([shift, 0, 0])] } : null);
+        viewer.camera.position = [-6 + shift, 1.65, 0]; viewer.camera.target = [shift, -0.15, 0];
+        viewer.clipCutout = true;
+        viewer.clipPlanes = [{ normal: [1, 0, 0], offset: shift }, { normal: [0, 1, 0], offset: 0 }];
+        await viewer.frame();
+        for (const [name, target] of [['front', [-1 + shift, 0.15, 0]], ['cap', [shift, -0.5, 0]]]) {
+          const [x, y] = screen(viewer, target), px = Math.floor(x) + 0.5, py = Math.floor(y) + 0.5;
+          const cpu = viewer.raycast(px, py), gpu = await viewer.pick(px, py);
+          const fields = h => h && ({ cap: h.cap, plane: h.capPlane, triangle: h.triangle, face: h.face, scalar: h.scalar, instance: h.instance, point: h.point });
+          rows.push({ name, instanced, cpu: fields(cpu), gpu: fields(gpu) });
+        }
+      }
+      viewer.dispose(); return rows;
+    });
+    t.diagnostic(JSON.stringify(rows));
+    for (const row of rows) {
+      assert.ok(row.cpu && row.gpu, JSON.stringify(row));
+      assert.equal(row.gpu.instance, row.instanced ? 1 : null);
+      for (const field of ['cap', 'plane', 'triangle', 'face']) assert.equal(row.gpu[field], row.cpu[field], `${row.name} ${field}`);
+      assert.ok(Math.hypot(...row.gpu.point.map((v, i) => v - row.cpu.point[i])) < 1e-4, JSON.stringify(row));
+      assert.equal(row.gpu.cap, row.name === 'cap');
+      if (row.name === 'front') { assert.equal(row.gpu.triangle, 2); assert.equal(row.gpu.face, 1); assert.ok(Math.abs(row.gpu.scalar - 7) < 1e-5); }
+      else { assert.equal(row.gpu.triangle, null); assert.equal(row.gpu.scalar, undefined); }
+    }
     assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
 });

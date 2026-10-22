@@ -1,3 +1,5 @@
+import { resolveShopTree } from '../engine/shopRows';
+import { bearingHousingRef } from '../engine/bearingContext';
 // The Assembly integrator and the BOM agent (A8.4, O36). After a part's own gates (A8.2), the whole assembly is checked
 // with the part as it would be: no two parts' bodies meet (exact on the meshes; within their chord tolerance of
 // touching, undecided), every hole pattern still on every built part that shares it (a part moved since is caught),
@@ -14,13 +16,15 @@ import { chordOf, measureBody } from '../chat/references';
 import { holesOff, placedBodies, readInterfaces } from './parts';
 import type { RoleReport } from './team';
 import { bomViewOf, type Bom, type BomView } from './bomCore';
+import { beadAccounting, combineBeadAccounting, incompleteBeadReason, type BeadAccounting } from '../frames/beadAccounting';
 
-export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET';
+export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE';
 export interface AssemblyFinding { code: AssemblyCode; message: string; entities?: string[] }
-export interface AssemblyCheck { verdict: 'pass' | 'fail' | 'undecided'; findings: AssemblyFinding[]; massG: number }
+export interface AssemblyCheck { verdict: 'pass' | 'fail' | 'undecided'; findings: AssemblyFinding[]; /** Valid body subtotal when beadAccounting is incomplete. */ massG: number; beadAccounting?: BeadAccounting }
 
 /** Every part's bodies where the assembly places them (the base part's as they are). */
 export async function assemblyBodies(doc: StudioDoc, evaluate: Evaluate): Promise<Map<string, BodyResult[]>> {
+  doc = resolveShopTree(doc);
   const out = new Map<string, BodyResult[]>(), base = await evaluate(doc);
   if (base?.ok && base.bodies.length) out.set('base', base.bodies);
   for (const inst of doc.instances ?? []) if (!inst.hidden) { const b = await placedBodies(inst, evaluate); if (b.length) out.set(inst.id, b); }
@@ -50,9 +54,18 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
   for (const p of ifc.holePatterns) for (const part of p.parts) { const b = parts.get(part); if (!b) continue; const off = holesOff(b, p); if (off.length) findings.push({ code: 'PATTERN_MISALIGNED', message: `${part} is off ${p.id} at ${off.map(o => `(${o.join(', ')})`).join(', ')}`, entities: [part] }); }
   let massG = 0;
   for (const [id, b] of parts) massG += massOf(id === 'base' ? doc : (doc.instances ?? []).find(i => i.id === id)!.doc, b);
-  if (ifc.budgets.massG !== undefined && massG > ifc.budgets.massG + 1e-9) findings.push({ code: 'OVER_TOTAL_BUDGET', message: `the assembly weighs ${Number(massG.toPrecision(6))} g, over its ${ifc.budgets.massG} g` });
+  const accountingRows: { scope: string; accounting?: BeadAccounting }[] = [];
+  const inspect = async (d: StudioDoc, scope: string) => {
+    const e = await evaluate(d); accountingRows.push({ scope, accounting: beadAccounting(d, e?.ok ? e.bodies : []) });
+    for (const i of d.instances ?? []) if (!i.hidden) await inspect(i.doc, `${scope}/${i.id}`);
+  };
+  await inspect(doc, 'base');
+  const accounting = combineBeadAccounting(accountingRows);
+  const incomplete = incompleteBeadReason(accounting);
+  if (incomplete) findings.push({ code: 'BEAD_ACCOUNTING_INCOMPLETE', message: `${incomplete}; massG is a valid body subtotal only` });
+  if (!incomplete && ifc.budgets.massG !== undefined && massG > ifc.budgets.massG + 1e-9) findings.push({ code: 'OVER_TOTAL_BUDGET', message: `the assembly weighs ${Number(massG.toPrecision(6))} g, over its ${ifc.budgets.massG} g` });
   const deciding = findings.filter(f => f.code !== 'EXPECTED_CONTACT');
-  return { verdict: deciding.some(f => f.code !== 'PARTS_TOUCH') ? 'fail' : deciding.length ? 'undecided' : 'pass', findings, massG };
+  return { verdict: deciding.some(f => f.code !== 'PARTS_TOUCH' && f.code !== 'BEAD_ACCOUNTING_INCOMPLETE') ? 'fail' : deciding.length ? 'undecided' : 'pass', findings, massG, ...(accounting ? { beadAccounting: accounting } : {}) };
 }
 
 /** What declares two parts' contact: a hole pattern both share (its mating faces), or a mate between them; else null. */
@@ -69,14 +82,22 @@ export interface BomRole { model: string; bom(view: BomView): Promise<Bom & Role
 const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** The BOM agent's view: each part's name, material, mass, its library origin and a fingerprint of its shape — nothing to change. */
 export async function bomView(doc: StudioDoc, evaluate: Evaluate): Promise<BomView> {
+  doc = resolveShopTree(doc);
   // (Each document evaluated once, then the view built from the results: the same as bomViewOf with a synchronous evaluation.)
   const results = new Map<StudioDoc, EvalResult | null>();
-  for (const d of [doc, ...(doc.instances ?? []).map(i => i.doc)]) if (!results.has(d)) results.set(d, await evaluate(d));
+  const inspect = async (d: StudioDoc): Promise<void> => {
+    if (results.has(d)) return;
+    const result = await evaluate(d);
+    if (!result?.ok && d.nodes.some(n => !n.suppressed && bearingHousingRef(n))) throw new Error(`[BEARING_HOUSING_EVALUATION] ${result ? JSON.stringify(result.error) : 'no evaluation result'}`);
+    results.set(d, result); for (const i of d.instances ?? []) await inspect(i.doc);
+  };
+  await inspect(doc);
   return bomViewOf(doc, d => results.get(d) ?? null);
 }
 /** The BOM checked against the assembly: every instance on one line once, each line's quantity its parts, the totals. */
 export function checkBom(view: BomView, bom: Bom): string[] {
   const out: string[] = [], seen = new Map<string, number>(), lines = bom.lines.filter(l => l.kind === undefined && !l.plate), bought = bom.lines.filter(l => l.kind !== undefined);
+  if (JSON.stringify(view.beadAccounting) !== JSON.stringify(bom.beadAccounting)) out.push('bead accounting must retain the built view completeness and body subtotals');
   for (const l of bom.lines) if (l.qty !== l.parts.length) out.push(`${l.item}: quantity ${l.qty}, ${l.parts.length} parts`);
   for (const l of lines) for (const p of l.parts) seen.set(p, (seen.get(p) ?? 0) + 1);
   // (O142: each bought element on one line once, its line's kind, size and row its own; the count.)

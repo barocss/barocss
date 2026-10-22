@@ -22,7 +22,7 @@ test('R12c.7 section tables: checked whole — a source or an estimate per size 
   assert.equal(sectionTableProblem(RHS), null);
   const bad = (t, re) => assert.match(String(sectionTableProblem(t)), re);
   bad({ ...RHS, estimate: undefined }, /size 40x40x3: cite its source or say estimate: true — never neither/);
-  bad({ ...RHS, kind: 'i-beam' }, /kind must be rect-tube/);
+  bad({ ...RHS, kind: 'future-section' }, /kind must be rect-tube/);
   bad({ ...RHS, rows: [{ ...RHS.rows[0] }, { ...RHS.rows[0] }] }, /size 40x40x3 is listed twice/);
   bad({ ...RHS, rows: [{ size: 'x', width: 40, height: 40, wall: 3 }] }, /size x: outerRadius is missing/);
   bad({ ...RHS, rows: [{ ...RHS.rows[0], colour: 'red' }] }, /unknown field colour/);

@@ -115,6 +115,7 @@ test('the four-bar (RM8): its loop pin a ball joint in SDF and a spherical joint
 // (usd-core 26.8, the owner's go-ahead: the frozen arm-6r and four-bar stages read by OpenUSD and UsdPhysics' own parser,
 // scripts/usd-oracle.py, its readings committed beside each case; compared here with the studio's numbers.)
 test('the frozen arm-6r and four-bar USD stages; usd-core 26.8\'s UsdPhysics reading of them equals our numbers', async () => {
+  console.log('RM9c external validation: comparing prior stored usd-core receipts; usd-core/MuJoCo runtime not run');
   for (const name of ['arm-6r', 'four-bar']) {
     const doc = JSON.parse(readFileSync(join(CASES, name, 'robot.bcad'), 'utf8')) as StudioDoc, { tree, sdf, usd } = await exportsOf(doc), file = join(CASES, name, 'robot.usda');
     assert.ok(sdf.ok && usd.ok);
@@ -122,6 +123,7 @@ test('the frozen arm-6r and four-bar USD stages; usd-core 26.8\'s UsdPhysics rea
     assert.equal(readFileSync(file, 'utf8'), usd.usda, `${name}: the USD export is the frozen one`);
     assert.equal(readFileSync(join(CASES, name, 'robot.sdf'), 'utf8'), sdf.sdf, `${name}: the SDF export is the frozen one`);
     const reading = join(CASES, name, 'oracle.usd-core-26.8.json');
+    // This is the stored prior external reading; this test does not rerun usd-core.
     if (!existsSync(reading)) { console.log(`RM9c ${name}: no usd-core reading yet (scripts/usd-oracle.py)`); continue; }
     const o = JSON.parse(readFileSync(reading, 'utf8'));
     assert.deepEqual(o.composition_errors, []); assert.equal(o.metersPerUnit, 1); assert.equal(o.kilogramsPerUnit, 1); assert.equal(o.upAxis, 'Z');

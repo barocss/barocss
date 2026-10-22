@@ -131,6 +131,7 @@ export function elementLines(doc: Pick<StudioDoc, 'nodes' | 'orings' | 'connecto
     if (e?.kind === 'connector-body') row = { id: e.report.row, ...(connector?.source ? { source: connector.source } : {}), estimate: connector ? connector.estimate === true : true };
     if (e?.kind === 'oring') row = { id: e.report.ring, ...(oring?.source ? { source: oring.source } : {}), estimate: oring ? oring.estimate === true : true };
     if (row?.estimate) why.push(`its row ${row.id} is an estimate`);
+    if (e?.kind === 'key' && !row) why.push('no key row: its sizes are an estimate');
     if (e?.kind === 'retaining-ring' && !row) why.push('no ring row: its sizes are an estimate');
     if (e?.kind === 'spring' && e.report.dimensions.shearModulusEstimate) why.push('its shear modulus G is an estimate');
     if (e?.kind === 'spring' && 'youngsModulusEstimate' in e.report.dimensions && e.report.dimensions.youngsModulusEstimate) why.push('its Young\'s modulus E is an estimate');

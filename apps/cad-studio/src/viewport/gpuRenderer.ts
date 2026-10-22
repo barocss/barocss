@@ -7,6 +7,11 @@
 import { clipBox, createViewer, invert, multiply, rotation, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
 import { curvature, overhang, zebra, type Analysis } from './analysis';
 import { faceRuns, paintFaces, type FaceRuns, type Painted } from './facePaint';
+import { movedCopy, topologyKey } from './instanceGeometry';
+import { silhouetteLines } from './silhouette';
+import { clipClearanceGeometry, type ClearanceDisplay } from './clearanceDisplay';
+import type { PrintDisplay } from './printDisplay';
+import { PrintOverlayGeometry, type PrintDrawing } from './printOverlayGeometry';
 
 const ZEBRA = zebra(), CURVATURE = curvature();
 import { materialShader, showScene, type MaterialShaderResult, type SceneView } from '@barocss/gpu';
@@ -15,8 +20,8 @@ import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@b
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
-import { PROPOSAL_ADDED, PROPOSAL_REMOVED } from './renderer';
-import type { EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, SectionHatch, ThemeName, ViewRenderer, ViewState } from './renderer';
+import { PROPOSAL_ADDED, PROPOSAL_REMOVED, displayModeStatus, lineDisplayMode } from './renderer';
+import type { DisplayModeStatus, EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, SectionHatch, ThemeName, ViewRenderer, ViewState } from './renderer';
 import { hatchAngle } from './sectionView';
 import type { ScalarMap } from './scalarMaps';
 import type { ProposalOverlay } from '../engine/client';
@@ -36,6 +41,22 @@ const toward = (right: Vec3, up: Vec3, forward: Vec3, x: number, y: number, z: n
 /** The identity transform: a mesh as placed. */
 const IDENTITY = translation([0, 0, 0]);
 const LABEL_FONT = "500 'IBM Plex Mono', ui-monospace, monospace";
+/** Refusal is a red striped analysis layer, not a solid collision classification. */
+const CLEARANCE_REFUSAL: ShaderMaterial = {
+  declarations: /* wgsl */ `
+fn clearanceRefusal(world: vec3f, normal: vec3f) -> vec3f {
+  let n = abs(normal);
+  var p = world.xy;
+  if (n.x >= n.y && n.x >= n.z) { p = world.yz; }
+  else if (n.y >= n.z) { p = world.xz; }
+  let h = (p.x + p.y) / 2.0;
+  let width = max(fwidth(h), 1e-4);
+  let stripe = 1.0 - smoothstep(0.16 - width, 0.16 + width, abs(fract(h) - 0.5));
+  return mix(vec3f(1.0, 0.2, 0.2), vec3f(0.22, 0.015, 0.015), stripe);
+}
+`,
+  expression: 'clearanceRefusal(world, normal)',
+};
 
 /** Whether a mesh's transform is already `m` (setting it marks the mesh's block to send again). */
 const sameTransform = (a: ArrayLike<number>, m: ArrayLike<number>) => { for (let i = 0; i < 16; i++) if (a[i] !== m[i]) return false; return true; };
@@ -61,33 +82,6 @@ interface PlacedInstance {
 }
 /** Copies' one tessellation (G10): a reference copy's display mesh, the inverse of its placement, the geometries made from it and the meshes drawing them. */
 interface Shape { key: string; ref: DisplayMesh; inverse: Float64Array; surface: Geometry; edges: Geometry | null; users: Set<Mesh>; colorKey: string | null }
-/** A display mesh's topology in a few numbers (its sizes and a sample of its indices): copies are looked for among equal keys. */
-function topologyKey(m: DisplayMesh): string {
-  const I = m.indices, step = Math.max(1, Math.floor(I.length / 499));
-  let h = 2166136261;
-  for (let i = 0; i < I.length; i += step) { h ^= I[i]; h = Math.imul(h, 16777619); }
-  return [m.positions.length, I.length, m.edgeLines.length, h >>> 0].join(',');
-}
-/**
- * Whether a display mesh is `ref` moved by T (column-major, rigid): the same indices and faces of vertices, and every
- * position, normal and edge point where T puts ref's, to float32 rounding (positions to 4e-7 of the largest coordinate).
- */
-function movedCopy(ref: DisplayMesh, m: DisplayMesh, T: ArrayLike<number>): boolean {
-  if (ref.positions.length !== m.positions.length || ref.indices.length !== m.indices.length || ref.edgeLines.length !== m.edgeLines.length) return false;
-  for (let i = 0; i < ref.indices.length; i++) if (ref.indices[i] !== m.indices[i]) return false;
-  for (let v = 0; v < ref.faceOfVertex.length; v++) if (ref.faceOfVertex[v] !== m.faceOfVertex[v]) return false;
-  let big = 0;
-  for (let i = 0; i < m.positions.length; i++) big = Math.max(big, Math.abs(m.positions[i]));
-  const tol = 4e-7 * (1 + big);
-  return movedPoints(ref.positions, m.positions, T, tol, true) && movedPoints(ref.edgeLines, m.edgeLines, T, tol, true) && movedPoints(ref.normals, m.normals, T, 1e-5, false);
-}
-function movedPoints(a: ArrayLike<number>, b: ArrayLike<number>, T: ArrayLike<number>, tol: number, move: boolean): boolean {
-  for (let v = 0; v < a.length; v += 3) {
-    const x = a[v], y = a[v + 1], z = a[v + 2];
-    for (let r = 0; r < 3; r++) if (Math.abs(T[r] * x + T[4 + r] * y + T[8 + r] * z + (move ? T[12 + r] : 0) - b[v + r]) > tol) return false;
-  }
-  return true;
-}
 interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string; state: string; tile?: number; runs: FaceRuns; painted: Painted | null }
 
 /** A mesh's content in a few numbers (sizes, bounds and a sample of positions): equal for a re-evaluation that changed nothing. */
@@ -100,6 +94,8 @@ function signature(r: BodyResult): string {
 
 
 export class GpuRenderer implements ViewRenderer {
+  private displayMode: DisplayModeStatus = { requested: 'shaded-with-edges', effective: 'shaded-with-edges', supported: true };
+  getDisplayModeStatus(): DisplayModeStatus { return { ...this.displayMode }; }
   aoEnabled = true;
   interacting = false;
   private theme: Theme = THEMES.dark;
@@ -114,6 +110,9 @@ export class GpuRenderer implements ViewRenderer {
   private direct: { id: string; mesh: Mesh; kind: 'curve' | 'surface' }[] = [];
   private controls: Mesh[] = [];
   private regions: Mesh[] = [];
+  /** Clearance owns local decal geometry and its clip; it never joins native pick or cap geometry. */
+  private clearance?: { display: ClearanceDisplay; meshes: Mesh[] };
+  private print?: { geometry: PrintOverlayGeometry; meshes: Map<PrintDrawing, Mesh> };
   /** A surface analysis look (zebra, curvature) for the modelling view, or none. */
   private analysis: ShaderMaterial | null = null;
   private analysisKey: string | null = null;
@@ -122,6 +121,11 @@ export class GpuRenderer implements ViewRenderer {
   private instanceTiles = new WeakMap<Mesh, { tile?: number }>();
   /** What each instance surface's vertex colours show (the display mesh and its colours' key). */
   private instancePainted = new WeakMap<Mesh, { mesh: DisplayMesh; key: string }>();
+  /** The effective mode last applied to instance materials (render may resolve a mode before setState). */
+  private instanceIsolationKey: string | undefined;
+  private silhouettes?: Map<Mesh, { source: DisplayMesh; key: string; style: string; line: Mesh | null }>;
+  private fadedInstance(id: string): boolean { const ids = this.view?.isolatedInstances; return !!ids?.length && !ids.includes(id); }
+  private instanceDisplayMode: DisplayModeStatus['effective'] = 'shaded-with-edges';
   private threads: Mesh | null = null;
   /**
    * Placed instances of other parts: their bodies' surfaces and edges and their thread rings, and what they were made from
@@ -230,6 +234,59 @@ export class GpuRenderer implements ViewRenderer {
 
   /** Analysis maps on the bodies (G6). */
   setScalarMaps(maps: readonly ScalarMap[] | null): void { this.scalarMaps = maps; this.applyMaps(); this.viewer.requestRender(); }
+  /** Model-produced clearance output: draw its supplied fields/colours without changing the judgments. */
+  setClearanceDisplay(display: ClearanceDisplay | null): void {
+    if (display && this.clearance?.display === display) return;
+    for (const m of this.clearance?.meshes ?? []) { m.remove(); m.geometry.dispose(); }
+    this.clearance = undefined;
+    if (display) {
+      const meshes: Mesh[] = [];
+      try {
+        for (const overlay of display.overlays) {
+          // CPU clipping is independent of the native Viewer clip and produces no caps.
+          const geometry = clipClearanceGeometry(overlay, display.clip);
+          if (geometry.indices.length < 3) continue;
+          const m = this.viewer.add(geometry, {
+            name: 'clearance:' + overlay.id, pickable: false, castShadow: false, receiveShadow: false, cap: false, clipped: false, bounded: false,
+            material: { color: '#ffffff', opacity: overlay.opacity, unlit: true, doubleSided: true, decal: true, shader: overlay.hatched ? CLEARANCE_REFUSAL : null },
+          });
+          meshes.push(m); m.transform = overlay.model;
+          // Even a supplied opaque decal must not become a native line-pick depth occluder.
+          m.pickTransparent = true;
+        }
+        this.clearance = { display, meshes };
+      } catch (error) {
+        for (const m of meshes) { m.remove(); m.geometry.dispose(); }
+        this.viewer.requestRender(); throw error;
+      }
+    }
+    this.viewer.requestRender();
+  }
+  /** Additive bed-space print output; native bodies have already been projected by the host. */
+  setPrintDisplay(display: PrintDisplay | null): void {
+    if (!this.print && !display) return;
+    const print = this.print ??= { geometry: new PrintOverlayGeometry(), meshes: new Map<PrintDrawing, Mesh>() };
+    try {
+      const desired = new Set(print.geometry.update(display));
+      for (const [source, mesh] of print.meshes) if (!desired.has(source)) {
+        mesh.remove(); mesh.geometry.dispose(); print.meshes.delete(source);
+      }
+      for (const source of desired) if (!print.meshes.has(source)) {
+        const mesh = this.viewer.add({ positions: source.positions, normals: source.normals, indices: source.indices, topology: source.indices ? 'triangles' : 'lines' }, {
+          name: 'print:' + source.name, pickable: false, castShadow: false, receiveShadow: false, cap: false, clipped: false, bounded: false,
+          material: { color: source.color, opacity: source.opacity, unlit: true, doubleSided: true, lineWidth: source.width ?? 1 },
+        });
+        // Display supports never become native face/edge-pick depth occluders.
+        print.meshes.set(source, mesh); mesh.pickTransparent = true;
+      }
+      for (const [source, mesh] of print.meshes) if (mesh.visible !== (source.visible !== false)) mesh.visible = source.visible !== false;
+    } catch (error) {
+      for (const mesh of print.meshes.values()) { mesh.remove(); mesh.geometry.dispose(); }
+      print.meshes.clear(); print.geometry.update(null); this.viewer.requestRender(); throw error;
+    }
+    if (!display) this.print = undefined;
+    this.viewer.requestRender();
+  }
   /** Each body's surface showing its map (its field set once per map), or its own look again. */
   private applyMaps(): void {
     for (const b of this.bodies) {
@@ -309,7 +366,7 @@ export class GpuRenderer implements ViewRenderer {
       const m = this.viewer.add({ positions: h.segments, topology: 'lines' }, { name: 'section hatch', pickable: false, castShadow: false, receiveShadow: false, clipped: false, bounded: false,
         material: { color: '#000000', opacity: 0.55, unlit: true, lineWidth: 1 } });
       // (The segments in the part's frame, as the body's mesh: drawn through the body's own transform, G1.)
-      m.transform = b.surface.transform; m.visible = b.surface.visible;
+      m.transform = b.surface.transform; m.visible = b.surface.visible && !lineDisplayMode(this.displayMode.effective);
       this.hatchLines.set(h.body, m);
     }
     this.viewer.requestRender();
@@ -485,8 +542,18 @@ export class GpuRenderer implements ViewRenderer {
     b.painted = paintFaces(b.surface.geometry, b.runs, b.painted, key, faceState, shade, shades);
   }
 
+  private resolveDisplayMode(view: ViewState): DisplayModeStatus {
+    const localReason = view.displayMode === 'x-ray' && this.clip && this.viewer.orderIndependent === false
+      ? 'X-ray section caps require order-independent transparency; the sorted transparency path is unsupported.'
+      : this.settings || this.analysis || this.scalarMaps?.length || this.direct.length || this.proposalMeshes.length || this.mould
+      ? 'CAD display modes currently support ordinary modelling solids and placed instances only; Render, analysis, direct/proposal and mould displays are unsupported.' : undefined;
+    return displayModeStatus(view, this.displayMode.effective, localReason);
+  }
+
   setState(view: ViewState): void {
     this.view = view;
+    this.displayMode = this.resolveDisplayMode(view);
+    const mode = this.displayMode.effective, lineOnly = lineDisplayMode(mode);
     this.bodies.forEach((b, bi) => {
       const faceState = new Map<number, number>();
       if (view.hoverFace?.body === bi) faceState.set(view.hoverFace.face, 1);
@@ -497,8 +564,8 @@ export class GpuRenderer implements ViewRenderer {
       for (const e of view.selectedEdges) if (e.body === bi) edgeState.set(e.edge, 2);
       // (Only a body whose look changed is painted again: a hover repaints one body, not all.)
       const t = view.transforms?.get(bi), faces = view.faceColors?.get(bi);
-      const state = JSON.stringify([[...faceState], [...edgeState], view.selectedEdges.length > 0, view.bodyColors?.get(bi) ?? null, faces ? [...faces] : null,
-        view.ghostBodies.has(bi), !!view.hiddenBodies?.has(bi), view.selectedBodies.includes(bi) ? 2 : view.hoverBody === bi ? 1 : 0, t ? Array.from(t) : view.offsets.get(bi) ?? null]);
+      const state = JSON.stringify([mode, [...faceState], [...edgeState], view.selectedEdges.length > 0, view.bodyColors?.get(bi) ?? null, faces ? [...faces] : null,
+        view.ghostBodies.has(bi), !!view.isolatedInstances?.length, !!view.hiddenBodies?.has(bi), view.selectedBodies.includes(bi) ? 2 : view.hoverBody === bi ? 1 : 0, t ? Array.from(t) : view.offsets.get(bi) ?? null]);
       if (state === b.state) return;
       b.state = state;
       this.paint(b, faceState, view.bodyColors?.get(bi), faces);
@@ -517,23 +584,32 @@ export class GpuRenderer implements ViewRenderer {
         const g = this.viewer.createGeometry({ positions: pts, colors, topology: 'lines' });
         b.highlight = this.viewer.add(g, { material: { color: '#ffffff', unlit: true, lineWidth: view.selectedEdges.length ? 2.6 : 2.2 }, pickable: false, castShadow: false });
       }
-      const ghost = view.ghostBodies.has(bi), offset = view.offsets.get(bi) ?? [0, 0, 0];
+      const isolated = !!view.isolatedInstances?.length, ghost = view.ghostBodies.has(bi), offset = view.offsets.get(bi) ?? [0, 0, 0];
       const look = this.settings ? appearanceOf(this.settings, b.result.key) : null;
       b.surface.material = look
         ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(0.35, look.opacity) : look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: this.mapFor(b.surface.geometry, b.result.mesh, look, b), alphaCutoff: look.cutout ?? 0 }
         : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? 0.35 : 1, shader: this.analysis, unlit: !!this.analysis, map: this.mapFor(b.surface.geometry, b.result.mesh, null, b), alphaCutoff: 0 };
+      // Keep the original pick opacity while x-ray changes only its appearance.
+      b.surface.pickTransparent = isolated || (b.surface.material.opacity ?? 1) < 1;
+      b.surface.material = { colorWrite: !lineOnly, opacity: (mode === 'x-ray' ? Math.min(ghost ? 0.25 * 0.35 : 0.25, b.surface.material.opacity ?? 1) : b.surface.material.opacity ?? 1) * (isolated ? 0.15 : 1) };
       const hidden = !!view.hiddenBodies?.has(bi);
       // (While the mould's halves show, picks reach only them, G6.)
       const halvesOn = !!this.mould?.halves.length;
-      b.surface.pickable = !ghost && !hidden && !halvesOn; b.surface.visible = !hidden;
-      b.surface.outline = view.selectedBodies.includes(bi) ? ACCENT : view.hoverBody === bi ? HOVER : null;
+      b.surface.pickable = !ghost && !isolated && !hidden && !halvesOn; b.surface.visible = !hidden && !(isolated && lineOnly);
+      b.surface.outline = lineOnly || isolated ? null : view.selectedBodies.includes(bi) ? ACCENT : view.hoverBody === bi ? HOVER : null;
       const moved = view.transforms?.get(bi) ?? translation(offset);
       for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = moved;
       // (Its hatch on the exact section's cut, G19.3/4: moved with it, faint when it is.)
       const hatch = this.hatchLines.get(bi);
-      if (hatch) { hatch.transform = moved; hatch.visible = !hidden; hatch.material = { opacity: ghost ? 0.55 * 0.35 : 0.55 }; }
-      if (b.edges) { b.edges.material = { opacity: ghost ? 0.35 : 0.9 }; b.edges.pickable = !ghost && !hidden && !halvesOn; b.edges.visible = !hidden && (this.settings ? this.settings.environment.edges : true); }
+      if (hatch) { hatch.transform = moved; hatch.visible = !hidden && !lineOnly; hatch.material = { opacity: 0.55 * (ghost ? 0.35 : 1) * (isolated ? 0.15 : 1) }; }
+      const edgeStyle = { lineOver: mode === 'wireframe', lineDash: null, lineHidden: mode === 'hidden-lines-dashed' ? 0.55 : 0, lineHiddenDash: mode === 'hidden-lines-dashed' ? [6, 4] as const : null };
+      if (b.edges) { b.edges.material = { opacity: (ghost ? 0.35 : 0.9) * (isolated ? 0.15 : 1), ...edgeStyle }; b.edges.pickable = !ghost && !isolated && !hidden && !halvesOn; b.edges.visible = !hidden && (this.settings ? this.settings.environment.edges : true); }
+      if (b.highlight) { b.highlight.material = edgeStyle; b.highlight.visible = !hidden && !isolated; }
     });
+    const isolationKey = JSON.stringify(view.isolatedInstances ?? null);
+    const isolationChanged = this.instanceIsolationKey !== isolationKey && (this.instanceIsolationKey !== undefined || !!view.isolatedInstances?.length);
+    this.instanceIsolationKey = isolationKey;
+    if (this.instanceDisplayMode !== mode || isolationChanged) this.paintInstances();
     this.applyClip();
   }
 
@@ -553,7 +629,12 @@ export class GpuRenderer implements ViewRenderer {
     ];
   }
 
-  render(camera: OrbitCamera, _view: ViewState): void {
+  render(camera: OrbitCamera, view: ViewState): void {
+    const nextMode = this.resolveDisplayMode(view), modeChanged = nextMode.effective !== this.displayMode.effective;
+    this.displayMode = nextMode;
+    // Camera-only frames retain the existing per-body state cache and do not repaint every body.
+    if (modeChanged || !this.view) this.setState(view);
+    const lineOnly = lineDisplayMode(this.displayMode.effective);
     const v = this.viewer, w = this.canvas.clientWidth, h = this.canvas.clientHeight;
     camera.aspect = w / Math.max(1, h);
     Object.assign(v.camera, { position: camera.eye(), target: [...camera.target], up: [0, 0, 1], fovY: (camera.fovY * 180) / Math.PI, projection: camera.ortho ? 'orthographic' : 'perspective' });
@@ -569,11 +650,43 @@ export class GpuRenderer implements ViewRenderer {
       v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ambientOcclusion: e.occlusion && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map!.intensity } : {}) };
     } else {
       v.lights = this.lights(camera);
-      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };
+      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled && !this.interacting && !lineOnly ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };
     }
+    if (lineOnly) v.environment = { ...v.environment, ambientOcclusion: false };
+    const groundVisible = !lineOnly && (r ? r.environment.ground : true);
+    if (this.ground && this.ground.visible !== groundVisible) this.ground.visible = groundVisible;
     // The display's pixel ratio as it is now (it changes with the browser zoom, or on another screen).
+    this.updateSilhouettes(camera);
     v.resize(pixelRatio());
     v.render();
+  }
+
+  /** Curved-face screen silhouettes are display lines, with no native pick identity. */
+  private updateSilhouettes(camera: OrbitCamera): void {
+    const cache = this.silhouettes ??= new Map(), seen = new Set<Mesh>();
+    const mode = this.displayMode.effective;
+    const update = (surface: Mesh, source: DisplayMesh, opacity: number, shown = surface.visible) => {
+      if (!shown || this.settings || this.analysis || this.mould || !source.faces?.some(f => f.kind === 'curved' && !f.facet)) return;
+      seen.add(surface);
+      const key = JSON.stringify([camera.eye(), camera.target, camera.ortho, Array.from(surface.transform)]);
+      let entry = cache.get(surface);
+      if (!entry || entry.source !== source || entry.key !== key) {
+        if (entry?.line) { entry.line.remove(); entry.line.geometry.dispose(); }
+        const segments = silhouetteLines(source, surface.transform, camera.eye(), camera.target, camera.ortho);
+        const line = segments.length ? this.viewer.add({ positions: segments, topology: 'lines' }, { material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, pickable: false, castShadow: false }) : null;
+        if (line) line.transform = surface.transform;
+        entry = { source, key, style: '', line }; cache.set(surface, entry);
+      }
+      const style = JSON.stringify([mode, opacity, this.theme.edge, surface.clipped]);
+      if (entry.line && entry.style !== style) {
+        entry.line.material = { color: this.theme.edge, opacity, lineOver: mode === 'wireframe', lineHidden: mode === 'hidden-lines-dashed' ? 0.55 : 0, lineHiddenDash: mode === 'hidden-lines-dashed' ? [6, 4] : null };
+        entry.style = style;
+      }
+      if (entry.line && entry.line.clipped !== surface.clipped) entry.line.clipped = surface.clipped;
+    };
+    this.bodies.forEach((b, bi) => update(b.surface, b.result.mesh, b.edges?.material.opacity ?? (b.surface.pickable ? 0.9 : 0.15), !this.view?.hiddenBodies?.has(bi)));
+    for (const it of this.instances) it.surfaces.forEach((surface, bi) => update(surface, it.sharing[bi] ? it.shapes[bi]!.ref : it.bodies[bi].mesh, this.fadedInstance(it.id) ? 0.15 : 1, true));
+    for (const [surface, entry] of cache) if (!seen.has(surface)) { if (entry.line) { entry.line.remove(); entry.line.geometry.dispose(); } cache.delete(surface); }
   }
 
   pickFace(x: number, y: number, camera: OrbitCamera, _view: ViewState): FaceRef | null {
@@ -586,7 +699,7 @@ export class GpuRenderer implements ViewRenderer {
 
   pickEdge(x: number, y: number, camera: OrbitCamera, _view: ViewState, radius = 6): EdgeRef | null {
     this.sync(camera);
-    const hit = this.viewer.pickLine(x, y, radius);
+    const hit = this.viewer.pickLine(x, y, radius, { throughSurfaces: false, respectSurfaceDepth: true });
     if (!hit || hit.edge === null) return null;
     const body = this.bodies.findIndex(b => b.edges === hit.mesh);
     return body < 0 ? null : { body, edge: hit.edge };
@@ -812,16 +925,25 @@ export class GpuRenderer implements ViewRenderer {
   /** Instances' look: the modelling base, or their render appearance (by key inst:<id>). */
   private paintInstances(): void {
     const r = this.settings, env = r?.environment;
+    const mode = this.displayMode.effective, lineOnly = lineDisplayMode(mode);
+    const edgeStyle = { lineOver: mode === 'wireframe', lineDash: null, lineHidden: mode === 'hidden-lines-dashed' ? 0.55 : 0, lineHiddenDash: mode === 'hidden-lines-dashed' ? [6, 4] as const : null };
     // (G10: which copies share their shape's geometry; a swapped mesh is placed, clipped and painted below.)
     const swapped = this.bindShares();
     for (const it of this.instances) {
+      const faded = this.fadedInstance(it.id);
       const look = r ? appearanceOf(r, 'inst:' + it.id) : null;
       it.surfaces.forEach((m, bi) => {
         const tiles = this.instanceTiles.get(m) ?? {}; this.instanceTiles.set(m, tiles);
         const dm = this.instanceMeshes.get(it.id)?.[bi], shared = it.sharing[bi];
         m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: dm && !shared ? this.mapFor(m.geometry, dm, look, tiles) : null, alphaCutoff: look.cutout ?? 0 }
           : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: 1, shader: this.analysis, unlit: !!this.analysis, map: null, alphaCutoff: 0 };
-        m.outline = this.instanceSelection.includes(it.id) ? ACCENT : null;
+        // X-ray changes appearance only; picks retain the original material's transparency policy.
+        m.pickTransparent = faded || (m.material.opacity ?? 1) < 1;
+        m.pickable = !faded;
+        // Faded line-only context contributes edges, not an occluder in front of the focus.
+        m.visible = !(faded && lineOnly);
+        m.material = { colorWrite: !lineOnly, opacity: (mode === 'x-ray' ? Math.min(0.25, m.material.opacity ?? 1) : m.material.opacity ?? 1) * (faded ? 0.15 : 1) };
+        m.outline = !lineOnly && !faded && this.instanceSelection.includes(it.id) ? ACCENT : null;
         // Face colours as the bodies' (paint): the base, picked faces mixed with the accent.
         const mesh = this.instanceMeshes.get(it.id)?.[bi];
         if (!mesh) return;
@@ -846,9 +968,11 @@ export class GpuRenderer implements ViewRenderer {
         for (let v = 0; v < colors.length / 3; v++) colors.set(picked.has(mesh.faceOfVertex[v]) ? on : base, v * 3);
         m.geometry.setColors(colors);
       });
-      for (const e of it.edges) { e.material = { color: this.theme.edge }; e.visible = env ? env.edges : true; }
-      if (it.threads) it.threads.material = { color: this.theme.edge };
+      for (const e of it.edges) { e.material = { color: this.theme.edge, opacity: faded ? 0.15 : 1, ...edgeStyle }; e.visible = env ? env.edges : true; }
+      // Cosmetic thread rings are not native CAD edges.
+      if (it.threads) { it.threads.material = { color: this.theme.edge, opacity: faded ? 0.55 * 0.15 : 0.55 }; it.threads.visible = !lineOnly; }
     }
+    this.instanceDisplayMode = mode;
     if (swapped) { this.placePreview(); this.applyClip(); }
     this.viewer.requestRender();
   }
@@ -883,7 +1007,7 @@ export class GpuRenderer implements ViewRenderer {
   }
 
   /** The instance under a point, and which of its bodies' display faces (by the triangle hit). */
-  pickInstanceFace(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number } | null {
+  pickInstanceFace(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number; cap?: true } | null {
     if (!this.instances.length) return null;
     this.sync(camera);
     const hit = this.viewer.raycast(x, y), name = hit?.mesh.name;
@@ -891,7 +1015,7 @@ export class GpuRenderer implements ViewRenderer {
     const it = this.instances.find(i => i.id === name.slice(5)), body = it ? it.surfaces.indexOf(hit.mesh) : -1;
     const mesh = body >= 0 ? this.instanceMeshes.get(it!.id)?.[body] : undefined;
     const face = mesh && hit.triangle !== null ? mesh.faceOfVertex[mesh.indices[hit.triangle * 3]] : -1;
-    return { id: name.slice(5), body: Math.max(0, body), face: face ?? -1 };
+    return { id: name.slice(5), body: Math.max(0, body), face: face ?? -1, ...(hit.cap ? { cap: true as const } : {}) };
   }
 
   /** The direct object under a point: a surface hit, else a curve within a few pixels. */
@@ -910,7 +1034,7 @@ export class GpuRenderer implements ViewRenderer {
     return c.convertToBlob({ type: 'image/png' });
   }
 
-  dispose(): void { this.viewer.dispose(); }
+  dispose(): void { this.setPrintDisplay(null); this.viewer.dispose(); }
 }
 
 /** Texture coordinates by box projection: each vertex across the body's box on its face's two other axes. */

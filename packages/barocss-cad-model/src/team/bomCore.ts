@@ -1,3 +1,5 @@
+import { resolveShopTree } from '../engine/shopRows';
+import { toPartDocument } from '../engine/part';
 // The BOM's synchronous core (O147 B2, split from team/assembly.ts): the BOM agent's view of an assembly — each placed
 // part's name, material, mass, library origin and shape fingerprint, and the bought machine elements — and the
 // deterministic BOM derived from it. It imports nothing of the chat's tools, so the chat's drawings (chat/drawing.ts)
@@ -7,9 +9,16 @@ import type { BodyResult, EvalResult } from '../engine/evaluate';
 import { massProperties } from '../chat/analysis';
 import { materialIdOf } from '../app/bodies';
 import { elementLines } from '../engine/elements';
+import { beadAccounting, combineBeadAccounting, type BeadAccounting } from '../frames/beadAccounting';
 
+// Equal feature text can resolve different local/parent rows. Compare the converted geometry for row-backed parts.
+function shapeOf(doc: StudioDoc, evaluated: boolean): string {
+  const backed = doc.nodes.some(n => ['bearing', 'oring-gland', 'oring', 'retaining-ring', 'sprocket', 'pulley', 'belt', 'coupling', 'connector-opening'].includes(n.kind) || ((n.kind === 'frame' || n.kind === 'frame-member') && (n.section.kind === 'library' || (n.kind === 'frame' && n.overrides?.some(o => o.section?.kind === 'library')))));
+  return JSON.stringify(backed && evaluated ? toPartDocument(doc) : doc.nodes);
+}
 const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massProperties(doc, bodies) as { mass_g: number }[]).reduce((s, x) => s + x.mass_g, 0);
 export interface BomView {
+  beadAccounting?: BeadAccounting;
   parts: { id: string; name: string; material: string | null; massG: number; library: string | null; shape: string }[];
   /** The bought machine elements (O142): in the base part (`part: 'base'`) and in each placed part, one a body. */
   /** FRk1 (D165): the frame's plates made — gussets and end caps — one a body: their thickness, area, volume and material. */
@@ -23,15 +32,23 @@ export interface BomLine {
   /** A made plate's line (FRk1): its kind and sizes, merged by kind, thickness, area and material; `parts` `part:feature` each. */
   plate?: { kind: 'gusset' | 'end-cap'; thicknessMM: number; areaMM2: number; volumeMM3: number }; /** Its catalogue number and supplier (a coupling's row). */ catalogue?: string;
 }
-export interface Bom { lines: BomLine[]; totalQty: number; totalMassG: number; /** The bought elements counted (their mass is their parts'). */ elementQty?: number; /** The plates counted (FRk1; their mass is their parts'). */ plateQty?: number }
+export interface Bom { lines: BomLine[]; totalQty: number; /** Valid body subtotal when beadAccounting is incomplete; not an approvable total. */ totalMassG: number; beadAccounting?: BeadAccounting; /** The bought elements counted (their mass is their parts'). */ elementQty?: number; /** The plates counted (FRk1; their mass is their parts'). */ plateQty?: number }
 const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** The BOM agent's view from evaluations given at once (O147: the chat's drawings build it synchronously). */
 export function bomViewOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResult | null): BomView {
+  doc = resolveShopTree(doc);
   const parts: BomView['parts'] = [];
+  const accounting: { scope: string; accounting?: BeadAccounting }[] = [];
+  const inspect = (d: StudioDoc, scope: string) => {
+    const e = evaluate(d); accounting.push({ scope, accounting: beadAccounting(d, e?.ok ? e.bodies : []) });
+    for (const i of d.instances ?? []) inspect(i.doc, `${scope}/${i.id}`);
+  };
+  inspect(doc, 'base');
+  const beads = combineBeadAccounting(accounting);
   for (const inst of doc.instances ?? []) {
     const e = evaluate(inst.doc), bodies = e?.ok ? e.bodies : [];
     const lib = inst.doc.nodes.find(n => n.kind === 'library') as { library?: { library?: string; version?: string; part?: string; variant?: string } } | undefined, o = lib?.library;
-    parts.push({ id: inst.id, name: inst.name, material: bodies.length ? materialIdOf(inst.doc, bodies[0]) ?? null : null, massG: r6(massOf(inst.doc, bodies)), library: o ? `${o.library}@${o.version}/${o.part}${o.variant ? `:${o.variant}` : ''}` : null, shape: JSON.stringify(inst.doc.nodes) });
+    parts.push({ id: inst.id, name: inst.name, material: bodies.length ? materialIdOf(inst.doc, bodies[0]) ?? null : null, massG: r6(massOf(inst.doc, bodies)), library: o ? `${o.library}@${o.version}/${o.part}${o.variant ? `:${o.variant}` : ''}` : null, shape: shapeOf(inst.doc, !!e?.ok) });
   }
   // (O142: the bought elements — the base part's and each placed part's — as their own lines' material.)
   const elements: NonNullable<BomView['elements']> = [], plates: NonNullable<BomView['plates']> = [];
@@ -45,7 +62,7 @@ export function bomViewOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResu
   };
   const base = evaluate(doc); if (base?.ok) take('base', doc, base.bodies);
   for (const inst of doc.instances ?? []) { const e = evaluate(inst.doc); if (e?.ok) take(inst.id, inst.doc, e.bodies); }
-  return JSON.parse(JSON.stringify({ parts, ...(plates.length ? { plates } : {}), ...(elements.length ? { elements } : {}) })) as BomView;
+  return JSON.parse(JSON.stringify({ parts, ...(beads ? { beadAccounting: beads } : {}), ...(plates.length ? { plates } : {}), ...(elements.length ? { elements } : {}) })) as BomView;
 }
 /** The deterministic BOM: identical parts (same shape and material) on one line, in first-seen order. */
 export function deriveBom(view: BomView): Bom {
@@ -66,5 +83,5 @@ export function deriveBom(view: BomView): Bom {
     if (l) { l.parts.push(id); l.qty++; l.massG = r6(l.massG + (e.massG ?? 0)); l.estimate = l.estimate || e.estimate; l.override = l.override || e.by === 'override'; }
     else lines.push({ item: `${e.kind} ${e.size}`, parts: [id], qty: 1, material: null, massG: e.massG ?? 0, source: e.source, kind: e.kind, size: e.size, row: e.row, estimate: e.estimate, override: e.by === 'override', ...(e.catalogue ? { catalogue: e.catalogue } : {}) });
   }
-  return { lines, totalQty: view.parts.length, totalMassG: r6(view.parts.reduce((s, p) => s + p.massG, 0)), ...(view.elements?.length ? { elementQty: view.elements.length } : {}), ...(view.plates?.length ? { plateQty: view.plates.length } : {}) };
+  return { lines, totalQty: view.parts.length, totalMassG: r6(view.parts.reduce((s, p) => s + p.massG, 0)), ...(view.beadAccounting ? { beadAccounting: view.beadAccounting } : {}), ...(view.elements?.length ? { elementQty: view.elements.length } : {}), ...(view.plates?.length ? { plateQty: view.plates.length } : {}) };
 }

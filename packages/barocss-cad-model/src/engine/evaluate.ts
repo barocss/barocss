@@ -1,13 +1,14 @@
+import { provenanceOfTree, type ShopTreeProvenance } from './shopRows';
 import { followedStale, resolveSkeletons, staleText } from '../frames/skeleton';
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import { fitNotes } from './fits';
 import { elementOf, type BodyElement } from './elements';
 import type { FaceTable } from '../assembly/mates';
-import { brepSurfaceArea, cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
+import { brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
-import { bodyKeyOf, withBeadRetry } from './part';
-import { frameSegmentCount, placedDoc, type BodyRef, type FrameSectionRow, type ModelNode, type Side, type StudioDoc } from './doc';
+import { bodyKeyOf, partSnapshot } from './part';
+import { frameSegmentCount, frameSegmentEnds, placedBase, placedDoc, placementOf, type PartInstance, type BodyRef, type FrameSectionRow, type ModelNode, type Side, type StudioDoc } from './doc';
 import { bodyNodeOf } from './ids';
 
 /** A kernel output's body key and the node and side it is now. */
@@ -62,7 +63,7 @@ export interface BodyResult {
 export type EvalResult =
   // (`faceTable`: the part's flat and round faces from the B-rep just built — the face table the requirement checks,
   // print rules and mates read, kept so they do not evaluate the part again; PERF3 A1.)
-  | { ok: true; revision: number; bodies: BodyResult[]; ms: number; faceTable?: FaceTable }
+  | { ok: true; revision: number; bodies: BodyResult[]; ms: number; faceTable?: FaceTable; shopRows?: readonly ShopTreeProvenance[] }
   | { ok: false; revision: number; error: FriendlyError; ms: number };
 
 const ALUMINIUM = 2700;
@@ -154,7 +155,7 @@ function memberNotes(m: NonNullable<CadPartSnapshot['outputs'][number]['member']
   const section = own ?? (node?.kind === 'frame-member' || node?.kind === 'frame' ? node.section : undefined);
   const est = own ? [] : node?.kind === 'frame-member' || node?.kind === 'frame' ? node.estimates ?? [] : [], sec = (section ?? {}) as unknown as Record<string, unknown>;
   return [
-    ...(m.frame && node?.kind === 'frame' ? [{ text: `Frame member ${m.frame.member + 1} of ${frameSegmentCount(nodesNow, node)}: point ${m.frame.from + 1} → point ${m.frame.to + 1}${m.mirrored ? ', mirrored' : ''}` }] : []),
+    ...(m.frame && node?.kind === 'frame' ? [{ text: `Frame member ${m.frame.member + 1}${node.bends?.length ? ` (${frameSegmentCount(nodesNow, node)} output members)` : ` of ${frameSegmentCount(nodesNow, node)}`}: point ${m.frame.from + 1} → point ${m.frame.to + 1}${m.mirrored ? ', mirrored' : ''}` }] : []),
     { text: `Member: ${m.section} · section ${+m.areaMM2.toFixed(3)} mm² · length ${mm(m.lengthMM)}` },
     { text: `Line through its ${m.anchor}${m.offset[0] || m.offset[1] ? `, moved (${m.offset.map(x => +x.toFixed(3)).join(', ')})` : ''}; section x ${direction(m.xAxis)}, y ${direction(m.yAxis)}${m.rollDegrees ? ` (rolled ${+m.rollDegrees.toFixed(3)}°)` : ''}${m.upFallback ? `; the line runs along up, so y follows ${direction(m.upFallback)}` : ''}` },
     // (FRf2, O125: a frame following a placed part's sketch — which; changed since linked, said until relinked.)
@@ -185,14 +186,15 @@ function libraryNote(id: string, rows: readonly FrameSectionRow[]): { text: stri
  * meet (overlapping until an ordered trim, FR3b) said so as a warning.
  */
 function endNotes(ends: NonNullable<NonNullable<CadPartSnapshot['outputs'][number]['member']>['ends']>, node: Extract<ModelNode, { kind: 'frame' }>): { text: string; warning?: boolean }[] {
-  const meeting = (p: number) => node.segments.reduce((n, g) => n + (g[0] === p ? 1 : 0) + (g[1] === p ? 1 : 0), 0);
+  const meeting = (p: number) => node.segments.reduce((n, g) => n + frameSegmentEnds(g).filter(i => i === p).length, 0);
   const what = (e: (typeof ends)[number]) => e.kind === 'mitre' ? `mitre ${+e.angleDegrees!.toFixed(3)}° with member ${e.with! + 1}`
     : e.kind === 'butt' ? `butt on member ${e.with! + 1}${e.angleDegrees ? ` (${+e.angleDegrees.toFixed(3)}° from square)` : ''}`
     : e.kind === 'through' ? `through, ${+e.extendedMM!.toFixed(3)} mm past point ${e.point + 1} over member ${e.with! + 1}`
     : e.kind === 'cope' ? `coped to member ${e.with! + 1}`
     : e.kind === 'trim' ? (e.against ? `trimmed to member${e.against.length > 1 ? 's' : ''} ${e.against.map(m => m + 1).join(', ')} (${e.rank! + 1} in order)` : e.plane ? `trimmed to a plane${e.angleDegrees ? ` (${+e.angleDegrees.toFixed(3)}° from square)` : ''}` : 'trimmed to a body')
-    : 'square';
-  const out: { text: string; warning?: boolean }[] = [{ text: `Ends: ${ends.map(e => `${e.end} ${what(e)}`).join('; ')}` }];
+    : e.kind === 'notch' ? 'notch' : 'square';
+  const detail = (e: (typeof ends)[number]) => `${what(e)}${e.gapMM ? `, weld gap ${e.gapMM} mm` : ''}${e.notch ? e.notch.kind === 'holesaw' ? `, hole saw diameter ${e.notch.diameterMM} mm, signed offset ${e.notch.offsetMM} mm` : `, V depth ${e.notch.depthMM} mm, included angle ${e.notch.angleDegrees}°` : ''}`;
+  const out: { text: string; warning?: boolean }[] = [{ text: `Ends: ${ends.map(e => `${e.end} ${detail(e)}`).join('; ')}` }];
   for (const e of ends) if (e.kind === 'square' && meeting(e.point) >= 3) out.push({ text: `Point ${e.point + 1}: ${meeting(e.point)} members meet, left square and overlapping (set "Three or more members" to an ordered trim)`, warning: true });
   return out;
 }
@@ -238,19 +240,20 @@ function oneFeature(bends: readonly { name: string }[]): boolean {
 const bendLabel = (name: string, short: boolean): string => short ? name.slice(name.lastIndexOf('.') + 1) : name;
 
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
-  return withBeadRetry(doc, part => last ? last.withDocument(part) : evaluateCadPart(part));
+  return partSnapshot(doc, part => last ? last.withDocument(part) : evaluateCadPart(part));
 }
 
 /** The document with its parameter-bound skeletons solved for its parameters now (O140; the same document when none moved), or their refusal. */
 function skeletonsNow(doc: StudioDoc): StudioDoc { const r = resolveSkeletons(doc); if ('error' in r) throw new Error(r.error); return r.doc; }
 export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): EvalResult {
+  const shopRows = provenanceOfTree(doc);
   const t0 = performance.now();
   try {
     doc = skeletonsNow(doc);
     const snapshot = snapshotOf(doc); last = snapshot;
     const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
-    return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable };
+    return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable, shopRows };
   } catch (cause) {
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
@@ -273,7 +276,7 @@ const lastPreview: Record<'preview' | 'section', CadPartSnapshot | null> = { pre
 export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, slot: 'preview' | 'section' = 'preview'): EvalResult {
   const t0 = performance.now();
   try {
-    const last = lastPreview[slot], snapshot = withBeadRetry(doc, part => last ? last.withDocument(part) : evaluateCadPart(part, undefined, PREVIEW)); lastPreview[slot] = snapshot;
+    const last = lastPreview[slot], snapshot = partSnapshot(doc, part => last ? last.withDocument(part) : evaluateCadPart(part, undefined, PREVIEW)); lastPreview[slot] = snapshot;
     const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volumeMM3: null, massG: null }));
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
@@ -290,13 +293,14 @@ export type PartSlot = 'part' | 'check' | 'refs' | 'agent' | 'read' | 'probe';
 /** Another part's bodies on their own (instances: not through the main part's cache). */
 const lastParts = new Map<PartSlot, CadPartSnapshot>();
 export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot: PartSlot = 'part'): EvalResult {
+  const shopRows = provenanceOfTree(doc);
   const t0 = performance.now();
   try {
     doc = skeletonsNow(doc);
-    const last = lastParts.get(slot), snapshot = withBeadRetry(doc, part => last ? last.withDocument(part) : evaluateCadPart(part)); lastParts.set(slot, snapshot);
+    const last = lastParts.get(slot), snapshot = partSnapshot(doc, part => last ? last.withDocument(part) : evaluateCadPart(part)); lastParts.set(slot, snapshot);
     const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
-    return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable };
+    return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable, shopRows };
   } catch (cause) {
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
@@ -305,7 +309,7 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot
 export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok: true; volumes: { key: string; volumeMM3: number | null }[] } | { ok: false; error: FriendlyError } {
   try {
     doc = skeletonsNow(doc);
-    const last = lastParts.get(slot), snapshot = withBeadRetry(doc, part => last ? last.withDocument(part) : evaluateCadPart(part)); lastParts.set(slot, snapshot);
+    const last = lastParts.get(slot), snapshot = partSnapshot(doc, part => last ? last.withDocument(part) : evaluateCadPart(part)); lastParts.set(slot, snapshot);
     return { ok: true, volumes: snapshot.outputs.map(o => {
       let m = masses.get(o.brep);
       if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; } masses.set(o.brep, m); }
@@ -324,9 +328,16 @@ export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok:
 export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: number[]; t: [number, number, number] }, revision: number, quality = 8): EvalResult {
   const t0 = performance.now();
   try {
-    const snapshot = withBeadRetry(placed, part => lastPlaced ? lastPlaced.withDocument(part) : evaluateCadPart(part)); lastPlaced = snapshot;
-    const origin = withBeadRetry(base, part => lastBase ? lastBase.withDocument(part) : evaluateCadPart(part)); lastBase = origin;
+    const snapshot = partSnapshot(placed, part => lastPlaced ? lastPlaced.withDocument(part) : evaluateCadPart(part)); lastPlaced = snapshot;
+    const origin = partSnapshot(base, part => lastBase ? lastBase.withDocument(part) : evaluateCadPart(part)); lastBase = origin;
     const bodies = snapshot.outputs.map((o, i) => {
+      // Weld records make derived bodies after placedDoc's authored transform nodes. They still need the
+      // instance placement; use the exact origin output by id, rather than treating it as a moved member.
+      if (o.bead) {
+        const bead = origin.outputs.find(x => x.id === o.id && x.bead);
+        if (!bead) throw new Error(`placed bead ${o.id} has no origin body`);
+        return placeBody(bodyOf(bead, base, revision, quality), place.m, place.t);
+      }
       const at = origin.outputs[i];
       if (!at || origin.outputs.length !== snapshot.outputs.length || !samePlacedBody(o.brep, at.brep, place.m, place.t)) return bodyOf(o, placed, revision, quality);
       return { ...placeBody(bodyOf(at, base, revision, quality), place.m, place.t), ...keyed(o.id, placed.nodes) };
@@ -395,7 +406,9 @@ export function placeBody(b: BodyResult, m: readonly number[], t: readonly numbe
   const mesh = { ...src, positions, normals, edgeLines, faces, edges, bounds: { min, max } };
   const R = [[m[0], m[1], m[2]], [m[3], m[4], m[5]], [m[6], m[7], m[8]]];
   const inertia = b.inertia ? R.map((_, i) => R.map((__, j) => { let v = 0; for (let k = 0; k < 3; k++) for (let l = 0; l < 3; l++) v += R[i][k] * b.inertia![k][l] * R[j][l]; return v; })) : undefined;
-  return { ...b, mesh, ...(b.centroid ? { centroid: move(m, t, b.centroid) } : {}), ...(inertia ? { inertia } : {}) };
+  const element = b.element?.kind === 'weld-bead' ? { ...b.element, report: { ...b.element.report,
+    sharedSeams: b.element.report.sharedSeams.map(s => ({ ...s, pathMM: [move(m, t, s.pathMM[0]), move(m, t, s.pathMM[1])] as const })) } } : b.element;
+  return { ...b, mesh, ...(b.centroid ? { centroid: move(m, t, b.centroid) } : {}), ...(inertia ? { inertia } : {}), ...(element ? { element } : {}) };
 }
 
 /** The part's bodies as B-reps, keyed as the studio keys them (for exact views: chat/views.ts). */
@@ -416,7 +429,7 @@ export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessell
       for (const o of outputs) { const r = keyed(o.id, d.nodes).ref; if (r && roleOf(d.nodes[r.node])) left.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else breps.push(o.brep); }
     };
     take(doc, snapshotOf(doc).outputs, '');
-    for (const inst of doc.instances ?? []) if (!inst.hidden) { const placed = placedDoc(inst); take(placed, withBeadRetry(placed, part => evaluateCadPart(part)).outputs, `${inst.id}/`); }
+    for (const inst of doc.instances ?? []) if (!inst.hidden) { const placed = placedDoc(inst, doc); take(placed, placedOutputs(inst, placed, doc), `${inst.id}/`); }
     if (!breps.length) return { error: left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.' };
     const text = exportStep(breps, { name, ...(meshes ? { meshes } : {}) });
     return left.length ? { text, omitted: [`lattice infill not included (${left.join(', ')}); 3MF carries it`] } : { text };
@@ -445,9 +458,22 @@ export function partElements(doc: StudioDoc): { node: number; element: BodyEleme
 export function brepsFor(doc: StudioDoc): { breps: Brep[]; prefixes: string[] } | { error: string } {
   try {
     const breps = snapshotOf(doc).outputs.map(o => o.brep), prefixes = breps.map(() => '');
-    for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of withBeadRetry(placedDoc(inst), part => evaluateCadPart(part)).outputs) { breps.push(o.brep); prefixes.push(`${inst.id}/`); }
+    for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of placedOutputs(inst, placedDoc(inst, doc), doc)) { breps.push(o.brep); prefixes.push(`${inst.id}/`); }
     return { breps, prefixes };
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
+}
+
+/** Exact derived bead B-reps receive the same instance placement as the display path. No partition is recomputed. */
+function placedOutputs(inst: PartInstance, placed = placedDoc(inst), parent?: StudioDoc): CadPartSnapshot['outputs'] {
+  const outputs = partSnapshot(placed, part => evaluateCadPart(part)).outputs;
+  if (!outputs.some(o => o.bead)) return outputs;
+  const base = placedBase(inst, parent), origin = partSnapshot(base, part => evaluateCadPart(part)), { m, t } = placementOf(inst);
+  return outputs.map(o => {
+    if (!o.bead) return o;
+    const bead = origin.outputs.find(x => x.id === o.id && x.bead);
+    if (!bead) throw new Error(`placed bead ${o.id} has no origin body`);
+    return { ...o, brep: transformBrep(bead.brep, { matrix: m as [number, number, number, number, number, number, number, number, number], offset: t }) };
+  });
 }
 
 /**
@@ -581,7 +607,7 @@ function endCapNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['endCap']
 function beadNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['bead']>): { text: string; warning?: boolean }[] {
   const mm = (x: number) => +x.toFixed(4), on = 'gusset' in r.on ? `gusset ${r.on.gusset}'s seams, both faces` : `member ${r.on.member + 1}'s ${r.on.end}`;
   return [{ text: `Fillet weld on ${on}: leg ${mm(r.legMM)}, throat ${mm(r.throatMM)}, on member${r.meets.length > 1 ? 's' : ''} ${r.meets.map(k => k + 1).join(', ')}` },
-    { text: `Seam ${mm(r.seam.lengthMM)} mm${r.seam.inner ? ' with the bore' : ''}; bead ${mm(r.volumeMM3)} mm³` },
+    { text: `Seam ${mm(r.seam.lengthMM)} mm${r.seam.inner ? ' with the bore' : ''}; owned bead ${mm(r.volumeMM3)} mm³; nominal ${mm(r.nominalVolumeMM3)} mm³${r.sharedSeams.length ? `; ${r.sharedSeams.length} shared seam` : ''}` },
     ...(r.seam.flushMM > 0 ? [{ text: `${mm(r.seam.flushMM)} mm of it flush with the edge of the face it lands on: no fillet there (a corner weld, not modelled)`, warning: true }] : [])];
 }
 /** A connector opening's report as lines (R12c.7, D162): the opening, the body's fit, the keep-out. */

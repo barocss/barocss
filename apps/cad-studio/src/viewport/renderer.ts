@@ -6,17 +6,40 @@
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
+import { invert, multiply } from '@barocss/gpu/viewer';
+import { topologyKey, movedCopy } from './instanceGeometry';
+import { silhouetteLines } from './silhouette';
+import { ClearanceOverlayGL } from './clearanceOverlayGL';
+import type { ClearanceDisplay } from './clearanceDisplay';
+import type { PrintDisplay } from './printDisplay';
+import { PrintOverlayGL } from './printOverlayGL';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 
 export interface FaceRef { body: number; face: number }
 export interface EdgeRef { body: number; edge: number }
+export type DisplayMode = 'shaded-with-edges' | 'hidden-lines-removed' | 'hidden-lines-dashed' | 'wireframe' | 'x-ray';
+export interface DisplayModeStatus { requested: DisplayMode; effective: DisplayMode; supported: boolean; reason?: string }
+export const lineDisplayMode = (mode: DisplayMode): boolean => mode === 'hidden-lines-removed' || mode === 'hidden-lines-dashed' || mode === 'wireframe';
+/** Unsupported requests preserve the last effective appearance and leave geometry/clip state alone. */
+export function displayModeStatus(view: Pick<ViewState, 'displayMode' | 'displayModeUnsupported'>, previous: DisplayMode, localReason?: string): DisplayModeStatus {
+  const requested = view.displayMode ?? 'shaded-with-edges';
+  const known = ['shaded-with-edges', 'hidden-lines-removed', 'hidden-lines-dashed', 'wireframe', 'x-ray'].includes(requested);
+  const reason = !known ? 'Unknown CAD display mode.' : requested === 'shaded-with-edges' ? undefined : view.displayModeUnsupported ?? localReason;
+  return { requested, effective: reason ? previous : requested, supported: !reason, ...(reason ? { reason } : {}) };
+}
 export interface ViewState {
+  /** Appearance only: leaves document, geometry and picking authority unchanged. */
+  displayMode?: DisplayMode;
+  /** Scope guard from the viewport for combinations an adapter cannot observe. */
+  displayModeUnsupported?: string;
   hoverFace: FaceRef | null; hoverEdge: EdgeRef | null;
   selectedFaces: FaceRef[]; selectedEdges: EdgeRef[]; selectedBodies: number[];
   offsets: Map<number, Vec3>;
   /** Bodies shown moved by a matrix (column-major 4 × 4) while a gizmo drags them (its turn too, on WebGL2 as well: G16). */
   transforms?: Map<number, Float64Array>;
   ghostBodies: Set<number>;
+  /** Session-only focus: other solids fade and have no pick authority. */
+  isolatedInstances?: readonly string[];
   /** Bodies' own colours (0…1 RGB) in the modelling view, by index; the rest are the theme's grey. */
   bodyColors?: Map<number, [number, number, number]>;
   /** Colours of single faces, by body and face index (WebGPU only). */
@@ -32,7 +55,14 @@ export type ThemeName = 'dark' | 'light';
  * A placed part's bodies (in the world, as placed) and thread rings; with its placement (column-major 4 × 4), copies of the
  * same tessellation share one geometry, drawn through the placements' difference (G10).
  */
-export interface InstanceItem { id: string; bodies: BodyResult[]; threads?: Float32Array; placement?: Float64Array }
+export interface InstanceItem {
+  id: string; bodies: BodyResult[]; threads?: Float32Array; placement?: Float64Array;
+  /** CPU section packet provenance; absent means the original body/face/edge ordinal. */
+  sourceBodies?: readonly number[];
+  sourceFaces?: readonly (readonly number[])[];
+  sourceEdges?: readonly (readonly number[])[];
+  hatch?: SectionHatch;
+}
 /** The mould as the viewport shows it (G6): the loops (world polylines), the halves' bodies, the pull and the spread. */
 export interface MouldShown { pull: Vec3; loops: { points: Vec3[]; closed: boolean }[]; plus: BodyResult[]; minus: BodyResult[]; spread: number }
 /** A section's planes on the GPU (G2, G19): kept where dot(normal, p) ≥ offset for each; `bodies`: the part's bodies cut by them too (not yet exact). */
@@ -88,6 +118,11 @@ export interface ViewRenderer {
   setTheme(name: ThemeName): void;
   setBodies(results: BodyResult[]): void;
   setState(view: ViewState): void;
+  /** Current-pose assembly analysis, separate from native bodies and picking; null clears it. */
+  setClearanceDisplay?(display: ClearanceDisplay | null): void;
+  /** Model print-layer output in bed coordinates, independent of native geometry and IDs. */
+  setPrintDisplay?(display: PrintDisplay | null): void;
+  getDisplayModeStatus?(): DisplayModeStatus;
   render(camera: OrbitCamera, view: ViewState): void;
   pickFace(x: number, y: number, camera: OrbitCamera, view: ViewState): FaceRef | null;
   pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius?: number): EdgeRef | null;
@@ -106,7 +141,7 @@ export interface ViewRenderer {
   /** Direct curves and surfaces, and the one under a point (WebGL2 too: G16). */
   setDirect?(items: import('@barocss/cad-model/engine/direct').DirectDisplay[], selected: readonly string[]): void;
   pickDirect?(x: number, y: number, camera: OrbitCamera): string | null;
-  /** Placed instances of other parts (WebGPU only), and the one under a point. */
+  /** Placed instances of other parts, and the one under a point. */
   setInstances?(items: InstanceItem[], selected: readonly string[]): void;
   /** Instances shown moved by a matrix each (column-major 4 × 4; posed, exploded), the rest as placed (G1). */
   setInstanceTransforms?(transforms: ReadonlyMap<string, Float64Array> | null): void;
@@ -149,7 +184,9 @@ export interface ViewRenderer {
   overlayTexts?(): Record<string, string[]>;
   pickHalf?(x: number, y: number, camera: OrbitCamera): { half: '+' | '-'; index: number } | null;
   pickInstance?(x: number, y: number, camera: OrbitCamera): string | null;
-  pickInstanceFace?(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number } | null;
+  /** Nearest kept surface: original native face, or face -1/cap true for an instance-only generated cap hit. */
+  pickInstanceFace?(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number; cap?: true } | null;
+  pickInstanceEdge?(x: number, y: number, camera: OrbitCamera, radius?: number): { id: string; body: number; edge: number } | null;
   setInstanceFaces?(faces: readonly { id: string; body: number; face: number }[]): void;
   /** One instance shown moved by a matrix (column-major 4 × 4) while it is dragged; null: as placed. */
   setInstancePreview?(preview: { id: string; matrix: Float64Array } | null): void;
@@ -186,23 +223,26 @@ void main(){
   o=vec4(c, uOpacity*(1.0-uGhost*0.65));
 }`;
 
-// The pick pass (G16): what is under each pixel (a body's face, or an id of its own) and its depth, 24 bits each.
+// The pick pass: exact base/direct IDs plus an RGBA32 instance lookup; depth retains its existing 24-bit encoding.
 const PICK_FS = `#version 300 es
 precision highp float;
-flat in float vFace; uniform float uBodyId; uniform float uPickId;
+precision highp int;
+flat in float vFace; uniform float uBodyId; uniform float uPickId; uniform uint uInstanceId;
 layout(location=0) out vec4 id; layout(location=1) out vec4 depth;
-vec4 bytes(float v){ return vec4(mod(v,256.0), mod(floor(v/256.0),256.0), floor(v/65536.0), 255.0)/255.0; }
-void main(){ id=bytes(uPickId>0.5? uPickId : uBodyId*4096.0+vFace+1.0); depth=bytes(floor(gl_FragCoord.z*16777215.0+0.5)); }`;
+vec4 bytes(float v){ return vec4(mod(v,256.0), mod(floor(v/256.0),256.0), mod(floor(v/65536.0),256.0), floor(v/16777216.0))/255.0; }
+void main(){ if(uInstanceId>0u){ uint v=uInstanceId+uint(vFace); id=vec4(float(v&255u),float((v>>8u)&255u),float((v>>16u)&255u),float(v>>24u))/255.0; } else id=bytes(uPickId>0.5? uPickId : uBodyId*4096.0+vFace+1.0); depth=bytes(floor(gl_FragCoord.z*16777215.0+0.5)); }`;
 
 // Wide lines: one instance per segment, expanded to a screen-space quad.
 const LINE_VS = `#version 300 es
 layout(location=0) in vec2 aCorner; layout(location=1) in vec3 aA; layout(location=2) in vec3 aB; layout(location=3) in float aState;
 uniform mat4 uVP; uniform mat4 uModel; uniform vec2 uViewport; uniform float uWidth; out float vState;
+flat out vec2 vLineOrigin; flat out vec2 vLineDirection;
 void main(){
   vState=aState;
   vec4 a=uVP*(uModel*vec4(aA,1.0)), b=uVP*(uModel*vec4(aB,1.0));
   vec2 sa=a.xy/a.w*uViewport, sb=b.xy/b.w*uViewport; vec2 d=sb-sa; float l=length(d);
   vec2 dir=l>1e-6? d/l : vec2(1.0,0.0); vec2 nrm=vec2(-dir.y,dir.x);
+  vLineOrigin=sa+uViewport; vLineDirection=dir;
   float w=uWidth*(aState>1.5?2.4:(aState>0.5?1.9:1.0));
   vec4 p=mix(a,b,aCorner.x);
   p.xy+=nrm*aCorner.y*w/uViewport*p.w;
@@ -211,8 +251,12 @@ void main(){
 }`;
 
 const LINE_FS = `#version 300 es
-precision highp float; in float vState; uniform vec4 uColor; out vec4 o;
-void main(){ vec3 c=uColor.rgb; float a=uColor.a; if(vState>1.5){c=vec3(1.0,0.84,0.36);a=1.0;} else if(vState>0.5){c=vec3(0.95,0.78,0.36);a=1.0;} o=vec4(c,a); }`;
+precision highp float; in float vState; uniform vec4 uColor; uniform vec2 uDash;
+flat in vec2 vLineOrigin; flat in vec2 vLineDirection; out vec4 o;
+void main(){
+  if(uDash.x>0.0 && uDash.y>0.0 && mod(dot(gl_FragCoord.xy-vLineOrigin,vLineDirection),uDash.x+uDash.y)>=uDash.x) discard;
+  vec3 c=uColor.rgb; float a=uColor.a; if(vState>1.5){c=vec3(1.0,0.84,0.36);a=1.0;} else if(vState>0.5){c=vec3(0.95,0.78,0.36);a=1.0;} o=vec4(c,a);
+}`;
 
 const GRID_VS = `#version 300 es
 layout(location=0) in vec3 aPos; layout(location=1) in float aMajor;
@@ -270,10 +314,20 @@ void main(){
   o=vec4(c.rgb*ao,1.0);
 }`;
 
+interface BodyGeometry {
+  mesh: BodyResult['mesh'];
+  pos: WebGLBuffer; nor: WebGLBuffer; face: WebGLBuffer; idx: WebGLBuffer; segs: WebGLBuffer;
+  buffers: WebGLBuffer[]; vertices: number; count: number; segments: number; users: number;
+}
+interface InstanceShape { key: string; ref: BodyResult['mesh']; inverse: Float64Array; geometry: BodyGeometry }
+interface InstanceShown {
+  item: InstanceItem; bodies: { gpu: GpuBody; share: Float64Array }[];
+  threads: Plain | null; hatch: { body: number; line: Plain }[];
+}
 interface GpuBody {
   vao: WebGLVertexArrayObject; count: number; state: WebGLBuffer; stateData: Float32Array;
   lineVao: WebGLVertexArrayObject; segments: number; lineState: WebGLBuffer; lineStateData: Float32Array;
-  buffers: WebGLBuffer[]; result: BodyResult;
+  buffers: WebGLBuffer[]; result: BodyResult; geometry: BodyGeometry;
 }
 /** A mesh or a set of segments drawn in one colour (G16: direct curves and surfaces, a proposal's diff). */
 interface Plain { vao: WebGLVertexArrayObject; count: number; buffers: WebGLBuffer[] }
@@ -282,7 +336,10 @@ interface ProposalShown { color: [number, number, number]; tri: Plain; line: Pla
 
 /** Direct surfaces' ids in the pick pass start here: above any body's (a body's id is its index × 4096 + its face + 1). */
 const DIRECT_ID = 15 << 20;
+/** Instance surface IDs are allocated per scene, above base/direct IDs, with an exact lookup (no face-count packing). */
+const INSTANCE_ID = 1 << 24;
 const IDENTITY = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]), IDENTITY3 = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+const INSTANCE_IDENTITY = Float64Array.from(IDENTITY);
 const DIRECT_LOOK = { surface: [0.561, 0.702, 0.851], surfaceOn: [0.910, 0.761, 0.353], curve: [0.369, 0.784, 0.898, 1], curveOn: [1, 0.827, 0.361, 1], isos: [0.953, 0.961, 0.969, 0.55], controls: [0.788, 0.639, 1, 1] } as const;
 /** Line pick candidates tried a mesh, nearest first, before it gives up on the hidden ones (as the GPU viewer's G3). */
 const HIDDEN_TRIES = 16;
@@ -291,9 +348,20 @@ export class Renderer implements ViewRenderer {
   readonly gl: WebGL2RenderingContext;
   private mesh: WebGLProgram; private pick: WebGLProgram; private line: WebGLProgram; private grid: WebGLProgram; private shadow: WebGLProgram; private bg: WebGLProgram; private ao: WebGLProgram;
   private bodies: GpuBody[] = [];
+  private instances: InstanceShown[] = [];
+  private instanceShapes = new Map<string, InstanceShape[]>();
+  private instanceSelection: readonly string[] = [];
+  private silhouettes = new WeakMap<GpuBody, { key: string; line: Plain | null }>();
+  private fadedInstance(id: string): boolean { const ids = this.view?.isolatedInstances; return !!ids?.length && !ids.includes(id); }
+  private instanceFaces: readonly { id: string; body: number; face: number }[] = [];
+  private instanceTransforms: ReadonlyMap<string, Float64Array> | null = null;
+  private instancePreview: { id: string; matrix: Float64Array } | null = null;
+  private instanceIds = new Map<number, { id: string; body: number; face: number; cap?: true }>();
   private direct: DirectShown[] = []; private directExtras: { line: Plain; color: readonly number[]; width: number }[] = [];
   private proposal: ProposalShown[] = [];
   private hatch: { body: number; line: Plain }[] = [];
+  private clearance: ClearanceOverlayGL | null = null;
+  private print: PrintOverlayGL | null = null;
   private gridVao: WebGLVertexArrayObject; private gridCount = 0;
   private quadVao: WebGLVertexArrayObject; private corner: WebGLBuffer; private emptyVao: WebGLVertexArrayObject;
   private pickFbo: WebGLFramebuffer | null = null; private pickTex: WebGLTexture | null = null; private pickDepthTex: WebGLTexture | null = null; private pickDepth: WebGLRenderbuffer | null = null;
@@ -307,6 +375,7 @@ export class Renderer implements ViewRenderer {
   private theme: Theme = THEMES.dark;
   private model = new Float32Array(16); private normal = new Float32Array(9);
   private view: ViewState | null = null; private lastCamera: OrbitCamera | null = null;
+  private displayMode: DisplayModeStatus = { requested: 'shaded-with-edges', effective: 'shaded-with-edges', supported: true };
   aoEnabled = true;
   interacting = false;
 
@@ -324,6 +393,30 @@ export class Renderer implements ViewRenderer {
   }
 
   setTheme(name: ThemeName) { this.theme = THEMES[name]; }
+
+  setClearanceDisplay(display: ClearanceDisplay | null): void {
+    if (!this.clearance && !display?.overlays.length) return;
+    (this.clearance ??= new ClearanceOverlayGL(this.gl)).setDisplay(display);
+  }
+
+  setPrintDisplay(display: PrintDisplay | null): void {
+    if (!this.print && !display) return;
+    (this.print ??= new PrintOverlayGL(this.gl)).setDisplay(display);
+  }
+
+  dispose(): void {
+    this.clearance?.dispose(); this.clearance = null;
+    this.print?.dispose(); this.print = null;
+  }
+
+  getDisplayModeStatus(): DisplayModeStatus { return { ...this.displayMode }; }
+
+  private resolveDisplayMode(view: ViewState): DisplayMode {
+    const reason = this.direct.length || this.proposal.length
+      ? 'Display modes currently support ordinary modelling solids; direct and proposal overlays are unsupported.' : undefined;
+    this.displayMode = displayModeStatus(view, this.displayMode.effective, reason);
+    return this.displayMode.effective;
+  }
 
   private program(vs: string, fs: string) {
     const gl = this.gl; const p = gl.createProgram()!;
@@ -389,30 +482,100 @@ export class Renderer implements ViewRenderer {
 
   private free(p: Plain | null) { if (!p) return; this.gl.deleteVertexArray(p.vao); for (const b of p.buffers) this.gl.deleteBuffer(b); }
 
+  private bodyGeometry(result: BodyResult): BodyGeometry {
+    const gl = this.gl, m = result.mesh;
+    const pos = this.buffer(m.positions), nor = this.buffer(m.normals), face = this.buffer(m.faceOfVertex);
+    const idx = this.buffer(m.indices, gl.ELEMENT_ARRAY_BUFFER), segs = this.buffer(m.edgeLines);
+    return { mesh: m, pos, nor, face, idx, segs, buffers: [pos, nor, face, idx, segs], vertices: m.positions.length / 3, count: m.indices.length, segments: m.edgeLines.length / 6, users: 0 };
+  }
+
+  private uploadBody(result: BodyResult, geometry = this.bodyGeometry(result)): GpuBody {
+    const gl = this.gl, g = geometry; g.users++;
+    const vao = gl.createVertexArray()!; gl.bindVertexArray(vao);
+    const stateData = new Float32Array(g.vertices), state = this.buffer(stateData, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this.attr(0, g.pos, 3); this.attr(1, g.nor, 3); this.attr(2, g.face, 1); this.attr(3, state, 1);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, g.idx);
+    const lineVao = gl.createVertexArray()!; gl.bindVertexArray(lineVao);
+    const lineStateData = new Float32Array(g.segments), lineState = this.buffer(lineStateData, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this.attr(0, this.corner, 2); this.attr(1, g.segs, 3, 24, 0, 1); this.attr(2, g.segs, 3, 24, 12, 1); this.attr(3, lineState, 1, 0, 0, 1);
+    gl.bindVertexArray(null);
+    return { vao, count: g.count, state, stateData, lineVao, segments: g.segments, lineState, lineStateData, buffers: [state, lineState], result, geometry: g };
+  }
+
+  private freeBody(b: GpuBody): void {
+    this.free(this.silhouettes.get(b)?.line ?? null); this.silhouettes.delete(b);
+    const gl = this.gl; gl.deleteVertexArray(b.vao); gl.deleteVertexArray(b.lineVao); b.buffers.forEach(x => gl.deleteBuffer(x));
+    if (--b.geometry.users === 0) {
+      b.geometry.buffers.forEach(x => gl.deleteBuffer(x));
+      for (const [key, list] of this.instanceShapes) {
+        const left = list.filter(x => x.geometry !== b.geometry);
+        if (left.length) this.instanceShapes.set(key, left); else this.instanceShapes.delete(key);
+      }
+    }
+  }
+
   setBodies(results: BodyResult[]) {
-    const gl = this.gl; this.serial++;
-    for (const b of this.bodies) { gl.deleteVertexArray(b.vao); gl.deleteVertexArray(b.lineVao); b.buffers.forEach(x => gl.deleteBuffer(x)); }
-    this.bodies = results.map(result => {
-      const m = result.mesh;
-      const vao = gl.createVertexArray()!; gl.bindVertexArray(vao);
-      const pos = this.buffer(m.positions), nor = this.buffer(m.normals), face = this.buffer(m.faceOfVertex);
-      const stateData = new Float32Array(m.positions.length / 3); const state = this.buffer(stateData, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
-      this.attr(0, pos, 3); this.attr(1, nor, 3); this.attr(2, face, 1); this.attr(3, state, 1);
-      const idx = this.buffer(m.indices, gl.ELEMENT_ARRAY_BUFFER);
-      const segments = m.edgeLines.length / 6;
-      const lineVao = gl.createVertexArray()!; gl.bindVertexArray(lineVao);
-      const segs = this.buffer(m.edgeLines); const lineStateData = new Float32Array(segments);
-      const lineState = this.buffer(lineStateData, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
-      this.attr(0, this.corner, 2);
-      this.attr(1, segs, 3, 24, 0, 1); this.attr(2, segs, 3, 24, 12, 1); this.attr(3, lineState, 1, 0, 0, 1);
-      gl.bindVertexArray(null);
-      return { vao, count: m.indices.length, state, stateData, lineVao, segments, lineState, lineStateData, buffers: [pos, nor, face, state, idx, segs, lineState], result };
+    this.serial++;
+    for (const b of this.bodies) this.freeBody(b);
+    this.bodies = results.map(result => this.uploadBody(result));
+  }
+
+  /** Original world-placed packets, with immutable geometry shared only after a full moved-copy check. */
+  setInstances(items: InstanceItem[], selected: readonly string[]): void {
+    const old = new Map(this.instances.map(x => [x.item.id, x]));
+    this.instances = items.map(item => {
+      const previous = old.get(item.id);
+      if (previous && previous.item.bodies === item.bodies && previous.item.threads === item.threads && previous.item.hatch === item.hatch) {
+        old.delete(item.id); previous.item = item; return previous;
+      }
+      const P = item.placement ?? INSTANCE_IDENTITY;
+      return { item, bodies: item.bodies.map(result => {
+        const key = topologyKey(result.mesh), list = this.instanceShapes.get(key) ?? [];
+        let shape = list.find(x => movedCopy(x.ref, result.mesh, multiply(P, x.inverse)));
+        if (!shape) {
+          shape = { key, ref: result.mesh, inverse: invert(P), geometry: this.bodyGeometry(result) };
+          list.push(shape); this.instanceShapes.set(key, list);
+        }
+        return { gpu: this.uploadBody(result, shape.geometry), share: multiply(P, shape.inverse) };
+      }), threads: item.threads?.length ? this.plainLines(item.threads) : null,
+      hatch: (item.hatch ?? []).map(h => ({ body: h.body, line: this.plainLines(h.segments) })) };
     });
+    for (const x of old.values()) { for (const b of x.bodies) this.freeBody(b.gpu); this.free(x.threads); for (const h of x.hatch) this.free(h.line); }
+    this.instanceSelection = selected; this.paintInstanceFaces(); this.serial++;
+    if (this.view) this.resolveDisplayMode(this.view);
+  }
+  setInstanceTransforms(transforms: ReadonlyMap<string, Float64Array> | null): void { this.instanceTransforms = transforms; this.serial++; }
+  setInstancePreview(preview: { id: string; matrix: Float64Array } | null): void { this.instancePreview = preview; this.serial++; }
+  setInstanceFaces(faces: readonly { id: string; body: number; face: number }[]): void { this.instanceFaces = faces; this.paintInstanceFaces(); }
+
+  private paintInstanceFaces(): void {
+    for (const it of this.instances) it.bodies.forEach(({ gpu }, bi) => {
+      const body = it.item.sourceBodies ? it.item.sourceBodies[bi] ?? -1 : bi;
+      const picked = new Set(this.instanceFaces.filter(x => x.id === it.item.id && x.body === body).map(x => x.face));
+      const m = gpu.result.mesh;
+      for (let v = 0; v < gpu.stateData.length; v++) {
+        const face = m.faceOfVertex[v], source = it.item.sourceFaces ? it.item.sourceFaces[bi]?.[face] ?? -1 : face;
+        gpu.stateData[v] = source >= 0 && picked.has(source) ? 2 : 0;
+      }
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, gpu.state); this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, gpu.stateData);
+    });
+  }
+  /** Draw geometry's reference-to-placement, then pose, then drag. Placement is never applied twice. */
+  private instanceMatrix(it: InstanceShown, bi: number, shared = true): void {
+    const pose = this.instanceTransforms?.get(it.item.id), drag = this.instancePreview?.id === it.item.id ? this.instancePreview.matrix : null;
+    const motion = drag && pose ? multiply(drag, pose) : drag ?? pose ?? INSTANCE_IDENTITY;
+    this.model.set(shared ? multiply(motion, it.bodies[bi].share) : motion);
+  }
+  private placeInstance(p: WebGLProgram, it: InstanceShown, bi: number, normals = true, shared = true): void {
+    this.instanceMatrix(it, bi, shared);
+    this.gl.uniformMatrix4fv(this.u(p, 'uModel'), false, this.model);
+    if (normals) { normalMatrix(this.model, this.normal); this.gl.uniformMatrix3fv(this.u(p, 'uNormal'), false, this.normal); }
   }
 
   /** Rewrites only the per-vertex / per-segment state buffers (hover = 1, selected = 2). */
   setState(view: ViewState) {
     const gl = this.gl; this.view = view; this.serial++;
+    this.resolveDisplayMode(view);
     this.bodies.forEach((b, bi) => {
       const m = b.result.mesh; b.stateData.fill(0); b.lineStateData.fill(0);
       const faceState = new Map<number, number>();
@@ -448,6 +611,7 @@ export class Renderer implements ViewRenderer {
       if (on && it.isos?.length) this.directExtras.push({ line: this.plainLines(it.isos), color: DIRECT_LOOK.isos, width: 0.5 });
       if (on && it.controls.length >= 6) this.directExtras.push({ line: this.plainLines(it.controls), color: DIRECT_LOOK.controls, width: 0.6 });
     }
+    if (this.view) this.resolveDisplayMode(this.view);
   }
 
   /** The hatch on the cut (G19.3): each body's segments, drawn with its edges (placed as it is), its face's colour × 0.45. */
@@ -469,6 +633,7 @@ export class Renderer implements ViewRenderer {
       const m = s.mesh;
       this.proposal.push({ color: hexRgb(side === 'added' ? PROPOSAL_ADDED : PROPOSAL_REMOVED), tri: this.plainMesh(m.positions, m.normals, m.indices), line: m.edgeLines.length ? this.plainLines(m.edgeLines) : null });
     }
+    if (this.view) this.resolveDisplayMode(this.view);
   }
 
   resize(): [number, number] {
@@ -500,10 +665,21 @@ export class Renderer implements ViewRenderer {
   }
 
   private sceneBounds(): { min: Vec3; max: Vec3 } | null {
-    if (!this.bodies.length && !this.direct.length) return null;
+    if (!this.bodies.length && !this.direct.length && !this.instances.length) return null;
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
     for (const b of this.bodies) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.result.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.result.mesh.bounds.max[k]); }
     for (const d of this.direct) if (d.bounds) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], d.bounds.min[k]); max[k] = Math.max(max[k], d.bounds.max[k]); }
+    for (const it of this.instances) for (let bi = 0; bi < it.bodies.length; bi++) {
+      this.instanceMatrix(it, bi, false);
+      const box = it.bodies[bi].gpu.result.mesh.bounds;
+      for (let corner = 0; corner < 8; corner++) {
+        const p = [0, 1, 2].map(k => corner & (1 << k) ? box.max[k] : box.min[k]);
+        for (let k = 0; k < 3; k++) {
+          const x = this.model[k] * p[0] + this.model[4 + k] * p[1] + this.model[8 + k] * p[2] + this.model[12 + k];
+          min[k] = Math.min(min[k], x); max[k] = Math.max(max[k], x);
+        }
+      }
+    }
     return min[0] <= max[0] ? { min, max } : null;
   }
 
@@ -518,8 +694,30 @@ export class Renderer implements ViewRenderer {
     if (normals) this.gl.uniformMatrix3fv(this.u(p, 'uNormal'), false, IDENTITY3);
   }
 
+  /** View-dependent display lines only: they never enter native edge/face picking. */
+  private drawSilhouette(body: GpuBody, camera: OrbitCamera, mode: DisplayMode, dpr: number): void {
+    const mesh = body.geometry.mesh;
+    if (!mesh.faces.some(face => face.kind === 'curved' && !face.facet)) return;
+    const key = JSON.stringify([camera.eye(), camera.target, camera.ortho, Array.from(this.model)]);
+    let cached = this.silhouettes.get(body);
+    if (!cached || cached.key !== key) {
+      this.free(cached?.line ?? null);
+      const segments = silhouetteLines(mesh, this.model, camera.eye(), camera.target, camera.ortho);
+      cached = { key, line: segments.length ? this.plainLines(segments) : null }; this.silhouettes.set(body, cached);
+    }
+    if (!cached.line) return;
+    const gl = this.gl; gl.bindVertexArray(cached.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, cached.line.count);
+    if (mode === 'hidden-lines-dashed') {
+      gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), 6 * dpr, 4 * dpr);
+      gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, cached.line.count);
+      gl.depthFunc(gl.LESS); gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
+    }
+  }
+
   render(camera: OrbitCamera, view: ViewState) {
     const gl = this.gl; const [w, h] = this.resize(); const t = this.theme;
+    const mode = this.resolveDisplayMode(view);
+    const lineOnly = mode === 'hidden-lines-removed' || mode === 'hidden-lines-dashed' || mode === 'wireframe';
     this.view = view; this.lastCamera = camera; this.serial++;
     camera.aspect = w / h;
     this.ensureTargets(w, h);
@@ -536,7 +734,7 @@ export class Renderer implements ViewRenderer {
     gl.uniform3fv(this.u(this.grid, 'uGrid'), t.grid); gl.uniform2fv(this.u(this.grid, 'uGridAlpha'), t.gridAlpha);
     gl.bindVertexArray(this.gridVao); gl.drawArrays(gl.LINES, 0, this.gridCount);
     const bounds = this.sceneBounds();
-    if (bounds) {
+    if (bounds && !lineOnly) {
       const cx = (bounds.min[0] + bounds.max[0]) / 2, cy = (bounds.min[1] + bounds.max[1]) / 2;
       const rx = (bounds.max[0] - bounds.min[0]) * 0.75 + 6, ry = (bounds.max[1] - bounds.min[1]) * 0.75 + 6;
       gl.useProgram(this.shadow); gl.uniformMatrix4fv(this.u(this.shadow, 'uVP'), false, vp); gl.uniform1f(this.u(this.shadow, 'uAlpha'), t.shadow);
@@ -544,6 +742,8 @@ export class Renderer implements ViewRenderer {
       gl.bindVertexArray(this.quadVao); gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
     gl.depthMask(true);
+    // Keep the same front surface/cap depth, even when the appearance contains only native CAD edges.
+    if (lineOnly) gl.colorMask(false, false, false, false);
     gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1, 1);
     gl.useProgram(this.mesh);
     gl.uniformMatrix4fv(this.u(this.mesh, 'uVP'), false, vp); gl.uniformMatrix4fv(this.u(this.mesh, 'uView'), false, viewM);
@@ -551,13 +751,14 @@ export class Renderer implements ViewRenderer {
     // The opaque bodies, the direct surfaces, then the ghosted bodies over them.
     for (let pass = 0; pass < 2; pass++) {
       for (let bi = 0; bi < this.bodies.length; bi++) {
-        const ghost = view.ghostBodies.has(bi);
+        const ghost = view.ghostBodies.has(bi) || !!view.isolatedInstances?.length;
         if (view.hiddenBodies?.has(bi) || ghost !== (pass === 1)) continue;
         const b = this.bodies[bi];
-        gl.depthMask(!ghost);
+        gl.depthMask(view.isolatedInstances?.length ? false : lineOnly || !ghost);
         this.place(this.mesh, view, bi);
         gl.uniform1f(this.u(this.mesh, 'uBodySel'), view.selectedBodies.includes(bi) ? 1 : view.hoverBody === bi ? 0.55 : 0);
-        gl.uniform1f(this.u(this.mesh, 'uGhost'), ghost ? 1 : 0);
+        gl.uniform1f(this.u(this.mesh, 'uGhost'), view.ghostBodies.has(bi) ? 1 : 0);
+        gl.uniform1f(this.u(this.mesh, 'uOpacity'), (mode === 'x-ray' ? 0.25 : 1) * (view.isolatedInstances?.length ? 0.15 : 1));
         gl.uniform3fv(this.u(this.mesh, 'uBase'), view.bodyColors?.get(bi) ?? t.base);
         gl.bindVertexArray(b.vao); gl.drawElements(gl.TRIANGLES, b.count, gl.UNSIGNED_INT, 0);
       }
@@ -569,7 +770,19 @@ export class Renderer implements ViewRenderer {
           gl.bindVertexArray(d.tri.vao); gl.drawElements(gl.TRIANGLES, d.tri.count, gl.UNSIGNED_INT, 0);
         }
       }
+      // Instance surfaces retain nearest depth in every appearance mode, including line-only modes.
+      if (this.instances.length) {
+        gl.useProgram(this.mesh); gl.depthMask(pass === 0); gl.uniform1f(this.u(this.mesh, 'uGhost'), 0); gl.uniform1f(this.u(this.mesh, 'uOpacity'), (mode === 'x-ray' ? 0.25 : 1) * (pass === 1 ? 0.15 : 1));
+        gl.uniform3fv(this.u(this.mesh, 'uBase'), t.base);
+        for (const it of this.instances) it.bodies.forEach(({ gpu }, bi) => {
+          if (this.fadedInstance(it.item.id) !== (pass === 1)) return;
+          this.placeInstance(this.mesh, it, bi);
+          gl.uniform1f(this.u(this.mesh, 'uBodySel'), this.instanceSelection.includes(it.item.id) ? 1 : 0);
+          gl.bindVertexArray(gpu.vao); gl.drawElements(gl.TRIANGLES, gpu.count, gl.UNSIGNED_INT, 0);
+        });
+      }
     }
+    gl.colorMask(true, true, true, true);
     if (this.proposal.length) {
       // (In front of the faces they lie on: pulled toward the eye past the bodies' own offset.)
       gl.depthMask(false); gl.polygonOffset(-1, -1);
@@ -580,20 +793,53 @@ export class Renderer implements ViewRenderer {
     const dpr = w / Math.max(1, this.canvas.clientWidth);
     gl.useProgram(this.line); gl.uniformMatrix4fv(this.u(this.line, 'uVP'), false, vp);
     gl.uniform2f(this.u(this.line, 'uViewport'), w / 2, h / 2); gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);
+    gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
+    // Appearance passes never replace the nearest surface depth used to classify the next edge.
+    if (mode !== 'shaded-with-edges' || view.isolatedInstances?.length) gl.depthMask(false);
+    if (mode === 'wireframe') gl.disable(gl.DEPTH_TEST);
     for (const [bi, b] of this.bodies.entries()) {
       if (view.hiddenBodies?.has(bi)) continue;
       this.place(this.line, view, bi, false);
-      gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], view.ghostBodies.has(bi) ? 0.35 : 0.9);
+      gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], (view.ghostBodies.has(bi) ? 0.35 : 0.9) * (view.isolatedInstances?.length ? 0.15 : 1));
       gl.bindVertexArray(b.lineVao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, b.segments);
+      this.drawSilhouette(b, camera, mode, dpr);
+      gl.bindVertexArray(b.lineVao);
+      if (mode === 'hidden-lines-dashed') {
+        gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), 6 * dpr, 4 * dpr);
+        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, b.segments);
+        gl.depthFunc(gl.LESS); gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
+      }
     }
-    if (this.hatch.length) {
+    for (const it of this.instances) {
+      gl.uniform4f(this.u(this.line, 'uColor'), ...t.edge as [number, number, number], 0.9 * (this.fadedInstance(it.item.id) ? 0.15 : 1));
+      it.bodies.forEach(({ gpu }, bi) => {
+        this.placeInstance(this.line, it, bi, false);
+        gl.bindVertexArray(gpu.lineVao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, gpu.segments);
+        this.drawSilhouette(gpu, camera, mode, dpr);
+        gl.bindVertexArray(gpu.lineVao);
+        if (mode === 'hidden-lines-dashed') {
+          gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), 6 * dpr, 4 * dpr);
+          gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, gpu.segments);
+          gl.depthFunc(gl.LESS); gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
+        }
+      });
+      if (it.bodies.length && !lineOnly) {
+        this.placeInstance(this.line, it, 0, false, false);
+        gl.uniform1f(this.u(this.line, 'uWidth'), 0.5 * dpr);
+        if (it.threads) { gl.uniform4f(this.u(this.line, 'uColor'), ...t.edge as [number, number, number], this.fadedInstance(it.item.id) ? 0.55 * 0.15 : 0.55); gl.bindVertexArray(it.threads.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, it.threads.count); }
+        for (const hatch of it.hatch) { gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, this.fadedInstance(it.item.id) ? 0.55 * 0.15 : 0.55); gl.bindVertexArray(hatch.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, hatch.line.count); }
+        gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);
+      }
+    }
+    gl.enable(gl.DEPTH_TEST); if (mode !== 'shaded-with-edges' || view.isolatedInstances?.length) gl.depthMask(true);
+    if (this.hatch.length && !lineOnly) {
       // (A line 1 CSS pixel wide: the width is half of it.)
       gl.uniform1f(this.u(this.line, 'uWidth'), 0.5 * dpr);
       // (Black at 0.55 over the face: its colour × 0.45 however it is lit, as the GPU's caps.)
       for (const h of this.hatch) {
         if (h.body >= this.bodies.length || view.hiddenBodies?.has(h.body)) continue;
         this.place(this.line, view, h.body, false);
-        gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, view.ghostBodies.has(h.body) ? 0.55 * 0.35 : 0.55);
+        gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, 0.55 * (view.ghostBodies.has(h.body) ? 0.35 : 1) * (view.isolatedInstances?.length ? 0.15 : 1));
         gl.bindVertexArray(h.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, h.line.count);
       }
       gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);
@@ -621,6 +867,8 @@ export class Renderer implements ViewRenderer {
         gl.depthFunc(gl.LESS); gl.depthMask(true);
       }
     }
+    this.clearance?.render(vp);
+    this.print?.render(vp, w, h, dpr);
     gl.disable(gl.BLEND);
     // Resolve MSAA colour + depth, then composite with ambient occlusion.
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.msFbo); gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.rsFbo);
@@ -635,7 +883,7 @@ export class Renderer implements ViewRenderer {
     const size = bounds ? Math.hypot(bounds.max[0] - bounds.min[0], bounds.max[1] - bounds.min[1], bounds.max[2] - bounds.min[2]) : 50;
     gl.uniform1f(this.u(this.ao, 'uRadius'), Math.max(1, size * 0.045));
     gl.uniform1f(this.u(this.ao, 'uFocal'), camera.ortho ? h / (2 * camera.distance * Math.tan(camera.fovY / 2)) * camera.distance : h / (2 * Math.tan(camera.fovY / 2)));
-    gl.uniform1f(this.u(this.ao, 'uStrength'), this.aoEnabled && !this.interacting ? t.ao : 0);
+    gl.uniform1f(this.u(this.ao, 'uStrength'), this.aoEnabled && !this.interacting && !lineOnly ? t.ao : 0);
     gl.bindVertexArray(this.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.bindVertexArray(null); gl.activeTexture(gl.TEXTURE0);
   }
@@ -672,9 +920,9 @@ export class Renderer implements ViewRenderer {
     gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1, 1);
     gl.useProgram(this.pick);
     gl.uniformMatrix4fv(this.u(this.pick, 'uVP'), false, vp); gl.uniformMatrix4fv(this.u(this.pick, 'uView'), false, camera.view());
-    gl.uniform1f(this.u(this.pick, 'uPickId'), 0);
+    gl.uniform1f(this.u(this.pick, 'uPickId'), 0); gl.uniform1ui(this.u(this.pick, 'uInstanceId'), 0);
     this.bodies.forEach((b, bi) => {
-      if (view.ghostBodies.has(bi) || view.hiddenBodies?.has(bi)) return;
+      if (view.ghostBodies.has(bi) || view.hiddenBodies?.has(bi) || !!view.isolatedInstances?.length) return;
       this.place(this.pick, view, bi); gl.uniform1f(this.u(this.pick, 'uBodyId'), bi);
       gl.bindVertexArray(b.vao); gl.drawElements(gl.TRIANGLES, b.count, gl.UNSIGNED_INT, 0);
     });
@@ -684,6 +932,21 @@ export class Renderer implements ViewRenderer {
       gl.uniform1f(this.u(this.pick, 'uPickId'), DIRECT_ID + k);
       gl.bindVertexArray(d.tri.vao); gl.drawElements(gl.TRIANGLES, d.tri.count, gl.UNSIGNED_INT, 0);
     });
+    let next = INSTANCE_ID;
+    this.instanceIds.clear();
+    for (const it of this.instances) it.bodies.forEach(({ gpu }, bi) => {
+      if (this.fadedInstance(it.item.id)) return;
+      const m = gpu.result.mesh, count = m.faces.length;
+      if (next + count > 0xffffffff) throw new Error('Instance pick ID capacity exceeded.');
+      this.placeInstance(this.pick, it, bi); gl.uniform1ui(this.u(this.pick, 'uInstanceId'), next);
+      for (let face = 0; face < count; face++) this.instanceIds.set(next + face, {
+        id: it.item.id, body: it.item.sourceBodies ? it.item.sourceBodies[bi] ?? -1 : bi,
+        face: it.item.sourceFaces ? it.item.sourceFaces[bi]?.[face] ?? -1 : (m.faces[face].id === 'section-cap' ? -1 : face),
+        ...(m.faces[face].id === 'section-cap' ? { cap: true as const } : {}),
+      });
+      gl.bindVertexArray(gpu.vao); gl.drawElements(gl.TRIANGLES, gpu.count, gl.UNSIGNED_INT, 0); next += count;
+    });
+    gl.uniform1ui(this.u(this.pick, 'uInstanceId'), 0);
     gl.disable(gl.POLYGON_OFFSET_FILL); gl.bindVertexArray(null);
     this.pickSerial = this.serial; this.pickVP.set(vp);
   }
@@ -695,7 +958,7 @@ export class Renderer implements ViewRenderer {
     gl.readBuffer(gl.COLOR_ATTACHMENT0);
     gl.readPixels(Math.floor(x * dpr), Math.floor(h - y * dpr), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    return px[0] + px[1] * 256 + px[2] * 65536;
+    return px[0] + px[1] * 256 + px[2] * 65536 + px[3] * 16777216;
   }
 
   /** GPU face pick at CSS pixel (x, y): a direct surface in front of the bodies is no face (as the GPU viewer's raycast). */
@@ -744,7 +1007,7 @@ export class Renderer implements ViewRenderer {
     const cw = this.canvas.clientWidth, ch = this.canvas.clientHeight, vp = camera.viewProjection();
     let shown: ((p: Vec3) => boolean) | null = null, best: EdgeRef | null = null, bestD = radius;
     for (let bi = 0; bi < this.bodies.length; bi++) {
-      if (view.ghostBodies.has(bi) || view.hiddenBodies?.has(bi)) continue;
+      if (view.ghostBodies.has(bi) || view.hiddenBodies?.has(bi) || !!view.isolatedInstances?.length) continue;
       placeBody(view, bi, this.model, this.normal);
       const L = this.bodies[bi].result.mesh.edgeLines, E = this.bodies[bi].result.mesh.edgeOfSegment;
       const near = nearSegments(L, this.model, vp, cw, ch, x, y, bestD);
@@ -773,7 +1036,32 @@ export class Renderer implements ViewRenderer {
     }
     if (best) return best;
     const id = this.idAt(x, y, camera, view);
-    return id >= DIRECT_ID ? this.direct[id - DIRECT_ID]?.id ?? null : null;
+    return id >= DIRECT_ID && id < INSTANCE_ID ? this.direct[id - DIRECT_ID]?.id ?? null : null;
+  }
+
+  pickInstance(x: number, y: number, camera: OrbitCamera): string | null { return this.pickInstanceFace(x, y, camera)?.id ?? null; }
+  pickInstanceFace(x: number, y: number, camera: OrbitCamera): { id: string; body: number; face: number; cap?: true } | null {
+    if (!this.instances.length || !this.view) return null;
+    const id = this.idAt(x, y, camera, this.view), hit = this.instanceIds.get(id);
+    return hit && hit.body >= 0 ? { ...hit } : null;
+  }
+  pickInstanceEdge(x: number, y: number, camera: OrbitCamera, radius = 6): { id: string; body: number; edge: number } | null {
+    if (!this.view) return null;
+    let best: { id: string; body: number; edge: number } | null = null, distance = radius;
+    const shown = this.depthsAround(x, y, radius, camera, this.view);
+    for (const it of this.instances) it.bodies.forEach(({ gpu }, bi) => {
+      if (this.fadedInstance(it.item.id)) return;
+      this.instanceMatrix(it, bi, false);
+      const m = gpu.result.mesh, near = nearSegments(m.edgeLines, this.model, camera.viewProjection(), this.canvas.clientWidth, this.canvas.clientHeight, x, y, distance);
+      for (const candidate of near.slice(0, HIDDEN_TRIES)) {
+        const edge = m.edgeOfSegment[candidate.s * 2], source = it.item.sourceEdges ? it.item.sourceEdges[bi]?.[edge] ?? -1 : edge;
+        if (source < 0 || !shown(candidate.at)) continue;
+        const body = it.item.sourceBodies ? it.item.sourceBodies[bi] ?? -1 : bi;
+        if (body < 0) continue;
+        distance = candidate.d; best = { id: it.item.id, body, edge: source }; break;
+      }
+    });
+    return best;
   }
 
   bounds() { return this.sceneBounds(); }

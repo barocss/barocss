@@ -5,12 +5,20 @@
 import { commandById, commands, patchValues, refOf, shownFields, type Ctx, type Field, type Values } from '../app/commands';
 import { editFields } from '../app/editFields';
 import { measureBetween, measureItem, type MeasurePick } from '../app/measure';
-import { featureLabel, prefixDoc, withNode, type DocPlane, type ModelNode, type FrameStockRow, type StockRow, type StudioDoc } from '../engine/doc';
+import { featureLabel, prefixDoc, withNode, type DocPlane, type ModelNode, type StudioDoc } from '../engine/doc';
 type Vec3T = [number, number, number];
 import { partBreps, type BodyResult, type EvalResult } from '../engine/evaluate';
 import type { ToolDefinition } from './api';
 import { CAGE_MUTATORS, CAGE_TOOL_NAMES, CAGE_TOOLS, runCageTool } from './cageTools';
 import { DRAWING_CHANGES, DRAWING_TOOL_NAMES, DRAWING_TOOLS, runDrawingTool } from './drawing';
+import { OUTPUT_TOOLS, OUTPUT_TOOL_NAMES } from './outputDefinitions';
+import { runOutputTool } from './outputs';
+import { resolveShopRows, resolveShopTree, restoreAuthoredShopRows } from '../engine/shopRows';
+import { friendly } from '../engine/errors';
+import { loadPersonRows } from './rows';
+import { ROW_KINDS } from './rowDefinitions';
+import { personRowsRefusal, reconcileRowSources } from './rowSources';
+import { ROWS_NOT_FROM_PERSON, type PersonRowFiles } from './rowFiles';
 import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
 import { GROUPS, V2_OF, v1Call, viaV2 } from './groups';
 import { ROBOT_TOOL_NAMES, ROBOT_TOOLS, runRobotTool } from './robot';
@@ -31,7 +39,8 @@ import { rematchNames } from '../engine/rematch';
 import { changeOf, edgeDetail, faceDetail, factsOf } from './observe';
 import { draftAnalysis, interference, massProperties, section, wallThickness } from './analysis';
 import { renderViews } from './views';
-import { isEmptyDiff, newTransactions, OP_IDS, treeDiff, type Transactions, type TreeDiff } from './transactions';
+import { newTransactions, OP_IDS, treeDiff, type Transactions, type TreeDiff } from './transactions';
+import { canonical } from '../team/revision';
 import { moveOp } from './remap';
 import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, approvalOf, riskOf, riskRank, withHistory, type ChecksDelta, type Op, type Proposal, type Risk } from './proposals';
 import { checkRequirement, checkSpec, expectedOf, modelHash, newPolicy, runCheck, updatePolicy, validateSuite, type Policy, type Requirement } from './spec';
@@ -43,6 +52,8 @@ import { nestCutList } from '../frames/nesting';
 import { editSections } from '../frames/sections';
 import { followedStale, partEditRefusal, refreshFollowed, skeletonEditRefusal, solvedSkeleton, staleText, withFollowed } from '../frames/skeleton';
 import { weldList, type WeldRecord } from '../frames/welds';
+import { beadOwnershipError, documentBeadOwnershipError, type BeadOwnership } from '../frames/beadOwnership';
+import { beadAccounting } from '../frames/beadAccounting';
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
@@ -52,7 +63,7 @@ export { resolveNames, type NameSelection };
 /** `turnBase`: the part as the turn found it (the L2 gate weighs the turn's changes against it, D41). */
 /** `turns`: what the user typed in this conversation, sent by the studio (A6.2, O25), so a quote said to be theirs can be
  * checked; absent where no conversation is known (cad-cli, cad-mcp --doc, a plain script). */
-export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; /** FRf2: a part-scoped call's placed part (its document the state's). */ partOf?: string; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy; tx?: Transactions; turnBase?: StudioDoc; turns?: readonly string[] }
+export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; /** FRf2: a part-scoped call's placed part (its document the state's). */ partOf?: string; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy; tx?: Transactions; turnBase?: StudioDoc; turns?: readonly string[]; rowFiles?: PersonRowFiles }
 export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** `images`: PNGs to show the model along with the text (base64). */
 export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string; images?: { data: string; mediaType: 'image/png' }[] }
@@ -81,8 +92,8 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   'sheet-profile': { selection: 'none', values: { shape: 'l | u | z | hat', a: 'base length to the outside of the first bend (a Z\u2019s second bend and a hat\u2019s brims measure to their inside)', b: 'leg height (a hat: crown height), outside', c: 'lip (z and hat)', angle: 'bend angle of an L (90: square)', w: 'width along Y', t: 'sheet thickness', r: 'bend radius (inner)', k: 'K-factor 0–1 (0.5 is an estimate)', x: 'X of the base\u2019s left outer corner (a hat: the crown\u2019s)', y: 'min Y', z: 'Z of that corner' } },
   // (FR1, D123: a structural member; the prefilled radii and the T-slot's slot sizes are estimates — say so, or ask for the stock's.)
   // (FR2, D124: a frame on a preset skeleton or the picked straight edges.)
-  frame: { selection: 'none for a preset skeleton; straight edges for "edges" (their ends become the points, shared where they meet)', values: { skeleton: 'table | box | rectangle | edges', W: 'width along X', D: 'depth along Y', H: 'height along Z (table, box)', x: 'X of the corner', y: 'Y of the corner', z: 'Z of the corner', section: 'rect-tube | round-tube | angle | channel | tslot', w: 'width (rect-tube, channel flanges)', h: 'height (rect-tube, channel)', t: 'wall (tubes)', ro: 'outer corner radius (rect-tube; the prefill is an estimate)', d: 'diameter (round-tube)', a: 'leg along the section x (angle)', b: 'leg along the section y (angle)', th: 'thickness (angle)', tw: 'web (channel)', tf: 'flanges (channel)', r1: 'root radius (angle, channel; an estimate if left)', r2: 'toe radius (angle; an estimate if left)', cells: '1 (20 × 20) | 2 (20 × 40) for tslot (its slot sizes are the tslot-20 library\u2019s estimates)', anchor: 'the section point on every line', roll: 'degrees about each line', corners: 'mitre | butt | none: how two members meeting at a point are finished (a butt: the larger section runs through)', multi: 'order | none: three or more members ending at a point (an ordered trim: the first runs through)', tee: 'butt | cope | none: a member ending on another\u2019s length' } },
-  'frame-member': { selection: 'none', values: { section: 'rect-tube | round-tube | angle | channel | tslot', w: 'width (rect-tube, channel flanges)', h: 'height (rect-tube, channel)', t: 'wall (tubes)', ro: 'outer corner radius (rect-tube; the prefill is an estimate)', d: 'diameter (round-tube)', a: 'leg along the section x (angle)', b: 'leg along the section y (angle)', th: 'thickness (angle)', tw: 'web (channel)', tf: 'flanges (channel)', r1: 'root radius (angle, channel; an estimate if left)', r2: 'toe radius (angle; an estimate if left)', cells: '1 (20 × 20) | 2 (20 × 40) for tslot (its slot sizes are the tslot-20 library\u2019s estimates)', x0: 'start X', y0: 'start Y', z0: 'start Z', x1: 'end X', y1: 'end Y', z1: 'end Z', anchor: 'the section point on the line: centroid | origin | bottom-left | bottom | bottom-right | left | center | right | top-left | top | top-right', roll: 'degrees about the line' } },
+  frame: { selection: 'none for a preset skeleton; straight edges for "edges" (their ends become the points, shared where they meet)', values: { skeleton: 'table | box | rectangle | edges | l | tee', W: 'width along X', D: 'depth along Y', H: 'height along Z (table, box)', x: 'X of the corner', y: 'Y of the corner', z: 'Z of the corner', section: 'rect-tube | round-tube | angle | channel | i-beam | tslot', w: 'width (rect-tube, channel flanges)', h: 'height (rect-tube, channel)', t: 'wall (tubes)', ro: 'outer corner radius (rect-tube; the prefill is an estimate)', d: 'diameter (round-tube)', a: 'leg along the section x (angle)', b: 'leg along the section y (angle)', th: 'thickness (angle)', tw: 'web (channel)', tf: 'flanges (channel)', r1: 'root radius (angle, channel; an estimate if left)', r2: 'toe radius (angle; an estimate if left)', toe: 'toe radius (channel, i-beam; prefill 0 is an estimate)', slope: 'flange slope rise/run (channel, i-beam); flange thickness is at overhang midpoint', cells: '1 (20 × 20) | 2 (20 × 40) for tslot (its slot sizes are the tslot-20 library\u2019s estimates)', anchor: 'the section point on every line', roll: 'degrees about each line', corners: 'mitre | butt | none: how two members meeting at a point are finished (a butt: the larger section runs through)', multi: 'order | none: three or more members ending at a point (an ordered trim: the first runs through)', tee: 'butt | cope | none: a member ending on another\u2019s length', gap: 'nonnegative joint clearance mm; mitre halves plane setback, butt/tee holds branch off; unsupported with notch', branchOffset: 'T layout only: branch endpoint Z eccentricity mm', notch: 'none | holesaw | v; replaces cope at one joint', notchPoint: '1-based joint point; 0 selects L point2 or T point4 automatically', notchDiameter: 'hole saw diameter mm, must cover branch', notchOffset: 'signed mm along unit cross(through axis, branch inward), measured from through skeleton line', notchDepth: 'V depth mm from joint endpoint towards the branch other end', notchAngle: 'V included angle degrees, strictly between0 and180' } },
+  'frame-member': { selection: 'none', values: { path: 'straight | centerarc | througharc | tangentbend; circular arcs and one tangent bend only; curved butt/cope/direct trim are refused', cx: 'arc center X (centerarc)', cy: 'arc center Y (centerarc)', cz: 'arc center Z (centerarc)', vx: 'point on arc X (througharc)', vy: 'point on arc Y (througharc)', vz: 'point on arc Z (througharc)', bx: 'virtual bend corner X (tangentbend)', by: 'virtual bend corner Y (tangentbend)', bz: 'virtual bend corner Z (tangentbend)', radius: 'centerline bend radius (tangentbend); each leg must extend past its tangent point', section: 'rect-tube | round-tube | angle | channel | i-beam | tslot', w: 'width (rect-tube, channel flanges)', h: 'height (rect-tube, channel)', t: 'wall (tubes)', ro: 'outer corner radius (rect-tube; the prefill is an estimate)', d: 'diameter (round-tube)', a: 'leg along the section x (angle)', b: 'leg along the section y (angle)', th: 'thickness (angle)', tw: 'web (channel)', tf: 'flanges (channel)', r1: 'root radius (angle, channel; an estimate if left)', r2: 'toe radius (angle; an estimate if left)', toe: 'toe radius (channel, i-beam; prefill 0 is an estimate)', slope: 'flange slope rise/run (channel, i-beam); flange thickness is at overhang midpoint', cells: '1 (20 × 20) | 2 (20 × 40) for tslot (its slot sizes are the tslot-20 library\u2019s estimates)', x0: 'start X', y0: 'start Y', z0: 'start Z', x1: 'end X', y1: 'end Y', z1: 'end Z', anchor: 'the section point on the line: centroid | origin | bottom-left | bottom | bottom-right | left | center | right | top-left | top | top-right', roll: 'degrees about the line' } },
   gear: { selection: 'none', values: { m: 'module (mm): the pitch diameter is m × teeth', teeth: 'teeth, 6–200 (under 18 undercut without a profile shift: the refusal gives the least x)', b: 'face width (mm)', shift: 'profile shift coefficient x, −0.5 to 1 (0: none; + thickens the tooth, moves tip and root out by x·m)', helix: 'helix angle β in degrees, 0 (spur) to 45; helical: m is the normal module', hand: 'right | left (helical only; a meshing gear takes the opposite hand itself)', bore: 'bore diameter (0: none), leaving a rim of at least one module below the root', x: 'centre X', y: 'centre Y', z: 'Z it stands on' } },
   'gear-mesh': { selection: 'bodies: [one spur gear, as made] — or [one internal gear]: the new gear then meshes inside it (ratio +z1/z2, the same way) — or [one bevel gear]: its mate (teeth the selected one\'s mate teeth, the same apex; dir and bore only)', values: { shift: 'profile shift x of the new gear, −0.5 to 1 (the centre distance becomes the working one)', teeth: 'teeth of the new gear, 6–200 (ratio −z1/z2 to the selected one; inside a ring, fewer than its teeth — about 2/5 clears the interference conditions)', dir: 'direction from the selected gear\'s axis to the new one\'s, degrees from +X (a bevel mate: the way its axis leans, about the selected gear\'s axis)', bore: 'bore diameter (0: none)' } },
   // (R12b.2a, D132: an internal gear.)
@@ -171,16 +182,18 @@ function features(doc: StudioDoc) {
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
-const BATCHABLE = new Set([...DRAWING_CHANGES, 'set_joints', 'set_brief', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'set_frame_sections', 'set_welds', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
+const BATCHABLE = new Set([...DRAWING_CHANGES, 'load_rows', 'set_joints', 'set_brief', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'set_frame_sections', 'set_welds', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
 /** The tools a batch (apply_ops, a patch) may hold (A7.5: a candidate's unsupported op is refused by name before it runs). */
 export const BATCHABLE_TOOLS: ReadonlySet<string> = BATCHABLE;
 /** At most this many checkpoints a session (the oldest dropped first). */
 const CHECKPOINTS = 20;
-const MUTATORS = new Set(['apply_ops', 'run_script', 'restore', 'set_requirements', 'import_drawing', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part', ...CAGE_MUTATORS]);
+const MUTATORS = new Set(['load_rows', 'set_stock', 'set_frame_stock', 'set_frame_sections', 'apply_ops', 'run_script', 'restore', 'set_requirements', 'import_drawing', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part', ...CAGE_MUTATORS]);
 const DETAIL_LIMIT = 80;
 
 /** Evaluates a candidate document: the new state, or the engine's refusal as a tool error. */
 async function accept(state: ChatState, next: StudioDoc, evaluate: Evaluate, what: string, extra: Record<string, unknown> = {}, refresh = false): Promise<ToolOutcome> {
+  const ownershipError = documentBeadOwnershipError(next);
+  if (ownershipError) return fail(state, ownershipError);
   // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)
   next = captureSignatures(next, state.bodies);
   const r = await evaluate(next);
@@ -363,6 +376,13 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
 /** The dispatcher without the session's gates (autonomy, approval): what proposals replay, and the tools' own tests. */
 export const dispatchTool = (state: ChatState, name: string, input: unknown, evaluate: Evaluate) => runToolCounted(state, name, input, evaluate);
 async function runToolCounted(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
+  const out = await runToolUnchecked(state, name, input, evaluate);
+  if (out.isError || !out.changed) return out;
+  const context = state.rowFiles, refused = personRowsRefusal(state.doc, out.state.doc, context);
+  if (refused) return fail(state, refused);
+  return { ...out, state: { ...out.state, doc: reconcileRowSources(state.doc, out.state.doc, context) } };
+}
+async function runToolUnchecked(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
   [name, input] = viaV2(name, input);
   const v1 = v1Call(name, input);
   if (v1) { if ('error' in v1) return fail(state, v1.error); name = v1.name; input = v1.args; }
@@ -371,17 +391,28 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
   // (A9-3: an argument the tool does not take is refused, named — never dropped, so a call never says it did what it ignored.)
   const unknown = unknownArguments(name, args);
   if (unknown) return fail(state, unknown);
+  if (OUTPUT_TOOL_NAMES.has(name)) {
+    const output = await runOutputTool(state.doc, state.bodies, name, args, evaluate);
+    return 'error' in output ? fail(state, output.error) : { state, content: json(output.content), isError: false, changed: false, summary: output.summary };
+  }
   // (A9-2: the report, the print orientation and the brief are a part's own: `part` runs them on that part's document.)
   if (PART_SCOPED.has(name) && args.part !== undefined) {
     const { part, ...rest } = args;
     if (part === 'base') return runToolCounted(state, name, rest, evaluate);
     const inst = state.doc.instances?.find(i => i.id === part);
     if (!inst) return fail(state, `No part "${String(part)}"; parts: base${(state.doc.instances ?? []).map(i => `, ${i.id}`).join('')}.`);
-    const r = await evaluate(inst.doc);
-    const out = await runToolCounted({ doc: inst.doc, bodies: r?.ok ? r.bodies : [], partOf: inst.id, ...(state.turns ? { turns: state.turns } : {}) }, name, rest, evaluate);
-    const content = out.content.replace(/^\{/, `{"part":${JSON.stringify(inst.id)},`);
+    const shop = { ...resolveShopRows(inst.doc, state.doc), doc: resolveShopTree(inst.doc, state.doc, inst.id) };
+    const partEvaluate: Evaluate = async d => {
+      const authored = restoreAuthoredShopRows(d, shop.doc);
+      return 'error' in authored ? { ok: false, revision: 0, error: friendly(authored.error), ms: 0 } : evaluate(resolveShopTree(authored.doc, state.doc, inst.id));
+    };
+    const r = await partEvaluate(shop.doc);
+    const out = await runToolCounted({ doc: shop.doc, bodies: r?.ok ? r.bodies : [], partOf: inst.id, rowFiles: state.rowFiles, ...(state.turns ? { turns: state.turns } : {}) }, name, rest, partEvaluate);
+    const content = out.content.replace(/^\{/, `{"part":${JSON.stringify(inst.id)},"shopRows":${JSON.stringify(shop.provenance)},`);
     if (out.isError || !out.changed) return { ...out, state, content };
-    return { ...out, state: { ...state, doc: { ...state.doc, instances: state.doc.instances!.map(i => i.id === inst.id ? { ...i, doc: out.state.doc } : i) } }, content, summary: `${inst.id}: ${out.summary}` };
+    const authored = restoreAuthoredShopRows(out.state.doc, shop.doc);
+    if ('error' in authored) return fail(state, authored.error);
+    return { ...out, state: { ...state, doc: { ...state.doc, instances: state.doc.instances!.map(i => i.id === inst.id ? { ...i, doc: authored.doc } : i) } }, content, summary: `${inst.id}: ${out.summary}` };
   }
   // (The robot, RM1: the assembly's joint tree and its settings.)
   // (A locked reference, A6.3: no part or assembly change may use its faces, edges or body.)
@@ -439,15 +470,22 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
   const inst = state.doc.instances?.find(i => i.id === part);
   if (!inst) return fail(state, `No part "${String(part)}"; parts: base${(state.doc.instances ?? []).map(i => `, ${i.id}`).join('')}.`);
   if (name === 'select') return fail(state, 'The viewport selection shows the base part\'s faces only; select without "part".');
-  const r = await evaluate(inst.doc);
-  const sub: ChatState = { doc: inst.doc, bodies: r?.ok ? r.bodies : [], partOf: inst.id, ...(state.images ? { images: state.images } : {}) };
-  const out = await runPartTool(sub, name, rest, evaluate);
-  const content = out.content.replace(/^\{/, `{"part":${JSON.stringify(inst.id)},`);
-  if (!out.changed) return { ...out, state, content };
+  const shop = { ...resolveShopRows(inst.doc, state.doc), doc: resolveShopTree(inst.doc, state.doc, inst.id) };
+  const partEvaluate: Evaluate = async d => {
+    const authored = restoreAuthoredShopRows(d, shop.doc);
+    return 'error' in authored ? { ok: false, revision: 0, error: friendly(authored.error), ms: 0 } : evaluate(resolveShopTree(authored.doc, state.doc, inst.id));
+  };
+  const r = await partEvaluate(shop.doc);
+  const sub: ChatState = { doc: shop.doc, bodies: r?.ok ? r.bodies : [], partOf: inst.id, rowFiles: state.rowFiles, ...(state.images ? { images: state.images } : {}) };
+  const out = await runPartTool(sub, name, rest, partEvaluate);
+  const content = out.content.replace(/^\{/, `{"part":${JSON.stringify(inst.id)},"shopRows":${JSON.stringify(shop.provenance)},`);
+  if (out.isError || !out.changed) return { ...out, state, content };
+  const authored = restoreAuthoredShopRows(out.state.doc, shop.doc);
+  if ('error' in authored) return fail(state, authored.error);
   // (FRf2, O125: base frames following this part's sketches keep every edge they use; their copies follow the edit.)
-  const held = partEditRefusal(state.doc, inst.id, out.state.doc);
+  const held = partEditRefusal(state.doc, inst.id, authored.doc);
   if (held) return fail(state, held, { kept: 'the part is unchanged' });
-  const doc = refreshFollowed({ ...state.doc, instances: state.doc.instances!.map(i => i.id === inst.id ? { ...i, doc: out.state.doc } : i) });
+  const doc = refreshFollowed({ ...state.doc, instances: state.doc.instances!.map(i => i.id === inst.id ? { ...i, doc: authored.doc } : i) });
   const solved = solveDoc(doc, state.doc.instances);
   return { ...out, state: { ...state, doc: solved.doc }, content: solved.problems.length ? content.replace(/}$/, `,"unmet_mates":${JSON.stringify(solved.problems)}}`) : content, summary: `${inst.id}: ${out.summary}` };
 }
@@ -1004,24 +1042,18 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       for (const b of picked) doc = withLook(doc, b, { material: id });
       return { state: { ...state, doc }, content: json({ ok: true, bodies: picked.map(b => b.key), material: id }), isError: false, changed: true, summary: `${picked.map(b => b.key).join(', ')}: ${id}` };
     }
+    case 'load_rows': {
+      const loaded = loadPersonRows(state.doc, args.kind, args.file, args.feature, state.rowFiles);
+      return 'error' in loaded ? fail(state, loaded.error) : accept(state, loaded.doc, evaluate, `Loaded ${loaded.rows} ${String(args.kind)} rows`, { source: loaded.source });
+    }
     case 'set_stock': {
-      // (CNC7b, O102: the shop's stock list, the user's — each row checked, a bad one refused by name; the allowance per face.)
-      const rows = Array.isArray(args.rows) ? args.rows : undefined, allowance = args.allowance;
-      if (rows === undefined && allowance === undefined) return fail(state, 'Give rows, allowance or both.');
-      if (allowance !== undefined && !(typeof allowance === 'number' && allowance >= 0 && allowance < 100)) return fail(state, `[STOCK_ALLOWANCE] allowance is mm a face, 0 to 100: ${JSON.stringify(allowance)}.`);
-      const good: StockRow[] = [];
-      for (const [k, r] of (rows ?? []).entries()) {
-        const o = r as Record<string, unknown>, id = typeof o.id === 'string' && o.id ? o.id : '', src = typeof o.source === 'string' ? o.source.trim() : '';
-        const pos = (v: unknown) => typeof v === 'number' && v > 0 && Number.isFinite(v);
-        if (!id || !src) return fail(state, `[STOCK_ROW] row ${k}: an id and a source (where the size comes from: your shop, a page) are needed.`);
-        if (o.kind === 'block' && Array.isArray(o.size) && o.size.length === 3 && o.size.every(pos)) good.push({ id, kind: 'block', size: [o.size[0], o.size[1], o.size[2]] as [number, number, number], source: src });
-        else if (o.kind === 'bar' && pos(o.diameter) && (o.maxLength === undefined || pos(o.maxLength))) good.push({ id, kind: 'bar', diameter: o.diameter as number, ...(o.maxLength !== undefined ? { maxLength: o.maxLength as number } : {}), source: src });
-        else return fail(state, `[STOCK_ROW] row ${k} (${id}): a block has size [a, b, c] > 0; a bar a diameter > 0 (and maxLength > 0).`);
-      }
-      if (new Set(good.map(r => r.id)).size !== good.length) return fail(state, '[STOCK_ROW] two rows with one id.');
-      const was = state.doc.machining ?? { version: 1 as const }, machining = { ...was, version: 1 as const, ...(rows !== undefined ? { stock: good } : {}), ...(allowance !== undefined ? { allowanceMM: allowance as number } : {}) };
-      const doc = { ...state.doc, machining };
-      return { state: { ...state, doc }, content: json({ ok: true, rows: machining.stock?.length ?? 0, allowance: machining.allowanceMM ?? null }), isError: false, changed: true, summary: `stock: ${machining.stock?.length ?? 0} rows${machining.allowanceMM !== undefined ? `, ${machining.allowanceMM} mm a face` : ''}` };
+      if (args.rows !== undefined) return fail(state, ROWS_NOT_FROM_PERSON);
+      if (args.file === undefined && args.allowance === undefined) return fail(state, 'Give file, allowance or both.');
+      if (args.allowance !== undefined && !(typeof args.allowance === 'number' && Number.isFinite(args.allowance) && args.allowance >= 0 && args.allowance < 100)) return fail(state, '[STOCK_ALLOWANCE] allowance is mm a face, 0 to 100.');
+      const loaded = args.file === undefined ? { doc: state.doc } : loadPersonRows(state.doc, 'stock', args.file, undefined, state.rowFiles);
+      if ('error' in loaded) return fail(state, loaded.error);
+      const doc = args.allowance === undefined ? loaded.doc : { ...loaded.doc, machining: { ...loaded.doc.machining, version: 1 as const, allowanceMM: args.allowance as number } };
+      return accept(state, doc, evaluate, 'Stock and machining allowance');
     }
     case 'set_casting': {
       // (IM8b, O108: the casting pattern's — the faces machined after casting, by name, and the user's own allowance and shrinkage.)
@@ -1038,39 +1070,33 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       return { state: { ...state, doc }, content: json({ ok: true, machined: casting.machined ?? [], allowance: casting.machiningAllowanceMM ?? null, shrink: casting.shrink ?? null, gate: casting.gate ?? null }), isError: false, changed: true, summary: `casting: ${casting.machined?.length ?? 0} machined face${casting.machined?.length === 1 ? '' : 's'}` };
     }
     case 'set_frame_stock': {
-      // (FRb, O116: the shop's stock lengths for frames, the user's — each row checked, a bad one refused by name; the saw's kerf.)
-      const rows = Array.isArray(args.rows) ? args.rows : undefined, kerf = args.kerf;
-      if (rows === undefined && kerf === undefined) return fail(state, 'Give rows, kerf or both.');
-      if (kerf !== undefined && !(typeof kerf === 'number' && kerf >= 0 && kerf < 20)) return fail(state, `[FRAME_KERF] kerf is the saw's width in mm, 0 to 20: ${JSON.stringify(kerf)}.`);
-      const good: FrameStockRow[] = [];
-      for (const [k, r] of (rows ?? []).entries()) {
-        const o = r as Record<string, unknown>, id = typeof o.id === 'string' && o.id ? o.id : '', src = typeof o.source === 'string' ? o.source.trim() : '';
-        if (!id || !src) return fail(state, `[FRAME_STOCK_ROW] row ${k}: an id and a source (where the length comes from: your shop, a page) are needed.`);
-        if (!(typeof o.length === 'number' && o.length > 0 && Number.isFinite(o.length))) return fail(state, `[FRAME_STOCK_ROW] row ${k} (${id}): length is mm > 0.`);
-        if (o.count !== undefined && !(Number.isInteger(o.count) && (o.count as number) > 0)) return fail(state, `[FRAME_STOCK_ROW] row ${k} (${id}): count is a whole number > 0 (unset: as many as needed).`);
-        if (o.section !== undefined && !(typeof o.section === 'string' && o.section)) return fail(state, `[FRAME_STOCK_ROW] row ${k} (${id}): section is the cut list's section text (unset: any section).`);
-        good.push({ id, lengthMM: o.length, ...(o.count !== undefined ? { count: o.count as number } : {}), ...(o.section !== undefined ? { section: o.section as string } : {}), source: src });
-      }
-      if (new Set(good.map(r => r.id)).size !== good.length) return fail(state, '[FRAME_STOCK_ROW] two rows with one id.');
-      const was = state.doc.frames ?? { version: 1 as const }, frames = { ...was, version: 1 as const, ...(rows !== undefined ? { stock: good } : {}), ...(kerf !== undefined ? { kerfMM: kerf as number } : {}) };
-      const doc = { ...state.doc, frames };
-      return { state: { ...state, doc }, content: json({ ok: true, rows: frames.stock?.length ?? 0, kerf: frames.kerfMM ?? null }), isError: false, changed: true, summary: `frame stock: ${frames.stock?.length ?? 0} lengths${frames.kerfMM !== undefined ? `, kerf ${frames.kerfMM} mm` : ''}` };
+      if (args.rows !== undefined) return fail(state, ROWS_NOT_FROM_PERSON);
+      if (args.file === undefined && args.kerf === undefined) return fail(state, 'Give file, kerf or both.');
+      if (args.kerf !== undefined && !(typeof args.kerf === 'number' && Number.isFinite(args.kerf) && args.kerf >= 0 && args.kerf < 20)) return fail(state, '[FRAME_KERF] kerf is mm, 0 to 20.');
+      const loaded = args.file === undefined ? { doc: state.doc } : loadPersonRows(state.doc, 'frame-stock', args.file, undefined, state.rowFiles);
+      if ('error' in loaded) return fail(state, loaded.error);
+      const doc = args.kerf === undefined ? loaded.doc : { ...loaded.doc, frames: { ...loaded.doc.frames, version: 1 as const, kerfMM: args.kerf as number } };
+      return accept(state, doc, evaluate, 'Frame stock and saw kerf');
     }
     case 'set_frame_sections': {
-      // (FRc, O117: the user's section library — rows added or replaced by id, ids removed; a row in use stays. An edited row moves every frame on it: evaluated.)
-      const rows = Array.isArray(args.rows) ? args.rows : undefined, remove = strings(args.remove);
-      if (!rows?.length && !remove.length) return fail(state, 'Give rows, remove or both.');
-      const r = editSections(state.doc, rows, remove);
-      if ('error' in r) return fail(state, r.error);
-      return accept(state, r.doc, evaluate, `section library: ${[r.added.length ? `added ${r.added.join(', ')}` : '', r.replaced.length ? `changed ${r.replaced.join(', ')}` : '', r.removed.length ? `removed ${r.removed.join(', ')}` : ''].filter(Boolean).join('; ')}`,
-        { added: r.added, replaced: r.replaced, removed: r.removed, rows: r.doc.frames?.sections?.map(x => ({ id: x.id, ...(x.name ? { name: x.name } : {}), section: x.section, ...(x.source ? { source: x.source } : { estimate: true }) })) ?? [] });
+      if (args.rows !== undefined) return fail(state, ROWS_NOT_FROM_PERSON);
+      const remove = strings(args.remove);
+      if (args.file === undefined && !remove.length) return fail(state, 'Give file, remove or both.');
+      const loaded = args.file === undefined ? { doc: state.doc } : loadPersonRows(state.doc, 'sections', args.file, undefined, state.rowFiles);
+      if ('error' in loaded) return fail(state, loaded.error);
+      const result = editSections(loaded.doc, [], remove);
+      return 'error' in result ? fail(state, result.error) : accept(state, result.doc, evaluate, 'Section library');
     }
     case 'set_welds': {
       // (FRd1, O118: the person's welds by joint — kind, size, all round, notes — over the rule's; a joint the part does not have refused, listing them.)
       const given = Array.isArray(args.welds) ? args.welds : [], remove = strings(args.remove);
-      if (!given.length && !remove.length) return fail(state, 'Give welds, remove or both.');
+      const policyEdit = Object.hasOwn(args, 'beadOwnership');
+      if (!given.length && !remove.length && !policyEdit) return fail(state, 'Give welds, remove or beadOwnership.');
+      if (policyEdit && args.beadOwnership === undefined) return fail(state, '[BEAD_SHARED_CONTEXT] frames.beadOwnership: expected {version:1, policy:"equal-length"} or null to remove it');
+      const ownershipError = args.beadOwnership === null ? null : beadOwnershipError(args.beadOwnership);
+      if (ownershipError) return fail(state, ownershipError);
       const joints = weldList(state.doc, state.bodies).joints, ids = new Set(joints.map(j => j.id)), was = state.doc.frames?.welds ?? [];
-      if (!joints.length) return fail(state, '[WELD_NO_JOINTS] the part has no weld joints: frame members meeting at a corner, a butt or a face.');
+      if (!joints.length && (given.length || remove.length)) return fail(state, '[WELD_NO_JOINTS] the part has no weld joints: frame members meeting at a corner, a butt or a face.');
       const good: WeldRecord[] = [];
       for (const [k, w] of given.entries()) {
         const o = (isObj(w) ? w : {}) as Record<string, unknown>, joint = typeof o.joint === 'string' ? o.joint : '';
@@ -1086,9 +1112,14 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       }
       if (new Set(good.map(r => r.joint)).size !== good.length) return fail(state, '[WELD_FIELD] two welds for one joint.');
       const welds = [...was.filter(r => !remove.includes(r.joint) && !good.some(g => g.joint === r.joint)), ...good];
-      const doc = { ...state.doc, frames: { version: 1 as const, ...state.doc.frames, welds } };
+      const frames = { version: 1 as const, ...state.doc.frames, ...(given.length || remove.length ? { welds } : {}) };
+      if (policyEdit) {
+        if (args.beadOwnership === null) delete frames.beadOwnership;
+        else if (args.beadOwnership !== undefined) frames.beadOwnership = args.beadOwnership as BeadOwnership;
+      }
+      const doc = { ...state.doc, frames };
       // (FRk2: a record is a bead — the part built again, so the bodies and the weld list show the beads, or why not.)
-      return accept(state, doc, evaluate, `welds: ${good.length} set${remove.length ? `, ${remove.length} removed` : ''}`, { set: good.map(r => r.joint), removed: remove.filter(id => was.some(r => r.joint === id)), welds: welds.length });
+      return accept(state, doc, evaluate, `welds: ${good.length} set${remove.length ? `, ${remove.length} removed` : ''}${policyEdit ? ', ownership policy edited' : ''}`, { set: good.map(r => r.joint), removed: remove.filter(id => was.some(r => r.joint === id)), welds: welds.length, beadOwnership: frames.beadOwnership ?? null });
     }
     case 'weld_list': {
       // (FRd1, O118: read only — each joint, its seam from the geometry and its weld, the person's or the rule's.)
@@ -1122,7 +1153,8 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const keys = strings(args.bodies), shown = keys.length ? state.bodies.filter(b => keys.includes(b.key)) : state.bodies;
       if (keys.length && shown.length !== keys.length) return fail(state, `No body ${keys.filter(k => !state.bodies.some(b => b.key === k)).join(', ')} (bodies: ${state.bodies.map(b => b.key).join(', ')}).`);
       const out = massProperties(state.doc, shown);
-      return { state, content: json({ bodies: out, ...(out.some(b => b.assumed) ? { note: 'a body without a material is taken as aluminium: set its material before using its mass' } : {}) }), isError: false, changed: false, summary: `mass of ${out.length}` };
+      const accounting = beadAccounting(state.doc, state.bodies);
+      return { state, content: json({ bodies: out, ...(accounting ? { beadAccounting: accounting } : {}), ...(out.some(b => b.assumed) ? { note: 'a body without a material is taken as aluminium: set its material before using its mass' } : {}) }), isError: false, changed: false, summary: `${accounting && !accounting.complete ? 'incomplete welded-part accounting; ' : ''}mass of ${out.length} reported bodies` };
     }
     case 'interference': {
       const out = await interference(state.doc, state.bodies, evaluate, strings(args.bodies));
@@ -1194,7 +1226,8 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const body = { ...(dry ? { dryRun: true, would_apply: results } : { ok: true, applied: results }), diff, change, ...(broken.length ? { broken_references: broken } : {}) };
       if (dry) return { state, content: json(body), isError: false, changed: false, summary: `dry run: ${results.length} ops` };
       const applied = [...tx.applied, ...results.flatMap(r => typeof r.opId === 'string' && !r.skipped ? [r.opId] : [])].slice(-OP_IDS);
-      return { state: { ...cur, tx: { ...tx, applied } }, content: json({ ...body, facts: factsOf(cur.doc, cur.bodies) }), isError: false, changed: !isEmptyDiff(diff), summary: `${results.length} ops applied` };
+      // The feature diff is for display; approval and saving must cover the whole document.
+      return { state: { ...cur, tx: { ...tx, applied } }, content: json({ ...body, facts: factsOf(cur.doc, cur.bodies) }), isError: false, changed: canonical(state.doc) !== canonical(cur.doc), summary: `${results.length} ops applied` };
     }
     case 'run_script': {
       // (A5.2, O10: a script's commands and features as one change, all or nothing, as apply_ops.)
@@ -1203,7 +1236,7 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const { cur, calls, names, diff, change, broken } = run;
       const body = { ...(dry ? { dryRun: true } : { ok: true }), script: SCRIPT_VERSION, calls, names, diff, change, ...(broken.length ? { broken_references: broken } : {}) };
       if (dry) return { state, content: json(body), isError: false, changed: false, summary: `dry run: a script of ${calls.length} calls` };
-      return { state: cur, content: json({ ...body, facts: factsOf(cur.doc, cur.bodies) }), isError: false, changed: !isEmptyDiff(diff), summary: `a script of ${calls.length} calls` };
+      return { state: cur, content: json({ ...body, facts: factsOf(cur.doc, cur.bodies) }), isError: false, changed: canonical(state.doc) !== canonical(cur.doc), summary: `a script of ${calls.length} calls` };
     }
     case 'propose': {
       // (A4.2: the change worked out and kept on the side, the part as it was; the user accepts or rejects it.)
@@ -1380,7 +1413,7 @@ const PART_TOOLS: ToolDefinition[] = [
 - Sheet metal (each with the sheet's rules: "thickness":T, "bendRadius":R (inner), and either "kFactor":K 0–1 (the neutral layer at R + K·T; K from the user's shop, else say it is an estimate) or "bendTable":{"id","sources":[{"id","label","url"?}],"rows":[{"thicknessMM","radiusMM","angleDegrees"?,"kFactor"|"allowanceMM"|"deductionMM","source":id | "estimate":true}]} — the shop's table, a bend outside it refused): {"kind":"sheet-base","sketch":i,…rules,"reverse"?:bool} (a plate T thick from a closed sketch) | {"kind":"sheet-contour","path":[[x,y],…],"side":"left"|"right","width":w,"plane"?:{origin,normal,xAxis},…rules} (an open path, one skin of the sheet, the material to its side looking along it, a bend at each corner, extruded w along the plane's normal; faces .leg<i>.a/.b, .bend<k>.inner/.outer, .start, .end, .front, .back) | {"kind":"sheet-flange","parent":Ref,"edges":[edge name],"length":L,"angleDegrees"?:deg,"bendRadius"?:r,"measure"?:"outer"|"inner"|"tangent","position"?:"material-inside"|"material-outside"|"bend-outside","offsets"?:[a,b],"relief"?:{"kind":"rectangular"|"obround","width":w,"depth":d} | {"kind":"none"}} (an edge flange on a sheet's straight skin edge, bent up from that skin; with offsets its relief is required, width and depth given — no defaults; the sheet's T is the usual estimate) | {"kind":"sheet-corner-relief","parent":Ref,"edges":[corner edge name],"shape":"square"|"round","size":s} (a plate's square corner cut off before flanging its two edges; size at least R + T, round √2 that)
 - Skeleton (FRf): {"kind":"skeleton","points":[[x,y,z],…],"segments":[[from,to],…],"constraints"?:[{"kind":"fixed"|"coincident"|"length"|"distance"|"angle"|"parallel"|"perpendicular"|"on-axis"|"on-plane"|"along",…}]} (FRg: solved on add and edit; the result's skeletons: status, dof, redundant, free) — no body; frames on it follow its edits ("follows":{"skeleton":k} in place of points and segments; {"sketch":k}: a sketch's straight edges; {"part":id,"sketch":feature id}: a placed part's sketch, base frames only, its revision pinned — get_part_summary's followed_changed says when to relink).
 - Frame (FR2): {"kind":"frame","points":[[x,y,z],…],"segments":[[from,to],…],"section":S,"anchor"?,"offset"?,"roll"?,"mirror"?:bool,"up"?,"overrides"?:[{"member":k,"section"?:S,"anchor"?,"offset"?,"roll"?,"mirror"?}]} — a member along each segment (point indices), each its own body (sides part0, part1, …); a member as frame-member's below; mirror turns the section over across its own y axis; faces .m<k>.<role>, .m<k>.start/.end. No two segments on the same points or overlapping on one line. "corners"?:{"default"?:"mitre"|"butt"|"none","at"?:[{"point":i,"kind","through"?:member}]} finishes points where exactly two members end (mitre: both on the halfway plane, the same section turned alike; butt: through runs on, the other ends on its face; none: square, overlapping); left out, no corner is finished; "multi":"order"|"none" (three or more ends: an ordered trim — the first, by "order" or the larger section, runs through, each next trimmed to the envelopes before it); "tee":"butt"|"cope"|"none" (a member ending on another's length); "at" kinds also "cope" (to the through member's envelope), "order" with "order":[members], and "trim":"face"|"envelope" on a butt (a butt on an open side — an angle's leg end, a round tube, a round corner — is refused BUTT_ON_OPEN_SIDE: trim to the envelope); faces .m<k>.start.mitre, .m<k>.end.butt, .m<k>.end.cope, .m<k>.end.trim. "trims"?:[{"member":k,"end":"start"|"end","plane":{"origin","normal"}} | {…,"body":Ref}] trims an end no joint finishes to a plane (run on to meet it) or to an earlier body (not consumed); crossing members are refused MEMBERS_CLASH
-- Structural member (FR1): {"kind":"frame-member","section":S,"start":[x,y,z],"end":[x,y,z],"anchor"?:"centroid"|"origin"|"bottom-left"|…|"top-right","offset"?:[dx,dy],"roll"?:deg,"up"?:[x,y,z]} — the section square to the line start→end, extruded its length; the anchor point on the line (default the centroid), the section moved by offset, its y along up (default +Z) made square to the line (a vertical line takes +X), turned roll°. S, every dimension given (no default sizes or radii; ask for the stock's or say they are estimates): {"kind":"rect-tube","width","height","wall","outerRadius","innerRadius"?} | {"kind":"round-tube","diameter","wall"} | {"kind":"angle","legX","legY","thickness","rootRadius","toeRadius"} | {"kind":"channel","height","width","web","flange","rootRadius"} | {"kind":"tslot","size","cells":1|2,"openSlots"?:0–4 (one cell),"opening","lip","undercut","depth","bore"} | {"kind":"sketch","sketch":i} (a closed sketch, holes allowed). Faces by role: .top/.bottom/.left/.right/.round.*, .bore.*, .back.x/.face.y/.root/.toe.x, .web/.tip.top, .<slot>.floor …, and the ends .start/.end
+- Structural member (FR1): {"kind":"frame-member","section":S,"start":[x,y,z],"end":[x,y,z],"anchor"?:"centroid"|"origin"|"bottom-left"|…|"top-right","offset"?:[dx,dy],"roll"?:deg,"up"?:[x,y,z]} — the section square to the line start→end, extruded its length; the anchor point on the line (default the centroid), the section moved by offset, its y along up (default +Z) made square to the line (a vertical line takes +X), turned roll°. S, every dimension given (no default sizes or radii; ask for the stock's or say they are estimates): {"kind":"rect-tube","width","height","wall","outerRadius","innerRadius"?} | {"kind":"round-tube","diameter","wall"} | {"kind":"angle","legX","legY","thickness","rootRadius","toeRadius"} | {"kind":"channel","height","width","web","flange","rootRadius","toeRadius"?,"flangeSlope"?} | {"kind":"i-beam","height","width","web","flange","rootRadius","toeRadius","flangeSlope"} (I/H: all fields required, including explicit zero; channel new fields omitted = 0; slope rise/run; flange thickness at overhang midpoint) | {"kind":"tslot","size","cells":1|2,"openSlots"?:0–4 (one cell),"opening","lip","undercut","depth","bore"} | {"kind":"sketch","sketch":i} (a closed sketch, holes allowed). Faces by role: .top/.bottom/.left/.right/.round.*, .bore.*, .back.x/.face.y/.root/.toe.x, .web/.tip.top, .<slot>.floor …, and the ends .start/.end
 - {"kind":"hole","parent":Ref,"center":[a,b],"radius":r,"axis"?:"x"|"y"|"z","side"?:"min"|"max","depth"?:d} (omit depth for through)
 - {"kind":"fillet","parent":Ref,"edges":[names],"radius":r,"section"?:{"kind":"conic","rho":0..1} | {"kind":"g2","tension"?:0..1}} (or "radii":[{"at":[x,y,z],"radius":r}, …] — 2 to 16 points on the edges, the radius varying between them; then radius is the first point's; any section) | {"kind":"chamfer","parent":Ref,"edges":[names],"distance":d} | {"kind":"shell","parent":Ref,"thickness":t,"open":[face names]}
 - {"kind":"union"|"intersect","left":Ref,"right":Ref} | {"kind":"difference","parent":Ref,"tool":Ref} | {"kind":"split","parent":Ref,"axis":"x"|"y"|"z","at":v}
@@ -1442,8 +1475,8 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'set_stock',
-    description: 'Sets the shop\'s stock list (none is built in) and the machining allowance per face (mm). rows: {id, kind "block", size [a,b,c], source} or {id, kind "bar", diameter, maxLength?, source}.',
-    input_schema: { type: 'object', properties: { rows: { type: 'array', items: { type: 'object' } }, allowance: { type: 'number' } }, additionalProperties: false },
+    description: 'Loads machining stock from a person-supplied conversation JSON file, and/or sets allowance per face in mm. file is the attachment reference. Raw rows are refused as ROWS_NOT_FROM_PERSON. File rows keep id, block size [a,b,c] or bar diameter/maxLength, and their original source.',
+    input_schema: { type: 'object', properties: { file: { type: 'string' }, rows: { type: 'array', description: 'Refused: use a person-supplied file.', items: { type: 'object' } }, allowance: { type: 'number' } }, additionalProperties: false },
   },
   {
     name: 'set_casting',
@@ -1452,18 +1485,18 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'set_frame_stock',
-    description: 'Sets the shop\'s stock lengths for frame members (none is built in) and the saw\'s kerf (mm; unset: an estimate, said). rows: {id, length (mm), count? (unset: as many as needed), section? (the cut list\'s section text; unset: any), source}. The cut list then nests its pieces into them (FRb): bars, offcuts and the waste.',
-    input_schema: { type: 'object', properties: { rows: { type: 'array', items: { type: 'object' } }, kerf: { type: 'number' } }, additionalProperties: false },
+    description: 'Loads frame stock from a person-supplied conversation JSON file, and/or sets the saw kerf in mm. file is the attachment reference. Raw rows are refused as ROWS_NOT_FROM_PERSON. File rows keep id, length or lengthMM, count, section and source.',
+    input_schema: { type: 'object', properties: { file: { type: 'string' }, rows: { type: 'array', description: 'Refused: use a person-supplied file.', items: { type: 'object' } }, kerf: { type: 'number' } }, additionalProperties: false },
   },
   {
     name: 'set_frame_sections',
-    description: 'Adds, changes or removes rows of the part\'s section library (none is built in): rows [{id, name?, section (a section by its dimensions, as a frame\'s), source (where the sizes come from) | estimate: true}] added or replaced by id; remove: ids (a row a frame uses stays). A frame or member then takes {"kind": "library", "id"} as its section; a changed row moves every frame on it.',
-    input_schema: { type: 'object', properties: { rows: { type: 'array', items: { type: 'object' } }, remove: { type: 'array', items: { type: 'string' } } }, additionalProperties: false },
+    description: 'Loads section rows or a section table from a person-supplied conversation JSON file. file is the attachment reference; raw rows are refused as ROWS_NOT_FROM_PERSON. remove lists unused row ids. Original source or estimate is retained, with file/turn/hash receipts. Existing members using a replaced row are evaluated before the change is kept.',
+    input_schema: { type: 'object', properties: { file: { type: 'string' }, rows: { type: 'array', description: 'Refused: use a person-supplied file.', items: { type: 'object' } }, remove: { type: 'array', items: { type: 'string' } } }, additionalProperties: false },
   },
   {
     name: 'set_welds',
-    description: 'Sets the person\'s welds on the part\'s frame joints (FRd1): welds [{joint (an id from weld_list), kind? fillet | butt, size? mm, allRound?, inner? (whether the end\'s inner loop, a tube\'s bore, is welded: yours to say, none assumed), notes?}] replace a joint\'s record; remove: joint ids. Unset, the rule\'s weld: a butt weld at a mitre, a fillet elsewhere, the thinner wall as its size (an estimate).',
-    input_schema: { type: 'object', properties: { welds: { type: 'array', items: { type: 'object' } }, remove: { type: 'array', items: { type: 'string' } } }, additionalProperties: false },
+    description: 'Sets the person\'s welds on the part\'s frame joints (FRd1): welds [{joint (an id from weld_list), kind? fillet | butt, size? mm, allRound?, inner? (whether the end\'s inner loop, a tube\'s bore, is welded: yours to say, none assumed), notes?}] replace a joint\'s record; remove: joint ids. Unset, the rule\'s weld: a butt weld at a mitre, a fillet elsewhere, the thinner wall as its size (an estimate). beadOwnership: {version:1, policy:"equal-length"} opts into shared material ownership; null removes it; absent retains it. A policy-only edit is allowed. No policy is added automatically.',
+    input_schema: { type: 'object', properties: { welds: { type: 'array', items: { type: 'object' } }, remove: { type: 'array', items: { type: 'string' } }, beadOwnership: { anyOf: [{ type: 'object', properties: { version: { const: 1 }, policy: { const: 'equal-length' } }, required: ['version', 'policy'], additionalProperties: false }, { type: 'null' }] } }, additionalProperties: false },
   },
   {
     name: 'weld_list',
@@ -1606,9 +1639,11 @@ export function unknownArguments(name: string, args: Record<string, unknown>): s
 
 /** Part tools take `part` (an instance id; default the base part); then the assembly tools. */
 export const TOOLS: ToolDefinition[] = [
+  { name: 'load_rows', description: 'Loads strict shop rows only from a JSON file supplied by the person in this conversation. file is an opaque reference listed with the user attachments, never a path, URL, inline rows or suppliedBy claim. Keeps the original source/estimate and adds a file/turn/hash receipt per row. Kinds use the existing domain validators. fits accepts tables, sections accepts section rows or a section table, stock is machining stock, frame-stock is bar lengths. bend requires feature: the index of an existing sheet-base or sheet-contour, whose bend table is replaced. All edits keep the current proposal and approval gates.', input_schema: { type: 'object', properties: { kind: { type: 'string', enum: [...ROW_KINDS] }, file: { type: 'string' }, feature: { type: 'integer', minimum: 0 }, part: PART_ARGUMENT }, required: ['kind', 'file'], additionalProperties: false } },
   ...PART_TOOLS.map(t => t.name === 'select' ? t : { ...t, input_schema: { ...t.input_schema, properties: { ...(t.input_schema.properties as object), part: PART_ARGUMENT } } }),
   ...ASSEMBLY_TOOLS.map(withPartArgument),
   ...ROBOT_TOOLS,
+  ...OUTPUT_TOOLS,
   ...BRIEF_TOOLS.map(withPartArgument),
   ...QUESTION_TOOLS,
   ...REFERENCE_TOOLS,

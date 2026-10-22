@@ -9,6 +9,7 @@ import { materialOf } from '../app/materials';
 import { materialFact } from './analysis';
 import { roundFaceAxis } from '../app/measure';
 import type { Vec3 } from '../engine/mesh';
+import { beadAccounting, type BeadAccounting } from '../frames/beadAccounting';
 
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
 const v3 = (v: readonly number[]) => v.map(r3) as Vec3;
@@ -17,6 +18,8 @@ export interface Facts {
   /** Every body built (the kernel refuses what it cannot build: a failed change keeps the part as it was). */
   built: true;
   solids: number; volume_mm3: number; mass_g: number; centroid: Vec3 | null;
+  /** Mass/volume are valid body subtotals when the requested beads are incomplete. */
+  beadAccounting?: BeadAccounting;
   /** Each body's material; `assumed`: none set, aluminium taken (then `mass_assumed`: the mass is not a measured fact). */
   materials: { body: string; material: string; assumed: boolean }[]; mass_assumed: boolean;
   bbox: { min: Vec3; max: Vec3 } | null;
@@ -42,8 +45,9 @@ export function factsOf(doc: StudioDoc, bodies: readonly BodyResult[]): Facts {
     faces += b.mesh.faces.length; edges += b.mesh.edges.length; vertices += vertexCount(b);
   }
   const materials = bodies.map(b => ({ body: b.key, ...materialFact(doc, b) }));
+  const accounting = beadAccounting(doc, bodies);
   return { built: true, solids: bodies.length, volume_mm3: r3(volume), mass_g: r3(mass), centroid: volume > 0 ? v3(c.map(x => x / volume)) : null, materials, mass_assumed: materials.some(m => m.assumed),
-    bbox: bodies.length ? { min: v3(lo), max: v3(hi) } : null, faces, edges, vertices };
+    bbox: bodies.length ? { min: v3(lo), max: v3(hi) } : null, faces, edges, vertices, ...(accounting ? { beadAccounting: accounting } : {}) };
 }
 
 /** How the facts changed (only what did; nothing: `{}`). */

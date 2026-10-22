@@ -2,6 +2,7 @@
 // part's B-rep by the kernel's hidden-line projection, and dimensions that refer to model edges by
 // their persistent names (so they keep measuring the part as it changes).
 import type { BrepProjection } from '@barocss/cad';
+import type { DrawingScope } from './scope';
 import type { Sig } from '../engine/references';
 
 export type ViewId = 'front' | 'top' | 'right' | 'iso';
@@ -84,6 +85,8 @@ export function modelPrint(nodes: unknown): string {
   return h.toString(16).padStart(8, '0');
 }
 export interface DrawingSettings {
+  /** Drawing-only geometry scope. Absent: base part, or legacy BOM/balloon assembly. */
+  scope?: DrawingScope;
   sheet: 'A4' | 'A3';
   /** Model mm per sheet mm inverted (2 = 2:1, 0.5 = 1:2); none: the largest standard scale that fits. */
   scale?: number;
@@ -167,6 +170,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
   const d = defaultDrawing(), r = (raw ?? {}) as Partial<DrawingSettings>;
   return {
     sheet: r.sheet === 'A3' ? 'A3' : d.sheet,
+    ...(r.scope !== undefined ? { scope: r.scope } : {}),
     ...(typeof r.scale === 'number' && r.scale > 0 ? { scale: r.scale } : {}),
     projection: r.projection === 'first' ? 'first' : 'third',
     hidden: r.hidden !== false,

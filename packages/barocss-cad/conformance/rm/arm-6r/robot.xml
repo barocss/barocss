@@ -25,32 +25,32 @@
       <geom name="base_visual" type="mesh" mesh="base" contype="0" conaffinity="0" group="1"/>
       <geom name="base_collision" type="mesh" mesh="base_collision" group="3"/>
       <body name="l1" pos="0.05000000000000001 0.05000000000000001 0.01" quat="1 0 0 0">
-        <inertial pos="0 0 0.040000000000000015" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.000043910611119220554 0.0000055399578241395984 0 0 0"/>
+        <inertial pos="0 0 0.040000000000000015" mass="0.07879985905243496" fullinertia="0.00004375137007060266 0.00004391061111902782 0.000005539957823994349 0 0 0"/>
         <joint name="base_to_l1" type="hinge" pos="0 0 0" axis="0 0 1"/>
         <geom name="l1_visual" type="mesh" mesh="l1" contype="0" conaffinity="0" group="1"/>
         <geom name="l1_collision" type="mesh" mesh="l1_collision" group="3"/>
         <body name="l2" pos="0 0.009999999999999993 0.059999999999999984" quat="0.7071067811865476 -0.7071067811865475 0 0">
-          <inertial pos="0 -0.020000000000000028 0.01" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.0000055399578241395984 0.000043910611119220554 0 0 0"/>
+          <inertial pos="0 -0.020000000000000028 0.01" mass="0.07879985905243496" fullinertia="0.00004375137007060266 0.000005539957823994349 0.00004391061111902782 0 0 0"/>
           <joint name="l1_to_l2" type="hinge" pos="0 0 0" axis="0 0 1"/>
           <geom name="l2_visual" type="mesh" mesh="l2" contype="0" conaffinity="0" group="1"/>
           <geom name="l2_collision" type="mesh" mesh="l2_collision" group="3"/>
           <body name="l3" pos="0 -0.03999999999999997 0.02" quat="1 0 0 0">
-            <inertial pos="0 -0.020000000000000056 0.01" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.0000055399578241395984 0.000043910611119220554 0 0 0"/>
+            <inertial pos="0 -0.020000000000000056 0.01" mass="0.07879985905243496" fullinertia="0.00004375137007060266 0.000005539957823994349 0.00004391061111902782 0 0 0"/>
             <joint name="l2_to_l3" type="hinge" pos="0 0 0" axis="0 0 1"/>
             <geom name="l3_visual" type="mesh" mesh="l3" contype="0" conaffinity="0" group="1"/>
             <geom name="l3_collision" type="mesh" mesh="l3_collision" group="3"/>
             <body name="l4" pos="0 -0.06000000000000004 0.009999999999999986" quat="0.7071067811865476 0.7071067811865475 0 0">
-              <inertial pos="0 0 0.040000000000000015" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.000043910611119220554 0.0000055399578241395984 0 0 0"/>
+              <inertial pos="0 0 0.040000000000000015" mass="0.07879985905243496" fullinertia="0.00004375137007060266 0.00004391061111902782 0.000005539957823994349 0 0 0"/>
               <joint name="l3_to_l4" type="hinge" pos="0 0 0" axis="0 0 1"/>
               <geom name="l4_visual" type="mesh" mesh="l4" contype="0" conaffinity="0" group="1"/>
               <geom name="l4_collision" type="mesh" mesh="l4_collision" group="3"/>
               <body name="l5" pos="0 0.010000000000000014 0.06000000000000006" quat="0.7071067811865476 -0.7071067811865475 0 0">
-                <inertial pos="0 -0.01999999999999996 0.01" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.0000055399578241395984 0.000043910611119220554 0 0 0"/>
+                <inertial pos="0 -0.01999999999999996 0.01" mass="0.07879985905243496" fullinertia="0.00004375137007060266 0.000005539957823994349 0.00004391061111902782 0 0 0"/>
                 <joint name="l4_to_l5" type="hinge" pos="0 0 0" axis="0 0 1"/>
                 <geom name="l5_visual" type="mesh" mesh="l5" contype="0" conaffinity="0" group="1"/>
                 <geom name="l5_collision" type="mesh" mesh="l5_collision" group="3"/>
                 <body name="l6" pos="0 -0.05999999999999994 0.009999999999999986" quat="0.7071067811865476 0.7071067811865475 0 0">
-                  <inertial pos="0 0 0.040000000000000015" mass="0.07879985905243286" fullinertia="0.00004375137007071469 0.000043910611119220554 0.0000055399578241395984 0 0 0"/>
+                  <inertial pos="0 0 0.040000000000000015" mass="0.07879985905243496" fullinertia="0.00004375137007060266 0.00004391061111902782 0.000005539957823994349 0 0 0"/>
                   <joint name="l5_to_l6" type="hinge" pos="0 0 0" axis="0 0 1"/>
                   <geom name="l6_visual" type="mesh" mesh="l6" contype="0" conaffinity="0" group="1"/>
                   <geom name="l6_collision" type="mesh" mesh="l6_collision" group="3"/>

@@ -7,6 +7,16 @@ import type { ProfileSegmentInput } from './extruded-profile-solid.js';
 
 type P3 = readonly [number, number, number];
 
+export interface BeadJointRef { readonly member: number; readonly end: 'start' | 'end' }
+/** Actual connected endpoint component; never inferred from a supplied participant manifest. */
+export interface BeadSharedComponent { readonly frame: string; readonly joints: readonly BeadJointRef[] }
+export interface BeadSharedSeam {
+  readonly id: string; readonly joints: readonly [BeadJointRef, BeadJointRef];
+  /** Evaluated-part coordinates, oriented in jointA's authored member frame. */
+  readonly pathMM: readonly [P3, P3]; readonly lengthMM: number; readonly ownedInterval: readonly [number, number];
+  readonly nominalSharedVolumeMM3: number; readonly ownedSharedVolumeMM3: number;
+}
+
 /** One weld seam of a plate: the edge lying on a member's face, its length (a straight edge's: exact), the face's name. */
 export interface WeldmentSeam { readonly member: number; readonly lengthMM: number; readonly face?: string }
 
@@ -48,7 +58,10 @@ export interface BeadReport {
   readonly frame: string; readonly on: { readonly member: number; readonly end: 'start' | 'end' } | { readonly gusset: string };
   readonly kind: 'fillet'; readonly legMM: number; readonly throatMM: number; readonly meets: readonly number[];
   readonly seam: { readonly lengthMM: number; readonly flushMM: number; readonly exact: true; readonly inner?: true };
-  readonly volumeMM3: number; readonly corner: 'mitred';
+  /** Actual owned material. Mass, centroid and inertia are evaluated from that same owned B-rep. */
+  readonly volumeMM3: number;
+  /** Requested material before shared ownership; equal to actual for an unshared bead. */
+  readonly nominalVolumeMM3: number; readonly sharedSeams: readonly BeadSharedSeam[]; readonly corner: 'mitred';
 }
 
 /** The signed sweep of an arc segment from its start to `end` (anticlockwise positive), a full turn when they meet. */

@@ -1104,13 +1104,15 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
 /** Each Boolean's pieces and their classes (debugging and tests; unset in use). */
 let booleanTrace: ((pieces: { face: string; solid: number; where: string; at: P3; area: number; cuts: number; ends: P3[][]; ring: P3[][]; raw: unknown }[]) => void) | null = null;
 export function setBooleanTrace(f: typeof booleanTrace): void { booleanTrace = f; }
-export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] } = {}): Brep {
+export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean; /** A tighter fit for newly created parametric boundary edges only; topology tolerances stay unchanged. */ readonly edgeFitToleranceMM?: number; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] } = {}): Brep {
   // (An operation not named exactly is refused: it would otherwise fall through to another one's selection.)
   if (operation !== 'union' && operation !== 'intersection' && operation !== 'difference') throw new BrepError('INPUT', `analytic Boolean: operation must be union, intersection or difference, not ${String(operation)}`);
   const id = options.id ?? `analytic-${operation}`;
   for (const br of [a, b]) if (br.faces.some(isFacetFace)) throw new BrepError('GEOMETRY', 'analytic Boolean: faceted (mesh) faces are not supported yet');
   let scale = 1; for (const br of [a, b]) for (const v of br.vertices) for (const x of v.point) scale = Math.max(scale, Math.abs(x));
   const tol = linearToleranceMM(scale) * 10, span = 4 * scale + 1;
+  if (options.edgeFitToleranceMM !== undefined && !(Number.isFinite(options.edgeFitToleranceMM) && options.edgeFitToleranceMM > 0)) throw new BrepError('INPUT', 'analytic Boolean: edge fit tolerance must be positive and finite');
+  const edgeFit = options.edgeFitToleranceMM === undefined ? undefined : Math.min(tol / 4, options.edgeFitToleranceMM);
   const A = facesOf(a, 0, tol), B = facesOf(b, 1, tol);
   // 1. Cuts.
   const contact = new Set(options.contactFaces ?? []), rounded = new Set((options.contactWith ?? []).map(baseName));
@@ -1145,7 +1147,7 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
     return [{ face: p.face, out: k === 'flip' ? -1 : 1, key: p.key, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region }]; });
   // (A tolerant input's — a fitted offset's, D110, D113 — pieces keep its tolerance: the result is tolerant as its worst.)
   const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.toleranceMM), ...x.vertices.map(v => v.toleranceMM)]));
-  return stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol);
+  return stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol, undefined, edgeFit);
 }
 
 // ---- a face split along curves (D149) ---------------------------------------------------------------
@@ -1592,10 +1594,10 @@ function pieceOf(src: Curve, t0: number, t1: number, id: string, p: P3, q: P3): 
   return { ...c, id, controlPoints: cp, knots: c.knots.map((k, i) => i === c.knots.length - 1 ? 1 : (k - lo) / span) };
 }
 /** A curve as a NURBS edge: lines degree 1; arcs rational quadratic in spans of at most a quarter turn. */
-function nurbs(k: Curve3, id: string, p: P3, q: P3, tol = 0): Curve {
+function nurbs(k: Curve3, id: string, p: P3, q: P3, tol = 0, strict = false): Curve {
   if (k.kind === 'line') return lineCurve(id, p, q);
   if (k.kind === 'param' && k.src) return pieceOf(k.src, k.t0, k.t1, id, p, q);
-  if (k.kind === 'param') return fitCubic(k, id, p, q, tol);
+  if (k.kind === 'param') return fitCubic(k, id, p, q, tol, strict);
   const spans = Math.max(1, Math.ceil(k.sweep / (Math.PI / 2) - 1e-12)), dt = k.sweep / spans, w = Math.cos(dt / 2);
   const cp: P3[] = [p], wt = [1], knots = [0, 0, 0];
   for (let s = 0; s < spans; s++) {
@@ -1609,31 +1611,51 @@ function nurbs(k: Curve3, id: string, p: P3, q: P3, tol = 0): Curve {
 
 const FIT_PIECES = 16; // 49 control points: within the kernel's 64-point curve limit
 /** A C¹ cubic Bézier chain through the curve (Hermite data at n + 1 points). */
-function fitCubic(k: Extract<Curve3, { kind: 'param' }>, id: string, p: P3, q: P3, tol: number): Curve {
-  return fitWith(k, id, p, q, FIT_PIECES).curve; void tol;
+function fitCubic(k: Extract<Curve3, { kind: 'param' }>, id: string, p: P3, q: P3, tol: number, strict = false): Curve {
+  const fit = fitWith(k, id, p, q, FIT_PIECES, strict);
+  if (strict && !(fit.error <= tol)) throw new BrepError('GEOMETRY', `analytic Boolean: stitched parametric edge fit exceeds requested accuracy (t0=${k.t0}, t1=${k.t1}, achievedMM=${fit.error}, requestedMM=${tol})`);
+  return fit.curve;
 }
-function fitWith(k: Extract<Curve3, { kind: 'param' }>, id: string, p: P3, q: P3, n: number): { curve: Curve; error: number } {
+function fitWith(k: Extract<Curve3, { kind: 'param' }>, id: string, p: P3, q: P3, n: number, strict = false): { curve: Curve; error: number } {
   const at = (u: number) => u <= 0 ? p : u >= 1 ? q : paramAt(k, u), h = 1e-6;
   const d = (u: number) => { const a = paramAt(k, Math.max(0, u - h)), b = paramAt(k, Math.min(1, u + h)); return scale(sub(b, a), 1 / (Math.min(1, u + h) - Math.max(0, u - h))); };
+  let handles: P3[] | undefined;
+  if (strict) {
+    const samples = Array.from({ length: n + 1 }, (_, i) => paramAt(k, i / n));
+    // Fourth-order five-point tangents on the actual Bezier grid. A handle is
+    // (span / 3) * derivative: the grid spacing cancels to 1/36. Subtract the
+    // local point before weighting, without dividing coordinate noise by 1e-6.
+    // Reuse each handle on both sides of a node to retain the C1 chain.
+    handles = samples.map((p0, i) => {
+      const start = Math.max(0, Math.min(n - 4, i - 2));
+      const coefficients = i === 0 ? [-25, 48, -36, 16, -3] : i === 1 ? [-3, -10, 18, -6, 1]
+        : i === n - 1 ? [-1, 6, -18, 10, 3] : i === n ? [3, -16, 36, -48, 25] : [1, -8, 0, 8, -1];
+      return coefficients.reduce((sum, c, j) => add(sum, scale(sub(samples[start + j], p0), c / 36)), [0, 0, 0] as P3);
+    });
+  }
   {
     const cp: P3[] = [at(0)], knots = [0, 0, 0, 0];
     for (let i = 0; i < n; i++) {
       const u0 = i / n, u1 = (i + 1) / n, P0 = at(u0), P1 = at(u1), du = (u1 - u0) / 3;
-      cp.push(add(P0, scale(d(u0), du)), sub(P1, scale(d(u1), du)), P1);
+      cp.push(add(P0, handles ? handles[i] : scale(d(u0), du)), sub(P1, handles ? handles[i + 1] : scale(d(u1), du)), P1);
       if (i < n - 1) knots.push(u1, u1, u1);
     }
     knots.push(1, 1, 1, 1);
     const curve: Curve = { kind: 'curve', id, degree: 3, knots, controlPoints: cp, weights: cp.map(() => 1) };
     const ev = curveEvaluator(curve);
-    let err = 0; for (let i = 0; i < n; i++) for (const f of [0.25, 0.5, 0.75]) err = Math.max(err, len(sub(ev((i + f) / n), at((i + f) / n))));
+    let err = strict ? Math.max(len(sub(p, paramAt(k, 0))), len(sub(q, paramAt(k, 1)))) : 0;
+    for (let i = 0; i < n; i++) for (const f of [0.25, 0.5, 0.75]) err = Math.max(err, len(sub(ev((i + f) / n), at((i + f) / n))));
     return { curve, error: err };
   }
 }
 /** A parametric curve in pieces (halving its parameter range) each of which one fit holds within tol. */
-function fitPieces(k: Curve3, tol: number, depth = 0): Curve3[] {
-  if (k.kind !== 'param' || depth >= 10 || fitWith(k, 'fit', k.at(k.t0), k.at(k.t1), FIT_PIECES).error <= tol) return [k];
+function fitPieces(k: Curve3, tol: number, depth = 0, strict = false): Curve3[] {
+  if (k.kind !== 'param' || (!strict && depth >= 10)) return [k];
+  const fit = fitWith(k, 'fit', k.at(k.t0), k.at(k.t1), FIT_PIECES, strict);
+  if (fit.error <= tol) return [k];
+  if (depth >= 10) throw new BrepError('GEOMETRY', `analytic Boolean: parametric edge fit did not meet the requested accuracy (t0=${k.t0}, t1=${k.t1}, depth=${depth}, achievedMM=${fit.error}, requestedMM=${tol})`);
   const m = (k.t0 + k.t1) / 2;
-  return [...fitPieces({ ...k, t1: m }, tol, depth + 1), ...fitPieces({ ...k, t0: m }, tol, depth + 1)];
+  return [...fitPieces({ ...k, t1: m }, tol, depth + 1, strict), ...fitPieces({ ...k, t0: m }, tol, depth + 1, strict)];
 }
 
 /** A region's boundary length (its curves by 16 chords each). */
@@ -1647,7 +1669,7 @@ function regionLength(region: CurveRegion2): number {
 }
 
 /** `names`: per piece, its face's name as given (a face split keeps every other face's name exactly, D149). */
-function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[]): Brep {
+function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[], edgeFitToleranceMM?: number): Brep {
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
   // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
   const set = new PointSet3(20 * tol);
@@ -1661,7 +1683,8 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
   // Curves of no length (a domain side at a pole) are not edges.
   const point = (k: Curve3) => [0.25, 0.5, 0.75, 1].every(u => len(sub(pointOf(k, u), startOf(k))) <= tol);
   // (A piece of an input edge's own curve stays that curve: no fit, D90.)
-  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(exactEdges && k.kind === 'param' && k.exact ? exactly(k, tol * 1e-3) : k).flatMap(x => x.kind === 'param' && x.src ? [x] : fitPieces(x, tol / 4)); })));
+  const fitTol = edgeFitToleranceMM ?? tol / 4;
+  const rings = pieces.map(p => [p.region.outer, ...p.region.holes].map(r => r.flatMap(g => { const k = curve3Of(p.face, g); return point(k) ? [] : open(exactEdges && k.kind === 'param' && k.exact ? exactly(k, tol * 1e-3) : k).flatMap(x => x.kind === 'param' && x.src ? [x] : fitPieces(x, fitTol, 0, edgeFitToleranceMM !== undefined)); })));
   for (const ps of rings) for (const ring of ps) for (const k of ring) { set.add(startOf(k)); set.add(endOf(k)); }
   const P = set.points;
   // Consecutive pieces of one ring meet at one vertex: a traced curve's end lands within its tracing
@@ -1773,7 +1796,7 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
     [...list].sort((x, y) => { const a = pieces[x].key, b = pieces[y].key; return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; }).forEach((i, k) => { faceNames[i] = `${n}#${k + 1}`; });
   }
   if (names) names.forEach((n, i) => { if (n !== undefined) faceNames[i] = n; });
-  const edgeList = edges.map((e, i) => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], tol / 4), vertices: [vertexAt(e.v[0], i), vertexAt(e.v[1], i)] as [string, string],
+  const edgeList = edges.map((e, i) => ({ id: e.id, curve: nurbs(e.k, e.id, P[e.v[0]], P[e.v[1]], fitTol, edgeFitToleranceMM !== undefined), vertices: [vertexAt(e.v[0], i), vertexAt(e.v[1], i)] as [string, string],
     name: [...new Set((uses.get(i) ?? []).map(u => faceNames[u.piece]))].sort().join('|') }));
   nameEdges(edgeList);
   const surface = (pi: number): { surface: Surface; sense: 'forward' | 'reversed' } => {

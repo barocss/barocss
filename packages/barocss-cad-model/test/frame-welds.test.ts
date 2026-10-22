@@ -115,6 +115,6 @@ test('A9-1 a table frame\'s top corners, three members trimmed in order: the leg
   assert.ok(!r.isError, r.content); s = r.state;
   const after = weldList(s.doc, s.bodies);
   assert.equal(after.joints.length, 8);
-  for (const j of after.joints) assert.ok(j.bead && 'refused' in j.bead && /^\[BEAD_SEAM_NOT_PLANAR\]/.test(j.bead.refused), JSON.stringify(j.bead));
+  for (const j of after.joints) assert.ok(j.bead && 'refused' in j.bead && /^\[BEAD_SHARED_CONTEXT\]/.test(j.bead.refused) && j.bead.sharedComponent?.joints.length === 2, JSON.stringify(j.bead));
   assert.equal(s.bodies.filter(b => b.cutPiece).length, 8, 'the frame still built');
 });

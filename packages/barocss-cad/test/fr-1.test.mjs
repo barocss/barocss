@@ -194,7 +194,7 @@ test('FR1 refusals by name: SECTION_DIMENSIONS for each kind, SEGMENT_ZERO_LENGT
   refuse({ kind: 'tslot', size: 20, cells: 1, openSlots: 4, ...SLOT, depth: 4 }, /no straight part/);
   refuse({ kind: 'tslot', size: 20, cells: 1, ...SLOT }, /openSlots \(0 to 4/);
   refuse({ kind: 'rect-tube', width: -40, height: 40, wall: 3, outerRadius: 0 }, /width must be positive/);
-  refuse({ kind: 'i-beam', height: 100 }, /section\.kind must be/);
+  refuse({ kind: 'future-section', height: 100 }, /section\.kind must be/);
   refuse({ kind: 'round-tube', diameter: 30, wall: 2 }, /\[SEGMENT_ZERO_LENGTH\]/, {}, [0, 0, 1e-9]);
   refuse({ kind: 'round-tube', diameter: 30, wall: 2 }, /anchor must be one of/, { anchor: 'middle' });
 });

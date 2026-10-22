@@ -348,7 +348,7 @@ test('sweep: a profile along straight runs and bends, exact mass, joined into on
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
     assert.deepEqual(report.topology.map(t => t.genus), [genus], name);
     const m = o.massProperties(1000);
-    assert.equal(m.method, 'closed-form', name);
+    assert.equal(m.method, genus === 1 ? 'quadrature' : 'closed-form', name);
     assert.ok(close(m.volumeMM3, expected, 1e-12), `${name}: ${m.volumeMM3} vs ${expected}`);
     // The closed form agrees with the body's own fine mesh.
     const mesh = brepMassProperties(o.brep, 1000, { segmentsPerQuarter: 64 });

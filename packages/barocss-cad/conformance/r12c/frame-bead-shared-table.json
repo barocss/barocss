@@ -1,0 +1,930 @@
+{
+  "id": "r12c-frame-bead-shared-table",
+  "step": "R12c",
+  "decisions": [
+    "D170",
+    "D171"
+  ],
+  "about": "Opted-in ordered table: eight owned endpoint beads, 270 mm3 each, and the original eight frame members.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              400,
+              0,
+              0
+            ],
+            [
+              400,
+              300,
+              0
+            ],
+            [
+              0,
+              300,
+              0
+            ],
+            [
+              0,
+              0,
+              300
+            ],
+            [
+              400,
+              0,
+              300
+            ],
+            [
+              400,
+              300,
+              300
+            ],
+            [
+              0,
+              300,
+              300
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              4
+            ],
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              6
+            ],
+            [
+              3,
+              7
+            ],
+            [
+              4,
+              5
+            ],
+            [
+              5,
+              6
+            ],
+            [
+              6,
+              7
+            ],
+            [
+              7,
+              4
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "multi": "order"
+          }
+        },
+        {
+          "id": "w4start",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 4,
+            "end": "start"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 4,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 4,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "w4end",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 4,
+            "end": "end"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 4,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 4,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "w5start",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 5,
+            "end": "start"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 4,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 4,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "w5end",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 5,
+            "end": "end"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 4,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 4,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "w6start",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 6,
+            "end": "start"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 4,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 4,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "w6end",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 6,
+            "end": "end"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 4,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 4,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "w7start",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 7,
+            "end": "start"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 4,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 4,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "w7end",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 7,
+            "end": "end"
+          },
+          "leg": 3,
+          "sharing": {
+            "version": 1,
+            "policy": "equal-length",
+            "joints": [
+              {
+                "member": 4,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 4,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 5,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 6,
+                "end": "end",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "start",
+                "leg": 3
+              },
+              {
+                "member": 7,
+                "end": "end",
+                "leg": 3
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 142080,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            160
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 142080,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            400,
+            0,
+            160
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 142080,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            400,
+            300,
+            160
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 142080,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            300,
+            160
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 159840,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            200,
+            0,
+            300
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 115440,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            400,
+            150,
+            300
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 159840,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            200,
+            300,
+            300
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 115440,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            150,
+            300
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 270,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            21,
+            7,
+            282.6666666666667
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 2,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 270,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            379,
+            7,
+            282.6666666666667
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 2,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 270,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            393,
+            21,
+            289.3333333333333
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 2,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 270,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            393,
+            279,
+            282.6666666666667
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 2,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 270,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            379,
+            293,
+            289.3333333333333
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 2,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 270,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            21,
+            293,
+            282.6666666666667
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 2,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 270,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            7,
+            279,
+            289.3333333333333
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 2,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 270,
+          "relTol": 1e-12
+        },
+        "centroidMM": {
+          "value": [
+            7,
+            21,
+            289.3333333333333
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 2,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "Member area 40^2-34^2=444 mm2 times actual interval lengths 320,360,260; the beads are an exclusive 40-mm triangular prism (180 mm3) plus half a shared 40-mm triangular prism (90 mm3). Centroids use volume-weighted triangle centroids, not a Kernel golden. Full independent inertia and pair-overlap assertions are in shared-seam.test.mjs."
+}

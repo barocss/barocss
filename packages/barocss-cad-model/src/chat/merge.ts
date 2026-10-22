@@ -188,7 +188,7 @@ export const changedDuring = (base: StudioDoc, now: StudioDoc): boolean => canon
  * The turn's ops applied to the part as the person has it now (`now`), from the base they were made on (`base`), each
  * that does not conflict; the rest as one proposal on the result, with their reasons.
  */
-export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatch, evaluate: Evaluate, o: { deferAll?: string } = {}): Promise<Merged> {
+export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatch, evaluate: Evaluate, o: { deferAll?: string; rowFiles?: ChatState['rowFiles'] } = {}): Promise<Merged> {
   // (Every op waiting, without running anything — nothing to await, so no edit lands in between: the last resort.)
   if (o.deferAll !== undefined) {
     const deferred = patch.ops.map((op, k): TurnConflict => ({ op: k, tool: op.tool, code: 'TURN_STILL_EDITING', reason: o.deferAll! }));
@@ -291,7 +291,7 @@ export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatc
   // (The history the applied ops added, after the person's.)
   for (const k of r!.applied) for (const h of patch.ops[k].effect.history) doc = withHistory(doc, historyOf(h));
   if (!r!.deferred.length) return { doc, applied: r!.applied, deferred: [], proposal: null };
-  const withProposal = await deferredProposal({ doc, bodies }, patch, r!.deferred, ids, evaluate);
+  const withProposal = await deferredProposal({ doc, bodies, rowFiles: o.rowFiles }, patch, r!.deferred, ids, evaluate);
   return { doc: withProposal.doc, applied: r!.applied, deferred: r!.deferred, proposal: withProposal.id };
 }
 

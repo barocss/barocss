@@ -9957,3 +9957,712 @@ The defect half of FRk8b, moved up by the coordinator after FRk2 (a wrong mass o
 - **RB:** 418 cases (+9: the frk cases since R12c's 409), no new failures. The non-OK totals are unchanged: 4 refused, 3 invalid, 5 wrong (the 8 known TODOs). 153 s.
 - **Properties:** 11/11, no failures, 174 s. Among them the coaxial fillets against Pappus (200 random cone rims) and "mass by quadrature and by a finer and finer tessellation agree" (200).
 - **Not run:** cad-model and studio (no change there; their masses go through this kernel, so the coordinator's merge checks cover them); the flow.
+
+## D168 — P1 review fix: Sweep mass follows the final union (2026-10-22)
+
+This checkpoint fixes the review's overlapping Sweep mass. It does not start FRk3.
+Baseline: `c3ae0d5de60ecb250350b597552fb0203b41d43e` (remote develop merge).
+Task worktree: `/Users/user/.codex/worktrees/0d2f/barocss`.
+Branch: `codex/cad-kernel-sweep-mass-20261022`.
+The worktree initially had clean detached HEAD `57ad0fd09b6919e20133657c0739f87d10e81ecb`;
+the new branch starts at the requested baseline. No reset, stash, rebase or amend.
+Git author and committer: `easylogic <cyberuls@gmail.com>`.
+
+**Cause and change**
+- `sweepBrep` united overlapping pieces but always summed their original masses.
+- The sum is now used only when every join uses `glueAtSharedFace`. Any Boolean
+  union sends volume, centroid and inertia through `brepMassProperties` on the final body.
+- A four-bend closed ring also uses that route: its returned method is `quadrature`.
+  The existing test now expects the actual method; its `1e-12` volume tolerance is unchanged.
+- The new inertia oracle exposed a separate whole-patch integration error (about
+  `3.7e-9` relative on the annulus's transverse inertia). Increasing
+  `quadratureSegments` from 8 to 64 did not change it, since whole patches bypass
+  the mesh. Rational whole patches now use eight extra Gauss points instead of four
+  (the existing cap remains 20). No tolerance was relaxed. This does not change
+  D167's trimmed-face knot/domain/strip rules or claim completion of FRk8b's remainder.
+
+**Independent oracle and reproduction**
+
+`test/sweep-mass-overlap.test.mjs`: 2 tests. Rectangle `[-1,-1]..[1,1]`,
+R8 bends of 90 degrees toward x. Four bends form an annulus, radii 7..9,
+y=-1..1; the fifth retraces its first quarter. The test integrates
+`dV = r dr dy dtheta` directly, with no kernel mass or geometry feeding the oracle.
+It checks all nine centroidal inertia entries, volume, mass and centroid at densities
+1 and 7850, and compares the result with the final B-rep. A non-overlapping two-bend
+semicircle is the closed-form control, including its nonzero centroid.
+Tolerance: `1e-12` of the stated volume/mass/length/inertia scale, including zero entries.
+
+| Case, density 1 | Before | After | Oracle |
+|---|---|---|---|
+| 5 bends, volume mm3 | 251.32741228718342 | 201.06192982974676 | 64 pi = 201.06192982974676 |
+| 5 bends, centroid mm | [6.97610319944214, 0, 1.0238968005578593] | [8, 0, 0] to rounding | [8, 0, 0] |
+| 4 bends, volume mm3 | 201.06192982974673 | 201.06192982974673 | 64 pi |
+
+For the annulus, `Iyy = mass * 65e-6`, `Ixx = Izz = mass * (197/6)e-6`
+in kg m2. At density 1 the final values are approximately
+`diag(6.60153336274311e-12, 1.30690254389331e-11, 6.60153336274312e-12)`;
+off-diagonal values are zero to rounding.
+
+The new test was also run with the baseline's `part-model.ts` transpiled into a
+temporary module beside this worktree's own build. Other modules came from the
+current build, so this is a baseline Sweep implementation probe, not a rerun or
+qualification of the whole historical commit. It fails the fifth-bend volume:
+`251.32741228718342 vs 201.06192982974676` (1 pass, 1 expected failure).
+The temporary modules and test were removed. No other worktree's dist was used.
+
+**Verification — T2**
+
+Node `v22.19.0`. From the task worktree:
+- `pnpm install --offline --frozen-lockfile --ignore-scripts`: passed.
+- In `packages/barocss-cad`, `pnpm build:library`, `pnpm type-check`, `pnpm lint`: passed.
+  Type-check was rerun after the last test edit.
+- `pnpm exec eslint test/sweep-mass-overlap.test.mjs`: passed.
+- `node --test test/sweep-mass-overlap.test.mjs`: 2/2.
+- `node --test --test-name-pattern='shell revolved and swept bodies|sweep: a profile along straight runs' test/part-model.test.mjs`: 2/2.
+- Explicit lint of both changed test files reports the baseline's existing
+  `prefer-const` error at `test/part-model.test.mjs:512` (`b`). It is outside this fix;
+  the package's source lint passes. The original line was checked with `git show`.
+- A development run of the three focused files was 31/33 before the final method
+  expectations were corrected. Both affected tests passed in the focused rerun above.
+
+Long checks use detached `/tmp/barocss-cad-sweep-verify-20261022` at the baseline
+plus this exact four-file patch, with its own offline install and local CAD/GPU builds.
+All four source/test SHA-256 hashes match the task worktree.
+An initial full-suite attempt started before its build completed (12 passes,
+202 import failures); it is not qualification evidence. A second attempt was stopped
+on this lane's own runner/PIDs after load rose above 100. Neither attempt is counted
+as a completed suite. The final run started at load `{ 34.78 56.41 37.68 }` with
+`node --test --test-concurrency=4 test/*.test.mjs`.
+
+Final full kernel: **1547/1554 passed, 6 skipped, 1 failed**, 494.404 s.
+The only failure is the hand-over's known "actual native Split source produces
+validated scoped Face reference resolutions": the example asserts Node `22.23.3`,
+but the hand-over's Node is `22.19.0`. No environment assertion was changed.
+Both FRk8b sphere/bevel regression tests passed. This fresh session starts its
+own saved passing-name list (`/tmp/cad-kernel-sweep-passing-names.txt`); no previous
+session's list is available, so no missing-name comparison is claimed.
+
+Targeted browser flow: **2/2 passed** (starter plate and the bent pipe from the
+palette), started at load `{ 12.91 24.87 32.21 }`. From the immutable verify
+worktree's `apps/cad-studio`:
+`CAD_STUDIO_CHAT_PORT=52491 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright FLOW_ONLY='^sweep a circle into a bent pipe' node test/browser-flow.mjs /tmp/cad-kernel-sweep-browser`.
+Screenshots are in `/tmp/cad-kernel-sweep-browser`; the result log is
+`/tmp/cad-kernel-sweep-browser.log`.
+Browser start requires 1-minute load below 20 and 5-minute below 25.
+RB/properties are not due
+(first checkpoint after D167; no track boundary). cad-model/studio package suites
+are not run: their source/API did not change. The coordinator owns the merge-window
+suite and full flow. No remote write, push, PR, merge, publish or deploy.
+
+Risk: rational whole patches do more quadrature work; no performance improvement
+is claimed. General Boolean/trimmed-surface mass accuracy retains its existing limits.
+
+## D169 — A9 ordered-trim beads: S0 contract (2026-10-22)
+
+Owner routing: unblock A9 step 4 before FRk3. The clean Kernel branch merged
+coordinator head `8ce8d8b6b04b7c6e94a9ae11fc19fe515bf35d3c` as
+`33071870db0addae52db0de3f88e68e3af9f1cd6`.
+
+Scope frozen before implementation:
+- Only ordered `trim` ends (`rank`/`against`) gain inference from their actual
+  B-rep trim faces. A missing report plane alone is no longer proof of a curved end.
+- Require one plane for the complete trimmed end, using the actual surfaces and
+  trim provenance. No residual original run-on cap, mixed planes or curved cap.
+- Oblique ends retain `BEAD_ANGLE`; copes, nonplanar/mixed ends and generic body
+  trims retain `BEAD_SEAM_NOT_PLANAR`. No silent projection or approximation.
+- Existing bead placement/clipping still reads every other member's actual landing
+  faces. In the A9 table, a rail end can land on its leg and the adjacent rail.
+- Oracle: the sharp 40 x 40 x 3 table, 400 x 300 x 300, leg 3, eight ends,
+  two 40 mm triangular-prism runs per end: 8 * 2 * 40 * 3^2 / 2 = 2880 mm3.
+  Check actual support faces, no member/bead overlap, and union volume additivity.
+- Cover table/box ends, preserved curved/oblique refusals, and a changed/rotated
+  placement. No model/app/GPU edit. The model owner's existing
+  `test/frame-welds.test.ts` asserts the old refusal and needs a separate update.
+- The coordinator holds the heavy-check slot. Build, small regressions, lint and
+  final type-check may run here. Full kernel, browser, RB/properties and benchmarks
+  wait for an explicit verification window. This checkpoint will report the exact
+  ready commands and stop.
+
+### S0 result: planar support works; A9's no-overlap contract is unresolved
+
+**WIP, not an A9 acceptance or adoption receipt.** The original A9 sum assertion
+is retained and fails; neither its oracle nor tolerance was changed.
+
+Changes limited to `packages/barocss-cad/src/part-model.ts`, its new
+`test/ordered-trim-bead.test.mjs`, and this Kernel decision:
+- Infer an ordered end's plane only from the actual envelope-produced faces. Each
+  surface must be planar, all must be coplanar, and no original run-on cap may
+  survive. Generic body trims remain refused. An inferred oblique plane is
+  `BEAD_ANGLE`, with the existing 1e-9 degree limit.
+- Split collinear landing edges at their partial shared vertices before merging
+  the landing boundaries. Otherwise the table reports `flushMM=120` even though
+  it has two supported runs; the correct exterior-only value is 80. The existing
+  1e-6 mm boundary tolerance is unchanged.
+- The table/box plane checks, actual support clipping, each nominal 360 mm3 bead,
+  and transformed centroid checks pass. Beads intersect no frame member in volume.
+  Curved, partial-cap, generic-body and oblique refusal controls pass.
+
+**Independent geometry of the conflict** (test values only): at corner [0,0,300],
+the two rail ends lie on x=20 and y=20. Both create the same vertical seam prism:
+`x=20+u, y=20+v, 280<=z<=320`, `u>=0, v>=0, u+v<=3`.
+Its volume is `40 * integral(0..3, 3-u du) = 40 * 9/2 = 180 mm3`.
+Each rail's other, bottom run is a different 40 mm triangular prism. Thus:
+- nominal per-joint sum: `8 * 360 = 2880 mm3`;
+- four duplicate vertical prisms: `4 * 180 = 720 mm3`;
+- unique deposited material: `2880 - 720 = 2160 mm3`.
+
+Actual pair intersections, each 180 mm3:
+`w4start/w7end`, `w4end/w5start`, `w5end/w6start`, `w6end/w7start`.
+The frame volume is 1118880 mm3. Its union with all beads is
+1121040.0000000037 mm3, versus the unresolved A9 sum oracle's 1121760 mm3.
+All bead centroids agree with the two triangular prisms' closed forms at 1e-12.
+The diagnostic compares total material rather than subtracting two large measured
+volumes: that subtraction lost digits (2160.0000000037253), and the original
+1e-12 comparison of the 2160 result failed. No tolerance factor was changed.
+A standalone union of the detached bead bodies was also refused as non-manifold
+where prisms touch only along an edge. The frame-plus-beads union is valid.
+
+**Small checks actually run**, Node 22.19.0, this worktree's own build:
+- Before: `node --test --test-name-pattern='A9 ordered table' test/ordered-trim-bead.test.mjs`
+  fails with the original `BEAD_SEAM_NOT_PLANAR` at member 4 start (1/1 failed).
+- `pnpm build:library`: passed.
+- `node --test --test-concurrency=1 test/ordered-trim-bead.test.mjs test/frk-2.test.mjs`:
+  **12 passed, 1 failed**, 9.151 s. All five existing FRk2 tests pass. The only
+  failure is the retained A9 no-double-counting sum assertion above.
+- `pnpm type-check`, `pnpm lint`, and
+  `pnpm exec eslint test/ordered-trim-bead.test.mjs`: passed. Type-check ran after
+  the final test edit.
+- Logs: `/tmp/cad-ordered-bead-before.log`, `/tmp/cad-ordered-bead-targeted-final.log`,
+  `/tmp/cad-ordered-bead-build.log`, `/tmp/cad-ordered-bead-tsc.log`,
+  `/tmp/cad-ordered-bead-lint.log`, `/tmp/cad-ordered-bead-test-lint.log`.
+
+**Not run:** full kernel, browser, benchmarks, RB/properties (coordinator's shared
+slot held); model/studio suites (other lane). No model/app/GPU file was edited.
+The model owner has the old refusal assertion in
+`packages/barocss-cad-model/test/frame-welds.test.ts`.
+
+**Executable handling options — proposed only, not implemented**
+1. **Typed overlap refusal.** Keep independent per-joint beads; refuse a newly
+   generated bead when it overlaps another bead in volume. Kernel overlap checking
+   and a declared refusal/report contract are needed; the model's retry/weld-list
+   path must expose the refusal. This avoids silent double-counting but leaves
+   incomplete weld geometry and does not meet A9.
+2. **Assign/split each shared prism once.** Stable ownership gives some joints
+   360 and others 180 mm3; equal half-length splits give all eight joints 270 mm3.
+   Both total 2160 mm3. Requires a shared-seam identity/ownership contract in the
+   Kernel bead report and the model's `engine/part.ts` / `frames/welds.ts` mapping.
+   Nominal requested size remains 3 mm; overlap ownership must not be called flush.
+3. **One weldment material union.** Unite the frame with all beads; count the
+   unique added material as 2160 mm3 while retaining 2880 only as nominal joint
+   accounting. Requires grouped Kernel geometry/mass plus model weld/BOM semantics.
+   A detached-beads-only union is insufficient because edge-only contacts are not
+   a manifold solid. This does not make 2880 a physical material volume.
+
+Resume condition: the coordinator resolves which quantity A9 accepts and routes
+the shared-seam contract to the relevant owners. This WIP must not be described
+as no-overlap or as completed A9. Full-kernel command ready after a scheduled slot:
+`node --test --test-concurrency=4 test/*.test.mjs`; affected browser steps are the
+existing FRk2 bead and ordered-frame flows, with their prerequisites, selected by
+the coordinator. No full run has been started here during this checkpoint.
+
+## D170 — Shared-seam equal ownership: contract S0, for cross-lane agreement (2026-10-22)
+
+**Proposal only; no production API or ownership algorithm implemented.**
+Coordinator input `6b3b98aae743aa5e3de2f61aaa3cf2646b820acf` was merged into
+the preserved Kernel WIP as baseline `ebab7c500cd56c2dae6d0e27390999c79c68cc6c`.
+D169 and its original failed A9 no-double-counting assertion remain unchanged.
+The new physical target is 2160 mm3, independently derived, not a weaker overlap gate.
+
+### Geometry and ownership
+
+- V1 supports same-frame, outer fillet welds on sharp, square planar member ends.
+  A shared run must be one straight, coextensive triangular prism, constant along
+  its length, produced by exactly two distinct endpoint joints of equal leg size.
+  Each joint has at most one shared run; exclusive runs remain whole. Both halves
+  must have positive length above the existing geometric minimum.
+- Three-way sharing, multiple/disjoint shared runs per pair, unequal legs,
+  partial/coincidence-mismatched prisms, inner/gusset/cap sharing and curved or
+  tapered seams are outside V1. Congruence is checked on actual geometry, not a mesh
+  proximity label. Ordinary unshared end/gusset behavior is not expanded by V1.
+- Joint reference: `{member, end}` under the report's authored `frame` feature id.
+  Canonical order is member number, then start before end. A pair's stable local
+  seam id is the complete JSON tuple `['shared-seam-v1', frame, [jointA, jointB]]`,
+  with joints in canonical order. No truncation, world-coordinate hash, B-rep
+  transient face id, feature evaluation index or display name enters the id.
+  One run per pair avoids an unstable geometric ordinal. Instance consumers qualify
+  the local id by stable part/instance id. Renumbering members or renaming the frame
+  changes identity; invariance across those authored changes is not promised.
+- Orient the seam endpoints lexicographically in jointA's authored local member
+  frame (x, y, axis, relative to its start), not in world coordinates. JointA owns
+  normalized interval [0,1/2], jointB [1/2,1]. Split by the exact midpoint plane
+  normal to the seam. Their common boundary has zero volume. On the A9 table each
+  joint owns an exclusive 180 mm3 prism and half a shared 180 mm3 prism: 270 mm3.
+- Reordering weld records, feature evaluation or participant manifests cannot
+  change ids, ownership or output moments. Proper rigid transforms of the complete
+  geometry AND authored member frames transform points/centroids and rotate inertia;
+  they do not change ids or quantities. Changing a skeleton while retaining an
+  unrelated world-up direction is not necessarily a rigid transform of the section.
+
+### Proposed Kernel input/output, to be agreed before implementation
+
+Keep the existing `weld-bead` kind. Add an explicit complete group context:
+
+```ts
+sharing?: {
+  version: 1;
+  policy: 'equal-length';
+  joints: readonly { member: number; end: 'start' | 'end'; leg: CadPartDim }[];
+};
+```
+
+Every active participant of one shared component must carry the same canonical
+manifest, including itself. Plan the component from the frame and that immutable
+context before emitting any owned result; do not subtract whatever earlier
+features happened to produce. Validate context against the declared participants.
+Missing/inconsistent context must refuse a detected shared component, not silently
+keep overlapping nominal bodies. An isolated T needs no context and stays 360 mm3.
+
+Proposed report additions (names subject to model agreement):
+- Existing `BeadReport.volumeMM3` and output `massProperties(density)` remain
+  **actual owned material**: V, mass, centroidMM and inertiaCentroidKgM2 come from
+  the partitioned B-rep. Never multiply the nominal inertia by a volume fraction.
+- `nominalVolumeMM3`: the individually supported bead before shared allocation,
+  after normal landing-face clipping; 360 per A9 joint, non-additive physical material.
+- `sharedSeams[]`: `{id, joints:[jointA,jointB], pathMM:[p0,p1], lengthMM,
+  ownedInterval, nominalSharedVolumeMM3, ownedSharedVolumeMM3}`. Both reports carry
+  both joint refs; path follows the local orientation rule. Here length=40,
+  nominalSharedVolume=180 and ownedSharedVolume=90. The id stays stable under
+  geometry edits while a separate dependency fingerprint invalidates stale results.
+- Existing seam perimeter/flush fields retain their geometric meaning. An allocated
+  half is not flush. Weld-list totals must label requested nominal quantities and
+  owned deposited material separately: 2880 nominal, 2160 physical, 4 unique shared ids.
+- Proposed typed reasons under existing `CadPartError` PARAMETER:
+  `BEAD_SHARED_CONTEXT` for absent/inconsistent/incomplete context;
+  `BEAD_SHARED_UNSUPPORTED` for unsupported sharing geometry/multiplicity.
+  Existing `BEAD_ANGLE`, `BEAD_SEAM_NOT_PLANAR`, `BEAD_KIND`, `BEAD_SIZE` retain their
+  limits. Do not approximate a refused component or silently fall back to nominal
+  mass. A component refusal names both joints; the model must not retry one half as
+  an isolated full bead after removing its peer. Unrelated components may still build.
+
+### Cross-lane consumer contract and exact paths
+
+No files in this list were changed during S0. Required implementation paths:
+
+| Owner | Paths | Required intent |
+|---|---|---|
+| Kernel | `packages/barocss-cad/src/part-model.ts`, `src/frame-weldment.ts`, `src/index.ts` | Explicit context, canonical refs, atomic partition, report/types and actual output moments; Kernel tests/conformance |
+| Model | `packages/barocss-cad-model/src/engine/doc.ts`, `src/engine/migrate.ts` | Proposed persisted `frames.beadOwnership={version:1,policy:'equal-length'}`; explicit opt-in, read/save/refuse unknown versions; no silent migration of old nominal accounting |
+| Model | `packages/barocss-cad-model/src/engine/part.ts` | Compile complete manifests from active weld records; include all peer records/policy in bead/refusal memo keys; component-aware retry; preserve per-joint output keys |
+| Model | `packages/barocss-cad-model/src/frames/welds.ts`, `src/engine/evaluate.ts` | Expose nominal and owned volumes plus both refs, label notes, unique shared-id totals and incomplete/refused accounting |
+| Model | `packages/barocss-cad-model/src/engine/wireDoc.ts`, `src/engine/evalMemo.ts`, `src/team/revision.ts` | Carry policy through evaluatedPart/worker requests and all relevant content/freshness keys; current explicit frames projections omit a new policy field |
+| Model review/tests | `packages/barocss-cad-model/src/engine/elements.ts`, `src/engine/meshWire.ts`, `src/team/bom.ts`, `src/team/bomCore.ts`, `src/robot/inertia.ts`, `src/team/bundle.ts` | Reports/mesh-ref replies retain metadata; BOM and robot mass sum owned bodies exactly once; nominal volume never drives mass/purchase lines; bundle retains policy and refs |
+
+`meshWire.ts` already spreads non-mesh body data, so a transport rewrite is not
+assumed necessary: test both first-mesh and meshRef replies. `team/digest.ts`
+already uses full authored revision fields; test policy invalidation before adding
+a second field list. The app worker forwards typed results; no app/GPU source edit
+is requested by this contract. Any later app need gets a separate path lease.
+Model acceptance must include `test/frame-welds.test.ts`, `test/weld-beads.test.ts`,
+wire-welds, eval memo/freshness, BOM and Save/Open roundtrip tests. Exact consumer
+test placement is the model owner's decision. No robot fixture or oracle change
+is part of this contract. The later robot-refresh integration notice does not
+change this S0's already selected baseline.
+
+### S0 evidence and implementation gates
+
+`test/receipts/shared-seam-contract-s0-2026-10-22.mjs` builds explicit closed
+triangular prisms with existing public APIs. It is not a discovery/ownership API.
+One corner has nominal 360+360, partitioned 270+270, and empty owned intersection.
+Independent triangle covariance is `sum((v-centroid)*(v-centroid)^T)/12`; uniform
+extrusion adds `d*d^T*L^2/12`. Parallel axes combines the exclusive/shared halves.
+All nine inertia entries and centroids match at the unchanged 1e-12 comparison
+factor, also after body-order reversal and a 30 degree rigid rotation plus translation.
+Local owned centroids are [1,-13,8/3] and [-13,1,28/3]; density 7850 gives each
+mass 0.0021195 kg. Four corners imply 8*270=2160 physical and 8*360=2880 nominal.
+
+Actual checks, Node 22.19.0, own unchanged D169 library build (no Kernel source
+diff between 19336a09a and this baseline):
+- `node test/receipts/shared-seam-contract-s0-2026-10-22.mjs /tmp/cad-shared-seam-s0.json`:
+  exit 0; six listed geometry checks, full inertia tensors checked.
+- `node --test --test-name-pattern='FRk2 flush sides' test/frk-2.test.mjs`:
+  1/1 passed, 0.521 s; includes the standalone 360 mm3 T control.
+- `pnpm exec eslint test/receipts/shared-seam-contract-s0-2026-10-22.mjs` and
+  `pnpm type-check`: passed, after the final probe edit.
+- No production source, model file, golden or D169 assertion changed. No full Kernel,
+  browser, benchmark, RB/property or model suite started; GPU holds the heavy slot.
+
+Before implementation: coordinator/model agreement on the persisted opt-in,
+complete-manifest API and component refusal/retry contract. Implementation acceptance
+then requires actual discovery/IDs stable under request order, full proper-rigid
+covariance of centroid/inertia, zero volume overlap for every pair, and unchanged
+isolated 360 T behavior. Repeated/three-way/unequal-leg/curve/oblique inputs must
+refuse typed. The explicit-prism S0 does not claim those production gates passed.
+
+## D171 — Shared endpoint ownership API checkpoint; T2 pending (2026-10-22)
+
+Coordinator accepted Model S0 `add5146f3350b1df389d9c7fc9e8eb271af25e1b` and assigned
+K-shared-seam-implementation on input `b9d8b48341d63ea5bc48cba1f0aa020a39149a6a`.
+The task's merged baseline is `efd168db37ff9427662bf78e3bd5a614e9fd497f`.
+The source/test commit is `df5c1e68860e4514647513da1e27cbd072fb480c`.
+The separate conformance commit and **tested SHA** is
+`81d9eb298e7bf97b8c05cbd052d2551b8ed9f8aa`. Later checkpoint files are evidence only.
+The later `3d7b392fd` coordinator product baseline was not merged into this task.
+
+Kernel now accepts `weld-bead.sharing?: CadPartBeadSharing`, version 1,
+`policy:'equal-length'`, with the complete frame's declared active endpoint
+manifest `{member,end,leg}[]`. Kernel finds the actual geometry components; Model
+does not supply them. Actual nominal B-rep intersections establish sharing. Common
+actual end-boundary runs can attach a failed participant to its component. If an
+actual component cannot be proved, propagate the failure without guessing refs
+from the manifest or allowing a nominal fallback.
+
+`CadPartError.sharedComponent?: {frame,joints}` is separate from the bounded error
+message. It contains the complete actual connected component, including the
+three-way refusal. Each component is planned before either participant's output
+is exposed. Missing or invalid context uses PARAMETER / `BEAD_SHARED_CONTEXT`;
+unsupported sharing uses PARAMETER / `BEAD_SHARED_UNSUPPORTED`. Known-component
+per-bead errors carry all refs. Singleton reasons retain their earlier meaning.
+
+The owner clarified retry: **“남은 feature로 manifest 재생성”**. Model must remove all
+failed component features atomically, rebuild the Kernel manifest from remaining
+declared features, and preserve authored records/original full refusal-key context
+in Model. This Kernel checkpoint does not change Model source. A faithful manifest
+with an unresolved declared peer leg refuses that peer's actual component; it does
+not make every independent component fail merely because its manifest mentions it.
+
+V1 supports two distinct outer sharp square ends, equal legs, and one complete
+coextensive straight shared triangular prism. Actual geometry proves the run and
+its prism before partition. JointA keeps [0,0.5], jointB [0.5,1], in jointA's authored
+local frame. Each nominal bead loses only the other owner's shared half. Owned B-reps
+supply actual volume, mass, centroid and all nine inertia entries. Existing per-joint
+feature/output ids stay unchanged. Reports add mandatory `nominalVolumeMM3` and
+`sharedSeams`; unshared reports use nominal = actual and `[]`. `pathMM` is in evaluated
+part coordinates; the assembly consumer must transform it once. The full JSON tuple
+id is not truncated or hashed. Peer/context edits invalidate cached owned results.
+
+Actual A9: 8 outputs at **270 mm3 actual / 360 mm3 nominal** each; **2160 actual /
+2880 nominal** in total; 4 shared ids. Each output remains a B-rep with 2 native solid
+bodies (exclusive prism plus owned shared half). The shared prism has 180 mm3 nominal
+and 90 mm3 owned per participant. All 28 bead pairs have zero volume overlap; no bead
+overlaps a member. Independent triangle moments and parallel axes check centroid
+and all nine tensor entries at the unchanged 1e-12 factor. At density 7850 each bead
+has mass 0.0021195 kg. Order reversal, renaming, proper rigid transformation and file
+reevaluation pass. Atomic retry retains the 3 unrelated components. No-context,
+invalid/missing/duplicate manifests, duplicate refs, complete three-way components,
+unequal/unresolved legs, inner/curved/sloped ends, partial/multiple runs and explicit
+gusset/cap sharing have typed refusal controls. Isolated 360 T and ordinary gussets
+retain their quantities. The D169 failed overlap receipt is preserved in history.
+
+**Small checks on tested SHA:** selected geometry/weld/frame tests **27/27**, new
+conformance cases only **2/2**, source/test lint and type-check passed after the last
+source/test edit. Own library build passed from the identical source. A temporary
+baseline-part-model negative control fails the new moment test as expected at
+`360 vs 270`; this is not qualification of the whole historical tree.
+Commands, exact boundaries, development failure and logs are in
+`packages/barocss-cad/test/receipts/shared-seam-implementation-2026-10-22.md`.
+Conformance inputs are `conformance/r12c/frame-bead-shared-table.json` and
+`frame-bead-shared-no-context.json` in the Kernel package.
+
+**T2 remains pending.** No full Kernel/conformance/RB/properties, Model/Studio suite,
+browser/Save-Open UI or benchmark started. The coordinator owns the heavy slot.
+No Model/GPU/app implementation, robot frozen fixture or brep-core file changed.
+This is an API checkpoint, not product integration, final acceptance, publication
+or release. Additional implementation and FRk3 remain on hold for coordinator routing.
+
+## D172 — FRk3 native section contract frozen before implementation (2026-10-22)
+
+Assigned baseline: `3f3e2eb237fab38abc67f57d9f8be15f737e90d8`, normal merge of
+root `66235ce222ba30d024de85f91fa77e90b19b3005` into clean FRk3 S0
+`c05bfa5a3890125435fcccbf098f67b3df7272a9`. This starts bounded native section
+implementation. A9's shared bead planner/API/report/error remain frozen.
+
+One `i-beam` kind covers I/H proportions. `height`, `width`, `web`, `flange`,
+`rootRadius`, `toeRadius`, `flangeSlope` are all explicit inputs, including zero.
+Channel keeps required rootRadius and gains optional toeRadius/flangeSlope,
+default zero. Omitted and explicit-zero new channel inputs preserve old geometry,
+face roles, label and cut-list grouping. Slope is finite, dimensionless rise/run,
+nonnegative, with existing parameter references; negative is SECTION_DIMENSIONS.
+Positive slope thickens the flange at the web. Flange thickness is measured at the
+overhang midpoint. No catalogue dimensions, separate H kind or geometry engine.
+
+I face roles, each under the existing member prefix, are frozen as:
+- `outer.bottom`, `outer.top`;
+- `tip.bottom.right`, `tip.top.right`, `tip.top.left`, `tip.bottom.left`;
+- `inside.bottom.right`, `inside.top.right`, `inside.top.left`, `inside.bottom.left`;
+- `web.right`, `web.left`;
+- `root.bottom.right`, `root.top.right`, `root.top.left`, `root.bottom.left`;
+- `toe.bottom.right`, `toe.top.right`, `toe.top.left`, `toe.bottom.left`.
+Channel keeps its earlier roles and adds `toe.bottom`, `toe.top`.
+Zero radius omits the arc; surviving role meaning stays fixed. Start/end roles
+and member ids keep existing authority. New tests must pin these role strings.
+
+On every edge the adjacent tangent offsets must leave a positive flat. Equality
+is refused, including two offsets that exhaust an edge while each fits alone.
+No clamp, radius reduction or parallel fallback. Existing numerical guards and
+any new boundary epsilon must be explicit in the final receipt; no existing
+tolerance is relaxed. Independent triangle/sector moments must check area,
+centroid and all nine physical inertia entries, with the S0 sharp/rounded,
+legacy-zero, table/parameter and placement/contact controls.
+
+Current permission covers own build, selected new/affected regressions and final
+CAD type/lint only. Full suites, RB/properties, browser and benchmarks wait.
+This native checkpoint does not qualify Model/Studio exposure or screen T2.
+No brep-core/Boolean/quadrature, A9 tests, robot canonical, shared runner, Model,
+app, GPU, root/lock or release change. First failure requiring another path is
+reported before expansion. Exact results and epsilon remain to be appended;
+this contract is not a passing verification receipt.
+
+### D172 native result
+
+Source/test/conformance and tested SHA:
+`87cb0a9f8bf81d4c2c93f36741cb985f2c94dcb2`.
+Own build, selected FR/standards **42/42**, new conformance only **3/3**,
+final CAD type/lint and explicit new test/oracle lint passed. Independent
+triangle/spandrel-sector expectations check the seven-section matrix's area,
+centroid and all nine inertia entries, plus placement, defaults, table and
+actual flange-tip/gap controls. Scalar factor1e-12 and tensor factor1e-12 of
+max absolute oracle tensor (no floor1); existing tolerances are not widened.
+The flat cancellation guard is32*EPSILON*max(1,h,b,root,toe) mm; equality refuses.
+Old channel omitted/zero uses its original branch/label/grouping. Initial lint
+and test-assumption failures and exact commands are preserved in the native
+receipt/log under `packages/barocss-cad/test/receipts/frk3-native-2026-10-22.*`.
+
+Model/Studio field exposure and screen/integrated T2 remain incomplete. A9 stays
+frozen. No full suites/RB/properties/browser/bench or forbidden paths changed.
+Stop at this native checkpoint; coordinator routes consumer work separately.
+
+## D173 — FRk4 hollow curved/bent native member contract (2026-10-22)
+
+Parent81fbc252556b961198b14c106b3796606df6494f. Implement D164FRk4 in Kernel;
+FRk3 and A9 APIs remain fixed. Canonical brief and lane responsibilities are in
+packages/barocss-cad/test/receipts/frk4-native-2026-10-22.md.
+RevolveInput gains holes/holeTags, actual bore walls and partial cap inner loops.
+Existing outer roles/start/end stay; bore walls use hole-indexed side names.
+Frame segments retain tuples and add {from,to,through:pointIndex} or
+{from,to,center:[x,y,z]}; center selects the unambiguous minor arc, through its
+explicit sweep. bends:[{point,radius}] joins two incident straight segments,
+retains the lower segment's output id and reports original segmentIndices.
+member.curve reports kind arc/bend, center, axis, radiusMM, angleDegrees,
+startTangent,endTangent,developedLengthMM,segmentIndices. Geometric developed
+length follows the centroidal path; no bender allowance is inferred.
+Curve walls keep section roles under member prefix; composite parts use
+straight0/bend/straight1 prefixes and cap start/end semantics. Authored corners
+must be supported by actual tangents or refused, never silently squared.
+ARC_MEMBER/BEND_RADIUS/BUTT_ON_CURVED_MEMBER are typed refusal boundaries.
+Build/types/lint and scoped native tests only; no full suite/RB/browser/bench
+without the assigned heavy slot. Model/Studio exposure and screen T2 stay separate.
+
+### D173 native result
+
+Task/tested SHA5ede2e218aa6347cc78872828cbd6e813dd571e9, parent81fbc252556b961198b14c106b3796606df6494f.
+Actual hollow revolve supports bore walls/cap inner loops/full-turn cavities;
+frame supports through/center circular paths and two-segment tangent bends.
+Compatible angled endpoint mitres use circular continuation and actual plane cuts.
+Reports add centroidRadiusMM/straightLengthsMM; cut-list length is centroidal,
+and clipped curved mass is from actual BRep volume. Different curve geometries
+remain distinct groups. Existing no-bend ids and FRk3/A9 APIs remain fixed.
+Own build/type/lint passed; selected native/affected regressions75/75,
+new conformance3/3, existing revolve/sweep/shell controls3/3 passed.
+No tolerance relaxed; final direct mass/tensor comparison factor1e-12.
+No brep-core/Boolean/quadrature edit or heavy suite/browser/RB/bench ran.
+Exact inputs, roles, guards, first failures, partial-curve support limits and
+Model handoff are in packages/barocss-cad/test/receipts/frk4-native-2026-10-22.md
+and its log. Native implementation is complete within those explicit limits;
+Model/Studio exposure and screen/integrated T2 remain separate and incomplete.
+
+## D174 — FRk4 common Model and editor connection (2026-10-22)
+
+Baseline6dadb30ad8f6b3ff0190705809e9cd8a0431897f. Carry D173 arc/bend
+segments through Model nodes and Kernel conversion. Structural member uses the
+existing command and property editor for straight, centerarc, througharc and
+tangentbend. Keep actual member IDs and cutPiece.curve, including developed
+centroidal length. Strict v2 inputs reject unknown and invalid path shapes.
+Whole-node file/wire/cache transport must preserve authored arc and bend data.
+No new editor, chord replacement, bender allowance or relaxed geometry guard.
+Canonical scope and test boundary: packages/barocss-cad/test/receipts/frk4-editor-2026-10-22.md.
+Scoped implementation checks precede a fixed source SHA; browser/full checks
+require the coordinator's serial slot and remain separate from native proof.
+
+### D174 common editor screen result
+
+Exact consumer source c9afc4817b90a03dddcdde9fa80922455cbf2228 remained unchanged
+in its clean detached scratch. Lease cad-frk4-c9-browser-20261022 exercised
+centerarc/througharc/tangentbend via Structural member and common properties,
+Undo/Redo, actual Save/New/Open/re-edit. Body IDs and developed cut lengths
+remain; bend is one body/part0 with an actual1-piece cut-list row. Straight I/H
+create/save control retains b0/300mm and no curve. Production browser worker,
+Canvas PNGs and downloaded files are archived in the owned CAD receipt folder.
+The first reload expectation and later CLI modal bookkeeping errors are
+harness failures, preserved without a product source change. Center's raw
+pre-save stage object was not retained; its in-script Undo/Redo assertions and
+fresh Open/re-edit evidence remain, without claiming an archived exact tensor
+comparison for that case. Browser/server ended, port52491 free, slot returned.
+This is exact consumer screen evidence; post888444 aggregate checks remain
+with the coordinator. Full suites/benchmarks were not run in this screen lane.
+
+## D175 — FRk5 weld gap and notch contract (2026-10-22)
+
+Baseline29e9ab164663b713a692d1f814ef199cd18be981. D164 FRk5 is one Kernel plus
+common Model/Frame editor feature. corners.gap and at[].gap are Dim; perpoint
+zero overrides default. Mitre removes g/2 along each plane normal; butt/tee
+holds the branch g off. ends.gapMM records the full authored joint gap.
+at[].notch on kind:'cope' is holesaw{diameter,offset?} or v{depth,angle}, all
+Dim (angle included degrees0<angle<180). Scalar hole offset follows the unit
+cross of through axis and branch inward; V depth follows the retained branch interior towards its other end from
+the authored joint endpoint. Eccentric T cope/notch must use actual through section.
+Positive gap+notch and unsupported curved/multi modes are explicit refusals,
+not fallback. Gap under contact tolerance must still prevent bridging beads.
+Omitted/zero gaps, existing cope and A9/FRk3/FRk4 contracts stay unchanged.
+The owned canonical brief/receipt is packages/barocss-cad/test/receipts/frk5-2026-10-22.md.
+Source implementation only until coordinator assigns execution slots; final
+acceptance includes actual UI/file/worker evidence, with no new editor.
+
+### D175 implementation limits and source-only checkpoint
+
+V depth runs from the joint endpoint into retained branch material towards its
+other endpoint; hole offset uses cross(through axis, branch towards joint).
+V currently requires perpendicular axes. Positive gap+notch, gap+cope/envelope,
+ordered/nonjoint gap and curved frame gap/notch are explicit current limits,
+separate from D164's intended scope. Holesaw coverage is conservative against
+the placed section box. Existing CutListDialog.cutText and welds.ts reporting
+leases were added by coordinator. Static review corrected a gap span guard to
+include the opposite zero-gap cut plane. Build/types/lint/native/worker/UI
+checks are unexecuted pending a slot; source-ready is not feature acceptance.
+
+### D175 first runtime result — incomplete
+
+Source29cd75ccff1f6c700f8a315cfe554859834ea551 builds; native5/7pass, holesaw/V
+mass comparisons fail by3.34e-6/2.50e-6mm³. Oracles/tolerance unchanged.
+Actual BReps separately validate, but q8..64 does not remove the mass error.
+In-memory derivative/order variants do not establish a complete cause; no
+product/shared quadrature source edit was adopted. Original failures and an
+invalid first derivative probe are retained in the owned FRk5 receipt folder.
+Further execution stopped at coordinator routing request; all owned PIDs ended,
+no browser/server started, port52491 free, slot returned. Remaining Model,
+worker/file, types/lint, controls and actual screen acceptance are unrun.
+FRk5 remains incomplete; continued source analysis does not authorize new runs.
+
+### D175 bounded coordinate correction — unexecuted
+
+Parent98813a09d1569f7b270923a3b420613a3e11aaf5. Coordinator permits only
+brep-mass-quadrature.ts sink/stencil coordinate bounds and an independent
+cylinder regression source. Frame arc-length/height stencils now use the same
+unbounded coordinates as inversion; native NURBS bounds remain finite.
+FaceParameters/tessellation, integration rules and tolerances are unchanged.
+The new knot-reparameterization regression and the correction are unexecuted;
+neither original mass failure is claimed fixed. All execution remains on hold
+through the coordinator's integration window, which excludes FRk5/candidate.
+Canonical receipt records the later face cell/strip/extrapolation diagnosis
+plan. This is a source checkpoint only; FRk5 remains incomplete.
+
+### D175 common editor continuation — source only
+
+Retain29cd and67b. Continue the existing Frame/common properties/cut-list flow
+inside approved FRk5 paths. Clarify L/T layout and notch point numbering in
+Frame; retain a positive sub-millimetre gap's nonzero value in cutText when
+three-decimal rounding would show0. No new engine/worker/file path is needed.
+GPU owns execution until its slot return. Save source first; coordinator
+permits clean normal merge aa4acc0039b1473999b3864c59ef31402caa9ff8 before the
+next assigned Kernel feature run. Record source/task/tested SHAs separately.
+Gap functionality and unfinished notch accuracy remain separate; no FRk5
+completion, UI/file proof or notch repair is claimed from this source review.
+
+### D175 feature slot returned — UI pending, notch accuracy incomplete
+
+Merge-tested6f52 retains the two original failures. Exact cylinder derivative/
+projection source d456 builds and passes6/8 native; both notch mass tests still
+fail unchanged oracles/tolerance. Final fixture-only cd261 passes focused
+Model/worker7/7, related FRk4/sweep mass7/7 and Model/Studio types; scoped lint
+passed at d456. Original fixture type failures and preparation errors remain.
+Actual UI lifecycle did not run: browser binary mismatch was corrected without
+a download, then browser load crossed20 and the owned server stopped. No CSV,
+saved part or UI screenshot exists from this slot. Later load blocked restart.
+All own PIDs ended, port52491 free, slot returned for Model A9-10/8. No automatic
+restart. Canonical FRk5 receipt and its frk5-feature-2026-10-22 folder retain
+SHA-bound results and first failures. Gap native/Model results are distinct
+from queued L/T UI proof and unfinished notch mass accuracy. Next source-only
+candidate is tighter FRk5 boundary fitting, with shared topology tol unchanged.
+
+### D175 notch fit candidate — source only
+
+Parent86f2b6769 retains slot evidence and original logs. Source candidate adds
+an optional tighter edgeFitToleranceMM to analytic Boolean boundary fitting,
+used only by part-model.ts notch subtraction at1e-11mm. Omitted-option tol/4,
+topology/classification, gap/cope/ordinary trim, mass rules and oracles stay.
+Explicit fit target exceeding the depth10 limit refuses with GEOMETRY; the
+old omitted-option behavior stays. This targets the measured between-sample
+cubic boundary residual. It is unexecuted and does not prove notch accuracy.
+No shared Model edits or new editor. Model owns execution; Kernel must wait
+for a new slot before any build/test/browser. Actual L/T UI remains queued.
+
+### D175 1f041 executed — gap flow verified, notch refusal preserved
+
+Exact task/tested1f041da016318d47e26f47798b03d8c0a8ee4953 stayed frozen.
+CAD build/types, scoped lint and Model gap5/5 pass. Native6/8: both notches
+refuse at fit depth10 before mass comparison, so notch accuracy/function is
+still incomplete. Final-boundary attempt preserves that same first refusal;
+no additional numerical sweep. Earlier numerical mass failures remain valid.
+
+Existing common Frame L/T gaps create2→edit3→Undo2/Redo3→actual cut-list/CSV→
+Save/New/Open3→re-edit/finalSave4. Node/body IDs, volume/centroid/inertia and
+cutPiece match exactly across Open; T through survives unchanged. Twelve
+stage volumes meet independent RHS oracles. L's initial WebGPU canvas is black
+with actual worker geometry (cause unknown). Existing WebGL2 shows the same L
+file Open/re-edit and completes T. Preserve this renderer boundary, the first
+history pointer interception/recovery, console and raw files. L original3
+bytes were overwritten by the CLI's final automatic download; Open3 stage
+facts remain and final4 files are actual downloads. T original3 is retained.
+
+Canonical receipt and frk5-1f041-feature-2026-10-22 archive contain exact
+results, limits and96-file manifest. All own PIDs ended/52491free/slot returned.
+No full FRk5 completion, WebGPU acceptance or later aggregate result follows.
+
+### D175 source-only follow-up — strict notch fit tangent candidate
+
+Parent392352596 preserves the executed1f041 receipt. The refusal occurs in
+pre-stitch fitPieces; existing logs omit numeric t0/t1 and achieved error.
+Fixed normalized1e-6 finite differences can amplify coordinate rounding even
+after interval subdivision. No double parameter scaling or unit fault was
+found by source review. Strict-only fitting now uses five-point tangents on
+the16-span Bezier grid with shared C1 handles and local differences/36. Final
+new parametric edge emission uses the same method and checks snapped endpoints
+against the same1e-11mm target. Depth10 and independent1e-12 mass oracles stay.
+Failure diagnostics include interval/achieved/target and depth when relevant.
+
+Final-boundary physical-equation/translation cases are authored but unrun.
+No build/test/lint/types/numeric/browser execution while GPU owns its slot;
+only git diff --check. This is a source candidate, not a notch repair receipt.
+Canonical FRk5 receipt records the limits. WebGPU black display and raw L-gap3
+download loss remain unresolved; no new renderer or file proof is claimed.
+
+### D175 98c671 native pass — notch editor/file flow pending entry gate
+
+Exact task/tested98c67112906664b774c7542ccfc8c4ef20fd775f stayed clean and
+frozen; no7f1b52 merge. Fresh CAD build/types/scoped lint pass. Original
+holesaw4-fixture and V90/120 tests meet their unchanged independent1e-12
+relative mass oracles, actual validity and metadata. Final stitched physical
+boundary/translation regression4/4 passes at off-probe samples/endpoints;
+this is not a mathematical certificate over the full curve.
+
+Actual browser entry stayed above the required1m<20 threshold after server
+entry. No browser/UI/download/Save/Open assertion ran; prepared scripts are
+unexecuted. After563s total entry waiting, all8 own PIDs ended, port52493 is
+free and the sole execution slot was returned without automatic restart.
+Actual port52493 is distinct from the prior52491 reservation/run;52491 was
+not bound here. Candidate parent/baseline392352596, task/tested98c671; exact
+evidence child SHA follows in the handoff. First core failure: none; first
+deferred action: browser Open gate exit75. All six native commands exit0.
+Canonical FRk5 receipt and frk5-98c671-feature-2026-10-23 archive retain the
+native logs, entry waits, source freeze manifests and termination proof.
+Notch common-editor/file flow is pending. Earlier1f041 gap evidence and its
+WebGL2/WebGPU/raw-L-gap3 limits remain unchanged; no full FRk5 claim follows.
+
+
+### Coordinator handback pointer — Kernel D, 2026-10-23
+
+Owner finish is in force; no implementation or author checks restart. The latest
+Kernel D STOP record was reviewed at `b5fceedfba4a018899e85daceea264113b8c4a15`. Its immutable
+[snapshot](evidence/2443211888b5bc5d219fa3075dfea444bd6d5d4a/final-window/lanes/kernel-D.md) and accompanying stop receipt are archived
+with the final window. That documentation review does not adopt the branch's
+unverified product source. See [handback](notes/codex-handback-2026-10-23.md) and
+state for exact WIP, process cleanup, blockers and first resume steps.

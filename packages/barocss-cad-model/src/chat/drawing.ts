@@ -1,6 +1,8 @@
+import { manufacturingDrawingProperties, manufacturingDrawingProblem, withManufacturingDrawing } from '../drawing/options';
 // The agent's drawing tools (R14.5, O6): the same Auto layout, issue list and tolerance suggestions the Drawing
 // workspace offers, on the document's drawing. Reading tools change nothing; the others change the drawing, which an
 // agent can only propose (`propose` with them as ops; D41): the user accepts it in the studio.
+import { drawingDocument, drawingSource, drawingScopeOf, drawingScopeProblem, changeDrawingScope, type DrawingScope } from '../drawing/scope';
 import { elementNotes, partElements, withElementNotes, withElements } from '../drawing/elementCallouts';
 import { followedStale, staleText } from '../frames/skeleton';
 import { fitMiss, withFit } from '../drawing/fits';
@@ -56,19 +58,21 @@ export const DRAWING_TOOLS = [
   },
   {
     name: 'set_drawing',
-    description: 'Sets the drawing’s sheet (A4 | A3), scale (a standard one: 10, 5, 2, 1, 0.5, 0.2, 0.1, … or "auto"), projection (third | first), front (the side the front view looks from: y- default, x+, y+, x-; the annotations re-mapped to the views showing their axes, or refused when one would read differently), views shown (the front and top always; right, iso optional), tolerancing mode (plus-minus | geometric) and title. Changes the drawing: propose it.',
-    input_schema: { type: 'object', properties: { sheet: { type: 'string', enum: ['A4', 'A3'] }, scale: { anyOf: [{ type: 'number' }, { type: 'string', enum: ['auto'] }] }, projection: { type: 'string', enum: ['third', 'first'] }, front: { type: 'string', enum: ['y-', 'x+', 'y+', 'x-'] }, views: { type: 'array', items: { type: 'string', enum: ['front', 'top', 'right', 'iso'] } }, tolerancing: { type: 'string', enum: ['plus-minus', 'geometric'] }, title: { type: 'string' } }, additionalProperties: false },
+    description: 'Sets drawing-only scope ({kind: part, part?: instance id}, local coordinates; or {kind: assembly}, existing BOM/balloons). Default is base part, legacy BOM/balloons remain assembly. Scope changes with manual model references are refused. Sets weldSymbols/balloons booleans (false removes the flag), sections [{id, view: front|top|right, at: model mm}] and source tables [{id, from: bom|cut-list|weld-list, title?, at?: [sheet x,y], corner?, whole?}]. Lists replace completely; [] clears, omitted keeps. Referenced section changes and unknown/nested invalid inputs are refused atomically. Scope does not change when enabling tables or balloons. Sets the drawing’s sheet (A4 | A3), scale (a standard one: 10, 5, 2, 1, 0.5, 0.2, 0.1, … or "auto"), projection (third | first), front (the side the front view looks from: y- default, x+, y+, x-; the annotations re-mapped to the views showing their axes, or refused when one would read differently), views shown (the front and top always; right, iso optional), tolerancing mode (plus-minus | geometric) and title. Changes the drawing: propose it.',
+    input_schema: { type: 'object', properties: { ...manufacturingDrawingProperties, scope: { oneOf: [{ type: 'object', properties: { kind: { const: 'part' }, part: { type: 'string' } }, required: ['kind'], additionalProperties: false }, { type: 'object', properties: { kind: { const: 'assembly' } }, required: ['kind'], additionalProperties: false }] }, sheet: { type: 'string', enum: ['A4', 'A3'] }, scale: { anyOf: [{ type: 'number' }, { type: 'string', enum: ['auto'] }] }, projection: { type: 'string', enum: ['third', 'first'] }, front: { type: 'string', enum: ['y-', 'x+', 'y+', 'x-'] }, views: { type: 'array', items: { type: 'string', enum: ['front', 'top', 'right', 'iso'] } }, tolerancing: { type: 'string', enum: ['plus-minus', 'geometric'] }, title: { type: 'string' } }, additionalProperties: false },
   },
 ];
 
 /** What the drawing is built from: the part's views, its drawing settings, callouts, threads and sections (O148 X1). */
 export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDrawing(doc.drawing)): SheetInputs | string {
+  let authored = doc;
+  try { authored = drawingSource(doc, settings); doc = drawingDocument(doc, settings); } catch (cause) { return String(cause instanceof Error ? cause.message : cause); }
   const b = brepsFor(doc);
   if ('error' in b) return `The part could not be evaluated: ${b.error}`;
   const r = projectViews(b.breps, b.prefixes, { tangentEdges: !!settings.tangent, ...(settings.orientation ? { orientation: settings.orientation } : {}) });
   if (!r.ok) return r.empty ? 'There is no body to draw yet.' : `The views could not be projected: ${r.error}`;
   const sections = sheetSections(sectionsCut(doc, sectionsOf(settings), settings.orientation)), elements = partElements(doc), bom = bomOf(doc, settings);
-  return { views: r.views, settings, elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(doc).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}) }, ...(sections.length ? { sections } : {}) };
+  return { views: r.views, settings, elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}) }, ...(sections.length ? { sections } : {}) };
 }
 
 /** O147 B2: the BOM, when a table or the balloons read it (each document evaluated on its own, synchronously). */
@@ -89,12 +93,20 @@ const issueList = (i: SheetInputs) => { const { ctx, sheet } = sheetOf(i); retur
 
 /** Runs a drawing tool on the document. */
 export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string, unknown>): Outcome {
-  const i = drawingInputs(doc);
+  if (name === 'set_drawing') { const why = setDrawingProblem(args); if (why) return { error: why }; }
+  const original = readDrawing(doc.drawing);
+  let settings = original;
+  if (name === 'set_drawing' && args.scope !== undefined) {
+    const why = drawingScopeProblem(args.scope); if (why) return { error: why };
+    try { settings = changeDrawingScope(original, args.scope as DrawingScope); } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
+  }
+  const i = drawingInputs(doc, settings);
   if (typeof i === 'string') return { error: i };
   // (`from`: the projection the settings are for — another front side's when one was turned to.)
   const set = (settings: DrawingSettings, summary: string, extra: Record<string, unknown> = {}, from: SheetInputs = i): Outcome => {
+    settings = { ...settings, scope: drawingScopeOf(settings) };
     const next = { ...from, settings };
-    return { doc: { ...doc, drawing: settings }, content: { ...extra, ...issueList(next) }, changed: JSON.stringify(settings) !== JSON.stringify(i.settings), summary };
+    return { doc: { ...doc, drawing: settings }, content: { ...extra, ...issueList(next) }, changed: JSON.stringify(settings) !== JSON.stringify(original), summary };
   };
   switch (name) {
     case 'drawing_issues': { const out = issueList(i); return { doc, content: out, changed: false, summary: `${out.issues.length} drawing issue${out.issues.length === 1 ? '' : 's'}` }; }
@@ -104,6 +116,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       return { doc, content: { mode: settings.tolerancing ?? 'plus-minus', suggestions: list.map(x => ({ id: x.id, kind: x.kind, message: x.message, basis: x.basis, estimate: x.estimate })) }, changed: false, summary: `${list.length} suggestion${list.length === 1 ? '' : 's'}` };
     }
     case 'auto_dimension': {
+      if (drawingScopeOf(i.settings).kind === 'assembly') return { error: '[DRAWING_SCOPE_AUTO] automatic component dimensions belong to a part drawing; assembly annotations and BOM are retained' };
       if (args.layout === false) {
         const ctx = issueContext(i), r = autoDimensions(i.views, ctx.layout, i.settings, i.callout, i.elements, i.sections);
         return set(withElementNotes({ ...i.settings, dimensions: r.dimensions }, i.elements ? elementNotes(i.views, ctx.layout, i.elements) : []), 'drawing dimensioned', { added: r.report.added, kept: r.report.kept, skipped: r.report.skipped, crowded: r.report.crowded });
@@ -120,8 +133,9 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       return set(r.settings, `drawing laid out on ${r.report.sheet} at ${scaleLabel(r.report.scale)} and dimensioned`, { added: r.report.dimensions.added, kept: r.report.dimensions.kept, skipped: r.report.dimensions.skipped, dropped_views: r.report.dropped, readable: r.report.readable, ...(front ? { front } : {}) }, base);
     }
     case 'fix_drawing': {
+      const assembly = drawingScopeOf(i.settings).kind === 'assembly';
       const codes = Array.isArray(args.codes) ? args.codes.map(String) : null;
-      const r = codes ? fixAll(i, 40, (_f, issue) => codes.includes(issue.code as DrawingIssueCode)) : fixAll(i);
+      const r = fixAll(i, 40, (fix, issue) => (!assembly || fix.kind !== 'auto-dimension') && (!codes || codes.includes(issue.code as DrawingIssueCode)));
       return set(r.settings, `${r.applied.length} drawing fix${r.applied.length === 1 ? '' : 'es'}`, { applied: r.applied.map(f => f.kind) });
     }
     case 'accept_tolerances': {
@@ -136,7 +150,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       return set(settings, `${ids.length} tolerance suggestion${ids.length === 1 ? '' : 's'} accepted`, { accepted: offered.filter(o => ids.includes(o.id)).map(x => ({ id: x.id, message: x.message, estimate: x.estimate })) });
     }
     case 'set_drawing': {
-      let s: DrawingSettings = { ...i.settings }, turnedTo: SheetInputs | null = null;
+      let s: DrawingSettings = { ...i.settings };
       if (args.sheet === 'A4' || args.sheet === 'A3') s.sheet = args.sheet;
       if (args.scale === 'auto') delete s.scale;
       else if (args.scale !== undefined) { const v = Number(args.scale); if (!SCALES.includes(v)) return { error: `A scale is one of ${SCALES.join(', ')} or "auto".` }; s.scale = v; }
@@ -147,15 +161,37 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
         if (typeof other === 'string') return { error: other };
         const t = reorient(i.views, other.views, s, args.front as 'y-');
         if (!t.ok) return { error: `[${t.code}] ${t.message}${t.code === 'ORIENTATION_REMAP_FAILED' ? ` ${t.failed.map(f => `${f.dim}: ${f.was} → ${f.now}`).join('; ')}` : ''}` };
-        s = t.settings; turnedTo = other;
+        s = t.settings;
       }
       if (Array.isArray(args.views)) { const v = VIEW_IDS.filter(x => (args.views as unknown[]).includes(x) || x === 'front' || x === 'top'); if (v.length === VIEW_IDS.length) delete s.views; else s.views = v as ViewId[]; }
       if (args.tolerancing === 'geometric' || args.tolerancing === 'plus-minus') s = withMode(s, args.tolerancing);
       if (typeof args.title === 'string' && args.title.trim()) s.title = args.title.trim().slice(0, 80);
-      return set(s, 'drawing settings changed', {}, turnedTo ?? i);
+      // Freeze the pre-change scope before BOM/balloons can affect legacy scope inference.
+      s = { ...s, scope: drawingScopeOf(i.settings) };
+      const options = withManufacturingDrawing(s, args);
+      if (typeof options === 'string') return { error: options };
+      s = options;
+      // Sections, weld symbols and source tables need their new projection/meta for this result too.
+      const updated = drawingInputs(doc, s);
+      if (typeof updated === 'string') return { error: updated };
+      return set(s, 'drawing settings changed', {}, updated);
     }
   }
   return { error: `No drawing tool ${name}.` };
 }
 
 const withMode = (s: DrawingSettings, mode: 'plus-minus' | 'geometric'): DrawingSettings => { const next = { ...s }; delete next.tolerancing; return mode === 'geometric' ? { ...next, tolerancing: 'geometric' } : next; };
+
+/** The handler also validates input: dispatch and saved proposal replay do not enforce JSON schema. */
+function setDrawingProblem(args: Record<string, unknown>): string | null {
+  const allowed = ['scope', 'sheet', 'scale', 'projection', 'front', 'views', 'tolerancing', 'title', ...Object.keys(manufacturingDrawingProperties), 'response_format', 'because'];
+  const unknown = Object.keys(args).find(k => !allowed.includes(k));
+  if (unknown) return `[DRAWING_OPTIONS] Unknown drawing setting ${unknown}.`;
+  const choices: Record<string, readonly unknown[]> = { sheet: ['A4', 'A3'], projection: ['third', 'first'], front: ['y-', 'x+', 'y+', 'x-'], tolerancing: ['plus-minus', 'geometric'], response_format: ['auto', 'concise', 'detailed'] };
+  for (const [key, values] of Object.entries(choices)) if (key in args && !values.includes(args[key])) return `[DRAWING_OPTIONS] ${key} must be one of ${values.join(', ')}.`;
+  if ('scope' in args) { const why = drawingScopeProblem(args.scope); if (why) return why; }
+  if ('scale' in args && args.scale !== 'auto' && (typeof args.scale !== 'number' || !SCALES.includes(args.scale))) return '[DRAWING_OPTIONS] scale must be a standard numeric scale or "auto".';
+  for (const key of ['title', 'because']) if (key in args && typeof args[key] !== 'string') return `[DRAWING_OPTIONS] ${key} must be a string.`;
+  if ('views' in args && (!Array.isArray(args.views) || !args.views.every(v => VIEW_IDS.includes(v)) || new Set(args.views).size !== args.views.length)) return '[DRAWING_OPTIONS] views must be unique front/top/right/iso names.';
+  return manufacturingDrawingProblem(args);
+}

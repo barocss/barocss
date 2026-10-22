@@ -1,3 +1,5 @@
+import { resolveShopTree } from '../engine/shopRows';
+import { bearingDependencyKey } from '../engine/bearingContext';
 // Result freshness (A8.5b, O32's addendum, O39). Every result is stamped with the fingerprint of what it read — a digest
 // per input (the model, the material, the process, the interfaces, the references, the requirement, the drafts, the
 // drawing) and the A1 signature of each face it names — and read back against the document as it is: current, stale
@@ -20,6 +22,8 @@ import { matchSignature, signaturesOf, type Signature } from '../engine/rematch'
 import { bomView, checkBom, deriveBom } from './assembly';
 import { digestOf } from './digest';
 import { readInterfaces } from './parts';
+import { modelContent } from './revision';
+import { beadAccounting, incompleteBeadReason } from '../frames/beadAccounting';
 
 export type ResultKind = 'requirement' | 'check_spec' | 'keepout' | 'mass' | 'inertia' | 'dfm' | 'bom' | 'drawing';
 export type InputName = 'model' | 'material' | 'process' | 'interfaces' | 'references' | 'requirement' | 'requirements' | 'drafts' | 'drawing';
@@ -48,16 +52,15 @@ export interface Result {
 }
 
 // ——— the inputs
-const placementOf = (i: NonNullable<StudioDoc['instances']>[number]) => ({ id: i.id, name: i.name, model: modelInput(i.doc), position: i.position, rotation: i.rotation, hidden: !!i.hidden });
-/** The model: the features and parameters, and each part's (its name, placement and model). Looks are not in it. */
-export function modelInput(doc: StudioDoc): string { return digestOf({ nodes: doc.nodes, parameters: doc.parameters, instances: (doc.instances ?? []).map(placementOf) }); }
+/** The authored evaluation inputs, including section/weld and catalogue rows, recursively for placed parts. */
+export function modelInput(doc: StudioDoc): string { const housing = bearingDependencyKey(resolveShopTree(doc)); return digestOf(housing === undefined ? modelContent(doc) : { model: modelContent(doc), housing }); }
 const ownMaterial = ([k, l]: [string, { material?: string }]) => [k, l.material ?? null] as const;
 const partMaterial = (i: NonNullable<StudioDoc['instances']>[number]) => [i.id, materialInput(i.doc)] as const;
 /** The material: each body's own (only its `material`: never its colour, appearance or name), the brief's, each part's. */
 export function materialInput(doc: StudioDoc): string { return digestOf({ own: Object.entries(doc.bodies ?? {}).map(ownMaterial), brief: briefMaterial(doc) ?? null, parts: (doc.instances ?? []).map(partMaterial) }); }
 const INPUTS: Record<Exclude<InputName, 'requirement'>, (doc: StudioDoc) => string> = {
   model: modelInput, material: materialInput,
-  process: doc => digestOf({ process: doc.process ?? null, printer: doc.printer ?? null, print: doc.print ?? null }),
+  process: doc => digestOf({ process: doc.process ?? null, printer: doc.printer ?? null, print: doc.print ?? null, mould: doc.mould ?? null, machining: doc.machining ?? null, casting: doc.casting ?? null, brief: doc.brief?.process ?? null }),
   interfaces: doc => digestOf(readInterfaces(doc.interfaces)),
   references: doc => digestOf(doc.references ?? null),
   requirements: doc => digestOf(doc.requirements ?? []),
@@ -83,7 +86,11 @@ function faceSignatures(bodies: readonly BodyResult[]): Map<string, Signature> {
   for (const b of bodies) for (const [name, s] of signaturesOf(b).faces) all.set(name, s);
   return all;
 }
-const partDoc = (doc: StudioDoc, part?: string) => (part ? (doc.instances ?? []).find(i => i.id === part)?.doc : doc);
+const partDoc = (doc: StudioDoc, part?: string) => {
+  if (!part) return resolveShopTree(doc);
+  const child = doc.instances?.find(i => i.id === part)?.doc;
+  return child ? resolveShopTree(child, doc, part) : undefined;
+};
 
 /** A result stamped with what it read. */
 export function stamp(doc: StudioDoc, bodies: readonly BodyResult[], r: Omit<Result, 'fingerprint' | 'value' | 'number'> & { value?: unknown; number?: number | null }, o: { reads?: readonly InputName[]; faces?: readonly string[]; refs?: readonly string[] } = {}): Result {
@@ -215,6 +222,8 @@ export async function keepoutResult(doc: StudioDoc, keepout: string, evaluate: E
 export async function massResult(doc: StudioDoc, evaluate: Evaluate, run: string, part?: string): Promise<Result> {
   const d = partDoc(doc, part)!, b = await bodiesOf(d, evaluate), base = { id: resultId('mass', part ?? 'base', run, part), kind: 'mass' as const, subject: part ?? 'base', run, ...(part ? { part } : {}) };
   if (!b.ok) return stamp(doc, [], { ...base, status: 'failed', why: b.why });
+  const incomplete = incompleteBeadReason(beadAccounting(d, b.bodies));
+  if (incomplete) return stamp(doc, b.bodies, { ...base, status: 'unsupported', why: incomplete });
   const per = massProperties(d, b.bodies) as { body: string; mass_g: number | null; assumed: boolean }[];
   if (per.some(x => typeof x.mass_g !== 'number')) return stamp(doc, b.bodies, { ...base, status: 'unsupported', why: 'a body has no closed volume' });
   return stamp(doc, b.bodies, { ...base, status: 'ok', number: per.reduce((s, x) => s + x.mass_g!, 0), value: per.map(x => ({ body: x.body, mass_g: x.mass_g, assumed: x.assumed })) });
@@ -224,6 +233,8 @@ const IDENTITY = { origin: [0, 0, 0] as [number, number, number], R: [1, 0, 0, 0
 export async function inertiaResult(doc: StudioDoc, evaluate: Evaluate, run: string, part?: string): Promise<Result> {
   const d = partDoc(doc, part)!, b = await bodiesOf(d, evaluate), base = { id: resultId('inertia', part ?? 'base', run, part), kind: 'inertia' as const, subject: part ?? 'base', run, ...(part ? { part } : {}) };
   if (!b.ok) return stamp(doc, [], { ...base, status: 'failed', why: b.why });
+  const incomplete = incompleteBeadReason(beadAccounting(d, b.bodies));
+  if (incomplete) return stamp(doc, b.bodies, { ...base, status: 'unsupported', why: incomplete });
   const li = linkInertia(part ?? 'base', part ?? null, d, b.bodies, IDENTITY), bad = li.issues.filter(i => i.code === 'NO_BODY' || i.code === 'NO_VOLUME');
   if (bad.length) return stamp(doc, b.bodies, { ...base, status: 'failed', why: bad.map(i => i.message).join('; ') });
   return stamp(doc, b.bodies, { ...base, status: 'ok', number: li.massKg, value: { massKg: li.massKg, comM: li.comM, inertia: li.inertia, issues: li.issues.map(i => i.code) } });
@@ -240,7 +251,18 @@ export async function dfmResult(doc: StudioDoc, evaluate: Evaluate, run: string,
 /** The BOM derived and checked against the assembly; a part that does not evaluate, failed. */
 export async function bomResult(doc: StudioDoc, evaluate: Evaluate, run: string): Promise<Result> {
   const base = { id: resultId('bom', 'assembly', run), kind: 'bom' as const, subject: 'assembly', run };
-  for (const inst of doc.instances ?? []) { const b = await bodiesOf(inst.doc, evaluate); if (!b.ok) return stamp(doc, [], { ...base, status: 'failed', why: `${inst.id}: ${b.why}` }); }
+  const inspect = async (d: StudioDoc, scope: string): Promise<string | null> => {
+    if (d.nodes.length || (scope && !d.instances?.length)) {
+      const b = await bodiesOf(d, evaluate);
+      if (!b.ok) return `${scope || 'base'}: ${b.why}`;
+      const incomplete = incompleteBeadReason(beadAccounting(d, b.bodies));
+      if (incomplete) return `${scope || 'base'}: ${incomplete}`;
+    }
+    for (const inst of d.instances ?? []) { const why = await inspect(inst.doc, scope ? `${scope}/${inst.id}` : inst.id); if (why) return why; }
+    return null;
+  };
+  const incomplete = await inspect(resolveShopTree(doc), '');
+  if (incomplete) return stamp(doc, [], { ...base, status: /BEAD_ACCOUNTING_INCOMPLETE/.test(incomplete) ? 'unsupported' : 'failed', why: incomplete });
   const view = await bomView(doc, evaluate), bom = deriveBom(view), problems = checkBom(view, bom);
   return stamp(doc, [], { ...base, status: 'ok', verdict: problems.length ? 'fail' : 'pass', number: bom.totalMassG, value: problems.length ? { bom, problems } : bom });
 }

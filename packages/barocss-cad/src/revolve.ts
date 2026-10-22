@@ -5,8 +5,9 @@
 // seams); a partial turn gets two planar end caps. The profile may reach the axis at vertices (poles:
 // spheres, cone tips, discs) and run along it (axis segments bound no wall; the caps of a partial turn
 // share them), but not touch or cross it anywhere else.
-import { BrepError, buildBrep, loopVectorArea, surfaceNormalAtCentre, type Brep } from './brep-core.js';
-import { sideName } from './side-names.js';
+import { BrepError, buildBrep, loopVectorArea, surfaceNormalAtCentre, type Brep, type BrepFaceInput, type BrepLoopInput } from './brep-core.js';
+import { curveTolerance, intersectSegments, locateInRegion, segStart, type CurveSegment2 } from './curved-arrangement.js';
+import { sideName, SIDE_TAG } from './side-names.js';
 import { buildProfileLoop, segmentCurve, type ProfileSegment, type ProfileSegmentInput, type XY } from './extruded-profile-solid.js';
 import { evaluateCurve, curveDomain } from './math.js';
 import { add, dot, scale, sub, unit } from './vec3.js';
@@ -15,12 +16,87 @@ import type { Curve, Point, Surface } from './types.js';
 export interface RevolveInput {
   readonly id?: string;
   readonly profile: readonly ProfileSegmentInput[];
+  /** Strictly interior, pairwise disjoint bore loops. No touching or nested loops. */
+  readonly holes?: readonly (readonly ProfileSegmentInput[])[];
+  /** One side-tag list per authored bore loop (SideTags.holes). */
+  readonly holeTags?: readonly (readonly string[])[];
   /** The axis: a point on it and its direction, both in the sketch plane (z = 0). */
   readonly axis: { readonly origin: XY; readonly direction: XY };
   /** 0 < angle ≤ 360; positive turns the profile from the sketch plane towards +Z. */
   readonly angleDegrees: number;
   /** The sketch's segment tags (R10a, D86): sides named `${id}.side[t]` instead of by position. */
   readonly sideTags?: readonly string[];
+}
+
+/** Validate native bore boundaries without subtracting solids or changing authored loop topology. */
+function profileLoops(input: RevolveInput): readonly (readonly ProfileSegment[])[] {
+  const loops = [input.profile, ...Array.from(input.holes ?? [])].map(p => buildProfileLoop(p, { maximumSegments: 1024 }).segments);
+  if (loops.length === 1) return loops;
+  const seenTags = new Set<string>();
+  if (input.holeTags && input.holeTags.length !== loops.length - 1) throw new BrepError('INPUT', 'revolve: holeTags must have one list per bore');
+  for (const [i, tags] of [input.sideTags, ...Array.from(input.holeTags ?? [])].entries()) if (tags) {
+    const authored = i === 0 ? input.profile : input.holes![i - 1];
+    if (tags.length !== authored.length) throw new BrepError('INPUT', 'revolve: side tags must match their authored loop');
+    for (const tag of Array.from(tags)) {
+      if (typeof tag !== 'string' || !SIDE_TAG.test(tag) || seenTags.has(tag)) throw new BrepError('INPUT', 'revolve: side tags must be valid and unique across all loops');
+      seenTags.add(tag);
+    }
+  }
+  const rings = loops.map(loop => loop.map((s): CurveSegment2 => s.kind === 'line'
+    ? { kind: 'line', a: [...s.start], b: [...s.end] }
+    : { kind: 'arc', c: [...s.center], r: s.radiusMM, t0: s.startAngle, sweep: s.sweep }));
+  const tolerance = curveTolerance(rings);
+  for (let i = 1; i < rings.length; i++) {
+    for (let j = 0; j < i; j++) {
+      if (rings[i].some(a => rings[j].some(b => intersectSegments(a, b, tolerance).length))) throw new BrepError('GEOMETRY', 'revolve: bore boundaries must not touch or cross');
+      const p = segStart(rings[i][0]), where = locateInRegion(p, { outer: rings[j], holes: [] }, tolerance);
+      if (j === 0 ? where !== 'in' : where !== 'out') throw new BrepError('GEOMETRY', 'revolve: bores must be strictly inside the profile and pairwise disjoint');
+      if (j > 0 && locateInRegion(segStart(rings[j][0]), { outer: rings[i], holes: [] }, tolerance) !== 'out') throw new BrepError('GEOMETRY', 'revolve: nested bores are not supported');
+    }
+  }
+  return loops;
+}
+
+/** Assemble the outer and bore walls directly. A partial turn shares each bore edge with a cap inner loop. */
+function revolveHollow(input: RevolveInput): Brep {
+  profileLoops(input);
+  const id = input.id ?? 'revolve', full = input.angleDegrees === 360;
+  const outer = revolveProfile({ ...input, holes: undefined, holeTags: undefined });
+  const bores = input.holes!.map((profile, i) => revolveProfile({ ...input, id: `${id}_hole${i}`, profile, sideTags: input.holeTags?.[i], holes: undefined, holeTags: undefined }));
+  const reverse = (sense: 'forward' | 'reversed'): 'forward' | 'reversed' => sense === 'forward' ? 'reversed' : 'forward';
+  const faceInputs = (b: Brep, inward: boolean): BrepFaceInput[] => {
+    const loops = new Map(b.loops.map(l => [l.id, l])), coedges = new Map(b.coedges.map(c => [c.id, c]));
+    return b.faces.map(f => ({ id: f.id, name: f.name, surface: f.surface, sense: inward ? reverse(f.sense) : f.sense,
+      loops: f.loops.map(lid => {
+        const loop = loops.get(lid)!, uses = loop.coedges.map(cid => { const c = coedges.get(cid)!; return { edge: c.edge, sense: c.sense }; });
+        return { kind: loop.kind, uses: inward ? uses.reverse().map(u => ({ edge: u.edge, sense: reverse(u.sense) })) : uses };
+      }) }));
+  };
+  const faces = faceInputs(outer, false), boreFaces = bores.map(b => faceInputs(b, true));
+  if (!full) for (const end of ['start', 'end']) {
+    const capIndex = faces.findIndex(f => f.name === `${id}.${end}`), cap = faces[capIndex];
+    const inner: BrepLoopInput[] = [];
+    boreFaces.forEach((walls, i) => {
+      const index = walls.findIndex(f => f.name === `${id}_hole${i}.${end}`), boreCap = walls[index];
+      inner.push(...boreCap.loops.map(l => ({ ...l, kind: 'inner' as const })));
+      walls.splice(index, 1);
+    });
+    faces[capIndex] = { ...cap, loops: [...cap.loops, ...inner] };
+  }
+  // Keep authored tag naming consistent across all loops; absent tags retain a stable hole prefix.
+  for (let i = 0; i < boreFaces.length; i++) if (input.holeTags?.[i]) {
+    boreFaces[i] = boreFaces[i].map(f => ({ ...f, name: f.name?.replace(`${id}_hole${i}.side[`, `${id}.side[`) }));
+  }
+  const all = [outer, ...bores];
+  const brep = buildBrep({ source: { family: 'revolve', id }, vertices: all.flatMap(b => b.vertices), edges: all.flatMap(b => b.edges),
+    bodies: [{ id: `${id}_body`, kind: 'solid', shells: full
+      ? [{ id: 's', closed: true, faces }, ...boreFaces.map((f, i) => ({ id: `hole${i}`, closed: true, faces: f }))]
+      : [{ id: 's', closed: true, faces: [...faces, ...boreFaces.flat()] }] }] });
+  const faceName = new Map(brep.faces.map(f => [f.id, f.name!])), loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
+  const names = new Map<string, string[]>(); for (const c of brep.coedges) names.set(c.edge, [...(names.get(c.edge) ?? []), faceName.get(loopFace.get(c.loop)!)!]);
+  const baseOf = (edge: string) => [...new Set(names.get(edge))].sort().join('|'), counts = new Map<string, number>(), used = new Map<string, number>();
+  for (const e of brep.edges) { const base = baseOf(e.id); counts.set(base, (counts.get(base) ?? 0) + 1); }
+  return { ...brep, edges: brep.edges.map(e => { const base = baseOf(e.id), k = (used.get(base) ?? 0) + 1; used.set(base, k); return { ...e, name: counts.get(base)! > 1 ? `${base}#${k}` : base }; }) };
 }
 
 /** Unit circle arc from 0 through `sweep` (≤ 2π) as rational quadratic control points (x, y) and weights. */
@@ -37,6 +113,7 @@ function unitArc(sweep: number): { pts: XY[]; w: number[]; knots: number[] } {
 }
 
 export function revolveProfile(input: RevolveInput): Brep {
+  if (input.holes?.length) return revolveHollow(input);
   const id = input.id ?? 'revolve', deg = input.angleDegrees;
   if (!(typeof deg === 'number' && deg > 0 && deg <= 360)) throw new BrepError('INPUT', 'revolve: the angle must be in (0, 360] degrees');
   const alpha = deg * Math.PI / 180, full = deg === 360;
@@ -164,7 +241,7 @@ export function revolveMassProperties(input: RevolveInput, densityKgPerM3: numbe
   if (!(densityKgPerM3 > 0 && Number.isFinite(densityKgPerM3))) throw new BrepError('INPUT', 'a positive finite density is required');
   const alpha = input.angleDegrees * Math.PI / 180, [dx, dy] = input.axis.direction, dl = Math.hypot(dx, dy);
   let D: Point = [dx / dl, dy / dl, 0], S: Point = [-D[1], D[0], 0]; const Z: Point = [0, 0, 1], A0: Point = [input.axis.origin[0], input.axis.origin[1], 0];
-  const loop = buildProfileLoop(input.profile, { maximumSegments: 1024 }).segments;
+  const loops = profileLoops(input), loop = loops[0];
   const hrOf = (x: number, y: number): XY => { const q: Point = [x - A0[0], y - A0[1], 0]; return [dot(q, D), dot(q, S)]; };
   // The side of the axis the profile lies on (from a point off it: a vertex may be on the axis).
   const off = loop.map(sg => sg.kind === 'line' ? [(sg.start[0] + sg.end[0]) / 2, (sg.start[1] + sg.end[1]) / 2] : [sg.center[0] + sg.radiusMM * Math.cos(sg.startAngle + sg.sweep / 2), sg.center[1] + sg.radiusMM * Math.sin(sg.startAngle + sg.sweep / 2)]).map(([x, y]) => hrOf(x, y)[1]).find(r => Math.abs(r) > 1e-9) ?? 1;
@@ -174,7 +251,7 @@ export function revolveMassProperties(input: RevolveInput, densityKgPerM3: numbe
   const GL = [[0.0198550717512319, 0.0506142681451881], [0.1016667612931866, 0.1111905172266872], [0.2372337950418355, 0.1568533229389436], [0.4082826787521751, 0.1813418916891810], [0.5917173212478249, 0.1813418916891810], [0.7627662049581645, 0.1568533229389436], [0.8983332387068134, 0.1111905172266872], [0.9801449282487681, 0.0506142681451881]];
   const moment = (m: number, k: number) => {
     let acc = 0;
-    for (const seg of loop) {
+    for (const [index, boundary] of loops.entries()) for (const seg of boundary) {
       const pieces = seg.kind === 'line' ? 1 : Math.max(1, Math.ceil(Math.abs(seg.sweep) / (Math.PI / 8)));
       for (let p = 0; p < pieces; p++) for (const [x, w] of GL) {
         const t = (p + x) / pieces;
@@ -182,7 +259,7 @@ export function revolveMassProperties(input: RevolveInput, densityKgPerM3: numbe
         if (seg.kind === 'line') { X = seg.start[0] + (seg.end[0] - seg.start[0]) * t; Y = seg.start[1] + (seg.end[1] - seg.start[1]) * t; dX = seg.end[0] - seg.start[0]; dY = seg.end[1] - seg.start[1]; }
         else { const a = seg.startAngle + seg.sweep * t; X = seg.center[0] + seg.radiusMM * Math.cos(a); Y = seg.center[1] + seg.radiusMM * Math.sin(a); dX = -seg.radiusMM * Math.sin(a) * seg.sweep; dY = seg.radiusMM * Math.cos(a) * seg.sweep; }
         const [h, r] = hrOf(X, Y), dr = dX * S[0] + dY * S[1];
-        acc += w / pieces * h ** (m + 1) * r ** k / (m + 1) * dr;
+        acc += (index === 0 ? 1 : -1) * w / pieces * h ** (m + 1) * r ** k / (m + 1) * dr;
       }
     }
     return acc;

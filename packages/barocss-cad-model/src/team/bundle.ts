@@ -1,3 +1,4 @@
+import { resolveShopTree } from '../engine/shopRows';
 // The export bundle (A8.6, O32's addendum, O39): a portable folder that carries what an approval stands on. The source
 // document (as saved) and its revision digest; the approved BOM baseline and its ancestors; each part's materials with
 // their sources and basis; each analysis result with its fingerprint and its freshness when written; the ECR history
@@ -37,6 +38,7 @@ const json = (v: unknown) => JSON.stringify(v, null, 1) + '\n';
 
 /** Each body's material, its library sources (their texts) and basis: its own, the brief's, or none (the default, assumed). */
 export async function materialsOf(doc: StudioDoc, evaluate: Evaluate): Promise<MaterialEntry[]> {
+  doc = resolveShopTree(doc);
   const out: MaterialEntry[] = [], parts: [string, StudioDoc][] = [...(doc.nodes.length ? [['base', doc] as [string, StudioDoc]] : []), ...(doc.instances ?? []).map(i => [i.id, i.doc] as [string, StudioDoc])];
   for (const [part, d] of parts) {
     const e = await evaluate(d), bodies: readonly BodyResult[] = e?.ok ? e.bodies : [];

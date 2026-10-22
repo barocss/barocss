@@ -20,6 +20,7 @@ import { processProfile } from '../library/materials';
 import { faceTableOf } from '../assembly/faces';
 import { checkKeepouts, datumToFace, datumWorld, readReferences } from './references';
 import { unconfirmed, unitAssumptions } from './drafts';
+import { beadAccounting, incompleteBeadReason } from '../frames/beadAccounting';
 
 /** What is measured. Subjects (`a`, `b`, `face`) are face or edge names or selectors; `body` a body key (none: the part). */
 export type Query =
@@ -138,8 +139,15 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
   const facts = factsOf(doc, bodiesOf(bodies, 'body' in q ? q.body : undefined));
   switch (q.fn) {
     case 'bbox': { const k = 'xyz'.indexOf(q.axis); return facts.bbox ? { x: facts.bbox.max[k] - facts.bbox.min[k], hint: `the overall ${q.axis} size` } : { unknown: 'no body' }; }
-    case 'volume': return { x: facts.volume_mm3 };
-    case 'mass': return facts.mass_assumed ? { unknown: `the material of ${facts.materials.filter(m => m.assumed).map(m => m.body).join(', ')} is not set: its mass is assumed (aluminium); set the material first` } : { x: facts.mass_g };
+    case 'volume': {
+      const incomplete = !q.body ? incompleteBeadReason(beadAccounting(doc, bodies)) : null;
+      return incomplete ? { unknown: incomplete } : { x: facts.volume_mm3 };
+    }
+    case 'mass': {
+      const incomplete = !q.body ? incompleteBeadReason(beadAccounting(doc, bodies)) : null;
+      if (incomplete) return { unknown: incomplete };
+      return facts.mass_assumed ? { unknown: `the material of ${facts.materials.filter(m => m.assumed).map(m => m.body).join(', ')} is not set: its mass is assumed (aluminium); set the material first` } : { x: facts.mass_g };
+    }
     case 'count_solids': return { x: facts.solids };
     case 'count_faces_of_kind': return { x: bodiesOf(bodies, q.body).reduce((n, b) => n + b.mesh.faces.filter(f => f.kind === q.kind).length, 0) };
     case 'distance_between': {

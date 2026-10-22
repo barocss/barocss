@@ -1,3 +1,24 @@
+# CAD Studio handover — current entry
+
+Read [state.yaml](state.yaml) first for the current code baseline, Work identities,
+verification receipts, blockers and next actions. Then read [roadmap.md](roadmap.md)
+and [protocol.md](protocol.md). The coordinator alone updates these current records.
+
+The [owner roadmap](notes/owner-roadmap-2026-10-22.md) defines the full product
+goal. The [message example](notes/coordination-message-pattern-2026-10-22.md)
+defines the response, decision, instruction and dependency-relay loop.
+
+The [2026-10-22 coordinator handover](notes/coordinator-handover-2026-10-22.md)
+is the source checkpoint for this continuation. Its code was merged into develop
+at `c3ae0d5de60ecb250350b597552fb0203b41d43e` (PR #2185). This merge does not
+replace the recorded full-verification checkpoint `9fec9950c`.
+
+The dated handovers and decision logs below are retained history. Their earlier
+statements about unpushed work, next tasks and incomplete features apply to the
+commits they name. Use the current state record to resume work.
+
+---
+
 # cad-studio hand-over — 2026-10-16
 
 Hand-over from the Claude account that ran the 2026-10-16 cad-studio work (organization NAVER_TEAM_17,

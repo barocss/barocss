@@ -46,7 +46,7 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
             <td title={l.size ?? ''}>{l.item}</td>
             <td className="mono">{l.qty}</td>
             <td>{[l.row, l.catalogue].filter(Boolean).join(' · ') || '—'}</td>
-            <td title={w}>{l.estimate ? <span className="warn">estimate</span> : (l.source ?? '—')}</td>
+            <td title={w}>{l.source}{l.source && l.estimate ? ' · ' : ''}{l.estimate ? <span className="warn">estimate</span> : (!l.source ? '—' : null)}</td>
             <td>{element ? toggle(l.parts, l.override ? 'bought' : 'default', l.item) : <span className="muted small">{l.source ? 'catalogue part' : 'made'}</span>}</td>
           </tr>;
         })}</tbody>

@@ -10,9 +10,10 @@ import { Icon } from './atoms';
 const f3 = (v: number) => String(Math.round(v * 1000) / 1000);
 /** An end's cut in words: square, a mitre and bevel, or what finishes it where it is no plane. */
 export function cutText(e: CutEnd): string {
-  if (e.kind === 'square' || e.kind === 'through') return 'square';
-  if (e.mitreDegrees === null) return e.kind;
-  return `${e.kind} ${f3(e.mitreDegrees)}°${e.bevelDegrees ? `, bevel ${f3(e.bevelDegrees)}°` : ''}`;
+  const cut = e.kind === 'square' || e.kind === 'through' ? 'square' : e.mitreDegrees === null ? e.kind : `${e.kind} ${f3(e.mitreDegrees)}°${e.bevelDegrees ? `, bevel ${f3(e.bevelDegrees)}°` : ''}`;
+  const gap = e.gapMM ? ` · gap ${f3(e.gapMM) === '0' ? String(e.gapMM) : f3(e.gapMM)} mm` : '';
+  const notch = e.notch ? e.notch.kind === 'holesaw' ? ` · hole saw Ø${f3(e.notch.diameterMM)} mm, offset ${f3(e.notch.offsetMM)} mm` : ` · V depth ${f3(e.notch.depthMM)} mm, angle ${f3(e.notch.angleDegrees)}°` : '';
+  return cut + gap + notch;
 }
 
 export function CutListDialog({ list, nesting, name, onClose }: { list: PartCutList; nesting?: NestResult; name: string; onClose: () => void }) {

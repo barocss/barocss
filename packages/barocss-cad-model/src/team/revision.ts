@@ -10,8 +10,17 @@ export function canonical(v: unknown): string {
   const o = v as Record<string, unknown>;
   return `{${Object.keys(o).filter(k => o[k] !== undefined).sort().map(k => `${JSON.stringify(k)}:${canonical(o[k])}`).join(',')}}`;
 }
-/** What a revision covers: the model and the contracts a patch may depend on. */
-const REVISION_FIELDS = ['nodes', 'parameters', 'bodies', 'requirements', 'brief', 'references', 'process', 'printer', 'drafts', 'interfaces', 'instances'] as const;
+/** Authored inputs read by part conversion and evaluation (engine/part.ts and engine/evaluate.ts). */
+const MODEL_FIELDS = ['nodes', 'parameters', 'outputs', 'fits', 'bearings', 'orings', 'rings', 'drives', 'connectors'] as const;
+/** Geometry and evaluated domain rows, recursively for placed parts; no body looks or workflow records. */
+export function modelContent(doc: StudioDoc): Record<string, unknown> {
+  return { ...Object.fromEntries(MODEL_FIELDS.map(k => [k, doc[k]])),
+    frames: { sections: doc.frames?.sections ?? [], welds: doc.frames?.welds ?? [], beadOwnership: doc.frames?.beadOwnership },
+    instances: (doc.instances ?? []).map(i => ({ id: i.id, name: i.name, model: modelContent(i.doc), position: i.position, rotation: i.rotation, hidden: !!i.hidden })),
+  };
+}
+/** What a revision covers: every model input plus the authored contracts a patch may depend on. */
+const REVISION_FIELDS = [...MODEL_FIELDS, 'frames', 'bodies', 'requirements', 'brief', 'references', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'drafts', 'interfaces', 'instances'] as const;
 /** The canonical JSON of what a revision covers: equal exactly when the states a patch depends on are equal. */
 /** The fields a revision reads, as a value. */
 export const revisionContent = (doc: StudioDoc) => Object.fromEntries(REVISION_FIELDS.map(k => [k, (doc as unknown as Record<string, unknown>)[k]]));

@@ -2,6 +2,12 @@
 export interface FriendlyError { title: string; hint: string; detail: string }
 
 const rules: { test: RegExp; title: string; hint: string }[] = [
+  { test: /\[BEAD_SHARED_CONTEXT\]/,
+    title: 'The shared bead context is incomplete or unsupported',
+    hint: 'Use ownership version 1 and policy equal-length. Keep the complete joint component; do not remove a failed peer to build a full bead.' },
+  { test: /\[BEAD_SHARED_UNSUPPORTED\]/,
+    title: 'This shared bead geometry is not supported',
+    hint: 'Version 1 supports two equal-leg outer endpoint beads sharing one straight prism in the same frame. The refused component has no modelled bead material.' },
   { test: /FRAME_SECTION_UNKNOWN/,
     title: 'A frame names a section that is not in the library',
     hint: 'Add the row back to the section library (Library panel, SECTIONS), or give the frame another section.' },

@@ -45,7 +45,7 @@ test('each element body keeps its kernel report as data; its line: our size text
     ['shaft', '3 steps Ø20–Ø25 × 95', false, 'default'], ['keyway', '6 × 2.8 in Ø20', false, 'default'], ['key', '6 × 6 × 18', true, 'default'],
     ['retaining-ring', 'Ø19 / Ø24 × 1.2', true, 'default'], ['pin', 'Ø4 × 20', true, 'default']]);
   assert.deepEqual([by('retaining-ring').row, by('retaining-ring').estimate], [{ id: 'r20', source: 'the maker\'s sheet', estimate: false }, false]);
-  assert.deepEqual([by('key').row, by('key').estimate, by('pin').estimate], [null, false, false]);
+  assert.deepEqual([by('key').row, by('key').estimate, by('key').why, by('pin').estimate], [null, true, ['no key row: its sizes are an estimate'], false]);
   // Without a row the ring is an estimate, said.
   const bare = elementLines(scene(false), evaluated(scene(false))).find(l => l.kind === 'retaining-ring')!;
   assert.deepEqual([bare.row, bare.estimate, bare.why], [null, true, ['no ring row: its sizes are an estimate']]);
@@ -68,7 +68,7 @@ test('the BOM: 2 copies of the shaft part — the part ×2, and each bought elem
   const asm = (p: StudioDoc): StudioDoc => ({ ...emptyDoc(), instances: [0, 1].map(k => ({ id: `i${k}`, name: `shaft ${k}`, doc: p, position: [0, 60 * k, 0] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] })) });
   const view = await bomView(asm(part), evaluate), bom = deriveBom(view);
   assert.deepEqual(bom.lines.map(l => [l.item, l.qty, l.kind ?? 'part', l.row ?? null, !!l.estimate]), [
-    ['shaft 0', 2, 'part', null, false], ['key 6 × 6 × 18', 2, 'key', null, false], ['retaining-ring Ø19 / Ø24 × 1.2', 2, 'retaining-ring', 'r20', false], ['pin Ø4 × 20', 2, 'pin', null, false]]);
+    ['shaft 0', 2, 'part', null, false], ['key 6 × 6 × 18', 2, 'key', null, true], ['retaining-ring Ø19 / Ø24 × 1.2', 2, 'retaining-ring', 'r20', false], ['pin Ø4 × 20', 2, 'pin', null, false]]);
   assert.deepEqual(bom.lines[1].parts, ['i0:n4', 'i1:n4']);
   assert.equal(bom.elementQty, 6); assert.deepEqual(checkBom(view, bom), []);
   // (An element left off, or on the wrong line, is found.)

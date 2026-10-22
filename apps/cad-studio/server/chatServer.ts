@@ -1,3 +1,4 @@
+import { receivePersonRowFiles, type RowFileInput } from '@barocss/cad-model/chat/rowFiles';
 // The chat's small local server: each turn runs the `claude` CLI (print mode, streaming JSON) with
 // the studio's tools as its only tools (an MCP server, server/cadMcp.ts, working on a state file), and
 // streams what happens back to the browser as server-sent events:
@@ -200,7 +201,7 @@ export function createChatServer(options: ChatServerOptions) {
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
     // JSON only: a cross-site page cannot send it without a CORS preflight, which this server never answers.
     if (!/^application\/json\s*(;|$)/i.test(req.headers['content-type'] ?? '')) return sendJson(res, 415, { error: 'Send the turn as application/json.' });
-    let body: { text?: unknown; doc?: unknown; turns?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown };
+    let body: { rowFiles?: unknown; rowConversation?: unknown; text?: unknown; doc?: unknown; turns?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
     if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
     const imageError = checkImages(body.images);
@@ -227,13 +228,22 @@ export function createChatServer(options: ChatServerOptions) {
       if (missing.length) return sendJson(res, 409, { error: 'The chat server does not have this mesh data yet.', missing });
       blobFiles = (refs as string[]).map(h => ({ hash: h, ...kept.have.get(h)! }));
     }
+    let rowInputs: RowFileInput[] | undefined, rowConversation: string | undefined, rowNote = '';
+    if (body.rowFiles !== undefined) {
+      try {
+        rowConversation = typeof body.rowConversation === 'string' ? body.rowConversation : '';
+        const files = receivePersonRowFiles(rowConversation, body.rowFiles as RowFileInput[], Array.isArray(body.turns) ? body.turns.length : 0);
+        rowInputs = body.rowFiles as RowFileInput[];
+        rowNote = '\n\n[Files supplied by the person in this conversation; library.load_rows takes file by id:\n' + files.files.map(f => `${f.id}: ${JSON.stringify(f.source.filename)} (user turn ${f.source.turn}, SHA256 ${f.source.sha256})`).join('\n') + ']';
+      } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid conversation row files.' }); }
+    }
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
-    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}) } satisfies StateFile));
+    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}) } satisfies StateFile));
     // (How far the agent may go on its own, D41: 1–4, else the default 2.)
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
-    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}`;
+    const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}${rowNote}`;
     const args = claudeArgs({ mcpConfig, model, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 
     res.statusCode = 200; res.setHeader('content-type', 'text/event-stream'); res.setHeader('cache-control', 'no-cache');

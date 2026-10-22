@@ -11,7 +11,7 @@ import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer,
 type View = ReturnType<Texture['createView']>;
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalMatrixInto, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, capProbeSamplesWGSL, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL, type SurfaceShader } from './shaders.js';
 
 export class ViewerError extends Error {
   constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(message); this.name = 'ViewerError'; }
@@ -33,10 +33,14 @@ export interface Material {
   lineWidth?: number;
   /** Lines dashed: on and off lengths in CSS pixels, from each segment's start (default solid; G7). */
   lineDash?: readonly [number, number] | null;
+  /** Hidden parts' dash lengths in CSS pixels. Omitted: use lineDash; null: solid. */
+  lineHiddenDash?: readonly [number, number] | null;
   /** Lines drawn over the whole scene, not hidden by surfaces (default false: they test depth; G7). */
   lineOver?: boolean;
   /** Depth-tested lines' hidden parts drawn too, at this share of their opacity (0 – 1, default 0: not drawn; G7). */
   lineHidden?: number;
+  /** Draw surface/cap depth without colour (default true). Picking and clipping remain enabled. */
+  colorWrite?: boolean;
   /** Points' size (diameter or side) in CSS pixels (default 4; G8). lineOver and lineHidden apply to points too. */
   pointSize?: number;
   /** Points drawn as discs (default) or squares (G8). */
@@ -222,6 +226,8 @@ export class Geometry {
 }
 
 export class Mesh {
+  /** Picking opacity classification, independent of display-only fades; null follows the material. */
+  pickTransparent: boolean | null = null;
   /** @internal */ slot = -1;
   /** @internal */ dirty = true;
   private worldBox: Box3 | null | undefined;
@@ -305,7 +311,7 @@ export class Mesh {
   }
   get visible(): boolean { return this._visible; }
   set visible(v: boolean) { this._visible = v; this.owner.requestRender(); }
-  get transparent(): boolean { return this._material.opacity < 1 || this._material.shadowOnly; }
+  get transparent(): boolean { return this._material.colorWrite && (this._material.opacity < 1 || this._material.shadowOnly); }
   /**
    * Its cap's colour (sRGB), times its material colour — as a face of it in that colour would be lit — or null: the clip
    * plane's own cap colour (G2b).
@@ -371,7 +377,10 @@ export class Mesh {
     const capOrBorder = this.geometry.topology === 'points' ? m.pointBorder?.color ?? null : this._capColor;
     if (capOrBorder) { const c = linear(capOrBorder); f[o + 44] = c[0]; f[o + 45] = c[1]; f[o + 46] = c[2]; f[o + 47] = 1; } else f.fill(0, o + 44, o + 48);
     const h = this._capHatch;
-    if (h) { const a = (h.angle * Math.PI) / 180; f[o + 48] = Math.cos(a); f[o + 49] = Math.sin(a); f[o + 50] = h.spacing; f[o + 51] = 1; } else f.fill(0, o + 48, o + 52);
+    if (this.geometry.topology === 'lines') {
+      const hiddenDash = m.lineHiddenDash === undefined ? m.lineDash : m.lineHiddenDash;
+      f[o + 48] = (hiddenDash?.[0] ?? 0) * pixelRatio; f[o + 49] = (hiddenDash?.[1] ?? 0) * pixelRatio; f[o + 50] = 0; f[o + 51] = 0;
+    } else if (h) { const a = (h.angle * Math.PI) / 180; f[o + 48] = Math.cos(a); f[o + 49] = Math.sin(a); f[o + 50] = h.spacing; f[o + 51] = 1; } else f.fill(0, o + 48, o + 52);
   }
 }
 
@@ -381,9 +390,11 @@ function hatchOf(h: CapHatch): CapHatch | null {
   return Number.isFinite(h.angle) && Number.isFinite(h.spacing) && h.spacing > 0 ? { angle: h.angle, spacing: h.spacing } : null;
 }
 
-function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash' | 'pointBorder'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null; pointBorder: { width: number; color: Vec3 } | null } {
+function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash' | 'lineHiddenDash' | 'pointBorder'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null; lineHiddenDash: readonly [number, number] | null | undefined; pointBorder: { width: number; color: Vec3 } | null } {
+  const hiddenDash = m.lineHiddenDash;
   return {
     color: parseColor(m.color, m.shadowOnly ? [0, 0, 0] : [0.8, 0.8, 0.8]), opacity: Math.min(1, Math.max(0, m.opacity ?? 1)),
+    colorWrite: m.colorWrite ?? true, lineHiddenDash: hiddenDash === undefined ? undefined : hiddenDash && hiddenDash[0] > 0 && hiddenDash[1] > 0 ? [hiddenDash[0], hiddenDash[1]] : null,
     metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, lineDash: m.lineDash && m.lineDash[0] > 0 && m.lineDash[1] > 0 ? [m.lineDash[0], m.lineDash[1]] : null, lineOver: m.lineOver ?? false, lineHidden: Math.min(1, Math.max(0, m.lineHidden ?? 0)), decal: m.decal ?? false,
     pointSize: Math.max(0, m.pointSize ?? 4), pointShape: m.pointShape ?? 'circle', pointBorder: m.pointBorder && m.pointBorder.width > 0 ? { width: m.pointBorder.width, color: parseColor(m.pointBorder.color, [1, 1, 1]) } : null, shadowOnly: m.shadowOnly ?? false, map: m.map ?? null, shader: m.shader ?? null, alphaCutoff: Math.min(1, Math.max(0, m.alphaCutoff ?? 0)),
   };
@@ -572,6 +583,8 @@ export class Viewer {
   private emptyShadow!: Texture;
   /** A one-texel nearest front depth (none): what the frame bind groups hold where the caps' prepass target is not bound. */
   private emptyFront!: Texture;
+  /** A one-pixel MSAA probe, bound when a pass must not sample its own probe attachment. */
+  private emptyFrontSamples!: Texture;
   /** The frame bind group without the prepass target (for the prepass itself, which draws into it). */
   private frameGroupBare!: BindGroup;
   private shadowMap: Texture | null = null;
@@ -611,7 +624,7 @@ export class Viewer {
   private objectCapacity = 0;
   private objectData = new Float32Array(0);
   // (Their views made once with them: a frame reuses them.)
-  private targets: { width: number; height: number; msaa: Texture | null; scene: Texture; depth: Texture; mask: Texture; maskDepth: Texture; capFront: Texture; output: BindGroup; views: { msaa: View | null; scene: View; depth: View; mask: View; maskDepth: View; capFront: View } } | null = null;
+  private targets: { width: number; height: number; msaa: Texture | null; scene: Texture; depth: Texture; mask: Texture; maskDepth: Texture; capFront: Texture; capFrontSamples: Texture | null; output: BindGroup; views: { msaa: View | null; scene: View; depth: View; mask: View; maskDepth: View; capFront: View; capFrontSamples: View | null } } | null = null;
   private outputBuffer!: Buffer;
   private pickTargets: { width: number; height: number; id: Texture; depth: Texture; z: Texture; instance: Texture; read: Buffer; views: { id: View; z: View; instance: View; depth: View } } | null = null;
   private meshes: Mesh[] = [];
@@ -681,6 +694,7 @@ export class Viewer {
     device.queue.writeBuffer(this.identityInstance, 0, new Uint8Array(packInstances({ transforms: identity() }).data));
     this.emptyShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no shadow' });
     this.emptyFront = device.createTexture({ size: [1, 1], format: 'rg32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer no caps probe' });
+    this.emptyFrontSamples = device.createTexture({ size: [1, 1], format: SCENE_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no caps samples' });
     this.shadowMap = null;
     // (The targets were the lost device's: made again, and bound, when next drawn.)
     this.targets = null; this.pickTargets = null; this.oit = null; this.atlasGpu = null;
@@ -700,8 +714,8 @@ export class Viewer {
     const envView = env?.gpu ? env.gpu.texture.createView() : this.white.texture.createView(), envSampler = env?.gpu ? env.gpu.sampler : this.mipSampler;
     // (The caps' prepass target where the targets exist; the scene's group must not hold it while the prepass draws into it.)
     const front = this.targets?.capFront ?? this.emptyFront;
-    const group = (buffer: Buffer, map: Texture, depth: Texture) => this.device.createBindGroup({ layout, entries: [{ binding: 0, resource: { buffer } }, { binding: 1, resource: map.createView() }, { binding: 2, resource: this.shadowSampler }, { binding: 3, resource: envView }, { binding: 4, resource: envSampler }, { binding: 5, resource: depth.createView() }] });
-    this.frameGroup = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, front);
+    const group = (buffer: Buffer, map: Texture, depth: Texture, samples = this.emptyFrontSamples) => this.device.createBindGroup({ layout, entries: [{ binding: 0, resource: { buffer } }, { binding: 1, resource: map.createView() }, { binding: 2, resource: this.shadowSampler }, { binding: 3, resource: envView }, { binding: 4, resource: envSampler }, { binding: 5, resource: depth.createView() }, { binding: 6, resource: samples.createView() }] });
+    this.frameGroup = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, front, this.targets?.capFrontSamples ?? this.emptyFrontSamples);
     this.frameGroupBare = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, this.emptyFront);
     this.shadowFrameGroup = group(this.shadowFrameBuffer, this.emptyShadow, this.emptyFront);
     this.shadowCapGroup = this.lightProbe ? group(this.shadowFrameBuffer, this.emptyShadow, this.lightProbe) : null;
@@ -710,7 +724,11 @@ export class Viewer {
   private async createPipelines(): Promise<void> {
     const d = this.device;
     const modules = { surface: d.createShaderModule({ code: surfaceWGSL(), label: 'viewer surface' }), line: d.createShaderModule({ code: lineWGSL, label: 'viewer line' }), point: d.createShaderModule({ code: pointWGSL, label: 'viewer point' }), label: d.createShaderModule({ code: labelWGSL, label: 'viewer label' }), pick: d.createShaderModule({ code: pickWGSL, label: 'viewer pick' }) };
-    for (const [name, m] of Object.entries(modules)) {
+    const capModules = this.options.antialias === false ? { surface: modules.surface, probe: modules.pick } : {
+      surface: d.createShaderModule({ code: surfaceWGSL(undefined, true), label: 'viewer cap samples' }),
+      probe: d.createShaderModule({ code: capProbeSamplesWGSL, label: 'viewer cap probe samples' }),
+    };
+    for (const [name, m] of [...Object.entries(modules), ...Object.entries(capModules)]) {
       const errors = (await m.getCompilationInfo()).messages.filter(x => x.type === 'error');
       if (errors.length) throw new ViewerError('shader', `${name} shader: ${errors.map(e => `${e.lineNum}: ${e.message}`).join('; ')}`);
     }
@@ -720,6 +738,7 @@ export class Viewer {
       { binding: 2, visibility: 2, sampler: { type: 'comparison' } },
       { binding: 3, visibility: 2, texture: { sampleType: 'float' } }, { binding: 4, visibility: 2, sampler: { type: 'filtering' } },
       { binding: 5, visibility: 2, texture: { sampleType: 'unfilterable-float' } },
+      { binding: 6, visibility: 2, texture: { sampleType: 'unfilterable-float', multisampled: true } },
     ] });
     const objectLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 3, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: OBJECT_BYTES } }] });
     const layout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout] });
@@ -746,7 +765,7 @@ export class Viewer {
     // Premultiplied colour over the target.
     const blend = { color: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' } };
     const ms = { count: this.options.antialias === false ? 1 : SAMPLES };
-    const make = (key: PipelineKey, desc: object) => d.createRenderPipelineAsync({ label: `viewer ${key}`, layout: /^(lit|unlit|catcher)/.test(key) ? surfaceLayout : layout, ...desc }).then(p => { this.pipelines.set(key, p); });
+    const make = (key: PipelineKey, desc: object) => d.createRenderPipelineAsync({ label: `viewer ${key}`, layout: /^(lit|unlit|catcher|depthOnly|depthCap)/.test(key) ? surfaceLayout : layout, ...desc }).then(p => { this.pipelines.set(key, p); });
     const jobs: Promise<void>[] = [];
     d.pushErrorScope('validation');
     // (G11's order-independent variant: the accumulation summed, the revealage multiplied, in any order.)
@@ -762,6 +781,14 @@ export class Viewer {
     });
     for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true, 'oit' as const]) for (const decal of [false, true])
       jobs.push(make(`${lit ? 'lit' : 'unlit'}${two ? '2' : ''}${t === 'oit' ? 'O' : t ? 'T' : ''}${decal ? 'D' : ''}`, this.surfaceDescriptor(modules.surface, lit, two, t, decal)));
+    // CAD line-only views: keep surface depth, including clipped faces, without painting a colour plane.
+    for (const two of [false, true]) jobs.push(make(two ? 'depthOnly2' : 'depthOnly', {
+      vertex: vertex(modules.surface),
+      fragment: { module: modules.surface, entryPoint: 'fsUnlit', targets: [{ format: SCENE_FORMAT, writeMask: 0 }] },
+      primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater-equal', depthBias: -2, depthBiasSlopeScale: -1.5 },
+      multisample: ms,
+    }));
     const oitModule = d.createShaderModule({ code: oitWGSL, label: 'viewer oit' });
     jobs.push(d.createRenderPipelineAsync({
       label: 'viewer oit composite', layout: 'auto',
@@ -843,17 +870,17 @@ export class Viewer {
       multisample: ms,
     }));
     // Caps (G2): a kept back face seen through the cut, at the plane's depth (written by the fragment).
-    jobs.push(make('litCap', {
-      vertex: vertex(modules.surface),
-      fragment: { module: modules.surface, entryPoint: 'fsCap', targets: [{ format: SCENE_FORMAT }] },
+    for (const depthOnly of [false, true]) jobs.push(make(depthOnly ? 'depthCap' : 'litCap', {
+      vertex: vertex(capModules.surface),
+      fragment: { module: capModules.surface, entryPoint: 'fsCap', targets: [{ format: SCENE_FORMAT, ...(depthOnly ? { writeMask: 0 } : {}) }] },
       primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater-equal' },
       multisample: ms,
     }));
     // (A see-through mesh's caps, G19.4: in the order-independent pass, tested against the opaque depth, none written.)
     jobs.push(make('oitCap', {
-      vertex: vertex(modules.surface),
-      fragment: { module: modules.surface, entryPoint: 'fsCapOit', targets: oitTargets },
+      vertex: vertex(capModules.surface),
+      fragment: { module: capModules.surface, entryPoint: 'fsCapOit', targets: oitTargets },
       primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal' },
       multisample: ms,
@@ -864,6 +891,13 @@ export class Viewer {
       fragment: { module: modules.pick, entryPoint: 'fsCapProbe', targets: [{ format: 'rg32float' }] },
       primitive: { topology: 'triangle-list', cullMode: 'none', frontFace: 'ccw' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+    }));
+    if (ms.count > 1) jobs.push(make('capFrontSamples', {
+      vertex: positionOnly(capModules.probe),
+      fragment: { module: capModules.probe, entryPoint: 'fsCapProbe', targets: [{ format: SCENE_FORMAT }] },
+      primitive: { topology: 'triangle-list', cullMode: 'none', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+      multisample: ms,
     }));
     jobs.push(make('capPick', {
       vertex: positionOnly(modules.pick),
@@ -1215,7 +1249,7 @@ export class Viewer {
   private ensureTargets(): NonNullable<Viewer['targets']> {
     const w = this.canvas.width, h = this.canvas.height, t = this.targets;
     if (t && t.width === w && t.height === h) return t;
-    t?.msaa?.destroy(); t?.scene.destroy(); t?.depth.destroy(); t?.mask.destroy(); t?.maskDepth.destroy(); t?.capFront.destroy();
+    t?.msaa?.destroy(); t?.scene.destroy(); t?.depth.destroy(); t?.mask.destroy(); t?.maskDepth.destroy(); t?.capFront.destroy(); t?.capFrontSamples?.destroy();
     const samples = this.options.antialias === false ? 1 : SAMPLES;
     const msaa = samples > 1 ? this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, sampleCount: samples, usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer msaa' }) : null;
     const scene = this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer scene' });
@@ -1223,12 +1257,21 @@ export class Viewer {
     const mask = this.device.createTexture({ size: [w, h], format: 'r32uint', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer outline mask' });
     const maskDepth = this.device.createTexture({ size: [w, h], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer outline depth' });
     const capFront = this.device.createTexture({ size: [w, h], format: 'rg32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer caps probe' });
-    const views = { msaa: msaa ? msaa.createView() : null, scene: scene.createView(), depth: depth.createView(), mask: mask.createView(), maskDepth: maskDepth.createView(), capFront: capFront.createView() };
+    // The full MSAA probe is allocated only for a capped scene, not for ordinary unsectioned frames.
+    const capFrontSamples = null;
+    const views = { msaa: msaa ? msaa.createView() : null, scene: scene.createView(), depth: depth.createView(), mask: mask.createView(), maskDepth: maskDepth.createView(), capFront: capFront.createView(), capFrontSamples: null as View | null };
     const output = this.device.createBindGroup({ layout: this.pipelines.get('output')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: scene.createView() }, { binding: 1, resource: { buffer: this.outputBuffer } }, { binding: 2, resource: mask.createView() }, { binding: 3, resource: depth.createView() }] });
-    this.targets = { width: w, height: h, msaa, scene, depth, mask, maskDepth, capFront, output, views };
+    this.targets = { width: w, height: h, msaa, scene, depth, mask, maskDepth, capFront, capFrontSamples, output, views };
     // (The frame bind group holds the new prepass target.)
     this.bindFrames();
     return this.targets;
+  }
+
+  private ensureCapSamples(t: NonNullable<Viewer['targets']>): void {
+    if (this.options.antialias === false || t.capFrontSamples) return;
+    t.capFrontSamples = this.device.createTexture({ size: [t.width, t.height], format: SCENE_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer caps probe samples' });
+    t.views.capFrontSamples = t.capFrontSamples.createView();
+    this.bindFrames();
   }
 
   /**
@@ -1371,6 +1414,7 @@ export class Viewer {
     if (m.geometry.topology === 'lines') return mat.lineOver ? 'lineOver' : (t ? 'lineT' : 'line');
     if (m.geometry.topology === 'points') return mat.lineOver ? 'pointOver' : 'point';
     if (m.geometry.topology === 'labels') return mat.lineOver ? 'labelOver' : 'label';
+    if (!mat.colorWrite) return two ? 'depthOnly2' : 'depthOnly';
     if (mat.shadowOnly) return 'catcher';
     if (m.mapped) return two ? 'litMap2' : 'litMap';
     const variant = `${mat.unlit ? 'unlit' : 'lit'}${two}${t}${mat.decal ? 'D' : ''}`;
@@ -1454,7 +1498,7 @@ export class Viewer {
     if (data.topology === 'lines') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount / 2); return; }
     if (data.topology === 'points') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount); return; }
     if (data.topology === 'labels') { pass.setBindGroup(2, this.atlasGroup()); pass.setVertexBuffer(0, g.positions); pass.draw(6, g.labels!.count); return; }
-    if (!pick && m.mapped) { this.drawMapped(pass, m); return; }
+    if (!pick && m.mapped && m.material.colorWrite) { this.drawMapped(pass, m); return; }
     this.drawTriangles(pass, m, !pick);
   }
 
@@ -1510,19 +1554,25 @@ export class Viewer {
   private drawCapFront(enc: ReturnType<Device['createCommandEncoder']>, opaque: readonly Mesh[], transparent: readonly Mesh[], scissor: [number, number] | null): void {
     if (!this.clip || (!opaque.some(m => this.capped(m)) && !transparent.some(m => this.ghostCapped(m)))) return;
     const t = this.ensureTargets();
-    const pass = enc.beginRenderPass({
-      colorAttachments: [{ view: t.views.capFront, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
-      depthStencilAttachment: { view: t.views.maskDepth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
-    });
-    if (scissor) pass.setScissorRect(scissor[0], scissor[1], 1, 1);
-    pass.setBindGroup(0, this.frameGroupBare);
-    pass.setPipeline(this.pipelines.get('capFront')!);
-    for (const list of [opaque, transparent]) for (const m of list) {
-      if (!this.probed(m) || !this.upload(m.geometry)) continue;
-      { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
-      this.drawTriangles(pass, m, false);
+    if (!scissor) this.ensureCapSamples(t);
+    // Keep the single-sample probe for picks and outline masks. Scene caps additionally read their
+    // own sample's probe: a pixel-centre winner cannot describe both sides of a covered back-face edge.
+    for (const samples of [false, true]) {
+      if (samples && (scissor || !t.views.capFrontSamples)) continue;
+      const pass = enc.beginRenderPass({
+        colorAttachments: [{ view: samples ? t.views.capFrontSamples! : t.views.capFront, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
+        depthStencilAttachment: { view: samples ? t.views.depth : t.views.maskDepth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+      });
+      if (scissor) pass.setScissorRect(scissor[0], scissor[1], 1, 1);
+      pass.setBindGroup(0, this.frameGroupBare);
+      pass.setPipeline(this.pipelines.get(samples ? 'capFrontSamples' : 'capFront')!);
+      for (const list of [opaque, transparent]) for (const m of list) {
+        if (!this.probed(m) || !this.upload(m.geometry)) continue;
+        { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+        this.drawTriangles(pass, m, false);
+      }
+      pass.end();
     }
-    pass.end();
   }
   /**
    * The caps' probe from the shadow-casting light (G19.4): as drawCapFront, the capped casters' faces unclipped, the
@@ -1554,8 +1604,8 @@ export class Viewer {
     if (!this.clip) return 0;
     let n = 0;
     for (const m of list) {
-      if (!this.capped(m) || (key === 'capPick' && !m.pickable)) continue;
-      const p = this.pipelines.get(key)!;
+      if (key === 'capPick' ? (!this.probed(m) || (m.pickTransparent ?? m.transparent) || !m.pickable) : !this.capped(m)) continue;
+      const p = this.pipelines.get(key === 'litCap' && !m.material.colorWrite ? 'depthCap' : key)!;
       if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
       { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
       this.drawTriangles(pass, m, key === 'litCap');
@@ -1839,6 +1889,7 @@ export class Viewer {
     const current: { pipeline?: Pipeline } = {};
     for (const list of [opaque, transparent]) for (const m of list) if (m.pickable && m.geometry.topology === 'triangles') this.drawMesh(pass, m, current, true);
     this.drawCaps(pass, opaque, current, 'capPick');
+    this.drawCaps(pass, transparent, current, 'capPick');
     pass.end();
     enc.copyTextureToBuffer({ texture: t.id, origin: [px, py] }, { buffer: t.read, bytesPerRow: 256 }, [1, 1]);
     enc.copyTextureToBuffer({ texture: t.z, origin: [px, py] }, { buffer: t.read, offset: 256, bytesPerRow: 256 }, [1, 1]);
@@ -1853,9 +1904,12 @@ export class Viewer {
     const ndcX = ((px + 0.5) / this.canvas.width) * 2 - 1, ndcY = 1 - ((py + 0.5) / this.canvas.height) * 2;
     const point = this.camera.unproject(ndcX, ndcY, depth, this.aspect);
     // The triangle: a ray through the pixel in the (instance's) own space (on the cap: none).
-    const ray = this.camera.ray(ndcX, ndcY, this.aspect), c = this.capHit(ray.origin, ray.direction), onCap = !!c && c.mesh === mesh && (c.instance ?? 0) === (mesh.instances ? instance : 0);
-    const hit = onCap ? null : this.meshRay(mesh, mesh.instances ? instance : null, ray.origin, ray.direction);
-    const faces = mesh.geometry.data.faces, tri = hit ? hit.triangle : null;
+    const ray = this.camera.ray(ndcX, ndcY, this.aspect), c = this.capHit(ray.origin, ray.direction);
+    const hit = this.meshRay(mesh, mesh.instances ? instance : null, ray.origin, ray.direction);
+    // A cut-out can keep this mesh's front before its cap. Compare their parameters on the same pixel ray, as
+    // raycast does: the nearer surface wins, a tie is the cap's. The GPU's float32 depth still supplies the point.
+    const onCap = !!c && c.mesh === mesh && (c.instance ?? 0) === (mesh.instances ? instance : 0) && (!hit || c.t <= hit.t);
+    const faces = mesh.geometry.data.faces, tri = !onCap && hit ? hit.triangle : null;
     return { mesh, point, triangle: tri, face: tri !== null && faces ? faces[tri] : null, instance: mesh.instances ? instance : null, depth, cap: onCap, ...(onCap ? { capPlane: c!.plane } : {}), ...this.scalarHit(mesh, mesh.instances ? instance : null, tri, point) };
   }
 
@@ -1866,7 +1920,7 @@ export class Viewer {
   private meshRay(m: Mesh, instance: number | null, origin: Vec3, direction: Vec3): ClippedHit | null {
     const clip = this.clip && m.clipped ? this.clip : null;
     // (Cut open, a single-sided mesh without a cap shows no inside: the ray passes its back faces, as the draw culls them.)
-    return clippedRay(m.geometry.data, this.instanceTransform(m, instance), origin, direction, clip, false, !clip || this.capped(m) || m.material.doubleSided === true);
+    return clippedRay(m.geometry.data, this.instanceTransform(m, instance), origin, direction, clip, false, !clip || (this.probed(m) && !(m.pickTransparent ?? m.transparent)) || m.material.doubleSided === true);
   }
   /**
    * The cap a world ray meets (G19), as the probe and the cap pass draw it: where the ray comes into the clip planes'
@@ -1886,7 +1940,7 @@ export class Viewer {
       }
     }
     // (A see-through mesh's cap is drawn, not picked — as its surface in the order-independent pass.)
-    return first && first.back && !first.mesh.transparent ? { mesh: first.mesh, instance: first.instance, t: first.entry, plane: first.plane } : null;
+    return first && first.back && !(first.mesh.pickTransparent ?? first.mesh.transparent) ? { mesh: first.mesh, instance: first.instance, t: first.entry, plane: first.plane } : null;
   }
 
   /** A hit's scalar (G6): the field at the point in the mesh's own space, when it has one and a triangle was hit. */
@@ -1957,9 +2011,10 @@ export class Viewer {
    * thin, so this is a screen-space search, not a pixel read. A segment whose nearest point a surface hides (an opaque
    * mesh more than about a pixel and a half in front of it along the eye's ray: what the depth test hides) is passed
    * over for the next nearest (G3); `throughSurfaces` finds it anyway. Only the parts of segments on the clip plane's
-   * kept side are found, and only what the plane keeps hides them. Lines drawn over the scene (Material.lineOver) are never hidden.
+   * kept side are found, and only what the plane keeps hides them. Lines drawn over the scene (Material.lineOver) are
+   * never hidden unless respectSurfaceDepth explicitly keeps surface occlusion for display-only wireframe lines.
    */
-  pickLine(x: number, y: number, radius = 6, options: { throughSurfaces?: boolean } = {}): LineHit | null {
+  pickLine(x: number, y: number, radius = 6, options: { throughSurfaces?: boolean; respectSurfaceDepth?: boolean } = {}): LineHit | null {
     this.alive();
     const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
     this.clipCamera();
@@ -1981,7 +2036,7 @@ export class Viewer {
         const A = transformPoint(m.transform, [P[3 * ia], P[3 * ia + 1], P[3 * ia + 2]]), B = transformPoint(m.transform, [P[3 * ib], P[3 * ib + 1], P[3 * ib + 2]]);
         const point = add(A, scale(sub(B, A), hit.s));
         // (Hidden: the next nearest of this mesh's segments, the hidden one left out.)
-        if (!options.throughSurfaces && !m.material.lineOver && this.hidden(point)) { hiddenSegments.add(hit.segment); continue; }
+        if (!options.throughSurfaces && (options.respectSurfaceDepth || !m.material.lineOver) && this.hidden(point)) { hiddenSegments.add(hit.segment); continue; }
         best = { mesh: m, segment: hit.segment, edge: g.edges ? g.edges[hit.segment] : null, point, distance: hit.distance };
         break;
       }
@@ -2052,14 +2107,14 @@ export class Viewer {
       const S = this.sceneTrees(), { leaves } = this.rayLeaves(ray.origin, d, before);
       for (let k = 0; k < leaves.length; k++) {
         const leaf = leaves[k], m = S.rayMesh[leaf];
-        if (!m.visible || m.transparent || m.geometry.disposed) continue;
+        if (!m.visible || (m.pickTransparent ?? m.transparent) || m.geometry.disposed) continue;
         const hit = this.meshRay(m, S.rayInstance[leaf] < 0 ? null : S.rayInstance[leaf], ray.origin, d);
         if (hit && hit.t < before) return true;
       }
       return false;
     }
     for (const m of this.meshes) {
-      if (!m.visible || m.transparent || m.geometry.topology !== 'triangles' || m.geometry.disposed) continue;
+      if (!m.visible || (m.pickTransparent ?? m.transparent) || m.geometry.topology !== 'triangles' || m.geometry.disposed) continue;
       for (let i = 0; i < m.instanceCount; i++) {
         const hit = this.meshRay(m, m.instances ? i : null, ray.origin, d);
         if (hit && hit.t < before) return true;
@@ -2122,7 +2177,7 @@ export class Viewer {
     this.targets?.msaa?.destroy(); this.targets?.scene.destroy(); this.targets?.depth.destroy();
     if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.instance.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }
     this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy(); this.shadowFrameBuffer?.destroy();
-    this.targets?.mask.destroy(); this.targets?.maskDepth.destroy(); this.targets?.capFront.destroy(); this.emptyFront?.destroy(); this.lightProbe?.destroy();
+    this.targets?.mask.destroy(); this.targets?.maskDepth.destroy(); this.targets?.capFront.destroy(); this.targets?.capFrontSamples?.destroy(); this.emptyFront?.destroy(); this.emptyFrontSamples?.destroy(); this.lightProbe?.destroy();
     this.shadowMap?.destroy(); this.emptyShadow?.destroy(); this.identityInstance?.destroy(); this.white?.texture.destroy(); this.zeroParams?.destroy();
     for (const t of this.textures) t.dispose();
     this.textures.clear();

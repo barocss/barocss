@@ -1,3 +1,4 @@
+import { receivePersonRowFiles, type RowFileInput, type PersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
 // The studio's chat tools as an MCP server (stdio, newline-delimited JSON-RPC) for the `claude` CLI.
 // The part lives in a state file the chat server writes before the turn and reads after each tool call:
 // {doc, selection?, changed}. Tools run in Node on the same engine as the studio (src/chat/tools.ts).
@@ -17,7 +18,7 @@ import { captureOp, type TurnOp } from '@barocss/cad-model/chat/merge';
 
 /** `images`: the traces of the conversation's attached images (read only). */
 /** `blobFiles`: the document's mesh blobs (M1, D45), files the chat server checked and kept for the conversation, read into the store before the first call. */
-export interface StateFile { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[]; /** What the user typed this conversation (A6.2): quotes are checked against it. */ turns?: string[]; /** The turn's calls that changed the part, each as it did it (O133: merged onto the person's part when they edited during the turn). */ ops?: TurnOp[] }
+export interface StateFile { rowFiles?: RowFileInput[]; rowConversation?: string; doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; /** Bumped by each tool call that changed the part (PERF3 A3: the server re-emits a state only when it rose). */ version?: number; images?: ImageTrace[]; blobFiles?: { hash: string; dtype: BlobType; path: string }[]; /** What the user typed this conversation (A6.2): quotes are checked against it. */ turns?: string[]; /** The turn's calls that changed the part, each as it did it (O133: merged onto the person's part when they edited during the turn). */ ops?: TurnOp[] }
 
 /** The tools as MCP lists them (A5.1): title, annotations and, for read actions, the output schema (v2, the only list, O105). */
 export const TOOLS_LISTED = TOOLSET.tools.map(listed);
@@ -33,7 +34,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
  * `save` runs after a change (and a selection, which only the state file keeps); it returns why it could not save.
  */
 export interface McpStore {
-  open(): Promise<{ doc: StudioDoc; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number }>;
+  open(): Promise<{ doc: StudioDoc; selection?: ChatState['selection']; images?: ImageTrace[]; turns?: string[]; changed: boolean; version: number; rowFiles?: PersonRowFiles }>;
   save(s: { doc: StudioDoc; selection?: ChatState['selection']; changed: boolean; version: number; ops?: TurnOp[] }, why: 'change' | 'select'): string | null;
 }
 /** The chat server's state file: {doc, selection?, changed, version}, its blobs read from the files it names. */
@@ -42,11 +43,13 @@ export function stateFileStore(statePath: string): McpStore {
     async open() {
       const saved = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
       for (const b of saved.blobFiles ?? []) { const bytes = readFileSync(b.path); putKnownBlob(b.hash, arrayOf(b.dtype, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength))); }
-      return { doc: saved.doc, ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(Array.isArray(saved.turns) ? { turns: saved.turns } : {}), changed: saved.changed, version: saved.version ?? 0 };
+      const rowFiles = saved.rowFiles ? receivePersonRowFiles(saved.rowConversation ?? '', saved.rowFiles, saved.turns?.length ?? 0) : undefined;
+      return { doc: saved.doc, ...(rowFiles ? { rowFiles } : {}), ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(Array.isArray(saved.turns) ? { turns: saved.turns } : {}), changed: saved.changed, version: saved.version ?? 0 };
     },
     save(s) {
+      const previous = JSON.parse(readFileSync(statePath, 'utf8')) as StateFile;
       const tmp = `${statePath}.tmp`;
-      writeFileSync(tmp, JSON.stringify({ doc: s.doc, ...(s.selection ? { selection: s.selection } : {}), changed: s.changed, version: s.version, ...(s.ops?.length ? { ops: s.ops } : {}) } satisfies StateFile));
+      writeFileSync(tmp, JSON.stringify({ ...(previous.rowFiles ? { rowFiles: previous.rowFiles, rowConversation: previous.rowConversation } : {}), ...(previous.turns ? { turns: previous.turns } : {}), doc: s.doc, ...(s.selection ? { selection: s.selection } : {}), changed: s.changed, version: s.version, ...(s.ops?.length ? { ops: s.ops } : {}) } satisfies StateFile));
       renameSync(tmp, statePath);
       return null;
     },
@@ -56,7 +59,7 @@ export function stateFileStore(statePath: string): McpStore {
 export async function serveMcp(source: string | McpStore, input: NodeJS.ReadableStream = process.stdin, output: NodeJS.WritableStream = process.stdout) {
   const store = typeof source === 'string' ? stateFileStore(source) : source, saved = await store.open();
   const first = await evaluate(saved.doc);
-  let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(saved.turns ? { turns: saved.turns } : {}) };
+  let state: ChatState = { doc: saved.doc, turnBase: saved.doc, bodies: first.ok ? first.bodies : [], ...(saved.rowFiles ? { rowFiles: saved.rowFiles } : {}), ...(saved.selection ? { selection: saved.selection } : {}), ...(saved.images ? { images: saved.images } : {}), ...(saved.turns ? { turns: saved.turns } : {}) };
   let changed = saved.changed, version = saved.version;
   // (O133: each call that changed the part, captured as what it did — the studio merges them onto the part as the person has it.)
   const ops: TurnOp[] = [];

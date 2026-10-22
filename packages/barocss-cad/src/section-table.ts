@@ -4,7 +4,7 @@
 // (`[SECTION_TABLE_MISS]`), and the size built by the section's own closed forms (FR1).
 import { frameSection, FrameSectionError, type FrameSectionSpec } from './frame-section.js';
 
-export type SectionTableKind = 'rect-tube' | 'round-tube' | 'angle' | 'channel' | 'tslot';
+export type SectionTableKind = 'rect-tube' | 'round-tube' | 'angle' | 'channel' | 'i-beam' | 'tslot';
 export interface SectionTableRow { readonly size: string; readonly source?: string; readonly estimate?: boolean; readonly [dimension: string]: unknown }
 export interface SectionTable {
   readonly id: string; readonly kind: SectionTableKind; readonly label?: string;
@@ -16,7 +16,8 @@ const DIMS: Record<SectionTableKind, { readonly req: readonly string[]; readonly
   'rect-tube': { req: ['width', 'height', 'wall', 'outerRadius'], opt: ['innerRadius'] },
   'round-tube': { req: ['diameter', 'wall'], opt: [] },
   angle: { req: ['legX', 'legY', 'thickness', 'rootRadius', 'toeRadius'], opt: [] },
-  channel: { req: ['height', 'width', 'web', 'flange', 'rootRadius'], opt: [] },
+  channel: { req: ['height', 'width', 'web', 'flange', 'rootRadius'], opt: ['toeRadius', 'flangeSlope'] },
+  'i-beam': { req: ['height', 'width', 'web', 'flange', 'rootRadius', 'toeRadius', 'flangeSlope'], opt: [] },
   tslot: { req: ['size', 'cells', 'opening', 'lip', 'undercut', 'depth', 'bore'], opt: ['openSlots'] },
 };
 const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
@@ -27,7 +28,8 @@ function specOf(kind: SectionTableKind, r: SectionTableRow): FrameSectionSpec {
     case 'rect-tube': return { kind, width: n('width'), height: n('height'), wall: n('wall'), outerRadius: n('outerRadius'), ...(r.innerRadius !== undefined ? { innerRadius: n('innerRadius') } : {}) };
     case 'round-tube': return { kind, diameter: n('diameter'), wall: n('wall') };
     case 'angle': return { kind, legX: n('legX'), legY: n('legY'), thickness: n('thickness'), rootRadius: n('rootRadius'), toeRadius: n('toeRadius') };
-    case 'channel': return { kind, height: n('height'), width: n('width'), web: n('web'), flange: n('flange'), rootRadius: n('rootRadius') };
+    case 'channel': return { kind, height: n('height'), width: n('width'), web: n('web'), flange: n('flange'), rootRadius: n('rootRadius'), ...(r.toeRadius !== undefined ? { toeRadius: n('toeRadius') } : {}), ...(r.flangeSlope !== undefined ? { flangeSlope: n('flangeSlope') } : {}) };
+    case 'i-beam': return { kind, height: n('height'), width: n('width'), web: n('web'), flange: n('flange'), rootRadius: n('rootRadius'), toeRadius: n('toeRadius'), flangeSlope: n('flangeSlope') };
     case 'tslot': return { kind, size: n('sizeMM'), cells: n('cells') as 1 | 2, openSlots: n('cells') === 1 ? n('openSlots') : 6, opening: n('opening'), lip: n('lip'), undercut: n('undercut'), depth: n('depth'), bore: n('bore') };
   }
 }
@@ -38,7 +40,7 @@ export function sectionTableProblem(t: unknown): string | null {
   if (!at) return 'a section table needs an id';
   for (const k of Object.keys(o)) if (!['id', 'kind', 'label', 'source', 'estimate', 'rows'].includes(k)) return `${at}: unknown field ${k}`;
   const kind = o.kind as SectionTableKind;
-  if (!(kind in DIMS)) return `${at}: kind must be rect-tube, round-tube, angle, channel or tslot (not ${String(o.kind)})`;
+  if (!(kind in DIMS)) return `${at}: kind must be rect-tube, round-tube, angle, channel, i-beam or tslot (not ${String(o.kind)})`;
   if (o.source !== undefined && typeof o.source !== 'string') return `${at}: source must be text`;
   if (o.source !== undefined && o.estimate === true) return `${at}: cite its source or say estimate: true — not both`;
   if (!Array.isArray(o.rows) || !o.rows.length) return `${at}: rows must list at least one size`;

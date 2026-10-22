@@ -1,3 +1,4 @@
+import { provenanceOfTree, resolveShopTree } from './shopRows';
 // PERF3 A3 (D82): an agent's ops evaluate the same parts again — a proposal's ops when it is accepted or rebased, the
 // unchanged prefixes a reference check reads after every batch. Kept by what an evaluation reads (evaluatedPart:
 // nodes, parameters, outputs, instances), the last few; a refusal or a superseded run is not kept.
@@ -9,6 +10,7 @@
 import type { ModelNode, StudioDoc } from './doc';
 import type { EvalResult } from './evaluate';
 import { evaluatedPart } from './wireDoc';
+import { bearingDependencyKey } from './bearingContext';
 
 export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 const KEEP = 16;
@@ -53,16 +55,19 @@ const nodeKeys = new WeakMap<ModelNode, string>();
 function nodeKey(n: ModelNode): string { let k = nodeKeys.get(n); if (k === undefined) { k = JSON.stringify(n, shortened); nodeKeys.set(n, k); } return k; }
 /**
  * A part's nodes and parameters as a key, without writing out its long texts and arrays again (face tables, PERF3 B12);
- * with its section library when it has one (FRc, O117: a frame's geometry follows its rows).
+ * with its section library and weld records (a frame's geometry follows both).
  */
 export function contentKey(doc: StudioDoc): string {
+  doc = resolveShopTree(doc);
   const rows = doc.frames?.sections?.length ? `\u0002${JSON.stringify(doc.frames.sections)}` : '';
-  return `${doc.nodes.map(nodeKey).join('\u0001')}\u0002${JSON.stringify(doc.parameters ?? null)}${rows}`;
+  const welds = doc.frames?.welds?.length ? `\u0003${JSON.stringify(doc.frames.welds)}` : '';
+  const ownership = doc.frames?.beadOwnership !== undefined ? `\u0004${JSON.stringify(doc.frames.beadOwnership)}` : '';
+  return `${doc.nodes.map(nodeKey).join('\u0001')}\u0002${JSON.stringify(doc.parameters ?? null)}${rows}${welds}${ownership}\u0005${JSON.stringify({ fits: doc.fits, bearings: doc.bearings, orings: doc.orings, rings: doc.rings, drives: doc.drives, connectors: doc.connectors })}${bearingDependencyKey(doc) ?? ''}`;
 }
 /** What an evaluation of the document reads, as a key. */
 export function evaluationKey(doc: StudioDoc): string {
   const part = evaluatedPart(doc);
-  return `${doc.nodes.map(nodeKey).join('\u0001')}\u0002${JSON.stringify({ ...part, nodes: [] }, shortened)}`;
+  return `${doc.nodes.map(nodeKey).join('\u0001')}\u0002${JSON.stringify({ ...part, nodes: [], shopRows: provenanceOfTree(doc), bearingDependencies: bearingDependencyKey(part) }, shortened)}`;
 }
 function evaluateKept(doc: StudioDoc, evaluate: Evaluate): Promise<EvalResult | null> {
   const key = evaluationKey(doc), have = kept.get(key);

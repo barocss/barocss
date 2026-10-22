@@ -9,10 +9,12 @@ import { frameGeometry, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, 
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
+import { bearingHousingRefProblem } from '../engine/bearingContext';
 
 type Spec = Record<string, string>;
 /** `?` marks an optional field. */
 const SPECS: Record<string, Spec> = {
+  bearing: { row: 'text', shaft: 'shaft-node', step: 'positive-index', against: 'enum:start|end', 'housing?': 'body-node', 'housingRef?': 'housing-ref', 'shaftClass?': 'text', 'housingClass?': 'text' },
   extrude: { sketch: 'sketch', height: 'dim', 'from?': 'dim', 'draft?': 'num' },
   revolve: { sketch: 'sketch', axis: 'enum:x|y', 'origin?': 'dim2', angleDegrees: 'num' },
   sweep: { sketch: 'sketch', path: 'path' },
@@ -42,7 +44,7 @@ const SPECS: Record<string, Spec> = {
   // (FR2, D124: a frame on a skeleton; overrides set members apart.)
   // (FRf, O121: a skeleton several frames follow; a frame on one — or on a sketch's straight edges — names it in `follows`.)
   skeleton: { points: 'points3', segments: 'segments', 'name?': 'text', 'constraints?': 'any' },
-  frame: { 'follows?': 'frame-follows', 'points?': 'points3', 'segments?': 'segments', section: 'member-section', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'mirror?': 'bool', 'up?': 'vec3', 'overrides?': 'frame-overrides', 'corners?': 'frame-corners', 'trims?': 'frame-trims' },
+  frame: { 'follows?': 'frame-follows', 'points?': 'points3', 'segments?': 'frame-segments', 'bends?': 'frame-bends', section: 'member-section', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'mirror?': 'bool', 'up?': 'vec3', 'overrides?': 'frame-overrides', 'corners?': 'frame-corners', 'trims?': 'frame-trims' },
   'frame-member': { section: 'member-section', start: 'dim3', end: 'dim3', 'anchor?': 'enum:centroid|origin|bottom-left|bottom|bottom-right|left|center|right|top-left|top|top-right', 'offset?': 'dim2', 'roll?': 'num', 'up?': 'vec3' },
   'sheet-contour': { path: 'points2', 'plane?': 'plane', side: 'enum:left|right', width: 'dim', thickness: 'dim', bendRadius: 'dim', 'kFactor?': 'num', 'bendTable?': 'any' },
 };
@@ -51,13 +53,14 @@ const MEMBER_SECTIONS: Record<string, Spec> = {
   'rect-tube': { width: 'dim', height: 'dim', wall: 'dim', outerRadius: 'dim', 'innerRadius?': 'dim' },
   'round-tube': { diameter: 'dim', wall: 'dim' },
   angle: { legX: 'dim', legY: 'dim', thickness: 'dim', rootRadius: 'dim', toeRadius: 'dim' },
-  channel: { height: 'dim', width: 'dim', web: 'dim', flange: 'dim', rootRadius: 'dim' },
+  channel: { height: 'dim', width: 'dim', web: 'dim', flange: 'dim', rootRadius: 'dim', 'toeRadius?': 'dim', 'flangeSlope?': 'dim' },
+  'i-beam': { height: 'dim', width: 'dim', web: 'dim', flange: 'dim', rootRadius: 'dim', toeRadius: 'dim', flangeSlope: 'dim' },
   tslot: { size: 'dim', cells: 'enum:1|2', 'openSlots?': 'num', opening: 'dim', lip: 'dim', undercut: 'dim', depth: 'dim', bore: 'dim' },
   sketch: { sketch: 'sketch' },
   // (FRc, O117: a row of the document's section library by its id.)
   library: { id: 'library-row' },
 };
-const MEMBER_SECTION_HELP = 'a section {"kind": "rect-tube" | "round-tube" | "angle" | "channel" | "tslot" | "sketch", …its dimensions} or {"kind": "library", "id"} (a row of the section library)';
+const MEMBER_SECTION_HELP = 'a section {"kind": "rect-tube" | "round-tube" | "angle" | "channel" | "i-beam" | "tslot" | "sketch", …its dimensions} or {"kind": "library", "id"} (a row of the section library)';
 // (The section library's row ids that the node being checked may name: checkNode's.)
 let libraryIds: ReadonlySet<string> = new Set();
 // (FRf2: the placed parts a base frame may follow; null inside a placed part, which follows only its own features.)
@@ -85,7 +88,7 @@ export function checkSectionRow(row: unknown, parameters: Record<string, number>
   const extra = Object.keys(row).find(k => !['id', 'name', 'section', 'source', 'estimate'].includes(k));
   if (extra) return `${id}: no field "${extra}" (id, name, section, source, estimate)`;
   if (row.name !== undefined && typeof row.name !== 'string') return `${id}: name is text`;
-  if (!isObj(row.section) || row.section.kind === 'sketch' || row.section.kind === 'library') return `${id}: section is one by its dimensions (rect-tube, round-tube, angle, channel, tslot)`;
+  if (!isObj(row.section) || row.section.kind === 'sketch' || row.section.kind === 'library') return `${id}: section is one by its dimensions (rect-tube, round-tube, angle, channel, i-beam, tslot)`;
   const why = checkValue(row.section, 'member-section', [], parameters, []);
   if (why) return `${id}: ${why}`;
   const source = typeof row.source === 'string' ? row.source.trim() : '';
@@ -114,6 +117,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   if ('bought' in node && typeof (node as { bought?: unknown }).bought !== 'boolean') return `${kind}: bought is true or false (unset: the BOM's default for its kind).`;
   for (const key of Object.keys(node)) if (key !== 'kind' && !['id', 'rematched', 'sigs', 'held', 'suppressed', 'bought'].includes(key) && !fields.has(key)) return `${kind}: unknown field "${key}" (fields: ${[...fields.keys()].join(', ')}).`;
   const leaves = leafBodies(nodes);
+  if (kind === 'bearing' && node.housing !== undefined && node.housingRef !== undefined) return '[BEARING_HOUSING_REFERENCE] housing and housingRef are mutually exclusive';
   for (const [key, { type, optional }] of fields) {
     const v = node[key];
     if (v === undefined) { if (optional) continue; return `${kind}: "${key}" is required.`; }
@@ -122,6 +126,20 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   }
   // (FRf, O121: a frame follows a skeleton or a sketch, or has its own points and segments; a skeleton's segments name its points.)
   if (kind === 'frame' && node.follows === undefined && (node.points === undefined || node.segments === undefined)) return 'frame: give "points" and "segments", or "follows" {"skeleton": k} | {"sketch": k}.';
+  if (kind === 'frame' && node.points !== undefined && node.segments !== undefined) {
+    const P = (node.points as unknown[]).length, segments = node.segments as unknown[];
+    for (const [k, g] of segments.entries()) {
+      const indices = Array.isArray(g) ? g : [((g as Record<string, unknown>).from), ((g as Record<string, unknown>).to), ...('through' in (g as object) ? [((g as Record<string, unknown>).through)] : [])];
+      if (indices.some(i => (i as number) >= P)) return `frame: segment ${k} names a point it does not have (${P} points).`;
+    }
+    const claimed = new Set<number>();
+    for (const b of (node.bends ?? []) as { point: number; radius: unknown }[]) {
+      if (b.point >= P) return 'frame.bends: a bend point must name an existing point.';
+      const incident = segments.flatMap((g, i) => (Array.isArray(g) ? g.includes(b.point) : (g as { from: number }).from === b.point || (g as { to: number }).to === b.point) ? [i] : []);
+      if (incident.length !== 2 || incident.some(i => claimed.has(i) || !Array.isArray(segments[i]))) return 'frame.bends: each bend needs exactly two unclaimed straight segments.';
+      incident.forEach(i => claimed.add(i));
+    }
+  }
   if (kind === 'skeleton') { const P = (node.points as unknown[]).length, bad = (node.segments as number[][]).findIndex(g => g.some(i => i >= P)); if (bad >= 0) return `skeleton: segment ${bad} names a point it does not have (${P} points).`; }
   // (FRg, O122: its constraints by kind, indices in range; a point bound to a parameter is not solved for.)
   if (kind === 'skeleton' && node.constraints !== undefined) {
@@ -152,6 +170,10 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
   if (type.startsWith('enum:')) return type.slice(5).split('|').includes(String(v)) ? null : `one of ${type.slice(5).split('|').join(', ')}`;
   switch (type) {
     case 'any': return null;
+    case 'housing-ref': return bearingHousingRefProblem(v);
+    case 'positive-index': return typeof v === 'number' && Number.isSafeInteger(v) && v >= 1 ? null : 'a positive safe integer';
+    case 'shaft-node': return typeof v === 'number' && Number.isInteger(v) && nodes[v]?.kind === 'shaft' ? null : 'an existing shaft node index';
+    case 'body-node': return typeof v === 'number' && Number.isInteger(v) && v >= 0 && v < nodes.length && nodes[v].kind !== 'sketch' ? null : 'an existing body node index';
     case 'text': return typeof v === 'string' ? null : 'text';
     case 'num': return typeof v === 'number' && Number.isFinite(v) ? null : 'a number';
     case 'pos': return typeof v === 'number' && v > 0 ? null : 'a positive number';
@@ -177,6 +199,27 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     }
     case 'vec3': return Array.isArray(v) && v.length === 3 && v.every(n => typeof n === 'number' && Number.isFinite(n)) && v.some(n => n !== 0) ? null : 'three numbers [x, y, z], not all 0';
     case 'points3': return Array.isArray(v) && v.length >= 2 && v.length <= 1024 && v.every(p => Array.isArray(p) && p.length === 3 && p.every(dim)) ? null : '2 to 1024 [x, y, z] points';
+    case 'frame-segments': {
+      const index = (x: unknown) => Number.isInteger(x) && (x as number) >= 0;
+      const strictDim = (x: unknown) => dim(x) && (typeof x === 'number' || isObj(x) && Object.keys(x).length === 1);
+      const segment = (g: unknown) => {
+        if (Array.isArray(g)) return g.length === 2 && Array.from(g).every(index);
+        if (!isObj(g) || !index(g.from) || !index(g.to)) return false;
+        if (Object.hasOwn(g, 'through') === Object.hasOwn(g, 'center')) return false;
+        return Object.keys(g).every(k => ['from', 'to', 'through', 'center'].includes(k)) &&
+          (Object.hasOwn(g, 'through') ? index(g.through) : Array.isArray(g.center) && g.center.length === 3 && Array.from(g.center).every(strictDim));
+      };
+      return Array.isArray(v) && v.length >= 1 && v.length <= 256 && Array.from(v).every(segment) ? null : '1 to 256 [from,to], {from,to,center:[x,y,z]} or {from,to,through:point}; no extra fields';
+    }
+    case 'frame-bends': {
+      const entry = (b: unknown) => {
+        if (!isObj(b) || !Number.isInteger(b.point) || (b.point as number) < 0 || !dim(b.radius) || Object.keys(b).some(k => !['point', 'radius'].includes(k))) return false;
+        if (isObj(b.radius) && Object.keys(b.radius).length !== 1) return false;
+        const value = typeof b.radius === 'number' ? b.radius : parameters[(b.radius as { parameter: string }).parameter];
+        return Number.isFinite(value) && value > 0;
+      };
+      return Array.isArray(v) && v.length <= 256 && Array.from(v).every(entry) ? null : 'a list of {point:nonnegative index,radius:positive length or parameter}; no extra fields';
+    }
     case 'segments': return Array.isArray(v) && v.length >= 1 && v.length <= 256 && v.every(g => Array.isArray(g) && g.length === 2 && g.every(i => Number.isInteger(i) && i >= 0)) ? null : '1 to 256 [from, to] point indices';
     case 'frame-follows': {
       // (FRf2, O125: a placed part's sketch by its stable id — the base part's frames only; the revision pinned when linked.)
@@ -204,12 +247,21 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     }
     case 'frame-corners': {
       const kinds = ['mitre', 'butt', 'cope', 'order', 'none'];
-      if (!isObj(v) || Object.keys(v).some(k => !['default', 'multi', 'tee', 'at'].includes(k))) return '{"default"?: "mitre" | "butt" | "none", "multi"?: "order" | "none", "tee"?: "butt" | "cope" | "none", "at"?: [{"point": i, "kind", "through"?, "trim"?, "order"?}]}';
+      const resolved = (x: unknown) => typeof x === 'number' ? x : isObj(x) && typeof x.parameter === 'string' ? parameters[x.parameter] : NaN;
+      const length = (x: unknown, positive = false) => dim(x) && (typeof x === 'number' || isObj(x) && Object.keys(x).length === 1) && Number.isFinite(resolved(x)) && (positive ? resolved(x) > 0 : resolved(x) >= 0);
+      const notch = (x: unknown) => {
+        if (!isObj(x)) return false;
+        if (x.kind === 'holesaw') return Object.keys(x).every(k => ['kind', 'diameter', 'offset'].includes(k)) && length(x.diameter, true) && (x.offset === undefined || dim(x.offset) && Number.isFinite(resolved(x.offset)) && (typeof x.offset === 'number' || isObj(x.offset) && Object.keys(x.offset).length === 1));
+        return x.kind === 'v' && Object.keys(x).every(k => ['kind', 'depth', 'angle'].includes(k)) && length(x.depth, true) && length(x.angle, true) && resolved(x.angle) < 180;
+      };
+      if (!isObj(v) || Object.keys(v).some(k => !['default', 'multi', 'tee', 'at', 'gap'].includes(k))) return 'corners has default, multi, tee, gap and at only';
       if (v.default !== undefined && !['mitre', 'butt', 'none'].includes(String(v.default))) return 'corners.default: mitre, butt or none';
       if (v.multi !== undefined && !['order', 'none'].includes(String(v.multi))) return 'corners.multi: order or none';
       if (v.tee !== undefined && !['butt', 'cope', 'none'].includes(String(v.tee))) return 'corners.tee: butt, cope or none';
-      const entry = (e: unknown) => isObj(e) && Number.isInteger(e.point) && kinds.includes(String(e.kind)) && (e.through === undefined || Number.isInteger(e.through)) && (e.trim === undefined || e.trim === 'face' || e.trim === 'envelope') && (e.order === undefined || (Array.isArray(e.order) && e.order.every(m => Number.isInteger(m)))) && Object.keys(e).every(k => ['point', 'kind', 'through', 'trim', 'order'].includes(k));
-      if (v.at !== undefined && (!Array.isArray(v.at) || !v.at.every(entry))) return 'corners.at: a list of {"point": i, "kind": "mitre" | "butt" | "cope" | "order" | "none", "through"?: member, "trim"?: "face" | "envelope", "order"?: [members]}';
+      if (v.gap !== undefined && !length(v.gap)) return 'corners.gap: a nonnegative finite length or parameter';
+      const entry = (e: unknown) => isObj(e) && Number.isInteger(e.point) && (e.point as number) >= 0 && kinds.includes(String(e.kind)) && (e.through === undefined || Number.isInteger(e.through) && (e.through as number) >= 0) && (e.trim === undefined || e.trim === 'face' || e.trim === 'envelope') && (e.order === undefined || Array.isArray(e.order) && Array.from(e.order).every(m => Number.isInteger(m))) && (e.gap === undefined || length(e.gap)) && (e.notch === undefined || e.kind === 'cope' && notch(e.notch) && resolved(e.gap ?? v.gap ?? 0) === 0) && Object.keys(e).every(k => ['point', 'kind', 'through', 'trim', 'order', 'gap', 'notch'].includes(k));
+      if (v.at !== undefined && (!Array.isArray(v.at) || !Array.from(v.at).every(entry))) return 'corners.at: exact point/kind/through/trim/order/gap/notch records; notch needs cope and zero gap, holesaw diameter/offset in mm or V depth mm/included angle 0–180 exclusive';
+      if (Array.isArray(v.at) && new Set(v.at.map(e => (e as { point: number }).point)).size !== v.at.length) return 'corners.at: each point occurs once';
       return null;
     }
     case 'frame-trims': {

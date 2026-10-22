@@ -12,10 +12,11 @@ const KINDS: Record<InlineSection['kind'], readonly (readonly [string, string])[
   'rect-tube': [['width', 'Width'], ['height', 'Height'], ['wall', 'Wall'], ['outerRadius', 'Outer radius']],
   'round-tube': [['diameter', 'Diameter'], ['wall', 'Wall']],
   angle: [['legX', 'Leg x'], ['legY', 'Leg y'], ['thickness', 'Thickness'], ['rootRadius', 'Root radius'], ['toeRadius', 'Toe radius']],
-  channel: [['height', 'Height'], ['width', 'Width'], ['web', 'Web'], ['flange', 'Flanges'], ['rootRadius', 'Root radius']],
+  channel: [['height', 'Height'], ['width', 'Width'], ['web', 'Web'], ['flange', 'Flange midpoint thickness'], ['rootRadius', 'Root radius'], ['toeRadius', 'Toe radius'], ['flangeSlope', 'Flange slope (rise/run)']],
+  'i-beam': [['height', 'Height'], ['width', 'Width'], ['web', 'Web'], ['flange', 'Flange midpoint thickness'], ['rootRadius', 'Root radius'], ['toeRadius', 'Toe radius'], ['flangeSlope', 'Flange slope (rise/run)']],
   tslot: [['size', 'Size'], ['cells', 'Cells (1 or 2)'], ['openSlots', 'Open slots (one cell)'], ['opening', 'Opening'], ['lip', 'Lip'], ['undercut', 'Undercut'], ['depth', 'Depth'], ['bore', 'Bore']],
 };
-const KIND_LABELS: Record<InlineSection['kind'], string> = { 'rect-tube': 'Rectangular tube', 'round-tube': 'Round tube', angle: 'Angle', channel: 'Channel', tslot: 'T-slot' };
+const KIND_LABELS: Record<InlineSection['kind'], string> = { 'rect-tube': 'Rectangular tube', 'round-tube': 'Round tube', angle: 'Angle', channel: 'Channel', 'i-beam': 'I/H beam', tslot: 'T-slot' };
 /** A row being written: `editing` an existing one keeps its id (a new id is a new row). */
 interface Draft { id: string; name: string; kind: InlineSection['kind']; dims: Record<string, string>; source: string; estimate: boolean; editing: boolean }
 const EMPTY: Draft = { id: '', name: '', kind: 'rect-tube', dims: {}, source: '', estimate: false, editing: false };
@@ -65,7 +66,10 @@ export function FrameSections({ doc, onCommit, onError }: { doc: StudioDoc; onCo
       <label className="kv"><span>Name</span><input aria-label="Section name" value={draft.name} onChange={ev => set({ name: ev.target.value })} /></label>
       <label className="kv"><span>Kind</span><select aria-label="Section kind" value={draft.kind} onChange={ev => set({ kind: ev.target.value as InlineSection['kind'] })}>
         {(Object.keys(KINDS) as InlineSection['kind'][]).map(k => <option key={k} value={k}>{KIND_LABELS[k]}</option>)}</select></label>
-      {KINDS[draft.kind].map(([k, label]) => <label key={k} className="kv"><span>{label}</span><input aria-label={`Section ${k}`} inputMode="decimal" value={draft.dims[k] ?? ''} onChange={ev => set({ dims: { ...draft.dims, [k]: ev.target.value } })} /></label>)}
+      {(draft.kind === 'i-beam' || draft.kind === 'channel') && <div className="muted small" id="section-profile-help">
+        All lengths are in mm. Flange thickness is measured at the overhang midpoint. Slope is rise/run. {draft.kind === 'i-beam' ? 'Enter every field, including 0 for each unused radius and slope.' : 'Leave toe radius or slope blank to use 0.'} Weld beads retain the V1 section limits.
+      </div>}
+      {KINDS[draft.kind].map(([k, label]) => <label key={k} className="kv"><span>{label}</span><input aria-label={`Section ${k}`} inputMode="decimal" aria-describedby={draft.kind === 'i-beam' || draft.kind === 'channel' ? 'section-profile-help' : undefined} value={draft.dims[k] ?? ''} onChange={ev => set({ dims: { ...draft.dims, [k]: ev.target.value } })} /></label>)}
       <label className="kv"><span>Source</span><input aria-label="Section source" placeholder="your shop, a page" value={draft.source} onChange={ev => set({ source: ev.target.value })} /></label>
       <label className="kv"><span>Estimate</span><input type="checkbox" aria-label="Section estimate" checked={draft.estimate} disabled={!!draft.source.trim()} onChange={ev => set({ estimate: ev.target.checked })} /></label>
       <div className="row-actions">

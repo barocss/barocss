@@ -1,3 +1,4 @@
+import { flattenShopView, resolveShopTree } from './shopRows';
 // The studio document: plain data, one node per feature. Every command appends or edits nodes; the
 // worker evaluates it on the kernel's B-rep part model (a node is feature `id`, see part.ts and ids.ts).
 
@@ -11,6 +12,9 @@ import type { DraftSet } from '../chat/drafts';
 import type { Interfaces } from '../team/parts';
 import type { EcrLog } from '../team/ecr';
 import type { BaselineLog } from '../team/baseline';
+import type { BeadOwnership } from '../frames/beadOwnership';
+import type { BearingHousingRef } from './bearingContext';
+export type { BearingHousingRef } from './bearingContext';
 
 export type Axis = 'x' | 'y' | 'z';
 export type Dim = number | { parameter: string };
@@ -28,7 +32,8 @@ export type MemberSection =
   | { kind: 'rect-tube'; width: Dim; height: Dim; wall: Dim; outerRadius: Dim; innerRadius?: Dim }
   | { kind: 'round-tube'; diameter: Dim; wall: Dim }
   | { kind: 'angle'; legX: Dim; legY: Dim; thickness: Dim; rootRadius: Dim; toeRadius: Dim }
-  | { kind: 'channel'; height: Dim; width: Dim; web: Dim; flange: Dim; rootRadius: Dim }
+  | { kind: 'channel'; height: Dim; width: Dim; web: Dim; flange: Dim; rootRadius: Dim; toeRadius?: Dim; flangeSlope?: Dim }
+  | { kind: 'i-beam'; height: Dim; width: Dim; web: Dim; flange: Dim; rootRadius: Dim; toeRadius: Dim; flangeSlope: Dim }
   | { kind: 'tslot'; size: Dim; cells: 1 | 2; openSlots?: number; opening: Dim; lip: Dim; undercut: Dim; depth: Dim; bore: Dim }
   | { kind: 'sketch'; sketch: number }
   /** FRc (O117): a row of the document's section library (`frames.sections`) by its id — resolved before the kernel. */
@@ -41,13 +46,17 @@ export interface FrameSectionRow { id: string; name?: string; section: InlineSec
  * A frame's corners (FR3a, D125; the kernel's `corners`): where exactly two members end at a point, `default` (mitre when
  * left out) finishes them — mitre, butt or none — and `at` sets a point apart (`through`: the member running on at a butt).
  */
+/** FRk5 cutter dimensions; offset is mm along cross(through axis, branch inward). */
+export type FrameNotch = { kind: 'holesaw'; diameter: Dim; offset?: Dim } | { kind: 'v'; depth: Dim; angle: Dim };
 export interface FrameCorners {
+  /** Full joint clearance in mm; a per-point zero overrides this default. */
+  gap?: Dim;
   default?: 'mitre' | 'butt' | 'none';
   /** Three or more members ending at a point (FR3b, D126): an ordered trim (`order`) or left square (`none`, the default). */
   multi?: 'order' | 'none';
   /** Members ending on another's length (T-joints, FR3b): butted on its face, coped to its envelope, or left (`none`, the default). */
   tee?: 'butt' | 'cope' | 'none';
-  at?: { point: number; kind: 'mitre' | 'butt' | 'cope' | 'order' | 'none'; through?: number; trim?: 'face' | 'envelope'; order?: number[] }[];
+  at?: { point: number; kind: 'mitre' | 'butt' | 'cope' | 'order' | 'none'; through?: number; trim?: 'face' | 'envelope'; order?: number[]; gap?: Dim; notch?: FrameNotch }[];
 }
 /** A member's end trimmed to a plane or an earlier body (FR3b, D126; the kernel's `trims`). */
 export type FrameTrim = { member: number; end: 'start' | 'end' } & ({ plane: { origin: [number, number, number]; normal: [number, number, number] } } | { body: BodyRef });
@@ -195,7 +204,7 @@ type ModelNodeBase = SketchNode
    * `follows` (FRf, O121): the frame's points and segments are a skeleton's, or a sketch's straight edges lifted by its
    * plane, read at every evaluation (its own `points`/`segments` then a copy, not read for geometry).
    */
-  | { kind: 'frame'; follows?: FrameFollows; points: [Dim, Dim, Dim][]; segments: [number, number][]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; trims?: FrameTrim[]; estimates?: string[] }
+  | { kind: 'frame'; follows?: FrameFollows; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; trims?: FrameTrim[]; estimates?: string[] }
   | { kind: 'frame-member'; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; up?: [number, number, number]; estimates?: string[] }
   /** An open surface (copied from a direct surface `name`) thickened into a solid along its normal: faceted. */
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
@@ -341,7 +350,7 @@ type ModelNodeBase = SketchNode
    */
   | { kind: 'gusset'; frame: number; point: number; members?: [number, number]; along?: 1 | -1; legs: [number, number]; thickness: number; clip?: number; offset?: number }
   | { kind: 'end-cap'; frame: number; member: number; end: 'start' | 'end'; fit: 'over' | 'inset'; thickness: number }
-  | { kind: 'bearing'; row: string; shaft: number; step: number; against: 'start' | 'end'; housing?: number; shaftClass?: string; housingClass?: string }
+  | { kind: 'bearing'; row: string; shaft: number; step: number; against: 'start' | 'end'; housing?: number; housingRef?: BearingHousingRef; shaftClass?: string; housingClass?: string }
   | { kind: 'key'; shaft: number; keyseat: number; height: number; width?: number; length?: number; ends?: 'round' | 'square'; hub?: number }
   | { kind: 'keyway'; parent: BodyRef; face: string; width: number; depth: number; angle?: number }
   | { kind: 'retaining-ring'; shaft: number; groove: number; thickness: number; outerDiameter: number; /** The user's ring row it is checked against (O139); none: an estimate. */ row?: string }
@@ -416,6 +425,16 @@ export interface MeshRepairRecord { steps: MeshRepairSteps; result: { positions:
 
 /** A drawing's reference underlay (O68): polylines and texts in its plane's coordinates (mm). */
 export interface DocUnderlay { id: string; name: string; plane?: DocPlane; draft?: string; hidden?: boolean; polylines: [number, number][][]; texts: { at: [number, number]; text: string; height: number; angle: number }[]; counts: Record<string, number> }
+/** Saved print display controls. Omitted values remain omitted; they do not author a build direction. */
+export interface PrintPreviewSettings {
+  version: 1;
+  /** Zero-based layer index, independent of the current display's layer count. */
+  layer?: number;
+  /** Millimetres; absent keeps the existing 0.2 mm estimate. */
+  layerMM?: number;
+  supports?: boolean;
+  printed?: boolean;
+}
 export interface StudioDoc {
   format: 'barocss-cad-model';
   /** 3: bodies keyed by stable ids; 2: nodes carry stable ids (`id`, `nextId`); 1: a node was named by its index. */
@@ -428,6 +447,8 @@ export interface StudioDoc {
    * Libraries written for this document (LIB4, D64), by an agent or a person: data, checked on load like any other;
    * an agent's stays marked until a person confirms it (and only then may it be shared with the team).
    */
+  /** Conversation file evidence, separate from strict row source/estimate fields. */
+  rowSources?: { version: 1; rows: import('../chat/rowSources').RowSupply[] };
   libraries?: { library: CadLibraryManifest; authoredBy: 'agent' | 'person'; confirmed?: boolean }[];
   /** The process the part is made by (R6b.7, D67): a process profile's id (injection, fdm, sla, sls, mjf) — its rules' thresholds. */
   process?: string;
@@ -435,6 +456,8 @@ export interface StudioDoc {
   printer?: string;
   /** How it lies in the printer (AM3–AM4): the build direction in the part's coordinates (up from the bed), chosen or given. */
   print?: { direction: [number, number, number] };
+  /** Print display state (G23), separate from the authored build direction. */
+  printPreview?: PrintPreviewSettings;
   /** How it is moulded (IM1, O77; versioned): the pull direction (the mould opens along it), the surface finish (an injection profile's finish id: its least draft) and the halves the person set (IM5). */
   mould?: { version: 1; pull?: [number, number, number]; finish?: string; /** IM5 (O81): the person's halves, by face name — they decide a wall along the pull or a straddling face. */ sides?: Record<string, '+' | '-'> };
   /**
@@ -457,7 +480,7 @@ export interface StudioDoc {
   connectors?: { version: 1; rows: import('@barocss/cad').ConnectorRow[] };
   /** The user's retaining-ring rows (O139): none built in. */
   rings?: { version: 1; rows: import('./rings').StudioRingRow[] };
-  frames?: { version: 1; stock?: FrameStockRow[]; kerfMM?: number; /** FRc (O117): the user's section library — none built in (D122); a frame's section may name a row. */ sections?: FrameSectionRow[]; /** FRd1 (O118): the person's welds, by joint id (frames/welds.ts) — kind, size (mm), all round, the bore welded or not (theirs alone), notes; unset, the rule's. */ welds?: { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; allRound?: boolean; inner?: boolean; notes?: string }[] };
+  frames?: { version: 1; stock?: FrameStockRow[]; kerfMM?: number; /** Shared material accounting, explicitly chosen; no automatic policy migration. */ beadOwnership?: BeadOwnership; /** FRc (O117): the user's section library — none built in (D122); a frame's section may name a row. */ sections?: FrameSectionRow[]; /** FRd1 (O118): the person's welds, by joint id (frames/welds.ts) — kind, size (mm), all round, the bore welded or not (theirs alone), notes; unset, the rule's. */ welds?: { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; allRound?: boolean; inner?: boolean; notes?: string }[] };
   /** Saved sets of parameter values by name (a configuration applies its set). */
   configurations?: Record<string, Record<string, number>>;
   /**
@@ -531,8 +554,9 @@ export interface PartInstance {
 
 /** An instance's part with its placement applied: every body rotated and moved by the part's own features. */
 /** An instance's part as placed at the origin (a sub-assembly's own instances folded in as features). */
-export function placedBase(inst: PartInstance): StudioDoc {
-  const flat = flattenAssembly(inst.doc);
+export function placedBase(inst: PartInstance, parent?: StudioDoc): StudioDoc {
+  const resolved = resolveShopTree(inst.doc, parent, parent ? inst.id : undefined);
+  const flat = flattenAssembly(flattenShopView(resolved));
   return prefixDoc(flat, flat.nodes.length);
 }
 /**
@@ -560,9 +584,9 @@ function mul3(a: readonly number[], b: readonly number[]): number[] {
   return out;
 }
 
-export function placedDoc(inst: PartInstance): StudioDoc {
+export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
   // (A sub-assembly: its own instances folded in as features, see assembly/flatten.ts.)
-  const base = placedBase(inst);
+  const base = placedBase(inst, parent);
   let doc = base;
   for (const ref of Object.values(base.outputs)) {
     let at: BodyRef = ref;
@@ -582,7 +606,7 @@ export function placedDoc(inst: PartInstance): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'drives', 'connectors'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);
@@ -652,7 +676,10 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
     if (!isSolidNode(node) || consumed.has(String(index))) return;
     if (node.kind === 'split') (['negative', 'positive'] as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else if (node.kind === 'import' && (node.solids ?? 1) > 1) Array.from({ length: node.solids! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
-    else if (node.kind === 'frame' && frameSegmentCount(nodes, node) > 1) Array.from({ length: frameSegmentCount(nodes, node) }, (_, k) => k).forEach(k => { const side = `part${k}` as const; if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+    else if (node.kind === 'frame' && (node.bends !== undefined || frameSegmentCount(nodes, node) > 1)) {
+      const geometry = frameGeometry(nodes, node), indices = frameMemberIndices(node, 'segments' in geometry ? geometry.segments : node.segments);
+      indices.forEach(k => { const side = `part${k}` as const; if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+    }
     else if (node.kind === 'mesh' && (node.pieces ?? 1) > 1) Array.from({ length: node.pieces! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else refs.push({ node: index, side: 'solid' });
   });
@@ -872,7 +899,8 @@ export function sectionLabel(s: MemberSection, n: (v: Dim) => string): string {
     case 'rect-tube': return `RHS ${n(s.width)}×${n(s.height)}×${n(s.wall)}`;
     case 'round-tube': return `Tube Ø${n(s.diameter)}×${n(s.wall)}`;
     case 'angle': return `L ${n(s.legX)}×${n(s.legY)}×${n(s.thickness)}`;
-    case 'channel': return `C ${n(s.height)}×${n(s.width)}`;
+    case 'channel': return `C ${n(s.height)}×${n(s.width)}${s.flangeSlope !== undefined && s.flangeSlope !== 0 ? ` · slope ${n(s.flangeSlope)}` : ''}`;
+    case 'i-beam': return `I/H ${n(s.height)}×${n(s.width)}×${n(s.web)}×${n(s.flange)} · slope ${n(s.flangeSlope)}`;
     case 'tslot': return `T-slot ${n(s.size)}${s.cells === 2 ? `×${typeof s.size === 'number' ? fmt(2 * s.size) : '2a'}` : ''}`;
     case 'sketch': return `sketch ${s.sketch + 1}`;
     case 'library': return s.id;
@@ -886,13 +914,18 @@ function memberLength(node: Extract<ModelNode, { kind: 'frame-member' }>): strin
   return `${fmt(Math.hypot(d - a, e - b, f - c))} mm`;
 }
 
+/** FRk4: authored segment indices stay stable when two straight runs form one tangent bend. */
+export type ModelFrameSegment = [number, number] | { from: number; to: number; through: number } | { from: number; to: number; center: [Dim, Dim, Dim] };
+export interface ModelFrameBend { point: number; radius: Dim }
+export const frameSegmentEnds = (segment: ModelFrameSegment): [number, number] => Array.isArray(segment) ? segment : [segment.from, segment.to];
+
 type FrameNode = Extract<ModelNode, { kind: 'frame' }>;
 /**
  * FRf (O121): a frame's points and segments — its own, or those it follows: a skeleton's, or a sketch's straight edges
  * (a rectangle's four, a polygon's, an outline of lines) lifted by the sketch's plane, its parameters' values read now.
  * A source that is not there, not a skeleton or sketch, curved, or a segment naming no point: refused, typed.
  */
-export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, parameters: Readonly<Record<string, number>> = {}, parts?: readonly PartInstance[] | null): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: string; error: string } {
+export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, parameters: Readonly<Record<string, number>> = {}, parts?: readonly PartInstance[] | null): { points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[] } | { code: string; error: string } {
   if (!node.follows) return { points: node.points, segments: node.segments };
   if ('part' in node.follows) return partSketchGeometry(node.follows, parts);
   const at = followsIndex(node.follows)!, src = nodes[at];
@@ -937,4 +970,14 @@ function sketchEdges(src: Extract<ModelNode, { kind: 'sketch' }>, at: number, pa
   return { points, segments: points.map((_, k) => [k, (k + 1) % points.length] as [number, number]) };
 }
 /** How many members a frame has (its geometry's segments; refused, its own copy's). */
-export function frameSegmentCount(nodes: readonly ModelNode[], node: FrameNode): number { const g = frameGeometry(nodes, node); return 'segments' in g ? g.segments.length : node.segments.length; }
+export function frameMemberIndices(node: FrameNode, segments: readonly ModelFrameSegment[] = node.segments): number[] {
+  const used = new Set<number>(), retained = new Set(segments.map((_, i) => i));
+  for (const bend of node.bends ?? []) {
+    const incident = segments.flatMap((g, i) => frameSegmentEnds(g).includes(bend.point) ? [i] : []);
+    // Invalid data belongs to Kernel's typed refusal; counting must not repair or reinterpret it.
+    if (incident.length !== 2 || incident.some(i => used.has(i) || !Array.isArray(segments[i]))) return segments.map((_, i) => i);
+    incident.forEach(i => used.add(i)); retained.delete(incident[1]);
+  }
+  return [...retained].sort((a, b) => a - b);
+}
+export function frameSegmentCount(nodes: readonly ModelNode[], node: FrameNode): number { const g = frameGeometry(nodes, node); return frameMemberIndices(node, 'segments' in g ? g.segments : node.segments).length; }

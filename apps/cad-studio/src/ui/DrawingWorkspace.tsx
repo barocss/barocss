@@ -3,6 +3,8 @@
 // points, or one straight edge, then where the dimension line goes), Diameter and Radius (a circle
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
+import { changeDrawingScope, drawingDocument, drawingSource, drawingScopeOf, type DrawingScope } from '@barocss/cad-model/drawing/scope';
+import { canonicalOf } from '@barocss/cad-model/team/revision';
 import { followedStale, staleText } from '@barocss/cad-model/frames/skeleton';
 import { elementsOfBodies, withElements } from '@barocss/cad-model/drawing/elementCallouts';
 import { fitMiss, withFit } from '@barocss/cad-model/drawing/fits';
@@ -66,15 +68,42 @@ function withTable(settings: DrawingSettings, from: string, on: boolean): Drawin
   return tables.length ? { ...base, tables } : base;
 }
 
-export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onChange, onToast }: {
+export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, onChange: sourceOnChange, onToast }: {
   engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string;
   onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
 }) {
+  const scopeRead = (() => {
+    try { return { scope: drawingScopeOf(settings), error: null }; }
+    catch (cause) { return { scope: null, error: cause instanceof Error ? cause.message : String(cause) }; }
+  })();
+  // This placeholder is only for disabled controls; an invalid persisted scope never reaches the engine.
+  const scope: DrawingScope = scopeRead.scope ?? { kind: 'part' };
+  const scopeKey = JSON.stringify([scopeRead.scope, scopeRead.error]), sourceKey = canonicalOf(sourceDoc);
+  const onChange = (next: DrawingSettings) => {
+    if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return; }
+    sourceOnChange({ ...next, scope: next.scope ?? scopeRead.scope });
+  };
+  const scoped = useMemo(() => {
+    try { return { doc: drawingDocument(sourceDoc, settings), authored: drawingSource(sourceDoc, settings), error: null }; }
+    catch (cause) { return { doc: { ...sourceDoc, nodes: [], instances: [] } as StudioDoc, authored: null, error: cause instanceof Error ? cause.message : String(cause) }; }
+  }, [sourceKey, scopeKey]);
+  const doc = scoped.doc, model = doc;
+  const currentModel = useRef(model); currentModel.current = model;
+  const [bodyRead, setBodyRead] = useState<{ doc: StudioDoc; bodies: readonly BodyResult[] } | null>(null);
+  const bodyRevision = useRef(1);
+  const bodies = scope.kind === 'assembly' ? sourceBodies : bodyRead && bodyRead.doc === doc ? bodyRead.bodies : undefined;
+  useEffect(() => {
+    if (scope.kind !== 'part' || scoped.error) return;
+    let live = true;
+    engine.part(doc, bodyRevision.current++, 'read').then(r => { if (live) setBodyRead(r.ok ? { doc, bodies: r.bodies } : null); }, () => { if (live) setBodyRead(null); });
+    return () => { live = false; };
+  }, [engine, doc, scoped.error, scope.kind]);
   // The views as projected, with the front side they were projected for (R14.3b): only those of the drawing's side are used.
-  const [projected, setProjected] = useState<{ views: DrawingViews; side: string } | null>(null);
-  const views = projected && projected.side === (settings.orientation ?? 'y-') ? projected.views : null;
+  const [projected, setProjected] = useState<{ views: DrawingViews; side: string; model: StudioDoc } | null>(null);
+  const views = projected && projected.model === model && projected.side === (settings.orientation ?? 'y-') ? projected.views : null;
   /** The sections as last cut (O148 X1; each with why it could not be cut). */
-  const [cutsMade, setCutsMade] = useState<SectionCut[] | null>(null);
+  const [rawCutsMade, setCutsMade] = useState<SectionCut[] | null>(null);
+  const cutsMade = projected?.model === model ? rawCutsMade : null;
   const [sectionY, setSectionY] = useState<string | null>(null);
   const [sectionAt, setSectionAt] = useState<{ id: string; text: string } | null>(null);
   const [dxfSection, setDxfSection] = useState<string | null>(null);
@@ -103,24 +132,27 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   }, [typeNote, shownNote]);
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
   const svg = useRef<SVGSVGElement>(null);
+  useEffect(() => {
+    setPending(null); setSelected(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
+  }, [scopeKey]);
 
   // Project the part (and its shown instances) whenever they change; of the drawing settings only tangent edges change the views.
-  const model = useMemo(() => doc, [doc.nodes, doc.parameters, JSON.stringify((doc.instances ?? []).map(i => [i.id, i.hidden, i.position, i.rotation, i.doc.nodes.length]))]);
   useEffect(() => {
+    if (scoped.error) { setBusy(false); setEmpty(false); setError(scoped.error); setProjected(null); setCutsMade(null); return; }
     let live = true; setBusy(true);
     const side = settings.orientation ?? 'y-';
     engine.drawing(model, { tangentEdges: !!settings.tangent, ...(sectionList.length ? { sections: sectionList } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}) }).then(r => {
       if (!live) return;
       setBusy(false);
       setEmpty(!r.ok && !!r.empty);
-      if (r.ok) { setProjected({ views: r.views, side }); setCutsMade(r.sections ?? null); setError(null); } else { setProjected(null); setCutsMade(null); setError(r.error); }
+      if (r.ok) { setProjected({ views: r.views, side, model }); setCutsMade(r.sections ?? null); setError(null); } else { setProjected(null); setCutsMade(null); setError(r.error); }
     });
     return () => { live = false; };
-  }, [engine, model, settings.tangent, sectionKey, settings.orientation]);
+  }, [engine, model, scoped.error, settings.tangent, sectionKey, settings.orientation]);
 
   const title = settings.title ?? fileName;
   // (The sections the settings list, as cut for them: one whose letter, view or place changed is cut again first.)
-  const cuts = useMemo(() => sheetSections((cutsMade ?? []).filter(c => sectionList.some(x => x.id === c.id && x.view === c.view && x.at === c.at))), [cutsMade, sectionKey]);
+  const cuts = useMemo(() => sheetSections((projected?.model === model ? cutsMade ?? [] : []).filter(c => sectionList.some(x => x.id === c.id && x.view === c.view && x.at === c.at))), [cutsMade, sectionKey, projected, model]);
   const sectionA = sectionList.find(x => x.id === 'A' && x.view === 'front'), cutA = cutsMade?.find(c => c.id === 'A' && c.view === 'front');
   const layout = useMemo(() => views && layoutSheet(views, settings, sectionExtents(settings, cuts)), [views, settings, cuts]);
   // Diameter dimensions on a hole read as its callout (count, size or thread, depth, counterbore or countersink).
@@ -130,18 +162,19 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const callout = useMemo(() => withElements(doc, withFit(doc, (edge: string) => holeCallout(doc.nodes, edge)), elements), [doc.nodes, doc.fits, elements]);
   const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
   // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
-  const followedChanged = useMemo(() => followedStale(doc).map(staleText), [doc.nodes, doc.instances]);
+  const followedChanged = useMemo(() => scoped.authored ? followedStale(scoped.authored).map(staleText) : [], [scoped.authored]);
   const threads = useMemo(() => threadsOf(doc.nodes), [doc.nodes]);
   // (O147 B2: the BOM, when the BOM table or the balloons read it — every document evaluated in the engine worker.)
   const wantsBom = !!settings.balloons || !!settings.tables?.some(x => x.from === 'bom');
-  const [bom, setBom] = useState<Bom | null>(null);
+  const [bomRead, setBomRead] = useState<{ doc: StudioDoc; bom: Bom } | null>(null);
+  const bom = bomRead && bomRead.doc === doc ? bomRead.bom : null;
   const bomRevision = useRef(1);
   useEffect(() => {
-    if (!wantsBom) { setBom(null); return; }
+    if (!wantsBom || scoped.error) { setBomRead(null); return; }
     let live = true;
-    const t = setTimeout(() => { bomPanelData(doc, d => engine.part(d, bomRevision.current++, 'read'), title).then(d => { if (live) setBom(d.bom); }, () => { if (live) setBom(null); }); }, 200);
+    const t = setTimeout(() => { bomPanelData(doc, d => engine.part(d, bomRevision.current++, 'read'), title).then(d => { if (live) setBomRead({ doc, bom: d.bom }); }, () => { if (live) setBomRead(null); }); }, 200);
     return () => { live = false; clearTimeout(t); };
-  }, [wantsBom, doc.nodes, doc.instances, title]);
+  }, [wantsBom, doc, title, scoped.error]);
   // (Each sourced table's content once a document (O49): the bend table from the bodies' flat patterns.)
   const sourced = useMemo(() => new Map((settings.tables ?? []).filter(x => x.from).map(x => [x.id, tableContent(x, { doc, ...(bodies ? { bodies } : {}), ...(bom ? { bom } : {}) })])), [settings.tables, doc, bodies, bom]);
   const tableContentOf = useCallback((x: DrawingTable) => sourced.get(x.id) ?? { error: 'its source was not run for this sheet' }, [sourced]);
@@ -163,10 +196,10 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     const est = r.accepted.filter(x => x.estimate).length;
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
   };
-  const fixIssue = (x: DrawingIssue) => { if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout, elements, ...(cuts.length ? { sections: cuts } : {}) }, x.fix)); };
+  const fixIssue = (x: DrawingIssue) => { if (scope.kind === 'assembly' && x.fix?.kind === 'auto-dimension') return; if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout, elements, ...(cuts.length ? { sections: cuts } : {}) }, x.fix)); };
   const fixEvery = () => {
     if (!views) return;
-    const r = fixAll({ views, settings, callout, elements, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
+    const r = fixAll({ views, settings, callout, elements, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) }, 40, fix => scope.kind !== 'assembly' || fix.kind !== 'auto-dimension');
     onChange(r.settings);
     onToast({ title: `${r.applied.length} fix${r.applied.length === 1 ? '' : 'es'} applied`, hint: r.left.length ? `${r.left.length} issue${r.left.length === 1 ? '' : 's'} left: ${r.left[0].message}` : 'The drawing has no issues.', detail: r.left.slice(1).map(x => x.message).join('\n') });
   };
@@ -388,13 +421,14 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
    * give a clean drawing, then Auto-dimension; its own earlier dimensions replaced, those placed by hand kept.
    */
   const autoDimension = async () => {
-    if (!views) return;
+    if (!views || scope.kind === 'assembly') return;
     // The front's side by information (R14.3b), when nothing placed by hand ties it: the part projected for it first.
     let base = { views, settings, sections: cuts };
     const pick = frontByInformation(views, settings);
     if (pick) {
       const ts = turnSections(settings, pick.orientation), list = Array.isArray(ts) ? ts : [];
       const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(list.length ? { sections: list } : {}), ...(pick.orientation !== 'y-' ? { orientation: pick.orientation as 'x+' } : {}) });
+      if (currentModel.current !== model) return;
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, sections: sheetSections(r.sections ?? []) };
     }
@@ -410,6 +444,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const turnTo = async (o: Orientation) => {
     if (!views || o === (settings.orientation ?? 'y-')) return;
     const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(o !== 'y-' ? { orientation: o as 'x+' } : {}) });
+    if (currentModel.current !== model) return;
     if (!r.ok) { onToast({ title: 'Could not turn the drawing', hint: r.error, detail: '' }); return; }
     const t = reorient(views, r.views, settings, o);
     if (!t.ok) { onToast({ title: 'The drawing was not turned', hint: t.message, detail: t.code === 'ORIENTATION_REMAP_FAILED' ? t.failed.map(f => `${f.dim}: ${f.was} → ${f.now}`).join('\n') : '' }); return; }
@@ -506,6 +541,20 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
 
       <aside className="card dw-panel" aria-label="Drawing settings">
         <div className="card-title">SHEET {busy && views && <span className="muted">updating…</span>}</div>
+        <label className="field"><span>Scope</span><select aria-label="Drawing scope" disabled={!!scopeRead.error} value={scopeRead.error ? 'invalid' : scope.kind === 'assembly' ? 'assembly' : scope.part ? `part:${scope.part}` : 'part'} onChange={e => {
+          const value = e.target.value;
+          try {
+            const next = changeDrawingScope(settings, value === 'assembly' ? { kind: 'assembly' } : value === 'part' ? { kind: 'part' } : { kind: 'part', part: value.slice(5) });
+            onChange(next); setPending(null); setSelected(null); setHover(null); setDrag(null);
+          } catch (cause) { onToast({ title: 'Drawing scope unchanged', hint: cause instanceof Error ? cause.message : String(cause), detail: '' }); }
+        }}>
+          <option value="part">Part: base</option>
+          {scopeRead.error && <option value="invalid">Invalid saved scope</option>}
+          {scope.kind === 'part' && scope.part && !sourceDoc.instances?.some(i => i.id === scope.part) && <option value={`part:${scope.part}`}>Missing part: {scope.part}</option>}
+          {(sourceDoc.instances ?? []).map(i => <option key={i.id} value={`part:${i.id}`}>Part: {i.id}</option>)}
+          <option value="assembly">Assembly</option>
+        </select></label>
+        {scope.kind === 'assembly' && <div className="empty">Auto-dimension is available for a part scope. Assembly scope keeps its BOM table and balloons.</div>}
         <label className="field"><span>Size</span><select aria-label="Sheet size" value={settings.sheet} onChange={e => onChange({ ...settings, sheet: e.target.value as 'A4' })}>
           <option value="A4">A4 landscape</option><option value="A3">A3 landscape</option></select></label>
         <label className="field"><span>Scale</span><select aria-label="Scale" value={settings.scale ?? 'auto'} onChange={e => { const v = e.target.value; const rest = { ...settings }; delete rest.scale; onChange(v === 'auto' ? rest : { ...rest, scale: Number(v) }); }}>
@@ -577,12 +626,12 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
         {layout && !layout.fits && <div className="empty" style={{ color: 'var(--warn)' }}>The views do not fit the sheet at {scaleLabel(layout.scale)}. Pick a smaller scale or a larger sheet.</div>}
 
         <div className="card-title" style={{ marginTop: 8 }}>ISSUES <span className="muted" aria-label="Issue count">{issues.length}</span>
-          {issues.some(x => x.fix) && <button className="ghost small" onClick={fixEvery} aria-label="Fix all issues" data-tip="Fix all" data-tip-desc="Every fix the list offers, one at a time, the sheet checked again after each">Fix all</button>}</div>
+          {issues.some(x => x.fix) && <button className="ghost small" disabled={!issues.some(x => x.fix && (scope.kind !== 'assembly' || x.fix.kind !== 'auto-dimension'))} onClick={fixEvery} aria-label="Fix all issues" data-tip="Fix all" data-tip-desc="Available fixes, one at a time; assembly scope excludes automatic part dimensions">Fix all</button>}</div>
         <div className="dw-issues" aria-label="Drawing issues">
           {issues.map((x, k) => <div key={k} className={'dw-issue ' + x.severity} role="button" tabIndex={0} title={x.code}
             onClick={() => { const d = x.dims?.[0]; if (d) { setSelected(d); setTool('select'); } }}>
             <Icon name={x.severity === 'error' ? 'error' : 'warning'} small /><span>{x.message}</span>
-            {x.fix && <button className="ghost tiny" aria-label={`Fix: ${x.message}`} onClick={e => { e.stopPropagation(); fixIssue(x); }}>{x.fix.kind === 'auto-dimension' ? 'Auto' : x.fix.kind === 'add-section' ? `Add ${x.fix.id}–${x.fix.id}` : x.fix.kind === 'remove' ? 'Remove' : x.fix.kind === 'accept' ? 'Accept' : x.fix.kind === 'scale' ? (x.fix.sheet ? 'A3' : x.fix.scale !== undefined ? (x.fix.scale >= 1 ? `${x.fix.scale}:1` : `1:${Math.round(1 / x.fix.scale)}`) : 'Auto scale') : 'Move'}</button>}
+            {x.fix && <button disabled={scope.kind === 'assembly' && x.fix.kind === 'auto-dimension'} className="ghost tiny" aria-label={`Fix: ${x.message}`} onClick={e => { e.stopPropagation(); fixIssue(x); }}>{x.fix.kind === 'auto-dimension' ? 'Auto' : x.fix.kind === 'add-section' ? `Add ${x.fix.id}–${x.fix.id}` : x.fix.kind === 'remove' ? 'Remove' : x.fix.kind === 'accept' ? 'Accept' : x.fix.kind === 'scale' ? (x.fix.sheet ? 'A3' : x.fix.scale !== undefined ? (x.fix.scale >= 1 ? `${x.fix.scale}:1` : `1:${Math.round(1 / x.fix.scale)}`) : 'Auto scale') : 'Move'}</button>}
           </div>)}
           {!issues.length && views && <div className="empty">No issues: nothing overlaps or is lost, and every hole, step and overall size is given.</div>}
         </div>
@@ -600,7 +649,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
         </div>
 
         <div className="card-title" style={{ marginTop: 8 }}>DIMENSIONS <span className="muted">{settings.dimensions.length}</span>
-          <button className="ghost small" disabled={!views || !layout} onClick={() => void autoDimension()} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Views laid out with room, a scale and sheet that read cleanly, then overall sizes, steps, hole positions and callouts: replaces its own earlier ones, keeps yours">Auto</button></div>
+          <button className="ghost small" disabled={!views || !layout || scope.kind === 'assembly'} onClick={() => void autoDimension()} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Views laid out with room, a scale and sheet that read cleanly, then overall sizes, steps, hole positions and callouts: replaces its own earlier ones, keeps yours">Auto</button></div>
         <div className="dw-dims">
           {sheet?.dimensions.map(r => <div key={r.dim.id} role="button" tabIndex={0} className={'dw-dim' + (selected === r.dim.id ? ' sel' : '') + (r.ok ? '' : ' lost')} title={r.ok ? undefined : r.reason}
             onClick={() => { setSelected(r.dim.id); setTool('select'); }}>

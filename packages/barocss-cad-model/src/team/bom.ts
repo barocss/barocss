@@ -1,3 +1,4 @@
+import { resolveShopTree, provenanceOfTree, type ShopRowProvenance } from '../engine/shopRows';
 // The BOM made visible (O147, B1): what the studio's BOM panel and its purchase list show — S1's BOM (team/assembly.ts:
 // the placed parts' lines and the bought elements' lines, merged by kind, size and row over copies), a part with no
 // placed parts as its own line, and the made elements too (so a person can mark one bought). The bought/made override is
@@ -7,21 +8,36 @@ import type { Evaluate } from '../chat/tools';
 import { elementLines } from '../engine/elements';
 import { bomViewOf, deriveBom, type Bom, type BomLine, type BomView } from './bomCore';
 import type { EvalResult } from '../engine/evaluate';
+import { bearingHousingRef } from '../engine/bearingContext';
 
 /** A made element's line (merged as the bought ones are): what the panel offers to mark bought. */
 export interface MadeLine { item: string; parts: string[]; qty: number; kind: string; size: string; row: string | null; override: boolean }
-export interface BomPanelData { view: BomView; bom: Bom; made: MadeLine[]; /** A part with no placed parts: its own line. */ single: boolean }
+export interface BomPanelData { view: BomView; bom: Bom; made: MadeLine[]; /** A part with no placed parts: its own line. */ single: boolean; shopRows?: readonly { part: string; rows: readonly ShopRowProvenance[] }[] }
 
 const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 
 /** The panel's data: the BOM, and the made elements by line (each document evaluated once, then `bomPanelDataOf`). */
 export async function bomPanelData(doc: StudioDoc, evaluate: Evaluate, name = 'this part'): Promise<BomPanelData> {
+  doc = resolveShopTree(doc);
   const results = new Map<StudioDoc, EvalResult | null>();
-  for (const d of [doc, ...(doc.instances ?? []).map(i => i.doc)]) if (!results.has(d)) results.set(d, await evaluate(d));
+  const take = async (d: StudioDoc): Promise<void> => {
+    if (results.has(d)) return;
+    const result = await evaluate(d);
+    if (!result?.ok && d.nodes.some(n => !n.suppressed && bearingHousingRef(n))) throw new Error(`[BEARING_HOUSING_EVALUATION] ${result ? JSON.stringify(result.error) : 'no evaluation result'}`);
+    results.set(d, result); for (const i of d.instances ?? []) await take(i.doc);
+  };
+  await take(doc);
   return bomPanelDataOf(doc, d => results.get(d) ?? null, name);
 }
 /** The panel's data from evaluations given at once (the chat's drawings: synchronous). */
 export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResult | null, name = 'this part'): BomPanelData {
+  const check = (d: StudioDoc): void => {
+    if (d.nodes.some(n => !n.suppressed && bearingHousingRef(n))) { const result = evaluate(d); if (!result?.ok) throw new Error(`[BEARING_HOUSING_EVALUATION] ${result ? JSON.stringify(result.error) : 'no evaluation result'}`); }
+    for (const i of d.instances ?? []) check(i.doc);
+  };
+  const shopRows = provenanceOfTree(doc);
+  doc = resolveShopTree(doc);
+  check(doc);
   const view = bomViewOf(doc, evaluate), single = !(doc.instances ?? []).length;
   const docs: [string, StudioDoc][] = [['base', doc], ...(doc.instances ?? []).map(i => [i.id, i.doc] as [string, StudioDoc])];
   const made: MadeLine[] = [];
@@ -38,7 +54,7 @@ export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => Eva
   }
   // (A part with no placed parts: itself, one, as a line.)
   if (single) view.parts.unshift({ id: 'base', name, material: null, massG: r6(baseMass), library: null, shape: '' });
-  return { view, bom: deriveBom(view), made, single };
+  return { view, bom: deriveBom(view), made, single, ...(shopRows.some(p => p.rows.length) ? { shopRows } : {}) };
 }
 
 /** The document with the bought override set on each `part:feature` (null: cleared, the default for its kind): one change. */

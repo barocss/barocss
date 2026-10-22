@@ -195,6 +195,11 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .views button { height: 22px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); cursor: pointer; font-size: 11px; display: inline-flex; align-items: center; }
 .views button:hover { background: #34363b; }
 .views button.on { background: var(--accent); color: var(--accent-ink); }
+.cad-display-control { display: inline-flex; align-items: center; padding: 0 3px; }
+.cad-display-control select { max-width: 164px; height: 22px; padding: 0 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-solid); color: var(--text-2); font: 400 11px var(--sans); }
+.cad-display-control select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cad-display-control select:disabled { opacity: 0.65; cursor: not-allowed; }
+.cad-display-status { position: absolute; right: 0; bottom: 34px; width: max-content; max-width: min(480px, calc(100vw - 90px)); padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-solid); color: var(--text-2); font-size: 11px; line-height: 1.4; }
 
 .palette-backdrop { position: absolute; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.25); }
 .palette { position: absolute; left: 50%; top: 18vh; transform: translateX(-50%); width: 520px; padding: 6px; }

@@ -1,0 +1,2540 @@
+# Current state has one writer: CAD Coordinator. Dated notes retain historical evidence.
+schema_version: 1
+work_id: cad-review-continuation-20261022
+artifact_type: current-handover-state
+status: paused_owner_handback_complete_with_verification_gaps
+owner_role: CAD Coordinator
+source_request: >-
+  Continue assigning and managing the three existing Works. On each response, inspect evidence, decide,
+  reply, relay dependencies, and show the result and next instruction.
+last_updated: '2026-10-23'
+snapshot_time_zone: Asia/Seoul
+code:
+  baseline: c3ae0d5de60ecb250350b597552fb0203b41d43e
+  source_handover: notes/coordinator-handover-2026-10-22.md
+  source_handover_commit: 765d934cb6e7d31f2964f3be98063d22256baa57
+  remote_develop_observed: c3ae0d5de60ecb250350b597552fb0203b41d43e
+  merge_pr: https://github.com/barocss/barocss/pull/2185
+  release: not_assessed
+  current_product_head: d47785c4263385e6b44ae7292f3321a6b8c65b01
+  owner_roadmap: notes/owner-roadmap-2026-10-22.md
+  final_check_commit: 2443211888b5bc5d219fa3075dfea444bd6d5d4a
+  handback: notes/codex-handback-2026-10-23.md
+  post_window_documentation_merge: da985772f6d2c9e3dafce4f696cebfaf832d9471
+verification:
+  last_full:
+    commit: 9fec9950c11a76d59e783a634303848a5bdbed89
+    provenance: source_handover
+    results:
+      model: 780/780
+      studio: 211/211
+      gpu: 84/84
+      browser_flow: 264/264
+    rerun_in_this_continuation: false
+  baseline_window:
+    commit: c3ae0d5de60ecb250350b597552fb0203b41d43e
+    status: partial_baseline_passed_superseded_by_integrated_window
+    receipt: evidence/c3ae0d5de60ecb250350b597552fb0203b41d43e/coordinator-baseline.json
+    passed:
+      - dependencies
+      - cad-build
+      - gpu-build
+      - gpu-unit-84-of-84
+      - handover-data-and-links
+      - model-suite-801-of-801
+      - model-types
+      - studio-types
+      - model-lint-0-errors-17-existing-warnings
+      - gpu-lint
+      - kernel-lint
+    interrupted:
+      - model-suite
+    not_run:
+      - studio-suite
+      - full-browser-flow
+    next: >-
+      Retain historical baseline only; use66235 resumed window and explicitperSHA receipts.
+      Continueactual A9 consumer andG21 browser qualification.
+    bounded_receipt: evidence/c3ae0d5de60ecb250350b597552fb0203b41d43e/coordinator-baseline-bounded.json
+  browser_support: inherited_only
+  publication: not_requested
+  integration_window:
+    commit: a0010e447822a691b9fae00d8e7aa5ea23d92ef5
+    status: failed_four_studio_integration_controls
+    worktree: /Users/user/.codex/worktrees/cad-window-verify-20261022/barocss
+    runner: /tmp/cad-coordinator-window-resume-20261022.py
+    runner_pid: 31288
+    runner_state: exited1
+    current_check: cad-studio-suite
+    live_receipt: /tmp/cad-window-a0010e447-resume-20261022/receipt.json
+    prior_first_failure_receipt: evidence/30f7ca2bdcd500b2bc063a5b5a8860c84a989533/window.json
+    source_equivalence: Production source and package/lock files unchanged30f7..a001
+    boundary: >-
+      Only failed unknown guard target and remaining Studio/types/lint/browser rerun. Previous
+      fullModel871/872 and Kernel42/GPU167/consumer3 belong to30f7; no new fullModel count.
+    results:
+      model_guard_target: 3/3
+      studio_full: 211/215;4failures
+    not_run:
+      - remaining package types/lint
+      - full browser flow
+      - full Model not repeated; prior871/872 at30f7
+      - FRk5/GPU095 excluded
+    receipt: evidence/a0010e447822a691b9fae00d8e7aa5ea23d92ef5/window.json
+    failures:
+      - test: 91
+        owner: model
+        detail: >-
+          parallel-channel legacy name now includes slope0; restore omitted/literal0 label, retain taper
+          metadata
+      - test: 92
+        owner: model
+        detail: i-beam now supported; missing-dimension refusal replaces obsolete unsupported-kind expectation
+      - test: 95
+        owner: model
+        detail: invalid segments still refused; error text changed with curve schema
+      - test: 183
+        owner: gpu
+        detail: >-
+          sectionedInstances now returns sourceBodies/Faces/Edges; preserve legacy geometry and validate
+          additive identity metadata
+    resume_policy: >-
+      Deferred to the next functional adoption milestone by latest owner instruction. Preserve all
+      failures and unrun checks; no aggregate runner is active.
+  current_head_small_checks:
+    commit: 6b3b98aae743aa5e3de2f61aaa3cf2646b820acf
+    receipt: evidence/6b3b98aae743aa5e3de2f61aaa3cf2646b820acf/focused.json
+    results:
+      model_batch_freshness_wire: 18/18
+      gpu_runner_contract: 8/8
+    boundary: >-
+      Only focused integration checks; no full-suite, types, browser, benchmark or release result is
+      implied.
+  gpu_lane_progress:
+    software_commit: 2c144fa12fcae562ca91848aea9c36e4a37b3c16
+    timing_commit: 8198542725fec4e4cf8d15f0d8b7900e6ca1b880
+    evidence_commit: a53456c8215459a53f40f81f7326c1815815ad8e
+    local_evidence_merge: b960e21299c5a161e9904df0fa16c01f55496630
+    receipt_repo_relative: packages/barocss-gpu/evidence/8198542725fec4e4cf8d15f0d8b7900e6ca1b880/g20-2-qualification.json
+    state: bounded_native_qualification_and_integrated_WebGPU_DPR1_fullflow_accepted
+    results:
+      unit: 99/99 at2c
+      consumer: 3/3 at2c
+      browser: 21/21 at2c
+      renderer_DPR_flows: 36/36 at2c
+      new_timing: 3/3 valid at819;GPUmedian3.23,min3.20,max3.37ms/submit;allLOADED
+      merged_runner_helpers: 11/11 at3d7
+    raw_hashes_verified: 72
+    limits: >-
+      Original negative triple rejected; f3 false-reject retained; new819 three-run set separate. Old2c
+      counts not relabeled819. Headless realAppleMetal,SwiftShader andbrowserDPR evidence only;
+      physical/nativeWebGL2/manual limits remain.
+    integration:
+      commit: 66235ce222ba30d024de85f91fa77e90b19b3005
+      full_browser: 265/265
+      receipt: evidence/66235ce222ba30d024de85f91fa77e90b19b3005/window.json
+      limits: >-
+        HeadlessWebGPU DPR1 oncoordinator;native2c dual-rendererDPRmatrixand819timingretainownSHA.
+        Notnewfullpackagesuite/physicalhardwareproof.
+  robot_refresh:
+    commit: 24faaa30a82389c86b2b1febec49644ef951143b
+    receipt: evidence/24faaa30a82389c86b2b1febec49644ef951143b/robot-refresh-focused.json
+    result: 14/14 focused integration passed; full window pending
+  previous_integration_window:
+    commit: 8ce8d8b6b04b7c6e94a9ae11fc19fe515bf35d3c
+    status: failed
+    worktree: /Users/user/.codex/worktrees/cad-window-verify-20261022/barocss
+    runner_pid: 38056
+    live_receipt: /tmp/cad-window-8ce8d8b6-20261022/receipt.json
+    runner: /tmp/cad-window-8ce8d8b6-20261022/run.py
+    note: >-
+      Own dependencies/dist; source remains unchanged while tests/flow run. Excludes the later M2
+      adoption.
+    receipt: evidence/8ce8d8b6b04b7c6e94a9ae11fc19fe515bf35d3c/window.json
+    results:
+      sweep: 2/2
+      model_batch: 6/6
+      gpu_unit: 99/99
+      gpu_consumer: 3/3
+      model: 805/807; 2 frozen robot export failures
+    not_run:
+      - studio-suite
+      - remaining types/lint
+      - full-browser-flow
+    diagnosis:
+      state: cause_isolated_and_independent_rerun_confirmed
+      receipt: evidence/8ce8d8b6b04b7c6e94a9ae11fc19fe515bf35d3c/robot-diagnostic/receipt.json
+      cause: >-
+        D168 rational whole-patch extra Gauss count4->8 changes only link mass/inertia digits in frozen
+        robot exports.
+      decision: >-
+        Model may regenerate mass/inertia fixture fields after committing diagnostic S0; retain
+        exact-byte comparisons, tolerances and geometry/mesh/tree/joint/unit invariants. External reader
+        receipts remain historical until rerun.
+  resumed_window:
+    commit: 66235ce222ba30d024de85f91fa77e90b19b3005
+    status: resumed_checks_passed
+    runner: /tmp/cad-resume-66235ce22-20261022/run.py
+    live_receipt: /tmp/cad-resume-66235ce22-20261022/receipt.json
+    runner_pid: 61204
+    worktree: /Users/user/.codex/worktrees/cad-window-verify-20261022/barocss
+    results:
+      cad_build: passed
+      gpu_build: passed
+      model_gear_guard: 2/2
+      studio_URDF_affected: 1/1
+      types: 4packages passed
+      lint: kernel/model/GPU passed;17 existingModelwarnings
+      full_browser: 265/265 WebGPU DPR1;0console/pageerrors;0servedfilechanges
+    running: null
+    retained_prior:
+      commit: 3d7b392fd47e4763814e65a459c2263149d12618
+      model: 821/821
+      studio: 214/215 with original frozen failure
+    boundary: >-
+      New checks above ran at66235. Prior fullModel821/Studio214andGPU99 are retained at3d7, not
+      relabelled. G21 and new A9 sharing source excluded; no release/physical-device claim.
+    receipt: evidence/66235ce222ba30d024de85f91fa77e90b19b3005/window.json
+    runner_state: exited0
+  URDF_refresh:
+    native_task: 1edffc72e68883df5e7c3bfa66bc09d04487c480
+    native_tested: 84c308a192b33c15a9f6195d605d09a8b2d24aa9
+    native_evidence: ca4f224d79131142b1b7d532e966b3b2cd88c1b5
+    adopted: 66235ce222ba30d024de85f91fa77e90b19b3005
+    evidence_delta_cherry_pick: 1d9aed6c993ae10c55172e9c52311b72e5838949
+    receipt_repo_relative: packages/barocss-cad-model/evidence/1edffc72e68883df5e7c3bfa66bc09d04487c480/checkpoint.md
+    result: >-
+      Native2guard+1actualApptarget;independentroot2+1;all4types/3lint andfullbrowser265passed66235.
+      Exact8scalarrepair complete;newfullModel/Studiosuitesnotrerun.
+    temporary_canonical_lease: closed
+  latest_full_browser:
+    commit: 66235ce222ba30d024de85f91fa77e90b19b3005
+    result: 265/265
+    renderer: WebGPU
+    DPR: 1
+    receipt: evidence/66235ce222ba30d024de85f91fa77e90b19b3005/window.json
+    source: actual new coordinator run
+  latest_feature_integration:
+    commit: 55058ceaffe649c26efa31aecd21004a67e19771
+    receipt: evidence/55058ceaffe649c26efa31aecd21004a67e19771/focused.json
+    status: focused_checks_passed_full_window_pending
+    results:
+      cad_build: passed
+      kernel_affected: 29/29
+      model_shared: 11/11
+      model_policy_weld: 11/11
+      kernel_types: passed
+      model_types: passed
+      studio_types: passed
+    not_run:
+      - full Kernel/RB/properties
+      - full Model suite
+      - full Studio suite
+      - full browser flow
+      - G21 display mode matrix
+    native_model_hashes_verified: 29
+  historical_integration_windows:
+    3d7b392fd47e4763814e65a459c2263149d12618:
+      commit: 3d7b392fd47e4763814e65a459c2263149d12618
+      status: failed
+      worktree: /Users/user/.codex/worktrees/cad-window-verify-20261022/barocss
+      receipt: evidence/3d7b392fd47e4763814e65a459c2263149d12618/window.json
+      live_receipt: /tmp/cad-window-3d7b392fd-20261022/receipt.json
+      runner: /tmp/cad-window-3d7b392fd-20261022/run.py
+      runner_pid: 96521
+      runner_state: exited_on_first_failed_suite
+      results:
+        cad_build: passed
+        gpu_build: passed
+        sweep: 2/2
+        model_batch: 6/6
+        gpu_unit: 99/99
+        gpu_consumer: 3/3
+        model: 821/821
+        studio: 214/215
+      first_failure:
+        source: apps/cad-studio/test/robot-urdf.test.ts
+        test: >-
+          the export_urdf tool and cad-cli urdf; the conformance cases with what the MuJoCo oracle will
+          compare (pending)
+        message: 'urdf-gears: the URDF as frozen'
+        log: cad-studio-suite.log
+        line: 1040
+        cause: >-
+          Isolated D168 rational additional quadrature4->8 changes8 inertial digits only in urdf-gears.
+          Independent2D boundary moments support8/12. Full47-file inventory confirms other8canonical
+          bytes equal.
+      not_run:
+        - remaining package/studio types and standalone lint on this SHA
+        - full browser flow
+      note: >-
+        Frozen snapshot includes robot numeric refresh and validated timing runner, excludes new A9
+        implementation and Model7c4 preparation.
+  final_handback_window:
+    commit: 2443211888b5bc5d219fa3075dfea444bd6d5d4a
+    status: complete_with_failures_and_storage_block
+    receipt: evidence/2443211888b5bc5d219fa3075dfea444bd6d5d4a/final-window/receipt.json
+    first_failure:
+      name: studio-lint
+      status: failed
+      log: studio-lint.log
+      details:
+        - ✖ 135 problems (1 error, 134 warnings)
+      reason: null
+    results:
+      - name: cad-build
+        status: passed
+        exit_code: 0
+        log: cad-build.log
+      - name: gpu-build
+        status: passed
+        exit_code: 0
+        log: gpu-build.log
+      - name: cad-types
+        status: passed
+        exit_code: 0
+        log: cad-types.log
+      - name: model-types
+        status: passed
+        exit_code: 0
+        log: model-types.log
+      - name: gpu-types
+        status: passed
+        exit_code: 0
+        log: gpu-types.log
+      - name: studio-types
+        status: passed
+        exit_code: 0
+        log: studio-types.log
+      - name: cad-lint
+        status: passed
+        exit_code: 0
+        log: cad-lint.log
+      - name: model-lint
+        status: passed
+        exit_code: 0
+        log: model-lint.log
+      - name: gpu-lint
+        status: passed
+        exit_code: 0
+        log: gpu-lint.log
+      - name: studio-lint
+        status: failed
+        exit_code: 1
+        log: studio-lint.log
+      - name: studio-build
+        status: passed
+        exit_code: 0
+        log: studio-build.log
+      - name: model-test-bundle
+        status: failed
+        exit_code: 1
+        reason: esbuild ENOSPC; test suite not started
+        log: model-test-bundle.log
+      - name: model-batch-1-bundle
+        status: passed
+        exit_code: 0
+        log: model-batch-1-bundle.log
+      - name: model-batch-1-suite
+        status: interrupted
+        reason: >-
+          Runner receipt write failed ENOSPC during partial Model batch; child no longer present; no full
+          suite result
+        log: model-batch-1-suite.log
+      - name: remaining Model package tests
+        status: not run
+        reason: >-
+          Repeated ENOSPC after own-bundle cleanup and batch-size reduction; final window stopped to
+          preserve logs/WIP
+      - name: Studio package tests
+        status: not run
+        reason: >-
+          Repeated ENOSPC after own-bundle cleanup and batch-size reduction; final window stopped to
+          preserve logs/WIP
+      - name: GPU package tests
+        status: not run
+        reason: >-
+          Repeated ENOSPC after own-bundle cleanup and batch-size reduction; final window stopped to
+          preserve logs/WIP
+      - name: CAD package tests
+        status: not run
+        reason: >-
+          Repeated ENOSPC after own-bundle cleanup and batch-size reduction; final window stopped to
+          preserve logs/WIP
+      - name: full browser flow
+        status: not run
+        reason: >-
+          Repeated ENOSPC after own-bundle cleanup and batch-size reduction; final window stopped to
+          preserve logs/WIP
+    not_run:
+      - remaining Model package tests
+      - Studio package tests
+      - GPU package tests
+      - CAD package tests
+      - full browser flow
+    full_browser: not run
+    last_full_unchanged: true
+    cleanup: evidence/2443211888b5bc5d219fa3075dfea444bd6d5d4a/final-window/coordinator-cleanup.json
+works:
+  coordinator:
+    title: BaroCSS 로드맵 찾기
+    thread_id: 01a1622d-1ec0-7171-8757-4cbe91a417e0
+    role: Coordinate contracts, current handover records, serial local adoption and verification.
+    worktree: /Users/user/.codex/worktrees/cad-review-p1-handover/barocss
+    branch: codex/cad-coordinator-handover-20261022
+    flow_port: 52591
+    owns:
+      - apps/cad-studio/handover/state.yaml
+      - apps/cad-studio/handover/roadmap.md
+      - apps/cad-studio/handover/protocol.md
+      - apps/cad-studio/handover/README.md
+    next: >-
+      Handback complete; remain paused until explicit owner resume. Resolve storage before a new final
+      window.
+  kernel:
+    title: Execute CAD Kernel
+    thread_id: 01a16242-8130-7571-831c-d407188f74ff
+    worktree: /Users/user/.codex/worktrees/0d2f/barocss
+    branch: codex/cad-kernel-sweep-mass-20261022
+    owns:
+      - packages/barocss-cad/**
+    flow_port: 52491
+    active_item: FRk6-ordered-trim-source-with-FRk5-UI-pending
+    status: paused_unverified_FRk6_WIP
+    checkpoint: 2364ef7173a34d9ba9b25e37b30e5f7efffe94e5
+    poll_cursor: af50510f-c48b-4482-bf2c-83da8f5fb49f:246
+    checkpoint_state: FRk6_failed_native_evidence_preserved_not_adopted
+    assigned_baseline: 2364ef7173a34d9ba9b25e37b30e5f7efffe94e5
+    next_contract: >-
+      After explicit resume: sed -n '389,515p' packages/barocss-cad/src/brep-mass-quadrature.ts; resolve
+      nested closure/callback rule before source changes or execution
+    pending_wip:
+      commit: 19336a09a81046d3520d98418c98b10bc614a3c1
+      state: S0_evidence_received_not_adopted
+      small_tests: 12/13; no-overlap criterion fails
+      next: >-
+        Shared-seam contract before implementation. Physical unique material2160; nominal request2880;
+        prefer equal shared-seam partition,8x270, subject to model/report contract review.
+    diagnostic_evidence:
+      native: 00522562d6c618dddda43c28b24408fb60379e7c
+      adopted_evidence_delta_only: 02df86789068b4a859ba7fdfb540d4389a9720af
+      excludes_A9_WIP: true
+    contract_checkpoint:
+      commit: c679036a3506b52c98d45f39b18bd1abb62986ad
+      receipt: evidence/c679036a3506b52c98d45f39b18bd1abb62986ad/receipt.json
+      state: S0_proposal_received_awaiting_cross_lane_agreement
+      production_adopted: false
+    preliminary_observation:
+      state: author_reported_first_real_run_not_checkpoint_qualification
+      actual_per_bead_mm3: 270
+      nominal_per_bead_mm3: 360
+      bead_count: 8
+      shared_ids: 4
+      pending:
+        - independent moments
+        - all pair overlaps
+        - order and rigid transforms
+        - component errors and legacy controls
+        - exact task/testedSHA and final type/lint
+    candidate_checkpoint:
+      baseline: efd168db37ff9427662bf78e3bd5a614e9fd497f
+      task: df5c1e68860e4514647513da1e27cbd072fb480c
+      tested: 81d9eb298e7bf97b8c05cbd052d2551b8ed9f8aa
+      evidence: b50bba133315f9c8e0222467accfe64285a69f47
+      receipt: evidence/81d9eb298e7bf97b8c05cbd052d2551b8ed9f8aa/checkpoint-review.json
+      state: locally_adopted_with_Model_shared_seam
+      checks: selected27/27,conformance2/2,types/lint pass
+      dirty: []
+      pending: Full integrated acceptance and A9 end-to-end run
+    observed_progress: >-
+      Author reports FRk4 direct hollow revolve build/test progress; frame arc/bend internal dotted-ID
+      failure is being repaired. No immutable FRk4 task or final pass yet.
+    native_task_start: c05bfa5a3890125435fcccbf098f67b3df7272a9
+    FRK3_S0:
+      commit: c05bfa5a3890125435fcccbf098f67b3df7272a9
+      evidence_delta_cherry_pick: cb12ab9a7
+      receipt_repo_relative: packages/barocss-cad/test/receipts/frk3-s0-2026-10-22.md
+      decision: Read-only audit and independent oracle plan accepted. No new geometry/runtime tests were run.
+    local_implementation_baseline: 3f3e2eb237fab38abc67f57d9f8be15f737e90d8
+    evidence_commit: 76e08de552441048bad4b3a6bf19dd8687ef70fe
+    FRK3_native:
+      baseline: 3f3e2eb237fab38abc67f57d9f8be15f737e90d8
+      task: 87cb0a9f8bf81d4c2c93f36741cb985f2c94dcb2
+      tested: 87cb0a9f8bf81d4c2c93f36741cb985f2c94dcb2
+      evidence: 81fbc252556b961198b14c106b3796606df6494f
+      receipt_repo_relative: packages/barocss-cad/test/receipts/frk3-native-2026-10-22.md
+      checks_author_reported: 42/42 selected; 3/3 conformance; build/types/lint passed
+      state: locally_adopted_focused_checks_passed_Model_UI_acceptance_pending
+      dirty_observed: []
+      local_merge: 55058ceaffe649c26efa31aecd21004a67e19771
+    FRK4_native:
+      item: FRk4-Kernel-native
+      task: 5ede2e218aa6347cc78872828cbd6e813dd571e9
+      tested: 5ede2e218aa6347cc78872828cbd6e813dd571e9
+      evidence: 270a89f108087a656511f61d63b2c9369e3c96e2
+      merge: ce532a80ca9fbf0ed014abb5ee1f9739f65f190e
+      native_results:
+        selected: 75/75
+        conformance: 3/3
+        legacy_revolve: 3/3
+        build_types_lint: passed
+      limits: Model/editor exposure not in this native task; next exact contract assigned
+      lane_receipt_repo_relative: packages/barocss-cad/test/receipts/frk4-native-2026-10-22.md
+      state: locally_adopted_native_results_accepted_aggregate_pending
+    FRk4_editor_progress:
+      source_checkpoint: c9afc4817b90a03dddcdde9fa80922455cbf2228
+      state: source_saved_verification_incomplete_checks_held
+      author_report: 40 selected checks before hold; Model types fail at tuple assumptions; two narrow leases added
+      new_lease:
+        - >-
+          packages/barocss-cad-model/src/engine/evaluate.ts: frame segment endpoints/bend member display
+          only
+        - 'packages/barocss-cad-model/src/app/weldmentCommands.ts: explicit curved path refusal only'
+      actual_screen: not_run
+    FRK4_editor:
+      item: FRk4-common-editor
+      baseline: 6dadb30ad8f6b3ff0190705809e9cd8a0431897f
+      task: c9afc4817b90a03dddcdde9fa80922455cbf2228
+      evidence: 175f3d60640d1172cc260c747271a679882b4fd5
+      local_merge: 888444c34819a632b49b400facd83559bf3077e0
+      native_source_checks: >-
+        16/16 selected and Model types/lint on final source bytes; source committed without intervening
+        code edit
+      lane_receipt_repo_relative: packages/barocss-cad/test/receipts/frk4-editor-2026-10-22.md
+      review: >-
+        named13-path delta, strict arc/bend inputs, sparse authored IDs, command/property forwarding and
+        prior failed tuple assumptions reviewed
+      state: native_and_actual_screen_accepted_locally_adopted_aggregate_pending
+      limits:
+        - WebGPU DPR1 exact c9 source browser/file proof; no current aggregate window
+        - Center pre-save/post-open full tensor comparison is excluded
+        - Prior25/15 checks retain their pre-checkpoint boundary
+      actual_screen_progress: >-
+        Completed actual centerarc/througharc/tangentbend lifecycle, bend1body/part0/cutlist184.978mm;
+        straight I/H create/save control. 66 hashes verified; center pre-save tensor not archived.
+      actual_screen_receipt: evidence/c9afc4817b90a03dddcdde9fa80922455cbf2228/screen-review.json
+      actual_screen_evidence: 29e9ab164663b713a692d1f814ef199cd18be981
+      screen_evidence_local_merge: df1ef4ab89520c7ffdede8ed60bb9802f13180c1
+    FRK5:
+      baseline: 29e9ab164663b713a692d1f814ef199cd18be981
+      state: locally_integrated_native_verified_notch_UI_pending
+      task: 29cd75ccff1f6c700f8a315cfe554859834ea551
+      tested: 98c67112906664b774c7542ccfc8c4ef20fd775f
+      checks: >-
+        Native98c671 notch mass/boundary and build/types/lint verified; prior1f041 gap UI separate;
+        integrated runtime pending
+      completion: >-
+        D164 exact geometry/report, strict tools, existing Frame create/edit and actual
+        UndoRedo/SaveOpen/re-edit; no separate preparation-only completion
+      author_progress: >-
+        L/T actual UI/CSV/SaveNewOpen/reedit complete in bounded WebGL2 path; reviewed
+        PNGs/files/manifest.
+      lease: cad-frk5-a069-feature-20261022
+      limits:
+        - Positive gap plus notch/cope refused
+        - Curved gap/notch unsupported
+        - V cutter requires perpendicular branch/through axes
+        - Holesaw coverage conservatively uses full placed section box
+      first_failure:
+        tested: 29cd75ccff1f6c700f8a315cfe554859834ea551
+        native: 5/7; holesaw and V fail independent volume oracle
+        delta_mm3:
+          - approximately3.34e-6
+          - approximately2.50e-6
+        decision: >-
+          Preserve logs. No tolerance/oracle relaxation. Diagnostic partition8/16/32/64 did not improve
+          error; finite-difference trimmed-surface derivative suspected, not confirmed. Shared mass
+          change requires named review.
+      diagnostic_progress: >-
+        Order comparison also failed to resolve two volume errors. Cause not confirmed. Author reports
+        owned diagnostic PIDs ended, no browser/server started, slot returned. Packaging failure/evidence
+        checkpoint; source read-only analysis permitted, new checks held.
+      evidence: 98813a09d1569f7b270923a3b420613a3e11aaf5
+      coordinator_receipt: evidence/29cd75ccff1f6c700f8a315cfe554859834ea551/failure-review.json
+      verified_artifacts: 29
+      repair:
+        baseline: 98813a09d1569f7b270923a3b420613a3e11aaf5
+        state: d456_build_pass_notch_two_mass_failures_remain
+        path: packages/barocss-cad/src/brep-mass-quadrature.ts
+        scope: >-
+          sink domain/stencil boundaries must use actual fp coordinates; retain own-domain behavior,
+          unbounded frame coordinates. Regression source only; no new execution.
+        causal_boundary: Confirmed source coordinate mismatch; contribution to two volume failures not yet established
+        source: 67b34f907bac09582002a1328391f450353f7023
+        current_scope: >-
+          Approved after exact source review: brep-tessellate.ts FaceParameters optional cylinder-only
+          partials/project/projectDerivative and existing cylinder parameter registration;
+          brep-mass-quadrature.ts J/surfacePoint/strip/nearUV consumers. Existing
+          cylinderTriangles/mesh/general surface/GaussNewton/oracles/tolerances unchanged.
+      current_source: 98c67112906664b774c7542ccfc8c4ef20fd775f
+      tested_candidate: 1f041da016318d47e26f47798b03d8c0a8ee4953
+      preparation: >-
+        Temporary worktree index then own-dependency copy ENOSPC failures preserved; no product checks
+        yet. Original clean own checkout fixed6f52 chosen to avoid cloning.
+      current_native:
+        tested: d456a616f45a006337c3c993cae126c91f4d08b9
+        result: Author reports build pass; same2notch mass comparisons still fail
+        boundary: Exact cylinder differential correction does not establish resolution of notch accuracy
+        next: >-
+          Complete valid gap actual editor/cutlist/CSV/SaveOpen now, then return slot for ModelA9108;
+          notch source diagnosis from existing evidence continues without repeated numeric sweeps
+      lease_state: returned_author_confirmed_all_owned_PIDs_ended_port52491_free
+      next: >-
+        Complete notch actual Frame/cutlist/SaveNewOpen and retained WebGPU failure on next slot;
+        independent FRk6 source proceeds
+      latest_evidence: d4a0f633105988aae0af414d393709591776038b
+      partial_receipt: evidence/1f041da016318d47e26f47798b03d8c0a8ee4953/source-review.json
+      verified_latest_artifacts: 96
+      dirty_observed: []
+      candidate_scope: >-
+        Strict grid tangents and final stitched sampled residual guard only; no default tolerance/depth
+        change
+      candidate_result:
+        tested: 1f041da016318d47e26f47798b03d8c0a8ee4953
+        result: Author reports6/8; both notches refuse strict boundary-fit depth before mass comparison
+        decision: >-
+          Not accuracy success; preserve refusal and previous mass failures. No further numerical sweeps.
+          Finish valid gap actual UI/CSV/SaveOpen.
+      actual_ui_progress:
+        tested: 1f041da016318d47e26f47798b03d8c0a8ee4953
+        reported: L/T actual editor lifecycle and files completed; both final WebGL2 PNGs inspected
+        failure: WebGPU black; notch refuses; original L gap3 raw download overwritten
+        boundary: Bounded gap evidence only. Full FRk5 and local adoption pending.
+      source_repair_acknowledged: true
+      candidate_source_receipt: evidence/98c67112906664b774c7542ccfc8c4ef20fd775f/source-review.json
+      latest_native_progress:
+        tested: 98c67112906664b774c7542ccfc8c4ef20fd775f
+        reported: >-
+          Author reports CAD build/types/scoped lint, holesaw/V mass oracle and final
+          boundary/translation passed. Browser entry load gate never met.
+        boundary: >-
+          Native original logs reviewed;36 evidence hashes and504/825 source hashes matched. Actual notch
+          screen/file and full FRk5 acceptance pending.
+        lease_state: returned_author_reports_8_owned_PIDs_ended
+        actual_port: 52493
+        browser: unrun; existing Frame notch UI, cutlist and Save/New/Open remain pending
+        evidence: d4a0f633105988aae0af414d393709591776038b
+        coordinator_receipt: evidence/98c67112906664b774c7542ccfc8c4ef20fd775f/native-review.json
+      local_merge: b6a034159d1e606a5c748c59e7c97621b4d61d5c
+    FRK6:
+      state: member5_and_offset_failures_source_repair_assigned
+      baseline: b6a034159d1e606a5c748c59e7c97621b4d61d5c
+      scope:
+        - packages/barocss-cad/src/part-model.ts ordered-trim
+        - related focused tests and receipt
+      completion: >-
+        Existing Frame round-cornered600x400x700 ordered table uses faster path; retain D126
+        volumes1e-9,weld sums,BRep,cutlist; target2s and existing screen/SaveOpen
+      first_candidate: Cap run-on at joint only when equivalent to existing trimmed envelope; keep general fallback
+      execution: Source only; GPU owns sole runtime slot
+      dependency: FRk5 native code integrated; actual FRk5 UI remains separately pending
+      delivery: Kernelcursor188 acknowledged
+      native_baseline: a3b1f2feae20052f27f27bfee9c15af8c67e7011
+      progress: >-
+        Author acknowledged strip interval partition at actual curve knots; preserve geometry, chord
+        mapping,8x4 rule and1e-9
+      task: b805361bcae39ce28ddb8c3dcfef4fddf65cd708
+      receipt: evidence/b805361bcae39ce28ddb8c3dcfef4fddf65cd708/source-review.json
+      checks: >-
+        CAD build/types/scoped lint passed; focused 1/2; baseline control fails same member6; existing
+        D126 interrupted; timing/browser not run
+      lease: cad-frk6-e025-feature-20261023
+      first_failure:
+        tested: b805361bcae39ce28ddb8c3dcfef4fddf65cd708
+        member: 6
+        actual_mm3: 236405.2621571014
+        oracle_mm3: 236405.26248829486
+        relative_tolerance: 1.e-9
+        source: Committed raw TAP/comparison reviewed;31 payload checksums and833 tested-source hashes matched
+        decision: >-
+          No product adoption; independently bound oracle endpoint error without changing1e-9; source
+          correction proceeds while GPU executes
+      evidence: de5d60265cd8d1c7aee173e85ec6e56a4da685a2
+      coordinator_receipt: evidence/edfa0a9db7abb372d1879d07a11946a6b1047537/failure-review.json
+      oracle_source_correction:
+        commit: 54a17286623ef4f64ee0719896244f9b70b3f935
+        scope: >-
+          Test-only exact endpoint substitutions; physical integral,1e-9,400 panels and product sources
+          preserved
+        state: independent_reference_executed_bound_passed_product_still_fails
+        gap: >-
+          Ideal exact-rule bound is not a bound for complete JS calculation; floating-point accuracy and
+          actual mass remain unresolved
+        next: >-
+          Minimal independent reference accuracy check then same baseline/candidate comparison at next
+          sole slot
+      reference_checkpoint: edfa0a9db7abb372d1879d07a11946a6b1047537
+      revised_reference_failure:
+        tested: edfa0a9db7abb372d1879d07a11946a6b1047537
+        candidate_mm3: 236405.2621571014
+        reference_mm3: 236405.262477869
+        baseline: a3b1f2feae20052f27f27bfee9c15af8c67e7011; same member6 failure
+        next: Implement knot partition in brep-mass-quadrature.ts; source only until sole slot returned
+        baseline_mm3: 236405.2622133001
+        evidence: de5d60265cd8d1c7aee173e85ec6e56a4da685a2
+      repair:
+        baseline: de5d60265cd8d1c7aee173e85ec6e56a4da685a2
+        scope:
+          - packages/barocss-cad/src/brep-mass-quadrature.ts
+          - related focused regression sources
+        completion: >-
+          Forward/reverse and duplicate/end knots handled; exact geometry and1e-9 retained; common BRep
+          checks at later sole slot
+        execution: Source-only adjacent-float strip and offset fit fallback repair from2364
+        acknowledged: true
+        task_commit: 2364ef7173a34d9ba9b25e37b30e5f7efffe94e5
+        first_failure:
+          tested: e0250f8dc5d8596ff0a181b73bc6da264f5dbcf8
+          actual: tessellated
+          expected: quadrature
+          case: frozen native member6
+          receipt: evidence/e0250f8dc5d8596ff0a181b73bc6da264f5dbcf8/first-failure.json
+          checks: CAD build passed;4 strip regressions passed;5th native mass path failed
+          next: >-
+            Identify first rejected face/strip; minimum product correction without tolerance or
+            exact-path relaxation
+        rounding_fix: 5531bb11e583ecadfd027fe3cf418146bb879b18
+        progress: >-
+          Member6 bounded pass; whole frame member5 volume failed and offset local fit refused; no
+          adoption
+        artifact_progress: >-
+          Author reports diagnostic BRep filename collided with runner metadata; original log retained,
+          separate artifact regeneration in progress; no new full-frame pass claim
+        checkpoint: evidence/2364ef7173a34d9ba9b25e37b30e5f7efffe94e5/failure-and-handoff.json
+        evidence_checkpoint: 76e08de552441048bad4b3a6bf19dd8687ef70fe
+        evidence_review: >-
+          76e08de immutable payload51 files/3533046 bytes and4 tested source hashes match; full frame
+          remains failed, not adopted
+    stop_checkpoint:
+      head: b5fceedfba4a018899e85daceea264113b8c4a15
+      source: abb697f247141b35e65635faca29d77e73f60d4a
+      dirty: []
+      processes: 12 owned PIDs/groups absent; no signal sent at STOP; no running checks
+      next_first_step: >-
+        After explicit resume: sed -n '389,515p' packages/barocss-cad/src/brep-mass-quadrature.ts;
+        resolve nested closure/callback rule before source changes or execution
+      decision_record: decisions.md
+  model:
+    title: Execute CAD Model
+    thread_id: 01a16242-fbfc-7032-b97d-fedbabd386ff
+    worktree: /Users/user/.codex/worktrees/c35f/barocss
+    branch: codex/cad-model-a99-rows
+    owns:
+      - packages/barocss-cad-model/**
+      - apps/cad-studio/src/ui/**
+      - apps/cad-studio/scripts/**
+    flow_port: 52391
+    active_item: A9-7-Model-adopted-awaiting-GPU-bridge
+    status: paused_native_adopted_actual_input_gap
+    checkpoint: f78d98bcb7a9357c4457996c1a3c03a7dff3e81d
+    poll_cursor: e9e17df1-75a7-4cdb-b793-44d4d37a48a6:284
+    evidence_commit: 44bca47b0ba48906684a285790c57be1e6e12344
+    checkpoint_state: A97_native_adopted_actual_UI_files_pending
+    assigned_baseline: 44bca47b0ba48906684a285790c57be1e6e12344
+    next_contract: >-
+      After explicit resume: git -C /Users/user/.codex/worktrees/c35f/barocss show
+      codex/cad-coordinator-handover-20261022:apps/cad-studio/handover/state.yaml; inspect GPU receipt
+      and assigned Model defect/output
+    system_error: >-
+      One capacity error; retry in same thread succeeded. M3 checkpoint completed clean with same model
+      settings.
+    diagnostic_progress: >-
+      Historical robot diagnostic and canonical repair are archived separately; repair adopted
+      at24faaa30a with14/14 affected integration checks. No full-window pass yet.
+    diagnostic_evidence:
+      native: ccc1021c03e1b2189f6fe84e4ea65b91a021ebe9
+      local_merge: a25fd2a21b30a3a7d053a805fcd5f56b9380374c
+      state: evidence_only_adopted
+      checks: current report hash, lossless gzip failure-log hash and all10 historical fixture hashes checked
+    temporary_owned_paths: []
+    contract_progress:
+      baseline_merge: baf6059358c5c25ea23e5f6b6cc2f15ac758eb7b
+      state: interim_findings_not_final_agreement
+      reported_risks:
+        - WireDoc/content/model keys omit a future policy field
+        - per-joint bead retry can split a shared component
+      candidate: Persist only the opt-in policy; manifests and owned results remain derived.
+      clarification_sent: >-
+        Valid nonshared legacy controls unchanged; no automatic policy migration. A discovered shared
+        component with absent/incomplete policy/context must refuse atomically; no nominal overlapping
+        mass success or isolated-peer retry. Define unrelated-component and incomplete accounting.
+    contract_checkpoint:
+      commit: add5146f3350b1df389d9c7fc9e8eb271af25e1b
+      receipt: evidence/add5146f3350b1df389d9c7fc9e8eb271af25e1b/contract-decision.json
+      state: accepted_with_D170_for_implementation
+    deferred_dependency:
+      item: M-shared-seam-implementation
+      requires: Exact reviewed Kernel sharing/BeadReport/sharedComponent API
+      saved_task: 7c4da30c47bbfba9f1269bb82ce660859a02eafb
+      saved_evidence: ae22500ea591d7762facad2372c8482eaaad058e
+      remaining: manifests/atomic retry/incomplete accounting/real end-to-end acceptance
+    recovery_S0:
+      native: 2559a362cb0ff7c78863c11c780055c288432591
+      evidence_delta_cherry_pick: 2e24b1650
+      receipt_repo_relative: >-
+        packages/barocss-cad-model/evidence/3d7b392fd47e4763814e65a459c2263149d12618/review-a1-s0/checkpoint.md
+      result: six isolated diagnostic groups passed; exact source replay, no React/browser/real IndexedDB
+      decision: S0 accepted, production lease deferred behind robot inventory and Kernel API
+      production_paths_leased: []
+      independent_coordinator_rerun:
+        tested_source: 3d7b392fd47e4763814e65a459c2263149d12618
+        result: 6/6 diagnostic groups, exit0, Node22.19.0
+        first_attempt: >-
+          Environment-only failure: shell defaultNode18.10.0 lacks import.meta.dirname; corrected with
+          exact Node22.19.0 path
+        boundary: Synthetic storage and exact App statements; no React/browser/realIndexedDB
+    local_task_start: 57f426ba7479ae771fa76151df864c53562d5ba3
+    robot_inventory:
+      native: 57f426ba7479ae771fa76151df864c53562d5ba3
+      evidence_delta_cherry_pick: d2d392ca5
+      receipt_repo_relative: >-
+        packages/barocss-cad-model/evidence/3d7b392fd47e4763814e65a459c2263149d12618/robot-frozen-inventory-s0/checkpoint.md
+      decision: >-
+        S0 accepted;47 fixture hashes/sizes and uncompressed raw-report hash independently verified;
+        only8 scalar refresh authorized
+      results: >-
+        3variants x5scenes;9 frozenfiles;only URDF-gears differs;4 recreatesoldbytes,8/12 agree
+        independent boundary moments
+      boundary: No production fix applied or external runtime/full suite/browser rerun
+    observed_progress: >-
+      Actualworker placement failure reproduced whileconnectingnewAPI;ModelplaceBody/export
+      fixauthorized. Priorfirst5geometrychecks separate; finalimmutablecheckpointevidencepending.
+    required_kernel_merge: b50bba133315f9c8e0222467accfe64285a69f47
+    local_connection_baseline: f23f22898cfb20c52bf02ae43c0ebce6d5c4a728
+    root_merge: 1cccf566a88a2ec293a568f5dd312e3e7821d6d4
+    placement_progress:
+      state: reported_actual_worker_failure_in_uncommitted_connection_not_product_adopted
+      baseline: f23f22898cfb20c52bf02ae43c0ebce6d5c4a728
+      task_commit: not yet committed
+      author_reported_centroid_X:
+        expected_approx: 21.6865
+        actual: 21
+      cause: Model appends bead features after member transform nodes, leaving bead placement behind
+      decision: >-
+        Approved existing Model placeBody connection and matching B-rep export placement; preserve
+        failing worker input/log, then direct/worker/meshRef/export and pathMM single-transform controls
+      proof_boundary: >-
+        Author actual-worker progress report only; exact tested SHA and immutable failure evidence
+        pending. No root source adoption or new passing placement claim.
+      latest_report: >-
+        Author reports worker placement regression, Save/Open/re-edit, first mesh and meshRef plus
+        drawing/STEP placement now pass in WIP. An approval-denial wording assertion failed after actual
+        denial; wording alignment and selected rerun in progress. Exact tested task SHA/final receipt
+        pending.
+    FRK3_dependency:
+      merge: 81fbc252556b961198b14c106b3796606df6494f
+      code: 87cb0a9f8bf81d4c2c93f36741cb985f2c94dcb2
+      baseline_after_merge: aad690fe2cc3b54cbfc26f0eac265012e5215c26
+      owner: Kernel
+      merge_observation: Author reports normal merge without conflicts; no screen acceptance yet.
+    shared_seam_native:
+      baseline: f23f22898cfb20c52bf02ae43c0ebce6d5c4a728
+      task: 249f5cf2c6bde062c699939a3fd4ad388b19c2ce
+      tested: 249f5cf2c6bde062c699939a3fd4ad388b19c2ce
+      evidence: 19930fca721bdbba4b392bf8bd47740727d651a3
+      receipt_repo_relative: packages/barocss-cad-model/evidence/249f5cf2c6bde062c699939a3fd4ad388b19c2ce/checkpoint.md
+      checks_author_reported: 57/57 selected, types, lint0 errors/17 existing warnings
+      state: locally_adopted_focused_checks_passed_full_window_pending
+      dirty_observed: []
+      not_run:
+        - full Model suite
+        - App suite
+        - browser/HiDPI
+        - external readers
+      local_merge: a43f18785903a543c4e77876da433e97f8c31871
+    FRK3_editor_candidate:
+      baseline: aad690fe2cc3b54cbfc26f0eac265012e5215c26
+      task: 1f0a28759070fd8b259baec5cd0647e7bbbce1ed
+      state: accepted_native_actual_screen_and_locally_adopted
+      source_review: 10-path delta and FrameSections/commands/editFields inspected
+      product_adopted: true
+      screen_lease: cad-frk3-model-1f0-browser-20261022
+      evidence: 0f1caf9b712824b9528f8fb566ef889de92f594b
+      local_merge: 115818f239302003cc5830a1c2c551482b3cbdb8
+      native_results:
+        selected: 43/43
+        types: Model/Studio passed
+        lint: passed
+        actual_screen: 2/2 bounded flows; WebGPU DPR1; actual download Save/file Open/re-edit
+      verified_artifacts: 24
+    A913:
+      native_baseline: a998956570f76155a47fc1b3e1869956b1fcc99a
+      state: native_and_actual_screen_accepted_locally_adopted_aggregate_pending
+      clarification: >-
+        A9-13 removes foreign instance geometry/dimensions from part drawings; it does not add all
+        instances to a part drawing.
+      source_checkpoint: cc1312000ae3cf13841742122bd1e8ffb22de5b0
+      software_checkpoint:
+        task: cc1312000ae3cf13841742122bd1e8ffb22de5b0
+        tested: cc1312000ae3cf13841742122bd1e8ffb22de5b0
+        evidence: 41a5fc8c7e5bf78fb5fe6be03c43ac05237ad36f
+        results: 47/47, Model/Studio types and scoped lint pass
+        subsequent_package_lease: returned; zero new checks; prior exact-source passes preserved
+        state: reviewed_software_result_correction_required_before_adoption
+        verified_hashes: 22
+      review_finding:
+        id: A913-assembly-fix-all
+        state: corrected_source_reviewed_validation_pending
+        problem: >-
+          assembly guard rejects all v2 fix_drawing and disables UI Fix all, including valid
+          move-table/move-note/scale/show-view fixes
+        required: >-
+          Filter auto-dimension only while preserving existing assembly non-auto fixes; retain manual
+          references and avoid component auto dimensions
+        paths:
+          - packages/barocss-cad-model/src/chat/drawing.ts
+          - apps/cad-studio/src/ui/DrawingWorkspace.tsx
+        next: new immutable source SHA then one affected regression and real drawing screen flow
+        replacement_source: f27cb053fe6f897101e8a1d5202df3353dd8e5ce
+      feature_validation:
+        lease: cad-a913-f27-feature-20261022
+        tested: f27cb053fe6f897101e8a1d5202df3353dd8e5ce
+        state: completed_slot_returned_native_and_bounded_actual_screen_scope_accepted
+        scope: >-
+          Focused assembly FixAll regression, Model/Studio types/lint; real drawing
+          scope/Auto/SVG-PDF-DXF export/SaveOpen/re-edit and assembly non-auto fixes. No pass yet.
+        progress: >-
+          Author reports native16/16, Model/Studio types and scoped lint pass on exact f27. Actual first
+          flow created base/cover/assembly/output/SaveOpen artifacts, then hidden Scale toolbar locator
+          timed out. Preserve first run; narrow actual drawing select and complete remaining assembly
+          FixAll. No final screen acceptance yet.
+        first_screen_failure: >-
+          page.selectOption Scale matched hidden modelling toolbar button rather than drawing select;
+          locator correction only requested, source unchanged. Raw first log/PNG/files retained by lane.
+        resume: >-
+          Recipient acknowledged locator-only correction, same f27 source and actual saved-file Open for
+          remaining assembly FixAll. Same Model lease retained.
+      task: f27cb053fe6f897101e8a1d5202df3353dd8e5ce
+      tested: f27cb053fe6f897101e8a1d5202df3353dd8e5ce
+      evidence: b62f4656c5b978c956f555fa92f214919f5eef57
+      local_merge: 73434a7dd69b2e8e040320a5b4580e27dc743dac
+      coordinator_receipt: evidence/f27cb053fe6f897101e8a1d5202df3353dd8e5ce/adoption.json
+      verified_source_hashes: 8
+      verified_artifact_hashes: 47
+      limits:
+        - >-
+          First combined browser case remains failed; second bounded case verifies remaining segment
+          only.
+        - >-
+          PDF header and export download verified; no independent PDF/DXF importer or rendered PDF
+          inspection.
+        - No whole suite, broad validation, integration adoption, push, PR, publication or release.
+        - Historic cc131 47-test evidence remains separate and is not attributed to f27.
+    A94:
+      assigned_integration_base: 73434a7dd69b2e8e040320a5b4580e27dc743dac
+      state: native_actual_v2_and_output_file_scope_accepted_locally_adopted_aggregate_pending
+      completion: >-
+        Strict real v2/proposal options reflected in existing manufacturing drawing, actual exports and
+        SaveOpen/re-edit; no new editor
+      checks: No execution lease; GPU active
+      baseline: 720c703619f3c2b711c52298f89a06e9699f87a8
+      input_contract: >-
+        Omitted unchanged; false disables; sections/tables replace full arrays, [] clears; invalid
+        nested/unknown rejects atomically; sections used by manual dimensions cannot be changed/deleted.
+      source: 7f9773cdaccac59e44964dd2d3935c8846736cef
+      prepared_flow: ab679bcc95e92bb4b38cc2ca60af693a437a2857
+      validation: >-
+        No native/build/types/lint/browser proof; actual v2 scripted MCP/proposal acceptance flow
+        prepared only
+      tested_candidate: ab679bcc95e92bb4b38cc2ca60af693a437a2857
+      lease: cad-a94-ab679-feature-20261022
+      author_progress: >-
+        Own CAD/GPUbuild, relevant20/20, Model types pass; author reports actual v2
+        approval/options/SVG-PDF-DXF/SaveOpen/re-edit/remove-restore flow passed. Inspecting PDF and
+        packaging evidence; no final receipt accepted yet.
+      tested: ab679bcc95e92bb4b38cc2ca60af693a437a2857
+      evidence: 2bc44216defe2a33a7d85e4445bc77298fb59f7f
+      local_merge: 30f7ca2bdcd500b2bc063a5b5a8860c84a989533
+      coordinator_receipt: evidence/ab679bcc95e92bb4b38cc2ca60af693a437a2857/adoption.json
+      verified_source_files: 6
+      verified_artifacts: 56
+      visual_review:
+        initial_coordinator_suspicion: >-
+          Cut-list right edge clipped in scaled preview; subsequently disproved, no source/input
+          modification
+        original_box_mm:
+          - 243.67749999999998
+          - 192
+          - 410
+          - 222
+        page_mm:
+          - 420
+          - 297
+        frame_right_mm: 410
+        decision: >-
+          Original table box ends at frame right; last header/values present. Coordinator corrected
+          visual misreading and withdrew correction request.
+      guard_refresh:
+        baseline: 30f7ca2bdcd500b2bc063a5b5a8860c84a989533
+        state: bounded_guard_refresh_accepted_locally_adopted
+        source: 5f5636e73fc4e1d91a4d1e8e1c1c7c963feb0829
+        tested: 5f5636e73fc4e1d91a4d1e8e1c1c7c963feb0829
+        scope: >-
+          unknown-arguments.test.ts only; true unknown keys refused, supported options/approval controls
+          preserved
+        lease: cad-a94-unknown-guard-20261022
+        preserve: A9-10/8 inherited WIP stays untouched in original checkout
+        evidence: 5c9a38d5a3657a6d8c76e7cca26f0fc58d210aee
+        local_merge: a0010e447822a691b9fae00d8e7aa5ea23d92ef5
+        verified_artifacts: 14
+        checks: 10/10, Model types/scopedlint pass; original871/872 retained at30f7
+    A9108:
+      assigned_integration_base: 30f7ca2bdcd500b2bc063a5b5a8860c84a989533
+      state: native_actual_MCP_files_and_WebGPU_UI_accepted_locally_adopted_aggregate_pending
+      scope: >-
+        BOM/purchaseCSV/clearance/CAM/layers/bundle v2 actions plus parent shop rows/part-id
+        override/provenance, using existing generators and refusal/approval rules
+      checks: >-
+        34/34 focused; Model/Studio types and scoped lint; actual MCP six output actions for
+        inherited/override parts; actual WebGPU chat/proposal SaveNewOpen/reedit; no new aggregate
+      baseline: a671eee202837147a99c16319ed05fc54bc57a7e
+      row_context: >-
+        Derived evaluation view only, original docs/rows unchanged; local/inherited/override provenance.
+        Existing part dispatch/drawing/wire context added to lease.
+      merge_before_validation: >-
+        Commit own source WIP, then clean normal merge aa4acc0039b1473999b3864c59ef31402caa9ff8 before
+        validation. Never reset/stash or merge into active served checkout.
+      source: 1e00c2f527552571b3999bac6ec9d3e46788d5cc
+      current_source: fea13033a045e6e67a0ddc3a588c7effab1d2d24
+      integration_base: aa4acc0039b1473999b3864c59ef31402caa9ff8
+      author_progress: Immutable evidence reviewed and locally adopted
+      lease: cad-a9108-143-output-feature-20261022
+      first_failure:
+        tested: 14387248f89cf4c028ada541ddce386ced45ec7d
+        result: >-
+          Author reports OUTPUT_TOOLS module initialization failure via output/bundle/parts/tools
+          cycle;27 other related checks passed, full attempt failed
+        evidence: Author retained original log; immutable evidence receipt pending
+      repair_source: f159909f22eb6db063cb239463b4a1a956346d16
+      repair_review: >-
+        Exact3-path change splits type-only schema metadata into outputDefinitions; tools imports
+        metadata independently of execution module. No output contract/oracle changed. Execution
+        qualification pending.
+      payload_fix: >-
+        fea13033 prevents v2Value from translating generated file content; readonly BOM provenance type
+        ce4f3e36. Exact diffs reviewed.
+      actual_browser: >-
+        Native WebGPU runtime-v2 flow passed; actual scripted chat/MCP read and user UI proposal
+        acceptance, parent stock edit and child height edit survive SaveNewOpen. Original load stop
+        retained.
+      next: Complete A99 on preserved353f source merged with new integration
+      tested: fea13033a045e6e67a0ddc3a588c7effab1d2d24
+      evidence: 1f7bc4789ba474ab004f6669a49e284961bcd75c
+      local_merge: c6f92174ca20f212847fae76688797b3e11b2758
+      verified_evidence_files: 195
+      verified_evidence_bytes: 3395707
+      verified_source_hashes: 23
+      verified_actual_output_files: 44
+      coordinator_receipt: evidence/fea13033a045e6e67a0ddc3a588c7effab1d2d24/adoption.json
+    Studio_frame_refresh:
+      baseline: a0010e447822a691b9fae00d8e7aa5ea23d92ef5
+      state: focused_passed_locally_adopted
+      paths:
+        - apps/cad-studio/test/frame.test.ts
+        - packages/barocss-cad-model/src/engine/doc.ts sectionLabel channel omitted/literal0 only
+      lease: cad-studio-frame-guards-20261022
+      preserve: A9-10/8 main WIP untouched
+      source: f36f33619adde0e2c175f04e80957d177fe98eb0
+      tested: f36f33619adde0e2c175f04e80957d177fe98eb0
+      evidence: 24510f8b02dacc0d5cf229ebef2abf123a929b88
+      local_merge: 3c891b20f9bd31a435000025a205871800b03a14
+      verified_artifacts: 16
+      checks: 18/18, Model/Studio types and scopedlint pass; original211/215 at a001 unchanged
+    A99:
+      baseline: 14387248f89cf4c028ada541ddce386ced45ec7d
+      state: locally_adopted_native_evidence_verified_aggregate_pending
+      scope: >-
+        Person-supplied conversation JSON file/paste reference loading across row kinds; provenance
+        stored; agent-authored rows refused; Library panel unchanged
+      worktree: >-
+        Original c35f on separate A99 branch after full new worktree failed ENOSPC; immutable143 and
+        A9108 branch preserved
+      checks: >-
+        Final native31/31,Model/Studio types andscopedlint pass;3existing anywarnings. Allfirstfailures
+        retained.
+      app_paths:
+        - apps/cad-studio/src/ui/ChatPanel.tsx
+        - apps/cad-studio/src/chat/client.ts
+        - apps/cad-studio/server/chatServer.ts
+        - apps/cad-studio/server/cadMcp.ts
+        - apps/cad-studio/src/App.tsx chat authority wiring only
+      limits: >-
+        Existing JSON input and Model paths plus App chat authority ref/preview/rebase/accept/callback
+        only; no viewport/root/styles/recovery.
+      author_progress: >-
+        Minimal App authority consumer committed; clean observed. Source reviewed, actual feature flow
+        pending.
+      additional_model_paths:
+        - engine/doc.ts row provenance field/list only
+        - engine/wireDoc.ts provenance transport
+        - engine/shopRows.ts inherited row/source linkage
+      provenance: >-
+        Per-row-kind/id sidecar with filename/person/turn/file hash and current row digest; preserve
+        original row source/estimate and strict validators. Changed/replaced rows cannot silently retain
+        original provenance.
+      bend: >-
+        Explicit existing sheet-feature target only, existing approval/proposal policy; no new registry
+        or ambiguous automatic target
+      source: 1b5fae5284b20a00415f70c4d29b12e7ea7a3714
+      current_source: 38e7433f2d3014337455fec36e817e0159c87128
+      integration_base: 9b3186baba60333fa16af13f830edea8409f2daf
+      dirty_observed: []
+      review: >-
+        reconcileRowSources collects all parts into a fingerprint-only map; equal rows with different
+        files lose per-part provenance on later edits. Correction assigned within A99; no execution
+        reproduction claimed.
+      coordinator_receipt: evidence/38e7433f2d3014337455fec36e817e0159c87128/adoption.json
+      repair_source: 353f02c59bfc5ddea2764761e728de727ecdf37b
+      repair_review: >-
+        Reviewed exact4-path source delta: removes global fingerprint source map, retains previous
+        doc/instance-id evidence and target import receipts. Regression cases authored, none executed.
+      integration_dependency: c6f92174ca20f212847fae76688797b3e11b2758
+      next: A9-11 key BOM/purchaseCSV provenance feature
+      dependency_merge: c228158846bfd296a13b3461d351abf8f05d0297
+      review_context: >-
+        tools state.rowFiles absent falls back to module-global active; contextless different ChatState
+        may use previous conversation file id. Require explicit context scoped to tool/proposal/replay;
+        absent denies. Source finding, no executed reproduction.
+      app_lease: evidence/ca36afb7ad13ff13adc44f11d5d91f5137981826/source-review.json
+      app_lease_acknowledged: true
+      execution_ready_acknowledgment: >-
+        Model confirmed f7aff frozen; actual feature flow will start after GPU lease return, no new
+        execution now.
+      lease: cad-a99-f7aff-feature-20261022
+      execution_progress:
+        reported: >-
+          Model confirms browser target45c7; f7aff initialization failure, b9d81 case failures, bc202
+          native28 pass remain separate.45c7 Model types pass; App server not yet started at cursor223.
+        initial_source: f7affc42be580445a423de3c20eb54427240148d
+        repair_source: b9d81d348e9b6e0b6c332b467fb8139152a8a411
+        observed_clean_head: 45c7ef0fedb5f014277ced2935c9c34a17c56c48
+        boundary: Actual tested SHA and first failures requested; do not relabel new run as f7aff
+        actual_ui_report: >-
+          Author reports real two-file attach/proposal preview/rebase/accept and large clipboard JSON
+          paste/SaveNewOpen pass with distinct parent/child origins. Reopened conversation rejects
+          oldref/forged person/direct rows. Explicit New conversation and six outputs compatibility
+          remain active; original receipts pending review.
+        output_compatibility: >-
+          Author reports six MCP output kinds for p1/p2 from actual saved App doc with bytes/SHA checks
+          passed; estimate:true retained through UI acceptance/SaveNewOpen. New conversation first
+          attempt was already revoked by chat remount, retained separately; active-authority button case
+          still running. Receipts not yet reviewed by coordinator.
+      tested: 38e7433f2d3014337455fec36e817e0159c87128
+      evidence: 6228635b8f23a6b159adc4ab5bf8567dc74761a3
+      local_merge: aa0374ca8db7e4eb2264d6bc400895ac8639ead9
+      port_confirmation: >-
+        c521f812f820ed63b5d7a9c260516b2a6a68e140; actualVite52691 strict andchat64316,
+        source/logs/cleanup cross-reference; no rerun
+    A911:
+      state: locally_integrated_native_MCP_files_accepted_actual_UI_pending
+      baseline: aa0374ca8db7e4eb2264d6bc400895ac8639ead9
+      scope: >-
+        engine/elements.ts,team/bom.ts,bomCore.ts,relatedtests/outputconsumers;existingBomPanel
+        minimaldisplay
+      completion: >-
+        Key actual size/qty and honest source/estimate in existingBOM,actualCSV,v2
+        andSaveOpen;preserveother sourcedrows
+      checks: >-
+        Native20/20,Model/Studio types,scopedlint,real stdio MCP BOM/CSV; original first fixture
+        failure19/20 retained
+      acknowledged: true
+      task_commit: eb863f4960299d1e2b04877a20866cb4b8195831
+      native_baseline: e88d866e5a80626fad5f8f5bbbd8cfc79b31619a
+      dirty_observed: []
+      receipt: evidence/f867deddbd956aad1ce38a7b9713c380e7bf3bd3/adoption.json
+      lease: cad-a911-eb863-feature-20261023
+      progress: >-
+        Coordinator verified44 evidence files139501bytes and10source hashes; inspected actual BOM/CSV
+        facts
+      tested: f867deddbd956aad1ce38a7b9713c380e7bf3bd3
+      evidence: d70ed7f1469eda7084185a9453735cb2f0dd783b
+      local_merge: b88eb0399e760bfc8ffbd07bf22ad5f43bd694c3
+      first_failure: >-
+        eb863 added bearing fixture source+estimate:true rejected; f867 test-only splits
+        sourced/estimated rows and preserves invalid-case rejection
+      remaining: Actual BOM screen,UI purchase download,Studio SaveNewOpen,integrated runtime
+      lease_state: returned;8owned groups absent;stdio child closed;no TCP used
+    G23_preview_dependency:
+      state: native_verified_locally_integrated_GPU_consumer_released
+      baseline: 2ca863a315d09515a8f860f68ac92ce24cdde53d
+      owns:
+        - engine/doc.ts
+        - engine/migrate.ts or narrow print validation module
+        - related save/read tests
+      contract: notes/g23-print-preview-contract-2026-10-23.md
+      execution: Do not alter frozen A911 run; no automatic execution lease for schema work
+      completion: >-
+        Actual public type/read guard, old print-only compatibility, preserve omission/default
+        provenance, JSON/BCAD roundtrip; hand off exact source/API to GPU
+      task: fdb4478a149c873628fb317b416d761666a42eb3
+      api:
+        - PrintPreviewSettings from engine/doc
+        - printPreviewProblem and documentPrintPreviewProblem from engine/printPreview
+      lease: cad-g23-schema-fdb447-feature-20261023
+      receipt: evidence/fdb4478a149c873628fb317b416d761666a42eb3/adoption.json
+      native_baseline: 0f3752f2a137202fa43375aa9f100f5e19e108f0
+      tested: fdb4478a149c873628fb317b416d761666a42eb3
+      evidence: 2aa3ff9bd3af487fa7852665bd4a59d42601cc11
+      merge: 306d71a6e6115761c42220ff899c588713fcdde4
+      checks: native14/14,Modeltypes,scopedlint;13evidence/11source hashes verified
+      remaining: GPU actual UI/storage integration and integrated-head verification
+    A97:
+      state: native_accepted_locally_integrated_actual_UI_pending
+      baseline: 306d71a6e6115761c42220ff899c588713fcdde4
+      scope:
+        - cad-model app/shaftCommands.ts
+        - engine/doc.ts,part.ts,evaluate.ts
+        - narrow bearing/assembly resolver modules and related tests
+      feature: >-
+        Connect bearing to actual housing in another part using existing Kernel API/instance pose/row
+        contracts
+      completion: >-
+        Existing common document bearing selection/link,real seat/class validation and refusals,edit/pose
+        refresh,provenance/approval,UndoRedo/SaveOpen and manufacturing outputs
+      dependency: Report exact missing Kernel contract before any Kernel edit; propose schema changes first
+      execution: >-
+        Returned native slot; next Model responsibility is A97 UI-linked defects and final output
+        connection
+      delivery: Model cursor278 acknowledges local merge and remaining UI-linked Model responsibility
+      progress: >-
+        GPU implements existing App/NodeEditor/BomPanel bridge; actual UI/download/UndoRedo/SaveNewOpen
+        and integrated runtime acceptance pending
+      proposal: f0ae5fed05b387aaf29b68b79a265f65214da451
+      source_checkpoint: 37ebd004cbf8150f997aa0600a401a3af3ab4103
+      schema_decision: >-
+        housingRef {part,body} stable immediate-assembly identifiers; exclusive with numeric housing; no
+        copied geometry or authored verification flag
+      additional_paths:
+        - engine/migrate.ts
+        - engine/shopRows.ts
+        - engine/wireDoc.ts
+        - engine/evalMemo.ts
+        - chat/tools.ts
+        - chat/features.ts
+        - app/commands.ts
+        - app/editFields.ts
+        - drawing/scope.ts
+        - chat/outputs.ts
+        - team/freshness.ts
+        - team/clearanceMap.ts
+        - team/assembly.ts (existing context entry)
+        - team/bom.ts (linked housing failure only)
+      app_handoff: packages/barocss-cad-model/evidence/a9-7/model-ui-source-handoff.md
+      task_commit: f78d98bcb7a9357c4457996c1a3c03a7dff3e81d
+      type_fix: f78d98bcb7a9357c4457996c1a3c03a7dff3e81d
+      tested_commit: f78d98bcb7a9357c4457996c1a3c03a7dff3e81d
+      evidence: 44bca47b0ba48906684a285790c57be1e6e12344
+      local_merge: d47785c4263385e6b44ae7292f3321a6b8c65b01
+      checks: >-
+        15 native tests, Model types,22-path lint passed at f78d;25 payloads/44300 bytes and22 source
+        hashes verified
+      coordinator_receipt: evidence/f78d98bcb7a9357c4457996c1a3c03a7dff3e81d/adoption.json
+    decision_checkpoint: f32598a71f7f1a3a4d0787c12820c4426c82998c
+    stop_checkpoint:
+      head: de3510c4162edbd50d19ea9351b9dd2f85f5583b
+      source: f78d98bcb7a9357c4457996c1a3c03a7dff3e81d
+      dirty: []
+      processes: 7 owned PID/groups absent; no signal sent at STOP; no dirty product WIP
+      next_first_step: >-
+        After explicit resume: git -C /Users/user/.codex/worktrees/c35f/barocss show
+        codex/cad-coordinator-handover-20261022:apps/cad-studio/handover/state.yaml; inspect GPU receipt
+        and assigned Model defect/output
+      decision_record: decisions-outer.md
+  gpu:
+    title: Execute CAD GPU
+    thread_id: 01a16243-5d24-76c1-a30b-2ef96b806e04
+    worktree: /var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/d5ec-g21-feature-ho1w_gj9/checkout
+    branch: codex/a9-7-ui-connection
+    owns:
+      - packages/barocss-gpu/**
+      - apps/cad-studio/src/viewport/**
+    flow_port: 52691
+    active_item: A9-7-common-App-BomPanel-bridge-with-CNC-checkpoint-preserved
+    status: paused_A97_source_not_adopted_CNC_preserved
+    checkpoint: 8789e468de133caf56d137a19166ad86d8ff3d9d
+    poll_cursor: 44a6c585-29da-4f2a-b65d-aedadc27c78b:229
+    checkpoint_state: correction_received_not_adopted_native_author_report_only
+    assigned_baseline: d46ddbd82dd68b1234f2d7251f951a26d863f7c3
+    temporary_owned_paths: []
+    next_contract: >-
+      After explicit resume: git -C
+      /private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/d5ec-g21-feature-ho1w_gj9/checkout status
+      --short; read receipt/state; no old fixture restart
+    evidence_commit: 8812ec52c61f8fd01cd7d0e62d8e56d6dd983e69
+    observed_progress: >-
+      Author attributes retained white cap line to single-sample probe versus 4x MSAA and reports
+      internal faces in comparator boxes. Diagnosis not independently qualified; repairing both while
+      connecting Views. No new immutable task yet.
+    guard_progress:
+      first_guard: f3a5adc222942f6ae6a777fdbdba7849bd7ef29e
+      first_guard_result: >-
+        first run correctly failed validation, but added cross-pass monotonic condition was unsupported
+        by actual overlapping pass intervals; retained separately
+      corrected_guard_prefix: '819854272'
+      reported_checks: own immutable rebuild, runner regression11/11, lint passed
+      pending: No remaining G20 timing-runner action;resumed66235flow265passed. NewG21 browsermatrixpending.
+    S0_progress: >-
+      Read-only scope accepted. Backend-only G21.1 assigned; App lease excluded. WebGL2 instance display
+      bridge is a required remaining whole-G21 dependency.
+    acknowledged_baseline_merge: 42779b3c5acdbec74052fe6542db6c20410f3428
+    S0_contract:
+      native: bf7aab45af83c356fd0c02d8c335de87c2e061a5
+      inspected: c7d7c5039708b2b8f3c018f7f80436677b40b063
+      evidence_merge: e0b94f0046ffcc8a8ff31c82504e5987597f7611
+      receipt_repo_relative: packages/barocss-gpu/evidence/c7d7c5039708b2b8f3c018f7f80436677b40b063/g21-s0.md
+      decision: accepted for bounded backend implementation; full G21 not qualified
+    G21_1_receipt:
+      baseline: 42779b3c5acdbec74052fe6542db6c20410f3428
+      task: ae70bd67728c2790e5fd540622b6ad33c564b9b4
+      evidence: 5536ef653b516c56fa1bf8c40c4822d71635e8f0
+      receipt_repo_relative: packages/barocss-gpu/evidence/ae70bd67728c2790e5fd540622b6ad33c564b9b4/g21-1-checkpoint.json
+      source_hashes_verified: 9
+      raw_hashes_verified: 6
+      checks: 41/41;GPU+Studiotypes;GPU+viewportlint
+      limits: >-
+        CPU/JS/passcontracts
+        only;noactualshader/raster/browser;WebGL2instances/silhouettes/focus/Appremaining
+      product_adopted: false
+    G21_browser_matrix:
+      tested: cf9ca66177632720b88b782894bb828f9691a0f4
+      evidence: 29af197287467aea3963db24a353441d6f0ad486
+      state: failed_receipt_read_cause_unconfirmed
+      receipt_repo_relative: >-
+        packages/barocss-gpu/evidence/cf9ca66177632720b88b782894bb828f9691a0f4/browser-run-2026-10-22/receipt.md
+      results:
+        webgpu_DPR1: 11/13
+        webgpu_DPR2: 12/13
+        webgl2_DPR1: 13/13
+        webgl2_DPR2: 13/13
+      first_failure: WebGPU DPR1 quarter:486/307200=0.158203% strong image difference exceeds fixed0.1%
+      other_failures:
+        - WebGPU DPR1 octant
+        - WebGPU DPR2 octant
+      shader_page_console_device_errors: 0
+      slot: returned_author_reported
+      native_dirty_preserved:
+        - packages/barocss-gpu/tests/fixtures/cad-display-browser.ts
+    contract_progress: >-
+      Historical backend-only lease is superseded by the current exclusive App display-mode lease. WebGL2
+      instance display bridge remains required for whole G21.
+    G21_display_feature:
+      item: G21-display-modes-App-and-cap-repair
+      task: c18d08e771d391ea7545c53903e4b2d31bac8ede
+      tested: c18d08e771d391ea7545c53903e4b2d31bac8ede
+      evidence: 73dbcfba607a45a130575a86b84e049e111f6225
+      merge: 1340e3607965178ce9686bd205b29f5d24ca7012
+      native_results:
+        small: 97/97
+        fresh_builds: CAD/GPU passed atc18
+        types_lint: passed
+        renderer_matrix: 4x13/13; WebGPU/WebGL2 DPR1/2
+        actual_App: >-
+          both renderers DPR1; five modes, dirty/doc unchanged, Render fallback/restore,
+          edit/Undo/Redo/Save/Open
+        console_page_device_shader_errors: 0
+      verified_native_evidence_files: 26
+      verified_combined_archive_bytes: 134814739
+      verified_combined_archive_sha256: 8b041441005b399c41846784f7260dab2dad231a55c6e0075715ee59c80b1b31
+      limits: >-
+        No ablation contribution claim; oldcf9 preserved; wholeG21, benchmark, physical HiDPI and
+        aggregate window remain separate
+      lane_receipt_repo_relative: >-
+        packages/barocss-gpu/evidence/c18d08e771d391ea7545c53903e4b2d31bac8ede/display-feature-2026-10-22/receipt.md
+      state: native_passed_and_locally_adopted_aggregate_pending
+      old_cf9: >-
+        Original failed source/oracle rows retained; no tolerance relaxation or isolated ablation
+        attribution
+    instance_bridge_progress:
+      baseline: 83a38ad15826db5a9afa07660b01509982a7271c
+      state: native_and_actual_screen_accepted_locally_adopted_aggregate_pending
+      author_report: >-
+        Exactef31 clean: focused93+viewer28=121pass;
+        ownCAD/GPUbuild,GPU/Studio/strictfixturetypes,scopedlint/syntaxpass; matrix4backendDPR×19/19;
+        actual2rendererAppDPR1 cap/nativeCanvas selection/move/turn/hide/SaveOpen/re-edit pass. No
+        errors. Own PID/ports52691/49605 returned. Final evidence SHA pending; no coordinator acceptance
+        yet.
+      first_failure_log: dedicated feature checkout sibling bridge-first-types.log
+      not_run:
+        - new final build/types/lint
+        - new actual browser/SaveOpen
+      cap_contract: >-
+        Nearest generated cap keeps original instance/body and face:-1, no native face fabrication or
+        raycast behind. Minimal App section onPick instance routing is included in current lease; native
+        face operations on cap unsupported.
+      source_checkpoint: ef31eb9a4e57b0af282a40728a85a38abd980dab
+      pending: >-
+        GPU/Studio types, focused contracts, lint and actual backend instance screen; earlier16/7/4/6
+        retain old source boundary
+      parent_source: e1b16bd43df7411f6943a98327b21d9199887f0e
+      successor_scope: >-
+        Existing App runner only: actual empty Canvas selection clear before native-face selection.
+        Production bytes unchanged from e1. No final execution proof.
+      lease: cad-g21-ef31-feature-20261022
+      coordinator_receipt: evidence/ef31eb9a4e57b0af282a40728a85a38abd980dab/adoption.json
+      evidence: 5a277fddf0ead59dbf9d37e45130af4aee949882
+      local_merge: 4d38f63ed87d42c3fc895b9a7dc3567dd1644239
+      verified_source_hashes: 20
+      verified_evidence_hashes: 26
+      verified_original_hashes: 664
+      adopted_production_test_hashes: 15
+    instance_display_modes:
+      assigned_integration_base: 4d38f63ed87d42c3fc895b9a7dc3567dd1644239
+      state: native_actual_App_accepted_locally_adopted_aggregate_pending
+      checks: >-
+        At095 focused98/viewer28/build/types/lint; exact601 focused98 and fixture types,84 actual matrix
+        criteria,2 actual App/file flows and independent transparent hatch witness. Production095..601
+        unchanged. No new integrated suite/browser result.
+      limits: Silhouette/isolate/fade and wholeG21 remain incomplete; Render guard unchanged
+      baseline: 358696f5d559dbd8bd38e76bf4718efc707f496c
+      merge_ack: >-
+        Recipient reports clean normal merge4d38 into5a, dedicated checkout clean, inherited WIP
+        preserved; no checks started.
+      author_progress: >-
+        At601 focused98 and fixture types author-reported pass; actual matrix/App run and independent
+        edge-free/empty-scene transparent hatch witness in progress. Separate control script
+        initialization failure preserved; production unchanged.
+      source: 095406f180aaa6629c3309be610de0381d11db23
+      current_source: 601a924cdcf54b24afb4c0122a9cfeadea8a25cf
+      first_failure:
+        tested: 095406f180aaa6629c3309be610de0381d11db23
+        result: WebGPU DPR1 x-ray hatch witness failed; other three renderer/DPR cases21/21 author-reported
+        evidence: /tmp/barocss-g21-095-run/matrix
+        diagnosis: >-
+          Transparent hatch RGB L1 max60 misses opaque >60 witness;601 changes only new x-ray
+          measurement. Independent same-camera empty-scene witness still required. Production unchanged.
+      author_report:
+        tested: 601a924cdcf54b24afb4c0122a9cfeadea8a25cf
+        matrix: 4 renderer/DPR cases21/21 each (84 criteria)
+        actual_App: 2 flows5 modes/cap-native picks/move-rotate/HideShow/actual SaveNewOpen/reedit passed
+        focused: 98/98 plus viewer-core28/28
+        build_types_lint: >-
+          CAD/GPU builds, GPU/Studio/fixture types, scoped lint and App syntax reported pass; source
+          production same095..601
+        independent_hatch: >-
+          5401dark0bright0mixed; edge-free5397dark; repeat0diff; line-only on/off0diff; line-only
+          edge-free vs empty0strong
+        termination: 70 own PIDs absent;6 ports no listeners; slot returned
+        boundary: >-
+          Final committed receipt and manifests pending; native claims not yet independently
+          accepted/adopted
+      evidence: 8812ec52c61f8fd01cd7d0e62d8e56d6dd983e69
+      artifact_review: >-
+        36 evidence,13 exact source and2078 archive originals including1995 PNG independently byte/hash
+        verified by coordinator; no extracted archive duplicates
+      adopted: 9b3186baba60333fa16af13f830edea8409f2daf
+      receipt: >-
+        packages/barocss-gpu/evidence/601a924cdcf54b24afb4c0122a9cfeadea8a25cf/modes-feature-2026-10-22/receipt.md
+      coordinator_receipt: evidence/601a924cdcf54b24afb4c0122a9cfeadea8a25cf/adoption.json
+      adopted_source_hashes: 13
+    Studio_section_refresh:
+      baseline: a0010e447822a691b9fae00d8e7aa5ea23d92ef5
+      state: native_verified_locally_adopted_aggregate_pending
+      paths:
+        - apps/cad-studio/test/section-view.test.ts
+      preserve: 095 source and original d5ec WIP remain unchanged
+      source: 2ad96af22ba5423698b09ff865f491bdee004338
+      lease: cad-g2-2ad-section-target-20261022
+      evidence: dbb12716a3e3d33c719c0e8a67a454f2456618b6
+      adopted: aa4acc0039b1473999b3864c59ef31402caa9ff8
+      result: 5/5 focused; Studio types/scoped lint passed at2ad; all own PIDs absent; slot returned
+      verified_evidence_hashes: 11
+      coordinator_receipt: evidence/2ad96af22ba5423698b09ff865f491bdee004338/adoption.json
+    G21_remaining:
+      baseline: 8812ec52c61f8fd01cd7d0e62d8e56d6dd983e69
+      state: source_checkpoint_reviewed_execution_pending
+      scope: >-
+        Curved-face screen silhouettes and selection isolate/rest fade in existing App, both renderers;
+        retain pose/clip/cap/native identity and existing modes
+      checks: No build/test/types/lint/browser executed on new source
+      ownership: >-
+        GPU package/viewport and minimal existing App Views/selection callsites only; no new document
+        persistence semantics
+      integration_dependency: 9b3186baba60333fa16af13f830edea8409f2daf
+      author_progress: >-
+        Curved smooth-normal contours and existing Views isolate/fade/Restore committed; normal
+        merge9b318 confirmed. Actual renderer/file acceptance pending.
+      source: dbbd80b2d36dd966e272a0086ef679375db636aa
+      current_source: 650be5b66d90ba739b78b6b25de424e9c03dc8f0
+      dirty_observed: []
+      coordinator_receipt: evidence/650be5b66d90ba739b78b6b25de424e9c03dc8f0/source-review.json
+      execution: sole_GPU_slot_assigned
+    G22:
+      baseline: 650be5b66d90ba739b78b6b25de424e9c03dc8f0
+      state: locally_integrated_package_verified_actual_screen_pending
+      goal: >-
+        Existing App/Canvas clearance/interference bands and pair states for current
+        assembly/joint/motion pose; both renderers
+      scope: >-
+        GPU package, viewport, minimal App G22 controls/evaluation/pose links and scoped styles only;
+        Model/Kernel/root/lock excluded
+      api: >-
+        Existing clearance-map-v1 assemblyPlacedBodies/clearanceMap/overlap fill API verified by author
+        before use; local frames, per-vertex fields, revision+pose stale discard
+      completion: >-
+        Actual separated/near/contact/touching/overlap/designed/refused states, moving instances,
+        UndoRedo/SaveOpen, on/off, native picks/clip/modes retained; no collision/approval claim from
+        pending state
+      preserve: >-
+        G21 exact650 remains first GPU execution target on separate preserved branch; no expensive
+        checkout copy
+      checks: 32 authored checks and all G22 execution unrun
+      delivery: send_message_to_thread accepted; GPU acknowledged at147
+      integration_dependency: aa0374ca8db7e4eb2264d6bc400895ac8639ead9
+      next: Actual dual-renderer G22 flow on next permitted slot; no repeat package campaign
+      author_progress: >-
+        Parent rows now drive instance cache/readiness through real Model APIs; all25 authored focused
+        cases and actualApp flow unrun.
+      source: 65c56d3ec5e6a7eef790412d75415057c98f09a2
+      dependency_merge: 570891df92f351f82fd5fc76a65366d05e87ba00
+      consumer_lease: >-
+        Minimal existing App placedDoc/placedBase parentDoc input plus instance-evaluation cache
+        invalidation and stale-result rejection. Actual Model API only; no resolver duplication or
+        Model/Kernel edits.
+      pending: All new execution results pending; exact570891 frozen
+      current_source: 570891df92f351f82fd5fc76a65366d05e87ba00
+      coordinator_receipt: evidence/570891df92f351f82fd5fc76a65366d05e87ba00/adoption.json
+      dependency_acknowledged: true
+      dirty_observed: []
+      freeze_acknowledged: true
+      lease: cad-g22-570891-feature-20261023
+      execution_acknowledged: true
+      execution_progress: >-
+        570891 package builds/focused32/types/lint pass reported; browser entry blocked180s; no actual
+        screen/file run
+      evidence: f2f4de0765b9f84e840f2c435050f74a0b0e8ecb
+      local_merge: 2ca863a315d09515a8f860f68ac92ce24cdde53d
+    G21_execution:
+      tested: 650be5b66d90ba739b78b6b25de424e9c03dc8f0
+      state: locally_adopted_native_evidence_verified_aggregate_pending
+      receipt: evidence/650be5b66d90ba739b78b6b25de424e9c03dc8f0/first-failure.json
+      repair: 'After pinned run ends: minimal existing planar mock face metadata; no product/App edit authorized'
+      progress: >-
+        GPU/Studio types reported passed; standalone fixture tsc invocation missed Model paths/Vite
+        config, first failure retained; corrected command and actual browser continuing. No PNG result
+        yet.
+      reported_results:
+        browser: exact650:4cases×23=92 rows and2actualApp renderer flows; original manifests pending review
+        feature: >-
+          Curved cylinder/sphere FrontRightIso×5modes; isolate/fade/native/cap/pixelRestore and
+          moveRotateHideShowSaveNewOpen/reedit
+        checks: >-
+          exact650 CAD/GPU build,GPU/Studio types,corrected fixturetypes,scopedlint,syntax,viewer28
+          reported pass
+        fixture_repair: >-
+          3d24cec2878567a3e70fd8aa346c5ca81674f0b9 only planar face metadata; failed target9/9
+          andlint/syntax reported pass
+        limits: >-
+          Keep85/94 first failure and standalone type-config failures;650 browser result not
+          relabeled3d24;local integration pending
+      cleanup: /tmp/barocss-g21-650-run/final-cleanup.json
+      local_merge: 7f1b52c9d68ec56d66a3c802e6f66bba8d464dda
+      evidence: 2fb83f7de6f331a5e63dddcc0379992d033d3133
+      coordinator_receipt: evidence/650be5b66d90ba739b78b6b25de424e9c03dc8f0/adoption.json
+    G23:
+      state: locally_integrated_native_and_partial_WebGPU_remaining_acceptance
+      baseline: 2ca863a315d09515a8f860f68ac92ce24cdde53d
+      scope:
+        - apps/cad-studio/src/viewport/**
+        - packages/barocss-gpu/src viewer adapters if needed
+        - App.tsx narrow G23 controls only
+        - related focused tests
+      contract: decisions-gpu.md1329-1334; existing Model print/layers.ts print-layers-v1
+      feature: >-
+        Existing Canvas layer selection,bed transform,lazy contours/support,printed-up-to-k
+        clip/caps,supportColumns extrusion
+      completion: >-
+        Real document layer/direction/geometry refresh,both renderers truthful support state,native
+        selection preservation,SaveNewOpen same settings/display; propose any schema change before
+        implementation
+      preserve: codex/G22 exact570891 and evidence branch unchanged; separate local source branch
+      execution: Returned; no execution while Kernel owns slot
+      delivery: GPU cursor181 acknowledged source-only G23 implementation
+      next: >-
+        Run focused checks and actual feature flow under load gates; preserve first failure and unrun
+        scope. Browser entry wait bounded to 180 seconds.
+      native_baseline: c70178b0dac41bfa7447e9f2b05c4e964a96b823
+      persistence_contract:
+        state: Model_contract_integrated_GPU_wiring_authorized
+        field: StudioDoc.printPreview?
+        shape: '{version:1;layer?:number;layerMM?:number;supports?:boolean;printed?:boolean}'
+        direction: >-
+          Keep existing print.direction separate; preview-only save must not create print or promote
+          default+Z to given
+        defaults: Absent layerMM remains undefined/estimated0.2; do not materialize defaults
+        validation: >-
+          version1;layer nonnegative safe integer;layerMM finite positive;flags boolean; malformed input
+          refused
+        display: Clamp effective layer to current count without overwriting authored value on geometry change
+        owner: >-
+          Model doc/read validation and focused persistence cases; GPU existing commit/history/SaveOpen
+          consumer
+        receipt: notes/g23-print-preview-contract-2026-10-23.md
+        integration: 306d71a6e6115761c42220ff899c588713fcdde4
+      pending_scope_review: >-
+        Resolved: source-only App.verifyOpened preservation of current print/printPreview including
+        deletion approved; existing node match/reference/render/drawing/dirty logic unchanged. General
+        writers excluded; actual delayed-reference flow unrun.
+      open_reference_lease:
+        pre_source: 7df5eefedc1d5c376ad0c8e26d649de6e96094f1
+        file: apps/cad-studio/src/App.tsx
+        function: verifyOpened
+        scope: >-
+          Preserve only current print and printPreview after existing async reference verification;
+          explicit undefined deletes
+        receipt: GPU packages/barocss-gpu/evidence/g23-print-layers/open-reference-overlap.md
+        validation: >-
+          Actual delayed reference-change/problem flow then Undo/SaveOpen; no fabricated successful
+          reference result
+        state: source_reviewed_narrow_scope_approved_actual_unrun
+      task: 1bf099f2ec176f5e6a02300c377db1e2759c2515
+      evidence_head: b93d8795a168aff4daaa11afcd83b6de2dd691aa
+      checks: >-
+        Live runner stage log records CAD/GPU builds, focused, GPU/Studio types and scoped lint exit0;
+        author reports focused19/19; browser/file results pending
+      live_receipt: /tmp/barocss-g23-f813-run/stages-6075.json
+      actual_progress:
+        tested: 1bf099f2ec176f5e6a02300c377db1e2759c2515
+        source: >-
+          Coordinator inspected attempt3 actual-app source/head and saved layer3 document; author reports
+          selection checks
+        partial: Actual WebGPU layer0→3 document recorded; native face and generated cap body selection reported
+        evidence: /tmp/barocss-g23-f813-run/app-attempt3
+        first_product_failure: f813 pending range reset preserved in attempt2; fix1bf099
+        next_failure: >-
+          Attempt3 support checkbox blocked by migration toast; native Dismiss interaction added to
+          witness; same-source remaining flow running
+        proof_gap: >-
+          Resolved with raw record.head1bf099, clean-HEAD stage guards reported and current runner
+          inspected;22 during-run source files independently matched git1bf099. Index is not independent
+          pre-regression proof.
+        not_run_or_unfinished: Remaining support/printed/direction/height/camera/SaveNewOpen/delayed-ref and WebGL2 acceptance
+      validation_identity:
+        record: /tmp/barocss-g23-f813-run/stages-85783.json
+        source_label: f813 stale lease-origin literal; preserved
+        head: 1bf099f2ec176f5e6a02300c377db1e2759c2515
+        stages: regression,Studio types,fix lint,Studio bundle exit0
+        derivation: /tmp/barocss-g23-f813-run/source-label-derivation.md
+        source_files: 22
+        mismatches: []
+        limit: >-
+          During-run index generated after regression; no claim of independent pre-regression hashes or
+          ignored artifact identity
+      lease_return:
+        receipt: /tmp/barocss-g23-f813-run/cleanup.json
+        pids_absent: 43
+        groups_empty: 14
+        ports_free:
+          - 52691
+          - 64316
+        attempt4: 180.048seconds13samples browser gate blocked;no browser/server start
+        source: 1bf099f2ec176f5e6a02300c377db1e2759c2515
+        next: Finalize immutable evidence; then Model exact dependency and existing App context bridge
+      local_merge: a283cb58c67d641e971267822f6052a84e202ce8
+      coordinator_receipt: evidence/1bf099f2ec176f5e6a02300c377db1e2759c2515/adoption.json
+    G23_CNC:
+      state: partial_source_preserved_A97_bridge_priority
+      baseline: a283cb58c67d641e971267822f6052a84e202ce8
+      contract: decisions-gpu.md G23 + Model machining/camPackage.ts cam-package-v1
+      scope:
+        - viewport/cam*
+        - existing Viewport and two renderer narrow consumers
+        - App CNC display controls
+        - focused tests and receipt
+      feature: >-
+        Existing Canvas actual stock,full tool,typed ordered moves and setup-frame2.5D heightfield
+        material-removal preview
+      completion: >-
+        Real Model data; explicit limits/refusals/NOT FOR PRODUCTION; source/setup freshness and native
+        pick/camera preservation; actual two-renderer change and same cam input after document SaveOpen
+      execution: No runtime;6 new cam sources and S0 only; App/Viewport/renderers/tests still unimplemented
+      dependency: Existing public Model camPackage; no Model/Kernel/schema change
+      preserve: Print1bf source andb93 evidence; unresolved print acceptance remains open
+      A97: >-
+        Model f78d exact dependency ready; preserve CNC WIP, prioritize App/BomPanel bridge, resume CNC
+        afterward
+      brief: packages/barocss-gpu/evidence/g23-cam-preview/brief.md
+      bounds: >-
+        Single setup box/cylinder stock; capped2.5D heightfield, actual tool profile; shank length
+        estimate explicitly labeled; no production or undercut claims
+      source_checkpoint: 5c9f861f8c067a04465fc579912856c0509372fe
+    A97_bridge:
+      state: paused_corrected_source_preserved_not_adopted
+      dependency: f78d98bcb7a9357c4457996c1a3c03a7dff3e81d
+      scope:
+        - apps/cad-studio/src/App.tsx existing Ctx/NodeEditor/editFields/occurrence commit
+        - apps/cad-studio/src/ui/BomPanel.tsx linked-housing failure/pending state
+        - related focused tests and receipt
+        - apps/cad-studio/src/assembly/useAssembly.ts current linked assembly face reader
+      completion: >-
+        Existing Canvas actual plate47mm housing selection/edit; pose/delete errors; no stale BOM/CSV;
+        UndoRedo/SaveOpen and actual files
+      execution: Closed; source8789/evidence0eff;160 raw hashes reviewed. No active execution.
+      delivery: GPU cursor214 acknowledged slot and started focused checks/build before actual UI
+      source_base: c45c92f85fd05e2d2080e5b3a70db62d8d09d677
+      branch: codex/a9-7-ui-connection
+      task_commit: d46ddbd82dd68b1234f2d7251f951a26d863f7c3
+      parent: c45c92f85fd05e2d2080e5b3a70db62d8d09d677
+      coordinator_receipt: evidence/d46ddbd82dd68b1234f2d7251f951a26d863f7c3/source-review.json
+      lease: cad-a97-d46-ui-20261023
+      progress: >-
+        Author reports focused tests,dependency builds,Studio types/scoped lint/bundle passed; actual
+        browser flow preparation underway; immutable final evidence pending
+      first_ui_failure:
+        tested: d46ddbd82dd68b1234f2d7251f951a26d863f7c3
+        cause: >-
+          FaceClient.table on flattened bare linked child lacks assembly/owner context; synchronous throw
+          blanks React
+        receipt: evidence/d46ddbd82dd68b1234f2d7251f951a26d863f7c3/first-ui-failure/review.json
+        progress: >-
+          Actual UI-created plate Hole47 and shaft/bearing inserted; Housing/H7 commit persisted;
+          subsequent blank screen failed
+        repair: >-
+          GPU optional current readFaces(owner,input) via Model context and existing
+          EngineClient.part/read; current-key tables/refusal, no new worker/schema
+      correction_checkpoint:
+        task: 8789e468de133caf56d137a19166ad86d8ff3d9d
+        parent: d46ddbd82dd68b1234f2d7251f951a26d863f7c3
+        state: received_not_adopted
+        reported_checks: >-
+          Focused12/12; Studio types/scoped lint/bundle exit0. Earlier d46 CAD/GPU builds not relabeled
+          as current runs.
+        actual_ui: >-
+          Attempt2 interrupted by author after identifying agent-authored row input; no row/manufacturing
+          acceptance. No-row geometry/selection/refusal flow can proceed within current slot.
+        next: >-
+          Continue same sole GPU slot and return immutable actual UI/files evidence; coordinator review
+          pending
+      row_input_gate:
+        status: blocked_no_confirmed_person_supplied_file
+        rule: Existing rows (b), reaffirmed by owner
+        finding: >-
+          GPU reports attempt2 witness copied agent-authored row/fit values from native tests; not a
+          person-supplied conversation file
+        author_stop: >-
+          cleanup-final.json verified:46PIDs absent,17groups empty,ports52692/64317closed;
+          attempt2SIGINT130
+        next: >-
+          Continue no-row flow and immutable source/evidence checkpoint; row-dependent actual-person
+          product acceptance requires a person-supplied file with source.
+        proof_boundary: >-
+          Native fixture and scripted A99 evidence are engineering evidence, not actual person-supplied
+          row acceptance
+        model_review:
+          commit: f32598a71f7f1a3a4d0787c12820c4426c82998c
+          merge: 9810fe1e43298a867f26328a4f91469fd6bf3670
+          result: >-
+            No confirmed human message/attachment and original row/fit bytes/hash. A97 literal constants
+            and A99 scripted fixture only.
+      stop_evidence: 0eff11097ebe3e795f4c5173211eb861214c76a2
+    preserved_original_checkout:
+      worktree: /Users/user/.codex/worktrees/d5ec/barocss
+      branch: codex/cad-gpu-cutout-pick-d5ec
+      rule: Preserve inherited dirty fixture and old checkpoints
+    stop_checkpoint:
+      head: 0eff11097ebe3e795f4c5173211eb861214c76a2
+      source: 8789e468de133caf56d137a19166ad86d8ff3d9d
+      dirty: []
+      processes: 46 owned PIDs absent;17groups empty;52692/64317closed; own49883 SIGINT130; slot returned
+      next_first_step: >-
+        After explicit resume: git -C
+        /private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/d5ec-g21-feature-ho1w_gj9/checkout
+        status --short; read receipt/state; no old fixture restart
+      decision_record: decisions-gpu.md
+review_items:
+  REVIEW-K1:
+    priority: P1
+    owner: kernel
+    state: locally_adopted_focused_and_resumed_browser_window_passed
+    problem: Overlapping Sweep pieces double-count mass after union.
+    verification: evidence/66235ce222ba30d024de85f91fa77e90b19b3005/window.json
+  REVIEW-M1:
+    priority: P1
+    owner: model
+    state: locally_adopted_focused_and_resumed_browser_window_passed
+    problem: Batch tools omit document changes from approval and save decisions.
+    verification: evidence/66235ce222ba30d024de85f91fa77e90b19b3005/window.json
+  REVIEW-M2:
+    priority: P1
+    owner: model
+    state: locally_adopted_focused_and_resumed_browser_window_passed
+    after: REVIEW-M1
+    problem: Shape-changing section rows do not invalidate results or approval baselines.
+    verification: evidence/66235ce222ba30d024de85f91fa77e90b19b3005/window.json
+  REVIEW-M3:
+    priority: P2
+    owner: model
+    state: locally_adopted_focused_and_resumed_browser_window_passed
+    problem: Worker input and evaluation key omit weld records.
+    verification: evidence/66235ce222ba30d024de85f91fa77e90b19b3005/window.json
+  REVIEW-G1:
+    priority: P2
+    owner: gpu
+    state: locally_adopted_focused_and_resumed_browser_window_passed
+    problem: A nearer kept face is classified as a cap on the same mesh.
+    verification: evidence/66235ce222ba30d024de85f91fa77e90b19b3005/window.json
+  REVIEW-A1:
+    priority: P2
+    owner: model
+    state: S0_evidence_accepted_implementation_deferred_no_App_lease
+    contract_required: true
+    problem: Recovery metadata can succeed while mesh blob persistence fails silently.
+  REVIEW-M4:
+    priority: unclassified
+    owner: model
+    state: audit_candidate_only
+    problem: >-
+      chat/spec.ts modelHash may omit domain inputs; behavioral effect not yet tested. Do not treat as an
+      accepted defect or expand the current checkpoint.
+baseline_roadmap:
+  recorded_complete:
+    - R1-R9
+    - R10
+    - R11
+    - R12
+    - R12b
+    - R12c
+    - K1-K7
+    - FR1-FR4
+    - FRa-FRg
+    - FRk1
+    - FRk2
+    - R11b
+    - R14
+    - AM1-AM7
+    - IM1-IM8
+    - CNC1-CNC8
+    - RM1-RM9
+    - RD1-RD3
+    - RD9
+    - A1-A8
+    - PKG
+    - G1-G19
+    - G20.1
+    - RB1-RB4
+  partial:
+    - FRk-completion
+    - FRk8b-speed-if-needed
+    - RD10-live
+    - RB9-live
+    - A9
+    - G20.2
+  data_ready_display_pending:
+    - G22
+    - G23
+    - G24
+  held:
+    - RD4-RD8
+    - CAE
+    - ECAD
+    - DWG-SAT
+  future_qualification:
+    - RB5
+    - RB6
+    - RB7
+    - RB8
+known_gates:
+  - id: A9-verification
+    state: pending
+    detail: >-
+      A9-1 and A9-2 have individual checks; A9-5/6 is WIP. The combined suites and flow are not
+      qualified.
+  - id: A9-bead
+    state: locally_adopted_focused_checks_passed_full_A9_pending
+    owner: kernel
+    detail: >-
+      Kernel sharing and Model atomic consumer adopted at a43f; FRk3 adopted at55058. Focused checks pass
+      at55058; full packages/browser and A9 end-to-end acceptance pending.
+  - id: A9-fixture
+    state: pending
+    detail: Move the key or bearing in the acceptance brief; the stated setup has a 115 mm3 clash.
+  - id: G20.2
+    state: bounded_native_qualification_plus_integrated_browser_flow_passed
+    detail: >-
+      Native2c21/21and36/36 +819threevalidtimestamp runs
+      preserved;coordinator66235fullWebGPU-DPR1flow265/265 passes includingG20.2.
+      G21separate;physical/nativeWebGL2manualremainunrun.
+  - id: live-model-runs
+    state: held
+    detail: RB9 live, RD10 L3 and A7/A8 comparisons await an owner token budget.
+  - id: external-and-release
+    state: held
+    detail: RD3 PDFs, RB6/RB8 downloads, A6.5 legal review and publication retain their existing decisions.
+  - id: integration-robot-frozen
+    state: affected_repair_passed_full_window_pending
+    owner: kernel-and-model
+    detail: >-
+      Canonical numeric refresh6665105c adopted at24faaa30a; merged14/14 affected tests pass. New full
+      model/studio/browser window not run.
+  - id: integration-URDF-gears-frozen
+    state: exact_repair_adopted_affected_and_resumed_browser_passed
+    owner: model
+    detail: >-
+      Exact8numbers+independentguard
+      adopted66235;rootguard2/2andoriginalfailedtarget1/1;types/lint/fullWebGPU-DPR1flow265pass.
+      Othercanonicals/expect/oraclesunchanged;noexternaloracle rerun.
+preserved_work:
+  - worktree: /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-review-efbb2c
+    paths:
+      - REVIEW-2026-10-14-cad-gpu.md
+      - review-drafts/
+      - packages/barocss-gpu/src/engine-uv-material-wgsl.ts
+      - .claude/
+    rule: Preserve the earlier review drafts; do not edit, stage or delete them.
+  - worktree: /Users/user/.barocss-ai/v3/integration
+    rule: Historical develop checkout; do not infer that it contains the merged baseline or reset it.
+next_by_lane:
+  coordinator: >-
+    Handback complete; remain paused until explicit owner resume. Resolve storage before a new final
+    window.
+  kernel: >-
+    After explicit resume: sed -n '389,515p' packages/barocss-cad/src/brep-mass-quadrature.ts; resolve
+    nested closure/callback rule before source changes or execution
+  model: >-
+    After explicit resume: git -C /Users/user/.codex/worktrees/c35f/barocss show
+    codex/cad-coordinator-handover-20261022:apps/cad-studio/handover/state.yaml; inspect GPU receipt and
+    assigned Model defect/output
+  gpu: >-
+    After explicit resume: git -C
+    /private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/d5ec-g21-feature-ho1w_gj9/checkout status
+    --short; read receipt/state; no old fixture restart
+operation:
+  heartbeat:
+    id: cad-work
+    interval_minutes: 10
+    purpose: >-
+      Continue roadmap coordination and next-task routing; retain the heartbeat after the first
+      checkpoints.
+    latest_priority: >-
+      Feature delivery over repeated check-only assignments; persisted in active automation prompt and
+      protocol. Aggregate validation deferred to functional adoption milestone.
+    status: PAUSED
+  checkpoint_rule: One bounded task, local commit, evidence, then wait for coordination.
+  shared_file_rule: Name another lane's file and intended change before editing it.
+  adoption: >-
+    Only codex/cad-coordinator-handover-20261022; serial git merge --no-ff of reviewed immutable feature
+    checkpoints. Record branch status adopted and exact adopted tip. Preserve rejected and unverified
+    checkpoints.
+  remote_mutation: Not requested for this continuation.
+  background_policy: >-
+    Only the user-requested cad-work collection heartbeat is active; do not restart old supervisors or
+    unrelated schedules.
+  message_loop:
+    example: notes/coordination-message-pattern-2026-10-22.md
+    rule: >-
+      On response: inspect -> accept/request correction/hold -> send next instruction -> relay
+      dependencies -> show concise received/result/sent update.
+    delivery: Tool acceptance is not recipient read/ack; do not invent delivery or read states.
+    active_turn: Use cursor-based wait_threads while checks run; act on new checkpoint/need-attention immediately.
+    idle: Recurring heartbeat resumes monitoring between active turns; unchanged state stays quiet.
+  heavy_slot:
+    owner: null
+    state: closed_owner_finish
+    queue:
+      - GPU A97 App bridge acceptance when source ready
+      - G23 CNC implementation and bounded acceptance
+      - Pending FRk5/G22/G23 print/A911 actual flows
+      - Coordinator aggregate stable feature window
+    last_tested_commit: 2443211888b5bc5d219fa3075dfea444bd6d5d4a
+    last_runner_pid: 51428
+    last_runner_state: exited_error_no_recorded_stage_processes_remain
+    receipt: evidence/2443211888b5bc5d219fa3075dfea444bd6d5d4a/final-window/receipt.json
+    policy: GPU sole executor; Kernel same-feature source repair only; Model supports actual A97 output defects
+    flow_gate:
+      load_1m_below: 20
+      load_5m_below: 25
+    package_gate:
+      load_1m_below: 40
+      concurrency: 1
+      GOMAXPROCS: 1
+    lease: null
+    tested_commit: null
+    scope: No active checks; final window interrupted by storage and closed
+    order_reason: Kernel current narrow batch failed and explicitly returned; GPU exact source ready
+    last_coordinator_focused:
+      tested: 55058ceaffe649c26efa31aecd21004a67e19771
+      runner_pid: 42906
+      state: exited0
+      receipt: evidence/55058ceaffe649c26efa31aecd21004a67e19771/focused.json
+    interruption_receipt: evidence/1340e3607965178ce9686bd205b29f5d24ca7012/window.json
+    task_commit: d46ddbd82dd68b1234f2d7251f951a26d863f7c3
+    previous_return: Kernel termination.json:12 PIDs absent,groups empty,no server/browser/port,slotReturned true
+    validation_target: d46ddbd82dd68b1234f2d7251f951a26d863f7c3
+    acknowledgment: GPU cursor214 executing; Kernel cursor238 confirms source only
+    runtime_load_guard:
+      basis: >-
+        Original handover defines start-only1m<20/5m<25; protocol defines greatly exceeds for active-run
+        stop
+      stop_when: load1m>=40 for2 consecutive observations15seconds apart; stop only own process group
+      continue: Short20-25 rise after valid start is logged, not automatic cancellation
+      limits: >-
+        Entry gates unchanged; timing results retain observed load, no tolerance or correctness
+        relaxation
+      delivery: Kernel; unchanged load gates
+      model_acknowledged: true
+  assignments_delivery: >-
+    All three send_message_to_thread calls accepted. All three Works subsequently acknowledged
+    implementation start through wait_threads. Model reports clean dependency merge at
+    aad690fe2cc3b54cbfc26f0eac265012e5215c26.
+  shared_App_rule: >-
+    GPU G22 App source frozen at b2 while exact650 executes. Model may edit App chat authority
+    ref/preview/rebase/accept/callback only on ca36 in c35f. No shared viewport/recovery/general SaveOpen
+    edit; integrate sequentially.
+  feature_delivery:
+    skills:
+      - feature-orchestrator
+      - company-delivery-owner
+    brief: notes/feature-delivery-followup-2026-10-22.md
+    rule: >-
+      Assign one usable feature with implementation, existing UI/consumer connection and necessary
+      verification. Preparation/test scaffolding alone is not feature completion.
+    integration: native implementation, local adoption, browser/file acceptance and release remain separate
+    deliveries:
+      kernel:
+        task: FRk5-gap-notch-feature
+        thread_id: 01a16242-8130-7571-831c-d407188f74ff
+        tool_accepted: true
+        recipient_acknowledged: true
+        baseline: 29e9ab164663b713a692d1f814ef199cd18be981
+        record: state.yaml
+      model:
+        task: A9-10-8-v2-manufacturing-outputs-shop-row-inheritance
+        thread_id: 01a16242-fbfc-7032-b97d-fedbabd386ff
+        tool_accepted: true
+        recipient_acknowledged: true
+        baseline: a671eee202837147a99c16319ed05fc54bc57a7e
+        record: state.yaml
+      gpu:
+        task: G21-assembly-instance-display-modes
+        thread_id: 01a16243-5d24-76c1-a30b-2ef96b806e04
+        tool_accepted: true
+        recipient_acknowledged: true
+        baseline: 358696f5d559dbd8bd38e76bf4718efc707f496c
+        record: state.yaml
+    latest_decision: >-
+      A9108 native actual files and WebGPU SaveOpen evidence independently reviewed, adopted c6f92174;
+      new integration suite/browser pending. Model continues A99 on preserved353f plus normal merge; GPU
+      G22 receives ready row API. Kernel sole1f041 functional slot.
+    prior_deliveries:
+      kernel:
+        task: FRk4-native-implementation
+        thread_id: 01a16242-8130-7571-831c-d407188f74ff
+        transport: send_message_to_thread
+        tool_accepted: true
+        recipient_acknowledged: true
+        instruction_sha256: edca3f23882b3550eb32cc1a242d4d93331f8f04961b7d8ef9d21e6cf99f7181
+        ack_source: wait_threads commentary
+        ack_cursor: af50510f-c48b-4482-bf2c-83da8f5fb49f:51
+      model:
+        task: FRk3-editor-exposure
+        thread_id: 01a16242-fbfc-7032-b97d-fedbabd386ff
+        transport: send_message_to_thread
+        tool_accepted: true
+        recipient_acknowledged: true
+        instruction_sha256: 9afc227b7f528981f07528345ce7d0294e7fe15753e3d11fb23ad9ca679b710d
+        ack_source: wait_threads commentary
+        ack_cursor: e9e17df1-75a7-4cdb-b793-44d4d37a48a6:71
+      gpu:
+        task: G21-display-modes-App
+        thread_id: 01a16243-5d24-76c1-a30b-2ef96b806e04
+        transport: send_message_to_thread
+        tool_accepted: true
+        recipient_acknowledged: true
+        instruction_sha256: fcfc954cfe45b7ef6bac0c994f5af290a604b7eff472495d3859c186e12d2c53
+        ack_source: wait_threads commentary
+        ack_cursor: 44a6c585-29da-4f2a-b65d-aedadc27c78b:69
+    latest_owner_priority: >-
+      Feature implementation and usable output first; required checks stay inside each functional task.
+      No preparation-only completion and no new cleanup-only allocation.
+  cross_lane_leases:
+    kernel:
+      task: FRk5-gap-notch-feature
+      paths:
+        - packages/barocss-cad-model/src/engine/doc.ts
+        - packages/barocss-cad-model/src/engine/part.ts
+        - packages/barocss-cad-model/src/engine/elements.ts
+        - packages/barocss-cad-model/src/engine/evaluate.ts
+        - packages/barocss-cad-model/src/frames/skeleton.ts
+        - packages/barocss-cad-model/src/chat/features.ts
+        - packages/barocss-cad-model/src/chat/tools.ts
+        - packages/barocss-cad-model/src/app/frameCommands.ts
+        - packages/barocss-cad-model/src/app/editFields.ts
+        - apps/cad-studio/src/ui/CutListDialog.tsx
+        - packages/barocss-cad-model/src/frames/welds.ts
+      extra_scope: >-
+        FRk5 gap/notch type/forwarding/input/UI/report only; no unrelated evaluation rewrite.
+        Worker/cache extra path requires named request. CutListDialog cutText/type import only for
+        gap/cutter labels; frames/welds gap/notch reporting and explicit unsupported bead semantics only.
+        No new gap-fill bead feature.
+      model_ack: Boundary relayed to Model; new shared engine changes excluded.
+      shared_algorithm_addition: >-
+        Approved after exact source review: brep-tessellate.ts FaceParameters optional cylinder-only
+        partials/project/projectDerivative and existing cylinder parameter registration;
+        brep-mass-quadrature.ts J/surfacePoint/strip/nearUV consumers. Existing
+        cylinderTriangles/mesh/general surface/GaussNewton/oracles/tolerances unchanged.
+      active_write_scope: >-
+        CAD FRk5 implementation plus existing app/frameCommands.ts, app/editFields.ts, frames/welds.ts
+        and CutListDialog.tsx cutText only. Kernel reports no additional engine/doc/part/evaluate/wireDoc
+        change needed. New shared engine writes require named coordination; Model A9108 owns those
+        changes.
+    model:
+      task: A9-10/8
+      paths:
+        - packages/barocss-cad-model/src/chat/**
+        - packages/barocss-cad-model/src/team/**
+        - packages/barocss-cad-model/src/engine/doc.ts
+        - packages/barocss-cad-model/src/engine/part.ts
+        - packages/barocss-cad-model/src/engine/evaluate.ts
+        - existing cad-model CAM/print/row resolver and worker consumers
+        - packages/barocss-cad-model/src/drawing/scope.ts
+        - packages/barocss-cad-model/src/engine/wireDoc.ts
+        - packages/barocss-cad-model/src/engine/evalMemo.ts
+        - packages/barocss-cad-model/src/engine/meshWire.ts optional shopRows result type only
+      limits: >-
+        chat/tools new output dispatch plus existing two part-context branches;
+        engine/drawing/wire/evalMemo row-context and evaluation-key parity only. Preserve FRk5 fields;
+        extra frame files need request. App/styles/viewport/GPU/Kernel/root/lock/shared runner excluded.
+      A99_app_paths:
+        - apps/cad-studio/src/ui/ChatPanel.tsx
+        - apps/cad-studio/src/chat/client.ts
+        - apps/cad-studio/server/chatServer.ts
+        - apps/cad-studio/server/cadMcp.ts
+      A99_model_paths:
+        - engine/doc.ts row provenance field/list only
+        - engine/wireDoc.ts provenance transport
+        - engine/shopRows.ts inherited row/source linkage
+  check_load_hold:
+    observed_load:
+      - 122.74951171875
+      - 96.900390625
+      - 53.56005859375
+    observed_followup: 104.49/95.05/54.40
+    affected: Coordinator aggregate Model suite and all new Work check launches
+    cause: machine-wide load; no attribution to a particular Work
+    resume: Package load1m<40; browser load1m<20/load5m<25; coordinator grants one narrower serial check lease
+    user_pause: false
+    active: false
+    recovery: >-
+      Browser gates recovered for Kernel. Model receives next serial functional validation lease; no
+      blanket permission to other Works.
+  last_package_lease:
+    id: cad-a913-cc131-small-20261022
+    owner: model
+    state: returned_without_new_execution
+    reason: All47/types/lint already completed on unchanged source
+  storage:
+    state: Recovered2.5GiB_from_below1GiB
+    action: >-
+      Coordinator removed only238 own regenerable compiled test bundles from exited30f7/a001
+      runs,818854240bytes; original sources/scripts/logs/failed receipts retained
+    receipt: evidence/2ad96af22ba5423698b09ff865f491bdee004338/coordinator-temp-cleanup.json
+    rule: No new whole-checkout copies; preserve all authors source/WIP and shared caches
+    latest: >-
+      Repeated ENOSPC at final window, approximately195MiB available; only own temporary bundles and
+      generated CAD/Studio dist removed. Source/WIP/shared caches preserved. Rebuild these outputs after
+      explicit resume.
+    gpu_duplicate_cleanup:
+      entries: 2078
+      reclaimed_bytes: 617499967
+      skipped: 0
+      record: packages/barocss-gpu/evidence/g21-silhouette-isolate/cleanup.json
+      record_sha256: 7db36fc0f31348ecfb001995f9f1cfc827ef76e909e3404251b987636a57137d
+      record_state: Committed in dbbd80b2d36dd966e272a0086ef679375db636aa
+      coordinator_review: >-
+        All2078 listed exact original paths/bytes/hash match retained8812 original manifest; paths
+        confirmed absent. Prior archive verification retained.
+      preserved: Committed archives/evidence, sources and current feature WIP; no directory/shared cache deletion
+  owner_rules_20261023:
+    source: Direct owner message in coordinator chat
+    protocol: protocol.md#owner-operating-rules-2026-10-23
+    integration_branch: codex/cad-coordinator-handover-20261022
+    protected_branches:
+      - review/cad-gpu-engine-2026-10-14
+      - claude/cad-outer-lane-531d5a
+      - claude/gpu-viewer-pose-clip-2026-10-21
+    implementation: >-
+      Own TypeScript; no WASM/new runtime dependencies; no nested functions in per-frame/per-element
+      paths; typed refusals; tolerances unchanged; no icon font bundle
+    rows: >-
+      Rule (b): only person-supplied conversation files, source recorded; refuse agent-written rows. No
+      embedded standard tables/text.
+    tools: CAD v2 actions only; tools list plus prompt <=25000 characters per turn
+    processes: Each owner stops only its own PIDs
+    remote: push/PR/publish/release only on explicit owner request
+    git_identity: easylogic <cyberuls@gmail.com>
+    language: English documents/commits; Korean reports
+    delivery:
+      kernel: tool accepted; acknowledgment pending
+      model: >-
+        Acknowledged in O checkpoint89abba11 and provenance clarificationf32598a71; locally
+        adopted9810fe1e
+      gpu: Acknowledged rows rule and stopped own attempt2; immutable cleanup receipt pending
+  handback:
+    trigger: 'Explicit owner request: 마무리'
+    status: complete_with_failures_and_not_run
+    note_pattern: notes/codex-handback-<YYYY-MM-DD>.md
+    date_timezone: Asia/Seoul
+    procedure: protocol.md#handback-when-the-owner-says-마무리
+    sequence:
+      - >-
+        Pause heartbeat and new dispatch; each Work stops its own active checks and preserves
+        stop/restart points in state
+      - >-
+        Collect checkpoints and D/O/G updates; finish only reviewed ready adoptions; freeze final
+        integration code SHA
+      - >-
+        Run one serial final window at frozen SHA: builds, package/Studio tests, tsc, lint, full browser
+        flow; record failures, interruptions and not run with reasons
+      - >-
+        Write handback and state with exact next first steps, WIP commits/dirty paths, defects, owner
+        decisions, worktree/branch inventory and evidence
+      - >-
+        Commit documentation; distinguish tested code SHA from later documentation commit; verify
+        resumability using only handback plus state
+    decision_records:
+      kernel: decisions.md (D)
+      model: decisions-outer.md (O)
+      gpu: decisions-gpu.md (G)
+    decision_record_freshness:
+      kernel:
+        commit: b5fceedfba4a018899e85daceea264113b8c4a15
+        record: decisions.md
+        snapshot: evidence/2443211888b5bc5d219fa3075dfea444bd6d5d4a/final-window/lanes/kernel-D.md
+        state: STOP record reviewed; unadopted source remains separate
+      model:
+        commit: de3510c4162edbd50d19ea9351b9dd2f85f5583b
+        record: decisions-outer.md
+        merge: da985772f6d2c9e3dafce4f696cebfaf832d9471
+        state: STOP record reviewed and no-ff adopted; docs only
+      gpu:
+        commit: 0eff11097ebe3e795f4c5173211eb861214c76a2
+        record: decisions-gpu.md
+        snapshot: evidence/2443211888b5bc5d219fa3075dfea444bd6d5d4a/final-window/lanes/gpu-G.md
+        state: STOP record and160raw hashes reviewed; source not adopted
+    final_window: completed_with_failures_and_storage_block
+    heartbeat: PAUSED; explicit owner resume required
+    requested_at: Owner finish message in current coordinator turn, 2026-10-23 Asia/Seoul
+    new_dispatch: stopped
+    note: notes/codex-handback-2026-10-23.md
+    kernel_stop:
+      source_wip: abb697f247141b35e65635faca29d77e73f60d4a
+      stop_commit: ab25b61864fd1f85d46b47ba6a36bb957703aa7d
+      result: >-
+        Author reports clean checkout,12 previous owned PIDs/groups absent, no new check; nested
+        closure/callback review unresolved
+      next: 'After explicit resume: sed -n 389,515p packages/barocss-cad/src/brep-mass-quadrature.ts'
+    final_tested_commit: 2443211888b5bc5d219fa3075dfea444bd6d5d4a
+    receipt: evidence/2443211888b5bc5d219fa3075dfea444bd6d5d4a/final-window/receipt.json
+    last_fully_verified: 9fec9950c11a76d59e783a634303848a5bdbed89
+    resume_gate: No automatic implementation, check or heartbeat restart
+    documentation_commit: >-
+      Commit containing notes/codex-handback-2026-10-23.md; resolve via git log -1 --format=%H -- that
+      path
+    not_run:
+      - remaining Model package tests
+      - Studio package tests
+      - GPU package tests
+      - CAD package tests
+      - full browser flow
+end_goal: AI takes a brief to a manufacturable, buyable product; A9 is the first end-to-end acceptance.
+local_adoptions:
+  - item: REVIEW-M1
+    task: e90b3a7040b66cf8e9126ac586948752fcf66377
+    merge: 83f5f6acbd3336a096cd5df6c6837a8e9abb7d9d
+  - item: REVIEW-G1
+    task: 3885ee7966b8331cc0c9d84bc4f11a54eeded030
+    merge: 65a2229c98a7d556b2f0c0312cc6da976747652c
+  - item: REVIEW-K1
+    task: 75692d35771391e13d1eaff2df05714b2f16f0d9
+    merge: 8ce8d8b6b04b7c6e94a9ae11fc19fe515bf35d3c
+  - item: REVIEW-M2
+    task: b21e13fc326b5a511545237d65df42e30e34daa3
+    evidence: e98880eb2c2cd7f0866c4dd7927a9a1c26e824ee
+    merge: fb27a362db5a615383bf2a54b9133cb6bb21abfd
+  - item: REVIEW-M3
+    task: 3533235f248c897ef61ecba46358e08cd554e0c3
+    evidence: 881b3a139726ff967f54b8256cdc4b1efd31796f
+    merge: e17374e5879578c5cac564bbf2760a5c67b1e498
+  - item: G20.2-runner-contract
+    task: 63245578ceef24d61218a488885fab068bd00a65
+    evidence: a4b2d5fe494511971df33b1003fd651096c4930f
+    merge: 6b3b98aae743aa5e3de2f61aaa3cf2646b820acf
+  - item: window-robot-frozen-refresh
+    task: 6665105ca45bc046c2de2ccbcb75490413b06db9
+    evidence: c28e5e9f97b451d757c5a89b0b79287f23038f2c
+    merge: 24faaa30a82389c86b2b1febec49644ef951143b
+  - item: window-URDF-gears-numeric-refresh
+    task: 1edffc72e68883df5e7c3bfa66bc09d04487c480
+    evidence: ca4f224d79131142b1b7d532e966b3b2cd88c1b5
+    delta_cherry_pick: 66235ce222ba30d024de85f91fa77e90b19b3005
+  - item: A9-shared-seam-Kernel-and-Model
+    task: 249f5cf2c6bde062c699939a3fd4ad388b19c2ce
+    merge: a43f18785903a543c4e77876da433e97f8c31871
+  - item: FRk3-Kernel-native
+    task: 87cb0a9f8bf81d4c2c93f36741cb985f2c94dcb2
+    merge: 55058ceaffe649c26efa31aecd21004a67e19771
+  - item: FRk3-Model-editor-feature
+    task: 1f0a28759070fd8b259baec5cd0647e7bbbce1ed
+    merge: 115818f239302003cc5830a1c2c551482b3cbdb8
+  - item: FRk4-Kernel-native
+    task: 5ede2e218aa6347cc78872828cbd6e813dd571e9
+    merge: ce532a80ca9fbf0ed014abb5ee1f9739f65f190e
+  - item: G21-display-modes-App-and-cap-repair
+    task: c18d08e771d391ea7545c53903e4b2d31bac8ede
+    merge: 1340e3607965178ce9686bd205b29f5d24ca7012
+  - item: FRk4-common-editor
+    task: c9afc4817b90a03dddcdde9fa80922455cbf2228
+    merge: 888444c34819a632b49b400facd83559bf3077e0
+  - item: A9-13-part-drawing-scope
+    task: f27cb053fe6f897101e8a1d5202df3353dd8e5ce
+    tested: f27cb053fe6f897101e8a1d5202df3353dd8e5ce
+    evidence: b62f4656c5b978c956f555fa92f214919f5eef57
+    merge: 73434a7dd69b2e8e040320a5b4580e27dc743dac
+  - item: G21-WebGL2-default-instance-bridge
+    task: ef31eb9a4e57b0af282a40728a85a38abd980dab
+    tested: ef31eb9a4e57b0af282a40728a85a38abd980dab
+    evidence: 5a277fddf0ead59dbf9d37e45130af4aee949882
+    merge: 4d38f63ed87d42c3fc895b9a7dc3567dd1644239
+  - item: A9-4-manufacturing-options-source
+    task: 7f9773cdaccac59e44964dd2d3935c8846736cef
+    tested: ab679bcc95e92bb4b38cc2ca60af693a437a2857
+    evidence: 2bc44216defe2a33a7d85e4445bc77298fb59f7f
+    merge: 30f7ca2bdcd500b2bc063a5b5a8860c84a989533
+    limit: Native bounded feature accepted; aggregate proof separate
+  - item: A9-4-unknown-guard-refresh
+    task: 5f5636e73fc4e1d91a4d1e8e1c1c7c963feb0829
+    tested: 5f5636e73fc4e1d91a4d1e8e1c1c7c963feb0829
+    evidence: 5c9a38d5a3657a6d8c76e7cca26f0fc58d210aee
+    merge: a0010e447822a691b9fae00d8e7aa5ea23d92ef5
+  - item: Studio-frame-legacy-label-and-guards
+    task: f36f33619adde0e2c175f04e80957d177fe98eb0
+    tested: f36f33619adde0e2c175f04e80957d177fe98eb0
+    evidence: 24510f8b02dacc0d5cf229ebef2abf123a929b88
+    merge: 3c891b20f9bd31a435000025a205871800b03a14
+  - task: G2-section-provenance-compatibility
+    native: 2ad96af22ba5423698b09ff865f491bdee004338
+    evidence: dbb12716a3e3d33c719c0e8a67a454f2456618b6
+    adopted: aa4acc0039b1473999b3864c59ef31402caa9ff8
+    receipt: evidence/2ad96af22ba5423698b09ff865f491bdee004338/adoption.json
+    state: native_verified_local_adoption_aggregate_pending
+  - task: G21-assembly-instance-five-display-modes
+    native: 095406f180aaa6629c3309be610de0381d11db23
+    tested: 601a924cdcf54b24afb4c0122a9cfeadea8a25cf
+    evidence: 8812ec52c61f8fd01cd7d0e62d8e56d6dd983e69
+    merge: 9b3186baba60333fa16af13f830edea8409f2daf
+    receipt: evidence/601a924cdcf54b24afb4c0122a9cfeadea8a25cf/adoption.json
+    state: native_and_actual_App_accepted_local_adoption_aggregate_pending
+  - item: A9-10/8 manufacturing outputs and inherited shop rows
+    tested: fea13033a045e6e67a0ddc3a588c7effab1d2d24
+    evidence: 1f7bc4789ba474ab004f6669a49e284961bcd75c
+    merge: c6f92174ca20f212847fae76688797b3e11b2758
+    receipt: evidence/fea13033a045e6e67a0ddc3a588c7effab1d2d24/adoption.json
+    state: native_actual_files_UI_accepted_aggregate_pending
+  - track: G21 curved silhouettes and isolate
+    task: dbbd80b2d36dd966e272a0086ef679375db636aa
+    tested: 650be5b66d90ba739b78b6b25de424e9c03dc8f0
+    evidence: 2fb83f7de6f331a5e63dddcc0379992d033d3133
+    merge: 7f1b52c9d68ec56d66a3c802e6f66bba8d464dda
+    receipt: evidence/650be5b66d90ba739b78b6b25de424e9c03dc8f0/adoption.json
+  - track: A9-9 person-supplied row files
+    tested: 38e7433f2d3014337455fec36e817e0159c87128
+    evidence: 6228635b8f23a6b159adc4ab5bf8567dc74761a3
+    merge: aa0374ca8db7e4eb2264d6bc400895ac8639ead9
+    receipt: evidence/38e7433f2d3014337455fec36e817e0159c87128/adoption.json
+  - track: FRk5 frame gap/notch native source
+    tested: 98c67112906664b774c7542ccfc8c4ef20fd775f
+    evidence: d4a0f633105988aae0af414d393709591776038b
+    merge: b6a034159d1e606a5c748c59e7c97621b4d61d5c
+    receipt: evidence/98c67112906664b774c7542ccfc8c4ef20fd775f/adoption.json
+  - track: G22 clearance screen source
+    tested: 570891df92f351f82fd5fc76a65366d05e87ba00
+    evidence: f2f4de0765b9f84e840f2c435050f74a0b0e8ecb
+    merge: 2ca863a315d09515a8f860f68ac92ce24cdde53d
+    receipt: evidence/570891df92f351f82fd5fc76a65366d05e87ba00/adoption.json
+  - track: A9-11 purchase key estimates
+    tested: f867deddbd956aad1ce38a7b9713c380e7bf3bd3
+    evidence: d70ed7f1469eda7084185a9453735cb2f0dd783b
+    merge: b88eb0399e760bfc8ffbd07bf22ad5f43bd694c3
+    receipt: evidence/f867deddbd956aad1ce38a7b9713c380e7bf3bd3/adoption.json
+  - track: G23 print-preview persistence
+    tested: fdb4478a149c873628fb317b416d761666a42eb3
+    evidence: 2aa3ff9bd3af487fa7852665bd4a59d42601cc11
+    merge: 306d71a6e6115761c42220ff899c588713fcdde4
+    receipt: evidence/fdb4478a149c873628fb317b416d761666a42eb3/adoption.json
+  - track: G23 print immutable evidence branch completion
+    status: adopted
+    branch: codex/g23-print-layers
+    evidence: b93d8795a168aff4daaa11afcd83b6de2dd691aa
+    merge: 795e5c64fa9ec1f950978c9d9c7c0aec954b9341
+    tested: 1bf099f2ec176f5e6a02300c377db1e2759c2515
+    verified_payloads: 95
+    manifest_sha256: a3be5ba91b5bcf80abc87c6a10b905eb7e5fbb0dd69a03d6a708128cce036c45
+    boundary: >-
+      Evidence-only merge; product unchanged. No runtime tests repeated; outstanding print UI and
+      aggregate checks retained.
+  - track: Model owner rules and row evidence boundary
+    status: adopted
+    branch: codex/cad-model-a99-rows
+    task: f32598a71f7f1a3a4d0787c12820c4426c82998c
+    merge: 9810fe1e43298a867f26328a4f91469fd6bf3670
+    boundary: Decision records only; no new product execution or full acceptance.
+  - track: Model owner STOP documentation
+    branch: codex/cad-model-a99-rows
+    status: adopted
+    task: de3510c4162edbd50d19ea9351b9dd2f85f5583b
+    merge: da985772f6d2c9e3dafce4f696cebfaf832d9471
+    boundary: Documents/evidence only after frozen final check commit; no new product pass
+pending_cross_lane:
+  - from: kernel
+    to: model
+    path: packages/barocss-cad-model/test/frame-welds.test.ts
+    state: held_until_kernel_checkpoint_and_overlap_contract
+    detail: Existing ordered-trim refusal expectation must not be changed before support/overlap decision.
+  - from: coordinator
+    to: kernel-and-model
+    state: diagnosis_requested
+    detail: >-
+      Frozen robot export first failure logs and exact 8ce8d8b6 commit delivered; Model finishes M3
+      first, Kernel supplies independent numeric reasoning.
+  - from: coordinator
+    to: model-and-kernel
+    state: completed_lease_closed
+    paths:
+      - packages/barocss-cad/conformance/rm/arm-6r/robot.xml
+      - packages/barocss-cad/conformance/rm/arm-6r/robot.sdf
+      - packages/barocss-cad/conformance/rm/arm-6r/robot.usda
+    rule: >-
+      Model alone refreshes mass/inertia in these3 canonical files for this checkpoint. Kernel must not
+      edit them. Source bcad/case/expect, four-bar and oracle JSON frozen. No new duplicate fixture
+      location.
+    result: Canonical refresh adopted and verified14/14 at24faaa30a; Model/Kernel notified.
+  - from: kernel
+    to: model
+    source_commit: c679036a3506b52c98d45f39b18bd1abb62986ad
+    state: D170_relayed_for_contract_review
+    detail: >-
+      Complete sharing manifest; actual vs nominal volumes and shared ids/intervals; typed
+      context/unsupported refusals; candidate persisted opt-in. Model must review minimal authored vs
+      derived inputs, atomic retry, default/set_welds/SaveOpen, wire/keys/meshRef, mass/BOM totals before
+      implementation.
+  - from: coordinator
+    to: kernel-and-model
+    state: compatibility_and_component_boundary_clarification_sent
+    detail: >-
+      Preserve valid nonshared legacy behavior without automatic policy migration. Detected shared
+      component lacking valid policy/context must refuse atomically. Never remove a peer and accept
+      nominal overlapping material as mass. Model to define unrelated components and incomplete totals in
+      final S0.
+  - from: coordinator
+    to: kernel-and-model
+    state: accepted_contract_and_implementation_tasks_sent
+    baseline: b9d8b48341d63ea5bc48cba1f0aa020a39149a6a
+    source_contracts:
+      - c679036a3506b52c98d45f39b18bd1abb62986ad
+      - add5146f3350b1df389d9c7fc9e8eb271af25e1b
+    next: >-
+      Kernel produces scoped API checkpoint; coordinator reviews/relays exact commit to Model; actual
+      consumer guards and geometry qualify together.
+  - from: kernel
+    to: model
+    state: candidate_API_relayed_robot_inventory_still_first
+    source_commit: df5c1e68860e4514647513da1e27cbd072fb480c
+    detail: >-
+      Exact optional sharing manifest, complete structured error component and mandatory
+      actual/nominal/shared report relayed. Candidate not adopted; final receipt and T2 remain
+      incomplete. Model must not blindly merge foreign ancestry.
+  - from: coordinator
+    to: model-and-kernel
+    state: completed_lease_closed
+    baseline: 3d7b392fd47e4763814e65a459c2263149d12618
+    paths:
+      - packages/barocss-cad/conformance/rm/urdf-gears/robot.urdf
+    rule: >-
+      Model alone8 approved inertial values; all other bytes and8canonical files/case/expect/oracle/mesh
+      frozen. Kernel acknowledged hold and no edits.
+    result: Exact8numbersadopted;affectedroot2+1passed.
+  - from: coordinator
+    to: kernel-model-gpu
+    state: local_adoption_notice_sent
+    commit: 55058ceaffe649c26efa31aecd21004a67e19771
+    detail: >-
+      All three Works notified of exact55058 local adoption and pending integrated checks. Continue
+      assigned functions with preserved WIP; report baseline compatibility at next clean checkpoint.
+owner_continue_authorization_20261023:
+  instruction: Continue approved CAD roadmap work without repeated user confirmation.
+  delivery: Instructions sent to Kernel, Model and GPU; messaging tools accepted all three.
+  coordination: Coordinator resolves path conflicts, dependencies and serial execution slots.
+  boundary: Preserve WIP, evidence accuracy and existing restrictions on remote actions and spending.
+branch_adoptions:
+  scope: >-
+    Branches used by this three-Work continuation; historical local_adoptions retain earlier exact
+    ranges. Unrelated branches are not classified.
+  integration_branch: codex/cad-coordinator-handover-20261022
+  entries:
+    - branch: codex/g21-silhouette-isolate
+      status: adopted
+      adopted_through: 2fb83f7de6f331a5e63dddcc0379992d033d3133
+      merge: 7f1b52c9d68ec56d66a3c802e6f66bba8d464dda
+      tip_observed: 2fb83f7de6f331a5e63dddcc0379992d033d3133
+      tip_status: adopted
+      boundary: Native and bounded actual UI evidence; aggregate pending
+    - branch: codex/g22-570-package-evidence
+      status: adopted
+      adopted_through: f2f4de0765b9f84e840f2c435050f74a0b0e8ecb
+      merge: 2ca863a315d09515a8f860f68ac92ce24cdde53d
+      tip_observed: f2f4de0765b9f84e840f2c435050f74a0b0e8ecb
+      tip_status: adopted
+      boundary: Native accepted; actual dual-renderer UI pending
+    - branch: codex/a94-unknown-guard
+      status: adopted
+      adopted_through: 5c9a38d5a3657a6d8c76e7cca26f0fc58d210aee
+      merge: a0010e447822a691b9fae00d8e7aa5ea23d92ef5
+      tip_observed: 5c9a38d5a3657a6d8c76e7cca26f0fc58d210aee
+      tip_status: adopted
+      boundary: Focused guard acceptance; aggregate failures retained
+    - branch: codex/g23-print-layers
+      status: adopted
+      adopted_through: b93d8795a168aff4daaa11afcd83b6de2dd691aa
+      merge: 795e5c64fa9ec1f950978c9d9c7c0aec954b9341
+      tip_observed: b93d8795a168aff4daaa11afcd83b6de2dd691aa
+      tip_status: adopted
+      boundary: >-
+        Evidence-only completion of branch merge; product 1bf099 previously merged a283cb58. 95 payload
+        hashes matched; remaining print UI acceptance pending
+    - branch: codex/cad-model-batch-change-c35f
+      status: adopted
+      adopted_through: 1f7bc4789ba474ab004f6669a49e284961bcd75c
+      merge: c6f92174ca20f212847fae76688797b3e11b2758
+      tip_observed: 1f7bc4789ba474ab004f6669a49e284961bcd75c
+      tip_status: adopted
+      boundary: A9-10/8 native and bounded files/UI; aggregate pending
+    - branch: codex/cad-model-a99-rows
+      status: adopted
+      adopted_through: de3510c4162edbd50d19ea9351b9dd2f85f5583b
+      merge: da985772f6d2c9e3dafce4f696cebfaf832d9471
+      tip_observed: de3510c4162edbd50d19ea9351b9dd2f85f5583b
+      tip_status: later_tip_not_adopted
+      boundary: Latest STOP docs only; product source unchanged after native44bca47
+      previous_adoption:
+        through: f32598a71f7f1a3a4d0787c12820c4426c82998c
+        merge: 9810fe1e43298a867f26328a4f91469fd6bf3670
+    - branch: codex/cad-kernel-sweep-mass-20261022
+      status: adopted
+      adopted_through: d4a0f633105988aae0af414d393709591776038b
+      merge: b6a034159d1e606a5c748c59e7c97621b4d61d5c
+      tip_observed: b5fceedfba4a018899e85daceea264113b8c4a15
+      tip_status: unverified_FRk6_and_stop_docs_preserved
+      boundary: >-
+        FRk5 native adopted through this checkpoint only. Later FRk6 source and failed evidence remain
+        unadopted
+    - branch: codex/a9-7-ui-connection
+      status: preserved_unadopted
+      tip_observed: 0eff11097ebe3e795f4c5173211eb861214c76a2
+      reason: >-
+        Owner finish; source review/integration and admissible-input linked acceptance incomplete;
+        row-free evidence retained
+    - branch: codex/g23-cam-preview
+      status: preserved_unadopted
+      tip_observed: 5c9f861f8c067a04465fc579912856c0509372fe
+      reason: Incomplete source; owner finish; no consumer/runtime qualification
+  discarded: []
+  discarded_note: No branch abandonment established by this review. Preserved WIP is not discarded.

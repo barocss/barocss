@@ -9,7 +9,8 @@ export type FrameSectionSpec =
   | { readonly kind: 'rect-tube'; readonly width: number; readonly height: number; readonly wall: number; readonly outerRadius: number; readonly innerRadius?: number }
   | { readonly kind: 'round-tube'; readonly diameter: number; readonly wall: number }
   | { readonly kind: 'angle'; readonly legX: number; readonly legY: number; readonly thickness: number; readonly rootRadius: number; readonly toeRadius: number }
-  | { readonly kind: 'channel'; readonly height: number; readonly width: number; readonly web: number; readonly flange: number; readonly rootRadius: number }
+  | { readonly kind: 'channel'; readonly height: number; readonly width: number; readonly web: number; readonly flange: number; readonly rootRadius: number; readonly toeRadius?: number; readonly flangeSlope?: number }
+  | { readonly kind: 'i-beam'; readonly height: number; readonly width: number; readonly web: number; readonly flange: number; readonly rootRadius: number; readonly toeRadius: number; readonly flangeSlope: number }
   | { readonly kind: 'tslot'; readonly size: number; readonly cells: 1 | 2; readonly openSlots: number; readonly opening: number; readonly lip: number; readonly undercut: number; readonly depth: number; readonly bore: number };
 
 /** A built section: loops in its own XY, the name of each segment (each loop's in order), area, centroid and box. */
@@ -123,6 +124,7 @@ function angle(s: Extract<FrameSectionSpec, { kind: 'angle' }>): FrameSection {
  * `inside.bottom`, `root.bottom`, `web`, `root.top`, `inside.top`, `tip.top`, `top`.
  */
 function channel(s: Extract<FrameSectionSpec, { kind: 'channel' }>): FrameSection {
+  if ((s.toeRadius ?? 0) !== 0 || (s.flangeSlope ?? 0) !== 0) return flanged(s);
   const { height: h, width: b, web: tw, flange: tf, rootRadius: r } = s;
   positive(h, 'height'); positive(b, 'width'); positive(tw, 'web'); positive(tf, 'flange'); nonNegative(r, 'rootRadius');
   if (!(b - tw > r)) refuse(`flanges ${fmt(b)} wide leave no flat inside past the web ${fmt(tw)} and the root ${fmt(r)}`);
@@ -137,6 +139,82 @@ function channel(s: Extract<FrameSectionSpec, { kind: 'channel' }>): FrameSectio
   const Mx = h * tw * tw / 2 + 2 * (b - tw) * tf * (tw + b) / 2 + 2 * S * (tw + c);
   return { outer: L.segments, outerNames: L.names, holes: [], holeNames: [], areaMM2: A, centroid: [Mx / A, h / 2], box: { min: [0, 0], max: [b, h] },
     label: `channel ${fmt(h)} × ${fmt(b)} × ${fmt(tw)}/${fmt(tf)}${r ? `, r ${fmt(r)}` : ''}` };
+}
+
+/** FRk3 tangent line/arc outline. Dimensions describe the sharp intersections, not tangent points. */
+function flanged(s: Extract<FrameSectionSpec, { kind: 'i-beam' | 'channel' }>): FrameSection {
+  const { height: h, width: b, web: w, flange: f, rootRadius: root } = s;
+  const isI = s.kind === 'i-beam', toe = isI ? s.toeRadius : s.toeRadius ?? 0, slope = isI ? s.flangeSlope : s.flangeSlope ?? 0;
+  for (const [name, value] of Object.entries({ height: h, width: b, web: w, flange: f })) {
+    if (!Number.isFinite(value)) refuse(`${name} must be finite`);
+    positive(value, name);
+  }
+  for (const [name, value] of Object.entries({ rootRadius: root, toeRadius: toe, flangeSlope: slope })) {
+    if (!Number.isFinite(value)) refuse(`${name} must be finite`);
+    nonNegative(value, name);
+  }
+  const a = (b - w) / (isI ? 2 : 1), tip = f - slope * a / 2, atWeb = f + slope * a / 2;
+  if (!(a > 0 && tip > 0 && h > 2 * atWeb)) refuse('web, flange and slope leave no positive tip or web opening');
+  const H = h / 2, B = b / 2, W = w / 2;
+  const poly: XY[] = isI
+    ? [[-B, -H], [B, -H], [B, -H + tip], [W, -H + atWeb], [W, H - atWeb], [B, H - tip], [B, H], [-B, H], [-B, H - tip], [-W, H - atWeb], [-W, -H + atWeb], [-B, -H + tip]]
+    : [[0, 0], [b, 0], [b, tip], [w, atWeb], [w, h - atWeb], [b, h - tip], [b, h], [0, h]];
+  const names = isI
+    ? ['outer.bottom', 'tip.bottom.right', 'inside.bottom.right', 'web.right', 'inside.top.right', 'tip.top.right', 'outer.top', 'tip.top.left', 'inside.top.left', 'web.left', 'inside.bottom.left', 'tip.bottom.left']
+    : ['bottom', 'tip.bottom', 'inside.bottom', 'web', 'inside.top', 'tip.top', 'top', 'back'];
+  const corners = isI
+    ? ['', '', 'toe.bottom.right', 'root.bottom.right', 'root.top.right', 'toe.top.right', '', '', 'toe.top.left', 'root.top.left', 'root.bottom.left', 'toe.bottom.left']
+    : ['', '', 'toe.bottom', 'root.bottom', 'root.top', 'toe.top', '', ''];
+  const sub = (p: XY, q: XY): XY => [p[0] - q[0], p[1] - q[1]];
+  const addScaled = (p: XY, v: XY, k: number): XY => [p[0] + v[0] * k, p[1] + v[1] * k];
+  const unit = (p: XY): XY => { const l = Math.hypot(...p); return [p[0] / l, p[1] / l]; };
+  const cross = (p: XY, q: XY) => p[0] * q[1] - p[1] * q[0];
+  const fillets = poly.map((v, i) => {
+    const radius = corners[i].startsWith('root') ? root : corners[i].startsWith('toe') ? toe : 0;
+    if (!radius) return { before: v, after: v, center: v, distance: 0, direction: 'ccw' as const };
+    const previous = poly[(i + poly.length - 1) % poly.length], next = poly[(i + 1) % poly.length];
+    const u = unit(sub(previous, v)), t = unit(sub(next, v));
+    const alpha = Math.acos(u[0] * t[0] + u[1] * t[1]), distance = radius / Math.tan(alpha / 2);
+    const center = addScaled(v, unit([u[0] + t[0], u[1] + t[1]]), radius / Math.sin(alpha / 2));
+    return { before: addScaled(v, u, distance), after: addScaled(v, t, distance), center, distance,
+      direction: cross(sub(v, previous), sub(next, v)) > 0 ? 'ccw' as const : 'cw' as const };
+  });
+  // Only a floating-point roundoff guard: reject an exhausted flat, including computed equality.
+  // This does not widen any existing model/geometry tolerance or alter a radius.
+  const roundoff = 32 * Number.EPSILON * Math.max(1, h, b, root, toe);
+  for (let i = 0; i < poly.length; i++) {
+    const j = (i + 1) % poly.length, length = Math.hypot(...sub(poly[j], poly[i]));
+    if (!(length - fillets[i].distance - fillets[j].distance > roundoff)) refuse(`tangencies consume ${names[i]}; a positive flat must remain`);
+  }
+  const loop: LoopBuilder = { segments: [], names: [] };
+  for (let i = 0; i < poly.length; i++) {
+    const f = fillets[i];
+    if (f.distance) arc(loop, f.before, f.center, f.direction, corners[i]);
+    line(loop, f.after, names[i]);
+  }
+  // Closed triangle + circular sector first moments. No tessellation or mass integration is used.
+  let area = 0, mx = 0;
+  const triangle = (p: XY, q: XY) => {
+    const A = cross(p, q) / 2;
+    area += A; mx += A * (p[0] + q[0]) / 3;
+  };
+  for (let i = 0; i < loop.segments.length; i++) {
+    const seg = loop.segments[i], p = seg.start, q = loop.segments[(i + 1) % loop.segments.length].start;
+    if (seg.kind === 'line') { triangle(p, q); continue; }
+    if (seg.kind !== 'arc') refuse('a flanged section must contain only lines and circular arcs');
+    const c = seg.center, u = sub(p, c), v = sub(q, c), r = Math.hypot(...u);
+    const start = Math.atan2(u[1], u[0]), finish = Math.atan2(v[1], v[0]);
+    let theta = finish - start;
+    if (seg.direction === 'ccw' && theta <= 0) theta += 2 * Math.PI;
+    if (seg.direction === 'cw' && theta >= 0) theta -= 2 * Math.PI;
+    triangle(p, c); triangle(c, q);
+    const A = r * r * theta / 2;
+    area += A;
+    mx += c[0] * A + r ** 3 * (Math.sin(start + theta) - Math.sin(start)) / 3;
+  }
+  return { outer: loop.segments, outerNames: loop.names, holes: [], holeNames: [], areaMM2: area,
+    centroid: isI ? [0, 0] : [mx / area, h / 2], box: isI ? { min: [-B, -H], max: [B, H] } : { min: [0, 0], max: [b, h] },
+    label: `${s.kind} ${fmt(h)} × ${fmt(b)} × ${fmt(w)}/${fmt(f)}, root ${fmt(root)}, toe ${fmt(toe)}, slope ${fmt(slope)} (flange at overhang midpoint)` };
 }
 
 /** The slot faces of a T-slot section, clockwise from the top as the library's part opens them (cells 1: the first `openSlots`; cells 2: all six). */
@@ -202,6 +280,7 @@ export function frameSection(spec: FrameSectionSpec): FrameSection {
     case 'round-tube': return roundTube(spec);
     case 'angle': return angle(spec);
     case 'channel': return channel(spec);
+    case 'i-beam': return flanged(spec);
     case 'tslot': return tslot(spec);
   }
 }
@@ -240,6 +319,9 @@ function take(min: XY, max: XY, x: number, y: number): void { min[0] = Math.min(
 
 /** A member as built (FR1, D123): its section, where its line runs and the section's frame in the part. */
 export interface FrameMemberReport {
+  /** Circular spine or tangent bend: dimensions in evaluated part coordinates; developed length follows the section centroid. */
+  readonly curve?: { readonly kind: 'arc' | 'bend'; readonly center: readonly [number, number, number]; readonly axis: readonly [number, number, number]; readonly radiusMM: number; readonly centroidRadiusMM: number; readonly angleDegrees: number; readonly startTangent: readonly [number, number, number]; readonly endTangent: readonly [number, number, number]; readonly developedLengthMM: number; readonly straightLengthsMM: readonly [number, number]; readonly segmentIndices: readonly number[] };
+
   /** The section kind and its description (`rect-tube 40 × 40 × 3, ro 6`; a sketch section: `sketch <id>`). */
   readonly sectionKind: string; readonly section: string;
   /** Its area and centroid in the section's own XY (closed forms; a sketch section's by its prism's exact mass). */
@@ -273,8 +355,12 @@ export interface FrameMemberReport {
  * cut from square; `plane` the cut's (its normal pointing away from the member); `extendedMM` how far a through member
  * runs past the point.
  */
+export type FrameNotchReport = { readonly kind: 'holesaw'; readonly diameterMM: number; readonly offsetMM: number } | { readonly kind: 'v'; readonly depthMM: number; readonly angleDegrees: number };
 export interface FrameEndReport {
-  readonly end: 'start' | 'end'; readonly point: number; readonly kind: 'square' | 'mitre' | 'butt' | 'through' | 'cope' | 'trim';
+  /** Complete authored clearance g (each mitre plane is moved g/2). */
+  readonly gapMM?: number;
+  readonly notch?: FrameNotchReport;
+  readonly end: 'start' | 'end'; readonly point: number; readonly kind: 'square' | 'mitre' | 'butt' | 'through' | 'cope' | 'trim' | 'notch';
   readonly with?: number; readonly angleDegrees?: number; readonly extendedMM?: number;
   /** An ordered trim (FR3b): this member's place in the order (1 for the second) and the members it is trimmed to. */
   readonly rank?: number; readonly against?: readonly number[];

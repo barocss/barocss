@@ -18,7 +18,7 @@
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, mergeBreps, nurbsOf, type Brep, type BrepCheckReport } from './brep-core.js';
 import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromProfile, prismaticVolume, transformPrismatic, PrismaticSolidError, type PrismaticSolid } from './prismatic-solid.js';
 import { erodeSection } from './section-offset.js';
-import { booleanCurveRegions, curveTolerance, regionMoments, sampleRing, segEnd, segReverse, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
+import { booleanCurveRegions, curveTolerance, regionMoments, locateInRegion, sampleRing, segEnd, segReverse, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { booleanPolyhedra } from './polyhedral-boolean.js';
 import { booleanAnalytic, faceGeometry, splitFaceAlongCurve, splitFaceAlongIsocline } from './analytic-boolean.js';
 import { faceReach, finishBrepEdges } from './edge-finish.js';
@@ -57,7 +57,7 @@ import { throatedWormWheel, throatedWormPlacement, type ThroatedWheelReport, typ
 import { revolveProfile, revolveMassProperties, type RevolveInput } from './revolve.js';
 import { transformBrep, quarterTurn, type BrepAffine } from './brep-transform.js';
 import { curveDomain, evaluateCurve } from './math.js';
-import { tessellateBrep } from './brep-tessellate.js';
+import { planar, tessellateBrep } from './brep-tessellate.js';
 import { rayHit, triangleBvh } from './triangle-bvh.js';
 import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, SolidMassError, type SolidMassProperties } from './solid-mass.js';
 import { glueAtSharedFace, withCavities } from './brep-glue.js';
@@ -69,8 +69,8 @@ import { meshInnerOffset, type MeshShellReport } from './mesh-offset.js';
 import { bendAllowance, bendDeduction, bendTableProblem, contourFlangeSection, flangeSection, lookupBend, outsideSetback, SheetMetalError, type BendTable, type BendTableUse, type SheetReport } from './sheet-metal.js';
 import { flatPattern as flatPatternOf, FlatPatternError, type FlatPattern } from './sheet-flat.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
-import { loopArea, loopPerimeter, type BeadReport, type EndCapReport, type GussetReport, type WeldmentSeam } from './frame-weldment.js';
-import { FRAME_ANCHORS, FrameSectionError, anchorPoint, frameSection, loopBox, type FrameAnchor, type FrameEndReport, type FrameMemberReport, type FrameSectionSpec } from './frame-section.js';
+import { loopArea, loopPerimeter, type BeadReport, type EndCapReport, type GussetReport, type WeldmentSeam, type BeadJointRef, type BeadSharedComponent, type BeadSharedSeam } from './frame-weldment.js';
+import { FRAME_ANCHORS, FrameSectionError, anchorPoint, frameSection, loopBox, type FrameAnchor, type FrameEndReport, type FrameMemberReport, type FrameNotchReport, type FrameSectionSpec } from './frame-section.js';
 import type { Curve, FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import { encodeBinaryStl } from './stl.js';
@@ -374,7 +374,7 @@ export type CadPartFeature = Base & (
    * its seams, both faces). Its body the fillet (the end's loop offset by the leg, drafted 45°, less the member, kept on
    * the faces it lands on); `bead` its report. Refused BEAD_KIND, BEAD_SEAM_NOT_PLANAR, BEAD_ANGLE, BEAD_SIZE.
    */
-  | { readonly kind: 'weld-bead'; readonly frame: string; readonly on: { readonly member: number; readonly end: 'start' | 'end' } | { readonly gusset: string } | { readonly cap: string }; readonly leg: CadPartDim; readonly inner?: boolean }
+  | { readonly kind: 'weld-bead'; readonly frame: string; readonly on: { readonly member: number; readonly end: 'start' | 'end' } | { readonly gusset: string } | { readonly cap: string }; readonly leg: CadPartDim; readonly inner?: boolean; readonly sharing?: CadPartBeadSharing }
   /**
    * A shaft (R12c.3a, D156): `steps` [{ diameter, length, fillet? (at the shoulder after it), undercut? { width, depth },
    * grooves? [{ diameter, width, at }], keyseats? [{ width, depth, length, offset, ends? square | end-mill (default) |
@@ -466,7 +466,7 @@ export type CadPartFeature = Base & (
    * segments on the same two points), `SKELETON_OVERLAP` (two on one line sharing a length), and the sections'
    * `SECTION_DIMENSIONS`.
    */
-  | { readonly kind: 'frame'; readonly points: readonly CadPartPoint3[]; readonly segments: readonly (readonly [number, number])[]; readonly section: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean; readonly up?: CadPartPoint3; readonly overrides?: readonly CadPartFrameOverride[]; readonly corners?: CadPartFrameCorners; readonly trims?: readonly CadPartFrameTrim[] }
+  | { readonly kind: 'frame'; readonly points: readonly CadPartPoint3[]; readonly segments: readonly CadPartFrameSegment[]; readonly bends?: readonly { readonly point: number; readonly radius: CadPartDim }[]; readonly section: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean; readonly up?: CadPartPoint3; readonly overrides?: readonly CadPartFrameOverride[]; readonly corners?: CadPartFrameCorners; readonly trims?: readonly CadPartFrameTrim[] }
   | { readonly kind: 'frame-member'; readonly section: CadPartSection; readonly start: CadPartPoint3; readonly end: CadPartPoint3; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly up?: CadPartPoint3 }
   /**
    * An edge flange (R12.3, D118) on a sheet (its rules from its report): on a straight `edge` between a planar skin face
@@ -529,30 +529,42 @@ export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: Cad
  */
 export interface CadPartFrameCorners {
   readonly default?: 'mitre' | 'butt' | 'none';
+  /** Full joint clearance in mm; a mitre moves each plane by gap/2. */
+  readonly gap?: CadPartDim;
   /** Where three or more members end (FR3b, D126): `order` (an ordered trim: the larger sections first, then the lower index) or `none` (the default: left square). */
   readonly multi?: 'order' | 'none';
   /** Where members end on another's length — a T-joint (FR3b): `butt` (on its box face), `cope` (to its envelope) or `none` (the default). */
   readonly tee?: 'butt' | 'cope' | 'none';
   /** A point set apart: `through` at a butt or cope; `trim` at a butt (`face`, the default, or `envelope`); `order` at an ordered trim (its members, the first running through). */
-  readonly at?: readonly { readonly point: number; readonly kind: 'mitre' | 'butt' | 'cope' | 'order' | 'none'; readonly through?: number; readonly trim?: 'face' | 'envelope'; readonly order?: readonly number[] }[];
+  readonly at?: readonly { readonly point: number; readonly kind: 'mitre' | 'butt' | 'cope' | 'order' | 'none'; readonly through?: number; readonly trim?: 'face' | 'envelope'; readonly order?: readonly number[]; readonly gap?: CadPartDim; readonly notch?: CadPartFrameNotch }[];
 }
+export type CadPartFrameNotch = { readonly kind: 'holesaw'; readonly diameter: CadPartDim; readonly offset?: CadPartDim } | { readonly kind: 'v'; readonly depth: CadPartDim; readonly angle: CadPartDim };
 /** A member's end trimmed to a plane (the side holding its other end kept) or to an earlier body (FR3b, D126). */
 export type CadPartFrameTrim = { readonly member: number; readonly end: 'start' | 'end' } & ({ readonly plane: { readonly origin: CadPartPoint3; readonly normal: CadPartPoint3 } } | { readonly body: string });
 /** One member of a frame set apart (FR2, D124): its own section, anchor, offset, roll or mirror. */
 export interface CadPartFrameOverride { readonly member: number; readonly section?: CadPartSection; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly mirror?: boolean }
 /** A member's section (FR1, D123): a kind and its dimensions, or a closed sketch. */
+export type CadPartFrameSegment = readonly [number, number] | { readonly from: number; readonly to: number; readonly through: number } | { readonly from: number; readonly to: number; readonly center: CadPartPoint3 };
+
 export type CadPartSection =
   | { readonly kind: 'rect-tube'; readonly width: CadPartDim; readonly height: CadPartDim; readonly wall: CadPartDim; readonly outerRadius: CadPartDim; readonly innerRadius?: CadPartDim }
   | { readonly kind: 'round-tube'; readonly diameter: CadPartDim; readonly wall: CadPartDim }
   | { readonly kind: 'angle'; readonly legX: CadPartDim; readonly legY: CadPartDim; readonly thickness: CadPartDim; readonly rootRadius: CadPartDim; readonly toeRadius: CadPartDim }
-  | { readonly kind: 'channel'; readonly height: CadPartDim; readonly width: CadPartDim; readonly web: CadPartDim; readonly flange: CadPartDim; readonly rootRadius: CadPartDim }
+  | { readonly kind: 'channel'; readonly height: CadPartDim; readonly width: CadPartDim; readonly web: CadPartDim; readonly flange: CadPartDim; readonly rootRadius: CadPartDim; readonly toeRadius?: CadPartDim; readonly flangeSlope?: CadPartDim }
+  | { readonly kind: 'i-beam'; readonly height: CadPartDim; readonly width: CadPartDim; readonly web: CadPartDim; readonly flange: CadPartDim; readonly rootRadius: CadPartDim; readonly toeRadius: CadPartDim; readonly flangeSlope: CadPartDim }
   | { readonly kind: 'tslot'; readonly size: CadPartDim; readonly cells: 1 | 2; readonly openSlots?: number; readonly opening: CadPartDim; readonly lip: CadPartDim; readonly undercut: CadPartDim; readonly depth: CadPartDim; readonly bore: CadPartDim }
   | { readonly kind: 'sketch'; readonly sketch: string }
   /** A size from a section table (R12c.7, D162): the user's rows of one kind, inline; checked whole, a size it lacks refused. */
   | { readonly kind: 'table'; readonly table: SectionTable; readonly size: string };
 export type CadPartErrorCode = 'FORMAT' | 'INPUT' | 'PARAMETER' | 'REFERENCE' | 'SELECTION' | 'CAPABILITY' | 'GEOMETRY';
+/** Complete declared endpoint manifest for one frame; rebuild after an atomic retry removes a component. */
+export interface CadPartBeadSharing {
+  readonly version: 1; readonly policy: 'equal-length';
+  /** Complete active endpoint manifest for this frame; membership is not a geometric component. */
+  readonly joints: readonly (BeadJointRef & { readonly leg: CadPartDim })[];
+}
 export class CadPartError extends Error {
-  constructor(readonly code: CadPartErrorCode, readonly feature: string | null, detail: string) { super(`${feature ? feature + ': ' : ''}${detail}`.slice(0, 1024)); this.name = 'CadPartError'; }
+  constructor(readonly code: CadPartErrorCode, readonly feature: string | null, detail: string, readonly sharedComponent?: BeadSharedComponent) { super(`${feature ? feature + ': ' : ''}${detail}`.slice(0, 1024)); this.name = 'CadPartError'; }
 }
 export interface CadPartOutput {
   /** The feature id, or `id/k` for one part of a multi-part feature. */
@@ -922,6 +934,15 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
   const remember = (key: string, deps: readonly Result[], result: Result) => { const list = cache.get(key); if (list) list.push({ deps, result }); else cache.set(key, [{ deps, result }]); };
   const consumed = new Map<string, Set<number> | 'all'>(), features: { id: string; kind: CadPartFeature['kind']; dependencies: string[] }[] = [];
   const evaluated: string[] = [], reusedIds: string[] = [];
+  // One frame plan per evaluation. A participant cannot escape a peer's refusal through the result cache.
+  const beadPlans = new Map<string, ReturnType<typeof planEndpointBeads>>();
+  const endpointBead: Tools['endpointBead'] = (f, byMember, frame) => {
+    let plan = beadPlans.get(frame);
+    if (!plan) { plan = planEndpointBeads(doc.features, byMember, frame, doc.parameters); beadPlans.set(frame, plan); }
+    const entry = plan.get(f.id)!;
+    if (entry instanceof CadPartError) throw entry;
+    return entry;
+  };
   for (const feature of doc.features) {
     const at = feature.id, deps: string[] = [];
     const fail = (code: CadPartErrorCode, detail: string): never => { throw new CadPartError(code, at, detail); };
@@ -941,7 +962,10 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
       const [id, k, extra] = (r as string).split('/');
       const result = results.get(id); if (!result || extra !== undefined) fail('REFERENCE', `${what}: no earlier feature ${r}`);
       deps.push(id);
-      const part = k === undefined ? null : Number(k);
+      let part = k === undefined ? null : Number(k);
+      const author = doc.features.find(f => f.id === id);
+      if (part !== null && author?.kind === 'frame' && author.bends !== undefined && result!.kind === 'solid') part = result!.parts.findIndex(p => p.member?.frame?.member === part);
+
       if (part !== null && !(Number.isInteger(part) && part >= 0 && result!.kind === 'solid' && part < result!.parts.length)) fail('REFERENCE', `${what}: ${r} is not a part`);
       return { id, part, result: result! };
     };
@@ -974,8 +998,8 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
         result = lookup(key, []) ?? sketch;
         remember(key, [], result);
       } else {
-        const compute = operation(f, { dim, xy, xyz, integer, axisOf, solids, ref, fail, at });
-        const key = JSON.stringify([f.kind, resolvedDefinition(f, doc.parameters)]), inputs = deps.map(d => results.get(d)!);
+        const compute = operation(f, { dim, xy, xyz, integer, axisOf, solids, ref, fail, at, endpointBead });
+        const key = JSON.stringify([f.kind, resolvedDefinition(f, doc.parameters), ...(isEndpointBead(f) ? [endpointContext(doc.features, f.frame, doc.parameters)] : [])]), inputs = deps.map(d => results.get(d)!);
         const reused = lookup(key, inputs);
         result = reused ?? compute();
         (reused ? reusedIds : evaluated).push(at);
@@ -996,7 +1020,7 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
     if (result.kind !== 'solid' || used === 'all') continue;
     result.parts.forEach((part, k) => {
       if (used?.has(k) || empty(part.solid)) return;
-      outputs.push(makeOutput(result.parts.length === 1 ? feature.id : `${feature.id}/${k}`, feature.id, part));
+      outputs.push(makeOutput(feature.kind === 'frame' && feature.bends !== undefined ? `${feature.id}/${part.member?.frame?.member ?? k}` : result.parts.length === 1 ? feature.id : `${feature.id}/${k}`, feature.id, part));
     });
   }
   const snapshot: CadPartSnapshot = {
@@ -1052,6 +1076,7 @@ type Tools = {
   integer: (v: unknown, what: string, lo: number, hi: number) => number; axisOf: (v: unknown) => CadPartAxis; solids: (r: unknown, what: string) => Part[];
   ref: (r: unknown, what: string) => { id: string; part: number | null; result: Result };
   fail: (code: CadPartErrorCode, detail: string) => never; at: string;
+  endpointBead: (f: EndpointBead, byMember: ReadonlyMap<number, Part>, frame: string) => Result;
 };
 
 function frameOf(plane: CadPartSketchPlane, xyz: Tools['xyz'], fail: Tools['fail']): Frame {
@@ -1316,7 +1341,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'revolve': {
       const sketch = ref(f.sketch, 'sketch').result;
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
-      if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length || (sketch as Extract<Result, { kind: 'sketch' }>).holes?.length) fail('CAPABILITY', `${f.kind} takes a sketch of one loop (no regions or holes) yet`);
+      if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length) fail('CAPABILITY', 'revolve takes one outer loop with optional holes (no regions)');
       const ax = f.axis as { origin?: CadPartPoint2; direction?: unknown } | undefined;
       // The axis lies in the sketch plane: along its X or Y, or any direction [dx, dy] there.
       const free = Array.isArray(ax?.direction) && ax!.direction.length === 2 && ax!.direction.every(v => typeof v === 'number' && Number.isFinite(v)) && Math.hypot(...(ax!.direction as number[])) > 1e-12;
@@ -1324,7 +1349,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const origin = xy(ax!.origin, 'axis origin'), deg = f.angleDegrees === undefined ? 360 : f.angleDegrees as number;
       if (typeof deg !== 'number' || !(deg > 0 && deg <= 360)) fail('INPUT', 'angleDegrees must be in (0, 360]');
       const rtags = (sketch as Extract<Result, { kind: 'sketch' }>).tags;
-      const input = { id: at, profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, axis: { origin, direction: (free ? ax!.direction : ax!.direction === 'x' ? [1, 0] : [0, 1]) as XY }, angleDegrees: deg, ...(rtags ? { sideTags: rtags.outer } : {}) };
+      const input = { id: at, profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, axis: { origin, direction: (free ? ax!.direction : ax!.direction === 'x' ? [1, 0] : [0, 1]) as XY }, angleDegrees: deg, ...((sketch as Extract<Result, { kind: 'sketch' }>).holes?.length ? { holes: (sketch as Extract<Result, { kind: 'sketch' }>).holes } : {}), ...(rtags ? { sideTags: rtags.outer, holeTags: rtags.holes } : {}) };
       return placed((sketch as Extract<Result, { kind: 'sketch' }>).frame, () => ({ kind: 'solid', parts: [{ solid: { kind: 'brep', brep: revolveProfile(input) }, mass: (density: number) => revolveMassProperties(input, density), revolved: input }] }));
     }
     case 'union': case 'difference': case 'intersect': {
@@ -1441,7 +1466,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       if (!Array.isArray(segs) || !segs.length || segs.length > FRAME_MAX_MEMBERS) fail('INPUT', `segments must list 1 to ${FRAME_MAX_MEMBERS} [from, to] point indices`);
       const points = (pts as CadPartPoint3[]).map((p, i) => xyz(p, `points[${i}]`));
       const pairs = (segs as unknown[]).map((g, k): [number, number] => {
-        if (!Array.isArray(g) || g.length !== 2) fail('INPUT', `segments[${k}] must be [from, to]`);
+        if (isRecord(g)) return [integer(g.from, `segments[${k}].from`, 0, points.length - 1), integer(g.to, `segments[${k}].to`, 0, points.length - 1)];
+        if (!Array.isArray(g) || g.length !== 2) fail('INPUT', `segments[${k}] must be [from, to] or { from, to, through | center }`);
         return [integer((g as unknown[])[0], `segments[${k}][0]`, 0, points.length - 1), integer((g as unknown[])[1], `segments[${k}][1]`, 0, points.length - 1)];
       });
       const lengths = pairs.map(([i, j], k) => {
@@ -1449,7 +1475,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         if (!(L > MEMBER_MIN_MM)) fail('PARAMETER', `[SEGMENT_ZERO_LENGTH] segment ${k} runs from point ${i} to point ${j}: they are ${L} mm apart`);
         return L;
       });
-      const clash = skeletonClash(points, pairs);
+      const curved = (segs as unknown[]).some(isRecord) || f.bends !== undefined;
+      const clash = curved ? null : skeletonClash(points, pairs);
       if (clash) fail('PARAMETER', clash);
       const base = { look: memberLook(f, '', dim, fail), shape: memberShape(f.section, 'section', { ref, dim, integer, fail }) }, up = memberUp(f.up, xyz, fail);
       const per = pairs.map(() => base);
@@ -1466,7 +1493,55 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           per[k] = { look, shape: r.section === undefined ? base.shape : memberShape(r.section, `overrides[${n}].section`, { ref, dim, integer, fail }) };
         });
       }
-      const corners = frameCorners(f.corners, points, pairs, integer, fail), trims = frameTrims(f.trims, pairs.length, { ref, xyz, integer, fail });
+      if (curved) {
+        const paths = frameCurvePaths(segs as unknown[], points, pairs, f.bends, { xyz, integer, dim, fail });
+        const cornerSpec = frameCorners(f.corners, points, pairs, integer, fail, dim), curvePoints = new Set(paths.filter(p => p.center).flatMap(p => [p.from, p.to, ...p.indices.flatMap(i => pairs[i])]).map(i => canonicalPoint(points, i)));
+        if (cornerSpec && [...cornerSpec.at.values()].some(c => c.notch)) fail('CAPABILITY', '[NOTCH_CUTTER] notch cutters on curved frames are not supported');
+        if (cornerSpec && (cornerSpec.gap > 0 || [...cornerSpec.at.values()].some(c => (c.gap ?? 0) > 0))) fail('CAPABILITY', '[GAP_SIZE] gaps on curved frames are not supported');
+        const suppressed = new Map(cornerSpec?.at ?? []);
+        for (const point of curvePoints) {
+          const incident = paths.filter(p => canonicalPoint(points, p.from) === point || canonicalPoint(points, p.to) === point);
+          const kind = cornerSpec?.at.get(point)?.kind ?? (incident.length > 1 ? cornerSpec?.fallback ?? 'none' : 'none');
+          if (!incident.length && cornerSpec?.at.has(point)) fail('PARAMETER', '[BEND_RADIUS] an authored corner conflicts with a consumed bend point');
+          if (kind === 'butt') fail('CAPABILITY', '[BUTT_ON_CURVED_MEMBER] a butt cannot use a curved member as a planar face');
+          if (kind !== 'none') {
+            const outward = incident.map(p => canonicalPoint(points, p.from) === point ? (p.tangent ?? unit(sub(p.end, p.start))) : scale(p.endTangent ?? unit(sub(p.end, p.start)), -1));
+            if (kind !== 'mitre' || outward.length !== 2) fail('CAPABILITY', '[ARC_MEMBER] a curved end corner requires a two-member mitre');
+          }
+          suppressed.set(point, { kind: 'none' });
+        }
+        const straightCorners = cornerSpec ? { ...cornerSpec, at: suppressed } : null;
+        const trims = frameTrims(f.trims, pairs.length, { ref, xyz, integer, fail });
+        if (trims.some(t => paths.some(p => p.center && p.indices.includes(t.member)))) fail('CAPABILITY', '[ARC_MEMBER] a curved member cannot be trimmed by the straight-member plane path');
+        return () => {
+          const places = pairs.map(([i, j], k) => placeMember(per[k].shape, { start: points[i], end: points[j], L: lengths[k], ...per[k].look, up }));
+          const plan = straightCorners ? planCorners(straightCorners, points, pairs, lengths, places, at, fail) : emptyPlan(pairs.length);
+          if (trims.length) planTrims(plan, trims, points, pairs, lengths, places, fail);
+          for (const point of curvePoints) {
+            const incident = paths.filter(p => canonicalPoint(points, p.from) === point || canonicalPoint(points, p.to) === point), kind = cornerSpec?.at.get(point)?.kind ?? (incident.length > 1 ? cornerSpec?.fallback ?? 'none' : 'none');
+            if (kind !== 'mitre') continue;
+            const ends = incident.map(path => {
+              const end = canonicalPoint(points, path.to) === point ? 1 as const : 0 as const, k = path.indices[0], look = per[k].look;
+              const tangent = end ? path.endTangent ?? unit(sub(path.end, path.start)) : path.tangent ?? unit(sub(path.end, path.start));
+              const P = placeMember(per[k].shape, { ...look, up, start: points[point], end: add(points[point], tangent), L: 1 });
+              if (path.center && end) { const startP = placeMember(per[k].shape, { ...look, up, start: path.start, end: add(path.start, path.tangent!), L: 1 }), x = rotateAround(startP.F.x, path.normal!, path.angle!); Object.assign(P, { F: { x, y: cross(tangent, x) } }); }
+              return { member: k, end, P, inward: end ? tangent : scale(tangent, -1) };
+            });
+            const [A, B] = ends;
+            for (const E of ends) plan.report[E.member] = plan.report[E.member].filter(r => r.end !== endName(E.end));
+            if (dot(A.inward, B.inward) < -1 + 1e-9) {
+              for (const E of ends) plan.report[E.member].push({ end: endName(E.end), point, kind: 'mitre', with: E === A ? B.member : A.member, angleDegrees: 0, plane: { origin: points[point], normal: E.inward } });
+            } else mitre(plan, A, B, A.P, B.P, A.inward, B.inward, points[point], point, fail);
+          }
+          return { kind: 'solid', parts: paths.flatMap(path => {
+          const k = path.indices[0], peers = path.indices.map(i => JSON.stringify(per[i]));
+          if (peers.some(p => p !== peers[0])) fail('PARAMETER', '[BEND_RADIUS] joined bend segments must have identical section and placement');
+          if (!path.center) return (buildMember(per[k].shape, { ...per[k].look, up, start: path.start, end: path.end, L: path.lead, at: `${at}.m${k}`, frame: { member: k, from: path.from, to: path.to }, ends: { extend: plan.extend[k], cuts: plan.cuts[k], subtract: plan.subtract[k], report: plan.report[k] } }) as Extract<Result, { kind: 'solid' }>).parts;
+          return buildCurvedMember(per[k].shape, path, { ...per[k].look, up, at: `${at}.m${k}`, frame: { member: k, from: path.from, to: path.to }, ends: { extend: plan.extend[k], cuts: plan.cuts[k], subtract: [], report: plan.report[k] } }, fail).parts;
+        }) };
+        };
+      }
+      const corners = frameCorners(f.corners, points, pairs, integer, fail, dim), trims = frameTrims(f.trims, pairs.length, { ref, xyz, integer, fail });
       return () => {
         const places = pairs.map(([i, j], k) => placeMember(per[k].shape, { start: points[i], end: points[j], L: lengths[k], ...per[k].look, up }));
         const plan = corners || trims.length ? (corners ? planCorners(corners, points, pairs, lengths, places, at, fail) : emptyPlan(pairs.length)) : null, parts: Part[] = [];
@@ -1509,7 +1584,10 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       // FRk2 (D166): a fillet on a frame's joint, placed by the members (and gussets) as built; nothing consumed.
       const fr = ref(f.frame, 'frame'), built = fr.result.kind === 'solid' && fr.part === null ? fr.result.parts.filter(q => q.memberPlace && q.member?.frame) : [];
       if (!built.length) fail('REFERENCE', `${String(f.frame)} is not a frame`);
-      const byMember = new Map(built.map(q => [q.member!.frame!.member, q])), frame = String(f.frame), leg = dim(f.leg, 'leg', true), on = f.on as unknown;
+      const byMember = new Map(built.map(q => [q.member!.frame!.member, q])), frame = String(f.frame), on = f.on as unknown;
+      if (isEndpointBead(f)) return () => t.endpointBead(f, byMember, frame);
+      if (f.sharing !== undefined) fail('PARAMETER', '[BEAD_SHARED_UNSUPPORTED] sharing is supported only on endpoint beads');
+      const leg = dim(f.leg, 'leg', true);
       if (f.inner !== undefined && typeof f.inner !== 'boolean') fail('INPUT', 'inner must be true or false');
       if (!isRecord(on)) return fail('INPUT', 'on must be { member, end }, { gusset } or { cap }');
       if ('cap' in on) { ref(on.cap, 'on.cap'); return fail('PARAMETER', '[BEAD_KIND] a cap sits flush with its member\'s outline: it is welded by a corner weld, not a fillet (its seam is in its endCap report)'); }
@@ -1597,7 +1675,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'sweep': {
       const sketch = ref(f.sketch, 'sketch').result;
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
-      if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length || (sketch as Extract<Result, { kind: 'sketch' }>).holes?.length) fail('CAPABILITY', `${f.kind} takes a sketch of one loop (no regions or holes) yet`);
+      if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length) fail('CAPABILITY', 'revolve takes one outer loop with optional holes (no regions)');
       const path = f.path as unknown;
       if (!Array.isArray(path) || !path.length || path.length > CadPartLimits.copies) fail('INPUT', 'path must list 1 to 64 steps');
       const steps = (path as unknown[]).map((st, i): { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' } => {
@@ -2417,7 +2495,7 @@ function boxSolid(min: Point, max: Point, tag: string): Solid {
 }
 
 /** Upright Booleans stay upright; otherwise both bodies must be planar for the exact polyhedral Boolean. */
-function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string, check = true): Solid {
+function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string, check = true, edgeFitToleranceMM?: number): Solid {
   if (empty(b)) return op === 'intersection' ? b : a;
   if (empty(a)) return op === 'union' ? b : a;
   if (a.kind === 'upright' && b.kind === 'upright') {
@@ -2438,7 +2516,7 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
   if (A && B && planarBrep(A) && planarBrep(B)) return { kind: 'brep', brep: planarBoolean(A, B, op, at) };
   // Planes and cylinders of any axis.
   const toBrep = (s: Solid) => s.kind === 'upright' ? brepFromPrismatic(s.solid, { id: at + '_in' }) : s.brep;
-  try { return { kind: 'brep', brep: booleanAnalytic(toBrep(a), toBrep(b), op, { id: at }) }; }
+  try { return { kind: 'brep', brep: booleanAnalytic(toBrep(a), toBrep(b), op, { id: at, ...(edgeFitToleranceMM === undefined ? {} : { edgeFitToleranceMM }) }) }; }
   catch (cause) {
     if (cause instanceof BrepError && /not supported yet/.test(cause.message)) throw new CadPartError('CAPABILITY', at, cause.message.replace(/^B-rep: (analytic Boolean: )?/, ''));
     throw cause;
@@ -2545,7 +2623,7 @@ function memberUp(v: unknown, xyz: Tools['xyz'], fail: Tools['fail']): Point {
 }
 /** A member's section ready to extrude (its names not yet under the member's id): a kind's, or a closed sketch's. */
 function memberShape(sec: unknown, what: string, t: Pick<Tools, 'ref' | 'dim' | 'integer' | 'fail'>): MemberShape {
-  if (!isRecord(sec)) t.fail('INPUT', `${what} must be { kind, … }: rect-tube, round-tube, angle, channel, tslot or sketch`);
+  if (!isRecord(sec)) t.fail('INPUT', `${what} must be { kind, … }: rect-tube, round-tube, angle, channel, i-beam, tslot or sketch`);
   const section = sec as Record<string, unknown>;
   if (section.kind === 'sketch') {
     const sketch = t.ref(section.sketch, `${what}.sketch`).result;
@@ -2598,14 +2676,15 @@ function sectionSpec(s: Record<string, unknown>, dim: Tools['dim'], integer: Too
     case 'rect-tube': return { kind: 'rect-tube', width: n('width'), height: n('height'), wall: n('wall'), outerRadius: n('outerRadius'), ...(s.innerRadius !== undefined ? { innerRadius: n('innerRadius') } : {}) };
     case 'round-tube': return { kind: 'round-tube', diameter: n('diameter'), wall: n('wall') };
     case 'angle': return { kind: 'angle', legX: n('legX'), legY: n('legY'), thickness: n('thickness'), rootRadius: n('rootRadius'), toeRadius: n('toeRadius') };
-    case 'channel': return { kind: 'channel', height: n('height'), width: n('width'), web: n('web'), flange: n('flange'), rootRadius: n('rootRadius') };
+    case 'channel': return { kind: 'channel', height: n('height'), width: n('width'), web: n('web'), flange: n('flange'), rootRadius: n('rootRadius'), toeRadius: s.toeRadius === undefined ? 0 : n('toeRadius'), flangeSlope: s.flangeSlope === undefined ? 0 : n('flangeSlope') };
+    case 'i-beam': return { kind: 'i-beam', height: n('height'), width: n('width'), web: n('web'), flange: n('flange'), rootRadius: n('rootRadius'), toeRadius: n('toeRadius'), flangeSlope: n('flangeSlope') };
     case 'tslot': {
       const cells = integer(s.cells, 'section.cells', 1, 2) as 1 | 2;
       if (cells === 1 && s.openSlots === undefined) fail('INPUT', 'section.openSlots (0 to 4, clockwise from the top) must be given for one cell');
       return { kind: 'tslot', size: n('size'), cells, openSlots: cells === 1 ? integer(s.openSlots, 'section.openSlots', 0, 4) : 6, opening: n('opening'), lip: n('lip'), undercut: n('undercut'), depth: n('depth'), bore: n('bore') };
     }
   }
-  return fail('INPUT', `section.kind must be rect-tube, round-tube, angle, channel, tslot or sketch (not ${String(s.kind)})`);
+  return fail('INPUT', `section.kind must be rect-tube, round-tube, angle, channel, i-beam, tslot or sketch (not ${String(s.kind)})`);
 }
 /** Components within rounding of 0 or ±1 are exactly that (an axis-aligned member stays exact). */
 const snapUnit = (v: Point): Point => v.map(c => Math.abs(c) < 1e-12 ? 0 : Math.abs(Math.abs(c) - 1) < 1e-12 ? Math.sign(c) : c) as unknown as Point;
@@ -2626,23 +2705,33 @@ function memberFrame(u: Point, up: Point, rollDegrees: number): { x: Point; y: P
 const sectionPoint = (F: { x: Point; y: Point }, sx: number, sy: number, base: Point): Point => add(base, add(scale(F.x, sx), scale(F.y, sy)));
 /** A member built: its section extruded L in its own XY (ends `.start`, `.end`), moved onto its line, its report on it. */
 type JointKind = 'mitre' | 'butt' | 'cope' | 'order' | 'none';
-type CornerAt = { readonly kind: JointKind; readonly through?: number; readonly trim?: 'face' | 'envelope'; readonly order?: readonly number[] };
-type CornerSpec = { readonly fallback: 'mitre' | 'butt' | 'none'; readonly multi: 'order' | 'none'; readonly tee: 'butt' | 'cope' | 'none'; readonly at: ReadonlyMap<number, CornerAt> };
+type CornerAt = { readonly kind: JointKind; readonly through?: number; readonly trim?: 'face' | 'envelope'; readonly order?: readonly number[]; readonly gap?: number; readonly notch?: FrameNotchReport };
+type CornerSpec = { readonly fallback: 'mitre' | 'butt' | 'none'; readonly multi: 'order' | 'none'; readonly tee: 'butt' | 'cope' | 'none'; readonly gap: number; readonly at: ReadonlyMap<number, CornerAt> };
 /** A frame's `corners` checked (their points as the first point at the same place), or null when it has none. */
-function frameCorners(v: unknown, points: readonly Point[], pairs: readonly (readonly [number, number])[], integer: Tools['integer'], fail: Tools['fail']): CornerSpec | null {
+function frameCorners(v: unknown, points: readonly Point[], pairs: readonly (readonly [number, number])[], integer: Tools['integer'], fail: Tools['fail'], dim: Tools['dim']): CornerSpec | null {
   if (v === undefined) return null;
   if (!isRecord(v)) fail('INPUT', 'corners must be { default?, multi?, tee?, at? }');
   const c = v as Record<string, unknown>;
   const pick = <T extends string>(key: string, kinds: readonly T[], dflt: T): T => { if (c[key] !== undefined && !kinds.includes(c[key] as T)) fail('INPUT', `corners.${key} must be ${kinds.slice(0, -1).join(', ')} or ${kinds[kinds.length - 1]}`); return (c[key] as T | undefined) ?? dflt; };
   const fallback = pick('default', ['mitre', 'butt', 'none'] as const, 'mitre'), multi = pick('multi', ['order', 'none'] as const, 'none'), tee = pick('tee', ['butt', 'cope', 'none'] as const, 'none');
-  const extra = Object.keys(c).find(k => !['default', 'multi', 'tee', 'at'].includes(k));
+  const extra = Object.keys(c).find(k => !['default', 'multi', 'tee', 'at', 'gap'].includes(k));
   if (extra) fail('INPUT', `corners has no ${extra}`);
+  const taggedDimension = (v: unknown, name: string, tag: 'GAP_SIZE' | 'NOTCH_CUTTER'): number => {
+    try { return dim(v as CadPartDim, name); }
+    catch (cause) { if (cause instanceof CadPartError) fail(cause.code, `[${tag}] ${cause.message}`); throw cause; }
+  };
+  const gapOf = (v: unknown, name: string): number => { const g = taggedDimension(v, name, 'GAP_SIZE'); if (!(g >= 0)) fail('PARAMETER', '[GAP_SIZE] gap must be finite and nonnegative'); return g; };
+  const gap = c.gap === undefined ? 0 : gapOf(c.gap, 'corners.gap');
   const at = new Map<number, CornerAt>();
   if (c.at !== undefined) {
     if (!Array.isArray(c.at) || c.at.length > CadPartLimits.points) fail('INPUT', 'corners.at must list { point, kind, through?, trim?, order? }');
     (c.at as unknown[]).forEach((e, n) => {
       if (!isRecord(e)) fail('INPUT', `corners.at[${n}] must be { point, kind, through?, trim?, order? }`);
       const r = e as Record<string, unknown>, p = canonicalPoint(points, integer(r.point, `corners.at[${n}].point`, 0, points.length - 1));
+      if (r.gap !== undefined || r.notch !== undefined) {
+        const unknown = Object.keys(r).find(k => !['point', 'kind', 'through', 'trim', 'order', 'gap', 'notch'].includes(k));
+        if (unknown) fail('PARAMETER', `[${r.notch !== undefined ? 'NOTCH_CUTTER' : 'GAP_SIZE'}] corners.at[${n}] has no ${unknown}`);
+      }
       if (!['mitre', 'butt', 'cope', 'order', 'none'].includes(r.kind as string)) fail('INPUT', `corners.at[${n}].kind must be mitre, butt, cope, order or none`);
       if (at.has(p)) fail('INPUT', `corners.at[${n}]: point ${r.point} is set twice`);
       const through = r.through === undefined ? undefined : integer(r.through, `corners.at[${n}].through`, 0, pairs.length - 1);
@@ -2653,10 +2742,28 @@ function frameCorners(v: unknown, points: readonly Point[], pairs: readonly (rea
         if (r.kind !== 'order' || !Array.isArray(r.order)) fail('INPUT', `corners.at[${n}]: order (a list of members) belongs to an ordered trim`);
         order = (r.order as unknown[]).map((m, i) => integer(m, `corners.at[${n}].order[${i}]`, 0, pairs.length - 1));
       }
-      at.set(p, { kind: r.kind as JointKind, ...(through !== undefined ? { through } : {}), ...(r.trim !== undefined ? { trim: r.trim as 'face' | 'envelope' } : {}), ...(order ? { order } : {}) });
+      const localGap = r.gap === undefined ? undefined : gapOf(r.gap, `corners.at[${n}].gap`);
+      let notch: FrameNotchReport | undefined;
+      if (r.notch !== undefined) {
+        if (r.kind !== 'cope' || !isRecord(r.notch)) fail('PARAMETER', '[NOTCH_CUTTER] a notch belongs to a cope and must name a cutter');
+        const v = r.notch as Record<string, unknown>, value = (key: string) => taggedDimension(v[key], `corners.at[${n}].notch.${key}`, 'NOTCH_CUTTER');
+        if (v.kind === 'holesaw') {
+          if (Object.keys(v).some(k => !['kind', 'diameter', 'offset'].includes(k))) fail('PARAMETER', '[NOTCH_CUTTER] holesaw takes diameter and optional signed offset');
+          const diameterMM = value('diameter'), offsetMM = v.offset === undefined ? 0 : value('offset');
+          if (!(diameterMM > MEMBER_MIN_MM)) fail('PARAMETER', '[NOTCH_CUTTER] holesaw diameter must be positive');
+          notch = { kind: 'holesaw', diameterMM, offsetMM };
+        } else if (v.kind === 'v') {
+          if (Object.keys(v).some(k => !['kind', 'depth', 'angle'].includes(k))) fail('PARAMETER', '[NOTCH_CUTTER] v takes depth and included angle');
+          const depthMM = value('depth'), angleDegrees = value('angle');
+          if (!(depthMM > MEMBER_MIN_MM && angleDegrees > 0 && angleDegrees < 180)) fail('PARAMETER', '[NOTCH_CUTTER] v requires positive depth and included angle in (0,180) degrees');
+          notch = { kind: 'v', depthMM, angleDegrees };
+        } else fail('PARAMETER', '[NOTCH_CUTTER] cutter kind must be holesaw or v');
+        if ((localGap ?? gap) > 0) fail('PARAMETER', '[NOTCH_CUTTER] positive gap with a notch cutter is not supported');
+      }
+      at.set(p, { ...(localGap !== undefined ? { gap: localGap } : {}), ...(notch ? { notch } : {}), kind: r.kind as JointKind, ...(through !== undefined ? { through } : {}), ...(r.trim !== undefined ? { trim: r.trim as 'face' | 'envelope' } : {}), ...(order ? { order } : {}) });
     });
   }
-  return { fallback, multi, tee, at };
+  return { fallback, multi, tee, gap, at };
 }
 /** The first point at the same place as point i (within 1e-6 mm): a joint is a place, not an index. */
 function canonicalPoint(points: readonly Point[], i: number): number {
@@ -2816,7 +2923,7 @@ function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly
   const passes = new Map<number, JointPass[]>();
   for (const p of ends.keys()) for (let k = 0; k < pairs.length; k++) {
     const a = points[pairs[k][0]], s = dot(sub(points[p], a), places[k].u);
-    if (s > MEMBER_MIN_MM && s < lengths[k] - MEMBER_MIN_MM && len(sub(points[p], add(a, scale(places[k].u, s)))) <= MEMBER_MIN_MM) { if (!passes.has(p)) passes.set(p, []); passes.get(p)!.push({ member: k, s }); }
+    if (s > MEMBER_MIN_MM && s < lengths[k] - MEMBER_MIN_MM && (len(sub(points[p], add(a, scale(places[k].u, s)))) <= MEMBER_MIN_MM || ((spec.at.get(p)?.kind ?? spec.tee) === 'cope' && withinEnvelope(places[k], a, points[p])))) { if (!passes.has(p)) passes.set(p, []); passes.get(p)!.push({ member: k, s }); }
   }
   const clash = crossingMembers(points, pairs, lengths, places);
   if (clash) fail('PARAMETER', clash);
@@ -2824,17 +2931,19 @@ function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly
   for (const p of spec.at.keys()) if (!ends.has(p)) fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: no member ends there`);
   const Rmax = Math.max(...places.map((P, k) => reachOf(P, points[pairs[k][0]])));
   for (const [p, list] of ends) {
-    const there = points[p], pass = passes.get(p)?.[0], set = spec.at.get(p);
+    const there = points[p], pass = passes.get(p)?.[0], set = spec.at.get(p), gap = set?.gap ?? spec.gap;
+    if (gap > 0 && ((set?.kind === 'none' || set?.kind === 'order') || (!pass && list.length > 2) || (!pass && list.length === 1 && set?.gap !== undefined))) fail('PARAMETER', '[GAP_SIZE] gap requires a two-member mitre or face butt');
+    if (set?.notch && !pass && list.length !== 2) fail('PARAMETER', '[NOTCH_CUTTER] a cutter requires a branch meeting one through member');
     if (pass) {
       // A T-joint: each member ending here meets the one passing through.
       const kind = set?.kind ?? spec.tee;
       if (kind !== 'butt' && kind !== 'cope' && kind !== 'none') fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: a T-joint (member ${pass.member} runs through) takes butt, cope or none, not ${kind}`);
-      if (kind === 'none') { squareEnds(plan, list, p); continue; }
+      if (kind === 'none') { if (gap > 0) fail('PARAMETER', '[GAP_SIZE] a positive gap cannot leave an actual joint unfinished'); squareEnds(plan, list, p); continue; }
       const PT = places[pass.member], T0 = points[pairs[pass.member][0]];
       for (const O of list) {
         const PO = places[O.member], inO = O.end ? PO.u : scale(PO.u, -1);
         if (len(cross(inO, PT.u)) < 1e-9) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: member ${O.member} runs along member ${pass.member}`);
-        teeOrButt(plan, kind === 'cope' || set?.trim === 'envelope', PT, PO, null, inO, there, O, pass.member, p, T0, lengths[pass.member], { s: pass.s }, 0, Rmax, at, fail);
+        teeOrButt(plan, kind === 'cope' || set?.trim === 'envelope', PT, PO, null, inO, there, O, pass.member, p, T0, lengths[pass.member], { s: pass.s }, 0, Rmax, at, fail, set?.notch, lengths[O.member]);
       }
       continue;
     }
@@ -2842,7 +2951,7 @@ function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly
     if (list.length === 2) {
       const kind = set?.kind ?? spec.fallback;
       if (kind === 'order') fail('PARAMETER', `[CORNER_NOT_A_JOINT] point ${p}: two members meet there; an ordered trim joins three or more`);
-      if (kind === 'none') { squareEnds(plan, list, p); continue; }
+      if (kind === 'none') { if (gap > 0) fail('PARAMETER', '[GAP_SIZE] a positive gap cannot leave an actual joint unfinished'); squareEnds(plan, list, p); continue; }
       const [A, B] = list, PA = places[A.member], PB = places[B.member], inA = A.end ? PA.u : scale(PA.u, -1), inB = B.end ? PB.u : scale(PB.u, -1), c = dot(inA, inB);
       if (c < -1 + 1e-12) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: members ${A.member} and ${B.member} are in line, no corner to finish`);
       if (c > 1 - 1e-12) fail('PARAMETER', `[CORNER_ANGLE] point ${p}: members ${A.member} and ${B.member} fold back on each other`);
@@ -2854,7 +2963,7 @@ function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly
       const runT = Math.max(0, ...boxCorners(PO, there).map(v => dot(sub(v, there), inT)));
       plan.extend[T.member][T.end] = runT;
       plan.report[T.member].push({ end: endName(T.end), point: p, kind: 'through', with: O.member, extendedMM: runT });
-      teeOrButt(plan, kind === 'cope' || set?.trim === 'envelope', PT, PO, inT, inO, there, O, T.member, p, points[pairs[T.member][0]], lengths[T.member], { end: T.end }, runT, Rmax, at, fail);
+      teeOrButt(plan, kind === 'cope' || set?.trim === 'envelope', PT, PO, inT, inO, there, O, T.member, p, points[pairs[T.member][0]], lengths[T.member], { end: T.end }, runT, Rmax, at, fail, set?.notch, lengths[O.member]);
       continue;
     }
     // Three or more: an ordered trim, the first running through.
@@ -2882,8 +2991,69 @@ function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly
       }
     });
   }
+  applyJointGaps(plan, spec, points, pairs, lengths, places, fail);
   return plan;
 }
+/** Exact outer-envelope membership; an eccentric T follows the actual section rather than a chord or its box. */
+function withinEnvelope(P: MemberPlace, start: Point, point: Point): boolean {
+  const v = sub(point, start), xy: XY = [dot(v, P.F.x) + P.q[0], dot(v, P.F.y) + P.q[1]];
+  const outer: CurveSegment2[] = buildProfileLoop(P.shape.outer, { maximumSegments: 1024 }).segments.map(s => s.kind === 'line'
+    ? { kind: 'line', a: [...s.start], b: [...s.end] } : { kind: 'arc', c: [...s.center], r: s.radiusMM, t0: s.startAngle, sweep: s.sweep });
+  return locateInRegion(xy, { outer, holes: [] }, curveTolerance([outer])) !== 'out';
+}
+/** Move the actual cut planes, with matching report planes. gapMM is always the complete authored joint clearance. */
+function applyJointGaps(plan: EndsPlan, spec: CornerSpec, points: readonly Point[], pairs: readonly (readonly [number, number])[], lengths: readonly number[], places: readonly MemberPlace[], fail: Tools['fail']): void {
+  for (let k = 0; k < plan.report.length; k++) {
+    plan.report[k] = plan.report[k].map(e => {
+      const gap = spec.at.get(e.point)?.gap ?? spec.gap;
+      if (!gap || e.kind === 'square' || e.kind === 'through') return e;
+      if ((e.kind !== 'mitre' && e.kind !== 'butt') || !e.plane) fail('PARAMETER', '[GAP_SIZE] positive gap requires a planar mitre or face butt; cope/envelope gaps are not supported');
+      const d = e.kind === 'mitre' ? gap / 2 : gap, n = e.plane!.normal as Point, origin = sub(e.plane!.origin as Point, scale(n, d));
+      if (!(gap < lengths[k])) fail('PARAMETER', '[GAP_SIZE] gap must be smaller than the member length');
+      const cut = plan.cuts[k].find(c => c.name === `${e.end}.${e.kind}`);
+      if (!cut) fail('PARAMETER', '[GAP_SIZE] the joint has no movable planar cut');
+      cut!.o = origin;
+      return { ...e, gapMM: gap, plane: { origin, normal: n } };
+    });
+    // Both cuts together must retain a positive centroidal span; no clamping or fallback.
+    if (plan.report[k].some(e => (e.gapMM ?? 0) > 0)) {
+      const u = places[k].u, start = points[pairs[k][0]], bound: [number, number] = [0, lengths[k]];
+      for (const e of plan.report[k]) {
+        const end = e.end === 'start' ? 0 : 1;
+        if (e.plane) {
+          const n = e.plane.normal as Point, nu = dot(n, u);
+          bound[end] = dot(n, sub(e.plane.origin as Point, start)) / nu;
+        } else if (e.kind === 'through') bound[end] = end ? lengths[k] + (e.extendedMM ?? 0) : -(e.extendedMM ?? 0);
+      }
+      if (!(bound[1] - bound[0] > MEMBER_MIN_MM)) fail('PARAMETER', '[GAP_SIZE] the joint gaps consume the member');
+    }
+  }
+}
+/** Cutter plane fixed by the through member and branch: holesaw offset is signed along cross(through axis, inward). */
+function planNotch(plan: EndsPlan, notch: FrameNotchReport, PT: MemberPlace, PO: MemberPlace, inward: Point, at: Point, O: JointEnd, T: number, p: number, T0: Point, Rmax: number, id: string, fail: Tools['fail'], length: number): void {
+  const W = PT.u, X = unit(cross(W, inward)), away = scale(inward, -1), projection = add(T0, scale(W, dot(sub(at, T0), W)));
+  let cutter: Solid;
+  if (notch.kind === 'holesaw') {
+    const r = notch.diameterMM / 2, offset = notch.offsetMM;
+    const transverse = boxCorners(PO, at).map(v => dot(sub(v, projection), X) - offset);
+    if (!(r > Math.max(...transverse.map(Math.abs)) + MEMBER_MIN_MM)) fail('PARAMETER', '[NOTCH_CUTTER] holesaw does not cover the branch transverse section');
+    if (!(r < length)) fail('PARAMETER', '[NOTCH_CUTTER] holesaw reaches past the branch length');
+    const E = 4 * Rmax + 2 * r + Math.abs(offset) + 1, Y = cross(W, X), center = add(projection, scale(X, offset));
+    const profile: ProfileSegmentInput[] = [{ kind: 'arc', start: [r, 0], center: [0, 0], direction: 'ccw' }];
+    cutter = placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer: profile, heightMM: 2 * E, fromMM: -E, tag: `${id}_notch${O.member}` }) }, X, Y, W, center);
+    plan.extend[O.member][O.end] = E;
+  } else {
+    if (Math.abs(dot(W, inward)) > 1e-9) fail('PARAMETER', '[NOTCH_CUTTER] v cutter requires perpendicular branch and through axes');
+    const extent = boxCorners(PO, at).map(v => dot(sub(v, at), X)), width = Math.max(...extent) - Math.min(...extent);
+    if (!(notch.depthMM < width && notch.depthMM < length)) fail('PARAMETER', '[NOTCH_CUTTER] v depth must be under the branch width and length');
+    const E = 4 * Rmax + notch.depthMM + 1, reach = (notch.depthMM + E) * Math.tan(notch.angleDegrees * Math.PI / 360);
+    const profile: ProfileSegmentInput[] = [[-reach, -E], [reach, -E], [0, notch.depthMM]].map(start => ({ kind: 'line', start: start as XY }));
+    cutter = placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer: profile, heightMM: 2 * E, fromMM: -E, tag: `${id}_notch${O.member}` }) }, X, away, cross(X, away), at);
+  }
+  plan.subtract[O.member].push({ solid: cutter, name: `${endName(O.end)}.notch`, keepFrom: at, toward: away, edgeFitToleranceMM: 1e-11 });
+  plan.report[O.member].push({ end: endName(O.end), point: p, kind: 'notch', with: T, notch });
+}
+
 /** Ends left square at a place. */
 function squareEnds(plan: EndsPlan, list: readonly JointEnd[], p: number): void { for (const e of list) plan.report[e.member].push({ end: endName(e.end), point: p, kind: 'square' }); }
 /** A mitre between A (into the point) and B (out of it). */
@@ -2901,7 +3071,10 @@ function mitre(plan: EndsPlan, A: JointEnd, B: JointEnd, PA: MemberPlace, PB: Me
   }
 }
 /** O's end on T at a corner (T running on `on` past it) or a T-joint (T passing through): on T's box face, or to its envelope (a cope). */
-function teeOrButt(plan: EndsPlan, envelope: boolean, PT: MemberPlace, PO: MemberPlace, inT: Point | null, inO: Point, at: Point, O: JointEnd, T: number, p: number, T0: Point, LT: number, where: { end?: 0 | 1; s?: number }, on: number, Rmax: number, id: string, fail: Tools['fail']): void {
+function teeOrButt(plan: EndsPlan, envelope: boolean, PT: MemberPlace, PO: MemberPlace, inT: Point | null, inO: Point, at: Point, O: JointEnd, T: number, p: number, T0: Point, LT: number, where: { end?: 0 | 1; s?: number }, on: number, Rmax: number, id: string, fail: Tools['fail'], notch?: FrameNotchReport, length = Infinity): void {
+  if (notch) {
+    planNotch(plan, notch, PT, PO, inO, at, O, T, p, T0, Rmax, id, fail, length); return;
+  }
   if (envelope) {
     plan.extend[O.member][O.end] = 2 * Rmax + 1;
     plan.subtract[O.member].push({ solid: envelopeAround(PT, T0, LT, where, on, 3 * Rmax + 1, `${id}_m${O.member}_on${T}`), name: `${endName(O.end)}.cope`, keepFrom: at, toward: scale(inO, -1) });
@@ -2940,6 +3113,115 @@ function placeMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
   const p = anchorPoint(o.anchor, centroid, box);
   return { shape, area, centroid, box, u, F, q: [p[0] - o.offset[0], p[1] - o.offset[1]] };
 }
+// FRk4: authored circular paths, composed only from exact prisms and revolutions.
+const rotateAround = (v: Point, axis: Point, angle: number): Point => add(add(scale(v, Math.cos(angle)), scale(cross(axis, v), Math.sin(angle))), scale(axis, dot(axis, v) * (1 - Math.cos(angle))));
+type FrameCurvePath = { from: number; to: number; indices: number[]; start: Point; end: Point; arcStart?: Point; arcEnd?: Point; center?: Point; normal?: Point; radius?: number; angle?: number; tangent?: Point; endTangent?: Point; lead: number; tail: number };
+function frameCurvePaths(segs: unknown[], points: Point[], pairs: readonly (readonly [number, number])[], bends: unknown, t: Pick<Tools, 'xyz' | 'integer' | 'dim' | 'fail'>): FrameCurvePath[] {
+  const { fail } = t, used = new Set<number>(), paths: FrameCurvePath[] = [];
+  const arcFail = (detail: string): never => fail('PARAMETER', `[ARC_MEMBER] ${detail}`);
+  const arc = (k: number, g: Record<string, unknown>): FrameCurvePath => {
+    const [from, to] = pairs[k], start = points[from], end = points[to];
+    if (g.through !== undefined && g.center !== undefined) arcFail(`segment ${k}: give through or center, never both`);
+    let center: Point, normal: Point;
+    if (g.through !== undefined) {
+      const via = points[t.integer(g.through, `segments[${k}].through`, 0, points.length - 1)], u = sub(via, start), v = sub(end, start), n = cross(u, v), nn = dot(n, n);
+      if (!(Math.sqrt(nn) > 1e-9 * Math.max(1, len(u) * len(v)))) arcFail(`segment ${k}: three distinct noncollinear points are required`);
+      center = add(start, scale(add(scale(cross(v, n), dot(u, u)), scale(cross(n, u), dot(v, v))), 1 / (2 * nn)));
+      normal = unit(n);
+    } else if (g.center !== undefined) {
+      center = t.xyz(g.center as CadPartPoint3, `segments[${k}].center`);
+      const a = sub(start, center), b = sub(end, center), n = cross(a, b);
+      if (!(len(n) > 1e-9 * Math.max(1, len(a) * len(b)))) arcFail(`segment ${k}: center form requires a unique minor arc below 180 degrees`);
+      normal = unit(n);
+    } else return arcFail(`segment ${k}: give through or center`);
+    const a = sub(start, center), b = sub(end, center), radius = len(a);
+    if (!(radius > MEMBER_MIN_MM) || Math.abs(len(b) - radius) > 1e-9 * Math.max(1, radius)) arcFail(`segment ${k}: endpoints must lie on the same positive-radius circle`);
+    let angle = Math.atan2(dot(normal, cross(a, b)), dot(a, b)); if (angle <= 0) angle += 2 * Math.PI;
+    if (!(angle > 1e-9 && angle < 2 * Math.PI - 1e-9)) arcFail(`segment ${k}: sweep must be above zero and below a full turn`);
+    return { from, to, indices: [k], start, end, arcStart: start, arcEnd: end, center, normal, radius, angle, tangent: unit(cross(normal, a)), endTangent: unit(cross(normal, b)), lead: 0, tail: 0 };
+  };
+  if (bends !== undefined) {
+    if (!Array.isArray(bends)) fail('INPUT', 'bends must list { point, radius }');
+    for (const raw of bends as unknown[]) {
+      if (!isRecord(raw)) fail('INPUT', 'each bend must be { point, radius }');
+      const g = raw as Record<string, unknown>, point = t.integer(g.point, 'bends.point', 0, points.length - 1), radius = t.dim(g.radius as CadPartDim, 'bends.radius');
+      const incident = pairs.map((p, i) => p.includes(point) ? i : -1).filter(i => i >= 0);
+      if (!(radius > MEMBER_MIN_MM) || incident.length !== 2 || incident.some(i => used.has(i) || isRecord(segs[i]))) fail('PARAMETER', '[BEND_RADIUS] a bend needs a positive radius and exactly two unclaimed straight segments');
+      const [i, j] = incident, from = pairs[i][0] === point ? pairs[i][1] : pairs[i][0], to = pairs[j][0] === point ? pairs[j][1] : pairs[j][0], start = points[from], end = points[to], V = points[point], a = unit(sub(V, start)), b = unit(sub(end, V)), theta = Math.acos(Math.max(-1, Math.min(1, dot(a, b)))), setback = radius * Math.tan(theta / 2), l0 = len(sub(V, start)), l1 = len(sub(end, V));
+      if (!(theta > 1e-9 && theta < Math.PI - 1e-9 && setback < l0 - MEMBER_MIN_MM && setback < l1 - MEMBER_MIN_MM)) fail('PARAMETER', '[BEND_RADIUS] bend tangencies consume a leg or the corner has no unique tangent circle');
+      const normal = unit(cross(a, b)), arcStart = sub(V, scale(a, setback)), arcEnd = add(V, scale(b, setback)), center = add(arcStart, scale(cross(normal, a), radius));
+      used.add(i); used.add(j);
+      paths.push({ from, to, indices: [i, j], start, end, arcStart, arcEnd, center, normal, radius, angle: theta, tangent: a, endTangent: b, lead: l0 - setback, tail: l1 - setback });
+    }
+  }
+  for (let k = 0; k < pairs.length; k++) if (!used.has(k)) {
+    const g = segs[k]; if (isRecord(g)) paths.push(arc(k, g));
+    else { const [from, to] = pairs[k]; paths.push({ from, to, indices: [k], start: points[from], end: points[to], lead: len(sub(points[to], points[from])), tail: 0 }); }
+  }
+  return paths.sort((a, b) => a.indices[0] - b.indices[0]);
+}
+function buildCurvedMember(given: MemberShape, path: FrameCurvePath, o: MemberLook & { up: Point; at: string; frame: { member: number; from: number; to: number }; ends?: MemberEnds }, fail: Tools['fail']): Extract<Result, { kind: 'solid' }> {
+  if (!path.center) return buildMember(given, { ...o, start: path.start, end: path.end, L: path.lead }) as Extract<Result, { kind: 'solid' }>;
+  let tangent = path.tangent!;
+  const P = placeMember(given, { ...o, start: path.start, end: add(path.start, tangent), L: 1 }), { shape, centroid, q } = P, C = path.center, aEnd = path.arcEnd!;
+  let F = P.F, aStart = path.arcStart!, theta = path.angle!;
+  const extend = o.ends?.extend ?? [0, 0], e0 = path.lead ? 0 : 2 * extend[0] / path.radius!, e1 = path.tail ? 0 : 2 * extend[1] / path.radius!;
+  if (theta + e0 + e1 >= 2 * Math.PI - 1e-9) fail('PARAMETER', '[ARC_MEMBER] end mitre continuation reaches a full turn');
+  if (e0) { aStart = add(C, rotateAround(sub(aStart, C), path.normal!, -e0)); tangent = rotateAround(tangent, path.normal!, -e0); F = { x: rotateAround(F.x, path.normal!, -e0), y: rotateAround(F.y, path.normal!, -e0) }; }
+  theta += e0 + e1;
+  const radial = sub(C, aStart), cx = dot(radial, F.x) + q[0], cy = dot(radial, F.y) + q[1], reach = loopBox(shape.outer);
+  const toward = unit(radial), minRadius = path.radius! - Math.max(...[[reach.min[0], reach.min[1]], [reach.min[0], reach.max[1]], [reach.max[0], reach.min[1]], [reach.max[0], reach.max[1]]].map(p => (p[0] - q[0]) * dot(F.x, toward) + (p[1] - q[1]) * dot(F.y, toward)));
+  if (!(minRadius > MEMBER_MIN_MM)) fail('PARAMETER', `[${path.indices.length > 1 ? 'BEND_RADIUS' : 'ARC_MEMBER'}] the section reaches the bend axis; increase the radius`);
+  const d: XY = [-cy + q[1], cx - q[0]], dl = Math.hypot(...d), direction: XY = [d[0] / dl, d[1] / dl];
+  const roleNames = [...(shape.outerNames ?? shape.outer.map((_, i) => `side${i}`)), ...shape.holes.flatMap((h, j) => shape.holeNames?.[j] ?? h.map((_, i) => `bore${j}.side${i}`))];
+  let roleIndex = shape.outer.length;
+  const input: RevolveInput = { id: `${o.at}_arc`.replace(/\./g, '_'), profile: shape.outer, holes: shape.holes, axis: { origin: [cx, cy], direction }, angleDegrees: theta * 180 / Math.PI, sideTags: shape.outer.map((_, i) => `role${i}`), holeTags: shape.holes.map(h => h.map(() => `role${roleIndex++}`)) };
+  const matrix: BrepAffine['matrix'] = [F.x[0], F.y[0], tangent[0], F.x[1], F.y[1], tangent[1], F.x[2], F.y[2], tangent[2]], origin = sectionPoint(F, -q[0], -q[1], aStart);
+  const arcPrefix = path.indices.length > 1 ? `${o.at}.bend` : o.at;
+  const renameArc = (n: string) => n.replace(`${o.at}_arc`.replace(/\./g, '_'), arcPrefix).replace(/\.side\[role(\d+)\]/g, (_, i: string) => `.${roleNames[Number(i)]}`);
+  let brep = transformBrep(revolveProfile(input), { matrix, offset: origin }, renameArc);
+  const masses: { local: (density: number) => SolidMassProperties; axes: [Point, Point, Point]; offset: Point }[] = [{ local: density => revolveMassProperties(input, density), axes: [F.x, F.y, tangent], offset: origin }];
+  const rotate = (v: Point): Point => add(add(scale(v, Math.cos(theta)), scale(cross(path.normal!, v), Math.sin(theta))), scale(path.normal!, dot(path.normal!, v) * (1 - Math.cos(theta))));
+  const pieces: Brep[] = [];
+  const prismAt = (start: Point, L: number, x: Point, y: Point, z: Point, suffix: string): Brep => {
+    const prefix = `${o.at}.${suffix === 'lead' ? 'straight0' : 'straight1'}`, solid = prismaticFromProfile({ outer: shape.outer, holes: shape.holes, heightMM: L, tag: `${o.at}_${suffix}`, names: { ...(shape.outerNames ? { outer: shape.outerNames.map(n => `${prefix}.${n}`) } : {}), ...(shape.holeNames ? { holes: shape.holeNames.map(h => h.map(n => `${prefix}.${n}`)) } : {}), bottom: `${prefix}.start`, top: `${prefix}.end` } });
+    const offset = sectionPoint({ x, y }, -q[0], -q[1], start);
+    masses.push({ local: density => prismaticMassProperties(solid, density), axes: [x, y, z], offset });
+    return transformBrep(brepFromPrismatic(solid), { matrix: [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]], offset });
+  };
+  if (path.lead) pieces.push(prismAt(sub(path.start, scale(tangent, extend[0])), path.lead + extend[0], F.x, F.y, tangent, 'lead'));
+  pieces.push(brep);
+  if (path.tail) pieces.push(prismAt(aEnd, path.tail + extend[1], rotate(F.x), rotate(F.y), path.endTangent!, 'tail'));
+  brep = pieces[0];
+  for (const next of pieces.slice(1)) {
+    const glued = glueAtSharedFace(brep, next, { family: 'frame-curve', id: o.at.replace(/\./g, '_') });
+    if (!glued) fail('GEOMETRY', '[ARC_MEMBER] tangent pieces could not be joined at their complete section');
+    brep = glued!;
+  }
+  for (const cut of o.ends?.cuts ?? []) {
+    const x = unit(cross(cut.n, Math.abs(cut.n[0]) < .9 ? [1, 0, 0] : [0, 1, 0])), y = cross(cut.n, x), R = 4 * (path.radius! + len(sub(path.start, path.end)) + 1000);
+    brep = booleanAnalytic(brep, brepOf({ solid: obliqueHalf(cut.o, cut.n, x, y, R, true, `${o.at}_clip`.replace(/\./g, '_'), `${o.at}.${cut.name}`) }, 'frame_clip'), 'intersection');
+  }
+  const cStart = sectionPoint(P.F, centroid[0] - q[0], centroid[1] - q[1], path.arcStart!), nAxis = path.normal!, radialC = sub(cStart, C), axialC = scale(nAxis, dot(radialC, nAxis)), radialOnly = sub(radialC, axialC), centroidRadius = len(radialOnly), cEnd = add(C, rotateAround(radialC, nAxis, path.angle!));
+  let startAngle = 0, endAngle = path.angle!, lead = path.lead, tail = path.tail;
+  for (const cut of o.ends?.cuts ?? []) {
+    const start = cut.name.startsWith('start'), reference = start ? 0 : path.angle!;
+    if ((start && path.lead) || (!start && path.tail)) {
+      const tangent = start ? path.tangent! : path.endTangent!, point = start ? sub(cStart, scale(tangent, path.lead)) : add(cEnd, scale(tangent, path.tail)), t = -dot(cut.n, sub(point, cut.o)) / dot(cut.n, tangent);
+      if (start) lead -= t; else tail += t;
+    } else {
+      const A = dot(cut.n, radialOnly), B = dot(cut.n, cross(nAxis, radialOnly)), D = dot(cut.n, sub(add(C, axialC), cut.o)), v = -D / Math.hypot(A, B);
+      if (Math.abs(v) > 1) fail('PARAMETER', '[ARC_MEMBER] mitre plane misses the centroidal arc');
+      const phase = Math.atan2(B, A), alpha = Math.acos(v), choices = [phase + alpha, phase - alpha].flatMap(t => [-2, -1, 0, 1, 2].map(k => t + 2 * Math.PI * k)), angle = choices.sort((a, b) => Math.abs(a - reference) - Math.abs(b - reference))[0];
+      if (start) startAngle = angle; else endAngle = angle;
+    }
+  }
+  const developedLengthMM = lead + centroidRadius * (endAngle - startAngle) + tail;
+  const base = buildMember(given, { ...o, ends: undefined, start: path.start, end: add(path.start, path.tangent!), L: 1 }) as Extract<Result, { kind: 'solid' }>, member = base.parts[0].member!;
+  const curve = { kind: path.indices.length > 1 ? 'bend' as const : 'arc' as const, center: C, axis: nAxis, radiusMM: path.radius!, centroidRadiusMM: centroidRadius, angleDegrees: (endAngle - startAngle) * 180 / Math.PI, startTangent: rotateAround(path.tangent!, nAxis, startAngle), endTangent: rotateAround(path.tangent!, nAxis, endAngle), developedLengthMM, segmentIndices: path.indices, straightLengthsMM: [lead, tail] as const };
+  return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass: density => o.ends?.cuts.length ? brepMassProperties(brep, density) : combineMassProperties(masses.map(m => ({ props: m.local(density), axes: m.axes, offset: m.offset }))), member: { ...member, axis: curve.startTangent, xAxis: rotateAround(member.xAxis as Point, nAxis, startAngle), yAxis: rotateAround(member.yAxis as Point, nAxis, startAngle), end: path.end, lengthMM: developedLengthMM, curve, ...(o.ends ? { ends: o.ends.report } : {}), centroidLine: { start: sub(add(C, rotateAround(radialC, nAxis, startAngle)), scale(path.tangent!, lead)), end: add(add(C, rotateAround(radialC, nAxis, endAngle)), scale(path.endTangent!, tail)) } } }] };
+}
+
 /** How a member's ends are finished at its frame's corners (FR3a, D125): how far each end runs on, the planes it is cut by (keeping n·x < n·o), what each end is. */
 type MemberEnds = { readonly extend: readonly [number, number]; readonly cuts: readonly { readonly o: Point; readonly n: Point; readonly name: string }[]; readonly subtract: readonly MemberSubtract[]; readonly report: readonly FrameEndReport[] };
 /**
@@ -2947,7 +3229,7 @@ type MemberEnds = { readonly extend: readonly [number, number]; readonly cuts: r
  * left, the one reaching farthest from `keepFrom` along `toward` (its own length's way) is kept. `mustTouch`: refused
  * `TRIM_MISSES` when nothing is taken.
  */
-type MemberSubtract = { readonly solid: Solid; readonly name: string; readonly keepFrom: Point; readonly toward: Point; readonly mustTouch?: boolean };
+type MemberSubtract = { readonly solid: Solid; readonly name: string; readonly keepFrom: Point; readonly toward: Point; readonly mustTouch?: boolean; readonly edgeFitToleranceMM?: number };
 /** A solid in several pieces: the one reaching farthest from `from` along `toward` (one piece: itself). */
 function keepFarthest(s: Solid, from: Point, toward: Point): Solid {
   if (s.kind !== 'brep') return s;
@@ -2996,7 +3278,7 @@ function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
   if (cut.kind === 'brep' && cut.brep.bodies.length !== 1) throw new CadPartError('GEOMETRY', o.at, `[TRIM_LEAVES_PIECES] cut at its corners, member ${o.frame?.member ?? ''} is in ${cut.brep.bodies.length} pieces`);
   // Then the solids taken from it (envelopes, bodies): of the pieces left, the one reaching farthest its own way is kept.
   for (const t of o.ends.subtract) {
-    const before = t.mustTouch ? volumeOfSolid(cut) : 0, next = boolean(cut, t.solid, 'difference', `${o.at}_${t.name}`.replace(/\./g, '_'));
+    const before = t.mustTouch ? volumeOfSolid(cut) : 0, next = boolean(cut, t.solid, 'difference', `${o.at}_${t.name}`.replace(/\./g, '_'), true, t.edgeFitToleranceMM);
     if (empty(next)) throw new CadPartError('PARAMETER', o.at, `[TRIM_EMPTY] member ${o.frame?.member ?? ''}: nothing is left of it`);
     const pieces = next.kind === 'brep' ? splitBodies(next.brep) : null;
     cut = pieces && pieces.length > 1 ? { kind: 'brep', brep: farthestPiece(pieces, t.keepFrom, t.toward) } : next;
@@ -3152,14 +3434,23 @@ function landingSlab(f: Landing, a: Point, b: Point, E: Point, out: Point, h: nu
   return placedSolid({ kind: 'upright', solid }, a, b, W, E);
 }
 /**
- * Landing faces meeting along whole edges (two mitred rails' undersides) as one loop each: their outer loops' edges, each
- * pair run both ways (within 1e-6 mm) dropped, the rest chained. Null where that does not close up (faces overlapping
- * along part of an edge, or with holes): then the slabs are united by Booleans.
+ * Landing faces meeting along edges as one loop each: split at collinear vertices before dropping opposite edge pairs
+ * (within 1e-6 mm), then chain the rest. Null where that does not close up, or with holes: use the slabs' Booleans.
  */
 function mergedLandings(faces: readonly Landing[]): Landing[] | null {
   if (faces.some(f => f.holes.length)) return null;
   const same = (p: XY, q: XY) => Math.hypot(p[0] - q[0], p[1] - q[1]) <= MEMBER_MIN_MM;
-  const edges: [XY, XY][] = faces.flatMap(f => f.outer.map((p, i) => [p, f.outer[(i + 1) % f.outer.length]] as [XY, XY]));
+  const source: [XY, XY][] = faces.flatMap(f => f.outer.map((p, i) => [p, f.outer[(i + 1) % f.outer.length]] as [XY, XY]));
+  const edges: [XY, XY][] = source.flatMap(([p, q]) => {
+    const dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy), ts = [0, 1];
+    for (const v of source.flat()) {
+      const t = ((v[0] - p[0]) * dx + (v[1] - p[1]) * dy) / (l * l);
+      if (t > 0 && t < 1 && Math.abs(dx * (v[1] - p[1]) - dy * (v[0] - p[0])) <= MEMBER_MIN_MM * l) ts.push(t);
+    }
+    const cut = ts.sort((a, b) => a - b).filter((t, i, all) => i === 0 || (t - all[i - 1]) * l > MEMBER_MIN_MM);
+    const point = (t: number): XY => [p[0] + t * dx, p[1] + t * dy];
+    return cut.slice(1).map((t, i) => [point(cut[i]), point(t)] as [XY, XY]);
+  });
   const kept = edges.filter(([p, q]) => !edges.some(([r, t]) => same(p, t) && same(q, r)));
   const loops: XY[][] = [], used = new Set<number>();
   for (let i = 0; i < kept.length; i++) {
@@ -3236,6 +3527,252 @@ function landsWithin(P: MemberPlace, E: Point, a: Point, b: Point, z: number, f:
   const lo = [Math.min(...pts.map(p => p[0])) - z, Math.min(...pts.map(p => p[1])) - z], hi = [Math.max(...pts.map(p => p[0])) + z, Math.max(...pts.map(p => p[1])) + z];
   return ([[lo[0], lo[1]], [hi[0], lo[1]], [hi[0], hi[1]], [lo[0], hi[1]]] as XY[]).every(X => inConvex(X, f.outer));
 }
+/** An ordered trim's complete end from its actual cutter faces, never from its nominal joint point. */
+function orderedBeadPlane(part: Part, e: FrameEndReport, out: Point, where: string, fail: Tools['fail']): { origin: Point; normal: Point } {
+  const refuse = (): never => fail('PARAMETER', `[BEAD_SEAM_NOT_PLANAR] ${where} is trimmed to an envelope or a body: its complete seam is not one plane's loop`);
+  if (!e.rank || !e.against?.length) return refuse();
+  const at = part.memberPlace!.at, frameAt = at.slice(0, at.lastIndexOf('.m')), brep = brepOf(part, at.replace(/\./g, '_'));
+  // Envelope faces keep their producer's name through the ordered Boolean cuts (FR3b).
+  const named = (name: string | undefined, prefix: string) => name === prefix || name?.startsWith(`${prefix}#`) === true;
+  const caps = brep.faces.filter(f => e.against!.some(k => named(f.name, `${frameAt}_env${k}`)));
+  // A surviving run-on cap means only part of the section reached the cutters: no full end plane.
+  if (!caps.length || brep.faces.some(f => named(f.name, `${at}.${e.end}`))) return refuse();
+  const planes = caps.map(f => planar(nurbsOf(f)));
+  if (planes.some(p => !p)) return refuse();
+  const first = planes[0]!, normal = scale(first.normal, caps[0].sense === 'forward' ? 1 : -1);
+  if (planes.some(p => len(cross(p!.normal, normal)) > 1e-9 || Math.abs(dot(sub(p!.origin, first.origin), normal)) > MEMBER_MIN_MM)) return refuse();
+  const angle = Math.atan2(len(cross(normal, out)), dot(normal, out)) * 180 / Math.PI;
+  if (angle > 1e-9) fail('PARAMETER', `[BEAD_ANGLE] ${where} meets its face at ${+angle.toFixed(6)}° from square: fillets on oblique ends are not modelled yet`);
+  return { origin: first.origin, normal };
+}
+// ---- shared endpoint bead ownership (D170) ------------------------------------------------------------
+type EndpointBead = Extract<CadPartFeature, { kind: 'weld-bead' }> & { readonly on: BeadJointRef };
+function isEndpointBead(f: CadPartFeature): f is EndpointBead {
+  const on: unknown = f.kind === 'weld-bead' ? f.on : undefined;
+  return isRecord(on) && Number.isInteger(on.member) && (on.end === 'start' || on.end === 'end');
+}
+const jointOrder = (a: BeadJointRef, b: BeadJointRef) => a.member - b.member || (a.end === b.end ? 0 : a.end === 'start' ? -1 : 1);
+const jointKey = (j: BeadJointRef) => `${j.member}:${j.end}`;
+/** Peer edits invalidate an owned result even when its own authored feature has not changed. */
+function endpointContext(features: readonly CadPartFeature[], frame: string, parameters: Readonly<Record<string, number>>): unknown {
+  return features.filter((f): f is EndpointBead => isEndpointBead(f) && f.frame === frame).sort((a, b) => jointOrder(a.on, b.on) || a.id.localeCompare(b.id)).map(f => [f.id, resolvedDefinition(f, parameters)]);
+}
+type BeadEndGeometry = { readonly edges: readonly Brep['edges'][number][]; readonly out: Point; readonly axes: readonly [Point, Point, Point] };
+type BeadCandidate = { readonly feature: EndpointBead; readonly joint: BeadJointRef; readonly part?: Part; readonly end?: BeadEndGeometry; readonly leg?: number; readonly nominal?: Part; readonly error?: CadPartError };
+type SharedBeadPair = { readonly a: number; readonly b: number; readonly runs: readonly (readonly [Point, Point])[]; readonly overlap?: Brep; readonly uncertain: boolean };
+function beadDimension(v: unknown, parameters: Readonly<Record<string, number>>, at: string): number {
+  let x = v;
+  if (isRecord(v)) {
+    if (typeof v.parameter !== 'string' || !Object.hasOwn(parameters, v.parameter)) throw new CadPartError('PARAMETER', at, 'leg: unknown parameter');
+    x = parameters[v.parameter];
+  }
+  if (typeof x !== 'number' || !Number.isFinite(x) || !(x > 0) || x > CadPartLimits.lengthMM) throw new CadPartError('PARAMETER', at, 'leg must be a finite positive length within 10000 mm');
+  return x;
+}
+/** Actual end faces, including an unsupported ordered/curved end, provide the boundary for refusal discovery. */
+function beadEndGeometry(part: Part, joint: BeadJointRef): BeadEndGeometry {
+  const P = part.memberPlace!.place, start = part.member!.start as Point, e = part.member!.ends?.find(x => x.end === joint.end);
+  const out = scale(P.u, joint.end === 'end' ? 1 : -1), at = part.memberPlace!.at, b = brepOf(part, at.replace(/\./g, '_'));
+  const frameAt = at.slice(0, at.lastIndexOf('.m')), named = (name: string | undefined, prefix: string) => name === prefix || name?.startsWith(`${prefix}#`) === true;
+  const origin = e?.plane?.origin as Point | undefined ?? add(start, scale(P.u, joint.end === 'end' ? part.memberPlace!.lengthMM + part.memberPlace!.extend[1] : -part.memberPlace!.extend[0]));
+  const faces = b.faces.filter(f => {
+    if (e?.rank && e.against?.some(k => named(f.name, `${frameAt}_env${k}`))) return true;
+    if (named(f.name, `${at}.${joint.end}`) || named(f.name, `${at}.${joint.end}.butt`)) return true;
+    if (!e?.plane) return false;
+    const p = planar(nurbsOf(f));
+    return !!p && len(cross(p.normal, e.plane.normal as Point)) <= 1e-9 && Math.abs(dot(sub(p.origin, origin), e.plane.normal as Point)) <= MEMBER_MIN_MM;
+  });
+  const loops = new Set(faces.flatMap(f => f.loops)), coedges = b.coedges.filter(c => loops.has(c.loop)), edges = new Set(coedges.map(c => c.edge));
+  return { edges: b.edges.filter(x => edges.has(x.id)), out, axes: [P.F.x, P.F.y, P.u] };
+}
+function beadStraightEdge(edge: Brep['edges'][number]): readonly [Point, Point] | null {
+  // A rational linear curve is straight regardless of its parametrisation; higher-degree curves are not admitted.
+  const c = edge.curve;
+  if (c.degree !== 1 || c.controlPoints.length !== 2) return null;
+  const [lo, hi] = curveDomain(c);
+  return [evaluateCurve(c, lo), evaluateCurve(c, hi)];
+}
+/** Collinear overlap of actual boundary edges; touching at a point is not a seam. */
+function commonBeadRuns(a: BeadEndGeometry, b: BeadEndGeometry): (readonly [Point, Point])[] {
+  const runs: [Point, Point][] = [];
+  for (const ea of a.edges) for (const eb of b.edges) {
+    const A = beadStraightEdge(ea), B = beadStraightEdge(eb);
+    if (!A || !B) continue;
+    const d = unit(sub(A[1], A[0])), L = len(sub(A[1], A[0]));
+    if (len(cross(sub(B[0], A[0]), d)) > MEMBER_MIN_MM || len(cross(sub(B[1], A[0]), d)) > MEMBER_MIN_MM) continue;
+    const t = B.map(p => dot(sub(p, A[0]), d)), lo = Math.max(0, Math.min(...t)), hi = Math.min(L, Math.max(...t));
+    if (hi - lo > MEMBER_MIN_MM) runs.push([add(A[0], scale(d, lo)), add(A[0], scale(d, hi))]);
+  }
+  // Coalesce split edges and duplicate coedges on one run, but never bridge a gap.
+  const merged: [Point, Point][] = [];
+  for (const run of runs) {
+    let current = run;
+    for (let i = 0; i < merged.length;) {
+      const p = merged[i], d = unit(sub(current[1], current[0])), L = len(sub(current[1], current[0]));
+      const t = p.map(x => dot(sub(x, current[0]), d));
+      if (p.every(x => len(cross(sub(x, current[0]), d)) <= MEMBER_MIN_MM) && Math.max(...t) >= -MEMBER_MIN_MM && Math.min(...t) <= L + MEMBER_MIN_MM) {
+        const O = current[0]; current = [add(O, scale(d, Math.min(0, ...t))), add(O, scale(d, Math.max(L, ...t)))]; merged.splice(i, 1); i = 0;
+      } else i++;
+    }
+    merged.push(current);
+  }
+  return merged;
+}
+function beadBoxesApart(a: Brep, b: Brep): boolean {
+  const box = (r: Brep) => { const points = r.faces.flatMap(f => nurbsOf(f).controlPoints.flat()); return [0, 1, 2].map(k => [Math.min(...points.map(p => p[k])), Math.max(...points.map(p => p[k]))]); };
+  const A = box(a), B = box(b);
+  return A.some((p, k) => p[1] <= B[k][0] + 1e-9 || B[k][1] <= p[0] + 1e-9);
+}
+/** A manifest describes declared endpoints of this frame, never the discovered components. */
+function beadManifestProblem(f: EndpointBead, candidates: readonly BeadCandidate[], parameters: Readonly<Record<string, number>>): string | null {
+  const s: unknown = f.sharing;
+  if (!isRecord(s) || Object.keys(s).some(k => !['version', 'policy', 'joints'].includes(k)) || s.version !== 1 || s.policy !== 'equal-length' || !Array.isArray(s.joints)) return 'give sharing version 1, equal-length policy and the complete frame endpoint manifest';
+  const expected = new Map(candidates.map(c => [jointKey(c.joint), c])), seen = new Set<string>();
+  for (const j of Array.from(s.joints) as unknown[]) {
+    if (!isRecord(j) || Object.keys(j).some(k => !['member', 'end', 'leg'].includes(k)) || !Number.isInteger(j.member) || (j.end !== 'start' && j.end !== 'end')) return 'each manifest joint must give member, end and leg';
+    const key = jointKey(j as unknown as BeadJointRef), actual = expected.get(key);
+    if (seen.has(key)) return 'the frame manifest repeats a joint';
+    seen.add(key);
+    if (!actual) return 'a manifest joint has no declared endpoint bead';
+    let declared: number;
+    try { declared = beadDimension(actual.feature.leg, parameters, actual.feature.id); }
+    catch {
+      // An invalid declared leg belongs to its actual component. A faithful frame manifest must not
+      // turn that one intrinsic error into a refusal of every independent component in this frame.
+      if (JSON.stringify(j.leg) !== JSON.stringify(actual.feature.leg)) return 'an invalid manifest leg differs from its declared endpoint bead';
+      continue;
+    }
+    try { if (beadDimension(j.leg, parameters, f.id) !== declared) return 'manifest leg differs from the declared endpoint bead'; }
+    catch { return 'a manifest leg is unresolved or invalid'; }
+  }
+  return seen.size !== expected.size ? 'the frame manifest omits a declared endpoint bead' : null;
+}
+/** Prove the one supported shared shape from the actual overlap, not from a nominal endpoint or a volume fraction. */
+function sharedBeadPath(a: BeadCandidate, b: BeadCandidate, pair: SharedBeadPair): readonly [Point, Point] | null {
+  if (!a.end || !b.end || !a.part || !b.part || a.leg !== b.leg || a.feature.inner || b.feature.inner || pair.uncertain || !pair.overlap || pair.overlap.bodies.length !== 1 || pair.runs.length !== 1) return null;
+  if ([a, b].some(c => [c.part!.memberPlace!.place.shape.outer, ...c.part!.memberPlace!.place.shape.holes].some(loop => loop.some(g => g.kind !== 'line')))) return null;
+  const A = a.end, B = b.end, z = a.leg!;
+  if (Math.abs(dot(A.out, B.out)) > 1e-9 || !pair.overlap.faces.every(f => !!planar(nurbsOf(f)))) return null;
+  const along = (p: Point) => A.axes.map(d => dot(sub(p, a.part!.member!.start as Point), d));
+  let [p, q] = pair.runs[0];
+  const x = along(p), y = along(q), first = x.findIndex((v, k) => Math.abs(v - y[k]) > MEMBER_MIN_MM);
+  if (first < 0) return null;
+  if (x[first] > y[first]) [p, q] = [q, p];
+  const direction = unit(sub(q, p));
+  if (Math.abs(dot(direction, A.out)) > 1e-9 || Math.abs(dot(direction, B.out)) > 1e-9) return null;
+  // The shared run must cover both complete authored end-boundary runs. A shorter overlap is not V1.
+  for (const end of [A, B]) {
+    const intervals = end.edges.map(beadStraightEdge).filter((e): e is readonly [Point, Point] => !!e && e.every(v => len(cross(sub(v, p), direction)) <= MEMBER_MIN_MM)).map(e => e.map(v => dot(sub(v, p), direction)));
+    if (!intervals.length || Math.abs(Math.min(...intervals.flat())) > MEMBER_MIN_MM || Math.abs(Math.max(...intervals.flat()) - len(sub(q, p))) > MEMBER_MIN_MM) return null;
+  }
+  const expected = [p, add(p, scale(A.out, -z)), add(p, scale(B.out, -z)), q, add(q, scale(A.out, -z)), add(q, scale(B.out, -z))];
+  const vertices = pair.overlap.vertices.map(v => v.point);
+  // All six corners and only points on their straight edges: no partial triangular coverage or second run.
+  const onEdge = (v: Point) => expected.some((u, i) => expected.some((w, j) => {
+    if (j <= i || !((i < 3 && j < 3) || (i >= 3 && j >= 3) || j === i + 3)) return false;
+    const d = sub(w, u), t = dot(sub(v, u), d) / dot(d, d);
+    return t >= -1e-9 && t <= 1 + 1e-9 && len(sub(v, add(u, scale(d, t)))) <= MEMBER_MIN_MM;
+  }));
+  if (!expected.every(u => vertices.some(v => len(sub(v, u)) <= MEMBER_MIN_MM)) || !vertices.every(onEdge)) return null;
+  const V = brepMassProperties(pair.overlap, 1).volumeMM3, want = len(sub(q, p)) * z * z / 2;
+  if (Math.abs(V - want) > 1e-9 * Math.max(1, want)) return null;
+  return [p, q];
+}
+/** Keep exclusive material intact and split only native bodies containing the shared prism. */
+function ownedEndpointBead(candidate: BeadCandidate, overlap: Brep, seam: Omit<BeadSharedSeam, 'ownedSharedVolumeMM3'>): Result {
+  const nominal = candidate.nominal!, brep = brepOf(nominal, candidate.feature.id), [p, q] = seam.pathMM as readonly [Point, Point];
+  const n = unit(sub(q, p)), midpoint = scale(add(p, q), 0.5), x = candidate.end!.out, y = cross(n, x), below = seam.ownedInterval[0] === 0;
+  const R = Math.max(1, ...brep.vertices.map(v => len(sub(v.point, midpoint)))) + 1, id = candidate.feature.id.replace(/\./g, '_');
+  const half = obliqueHalf(midpoint, n, x, y, R, !below, `${id}_ownership`);
+  const unowned = boolean({ kind: 'brep', brep: overlap }, half, 'intersection', `${id}_unowned`);
+  const removed = volumeOfSolid(unowned), ownedSharedVolumeMM3 = brepMassProperties(overlap, 1).volumeMM3 - removed;
+  const parts = splitBodies(brep).map((body, i) => {
+    const shared = booleanAnalytic(body, overlap, 'intersection', { id: `${id}_shared${i}` });
+    if (!shared.bodies.length) return prefixedIds(body, `exclusive${i}:`);
+    const kept = boolean({ kind: 'brep', brep: body }, unowned, 'difference', `${id}_owned${i}`);
+    return prefixedIds(brepOf({ solid: kept }, `${id}_owned${i}`), `owned${i}:`);
+  });
+  const owned = mergeBreps(parts, { family: 'weld-bead', id }), volumeMM3 = brepMassProperties(owned, 1).volumeMM3;
+  if (Math.abs(volumeMM3 - (nominal.bead!.nominalVolumeMM3 - removed)) > 1e-9 * Math.max(1, volumeMM3)) throw new CadPartError('GEOMETRY', candidate.feature.id, 'owned partition did not preserve exclusive material');
+  return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: owned }, bead: { ...nominal.bead!, volumeMM3, sharedSeams: [{ ...seam, ownedSharedVolumeMM3 }] } }] };
+}
+/** Discover the actual graph first, then plan every component before exposing either participant. */
+function planEndpointBeads(features: readonly CadPartFeature[], byMember: ReadonlyMap<number, Part>, frame: string, parameters: Readonly<Record<string, number>>): Map<string, Result | CadPartError> {
+  const candidates: BeadCandidate[] = features.filter((f): f is EndpointBead => isEndpointBead(f) && f.frame === frame).sort((a, b) => jointOrder(a.on, b.on) || a.id.localeCompare(b.id)).map(feature => {
+    const joint: BeadJointRef = { member: feature.on.member, end: feature.on.end }, part = byMember.get(joint.member), at = feature.id;
+    const fail: Tools['fail'] = (code, detail) => { throw new CadPartError(code, at, detail); };
+    let end: BeadEndGeometry | undefined, leg: number | undefined;
+    try {
+      if (!part || joint.member < 0) fail('REFERENCE', `${frame} has no member ${joint.member}`);
+      const jointReport = part!.member?.ends?.find(e => e.end === joint.end);
+      if ((jointReport?.gapMM ?? 0) > 0 || jointReport?.kind === 'notch') fail('PARAMETER', '[BEAD_SEAM_NOT_PLANAR] positive gaps and cutter notches do not admit contact fillets');
+      end = beadEndGeometry(part!, joint);
+      leg = beadDimension(feature.leg, parameters, at);
+      if (feature.inner !== undefined && typeof feature.inner !== 'boolean') fail('INPUT', 'inner must be true or false');
+      const result = endBead(byMember, part!, frame, joint.member, joint.end === 'end' ? 1 : 0, leg, feature.inner === true, at, fail) as Extract<Result, { kind: 'solid' }>;
+      return { feature, joint, part, end, leg, nominal: result.parts[0] };
+    } catch (cause) {
+      const error = cause instanceof CadPartError ? cause : new CadPartError('GEOMETRY', at, cause instanceof Error ? cause.message : String(cause));
+      return { feature, joint, part, end, leg, error };
+    }
+  });
+  const pairs: SharedBeadPair[] = [], neighbours = candidates.map(() => new Set<number>());
+  for (let a = 0; a < candidates.length; a++) for (let b = a + 1; b < candidates.length; b++) {
+    const A = candidates[a], B = candidates[b], runs = A.end && B.end ? commonBeadRuns(A.end, B.end) : [];
+    let overlap: Brep | undefined, uncertain = false;
+    if (A.nominal && B.nominal) {
+      const ab = brepOf(A.nominal, A.feature.id), bb = brepOf(B.nominal, B.feature.id);
+      if (!beadBoxesApart(ab, bb)) {
+        try { const r = booleanAnalytic(ab, bb, 'intersection', { id: `shared_${a}_${b}` }); if (r.bodies.length) overlap = r; }
+        catch (cause) {
+          if (!(cause instanceof BrepError)) throw cause;
+          if (!runs.length) throw new CadPartError('PARAMETER', A.feature.id, `[BEAD_SHARED_UNSUPPORTED] overlap failed without a proved boundary component: ${cause.message}`);
+          uncertain = true;
+        }
+      }
+    } else uncertain = runs.length > 0;
+    if (overlap || uncertain || jointKey(A.joint) === jointKey(B.joint)) {
+      pairs.push({ a, b, runs, overlap, uncertain }); neighbours[a].add(b); neighbours[b].add(a);
+    }
+  }
+  const plan = new Map<string, Result | CadPartError>(), visited = new Set<number>();
+  for (let start = 0; start < candidates.length; start++) {
+    if (visited.has(start)) continue;
+    const component = [start]; visited.add(start);
+    for (let k = 0; k < component.length; k++) for (const next of neighbours[component[k]]) if (!visited.has(next)) { visited.add(next); component.push(next); }
+    component.sort((a, b) => jointOrder(candidates[a].joint, candidates[b].joint));
+    const group = component.map(k => candidates[k]), shared = component.length > 1;
+    const joints = [...new Map(group.map(c => [jointKey(c.joint), c.joint])).values()], sharedComponent: BeadSharedComponent | undefined = shared ? { frame, joints } : undefined;
+    const refuse = (tag: 'BEAD_SHARED_CONTEXT' | 'BEAD_SHARED_UNSUPPORTED', detail: string) => {
+      for (const c of group) plan.set(c.feature.id, new CadPartError('PARAMETER', c.feature.id, `[${tag}] ${detail}`, sharedComponent));
+    };
+    const problem = group.map(c => c.feature.sharing !== undefined || shared ? beadManifestProblem(c.feature, candidates, parameters) : null).find(Boolean);
+    if (problem) { refuse('BEAD_SHARED_CONTEXT', problem); continue; }
+    if (shared && group.some(c => Object.keys(c.feature.on).some(k => k !== 'member' && k !== 'end'))) { refuse('BEAD_SHARED_CONTEXT', 'endpoint flags are inconsistent with the manifest'); continue; }
+    if (shared && (group.length !== 2 || joints.length !== 2)) { refuse(joints.length !== group.length ? 'BEAD_SHARED_CONTEXT' : 'BEAD_SHARED_UNSUPPORTED', 'only two distinct endpoint beads on one complete straight seam are supported'); continue; }
+    if (shared && group.some(c => c.leg === undefined)) { refuse('BEAD_SHARED_CONTEXT', 'a declared participant leg is unresolved or invalid'); continue; }
+    const error = group.find(c => c.error)?.error;
+    if (error) {
+      for (const c of group) plan.set(c.feature.id, shared ? new CadPartError('PARAMETER', c.feature.id, `[BEAD_SHARED_UNSUPPORTED] ${error.message}`, sharedComponent) : error);
+      continue;
+    }
+    if (!shared) { const c = group[0]; plan.set(c.feature.id, { kind: 'solid', parts: [c.nominal!] }); continue; }
+    const pair = pairs.find(p => p.a === component[0] && p.b === component[1])!, [a, b] = group;
+    try {
+      const path = sharedBeadPath(a, b, pair);
+      if (!path) { refuse('BEAD_SHARED_UNSUPPORTED', 'requires equal legs, outer sharp square ends and one complete straight triangular shared prism'); continue; }
+      const lengthMM = len(sub(path[1], path[0])), nominalSharedVolumeMM3 = brepMassProperties(pair.overlap!, 1).volumeMM3;
+      const id = JSON.stringify(['shared-seam-v1', frame, joints]), refs = joints as [BeadJointRef, BeadJointRef];
+      // Commit both planned results together. A partition error leaves neither nominal participant available.
+      const results = group.map((c, i) => ownedEndpointBead(c, pair.overlap!, { id, joints: refs, pathMM: path, lengthMM, ownedInterval: i === 0 ? [0, 0.5] : [0.5, 1], nominalSharedVolumeMM3 }));
+      group.forEach((c, i) => plan.set(c.feature.id, results[i]));
+    } catch (cause) {
+      refuse('BEAD_SHARED_UNSUPPORTED', `owned B-rep partition failed: ${cause instanceof Error ? cause.message : String(cause)}`);
+    }
+  }
+  return plan;
+}
+
 /**
  * A fillet bead on a member's end landing square on other members' flat faces (FRk2, D166): the end's outer loop offset
  * by the leg, drafted 45° back along the member, less its envelope, kept on the faces it lands on; with `inner`, the
@@ -3245,11 +3782,13 @@ function landsWithin(P: MemberPlace, E: Point, a: Point, b: Point, z: number, f:
  */
 function endBead(byMember: ReadonlyMap<number, Part>, part: Part, frame: string, k: number, end: 0 | 1, z: number, inner: boolean, at: string, fail: Tools['fail']): Result {
   const { place: P, lengthMM: L, extend } = part.memberPlace!, report = part.member!, e = report.ends?.find(x => x.end === endName(end)), where = `member ${k}'s ${endName(end)}`;
+  if ((e?.gapMM ?? 0) > 0 || e?.kind === 'notch') fail('PARAMETER', `[BEAD_SEAM_NOT_PLANAR] ${where} has a positive gap or cutter notch: contact fillets are not supported`);
   if (e?.kind === 'mitre') fail('PARAMETER', `[BEAD_KIND] ${where} is mitred: a mitre takes a groove weld (its seam only), not a fillet`);
-  if (e?.kind === 'cope' || (e?.kind === 'trim' && !e.plane)) fail('PARAMETER', `[BEAD_SEAM_NOT_PLANAR] ${where} is ${e.kind === 'cope' ? 'coped' : 'trimmed to an envelope or a body'}: its seam is no plane's loop`);
+  if (e?.kind === 'cope') fail('PARAMETER', `[BEAD_SEAM_NOT_PLANAR] ${where} is coped: its seam is no plane's loop`);
   if (e?.angleDegrees !== undefined && Math.abs(e.angleDegrees) > 1e-9) fail('PARAMETER', `[BEAD_ANGLE] ${where} meets its face at ${+e.angleDegrees.toFixed(6)}° from square: fillets on oblique ends are not modelled yet`);
-  const start = report.start as unknown as Point, zE = e?.plane ? dot(sub(e.plane.origin as unknown as Point, start), P.u) : end ? L + extend[1] : -extend[0];
-  const out = end ? P.u : scale(P.u, -1), E = add(start, scale(P.u, zE));
+  const out = end ? P.u : scale(P.u, -1), plane = e?.plane ?? (e?.kind === 'trim' ? orderedBeadPlane(part, e, out, where, fail) : undefined);
+  const start = report.start as unknown as Point, zE = plane ? dot(sub(plane.origin as Point, start), P.u) : end ? L + extend[1] : -extend[0];
+  const E = add(start, scale(P.u, zE));
   let faces = landingFaces(byMember, k, E, out, P.F.x, P.F.y, at);
   {
     // (Only the faces under its footprint: the section's box offset by the leg.)
@@ -3288,7 +3827,7 @@ function endBead(byMember: ReadonlyMap<number, Part>, part: Part, frame: string,
   if (empty(bead)) fail('PARAMETER', `[BEAD_SIZE] ${where}: no fillet is left on the faces it lands on`);
   const flush = flushLength(P.shape.outer, q => [q[0] - P.q[0], q[1] - P.q[1]], (faces.length > 1 ? mergedLandings(faces) : null) ?? faces);
   const perimeter = loopPerimeter(P.shape.outer) + (inner ? loopPerimeter(P.shape.holes[0]) : 0);
-  const bead_: BeadReport = { frame, on: { member: k, end: endName(end) }, kind: 'fillet', legMM: z, throatMM: z / Math.SQRT2, meets: [...new Set(faces.map(f => f.k))], seam: { lengthMM: perimeter, flushMM: flush, exact: true, ...(inner ? { inner: true as const } : {}) }, volumeMM3: volumeOfSolid(bead), corner: 'mitred' };
+  const bead_: BeadReport = { frame, on: { member: k, end: endName(end) }, kind: 'fillet', legMM: z, throatMM: z / Math.SQRT2, meets: [...new Set(faces.map(f => f.k))], seam: { lengthMM: perimeter, flushMM: flush, exact: true, ...(inner ? { inner: true as const } : {}) }, volumeMM3: volumeOfSolid(bead), nominalVolumeMM3: volumeOfSolid(bead), sharedSeams: [], corner: 'mitred' };
   return { kind: 'solid', parts: [{ solid: bead, bead: bead_ }] };
 }
 /**
@@ -3320,7 +3859,7 @@ function gussetBead(byMember: ReadonlyMap<number, Part>, gp: Part, frame: string
     }
   }
   const length = 2 * (l1 - c) + 2 * (l2 - c);
-  const bead_: BeadReport = { frame, on: { gusset }, kind: 'fillet', legMM: z, throatMM: z / Math.SQRT2, meets: [...G.members], seam: { lengthMM: length, flushMM: 0, exact: true }, volumeMM3: length * z * z / 2, corner: 'mitred' };
+  const bead_: BeadReport = { frame, on: { gusset }, kind: 'fillet', legMM: z, throatMM: z / Math.SQRT2, meets: [...G.members], seam: { lengthMM: length, flushMM: 0, exact: true }, volumeMM3: length * z * z / 2, nominalVolumeMM3: length * z * z / 2, sharedSeams: [], corner: 'mitred' };
   return { kind: 'solid', parts: [{ solid: bead!, bead: bead_ }] };
 }
 function moveAll(parts: readonly Part[], m: BrepAffine['matrix'], o: Point): Result {
@@ -3366,7 +3905,7 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
   // (Ids are identifiers; the pieces' faces are named `${at}.s${k}.…`.)
   const place = (b: Brep, k: number): Brep => transformBrep(b, { matrix: [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]], offset: [o[0], o[1], o[2]] }, n => n.split(`${at}_s${k}`).join(`${at}.s${k}`));
   const rot = (v: Point, d: Point, t: number): Point => add(add(scale(v, Math.cos(t)), scale(cross(d, v), Math.sin(t))), scale(d, dot(d, v) * (1 - Math.cos(t))));
-  // Each piece's mass in closed form, in its own frame (the pieces meet only in cross-sections).
+  // Each piece's mass in its own frame; these add only when the pieces are glued without overlap.
   const pieces: Brep[] = [], masses: { local: (density: number) => SolidMassProperties; axes: [Point, Point, Point]; offset: Point }[] = [];
   steps.forEach((st, k) => {
     const tag = `${at}_s${k}`;
@@ -3395,9 +3934,15 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
   const box = (b: Brep) => { const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity]; for (const f of b.faces) for (const row of nurbsOf(f).controlPoints) for (const p of row) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], p[i]); hi[i] = Math.max(hi[i], p[i]); } return { lo, hi }; };
   const boxes = pieces.map(box), apart = (i: number, j: number) => [0, 1, 2].some(k => boxes[i].hi[k] < boxes[j].lo[k] - 1e-6 || boxes[j].hi[k] < boxes[i].lo[k] - 1e-6);
   const separate = pieces.every((_, i) => pieces.every((__, j) => j <= i + 1 || apart(i, j)));
-  let body = pieces[0];
-  for (const p of pieces.slice(1)) body = (separate ? glueAtSharedFace(body, p, { family: 'sweep', id: at }) : null) ?? booleanAnalytic(body, p, 'union', { id: at });
-  return { brep: body, mass: d => combineMassProperties(masses.map(m => ({ props: m.local(d), axes: m.axes, offset: m.offset }))) };
+  let body = pieces[0], additive = true;
+  for (const p of pieces.slice(1)) {
+    const glued = separate ? glueAtSharedFace(body, p, { family: 'sweep', id: at }) : null;
+    if (!glued) additive = false;
+    body = glued ?? booleanAnalytic(body, p, 'union', { id: at });
+  }
+  return { brep: body, mass: d => additive
+    ? combineMassProperties(masses.map(m => ({ props: m.local(d), axes: m.axes, offset: m.offset })))
+    : brepMassProperties(body, d) };
 }
 
 // ---- shell -----------------------------------------------------------------------------------------------

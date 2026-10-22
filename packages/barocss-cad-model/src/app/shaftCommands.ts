@@ -1,7 +1,9 @@
 // Shafts (R12c.3a, D156): steps along an axis with shoulder fillets and end chamfers, a keyseat on one step and a ring
 // groove on another. Every size is the user's: the prefills (a 6 × 3.5 seat on Ø20, a Ø19 × 1.3 groove on Ø20) are
 // estimates for a first try, said so in their labels — key and ring sizes come from the user's own rows (none built in).
-import { featureLabel, withNode, type ModelNode } from '../engine/doc';
+import { featureLabel, leafBodies, withNode, type ModelNode } from '../engine/doc';
+import { bodyKeyFor } from '../engine/ids';
+import { bearingContextOf, bearingHousingRefProblem, type BearingAssemblyContext, type BearingAssemblyInput, type BearingHousingRef } from '../engine/bearingContext';
 import { ringRowsFor } from '../engine/rings';
 import type { Command, Ctx, Field, Values } from './commands';
 
@@ -124,16 +126,43 @@ const pinCommand: Command = {
 
 // ---- R12c.4 (D158): a bearing on a shaft's seat ----------------------------------------------------------------------
 
+/** Existing Housing select values: numeric local indices stay compatible; external references are opaque JSON. */
+export const bearingHousingValue = (ref: BearingHousingRef): string => `part:${JSON.stringify(ref)}`;
+export function bearingHousingPatch(value: string): { housing?: number; housingRef?: BearingHousingRef } {
+  if (value === 'none') return {};
+  if (value.startsWith('part:')) {
+    let ref: unknown; try { ref = JSON.parse(value.slice(5)); } catch { throw new Error('[BEARING_HOUSING_REFERENCE] invalid Housing choice'); }
+    const why = bearingHousingRefProblem(ref); if (why || !ref) throw new Error(why ?? '[BEARING_HOUSING_REFERENCE] invalid Housing choice');
+    return { housingRef: ref as BearingHousingRef };
+  }
+  if (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value))) throw new Error('[BEARING_HOUSING_REFERENCE] invalid local Housing index');
+  return { housing: Number(value) };
+}
+export function bearingHousingOptions(nodes: readonly ModelNode[], assembly?: BearingAssemblyInput, context?: BearingAssemblyContext): { value: string; label: string }[] {
+  const own = nodes.flatMap((n, i) => n.kind === 'sketch' ? [] : [{ value: String(i), label: `n${i}: ${featureLabel(n, i, nodes)}` }]);
+  const other: { value: string; label: string }[] = [];
+  if (assembly || context) {
+    const targets = assembly ? [{ id: 'base', name: 'base', doc: assembly.root }, ...(assembly.root.instances ?? []).filter(i => !i.hidden)] : context!.targets.filter(t => !t.hidden).map(t => ({ id: t.part, name: t.part, doc: t.doc }));
+    const owner = assembly?.owner ?? context!.owner;
+    for (const target of targets) if (target.id !== owner && (target.id === 'base' || !target.doc.instances?.length)) for (const b of leafBodies(target.doc.nodes)) {
+      const n = target.doc.nodes[b.node]; if (n.kind === 'mesh') continue;
+      const body = bodyKeyFor(target.doc.nodes, b.node, b.side);
+      other.push({ value: bearingHousingValue({ part: target.id, body }), label: `${target.name} / ${body}: ${featureLabel(n, b.node, target.doc.nodes)}` });
+    }
+  }
+  return [{ value: 'none', label: 'None' }, ...own, ...other];
+}
+
 const bearingCommand: Command = {
   id: 'bearing', label: 'Bearing', icon: 'cad-bearing', group: 'create', keywords: 'bearing rolling ball roller',
   hint: 'A rolling bearing\'s envelope from your catalogue rows (none built in) on a step of the selected shaft, against a shoulder: the shoulder checked against the row\'s da and ra, the other side\'s location, an optional housing\'s bore and the seats\' fit classes from your fit tables. Not for structural calculation',
   available: ctx => !ctx.doc.bearings?.rows.length ? no('Load your bearing rows first (Library panel, BEARINGS): none is built in.') : pickedShaft(ctx) ? ok : no('Select a shaft (from the Shaft command).'),
   fields: ctx => {
-    const rows = ctx.doc.bearings?.rows ?? [], bodies = ctx.doc.nodes.map((n, i) => ({ n, i })).filter(x => x.n.kind !== 'sketch' && x.i !== pickedShaft(ctx)?.index), classes = [...new Set((ctx.doc.fits?.tables ?? []).flatMap(t => t.rows.map(r => r.class)))];
+    const rows = ctx.doc.bearings?.rows ?? [], classes = [...new Set((ctx.doc.fits?.tables ?? []).flatMap(t => t.rows.map(r => r.class)))];
     return [{ key: 'row', label: 'Bearing row', kind: 'choice', options: rows.map(r => ({ value: r.id, label: `${r.designation ?? r.id} · Ø${r.boreMM} × Ø${r.outsideMM} × ${r.widthMM}${r.estimate ? ' (estimate)' : ''}` })) },
       { key: 'step', label: 'On step', kind: 'count', min: 1, max: Math.max(1, pickedShaft(ctx)?.node.steps.length ?? 1) },
       { key: 'against', label: 'Against the shoulder at', kind: 'choice', options: [{ value: 'start', label: 'The step\'s start' }, { value: 'end', label: 'The step\'s end' }] },
-      { key: 'housing', label: 'Housing', kind: 'choice', options: [{ value: 'none', label: 'None' }, ...bodies.map(b => ({ value: String(b.i), label: `n${b.i}: ${featureLabel(b.n, b.i, ctx.doc.nodes)}` }))] },
+      { key: 'housing', label: 'Housing', kind: 'choice', options: bearingHousingOptions(ctx.doc.nodes, ctx.bearingAssembly ?? (ctx.doc.instances?.length ? { root: ctx.doc, owner: 'base' } : undefined), bearingContextOf(ctx.doc)).filter(o => o.value !== String(pickedShaft(ctx)?.index)) },
       { key: 'sc', label: 'Shaft seat class', kind: 'choice', options: [{ value: 'none', label: 'None' }, ...classes.filter(c => /^[a-z]/.test(c)).map(c => ({ value: c, label: c }))] },
       { key: 'hc', label: 'Housing seat class', kind: 'choice', options: [{ value: 'none', label: 'None' }, ...classes.filter(c => /^[A-Z]/.test(c)).map(c => ({ value: c, label: c }))] }];
   },
@@ -144,7 +173,7 @@ const bearingCommand: Command = {
     if (s && row) for (let k = 0; k < s.steps.length; k++) if (Math.abs(d(s.steps[k]) - row.boreMM) < 1e-6) { if (k > 0 && d(s.steps[k - 1]) > row.boreMM) { step = k + 1; against = 'start'; break; } if (k + 1 < s.steps.length && d(s.steps[k + 1]) > row.boreMM) { step = k + 1; against = 'end'; break; } }
     return { row: row?.id ?? '', step, against, housing: 'none', sc: 'none', hc: 'none' };
   },
-  build: (ctx, v) => withNode(ctx.doc, { kind: 'bearing', row: String(v.row), shaft: pickedShaft(ctx)!.index, step: Math.round(n(v, 'step')), against: v.against === 'start' ? 'start' : 'end', ...(v.housing !== 'none' && v.housing !== undefined ? { housing: Number(v.housing) } : {}), ...(v.sc !== 'none' && v.sc ? { shaftClass: String(v.sc) } : {}), ...(v.hc !== 'none' && v.hc ? { housingClass: String(v.hc) } : {}) }),
+  build: (ctx, v) => withNode(ctx.doc, { kind: 'bearing', row: String(v.row), shaft: pickedShaft(ctx)!.index, step: Math.round(n(v, 'step')), against: v.against === 'start' ? 'start' : 'end', ...bearingHousingPatch(String(v.housing ?? 'none')), ...(v.sc !== 'none' && v.sc ? { shaftClass: String(v.sc) } : {}), ...(v.hc !== 'none' && v.hc ? { housingClass: String(v.hc) } : {}) }),
 };
 
 export const shaftCommands: Command[] = [shaftCommand, keyCommand, keywayCommand, ringCommand, pinCommand, bearingCommand];

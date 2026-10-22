@@ -1,3 +1,5 @@
+import { resolveShopTree } from '../engine/shopRows';
+import { bearingHousingRef } from '../engine/bearingContext';
 // G22's data side (the S0 in decisions-outer.md, with the GPU lane's changes): the assembly's interference and clearance
 // map from the exact checks. Every body of the base part and of each shown placed part, as the assembly places it:
 // their boxes grown by the near band pruned first (sorted along x, then y and z), the exact least distance of the
@@ -80,8 +82,11 @@ function hashOf(...lists: ArrayLike<number>[]): string {
 
 /** The assembly's bodies where it places them: the base part's as they are, each shown placed part's by its pose. */
 export async function assemblyPlacedBodies(doc: StudioDoc, evaluate: Evaluate): Promise<PlacedBody[]> {
+  doc = resolveShopTree(doc);
   const out: PlacedBody[] = [];
+  const results = new Map<string, readonly BodyResult[]>();
   const take = (d: StudioDoc, bodies: readonly BodyResult[], prefix: string, pose: Pose) => {
+    results.set(prefix, bodies);
     let breps: Map<string, Brep> = new Map(); try { breps = new Map(partBreps(d).map(x => [x.key, x.brep])); } catch { /* no B-reps: overlaps refused */ }
     const seats = designedSeats(d, bodies);
     for (const b of bodies) {
@@ -92,6 +97,19 @@ export async function assemblyPlacedBodies(doc: StudioDoc, evaluate: Evaluate): 
   };
   const base = await evaluate(doc); if (base?.ok) take(doc, base.bodies, '', IDENTITY);
   for (const inst of doc.instances ?? []) if (!inst.hidden) { const r = await evaluate(inst.doc); if (r?.ok) take(inst.doc, r.bodies, `${inst.id}/`, poseOf(inst)); }
+  // Cross-part targets use final assembly keys, never the owner's local prefix.
+  for (const [owner, source] of [['base', doc], ...(doc.instances ?? []).filter(i => !i.hidden).map(i => [i.id, i.doc])] as [string, StudioDoc][]) {
+    for (const [i, node] of source.nodes.entries()) {
+      const ref = bearingHousingRef(node); if (!ref || node.kind !== 'bearing' || node.suppressed) continue;
+      const prefix = owner === 'base' ? '' : `${owner}/`, own = bodyOfFeature(source, results.get(prefix) ?? [], i);
+      if (own?.element?.kind !== 'bearing' || !own.element.report.housing?.covered) continue;
+      const a = out.find(b => b.key === `${prefix}${own.key}`);
+      const b = out.find(b => b.key === `${ref.part === 'base' ? '' : `${ref.part}/`}${ref.body}`);
+      if (!a || !b) continue;
+      const evidence = `bearing ${featureId(source.nodes, i)} (${node.row}) in ${ref.part}/${ref.body}${node.housingClass ? `, seat ${node.housingClass}` : ''}`;
+      for (const [x, y] of [[a, b], [b, a]]) { const links = new Map(x.designedWith); links.set(y.key, evidence); x.designedWith = links; }
+    }
+  }
   return out;
 }
 /** The body holding a feature's faces (its id the faces' prefix), else the one it made. */

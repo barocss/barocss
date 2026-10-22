@@ -6,6 +6,7 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { NameSelection } from '@barocss/cad-model/chat/tools';
 import { chatStatus, newChatBlobs, runServerTurn, type ChatStatus } from '../chat/client';
+import { receivePersonRowFiles, revokePersonRowFiles, pastedRowFile, type RowFileInput, type PersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { diffLine, withHistory } from '@barocss/cad-model/chat/proposals';
 import { treeDiff } from '@barocss/cad-model/chat/transactions';
@@ -44,6 +45,8 @@ export interface ChatPanelProps {
   /** A turn that only selected (the part unchanged). */
   onSelect(selection: NameSelection): void;
   onClose(): void;
+  /** Current conversation authority, held by the host for explicit proposal replay. */
+  onRowFiles?(files: PersonRowFiles | undefined): void;
   /** A message the studio sends as the user's (the Specify panel's answers, A6.2): sent once, when the chat is free. */
   outbox?: { id: number; text: string } | null;
   onOutboxSent?(id: number): void;
@@ -73,6 +76,15 @@ export function ChatPanel(props: ChatPanelProps) {
   const [running, setRunning] = useState(false);
   /** Images attached to the next message. */
   const [images, setImages] = useState<ChatImage[]>([]);
+  const [rowFiles, setRowFiles] = useState<{ name: string; text: string }[]>([]);
+  const suppliedRows = useRef<RowFileInput[]>([]);
+  const rowAuthority = useRef<PersonRowFiles | undefined>(undefined);
+  const replaceRowFiles = (next?: PersonRowFiles) => {
+    revokePersonRowFiles(rowAuthority.current); rowAuthority.current = next;
+    latest.current.onRowFiles?.(next);
+  };
+  // A newly mounted panel starts a new conversation. Closing it keeps pending UI approval usable.
+  useEffect(() => { latest.current.onRowFiles?.(undefined); }, []);
   const fileInput = useRef<HTMLInputElement>(null);
   /** The CLI conversation the next turn resumes. */
   const session = useRef<string | undefined>(undefined);
@@ -103,6 +115,14 @@ export function ChatPanel(props: ChatPanelProps) {
 
   const attach = async (files: Iterable<File>) => {
     for (const file of files) {
+      if (/\.json$/i.test(file.name)) {
+        try {
+          if (file.size > 262144) throw new Error('Row JSON files must be at most 256 KiB.');
+          const text = await file.text(); JSON.parse(text);
+          setRowFiles(list => [...list, { name: file.name, text }]);
+        } catch (e) { setItems(list => [...list, { kind: 'notice', text: e instanceof Error ? e.message : String(e) }]); }
+        continue;
+      }
       if (!file.type.startsWith('image/')) continue;
       try { const img = await prepareImage(file); setImages(list => list.length >= 4 ? list : [...list, img]); }
       catch (e) { setItems(list => [...list, { kind: 'notice', text: e instanceof Error ? e.message : String(e) }]); }
@@ -110,21 +130,32 @@ export function ChatPanel(props: ChatPanelProps) {
   };
 
   const send = async (typed?: string) => {
+    if (running || !status?.enabled || props.blocked) return;
     const said0 = typed ?? text;
-    const attached = images;
+    if (!said0.trim() && !images.length && !rowFiles.length) return;
+    const attached = images, turn = said.current.length + 1;
+    const incoming = rowFiles.map(file => ({ ...file, turn }));
+    const pasted = pastedRowFile(said0, turn);
+    if (pasted) incoming.push(pasted);
+    // The complete pasted bytes travel as a file; the existing quote history caps each entry at20k.
+    const recorded = pasted && said0.trim().length > 20000 ? `[Pasted JSON file ${pasted.name}; full content is in the conversation file input]` : said0.trim();
+    const allRows = [...suppliedRows.current, ...incoming];
+    try { replaceRowFiles(receivePersonRowFiles(chatBlobs.current.session, allRows, turn)); }
+    catch (e) { setItems(list => [...list, { kind: 'notice', text: e instanceof Error ? e.message : String(e) }]); return; }
     const first = traces.current.length + 1;
     const note = attached.length ? `\n\n[Attached: ${attached.map((img, k) => `image ${first + k} (${img.name}, traced into ${img.trace.layers.length} layers: ${img.trace.layers.map(l => l.id).join(', ')})`).join('; ')}]` : '';
     // (The selection as context: names the tools take, A4.3.)
     const sel = chips.length ? `\n\n[Selected in the viewport: ${(['face', 'edge', 'body'] as const).flatMap(k => { const n = chips.filter(c => c.kind === k).map(c => c.name); return n.length ? [`${k}${n.length > 1 ? 's' : ''} ${n.join(', ')}`] : []; }).join('; ')}]` : '';
-    const message = (said0.trim() || (attached.length ? 'Model what the image shows.' : '')) + (said0.trim() || attached.length ? sel : '') + note;
+    const message = (said0.trim() || (attached.length ? 'Model what the image shows.' : incoming.length ? 'Use the attached row files.' : '')) + (said0.trim() || attached.length ? sel : '') + note;
     if (!message || running || !status?.enabled || props.blocked) return;
-    if (typed === undefined) setText(''); setImages([]); setRunning(true);
+    if (typed === undefined) setText(''); setImages([]); setRowFiles([]); setRunning(true);
+    suppliedRows.current = allRows;
     // (No blob sweep while the turn runs: its base, built and shared states and their meshes are held here, O135.)
     const release = holdSweeps();
     try {
     traces.current = [...traces.current, ...attached.map(i => i.trace)];
-    if (said0.trim()) said.current = [...said.current, said0.trim()];
-    setItems(list => [...list, { kind: 'user', text: said0.trim(), ...(attached.length ? { images: attached } : {}) }]);
+    said.current = [...said.current, recorded || (incoming.length ? 'Use the attached row files.' : 'Model what the image shows.')];
+    setItems(list => [...list, { kind: 'user', text: said0.trim() || (incoming.length ? incoming.map(f => f.name).join(', ') : ''), ...(attached.length ? { images: attached } : {}) }]);
     const controller = new AbortController(); abort.current = controller;
     // Streamed text goes into the last assistant item until a tool call starts a new one.
     let open = false, built: StudioDoc | null = null;
@@ -136,7 +167,7 @@ export function ChatPanel(props: ChatPanelProps) {
     let shared = base;
     const previews = latestPump((d: StudioDoc) => latest.current.evaluate(d), bodies => { if (abort.current === controller && bodies) latest.current.onPreview(bodies); });
     const done = await runServerTurn({
-      text: message, turns: said.current, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, signal: controller.signal,
+      text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, signal: controller.signal,
       onEvent: e => {
         if (e.type === 'text') {
           const wasOpen = open; open = true;
@@ -162,7 +193,7 @@ export function ChatPanel(props: ChatPanelProps) {
       try {
         for (let tries = 0; ; tries++) {
           const now = latest.current.base();
-          merged = await mergeTurn(base, now, patch, latest.current.check, tries < 3 ? {} : { deferAll: 'you kept editing the part while the turn was merged onto it' });
+          merged = await mergeTurn(base, now, patch, latest.current.check, { rowFiles: rowAuthority.current, ...(tries < 3 ? {} : { deferAll: 'you kept editing the part while the turn was merged onto it' }) });
           from = now;
           if (tries === 3 || !changedDuring(now, latest.current.base())) break;
         }
@@ -195,7 +226,7 @@ export function ChatPanel(props: ChatPanelProps) {
         <select className="chat-autonomy" aria-label="Autonomy" title={AUTONOMY_TIPS[autonomy - 1]} value={autonomy} disabled={running}
           onChange={e => { const n = Number(e.currentTarget.value); setAutonomy(n); try { localStorage.setItem('studio.autonomy', String(n)); } catch { /* private mode */ } }}>
           {AUTONOMY_TIPS.map((t, i) => <option key={i} value={i + 1} title={t}>L{i + 1}</option>)}</select>
-        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; said.current = []; traces.current = []; chatBlobs.current = newChatBlobs(); setItems([]); }}><Icon name="restart_alt" small /></button>
+        <button className="tool small" aria-label="New conversation" title="New conversation" disabled={running || !items.length} onClick={() => { session.current = undefined; said.current = []; suppliedRows.current = []; replaceRowFiles(); setRowFiles([]); traces.current = []; chatBlobs.current = newChatBlobs(); setItems([]); }}><Icon name="restart_alt" small /></button>
         <button className="tool small" aria-label="Close chat" title="Close" onClick={props.onClose}><Icon name="close" small /></button>
       </div>
       <div className="chat-log" ref={log} aria-live="polite">
@@ -215,21 +246,22 @@ export function ChatPanel(props: ChatPanelProps) {
               {it.text}</div>)}
         {running && <div className="chat-msg notice busy">Working…</div>}
       </div>
+      {!!rowFiles.length && <div className="chat-thumbs pending" aria-label="Attached row files">{rowFiles.map((file, index) => <span key={index}>{file.name}<button type="button" className="tool tiny" aria-label={`Remove row file ${index + 1}`} onClick={() => setRowFiles(list => list.filter((_, k) => k !== index))}>×</button></span>)}</div>}
       {!!images.length && <div className="chat-thumbs pending" aria-label="Attached images">{images.map((img, k) => <span key={k} className="chat-thumb">
         <img src={imageUrl(img)} alt={img.name} title={`${img.name} · ${img.width}×${img.height}`} />
         <button type="button" aria-label={`Remove ${img.name}`} onClick={() => setImages(list => list.filter((_, j) => j !== k))}><Icon name="close" small /></button></span>)}</div>}
       {!!chips.length && <div className="chat-chips" aria-label="Selection sent as context">{chips.map(c => <span key={c.name} className="chat-chip" title={`The ${c.kind} selected in the viewport, sent with the next message`}>{c.name}
         <button type="button" aria-label={`Leave out ${c.name}`} onClick={() => setDropped(d => [...d, c.name])}><Icon name="close" small /></button></span>)}</div>}
       <form className="chat-input" onSubmit={e => { e.preventDefault(); void send(); }}>
-        <input ref={fileInput} type="file" accept={ACCEPT} multiple hidden aria-label="Chat image file" onChange={e => { if (e.target.files) void attach([...e.target.files]); e.target.value = ''; }} />
-        <button type="button" className="tool" aria-label="Attach image" title="Attach a sketch, photo or drawing (or paste / drop one)" disabled={!enabled || running || images.length >= 4} onClick={() => fileInput.current?.click()}><Icon name="image" /></button>
+        <input ref={fileInput} type="file" accept={`${ACCEPT},application/json,.json`} multiple hidden aria-label="Chat image file" onChange={e => { if (e.target.files) void attach([...e.target.files]); e.target.value = ''; }} />
+        <button type="button" className="tool" aria-label="Attach image" title="Attach an image or JSON rows (or paste / drop one)" disabled={!enabled || running || images.length >= 4} onClick={() => fileInput.current?.click()}><Icon name="image" /></button>
         <textarea aria-label="Chat message" rows={2} value={text} disabled={!enabled || running} placeholder={props.blocked ?? (enabled ? 'Ask for a part or a change…' : 'Chat is off')}
           onChange={e => setText(e.target.value)}
-          onPaste={e => { const files = [...e.clipboardData.files].filter(f => f.type.startsWith('image/')); if (files.length) { e.preventDefault(); void attach(files); } }}
+          onPaste={e => { const files = [...e.clipboardData.files].filter(f => f.type.startsWith('image/') || /\.json$/i.test(f.name)); if (files.length) { e.preventDefault(); void attach(files); } }}
           onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }} />
         {running
           ? <button type="button" className="ghost" onClick={() => abort.current?.abort()}>Stop</button>
-          : <button type="submit" className="primary" disabled={!enabled || (!text.trim() && !images.length) || !!props.blocked}>Send</button>}
+          : <button type="submit" className="primary" disabled={!enabled || (!text.trim() && !images.length && !rowFiles.length) || !!props.blocked}>Send</button>}
       </form>
     </aside>
   );

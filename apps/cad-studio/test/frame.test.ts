@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { commands } from '@barocss/cad-model/app/commands';
 import { evaluateDoc, evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { emptyDoc, featureLabel, rectanglePart, withNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { emptyDoc, featureLabel, rectanglePart, sectionLabel, withNode, type Dim, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { flattenAssembly } from '@barocss/cad-model/assembly/flatten';
 import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
@@ -82,8 +82,19 @@ test('D123 a member of a sketch section, saved and read back; the agent\'s run_c
   assert.ok(miss.isError && /a channel section needs \\"rootRadius/.test(miss.content), miss.content);
   const bad = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [{ ...node, section: { ...node.section, height: 20 } }] }, evaluate);
   assert.ok(bad.isError && /SECTION_DIMENSIONS/.test(bad.content), bad.content);
-  const kind = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [{ ...node, section: { kind: 'i-beam' } }] }, evaluate);
-  assert.ok(kind.isError && /a section \{\\"kind\\": \\"rect-tube/.test(kind.content), kind.content);
+  const ibe = { kind: 'i-beam', height: 100, width: 60, web: 6, flange: 8, rootRadius: 0, toeRadius: 0, flangeSlope: 0 };
+  const supported = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [{ ...node, section: ibe }] }, evaluate);
+  assert.ok(!supported.isError, supported.content);
+  assert.equal(supported.state.bodies.length, 1);
+  assert.ok(Math.abs(supported.state.bodies[0].volumeMM3! / ((2 * 60 * 8 + (100 - 16) * 6) * 800) - 1) < 1e-12);
+  assert.match(featureLabel(supported.state.doc.nodes[0], 0, supported.state.doc.nodes), /Member I\/H/);
+  const unchanged: ChatState = { doc: emptyDoc(), bodies: [] }, before = JSON.stringify(unchanged.doc);
+  const missing = await dispatchTool(unchanged, 'add_features', { features: [{ ...node, section: { kind: 'i-beam' } }] }, evaluate);
+  assert.ok(missing.isError && /i-beam section needs "height"/.test(JSON.parse(missing.content).error), missing.content);
+  assert.equal(missing.state, unchanged); assert.equal(JSON.stringify(unchanged.doc), before);
+  const unknown = await dispatchTool(unchanged, 'add_features', { features: [{ ...node, section: { kind: 'not-a-section' } }] }, evaluate);
+  assert.ok(unknown.isError && /a section/.test(JSON.parse(unknown.content).error), unknown.content);
+  assert.equal(unknown.state, unchanged); assert.equal(JSON.stringify(unchanged.doc), before);
 });
 
 test('D124 Frame from the palette: a table skeleton (8 members), each its own body named by its member, A·L each; the notes say which member and points; the editor moves a point', () => {
@@ -136,9 +147,9 @@ test('D124 the agent\'s frame: a raw node with an override (the legs mirrored an
   assert.deepEqual(noId(a.state.doc.nodes[0]), node);
   assert.equal(a.state.bodies.length, 3);
   assert.ok(Math.abs(a.state.bodies.reduce((s, b) => s + b.volumeMM3!, 0) / (A * 1300) - 1) < 1e-12);
-  const refused = async (features: unknown[], re: RegExp) => { const r = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features }, evaluate); assert.ok(r.isError && re.test(r.content), r.content); };
+  const refused = async (features: unknown[], re: RegExp) => { const state: ChatState = { doc: emptyDoc(), bodies: [] }, before = JSON.stringify(state.doc); const r = await dispatchTool(state, 'add_features', { features }, evaluate); assert.ok(r.isError && re.test(r.content), r.content); assert.equal(r.state, state); assert.equal(JSON.stringify(state.doc), before); };
   await refused([{ ...node, segments: [[0, 1], [0, 1]] }], /MEMBER_DUPLICATE/);
-  await refused([{ ...node, segments: 'all' }], /1 to 256 \[from, to\] point indices/);
+  await refused([{ ...node, segments: 'all' }], /1 to 256 \[from,to\], .*center:.*through:point.*no extra fields/);
   await refused([{ ...node, overrides: [{ member: 0, colour: 'red' }] }], /an override has no \\"colour\\"/);
   await refused([{ ...node, overrides: [{ member: 0, section: { kind: 'angle', legX: 40 } }] }], /override of member 0: a angle section needs/);
 });
@@ -248,4 +259,14 @@ test('D127 the cut list: the palette\'s mitred rectangle of sharp tubes — two 
   assert.match(out.rows[0].names[0], /^Frame RHS 40×40×3 · 4 members · member 1$/);
   const none2 = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'cut_list', {}, evaluate);
   assert.ok(none2.isError && /no frame members/.test(none2.content), none2.content);
+});
+
+
+test('FRk3 legacy channel labels omit absent and literal zero slope; nonzero and parameter labels stay visible', () => {
+  const channel = { kind: 'channel' as const, height: 80, width: 40, web: 5, flange: 8, rootRadius: 6 };
+  const dim = (v: Dim) => typeof v === 'number' ? String(v) : v.parameter;
+  assert.equal(sectionLabel(channel, dim), 'C 80×40');
+  assert.equal(sectionLabel({ ...channel, flangeSlope: 0 }, dim), 'C 80×40');
+  assert.equal(sectionLabel({ ...channel, flangeSlope: .05 }, dim), 'C 80×40 · slope 0.05');
+  assert.equal(sectionLabel({ ...channel, flangeSlope: { parameter: 'taper' } }, dim), 'C 80×40 · slope taper');
 });

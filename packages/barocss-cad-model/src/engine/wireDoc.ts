@@ -1,15 +1,21 @@
+import { provenanceOfTree, registerShopRowProvenance, resolveShopTree, type ShopTreeProvenance } from './shopRows';
 // The document as the engine worker sees it: what evaluation reads (parameters, nodes, outputs and the
-// placed instances, and the section library (FRc) — not render, drawing, direct geometry, looks, mates or pending revisions), with its
+// placed instances, and the section library and weld records (FRc/FRk2) — not render, drawing, direct geometry, looks, mates or pending revisions), with its
 // nodes sent by id. Nodes are immutable (an edit makes a new object), so each node object crosses to
 // the worker once; later requests name it. Both sides keep the same table and forget, at the same
 // request, the nodes no request has named for a while (they process the requests in one order).
 import type { ModelNode, PartInstance, StudioDoc } from './doc';
+import { bearingContextOf, bearingHousingRef, withBearingContext, type BearingAssemblyContext } from './bearingContext';
 import { blobRefs, dropBlobs, getBlob, onBlobsEvicted, putKnownBlob, type BlobArray } from './blobs';
 
 export interface WireDoc {
+  /** Current read-only assembly input, separate from the saved document. */
+  bearingContext?: BearingAssemblyContext;
   doc: Omit<StudioDoc, 'nodes'> & { nodes: [] };
   /** The nodes, by id. */
   ids: number[];
+  /** Read-only shop origins; never included in the authored document schema. */
+  shopRows?: readonly ShopTreeProvenance[];
   /** Nodes the worker does not have yet. */
   added: [number, ModelNode][];
   /** Mesh blobs the worker does not have yet (M1): hash and array, each sent once (a copy; the store keeps its own). */
@@ -23,10 +29,12 @@ const PRUNE_EVERY = 64, KEEP_FOR = 256;
 
 /** What evaluation reads of a document (an instance's part likewise). */
 export function evaluatedPart(doc: StudioDoc): StudioDoc {
+  doc = resolveShopTree(doc);
   const out: StudioDoc = { format: doc.format, schema: doc.schema, units: doc.units, parameters: doc.parameters, nodes: doc.nodes, outputs: doc.outputs };
   if (doc.instances?.length) out.instances = doc.instances.map(stripInstance);
-  // (FRc, O117: the section library a frame's section may name is model input; the rest of `frames` is not.)
-  if (doc.frames?.sections?.length) out.frames = { version: 1, sections: doc.frames.sections };
+  // Sections define the members; weld records can add bead bodies. Stock and kerf stay local.
+  const sections = doc.frames?.sections, welds = doc.frames?.welds, beadOwnership = doc.frames?.beadOwnership;
+  if (sections?.length || welds?.length || beadOwnership !== undefined) out.frames = { version: 1, ...(sections?.length ? { sections } : {}), ...(welds?.length ? { welds } : {}), ...(beadOwnership !== undefined ? { beadOwnership } : {}) };
   // (R12c.2, D155: the fits are evaluated with the part — their limits in the notes, a miss or a contradicted pair a refusal.)
   if (doc.fits?.faces?.length) out.fits = doc.fits;
   // (R12c.4, D158: a bearing's row and its seats' classes are model input.)
@@ -39,7 +47,8 @@ export function evaluatedPart(doc: StudioDoc): StudioDoc {
   if (doc.drives?.rows.length) out.drives = doc.drives;
   // (R12c.7, D162: a connector's row.)
   if (doc.connectors?.rows.length) out.connectors = doc.connectors;
-  return out;
+  if (doc.rowSources) out.rowSources = doc.rowSources;
+  const context = bearingContextOf(doc); return context ? withBearingContext(out, context) : out;
 }
 const stripInstance = (i: PartInstance): PartInstance => ({ ...i, doc: evaluatedPart(i.doc) });
 
@@ -56,6 +65,7 @@ export class WireSender {
   /** These blobs are gone from the store: not sent any more, and the worker told with the next document. */
   forget(hashes: readonly string[]): void { for (const h of hashes) if (this.sentBlobs.delete(h)) this.dropped.push(h); }
   pack(doc: StudioDoc): WireDoc {
+    const evaluated = evaluatedPart(doc), context = evaluated.nodes.some(n => !n.suppressed && bearingHousingRef(n)) ? bearingContextOf(evaluated) : undefined;
     const seq = ++this.seq, ids: number[] = [], added: [number, ModelNode][] = [];
     for (const node of doc.nodes) {
       let id = this.ids.get(node);
@@ -64,9 +74,9 @@ export class WireSender {
     }
     if (seq % PRUNE_EVERY === 0) for (const [id, u] of this.used) if (u.at < seq - KEEP_FOR) { this.used.delete(id); this.ids.delete(u.node); }
     const blobs: [string, BlobArray][] = [];
-    for (const h of blobRefs(doc)) { const a = getBlob(h); if (a && !this.sentBlobs.has(h)) { this.sentBlobs.add(h); blobs.push([h, a]); } }
+    for (const source of [doc, ...(context?.targets.map(t => t.doc) ?? [])]) for (const h of blobRefs(source)) { const a = getBlob(h); if (a && !this.sentBlobs.has(h)) { this.sentBlobs.add(h); blobs.push([h, a]); } }
     const dropped = this.dropped.filter(h => !this.sentBlobs.has(h)); this.dropped = [];
-    return { doc: { ...evaluatedPart(doc), nodes: [] }, ids, added, ...(blobs.length ? { blobs } : {}), ...(dropped.length ? { dropped } : {}) };
+    return { doc: { ...evaluated, nodes: [] }, ids, added, shopRows: provenanceOfTree(doc), ...(context ? { bearingContext: context } : {}), ...(blobs.length ? { blobs } : {}), ...(dropped.length ? { dropped } : {}) };
   }
 }
 
@@ -86,6 +96,8 @@ export class WireReceiver {
       e.at = seq; nodes.push(e.node);
     }
     if (seq % PRUNE_EVERY === 0) for (const [id, e] of this.nodes) if (e.at < seq - KEEP_FOR) this.nodes.delete(id);
-    return { ...w.doc, nodes };
+    const raw = { ...w.doc, nodes }, doc = w.bearingContext ? withBearingContext(raw, w.bearingContext) : raw;
+    if (w.shopRows) registerShopRowProvenance(doc, w.shopRows);
+    return doc;
   }
 }

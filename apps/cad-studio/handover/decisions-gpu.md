@@ -1384,3 +1384,13 @@ checkpoint a stage, FLOW_ONLY on both renderers.
 3. Merge the integration tip the coordinator names.
 4. Finish G20.2 as listed above.
 5. Then G21: send its S0 to the coordinator first.
+
+
+### Coordinator handback pointer — GPU G, 2026-10-23
+
+Owner finish is in force; no implementation or author checks restart. The latest
+GPU G STOP record was reviewed at `0eff11097ebe3e795f4c5173211eb861214c76a2`. Its immutable
+[snapshot](evidence/2443211888b5bc5d219fa3075dfea444bd6d5d4a/final-window/lanes/gpu-G.md) and accompanying stop receipt are archived
+with the final window. That documentation review does not adopt the branch's
+unverified product source. See [handback](notes/codex-handback-2026-10-23.md) and
+state for exact WIP, process cleanup, blockers and first resume steps.

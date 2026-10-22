@@ -12,7 +12,8 @@ export const partDigest = (inst: NonNullable<StudioDoc['instances']>[number]) =>
 /** Every part's revision digest, the base part's (its own features, when it has any) as `base`. */
 export function partDigests(doc: StudioDoc): Record<string, string> {
   const out: Record<string, string> = {};
-  if (doc.nodes.length) out.base = digestOf({ nodes: doc.nodes, parameters: doc.parameters, bodies: doc.bodies });
+  // The base and placed parts pin the same authored revision fields. Placed parts have their own pins below.
+  if (doc.nodes.length) out.base = digestOf(revisionContent({ ...doc, instances: undefined }));
   for (const inst of doc.instances ?? []) out[inst.id] = partDigest(inst);
   return out;
 }

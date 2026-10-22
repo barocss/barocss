@@ -6,10 +6,10 @@ import { identity, invert, lookAt, multiply, orthographicReversed, perspectiveRe
 import { Camera } from '../dist/viewer/camera.js';
 import { orbit, pan, zoom } from '../dist/viewer/controls.js';
 import { boxInFrustum, frustumPlanes, screenRect, transformBox } from '../dist/viewer/bounds.js';
-import { clippedRay, fillVertexColors, keptBy, localPlane, nearestSegment, prepareGeometry, rayTriangles, regionEntry, segmentInstances, vertexColors } from '../dist/viewer/geometry.js';
+import { clippedRay, clippedRayFull, fillVertexColors, keptBy, localPlane, nearestSegment, prepareGeometry, prepareScalars, rayTriangles, regionEntry, segmentInstances, vertexColors } from '../dist/viewer/geometry.js';
 import { packFrame, packOutput, parseColor } from '../dist/viewer/lights.js';
 import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_POINT, surfaceWGSL } from '../dist/viewer/shaders.js';
-import { clipBox } from '../dist/viewer/viewer.js';
+import { clipBox, Viewer } from '../dist/viewer/viewer.js';
 
 const near = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps * Math.max(1, Math.abs(b));
 const close = (a, b, eps = 1e-9) => a.every((x, i) => near(x, b[i], eps));
@@ -454,4 +454,65 @@ test('outline reach: a box\'s screen rectangle holds every point of it the camer
   const u = new Float32Array(packOutput({}, [[1, 0, 0]], 2, null, null, [10, 20, 30, 40]));
   assert.deepEqual([...u.slice(-4)], [10, 20, 30, 40]);
   assert.deepEqual([...new Float32Array(packOutput({}, [[1, 0, 0]])).slice(-4)], [-1e9, -1e9, 1e9, 1e9]);
+});
+
+// Exercise pickNow's real readback-to-metadata path. Only the GPU transport is mocked: the cap and triangle
+// intersections, transforms, camera projection and scalar interpolation use the production implementation.
+test('G20 pickNow keeps a nearer cut-out front face and identifies real caps from readback depth', async t => {
+  const positions = [], indices = [];
+  for (const [axis, sign] of [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]]) {
+    const u = (axis + 1) % 3, v = (axis + 2) % 3, base = positions.length / 3;
+    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const p = [0, 0, 0]; p[axis] = sign; p[u] = a; p[v] = b * sign; positions.push(...p); }
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  const data = prepareGeometry({ positions, indices, faces: Array.from({ length: 12 }, (_, i) => 100 + i) });
+  data.scalars = prepareScalars(data, Array(data.vertexCount).fill(7), 'vertex');
+  const quarter = [{ normal: [1, 0, 0], offset: 0 }, { normal: [0, 1, 0], offset: 0 }];
+  const slab = [{ normal: [-1, 0, 0], offset: 0.5 }, { normal: [1, 0, 0], offset: 0.5 }];
+  const cases = [
+    { name: 'quarter front', planes: quarter, cutout: true, origin: [-6, 1.65, 0], direction: [1, -0.3, 0], point: [-1, 0.15, 0], triangle: 2 },
+    { name: 'slab front', planes: slab, cutout: true, origin: [-6, 0.15, 0], direction: [1, 0, 0], point: [-1, 0.15, 0], triangle: 2 },
+    { name: 'quarter cap', planes: quarter, cutout: true, origin: [-0.5, -2, 0], direction: [0, 1, 0], point: [-0.5, 0, 0], plane: 1 },
+    { name: 'slab cap', planes: slab, cutout: true, origin: [0, 0.15, 0], direction: [1, 0, 0], point: [0.5, 0.15, 0], plane: 1 },
+    { name: 'single cap tie on front', planes: [{ normal: [1, 0, 0], offset: -1 }], cutout: false, origin: [-6, 0.15, 0], direction: [1, 0, 0], point: [-1, 0.15, 0], plane: 0 },
+    { name: 'single cap', planes: [quarter[1]], cutout: false, origin: [0.5, -2, 0], direction: [0, 1, 0], point: [0.5, 0, 0], plane: 0 },
+    { name: 'multi-plane cap', planes: quarter, cutout: false, origin: [0.5, -2, 0], direction: [0, 1, 0], point: [0.5, 0, 0], plane: 1 },
+  ];
+  for (const fixture of cases) for (const instanced of [false, true]) await t.test(`${fixture.name}, ${instanced ? 'instance 1' : 'mesh'}`, async () => {
+    const shift = instanced ? [3, 0, 0] : [0, 0, 0], move = p => p.map((v, i) => v + shift[i]);
+    const origin = move(fixture.origin), point = move(fixture.point), direction = fixture.direction;
+    const planes = fixture.planes.map(p => ({ ...p, offset: p.offset + p.normal.reduce((s, v, i) => s + v * shift[i], 0) }));
+    const clip = { ...planes[0], planes, cutout: fixture.cutout };
+    const camera = new Camera({ position: origin, target: origin.map((v, i) => v + direction[i]), up: [0, 0, 1], projection: 'orthographic' });
+    camera.clip({ min: [-20, -20, -20], max: [20, 20, 20] });
+    // The exact review ray, including its non-unit direction. unproject still reads the real float32 GPU depth.
+    camera.ray = () => ({ origin, direction });
+    const vp = camera.viewProjection(1), depth = Math.fround(clipZ(vp, point));
+    const mesh = { id: 17, visible: true, pickable: true, clipped: true, cap: true, transparent: false, material: {}, transform: identity(),
+      geometry: { data, disposed: false, topology: 'triangles' }, instanceCount: instanced ? 2 : 1,
+      instances: instanced ? { matrices: [translation([30, 0, 0]), translation(shift)] } : null };
+    const viewer = Object.create(Viewer.prototype);
+    const pass = { setScissorRect() {}, setBindGroup() {}, end() {} };
+    const read = { async mapAsync() {}, unmap() {}, getMappedRange(offset) { return offset === 256 ? Float32Array.of(depth).buffer : Uint32Array.of(offset === 512 ? (instanced ? 1 : 0) : mesh.id).buffer; } };
+    Object.assign(viewer, { canvas: { width: 1, height: 1, clientWidth: 1, clientHeight: 1 }, camera, meshes: [mesh], clip,
+      device: { queue: { submit() {} }, createCommandEncoder: () => ({ beginRenderPass: () => pass, copyTextureToBuffer() {}, finish() {} }) },
+      alive() {}, prepareCamera: () => vp, visibleMeshes: () => ({ opaque: [mesh], transparent: [] }), writeUniforms() {},
+      drawCapFront() {}, drawMesh() {}, drawCaps() {}, ensurePickTargets: () => ({ views: {}, read }) });
+    const cap = viewer.capHit(origin, direction);
+    assert.ok(cap, 'a cap exists on the same mesh and instance');
+    assert.equal(cap.instance, instanced ? 1 : null);
+    if (fixture.name === 'quarter front') {
+      const full = clippedRayFull(data, translation(shift), origin, direction, clip, true, true);
+      assert.equal(full.hit.triangle, 2); assert.ok(near(full.hit.t, 5)); assert.equal(full.hit.cap, false);
+      assert.ok(near(cap.t, 6), 'the same mesh cap is behind the original front');
+    }
+    const hit = await viewer.pickNow(0, 0);
+    assert.equal(hit.mesh, mesh); assert.equal(hit.instance, instanced ? 1 : null); assert.equal(hit.depth, depth);
+    assert.ok(close(hit.point, point, 1e-5), JSON.stringify(hit.point));
+    assert.equal(hit.cap, fixture.plane !== undefined);
+    assert.equal(hit.triangle, fixture.triangle ?? null); assert.equal(hit.face, fixture.triangle === undefined ? null : 100 + fixture.triangle);
+    assert.equal(hit.capPlane, fixture.plane);
+    if (fixture.triangle !== undefined) assert.ok(near(hit.scalar, 7, 1e-5), 'front-face scalar survives');
+    else assert.equal(hit.scalar, undefined, 'caps have no triangle scalar');
+  });
 });

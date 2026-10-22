@@ -30,10 +30,54 @@ test('G2 the WebGL2 path unchanged: the bodies and instances clipped and capped 
     // (The code the studio ran before G2, inlined.)
     const before = bodies.flatMap(b => { const mesh = clipMesh(b.mesh, a, s.at, s.keep, cap); return mesh ? [{ ...b, mesh }] : []; });
     assert.deepEqual(sectionedBodies(bodies, axisSection(s), false, cap), before);
-    const placed = [{ id: 'i', bodies: [box()] }], M = poseMatrix({ R: Float64Array.from([0, -1, 0, 1, 0, 0, 0, 0, 1]), t: Float64Array.from([5, 0, 0]) }, [0, 0, 3]);
+    const placed: Parameters<typeof sectionedInstances>[0] = [{ id: 'i', bodies: [box()] }], M = poseMatrix({ R: Float64Array.from([0, -1, 0, 1, 0, 0, 0, 0, 1]), t: Float64Array.from([5, 0, 0]) }, [0, 0, 3]);
     const old = placed.map(i => ({ id: i.id, bodies: i.bodies.flatMap(b => { const mesh = clipMesh(posedBody(b, motionOf(M)).mesh, a, s.at, s.keep, 'section'); return mesh ? [{ ...b, mesh }] : []; }) }));
-    assert.deepEqual(sectionedInstances(placed, new Map([['i', M]]), axisSection(s), false), old);
+    const shown = sectionedInstances(placed, new Map([['i', M]]), axisSection(s), false);
+    // Geometry remains exactly the former posed CPU result; provenance is checked separately.
+    assert.deepEqual(shown.map(({ id, bodies }) => ({ id, bodies })), old);
+    assert.deepEqual(shown[0].sourceBodies, old[0].bodies.length ? [0] : []);
+    assert.equal(shown[0].sourceFaces!.length, old[0].bodies.length);
+    assert.equal(shown[0].sourceEdges!.length, old[0].bodies.length);
+    for (const [bi, body] of old[0].bodies.entries()) {
+      assert.deepEqual(shown[0].sourceFaces![bi], body.mesh.faces.map(face => face.id === 'section-cap' ? -1 : face.index));
+      assert.deepEqual(shown[0].sourceEdges![bi], placed[0].bodies[0].mesh.edges.map(edge => edge.index));
+    }
   }
+});
+
+test('G2 CPU instance provenance keeps original body/face/edge authority after pose, filtering and a real cap', () => {
+  const source = box();
+  const removed = posedBody(source, motionOf(poseMatrix(undefined, [0, 50, 0])));
+  const kept = posedBody(source, motionOf(poseMatrix(undefined, [0, -50, 0])));
+  const placed: Parameters<typeof sectionedInstances>[0] = [{ id: 'provenance', bodies: [removed, source, kept] }];
+  const M = poseMatrix({ R: Float64Array.from([0, -1, 0, 1, 0, 0, 0, 0, 1]), t: Float64Array.from([5, 0, 0]) }, [0, 0, 3]);
+  const section = axisSection({ axis: 'x', at: 0, keep: 'positive' });
+  const [shown] = sectionedInstances(placed, new Map([['provenance', M]]), section, false);
+  assert.equal(shown.id, 'provenance');
+  assert.deepEqual(shown.sourceBodies, [1, 2], 'removed body zero must not renumber the surviving source bodies');
+  assert.equal(shown.bodies.length, 2);
+  assert.equal(shown.sourceFaces!.length, 2); assert.equal(shown.sourceEdges!.length, 2);
+  for (const [bi, sourceBody] of [source, kept].entries()) {
+    const world = posedBody(sourceBody, motionOf(M)).mesh;
+    const expected = clipMesh(world, 0, 0, 'positive', 'section');
+    assert.ok(expected);
+    assert.deepEqual(shown.bodies[bi], { ...sourceBody, mesh: expected }, 'pose then clip geometry is unchanged');
+    assert.deepEqual(shown.sourceEdges![bi], sourceBody.mesh.edges.map(edge => edge.index), 'native edge ordinals survive the CPU clip');
+    for (const face of shown.bodies[bi].mesh.faces) {
+      const native = sourceBody.mesh.faces.find(f => f.id === face.id && f.name === face.name);
+      assert.equal(shown.sourceFaces![bi][face.index], face.id === 'section-cap' ? -1 : native?.index);
+    }
+  }
+  const mesh = shown.bodies[0].mesh, caps = mesh.faces.filter(face => face.id === 'section-cap');
+  assert.equal(caps.length, 1); assert.equal(caps[0].name, 'section');
+  assert.ok(Math.abs(caps[0].areaMM2 - 20 * 8) < 1e-9, 'posed box cut has the independent 20 by 8 mm cap area');
+  assert.deepEqual(caps[0].normal, [-1, 0, 0]);
+  assert.equal(caps[0].centroid[0], 0);
+  const usedFaces = new Set(Array.from(mesh.indices, vertex => mesh.faceOfVertex[vertex]));
+  assert.ok(usedFaces.has(caps[0].index), 'the generated cap is used by actual triangles');
+  assert.equal(shown.sourceFaces![0][caps[0].index], -1, 'a real cap cannot authorize a native face operation');
+  assert.ok([...usedFaces].some(face => shown.sourceFaces![0][face] >= 0), 'retained native triangles keep native authority');
+  assert.equal(shown.bodies[1].mesh.faces.some(face => face.id === 'section-cap'), false, 'a wholly kept body gains no cap');
 });
 
 test('G2 the WebGPU path: the same bodies (not copies), less exactly those clipMesh drops; the instances as placed; the plane', () => {

@@ -1,0 +1,54 @@
+{
+  "id": "frk-refuse-section-tangent-equality",
+  "step": "FRk",
+  "decisions": [
+    "D172"
+  ],
+  "about": "FRk3 tangencies exhaust the inside flat: equality refuses, without reducing either radius.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "i-beam",
+            "height": 100,
+            "width": 100,
+            "web": 10,
+            "flange": 10,
+            "rootRadius": 37,
+            "toeRadius": 8,
+            "flangeSlope": 0
+          },
+          "start": [
+            0,
+            0,
+            0
+          ],
+          "end": [
+            0,
+            0,
+            1000
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[SECTION_DIMENSIONS]"
+    }
+  },
+  "oracle": "Overhang45 = root37 + toe8 at right-angle tangencies."
+}

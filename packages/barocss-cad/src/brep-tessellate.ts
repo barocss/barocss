@@ -275,6 +275,12 @@ export function tessellateBrep(brep: Brep, options: BrepTessellationOptions = {}
 /** A face's vertices in a parameter domain of its surface, and the exact surface there (mass quadrature). */
 export interface FaceParameters {
   readonly uv: readonly XY[]; readonly at: (u: number, v: number) => Point;
+  /** Exact cylinder-frame differential and projection, all in the same arc-length/height coordinates. */
+  readonly analytic?: {
+    partials(u: number, v: number): readonly [Point, Point];
+    project(point: Point, seed: readonly [number, number]): XY;
+    projectDerivative(point: Point, derivative: Point): XY;
+  };
   /** The triangles covering the domain (local indices) when they differ from the mesh's: on a pole side, those collapsed in space. */
   readonly domain?: readonly (readonly [number, number, number])[];
   /** `uv` is the surface's own (u, v), `at` its own evaluator: its knots and domain apply (FRk8b, D167). Else a frame's (a ruled wall's) parameters. */
@@ -415,7 +421,7 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
         const seam = new Set(used.filter((e, i) => used.indexOf(e) !== i));
         const parts = ids.map(l => loops.get(l)!.coedges.map(c => { const co = coedges.get(c)!; return { points: along(co).slice(0, -1), seam: seam.has(co.edge) }; }));
         const { pts, tris, uv } = cylinderTriangles(face, frame, parts, Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null);
-        parameters?.set(face.id, { uv, at: frame.at }); continue;
+        parameters?.set(face.id, { uv, at: frame.at, analytic: cylinderDifferential(frame) }); continue;
       }
       const sides = loops.get(outerId)!.coedges.map(id => coedges.get(id)!), count = sides.length;
       const rails = railsOf(face, loops, coedges, edges);
@@ -576,6 +582,15 @@ function railsOf(face: Brep['faces'][number], loops: Map<string, Brep['loops'][n
 
 /** sameU: one tolerance for "the same θ column" in the sample pre-pass and in the cells. */
 interface CylinderFrame { c: Point; a: Point; e1: Point; e2: Point; r: number; ref: number; outwardRadial: boolean; sameU: number; uv(p: Point): XY; at(u: number, v: number): Point }
+function cylinderDifferential(frame: CylinderFrame): NonNullable<FaceParameters['analytic']> {
+  const radial = (p: Point) => { const q = sub(p, frame.c), x = dot(q, frame.e1), y = dot(q, frame.e2), r2 = x * x + y * y; if (!(r2 > 0 && Number.isFinite(r2))) throw new RangeError('Cylinder projection is singular'); return { x, y, r2 }; };
+  const finite = (q: XY): XY => { if (!q.every(Number.isFinite)) throw new RangeError('Cylinder projection is not finite'); return q; };
+  return {
+    partials: u => { const t = u / frame.r; return [[-Math.sin(t) * frame.e1[0] + Math.cos(t) * frame.e2[0], -Math.sin(t) * frame.e1[1] + Math.cos(t) * frame.e2[1], -Math.sin(t) * frame.e1[2] + Math.cos(t) * frame.e2[2]], frame.a]; },
+    project: (p, seed) => { radial(p); const q = frame.uv(p), turn = 2 * Math.PI * frame.r; return finite([q[0] + turn * Math.round((seed[0] - q[0]) / turn), q[1]]); },
+    projectDerivative: (p, d) => { const { x, y, r2 } = radial(p); return finite([frame.r * (x * dot(d, frame.e2) - y * dot(d, frame.e1)) / r2, dot(d, frame.a)]); },
+  };
+}
 /** A surface that extrudes a circular arc along its axis, with (U, V) = (r·θ unwrapped about the face centre, height). */
 function cylinderFrame(S: Surface): CylinderFrame | null {
   if (S.degreeV !== 1 || S.controlPoints[0]?.length !== 2) return null;

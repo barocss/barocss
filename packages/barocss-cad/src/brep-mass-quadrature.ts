@@ -175,10 +175,12 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     const uvArea = ([a, b, c]: readonly number[]) => { const qa = uv[a - face.vertexOffset], qb = uv[b - face.vertexOffset], qc = uv[c - face.vertexOffset]; return ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0])) / 2; };
     let du = 0, dv = 0; for (const q of uv) { du = Math.max(du, Math.abs(q[0] - uv[0][0])); dv = Math.max(dv, Math.abs(q[1] - uv[0][1])); }
     const hu = 1e-6 * (du || 1), hv = 1e-6 * (dv || 1), dom = surfaceDomain(surfaces.get(face.faceId)!);
-    sink.u0 = dom.u[0]; sink.u1 = dom.u[1]; sink.v0 = dom.v[0]; sink.v1 = dom.v[1]; sink.hu = hu; sink.hv = hv;
-    // (The domain the inversions keep to: the surface's own where `uv` is in it; a frame's parameters run free.)
+    // Both derivative stencils and inversion must use the evaluator's coordinate system.
+    // A cylinder frame uses arc length/height, not the NURBS knot domain: it runs free.
     const own = fp.own === true; sink.lu0 = own ? dom.u[0] : -Infinity; sink.lu1 = own ? dom.u[1] : Infinity; sink.lv0 = own ? dom.v[0] : -Infinity; sink.lv1 = own ? dom.v[1] : Infinity;
-    const J = (u: number, v: number) => { const cu = stencilU(sink, u), cv = stencilV(sink, v); return cross(sub(at(cu + hu, v), at(cu - hu, v)), sub(at(u, cv + hv), at(u, cv - hv))); };
+    sink.u0 = sink.lu0; sink.u1 = sink.lu1; sink.v0 = sink.lv0; sink.v1 = sink.lv1; sink.hu = hu; sink.hv = hv;
+    sink.analytic = fp.analytic;
+    const J = (u: number, v: number) => { if (fp.analytic) { const [du, dv] = fp.analytic.partials(u, v); return cross(du, dv); } const cu = stencilU(sink, u), cv = stencilV(sink, v); return cross(sub(at(cu + hu, v), at(cu - hu, v)), sub(at(u, cv + hv), at(u, cv - hv))); };
     // Which way the parameter map turns against the outward winding: from the face's largest triangle.
     let sigma = 0, best = 0;
     for (const t of tris) {
@@ -291,13 +293,13 @@ function curveMoment(curve: Curve, moments: Map<Curve, Point>): Point {
  * its derivatives, the orientation `sigma`, the integrals, its vector area and area; for its trims' strips the
  * edge's evaluators `ev` (points) and `d1` (with derivatives).
  */
-const sink = { at: null as unknown as (u: number, v: number) => Point, hu: 0, hv: 0, u0: 0, u1: 1, v0: 0, v1: 1, lu0: 0, lu1: 1, lv0: 0, lv1: 1, dropped: 0, sigma: 1, curved: [] as number[], vec: [0, 0, 0] as Point, area: 0,
+const sink = { at: null as unknown as (u: number, v: number) => Point, analytic: undefined as FaceParameters['analytic'], hu: 0, hv: 0, u0: 0, u1: 1, v0: 0, v1: 1, lu0: 0, lu1: 1, lv0: 0, lv1: 1, dropped: 0, sigma: 1, curved: [] as number[], vec: [0, 0, 0] as Point, area: 0,
   ev: null as unknown as (t: number) => Point, d1: null as unknown as (t: number) => CurveD1Result };
 /**
  * Where a derivative's central difference about u is taken: u itself, else (u within a step of its domain's edge — a
  * trimmed face's mesh reaches it) a step inside, so the stencil stays on the surface. The shift moves the derivative
  * by at most a step's curvature (1e-6 of the face's span), on a band a step wide. (u outside the domain — a surface
- * evaluated round its seam — is left as it is.)
+ * evaluated round its seam — is left as it is. Unbounded frame coordinates are never shifted.)
  */
 function stencilU(s: typeof sink, u: number): number { return u >= s.u0 && u - s.hu < s.u0 ? s.u0 + s.hu : u <= s.u1 && u + s.hu > s.u1 ? s.u1 - s.hu : u; }
 function stencilV(s: typeof sink, v: number): number { return v >= s.v0 && v - s.hv < s.v0 ? s.v0 + s.hv : v <= s.v1 && v + s.hv > s.v1 ? s.v1 - s.hv : v; }
@@ -370,6 +372,12 @@ function triangle(s: typeof sink, qa: XY, qb: XY, qc: XY): void {
  */
 function surfacePoint(s: typeof sink, u: number, v: number, k: number, I: number[], vec: Point): void {
   const at = s.at, hu = s.hu, hv = s.hv;
+  if (s.analytic) {
+    const [du, dv] = s.analytic.partials(u, v), n = cross(du, dv);
+    accumulate(I, at(u, v), n, k);
+    vec[0] += n[0] * k; vec[1] += n[1] * k; vec[2] += n[2] * k; s.area += Math.hypot(...n) * Math.abs(k);
+    return;
+  }
   const cu = stencilU(s, u), cv = stencilV(s, v), pu = at(cu + hu, v), mu = at(cu - hu, v), pv = at(u, cv + hv), mv = at(u, cv - hv), su = 2 * hu, sv = 2 * hv;
   const ux = (pu[0] - mu[0]) / su, uy = (pu[1] - mu[1]) / su, uz = (pu[2] - mu[2]) / su, vx = (pv[0] - mv[0]) / sv, vy = (pv[1] - mv[1]) / sv, vz = (pv[2] - mv[2]) / sv;
   // The mesh is wound outward throughout: sigma times the signed (u, v) area is outward.
@@ -408,6 +416,13 @@ function strip(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
     if (!c) { s.dropped++; return; }
     const off = ex * (c[1] - l1) - ey * (c[0] - l0);
     if (off * off > 0.25 * chord2 * chord2) { s.dropped++; return; }
+    if (s.analytic) {
+      try {
+        const dc = s.analytic.projectDerivative(E, dE);
+        stripC[2 * i] = c[0]; stripC[2 * i + 1] = c[1]; stripD[2 * i] = dc[0] * (tq - tp); stripD[2 * i + 1] = dc[1] * (tq - tp);
+      } catch { s.dropped++; return; }
+      continue;
+    }
     // C′(t) from the surface's tangents there: dE/dt = Su du + Sv dv (least squares).
     let Su: Point, Sv: Point;
     try { const cu = stencilU(s, c[0]), cv = stencilV(s, c[1]), pu = s.at(cu + s.hu, c[1]), mu = s.at(cu - s.hu, c[1]), pv = s.at(c[0], cv + s.hv), mv = s.at(c[0], cv - s.hv); Su = sub(pu, mu); Sv = sub(pv, mv); } catch { s.dropped++; return; }
@@ -439,7 +454,7 @@ function strip(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
  * cases, half of them seeded on the domain's edge.)
  */
 function nearUV(s: typeof sink, p: Point, seed: XY): XY | null {
-  try { return gaussNewton(s, p, seed); } catch { return null; }
+  try { return s.analytic ? s.analytic.project(p, seed) : gaussNewton(s, p, seed); } catch { return null; }
 }
 function gaussNewton(s: typeof sink, p: Point, seed: XY): XY | null {
   const at = s.at, inU = (x: number) => x < s.lu0 ? s.lu0 : x > s.lu1 ? s.lu1 : x, inV = (x: number) => x < s.lv0 ? s.lv0 : x > s.lv1 ? s.lv1 : x;
@@ -553,12 +568,13 @@ function boundaryDistance(at: (u: number, v: number) => Point, U: readonly numbe
 /**
  * A whole patch's ten integrals, added to I: tensor Gauss–Legendre on each knot span, n points a direction
  * from the integrand's degree (field cubic in the point, the point degree p, its Jacobian 2p − 1: n = ⌈5p/2⌉,
- * four more for rational patches), the outward normal ±∂S/∂u × ∂S/∂v by the face's sense.
+ * eight more for rational patches, whose cubic moments need more points than volume),
+ * the outward normal ±∂S/∂u × ∂S/∂v by the face's sense.
  */
 function patchIntegrals(face: BrepFace, I: number[]): void {
   const S = face.surface as Surface, sign = face.sense === 'forward' ? 1 : -1, { u: U, v: V } = surfaceDomain(S);
   const rational = S.weights.some(row => row.some(w => w !== 1));
-  const gu = gaussOf(Math.min(20, Math.ceil(5 * S.degreeU / 2) + (rational ? 4 : 0))), gv = gaussOf(Math.min(20, Math.ceil(5 * S.degreeV / 2) + (rational ? 4 : 0)));
+  const gu = gaussOf(Math.min(20, Math.ceil(5 * S.degreeU / 2) + (rational ? 8 : 0))), gv = gaussOf(Math.min(20, Math.ceil(5 * S.degreeV / 2) + (rational ? 8 : 0)));
   // (Batched: each direction's basis values and first derivatives at its Gauss points worked out once per span; the
   // poles kept homogeneous in one array; the u sums made once per Gauss point in u and reused along v. No evaluator
   // call, validation or allocation per point: a 20k-span SubD body in a fraction of a second.)

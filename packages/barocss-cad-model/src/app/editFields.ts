@@ -1,8 +1,10 @@
 // The editable dimensions of a feature, including those of the sketch it is made from: each field
 // reads its value from the document's nodes and writes a changed copy of them (sketch edits change the
 // sketch node, so every feature made from it follows).
-import { frameGeometry, type Axis, type Dim, type ModelNode, type SketchNode } from '../engine/doc';
+import { frameGeometry, type Axis, type Dim, type FrameCorners, type FrameNotch, type ModelNode, type SketchNode } from '../engine/doc';
 import { outlineFields } from '../sketch/outlineFields';
+import type { BearingAssemblyInput } from '../engine/bearingContext';
+import { bearingHousingOptions, bearingHousingPatch, bearingHousingValue } from './shaftCommands';
 import { helixOf } from '../engine/part';
 import { spurGearCenterDistance, internalGearCenterDistance, bevelGearDimensions } from '@barocss/cad';
 
@@ -76,8 +78,8 @@ function sketchFields(nodes: Nodes, s: number, prefix: string): EditField[] {
  * as it is: a diameter stored as a radius cannot take a parameter).
  */
 export type BindableField = Extract<EditField, { kind: 'number' }> & { param(nodes: Nodes): string | null; bind(nodes: Nodes, name: string): ModelNode[] | null };
-export function editFields(nodes: Nodes, i: number, params?: Record<string, number>): EditField[] {
-  const raw = editFieldsRaw(nodes, i);
+export function editFields(nodes: Nodes, i: number, params?: Record<string, number>, bearingAssembly?: BearingAssemblyInput): EditField[] {
+  const raw = editFieldsRaw(nodes, i, bearingAssembly);
   if (!params) return raw;
   return raw.map(f => f.kind !== 'number' ? f : {
     ...f,
@@ -105,10 +107,10 @@ const getAt = (root: unknown, path: (string | number)[]): unknown => path.reduce
 /** A member section's dimensions as the feature editor names them (FR1, D123). */
 const MEMBER_FIELD_LABELS: Record<string, string> = {
   width: 'Width', height: 'Height', wall: 'Wall', outerRadius: 'Outer corner radius', innerRadius: 'Bore corner radius', diameter: 'Diameter',
-  legX: 'Leg along x', legY: 'Leg along y', thickness: 'Thickness', rootRadius: 'Root radius', toeRadius: 'Toe radius', web: 'Web', flange: 'Flanges',
+  legX: 'Leg along x', legY: 'Leg along y', thickness: 'Thickness', rootRadius: 'Root radius', toeRadius: 'Toe radius', web: 'Web', flange: 'Flange thickness at overhang midpoint', flangeSlope: 'Flange slope (rise/run)',
   size: 'Size', opening: 'Slot opening', lip: 'Slot lip', undercut: 'Slot undercut', depth: 'Slot depth', bore: 'Core bore',
 };
-function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
+function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssemblyInput): EditField[] {
   const node = nodes[i], out: EditField[] = [];
   if (!node) return out;
   const self = <T extends ModelNode>(n: Nodes) => n[i] as T;
@@ -204,6 +206,26 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
           number('cx', 'Cutter shift x0', undefined, n => g(n).cutter?.shift ?? 0, (n, v) => { const c = { ...g(n).cutter! }; if (v) c.shift = v; else delete c.shift; return { ...g(n), cutter: c }; });
           number('cr', 'Cutter tip radius (0: the estimate)', 'mm', n => num(g(n).cutter?.tipRadius ?? 0), (n, v) => { const c = { ...g(n).cutter! }; if (v) c.tipRadius = v; else delete c.tipRadius; return { ...g(n), cutter: c }; });
         }
+      }
+      break;
+    }
+    case 'bearing': {
+      const value = (ns: Nodes) => { const n = ns[i] as Extract<ModelNode, { kind: 'bearing' }>; return n.housingRef ? bearingHousingValue(n.housingRef) : n.housing === undefined ? 'none' : String(n.housing); };
+      const options = bearingHousingOptions(nodes.slice(0, i), bearingAssembly), current = value(nodes);
+      if (!options.some(o => o.value === current)) options.push({ value: current, label: `Current housing: ${current}` });
+      out.push({ kind: 'choice', key: 'housing', label: 'Housing', options, get: value, set: (ns, v) => {
+        const n = { ...ns[i] } as Extract<ModelNode, { kind: 'bearing' }>; delete n.housing; delete n.housingRef;
+        return replace(ns, i, { ...n, ...bearingHousingPatch(v) });
+      } });
+      const own = bearingAssembly?.owner === 'base' ? bearingAssembly.root : bearingAssembly?.root.instances?.find(p => p.id === bearingAssembly.owner)?.doc;
+      const classes = [...new Set([...(bearingAssembly?.root.fits?.tables ?? []), ...(own?.fits?.tables ?? [])].flatMap(t => t.rows.map(r => r.class)))];
+      for (const [key, label, capital] of [['shaftClass', 'Shaft seat class', false], ['housingClass', 'Housing seat class', true]] as const) {
+        const current = (node as Extract<ModelNode, { kind: 'bearing' }>)[key], choices = [{ value: 'none', label: 'None' }, ...classes.filter(c => capital ? /^[A-Z]/.test(c) : /^[a-z]/.test(c)).map(c => ({ value: c, label: c }))];
+        if (current && !choices.some(c => c.value === current)) choices.push({ value: current, label: current });
+        out.push({ kind: 'choice', key, label, options: choices, get: ns => (ns[i] as Extract<ModelNode, { kind: 'bearing' }>)[key] ?? 'none', set: (ns, value) => {
+          const next = { ...ns[i] } as Extract<ModelNode, { kind: 'bearing' }>; if (value === 'none') delete next[key]; else next[key] = value;
+          return replace(ns, i, next);
+        } });
       }
       break;
     }
@@ -377,8 +399,8 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
     case 'frame': {
       // (FR2, D124: the frame's section — editing one drops its estimate flag — its roll, and each skeleton point.)
       type F = Extract<ModelNode, { kind: 'frame' }>;
-      if (node.section.kind !== 'sketch') for (const key of Object.keys(node.section).filter(k => k !== 'kind' && k !== 'cells' && k !== 'openSlots')) {
-        number('s.' + key, MEMBER_FIELD_LABELS[key] ?? key, 'mm', n => num(((n as F).section as unknown as Record<string, Dim>)[key]), (n, v) => {
+      if (node.section.kind !== 'sketch') for (const key of [...new Set([...Object.keys(node.section), ...(node.section.kind === 'channel' ? ['toeRadius', 'flangeSlope'] : [])])].filter(k => k !== 'kind' && k !== 'cells' && k !== 'openSlots')) {
+        number('s.' + key, MEMBER_FIELD_LABELS[key] ?? key, key === 'flangeSlope' ? undefined : 'mm', n => num(((n as F).section as unknown as Record<string, Dim>)[key] ?? 0), (n, v) => {
           const f = n as F, estimates = f.estimates?.filter(e => e !== key);
           const next: F = { ...f, section: { ...f.section, [key]: v } as F['section'] };
           if (estimates?.length) next.estimates = estimates; else delete next.estimates;
@@ -395,22 +417,63 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
         get: n => self<F>(n).corners?.multi ?? 'none', set: (n, v) => { const f = self<F>(n); return replace(n, i, { ...f, corners: { ...f.corners, multi: v as 'order' | 'none' } }); } });
       out.push({ kind: 'choice', key: 'tee', label: 'T-joints', options: [{ value: 'butt', label: 'Butt' }, { value: 'cope', label: 'Cope' }, { value: 'none', label: 'None (overlap)' }],
         get: n => self<F>(n).corners?.tee ?? 'none', set: (n, v) => { const f = self<F>(n); return replace(n, i, { ...f, corners: { ...f.corners, tee: v as 'butt' | 'cope' | 'none' } }); } });
+      number('gap', 'Weld end gap', 'mm', n => num((n as F).corners?.gap ?? 0), (n, v) => {
+        const f = n as F; return { ...f, corners: { ...f.corners, gap: v } };
+      });
       // (FRf, O121: a frame that follows has its source's points: corners by them; its points are edited at the source.)
       const geo = frameGeometry(nodes, node), gp = 'points' in geo ? geo.points : node.points, gs = 'segments' in geo ? geo.segments : node.segments;
       gp.forEach((_, p) => {
-        const meet = gs.flatMap((g, k) => g[0] === p || g[1] === p ? [k] : []);
-        if (meet.length !== 2) return;
-        const options = [{ value: 'default', label: 'As the frame' }, { value: 'mitre', label: 'Mitre' }, ...meet.map(k => ({ value: `butt:${k}`, label: `Butt, member ${k + 1} through` })), ...meet.map(k => ({ value: `cope:${k}`, label: `Cope, member ${k + 1} through` })), { value: 'none', label: 'None (overlap)' }];
+        const meet = gs.flatMap((g, k) => (Array.isArray(g) ? g[0] === p || g[1] === p : 'from' in g && (g.from === p || g.to === p)) ? [k] : []);
+        if (!meet.length || meet.length > 2) return;
+        const through = meet.length === 2 ? meet : gs.map((_, k) => k).filter(k => !meet.includes(k));
+        const options = [{ value: 'default', label: 'As the frame' }, { value: 'mitre', label: 'Mitre' }, ...through.map(k => ({ value: `butt:${k}`, label: `Butt, member ${k + 1} through` })), ...through.map(k => ({ value: `cope:${k}`, label: `Cope, member ${k + 1} through` })), { value: 'none', label: 'None (overlap)' }];
         out.push({ kind: 'choice', key: `corner${p}`, label: `Corner at point ${p + 1}`, options,
-          get: n => { const e = self<F>(n).corners?.at?.find(x => x.point === p); return !e ? 'default' : e.kind === 'butt' || e.kind === 'cope' ? `${e.kind}:${e.through ?? meet[0]}` : e.kind; },
+          get: n => { const e = self<F>(n).corners?.at?.find(x => x.point === p); return !e ? 'default' : e.kind === 'butt' || e.kind === 'cope' ? `${e.kind}:${e.through ?? through[0]}` : e.kind; },
           set: (n, v) => {
             const f = self<F>(n), rest = (f.corners?.at ?? []).filter(x => x.point !== p);
-            const entry = v === 'default' ? [] : v.startsWith('butt:') || v.startsWith('cope:') ? [{ point: p, kind: v.slice(0, 4) as 'butt' | 'cope', through: Number(v.slice(5)) }] : [{ point: p, kind: v as 'mitre' | 'none' }];
+            const old = f.corners?.at?.find(x => x.point === p), kept = old?.gap !== undefined ? { gap: old.gap } : {};
+            const entry = v === 'default' ? [] : v.startsWith('butt:') || v.startsWith('cope:') ? [{ point: p, kind: v.slice(0, 4) as 'butt' | 'cope', through: Number(v.slice(5)), ...kept, ...(v.startsWith('cope:') && old?.notch ? { notch: old.notch } : {}) }] : [{ point: p, kind: v as 'mitre' | 'none', ...kept }];
             const at = [...rest, ...entry], corners = { ...(f.corners ?? {}), ...(at.length ? { at } : {}) };
             if (!at.length) delete corners.at;
             return replace(n, i, { ...f, corners });
           } });
+        type Entry = NonNullable<FrameCorners['at']>[number];
+        const entryOf = (f: F): Entry => f.corners?.at?.find(x => x.point === p) ?? { point: p, kind: meet.length === 2 ? f.corners?.default ?? 'mitre' : f.corners?.tee ?? 'none' };
+        const put = (f: F, entry: Entry): F => ({ ...f, corners: { ...f.corners, at: [...(f.corners?.at ?? []).filter(x => x.point !== p), entry] } });
+        number(`corner${p}.gap`, `Point ${p + 1} weld gap`, 'mm', n => num(entryOf(n as F).gap ?? (n as F).corners?.gap ?? 0), (n, v) => put(n as F, { ...entryOf(n as F), gap: v }));
+        out.push({ kind: 'choice', key: `corner${p}.notch`, label: `Point ${p + 1} notch`, options: [{ value: 'none', label: 'None' }, { value: 'holesaw', label: 'Hole saw' }, { value: 'v', label: 'V notch' }],
+          get: n => entryOf(self<F>(n)).notch?.kind ?? 'none', set: (n, v) => {
+            const f = self<F>(n), entry = { ...entryOf(f) };
+            if (v === 'none') delete entry.notch;
+            else {
+              entry.kind = 'cope'; entry.through ??= through[0];
+              if (v === 'holesaw') entry.notch = { kind: 'holesaw', diameter: 50, offset: 0 };
+              else if (v === 'v') entry.notch = { kind: 'v', depth: 10, angle: 90 };
+              else return [...n];
+            }
+            return replace(n, i, put(f, entry));
+          } });
+        const notch = entryOf(node).notch;
+        const cutterField = (key: string, label: string, unit: 'mm' | '°', field: 'diameter' | 'offset' | 'depth' | 'angle') => number(`corner${p}.${key}`, `Point ${p + 1} ${label}`, unit, n => {
+          const cut = entryOf(n as F).notch; return cut ? num((cut as unknown as Record<string, Dim>)[field] ?? 0) : NaN;
+        }, (n, v) => {
+          const f = n as F, e = entryOf(f); return e.notch ? put(f, { ...e, notch: { ...e.notch, [field]: v } as FrameNotch }) : f;
+        });
+        if (notch?.kind === 'holesaw') { cutterField('notchDiameter', 'hole saw diameter', 'mm', 'diameter'); cutterField('notchOffset', 'hole saw offset', 'mm', 'offset'); }
+        if (notch?.kind === 'v') { cutterField('notchDepth', 'V depth', 'mm', 'depth'); cutterField('notchAngle', 'V included angle', '°', 'angle'); }
       });
+      if (!node.follows) node.segments.forEach((g, segment) => {
+        if (Array.isArray(g) || !('center' in g)) return;
+        (['X', 'Y', 'Z'] as const).forEach((axis, c) => number(`arc${segment}.center.${axis.toLowerCase()}`, `Arc ${segment + 1} center ${axis}`, 'mm', n => {
+          const arc = (n as F).segments[segment]; return !Array.isArray(arc) && 'center' in arc ? num(arc.center[c]) : NaN;
+        }, (n, v) => {
+          const f = n as F, segments = f.segments.map((arc, j) => j === segment && !Array.isArray(arc) && 'center' in arc ? { ...arc, center: arc.center.map((x, k) => k === c ? v : x) as typeof arc.center } : arc);
+          return { ...f, segments };
+        }));
+      });
+      node.bends?.forEach((_, bend) => number(`bend${bend}.radius`, `Bend ${bend + 1} radius`, 'mm', n => num((n as F).bends![bend].radius), (n, v) => {
+        const f = n as F; return { ...f, bends: f.bends!.map((b, j) => j === bend ? { ...b, radius: v } : b) };
+      }));
       if (!node.follows) node.points.forEach((_, p) => (['X', 'Y', 'Z'] as const).forEach((axis, c) => number(`p${p}.${axis.toLowerCase()}`, `Point ${p + 1} ${axis}`, 'mm', n => num((n as F).points[p][c]), (n, v) => {
         const f = n as F, points = f.points.map((q, j) => j === p ? q.map((x, k) => k === c ? v : x) as F['points'][number] : q);
         return { ...f, points };
@@ -430,8 +493,8 @@ function editFieldsRaw(nodes: Nodes, i: number): EditField[] {
       // (FR1, D123: the section's dimensions — editing one drops its estimate flag — the member's length along its line, its roll.)
       type M = Extract<ModelNode, { kind: 'frame-member' }>;
       const sec = node.section;
-      if (sec.kind !== 'sketch') for (const key of Object.keys(sec).filter(k => k !== 'kind' && k !== 'cells' && k !== 'openSlots')) {
-        number('s.' + key, MEMBER_FIELD_LABELS[key] ?? key, 'mm', n => num(((n as M).section as unknown as Record<string, Dim>)[key]), (n, v) => {
+      if (sec.kind !== 'sketch') for (const key of [...new Set([...Object.keys(sec), ...(sec.kind === 'channel' ? ['toeRadius', 'flangeSlope'] : [])])].filter(k => k !== 'kind' && k !== 'cells' && k !== 'openSlots')) {
+        number('s.' + key, MEMBER_FIELD_LABELS[key] ?? key, key === 'flangeSlope' ? undefined : 'mm', n => num(((n as M).section as unknown as Record<string, Dim>)[key] ?? 0), (n, v) => {
           const m = n as M, estimates = m.estimates?.filter(e => e !== key);
           const next: M = { ...m, section: { ...m.section, [key]: v } as M['section'] };
           if (estimates?.length) next.estimates = estimates; else delete next.estimates;

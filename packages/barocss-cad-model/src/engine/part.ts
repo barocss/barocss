@@ -1,17 +1,23 @@
+import { resolveShopTree } from './shopRows';
 // The studio document as a kernel part document: a node is the feature of its stable id (`n<k>`, see ids.ts),
 // so persistent face and edge names read `n1.side0`, `n1.top`, `n2.side0|n1.top` and keep their names as other
 // features come and go; a kernel output `n5` / `n5/0` / `n5/1` is the studio body `b5` / `b5_negative` /
 // `b5_positive` (keyed by the id too); the solids of a STEP file holding several are `n5/k`, `b5_part<k>`.
 import type { BearingRow, ChainRow, ConnectorRow, DriveRow, FitTable, ORingRow } from '@barocss/cad';
 import { getBlob } from './blobs';
-import { CadPartError } from '@barocss/cad';
+import { CadPartError, evaluateCadPart, type CadPartSnapshot, type BearingReport } from '@barocss/cad';
+import { bearingContextOf, bearingDependencyKey, bearingHousingRef, bearingHousingTarget, withBearingContext } from './bearingContext';
+import { bearingInExternalHousing } from './bearingHousing';
 import { mirrorCage, sprocketPitchDiameter, timingPitchDiameter } from '@barocss/cad';
-import type { BendTable, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartSection } from '@barocss/cad';
-import { frameGeometry, holeCentres, bevelSpiral, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
+import type { BendTable, BeadSharedComponent, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartSection } from '@barocss/cad';
+import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
 import { bodyNodeOf, featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { keyClasses } from './fits';
 import type { StudioRingRow } from './rings';
 import { rotationSteps } from '../assembly/mates';
+import { documentBeadOwnershipError } from '../frames/beadOwnership';
+import { canonical, modelContent } from '../team/revision';
+import { resolveSkeletons } from '../frames/skeleton';
 
 // (The nodes being converted: a feature's id and its references' ids are read from them.)
 let current: readonly ModelNode[] = [];
@@ -98,7 +104,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'sheet-corner-relief': return { ...at, kind: 'sheet-corner-relief', target: ref(node.parent), corner: node.edges[0], shape: node.shape, size: node.size };
     case 'sheet-flange': return { ...at, kind: 'sheet-flange', target: ref(node.parent), edge: node.edges[0], length: node.length, ...(node.angleDegrees !== undefined ? { angleDegrees: node.angleDegrees } : {}), ...(node.bendRadius !== undefined ? { bendRadius: node.bendRadius } : {}), ...(node.measure ? { measure: node.measure } : {}), ...(node.position ? { position: node.position } : {}), ...(node.offsets ? { offsets: node.offsets } : {}), ...(node.relief ? { relief: node.relief } : {}) };
     case 'frame': { const g = frameGeometry(current, node, params, partsNow); if ('code' in g) throw new Error(`[${g.code}] ${g.error}`);
-      return { ...at, kind: 'frame', points: g.points, segments: g.segments, section: kernelSection(node.section, id),
+      return { ...at, kind: 'frame', points: g.points, segments: g.segments, ...(node.bends !== undefined ? { bends: node.bends } : {}), section: kernelSection(node.section, id),
       ...(node.anchor ? { anchor: node.anchor } : {}), ...(node.offset ? { offset: node.offset } : {}), ...(node.roll ? { roll: node.roll } : {}), ...(node.mirror ? { mirror: true } : {}), ...(node.up ? { up: node.up } : {}),
       ...(node.overrides?.length ? { overrides: node.overrides.map(kernelOverride) } : {}), ...(node.corners ? { corners: node.corners } : {}), ...(node.trims?.length ? { trims: node.trims.map(t => 'body' in t ? { member: t.member, end: t.end, body: ref(t.body) } : t) } : {}) }; }
     case 'frame-member': return { ...at, kind: 'frame-member', section: kernelSection(node.section, id), start: node.start, end: node.end,
@@ -244,6 +250,10 @@ function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
  * an intersection or a subtraction from nothing is gone too).
  */
 export function toPartDocument(doc: StudioDoc): CadPartDocument {
+  doc = resolveShopTree(doc);
+  bearingDependencyKey(doc);
+  const ownershipError = documentBeadOwnershipError(doc);
+  if (ownershipError) throw new CadPartError('PARAMETER', null, ownershipError);
   doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section])); bearingRows = new Map((doc.bearings?.rows ?? []).map(r => [r.id, r])); oringRows = new Map((doc.orings?.rows ?? []).map(r => [r.id, r])); driveRows = new Map((doc.drives?.rows ?? []).map(r => [r.id, r])); connectorRows = new Map((doc.connectors?.rows ?? []).map(r => [r.id, r])); fitTables = doc.fits?.tables ?? []; fitFaces = doc.fits?.faces ?? []; ringRows = new Map((doc.rings?.rows ?? []).map(r => [r.id, r])); params = doc.parameters ?? {}; partsNow = doc.instances ?? [];
   const gone = new Set<number>(), features: CadPartFeature[] = [];
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
@@ -273,8 +283,16 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
     if (node.suppressed) { pass(i, parent); return; }
     features.push(...featuresOf(node, i));
   });
-  // (FRk2, D166: the person's fillet weld records as the kernel's weld beads, after every node; those it refused left out.)
-  for (const b of beadsOf(doc, gone)) if (!refusedBeads.has(b.key)) features.push(b.feature);
+  // Derived weld bodies follow authored nodes. Each retry sends the complete remaining per-frame manifest.
+  const active = beadsOf(doc, gone).filter(b => !refusedBeads.has(b.key));
+  for (const b of active) {
+    const f = b.feature;
+    if (doc.frames?.beadOwnership && 'member' in f.on) {
+      const joints = active.flatMap(x => x.feature.frame === f.frame && 'member' in x.feature.on ? [{ ...x.feature.on, leg: x.feature.leg }] : [])
+        .sort((a, b) => a.member - b.member || (a.end === b.end ? 0 : a.end === 'start' ? -1 : 1));
+      features.push({ ...f, sharing: { ...doc.frames.beadOwnership, joints } });
+    } else features.push(f);
+  }
   return { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: doc.parameters, features };
 }
 
@@ -283,12 +301,12 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
 //   - `<member>.<end>` (a butt, an on-face end, a mitre set to fillet): `on: { member: k, end }` on its frame (the body
 //     key's side part<k>, or 'solid' for a frame of one member: k = 0); `inner` as the record says;
 //   - `<gusset>.<member>`: `on: { gusset }` (its frame the gusset's); `<cap>.<member>`: `on: { cap }`.
-// The kernel refuses what it does not model (BEAD_KIND, BEAD_SEAM_NOT_PLANAR, BEAD_ANGLE, BEAD_SIZE): such a bead is
-// left out and the part evaluated again (`withBeadRetry`), its reason kept for the joint (`beadRefusal`) — never a
-// failed evaluation. A record with no kind set on a mitre or a cap (a groove or a corner weld by default) is no bead:
+// A local refusal removes that bead; a structured shared refusal removes its complete Kernel-proved component.
+// An unbounded shared failure propagates. Reasons remain on the authored joints (`beadRefusal`).
+// A record with no kind set on a mitre or a cap (a groove or a corner weld by default) is no bead:
 // the kernel's BEAD_KIND there is kept quiet.
 type WeldRecordLike = { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; inner?: boolean };
-export interface BeadFeature { key: string; joint: string; quiet: boolean; feature: CadPartFeature }
+export interface BeadFeature { key: string; joint: string; quiet: boolean; feature: Extract<CadPartFeature, { kind: 'weld-bead' }> }
 /**
  * A joint's bead feature id: `bead_` and, for a member's end, the joint id; for a plate's seam, the plate's key — the
  * kernel welds all of a gusset's (or a cap's) seams in one bead, so its joints share it.
@@ -299,7 +317,7 @@ export function beadIdOf(joint: string): string {
 }
 /** The bead each fillet record with a size makes (`gone`: nodes whose bodies are gone or suppressed). */
 export function beadsOf(doc: StudioDoc, gone: ReadonlySet<number> = new Set()): BeadFeature[] {
-  const out: BeadFeature[] = [], nodes = doc.nodes, records = (doc.frames?.welds ?? []) as readonly WeldRecordLike[];
+  const out: BeadFeature[] = [], nodes = doc.nodes, records = (doc.frames?.welds ?? []) as readonly WeldRecordLike[], input = canonical(modelContent(doc));
   for (const r of records) {
     if (r.kind === 'butt' || r.sizeMM === undefined) continue;
     let feature: Record<string, unknown> | null = null, owner = -1, plate = -1;
@@ -316,38 +334,95 @@ export function beadsOf(doc: StudioDoc, gone: ReadonlySet<number> = new Set()): 
       feature = { frame: featureId(nodes, n.frame), on: n.kind === 'gusset' ? { gusset: featureId(nodes, at.node) } : { cap: featureId(nodes, at.node) } };
     }
     if (owner < 0 || gone.has(owner) || (plate >= 0 && gone.has(plate)) || nodes[owner]?.suppressed) continue;
-    const f = { id: beadIdOf(r.joint), kind: 'weld-bead', ...feature, leg: r.sizeMM } as unknown as CadPartFeature;
+    const f = { id: beadIdOf(r.joint), kind: 'weld-bead', ...feature, leg: r.sizeMM } as BeadFeature['feature'];
     // (A plate's seams share one bead: its first record's.)
     if (out.some(x => x.feature.id === f.id)) continue;
-    // (Keyed by what decides the kernel's answer: the bead, the frame (and the plate), the parameters.)
-    const key = JSON.stringify([f, nodes[owner], plate >= 0 ? nodes[plate] : null, doc.parameters, doc.frames?.sections ?? null]);
+    // Keep the full authored evaluation context even when retry removes failed Kernel features.
+    const key = `${canonical(f)}\u0000${input}`;
     out.push({ key, joint: r.joint, quiet: r.kind === undefined, feature: f });
   }
   return out;
 }
 /** Beads the kernel refused, by key: the reason, and whether it is kept quiet (a mitre's or a cap's default). */
-const refusedBeads = new Map<string, string>();
+const refusedBeads = new Map<string, { reason: string; component?: BeadSharedComponent }>();
 /** A refusal kept quiet: BEAD_KIND on a record with no kind set — a mitre's groove weld or a cap's corner weld by default. */
 const quietOf = (b: BeadFeature, reason: string) => b.quiet && /\[BEAD_KIND\][^\n]*(is mitred|sits flush)/.test(reason);
 /** A joint's bead refusal in this document (null: none, or none refused). */
-export function beadRefusal(doc: StudioDoc, joint: string): { reason: string; quiet: boolean } | null {
+export function beadRefusal(doc: StudioDoc, joint: string): { reason: string; quiet: boolean; component?: BeadSharedComponent } | null {
   const id = beadIdOf(joint);
-  for (const b of beadsOf(withIds(doc))) if (b.feature.id === id) { const reason = refusedBeads.get(b.key); return reason === undefined ? null : { reason, quiet: quietOf(b, reason) }; }
+  for (const b of beadsOf(withIds(doc))) if (b.feature.id === id) { const refusal = refusedBeads.get(b.key); return refusal === undefined ? null : { ...refusal, quiet: quietOf(b, refusal.reason) }; }
   return null;
 }
 /**
- * Runs an evaluation of the part with its beads; a bead the kernel refuses is left out and the part built again, so a
- * weld the kernel does not model never fails the part (its reason kept for the weld list).
+ * Retry only a proved local refusal. Shared components are removed atomically; unbounded shared errors propagate.
  */
 export function withBeadRetry<T>(doc: StudioDoc, build: (part: CadPartDocument) => T): T {
   for (let tries = 0; ; tries++) {
     const part = toPartDocument(doc);
     try { return build(part); } catch (cause) {
-      const f = cause instanceof CadPartError ? cause.feature : null, b = f && f.startsWith('bead_') ? beadsOf(withIds(doc)).find(x => x.feature.id === f) : undefined;
+      const all = beadsOf(withIds(doc)), f = cause instanceof CadPartError ? cause.feature : null, b = f && f.startsWith('bead_') ? all.find(x => x.feature.id === f) : undefined;
       if (!b || refusedBeads.has(b.key) || tries > 64) throw cause;
-      refusedBeads.set(b.key, String((cause as Error).message).replace(/^[^:]*: /, ''));
+      const reason = String((cause as Error).message).replace(/^[^:]*: /, ''), component = cause instanceof CadPartError ? cause.sharedComponent : undefined;
+      if (component) {
+        const refs = Array.from(component.joints ?? []);
+        if (refs.length < 2 || refs.some(r => !r || !Number.isInteger(r.member) || r.member < 0 || (r.end !== 'start' && r.end !== 'end'))) throw cause;
+        const ids = new Set(refs.map(r => `${r.member}.${r.end}`));
+        const group = all.filter(x => x.feature.frame === component.frame && 'member' in x.feature.on && ids.has(`${x.feature.on.member}.${x.feature.on.end}`));
+        if (ids.size !== refs.length || group.length !== refs.length || !group.includes(b) || group.some(x => refusedBeads.has(x.key))) throw cause;
+        for (const peer of group) refusedBeads.set(peer.key, { reason, component });
+      } else {
+        // Global sharing failures do not establish a safe subset. Never invent a component from the manifest.
+        if (/\[BEAD_SHARED_(CONTEXT|UNSUPPORTED)\]/.test(reason)) throw cause;
+        refusedBeads.set(b.key, { reason });
+      }
     }
   }
+}
+
+/** The existing native snapshot plus current cross-part housing checks, without changing authored geometry. */
+export function partSnapshot(doc: StudioDoc, build: (part: CadPartDocument) => CadPartSnapshot = p => evaluateCadPart(p)): CadPartSnapshot {
+  const taken = new Map<string, CadPartSnapshot>();
+  const read = (source: StudioDoc, make: (part: CadPartDocument) => CadPartSnapshot): CadPartSnapshot => {
+    source = resolveShopTree(source);
+    const solved = resolveSkeletons(source); if ('error' in solved) throw new Error(solved.error); source = solved.doc;
+    bearingDependencyKey(source);
+    const context = bearingContextOf(source), snapshot = withBeadRetry(source, make), reports = new Map<number, BearingReport>();
+    for (const [i, n] of source.nodes.entries()) {
+      const ref = bearingHousingRef(n); if (!ref || n.kind !== 'bearing' || n.suppressed) continue;
+      if (!context) throw new Error('[BEARING_HOUSING_REFERENCE] missing current assembly context');
+      const target = bearingHousingTarget(source, ref);
+      let targetSnapshot = taken.get(target.part);
+      if (!targetSnapshot) {
+        targetSnapshot = read(withBearingContext(target.doc, { ...context, owner: target.part, ownerPose: target.pose }), p => evaluateCadPart(p));
+        taken.set(target.part, targetSnapshot);
+      }
+      const output = targetSnapshot.outputs.find(o => bodyKeyOf(o.id, target.doc.nodes) === ref.body);
+      if (!output || output.representation === 'faceted') throw new Error(`[BEARING_HOUSING_REFERENCE] ${ref.part}/${ref.body} is not a current exact housing body`);
+      const shaftNode = source.nodes[n.shaft];
+      if (shaftNode?.kind !== 'shaft') throw new Error('[BEARING_HOUSING_REFERENCE] the linked bearing needs its actual shaft feature');
+      const shaft = withBeadRetry(prefixDoc(source, n.shaft + 1), p => evaluateCadPart(p)).outputs.find(o => o.id === featureId(source.nodes, n.shaft));
+      if (!shaft?.shaft) throw new Error('[BEARING_HOUSING_REFERENCE] the current shaft body is missing');
+      const row = source.bearings?.rows.find(r => r.id === n.row);
+      if (!row) throw new Error(`[BEARING_ROW_UNKNOWN] no current row ${n.row}`);
+      const angle = (shaftNode.rotation ?? 0) * Math.PI / 180, c = Math.cos(angle), s = Math.sin(angle);
+      const made = bearingInExternalHousing({ row, shaft: { report: shaft.shaft, brep: shaft.brep, place: { matrix: [c, -s, 0, s, c, 0, 0, 0, 1], offset: [shaftNode.center[0], shaftNode.center[1], shaftNode.from ?? 0] } }, ownerPose: context.ownerPose, target: { brep: output.brep, pose: target.pose }, step: n.step, against: n.against, id: featureId(source.nodes, i), ...(n.shaftClass || n.housingClass ? { fit: { tables: source.fits?.tables ?? [], ...(n.shaftClass ? { shaft: n.shaftClass } : {}), ...(n.housingClass ? { housing: n.housingClass } : {}) } } : {}) });
+      reports.set(i, made.report);
+    }
+    if (!reports.size) return snapshot;
+    const outputs = snapshot.outputs.map(o => {
+      if (!o.bearing) return o;
+      let i = nodeIndexOf(source.nodes, o.id.split('/')[0]);
+      const seen = new Set<number>();
+      while (i >= 0 && !seen.has(i)) {
+        seen.add(i); const report = reports.get(i); if (report) return { ...o, bearing: report };
+        const node = source.nodes[i]; if (!node || !('parent' in node)) break;
+        i = node.parent.node;
+      }
+      return o;
+    });
+    return { ...snapshot, outputs, output(id) { const output = outputs.find(o => o.id === id); if (!output) throw new CadPartError('REFERENCE', null, `no output ${id}`); return output; } };
+  };
+  return read(doc, build);
 }
 
 /** Studio body key of a kernel output id (`nodes`: to tell an imported file's solids from a split's halves). */

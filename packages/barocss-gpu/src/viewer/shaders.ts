@@ -62,6 +62,8 @@ struct Object {
 // The caps' probe per pixel (G19): the nearest capped surface beyond the ray's entry into the kept region — its depth,
 // and 1 when a back face (drawn first while the planes cap something; 0, 0 none).
 @group(0) @binding(5) var capFront: texture_2d<f32>;
+// Scene caps use the same sample locations as the scene. Picks, masks and light probes retain binding 5.
+@group(0) @binding(6) var capFrontSamples: texture_multisampled_2d<f32>;
 /** The environment map (equirectangular, Z up) in a direction, at a mip level. */
 fn envAt(d: vec3f, lod: f32) -> vec3f {
   let u = atan2(d.y, d.x) / 6.2831853 + 0.5;
@@ -142,6 +144,21 @@ fn capFirst(pos: vec4f) -> bool {
   let p = textureLoad(capFront, vec2i(pos.xy), 0);
   return p.y > 0.5 && abs(p.x - pos.z) <= 1e-6;
 }
+// rgba16float supports MSAA without a feature request. Split a float32 depth's bits into exact
+// half-float integers (11/11/10 bits); storing the depth directly in half-float loses the probe tolerance.
+fn capProbeBits(z: f32, back: bool) -> vec4f {
+  let bits = bitcast<u32>(z);
+  return vec4f(f32(bits & 2047u), f32((bits >> 11u) & 2047u), f32(bits >> 22u), select(0.0, 1.0, back));
+}
+fn capSampleDepth(world: vec3f) -> f32 {
+  let clip = frame.viewProj * vec4f(world, 1.0);
+  return clip.z / clip.w;
+}
+fn capFirstSample(pos: vec4f, world: vec3f, sample: u32) -> bool {
+  let p = textureLoad(capFrontSamples, vec2i(pos.xy), i32(sample));
+  let z = bitcast<f32>(u32(p.x) | (u32(p.y) << 11u) | (u32(p.z) << 22u));
+  return p.w > 0.5 && abs(z - capSampleDepth(world)) <= 1e-6;
+}
 /** The reversed depth of a cap point, or −1 when it is not in the view's depth range. */
 fn capDepth(q: vec4f) -> f32 {
   if (q.w < 0.5) { return -1.0; }
@@ -165,7 +182,7 @@ export interface SurfaceShader { declarations?: string; expression: string; alia
 const DEFAULT_PARAMS = 'struct MaterialParams {\n  slot: array<vec4<f32>, 4>,\n}\n';
 
 /** The surface shader, with a shader material's colour when one is given. */
-export const surfaceWGSL = (custom?: SurfaceShader): string => common + (custom?.declarations ?? '') + (/struct\s+MaterialParams\b/.test(custom?.declarations ?? '') ? '' : DEFAULT_PARAMS) + /* wgsl */ `
+export const surfaceWGSL = (custom?: SurfaceShader, capSamples = false): string => common + (custom?.declarations ?? '') + (/struct\s+MaterialParams\b/.test(custom?.declarations ?? '') ? '' : DEFAULT_PARAMS) + /* wgsl */ `
 // The material's colour map (a white texel when it has none), sRGB-decoded by its format, and the
 // 64 bytes of a shader material's parameters.
 @group(2) @binding(0) var map: texture_2d<f32>;
@@ -177,7 +194,7 @@ ${Object.entries(custom?.aliases ?? {}).map(([name, from]) => `  let ${name} = $
 }
 struct VOut {
   @builtin(position) clip: vec4f,
-  @location(0) world: vec3f,
+  @location(0) ${capSamples ? '@interpolate(perspective, sample) ' : ''}world: vec3f,
   @location(1) normal: vec3f,
   @location(2) color: vec4f,
   @location(3) uv: vec2f,
@@ -337,14 +354,14 @@ fn hatchAcross(n0: vec3f, c: f32, s: f32) -> vec3f {
   return c * v - s * u;
 }
 /** A cap's colour (lit, hatched; rgb) and its depth (w) at a back face's fragment — discarded where it is no cap. */
-fn capShade(in: VOut) -> vec4f {
+fn capShade(in: VOut, sample: u32) -> vec4f {
   let q = capPoint(in.world);
   // (The hatch's coordinate and its change per pixel — across the lines, so a line is 1 pixel wide at any angle —
   // before any fragment is discarded.)
   let across = hatchAcross(frame.clips[u32(max(q.w - 0.5, 0.0))].xyz, object.hatch.x, object.hatch.y);
   let h = dot(q.xyz, across) / max(object.hatch.z, 1e-12);
   let hw = length(vec2f(dpdx(h), dpdy(h)));
-  if (!capFirst(in.clip)) { discard; }
+  if (!${capSamples ? 'capFirstSample(in.clip, in.world, sample)' : 'capFirst(in.clip)'}) { discard; }
   let z = capDepth(q);
   if (z < 0.0) { discard; }
   let n = -normalize(capPlane(q).xyz);
@@ -358,8 +375,8 @@ fn capShade(in: VOut) -> vec4f {
   }
   return vec4f(c, z);
 }
-@fragment fn fsCap(in: VOut) -> CapOut {
-  let c = capShade(in);
+@fragment fn fsCap(in: VOut${capSamples ? ', @builtin(sample_index) sample: u32' : ''}) -> CapOut {
+  let c = capShade(in, ${capSamples ? 'sample' : '0u'});
   var o: CapOut;
   o.color = vec4f(c.rgb, 1.0);
   o.depth = c.w;
@@ -367,8 +384,8 @@ fn capShade(in: VOut) -> vec4f {
 }
 // A see-through mesh's cap (G19.4, a ghost's): into the order-independent pass at the mesh's opacity, at its depth.
 struct CapOit { @location(0) accum: vec4f, @location(1) reveal: f32, @builtin(frag_depth) depth: f32 }
-@fragment fn fsCapOit(in: VOut) -> CapOit {
-  let c = capShade(in);
+@fragment fn fsCapOit(in: VOut${capSamples ? ', @builtin(sample_index) sample: u32' : ''}) -> CapOit {
+  let c = capShade(in, ${capSamples ? 'sample' : '0u'});
   let a = object.color.a;
   let w = oitOf(vec4f(c.rgb * a, a), capPoint(in.world).xyz);
   return CapOit(w.accum, w.reveal, c.w);
@@ -453,14 +470,14 @@ struct LOut { @builtin(position) clip: vec4f, @location(0) color: vec4f, @locati
   o.along = c.x * l;
   return o;
 }
-fn lineColor(in: LOut) -> vec4f {
+fn lineColor(in: LOut, dash: vec2f) -> vec4f {
   if (clippedAway(in.world)) { discard; }
-  let period = object.params.y + object.params.z;
-  if (object.params.y > 0.0 && object.params.z > 0.0 && in.along % period > object.params.y) { discard; }
+  let period = dash.x + dash.y;
+  if (dash.x > 0.0 && dash.y > 0.0 && in.along % period > dash.x) { discard; }
   return vec4f(in.color.rgb * in.color.a, in.color.a);
 }
-@fragment fn fs(in: LOut) -> @location(0) vec4f { return lineColor(in); }
-@fragment fn fsHidden(in: LOut) -> @location(0) vec4f { return lineColor(in) * object.params.w; }
+@fragment fn fs(in: LOut) -> @location(0) vec4f { return lineColor(in, object.params.yz); }
+@fragment fn fsHidden(in: LOut) -> @location(0) vec4f { return lineColor(in, object.hatch.xy) * object.params.w; }
 `;
 
 /**
@@ -639,8 +656,8 @@ fn axisLine(x: f32) -> f32 { return 1.0 - min(abs(x) / max(fwidth(x), 1e-6) / 1.
 }
 `;
 
-export const pickWGSL = common + /* wgsl */ `
-struct POut { @builtin(position) clip: vec4f, @location(0) @interpolate(flat) instance: u32, @location(1) world: vec3f }
+const pickShader = (capSamples = false): string => common + /* wgsl */ `
+struct POut { @builtin(position) clip: vec4f, @location(0) @interpolate(flat) instance: u32, @location(1) ${capSamples ? '@interpolate(perspective, sample) ' : ''}world: vec3f }
 struct Ids { @location(0) id: u32, @location(1) depth: f32, @location(2) instance: u32 }
 @vertex fn vs(@location(0) position: vec3f, inst: Instance, @builtin(instance_index) ii: u32) -> POut {
   var o: POut;
@@ -663,18 +680,19 @@ struct Ids { @location(0) id: u32, @location(1) depth: f32, @location(2) instanc
 // The caps' probe (G19): a capped mesh's face, unclipped, beyond its ray's entry into the kept region — its depth, and
 // whether a back face; the nearest kept by the depth test, a back face drawn a little nearer so that it wins a tie (two
 // solids touching: the cap is the first's).
-struct Probe { @location(0) v: vec2f, @builtin(frag_depth) z: f32 }
+struct Probe { @location(0) v: ${capSamples ? 'vec4f' : 'vec2f'}, @builtin(frag_depth) z: f32 }
 // (Which way is nearer: +1 in the scene's reversed depth, −1 in the shadow map's — the light's probe, G19.4.)
 override nearer: f32 = 1.0;
-@fragment fn fsCapProbe(in: POut, @builtin(front_facing) front: bool) -> Probe {
+@fragment fn fsCapProbe(in: POut, @builtin(front_facing) front: bool${capSamples ? ', @builtin(sample_index) sample: u32' : ''}) -> Probe {
   if (capPoint(in.world).w < 0.5) { discard; }
   var o: Probe;
-  o.v = vec2f(in.clip.z, select(1.0, 0.0, front));
+  let z = ${capSamples ? 'capSampleDepth(in.world)' : 'in.clip.z'};
+  o.v = ${capSamples ? 'capProbeBits(z, !front)' : 'vec2f(z, select(1.0, 0.0, front))'};
   // (A back face's lead: enough to win a tie — two faces at one depth, to rounding — and no more. In the scene's reversed
   // depth, a share of it (G20.2: a fixed 4e-7 there, far from the eye, put a back face just behind a front one — near an
   // edge — ahead of it, a cap leaking over the edge); in the shadow map's, linear in distance, a fixed one.)
-  let lead = select(4e-7, max(in.clip.z, 1e-12) * 1e-5, nearer > 0.0);
-  o.z = clamp(in.clip.z + select(lead * nearer, 0.0, front), 0.0, 1.0);
+  let lead = select(4e-7, max(z, 1e-12) * 1e-5, nearer > 0.0);
+  o.z = clamp(z + select(lead * nearer, 0.0, front), 0.0, 1.0);
   return o;
 }
 // The shadow map: depth only, less what the clip plane cuts away.
@@ -702,6 +720,9 @@ struct CapMask { @location(0) id: u32, @builtin(frag_depth) z: f32 }
   return CapMask(object.pick.y, z);
 }
 `;
+export const pickWGSL = pickShader();
+/** Scene-only probe; its interpolated world point and depth are evaluated at each MSAA sample. */
+export const capProbeSamplesWGSL = pickShader(true);
 
 /**
  * The output pass: ambient occlusion from the depth buffer, exposure and tone mapping of the (premultiplied,

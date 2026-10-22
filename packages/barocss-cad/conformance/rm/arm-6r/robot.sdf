@@ -16,8 +16,8 @@
       <pose relative_to="__model__">0.05000000000000001 0.05000000000000001 0.01 0 0 0</pose>
       <inertial>
         <pose>0 0 0.040000000000000015 0 0 0</pose>
-        <mass>0.07879985905243286</mass>
-        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.000043910611119220554</iyy><iyz>0</iyz><izz>0.0000055399578241395984</izz></inertia>
+        <mass>0.07879985905243496</mass>
+        <inertia><ixx>0.00004375137007060266</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00004391061111902782</iyy><iyz>0</iyz><izz>0.000005539957823994349</izz></inertia>
       </inertial>
       <visual name="visual"><geometry><mesh><uri>meshes/l1.stl</uri></mesh></geometry></visual>
       <collision name="collision"><geometry><mesh><uri>meshes/l1_collision.stl</uri></mesh></geometry></collision>
@@ -26,8 +26,8 @@
       <pose relative_to="__model__">0.05 0.06 0.06999999999999998 -1.5707963267948966 0 0</pose>
       <inertial>
         <pose>0 -0.020000000000000028 0.01 0 0 0</pose>
-        <mass>0.07879985905243286</mass>
-        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.0000055399578241395984</iyy><iyz>0</iyz><izz>0.000043910611119220554</izz></inertia>
+        <mass>0.07879985905243496</mass>
+        <inertia><ixx>0.00004375137007060266</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.000005539957823994349</iyy><iyz>0</iyz><izz>0.00004391061111902782</izz></inertia>
       </inertial>
       <visual name="visual"><geometry><mesh><uri>meshes/l2.stl</uri></mesh></geometry></visual>
       <collision name="collision"><geometry><mesh><uri>meshes/l2_collision.stl</uri></mesh></geometry></collision>
@@ -36,8 +36,8 @@
       <pose relative_to="__model__">0.049999999999999996 0.08 0.10999999999999996 -1.5707963267948966 0 0</pose>
       <inertial>
         <pose>0 -0.020000000000000056 0.01 0 0 0</pose>
-        <mass>0.07879985905243286</mass>
-        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.0000055399578241395984</iyy><iyz>0</iyz><izz>0.000043910611119220554</izz></inertia>
+        <mass>0.07879985905243496</mass>
+        <inertia><ixx>0.00004375137007060266</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.000005539957823994349</iyy><iyz>0</iyz><izz>0.00004391061111902782</izz></inertia>
       </inertial>
       <visual name="visual"><geometry><mesh><uri>meshes/l3.stl</uri></mesh></geometry></visual>
       <collision name="collision"><geometry><mesh><uri>meshes/l3_collision.stl</uri></mesh></geometry></collision>
@@ -46,8 +46,8 @@
       <pose relative_to="__model__">0.05 0.08999999999999998 0.17 0 0 0</pose>
       <inertial>
         <pose>0 0 0.040000000000000015 0 0 0</pose>
-        <mass>0.07879985905243286</mass>
-        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.000043910611119220554</iyy><iyz>0</iyz><izz>0.0000055399578241395984</izz></inertia>
+        <mass>0.07879985905243496</mass>
+        <inertia><ixx>0.00004375137007060266</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00004391061111902782</iyy><iyz>0</iyz><izz>0.000005539957823994349</izz></inertia>
       </inertial>
       <visual name="visual"><geometry><mesh><uri>meshes/l4.stl</uri></mesh></geometry></visual>
       <collision name="collision"><geometry><mesh><uri>meshes/l4_collision.stl</uri></mesh></geometry></collision>
@@ -56,8 +56,8 @@
       <pose relative_to="__model__">0.05000000000000001 0.1 0.23000000000000007 -1.5707963267948966 0 0</pose>
       <inertial>
         <pose>0 -0.01999999999999996 0.01 0 0 0</pose>
-        <mass>0.07879985905243286</mass>
-        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.0000055399578241395984</iyy><iyz>0</iyz><izz>0.000043910611119220554</izz></inertia>
+        <mass>0.07879985905243496</mass>
+        <inertia><ixx>0.00004375137007060266</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.000005539957823994349</iyy><iyz>0</iyz><izz>0.00004391061111902782</izz></inertia>
       </inertial>
       <visual name="visual"><geometry><mesh><uri>meshes/l5.stl</uri></mesh></geometry></visual>
       <collision name="collision"><geometry><mesh><uri>meshes/l5_collision.stl</uri></mesh></geometry></collision>
@@ -66,8 +66,8 @@
       <pose relative_to="__model__">0.04999999999999999 0.10999999999999999 0.29 0 0 0</pose>
       <inertial>
         <pose>0 0 0.040000000000000015 0 0 0</pose>
-        <mass>0.07879985905243286</mass>
-        <inertia><ixx>0.00004375137007071469</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.000043910611119220554</iyy><iyz>0</iyz><izz>0.0000055399578241395984</izz></inertia>
+        <mass>0.07879985905243496</mass>
+        <inertia><ixx>0.00004375137007060266</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.00004391061111902782</iyy><iyz>0</iyz><izz>0.000005539957823994349</izz></inertia>
       </inertial>
       <visual name="visual"><geometry><mesh><uri>meshes/l6.stl</uri></mesh></geometry></visual>
       <collision name="collision"><geometry><mesh><uri>meshes/l6_collision.stl</uri></mesh></geometry></collision>

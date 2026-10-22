@@ -7,7 +7,7 @@ import type { DisplayMesh } from './mesh';
 
 /** A body as posted: its mesh and the token it goes by, or only the token of a mesh the client holds. */
 export type WireBody = Omit<BodyResult, 'mesh'> & ({ mesh: DisplayMesh; meshToken: number } | { meshRef: number });
-export type WireResult = { ok: true; revision: number; bodies: WireBody[]; ms: number; faceTable?: unknown } | Extract<EvalResult, { ok: false }>;
+export type WireResult = { ok: true; revision: number; bodies: WireBody[]; ms: number; faceTable?: unknown; shopRows?: Extract<EvalResult, { ok: true }>['shopRows'] } | Extract<EvalResult, { ok: false }>;
 
 /** What a reply transfers: its meshes' buffers (a worker's `postMessage` takes them as its transfer list; PKG-g2: no DOM type). */
 export type Transfer = ArrayBuffer;

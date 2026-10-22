@@ -24,6 +24,8 @@ function full(): StudioDoc {
   const nodes = base.nodes.map((n, i) => i === 3 ? { ...n, ...extras } as ModelNode : n);
   const values: { [K in DocField]-?: NonNullable<StudioDoc[K]> } = {
     format: 'barocss-cad-model', schema: 3, nextId: base.nextId!, units: 'mm', parameters: { w: 40 },
+    rowSources: { version: 1, rows: [] },
+    printPreview: { version: 1, layer: 0, layerMM: 0.15, supports: false, printed: true },
     configurations: { big: { w: 60 } }, pendingParts: { p: { doc: rectanglePart(5, 5, 5), rev: 'A', name: 'P' } },
     nodes, outputs: base.outputs, render: { ...defaultRender(), appearances: { b2: { ...defaultRender().defaultAppearance, roughness: 0.3 } } },
     direct: { sources: { s: 'cube' }, objects: [] }, instances: [{ id: 'i1', name: 'pin', doc: rectanglePart(4, 4, 10), position: [0, 0, 20], rotation: [0, 0, 0] }],

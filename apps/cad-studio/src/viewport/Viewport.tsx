@@ -1,8 +1,11 @@
-import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 'react';
+import type { ClearanceDisplay } from './clearanceDisplay';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef } from 'react';
+import type { PrintDisplay } from './printDisplay';
+import { printPointToModel, printSceneBounds, projectPrintBodies } from './printProjection';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
-import { PROPOSAL_ADDED, PROPOSAL_REMOVED, Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import { PROPOSAL_ADDED, PROPOSAL_REMOVED, Renderer, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
@@ -42,6 +45,8 @@ export interface ViewportHandle {
   setCamera(c: RenderCamera): void;
   /** Which renderer draws: WebGPU, the WebGL2 fallback, or none yet. */
   readonly backend: 'webgpu' | 'webgl2' | null;
+  /** Display capability diagnosis; unsupported requests retain the prior mode and section state. */
+  getDisplayModeStatus(): DisplayModeStatus | null;
   /** The engine's overlay lines shown, segments a key (G7; WebGPU; for the flow). */
   overlayLines(): Record<string, number>;
   /** The engine's overlay labels' texts, a key (G15; WebGPU; for the flow). */
@@ -53,6 +58,19 @@ export interface ViewportHandle {
 export interface Spot { point: Vec3; normal: Vec3; hole?: { d: number; depth: number; through: boolean } }
 
 interface Props {
+  /** Bed-frame print display, separate from the authored/native document. */
+  printDisplay?: PrintDisplay | null;
+  printActive?: boolean;
+  /** Appearance only, on ordinary modelling solids; no document or selection store is created. */
+  displayMode?: DisplayMode;
+  /** The application's session request, before an unsupported scope falls back to the default. */
+  requestedDisplayMode?: DisplayMode;
+  displayModeReason?: string;
+  /** Session snapshot of placed instance IDs to keep opaque; undefined restores the ordinary view. */
+  isolatedInstances?: readonly string[];
+  clearance?: ClearanceDisplay | null;
+  /** Reports backend capability failures to the existing application controls. */
+  onDisplayModeStatus?(status: DisplayModeStatus): void;
   bodies: BodyResult[];
   selection: { faces: FaceRef[]; edges: EdgeRef[]; bodies: number[] };
   ghost: Set<number>;
@@ -78,7 +96,7 @@ interface Props {
   /** A double-click on a body's face: pick the whole body; on an edge: its chain (`onPickChain`). */
   onPickBody?(body: number): void;
   onPickChain?(body: number, edge: number): void;
-  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef; vertex?: { body: number; at: Vec3 } }, additive: boolean): void;
+  onPick(hit: { face: FaceRef | null; edge: EdgeRef | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: FaceRef; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean): void;
   /** `fresh`: a new shape starts (the current one, if closed, is kept beside it). */
   onSketchShape(shape: SketchShape | null, fresh?: boolean): void;
   onCursor(p: Vec3 | null): void;
@@ -155,6 +173,33 @@ interface Props {
   /** A tool on the pointer and the overlay (G17: the 3D skeleton sketch), or none. */
   tool?: ViewportTool | null;
   onPickCage?(hit: CageHit | null, additive: boolean, grow?: 'loop' | 'ring'): void;
+}
+export function displayModeScope(props: Props): string | undefined {
+  if (props.render) return 'CAD display modes are available in Model view.';
+  if (props.analysis || props.scalarMaps?.length) return 'CAD display modes are not available with analysis.';
+  if (props.mould) return 'CAD display modes are not available with mould displays.';
+  if (props.proposal || props.direct?.length) return 'CAD display modes are not available with direct geometry or proposal previews.';
+  if (props.instancePreview) return 'CAD display modes are not available while an instance is dragged.';
+  if (props.sketch || props.cage || props.tool || props.regions?.length)
+    return 'CAD display modes are not available while a sketch, cage or tool is being edited.';
+}
+/** Copy the current placed selection so later selection changes cannot change the isolated view. */
+export function snapshotInstanceIsolation(selected: readonly string[], placed: readonly Pick<InstanceItem, 'id' | 'bodies'>[]): readonly string[] | undefined {
+  const visible = new Set(placed.filter(item => item.bodies.length > 0).map(item => item.id));
+  const snapshot = [...new Set(selected.filter(id => visible.has(id)))];
+  return snapshot.length ? snapshot : undefined;
+}
+/** Diagnose the actual bridge, rather than rejecting a backend that now draws and picks instances. */
+export function instanceDisplayStatus(status: DisplayModeStatus | null, renderer: Pick<ViewRenderer, 'setInstances' | 'pickInstanceFace'> | null, hasInstances: boolean): DisplayModeStatus | null {
+  if (!status || !hasInstances) return status;
+  if (typeof renderer?.setInstances !== 'function' || typeof renderer?.pickInstanceFace !== 'function')
+    return { ...status, supported: false, reason: 'Instance rendering requires the renderer instance bridge.' };
+  return status;
+}
+/** A cap is an instance/body hit, with no native face operation authority. Unknown faces are not caps. */
+export function instancePickFields(hit: { id: string; body: number; face: number; cap?: true }): { instance: string; instanceFace?: FaceRef; instanceCap?: { body: number } } {
+  if (hit.cap === true) return { instance: hit.id, instanceCap: { body: hit.body } };
+  return hit.face >= 0 ? { instance: hit.id, instanceFace: { body: hit.body, face: hit.face } } : { instance: hit.id };
 }
 /**
  * The overlay lines' looks (G7), as styles.css drew them in SVG; depth-tested now, their hidden parts faint (SVG drew them
@@ -260,14 +305,41 @@ function sameInstanceFaces(a: readonly InstanceFace[], b: readonly InstanceFace[
   return true;
 }
 
-export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(props, ref) {
+function printViewportProps(source: Props, projection: ReturnType<typeof projectPrintBodies>): Props {
+  const face = (ref: FaceRef | null): FaceRef | null => { const index = ref && projection.faceSources[ref.body]?.[ref.face]; return ref && index !== undefined && index !== null && index >= 0 ? { body: ref.body, face: index } : null; };
+  const edge = (ref: EdgeRef | null): EdgeRef | null => { const index = ref && projection.edgeSources[ref.body]?.[ref.edge]; return ref && index !== undefined && index !== null && index >= 0 ? { body: ref.body, edge: index } : null; };
+  const point = (p: Vec3 | null) => p ? printPointToModel(p, source.printDisplay!.summary.modelToBed) : null;
+  const faces = source.selection.faces.flatMap(ref => { const index = projection.faceSources[ref.body]?.indexOf(ref.face) ?? -1; return index >= 0 ? [{ body: ref.body, face: index }] : []; });
+  const edges = source.selection.edges.flatMap(ref => { const index = projection.edgeSources[ref.body]?.indexOf(ref.edge) ?? -1; return index >= 0 ? [{ body: ref.body, edge: index }] : []; });
+  const faceColors = source.faceColors && new Map([...source.faceColors].map(([body, colors]) => [body, new Map((projection.faceSources[body] ?? []).flatMap((native, shown) => colors.has(native) ? [[shown, colors.get(native)!] as const] : []))]));
+  return { ...source, bodies: projection.bodies, selection: { ...source.selection, faces, edges }, faceColors,
+    gizmo: null, handles: [], offsets: undefined, transforms: null, pickedVertices: undefined, measureLine: null, boundsBox: null, profiles: [],
+    clip: null, sectionHatch: null, clearance: null, threads: undefined, underlays: undefined, cloud: null, poles: undefined,
+    onPick: (hit, additive) => {
+      const nativeFace = face(hit.face), nativeEdge = edge(hit.edge);
+      if (hit.face && !nativeFace) { source.onPickBody?.(hit.face.body); return; }
+      if (hit.edge && !nativeEdge) { source.onPickBody?.(hit.edge.body); return; }
+      source.onPick({ ...hit, face: nativeFace, edge: nativeEdge, point: point(hit.point), ...(hit.vertex ? { vertex: { ...hit.vertex, at: point(hit.vertex.at)! } } : {}) }, additive);
+    },
+    onPickChain: (body, shown) => { const ref = edge({ body, edge: shown }); if (ref) source.onPickChain?.(ref.body, ref.edge); },
+    onCursor: p => source.onCursor(point(p)),
+    onContextMenu: (at, hit) => source.onContextMenu(at, { face: face(hit.face), edge: edge(hit.edge) }),
+  };
+}
+
+export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sourceProps, ref) {
+  const projection = useMemo(() => sourceProps.printDisplay ? projectPrintBodies(sourceProps.bodies, sourceProps.printDisplay) : null,
+    [sourceProps.bodies, sourceProps.printDisplay?.summaryKey, sourceProps.printDisplay?.topMM, sourceProps.printDisplay?.printed]);
+  const props = useMemo(() => projection ? printViewportProps(sourceProps, projection) : sourceProps.printActive ? { ...sourceProps, bodies: [], selection: { faces: [], edges: [], bodies: [] }, gizmo: null, handles: [], profiles: [], threads: undefined, underlays: undefined, cloud: null, poles: undefined } : sourceProps, [sourceProps, projection]);
   const canvas = useRef<HTMLCanvasElement>(null);
   const renderer = useRef<ViewRenderer | null>(null);
   const [backend, setBackend] = useState<'webgpu' | 'webgl2' | null>(null);
+  const [displayStatus, setDisplayStatus] = useState<DisplayModeStatus | null>(null);
   const theme = useRef<ThemeName>('dark'), ao = useRef(true);
   /** The theme as state, for the overlay lines whose colour follows it (G7). */
   const [themeName, setThemeName] = useState<ThemeName>('dark');
   const camera = useRef(new OrbitCamera());
+  const printCamera = useRef<{ original: RenderCamera; summary: number | null } | null>(null);
   const frame = useRef(0);
   const hover = useRef<{ face: FaceRef | null; edge: EdgeRef | null; vertex?: { body: number; at: Vec3 } | null }>({ face: null, edge: null });
   /** A corner of the body under the pointer within 7 px (an end of one of its edges), when the filter takes corners. */
@@ -275,9 +347,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const f = propsRef.current.pickFilter ?? 'all', bi = hit.edge?.body ?? hit.face?.body;
     if (bi === undefined || f === 'face' || f === 'body') return null;
     const mesh = propsRef.current.bodies[bi]?.mesh; if (!mesh) return null;
+    const print = propsRef.current.printDisplay;
+    if (print && hit.face && mesh.faces.some(face => face.index === hit.face!.face && face.id === 'section-cap')) return null;
     let best: Vec3 | null = null, d0 = 7;
     // (Each edge's two ends in turn: no pair array an edge, a pointer move at a time; PERF3 C17.)
-    for (const e of mesh.edges) for (let k = 0; k < 2; k++) { const p = k ? e.b : e.a, q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
+    for (const e of mesh.edges) for (let k = 0; k < 2; k++) { const p = k ? e.b : e.a; if (print?.printed && p[2] > print.topMM + 1e-7) continue; const q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
     return best ? { body: bi, at: best } : null;
   };
   const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | 'tool' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
@@ -315,6 +389,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const sketchShapesOf = (sk: SketchState) => [...(sk.done ?? []), ...(sk.shape ? [sk.shape] : [])];
   const [, setTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [printError, setPrintError] = useState<string | null>(null);
   const propsRef = useRef(props); propsRef.current = props;
   /** The grid step (mm) points snap to: the studio's setting (0: off, to a micrometre). */
   const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
@@ -326,6 +401,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const fitted = useRef(false);
 
   const viewState = (): ViewState => ({
+    displayMode: propsRef.current.displayMode,
+    displayModeUnsupported: displayModeScope(propsRef.current),
+    isolatedInstances: displayModeScope(propsRef.current) ? undefined : propsRef.current.isolatedInstances,
     hoverFace: hover.current.face, hoverEdge: hover.current.edge,
     selectedFaces: propsRef.current.selection.faces, selectedEdges: propsRef.current.selection.edges, selectedBodies: propsRef.current.selection.bodies,
     // (Both renderers draw a dragged body by its matrix, its turn too — G16 for WebGL2; the offsets keep its move.)
@@ -386,11 +464,26 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => {
     const r = renderer.current; if (!r) return;
     r.setBodies(props.bodies);
-    if (!fitted.current && props.bodies.length) { const b = r.bounds(); if (b) { camera.current.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); camera.current.fit(b.min, b.max); fitted.current = true; } }
+    if (!sourceProps.printActive && !fitted.current && props.bodies.length) { const b = r.bounds(); if (b) { camera.current.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); camera.current.fit(b.min, b.max); fitted.current = true; } }
     r.setState(viewState()); request();
   }, [props.bodies, backend]);
 
-  useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.faceColors, props.hiddenBodies, props.hoverBody]);
+  useEffect(() => {
+    const c = camera.current;
+    if (sourceProps.printActive) {
+      if (!printCamera.current) printCamera.current = { original: { target: [...c.target], distance: c.distance, yaw: c.yaw, pitch: c.pitch, fovY: c.fovY, ortho: c.ortho }, summary: null };
+      if (sourceProps.printDisplay && printCamera.current.summary !== sourceProps.printDisplay.summaryKey) {
+        const box = printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies);
+        if (box) { c.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); c.fit(box.min, box.max); printCamera.current.summary = sourceProps.printDisplay.summaryKey; }
+      }
+    } else if (printCamera.current) {
+      const old = printCamera.current.original; c.target = [...old.target] as Vec3; c.distance = old.distance; c.yaw = old.yaw; c.pitch = old.pitch; c.fovY = old.fovY; c.ortho = old.ortho; printCamera.current = null;
+    }
+    request();
+  }, [sourceProps.printActive, sourceProps.printDisplay?.summaryKey, backend]);
+
+  const displayScope = displayModeScope(props), hasInstances = !!props.instances?.length;
+  useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.faceColors, props.hiddenBodies, props.hoverBody, props.displayMode, props.isolatedInstances, displayScope, hasInstances, backend]);
   // (Handles and gizmos are new objects on every render of the app: drawn again only when they move.)
   const shapeOf = (v: unknown) => JSON.stringify(v, (_k, x) => typeof x === 'function' ? undefined : x);
   const overlayKey = shapeOf([props.gizmo, props.handles]);
@@ -400,6 +493,15 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setThreads?.(props.threads ?? new Float32Array()); request(); }, [props.threads, backend]);
   useEffect(() => { renderer.current?.setRegions?.(props.regions?.length ? regionMesh(props.regions) : null); request(); }, [props.regions, backend]);
   useEffect(() => { renderer.current?.setDirect?.(props.direct ?? [], props.directSelection ?? []); request(); }, [props.direct, props.directSelection, backend]);
+  useEffect(() => { renderer.current?.setClearanceDisplay?.(props.clearance ?? null); request(); }, [props.clearance, backend]);
+  useEffect(() => {
+    const r = renderer.current; if (!r) return;
+    try {
+      if (props.printDisplay && !r.setPrintDisplay) throw new Error('This renderer does not support print layers.');
+      r.setPrintDisplay?.(props.printDisplay ?? null); setPrintError(null);
+    } catch (error) { setPrintError(`Print layers (${backend ?? 'renderer'}) unavailable: ${error instanceof Error ? error.message : String(error)}`); }
+    request();
+  }, [props.printDisplay, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
   useEffect(() => { renderer.current?.setInstanceTransforms?.(props.instanceTransforms ?? null); request(); }, [props.instanceTransforms, backend]);
@@ -409,6 +511,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setMould?.(props.mould ?? null); request(); }, [props.mould, backend]);
   useEffect(() => { renderer.current?.setIsoclines?.(props.isoclines ?? null); request(); }, [props.isoclines, backend]);
   useEffect(() => { renderer.current?.setProposalOverlay?.(props.proposal ?? null); request(); }, [props.proposal, backend]);
+  useEffect(() => {
+    const r = renderer.current; if (!r || !props.onDisplayModeStatus) return;
+    // Read after the render/analysis/clip setters above, before the requested frame.
+    r.setState(viewState());
+    const status = r.getDisplayModeStatus?.();
+    if (status) {
+      const next = instanceDisplayStatus(status, r, hasInstances)!;
+      setDisplayStatus(previous => previous?.requested === next.requested && previous.effective === next.effective && previous.supported === next.supported && previous.reason === next.reason ? previous : next);
+      props.onDisplayModeStatus(next);
+    }
+  }, [props.displayMode, displayScope, props.clip, hasInstances, props.onDisplayModeStatus, backend]);
   // (G16, for the flow: the same probes on either renderer — the frame's pixels at world points or over a grid, the edge and
   // the direct object a pick finds at a world point.)
   useEffect(() => {
@@ -446,6 +559,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     };
     w.__studioEye = () => camera.current.eye();
     w.__studioDirectAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickDirect?.(q[0], q[1], camera.current) ?? null; };
+    w.__studioInstanceAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickInstanceFace?.(q[0], q[1], camera.current) ?? null; };
+    w.__studioInstanceEdgeAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickInstanceEdge?.(q[0], q[1], camera.current) ?? null; };
+    w.__studioProject = (p: Vec3) => screen(p);
   }, [backend]);
   // G7: the bounding box, the measure line, the underlays' polylines and the SubD cage's edges as engine lines on WebGPU —
   // made when they change (keyed by their content: the App hands new objects each render), not projected every frame;
@@ -510,14 +626,18 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
 
   useImperativeHandle(ref, () => ({
     camera: camera.current,
-    fit(box) { const b = box ?? renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
-    setView(name) { camera.current.setView(name); const b = renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
+    fit(box) { const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : box ?? renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
+    setView(name) { camera.current.setView(name); const b = sourceProps.printActive ? sourceProps.printDisplay && printSceneBounds(sourceProps.bodies, sourceProps.printDisplay.summary.modelToBed, sourceProps.hiddenBodies) : renderer.current?.bounds(); if (b) camera.current.fit(b.min, b.max); request(); },
     frameSketch(min, max, plane, insets = { left: 0, right: 0 }) {
       const w = Math.max(1, canvas.current!.clientWidth), h = Math.max(1, canvas.current!.clientHeight);
       camera.current.aspect = w / h; camera.current.faceNormal(plane.normal);
       camera.current.frameAt(toWorld(plane, [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2]), [max[0] - min[0], max[1] - min[1]], insets.left / w, insets.right / w); request();
     },
     toggleOrtho() { camera.current.ortho = !camera.current.ortho; request(); return camera.current.ortho; },
+    getDisplayModeStatus() {
+      const status = renderer.current?.getDisplayModeStatus?.() ?? null;
+      return instanceDisplayStatus(status, renderer.current, !!propsRef.current.instances?.length);
+    },
     setTheme(name) { theme.current = name; setThemeName(name); renderer.current?.setTheme(name); request(); },
     setAo(on) { ao.current = on; if (renderer.current) renderer.current.aoEnabled = on; request(); },
     capture() { return renderer.current?.capture ? renderer.current.capture() : Promise.resolve(null); },
@@ -908,7 +1028,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const direct = r.pickDirect?.(x, y, camera.current) ?? null;
     if (direct) { propsRef.current.onPick({ face: null, edge: null, point: null, direct }, e.shiftKey); return; }
     const instance = r.pickInstanceFace?.(x, y, camera.current) ?? null;
-    if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, instance: instance.id, instanceFace: instance.face >= 0 ? { body: instance.body, face: instance.face } : undefined }, e.shiftKey); return; }
+    if (instance) { propsRef.current.onPick({ face: null, edge: null, point: null, ...instancePickFields(instance) }, e.shiftKey); return; }
     const { face, edge } = pickAt(r, x, y), vertex = vertexAt(x, y, w, h, { face, edge });
     if (vertex) { propsRef.current.onPick({ face: null, edge: null, point: vertex.at, vertex }, e.shiftKey); return; }
     propsRef.current.onPick({ face, edge, point: surfacePoint(x, y, w, h, face) }, e.shiftKey);
@@ -920,7 +1040,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const [lx, hx, ly, hy] = [Math.min(x0, x1), Math.max(x0, x1), Math.min(y0, y1), Math.max(y0, y1)];
     const crossing = x1 < x0; const picked: number[] = [];
     propsRef.current.bodies.forEach((b, i) => {
+      if (propsRef.current.printActive && propsRef.current.hiddenBodies?.has(i)) return;
       const P = b.mesh.positions; let inside = 0, total = 0;
+      if (propsRef.current.printActive) {
+        // G19 can retain unused original vertices; only the displayed triangles can enter this box.
+        for (const index of new Set(b.mesh.indices)) {
+          const k = index * 3, q = camera.current.project([P[k], P[k + 1], P[k + 2]], w, h); total++;
+          if (q[0] >= lx && q[0] <= hx && q[1] >= ly && q[1] <= hy) inside++;
+        }
+        if (crossing ? inside > 0 : inside === total && total > 0) picked.push(i);
+        return;
+      }
       const step = Math.max(3, Math.floor(P.length / 3 / 400) * 3);
       for (let k = 0; k < P.length; k += step) {
         const q = camera.current.project([P[k], P[k + 1], P[k + 2]], w, h); total++;
@@ -1161,6 +1291,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
 
   return (
     <div className="viewport" data-renderer={backend ?? undefined}
+      data-display-mode-requested={props.requestedDisplayMode ?? props.displayMode ?? 'shaded-with-edges'}
+      data-display-mode-effective={displayStatus?.effective ?? props.displayMode ?? 'shaded-with-edges'}
+      data-display-mode-supported={props.displayModeReason ? false : displayStatus?.supported}
+      data-display-mode-reason={props.displayModeReason ?? displayStatus?.reason}
       onDragOver={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), false); }}
       onDrop={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), true); }}>
       <canvas ref={canvas} className="vp-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerLeave}
@@ -1169,6 +1303,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
         onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
       {overlay()}
       {error && <div className="vp-error" role="alert">{error}</div>}
+      {printError && <div className="vp-error" role="alert">{printError}</div>}
     </div>
   );
 });

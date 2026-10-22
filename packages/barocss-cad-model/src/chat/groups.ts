@@ -26,10 +26,10 @@ export const GROUPS: Record<string, Group> = {
       edit: ['edit_feature', 'index, values? | feature?'],
       delete: ['delete_feature', 'index'],
       material: ['set_material', 'material, bodies?, part? — what bodies are made of'],
-      stock: ['set_stock', 'rows?, allowance? — the shop\'s stock list and the allowance'],
-      frame_stock: ['set_frame_stock', 'rows?, kerf? — the shop\'s stock lengths for frames and the saw\'s kerf (FRb)'],
-      frame_sections: ['set_frame_sections', 'rows?, remove? — your section library: rows a frame names by {kind: "library", id} (FRc)'],
-      welds: ['set_welds', 'welds?, remove? — your welds on the frame\'s joints (kind, size, all round, notes; FRd1)'],
+      stock: ['set_stock', 'file?, allowance? — the shop\'s stock list and the allowance'],
+      frame_stock: ['set_frame_stock', 'file?, kerf? — the shop\'s stock lengths for frames and the saw\'s kerf (FRb)'],
+      frame_sections: ['set_frame_sections', 'file?, remove? — your section library: rows a frame names by {kind: "library", id} (FRc)'],
+      welds: ['set_welds', 'welds?, remove?, beadOwnership? — joint welds; ownership {version:1,policy:"equal-length"}, null removes, absent retains; policy-only allowed'],
       casting: ['set_casting', 'machined?, allowance?, shrink?, gate? — a casting\'s machined faces, your allowances and its gate'],
       batch: ['apply_ops', 'ops: [{tool, args, opId?}], dryRun? — several calls all or nothing'],
     },
@@ -49,6 +49,7 @@ export const GROUPS: Record<string, Group> = {
       fit_clearance: ['fit_clearance', 'hole?, shaft?, hole_class?, shaft_class?, size? — a hole–shaft fit\u2019s limits and clearance from your fit tables (D155)'],
       welds: ['weld_list', '— the frame\'s weld joints, seams from the geometry, sizes yours or estimated (FRd1)'],
       cutlist: ['cut_list', 'csv? — a frame\u2019s members to cut: rows of identical ones, lengths, end cuts, mass (FR4a); nested into the stock lengths (FRb)'],
+      bom: ['output_bom', 'expectedRevision? — BOM files'], purchase_csv: ['output_purchase_csv', 'withMade?, expectedRevision?'], clearance: ['output_clearance', 'nearMM?, expectedRevision? — current assembly map'], cam: ['output_cam_package', 'part?, toolMM?, expectedRevision? — NOT FOR PRODUCTION'],
       render: ['render_views', 'highlight?, section? — pictures of the part'],
       select: ['select', 'faces?, edges?, bodies? — shows them selected in the studio'],
       manufacturability: ['check_printability', 'direction?, finish?, sides? — the report for the part\'s process: printing, injection moulding (pull, finish, halves), machining, casting (pull)'],
@@ -73,7 +74,7 @@ export const GROUPS: Record<string, Group> = {
     title: 'Assembly',
     about: 'Parts placed and mated with the base part; changes to it are proposed. A part tool with "part" builds that part.',
     actions: {
-      get: ['get_assembly', 'faces_of?'], add_part: ['add_part', 'name, copy_of?, position?, rotation?, grounded?'], place: ['place_part', 'part, position?, rotation?, name?, grounded?, hidden?'],
+      bundle: ['output_bundle', 'baseline?, expectedRevision? — approved current evidence files'], get: ['get_assembly', 'faces_of?'], add_part: ['add_part', 'name, copy_of?, position?, rotation?, grounded?'], place: ['place_part', 'part, position?, rotation?, name?, grounded?, hidden?'],
       delete_part: ['delete_part', 'part'], add_mate: ['add_mate', 'kind, a, b, distance?, angle?, flip?'], edit_mate: ['edit_mate', 'id, distance?, angle?, flip?'],
       delete_mate: ['delete_mate', 'id'], insert: ['insert_part', 'library, part, variant?, params?, name?, position?, rotation?'], snap: ['snap_part', 'a, b, offset?'],
       joints: ['get_joints', '— the assembly as links and joints from its base link'], pose: ['forward_kinematics', 'values: {joint key: radians | mm} — where each part is'], inertia: ['link_inertia', '— each link\'s mass, centre of mass and inertia (SI, link frame)'], urdf: ['export_urdf', 'name? — the robot as URDF, checked'], mjcf: ['export_mjcf', 'name? — the robot as a MuJoCo MJCF model, checked'], sweep: ['sweep_path', 'to, from? — a joint move checked for collisions, certified'], gravity: ['gravity_torques', 'values?, g? — the static torque each joint holds'], move: ['motion_torques', 'to, profile, limits, from?, joint_limits? — a move\'s peak and RMS torques'], size: ['size_actuators', 'to, profile, limits, from?, joint_limits?, dwell_s?, life_h?, estop_rad_s2?, coupled?, motors?, reducers? — a motor and reducer per joint, every value sourced'], set_joints: ['set_joints', 'base?, joints?: {key: {lower?, upper?, effort?, velocity?} | null}'],
@@ -82,15 +83,15 @@ export const GROUPS: Record<string, Group> = {
   library: {
     title: 'Library',
     about: 'Standard and team parts.',
-    actions: { standards: ['standards_lookup', 'table?, row?, field? — a standards-derived value and its source'], list: ['list_library', 'library?'], add: ['add_library', 'library — a library document'], add_part: ['add_library_part', 'library, part, face, point, variant?, params?, x_direction?, context?'] },
+    actions: { load_rows: ['load_rows', 'kind, file, part?, feature? — rows from the person’s conversation file'], standards: ['standards_lookup', 'table?, row?, field? — a standards-derived value and its source'], list: ['list_library', 'library?'], add: ['add_library', 'library — a library document'], add_part: ['add_library_part', 'library, part, face, point, variant?, params?, x_direction?, context?'] },
   },
-  print: { title: '3D print', about: 'Printability on an FDM printer (check: as query.manufacturability).', actions: { check: ['check_printability', 'direction?'], orient: ['orient_for_print', 'apply?'] } },
+  print: { title: '3D print', about: 'Printability on an FDM printer (check: as query.manufacturability).', actions: { layers: ['output_print_layers', 'part?, layers?, layerMM?, direction?, limitDeg?, expectedRevision?'], check: ['check_printability', 'direction?'], orient: ['orient_for_print', 'apply?'] } },
   drawing: {
     title: 'Drawing',
     about: 'The part\'s 2D drawing; a drawing change is always the user\'s, so make it as ops of proposals.propose.',
     actions: {
       issues: ['drawing_issues', ''], tolerances: ['tolerance_suggestions', 'mode?'], auto: ['auto_dimension', 'layout?'], fix: ['fix_drawing', 'codes?'],
-      accept: ['accept_tolerances', 'ids?, mode?'], set: ['set_drawing', 'sheet?, scale?, projection?, front?, views?, tolerancing?, title?'],
+      accept: ['accept_tolerances', 'ids?, mode?'], set: ['set_drawing', 'scope?: {kind: part, part?: instance id} | {kind: assembly}; sheet?, scale?, projection?, front?, views?, tolerancing?, title?, weldSymbols?, balloons?, sections?: [{id,view,at}], tables?: [{id,from: bom|cut-list|weld-list,title?,at?,corner?,whole?}]; lists replace ([] clears), omitted keeps; all changes need user approval'],
     },
   },
   subd: {
@@ -158,11 +159,19 @@ export function v2Text(text: string): string {
   for (const [a, b] of ONE_WORD) out = out.split(a).join(b);
   return out;
 }
+const isPersonFileSource = (v: unknown): boolean => isRecord(v) && typeof v.filename === 'string' && v.suppliedBy === 'person' && Number.isInteger(v.turn) && typeof v.sha256 === 'string' && /^[a-f0-9]{64}$/.test(v.sha256);
+
 /** A result's value as a v2 caller reads it: strings by v2Text, keys as they are, a stored call `{tool, args}` (a proposal's op) as its v2 call. */
 export function v2Value(v: unknown): unknown {
   if (typeof v === 'string') return v2Text(v);
   if (Array.isArray(v)) return v.map(v2Value);
   if (!isRecord(v)) return v;
+  // Generated files are byte-bearing artifacts, not tool instructions. Translating their text would
+  // change user labels/sources and invalidate the advertised byte count and SHA-256.
+  if (typeof v.path === 'string' && typeof v.mime === 'string' && typeof v.bytes === 'number' && typeof v.sha256 === 'string' && ((v.encoding === 'utf-8' && typeof v.text === 'string') || (v.encoding === 'bytes' && Array.isArray(v.data)))) return v;
+  // Provenance is evidence data too. Keep original filenames and the row ids bound to their digest.
+  if (typeof v.kind === 'string' && typeof v.id === 'string' && ['local', 'inherited', 'override'].includes(String(v.origin))) return v;
+  if (isPersonFileSource(v) || (typeof v.kind === 'string' && typeof v.id === 'string' && typeof v.fingerprint === 'string' && isPersonFileSource(v.file))) return v;
   const out: Record<string, unknown> = {};
   for (const k of Object.keys(v)) out[k] = k === 'tool' ? v[k] : v2Value(v[k]);
   const call = typeof v.tool === 'string' && (v.args === undefined || isRecord(v.args)) ? v2Call(v.tool, out.args) : null;

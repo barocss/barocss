@@ -3,6 +3,9 @@
 // file itself is left as it is until it is saved again.
 import { prefixDoc, type StudioDoc } from './doc';
 import { bodyKeyFor, withIds } from './ids';
+import { documentBeadOwnershipError } from '../frames/beadOwnership';
+import { documentPrintPreviewProblem } from './printPreview';
+import { documentBearingHousingProblem } from './bearingContext';
 
 /**
  * 2: every feature has a stable id (engine/ids.ts); a schema-1 file's node i becomes `n<i>`, its names unchanged.
@@ -18,6 +21,12 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   const o = raw as Record<string, unknown>;
   if (!o || typeof o !== 'object' || o.format !== 'barocss-cad-model') return { error: 'This is not a BaroCSS model file (no barocss-cad-model format).' };
   if (!Array.isArray(o.nodes)) return { error: 'This model file has no features list.' };
+  const previewProblem = documentPrintPreviewProblem(o);
+  if (previewProblem) return { error: previewProblem };
+  const housingProblem = documentBearingHousingProblem(o);
+  if (housingProblem) return { error: housingProblem };
+  const ownershipError = documentBeadOwnershipError(o);
+  if (ownershipError) return { error: ownershipError };
   const schema = o.schema === undefined ? 0 : Number(o.schema), notes: string[] = [];
   if (!Number.isInteger(schema) || schema < 0) return { error: `This model file has an unreadable schema (${String(o.schema)}).` };
   if (schema > SCHEMA) return { error: `This model was saved by a newer cad-studio (schema ${schema}; this one reads up to ${SCHEMA}). Open it there, or save it from there in an older form.` };
