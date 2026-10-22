@@ -8,14 +8,21 @@
 // pending in the map and filled later (`fillOverlap`), nearest first; each fill carries the map's version and the pair's
 // pose key, so a result for a pose no longer shown is dropped. Positions are each body's own (local) frame: they move
 // with the part; the overlap in body a's.
+// A9-5/6: bodies at no distance are in `contact` until the Boolean says which: `touching` (no volume — coincident faces,
+// a welded member on its neighbour, a plate on its rails) or an `overlap` (a clash). A pair a feature seats together
+// (a bearing on its shaft and in its housing, a key in its seat and its hub, an O-ring in its gland, a ring in its
+// groove, a bead on its joint) or a declared fit pair joins is `designed`, its source named, whatever its volume.
 import { booleanAnalytic, brepMassProperties, meshClearance, nearestDistance2, transformBrep, triangleBvh, type Brep, type TriangleBvh } from '@barocss/cad';
 import type { PartInstance, StudioDoc } from '../engine/doc';
+import { featureId } from '../engine/ids';
 import { rotationMatrix } from '../assembly/mates';
 import { partBreps, type BodyResult } from '../engine/evaluate';
 import { bodyMesh, type DisplayMesh } from '../engine/mesh';
 import type { Evaluate } from '../chat/tools';
 
 export const CLEARANCE_MAP_VERSION = 'clearance-map-v1';
+/** At most this overlap (mm³) is no volume: faces coincident, the Boolean's round-off. */
+export const TOUCHING_MM3 = 1e-6;
 type Vec3 = [number, number, number];
 /** A body as the assembly places it: world = m·local + t. */
 export interface Pose { m: number[]; t: Vec3 }
@@ -23,7 +30,12 @@ export interface Pose { m: number[]; t: Vec3 }
 export interface Band { positions: Float32Array; indices: Uint32Array; field: Float32Array }
 export interface ClearancePair {
   a: string; b: string;
-  state: 'overlap' | 'near' | 'clear';
+  /** contact: no distance, the volume pending; then touching (none) or overlap (a clash); designed: seated by its source. */
+  state: 'overlap' | 'contact' | 'touching' | 'designed' | 'near' | 'clear';
+  /** A designed pair's source: the feature or fit pair that seats the two together. */
+  designed?: string;
+  /** An O-ring against what squeezes it: the most its overlap is by design (more is a clash). */
+  squeezeMM3?: number;
   minGapMM: number;
   /** The closest points, each in its own body's frame, and the faces they lie on by persistent name. */
   closest: { a: Vec3; b: Vec3; faceA: string; faceB: string };
@@ -46,7 +58,13 @@ export interface ClearanceMap {
 export interface OverlapFill { a: string; b: string; revision: string; pose: string; overlap: NonNullable<ClearancePair['overlap']> }
 
 /** A body of the assembly: its key (`<inst>/` for a placed part's), its display mesh and B-rep in its own frame, its pose. */
-export interface PlacedBody { key: string; mesh: DisplayMesh; brep: Brep | null; pose: Pose }
+export interface PlacedBody {
+  key: string; mesh: DisplayMesh; brep: Brep | null; pose: Pose;
+  /** The bodies a feature of its part seats it with, by key, and that feature (A9-6). */
+  designedWith?: ReadonlyMap<string, string>;
+  /** An O-ring's squeeze (A9-6): designed against whatever squeezes it, in any part, up to the gland's overlap figure. */
+  squeeze?: { ring: string; mm3: number };
+}
 interface Prepared extends PlacedBody { world: Float64Array; local: Float64Array; lo: Vec3; hi: Vec3; bvh: TriangleBvh; localBvh: TriangleBvh; hash: string }
 
 const IDENTITY: Pose = { m: [1, 0, 0, 0, 1, 0, 0, 0, 1], t: [0, 0, 0] };
@@ -65,10 +83,49 @@ export async function assemblyPlacedBodies(doc: StudioDoc, evaluate: Evaluate): 
   const out: PlacedBody[] = [];
   const take = (d: StudioDoc, bodies: readonly BodyResult[], prefix: string, pose: Pose) => {
     let breps: Map<string, Brep> = new Map(); try { breps = new Map(partBreps(d).map(x => [x.key, x.brep])); } catch { /* no B-reps: overlaps refused */ }
-    for (const b of bodies) out.push({ key: `${prefix}${b.key}`, mesh: b.mesh, brep: breps.get(b.key) ?? null, pose });
+    const seats = designedSeats(d, bodies);
+    for (const b of bodies) {
+      const own = seats.get(b.key);
+      const ring = b.element?.kind === 'oring' ? b.element.report : null;
+      out.push({ key: `${prefix}${b.key}`, mesh: b.mesh, brep: breps.get(b.key) ?? null, pose, ...(own ? { designedWith: new Map([...own].map(([k, v]) => [`${prefix}${k}`, v])) } : {}), ...(ring ? { squeeze: { ring: ring.ring, mm3: ring.overlapMM3 } } : {}) });
+    }
   };
   const base = await evaluate(doc); if (base?.ok) take(doc, base.bodies, '', IDENTITY);
   for (const inst of doc.instances ?? []) if (!inst.hidden) { const r = await evaluate(inst.doc); if (r?.ok) take(inst.doc, r.bodies, `${inst.id}/`, poseOf(inst)); }
+  return out;
+}
+/** The body holding a feature's faces (its id the faces' prefix), else the one it made. */
+function bodyOfFeature(doc: StudioDoc, bodies: readonly BodyResult[], node: number): BodyResult | undefined {
+  const id = featureId(doc.nodes, node), prefix = `${id}.`;
+  return bodies.find(b => b.mesh.faces.some(f => f.name.split('+').some(n => n.startsWith(prefix)))) ?? bodies.find(b => b.ref?.node === node);
+}
+/** A9-6: the pairs of a part's bodies its features seat together, each with that feature: both ways, by body key. */
+export function designedSeats(doc: StudioDoc, bodies: readonly BodyResult[]): Map<string, Map<string, string>> {
+  const out = new Map<string, Map<string, string>>();
+  const tie = (a: BodyResult | undefined, b: BodyResult | undefined, source: string) => {
+    if (!a || !b || a === b) return;
+    for (const [x, y] of [[a, b], [b, a]]) { const m = out.get(x.key) ?? new Map<string, string>(); if (!m.has(y.key)) m.set(y.key, source); out.set(x.key, m); }
+  };
+  for (const b of bodies) {
+    if (b.element?.kind === 'weld-bead') { for (const m of bodies) if (m.cutPiece) tie(b, m, `weld bead ${b.key}`); continue; }
+    const i = b.ref?.node, n = i === undefined ? undefined : doc.nodes[i];
+    if (!n) continue;
+    const label = featureId(doc.nodes, i!);
+    if (n.kind === 'bearing') {
+      tie(b, bodyOfFeature(doc, bodies, n.shaft), `bearing ${label} (${n.row}) on its shaft${n.shaftClass ? `, seat ${n.shaftClass}` : ''}`);
+      if (n.housing !== undefined) tie(b, bodyOfFeature(doc, bodies, n.housing), `bearing ${label} (${n.row}) in its housing${n.housingClass ? `, seat ${n.housingClass}` : ''}`);
+    } else if (n.kind === 'key') {
+      tie(b, bodyOfFeature(doc, bodies, n.shaft), `key ${label} in its keyseat`);
+      if (n.hub !== undefined) tie(b, bodyOfFeature(doc, bodies, n.hub), `key ${label} in its hub's keyway`);
+    } else if (n.kind === 'oring') {
+      tie(b, bodyOfFeature(doc, bodies, n.gland), `O-ring ${label} in its gland ${featureId(doc.nodes, n.gland)} (its squeeze)`);
+    } else if (n.kind === 'retaining-ring') {
+      tie(b, bodyOfFeature(doc, bodies, n.shaft), `ring ${label} in its groove`);
+    }
+  }
+  // (A declared fit pair: the bodies holding its two faces.)
+  const holding = (face: string) => bodies.find(b => b.mesh.faces.some(f => f.name === face));
+  for (const p of doc.fits?.pairs ?? []) tie(holding(p.hole), holding(p.shaft), `fit pair ${p.hole} / ${p.shaft}`);
   return out;
 }
 export const poseOf = (inst: PartInstance): Pose => ({ m: [...(rotationMatrix(inst.rotation) as unknown as number[])], t: [inst.position[0], inst.position[1], inst.position[2]] });
@@ -101,9 +158,13 @@ export function clearanceMap(bodies: readonly PlacedBody[], o: { nearMM?: number
   let bandMS = 0;
   for (const [i, j] of cand) {
     const A = ps[i], B = ps[j], c = meshClearance(A.world, A.mesh.indices, B.world, B.mesh.indices, { bvhA: A.bvh, bvhB: B.bvh });
-    const gap = c.distanceMM, state = gap === 0 ? 'overlap' : gap <= near ? 'near' : 'clear';
+    const ring = A.squeeze ?? B.squeeze, gap = c.distanceMM;
+    const designed = A.designedWith?.get(B.key) ?? B.designedWith?.get(A.key) ?? (ring ? `O-ring ${ring.ring}: its squeeze, up to ${+ring.mm3.toFixed(4)} mm³ (its gland's figure)` : undefined);
+    const state: ClearancePair['state'] = gap === 0 ? designed ? 'designed' : 'contact' : gap <= near ? 'near' : 'clear';
     const pair: ClearancePair = { a: A.key, b: B.key, state, minGapMM: gap, closest: { a: c.pointA ? unapply(A.pose, c.pointA) : [0, 0, 0], b: c.pointB ? unapply(B.pose, c.pointB) : [0, 0, 0], faceA: faceOf(A.mesh, c.triangleA), faceB: faceOf(B.mesh, c.triangleB) }, pose: `${A.hash}.${B.hash}` };
-    if (state === 'overlap') pair.overlap = A.brep && B.brep ? { pending: true } : { refused: 'no exact solid for one of the two bodies (a mesh body): its overlap is shown from the meshes only' };
+    if (designed) pair.designed = designed;
+    if (ring && !(A.designedWith?.get(B.key) ?? B.designedWith?.get(A.key))) pair.squeezeMM3 = ring.mm3;
+    if (gap === 0) pair.overlap = A.brep && B.brep ? { pending: true } : { refused: 'no exact solid for one of the two bodies (a mesh body): touching or overlapping is not told apart' };
     if (state !== 'clear' && o.bands) { const tb = performance.now(); pair.band = { a: bandOf(A, B, near), b: bandOf(B, A, near) }; bandMS += performance.now() - tb; }
     pairs.push(pair);
   }
@@ -186,6 +247,10 @@ export function applyFill(map: ClearanceMap, f: OverlapFill): boolean {
   const p = map.pairs.find(x => x.a === f.a && x.b === f.b);
   if (!p || p.pose !== f.pose || !p.overlap || !('pending' in p.overlap)) return false;
   p.overlap = f.overlap; map.pending--;
+  // (A9-5: in contact, no volume — touching; some — a clash. A designed pair stays designed, its volume given.)
+  if (p.state === 'contact' && 'volumeMM3' in f.overlap) p.state = f.overlap.volumeMM3 <= TOUCHING_MM3 ? 'touching' : 'overlap';
+  // (An O-ring overlapping what squeezes it by more than its gland's figure: a clash, its declared squeeze still said.)
+  if (p.state === 'designed' && p.squeezeMM3 !== undefined && 'volumeMM3' in f.overlap && f.overlap.volumeMM3 > p.squeezeMM3 * (1 + 1e-9) + TOUCHING_MM3) p.state = 'overlap';
   return true;
 }
 /** The pending pairs, nearest first (crossing ones by their overlap's likely size: the boxes' common volume, largest first). */
