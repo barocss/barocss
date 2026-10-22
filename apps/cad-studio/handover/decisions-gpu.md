@@ -913,3 +913,75 @@ publish, no new dependency (the lockfile untouched).
   unit 82/82, `test:consumer` 3/3, browser 13/13; studio tsc clean, suite 203/203; `FLOW_ONLY` on step 48 (the render
   workspace's shader material, `materialShader`'s other user) on WebGPU 2/2 in 9 s (load 33–54). Not run: the full
   flow, the cad-model suite, benches, the docs site build (G18.3 builds it).
+
+## G18.3 — the docs' example screenshots captured again with the current viewer (2026-10-22)
+
+- **How** (`apps/library-docs/scripts/capture-examples.mjs`, new — there was no capture script; the old images were
+  taken by hand): the site built locally (every `build-*.mjs` bundle, then `vitepress build`; 119 s + 25 s) and served
+  from `docs/.vitepress/dist` by the script itself; each preset opened at `/playground#<anchor>`, its state set, and its
+  element shot at the old image's width — the whole example panel (`section.visual-examples`, the 2× shots), the canvas,
+  or the display pose's owned slot — the pixel ratio chosen from the element's CSS width (the site's fixed bar hidden,
+  so a scrolled element is not under it). The states are the ones the pages describe or the old images show: the
+  material functions at amount 0.25, the GPU material at 0 and 1, the two phase variants at π/2 (the old value cannot
+  be read from those images; the caustics page suggests π/2), the adaptive sampling's coarser 0.2 mm, the quantity
+  functions' default factor 1, the dome's rise 3.6 cm, the display pose's 90° pose, physics after 20 steps.
+- **What changed in them**: the viewer's output (the WebGPU viewer and the G18.2 hosts in place of the old WebGL2
+  ones: the shader demos as before within the colour model; the scenes framed by the current viewer, e.g. the rounded
+  stack seen more obliquely; the dome and the quantity wall larger in frame) and, in the 2× panel shots, the example
+  component's current layout (category tabs and the library / example selects in place of the old rows of buttons — so
+  those images are 130–230 px taller). Six presets are application Canvas2D hosts, not the viewer (CAD curve, nonunit
+  curve, adaptive sampling, discrete material, generated scene, physics): captured again too, for one current set.
+- **Replaced** (41 files, `apps/library-docs/docs/public/examples`, 3.4 → 3.2 MB in all; `example-organization.jpg`,
+  referenced by no page, left as it is):
+
+  | file | shot | size before → after | bytes | state | host (report's backend) |
+  | --- | --- | --- | --- | --- | --- |
+  | gpu-scene.png | panel | 1152×1069 → 1152×1275 | 91 → 110 KB | as loaded | WebGPU viewer · showScene |
+  | cad-curve.png | panel | 1152×1069 → 1152×1247 | 94 → 107 KB | as loaded | CAD evaluation → host Canvas2D drawing |
+  | cad-surface.png | panel | 1152×1069 → 1152×1275 | 105 → 132 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | cad-extrude.png | panel | 1152×1145 → 1152×1275 | 120 → 111 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | cad-parameters.png | panel | 1152×1145 → 1152×1275 | 131 → 119 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | gpu-six-shapes.png | panel | 1152×1117 → 1152×1247 | 124 → 134 KB | as loaded | WebGPU viewer · showScene |
+  | viewer-panel.png | panel | 1152×1193 → 1152×1323 | 104 → 107 KB | as loaded | @barocss/viewer on the @barocss/gpu WebGPU viewer |
+  | physics-step.png | panel | 1152×1193 → 1152×1323 | 164 → 166 KB | Advance 20 steps | Physics CPU steps → host Canvas2D projection |
+  | gpu-material.png | panel | 1152×1109 → 1152×1287 | 84 → 105 KB | amount 0 | CAD sampling → WebGPU viewer mesh |
+  | gpu-material-amount1.png | panel | 1152×1109 → 1152×1287 | 84 → 104 KB | amount 1 | CAD sampling → WebGPU viewer mesh |
+  | material-rgb.png | panel | 1152×1185 → 1152×1315 | 98 → 109 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-sin.png | panel | 1152×1157 → 1152×1287 | 97 → 109 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-cos.png | panel | 1152×1157 → 1152×1287 | 98 → 109 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-radians.png | panel | 1152×1185 → 1152×1315 | 104 → 115 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-pow.png | panel | 1152×1157 → 1152×1287 | 97 → 108 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-abs.png | panel | 1152×1185 → 1152×1315 | 101 → 111 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-min.png | panel | 1152×1157 → 1152×1287 | 96 → 106 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-max.png | panel | 1152×1157 → 1152×1287 | 96 → 106 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-clamp.png | panel | 1152×1157 → 1152×1287 | 98 → 108 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-smoothstep.png | panel | 1152×1157 → 1152×1287 | 99 → 111 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-mix.png | panel | 1152×1185 → 1152×1315 | 101 → 111 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | advanced-shader.png | canvas | 640×420 → 640×421 | 403 → 206 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | cad-curved-extrude.png | canvas | 640×420 → 640×421 | 16 → 43 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | cad-nonunit-curve.png | canvas | 640×420 → 640×421 | 22 → 21 KB | as loaded | CAD evaluation → host Canvas2D drawing |
+  | cad-weighted-parameters.png | canvas | 640×420 → 640×421 | 24 → 32 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | gpu-crossed-capsules.png | canvas | 640×420 → 640×421 | 37 → 36 KB | as loaded | WebGPU viewer · showScene |
+  | gpu-rounded-stack.png | canvas | 640×420 → 640×421 | 18 → 19 KB | as loaded | WebGPU viewer · showScene |
+  | material-transition-window.png | canvas | 640×420 → 640×421 | 19 → 17 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | advanced-shader-phase.png | canvas | 640×420 → 640×421 | 403 → 206 KB | phase 1.5708 | Example WebGPU viewer · public WGSL repeating UV material |
+  | contour-shader.jpg | canvas | 462×303 → 462×303 | 24 → 38 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | discrete-material.jpg | canvas | 462×288 → 462×290 | 13 → 18 KB | as loaded | Public CPU material evaluation → app Canvas2D swatches |
+  | generated-scene.jpg | canvas | 462×303 → 462×304 | 19 → 24 KB | as loaded | Application Canvas2D diagnostic local boxes |
+  | halftone-shader.jpg | canvas | 462×303 → 462×303 | 12 → 16 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | reusable-shader.jpg | canvas | 462×303 → 462×303 | 11 → 15 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | weave-shader.jpg | canvas | 462×303 → 462×303 | 14 → 20 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | cad-adaptive-sampling.jpg | canvas | 462×303 → 462×304 | 13 → 19 KB | Coarser display · 0.2 mm | Public CAD sampling → application browser Canvas2D drawing |
+  | cad-quantity-functions.jpg | canvas | 462×303 → 462×303 | 8 → 11 KB | factor: scalar = 2 → factor: scalar = 1 | Public CAD Source3 → sampled wall → WebGPU viewer mesh |
+  | cad-rational-dome.jpg | canvas | 462×303 → 462×303 | 8 → 13 KB | value: 2.4 cm → value: 3.6 cm | CAD sampling → WebGPU viewer mesh |
+  | caustics-shader.jpg | canvas | 570×374 → 570×375 | 22 → 34 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | caustics-shader-phase.jpg | canvas | 570×374 → 570×375 | 22 → 34 KB | phase 1.5708 | Example WebGPU viewer · public WGSL repeating UV material |
+  | viewer-display-pose.jpg | owned | 462×522 → 462×341 | 14 → 10 KB | Apply 90° display pose | Public Viewer on the @barocss/gpu WebGPU viewer |
+- **Before and after** (side by side, the old first; in the session notes folder `g18-screenshots/`): the weave and
+  contour shaders (the same patterns), the plasma shader and the rounded stack, the adaptive sampling and the display
+  pose, the dome and the quantity wall, the mix and physics panels.
+- **Local only**: nothing published or deployed; no font file added anywhere (the owner's "아이콘 글꼴 프로젝트에
+  넣지마"). The site's build output (`docs/.vitepress/dist`, `generated/`, `cache/`) is ignored, as before.
+- **Not fixed, noted**: `apps/library-docs` `check:docs` stops at "Manifest drift: @barocss/gpu" (the recorded
+  current-manifest commit predates later gpu manifest edits) — it does so at `858710053` too, before G18; recording a
+  new manifest commit is the docs inventory's explicit step (`inventory.mjs --write --commit`), left to its owner.

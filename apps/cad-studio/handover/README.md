@@ -898,6 +898,10 @@ acceleration → benches.
   segments point to point; points dragged and solved live (held at the pointer where the constraints let them go there,
   else as near as they let them); the selection's constraints, their marks and values; FRg's diagnosis on the points and
   marks (free blue, redundant amber, unmet red); applied as one skeleton feature, stored solved. Alike on both renderers.
+- **G18** (2026-10-22): done, the owner's three (G18.1–3). The packed `@barocss/gpu`: CAD external in its bundle
+  (1.24 → 0.73 MB, CAD's definitions gone), no source, `test:consumer` green. The repeating UV shader demos: lowered to
+  WGSL (as the GLSL path within 2/255 off fract's jumps), drawn by the WebGPU viewer in the docs (no app-owned WebGL2).
+  The docs' 41 example screenshots captured again from the built site with the current viewer (a capture script).
 - **WebGL2 support statement** (after G16): the WebGL2 fallback draws the bodies (moved and turned as dragged), their
   edges, ghosts, selection and hover, face/edge/direct picks with depth, direct curves and surfaces, and a proposal's
   overlay (chips in the SVG overlay). It stays **WebGPU-only** for placed instances (and their picks, poses and explode),
