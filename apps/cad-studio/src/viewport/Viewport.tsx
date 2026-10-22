@@ -1,6 +1,8 @@
 import type { ClearanceDisplay } from './clearanceDisplay';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef } from 'react';
 import type { PrintDisplay } from './printDisplay';
+import type { CamDisplay } from './camDisplay';
+import { camStockBounds } from './camOverlayGeometry';
 import { printPointToModel, printSceneBounds, projectPrintBodies } from './printProjection';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
@@ -61,6 +63,9 @@ interface Props {
   /** Bed-frame print display, separate from the authored/native document. */
   printDisplay?: PrintDisplay | null;
   printActive?: boolean;
+  /** G23 CNC: the preview's stock, paths, remaining stock and tool (world coordinates), beside the native bodies. */
+  camDisplay?: CamDisplay | null;
+  camActive?: boolean;
   /** Appearance only, on ordinary modelling solids; no document or selection store is created. */
   displayMode?: DisplayMode;
   /** The application's session request, before an unsupported scope falls back to the default. */
@@ -390,6 +395,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const [, setTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [printError, setPrintError] = useState<string | null>(null);
+  const [camError, setCamError] = useState<string | null>(null);
   const propsRef = useRef(props); propsRef.current = props;
   /** The grid step (mm) points snap to: the studio's setting (0: off, to a micrometre). */
   const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
@@ -481,6 +487,24 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     }
     request();
   }, [sourceProps.printActive, sourceProps.printDisplay?.summaryKey, backend]);
+  // (G23 CNC: the stock and the part framed once per package and setup; the camera as it was when the preview closes.)
+  const camCamera = useRef<{ original: RenderCamera; key: string | null } | null>(null);
+  const camKey = props.camDisplay ? `${props.camDisplay.packageKey}:${props.camDisplay.setupIndex}` : null;
+  useEffect(() => {
+    const c = camera.current;
+    if (props.camActive) {
+      if (!camCamera.current) camCamera.current = { original: { target: [...c.target], distance: c.distance, yaw: c.yaw, pitch: c.pitch, fovY: c.fovY, ortho: c.ortho }, key: null };
+      const stock = props.camDisplay?.package.stock;
+      if (camKey && camCamera.current.key !== camKey && stock && !('refused' in stock)) {
+        const box = camStockBounds(stock), body = renderer.current?.bounds();
+        if (body) for (let k = 0; k < 3; k++) { box.min[k] = Math.min(box.min[k], body.min[k]); box.max[k] = Math.max(box.max[k], body.max[k]); }
+        c.aspect = canvas.current!.clientWidth / Math.max(1, canvas.current!.clientHeight); c.fit(box.min, box.max); camCamera.current.key = camKey;
+      }
+    } else if (camCamera.current) {
+      const old = camCamera.current.original; c.target = [...old.target] as Vec3; c.distance = old.distance; c.yaw = old.yaw; c.pitch = old.pitch; c.fovY = old.fovY; c.ortho = old.ortho; camCamera.current = null;
+    }
+    request();
+  }, [props.camActive, camKey, backend]);
 
   const displayScope = displayModeScope(props), hasInstances = !!props.instances?.length;
   useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.faceColors, props.hiddenBodies, props.hoverBody, props.displayMode, props.isolatedInstances, displayScope, hasInstances, backend]);
@@ -502,6 +526,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     } catch (error) { setPrintError(`Print layers (${backend ?? 'renderer'}) unavailable: ${error instanceof Error ? error.message : String(error)}`); }
     request();
   }, [props.printDisplay, backend]);
+  useEffect(() => {
+    const r = renderer.current; if (!r) return;
+    try {
+      if (props.camDisplay && !r.setCamDisplay) throw new Error('This renderer does not support the CNC preview.');
+      r.setCamDisplay?.(props.camDisplay ?? null); setCamError(null);
+    } catch (error) { setCamError(`CNC preview (${backend ?? 'renderer'}) unavailable: ${error instanceof Error ? error.message : String(error)}`); }
+    request();
+  }, [props.camDisplay, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
   useEffect(() => { renderer.current?.setInstanceTransforms?.(props.instanceTransforms ?? null); request(); }, [props.instanceTransforms, backend]);
@@ -1304,6 +1336,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       {overlay()}
       {error && <div className="vp-error" role="alert">{error}</div>}
       {printError && <div className="vp-error" role="alert">{printError}</div>}
+      {camError && <div className="vp-error" role="alert">{camError}</div>}
     </div>
   );
 });

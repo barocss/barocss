@@ -11,7 +11,10 @@ import { movedCopy, topologyKey } from './instanceGeometry';
 import { silhouetteLines } from './silhouette';
 import { clipClearanceGeometry, type ClearanceDisplay } from './clearanceDisplay';
 import type { PrintDisplay } from './printDisplay';
-import { PrintOverlayGeometry, type PrintDrawing } from './printOverlayGeometry';
+import { PrintOverlayGeometry } from './printOverlayGeometry';
+import type { CamDisplay } from './camDisplay';
+import { CamOverlayGeometry } from './camOverlayGeometry';
+import { overlayTriangles, type OverlayDrawing } from './overlayDrawing';
 
 const ZEBRA = zebra(), CURVATURE = curvature();
 import { materialShader, showScene, type MaterialShaderResult, type SceneView } from '@barocss/gpu';
@@ -112,7 +115,8 @@ export class GpuRenderer implements ViewRenderer {
   private regions: Mesh[] = [];
   /** Clearance owns local decal geometry and its clip; it never joins native pick or cap geometry. */
   private clearance?: { display: ClearanceDisplay; meshes: Mesh[] };
-  private print?: { geometry: PrintOverlayGeometry; meshes: Map<PrintDrawing, Mesh> };
+  private print?: { geometry: PrintOverlayGeometry; meshes: Map<OverlayDrawing, Mesh> };
+  private cam?: { geometry: CamOverlayGeometry; meshes: Map<OverlayDrawing, Mesh> };
   /** A surface analysis look (zebra, curvature) for the modelling view, or none. */
   private analysis: ShaderMaterial | null = null;
   private analysisKey: string | null = null;
@@ -265,26 +269,38 @@ export class GpuRenderer implements ViewRenderer {
   /** Additive bed-space print output; native bodies have already been projected by the host. */
   setPrintDisplay(display: PrintDisplay | null): void {
     if (!this.print && !display) return;
-    const print = this.print ??= { geometry: new PrintOverlayGeometry(), meshes: new Map<PrintDrawing, Mesh>() };
-    try {
-      const desired = new Set(print.geometry.update(display));
-      for (const [source, mesh] of print.meshes) if (!desired.has(source)) {
-        mesh.remove(); mesh.geometry.dispose(); print.meshes.delete(source);
-      }
-      for (const source of desired) if (!print.meshes.has(source)) {
-        const mesh = this.viewer.add({ positions: source.positions, normals: source.normals, indices: source.indices, topology: source.indices ? 'triangles' : 'lines' }, {
-          name: 'print:' + source.name, pickable: false, castShadow: false, receiveShadow: false, cap: false, clipped: false, bounded: false,
-          material: { color: source.color, opacity: source.opacity, unlit: true, doubleSided: true, lineWidth: source.width ?? 1 },
-        });
-        // Display supports never become native face/edge-pick depth occluders.
-        print.meshes.set(source, mesh); mesh.pickTransparent = true;
-      }
-      for (const [source, mesh] of print.meshes) if (mesh.visible !== (source.visible !== false)) mesh.visible = source.visible !== false;
-    } catch (error) {
-      for (const mesh of print.meshes.values()) { mesh.remove(); mesh.geometry.dispose(); }
-      print.meshes.clear(); print.geometry.update(null); this.viewer.requestRender(); throw error;
-    }
+    const print = this.print ??= { geometry: new PrintOverlayGeometry(), meshes: new Map<OverlayDrawing, Mesh>() };
+    try { this.syncOverlay(print.meshes, print.geometry.update(display), 'print:'); }
+    catch (error) { print.geometry.update(null); throw error; }
     if (!display) this.print = undefined;
+  }
+  /** G23 CNC: the preview's stock, paths, remaining stock and tool, in world coordinates beside the native bodies. */
+  setCamDisplay(display: CamDisplay | null): void {
+    if (!this.cam && !display) return;
+    const cam = this.cam ??= { geometry: new CamOverlayGeometry(), meshes: new Map<OverlayDrawing, Mesh>() };
+    try { this.syncOverlay(cam.meshes, cam.geometry.update(display), 'cnc:'); }
+    catch (error) { cam.geometry.update(null); throw error; }
+    if (!display) this.cam = undefined;
+  }
+  /** Display-only overlay meshes: new drawings added, missing ones released; never pickable, bounded or shadowed. */
+  private syncOverlay(meshes: Map<OverlayDrawing, Mesh>, drawings: readonly OverlayDrawing[], prefix: string): void {
+    try {
+      const desired = new Set(drawings);
+      for (const [source, mesh] of meshes) if (!desired.has(source)) { mesh.remove(); mesh.geometry.dispose(); meshes.delete(source); }
+      for (const source of desired) if (!meshes.has(source)) {
+        const triangles = overlayTriangles(source), lit = triangles && !!source.lit && !!source.normals;
+        const mesh = this.viewer.add({ positions: source.positions, normals: source.normals, indices: source.indices, topology: triangles ? 'triangles' : 'lines' }, {
+          name: prefix + source.name, pickable: false, castShadow: false, receiveShadow: false, cap: false, clipped: false, bounded: false,
+          material: { color: source.color, opacity: source.opacity, unlit: !lit, doubleSided: true, lineWidth: source.width ?? 1 },
+        });
+        // Display overlays never become native face/edge-pick depth occluders.
+        meshes.set(source, mesh); mesh.pickTransparent = true;
+      }
+      for (const [source, mesh] of meshes) if (mesh.visible !== (source.visible !== false)) mesh.visible = source.visible !== false;
+    } catch (error) {
+      for (const mesh of meshes.values()) { mesh.remove(); mesh.geometry.dispose(); }
+      meshes.clear(); this.viewer.requestRender(); throw error;
+    }
     this.viewer.requestRender();
   }
   /** Each body's surface showing its map (its field set once per map), or its own look again. */
@@ -1034,7 +1050,7 @@ export class GpuRenderer implements ViewRenderer {
     return c.convertToBlob({ type: 'image/png' });
   }
 
-  dispose(): void { this.setPrintDisplay(null); this.viewer.dispose(); }
+  dispose(): void { this.setPrintDisplay(null); this.setCamDisplay(null); this.viewer.dispose(); }
 }
 
 /** Texture coordinates by box projection: each vertex across the body's box on its face's two other axes. */

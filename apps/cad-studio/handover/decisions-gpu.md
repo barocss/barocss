@@ -1442,3 +1442,75 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     is faked. Codex's no-row flow at 8789e468 passed in its own run; it is not repeated here.
 - **Branch**: `claude/gpu-lane-2026-10-23`, in this session's own worktree, which is isolated and cannot write
   great-einstein-3ea69b. It was cut from 6bfd0ad97.
+
+## G-R3 — G23 CNC: material removal shown along the Model's program, on both renderers (from Codex's source 5c9f861f, 2026-10-23)
+
+- **What**: Codex's six CNC source files from `codex/g23-cam-preview` (source only; its brief and evidence are not
+  ported), reviewed, corrected and connected. Before this, they had never been compiled, run or wired.
+  - `camHeightfield.ts` — the stock as a height field in one setup's machine frame:
+    - inputs: the Model's `cam-package-v1` (camPackage) — its stock solid or refusal, its tool, its setups' ordered moves;
+    - from pristine stock on every request;
+    - only feeds, plunges and ramps cut;
+    - a cell is lowered only to where the tool reaches its furthest corner;
+    - refused, typed: a skew or mirrored frame, a bar across the machine Z, a grid the tool cannot cover, a buried
+      flute, and more than 250 000 samples or 25 M cell visits.
+  - Corrections in review:
+    - **The stated lateral uncertainty was wrong**: `h + s/2`, where h is the half diagonal and s the sample spacing.
+      A cell stays when its centre is more than r − h from every sample, so material can stand r − 2h from them. It is
+      now `2h + s/2`, the full diagonal. The pocket oracle below found the gap: 1391.07 mm² against a 1392.70 bound
+      built from the old value.
+    - **The hot loops had closures and allocations per element** (owner rule): `forEach` over cells, a `triangle` and an
+      `at` closure, `move.a.map` per sample. They are now plain loops with module-level helpers.
+    - **The mesh drew four walls on every cell**. Walls now go only where a cell stands above its neighbour or the
+      footprint's edge.
+    - **The worker received the whole document and bodies on every progress tick**. It now gets them only when the
+      source changes (`source` in the request); a scrub posts a few numbers.
+  - `camToolGeometry.ts`: the declared flat, ball or bull tool, revolved with 64 sectors and 12 nose rings.
+    - The shank is shown one diameter long, an estimate said; the Model's shankMM is a diameter. No holder is shown.
+    - `disk` is hoisted.
+  - `camOverlayGeometry.ts`: world-space drawings.
+    - The stock wire is where the Model put it.
+    - Paths by move kind, whole and done, the active move, the remaining stock (lit amber) and the tool (lit) are turned
+      back through the setup's inverse on the CPU. That is exact: the frame is a signed axis permutation.
+    - Identities stay while their inputs do: paths per setup, remaining stock per removal, tool per pose.
+  - Both renderers share one overlay path with print layers:
+    - `overlayDrawing.ts`: the shared type. It allows non-indexed triangles and lit surfaces.
+    - `overlayGL.ts`: the WebGL2 pass, factored out of PrintOverlayGL, plus a lit program. PrintOverlayGL keeps its API.
+    - `GpuRenderer.syncOverlay`: shared by `setPrintDisplay` and the new `setCamDisplay`.
+  - `Viewport`:
+    - `camDisplay` and `camActive`, with renderer errors shown as an alert;
+    - the stock and the part framed once per package and setup, and the camera restored on close.
+  - `CamPanel`, in the right corner next to Print layers:
+    - NOT FOR PRODUCTION first; setup, progress (to the move and a fraction), the asked grid and an optional tool;
+    - shown: removed volume (a grid estimate), grid and pitch, sample spacing, ± across, the tool and its basis, the safe
+      Z estimate, and the skipped features with why.
+  - App:
+    - session only: no document field, so Save/Open reproduce the same input from the machining stock and geometry;
+    - mutually exclusive with Print layers and assembly clearance, each saying so;
+    - refused with a reason in Render/Drawing, with placed parts, references, an edit, Section view or analyses;
+    - dev hook `__studioCam`.
+- **Tests**: `test/cnc-preview.test.ts`, 6 tests.
+  - tool profiles exact (ball and bull noses), with their refusals;
+  - every Model setup frame's inverse exact; skew, mirror and scale refused;
+  - stock and grid refusals;
+  - cutting moves only;
+  - a prefix rebuilt from pristine stock is the same, scrubbing back included;
+  - buried and work-cap refusals;
+  - the slot oracle: (20·6 + π·9)·4, less at most the stated band;
+  - the overlay identities and the tool tip's world position.
+  - **The CNC8 pocket oracle**, the Model's own 50 × 30 × 8 pocket from cad-model's test: the field's cut area is at
+    most 1500 mm² and at least 1500 − 4(1 − π/4)·9 − 160·(stated uncertainty).
+- **Checks** (T1):
+  - cnc-preview 6/6;
+  - Codex's studio-code tests in packages/barocss-gpu/tests, one file each: print overlay 6, hook 5, worker 3,
+    projection 6, settings 4; clearance overlay-gl 5, gpu 5, clip 5; display contract 9, gpu display contract 13;
+    instance bridge 7; silhouette 5.
+  - The print overlay check reads `pass.draws`; PrintOverlayGL exposes it from the shared pass.
+  - studio type-check 0 errors; eslint on App, viewport/ and the test 0 problems;
+  - studio `build`: the CNC worker bundles (1.78 MB, like the print worker).
+- **Not run / not built**:
+  - the two-renderer flow: a stock-bearing pocket document shown, 0/middle/end compared, setup switched including −Z,
+    an unsupported stock refused, picks and camera kept, Save/New/Open. It needs a slot.
+  - overcut colouring (where the swept tool enters the part, README §G23). It needs the part's mesh against the field
+    and comes next.
+  - the hook's and worker's lifecycle in a browser.
