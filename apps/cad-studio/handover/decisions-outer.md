@@ -5849,3 +5849,11 @@ The coordinator saw step 39 ("draw a plate…") fail twice in full window flows 
   - Tested in recovery.test.ts.
 - **The kernel's suggestion (Keepout.fills)**, declined for now: the connector's keep-out lives only in the kernel's report, and none of it becomes a document keep-out that `checkKeepouts` reads. D163's fix (the keep-out from the plug's front) is where the "violated (±0.0058)" came from and went.
 - **SECTION_DIMENSIONS** now says what to do: "Remove the section's dimensions, or turn the drawing and add them again after." Carrying them through a reorient is queued (item 3).
+
+## Queue 1 — adjacent parts hatched apart in one section (2026-10-22)
+
+The coordinator's queue after O148, item 1: vary the hatch by part, as the GPU lane's G19.3 is to in the viewport (45°, 135°, 30°, 120°… by body).
+- **Which body each cut ring is**: `sectionOf` carries `ringBodies`, the part's output index of each ring's body. A body has the same hatch in every section of the part.
+- **The angles**: `hatchGroups` groups a section's rings by body. Body k is hatched at `HATCH_ANGLES[k mod 6]` = 45°, 135°, 30°, 120°, 60°, 150°, and past six with the spacing widened 40 % a round. A part of one body is hatched at 45°, 2.5 mm, exactly as before, so the DXF fixtures are unchanged.
+- **Drawing it**: `hatch(rings, spacing, angle)` scans at any angle, and at 45° keeps √½ both ways so its lines stay the same to the last digit. The sheet draws a hatch mark per body, the SVG and PDF draw their lines at the mark's angle, the sheet's DXF HATCH takes it (as before, `−angle` with y up), and the section-alone DXF writes a HATCH per body.
+- **Test** (section-dimensions.test.ts): the shaft, key and hub through B–B are three bodies with three angles (their HATCH_ANGLES). Every hatch line runs at its group's angle. The SVG and PDF draw them all, the sheet's DXF has the HATCHes, and the section-alone DXF has one per body at the same angles.

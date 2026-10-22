@@ -34,7 +34,7 @@ function markOps(m: Mark): string {
     const x = m.at[0] - shift * c, y = m.at[1] + shift * s;
     return `BT /${m.bold ? 'F2' : 'F1'} 1 Tf ${n(m.size * c)} ${n(-m.size * s)} ${n(-m.size * s)} ${n(-m.size * c)} ${n(x)} ${n(y)} Tm (${winAnsi(m.text)}) Tj ET\n`;
   }
-  if (m.kind === 'hatch') return hatch(m.rings, m.spacing).map(markOps).join('');
+  if (m.kind === 'hatch') return hatch(m.rings, m.spacing, m.angle).map(markOps).join('');
   const pen = PENS[m.pen], style = `${pen.width} w ${pen.dash ? `[${pen.dash.join(' ')}] 0 d` : '[] 0 d'}`;
   if (m.kind === 'line') return `${style} ${n(m.a[0])} ${n(m.a[1])} m ${n(m.b[0])} ${n(m.b[1])} l S\n`;
   if (m.kind === 'polyline') return `${style} ${m.points.map((p, k) => `${n(p[0])} ${n(p[1])} ${k ? 'l' : 'm'}`).join(' ')} S\n`;

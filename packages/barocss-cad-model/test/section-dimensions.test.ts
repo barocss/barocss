@@ -8,7 +8,10 @@ import { autoLayout } from '../src/drawing/layout';
 import { applyFix, drawingIssues, issueContext, sectionFor } from '../src/drawing/issues';
 import { readDrawing, type DrawingSettings } from '../src/drawing/types';
 import { sheetSvg } from '../src/drawing/svg';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sectionDxfDocument, sheetDxf } from '../src/drawing/dxf';
+import { HATCH_ANGLES, hatch } from '../src/drawing/sheet';
+import { sheetPdf } from '../src/drawing/pdf';
+import { writeDxf } from '@barocss/cad';
 import { reorient } from '../src/drawing/reorient';
 import { encodeStudioFile } from '../src/engine/container';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -116,4 +119,30 @@ test('X3: a keyway on a tilted bore — its axis along none of X, Y, Z — is sa
   const ends = i.views.front.edges.filter(e => e.ends && e.name.includes(`${way.id}.keyway`)).flatMap(e => e.ends!.map(p => ({ edge: e.name, at: 'end' as const, near: [p[0], p[1], p[2]] as [number, number, number] })));
   const r = sectionFor(ctx, { id: 'x', view: 'front', kind: 'linear', a: ends[0], b: ends[1], orient: 'aligned', place: [0, 0] });
   assert.ok(r && !r.fix && /its axis runs along none of X, Y and Z, so no principal section shows it/.test(r.text), JSON.stringify(r));
+});
+
+// ——— Queue 1 (after O148): adjacent parts hatched apart in one section
+test('a section through the shaft, its key and its hub: each body hatched at its own angle (45°, 135°, 30° by body), the same in the SVG, PDF and DXF; one body alone at 45° as before', () => {
+  const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), ctx = issueContext(i);
+  const B = i.sections!.find(x => x.id === 'B')!, bodies = [...new Set(B.ringBodies)];
+  assert.equal(bodies.length, 3, `three bodies cut: ${B.ringBodies}`);
+  const body = ctx.sheet.groups.find(g => g.role === 'section' && g.id === 'B' && !g.view)!;
+  const hatches = body.marks.filter((m): m is Extract<typeof m, { kind: 'hatch' }> => m.kind === 'hatch');
+  assert.deepEqual(hatches.map(h => h.angle), bodies.sort((a, b) => a - b).map(b => HATCH_ANGLES[b % HATCH_ANGLES.length]));
+  assert.equal(new Set(hatches.map(h => h.angle)).size, 3, 'three angles');
+  // (The lines drawn: each at its angle, on the sheet as in the files.)
+  for (const h of hatches) {
+    const lines = hatch(h.rings, h.spacing, h.angle);
+    assert.ok(lines.length > 0);
+    for (const l of lines) { const a = Math.atan2(l.b[1] - l.a[1], l.b[0] - l.a[0]) * 180 / Math.PI; assert.ok(Math.abs(((a - h.angle) % 180 + 180) % 180) < 1e-6 || Math.abs(((a - h.angle) % 180 + 180) % 180 - 180) < 1e-6, `${a} vs ${h.angle}`); }
+  }
+  const svg = sheetSvg(ctx.sheet, 'shaft'), pdf = new TextDecoder('latin1').decode(sheetPdf(ctx.sheet, 'shaft')), dxf = sheetDxf(ctx.sheet, ctx.layout).text;
+  const lineCount = hatches.reduce((n, h) => n + hatch(h.rings, h.spacing, h.angle).length, 0);
+  assert.ok((svg.match(/<line /g) ?? []).length >= lineCount, 'the SVG draws every hatch line');
+  assert.ok((pdf.match(/ l\b/g) ?? []).length >= lineCount, 'the PDF strokes them');
+  const dxfAngles = [...dxf.matchAll(/\nHATCH\n[\s\S]*?\n 52\n([-\d.]+)\n/g)].map(m => Number(m[1]));
+  assert.ok(dxfAngles.length >= 3, `DXF hatches: ${dxfAngles}`);
+  // (Alone as a 1:1 DXF: a HATCH a body, at the sheet's angles.)
+  const alone = writeDxf(sectionDxfDocument(B)).text, aloneAngles = [...alone.matchAll(/\nHATCH\n[\s\S]*?\n 52\n([-\d.]+)\n/g)].map(m => Number(m[1]));
+  assert.deepEqual(aloneAngles.sort((a, b) => a - b), hatches.map(h => h.angle).sort((a, b) => a - b));
 });
