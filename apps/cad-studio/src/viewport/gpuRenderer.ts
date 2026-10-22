@@ -388,6 +388,8 @@ export class GpuRenderer implements ViewRenderer {
     // (The ground under what is shown, as the CPU's clipped bodies put it.)
     this.placeGround();
     // (G19: every plane; the caps' colour given with the first.)
+    // (G20: a cut-out keeps any plane's kept side.)
+    this.viewer.clipCutout = !!clip?.cutout;
     this.viewer.clipPlanes = clip ? clip.planes.map((p, i) => i ? p : { ...p, cap: mix(this.theme.base, ACCENT, 0.42) }) : null;
     this.applyClip();
     this.viewer.requestRender();
@@ -610,7 +612,7 @@ export class GpuRenderer implements ViewRenderer {
     if (!this.bodies.length && !this.direct.length && !this.instances.length) return null;
     const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
     // (Cut by the section's plane where it cuts them, as the CPU's clipped meshes' boxes are: the ambient occlusion and the fit follow it.)
-    const c = this.clip && { ...this.clip.planes[0], planes: this.clip.planes, bodies: this.clip.bodies };
+    const c = this.clip && { ...this.clip.planes[0], planes: this.clip.planes, bodies: this.clip.bodies, cutout: !!this.clip.cutout };
     for (const b of this.bodies) { const x = c?.bodies ? clipBox(b.result.mesh.bounds, c) : b.result.mesh.bounds; if (x) grow(min, max, x); }
     for (const d of this.direct) { const b = d.mesh.bounds; if (b) grow(min, max, b); }
     for (const it of this.instances) for (const m of it.surfaces) { const b = c ? clipBox(m.bounds, c) : m.bounds; if (b) grow(min, max, b); }

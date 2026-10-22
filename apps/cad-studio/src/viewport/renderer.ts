@@ -75,7 +75,7 @@ export interface OverlayLines {
   hidden?: number;
 }
 /** The section's planes on the GPU (G2, G19); `hatch`: the caps' hatch spacing (mm, G19.3), null for none. */
-export interface SectionClip { planes: { normal: Vec3; offset: number }[]; bodies: boolean; hatch?: number | null }
+export interface SectionClip { planes: { normal: Vec3; offset: number }[]; bodies: boolean; hatch?: number | null; /** A cut-out (G20): kept on any plane's kept side. */ cutout?: boolean }
 /** The hatch on the cut drawn as lines (G19.3): each body's (by its index) segments, six numbers each. */
 export type SectionHatch = readonly { body: number; segments: Float32Array }[];
 /** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
