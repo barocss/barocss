@@ -1,0 +1,26 @@
+[
+  {
+    "case": "20261023:35",
+    "note": "D188: a circular pattern (2 copies, 79.507° about z) of one shelled box turned 48.042° about X: the union's face loops cross (strict L0); replay robustness/corpus/fuzz/fuzz-20261023-35.json"
+  },
+  {
+    "case": "20261023:56",
+    "note": "D188: a box (turned 180° about Y and X, snapped) less an upright cylinder r 2: the tessellation has 2 edges not used exactly twice (the volume holds); replay robustness/corpus/fuzz/fuzz-20261023-56.json"
+  },
+  {
+    "case": "20261023:93",
+    "note": "D188: the union of two cones (generic placements, one turned about Y and X): a face's loops cross (strict L0); replay robustness/corpus/fuzz/fuzz-20261023-93.json"
+  },
+  {
+    "case": "20261023:118",
+    "note": "D188: the intersection of two cylinders (generic, one turned about Y and X): the tessellation has 1 edge not used exactly twice (the volume holds); replay robustness/corpus/fuzz/fuzz-20261023-118.json"
+  },
+  {
+    "case": "20261023:149",
+    "note": "D188: the union of an upright cylinder r 2 and a shelled box 7 × 7 × 6, t 0.5 (snapped: the cylinder through the shell's walls): a face's loops cross (strict L0); replay robustness/corpus/fuzz/fuzz-20261023-149.json"
+  },
+  {
+    "case": "20261023:191",
+    "note": "D188: the union of two cylinders at right angles (snapped: r 3 turned 270° about X, r 4 upright): a face's loops cross (strict L0) and the tessellation has 2 open edges; replay robustness/corpus/fuzz/fuzz-20261023-191.json"
+  }
+]

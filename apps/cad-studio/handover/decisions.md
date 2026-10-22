@@ -11208,3 +11208,82 @@ None of the four returns a wrong body any more. Each is in `robustness/todo.json
 | `x45-in0_00001-difference` (10 nm) | typed refusal | Needs a lens thinner than the merge radius recognised and dropped. | medium–large, tolerance scale |
 | `x45-in0_000001-difference` (1 nm) | D186's typed refusal | The same lens drop would build it. | — |
 | `gear-helical-pair-crossing-intersect` | refused, non-manifold | Near-tangent twisted flanks, sliver pieces classified 'same'. Needs near-tangent classification and sliver merging. | large; niche, since meshed pairs are checked by sections |
+
+## D188 — K10 (RB5, L4): the CSG fuzz and its first run (2026-10-23)
+
+The S0 as the coordinator approved it, built. No kernel fix is in this record: the findings are listed for the next
+ones.
+
+**The harness (`packages/barocss-cad/scripts/rb/`).**
+- `fuzz-gen.mjs` makes seeded trees of depth ≤ 3 with ≤ 6 leaves.
+  - Leaves: box, cylinder, sphere (a revolved semicircle), cone or frustum (a revolved trapezoid), the rounded box
+    (four vertical edges filleted) and the shelled box (closed or open top). Each gets 0–2 turns about X, Y or Z and
+    a move within ±3.
+  - Joins: union, difference, intersect, and a linear or circular pattern of a subtree.
+  - Half the cases are agent-like: whole millimetres, quarter turns, flush faces.
+  - Its document writer gives each case as a plain part document; its shrinker drops operands, copies and turns
+    and rounds numbers.
+- `fuzz-oracle.mjs` uses no kernel code.
+  - It casts z rays. Each leaf gives its exact intervals in its own frame: slabs, and the quadratics of cylinders,
+    spheres, cones and the rounded box's corner discs.
+  - The intervals are combined by the tree; a pattern is the union of moved copies.
+  - V and the first moments come from the lengths and ∫z dz.
+  - The lattice is turned 0.4 rad off the axes and integrated at K = 6 shifts. The mean is the value, and three
+    standard errors are e.
+- `fuzz-worker.mjs`, per case: the strict check, a watertight tessellation (by position) and the mass.
+- `fuzz.mjs`: a worker pool with a SIGKILL timeout, judging, shrinking, and `--save` into `robustness/corpus/fuzz/`
+  (RB runs those cases). `fuzz-todo.json` holds the known findings; `--record` writes `fuzz.jsonl`. Also
+  `pnpm rb:fuzz`.
+- `stages.mjs`: RB's expectation now leaves the body count and topology unchecked when a case does not give them,
+  since a fuzz case knows only its oracle's volume and centroid.
+
+**Judging.**
+- OK: valid, watertight, |ΔV| ≤ max(2e, 1e-4·V) and the centroid within max(2e_c, 1e-4·size). An empty result
+  (no output) is OK where the oracle's V is within its bound.
+- REFUSED: a typed error, counted by code.
+- Findings: WRONG, INVALID, CRASH, TIMEOUT.
+- A WRONG verdict is confirmed against the oracle at 4n (512) and 8 shifts; one it clears was the oracle's limit,
+  reported as such.
+
+**Two oracle defects, caught by its own test before the run counted.**
+- A margin around the lattice counted the edge cells' rays across it: +0.4–0.8 % on a box.
+- At N and 2N, a fixed jitter on an axis-aligned lattice repeats the rays' offsets from snapped faces. Its difference
+  said e = 0 where the error was 0.6 %, and it produced 6 false WRONGs in a first run. The turned lattice with shifts
+  replaces it.
+
+**The unit test** (`test/fuzz-oracle.test.mjs`, 2 tests, 0.15 s) holds the oracle to closed forms within its own e:
+- a ball; a frustum π h/3 (r₁² + r₁r₂ + r₂²);
+- the rounded box wdh − 4(1 − π/4)r²h; the shelled box, closed and open;
+- a box less a cylinder through it, with its centroid;
+- a pattern of two overlapping boxes.
+
+**The first run.** Seed 20261023, 200 cases (93 agent-like), `--jobs 2`, load 18.4, 117 s; kernel p50 166 ms, p95
+3.2 s.
+- 104 OK: 8 empty, and 1 cleared by the finer oracle (2.17968 against 2.17965 ± 0.0002 at 512²).
+- 90 REFUSED:
+
+  | Count | Refusal |
+  |---|---|
+  | 61 | SELECTION "target/tool … is empty": a Boolean on an empty intermediate, typed but an over-refusal (an empty union is its other operand) |
+  | 25 | the analytic Boolean "not a manifold solid" |
+  | 2 | "an arc on a cylinder is not a cross-section" |
+  | 2 | "planar face could not be triangulated" |
+
+- 0 WRONG, 0 CRASH, 0 TIMEOUT.
+- **6 INVALID**, all valid input, each shrunk and saved as `robustness/corpus/fuzz/fuzz-20261023-<k>.json`. All are
+  in `robustness/todo.json` (RB) and `fuzz-todo.json`:
+
+  | Case | Tree | Failure |
+  |---|---|---|
+  | 35 | a circular pattern (2 copies) of one shelled box turned 48° about X | the union's face loops cross (strict) |
+  | 56 | a box (snapped turns) less a cylinder | 2 open mesh edges; the volume holds |
+  | 93 | the union of two generic cones | loops cross |
+  | 118 | the intersection of two generic cylinders | 1 open mesh edge; the volume holds |
+  | 149 | a cylinder through a shelled box's walls, snapped | loops cross |
+  | 191 | two cylinders at right angles, snapped | loops cross, and 2 open mesh edges |
+
+**Next, in severity order, one record each:**
+1. The INVALID loop-crossings (35, 93, 149, 191): union of curved faces, a wrong body's shape.
+2. The open mesh edges (56, 118): display.
+3. The 61 empty-operand refusals, an over-refusal agents will hit.
+4. The 25 non-manifold refusals, triaged.

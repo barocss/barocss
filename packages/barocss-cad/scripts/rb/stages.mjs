@@ -150,9 +150,10 @@ export function runCase(cad, file, started) {
       const dv = Math.abs(r.mass.volumeMM3 - want.volumeMM3.value);
       if (dv > Math.max(want.volumeMM3.relTol * Math.abs(want.volumeMM3.value), want.volumeMM3.absTol ?? 0)) return { status: 'WRONG', detail: `output ${k} volume ${r.mass.volumeMM3} vs ${want.volumeMM3.value}` };
       if (r.mass.centroidMM.some((x, i) => Math.abs(x - want.centroidMM.value[i]) > want.centroidMM.absTol)) return { status: 'WRONG', detail: `output ${k} centroid ${r.mass.centroidMM} vs ${want.centroidMM.value}` };
-      if (r.bodyCount !== want.bodies) return { status: 'WRONG', detail: `output ${k} bodies ${r.bodyCount} vs ${want.bodies}` };
+      // (A case may leave its body count and topology unsaid: an L4 fuzz finding knows its oracle's volume and centroid only, D188.)
+      if (want.bodies !== undefined && r.bodyCount !== want.bodies) return { status: 'WRONG', detail: `output ${k} bodies ${r.bodyCount} vs ${want.bodies}` };
       const topo = JSON.stringify(r.report.topology.map(t => ({ shells: t.shells, genus: t.genus })));
-      if (topo !== JSON.stringify(want.topology)) return { status: 'WRONG', detail: `output ${k} topology ${topo} vs ${JSON.stringify(want.topology)}` };
+      if (want.topology !== undefined && topo !== JSON.stringify(want.topology)) return { status: 'WRONG', detail: `output ${k} topology ${topo} vs ${JSON.stringify(want.topology)}` };
     }
     return {};
   });
