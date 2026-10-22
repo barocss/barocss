@@ -1733,7 +1733,7 @@ export function App() {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __studioSection: () => unknown; __studioSectionDebug: (d: { hold: boolean; cpu: boolean }) => void };
     // (G19: the mode and planes, and the exact section's kept volume once it is shown.)
-    w.__studioSection = () => ({ gpu: gpuSection, exact: sectionExactShown, clip: sectionClip, hatch: sectionHatchOn ? { spacing: hatchStep, lines: sectionHatchLines?.map(h => ({ body: h.body, segments: h.segments.length / 6 })) ?? null } : null, bodies: shownBodies.length, mode: section?.mode ?? null, planes: section?.planes ?? null, volume: sectionExactShown ? sectionExact!.bodies.reduce((v, b) => v + meshVolume(b.mesh), 0) : null });
+    w.__studioSection = () => ({ gpu: gpuSection, exact: sectionExactShown, clip: sectionClip, hatch: sectionHatchOn ? { spacing: hatchStep, lines: sectionHatchLines?.map(h => ({ body: h.body, segments: h.segments.length / 6 })) ?? null } : null, bodies: shownBodies.length, mode: section?.mode ?? null, planes: section?.planes ?? null, volume: sectionExactShown ? sectionExact!.bodies.reduce((v, b) => v + meshVolume(b.mesh), 0) : null, shownVolume: shownBodies.reduce((v, b) => v + meshVolume(b.mesh), 0) });
     w.__studioSectionDebug = setSectionDebug;
     // (The axis form as before, or a section of planes, G19.)
     (window as unknown as { __studioSetSection: (s: Section | AxisSection | null) => void }).__studioSetSection = s => setSection(s ? asSection(s) : null);

@@ -298,22 +298,23 @@ export class GpuRenderer implements ViewRenderer {
   }
   /**
    * The hatch on the exact section's cut faces (G19.3): a line mesh a body, 1 CSS pixel wide, the face's colour × 0.45
-   * under it, moved with it; made when the section changes.
+   * under it; made when the section changes, moved with its body by the body's transform (setState, G19.4).
    */
   setSectionHatch(hatch: SectionHatch | null): void {
-    for (const m of this.hatchLines) { m.remove(); m.geometry.dispose(); }
-    this.hatchLines = [];
+    for (const m of this.hatchLines.values()) { m.remove(); m.geometry.dispose(); }
+    this.hatchLines.clear();
     for (const h of hatch ?? []) {
       const b = this.bodies[h.body]; if (!b || h.segments.length < 6) continue;
       // (Black at 0.55 over the face: its colour × 0.45 however it is lit, as the caps' hatch.)
       const m = this.viewer.add({ positions: h.segments, topology: 'lines' }, { name: 'section hatch', pickable: false, castShadow: false, receiveShadow: false, clipped: false, bounded: false,
         material: { color: '#000000', opacity: 0.55, unlit: true, lineWidth: 1 } });
-      m.transform = b.surface.transform;
-      this.hatchLines.push(m);
+      // (The segments in the part's frame, as the body's mesh: drawn through the body's own transform, G1.)
+      m.transform = b.surface.transform; m.visible = b.surface.visible;
+      this.hatchLines.set(h.body, m);
     }
     this.viewer.requestRender();
   }
-  private hatchLines: Mesh[] = [];
+  private hatchLines = new Map<number, Mesh>();
   /** Overlay points by key (G8): one point mesh each, made when they change. */
   setOverlayPoints(key: string, points: OverlayPoints | null): void {
     const had = this.overlays.get(key);
@@ -526,6 +527,9 @@ export class GpuRenderer implements ViewRenderer {
       b.surface.outline = view.selectedBodies.includes(bi) ? ACCENT : view.hoverBody === bi ? HOVER : null;
       const moved = view.transforms?.get(bi) ?? translation(offset);
       for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = moved;
+      // (Its hatch on the exact section's cut, G19.3/4: moved with it, faint when it is.)
+      const hatch = this.hatchLines.get(bi);
+      if (hatch) { hatch.transform = moved; hatch.visible = !hidden; hatch.material = { opacity: ghost ? 0.55 * 0.35 : 0.55 }; }
       if (b.edges) { b.edges.material = { opacity: ghost ? 0.35 : 0.9 }; b.edges.pickable = !ghost && !hidden && !halvesOn; b.edges.visible = !hidden && (this.settings ? this.settings.environment.edges : true); }
     });
     this.applyClip();
