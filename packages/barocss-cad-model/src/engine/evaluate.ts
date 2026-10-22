@@ -120,6 +120,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.connector ? connectorNotes(o.connector) : []),
     ...(o.gusset ? gussetNotes(o.gusset) : []),
     ...(o.endCap ? endCapNotes(o.endCap) : []),
+    ...(o.bead ? beadNotes(o.bead) : []),
     ...(o.connectorBody ? [{ text: `Connector body for ${o.connectorBody.row}: seated in its opening, touching nothing of the panel (overlap ${+o.connectorBody.overlapMM3.toFixed(6)} mm³, by the Boolean); an envelope only` }] : []),
     ...(o.shaft ? shaftNotes(o.shaft) : []),
     ...(o.key || o.keyway || o.ring || o.pin ? shaftPartNotes(o) : []),
@@ -576,6 +577,13 @@ function endCapNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['endCap']
   const mm = (x: number) => +x.toFixed(4);
   return [{ text: `End cap ${r.fit === 'over' ? 'over' : 'inset in the bore of'} member ${r.member + 1}'s ${r.end}: ${mm(r.thicknessMM)} thick, ${mm(r.areaMM2)} mm², ${mm(r.volumeMM3)} mm³` },
     { text: `Seam ${mm(r.seam.lengthMM)} mm round its ${r.fit === 'over' ? 'outline' : 'bore'} (exact)` }];
+}
+/** A weld bead's report as lines (FRk2, D166): where it is, its leg and throat, its seam and the part of it flush. */
+function beadNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['bead']>): { text: string; warning?: boolean }[] {
+  const mm = (x: number) => +x.toFixed(4), on = 'gusset' in r.on ? `gusset ${r.on.gusset}'s seams, both faces` : `member ${r.on.member + 1}'s ${r.on.end}`;
+  return [{ text: `Fillet weld on ${on}: leg ${mm(r.legMM)}, throat ${mm(r.throatMM)}, on member${r.meets.length > 1 ? 's' : ''} ${r.meets.map(k => k + 1).join(', ')}` },
+    { text: `Seam ${mm(r.seam.lengthMM)} mm${r.seam.inner ? ' with the bore' : ''}; bead ${mm(r.volumeMM3)} mm³` },
+    ...(r.seam.flushMM > 0 ? [{ text: `${mm(r.seam.flushMM)} mm of it flush with the edge of the face it lands on: no fillet there (a corner weld, not modelled)`, warning: true }] : [])];
 }
 /** A connector opening's report as lines (R12c.7, D162): the opening, the body's fit, the keep-out. */
 function connectorNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['connector']>): { text: string; warning?: boolean }[] {

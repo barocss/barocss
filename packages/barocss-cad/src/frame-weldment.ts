@@ -38,6 +38,19 @@ export interface EndCapReport {
   readonly seam: { readonly lengthMM: number; readonly exact: true };
 }
 
+/**
+ * A fillet weld bead (FRk2, D166): `on` a member's end (landing square on other members' flat faces, `meets`) or a
+ * gusset (its two seams, both faces). `seam.lengthMM` the welded loop's (an end's outline, plus the bore's when `inner`;
+ * a gusset's four fillet runs), `flushMM` the part of an end's outline on the edge of the face it lands on (flush, no
+ * fillet there: a corner weld), `volumeMM3` the bead's (a gusset's in closed form, (l − c)·z² a seam).
+ */
+export interface BeadReport {
+  readonly frame: string; readonly on: { readonly member: number; readonly end: 'start' | 'end' } | { readonly gusset: string };
+  readonly kind: 'fillet'; readonly legMM: number; readonly throatMM: number; readonly meets: readonly number[];
+  readonly seam: { readonly lengthMM: number; readonly flushMM: number; readonly exact: true; readonly inner?: true };
+  readonly volumeMM3: number; readonly corner: 'mitred';
+}
+
 /** The signed sweep of an arc segment from its start to `end` (anticlockwise positive), a full turn when they meet. */
 function arcSweep(g: Extract<ProfileSegmentInput, { kind: 'arc' }>, end: readonly [number, number]): { r: number; a0: number; d: number } {
   const c = g.center, r = Math.hypot(g.start[0] - c[0], g.start[1] - c[1]), a0 = Math.atan2(g.start[1] - c[1], g.start[0] - c[0]);

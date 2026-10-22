@@ -9811,3 +9811,84 @@ Ran:
 - Test names: saved in the scratchpad (`names/*.D165.txt`) for the next comparisons; this session had no earlier lists, so none compared now.
 
 Not run: the full kernel suite (no brep core change), RB and properties (not T3, 2nd checkpoint), the full browser flow (the coordinator's window flow).
+
+## D166 — FRk2: fillet weld beads on a frame's joints (2026-10-22)
+
+The second FRk stage frozen in D164 (order after review: FRk1, FRk2, then FRk8b's defect). The kernel's feature and report. Beads come from the person's O118 weld records (owner default, D165). The record → bead mapping belongs to the outer lane, in cad-model's evaluate, built on this feature; the coordinator relays it.
+
+**Kernel** (`part-model.ts`; `BeadReport` in `frame-weldment.ts`):
+- **`weld-bead`** `{ frame, on: { member, end } | { gusset } | { cap }, leg, inner? }`:
+  - it refers to the frame (and the gusset) and consumes nothing;
+  - its body is the fillet, its `bead` the report.
+- **On a member's end** landing square on other members' flat faces (a butt, a T's butt, a square end on a face; a plane trim square to the axis):
+  - The bead is the end's outer loop offset by the leg z, drafted 45° back along the member (`draftedExtrusion`: lines become sloping planes, arcs cones), less the member's envelope.
+  - At a start, the section's x and y are swapped, so the axis turns and the loop's frame stays right-handed.
+  - Concave corners and concave rounds offset as the drafted extrusion's lines meet (a root round under the leg is refused).
+  - **Kept on the faces it lands on.** The faces are read off the B-reps as built: the other members' planar faces lying in the end's plane and facing back at it, so a mitre's cut is kept. Only those under the end's footprint count. Where the footprint does not lie inside one convex face, the bead is cut to them: one slab of the faces' outline, extruded the leg deep.
+    - Faces meeting along whole edges (two mitred rails' undersides) are merged into one loop: edges run both ways are dropped, a loop the other way round is a hole.
+    - Where two fillets would meet only along a line (an end's corner at the faces' inside corner), no single solid exists. Each face's piece becomes a body of its own, ids prefixed and names `#k`.
+  - **`inner`:** the bore's fillet as well: the bore's prism less the bore drafted 45° inwards.
+- **On a gusset:** the fillets along both seams, on both faces: right-triangle prisms of legs z, (l − c)·z² a seam, four bodies. The gusset's placement is kept as built (`gussetPlace`, internal).
+- **The report** (`bead`):
+  - frame, on, `kind: 'fillet'`, legMM, throatMM (z/√2), `meets` (the members whose faces it lands on), `corner: 'mitred'`;
+  - `seam: { lengthMM, flushMM, exact: true, inner? }`: the welded loop's length, as O118's seam (the end's outline and the bore's when `inner`; a gusset's four runs). `flushMM` is the part of an end's outline lying on the edge of a face it lands on, which carries no fillet (a corner weld, not modelled);
+  - `volumeMM3`: the body's, or a gusset's in closed form.
+- **Refused by name:**
+  - `[BEAD_KIND]`: a mitred end (a groove weld: its seam only, owner default); a cap (it sits flush: a corner weld, owner default); an end landing on no member's flat face; `inner` on a section with no bore or several;
+  - `[BEAD_SEAM_NOT_PLANAR]`: a coped end, or one trimmed to envelopes or a body;
+  - `[BEAD_ANGLE]`: an end meeting its face off square. **Narrowed from D164:** D164 froze oblique ends with a sharp convex outline as a polytope of hypotenuse planes, with the curved outline refused. No independent oracle for that polytope was found cheaply: its corners are not a sum of closed forms, and a 2D quadrature of a kinked height converges poorly. So all oblique ends are refused here, and the seam is still listed by O118. Listed below for the owner;
+  - `[BEAD_SIZE]`: a leg past a concave round or the bore's rounds (the drafted offset collapses); a gusset whose clip is under the leg (the corner leaves the fillets no room); a gusset's fillets running off a member's flat face; nothing left on the faces;
+  - INPUT (`on`, `on.end`, `inner`), PARAMETER (a leg not positive), REFERENCE (no frame, no gusset, a gusset of another frame).
+
+**Oracles** (`test/frk-2.test.mjs`, 5 tests; written there):
+- **The offset area integrated:** A(s) = A₀ + P·s + c·s² (c 4 for a sharp outline's mitred corners, π for a smooth one) gives V = P·z²/2 + (c/3)z³.
+  - A 40 × 40 rail butted on an 80 × 80 post: 756, exactly. Its centroid (P·z³/6 + z⁴/3)/V off the face, to 1e-12. The report's fields; face names `w.fillet.*`, `w.on.m1.*`.
+  - Welded with the rail and the post: one body of their sum, to 1e-12.
+  - Round-cornered (ro 6 on ro 8): P·z²/2 + (π/3)z³, to 1e-11; its seam 8h − 8r + 2πr.
+- **The bore's fillet:** P_i·z²/2 − (c/3)z³, sharp (1332 with the outer) and round-cornered (ri 4 over a leg of 3), two bodies (the wall between them).
+- **A start end** (a post standing on a beam's top): 756 again; its centroid above the beam.
+- **Flush sides:**
+  - a rail as wide as its post: only the top and bottom runs, 40·z², two bodies, flush 80 of 160; welded, their sum;
+  - a leg under a mitred top's corner, on rails 4 and 7: the inner sides' runs 2·40·z²/2, two bodies, valid, flush 80.
+- **A gusset's beads:** (105 + 85)·z², four bodies. Their centroid is the four prisms' (each the triangle's at a third of the legs, the seam's middle). Welded with both members and the gusset, one body of their sum (1e-9).
+- **Refusals:** 13 cases.
+- **Conformance** `conformance/frk/` (+5, 9 cases; generator `scripts/frk2-conformance.mjs`, closed forms only): `bead-tee-wide-post` (genus 1: the ring round the rail), `bead-tee-flush` (two bodies), `bead-gusset` (four), `refuse-bead-mitre`, `refuse-bead-angle`. The runner checks a new `bead` expectation (leg, seam, flush, meets, volume).
+
+**Studio** (no command: beads come from the weld records, the outer lane's mapping):
+- **Notes** (`engine/evaluate.ts`): the bead's joint, leg and throat, the members it lands on, its seam and volume, a warning on its flush length.
+- **Errors** (`engine/errors.ts`): titles and hints for BEAD_KIND, BEAD_SEAM_NOT_PLANAR, BEAD_ANGLE, BEAD_SIZE.
+- Neither is exercised by a studio test yet. No node makes a bead until the mapping lands.
+- **A feature-level flow step** "FRk2 weld beads (D166) …":
+  - the kernel's features (a post, a rail butted on it with its bead, a top beam butted with a gusset and the gusset's beads) are evaluated in the flow;
+  - exported to STEP and opened in the studio: 9 bodies;
+  - the T's bead body reads 756 mm³ in the panel; a screenshot.
+- The v2 tool surface is unchanged (per turn 22,347).
+
+**For the outer lane's mapping** (relayed by the coordinator):
+- A record's joint `<body>.<end>` (O118) is the frame's member k (its body `part<k>`, or `solid` for one) and that end: `{ kind: 'weld-bead', frame: <the frame's feature id>, on: { member: k, end }, leg: <the record's size>, inner: <the record's inner> }`.
+- Which records map:
+  - fillet records only;
+  - a mitre's (a groove weld) and a cap's (flush) are refused BEAD_KIND, by the owner's defaults: do not map them;
+  - an `on-face` joint maps as its own end: the kernel finds every face it lands on (`meets`).
+- A gusset's seams map to `{ on: { gusset: <its feature id> } }` once their weld list lists them.
+- The output's `bead` carries the seam, flush part, volume and members for the weld list and symbols.
+
+**Corrected here, from D165:** FRk1's cad-model test (`test/weldment.test.ts`) did not type-check (two `fields` calls not asserted, a sketch node with the wrong fields). D165's "type-check clean" was run before the test was written; the suite runs through esbuild, which does not type-check. Fixed in this commit; cad-model's type-check is clean now.
+
+**Judgement calls:**
+- **The landing faces come from the B-reps as built**, not from the members' section boxes and lengths. A box face's strip runs past a mitre's cut and would hang the bead outside the frame's corner; the first build did that before the faces were read off the B-reps.
+- **Flush sides carry no fillet** and are said (`flushMM`, the note's warning). A fillet that hangs off its face's edge is not built.
+- **Two fillets meeting only along a line are separate bodies**, never a non-manifold solid.
+
+**Not in FRk2** (for the owner): beads on oblique ends (D164's polytope, narrowed above); groove welds' preparations and reinforcement; corner welds on flush sides and caps; beads along a cope's saddle seam.
+
+**Checks** (T1; the kernel FR/FRk files and the whole conformance runner; cad-model and studio whole):
+
+Ran:
+- **Kernel:** type-check and lint clean (the changed files); `pnpm build:library`. FR, FRk and the conformance runner, `--test-concurrency=4`: 305/305 at a load of 27–36. Brep core unchanged.
+- **`@barocss/cad-model`:** type-check clean (after the D165 test fix); lint clean on the changed files; 770/770 (+7 from the merged O148).
+- **Studio:** type-check clean; 203/203; lint 0 errors on the flow file.
+- **`FLOW_ONLY` "FRk2"** with the starter step: 2/2.
+- **Test names against `names/*.D165.txt`:** none missing. New: kernel +10 (5 tests, 5 conformance cases); cad-model +7 (the outer lane's O148 X1–X3); studio unchanged.
+
+Not run: the full kernel suite (no brep core change); RB and properties (3rd checkpoint, not T3); the full browser flow (the coordinator's window flow).

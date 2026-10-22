@@ -69,6 +69,13 @@ for (const file of cases) {
         if (w.seams) { assert.equal(r.seams.length, w.seams.length); w.seams.forEach((x, i) => close(r.seams[i].lengthMM, x, `seam ${i}`)); }
         if (w.seam !== undefined) close(r.seam.lengthMM, w.seam, 'seam');
       }
+      if (want.bead) {
+        // A weld bead's report (FRk2, D166): its leg, its seam and the part of it flush, the members it meets, its volume.
+        const r = o.bead, w = want.bead, close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `output ${k} bead ${what}: ${x} vs ${y}`);
+        assert.ok(r, `output ${k} has no bead report`);
+        close(r.legMM, w.legMM, 'leg'); close(r.seam.lengthMM, w.seam, 'seam'); close(r.seam.flushMM, w.flush, 'flush'); close(r.volumeMM3, m.volumeMM3, 'volume');
+        assert.deepEqual(r.meets, w.meets, `output ${k} bead meets`);
+      }
       if (want.flat) {
         // A sheet's flat pattern (R12.2, D117): by the output's own rules, or with T and K given (`options.thicknessMM`).
         const w = want.flat, opts = w.options ?? {}, make = () => opts.thicknessMM !== undefined ? flatPattern(o.brep, opts) : o.flatPattern(opts);
