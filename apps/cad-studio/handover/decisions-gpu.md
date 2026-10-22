@@ -871,3 +871,45 @@ publish, no new dependency (the lockfile untouched).
 - **Checks** (v2), in the verify worktree: gpu `build:library`, type-check and lint clean, unit 80/80, `test:consumer`
   3/3 (was 0/3), browser 12/12 (39 s, load 11–36); studio tsc clean and suite 203/203 (not touched: its `@barocss/gpu`
   is the workspace's sources). Not run: flows (no studio code changed), benches, the cad-model suite.
+
+## G18.2 — the repeating UV shader demos in WGSL, on the WebGPU viewer (2026-10-22)
+
+- **The lowering** (`packages/barocss-gpu/src/engine-uv-repeating-material-wgsl.ts`, new; the integration worktree's
+  untracked `engine-uv-material-wgsl.ts` — another session's — read for reference only, not adopted, moved or deleted,
+  and this file named apart from it so no merge meets it): `lowerEngineUVRepeatingMaterialWGSL` mirrors
+  `validateEngineUVRepeatingMaterialIR` — the input reconstructed by it (its source compiled again, as the GLSL lowering
+  does), the same tree; `uv_u`/`uv_v` as `engine_uv.x/y`, uniforms in the 64-byte `materialParams` slot (16 at most),
+  `mix` the viewer's `material_mix`, the result clamped; every coefficient and uniform bound checked as f32 (finite,
+  nonzero not flushed: RANGE, as G5's mesh lowering). Colour literals: the language's gamma-2.2 decode (the GLSL
+  lowering's) or, with `srgb`, the exact decode for the viewer.
+- **The viewer**: `materialShader` takes repeating UV sources (after the mesh profile, before UV01; a source refused
+  by all gets the diagnostics of the profile whose inputs it reads — a `uv_u` source's RANGE, not the mesh profile's
+  TYPE); `uvRepeatingShader(material, uniforms)` for a compiled material, its uniforms clamped into the slot.
+- **The docs hosts** (`apps/library-docs/scripts/snippets/advanced-shader-host.mjs`, `reusable-shader-host.mjs`): off
+  app-owned WebGL2 — the public preparer's binding drawn by `createViewer` as an unlit quad filling the canvas (uv 0..1
+  across it, as before), its shader material the public WGSL lowering; the same interface (update, setUniform, report,
+  dispose; created async, awaited by `VisualExamples.vue`). Their browser bundles have their own pin,
+  `scripts/profiles/gpu-uv-repeating-webgpu-v0.json` (`6d5dcb69d`, the lowering's commit; 488 verified blobs, no dist
+  inputs); the CPU consumers and the pages' material-profile pins (`7e96b959`, `363f583c`) are unchanged.
+- **`examples/gpu-scene/server.mjs`** (G18.1's note): its `/gpu.js` is the GPU bundle with CAD's built entry folded in
+  (esbuild, the root devDependency, once on the first request) — its pages' CSP admits no inline import map.
+- **Oracle** (`tests/uv-repeating-browser.test.mjs`, in `test:browser`): the six docs demos (advanced, caustics, weave,
+  contour, halftone, reusable), each at its defaults and at its uniforms' maxima, 96 × 96:
+  - the WGSL lowering in a raw WebGPU pass against the GLSL lowering on WebGL2 (the old host's program), the same colour
+    model: max 0–1/255 on five demos; on contour every pixel off by more than 2 (119 at the defaults, 467 at the maxima)
+    lies on a jump — where `fract(elevation·bands)` wraps the f32 GPUs land on either side (the CPU evaluator, binary64,
+    changes by more than 24/255 within 2e-5 of its uv) — and off them 0/255;
+  - on the viewer (exact sRGB decode and encode) against the GLSL host: max 1–4/255, the colour model alone (its bound,
+    the 2.2 power against the sRGB curve, is 8.55/255 at linear 0.0022); contour's jumps as above;
+  - f32: a literal flushed to zero (`0.`+45 zeros+`1`) and one past the range (`1`+39 zeros) refused RANGE where the
+    source compiles, so by `materialShader` too; an IR not the compiler's refused by the reconstruction.
+  - `tests/uv-repeating-wgsl.test.mjs` (2, in `test`): the WGSL text's structure, the alias and the slot, the clamp of
+    uniforms, the refusals, without a device.
+- **The hosts on WebGPU** (`apps/library-docs/scripts/check-shader-hosts-webgpu.mjs`): each of the six presets drawn
+  (a pattern: spread 155–236), a control moved changing 15–94 % of the frame, a refused source (TYPE) leaving the
+  accepted frame (100 % of pixels kept), the report's backend "Example WebGPU viewer · public WGSL repeating UV
+  material". The CPU consumers (`check-{advanced,weave,contour,halftone,reusable}-shader.mjs`) pass as before.
+- **Checks** (v2), in the verify worktree on `11d36ef0b`: cad and gpu `build:library`; gpu type-check and lint clean,
+  unit 82/82, `test:consumer` 3/3, browser 13/13; studio tsc clean, suite 203/203; `FLOW_ONLY` on step 48 (the render
+  workspace's shader material, `materialShader`'s other user) on WebGPU 2/2 in 9 s (load 33–54). Not run: the full
+  flow, the cad-model suite, benches, the docs site build (G18.3 builds it).
