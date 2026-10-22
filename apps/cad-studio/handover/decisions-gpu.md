@@ -1596,3 +1596,27 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - instance bridge 7, print overlay 6, clearance gpu 4;
   - studio type-check 0; eslint 0.
 - **Left for the browser slot**: G3's acceptance. Each mode, isolate and hide on both renderers, with picks unchanged.
+
+## G-R8 — the drawing's sheet pipeline as a hook, no behaviour change (G24 step 1; roadmap G5, 2026-10-23)
+
+- **What**: the coordinator's decision. The GPU lane extracts the pipeline, since the outer lane is on A9's acceptance
+  path. DrawingWorkspace.tsx is the outer lane's file, borrowed for this commit; the coordinator asked them to leave it
+  until this lands.
+  - **What moved.** DrawingWorkspace's sheet pipeline went to `src/ui/useDrawingSheet.ts`, next to it:
+    - the scope and its document, and the bodies read;
+    - the views projected with their sections, and the layout;
+    - elements, callouts, fits, the followed-stale notes and threads;
+    - the BOM read, the sourced tables, the weld joints, and the sheet.
+  - **Its signature.** `useDrawingSheet(active, { engine, doc, bodies, settings, fileName, annotations? })` returns
+    those values, plus `annotations` (model-annotations-v1) when asked.
+    - With `active` false, no engine call is made and nothing is built.
+    - DrawingWorkspace calls it with `active` true. `today()` moved with it.
+  - **Proof of no change.** The moved code was diffed against HEAD's DrawingWorkspace. The only differences are the
+    three `active` guards (bodies read, projection, BOM read) and `active` in their dependencies, and DrawingWorkspace
+    passes true. React's hook order is the same on every render. Unused imports were removed.
+- **Checks** (T1):
+  - studio type-check 0; eslint on both files 0;
+  - chat.test (the studio test that reads drawing outputs) 18/18;
+  - studio build ok.
+- **Not run**: the drawing flow steps. Their exports' bytes on the existing fixtures are the check the coordinator
+  asked for, and need the browser slot. The code that builds the sheet and the exports is the same code, moved.
