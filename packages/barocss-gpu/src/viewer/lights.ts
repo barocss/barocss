@@ -54,7 +54,8 @@ export const defaultLights = (): Light[] => [
 ];
 
 /** The shadow of the casting light: its view-projection, normal offset (world), texel size (uv) and depth bias. */
-export interface ShadowFrame { viewProjection: Mat4; normalOffset: number; texel: number; bias: number }
+/** The shadow-casting light's view (`eye`, `direction`: where it looks from and along — the caps' probe from it, G19.4). */
+export interface ShadowFrame { viewProjection: Mat4; normalOffset: number; texel: number; bias: number; eye?: Vec3; direction?: Vec3 }
 
 /** The directional lights the frame lights with (the shadow index refers to this list). */
 export const directionalLights = (lights: readonly Light[]): DirectionalLight[] => lights.filter((l): l is DirectionalLight => l.kind === 'directional').slice(0, MAX_DIRECTIONAL);
@@ -64,9 +65,10 @@ export interface GridFrame { cell: number; major: number; fade: number; height: 
 
 /**
  * The clip planes (G2, G19): drawn where dot(normal, p) ≥ offset for every plane (normals of unit length) — the
- * intersection of their kept sides — the caps in a colour (sRGB). `normal` and `offset`: the first plane's.
+ * intersection of their kept sides — or, `cutout` (G20), for any plane: a corner cut out, the intersection of their
+ * cut-away sides. The caps in a colour (sRGB). `normal` and `offset`: the first plane's.
  */
-export interface ClipFrame { normal: Vec3; offset: number; cap: Vec3; planes: readonly { normal: Vec3; offset: number }[] }
+export interface ClipFrame { normal: Vec3; offset: number; cap: Vec3; planes: readonly { normal: Vec3; offset: number }[]; cutout?: boolean }
 export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly number[] = [1, 1, 1, 0], grid: GridFrame | null = null, clip: ClipFrame | null = null, into: Float32Array | null = null): Float32Array {
   // (`into`: a block kept for it, cleared and written again — G13.)
   const f = into ? (into.fill(0), into) : new Float32Array(FRAME_BYTES / 4), u = new Uint32Array(f.buffer);
@@ -113,7 +115,7 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
   }
   if (clip) {
     const c = linear(clip.cap), n = Math.min(MAX_CLIP_PLANES, clip.planes.length);
-    put4(f, o + 48, c[0], c[1], c[2], n);
+    put4(f, o + 48, c[0], c[1], c[2], clip.cutout ? -n : n);
     for (let i = 0; i < n; i++) { const p = clip.planes[i]; put4(f, o + 52 + 4 * i, p.normal[0], p.normal[1], p.normal[2], p.offset); }
   }
   return f;

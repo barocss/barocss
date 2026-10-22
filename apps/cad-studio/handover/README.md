@@ -683,7 +683,7 @@ Done:
    - Large assemblies: G9 scene-level pick acceleration (a top-level BVH); G10 copies turned about Z sharing one tessellation (P6).
    - Quality: G11 order-independent (or depth-peeled) transparency for ghosted bodies; G12 the proposal's added/removed two-colour overlay (D40); G13 hygiene (per-frame allocations, the outline mask pass, optional uv).
    - Then: G14 display LOD for 1M-triangle meshes (measure first with G4's benches); G15 3D text labels (SDF atlas); G16 WebGL2 parity (curves and surfaces, a dragged body's turn); G17 the 3D skeleton sketch tool (item 5); G18 the docs items deferred earlier (WebGPU shader demo hosts with repeating-UV materials lowered to WGSL, docs screenshots, gpu `test:consumer`, the gpu bundle's CAD externalisation), last, unless the owner keeps them deferred.
-   - **After G18** (owner, 2026-10-22: G19 "좋아 그렇게 진행해줘"; the rest "좋아 로드맵을 채워줘"; status: G1–G18 done):
+   - **After G18** (owner, 2026-10-22: G19 "좋아 그렇게 진행해줘"; the rest "좋아 로드맵을 채워줘"; status: G1–G19 done):
      - G19 section-view upgrades (S0 approved): G19.1 several clip planes in the viewer and CPU paths; G19.2 the section bar's plane / box / planes modes, a plane from a picked face, WebGL2 clipMeshPlane, the chained exact section; G19.3 world-space hatching on caps (both renderers); G19.4 caps on ghosted bodies; G19.5 the Render workspace keeps the section.
      - G20 the quarter cut-out ("3/4 section": a union of two half-space removals).
      - G21 CAD display: silhouette edges of curved faces (screen-space), display modes (shaded with edges, hidden lines removed, hidden lines dashed, wireframe, x-ray), isolate / hide with the rest faded.
@@ -691,6 +691,7 @@ Done:
      - G23 manufacturing previews: CNC material removal along CNC8's 2.5D paths (stock as a height field or dexels on the GPU; uncut and overcut coloured), and a 3D-print layer preview (a layer slider, supports and overhangs). No mould-fill or other CAE simulation (owner, #2177).
      - G24 3D annotations on the model (MBD/PMI): fit callouts, tolerances, GD&T frames and weld symbols drawn in 3D with G15's labels, from the outer lane's drawing data.
      - G25 analyses on the GPU for interactive speed: wall thickness and tool access by GPU rays (display only; the exact values stay the kernel's), and a scan-versus-CAD deviation colour map.
+     - After G25 (coordinator, 2026-10-22, unless G20 needs the same machinery first): antialiased cap edges — the caps' probe and cap test per MSAA sample (G19.4's limit).
      - Later, when measured need appears: GPU occlusion culling for very large assemblies (G14's thresholds), progressive photoreal rendering and turntable / exploded-animation video export.
 
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
@@ -987,6 +988,20 @@ acceleration → benches.
   (1.24 → 0.73 MB, CAD's definitions gone), no source, `test:consumer` green. The repeating UV shader demos: lowered to
   WGSL (as the GLSL path within 2/255 off fract's jumps), drawn by the WebGPU viewer in the docs (no app-owned WebGL2).
   The docs' 41 example screenshots captured again from the built site with the current viewer (a capture script).
+- **G19** (2026-10-22): done, section-view upgrades (decisions-gpu G19.1–G19.5).
+  - Up to six clip planes in the viewer; the kept region is their intersection.
+  - The cap rule changed from G2's to "the ray's entry into the kept region, when the first surface after it is a back
+    face" (a box section inside a part).
+  - The section bar: Plane / Box / Planes, a plane from a face, a drag handle on every plane.
+  - WebGL2 clips in each plane's frame; the exact section chains the kernel's splits plane by plane.
+  - World-space hatch on the caps, on by default, each body at its own angle; lines on WebGL2 and on the exact
+    section, moving with their body.
+  - Caps cast shadows (the caps' probe from the light). Ghosted bodies are capped in the order-independent pass.
+  - The Render workspace keeps the section, and an animated body moves as itself while the section leaves bodies out
+    or splits them.
+  - Limits: aliased cap edges (after G25); one cap where two solids overlap (pinned; G22 flags overlaps); a cut
+    smaller than a hatch spacing square may get no line; ghost caps only with order-independent transparency.
+  - Next: G20, the quarter cut-out.
 - **gpu-scene Node harnesses after G18.1** (CAD external in the bundle): run them with the hook,
   `node --import ./packages/barocss-gpu/tests/cad-dist.mjs examples/gpu-scene/<name>-flow.mjs …`. The four that need only
   `--output` (`material-scalar-abs`, `material-scalar-extrema`, `material-smoothstep`, `native-reflection-cause`) load both

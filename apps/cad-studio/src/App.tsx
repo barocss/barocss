@@ -76,7 +76,7 @@ import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/ca
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import type { Analysis } from './viewport/analysis';
 import { boundsUnder, instancePoses, poseMatrix } from './viewport/instancePose';
-import { asSection, axisSection, planeFromFace, sectionPlanes, sectionSplits, sectionedBodies, sectionedInstances, type AxisSection, type Section } from './viewport/sectionView';
+import { asSection, axisSection, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, sectionedInstances, type AxisSection, type Section } from './viewport/sectionView';
 import { SectionBar, sectionHandles } from './ui/SectionBar';
 import { mapsOf, type MapKind } from './viewport/scalarMaps';
 import { isoclinePolylines } from '@barocss/cad-model/mould/parting';
@@ -370,7 +370,7 @@ export function App() {
   const [section, setSection] = useState<Section | null>(null);
   const [sectionFacePick, setSectionFacePick] = useState<number | null>(null);
   const sectionFacePickRef = useRef(sectionFacePick); sectionFacePickRef.current = sectionFacePick;
-  const [sectionExact, setSectionExact] = useState<{ key: string; bodies: BodyResult[] } | null>(null);
+  const [sectionExact, setSectionExact] = useState<{ key: string; bodies: BodyResult[]; from: ReadonlyMap<string, string> } | null>(null);
   const sectionRef = useRef(section); sectionRef.current = section;
   const activeRef = useRef<Active | null>(null);
   /** The body whose browser row the pointer is on (lit in the viewport). */
@@ -451,10 +451,10 @@ export function App() {
     if (!section) { setSectionExact(null); return; }
     let live = true; const key = JSON.stringify(section);
     // (G19: each body split by each plane that crosses what is left of it, the kept pieces' keys.)
-    const { doc, kept } = sectionSplits(evaluated, bodies, section);
+    const { doc, kept, from } = sectionSplits(evaluated, bodies, section), source = new Map(kept.map((k, i) => [k, from[i]]));
     // Latest wins: while one section is worked out, only the newest plane waits behind it.
     const run = sectionRun.current;
-    run.next = async () => { const r = await engine.section(doc, revision.current++); if (live && r.ok) setSectionExact({ key, bodies: r.bodies.filter(b => kept.includes(b.key)) }); };
+    run.next = async () => { const r = await engine.section(doc, revision.current++); if (live && r.ok) setSectionExact({ key, bodies: r.bodies.filter(b => kept.includes(b.key)), from: source }); };
     if (!run.busy) void (async () => { run.busy = true; try { while (run.next) { const j = run.next; run.next = null; await j(); } } finally { run.busy = false; } })();
     return () => { live = false; };
   }, [section, bodies, evaluated, engine]);
@@ -693,12 +693,9 @@ export function App() {
     else if (turnFrom.current && render.animation.turntable) { viewport.current?.setCamera(turnFrom.current); }
     setPlaying(on);
   };
-  const animatedOffsets = useMemo(() => {
-    if (!rendering || !Object.keys(render.animation.tracks).length) return undefined;
-    const at = offsetsAt(render.animation, time), out = new Map<number, Vec3>();
-    bodies.forEach((b, i) => { const o = at.get(b.key); if (o) out.set(i, o); });
-    return out;
-  }, [rendering, render.animation, time, bodies]);
+  // (By body key; put on the bodies shown — in a section the kept ones and the exact section's pieces, each moved as
+  // its body is: G19.5 — further down.)
+  const animatedAt = useMemo(() => !rendering || !Object.keys(render.animation.tracks).length ? null : offsetsAt(render.animation, time), [rendering, render.animation, time]);
   const exportImage = async () => {
     const png = await viewport.current?.capture();
     if (png) downloadBytes(new Uint8Array(await png.arrayBuffer()), `${fileName}.png`, 'image/png');
@@ -1669,6 +1666,14 @@ export function App() {
     ...selection.bodies.flatMap(b => bodies[b] ? [{ kind: 'body' as const, name: bodies[b].key }] : []),
   ].slice(0, 12).filter(() => fresh), [selection, bodies, fresh]);
   const shownBodies = bodyDrag ? bodies : previewBodies ?? (section && sectionBodies && !sketch ? sectionBodies : bodies);
+  // The Render workspace's animated offsets on the bodies shown: each by its body's key — an exact section's piece by the
+  // body it was cut from (G19.5: by index they fell on other bodies once the section left some out or split them).
+  const animatedOffsets = useMemo(() => {
+    if (!animatedAt) return undefined;
+    const from = shownBodies === sectionBodies && sectionExactShown ? sectionExact!.from : null, out = new Map<number, Vec3>();
+    shownBodies.forEach((b, i) => { const o = animatedAt.get(from?.get(b.key) ?? b.key); if (o) out.set(i, o); });
+    return out;
+  }, [animatedAt, shownBodies, sectionBodies, sectionExactShown, sectionExact]);
   // Bodies' own colours and hidden ones (StudioDoc.bodies), by index of what is shown.
   // (A command's preview: the bodies it adds — first made by one of its new features, not built on a body
   // the part has — tinted, so what is new reads at a glance.)
@@ -1716,12 +1721,26 @@ export function App() {
     ? { pull: mouldResult.pull, loops: mouldResult.loops, plus: mapKind === 'halves' ? mouldResult.plus : [], minus: mapKind === 'halves' ? mouldResult.minus : [], spread: mouldSpread } : null, [mouldResult, mapKind, mouldSpread]);
   halvesShownRef.current = !!mouldShown && (mouldShown.plus.length + mouldShown.minus.length) > 0;
   const mapLegend = scalarMaps?.[0] && viewport.current?.backend === 'webgpu' ? scalarMaps[0] : null;
-  const sectionClip = useMemo(() => section && !sketch && gpuSection ? { planes: sectionPlanes(section), bodies: shownBodies === sectionBodies && !sectionExactShown } : null, [section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown]);
+  // The part's and its placed parts' box: the section's handles and planes in it (G19), its hatch's spacing (G19.3).
+  const sectionBox = useMemo(() => {
+    const all = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)];
+    if (!all.length) return { min: [0, 0, 0] as Vec3, max: [0, 0, 0] as Vec3 };
+    return { min: [0, 1, 2].map(i => Math.min(...all.map(b => b.mesh.bounds.min[i]))) as Vec3, max: [0, 1, 2].map(i => Math.max(...all.map(b => b.mesh.bounds.max[i]))) as Vec3 };
+  }, [bodies, instancesPlaced]);
+  // The hatch on the cut (G19.3; on by default): on the GPU in the caps' shader while the planes move; as lines on
+  // WebGL2's clipped caps and on the exact section's cut faces (either renderer).
+  const [sectionHatchOn, setSectionHatchOn] = useState(true);
+  const hatchStep = useMemo(() => hatchSpacing(sectionBox), [sectionBox]);
+  const sectionClip = useMemo(() => section && !sketch && gpuSection ? { planes: sectionPlanes(section), bodies: shownBodies === sectionBodies && !sectionExactShown, hatch: sectionHatchOn ? hatchStep : null } : null, [section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown, sectionHatchOn, hatchStep]);
+  const sectionHatchLines = useMemo(() => section && !sketch && sectionHatchOn && shownBodies === sectionBodies && (!gpuSection || sectionExactShown) ? sectionHatch(shownBodies, sectionPlanes(section), hatchStep) : null,
+    [section, sketch, sectionHatchOn, shownBodies, sectionBodies, gpuSection, sectionExactShown, hatchStep]);
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __studioSection: () => unknown; __studioSectionDebug: (d: { hold: boolean; cpu: boolean }) => void };
     // (G19: the mode and planes, and the exact section's kept volume once it is shown.)
-    w.__studioSection = () => ({ gpu: gpuSection, exact: sectionExactShown, clip: sectionClip, bodies: shownBodies.length, mode: section?.mode ?? null, planes: section?.planes ?? null, volume: sectionExactShown ? sectionExact!.bodies.reduce((v, b) => v + meshVolume(b.mesh), 0) : null });
+    w.__studioSection = () => ({ gpu: gpuSection, exact: sectionExactShown, clip: sectionClip, hatch: sectionHatchOn ? { spacing: hatchStep, lines: sectionHatchLines?.map(h => ({ body: h.body, segments: h.segments.length / 6 })) ?? null } : null, bodies: shownBodies.length, mode: section?.mode ?? null, planes: section?.planes ?? null, volume: sectionExactShown ? sectionExact!.bodies.reduce((v, b) => v + meshVolume(b.mesh), 0) : null, shownVolume: shownBodies.reduce((v, b) => v + meshVolume(b.mesh), 0),
+      // (G19.5: each shown body's own body, and the Render workspace's offsets on them, by shown body's key.)
+      shownKeys: shownBodies.map(b => b.key), sources: shownBodies.map(b => (shownBodies === sectionBodies && sectionExactShown ? sectionExact!.from.get(b.key) : null) ?? b.key), offsets: animatedOffsets ? [...animatedOffsets].map(([i, o]) => [shownBodies[i]?.key, o]) : null });
     w.__studioSectionDebug = setSectionDebug;
     // (The axis form as before, or a section of planes, G19.)
     (window as unknown as { __studioSetSection: (s: Section | AxisSection | null) => void }).__studioSetSection = s => setSection(s ? asSection(s) : null);
@@ -1829,12 +1848,6 @@ export function App() {
           : { cmd: handleCmd, values: patchValues(handleCmd, handleCtx, handleValues, { [h.key]: v }), preview: 'busy', ctx: { ...handleCtx } });
       } }];
   }) : [];
-  // The section's planes: an arrow across each through the middle of what is kept (a box's on each face; G19).
-  const sectionBox = useMemo(() => {
-    const all = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)];
-    if (!all.length) return { min: [0, 0, 0] as Vec3, max: [0, 0, 0] as Vec3 };
-    return { min: [0, 1, 2].map(i => Math.min(...all.map(b => b.mesh.bounds.min[i]))) as Vec3, max: [0, 1, 2].map(i => Math.max(...all.map(b => b.mesh.bounds.max[i]))) as Vec3 };
-  }, [bodies, instancesPlaced]);
   const sectionBoxRef = useRef(sectionBox); sectionBoxRef.current = sectionBox;
   const sectionDrag: FeatureHandle[] = section && !active && !sketch && bodies.length ? sectionHandles(section, sectionBox, setSection) : [];
   const dragTransforms = useMemo(() => cmdBody !== undefined && bodyDrag ? new Map([[cmdBody, bodyDrag.matrix]]) : null, [cmdBody, bodyDrag]);
@@ -1926,7 +1939,7 @@ export function App() {
   return (
     <div className="studio">
       <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
-        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} clip={sectionClip} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
@@ -2408,7 +2421,7 @@ export function App() {
       <div className="corner-right">
   {mapLegend && <MapLegend map={mapLegend} hover={mapHover} />}
   {(mapKind === 'parting' || mapKind === 'halves') && <MouldLegend kind={mapKind} result={mouldResult} pull={!!doc.mould?.pull} spread={mouldSpread} onSpread={setMouldSpread} />}
-  {section && <SectionBar section={section} setSection={setSection} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} />}
+  {section && <SectionBar section={section} setSection={setSection} hatch={sectionHatchOn} setHatch={setSectionHatchOn} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} />}
         <div className="card views" role="group" aria-label="Views">
           {(['iso', 'top', 'front', 'right'] as const).map(v => <button key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</button>)}
           <button onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></button>

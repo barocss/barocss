@@ -102,6 +102,8 @@ export interface AddMeshOptions {
   clipped?: boolean;
   /** Its cap's colour (sRGB, times the material colour); default the clip plane's. */
   capColor?: Color | null;
+  /** Hatch lines on its cap (G19.3; Mesh.capHatch); default none. */
+  capHatch?: CapHatch | null;
   /** Counted in the scene's bounds — what fit() frames and the shadow and ground are sized to (default true; false for overlays, G7). */
   bounded?: boolean;
   /**
@@ -238,6 +240,7 @@ export class Mesh {
   /** Filled where the clip plane cuts it (a closed solid; AddMeshOptions.cap). */
   cap: boolean;
   private _capColor: Vec3 | null = null;
+  private _capHatch: CapHatch | null = null;
   private _colorMap: (ColorMap & { packed: { ramp: Uint8Array; params: Float32Array } }) | null = null;
   /** @internal A colour map's bind group (its ramp and parameters), for the device and map it was made for. */
   mapState: { device: Device; map: object; texture: Texture; params: Buffer; group: BindGroup } | null = null;
@@ -261,6 +264,7 @@ export class Mesh {
     this._clipped = options.clipped ?? true;
     this.cap = options.cap ?? false;
     if (options.capColor) this._capColor = parseColor(options.capColor);
+    if (options.capHatch) this._capHatch = hatchOf(options.capHatch);
     this.name = options.name;
     if (options.transform) this.transform = options.transform;
     if (options.instances) this.setInstances(options.instances);
@@ -313,6 +317,17 @@ export class Mesh {
     this._capColor = next; this.touch();
   }
   /**
+   * Hatch lines on its cap (G19.3), or null: lines 1 CSS pixel wide in its cap's colour × 0.45, `spacing` world units
+   * apart, at `angle` degrees in the cap plane from its u axis toward its v (capHatchAxes) — fixed in the world, so a
+   * part's cap keeps its hatch as the camera moves and parts at different angles read apart.
+   */
+  get capHatch(): CapHatch | null { return this._capHatch; }
+  set capHatch(h: CapHatch | null) {
+    const next = h ? hatchOf(h) : null, had = this._capHatch;
+    if (next === had || (next && had && next.angle === had.angle && next.spacing === had.spacing)) return;
+    this._capHatch = next; this.touch();
+  }
+  /**
    * A colour map of its geometry's scalar field (G6; Geometry.setScalars) in place of its material's colour, lit as the
    * surface (flat when unlit), or null for the material again. Without a field the material shows.
    */
@@ -355,7 +370,15 @@ export class Mesh {
     // (A point's border colour where a surface's cap colour goes.)
     const capOrBorder = this.geometry.topology === 'points' ? m.pointBorder?.color ?? null : this._capColor;
     if (capOrBorder) { const c = linear(capOrBorder); f[o + 44] = c[0]; f[o + 45] = c[1]; f[o + 46] = c[2]; f[o + 47] = 1; } else f.fill(0, o + 44, o + 48);
+    const h = this._capHatch;
+    if (h) { const a = (h.angle * Math.PI) / 180; f[o + 48] = Math.cos(a); f[o + 49] = Math.sin(a); f[o + 50] = h.spacing; f[o + 51] = 1; } else f.fill(0, o + 48, o + 52);
   }
+}
+
+/** Hatch lines on a cap (G19.3): `angle` in degrees in the cap plane (capHatchAxes), `spacing` in world units (> 0). */
+export interface CapHatch { angle: number; spacing: number }
+function hatchOf(h: CapHatch): CapHatch | null {
+  return Number.isFinite(h.angle) && Number.isFinite(h.spacing) && h.spacing > 0 ? { angle: h.angle, spacing: h.spacing } : null;
 }
 
 function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash' | 'pointBorder'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null; pointBorder: { width: number; color: Vec3 } | null } {
@@ -517,9 +540,22 @@ export class Viewer {
       if (!(l > 0) || !Number.isFinite(l) || !Number.isFinite(p.offset)) throw new RangeError('A clip plane needs a normal and a finite offset');
       return { normal: [p.normal[0] / l, p.normal[1] / l, p.normal[2] / l] as Vec3, offset: p.offset / l };
     });
-    this.clip = { normal: planes[0].normal, offset: planes[0].offset, cap: parseColor(list.find(p => p.cap)?.cap, [0.85, 0.7, 0.35]), planes };
+    this.clip = { normal: planes[0].normal, offset: planes[0].offset, cap: parseColor(list.find(p => p.cap)?.cap, [0.85, 0.7, 0.35]), planes, cutout: this._cutout };
     this.requestRender();
   }
+  /**
+   * Whether the clip planes cut out a corner (G20; default false): the meshes they clip kept on any plane's kept side —
+   * what is removed the intersection of their cut-away sides (two planes a quarter, three an octant) — and capped where
+   * the eye's ray leaves that removed corner inside a solid. False: kept on every plane's kept side (G19).
+   */
+  get clipCutout(): boolean { return this._cutout; }
+  set clipCutout(v: boolean) {
+    if (v === this._cutout) return;
+    this._cutout = v;
+    if (this.clip) this.clip = { ...this.clip, cutout: v };
+    this.requestRender();
+  }
+  private _cutout = false;
 
   private device!: Device;
   private context!: CanvasContext;
@@ -529,6 +565,9 @@ export class Viewer {
   private frameGroup!: BindGroup;
   private shadowFrameBuffer!: Buffer;
   private shadowFrameGroup!: BindGroup;
+  /** The caps' probe from the light (G19.4; the shadow map's size, made while the planes cap a caster) and its group. */
+  private lightProbe: Texture | null = null;
+  private shadowCapGroup: BindGroup | null = null;
   private shadowSampler!: object;
   private emptyShadow!: Texture;
   /** A one-texel nearest front depth (none): what the frame bind groups hold where the caps' prepass target is not bound. */
@@ -665,6 +704,7 @@ export class Viewer {
     this.frameGroup = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, front);
     this.frameGroupBare = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, this.emptyFront);
     this.shadowFrameGroup = group(this.shadowFrameBuffer, this.emptyShadow, this.emptyFront);
+    this.shadowCapGroup = this.lightProbe ? group(this.shadowFrameBuffer, this.emptyShadow, this.lightProbe) : null;
   }
 
   private async createPipelines(): Promise<void> {
@@ -810,6 +850,14 @@ export class Viewer {
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater-equal' },
       multisample: ms,
     }));
+    // (A see-through mesh's caps, G19.4: in the order-independent pass, tested against the opaque depth, none written.)
+    jobs.push(make('oitCap', {
+      vertex: vertex(modules.surface),
+      fragment: { module: modules.surface, entryPoint: 'fsCapOit', targets: oitTargets },
+      primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal' },
+      multisample: ms,
+    }));
     // (The caps' probe, G19: the capped meshes' faces, both sides, unclipped.)
     jobs.push(make('capFront', {
       vertex: positionOnly(modules.pick),
@@ -828,6 +876,19 @@ export class Viewer {
       fragment: { module: modules.pick, entryPoint: 'fsCapMask', targets: [{ format: 'r32uint' }] },
       primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+    }));
+    // (G19.4: the caps' probe from the light — the shadow map's depth, nearer smaller — and the caps into the shadow map.)
+    jobs.push(make('shadowProbe', {
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fsCapProbe', targets: [{ format: 'rg32float' }], constants: { nearer: -1 } },
+      primitive: { topology: 'triangle-list', cullMode: 'none', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'less' },
+    }));
+    jobs.push(make('shadowCap', {
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fsCapShadow', targets: [] },
+      primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'less' },
     }));
     jobs.push(make('shadow', {
       vertex: positionOnly(modules.pick),
@@ -1323,8 +1384,16 @@ export class Viewer {
     const r = Math.max(boxRadius(scene), 1e-6), c = boxCenter(scene), d = normalize(light.direction);
     const up: Vec3 = Math.abs(d[2]) < 0.9 ? [0, 0, 1] : [0, 1, 0], eye = sub(c, scale(d, 2 * r));
     if (!cross(up, d).some(x => x !== 0)) return null;
-    const viewProjection = multiply(orthographic(r, r, r * 0.9, r * 3.1), lookAt(eye, c, up)), size = this.shadowMapSize;
-    return { viewProjection, normalOffset: (2 * r / size) * 1.5, texel: 1 / size, bias: 0.0005 };
+    // (Its depth range holds the capped meshes' whole boxes too, as the camera's does — the caps' probe from the light
+    // reads their faces cut away, G19.4; its breadth is the scene's.)
+    let near = r * 0.9, far = r * 3.1;
+    const deep = this.clip ? this.depthBounds() : null;
+    if (deep) for (let i = 0; i < 8; i++) {
+      const t = ((i & 1 ? deep.max[0] : deep.min[0]) - eye[0]) * d[0] + ((i & 2 ? deep.max[1] : deep.min[1]) - eye[1]) * d[1] + ((i & 4 ? deep.max[2] : deep.min[2]) - eye[2]) * d[2];
+      if (t - r * 0.01 < near) near = Math.max(r * 1e-3, t - r * 0.01); if (t + r * 0.01 > far) far = t + r * 0.01;
+    }
+    const viewProjection = multiply(orthographic(r, r, near, far), lookAt(eye, c, up)), size = this.shadowMapSize;
+    return { viewProjection, normalOffset: (2 * r / size) * 1.5, texel: 1 / size, bias: 0.0005, eye, direction: d };
   }
 
   /** The grid this frame: a power-of-ten cell fitted to the view distance unless one is set. */
@@ -1339,7 +1408,12 @@ export class Viewer {
     // (Into the frame block kept for it, G13.)
     const vpt = frameViewport; vpt[0] = this.canvas.width; vpt[1] = this.canvas.height; vpt[2] = this.pixelRatio; const sb = this.sceneBounds(); vpt[3] = sb ? boxRadius(sb) : 0.866;
     this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, vpt, this.gridFrame(), this.clip, frameBlock));
-    if (shadow) this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, packFrame(shadow.viewProjection, this.camera, [], this.environment, null, [1, 1, 1], null, this.clip));
+    if (shadow) {
+      const f = packFrame(shadow.viewProjection, this.camera, [], this.environment, null, [1, 1, 1], null, this.clip);
+      // (Seen from the light — orthographic, along its direction: the caps' entry into the kept region along its rays, G19.4.)
+      if (shadow.eye && shadow.direction) { f[16] = shadow.eye[0]; f[17] = shadow.eye[1]; f[18] = shadow.eye[2]; f[19] = 0; f[20] = shadow.direction[0]; f[21] = shadow.direction[1]; f[22] = shadow.direction[2]; }
+      this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, f);
+    }
     let lo = Infinity, hi = -1;
     for (const m of this.meshes) if (m.dirty) {
       m.pack(this.objectData, m.slot * OBJECT_STRIDE, this.pixelRatio);
@@ -1423,14 +1497,18 @@ export class Viewer {
 
   /** Whether a mesh's cut is capped this frame: a clip plane, an opaque closed triangle mesh it clips. */
   private capped(m: Mesh): boolean { return !!this.clip && m.cap && m.clipped && m.geometry.topology === 'triangles' && !m.transparent; }
+  /** A see-through mesh capped (G19.4, a ghost): its caps in the order-independent pass (none in the sorted one). */
+  private ghostCapped(m: Mesh): boolean { return !!this.clip && this.orderIndependent && m.cap && m.clipped && oitSurface(m); }
+  /** In the caps' probe: the opaque capped meshes and the see-through ones (whose entry it is inside decides either's cap). */
+  private probed(m: Mesh): boolean { return this.capped(m) || this.ghostCapped(m); }
   /**
    * The caps' probe (G19, in place of G2's front-depth prepass): the capped meshes' faces, unclipped, the nearest beyond
    * each pixel's entry into the kept region — its depth and whether a back face, read by the caps: the entry is inside a
    * solid where that first surface after it is the solid's back face. Only while the planes cap one; `scissor`: the
    * pick's pixel.
    */
-  private drawCapFront(enc: ReturnType<Device['createCommandEncoder']>, opaque: readonly Mesh[], scissor: [number, number] | null): void {
-    if (!this.clip || !opaque.some(m => this.capped(m))) return;
+  private drawCapFront(enc: ReturnType<Device['createCommandEncoder']>, opaque: readonly Mesh[], transparent: readonly Mesh[], scissor: [number, number] | null): void {
+    if (!this.clip || (!opaque.some(m => this.capped(m)) && !transparent.some(m => this.ghostCapped(m)))) return;
     const t = this.ensureTargets();
     const pass = enc.beginRenderPass({
       colorAttachments: [{ view: t.views.capFront, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
@@ -1439,8 +1517,33 @@ export class Viewer {
     if (scissor) pass.setScissorRect(scissor[0], scissor[1], 1, 1);
     pass.setBindGroup(0, this.frameGroupBare);
     pass.setPipeline(this.pipelines.get('capFront')!);
-    for (const m of opaque) {
-      if (!this.capped(m)) continue;
+    for (const list of [opaque, transparent]) for (const m of list) {
+      if (!this.probed(m) || !this.upload(m.geometry)) continue;
+      { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+      this.drawTriangles(pass, m, false);
+    }
+    pass.end();
+  }
+  /**
+   * The caps' probe from the shadow-casting light (G19.4): as drawCapFront, the capped casters' faces unclipped, the
+   * nearest beyond each texel's entry into the kept region along the light — in the shadow map's depth (cleared and drawn
+   * again by the shadow pass after it), read by the caps drawn into the shadow map.
+   */
+  private drawLightProbe(enc: ReturnType<Device['createCommandEncoder']>, casters: readonly Mesh[]): void {
+    const size = this.shadowMapSize;
+    if (!this.lightProbe || this.lightProbe.width !== size) {
+      this.lightProbe?.destroy();
+      this.lightProbe = this.device.createTexture({ size: [size, size], format: 'rg32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer caps probe from the light' });
+      this.bindFrames();
+    }
+    const pass = enc.beginRenderPass({
+      colorAttachments: [{ view: this.lightProbe.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
+      depthStencilAttachment: { view: this.shadowMap!.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+    });
+    pass.setBindGroup(0, this.shadowFrameGroup);
+    pass.setPipeline(this.pipelines.get('shadowProbe')!);
+    for (const m of casters) {
+      if (!this.capped(m) || !this.upload(m.geometry)) continue;
       { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
       this.drawTriangles(pass, m, false);
     }
@@ -1475,9 +1578,9 @@ export class Viewer {
     let n = 0;
     k[n++] = this.idOf(this.device); k[n++] = this.shadowMapSize;
     // (The clip plane changes what casts.)
-    if (this.clip) { k[n++] = this.clip.planes.length; for (const p of this.clip.planes) { k[n++] = p.normal[0]; k[n++] = p.normal[1]; k[n++] = p.normal[2]; k[n++] = p.offset; } } else k[n++] = 0;
+    if (this.clip) { k[n++] = this.clip.planes.length * (this.clip.cutout ? -1 : 1); for (const p of this.clip.planes) { k[n++] = p.normal[0]; k[n++] = p.normal[1]; k[n++] = p.normal[2]; k[n++] = p.offset; } } else k[n++] = 0;
     for (let i = 0; i < viewProjection.length; i++) k[n++] = viewProjection[i];
-    for (const m of casters) { k[n++] = m.slot; k[n++] = this.idOf(m.geometry); k[n++] = m.geometry.gpu ? 1 : 0; k[n++] = m.instances ? this.idOf(m.instances) : 0; const t = m.transform; for (let i = 0; i < t.length; i++) k[n++] = t[i]; }
+    for (const m of casters) { k[n++] = m.slot * 2 + (this.capped(m) ? 1 : 0); k[n++] = this.idOf(m.geometry); k[n++] = m.geometry.gpu ? 1 : 0; k[n++] = m.instances ? this.idOf(m.instances) : 0; const t = m.transform; for (let i = 0; i < t.length; i++) k[n++] = t[i]; }
     const was = this.shadowDrawn;
     let same = this.shadowDrawnLength === n;
     for (let i = 0; same && i < n; i++) same = was[i] === k[i];
@@ -1539,18 +1642,29 @@ export class Viewer {
     const casters = this.casterList; casters.length = 0;
     if (shadow) for (const m of this.meshes) if (m.visible && m.castShadow && !m.transparent && m.geometry.topology === 'triangles') casters.push(m);
     if (shadow && this.shadowMap && this.shadowChanged(shadow.viewProjection, casters)) {
+      // (G19.4: the capped casters' caps too — first the probe from the light, into the shadow map's own depth.)
+      const capping = this.clip ? casters.some(m => this.capped(m)) : false;
+      if (capping) this.drawLightProbe(enc, casters);
       // Every shadow caster, in view or not.
       const sp = enc.beginRenderPass({ colorAttachments: [], depthStencilAttachment: { view: this.shadowMap.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
-      sp.setBindGroup(0, this.shadowFrameGroup);
+      sp.setBindGroup(0, capping && this.shadowCapGroup ? this.shadowCapGroup : this.shadowFrameGroup);
       sp.setPipeline(this.pipelines.get('shadow')!);
-      for (const m of this.meshes) {
-        if (!m.visible || !m.castShadow || m.transparent || m.geometry.topology !== 'triangles' || !this.upload(m.geometry)) continue;
+      for (const m of casters) {
+        if (!this.upload(m.geometry)) continue;
         sp.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
         this.drawTriangles(sp, m, false);
       }
+      if (capping && this.shadowCapGroup) {
+        sp.setPipeline(this.pipelines.get('shadowCap')!);
+        for (const m of casters) {
+          if (!this.capped(m) || !m.geometry.gpu) continue;
+          sp.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
+          this.drawTriangles(sp, m, false);
+        }
+      }
       sp.end();
     }
-    this.drawCapFront(enc, opaque, null);
+    this.drawCapFront(enc, opaque, transparent, null);
     // (G11: with a see-through surface in view, three passes — the opaque scene kept multisampled; the see-through
     // surfaces into the accumulation and revealage, in any order; their composite, then the see-through lines and points
     // over it. Without one, one pass as before.)
@@ -1589,6 +1703,15 @@ export class Viewer {
       const cur: { pipeline?: Pipeline } = {};
       this.oitDrawing = true;
       try { for (const m of transparent) if (oitSurface(m)) { this.drawMesh(op, m, cur, false); tris += (m.geometry.data.elementCount / 3) * m.instanceCount; } } finally { this.oitDrawing = false; }
+      // (G19.4: the see-through meshes' caps, weighted in with their surfaces.)
+      if (this.clip) for (const m of transparent) {
+        if (!this.ghostCapped(m) || !m.geometry.gpu) continue;
+        const p = this.pipelines.get('oitCap')!;
+        if (cur.pipeline !== p) { op.setPipeline(p); cur.pipeline = p; }
+        { dynamicOffset[0] = m.slot * OBJECT_STRIDE; op.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+        this.drawTriangles(op, m, true);
+        caps++;
+      }
       op.end();
       const cp = enc.beginRenderPass({
         colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa ? sceneView : undefined, loadOp: 'load', storeOp: targets.msaa ? 'discard' : 'store' }],
@@ -1702,7 +1825,7 @@ export class Viewer {
     const { opaque, transparent } = this.visibleMeshes(vp);
     this.writeUniforms(vp);
     const t = this.ensurePickTargets(), enc = this.device.createCommandEncoder();
-    this.drawCapFront(enc, opaque, [px, py]);
+    this.drawCapFront(enc, opaque, transparent, [px, py]);
     const pass = enc.beginRenderPass({
       colorAttachments: [
         { view: t.views.id, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
@@ -1754,7 +1877,7 @@ export class Viewer {
     if (!this.clip) return null;
     let first: { mesh: Mesh; instance: number | null; t: number; back: boolean; entry: number; plane: number } | null = null;
     for (const m of this.meshes) {
-      if (!m.visible || m.geometry.disposed || !this.capped(m)) continue;
+      if (!m.visible || m.geometry.disposed || !this.probed(m)) continue;
       for (let i = 0; i < m.instanceCount; i++) {
         const instance = m.instances ? i : null, r = clippedRayFull(m.geometry.data, this.instanceTransform(m, instance), origin, direction, this.clip, true, true);
         if (!r.beyond) continue;
@@ -1762,7 +1885,8 @@ export class Viewer {
         if (!first || (b.t < first.t && !tie) || (tie && b.back && !first.back)) first = { mesh: m, instance, t: b.t, back: b.back, entry: r.entry, plane: r.plane };
       }
     }
-    return first && first.back ? { mesh: first.mesh, instance: first.instance, t: first.entry, plane: first.plane } : null;
+    // (A see-through mesh's cap is drawn, not picked — as its surface in the order-independent pass.)
+    return first && first.back && !first.mesh.transparent ? { mesh: first.mesh, instance: first.instance, t: first.entry, plane: first.plane } : null;
   }
 
   /** A hit's scalar (G6): the field at the point in the mesh's own space, when it has one and a triangle was hit. */
@@ -1998,7 +2122,7 @@ export class Viewer {
     this.targets?.msaa?.destroy(); this.targets?.scene.destroy(); this.targets?.depth.destroy();
     if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.instance.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }
     this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy(); this.shadowFrameBuffer?.destroy();
-    this.targets?.mask.destroy(); this.targets?.maskDepth.destroy(); this.targets?.capFront.destroy(); this.emptyFront?.destroy();
+    this.targets?.mask.destroy(); this.targets?.maskDepth.destroy(); this.targets?.capFront.destroy(); this.emptyFront?.destroy(); this.lightProbe?.destroy();
     this.shadowMap?.destroy(); this.emptyShadow?.destroy(); this.identityInstance?.destroy(); this.white?.texture.destroy(); this.zeroParams?.destroy();
     for (const t of this.textures) t.dispose();
     this.textures.clear();
@@ -2009,10 +2133,19 @@ export class Viewer {
 }
 
 /** A box cut by a clip plane along an axis (dot(n, p) ≥ offset, n ±x, ±y or ±z); null when it is wholly cut away; as it is for another plane. */
-/** A box cut by the clip planes that are axis-aligned (each of `planes`, else the one); the others leave it. */
-export function clipBox(b: Box3 | null, c: { normal: ArrayLike<number>; offset: number; planes?: readonly { normal: ArrayLike<number>; offset: number }[] }): Box3 | null {
+/** A box cut by the clip planes that are axis-aligned (each of `planes`, else the one); the others leave it. A cut-out leaves it (G20). */
+export function clipBox(b: Box3 | null, c: { normal: ArrayLike<number>; offset: number; planes?: readonly { normal: ArrayLike<number>; offset: number }[]; cutout?: boolean }): Box3 | null {
   if (!b) return b;
   const min = [b.min[0], b.min[1], b.min[2]], max = [b.max[0], b.max[1], b.max[2]], list = c.planes ?? [c];
+  // (A cut-out, G20: the box itself — a corner taken off leaves its extent — or none when the removed corner holds all of
+  // it: every corner of the box on every plane's cut-away side, R convex.)
+  if (c.cutout) {
+    for (let i = 0; i < 8; i++) {
+      const x = i & 1 ? max[0] : min[0], y = i & 2 ? max[1] : min[1], z = i & 4 ? max[2] : min[2];
+      if (list.some(p => p.normal[0] * x + p.normal[1] * y + p.normal[2] * z >= p.offset)) return b;
+    }
+    return null;
+  }
   let cut = false;
   for (let i = 0; i < list.length; i++) {
     const n = list[i].normal, k = Math.abs(n[0]) === 1 ? 0 : Math.abs(n[1]) === 1 ? 1 : Math.abs(n[2]) === 1 ? 2 : -1;

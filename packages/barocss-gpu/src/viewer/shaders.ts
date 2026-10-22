@@ -8,7 +8,7 @@ export const MAX_DIRECTIONAL = 4, MAX_POINT = 8, MAX_SPOT = 4;
 /** Clip planes at most (G19: a box section's six). */
 export const MAX_CLIP_PLANES = 6;
 export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16;
-export const OBJECT_BYTES = 192, OBJECT_STRIDE = 256;
+export const OBJECT_BYTES = 208, OBJECT_STRIDE = 256;
 
 const common = /* wgsl */ `
 struct DirLight { direction: vec4f, color: vec4f }
@@ -37,7 +37,8 @@ struct Frame {
   grid: vec4f,
   gridColor: vec4f,
   // The clip planes (G2, G19): what is drawn of a mesh they clip is where dot(clips[i].xyz, world) >= clips[i].w for
-  // every plane — the intersection of their kept sides; the caps' colour (linear), w the number of planes (0: none).
+  // every plane — the intersection of their kept sides — or, w negative, for any plane (a cut-out, G20); the caps'
+  // colour (linear), |w| the number of planes (0: none).
   clipColor: vec4f,
   clips: array<vec4f, ${MAX_CLIP_PLANES}>,
 }
@@ -49,6 +50,9 @@ struct Object {
   pick: vec4u,
   // Its cap's colour (linear; w 1 when set, else the frame's), times its material colour (G2b).
   cap: vec4f,
+  // Its cap's hatch (G19.3): the lines' angle (cos, sin) in the cap plane's axes (hatchAcross), their spacing in world
+  // units; w 1 when on.
+  hatch: vec4f,
 }
 @group(0) @binding(0) var<uniform> frame: Frame;
 @group(0) @binding(1) var shadowMap: texture_depth_2d;
@@ -68,22 +72,46 @@ fn envAt(d: vec3f, lod: f32) -> vec3f {
 /** Every surface draw is instanced (a plain mesh: one identity instance): a transform and colour each. */
 struct Instance { @location(3) c0: vec4f, @location(4) c1: vec4f, @location(5) c2: vec4f, @location(6) c3: vec4f, @location(7) color: vec4f }
 fn instanceMatrix(i: Instance) -> mat4x4f { return mat4x4f(i.c0, i.c1, i.c2, i.c3); }
-/** Whether a world point is on a side a clip plane cuts away, for a mesh they clip (object.pick.z bit 1). */
+/** The number of clip planes (frame.clipColor.w: negative for a cut-out, G20). */
+fn clipCount() -> u32 { return u32(abs(frame.clipColor.w) + 0.5); }
+/**
+ * Whether the planes cut out a corner (G20): kept on any plane's kept side, the removed region R the intersection of
+ * their cut-away sides (convex); else (G19) kept on every plane's kept side.
+ */
+fn clipCutout() -> bool { return frame.clipColor.w < -0.5; }
+/** Whether a world point is where the clip planes cut away, for a mesh they clip (object.pick.z bit 1). */
 fn clippedAway(world: vec3f) -> bool {
-  if (frame.clipColor.w < 0.5 || (object.pick.z & 2u) == 0u) { return false; }
-  let n = u32(frame.clipColor.w + 0.5);
+  let n = clipCount();
+  if (n == 0u || (object.pick.z & 2u) == 0u) { return false; }
+  if (clipCutout()) {
+    for (var i = 0u; i < n; i++) { let p = frame.clips[i]; if (dot(p.xyz, world) >= p.w) { return false; } }
+    return true;
+  }
   for (var i = 0u; i < n; i++) { let p = frame.clips[i]; if (dot(p.xyz, world) < p.w) { return true; } }
   return false;
 }
 /**
- * The kept region along the eye's ray through a world point (G19): the ray as world + t·dir (dir from the eye toward
- * it, so the point is at t = 0 and, in perspective, the eye at −1); the region's entry and exit parameters and the
- * entry's plane (−1: none — the ray moves into no plane).
+ * Where the eye's ray through a world point comes into what is kept past the cut (G19, G20): the ray as world + t·dir
+ * (dir from the eye toward it, so the point is at t = 0 and, in perspective, the eye at −1). x: the parameter of that
+ * point C; y: where the kept stretch after it ends (C is none when that is not past it); z: the plane C is on (−1: none).
+ * G19 — the kept region, convex: C its entry. G20 — a cut-out: C where the ray leaves the removed region R (convex, one
+ * stretch of the ray), after which it stays kept.
  */
 fn regionAlong(world: vec3f) -> vec3f {
   let dir = select(frame.forward.xyz, world - frame.eye.xyz, frame.eye.w > 0.5);
-  let n = u32(frame.clipColor.w + 0.5);
+  let n = clipCount();
   var lo = -1e30; var hi = 1e30; var at = -1.0;
+  if (clipCutout()) {
+    // (R: n·p < d for every plane — entered past each crossing out of a kept side, left at the first crossing into one.)
+    for (var i = 0u; i < n; i++) {
+      let p = frame.clips[i]; let den = dot(p.xyz, dir); let f = dot(p.xyz, world) - p.w;
+      if (abs(den) < 1e-20) { if (f >= 0.0) { lo = 1e30; } continue; }
+      let t = -f / den;
+      if (den < 0.0) { lo = max(lo, t); } else if (t < hi) { hi = t; at = f32(i); }
+    }
+    if (lo >= hi) { return vec3f(0.0, 0.0, -1.0); }
+    return vec3f(hi, 1e30, at);
+  }
   for (var i = 0u; i < n; i++) {
     let p = frame.clips[i]; let den = dot(p.xyz, dir); let f = dot(p.xyz, world) - p.w;
     if (abs(den) < 1e-20) { if (f < 0.0) { hi = -1e30; } continue; }
@@ -292,19 +320,58 @@ fn shade(world: vec3f, n: vec3f, base: vec3f, metallicIn: f32, roughIn: f32, emi
 // The clip plane's cap (G2): a kept back face seen through the cut, drawn where the eye's ray crosses the plane, in the
 // cap colour, lit as a face on the plane facing the cut-away side (the mesh's metal and roughness; flat when unlit).
 struct CapOut { @location(0) color: vec4f, @builtin(frag_depth) depth: f32 }
-@fragment fn fsCap(in: VOut) -> CapOut {
-  if (!capFirst(in.clip)) { discard; }
+/**
+ * The direction across a cap's hatch lines (G19.3) on a plane of normal n0, its lines at (c, s) = (cos, sin) of their
+ * angle from the plane's u axis toward its v: the normal turned so its largest component is positive (a plane and its
+ * flip hatch alike); u the next world axis after that component's (x → y → z → x) into the plane, v = n × u. (As
+ * capHatchAxes in geometry.ts.)
+ */
+fn hatchAcross(n0: vec3f, c: f32, s: f32) -> vec3f {
+  let m = abs(n0);
+  var k = 2u;
+  if (m.x >= m.y && m.x >= m.z) { k = 0u; } else if (m.y >= m.z) { k = 1u; }
+  let n = select(n0, -n0, n0[k] < 0.0);
+  var a = vec3f(0.0); a[(k + 1u) % 3u] = 1.0;
+  let u = normalize(a - n * dot(n, a));
+  let v = cross(n, u);
+  return c * v - s * u;
+}
+/** A cap's colour (lit, hatched; rgb) and its depth (w) at a back face's fragment — discarded where it is no cap. */
+fn capShade(in: VOut) -> vec4f {
   let q = capPoint(in.world);
+  // (The hatch's coordinate and its change per pixel — across the lines, so a line is 1 pixel wide at any angle —
+  // before any fragment is discarded.)
+  let across = hatchAcross(frame.clips[u32(max(q.w - 0.5, 0.0))].xyz, object.hatch.x, object.hatch.y);
+  let h = dot(q.xyz, across) / max(object.hatch.z, 1e-12);
+  let hw = length(vec2f(dpdx(h), dpdy(h)));
+  if (!capFirst(in.clip)) { discard; }
   let z = capDepth(q);
   if (z < 0.0) { discard; }
   let n = -normalize(capPlane(q).xyz);
   let base = select(frame.clipColor.rgb, object.cap.rgb * object.color.rgb, object.cap.w > 0.5);
   var c = base;
   if (object.params.w < 0.5) { c = shade(q.xyz, n, base, object.params.x, object.params.y, 0.0, (object.pick.z & 1u) == 1u); }
+  // (Lines 1 CSS pixel wide, antialiased: the cap's colour × 0.45 on them.)
+  if (object.hatch.w > 0.5) {
+    let d = abs(fract(h + 0.5) - 0.5) / max(hw, 1e-12);
+    c = c * (1.0 - 0.55 * clamp(0.5 * frame.viewport.z + 0.5 - d, 0.0, 1.0));
+  }
+  return vec4f(c, z);
+}
+@fragment fn fsCap(in: VOut) -> CapOut {
+  let c = capShade(in);
   var o: CapOut;
-  o.color = vec4f(c, 1.0);
-  o.depth = z;
+  o.color = vec4f(c.rgb, 1.0);
+  o.depth = c.w;
   return o;
+}
+// A see-through mesh's cap (G19.4, a ghost's): into the order-independent pass at the mesh's opacity, at its depth.
+struct CapOit { @location(0) accum: vec4f, @location(1) reveal: f32, @builtin(frag_depth) depth: f32 }
+@fragment fn fsCapOit(in: VOut) -> CapOit {
+  let c = capShade(in);
+  let a = object.color.a;
+  let w = oitOf(vec4f(c.rgb * a, a), capPoint(in.world).xyz);
+  return CapOit(w.accum, w.reveal, c.w);
 }
 
 /**
@@ -597,11 +664,13 @@ struct Ids { @location(0) id: u32, @location(1) depth: f32, @location(2) instanc
 // whether a back face; the nearest kept by the depth test, a back face drawn a little nearer so that it wins a tie (two
 // solids touching: the cap is the first's).
 struct Probe { @location(0) v: vec2f, @builtin(frag_depth) z: f32 }
+// (Which way is nearer: +1 in the scene's reversed depth, −1 in the shadow map's — the light's probe, G19.4.)
+override nearer: f32 = 1.0;
 @fragment fn fsCapProbe(in: POut, @builtin(front_facing) front: bool) -> Probe {
   if (capPoint(in.world).w < 0.5) { discard; }
   var o: Probe;
   o.v = vec2f(in.clip.z, select(1.0, 0.0, front));
-  o.z = min(1.0, in.clip.z + select(4e-7, 0.0, front));
+  o.z = clamp(in.clip.z + select(4e-7 * nearer, 0.0, front), 0.0, 1.0);
   return o;
 }
 // The shadow map: depth only, less what the clip plane cuts away.
@@ -613,6 +682,13 @@ struct CapIds { @location(0) id: u32, @location(1) depth: f32, @location(2) inst
   let z = capDepth(capPoint(in.world));
   if (z < 0.0) { discard; }
   return CapIds(object.pick.x, z, in.instance, z);
+}
+// The caps in the shadow map (G19.4): as in the scene, from the light — its probe read, the cap at its entry's depth.
+@fragment fn fsCapShadow(in: POut) -> @builtin(frag_depth) f32 {
+  if (!capFirst(in.clip)) { discard; }
+  let z = capDepth(capPoint(in.world));
+  if (z < 0.0) { discard; }
+  return z;
 }
 struct CapMask { @location(0) id: u32, @builtin(frag_depth) z: f32 }
 @fragment fn fsCapMask(in: POut) -> CapMask {

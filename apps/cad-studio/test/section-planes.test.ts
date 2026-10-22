@@ -61,13 +61,14 @@ test('G19 the exact section: one axis plane as before; planes chained — each k
   // One axis plane: the document and keys the studio made before (inlined).
   for (const [axis, at, keep] of [['x', 7, 'positive'], ['z', 3, 'negative'], ['y', 30, 'positive'], ['y', -3, 'positive']] as const) {
     const k = 'xyz'.indexOf(axis);
-    let old = { ...doc, nodes: [...doc.nodes] }; const oldKept: string[] = [];
+    let old = { ...doc, nodes: [...doc.nodes] }; const oldKept: string[] = [], from: string[] = [];
     for (const b of bodies) {
       const { min, max } = b.mesh.bounds;
-      if (min[k] < at - 1e-6 && max[k] > at + 1e-6) { old = withNode(old, { kind: 'split', parent: refOf(b), axis, at }); oldKept.push(bodyKeyFor(old.nodes, old.nodes.length - 1, keep)); }
-      else if (keep === 'negative' ? max[k] <= at + 1e-6 : min[k] >= at - 1e-6) oldKept.push(b.key);
+      if (min[k] < at - 1e-6 && max[k] > at + 1e-6) { old = withNode(old, { kind: 'split', parent: refOf(b), axis, at }); oldKept.push(bodyKeyFor(old.nodes, old.nodes.length - 1, keep)); from.push(b.key); }
+      else if (keep === 'negative' ? max[k] <= at + 1e-6 : min[k] >= at - 1e-6) { oldKept.push(b.key); from.push(b.key); }
     }
-    assert.deepEqual(sectionSplits(doc, bodies, axisSection({ axis, at, keep })), { doc: old, kept: oldKept });
+    // (G19.5: and each kept piece's body.)
+    assert.deepEqual(sectionSplits(doc, bodies, axisSection({ axis, at, keep })), { doc: old, kept: oldKept, from });
   }
   const volume = (s: Section) => {
     const r = sectionSplits(doc, bodies, s), e = evaluateDoc(r.doc, 1);

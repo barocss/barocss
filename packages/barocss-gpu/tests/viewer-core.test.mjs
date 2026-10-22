@@ -6,7 +6,7 @@ import { identity, invert, lookAt, multiply, orthographicReversed, perspectiveRe
 import { Camera } from '../dist/viewer/camera.js';
 import { orbit, pan, zoom } from '../dist/viewer/controls.js';
 import { boxInFrustum, frustumPlanes, screenRect, transformBox } from '../dist/viewer/bounds.js';
-import { clippedRay, fillVertexColors, localPlane, nearestSegment, prepareGeometry, rayTriangles, regionEntry, segmentInstances, vertexColors } from '../dist/viewer/geometry.js';
+import { clippedRay, fillVertexColors, keptBy, localPlane, nearestSegment, prepareGeometry, rayTriangles, regionEntry, segmentInstances, vertexColors } from '../dist/viewer/geometry.js';
 import { packFrame, packOutput, parseColor } from '../dist/viewer/lights.js';
 import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_POINT, surfaceWGSL } from '../dist/viewer/shaders.js';
 import { clipBox } from '../dist/viewer/viewer.js';
@@ -290,6 +290,66 @@ test('G19 several clip planes on the CPU: the kept region is their intersection 
   const B = { min: [0, 0, 0], max: [10, 4, 2] }, sect = [{ normal: [1, 0, 0], offset: 2 }, { normal: [-1, 0, 0], offset: -8 }, { normal: [0, 1, 0], offset: 1 }, { normal: [0, -1, 0], offset: -3 }, { normal: [0, 0, 1], offset: 0.5 }, { normal: [Math.SQRT1_2, 0, Math.SQRT1_2], offset: 9 }];
   assert.deepEqual(clipBox(B, { ...sect[0], planes: sect }), { min: [2, 1, 0.5], max: [8, 3, 2] });
   assert.equal(clipBox(B, { ...sect[0], planes: [...sect, { normal: [0, 0, -1], offset: -0.2 }] }), null);
+});
+
+test('G20 a cut-out on the CPU: kept on any plane\'s kept side, the removed corner the intersection of their cut-away sides — rays and caps where the ray leaves it, packed planes, segments in two pieces, boxes', () => {
+  // A 2 × 2 × 2 box at the origin (outward faces).
+  const P = [], I = [];
+  for (const [axis, s] of [[0, 1], [0, -1], [1, 1], [1, -1], [2, 1], [2, -1]]) {
+    const u = (axis + 1) % 3, v = (axis + 2) % 3, base = P.length / 3;
+    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const q = [0, 0, 0]; q[axis] = s; q[u] = a; q[v] = b * s; P.push(...q); }
+    I.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  const g = prepareGeometry({ positions: P, indices: I }), M = identity();
+  let seed = 23; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  const unit = v => { const l = Math.hypot(...v); return v.map(x => x / l); }, dt = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  // The oracle: the box B and the removed corner R are convex, so along a ray each is one stretch; what is kept of the
+  // solid is B's stretch less R's. Its first point is B's entry unless that is inside R — then R's exit, a cap, when that
+  // is still inside B.
+  const interval = (planes, o, d) => { let lo = -Infinity, hi = Infinity; for (const p of planes) { const den = dt(p.normal, d), f = dt(p.normal, o) - p.offset; if (Math.abs(den) < 1e-15) { if (f < 0) return null; continue; } const t = -f / den; if (den > 0) lo = Math.max(lo, t); else hi = Math.min(hi, t); } return lo < hi ? [lo, hi] : null; };
+  const boxPlanes = [0, 1, 2].flatMap(k => [1, -1].map(sg => { const n = [0, 0, 0]; n[k] = -sg; return { normal: n, offset: -1 }; }));
+  let hits = 0, caps = 0;
+  for (let k = 0; k < 800; k++) {
+    const count = 2 + (k % 2), planes = Array.from({ length: count }, () => ({ normal: unit([rand() - 0.5, rand() - 0.5, rand() - 0.5]), offset: (rand() - 0.5) * 0.8 }));
+    const o = unit([rand() - 0.5, rand() - 0.5, rand() - 0.5]).map(x => x * 6), d = unit([rand() * 0.6 - 0.3 - o[0] / 6, rand() * 0.6 - 0.3 - o[1] / 6, rand() * 0.6 - 0.3 - o[2] / 6]);
+    const clip = { normal: planes[0].normal, offset: planes[0].offset, planes, cutout: true };
+    const got = clippedRay(g, M, o, d, clip, true, true), box = interval(boxPlanes, o, d), R = interval(planes.map(p => ({ normal: p.normal.map(x => -x), offset: -p.offset })), o, d);
+    let want = null;
+    if (box && box[0] > 0) {
+      if (!R || box[0] < R[0] || box[0] >= R[1]) want = { t: box[0], cap: false };
+      else if (R[1] < box[1]) want = { t: R[1], cap: true };
+    }
+    // (A ray grazing an edge within rounding is left out.)
+    if (box && R && (Math.abs(box[0] - R[0]) < 1e-7 || Math.abs(box[0] - R[1]) < 1e-7 || Math.abs(box[1] - R[1]) < 1e-7)) continue;
+    assert.equal(!!got, !!want, `ray ${k} ${JSON.stringify({ got, want })}`);
+    if (!want) continue;
+    hits++; if (want.cap) caps++;
+    assert.ok(near(got.t, want.t, 1e-9) && got.cap === want.cap, `ray ${k} ${JSON.stringify({ got, want })}`);
+    if (got.cap) { const e = regionEntry(clip, o, d); assert.ok(near(e.t, R[1], 1e-9)); assert.ok(near(dt(planes[e.plane].normal, o.map((x, c) => x + d[c] * got.t)), planes[e.plane].offset, 1e-9), 'on the plane it leaves R through'); }
+  }
+  assert.ok(hits > 300 && caps > 40, `${hits} hits, ${caps} on caps`);
+  // Packed, the flag last: kept on any plane's kept side.
+  const two = [{ normal: [-1, 0, 0], offset: 0 }, { normal: [0, -1, 0], offset: 0 }], L = localPlane(identity(), { ...two[0], planes: two, cutout: true });
+  assert.equal(L.length, 9); assert.equal(L[8], 1);
+  assert.equal(keptBy(L, 0.5, 0.5, 0), false, 'in the corner x > 0, y > 0'); assert.equal(keptBy(L, -0.5, 0.5, 0), true); assert.equal(keptBy(L, 0.5, -0.5, 0), true);
+  assert.equal(keptBy(L.subarray(0, 8), -0.5, 0.5, 0), false, 'without the flag: both sides (G19)');
+  // A segment across a removed slab (−0.5 < x < 0.5, kept x ≤ −0.5 or x ≥ 0.5): found on either piece, not between.
+  const seg = prepareGeometry({ positions: [-1, 0, 0, 1, 0, 0], topology: 'lines' }), O = orthographicReversed(1, 1, -10, 10), slab = [-1, 0, 0, 0.5, 1, 0, 0, 0.5, 1];
+  const left = nearestSegment(seg, O, 10, 50, 100, 100, 6, Infinity, slab), right = nearestSegment(seg, O, 90, 50, 100, 100, 6, Infinity, slab);
+  assert.ok(left && near(left.s, 0.1, 1e-9) && near(left.distance, 0, 1e-9), JSON.stringify(left));
+  assert.ok(right && near(right.s, 0.9, 1e-9) && near(right.distance, 0, 1e-9), JSON.stringify(right));
+  assert.equal(nearestSegment(seg, O, 50, 50, 100, 100, 6, Infinity, slab), null, 'the removed middle');
+  // The nearest of the two pieces' ends from just inside the slab.
+  const edge = nearestSegment(seg, O, 30, 50, 100, 100, 6, Infinity, slab);
+  assert.ok(edge && near(edge.s, 0.25, 1e-9) && near(edge.distance, 5, 1e-9), JSON.stringify(edge));
+  // A box: kept whole with a corner off; none when the removed corner holds it all.
+  const B = { min: [0, 0, 0], max: [10, 4, 2] };
+  assert.deepEqual(clipBox(B, { ...two[0], planes: two, cutout: true }), B);
+  assert.equal(clipBox(B, { normal: [-1, 0, 0], offset: 1, planes: [{ normal: [-1, 0, 0], offset: 1 }, { normal: [0, -1, 0], offset: 1 }], cutout: true }), null);
+  // The frame block: the plane count negative for a cut-out.
+  const cam = new Camera(), f = packFrame(identity(), cam, [], {}, null, [1, 1, 1, 0], null, { normal: two[0].normal, offset: 0, cap: [1, 0, 0], planes: two, cutout: true });
+  const o = (FRAME_BYTES / 4) - 4 * MAX_CLIP_PLANES - 4;
+  assert.equal(f[o + 3], -2);
 });
 
 test('ray picking on a large mesh (through its hierarchy) finds what a test of every triangle finds', () => {
