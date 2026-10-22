@@ -913,3 +913,135 @@ publish, no new dependency (the lockfile untouched).
   unit 82/82, `test:consumer` 3/3, browser 13/13; studio tsc clean, suite 203/203; `FLOW_ONLY` on step 48 (the render
   workspace's shader material, `materialShader`'s other user) on WebGPU 2/2 in 9 s (load 33–54). Not run: the full
   flow, the cad-model suite, benches, the docs site build (G18.3 builds it).
+
+## G18.3 — the docs' example screenshots captured again with the current viewer (2026-10-22)
+
+- **How** (`apps/library-docs/scripts/capture-examples.mjs`, new — there was no capture script; the old images were
+  taken by hand): the site built locally (every `build-*.mjs` bundle, then `vitepress build`; 119 s + 25 s) and served
+  from `docs/.vitepress/dist` by the script itself; each preset opened at `/playground#<anchor>`, its state set, and its
+  element shot at the old image's width — the whole example panel (`section.visual-examples`, the 2× shots), the canvas,
+  or the display pose's owned slot — the pixel ratio chosen from the element's CSS width (the site's fixed bar hidden,
+  so a scrolled element is not under it). The states are the ones the pages describe or the old images show: the
+  material functions at amount 0.25, the GPU material at 0 and 1, the two phase variants at π/2 (the old value cannot
+  be read from those images; the caustics page suggests π/2), the adaptive sampling's coarser 0.2 mm, the quantity
+  functions' default factor 1, the dome's rise 3.6 cm, the display pose's 90° pose, physics after 20 steps.
+- **What changed in them**: the viewer's output (the WebGPU viewer and the G18.2 hosts in place of the old WebGL2
+  ones: the shader demos as before within the colour model; the scenes framed by the current viewer, e.g. the rounded
+  stack seen more obliquely; the dome and the quantity wall larger in frame) and, in the 2× panel shots, the example
+  component's current layout (category tabs and the library / example selects in place of the old rows of buttons — so
+  those images are 130–230 px taller). Six presets are application Canvas2D hosts, not the viewer (CAD curve, nonunit
+  curve, adaptive sampling, discrete material, generated scene, physics): captured again too, for one current set.
+- **Replaced** (41 files, `apps/library-docs/docs/public/examples`, 3.4 → 3.2 MB in all; `example-organization.jpg`,
+  referenced by no page, left as it is):
+
+  | file | shot | size before → after | bytes | state | host (report's backend) |
+  | --- | --- | --- | --- | --- | --- |
+  | gpu-scene.png | panel | 1152×1069 → 1152×1275 | 91 → 110 KB | as loaded | WebGPU viewer · showScene |
+  | cad-curve.png | panel | 1152×1069 → 1152×1247 | 94 → 107 KB | as loaded | CAD evaluation → host Canvas2D drawing |
+  | cad-surface.png | panel | 1152×1069 → 1152×1275 | 105 → 132 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | cad-extrude.png | panel | 1152×1145 → 1152×1275 | 120 → 111 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | cad-parameters.png | panel | 1152×1145 → 1152×1275 | 131 → 119 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | gpu-six-shapes.png | panel | 1152×1117 → 1152×1247 | 124 → 134 KB | as loaded | WebGPU viewer · showScene |
+  | viewer-panel.png | panel | 1152×1193 → 1152×1323 | 104 → 107 KB | as loaded | @barocss/viewer on the @barocss/gpu WebGPU viewer |
+  | physics-step.png | panel | 1152×1193 → 1152×1323 | 164 → 166 KB | Advance 20 steps | Physics CPU steps → host Canvas2D projection |
+  | gpu-material.png | panel | 1152×1109 → 1152×1287 | 84 → 105 KB | amount 0 | CAD sampling → WebGPU viewer mesh |
+  | gpu-material-amount1.png | panel | 1152×1109 → 1152×1287 | 84 → 104 KB | amount 1 | CAD sampling → WebGPU viewer mesh |
+  | material-rgb.png | panel | 1152×1185 → 1152×1315 | 98 → 109 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-sin.png | panel | 1152×1157 → 1152×1287 | 97 → 109 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-cos.png | panel | 1152×1157 → 1152×1287 | 98 → 109 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-radians.png | panel | 1152×1185 → 1152×1315 | 104 → 115 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-pow.png | panel | 1152×1157 → 1152×1287 | 97 → 108 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-abs.png | panel | 1152×1185 → 1152×1315 | 101 → 111 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-min.png | panel | 1152×1157 → 1152×1287 | 96 → 106 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-max.png | panel | 1152×1157 → 1152×1287 | 96 → 106 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-clamp.png | panel | 1152×1157 → 1152×1287 | 98 → 108 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-smoothstep.png | panel | 1152×1157 → 1152×1287 | 99 → 111 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | material-mix.png | panel | 1152×1185 → 1152×1315 | 101 → 111 KB | amount 0.25 | CAD sampling → WebGPU viewer mesh |
+  | advanced-shader.png | canvas | 640×420 → 640×421 | 403 → 206 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | cad-curved-extrude.png | canvas | 640×420 → 640×421 | 16 → 43 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | cad-nonunit-curve.png | canvas | 640×420 → 640×421 | 22 → 21 KB | as loaded | CAD evaluation → host Canvas2D drawing |
+  | cad-weighted-parameters.png | canvas | 640×420 → 640×421 | 24 → 32 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | gpu-crossed-capsules.png | canvas | 640×420 → 640×421 | 37 → 36 KB | as loaded | WebGPU viewer · showScene |
+  | gpu-rounded-stack.png | canvas | 640×420 → 640×421 | 18 → 19 KB | as loaded | WebGPU viewer · showScene |
+  | material-transition-window.png | canvas | 640×420 → 640×421 | 19 → 17 KB | as loaded | CAD sampling → WebGPU viewer mesh |
+  | advanced-shader-phase.png | canvas | 640×420 → 640×421 | 403 → 206 KB | phase 1.5708 | Example WebGPU viewer · public WGSL repeating UV material |
+  | contour-shader.jpg | canvas | 462×303 → 462×303 | 24 → 38 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | discrete-material.jpg | canvas | 462×288 → 462×290 | 13 → 18 KB | as loaded | Public CPU material evaluation → app Canvas2D swatches |
+  | generated-scene.jpg | canvas | 462×303 → 462×304 | 19 → 24 KB | as loaded | Application Canvas2D diagnostic local boxes |
+  | halftone-shader.jpg | canvas | 462×303 → 462×303 | 12 → 16 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | reusable-shader.jpg | canvas | 462×303 → 462×303 | 11 → 15 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | weave-shader.jpg | canvas | 462×303 → 462×303 | 14 → 20 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | cad-adaptive-sampling.jpg | canvas | 462×303 → 462×304 | 13 → 19 KB | Coarser display · 0.2 mm | Public CAD sampling → application browser Canvas2D drawing |
+  | cad-quantity-functions.jpg | canvas | 462×303 → 462×303 | 8 → 11 KB | factor: scalar = 2 → factor: scalar = 1 | Public CAD Source3 → sampled wall → WebGPU viewer mesh |
+  | cad-rational-dome.jpg | canvas | 462×303 → 462×303 | 8 → 13 KB | value: 2.4 cm → value: 3.6 cm | CAD sampling → WebGPU viewer mesh |
+  | caustics-shader.jpg | canvas | 570×374 → 570×375 | 22 → 34 KB | as loaded | Example WebGPU viewer · public WGSL repeating UV material |
+  | caustics-shader-phase.jpg | canvas | 570×374 → 570×375 | 22 → 34 KB | phase 1.5708 | Example WebGPU viewer · public WGSL repeating UV material |
+  | viewer-display-pose.jpg | owned | 462×522 → 462×341 | 14 → 10 KB | Apply 90° display pose | Public Viewer on the @barocss/gpu WebGPU viewer |
+- **Before and after** (side by side, the old first; in the session notes folder `g18-screenshots/`): the weave and
+  contour shaders (the same patterns), the plasma shader and the rounded stack, the adaptive sampling and the display
+  pose, the dome and the quantity wall, the mix and physics panels.
+- **Local only**: nothing published or deployed; no font file added anywhere (the owner's "아이콘 글꼴 프로젝트에
+  넣지마"). The site's build output (`docs/.vitepress/dist`, `generated/`, `cache/`) is ignored, as before.
+- **Not fixed, noted**: `apps/library-docs` `check:docs` stops at "Manifest drift: @barocss/gpu" (the recorded
+  current-manifest commit predates later gpu manifest edits) — it does so at `858710053` too, before G18; recording a
+  new manifest commit is the docs inventory's explicit step (`inventory.mjs --write --commit`), left to its owner.
+
+## G19 — section-view upgrades (S0 approved 2026-10-22)
+
+The owner's pick ("좋아 그렇게 진행해줘"): hatching on the caps, several planes (a box section; two or three free
+planes; a plane from a face), caps on ghosted bodies, the section in the Render workspace, the section bar for all of
+it. Order frozen: G19.1 the viewer's planes (gpu) → G19.2 the studio's model, UI, WebGL2 and exact section → G19.3
+hatch → G19.4 ghost caps → G19.5 Render. The coordinator's answers: the kept region is the planes' intersection only;
+hatch in world space only; hatch on by default. **First open item after G19**: the quarter cut-out (the "3/4 section":
+a union of two half-space removals, a corner taken out) — to be scheduled, not a vague later option.
+
+## G19.1 — several clip planes in the viewer, the caps on the kept region's entry (2026-10-22)
+
+- **Planes**: `Viewer.clipPlanes` (up to `MAX_CLIP_PLANES`, 6): drawn, shadowed, picked and ray-cast is the intersection
+  of their kept sides; `clipPlane` is the one-plane case (read: the first's `normal`/`offset`, `planes` all). The frame
+  block's clip words: the caps' colour with the number of planes in its w, then six planes (`FRAME_BYTES` 1024 → 1104);
+  `clippedAway` tests them all. CPU: planes packed 4 numbers each (one plane is the old form) — `rayTriangles`,
+  `nearestSegment` (the segment cut to each plane's kept interval, their intersection), `nearestPoint`, `localPlane`
+  (all planes through a transform), `clipBox` (each axis-aligned plane), `regionEntry` (where a ray comes into the region
+  and leaves it).
+- **The cap rule, changed from G2's (the S0's own rule did not hold)**: G2 drew a cap from a kept back face whose ray
+  came in through the plane. With several planes a ray can come into the kept region through one plane and leave it
+  through another inside a solid with no surface between — no kept back face, no cap: a box section wholly inside a
+  part showed none (the CPU oracle's counterexample, a box under three planes; the GPU's first run, 0 cap pixels for
+  16 829). Now: at a pixel, C is where its ray comes into the kept region (from the planes); C is a cap of mesh M when
+  the first surface after C among the capped meshes' faces — clipped or not — is M's back face (the entry is inside M).
+  - GPU: the probe (in place of G2's front-depth prepass, `capFront`, rg32float): the capped meshes' faces, both sides,
+    unclipped, those before C dropped; the nearest kept by the depth test, its depth and whether a back face — a back
+    face drawn 4e-7 nearer so it wins a tie (two parts touching: the cap). The cap passes (scene, pick, outline) draw a
+    capped mesh's back faces where the fragment is that first surface (`capFirst`), at C's depth, in its cap colour, lit
+    with the normal of the plane C is on (`capPoint` gives it). The camera's depth range holds every capped mesh's whole
+    box (`depthBounds`): the probe and caps read its cut-away faces (with the bounds cut to the region the far faces were
+    past the far plane — the second run's 0 pixels).
+  - CPU, the same rule: `clippedRayFull` gives a mesh's kept hit and its first unclipped surface after C; the viewer's
+    `capHit` takes the first of those over every capped mesh and instance (a back face winning a tie) — `raycast`, the
+    GPU pick's cap flag and `hidden` (line and point picks) use it; `meshRay` is the kept hit only. `PickHit.capPlane`:
+    the cap's plane. With one plane the rule gives G2's caps (G2's browser test unchanged and passing).
+  - Limit: a solid wholly inside another — the inner one's front face is the first surface after C, so the outer one's
+    cap is missing over it.
+- **Evidence**:
+  - `tests/viewer-core.test.mjs` (node), G19: 400 rays at a box under one to three random planes against the closed
+    form (the box and the region convex: the first point kept is max(box entry, region entry), a cap when the region's is
+    later) — every hit, its parameter to 1e-9 and its cap and plane; 40 rays through a 3 200-triangle sheet's hierarchy
+    with three planes against every triangle; planes through a transform; a segment between two planes; a box section's
+    planes on a box. The frame block's words for one and two planes.
+  - `tests/viewer-pose-clip-browser.test.mjs` (real WebGPU), G19: a 10 × 10 × 10 solid under a box section of side 3,
+    seen obliquely: the caps 16 907 px against the cube's silhouette 16 829 (a²(|vx| + |vy| + |vz|), ± 592 along its
+    outline); a box with y ≥ 0 and x ≥ 0: 8 712 against 8 649 (± 395); a 64-sided cylinder under the same two: 6 780
+    against 6 782 (± 338); the solid's edges cut away — no line found; 300 GPU picks at pixel centres over the three scenes
+    (the box section, the two planes, the cylinder under three oblique planes) against the CPU's rays: 0 differ in mesh,
+    cap and plane, 156 on caps, points within 0.05.
+  - Bench (`bench:browser`, `BENCH_ONLY=section`, new: only the matching rows measured), the section rows alone, load
+    16–19: GPU section 2.89 → 2.38 ms GPU a submit, task 18.1 → 17.2 ms a frame, upload 2.4 → 2.6 KiB a frame (the frame
+    block's 80 bytes); the CPU clipMesh row unchanged (20.7 ms).
+  - The studio's section through the new caps (`FLOW_ONLY`, WebGPU, the three steps whose GPU section is checked against
+    the CPU's clipMesh through the same viewer): section 140 strong pixels, with instances 89, RM2 posed 27 of 1 296 000
+    (G2's were 211, 51, 467; the flow holds ≤ 0.1 %) — 4/4 in 18 s.
+- **Checks** (T1, gpu), in the verify worktree on `7b9ea4823` plus these changes: gpu type-check and lint clean, unit
+  83/83, `test:consumer` 3/3, browser 14/14; studio tsc clean, suite 203/203 (170 s with the builds, load 13–26); the
+  three section steps above. Not run: the full flow, the cad-model suite, WebGL2 (its CPU path is unchanged), the other
+  bench rows.
