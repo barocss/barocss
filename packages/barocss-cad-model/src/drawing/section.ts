@@ -5,6 +5,7 @@
 // in front goes. The cut faces (planar faces on the plane) come back as rings in view coordinates, to hatch.
 import { evaluateCadPart, faceGeometry, projectBrepHiddenLines, tessellateBrep, type Brep, type BrepProjection, type CadPartFeature } from '@barocss/cad';
 import { bodyKeyOf, toPartDocument, withBeadRetry } from '../engine/part';
+import { boughtOutputIds } from '../engine/evaluate';
 import type { StudioDoc } from '../engine/doc';
 import { sectionDepth, viewsFor, type Orientation } from './views';
 export { sectionDepth } from './views';
@@ -15,7 +16,8 @@ export type SectionResult = { ok: true; projection: BrepProjection; rings: XY[][
 /** O148 X1: a section of the drawing and what cutting it gave. */
 export type SectionCut = DrawingSection & { result: SectionResult };
 
-export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 'y-', view: SectionViewId = 'front'): SectionResult {
+/** `skip`: outputs not cut nor drawn — a part's bought elements in its own drawing (O174). */
+export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 'y-', view: SectionViewId = 'front', skip?: ReadonlySet<string>): SectionResult {
   // The depth axis (k) and its sign: the plane is dot(p, d) = y, the far side (kept) dot(p, d) > y.
   const { k, sign } = sectionDepth(view, orientation), axis = (['x', 'y', 'z'] as const)[k], at = sign * y;
   try {
@@ -23,6 +25,7 @@ export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 
     const outputs = withBeadRetry(doc, q => evaluateCadPart(q)).outputs, part = toPartDocument(doc);
     const cuts: CadPartFeature[] = [], keep: string[] = [], body: number[] = [];
     outputs.forEach((o, n) => {
+      if (skip?.has(o.id)) return;
       const X = tessellateBrep(o.brep, { segmentsPerQuarter: 4 }).positionsMM;
       let lo = Infinity, hi = -Infinity; for (let i = k; i < X.length; i += 3) { const v = sign * X[i]; lo = Math.min(lo, v); hi = Math.max(hi, v); }
       const tol = 1e-6 * Math.max(1, Math.abs(hi), Math.abs(lo));
@@ -44,7 +47,11 @@ export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 
   } catch (cause) { return { ok: false, error: cause instanceof Error ? cause.message : String(cause) }; }
 }
 /** O148 X1: every section of the drawing, cut. */
-export const sectionsCut = (doc: StudioDoc, list: readonly DrawingSection[], orientation: Orientation = 'y-'): SectionCut[] => list.map(x => ({ ...x, result: sectionOf(doc, x.at, orientation, x.view) }));
+/** `made` (O174): a part's drawing — its bought elements neither cut nor drawn, as its views leave them. */
+export function sectionsCut(doc: StudioDoc, list: readonly DrawingSection[], orientation: Orientation = 'y-', made = false): SectionCut[] {
+  const skip = made && list.length ? boughtOutputIds(doc) : undefined;
+  return list.map(x => ({ ...x, result: sectionOf(doc, x.at, orientation, x.view, skip) }));
+}
 
 /** The loops of a B-rep's faces on the plane square to axis `k` (1: Y) at `y`, as rings in the projection's view coordinates. */
 export function cutRings(brep: Brep, y: number, pr: BrepProjection, k: 0 | 1 | 2 = 1): XY[][] {

@@ -37,6 +37,8 @@ function scene(): StudioDoc {
   doc = run(doc, 'keyway', { face: `n${doc.nodes.length - 1}.hole0.side0` }, { b: 6, t2: 2.8 });
   return run(doc, 'key', { bodies: [0] }, { h: 6 });
 }
+/** The scene with its key made, not bought (the person's override): a body of the part, drawn and cut (O174). */
+const madeKey = (doc: StudioDoc): StudioDoc => ({ ...doc, nodes: doc.nodes.map(n => n.kind === 'key' ? { ...n, bought: false } : n) });
 const inputs = (doc: StudioDoc, extra: Partial<DrawingSettings> = {}) => { const i = drawingInputs(doc, { ...readDrawing(doc.drawing), sheet: 'A3', ...extra }); assert.ok(typeof i !== 'string', String(i)); return { ...i, meta: { ...i.meta, date: '2026-10-22' } }; };
 const keyDims = (ctx: ReturnType<typeof issueContext>) => ctx.sheet.dimensions.filter(r => r.ok && r.dim.auto && r.dim.kind === 'linear' && /keyseat|keyway/.test(JSON.stringify(r.dim)));
 
@@ -139,7 +141,10 @@ test('X3: a keyway on a tilted bore — its axis along none of X, Y, Z — is sa
 
 // ——— Queue 1 (after O148): adjacent parts hatched apart in one section
 test('a section through the shaft, its key and its hub: each body hatched at its own angle (45°, 135°, 30° by body), the same in the SVG, PDF and DXF; one body alone at 45° as before', () => {
-  const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), ctx = issueContext(i);
+  // (O174: a part's drawing is what it makes — a bought key is neither cut nor drawn; the key set made, it is the part's.)
+  const bought = inputs(scene(), { sections: [{ id: 'B', view: 'top', at: -15 }] }).sections!.find(x => x.id === 'B')!;
+  assert.equal(new Set(bought.ringBodies).size, 2, `the shaft and the hub cut, not the bought key: ${bought.ringBodies}`);
+  const doc = madeKey(scene()), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), ctx = issueContext(i);
   const B = i.sections!.find(x => x.id === 'B')!, bodies = [...new Set(B.ringBodies)];
   assert.equal(bodies.length, 3, `three bodies cut: ${B.ringBodies}`);
   const body = ctx.sheet.groups.find(g => g.role === 'section' && g.id === 'B' && !g.view)!;

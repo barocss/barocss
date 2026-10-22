@@ -57,7 +57,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   /** The sections as last cut (O148 X1; each with why it could not be cut). */
   const [rawCutsMade, setCutsMade] = useState<SectionCut[] | null>(null);
   const cutsMade = projected?.model === model ? rawCutsMade : null;
-  const sectionList = sectionsOf(settings), sectionKey = JSON.stringify(sectionList);
+  const sectionList = sectionsOf(settings), sectionKey = JSON.stringify(sectionList), madeOnly = drawingScopeOf(settings).kind !== 'assembly';
   const [error, setError] = useState<string | null>(null);
   /** The part has no body yet: the panel says so, and nothing is raised as an error. */
   const [empty, setEmpty] = useState(false);
@@ -68,14 +68,15 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
     if (scoped.error) { setBusy(false); setEmpty(false); setError(scoped.error); setProjected(null); setCutsMade(null); return; }
     let live = true; setBusy(true);
     const side = settings.orientation ?? 'y-';
-    engine.drawing(model, { tangentEdges: !!settings.tangent, ...(sectionList.length ? { sections: sectionList } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}) }).then(r => {
+    // (O174: a part's drawing documents what the part makes — its bought elements left out of the views and sections.)
+    engine.drawing(model, { tangentEdges: !!settings.tangent, ...(sectionList.length ? { sections: sectionList } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}), made: madeOnly }).then(r => {
       if (!live) return;
       setBusy(false);
       setEmpty(!r.ok && !!r.empty);
       if (r.ok) { setProjected({ views: r.views, side, model }); setCutsMade(r.sections ?? null); setError(null); } else { setProjected(null); setCutsMade(null); setError(r.error); }
     });
     return () => { live = false; };
-  }, [active, engine, model, scoped.error, settings.tangent, sectionKey, settings.orientation]);
+  }, [active, engine, model, scoped.error, settings.tangent, sectionKey, settings.orientation, madeOnly]);
 
   const title = settings.title ?? fileName;
   // (The sections the settings list, as cut for them: one whose letter, view or place changed is cut again first.)

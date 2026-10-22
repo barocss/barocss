@@ -25,7 +25,7 @@ export type WorkerRequest =
   | { type: 'step'; id: number; doc: WireDoc; name: string; meshes?: 'auto' | 'tessellated' | 'planar' }
   /** A STEP file's meshes when it holds nothing else (R3.5), for the repair gate. */
   | { type: 'stepMeshes'; id: number; step: string }
-  | { type: 'drawing'; id: number; doc: WireDoc; options?: { tangentEdges?: boolean; sections?: DrawingSection[]; orientation?: 'x+' | 'y+' | 'x-' } }
+  | { type: 'drawing'; id: number; doc: WireDoc; options?: { tangentEdges?: boolean; sections?: DrawingSection[]; orientation?: 'x+' | 'y+' | 'x-'; made?: boolean } }
   /** A mesh checked and repaired (M3, D47), off the main thread; a repair posts its stages as it goes. */
   | { type: 'diagnose'; id: number; positions: ArrayLike<number>; indices: ArrayLike<number> }
   | { type: 'repair'; id: number; positions: ArrayLike<number>; indices: ArrayLike<number>; steps: MeshRepairSteps };
@@ -86,9 +86,10 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   } else if (request.type === 'volumes') {
     (self as unknown as Worker).postMessage({ id: request.id, volumes: evaluateVolumes(request.doc) });
   } else if (request.type === 'drawing') {
-    const r = brepsFor(request.doc);
+    // (O174: a part's drawing without its bought elements, the chat's drawingInputs alike.)
+    const made = !!request.options?.made, r = brepsFor(request.doc, { made });
     const drawing = 'error' in r ? { ok: false as const, error: r.error } : projectViews(r.breps, r.prefixes, request.options);
-    if (drawing.ok && request.options?.sections?.length) drawing.sections = sectionsCut(request.doc, request.options.sections, request.options.orientation);
+    if (drawing.ok && request.options?.sections?.length) drawing.sections = sectionsCut(request.doc, request.options.sections, request.options.orientation, made);
     (self as unknown as Worker).postMessage({ id: request.id, drawing });
   } else if (request.type === 'step') {
     (self as unknown as Worker).postMessage({ id: request.id, step: stepFor(request.doc, request.name, request.meshes) });

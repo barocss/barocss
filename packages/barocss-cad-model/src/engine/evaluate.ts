@@ -2,7 +2,7 @@ import { provenanceOfTree, type ShopTreeProvenance } from './shopRows';
 import { followedStale, resolveSkeletons, staleText } from '../frames/skeleton';
 import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import { fitNotes } from './fits';
-import { elementOf, type BodyElement } from './elements';
+import { boughtOf, elementOf, type BodyElement } from './elements';
 import type { FaceTable } from '../assembly/mates';
 import { brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
@@ -455,9 +455,21 @@ export function partElements(doc: StudioDoc): { node: number; element: BodyEleme
     return out;
   } catch { return []; }
 }
-export function brepsFor(doc: StudioDoc): { breps: Brep[]; prefixes: string[] } | { error: string } {
+/** The part's outputs that are bought elements, by the BOM's rule (boughtOf): a key, a bearing, an O-ring… (O174). */
+export function boughtOutputIds(doc: StudioDoc): Set<string> {
+  const out = new Set<string>();
+  for (const o of snapshotOf(doc).outputs) { const at = keyed(o.id, doc.nodes), node = at.ref ? doc.nodes[at.ref.node] : undefined; if (node && boughtOf(node, elementOf(o, node)).bought) out.add(o.id); }
+  return out;
+}
+/**
+ * The B-reps a drawing projects. `made` (O174, a part's drawing): what the part makes — its bought elements left out, as
+ * DFM, print and CAM leave them (O160), so no line, hole or hidden edge of a bearing or a key is the part's; all of
+ * them when nothing else is left. An assembly's drawing keeps its bought parts.
+ */
+export function brepsFor(doc: StudioDoc, options: { made?: boolean } = {}): { breps: Brep[]; prefixes: string[] } | { error: string } {
   try {
-    const breps = snapshotOf(doc).outputs.map(o => o.brep), prefixes = breps.map(() => '');
+    const all = snapshotOf(doc).outputs, bought = options.made ? boughtOutputIds(doc) : null, own = bought && all.some(x => !bought.has(x.id)) ? all.filter(x => !bought.has(x.id)) : all;
+    const breps = own.map(x => x.brep), prefixes = breps.map(() => '');
     for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of placedOutputs(inst, placedDoc(inst, doc), doc)) { breps.push(o.brep); prefixes.push(`${inst.id}/`); }
     return { breps, prefixes };
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }

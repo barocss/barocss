@@ -551,6 +551,8 @@ function givenAlong(sheet: Sheet, axis: string): number[] {
 }
 const covers = (xs: readonly number[], x: number) => xs.some(y => Math.abs(y - x) <= 1e-6 * Math.max(1, Math.abs(x)));
 
+/** How near a view's extents must come to a circle's diameter for it to be the view's round outline (relative, O174). */
+const OUTLINE_REL = 1e-4;
 function coverage(ctx: IssueContext): DrawingIssue[] {
   const { views, sheet } = ctx, out: DrawingIssue[] = [], auto: DrawingFix = { kind: 'auto-dimension' };
   const along: Record<string, number[]> = {};
@@ -562,6 +564,15 @@ function coverage(ctx: IssueContext): DrawingIssue[] {
   let unsized = 0, unlocated = 0; const where: ViewId[] = [];
   const rings = sheet.dimensions.filter((r): r is Extract<Resolved, { ok: true; kind: 'pcd' }> => r.ok && r.kind === 'pcd');
   const hiddenOwners = new Map<ViewId, number>();
+  // (O174, F8: a view whose outline is itself a full circle — a shaft or a cover seen end on — locates every circle on its
+  // centre by that alone: the outline's, the steps', a bore's, a gland's; there is no edge to measure them from.)
+  const outlineOf = new Map<ViewId, XY>();
+  for (const h of holes) {
+    const pr = views[h.view];
+    // (The view's extents are of its curves as drawn, to their chord: the diameter matched to OUTLINE_REL of it.)
+    const tol = Math.max(SAME, OUTLINE_REL * 2 * h.radius);
+    if (Math.abs(2 * h.radius - (pr.max[0] - pr.min[0])) <= tol && Math.abs(2 * h.radius - (pr.max[1] - pr.min[1])) <= tol) outlineOf.set(h.view, h.at);
+  }
   for (const h of holes) {
     if (ctx.layout.views[h.view].hidden) { hiddenOwners.set(h.view, (hiddenOwners.get(h.view) ?? 0) + 1); continue; }
     const own = sizes.some(r => r.dim.view === h.view && Math.abs(r.center[0] - h.at[0]) <= SAME && Math.abs(r.center[1] - h.at[1]) <= SAME && Math.abs(r.radius - h.radius) <= SAME);
@@ -572,7 +583,8 @@ function coverage(ctx: IssueContext): DrawingIssue[] {
     const pr = views[h.view];
     // (A hole of a pitch circle is located by the circle's centre, R14.5.)
     const ring = rings.find(r => r.dim.view === h.view && r.members.some(m => Math.abs(m[0] - h.at[0]) <= SAME && Math.abs(m[1] - h.at[1]) <= SAME));
-    const at = ring ? ring.center : h.at;
+    const at = ring ? ring.center : h.at, round = outlineOf.get(h.view);
+    if (round && Math.abs(round[0] - at[0]) <= SAME && Math.abs(round[1] - at[1]) <= SAME) continue;
     for (const k of [0, 1] as const) {
       if (Math.abs(at[k] - pr.min[k]) <= SAME || Math.abs(at[k] - pr.max[k]) <= SAME) continue;
       if (!covers(given(axisOf(h.view, k)), at[k])) { unlocated++; where.push(h.view); break; }
