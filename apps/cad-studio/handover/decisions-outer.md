@@ -6820,3 +6820,16 @@ The BOM already tells made from bought; manufacturing did not ask.
 - model: cam-package 4/4, a9-acceptance 1/1, chat-outputs 7/7, cnc-holes 6/6, cnc-features 4/4, cnc-access 4/4;
 - studio: cnc-cam 5/5, cnc-preview 8/8;
 - tsc of model and studio; eslint 0 errors.
+
+## O162 — the bearing's housing line names its shoulder (the kernel's D181, FRk8a) (2026-10-23)
+
+The kernel lane's D181 (`ec4a4724c`) adds `report.housing.shoulder { at, diameterMM } | null` to `seatedBearing`: the planar annulus at a face of the bearing stepping in from the bore, its diameter the inner edge's. It also adds a warning when the housing has no shoulder at the located side, or at either face.
+
+- **The housing line** (engine/evaluate.ts `bearingNotes`) now reads "In the housing's Ø47 bore against its Ø40 shoulder at the bearing's end; no overlap" when there is a shoulder. With none, it reads as before.
+- **The warning** comes through as a warning note, unchanged: it was already in `report.warnings`, which the notes pass on.
+- **Tests** (bearing.test):
+  - a Ø47 bore over the bearing's 16–30 with a Ø40 lip over 30–34, unioned into one housing body: the line names the Ø40 shoulder at the end, and there is no warning;
+  - a plain Ø47 bore: the line without a shoulder, plus the kernel's "the housing has no shoulder at either face of the bearing" as a warning.
+- This worktree's `packages/barocss-cad` dist was rebuilt from integration (D181 included) before the tests ran.
+
+**Verified (T1):** bearing 5/5, bearing-housing 4/4, bearing-housing-context 8/8, clearance-designed 5/5; tsc of model and studio; eslint 0 errors.

@@ -837,7 +837,8 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 | `070cb5993` O158 | O3: the A9 brief's 6204 moves from step 1 to step 3, off the key; no clash in the map | clearance-designed 5/5, tsc, eslint |
 | `11ef04b5b` O159 | O5, first half: conformance/a9/rows (a test fixture standing in for the person's files; the owner's own acceptance pending) and the A9 run's steps 1–7; findings F1–F4 | a9-acceptance 1/1, tsc, eslint |
 | `e46106870` O160 | F1: `madeBodies` — bought elements stay out of DFM, print layers and CAM (the BOM's rule) | a9 (shaft Ø25 × 95, cover 40 layers no support, CAM unchanged), made-bodies, 21 model + 7 studio files, tsc, eslint |
-| O161 | F2: a through hole is drilled once, by the first setup that reaches it; the others note it | cam-package 4/4 (each hole once, −Z only its own), a9 (one +Z setup, 5 holes once), studio cnc-cam, tsc, eslint |
+| `74f6b0d76` O161 | F2: a through hole is drilled once, by the first setup that reaches it; the others note it | cam-package 4/4 (each hole once, −Z only its own), a9 (one +Z setup, 5 holes once), studio cnc-cam, tsc, eslint |
+| O162 | the bearing's housing line names its shoulder (D181) | bearing 5/5 (a Ø40 lip; a plain bore with the kernel's warning), tsc, eslint |
 
 **Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). 
 
