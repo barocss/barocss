@@ -25,8 +25,9 @@ async function build(calls: [string, Record<string, unknown>][]): Promise<ChatSt
 const POCKET: [string, Record<string, unknown>][] = [cmd('box', { w: 120, d: 80, h: 20, x: 0, y: 0, z: 0 }), cmd('box', { w: 50, d: 30, h: 20, x: 35, y: 25, z: 12 }), ['run_command', { command: 'difference', values: {}, bodies: ['b1', 'b3'] }]];
 // (A stock row written into the test document, as cad-model's test does: not rows an agent loaded.)
 const withStock = (doc: StudioDoc): StudioDoc => ({ ...doc, machining: { version: 1, stock: [{ id: 'B1', kind: 'block', size: [125, 85, 25], source: 'the test\'s list' }] } } as StudioDoc);
-let pocket: Promise<CamPackage> | null = null;
-const pocketPackage = () => pocket ??= build(POCKET).then(s => camPackage(withStock(s.doc), s.bodies));
+let pocket: Promise<{ pkg: CamPackage; meshes: CamPartMesh[] }> | null = null;
+const pocketBuilt = () => pocket ??= build(POCKET).then(s => ({ pkg: camPackage(withStock(s.doc), s.bodies), meshes: s.bodies.map(b => b.mesh) }));
+const pocketPackage = () => pocketBuilt().then(p => p.pkg);
 /** A box's 12 triangles (outward), as a part mesh. */
 function boxMesh(min: number[], max: number[]): CamPartMesh {
   const positions: number[] = [];
@@ -166,4 +167,16 @@ test('overcut: a slot through a solid part is overcut by all it removes; one rea
   // (A part 2 under the stock's top beside the slot only, x 32 to 40: the slot ends at x 33, so the tool's end enters it.)
   const beside = new CamHeightfield(stock, slot, flat(), 0.5, [boxMesh([32, 0, 0], [40, 40, 8])]).evaluate(3);
   assert.ok(beside.overcutCells > 0 && beside.overcutMM3 < solid.overcutMM3);
+});
+
+test('end to end: the Model\'s CNC8 pocket program, cut through its own part, never enters it and leaves the pocket\'s floor reached', async () => {
+  const { pkg, meshes } = await pocketBuilt(), s = pkg.setups[0];
+  const end = new CamHeightfield(pkg.stock as StockSolid, s, pkg.tool, 0.5, meshes).evaluate(s.moves.length);
+  assert.ok(end.removedMM3 > 0);
+  assert.equal(end.overcutCells, 0, `the pocket program gouges ${end.overcutCells} cells, ${end.overcutMM3} mm³`);
+  assert.equal(end.overcut.positions.length, 0);
+  // (Every cut cell is down to the floor, z 12, or above it: the remaining stock's lowest top in the pocket is the floor.)
+  let low = Infinity; const g = end.geometry, n = g.normals!;
+  for (let i = 0; i < g.positions.length; i += 3) if (n[i + 2] > 0.5) low = Math.min(low, g.positions[i + 2]);
+  assert.ok(Math.abs(low - 12) < 1e-6, `lowest top ${low}`);
 });

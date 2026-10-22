@@ -1542,3 +1542,16 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - a part beside the slot's end is overcut in part.
 - **Checks** (T1): cnc-preview 7/7; studio type-check 0; eslint (viewport/ and the test) 0.
 - **Not run**: the two-renderer flow (slot).
+
+## G-R5 — G23 CNC: the CNC8 pocket cut through its own part, end to end (roadmap G2, 2026-10-23)
+
+- **What**: the check G-R4 held back, now that the outer lane's O157 (fcdc7e3bf, integration 402f4f6fd) puts the
+  pocket's feeds where the pocket is.
+- **The test** (`cnc-preview.test.ts`, 8 tests): the Model's own CNC8 pocket.
+  - `camPackage` builds the program from the plate's document and its machining stock.
+  - The height field is cut at 0.5 mm, end to end, with the part's own display meshes.
+  - It removes material and has no overcut cell (and no red drawing).
+  - The lowest top left is the pocket's floor, z 12, to 1e-6.
+  - Before O157, the same check counted 3142 cells and 10 618 mm³ into the part.
+- **Checks** (T1): cnc-preview 8/8; studio type-check 0; eslint on the test 0.
+- **Not run**: the two-renderer flow (slot).
