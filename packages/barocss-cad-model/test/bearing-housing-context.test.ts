@@ -167,3 +167,23 @@ test('A9-7 linked part cycles fail before geometry and failed linked BOM evaluat
   assert.match(csv, /bearing/); assert.match(csv, /6204/); assert.match(csv, /A9-7 supplied test row/);
   await assert.rejects(() => bomPanelData(changeHousing(root, { position: [1, 0, 0] }), evaluate), /BEARING_HOUSING_EVALUATION/);
 });
+
+test('O167 (F6): the chat\'s edit_feature links an existing bearing to another part\'s bore, and clears it — the same options as the bearing command, from the part draft\'s context', async () => {
+  // (The root with the bearing on p2 but no housing yet.)
+  const plain = assembly(false), shaft = plain.instances!.find(i => i.id === 'p2')!.doc;
+  const root = { ...plain, instances: plain.instances!.map(i => i.id === 'p2' ? { ...i, doc: withNode(shaft, { kind: 'bearing', row: row.id, shaft: 0, step: 1, against: 'end' }) } : i) };
+  const index = root.instances![1].doc.nodes.length - 1, value = bearingHousingValue({ part: 'p1', body: 'b1' });
+  const linked = await dispatchTool({ doc: root, bodies: [] }, 'features', { action: 'edit', part: 'p2', index, values: { housing: value, housingClass: 'H7' } }, evaluate);
+  assert.ok(!linked.isError, linked.content);
+  const node = linked.state.doc.instances!.find(i => i.id === 'p2')!.doc.nodes[index] as Extract<ModelNode, { kind: 'bearing' }>;
+  assert.deepEqual([node.housingRef, node.housing, node.housingClass], [{ part: 'p1', body: 'b1' }, undefined, 'H7']);
+  assert.equal(report(scoped(linked.state.doc)).housing!.covered, true);
+  // (Cleared the same way: none.)
+  const cleared = await dispatchTool(linked.state, 'features', { action: 'edit', part: 'p2', index, values: { housing: 'none' } }, evaluate);
+  assert.ok(!cleared.isError, cleared.content);
+  const after = cleared.state.doc.instances!.find(i => i.id === 'p2')!.doc.nodes[index] as Extract<ModelNode, { kind: 'bearing' }>;
+  assert.deepEqual([after.housingRef, after.housing], [undefined, undefined]);
+  // (A part that does not exist is not offered: the edit refuses it, listing the choices.)
+  const wrong = await dispatchTool({ doc: root, bodies: [] }, 'features', { action: 'edit', part: 'p2', index, values: { housing: bearingHousingValue({ part: 'p9', body: 'b1' }) } }, evaluate);
+  assert.ok(wrong.isError, wrong.content);
+});

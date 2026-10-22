@@ -53,6 +53,7 @@ import { followedStale, partEditRefusal, refreshFollowed, skeletonEditRefusal, s
 import { weldList, type WeldRecord } from '../frames/welds';
 import { beadOwnershipError, documentBeadOwnershipError, type BeadOwnership } from '../frames/beadOwnership';
 import { beadAccounting } from '../frames/beadAccounting';
+import { bearingContextOf } from '../engine/bearingContext';
 // ./outputs is loaded on first use: it reaches team/bundle → baseline → assembly → parts, which import this
 // module, so a static import closes a cycle that leaves `commands` undefined here at load.
 let outputsModule: Promise<typeof import('./outputs')> | undefined;
@@ -896,7 +897,8 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
         // (The replacement is the same feature: it keeps its id, so the names of its faces stay.)
         next = nodes.map((n, i) => i === index ? { ...withFollowed(state.doc, args.feature as ModelNode), id: n.id } : n);
       } else {
-        const fields = editFields(nodes, index), given = isObj(args.values) ? args.values : {};
+        // (O167, F6: a part-scoped edit offers what the bearing command offers — the draft's context and its fit tables.)
+        const fields = editFields(nodes, index, undefined, undefined, { context: bearingContextOf(state.doc), fits: state.doc.fits }), given = isObj(args.values) ? args.values : {};
         if (!Object.keys(given).length) return fail(state, `Pass "values" or a whole "feature". Feature ${index}'s values: ${fields.map(f => `${f.key} (${f.label} = ${String(f.get(nodes))})`).join(', ') || 'none — replace it with "feature"'}.`);
         next = [...nodes];
         for (const [key, v] of Object.entries(given)) {

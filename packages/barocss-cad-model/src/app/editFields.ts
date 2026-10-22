@@ -3,7 +3,8 @@
 // sketch node, so every feature made from it follows).
 import { frameGeometry, type Axis, type Dim, type FrameCorners, type FrameNotch, type ModelNode, type SketchNode } from '../engine/doc';
 import { outlineFields } from '../sketch/outlineFields';
-import type { BearingAssemblyInput } from '../engine/bearingContext';
+import type { BearingAssemblyContext, BearingAssemblyInput } from '../engine/bearingContext';
+import type { StudioFits } from '../engine/fits';
 import { bearingHousingOptions, bearingHousingPatch, bearingHousingValue } from './shaftCommands';
 import { helixOf } from '../engine/part';
 import { spurGearCenterDistance, internalGearCenterDistance, bevelGearDimensions } from '@barocss/cad';
@@ -78,8 +79,13 @@ function sketchFields(nodes: Nodes, s: number, prefix: string): EditField[] {
  * as it is: a diameter stored as a radius cannot take a parameter).
  */
 export type BindableField = Extract<EditField, { kind: 'number' }> & { param(nodes: Nodes): string | null; bind(nodes: Nodes, name: string): ModelNode[] | null };
-export function editFields(nodes: Nodes, i: number, params?: Record<string, number>, bearingAssembly?: BearingAssemblyInput): EditField[] {
-  const raw = editFieldsRaw(nodes, i, bearingAssembly);
+/**
+ * Where a part-scoped edit stands (O167, F6), when no assembly input is given: the part draft's bearing context (its
+ * occurrence and the other parts, as the bearing command reads it) and the fit tables the draft sees.
+ */
+export interface EditScope { readonly context?: BearingAssemblyContext; readonly fits?: StudioFits }
+export function editFields(nodes: Nodes, i: number, params?: Record<string, number>, bearingAssembly?: BearingAssemblyInput, scope?: EditScope): EditField[] {
+  const raw = editFieldsRaw(nodes, i, bearingAssembly, scope);
   if (!params) return raw;
   return raw.map(f => f.kind !== 'number' ? f : {
     ...f,
@@ -110,7 +116,7 @@ const MEMBER_FIELD_LABELS: Record<string, string> = {
   legX: 'Leg along x', legY: 'Leg along y', thickness: 'Thickness', rootRadius: 'Root radius', toeRadius: 'Toe radius', web: 'Web', flange: 'Flange thickness at overhang midpoint', flangeSlope: 'Flange slope (rise/run)',
   size: 'Size', opening: 'Slot opening', lip: 'Slot lip', undercut: 'Slot undercut', depth: 'Slot depth', bore: 'Core bore',
 };
-function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssemblyInput): EditField[] {
+function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssemblyInput, scope?: EditScope): EditField[] {
   const node = nodes[i], out: EditField[] = [];
   if (!node) return out;
   const self = <T extends ModelNode>(n: Nodes) => n[i] as T;
@@ -211,14 +217,14 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
     }
     case 'bearing': {
       const value = (ns: Nodes) => { const n = ns[i] as Extract<ModelNode, { kind: 'bearing' }>; return n.housingRef ? bearingHousingValue(n.housingRef) : n.housing === undefined ? 'none' : String(n.housing); };
-      const options = bearingHousingOptions(nodes.slice(0, i), bearingAssembly), current = value(nodes);
+      const options = bearingHousingOptions(nodes.slice(0, i), bearingAssembly, bearingAssembly ? undefined : scope?.context), current = value(nodes);
       if (!options.some(o => o.value === current)) options.push({ value: current, label: `Current housing: ${current}` });
       out.push({ kind: 'choice', key: 'housing', label: 'Housing', options, get: value, set: (ns, v) => {
         const n = { ...ns[i] } as Extract<ModelNode, { kind: 'bearing' }>; delete n.housing; delete n.housingRef;
         return replace(ns, i, { ...n, ...bearingHousingPatch(v) });
       } });
       const own = bearingAssembly?.owner === 'base' ? bearingAssembly.root : bearingAssembly?.root.instances?.find(p => p.id === bearingAssembly.owner)?.doc;
-      const classes = [...new Set([...(bearingAssembly?.root.fits?.tables ?? []), ...(own?.fits?.tables ?? [])].flatMap(t => t.rows.map(r => r.class)))];
+      const classes = [...new Set([...(bearingAssembly?.root.fits?.tables ?? []), ...(own?.fits?.tables ?? []), ...(scope?.fits?.tables ?? [])].flatMap(t => t.rows.map(r => r.class)))];
       for (const [key, label, capital] of [['shaftClass', 'Shaft seat class', false], ['housingClass', 'Housing seat class', true]] as const) {
         const current = (node as Extract<ModelNode, { kind: 'bearing' }>)[key], choices = [{ value: 'none', label: 'None' }, ...classes.filter(c => capital ? /^[A-Z]/.test(c) : /^[a-z]/.test(c)).map(c => ({ value: c, label: c }))];
         if (current && !choices.some(c => c.value === current)) choices.push({ value: current, label: current });
