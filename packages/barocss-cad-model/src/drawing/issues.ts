@@ -526,7 +526,7 @@ const round = (v: number) => Math.round(v / SAME) * SAME;
  */
 function featuresOf(...edges: string[]): string[] {
   const out = new Set<string>();
-  for (const e of edges) for (const f of e.split('|')) { const n = f.replace(/~sil\d*$/, ''), slash = n.lastIndexOf('/', n.indexOf('.')), dot = n.indexOf('.', slash + 1), id = dot < 0 ? n : n.slice(0, dot); if (!/^(.*\/)?section\d+$/.test(id)) out.add(id); }
+  for (const e of edges) for (const f of e.split('|')) { const n = f.replace(/~sil\d*$/, ''), slash = n.lastIndexOf('/', n.indexOf('.')), dot = n.indexOf('.', slash + 1), id = dot < 0 ? n : n.slice(0, dot); if (!/^(.*\/)?section(\d+|_[A-Za-z0-9_-]+)$/.test(id)) out.add(id); }
   return [...out];
 }
 const disjoint = (a: readonly string[], b: readonly string[]) => a.length > 0 && b.length > 0 && !a.some(x => b.includes(x));

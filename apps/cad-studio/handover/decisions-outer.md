@@ -5944,3 +5944,125 @@ The kernel lane's FRk1 (D165) is in (integration 7f9c31f0b, merged here as b3ae7
   - the purchase CSV rows; two copies ×2 with their part ids;
   - the joints `<gusset>.<m0>` 105, `<gusset>.<m1>` 85 and `<cap>.<m0>` 160 at `start`, each a fillet sized 3 (estimate), exact; the mitre joint stays; the table's words.
 - **For the coordinator**: integration's `test/weldment.test.ts` (the kernel lane's, b03719ada) fails the cad-model type-check: two calls of `fields?` possibly undefined (lines 23 and 42) and a sketch node cast (line 70). Not touched here.
+
+## G24 data side — built (2026-10-22)
+
+`drawing/annotations3d.ts` (`modelAnnotations`, version model-annotations-v1) is built as the S0 froze it, with the GPU lane's five additions:
+1. Heads as heads (`tip`, `dir`, `length`, `width`, `style`), from the `head` the sheet's marks now carry.
+2. A `role` on each line (dimension, extension, leader, frame, weld), set where the sheet builds its marks.
+3. Text height in model mm and alignment along `dir`/`up` in the plane.
+4. Frame cells and box, weld data, and the sheet's glyph builders in plane coordinates (`frameGlyph`, `weldGlyph`, `toPlane`).
+5. Ids equal to the sheet items'.
+
+The studio hook is `__studioAnnotations()`. Tests are in `test/annotations3d.test.ts`: the geometric plate and the welded table equal the sheet's to 1e-9, and the glyphs give the sheet's marks back. Only package T1 tests were run; the verify-worktree run and the checkpoint message are still to do.
+
+## Queue 5b — weld records → the kernel's weld beads (FRk2, D166) (2026-10-22)
+
+The kernel lane's FRk2 is in (integration 56e11f3ae, merged here as ba71497a6). The record → bead mapping is the outer lane's (`engine/part.ts`, after every node in `toPartDocument`):
+- **Which records**: a record makes a bead when its kind is a fillet (set, or unset where a fillet is the default) and its size is set; its size is the leg. A record with no size makes no bead.
+- **The mapping**:
+  - `<member>.<end>` (a butt, an on-face end, a mitre set to fillet) → `{ kind: 'weld-bead', frame: <the frame's feature id>, on: { member: k, end }, leg, inner? }`. k is the body key's side `part<k>` (`solid`: 0); the body key resolves to its node by `bodyNodeOf`. An on-face end maps as its own end, and the kernel finds every face it lands on.
+  - `<gusset>.<member>` → `on: { gusset }`; `<cap>.<member>` → `on: { cap }`. The kernel welds all of a plate's seams in one bead, so its joints share one feature (`bead_<plate key>`), the first record's leg.
+  - The feature id is `bead_<joint id>` for a member's end. Its body is keyed the same, with no node: it weighs (it is in the part's bodies) and makes no BOM line.
+- **Refusals never fail the part**: `withBeadRetry` runs each evaluation (the snapshot, part, volumes, preview, placed and base, STEP, drawing B-reps, sections, assembly faces). When the kernel throws a CadPartError on a bead feature, that bead is left out (remembered by what decides the kernel's answer: the bead, its frame and plate nodes, the parameters, the section library) and the part is built again. The reason goes to the joint.
+- **Defaults**: a mitre's default weld stays a groove (butt). A cap's default is now a corner weld (butt), since the kernel says a cap sits flush. A record left with no kind on either is no bead, and the kernel's BEAD_KIND there is kept quiet; set to fillet, it is said.
+- **The weld list**: each joint has `bead`, either `{ feature, legMM, throatMM, volumeMM3, seamMM, flushMM }` from its body's report (a `weld-bead` ElementReport), or `{ refused }`. The table's notes say "W<k>: no bead — <the kernel's reason>".
+- **Tests** (`test/weld-beads.test.ts`, the kernel's frk/ scenes built from records, not features):
+  - the 40 rail on the 80 post: 756 mm³ (and the case's own value);
+  - on the 40 post: 360 (flush sides none);
+  - the clipped gusset's two seam joints: one bead, 1710 = (105 + 85)·3²;
+  - leg 3, throat 3/√2; no BOM line, its volume in the part's;
+  - a mitre set to fillet: BEAD_KIND said on the joint and in the table, the part evaluated;
+  - unset on the mitre: no bead, quiet, kind butt;
+  - the 60° brace: BEAD_ANGLE said;
+  - no size: no bead.
+- `frame-plates.test.ts`: the cap's default kind is now butt.
+
+## G22 data side — S0: the assembly's interference and clearance map (2026-10-22)
+
+The coordinator approved the order: G22's data, then section edge names, then G23's data. This S0 needs the coordinator's and the GPU lane's reply before building. The style is G24's: pure, in cad-model (`team/clearanceMap.ts`), the exact values ours and the per-pixel field the GPU's.
+
+**Measured, on the 120-copy prototype** (the starter plate with its top edges filleted R2: 272 triangles; 12 × 10 copies pitched so x-neighbours overlap 2 mm and y-neighbours sit 1 mm apart, every other turned 180° about Z; load 35–45):
+
+| stage | time |
+|---|---|
+| placing the copies' meshes | 5.8 ms |
+| a K2 tree (`triangleBvh`) a copy | 47.9 ms |
+| pruning by boxes grown by the near band (sweep and prune along x, then y and z) | 2.7 ms → 416 candidate pairs of the 7140 |
+| exact clearance on the candidates (`meshClearance` with the trees) | 44.2 ms → 110 crossing, 306 near, 0 clear |
+| a per-vertex distance field for the amber band (`nearestDistance2` per vertex of each side, bounded by the band) | about 10 ms for 832 pair sides of a 92-vertex plate (scales with the vertices) |
+| **the exact overlap Booleans** (`booleanAnalytic` intersection + its volume + its mesh), 110 pairs | **56.4 s (about 0.5 s a pair, curved fillets)** |
+
+The K2 tree is a triangle hierarchy with ray and nearest-point queries, not a box-overlap one. Pairs are pruned by sorting the bodies' boxes, cheap at 120; the K2 trees serve the exact clearance and the distance field. Everything but the Booleans is about 0.1 s together. The Booleans are 500× that, so the S0 makes them progressive.
+
+**Shape** (`clearanceMap(doc, evaluate, { nearMM })`; everything from the evaluated placed parts, body keys with `<inst>/` kept):
+```ts
+interface ClearanceMap {
+  version: 'clearance-map-v1';
+  near: { mm: number; source: 'requirement' | 'input' };   // a stated clearance requirement, else the input, said
+  pairs: ClearancePair[];                                    // candidates only; every other pair is clear by its boxes
+  pending: number;                                           // overlap Booleans not done yet (they come in later updates)
+  timing: { pruneMS: number; clearanceMS: number; booleanMS: number };
+}
+interface ClearancePair {
+  a: string; b: string;                                      // body keys
+  state: 'overlap' | 'near' | 'clear';
+  minGapMM: number;                                          // 0 where they cross (the exact least distance of the display meshes, to their chord)
+  closest: { a: Vec3; b: Vec3; faceA: string; faceB: string };  // the closest points and their faces by persistent name
+  /** The exact overlap: its volume and its display mesh (volume = the mesh's B-rep's), or pending, or why the Boolean refused. */
+  overlap?: { volumeMM3: number; mesh: DisplayMesh } | { pending: true } | { refused: string };
+  /** For the amber band: each side's vertices' distance to the other body, clamped at the band (Float32, the body's display-mesh vertex order). */
+  field?: { a: Float32Array; b: Float32Array };
+}
+```
+- **Scale**: pruning first, then exact clearance only on candidates, both always. The overlap Booleans run in the engine worker, nearest pairs first and cached by the two bodies' content and poses. The map comes out at once with `overlap: { pending }` and fills in over later updates. `pending` says how many are left; a moved part re-queues only its own pairs. The GPU lane colours a pending overlap from the clearance (crossing = red) until its exact body arrives.
+- **Volume and mesh agree**: the overlap mesh is the tessellation of the very B-rep whose `volumeMM3` is given, as the coordinator asked.
+- **Second stage, not now**: joint play and motion study first contact (`robot/sweep`'s meshesMeet along a motion).
+- **Oracles (when built)**: two boxes overlapping by a known block (its volume exact, its mesh's volume equal); a gap of 1 mm (minGap 1, the closest faces by name, the field 1 at the facing vertices); the 120 copies (110 overlaps, 306 near, the timing in the result); a moved copy re-queues only its pairs.
+
+**Questions for the GPU lane**:
+- (a) A per-vertex field (Float32 per display vertex) for the band, or will they compute their own on the GPU from the meshes?
+- (b) Overlap meshes as display meshes in world coordinates: fine?
+- (c) Updates as the Booleans finish: replace the whole map, or a list of filled pairs?
+
+## Item 4 — a section's edge names keyed by its body (2026-10-22)
+
+`sectionOf` cut each body by a split with the id `section<k>`, where k was its output index. So the cut face `section<k>.cut.top`, its edges, and the dimensions on them (O148 X2) changed names whenever an earlier body came or went, and were re-matched or lost. The split is now `section_<body key>` (`section_b2`, `section_b0_part1`). `auto.ts`'s cut-face filter and `issues.ts`'s feature reading take both forms.
+
+Test (section-dimensions.test.ts): the shaft and hub after an unrelated box (nodes 0–1), auto-dimensioned with B–B. The box is then suppressed, so every output shifts by one. B–B's dimensions still read 6 and 16.5, with no DIMENSION_LOST or REMATCHED. It failed before the change.
+
+## G23 data side — S0: print layers, and the CNC preview as the GPU lane reads it (2026-10-22)
+
+The coordinator's item 2 after G22. This S0 needs the coordinator's and the GPU lane's reply before building. Pure, in cad-model; display only (no slicer, no G-code: README §4).
+
+**A. Print layers** (`print/layers.ts`, `printLayers(doc, bodies, { layerMM, direction?, limitDeg? })`):
+- **The frame**: the chosen build direction (`direction`, else AM4's best orientation, said which). The part is turned so it is +Z, its lowest point on the bed (z 0). The turn and the offset are given, so the GPU lane maps layers back onto the model.
+- **Layers** at heights `(k + ½)·layerMM` from the bed, `layerMM` the person's (unset: 0.2, an estimate, said).
+- **Per layer**:
+  - `contours`: the closed loops of the plane through the display meshes (every body to be printed; lattices as AM7 has them), each a polyline in bed coordinates, outer loops anticlockwise and holes clockwise (by signed area, the even-odd rule over all loops).
+  - `overhang`: the overhanging triangles (AM2's rule, −n·b > sin θ, θ the process's limit) that the layer's band crosses, projected onto the layer as triangles, with their faces by persistent name.
+  - `support`: the footprints of AM4's support columns spanning the layer — from each overhanging triangle straight down (K2 rays) to the part or the bed — as projected triangles, the same columns AM4's support volume sums.
+- **Totals**: layer count, height, support volume (equal to AM4's for the same direction), and the chord error of the meshes the contours come from (said: contours are to the display mesh, not exact).
+- **Cost**: one pass bucketing the triangles by their z-range, then a segment a crossing triangle per layer, stitched by the mesh's shared edges into loops. O(triangles + segments), no per-layer scan of the whole mesh. Measured when built (the oracle sets include a 100 000-triangle case, as AM4's).
+- **Oracles**:
+  - a 20 mm cube at 0.2 mm: 100 layers, each one square loop of 400 mm²;
+  - a Ø10 bore through a plate: an outer loop and a clockwise hole of π·25 (to the chord);
+  - a 45° overhang at a 45° limit is none, at 40° all of it;
+  - AM4's support volume equal to the sum of the layers' support areas × layerMM (to the layer's discretisation, stated);
+  - the turn back maps every contour point onto the mesh's surface (1e-9 of the plane).
+
+**B. The CNC preview packaged** (`machining/camPackage.ts`, `camPackage(doc, bodies, { toolMM? })`): what CNC8's `camPreview` and CNC7b's `chooseStock` give, in one object in world coordinates for the GPU lane's material-removal preview.
+- `banner` and `notForProduction: true` come first, as every CNC8 output does.
+- `tool`: its diameter and basis (given or estimate); `stepoverMM`, `stepdownMM` and their basis.
+- `stock`: CNC7b's choice (a block's min/max, or a bar's start, axis, length and diameter), or its refusal (STOCK_NONE_LOADED, STOCK_NONE_FITS) said.
+- `passes`, in machining order:
+  - a pocket's per-level tool-centre loops lifted into world space (the floor plane's origin + x·u + y·v − level·normal), each with its setup's direction (the tool's axis) and its level;
+  - drill points with entry, axis, depth and diameter.
+- `skipped`: CNC8's list (slots and steps open on a side, with why).
+- The GPU lane sweeps the tool along `passes` through its height field or dexels, starting from `stock`. Uncut is what the stock keeps outside the part; overcut is where the swept tool enters the part, theirs to colour.
+- **Oracles**: CNC8's 50 × 30 pocket (loops (44 − 4.8k) × (24 − 4.8k), levels 3, 6, 8) lifted to its plane exactly; a hole's drill point; the block stock 122 × 82 × 30 about O100's plate; no stock loaded, said.
+
+**Questions for the GPU lane**:
+- (a) Layers in bed coordinates plus the turn, or already in model coordinates?
+- (b) Supports as projected triangles, or as merged polygons?
+- (c) Is an all-layers-at-once array fine, or do they want one layer by index (for a slider on a large part)?

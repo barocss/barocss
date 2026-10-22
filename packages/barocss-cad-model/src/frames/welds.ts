@@ -15,6 +15,7 @@ import type { InlineSection, MemberSection, StudioDoc } from '../engine/doc';
 import { faceBoundary } from '../app/faceProfile';
 import { partCutList } from '../app/cutList';
 import { evaluatePart } from '../engine/evaluate';
+import { beadIdOf, beadRefusal } from '../engine/part';
 import type { TableContent } from '../drawing/table';
 
 type Vec3 = [number, number, number];
@@ -39,6 +40,8 @@ export interface WeldJoint {
   /** A point on the seam (the loop's first corner) and its centre, for a symbol's arrow and the list. */
   readonly at: Vec3; readonly centre: Vec3;
   readonly weld: { readonly kind: WeldKind; readonly sizeMM: number | null; readonly sizeBasis: 'set' | 'estimate' | 'none'; readonly allRound: boolean; readonly notes?: string };
+  /** FRk2 (D166): its bead, made from the record (a fillet with its size set) — its leg, throat, volume and seams — or why the kernel refused it. */
+  readonly bead?: { readonly feature: string; readonly legMM: number; readonly throatMM: number; readonly volumeMM3: number; readonly seamMM: number; readonly flushMM: number } | { readonly refused: string };
 }
 export interface WeldList { readonly joints: readonly WeldJoint[]; readonly totals: { readonly count: number; readonly seamMM: number; /** Joints whose inner loop's weld is not said. */ readonly innerUnset: number }; readonly orphaned: readonly WeldRecord[]; readonly notes: readonly string[] }
 
@@ -170,16 +173,24 @@ function withWeld(doc: StudioDoc, bodies: readonly BodyResult[], j: Bare, r: Wel
   const plate = j.kind === 'gusset' || j.kind === 'cap' ? bodies.find(b => b.key === j.body)?.element : undefined;
   const own = plate && (plate.kind === 'gusset' || plate.kind === 'end-cap') ? { wall: plate.report.thicknessMM, straight: true } : wallOf(sectionOf(doc, bodies.find(b => b.key === j.body)!));
   const walls = [own.wall, ...j.meets.map(k => wallOf(sectionOf(doc, bodies.find(b => b.key === k)!)).wall)].filter((w): w is number => w !== null && Number.isFinite(w));
-  const kind: WeldKind = r?.kind ?? (j.kind === 'mitre' ? 'butt' : 'fillet');
+  // (A mitre's default is a groove (butt) weld; a cap, flush with its member, a corner weld — also no fillet: FRk2.)
+  const kind: WeldKind = r?.kind ?? (j.kind === 'mitre' || j.kind === 'cap' ? 'butt' : 'fillet');
   const estimate = walls.length === j.meets.length + 1 ? Math.min(...walls) : null;
   if (r?.sizeMM === undefined && estimate !== null) notes.push('sizes unset are the thinner wall of the two members: an estimate (a rule of thumb, not a calculation)');
   if (r?.sizeMM === undefined && estimate === null) notes.push('a member with no wall (a sketch or T-slot section) gives no size estimate: set one');
   const sizeMM = r?.sizeMM ?? estimate, sizeBasis = r?.sizeMM !== undefined ? 'set' as const : estimate !== null ? 'estimate' as const : 'none' as const;
   const { innerMM, ...rest } = j, welded = innerMM === null ? null : r?.inner ?? null;
   if (innerMM !== null && welded === null) notes.push('an end with an inner loop (a tube\'s bore): whether it is welded is yours to say (features.welds inner), none assumed');
-  return { ...rest, seamBasis: own.straight ? 'exact' : 'mesh', innerLoop: innerMM === null ? null : { mm: innerMM, welded }, weldMM: r6(j.seamMM + (welded ? innerMM! : 0)), weld: { kind, sizeMM, sizeBasis, allRound: r?.allRound ?? true, ...(r?.notes ? { notes: r.notes } : {}) } };
+  return { ...rest, seamBasis: own.straight ? 'exact' : 'mesh', innerLoop: innerMM === null ? null : { mm: innerMM, welded }, weldMM: r6(j.seamMM + (welded ? innerMM! : 0)), weld: { kind, sizeMM, sizeBasis, allRound: r?.allRound ?? true, ...(r?.notes ? { notes: r.notes } : {})  }, ...beadOf(doc, bodies, j.id) };
 }
 
+/** A joint's bead (FRk2): its body's report by the bead's id, or the kernel's refusal (one kept quiet is no bead). */
+function beadOf(doc: StudioDoc, bodies: readonly BodyResult[], joint: string): { bead?: WeldJoint['bead'] } {
+  const id = beadIdOf(joint), b = bodies.find(x => x.key === id && x.element?.kind === 'weld-bead');
+  if (b && b.element?.kind === 'weld-bead') { const r = b.element.report; return { bead: { feature: id, legMM: r.legMM, throatMM: r6(r.throatMM), volumeMM3: r6(r.volumeMM3), seamMM: r6(r.seam.lengthMM), flushMM: r6(r.seam.flushMM) } }; }
+  const no = beadRefusal(doc, joint);
+  return no && !no.quiet ? { bead: { refused: no.reason } } : {};
+}
 /** The weld list as a drawing table (the 'weld-list' source): W1… in order, the members by their cut-list items. */
 export function weldListTable(w: WeldList, items: ReadonlyMap<string, number>): TableContent {
   const item = (k: string) => items.get(k) ?? k;
@@ -196,6 +207,8 @@ export function weldListTable(w: WeldList, items: ReadonlyMap<string, number>): 
       ...(w.totals.innerUnset ? ['BORE ?: whether the inner loop is welded is not said'] : []),
       ...(w.joints.some(j => j.weld.sizeBasis === 'estimate') ? ['* the thinner wall of the members: an estimate, not a calculation'] : []),
       ...(mesh.length ? [`${mesh.join(', ')}: seam along a curved side, to the display mesh's chord tolerance`] : []),
+      // (FRk2: a bead the kernel refused, said by its joint's W-number with the kernel's reason.)
+      ...w.joints.flatMap((j, k) => j.bead && 'refused' in j.bead ? [`W${k + 1}: no bead — ${j.bead.refused}`] : []),
     ],
   };
 }
