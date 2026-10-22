@@ -75,7 +75,8 @@ import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/ca
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import type { Analysis } from './viewport/analysis';
 import { boundsUnder, instancePoses, poseMatrix } from './viewport/instancePose';
-import { sectionPlane, sectionedBodies, sectionedInstances } from './viewport/sectionView';
+import { asSection, axisSection, planeFromFace, sectionPlanes, sectionSplits, sectionedBodies, sectionedInstances, type AxisSection, type Section } from './viewport/sectionView';
+import { SectionBar, sectionHandles } from './ui/SectionBar';
 import { mapsOf, type MapKind } from './viewport/scalarMaps';
 import { isoclinePolylines } from '@barocss/cad-model/mould/parting';
 import { MapLegend, MouldLegend } from './ui/MapLegend';
@@ -191,6 +192,15 @@ function samePlacement(a: PartInstance, b: PartInstance): boolean {
   return a.doc === b.doc || JSON.stringify(a.doc) === JSON.stringify(b.doc);
 }
 
+/** A closed mesh's volume by its triangles (the divergence theorem), for the flow's section check (G19). */
+function meshVolume(m: { positions: Float32Array; indices: Uint32Array }): number {
+  let v = 0;
+  for (let t = 0; t < m.indices.length; t += 3) {
+    const a = 3 * m.indices[t], b = 3 * m.indices[t + 1], c = 3 * m.indices[t + 2], P = m.positions;
+    v += P[a] * (P[b + 1] * P[c + 2] - P[b + 2] * P[c + 1]) - P[a + 1] * (P[b] * P[c + 2] - P[b + 2] * P[c]) + P[a + 2] * (P[b] * P[c + 1] - P[b + 1] * P[c]);
+  }
+  return v / 6;
+}
 /** The studio's own commands in the palette, after the model's (G17's 3D sketch). */
 const PALETTE_EXTRA = [SKETCH3D_COMMAND];
 
@@ -352,7 +362,10 @@ export function App() {
   useEffect(() => { setLibraryStore(browserStore()); loadUserLibraries(); }, []);
   /** The view's field of view (degrees; the Render panel sets it, a saved view keeps it). */
   const [fov, setFov] = useState(32);
-  const [section, setSection] = useState<{ axis: 'x' | 'y' | 'z'; at: number; keep: 'negative' | 'positive' } | null>(null);
+  // (G19: one plane, a box or two or three planes — the kept region their intersection; the next face click sets plane `sectionFacePick`.)
+  const [section, setSection] = useState<Section | null>(null);
+  const [sectionFacePick, setSectionFacePick] = useState<number | null>(null);
+  const sectionFacePickRef = useRef(sectionFacePick); sectionFacePickRef.current = sectionFacePick;
   const [sectionExact, setSectionExact] = useState<{ key: string; bodies: BodyResult[] } | null>(null);
   const sectionRef = useRef(section); sectionRef.current = section;
   const activeRef = useRef<Active | null>(null);
@@ -433,13 +446,8 @@ export function App() {
   useEffect(() => {
     if (!section) { setSectionExact(null); return; }
     let live = true; const key = JSON.stringify(section);
-    const k = 'xyz'.indexOf(section.axis), keep = section.keep, nodes = [...evaluated.nodes], kept: string[] = [];
-    let doc: StudioDoc = { ...evaluated, nodes };
-    for (const b of bodies) {
-      const { min, max } = b.mesh.bounds, ref = refOf(b);
-      if (min[k] < section.at - 1e-6 && max[k] > section.at + 1e-6) { doc = withNode(doc, { kind: 'split', parent: ref, axis: section.axis, at: section.at }); kept.push(bodyKeyFor(doc.nodes, doc.nodes.length - 1, keep)); }
-      else if (keep === 'negative' ? max[k] <= section.at + 1e-6 : min[k] >= section.at - 1e-6) kept.push(b.key);
-    }
+    // (G19: each body split by each plane that crosses what is left of it, the kept pieces' keys.)
+    const { doc, kept } = sectionSplits(evaluated, bodies, section);
     // Latest wins: while one section is worked out, only the newest plane waits behind it.
     const run = sectionRun.current;
     run.next = async () => { const r = await engine.section(doc, revision.current++); if (live && r.ok) setSectionExact({ key, bodies: r.bodies.filter(b => kept.includes(b.key)) }); };
@@ -925,6 +933,13 @@ export function App() {
 
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
     // (The section view shows cut copies of the bodies: picks wait until it is closed.)
+    // (G19: a face for a section plane — its plane, the material behind it kept.)
+    if (sectionRef.current && sectionFacePickRef.current !== null && hit.face) {
+      const i = sectionFacePickRef.current, f = viewBodiesRef.current[hit.face.body]?.mesh.faces[hit.face.face];
+      if (f && f.kind === 'plane') { const q = planeFromFace(f, sectionBoxRef.current); setSection(sc => sc && { ...sc, planes: sc.planes.map((p, j) => j === i ? q : p) }); setSectionFacePick(null); }
+      else setToast({ title: 'Not a flat face', hint: 'A section plane is taken from a flat face.', detail: '' });
+      return;
+    }
     if (sectionRef.current && !activeRef.current) return;
     // (G6: while the mould's halves show, picks reach only them — none here.)
     if (halvesShownRef.current && !activeRef.current) return;
@@ -1023,7 +1038,8 @@ export function App() {
   };
   /** A sketch on the section plane holding the exact section's cut outlines (its cut faces' outlines), the section closed. */
   const sketchSection = () => {
-    if (!section) return;
+    // (One plane only: a sketch lies on one.)
+    if (!section || section.planes.length !== 1) return;
     const exact = sectionExact?.key === JSON.stringify(section) ? sectionExact.bodies : null;
     if (!exact) { setToast({ title: 'The section is still being cut', hint: 'Wait a moment for the exact section, then try again.', detail: '' }); return; }
     const from = nextSerial(evaluated), faces = exact.flatMap(b => b.mesh.faces.filter(f => f.kind === 'plane' && cutAfter(f.name, from)).map(f => ({ b, f })));
@@ -1695,13 +1711,15 @@ export function App() {
     ? { pull: mouldResult.pull, loops: mouldResult.loops, plus: mapKind === 'halves' ? mouldResult.plus : [], minus: mapKind === 'halves' ? mouldResult.minus : [], spread: mouldSpread } : null, [mouldResult, mapKind, mouldSpread]);
   halvesShownRef.current = !!mouldShown && (mouldShown.plus.length + mouldShown.minus.length) > 0;
   const mapLegend = scalarMaps?.[0] && viewport.current?.backend === 'webgpu' ? scalarMaps[0] : null;
-  const sectionClip = useMemo(() => section && !sketch && gpuSection ? { ...sectionPlane(section), bodies: shownBodies === sectionBodies && !sectionExactShown } : null, [section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown]);
+  const sectionClip = useMemo(() => section && !sketch && gpuSection ? { planes: sectionPlanes(section), bodies: shownBodies === sectionBodies && !sectionExactShown } : null, [section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown]);
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __studioSection: () => unknown; __studioSectionDebug: (d: { hold: boolean; cpu: boolean }) => void };
-    w.__studioSection = () => ({ gpu: gpuSection, exact: sectionExactShown, clip: sectionClip, bodies: shownBodies.length });
+    // (G19: the mode and planes, and the exact section's kept volume once it is shown.)
+    w.__studioSection = () => ({ gpu: gpuSection, exact: sectionExactShown, clip: sectionClip, bodies: shownBodies.length, mode: section?.mode ?? null, planes: section?.planes ?? null, volume: sectionExactShown ? sectionExact!.bodies.reduce((v, b) => v + meshVolume(b.mesh), 0) : null });
     w.__studioSectionDebug = setSectionDebug;
-    (window as unknown as { __studioSetSection: typeof setSection }).__studioSetSection = setSection;
+    // (The axis form as before, or a section of planes, G19.)
+    (window as unknown as { __studioSetSection: (s: Section | AxisSection | null) => void }).__studioSetSection = s => setSection(s ? asSection(s) : null);
     (window as unknown as { __studioOverlayLines: () => Record<string, number> }).__studioOverlayLines = () => viewport.current?.overlayLines() ?? {};
     (window as unknown as { __studioOverlayTexts: () => Record<string, string[]> }).__studioOverlayTexts = () => viewport.current?.overlayTexts() ?? {};
     // (G12: the shown proposal's diff, as the overlay has it.)
@@ -1720,6 +1738,7 @@ export function App() {
   // (The locked references and the keep-outs, A6.3: drawn ghosted after the part's bodies, never picked.)
   const refShown = useMemo(() => { const set = readReferences(doc.references); return [...set.references.flatMap(r => placeReference(refLocal.get(r.id) ?? [], r.at)), ...keepoutBodies]; }, [doc.references, refLocal, keepoutBodies]);
   const viewBodies = useMemo(() => (refShown.length ? [...shownBodies, ...refShown] : shownBodies), [shownBodies, refShown]);
+  const viewBodiesRef = useRef(viewBodies); viewBodiesRef.current = viewBodies;
   const sketchGhost = useMemo(() => new Set([...(sketch ? shownBodies.map((_, i) => i) : []), ...refShown.map((_, i) => shownBodies.length + i)]), [sketch, shownBodies, refShown]);
   // Move and Rotate gizmos on the selected body: while dragged it follows at once (a renderer transform
   // of the evaluated body); let go, the kernel preview of the values runs.
@@ -1805,16 +1824,14 @@ export function App() {
           : { cmd: handleCmd, values: patchValues(handleCmd, handleCtx, handleValues, { [h.key]: v }), preview: 'busy', ctx: { ...handleCtx } });
       } }];
   }) : [];
-  // The section plane: an arrow across it through the middle of the part.
-  const sectionHandle: FeatureHandle | null = section && !active && !sketch && bodies.length ? (() => {
-    // (Over the part and the parts placed with it.)
+  // The section's planes: an arrow across each through the middle of what is kept (a box's on each face; G19).
+  const sectionBox = useMemo(() => {
     const all = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)];
-    const k = 'xyz'.indexOf(section.axis), min = [0, 1, 2].map(i => Math.min(...all.map(b => b.mesh.bounds.min[i]))), max = [0, 1, 2].map(i => Math.max(...all.map(b => b.mesh.bounds.max[i])));
-    const at = [0, 1, 2].map(i => (min[i] + max[i]) / 2) as Vec3, dir: Vec3 = [0, 0, 0]; dir[k] = section.keep === 'negative' ? 1 : -1; at[k] = section.at;
-    return { id: 'section', at, dir, label: `Section ${section.axis.toUpperCase()}`, value: section.at,
-      toValue: (start: number, mm: number) => Math.min(max[k] - 0.5, Math.max(min[k] + 0.5, Math.round((start + mm * dir[k]) * 2) / 2)),
-      format: (v: number) => `${fmt(v)} mm`, onDrag: (v: number) => setSection(s => s && s.at !== v ? { ...s, at: v } : s) };
-  })() : null;
+    if (!all.length) return { min: [0, 0, 0] as Vec3, max: [0, 0, 0] as Vec3 };
+    return { min: [0, 1, 2].map(i => Math.min(...all.map(b => b.mesh.bounds.min[i]))) as Vec3, max: [0, 1, 2].map(i => Math.max(...all.map(b => b.mesh.bounds.max[i]))) as Vec3 };
+  }, [bodies, instancesPlaced]);
+  const sectionBoxRef = useRef(sectionBox); sectionBoxRef.current = sectionBox;
+  const sectionDrag: FeatureHandle[] = section && !active && !sketch && bodies.length ? sectionHandles(section, sectionBox, setSection) : [];
   const dragTransforms = useMemo(() => cmdBody !== undefined && bodyDrag ? new Map([[cmdBody, bodyDrag.matrix]]) : null, [cmdBody, bodyDrag]);
 
   // The selected part instance's gizmo: moves along and turns about world axes through its box's centre
@@ -1903,7 +1920,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
+      <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} clip={sectionClip} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
@@ -2383,15 +2400,12 @@ export function App() {
       <div className="corner-right">
   {mapLegend && <MapLegend map={mapLegend} hover={mapHover} />}
   {(mapKind === 'parting' || mapKind === 'halves') && <MouldLegend kind={mapKind} result={mouldResult} pull={!!doc.mould?.pull} spread={mouldSpread} onSpread={setMouldSpread} />}
-  {section && <div className="card section-bar" role="group" aria-label="Section"><span className="muted">Section</span>{(['x', 'y', 'z'] as const).map(a => <button key={a} className={section.axis === a ? 'on' : ''} aria-label={`Section across ${a.toUpperCase()}`}
-            onClick={() => { const k = 'xyz'.indexOf(a), vs = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)].flatMap(b => [b.mesh.bounds.min[k], b.mesh.bounds.max[k]]); setSection(s => s && { ...s, axis: a, at: vs.length ? Math.round(Math.min(...vs) + Math.max(...vs)) / 2 : 0 }); }}>{a.toUpperCase()}</button>)}
-            <button aria-label="Flip the section" data-tip="Show the other side" onClick={() => setSection(s => s && { ...s, keep: s.keep === 'negative' ? 'positive' : 'negative' })}><Icon name="swap_horiz" small /></button>
-            <button aria-label="Sketch the section" data-tip="Sketch the section" data-tip-desc="A sketch on the section plane with the cut's outlines in it (to extrude, revolve or dimension)" onClick={sketchSection}><Icon name="cad-sketch" small /></button></div>}
+  {section && <SectionBar section={section} setSection={setSection} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} />}
         <div className="card views" role="group" aria-label="Views">
           {(['iso', 'top', 'front', 'right'] as const).map(v => <button key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</button>)}
           <button onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></button>
           <button className={section ? 'on' : ''} aria-label="Section view" data-tip="Section view" data-tip-desc="Cut the part open along a plane to see inside (the model is not changed)"
-            onClick={() => { if (section) { setSection(null); return; } const zs = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)].flatMap(b => [b.mesh.bounds.min[1], b.mesh.bounds.max[1]]); setSelection(emptySel); setSection({ axis: 'y', at: zs.length ? Math.round((Math.min(...zs) + Math.max(...zs))) / 2 : 0, keep: 'positive' }); }}>
+            onClick={() => { if (section) { setSection(null); return; } const zs = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)].flatMap(b => [b.mesh.bounds.min[1], b.mesh.bounds.max[1]]); setSelection(emptySel); setSectionFacePick(null); setSection(axisSection({ axis: 'y', at: zs.length ? Math.round((Math.min(...zs) + Math.max(...zs))) / 2 : 0, keep: 'positive' })); }}>
             <Icon name="cad-split" small /></button>
 
           <button onClick={() => setOrtho(viewport.current?.toggleOrtho() ?? false)} className={ortho ? 'on' : ''}>Ortho</button>
