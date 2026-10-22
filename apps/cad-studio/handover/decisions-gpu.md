@@ -840,3 +840,34 @@ command's, FR2's rule), offered after the model's in the palette (`Palette`'s `e
   touched; 87 s with the studio's, load 46–48). `FLOW_ONLY` on every FR step (FR1–FR4b, FRb–FRf2, both FRg), step 31,
   G16, G17 and the theme step (its palette): WebGPU 21/21 in 79 s, WebGL2 21/21 in 138 s (load 23–47). Not run: the full
   flow (the coordinator's), the cad-model suite (not touched), benches (no frame path changed: the marks are SVG).
+
+## G18.1 — the packed package: CAD external, no source, its consumer tests green (2026-10-22)
+
+The owner's go for G18 ("G18 지금 셋다 합니다"), first of three. `packages/barocss-gpu` only; no version change, no
+publish, no new dependency (the lockfile untouched).
+
+- **CAD external (REVIEW G9)**: `build:library` bundles with `--external:@barocss/cad`. `dist/index.js` 1 240 049 →
+  725 483 bytes (−41.5 %); CAD's own definitions gone from it (`function validateCoplanarFaceBooleanMesh`,
+  `compileCadModel`, `tessellateSurface`, `sampleCurve`: 1, 1, 1, 3 → 0 each), seven `import … from "@barocss/cad"`
+  in their place — a consumer installs CAD once, as the dependency (`0.0.0-experimental` in the packed manifest).
+- **No source in the package**: `files` is `dist`, README, LICENSE (`src` dropped — the published entries are
+  `publishConfig`'s, all `dist`). The tarball: 217 files, 472 350 bytes, `dist` only.
+- **`test:consumer`** (3 tests) was failing at its first check (the pack held `src`); past it, two more stale checks:
+  - the packed manifest's `private: true` — the package is public since #657 (`3caa10604`, its compiled entries); the
+    check is now: not private, `main` `./dist/index.js`, CAD a versioned dependency;
+  - a consumer's type annotation `schemaVersion: 1` — the compiler's IR has a version 2 (scenes of version 1, with
+    rotations): `1 | 2`.
+  The three tests share `tests/packed.mjs`: gpu's tarball and CAD's (its packed manifest's `dist` entries) unpacked
+  under a scratch `node_modules`, as npm would install them; each consumer then runs as before (the ESM import, the
+  compiler, the mesh packet, and a strict `tsc` of a consumer against the packed declarations, CAD's with them).
+- **The workspace's own tests**: with CAD external, a test loading `dist` meets `@barocss/cad`, which the workspace
+  resolves to CAD's TypeScript sources. `tests/cad-dist.mjs` (a resolve hook, `module.registerHooks`) points it at
+  CAD's built entry — what a consumer gets — for `test` and `test:browser` (`node --import ./tests/cad-dist.mjs`);
+  `scene-viewer-browser` maps it on its page (an import map, CAD's `dist` served beside the bundle).
+- **Outside the package, noted**: the old example harnesses under `examples/gpu-scene/*.mjs` that import gpu's
+  `dist/index.js` from Node need the same hook (`node --import ./packages/barocss-gpu/tests/cad-dist.mjs …`: checked on
+  `boolean-buffers-flow.mjs`, which then reaches its own argument check); pages served by `examples/gpu-scene/server.mjs`
+  need an import map for `@barocss/cad` — G18.2 (the demo hosts) takes that up.
+- **Checks** (v2), in the verify worktree: gpu `build:library`, type-check and lint clean, unit 80/80, `test:consumer`
+  3/3 (was 0/3), browser 12/12 (39 s, load 11–36); studio tsc clean and suite 203/203 (not touched: its `@barocss/gpu`
+  is the workspace's sources). Not run: flows (no studio code changed), benches, the cad-model suite.
