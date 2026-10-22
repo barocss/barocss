@@ -1,0 +1,143 @@
+{
+  "id": "fuzz-20261023-191",
+  "about": "L4 fuzz finding (seed 20261023, case 191): INVALID — strict: geometry: face n0_body0/s0/f3: its loops cross or touch themselves or each other (ring 1 segment 0 and ring 1 segment 2)",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 3
+        },
+        {
+          "id": "n1r0",
+          "kind": "rotate",
+          "target": "n1b",
+          "axis": "x",
+          "angleDegrees": 270,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1r0",
+          "offset": [
+            -1,
+            -2,
+            0
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 4
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 2
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2b",
+          "offset": [
+            1,
+            -2,
+            1
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "union",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 164.27443369766155,
+          "relTol": 0.0011114600216251143,
+          "absTol": 0.18258446563005631
+        },
+        "centroidMM": {
+          "value": [
+            0.1800875351113757,
+            -1.4081533601196683,
+            0.984294499037926
+          ],
+          "absTol": 0.001855040372972711
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 9.13e-2 mm³, centroid e 9.28e-4 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 191,
+    "status": "INVALID",
+    "tree": {
+      "op": "union",
+      "a": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 3,
+          "h": 3,
+          "rot": [
+            {
+              "axis": "x",
+              "deg": 270
+            }
+          ],
+          "move": [
+            -1,
+            -2,
+            0
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 4,
+          "h": 2,
+          "rot": [],
+          "move": [
+            1,
+            -2,
+            1
+          ]
+        }
+      }
+    }
+  }
+}

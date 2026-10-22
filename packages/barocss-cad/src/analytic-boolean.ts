@@ -425,7 +425,10 @@ function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, nu
     const pieces = ranges.map(([a, b]) => f.surf.kind === 'nurbs' ? { ...(curve2(f, { kind: 'param', at, t0: a, t1: b }, tol) as Extract<CurveSegment2, { kind: 'curve' }>), t0: a, t1: b } : { kind: 'curve' as const, f: (x: number) => to2(f, at(x)), t0: a, t1: b });
     params.push(...ranges.flat());
     const rings = [f.region.outer, ...f.region.holes];
-    for (const pr of pieces) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) params.push(pr.t0 + (pr.t1 - pr.t0) * paramOfCurve(pr, x));
+    // (Against a plane face's straight edges a shallow graze inside a chord is looked for too, by bisection: RB K9, D187.
+    // Not on a cylinder's domain lines: a cut running along a rounded tube's ruling would cross it at its rounding noise.)
+    const graze = f.surf.kind === 'plane';
+    for (const pr of pieces) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol, graze && g.kind === 'line')) params.push(pr.t0 + (pr.t1 - pr.t0) * paramOfCurve(pr, x));
     return insideIntervals(f, params, at, tol, strict);
   }
   if (k.kind === 'line') {
@@ -834,7 +837,11 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
     const n = unit(sub(P.n, scale(C.a, along))), delta = dot(n, sub(C.c, P.o));
     if (Math.abs(delta) > C.r + tol) return;
     const foot = sub(C.c, scale(n, delta)), w = unit(cross(C.a, n)), h = Math.sqrt(Math.max(0, C.r * C.r - delta * delta));
-    for (const sgn of h > tol ? [-1, 1] : [0]) lineCuts(add(foot, scale(w, sgn * h)), C.a);
+    // (A plane tangent to the wall touches it along one ruling: on either side the wall lies to one side of the plane, so
+    // the ruling divides neither face — cut in, it left a slit in the plane, two uses of one line, its loops touching.
+    // L4 fuzz 191, D189. As a circle where a profile only touches a plane, above.)
+    if (h <= tol) return;
+    for (const sgn of [-1, 1]) lineCuts(add(foot, scale(w, sgn * h)), C.a);
     return;
   }
   // Square to the axis to within the tolerance across the cylinder: a cross-section circle.

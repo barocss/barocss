@@ -627,6 +627,45 @@ function evaluateSurfaceLocal(S: Surface, u: number, v: number): Point {
  * it, so the mesh stays conforming). Boundary edges are never split: the face meets its neighbours
  * exactly at the shared edge samples.
  */
+/** Whether the boundary a → m → b turns by less than 45° at m (in space). */
+function smoothAt(a: Point, m: Point, b: Point): boolean {
+  const ux = m[0] - a[0], uy = m[1] - a[1], uz = m[2] - a[2], vx = b[0] - m[0], vy = b[1] - m[1], vz = b[2] - m[2];
+  const d = ux * vx + uy * vy + uz * vz;
+  return d > 0 && d * d > 0.5 * (ux * ux + uy * uy + uz * uz) * (vx * vx + vy * vy + vz * vz);
+}
+/** Whether a triangle's three corners lie on one smooth run of the boundary (`runs`: each point's runs, two at most). */
+function onOneRun(runs: readonly (readonly number[])[], a: number, b: number, c: number): boolean {
+  const ra = runs[a], rb = runs[b], rc = runs[c];
+  if (!ra || !rb || !rc) return false;
+  for (const r of ra) if (rb.includes(r) && rc.includes(r)) return true;
+  return false;
+}
+/**
+ * Triangles of a curved face whose corners all lie on one smooth run of its boundary, turned over with their neighbours
+ * while that leaves fewer of them (each flip a convex quadrilateral in `uv`, the triangles' counter-clockwise domain).
+ */
+function unfoldRunTriangles(tris: [number, number, number][], uv: readonly XY[], runs: readonly (readonly number[])[]): void {
+  const owner = new Map<number, number>();
+  for (let t = 0; t < tris.length; t++) for (let e = 0; e < 3; e++) owner.set(tris[t][e] * 1e7 + tris[t][(e + 1) % 3], t);
+  for (let pass = 0, flipped = true; flipped && pass < 50; pass++) {
+    flipped = false;
+    for (let t = 0; t < tris.length; t++) {
+      if (!onOneRun(runs, tris[t][0], tris[t][1], tris[t][2])) continue;
+      for (let e = 0; e < 3; e++) {
+        const tri = tris[t], a = tri[e], b = tri[(e + 1) % 3], c = tri[(e + 2) % 3], s = owner.get(b * 1e7 + a);
+        if (s === undefined || s === t) continue;
+        const o = tris[s], w = o[0] !== a && o[0] !== b ? o[0] : o[1] !== a && o[1] !== b ? o[1] : o[2];
+        if (!(turn(uv[a], uv[w], uv[c]) > 0 && turn(uv[w], uv[b], uv[c]) > 0)) continue;
+        const before = 1 + (onOneRun(runs, o[0], o[1], o[2]) ? 1 : 0), after = (onOneRun(runs, a, w, c) ? 1 : 0) + (onOneRun(runs, w, b, c) ? 1 : 0);
+        if (after >= before) continue;
+        for (const q of [tri, o]) for (let f = 0; f < 3; f++) owner.delete(q[f] * 1e7 + q[(f + 1) % 3]);
+        tris[t] = [a, w, c]; tris[s] = [w, b, c];
+        for (let f = 0; f < 3; f++) { owner.set(tris[t][f] * 1e7 + tris[t][(f + 1) % 3], t); owner.set(tris[s][f] * 1e7 + tris[s][(f + 1) % 3], s); }
+        flipped = true; break;
+      }
+    }
+  }
+}
 function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, parts: { points: Point[]; seam: boolean }[][], step: number): { pts: Point[]; tris: [number, number, number][]; uv: XY[] } {
   const rings = parts.map(r => r.flatMap(c => c.points)), pts: Point[] = rings.flat(), outward = frame0.outwardRadial === (face.sense === 'forward');
   // A full-turn wall: its domain is centred opposite the seam; the seam going up lies on the right
@@ -661,6 +700,20 @@ function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, p
   let off = 0; const ringsUV = rings.map(r => { const out = uv.slice(off, off + r.length).map(flat); off += r.length; return out; });
   const uWidth = (a: XY, b: XY, c: XY) => Math.max(a[0], b[0], c[0]) - Math.min(a[0], b[0], c[0]);
   const tris = triangulatePolygonWithHoles(ringsUV[0], ringsUV.slice(1), uWidth).map(t => [...t] as [number, number, number]);
+  // (A triangle whose corners all lie on one smooth run of the boundary (turning under 45° at each point, in space) has
+  // no point off it: where the run is planar — a plane's cut, in one edge or several — the triangle lies in that plane,
+  // and the planar neighbour, whose own triangles they are, takes the same ones: the mesh has them twice, their chords
+  // four times. They are turned over towards the face's own points: L4 fuzz 5, the notch tees, D193. A corner's ear
+  // stays.)
+  const runs: number[][] = [];
+  let run = 0;
+  for (const r of rings) {
+    const n = r.length, corner = r.map((p, i) => !smoothAt(r[(i + n - 1) % n], p, r[(i + 1) % n])), first = corner.indexOf(true), seg: number[] = new Array(n);
+    for (let k = 0, i = first < 0 ? 0 : first; k < n; k++, i = (i + 1) % n) { if (k > 0 && corner[i]) run++; seg[i] = run; }
+    run++;
+    for (let i = 0; i < n; i++) { const a = seg[(i + n - 1) % n], b = seg[i]; runs.push(a === b ? [a] : [a, b]); }
+  }
+  unfoldRunTriangles(tris, ringsUV.flat(), runs);
   const key = (a: number, b: number) => a < b ? a * 1e7 + b : b * 1e7 + a;
   const around = new Map<number, Set<number>>();
   const link = (t: number) => { const [a, b, c] = tris[t]; for (const [x, y] of [[a, b], [b, c], [c, a]]) { const k = key(x, y); if (!around.has(k)) around.set(k, new Set()); around.get(k)!.add(t); } };

@@ -11148,3 +11148,392 @@ where the sweep crosses by 0.0118 mm, intersected with the ring.
   0 failing.
 - RB on `robustness/corpus/oracle` alone: the known graze and helical items only. That run names them as NEW, because
   a single folder's case ids lack the `corpus/` prefix `todo.json` keys on; the full RB rides the coordinator's window.
+
+## D187 — K9: two shallow grazes built right: an ellipse crossing a plane face's edge twice inside one chord, found by bisection (2026-10-23)
+
+**RB TODO items** `corpus/oracle/cylinder-box-graze-x52_389-in0_01-intersect` and `-x27_564-in0_001-intersect` (found
+by D25's exact-oracle property). A box turned about X has its outermost edge 10 µm and 1 µm into an upright cylinder's
+wall.
+- Both were refused as non-manifold: "edge 0 … has 1 uses". Typed, but valid input.
+- The oracles are 3.4470301e-5 and 1.0140649e-7 mm³.
+
+**Cause.**
+- The box's top face got no cut from the cylinder at all (the Boolean's trace: `B0.top`, cuts 0). So the edge between
+  it and the box's side had one use, the side's.
+- The plane meets the wall in an ellipse. `intervals` clips that ellipse to the face by crossing its 64-chord polyline
+  with the face's edges (`intersectSegments`).
+- The ellipse enters the face for 0.62 mm (0.16 mm), 10 µm (1 µm) deep. The crossing angle is 3e-5 rad in the second.
+  - The chords either missed both crossings, or Newton, seeded from two chords so near tangency, landed both seeds on
+    one root.
+  - Three parameters came out, not four, so the interval's middle was out.
+
+**Fix (`src/curved-arrangement.ts`, `intersectSegments(…, graze)`; `src/analytic-boolean.ts`, `intervals`).**
+- When a parametric probe is clipped against a plane face's straight edge:
+  - the probe's polyline has each chord within its own length of the edge cut in eighths (`grazePolyline`);
+  - its signed distance from the line is bisected at each change of sign (`grazeCrossings`), in place of Newton.
+- Where both sides lie within eps of the line, the curve runs along it (an overlap, whose ends are found as before):
+  no crossing.
+- Not applied on a cylinder's domain lines. Tried, it found crossings in a rounded tube's rounding noise (FRk6's rolled
+  ordered trim refused), and the plane alone suffices.
+- Every other crossing is computed as before.
+- A first, broad version (every curve chord near any polyline) broke 5 tests and cost 50 % more time; it is not
+  what landed.
+
+**Results:**
+
+| Case | Before | After |
+|---|---|---|
+| x52_389 | refused (non-manifold) | 3.44703012347e-5 (rel 1.5e-10), valid, watertight |
+| x27_564 | refused (non-manifold) | 1.0140649319e-7 (rel 3e-9), valid, watertight |
+
+- RB on `corpus/oracle`: evaluate 91 of 94 OK, against 89 before.
+- Their `todo.json` entries are removed; 4 remain:
+  - the 1 nm graze (D186's refusal);
+  - the 10 nm graze (a non-manifold refusal of 4 uses);
+  - the 10 µm lens's tessellation fold;
+  - helical × helical.
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- 121 kernel files in a scratch worktree: 970/971, 1 skipped, 0 failing, 312 s (310–319 before).
+- RB on the oracle folder: only those 4 left.
+
+### D187 notes — K9 stops here (coordinator, option a); the four RB items left open (2026-10-23)
+
+None of the four returns a wrong body any more. Each is in `robustness/todo.json` with its analysis.
+
+| Item | Status | Analysis | Estimate |
+|---|---|---|---|
+| `y1-in0_01-intersect` | tessellate INVALID | The body is right. The 10 µm lens's cylinder and plane faces share a diagonal: 4 uses, a fold. Fix: bisect that diagonal on the curved face, with the quadrature's face parameters extended in step. | display only, medium |
+| `x45-in0_00001-difference` (10 nm) | typed refusal | Needs a lens thinner than the merge radius recognised and dropped. | medium–large, tolerance scale |
+| `x45-in0_000001-difference` (1 nm) | D186's typed refusal | The same lens drop would build it. | — |
+| `gear-helical-pair-crossing-intersect` | refused, non-manifold | Near-tangent twisted flanks, sliver pieces classified 'same'. Needs near-tangent classification and sliver merging. | large; niche, since meshed pairs are checked by sections |
+
+## D188 — K10 (RB5, L4): the CSG fuzz and its first run (2026-10-23)
+
+The S0 as the coordinator approved it, built. No kernel fix is in this record: the findings are listed for the next
+ones.
+
+**The harness (`packages/barocss-cad/scripts/rb/`).**
+- `fuzz-gen.mjs` makes seeded trees of depth ≤ 3 with ≤ 6 leaves.
+  - Leaves: box, cylinder, sphere (a revolved semicircle), cone or frustum (a revolved trapezoid), the rounded box
+    (four vertical edges filleted) and the shelled box (closed or open top). Each gets 0–2 turns about X, Y or Z and
+    a move within ±3.
+  - Joins: union, difference, intersect, and a linear or circular pattern of a subtree.
+  - Half the cases are agent-like: whole millimetres, quarter turns, flush faces.
+  - Its document writer gives each case as a plain part document; its shrinker drops operands, copies and turns
+    and rounds numbers.
+- `fuzz-oracle.mjs` uses no kernel code.
+  - It casts z rays. Each leaf gives its exact intervals in its own frame: slabs, and the quadratics of cylinders,
+    spheres, cones and the rounded box's corner discs.
+  - The intervals are combined by the tree; a pattern is the union of moved copies.
+  - V and the first moments come from the lengths and ∫z dz.
+  - The lattice is turned 0.4 rad off the axes and integrated at K = 6 shifts. The mean is the value, and three
+    standard errors are e.
+- `fuzz-worker.mjs`, per case: the strict check, a watertight tessellation (by position) and the mass.
+- `fuzz.mjs`: a worker pool with a SIGKILL timeout, judging, shrinking, and `--save` into `robustness/corpus/fuzz/`
+  (RB runs those cases). `fuzz-todo.json` holds the known findings; `--record` writes `fuzz.jsonl`. Also
+  `pnpm rb:fuzz`.
+- `stages.mjs`: RB's expectation now leaves the body count and topology unchecked when a case does not give them,
+  since a fuzz case knows only its oracle's volume and centroid.
+
+**Judging.**
+- OK: valid, watertight, |ΔV| ≤ max(2e, 1e-4·V) and the centroid within max(2e_c, 1e-4·size). An empty result
+  (no output) is OK where the oracle's V is within its bound.
+- REFUSED: a typed error, counted by code.
+- Findings: WRONG, INVALID, CRASH, TIMEOUT.
+- A WRONG verdict is confirmed against the oracle at 4n (512) and 8 shifts; one it clears was the oracle's limit,
+  reported as such.
+
+**Two oracle defects, caught by its own test before the run counted.**
+- A margin around the lattice counted the edge cells' rays across it: +0.4–0.8 % on a box.
+- At N and 2N, a fixed jitter on an axis-aligned lattice repeats the rays' offsets from snapped faces. Its difference
+  said e = 0 where the error was 0.6 %, and it produced 6 false WRONGs in a first run. The turned lattice with shifts
+  replaces it.
+
+**The unit test** (`test/fuzz-oracle.test.mjs`, 2 tests, 0.15 s) holds the oracle to closed forms within its own e:
+- a ball; a frustum π h/3 (r₁² + r₁r₂ + r₂²);
+- the rounded box wdh − 4(1 − π/4)r²h; the shelled box, closed and open;
+- a box less a cylinder through it, with its centroid;
+- a pattern of two overlapping boxes.
+
+**The first run.** Seed 20261023, 200 cases (93 agent-like), `--jobs 2`, load 18.4, 117 s; kernel p50 166 ms, p95
+3.2 s.
+- 104 OK: 8 empty, and 1 cleared by the finer oracle (2.17968 against 2.17965 ± 0.0002 at 512²).
+- 90 REFUSED:
+
+  | Count | Refusal |
+  |---|---|
+  | 61 | SELECTION "target/tool … is empty": a Boolean on an empty intermediate, typed but an over-refusal (an empty union is its other operand) |
+  | 25 | the analytic Boolean "not a manifold solid" |
+  | 2 | "an arc on a cylinder is not a cross-section" |
+  | 2 | "planar face could not be triangulated" |
+
+- 0 WRONG, 0 CRASH, 0 TIMEOUT.
+- **6 INVALID**, all valid input, each shrunk and saved as `robustness/corpus/fuzz/fuzz-20261023-<k>.json`. All are
+  in `robustness/todo.json` (RB) and `fuzz-todo.json`:
+
+  | Case | Tree | Failure |
+  |---|---|---|
+  | 35 | a circular pattern (2 copies) of one shelled box turned 48° about X | the union's face loops cross (strict) |
+  | 56 | a box (snapped turns) less a cylinder | 2 open mesh edges; the volume holds |
+  | 93 | the union of two generic cones | loops cross |
+  | 118 | the intersection of two generic cylinders | 1 open mesh edge; the volume holds |
+  | 149 | a cylinder through a shelled box's walls, snapped | loops cross |
+  | 191 | two cylinders at right angles, snapped | loops cross, and 2 open mesh edges |
+
+**Next, in severity order, one record each:**
+1. The INVALID loop-crossings (35, 93, 149, 191): union of curved faces, a wrong body's shape.
+2. The open mesh edges (56, 118): display.
+3. The 61 empty-operand refusals, an over-refusal agents will hit.
+4. The 25 non-manifold refusals, triaged.
+
+## D189 — L4 fuzz 191: a plane tangent to a cylinder's wall cuts nothing (2026-10-23)
+
+**The finding** (`robustness/corpus/fuzz/fuzz-20261023-191`, agent-like). The union of a cylinder r 3 turned 270° about X
+and an upright cylinder r 4 whose top lies on the first one's top ruling (z = 3) was INVALID:
+- the upright one's top face had an inner loop of one line used twice (a slit), so its loops touched (strict);
+- the tessellation had 2 open edges.
+
+**Cause.** In `cutPair`, a plane parallel to a cylinder's axis at the radius (h ≤ tol) still cut along the one tangent
+ruling. That ruling divides neither face: on either side of it the wall lies to one side of the plane.
+
+**Fix (`src/analytic-boolean.ts`).** No cut where the plane only touches the wall, as for a circle where a profile
+only touches a plane (already the rule above it).
+
+**Results:**
+- Case 191 passes every RB stage: valid, watertight, roundtrip. Its volume 164.2981 lies within the oracle's bound of
+  164.2744 ± 0.18.
+- Its todo entries are removed.
+
+**Tried and taken back: the pinched faces of 35 and 149.**
+- What happens: a disc tangent to a face's boundary from inside leaves the face's loop through one vertex twice, or a
+  hole touching the outer loop there. Splitting such loops into faces, and bridging a touching hole into two planar
+  faces, built 149 valid.
+- Why it is taken back: it contradicts the prismatic convention pinned by `prismatic-solid.test.mjs` ("the tangent
+  hole opens into the boundary (one crescent ring)", and its tangent-cap tessellation), and it mistook a seam's
+  revisit for a pinch. 6 tests broke.
+- So this needs a decision first: the strict check refusing a loop through one vertex twice, against that convention.
+  Asked of the coordinator.
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- 121 kernel files plus the fuzz oracle test, in a scratch worktree: 972/973, 1 skipped, 0 failing.
+- RB on `corpus/fuzz`: case 191 OK at every stage.
+
+## D190 — Booleans and patterns on an empty operand keep the algebra; the fuzz rerun (2026-10-23)
+
+**The finding.** D188's largest refusal: 61 of 200 fuzz cases were refused as SELECTION "target/tool … is empty". In
+each, a Boolean or a pattern referred to an intersection that met nothing, as agents' trees do.
+
+**Fix (`src/part-model.ts`).** For union, difference, intersect and the two patterns, an empty operand is taken by
+the algebra:
+- A ∪ ∅ = A (its parts united, as a union does);
+- A − ∅ = A (its parts as they were);
+- ∅ − B = A ∩ ∅ = ∅;
+- a pattern of ∅ is ∅.
+An empty result has no output, as an empty intersection already had none. Every other feature on an empty result is
+still refused, with the same message.
+
+**Test:** `test/boolean-empty-operand.test.mjs`, the algebra case by case, and the refusal kept for a translate.
+
+**The fuzz rerun** (seed 20261023, 200 cases, jobs 2, load 27, 121 s), against D188:
+
+| Outcome | D188 | Now |
+|---|---|---|
+| OK | 104 | 163 (30 empty) |
+| REFUSED | 90 | 31 (26 non-manifold, 2 arc-on-cylinder, 2 planar triangulation, 1 other) |
+| INVALID | 6 | 6 |
+| WRONG, CRASH, TIMEOUT | 0 | 0 |
+
+- 191 is fixed (D189).
+- Tree 56 passes in full. Its shrunk case still tessellates with 2 open edges, so it stays in the todo.
+- **New, hidden before by the refusal:**
+  - 5: a cylinder less a shelled box turned about Y; 1 open mesh edge.
+  - 83: a cylinder less a frustum turned about X; a face's loops cross.
+  - Both are saved to `corpus/fuzz/` and listed in `robustness/todo.json` and `fuzz-todo.json`.
+- Open: 35 and 149 (the pinched faces, a decision asked), 93 and 83 (loops crossing), 5, 56 and 118 (open mesh edges).
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- In a scratch worktree: 121 kernel files plus the part-model, pattern and Boolean ones, 1151/1152, 1 skipped, 0
+  failing; after the pattern change, the part-model, pattern and Boolean files 209/209.
+
+## D191 — A loop crossing seen only on a curve's chords is confirmed on finer chords before it is reported (2026-10-23)
+
+**Findings.** L4 fuzz 93 (cone ∪ cone) and 83 (cylinder − frustum): strict L0 reported a face's loops crossing. In both,
+a planar cap is cut by the other solid along a curve that runs 0.01–0.06 mm inside the cap's own rim arc. The rim's
+9-sample chords dip up to 0.07 mm inside the arc (their sagitta), across the curve's samples; the edges themselves do
+not meet. The volumes stood within the oracle's bounds.
+
+**Fix (`src/brep-check-geometry.ts`).** A crossing found on the 9-sample rings is confirmed on rings sampled 8 times
+finer (65 per curved edge use, the sagitta 64 times smaller). Only one still there is reported. Lines keep their 3
+samples. The finer pass runs only on a face whose coarse rings meet, so a clean face costs nothing more.
+
+**Test:** `test/brep-check-strict.test.mjs`. A 0.01 mm strip inside a quarter arc of radius 10 is valid; it failed
+before. A line from the arc's end across it is still reported.
+
+**After it:** 83 passes every RB stage. 93 validated, and its STEP round trip then showed a volume error (D192).
+
+
+## D192 — A pole face's trims far from the pole take their strips (2026-10-23)
+
+**Finding (from 93).** RB's round trip moved 93's volume by 1.25e-6 of it (bound 1e-6). The kernel's own volume,
+147.9224772 mm³, was off the ray oracle at 2048² × 8, 147.9216297 ± 6.9e-6 (e), by 8.5e-4: 123 e.
+
+By face, the error was the two cone faces that reach their apex. They take the pole route (D184), which keeps every
+trim's chord error and extrapolates it as the square of the step. At 8 segments a quarter that square is not yet
+asymptotic: errors 0.0916 / 0.0356 / 0.0095 at 4 / 8 / 16, ratios 2.6 and 3.7. Richardson from 8 and 16 left 8.5e-4.
+More segments did not converge either (q 12: +1.35e-3).
+
+**Fix (`src/brep-mass-quadrature.ts`).** On a face that reaches a pole, only a chord within four of its lengths of
+the pole keeps the ribbon alone (D184). Every other chord is inverted as on any face and takes its strip. The face
+stays in the squared part, so what is left beside the pole is still extrapolated as before.
+
+**Result on 93:**
+- q 8 and q 16 both give 147.9216303, the oracle 147.9216297 ± 6.9e-6;
+- the STEP round trip agrees.
+
+**Test (closed form):** a cone (r 3, h 4, apex up) ∩ the slab x ≥ 1. The plane trims the apex face along a hyperbola.
+The kernel gives 8.0124838588; the exact value, ∫ (r² acos(d/r) − d √(r² − d²)) dz by Gauss–Legendre on 4000 panels,
+is 8.0124838639 (−6.3e-10 relative).
+
+## D193 — A cylinder face keeps no triangle whose corners all lie on one smooth run of its boundary (2026-10-23)
+
+**Findings.**
+- L4 fuzz 5 (a cylinder less a closed shell tilted 182.8° about Y) and 118 (two crossed cylinders): one mesh edge
+  used four times.
+- The notch tees of D182 (a branch coped with a V, or with a hole saw): 4 and 23 such edges, since D182. No full RB
+  run had seen them since.
+- The B-reps were valid.
+
+**Cause.** In 5, the edge between the cylinder and the shell's inner wall lies in the wall's plane, sampled A, M, B.
+The cylinder face clipped the ear A–M–B (narrowest in U first), and so did the planar wall. The two triangles are the
+same one, wound opposite: the volume was right, but chord AB was used four times.
+
+In the tees the run is the coped cut, split into 64 short edges. The cylinder takes fans of such triangles across
+several samples, as the V's plane does. Any triangle whose corners all lie on one smooth run of the boundary has no
+point off it. Where the run is planar, a plane's cut in one edge or several, the triangle lies in that plane. It is
+the plane's own triangle, not the cylinder's.
+
+**Fix (`src/brep-tessellate.ts`, `cylinderTriangles`).** After the ear clipping, the boundary is split into smooth runs
+(cut at each point where it turns by 45° or more, in space). A triangle with all three corners on one run is turned
+over with its neighbour, a convex quadrilateral in the domain, while that leaves fewer of them. A corner's ear stays.
+
+A first try, trying such ears last in the ear clipping, fixed 5 and 118 but left the tees at 7 and 53. It was
+replaced.
+
+**Test:** `test/tessellate-cylinder-ears.test.mjs`. Fuzz 5's and 118's documents and both tees, every mesh edge used
+exactly twice. It fails before the fix.
+
+## D194 — Strict L0 accepts a loop through one B-rep vertex twice and a hole touching its loop at a shared vertex (2026-10-23)
+
+**Findings.** L4 fuzz 35 (a circular pattern of a shelled box) and 149 (a cylinder ∪ a shelled box): strict L0
+reported a face's loops touching. Each such face is pinched: one loop passes one B-rep vertex twice, the shape a disc
+tangent to a face's side leaves. Splitting such faces at the pinch (option b) broke 6 pinned tests, among them
+prismatic-solid's crescent convention ("the tangent hole opens into the boundary (one crescent ring)"), and was
+reverted (D189).
+
+**The rule (coordinator's option a).** A touch between two segments of a face's rings is the face's own shape when:
+- they meet at an end both have at one B-rep vertex (by its identity, never by nearness);
+- that vertex is passed exactly twice: by one loop twice, or by an outer loop and a hole once each;
+- the two passes do not cross there (their four rays do not alternate about the vertex);
+- the segments do not run along each other from it.
+Everything else stays a touch.
+
+**Change (`src/brep-check-geometry.ts`).** Each ring point carries its B-rep vertex (a coedge's start); `ringsCross`
+lets such a contact pass (`pinch`).
+
+**Tests** (`test/brep-check-strict.test.mjs`):
+- **Valid:** a loop through one vertex twice (two triangles meeting at it); a hole touching the square's side at a
+  vertex of it.
+- **Still touches, each tested:**
+  - the loop crossing itself at the vertex;
+  - the hole's corner a distinct vertex at the same point;
+  - the hole's corner inside the square's side;
+  - the vertex passed three times.
+
+**Downstream, 35 and 149** (RB stages, the oracle at 1024² × 8):
+
+| | 35 | 149 |
+|---|---|---|
+| Strict L0 | valid | valid |
+| Tessellation | watertight | watertight |
+| Kernel volume | 61.722697 | 179.035233 |
+| Oracle volume | 61.722722 ± 2.4e-4 (e) | 179.034168 ± 1.8e-3 |
+| Area against | a fine mesh, exact (planar body) | the STEP read-back, within 1e-6 |
+| STEP round trip | valid; same volume, area, centroid, topology | the same |
+
+No split at export is needed.
+
+**Not covered: a touch at two distinct vertices.** Prismatic-solid's crescent cap (r 5 less an internally tangent r 3)
+has two distinct vertices at the tangent point, v0 and v4 at (5, 0, 0), one for each wall's edge up the tangent line.
+The rule is by identity, so that cap stays a touch under strict L0, as it was. Fuzz 56 is the same family: a box less
+a cylinder tangent to two of its sides from inside, the body touching itself along two lines. Its edges there are
+distinct and coincide, so the tessellation by position counts them four times. A decision is asked for: whether
+coincident distinct vertices and edges along a tangency are a body's own shape too.
+
+## D195 — A prismatic crescent's touch along its tangent line is KNOWN, not INVALID (2026-10-23)
+
+**Decision (coordinator, option b).** Keep the prismatic crescent as one body. A disc tangent inside a disc, or a
+wall tangent inside a hole, touches itself along the tangent line. prismatic-solid.test pins it: 'crescent (internal
+tangency)' and the crescents of any extent. Saved documents must keep resolving.
+
+It is valid by assertValidBrep, its volume is exact, and its mesh is watertight by index. Its real problem is
+physical, a zero wall at the tangent line: a manufacturability finding, not a topology one. Not accepted in general:
+any other line-touch stays a finding.
+
+**The pattern** (`scripts/rb/stages.mjs`, `crescentContacts`), all of:
+- the body's source is prismatic-solid;
+- two distinct line edges up the tangent line coincide;
+- they run between one pair of vertices (a box less a tangent cylinder, fuzz 56) or between two pairs of distinct
+  vertices at the same points (a disc tangent inside a disc, the pinned crescent).
+
+The coordinator's wording named only the second form. Fuzz 56 is the first; both come from the same builder.
+
+**Where it counts.** RB and the fuzz give such a body a status of its own, KNOWN (detail `KNOWN-CRESCENT (D195)`),
+counted apart and not as a failure, where:
+- strict L0's issues are all its faces' loops touching, on faces through those vertices; or
+- the tessellation's open edges are all used four times, along those edges.
+The STEP read-back is held the same way. Volume and centroid are still judged against the oracle.
+
+**The physical side.** cad-model's wall measures flag both shapes, so no outer-lane finding:
+- fuzz 56: thinnest wall 0.013 mm, at the tangent line;
+- the pinned crescent: 0 mm.
+
+**Later item (c):** build such a body exactly: one non-manifold edge at the tangency, or a split there.
+
+**Test:** `test/rb.test.mjs`. The pinned crescent and a box less a tangent cylinder are KNOWN, every other stage OK.
+The same body from another source is not one.
+
+(A through cylinder tangent inside two sides of a box is refused by the prismatic route, typed: "the bodies touch
+along an edge or at a vertex only". Unchanged.)
+
+## D196 — Triage of the fuzz's 31 refusals (seed 20261023, after D190–D195) (2026-10-23)
+
+**Method** (scratch scripts, not committed). Each refused case:
+- shrunk to its smallest tree still refused alike;
+- its original tree and the shrunk one each nudged four ways, every leaf moved by up to 1e-3 mm (50 times the merge
+  radius);
+- where nudges build, their body counts and the ray oracle's volume beside the kernel's (they agree within e).
+
+A refusal of the exact input that every nudge builds is the exact contact's. One that no nudge builds is the kernel's.
+
+The 31 refusals: 27 non-manifold (one an empty loop), 2 arc-on-cylinder, 2 planar-face triangulation.
+
+| Class | Cases | What they are |
+|---|---|---|
+| **Exact contact of separate lumps** (genuinely non-manifold as one solid) | 49, 50, 56, 67, 100, 131 (all snapped) | Every nudge builds, into 2 or more bodies: the exact result is lumps touching along an edge. As one solid it is non-manifold, so refusing is right. Prismatic-solid returns such lumps as separate bodies instead ('edge touch', pinned). By that convention these are **over-refusals**: the analytic Boolean could do the same. A decision. |
+| **Near-degenerate: valid inputs that should build** | 25, 43, 51, 74, 85, 110, 119, 125 | Some nudges build (1–3 of 4). Grazes and near-tangencies at the 1e-3 scale: a sphere tangent inside over a cylinder (110), patterned spheres (119), small slivers. Kernel weaknesses. |
+| **Robust: valid inputs that should build** | non-manifold 2, 4, 15, 46, 71, 73, 92, 117, 139, 151, 157, 158, 170, 173; arc-on-cylinder 101, 176; triangulation 137 | No nudge builds: a refusal of generic geometry. The non-manifold ones are an edge with 1 or 3 uses, an intersection piece missing. Kernel weaknesses. |
+
+**Smallest generic examples**, the cheapest to start from:
+- 73: a box ∩ a cylinder turned 188.8° about X and 85.75° about Z;
+- 117: two rounded boxes ∪;
+- 139: a cylinder ∪ a box, both slightly turned;
+- 71: a cylinder ∪ an open shell;
+- 2: a rounded box ∩ a pattern of two frustums;
+- 176: a box ∩ (a sphere ∪ a cylinder), arc-on-cylinder.
+
+**None of the 31 is a wrong body.** The refusals are typed: the kernel fails safe. Building them is the next robustness
+work; its order is the coordinator's.

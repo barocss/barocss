@@ -49,7 +49,20 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K7: r6 sphere-intersect ȳ — the facet rims' gap beside a pole closed by the ribbon alone; the pin (the kernel's output) to 17.75 | D184 | done (T1+) |
 | K8: F5, the cnc-turning report — the kernel admitted the surface per derivative call; once per surface now (a9-acceptance 55 → 15 s) | D185 | done (T1+) |
 | K9a: the 1 nm graze returned a wrong body (534 against 253 mm³, loops crossing) — now checked strictly and refused, typed; gear-internal's test pinned a strict-invalid body, relaxed to valid-or-refused | D186 | done (T1+) |
-| K9b: the other graze items (non-manifold refusals at 10 nm–10 µm), the 10 µm lens tessellation, helical × helical | — | next |
+| K9b: the 10 µm and 1 µm grazes (x52, x27) built right — a plane face's edge crossed twice inside one chord, found by bisection | D187 | done (T1+) |
+| K9 stops (coordinator, option a): the 10 nm graze, the lens fold, helical × helical and the 1 nm refusal left open with their analyses | D187 notes | open |
+| K10: RB5 L4 fuzz built and run — 200 cases: 104 OK, 90 typed refusals, 0 WRONG, 6 INVALID findings shrunk into `robustness/corpus/fuzz/` | D188 | done (first run; findings open) |
+| Fuzz 191: a plane tangent to a cylinder's wall cut a slit — no cut now | D189 | done (T1+) |
+| Fuzz 35 / 149: pinched faces (a tangent disc) — strict check against the prismatic crescent convention | — | decision asked |
+| The 61 empty-operand refusals: Booleans and patterns keep the algebra (A ∪ ∅ = A …); the fuzz rerun 163 OK / 31 refused / 6 INVALID | D190 | done (T1+) |
+| Fuzz 93, 83: a crossing seen only on a curve's 9-sample chords is confirmed on chords 8× finer before it is reported | D191 | done (T2) |
+| Fuzz 93's volume (123 e off): a pole face's trims away from the pole take their strips; now within e | D192 | done (T2) |
+| Fuzz 5, 118, the notch tees (open since D182), graze-y1 (since D25): a cylinder face keeps no triangle whose corners all lie on one smooth boundary run | D193 | done (T2) |
+| Fuzz 35, 149 (pinched faces): strict L0 accepts a loop through one B-rep vertex twice, or a hole touching its loop at a shared vertex (identity, not nearness; option a) | D194 | done (T2) |
+| Fuzz 56 and the pinned prismatic crescents: a prismatic body touching itself along a tangent line is KNOWN in RB and the fuzz, not INVALID (option b; DFM walls flag it: 0.013 / 0 mm) | D195 | done |
+| A prismatic crescent built exactly (a non-manifold edge, or a split at the tangency) | — | later (c) |
+| The fuzz's 31 refusals: triage — 6 exact contacts of separate lumps (non-manifold as one solid; over-refusals by prismatic's separate-bodies convention, a decision), 8 near-degenerate and 17 robust refusals of valid inputs (kernel weaknesses) | D196 | done |
+| K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first

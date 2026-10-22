@@ -169,14 +169,69 @@ function overlapEnds(s: CurveSegment2, t: CurveSegment2, points: XY[], eps: numb
   const along = at.slice(0, -1).map((a, i) => { const q = segAt(s, (a.u + at[i + 1].u) / 2); return segDistance(t, q) <= eps; });
   return at.filter((_, i) => !(i > 0 && i < at.length - 1 && along[i - 1] && along[i])).map(a => a.p);
 }
-export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: number): XY[] {
+/**
+ * A curve's polyline (n chords, `P`) with each chord within its own length of `line` (its middle beside the line's
+ * length) cut in eighths, and the parameters of its points (RB K9, D187).
+ */
+function grazePolyline(seg: CurveSegment2, P: readonly XY[], n: number, line: Extract<CurveSegment2, { kind: 'line' }>): { points: XY[]; us: number[] } {
+  const dx = line.b[0] - line.a[0], dy = line.b[1] - line.a[1], l = Math.hypot(dx, dy), points: XY[] = [P[0]], us: number[] = [0];
+  for (let i = 0; i < n; i++) {
+    const a = P[i], b = P[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (l > 0 && L > 0) {
+      const sa = (dx * (a[1] - line.a[1]) - dy * (a[0] - line.a[0])) / l, sb = (dx * (b[1] - line.a[1]) - dy * (b[0] - line.a[0])) / l;
+      // (Along the line's own length, not its extension: the chord's middle projects within it.)
+      const f = ((a[0] + b[0]) / 2 - line.a[0]) * dx / (l * l) + ((a[1] + b[1]) / 2 - line.a[1]) * dy / (l * l);
+      if (Math.min(Math.abs(sa), Math.abs(sb)) <= L && f >= 0 && f <= 1) for (let k = 1; k < 8; k++) { const u = (i + k / 8) / n; points.push(segAt(seg, u)); us.push(u); }
+    }
+    points.push(b); us.push((i + 1) / n);
+  }
+  return { points, us };
+}
+/**
+ * The points where `curve` crosses `line`: its signed distance bisected between the refined points where it changes sign
+ * (D187). Where both sides lie within `eps` of the line the curve runs along it (an overlap, its ends found apart): no
+ * crossing there; a sample exactly on the line, coming from off it, is one.
+ */
+function grazeCrossings(curve: CurveSegment2, line: Extract<CurveSegment2, { kind: 'line' }>, R: { points: XY[]; us: number[] }, eps: number): XY[] {
+  const dx = line.b[0] - line.a[0], dy = line.b[1] - line.a[1], l = Math.hypot(dx, dy), out: XY[] = [];
+  if (!(l > 0)) return out;
+  let lastU = R.us[0], lastD = (dx * (R.points[0][1] - line.a[1]) - dy * (R.points[0][0] - line.a[0])) / l;
+  for (let i = 1; i < R.points.length; i++) {
+    const p = R.points[i], d = (dx * (p[1] - line.a[1]) - dy * (p[0] - line.a[0])) / l, u = R.us[i];
+    if (Math.abs(d) <= eps && Math.abs(lastD) <= eps) { lastU = u; lastD = d; continue; }
+    if (d === 0) out.push(p);
+    else if (lastD !== 0 && (d > 0) !== (lastD > 0)) {
+      let lo = lastU, hi = u, dl = lastD;
+      for (let it = 0; it < 60; it++) {
+        const m = (lo + hi) / 2, q = segAt(curve, m), dm = (dx * (q[1] - line.a[1]) - dy * (q[0] - line.a[0])) / l;
+        if (dm === 0) { lo = hi = m; break; }
+        if ((dm > 0) === (dl > 0)) { lo = m; dl = dm; } else hi = m;
+      }
+      out.push(segAt(curve, (lo + hi) / 2));
+    }
+    lastU = u; lastD = d;
+  }
+  return out;
+}
+export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: number, graze = false): XY[] {
   const out: XY[] = [], on = (x: CurveSegment2, p: XY) => !surelyOff(x, p, eps) && segDistance(x, p) <= eps;
   const push = (p: XY) => { if (on(s, p) && on(t, p)) out.push(p); };
   const ends = () => { for (const p of [segStart(s), segEnd(s), segStart(t), segEnd(t)]) push(p); };
   if (s.kind === 'curve' || t.kind === 'curve') {
     // Polyline crossings refined by Newton's method on A(u) − B(v) = 0.
     const n = (x: CurveSegment2) => x.kind === 'line' ? 1 : x.kind === 'curve' ? CURVE_SAMPLES : Math.max(4, Math.ceil(Math.abs(x.sweep) / (Math.PI / 32)));
-    const ns = n(s), nt = n(t), A = polyline(s, ns), B = polyline(t, nt);
+    const ns = n(s), nt = n(t), A0 = polyline(s, ns), B0 = polyline(t, nt);
+    // (`graze`, a curve against a line: the curve's signed distance from the line, on its polyline with each chord within
+    // its own length of the line cut in eighths, bisected at each change of sign. The curve can cross the line twice
+    // inside one chord — a shallow graze of 10 µm over 0.6 mm, 1 µm over 0.16 mm, crossing at 3e-5 rad — where the
+    // chord misses both and Newton, so near tangency, lands both seeds on one root. RB K9, D187.)
+    if (graze && (s.kind === 'line') !== (t.kind === 'line')) {
+      const curve = s.kind === 'line' ? t : s, line = (s.kind === 'line' ? s : t) as Extract<CurveSegment2, { kind: 'line' }>;
+      const R = grazePolyline(curve, curve === s ? A0 : B0, curve === s ? ns : nt, line);
+      for (const p of grazeCrossings(curve, line, R, eps)) push(p);
+      ends(); return overlapEnds(s, t, out, eps);
+    }
+    const A = A0, B = B0;
     for (let i = 0; i < ns; i++) for (let j = 0; j < nt; j++) {
       const p = A[i], q = A[i + 1], r = B[j], w = B[j + 1], d1 = [q[0] - p[0], q[1] - p[1]], d2 = [w[0] - r[0], w[1] - r[1]], den = d1[0] * d2[1] - d1[1] * d2[0];
       if (Math.abs(den) < 1e-300) continue;

@@ -1,0 +1,252 @@
+{
+  "id": "fuzz-20261023-93",
+  "about": "L4 fuzz finding (seed 20261023, case 93): INVALID — strict: geometry: face n0_body0/s0/f4: its loops cross or touch themselves or each other (ring 0 segment 26 and ring 0 segment 23)",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                2.593,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                0,
+                4.876
+              ]
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n1b",
+          "kind": "revolve",
+          "sketch": "n1s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angleDegrees": 360
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1b",
+          "offset": [
+            1.817,
+            1.509,
+            -0.813
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                3.148,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                2.108,
+                5.594
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                0,
+                5.594
+              ]
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n2b",
+          "kind": "revolve",
+          "sketch": "n2s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angleDegrees": 360
+        },
+        {
+          "id": "n2r0",
+          "kind": "rotate",
+          "target": "n2b",
+          "axis": "y",
+          "angleDegrees": 41.101,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2r1",
+          "kind": "rotate",
+          "target": "n2r0",
+          "axis": "x",
+          "angleDegrees": 49.272,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2r1",
+          "offset": [
+            -1.262,
+            0.579,
+            -2.34
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "union",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 147.92236854385513,
+          "relTol": 0.0001,
+          "absTol": 0.014792236854385514
+        },
+        "centroidMM": {
+          "value": [
+            0.6327115374984352,
+            -0.3614324409262945,
+            -0.8457408004964262
+          ],
+          "absTol": 0.001043895229813135
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 3.84e-3 mm³, centroid e 6.55e-5 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 93,
+    "status": "INVALID",
+    "tree": {
+      "op": "union",
+      "a": {
+        "leaf": {
+          "kind": "cone",
+          "r1": 2.593,
+          "r2": 0,
+          "h": 4.876,
+          "rot": [],
+          "move": [
+            1.817,
+            1.509,
+            -0.813
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cone",
+          "r1": 3.148,
+          "r2": 2.108,
+          "h": 5.594,
+          "rot": [
+            {
+              "axis": "y",
+              "deg": 41.101
+            },
+            {
+              "axis": "x",
+              "deg": 49.272
+            }
+          ],
+          "move": [
+            -1.262,
+            0.579,
+            -2.34
+          ]
+        }
+      }
+    }
+  }
+}

@@ -122,14 +122,15 @@ export function strictGeometry(brep: Brep, maps: Maps, size: number, add: (kind:
     // (A facet face's edges are polylines through its own vertices: on it by construction. Checked here: each
     // polyline vertex is one of the patch's.)
     if (face.surface.kind === 'facets') { facetEdgesOnPatch(face, face.surface.positions, maps, add); continue; }
-    const mapper = planeMapper(face) ?? surfaceMapper(face), rings: XY[][] = [];
+    const mapper = planeMapper(face) ?? surfaceMapper(face), rings: XY[][] = [], marks: (string | null)[][] = [];
     let perimeter = 0, faceTol = 0;
     for (const lid of face.loops) {
       const loop = maps.loops.get(lid); if (!loop) continue;
-      const ring: XY[] = [];
+      const ring: XY[] = [], mark: (string | null)[] = [];
       for (const cid of loop.coedges) {
         const c = maps.coedges.get(cid), e = c && maps.edges.get(c.edge); if (!c || !e) continue;
         faceTol = Math.max(faceTol, e.toleranceMM);
+        const start = c.sense === 'forward' ? e.vertices[0] : e.vertices[1];
         const at = curveEvaluator(e.curve), [t0, t1] = curveDomain(e.curve), line = e.curve.degree === 1 && e.curve.controlPoints.length === 2, n = line ? SAMPLES_LINE : SAMPLES_CURVE;
         // Edges stay within their own tolerance of the surface, or 1e-6 of the model where that is larger
         // (traced intersections are fitted to that).
@@ -143,13 +144,17 @@ export function strictGeometry(brep: Brep, maps: Maps, size: number, add: (kind:
           if (last) perimeter += dist(last, p);
           last = p;
           // (Each use's last sample is the next one's first: kept once.)
-          if (k < n - 1) ring.push([q[0] * mapper.ku, q[1] * mapper.kv]);
+          if (k < n - 1) { ring.push([q[0] * mapper.ku, q[1] * mapper.kv]); mark.push(k === 0 ? start : null); }
         }
       }
-      rings.push(ring);
+      rings.push(ring); marks.push(mark);
     }
     if (mapper.closed) continue;
-    const crossing = ringsCross(rings);
+    // (A curve's chords cut inside its bulge: where the strip between a curve and another edge of the face is thinner
+    // than a 9-sample chord's sagitta, the chords cross though the edges do not. A crossing found on them is confirmed
+    // on chords 8 times finer, their sagitta 64 times smaller, and only one that is still there is reported: L4 fuzz 83
+    // and 93, D191.)
+    const crossing = ringsCross(rings, marks) && ringsCross(...sampledRings(face, maps, mapper, 8 * (SAMPLES_CURVE - 1) + 1));
     if (crossing) add('geometry', `face ${face.id}: its loops cross or touch themselves or each other (${crossing})`);
     // A sliver: a planar face whose width (twice its area over its perimeter) is below its edges' tolerance.
     if (mapper.planar) {
@@ -205,25 +210,73 @@ function segmentDistance(x: Point, a: Point, b: Point): number {
   return Math.hypot(x[0] - a[0] - t * d[0], x[1] - a[1] - t * d[1], x[2] - a[2] - t * d[2]);
 }
 
+/** A face's loops in its parameters, `curveSamples` samples along each curved edge use (a line: its ends and middle). */
+function sampledRings(face: BrepFace, maps: Maps, mapper: Mapper, curveSamples: number): [XY[][], (string | null)[][]] {
+  const rings: XY[][] = [], marks: (string | null)[][] = [];
+  for (const lid of face.loops) {
+    const loop = maps.loops.get(lid); if (!loop) continue;
+    const ring: XY[] = [], mark: (string | null)[] = [];
+    for (const cid of loop.coedges) {
+      const c = maps.coedges.get(cid), e = c && maps.edges.get(c.edge); if (!c || !e) continue;
+      const at = curveEvaluator(e.curve), [t0, t1] = curveDomain(e.curve), n = e.curve.degree === 1 && e.curve.controlPoints.length === 2 ? SAMPLES_LINE : curveSamples;
+      let hint: XY | null = null;
+      for (let k = 0; k < n - 1; k++) {
+        const f = k / (n - 1), q = mapper.uv(at(c.sense === 'forward' ? t0 + (t1 - t0) * f : t1 - (t1 - t0) * f), hint);
+        hint = q; ring.push([q[0] * mapper.ku, q[1] * mapper.kv]); mark.push(k === 0 ? (c.sense === 'forward' ? e.vertices[0] : e.vertices[1]) : null);
+      }
+    }
+    rings.push(ring); marks.push(mark);
+  }
+  return [rings, marks];
+}
 /**
  * A description of the first contact between segments of the rings that are not neighbours in one ring (a
  * crossing, or a touch: a loop through one point twice, two loops meeting), or null. Consecutive repeated
- * points are dropped first.
+ * points are dropped first. `marks`: the B-rep vertex at each ring point (a coedge's start), else null.
+ *
+ * One touch is a face's own shape, not a fault: two segments meeting at their ends where these are one B-rep vertex,
+ * passed twice — a loop through it twice (a disc tangent to the face's side leaves a crescent ring, as prismatic
+ * solids make them), or a hole touching its outer loop there. Decided by the vertex's identity, never by nearness, and
+ * only where the two passes do not cross there (their rays do not alternate about it) and the segments do not run
+ * along each other. A vertex passed three times or more stays a touch. (D194: L4 fuzz 35 and 149.)
  */
-function ringsCross(rings: readonly XY[][]): string | null {
-  const segs: { a: XY; b: XY; ring: number; k: number; n: number; lo: number; hi: number }[] = [];
+function ringsCross(rings: readonly XY[][], marks: readonly (readonly (string | null)[])[]): string | null {
+  const segs: Seg[] = [], passes = new Map<string, { prev: XY; at: XY; next: XY }[]>();
   rings.forEach((raw, ri) => {
-    const r = raw.filter((p, k) => { const q = raw[(k + raw.length - 1) % raw.length]; return raw.length < 2 || p[0] !== q[0] || p[1] !== q[1]; });
-    for (let k = 0; k < r.length; k++) { const a = r[k], b = r[(k + 1) % r.length]; segs.push({ a, b, ring: ri, k, n: r.length, lo: Math.min(a[0], b[0]), hi: Math.max(a[0], b[0]) }); }
+    const r: XY[] = [], ids: (string | null)[] = [];
+    for (let k = 0; k < raw.length; k++) {
+      const p = raw[k], q = raw[(k + raw.length - 1) % raw.length];
+      if (raw.length < 2 || p[0] !== q[0] || p[1] !== q[1]) { r.push(p); ids.push(marks[ri][k]); }
+    }
+    for (let k = 0; k < r.length; k++) {
+      const a = r[k], b = r[(k + 1) % r.length], va = ids[k], vb = ids[(k + 1) % r.length];
+      segs.push({ a, b, va, vb, ring: ri, k, n: r.length, lo: Math.min(a[0], b[0]), hi: Math.max(a[0], b[0]) });
+      if (va !== null) { const l = passes.get(va), pass = { prev: r[(k + r.length - 1) % r.length], at: a, next: b }; if (l) l.push(pass); else passes.set(va, [pass]); }
+    }
   });
   segs.sort((x, y) => x.lo - y.lo);
   for (let i = 0; i < segs.length; i++) for (let j = i + 1; j < segs.length && segs[j].lo <= segs[i].hi; j++) {
     const s = segs[i], t = segs[j];
     if (s.ring === t.ring && (Math.abs(s.k - t.k) <= 1 || Math.abs(s.k - t.k) === s.n - 1)) continue;
-    if (meet(s.a, s.b, t.a, t.b)) return `ring ${s.ring} segment ${s.k} and ring ${t.ring} segment ${t.k}`;
+    if (meet(s.a, s.b, t.a, t.b) && !pinch(s, t, passes)) return `ring ${s.ring} segment ${s.k} and ring ${t.ring} segment ${t.k}`;
   }
   return null;
 }
+interface Seg { a: XY; b: XY; va: string | null; vb: string | null; ring: number; k: number; n: number; lo: number; hi: number }
+/** Whether segments s and t meet only at an end both have at one B-rep vertex, passed twice without crossing there. */
+function pinch(s: Seg, t: Seg, passes: ReadonlyMap<string, readonly { prev: XY; at: XY; next: XY }[]>): boolean {
+  const v = s.va !== null && (s.va === t.va || s.va === t.vb) ? s.va : s.vb !== null && (s.vb === t.va || s.vb === t.vb) ? s.vb : null;
+  const at = v === null ? undefined : passes.get(v);
+  if (!at || at.length !== 2) return false;
+  // (Running along each other from the vertex: they share more than it.)
+  const [sp, sq] = s.va === v ? [s.a, s.b] : [s.b, s.a], [tp, tq] = t.va === v ? [t.a, t.b] : [t.b, t.a];
+  const dsx = sq[0] - sp[0], dsy = sq[1] - sp[1], dtx = tq[0] - tp[0], dty = tq[1] - tp[1], ls = Math.hypot(dsx, dsy), lt = Math.hypot(dtx, dty);
+  if (Math.abs(dsx * dty - dsy * dtx) <= 1e-9 * ls * lt && dsx * dtx + dsy * dty > 0) return false;
+  // (The two passes cross at the vertex when their rays alternate about it.)
+  const rays = [{ a: rayAngle(at[0].at, at[0].prev), k: 0 }, { a: rayAngle(at[0].at, at[0].next), k: 0 }, { a: rayAngle(at[1].at, at[1].prev), k: 1 }, { a: rayAngle(at[1].at, at[1].next), k: 1 }].sort((x, y) => x.a - y.a);
+  return !(rays[0].k !== rays[1].k && rays[1].k !== rays[2].k && rays[2].k !== rays[3].k);
+}
+const rayAngle = (from: XY, to: XY) => Math.atan2(to[1] - from[1], to[0] - from[0]);
 /** Whether segments ab and cd have a point in common (within a relative 1e-9 of their lengths). */
 function meet(a: XY, b: XY, c: XY, d: XY): boolean {
   const o = (p: XY, q: XY, r: XY) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);

@@ -7191,14 +7191,14 @@ try {
       const node = { id: 'n0', kind: 'frame', points: f.points, segments: f.segments, section: f.section, up: f.up, corners: f.corners };
       return { c, file: join(out, name.replace('.json', '.bcad')), doc: { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [node], outputs: {}, nextId: 1 } };
     };
-    /** The canvas's distinct colours (4 bits a channel, every 97th pixel), decoded in the page. */
-    const canvasColours = async () => page.evaluate(async src => {
-      const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode();
-      const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0);
-      const d = g.getImageData(0, 0, img.width, img.height).data, seen = new Set();
-      for (let k = 0; k < d.length; k += 4 * 97) seen.add((d[k] >> 4) << 8 | (d[k + 1] >> 4) << 4 | d[k + 2] >> 4);
-      return seen.size;
-    }, (await page.locator('canvas.vp-canvas').screenshot()).toString('base64'));
+    const canvasShot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+    /** The share of the canvas's pixels that differ (a summed channel difference over 48) between two shots, decoded in the page. */
+    const differs = (a, b) => page.evaluate(async ([x, y]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(x), B = await load(y); let n = 0;
+      for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++;
+      return n / (A.length / 4);
+    }, [a, b]);
     const shown = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length > 0 && b.bodies.every(x => x.volumeMM3 !== null); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
     const matches = (bodies, expect, label) => {
       assert.equal(bodies.length, expect.outputs.length, `${label}: ${bodies.length} bodies`);
@@ -7213,15 +7213,15 @@ try {
       const { c, file, doc } = asStudio(name);
       fs.writeFileSync(file, JSON.stringify(doc));
       await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-      await iso(); const empty = await canvasColours();
+      await iso(); const empty = await canvasShot();
       await page.setInputFiles('input[aria-label="Model file"]', file);
       const first = await shown(); matches(first, c.expect, `${name} opened (${renderer})`);
       assert.equal(await page.locator('.vp-error').count(), 0, await page.locator('.vp-error').allInnerTexts().then(x => x.join(' | ')));
       // (A drawn frame: the canvas is not one flat colour — Codex saw a black first WebGPU canvas with real geometry, D175.)
       await iso();
-      // (Against the same viewport with nothing in it: the background's gradient alone has colours too.)
-      const colours = await canvasColours();
-      assert.ok(colours > empty + 4, `${name}: the canvas looks blank on ${renderer} (${colours} colours, ${empty} with no part)`);
+      // (Against the same viewport with nothing in it: the tee must change a visible share of it — not black, not empty.)
+      const share = await differs(empty, await canvasShot());
+      assert.ok(share > 0.005, `${name}: the canvas looks blank on ${renderer} (${(100 * share).toFixed(2)} % of pixels differ from the empty view)`);
       await snap(`k2-${name.replace('.json', '')}`);
       // (Saved with the studio's own Save, a new part, the download opened: the same bodies.)
       const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
@@ -7236,10 +7236,161 @@ try {
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     await page.setInputFiles('input[aria-label="Model file"]', file);
     const reason = /v depth must be under the branch width and length/;
-    await page.waitForFunction(r => new RegExp(r).test(document.body.innerText), reason.source, { timeout: 60000 });
+    // (The kernel's reason sits in the toast's Details, closed: textContent reads it, innerText would not.)
+    await page.waitForFunction(r => [...document.querySelectorAll('.toast')].some(t => new RegExp(r).test(t.textContent ?? '')), reason.source, { timeout: 60000 });
     assert.ok(JSON.stringify(c).includes('NOTCH_CUTTER'));
     assert.equal((await page.evaluate(() => window.__studioBodies().bodies)).length, 0, 'no body from a refused notch');
     await snap('k2-refuse-notch-v-depth');
+  });
+
+  // ---- K2 (FRk5, D175): the L gap frame Codex saw black on WebGPU's first canvas — drawn, on either renderer ------------------
+  await check('K2 FRk5 L gap: a mitred L of 40 × 40 × 3 tubes with a 2 mm joint gap — two bodies, the first canvas after they arrive drawn (not black), and after Iso; the gap kept after Save, New and Open', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const doc = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, outputs: {}, nextId: 1, nodes: [{ id: 'n0', kind: 'frame', points: [[0, 0, 0], [400, 0, 0], [400, 300, 0]], segments: [[0, 1], [1, 2]], section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { default: 'mitre', gap: 2 } }] };
+    const file = join(out, 'k2-l-gap.bcad'); fs.writeFileSync(file, JSON.stringify(doc));
+    const shot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+    const differs = (a, b) => page.evaluate(async ([x, y]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(x), B = await load(y); let n = 0, dark = 0;
+      for (let k = 0; k < A.length; k += 4) { if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++; if (B[k] + B[k + 1] + B[k + 2] < 12) dark++; }
+      return { changed: n / (A.length / 4), black: dark / (A.length / 4) };
+    }, [a, b]);
+    const bodies = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 2 && b.bodies.every(x => x.volumeMM3 > 0); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await press('f'); await page.waitForTimeout(300); const empty = await shot();
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    const first = await bodies();
+    // (The first frame with the bodies: not black, and changed from the empty view.)
+    await page.waitForTimeout(250); const firstShot = await differs(empty, await shot());
+    console.log(`  K2 L gap (${renderer}): first frame ${(100 * firstShot.changed).toFixed(2)} % changed, ${(100 * firstShot.black).toFixed(2)} % black`);
+    assert.ok(firstShot.black < 0.5, `${renderer}: the first canvas is black (${(100 * firstShot.black).toFixed(1)} %)`);
+    await iso(); const after = await differs(empty, await shot());
+    assert.ok(after.changed > 0.005 && after.black < 0.5, `${renderer}: the L is not drawn after Iso (${JSON.stringify(after)})`);
+    await snap('k2-l-gap');
+    // (A mitred L with a 2 mm gap: the two members' volumes equal, each less than an ungapped mitre's by its share of the gap.)
+    assert.ok(Math.abs(first[0].volumeMM3 - first[1].volumeMM3) / first[0].volumeMM3 < 0.4, JSON.stringify(first));
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const again = join(out, 'saved-k2-l-gap.bcad'); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', again);
+    const reopened = await bodies();
+    for (const b of first) assert.ok(reopened.some(r => Math.abs(r.volumeMM3 - b.volumeMM3) <= 1e-9 * b.volumeMM3), `reopened: ${JSON.stringify(reopened)} vs ${JSON.stringify(first)}`);
+  });
+
+  // ---- G21 rest (roadmap G3): every display mode drawn, picks unchanged, isolate — on either renderer ------------------------
+  await check('G3 display modes: a plate and two placed pins — each CAD display mode drawn and the same pick on the plate\'s top face; isolate fades the plate, restore brings it back', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const empty = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, outputs: {} };
+    const pin = { ...empty, nodes: [{ id: 'n0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 4 }, { id: 'n1', kind: 'extrude', sketch: 0, height: 20 }], nextId: 2 };
+    const doc = { ...empty, nextId: 2, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 8 }],
+      instances: [{ id: 'p1', name: 'Pin A', doc: pin, position: [8, 8, 8], rotation: [0, 0, 0] }, { id: 'p2', name: 'Pin B', doc: pin, position: [56, 24, 8], rotation: [0, 0, 0] }] };
+    const file = join(out, 'g3-display.bcad'); fs.writeFileSync(file, JSON.stringify(doc));
+    const shot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+    const differs = (a, b) => page.evaluate(async ([x, y]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(x), B = await load(y); let n = 0;
+      for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++;
+      return n / (A.length / 4);
+    }, [a, b]);
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    // (Framed by the Frame-all button: a key could start a command on what is selected.)
+    const frame = async () => { await page.click('.views button:text-is("Top")'); await page.click('.views button[title="Frame all (F)"]'); await page.waitForTimeout(400); };
+    await frame(); const blank = await shot();
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => /Parts placed/.test(document.querySelector('.outliner')?.textContent ?? '') && window.__studioFresh === true, null, { timeout: 60000 }); await idle();
+    await snap('g3-opened');
+    // (An edit the opened document starts — its last feature's HUD — is cancelled: display modes wait while one is open.)
+    for (let k = 0; k < 3 && await page.locator('.hud button:text-is("Cancel")').count(); k++) { await page.locator('.hud button:text-is("Cancel")').click(); await page.waitForTimeout(200); }
+    await frame(); await snap('g3-framed');
+    await page.waitForFunction(() => !document.querySelector('select[aria-label="CAD display mode"]')?.disabled, null, { timeout: 5000 }).catch(() => {});
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    // (A point of the plate's top away from its centre, where the feature's handle stands.)
+    const box = await page.locator('canvas.vp-canvas').boundingBox(), cx = box.x + box.width / 2 - 120, cy = box.y + box.height / 2 + 50;
+    const modes = await page.locator('select[aria-label="CAD display mode"] option').evaluateAll(os => os.map(o => o.value));
+    assert.ok(modes.length >= 5, modes.join(','));
+    const picks = [];
+    for (const mode of modes) {
+      await page.selectOption('select[aria-label="CAD display mode"]', mode);
+      await page.waitForFunction(m => document.querySelector('select[aria-label="CAD display mode"]')?.dataset.displayModeEffective === m, mode, { timeout: 10000 });
+      await page.waitForTimeout(300);
+      const share = await differs(blank, await shot());
+      assert.ok(share > 0.005, `${mode} on ${renderer}: nothing drawn (${(100 * share).toFixed(2)} %)`);
+      await snap(`g3-${mode}`);
+      // (A click off the parts clears the selection; then the canvas centre: the plate's top, in every mode.)
+      await page.mouse.click(box.x + 12, box.y + 12); await page.waitForTimeout(150);
+      await page.mouse.click(cx, cy); await page.waitForTimeout(250);
+      picks.push(JSON.stringify(await page.evaluate(() => window.__studioSelection.selection.faces)));
+    }
+    console.log(`  G3 (${renderer}): modes ${modes.join(', ')}; centre picks ${[...new Set(picks)].join(' | ')}`);
+    assert.equal(new Set(picks).size, 1, `${renderer}: the centre pick changed with the mode: ${picks.join(' | ')}`);
+    assert.notEqual(picks[0], '[]', 'the centre pick found the plate');
+    await page.selectOption('select[aria-label="CAD display mode"]', 'shaded-with-edges');
+    // (Isolate: a pin selected, the plate fades; Restore view brings it back as it was.)
+    // (The pin selected first: the shot to come back to is the selected view.)
+    await page.mouse.click(box.x + 12, box.y + 12);
+    await page.locator('.ol.instance').first().click(); await page.waitForTimeout(300);
+    const before = await shot();
+    await page.click('[aria-label="Isolate selection"]');
+    await page.waitForSelector('[aria-label="Restore view"][aria-pressed="true"]', { timeout: 5000 }); await page.waitForTimeout(300);
+    const faded = await differs(before, await shot());
+    assert.ok(faded > 0.005, `${renderer}: isolate changed nothing (${(100 * faded).toFixed(2)} %)`);
+    await snap('g3-isolate');
+    await page.click('[aria-label="Restore view"]'); await page.waitForSelector('[aria-label="Isolate selection"]', { timeout: 5000 }); await page.waitForTimeout(300);
+    const back = await differs(before, await shot());
+    assert.ok(back < 0.002, `${renderer}: restore left ${(100 * back).toFixed(2)} % changed`);
+    await display.click();
+  });
+
+  // ---- G24 (roadmap G5): the drawing's annotations on the model — shown, picked, and the same after Save, New and Open ---------
+  await check('G24 3D annotations: the r14 geometric plate\'s drawing on the model — its annotations drawn, a text clicked picks its annotation and selects its targets, the same annotations after Save, New and Open', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/r14/tol-plate-geometric/case.json'), 'utf8'));
+    const file = join(out, 'g24-plate.bcad'); fs.writeFileSync(file, JSON.stringify({ ...c.input.document, drawing: { ...c.input.drawing, sheet: 'A3' } }));
+    const shot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+    const differs = (a, b) => page.evaluate(async ([x, y]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const k = new OffscreenCanvas(img.width, img.height), g = k.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(x), B = await load(y); let n = 0;
+      for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++;
+      return n / (A.length / 4);
+    }, [a, b]);
+    const pmi = () => page.evaluate(() => window.__studioPmi?.());
+    const ready = () => page.waitForFunction(() => { const p = window.__studioPmi?.(); return p && !p.reason && !p.busy && p.items?.length > 0; }, null, { timeout: 120000 }).then(pmi);
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioFresh === true && window.__studioDoc.nodes.length > 0, null, { timeout: 60000 }); await idle();
+    for (let k = 0; k < 3 && await page.locator('.hud button:text-is("Cancel")').count(); k++) await page.locator('.hud button:text-is("Cancel")').click();
+    await page.click('.views button:text-is("Front")'); await page.click('.views button[title="Frame all (F)"]'); await page.waitForTimeout(400);
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    const before = await shot();
+    await page.check('input[aria-label="3D annotations"]');
+    const shown = await ready();
+    await page.waitForTimeout(400);
+    const changed = await differs(before, await shot());
+    console.log(`  G24 (${renderer}): ${shown.items.length} annotations (${[...new Set(shown.items.map(a => a.kind))].join(', ')}), ${shown.left.length} sheet-only; ${(100 * changed).toFixed(2)} % of the canvas changed`);
+    assert.ok(changed > 0.002, `${renderer}: the annotations changed ${(100 * changed).toFixed(3)} % of the canvas`);
+    const texts = renderer === 'webgpu' ? await page.evaluate(() => (window.__studioOverlayTexts?.()['pmi:text'] ?? []).length) : await page.locator('.vp-overlay.pmi text').count();
+    assert.ok(texts > 0, `${renderer}: no annotation texts drawn`);
+    await snap('g24-shown');
+    // (A click on an annotation's first text — its baseline point on screen — picks it, and selects what it points at.)
+    const target = shown.items.find(a => a.targets.some(t => t.edge)) ?? shown.items[0];
+    const at = await page.evaluate(p => window.__studioScreenOf?.(p), target.anchor);
+    assert.ok(at, 'the anchor projects onto the screen');
+    await page.mouse.click(at[0], at[1]); await page.waitForTimeout(300);
+    const picked = await pmi();
+    assert.ok(picked.selected, `${renderer}: the click picked no annotation`);
+    const sel = await page.evaluate(() => window.__studioSelection.selection);
+    assert.ok(sel.edges.length + sel.faces.length > 0, `${renderer}: the pick selected none of its targets`);
+    await snap('g24-picked');
+    // (Saved, a new part, the download opened: the same annotations — nothing of the display is stored, the drawing is.)
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const again = join(out, 'saved-g24-plate.bcad'); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', again);
+    const reopened = await ready();
+    assert.deepEqual(reopened.items.map(a => [a.id, a.text.join(' ')]), shown.items.map(a => [a.id, a.text.join(' ')]));
+    await page.uncheck('input[aria-label="3D annotations"]'); await display.click();
   });
 
   // ---- G23 CNC (G-R3–G-R5): material removal along the Model's program, on either renderer --------------------------------
@@ -7249,6 +7400,9 @@ try {
     const cam = () => page.evaluate(() => { const c = window.__studioCam?.(), d = c?.display; return c && { stage: c.stage, error: c.error, reason: c.reason, progress: d?.progress, moves: d?.setup.moves.length, removed: d?.removal.removedMM3, overcut: d?.removal.overcutCells, unc: d?.removal.lateralUncertaintyMM, top: d && 'max' in d.package.stock ? d.package.stock.max[2] : null, banner: d?.package.banner }; });
     const at = (p) => page.waitForFunction(q => { const c = window.__studioCam?.(); return c?.stage === 'ready' && (q === 'end' ? c.display.progress === c.display.setup.moves.length : Math.abs(c.display.progress - q) < 1e-9); }, p, { timeout: 60000 }).then(cam);
     const progressTo = (v) => page.locator('[aria-label="CNC progress"]').evaluate((el, x) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    // (The previews' toggles are in the Display popover over the Views row.)
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
     await page.check('input[aria-label="CNC preview"]');
     const start = await at(0);
     assert.equal(start.removed, 0, JSON.stringify(start)); assert.equal(start.overcut, 0); assert.match(start.banner, /NOT FOR PRODUCTION/);
@@ -7277,6 +7431,7 @@ try {
     await snap('g23-cnc-end');
     await page.uncheck('input[aria-label="CNC preview"]');
     await page.waitForFunction(() => !window.__studioCam?.().display, null, { timeout: 15000 });
+    await display.click();
   });
 
   await check('command palette and light theme', async () => {

@@ -1759,3 +1759,140 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - the studio map wiring on WebGPU ("GPU estimate"), which follows the specs;
   - the acceptance cases still to add in the browser: a box (its wall), the CNC8 plate (its 8 mm floor), the r14
     plate and a curved part, with timings at the stated load.
+
+## G-R13 — the bottom-right controls no longer cover the history bar or the panels (a regression fix; flow on WebGPU, 2026-10-23)
+
+- **The regression** (the coordinator's full flow at a177c4929: 16 steps timed out on clicks): the Views row (the
+  corner-right row) had grown well past the ≈600 px the history bar's position assumes.
+  - G-R3 and G-R9's CNC and 3D-annotation toggles, beside Print layers and Assembly clearance.
+  - Codex's G21 display-mode select and "Isolate selection" in the Views card.
+  - So it lay over the history bar's steps. Codex's display-mode notice (`cad-display-status`, absolute above the row)
+    lay over the property panel's lower buttons, such as Sew into a body.
+- **The fix**:
+  - The Views row has one **Display** button (`aria-label="Display and previews"`, `aria-expanded`). It is lit while any
+    preview is on, isolate is in use or the mode is not the default.
+  - It opens a popover above the row holding:
+    - a Display card: the CAD display mode select and Isolate selection, unchanged, with the same labels;
+    - the display-mode notice, inside that card;
+    - the four preview toggles.
+    - The previews' state stays in App, so closing the popover does not stop a preview.
+  - The maps' legends, the popover and the section bar now stack in one column above the row (`.corner-stack`). Before,
+    each sat at its own absolute offset and they could overlap.
+  - The history bar and timeline CSS is untouched.
+- **Flow test changes**:
+  - The G23 CNC step opens the popover first and closes it after.
+  - K2's refusal is read from the toast's textContent: the kernel's reason sits in its closed Details, which innerText
+    skips.
+  - K2's blank-canvas check compares the shown tee with the empty viewport by the share of pixels that change (more than
+    0.5 %). A colour count could not tell them apart: 60 against 60.
+- **Flow** (WebGPU, DPR 1, 1440 × 900), the failing steps with their prerequisites, three runs (load 1m 13–35):
+  - all of 2–6, 20–25, 35–40, 48–60, 61–77, 98–104 and 193–197 pass;
+  - all of 246 and 247 (narrow widths), 261–267 (G19.3–G20.2, K2, G23 CNC) and 267 (palette) pass.
+  - In one run, step 65 (Hole then Fillet) was refused by the kernel when run without 61–64. The camera they leave
+    moves the dragged hole; with them it passes, as in the full flow.
+- **Steps not mine** (the coordinator's list): 147, 245 and 248 (the outer lane's rows rule (b) in the scripted chat),
+  and 144 (a timing flake).
+
+## G-R14 — K2's viewport side on both renderers, and the L-gap black canvas not reproduced (roadmap K2 / G4, 2026-10-23)
+
+- **K2 notches** (`K2 FRk5 notches`, the kernel lane's D182 cases) **and G23 CNC** (`G23 CNC`) **pass on WebGL2**
+  too (load 1m 14–19). With G-R13's WebGPU runs, both now pass on both renderers.
+- **The L-gap reproduction** (new check `K2 FRk5 L gap`).
+  - D175 recorded that the L gap frame's first WebGPU canvas was black with real worker geometry, and WebGL2 fine.
+  - The check opens a mitred L of 40 × 40 × 3 tubes with a 2 mm joint gap, as the studio's frame node, after a New part.
+    It requires:
+    - two bodies;
+    - the first frame after they arrive not black (under 0.5 % near-black pixels) and changed from the empty view;
+    - the same after Iso;
+    - the same volumes (1e-9) after Save, New and Open.
+  - Results:
+
+    | Renderer | First frame changed | Black | Result |
+    |---|---|---|---|
+    | WebGPU | 8.61 % | 0.00 % | passes |
+    | WebGL2 | 11.03 % | 0.00 % | passes |
+
+  - **Not reproduced at integration.** Codex's black canvas came from its own environment at 1f041 (before the
+    G19–G21 viewer work in integration); its raw files are gone.
+  - The check stays in the flow as a guard. If it comes back, the step's message gives the shares.
+
+## G-R15 — G3's acceptance: every display mode on both renderers, picks unchanged, isolate and restore (roadmap G3, 2026-10-23)
+
+- **The check** (new flow step `G3 display modes`): a 64 × 32 × 8 plate and two placed Ø8 × 20 pins (curved faces,
+  silhouettes).
+  - Each of the five CAD display modes is chosen from the Display popover: shaded with edges, hidden lines removed,
+    hidden lines dashed, wireframe, x-ray. For each, the step requires:
+    - the mode effective (the select's `data-display-mode-effective`);
+    - the canvas drawn (over 0.5 % of pixels changed from the empty view);
+    - a click on the plate's top, away from the feature's handle, selecting the same face in every mode.
+  - Isolate: with a pin selected, Isolate selection fades the rest (over 0.5 % changed); Restore view brings back the
+    selected view (under 0.2 % changed).
+- **Results** (load 1m 16–31, DPR 1, 1440 × 900):
+
+  | Renderer | Modes drawn | Pick | Isolate fades, restore returns |
+  |---|---|---|---|
+  | WebGPU | 5/5 | `{body 0, face 5}` in all five | yes |
+  | WebGL2 | 5/5 | `{body 0, face 5}` in all five | yes |
+
+  The snapshots were inspected: dashed hidden edges, silhouettes on the pins, isolate fading the plate and the other pin.
+- **Not covered**: hiding a body in every mode (the outliner's eye), and section plus mode combinations. G19's steps cover
+  sections in the default mode.
+- **Getting the step right**: a click at the canvas centre hit the extrude's handle and opened its edit, which disables
+  the display modes. The step now frames with the Frame-all button (a key could start a command) and clicks away from
+  the handle.
+
+## G-R16 — G24's acceptance on both renderers: shown, picked to its targets, the same after Save, New and Open (roadmap G5, 2026-10-23)
+
+- **The check** (new flow step `G24 3D annotations`): the outer lane's r14 tol-plate-geometric case, its document with
+  its own drawing (6 dimensions, A3), opened in the studio and seen from Front.
+  - "3D annotations" is turned on from the Display popover.
+  - The annotations must arrive and be drawn: the canvas changes, and the texts are drawn (WebGPU's `pmi:text` labels;
+    WebGL2's SVG texts).
+  - A click at the first annotation's text anchor, projected by `__studioScreenOf`, must pick it and select its
+    targets.
+  - After Save, New and Open, the same ids and texts.
+- **Results** (load 1m 17–20, DPR 1, 1440 × 900):
+
+  | Renderer | Annotations | Canvas changed | Pick | After Save/New/Open |
+  |---|---|---|---|---|
+  | WebGPU | 6 dimensions, 0 sheet-only | 0.88 % | selects its edge (the 64 mm line along X) | same |
+  | WebGL2 | 6 dimensions, 0 sheet-only | 1.14 % | selects its edge | same |
+
+  The snapshots were inspected: the 64 and 32 dimensions, extension lines and heads in their planes, and Ø8 THRU.
+- **Not covered**: datums and frames in 3D on screen. They are in pmi.test (unit); this case's drawing has no frame
+  placed. Instance-prefixed targets are not covered either.
+
+## G-R17 — G25's compute passes run on a device: both match their CPU mirrors (roadmap G6, 2026-10-23)
+
+- **First runs on WebGPU** (Chrome, Node 22, load 1m 19–25), one spec file at a time:
+  - `compute-access-browser`:
+
+    | Case | Samples | Masks that differ | Worst share | CPU | GPU |
+    |---|---|---|---|---|---|
+    | a sealed-cavity box | 27 924 | 0 | 0 | 19 ms | 1.3 ms |
+    | a 20 000-triangle sphere shell | 331 900 | 0 | 0 | 590 ms | 7.7 ms |
+
+  - `compute-thickness-browser`:
+
+    | Case | Worst \|Δ\| | Hits and misses | Outliers | CPU | GPU |
+    |---|---|---|---|---|---|
+    | the box | 3.8e-6 mm | the same | 0 | 0.4 ms | 0.9 ms |
+    | the 20 000-triangle shell | 8.6e-6 mm | the same | 2 | 87 ms | 7.2 ms |
+
+    - The 2 outliers are polar rays aimed at the inner sphere's pole vertex. The f64 mirror (as the kernel's own f64
+      rayHit would) slips between triangles there and reads the far side, 54.97. The f32 GPU hits the inner shell,
+      4.9975: the true wall.
+    - The spec counts such through-a-vertex cases and allows at most 1 in 1000; the rest are compared within 1e-4 of
+      the size.
+- **Fixes the device runs found**:
+  - The WGSL "no hit" literal 3.4028235e38 is above f32's largest, so the shader did not compile. It is now 1e38,
+    read back as Infinity at ≥ 9e37: f32 stores 1e38 as 9.99999968e37.
+  - The specs' server now answers /favicon.ico (204). A 404 was a console error.
+- **A Codex contract updated** (`cad-instance-display-diagnostics`, "one … toggle"): it read App.tsx between
+  `aria-label="Views"` and the notice. Isolate now lives in G-R13's Display card, so the check reads that card and also
+  requires no Isolate toggle left in the Views row. Its intent is unchanged: one toggle, enabled to restore, session
+  only.
+- **Checks**: gpu `test` 189/189; type-check 0; eslint 0; studio gpu-analyses, pmi and cnc-preview 13/13.
+- **`test:browser` as a whole**: it hung in `uv-repeating-browser` (G18.2, the docs' shaders) for over an hour, and only
+  this lane's processes were stopped. That spec is to be run alone with a timeout to find why. The other browser specs
+  (viewer, scene viewer, pose-clip) were not reached in that run.

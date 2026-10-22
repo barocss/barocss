@@ -1,0 +1,159 @@
+{
+  "id": "fuzz-20261023-118",
+  "about": "L4 fuzz finding (seed 20261023, case 118): INVALID — tessellation: 1 edges not used exactly twice",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 1.894
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 5.281
+        },
+        {
+          "id": "n1r0",
+          "kind": "rotate",
+          "target": "n1b",
+          "axis": "y",
+          "angleDegrees": 230.699,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n1r1",
+          "kind": "rotate",
+          "target": "n1r0",
+          "axis": "x",
+          "angleDegrees": 196.211,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1r1",
+          "offset": [
+            0.027,
+            2.038,
+            2.441
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 1.465
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 2.223
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2b",
+          "offset": [
+            1.418,
+            -0.382,
+            1.519
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "intersect",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 0.32764896551089756,
+          "relTol": 0.02155229520429802,
+          "absTol": 0.007061587228073724
+        },
+        "centroidMM": {
+          "value": [
+            0.4933361697718445,
+            0.5158135686516002,
+            3.0750743943444765
+          ],
+          "absTol": 0.012315517582903737
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 3.53e-3 mm³, centroid e 6.16e-3 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 118,
+    "status": "INVALID",
+    "tree": {
+      "op": "intersect",
+      "a": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 1.894,
+          "h": 5.281,
+          "rot": [
+            {
+              "axis": "y",
+              "deg": 230.699
+            },
+            {
+              "axis": "x",
+              "deg": 196.211
+            }
+          ],
+          "move": [
+            0.027,
+            2.038,
+            2.441
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 1.465,
+          "h": 2.223,
+          "rot": [],
+          "move": [
+            1.418,
+            -0.382,
+            1.519
+          ]
+        }
+      }
+    }
+  }
+}
