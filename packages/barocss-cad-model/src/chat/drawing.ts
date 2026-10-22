@@ -140,11 +140,15 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       // (O170, F8: a fix can change what the sheet is built from — a section added is a new view to lay out — so the inputs
       // are built again from the fixed settings and the fixes run again, until a round applies none (FIX_ROUNDS at most).
       // In one round the overlap a new section brings was invisible: a second Fix found it.)
-      let inputs = i, settings = i.settings;
+      // (A later round dimensions again only when the round before added a section — its new view — or Auto-dimension and
+      // the moves after it undo each other round after round, on issues it cannot meet.)
+      let inputs = i, settings = i.settings, sectioned = true;
       const applied: DrawingFix[] = [];
       for (let round = 0; round < FIX_ROUNDS; round++) {
-        const r = fixAll(inputs, 40, (fix, issue) => (!assembly || fix.kind !== 'auto-dimension') && (!codes || codes.includes(issue.code as DrawingIssueCode)));
+        const again = sectioned;
+        const r = fixAll(inputs, 40, (fix, issue) => (!assembly || fix.kind !== 'auto-dimension') && (again || fix.kind !== 'auto-dimension') && (!codes || codes.includes(issue.code as DrawingIssueCode)));
         if (!r.applied.length) break;
+        sectioned = r.applied.some(f => f.kind === 'add-section');
         applied.push(...r.applied); settings = r.settings;
         const next = drawingInputs({ ...doc, drawing: settings }, settings); if (typeof next === 'string') break;
         inputs = next;

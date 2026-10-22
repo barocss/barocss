@@ -7137,3 +7137,35 @@ No studio expectation relied on an overcut drill: cnc-cam tests the preview.
 - model: weldment-drawing 1/1, a9-acceptance 3/3, and every model test file on auto-dimension, auto layout, drawing issues or frames, all passing;
 - studio: every test file on drawings, auto or frames, all passing;
 - tsc of model and studio; eslint 0 errors.
+
+## O172 — F8: Fix keeps the keyseat's dimension; a snap point is a visible edge's; the shaft's DIM_ON_HIDDEN found to be the bought bearing's (2026-10-23)
+
+**The coordinator's question:** why didn't O148 X3's section serve the shaft's two DIM_ON_HIDDEN?
+- **Answer:** they are not the keyseat's.
+  - Dimension 12.5 runs from the Ø25 shoulder to the end chamfer's centre, and dimension 25 across the Ø25 shoulder, both in the top view.
+  - From the top, both Ø25 shoulder circles (z 30 and z 70) are hidden by the **bought 6204** on step 3 (z 70–84), whose ring covers radius 10 to 23.5.
+  - X3's section is the keyseat's. These two are hidden because the part's drawing is projected with its bought elements in it.
+- **The same cause** makes the issue list count a bought bearing's bore and an O-ring's circles as holes: the shaft's "5 holes" and the cover's "4 holes" (HOLE_NOT_LOCATED and HOLE_SIZE_MISSING). Auto-dimension cannot meet those.
+- **The fix that would end all of it:** a part's drawing views projected from what it makes, by the BOM's `boughtOf` (`madeBodies`, as O160 did for DFM, print and CAM). It changes every drawing with elements, in two places: the chat's `drawingInputs` and the studio's `useDrawingSheet`, which now feeds the GPU lane's 3D annotations. **It goes to the coordinator for a decision; not built here.**
+
+**What is built, three defects found on the way:**
+- **Fix's Auto-dimension had no elements.**
+  - In `applyFix`, the `auto-dimension` fix called `autoDimensions(…, [] , …)`, so O146's keyseat and keyway plans were lost. A Fix that re-dimensioned dropped the keyseat's d − t1 instead of putting it on its section, the very thing X3's message promises.
+  - It now passes the context's elements (issues.ts).
+- **A snap point was the first edge found at a place,** hidden or not (dimensions.ts `snapPoints`). Where edges coincide on the view, it is now a visible edge's when one is: a module-level `addSnap`, with no closure per point.
+- **Fix's rounds** (O170) re-dimensioned every round, with Auto-dimension and the moves undoing each other on issues it cannot meet (the bought holes above). A later round now re-dimensions only after the round before added a section. On the shaft that is 2 re-dimensions, not 4.
+
+**Tests** (drawing-fix-elements):
+- one Fix on the shaft adds section B, re-dimensions twice, leaves the keyseat's dimension on section B–B, and leaves no error;
+- a synthetic view with a hidden and a visible edge at one place: the snap point is the visible one's, in either order.
+- Both fail on the code before.
+
+**Verified (T1):**
+- model: drawing-fix-elements 2/2, a9-acceptance 3/3, and every model test file on drawings or dimensions, all passing;
+- studio: every test file on drawings or dimensions, all passing;
+- tsc of model and studio; eslint 0 errors.
+
+**Still open in F8:**
+- **The decision above.** It would end the shaft's DIM_ON_HIDDEN and the cover's hole count.
+- **BALLOON_NO_EDGE** (the weldment's BOM line 3).
+- **WELD_NOT_SHOWN** (12 welds with no visible edge in front, top and right).
