@@ -16,7 +16,7 @@ import type { DrawingViews, ViewId, XY } from './types';
 
 export const WELD_VIEWS: readonly ViewId[] = ['front', 'top', 'right'];
 const OUT = 7, KNEE_GAP = 7, TRIES = 12, CLEAR = 1, LINE = 16, ARROW = 2.5, ARROW_HALF = 0.6, MARK = 2.4, RING = 1.1, TEXT = 2.5;
-type Side = 'left' | 'right' | 'top' | 'bottom';
+export type Side = 'left' | 'right' | 'top' | 'bottom';
 type Rect = [number, number, number, number];
 const SIDES: readonly Side[] = ['left', 'right', 'top', 'bottom'];
 const alongOf = (side: Side) => side === 'left' || side === 'right' ? 1 : 0;
@@ -87,25 +87,25 @@ function kneeOf(v: ViewPlacement, side: Side, t: number): XY {
   return side === 'left' ? [x0 - OUT, t] : side === 'right' ? [x1 + OUT, t] : side === 'top' ? [t, y0 - OUT] : [t, y1 + OUT];
 }
 
-function symbolMarks(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string): Mark[] {
+export function symbolMarks(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string): Mark[] {
   const dir = side === 'left' ? -1 : 1, end: XY = [knee[0] + dir * LINE, knee[1]], d = [tip[0] - knee[0], tip[1] - knee[1]], l = Math.hypot(d[0], d[1]) || 1, u: XY = [d[0] / l, d[1] / l];
   const back: XY = [tip[0] - u[0] * ARROW, tip[1] - u[1] * ARROW], n: XY = [-u[1] * ARROW_HALF, u[0] * ARROW_HALF];
   const marks: Mark[] = [
-    { kind: 'line', a: knee, b: back, pen: 'thin' },
-    { kind: 'fill', points: [tip, [back[0] + n[0], back[1] + n[1]], [back[0] - n[0], back[1] - n[1]]] },
-    { kind: 'line', a: knee, b: end, pen: 'thin' },
+    { kind: 'line', a: knee, b: back, pen: 'thin', role: 'leader' },
+    { kind: 'fill', points: [tip, [back[0] + n[0], back[1] + n[1]], [back[0] - n[0], back[1] - n[1]]], head: { style: 'filled', tip, dir: u, length: ARROW, width: 2 * ARROW_HALF } },
+    { kind: 'line', a: knee, b: end, pen: 'thin', role: 'weld' },
   ];
   // (The weld's mark on the reference line, a third along it; the size just before it.)
   const mx = knee[0] + dir * LINE / 3, my = knee[1];
-  if (j.weld.kind === 'fillet') marks.push({ kind: 'polyline', points: [[mx, my], [mx, my - MARK], [mx + dir * MARK, my], [mx, my]], pen: 'thin' });
-  else marks.push({ kind: 'line', a: [mx, my], b: [mx, my - MARK], pen: 'thin' }, { kind: 'line', a: [mx + dir * MARK * 0.6, my], b: [mx + dir * MARK * 0.6, my - MARK], pen: 'thin' });
+  if (j.weld.kind === 'fillet') marks.push({ kind: 'polyline', points: [[mx, my], [mx, my - MARK], [mx + dir * MARK, my], [mx, my]], pen: 'thin', role: 'weld' });
+  else marks.push({ kind: 'line', a: [mx, my], b: [mx, my - MARK], pen: 'thin', role: 'weld' }, { kind: 'line', a: [mx + dir * MARK * 0.6, my], b: [mx + dir * MARK * 0.6, my - MARK], pen: 'thin', role: 'weld' });
   if (j.weld.sizeMM !== null) marks.push({ kind: 'text', at: [mx - dir * 1, my - 0.6], text: `${+j.weld.sizeMM.toFixed(2)}${j.weld.sizeBasis === 'estimate' ? '*' : ''}`, size: TEXT, anchor: dir > 0 ? 'end' : 'start' });
   if (j.weld.allRound) marks.push(ring(knee, RING));
   if (j.innerLoop?.welded) marks.push(ring(knee, RING * 1.8));
   marks.push({ kind: 'text', at: [end[0] + dir * 1, end[1] + 0.9], text: label, size: TEXT, anchor: dir > 0 ? 'start' : 'end' });
   return marks;
 }
-const ring = (c: XY, r: number): Mark => ({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'thin' });
+const ring = (c: XY, r: number): Mark => ({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'thin', role: 'weld' });
 
 /** A symbol's box but its leader and arrow (they run into the view by design): its knee, reference line, mark, rings and texts. */
 function boxOf(marks: readonly Mark[]): Rect {

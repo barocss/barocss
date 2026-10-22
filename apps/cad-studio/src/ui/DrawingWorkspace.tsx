@@ -10,6 +10,7 @@ import { weldList } from '@barocss/cad-model/frames/welds';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { tableContent } from '@barocss/cad-model/drawing/tables';
+import { modelAnnotations } from '@barocss/cad-model/drawing/annotations3d';
 import { bomPanelData } from '@barocss/cad-model/team/bom';
 import type { Bom } from '@barocss/cad-model/team/bomCore';
 import type { ProjectedEdge } from '@barocss/cad';
@@ -369,8 +370,10 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       ...(sheet.welds ? { welds: { placed: sheet.welds.placed.map(p => ({ label: p.label, view: p.view })), unshown: sheet.welds.unshown } } : {}),
       ...(sheet.balloons ? { balloons: { placed: sheet.balloons.placed.map(p => ({ no: p.no, item: p.item, view: p.view, edge: p.edge })), unclear: sheet.balloons.unclear, noEdge: sheet.balloons.noEdge } } : {}),
       suggestions: suggestions.map(x => ({ id: x.id, kind: x.kind, estimate: x.estimate })) };
-    return () => { delete w.__studioDrawingAt; delete w.__studioDrawing; };
-  }, [layout, sheet, views, cutsMade, issues, suggestions]);
+    // (G24: the drawing's annotations on the model, for the GPU lane's 3D display and the flow.)
+    w.__studioAnnotations = () => sheet && layout && views ? modelAnnotations({ views, layout, settings, sheet, ...(weldJoints ? { welds: weldJoints } : {}) }) : null;
+    return () => { delete w.__studioDrawingAt; delete w.__studioDrawing; delete w.__studioAnnotations; };
+  }, [layout, sheet, views, cutsMade, issues, suggestions, settings, weldJoints]);
 
   const exportSvg = () => { if (sheet) downloadBytes(new TextEncoder().encode(sheetSvg(sheet, title)), `${fileName}.svg`, 'image/svg+xml'); };
   const exportPdf = () => {

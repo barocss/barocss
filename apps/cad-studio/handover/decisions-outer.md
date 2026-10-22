@@ -5944,3 +5944,14 @@ The kernel lane's FRk1 (D165) is in (integration 7f9c31f0b, merged here as b3ae7
   - the purchase CSV rows; two copies ×2 with their part ids;
   - the joints `<gusset>.<m0>` 105, `<gusset>.<m1>` 85 and `<cap>.<m0>` 160 at `start`, each a fillet sized 3 (estimate), exact; the mitre joint stays; the table's words.
 - **For the coordinator**: integration's `test/weldment.test.ts` (the kernel lane's, b03719ada) fails the cad-model type-check: two calls of `fields?` possibly undefined (lines 23 and 42) and a sketch node cast (line 70). Not touched here.
+
+## G24 data side — built (2026-10-22)
+
+`drawing/annotations3d.ts` (`modelAnnotations`, version model-annotations-v1) is built as the S0 froze it, with the GPU lane's five additions:
+1. Heads as heads (`tip`, `dir`, `length`, `width`, `style`), from the `head` the sheet's marks now carry.
+2. A `role` on each line (dimension, extension, leader, frame, weld), set where the sheet builds its marks.
+3. Text height in model mm and alignment along `dir`/`up` in the plane.
+4. Frame cells and box, weld data, and the sheet's glyph builders in plane coordinates (`frameGlyph`, `weldGlyph`, `toPlane`).
+5. Ids equal to the sheet items'.
+
+The studio hook is `__studioAnnotations()`. Tests are in `test/annotations3d.test.ts`: the geometric plate and the welded table equal the sheet's to 1e-9, and the glyphs give the sheet's marks back. Only package T1 tests were run; the verify-worktree run and the checkpoint message are still to do.
