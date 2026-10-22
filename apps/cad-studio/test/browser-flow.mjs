@@ -7033,6 +7033,47 @@ try {
     await page.click('button:text-is("Model")');
   });
 
+  // ---- G20.2: the cut-out — a quarter and an octant taken out -----------------------------------------------------------
+  await check('G20.2: the cut-out — the corner facing the camera taken out (a quarter, then an octant), one body for the part, the exact volumes, GPU against CPU — on either renderer', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const plate = join(out, 'g20-plate.bcad');
+    fs.writeFileSync(plate, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }] }));
+    await openModel(plate, 2); await idle(); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(300);
+    const sec = () => page.evaluate(() => window.__studioSection());
+    const exactAt = (want, label) => page.waitForFunction(([w]) => { const s = window.__studioSection(); return s?.exact && Math.abs(s.volume - w) < 1e-3; }, [want], { timeout: 30000 }).catch(async e => { throw new Error(`${label}: ${JSON.stringify(await sec())} — ${e.message.split('\n')[0]}`); });
+    if (await page.locator('[aria-label="Section mode"]').count()) await page.click('[aria-label="Section view"]');
+    await page.click('[aria-label="Section view"]'); await page.waitForSelector('[aria-label="Section mode"]', { timeout: 5000 });
+    // The Iso camera looks from +X, −Y, +Z: the corner x > 20, y < 10 taken out — 40·20·10 − 20·10·10.
+    await page.click('[aria-label="Section mode"] button:text-is("Cut-out")');
+    await exactAt(6000, 'the quarter');
+    let s = await sec();
+    assert.equal(s.mode, 'cutout'); assert.equal(s.planes.length, 2);
+    assert.deepEqual(s.planes.map(p => [p.normal.map(v => v || 0), p.offset]), [[[-1, 0, 0], -20], [[0, 1, 0], 10]]);
+    assert.equal(s.bodies, 1, 'one body for the part (its pieces merged)');
+    assert.match(await page.locator('.corner-left').innerText(), /· 1 solid ·/);
+    assert.equal(await page.locator('.vp-overlay [data-handle^="section"]').count(), 2, 'a handle on each plane');
+    if (renderer === 'webgpu') assert.equal(s.clip.cutout, true);
+    assert.ok(s.hatch?.lines?.length === 1 && s.hatch.lines[0].segments > 20, JSON.stringify(s.hatch));
+    const g1 = await sectionAgainstCpu('g20-quarter');
+    if (g1) { console.log(`  G20 quarter, GPU against CPU: ${JSON.stringify(g1)}`); assert.ok(g1.strong <= g1.pixels * 0.001, JSON.stringify(g1)); }
+    await snap('g20-quarter');
+    // An octant: the top too (z > 5) — 40·20·10 − 20·10·5.
+    await page.click('[aria-label="Add a section plane"]');
+    await exactAt(7000, 'the octant');
+    s = await sec(); assert.equal(s.planes.length, 3); assert.equal(s.bodies, 1);
+    assert.deepEqual(s.planes[2].normal.map(v => v || 0), [0, 0, -1]); assert.equal(s.planes[2].offset, -5);
+    const g2 = await sectionAgainstCpu('g20-octant');
+    if (g2) { console.log(`  G20 octant, GPU against CPU: ${JSON.stringify(g2)}`); assert.ok(g2.strong <= g2.pixels * 0.001, JSON.stringify(g2)); }
+    await snap('g20-octant');
+    // The third plane removed: the quarter again; then Planes mode — the first plane kept, a Y plane through the middle,
+    // their intersection kept (x ≤ 20, y ≥ 10).
+    await page.click('[aria-label="Remove section plane 3"]');
+    await exactAt(6000, 'back to the quarter');
+    await page.click('[aria-label="Section mode"] button:text-is("Planes")');
+    await exactAt(20 * 10 * 10, 'Planes: the two intersected');
+    await page.click('[aria-label="Section view"]');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

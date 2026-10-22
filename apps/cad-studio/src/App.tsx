@@ -76,7 +76,7 @@ import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/ca
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import type { Analysis } from './viewport/analysis';
 import { boundsUnder, instancePoses, poseMatrix } from './viewport/instancePose';
-import { asSection, axisSection, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, sectionedInstances, type AxisSection, type Section } from './viewport/sectionView';
+import { asSection, axisSection, exactBodies, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, sectionedInstances, type AxisSection, type Section } from './viewport/sectionView';
 import { SectionBar, sectionHandles } from './ui/SectionBar';
 import { mapsOf, type MapKind } from './viewport/scalarMaps';
 import { isoclinePolylines } from '@barocss/cad-model/mould/parting';
@@ -451,10 +451,10 @@ export function App() {
     if (!section) { setSectionExact(null); return; }
     let live = true; const key = JSON.stringify(section);
     // (G19: each body split by each plane that crosses what is left of it, the kept pieces' keys.)
-    const { doc, kept, from } = sectionSplits(evaluated, bodies, section), source = new Map(kept.map((k, i) => [k, from[i]]));
+    const { doc, kept, from } = sectionSplits(evaluated, bodies, section);
     // Latest wins: while one section is worked out, only the newest plane waits behind it.
     const run = sectionRun.current;
-    run.next = async () => { const r = await engine.section(doc, revision.current++); if (live && r.ok) setSectionExact({ key, bodies: r.bodies.filter(b => kept.includes(b.key)), from: source }); };
+    run.next = async () => { const r = await engine.section(doc, revision.current++); if (live && r.ok) { const x = exactBodies(r.bodies, kept, from); setSectionExact({ key, bodies: x.bodies, from: x.from }); } };
     if (!run.busy) void (async () => { run.busy = true; try { while (run.next) { const j = run.next; run.next = null; await j(); } } finally { run.busy = false; } })();
     return () => { live = false; };
   }, [section, bodies, evaluated, engine]);
@@ -1731,7 +1731,7 @@ export function App() {
   // WebGL2's clipped caps and on the exact section's cut faces (either renderer).
   const [sectionHatchOn, setSectionHatchOn] = useState(true);
   const hatchStep = useMemo(() => hatchSpacing(sectionBox), [sectionBox]);
-  const sectionClip = useMemo(() => section && !sketch && gpuSection ? { planes: sectionPlanes(section), bodies: shownBodies === sectionBodies && !sectionExactShown, hatch: sectionHatchOn ? hatchStep : null } : null, [section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown, sectionHatchOn, hatchStep]);
+  const sectionClip = useMemo(() => section && !sketch && gpuSection ? { planes: sectionPlanes(section), bodies: shownBodies === sectionBodies && !sectionExactShown, hatch: sectionHatchOn ? hatchStep : null, cutout: section.mode === 'cutout' } : null, [section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown, sectionHatchOn, hatchStep]);
   const sectionHatchLines = useMemo(() => section && !sketch && sectionHatchOn && shownBodies === sectionBodies && (!gpuSection || sectionExactShown) ? sectionHatch(shownBodies, sectionPlanes(section), hatchStep) : null,
     [section, sketch, sectionHatchOn, shownBodies, sectionBodies, gpuSection, sectionExactShown, hatchStep]);
   useEffect(() => {
@@ -1849,6 +1849,8 @@ export function App() {
       } }];
   }) : [];
   const sectionBoxRef = useRef(sectionBox); sectionBoxRef.current = sectionBox;
+  // (Where the camera is: a cut-out's default corner faces it, G20.)
+  const cameraEye = (): Vec3 | null => { const c = viewport.current?.getCamera(); if (!c) return null; const cp = Math.cos(c.pitch); return [c.target[0] + c.distance * cp * Math.cos(c.yaw), c.target[1] + c.distance * cp * Math.sin(c.yaw), c.target[2] + c.distance * Math.sin(c.pitch)]; };
   const sectionDrag: FeatureHandle[] = section && !active && !sketch && bodies.length ? sectionHandles(section, sectionBox, setSection) : [];
   const dragTransforms = useMemo(() => cmdBody !== undefined && bodyDrag ? new Map([[cmdBody, bodyDrag.matrix]]) : null, [cmdBody, bodyDrag]);
 
@@ -2421,7 +2423,7 @@ export function App() {
       <div className="corner-right">
   {mapLegend && <MapLegend map={mapLegend} hover={mapHover} />}
   {(mapKind === 'parting' || mapKind === 'halves') && <MouldLegend kind={mapKind} result={mouldResult} pull={!!doc.mould?.pull} spread={mouldSpread} onSpread={setMouldSpread} />}
-  {section && <SectionBar section={section} setSection={setSection} hatch={sectionHatchOn} setHatch={setSectionHatchOn} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} />}
+  {section && <SectionBar section={section} setSection={setSection} hatch={sectionHatchOn} setHatch={setSectionHatchOn} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} eye={cameraEye} />}
         <div className="card views" role="group" aria-label="Views">
           {(['iso', 'top', 'front', 'right'] as const).map(v => <button key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</button>)}
           <button onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></button>

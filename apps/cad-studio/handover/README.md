@@ -768,6 +768,14 @@ Done:
      - G25 analyses on the GPU for interactive speed: wall thickness and tool access by GPU rays (display only; the exact values stay the kernel's), and a scan-versus-CAD deviation colour map.
      - After G25 (coordinator, 2026-10-22, unless G20 needs the same machinery first): antialiased cap edges — the caps' probe and cap test per MSAA sample (G19.4's limit).
      - Later, when measured need appears: GPU occlusion culling for very large assemblies (G14's thresholds), progressive photoreal rendering and turntable / exploded-animation video export.
+   - **GPU lane: hand-over (account change, 2026-10-22).** Full block in `handover/decisions-gpu.md` (last section).
+     - Last done: G20.1 (02ebc9a7a).
+     - In progress: G20.2, committed as WIP. 3d85e6793 is the gpu probe fix, 398683cb6 the studio cut-out; their
+       commit messages list what is unverified.
+     - Branch `claude/gpu-viewer-pose-clip-2026-10-21`, worktree `.claude/worktrees/great-einstein-3ea69b`, last
+       integration merge ecb9562ee (9fec9950c).
+     - Queue: finish G20.2, then G21 → G25, each with a short S0 to the coordinator and one checkpoint a stage.
+     - G22, G23 and G24's data shapes are agreed with the outer lane (see the hand-over block).
 
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 

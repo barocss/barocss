@@ -670,7 +670,11 @@ override nearer: f32 = 1.0;
   if (capPoint(in.world).w < 0.5) { discard; }
   var o: Probe;
   o.v = vec2f(in.clip.z, select(1.0, 0.0, front));
-  o.z = clamp(in.clip.z + select(4e-7 * nearer, 0.0, front), 0.0, 1.0);
+  // (A back face's lead: enough to win a tie — two faces at one depth, to rounding — and no more. In the scene's reversed
+  // depth, a share of it (G20.2: a fixed 4e-7 there, far from the eye, put a back face just behind a front one — near an
+  // edge — ahead of it, a cap leaking over the edge); in the shadow map's, linear in distance, a fixed one.)
+  let lead = select(4e-7, max(in.clip.z, 1e-12) * 1e-5, nearer > 0.0);
+  o.z = clamp(in.clip.z + select(lead * nearer, 0.0, front), 0.0, 1.0);
   return o;
 }
 // The shadow map: depth only, less what the clip plane cuts away.

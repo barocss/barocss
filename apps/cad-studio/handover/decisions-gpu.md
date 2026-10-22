@@ -1281,3 +1281,106 @@ Stages: G20.1 the viewer; G20.2 the studio.
   in G19.4's one run). The intersection path's only change is one uniform branch a fragment; the spread between runs is
   wider than the difference. Task 18.5 ms a frame; the CPU row 21.7 ms.
 - **Checks** (T1, gpu): tsc and lint clean; unit 84/84, consumer 3/3, browser 19/19. Studio not touched (G20.2).
+
+## GPU lane: hand-over (account change, 2026-10-22)
+
+**Where it stands**
+- Branch `claude/gpu-viewer-pose-clip-2026-10-21`, worktree `.claude/worktrees/great-einstein-3ea69b`.
+- Last integration merge: ecb9562ee (integration 9fec9950c). The coordinator merges this branch into integration in
+  its windows; merge each integration tip it sends before your next checkpoint, and never amend or rebase.
+- Last stage done and accepted: **G20.1** (02ebc9a7a gpu, 94eb2d048 record).
+- **G20.2 in progress, committed as WIP** (the tip of the branch: 3d85e6793, 398683cb6).
+  - The fix in 3d85e6793: the caps' probe gave a back face a fixed depth lead of 4e-7 to win ties. Far from the eye in
+    reversed depth, that lead put a back face just behind a front face (near an edge) ahead of it, so a cap leaked over
+    the part's far edges: 660 leaking pixels in the new browser test's scene, 2 051 strong pixels in the studio's
+    cut-out flow against the CPU.
+  - Now the lead is depth × 1e-5 in the scene's probe; the shadow map's probe (linear depth) keeps 4e-7. The leak
+    scene leaves 3 pixels, all on edges.
+  - In the studio: the Cut-out mode, `clipMeshCutout`, the chained exact pieces, and `exactBodies` / `mergeBodies`
+    (one body per source body).
+  - Verified: gpu unit 84/84 and lint; the leak scene run alone; studio suite 213/213; WebGL2 `FLOW_ONLY` G20.2 and
+    every section step 9/9.
+  - **Unverified**: the gpu browser suite with the probe fix (stopped while running, load 54); G20.2 on WebGPU after
+    the fix; the bench section row.
+- **To finish G20.2**:
+  1. Run gpu `npm run build:library && npm test && npm run test:browser` (CHROME and PW_DIR as in the standing rules),
+     20/20 expected with the new leak test.
+  2. In the scratch verify worktree, on the branch tip: `FLOW_RENDERER=webgpu FLOW_ONLY='G20|G19|section view: a box
+     with a hole|place another part as an instance|RM2: the 2R arm posed' node test/browser-flow.mjs <out>`, then the
+     same with webgl2.
+  3. `BENCH_ONLY=section node test/bench-browser.mjs`, run alone.
+  4. Write the G20.2 record here, and the G20 row in README §0.
+  5. Send the checkpoint.
+  6. If the GPU against CPU figure still exceeds 0.1 %, look at the diff map (the caps' aliased edges are a known limit,
+     not a leak).
+
+**Queue** (owner, "좋아 로드맵을 채워줘"; README §0 item 6). Each stage: a short S0 to the coordinator first, one
+checkpoint a stage, FLOW_ONLY on both renderers.
+- G20.2, then:
+- G21 CAD display: silhouette edges of curved faces (screen space); shaded with edges, hidden lines removed, hidden
+  lines dashed, wireframe and x-ray modes; isolate and hide with the rest faded.
+- G22 assembly checks on screen: interference and clearance colours, and collision highlights in joint play or a motion
+  study. The outer lane's `clearanceMap(doc, evaluate, { nearMM })` → `clearance-map-v1`, as agreed:
+  - a band mesh a side, in the body's local frame, edges ≤ near/3, the exact field per band vertex (not per display
+    vertex), drawn as a decal;
+  - overlap meshes in body a's local frame with a pose key; closest points local or pose-tagged;
+  - updates pair by pair as the Booleans finish, each checked by its pose key;
+  - pending pairs red from the clearance; refused pairs hatched red, with the reason.
+- G23 manufacturing previews (no mould fill or other CAE, #2177).
+  - `printLayers`: bed coordinates plus a model → bed 4×4; `layer(k)` on demand and cached; a `summary` (count,
+    heights, totals, `supportColumns`: footprints and z ranges); per layer, merged support polygons with the contours'
+    winding.
+    - The "printed up to k" view: the model in the bed frame cut by one clip plane (G19's caps), the supports extruded
+      once from `supportColumns`.
+  - `camPackage`:
+    - the full tool shape;
+    - the ordered tool-tip path (rapid, feed, plunge, ramp and retract segments, linking moves included);
+    - one setup frame and a tool axis per setup;
+    - CNC7b's stock as a solid.
+    - A height field in the setup frame (2.5D); the part's mesh as the target; NOT FOR PRODUCTION shown.
+- G24 3D annotations (MBD/PMI): the outer lane's `modelAnnotations` → `model-annotations-v1`, as agreed:
+  - planar text by default (billboard an option), mirrored back when seen from behind, fading edge-on;
+  - their `lines` drawn, `targets` for picks and highlight;
+  - arrows as heads {tip, dir, length, width, style}; lines with a role; text height in model mm;
+  - GD&T frames and weld symbols from the outer lane's glyph builders (pure functions in plane coordinates), not your
+    own symbol geometry; a stable `id` equal to the sheet item's; `<inst>/` targets.
+- G25 GPU analyses: wall thickness and tool access by GPU rays (display only, the exact values the kernel's), and a
+  scan-versus-CAD deviation map.
+
+**Open items**
+- After G25 (unless G20 or a later stage needs the same machinery first): antialiased cap edges. The caps' probe and
+  cap test would run per MSAA sample; inside-or-not is decided once a pixel now.
+- The WebGL2 support statement (README §0, after G16): keep it current as stages add WebGPU-only views; say what
+  WebGL2 draws and what it does not.
+- Later, only on measured need: occlusion culling for huge assemblies, progressive photoreal rendering, turntable and
+  exploded-animation video export.
+
+**Standing rules**
+- Local only: no push, PR, publish, release or deploy.
+- Don't touch the kernel core files (edge-finish, part-model, analytic-boolean, rolling-ball, fillet-section, brep-*,
+  solid-mass, tessellation). Own TS/WGSL, no new dependencies, no WASM. Hoist functions out of hot paths. No icon font
+  or font files in the project.
+- Git identity `easylogic <cyberuls@gmail.com>`. Commits end with the Co-Authored-By line. New commits only.
+- Name another lane's file and the change to the coordinator before building it.
+- Flow chat port `CAD_STUDIO_CHAT_PORT=52691`.
+- Check `sysctl -n vm.loadavg` before a long run; above about 40, wait.
+- `FLOW_ONLY` narrow: only the steps the change runs and their prerequisites. New steps go before the theme step.
+  Don't edit sources during a flow run (Vite reloads).
+- Long checks in the scratch verify worktree. Kill only your own PIDs. Benches only for changed rows, run alone, with
+  the load recorded.
+- Every display path is checked against the CPU's: GPU picks against CPU rays, GPU section against CPU clipMesh through
+  the same viewer (≤ 0.1 % strong pixels), WebGL2 at parity, or the tolerance stated with its reason. Oracles closed
+  form where one exists.
+- Tests: gpu (Node 22) `npm run build:library` before tests; browser with
+  `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright`.
+  Studio: `npm test`, tsc, eslint on the changed files. cad-model's suite only if cad-model is touched.
+- Commit pnpm-lock.yaml only with a deliberately added dependency.
+- Leave alone the untracked `REVIEW-2026-10-14-cad-gpu.md`, `review-drafts/`,
+  `packages/barocss-gpu/src/engine-uv-material-wgsl.ts` (read-only) and `.claude/`.
+
+**How to resume**
+1. Read README §0 (item 6 and this block) and this file's G19 and G20 sections.
+2. In the worktree, check `git status` (clean) and the tip (this commit).
+3. Merge the integration tip the coordinator names.
+4. Finish G20.2 as listed above.
+5. Then G21: send its S0 to the coordinator first.

@@ -15,8 +15,12 @@ import { motionOf } from './instancePose';
 type Axis = 'x' | 'y' | 'z';
 /** One plane of a section (G19): what is kept is where dot(normal, p) ≥ offset (normal of unit length); along an axis, or from a face. */
 export interface SectionPlane { normal: Vec3; offset: number; axis?: Axis; face?: string }
-/** The section (G19): one plane, a box (six axis planes, the inside kept), or two or three planes; the kept region their intersection. */
-export interface Section { mode: 'plane' | 'box' | 'planes'; planes: SectionPlane[] }
+/**
+ * The section (G19): one plane, a box (six axis planes, the inside kept), or two or three planes — the kept region their
+ * intersection; or a cut-out (G20): two or three planes, kept on any one's kept side — the corner where their cut-away
+ * sides meet removed (a quarter, an octant).
+ */
+export interface Section { mode: 'plane' | 'box' | 'planes' | 'cutout'; planes: SectionPlane[] }
 /** The axis section as it was (G2): across `axis` at `at`, the `keep` side shown. */
 export interface AxisSection { axis: Axis; at: number; keep: 'negative' | 'positive' }
 type Placed = { id: string; bodies: BodyResult[] };
@@ -60,13 +64,28 @@ export function planeFromFace(face: Pick<DisplayFace, 'normal' | 'centroid' | 'n
 
 /** The section's planes as the viewer takes them. */
 export const sectionPlanes = (s: Section): { normal: Vec3; offset: number }[] => s.planes.map(p => ({ normal: p.normal, offset: p.offset }));
+/** A plane's other side: kept where the plane cuts away. */
+export const flipPlane = (p: SectionPlane): SectionPlane => ({ ...p, normal: p.normal.map(v => -v || 0) as Vec3, offset: -p.offset || 0 });
+/**
+ * The cut-out's default planes (G20): the corner of `box` facing the eye removed through the box's centre — along X and
+ * Y (a quarter), and Z too (`n` 3, an octant).
+ */
+export function cutoutCorner(box: { min: readonly number[]; max: readonly number[] }, eye: readonly number[] | null, n: 2 | 3 = 2): SectionPlane[] {
+  return (['x', 'y', 'z'] as const).slice(0, n).map((axis, k) => {
+    const c = Math.round(box.min[k] + box.max[k]) / 2;
+    return axisPlane(axis, c, eye && eye[k] < c ? 'positive' : 'negative');
+  });
+}
 /** The first plane as G2's one (normal, offset), for what reads one plane. */
 export function sectionPlane(s: Section): { normal: Vec3; offset: number } { return { normal: s.planes[0].normal, offset: s.planes[0].offset }; }
 
-/** Whether a mesh lies wholly on a cut-away side of a plane: when clipMesh gives null (by its box, with clipMesh's tolerance). */
+/**
+ * Whether a mesh lies wholly on a cut-away side of a plane: when clipMesh gives null (by its box, with clipMesh's
+ * tolerance). A cut-out's (G20): on every plane's cut-away side — in the removed corner.
+ */
 export function cutAway(m: Pick<DisplayMesh, 'bounds'>, s: Section): boolean {
   const b = m.bounds, size = Math.max(1, ...b.max.map(Math.abs), ...b.min.map(Math.abs)), eps = 1e-9 * size;
-  return s.planes.some(p => {
+  return s.planes[s.mode === 'cutout' ? 'every' : 'some'](p => {
     const a = planeAxis(p);
     if (a) return a.keep === 'negative' ? a.at - b.min[a.k] <= eps : b.max[a.k] - a.at <= eps;
     let hi = -Infinity;
@@ -100,6 +119,61 @@ export function clipMeshPlanes(m: DisplayMesh, planes: readonly SectionPlane[], 
   return out;
 }
 /**
+ * A mesh less a cut-out's corner (G20), as one mesh: its pieces kept by plane i and cut away by every plane before it —
+ * disjoint, together what any plane keeps — each clipped and capped, merged. The caps between two pieces lie inside the
+ * solid (hidden; none faces the side cut away, so none is hatched); the notch's faces are the pieces' caps there.
+ */
+export function clipMeshCutout(m: DisplayMesh, planes: readonly SectionPlane[], capName: string): DisplayMesh | null {
+  const pieces: DisplayMesh[] = [];
+  for (let i = 0; i < planes.length; i++) {
+    const piece = clipMeshPlanes(m, [...planes.slice(0, i).map(flipPlane), planes[i]], capName);
+    if (piece === m) return m;
+    if (piece) pieces.push(piece);
+  }
+  return pieces.length ? pieces.reduce(mergeMeshes) : null;
+}
+/** The planes' part of a mesh: G19's intersection, or a cut-out's (G20). */
+export const clipMeshSection = (m: DisplayMesh, s: Section, capName: string): DisplayMesh | null => s.mode === 'cutout' ? clipMeshCutout(m, s.planes, capName) : clipMeshPlanes(m, s.planes, capName);
+/** Two display meshes as one: points, faces and edges of the second after the first's, renumbered. */
+export function mergeMeshes(a: DisplayMesh, b: DisplayMesh): DisplayMesh {
+  const nv = a.positions.length / 3, nf = a.faces.length, ne = a.edges.length;
+  const cat = (x: Float32Array, y: Float32Array) => { const o = new Float32Array(x.length + y.length); o.set(x); o.set(y, x.length); return o; };
+  const fov = cat(a.faceOfVertex, b.faceOfVertex), eos = cat(a.edgeOfSegment, b.edgeOfSegment), idx = new Uint32Array(a.indices.length + b.indices.length);
+  for (let i = a.faceOfVertex.length; i < fov.length; i++) fov[i] += nf;
+  for (let i = a.edgeOfSegment.length; i < eos.length; i++) eos[i] += ne;
+  idx.set(a.indices); for (let i = 0; i < b.indices.length; i++) idx[a.indices.length + i] = b.indices[i] + nv;
+  return {
+    positions: cat(a.positions, b.positions), normals: cat(a.normals, b.normals), faceOfVertex: fov, indices: idx,
+    faces: [...a.faces, ...b.faces.map(f => ({ ...f, index: f.index + nf }))], edgeLines: cat(a.edgeLines, b.edgeLines), edgeOfSegment: eos,
+    edges: [...a.edges, ...b.edges.map(e => ({ ...e, index: e.index + ne, faces: [e.faces[0] + nf, e.faces[1] + nf] as [number, number] }))],
+    bounds: { min: [0, 1, 2].map(k => Math.min(a.bounds.min[k], b.bounds.min[k])) as Vec3, max: [0, 1, 2].map(k => Math.max(a.bounds.max[k], b.bounds.max[k])) as Vec3 },
+    ...(a.quality !== undefined ? { quality: a.quality } : {}),
+  };
+}
+/**
+ * A body's pieces as one body (G20: a cut-out's exact section splits a body in two or three; everything that reports per
+ * body — the solids count, mass and properties, picks — reports the body): their meshes merged, volume and mass summed,
+ * the centre of mass by volume; the first piece's key and the rest of what it says.
+ */
+export function mergeBodies(pieces: readonly BodyResult[]): BodyResult {
+  if (pieces.length === 1) return pieces[0];
+  const sum = (f: (b: BodyResult) => number | null) => pieces.every(b => f(b) !== null) ? pieces.reduce((v, b) => v + f(b)!, 0) : null;
+  const volume = sum(b => b.volumeMM3), mass = sum(b => b.massG);
+  const centroid = volume && pieces.every(b => b.centroid && b.volumeMM3 !== null) ? [0, 1, 2].map(k => pieces.reduce((v, b) => v + b.centroid![k] * b.volumeMM3!, 0) / volume) as [number, number, number] : undefined;
+  // (The area and inertia of the whole are not the pieces' sum — the faces between them are inside — so left out.)
+  const { areaMM2: _a, areaBasis: _b, inertia: _i, pieces: _p, ...first } = pieces[0];
+  void _a; void _b; void _i; void _p;
+  return { ...first, mesh: pieces.map(b => b.mesh).reduce(mergeMeshes), volumeMM3: volume, massG: mass, ...(centroid ? { centroid } : {}) };
+}
+/** The exact section's bodies, one a source body (its pieces merged), and each one's source body's key. */
+export function exactBodies(bodies: readonly BodyResult[], kept: readonly string[], from: readonly string[]): { bodies: BodyResult[]; from: Map<string, string> } {
+  const byKey = new Map(bodies.map(b => [b.key, b])), groups = new Map<string, BodyResult[]>();
+  for (let i = 0; i < kept.length; i++) { const b = byKey.get(kept[i]); if (!b) continue; const g = groups.get(from[i]); if (g) g.push(b); else groups.set(from[i], [b]); }
+  const out: BodyResult[] = [], src = new Map<string, string>();
+  for (const [source, pieces] of groups) { const b = mergeBodies(pieces); out.push(b); src.set(b.key, source); }
+  return { bodies: out, from: src };
+}
+/**
  * A mesh's points, normals and edge lines through a rotation, its box again from the points its triangles use (clipMesh
  * keeps the points of the triangles it drops); the rest as it is.
  */
@@ -121,7 +195,7 @@ function turnMesh(m: DisplayMesh, f: (v: readonly number[]) => Vec3): DisplayMes
  */
 export function sectionedBodies(bodies: readonly BodyResult[], s: Section, gpu: boolean, capName: string): BodyResult[] {
   if (gpu) return bodies.filter(b => !cutAway(b.mesh, s));
-  return bodies.flatMap(b => { const mesh = clipMeshPlanes(b.mesh, s.planes, capName); return mesh ? [{ ...b, mesh }] : []; });
+  return bodies.flatMap(b => { const mesh = clipMeshSection(b.mesh, s, capName); return mesh ? [{ ...b, mesh }] : []; });
 }
 
 /**
@@ -133,15 +207,17 @@ export function sectionedInstances<T extends Placed>(instances: T[], poses: Read
   if (gpu) return instances;
   return instances.map(i => {
     const M = poses.get(i.id), m = M && motionOf(M);
-    return { id: i.id, bodies: i.bodies.flatMap(b => { const mesh = clipMeshPlanes(m ? posedBody(b, m).mesh : b.mesh, s.planes, 'section'); return mesh ? [{ ...b, mesh }] : []; }) };
+    return { id: i.id, bodies: i.bodies.flatMap(b => { const mesh = clipMeshSection(m ? posedBody(b, m).mesh : b.mesh, s, 'section'); return mesh ? [{ ...b, mesh }] : []; }) };
   });
 }
 
 /**
  * The exact section's document (G2, G19): each body the planes cross split by them in turn — each kept piece split by
- * the next plane that crosses it — and the keys of the pieces kept (bodies wholly kept as they are, those wholly cut
- * away left out), and each kept piece's body (`from`, by its key). One axis plane: by the bodies' boxes, as before; otherwise by their display meshes clipped plane by
- * plane (whether a plane crosses what is left of a body; the kernel refuses a split that does not).
+ * the next plane that crosses it; G20, a cut-out: each body's pieces kept by each plane in turn from what the planes
+ * before it cut away — and the keys of the pieces kept (bodies wholly kept as they are, those wholly cut away left
+ * out), and each kept piece's body (`from`, by its key). One axis plane: by the bodies' boxes, as before; otherwise by
+ * their display meshes clipped plane by plane (whether a plane crosses what is left of a body; the kernel refuses a
+ * split that does not).
  */
 export function sectionSplits(evaluated: StudioDoc, bodies: readonly BodyResult[], s: Section): { doc: StudioDoc; kept: string[]; from: string[] } {
   let doc: StudioDoc = { ...evaluated, nodes: [...evaluated.nodes] };
@@ -151,6 +227,23 @@ export function sectionSplits(evaluated: StudioDoc, bodies: readonly BodyResult[
       const { min, max } = b.mesh.bounds, { k, at, keep } = one;
       if (min[k] < at - 1e-6 && max[k] > at + 1e-6) { doc = withNode(doc, split(refOf(b), s.planes[0])); kept.push(bodyKeyFor(doc.nodes, doc.nodes.length - 1, keep)); from.push(b.key); }
       else if (keep === 'negative' ? max[k] <= at + 1e-6 : min[k] >= at - 1e-6) { kept.push(b.key); from.push(b.key); }
+      continue;
+    }
+    if (s.mode === 'cutout') {
+      // (G20: the body's pieces kept by each plane in turn from what the planes before it cut away — what is left of it
+      // after a plane taken on to the next; the rest, in the removed corner, dropped.)
+      let ref: BodyRef | null = null, key = b.key, mesh: DisplayMesh | null = b.mesh;
+      for (const p of s.planes) {
+        const side = classify(mesh!, p);
+        if (side === 'kept') { kept.push(key); from.push(b.key); break; }
+        if (side === 'cut') continue;
+        doc = withNode(doc, split(ref ?? refOf(b), p));
+        const node = doc.nodes.length - 1, a = planeAxis(p), keep = a ? a.keep : 'positive', other = keep === 'positive' ? 'negative' : 'positive';
+        kept.push(bodyKeyFor(doc.nodes, node, keep)); from.push(b.key);
+        ref = { node, side: other }; key = bodyKeyFor(doc.nodes, node, other);
+        mesh = clipMeshPlane(mesh!, flipPlane(p), 'section');
+        if (!mesh) break;
+      }
       continue;
     }
     let ref: BodyRef | null = null, key = b.key, mesh: DisplayMesh | null = b.mesh;
