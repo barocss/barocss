@@ -4,6 +4,8 @@ export interface CamGeometry { positions: Float32Array; normals?: Float32Array; 
 export interface CamRemoval {
   /** Setup-frame display mesh; never native Model geometry. */
   geometry: CamGeometry;
+  /** Cells cut below the part's surface (the tool entered the part): their tops, and the volume taken from the part. */
+  overcut: CamGeometry; overcutMM3: number; overcutCells: number;
   cellMM: number; sampleMM: number; nx: number; ny: number;
   removedMM3: number; lateralUncertaintyMM: number;
 }

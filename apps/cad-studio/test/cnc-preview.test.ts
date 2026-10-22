@@ -4,7 +4,7 @@ import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { camPackage, type CamPackage, type Move, type SetupProgram, type StockSolid, type ToolShape } from '@barocss/cad-model/machining/camPackage';
-import { CamHeightfield, camSetupToWorld, camToolBottom } from '../src/viewport/camHeightfield';
+import { CAM_OVERCUT_TOLERANCE_MM, CamHeightfield, camSetupToWorld, camToolBottom, type CamPartMesh } from '../src/viewport/camHeightfield';
 import { camToolGeometry } from '../src/viewport/camToolGeometry';
 import { CamOverlayGeometry, camStockBounds, camStockWire, camToWorld } from '../src/viewport/camOverlayGeometry';
 import type { CamDisplay } from '../src/viewport/camDisplay';
@@ -27,6 +27,12 @@ const POCKET: [string, Record<string, unknown>][] = [cmd('box', { w: 120, d: 80,
 const withStock = (doc: StudioDoc): StudioDoc => ({ ...doc, machining: { version: 1, stock: [{ id: 'B1', kind: 'block', size: [125, 85, 25], source: 'the test\'s list' }] } } as StudioDoc);
 let pocket: Promise<CamPackage> | null = null;
 const pocketPackage = () => pocket ??= build(POCKET).then(s => camPackage(withStock(s.doc), s.bodies));
+/** A box's 12 triangles (outward), as a part mesh. */
+function boxMesh(min: number[], max: number[]): CamPartMesh {
+  const positions: number[] = [];
+  for (let i = 0; i < 8; i++) positions.push(i & 1 ? max[0] : min[0], i & 2 ? max[1] : min[1], i & 4 ? max[2] : min[2]);
+  return { positions, indices: [0, 2, 1, 1, 2, 3, 4, 5, 6, 5, 7, 6, 0, 1, 4, 1, 5, 4, 2, 6, 3, 3, 6, 7, 0, 4, 2, 2, 4, 6, 1, 3, 5, 3, 7, 5] };
+}
 
 const flat = (d = 6, flute = 3 * d): ToolShape => ({ kind: 'flat', diameterMM: d, cornerMM: 0, fluteMM: flute, shankMM: d, basis: { diameter: 'given', shape: 'given' } });
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
@@ -145,4 +151,19 @@ test('overlay drawings: world coordinates through the setup\'s inverse, identiti
   assert.deepEqual(g.update(null), []);
   const refused = { ...p, stock: { refused: { code: 'STOCK_NONE_LOADED', message: 'none loaded' } } } as CamPackage;
   assert.throws(() => g.update({ ...display(1), package: refused }), /STOCK_NONE_LOADED/, 'a refusal is shown, never the part\'s box in its place');
+});
+
+test('overcut: a slot through a solid part is overcut by all it removes; one reaching a part\'s top is not; one ending in a part is, in part', async () => {
+  // (The same slot as above, through a part that is the whole stock: every cut is into the part.)
+  const stock = box([0, 0, 0], [40, 40, 10]);
+  const slot = program([{ kind: 'plunge', a: [10, 20, 40], b: [10, 20, 6] }, { kind: 'feed', a: [10, 20, 6], b: [30, 20, 6] }, { kind: 'retract', a: [30, 20, 6], b: [30, 20, 40] }]);
+  const solid = new CamHeightfield(stock, slot, flat(), 0.5, [boxMesh([0, 0, 0], [40, 40, 10])]).evaluate(3);
+  assert.ok(solid.overcutCells > 0);
+  assert.ok(Math.abs(solid.overcutMM3 - solid.removedMM3) < 1e-6, `${solid.overcutMM3} vs ${solid.removedMM3}`);
+  // (A part whose top is the slot's floor, 6: the slot only reaches it — within the tolerance, not overcut.)
+  const floor = new CamHeightfield(stock, slot, flat(), 0.5, [boxMesh([0, 0, 0], [40, 40, 6 - CAM_OVERCUT_TOLERANCE_MM / 2])]).evaluate(3);
+  assert.equal(floor.overcutCells, 0);
+  // (A part 2 under the stock's top beside the slot only, x 32 to 40: the slot ends at x 33, so the tool's end enters it.)
+  const beside = new CamHeightfield(stock, slot, flat(), 0.5, [boxMesh([32, 0, 0], [40, 40, 8])]).evaluate(3);
+  assert.ok(beside.overcutCells > 0 && beside.overcutMM3 < solid.overcutMM3);
 });
