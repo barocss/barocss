@@ -5944,3 +5944,36 @@ The kernel lane's FRk1 (D165) is in (integration 7f9c31f0b, merged here as b3ae7
   - the purchase CSV rows; two copies ×2 with their part ids;
   - the joints `<gusset>.<m0>` 105, `<gusset>.<m1>` 85 and `<cap>.<m0>` 160 at `start`, each a fillet sized 3 (estimate), exact; the mitre joint stays; the table's words.
 - **For the coordinator**: integration's `test/weldment.test.ts` (the kernel lane's, b03719ada) fails the cad-model type-check: two calls of `fields?` possibly undefined (lines 23 and 42) and a sketch node cast (line 70). Not touched here.
+
+## G24 data side — built (2026-10-22)
+
+`drawing/annotations3d.ts` (`modelAnnotations`, version model-annotations-v1) is built as the S0 froze it, with the GPU lane's five additions:
+1. Heads as heads (`tip`, `dir`, `length`, `width`, `style`), from the `head` the sheet's marks now carry.
+2. A `role` on each line (dimension, extension, leader, frame, weld), set where the sheet builds its marks.
+3. Text height in model mm and alignment along `dir`/`up` in the plane.
+4. Frame cells and box, weld data, and the sheet's glyph builders in plane coordinates (`frameGlyph`, `weldGlyph`, `toPlane`).
+5. Ids equal to the sheet items'.
+
+The studio hook is `__studioAnnotations()`. Tests are in `test/annotations3d.test.ts`: the geometric plate and the welded table equal the sheet's to 1e-9, and the glyphs give the sheet's marks back. Only package T1 tests were run; the verify-worktree run and the checkpoint message are still to do.
+
+## Queue 5b — weld records → the kernel's weld beads (FRk2, D166) (2026-10-22)
+
+The kernel lane's FRk2 is in (integration 56e11f3ae, merged here as ba71497a6). The record → bead mapping is the outer lane's (`engine/part.ts`, after every node in `toPartDocument`):
+- **Which records**: a record makes a bead when its kind is a fillet (set, or unset where a fillet is the default) and its size is set; its size is the leg. A record with no size makes no bead.
+- **The mapping**:
+  - `<member>.<end>` (a butt, an on-face end, a mitre set to fillet) → `{ kind: 'weld-bead', frame: <the frame's feature id>, on: { member: k, end }, leg, inner? }`. k is the body key's side `part<k>` (`solid`: 0); the body key resolves to its node by `bodyNodeOf`. An on-face end maps as its own end, and the kernel finds every face it lands on.
+  - `<gusset>.<member>` → `on: { gusset }`; `<cap>.<member>` → `on: { cap }`. The kernel welds all of a plate's seams in one bead, so its joints share one feature (`bead_<plate key>`), the first record's leg.
+  - The feature id is `bead_<joint id>` for a member's end. Its body is keyed the same, with no node: it weighs (it is in the part's bodies) and makes no BOM line.
+- **Refusals never fail the part**: `withBeadRetry` runs each evaluation (the snapshot, part, volumes, preview, placed and base, STEP, drawing B-reps, sections, assembly faces). When the kernel throws a CadPartError on a bead feature, that bead is left out (remembered by what decides the kernel's answer: the bead, its frame and plate nodes, the parameters, the section library) and the part is built again. The reason goes to the joint.
+- **Defaults**: a mitre's default weld stays a groove (butt). A cap's default is now a corner weld (butt), since the kernel says a cap sits flush. A record left with no kind on either is no bead, and the kernel's BEAD_KIND there is kept quiet; set to fillet, it is said.
+- **The weld list**: each joint has `bead`, either `{ feature, legMM, throatMM, volumeMM3, seamMM, flushMM }` from its body's report (a `weld-bead` ElementReport), or `{ refused }`. The table's notes say "W<k>: no bead — <the kernel's reason>".
+- **Tests** (`test/weld-beads.test.ts`, the kernel's frk/ scenes built from records, not features):
+  - the 40 rail on the 80 post: 756 mm³ (and the case's own value);
+  - on the 40 post: 360 (flush sides none);
+  - the clipped gusset's two seam joints: one bead, 1710 = (105 + 85)·3²;
+  - leg 3, throat 3/√2; no BOM line, its volume in the part's;
+  - a mitre set to fillet: BEAD_KIND said on the joint and in the table, the part evaluated;
+  - unset on the mitre: no bead, quiet, kind butt;
+  - the 60° brace: BEAD_ANGLE said;
+  - no size: no bead.
+- `frame-plates.test.ts`: the cap's default kind is now butt.

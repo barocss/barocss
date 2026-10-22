@@ -2,7 +2,7 @@
 // keyway, a retaining ring, a dowel pin, a bearing, an O-ring gland, an O-ring — kept on its BodyResult as plain data
 // (`element`), with the user's row it was checked against, so the drawing's tables and callouts and the BOM read the
 // numbers, not the notes' text. Its shape is kept stable: the GPU lane's overlays and later analyses read it too.
-import type { BearingReport, BeltReport, CadPartSnapshot, CamReport, ConnectorReport, CouplingReport, EndCapReport, GlandReport, GussetReport, HookedSpringReport, KeyReport, KeywayReport, PinReport, PulleyReport, RingReport, ShaftReport, SpringReport, SprocketReport } from '@barocss/cad';
+import type { BeadReport, BearingReport, BeltReport, CadPartSnapshot, CamReport, ConnectorReport, CouplingReport, EndCapReport, GlandReport, GussetReport, HookedSpringReport, KeyReport, KeywayReport, PinReport, PulleyReport, RingReport, ShaftReport, SpringReport, SprocketReport } from '@barocss/cad';
 import { featureLabel as featureLabelOf, type ModelNode, type StudioDoc } from './doc';
 
 export type ElementReport =
@@ -26,7 +26,9 @@ export type ElementReport =
   | { kind: 'connector-body'; report: { readonly row: string; readonly overlapMM3: number } }
   // (FRk1, D165: a frame's gusset and end cap — plates, made; the BOM lists them as plates, the weld list their seams.)
   | { kind: 'gusset'; report: GussetReport }
-  | { kind: 'end-cap'; report: EndCapReport };
+  | { kind: 'end-cap'; report: EndCapReport }
+  // (FRk2, D166: a fillet weld bead from the person's weld record — mass, no BOM line; the weld list reads it.)
+  | { kind: 'weld-bead'; report: BeadReport };
 export type ElementKind = ElementReport['kind'];
 /** The user's row an element was checked against: its id, and its source or that it is an estimate. */
 export interface ElementRow { id: string; source?: string; estimate: boolean }
@@ -55,6 +57,7 @@ export function elementOf(o: Output, node: ModelNode | undefined): BodyElement |
   if (o.connectorBody) return { kind: 'connector-body', report: o.connectorBody };
   if (o.gusset) return { kind: 'gusset', report: o.gusset };
   if (o.endCap) return { kind: 'end-cap', report: o.endCap };
+  if (o.bead) return { kind: 'weld-bead', report: o.bead };
   if (o.coupling) { const r = o.coupling; return { kind: 'coupling', report: r, row: { id: r.row, ...(r.source ? { source: r.source } : {}), estimate: r.estimate } }; }
   return null;
 }
@@ -108,6 +111,7 @@ export function sizeOf(e: BodyElement, oringRow?: { insideDiameterMM: number; cr
     case 'connector-body': { const b = connectorRow?.body; return `${connectorName(connectorRow?.name, e.report.row)} envelope${b ? ` ${b.shape} ${n(b.widthMM)} × ${n(b.heightMM)} × ${n(b.lengthMM)}` : ''}`; }
     case 'gusset': return `plate ${n(e.report.thicknessMM)} thick, legs ${n(e.report.legsMM[0])} × ${n(e.report.legsMM[1])}${e.report.clipMM ? `, clipped ${n(e.report.clipMM)}` : ''}`;
     case 'end-cap': return `plate ${n(e.report.thicknessMM)} thick, ${e.report.fit}, ${n(e.report.areaMM2)} mm²`;
+    case 'weld-bead': return `fillet ${n(e.report.legMM)} leg (throat ${n(e.report.throatMM)}), ${n(e.report.seam.lengthMM)} seam`;
     case 'coupling': return `Ø${n(e.report.boreMM[0])} / Ø${n(e.report.boreMM[1])} bores, Ø${n(e.report.outsideMM)} × ${n(e.report.lengthMM)}`;
   }
 }

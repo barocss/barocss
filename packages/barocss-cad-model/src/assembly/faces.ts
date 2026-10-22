@@ -1,7 +1,7 @@
 // A part's faces as mates read them: each persistent face name with its exact plane or cylinder, in the
 // part's own coordinates, from the kernel's B-rep (not the display mesh, which is single precision).
 import { evaluateCadPart, faceGeometry, type Brep } from '@barocss/cad';
-import { toPartDocument } from '../engine/part';
+import { withBeadRetry } from '../engine/part';
 import { contentKey } from '../engine/evalMemo';
 import type { StudioDoc } from '../engine/doc';
 import { BASE, clean, type FaceTable, type Vec3 } from './mates';
@@ -31,7 +31,7 @@ export function faceTableOf(doc: StudioDoc): FaceTable {
   const key = faceKey(doc), have = tableCache.get(key);
   if (have) return have;
   let outputs;
-  try { outputs = evaluateCadPart(toPartDocument(doc)).outputs; } catch { return { ...ORIGIN_PLANES }; }
+  try { outputs = withBeadRetry(doc, part => evaluateCadPart(part)).outputs; } catch { return { ...ORIGIN_PLANES }; }
   const table = faceTableFrom(outputs);
   remember(key, table);
   return table;

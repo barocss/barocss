@@ -6,7 +6,7 @@ import type { FaceTable } from '../assembly/mates';
 import { brepSurfaceArea, cutPiece, evaluateCadPart, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { friendly, type FriendlyError } from './errors';
-import { bodyKeyOf, toPartDocument } from './part';
+import { bodyKeyOf, withBeadRetry } from './part';
 import { frameSegmentCount, placedDoc, type BodyRef, type FrameSectionRow, type ModelNode, type Side, type StudioDoc } from './doc';
 import { bodyNodeOf } from './ids';
 
@@ -238,8 +238,7 @@ function oneFeature(bends: readonly { name: string }[]): boolean {
 const bendLabel = (name: string, short: boolean): string => short ? name.slice(name.lastIndexOf('.') + 1) : name;
 
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
-  const part = toPartDocument(doc);
-  return last ? last.withDocument(part) : evaluateCadPart(part);
+  return withBeadRetry(doc, part => last ? last.withDocument(part) : evaluateCadPart(part));
 }
 
 /** The document with its parameter-bound skeletons solved for its parameters now (O140; the same document when none moved), or their refusal. */
@@ -274,7 +273,7 @@ const lastPreview: Record<'preview' | 'section', CadPartSnapshot | null> = { pre
 export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, slot: 'preview' | 'section' = 'preview'): EvalResult {
   const t0 = performance.now();
   try {
-    const part = toPartDocument(doc), last = lastPreview[slot], snapshot = last ? last.withDocument(part) : evaluateCadPart(part, undefined, PREVIEW); lastPreview[slot] = snapshot;
+    const last = lastPreview[slot], snapshot = withBeadRetry(doc, part => last ? last.withDocument(part) : evaluateCadPart(part, undefined, PREVIEW)); lastPreview[slot] = snapshot;
     const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volumeMM3: null, massG: null }));
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
@@ -294,7 +293,7 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot
   const t0 = performance.now();
   try {
     doc = skeletonsNow(doc);
-    const part = toPartDocument(doc), last = lastParts.get(slot), snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastParts.set(slot, snapshot);
+    const last = lastParts.get(slot), snapshot = withBeadRetry(doc, part => last ? last.withDocument(part) : evaluateCadPart(part)); lastParts.set(slot, snapshot);
     const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
     return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable };
@@ -306,7 +305,7 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot
 export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok: true; volumes: { key: string; volumeMM3: number | null }[] } | { ok: false; error: FriendlyError } {
   try {
     doc = skeletonsNow(doc);
-    const part = toPartDocument(doc), last = lastParts.get(slot), snapshot = last ? last.withDocument(part) : evaluateCadPart(part); lastParts.set(slot, snapshot);
+    const last = lastParts.get(slot), snapshot = withBeadRetry(doc, part => last ? last.withDocument(part) : evaluateCadPart(part)); lastParts.set(slot, snapshot);
     return { ok: true, volumes: snapshot.outputs.map(o => {
       let m = masses.get(o.brep);
       if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; } masses.set(o.brep, m); }
@@ -325,8 +324,8 @@ export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok:
 export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: number[]; t: [number, number, number] }, revision: number, quality = 8): EvalResult {
   const t0 = performance.now();
   try {
-    const part = toPartDocument(placed), snapshot = lastPlaced ? lastPlaced.withDocument(part) : evaluateCadPart(part); lastPlaced = snapshot;
-    const basePart = toPartDocument(base), origin = lastBase ? lastBase.withDocument(basePart) : evaluateCadPart(basePart); lastBase = origin;
+    const snapshot = withBeadRetry(placed, part => lastPlaced ? lastPlaced.withDocument(part) : evaluateCadPart(part)); lastPlaced = snapshot;
+    const origin = withBeadRetry(base, part => lastBase ? lastBase.withDocument(part) : evaluateCadPart(part)); lastBase = origin;
     const bodies = snapshot.outputs.map((o, i) => {
       const at = origin.outputs[i];
       if (!at || origin.outputs.length !== snapshot.outputs.length || !samePlacedBody(o.brep, at.brep, place.m, place.t)) return bodyOf(o, placed, revision, quality);
@@ -417,7 +416,7 @@ export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessell
       for (const o of outputs) { const r = keyed(o.id, d.nodes).ref; if (r && roleOf(d.nodes[r.node])) left.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else breps.push(o.brep); }
     };
     take(doc, snapshotOf(doc).outputs, '');
-    for (const inst of doc.instances ?? []) if (!inst.hidden) { const placed = placedDoc(inst); take(placed, evaluateCadPart(toPartDocument(placed)).outputs, `${inst.id}/`); }
+    for (const inst of doc.instances ?? []) if (!inst.hidden) { const placed = placedDoc(inst); take(placed, withBeadRetry(placed, part => evaluateCadPart(part)).outputs, `${inst.id}/`); }
     if (!breps.length) return { error: left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.' };
     const text = exportStep(breps, { name, ...(meshes ? { meshes } : {}) });
     return left.length ? { text, omitted: [`lattice infill not included (${left.join(', ')}); 3MF carries it`] } : { text };
@@ -446,7 +445,7 @@ export function partElements(doc: StudioDoc): { node: number; element: BodyEleme
 export function brepsFor(doc: StudioDoc): { breps: Brep[]; prefixes: string[] } | { error: string } {
   try {
     const breps = snapshotOf(doc).outputs.map(o => o.brep), prefixes = breps.map(() => '');
-    for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of evaluateCadPart(toPartDocument(placedDoc(inst))).outputs) { breps.push(o.brep); prefixes.push(`${inst.id}/`); }
+    for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of withBeadRetry(placedDoc(inst), part => evaluateCadPart(part)).outputs) { breps.push(o.brep); prefixes.push(`${inst.id}/`); }
     return { breps, prefixes };
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }

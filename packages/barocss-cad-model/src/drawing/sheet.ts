@@ -20,12 +20,16 @@ export type Pen = 'visible' | 'hidden' | 'thin' | 'center' | 'frame';
 export const PENS: Record<Pen, { width: number; dash?: number[] }> = {
   visible: { width: 0.5 }, hidden: { width: 0.35, dash: [3, 1.5] }, thin: { width: 0.25 }, center: { width: 0.25, dash: [8, 1.5, 1.5, 1.5] }, frame: { width: 0.7 },
 };
+/** G24 (the drawing's annotations on the model): what a line of an annotation is, for the 3D display's styles. */
+export type LineRole = 'dimension' | 'extension' | 'leader' | 'frame' | 'weld';
+/** G24: an arrowhead (or a dot, a datum's triangle) as a head, sheet mm: its tip, its direction (unit), length and width. */
+export interface Head { style: 'filled' | 'open' | 'dot' | 'tick'; tip: XY; dir: XY; length: number; width: number }
 export type Mark =
-  | { kind: 'line'; a: XY; b: XY; pen: Pen }
+  | { kind: 'line'; a: XY; b: XY; pen: Pen; role?: LineRole }
   /** `center + u·cos t + v·sin t`, t from t0 to t1 (sheet mm). */
-  | { kind: 'arc'; center: XY; u: XY; v: XY; t0: number; t1: number; pen: Pen }
-  | { kind: 'polyline'; points: XY[]; pen: Pen }
-  | { kind: 'fill'; points: XY[] }
+  | { kind: 'arc'; center: XY; u: XY; v: XY; t0: number; t1: number; pen: Pen; role?: LineRole }
+  | { kind: 'polyline'; points: XY[]; pen: Pen; role?: LineRole }
+  | { kind: 'fill'; points: XY[]; head?: Head }
   /** Parallel lines `spacing` apart at `angle` degrees (counter-clockwise as read) over rings, even–odd (R11b, O1: kept as one mark so a DXF gets a HATCH; SVG and PDF draw its lines). */
   /** `angle`: the lines' direction on the sheet (degrees, y down the paper): 45 for one body, a body's own in a section of several. */
   | { kind: 'hatch'; rings: XY[][]; spacing: number; angle: number; pen: Pen }
@@ -350,8 +354,10 @@ const dot2 = (a: XY, b: XY) => a[0] * b[0] + a[1] * b[1];
 /** A filled arrowhead with its tip at `tip`, pointing along `dir`. */
 function arrow(tip: XY, dir: XY): Mark {
   const d = unit(dir), n: XY = [-d[1], d[0]], base = add(tip, d, -ARROW);
-  return { kind: 'fill', points: [tip, add(base, n, ARROW_HALF), add(base, n, -ARROW_HALF)] };
+  return { kind: 'fill', points: [tip, add(base, n, ARROW_HALF), add(base, n, -ARROW_HALF)], head: { style: 'filled', tip, dir: d, length: ARROW, width: 2 * ARROW_HALF } };
 }
+/** A centre's dot as a head (G24). */
+const dot = (c: XY): Mark => ({ kind: 'fill', points: circlePoints(c, 0.4), head: { style: 'dot', tip: c, dir: [1, 0], length: 0.8, width: 0.8 } });
 
 /** Text along a direction, turned to read from below or from the right (angle in (-90°, 90°]). */
 function readAngle(dir: XY): number {
@@ -391,7 +397,7 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     // A pitch circle (R14.5): the circle in chain line through the holes' centres, a leader to it like a diameter's.
     const C = toSheet(v, r.center), R = r.radius * v.scale;
     const asDiameter = { ...r, kind: 'diameter', dim: { ...r.dim, kind: 'diameter', edge: '', near: [0, 0, 0] } } as unknown as Extract<Resolved, { ok: true; kind: 'diameter' }>;
-    return [{ kind: 'arc', center: C, u: [R, 0], v: [0, R], t0: 0, t1: 2 * Math.PI, pen: 'center' }, ...dimensionMarks(v, asDiameter)];
+    return [{ kind: 'arc', center: C, u: [R, 0], v: [0, R], t0: 0, t1: 2 * Math.PI, pen: 'center', role: 'dimension' }, ...dimensionMarks(v, asDiameter)];
   }
   const marks: Mark[] = [];
   const place = toSheet(v, r.dim.place);
@@ -403,13 +409,13 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     const u: XY = [f[0] * R, f[1] * R], w: XY = [g[0] * R, g[1] * R];
     const at = (t: number): XY => [X[0] + u[0] * Math.cos(t) + w[0] * Math.sin(t), X[1] + u[1] * Math.cos(t) + w[1] * Math.sin(t)];
     const tangent = (t: number): XY => [-u[0] * Math.sin(t) + w[0] * Math.cos(t), -u[1] * Math.sin(t) + w[1] * Math.cos(t)];
-    marks.push({ kind: 'arc', center: X, u, v: w, t0: 0, t1: theta, pen: 'thin' });
+    marks.push({ kind: 'arc', center: X, u, v: w, t0: 0, t1: theta, pen: 'thin', role: 'dimension' });
     const t0 = tangent(0), t1 = tangent(theta);
     marks.push(arrow(at(0), [-t0[0], -t0[1]]), arrow(at(theta), t1));
     for (const dir of [r.from, r.to]) {
       // The extension along a ray reaches out from the edge end lying along it (none along the ray behind it).
       const d: XY = [dir[0], -dir[1]], reach = Math.max(0, ...r.ends.map(e => { const E = toSheet(v, e), q = (E[0] - X[0]) * d[0] + (E[1] - X[1]) * d[1]; return Math.abs((E[0] - X[0]) * d[1] - (E[1] - X[1]) * d[0]) < 1e-6 * (1 + Math.abs(q)) ? q : 0; }));
-      if (R > reach + GAP) marks.push({ kind: 'line', a: add(X, d, reach + GAP), b: add(X, d, R + OVER), pen: 'thin' });
+      if (R > reach + GAP) marks.push({ kind: 'line', a: add(X, d, reach + GAP), b: add(X, d, R + OVER), pen: 'thin', role: 'extension' });
     }
     const mid = at(theta / 2), out = unit(sub(mid, X));
     marks.push(...valueMarks(add(add(mid, out, 2.5), [0, 1.2]), 0, out[0] > 0.3 ? 'start' : out[0] < -0.3 ? 'end' : 'middle', r.text, r.dim.tol, '°'));
@@ -421,14 +427,14 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     const A2 = add(A, n, dot2(sub(place, A), n)), B2 = add(B, n, dot2(sub(place, B), n));
     for (const [P, Q] of [[A, A2], [B, B2]] as const) {
       const out = sub(Q, P), l = Math.hypot(out[0], out[1]);
-      if (l > GAP) { const e = unit(out); marks.push({ kind: 'line', a: add(P, e, GAP), b: add(Q, e, OVER), pen: 'thin' }); }
+      if (l > GAP) { const e = unit(out); marks.push({ kind: 'line', a: add(P, e, GAP), b: add(Q, e, OVER), pen: 'thin', role: 'extension' }); }
     }
     const along = sub(B2, A2), len = Math.hypot(along[0], along[1]), e = unit(along);
     if (len >= 2 * ARROW + 1) {
-      marks.push({ kind: 'line', a: A2, b: B2, pen: 'thin' }, arrow(A2, [-e[0], -e[1]]), arrow(B2, e));
+      marks.push({ kind: 'line', a: A2, b: B2, pen: 'thin', role: 'dimension' }, arrow(A2, [-e[0], -e[1]]), arrow(B2, e));
     } else {
       // Too short for arrows inside: arrows outside, pointing in.
-      marks.push({ kind: 'line', a: add(A2, e, -ARROW - 3), b: add(B2, e, ARROW + 3), pen: 'thin' }, arrow(A2, e), arrow(B2, [-e[0], -e[1]]));
+      marks.push({ kind: 'line', a: add(A2, e, -ARROW - 3), b: add(B2, e, ARROW + 3), pen: 'thin', role: 'dimension' }, arrow(A2, e), arrow(B2, [-e[0], -e[1]]));
     }
     // Text over the line (the side away from the measured points' middle when the line is beside them).
     const mid = add(A2, along, 0.5), up: XY = textUp(e);
@@ -440,18 +446,18 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
   if (dist > R + 1) {
     // A leader from the rim out to the text, with a short shoulder.
     const start = r.kind === 'radius' ? C : rim;
-    marks.push({ kind: 'line', a: start, b: place, pen: 'thin' });
+    marks.push({ kind: 'line', a: start, b: place, pen: 'thin', role: 'leader' });
     marks.push(r.kind === 'radius' ? arrow(rim, e) : arrow(rim, [-e[0], -e[1]]));
     const right = e[0] >= 0, shoulder = add(place, [right ? 1 : -1, 0], 3);
-    marks.push({ kind: 'line', a: place, b: shoulder, pen: 'thin' });
+    marks.push({ kind: 'line', a: place, b: shoulder, pen: 'thin', role: 'leader' });
     marks.push(...valueMarks(add(shoulder, [right ? 1 : -1, 0], 0.8), 0, right ? 'start' : 'end', r.text, r.dim.tol));
-    if (r.kind === 'radius') marks.push({ kind: 'fill', points: circlePoints(C, 0.4) });
+    if (r.kind === 'radius') marks.push(dot(C));
     return marks;
   }
   // Inside the circle: a diameter across it (or a radius from the centre), text along it.
   const far = add(C, e, -R);
-  if (r.kind === 'diameter') marks.push({ kind: 'line', a: far, b: rim, pen: 'thin' }, arrow(rim, e), arrow(far, [-e[0], -e[1]]));
-  else marks.push({ kind: 'line', a: C, b: rim, pen: 'thin' }, arrow(rim, e), { kind: 'fill', points: circlePoints(C, 0.4) });
+  if (r.kind === 'diameter') marks.push({ kind: 'line', a: far, b: rim, pen: 'thin', role: 'dimension' }, arrow(rim, e), arrow(far, [-e[0], -e[1]]));
+  else marks.push({ kind: 'line', a: C, b: rim, pen: 'thin', role: 'dimension' }, arrow(rim, e), dot(C));
   const mid = r.kind === 'diameter' ? add(C, e, R * 0.45) : add(C, e, R * 0.5);
   marks.push(...valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol));
   return marks;
@@ -550,7 +556,7 @@ export function basicBox(marks: readonly Mark[]): Mark[] {
   // Grown by `pad` along the text's own axes.
   const ux = unit(sub(q[1], q[0])), uy = unit(sub(q[3], q[0]));
   const p0 = add(add(q[0], ux, -pad), uy, -pad), p1 = add(add(q[1], ux, pad), uy, -pad), p2 = add(add(q[2], ux, pad), uy, pad), p3 = add(add(q[3], ux, -pad), uy, pad);
-  return [{ kind: 'polyline', points: [p0, p1, p2, p3, p0], pen: 'thin' }];
+  return [{ kind: 'polyline', points: [p0, p1, p2, p3, p0], pen: 'thin', role: 'frame' }];
 }
 
 /** Sheet mm: a datum symbol's box, its triangle's base and height. */
@@ -565,15 +571,15 @@ export function datumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingD
   const t0 = dot2(sub(P, a), ab) / l2, past = t0 < 0 || t0 > 1, t = past ? t0 : Math.max(0.1, Math.min(0.9, t0)), F = add(a, ab, t), e = unit(ab);
   let n: XY = [-e[1], e[0]]; if (dot2(sub(P, F), n) < 0) n = [-n[0], -n[1]];
   const apex = add(F, n, DATUM_HEIGHT), h = DATUM_BOX / 2;
-  const extension: Mark[] = past ? [{ kind: 'line', a: add(t0 < 0 ? a : b, e, t0 < 0 ? -1 : 1), b: add(F, e, t0 < 0 ? -(DATUM_BASE / 2 + 1) : DATUM_BASE / 2 + 1), pen: 'thin' }] : [];
+  const extension: Mark[] = past ? [{ kind: 'line', a: add(t0 < 0 ? a : b, e, t0 < 0 ? -1 : 1), b: add(F, e, t0 < 0 ? -(DATUM_BASE / 2 + 1) : DATUM_BASE / 2 + 1), pen: 'thin', role: 'extension' }] : [];
   const marks: Mark[] = [...extension,
-    { kind: 'fill', points: [add(F, e, DATUM_BASE / 2), add(F, e, -DATUM_BASE / 2), apex] },
-    { kind: 'polyline', points: [[P[0] - h, P[1] - h], [P[0] + h, P[1] - h], [P[0] + h, P[1] + h], [P[0] - h, P[1] + h], [P[0] - h, P[1] - h]], pen: 'thin' },
+    { kind: 'fill', points: [add(F, e, DATUM_BASE / 2), add(F, e, -DATUM_BASE / 2), apex], head: { style: 'filled', tip: F, dir: [-n[0], -n[1]], length: DATUM_HEIGHT, width: DATUM_BASE } },
+    { kind: 'polyline', points: [[P[0] - h, P[1] - h], [P[0] + h, P[1] - h], [P[0] + h, P[1] + h], [P[0] - h, P[1] + h], [P[0] - h, P[1] - h]], pen: 'thin', role: 'frame' },
     { kind: 'text', at: [P[0], P[1] + 1.3], text: d.letter, size: TEXT, anchor: 'middle' },
   ];
   // The leader from the box's edge to the triangle's apex.
   const dir = sub(apex, P), m = Math.max(Math.abs(dir[0]), Math.abs(dir[1]));
-  if (m > h + 0.5) marks.push({ kind: 'line', a: add(P, dir, h / m), b: apex, pen: 'thin' });
+  if (m > h + 0.5) marks.push({ kind: 'line', a: add(P, dir, h / m), b: apex, pen: 'thin', role: 'leader' });
   return marks;
 }
 
@@ -584,12 +590,12 @@ export function frameMarks(under: Extract<Mark, { kind: 'text' }>, f: DrawingFra
   const q = textCorners(under.at, under.text, under.size, under.anchor, 0, !!under.bold);
   const x0 = Math.min(q[0][0], q[3][0]), y0 = under.at[1] + 1.6, value = `Ø${fmtMM(f.value)}`, vw = textWidth(value, TEXT, false) + 2.5;
   const cells = [FRAME_SYMBOL, vw, ...f.datums.map(() => FRAME_DATUM)], x1 = x0 + cells.reduce((s, w) => s + w, 0), y1 = y0 + FRAME_H;
-  const marks: Mark[] = [{ kind: 'polyline', points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]], pen: 'thin' }];
+  const marks: Mark[] = [{ kind: 'polyline', points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]], pen: 'thin', role: 'frame' }];
   let x = x0;
-  cells.forEach((w, k) => { if (k) marks.push({ kind: 'line', a: [x, y0], b: [x, y1], pen: 'thin' }); x += w; });
+  cells.forEach((w, k) => { if (k) marks.push({ kind: 'line', a: [x, y0], b: [x, y1], pen: 'thin', role: 'frame' }); x += w; });
   // The position symbol: a circle with a cross through it.
   const c: XY = [x0 + FRAME_SYMBOL / 2, y0 + FRAME_H / 2], r = 1.7, arm = 2.3;
-  marks.push({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'thin' }, { kind: 'line', a: [c[0] - arm, c[1]], b: [c[0] + arm, c[1]], pen: 'thin' }, { kind: 'line', a: [c[0], c[1] - arm], b: [c[0], c[1] + arm], pen: 'thin' });
+  marks.push({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'thin', role: 'frame' }, { kind: 'line', a: [c[0] - arm, c[1]], b: [c[0] + arm, c[1]], pen: 'thin', role: 'frame' }, { kind: 'line', a: [c[0], c[1] - arm], b: [c[0], c[1] + arm], pen: 'thin', role: 'frame' });
   marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + vw / 2, y0 + 4.5], text: value, size: TEXT, anchor: 'middle' });
   f.datums.forEach((l, k) => marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + vw + FRAME_DATUM * (k + 0.5), y0 + 4.5], text: l, size: TEXT, anchor: 'middle' }));
   return marks;
