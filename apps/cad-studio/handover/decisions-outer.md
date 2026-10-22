@@ -6089,3 +6089,23 @@ The coordinator's item 2 after G22. This S0 needs the coordinator's and the GPU 
   - **the band oracle**: a 2 mm cube 0.8 above the middle of a 60 × 40 box's top (a few big triangles) gives a band only around the spot, its least field within near/3 of the gap;
   - turned 90°: the fill still 1000 in a's frame; the closest points land together in the world; a moved part's new pose key drops the old fill;
   - 120 boxes: 110 overlaps pending, the timing given.
+
+## G23 data side A — print layers, built (2026-10-22)
+
+`print/layers.ts` follows the S0 (90e62fc7f) with the GPU lane's additions.
+- **Calls**: `printLayers(meshes, { layerMM, direction, limitDeg })` returns a light summary plus `layer(k)`, worked out on first asking and kept. There is no batch call.
+- **The turn**:
+  - The direction goes to +Z, and the part's lowest point to z 0. `modelToBed` is that turn as a column-major 4×4 (model → bed); +Z stays the identity.
+  - The direction is the caller's (AM4's best when it passes it); unset is +Z, said as 'default'.
+  - `layerMM` unset is 0.2 and `limitDeg` unset is 45, both said as estimates.
+- **Contours**: the vertices are welded by position, so faces' edges meet. Triangles go into 64-layer chunks by z-range. A layer's plane cuts its chunk's crossing triangles into segments, stitched along the welded edges they cross. Loops are wound outer anticlockwise and holes clockwise, by even–odd nesting. They are the display mesh's (said), not the exact surfaces'.
+- **Supports**: AM4's own columns, from each overhanging triangle's centroid straight down (K2 ray) to the part or the bed. Their projected area times height sums to AM4's support volume for the same direction. `supportColumns` (footprint anticlockwise, z0 to z1) is given once, for the GPU lane to extrude and clip.
+- **Per layer**:
+  - `overhang` is AM2's rule on the triangles the layer's band crosses;
+  - `support` is the columns spanning the layer.
+  - Both are merged polygons: footprints are made anticlockwise and the edges used once are walked into loops (a connected patch is one region). Regions whose boxes meet are then united by the kernel's exact `booleanPolygons`. They take the contours' winding, as flat x, y at the layer's z.
+- **Tests** (`test/print-layers.test.ts`):
+  - a 20 mm cube at 0.2 mm: 100 layers, each one anticlockwise 400 mm² square; the identity 4×4; `layer(k)` kept, out of range refused;
+  - the starter plate's Ø8: outer loop and clockwise hole, its area between the inscribed polygon's (its sides counted, the strips' diagonals' points on chords left out) and π·16;
+  - the cube along (1, 0, 1): no overhang at a 45° limit, all at 40°, one merged region a layer; every contour point mapped back through the 4×4 lies on the model's mesh (1e-9);
+  - a sphere along AM4's best direction: the support volume equals AM4's to 1e-9, and the columns' footprint × height sums to it.
