@@ -678,6 +678,15 @@ Done:
    - Large assemblies: G9 scene-level pick acceleration (a top-level BVH); G10 copies turned about Z sharing one tessellation (P6).
    - Quality: G11 order-independent (or depth-peeled) transparency for ghosted bodies; G12 the proposal's added/removed two-colour overlay (D40); G13 hygiene (per-frame allocations, the outline mask pass, optional uv).
    - Then: G14 display LOD for 1M-triangle meshes (measure first with G4's benches); G15 3D text labels (SDF atlas); G16 WebGL2 parity (curves and surfaces, a dragged body's turn); G17 the 3D skeleton sketch tool (item 5); G18 the docs items deferred earlier (WebGPU shader demo hosts with repeating-UV materials lowered to WGSL, docs screenshots, gpu `test:consumer`, the gpu bundle's CAD externalisation), last, unless the owner keeps them deferred.
+   - **After G18** (owner, 2026-10-22: G19 "좋아 그렇게 진행해줘"; the rest "좋아 로드맵을 채워줘"; status: G1–G18 done):
+     - G19 section-view upgrades (S0 approved): G19.1 several clip planes in the viewer and CPU paths; G19.2 the section bar's plane / box / planes modes, a plane from a picked face, WebGL2 clipMeshPlane, the chained exact section; G19.3 world-space hatching on caps (both renderers); G19.4 caps on ghosted bodies; G19.5 the Render workspace keeps the section.
+     - G20 the quarter cut-out ("3/4 section": a union of two half-space removals).
+     - G21 CAD display: silhouette edges of curved faces (screen-space), display modes (shaded with edges, hidden lines removed, hidden lines dashed, wireframe, x-ray), isolate / hide with the rest faded.
+     - G22 assembly checks on screen: an interference and clearance colour map between parts (overlaps red, near gaps amber, from the exact checks where they exist), and collision highlights during joint play or a motion study.
+     - G23 manufacturing previews: CNC material removal along CNC8's 2.5D paths (stock as a height field or dexels on the GPU; uncut and overcut coloured), and a 3D-print layer preview (a layer slider, supports and overhangs). No mould-fill or other CAE simulation (owner, #2177).
+     - G24 3D annotations on the model (MBD/PMI): fit callouts, tolerances, GD&T frames and weld symbols drawn in 3D with G15's labels, from the outer lane's drawing data.
+     - G25 analyses on the GPU for interactive speed: wall thickness and tool access by GPU rays (display only; the exact values stay the kernel's), and a scan-versus-CAD deviation colour map.
+     - Later, when measured need appears: GPU occlusion culling for very large assemblies (G14's thresholds), progressive photoreal rendering and turntable / exploded-animation video export.
 
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 
