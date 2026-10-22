@@ -902,6 +902,16 @@ acceleration → benches.
   (1.24 → 0.73 MB, CAD's definitions gone), no source, `test:consumer` green. The repeating UV shader demos: lowered to
   WGSL (as the GLSL path within 2/255 off fract's jumps), drawn by the WebGPU viewer in the docs (no app-owned WebGL2).
   The docs' 41 example screenshots captured again from the built site with the current viewer (a capture script).
+- **gpu-scene Node harnesses after G18.1** (CAD external in the bundle): run them with the hook,
+  `node --import ./packages/barocss-gpu/tests/cad-dist.mjs examples/gpu-scene/<name>-flow.mjs …`. The four that need only
+  `--output` (`material-scalar-abs`, `material-scalar-extrema`, `material-smoothstep`, `native-reflection-cause`) load both
+  providers with it (source and packed, the same namespace) and then stop at their own pin of the package's export
+  count, written for the API of their commit (54 and 124 runtime exports; 174 now): historical receipts bound to their
+  revision, already failing so before G18 (172 at `858710053`), not edited. The other ten (`boolean-buffers`,
+  `shell-buffers`, `knot-aligned-loft-frame`, `knot-aligned-loft-raw-frame`, `mixed-workplane-arc-preview`,
+  `source-curve-edit-preview`, `source-native-surface-edit-mesh`, `source-surface-elevation-frame`,
+  `split-body-engine-scene`, `workplane-world-curve-preview`) need old native fixtures (`--fixtures`, `--native-dir`,
+  `--compiled-sdk`, `--request`, `--meshes`): not regenerated.
 - **WebGL2 support statement** (after G16): the WebGL2 fallback draws the bodies (moved and turned as dragged), their
   edges, ghosts, selection and hover, face/edge/direct picks with depth, direct curves and surfaces, and a proposal's
   overlay (chips in the SVG overlay). It stays **WebGPU-only** for placed instances (and their picks, poses and explode),
