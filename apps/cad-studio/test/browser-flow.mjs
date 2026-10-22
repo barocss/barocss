@@ -7109,6 +7109,43 @@ try {
     await page.click('[aria-label="Section view"]');
   });
 
+  // ---- G23 CNC (G-R3–G-R5): material removal along the Model's program, on either renderer --------------------------------
+  await check('G23 CNC: CNC8\'s pocket from its machining stock — NOT FOR PRODUCTION first; 0, the middle and the end of its program; no overcut, the floor reached; Print layers closes it; reopened, the same', async () => {
+    // (The plate and pocket the Model's own commands make, with a stock row the fixture writes: not agent-loaded rows.)
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    const cam = () => page.evaluate(() => { const c = window.__studioCam?.(), d = c?.display; return c && { stage: c.stage, error: c.error, reason: c.reason, progress: d?.progress, moves: d?.setup.moves.length, removed: d?.removal.removedMM3, overcut: d?.removal.overcutCells, unc: d?.removal.lateralUncertaintyMM, top: d && 'max' in d.package.stock ? d.package.stock.max[2] : null, banner: d?.package.banner }; });
+    const at = (p) => page.waitForFunction(q => { const c = window.__studioCam?.(); return c?.stage === 'ready' && (q === 'end' ? c.display.progress === c.display.setup.moves.length : Math.abs(c.display.progress - q) < 1e-9); }, p, { timeout: 60000 }).then(cam);
+    const progressTo = (v) => page.locator('[aria-label="CNC progress"]').evaluate((el, x) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    await page.check('input[aria-label="CNC preview"]');
+    const start = await at(0);
+    assert.equal(start.removed, 0, JSON.stringify(start)); assert.equal(start.overcut, 0); assert.match(start.banner, /NOT FOR PRODUCTION/);
+    assert.match(await page.locator('.card[aria-label="CNC preview"]').innerText(), /NOT FOR PRODUCTION/);
+    await page.click('[aria-label="CNC progress to the end"]');
+    const end = await at('end');
+    // (The pocket's 1500 mm² less its four corners a flat Ø6 cannot reach and the field's stated band, cut from the stock's top to the floor.)
+    const area = end.removed / (end.top - 12), corners = 4 * (1 - Math.PI / 4) * 9;
+    assert.ok(area <= 1500 + 1e-6 && area >= 1500 - corners - 160 * end.unc, JSON.stringify({ area, ...end }));
+    assert.equal(end.overcut, 0, `the program enters the part: ${JSON.stringify(end)}`);
+    const mid = Math.round(end.moves / 2);
+    await progressTo(mid); const half = await at(mid);
+    assert.ok(half.removed > 0 && half.removed < end.removed, JSON.stringify({ half, end }));
+    assert.equal(await page.locator('.vp-error').count(), 0, await page.locator('.vp-error').allInnerTexts().then(x => x.join(' | ')));
+    await iso(); await snap('g23-cnc-middle');
+    // (Print layers takes the viewport: the CNC preview says why it stops, and shows nothing.)
+    await page.check('input[aria-label="Print layers"]');
+    await page.waitForFunction(() => /Close Print layers/.test(window.__studioCam?.().reason ?? '') && !window.__studioCam?.().display, null, { timeout: 15000 });
+    await page.uncheck('input[aria-label="Print layers"]');
+    await page.click('[aria-label="CNC progress to the end"]');
+    assert.equal((await at('end')).removed, end.removed, 'the same end after the preview closed and came back');
+    // (Reopened from the file: the same program and the same removal — nothing of the preview is stored.)
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    await page.click('[aria-label="CNC progress to the end"]');
+    assert.equal((await at('end')).removed, end.removed, 'reopened: the same removal');
+    await snap('g23-cnc-end');
+    await page.uncheck('input[aria-label="CNC preview"]');
+    await page.waitForFunction(() => !window.__studioCam?.().display, null, { timeout: 15000 });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
