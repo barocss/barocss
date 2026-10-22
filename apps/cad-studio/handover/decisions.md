@@ -11508,3 +11508,32 @@ The same body from another source is not one.
 
 (A through cylinder tangent inside two sides of a box is refused by the prismatic route, typed: "the bodies touch
 along an edge or at a vertex only". Unchanged.)
+
+## D196 — Triage of the fuzz's 31 refusals (seed 20261023, after D190–D195) (2026-10-23)
+
+**Method** (scratch scripts, not committed). Each refused case:
+- shrunk to its smallest tree still refused alike;
+- its original tree and the shrunk one each nudged four ways, every leaf moved by up to 1e-3 mm (50 times the merge
+  radius);
+- where nudges build, their body counts and the ray oracle's volume beside the kernel's (they agree within e).
+
+A refusal of the exact input that every nudge builds is the exact contact's. One that no nudge builds is the kernel's.
+
+The 31 refusals: 27 non-manifold (one an empty loop), 2 arc-on-cylinder, 2 planar-face triangulation.
+
+| Class | Cases | What they are |
+|---|---|---|
+| **Exact contact of separate lumps** (genuinely non-manifold as one solid) | 49, 50, 56, 67, 100, 131 (all snapped) | Every nudge builds, into 2 or more bodies: the exact result is lumps touching along an edge. As one solid it is non-manifold, so refusing is right. Prismatic-solid returns such lumps as separate bodies instead ('edge touch', pinned). By that convention these are **over-refusals**: the analytic Boolean could do the same. A decision. |
+| **Near-degenerate: valid inputs that should build** | 25, 43, 51, 74, 85, 110, 119, 125 | Some nudges build (1–3 of 4). Grazes and near-tangencies at the 1e-3 scale: a sphere tangent inside over a cylinder (110), patterned spheres (119), small slivers. Kernel weaknesses. |
+| **Robust: valid inputs that should build** | non-manifold 2, 4, 15, 46, 71, 73, 92, 117, 139, 151, 157, 158, 170, 173; arc-on-cylinder 101, 176; triangulation 137 | No nudge builds: a refusal of generic geometry. The non-manifold ones are an edge with 1 or 3 uses, an intersection piece missing. Kernel weaknesses. |
+
+**Smallest generic examples**, the cheapest to start from:
+- 73: a box ∩ a cylinder turned 188.8° about X and 85.75° about Z;
+- 117: two rounded boxes ∪;
+- 139: a cylinder ∪ a box, both slightly turned;
+- 71: a cylinder ∪ an open shell;
+- 2: a rounded box ∩ a pattern of two frustums;
+- 176: a box ∩ (a sphere ∪ a cylinder), arc-on-cylinder.
+
+**None of the 31 is a wrong body.** The refusals are typed: the kernel fails safe. Building them is the next robustness
+work; its order is the coordinator's.
