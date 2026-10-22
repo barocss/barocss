@@ -77,7 +77,7 @@ Integration (`review/cad-gpu-engine-2026-10-14`): see the final SHA in §7. The 
 
 ### Outer lane
 - **Done:** IM/CNC/AM tracks, PKG, O105 (v2), FR items 1–7, O-items through the BOM panel and table, section views X1–X3, chat-turn merge (O133), blob eviction, proposalDiff, G24 data (model annotations), G22 data (clearance map, lazy bands), G23 data (printLayers, camPackage with typed tool-tip moves), the weld record → bead mapping, the A9 S0.
-- **Done after the S0, and how far each is checked** (the lane's final SHA is acf9e86f8):
+- **Done after the S0, and how far each is checked** (the lane's final SHA is 5f7fc11b0):
   - A9-3, unknown arguments refused (e3db22957): **verified**. Package 794/794, studio 211/211, every FLOW_ONLY chat step passes.
   - A9-2, `part` on manufacturability, orientation and the brief (1b7333f9f): only its own tests and tsc have run.
   - A9-1, welds at ordered-trim nodes (cc452383b, with 4f93e826c fixing a tsc error): only the frame and weld tests (37/37) and tsc have run.
@@ -132,7 +132,7 @@ Each lane's own hand-over block in §0 has its exact next step.
 
 Every background run was stopped before it finished. None of these results exist, so the new account must run them first:
 - **Coordinator's trial check of the GPU WIP:** stopped mid-run. It was a detached merge `db220b0f0` (411aa7761 plus GPU 9f05bbcd5) in the coordinator's verify worktree, running builds, the gpu suite, cad-model tsc, the studio suite, tsc and lint. It reported nothing.
-- **Outer lane:** its turn was stopped while it was building A9-5/6 (designed-seat relations in the clearance map). Its §0 block says what was verified (A9-3's suites and chat flow steps passed) and what wasn't.
+- **Outer lane:** its turn was stopped while it was building A9-5/6 (designed-seat relations in the clearance map). It committed that as `wip` (65eeac483). It had no check mid-run: its last background verify (v169, of A9-3) had already finished green. Its §0 block says what was verified and what wasn't.
 - **The window's fast checks and full browser flow** on the final integration commit **did not run**. The last fully verified window is still **9fec9950c** (full flow 264/264). Everything merged after it is checked only by its own lane's checkpoint checks, or not at all (the WIP).
 
 **The new account's first step:** on the integration tip, run the coordinator's window checks in a clean detached worktree (§2): builds, package suites, studio suite, tsc, lint, then the full flow. Send any failures to the owner lane.
@@ -144,7 +144,7 @@ Every background run was stopped before it finished. None of these results exist
 | Last fully verified window | 9fec9950c | fast checks plus full flow 264/264 |
 | Kernel lane (on integration) | 411aa7761 (FRk8b 7c6be3324, 75647da69 below it) | lane T2 table in its §0 block |
 | GPU lane | 9f05bbcd5 (G20.2 WIP 3d85e6793, 398683cb6), merged as be82af5f6 | WIP, not verified |
-| Outer lane | acf9e86f8, merged as 21da9ce11 | see §4 Outer lane |
+| Outer lane | 5f7fc11b0 (acf9e86f8 merged as 21da9ce11, 5f7fc11b0 as c17b6729d) | see §4 Outer lane |
 | Integration tip | the commit that adds this file, plus the origin/develop merge just before it | window checks not run (§7) |
 
 **Remote (owner, 2026-10-22: "마무리 하고 로컬 코드를 다 develop 에 넣어서 push 까지 해줘").** The integration branch `review/cad-gpu-engine-2026-10-14` is pushed to origin and opened as a PR into `develop`. develop's protection requires a PR and the "Test and Build" check, so it lands only through that PR. The PR's CI is the first remote check of everything after 9fec9950c. See the PR for its result.
