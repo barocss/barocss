@@ -6517,3 +6517,33 @@ After each item, the A9 run moves one step further. It is the acceptance once al
 - eslint of cad-model's src and test: 0 errors.
 
 **Not run:** the full package and studio suites. They wait for a coordinator slot.
+
+## O150 — rows rule (b) through the fixtures; stock and frame stock merge by id (2026-10-23)
+
+**The fixtures.** Codex's rule (b) refuses agent-written rows (ROWS_NOT_FROM_PERSON), and that refusal is right. Tests that still handed the tools their own rows now load the same rows as a file the person supplied:
+- `test/person-file.ts`: one supplied file at turn 1 (`receivePersonRowFiles`), with the reference a loader takes;
+- the tests moved to it: batch-changes, clearance-designed (A9-5), frame-nesting (FRb ×2), frame-sections (FRc), frame-welds (A9-1), drawing-table (the R12 bend table) and sheet (D120).
+
+The bend-table cases now add a plain sheet (K 0.5), then `load_rows {kind: 'bend', file, feature: 0}`, which replaces K with the person's table. The flat (80.8) and the TABLE ROWS cell are unchanged.
+
+Each tool family still asserts the refusal:
+- `set_frame_sections {rows}`, both directly and through `apply_ops` (batch-changes);
+- the agent's raw sheet node carrying its own `bendTable` (sheet D120).
+
+Rule (b) itself is unchanged.
+
+**Merge by id: review finding P2, a behaviour change.**
+- **The defect:** `set_stock` and `set_frame_stock` replaced the whole list. On a placed part whose parent carries stock, the part's shop view (the inherited rows plus its own) then read the inherited rows as removed, and the call was refused (SHOP_ROW_INHERITED_REMOVE).
+- **The fix:** stock and frame-stock rows now merge by id, like every other row kind. The file's rows replace the same ids in place, new ids are appended, and rows the file does not name stay.
+- **Checks per row:** a bad row is refused by its index and id. Two rows with one id in one file are refused (`[STOCK_ROW]`, `[FRAME_STOCK_ROW] two rows with one id.`).
+- **Test:** person-rows P2. A placed part keeps its inherited B1 and S6 and gets its own B2 and S4, which are written into the part only. The base keeps B1 when a later file adds only R30.
+- **The report:** `set_frame_sections` now names the rows the file added or changed and the ids removed. Its content lists the library: id, name, section, and the source or `estimate`.
+
+**Open (not decided here):** with merge by id, no chat call removes a stock or frame-stock row. Before, a smaller file did that by replacing the list. A `remove` argument, like `set_frame_sections`'s, is a v2 contract change, so it goes to the coordinator first.
+
+**Verified (T1):**
+- person-rows 9/9, batch-changes 6/6, clearance-designed 4/4, frame-nesting 5/5, frame-sections 6/6, frame-welds 5/5, drawing-table 5/5, sheet 8/8;
+- tsc of cad-model and of cad-studio;
+- eslint of cad-model's src and test: 0 errors.
+
+**Not run:** the full package and studio suites, which need a coordinator slot. The window's remaining model failures are separate checkpoints: enclosure O73, shop-rows (inherited-context identity), tool-contract (read-tool output schema) and toolset (the frozen v2 contract).

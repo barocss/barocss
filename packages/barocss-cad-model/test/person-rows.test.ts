@@ -216,3 +216,35 @@ test('A9-9 a revoked conversation cannot complete an in-flight row load', async 
   assert.equal(result.isError, true); assert.match(result.content, /ROWS_NOT_FROM_PERSON/);
   assert.equal(result.state.doc, doc); assert.equal(JSON.stringify(doc), before);
 });
+
+
+test('P2 stock and frame stock merge by id: a placed part keeps its inherited rows and gets its own; the base keeps rows the file does not name', async () => {
+  const names = ['base-stock.json', 'base-frame-stock.json', 'part-stock.json', 'part-frame-stock.json', 'base-stock-more.json'];
+  const payloads = [
+    [{ id: 'B1', kind: 'block', size: [310, 210, 16], source: 'base list' }],
+    [{ id: 'S6', lengthMM: 6000, source: 'base list' }],
+    [{ id: 'B2', kind: 'block', size: [125, 85, 25], source: 'part list' }],
+    [{ id: 'S4', lengthMM: 4000, source: 'part list' }],
+    [{ id: 'R30', kind: 'bar', diameter: 30, source: 'base list' }],
+  ];
+  const context = receivePersonRowFiles(conversation, names.map((name, i) => ({ name, text: JSON.stringify(payloads[i]), turn: i + 1 })), names.length);
+  const evaluate = async (next: StudioDoc) => evaluateDoc(next, 1);
+  let doc: StudioDoc = { ...emptyDoc(), instances: [{ id: 'p1', name: 'Plate', doc: emptyDoc(), position: [0, 0, 0], rotation: [0, 0, 0] }] };
+  const call = async (tool: string, args: Record<string, unknown>) => {
+    const r = await dispatchTool({ doc, bodies: [], rowFiles: context }, tool, args, evaluate);
+    assert.equal(r.isError, false, r.content); doc = r.state.doc;
+  };
+  await call('set_stock', { file: context.files[0].id });
+  await call('set_frame_stock', { file: context.files[1].id });
+  await call('set_stock', { file: context.files[2].id, part: 'p1' });
+  await call('set_frame_stock', { file: context.files[3].id, part: 'p1' });
+  const p1 = doc.instances![0].doc;
+  assert.deepEqual(p1.machining?.stock?.map(r => r.id), ['B2'], 'the inherited B1 is not written into the part');
+  assert.deepEqual(p1.frames?.stock?.map(r => r.id), ['S4']);
+  const view = resolveShopRows(p1, doc);
+  assert.deepEqual(view.doc.machining?.stock?.map(r => r.id), ['B1', 'B2']); assert.deepEqual(view.doc.frames?.stock?.map(r => r.id), ['S6', 'S4']);
+  assert.deepEqual(validRowSupplies(p1).map(r => r.file.filename).sort(), ['part-frame-stock.json', 'part-stock.json']);
+  await call('set_stock', { file: context.files[4].id });
+  assert.deepEqual(doc.machining?.stock?.map(r => r.id), ['B1', 'R30'], 'the base keeps B1');
+  assert.deepEqual(validRowSupplies(doc).map(r => r.file.filename).sort(), ['base-frame-stock.json', 'base-stock-more.json', 'base-stock.json']);
+});

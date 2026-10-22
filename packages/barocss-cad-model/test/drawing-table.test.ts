@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { personFile } from './person-file';
 import { drawingInputs } from '../src/chat/drawing';
 import { applyFix, drawingIssues, issueContext, type IssueContext } from '../src/drawing/issues';
 import { tableLayout, tableSize, cellText, TABLE_PAD, TABLE_ROW, TABLE_TEXT, type TableContent } from '../src/drawing/table';
@@ -23,7 +24,7 @@ import { dxfText } from '@barocss/cad';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const CASE = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/r14/tables/bends');
-async function run(calls: { tool: string; args: object }[]): Promise<StudioDoc> { let s: ChatState = { doc: emptyDoc(), bodies: [] }; for (const c of calls) { const r = await dispatchTool(s, c.tool, c.args as Record<string, unknown>, evaluate); assert.ok(!r.isError, r.content); s = r.state; } return s.doc; }
+async function run(calls: { tool: string; args: object }[], rowFiles?: ChatState['rowFiles']): Promise<StudioDoc> { let s: ChatState = { doc: emptyDoc(), bodies: [], ...(rowFiles ? { rowFiles } : {}) }; for (const c of calls) { const r = await dispatchTool(s, c.tool, c.args as Record<string, unknown>, evaluate); assert.ok(!r.isError, r.content); s = r.state; } return s.doc; }
 const lBracket = async () => run(JSON.parse(readFileSync(join(resolve(import.meta.dirname, '..'), 'test/fixtures/sheet-l-bracket.calls.json'), 'utf8')).calls);
 const ctxOf = (doc: StudioDoc, settings: DrawingSettings): IssueContext => { const i = drawingInputs(doc, settings); assert.ok(typeof i !== 'string', String(i)); return issueContext({ ...i, meta: { ...i.meta, date: '2026-10-20' } }); };
 const codes = (ctx: IssueContext, table: string) => drawingIssues(ctx).filter(x => x.tables?.includes(table)).map(x => x.code);
@@ -59,8 +60,10 @@ test('the bend table on R12\'s L-bracket: BA = θ(R + K·T), BD = 2(R + T)tan(θ
   assert.deepEqual([cellText(angle, c.columns[2]), cellText(R, c.columns[3])], ['90.0', '1.50']);
   assert.ok(Math.abs(ba - th * (R + K * T)) < 1e-12 && Math.abs(bd - (2 * (R + T) * Math.tan(th / 2) - th * (R + K * T))) < 1e-12, `${ba} ${bd}`);
   assert.deepEqual(c.notes, ['T 1.5 mm; K 0.44 for every bend']);
-  // (D120's case: a contour L with a shop's table — its 90° row gives the deduction.)
-  const shop = await run([{ tool: 'add_features', args: { features: [{ kind: 'sheet-contour', path: [[0, 0], [50, 0], [50, 35]], side: 'left', width: 20, thickness: 2, bendRadius: 3, bendTable: { id: 'shop-2mm', sources: [{ id: 'shop', label: 'a shop\'s own test bends (illustrative values for the case)' }], rows: [{ thicknessMM: 2, radiusMM: 3, angleDegrees: 90, deductionMM: 4.2, source: 'shop' }, { thicknessMM: 2, radiusMM: 3, angleDegrees: 120, kFactor: 0.42, source: 'shop' }] } }] } }]);
+  // (D120's case: a contour L with a shop's table — its 90° row gives the deduction. The table is the person's file, rows rule b.)
+  const table = personFile('bends.json', { id: 'shop-2mm', sources: [{ id: 'shop', label: 'a shop\'s own test bends (illustrative values for the case)' }], rows: [{ thicknessMM: 2, radiusMM: 3, angleDegrees: 90, deductionMM: 4.2, source: 'shop' }, { thicknessMM: 2, radiusMM: 3, angleDegrees: 120, kFactor: 0.42, source: 'shop' }] });
+  const shop = await run([{ tool: 'add_features', args: { features: [{ kind: 'sheet-contour', path: [[0, 0], [50, 0], [50, 35]], side: 'left', width: 20, thickness: 2, bendRadius: 3, kFactor: 0.5 }] } },
+    { tool: 'load_rows', args: { kind: 'bend', file: table.file, feature: 0 } }], table.rowFiles);
   const s = bendTable({ doc: shop }); assert.ok(!('error' in s), JSON.stringify(s));
   const r = s.rows[0];
   assert.ok(Math.abs((r[6] as number) - 4.2) < 1e-9, String(r[6])); assert.equal(cellText(r[6], s.columns[6]), '4.200');

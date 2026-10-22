@@ -1088,7 +1088,12 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const loaded = args.file === undefined ? { doc: state.doc } : loadPersonRows(state.doc, 'sections', args.file, undefined, state.rowFiles);
       if ('error' in loaded) return fail(state, loaded.error);
       const result = editSections(loaded.doc, [], remove);
-      return 'error' in result ? fail(state, result.error) : accept(state, result.doc, evaluate, 'Section library');
+      if ('error' in result) return fail(state, result.error);
+      // (FRc, O117: the report names the rows the file added or replaced, and the ids removed.)
+      const was = new Map((state.doc.frames?.sections ?? []).map(r => [r.id, r])), now = result.doc.frames?.sections ?? [];
+      const added = now.filter(r => !was.has(r.id)).map(r => r.id), replaced = now.filter(r => was.has(r.id) && was.get(r.id) !== r).map(r => r.id);
+      return accept(state, result.doc, evaluate, `section library: ${[added.length ? `added ${added.join(', ')}` : '', replaced.length ? `changed ${replaced.join(', ')}` : '', result.removed.length ? `removed ${result.removed.join(', ')}` : ''].filter(Boolean).join('; ')}`,
+        { added, replaced, removed: result.removed, rows: now.map(x => ({ id: x.id, ...(x.name ? { name: x.name } : {}), section: x.section, ...(x.source ? { source: x.source } : { estimate: true }) })) });
     }
     case 'set_welds': {
       // (FRd1, O118: the person's welds by joint — kind, size, all round, notes — over the rule's; a joint the part does not have refused, listing them.)

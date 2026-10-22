@@ -808,9 +808,10 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 
 | commit | item | verified |
 |---|---|---|
-| O149 | the import cycle Codex's `chat/outputs` closed, broken | sheet 8/8 (with O150), cageEdit 7/7, tsc (model, studio), eslint 0 errors |
+| `0d4ff6a4c` O149 | the import cycle Codex's `chat/outputs` closed, broken | sheet 8/8 (with O150), cageEdit 7/7, tsc (model, studio), eslint 0 errors |
+| O150 | rows rule (b) through the fixtures (8 test files, `test/person-file.ts`); stock and frame stock merge by id (P2) | those 8 files and person-rows 9/9, tsc (model, studio), eslint 0 errors |
 
-**Next:** O150 (the rows rule (b) fixtures, and stock and frame stock merged by id), then the frozen v2 contract test, then the rest of the window's failing tests.
+**Next:** the frozen v2 contract test (toolset), then tool-contract, enclosure O73 and shop-rows, then the studio suite's rows (b) fixtures (cad-cli). Open for the coordinator: a `remove` for stock and frame-stock rows (O150).
 
 #### Outer lane: hand-over at A9-5/6 (account change, 2026-10-22) (history)
 
