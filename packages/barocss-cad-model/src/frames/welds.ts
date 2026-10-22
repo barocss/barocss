@@ -23,9 +23,10 @@ export interface WeldRecord { joint: string; kind?: WeldKind; sizeMM?: number; a
 export interface WeldJoint {
   /** Stable while the frame's members are: `<body>.<end>` (a mitre by its first member's end). */
   readonly id: string;
-  readonly kind: 'mitre' | 'butt' | 'on-face';
-  /** The member whose end it is, and the members it meets (body keys). */
-  readonly body: string; readonly end: 'start' | 'end'; readonly meets: readonly string[];
+  /** FRk1 (D165): `gusset` — a gusset's seam on one member; `cap` — an end cap's seam round its member's end. */
+  readonly kind: 'mitre' | 'butt' | 'on-face' | 'gusset' | 'cap';
+  /** The member whose end it is (a gusset's or a cap's: the plate), and the members it meets (body keys); a gusset's seam is on no end (null). */
+  readonly body: string; readonly end: 'start' | 'end' | null; readonly meets: readonly string[];
   /** The end face (its name on `body`) whose outer loop the seam runs round. */
   readonly face: string;
   readonly seamMM: number;
@@ -70,6 +71,20 @@ export function weldList(doc: StudioDoc, bodies: readonly BodyResult[]): WeldLis
       }
     }
   }
+  // (FRk1, D165: a gusset's seams on its two members, an end cap's round its member's end — `<plate>.<member>` each.)
+  for (const b of bodies) {
+    const e = b.element;
+    if (e?.kind === 'gusset') for (const seam of e.report.seams) {
+      const m = byOutput.get(`${e.report.frame}/${seam.member}`); if (!m) continue;
+      const j = plateJoint(b, 'gusset', m, seam.lengthMM, seam.face ?? '', null, e.report.outline);
+      if (!seen.has(j.id)) { seen.add(j.id); joints.push(j); }
+    }
+    if (e?.kind === 'end-cap') {
+      const m = byOutput.get(`${e.report.frame}/${e.report.member}`); if (!m) continue;
+      const face = endFace(m, e.report.end)?.name ?? '', j = plateJoint(b, 'cap', m, e.report.seam.lengthMM, face, e.report.end, [e.report.plane.origin]);
+      if (!seen.has(j.id)) { seen.add(j.id); joints.push(j); }
+    }
+  }
   const notes: string[] = [];
   const welded = joints.map(j => withWeld(doc, bodies, j, records.get(j.id), notes));
   const orphaned = [...records.values()].filter(r => !welded.some(j => j.id === r.joint));
@@ -94,6 +109,12 @@ function jointOn(b: BodyResult, end: 'start' | 'end', kind: WeldJoint['kind'], m
   return { id, kind, body: b.key, end, meets, face: f.name, seamMM: r6(lengths[o]), innerMM, at: [r6(loop[0][0]), r6(loop[0][1]), r6(loop[0][2])], centre: [r6(c[0]), r6(c[1]), r6(c[2])] };
 }
 
+/** A plate's seam on a member (FRk1): its length the kernel's (exact), its face on the member, a point and its centre from the plate. */
+function plateJoint(plate: BodyResult, kind: 'gusset' | 'cap', member: BodyResult, mm: number, face: string, end: 'start' | 'end' | null, corners: readonly (readonly number[])[]): Bare {
+  const c: Vec3 = [0, 0, 0]; for (const p of corners) { c[0] += p[0] / corners.length; c[1] += p[1] / corners.length; c[2] += p[2] / corners.length; }
+  const at = corners[0];
+  return { id: `${plate.key}.${member.key}`, kind, body: plate.key, end, meets: [member.key], face, seamMM: r6(mm), innerMM: null, at: [r6(at[0]), r6(at[1]), r6(at[2])], centre: [r6(c[0]), r6(c[1]), r6(c[2])] };
+}
 /** The other members whose planar faces a member's square end lies on: the opposite normal, the same plane, the outlines' boxes overlapping. */
 function touching(b: BodyResult, end: 'start' | 'end', members: readonly BodyResult[]): string[] {
   const f = endFace(b, end); if (!f) return [];
@@ -145,7 +166,9 @@ function wallOf(s: InlineSection | null): { wall: number | null; straight: boole
 }
 
 function withWeld(doc: StudioDoc, bodies: readonly BodyResult[], j: Bare, r: WeldRecord | undefined, notes: string[]): WeldJoint {
-  const own = wallOf(sectionOf(doc, bodies.find(b => b.key === j.body)!));
+  // (A plate's seam: its own thickness as its wall, the seam straight — the kernel's length is exact.)
+  const plate = j.kind === 'gusset' || j.kind === 'cap' ? bodies.find(b => b.key === j.body)?.element : undefined;
+  const own = plate && (plate.kind === 'gusset' || plate.kind === 'end-cap') ? { wall: plate.report.thicknessMM, straight: true } : wallOf(sectionOf(doc, bodies.find(b => b.key === j.body)!));
   const walls = [own.wall, ...j.meets.map(k => wallOf(sectionOf(doc, bodies.find(b => b.key === k)!)).wall)].filter((w): w is number => w !== null && Number.isFinite(w));
   const kind: WeldKind = r?.kind ?? (j.kind === 'mitre' ? 'butt' : 'fillet');
   const estimate = walls.length === j.meets.length + 1 ? Math.min(...walls) : null;
@@ -160,7 +183,7 @@ function withWeld(doc: StudioDoc, bodies: readonly BodyResult[], j: Bare, r: Wel
 /** The weld list as a drawing table (the 'weld-list' source): W1… in order, the members by their cut-list items. */
 export function weldListTable(w: WeldList, items: ReadonlyMap<string, number>): TableContent {
   const item = (k: string) => items.get(k) ?? k;
-  const rows: TableContent['rows'] = w.joints.map((j, k) => [`W${k + 1}`, j.kind === 'on-face' ? 'ON FACE' : j.kind.toUpperCase(), [j.body, ...j.meets].map(item).join(' · '), j.weld.kind.toUpperCase(),
+  const rows: TableContent['rows'] = w.joints.map((j, k) => [`W${k + 1}`, j.kind === 'on-face' ? 'ON FACE' : j.kind === 'cap' ? 'END CAP' : j.kind.toUpperCase(), [j.body, ...j.meets].map(item).join(' · '), j.weld.kind.toUpperCase(),
     j.weld.sizeMM === null ? null : `${+j.weld.sizeMM.toFixed(2)}${j.weld.sizeBasis === 'estimate' ? '*' : ''}`, j.seamMM, j.innerLoop === null ? null : j.innerLoop.welded === null ? '?' : j.innerLoop.welded ? 'YES' : 'NO', j.weld.allRound ? 'YES' : 'NO']);
   const mesh = w.joints.flatMap((j, k) => j.seamBasis === 'mesh' ? [`W${k + 1}`] : []);
   return {

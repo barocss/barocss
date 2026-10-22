@@ -5917,3 +5917,30 @@ interface ModelAnnotation {
 - (a) Billboard text or planar in `plane`? Both are given.
 - (b) Do they want our `lines`/`arrows`, or draw their own from `targets` and `anchor`?
 - (c) Instance prefixes: targets keep `<inst>/`, as the edge names do — fine?
+
+## Queue 5a — FRk1's gussets and end caps as plates, and their seams as welds (2026-10-22)
+
+The kernel lane's FRk1 (D165) is in (integration 7f9c31f0b, merged here as b3ae7e0c9). The outer lane's side:
+- **Elements** (`engine/elements.ts`):
+  - `gusset` and `end-cap` are ElementReports (`o.gusset`, `o.endCap`), made by default.
+  - Their size text: "plate 5 thick, legs 120 × 100, clipped 15"; "plate 4 thick, over, 1600 mm²".
+- **BOM** (`team/bomCore.ts`):
+  - `BomView.plates` holds each made plate: part, item, kind, thickness, area, volume, material and mass.
+  - `deriveBom` lists them after the parts, merged by kind, thickness, area and material (two copies → ×2), as a `BomLine.plate` with its item ("gusset plate 5 mm") and size ("5 mm plate, 5887.5 mm²"). `plateQty` counts them.
+  - `checkBom` checks each plate is on one plate line, with the line's sizes and the count.
+  - A plate is not also a made element (the panel's list), and it is not bought. A person can set one bought in the panel (a plate ordered in, laser-cut), and it then becomes a bought element line.
+  - The purchase list "with made parts" gives its kind and size. The BOM table shows it as made.
+  - A plate line's balloon points at the plate's own edges.
+- **Welds** (`frames/welds.ts`):
+  - New joint kinds `gusset` (one a seam, on each of its two members) and `cap` (round its member's end).
+  - The id is `<plate body>.<member body>`; `end` is the cap's end, or null for a gusset's seam. The face is the kernel's seam face, or the member's end face for a cap.
+  - The seam length is the kernel's (exact).
+  - The size, unset, is the thinner of the plate's thickness and the member's wall (an estimate, as O118's rule). The weld is a fillet by default.
+  - The weld list table says GUSSET and END CAP.
+  - FRk2's beads will map onto these ids.
+- **Tests** (`test/frame-plates.test.ts`), on the mitred L with a 120 × 100 × 5 gusset clipped 15 and a 4 mm cap over member 1's start:
+  - the element lines' sizes;
+  - the plate lines 5887.5 mm² × 5 = 29437.5 mm³ and 1600 × 4 = 6400 mm³, checked by `checkBom`; not made elements;
+  - the purchase CSV rows; two copies ×2 with their part ids;
+  - the joints `<gusset>.<m0>` 105, `<gusset>.<m1>` 85 and `<cap>.<m0>` 160 at `start`, each a fillet sized 3 (estimate), exact; the mitre joint stays; the table's words.
+- **For the coordinator**: integration's `test/weldment.test.ts` (the kernel lane's, b03719ada) fails the cad-model type-check: two calls of `fields?` possibly undefined (lines 23 and 42) and a sketch node cast (line 70). Not touched here.

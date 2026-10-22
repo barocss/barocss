@@ -76,7 +76,7 @@ export async function bomView(doc: StudioDoc, evaluate: Evaluate): Promise<BomVi
 }
 /** The BOM checked against the assembly: every instance on one line once, each line's quantity its parts, the totals. */
 export function checkBom(view: BomView, bom: Bom): string[] {
-  const out: string[] = [], seen = new Map<string, number>(), lines = bom.lines.filter(l => l.kind === undefined), bought = bom.lines.filter(l => l.kind !== undefined);
+  const out: string[] = [], seen = new Map<string, number>(), lines = bom.lines.filter(l => l.kind === undefined && !l.plate), bought = bom.lines.filter(l => l.kind !== undefined);
   for (const l of bom.lines) if (l.qty !== l.parts.length) out.push(`${l.item}: quantity ${l.qty}, ${l.parts.length} parts`);
   for (const l of lines) for (const p of l.parts) seen.set(p, (seen.get(p) ?? 0) + 1);
   // (O142: each bought element on one line once, its line's kind, size and row its own; the count.)
@@ -90,6 +90,16 @@ export function checkBom(view: BomView, bom: Bom): string[] {
   }
   for (const e of els) if ((on.get(`${e.part}:${e.item}`) ?? 0) !== 1) out.push(`${e.part}:${e.item} (${e.kind} ${e.size}) is on ${on.get(`${e.part}:${e.item}`) ?? 0} lines, not one`);
   if (els.length && bom.elementQty !== els.length) out.push(`bought elements ${bom.elementQty ?? 0}, the assembly has ${els.length}`);
+  // (FRk1: each made plate on one plate line once, the line's kind and sizes its own; the count.)
+  const plates = view.plates ?? [], onPlate = new Map<string, number>();
+  for (const l of bom.lines) if (l.plate) for (const p of l.parts) {
+    onPlate.set(p, (onPlate.get(p) ?? 0) + 1);
+    const x = plates.find(q => `${q.part}:${q.item}` === p);
+    if (!x) out.push(`${l.item}: ${p} is no plate of the assembly`);
+    else if (x.kind !== l.plate.kind || x.thicknessMM !== l.plate.thicknessMM || x.areaMM2 !== l.plate.areaMM2 || x.material !== l.material) out.push(`${l.item}: ${p} is a ${x.kind} ${x.thicknessMM} mm, ${x.areaMM2} mm², not this line's`);
+  }
+  for (const x of plates) if ((onPlate.get(`${x.part}:${x.item}`) ?? 0) !== 1) out.push(`${x.part}:${x.item} (${x.kind}) is on ${onPlate.get(`${x.part}:${x.item}`) ?? 0} plate lines, not one`);
+  if (plates.length && bom.plateQty !== plates.length) out.push(`plates ${bom.plateQty ?? 0}, the assembly has ${plates.length}`);
   for (const p of view.parts) if ((seen.get(p.id) ?? 0) !== 1) out.push(`${p.id} (${p.name}) is on ${seen.get(p.id) ?? 0} lines, not one`);
   for (const id of seen.keys()) if (!view.parts.some(p => p.id === id)) out.push(`${id} is not in the assembly`);
   const qty = view.parts.length, mass = r6(view.parts.reduce((s, p) => s + p.massG, 0));

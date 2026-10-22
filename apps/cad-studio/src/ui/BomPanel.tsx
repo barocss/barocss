@@ -39,7 +39,8 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
       <table className="bom-table" aria-label="BOM lines">
         <thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Row</th><th>Source</th><th /></tr></thead>
         <tbody>{data.bom.lines.map((l, k) => {
-          const element = l.kind !== undefined, w = element ? why(l.parts) : '';
+          // (A plate — a gusset, an end cap — may be set bought too: a laser-cut plate ordered in, FRk1.)
+          const element = l.kind !== undefined || !!l.plate, w = l.kind !== undefined ? why(l.parts) : '';
           return <tr key={k} aria-label={`BOM line ${k + 1}`}>
             <td className="mono">{k + 1}</td>
             <td title={l.size ?? ''}>{l.item}</td>
