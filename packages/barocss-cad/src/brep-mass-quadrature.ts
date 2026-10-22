@@ -203,13 +203,19 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     // (Not beside a surface's pole: there the parameters crowd and inversions are not to be trusted; such a face
     // keeps the square-of-the-step error, extrapolated as such.)
     // (Edges counted by position, not vertex index: a face's vertex list repeats points, and a chord counted
-    // twice would add its strip twice. Triangles of no area in (u, v) bound nothing.)
+    // twice would add its strip twice.)
     // (A pole counts where the face reaches it: a ball's patch away from both poles — a corner blend's, D93 — is a plain
     // trimmed face.)
     const span = Math.max(du, dv, 1e-300), pole = polesOf(surfaces.get(face.faceId)!).some(q => uv.some(x => Math.abs(x[q.along === 0 ? 1 : 0] - q.at) <= 1e-9 * span)), users = new Map<string, { t: number; e: number }[]>();
     if (!pole) for (let t = 0; t < domain.length; t++) {
       const [i, j, k] = domain[t], qa = uv[i - off], qb = uv[j - off], qc = uv[k - off];
-      if ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0]) === 0) continue;
+      // (A triangle with two corners at one point bounds nothing; one of three distinct points in a line — three samples
+      // of a straight run of the boundary, left by the ear clipping — does: its two short chords are the edge's. D179.)
+      if ((qb[0] - qa[0]) * (qc[1] - qa[1]) - (qb[1] - qa[1]) * (qc[0] - qa[0]) === 0) {
+        const A = point(i), B = point(j), C = point(k);
+        if ((A[0] === B[0] && A[1] === B[1] && A[2] === B[2]) || (B[0] === C[0] && B[1] === C[1] && B[2] === C[2]) || (C[0] === A[0] && C[1] === A[1] && C[2] === A[2])) continue;
+        if ((qa[0] === qb[0] && qa[1] === qb[1]) || (qb[0] === qc[0] && qb[1] === qc[1]) || (qc[0] === qa[0] && qc[1] === qa[1])) continue;
+      }
       for (let e = 0; e < 3; e++) { const key = segmentKey(point(domain[t][e]), point(domain[t][(e + 1) % 3])), l = users.get(key); if (l) l.push({ t, e }); else users.set(key, [{ t, e }]); }
     }
     for (const [key, list] of users) {
@@ -402,13 +408,17 @@ function strip(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
   if (!(chord2 > 0)) return;
   // An edge straight in (u, v) to rounding (a circle about a cylinder's axis, a ruling) leaves no strip. (Its
   // points only: the probes can fall on a circle's C0 knots, where it has no derivative.)
+  // (Straight in (u, v) but off the surface — a facet mesh's chord against an exact wall — it still has its ribbon: the
+  // strip is taken, its own part nil. D179.)
   let straight = true;
   for (const t of PROBES) {
     const l0 = p[0] + ex * t, l1 = p[1] + ey * t;
-    let c: XY | null; try { c = nearUV(s, s.ev(tp + (tq - tp) * t), [l0, l1]); } catch { s.dropped++; return; }
+    let c: XY | null, E: Point; try { E = s.ev(tp + (tq - tp) * t); c = nearUV(s, E, [l0, l1]); } catch { s.dropped++; return; }
     if (!c) { s.dropped++; return; }
     const off = ex * (c[1] - l1) - ey * (c[0] - l0);
     if (off * off > 1e-24 * chord2 * chord2) { straight = false; break; }
+    const P = s.at(c[0], c[1]), gap = Math.hypot(E[0] - P[0], E[1] - P[1], E[2] - P[2]);
+    if (gap > 1e-12 * (1 + Math.abs(E[0]) + Math.abs(E[1]) + Math.abs(E[2]))) { straight = false; break; }
   }
   if (straight) return;
   for (let i = 0; i < 8; i++) {
@@ -490,8 +500,17 @@ function gaussNewton(s: typeof sink, p: Point, seed: XY): XY | null {
   // domain. Inside, Gauss–Newton's nearest point stands as it always did: an intersection edge's fitted points lie a
   // little off either surface.)
   if (a > s.lu0 && a < s.lu1 && b > s.lv0 && b < s.lv1) return [a, b];
-  const q = at(a, b), d = Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]);
-  return d <= 1e-6 * (1 + Math.abs(p[0]) + Math.abs(p[1]) + Math.abs(p[2])) ? [a, b] : null;
+  const q = at(a, b), d = Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]), tol = 1e-6 * (1 + Math.abs(p[0]) + Math.abs(p[1]) + Math.abs(p[2]));
+  if (d <= tol) return [a, b];
+  // (Off the surface along its normal only — a chord of a facet mesh against an exact wall, its sag — p is the edge's,
+  // not across a seam: its residual has no part along the surface (the unclamped step's tangent), D179.)
+  const h0 = 1e-7 * (1 + Math.abs(a)), k0 = 1e-7 * (1 + Math.abs(b)), h = a + h0 > s.lu1 ? -h0 : h0, k = b + k0 > s.lv1 ? -k0 : k0, qa = at(a + h, b), qb = at(a, b + k);
+  const ux = (qa[0] - q[0]) / h, uy = (qa[1] - q[1]) / h, uz = (qa[2] - q[2]) / h, vx = (qb[0] - q[0]) / k, vy = (qb[1] - q[1]) / k, vz = (qb[2] - q[2]) / k;
+  const rx = p[0] - q[0], ry = p[1] - q[1], rz = p[2] - q[2], ru = rx * ux + ry * uy + rz * uz, rv = rx * vx + ry * vy + rz * vz;
+  const g11 = ux * ux + uy * uy + uz * uz, g12 = ux * vx + uy * vy + uz * vz, g22 = vx * vx + vy * vy + vz * vz, det = g11 * g22 - g12 * g12;
+  if (!(Math.abs(det) > 1e-300)) return null;
+  const da = (ru * g22 - rv * g12) / det, db = (g11 * rv - g12 * ru) / det;
+  return Math.hypot(ux * da + vx * db, uy * da + vy * db, uz * da + vz * db) <= tol ? [a, b] : null;
 }
 /**
  * The centre of the box of a B-rep's surfaces' control points (or the origin when it has none) as the

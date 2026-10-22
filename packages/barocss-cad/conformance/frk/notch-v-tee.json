@@ -1,0 +1,126 @@
+{
+  "id": "frk-notch-v-tee",
+  "step": "FRk",
+  "decisions": [
+    "D175",
+    "D182"
+  ],
+  "about": "FRk5 (D175), for the K2 flow: a Ø30 × 2 branch coped onto a Ø30 × 2 through tube with a saw-cut V notch, depth 20 at 90° (k = cot 45° = 1). The branch keeps z ≥ 20 − |y'|: its volume A·300 − (20A − 4(15³ − 13³)/3), its z̄ ½(300²A − ∫∫h²dA)/V with ∫∫h² = 400A − 40·4(15³ − 13³)/3 + π(15⁴ − 13⁴)/4 (closed forms); the through tube untouched, A·400.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              -200,
+              0,
+              0
+            ],
+            [
+              200,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              300
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "section": {
+            "kind": "round-tube",
+            "diameter": 30,
+            "wall": 2
+          },
+          "up": [
+            0,
+            0,
+            1
+          ],
+          "corners": {
+            "default": "none",
+            "tee": "cope",
+            "at": [
+              {
+                "point": 3,
+                "kind": "cope",
+                "notch": {
+                  "kind": "v",
+                  "depth": 20,
+                  "angle": 90
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 70371.67544041136,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            0
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 50830.8394749546,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            155.503559488
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ]
+  }
+}

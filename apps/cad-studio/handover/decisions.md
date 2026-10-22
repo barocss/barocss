@@ -10791,3 +10791,156 @@ angles at one point, the first running at least h past the joint each way.
 - T1: lint 0 errors, type-check clean, `build:library`.
 - 19 mass, frame, notch, trim, weld and cut files: 90/91, 1 skipped, 0 failing.
 - T2 (full kernel suite, RB, properties): pending with D177's.
+
+## D179 — D177's ribbon on facet-mesh rims: three gaps in the strip coverage closed; two conformance centroids corrected to their closed forms (2026-10-23)
+
+**The regression.** At D177 (`3ef6df7c9`) three F2 conformance cases failed: `r6/facet-cube-blind-hole`, `-boss` and
+`-hole`.
+- Their mass left the quadrature for the tessellation's route (blind hole 7773.9018 against 8000 − 72π = 7773.8053).
+- Then, once back on the quadrature, the blind hole's and the boss's centroid moved off the pinned values.
+- Cause: an exact cylinder wall meets the facet mesh along polyline edges (64-point chords, 8.7e-4 mm inside the
+  circle).
+  - The ribbon closes that gap on one rim.
+  - On the other rim the strips were missing, for three reasons below, so the ribbons no longer balanced as the
+    unclosed gaps used to.
+  - The face then failed its vector-area check.
+
+**Three repairs in `src/brep-mass-quadrature.ts`. Each closes a gap in the strip coverage that predates D177.**
+1. **`gaussNewton` at the domain's edge.** It refused a point it could not reach, as off the domain (D167). A chord
+   point off the wall along its normal is not off the domain. It is now accepted when its residual has no part
+   along the surface (the unclamped step's tangent within the same 1e-6 of size). A point across a seam still has
+   one and is still refused.
+2. **A strip straight in (u, v) but off the surface.** Such a strip (a chord at a constant height) returned before
+   its ribbon. Now a probe whose surface point is more than 1e-12 of size from the edge's point takes the strip; its
+   own part is nil and its ribbon counts. Exact edges (a circle about the axis, a ruling) still return early.
+3. **Collinear domain triangles.** A domain triangle of three distinct points in a line (a straight run of the
+   boundary left by the ear clipping) was skipped as "no area". So its two short chords, which are the edge's, had no
+   strip, and the long chord had no segment. Only a triangle with two corners at one point is skipped now.
+
+**Results:**
+
+| Case | Pinned (the old kernel's output) | Closed form | Now |
+|---|---|---|---|
+| Blind hole z̄ | 9.825482062 | (8000·10 − 72π·16)/(8000 − 72π) = 9.8254178013 | 9.8254178091 |
+| Boss z̄ | 10.216987784 | (8000·10 + 45π·22.5)/(8000 + 45π) = 10.2170575106 | 10.2170575022 |
+| Through hole z̄ | 10 | 10 | 10.0000000000005 |
+
+- Volumes: as before D177, to 6e-14.
+- The pinned blind-hole and boss values were the old kernel's own output: 6.4e-5 and 7.0e-5 off the closed forms
+  with their unclosed rims. They are corrected to the closed forms (an independent oracle, each case's own "about").
+  The tolerance stays at absTol 1e-6.
+- V notch (9.2e-15) and the D126 table (≤ 5e-14) are unchanged.
+
+**Found, not changed:** `r6/facet-cube-sphere-intersect` pins ȳ = 17.74954826. By its symmetry all three
+coordinates of an eighth ball about the corner are 20 − 3·6/8 = 17.75; the kernel gives 17.74955 (4.5e-4 off). Its own
+pinned defect, unchanged by D177–D179, left for a later checkpoint.
+
+**Checks (T1+):**
+- lint, type-check and build pass.
+- Every test file that tessellates, builds SubD or takes mass (87 files): 872/873, 1 skipped, 0 failing. That run
+  includes D180's change too, which was made alongside.
+- **T2 pending:** the full kernel suite, RB and properties.
+
+## D180 — FRk7: the SubD display folds, slivers flipped onto the surface (2026-10-23)
+
+**S0 (D164) found it:** the pipe clamp's tessellation had one fold over 30°, 88.6°, between interior sliver triangles
+inside one face (`clamp_f210`, a bicubic SubD patch), and 45 over 15°.
+- Delaunay in the arc-length scaled (u, v) is not good in space where the patch's parameters crowd unevenly. One
+  sliver lay across the surface, its facet normal far from the surface's.
+
+**The fix, in `surfaceTriangles` (`src/brep-tessellate.ts`), after its refine / flip / refine:** an interior edge is
+flipped when all of these hold:
+- its two triangles' worse facet is off the surface's normal by more than 1.5 steps (its unit normal against its
+  corners' mean normal);
+- the flip is a triangulation (convex in the scaled domain);
+- the flip makes that worse facet nearer the surface.
+
+It runs up to 8 passes. Pole corners are left alone. The domain stays a triangulation, so the quadrature is
+unaffected. The facet test is a module function (`facetAgreement`; owner rule).
+
+**Pipe clamp:**
+
+| Folds | Before | After |
+|---|---|---|
+| Worst | 88.6° | 21.6° |
+| Over 30° | 1 | 0 |
+| Over 25° | 1 | 0 |
+| Over 20° | 12 | 6 |
+| Over 15° | 45 | 39 |
+
+- Tessellation time: 950 → 1036 ms.
+- The S0 test pinned the defect (`over(30) ≥ 1`, all slivers). It now holds FRk7's target, no fold of 25° or more,
+  renamed "FRk S0 → FRk7".
+
+**Checks:** with D179's (same run).
+- **T2 pending:** the full kernel suite, RB and properties. A visual check in the studio, on both renderers, is for
+  the GPU lane or the coordinator's window.
+
+## D181 — FRk8a: the housing's shoulder from its faces, against the row's Da max (2026-10-23)
+
+As D164 froze it. D158 recorded Da max from the row and did not check it; the housing's shoulder was not found from its
+faces.
+
+**Kernel (`src/bearing.ts`, `seatedBearing` in a housing):**
+- **Finding the shoulder (`housingShoulder`, a module function):** a planar face of the housing that is
+  - square to the bearing's axis,
+  - at one of the bearing's faces (from or to, within 1e-6 mm),
+  - with its outward normal toward the bearing,
+  - reaching the Ø D bore and stepping in from it.
+  Its diameter is its edges' nearest approach to the axis, each edge sampled 33 times. The largest such face at a
+  side stands for that side.
+- **Above the row's Da max, at either face:** `SEAT_ABUTMENT` ("the outer ring would not bear on it").
+- **None at the shaft's located side (`against`):** a warning, naming the other side when the shoulder is only there.
+- **The report:** `housing.shoulder` = { at, diameterMM } (rounded like the report's other sizes), or null when there
+  is none at either face.
+- Without a Da max in the row, the shoulder is found and reported, not checked.
+
+**Changed expectation:** R12c.4's plain through-bore housing (`test/r12c-bearing.test.mjs`) now carries the
+no-shoulder warning and `shoulder: null`, as D164's FRk8a says. Nothing else changed in its test.
+
+**Oracles (`test/frk-8a-housing-shoulder.test.mjs`, 3 tests):**
+- The turned profiles are written in the test, and the oracle is each profile's own shoulder radius.
+- **D164's "a stepped housing at Da max ± 0.5":**
+  - Ø40 and Ø41.5 are found at the located face and held, with no warning;
+  - Ø42.5 is refused;
+  - without Da max it is reported, not checked.
+- **A shoulder on the other face only:** reported there with the warning; above Da max there, refused.
+- **Through the part model:** the bearing output's report carries the shoulder; above Da max it is GEOMETRY
+  [SEAT_ABUTMENT].
+- The row is B1's 6204 (D139), a test row citing its page.
+
+**Consumers:**
+- `@barocss/cad-model`'s bearing, housing, drawing and acceptance tests: 90/90.
+- Its type-check is clean (the field is additive).
+- Its evaluate text (`engine/evaluate.ts:679`) could show the shoulder. That is the outer lane's to take, offered
+  through the coordinator.
+
+**Checks (T1):**
+- `packages/barocss-cad` lint 0 errors, type-check clean, build.
+- Bearing, shaft and housing files: 74/74.
+- No brep core change.
+
+## D182 — K2 (FRk5 leftovers), the kernel's half: the notch cases the flow loads (2026-10-23)
+
+The coordinator's split for K2: the kernel lane writes the notch cases. The GPU lane builds the browser-flow step
+(notch made, saved, reopened on both renderers) and looks into Codex's retained WebGPU failure. A kernel tessellation
+cause would come back here.
+
+**Three conformance cases in `packages/barocss-cad/conformance/frk/`, on one tee.**
+- The tee: a Ø30 × 2 round tube through from x −200 to 200, and a Ø30 × 2 branch from z 300 down to it, coped at
+  point 3 with a notch cutter.
+- **`notch-v-tee.json`:** a V notch, depth 20 at 90° (k = cot 45° = 1). All closed forms.
+  - The branch keeps z ≥ 20 − |y′|.
+  - V = A·300 − (20A − 4(15³ − 13³)/3) = 50 830.8394749546.
+  - z̄ = ½(300²A − ∫∫h²)/V, with ∫∫h² = 400A − 40·4(15³ − 13³)/3 + π(15⁴ − 13⁴)/4, giving 155.5035594880.
+- **`notch-holesaw-tee.json`:** a hole saw Ø52 on the through tube's axis.
+  - The branch keeps z ≥ √(26² − y′²).
+  - V 48 558.8898558679 and z̄ 161.9891632034, by a 64 × 256 polar Gauss–Legendre over the annulus.
+  - The oracle script is `test/frk-5-notch-oracle.py`, numpy only, no kernel code.
+- **In both cases:** the through tube is untouched (A·400, centroid at the origin), both bodies are valid, genus 1.
+  Tolerances: volume rel 1e-9, centroid abs 1e-6.
+- **`refuse-notch-v-depth.json`:** a V as deep as the branch is wide (30) is refused: PARAMETER
+  "[NOTCH_CUTTER] v depth must be under the branch width and length".
+
+**Checks (T1):** the three cases pass through `test/conformance.test.mjs` (with the other notch-named cases, 6/6). No
+product code changed. RB picks up three more cases at the next window.
