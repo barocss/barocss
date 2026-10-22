@@ -194,7 +194,7 @@ test('FRk S0 the round-cornered ordered trim\'s time (D126): one corner of three
   near(volume(s.outputs[0]), A_ROUND * 720, 1e-12, 'the leg through');
 });
 
-test('FRk S0 the SubD display folds (D79, D84): on the pipe clamp the folds over 30° are inside one face, between sliver triangles — none at a face\'s (a cap\'s) boundary', t => {
+test('FRk S0 → FRk7 the SubD display folds (D79, D84, D180): on the pipe clamp no fold reaches 25° (S0 found one sliver inside a face at 88.6°)', t => {
   const cage = JSON.parse(readFileSync(new URL('../conformance/r8/subd-pipe-clamp.json', import.meta.url), 'utf8')).input.partDocument.features[0].cage;
   const mesh = tessellateBrep(subdBrep(cage, { id: 'clamp' }), { segmentsPerQuarter: 8 });
   const P = mesh.positionsMM, I = mesh.indices, key = v => `${P[3 * v]},${P[3 * v + 1]},${P[3 * v + 2]}`, pt = v => [P[3 * v], P[3 * v + 1], P[3 * v + 2]];
@@ -214,7 +214,8 @@ test('FRk S0 the SubD display folds (D79, D84): on the pipe clamp the folds over
   }
   const over = th => folds.filter(f => f.deg > th);
   t.diagnostic(`folds over 15°: ${over(15).length} (${over(15).filter(f => f.one).length} inside one face), over 20°: ${over(20).length}, over 30°: ${over(30).length}; the worst ${Math.max(...folds.map(f => f.deg)).toFixed(1)}°`);
-  assert.ok(over(30).length >= 1 && over(30).every(f => f.one && f.sliver), 'the worst folds are slivers inside one face');
+  // S0 pinned the defect: over 30° one fold, a sliver inside one face. FRk7 flips such slivers onto the surface (D180).
+  assert.equal(over(25).length, 0, 'no fold of 25° or more');
 });
 
 test('FRk S0 D158\'s housing shoulder: a stepped housing bore (the seat Ø47 14 deep, then Ø40) — the shoulder, the planar annulus at the seat\'s end, found from the B-rep\'s faces; its bore against a row\'s Da max is arithmetic', () => {

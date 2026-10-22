@@ -39,7 +39,10 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Window repairs: frk-3's oracle path; two refusal checks FRk4 made stale; sweep's silently dropped holes (a defect from the import) refused again | D176 | done (T1) |
 | V notch precision: trim strips close the gap to their fitted edge (the ribbon); V notch 9.2e-15, D126 table members 4–7 from ~1e-9 to ~1e-14 | D177 | done (T1); T2 pending |
 | FRk6: the capped ordered joint (12 Booleans; the table's build 5.7 s → 1.1 s, ≤ 2 s met); its accuracy half is D177 | D178 | done (T1); T2 pending |
-| FRk5 leftovers, FRk7, FRk8a, FRk8b second half, FRk9 | — | queued (`notes/claude-resume-2026-10-23/kernel.md`) |
+| D177's ribbon on facet-mesh rims: three gaps in the strip coverage closed; two r6 centroids corrected to their closed forms (they pinned the old output) | D179 | done (T1+); T2 pending |
+| FRk7: SubD display folds flipped onto the surface (pipe clamp worst 88.6° → 21.6°, none ≥ 25°) | D180 | done (T1+); T2 pending |
+| Open: `r6/facet-cube-sphere-intersect` pins ȳ 17.74954826 against the symmetric 17.75 (4.5e-4) | — | found (D179) |
+| FRk5 leftovers, FRk8a, FRk8b second half, FRk9 | — | queued (`notes/claude-resume-2026-10-23/kernel.md`) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

@@ -971,6 +971,30 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
     }
   }
   refine(); flipAll(); refine();
+  // Folds (FRk7, D180): Delaunay in the scaled (u, v) is not good in space where the surface's parameters crowd
+  // unevenly (a SubD patch by an extraordinary vertex): a sliver there can lie across the surface, its facet's normal
+  // far from the surface's at its corners (the pipe clamp's 88.6° fold). An interior edge whose two triangles' worse
+  // facet is off the surface's normal by more than 1.5 steps is flipped when the flip is a triangulation (convex in
+  // (u, v)) and its worse facet is nearer the surface: the display's folds go, the domain stays a triangulation.
+  // (Facets wound counter-clockwise in the mirrored domain face along Su × Sv, or against it when mirrored.)
+  {
+    const sgn = flip ? -1 : 1;
+    for (let pass = 0, changed = true; changed && pass < 8; pass++) {
+      changed = false;
+      for (let t = 0; t < tris.length; t++) for (let e = 0; e < 3; e++) {
+        const tri = tris[t], x = tri[e], y = tri[(e + 1) % 3], c = tri[(e + 2) % 3], o = across(t, x, y);
+        if (o === undefined || atPoleIdx(x) || atPoleIdx(y) || atPoleIdx(c)) continue;
+        const d = third(tris[o], x, y);
+        if (atPoleIdx(d)) continue;
+        const before = Math.min(facetAgreement(pts, nrm, sgn, x, y, c), facetAgreement(pts, nrm, sgn, y, x, d));
+        if (before >= cosStep) continue;
+        const lcd2 = len2(c, d) ** 2;
+        if (orient(c, x, d) <= 1e-12 * lcd2 || orient(d, y, c) <= 1e-12 * lcd2) continue;
+        if (!(Math.min(facetAgreement(pts, nrm, sgn, c, x, d), facetAgreement(pts, nrm, sgn, d, y, c)) > before)) continue;
+        unlink(t); unlink(o); tris[t] = [c, x, d]; tris[o] = [d, y, c]; link(t); link(o); changed = true; break;
+      }
+    }
+  }
   // (The boundary's own (u, v) back: the triangles were made on the snapped ring, and stay a triangulation of the ring
   // as inverted — their signed areas still sum to its area — so the quadrature's domain is the face's, not the snap's.)
   inverted.forEach((q, i) => { if (q) uv[i] = q; });
@@ -979,6 +1003,13 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const wound = tris.map(([a, b, c]): [number, number, number] => keep ? [a, b, c] : [a, c, b]);
   // (The surface's own normal at each point, along Su × Sv — none at a pole, whose normal depends on the way in.)
   return { pts, uv, domain: wound, tris: wound.filter(([a, b, c]) => !same(a, b) && !same(b, c) && !same(c, a)), normals: nrm.map((n, i) => atPoleIdx(i) ? null : n) };
+}
+/** A facet's agreement with its surface (FRk7, D180): its unit normal, signed by the winding, against its corners' mean normal. */
+function facetAgreement(pts: readonly Point[], nrm: readonly Point[], sgn: number, a: number, b: number, c: number): number {
+  const A = pts[a], B = pts[b], C = pts[c], ux = B[0] - A[0], uy = B[1] - A[1], uz = B[2] - A[2], vx = C[0] - A[0], vy = C[1] - A[1], vz = C[2] - A[2];
+  const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, l = Math.hypot(nx, ny, nz);
+  const mx = nrm[a][0] + nrm[b][0] + nrm[c][0], my = nrm[a][1] + nrm[b][1] + nrm[c][1], mz = nrm[a][2] + nrm[b][2] + nrm[c][2], m = Math.hypot(mx, my, mz);
+  return l > 0 && m > 0 ? sgn * (nx * mx + ny * my + nz * mz) / (l * m) : -1;
 }
 const scale3 = (a: Point, k: number): Point => [a[0] * k, a[1] * k, a[2] * k];
 const unit3 = (a: Point): Point => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
