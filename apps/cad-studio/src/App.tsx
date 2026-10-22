@@ -26,6 +26,9 @@ import { DRAG_TYPE, Viewport, snapshotInstanceIsolation, type FeatureHandle, typ
 import { ClearancePanel } from './viewport/ClearancePanel';
 import { useClearanceAnalysis } from './viewport/useClearanceAnalysis';
 import { PrintPanel } from './viewport/PrintPanel';
+import { CamPanel } from './viewport/CamPanel';
+import { useCamPreview } from './viewport/camPreview';
+import type { CamOptions } from './viewport/camDisplay';
 import { usePrintLayers, type PrintOptions } from './viewport/usePrintLayers';
 import { printOptionsOf, withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
 import { documentPrintPreviewProblem } from '@barocss/cad-model/engine/printPreview';
@@ -340,6 +343,9 @@ export function App() {
   const [clearanceEnabled, setClearanceEnabled] = useState(false);
   const [clearanceNearMM, setClearanceNearMM] = useState(1);
   const [printEnabled, setPrintEnabled] = useState(false);
+  // (G23 CNC: the material-removal preview, session only.)
+  const [camEnabled, setCamEnabled] = useState(false);
+  const [camOptions, setCamOptions] = useState<CamOptions>({ setup: 0, progress: 0, cellMM: 0.5 });
   const [isolatedInstances, setIsolatedInstances] = useState<readonly string[] | undefined>();
   const displayModeContext = useRef('');
   const [displayModeFailure, setDisplayModeFailure] = useState<{ requested: DisplayMode; reason: string; context: string } | null>(null);
@@ -2074,7 +2080,7 @@ export function App() {
   const clearanceVisibleInstances = useMemo(() => instancesPlaced.map(i => i.id), [instancesPlaced]);
   const clearanceLabels = useMemo(() => new Map([...bodies.map(b => [b.key, bodyName(doc, b)] as const), ...(doc.instances ?? []).map(i => [i.id + '/', i.name ?? i.id] as const)]), [bodies, doc]);
   const clearanceReady = (doc.instances ?? []).filter(i => !i.hidden).every(i => instanceEvaluationCurrent(instanceBodies.get(i.id), i, instanceSources.get(i.id)));
-  const clearanceReason = printEnabled ? 'Close Print layers to use assembly clearance.' : rendering || drawing ? 'Assembly clearance is available in Model view.'
+  const clearanceReason = printEnabled ? 'Close Print layers to use assembly clearance.' : camEnabled ? 'Close the CNC preview to use assembly clearance.' : rendering || drawing ? 'Assembly clearance is available in Model view.'
     : sketch || previewBodies || active || ghost || assembly.draft || cageEd.overlay || skel.tool ? 'Pending · finish the current edit to classify its geometry.'
     : viewAnalysis || scalarMaps?.length || mouldShown || directShown.length ? 'Assembly clearance requires the ordinary solid view.'
     : !fresh || !clearanceReady ? 'Pending · waiting for the current source geometry.' : undefined;
@@ -2091,7 +2097,7 @@ export function App() {
   const printMeshes = useMemo(() => bodies.filter(b => !lookOf(doc, b).hidden).map(b => b.mesh), [bodies, doc.bodies]);
   const printInputProblem = useMemo(() => documentPrintPreviewProblem(doc), [doc]);
   const printOptions = useMemo<PrintOptions>(() => printInputProblem ? { layer: 0, supports: true, printed: true } : printOptionsOf(doc, printing?.thresholds.maxOverhangDeg.value), [printInputProblem, doc.printPreview, doc.print, printing]);
-  const printReason = printInputProblem ?? (rendering || drawing ? 'Print layers are available in Model view.'
+  const printReason = printInputProblem ?? (camEnabled ? 'Close the CNC preview to preview print layers.' : rendering || drawing ? 'Print layers are available in Model view.'
     : doc.instances?.some(i => !i.hidden) ? 'Print layers currently support root part solids. Placed assemblies are not supported.'
     : refShown.length ? 'Hide reference parts and keep-outs to preview print layers of the root part.'
     : sketch || active || previewBodies || ghost || assembly.draft || cageEd.overlay || skel.tool || bodyDrag ? 'Finish the current edit to preview print layers.'
@@ -2102,6 +2108,20 @@ export function App() {
   const printState = usePrintLayers(printEnabled && !printReason, printMeshes, printOptions);
   const printDisplay = printEnabled && !printReason ? printState.display : null;
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioPrint: () => unknown }).__studioPrint = () => ({ reason: printReason, stage: printState.stage, display: printDisplay }); }, [printReason, printState.stage, printDisplay]);
+  // (G23 CNC: the root part's program from the document's machining stock, one setup at a time; the other previews closed.)
+  const camReason = printEnabled ? 'Close Print layers to preview CNC removal.' : clearanceEnabled ? 'Close assembly clearance to preview CNC removal.'
+    : rendering || drawing ? 'The CNC preview is available in Model view.'
+    : doc.instances?.some(i => !i.hidden) ? 'The CNC preview supports the root part. Placed assemblies are not supported.'
+    : refShown.length ? 'Hide reference parts and keep-outs to preview CNC removal of the root part.'
+    : sketch || active || previewBodies || ghost || assembly.draft || cageEd.overlay || skel.tool || bodyDrag ? 'Finish the current edit to preview CNC removal.'
+    : section ? 'Close Section view to preview CNC removal.'
+    : viewAnalysis || scalarMaps?.length || mouldShown || directShown.length ? 'Close the current analysis or direct-geometry display to preview CNC removal.'
+    : !fresh ? 'Pending · waiting for current geometry.'
+    : !bodies.some(b => b.mesh.indices.length) ? 'No solid to preview.' : undefined;
+  const camState = useCamPreview(camEnabled && !camReason, doc, bodies, camOptions);
+  const camDisplay = camEnabled && !camReason ? camState.display : null;
+  const patchCam = useCallback((patch: Partial<CamOptions>) => setCamOptions(o => ({ ...o, ...patch })), []);
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioCam: () => unknown }).__studioCam = () => ({ reason: camReason, stage: camState.stage, error: camState.error, display: camDisplay }); }, [camReason, camState.stage, camState.error, camDisplay]);
 
   const displayScopeReason = instancePreview ? 'CAD display modes are not available while an instance is dragged.'
     : assembly.draft ? 'CAD display modes are not available during an assembly edit.'
@@ -2122,7 +2142,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason}
+      <Viewport ref={viewport} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} instanceTransforms={instanceTransforms} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
@@ -2625,6 +2645,7 @@ export function App() {
   {(mapKind === 'parting' || mapKind === 'halves') && <MouldLegend kind={mapKind} result={mouldResult} pull={!!doc.mould?.pull} spread={mouldSpread} onSpread={setMouldSpread} />}
   {section && <SectionBar section={section} setSection={setSection} hatch={sectionHatchOn} setHatch={setSectionHatchOn} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} eye={cameraEye} />}
         <PrintPanel enabled={printEnabled} onEnabled={setPrintEnabled} options={printOptions} onOptions={commitPrintPreview} onDirection={commitPrintDirection} state={printState} reason={printReason} />
+        <CamPanel enabled={camEnabled} onEnabled={setCamEnabled} options={camOptions} onOptions={patchCam} state={camState} reason={camReason} />
         <ClearancePanel enabled={clearanceEnabled} onEnabled={setClearanceEnabled} nearMM={clearanceNearMM} onNear={setClearanceNearMM} display={clearanceDisplay} reason={clearanceReason} labels={clearanceLabels} />
         <div className="card views" role="group" aria-label="Views">
           <label className="cad-display-control"><span className="sr">CAD display mode</span>

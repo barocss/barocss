@@ -13,6 +13,9 @@ import { ClearanceOverlayGL } from './clearanceOverlayGL';
 import type { ClearanceDisplay } from './clearanceDisplay';
 import type { PrintDisplay } from './printDisplay';
 import { PrintOverlayGL } from './printOverlayGL';
+import type { CamDisplay } from './camDisplay';
+import { CamOverlayGeometry } from './camOverlayGeometry';
+import { OverlayGL } from './overlayGL';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 
 export interface FaceRef { body: number; face: number }
@@ -122,6 +125,8 @@ export interface ViewRenderer {
   setClearanceDisplay?(display: ClearanceDisplay | null): void;
   /** Model print-layer output in bed coordinates, independent of native geometry and IDs. */
   setPrintDisplay?(display: PrintDisplay | null): void;
+  /** G23 CNC: the stock, paths, remaining stock and tool in world coordinates, independent of native geometry and IDs. */
+  setCamDisplay?(display: CamDisplay | null): void;
   getDisplayModeStatus?(): DisplayModeStatus;
   render(camera: OrbitCamera, view: ViewState): void;
   pickFace(x: number, y: number, camera: OrbitCamera, view: ViewState): FaceRef | null;
@@ -362,6 +367,7 @@ export class Renderer implements ViewRenderer {
   private hatch: { body: number; line: Plain }[] = [];
   private clearance: ClearanceOverlayGL | null = null;
   private print: PrintOverlayGL | null = null;
+  private cam: { geometry: CamOverlayGeometry; overlay: OverlayGL } | null = null;
   private gridVao: WebGLVertexArrayObject; private gridCount = 0;
   private quadVao: WebGLVertexArrayObject; private corner: WebGLBuffer; private emptyVao: WebGLVertexArrayObject;
   private pickFbo: WebGLFramebuffer | null = null; private pickTex: WebGLTexture | null = null; private pickDepthTex: WebGLTexture | null = null; private pickDepth: WebGLRenderbuffer | null = null;
@@ -404,9 +410,18 @@ export class Renderer implements ViewRenderer {
     (this.print ??= new PrintOverlayGL(this.gl)).setDisplay(display);
   }
 
+  setCamDisplay(display: CamDisplay | null): void {
+    if (!this.cam && !display) return;
+    const cam = this.cam ??= { geometry: new CamOverlayGeometry(), overlay: new OverlayGL(this.gl, 'CNC') };
+    try { cam.overlay.setDrawings(cam.geometry.update(display)); }
+    catch (error) { cam.overlay.setDrawings([]); cam.geometry.update(null); throw error; }
+    if (!display) { cam.overlay.dispose(); this.cam = null; }
+  }
+
   dispose(): void {
     this.clearance?.dispose(); this.clearance = null;
     this.print?.dispose(); this.print = null;
+    this.cam?.overlay.dispose(); this.cam = null;
   }
 
   getDisplayModeStatus(): DisplayModeStatus { return { ...this.displayMode }; }
@@ -869,6 +884,7 @@ export class Renderer implements ViewRenderer {
     }
     this.clearance?.render(vp);
     this.print?.render(vp, w, h, dpr);
+    if (this.cam) { const f = camera.basis().forward; this.cam.overlay.render(vp, w, h, dpr, [-f[0], -f[1], -f[2]]); }
     gl.disable(gl.BLEND);
     // Resolve MSAA colour + depth, then composite with ambient occlusion.
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.msFbo); gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.rsFbo);

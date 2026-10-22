@@ -2,18 +2,10 @@ import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import type { LayerLoop, PrintLayer } from '@barocss/cad-model/print/layers';
 import type { PrintDisplay, PrintSummary } from './printDisplay';
 import { axisSection, clipMeshSection } from './sectionView';
+import type { OverlayDrawing } from './overlayDrawing';
 
 /** Bed-space drawing only. No native face/edge authority, picking or authored Model state. */
-export interface PrintDrawing {
-  name: string;
-  positions: Float32Array;
-  normals?: Float32Array;
-  indices?: Uint32Array;
-  color: [number, number, number];
-  opacity: number;
-  width?: number;
-  visible?: boolean;
-}
+export type PrintDrawing = OverlayDrawing;
 
 /** Model loops are closed, including holes; their supplied winding is retained. */
 export function printLoopSegments(loops: readonly LayerLoop[], z: number): Float32Array {
