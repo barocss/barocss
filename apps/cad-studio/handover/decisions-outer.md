@@ -6157,7 +6157,7 @@ The coordinator's end-to-end acceptance. One scripted agent run, through the rea
   - A 50 × 30 × 8 pocket.
 - **Shaft (part p2).** A steel turned shaft, Ø20 × 30 / Ø25 × 40 / Ø20 × 25.
   - A 6 × 6 × 18 key in its keyseat.
-  - A 6204 bearing on step 1 against the Ø25 shoulder, the seat k5.
+  - A 6204 bearing on step 1 against the Ø25 shoulder, the seat k5. **Corrected by O158: on step 3 against the same Ø25 shoulder; on step 1 it sat over the key.**
 - **Cover (part p3).** A Ø60 × 8 cover, PETG, printed on FDM, with a face O-ring gland for a 2-214 O-ring. It sits on the plate over the bore.
 
 **What the shop gets**: per-part DFM reports, a drawing per made part, the BOM and the purchase CSV, a clean clearance map, and the export bundle.
@@ -6205,7 +6205,7 @@ Each step is a chat call or a short run of them, with its expected outcome. "Exa
      - the stock a box from B1.
    - The probe got STOCK_NONE_LOADED until the stock was set on p1 itself (gap A9-8).
 6. **Shaft.**
-   - `shaft` (the defaults), then `key` (6 × 6 × 18, its height an estimate), then `bearing` 6204 on step 1, k5.
+   - `shaft` (the defaults), then `key` (6 × 6 × 18, its height an estimate), then `bearing` 6204 on step 1, k5. **O158: on step 3 against its start.**
    - **Exact**: the bearing's body is 19800.6522 mm³ (Pappus; the kernel's case).
    - The seat note: "k5: 20.002 to 20.011, interference −21 to −2 µm".
    - `query.fit_clearance` H7/k6 at 20: −15 to +19 µm, closed form (probed: −15, +19).
@@ -6690,3 +6690,23 @@ The test fails on the old code and passes on the fix.
 - tsc of model and studio; eslint 0 errors.
 
 **Not run:** the GPU lane's end-to-end "no overcut" check, which they add after this lands.
+
+## O158 — O3: the A9 brief's bearing moves off the key, from step 1 to step 3 (2026-10-23)
+
+**The clash.** With the default shaft (Ø20 × 30 / Ø25 × 40 / Ø20 × 25) and the default keyseat on step 1 (z 6–24), A9's 6204 on step 1 against the Ø25 shoulder (z 16–30) sat over the key. The clearance map reads that as a 115 mm³ clash, since nothing seats a key with a bearing (A9-6's test pins it).
+
+**The choice: move the bearing, not the key.**
+- The bearing goes on step 3, against that step's start, which is the other side of the same Ø25 shoulder. It now sits at z 70–84.
+- The shaft keeps every default: the keyseat on step 1, and the ring groove on step 3 at 18 from its start (z 88), clear of the bearing.
+- Step 3 is Ø20 like step 1, so the seat and its numbers do not change: k5 at 20, the seat note, `fit_clearance` H7/k6, and the bearing body's 19800.6522 mm³.
+- The S0's two lines (the parts list and step 6) are marked "corrected by O158". The A9 run (O5) follows the corrected brief. No placement in it is written yet.
+
+**The test** (clearance-designed, "O3 (A9 brief)"):
+1. The default shaft, its key, and the 6204 at `{step: 3, against: 'start'}`. The node stores step 3 and start.
+2. The key sits at z 6–24 and the bearing at z 70–84, read from their meshes.
+3. Key and shaft, and bearing and shaft, are both designed seats.
+4. No pair overlaps. The key and the bearing are not even a pair within the map's 1 mm.
+
+The A9-6 test of the old placement stays as it is: it is the record that the clash is found.
+
+**Verified (T1):** clearance-designed 5/5, tsc, eslint 0 errors.
