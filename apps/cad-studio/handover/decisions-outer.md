@@ -5867,3 +5867,53 @@ Balloons are placed before the tables, so a table pinned by `at` was not yet in 
 
 SECTION_DIMENSIONS is gone. A section is kept through a turn only where its view's new depth runs along the old (else SECTION_ACROSS, as before), so its view either turns within its own plane (a top section: the top view's up follows the front) or is seen from the other side (a front or right section, y− ↔ y+). Either way, R14.3b's map for that view (`viewMap`: a view point through the model to the new view's axes, horizontal and vertical swapped where the axes swap) is the map for the section's dimensions. They stay on their section. Their edge references are by name and 3D point and don't change; the value check skips them, since the sheet has no section projection to read them from before cutting.
 - Test (section-dimensions.test.ts): the shaft and hub with B–B square to Z, auto-dimensioned, turned to a front from +X and from +Y. B–B is kept at −15. Drawn again (cut for the new side), its dimensions read the same values (6 and 16.5), with no DIMENSION_LOST. Adding a front section C still refuses the turn to +X (SECTION_ACROSS).
+
+## Queue 4 — S0: the drawing's annotations as model-space anchors (the data side of the GPU lane's G24) (2026-10-22)
+
+The coordinator's item 4: export the drawing's annotations, with world positions, leader targets by persistent name and their text, for the GPU lane to draw on the model with its SDF labels. This S0 needs the coordinator's and the GPU lane's reply before building.
+
+**What is exported** (pure, in cad-model `drawing/annotations3d.ts`): `modelAnnotations(inputs, sheet) → { version: 'model-annotations-v1', items: ModelAnnotation[], left: { id, why }[] }`, from the same resolved sheet the drawing draws (so the 3D text is exactly the sheet's).
+
+```ts
+type Vec3 = [number, number, number];
+/** A point on the model: where it is, and what it is on by persistent name (an instance's `<id>/` prefix kept). */
+interface Target { at: Vec3; edge?: string; face?: string; centre?: true }
+interface ModelAnnotation {
+  id: string;                         // the dimension's, datum's, frame's, weld joint's (W-number) or note's id
+  kind: 'dimension' | 'datum' | 'frame' | 'weld' | 'note';
+  from: DimView;                      // the drawing view (or section:B) it was placed in
+  /** The plane it lies in, as placed in its view: the view's toward (normal) and up, through `depth` along toward. */
+  plane: { normal: Vec3; up: Vec3; right: Vec3; depth: number };
+  /** Its text's anchor (the dimension line's middle, a leader's end), and its lines as drawn: value, tolerance, callout. */
+  anchor: Vec3; text: string[]; align: 'start' | 'middle' | 'end';
+  /** What it points at, in order (a linear dimension's two ends, a diameter's edge and centre, a leader's target). */
+  targets: Target[];
+  /** Its own lines in model mm (dimension and extension lines, the leader, the arrow tips), for a renderer that draws them. */
+  lines: [Vec3, Vec3][]; arrows: { tip: Vec3; dir: Vec3 }[];
+  /** By kind: the measure and its tolerance (fit code, ± or deviation, basic); the frame's characteristic, zone and datums;
+   *  the datum's letter; the weld's kind, size (an estimate flagged), all round, inner. */
+  dimension?: { measure: 'linear' | 'diameter' | 'radius' | 'pcd' | 'angle'; value: number; unit: 'mm' | 'deg'; tol?: Tolerance; basic?: true; count?: number; callout?: string };
+  frame?: { characteristic: 'position'; zone: 'diameter'; value: number; datums: string[]; dim: string };
+  datum?: { letter: string };
+  weld?: { kind: 'fillet' | 'butt'; sizeMM: number | null; estimate: boolean; allRound: boolean; inner: boolean; joint: string };
+}
+```
+
+- **Lifting a view's point into the model**: a point (u, v) placed in a view is `u·right + v·up + depth·toward`, with the view's own axes (orientation honoured). `depth` is its targets' mean depth along the view's toward, so a dimension stands in the plane through what it measures. A section's annotations use its cut plane's depth.
+- **Targets**:
+  - by the references the drawing already keeps: a linear dimension's `DimPoint`s (edge name, `end` or `center`, 3D `near`), a diameter's or radius's edge and its circle's centre, a pitch circle's member centres, a datum's edge, a weld symbol's seam edge, a note leader's view point lifted;
+  - so they follow the model as its names do, the same rule as the sheet.
+- **Text**: the sheet's own strings — `dimensionText` with its callout and count (`4× Ø6.6 THRU`, `Ø20 H7`), the tolerance lines as `toleranceText` gives them, the frame's cells (`⌖ | Ø0.1 | A | B`), the datum letter, the weld's size and W-number.
+- **Left out, said in `left`**: a lost dimension (its reason); a note with no leader (it is placed on the paper, not on the model); tables and balloons (sheet-only for v1); a dimension in the isometric view.
+- **Where it runs**: cad-model, pure. The studio computes it from the drawing's inputs when the viewport asks. The GPU lane's toggle, its prop and the drawing are theirs, so my side ends at the data and a test hook `__studioAnnotations()`. A chat read can follow later if wanted.
+- **Oracles** (when built):
+  - the starter plate auto-dimensioned: every dimension's targets are its references' 3D points exactly, its anchor projected back into its view equals its sheet place (1e-9), and its text equals the sheet's;
+  - a fit callout `Ø8 H7` and a ± tolerance carry their strings;
+  - a datum and a position frame on the geometric plate carry their letters and cells;
+  - the welded table's symbols: their seam edges by name, size `3*` with the estimate flag;
+  - after a parameter edit, the same ids and targets by the same names, moved.
+
+**Questions for the GPU lane**:
+- (a) Billboard text or planar in `plane`? Both are given.
+- (b) Do they want our `lines`/`arrows`, or draw their own from `targets` and `anchor`?
+- (c) Instance prefixes: targets keep `<inst>/`, as the edge names do — fine?
