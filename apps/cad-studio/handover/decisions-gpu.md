@@ -786,3 +786,57 @@ All four items are brought to parity on the WebGL2 fallback (`viewport/renderer.
   these changes (load 364) and alone passes one run in two: a flake of its own, not of the renderer. Not run: the full flow
   (the coordinator's), the cad-model suite (not touched), benches (the WebGPU frame path is unchanged; the WebGL2 renderer
   has none).
+
+## G17 — the 3D skeleton sketch tool in the viewport (2026-10-22)
+
+On the outer lane's model and solver (FRf O121 skeleton nodes, FRg O122 `solveSketch3D` with its typed diagnosis, O140
+values bound to parameters; integration `cadfe4700`, merged here as `83bf01685`). Nothing in cad-model changed: the
+command is the studio's (`SKETCH3D_COMMAND`, "3D sketch", keywords `3d sketch` only — "skeleton" stays the Frame
+command's, FR2's rule), offered after the model's in the palette (`Palette`'s `extra`).
+
+- **The viewport's tool hook** (`ViewportTool`, `ToolView` in `Viewport.tsx`): a tool takes the left button before the
+  viewport's own picking (orbit, pan, wheel stay the viewport's) and draws its marks in the SVG overlay — alike on both
+  renderers, over the scene as the thing edited. `ToolView` gives pixels of world points, the ray under a pixel and the
+  shown bodies' corners.
+- **Placing** (`skeleton/skeletonTool.ts`): a point goes on the sketch's own point within 10 px (reused: segments meet
+  there), else a body's corner within 10 px (in 3D: the end of one of its edges), else with an axis lock (X, Y, Z) on the
+  line through the last point along it (the closest point to the pointer's ray), else on the work plane (XY, XZ, YZ;
+  keys 1–3, Tab) through the last point — on the grid (the snap step). Each click joins the last point; a click back on
+  one of its points closes the chain; Esc ends it.
+- **Dragging, solved live**: a point dragged on the work plane through where it was (or along the axis lock), snapped to
+  the other points and corners; each move solves through FRg's LM in two passes (`dragSolve`) — first with the point
+  held at the pointer (a `fixed` constraint added): where the constraints let it go there it lies under the pointer and
+  the rest move as little as they can (LM's small step); where they hold it (the hold left unmet) the constraints alone
+  from the pointer as the start, the point as near as they let it. A fixed point does not move. **No solver API was
+  needed**: a weighted target would give the same where the point can reach the pointer; where it cannot, the two-pass
+  result is the constraints' nearest solution from there rather than a weighted compromise — the dragged point is never
+  left off its constraints.
+- **Constraints and diagnosis** (`SkeletonPanel`, `SkeletonMarks`): the selection's offers — a segment: length (as it
+  is), along X/Y/Z; two segments: parallel, perpendicular, angle; two points: coincident, distance; a point: fix, on the
+  work plane, on an axis — each solved on add (the points settle where they can). The constraints listed with their
+  values (editable; a bound one shows its parameter), each a mark on the canvas beside its segment or point (a click
+  picks it). FRg's diagnosis: the status chip (Fully defined / Under-defined · n free / Over-defined · n redundant /
+  Conflict · n unmet), free points blue, redundant marks amber, unmet red; Apply refused on a conflict.
+- **Session**: ⌘Z / ⇧⌘Z its own undo, Delete the picked points, segments or constraints (the constraints on them with
+  them, the rest renumbered), Enter Apply, Esc (chain, axis lock, selection, then the session). Apply writes one
+  skeleton feature — new, or the one edited from the timeline ("Edit in 3D sketch") — stored solved (`solvedSkeleton`)
+  and checked against the frames that follow it (`skeletonEditRefusal`). The part changing under an edit ends it with
+  nothing written. Applied skeletons are drawn faint (dashed) in the viewport.
+- **Evidence**:
+  - studio unit `test/skeleton-tool.test.ts` (6): the plane and the axis line under a ray, the grid, snaps (own point,
+    else corner, else none); drags — a free end reaches the pointer with the constrained segment kept, a constrained end
+    is held (10, 0, 0), a fixed point does not move, a free segment's length kept by its other end moving; the diagnosis
+    (well at 0 degrees of freedom, a conflict, an unbound parameter refused); offers by selection; removal renumbering.
+  - flow step G17 (new, before the theme step), the same on both renderers: a 40 × 20 loop drawn on XY in the top view
+    (4 points, 4 segments, under); point 0 fixed, side 0 along X at 40; corner 2 dragged — under the pointer mid-drag
+    and at the end (< 3 px); corner 1 dragged — held (< 1.5 px); the rest constrained to Fully defined; sides 0 and 1
+    parallel — Conflict, the marks red, Apply disabled; undone; applied — the node's points back on the 40 × 20 (to
+    1e-6), its seven constraints, drawn faint; the 40 × 20 × 8 plate in the iso view, a new sketch's first point clicked
+    near its top corner lands on (40, 20, 8) (< 1 px); cancelled, nothing written.
+- **Also in this checkpoint**: step 31 (fillet from the palette) waits for the outliner's body count after the fillet,
+  as other steps do (the coordinator's fix for its WebGL2 flake); README §0 has the WebGL2 support statement.
+- **Checks** (v2), in the detached verify worktree on `83bf01685` plus these changes: studio tsc clean, eslint 0 errors
+  (the flow's console warnings as before), suite 203/203 (197 + the 6 new); gpu unit 80/80 and browser 12/12 (not
+  touched; 87 s with the studio's, load 46–48). `FLOW_ONLY` on every FR step (FR1–FR4b, FRb–FRf2, both FRg), step 31,
+  G16, G17 and the theme step (its palette): WebGPU 21/21 in 79 s, WebGL2 21/21 in 138 s (load 23–47). Not run: the full
+  flow (the coordinator's), the cad-model suite (not touched), benches (no frame path changed: the marks are SVG).
