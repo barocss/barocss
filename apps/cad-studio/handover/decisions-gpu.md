@@ -1722,3 +1722,40 @@ state for exact WIP, process cleanup, blockers and first resume steps.
 - **Not run**: the browser spec, which needs the slot; so the WGSL has not yet been compiled by a device. Also next:
   the studio's thickness map on WebGPU ("GPU estimate", with the CPU's numbers in the panel), checked against
   `thicknessMap` on the CNC8 plate (its 8 mm floor), the r14 plate and a curved part.
+
+## G-R12 — G25b: tool access as a WGSL compute pass; both analyses checked against the studio's CPU maps (roadmap G6, 2026-10-23)
+
+- **What** (`packages/barocss-gpu/src/compute/`, experimental):
+  - **`access.ts`**, CNC4's rule one to one:
+    - `accessSampleSet` lays out the samples on the CPU, as accessOf does: n² parts a triangle (n from its longest edge
+      over the step, at most 48), each part's centre 0.01 mm off the face, and the 6-bit set of directions on the face's
+      side;
+    - `ACCESS_WGSL` runs one invocation a sample: its six axis rays (minT 1e-6, no skip) give a mask of the directions
+      that leave the part;
+    - `accessByTriangle` folds the masks back per triangle into the unreached share and the OR mask;
+    - `cpuAccessMasks` is the pass's mirror.
+  - **Shared pieces.** `bvhWgsl.ts` holds the hierarchy's structs, bindings 0–1, `rayHit` and `nearest2`, now shared by
+    both passes. `dispatch.ts`'s `runCompute` handles inputs, outputs, a 16-byte uniform, workgroups of 64 and read-back,
+    with every buffer released and one pipeline a device and shader.
+  - The thickness pass now uses both, with unchanged WGSL.
+- **Tests**:
+  - `tests/compute-access.test.mjs` (2, in gpu `test`):
+    - a box: every face reached by its own direction, and the samples' areas sum to each triangle's;
+    - a box with a sealed cavity: the cavity's faces at share 1, the outside at 0, and every mask equal to the kernel's
+      rayHit along the same directions.
+  - **`apps/cad-studio/test/gpu-analyses.test.ts` (2), the acceptance's CPU half**, on the CNC8 pocket plate and the r14
+    geometric plate:
+    - cad-model's own `accessSamples` (share and mask per triangle) equals the experimental samples folded back:
+      shares within 1e-5, masks all equal;
+    - cad-model's `wallSamples` (depth and local) equals the thickness mirror within 1e-4 of the size, hits and misses
+      the same.
+    - So the GPU passes, once they match their mirrors in the browser, compute what the panels compute.
+  - `tests/compute-access-browser.test.mjs` (in gpu `test:browser`): GPU masks against the mirror, on a sealed-cavity box
+    and a 20 000-triangle shell. At most 1 sample in 10 000 may differ, a ray grazing within f32; shares within 1e-3.
+    Times are printed with the load.
+- **Checks** (T1): gpu `test` 189/189; gpu type-check 0; eslint (src) 0; gpu-analyses 2/2; studio type-check 0.
+- **Not run**:
+  - both browser specs (slot);
+  - the studio map wiring on WebGPU ("GPU estimate"), which follows the specs;
+  - the acceptance cases still to add in the browser: a box (its wall), the CNC8 plate (its 8 mm floor), the r14
+    plate and a curved part, with timings at the stated load.
