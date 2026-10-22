@@ -12,7 +12,7 @@ import type { ToolDefinition } from './api';
 import { CAGE_MUTATORS, CAGE_TOOL_NAMES, CAGE_TOOLS, runCageTool } from './cageTools';
 import { DRAWING_CHANGES, DRAWING_TOOL_NAMES, DRAWING_TOOLS, runDrawingTool } from './drawing';
 import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
-import { GROUPS, v1Call, viaV2 } from './groups';
+import { GROUPS, V2_OF, v1Call, viaV2 } from './groups';
 import { ROBOT_TOOL_NAMES, ROBOT_TOOLS, runRobotTool } from './robot';
 import { BRIEF_TOOL_NAMES, BRIEF_TOOLS, runBriefTool, saidIn } from './brief';
 import { QUESTION_TOOL_NAMES, QUESTION_TOOLS, runQuestionTool } from './questions';
@@ -368,6 +368,9 @@ async function runToolCounted(state: ChatState, name: string, input: unknown, ev
   if (v1) { if ('error' in v1) return fail(state, v1.error); name = v1.name; input = v1.args; }
   if (name === 'describe') { const d = describe(isObj(input) ? input : {}); return 'error' in d ? fail(state, String(d.error)) : { state, content: json(d), isError: false, changed: false, summary: 'described' }; }
   const args = isObj(input) ? input : {};
+  // (A9-3: an argument the tool does not take is refused, named — never dropped, so a call never says it did what it ignored.)
+  const unknown = unknownArguments(name, args);
+  if (unknown) return fail(state, unknown);
   // (The robot, RM1: the assembly's joint tree and its settings.)
   // (A locked reference, A6.3: no part or assembly change may use its faces, edges or body.)
   if ((MUTATORS.has(name) || BATCHABLE.has(name) || ASSEMBLY_CHANGES.has(name)) && name !== 'apply_ops' && name !== 'run_script' && !REFERENCE_TOOL_NAMES.has(name)) {
@@ -563,7 +566,9 @@ class ScriptOn implements ScriptHost {
   async call(tool: string, args: Record<string, unknown>): Promise<{ ok: true; added: string[]; did: string } | { ok: false; why: string }> {
     const was = this.cur.doc.nodes, before = new Set<string>();
     for (let i = 0; i < was.length; i++) before.add(featureId(was, i));
-    const r = await runToolCounted(this.cur, tool, { ...args, response_format: 'concise', ...(this.because ? { because: this.because } : {}) }, this.evaluate);
+    // (Concise results and the script's reason, on the tools that take them: A9-3 refuses an argument a tool does not.)
+    const v1 = v1Call(tool, args), named = v1 && !('error' in v1) ? v1.name : tool;
+    const r = await runToolCounted(this.cur, tool, { ...args, ...(takesArgument(named, 'response_format') ? { response_format: 'concise' } : {}), ...(this.because && takesArgument(named, 'because') ? { because: this.because } : {}) }, this.evaluate);
     let out: Record<string, unknown> = {}; try { out = JSON.parse(r.content); } catch { /* plain text */ }
     if (r.isError) return { ok: false, why: String(out.error ?? r.content) };
     this.cur = r.state;
@@ -1566,6 +1571,21 @@ const RESPONSE_FORMAT = { type: 'string', enum: ['concise', 'detailed'], descrip
 for (const t of PART_TOOLS) if (MUTATORS.has(t.name) || t.name === 'get_part_summary') (t.input_schema as { properties: Record<string, unknown> }).properties.response_format = RESPONSE_FORMAT;
 /** `because` on the tools that change the part (A3.2): why a change may break a hard requirement that passed. */
 for (const t of PART_TOOLS) if (MUTATORS.has(t.name) && t.name !== 'set_requirements') (t.input_schema as { properties: Record<string, unknown> }).properties.because = { type: 'string', description: 'Why this change may break a hard requirement that passed at the last check (else such a change is refused).' };
+
+/** Each tool's arguments, from its schema (`part` on the part tools); null for a schema that takes any. */
+let argumentsOf: Map<string, ReadonlySet<string> | null> | null = null;
+/** Whether a tool takes an argument (a schema that takes any: yes). */
+export function takesArgument(name: string, key: string): boolean { return !unknownArguments(name, { [key]: true }); }
+/** Why a call's arguments are refused (UNKNOWN_ARGUMENT, naming each and what the tool takes), or null. */
+export function unknownArguments(name: string, args: Record<string, unknown>): string | null {
+  argumentsOf ??= new Map(TOOLS.map(t => { const sc = t.input_schema as { properties?: Record<string, unknown>; additionalProperties?: unknown }; return [t.name, sc.additionalProperties === false ? new Set(Object.keys(sc.properties ?? {})) : null]; }));
+  const takes = argumentsOf.get(name);
+  if (!takes) return null;
+  const extra = Object.keys(args).filter(k => !takes.has(k));
+  if (!extra.length) return null;
+  const v2 = V2_OF.get(name), shown = v2 ?? name, list = [...takes].join(', ') || 'none';
+  return `[UNKNOWN_ARGUMENT] ${shown} takes no ${extra.map(k => `"${k}"`).join(', ')}: its arguments are ${list}.${extra.includes('part') ? ' It works on the whole document, not one part.' : ''}`;
+}
 
 /** Part tools take `part` (an instance id; default the base part); then the assembly tools. */
 export const TOOLS: ToolDefinition[] = [
