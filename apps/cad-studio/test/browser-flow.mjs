@@ -3947,8 +3947,8 @@ try {
       assert.ok(note.leader && /^key [\d.]+ × [\d.]+ × [\d.]+$/.test(note.text), JSON.stringify(note));
       assert.deepEqual(await page.evaluate(() => (window.__studioDrawing?.()?.issues ?? []).filter(x => x.code === 'TEXT_OVERLAP').length), 0);
       // (O146: the default shaft's keyseat — b 6, and d − t1 = 20 − 3.5 from the far side of its step.)
-      const values = await page.evaluate(() => (window.__studioDrawing?.()?.dimensions ?? []).map(d => d.value).filter(v => typeof v === 'number'));
-      for (const want of [6, 16.5]) assert.ok(values.some(v => Math.abs(v - want) < 1e-6), `${want} among ${values}`);
+      // (The sheet is built after the document changes: waited for, not read at once.)
+      await page.waitForFunction(() => { const v = (window.__studioDrawing?.()?.dimensions ?? []).map(d => d.value).filter(x => typeof x === 'number'); return [6, 16.5].every(w => v.some(x => Math.abs(x - w) < 1e-6)); }, null, { timeout: 30000 });
       await snap('element-key-note');
       const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
       assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes(`>${note.text}</text>`), 'the note in the SVG');
