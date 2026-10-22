@@ -5001,6 +5001,24 @@ try {
       await press('Escape');
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('the section a dimension needs (O148 X3): the shaft-and-hub file auto-dimensioned; d − t1 on hidden lines offers Add B–B; applied and auto-dimensioned again, its dimensions on B–B and no DIM_ON_HIDDEN', async () => {
+    await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDrawing?.()?.issues ?? []).some(x => x.code === 'DIM_ON_HIDDEN' && x.fix === 'add-section'), null, { timeout: 90000 });
+      const fix = page.locator('button[aria-label^="Fix: Dimension 16.5 measures to"]').first();
+      assert.equal((await fix.textContent()).trim(), 'Add B–B');
+      await fix.click();
+      await page.waitForFunction(() => JSON.stringify(window.__studioDoc.drawing?.sections) === JSON.stringify([{ id: 'B', view: 'top', at: -15 }]), null, { timeout: 20000 });
+      await page.waitForFunction(() => window.__studioDrawing?.()?.placedSections?.some(x => x.id === 'B'), null, { timeout: 30000 });
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDoc.drawing?.dimensions ?? []).filter(d => d.view === 'section:B').length >= 2 && !(window.__studioDrawing?.()?.issues ?? []).some(x => x.code === 'DIM_ON_HIDDEN'), null, { timeout: 90000 });
+      await snap('section-fix');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('R14.1: Auto-dimension places overall sizes, the hole position and its callout; a hand-placed one is kept', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');

@@ -5803,3 +5803,28 @@ X2 is built as frozen, with one oracle change (below).
   - Without the section: both lost, said; reorient refused.
   - Flow step "dimensions on sections (O148 X2)…": the file opened; Add section, B at −15; Auto-dimension; 6 and 16.5 on section:B, no DIM_ON_HIDDEN or DUPLICATE; the SVG; the dimension tool snaps at the shaft's centre on the section.
 - **Open** (README): the section's edge names carry the split's index (`section<k>`), so a dimension on a section is re-matched if the part's bodies are reordered. Adjacent parts in one section are hatched alike.
+
+## O148 X3 — the section a dimension needs, as a fix (2026-10-22)
+
+X3 is built as the S0 froze it.
+
+- **DIM_ON_HIDDEN's fix** (`sectionFor` in issues.ts) applies when the dimension measures a keyseat or a keyway:
+  - **The axis**: a keyseat's is its shaft step's round edges (centre and normal, from the standard views); a keyway's comes from its report (`axisPoint`, `axis`).
+  - **The middle**: half way between the ends of the feature's edges along that axis.
+  - **The plane**: the principal plane the axis is along, the section view whose depth runs that way (a shaft along Z: square to the top view's depth), `at` signed along that depth (Z 15 → −15).
+  - **The letter**: the next free one from B; A only for a front section while it is free (A is the front checkbox's).
+  - **The message**: "section B–B, square to its axis (Z) through its middle (Z 15), would show it — the fix adds it."
+  - **A section already there**: "section B–B through it shows it: Auto-dimension puts it there." The fix is Auto-dimension, not another section. That also keeps Fix all from adding letter after letter.
+  - **An axis along none of X, Y and Z**: said, with no fix ("an aligned section is not drawn yet"; the open item).
+  - **No keyseat or keyway**: the old text, no fix.
+- **Applying** (`applyFix`, `add-section`) adds the section to the list, so the old `section` is written as `sections` when needed. It is applied like the other fixes: by the person's Fix (button "Add B–B"), Fix all, or the chat's fix tool as a proposal. Auto layout applies only moves, so it never adds a section on its own.
+- **Studio**: the issue list and its fixes get the part's elements and the sections cut (`IssueContext.elements`, `sections`).
+- **A tilted shaft**: after a rotate, the kernel's output carries no shaft report, so Auto-dimension finds no key dimensions there and no section is offered. A hand-placed one gets the old text. A keyway on a tilted bore keeps its report and gets the "no principal section" text. Both are covered.
+- **Tests**:
+  - `section-dimensions.test.ts`, X3 (2):
+    - the shaft-and-hub scene auto-dimensioned: d − t1's DIM_ON_HIDDEN carries `{ add-section, B, top, −15 }` with its words;
+    - applied: the section in the settings; drawn again and auto-dimensioned, no DIM_ON_HIDDEN, and 6 and 16.5 on section:B;
+    - the section there but the dimensions still on the views: every fix is Auto-dimension;
+    - a keyway on a bore rotated 30° about X: the "no principal section" text, no fix.
+  - `element-callouts.test.ts`: O146's message assertion now reads the fix text.
+  - Flow step "the section a dimension needs (O148 X3)…": the file auto-dimensioned; the Fix button on 16.5 reads "Add B–B"; clicked, the sections are `[B, top, −15]`; Auto-dimension again; dimensions on section:B, no DIM_ON_HIDDEN.

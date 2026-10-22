@@ -152,7 +152,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const weldJoints = useMemo(() => settings.weldSymbols && bodies ? weldList(doc, bodies).joints : undefined, [settings.weldSymbols, doc, bodies]);
   const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bom]);
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
-  const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout, fitMiss: fitMissOf, followedChanged }) : [], [views, layout, settings, sheet, callout, fitMissOf, followedChanged]);
+  const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout, fitMiss: fitMissOf, followedChanged, elements, ...(cuts.length ? { sections: cuts } : {}) }) : [], [views, layout, settings, sheet, callout, fitMissOf, followedChanged, elements, cuts]);
   // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.
   const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
   const acceptEvery = () => {
@@ -162,10 +162,10 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     const est = r.accepted.filter(x => x.estimate).length;
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
   };
-  const fixIssue = (x: DrawingIssue) => { if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout }, x.fix)); };
+  const fixIssue = (x: DrawingIssue) => { if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout, elements, ...(cuts.length ? { sections: cuts } : {}) }, x.fix)); };
   const fixEvery = () => {
     if (!views) return;
-    const r = fixAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
+    const r = fixAll({ views, settings, callout, elements, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
     onChange(r.settings);
     onToast({ title: `${r.applied.length} fix${r.applied.length === 1 ? '' : 'es'} applied`, hint: r.left.length ? `${r.left.length} issue${r.left.length === 1 ? '' : 's'} left: ${r.left[0].message}` : 'The drawing has no issues.', detail: r.left.slice(1).map(x => x.message).join('\n') });
   };
@@ -579,7 +579,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
           {issues.map((x, k) => <div key={k} className={'dw-issue ' + x.severity} role="button" tabIndex={0} title={x.code}
             onClick={() => { const d = x.dims?.[0]; if (d) { setSelected(d); setTool('select'); } }}>
             <Icon name={x.severity === 'error' ? 'error' : 'warning'} small /><span>{x.message}</span>
-            {x.fix && <button className="ghost tiny" aria-label={`Fix: ${x.message}`} onClick={e => { e.stopPropagation(); fixIssue(x); }}>{x.fix.kind === 'auto-dimension' ? 'Auto' : x.fix.kind === 'remove' ? 'Remove' : x.fix.kind === 'accept' ? 'Accept' : x.fix.kind === 'scale' ? (x.fix.sheet ? 'A3' : x.fix.scale !== undefined ? (x.fix.scale >= 1 ? `${x.fix.scale}:1` : `1:${Math.round(1 / x.fix.scale)}`) : 'Auto scale') : 'Move'}</button>}
+            {x.fix && <button className="ghost tiny" aria-label={`Fix: ${x.message}`} onClick={e => { e.stopPropagation(); fixIssue(x); }}>{x.fix.kind === 'auto-dimension' ? 'Auto' : x.fix.kind === 'add-section' ? `Add ${x.fix.id}–${x.fix.id}` : x.fix.kind === 'remove' ? 'Remove' : x.fix.kind === 'accept' ? 'Accept' : x.fix.kind === 'scale' ? (x.fix.sheet ? 'A3' : x.fix.scale !== undefined ? (x.fix.scale >= 1 ? `${x.fix.scale}:1` : `1:${Math.round(1 / x.fix.scale)}`) : 'Auto scale') : 'Move'}</button>}
           </div>)}
           {!issues.length && views && <div className="empty">No issues: nothing overlaps or is lost, and every hole, step and overall size is given.</div>}
         </div>

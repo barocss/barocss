@@ -5,7 +5,7 @@ import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
 import { drawingInputs } from '../src/chat/drawing';
 import { autoLayout } from '../src/drawing/layout';
-import { drawingIssues, issueContext } from '../src/drawing/issues';
+import { applyFix, drawingIssues, issueContext, sectionFor } from '../src/drawing/issues';
 import { readDrawing, type DrawingSettings } from '../src/drawing/types';
 import { sheetSvg } from '../src/drawing/svg';
 import { sheetDxf } from '../src/drawing/dxf';
@@ -83,4 +83,37 @@ test('X2: the flow\'s shaft-and-hub model file is this scene', () => {
   if (process.env.UPDATE_SECTION_FIXTURE) writeFileSync(FIXTURE, bytes);
   assert.ok(existsSync(FIXTURE), 'the fixture (UPDATE_SECTION_FIXTURE=1 writes it)');
   assert.deepEqual(new Uint8Array(readFileSync(FIXTURE)), bytes);
+});
+
+// ——— O148 X3: the section a hidden dimension needs, as a fix
+test('X3: DIM_ON_HIDDEN on d − t1 carries add-section B–B square to the top view at the keyseat\'s middle (Z 15); applied, Auto-dimension moves b and d − t1 onto it and the warnings are gone; with the section there, the fix is Auto-dimension', () => {
+  const doc = scene(), i = inputs(doc), first = autoLayout(i).settings, ctx = issueContext({ ...i, settings: first });
+  const hidden = drawingIssues(ctx).filter(x => x.code === 'DIM_ON_HIDDEN');
+  const valueOf = (c: typeof ctx, id: string) => { const r = c.sheet.dimensions.find(x => x.dim.id === id); return r?.ok ? +r.value.toFixed(6) : NaN; };
+  const dt1 = hidden.find(x => x.dims?.some(id => valueOf(ctx, id) === 16.5))!;
+  assert.deepEqual(dt1.fix, { kind: 'add-section', id: 'B', view: 'top', at: -15 });
+  assert.match(dt1.message, /: section B–B, square to its axis \(Z\) through its middle \(Z 15\), would show it — the fix adds it\.$/);
+  // (Applied: the section on the sheet; Auto-dimension again puts the seat's two on it, none left on hidden lines.)
+  const withB = applyFix(ctx, dt1.fix!);
+  assert.deepEqual(withB.sections, [{ id: 'B', view: 'top', at: -15 }]);
+  const i2 = inputs(doc, withB), again = autoLayout(i2).settings, ctx2 = issueContext({ ...i2, settings: again });
+  assert.deepEqual(drawingIssues(ctx2).filter(x => x.code === 'DIM_ON_HIDDEN').map(x => x.message), []);
+  const on = again.dimensions.filter(d => d.view === 'section:B').map(d => valueOf(ctx2, d.id)).sort((a, b) => a - b);
+  assert.ok(on.includes(6) && on.includes(16.5), `on B–B: ${on}`);
+  // (The section there but the dimensions still on the views: the fix is Auto-dimension, not another section.)
+  const stale = issueContext({ ...i2, settings: { ...withB, dimensions: first.dimensions } });
+  const fixes = drawingIssues(stale).filter(x => x.code === 'DIM_ON_HIDDEN').map(x => x.fix);
+  assert.ok(fixes.length && fixes.every(f => f?.kind === 'auto-dimension'), JSON.stringify(fixes));
+});
+
+test('X3: a keyway on a tilted bore — its axis along none of X, Y, Z — is said with no section offered', () => {
+  let doc = cmd('tube').build!(blank, { ...cmd('tube').defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 0 });
+  doc = run(doc, 'rotate', { bodies: [doc.nodes.length - 1] }, { axis: 'x', angle: 30, px: 0, py: 0, pz: 0 });
+  const bodies = evaluated(doc), bore = bodies.flatMap(b => b.mesh.faces.map(f => f.name)).find(n => /hole0\.side0$/.test(n))!;
+  doc = run(doc, 'keyway', { face: bore }, { b: 6, t2: 2.8 });
+  const i = inputs(doc), ctx = issueContext(i), way = (i.elements ?? []).find(e => e.element.kind === 'keyway');
+  assert.ok(way, 'the keyway element');
+  const ends = i.views.front.edges.filter(e => e.ends && e.name.includes(`${way.id}.keyway`)).flatMap(e => e.ends!.map(p => ({ edge: e.name, at: 'end' as const, near: [p[0], p[1], p[2]] as [number, number, number] })));
+  const r = sectionFor(ctx, { id: 'x', view: 'front', kind: 'linear', a: ends[0], b: ends[1], orient: 'aligned', place: [0, 0] });
+  assert.ok(r && !r.fix && /its axis runs along none of X, Y and Z, so no principal section shows it/.test(r.text), JSON.stringify(r));
 });
