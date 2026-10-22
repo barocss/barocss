@@ -6495,3 +6495,25 @@ After each item, the A9 run moves one step further. It is the acceptance once al
 - Last completed feature step: Model native/API housing implementation and its 15/15 focused native tests, final Model types and scoped lint. Exact coverage and source hashes remain in the native receipt. First failures remain the new test entry's CHAT_COMMANDS initialization failure and the missing-context TypeScript narrowing failure; both corrections and final passing runs are preserved. Last completed documentation step: explicit finding that no real human-provided row/fit file was confirmed. Synthetic rows remain correctness fixtures only.
 - Unverified feature work: GPU's combined App/useAssembly/BomPanel bridge and its actual screen/file flow are outside the tested Model SHA. No newer Model product WIP SHA was assigned or produced. Model has not run actual combined UI link/edit/move/error, Undo/Redo, Save/New/Open, manufacturing/purchase download verification, or final integrated-head checks. A9-11 UI/download acceptance is also still pending in Model's records. Human-source row/fit product acceptance remains open; no fixture provenance is promoted. Source/native adoption is retained without claiming product completion.
 - Exact first command after a new owner resume instruction: `git -C /Users/user/.codex/worktrees/c35f/barocss show codex/cad-coordinator-handover-20261022:apps/cad-studio/handover/state.yaml`. Then read the coordinator's final handback and exact GPU bridge receipt, reconcile the latest immutable SHA and owned-path assignment, and address only any assigned Model failure or output connection. Do not start a build/test/browser automatically. The coordinator alone owns the final serial validation window on the final integration SHA and `codex-handback-<date>.md`. The present commit is a local documentation checkpoint only.
+
+## O149 — the import cycle Codex's outputs closed, broken (2026-10-23)
+
+**The defect.** At `99da385a1`, `chat/tools.ts` imported `./outputs` statically (Codex, the v2 output tools). The chain was outputs → team/bundle → team/baseline → team/assembly → team/parts → chat/tools.
+- Any entry that reached tools.ts through the team modules first found `commands` and `ROBOT_TOOLS` undefined at tools.ts's load: "ROBOT_TOOLS is not iterable".
+- It failed every test file that loads that way: the model's sheet and cageEdit, and most of the studio suite's 21 failures (cad-cli, CNC, nest, mould, pattern, robot, bundles, chat, palette, decimate, frame).
+
+**The fix, behaviour unchanged:**
+- **tools.ts** loads `./outputs` on first use: a module-level promise, filled once by `import('./outputs')` in the output-tool branch. The static edge is gone, so no load order can see tools.ts half-built.
+- **team/interfaces.ts** is a new leaf: the Architect's `readInterfaces`, `interfacesRevision`, `HolePattern`, `Envelope` and `Interfaces`, moved unchanged from team/parts.ts.
+  - It imports only team/revision.
+  - bundle, baseline, ecr and freshness read the interfaces from it; bundle and digest read `canonical` and `revisionContent` from team/revision, the same functions team.ts re-exports.
+  - parts.ts re-exports the moved names, so every importer still resolves.
+- **The cycle finder** (scratchpad `outer/cycles.mjs`) no longer puts chat/tools in a cycle with chat/outputs.
+
+**Verified (T1):**
+- sheet.test 8/8, with O150's fixture; the one failure left before O150 was rows (b), not the cycle;
+- cageEdit.test 7/7;
+- tsc of cad-model and of cad-studio;
+- eslint of cad-model's src and test: 0 errors.
+
+**Not run:** the full package and studio suites. They wait for a coordinator slot.

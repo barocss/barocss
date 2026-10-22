@@ -8,7 +8,7 @@ import type { StudioDoc } from '../engine/doc';
 import { checkBom, type Bom, type BomView } from './assembly';
 import { digestOf, partDigests } from './digest';
 import { isUserToken, type UserToken } from './ecr';
-import { readInterfaces, type Interfaces } from './parts';
+import { readInterfaces, type Interfaces } from './interfaces';
 import { freshnessOf, type Result } from './freshness';
 import type { Evaluate } from '../chat/tools';
 import { incompleteBeadReason } from '../frames/beadAccounting';
