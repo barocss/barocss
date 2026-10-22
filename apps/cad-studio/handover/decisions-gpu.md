@@ -1759,3 +1759,36 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - the studio map wiring on WebGPU ("GPU estimate"), which follows the specs;
   - the acceptance cases still to add in the browser: a box (its wall), the CNC8 plate (its 8 mm floor), the r14
     plate and a curved part, with timings at the stated load.
+
+## G-R13 — the bottom-right controls no longer cover the history bar or the panels (a regression fix; flow on WebGPU, 2026-10-23)
+
+- **The regression** (the coordinator's full flow at a177c4929: 16 steps timed out on clicks): the Views row (the
+  corner-right row) had grown well past the ≈600 px the history bar's position assumes.
+  - G-R3 and G-R9's CNC and 3D-annotation toggles, beside Print layers and Assembly clearance.
+  - Codex's G21 display-mode select and "Isolate selection" in the Views card.
+  - So it lay over the history bar's steps. Codex's display-mode notice (`cad-display-status`, absolute above the row)
+    lay over the property panel's lower buttons, such as Sew into a body.
+- **The fix**:
+  - The Views row has one **Display** button (`aria-label="Display and previews"`, `aria-expanded`). It is lit while any
+    preview is on, isolate is in use or the mode is not the default.
+  - It opens a popover above the row holding:
+    - a Display card: the CAD display mode select and Isolate selection, unchanged, with the same labels;
+    - the display-mode notice, inside that card;
+    - the four preview toggles.
+    - The previews' state stays in App, so closing the popover does not stop a preview.
+  - The maps' legends, the popover and the section bar now stack in one column above the row (`.corner-stack`). Before,
+    each sat at its own absolute offset and they could overlap.
+  - The history bar and timeline CSS is untouched.
+- **Flow test changes**:
+  - The G23 CNC step opens the popover first and closes it after.
+  - K2's refusal is read from the toast's textContent: the kernel's reason sits in its closed Details, which innerText
+    skips.
+  - K2's blank-canvas check compares the shown tee with the empty viewport by the share of pixels that change (more than
+    0.5 %). A colour count could not tell them apart: 60 against 60.
+- **Flow** (WebGPU, DPR 1, 1440 × 900), the failing steps with their prerequisites, three runs (load 1m 13–35):
+  - all of 2–6, 20–25, 35–40, 48–60, 61–77, 98–104 and 193–197 pass;
+  - all of 246 and 247 (narrow widths), 261–267 (G19.3–G20.2, K2, G23 CNC) and 267 (palette) pass.
+  - In one run, step 65 (Hole then Fillet) was refused by the kernel when run without 61–64. The camera they leave
+    moves the dragged hole; with them it passes, as in the full flow.
+- **Steps not mine** (the coordinator's list): 147, 245 and 248 (the outer lane's rows rule (b) in the scripted chat),
+  and 144 (a timing flake).

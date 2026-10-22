@@ -7118,14 +7118,14 @@ try {
       const node = { id: 'n0', kind: 'frame', points: f.points, segments: f.segments, section: f.section, up: f.up, corners: f.corners };
       return { c, file: join(out, name.replace('.json', '.bcad')), doc: { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [node], outputs: {}, nextId: 1 } };
     };
-    /** The canvas's distinct colours (4 bits a channel, every 97th pixel), decoded in the page. */
-    const canvasColours = async () => page.evaluate(async src => {
-      const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode();
-      const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0);
-      const d = g.getImageData(0, 0, img.width, img.height).data, seen = new Set();
-      for (let k = 0; k < d.length; k += 4 * 97) seen.add((d[k] >> 4) << 8 | (d[k + 1] >> 4) << 4 | d[k + 2] >> 4);
-      return seen.size;
-    }, (await page.locator('canvas.vp-canvas').screenshot()).toString('base64'));
+    const canvasShot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+    /** The share of the canvas's pixels that differ (a summed channel difference over 48) between two shots, decoded in the page. */
+    const differs = (a, b) => page.evaluate(async ([x, y]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(x), B = await load(y); let n = 0;
+      for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++;
+      return n / (A.length / 4);
+    }, [a, b]);
     const shown = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length > 0 && b.bodies.every(x => x.volumeMM3 !== null); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
     const matches = (bodies, expect, label) => {
       assert.equal(bodies.length, expect.outputs.length, `${label}: ${bodies.length} bodies`);
@@ -7140,15 +7140,15 @@ try {
       const { c, file, doc } = asStudio(name);
       fs.writeFileSync(file, JSON.stringify(doc));
       await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-      await iso(); const empty = await canvasColours();
+      await iso(); const empty = await canvasShot();
       await page.setInputFiles('input[aria-label="Model file"]', file);
       const first = await shown(); matches(first, c.expect, `${name} opened (${renderer})`);
       assert.equal(await page.locator('.vp-error').count(), 0, await page.locator('.vp-error').allInnerTexts().then(x => x.join(' | ')));
       // (A drawn frame: the canvas is not one flat colour — Codex saw a black first WebGPU canvas with real geometry, D175.)
       await iso();
-      // (Against the same viewport with nothing in it: the background's gradient alone has colours too.)
-      const colours = await canvasColours();
-      assert.ok(colours > empty + 4, `${name}: the canvas looks blank on ${renderer} (${colours} colours, ${empty} with no part)`);
+      // (Against the same viewport with nothing in it: the tee must change a visible share of it — not black, not empty.)
+      const share = await differs(empty, await canvasShot());
+      assert.ok(share > 0.005, `${name}: the canvas looks blank on ${renderer} (${(100 * share).toFixed(2)} % of pixels differ from the empty view)`);
       await snap(`k2-${name.replace('.json', '')}`);
       // (Saved with the studio's own Save, a new part, the download opened: the same bodies.)
       const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
@@ -7163,7 +7163,8 @@ try {
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     await page.setInputFiles('input[aria-label="Model file"]', file);
     const reason = /v depth must be under the branch width and length/;
-    await page.waitForFunction(r => new RegExp(r).test(document.body.innerText), reason.source, { timeout: 60000 });
+    // (The kernel's reason sits in the toast's Details, closed: textContent reads it, innerText would not.)
+    await page.waitForFunction(r => [...document.querySelectorAll('.toast')].some(t => new RegExp(r).test(t.textContent ?? '')), reason.source, { timeout: 60000 });
     assert.ok(JSON.stringify(c).includes('NOTCH_CUTTER'));
     assert.equal((await page.evaluate(() => window.__studioBodies().bodies)).length, 0, 'no body from a refused notch');
     await snap('k2-refuse-notch-v-depth');
@@ -7176,6 +7177,9 @@ try {
     const cam = () => page.evaluate(() => { const c = window.__studioCam?.(), d = c?.display; return c && { stage: c.stage, error: c.error, reason: c.reason, progress: d?.progress, moves: d?.setup.moves.length, removed: d?.removal.removedMM3, overcut: d?.removal.overcutCells, unc: d?.removal.lateralUncertaintyMM, top: d && 'max' in d.package.stock ? d.package.stock.max[2] : null, banner: d?.package.banner }; });
     const at = (p) => page.waitForFunction(q => { const c = window.__studioCam?.(); return c?.stage === 'ready' && (q === 'end' ? c.display.progress === c.display.setup.moves.length : Math.abs(c.display.progress - q) < 1e-9); }, p, { timeout: 60000 }).then(cam);
     const progressTo = (v) => page.locator('[aria-label="CNC progress"]').evaluate((el, x) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    // (The previews' toggles are in the Display popover over the Views row.)
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
     await page.check('input[aria-label="CNC preview"]');
     const start = await at(0);
     assert.equal(start.removed, 0, JSON.stringify(start)); assert.equal(start.overcut, 0); assert.match(start.banner, /NOT FOR PRODUCTION/);
@@ -7204,6 +7208,7 @@ try {
     await snap('g23-cnc-end');
     await page.uncheck('input[aria-label="CNC preview"]');
     await page.waitForFunction(() => !window.__studioCam?.().display, null, { timeout: 15000 });
+    await display.click();
   });
 
   await check('command palette and light theme', async () => {
