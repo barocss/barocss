@@ -6930,6 +6930,50 @@ try {
     await page.click('[aria-label="Section view"]');
   });
 
+  // ---- G19.4: a section across a welded frame (FRk's gussets, end caps and beads) ------------------------------------------------
+  await check('G19.4: a section across a welded frame — members, a gusset, an end cap and beads (FRk1/2) cut by the exact section at the clipped volume, each cut hatched, GPU against CPU — on either renderer', async () => {
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
+    const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, WIDE = { kind: 'rect-tube', width: 80, height: 80, wall: 4, outerRadius: 0 };
+    const part = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+      { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400], [0, 0, 800], [400, 0, 800]], segments: [[0, 1], [2, 3], [4, 5]], section: WIDE, overrides: [{ member: 1, section: SHARP }, { member: 2, section: WIDE }], corners: { tee: 'butt', default: 'butt' } },
+      { id: 'w', kind: 'weld-bead', frame: 'f', on: { member: 1, end: 'end' }, leg: 3 },
+      { id: 'g', kind: 'gusset', frame: 'f', point: 1, legs: [150, 150], thickness: 8, clip: 12 },
+      { id: 'gw', kind: 'weld-bead', frame: 'f', on: { gusset: 'g' }, leg: 4 },
+      { id: 'c', kind: 'end-cap', frame: 'f', member: 0, end: 'start', fit: 'over', thickness: 4 }] });
+    const file = join(out, 'g194-welded.step'); (await import('node:fs')).writeFileSync(file, exportStep(part.outputs.map(o => o.brep), { name: 'g194-welded' }));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.locator('input[aria-label="Model file"]').setInputFiles(file);
+    await page.waitForFunction(() => /10 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(300);
+    const sec = () => page.evaluate(() => window.__studioSection());
+    if (await page.locator('[aria-label="Section mode"]').count()) await page.click('[aria-label="Section view"]');
+    // Across Y through the middle (the frame's plane, y = 0): every body cut in two, the +Y halves kept.
+    await page.click('[aria-label="Section view"]'); await page.waitForSelector('[aria-label="Hatch the cut"]', { timeout: 5000 });
+    await page.waitForFunction(() => window.__studioSection()?.exact, null, { timeout: 60000 }).catch(async e => { throw new Error(`the exact section: ${JSON.stringify(await sec())} — ${e.message.split('\n')[0]}`); });
+    let s = await sec();
+    const exact = s.volume, lines = s.hatch.lines;
+    // The CPU's clipped meshes (the exact section held back): their volume the exact one's.
+    await page.evaluate(() => window.__studioSectionDebug({ hold: true, cpu: true })); await page.waitForTimeout(500);
+    s = await sec(); const clipped = s.shownVolume, cpuLines = s.hatch.lines;
+    await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false })); await page.waitForTimeout(300);
+    const total = part.outputs.reduce((v, o) => v + o.massProperties(1).volumeMM3, 0);
+    console.log(`  G19.4 welded frame: ${JSON.stringify({ renderer, total: Math.round(total), exact: Math.round(exact), clipped: Math.round(clipped), lines: lines.length, cpuLines: cpuLines.length })}`);
+    assert.ok(Math.abs(exact - clipped) <= 1e-3 * total, `the exact section ${exact} against the clipped meshes ${clipped}`);
+    assert.ok(exact > 0.3 * total && exact < 0.7 * total, `about half kept: ${exact} of ${total}`);
+    // (The plane crosses six of the ten: the three members, the gusset, the end cap and the T's bead; the gusset's four
+    // runs lie off it — two cut away, two wholly kept. At the frame's spacing, 10 mm, every cut of a spacing square or
+    // more is hatched — the members', the gusset's, the cap's — and the bead's 9 mm² may get a line or none.)
+    for (const [l, what] of [[lines, 'exact'], [cpuLines, 'clipped']]) assert.ok(l.length >= 5 && l.length <= 6, `${what}: the bodies hatched ${JSON.stringify(l)}`);
+    const g = await sectionAgainstCpu('g194-frame');
+    // (0.2 %, not the 0.1 % of the solid sections: the cut walls are long strips 3–4 mm wide, and a GPU cap's edge is
+    // decided once a pixel — at its centre — where the CPU's cut face is antialiased sample by sample: the strips' edges,
+    // two a strip, are where they differ.)
+    if (g) { console.log(`  G19.4 welded frame, GPU against CPU: ${JSON.stringify(g)}`); assert.ok(g.strong <= g.pixels * 0.002, JSON.stringify(g)); }
+    await snap('g194-frame');
+    await page.click('[aria-label="Section view"]');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

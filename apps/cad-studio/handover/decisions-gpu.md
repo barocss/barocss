@@ -1146,3 +1146,65 @@ a union of two half-space removals, a corner taken out) — to be scheduled, not
   - The exact section's hatch lines are made when the section changes. A body moved after that (an explode, a
     drag) keeps its lines where it was, until the next change.
   - A body face lying exactly on a section plane and facing the cut-away side is hatched although nothing was cut there.
+
+## G19.4 — ghost caps, caps casting shadows, the exact section's hatch moving with its body (2026-10-22)
+
+- **Integration**: 56e11f3ae merged as 8888de5ec (G19.2, the kernel's FRk1/FRk2, the outer lane's latest); studio suite
+  211/211 on it.
+- **The exact section's hatch moves with its body** (the coordinator's follow-up to G19.3's limit):
+  - WebGPU: a line mesh a body, kept by its index; `setState` gives it the body's own transform (posed, dragged,
+    exploded), its visibility and the ghost's faint opacity. The segments are in the part's frame, as the body's mesh.
+  - WebGL2 already drew them through the body's placement.
+  - Not driven in the flow: the transform path is the body's own.
+- **Caps cast shadows** (the coordinator's follow-up 2: a box section was a block with no shadow):
+  - While the planes cap a shadow caster, the shadow map is drawn after a probe from the light: the capped casters'
+    faces, unclipped, the nearest beyond each texel's entry into the kept region along the light.
+    - The probe uses the shadow map's own depth texture, nearer smaller (the `nearer` override, −1). Its target is an
+      rg32float the shadow map's size: 32 MiB at 2048², made only while caps cast.
+  - Each capped caster's caps then go into the shadow map by the scene's rule (`fsCapShadow`).
+  - The shadow frame looks from the light (orthographic eye and forward). Its depth range holds the capped meshes'
+    whole boxes; its breadth is the scene's, as before.
+  - The shadow key holds each caster's cap flag.
+- **Ghost caps** (WBOIT):
+  - A capped see-through mesh (with order-independent transparency on) goes into the caps' probe with the opaque ones:
+    which solid the ray's entry is inside decides either's cap.
+  - Its caps are weighted into the order-independent pass at its opacity (`fsCapOit`), depth tested against the
+    opaque scene, none written. `capShade` is shared with `fsCap`, hatch included.
+  - They are drawn, not picked: `capHit` passes them by, as the GPU pick draws none.
+  - In the sorted (non-OIT) path there are still no ghost caps.
+  - In the studio a ghost in a section is a reference part (sketch ghosts have no section). WebGL2 already had them,
+    by clipMesh.
+- **The overlap limit, measured**: where two solids overlap and the plane's entry is inside both, the probe keeps one
+  surface a pixel. Only the solid whose back face comes first is capped there; equally deep back faces tie, and both
+  are capped. Pinned in the browser test.
+- **Evidence** (`tests/viewer-pose-clip-browser.test.mjs`, real WebGPU; browser 18/18):
+  - Shadows: a box section inside a 10 mm solid shadows the ground in 882 pixels. The kept 3 mm cube as a plain,
+    unclipped mesh: 882. A solid kept whole under planes that cut nothing: 882, as without them.
+  - Ghost caps: a ghost box's cap and its CPU-clipped half's real face, the same see-through material, through the
+    same viewer: 0 pixels differ.
+  - Two overlapping ghosts: one cap over the overlap (3 827 pixels differ from the CPU's two layers there; 0
+    elsewhere). 120 GPU picks equal to the CPU's rays.
+- **Flow** (`FLOW_ONLY`, both renderers):
+  - G19.4, new: a welded frame from the kernel (three members, a gusset, an end cap, the T's bead and the gusset's four
+    runs: 10 bodies) through STEP, cut across Y at its middle.
+    - The exact section's kept volume equals the CPU-clipped meshes': 891 818 of 1 783 636 mm³, on either renderer.
+    - The plane crosses six bodies; the gusset's runs lie off it, two cut away and two wholly kept. Hatched: 5 exact,
+      6 clipped. Every cut of a spacing square or more is hatched (10 mm here); the bead's 9 mm² cut got a line on
+      the CPU's clipped mesh and none on the exact piece.
+    - GPU against CPU: 1 465 strong pixels of 1 296 000. The step allows 0.2 %, not 0.1 %: the cut walls are long
+      strips 3–4 mm wide, and a GPU cap's edge is decided once a pixel where the CPU's face is antialiased.
+  - Before the end cap was added (9 bodies), every section step on both renderers: G2's 73, the instance and RM2 steps,
+    G19.2 and G19.3. The box section's ground shadow now shows on the GPU as on the CPU; the strong pixels left (1 011)
+    are the caps' aliased edges.
+  - The first step ("starter plate loads") failed once on WebGPU under load (load 37), then passed on the rerun.
+- **Bench** (`BENCH_ONLY=section`, run alone, load 19–24): GPU section 2.04 → 2.33 ms GPU a submit (the light's probe
+  and the caps in the shadow map, redrawn each drag step), task 17.7 → 18.6 ms a frame; the CPU row 21.5 → 21.2 ms.
+- **Checks** (T1), in the verify worktree on de66d459c plus the flow step:
+  - gpu: tsc and lint clean; unit 83/83, consumer 3/3, browser 18/18.
+  - studio: tsc and eslint clean; suite 211/211.
+  - The flow steps above. Not run: the full flow, the cad-model suite.
+- **Limits**:
+  - The caps' edges are aliased: inside-or-not is decided once a pixel, at its centre. A fix would need the probe and
+    the cap test per sample.
+  - A cut smaller than a spacing square may get no hatch line.
+  - Ghost caps only with order-independent transparency on.
