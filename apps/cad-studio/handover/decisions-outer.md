@@ -6582,3 +6582,33 @@ Each result conforms to its schema, reports `changed: false`, and leaves the doc
 - tsc of model and studio; eslint 0 errors.
 
 **Not run:** the full package and studio suites, and A9-7's studio UI. The GPU lane is porting `8789e468`, so it should check that the Housing path still gets its context from part dispatch.
+
+## O153 — the studio side of rows rule (b): cad-cli's `--list` is the person's file; the studio runner takes names (2026-10-23)
+
+**cad-cli `stock` and `nest`.**
+- **Before:** `--list file.json` read the file and handed its rows to `set_stock` / `set_frame_stock` as `rows`, which rule (b) refuses. So both commands failed with any list.
+- **Now:** the file is received the way the chat receives an attached one, through `personListFile` in server/cadCli.ts:
+  - `receivePersonRowFiles` with the file's name, its bytes' SHA-256 and turn 1, in a conversation id derived from the path;
+  - the loader then takes it by reference (`{file}`).
+- **Why this is a person's file:** the person names it on their own command line, and no agent is involved.
+- **What it does not do:** add a flag that marks rows as the person's without a file. A file that is not `*.json`, or not JSON at all, is refused with the receiver's message.
+
+**cnc-stock (CNC7b ×6).**
+- Lists arrive as person files (`stockList`, with `test/person-file.ts` on the studio side).
+- The by-name refusals now come from files: a missing source, a block of two sides, two rows of one id.
+- Two refusals stay on `set_stock`'s own arguments: a negative allowance, and rows the agent writes itself (ROWS_NOT_FROM_PERSON).
+- "One too short refused" now loads its single short bar onto the shaft afresh. With merge by id (O150), the earlier R22 would otherwise stay and be chosen. This shows O150's open item: there is still no chat call that removes a row.
+
+**chat.test.** The handler list adds Codex's `load_rows` and its six output tools.
+
+**The studio test runner** (scripts/test.mjs) takes names, as cad-model's runner does (the coordinator approved this):
+- `node scripts/test.mjs cnc-stock frame` runs only the files whose name contains one of them;
+- no names runs every file, exactly as before;
+- names that match nothing exit 1 rather than letting `node --test` pick its own files.
+
+**Verified (T1), per file:**
+- previously failing: cnc-stock 6/6, frame-nest-cli 1/1, chat 18/18;
+- failing in the window at `99da385a1`, now passing with O149: cad-external 6/6, candidates 5/5, cnc-cam 5/5, im7 7/7, im8b 8/8, robot-sizer 3/3, team-bundle 2/2, decimate 3/3, frame 10/10, palette-rank 2/2, palette 2/2;
+- tsc of studio; eslint of the changed files: 0 errors.
+
+**Not run:** the full studio suite and any browser flow.
