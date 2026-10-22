@@ -1,0 +1,58 @@
+{
+  "id": "r12c-frame-member-section-table-miss",
+  "step": "R12c",
+  "decisions": [
+    "D162"
+  ],
+  "about": "R12c.7: the same member on a size the table lacks: refused [SECTION_TABLE_MISS], naming the sizes it holds.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "table",
+            "table": {
+              "id": "rhs-a",
+              "kind": "rect-tube",
+              "estimate": true,
+              "rows": [
+                {
+                  "size": "40x40x3",
+                  "width": 40,
+                  "height": 40,
+                  "wall": 3,
+                  "outerRadius": 6,
+                  "innerRadius": 3
+                }
+              ]
+            },
+            "size": "50x50x5"
+          },
+          "start": [
+            0,
+            0,
+            0
+          ],
+          "end": [
+            0,
+            0,
+            300
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[SECTION_TABLE_MISS] section: the section table rhs-a has no size 50x50x5 (sizes: 40x40x3)"
+    }
+  },
+  "oracle": "The table lists 40x40x3 only."
+}

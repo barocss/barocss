@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import type { FrameSectionRow, InlineSection, StudioDoc } from '@barocss/cad-model/engine/doc';
 import { editSections, sectionLabel, sectionUses } from '@barocss/cad-model/frames/sections';
+import { isSectionTable, sectionTableRows } from '@barocss/cad-model/frames/sectionTables';
 import { Icon } from './atoms';
 
 /** Each kind's dimensions, in the kernel's names, with their labels. */
@@ -38,7 +39,12 @@ export function FrameSections({ doc, onCommit, onError }: { doc: StudioDoc; onCo
     onCommit(r.doc); return true;
   };
   const addFile = async (file: File) => {
-    try { const j = JSON.parse(await file.text()) as unknown; apply(Array.isArray(j) ? j : [j]); }
+    try {
+      const j = JSON.parse(await file.text()) as unknown;
+      // (R12c.7, D162: a section table — one kind's named sizes — loads as a row a size, checked whole first.)
+      if (isSectionTable(j)) { const t = sectionTableRows(j); if ('error' in t) onError('Section table refused', t.error); else apply(t.rows); return; }
+      apply(Array.isArray(j) ? j : [j]);
+    }
     catch (cause) { onError('Could not read the sections', cause instanceof Error ? cause.message : String(cause)); }
   };
   const set = (patch: Partial<Draft>) => setDraft(d => d && { ...d, ...patch });

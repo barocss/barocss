@@ -1,0 +1,80 @@
+{
+  "id": "r12c-frame-member-section-table",
+  "step": "R12c",
+  "decisions": [
+    "D162"
+  ],
+  "about": "R12c.7: a 300 mm frame member on size 40x40x3 of a test section table (rect-tube, flagged an estimate): its section from the table.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "m",
+          "kind": "frame-member",
+          "section": {
+            "kind": "table",
+            "table": {
+              "id": "rhs-a",
+              "kind": "rect-tube",
+              "estimate": true,
+              "rows": [
+                {
+                  "size": "40x40x3",
+                  "width": 40,
+                  "height": 40,
+                  "wall": 3,
+                  "outerRadius": 6,
+                  "innerRadius": 3
+                }
+              ]
+            },
+            "size": "40x40x3"
+          },
+          "start": [
+            0,
+            0,
+            0
+          ],
+          "end": [
+            0,
+            0,
+            300
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 126246.90049407734,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            150
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 0.000001
+    }
+  },
+  "oracle": "A = 40·40 − (4 − π)6² − (34·34 − (4 − π)3²), × 300; centred on the member's line."
+}

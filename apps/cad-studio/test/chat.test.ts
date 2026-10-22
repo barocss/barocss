@@ -99,6 +99,13 @@ test('tool schemas: every buildable command is exposed and documented with the H
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
       continue;
     }
+    if (id === 'connector') {
+      // (An opening takes one flat face and the user's connector rows: R12c.7, D162.)
+      const ctx: Ctx = { doc: { ...s.doc, connectors: { version: 1, rows: [{ id: 'u', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, estimate: true }] } }, bodies: s.bodies, selection: sel({ faces: [{ body: 0, face: top.index }] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
     if (id === 'sprocket' || id === 'pulley' || id === 'coupling' || id === 'belt-drive') {
       const ctx: Ctx = { doc: chained.doc, bodies: chained.bodies, selection: id === 'belt-drive' ? sel({ bodies: [0, 1] }) : sel({}) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
