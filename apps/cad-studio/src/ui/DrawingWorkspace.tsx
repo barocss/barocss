@@ -536,7 +536,8 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
         })}
         <button className="ghost small" aria-label="Add section" disabled={!views} title="Another section, square to the top view's depth (change its view and place after)" onClick={() => {
           const view: SectionViewId = sectionList.some(x => x.view === 'top') ? 'right' : 'top', at = views ? sectionMiddle(views, view, settings.orientation) : null;
-          if (at !== null) onChange(withSections(settings, [...sectionList, { id: nextSectionId(sectionList), view, at }]));
+          // (A is the front's, by its checkbox above: added sections take B on.)
+          if (at !== null) onChange(withSections(settings, [...sectionList, { id: nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionList]), view, at }]));
         }}>Add section</button>
         {(['right', 'iso'] as const).map(v => <label key={v} className="field"><span>{v === 'right' ? 'Right view' : 'Isometric view'}</span><input type="checkbox" className="check" aria-label={v === 'right' ? 'Right view' : 'Isometric view'} checked={!settings.views || settings.views.includes(v)} onChange={e => {
           const on = new Set(settings.views ?? VIEW_IDS); if (e.target.checked) on.add(v); else on.delete(v);

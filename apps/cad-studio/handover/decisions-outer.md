@@ -5759,7 +5759,7 @@ X1 is built as the S0 froze it, with one correction (below).
   - The chat's drawingInputs cuts the list (`sheetSections`).
 - **Studio** (DrawingWorkspace):
   - "Section A–A" and "Cut at Y" work as before.
-  - "Add section" adds the next letter on the top view (then the right), at the part's middle along that depth (`sectionMiddle`).
+  - "Add section" adds the next letter from B (A belongs to the front checkbox) on the top view (then the right), at the part's middle along that depth (`sectionMiddle`).
   - Each other section has a row: its view (select; a change re-centres it), its `at`, and Remove.
   - "Export section DXF" takes the section chosen (a select when there are two or more); the file is `…-section-X-X.dxf`.
   - `__studioDrawing()` gives `sections` (id, view, at, rings/edges or error) and `placedSections`; `section` stays A's for the older flow steps.
