@@ -1,5 +1,6 @@
 // The robustness runner's stages for one case file, and how each outcome is classified (taxonomy):
-//   OK, REFUSED (a typed kernel error: acceptable), INVALID (the result fails the L0 checks), WRONG (valid but
+//   OK, REFUSED (a typed kernel error: acceptable), KNOWN (a pinned convention the checks flag: the prismatic
+//   crescent, D195), INVALID (the result fails the L0 checks), WRONG (valid but
 //   off an expectation or a metamorphic check), CRASH (an untyped exception, or NaN), TIMEOUT (set by the
 //   runner), TOL_BLOWUP (vertex or curve gaps past the tolerance cap).
 // A part document (.json, raw or a conformance case) is evaluated; a STEP file (.step/.stp) imported. Each
@@ -7,7 +8,7 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
-export const STATUSES = ['OK', 'REFUSED', 'INVALID', 'WRONG', 'CRASH', 'TIMEOUT', 'TOL_BLOWUP'];
+export const STATUSES = ['OK', 'REFUSED', 'KNOWN', 'INVALID', 'WRONG', 'CRASH', 'TIMEOUT', 'TOL_BLOWUP'];
 /** Built-in error types: thrown from kernel code they mean a bug (CRASH), not a refusal. */
 const UNTYPED = new Set(['Error', 'TypeError', 'ReferenceError', 'RangeError', 'SyntaxError', 'EvalError', 'URIError', 'AggregateError', 'InternalError']);
 
@@ -31,6 +32,56 @@ export function openEdges(positions, indices) {
   }
   let open = 0; for (const n of uses.values()) if (n !== 2) open++;
   return open;
+}
+
+/** The mesh edges (their two points) not used exactly twice, with their use counts. */
+function openEdgeList(positions, indices, out) {
+  const at = i => [positions[3 * i], positions[3 * i + 1], positions[3 * i + 2]], key = p => p.join(','), uses = new Map();
+  for (let t = 0; t < indices.length; t += 3) for (let k = 0; k < 3; k++) {
+    const a = at(indices[t + k]), b = at(indices[t + (k + 1) % 3]), e = key(a) < key(b) ? `${key(a)}|${key(b)}` : `${key(b)}|${key(a)}`;
+    const u = uses.get(e); if (u) u.n++; else uses.set(e, { a, b, n: 1 });
+  }
+  for (const u of uses.values()) if (u.n !== 2) out.push(u);
+  return out;
+}
+
+/**
+ * The prismatic crescent (D195): a prismatic-solid body that touches itself along a line where a circle is tangent
+ * inside another, or a wall tangent inside a hole, as prismatic-solid.test pins it ('crescent (internal tangency)'; the
+ * crescents of any extent): two distinct line edges up the tangent line coincide, between one pair of vertices (a box
+ * less a tangent cylinder, fuzz 56) or two pairs of distinct vertices at the same points (a disc tangent inside a
+ * disc). Those edge pairs (their ends, and the vertices' ids), or null — a body from any other source, or any other
+ * contact, is not one. `anySource`: a STEP read-back of such a body.
+ */
+export function crescentContacts(brep, anySource = false) {
+  if (!anySource && brep.source?.family !== 'prismatic-solid') return null;
+  const tol = 1e-9 * sizeOf(brep), P = new Map(brep.vertices.map(v => [v.id, v.point])), d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  const lines = brep.edges.filter(e => e.curve.degree === 1 && e.curve.controlPoints.length === 2), segments = [], vertices = new Set();
+  for (let i = 0; i < lines.length; i++) for (let j = i + 1; j < lines.length; j++) {
+    const a = lines[i], b = lines[j];
+    const [a0, a1] = a.vertices.map(v => P.get(v)), [b0, b1] = b.vertices.map(v => P.get(v));
+    if ((d(a0, b0) <= tol && d(a1, b1) <= tol) || (d(a0, b1) <= tol && d(a1, b0) <= tol)) { segments.push([a0, a1]); for (const v of [...a.vertices, ...b.vertices]) vertices.add(v); }
+  }
+  return segments.length ? { segments, vertices, tol } : null;
+}
+/** Whether point p lies on segment a–b (within tol). */
+function onSegment(p, [a, b], tol) {
+  const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], ap = [p[0] - a[0], p[1] - a[1], p[2] - a[2]], l2 = ab[0] ** 2 + ab[1] ** 2 + ab[2] ** 2;
+  const t = Math.max(0, Math.min(1, (ap[0] * ab[0] + ap[1] * ab[1] + ap[2] * ab[2]) / (l2 || 1)));
+  return Math.hypot(ap[0] - t * ab[0], ap[1] - t * ab[1], ap[2] - t * ab[2]) <= tol;
+}
+/** Whether a tessellation's open edges are all a crescent's: each used four times, along one of its coincident edge pairs. */
+export function crescentMesh(brep, mesh, c) {
+  const shellOf = new Map(brep.faces.map(f => [f.id, f.shell])), bodyOf = new Map(brep.shells.map(s => [s.id, s.body])), tris = new Map();
+  for (const f of mesh.faces) { const body = bodyOf.get(shellOf.get(f.faceId)), list = tris.get(body) ?? []; for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t++) list.push(mesh.indices[t]); tris.set(body, list); }
+  const open = []; for (const list of tris.values()) openEdgeList(mesh.positionsMM, list, open);
+  return open.length > 0 && open.every(u => u.n === 4 && c.segments.some(s => onSegment(u.a, s, 1e3 * c.tol) && onSegment(u.b, s, 1e3 * c.tol)));
+}
+/** Whether strict L0's issues are all a crescent's: its faces' loops touching, on faces through its coincident vertices. */
+export function crescentIssues(brep, issues, c) {
+  const faces = new Set(), loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(x => [x.id, x])), edges = new Map(brep.edges.map(e => [e.id, e]));
+  for (const f of brep.faces) for (const l of f.loops) for (const ce of loops.get(l)?.coedges ?? []) { const e = edges.get(coedges.get(ce)?.edge); if (e && e.vertices.some(v => c.vertices.has(v))) faces.add(f.id); }
+  return issues.length > 0 && issues.every(i => { const m = /^geometry: face (\S+): its loops cross or touch/.exec(i); return m && faces.has(m[1]); });
 }
 
 /** Open edges of a tessellation counted within each body's own triangles. */
@@ -64,7 +115,7 @@ export function runCase(cad, file, started) {
     try { const r = run(); value = r?.value; status = r?.status ?? 'OK'; detail = r?.detail; }
     catch (cause) { status = classifyError(cause); detail = errorDetail(cause); }
     rows.push({ stage: name, status, ms: +(performance.now() - t0).toFixed(1), ...(detail ? { detail } : {}) });
-    return status === 'OK' ? value : undefined;
+    return status === 'OK' || status === 'KNOWN' ? value : undefined;
   };
   let bodies, expect;
   const isStep = /\.(step|stp)$/i.test(file);
@@ -91,11 +142,11 @@ export function runCase(cad, file, started) {
   if (!bodies) return rows;
   const results = [];
   bodies.forEach((b, k) => {
-    const brep = b.brep ?? b, suffix = bodies.length > 1 ? `#${k}` : '';
+    const brep = b.brep ?? b, suffix = bodies.length > 1 ? `#${k}` : '', crescent = crescentContacts(brep);
     const report = stage(`validate${suffix}`, () => {
       // (The strict L0 checks: an output's own validate(), or checkBrep strict for an imported body.)
       const r = b.validate ? b.validate() : cad.checkBrep(brep, { strict: true }), cap = gapCap(sizeOf(brep));
-      if (!r.valid) return { status: 'INVALID', detail: r.issues.slice(0, 3).join('; ') };
+      if (!r.valid) return crescent && crescentIssues(brep, r.issues, crescent) ? { status: 'KNOWN', detail: `KNOWN-CRESCENT (D195): ${r.issues[0]}`, value: r } : { status: 'INVALID', detail: r.issues.slice(0, 3).join('; ') };
       if (r.maximumVertexGapMM > cap || r.maximumPcurveGapMM > cap) return { status: 'TOL_BLOWUP', detail: `vertex gap ${r.maximumVertexGapMM}, pcurve gap ${r.maximumPcurveGapMM}, cap ${cap}` };
       return { value: r };
     });
@@ -109,6 +160,7 @@ export function runCase(cad, file, started) {
       if (!mesh.positionsMM.every(Number.isFinite)) return { status: 'CRASH', detail: 'a position is not finite' };
       // (Watertight body by body: separate bodies that touch share positions without sharing edges.)
       const open = openEdgesByBody(brep, mesh);
+      if (open && crescent && crescentMesh(brep, mesh, crescent)) return { status: 'KNOWN', detail: `KNOWN-CRESCENT (D195): ${open} edges used four times, along the tangent line` };
       return open ? { status: 'INVALID', detail: `${open} edges not used exactly twice` } : {};
     });
     // STEP out and back in: volume, area and centroid to 1e-6, the same topology (L1 round trip). (The volume
@@ -123,7 +175,8 @@ export function runCase(cad, file, started) {
       for (const meshes of mixed ? ['tessellated'] : faceted ? ['tessellated', 'planar'] : [undefined]) {
         const back = cad.importStep(cad.exportStep(brep, { name: 'rb', timestamp: '2026-01-01T00:00:00', ...(meshes ? { meshes } : {}) })), m = cad.brepMassProperties(back, 1);
         const a1 = cad.brepSurfaceArea(back), r = cad.checkBrep(back, { strict: true }), how = meshes ? ` (${meshes})` : '';
-        if (!r.valid) return { status: 'INVALID', detail: `re-imported${how}: ${r.issues[0]}` };
+        const known = !r.valid && crescent && crescentIssues(back, r.issues, crescentContacts(back, true) ?? crescent);
+        if (!r.valid && !known) return { status: 'INVALID', detail: `re-imported${how}: ${r.issues[0]}` };
         if (Math.abs(m.volumeMM3 - mass.volumeMM3) > Math.max(rel * Math.abs(mass.volumeMM3), 1e-12)) return { status: 'WRONG', detail: `volume${how} ${mass.volumeMM3} → ${m.volumeMM3}` };
         if (Math.abs(a1 - a0) > rel * a0) return { status: 'WRONG', detail: `area${how} ${a0} → ${a1}` };
         if (Math.hypot(...[0, 1, 2].map(k => m.centroidMM[k] - mass.centroidMM[k])) > rel * size) return { status: 'WRONG', detail: `centroid${how} ${mass.centroidMM} → ${m.centroidMM}` };

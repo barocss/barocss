@@ -11472,3 +11472,39 @@ The rule is by identity, so that cap stays a touch under strict L0, as it was. F
 a cylinder tangent to two of its sides from inside, the body touching itself along two lines. Its edges there are
 distinct and coincide, so the tessellation by position counts them four times. A decision is asked for: whether
 coincident distinct vertices and edges along a tangency are a body's own shape too.
+
+## D195 — A prismatic crescent's touch along its tangent line is KNOWN, not INVALID (2026-10-23)
+
+**Decision (coordinator, option b).** Keep the prismatic crescent as one body. A disc tangent inside a disc, or a
+wall tangent inside a hole, touches itself along the tangent line. prismatic-solid.test pins it: 'crescent (internal
+tangency)' and the crescents of any extent. Saved documents must keep resolving.
+
+It is valid by assertValidBrep, its volume is exact, and its mesh is watertight by index. Its real problem is
+physical, a zero wall at the tangent line: a manufacturability finding, not a topology one. Not accepted in general:
+any other line-touch stays a finding.
+
+**The pattern** (`scripts/rb/stages.mjs`, `crescentContacts`), all of:
+- the body's source is prismatic-solid;
+- two distinct line edges up the tangent line coincide;
+- they run between one pair of vertices (a box less a tangent cylinder, fuzz 56) or between two pairs of distinct
+  vertices at the same points (a disc tangent inside a disc, the pinned crescent).
+
+The coordinator's wording named only the second form. Fuzz 56 is the first; both come from the same builder.
+
+**Where it counts.** RB and the fuzz give such a body a status of its own, KNOWN (detail `KNOWN-CRESCENT (D195)`),
+counted apart and not as a failure, where:
+- strict L0's issues are all its faces' loops touching, on faces through those vertices; or
+- the tessellation's open edges are all used four times, along those edges.
+The STEP read-back is held the same way. Volume and centroid are still judged against the oracle.
+
+**The physical side.** cad-model's wall measures flag both shapes, so no outer-lane finding:
+- fuzz 56: thinnest wall 0.013 mm, at the tangent line;
+- the pinned crescent: 0 mm.
+
+**Later item (c):** build such a body exactly: one non-manifold edge at the tangency, or a split there.
+
+**Test:** `test/rb.test.mjs`. The pinned crescent and a box less a tangent cylinder are KNOWN, every other stage OK.
+The same body from another source is not one.
+
+(A through cylinder tangent inside two sides of a box is refused by the prismatic route, typed: "the bodies touch
+along an edge or at a vertex only". Unchanged.)

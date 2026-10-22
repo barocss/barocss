@@ -1,6 +1,1 @@
-[
-  {
-    "case": "20261023:56",
-    "note": "D188: a box (turned 180° about Y and X, snapped) less an upright cylinder r 2: the tessellation has 2 edges not used exactly twice (the volume holds); replay robustness/corpus/fuzz/fuzz-20261023-56.json"
-  }
-]
+[]

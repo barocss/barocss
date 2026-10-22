@@ -1,6 +1,6 @@
 {
   "id": "fuzz-20261023-56",
-  "about": "L4 fuzz finding (seed 20261023, case 56): INVALID — tessellation: 2 edges not used exactly twice",
+  "about": "L4 fuzz case (seed 20261023, case 56), KNOWN-CRESCENT (D195): a box less an upright cylinder tangent inside two of its sides. The prismatic route builds one body touching itself along the tangent lines (two coincident line edges each), as prismatic-solid.test pins its crescents; RB counts its four-times-used mesh edges KNOWN, not INVALID. Building it exactly (a non-manifold edge, or a split) is a later item.",
   "input": {
     "partDocument": {
       "format": "barocss-cad-part",
@@ -115,7 +115,7 @@
       }
     ]
   },
-  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 3.83e-2 mm³, centroid e 4.85e-4 mm",
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128\u00b2 lattice at 6 shifts, e 3.83e-2 mm\u00b3, centroid e 4.85e-4 mm",
   "fuzz": {
     "seed": 20261023,
     "k": 56,
