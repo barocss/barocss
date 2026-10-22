@@ -140,7 +140,11 @@ test('FRk S0 members along arcs: a round and a round-cornered tube revolved abou
     assert.equal(o.bodyCount, 1); assert.ok(o.validate().valid);
     t.diagnostic(`${name}: ${Math.round(performance.now() - t0)} ms, mass ${o.massProperties(1).method}`);
   }
-  assert.throws(() => run([{ id: 'os', kind: 'sketch', profile: 'loop', segments: circle(15, 150), holes: [circle(13, 150)], plane: XY }, { id: 'o', kind: 'revolve', sketch: 'os', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 90 }]), /one loop/);
+  // S0 pinned revolve's one-loop refusal here; FRk4 (D173) gave revolve its holes, so the same tube revolved from one
+  // sketch with its bore as a hole holds the same Pappus value (D176).
+  const holed = run([{ id: 'os', kind: 'sketch', profile: 'loop', segments: circle(15, 150), holes: [circle(13, 150)], plane: XY }, { id: 'o', kind: 'revolve', sketch: 'os', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 90 }]).output('o');
+  near(volume(holed), A_RT * 150 * Math.PI / 2, 1e-11, 'round Ø30 × 2 revolved with its bore as a hole');
+  assert.equal(holed.bodyCount, 1); assert.ok(holed.validate().valid);
   const path = [{ kind: 'straight', length: 200 }, { kind: 'bend', radius: 100, angleDegrees: 90, toward: 'x' }, { kind: 'straight', length: 150 }];
   const t0 = performance.now();
   const b = run([{ id: 'os', kind: 'sketch', profile: 'loop', segments: circle(15), plane: XY }, { id: 'o', kind: 'sweep', sketch: 'os', path },

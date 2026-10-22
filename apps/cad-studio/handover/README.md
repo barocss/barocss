@@ -28,6 +28,19 @@ no npm publish.
 
 ## 0. Start here — hand-over of 2026-10-18 (read this section first)
 
+### Kernel lane: resumed after Codex (2026-10-23) — read this block first, then the FRk8b block below
+
+Codex ran the lanes on 2026-10-22/23; its kernel work came into integration with `99da385a1`: FRk3 (D172), FRk4
+(D173/D174), FRk5 (D175), the Sweep mass correction and shared weld seams. For the import, the lane briefs and the
+window at it, see `notes/claude-resume-2026-10-23/`.
+
+| Checkpoint | Record | State |
+|---|---|---|
+| Window repairs: frk-3's oracle path; two refusal checks FRk4 made stale; sweep's silently dropped holes (a defect from the import) refused again | D176 | done (T1) |
+| V notch precision: trim strips close the gap to their fitted edge (the ribbon); V notch 9.2e-15, D126 table members 4–7 from ~1e-9 to ~1e-14 | D177 | done (T1); T2 pending |
+| FRk6: the capped ordered joint for speed (≤ 2 s); its accuracy half is D177 | D178 | next |
+| FRk5 leftovers, FRk7, FRk8a, FRk8b second half, FRk9 | — | queued (`notes/claude-resume-2026-10-23/kernel.md`) |
+
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 
 The owner moved the work to another account mid-track. The kernel lane stops cleanly after FRk8b's defect half, and a fresh session picks it up from here. The R12c → FR geometry block below is kept as history; its FRk lines are brought up to date here.

@@ -6,6 +6,8 @@ import { multiply } from '@barocss/gpu/viewer';
 import { placedDoc, placementOf, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { instanceEvaluationCurrent, instanceEvaluationSources } from './viewport/instanceEvaluation';
 import { contentKey } from '@barocss/cad-model/engine/evalMemo';
+import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingContext';
+import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepareBearingEdit, type BearingEditSession } from './app/bearingEdit';
 import { resolveSkeletons } from '@barocss/cad-model/frames/skeleton';
 import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type MeshRepairRecord, type ModelNode, type Side, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, featureId, nextSerial } from '@barocss/cad-model/engine/ids';
@@ -31,7 +33,7 @@ import { Icon, Kbd } from './ui/atoms';
 import { FlatPatternDialog } from './ui/FlatPatternDialog';
 import { CutListDialog } from './ui/CutListDialog';
 import { ToolsTray } from './ui/ToolsTray';
-import { BomPanel } from './ui/BomPanel';
+import { BomPanel, bomHasLinkedHousing } from './ui/BomPanel';
 import { partCutList } from '@barocss/cad-model/app/cutList';
 import { nestCutList } from '@barocss/cad-model/frames/nesting';
 import { Hud } from './ui/Hud';
@@ -358,6 +360,18 @@ export function App() {
   const halvesShownRef = useRef(false);
   const [ao, setAo] = useState(true);
   const [editNode, setEditNode] = useState<number | null>(null);
+  const [instanceEdit, setInstanceEdit] = useState<{ owner: string; index: number } | null>(null);
+  const [instanceEditPending, setInstanceEditPending] = useState(false);
+  // A changed selection invalidates a pending edit even if the user selects the same occurrence again.
+  const bearingEditScope = useRef({ doc, instanceSel, instanceEdit, editNode });
+  if (bearingEditScope.current.doc !== doc || bearingEditScope.current.instanceSel !== instanceSel || bearingEditScope.current.instanceEdit !== instanceEdit || bearingEditScope.current.editNode !== editNode) bearingEditScope.current = { doc, instanceSel, instanceEdit, editNode };
+  const instanceEditRun = useRef(0);
+  useEffect(() => { instanceEditRun.current++; setInstanceEditPending(false); }, [doc, instanceSel, instanceEdit]);
+  const selectedBearingEdit = useMemo(() => {
+    if (!instanceEdit || instanceSel.length !== 1 || instanceSel[0] !== instanceEdit.owner) return null;
+    try { return { session: captureBearingEditSession(doc, instanceEdit.owner, instanceEdit.index), error: null }; }
+    catch (error) { return { session: null, error: error instanceof Error ? error.message : String(error) }; }
+  }, [doc, instanceSel, instanceEdit]);
   /** The body whose name is being typed in the browser (its key). */
   const [renaming, setRenaming] = useState<string | null>(null);
   /** Bodies whose features the browser lists under them (by key). */
@@ -476,7 +490,11 @@ export function App() {
   // (FRc, O117: the section library is model input too — a frame on a row is built from it.)
   // (FRf2, O125: and the placed parts, when a frame follows a part's sketch — not otherwise, so moving parts does not re-evaluate the base.)
   const followsParts = doc.nodes.some(n => n.kind === 'frame' && !!n.follows && 'part' in n.follows);
-  const rootContextKey = useMemo(() => contentKey(doc), [doc]);
+  const rootContextKey = useMemo(() => {
+    try { return contentKey(doc); }
+    // A missing/hidden housing must reach the evaluator's refusal, not throw from React render.
+    catch { return doc; }
+  }, [doc]);
   const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc.nodes, doc.parameters, doc.frames?.sections, rootContextKey, followsParts ? doc.instances : null, marker]);
   const sectionRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
   // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
@@ -533,7 +551,7 @@ export function App() {
   const namesDoc = fresh || !bodiesFor ? doc : bodiesFor;
 
   const bodiesRef = useRef(bodies); bodiesRef.current = bodies;
-  const ctx: Ctx = { doc: evaluated, bodies, selection, pick: pick ?? undefined, direct: directSel };
+  const ctx: Ctx = { doc: evaluated, bodies, selection, pick: pick ?? undefined, direct: directSel, bearingAssembly: { root: doc, owner: 'base' } };
   const evaluatedRef = useRef(evaluated); evaluatedRef.current = evaluated;
 
   /** The document as it is, kept for undo (redo is gone once something new is done). */
@@ -601,6 +619,23 @@ export function App() {
     setDoc({ ...doc, instances: next }); setDirty(true);
     if (select) setInstanceSel(select);
   }, [doc, marker]);
+  const applyInstanceBearing = async (session: BearingEditSession, nodes: ModelNode[]) => {
+    const scope = bearingEditScope.current;
+    if (!bearingEditCurrent(session, scope.doc, scope.instanceSel, scope.instanceEdit)) return;
+    const run = ++instanceEditRun.current;
+    setInstanceEditPending(true);
+    try {
+      const prepared = prepareBearingEdit(session, nodes);
+      const result = await engine.part(prepared.view, revision.current++);
+      const current = bearingEditScope.current;
+      if (run !== instanceEditRun.current || current !== scope || !bearingEditCurrent(session, current.doc, current.instanceSel, current.instanceEdit)) return;
+      if (!result.ok) { setToast(result.error); return; }
+      commitInstances(prepared.root.instances!, [session.owner]);
+      setInstanceEdit(null);
+    } catch (error) {
+      if (run === instanceEditRun.current && bearingEditScope.current === scope) setToast({ title: 'Bearing not changed', hint: error instanceof Error ? error.message : String(error), detail: '' });
+    } finally { if (run === instanceEditRun.current) setInstanceEditPending(false); }
+  };
   // Evaluate each instance whose placed part changed (in the worker, beside the main part).
   const instanceSources = useMemo(() => instanceEvaluationSources(doc), [doc]);
   useEffect(() => {
@@ -633,7 +668,11 @@ export function App() {
     pushUndo();
     setDoc({ ...doc, instances, mates }); setDirty(true);
   }, [doc, marker]);
-  const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit: commitAssembly });
+  const readLinkedFaces = useCallback(async (owner: string, input: StudioDoc) => {
+    const result = await engine.part(bearingFaceInput(doc, owner, input), revision.current++, 'read');
+    return result.ok ? result.faceTable ?? null : null;
+  }, [doc, engine]);
+  const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit: commitAssembly, readFaces: bomHasLinkedHousing(doc) ? readLinkedFaces : undefined });
   // The assembly as a robot (RM1): its joint tree from the solved instances, the faces read, the parts' gears.
   const jointTree = useMemo(() => !doc.mates?.length || !doc.instances?.length ? null : jointTreeOf(doc, { instances: doc.instances, problems: assembly.problems }, p => assembly.tables.get(p),
     p => (p === BASE ? bodies : instanceBodies.get(p)?.bodies ?? []).flatMap(b => (b.gear ? [b.gear] : []))), [doc, assembly.problems, assembly.tables, bodies, instanceBodies]);
@@ -776,8 +815,14 @@ export function App() {
    * follows when the drag pauses or ends (`fullTimer`).
    */
   const fullTimer = useRef(0);
+  const bearingRootCurrent = active?.cmd.id !== 'bearing' || active.ctx.bearingAssembly?.root === doc;
   useEffect(() => {
     if (!active?.cmd.build) return;
+    if (!bearingRootCurrent) {
+      setPreviewBodies(null);
+      setActive(a => a && { ...a, preview: 'error', error: { title: 'Assembly changed', hint: 'Start Bearing again to use the current housing geometry.', detail: '' } });
+      return;
+    }
     let live = true;
     const missing = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values).find(f => f.kind !== 'choice' && (active.values[f.key] === '' || !Number.isFinite(Number(active.values[f.key]))));
     if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
@@ -796,6 +841,7 @@ export function App() {
       }
       window.clearTimeout(fullTimer.current);
       const result = await engine.preview(shown, revision.current++);
+      if (cmd.id === 'bearing' && ctx.bearingAssembly?.root !== bearingEditScope.current.doc) return;
       if (rolled && live) fullTimer.current = window.setTimeout(() => { if (!live) return; run.next = () => job(true); if (!run.busy) void pump(); }, 220);
       // (A newer job is queued: its result supersedes this one, unless this command is gone.)
       if (!live && !previewRun.current.next) return;
@@ -817,7 +863,7 @@ export function App() {
     const typed = Date.now() - lastTyped.current < 50;
     const t = setTimeout(() => { run.next = job; if (!run.busy) void pump(); }, typed ? 140 : 0);
     return () => { live = false; clearTimeout(t); };
-  }, [active?.values, active?.cmd, engine]);
+  }, [active?.values, active?.cmd, engine, bearingRootCurrent]);
 
   /** The command to start again once what Shift-Enter applied is the part (its bodies evaluated). */
   const again = useRef<Command | null>(null);
@@ -826,6 +872,7 @@ export function App() {
   const applyWhenReady = useRef<Command | null>(null);
   const apply = useCallback(() => {
     if (!active?.cmd.build) return;
+    if (!bearingRootCurrent) { applyWhenReady.current = null; return; }
     if (active.preview === 'busy') { applyWhenReady.current = active.cmd; return; }
     applyWhenReady.current = null;
     if (active.preview !== 'ok') return;
@@ -835,7 +882,7 @@ export function App() {
     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
     if (previewBodies && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) { setBodies(previewBodies); claimBodies.current = true; }
     commit(next); setActive(null); setPreviewBodies(null); setSketch(null);
-  }, [active, commit, previewBodies]);
+  }, [active, commit, previewBodies, bearingRootCurrent]);
   // (Only for the command it was asked for: cancelled or replaced, it is forgotten.)
   useEffect(() => {
     if (applyWhenReady.current && applyWhenReady.current !== active?.cmd) applyWhenReady.current = null;
@@ -881,7 +928,10 @@ export function App() {
       const n = face ? planeOf(face.node).normal : i !== undefined ? planeOf(evaluated.nodes[i] as SketchNode).normal : null, cam = viewport.current?.camera;
       if (n && cam) { const f = cam.basis().forward; if (Math.abs(f[0] * n[0] + f[1] * n[1] + f[2] * n[2]) > 0.95) viewport.current?.setView('iso'); }
     }
-    setActive({ cmd, values: cmd.defaults?.(ctx) ?? {}, preview: 'busy', ctx: { ...ctx }, ...(cmd.place ? { placing: true } : {}) });
+    // Before the first link exists, the base memo does not depend on placed parts. Bearing still needs
+    // the current authored targets when it builds its candidate, as well as when it lists choices.
+    const startCtx = cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } } : ctx;
+    setActive({ cmd, values: cmd.defaults?.(startCtx) ?? {}, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
   }, [ctx, selection, bodies, engine, commit, evaluated.nodes]);
 
   // Shift-Enter: once the part has its new bodies (and the selection followed them), the command again.
@@ -2207,8 +2257,13 @@ export function App() {
           <span className="ol-eye"><Icon name="cad-sketch" small /></span>
           <button className={'ol' + (selection.sketches?.includes(k) ? ' sel' : '')} onClick={e => pickProfile(k, e.shiftKey)}>Sketch {k + 1}</button></div>)}
         {!!doc.instances?.length && <div className="ol-head">Parts placed</div>}
-        {(doc.instances ?? []).map(inst => <button key={inst.id} className={'ol instance' + (instanceSel.includes(inst.id) ? ' sel' : '') + (inst.hidden ? ' hidden-obj' : '')}
-          onClick={() => { setSelection(emptySel); setDirectSel([]); setInstanceSel([inst.id]); }}><Icon name={inst.hidden ? 'visibility_off' : 'widgets'} small />{inst.name}</button>)}
+        {(doc.instances ?? []).map(inst => <Fragment key={inst.id}><button className={'ol instance' + (instanceSel.includes(inst.id) ? ' sel' : '') + (inst.hidden ? ' hidden-obj' : '')}
+          onClick={() => { setSelection(emptySel); setDirectSel([]); setInstanceSel([inst.id]); setInstanceEdit(null); }}><Icon name={inst.hidden ? 'visibility_off' : 'widgets'} small />{inst.name}</button>
+          {instanceSel.length === 1 && instanceSel[0] === inst.id && inst.doc.nodes.map((node, index) => node.kind === 'bearing' && <button key={index} className={'ol ol-step' + (instanceEdit?.owner === inst.id && instanceEdit.index === index ? ' sel' : '')}
+            aria-label={`Edit ${inst.name}: ${featureLabel(node, index, inst.doc.nodes)}`} disabled={!!active || !!sketch || rendering || drawing}
+            onClick={() => { setBomOpen(false); setLibraryOpen(false); setParamsOpen(false); setSelection(emptySel); setDirectSel([]); setEditNode(null); setInstanceSel([inst.id]); setInstanceEdit({ owner: inst.id, index }); }}>
+            <Icon name={iconFor(node)} small />{featureLabel(node, index, inst.doc.nodes)}</button>)}
+        </Fragment>)}
         {!!doc.direct?.objects.length && <div className="ol-head">Curves and surfaces</div>}
         {(doc.direct?.objects ?? []).map(o => <button key={o.id} className={'ol direct' + (directSel.includes(o.id) ? ' sel' : '') + (o.hidden ? ' hidden-obj' : '')}
           title={o.hidden ? 'Hidden: click to show' : o.name}
@@ -2312,6 +2367,18 @@ export function App() {
         const inst = doc.instances?.find(i => i.id === instanceSel[0]);
         if (!inst) return null;
         const list = doc.instances!;
+        if (selectedBearingEdit) {
+          if (bomOpen || libraryOpen || paramsOpen || drawing || active) return null;
+          const session = selectedBearingEdit.session;
+          return <aside className="card props" aria-label="Part bearing properties">
+            <div className="card-title">{inst.name} <button className="tool tiny" aria-label="Back to part properties" onClick={() => setInstanceEdit(null)}><Icon name="arrow_back" small /></button></div>
+            {session ? <NodeEditor key={`${session.owner}:${session.index}`} nodes={session.view.nodes} parameters={session.view.parameters} index={session.index}
+              bearingAssembly={{ root: doc, owner: session.owner }} pending={instanceEditPending}
+              onRefuse={hint => setToast({ title: 'Bearing not changed', hint, detail: '' })}
+              onApply={nodes => void applyInstanceBearing(session, nodes)} onClose={() => setInstanceEdit(null)} />
+              : <div className="empty warn" role="alert">{selectedBearingEdit.error}</div>}
+          </aside>;
+        }
         return <InstancePanel inst={inst} bodies={instanceBodies.get(inst.id)?.bodies}
           onChange={next => commitInstances(list.map(i => i.id === inst.id ? next : i))}
           onDuplicate={() => { const used = new Set(list.map(i => i.id)); let n = 1; while (used.has(`inst${n}`)) n++;
@@ -2497,9 +2564,10 @@ export function App() {
             <div className="kv">Mass <b>{fmt(Math.round(c.massG * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
             <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}
         {!sel1 && !selBodies.length && <div className="empty">Click a face or edge; Shift-click adds more of the same (edges to round, faces to open). For a Boolean, Shift-click a second body in the Outliner.</div>}
-        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
+        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
+          const scope = bearingEditScope.current;
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
-          engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r) return; if (r.ok) commit(next); else setToast(r.error); });
+          engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r || bearingEditScope.current !== scope) return; if (r.ok) commit(next); else setToast(r.error); });
         }} onDelete={() => deleteNode(editNode)} onClose={() => setEditNode(null)} />}
       </aside>}
       </div>
@@ -2737,31 +2805,32 @@ function PointTest({ mesh }: { mesh: BodyResult['mesh'] }) {
   </div>;
 }
 
-function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, parameters, onRefuse }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete(): void; parameters: Record<string, number>; onRefuse(message: string): void }) {
+function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, parameters, onRefuse, bearingAssembly, pending = false }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; pending?: boolean }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
   const [typed, setTyped] = useState<Record<string, string>>({});
   useEffect(() => { setDraft(nodes); setTyped({}); }, [nodes, index]);
-  const fields = editFields(draft, index, parameters).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
+  const fields = editFields(draft, index, parameters, bearingAssembly).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
   const names = Object.keys(parameters);
   const changed = draft !== nodes;
   return (
-    <div className="node-editor" onKeyDown={e => { if (e.key === 'Enter' && changed) onApply(draft); else if (e.key === 'Escape') onClose(); else if (e.key === 'Delete' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)) onDelete(); }}>
+    <div className="node-editor" onKeyDown={e => { if (e.key === 'Enter' && changed && !pending) onApply(draft); else if (e.key === 'Escape') onClose(); else if (e.key === 'Delete' && !pending && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)) onDelete?.(); }}>
       <div className="card-title" style={{ marginTop: 10 }}>EDIT FEATURE <button className="tool tiny" aria-label="Close editor" onClick={onClose}><Icon name="close" small /></button></div>
       {onEditSketch && <button className="ghost" aria-label="Edit sketch" title="Reopen the sketch this feature is made from, with its constraints" onClick={onEditSketch}><Icon name="draw" small /> Edit sketch</button>}
       {fields.length ? fields.map(f => (
         <label key={f.key} className="field"><span>{f.label}</span>
-          {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} value={typed[f.key] ?? f.get(draft)} disabled={!!(f as BindableField).param?.(draft)} onChange={e => { const t = e.target.value, v = Number(t); setTyped(m => ({ ...m, [f.key]: t })); if (t.trim() !== '' && Number.isFinite(v)) setDraft(d => f.set(d, v)); }} />{f.unit && <em>{f.unit}</em>}
-            {names.length > 0 && 'bind' in f && <select className="param-bind" aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
+          {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} value={typed[f.key] ?? f.get(draft)} disabled={pending || !!(f as BindableField).param?.(draft)} onChange={e => { const t = e.target.value, v = Number(t); setTyped(m => ({ ...m, [f.key]: t })); if (t.trim() !== '' && Number.isFinite(v)) setDraft(d => f.set(d, v)); }} />{f.unit && <em>{f.unit}</em>}
+            {names.length > 0 && 'bind' in f && <select className="param-bind" disabled={pending} aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
               onChange={e => { const b = f as BindableField, name = e.target.value; if (!name) { setDraft(d => b.set(d, b.get(d))); return; } const next = b.bind(draft, name); if (next) { setDraft(next); setTyped(m => Object.fromEntries(Object.entries(m).filter(([k]) => k !== f.key))); } else onRefuse(`${f.label} is not stored as it is shown, so it cannot take a parameter.`); }}>
               <option value="">ƒ</option>{names.map(n => <option key={n} value={n}>{n}</option>)}</select>}</span>
-            : f.kind === 'choice' ? <select aria-label={f.label} value={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.value))}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
-            : <input type="checkbox" className="check" aria-label={f.label} checked={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.checked))} />}
+            : f.kind === 'choice' ? <select disabled={pending} aria-label={f.label} value={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.value))}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+            : <input type="checkbox" className="check" disabled={pending} aria-label={f.label} checked={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.checked))} />}
         </label>
       )) : <div className="empty">This feature has no editable dimensions.</div>}
-      <button className="ghost danger" aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={onDelete}><Icon name="delete" small /> Delete feature</button>
-      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed} onClick={() => onApply(draft)}>Apply</button><button className="ghost" disabled={!changed} onClick={() => { setDraft(nodes); setTyped({}); }}>Reset</button></div>}
+      {onDelete && <button className="ghost danger" disabled={pending} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={onDelete}><Icon name="delete" small /> Delete feature</button>}
+      {pending && <div className="empty" role="status">Checking the current bearing and housing…</div>}
+      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending} onClick={() => onApply(draft)}>Apply</button><button className="ghost" disabled={!changed || pending} onClick={() => { setDraft(nodes); setTyped({}); }}>Reset</button></div>}
     </div>
   );
 }

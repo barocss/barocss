@@ -10666,3 +10666,88 @@ Kernel D STOP record was reviewed at `b5fceedfba4a018899e85daceea264113b8c4a15`.
 with the final window. That documentation review does not adopt the branch's
 unverified product source. See [handback](notes/codex-handback-2026-10-23.md) and
 state for exact WIP, process cleanup, blockers and first resume steps.
+
+## D176 — Kernel window repairs after the Codex import (2026-10-23)
+
+The coordinator's window at `99da385a1` (develop `c3ae0d5de` + Codex's final tree `0eabecf7f` without its evidence
+folders) gave the full kernel suite 1597/1608, 6 skipped, 5 failing. One failure is the known env-only
+"actual native Split source…" test (it pins Node 22.23.3). This checkpoint repairs three of the other four and finds
+one real defect.
+
+**(a) `test/frk-3.test.mjs` failed at load.**
+- Cause: it imported its oracle from `test/receipts/frk3-oracle-moments.mjs`, which the squash dropped with the other
+  receipt folders. It is the only test that imports from a removed path.
+- Repair: the oracle moves to `test/frk3-oracle.mjs`, byte for byte as at `0eabecf7f` (signed triangles and circular
+  sectors, no production code). The import now points there; no expected value changed. 7/7.
+
+**(b) "FRk S0 members along arcs" pinned revolve's one-loop refusal, which FRk4 (D173) lifted.**
+- Revolve now takes holes.
+- Repair: the refusal check becomes a positive one. The same Ø30 × 2 tube, revolved 90° from one sketch with its bore
+  as a hole, gives Pappus A_RT · 150 · π/2 to 1e-11, one body, and validates.
+
+**(d) "sketch regions and holes" pinned revolve's old refusal text.**
+- The test now expects FRk4's text: "revolve takes one outer loop with optional holes (no regions)", still CAPABILITY.
+
+**A real defect behind (d), introduced with `99da385a1`: sweep dropped holes silently.**
+- How: FRk4's edit to `src/part-model.ts` gave the `sweep` case revolve's new check. That check refuses only regions
+  and says "revolve takes…", while `sweepBrep` uses only the outer loop.
+- Effect: a sketch's holes were dropped without a word. A Ø30 sweep with a Ø26 hole, 100 mm long, gave 70 685.83 mm³
+  instead of 17 592.92.
+- Repair: sweep's own refusal is restored, as before the import: "sweep takes a sketch of one loop (no regions or
+  holes) yet", CAPABILITY.
+- Tests: two refusal checks in `part-model.test.mjs`, holes alone and regions with holes.
+- Not affected: the frame members' curve sweep (`sweepSolid`, which carries holes through) is a separate path.
+
+**(c) Still open: "FRk S0 saddle notches", the V notch.**
+- Got 50 516.7061409051 against the oracle's 50 516.70614162129: relative error 1.42e-11 against the test's 1e-11.
+- It passed at FRk8b (`75647da69`). Codex's FRk5 quadrature and notch changes are the likely cause, not yet confirmed.
+- Next checkpoint: bisect on `codex/cad-kernel-sweep-mass-20261022`. The tolerance and the oracle stay as they are.
+
+**Checks (T1):**
+- `packages/barocss-cad`: lint 0 errors, type-check clean, `build:library`.
+- Per file: part-model, frk-s0, frk-3, frk-4-revolve, sweep-mass-overlap and sweep-solid give 55/56; the one failure
+  is (c).
+- Not run: the full kernel suite, RB and properties (no brep core change here).
+
+## D177 — Trim strips close the gap to their edge: the ribbon from the surface's point to the edge's (2026-10-23)
+
+**Cause of D176 (c), the V notch at rel 1.42e-11 against 1e-11.**
+- Bisected over the ten `packages/barocss-cad/src` commits on Codex's `codex/cad-coordinator-handover-20261022`. The
+  first bad commit is `d456a616f` ("use one exact cylinder differential for trimmed mass"). At its parent
+  `67b34f907` the V notch was +4.1e-12; from it on, −1.42e-11.
+- Its analytic partials and projection are right: they agree with `frame.at` exactly. The earlier pass was the
+  finite-difference error (the central difference of a cosine scales Su by 1 − (h/r)²/6) cancelling the real one.
+- The real error: a plane's cut through a cylinder is an edge fitted as a cubic (49 control points), 2.1–2.4e-8 mm
+  radially off the cylinder; on the plane it is within 3e-11.
+  - The planar face is integrated by Green up to the edge E itself.
+  - The cylinder face's trim strips end at the projection P = S(C) of E on the surface.
+  - So the surface the divergence theorem is taken over has a ribbon-shaped gap along every fitted edge, and the
+    volume carries the flux through it.
+
+**Fix: in `strip` (`src/brep-mass-quadrature.ts`), each strip is continued from P out to E.**
+- The ruled ribbon Y(t, s) = P + s (E − P) is taken to first order in g = E − P: F(P + g/2)·(P′ × g) at each of the
+  strip's eight t nodes, oriented as the strip.
+- P′ = Su C′u + Sv C′v, from the analytic partials or from the finite-difference tangents the strip already has.
+- The ribbon goes into the vector area and the area as well.
+- What is left is second order, about |g|² · L (1e-15 mm³ here).
+- No closures: module-level typed arrays (owner rule).
+- Not covered: an edge integrated with no strip ("straight" in (u, v)) gets no ribbon. Those edges are exact (a
+  circle about the axis, a ruling).
+
+**Results, tolerances and oracles unchanged:**
+
+| Case | Before | After |
+|---|---|---|
+| V notch | rel −1.42e-11 | 9.2e-15 |
+| D126 ordered round-cornered table, members 4–7 (D126 oracles, the FRk6 test's endpoint substitutions) | −9.6e-10, 2.6e-10, −1.12e-9, 2.4e-10 | −4.9e-14, 5.4e-15, −1.9e-14, −2.1e-15 |
+
+- The table's member 6 is the one Codex's FRk6 failed at 1e-9 (its "member5", counted from 0 in the test).
+- Codex's route was tighter edge fits for capped joints (`edgeFitToleranceMM: 1e-11`, `2364ef71`). That is slower and
+  only moves the gap down. With the ribbon it is not needed, and FRk6 (D178) does not port it.
+- Mass time for the table: 219 → 244 ms.
+
+**Checks:**
+- T1: `packages/barocss-cad` lint 0 errors, type-check clean, `build:library`. 15 mass, frame and notch files
+  (frk-1 … frk-8b, frk-s0, mass-polyhedral, modeling-mass, ordered-trim-bead, sweep-*): 80/80.
+- **T2 pending** (brep core changed): the full kernel suite, then RB and properties, in a scratch worktree, on a slot
+  from the coordinator.
