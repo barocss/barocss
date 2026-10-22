@@ -49,7 +49,8 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K7: r6 sphere-intersect ȳ — the facet rims' gap beside a pole closed by the ribbon alone; the pin (the kernel's output) to 17.75 | D184 | done (T1+) |
 | K8: F5, the cnc-turning report — the kernel admitted the surface per derivative call; once per surface now (a9-acceptance 55 → 15 s) | D185 | done (T1+) |
 | K9a: the 1 nm graze returned a wrong body (534 against 253 mm³, loops crossing) — now checked strictly and refused, typed; gear-internal's test pinned a strict-invalid body, relaxed to valid-or-refused | D186 | done (T1+) |
-| K9b: the other graze items (non-manifold refusals at 10 nm–10 µm), the 10 µm lens tessellation, helical × helical | — | next |
+| K9b: the 10 µm and 1 µm grazes (x52, x27) built right — a plane face's edge crossed twice inside one chord, found by bisection | D187 | done (T1+) |
+| K9c: left in RB todo — the 10 nm graze (4 uses), the 10 µm lens's tessellation fold, helical × helical (and D186's 1 nm refusal) | — | next |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first

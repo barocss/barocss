@@ -11148,3 +11148,52 @@ where the sweep crosses by 0.0118 mm, intersected with the ring.
   0 failing.
 - RB on `robustness/corpus/oracle` alone: the known graze and helical items only. That run names them as NEW, because
   a single folder's case ids lack the `corpus/` prefix `todo.json` keys on; the full RB rides the coordinator's window.
+
+## D187 — K9: two shallow grazes built right: an ellipse crossing a plane face's edge twice inside one chord, found by bisection (2026-10-23)
+
+**RB TODO items** `corpus/oracle/cylinder-box-graze-x52_389-in0_01-intersect` and `-x27_564-in0_001-intersect` (found
+by D25's exact-oracle property). A box turned about X has its outermost edge 10 µm and 1 µm into an upright cylinder's
+wall.
+- Both were refused as non-manifold: "edge 0 … has 1 uses". Typed, but valid input.
+- The oracles are 3.4470301e-5 and 1.0140649e-7 mm³.
+
+**Cause.**
+- The box's top face got no cut from the cylinder at all (the Boolean's trace: `B0.top`, cuts 0). So the edge between
+  it and the box's side had one use, the side's.
+- The plane meets the wall in an ellipse. `intervals` clips that ellipse to the face by crossing its 64-chord polyline
+  with the face's edges (`intersectSegments`).
+- The ellipse enters the face for 0.62 mm (0.16 mm), 10 µm (1 µm) deep. The crossing angle is 3e-5 rad in the second.
+  - The chords either missed both crossings, or Newton, seeded from two chords so near tangency, landed both seeds on
+    one root.
+  - Three parameters came out, not four, so the interval's middle was out.
+
+**Fix (`src/curved-arrangement.ts`, `intersectSegments(…, graze)`; `src/analytic-boolean.ts`, `intervals`).**
+- When a parametric probe is clipped against a plane face's straight edge:
+  - the probe's polyline has each chord within its own length of the edge cut in eighths (`grazePolyline`);
+  - its signed distance from the line is bisected at each change of sign (`grazeCrossings`), in place of Newton.
+- Where both sides lie within eps of the line, the curve runs along it (an overlap, whose ends are found as before):
+  no crossing.
+- Not applied on a cylinder's domain lines. Tried, it found crossings in a rounded tube's rounding noise (FRk6's rolled
+  ordered trim refused), and the plane alone suffices.
+- Every other crossing is computed as before.
+- A first, broad version (every curve chord near any polyline) broke 5 tests and cost 50 % more time; it is not
+  what landed.
+
+**Results:**
+
+| Case | Before | After |
+|---|---|---|
+| x52_389 | refused (non-manifold) | 3.44703012347e-5 (rel 1.5e-10), valid, watertight |
+| x27_564 | refused (non-manifold) | 1.0140649319e-7 (rel 3e-9), valid, watertight |
+
+- RB on `corpus/oracle`: evaluate 91 of 94 OK, against 89 before.
+- Their `todo.json` entries are removed; 4 remain:
+  - the 1 nm graze (D186's refusal);
+  - the 10 nm graze (a non-manifold refusal of 4 uses);
+  - the 10 µm lens's tessellation fold;
+  - helical × helical.
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- 121 kernel files in a scratch worktree: 970/971, 1 skipped, 0 failing, 312 s (310–319 before).
+- RB on the oracle folder: only those 4 left.

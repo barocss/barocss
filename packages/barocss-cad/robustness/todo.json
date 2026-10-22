@@ -18,18 +18,6 @@
     "note": "D25 (RB5): a 10 µm lens between a plane and the cylinder, thinner than the chord error at 8 and 32 segments a quarter: both faces triangulate the same boundary samples and share a diagonal (four uses, balanced: a fold, no crack). The B-rep is strictly valid and its volume exact to 4e-9. Needs interior samples on faces thinner than their chord error."
   },
   {
-    "case": "corpus/oracle/cylinder-box-graze-x52_389-in0_01-intersect.json",
-    "stage": "evaluate",
-    "status": "WRONG",
-    "note": "D25 (RB5): found by the exact-oracle property (seeds 20261018 and 77): a box turned about X whose outermost edge is 10 µm / 1 µm (10⁴ / 10³ tolerances) into the cylinder's wall is refused as non-manifold (the edge inside the wall has one use) — typed, not wrong, but valid input. The fixed graze family (45°, 1°) passes; which other face loses the edge's piece is open."
-  },
-  {
-    "case": "corpus/oracle/cylinder-box-graze-x27_564-in0_001-intersect.json",
-    "stage": "evaluate",
-    "status": "WRONG",
-    "note": "D25 (RB5): found by the exact-oracle property (seeds 20261018 and 77): a box turned about X whose outermost edge is 10 µm / 1 µm (10⁴ / 10³ tolerances) into the cylinder's wall is refused as non-manifold (the edge inside the wall has one use) — typed, not wrong, but valid input. The fixed graze family (45°, 1°) passes; which other face loses the edge's piece is open."
-  },
-  {
     "case": "corpus/oracle/gear-helical-pair-crossing-intersect.json",
     "stage": "evaluate",
     "status": "WRONG",

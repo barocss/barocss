@@ -425,7 +425,10 @@ function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, nu
     const pieces = ranges.map(([a, b]) => f.surf.kind === 'nurbs' ? { ...(curve2(f, { kind: 'param', at, t0: a, t1: b }, tol) as Extract<CurveSegment2, { kind: 'curve' }>), t0: a, t1: b } : { kind: 'curve' as const, f: (x: number) => to2(f, at(x)), t0: a, t1: b });
     params.push(...ranges.flat());
     const rings = [f.region.outer, ...f.region.holes];
-    for (const pr of pieces) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) params.push(pr.t0 + (pr.t1 - pr.t0) * paramOfCurve(pr, x));
+    // (Against a plane face's straight edges a shallow graze inside a chord is looked for too, by bisection: RB K9, D187.
+    // Not on a cylinder's domain lines: a cut running along a rounded tube's ruling would cross it at its rounding noise.)
+    const graze = f.surf.kind === 'plane';
+    for (const pr of pieces) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol, graze && g.kind === 'line')) params.push(pr.t0 + (pr.t1 - pr.t0) * paramOfCurve(pr, x));
     return insideIntervals(f, params, at, tol, strict);
   }
   if (k.kind === 'line') {
