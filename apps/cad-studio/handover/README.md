@@ -960,6 +960,21 @@ acceleration → benches.
 - **G12** (2026-10-22): done, on the outer lane's `proposalDiff` (O136). A shown proposal's added material in green and
   removed in red — see-through decals over the bodies, their edges and a volume chip each, worked out in the engine worker;
   its faces tinted instead where the Boolean refuses, and on WebGL2. A Ø4 hole and a 10 × 10 × 5 block: 500 and 100.5 mm³.
+- **G16** (2026-10-22): done, all four at parity on WebGL2 — none left WebGPU-only. Direct curves and surfaces drawn and
+  picked; a dragged body drawn by its matrix (its turn, not its move alone); edge picks pass over what a surface hides (a
+  pick pass with depth, the G3 rule); the proposal overlay drawn (its chips in the SVG overlay). One flow step checks them
+  on both renderers; on the old behaviour it fails. Left out: the outline round a selected direct surface.
+- **G17** (2026-10-22): done, on the outer lane's FRg solver (no solver API needed). The 3D sketch: points placed on the
+  work plane through the last one, along an axis lock, or snapped to the sketch's points and the bodies' corners;
+  segments point to point; points dragged and solved live (held at the pointer where the constraints let them go there,
+  else as near as they let them); the selection's constraints, their marks and values; FRg's diagnosis on the points and
+  marks (free blue, redundant amber, unmet red); applied as one skeleton feature, stored solved. Alike on both renderers.
+- **WebGL2 support statement** (after G16): the WebGL2 fallback draws the bodies (moved and turned as dragged), their
+  edges, ghosts, selection and hover, face/edge/direct picks with depth, direct curves and surfaces, and a proposal's
+  overlay (chips in the SVG overlay). It stays **WebGPU-only** for placed instances (and their picks, poses and explode),
+  the section's clip and caps, analysis (zebra, curvature, overhang) and scalar maps with the mould view and isoclines,
+  the engine's overlay lines, points and labels (on WebGL2 the SVG overlay draws them, as before G7), cosmetic threads,
+  hole tool regions, and the Render workspace (materials, lights, capture for rendering).
 
 ### Standing rules
 - Own TypeScript implementation: no WASM, no new runtime dependencies. External engines are reference or test oracle only.

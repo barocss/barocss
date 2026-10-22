@@ -207,6 +207,8 @@ export type { LoweredEngineUVTextureProgramWGSL } from './engine-uv-texture-prog
 // Trusted WGSL expression for original native Surface normalized UV01.
 export { lowerNativeSurfaceUV01MaterialWGSL } from './native-surface-uv01-material-wgsl.js';
 export type { LoweredNativeSurfaceUV01MaterialWGSL } from './native-surface-uv01-material-wgsl.js';
+export { lowerEngineUVRepeatingMaterialWGSL } from './engine-uv-repeating-material-wgsl.js';
+export type { LoweredEngineUVRepeatingMaterialWGSL } from './engine-uv-repeating-material-wgsl.js';
 
 
 // Complete trusted WebGPU program for original native Surface normalized UV01.
@@ -244,5 +246,5 @@ export * from './viewer/index.js';
 // The CSS-shaped scene language shown on the viewer.
 export { showScene, SceneViewError } from './scene-viewer.js';
 export type { SceneView, SceneViewOptions } from './scene-viewer.js';
-export { materialShader, bindingShader, uv01Shader } from './material-viewer.js';
+export { materialShader, bindingShader, uv01Shader, uvRepeatingShader } from './material-viewer.js';
 export type { MaterialShaderResult, MaterialUniform } from './material-viewer.js';
