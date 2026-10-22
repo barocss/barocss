@@ -5666,3 +5666,26 @@ The coordinator approved this as the next gap, after O147. Today there is one se
   - a tilted shaft gives no fix, said.
 
 **Each stage gets a flow step and FLOW_ONLY on the section, R14 and DXF steps only.**
+
+## O147 B1 — the BOM panel, the bought/made choice, the purchase list (2026-10-22)
+
+The coordinator approved O147. B1 is built.
+
+- **The model** (`team/bom.ts`):
+  - `bomPanelData(doc, evaluate, name)` gives S1's BOM. A part with no placed parts is its own line. It also gives the **made** elements as lines, merged as the bought ones are, so that a person can mark one bought.
+  - `setBought(doc, parts, true | false | null)` writes the override on every `part:feature` a line merges (every copy's node) as one document change. Null clears it, back to the default for its kind.
+  - `purchaseCsv(data, withMade)` is the purchase list: item no., item, qty, kind, size, row, catalogue, source, estimate. It holds the bought lines: the bought elements, and the library parts as catalogue parts. "With made parts" adds the part lines and the made elements after them. Text cells are quoted where needed.
+- **The panel** (`ui/BomPanel.tsx`; a BOM tool in the top bar's tray; App.tsx has only the tool and the panel's call):
+  - lines numbered, with item, qty, row or catalogue, and source or "estimate" (its why on hover);
+  - a bought / made / default choice on each element line. Its tooltip says it "applies to all N copies" where a line merges several, and the change is one Undo;
+  - the made elements below, each with the same choice;
+  - the totals: the parts, the bought elements, and the parts' mass;
+  - "Export purchase list", with its "With made parts" tick.
+  The panel's evaluations go through the engine worker (`engine.part`, the 'read' slot).
+- **Tests** (`test/bom-panel.test.ts`):
+  - S1's two-copy part: lines part ×2, key, ring on r20 and pin ×2; the shaft a made element ×2;
+  - the CSV's 3 bought rows exactly, and the made rows with the tick;
+  - a ring with no row gives an estimate row;
+  - the key made: written on both copies, its line gone and a made element instead, out of the list; default clears both;
+  - a single part as its own line.
+  - Flow step "BOM panel (O147)…": a shaft and its key from the palette; the panel's lines and made elements; the key made and its line gone; one ⌘Z back; the CSV's header and the key's row.

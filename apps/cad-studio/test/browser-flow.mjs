@@ -3964,6 +3964,35 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
+
+  // ---- O147 B1: the BOM panel — its lines, the bought/made choice (one undo), the purchase list --------------------------
+  await check('BOM panel (O147): a shaft and its key from the palette; the panel lists the part and the key; the key set made leaves it (one Undo back); the purchase list CSV', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
+      if (pickShaft) { await page.locator('.outliner .ol', { hasText: /^Shaft/ }).first().click(); await page.waitForTimeout(300); }
+      await press(' '); await page.locator('.palette input').fill(label); await page.locator('.palette input').press('Enter');
+      await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key'), null, { timeout: 30000 });
+    if (await page.locator('[aria-label="BOM"]').isVisible()) await page.click('[aria-label="BOM"]'); else { await page.click('[aria-label="More tools"]'); await page.click('[role="menu"][aria-label="More tools"] [aria-label="BOM"]'); }
+    try {
+      await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 30000 });
+      assert.match(await page.textContent('[aria-label="BOM line 1"]'), /Untitled/);
+      assert.match(await page.textContent('[aria-label="BOM line 2"]'), /key [\d.]+ × [\d.]+ × [\d.]+/);
+      assert.match(await page.textContent('[aria-label="Made elements"]'), /shaft 3 steps/);
+      // The key made: its line leaves, it is a made element; one Undo brings it back.
+      await page.locator('[aria-label="BOM line 2"] select').selectOption('made');
+      await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.kind === 'key')?.bought === false && !document.querySelector('[aria-label="BOM line 2"]'), null, { timeout: 30000 });
+      await page.evaluate(() => document.activeElement?.blur?.()); await press('Meta+z');
+      await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.kind === 'key')?.bought === undefined && !!document.querySelector('[aria-label="BOM line 2"]'), null, { timeout: 30000 });
+      await snap('bom-panel');
+      const [csvFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export purchase list"]')]);
+      const rows = fs.readFileSync(await csvFile.path(), 'utf8').trim().split('\n');
+      assert.equal(rows[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');
+      assert.equal(rows.length, 2, rows.join(' | ')); assert.match(rows[1], /^2,key [\d.]+ × [\d.]+ × [\d.]+,1,key,/);
+    } finally { if (await page.locator('[aria-label="Close BOM"]').count()) await page.click('[aria-label="Close BOM"]'); }
+  });
   // ---- O145: machine elements on their dimensions — a key's leader note by Auto-dimension ------------------------------
   await check('element notes and key dimensions (O145, O146): a shaft and its key from the palette; Auto-dimension on A3 — the key\'s leader note, the keyseat\'s b 6 and d − t1 16.5; in the SVG', async () => {
     const fs = await import('node:fs');
