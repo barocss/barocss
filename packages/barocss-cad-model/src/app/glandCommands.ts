@@ -14,12 +14,17 @@ function pickedFace(ctx: Ctx) {
   if (!body?.ref || !face?.exact) return null;
   const e = face.exact;
   if (e.kind === 'plane') return { ref: body.ref, name: face.name, kind: 'face' as const, diameter: 0, length: 0, centroid: face.centroid };
-  const d = [face.centroid[0] - e.c[0], face.centroid[1] - e.c[1], face.centroid[2] - e.c[2]], along = d[0] * e.a[0] + d[1] * e.a[1] + d[2] * e.a[2], radial = [d[0] - e.a[0] * along, d[1] - e.a[1] * along, d[2] - e.a[2] * along];
-  // (Its extent: its mesh vertices projected on the axis.)
+  // (Its extent: its mesh vertices projected on the axis. Bore or shaft by one vertex's normal against its radial
+  // direction: a whole cylinder's centroid lies on its axis, so the centroid's radial direction is none.)
   const m = body.mesh, at: number[] = [];
-  for (let v = 0; v < m.faceOfVertex.length; v++) if (m.faceOfVertex[v] === f.face) at.push((m.positions[3 * v] - e.c[0]) * e.a[0] + (m.positions[3 * v + 1] - e.c[1]) * e.a[1] + (m.positions[3 * v + 2] - e.c[2]) * e.a[2]);
-  const bore = radial[0] * face.normal[0] + radial[1] * face.normal[1] + radial[2] * face.normal[2] < 0;
-  return { ref: body.ref, name: face.name, kind: bore ? 'rod' as const : 'piston' as const, diameter: 2 * e.r, length: at.length ? Math.max(...at) - Math.min(...at) : 0, centroid: face.centroid };
+  let bore: boolean | null = null;
+  for (let v = 0; v < m.faceOfVertex.length; v++) {
+    if (m.faceOfVertex[v] !== f.face) continue;
+    const d = [m.positions[3 * v] - e.c[0], m.positions[3 * v + 1] - e.c[1], m.positions[3 * v + 2] - e.c[2]], along = d[0] * e.a[0] + d[1] * e.a[1] + d[2] * e.a[2];
+    at.push(along);
+    if (bore === null) { const radial = [d[0] - e.a[0] * along, d[1] - e.a[1] * along, d[2] - e.a[2] * along]; bore = radial[0] * m.normals[3 * v] + radial[1] * m.normals[3 * v + 1] + radial[2] * m.normals[3 * v + 2] < 0; }
+  }
+  return { ref: body.ref, name: face.name, kind: bore === true ? 'rod' as const : 'piston' as const, diameter: 2 * e.r, length: at.length ? Math.max(...at) - Math.min(...at) : 0, centroid: face.centroid };
 }
 
 const glandCommand: Command = {

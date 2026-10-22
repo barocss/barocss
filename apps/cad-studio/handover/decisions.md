@@ -9525,3 +9525,65 @@ Not run:
 - The full browser flow (the coordinator's).
 
 Asked of the coordinator (after the fact, the new rule): the stage changed the outer lane's `ui/FrameSections.tsx` (the sections file input takes a table: three lines) and `ui/LibraryPanel.tsx` (the DRIVES and CONNECTORS sections, one line each).
+
+## D163 — R12c.8: acceptance by the agent, a gearbox output shaft and a spring-loaded plunger (2026-10-22)
+
+The last R12c stage frozen in D139. Two assemblies are built by the agent's v2 tools in one chat turn each, starting from the user's rows (the agent cannot load rows), and accepted by closed forms written in the test, none read from the build. **R12c is done** with this step; the R12c → FR geometry hand-over block is at the top of README §0.
+
+**Acceptance** (`packages/barocss-cad-model/test/r12c-acceptance.test.ts`, 2 tests). Each turn comes from the calls in `test/fixtures/r12c-*.calls.json`, sent through `dispatchTool` as the chat does. Every call is a v2 action an agent has (`features.command` with its values, faces or bodies by name, `query.interference`). The flow sends both through the real chat.
+- **A gearbox output shaft** (`r12c-gearbox-shaft.calls.json`). The rows: B1's 6204, O1's AS568-214, a k5 test row flagged an estimate.
+  - The shaft (Ø20 × 14, Ø25 × 30 with an end-milled keyseat 8 × 4 × 18, Ø20 × 30 with a Ø19 × 1.3 ring groove, Ø25 × 20; fillets and chamfers 0.5).
+  - A spur gear m2 z30 × 20 on the Ø25 step, bore 25; a keyway 8 × 3.3 in its bore; a key 8 × 7 in the seat, under the hub's keyway.
+  - Two 6204 envelopes: on step 1 against the end shoulder, and on step 3 against the start shoulder with its seat k5.
+  - A retaining ring in the groove.
+  - A cover (a tube Ø70, bore Ø25.1, 10 long) on the Ø25 end; an O-ring rod gland in its bore sealing on the Ø25 (groove Ø30.648 × 4.4), and the ring.
+  - Then the agent's `query.interference`.
+  - **Oracles:**
+    - the shaft by Pappus, π∫r(z)²dz, with the fillets r_s + ρ − √(ρ² − (z − z_c)²) in the concave corners and the chamfers linear (Simpson); less the groove π(10² − 9.5²)·1.3; less the end-milled keyseat (l − b)∫(√(R² − x²) − (R − t))dx + ∫2√((b/2)² − x²)(√(R² − x²) − (R − t))dx; to 1e-7. Its z-centroid by moments;
+    - the keyed gear: the gear built alone less the keyed one equals the keyway 20∫_{|v|≤4}(15.8 − √(12.5² − v²))dv to 1e-7. The gear's own volume is this kernel's (its generated root, D131's trochoid, has no closed form here); its reference, tip, root and base Ø by m z, m(z + 2), m(z − 2.5) and m z cos α;
+    - the key (l − b)bh + π(b/2)²h; the ring π(12² − 9.5²)·1.2;
+    - each bearing's rounded section turned, Pappus with the four corner spandrels at c(10 − 3π)/(3(4 − π)), to 1e-7; their spans 0–14 and 44–58;
+    - the second bearing's "its other side by ring groove 1";
+    - the cover π(35² − 12.55²)·10 less the groove π(15.324² − 12.55²)·4.4;
+    - the O-ring 2π²(ID/2 + r)r², the free ring's volume kept as it stretches, to 1e-7;
+    - squeeze and fill with the stretched section r'²(12.5 + r') = r²(ID/2 + r) by bisection;
+    - **the one overlap** the agent's interference query finds is the ring's squeeze into the cover: Pappus on the circular segment beyond the groove's bottom, 2π(R' + ȳ)A, R' = 12.5 + r', 136.508 mm³ to 1e-3 (the query's three decimals). The ring's own note agrees.
+- **A spring-loaded plunger** (`r12c-plunger.calls.json`):
+  - a housing Ø30 × 50 with a Ø24 blind bore 40 deep;
+  - a compression spring, closed and ground (wire Ø2, mean Ø20, 6 active at pitch 5, steel's G prefilled as an estimate, 20 N), on the bore's bottom;
+  - a plunger Ø23 × 15 at the free length 44.002 that the spring's note gives;
+  - `query.interference`.
+  - **Oracles:**
+    - the rate Gd⁴/(8D³n);
+    - the solid pitch solved in the test: the least chord between the centreline at θ and θ + φ, √(4R² sin²(φ/2) + p²φ²/4π²), equal to d. It gives 2.0010140, D153's figure;
+    - the solid height n_t p_s and the free length 2p_s + n_a p, checked in the notes; the spring from z 10 to 10 + L0;
+    - the spring's volume, D153's closed form for these sizes (conformance `r12c/spring-closed-ground`, 1541.1998773, the fit's bound 4e-4);
+    - the housing π15²·50 − π12²·40, the plunger π11.5²·15;
+    - the interference query: three pairs, two touching, none overlapping. The radial room in the bore is (24 − 22)/2 = 1.
+- **Conformance** `r12c/` (+2, 32):
+  - `accept-gearbox-shaft`, `accept-plunger`, written by the test (`WRITE_ACCEPTANCE=1`), which also checks they hold the part the agent built;
+  - expected values from the closed forms above (the gear's from this kernel, said so), centroids by symmetry or moments where they are on an axis and by this kernel otherwise;
+  - one body each, the genus of each; a STEP round trip.
+- **A flow step** "R12c.8 R12c's acceptance …":
+  - the three rows' files loaded in the Library panel;
+  - each turn through the real chat on a new part;
+  - the bodies (8, 3) and the agent's last tool (`query.interference`);
+  - the second bearing's and the spring's notes;
+  - a screenshot of each.
+
+**Found by the acceptance, fixed here:**
+- **The O-ring gland command read a whole bore as a shaft** (D159). A full 360° face's centroid lies on its axis, so the bore-or-shaft test (the centroid's radial direction against the face's normal) gave 0, which counted as a piston. It now takes one vertex's radial direction and that vertex's normal (`app/glandCommands.ts`). D159's command tests had a piston and a face gland only.
+- **A rod gland's ring lost volume** (D159). Its stretched section came from the ring stretched on the rod, but it was set on the groove's bottom (outward): 833.5 mm³ for the free ring's 876.9.
+  - It now rests on the rod, where it is stretched, as a piston's rests on its groove's bottom. Its overlap is with the groove's bottom (the squeeze's displaced volume, on its outer side).
+  - The free ring's volume is kept, 2π²(ID/2 + r)r², as D159 stated.
+  - The kernel test's rod oracle is now 2π(R' + ȳ)A with c = R_g − R' (renamed; it also checks the ring's volume). The note says "overlaps what squeezes it" for all three kinds.
+- **The connector's keep-out held its own plug** (D162; the coordinator's report from the outer lane's run).
+  - It started at the face, and the seated body stands 0.31 out of the face, so the keep-out check found the plug inside it: 5.755 mm³ = A_body·0.31, "violated". The panel touched it at the face: "undecided" within the chord.
+  - It now starts at the seated body's front (or at the face with no body). The panel is clear of it (0.31), and the plug only touches its base.
+  - That touch reads "undecided" within the meshes' chord (0.0058 mm), because the check counts every body. Asked of the coordinator: the outer lane's `checkKeepouts` could skip a keep-out's own bodies (a field such as `fills: [node]` on the Keepout). It is not built here: it is the outer lane's file.
+
+**Not in this stage:**
+- a housing for the gearbox (the bearings' outer rings are not seated: `housing` none);
+- the gear's mate;
+- a live model as the agent (the scripted one, L2; a live run needs the owner's OK);
+- loads, life and stresses (the bearings' and the shaft's: not for structural calculation).

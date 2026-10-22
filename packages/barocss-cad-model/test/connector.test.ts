@@ -43,7 +43,7 @@ test('Connector opening (R12c.7): no rows, no opening; U1\'s row — the opening
   assert.ok(notes.includes('Its body stadium 8.25 × 2.4 × 6.51: gaps 0.045 and 0.08 each side, standing 0.31 out of the face'), JSON.stringify(notes));
   assert.ok(body('connector-body').notes!.some(n => /touching nothing of the panel \(overlap 0 mm³/.test(n.text)));
   const k = doc.references!.keepouts[0];
-  assert.deepEqual([k.id, k.frame.origin.map(x => Math.round(x * 1e9) / 1e9), k.frame.normal, k.shape, k.clearance], ['connector-n2', [14.875, 7.8, 10], [0, 0, 1], { kind: 'box', size: [10.25, 4.4, 15] }, 0]);
+  assert.deepEqual([k.id, k.frame.origin.map(x => Math.round(x * 1e9) / 1e9), k.frame.normal, k.shape, k.clearance], ['connector-n2', [14.875, 7.8, 10.31], [0, 0, 1], { kind: 'box', size: [10.25, 4.4, 15] }, 0]);
   assert.deepEqual(evaluatedPart(doc).connectors, doc.connectors);
   assert.match(String((editConnectorRows(doc, [], ['usb-c']) as { error: string }).error), /used by an opening/);
 });

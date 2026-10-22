@@ -99,13 +99,17 @@ const affine = (f: ReturnType<typeof connectorFrame>): BrepAffine => ({ matrix: 
 
 /**
  * The keep-out in front of an opening (A6.3's form: a box from its frame's origin along x, normal × x and normal): the
- * body's section (or the opening's) grown by the row's margin, the row's depth out from the face; none without a keepOut.
+ * body's section (or the opening's) grown by the row's margin, the row's depth out from the seated body's front (or the
+ * face, with no body); none without a keepOut.
  */
 export function connectorKeepOut(row: ConnectorRow, center: readonly number[], normal: readonly number[], rotationDeg = 0): ConnectorReport['keepOut'] {
   const ko = row.keepOut;
   if (!ko) return undefined;
+  // (From the seated body's front — the plug itself fills the space up to there — or from the face without a body: the
+  // panel and the plug then only touch it, and neither enters it.)
   const f = connectorFrame(center, normal, rotationDeg), around = row.body ?? row.opening, W = around.widthMM + 2 * ko.marginMM, H = around.heightMM + 2 * ko.marginMM;
-  const o: Point = [center[0] - W / 2 * f.x[0] - H / 2 * f.y[0], center[1] - W / 2 * f.x[1] - H / 2 * f.y[1], center[2] - W / 2 * f.x[2] - H / 2 * f.y[2]];
+  const out = row.body ? Math.max(0, row.body.lengthMM - row.opening.depthMM) : 0;
+  const o: Point = [0, 1, 2].map(k => center[k] - W / 2 * f.x[k] - H / 2 * f.y[k] + out * f.z[k]) as Point;
   return { frame: { origin: o, normal: f.z, xAxis: f.x }, size: [W, H, ko.depthMM], clearance: 0 };
 }
 export interface ConnectorReport {

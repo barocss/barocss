@@ -168,8 +168,10 @@ export function glandCut(target: Brep, spec: GlandSpec & { readonly face: string
     const outer = spec.kind === 'piston' ? cy.r + 1 : Dg / 2, inner = spec.kind === 'piston' ? Dg / 2 : Math.max(cy.r - Math.min(1, cy.r / 2), cy.r / 2);
     tool = transformBrep(prism(`${id}__g`, { profile: 'circle', center: [0, 0], radius: outer, holes: [ring(inner)], plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, w), frameOf(origin, a));
     const rs = report.stretchedCrossSectionMM / 2;
-    // (The free ring rests on the groove's bottom, centred along it: the sealing surface — the bore, the rod — displaces the rest.)
-    place = { origin, axis: a, fromMM: 0, toMM: w, ringCenterRadiusMM: spec.kind === 'piston' ? Dg / 2 + rs : Dg / 2 - rs, ringCenterAlongMM: w / 2 };
+    // (The free ring rests where it is stretched, centred along the groove: a piston's on the groove's bottom, the bore
+    // displacing its outer side; a rod's on the rod (its stretch is on the rod, D163's fix), the groove's bottom
+    // displacing its outer side. Either way its volume is the free ring's, 2π²(ID/2 + r)r².)
+    place = { origin, axis: a, fromMM: 0, toMM: w, ringCenterRadiusMM: spec.kind === 'piston' ? Dg / 2 + rs : report.sealDiameterMM! / 2 + rs, ringCenterAlongMM: w / 2 };
   }
   const named = transformBrep(tool, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, () => `${id}.groove`);
   const brep = booleanAnalytic(target, named, 'difference');
@@ -177,19 +179,19 @@ export function glandCut(target: Brep, spec: GlandSpec & { readonly face: string
   return { brep, report, place };
 }
 
-/** The O-ring in its gland as an exact torus (stretched section, at rest on the groove's bottom), and the free ring's overlap with the sealing surface by the analytic Boolean. */
+/** The O-ring in its gland as an exact torus (stretched section, at rest where it is stretched: a piston's groove bottom, a rod), and the free ring's overlap with what squeezes it (the bore, the rod gland's groove bottom, the face's flange) by the analytic Boolean. */
 export function oringInGland(report: GlandReport, place: GlandPlace, id: string): { readonly brep: Brep; readonly overlapMM3: number } {
   const rs = report.stretchedCrossSectionMM / 2, Rc = place.ringCenterRadiusMM, sub = `${id}__t`;
   const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: `${sub}s`, kind: 'sketch', profile: 'circle', center: [Rc, place.ringCenterAlongMM], radius: rs, plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } },
     { id: sub, kind: 'revolve', sketch: `${sub}s`, axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }] };
   const local = transformBrep(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]).output(sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split(`${sub}.`).join(`${id}.`));
-  // The sealing surface in the gland's frame: beyond the bore (piston), inside the rod (rod), above the face (face).
+  // What squeezes it, in the gland's frame: beyond the bore (piston), beyond the groove's bottom (rod), above the face (face).
   let keep: Brep, overlap = 0;
   if (report.kind === 'piston') keep = prism(`${id}__b`, { profile: 'circle', center: [0, 0], radius: report.sealDiameterMM! / 2, plane: { origin: [0, 0, place.ringCenterAlongMM - 2 * rs - 1], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, 4 * rs + 2);
-  else if (report.kind === 'rod') keep = prism(`${id}__b`, { profile: 'circle', center: [0, 0], radius: Rc + 2 * rs + 1, holes: [ring(report.sealDiameterMM! / 2)], plane: { origin: [0, 0, place.ringCenterAlongMM - 2 * rs - 1], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, 4 * rs + 2);
+  else if (report.kind === 'rod') keep = prism(`${id}__b`, { profile: 'circle', center: [0, 0], radius: report.grooveDiameterMM / 2, plane: { origin: [0, 0, place.ringCenterAlongMM - 2 * rs - 1], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, 4 * rs + 2);
   else keep = prism(`${id}__b`, { profile: 'circle', center: [0, 0], radius: Rc + 2 * rs + 1, plane: { origin: [0, 0, place.ringCenterAlongMM - 2 * rs - 1], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, 2 * rs + 1 - place.ringCenterAlongMM);
-  // (What the sealing surface displaces: the ring less its side of the surface, measured directly.)
+  // (What is displaced: the ring less its side of the squeezing surface, measured directly.)
   try { const out = booleanAnalytic(local, keep, 'difference'); overlap = out.bodies.length ? vol(out) : 0; } catch (cause) { if (!(cause instanceof Error && /empty|no solid|nothing/i.test(cause.message))) throw cause; overlap = 0; }
   return { brep: transformBrep(local, frameOf(place.origin, place.axis)), overlapMM3: overlap };
 }

@@ -123,7 +123,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.key || o.keyway || o.ring || o.pin ? shaftPartNotes(o) : []),
     ...(o.bearing ? bearingNotes(o.bearing) : []),
     ...(o.gland ? glandNotes(o.gland) : []),
-    ...(o.oring ? [{ text: `O-ring ${o.oring.ring}, its section ${+o.oring.stretchedCrossSectionMM.toFixed(4)} stretched; the free ring overlaps its sealing surface by ${+o.oring.overlapMM3.toFixed(4)} mm³ (the squeeze's displaced volume, by the Boolean); its squeezed shape is not modelled`, warning: false }] : []),
+    ...(o.oring ? [{ text: `O-ring ${o.oring.ring}, its section ${+o.oring.stretchedCrossSectionMM.toFixed(4)} stretched; the free ring overlaps what squeezes it by ${+o.oring.overlapMM3.toFixed(4)} mm³ (the squeeze's displaced volume, by the Boolean); its squeezed shape is not modelled`, warning: false }] : []),
     ...(o.bevelGear ? [...bevelGearNotes(o.bevelGear, node), ...bevelMeshNotes(o.bevelGearPlacement)] : []),
     ...(o.rack ? [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] : []),
     ...(o.subd && o.subd.caps ? subdNotes(o.subd) : []),
@@ -567,7 +567,7 @@ function connectorNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['conne
   const mm = (x: number) => +x.toFixed(4), shape = (s: { shape: string; widthMM: number; heightMM: number }) => s.shape === 'round' ? `round Ø${mm(s.widthMM)}` : `${s.shape} ${mm(s.widthMM)} × ${mm(s.heightMM)}`;
   return [{ text: `Connector opening ${r.name ?? r.row} (${r.estimate ? 'an estimate' : `your row, ${r.source}`}): ${shape(r.opening)}, ${mm(r.opening.depthMM)} deep, ${mm(r.opening.areaMM2)} mm²` },
     ...(r.body ? [{ text: `Its body ${shape(r.body)} × ${mm(r.body.lengthMM)}: gaps ${mm(r.body.gapWidthMM)} and ${mm(r.body.gapHeightMM)} each side, standing ${mm(r.body.standsOutMM)} out of the face` }] : []),
-    ...(r.keepOut ? [{ text: `Keep-out in front of it: ${mm(r.keepOut.size[0])} × ${mm(r.keepOut.size[1])}, ${mm(r.keepOut.size[2])} out (the part's keep-outs, when the command added it)` }] : []),
+    ...(r.keepOut ? [{ text: `Keep-out in front of it: ${mm(r.keepOut.size[0])} × ${mm(r.keepOut.size[1])}, ${mm(r.keepOut.size[2])} out from the seated body's front (the part's keep-outs, when the command added it)` }] : []),
     { text: 'Envelopes only: not the receptacle\'s housing, contacts or tongue', warning: true }];
 }
 /** A drive element's report as lines (R12c.6b, D161): a sprocket's, a pulley's, a belt's or chain's, a coupling's. */

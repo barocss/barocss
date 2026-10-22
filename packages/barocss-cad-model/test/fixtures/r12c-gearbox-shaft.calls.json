@@ -1,0 +1,229 @@
+{
+ "about": "R12c.8 acceptance (D163): a gearbox output shaft — a stepped shaft (Ø20 × 14, Ø25 × 30 keyed, Ø20 × 30 with a ring groove, Ø25 × 20), a keyed spur gear m2 z30 on the Ø25 step, two 6204 bearings against the Ø25 shoulders (the second's seat k5), a retaining ring beyond it, and a cover on the Ø25 end sealed by an O-ring rod gland. The user's rows loaded first (B1's 6204, O1's 214, a k5 test row); built by the agent's tools in one turn.",
+ "rows": {
+  "bearings": {
+   "version": 1,
+   "rows": [
+    {
+     "id": "6204",
+     "designation": "6204",
+     "boreMM": 20,
+     "outsideMM": 47,
+     "widthMM": 14,
+     "chamferMM": 1,
+     "daMinMM": 25,
+     "daMaxMM": 26.5,
+     "DaMaxMM": 42,
+     "raMaxMM": 1,
+     "source": "B1 (D139): NSK, 6204 Series, https://www.oss.nsk.com/6204-dgbb-sr.html"
+    }
+   ]
+  },
+  "orings": {
+   "version": 1,
+   "rows": [
+    {
+     "id": "214",
+     "dash": "2-214",
+     "insideDiameterMM": 24.99,
+     "crossSectionMM": 3.53,
+     "source": "O1 (D139): the Global O-Ring AS568 chart"
+    }
+   ]
+  },
+  "fits": {
+   "version": 1,
+   "tables": [
+    {
+     "id": "seat-fits",
+     "rows": [
+      {
+       "class": "k5",
+       "overMM": 18,
+       "upToMM": 30,
+       "upperUM": 11,
+       "lowerUM": 2,
+       "estimate": true
+      }
+     ]
+    }
+   ],
+   "faces": [],
+   "pairs": []
+  }
+ },
+ "calls": [
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "shaft",
+    "values": {
+     "n": 4,
+     "d1": 20,
+     "l1": 14,
+     "d2": 25,
+     "l2": 30,
+     "d3": 20,
+     "l3": 30,
+     "d4": 25,
+     "l4": 20,
+     "r": 0.5,
+     "c": 0.5,
+     "ks": 2,
+     "kb": 8,
+     "kt": 4,
+     "kl": 18,
+     "ko": 6,
+     "ke": "end-mill",
+     "gs": 3,
+     "gd": 19,
+     "gw": 1.3,
+     "ga": 15,
+     "x": 0,
+     "y": 0,
+     "z": 0
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "gear",
+    "values": {
+     "m": 2,
+     "teeth": 30,
+     "b": 20,
+     "bore": 25,
+     "x": 0,
+     "y": 0,
+     "z": 19
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "keyway",
+    "values": {
+     "b": 8,
+     "t2": 3.3,
+     "angle": 0
+    },
+    "faces": [
+     "n1.bore"
+    ]
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "key",
+    "values": {
+     "seat": 1,
+     "h": 7,
+     "b": 0,
+     "l": 0,
+     "ends": "auto",
+     "hub": "2"
+    },
+    "bodies": [
+     "b0"
+    ]
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "bearing",
+    "values": {
+     "row": "6204",
+     "step": 1,
+     "against": "end",
+     "housing": "none",
+     "sc": "none",
+     "hc": "none"
+    },
+    "bodies": [
+     "b0"
+    ]
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "bearing",
+    "values": {
+     "row": "6204",
+     "step": 3,
+     "against": "start",
+     "housing": "none",
+     "sc": "k5",
+     "hc": "none"
+    },
+    "bodies": [
+     "b0"
+    ]
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "retaining-ring",
+    "values": {
+     "groove": 1,
+     "s": 1.2,
+     "D": 24,
+     "row": "none"
+    },
+    "bodies": [
+     "b0"
+    ]
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "tube",
+    "values": {
+     "r": 35,
+     "ri": 12.55,
+     "h": 10,
+     "x": 0,
+     "y": 0,
+     "z": 80
+    }
+   }
+  },
+  {
+   "tool": "features",
+   "args": {
+    "action": "command",
+    "command": "oring-gland",
+    "values": {
+     "ring": "214",
+     "seal": 25,
+     "dg": 30.648,
+     "w": 4.4,
+     "at": 2.8
+    },
+    "faces": [
+     "n8.hole0.side0"
+    ]
+   }
+  },
+  {
+   "tool": "query",
+   "args": {
+    "action": "interference"
+   }
+  }
+ ]
+}

@@ -8,7 +8,7 @@ import { glandCheck, glandCut, oringInGland, oringRowProblem, O2_RANGES, GlandEr
 // - the stretched section by the torus's volume r'²(R_b + r') = r²(ID/2 + r), solved by bisection; S0's figures: stretch
 //   2.04 %, the section 3.5006, squeeze 20.7 % nominal and 20.0 % stretched, fill 74.4 %;
 // - the free ring's overlap with the sealing surface by Pappus on a circular segment (S0: 136.48580 mm³ for the piston):
-//   A = r'² acos(c/r') − c√(r'² − c²), ȳ = (2/3)(r'² − c²)^{3/2}/A, V = 2π(R' ± ȳ)A (a rod's on the inner side), a face's
+//   A = r'² acos(c/r') − c√(r'² − c²), ȳ = (2/3)(r'² − c²)^{3/2}/A, V = 2π(R' ± ȳ)A (a rod's on its outer side, against the groove's bottom), a face's
 //   2πR'A (its chord square to the axis);
 // - the groove's removal π(R² − r²)w (radial), π((R + w)² − R²)h (face).
 
@@ -73,16 +73,18 @@ test('R12c.5 piston gland cut and its ring: π(R² − r²)w removed; the torus 
   const pts = o.brep.vertices.map(v => v.point[2]); near((Math.min(...pts) + Math.max(...pts)) / 2, 8.35, 1e-9, 'centred');
 });
 
-test('R12c.5 rod and face glands: their grooves and the rings\' overlaps — on the inner side 2π(R\' − ȳ)A, under a flange 2πR\'A', () => {
+test('R12c.5 rod and face glands: their grooves and the rings\' overlaps — a rod\'s ring on the rod against the groove\'s bottom 2π(R\' + ȳ)A (D163), under a flange 2πR\'A', () => {
   const ring = { id: 'r1', insideDiameterMM: 19.5, crossSectionMM: 2.62, estimate: true };
   // A housing Ø40 with a Ø20 bore, 20 long; the rod Ø20; the groove's bottom Ø24.2 (h 2.1), 3.6 wide.
   const housing = evaluateCadPart(D(cyl('hs', 20, 20, 0, 10))).output('hsh').brep;
   const rod = glandCut(housing, { kind: 'rod', ring, grooveDiameterMM: 24.2, widthMM: 3.6, sealDiameterMM: 20, face: 'hsb.side0', atMM: 8 }, 'rg');
   assert.equal(checkBrep(rod.brep).valid, true); near(vol(housing) - vol(rod.brep), Math.PI * (12.1 ** 2 - 100) * 3.6, 1e-6, 'rod groove');
-  // (The free ring rests on the groove's bottom Ø24.2: the rod displaces its inner side.)
-  const ro = oringInGland(rod.report, rod.place, 'rr'), rs = rod.report.stretchedCrossSectionMM / 2, Rs = 12.1 - rs, sr = segment(rs, Rs - 10);
+  // (The ring stretched on the rod Ø20 rests on it; the groove's bottom Ø24.2 displaces its outer side — D163's fix:
+  // D159 set it on the groove's bottom with the rod's stretch, losing the free ring's volume.)
+  const ro = oringInGland(rod.report, rod.place, 'rr'), rs = rod.report.stretchedCrossSectionMM / 2, Rs = 10 + rs, sr = segment(rs, 12.1 - Rs);
   near(rod.report.stretchPercent, 100 * (20 - 19.5) / 19.5, 1e-12, 'stretch on the rod');
-  near(ro.overlapMM3, 2 * Math.PI * (Rs - sr.y) * sr.A, 1e-6, 'rod overlap');
+  near(ro.overlapMM3, 2 * Math.PI * (Rs + sr.y) * sr.A, 1e-6, 'rod overlap');
+  near(vol(ro.brep), 2 * Math.PI ** 2 * (ring.insideDiameterMM / 2 + ring.crossSectionMM / 2) * (ring.crossSectionMM / 2) ** 2, 1e-6, 'the free ring\'s volume kept');
   // A plate 80 × 80 × 10; a face groove about its top's centre, inner Ø30, 4 wide, 2.6 deep, for O1.
   const plate = evaluateCadPart(D([{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-40, -40], max: [40, 40] }, { id: 'pl', kind: 'extrude', sketch: 'ps', height: 10 }])).output('pl').brep;
   const fg = glandCut(plate, { kind: 'face', ring: { ...O1, insideDiameterMM: 29.5 }, grooveDiameterMM: 30, widthMM: 4, depthMM: 2.6, face: 'pl.top', centerMM: [0, 0, 10] }, 'fg');

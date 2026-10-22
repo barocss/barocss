@@ -41,7 +41,7 @@ test('O-ring gland (R12c.5): no rows, no gland; the user\'s row — a piston gla
   assert.ok(notes.includes('Stretch 2 %, the section 3.5006 stretched; squeeze 20.7 % (20 % stretched); fill 73.1 %'), JSON.stringify(notes));
   assert.ok(gb.notes!.some(n => /^Against squeeze 18–25 %, fill 75–85 %, stretch ≤ 5 % \(estimates: Fictiv/.test(n.text) && n.warning), JSON.stringify(notes));
   assert.ok(gb.notes!.some(n => /^FILL_RANGE: fill 73\.135 % outside 75–85 % \(an estimate\)$/.test(n.text) && n.warning), JSON.stringify(notes));
-  assert.ok(body('oring').notes!.some(n => /overlaps its sealing surface by 136\.4858 mm³/.test(n.text)), JSON.stringify(body('oring').notes));
+  assert.ok(body('oring').notes!.some(n => /overlaps what squeezes it by 136\.4858 mm³/.test(n.text)), JSON.stringify(body('oring').notes));
   // The rows cross to the engine worker; a row in use stays.
   assert.deepEqual(evaluatedPart(d1).orings, d1.orings);
   assert.match(String((editORingRows(d1, [], ['214']) as { error: string }).error), /used by a gland/);

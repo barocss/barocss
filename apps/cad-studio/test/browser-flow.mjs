@@ -2706,6 +2706,43 @@ try {
     await snap('cam-roller');
   });
 
+  await check('R12c.8 R12c\'s acceptance by the scripted agent through the real chat: the user\'s bearing, O-ring and fit rows loaded in the Library panel (none built in), then a gearbox output shaft (8 bodies) and a spring-loaded plunger (3 bodies), each in one turn — the second bearing held by the ring, the spring\'s solid height in its notes (new in D163)', async () => {
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      for (const [name, bodies, at, note] of [['gearbox-shaft', 8, 'Bearing 6204 on step 3', /^On step 3 from 44 to 58, against the Ø25 shoulder \(fillet r 0\.5\); its other side by ring groove 1; no overlap with the shaft$/], ['plunger', 3, 'Ground spring d2', /^Solid height 16\.0081 mm/]]) {
+        const fixture = JSON.parse(fs.readFileSync(join(root, `../../packages/barocss-cad-model/test/fixtures/r12c-${name}.calls.json`), 'utf8'));
+        await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+        if (fixture.rows.bearings) {
+          // (The user's rows, loaded in the Library panel: the agent cannot load rows.)
+          const files = [['Bearing rows file', 'bearings', fixture.rows.bearings.rows], ['O-ring rows file', 'orings', fixture.rows.orings.rows], ['Fit table file', 'fits', fixture.rows.fits.tables[0]]];
+          await page.click('[aria-label="Library"]');
+          try {
+            for (const [label, field, data] of files) {
+              const file = join(out, `r12c-8-${field}.json`); fs.writeFileSync(file, JSON.stringify(data));
+              await page.setInputFiles(`input[aria-label="${label}"]`, file);
+              await page.waitForFunction(f => (f === 'fits' ? window.__studioDoc.fits?.tables?.length : window.__studioDoc[f]?.rows?.length) === 1, field, { timeout: 10000 });
+            }
+          } finally { await page.click('[aria-label="Close library"]'); }
+        }
+        await page.click('[aria-label="Chat"]');
+        await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
+        const n = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: fixture.calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 240000 });
+        const line = await page.locator('.chat-tool').last().innerText();
+        assert.ok(line.includes('query.interference'), line);
+        await page.click('[aria-label="Close chat"]');
+        await page.waitForFunction(k => new RegExp(`${k} bodies`).test(document.querySelector('.outliner')?.textContent ?? ''), bodies, { timeout: 120000 }); await idle();
+        await page.locator('.outliner .ol').filter({ hasText: at }).first().click();
+        await page.waitForFunction(re => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => new RegExp(re).test((x.textContent ?? '').replace(/^warning\s*/, '').trim())), note.source, { timeout: 60000 });
+        await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+        await snap(`r12c-8-${name}`);
+      }
+    } finally { chat.kill(); }
+  });
+
   await check('R12b.7 the gears\' acceptance by the scripted agent through the real chat: a planetary set (its own mesh checks passing), a right-angle bevel pair, a worm reducer — each in one turn, its pairs clear in their notes (new in D138)', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
@@ -3879,7 +3916,8 @@ try {
     } finally { chat.kill(); }
     await page.waitForFunction(() => window.__studioDoc.nodes.some(x => x.kind === 'connector-body') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
     const keepouts = await page.evaluate(() => window.__studioDoc.references?.keepouts ?? []);
-    assert.ok(keepouts.length === 1 && keepouts[0].shape.size.join() === '10.25,4.4,15', JSON.stringify(keepouts));
+    // (From the plug body's front, 0.31 out of the face: the panel is clear of it, the plug only touches its base.)
+    assert.ok(keepouts.length === 1 && keepouts[0].shape.size.join() === '10.25,4.4,15' && Math.abs(keepouts[0].frame.origin[2] - 10.31) < 1e-6, JSON.stringify(keepouts));
     const row = await page.evaluate(() => [...document.querySelectorAll('.outliner .ol')].findIndex(e => /Connector opening for usb-c/.test(e.textContent ?? '')));
     await page.locator('.outliner .ol').nth(row).click();
     await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => /gaps 0\.045 and 0\.08/.test(x.textContent ?? '')), null, { timeout: 30000 });
