@@ -12,7 +12,7 @@
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh } from '../engine/mesh';
 import { nodeIndexOf } from '../engine/ids';
-import type { InlineSection, MemberSection, StudioDoc } from '../engine/doc';
+import { frameGeometry, type Dim, type InlineSection, type MemberSection, type StudioDoc } from '../engine/doc';
 import { faceBoundary } from '../app/faceProfile';
 import { partCutList } from '../app/cutList';
 import { evaluatePart } from '../engine/evaluate';
@@ -120,7 +120,10 @@ const ENVELOPE = /_env\d+$/;
 /** A member's end's skeleton point (its frame's point by index), world mm; null for a member not of a frame. */
 function skeletonPoint(doc: StudioDoc, pieceId: string, point: number): readonly number[] | null {
   const slash = pieceId.lastIndexOf('/'), node = slash < 0 ? undefined : doc.nodes[nodeIndexOf(doc.nodes, pieceId.slice(0, slash))];
-  return node?.kind === 'frame' ? node.points[point] ?? null : null;
+  if (node?.kind !== 'frame') return null;
+  // (The skeleton as built: a sketch's points lifted, a parameter's value read now.)
+  const g = frameGeometry(doc.nodes, node, doc.parameters, doc.instances), p = 'points' in g ? g.points[point] : undefined;
+  return p ? p.map((v: Dim) => typeof v === 'number' ? v : doc.parameters[v.parameter] ?? NaN) : null;
 }
 const outerLoop = (mesh: DisplayMesh, face: number): Vec3[] | null => { const loops = faceBoundary(mesh, face); if (!loops.length) return null; let best = loops[0], len = perimeter(best); for (const l of loops) { const p = perimeter(l); if (p > len) { best = l; len = p; } } return best; };
 
