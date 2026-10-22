@@ -283,6 +283,8 @@ export class GpuRenderer implements ViewRenderer {
     catch (error) { cam.geometry.update(null); throw error; }
     if (!display) this.cam = undefined;
   }
+  /** G25: the viewer's device, for the analyses' compute passes. */
+  computeDevice(): object | null { return this.viewer.computeDevice; }
   /** G24: the drawing's annotation lines and heads on the model, beside the native bodies. */
   setAnnotationDrawings(drawings: readonly OverlayDrawing[] | null): void {
     if (!this.pmi && !drawings?.length) return;

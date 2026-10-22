@@ -27,6 +27,7 @@ import { ClearancePanel } from './viewport/ClearancePanel';
 import { useClearanceAnalysis } from './viewport/useClearanceAnalysis';
 import { PrintPanel } from './viewport/PrintPanel';
 import { CamPanel } from './viewport/CamPanel';
+import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { useDrawingSheet } from './ui/useDrawingSheet';
 import { pmiSelection } from './viewport/pmiGeometry';
 import { useCamPreview } from './viewport/camPreview';
@@ -1841,7 +1842,12 @@ export function App() {
   const sectioned = !!(section && sectionBodies && !sketch && !previewBodies);
   // (G2: the viewer's clip plane while the section is open on WebGPU — on the bodies until their exact section is shown,
   // on the placed parts always; none in a sketch, where the section is not shown.)
-  const scalarMaps = useMemo(() => (mapKind === 'thickness' || mapKind === 'draft' || mapKind === 'access') && !rendering && !sketch && !previewBodies ? mapsOf(mapKind, doc, shownBodies) : null, [mapKind, rendering, sketch, previewBodies, shownBodies, doc]);
+  // (G25b: on WebGPU the access map is the GPU's estimate, the CPU's when there is no device; the panels keep the CPU's numbers.)
+  const mapsShown = (mapKind === 'thickness' || mapKind === 'draft' || mapKind === 'access') && !rendering && !sketch && !previewBodies;
+  const computeDevice = useCallback(() => viewport.current?.computeDevice() ?? null, []);
+  const gpuAccess = useGpuAccessMaps(mapsShown && mapKind === 'access', shownBodies, computeDevice);
+  const cpuMaps = useMemo(() => mapsShown && !(mapKind === 'access' && gpuAccess.state !== 'cpu' && gpuAccess.state !== 'error') ? mapsOf(mapKind as MapKind, doc, shownBodies) : null, [mapsShown, mapKind, gpuAccess.state, shownBodies, doc]);
+  const scalarMaps = mapKind === 'access' && gpuAccess.state === 'ready' ? gpuAccess.maps : mapKind === 'access' && gpuAccess.state === 'pending' ? null : cpuMaps;
   // (With the draft map, each body's isoclines n·d = 0 on its straddling faces, from the exact surface.)
   const isoclines = useMemo(() => mapKind === 'draft' && scalarMaps && doc.mould?.pull ? shownBodies.flatMap(b => isoclinePolylines(doc, b, doc.mould!.pull!)) : null, [mapKind, scalarMaps, doc, shownBodies]);
   // (The mould's view: asked again when the part, its pull or its sides change; none outside its two maps.)

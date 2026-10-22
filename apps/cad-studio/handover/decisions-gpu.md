@@ -1896,3 +1896,41 @@ state for exact WIP, process cleanup, blockers and first resume steps.
 - **`test:browser` as a whole**: it hung in `uv-repeating-browser` (G18.2, the docs' shaders) for over an hour, and only
   this lane's processes were stopped. That spec is to be run alone with a timeout to find why. The other browser specs
   (viewer, scene viewer, pose-clip) were not reached in that run.
+
+## G-R18 — the viewer no longer hangs at start without antialiasing; the access map on the GPU (roadmap G6/G7, 2026-10-23)
+
+- **The hang** (gpu `test:browser` stuck for over an hour; viewer-pose-clip's G2 and G19 timing out):
+  - It came with Codex's 22e129e36 (per-sample caps). Without antialiasing, the caps reuse the surface and pick shader
+    modules, and `createPipelines` called `getCompilationInfo()` on every entry, so twice on each of those two modules.
+    In Chrome a second call on one module never settles.
+  - So `createViewer({ antialias: false })` never returned. A cold probe confirmed it: antialias true started in 835
+    ms; antialias false had not started after 170 s, with no pipeline pending, waiting on the sixth compilation check.
+  - **Fix**: each module is checked once. A cold antialias-false viewer now starts in about 2 s.
+  - Every spec that makes an unantialiased viewer was affected. A test timeout left its browser open, so the process
+    never exited.
+- **gpu `test:browser`, one file each** (load 1m 10–14):
+
+  | Spec | Result |
+  |---|---|
+  | viewer | 1/1 |
+  | scene-viewer | 1/1 |
+  | uv-repeating | 1/1 (2.6 s; it had hung) |
+  | compute-thickness | 1/1 |
+  | compute-access | 1/1 |
+  | viewer-pose-clip | 17/18 |
+
+  - The one left is #6, "G20.2 no cap leaks over a front face's far edges". It finds 77 cap pixels where the CPU's ray
+    meets no cap; 10 are allowed for pixel-edge rounding. It is a real cap defect (G7's area), and is investigated
+    next. It could not run before this fix.
+- **G25b's access map on the GPU** (approved):
+  - Viewer `computeDevice` (a getter) passes through `GpuRenderer.computeDevice` and the Viewport handle to
+    `useGpuAccessMaps`.
+  - On WebGPU the access map is the compute pass's, the legend titled "Not reached by a 3-axis mill · GPU estimate".
+    With no device (WebGL2, or not ready) it is the CPU's, as before.
+  - `accessOf` stays the panels' number.
+  - `accessMapOf` and `accessStep` in scalarMaps share the map and the step with the CPU path.
+  - gpu-analyses checks the GPU map's step and length against cad-model's accessSamples.
+- **Thickness stays on the CPU** (the coordinator's decision): thicknessMap's legend range comes from `wallsOf`, which
+  runs the CPU rays itself. Seeding the samples from the GPU would make the panels' numbers the GPU's. The GPU
+  thickness pass stays built and tested for when the range can come from elsewhere.
+- **Checks**: gpu `test` 189/189; type-check 0 (gpu, studio); eslint 0; studio gpu-analyses and analysis-maps 8/8.

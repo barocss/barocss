@@ -635,6 +635,8 @@ export class Viewer {
   private scheduled = 0;
   private waiters: (() => void)[] = [];
   private disposed = false;
+  /** The device, for compute passes beside the drawing (G25, experimental): null before it is ready or once disposed. */
+  get computeDevice(): object | null { return this.disposed ? null : this.device ?? null; }
   private recovering: Promise<void> | null = null;
   private resizeObserver: ResizeObserver | null = null;
   private background: Background;
@@ -728,7 +730,12 @@ export class Viewer {
       surface: d.createShaderModule({ code: surfaceWGSL(undefined, true), label: 'viewer cap samples' }),
       probe: d.createShaderModule({ code: capProbeSamplesWGSL, label: 'viewer cap probe samples' }),
     };
+    // (Each module checked once: without antialias the caps reuse the surface and pick modules, and a second
+    // getCompilationInfo on one module never settles in Chrome — the viewer then never started.)
+    const checked = new Set<object>();
     for (const [name, m] of [...Object.entries(modules), ...Object.entries(capModules)]) {
+      if (checked.has(m)) continue;
+      checked.add(m);
       const errors = (await m.getCompilationInfo()).messages.filter(x => x.type === 'error');
       if (errors.length) throw new ViewerError('shader', `${name} shader: ${errors.map(e => `${e.lineNum}: ${e.message}`).join('; ')}`);
     }

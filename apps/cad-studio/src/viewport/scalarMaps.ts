@@ -97,10 +97,20 @@ export function draftMap(doc: StudioDoc, body: BodyResult, pull: readonly number
 
 /** CNC4's access per display triangle: the share of it no 3-axis direction reaches (`accessSamples`), 0 neutral, 1 red. */
 export function accessMaps(bodies: readonly BodyResult[]): ScalarMap[] {
-  return accessSamples(bodies).map(a => ({
-    body: a.body, per: 'triangle' as const, values: a.unreachedShare, unit: 'share', range: [0, 1] as [number, number], thresholds: [],
-    legend: { title: 'Not reached by a 3-axis mill', stops: [[0, '#c6dbef'], [0.5, '#fc9272'], [1, '#cb181d']] as [number, string][] }, missing: '#808080',
-  }));
+  return accessSamples(bodies).map(a => accessMapOf(a.body, a.unreachedShare));
+}
+/** A body's access map from its per-triangle unreached shares; `gpu` labels it the GPU's estimate (G25b). */
+export function accessMapOf(body: string, unreachedShare: Float32Array, gpu = false): ScalarMap {
+  return {
+    body, per: 'triangle', values: unreachedShare, unit: 'share', range: [0, 1], thresholds: [],
+    legend: { title: 'Not reached by a 3-axis mill' + (gpu ? ' · GPU estimate' : ''), stops: [[0, '#c6dbef'], [0.5, '#fc9272'], [1, '#cb181d']] }, missing: '#808080',
+  };
+}
+/** accessSamples' sampling step for a set of bodies: their joint box's diagonal over 200, at least 0.1 mm. */
+export function accessStep(bodies: readonly BodyResult[]): number {
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const b of bodies) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
+  return Math.max(0.1, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) / 200);
 }
 
 /** The maps of a kind for the bodies shown (draft needs the mould's pull: none without one). */

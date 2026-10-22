@@ -130,6 +130,8 @@ export interface ViewRenderer {
   setCamDisplay?(display: CamDisplay | null): void;
   /** G24: the drawing's annotation lines and heads on the model (world), display only; null clears them. */
   setAnnotationDrawings?(drawings: readonly OverlayDrawing[] | null): void;
+  /** G25: the renderer's GPU device for compute passes (WebGPU only; null while it is not ready). */
+  computeDevice?(): object | null;
   getDisplayModeStatus?(): DisplayModeStatus;
   render(camera: OrbitCamera, view: ViewState): void;
   pickFace(x: number, y: number, camera: OrbitCamera, view: ViewState): FaceRef | null;
