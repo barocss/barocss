@@ -192,8 +192,13 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 
 .corner-left { position: absolute; left: 66px; bottom: 14px; display: flex; flex-direction: column; gap: 4px; font-size: 10px; z-index: 1; pointer-events: none; }
 .corner-right { position: absolute; right: 12px; bottom: 16px; display: flex; align-items: center; gap: 4px; z-index: 2; }
+.corner-right .corner-stack { position: absolute; right: 0; bottom: calc(100% + 6px); display: flex; flex-direction: column; align-items: flex-end; gap: 4px; max-height: calc(100vh - 160px); overflow-y: auto; pointer-events: none; z-index: 3; }
+.corner-right .corner-stack > * { pointer-events: auto; }
+.corner-right .previews { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.corner-right .corner-stack .section-bar, .corner-right .corner-stack .map-legend { position: static; }
 .chip { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 8px; border-radius: 4px; background: #2e3034; font-size: 11px; color: var(--text-2); }
 .views { display: flex; gap: 2px; padding: 2px; }
+.views.display { flex-wrap: wrap; align-items: center; max-width: 320px; }
 .views button { height: 22px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); cursor: pointer; font-size: 11px; display: inline-flex; align-items: center; }
 .views button:hover { background: #34363b; }
 .views button.on { background: var(--accent); color: var(--accent-ink); }
@@ -201,7 +206,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .cad-display-control select { max-width: 164px; height: 22px; padding: 0 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-solid); color: var(--text-2); font: 400 11px var(--sans); }
 .cad-display-control select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .cad-display-control select:disabled { opacity: 0.65; cursor: not-allowed; }
-.cad-display-status { position: absolute; right: 0; bottom: 34px; width: max-content; max-width: min(480px, calc(100vw - 90px)); padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-solid); color: var(--text-2); font-size: 11px; line-height: 1.4; }
+.cad-display-status { display: block; flex-basis: 100%; max-width: 300px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-solid); color: var(--text-2); font-size: 11px; line-height: 1.4; }
 
 .palette-backdrop { position: absolute; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.25); }
 .palette { position: absolute; left: 50%; top: 18vh; transform: translateX(-50%); width: 520px; padding: 6px; }

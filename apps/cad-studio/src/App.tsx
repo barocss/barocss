@@ -351,6 +351,8 @@ export function App() {
   // (G24: the drawing's annotations on the model, session only, and the one picked.)
   const [pmiEnabled, setPmiEnabled] = useState(false);
   const [pmiSelected, setPmiSelected] = useState<string | null>(null);
+  // (The display mode, isolate and the previews' toggles, in a popover over the Views row: open only when asked.)
+  const [displayOpen, setDisplayOpen] = useState(false);
   const [isolatedInstances, setIsolatedInstances] = useState<readonly string[] | undefined>();
   const displayModeContext = useRef('');
   const [displayModeFailure, setDisplayModeFailure] = useState<{ requested: DisplayMode; reason: string; context: string } | null>(null);
@@ -2662,19 +2664,15 @@ export function App() {
       </div>
 
       <div className="corner-right">
-  {mapLegend && <MapLegend map={mapLegend} hover={mapHover} />}
-  {(mapKind === 'parting' || mapKind === 'halves') && <MouldLegend kind={mapKind} result={mouldResult} pull={!!doc.mould?.pull} spread={mouldSpread} onSpread={setMouldSpread} />}
-  {section && <SectionBar section={section} setSection={setSection} hatch={sectionHatchOn} setHatch={setSectionHatchOn} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} eye={cameraEye} />}
-        <PrintPanel enabled={printEnabled} onEnabled={setPrintEnabled} options={printOptions} onOptions={commitPrintPreview} onDirection={commitPrintDirection} state={printState} reason={printReason} />
-        <div className="card" aria-label="3D annotations" style={{ padding: '6px 10px', maxWidth: 420 }}>
-          <label><input type="checkbox" checked={pmiEnabled} aria-label="3D annotations" onChange={e => setPmiEnabled(e.target.checked)} /> 3D annotations</label>
-          {pmiEnabled && <div role="status">{pmiReason ?? pmiSheet.error ?? (pmiSheet.busy || !pmiSheet.annotations ? 'Pending · building the drawing\'s sheet'
-            : !pmiItems?.length ? 'No annotations on the model yet: dimension the part in the Drawing workspace.'
-            : `${pmiItems.length} annotation${pmiItems.length === 1 ? '' : 's'} from the drawing${pmiSheet.annotations.left.length ? ` · ${pmiSheet.annotations.left.length} only on the sheet` : ''}${pmiSelected ? ` · ${pmiItems.find(a => a.id === pmiSelected)?.text.join(' ') ?? ''}` : ''}`)}</div>}
-        </div>
-        <CamPanel enabled={camEnabled} onEnabled={setCamEnabled} options={camOptions} onOptions={patchCam} state={camState} reason={camReason} />
-        <ClearancePanel enabled={clearanceEnabled} onEnabled={setClearanceEnabled} nearMM={clearanceNearMM} onNear={setClearanceNearMM} display={clearanceDisplay} reason={clearanceReason} labels={clearanceLabels} />
-        <div className="card views" role="group" aria-label="Views">
+        {/* (What stands above the row, stacked so nothing overlaps: the maps' legends, the previews and display
+            toggles, then the section bar nearest the row. None of it covers the history bar or the timeline.) */}
+        <div className="corner-stack">
+    {mapLegend && <MapLegend map={mapLegend} hover={mapHover} />}
+    {(mapKind === 'parting' || mapKind === 'halves') && <MouldLegend kind={mapKind} result={mouldResult} pull={!!doc.mould?.pull} spread={mouldSpread} onSpread={setMouldSpread} />}
+        {/* (The previews' toggles stacked above the row, at its right: never over the history bar or the timeline.) */}
+        {displayOpen && <div className="previews" role="group" aria-label="Previews">
+        {/* (G21's display mode and isolate, in the column too: the Views row stays as narrow as the history bar assumes.) */}
+        <div className="card views display" role="group" aria-label="Display">
           <label className="cad-display-control"><span className="sr">CAD display mode</span>
             <select aria-label="CAD display mode" aria-describedby={displayModeNotice ? 'cad-display-mode-status' : undefined} value={effectiveDisplayMode} disabled={!!displayScopeReason}
               data-display-mode-requested={displayMode} data-display-mode-effective={effectiveDisplayMode} data-display-mode-supported={!displayModeReason}
@@ -2685,6 +2683,24 @@ export function App() {
           <button aria-label={isolatedInstances ? 'Restore view' : 'Isolate selection'} aria-pressed={!!isolatedInstances} className={isolatedInstances ? 'on' : ''}
             disabled={!isolatedInstances && !!isolationReason} title={isolatedInstances ? 'Restore the ordinary view' : isolationReason ?? 'Keep the selected instances opaque and fade the other solids'}
             onClick={() => setIsolatedInstances(current => current ? undefined : isolationSelection)}>{isolatedInstances ? 'Restore view' : 'Isolate selection'}</button>
+          {/* (Why a mode cannot apply, said where the mode is chosen: never over the panels.) */}
+          {displayModeNotice && <span id="cad-display-mode-status" className="cad-display-status" role="status">{displayModeNotice} Shaded with edges is active.</span>}
+        </div>
+        <PrintPanel enabled={printEnabled} onEnabled={setPrintEnabled} options={printOptions} onOptions={commitPrintPreview} onDirection={commitPrintDirection} state={printState} reason={printReason} />
+        <div className="card" aria-label="3D annotations" style={{ padding: '6px 10px', maxWidth: 420 }}>
+          <label><input type="checkbox" checked={pmiEnabled} aria-label="3D annotations" onChange={e => setPmiEnabled(e.target.checked)} /> 3D annotations</label>
+          {pmiEnabled && <div role="status">{pmiReason ?? pmiSheet.error ?? (pmiSheet.busy || !pmiSheet.annotations ? 'Pending · building the drawing\'s sheet'
+            : !pmiItems?.length ? 'No annotations on the model yet: dimension the part in the Drawing workspace.'
+            : `${pmiItems.length} annotation${pmiItems.length === 1 ? '' : 's'} from the drawing${pmiSheet.annotations.left.length ? ` · ${pmiSheet.annotations.left.length} only on the sheet` : ''}${pmiSelected ? ` · ${pmiItems.find(a => a.id === pmiSelected)?.text.join(' ') ?? ''}` : ''}`)}</div>}
+        </div>
+        <CamPanel enabled={camEnabled} onEnabled={setCamEnabled} options={camOptions} onOptions={patchCam} state={camState} reason={camReason} />
+        <ClearancePanel enabled={clearanceEnabled} onEnabled={setClearanceEnabled} nearMM={clearanceNearMM} onNear={setClearanceNearMM} display={clearanceDisplay} reason={clearanceReason} labels={clearanceLabels} />
+        </div>}
+    {section && <SectionBar section={section} setSection={setSection} hatch={sectionHatchOn} setHatch={setSectionHatchOn} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} eye={cameraEye} />}
+        </div>
+        <div className="card views" role="group" aria-label="Views">
+          <button aria-label="Display and previews" aria-expanded={displayOpen} className={displayOpen || printEnabled || camEnabled || pmiEnabled || clearanceEnabled || !!isolatedInstances || displayMode !== 'shaded-with-edges' ? 'on' : ''}
+            title="The display mode, isolate, and the print, CNC, 3D-annotation and clearance previews" onClick={() => setDisplayOpen(o => !o)}>Display</button>
           {(['iso', 'top', 'front', 'right'] as const).map(v => <button key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</button>)}
           <button onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></button>
           <button className={section ? 'on' : ''} aria-label="Section view" data-tip="Section view" data-tip-desc="Cut the part open along a plane to see inside (the model is not changed)"
@@ -2700,7 +2716,6 @@ export function App() {
             onClick={() => { setMapHover(null); setMouldSpread(0); const pull = !!doc.mould?.pull; setMapKind(k => k === null ? 'thickness' : k === 'thickness' ? (pull ? 'draft' : 'access') : k === 'draft' ? 'access' : k === 'access' ? (pull ? 'parting' : null) : k === 'parting' ? 'halves' : null); }}>{mapKind === 'thickness' ? 'Thickness' : mapKind === 'draft' ? 'Draft' : mapKind === 'access' ? 'Access' : mapKind === 'parting' ? 'Parting' : mapKind === 'halves' ? 'Halves' : 'Maps'}</button>}
           <button onClick={() => setTheme(v => v === 'dark' ? 'light' : 'dark')} title="Toggle light / dark" aria-label="Toggle light or dark theme"><Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} small /></button>
         </div>
-        {displayModeNotice && <span id="cad-display-mode-status" className="cad-display-status" role="status">{displayModeNotice} Shaded with edges is active.</span>}
         {(doc.instances?.length ?? 0) > 0 && <button className={'chip snap' + (explode ? ' on' : '')} aria-label="Explode" data-tip="Exploded view" data-tip-desc="Spread the parts out from the middle to see how they go together (display only): click for more, then off"
           onClick={() => setExplode(e => [0, 0.5, 1, 2][([0, 0.5, 1, 2].indexOf(e) + 1) % 4])}><Icon name="open_with" small />{explode ? `Explode ×${explode}` : 'Explode'}</button>}
         <button className="chip snap" aria-label="Selection filter" data-tip="Selection filter" data-tip-desc="What a click picks: anything, or only faces, edges or whole bodies (click for the next)"
