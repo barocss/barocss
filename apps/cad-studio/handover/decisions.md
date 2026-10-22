@@ -11320,3 +11320,41 @@ only touches a plane (already the rule above it).
 - Kernel lint 0 errors, type-check clean.
 - 121 kernel files plus the fuzz oracle test, in a scratch worktree: 972/973, 1 skipped, 0 failing.
 - RB on `corpus/fuzz`: case 191 OK at every stage.
+
+## D190 — Booleans and patterns on an empty operand keep the algebra; the fuzz rerun (2026-10-23)
+
+**The finding.** D188's largest refusal: 61 of 200 fuzz cases were refused as SELECTION "target/tool … is empty". In
+each, a Boolean or a pattern referred to an intersection that met nothing, as agents' trees do.
+
+**Fix (`src/part-model.ts`).** For union, difference, intersect and the two patterns, an empty operand is taken by
+the algebra:
+- A ∪ ∅ = A (its parts united, as a union does);
+- A − ∅ = A (its parts as they were);
+- ∅ − B = A ∩ ∅ = ∅;
+- a pattern of ∅ is ∅.
+An empty result has no output, as an empty intersection already had none. Every other feature on an empty result is
+still refused, with the same message.
+
+**Test:** `test/boolean-empty-operand.test.mjs`, the algebra case by case, and the refusal kept for a translate.
+
+**The fuzz rerun** (seed 20261023, 200 cases, jobs 2, load 27, 121 s), against D188:
+
+| Outcome | D188 | Now |
+|---|---|---|
+| OK | 104 | 163 (30 empty) |
+| REFUSED | 90 | 31 (26 non-manifold, 2 arc-on-cylinder, 2 planar triangulation, 1 other) |
+| INVALID | 6 | 6 |
+| WRONG, CRASH, TIMEOUT | 0 | 0 |
+
+- 191 is fixed (D189).
+- Tree 56 passes in full. Its shrunk case still tessellates with 2 open edges, so it stays in the todo.
+- **New, hidden before by the refusal:**
+  - 5: a cylinder less a shelled box turned about Y; 1 open mesh edge.
+  - 83: a cylinder less a frustum turned about X; a face's loops cross.
+  - Both are saved to `corpus/fuzz/` and listed in `robustness/todo.json` and `fuzz-todo.json`.
+- Open: 35 and 149 (the pinched faces, a decision asked), 93 and 83 (loops crossing), 5, 56 and 118 (open mesh edges).
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- In a scratch worktree: 121 kernel files plus the part-model, pattern and Boolean ones, 1151/1152, 1 skipped, 0
+  failing; after the pattern change, the part-model, pattern and Boolean files 209/209.

@@ -969,11 +969,11 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
       if (part !== null && !(Number.isInteger(part) && part >= 0 && result!.kind === 'solid' && part < result!.parts.length)) fail('REFERENCE', `${what}: ${r} is not a part`);
       return { id, part, result: result! };
     };
-    const solids = (r: unknown, what: string): Part[] => {
+    const solids = (r: unknown, what: string, allowEmpty = false): Part[] => {
       const { id, part, result } = ref(r, what);
       if (result.kind !== 'solid') fail('REFERENCE', `${what}: ${id} is a sketch, not a solid`);
       const parts = (result as Extract<Result, { kind: 'solid' }>).parts, picked = part === null ? parts : [parts[part]];
-      if (picked.every(p => empty(p.solid))) fail('SELECTION', `${what}: ${r} is empty`);
+      if (!allowEmpty && picked.every(p => empty(p.solid))) fail('SELECTION', `${what}: ${r} is empty`);
       const used = consumed.get(id); if (part === null) consumed.set(id, 'all'); else if (used !== 'all') consumed.set(id, (used ?? new Set()).add(part));
       return picked.filter(p => !empty(p.solid));
     };
@@ -1073,7 +1073,7 @@ function resolvedDefinition(f: unknown, parameters: Readonly<Record<string, numb
 
 type Tools = {
   dim: (v: CadPartDim | undefined, what: string, positive?: boolean) => number; xy: (p: CadPartPoint2 | undefined, what: string) => XY; xyz: (p: CadPartPoint3 | undefined, what: string) => Point;
-  integer: (v: unknown, what: string, lo: number, hi: number) => number; axisOf: (v: unknown) => CadPartAxis; solids: (r: unknown, what: string) => Part[];
+  integer: (v: unknown, what: string, lo: number, hi: number) => number; axisOf: (v: unknown) => CadPartAxis; solids: (r: unknown, what: string, allowEmpty?: boolean) => Part[];
   ref: (r: unknown, what: string) => { id: string; part: number | null; result: Result };
   fail: (code: CadPartErrorCode, detail: string) => never; at: string;
   endpointBead: (f: EndpointBead, byMember: ReadonlyMap<number, Part>, frame: string) => Result;
@@ -1353,8 +1353,16 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       return placed((sketch as Extract<Result, { kind: 'sketch' }>).frame, () => ({ kind: 'solid', parts: [{ solid: { kind: 'brep', brep: revolveProfile(input) }, mass: (density: number) => revolveMassProperties(input, density), revolved: input }] }));
     }
     case 'union': case 'difference': case 'intersect': {
-      const target = solids(f.target, 'target'), tool = solids(f.tool, 'tool'), op = f.kind === 'intersect' ? 'intersection' : f.kind;
+      // (An operand may be empty — an intersection that met nothing, as agents' trees do: the Booleans' algebra holds,
+      // A ∪ ∅ = A, A − ∅ = A, ∅ − B = A ∩ ∅ = ∅, where it was refused. L4 fuzz, D190.)
+      const target = solids(f.target, 'target', true), tool = solids(f.tool, 'tool', true), op = f.kind === 'intersect' ? 'intersection' : f.kind;
       return () => {
+        if (!tool.length || !target.length) {
+          const left = target.length ? target : tool;
+          if (op === 'intersection' || !left.length || (op === 'difference' && !target.length)) return many([]);
+          if (op === 'union') return one(left.slice(1).reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), left[0].solid));
+          return { kind: 'solid', parts: target };
+        }
         const joined = tool.reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), tool[0].solid);
         // Unions merge every target part into one; difference and intersection act on each part.
         if (op === 'union') return one(target.reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), joined));
@@ -1437,7 +1445,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       return () => moveAll(target, [k, 0, 0, 0, k, 0, 0, 0, k], [pivot[0] * (1 - k), pivot[1] * (1 - k), pivot[2] * (1 - k)]);
     }
     case 'linear-pattern': {
-      const target = solids(f.target, 'target'), axis = axisOf(f.axis), spacing = dim(f.spacing as CadPartDim, 'spacing'), count = integer(f.count, 'count', 1, CadPartLimits.copies);
+      // (A pattern of an empty result — an intersection that met nothing — is empty, as the Booleans take it: D190.)
+      const target = solids(f.target, 'target', true), axis = axisOf(f.axis), spacing = dim(f.spacing as CadPartDim, 'spacing'), count = integer(f.count, 'count', 1, CadPartLimits.copies);
       if (spacing === 0) fail('PARAMETER', 'spacing must not be zero');
       return () => many(target.map(p => {
         const copies = Array.from({ length: count }, (_, k) => { if (!k) return p.solid; const o: Point = [0, 0, 0]; o['xyz'.indexOf(axis)] = spacing * k; return affine(p.solid, [1, 0, 0, 0, 1, 0, 0, 0, 1], o, n => `${n}@${k}`); });
@@ -1445,7 +1454,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       }));
     }
     case 'circular-pattern': {
-      const target = solids(f.target, 'target'), axis = axisOf(f.axis), deg = f.angleDegrees as number, count = integer(f.count, 'count', 1, CadPartLimits.copies);
+      const target = solids(f.target, 'target', true), axis = axisOf(f.axis), deg = f.angleDegrees as number, count = integer(f.count, 'count', 1, CadPartLimits.copies);
       const pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');
       if (typeof deg !== 'number' || !Number.isFinite(deg) || deg === 0 || Math.abs(deg) > 360) fail('INPUT', 'angleDegrees must be a nonzero step of at most 360°');
       if (axis !== 'z' && Math.round(deg / 90) * 90 !== deg) fail('CAPABILITY', 'patterns about X or Y must step by multiples of 90°');
