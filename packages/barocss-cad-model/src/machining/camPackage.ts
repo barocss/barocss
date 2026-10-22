@@ -86,10 +86,21 @@ function linkTo(s: SetupProgram, to: Vec3): void {
   if (!at || from[0] !== to[0] || from[1] !== to[1]) s.moves.push({ kind: 'rapid', a: from, b: [to[0], to[1], safe] });
 }
 
+/**
+ * A pocket loop's point at a depth, in the setup's machine frame. The loops are the floor's outline projected on the plane's
+ * axes ([p·X, p·Y], absolute, cam.ts outlineOf), so the origin adds only its height along the normal: `top` = o·n + the
+ * full depth, the top face's height, and a level is measured down from it. (Adding the whole origin, as before O157,
+ * shifted the program by the origin's in-plane part.)
+ */
+function pocketPoint(s: SetupProgram, op: PocketPass, q: readonly number[], depth: number, top: number): Vec3 {
+  const X = op.plane.x, Y = op.plane.y, n = op.plane.normal, h = top - depth;
+  return toMachine(s, [q[0] * X[0] + q[1] * Y[0] + h * n[0], q[0] * X[1] + q[1] * Y[1] + h * n[1], q[0] * X[2] + q[1] * Y[2] + h * n[2]]);
+}
+
 function pocketMoves(s: SetupProgram, op: PocketPass): void {
   if (!op.loops.length) return;
-  const floor = op.levels.at(-1)!, o = op.plane.origin, X = op.plane.x, Y = op.plane.y;
-  const at = (q: readonly number[], depth: number): Vec3 => { const w = [0, 1, 2].map(k => o[k] + q[0] * X[k] + q[1] * Y[k] + (floor - depth) * op.plane.normal[k]); return toMachine(s, w); };
+  const o = op.plane.origin, n = op.plane.normal, top = o[0] * n[0] + o[1] * n[1] + o[2] * n[2] + op.levels.at(-1)!;
+  const at = (q: readonly number[], depth: number): Vec3 => pocketPoint(s, op, q, depth, top);
   let prev = 0;
   for (const level of op.levels) {
     op.loops.forEach((loop, j) => {

@@ -88,3 +88,28 @@ test('B: CNC8\'s holes — each a plunge from the safe height to its bottom and 
   assert.deepEqual(under.axis, [0, 0, -1]);
   assert.ok(under.moves.every(m => m.kind !== 'plunge' || m.b[2] <= m.a[2]), 'down along its own axis');
 });
+
+// (O157: an absolute oracle. Each pocket's feeds, taken back to world coordinates through the setup's frame (a rotation:
+// its transpose), lie in the pocket inset by the tool's radius R = 3 — not the feeds' own bounds, which hid a program
+// shifted by the floor plane's in-plane origin — and at the levels measured down from the face the pocket opens on.)
+const worldOf = (s: SetupProgram, m: readonly number[]) => { const f = s.frame; return [f[0] * m[0] + f[1] * m[1] + f[2] * m[2], f[4] * m[0] + f[5] * m[1] + f[6] * m[2], f[8] * m[0] + f[9] * m[1] + f[10] * m[2]]; };
+function feedBounds(s: SetupProgram) {
+  const pts = s.moves.filter(m => m.kind === 'feed').flatMap(m => [worldOf(s, m.a), worldOf(s, m.b)]);
+  return [0, 1, 2].map(k => [Math.min(...pts.map(p => p[k])), Math.max(...pts.map(p => p[k]))].map(v => +v.toFixed(6)));
+}
+test('O157 the pocket where it is: +Z, −Z and side setups — the feeds in world coordinates inside the pocket inset by R, at its levels', async () => {
+  // (+Z: CNC8's pocket at x 35–85, y 25–55, floor z 12 under the top z 20.)
+  let s = await build(POCKET), p = camPackage(withStock(s.doc), s.bodies);
+  assert.deepEqual(p.setups.map(x => x.setup), ['+Z']);
+  assert.deepEqual(feedBounds(p.setups[0]), [[38, 82], [28, 52], [12, 17]]);
+  // (−Z: the same pocket opening on the bottom, x 35–85, y 25–55, floor z 8 over the bottom z 0.)
+  s = await build([cmd('box', { w: 120, d: 80, h: 20, x: 0, y: 0, z: 0 }), cmd('box', { w: 50, d: 30, h: 8, x: 35, y: 25, z: 0 }), ['run_command', { command: 'difference', values: {}, bodies: ['b1', 'b3'] }]]);
+  p = camPackage(withStock(s.doc), s.bodies);
+  const down = p.setups.find(x => x.setup === '−Z'); assert.ok(down, JSON.stringify(p.setups.map(x => x.setup)));
+  assert.deepEqual(feedBounds(down), [[38, 82], [28, 52], [3, 8]]);
+  // (+X: a side pocket into the face x 120, y 25–55, z 4–16, floor x 112.)
+  s = await build([cmd('box', { w: 120, d: 80, h: 20, x: 0, y: 0, z: 0 }), cmd('box', { w: 8, d: 30, h: 12, x: 112, y: 25, z: 4 }), ['run_command', { command: 'difference', values: {}, bodies: ['b1', 'b3'] }]]);
+  p = camPackage(withStock(s.doc), s.bodies);
+  const side = p.setups.find(x => x.setup === '+X'); assert.ok(side, JSON.stringify(p.setups.map(x => x.setup)));
+  assert.deepEqual(feedBounds(side), [[112, 117], [28, 52], [7, 13]]);
+});
