@@ -3633,6 +3633,29 @@ try {
     await snap('frk1-end-cap');
   });
 
+  await check('FRk2 weld beads (D166): a T and a gusset welded by the kernel\'s beads, opened as STEP', async () => {
+    // (The beads come from the person's weld records through the outer lane's mapping; here the kernel's features alone.)
+    const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
+    const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, WIDE = { kind: 'rect-tube', width: 80, height: 80, wall: 4, outerRadius: 0 };
+    const part = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+      { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400], [0, 0, 800], [400, 0, 800]], segments: [[0, 1], [2, 3], [4, 5]], section: WIDE, overrides: [{ member: 1, section: SHARP }, { member: 2, section: WIDE }], corners: { tee: 'butt', default: 'butt' } },
+      { id: 'w', kind: 'weld-bead', frame: 'f', on: { member: 1, end: 'end' }, leg: 3 },
+      { id: 'g', kind: 'gusset', frame: 'f', point: 1, legs: [150, 150], thickness: 8, clip: 12 },
+      { id: 'gw', kind: 'weld-bead', frame: 'f', on: { gusset: 'g' }, leg: 4 }] });
+    const bead = part.output('w'), gw = part.output('gw');
+    assert.ok(Math.abs(bead.bead.volumeMM3 - 756) < 1e-9 && Math.abs(gw.bead.volumeMM3 - 2 * (138 + 138) * 16 / 2) < 1e-9, `${bead.bead.volumeMM3}, ${gw.bead.volumeMM3}`);
+    const file = join(out, 'frk2-welded.step'); (await import('node:fs')).writeFileSync(file, exportStep(part.outputs.map(o => o.brep), { name: 'frk2-welded' }));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.locator('input[aria-label="Model file"]').setInputFiles(file);
+    // Three members, the gusset, the T's bead (one ring) and the gusset's four runs: 9 solids.
+    await page.waitForFunction(() => /9 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    await page.locator('.outliner .ol').nth(3).click();
+    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.match(await page.textContent('.props'), /Volume\s*756 mm³/);
+    await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('frk2-beads');
+  });
+
   await check('FR3b a table of sharp tubes from the palette, its corners trimmed in order: legs through (A·720), rails between them (A·560, A·360), the order in the notes (new in D126)', async () => {
     await page.click('[aria-label="New part"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
@@ -6791,6 +6814,61 @@ try {
     await snap('g17-corner');
     await page.click('aside[aria-label="3D sketch"] button[aria-label="Cancel 3D sketch"]');
     assert.equal(await page.evaluate(() => window.__studioDoc.nodes.length), 2, 'cancelled: nothing written');
+  });
+
+  // ---- G19.2: section modes — a box, several planes, a plane from a face -------------------------------------------------
+  await check('G19.2: section modes — a box section (six planes, a face dragged), two planes (a quarter), a plane from a face; the exact section\'s volumes; GPU against CPU — on either renderer', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const plate = join(out, 'g19-plate.bcad');
+    fs.writeFileSync(plate, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }] }));
+    await openModel(plate, 2); await idle(); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(300);
+    const sec = () => page.evaluate(() => window.__studioSection());
+    const exactAt = (want, label) => page.waitForFunction(([w]) => { const s = window.__studioSection(); return s?.exact && Math.abs(s.volume - w) < 1e-3; }, [want], { timeout: 30000 }).catch(async e => { throw new Error(`${label}: ${JSON.stringify(await sec())} — ${e.message.split('\n')[0]}`); });
+    // (Opened here: closed first should a step before have left it open.)
+    if (await page.locator('[aria-label="Section mode"]').count()) await page.click('[aria-label="Section view"]');
+    await page.click('[aria-label="Section view"]'); await page.waitForSelector('[aria-label="Section mode"]', { timeout: 5000 });
+    // A box: six planes a tenth in from the plate's faces, the inside kept (32 × 16 × 8); a handle on each face.
+    await page.click('[aria-label="Section mode"] button:text-is("Box")');
+    await exactAt(32 * 16 * 8, 'the box section');
+    let s = await sec();
+    assert.equal(s.mode, 'box'); assert.equal(s.planes.length, 6);
+    assert.equal(await page.locator('.vp-overlay [data-handle^="section"]').count(), 6, 'a handle on each face');
+    if (renderer === 'webgpu') assert.equal(s.clip.planes.length, 6);
+    const g2 = await sectionAgainstCpu('g19-box');
+    if (g2) { console.log(`  G19 box section, GPU against CPU: ${JSON.stringify(g2)}`); assert.ok(g2.strong <= g2.pixels * 0.001, JSON.stringify(g2)); }
+    await snap('g19-box');
+    // The +X face's handle dragged back toward the middle: the box shorter along X, its volume with it.
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const [a, b] = await page.evaluate(() => { const l = document.querySelector('.vp-overlay [data-handle="section1"] line:nth-of-type(2)'); const g = n => Number(l.getAttribute(n)); return [[g('x1'), g('y1')], [g('x2'), g('y2')]]; });
+    const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    await page.mouse.move(svg.x + m[0], svg.y + m[1]); await page.mouse.down();
+    await page.mouse.move(svg.x + m[0] - (b[0] - a[0]) * 1.5, svg.y + m[1] - (b[1] - a[1]) * 1.5, { steps: 8 }); await page.mouse.up();
+    await page.waitForFunction(() => -window.__studioSection().planes[1].offset < 35.9, null, { timeout: 5000 });
+    const x1 = -(await sec()).planes[1].offset;
+    await exactAt((x1 - 4) * 16 * 8, 'the dragged box');
+    assert.ok(x1 > 4 && x1 < 36, `the +X face moved in to ${x1}`);
+    // Two planes: y ≥ 10 and x ≥ 20 — a quarter of the plate.
+    await page.click('[aria-label="Section mode"] button:text-is("Planes")');
+    await exactAt(20 * 10 * 10, 'two planes');
+    s = await sec(); assert.equal(s.mode, 'planes'); assert.equal(s.planes.length, 2);
+    assert.ok(await page.locator('[aria-label="Section"] [aria-label="Sketch the section"]').isDisabled(), 'one plane only for a sketch');
+    // Plane 2 from the top face (clicked where it is kept): z ≤ 5 kept with y ≥ 10 — 40 × 10 × 5.
+    await page.click('[aria-label="Section plane 2 from a face"]');
+    await page.waitForSelector('[aria-label="Section"] [role="status"]', { timeout: 3000 });
+    const top = await page.evaluate(() => window.__studioScreenOf([30, 15, 10]));
+    await page.mouse.click(top[0], top[1]);
+    await exactAt(40 * 10 * 5, 'plane 2 from the top face');
+    s = await sec();
+    assert.deepEqual([s.planes[1].normal.map(v => v || 0), s.planes[1].offset, s.planes[1].face], [[0, 0, -1], -5, 'n1.top']);
+    assert.match(await page.locator('[aria-label="Section plane 2 is"]').innerText(), /Z ≤ 5/);
+    const g3 = await sectionAgainstCpu('g19-planes');
+    if (g3) { console.log(`  G19 two planes, GPU against CPU: ${JSON.stringify(g3)}`); assert.ok(g3.strong <= g3.pixels * 0.001, JSON.stringify(g3)); }
+    await snap('g19-planes');
+    // Back to one plane: the first kept, a sketch possible again.
+    await page.click('[aria-label="Section mode"] button:text-is("Plane")');
+    await exactAt(40 * 10 * 10, 'one plane');
+    assert.equal(await page.locator('[aria-label="Section"] [aria-label="Sketch the section"]').isDisabled(), false);
+    await page.click('[aria-label="Section view"]');
   });
 
   await check('command palette and light theme', async () => {

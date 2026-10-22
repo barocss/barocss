@@ -20,7 +20,7 @@ function ctxOf(doc: StudioDoc, bodies: number[]): Ctx {
 test('Gusset (FRk1): two members of a frame picked — the gusset in their corner, its node (point, members), its volume, notes and label; one picked, or two of different frames, says why', () => {
   const ctx = ctxOf(L(), [0, 1]);
   assert.ok(gusset.available(ctx).ok);
-  assert.deepEqual(gusset.fields(ctx).map(f => f.key), ['l1', 'l2', 't', 'clip', 'offset'], 'no along at a corner');
+  assert.deepEqual(gusset.fields!(ctx).map(f => f.key), ['l1', 'l2', 't', 'clip', 'offset'], 'no along at a corner');
   const doc = gusset.build!(ctx, { ...gusset.defaults!(ctx), l1: 120, clip: 15 }), node = doc.nodes[1] as Extract<ModelNode, { kind: 'gusset' }>;
   assert.deepEqual([node.frame, node.point, node.members, node.legs, node.thickness, node.clip, usesOf(node)], [0, 1, [0, 1], [120, 100], 5, 15, [0]]);
   assert.equal(featureLabel(node, 1, doc.nodes), 'Gusset 120 × 100 × 5 at point 1 of n0');
@@ -39,7 +39,7 @@ test('Gusset (FRk1): two members of a frame picked — the gusset in their corne
 test('Gusset (FRk1) at a T: its along field, both ways; on round tubes refused with its title', () => {
   const tee = withNode(emptyDoc(), { kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400]], segments: [[0, 1], [2, 3]], section: SHARP, corners: { tee: 'butt' } });
   const ctx = ctxOf(tee, [1, 0]);
-  assert.deepEqual(gusset.fields(ctx).map(f => f.key), ['l1', 'l2', 't', 'clip', 'offset', 'along']);
+  assert.deepEqual(gusset.fields!(ctx).map(f => f.key), ['l1', 'l2', 't', 'clip', 'offset', 'along']);
   let doc = gusset.build!(ctx, { ...gusset.defaults!(ctx), clip: 0 });
   doc = gusset.build!({ ...ctx, doc }, { ...gusset.defaults!(ctx), clip: 0, along: '-1' });
   assert.deepEqual(doc.nodes.slice(1).map(n => n.kind === 'gusset' ? [n.point, n.members, n.along] : null), [[3, [1, 0], 1], [3, [1, 0], -1]]);
@@ -67,7 +67,7 @@ test('End cap (FRk1): over a member\'s end, a plug in its start; volumes, notes,
   const mitred = ctxOf(L(), [1]), bad = evaluateDoc(cap.build!(mitred, { end: 'start', fit: 'over', t: 4 }), 3);
   assert.ok(!bad.ok && bad.error.title === 'The end cap does not fit that end' && /\[CAP_END\] member 1's start is cut by a mitre/.test(bad.error.detail), bad.ok ? 'built' : bad.error.detail);
   // As a placed part after a two-node base: the cap's frame index moves with it.
-  const base = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', width: 10, height: 10 } as ModelNode), { kind: 'extrude', sketch: 0, height: 5 } as ModelNode);
+  const base = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }), { kind: 'extrude', sketch: 0, height: 5 } as ModelNode);
   const flat = flattenAssembly({ ...base, instances: [{ id: 'p', name: 'post', doc, position: [0, 0, 0], rotation: [0, 0, 0] }] });
   const shifted = flat.nodes.filter(n => n.kind === 'end-cap') as Extract<ModelNode, { kind: 'end-cap' }>[];
   assert.ok(shifted.length === 2 && shifted.every(n => flat.nodes[n.frame].kind === 'frame'), JSON.stringify(shifted));

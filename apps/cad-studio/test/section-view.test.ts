@@ -6,7 +6,7 @@ import { clipMesh } from '@barocss/cad-model/engine/clip';
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import { posedBody } from '@barocss/cad-model/robot/preview';
 import { clippedRay, prepareGeometry, rayTriangles } from '../../../packages/barocss-gpu/src/viewer/geometry';
-import { cutAway, sectionPlane, sectionedBodies, sectionedInstances, type Section } from '../src/viewport/sectionView';
+import { axisSection, cutAway, sectionPlane, sectionedBodies, sectionedInstances, type AxisSection } from '../src/viewport/sectionView';
 import { motionOf, poseMatrix } from '../src/viewport/instancePose';
 
 // G2: the section view on the GPU and on the CPU. WebGL2 keeps the CPU path as it was (the same meshes clipMesh gave);
@@ -18,7 +18,7 @@ const plate = () => bodiesOf(withNode(rectanglePart(32, 32, 16), { kind: 'hole',
 const box = () => bodiesOf(rectanglePart(20, 12, 8))[0];
 const cylinder = () => bodiesOf(withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [40, 6], radius: 6 }), { kind: 'extrude', sketch: 0, height: 10 }))[0];
 let seed = 5; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-const randomSection = (m: DisplayMesh): Section => {
+const randomSection = (m: DisplayMesh): AxisSection => {
   const axis = (['x', 'y', 'z'] as const)[Math.floor(rand() * 3)], k = 'xyz'.indexOf(axis), lo = m.bounds.min[k], hi = m.bounds.max[k];
   return { axis, at: lo - 2 + rand() * (hi - lo + 4), keep: rand() < 0.5 ? 'negative' : 'positive' };
 };
@@ -29,10 +29,10 @@ test('G2 the WebGL2 path unchanged: the bodies and instances clipped and capped 
     const s = randomSection(bodies[k % 3].mesh), a = 'xyz'.indexOf(s.axis) as 0 | 1 | 2;
     // (The code the studio ran before G2, inlined.)
     const before = bodies.flatMap(b => { const mesh = clipMesh(b.mesh, a, s.at, s.keep, cap); return mesh ? [{ ...b, mesh }] : []; });
-    assert.deepEqual(sectionedBodies(bodies, s, false, cap), before);
+    assert.deepEqual(sectionedBodies(bodies, axisSection(s), false, cap), before);
     const placed = [{ id: 'i', bodies: [box()] }], M = poseMatrix({ R: Float64Array.from([0, -1, 0, 1, 0, 0, 0, 0, 1]), t: Float64Array.from([5, 0, 0]) }, [0, 0, 3]);
     const old = placed.map(i => ({ id: i.id, bodies: i.bodies.flatMap(b => { const mesh = clipMesh(posedBody(b, motionOf(M)).mesh, a, s.at, s.keep, 'section'); return mesh ? [{ ...b, mesh }] : []; }) }));
-    assert.deepEqual(sectionedInstances(placed, new Map([['i', M]]), s, false), old);
+    assert.deepEqual(sectionedInstances(placed, new Map([['i', M]]), axisSection(s), false), old);
   }
 });
 
@@ -40,19 +40,19 @@ test('G2 the WebGPU path: the same bodies (not copies), less exactly those clipM
   const bodies = [plate(), box(), cylinder()];
   for (let k = 0; k < 60; k++) {
     const s = randomSection(bodies[k % 3].mesh), a = 'xyz'.indexOf(s.axis) as 0 | 1 | 2;
-    const shown = sectionedBodies(bodies, s, true, 'x');
+    const shown = sectionedBodies(bodies, axisSection(s), true, 'x');
     assert.deepEqual(shown, bodies.filter(b => clipMesh(b.mesh, a, s.at, s.keep, 'x') !== null), JSON.stringify(s));
     for (const b of shown) assert.ok(bodies.includes(b), 'the body itself');
-    for (const b of bodies) assert.equal(cutAway(b.mesh, s), clipMesh(b.mesh, a, s.at, s.keep, 'x') === null);
+    for (const b of bodies) assert.equal(cutAway(b.mesh, axisSection(s)), clipMesh(b.mesh, a, s.at, s.keep, 'x') === null);
   }
   const placed = [{ id: 'i', bodies: [box()] }];
-  assert.equal(sectionedInstances(placed, new Map(), { axis: 'x', at: 3, keep: 'positive' }, true), placed, 'the same list');
-  assert.deepEqual(sectionPlane({ axis: 'y', at: 16, keep: 'positive' }), { normal: [0, 1, 0], offset: 16 });
-  assert.deepEqual(sectionPlane({ axis: 'z', at: 4, keep: 'negative' }), { normal: [0, 0, -1], offset: -4 });
+  assert.equal(sectionedInstances(placed, new Map(), axisSection({ axis: 'x', at: 3, keep: 'positive' }), true), placed, 'the same list');
+  assert.deepEqual(sectionPlane(axisSection({ axis: 'y', at: 16, keep: 'positive' })), { normal: [0, 1, 0], offset: 16 });
+  assert.deepEqual(sectionPlane(axisSection({ axis: 'z', at: 4, keep: 'negative' })), { normal: [0, 0, -1], offset: -4 });
 });
 
 test('G2 clipMesh\'s caps at the closed forms: a box, a cylinder, a plate with a hole across and along it', () => {
-  const cases: [DisplayMesh, Section, number, number][] = [
+  const cases: [DisplayMesh, AxisSection, number, number][] = [
     [box().mesh, { axis: 'x', at: 7, keep: 'positive' }, 12 * 8, 1e-9],
     [box().mesh, { axis: 'z', at: 3, keep: 'negative' }, 20 * 12, 1e-9],
     // (A tessellated circle: its polygon's area is under π r² by its chords, 0.64 % at its 32 sides.)
@@ -75,7 +75,7 @@ test('G2 the CPU ray with the clip plane against a ray on clipMesh\'s mesh: the 
     // The CPU path's mesh: the body moved by its matrix, then clipped (as sectionedInstances makes it).
     const world = posedBody(body, motionOf(T)).mesh, g = prepareGeometry({ positions: body.mesh.positions, normals: body.mesh.normals, indices: body.mesh.indices });
     for (let k = 0; k < 40; k++) {
-      const s = randomSection(world), clip = sectionPlane(s), cpu = clipMesh(world, 'xyz'.indexOf(s.axis) as 0 | 1 | 2, s.at, s.keep, 'cap');
+      const s = randomSection(world), clip = sectionPlane(axisSection(s)), cpu = clipMesh(world, 'xyz'.indexOf(s.axis) as 0 | 1 | 2, s.at, s.keep, 'cap');
       // (A plane past the body leaves clipMesh's mesh itself, no cap.)
       const cg = cpu && prepareGeometry({ positions: cpu.positions, normals: cpu.normals, indices: cpu.indices }), capFace = cpu && cpu !== world ? cpu.faces.length - 1 : -1;
       const c = [0, 1, 2].map(i => (world.bounds.min[i] + world.bounds.max[i]) / 2), size = Math.max(...[0, 1, 2].map(i => world.bounds.max[i] - world.bounds.min[i]));

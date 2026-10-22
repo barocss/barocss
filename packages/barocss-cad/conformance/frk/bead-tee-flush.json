@@ -1,0 +1,158 @@
+{
+  "id": "frk-bead-tee-flush",
+  "step": "FRk",
+  "decisions": [
+    "D166"
+  ],
+  "about": "FRk2: a bead on a 40 × 40 rail butted on a 40 × 40 post: its sides flush with the post's face edges take no fillet — the top and bottom runs only, z²/2 a mm, two bodies; flush 80 of its 160.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              800
+            ],
+            [
+              500,
+              0,
+              400
+            ],
+            [
+              0,
+              0,
+              400
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "tee": "butt"
+          }
+        },
+        {
+          "id": "w",
+          "kind": "weld-bead",
+          "frame": "f",
+          "on": {
+            "member": 1,
+            "end": "end"
+          },
+          "leg": 3
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 355200,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            400
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 213120,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            260,
+            0,
+            400
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 360,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            21,
+            0,
+            400
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 2,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          },
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "bead": {
+          "legMM": 3,
+          "seam": 160,
+          "flush": 80,
+          "meets": [
+            0
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: two right-triangle prisms of legs 3, 40 long, at z 420 and 380; their centroid a third of the leg off the face."
+}

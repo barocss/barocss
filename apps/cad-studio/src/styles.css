@@ -380,6 +380,12 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .section-bar button { height: 24px; min-width: 26px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); cursor: pointer; font: 500 11px var(--sans); }
 .section-bar button.on { background: var(--accent); color: var(--accent-ink); }
 .section-bar .muted { margin-right: 6px; font-size: 11px; }
+/* G19: the mode switch and each plane's row in the section bar. */
+.section-bar { flex-wrap: wrap; max-width: min(720px, 92vw); }
+.section-bar .seg { display: inline-flex; margin-right: 6px; }
+.section-bar .section-plane { display: inline-flex; align-items: center; gap: 2px; padding: 0 6px; border-left: 1px solid var(--line, #3a4150); }
+.section-bar .section-plane .mono { margin-right: 4px; color: var(--text-2); }
+.section-bar button:disabled { opacity: 0.4; cursor: default; }
 
 /* Sketch object snaps (sketch/osnap.ts). */
 .vp-overlay .sk-osnap rect, .vp-overlay .sk-osnap polygon, .vp-overlay .sk-osnap circle { fill: none; stroke: #4fd1c5; stroke-width: 1.6; }

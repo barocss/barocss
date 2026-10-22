@@ -1045,3 +1045,47 @@ a union of two half-space removals, a corner taken out) — to be scheduled, not
   83/83, `test:consumer` 3/3, browser 14/14; studio tsc clean, suite 203/203 (170 s with the builds, load 13–26); the
   three section steps above. Not run: the full flow, the cad-model suite, WebGL2 (its CPU path is unchanged), the other
   bench rows.
+
+## G19.2 — the studio's section: a plane, a box, several planes, a plane from a face (2026-10-22)
+
+- **The model** (`viewport/sectionView.ts`): `Section = { mode: 'plane' | 'box' | 'planes'; planes }`, each plane
+  `{ normal, offset, axis?, face? }` (kept where dot(normal, p) ≥ offset; the kept region their intersection).
+  `axisSection` / `asSection` keep G2's `{ axis, at, keep }` form working (the hooks, the bench and the flow take it);
+  `boxSection` (six axis planes a tenth in from the part's box, the inside kept); `planeFromFace` (a flat face's plane,
+  the material behind it kept, moved in to the middle of the part along it — on the face itself it would cut nothing).
+- **WebGPU**: the planes to the viewer (`SectionClip.planes`, `GpuRenderer.setClip` → `Viewer.clipPlanes`, the bounds
+  cut by each axis plane); bodies wholly cut away by any plane left out (`cutAway`).
+- **WebGL2** (`clipMeshPlane`): an axis plane through clipMesh itself (G2's path unchanged — its test passes as it was);
+  another plane in its own frame — the mesh turned so the normal is +z, clipped there, turned back, the cap face's normal
+  and centre with it; several planes in turn (`clipMeshPlanes`: the later ones cut the earlier caps).
+- **The exact section** (`sectionSplits`): one axis plane exactly as before (by the bodies' boxes); otherwise each body
+  split by each plane that crosses what is left of it — the kept piece of one split the next one's parent (the kernel's
+  oblique split, normal·p = offset, its positive piece kept) — whether a plane crosses read from the display mesh clipped
+  plane by plane (only the points its triangles use: clipMesh keeps the dropped triangles' points, which first made a
+  split of a piece the plane missed).
+- **The section bar** (`ui/SectionBar.tsx`): Plane · Box · Planes; Plane: X/Y/Z, From a face, Flip, Sketch; Box: reset,
+  a drag handle on each face (`sectionHandles`: an arrow on each plane toward the side cut away, through the middle of
+  what is kept; an axis plane's value its coordinate as G2's handle, another's its offset); Planes: two or three, each
+  X/Y/Z or from a face, flip, remove, add. "From a face": the next click on a flat face (App's `onPick`, before the
+  section's own hold on picks) sets that plane. Sketch the section: one plane only (disabled with its reason otherwise).
+- **Evidence**:
+  - `test/section-planes.test.ts` (4): clipMeshPlane on axis planes equal to clipMesh; an oblique plane through a box at
+    the closed form (12√2 × 8, the cap facing away, its centre on the plane, every used point kept); a box section on the
+    CPU leaving the inner box's surface (634.88 mm², all caps); the exact section — one axis plane the same document and
+    keys as the code before (four planes), an oblique plane 960 mm³, a box section six chained splits 983.04 mm³ (16 ×
+    9.6 × 6.4), a second plane past what the first left no split, wholly cut nothing kept — the kernel's volumes; a plane
+    from a face. `section-view.test.ts` (G2's) passes on the new model through `axisSection`.
+  - Flow step G19.2 (new, before the theme step), both renderers: a 40 × 20 × 10 plate — Box: six planes and handles, the
+    exact volume 4 096 (32 × 16 × 8); its +X face's handle dragged in, the volume (x − 4) × 16 × 8; Planes: y ≥ 10 and x ≥
+    20, 2 000, Sketch disabled; plane 2 from the top face (clicked where kept): z ≤ 5, 2 000, its label "Z ≤ 5"; Plane
+    again: 4 000, Sketch enabled. GPU against CPU (WebGPU): the box 963 strong pixels, the two planes 938 of 1 296 000
+    (≤ 0.1 %) — the ground's shadow under the box (in a box section no original surface is left and the caps cast none:
+    G2's limit) and the edges where caps meet. Step 73 (G2's section) and the instance and RM2 section steps pass on both
+    renderers (75, 129 strong; 313 on step 73 this run, 140 earlier: load).
+- **Checks** (T1/T2: App.tsx and viewport), in the verify worktree on `b843f5399` plus these changes: studio tsc clean,
+  eslint 0 errors, suite 207/207 (42 s); `FLOW_ONLY` G19.2 and step 73 on WebGPU 3/3 (17 s) and WebGL2 3/3 (15 s); the
+  instance and RM2 steps 3/3 on each (13 s, 17 s), load 14–49. Not run: the full flow, the cad-model suite (not
+  touched), gpu (not touched), benches (the GPU path's per-frame work unchanged).
+- **Limits**: the caps cast no shadow (G2) — a box section's kept part casts none; the exact section of several planes
+  decides by the display mesh whether a plane crosses a piece (a plane within tessellation of a curved face's tangent
+  may disagree with the kernel, which then refuses: the clipped view stays).
