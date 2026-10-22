@@ -35,7 +35,7 @@ export type ThemeName = 'dark' | 'light';
 export interface InstanceItem { id: string; bodies: BodyResult[]; threads?: Float32Array; placement?: Float64Array }
 /** The mould as the viewport shows it (G6): the loops (world polylines), the halves' bodies, the pull and the spread. */
 export interface MouldShown { pull: Vec3; loops: { points: Vec3[]; closed: boolean }[]; plus: BodyResult[]; minus: BodyResult[]; spread: number }
-/** A section's plane on the GPU (G2): kept where dot(normal, p) ≥ offset; `bodies`: the part's bodies cut by it too (not yet exact). */
+/** A section's planes on the GPU (G2, G19): kept where dot(normal, p) ≥ offset for each; `bodies`: the part's bodies cut by them too (not yet exact). */
 /** A proposal's added and removed material (G12): the view triad's green and red. */
 export const PROPOSAL_ADDED = '#57b26b', PROPOSAL_REMOVED = '#e5534b';
 /** World points for an overlay (G8): a colour each (sRGB 0–1, rgb) or one; size and border in CSS pixels. */
@@ -74,7 +74,7 @@ export interface OverlayLines {
   /** Its parts behind surfaces drawn too, at this share of its opacity (0 – 1; default 0: hidden). */
   hidden?: number;
 }
-export interface SectionClip { normal: Vec3; offset: number; bodies: boolean }
+export interface SectionClip { planes: { normal: Vec3; offset: number }[]; bodies: boolean }
 /** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
 export interface ViewRenderer {
   /** Host-driven frames (GPU viewer): its own frame requests go here instead of to its own animation frame (PERF3 A2). */
