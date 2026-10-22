@@ -6066,3 +6066,26 @@ The coordinator's item 2 after G22. This S0 needs the coordinator's and the GPU 
 - (a) Layers in bed coordinates plus the turn, or already in model coordinates?
 - (b) Supports as projected triangles, or as merged polygons?
 - (c) Is an all-layers-at-once array fine, or do they want one layer by index (for a slider on a large part)?
+
+## G22 data side — built (2026-10-22)
+
+`team/clearanceMap.ts` follows the S0 (eedfe15b2) with the GPU lane's three changes.
+- **Bodies**: `assemblyPlacedBodies(doc, evaluate)` takes the base part's bodies and each shown placed part's in its own frame, with its pose (`world = m·local + t`, as `placedBodies` places it) and its B-rep. Keys keep the `<inst>/` prefix.
+- **The map**: `clearanceMap(bodies, { nearMM })`.
+  - Boxes grown by the band are sorted along x, then pruned on y and z.
+  - `meshClearance` runs on each candidate pair through its K2 trees.
+  - `closest` points are given in each body's own frame, with their faces by persistent name.
+  - `pose` is the two bodies' content and pose hash. `revision` is the map's.
+  - An overlap starts as `{ pending }`, or `{ refused }` when a body has no exact solid.
+- **Bands** (`band: { a, b }`, each `{ positions, indices, field }` in its body's frame): a side's triangles that can be within the band are split while their edge is over near/3. The split stops where the field is affine over the triangle (edge middles and centroid within near/100 of the corners' interpolation). Each vertex carries the exact `nearestDistance2` to the other body, clamped at the band.
+  - So flat faces facing each other stay a few big triangles, and a spot mid-face is refined down to near/3.
+  - The first version split everything down to near/3: 5.9 M band triangles in 5.1 s on 120 boxes. Now it is 0.77 M in 2.0 s.
+- **Overlaps**: `fillOverlap(map, bodies, pair)` intersects B moved into A's frame with A (the analytic Boolean). It gives the volume and the display mesh of that very B-rep, in body a's frame. `applyFill` applies a fill only while the pair's pose key is the one it was worked out for, and drops it otherwise. `pendingPairs` lists what is left.
+- **Measured on 120 boxes** (30 × 20 × 8, x-neighbours overlapping 2 mm, y-neighbours 1 mm apart; load 15–20): pruning 7.6 ms, clearance 19.7 ms, bands 1.97 s, the 110 fills 0.37 s. Planar boxes make cheap Booleans; the S0's curved plates took about 0.5 s a pair. 416 pairs: 110 overlap, 306 near.
+- **Not built yet** (the next step on the studio side, the GPU lane's to call): the engine worker's request, which sends the map at once and the fills nearest first, re-queuing a moved part's pairs. The near band is the input's (1 mm unset); requirements have no clearance field yet.
+- **Tests** (`test/clearance-map.test.ts`):
+  - an overlap of 5 × 20 × 10: pending, then filled with 1000 mm³; its mesh encloses the same volume; in a's frame x 15–20;
+  - 1 mm apart: near; gap 1 between the facing faces by name; closest points local; the facing field 1; far apart, no pair;
+  - **the band oracle**: a 2 mm cube 0.8 above the middle of a 60 × 40 box's top (a few big triangles) gives a band only around the spot, its least field within near/3 of the gap;
+  - turned 90°: the fill still 1000 in a's frame; the closest points land together in the world; a moved part's new pose key drops the old fill;
+  - 120 boxes: 110 overlaps pending, the timing given.
