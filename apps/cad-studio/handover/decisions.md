@@ -10751,3 +10751,43 @@ one real defect.
   (frk-1 … frk-8b, frk-s0, mass-polyhedral, modeling-mass, ordered-trim-bead, sweep-*): 80/80.
 - **T2 pending** (brep core changed): the full kernel suite, then RB and properties, in a scratch worktree, on a slot
   from the coordinator.
+
+## D178 — FRk6: the capped ordered joint, the round-cornered ordered table in 1.1 s (2026-10-23)
+
+**Ported from Codex's FRk6 WIP (`abb697f2` on `codex/cad-kernel-sweep-mass-20261022`), reviewed, without its
+evidence.**
+- `canCapOrderedEnvelope` in `src/part-model.ts`.
+- The tests `test/frk-6-ordered-trim.test.mjs` (Codex's, unchanged) and the timing run
+  `test/frk-6-ordered-trim-perf.mjs`.
+
+**The capped joint.** It applies when three identical, centred `rect-tube` members on snapped axes meet at right
+angles at one point, the first running at least h past the joint each way.
+- The second member's envelope, as the third member's tool, is capped at the joint and takes no Boolean.
+- The proof is checked here, with rounded corners included:
+  - A ∪ B capped = A ∪ kept(B extended − A).
+  - On the band |x| < h − r, B lies inside A.
+  - Beyond it, B's points outside A's rounded corners run on along B's axis into B's own side, which is the piece kept.
+  - B's corner pieces on the far side are separate components, not kept.
+- Every other placement keeps the general route, compared exactly: rolled, offset, a different width, a short window.
+- The helper's inner arrow is hoisted to the module (`signedUnitAxis`; owner rule).
+
+**Not ported from `abb697f2`:**
+- The `edgeFitToleranceMM: 1e-11` fits at capped joints. D177's ribbon gives the accuracy that they were meant to
+  give.
+- The strip split at the edge curve's knots, with `interiorParameter`, `stripSpanD1` and per-strip
+  arrays/closures. With the ribbon, the table and the V notch hold at ~1e-14 without it, and its closures break the
+  owner rule.
+  - `test/frk-6-strip-knots.test.mjs` tests those internals, so it is not ported.
+  - If a later case needs knot splitting, it comes back with module-level buffers.
+
+**Results (D126 table, D126 oracles, FRk6's endpoint substitutions):**
+- Members 4–7: rel −4.9e-14, 5.0e-15, −1.8e-14, −1.7e-15 (1e-9 required).
+- 12 Booleans, as the test observes.
+- BRep valid, welded sum, cut list and CSV hold.
+- Time: the build goes from 5.7 s to 1.1 s. Timing run median 1144 ms (min 1108, max 1195) at load 25, so LOADED;
+  the 2 s target is met.
+
+**Checks:**
+- T1: lint 0 errors, type-check clean, `build:library`.
+- 19 mass, frame, notch, trim, weld and cut files: 90/91, 1 skipped, 0 failing.
+- T2 (full kernel suite, RB, properties): pending with D177's.

@@ -2903,6 +2903,36 @@ function envelopeAround(PT: MemberPlace, start: Point, L: number, at: { end?: 0 
   if (at.s !== undefined) return envelopeOf(PT, start, Math.max(0, at.s - E), Math.min(L, at.s + E), name);
   return at.end ? envelopeOf(PT, start, Math.max(0, L - E), L + on, name) : envelopeOf(PT, start, -on, Math.min(L, E), name);
 }
+/** Whether v is a signed unit axis, ±x, ±y or ±z, exactly. */
+function signedUnitAxis(v: Point): boolean {
+  let ones = 0;
+  for (let k = 0; k < 3; k++) { if (v[k] === 0) continue; if (Math.abs(v[k]) !== 1) return false; ones++; }
+  return ones === 1;
+}
+/**
+ * The capped ordered joint (FRk6, D178): three identical, centred, rounded or square tubes on snapped axes, at right
+ * angles, meeting at one point.
+ * - Let A be the first member's envelope (through the joint, at least h each way) and B the second's.
+ * - Then A ∪ B capped at the joint equals A ∪ the kept piece of (B extended − A). On the band |x| < h − r, B lies in
+ *   A. Beyond it, B's points outside A's rounded corners run on along B's axis into B's own side, the piece kept.
+ * - So the third member, which subtracts both, is trimmed the same with B capped, and B needs no Boolean of its own.
+ * Every other placement, profile and short window keeps the general route, compared exactly.
+ */
+function canCapOrderedEnvelope(ordered: readonly JointEnd[], points: readonly Point[], pairs: readonly (readonly [number, number])[], lengths: readonly number[], places: readonly MemberPlace[], joint: Point, run0: number, E: number): boolean {
+  if (ordered.length !== 3) return false;
+  const a = places[ordered[0].member], b = places[ordered[1].member], c = places[ordered[2].member], h = (a.box.max[0] - a.box.min[0]) / 2;
+  const outer = JSON.stringify(a.shape.outer);
+  for (const e of ordered) {
+    const P = places[e.member], end = points[pairs[e.member][e.end]];
+    if (P.shape.kind !== 'rect-tube' || JSON.stringify(P.shape.outer) !== outer
+      || P.box.max[0] - P.box.min[0] !== 2 * h || P.box.max[1] - P.box.min[1] !== 2 * h
+      || P.q[0] !== (P.box.min[0] + P.box.max[0]) / 2 || P.q[1] !== (P.box.min[1] + P.box.max[1]) / 2
+      || !signedUnitAxis(P.u) || !signedUnitAxis(P.F.x) || !signedUnitAxis(P.F.y)
+      || end[0] !== joint[0] || end[1] !== joint[1] || end[2] !== joint[2]) return false;
+  }
+  return dot(a.u, b.u) === 0 && dot(a.u, c.u) === 0 && dot(b.u, c.u) === 0
+    && Math.min(lengths[ordered[0].member], E) >= h && Math.min(lengths[ordered[1].member], E) > h && run0 >= h;
+}
 /**
  * Each member's ends at the frame's joints (FR3a D125, FR3b D126). A joint is a place (points within 1e-6 mm): the member
  * ends there, and the members whose line passes through it inside its length.
@@ -2979,14 +3009,16 @@ function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly
     // Each next member is trimmed to the envelopes of all before it, each as trimmed itself (its own envelope less the
     // earlier ones, the piece reaching its own way kept): exactly the space the earlier members take, no more.
     const E = 3 * Rmax + 1, taken: Solid[] = [envelopeAround(P0, points[pairs[first.member][0]], lengths[first.member], { end: first.end }, run0, E, `${at}_env${first.member}`)];
+    const capAtJoint = canCapOrderedEnvelope(order.map(m => byMember.get(m)!), points, pairs, lengths, places, there, run0, E);
     order.slice(1).forEach((m, r) => {
       const e = byMember.get(m)!, inE = e.end ? places[m].u : scale(places[m].u, -1), away = scale(inE, -1);
       plan.extend[m][e.end] = 2 * Rmax + 1;
       for (const solid of taken) plan.subtract[m].push({ solid, name: `${endName(e.end)}.trim`, keepFrom: there, toward: away });
       plan.report[m].push({ end: endName(e.end), point: p, kind: 'trim', with: order[r], rank: r + 1, against: order.slice(0, r + 1) });
       if (r + 2 < order.length) {
-        let env = envelopeAround(places[m], points[pairs[m][0]], lengths[m], { end: e.end }, plan.extend[m][e.end], E, `${at}_env${m}`);
-        for (const solid of taken) env = keepFarthest(boolean(env, solid, 'difference', `${at}_env${m}`), there, away);
+        // (At the capped joint, D178: the envelope stops at the joint and takes no Boolean; see canCapOrderedEnvelope.)
+        let env = envelopeAround(places[m], points[pairs[m][0]], lengths[m], { end: e.end }, capAtJoint ? 0 : plan.extend[m][e.end], E, `${at}_env${m}`);
+        if (!capAtJoint) for (const solid of taken) env = keepFarthest(boolean(env, solid, 'difference', `${at}_env${m}`), there, away);
         taken.push(env);
       }
     });
