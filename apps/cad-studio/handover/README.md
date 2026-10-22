@@ -697,6 +697,102 @@ Done:
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 
 ### Outer lane (owner, 2026-10-19: a second implementation session; the coordinator merges it into this branch)
+
+#### Outer lane: hand-over at A9-5/6 (account change, 2026-10-22) — read this block first
+
+**State.** Branch `claude/cad-outer-lane-531d5a` (worktree `.claude/worktrees/studio-mates-cbde0e`), local only. The last O-number is O148; later entries in `decisions-outer.md` are titled, not numbered (queue 3–5b, G22, G23, A9). The last work commit is `65eeac483`; this block's commit follows it.
+
+| commit | item | verified |
+|---|---|---|
+| `a739066a4` | A9 S0 (docs) | — |
+| `e3db22957` | A9-3: unknown arguments refused, `[UNKNOWN_ARGUMENT]` | **yes**: package 794/794, studio 211/211, every FLOW_ONLY "chat" step ok |
+| `1b7333f9f` | A9-2: `part` on the report, the print orientation and the brief | its own tests (part-scoped, brief, unknown-arguments, printability) and tsc only |
+| `cc452383b`, `4f93e826c` | A9-1: weld joints at ordered-trim nodes; `set_welds` re-evaluates | frame-welds, weld-beads, frame-plates and frame tests (37/37) and tsc only |
+| `65eeac483` | **wip** A9-5/6: contact, touching, designed in the clearance map | clearance tests 9/9, tsc and eslint only |
+
+What is not yet verified, all in one run: the full package and studio suites, and the flow with `FLOW_ONLY="chat|weld|FRd|frame|clearance|brief|printab"`.
+
+**The A9 queue** (the S0 is in `decisions-outer.md`, "A9 — S0"):
+- Done: A9-3 ✓, then A9-2 ✓, A9-1 ✓ and A9-5/6 (wip), the last three on their own tests.
+- Left, in this order: **A9-13 → A9-4 → A9-10 → A9-9 → A9-11 → A9-7**.
+
+**Decisions:**
+- **A9-8** (coordinator): parts read the document's shop rows. The rows are loaded once at the base or assembly document; a placed part inherits them; a part's own rows override by id for that part. Reports state the row's origin. Test: the base's B1 stock reaches p1. Not built yet; it goes in with A9-10.
+- **A9-9** (owner, verbatim): "b 로 하자".
+  - The agent may load rows only from a file the person gave in this conversation (attached or pasted), its source recorded.
+  - One rule for every row kind: fits, bearings, O-rings, rings, drives, sections, stock, bend tables and connectors.
+  - A v2 action per group, or one `library.load_rows {kind, file}`; mind the per-turn count.
+  - Each row keeps `source: {file name, supplied by: person, conversation turn}` beside its own source or estimate flag.
+  - Rows the agent writes itself are refused (ROWS_NOT_FROM_PERSON).
+  - The existing section and stock chat loaders come under the same rule; the Library panel route is unchanged.
+  - Tests: a person's file loads with its source kept; agent-written rows are refused; the A9 run loads `conformance/a9/rows.json` as the person's file.
+- **A9-12** (coordinator): no weldment process for now. The cut list, the weld list and the bead reports stand in. Open item: a welded-fabrication DFM profile (weld access, distortion rules), which needs sourced rules.
+
+**Found while fixing (for the A9 run and the kernel lane):**
+- **Kernel request:** the kernel refuses a bead on an ordered-trim end (`[BEAD_SEAM_NOT_PLANAR] … trimmed to an envelope or a body`), even where the envelope face is a plane (a rectangular tube's flat side). The weld list says so per joint, and the part still builds. A9 step 4's bead oracle (8 × 360 = 2880 mm³) waits on it.
+- **The A9 brief needs one correction before its run is written:** the default shaft's keyseat sits on step 1, under the 6204. The map now shows it as a 115 mm³ clash (nothing seats the key with the bearing). Put the key on another step, or move the bearing.
+
+**G22 data (done; the GPU lane's worker consumes it at G22, not built yet).** `team/clearanceMap.ts`:
+- `assemblyPlacedBodies(doc, evaluate)` gives the bodies, each with `key`, `mesh`, `brep`, `pose` (world = m·local + t), `designedWith?` and `squeeze?`.
+- `clearanceMap(bodies, {nearMM})` gives `{version 'clearance-map-v1', revision, near, pairs, pending, timing}`. Each pair is:
+  - `a`, `b` and `state`, one of overlap, contact, touching, designed, near or clear;
+  - `designed?` (the source) and `squeezeMM3?`;
+  - `minGapMM` and `closest {a, b, faceA, faceB}`, each point in its own body's frame;
+  - `pose` and `overlap?`: `{volumeMM3, mesh}` in a's frame, or `{pending}`, or `{refused}`;
+  - `band?`.
+- Then, nearest first: `bandFor` and `bandPending`; `fillOverlap`, `applyFill` and `pendingPairs`.
+- Also `designedSeats(doc, bodies)` and `TOUCHING_MM3 = 1e-6`.
+- State rules:
+  - no distance is `contact`; after the fill it becomes `touching` (≤ TOUCHING_MM3) or `overlap`;
+  - a seated or fit-paired pair is `designed`;
+  - an O-ring is designed against anything up to its gland's `overlapMM3`; past that it is an `overlap`.
+
+**G23 data (done).**
+- `print/layers.ts` `printLayers(meshes, {layerMM, direction, limitDeg})` gives:
+  - `{version 'print-layers-v1', direction, directionSource, modelToBed, layerMM {mm, basis}, limitDeg, count, heightMM}`, where `modelToBed` is a column-major 4×4;
+  - `supportColumns` (`{footprint, z0, z1}`) and `supportVolumeMM3`;
+  - `layer(k)`, cached: `{z, contours [{points, hole}], overhang, support}`, the points flat x, y on the bed.
+- `machining/camPackage.ts` `camPackage(doc, bodies, {toolMM?, tool?})`. It is NOT FOR PRODUCTION: the banner comes first and no G-code is written. It gives:
+  - the tool's whole shape, the stepover and stepdown, and the basis;
+  - the stock as a solid, or its refusal;
+  - `setups`: `{setup, frame, axis, safeZ, entry, moves [{kind, a, b}], passes}`, the frame column-major;
+  - `skipped`.
+
+**Open items:**
+- Verify the wip and A9-1 and A9-2 (see above).
+- The kernel bead request.
+- The A9 run itself: `test/a9-acceptance.test.ts` and `conformance/a9/` (rows, scenario, expected outcomes), after A9-9, A9-10 and the brief's key correction.
+- The welded-fabrication DFM profile (A9-12).
+- The carried items below.
+- This session's scratch probes (`zz-a9-*`) were not committed. The S0's table records what they showed.
+
+**Standing rules:**
+- Check the load first (`vm.loadavg`); if it is over 40, wait. Run the kernel suite at `--test-concurrency=4`.
+- FLOW_ONLY runs only the steps the change runs. Rerun only a failing step and its prerequisites.
+- No edits while a flow runs: its Vite server reloads live sources. Run checks in a separate verify worktree.
+- A top-bar change also runs O90's shapes-strip step and O127's narrow-window step (the layout guards).
+- Run tsc after the last test edit: cad-model's tsc covers `test/`, and the esbuild runner does not.
+- Compare test names against the last run's: an overwritten test file vanishes silently.
+- No nested closures in hot paths.
+- The model imports nothing from ui/ or viewport/, and stays out of `src/viewport/**`.
+- No built-in tables or standards text; the person's rows come first.
+- Typed refusals; never loosen a tolerance.
+- Kill only your own PIDs.
+- New commits only: no amend, no rebase.
+- pnpm-lock only with a new dependency.
+- Commit as easylogic `<cyberuls@gmail.com>`.
+
+**How to resume:**
+1. Read this block, then `decisions-outer.md` from "A9 — S0" to the end.
+2. Make a detached verify worktree at the head, then:
+   ```bash
+   pnpm install --offline
+   ```
+   Run `build:library` in `packages/barocss-cad` and `packages/barocss-gpu`; `lint` and `type-check` in `packages/barocss-cad-model`; `npx tsc --noEmit -p .` and `node scripts/test.mjs` in `apps/cad-studio`; `node scripts/test.mjs` in `packages/barocss-cad-model`.
+3. Diff the passing test names against the last run's.
+4. Run the flow as `FLOW_ONLY=… CAD_STUDIO_CHAT_PORT=52391 CHROME=… PW_DIR=~/.cache/barocss-playwright/node_modules/playwright node test/browser-flow.mjs <out>`.
+5. Once the wip is green, take A9-13.
+
 Order: **R11b DXF writer** → R14 automatic drawings → A5 DSL + MCP → RM1–RM6 robot kinematics (→ RD1–RD3) → IM1–IM6 → CNC1–CNC6 (coordinator, 2026-10-21). Its own
 decision log `handover/decisions-outer.md` (O1, O2, …); conformance in `conformance/r11b/`, `r14/`, `a5/`, `rm/`; it
 stays out of the kernel's core files (requests for them go through the coordinator to the kernel lane).
@@ -1050,6 +1146,7 @@ acceleration → benches.
 - Git identity: `easylogic <cyberuls@gmail.com>`. Commits end with the `Co-Authored-By` line. Replies to the owner in Korean; code, commits and peer messages in English.
 
 ### Owner decisions so far
+- **A9-9 rows by chat = (b)** (owner, 2026-10-22: "b 로 하자"): the agent loads rows only from a file the person gave in this conversation (attached or pasted), each row keeping `source: {file, supplied by: person, turn}`; rows the agent writes itself refused (ROWS_NOT_FROM_PERSON); one rule for every row kind, the section and stock loaders included; the Library panel unchanged. Not built yet (outer lane, after A9-10).
 - **Autonomy L2 = (b):**
   - value edits of one feature apply directly, and everything else is a proposal;
   - exception: the first build on an empty part applies directly;
