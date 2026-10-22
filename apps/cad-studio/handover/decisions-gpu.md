@@ -1576,3 +1576,23 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - Codex's print settings 4, hook 5 and worker 3 (packages/barocss-gpu/tests);
   - studio type-check 0; eslint on the changed files 0.
 - **Not run**: the print flow step on both renderers (slot).
+
+## G-R7 — G21 rest, a static pass: WebGPU silhouettes without a per-frame closure (roadmap G3, 2026-10-23)
+
+- **What**: a read of both renderers' display-mode, silhouette and isolate/hide paths for what G21 still lacks without a
+  browser. Most of it is in place:
+  - both renderers draw every mode;
+  - curved-face silhouettes for bodies and instances, hidden bodies skipped, isolated instances faded to 0.15;
+  - instance surfaces keep their depth in line-only modes.
+- **The one defect**: WebGPU's `updateSilhouettes` defined an `update` closure on every frame, the owner's no-nested-
+  functions rule for per-frame paths. It is now a method, `updateSilhouette`, with the same arguments and behaviour:
+  - bodies are shown unless hidden; instances always;
+  - a recompute when the mesh, the eye or the placement moved;
+  - a restyle when the mode, opacity, theme or clip did.
+- **Looked at and left**: WebGL2's silhouette cache is per GpuBody. Each placed instance uploads its own GpuBody (only
+  the geometry is shared), so instances sharing a tessellation do not thrash it. No change.
+- **Checks** (T1): Codex's studio-code checks, one file each:
+  - silhouette 5 and display contracts 9 + 13;
+  - instance bridge 7, print overlay 6, clearance gpu 4;
+  - studio type-check 0; eslint 0.
+- **Left for the browser slot**: G3's acceptance. Each mode, isolate and hide on both renderers, with picks unchanged.
