@@ -7014,3 +7014,26 @@ No studio expectation relied on an overcut drill: cnc-cam tests the preview.
 - model: bearing-housing-context 9/9, a9-acceptance 3/3, and every model test file using `edit_feature` or `editFields` (28 files, all passing);
 - studio: bearing-edit 7/7, bom-linked-ui 5/5, assembly-linked-faces 5/5;
 - tsc of model and studio; eslint 0 errors.
+
+## O168 — F7: a refused bead is said on its joint with placed parts too (2026-10-23)
+
+**The defect** (A9's F7): with placed parts, a fillet on a cap was counted refused (`refusedJointIds`), but its joint in the weld list had no `bead.refused` message.
+
+**The cause:**
+- The kernel's bead refusals are kept by key: the bead feature plus the canonical model content of the document evaluated (`refusedBeads` in engine/part.ts).
+- The evaluation (`partSnapshot`) keys them on the resolved document, with shop rows resolved into each placed part and skeletons solved.
+- `beadRefusal`, which the weld list and the bead accounting use, looked them up on the authored document. Without placed parts the two coincide, which is why a scratch probe saw the message. With placed parts, the inherited rows make them differ, so the lookup missed.
+
+**The fix:**
+- `beadRefusal` looks in the evaluated view first: `resolveShopTree`, then `resolveSkeletons`, the evaluation's own steps, cached per document in a WeakMap.
+- It then looks in the authored document, where the section and face readers record refusals through `withBeadRetry` directly.
+- The refusals and their keys are unchanged.
+
+**Tests:**
+- frame-welds, "O168 (F7)": a table frame with one inset cap and a placed part inheriting the base's section row. A fillet on the cap, with bead ownership set, gives `[BEAD_KIND] a cap sits flush…` on the cap's joint and its id in `refusedJointIds`. The test fails without the fix.
+- The A9 run asserts the message on each of its four caps' joints.
+
+**Verified (T1):**
+- model: frame-welds 6/6, a9-acceptance 3/3, and every model test file on beads or welds (14 files, all passing: bead-ownership-policy, shared-bead*, weld-beads, wire-welds, frk-acceptance, frk5-editor, cnc-drawing, shop-rows, team-input-authority, tool-contract);
+- studio: chat, frame, memory, mould-quote;
+- tsc of model and studio; eslint 0 errors.

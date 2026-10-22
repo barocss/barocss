@@ -177,15 +177,16 @@ test('A9 steps 4 and 8: the weldment\'s gussets, caps and beads; the parts place
   // (The joints: the 8 rail ends on their legs, each gusset's two seams, each cap's.)
   const joints = (await call('query', { action: 'welds' }) as { joints: { id: string; kind: string }[] }).joints;
   assert.deepEqual([joints.length, joints.filter(j => j.kind === 'cap').length], [20, 4]);
-  // (A cap's weld defaults to butt (the S0); a fillet record on one is refused — the four caps' joints in the beads'
-  // refusedJointIds (BEAD_KIND, a cap is welded by a corner weld; O164's F7: not said on the joint in this order) — and
-  // the part still evaluates; those records removed. A 3 mm fillet at every other joint; the rail ends' shared
+  // (A cap's weld defaults to butt (the S0); a fillet record on one is refused — BEAD_KIND, a cap is welded by a corner
+  // weld, said on its joint and its id in the beads' refusedJointIds — and the part still evaluates; those records removed. A 3 mm fillet at every other joint; the rail ends' shared
   // seams owned equal-length.)
   assert.deepEqual([...new Set(joints.filter(j => j.kind === 'cap').map(j => (j as unknown as { weld: { kind: string } }).weld.kind))], ['butt']);
   await call('features', { action: 'welds', welds: joints.map(j => ({ joint: j.id, kind: 'fillet', size: 3 })) });
   await call('features', { action: 'welds', beadOwnership: { version: 1, policy: 'equal-length' } });
-  const wq = await call('query', { action: 'welds' }) as { totals: { beads: { complete: boolean; refusedJointIds: string[] } } };
+  const wq = await call('query', { action: 'welds' }) as { joints: { id: string; kind: string; bead?: { refused?: string } }[]; totals: { beads: { complete: boolean; refusedJointIds: string[] } } };
   assert.deepEqual([wq.totals.beads.complete, wq.totals.beads.refusedJointIds], [false, joints.filter(j => j.kind === 'cap').map(j => j.id)]);
+  // (O168, F7: each cap's joint says why, typed, with the parts placed too.)
+  for (const j of wq.joints.filter(x => x.kind === 'cap')) assert.match(j.bead?.refused ?? '', /^\[BEAD_KIND\] a cap sits flush/, j.id);
   assert.equal(s.bodies.length > 0, true, 'the part still evaluates');
   await call('features', { action: 'welds', remove: joints.filter(j => j.kind === 'cap').map(j => j.id) });
   const welds = await call('query', { action: 'welds' }) as { joints: { id: string; bead?: { volumeMM3: number; nominalVolumeMM3: number } }[]; totals: { beads: { complete: boolean; bodyCount: number; nominalVolumeMM3: number; refusedJointIds: string[] } } };
