@@ -1235,3 +1235,49 @@ a union of two half-space removals, a corner taken out) — to be scheduled, not
   - Every section step again on both renderers: 73, the instance and RM2 steps, G19.2–G19.5 — 8/8 each.
 - **Checks** (T1), in the verify worktree on 6bfb02f22 plus these changes: studio tsc and eslint clean, suite
   211/211; the flow steps above. Not run: the full flow, gpu (not touched), cad-model.
+
+## G20 — the quarter cut-out (S0 approved 2026-10-22)
+
+A "Cut-out" section of two planes (a quarter) or three (an octant, the "7/8 section"): kept on any plane's kept side,
+the corner where their cut-away sides meet removed. The coordinator's answers:
+- (a) both;
+- (b) the exact section keeps separate kernel pieces, but everything that reports per body reports per source body —
+  the "N solids" status, mass and properties, the outliner, the picks' body name;
+- (c) the default corner is the one nearest the camera, through the box centre; flip and drag as in Planes mode.
+
+Stages: G20.1 the viewer; G20.2 the studio.
+
+## G20.1 — cut-outs in the viewer (2026-10-22)
+
+- **Model**: `Viewer.clipCutout` (default false), with `clipPlanes`. What is kept is on any plane's kept side. The
+  removed region R, the intersection of the cut-away sides, is convex: one stretch of any ray. C — what the probe, the
+  caps, the hatch, the shadow caps and the ghost caps all read — is where the eye's (or the light's) ray leaves R, on the
+  plane it leaves through. After C the ray stays kept, so a cap is drawn where the first surface after C is a back face:
+  G19.1's rule, unchanged.
+- **GPU**:
+  - The frame's plane count is negative for a cut-out (`clipCount`, `clipCutout`), so the frame block does not grow.
+  - `clippedAway`: inside every removed half-space.
+  - `regionAlong` returns R's exit as C (none when the ray misses R or never leaves it through a plane).
+- **CPU**:
+  - Packed planes carry the flag last (length 4n + 1, `packedCutout`); `keptBy` is any-of; `localPlane` appends it.
+  - `regionEntry` returns R's exit.
+  - A segment's kept part may be two pieces, each tried (`testPiece`).
+  - `clipBox` leaves a box as it is (a corner off keeps its extent), or none when R holds all its corners.
+  - The shadow key holds the mode.
+  - A fault the oracle found: a kept surface before R is nearer than the cap. In G19 nothing was kept before C; the
+    CPU took the cap anyway. Now `clippedRayFull` returns the nearer (the GPU's depth test always did).
+- **Evidence**:
+  - `viewer-core` G20 (node): 800 rays at a box under two or three random planes as a cut-out, against the closed form
+    (the box's stretch less R's: its entry, else R's exit when inside the box) — 300+ hits and 40+ caps, each to 1e-9
+    with its plane. Also: the packed flag; a segment across a removed slab found on either piece and not between, its
+    nearest end from inside the slab; clipBox; the frame's −n.
+  - Browser (real WebGPU), G20, a 4 mm cube seen obliquely:
+    - The quarter's caps: 10 915 px against 8(|vx| + |vy|) on screen = 10 839 ± 789.
+    - The octant's: 7 407 against 4(|vx| + |vy| + |vz|) = 7 370 ± 789.
+    - 300 GPU picks against the CPU's rays: 0 differ, 74 on caps.
+    - The edge through the removed corner: not found there; found on its kept half.
+    - The octant cut-out's shadow on the ground: 1 853 px, the seven 2 mm cubes it is made of 1 853.
+- **Bench** (`BENCH_ONLY=section`, three runs alone, load 14–16): GPU section 2.77, 3.24 and 2.41 ms GPU a submit (2.33
+  in G19.4's one run). The intersection path's only change is one uniform branch a fragment; the spread between runs is
+  wider than the difference. Task 18.5 ms a frame; the CPU row 21.7 ms.
+- **Checks** (T1, gpu): tsc and lint clean; unit 84/84, consumer 3/3, browser 19/19. Studio not touched (G20.2).
