@@ -5590,3 +5590,79 @@ With integration 36bfcb970 (merged here as 3f30f8dc1; D162's two UI edits, a sec
   - both lines exactly, with the row cited;
   - the BOM's connector-body line;
   - both elements' data structured-cloned.
+
+## O147 — S0: the BOM made visible and usable (2026-10-22)
+
+The coordinator approved this gap: S1's BOM data (O143) is shown to no one. Constraints: src/ui only; App.tsx call sites only; the viewport untouched. This S0 needs the coordinator's reply before building.
+
+**B1 — the BOM panel, the bought toggle, the CSV.**
+- **Panel** (`ui/BomPanel.tsx`, opened by a "BOM" tool in the top bar's tray):
+  - It shows `deriveBom(bomView(doc, evaluate))`, its evaluations through the engine worker (`engine.part`, the 'agent' slot), never the page.
+  - A part with no placed parts shows one line for the part itself and its bought elements; an assembly shows its parts' lines and the bought elements' lines.
+  - Columns: item no., item, qty, kind, size, row or catalogue, source or "estimate" (with its why on hover), bought or made ("set" when overridden).
+  - Totals under it: parts, bought elements, the mass (the parts' only, as S1).
+- **The bought/made toggle**, one per element line:
+  - It writes the `bought` override as one undoable edit: on the base part's node, or, for an element in placed parts, on that node in every instance document the line merges.
+  - A "default" choice clears the override.
+  - Undo restores all of it at once.
+- **CSV** ("Export purchase list"), the panel's button and a chat-free download:
+  - The bought lines only, as `item no., item, qty, kind, size, row, catalogue, source, estimate`.
+  - A checkbox "with made parts" adds the part lines and the made elements.
+  - Text cells are quoted; the numbers are the BOM's.
+- **Oracles**:
+  - S1's scene of 2 copies with a key, a ring and a pin: 4 lines (the part ×2, key ×2, ring ×2 on r20, pin ×2); the CSV has 3 rows (the bought ones), 4 with made parts.
+  - The key toggled to made: its line leaves the BOM and the CSV; one ⌘Z brings it back.
+  - A ring with no row: its line and CSV row read "estimate".
+- **Flow step**: the panel on a two-copy assembly, the toggle and its undo, the CSV download's rows.
+
+**B2 — the drawing's BOM table and balloons.**
+- **`from: 'bom'`** (BILL OF MATERIALS): the same lines and item numbers as the panel.
+  - The BOM is worked out by the caller (the studio: the panel's, through the worker; the chat: awaited before the sheet) and given to the table's context (`TableSourceContext.bom`). It is never evaluated on the page.
+- **Balloons** (a Drawing workspace checkbox, `settings.balloons`):
+  - One balloon a line on the assembly's iso view: a circle with the item number, and a leader to the middle of a visible edge of one instance of that item.
+  - For a part line, an edge of `<instance>/…`; for a bought element, an edge of that element's faces in that instance (`<instance>/<node>.…`, or `<node>.…` in the base part).
+  - Item numbers match the table's.
+  - Placement seeks clearance as the weld symbols do (O119): knees out past the view's sides in steps, clear of the views, the title, the tables and the balloons before. A balloon with no clear place keeps its nearest place and raises an issue, `BALLOON_NOT_CLEAR`.
+  - An item with no visible edge in the iso view gets no balloon, with an issue `BALLOON_NO_EDGE` (the table still lists it).
+- **Oracles**:
+  - The two-copy assembly: 4 table rows equal to the panel's lines, and 4 balloons numbered 1–4.
+  - Each leader's tip on a visible iso edge of its item (by the edge's name), and no balloon issue on the A3 sheet.
+  - The table's texts and the balloons' numbers in the SVG, the PDF and the DXF.
+- **Flow step**: Auto layout of the assembly with the BOM table and balloons, then the SVG.
+
+**Not in scope**: a BOM for a placed part's own sub-assembly (one level, as S1), costs, or suppliers' quantities.
+
+## O148 — S0: section views for what the standard views hide (2026-10-22)
+
+The coordinator approved this as the next gap, after O147. Today there is one section, A–A, square to the front view's depth at `y` and placed under the front view, with no dimension on it. O146 warns DIM_ON_HIDDEN where only hidden lines would carry a dimension. This S0 needs the coordinator's reply before building.
+
+**X1 — sections as a list, on any principal plane.**
+- **`settings.sections`**: `[{ id: 'A', view: 'front' | 'top' | 'right', at }]`.
+  - Each is the part cut by the plane square to that view's depth at `at`, seen as that view, with the material in front taken away.
+  - Its cut rings are hatched, as A–A's are. The engine worker's `sectionOf` takes the view and `at`.
+  - The old `section: { y }` reads as `[{ id: 'A', view: 'front', at: y }]`, so files and R14's section conformance stay as they are.
+- **Layout**: each section goes beside its view, on the side away from its neighbour: a front's below it as today, a top's to its side, a right's below it. It carries "SECTION A–A" under it, and a cutting-plane line with arrows and letters across its parent view. The layout's fit and Auto layout's scale count them all.
+- **Exports**: SVG, PDF and DXF draw them all. "Section alone as a 1:1 DXF" takes the one chosen.
+- **Oracles**:
+  - A–A unchanged (R14's section conformance);
+  - a second section B–B square to the top view through a shaft: its ring the step's circle (πr² hatched), its letters on the top view;
+  - the layout clean on A3.
+
+**X2 — dimensions on sections.**
+- `DrawingDimension.view` may name a section (`section:A`). Its snap points and edges come from the section's projection, and its marks are placed and checked like a view's.
+- Auto-dimension's key pass (O146) looks in the sections as well as the views, and prefers visible ends. So a measurement a section shows moves there, and DIM_ON_HIDDEN no longer fires for it.
+- **Oracle**: with a section through the keyseat, b 6 and d − t1 16.5 are placed on the section with visible ends, with no DIM_ON_HIDDEN; the hub's d + t2 22.8 is there too, where the section crosses the hub.
+
+**X3 — the section a dimension needs, as a fix.**
+- DIM_ON_HIDDEN gets a fix, `add-section`, applied like the issue list's other fixes (never on its own):
+  - the plane square to the axis of the feature the dimension measures (a keyseat's or a keyway's: the shaft's or the bore's axis), through the feature's centre;
+  - mapped to the principal plane it is (a shaft along Z gives a section square to the top view's depth, at the seat's middle);
+  - the next free letter.
+- A feature whose axis is no principal axis is said, with no fix.
+- Auto layout does not add sections itself: the person, or the agent through the drawing tools as a proposal, applies the fix.
+- **Oracles**:
+  - the shaft-and-hub scene: DIM_ON_HIDDEN on d − t1 carries `add-section` at the keyseat's middle (z 15);
+  - applied, auto-dimension moves b and d − t1 onto it, and the warnings are gone;
+  - a tilted shaft gives no fix, said.
+
+**Each stage gets a flow step and FLOW_ONLY on the section, R14 and DXF steps only.**
