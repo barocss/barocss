@@ -7,6 +7,8 @@ import { editBearingRows } from '../src/engine/bearings';
 import { editFitTables } from '../src/engine/fits';
 import { editORingRows } from '../src/engine/orings';
 import { drawingInputs } from '../src/chat/drawing';
+import { issueContext } from '../src/drawing/issues';
+import { readDrawing } from '../src/drawing/types';
 
 // O174 (A9's F8, the coordinator's decision): a part's drawing is projected from what the part makes — its bought
 // elements (the BOM's boughtOf) out of its views and sections, as DFM, print and CAM leave them (O160). The A9 shaft's
@@ -58,4 +60,20 @@ test('O174: the cover — its Ø22 bore and its gland concentric with its round 
   const i = drawingInputs(off.doc); if (typeof i === 'string') throw Error(i);
   const r = await dispatchTool(off, 'drawing', { action: 'issues' }, evaluate);
   assert.ok((JSON.parse(r.content) as { issues: { code: string }[] }).issues.some(x => x.code === 'HOLE_NOT_LOCATED'), 'the Ø4 off centre, not yet dimensioned');
+});
+
+// O175: a part's sheet with balloons draws its bought elements — each balloon points at its BOM line's item, the key too.
+test('O175: the shaft and its bought key on a part sheet with balloons — the key drawn, both balloons on their items\' edges', async () => {
+  const s = await build(async (_s, call) => {
+    await call('features', { action: 'command', command: 'shaft', values: {} });
+    await call('features', { action: 'command', command: 'key', values: {}, bodies: ['b0'] });
+  });
+  const plain = drawingInputs(s.doc, { ...readDrawing(s.doc.drawing), scope: { kind: 'part' }, sheet: 'A3' });
+  const ballooned = drawingInputs(s.doc, { ...readDrawing(s.doc.drawing), scope: { kind: 'part' }, sheet: 'A3', balloons: true, tables: [{ id: 'bom', from: 'bom' }] });
+  if (typeof plain === 'string' || typeof ballooned === 'string') throw Error(String(plain) + String(ballooned));
+  const keyEdges = (i: typeof plain) => i.views.iso.edges.filter(e => e.name.split('|').some(f => f.startsWith('n1.'))).length;
+  assert.equal(keyEdges(plain), 0, 'without balloons the bought key is not drawn');
+  assert.ok(keyEdges(ballooned) > 0, 'with balloons it is');
+  const b = issueContext({ ...ballooned, meta: { ...ballooned.meta, date: '2026-10-23' } }).sheet.balloons!;
+  assert.deepEqual([b.placed.map(p => p.no), b.noEdge], [[1, 2], []]);
 });

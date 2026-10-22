@@ -3,7 +3,7 @@
 // tables and weld joints, and the sheet built from them — and, when asked, the sheet's annotations lifted onto the
 // model (model-annotations-v1). `active` false: nothing is asked of the engine and nothing is built.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { drawingDocument, drawingSource, drawingScopeOf, type DrawingScope } from '@barocss/cad-model/drawing/scope';
+import { drawingDocument, drawingSource, drawingScopeOf, drawsMadeOnly, type DrawingScope } from '@barocss/cad-model/drawing/scope';
 import { canonicalOf } from '@barocss/cad-model/team/revision';
 import { followedStale, staleText } from '@barocss/cad-model/frames/skeleton';
 import { elementsOfBodies, withElements } from '@barocss/cad-model/drawing/elementCallouts';
@@ -57,7 +57,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   /** The sections as last cut (O148 X1; each with why it could not be cut). */
   const [rawCutsMade, setCutsMade] = useState<SectionCut[] | null>(null);
   const cutsMade = projected?.model === model ? rawCutsMade : null;
-  const sectionList = sectionsOf(settings), sectionKey = JSON.stringify(sectionList), madeOnly = drawingScopeOf(settings).kind !== 'assembly';
+  const sectionList = sectionsOf(settings), sectionKey = JSON.stringify(sectionList), madeOnly = drawsMadeOnly(settings);
   const [error, setError] = useState<string | null>(null);
   /** The part has no body yet: the panel says so, and nothing is raised as an error. */
   const [empty, setEmpty] = useState(false);

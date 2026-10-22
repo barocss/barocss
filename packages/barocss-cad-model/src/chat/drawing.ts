@@ -2,7 +2,7 @@ import { manufacturingDrawingProperties, manufacturingDrawingProblem, withManufa
 // The agent's drawing tools (R14.5, O6): the same Auto layout, issue list and tolerance suggestions the Drawing
 // workspace offers, on the document's drawing. Reading tools change nothing; the others change the drawing, which an
 // agent can only propose (`propose` with them as ops; D41): the user accepts it in the studio.
-import { drawingDocument, drawingSource, drawingScopeOf, drawingScopeProblem, changeDrawingScope, type DrawingScope } from '../drawing/scope';
+import { drawingDocument, drawingSource, drawingScopeOf, drawingScopeProblem, changeDrawingScope, drawsMadeOnly, type DrawingScope } from '../drawing/scope';
 import { elementNotes, partElements, withElementNotes, withElements } from '../drawing/elementCallouts';
 import { followedStale, staleText } from '../frames/skeleton';
 import { fitMiss, withFit } from '../drawing/fits';
@@ -21,7 +21,7 @@ import { threadsOf } from '../app/threads';
 import { autoDimensions } from '../drawing/auto';
 import { autoLayout, frontByInformation } from '../drawing/layout';
 import { reorient } from '../drawing/reorient';
-import { drawingIssues, fixAll, issueContext, type DrawingFix, type DrawingIssueCode, type SheetInputs } from '../drawing/issues';
+import { drawingIssues, fixRound, fixRoundsOutcome, fixRoundsStart, issueContext, type DrawingFix, type DrawingIssue, type DrawingIssueCode, type SheetInputs } from '../drawing/issues';
 import { acceptAll, applySuggestion, toleranceSuggestions } from '../drawing/tolerance';
 import { readDrawing, sectionsOf, VIEW_IDS, type DrawingSettings, type ViewId } from '../drawing/types';
 import { SCALES, scaleLabel } from '../drawing/views';
@@ -67,8 +67,9 @@ export const DRAWING_TOOLS = [
 export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDrawing(doc.drawing)): SheetInputs | string {
   let authored = doc;
   try { authored = drawingSource(doc, settings); doc = drawingDocument(doc, settings); } catch (cause) { return String(cause instanceof Error ? cause.message : cause); }
-  // (O174: a part's drawing is what the part makes — its bought elements out of its views and sections; an assembly's keeps them.)
-  const made = drawingScopeOf(settings).kind !== 'assembly';
+  // (O174: a part's drawing is what the part makes — its bought elements out of its views and sections; an assembly's keeps
+  // them, and a sheet with balloons, O175.)
+  const made = drawsMadeOnly(settings);
   const b = brepsFor(doc, { made });
   if ('error' in b) return `The part could not be evaluated: ${b.error}`;
   const r = projectViews(b.breps, b.prefixes, { tangentEdges: !!settings.tangent, ...(settings.orientation ? { orientation: settings.orientation } : {}) });
@@ -93,10 +94,6 @@ function sheetOf(i: SheetInputs) {
 }
 const issueList = (i: SheetInputs) => { const { ctx, sheet } = sheetOf(i); return { sheet, issues: drawingIssues(ctx).map(x => ({ code: x.code, severity: x.severity, message: x.message, ...(x.fix ? { fix: x.fix.kind } : {}) })) }; };
 
-/** A sheet's issues as [errors, warnings], to tell a better one (O174). */
-const scoreOf = (issues: readonly { severity: string }[]): [number, number] => [issues.filter(x => x.severity === 'error').length, issues.filter(x => x.severity !== 'error').length];
-/** How many times a Fix builds the sheet again and fixes what that shows (O170). */
-const FIX_ROUNDS = 4;
 /** Runs a drawing tool on the document. */
 export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string, unknown>): Outcome {
   if (name === 'set_drawing') { const why = setDrawingProblem(args); if (why) return { error: why }; }
@@ -150,21 +147,17 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       // when it is better than the one Fix started from: a round may make what the next one clears (a section's view), so
       // no round is judged alone; and a Fix whose moves and Auto-dimension cannot meet what is left changes nothing, so a
       // second Fix applies nothing.)
-      let inputs = i, sectioned = true;
-      const start = scoreOf(drawingIssues(issueContext(i))), done: DrawingFix[] = [];
-      let best = { score: start, settings: i.settings, inputs: i, applied: 0 };
-      for (let round = 0; round < FIX_ROUNDS; round++) {
-        const again = sectioned;
-        const r = fixAll(inputs, 40, (fix, issue) => (!assembly || fix.kind !== 'auto-dimension') && (again || fix.kind !== 'auto-dimension') && (!codes || codes.includes(issue.code as DrawingIssueCode)));
-        if (!r.applied.length) break;
-        sectioned = r.applied.some(f => f.kind === 'add-section'); done.push(...r.applied);
-        const next = drawingInputs({ ...doc, drawing: r.settings }, r.settings); if (typeof next === 'string') break;
-        inputs = next;
-        const score = scoreOf(drawingIssues(issueContext(next)));
-        if (score[0] < best.score[0] || (score[0] === best.score[0] && score[1] < best.score[1])) best = { score, settings: r.settings, inputs: next, applied: done.length };
+      // (O175: the rounds are drawing/issues' fixRound, which the studio's Fix all runs too, a round per sheet cut.)
+      const built = new Map<DrawingSettings, SheetInputs>([[i.settings, i]]);
+      const only = (fix: DrawingFix, issue: DrawingIssue) => (!assembly || fix.kind !== 'auto-dimension') && (!codes || codes.includes(issue.code as DrawingIssueCode));
+      let step = fixRound(fixRoundsStart(i), i, only);
+      while (step.next) {
+        const next = drawingInputs({ ...doc, drawing: step.next }, step.next);
+        if (typeof next === 'string') { step = fixRoundsOutcome(step.state); break; }
+        built.set(step.next, next);
+        step = fixRound(step.state, next, only);
       }
-      const settings = best.settings, applied = done.slice(0, best.applied);
-      inputs = best.inputs;
+      const { settings, applied } = step, inputs = built.get(settings) ?? i;
       return set(settings, `${applied.length} drawing fix${applied.length === 1 ? '' : 'es'}`, { applied: applied.map(f => f.kind) }, inputs);
     }
     case 'accept_tolerances': {

@@ -16,6 +16,10 @@ export function drawingScopeOf(s: DrawingSettings): DrawingScope {
   if (s.scope !== undefined) { const why = drawingScopeProblem(s.scope); if (why) throw new Error(why); return s.scope; }
   return s.balloons || s.tables?.some(t => t.from === 'bom') ? { kind: 'assembly' } : { kind: 'part' };
 }
+/** Whether the sheet is drawn from the part's made bodies only (O174): a part's drawing documents what it makes, its
+ *  bought elements out of its views and sections. An assembly's keeps them, and so does a part's sheet with balloons
+ *  (O175): a balloon points at its BOM line's item, a bought one too, so the item is drawn. */
+export const drawsMadeOnly = (s: DrawingSettings): boolean => drawingScopeOf(s).kind !== 'assembly' && !s.balloons;
 /** Authored source of a sheet, before drawing-only evaluation changes. */
 export function drawingSource(doc: StudioDoc, settings: DrawingSettings): StudioDoc {
   const scope = drawingScopeOf(settings);
