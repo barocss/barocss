@@ -68,7 +68,7 @@ export async function gpuWallThickness(device: ComputeDevice, bvh: PackedBvh, ra
   const params = new ArrayBuffer(16); new Float32Array(params, 0, 1)[0] = minT; new Uint32Array(params, 4, 1)[0] = rays.count;
   const [d, l] = await runCompute(device, { code: WALL_THICKNESS_WGSL, label: 'wall thickness', inputs: [bvh.nodes, bvh.triangles, rays.origins, rays.dirs], params, outputs: [4 * rays.count, 4 * rays.count], invocations: rays.count });
   const depth = new Float32Array(d), local = new Float32Array(l);
-  // (The shader's INF is f32's largest: read back as Infinity, as the CPU's.)
-  for (let i = 0; i < rays.count; i++) { if (depth[i] >= 3.4e38) depth[i] = Infinity; if (local[i] >= 3.4e38) local[i] = Infinity; }
+  // (The shader's INF, 1e38 — stored as f32's 9.99999968e37 — read back as Infinity, as the CPU's.)
+  for (let i = 0; i < rays.count; i++) { if (depth[i] >= 9e37) depth[i] = Infinity; if (local[i] >= 9e37) local[i] = Infinity; }
   return { depth, local };
 }
