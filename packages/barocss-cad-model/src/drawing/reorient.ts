@@ -5,9 +5,10 @@
 // - every dimension must then read what it read before (the same edges, the same value): if one does not, or no
 //   longer resolves, the change is refused (ORIENTATION_REMAP_FAILED) and nothing changes;
 // - a section is cut square to its view's depth (A–A: the front's): when the new depth lies along the old one the plane
-//   is kept (its position turned with it); across it the change is refused (SECTION_ACROSS) — turn the section off first.
+//   is kept (its position turned with it), its dimensions turned as that view's are; across it the change is refused
+//   (SECTION_ACROSS) — turn the section off first.
 import { resolveDimension, type Resolved } from './dimensions';
-import { isSectionRef, sectionsOf, withSections, type DrawingSection, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
+import { isSectionRef, sectionLetter, sectionsOf, withSections, type SectionRef, type DrawingSection, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
 import { sectionDepth, type Orientation } from './views';
 
 export const REORIENT_VERSION = 'cad-studio-reorient-v1';
@@ -15,8 +16,7 @@ export const REORIENT_VERSION = 'cad-studio-reorient-v1';
 export type ReorientResult =
   | { ok: true; settings: DrawingSettings; moved: { from: ViewId; to: ViewId }[] }
   | { ok: false; code: 'ORIENTATION_REMAP_FAILED'; message: string; failed: { dim: string; was: string; now: string }[] }
-  | { ok: false; code: 'SECTION_ACROSS'; message: string }
-  | { ok: false; code: 'SECTION_DIMENSIONS'; message: string };
+  | { ok: false; code: 'SECTION_ACROSS'; message: string };
 
 const ORTHO: readonly ViewId[] = ['front', 'top', 'right'];
 const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -52,9 +52,6 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
   const base: DrawingSettings = { ...settings }; delete base.orientation;
   const turned: DrawingSettings = next === 'y-' ? base : { ...base, orientation: next };
   if (was === next) return { ok: true, settings, moved: [] };
-  // (O148 X2: a dimension on a section is not turned yet — its section's view turns or mirrors with the front: refused, typed.)
-  const onSection = settings.dimensions.filter(d => isSectionRef(d.view));
-  if (onSection.length) return { ok: false, code: 'SECTION_DIMENSIONS', message: `${onSection.length} dimension${onSection.length > 1 ? 's are' : ' is'} on a section (${[...new Set(onSection.map(d => d.view.slice(8)))].map(x => `${x}–${x}`).join(', ')}): those are not carried through a turn yet. Remove the section's dimensions, or turn the drawing and add them again after.` };
   // Sections (A–A, and O148 X1's on any principal view): each kept where its view's new depth runs along the old (its
   // position along it turned), refused across it.
   if (sectionsOf(settings).length) {
@@ -73,6 +70,15 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
   }
   const mapPlace = (view: ViewId, p: XY): [ViewId, XY] => { const m = map.get(view); return m ? [m.view, m.point(p)] : [view, p]; };
   turned.dimensions = settings.dimensions.map(d => {
+    // (Queue 3: a dimension on a section turns as its section's view does — the section is kept only where that view's
+    // new depth runs along the old, so its view turns within its own plane or is seen from the other side, as R14.3b
+    // maps the view's own annotations. It stays on its section.)
+    if (isSectionRef(d.view)) {
+      const x = sectionsOf(settings).find(y => y.id === sectionLetter(d.view as SectionRef)), m = x && map.get(x.view);
+      if (!m) return d;
+      const place = m.point(d.place);
+      return d.kind === 'linear' && d.orient !== 'aligned' && m.swaps ? { ...d, place, orient: d.orient === 'horizontal' ? 'vertical' : 'horizontal' } : { ...d, place };
+    }
     const [view, place] = mapPlace(d.view as ViewId, d.place);
     if (d.kind === 'linear' && d.orient !== 'aligned' && map.get(d.view as ViewId)?.swaps) return { ...d, view, place, orient: d.orient === 'horizontal' ? 'vertical' : 'horizontal' };
     return { ...d, view, place };

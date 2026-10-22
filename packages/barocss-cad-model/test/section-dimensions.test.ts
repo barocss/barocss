@@ -70,13 +70,29 @@ test('X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 1
   assert.deepEqual(readDrawing(JSON.parse(JSON.stringify(settings))).dimensions.filter(d => d.view === 'section:B').length, ids.size);
 });
 
-test('X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, named by its section); turning the front with one is refused (SECTION_DIMENSIONS)', () => {
+test('X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, named by its section)', () => {
   const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), { settings } = autoLayout(i);
   const dropped: DrawingSettings = { ...settings, sections: undefined }; delete dropped.sections;
   const ctx = issueContext({ ...i, settings: dropped }), lost = drawingIssues(ctx).filter(x => x.code === 'DIMENSION_LOST');
   assert.ok(lost.length === 2 && lost.every(x => /in section B–B is lost: Its section \(B–B\) is not on the sheet\.$/.test(x.message)), lost.map(x => x.message).join(' | '));
-  const r = reorient(i.views, i.views, settings, 'x+');
-  assert.ok(!r.ok && r.code === 'SECTION_DIMENSIONS' && /on a section \(B–B\)/.test(r.message));
+});
+
+test('queue 3: a section\'s dimensions carried through a reorient — B–B (square to Z) turned to a front from +X and from +Y: its dimensions stay on it and read 6 and 16.5 again; a section across the new front still refused', () => {
+  const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), { settings } = autoLayout(i);
+  const valuesOn = (c: ReturnType<typeof issueContext>) => c.sheet.dimensions.filter(r => r.dim.view === 'section:B').map(r => r.ok ? +r.value.toFixed(6) : NaN).sort((a, b) => a - b);
+  const want = valuesOn(issueContext({ ...i, settings }));
+  assert.ok(want.includes(6) && want.includes(16.5), `${want}`);
+  for (const side of ['x+', 'y+'] as const) {
+    const to = inputs(doc, { ...settings, orientation: side }).views, r = reorient(i.views, to, settings, side);
+    assert.ok(r.ok, !r.ok ? r.message : '');
+    assert.deepEqual(r.settings.sections, [{ id: 'B', view: 'top', at: -15 }]);
+    const after = inputs(doc, r.settings), ctx = issueContext({ ...after, settings: r.settings });
+    assert.deepEqual(valuesOn(ctx), want, `${side}: the same values on B–B`);
+    assert.deepEqual(drawingIssues(ctx).filter(x => x.code === 'DIMENSION_LOST').map(x => x.message), []);
+  }
+  // (A section across the new front: still refused, as A–A always was.)
+  const across = reorient(i.views, inputs(doc, { ...settings, orientation: 'x+' }).views, { ...settings, sections: [...settings.sections!, { id: 'C', view: 'front', at: 0 }] }, 'x+');
+  assert.ok(!across.ok && across.code === 'SECTION_ACROSS', JSON.stringify(across));
 });
 
 // (The scene as a model file for the browser flow's step: written with UPDATE_SECTION_FIXTURE=1, checked byte for byte here.)
