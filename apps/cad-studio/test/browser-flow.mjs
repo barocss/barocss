@@ -7269,6 +7269,57 @@ try {
     await display.click();
   });
 
+  // ---- G24 (roadmap G5): the drawing's annotations on the model — shown, picked, and the same after Save, New and Open ---------
+  await check('G24 3D annotations: the r14 geometric plate\'s drawing on the model — its annotations drawn, a text clicked picks its annotation and selects its targets, the same annotations after Save, New and Open', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/r14/tol-plate-geometric/case.json'), 'utf8'));
+    const file = join(out, 'g24-plate.bcad'); fs.writeFileSync(file, JSON.stringify({ ...c.input.document, drawing: { ...c.input.drawing, sheet: 'A3' } }));
+    const shot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+    const differs = (a, b) => page.evaluate(async ([x, y]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const k = new OffscreenCanvas(img.width, img.height), g = k.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(x), B = await load(y); let n = 0;
+      for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++;
+      return n / (A.length / 4);
+    }, [a, b]);
+    const pmi = () => page.evaluate(() => window.__studioPmi?.());
+    const ready = () => page.waitForFunction(() => { const p = window.__studioPmi?.(); return p && !p.reason && !p.busy && p.items?.length > 0; }, null, { timeout: 120000 }).then(pmi);
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioFresh === true && window.__studioDoc.nodes.length > 0, null, { timeout: 60000 }); await idle();
+    for (let k = 0; k < 3 && await page.locator('.hud button:text-is("Cancel")').count(); k++) await page.locator('.hud button:text-is("Cancel")').click();
+    await page.click('.views button:text-is("Front")'); await page.click('.views button[title="Frame all (F)"]'); await page.waitForTimeout(400);
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    const before = await shot();
+    await page.check('input[aria-label="3D annotations"]');
+    const shown = await ready();
+    await page.waitForTimeout(400);
+    const changed = await differs(before, await shot());
+    console.log(`  G24 (${renderer}): ${shown.items.length} annotations (${[...new Set(shown.items.map(a => a.kind))].join(', ')}), ${shown.left.length} sheet-only; ${(100 * changed).toFixed(2)} % of the canvas changed`);
+    assert.ok(changed > 0.002, `${renderer}: the annotations changed ${(100 * changed).toFixed(3)} % of the canvas`);
+    const texts = renderer === 'webgpu' ? await page.evaluate(() => (window.__studioOverlayTexts?.()['pmi:text'] ?? []).length) : await page.locator('.vp-overlay.pmi text').count();
+    assert.ok(texts > 0, `${renderer}: no annotation texts drawn`);
+    await snap('g24-shown');
+    // (A click on an annotation's first text — its baseline point on screen — picks it, and selects what it points at.)
+    const target = shown.items.find(a => a.targets.some(t => t.edge)) ?? shown.items[0];
+    const at = await page.evaluate(p => window.__studioScreenOf?.(p), target.anchor);
+    assert.ok(at, 'the anchor projects onto the screen');
+    await page.mouse.click(at[0], at[1]); await page.waitForTimeout(300);
+    const picked = await pmi();
+    assert.ok(picked.selected, `${renderer}: the click picked no annotation`);
+    const sel = await page.evaluate(() => window.__studioSelection.selection);
+    assert.ok(sel.edges.length + sel.faces.length > 0, `${renderer}: the pick selected none of its targets`);
+    await snap('g24-picked');
+    // (Saved, a new part, the download opened: the same annotations — nothing of the display is stored, the drawing is.)
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const again = join(out, 'saved-g24-plate.bcad'); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', again);
+    const reopened = await ready();
+    assert.deepEqual(reopened.items.map(a => [a.id, a.text.join(' ')]), shown.items.map(a => [a.id, a.text.join(' ')]));
+    await page.uncheck('input[aria-label="3D annotations"]'); await display.click();
+  });
+
   // ---- G23 CNC (G-R3–G-R5): material removal along the Model's program, on either renderer --------------------------------
   await check('G23 CNC: CNC8\'s pocket from its machining stock — NOT FOR PRODUCTION first; 0, the middle and the end of its program; no overcut, the floor reached; Print layers closes it; reopened, the same', async () => {
     // (The plate and pocket the Model's own commands make, with a stock row the fixture writes: not agent-loaded rows.)

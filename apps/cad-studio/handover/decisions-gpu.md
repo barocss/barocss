@@ -1840,3 +1840,24 @@ state for exact WIP, process cleanup, blockers and first resume steps.
 - **Getting the step right**: a click at the canvas centre hit the extrude's handle and opened its edit, which disables
   the display modes. The step now frames with the Frame-all button (a key could start a command) and clicks away from
   the handle.
+
+## G-R16 — G24's acceptance on both renderers: shown, picked to its targets, the same after Save, New and Open (roadmap G5, 2026-10-23)
+
+- **The check** (new flow step `G24 3D annotations`): the outer lane's r14 tol-plate-geometric case, its document with
+  its own drawing (6 dimensions, A3), opened in the studio and seen from Front.
+  - "3D annotations" is turned on from the Display popover.
+  - The annotations must arrive and be drawn: the canvas changes, and the texts are drawn (WebGPU's `pmi:text` labels;
+    WebGL2's SVG texts).
+  - A click at the first annotation's text anchor, projected by `__studioScreenOf`, must pick it and select its
+    targets.
+  - After Save, New and Open, the same ids and texts.
+- **Results** (load 1m 17–20, DPR 1, 1440 × 900):
+
+  | Renderer | Annotations | Canvas changed | Pick | After Save/New/Open |
+  |---|---|---|---|---|
+  | WebGPU | 6 dimensions, 0 sheet-only | 0.88 % | selects its edge (the 64 mm line along X) | same |
+  | WebGL2 | 6 dimensions, 0 sheet-only | 1.14 % | selects its edge | same |
+
+  The snapshots were inspected: the 64 and 32 dimensions, extension lines and heads in their planes, and Ø8 THRU.
+- **Not covered**: datums and frames in 3D on screen. They are in pmi.test (unit); this case's drawing has no frame
+  placed. Instance-prefixed targets are not covered either.
