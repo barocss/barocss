@@ -1815,3 +1815,28 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - **Not reproduced at integration.** Codex's black canvas came from its own environment at 1f041 (before the
     G19–G21 viewer work in integration); its raw files are gone.
   - The check stays in the flow as a guard. If it comes back, the step's message gives the shares.
+
+## G-R15 — G3's acceptance: every display mode on both renderers, picks unchanged, isolate and restore (roadmap G3, 2026-10-23)
+
+- **The check** (new flow step `G3 display modes`): a 64 × 32 × 8 plate and two placed Ø8 × 20 pins (curved faces,
+  silhouettes).
+  - Each of the five CAD display modes is chosen from the Display popover: shaded with edges, hidden lines removed,
+    hidden lines dashed, wireframe, x-ray. For each, the step requires:
+    - the mode effective (the select's `data-display-mode-effective`);
+    - the canvas drawn (over 0.5 % of pixels changed from the empty view);
+    - a click on the plate's top, away from the feature's handle, selecting the same face in every mode.
+  - Isolate: with a pin selected, Isolate selection fades the rest (over 0.5 % changed); Restore view brings back the
+    selected view (under 0.2 % changed).
+- **Results** (load 1m 16–31, DPR 1, 1440 × 900):
+
+  | Renderer | Modes drawn | Pick | Isolate fades, restore returns |
+  |---|---|---|---|
+  | WebGPU | 5/5 | `{body 0, face 5}` in all five | yes |
+  | WebGL2 | 5/5 | `{body 0, face 5}` in all five | yes |
+
+  The snapshots were inspected: dashed hidden edges, silhouettes on the pins, isolate fading the plate and the other pin.
+- **Not covered**: hiding a body in every mode (the outliner's eye), and section plus mode combinations. G19's steps cover
+  sections in the default mode.
+- **Getting the step right**: a click at the canvas centre hit the extrude's handle and opened its edit, which disables
+  the display modes. The step now frames with the Frame-all button (a key could start a command) and clicks away from
+  the handle.
