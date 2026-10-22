@@ -11111,3 +11111,40 @@ all, 46.2 s of it under `turningOf`.
 - Kernel: lint 0 errors, type-check clean, build. In a scratch worktree, 121 files that tessellate, take mass, project
   or differentiate: 970/971, 1 skipped, 0 failing.
 - cad-model's mould, draft, cnc and A9 files: 69/69.
+
+## D186 — K9 (RB TODOs), the 1 nm graze: a wrong body becomes a typed refusal (2026-10-23)
+
+**RB's first TODO item.** `corpus/oracle/cylinder-box-graze-x45-in0_000001-difference`: a box turned 45° about X, its
+outermost edge 1 nm (the tolerance) into an upright cylinder's wall. The analytic Boolean returned a wrong body:
+- it measured 534.22 mm³ against the oracle's 253.12070406;
+- its side face's loops crossed (strict L0);
+- RB marked it validate INVALID, tessellate INVALID and expect WRONG.
+
+**Cause.** The lens the graze cuts in the wall is two traced curves, 5.7e-3 mm long, within 1 nm of each other.
+- `stitch`'s edge matching (midpoints within 10 to 100 tolerances) took the second curve for the first, so the wall's
+  face used one edge both ways where its lens hole was.
+- The non-strict check passes such a face: each edge has two uses, in opposite senses.
+
+**Fix, `src/analytic-boolean.ts`, `stitch`.** A traced curve met again by the piece that registered it is counted (a
+seam met twice is counted too, and costs only the check below).
+- When any are counted, the result is checked strictly before it is returned.
+- If it fails, the Boolean refuses: GEOMETRY "the inputs graze within <20·tol> mm (the merge radius) and the sliver
+  between them cannot be built: <the first issue>".
+- Other Booleans are not checked strictly, and their time is unchanged: the 121-file batch took 319 s against 310 s,
+  at a load 5 higher.
+- **Not done:** building the touching result (the lens dropped), the oracle's 253.12. The item stays in `todo.json` as
+  evaluate WRONG (a refusal where an output is expected), its three INVALID/WRONG rows replaced by that one.
+
+**Also caught: an existing test pinned a wrong body.** `gear-internal.test.mjs` ("placed …"): the pinion turned to
+where the sweep crosses by 0.0118 mm, intersected with the ring.
+- The old result was strict-invalid: a face 2e-19 mm wide with crossing loops, and a volume (0.00168) 5 % off its mesh's
+  at 32 segments (0.00177).
+- The test asserted only volume > 1e-4. It now accepts either a body valid under the strict check with that volume, or
+  the typed graze refusal. The overlap itself is asserted by the sweep (minimum clearance < −0.01 mm), unchanged.
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- 121 kernel files (tessellation, mass, Booleans, gears, properties) in a scratch worktree: 970/971, 1 skipped,
+  0 failing.
+- RB on `robustness/corpus/oracle` alone: the known graze and helical items only. That run names them as NEW, because
+  a single folder's case ids lack the `corpus/` prefix `todo.json` keys on; the full RB rides the coordinator's window.

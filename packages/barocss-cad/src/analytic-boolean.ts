@@ -1702,7 +1702,11 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
   });
   const vertexOf = (x: P3) => canon(set.find(x));
   // Split at every vertex lying on a curve (T-junctions between neighbouring pieces).
-  const edges: { id: string; k: Curve3; v: [number, number]; mid: P3 }[] = [], between = new Map<string, number[]>();
+  const edges: { id: string; k: Curve3; v: [number, number]; mid: P3; by: number }[] = [], between = new Map<string, number[]>();
+  // (A traced curve met again by the piece that made it is two curves within the tolerance of each other — a lens the
+  // inputs' graze left, collapsed into one edge used both ways by one face. Such a result is checked strictly before it
+  // is returned: RB K9, D186. A seam met twice only adds that check.)
+  let piece = -1, collapsed = 0;
   const edgeOf = (k: Curve3, a: number, b: number) => {
     const mid = midOf(k), key = Math.min(a, b) + ':' + Math.max(a, b), list = between.get(key) ?? [];
     // The same curve from either face: a parametric piece's midpoint depends on the face that
@@ -1710,13 +1714,14 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
     // A traced curve is within its tracing tolerance of the exact one it copies.
     const loose = (x: Curve3) => x.kind === 'param' && !x.exact;
     let e = list.find(i => { const eps = (loose(k) || loose(edges[i].k) ? 100 : 10) * tol; return len(sub(edges[i].mid, mid)) <= eps || onCurve(edges[i].k, mid, eps) !== null; });
-    if (e === undefined) { e = edges.length; edges.push({ id: `${id}_e${e}`, k, v: [a, b], mid }); list.push(e); between.set(key, list); }
+    if (e === undefined) { e = edges.length; edges.push({ id: `${id}_e${e}`, k, v: [a, b], mid, by: piece }); list.push(e); between.set(key, list); }
+    else if (edges[e].by === piece && (k.kind === 'param' || edges[e].k.kind === 'param')) collapsed++;
     return { edge: edges[e].id, sense: (edges[e].v[0] === a ? 'forward' : 'reversed') as 'forward' | 'reversed', index: e };
   };
   // (Only the vertices in a curve's box can lie on it: a grid over them, so a mesh-sized body is not every
   // vertex against every curve.)
   const grid = vertexGrid(P);
-  const loops = rings.map(ps => ps.map(ring => ring.flatMap(k => {
+  const loops = rings.map((ps, pi) => (piece = pi, ps).map(ring => ring.flatMap(k => {
     const a = vertexOf(startOf(k)), b = vertexOf(endOf(k)), stops = [{ t: 0, v: a }];
     for (const v of nearCurve(grid, k, tol)) { if (v === a || v === b || alias[v] !== v) continue; const t = onCurve(k, P[v], tol); if (t !== null) stops.push({ t, v }); }
     stops.sort((x, y) => x.t - y.t); stops.push({ t: 1, v: b });
@@ -1834,5 +1839,10 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
   // Solids that touch at a vertex give a non-manifold result; refuse it plainly (as for edges).
   const report = checkBrep(result);
   if (!report.valid) throw new BrepError('TOPOLOGY', `analytic Boolean: the result is not a manifold solid (the inputs touch along an edge or at a vertex): ${report.issues[0]}`, report);
+  // A collapsed sliver (above) can leave a face's loops crossing — a wrong body, its volume off: refused, typed (D186).
+  if (collapsed) {
+    const strict = checkBrep(result, { strict: true });
+    if (!strict.valid) throw new BrepError('GEOMETRY', `analytic Boolean: the inputs graze within ${+(20 * tol).toPrecision(3)} mm (the merge radius) and the sliver between them cannot be built: ${strict.issues[0]}`, strict);
+  }
   return result;
 }
