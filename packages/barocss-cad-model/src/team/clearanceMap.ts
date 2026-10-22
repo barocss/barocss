@@ -73,15 +73,23 @@ export async function assemblyPlacedBodies(doc: StudioDoc, evaluate: Evaluate): 
 }
 export const poseOf = (inst: PartInstance): Pose => ({ m: [...(rotationMatrix(inst.rotation) as unknown as number[])], t: [inst.position[0], inst.position[1], inst.position[2]] });
 
+/** Each body prepared once (its world mesh, box, K2 trees and hash), kept while the body object lives: a band asked for later reuses them. */
+const prepared = new WeakMap<PlacedBody, Prepared>();
 function prepare(b: PlacedBody): Prepared {
+  const had = prepared.get(b); if (had) return had;
   const P = b.mesh.positions, local = Float64Array.from(P), world = new Float64Array(P.length), lo: Vec3 = [Infinity, Infinity, Infinity], hi: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (let v = 0; v < P.length; v += 3) { const w = apply(b.pose, P[v], P[v + 1], P[v + 2]); for (let k = 0; k < 3; k++) { world[v + k] = w[k]; lo[k] = Math.min(lo[k], w[k]); hi[k] = Math.max(hi[k], w[k]); } }
-  return { ...b, world, local, lo, hi, bvh: triangleBvh(world, b.mesh.indices), localBvh: triangleBvh(local, b.mesh.indices), hash: hashOf(P, b.mesh.indices, b.pose.m, b.pose.t) };
+  const out = { ...b, world, local, lo, hi, bvh: triangleBvh(world, b.mesh.indices), localBvh: triangleBvh(local, b.mesh.indices), hash: hashOf(P, b.mesh.indices, b.pose.m, b.pose.t) };
+  prepared.set(b, out);
+  return out;
 }
 const faceOf = (mesh: DisplayMesh, triangle: number) => triangle < 0 ? '' : mesh.faces[mesh.faceOfVertex[mesh.indices[3 * triangle]]]?.name ?? '';
 
-/** The map: candidates by their grown boxes, the exact least distance on each, the bands; overlaps pending. */
-export function clearanceMap(bodies: readonly PlacedBody[], o: { nearMM?: number } = {}): ClearanceMap {
+/**
+ * The map: candidates by their grown boxes and the exact least distance on each — at once. Bands (`bands: true`, or each
+ * by `bandFor`) and overlaps (`fillOverlap`) come after, nearest first: a band costs far more than the map (O-log).
+ */
+export function clearanceMap(bodies: readonly PlacedBody[], o: { nearMM?: number; bands?: boolean } = {}): ClearanceMap {
   const near = o.nearMM ?? 1, t0 = performance.now(), ps = bodies.map(prepare);
   const order = ps.map((_, k) => k).sort((a, b) => ps[a].lo[0] - ps[b].lo[0]), cand: [number, number][] = [];
   for (let i = 0; i < order.length; i++) for (let j = i + 1; j < order.length; j++) {
@@ -96,7 +104,7 @@ export function clearanceMap(bodies: readonly PlacedBody[], o: { nearMM?: number
     const gap = c.distanceMM, state = gap === 0 ? 'overlap' : gap <= near ? 'near' : 'clear';
     const pair: ClearancePair = { a: A.key, b: B.key, state, minGapMM: gap, closest: { a: c.pointA ? unapply(A.pose, c.pointA) : [0, 0, 0], b: c.pointB ? unapply(B.pose, c.pointB) : [0, 0, 0], faceA: faceOf(A.mesh, c.triangleA), faceB: faceOf(B.mesh, c.triangleB) }, pose: `${A.hash}.${B.hash}` };
     if (state === 'overlap') pair.overlap = A.brep && B.brep ? { pending: true } : { refused: 'no exact solid for one of the two bodies (a mesh body): its overlap is shown from the meshes only' };
-    if (state !== 'clear') { const tb = performance.now(); pair.band = { a: bandOf(A, B, near), b: bandOf(B, A, near) }; bandMS += performance.now() - tb; }
+    if (state !== 'clear' && o.bands) { const tb = performance.now(); pair.band = { a: bandOf(A, B, near), b: bandOf(B, A, near) }; bandMS += performance.now() - tb; }
     pairs.push(pair);
   }
   const t2 = performance.now();
@@ -141,6 +149,16 @@ function bandOf(A: Prepared, B: Prepared, near: number): Band {
 const len = (a: Vec3, b: Vec3) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const mid = (a: Vec3, b: Vec3): Vec3 => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
 const centroid = (a: Vec3, b: Vec3, c: Vec3): Vec3 => [(a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3, (a[2] + b[2] + c[2]) / 3];
+
+/** A pair's bands on demand (both sides), the near band the map's — for the pairs on screen, nearest first. */
+export function bandFor(map: ClearanceMap, bodies: readonly PlacedBody[], pair: ClearancePair): { a: Band; b: Band } | null {
+  if (pair.state === 'clear') return null;
+  const A = bodies.find(b => b.key === pair.a), B = bodies.find(b => b.key === pair.b); if (!A || !B) return null;
+  const pa = prepare(A), pb = prepare(B); if (`${pa.hash}.${pb.hash}` !== pair.pose) return null;
+  return pair.band ??= { a: bandOf(pa, pb, map.near.mm), b: bandOf(pb, pa, map.near.mm) };
+}
+/** The pairs waiting for their bands, nearest first (crossing ones first, then by gap). */
+export const bandPending = (map: ClearanceMap): ClearancePair[] => map.pairs.filter(p => p.state !== 'clear' && !p.band).sort((x, y) => x.minGapMM - y.minGapMM);
 
 /**
  * A pending overlap worked out: the kernel's analytic intersection of the two placed B-reps, its volume, and its

@@ -6131,3 +6131,11 @@ The coordinator's item 2 after G22. This S0 needs the coordinator's and the GPU 
   - **The linking oracle**: every rapid at the safe height; retracts straight up; the program continuous; it ends at the safe height. Feeds at z 17, 14, 12; passes (3, 0…4) then (6, 0)…; no stock gives the refusal and the rule still holds.
   - **The swept-volume oracle**: the feed and ramp moves' swept area a level (0.05 mm raster), times its thickness, is 12000 mm³ less at most the four corners a flat Ø6 tool cannot reach, 4(1 − π/4)R² a mm of depth, within the raster's bound.
   - CNC8's holes (Ø6.6 through, Ø5 blind 10): +Z and −Z setups; each a plunge to its bottom (z 0 and z 10 from +Z) and a retract to the safe height; −Z's axis (0, 0, −1).
+
+### G22 addendum — bands on demand (2026-10-22)
+
+The coordinator: bands at 1.97 s for 120 boxes must not hold up the first map. Now:
+- `clearanceMap` gives pairs, closest points, states and pose keys at once: 19.8 ms for the 120 boxes' 416 pairs, the K2 trees included.
+- Bands come only on asking: `bandFor(map, bodies, pair)`, about 26 ms for one near pair of boxes, cached on the pair, and null for a stale pose. Each body's K2 trees and hash are prepared once per body object and reused. `bandPending(map)` lists the pairs still without one, nearest first. `bands: true` still gives them all at once.
+- Overlaps stream after them as before (`fillOverlap`, `applyFill`).
+- **The worker request** (the map first, then the bands nearest first for what is on screen, then the overlaps) **is the GPU lane's, at G22**, calling these.

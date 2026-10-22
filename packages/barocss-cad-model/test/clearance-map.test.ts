@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
-import { applyFill, assemblyPlacedBodies, clearanceMap, fillOverlap, pendingPairs, poseOf, type ClearancePair, type PlacedBody } from '../src/team/clearanceMap';
+import { applyFill, assemblyPlacedBodies, bandFor, bandPending, clearanceMap, fillOverlap, pendingPairs, poseOf, type ClearancePair, type PlacedBody } from '../src/team/clearanceMap';
 
 // G22's data side: the assembly's interference and clearance map. Two 20 × 20 × 10 boxes overlapping by a 5 × 20 × 10
 // block: pending at once, then filled — 1000 mm³, its mesh's volume the same, in body a's frame. 1 mm apart: near, the
@@ -37,17 +37,20 @@ test('G22: an overlap pending at once, then filled — 5 × 20 × 10 = 1000 mm³
   assert.ok(a, 'the base body is side a');
   assert.ok(Math.abs(f.overlap.mesh.bounds.min[0] - 15) < 1e-5 && Math.abs(f.overlap.mesh.bounds.max[0] - 20) < 1e-5);
   assert.ok(applyFill(map, f) && map.pending === 0 && 'volumeMM3' in p.overlap!);
-  assert.ok(p.band && p.band.a.indices.length > 0 && p.band.b.indices.length > 0, 'bands on both sides');
+  // (Bands come after the map, on asking: none in it at first.)
+  assert.equal(p.band, undefined); assert.deepEqual(bandPending(map), [p]);
+  const band = bandFor(map, bodies, p)!;
+  assert.ok(band.a.indices.length > 0 && band.b.indices.length > 0, 'bands on both sides'); assert.deepEqual(bandPending(map), []);
 });
 
 test('G22: 1 mm apart — near, the least gap 1 between the facing faces by name, closest points in each body\'s frame; far apart, no pair', async () => {
   const bodies = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [21, 0, 0])), evaluate);
-  const p = only(clearanceMap(bodies, { nearMM: 1.5 }).pairs);
+  const map = clearanceMap(bodies, { nearMM: 1.5 }), p = only(map.pairs);
   assert.equal(p.state, 'near'); assert.ok(Math.abs(p.minGapMM - 1) < 1e-6, String(p.minGapMM));
   assert.ok(Math.abs(p.closest.a[0] - 20) < 1e-6 && Math.abs(p.closest.b[0]) < 1e-6, JSON.stringify(p.closest));
   assert.ok(p.closest.faceA && p.closest.faceB && p.closest.faceA !== '' && p.closest.faceB !== '');
   assert.equal(p.overlap, undefined);
-  const facing = Math.min(...p.band!.a.field);
+  const facing = Math.min(...bandFor(map, bodies, p)!.a.field);
   assert.ok(Math.abs(facing - 1) < 1e-6, `the facing side's field ${facing}`);
   const far = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [40, 0, 0])), evaluate);
   assert.deepEqual(clearanceMap(far, { nearMM: 1.5 }).pairs, []);
@@ -56,7 +59,7 @@ test('G22: 1 mm apart — near, the least gap 1 between the facing faces by name
 test('G22 band oracle: a 2 mm cube 0.8 above the middle of a box\'s top face (two big triangles) — the band refines there; its least field equals the gap within the subdivision\'s bound (near/3)', async () => {
   const near = 1.5, bodies = await assemblyPlacedBodies(asm(box(60, 40, 10), inst('c', box(2, 2, 2), [29, 19, 10.8])), evaluate);
   const top = bodies.find(b => b.key === 'b1')!;
-  const p = only(clearanceMap(bodies, { nearMM: near }).pairs), band = p.a === 'b1' ? p.band!.a : p.band!.b;
+  const map = clearanceMap(bodies, { nearMM: near }), p = only(map.pairs), both = bandFor(map, bodies, p)!, band = p.a === 'b1' ? both.a : both.b;
   assert.ok(Math.abs(p.minGapMM - 0.8) < 1e-6, String(p.minGapMM));
   const least = Math.min(...band.field);
   assert.ok(least >= p.minGapMM - 1e-6 && least - p.minGapMM <= near / 3 + 1e-9, `least ${least}, gap ${p.minGapMM}`);
