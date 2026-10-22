@@ -1792,3 +1792,51 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     moves the dragged hole; with them it passes, as in the full flow.
 - **Steps not mine** (the coordinator's list): 147, 245 and 248 (the outer lane's rows rule (b) in the scripted chat),
   and 144 (a timing flake).
+
+## G-R14 — K2's viewport side on both renderers, and the L-gap black canvas not reproduced (roadmap K2 / G4, 2026-10-23)
+
+- **K2 notches** (`K2 FRk5 notches`, the kernel lane's D182 cases) **and G23 CNC** (`G23 CNC`) **pass on WebGL2**
+  too (load 1m 14–19). With G-R13's WebGPU runs, both now pass on both renderers.
+- **The L-gap reproduction** (new check `K2 FRk5 L gap`).
+  - D175 recorded that the L gap frame's first WebGPU canvas was black with real worker geometry, and WebGL2 fine.
+  - The check opens a mitred L of 40 × 40 × 3 tubes with a 2 mm joint gap, as the studio's frame node, after a New part.
+    It requires:
+    - two bodies;
+    - the first frame after they arrive not black (under 0.5 % near-black pixels) and changed from the empty view;
+    - the same after Iso;
+    - the same volumes (1e-9) after Save, New and Open.
+  - Results:
+
+    | Renderer | First frame changed | Black | Result |
+    |---|---|---|---|
+    | WebGPU | 8.61 % | 0.00 % | passes |
+    | WebGL2 | 11.03 % | 0.00 % | passes |
+
+  - **Not reproduced at integration.** Codex's black canvas came from its own environment at 1f041 (before the
+    G19–G21 viewer work in integration); its raw files are gone.
+  - The check stays in the flow as a guard. If it comes back, the step's message gives the shares.
+
+## G-R15 — G3's acceptance: every display mode on both renderers, picks unchanged, isolate and restore (roadmap G3, 2026-10-23)
+
+- **The check** (new flow step `G3 display modes`): a 64 × 32 × 8 plate and two placed Ø8 × 20 pins (curved faces,
+  silhouettes).
+  - Each of the five CAD display modes is chosen from the Display popover: shaded with edges, hidden lines removed,
+    hidden lines dashed, wireframe, x-ray. For each, the step requires:
+    - the mode effective (the select's `data-display-mode-effective`);
+    - the canvas drawn (over 0.5 % of pixels changed from the empty view);
+    - a click on the plate's top, away from the feature's handle, selecting the same face in every mode.
+  - Isolate: with a pin selected, Isolate selection fades the rest (over 0.5 % changed); Restore view brings back the
+    selected view (under 0.2 % changed).
+- **Results** (load 1m 16–31, DPR 1, 1440 × 900):
+
+  | Renderer | Modes drawn | Pick | Isolate fades, restore returns |
+  |---|---|---|---|
+  | WebGPU | 5/5 | `{body 0, face 5}` in all five | yes |
+  | WebGL2 | 5/5 | `{body 0, face 5}` in all five | yes |
+
+  The snapshots were inspected: dashed hidden edges, silhouettes on the pins, isolate fading the plate and the other pin.
+- **Not covered**: hiding a body in every mode (the outliner's eye), and section plus mode combinations. G19's steps cover
+  sections in the default mode.
+- **Getting the step right**: a click at the canvas centre hit the extrude's handle and opened its edit, which disables
+  the display modes. The step now frames with the Frame-all button (a key could start a command) and clicks away from
+  the handle.
