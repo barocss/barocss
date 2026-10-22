@@ -24,7 +24,7 @@ function mergeById<T extends { id: string }>(was: readonly T[] | undefined, inco
 export function loadPersonRows(doc: StudioDoc, kind: unknown, fileId: unknown, feature?: unknown, context?: PersonRowFiles): { doc: StudioDoc; source: RowFileSource; rows: number } | { error: string } {
   const file = personRowFile(context, fileId);
   if (!file) return { error: ROWS_NOT_FROM_PERSON };
-  if (!ROW_KINDS.includes(kind as RowKind)) return { error: '[ROWS_KIND] Use a row kind from describe library.load_rows.' };
+  if (!ROW_KINDS.includes(kind as RowKind)) return { error: '[ROWS_KIND] Use a row kind from describe features.load_rows.' };
   if (feature !== undefined && kind !== 'bend') return { error: '[ROWS_INPUT] feature is only for a bend table.' };
   let parsed: unknown;
   try { parsed = JSON.parse(file.text); } catch { return { error: '[ROWS_INPUT] The supplied file is not JSON.' }; }

@@ -14,6 +14,7 @@
     "properties": {
      "action": {
       "enum": [
+       "bundle",
        "get",
        "add_part",
        "place",
@@ -116,6 +117,7 @@
        "command",
        "add",
        "edit",
+       "load_rows",
        "delete",
        "material",
        "stock",
@@ -265,6 +267,7 @@
     "properties": {
      "action": {
       "enum": [
+       "layers",
        "check",
        "orient"
       ],
@@ -327,6 +330,10 @@
        "fit_clearance",
        "welds",
        "cutlist",
+       "bom",
+       "purchase_csv",
+       "clearance",
+       "cam",
        "render",
        "select",
        "manufacturability"

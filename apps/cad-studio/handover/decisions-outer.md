@@ -6612,3 +6612,32 @@ Each result conforms to its schema, reports `changed: false`, and leaves the doc
 - tsc of studio; eslint of the changed files: 0 errors.
 
 **Not run:** the full studio suite and any browser flow.
+
+## O154 — S3: the frozen v2 contract, re-recorded; load_rows moves to `features` (2026-10-23)
+
+**The diff** between `src/chat/tools-v2.json` (last recorded at O124, `c176929f6`) and the live TOOLS_V2. Codex never re-recorded the file. Group inputs carry only the action enum.
+- assembly + `bundle`; print + `layers`; query + `bom`, `purchase_csv`, `clearance`, `cam` — additive.
+- library + `load_rows`, with library's `destructiveHint` false → true — flagged breaking ("library: now destructive"). load_rows is rightly in contract.ts's ALTERS (it replaces rows of the same id and a sheet's K), and a group is destructive if any action is.
+
+**The coordinator's choice: (a).**
+- load_rows moves into the `features` group, which is already destructive, so library stays non-destructive (toolset.test asserts that).
+- v2 was never released, and `library.load_rows` lived only in Codex's squashed work, so it is renamed outright with no alias.
+- The handler name stays `load_rows`.
+
+**Every use changed:**
+- `src/chat/groups.ts`: the action moves from library to features;
+- `src/chat/rows.ts`: the ROWS_KIND message, "describe features.load_rows";
+- `apps/cad-studio/server/chatServer.ts`: the row-file note the agent reads, "features.load_rows takes file by id";
+- `test/person-rows.test.ts`: four v2 calls and one proposal op, `library` → `features`.
+
+Checked with git grep:
+- the other `load_rows` uses call the handler name, and stay as they are (tools.ts's BATCHABLE, MUTATORS and case, drawing-table, sheet, studio chat.test);
+- no studio flow or fixture names `library.load_rows`;
+- the README §0 and decisions-outer A9-9 text that mentions it is history, kept.
+
+**Re-recorded** with `UPDATE_TOOL_CONTRACT=1`. That run first asserts there is no breaking change against the old file, and it passed. The file gains seven action names and nothing else.
+
+**Verified (T1):**
+- toolset 9/9: the frozen contract, `library` not destructive, the per-turn guard at 23,180 of 25,000 characters (13 tools, list 14,938, prompt 8,242);
+- shop-context-tools 3/3 (its own ≤ 25,000 guard), person-rows 9/9, tool-contract 3/3, sheet 8/8, drawing-table 5/5, studio chat 18/18;
+- tsc of model and studio; eslint 0 errors.
