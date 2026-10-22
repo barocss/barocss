@@ -150,6 +150,8 @@ interface Props {
    * flags), clicks pick in its mode (Shift adds), a double-click on an edge its loop (Alt: its ring).
    */
   cage?: CageOverlay | null;
+  /** A tool on the pointer and the overlay (G17: the 3D skeleton sketch), or none. */
+  tool?: ViewportTool | null;
   onPickCage?(hit: CageHit | null, additive: boolean, grow?: 'loop' | 'ring'): void;
 }
 /**
@@ -201,6 +203,27 @@ function polylineSegments(lines: readonly (readonly Vec3[])[]): OverlayLines['se
   const out = new Float32Array(6 * n); let o = 0;
   for (const l of lines) for (let i = 0; i + 1 < l.length; i++) { const p = l[i], q = l[i + 1]; out[o++] = p[0]; out[o++] = p[1]; out[o++] = p[2]; out[o++] = q[0]; out[o++] = q[1]; out[o++] = q[2]; }
   return out;
+}
+
+/** What a viewport tool sees of the view (G17): pixels of world points, the ray under a pixel, the bodies' corners. */
+export interface ToolView {
+  w: number; h: number; camera: OrbitCamera;
+  project(p: Vec3): [number, number, number];
+  ray(x: number, y: number): { origin: Vec3; dir: Vec3 };
+  /** The shown bodies' corners (the ends of their edges). */
+  vertices(): Vec3[];
+  request(): void;
+}
+/**
+ * A tool that takes the left button before the viewport's own picking and draws its marks in the overlay (G17: the 3D
+ * skeleton sketch); orbit (right, Alt-left), pan and wheel stay the viewport's. `down` true: the press is the tool's
+ * (its moves and release go to it); `move` true with no press: the hover is the tool's (no face or edge hover).
+ */
+export interface ViewportTool {
+  down(x: number, y: number, view: ToolView, e: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean }): boolean;
+  move(x: number, y: number, view: ToolView, e: { buttons: number; shiftKey: boolean }): boolean;
+  up(x: number, y: number, view: ToolView, e: { shiftKey: boolean }): void;
+  marks(view: ToolView): React.ReactNode;
 }
 
 export interface CageOverlay {
@@ -255,7 +278,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     for (const e of mesh.edges) for (let k = 0; k < 2; k++) { const p = k ? e.b : e.a, q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
     return best ? { body: bi, at: best } : null;
   };
-  const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
+  const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | 'tool' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
     /** A gizmo drag: what was hit, the pointer's start and last points, and what it means so far. */
     hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; factor?: number }>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */
@@ -537,6 +560,15 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     return [origin[0] + dir[0] * t, origin[1] + dir[1] * t, origin[2] + dir[2] * t];
   };
 
+  /** The view as a tool sees it (G17). */
+  const toolView = (): ToolView => {
+    const c = canvas.current!, w = Math.max(1, c.clientWidth), h = Math.max(1, c.clientHeight), cam = camera.current;
+    cam.aspect = w / h;
+    return {
+      w, h, camera: cam, project: p => cam.project(p, w, h), ray: (x, y) => cam.ray((x / w) * 2 - 1, 1 - (y / h) * 2), request,
+      vertices: () => { const out: Vec3[] = []; propsRef.current.bodies.forEach((b, i) => { if (propsRef.current.hiddenBodies?.has(i)) return; for (const e of b.mesh.edges) out.push(e.a as Vec3, e.b as Vec3); }); return out; },
+    };
+  };
   /** Canvas pixels of world points, for the gizmo and handles: they keep one size on screen (GIZMO_PX at their origin). */
   const projector = (): Projector => {
     const w = canvas.current!.clientWidth, h = canvas.current!.clientHeight, cam = camera.current, { right, forward } = cam.basis();
@@ -689,6 +721,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   const onPointerDown = (e: React.PointerEvent) => {
     canvas.current!.setPointerCapture(e.pointerId);
     const { x, y } = local(e);
+    const tool = propsRef.current.tool;
+    if (tool && e.button === 0 && !e.altKey && tool.down(x, y, toolView(), e)) { drag.current = { mode: 'tool', x, y, moved: false }; request(); return; }
     const hit = e.button === 0 && !propsRef.current.sketch ? gizmoHit(x, y) : null;
     if (hit) {
       const hd = hit.kind === 'handle' ? propsRef.current.handles![hit.index] : undefined;
@@ -706,6 +740,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     if (d.mode === 'orbit') { camera.current.orbit(x - d.x, y - d.y); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
     if (d.mode === 'pan') { camera.current.pan(x - d.x, y - d.y, h); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
     if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, false); d.moved = true; request(); return; }
+    if (d.mode === 'tool') { propsRef.current.tool?.move(x, y, toolView(), e); d.moved = true; request(); return; }
+    if (!d.mode && propsRef.current.tool?.move(x, y, toolView(), e)) { request(); return; }
     if (!d.mode && !sk0()) {
       const hot = gizmoHit(x, y);
       if (!sameGizmoHit(hot, gizmoHot.current)) { gizmoHot.current = hot; request(); }
@@ -792,6 +828,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
     const d = drag.current; drag.current = { mode: null, x: 0, y: 0, moved: false };
     const { x, y, w, h } = local(e);
     if (d.mode === 'gizmo') { drag.current = d; gizmoDrag(x, y, e.shiftKey, true); drag.current = { mode: null, x: 0, y: 0, moved: false }; request(); return; }
+    if (d.mode === 'tool') { propsRef.current.tool?.up(x, y, toolView(), e); request(); return; }
     if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey); request(); return; }
     if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
       const { face, edge } = pickAt(renderer.current!, x, y);
@@ -1084,6 +1121,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
       items.push(<g key={'proposal:' + side} aria-label={side === 'added' ? 'Material added' : 'Material removed'}><rect x={q[0] - tw / 2} y={q[1] - 26} width={tw} height={20} rx={4} style={{ fill }} />
         <text x={q[0]} y={q[1] - 12} textAnchor="middle" className="dim-text" style={{ fill: '#ffffff' }}>{text}</text></g>);
     }
+    if (props.tool) items.push(<g key="tool" className="vp-tool">{props.tool.marks(toolView())}</g>);
     const dr = drag.current;
     if (dr.mode === 'box' && dr.x0 !== undefined) {
       const crossing = dr.x < dr.x0;

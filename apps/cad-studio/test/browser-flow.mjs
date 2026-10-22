@@ -692,7 +692,8 @@ try {
     await page.waitForFunction(() => /Fillet R4/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 20000 });
     const d = await doc(), last = d.nodes[d.nodes.length - 1];
     assert.equal(last.kind, 'fillet'); assert.deepEqual(last.edges, [edge]);
-    assert.match(await outliner(), /1 body/); await iso();
+    // (Waited for: the outliner is drawn again once the fillet's body is evaluated — read at once it could be empty.)
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await iso();
   });
 
   await check('a selected box shows its dimension arrows; dragging the width edits the feature', async () => {
@@ -6406,6 +6407,81 @@ try {
     console.log(`  G16 turn (${renderer}): ${JSON.stringify(turned)}`);
     assert.ok(turned.moved > 2 && turned.toAfter < turned.toBefore / 4, `mid-drag drawn as turned ${JSON.stringify(turned)}`);
     await snap('g16-turned');
+  });
+
+  // ---- G17: the 3D skeleton sketch in the viewport ---------------------------------------------------------------------
+  await check('G17: a 3D sketch — a 40 × 20 loop drawn on XY, constrained to well-defined (a conflict shown, undone), points dragged and solved live, applied as a skeleton; a body corner snapped in 3D — on either renderer', async () => {
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
+    await press(' '); await page.locator('.palette input').fill('3d sketch'); await press('Enter');
+    await page.waitForSelector('aside[aria-label="3D sketch"]', { timeout: 5000 });
+    const scr = p => page.evaluate(p => window.__studioScreenOf(p), p);
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const mark = () => page.evaluate(() => { const g = document.querySelector('.vp-overlay [aria-label="3D sketch"]'); return g && { points: +g.dataset.points, segments: +g.dataset.segments, status: g.dataset.status }; });
+    const pointAt = i => page.evaluate(i => { const c = document.querySelector(`.vp-overlay [aria-label="3D sketch"] circle[data-point="${i}"]`); return [+c.getAttribute('cx'), +c.getAttribute('cy')]; }, i);
+    // Drawn: four corners clicked on XY, the last click back on the first closing the loop.
+    const corners = [[0, 0, 0], [40, 0, 0], [40, 20, 0], [0, 20, 0]];
+    for (const c of [...corners, corners[0]]) { const q = await scr(c); await page.mouse.move(q[0], q[1], { steps: 2 }); await page.mouse.click(q[0], q[1]); await page.waitForTimeout(120); }
+    assert.deepEqual(await mark(), { points: 4, segments: 4, status: 'under' }, 'the loop');
+    // Constraints by selection: point 0 fixed; sides 0 and 2 along X, 1 and 3 along Y; side 0's length 40, side 1's 20.
+    await press('s');
+    // (A side picked at its middle as drawn now: the corners move as it is solved.)
+    const pick = async (seg, additive = false) => { const a = await pointAt(seg), b = await pointAt((seg + 1) % 4); if (additive) await page.keyboard.down('Shift'); await page.mouse.click(svg.x + (a[0] + b[0]) / 2, svg.y + (a[1] + b[1]) / 2); if (additive) await page.keyboard.up('Shift'); await page.waitForTimeout(100); };
+    const add = label => page.click(`aside[aria-label="3D sketch"] button[aria-label="Add ${label}"]`);
+    { const q = await pointAt(0); await page.mouse.click(svg.x + q[0], svg.y + q[1]); } await add('Fix');
+    await pick(0); await add('Along X'); await pick(0); await add('Length');
+    // Live: the free corner 2 dragged — under the pointer through the drag; corner 1 (on its fixed line, 40 long) held.
+    const drag = async (i, to) => {
+      const from = await pointAt(i); await page.mouse.move(svg.x + from[0], svg.y + from[1]); await page.mouse.down();
+      const q = await scr(to); await page.mouse.move((svg.x + from[0] + q[0]) / 2, (svg.y + from[1] + q[1]) / 2, { steps: 4 }); await page.waitForTimeout(100);
+      const mid = await pointAt(i), midPtr = [(svg.x + from[0] + q[0]) / 2 - svg.x, (svg.y + from[1] + q[1]) / 2 - svg.y];
+      await page.mouse.move(q[0], q[1], { steps: 4 }); await page.waitForTimeout(100); await page.mouse.up(); await page.waitForTimeout(150);
+      return { mid, midPtr, end: await pointAt(i), ptr: [q[0] - svg.x, q[1] - svg.y], from };
+    };
+    const free = await drag(2, [46, 26, 0]);
+    assert.ok(Math.hypot(free.mid[0] - free.midPtr[0], free.mid[1] - free.midPtr[1]) < 3, `followed mid-drag ${JSON.stringify(free)}`);
+    assert.ok(Math.hypot(free.end[0] - free.ptr[0], free.end[1] - free.ptr[1]) < 3, `at the pointer ${JSON.stringify(free)}`);
+    const held = await drag(1, [36, 8, 0]);
+    assert.ok(Math.hypot(held.end[0] - held.from[0], held.end[1] - held.from[1]) < 1.5, `held by its constraints ${JSON.stringify(held)}`);
+    assert.equal((await mark()).status, 'under');
+    // The rest: sides 2 along X, 1 and 3 along Y, side 1 20 long — well-defined, the corners where they were drawn.
+    await pick(1); await add('Along Y'); await pick(1); await add('Length');
+    await page.fill('aside[aria-label="3D sketch"] [aria-label="Constraint 5 value"]', '20'); await press('Enter');
+    await pick(2); await add('Along X'); await pick(3); await add('Along Y');
+    await page.waitForFunction(() => document.querySelector('.vp-overlay [aria-label="3D sketch"]')?.dataset.status === 'well', null, { timeout: 5000 });
+    assert.match(await page.locator('[aria-label="Sketch status"]').innerText(), /Fully defined/);
+    // A conflict: sides 0 and 1 made parallel — shown (the status, the mark in red), Apply refused; undone.
+    await pick(0); await pick(1, true); await add('Parallel');
+    await page.waitForFunction(() => document.querySelector('.vp-overlay [aria-label="3D sketch"]')?.dataset.status === 'conflict', null, { timeout: 5000 });
+    assert.ok(await page.locator('.vp-overlay .skel-mark.bad').count() > 0, 'the unmet marks red');
+    assert.ok(await page.locator('aside[aria-label="3D sketch"] button[aria-label="Apply 3D sketch"]').isDisabled());
+    await snap('g17-conflict');
+    await press('Meta+z');
+    await page.waitForFunction(() => document.querySelector('.vp-overlay [aria-label="3D sketch"]')?.dataset.status === 'well', null, { timeout: 5000 });
+    await snap('g17-well');
+    await page.click('aside[aria-label="3D sketch"] button[aria-label="Apply 3D sketch"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'skeleton', null, { timeout: 10000 });
+    const node = await page.evaluate(() => window.__studioDoc.nodes.at(-1));
+    const r6 = v => Math.round(v * 1e6) / 1e6;
+    assert.deepEqual(node.points.map(p => p.map(r6)), [[0, 0, 0], [40, 0, 0], [40, 20, 0], [0, 20, 0]], `solved back to the 40 × 20 (${renderer})`);
+    assert.deepEqual(node.segments, [[0, 1], [1, 2], [2, 3], [3, 0]]);
+    assert.deepEqual(node.constraints.map(c => c.kind), ['fixed', 'along', 'length', 'along', 'length', 'along', 'along']);
+    assert.equal(await page.locator('.vp-overlay [aria-label="Skeletons"] .skel-faint').count(), 4, 'drawn faint once applied');
+    // A body corner snapped in 3D: the 40 × 20 × 8 plate, a new 3D sketch's first point on its top corner (40, 20, 8).
+    const plate = join(out, 'g17-plate.bcad');
+    (await import('node:fs')).writeFileSync(plate, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 8 }] }));
+    await openModel(plate, 2); await idle(); await page.click('.views button:text-is("Iso")'); await page.waitForTimeout(400);
+    await press(' '); await page.locator('.palette input').fill('3d sketch'); await press('Enter');
+    await page.waitForSelector('aside[aria-label="3D sketch"]', { timeout: 5000 });
+    { const q = await scr([40, 20, 8]); await page.mouse.move(q[0] + 4, q[1] + 3, { steps: 2 }); await page.mouse.click(q[0] + 4, q[1] + 3); }
+    await press('Escape'); await page.waitForTimeout(100);
+    const first = await page.evaluate(() => { const c = document.querySelector('.vp-overlay [aria-label="3D sketch"] circle[data-point="0"]'); return c && [+c.getAttribute('cx'), +c.getAttribute('cy')]; });
+    const corner = await scr([40, 20, 8]);
+    assert.ok(first && Math.hypot(first[0] + svg.x - corner[0], first[1] + svg.y - corner[1]) < 1, `on the corner ${JSON.stringify({ first, corner })}`);
+    await snap('g17-corner');
+    await page.click('aside[aria-label="3D sketch"] button[aria-label="Cancel 3D sketch"]');
+    assert.equal(await page.evaluate(() => window.__studioDoc.nodes.length), 2, 'cancelled: nothing written');
   });
 
   await check('command palette and light theme', async () => {

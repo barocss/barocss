@@ -42,6 +42,8 @@ import { ParametersPanel } from './ui/ParametersPanel';
 import { LibraryPanel } from './ui/LibraryPanel';
 import { CagePanel } from './ui/CagePanel';
 import { useCageEditor } from './subd/useCageEditor';
+import { SKETCH3D_COMMAND, useSkeletonEditor } from './skeleton/useSkeletonEditor';
+import { SkeletonPanel } from './ui/SkeletonPanel';
 import { loadUserLibraries, setLibraryStore } from '@barocss/cad-model/library/libraries';
 import { browserStore } from './ui/browserStore';
 import { processProfile } from '@barocss/cad-model/library/materials';
@@ -188,6 +190,9 @@ function samePlacement(a: PartInstance, b: PartInstance): boolean {
   if (a.position.some((v, k) => v !== b.position[k]) || a.rotation.some((v, k) => v !== b.rotation[k])) return false;
   return a.doc === b.doc || JSON.stringify(a.doc) === JSON.stringify(b.doc);
 }
+
+/** The studio's own commands in the palette, after the model's (G17's 3D sketch). */
+const PALETTE_EXTRA = [SKETCH3D_COMMAND];
 
 export function App() {
   const engine = useMemo(() => new EngineClient(), []);
@@ -360,6 +365,8 @@ export function App() {
   const commitRef = useRef<(next: StudioDoc) => void>(() => {});
   const cageEdRef = useRef<ReturnType<typeof useCageEditor>>(null!);
   const cageEd = useCageEditor(doc, useCallback((d: StudioDoc) => engine.preview(d, revision.current++), [engine]), useCallback((next: StudioDoc) => commitRef.current(next), []), useCallback((title: string, hint: string) => setToast({ title, hint, detail: '' }), []));
+  // (G17: the 3D sketch's session — points, segments, FRg's constraints — written as one skeleton feature on Apply.)
+  const skel = useSkeletonEditor(doc, useCallback((next: StudioDoc) => commitRef.current(next), []), useCallback((title: string, hint: string) => setToast({ title, hint, detail: '' }), []), snapStep);
   const [material, setMaterial] = useState<string>(() => { try { return localStorage.getItem('studio.material') ?? 'al6061'; } catch { return 'al6061'; } });
   useEffect(() => { try { localStorage.setItem('studio.material', material); } catch { /* storage unavailable */ } }, [material]);
   const [lastMs, setLastMs] = useState(0);
@@ -775,6 +782,7 @@ export function App() {
     setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
     const avail = cmd.available(ctx);
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
+    if (cmd.id === SKETCH3D_COMMAND.id) { cancel(); skel.begin(null); setSelection(emptySel); setEditNode(null); return; }
     if (cmd.action === 'sketch') {
       // On a selected flat face (horizontal or vertical), joined to its body by default; else on XY.
       const f = selection.faces[0]; const face = f && bodies[f.body]?.mesh.faces[f.face];
@@ -1575,6 +1583,7 @@ export function App() {
   {
     const onKey = (e: KeyboardEvent) => {
       if (cageEd.onKey(e)) return;
+      if (skel.onKey(e)) return;
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
@@ -1894,7 +1903,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
+      <Viewport ref={viewport} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionHandle ? [sectionHandle] : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} instanceTransforms={instanceTransforms} clip={sectionClip} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
@@ -2236,7 +2245,8 @@ export function App() {
       </aside>}
       {/* (A running command's HUD takes this place at the right.) */}
       {cageEd.session && doc.nodes[cageEd.session.node] && !rendering && !drawing && <CagePanel editor={cageEd} name={featureLabel(doc.nodes[cageEd.session.node], cageEd.session.node, doc.nodes)} />}
-      {!cageEd.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
+      {skel.session && !rendering && !drawing && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
+      {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
         {selection.vertices?.length ? (<>
           <div className="card-title">SELECTION · {selection.vertices.length === 1 ? 'POINT' : `${selection.vertices.length} POINTS`}</div>
           {selection.vertices.map((v, k) => <div key={k} className="kv">{selection.vertices!.length > 1 ? `Point ${k + 1}` : 'X Y Z'} <b>{v.at.map(x => fmt(Math.round(x * 1000) / 1000)).join(', ')}</b></div>)}
@@ -2421,7 +2431,7 @@ export function App() {
           if (direct) setToast({ title: 'Applied by the agent', hint: `${what[0]?.toUpperCase() ?? ''}${what.slice(1)}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
         }}
         onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} outbox={chatOutbox} onOutboxSent={id => setChatOutbox(o => (o?.id === id ? null : o))} /></Suspense>}
-      {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} />}
+      {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} extra={PALETTE_EXTRA} />}
       {help && <ShortcutHelp onClose={() => setHelp(false)} />}
       {historyMenu && doc.nodes[historyMenu.index] && (() => {
         const i = historyMenu.index, n = doc.nodes[i], sk = n.kind === 'sketch' ? i : 'sketch' in n && typeof n.sketch === 'number' && doc.nodes[n.sketch]?.kind === 'sketch' ? n.sketch : null;
@@ -2429,6 +2439,7 @@ export function App() {
           actions={[
             { label: 'Edit', icon: 'edit', run: () => { setEditNode(i); setInstanceSel([]); setDirectSel([]); } },
             ...(sk !== null ? [{ label: 'Edit sketch', icon: 'cad-sketch', run: () => editSketch(sk) }, { label: 'Export sketch DXF', icon: 'download', run: () => exportSketchDxf(sk) }] : []),
+            ...(n.kind === 'skeleton' ? [{ label: 'Edit in 3D sketch', icon: 'polyline', run: () => { cancel(); skel.begin(i); setSelection(emptySel); setEditNode(null); } }] : []),
             // (A split's halves are separate bodies the model refers to: it stays.)
             ...(n.kind !== 'sketch' && n.kind !== 'split' && n.kind !== 'separate' ? [{ label: n.suppressed ? 'Unsuppress' : 'Suppress', icon: n.suppressed ? 'visibility' : 'visibility_off', run: () => toggleSuppress(i) }] : []),
             { label: 'Move earlier', icon: 'arrow_back', run: () => reorder(i, -1) },
