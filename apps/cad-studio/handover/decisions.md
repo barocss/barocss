@@ -11197,3 +11197,14 @@ wall.
 - Kernel lint 0 errors, type-check clean.
 - 121 kernel files in a scratch worktree: 970/971, 1 skipped, 0 failing, 312 s (310–319 before).
 - RB on the oracle folder: only those 4 left.
+
+### D187 notes — K9 stops here (coordinator, option a); the four RB items left open (2026-10-23)
+
+None of the four returns a wrong body any more. Each is in `robustness/todo.json` with its analysis.
+
+| Item | Status | Analysis | Estimate |
+|---|---|---|---|
+| `y1-in0_01-intersect` | tessellate INVALID | The body is right. The 10 µm lens's cylinder and plane faces share a diagonal: 4 uses, a fold. Fix: bisect that diagonal on the curved face, with the quadrature's face parameters extended in step. | display only, medium |
+| `x45-in0_00001-difference` (10 nm) | typed refusal | Needs a lens thinner than the merge radius recognised and dropped. | medium–large, tolerance scale |
+| `x45-in0_000001-difference` (1 nm) | D186's typed refusal | The same lens drop would build it. | — |
+| `gear-helical-pair-crossing-intersect` | refused, non-manifold | Near-tangent twisted flanks, sliver pieces classified 'same'. Needs near-tangent classification and sliver merging. | large; niche, since meshed pairs are checked by sections |

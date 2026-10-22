@@ -50,7 +50,9 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K8: F5, the cnc-turning report — the kernel admitted the surface per derivative call; once per surface now (a9-acceptance 55 → 15 s) | D185 | done (T1+) |
 | K9a: the 1 nm graze returned a wrong body (534 against 253 mm³, loops crossing) — now checked strictly and refused, typed; gear-internal's test pinned a strict-invalid body, relaxed to valid-or-refused | D186 | done (T1+) |
 | K9b: the 10 µm and 1 µm grazes (x52, x27) built right — a plane face's edge crossed twice inside one chord, found by bisection | D187 | done (T1+) |
-| K9c: left in RB todo — the 10 nm graze (4 uses), the 10 µm lens's tessellation fold, helical × helical (and D186's 1 nm refusal) | — | next |
+| K9 stops (coordinator, option a): the 10 nm graze, the lens fold, helical × helical and the 1 nm refusal left open with their analyses | D187 notes | open |
+| K10: RB5 L4 fuzz — random CSG trees against an independent ray oracle (S0 to the coordinator first) | — | S0 |
+| K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first

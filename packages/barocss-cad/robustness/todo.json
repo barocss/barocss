@@ -3,24 +3,24 @@
     "case": "corpus/oracle/cylinder-box-graze-x45-in0_000001-difference.json",
     "stage": "evaluate",
     "status": "WRONG",
-    "note": "D25 (RB5, first item), D186 (K9): a box edge 1 nm (the tolerance) into the cylinder's wall. The lens's two traced curves lie within the tolerance of each other and stitched into one edge used both ways by the wall's face, so its loops crossed (strict L0) and the body measured 534 mm³ against 253.12 — a wrong body returned. Since D186 the analytic Boolean checks such a result strictly and refuses it, typed (GEOMETRY: the inputs graze within the merge radius and the sliver between them cannot be built): no wrong body. Building the touching result (the lens dropped) is open."
+    "note": "D25 (RB5, first item), D186 (K9): a box edge 1 nm (the tolerance) into the cylinder's wall. The lens's two traced curves lie within the tolerance of each other and stitched into one edge used both ways by the wall's face, so its loops crossed (strict L0) and the body measured 534 mm³ against 253.12 — a wrong body returned. Since D186 the analytic Boolean checks such a result strictly and refuses it, typed (GEOMETRY: the inputs graze within the merge radius and the sliver between them cannot be built): no wrong body. Building the touching result (the lens dropped) is open. K9 (D187 notes, open): as the 10 nm item — the lens dropped would give the oracle's body."
   },
   {
     "case": "corpus/oracle/cylinder-box-graze-x45-in0_00001-difference.json",
     "stage": "evaluate",
     "status": "WRONG",
-    "note": "D25 (RB5): a box edge 10 nm (10 tolerances) into the wall: refused as non-manifold (a typed error, not a wrong body). The sliver is thinner than the stitch's vertex merge radius (20 tolerances); X- and Y-turned boxes refuse from about 3 to 30 tolerances. Needs tolerant stitching of grazing contacts."
+    "note": "D25 (RB5): a box edge 10 nm (10 tolerances) into the wall: refused as non-manifold (a typed error, not a wrong body). The sliver is thinner than the stitch's vertex merge radius (20 tolerances); X- and Y-turned boxes refuse from about 3 to 30 tolerances. Needs tolerant stitching of grazing contacts. K9 (D187 notes, open): typed. The right result needs a lens thinner than the 20·tol merge radius recognised and dropped (the wall's lens hole filled, the box's sliver piece dropped); the same would build D186's 1 nm case. Medium–large, at the tolerance scale."
   },
   {
     "case": "corpus/oracle/cylinder-box-graze-y1-in0_01-intersect.json",
     "stage": "tessellate",
     "status": "INVALID",
-    "note": "D25 (RB5): a 10 µm lens between a plane and the cylinder, thinner than the chord error at 8 and 32 segments a quarter: both faces triangulate the same boundary samples and share a diagonal (four uses, balanced: a fold, no crack). The B-rep is strictly valid and its volume exact to 4e-9. Needs interior samples on faces thinner than their chord error."
+    "note": "D25 (RB5): a 10 µm lens between a plane and the cylinder, thinner than the chord error at 8 and 32 segments a quarter: both faces triangulate the same boundary samples and share a diagonal (four uses, balanced: a fold, no crack). The B-rep is strictly valid and its volume exact to 4e-9. Needs interior samples on faces thinner than their chord error. K9 (D187 notes, open): the body is right (rel 4e-12); the lens's cylinder face and plane face triangulate the same boundary samples with the same diagonal (4 uses: a fold). A fix bisects such a shared diagonal on the curved face at its projected midpoint, extending the face's quadrature parameters with it; display only, medium."
   },
   {
     "case": "corpus/oracle/gear-helical-pair-crossing-intersect.json",
     "stage": "evaluate",
     "status": "WRONG",
-    "note": "D59/D60 (RB5): two helical gears (twisted B-spline flanks, Hermite twist fit) crossing at a 3° phase: the analytic Boolean of their intersection is refused as 'not a manifold solid' instead of returning the overlap (24.15 mm³ by an independent scanline integration of the exact profiles). Meshed pairs are verified by sections of the solids' own faces instead. A keyway, a slot across the teeth and a hole through a tooth of a helical gear (twisted × planar/cylindrical) pass every stage (gear-helical-m2-z40-*.json). Needs the analytic Boolean to intersect two general B-spline faces both twisted (the surface-surface marching at near-tangent flank contact)."
+    "note": "D59/D60 (RB5): two helical gears (twisted B-spline flanks, Hermite twist fit) crossing at a 3° phase: the analytic Boolean of their intersection is refused as 'not a manifold solid' instead of returning the overlap (24.15 mm³ by an independent scanline integration of the exact profiles). Meshed pairs are verified by sections of the solids' own faces instead. A keyway, a slot across the teeth and a hole through a tooth of a helical gear (twisted × planar/cylindrical) pass every stage (gear-helical-m2-z40-*.json). Needs the analytic Boolean to intersect two general B-spline faces both twisted (the surface-surface marching at near-tangent flank contact). K9 (D187 notes, open): the trace shows the twisted flanks crossing at a very small angle; the cut splits one flank into slivers of 1e-6–1e-5 mm² classified 'same' (within tolerance of the other flank), so a marched edge keeps one use. Needs near-tangent classification and sliver merging: large; meshed pairs are checked by sections meanwhile."
   }
 ]
