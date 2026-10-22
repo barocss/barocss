@@ -55,6 +55,8 @@ export interface ViewportHandle {
   overlayLines(): Record<string, number>;
   /** The engine's overlay labels' texts, a key (G15; WebGPU; for the flow). */
   overlayTexts(): Record<string, string[]>;
+  /** G25: the GPU device for the analyses' compute passes (WebGPU only), else null. */
+  computeDevice(): object | null;
 }
 
 /** Where a new shape stands: a point on the ground or on an upward face, and that surface's normal. */
@@ -693,6 +695,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     get backend() { return backend; },
     overlayLines() { return renderer.current?.overlayLines?.() ?? {}; },
     overlayTexts() { return renderer.current?.overlayTexts?.() ?? {}; },
+    computeDevice() { return renderer.current?.computeDevice?.() ?? null; },
   }));
 
   const local = (e: { clientX: number; clientY: number }) => {

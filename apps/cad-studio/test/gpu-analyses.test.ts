@@ -7,6 +7,7 @@ import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluat
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { accessSamples } from '@barocss/cad-model/machining/access';
 import { wallSamples } from '@barocss/cad-model/chat/analysis';
+import { accessMapOf, accessStep } from '../src/viewport/scalarMaps';
 
 // G25 (G-R12): the GPU analyses' inputs and folds, on the CPU mirror, against the studio's own CPU maps on real parts —
 // so the GPU pass computes what the panels' numbers are. Access (G25b): cad-model's accessSamples per triangle (share and
@@ -21,12 +22,12 @@ const cases: [string, () => StudioDoc][] = [['the CNC8 pocket plate', () => fixt
 test('G25b access: cad-model\'s per-triangle share and mask equal the experimental samples folded back', () => {
   for (const [name, make] of cases) {
     const bodies = bodiesOf(make()), cpu = accessSamples(bodies);
-    // (accessSamples' step: the bodies' diagonal over 200, at least 0.1.)
-    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-    for (const b of bodies) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
-    const step = Math.max(0.1, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) / 200);
+    // (The studio's step, as its GPU map uses it: accessSamples' own, the bodies' diagonal over 200, at least 0.1.)
+    const step = accessStep(bodies);
     bodies.forEach((b, i) => {
       const s = C.accessSampleSet(b.mesh.positions, b.mesh.indices, step), r = C.accessByTriangle(s, C.cpuAccessMasks(C.packBvh(b.mesh), s));
+      const map = accessMapOf(b.key, r.unreachedShare, true);
+      assert.match(map.legend.title, /GPU estimate/); assert.equal(map.values.length, cpu[i].unreachedShare.length);
       let worst = 0, masks = 0;
       for (let t = 0; t < s.triangles; t++) { worst = Math.max(worst, Math.abs(r.unreachedShare[t] - cpu[i].unreachedShare[t])); if (r.mask[t] !== cpu[i].mask[t]) masks++; }
       assert.ok(worst < 1e-5 && masks === 0, `${name} body ${i}: worst share ${worst}, ${masks} masks differ`);
