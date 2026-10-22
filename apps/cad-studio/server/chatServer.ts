@@ -234,7 +234,7 @@ export function createChatServer(options: ChatServerOptions) {
         rowConversation = typeof body.rowConversation === 'string' ? body.rowConversation : '';
         const files = receivePersonRowFiles(rowConversation, body.rowFiles as RowFileInput[], Array.isArray(body.turns) ? body.turns.length : 0);
         rowInputs = body.rowFiles as RowFileInput[];
-        rowNote = '\n\n[Files supplied by the person in this conversation; library.load_rows takes file by id:\n' + files.files.map(f => `${f.id}: ${JSON.stringify(f.source.filename)} (user turn ${f.source.turn}, SHA256 ${f.source.sha256})`).join('\n') + ']';
+        rowNote = '\n\n[Files supplied by the person in this conversation; features.load_rows takes file by id:\n' + files.files.map(f => `${f.id}: ${JSON.stringify(f.source.filename)} (user turn ${f.source.turn}, SHA256 ${f.source.sha256})`).join('\n') + ']';
       } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid conversation row files.' }); }
     }
     const dir = mkdtempSync(join(workDir, 'turn-'));

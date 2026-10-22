@@ -24,6 +24,7 @@ export const GROUPS: Record<string, Group> = {
       command: ['run_command', 'command, values?, faces?, edges?, bodies?, point? — a studio command as the toolbar runs it'],
       add: ['add_features', 'features: [node] — raw feature nodes (sketches, extrudes, revolves, sweeps, lofts, …)'],
       edit: ['edit_feature', 'index, values? | feature?'],
+      load_rows: ['load_rows', 'kind, file, part?, feature? — rows from the person’s conversation file'],
       delete: ['delete_feature', 'index'],
       material: ['set_material', 'material, bodies?, part? — what bodies are made of'],
       stock: ['set_stock', 'file?, allowance? — the shop\'s stock list and the allowance'],
@@ -83,7 +84,7 @@ export const GROUPS: Record<string, Group> = {
   library: {
     title: 'Library',
     about: 'Standard and team parts.',
-    actions: { load_rows: ['load_rows', 'kind, file, part?, feature? — rows from the person’s conversation file'], standards: ['standards_lookup', 'table?, row?, field? — a standards-derived value and its source'], list: ['list_library', 'library?'], add: ['add_library', 'library — a library document'], add_part: ['add_library_part', 'library, part, face, point, variant?, params?, x_direction?, context?'] },
+    actions: { standards: ['standards_lookup', 'table?, row?, field? — a standards-derived value and its source'], list: ['list_library', 'library?'], add: ['add_library', 'library — a library document'], add_part: ['add_library_part', 'library, part, face, point, variant?, params?, x_direction?, context?'] },
   },
   print: { title: '3D print', about: 'Printability on an FDM printer (check: as query.manufacturability).', actions: { layers: ['output_print_layers', 'part?, layers?, layerMM?, direction?, limitDeg?, expectedRevision?'], check: ['check_printability', 'direction?'], orient: ['orient_for_print', 'apply?'] } },
   drawing: {
