@@ -70,10 +70,11 @@ test('B: the swept volume of the feed moves is the pocket\'s 50 · 30 · 8 = 120
   assert.ok(volume <= 12000 + raster && volume >= 12000 - corners - raster, `${volume} of 12000 (corners ${corners}, raster ${raster})`);
 });
 
-test('B: CNC8\'s holes — each a plunge from the safe height to its bottom and a retract, in its own setup\'s frame (−Z turned over)', async () => {
-  const s = await build([cmd('box', { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 }), cmd('hole', { d: 6.6, x: 15, y: 20 }, { faces: ['n1.top'] }), cmd('hole', { type: 'blind', d: 5, depth: 10, x: 45, y: 20 }, { faces: ['n1.top'] })]);
+test('B: CNC8\'s holes — each a plunge from the safe height to its bottom and a retract, in its own setup\'s frame (−Z turned over); O161: a through hole drilled once, by the first setup that reaches it', async () => {
+  // (A through hole, a blind one from the top, and a blind one from the bottom: the bottom's needs the −Z setup.)
+  const s = await build([cmd('box', { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 }), cmd('hole', { d: 6.6, x: 15, y: 20 }, { faces: ['n1.top'] }), cmd('hole', { type: 'blind', d: 5, depth: 10, x: 45, y: 20 }, { faces: ['n1.top'] }), cmd('hole', { type: 'blind', d: 4, depth: 6, x: 30, y: 10 }, { faces: ['n1.bottom'] })]);
   const p = camPackage(s.doc, s.bodies, { toolMM: 4 });
-  assert.deepEqual(p.setups.map(x => x.setup).sort(), ['+Z', '−Z']);
+  assert.deepEqual(p.setups.map(x => x.setup), ['+Z', '−Z']);
   for (const x of p.setups) {
     linkingHolds(x);
     for (const d of x.passes.filter(q => q.kind === 'drill')) {
@@ -82,11 +83,18 @@ test('B: CNC8\'s holes — each a plunge from the safe height to its bottom and 
       assert.ok(plunge.b[2] < plunge.a[2] && retract.b[2] === x.safeZ.mm);
     }
   }
+  // (Each hole exactly once over the whole package.)
+  const drilled = p.setups.flatMap(x => x.passes.filter(q => q.kind === 'drill').map(q => q.feature)).sort();
+  assert.deepEqual(drilled, [...new Set(drilled)]); assert.equal(drilled.length, 3);
   const top = p.setups.find(x => x.setup === '+Z')!, depths = top.passes.filter(q => q.kind === 'drill').map(d => +(top.moves[d.to - 2].b[2]).toFixed(9)).sort((a, b) => a - b);
-  assert.deepEqual(depths, [0, 10], 'the through hole to z 0, the blind one to z 10');
+  assert.deepEqual(depths, [0, 10], 'the through hole to z 0, the blind one to z 10, both from the top');
   const under = p.setups.find(x => x.setup === '−Z')!;
   assert.deepEqual(under.axis, [0, 0, -1]);
+  assert.equal(under.passes.filter(q => q.kind === 'drill').length, 1, 'only the bottom\'s blind hole');
   assert.ok(under.moves.every(m => m.kind !== 'plunge' || m.b[2] <= m.a[2]), 'down along its own axis');
+  const through = top.passes.find(q => q.kind === 'drill' && Math.abs(top.moves[q.to - 2].b[2]) < 1e-9)!.feature;
+  assert.deepEqual(under.notes, [`${through}: drilled in the +Z setup, not again here`]);
+  assert.equal(top.notes, undefined);
 });
 
 // (O157: an absolute oracle. Each pocket's feeds, taken back to world coordinates through the setup's frame (a rotation:
