@@ -1956,3 +1956,34 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   G2, G19 and G20 pick checks pass). Still open from its S0:
   - AA on against off on a box at 0°, 30° and 45° and a cylinder (the interior unchanged, coverage at the edge);
   - capFrontSamples' memory and the frame time.
+
+## G-R20 — G7 closed: antialiased caps against unantialiased, their cost; pose-clip #6 tightened (roadmap G7, 2026-10-23)
+
+- **pose-clip #6 tightened** (the coordinator's rule, so the G-R19 rule can't hide a real leak):
+  - A partly covered cap-coloured pixel counts as an edge pixel only when it is 8-adjacent to a CPU cap pixel.
+  - Any other cap-coloured pixel where the CPU's ray meets no cap is a leak, pure or not: 10 allowed, as before.
+  - Result: 11 050 cap pixels, 0 leaks, 77 edge pixels, all beside a CPU cap pixel (load 1m 14). viewer-pose-clip 18/18.
+- **viewer-cap-aa-browser** (new, in `test:browser`), WebGPU only. The scene:
+  - one viewer each with antialiasing on and off; 480 × 360 at pixel ratio 1; orthographic, seen along +Y; cut by y = 0;
+  - an unlit #404040 body with a #ff00ff cap on black;
+  - a box 8 × 8 × 8 turned 0°, 30° and 45° about Y (the cap a turned square), and a 64-sided Ø8 cylinder standing
+    along Y (the cap a disc).
+- **The interior unchanged**: pixels whose whole 3 × 3 neighbourhood is cap by the CPU's ray, AA on against off.
+  Worst |Δ| 0/255 in every case (10 000, 9 748, 9 660 and 7 676 pixels).
+- **The edge covered**: edge pixels are those with cap and not cap in their 3 × 3 neighbourhood. A partly covered pixel
+  is neither the pure cap colour nor grey, but a mix of magenta and what is beside it.
+  - Box 0°: 404 of 816 (50 %), where the square's edges fall mid-pixel.
+  - Box 30°: 648 of 1 104 (59 %).
+  - Box 45°: 564 of 1 136 (50 %).
+  - Cylinder: 436 of 816 (53 %).
+  - The spec requires ≥ 30 % on the turned boxes and the cylinder.
+- **An uncut frame unchanged**: the same scene uncut with the cap path on (`cap: true`) against off. 0 bytes differ in
+  every case.
+- **Cost**:
+  - capFrontSamples is rgba16float at 4 samples, 8 bytes a sample. That is W·H·32 bytes: 5.27 MiB at 480 × 360,
+    63.3 MiB at 1920 × 1080.
+  - It is allocated only when a capped frame is drawn with antialiasing (`ensureCapSamples`).
+  - Frame time, with capture and read-back (20 captures each, load 1m 10): 1.9–2.2 ms cut with AA, 1.8–2.1 ms cut
+    without, 1.4–1.6 ms uncut.
+- **Not covered**: WebGL2. Its caps aren't drawn per sample, so there is no AA path there to compare.
+- **G7 done.** With it, the roadmap list given to the GPU lane (G1–G7, K2) is done.
