@@ -437,7 +437,7 @@ test('G20 cut-outs: a quarter and an octant cut from a cube, the notch\'s caps a
 // won there and a cap leaked over the front face along the part's far edges (the studio's cut-out flow: a band a pixel or
 // two wide). Now its lead is a share of the depth. The studio's view of a 40 × 20 × 10 plate under a cut-out with a
 // shadow catcher widening the depth range: every cap pixel a cap in the CPU's ray, but for pixels on an edge.
-test('G20.2 no cap leaks over a front face\'s far edges: a cut-out plate seen from near, its cap pixels the CPU\'s caps', { timeout: 120000 }, async t => {
+test('G20.2 no cap leaks over a front face\'s far edges: a cut-out plate seen from near, its fully covered cap pixels the CPU\'s caps, its edge antialiased', { timeout: 120000 }, async t => {
   const s = await open(t); if (!s) return;
   try {
     const r = await s.p.evaluate(async () => {
@@ -450,19 +450,24 @@ test('G20.2 no cap leaks over a front face\'s far edges: a cut-out plate seen fr
       viewer.clipCutout = true;
       viewer.clipPlanes = [{ normal: [-1, 0, 0], offset: -20, cap: '#ff00ff' }, { normal: [0, 1, 0], offset: 10 }];
       const img = await viewer.capture();
-      let caps = 0, leaks = 0;
+      // (Antialiased caps, G7: a pixel on the cap's edge is cap on some of its samples, a mixed colour; a leak covers whole
+      // pixels — every sample cap, the pure cap colour — where the CPU's ray through the centre meets no cap.)
+      let caps = 0, leaks = 0, fringe = 0;
       for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width; x++) {
         const i = (y * img.width + x) * 4;
         if (!(img.data[i] > 150 && img.data[i + 2] > 150 && img.data[i + 1] < 80)) continue;
-        caps++; const h = viewer.raycast(x + 0.5, y + 0.5); if (!(h && h.cap)) leaks++;
+        caps++; const h = viewer.raycast(x + 0.5, y + 0.5); if (h && h.cap) continue;
+        if (img.data[i] >= 245 && img.data[i + 2] >= 245 && img.data[i + 1] <= 10) leaks++; else fringe++;
       }
       viewer.dispose();
-      return { caps, leaks };
+      return { caps, leaks, fringe };
     });
     t.diagnostic(JSON.stringify(r));
     // (Before: 660 of 11 660.)
     assert.ok(r.caps > 8000, `${r.caps} cap pixels`);
     assert.ok(r.leaks <= 10, `${r.leaks} cap pixels where the CPU's ray meets no cap (pixel-edge rounding allowed 10)`);
+    // (And the edge is antialiased: some partly covered cap pixels just past the CPU's cap.)
+    assert.ok(r.fringe > 0, 'no partly covered cap pixels: the cap edge is aliased');
     assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
 });
