@@ -7084,3 +7084,30 @@ No studio expectation relied on an overcut drill: cnc-cam tests the preview.
 - model: bom-base 2/2, a9-acceptance 3/3, and every model test file on the BOM, baseline or mass, all passing;
 - studio: bom-linked-ui, chat, made-bodies-previews, mould-quote, team-bundle;
 - tsc of model and studio; eslint 0 errors.
+
+## O170 — F8, first error: one Fix leaves the sheet fixed, with the sheet built again after each round (2026-10-23)
+
+**The defect:**
+- On the A9 shaft (the defaults, the key, the 6204), after `auto` and one `fix`, there was a TEXT_OVERLAP error: a dimension over the key's note (in A9, over a view's name).
+- A second `fix` cleared it.
+- **Cause:** that Fix adds the keyseat's section B (O148 X3's fix) and re-dimensions. The new section is a new view to lay out. `fixAll` ran on inputs built before it started, so the section's view and the overlap it brings were invisible to the same pass.
+
+**The fix** (chat/drawing.ts, `fix_drawing`):
+- After a round of `fixAll`, the inputs are built again from the fixed settings (`drawingInputs`), and the fixes run again, until a round applies none (`FIX_ROUNDS`, 4).
+- The answer's issue list is the sheet as built after the fixes, the same as asking for the issues again.
+- **The studio's Fix all** (DrawingWorkspace, its sections from `useDrawingSheet`) still does one round: its section geometry follows the settings asynchronously, so a second press finishes it. That is left as a follow-up, because the hook now feeds the GPU lane's 3D annotations.
+
+**Test** (drawing-fix-rounds):
+- on the shaft, one Fix adds the section and leaves no error and no TEXT_OVERLAP;
+- its reported issues equal a fresh `issues` call;
+- a second Fix applies nothing.
+
+**Still open in F8** (the A9 run, after this):
+- **Weldment**, A3, four views, symbols, balloons and three tables: two TEXT_OVER_LINES errors without a fix — a dimension "3" over lines, and the top view's name pushed into the next view by the dimensions under it.
+  - Auto layout's room counts only dimensions: not weld symbols, tables or balloons. At A3, the largest sheet, its scale search finds no clean layout.
+  - At an explicit 1:10, it becomes a TEXT_OVERLAP between the top view's name and weld symbol W1, again with no fix, because names and weld symbols are not movers.
+- **Shaft:** DIM_ON_HIDDEN ×2, now on two dimensions besides the one X3's section serves.
+- **Cover:** HOLE_NOT_LOCATED counts 4.
+- **Weldment:** BALLOON_NO_EDGE, WELD_NOT_SHOWN.
+
+**Verified (T1):** drawing-fix-rounds 1/1; chat-drawing 4/4, drawing-issues 9/9, drawing-scope 8/8, frame-acceptance 2/2, frame-weld-symbols 3/3, tool-contract 3/3, toolset 9/9; a9-acceptance 3/3 (the shaft's drawing now has no error); tsc of model and studio; eslint 0 errors.

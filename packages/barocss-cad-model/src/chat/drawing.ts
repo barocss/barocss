@@ -21,7 +21,7 @@ import { threadsOf } from '../app/threads';
 import { autoDimensions } from '../drawing/auto';
 import { autoLayout, frontByInformation } from '../drawing/layout';
 import { reorient } from '../drawing/reorient';
-import { drawingIssues, fixAll, issueContext, type DrawingIssueCode, type SheetInputs } from '../drawing/issues';
+import { drawingIssues, fixAll, issueContext, type DrawingFix, type DrawingIssueCode, type SheetInputs } from '../drawing/issues';
 import { acceptAll, applySuggestion, toleranceSuggestions } from '../drawing/tolerance';
 import { readDrawing, sectionsOf, VIEW_IDS, type DrawingSettings, type ViewId } from '../drawing/types';
 import { SCALES, scaleLabel } from '../drawing/views';
@@ -92,6 +92,8 @@ function sheetOf(i: SheetInputs) {
 const issueList = (i: SheetInputs) => { const { ctx, sheet } = sheetOf(i); return { sheet, issues: drawingIssues(ctx).map(x => ({ code: x.code, severity: x.severity, message: x.message, ...(x.fix ? { fix: x.fix.kind } : {}) })) }; };
 
 /** Runs a drawing tool on the document. */
+/** How many times a Fix builds the sheet again and fixes what that shows (O170). */
+const FIX_ROUNDS = 4;
 export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string, unknown>): Outcome {
   if (name === 'set_drawing') { const why = setDrawingProblem(args); if (why) return { error: why }; }
   const original = readDrawing(doc.drawing);
@@ -135,8 +137,19 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
     case 'fix_drawing': {
       const assembly = drawingScopeOf(i.settings).kind === 'assembly';
       const codes = Array.isArray(args.codes) ? args.codes.map(String) : null;
-      const r = fixAll(i, 40, (fix, issue) => (!assembly || fix.kind !== 'auto-dimension') && (!codes || codes.includes(issue.code as DrawingIssueCode)));
-      return set(r.settings, `${r.applied.length} drawing fix${r.applied.length === 1 ? '' : 'es'}`, { applied: r.applied.map(f => f.kind) });
+      // (O170, F8: a fix can change what the sheet is built from — a section added is a new view to lay out — so the inputs
+      // are built again from the fixed settings and the fixes run again, until a round applies none (FIX_ROUNDS at most).
+      // In one round the overlap a new section brings was invisible: a second Fix found it.)
+      let inputs = i, settings = i.settings;
+      const applied: DrawingFix[] = [];
+      for (let round = 0; round < FIX_ROUNDS; round++) {
+        const r = fixAll(inputs, 40, (fix, issue) => (!assembly || fix.kind !== 'auto-dimension') && (!codes || codes.includes(issue.code as DrawingIssueCode)));
+        if (!r.applied.length) break;
+        applied.push(...r.applied); settings = r.settings;
+        const next = drawingInputs({ ...doc, drawing: settings }, settings); if (typeof next === 'string') break;
+        inputs = next;
+      }
+      return set(settings, `${applied.length} drawing fix${applied.length === 1 ? '' : 'es'}`, { applied: applied.map(f => f.kind) }, inputs);
     }
     case 'accept_tolerances': {
       const mode = args.mode === 'geometric' || args.mode === 'plus-minus' ? args.mode : undefined;
