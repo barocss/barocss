@@ -3993,6 +3993,35 @@ try {
       assert.equal(rows.length, 2, rows.join(' | ')); assert.match(rows[1], /^2,key [\d.]+ × [\d.]+ × [\d.]+,1,key,/);
     } finally { if (await page.locator('[aria-label="Close BOM"]').count()) await page.click('[aria-label="Close BOM"]'); }
   });
+  // ---- O147 B2: the BOM on the drawing — its table and the item balloons, numbered alike -----------------------------------
+  await check('BOM table and balloons (O147 B2): a shaft and its key; on A3 the BOM table and 2 balloons numbered as its lines, on the iso view; in the SVG', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
+      if (pickShaft) { await page.locator('.outliner .ol', { hasText: /^Shaft/ }).first().click(); await page.waitForTimeout(300); }
+      await press(' '); await page.locator('.palette input').fill(label); await page.locator('.palette input').press('Enter');
+      await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForSelector('[aria-label="BOM table"]', { timeout: 20000 });
+      await page.check('[aria-label="BOM table"]'); await page.check('[aria-label="Balloons"]');
+      // (The BOM is worked out in the engine worker: waited for, not read at once.)
+      await page.waitForFunction(() => { const d = window.__studioDrawing?.(); return d?.tables?.length === 1 && !d.tables[0].error && d.balloons?.placed.length === 2; }, null, { timeout: 60000 });
+      const b = await page.evaluate(() => window.__studioDrawing().balloons);
+      assert.deepEqual(b.placed.map(p => [p.no, p.view]), [[1, 'iso'], [2, 'iso']], JSON.stringify(b));
+      assert.deepEqual([b.unclear, b.noEdge], [[], []]);
+      assert.ok(/(^|\|)n1\./.test(b.placed[1].edge), `balloon 2 on the key's edge: ${b.placed[1].edge}`);
+      assert.deepEqual(await page.evaluate(() => (window.__studioDrawing().issues ?? []).filter(x => /^BALLOON_|TEXT_OVER|OFF_SHEET/.test(x.code)).map(x => x.code)), []);
+      await snap('bom-balloons');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      assert.ok(svg.includes('>BILL OF MATERIALS</text>'), 'the BOM table in the SVG');
+      assert.equal(svg.split('<g class="balloon"').length - 1, 2, 'two balloons in the SVG');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   // ---- O145: machine elements on their dimensions — a key's leader note by Auto-dimension ------------------------------
   await check('element notes and key dimensions (O145, O146): a shaft and its key from the palette; Auto-dimension on A3 — the key\'s leader note, the keyseat\'s b 6 and d − t1 16.5; in the SVG', async () => {
     const fs = await import('node:fs');

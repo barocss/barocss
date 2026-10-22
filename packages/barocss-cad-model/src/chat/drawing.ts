@@ -10,6 +10,8 @@ import { brepsFor } from '../engine/evaluate';
 import type { StudioDoc } from '../engine/doc';
 import { projectViews } from '../drawing/project';
 import { tableContent } from '../drawing/tables';
+import { bomPanelDataOf } from '../team/bom';
+import type { Bom } from '../team/bomCore';
 import { holeCallout } from '../drawing/callout';
 import { sectionOf } from '../drawing/section';
 import { threadsOf } from '../app/threads';
@@ -64,10 +66,15 @@ export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDr
   if ('error' in b) return `The part could not be evaluated: ${b.error}`;
   const r = projectViews(b.breps, b.prefixes, { tangentEdges: !!settings.tangent, ...(settings.orientation ? { orientation: settings.orientation } : {}) });
   if (!r.ok) return r.empty ? 'There is no body to draw yet.' : `The views could not be projected: ${r.error}`;
-  const section = settings.section ? sectionOf(doc, settings.section.y, settings.orientation) : undefined, elements = partElements(doc);
-  return { views: r.views, settings, elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(doc).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}) }, ...(section?.ok ? { section } : {}) };
+  const section = settings.section ? sectionOf(doc, settings.section.y, settings.orientation) : undefined, elements = partElements(doc), bom = bomOf(doc, settings);
+  return { views: r.views, settings, elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(doc).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}) }, ...(section?.ok ? { section } : {}) };
 }
 
+/** O147 B2: the BOM, when a table or the balloons read it (each document evaluated on its own, synchronously). */
+function bomOf(doc: StudioDoc, settings: DrawingSettings): Bom | undefined {
+  if (!settings.balloons && !(settings.tables ?? []).some(t => t.from === 'bom')) return undefined;
+  return bomPanelDataOf(doc, d => evaluatePart(d, 0, 8, 'read'), settings.title ?? 'part').bom;
+}
 /** FRd2 (O119): the frame's weld joints for the symbols (the part evaluated for its members). */
 function weldJointsOf(doc: StudioDoc): readonly WeldJoint[] { const e = evaluatePart(doc, 0); return e.ok ? weldList(doc, e.bodies).joints : []; }
 

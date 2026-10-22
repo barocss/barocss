@@ -5689,3 +5689,43 @@ The coordinator approved O147. B1 is built.
   - the key made: written on both copies, its line gone and a made element instead, out of the list; default clears both;
   - a single part as its own line.
   - Flow step "BOM panel (O147)…": a shaft and its key from the palette; the panel's lines and made elements; the key made and its line gone; one ⌘Z back; the CSV's header and the key's row.
+
+## O147 B2 — the BOM on the drawing: its table and the item balloons (2026-10-22)
+
+B2 is built as frozen. The BOM is worked out by the caller and passed in, so the drawing stays pure.
+
+- **The BOM's synchronous core** (`team/bomCore.ts`, split from `team/assembly.ts`, which re-exports it):
+  - `bomViewOf(doc, evaluate)`, `deriveBom(view)` and the Bom types;
+  - `bomPanelDataOf` (team/bom.ts) builds the panel's data from evaluations given at once.
+  - Why the split: chat/drawing.ts reading team/assembly.ts made an import cycle through chat/tools.ts (team/parts imports it). `DRAWING_CHANGES` was undefined when tools.ts's module body ran. bomCore imports nothing of the chat's tools; checked with an esbuild metafile.
+- **The 'bom' table source** (`drawing/tables.ts`, from `TableSourceContext.bom`):
+  - a row a BOM line: NO., ITEM, QTY, MATERIAL, ROW (with the catalogue), SOURCE ("estimate" where it is one), BOUGHT (made / bought / bought (set) / bought (library part)), MASS;
+  - its numbers are the panel's and the purchase list's;
+  - with no BOM given it says "the BOM was not worked out for this sheet" (TABLE_SOURCE).
+- **Balloons** (`drawing/balloons.ts`; `settings.balloons`, off by default; role `balloon`):
+  - one per BOM line on the iso view, or the front view when the iso is not shown.
+  - Each leads to the middle of the longest visible piece of an edge of an instance of its item, found by name:
+    - a placed part: `<inst>/…`;
+    - an element: its node's faces `<node>.…`, in a placed part `<inst>/<node>.…`;
+    - a part's balloon leaves out its bought elements' edges, so it points at its own made shape.
+  - Placement is as the weld symbols' (O119): along the side nearest the tip in 9 mm steps, then the other sides. A clear place is inside the frame and clear of the views, the title block, the texts so far and the balloons before it. Balloons sorted by side and along it, so neighbours' leaders don't cross.
+  - The glyph is our own: a circle with the number, and a thin leader to a filled arrow on the edge.
+  - Built after the weld symbols and before the tables; an auto-placed table keeps clear of each balloon's circle (takenOf).
+  - Issues (warnings):
+    - `BALLOON_NOT_CLEAR`: no clear room, so the balloon sits at its nearest place;
+    - `BALLOON_NO_EDGE`: a line none of whose items shows an edge in the view; the table holds it.
+  - Balloon texts are checked as the weld symbols' are (TEXT_OVER_LINES, overlaps, OFF_SHEET), and balloon leaders count as lines for dimension texts.
+- **Callers**:
+  - The studio (DrawingWorkspace) works out the BOM through the engine worker (`bomPanelData`, 'read' slot), only when the BOM table or the balloons are on.
+  - The chat's `drawingInputs` works it out synchronously (`bomPanelDataOf` with `evaluatePart(…, 'read')`), only then.
+  - Checkboxes "BOM table" and "Balloons" appear for an assembly or a part with machine elements.
+  - `__studioDrawing().balloons` gives the placed (no., item, view, edge), unclear and noEdge.
+- **Tests** (`test/bom-balloons.test.ts`):
+  - S1's two-copy assembly on A3: table rows 1–4 (shaft 0 ×2, key, ring, pin), made/bought.
+  - Balloons 1–4 on the iso view: each tip exactly on a visible piece of its named edge, the part's on the shaft's own edges, the elements' on their nodes'.
+  - Nothing clashes: the only issues are the four "missing dimensions" a bare sheet has.
+  - Circles, numbers and arrows are in the SVG (4 `balloon` groups), the PDF and the DXF; off by default (no BOM worked out).
+  - With the iso hidden, on the front view.
+  - A line with no edge gives BALLOON_NO_EDGE; no room gives BALLOON_NOT_CLEAR (all four); a missing BOM gives the table error.
+  - Flow step "BOM table and balloons (O147 B2)…": shaft and key on A3, both checkboxes; the table with no error; balloons 1–2 on the iso view, balloon 2 on the key's edge; no balloon or overlap issues; the SVG.
+- **Left open** (recorded, not built): balloons avoid only tables placed after them; a table pinned by `at` is not in their way yet. Leaders may cross another balloon's leader when the sides fill.

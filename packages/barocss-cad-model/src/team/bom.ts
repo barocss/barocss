@@ -5,7 +5,7 @@
 import type { ModelNode, StudioDoc } from '../engine/doc';
 import type { Evaluate } from '../chat/tools';
 import { elementLines } from '../engine/elements';
-import { bomViewOf, deriveBom, type Bom, type BomLine, type BomView } from './assembly';
+import { bomViewOf, deriveBom, type Bom, type BomLine, type BomView } from './bomCore';
 import type { EvalResult } from '../engine/evaluate';
 
 /** A made element's line (merged as the bought ones are): what the panel offers to mark bought. */
