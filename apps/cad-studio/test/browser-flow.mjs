@@ -7118,6 +7118,14 @@ try {
       const node = { id: 'n0', kind: 'frame', points: f.points, segments: f.segments, section: f.section, up: f.up, corners: f.corners };
       return { c, file: join(out, name.replace('.json', '.bcad')), doc: { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [node], outputs: {}, nextId: 1 } };
     };
+    /** The canvas's distinct colours (4 bits a channel, every 97th pixel), decoded in the page. */
+    const canvasColours = async () => page.evaluate(async src => {
+      const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode();
+      const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0);
+      const d = g.getImageData(0, 0, img.width, img.height).data, seen = new Set();
+      for (let k = 0; k < d.length; k += 4 * 97) seen.add((d[k] >> 4) << 8 | (d[k + 1] >> 4) << 4 | d[k + 2] >> 4);
+      return seen.size;
+    }, (await page.locator('canvas.vp-canvas').screenshot()).toString('base64'));
     const shown = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length > 0 && b.bodies.every(x => x.volumeMM3 !== null); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
     const matches = (bodies, expect, label) => {
       assert.equal(bodies.length, expect.outputs.length, `${label}: ${bodies.length} bodies`);
@@ -7132,19 +7140,15 @@ try {
       const { c, file, doc } = asStudio(name);
       fs.writeFileSync(file, JSON.stringify(doc));
       await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await iso(); const empty = await canvasColours();
       await page.setInputFiles('input[aria-label="Model file"]', file);
       const first = await shown(); matches(first, c.expect, `${name} opened (${renderer})`);
       assert.equal(await page.locator('.vp-error').count(), 0, await page.locator('.vp-error').allInnerTexts().then(x => x.join(' | ')));
       // (A drawn frame: the canvas is not one flat colour — Codex saw a black first WebGPU canvas with real geometry, D175.)
-      await iso(); const shot = await page.locator('canvas.vp-canvas').screenshot();
-      const colours = await page.evaluate(async src => {
-        const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode();
-        const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0);
-        const d = g.getImageData(0, 0, img.width, img.height).data, seen = new Set();
-        for (let k = 0; k < d.length; k += 4 * 97) seen.add((d[k] >> 4) << 8 | (d[k + 1] >> 4) << 4 | d[k + 2] >> 4);
-        return seen.size;
-      }, shot.toString('base64'));
-      assert.ok(colours > 8, `${name}: the canvas looks blank on ${renderer} (${colours} colours)`);
+      await iso();
+      // (Against the same viewport with nothing in it: the background's gradient alone has colours too.)
+      const colours = await canvasColours();
+      assert.ok(colours > empty + 4, `${name}: the canvas looks blank on ${renderer} (${colours} colours, ${empty} with no part)`);
       await snap(`k2-${name.replace('.json', '')}`);
       // (Saved with the studio's own Save, a new part, the download opened: the same bodies.)
       const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
