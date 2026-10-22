@@ -1,0 +1,86 @@
+{
+  "id": "frk-refuse-notch-v-depth",
+  "step": "FRk",
+  "decisions": [
+    "D175",
+    "D182"
+  ],
+  "about": "FRk5 (D175): a V notch as deep as the branch is wide (30 on a Ø30 tube) is refused, never cut through.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              -200,
+              0,
+              0
+            ],
+            [
+              200,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              300
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "section": {
+            "kind": "round-tube",
+            "diameter": 30,
+            "wall": 2
+          },
+          "up": [
+            0,
+            0,
+            1
+          ],
+          "corners": {
+            "default": "none",
+            "tee": "cope",
+            "at": [
+              {
+                "point": 3,
+                "kind": "cope",
+                "notch": {
+                  "kind": "v",
+                  "depth": 30,
+                  "angle": 90
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[NOTCH_CUTTER] v depth must be under the branch width and length"
+    }
+  }
+}

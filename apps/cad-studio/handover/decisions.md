@@ -10919,3 +10919,28 @@ no-shoulder warning and `shoulder: null`, as D164's FRk8a says. Nothing else cha
 - `packages/barocss-cad` lint 0 errors, type-check clean, build.
 - Bearing, shaft and housing files: 74/74.
 - No brep core change.
+
+## D182 — K2 (FRk5 leftovers), the kernel's half: the notch cases the flow loads (2026-10-23)
+
+The coordinator's split for K2: the kernel lane writes the notch cases. The GPU lane builds the browser-flow step
+(notch made, saved, reopened on both renderers) and looks into Codex's retained WebGPU failure. A kernel tessellation
+cause would come back here.
+
+**Three conformance cases in `packages/barocss-cad/conformance/frk/`, on one tee.**
+- The tee: a Ø30 × 2 round tube through from x −200 to 200, and a Ø30 × 2 branch from z 300 down to it, coped at
+  point 3 with a notch cutter.
+- **`notch-v-tee.json`:** a V notch, depth 20 at 90° (k = cot 45° = 1). All closed forms.
+  - The branch keeps z ≥ 20 − |y′|.
+  - V = A·300 − (20A − 4(15³ − 13³)/3) = 50 830.8394749546.
+  - z̄ = ½(300²A − ∫∫h²)/V, with ∫∫h² = 400A − 40·4(15³ − 13³)/3 + π(15⁴ − 13⁴)/4, giving 155.5035594880.
+- **`notch-holesaw-tee.json`:** a hole saw Ø52 on the through tube's axis.
+  - The branch keeps z ≥ √(26² − y′²).
+  - V 48 558.8898558679 and z̄ 161.9891632034, by a 64 × 256 polar Gauss–Legendre over the annulus.
+  - The oracle script is `test/frk-5-notch-oracle.py`, numpy only, no kernel code.
+- **In both cases:** the through tube is untouched (A·400, centroid at the origin), both bodies are valid, genus 1.
+  Tolerances: volume rel 1e-9, centroid abs 1e-6.
+- **`refuse-notch-v-depth.json`:** a V as deep as the branch is wide (30) is refused: PARAMETER
+  "[NOTCH_CUTTER] v depth must be under the branch width and length".
+
+**Checks (T1):** the three cases pass through `test/conformance.test.mjs` (with the other notch-named cases, 6/6). No
+product code changed. RB picks up three more cases at the next window.

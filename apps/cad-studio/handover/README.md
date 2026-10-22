@@ -43,7 +43,8 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | FRk7: SubD display folds flipped onto the surface (pipe clamp worst 88.6° → 21.6°, none ≥ 25°) | D180 | done (T1+); T2 pending |
 | Open: `r6/facet-cube-sphere-intersect` pins ȳ 17.74954826 against the symmetric 17.75 (4.5e-4) | — | found (D179) |
 | FRk8a: the housing's shoulder from its faces against Da max (SEAT_ABUTMENT above it; a warning when none at the located side) | D181 | done (T1) |
-| FRk5 leftovers, FRk8b second half, FRk9 | — | queued (`notes/claude-resume-2026-10-23/kernel.md`) |
+| K2 (FRk5 leftovers), kernel half: the notch cases for the flow (V and hole saw on a tee, closed form / Gauss oracles; a NOTCH_CUTTER refusal). The flow step and the WebGPU failure are the GPU lane's | D182 | done (T1) |
+| K5 FRk8b second half (only if needed), K6 FRk9 | — | next: K6 |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

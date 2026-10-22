@@ -1,0 +1,126 @@
+{
+  "id": "frk-notch-holesaw-tee",
+  "step": "FRk",
+  "decisions": [
+    "D175",
+    "D182"
+  ],
+  "about": "FRk5 (D175), for the K2 flow: the same tee with a hole-saw notch Ø52 on the through tube's axis (offset 0). The branch keeps z ≥ √(26² − y'²): its volume and z̄ by a 64 × 256 polar Gauss–Legendre over the annulus (written outside the kernel); the through tube untouched, A·400.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              -200,
+              0,
+              0
+            ],
+            [
+              200,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              300
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "section": {
+            "kind": "round-tube",
+            "diameter": 30,
+            "wall": 2
+          },
+          "up": [
+            0,
+            0,
+            1
+          ],
+          "corners": {
+            "default": "none",
+            "tee": "cope",
+            "at": [
+              {
+                "point": 3,
+                "kind": "cope",
+                "notch": {
+                  "kind": "holesaw",
+                  "diameter": 52,
+                  "offset": 0
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 70371.67544041136,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            0
+          ],
+          "absTol": 1e-09
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 48558.8898558679,
+          "relTol": 1e-09
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            161.9891632034
+          ],
+          "absTol": 1e-06
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ]
+  }
+}
