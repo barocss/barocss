@@ -247,12 +247,20 @@ test('A9 steps 9–11: a drawing per made part; the BOM and the purchase CSV; th
 
   // 10. The BOM and the purchase CSV through v2. The CSV holds exactly the bought lines — the key (no row, no source, an
   // estimate: A9-11), the 6204 and the 214 with their rows and sources; the BOM's made parts their materials' masses
-  // (the plate's: its exact volume · 2.7 g/cm³). (The frame's members and the four M6 screws are not BOM lines: F9, F10.)
+  // (the plate's: its exact volume · 2.7 g/cm³). (The four M6 screws are not BOM lines yet: F9.)
   const bomOut = await call('query', { action: 'bom' }) as { files: { text: string }[] };
-  const bom = JSON.parse(bomOut.files[0].text).bom as { lines: { item: string; qty: number; kind?: string; row?: string | null; source?: string | null; estimate?: boolean; massG: number }[] };
+  const bom = JSON.parse(bomOut.files[0].text).bom as { lines: { item: string; qty: number; kind?: string; row?: string | null; source?: string | null; estimate?: boolean; massG: number; material: string | null; member?: { section: string; lengthMM: number }; plate?: unknown }[] };
   const plateLine = bom.lines.find(l => l.item === 'Plate')!;
   assert.ok(Math.abs(plateLine.massG - 801794.9075 * 2.7e-3) < 1e-2, String(plateLine.massG));
   assert.deepEqual(bom.lines.filter(l => l.kind).map(l => [l.kind, l.qty, l.row ?? null, l.estimate]), [['key', 1, null, true], ['bearing', 1, '6204', false], ['oring', 1, '214', false]]);
+  // (O169, F10: the frame's members, a made line a cut-list row — legs 320 × 4, rails 360 × 2 and 260 × 2, steel — each
+  // A · L · ρ (A = 40² − 34², the library's mild steel); the total mass the parts' and the base part's, nothing assumed.)
+  const steel = 7.85e-3, members = bom.lines.filter(l => l.member).map(l => [l.item, l.qty, l.material, +l.massG.toFixed(3)]);
+  assert.deepEqual(members, [[320, 4], [360, 2], [260, 2]].map(([L, n]) => [`rect-tube 40 × 40 × 3 × ${L}`, n, 'steel', +(n * (40 ** 2 - 34 ** 2) * L * steel).toFixed(3)]));
+  // (The plates too by their material: 4 steel gussets of 8750 mm³, 4 caps of 4624 — no longer the default's density.)
+  assert.deepEqual(bom.lines.filter(l => l.plate).map(l => [l.qty, l.material, +l.massG.toFixed(3)]), [[4, 'steel', +(4 * 8750 * steel).toFixed(3)], [4, 'steel', +(4 * 4624 * steel).toFixed(3)]]);
+  const total = (JSON.parse(bomOut.files[0].text).bom as { totalMassG: number }).totalMassG, partsMass = bom.lines.filter(l => ['Plate', 'Shaft', 'Cover'].includes(l.item)).reduce((a, l) => a + l.massG, 0);
+  assert.ok(total > partsMass + members.reduce((a, m) => a + (m[3] as number), 0), `${total}: the parts, the members, and the plates and beads too`);
   const csvOut = await call('query', { action: 'purchase_csv' }) as { files: { text: string }[] }, csv = csvOut.files[0].text.trim().split('\n');
   assert.equal(csv.length, 4); assert.equal(csv[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');
   assert.match(csv[1], /^\d+,key 6 × 6 × 18,1,key,6 × 6 × 18,,,,estimate$/);

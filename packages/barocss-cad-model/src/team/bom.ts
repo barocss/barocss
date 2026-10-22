@@ -6,6 +6,7 @@ import { resolveShopTree, provenanceOfTree, type ShopRowProvenance } from '../en
 import type { ModelNode, StudioDoc } from '../engine/doc';
 import type { Evaluate } from '../chat/tools';
 import { elementLines } from '../engine/elements';
+import { massProperties } from '../chat/analysis';
 import { bomViewOf, deriveBom, type Bom, type BomLine, type BomView } from './bomCore';
 import type { EvalResult } from '../engine/evaluate';
 import { bearingHousingRef } from '../engine/bearingContext';
@@ -44,7 +45,8 @@ export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => Eva
   let baseMass = 0;
   for (const [part, d] of docs) {
     const e = evaluate(d); if (!e?.ok) continue;
-    if (part === 'base') baseMass = e.bodies.reduce((s, b) => s + (b.massG ?? 0), 0);
+    // (O169: by the document's materials, as a placed part's mass is — a body's own massG is the default material's.)
+    if (part === 'base') baseMass = (massProperties(d, e.bodies) as { mass_g: number }[]).reduce((s, x) => s + x.mass_g, 0);
     for (const l of elementLines(d, e.bodies)) {
       if (l.bought || l.kind === 'gusset' || l.kind === 'end-cap') continue; // (plates: their own BOM lines, FRk1)
       const id = `${part}:${l.item}`, row = l.row?.id ?? null, m = made.find(x => x.kind === l.kind && x.size === l.size && x.row === row);

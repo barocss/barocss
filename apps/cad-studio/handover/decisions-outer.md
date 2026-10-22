@@ -7037,3 +7037,50 @@ No studio expectation relied on an overcut drill: cnc-cam tests the preview.
 - model: frame-welds 6/6, a9-acceptance 3/3, and every model test file on beads or welds (14 files, all passing: bead-ownership-policy, shared-bead*, weld-beads, wire-welds, frk-acceptance, frk5-editor, cnc-drawing, shop-rows, team-input-authority, tool-contract);
 - studio: chat, frame, memory, mould-quote;
 - tsc of model and studio; eslint 0 errors.
+
+## O169 — F10: an assembly's base part makes things too; its members are BOM lines, and BOM masses are by material (2026-10-23)
+
+**The defect** (A9's F10): `deriveBom` listed the placed parts, plates and elements, but not the base part's own bodies. A9's welded frame, the base, had no member lines, and its mass was missing from the total. The S0 wants the members by cut-list row and Σ volume · density with nothing assumed.
+
+**The coordinator's decision:**
+- An assembly's base part's made bodies are BOM lines.
+- Frame members merge by cut-list row (section, length, material).
+- The mass is Σ volume · density.
+- This is a correction, not a contract break: the BOM is derived, and nothing saved changes.
+
+**Built** (team/bomCore.ts, team/assembly.ts):
+- **The view's new optional `base`**, only for a document with placed parts:
+  - its members by the cut-list rows of its made bodies (`madeBodies`, then `partCutList`): item, section, long-point length, material, pieces, mass;
+  - its other made bodies (neither members nor elements), one each;
+  - the base part's whole mass, as a placed part's is counted.
+- **Lines:**
+  - each member row is a line "rect-tube 40 × 40 × 3 × 320", qty its pieces, `parts` `base:<body>`, `member {section, lengthMM}`, after the parts and before the plates;
+  - each other base body is its own line.
+- **`totalMassG`** adds the base part's mass. `totalQty` stays the number of placed parts.
+- **`checkBom`** checks the base lines:
+  - each member piece on its row's line exactly once, with that row's section, length and material;
+  - each other base body on one line;
+  - the total mass with the base included.
+- **A single part** (no placed parts) is unchanged: it is its own one line, "this part" (bom.ts), so its bodies are not listed twice.
+
+**Found while building it — BOM masses were the default material's.**
+- A body's own `massG` is the default material's density (aluminium), whatever the person set, so four steel gussets weighed 94.5 g, at 2.7.
+- BOM masses now come from the exact volume times the body's material density (`exactMass`) for the members, other base bodies and plates. A single part's base mass uses `massProperties`, as a placed part's always did.
+- No existing test had pinned a plate's mass in a material other than the default, so no expectation changes for it.
+
+**Expectations changed**, each justified:
+- The A9 run, step 10, now asserts:
+  - the three member lines: [320 × 4, 360 × 2, 260 × 2], steel, each n · A · L · 7.85e-3;
+  - the plates by steel: 4 × 8750 · 7.85e-3 and 4 × 4624 · 7.85e-3;
+  - the total above the parts plus the members (the plates and beads too).
+- Its comment no longer lists F10 as open.
+- No other model or studio test changed: none had base-part bodies in an assembly.
+
+**New test** (bom-base.test):
+- a frame base with one placed plate: the member lines by row in steel, `checkBom` clean, the total the plate plus the base, `totalQty` 1;
+- a single frame part: its one line, weighed in steel, not aluminium.
+
+**Verified (T1):**
+- model: bom-base 2/2, a9-acceptance 3/3, and every model test file on the BOM, baseline or mass, all passing;
+- studio: bom-linked-ui, chat, made-bodies-previews, mould-quote, team-bundle;
+- tsc of model and studio; eslint 0 errors.
