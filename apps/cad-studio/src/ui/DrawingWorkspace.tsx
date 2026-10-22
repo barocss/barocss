@@ -3,7 +3,7 @@
 // points, or one straight edge, then where the dimension line goes), Diameter and Radius (a circle
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
-import { changeDrawingScope } from '@barocss/cad-model/drawing/scope';
+import { changeDrawingScope, drawsMadeOnly } from '@barocss/cad-model/drawing/scope';
 
 
 
@@ -364,9 +364,10 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     // The front's side by information (R14.3b), when nothing placed by hand ties it: the part projected for it first.
     let base = { views, settings, sections: cuts };
     const pick = frontByInformation(views, settings);
+    // (O174: the turned part projected as the sheet is, its bought elements out.)
     if (pick) {
       const ts = turnSections(settings, pick.orientation), list = Array.isArray(ts) ? ts : [];
-      const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(list.length ? { sections: list } : {}), ...(pick.orientation !== 'y-' ? { orientation: pick.orientation as 'x+' } : {}) });
+      const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(list.length ? { sections: list } : {}), ...(pick.orientation !== 'y-' ? { orientation: pick.orientation as 'x+' } : {}), made: drawsMadeOnly(settings) });
       if (currentModel.current !== model) return;
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, sections: sheetSections(r.sections ?? []) };
@@ -382,7 +383,8 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   /** Another front side (R14.3b, O7): the annotations re-mapped to the views showing their axes, or refused, typed. */
   const turnTo = async (o: Orientation) => {
     if (!views || o === (settings.orientation ?? 'y-')) return;
-    const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(o !== 'y-' ? { orientation: o as 'x+' } : {}) });
+    // (O174: projected as the sheet is — a part's without its bought elements.)
+    const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(o !== 'y-' ? { orientation: o as 'x+' } : {}), made: drawsMadeOnly(settings) });
     if (currentModel.current !== model) return;
     if (!r.ok) { onToast({ title: 'Could not turn the drawing', hint: r.error, detail: '' }); return; }
     const t = reorient(views, r.views, settings, o);
