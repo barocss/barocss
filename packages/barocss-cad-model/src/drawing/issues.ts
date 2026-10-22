@@ -26,11 +26,11 @@
 import type { PartElement } from './elementCallouts';
 import type { BrepProjection } from '@barocss/cad';
 import { autoDimensions, axisOf, holesOf, levels } from './auto';
-import { basicBox, buildSheet, datumMarks, dimensionMarks, frameMarks, tableRoom, type Mark, type MarkGroup, type Sheet } from './sheet';
+import { basicBox, buildSheet, datumMarks, dimensionMarks, frameMarks, placementOf, projectionOf, sectionExtents, tableRoom, type Mark, type MarkGroup, type Sheet, type SheetSection } from './sheet';
 import { textCorners } from './text';
-import { SCALES, layoutSheet, type SheetLayout } from './views';
-import type { Resolved } from './dimensions';
-import { VIEW_IDS, type DimPoint, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
+import { SCALES, layoutSheet, sectionDepth, type SheetLayout } from './views';
+import { fmtMM, type Resolved } from './dimensions';
+import { SECTION_VIEWS, VIEW_IDS, isSectionRef, nextSectionId, sectionLetter, sectionsOf, withSections, type DimPoint, type SectionViewId, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
@@ -46,13 +46,15 @@ export type DrawingFix =
   | { kind: 'auto-dimension' }
   | { kind: 'show-view'; view: ViewId }
   | { kind: 'remove-datum'; datum: string }
-  | { kind: 'remove-frame'; frame: string };
+  | { kind: 'remove-frame'; frame: string }
+  /** O148 X3: a section the dimension needs (DIM_ON_HIDDEN): its letter, its view and its place along that view's depth. */
+  | { kind: 'add-section'; id: string; view: SectionViewId; at: number };
 export interface DrawingIssue {
   code: DrawingIssueCode;
   severity: 'error' | 'warning';
   message: string;
   /** The dimensions and notes it is about; `view`; `at`: a sheet point to show it at. */
-  dims?: string[]; notes?: string[]; tables?: string[]; /** FRd2: the weld symbols (W-numbers) it is about. */ welds?: string[]; view?: ViewId; at?: XY;
+  dims?: string[]; notes?: string[]; tables?: string[]; /** FRd2: the weld symbols (W-numbers) it is about. */ welds?: string[]; view?: DimView; at?: XY;
   fix?: DrawingFix;
 }
 
@@ -160,7 +162,7 @@ function segments(m: Mark, out: [XY, XY][]): void {
   }
 }
 
-interface Owner { kind: 'dimension' | 'note' | 'label' | 'datum' | 'table' | 'weld' | 'balloon'; id?: string; view?: ViewId }
+interface Owner { kind: 'dimension' | 'note' | 'label' | 'datum' | 'table' | 'weld' | 'balloon'; id?: string; view?: DimView }
 interface Placed { owner: Owner; boxes: Quad[]; lines: [XY, XY][]; points: XY[] }
 
 function placedOf(g: MarkGroup): Placed {
@@ -191,6 +193,10 @@ function textOf(sheet: Sheet, id: string): string { const r = sheet.dimensions.f
 
 export interface IssueContext {
   views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: (edge: string, diameterMM?: number) => string | null;
+  /** O148 X2: the sections cut for the sheet (for Auto-dimension's fix). */
+  sections?: readonly SheetSection[];
+  /** O148 X3: the part's machine elements (a keyseat's shaft, a keyway's axis): the section a hidden dimension needs. */
+  elements?: readonly PartElement[];
   /** D155: why a diameter dimension's fit class has no limits at its size (drawing/fits.ts fitMiss), or null. */
   fitMiss?: (edge: string, diameterMM: number) => string | null;
   /** FRf2 (O125): frames following a placed part's sketch that changed since linked, in words. */
@@ -228,14 +234,16 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     if (missing.length) out.push({ code: 'DATUM_UNDEFINED', severity: 'error', message: `The position frame on ${r.text} refers to datum${missing.length > 1 ? 's' : ''} ${missing.join(', ')}, which the drawing does not have.`, dims: [f.dim], view: r.dim.view });
   }
   for (const r of sheet.dimensions) {
-    if (!r.ok) { out.push({ code: 'DIMENSION_LOST', severity: 'error', message: `A ${r.dim.kind} dimension in the ${r.dim.view} view is lost: ${r.reason}`, dims: [r.dim.id], view: r.dim.view, fix: { kind: 'remove', dim: r.dim.id } }); continue; }
+    if (!r.ok) { out.push({ code: 'DIMENSION_LOST', severity: 'error', message: `A ${r.dim.kind} dimension in ${viewName(r.dim.view)} is lost: ${r.reason}`, dims: [r.dim.id], view: r.dim.view, fix: { kind: 'remove', dim: r.dim.id } }); continue; }
     // (O146: a linear dimension measuring to a hidden line — a keyseat under its hub, say — is said; a section through it
     // would show it. No section is added here: that is R14's view logic, an open item.)
     if (r.dim.kind === 'linear') {
       // (A point is on a hidden line when no visible edge of the view ends there: a corner a hidden edge also ends at is seen.)
-      const pr = ctx.views[r.dim.view];
+      const pr = projectionOf(ctx.views, ctx.sheet, r.dim.view);
       const on = pr ? [r.dim.a, r.dim.b].filter(p => p.at === 'end' && !seenAt(pr, p.near)) : [];
-      if (on.length) out.push({ code: 'DIM_ON_HIDDEN', severity: 'warning', message: `Dimension ${r.text} measures to ${on.length > 1 ? 'hidden lines' : 'a hidden line'} in the ${r.dim.view} view: a section through it would show it (none is added for it).`, dims: [r.dim.id], view: r.dim.view });
+      // (O148 X3: a keyseat's or a keyway's — the section square to its axis through its middle, as the fix.)
+      const sec = on.length ? sectionFor(ctx, r.dim) : null;
+      if (on.length) out.push({ code: 'DIM_ON_HIDDEN', severity: 'warning', message: `Dimension ${r.text} measures to ${on.length > 1 ? 'hidden lines' : 'a hidden line'} in ${viewName(r.dim.view)}: ${sec?.text ?? 'a section through it would show it (none is added for it).'}`, dims: [r.dim.id], view: r.dim.view, ...(sec?.fix ? { fix: sec.fix } : {}) });
     }
     if (rematched(r.dim)) out.push({ code: 'REMATCHED', severity: 'warning', message: `Dimension ${r.text}: an edge it measures was matched again after an edit. Check it measures what you meant.`, dims: [r.dim.id], view: r.dim.view, fix: { kind: 'accept', dim: r.dim.id } });
   }
@@ -304,9 +312,52 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   return out;
 }
 
+/**
+ * O148 X3: the section a dimension on hidden lines needs, when it measures a keyseat or a keyway: square to the feature's
+ * axis (the shaft's, read from its step's round edges; the keyway's report's), through the feature's middle along it
+ * (its edges' ends), on the principal plane that axis is — a fix adding the next free letter (A only on the front: the
+ * front's checkbox); or, a section already there, Auto-dimension; an axis along no principal axis said, with no fix.
+ * Null when the dimension measures no such feature.
+ */
+export function sectionFor(ctx: IssueContext, dim: Extract<DrawingDimension, { kind: 'linear' }>): { text: string; fix?: DrawingFix } | null {
+  const faces = [dim.a.edge, dim.b.edge].flatMap(e => e.split('|')).map(f => f.replace(/~sil\d*$/, '').replace(/(#\d+)+$/, ''));
+  let point: readonly number[] | null = null, axis: readonly number[] | null = null, own = '';
+  for (const f of faces) {
+    const seat = /^(.+)\.keyseat(\d+)$/.exec(f), way = /^(.+)\.keyway$/.exec(f);
+    if (seat) {
+      const e = ctx.elements?.find(x => x.id === seat[1] && x.element.kind === 'shaft'), ks = e?.element.kind === 'shaft' ? e.element.report.keyseats.find(k => k.index === Number(seat[2])) : undefined;
+      if (!ks) continue;
+      const stepFace = `${seat[1]}.seat${ks.step}`, round = roundEdgeOf(ctx.views, stepFace);
+      if (round) { point = round.center; axis = round.normal; own = f; break; }
+    }
+    if (way) {
+      const e = ctx.elements?.find(x => x.id === way[1] && x.element.kind === 'keyway');
+      if (e?.element.kind === 'keyway') { point = e.element.report.axisPoint; axis = e.element.report.axis; own = f; break; }
+    }
+  }
+  if (!point || !axis) return null;
+  const n = Math.hypot(axis[0], axis[1], axis[2]), u = axis.map(x => x / n), k = u.findIndex(x => Math.abs(Math.abs(x) - 1) < 1e-9);
+  if (k < 0) return { text: 'its axis runs along none of X, Y and Z, so no principal section shows it (an aligned section is not drawn yet).' };
+  // (Its middle along the axis: half way between the ends of its edges, in every standard view.)
+  let lo = Infinity, hi = -Infinity;
+  for (const id of ['front', 'top', 'right'] as const) for (const e of ctx.views[id].edges) if (e.ends && e.name.split('|').some(f => f.replace(/~sil\d*$/, '').replace(/(#\d+)+$/, '') === own)) for (const p of e.ends) { const t = (p[0] - point[0]) * u[0] + (p[1] - point[1]) * u[1] + (p[2] - point[2]) * u[2]; lo = Math.min(lo, t); hi = Math.max(hi, t); }
+  if (!(lo <= hi)) return null;
+  const mid = point[k] + u[k] * (lo + hi) / 2, view = SECTION_VIEWS.find(v => sectionDepth(v, ctx.settings.orientation).k === k)!, depth = sectionDepth(view, ctx.settings.orientation);
+  const at = Math.round(depth.sign * mid * 1e6) / 1e6 + 0, list = sectionsOf(ctx.settings), there = list.find(x => x.view === view && Math.abs(x.at - at) < 1e-6);
+  const axisName = 'XYZ'[k];
+  if (there) return { text: `section ${there.id}–${there.id} through it shows it: Auto-dimension puts it there.`, fix: { kind: 'auto-dimension' } };
+  const id = view === 'front' && !list.some(x => x.id === 'A') ? 'A' : nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...list]);
+  return { text: `section ${id}–${id}, square to its axis (${axisName}) through its middle (${axisName} ${fmtMM(mid)}), would show it — the fix adds it.`, fix: { kind: 'add-section', id, view, at } };
+}
+/** A round edge of a face in the standard views (its circle's centre and normal: a shaft step's axis). */
+function roundEdgeOf(views: DrawingViews, face: string): { center: readonly number[]; normal: readonly number[] } | null {
+  for (const id of ['front', 'top', 'right'] as const) for (const e of views[id].edges) if (e.circle && e.name.split('|').some(f => { const g = f.replace(/~sil\d*$/, '').replace(/(#\d+)+$/, ''); return g === face || g.startsWith(`${face}.`); })) return { center: e.circle.center, normal: e.circle.normal };
+  return null;
+}
+
 /** Whether a text box lies on the area of a view other than `own` (the section's too; a note's every view). */
-function onOtherView(layout: SheetLayout, b: Quad, own: ViewId | undefined): boolean {
-  const areas = (['front', 'top', 'right', 'iso'] as const).filter(v => v !== own && !layout.views[v].hidden).map(v => layout.views[v].box).concat(layout.section ? [layout.section.box] : []);
+function onOtherView(layout: SheetLayout, b: Quad, own: DimView | undefined): boolean {
+  const areas = (['front', 'top', 'right', 'iso'] as const).filter(v => v !== own && !layout.views[v].hidden).map(v => layout.views[v].box).concat((layout.sections ?? []).filter(x => `section:${x.section}` !== own).map(x => x.box));
   return areas.some(([x0, y0, x1, y1]) => quadsOverlap(b, [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]));
 }
 
@@ -380,8 +431,9 @@ function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewGri
   }
   const r = ctx.sheet.dimensions.find((d): d is Extract<Resolved, { ok: true }> => d.ok && d.dim.id === p.owner.id);
   if (!r) return {};
-  const v = ctx.layout.views[r.dim.view];
-  for (const place of candidates(r, v.scale, ctx.views[r.dim.view])) {
+  const v = placementOf(ctx.layout, ctx.sheet, r.dim.view), pr = projectionOf(ctx.views, ctx.sheet, r.dim.view);
+  if (!v || !pr) return {};
+  for (const place of candidates(r, v.scale, pr)) {
     // (The sheet's resolved dimension carries its shown text, callout and count included.)
     const moved = { ...r, dim: { ...r.dim, place } } as Extract<Resolved, { ok: true }>;
     // (Drawn as the sheet draws it: boxed if basic, its feature control frame under it.)
@@ -455,17 +507,35 @@ function duplicates(ctx: IssueContext): DrawingIssue[] {
     if (r.kind === 'linear' && r.dim.orient !== 'aligned') {
       const k = r.dim.orient === 'horizontal' ? 0 : 1, lo = Math.min(r.a[k], r.b[k]), hi = Math.max(r.a[k], r.b[k]);
       // (Views sharing an axis share its coordinates: the front and top views' u, the front and right views' v.)
-      key = `L|${axisOf(r.dim.view, k)}|${round(lo)}|${round(hi)}|${r.dim.count ?? 1}`;
+      key = `L|${axisOf(baseView(ctx.sheet, r.dim.view), k)}|${round(lo)}|${round(hi)}|${r.dim.count ?? 1}`;
     } else if (r.kind === 'diameter' || r.kind === 'radius') key = `C|${r.dim.view}|${round(r.center[0])}|${round(r.center[1])}|${round(r.radius)}`;
     else continue;
     const had = seen.get(key);
     if (!had) { seen.set(key, r); continue; }
+    // (O148 X2: the same span on features with nothing in common — a hub's keyway and its shaft's keyseat — is two measurements.)
+    if (had.kind === 'linear' && r.kind === 'linear' && disjoint(featuresOf(had.dim.a.edge, had.dim.b.edge), featuresOf(r.dim.a.edge, r.dim.b.edge))) continue;
     const drop = r.dim.auto && !had.dim.auto ? r : had.dim.auto && !r.dim.auto ? had : r;
-    out.push({ code: 'DUPLICATE', severity: 'warning', message: `${r.text} is given twice (${had.dim.view} and ${r.dim.view} view).`, dims: [had.dim.id, r.dim.id], view: r.dim.view, fix: { kind: 'remove', dim: drop.dim.id } });
+    out.push({ code: 'DUPLICATE', severity: 'warning', message: `${r.text} is given twice (${twice(had.dim.view, r.dim.view)}).`, dims: [had.dim.id, r.dim.id], view: r.dim.view, fix: { kind: 'remove', dim: drop.dim.id } });
   }
   return out;
 }
 const round = (v: number) => Math.round(v / SAME) * SAME;
+/**
+ * O148 X2: the features two ends belong to (their faces' features, a placed part's prefix kept; a section's cut face left
+ * out): the same span measured on a hub's keyway and on its shaft's keyseat is two measurements, not one given twice.
+ */
+function featuresOf(...edges: string[]): string[] {
+  const out = new Set<string>();
+  for (const e of edges) for (const f of e.split('|')) { const n = f.replace(/~sil\d*$/, ''), slash = n.lastIndexOf('/', n.indexOf('.')), dot = n.indexOf('.', slash + 1), id = dot < 0 ? n : n.slice(0, dot); if (!/^(.*\/)?section\d+$/.test(id)) out.add(id); }
+  return [...out];
+}
+const disjoint = (a: readonly string[], b: readonly string[]) => a.length > 0 && b.length > 0 && !a.some(x => b.includes(x));
+/** O148 X2: the view a dimension's coordinates are of — a section's own view (it is projected as that view). */
+const baseView = (sheet: Pick<Sheet, 'sections'>, v: DimView): ViewId => isSectionRef(v) ? sheet.sections?.find(x => x.id === sectionLetter(v))?.view ?? 'front' : v;
+/** A view or section as the issue list names it: `the front view`, `section B–B`. */
+const viewName = (v: DimView) => isSectionRef(v) ? `section ${sectionLetter(v)}–${sectionLetter(v)}` : `the ${v} view`;
+/** Where a dimension given twice is: `front and top view` as before, a section by its name. */
+const twice = (a: DimView, b: DimView) => !isSectionRef(a) && !isSectionRef(b) ? `${a} and ${b} view` : `${isSectionRef(a) ? viewName(a) : `${a} view`} and ${isSectionRef(b) ? viewName(b) : `${b} view`}`;
 
 /** Coordinates a view's linear dimensions give along an axis: their ends, and the positions a counted pitch reaches. */
 function givenAlong(sheet: Sheet, axis: string): number[] {
@@ -473,7 +543,7 @@ function givenAlong(sheet: Sheet, axis: string): number[] {
   for (const r of sheet.dimensions) {
     if (!r.ok || r.kind !== 'linear' || r.dim.orient === 'aligned') continue;
     const k = r.dim.orient === 'horizontal' ? 0 : 1;
-    if (axisOf(r.dim.view, k) !== axis) continue;
+    if (axisOf(baseView(sheet, r.dim.view), k) !== axis) continue;
     out.push(r.a[k], r.b[k]);
     if (r.dim.count) { const step = r.b[k] - r.a[k]; for (let j = 2; j <= r.dim.count; j++) out.push(r.a[k] + step * j); }
   }
@@ -547,13 +617,14 @@ export function applyFix(ctx: IssueContext, fix: DrawingFix): DrawingSettings {
   switch (fix.kind) {
     case 'remove': return { ...s, dimensions: s.dimensions.filter(d => d.id !== fix.dim), ...(s.frames?.some(f => f.dim === fix.dim) ? { frames: s.frames.filter(f => f.dim !== fix.dim) } : {}) };
     case 'remove-datum': return { ...s, datums: (s.datums ?? []).filter(d => d.id !== fix.datum) };
+    case 'add-section': return sectionsOf(s).some(x => x.id === fix.id) ? s : withSections(s, [...sectionsOf(s), { id: fix.id, view: fix.view, at: fix.at }]);
     case 'remove-frame': return { ...s, frames: (s.frames ?? []).filter(f => f.id !== fix.frame) };
     case 'move': return { ...s, dimensions: s.dimensions.map(d => d.id === fix.dim ? { ...d, place: fix.place } : d) };
     case 'move-note': return { ...s, notes: (s.notes ?? []).map(n => n.id === fix.note ? { ...n, at: fix.at } : n) };
     case 'move-table': return { ...s, tables: (s.tables ?? []).map(x => (x.id === fix.table ? { ...x, at: fix.at, corner: 'top-left' as const } : x)) };
     case 'accept': return { ...s, dimensions: s.dimensions.map(d => d.id === fix.dim ? accepted(d) : d) };
     case 'scale': { const { scale: _drop, ...rest } = s; void _drop; return { ...rest, ...(fix.scale !== undefined && SCALES.includes(fix.scale) ? { scale: fix.scale } : {}), ...(fix.sheet ? { sheet: fix.sheet } : {}) }; }
-    case 'auto-dimension': return { ...s, dimensions: autoDimensions(ctx.views, ctx.layout, s, ctx.callout).dimensions };
+    case 'auto-dimension': return { ...s, dimensions: autoDimensions(ctx.views, ctx.layout, s, ctx.callout, [], ctx.sections).dimensions };
     case 'show-view': { if (!s.views || s.views.includes(fix.view)) return s; const views = [...s.views, fix.view]; return { ...s, views: VIEW_IDS.filter(v => views.includes(v)) }; }
   }
 }
@@ -567,13 +638,13 @@ function accepted(d: DrawingDimension): DrawingDimension {
 }
 
 /** What a sheet is built from, to build it again after a fix. */
-export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; /** The part's machine elements (O145): Auto layout's leader notes for keys and pins. */ elements?: readonly PartElement[]; callout: (edge: string, diameterMM?: number) => string | null; fitMiss?: (edge: string, diameterMM: number) => string | null; followedChanged?: readonly string[]; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; section?: Parameters<typeof buildSheet>[4] & { projection: { min: readonly number[]; max: readonly number[] } } }
+export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; /** The part's machine elements (O145): Auto layout's leader notes for keys and pins. */ elements?: readonly PartElement[]; callout: (edge: string, diameterMM?: number) => string | null; fitMiss?: (edge: string, diameterMM: number) => string | null; followedChanged?: readonly string[]; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; /** O148 X1: the sections cut (each with its projection; those the settings list are drawn). */ sections?: readonly SheetSection[] }
 
-/** The context of a sheet built from its inputs (its layout from the settings, the section's extent with it). */
+/** The context of a sheet built from its inputs (its layout from the settings, the sections' extents with it). */
 export function issueContext(i: SheetInputs): IssueContext {
-  const layout = layoutSheet(i.views, i.settings, i.section && i.settings.section ? i.section.projection : undefined);
-  const sheet = buildSheet(i.views, layout, i.settings, { ...i.meta, callout: i.callout }, i.section);
-  return { views: i.views, layout, settings: i.settings, sheet, callout: i.callout, ...(i.fitMiss ? { fitMiss: i.fitMiss } : {}), ...(i.followedChanged?.length ? { followedChanged: i.followedChanged } : {}), rebuild: settings => issueContext({ ...i, settings }) };
+  const layout = layoutSheet(i.views, i.settings, sectionExtents(i.settings, i.sections));
+  const sheet = buildSheet(i.views, layout, i.settings, { ...i.meta, callout: i.callout }, i.sections);
+  return { views: i.views, layout, settings: i.settings, sheet, callout: i.callout, ...(i.sections ? { sections: i.sections } : {}), ...(i.elements ? { elements: i.elements } : {}), ...(i.fitMiss ? { fitMiss: i.fitMiss } : {}), ...(i.followedChanged?.length ? { followedChanged: i.followedChanged } : {}), rebuild: settings => issueContext({ ...i, settings }) };
 }
 
 /**

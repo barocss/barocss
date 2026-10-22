@@ -4,7 +4,7 @@
 // frame and title block are one block (TITLE_BLOCK); each dimension is a DIMENSION entity showing exactly what
 // the sheet draws, with its definition points from the model; the section's hatching is a HATCH.
 import { writeDxf, type BrepProjection, type DxfDocument, type DxfEntity, type DxfLayer, type DxfVersion, type DxfWriteResult, type DxfXY, type ProjectedCurve } from '@barocss/cad';
-import { toleranceText, type Mark, type MarkGroup, type Pen, type Sheet } from './sheet';
+import { placementOf, toleranceText, type Mark, type MarkGroup, type Pen, type Sheet } from './sheet';
 import { toSheet, type SheetLayout, type ViewPlacement } from './views';
 import type { Resolved } from './dimensions';
 import type { XY } from './types';
@@ -126,7 +126,8 @@ export function sheetDxfDocument(sheet: Sheet, layout: SheetLayout, version: Dxf
     if (g.role === 'dimension') {
       const r = sheet.dimensions.find((x): x is Extract<Resolved, { ok: true }> => x.ok && x.dim.id === g.id);
       // (A pitch circle has no DXF dimension type: its lines, arrow and text as they are.)
-      if (r && r.kind !== 'pcd') { entities.push(dimensionEntity(r, layout.views[r.dim.view], g, H, solidFills)); continue; }
+      const v = r && placementOf(layout, sheet, r.dim.view);
+      if (r && v && r.kind !== 'pcd') { entities.push(dimensionEntity(r, v, g, H, solidFills)); continue; }
     }
     for (const m of g.marks) markEntities(m, H, entities, solidFills);
   }

@@ -6,6 +6,13 @@ import type { Sig } from '../engine/references';
 
 export type ViewId = 'front' | 'top' | 'right' | 'iso';
 export const VIEW_IDS: readonly ViewId[] = ['front', 'top', 'right', 'iso'];
+/** O148 X2: where a dimension sits — a view, or a section by its letter (`section:A`). */
+export type SectionRef = `section:${string}`;
+export type DimView = ViewId | SectionRef;
+export const isSectionRef = (v: string): v is SectionRef => /^section:[A-Z]{1,2}$/.test(v);
+export const sectionLetter = (v: SectionRef) => v.slice(8);
+/** A dimension's view read from a file: a view, or a section's letter. */
+export const isDimView = (v: unknown): v is DimView => typeof v === 'string' && ((VIEW_IDS as readonly string[]).includes(v) || isSectionRef(v));
 export type Vec3 = [number, number, number];
 export type XY = [number, number];
 
@@ -29,12 +36,12 @@ export type Tolerance = { kind: 'symmetric'; value: number } | { kind: 'deviatio
  * `basic` (R14.4, O5): a theoretically exact dimension, its text boxed (a position tolerance's frame holds the tolerance).
  */
 export type DrawingDimension = ({ tol?: Tolerance; count?: number; auto?: true; basic?: true }) & (
-  | { id: string; view: ViewId; kind: 'linear'; a: DimPoint; b: DimPoint; orient: 'horizontal' | 'vertical' | 'aligned'; place: XY }
-  | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY; sig?: Sig; was?: string }
+  | { id: string; view: DimView; kind: 'linear'; a: DimPoint; b: DimPoint; orient: 'horizontal' | 'vertical' | 'aligned'; place: XY }
+  | { id: string; view: DimView; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY; sig?: Sig; was?: string }
   /** A pitch circle (R14.5, O6): the circle through the centres of three or more holes, its diameter as `Ø40 PCD`. */
-  | { id: string; view: ViewId; kind: 'pcd'; ring: CentreRef[]; place: XY }
+  | { id: string; view: DimView; kind: 'pcd'; ring: CentreRef[]; place: XY }
   /** Between two straight edges (each the one of its name nearest `near`), in the sector holding `place`. */
-  | { id: string; view: ViewId; kind: 'angle'; a: EdgeRef; b: EdgeRef; place: XY });
+  | { id: string; view: DimView; kind: 'angle'; a: EdgeRef; b: EdgeRef; place: XY });
 /**
  * A note: lines of text with their top left at `at` (sheet mm), and optionally a leader to a point
  * of a view (`leader.at` in the view's model coordinates, so it follows the view).
@@ -94,6 +101,12 @@ export interface DrawingSettings {
   balloons?: boolean;
   /** Section A–A: the part cut by the plane square to the front view's depth at `y` along it (Y = y from −Y), seen like the front view, under it (none: no section). */
   section?: { y: number };
+  /**
+   * O148 X1: the sections, each the part cut by the plane square to its view's depth at `at` along it, seen as that view
+   * (front, top or right) with the material in front taken away. A file with only `section` reads as `[{ A, front, y }]`
+   * (`sectionsOf`); one section A on the front is written back as `section`, so such files stay as they were.
+   */
+  sections?: DrawingSection[];
   /** The title block's part name (default: the file name). */
   title?: string;
   /** The drawing's revision (A, B, … or 01), shown in the title block's REV cell (default: -). */
@@ -118,12 +131,37 @@ export interface DrawingSettings {
   datums?: DrawingDatum[];
   frames?: DrawingFrame[];
 }
+/** O148 X1: a section — its letter, the view whose depth its plane is square to, and where along that depth (mm). */
+export interface DrawingSection { id: string; view: SectionViewId; at: number }
+export type SectionViewId = 'front' | 'top' | 'right';
+export const SECTION_VIEWS: readonly SectionViewId[] = ['front', 'top', 'right'];
+/** The drawing's sections: its list, or the one `section` older files have (A on the front view). */
+export const sectionsOf = (s: Pick<DrawingSettings, 'section' | 'sections'>): DrawingSection[] => s.sections ?? (s.section ? [{ id: 'A', view: 'front', at: s.section.y }] : []);
+/** The settings with these sections: one A on the front as `section` (as files have always had it), more as `sections`. */
+export function withSections(s: DrawingSettings, list: readonly DrawingSection[]): DrawingSettings {
+  const rest = { ...s }; delete rest.section; delete rest.sections;
+  if (!list.length) return rest;
+  if (list.length === 1 && list[0].id === 'A' && list[0].view === 'front') return { ...rest, section: { y: list[0].at } };
+  return { ...rest, sections: list.map(x => ({ ...x })) };
+}
+/** The next free section letter (A, B, … Z; then AA, AB, …). */
+export function nextSectionId(list: readonly DrawingSection[]): string {
+  const used = new Set(list.map(x => x.id));
+  for (let k = 0; ; k++) { const id = k < 26 ? String.fromCharCode(65 + k) : String.fromCharCode(64 + Math.floor(k / 26)) + String.fromCharCode(65 + k % 26); if (!used.has(id)) return id; }
+}
 export type RoomSide = 'above' | 'below' | 'left' | 'right';
 export type ViewRoom = Partial<Record<ViewId, Partial<Record<RoomSide, number>>>>;
 export const ROOM_SIDES: readonly RoomSide[] = ['above', 'below', 'left', 'right'];
 
 export const defaultDrawing = (): DrawingSettings => ({ sheet: 'A4', projection: 'third', hidden: true, dimensions: [] });
 
+/** A saved section list: each with a letter (A–Z, two at most), a principal view and a finite position, letters unique; none valid, none. */
+function readSections(raw: unknown): DrawingSection[] | null {
+  if (!Array.isArray(raw)) return null;
+  const out: DrawingSection[] = [];
+  for (const x of raw) if (x && typeof x.id === 'string' && /^[A-Z]{1,2}$/.test(x.id) && SECTION_VIEWS.includes(x.view) && typeof x.at === 'number' && Number.isFinite(x.at) && !out.some(o => o.id === x.id)) out.push({ id: x.id, view: x.view, at: x.at });
+  return out.length ? out : null;
+}
 /** Reads drawing settings from a saved file, keeping what is valid. */
 export function readDrawing(raw: unknown): DrawingSettings {
   const d = defaultDrawing(), r = (raw ?? {}) as Partial<DrawingSettings>;
@@ -137,10 +175,11 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(r.weldSymbols === true ? { weldSymbols: true } : {}),
     ...(r.balloons === true ? { balloons: true } : {}),
     ...(r.section && typeof r.section.y === 'number' && Number.isFinite(r.section.y) ? { section: { y: r.section.y } } : {}),
+    ...(readSections(r.sections) ? { sections: readSections(r.sections)! } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),
     ...(typeof r.revisedModel === 'string' ? { revisedModel: r.revisedModel } : {}),
-    dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view) && (x.kind !== 'pcd' || ringOk(x.ring)) && (x.kind !== 'linear' || ((x.a?.at !== 'pcd' || ringOk(x.a.ring)) && (x.b?.at !== 'pcd' || ringOk(x.b.ring))))).map(x => {
+    dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && isDimView(x.view) && (x.kind !== 'pcd' || ringOk(x.ring)) && (x.kind !== 'linear' || ((x.a?.at !== 'pcd' || ringOk(x.a.ring)) && (x.b?.at !== 'pcd' || ringOk(x.b.ring))))).map(x => {
       const { tol, count, auto, basic, ...rest } = x; const t = readTolerance(tol);
       return { ...rest, ...(t ? { tol: t } : {}), ...(Number.isInteger(count) && count! >= 2 && count! <= 999 ? { count } : {}), ...(auto === true ? { auto: true } : {}), ...(basic === true ? { basic: true } : {}) } as DrawingDimension;
     }) : [],

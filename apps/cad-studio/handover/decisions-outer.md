@@ -5729,3 +5729,102 @@ B2 is built as frozen. The BOM is worked out by the caller and passed in, so the
   - A line with no edge gives BALLOON_NO_EDGE; no room gives BALLOON_NOT_CLEAR (all four); a missing BOM gives the table error.
   - Flow step "BOM table and balloons (O147 B2)…": shaft and key on A3, both checkboxes; the table with no error; balloons 1–2 on the iso view, balloon 2 on the key's edge; no balloon or overlap issues; the SVG.
 - **Left open** (recorded, not built): balloons avoid only tables placed after them; a table pinned by `at` is not in their way yet. Leaders may cross another balloon's leader when the sides fill.
+
+## O148 X1 — sections as a list, on any principal plane (2026-10-22)
+
+X1 is built as the S0 froze it, with one correction (below).
+
+- **Settings** (`drawing/types.ts`):
+  - `sections?: [{ id, view: 'front' | 'top' | 'right', at }]`, where `at` runs along the view's depth (as A–A's `y` always did: Y = y for the default front; a top's depth is −Z, so its `at` is −z).
+  - `sectionsOf(settings)` reads the old `section: { y }` as `[{ A, front, y }]`.
+  - `withSections` writes one A on the front back as `section`, so such files stay byte for byte as they were.
+  - `readDrawing` keeps valid entries only: a letter A–Z (two at most), a principal view, a finite `at`, letters unique.
+  - `nextSectionId` gives the next free letter.
+- **Cutting** (`drawing/section.ts`):
+  - `sectionOf(doc, at, orientation, view)` cuts square to any principal view's depth. It uses the kernel's split along x, y or z (`sectionDepth` in views.ts) and projects as that view.
+  - `sectionsCut` cuts the whole list. The engine worker takes `options.sections`, and the drawing result carries `sections` (each with its result or error).
+- **Layout** (`layoutSheet`; `SheetLayout.sections`, each placement with its letter and view):
+  - A front's or a right's section goes in a row under the views, in its view's column and in projection with it. A–A is placed exactly as before. A later one moves along the row past the one before where they would meet.
+  - A top's section goes beside the top view, on the side away from its neighbour (third angle: left; first angle: right), in its row.
+  - The fit and Auto layout's scale count them all: the side column's width, the row's height, and the row's width when two or more share it.
+- **Sheet**:
+  - Each section is drawn (visible edges, hatch) with "SECTION X–X" under it. A front's or a right's is moved under its view's name, as A–A always was.
+  - Its cutting plane goes in the first shown view that sees the plane edge-on: a front's in the top view, then the right; a top's in the front view, then the right; a right's in the front view, then the top. It is a chain line, thick at its ends, with arrows the way it is seen and its letter at each end.
+  - The cutting planes are worked out before the views' names, so a name goes below its view's cutting-plane ends (a right section's vertical line on the front view no longer hits FRONT).
+  - The cutting-plane group is pushed right after its section's drawing, as A–A's marks always were, so the DXF fixtures keep their entity order. They pass unchanged.
+- **Correction to the S0**: the S0 said B–B's letters go "on the top view". A plane square to the top view's depth is parallel to that view and cannot show there as a line, so its cutting plane is drawn on the front view, where it is edge-on.
+- **Elsewhere**:
+  - Reorient (R14.3b) turns each section along its view's new depth (`turnSections`). A top's always stays. One cut across is refused (SECTION_ACROSS, naming it; A–A's message as before).
+  - The issue list, the weld symbols, auto-dimension's room and the tables keep clear of every section's box.
+  - The chat's drawingInputs cuts the list (`sheetSections`).
+- **Studio** (DrawingWorkspace):
+  - "Section A–A" and "Cut at Y" work as before.
+  - "Add section" adds the next letter from B (A belongs to the front checkbox) on the top view (then the right), at the part's middle along that depth (`sectionMiddle`).
+  - Each other section has a row: its view (select; a change re-centres it), its `at`, and Remove.
+  - "Export section DXF" takes the section chosen (a select when there are two or more); the file is `…-section-X-X.dxf`.
+  - `__studioDrawing()` gives `sections` (id, view, at, rings/edges or error) and `placedSections`; `section` stays A's for the older flow steps.
+- **Tests** (`test/sections.test.ts`):
+  - B–B square to the top view through a stepped shaft (Ø20 × 30, Ø30 × 40) at the Ø30 step's middle:
+    - one ring, every vertex on the Ø30 circle, its area between its inscribed polygon's and πr²;
+    - A–A under the front view, B–B left of the top view in its row (first angle: right of it); the sheet fits on A3;
+    - its cutting plane at Z across the front view with B at both ends; hatched; no overlap, over-lines, off-sheet or fit issues;
+    - in the SVG, PDF and DXF.
+  - Files: old `section` → A on the front; two written as `sections`, back to one as `section`; invalid lists dropped; the next letter.
+  - Reorient: a top section kept; a right section across x+ refused.
+  - drawing.test and dxf.test read A–A's drawing group (`!view`); all R14 section and DXF fixtures pass unchanged.
+  - Flow step "sections (O148 X1)…": a box on A3; Add section gives B–B on the top view, beside it, one cut face, clean, in the SVG; its view → right, still one; B–B alone as DXF with a hatch; removed.
+
+## O148 X2 — dimensions on sections (2026-10-22)
+
+X2 is built as frozen, with one oracle change (below).
+
+- **Where a dimension sits**: `DrawingDimension.view` is a `DimView`: a view, or a section by its letter (`section:B`). `readDrawing` keeps both kinds (`isDimView`).
+- **On the sheet** (buildSheet):
+  - Dimensions on views are resolved as before.
+  - One on a section is resolved after its section is placed (moved under its view's name), against the section's projection. It is drawn as a view's would be (boxed if basic, with its frames), and the section's name goes below its dimensions.
+  - One on a section the sheet lacks is kept unresolved: DIMENSION_LOST, "in section B–B is lost: Its section (B–B) is not on the sheet."
+  - `sheet.sections` carries each section's placement and projection.
+  - `placementOf` and `projectionOf` find a view's or a section's; the issue list, its fixes, tolerance suggestions, the DXF's DIMENSION entities and the studio all use them.
+- **Auto-dimension**:
+  - The O146 key pass looks in the placed sections after the views and moves a measurement to a section only where the section shows more of its ends visible. The section's cut face (`section<k>.cut…`) is left out of an edge's faces, so an edge of the seat's floor and the cut counts as the seat's.
+  - The sections take rows like a view's: room round their box, the same placing.
+  - `autoDimensions`, `autoLayout`, the chat's drawing tools and the issue list's auto-dimension fix pass the sections.
+- **Oracle change**: the S0 said the hub's d + t2 22.8 lands on the section too. Its keyway is seen whole from the top (both ends visible), so it stays on the top view. A section is taken only where it shows more, so measurements well shown in a standard view are not moved.
+- **DUPLICATE**: the same span on features with nothing in common is not "given twice" — a hub keyway's 6 on the top view and its shaft keyseat's b 6 on the section. Features are read from the ends' face names, a placed part's prefix kept, the cut face left out. All earlier duplicate cases still fire, since they share a feature.
+- **Reorient**: a drawing with dimensions on a section is refused, typed SECTION_DIMENSIONS ("… on a section (B–B): those are not turned yet. Remove them first …"). A section's view turns or mirrors with the front.
+- **Studio**:
+  - The dimension tools work on sections: hover picks a section's placed box too, snaps come from its projection, edges and circles from it, and placing and dragging use its placement.
+  - Note leaders stay on views.
+  - `__studioDrawingAt` takes `section:B`.
+- **Tests** (`test/section-dimensions.test.ts`; the fixture `test/fixtures/shaft-hub-keyseat.bcad` is checked byte for byte against the scene and written with UPDATE_SECTION_FIXTURE=1):
+  - O146's shaft and hub with B–B at Z 15: Auto layout adds the 4 key dimensions; b 6 and d − t1 16.5 land on section:B, every end on a visible edge of the section; 22.8 stays on the top view.
+  - No DIM_ON_HIDDEN for them; no DUPLICATE; no errors on them.
+  - Drawn there (groups on section:B), in the SVG and as DXF DIMENSIONs, and read back from the file.
+  - Without the section: both lost, said; reorient refused.
+  - Flow step "dimensions on sections (O148 X2)…": the file opened; Add section, B at −15; Auto-dimension; 6 and 16.5 on section:B, no DIM_ON_HIDDEN or DUPLICATE; the SVG; the dimension tool snaps at the shaft's centre on the section.
+- **Open** (README): the section's edge names carry the split's index (`section<k>`), so a dimension on a section is re-matched if the part's bodies are reordered. Adjacent parts in one section are hatched alike.
+
+## O148 X3 — the section a dimension needs, as a fix (2026-10-22)
+
+X3 is built as the S0 froze it.
+
+- **DIM_ON_HIDDEN's fix** (`sectionFor` in issues.ts) applies when the dimension measures a keyseat or a keyway:
+  - **The axis**: a keyseat's is its shaft step's round edges (centre and normal, from the standard views); a keyway's comes from its report (`axisPoint`, `axis`).
+  - **The middle**: half way between the ends of the feature's edges along that axis.
+  - **The plane**: the principal plane the axis is along, the section view whose depth runs that way (a shaft along Z: square to the top view's depth), `at` signed along that depth (Z 15 → −15).
+  - **The letter**: the next free one from B; A only for a front section while it is free (A is the front checkbox's).
+  - **The message**: "section B–B, square to its axis (Z) through its middle (Z 15), would show it — the fix adds it."
+  - **A section already there**: "section B–B through it shows it: Auto-dimension puts it there." The fix is Auto-dimension, not another section. That also keeps Fix all from adding letter after letter.
+  - **An axis along none of X, Y and Z**: said, with no fix ("an aligned section is not drawn yet"; the open item).
+  - **No keyseat or keyway**: the old text, no fix.
+- **Applying** (`applyFix`, `add-section`) adds the section to the list, so the old `section` is written as `sections` when needed. It is applied like the other fixes: by the person's Fix (button "Add B–B"), Fix all, or the chat's fix tool as a proposal. Auto layout applies only moves, so it never adds a section on its own.
+- **Studio**: the issue list and its fixes get the part's elements and the sections cut (`IssueContext.elements`, `sections`).
+- **A tilted shaft**: after a rotate, the kernel's output carries no shaft report, so Auto-dimension finds no key dimensions there and no section is offered. A hand-placed one gets the old text. A keyway on a tilted bore keeps its report and gets the "no principal section" text. Both are covered.
+- **Tests**:
+  - `section-dimensions.test.ts`, X3 (2):
+    - the shaft-and-hub scene auto-dimensioned: d − t1's DIM_ON_HIDDEN carries `{ add-section, B, top, −15 }` with its words;
+    - applied: the section in the settings; drawn again and auto-dimensioned, no DIM_ON_HIDDEN, and 6 and 16.5 on section:B;
+    - the section there but the dimensions still on the views: every fix is Auto-dimension;
+    - a keyway on a bore rotated 30° about X: the "no principal section" text, no fix.
+  - `element-callouts.test.ts`: O146's message assertion now reads the fix text.
+  - Flow step "the section a dimension needs (O148 X3)…": the file auto-dimensioned; the Fix button on 16.5 reads "Add B–B"; clicked, the sections are `[B, top, −15]`; Auto-dimension again; dimensions on section:B, no DIM_ON_HIDDEN.

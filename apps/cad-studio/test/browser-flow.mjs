@@ -5027,6 +5027,79 @@ try {
   });
 
   // ---- R14.1 (O2): Auto-dimension -------------------------------------------------------------------------------
+  // ---- O148 X1: sections as a list on any principal plane -------------------------------------------------------------
+  await check('sections (O148 X1): a box drawn on A3; Add section gives B–B square to the top view beside it, its cut hatched; its view changed to the right; B–B alone as DXF; removed', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Add section"]');
+      await page.waitForFunction(() => { const d = window.__studioDrawing?.(); return d?.sections?.some(x => x.id === 'B' && x.rings === 1) && d.placedSections?.some(x => x.id === 'B' && x.of === 'top'); }, null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.map(x => [x.id, x.view]), [['B', 'top']]);
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => /OVERLAP|OVER_LINES|OFF_SHEET|DONT_FIT/.test(x.code)).map(x => x.code)), []);
+      await snap('section-b-top');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes('>SECTION B–B</text>'), 'B–B named in the SVG');
+      // Its view changed: square to the right view's depth, through the middle; still one cut face.
+      await page.selectOption('[aria-label="Section B view"]', 'right');
+      await page.waitForFunction(() => { const d = window.__studioDrawing?.(); return d?.sections?.some(x => x.id === 'B' && x.view === 'right' && x.rings === 1) && d.placedSections?.some(x => x.id === 'B' && x.of === 'right'); }, null, { timeout: 30000 });
+      const [dxfFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export section DXF"]')]);
+      assert.match(dxfFile.suggestedFilename(), /section-B-B\.dxf$/);
+      assert.ok(fs.readFileSync(await dxfFile.path(), 'latin1').includes('\nHATCH\n'), 'its hatch');
+      await page.click('[aria-label="Remove section B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.sections && !window.__studioDoc.drawing?.section && !(window.__studioDrawing?.()?.placedSections ?? []).length, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
+    const fs = await import('node:fs');
+    await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Add section"]');
+      await page.waitForSelector('[aria-label="Section B at"]', { timeout: 20000 });
+      await page.fill('[aria-label="Section B at"]', '-15'); await page.press('[aria-label="Section B at"]', 'Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.at === -15 && x.rings >= 2), null, { timeout: 30000 });
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDoc.drawing?.dimensions ?? []).filter(d => d.view === 'section:B').length >= 2, null, { timeout: 90000 });
+      // (The sheet is built after the document changes: waited for, not read at once.)
+      await page.waitForFunction(() => { const on = new Set(window.__studioDoc.drawing.dimensions.filter(d => d.view === 'section:B').map(d => d.id)); const v = (window.__studioDrawing?.()?.dimensions ?? []).filter(d => on.has(d.id)).map(d => d.value); return [6, 16.5].every(w => v.some(x => Math.abs(x - w) < 1e-6)); }, null, { timeout: 30000 });
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => x.code === 'DIM_ON_HIDDEN' || x.code === 'DUPLICATE').map(x => x.code)), []);
+      await snap('section-dimensions');
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      const svg = fs.readFileSync(await svgFile.path(), 'utf8');
+      assert.ok(svg.includes('>SECTION B–B</text>') && svg.includes('>16.5</text>'), 'B–B and d − t1 in the SVG');
+      // (The dimension tool on the section: the shaft's centre there is a snap point.)
+      await press('d');
+      const p = await page.evaluate(() => window.__studioDrawingAt('section:B', 0, 0));
+      await page.mouse.move(p.x - 3, p.y); await page.mouse.move(p.x, p.y);
+      await page.waitForFunction(() => !!document.querySelector('.dw-snap'), null, { timeout: 10000 });
+      await press('Escape');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('the section a dimension needs (O148 X3): the shaft-and-hub file auto-dimensioned; d − t1 on hidden lines offers Add B–B; applied and auto-dimensioned again, its dimensions on B–B and no DIM_ON_HIDDEN', async () => {
+    await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDrawing?.()?.issues ?? []).some(x => x.code === 'DIM_ON_HIDDEN' && x.fix === 'add-section'), null, { timeout: 90000 });
+      const fix = page.locator('button[aria-label^="Fix: Dimension 16.5 measures to"]').first();
+      assert.equal((await fix.textContent()).trim(), 'Add B–B');
+      await fix.click();
+      await page.waitForFunction(() => JSON.stringify(window.__studioDoc.drawing?.sections) === JSON.stringify([{ id: 'B', view: 'top', at: -15 }]), null, { timeout: 20000 });
+      await page.waitForFunction(() => window.__studioDrawing?.()?.placedSections?.some(x => x.id === 'B'), null, { timeout: 30000 });
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDoc.drawing?.dimensions ?? []).filter(d => d.view === 'section:B').length >= 2 && !(window.__studioDrawing?.()?.issues ?? []).some(x => x.code === 'DIM_ON_HIDDEN'), null, { timeout: 90000 });
+      await snap('section-fix');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('R14.1: Auto-dimension places overall sizes, the hole position and its callout; a hand-placed one is kept', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');

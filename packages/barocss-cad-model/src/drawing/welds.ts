@@ -127,7 +127,7 @@ function clear(box: Rect, layout: SheetLayout, taken: readonly Rect[]): boolean 
   if (box[0] < f[0] + CLEAR || box[1] < f[1] + CLEAR || box[2] > f[2] - CLEAR || box[3] > f[3] - CLEAR) return false;
   if (meets(box, layout.title, CLEAR)) return false;
   for (const id of ['front', 'top', 'right', 'iso'] as const) { const v = layout.views[id]; if (!v.hidden && meets(box, v.box, CLEAR)) return false; }
-  if (layout.section && meets(box, layout.section.box, CLEAR)) return false;
+  for (const x of layout.sections ?? []) if (meets(box, x.box, CLEAR)) return false;
   for (const t of taken) if (meets(box, t, CLEAR)) return false;
   return true;
 }

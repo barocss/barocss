@@ -52,7 +52,7 @@ function plateDrawing() {
   const settings: DrawingSettings = { ...defaultDrawing(), dimensions, section: { y: 16 }, notes: [{ id: 'n1', text: 'ALL EDGES BROKEN 0.5\nMATERIAL: AL 6061 (Ø ± °)', at: [150, 150], leader: { view: 'top', at: [10, 20] } }] };
   const cut = sectionOf(doc, 16); assert.ok(cut.ok);
   const layout = layoutSheet(v, settings, cut.projection);
-  const sheet = buildSheet(v, layout, settings, { title: 'PLATE 64 × 32', date: '2026-10-19' }, cut);
+  const sheet = buildSheet(v, layout, settings, { title: 'PLATE 64 × 32', date: '2026-10-19' }, [{ id: 'A', view: 'front', at: 16, projection: cut.projection, rings: cut.rings }]);
   assert.ok(sheet.dimensions.every(x => x.ok), JSON.stringify(sheet.dimensions.filter(x => !x.ok)));
   return { sheet, layout, cut };
 }
@@ -127,7 +127,7 @@ test('the plate drawing as DXF: every mark of the sheet, dimensions as DIMENSION
   arcs.forEach((m, i) => { const e = curves[i], want = markArc(m, H, 8), got = curvePoints(e, 8); if (m.t1 - m.t0 < 2 * Math.PI - 1e-9) sameSet([want[0], want[8]], [got[0], got[8]], `arc ${i} ends`); });
   assert.ok(curves.some(e => e.type === 'ellipse'), 'the iso view’s hole as an ellipse');
   // The section's hatch: the oracle-checked line family gives the sheet's own hatch lines, one for one.
-  const mark = sheet.groups.find(g => g.role === 'section')!.marks.find((m): m is Extract<Mark, { kind: 'hatch' }> => m.kind === 'hatch')!;
+  const mark = sheet.groups.find(g => g.role === 'section' && !g.view)!.marks.find((m): m is Extract<Mark, { kind: 'hatch' }> => m.kind === 'hatch')!;
   const h = plain.find((e): e is Extract<DxfEntity, { type: 'hatch' }> => e.type === 'hatch')!;
   assert.ok(h.fill.kind === 'lines');
   const ours = dxfHatchLines(h.loops, h.fill.angleDeg, h.fill.spacing, h.fill.origin).map(([a, b]) => [[a[0], H - a[1]], [b[0], H - b[1]]] as [XY, XY]);
