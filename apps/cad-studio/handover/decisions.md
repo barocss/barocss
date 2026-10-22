@@ -11425,3 +11425,50 @@ replaced.
 
 **Test:** `test/tessellate-cylinder-ears.test.mjs`. Fuzz 5's and 118's documents and both tees, every mesh edge used
 exactly twice. It fails before the fix.
+
+## D194 — Strict L0 accepts a loop through one B-rep vertex twice and a hole touching its loop at a shared vertex (2026-10-23)
+
+**Findings.** L4 fuzz 35 (a circular pattern of a shelled box) and 149 (a cylinder ∪ a shelled box): strict L0
+reported a face's loops touching. Each such face is pinched: one loop passes one B-rep vertex twice, the shape a disc
+tangent to a face's side leaves. Splitting such faces at the pinch (option b) broke 6 pinned tests, among them
+prismatic-solid's crescent convention ("the tangent hole opens into the boundary (one crescent ring)"), and was
+reverted (D189).
+
+**The rule (coordinator's option a).** A touch between two segments of a face's rings is the face's own shape when:
+- they meet at an end both have at one B-rep vertex (by its identity, never by nearness);
+- that vertex is passed exactly twice: by one loop twice, or by an outer loop and a hole once each;
+- the two passes do not cross there (their four rays do not alternate about the vertex);
+- the segments do not run along each other from it.
+Everything else stays a touch.
+
+**Change (`src/brep-check-geometry.ts`).** Each ring point carries its B-rep vertex (a coedge's start); `ringsCross`
+lets such a contact pass (`pinch`).
+
+**Tests** (`test/brep-check-strict.test.mjs`):
+- **Valid:** a loop through one vertex twice (two triangles meeting at it); a hole touching the square's side at a
+  vertex of it.
+- **Still touches, each tested:**
+  - the loop crossing itself at the vertex;
+  - the hole's corner a distinct vertex at the same point;
+  - the hole's corner inside the square's side;
+  - the vertex passed three times.
+
+**Downstream, 35 and 149** (RB stages, the oracle at 1024² × 8):
+
+| | 35 | 149 |
+|---|---|---|
+| Strict L0 | valid | valid |
+| Tessellation | watertight | watertight |
+| Kernel volume | 61.722697 | 179.035233 |
+| Oracle volume | 61.722722 ± 2.4e-4 (e) | 179.034168 ± 1.8e-3 |
+| Area against | a fine mesh, exact (planar body) | the STEP read-back, within 1e-6 |
+| STEP round trip | valid; same volume, area, centroid, topology | the same |
+
+No split at export is needed.
+
+**Not covered: a touch at two distinct vertices.** Prismatic-solid's crescent cap (r 5 less an internally tangent r 3)
+has two distinct vertices at the tangent point, v0 and v4 at (5, 0, 0), one for each wall's edge up the tangent line.
+The rule is by identity, so that cap stays a touch under strict L0, as it was. Fuzz 56 is the same family: a box less
+a cylinder tangent to two of its sides from inside, the body touching itself along two lines. Its edges there are
+distinct and coincide, so the tessellation by position counts them four times. A decision is asked for: whether
+coincident distinct vertices and edges along a tangency are a body's own shape too.

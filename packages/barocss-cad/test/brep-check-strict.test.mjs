@@ -66,6 +66,35 @@ test('strict L0: a strip thinner than a curve\'s chord sagitta is not a crossing
   assert.ok(across.issues.some(i => /loops cross or touch/.test(i)), across.issues.join('; '));
 });
 
+// A sheet on z = 0: `points` its vertices, `loops` each a list of vertex indices (the first outer, the rest holes),
+// joined by lines.
+function loopSheet(points, loops) {
+  const vertices = points.map((p, k) => ({ id: `v${k}`, point: [...p, 0] })), edges = [];
+  const uses = loops.map(l => l.map((v, k) => { const w = l[(k + 1) % l.length], id = `e${edges.length}`; edges.push({ id, curve: lineCurve(id, [...points[v], 0], [...points[w], 0]), vertices: [`v${v}`, `v${w}`] }); return { edge: id, sense: 'forward' }; }));
+  const plane = { kind: 'surface', id: 'p', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[[-20, -20, 0], [-20, 20, 0]], [[20, -20, 0], [20, 20, 0]]], weights: [[1, 1], [1, 1]] };
+  return buildBrep({ source: { family: 'test', id: 's' }, vertices, edges,
+    bodies: [{ id: 'b', kind: 'sheet', shells: [{ id: 's', closed: false, faces: [{ id: 'f', surface: plane, sense: 'forward', loops: uses.map((u, k) => ({ kind: k ? 'inner' : 'outer', uses: u })) }] }] }] });
+}
+
+test('strict L0: a loop through one vertex twice, or a hole touching its outer loop at a shared vertex, is a face (D194)', () => {
+  const touch = /loops cross or touch/;
+  // Two triangles meeting at v0 (5, 5), one loop through it twice: the crescent ring's shape (prismatic solids).
+  const eight = checkBrep(loopSheet([[5, 5], [0, 0], [10, 0], [10, 10], [0, 10]], [[0, 1, 2, 0, 3, 4]]), { strict: true });
+  assert.equal(eight.valid, true, eight.issues.join('; '));
+  // A square with a triangular hole whose corner is v1 (5, 0), a vertex of the square's side.
+  const hole = checkBrep(loopSheet([[0, 0], [5, 0], [10, 0], [10, 10], [0, 10], [4, 3], [6, 3]], [[0, 1, 2, 3, 4], [1, 5, 6]]), { strict: true });
+  assert.equal(hole.valid, true, hole.issues.join('; '));
+  // Still touches: the loop crossing itself at v0 (its two passes alternate about it); the hole's corner a vertex of its
+  // own at the same point (identity decides, never nearness); the hole's corner inside the square's side; v0 passed
+  // three times.
+  for (const [name, b] of [
+    ['crossing at a vertex', loopSheet([[5, 5], [0, 0], [10, 0], [10, 10], [0, 10]], [[0, 1, 2, 0, 4, 3]])],
+    ['a distinct vertex at the point', loopSheet([[0, 0], [5, 0], [10, 0], [10, 10], [0, 10], [4, 3], [6, 3], [5, 0]], [[0, 1, 2, 3, 4], [7, 5, 6]])],
+    ['inside a segment', loopSheet([[0, 0], [10, 0], [10, 10], [0, 10], [4, 3], [6, 3], [5, 0]], [[0, 1, 2, 3], [6, 4, 5]])],
+    ['three passes', loopSheet([[5, 5], [0, 0], [4, 0], [6, 0], [10, 0], [10, 10], [0, 10]], [[0, 1, 2, 0, 3, 4, 0, 5, 6]])],
+  ]) { const r = checkBrep(b, { strict: true }); assert.ok(r.issues.some(i => touch.test(i)), `${name}: ${r.issues.join('; ')}`); }
+});
+
 test('strict L0 at a pole: an edge along a sphere patch\'s meridian from its pole is on it (no false gap)', () => {
   // Every edge of a box filleted all round: the corner balls' patches have poles; their edges lie on them exactly.
   const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });

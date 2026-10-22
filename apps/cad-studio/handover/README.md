@@ -58,6 +58,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Fuzz 93, 83: a crossing seen only on a curve's 9-sample chords is confirmed on chords 8× finer before it is reported | D191 | done (T2) |
 | Fuzz 93's volume (123 e off): a pole face's trims away from the pole take their strips; now within e | D192 | done (T2) |
 | Fuzz 5, 118, the notch tees (open since D182), graze-y1 (since D25): a cylinder face keeps no triangle whose corners all lie on one smooth boundary run | D193 | done (T2) |
+| Fuzz 35, 149 (pinched faces): strict L0 accepts a loop through one B-rep vertex twice, or a hole touching its loop at a shared vertex (identity, not nearness; option a) | D194 | done (T2) |
 | Fuzz 93, 83 (loops cross), 5 / 56 / 118 (open mesh edges); the 26 non-manifold refusals | — | next |
 | K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
