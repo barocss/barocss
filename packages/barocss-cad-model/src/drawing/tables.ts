@@ -10,8 +10,10 @@ import type { TableContent } from './table';
 import { cutListSource } from '../app/cutList';
 import { weldListSource } from '../frames/welds';
 import { elementsSource, glandsSource, springsSource } from './elementTables';
+import type { Bom } from '../team/bomCore';
 
-export interface TableSourceContext { doc: StudioDoc; bodies?: readonly BodyResult[] }
+/** `bom` (O147 B2): the BOM, worked out by the caller (the studio through its engine worker), for the 'bom' source. */
+export interface TableSourceContext { doc: StudioDoc; bodies?: readonly BodyResult[]; bom?: Bom }
 export type TableSource = (ctx: TableSourceContext) => TableContent | { error: string };
 
 const label = (name: string, short: boolean) => (short ? name.slice(name.lastIndexOf('.') + 1) : name);
@@ -37,8 +39,26 @@ export function bendTable(ctx: TableSourceContext): TableContent | { error: stri
   };
 }
 
+/**
+ * O147 B2: the BOM table — a row a BOM line, numbered as the BOM panel, the purchase list and the balloons number them:
+ * the placed parts (merged by their parts), then the bought elements (merged by kind, size and row over copies).
+ */
+export function bomSource(ctx: TableSourceContext): TableContent | { error: string } {
+  if (!ctx.bom) return { error: 'the BOM was not worked out for this sheet' };
+  if (!ctx.bom.lines.length) return { error: 'the BOM has no lines' };
+  const lines = ctx.bom.lines;
+  return {
+    title: 'BILL OF MATERIALS',
+    columns: [{ key: 'no', label: 'NO.', digits: 0 }, { key: 'item', label: 'ITEM' }, { key: 'qty', label: 'QTY', digits: 0 }, { key: 'material', label: 'MATERIAL' }, { key: 'row', label: 'ROW' },
+      { key: 'source', label: 'SOURCE' }, { key: 'bought', label: 'BOUGHT' }, { key: 'mass', label: 'MASS', unit: 'g', digits: 1 }],
+    rows: lines.map((l, k) => [k + 1, l.item, l.qty, l.material, [l.row, l.catalogue].filter(Boolean).join(' · ') || null, l.estimate ? 'estimate' : l.source,
+      l.kind !== undefined ? `bought${l.override ? ' (set)' : ''}` : l.source !== null ? 'bought (library part)' : 'made', l.massG]),
+    notes: [`${ctx.bom.totalQty} part${ctx.bom.totalQty === 1 ? '' : 's'}${ctx.bom.elementQty ? `, ${ctx.bom.elementQty} bought element${ctx.bom.elementQty === 1 ? '' : 's'}` : ''}; the mass is each line's whole (an element's is in its part's)`, 'Rows and sources are yours (none built in); not validated for manufacturing'],
+  };
+}
+
 /** The sources by name. A cut list (FR4b, the kernel lane's) is registered here as 'cut-list'; the weld list (FRd1) as 'weld-list'. */
-export const TABLE_SOURCES: Record<string, TableSource> = { bends: bendTable, 'cut-list': cutListSource, 'weld-list': weldListSource, elements: elementsSource, springs: springsSource, glands: glandsSource };
+export const TABLE_SOURCES: Record<string, TableSource> = { bends: bendTable, 'cut-list': cutListSource, 'weld-list': weldListSource, elements: elementsSource, springs: springsSource, glands: glandsSource, bom: bomSource };
 
 /** A table's content: given, or its source's; an unknown or refusing source as its error. */
 export function tableContent(t: DrawingTable, ctx: TableSourceContext): TableContent | { error: string } {

@@ -1,6 +1,8 @@
 // The sheet as a display list in sheet millimetres (y down): frame, title block, the projected views
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
 import { weldSymbols, type WeldPlaced } from './welds';
+import { balloonMarks, type BalloonPlaced } from './balloons';
+import type { Bom } from '../team/bomCore';
 import type { WeldJoint } from '../frames/welds';
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
 import { fmtMM, resolveDimension, resolveLine, type Resolved } from './dimensions';
@@ -31,9 +33,10 @@ export type Mark =
 /** `datum`, `control` (R14.4, O5): a datum feature symbol, a feature control frame. */
 /** `table` (O49): a drawing table, its id the table's. */
 /** `weld` (FRd2, O119): a weld symbol, its id the joint's W-number. */
-export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table' | 'weld'; id?: string; view?: ViewId; marks: Mark[] }
+/** `balloon` (O147 B2): an item balloon, its id the BOM line's number. */
+export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table' | 'weld' | 'balloon'; id?: string; view?: ViewId; marks: Mark[] }
 /** `tables`: each table placed (its box), or why its source gave nothing (drawn with the reason). */
-export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string; /** FRa (O115): a table in blocks, this one's place: [k, of n]. */ part?: [number, number] }[]; /** FRd2 (O119): the weld symbols placed (each joint's view, arrow tip, seam edge) and the joints seen in no view. */ welds?: { placed: readonly WeldPlaced[]; unshown: readonly string[] } }
+export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string; /** FRa (O115): a table in blocks, this one's place: [k, of n]. */ part?: [number, number] }[]; /** FRd2 (O119): the weld symbols placed (each joint's view, arrow tip, seam edge) and the joints seen in no view. */ welds?: { placed: readonly WeldPlaced[]; unshown: readonly string[] }; /** O147 B2: the item balloons placed, the item numbers with no clear room, and those with no visible edge. */ balloons?: { placed: readonly BalloonPlaced[]; unclear: readonly number[]; noEdge: readonly number[] } }
 
 export const TEXT = 3.5;
 const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
@@ -41,7 +44,7 @@ const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
 /** `section`: section A–A's projection and cut-face rings (view coordinates), drawn when the layout places it. */
 /** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
 /** `meta.tableContent`: a table's content from its source (O49; absent: a sourced table says it was not filled). */
-export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string, diameterMM?: number) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[] }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string, diameterMM?: number) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom }, section?: { projection: BrepProjection; rings: XY[][] }): Sheet {
   const groups: MarkGroup[] = [];
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
@@ -93,19 +96,23 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   // (FRd2, O119: the weld symbols, before the tables so an auto-placed one keeps clear of their texts.)
   const welds = settings.weldSymbols && meta.welds?.length ? weldSymbols(layout, views, meta.welds) : null;
   if (welds) groups.push(...welds.groups);
+  // (O147 B2: the item balloons, after the weld symbols and before the tables: clear of the texts so far.)
+  const balloons = settings.balloons && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, takenOf(layout, groups)) : null;
+  if (balloons) groups.push(...balloons.groups);
   // (Tables last: an auto-placed one finds room clear of everything else on the sheet, O49.)
   const tables = tableGroups(layout, settings, groups, meta.tableContent);
   groups.push(...tables.groups);
-  return { size: [W, H], groups, dimensions, ...(tables.placed.length ? { tables: tables.placed } : {}), ...(welds ? { welds: { placed: welds.placed, unshown: welds.unshown } } : {}) };
+  return { size: [W, H], groups, dimensions, ...(tables.placed.length ? { tables: tables.placed } : {}), ...(welds ? { welds: { placed: welds.placed, unshown: welds.unshown } } : {}), ...(balloons ? { balloons: { placed: balloons.placed, unclear: balloons.unclear, noEdge: balloons.noEdge } } : {}) };
 }
 
 type Rect = [number, number, number, number];
 const meets = (a: Rect, b: Rect, gap = 1) => a[0] < b[2] + gap && b[0] < a[2] + gap && a[1] < b[3] + gap && b[1] < a[3] + gap;
-/** What an auto-placed table must keep clear of: the views' and the section's areas, every text on the sheet so far, the title block. */
+/** What an auto-placed table must keep clear of: the views' and the section's areas, every text on the sheet so far (and each balloon's circle), the title block. */
 function takenOf(layout: SheetLayout, groups: readonly MarkGroup[]): Rect[] {
   const out: Rect[] = [layout.title];
   for (const id of VIEW_IDS) if (!layout.views[id].hidden) out.push(layout.views[id].box);
   if (layout.section) out.push(layout.section.box);
+  for (const g of groups) if (g.role === 'balloon') for (const m of g.marks) if (m.kind === 'arc') out.push([m.center[0] - m.u[0], m.center[1] - m.v[1], m.center[0] + m.u[0], m.center[1] + m.v[1]]);
   for (const g of groups) if (g.role !== 'frame' && g.role !== 'title' && g.role !== 'view') for (const m of g.marks) if (m.kind === 'text') { const q = textCorners(m.at, m.text, m.size, m.anchor, m.angle ?? 0, !!m.bold); out.push([Math.min(...q.map(p => p[0])), Math.min(...q.map(p => p[1])), Math.max(...q.map(p => p[0])), Math.max(...q.map(p => p[1]))]); }
   return out;
 }

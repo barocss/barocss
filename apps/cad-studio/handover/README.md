@@ -264,8 +264,10 @@ track boundary); after it the kernel lane's queue below. The FR → R12b block b
 - Run the full flow on its own (beside the kernel suite some drawing and A5 steps time out).
 - PKG's rule until it runs: no new imports from domain code into `src/ui/` or `src/viewport/`, no new browser globals outside them.
 - FRg's 3D skeleton constraints: values bound to parameters done (O140, model side, re-solved on a parameter change); G17's drag tool is the GPU lane's.
+- R14's view logic, open (the coordinator, 2026-10-22): aligned sections through off-axis features — O148's sections stay principal-only and an off-axis feature is reported with no fix.
 - R14's view logic, open (O146): a dimension that can only sit on hidden lines in the standard views (a keyseat under its hub, a seat's depth) is warned DIM_ON_HIDDEN; adding a section through it is not done yet.
 - A known first-run cost, kept (the coordinator, 2026-10-22, O141): a session's first selection click costs 40–100 ms of main-thread task (V8 running the selection's code paths for the first time, not panels re-created); later clicks about 5 ms, hover about 1.8 ms a move, on dev and production builds alike. No panel memoisation and no idle-time warming (`test/bench-panels.mjs` measures it).
+- The BOM on drawings, open (O147 B2): the item balloons keep clear of tables placed after them, not yet of a table pinned by `at`; when a view's sides fill, a balloon's leader may cross another's.
 - FRf2's sibling scope, **decided-deferred** (owner, 2026-10-22: "둘다 제안한대로 해줘"): a placed part's frame following a sibling stays the typed refusal FRAME_PART_SCOPE, with no assembly-wide evaluation change now; it is built only when a real need appears (O131).
 
 **How to resume**

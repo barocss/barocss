@@ -90,6 +90,8 @@ export interface DrawingSettings {
   tangent?: boolean;
   /** FRd2 (O119): the frame's weld symbols in the views (not shown by default). */
   weldSymbols?: boolean;
+  /** O147 B2: item balloons on the iso view (the front view without it), numbered as the BOM's lines (not shown by default). */
+  balloons?: boolean;
   /** Section A–A: the part cut by the plane square to the front view's depth at `y` along it (Y = y from −Y), seen like the front view, under it (none: no section). */
   section?: { y: number };
   /** The title block's part name (default: the file name). */
@@ -133,6 +135,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(r.centers === false ? { centers: false } : {}),
     ...(r.tangent === true ? { tangent: true } : {}),
     ...(r.weldSymbols === true ? { weldSymbols: true } : {}),
+    ...(r.balloons === true ? { balloons: true } : {}),
     ...(r.section && typeof r.section.y === 'number' && Number.isFinite(r.section.y) ? { section: { y: r.section.y } } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),

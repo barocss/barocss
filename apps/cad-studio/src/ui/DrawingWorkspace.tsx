@@ -10,6 +10,8 @@ import { weldList } from '@barocss/cad-model/frames/welds';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { tableContent } from '@barocss/cad-model/drawing/tables';
+import { bomPanelData } from '@barocss/cad-model/team/bom';
+import type { Bom } from '@barocss/cad-model/team/bomCore';
 import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
@@ -123,8 +125,18 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
   const followedChanged = useMemo(() => followedStale(doc).map(staleText), [doc.nodes, doc.instances]);
   const threads = useMemo(() => threadsOf(doc.nodes), [doc.nodes]);
+  // (O147 B2: the BOM, when the BOM table or the balloons read it — every document evaluated in the engine worker.)
+  const wantsBom = !!settings.balloons || !!settings.tables?.some(x => x.from === 'bom');
+  const [bom, setBom] = useState<Bom | null>(null);
+  const bomRevision = useRef(1);
+  useEffect(() => {
+    if (!wantsBom) { setBom(null); return; }
+    let live = true;
+    const t = setTimeout(() => { bomPanelData(doc, d => engine.part(d, bomRevision.current++, 'read'), title).then(d => { if (live) setBom(d.bom); }, () => { if (live) setBom(null); }); }, 200);
+    return () => { live = false; clearTimeout(t); };
+  }, [wantsBom, doc.nodes, doc.instances, title]);
   // (Each sourced table's content once a document (O49): the bend table from the bodies' flat patterns.)
-  const sourced = useMemo(() => new Map((settings.tables ?? []).filter(x => x.from).map(x => [x.id, tableContent(x, { doc, ...(bodies ? { bodies } : {}) })])), [settings.tables, doc, bodies]);
+  const sourced = useMemo(() => new Map((settings.tables ?? []).filter(x => x.from).map(x => [x.id, tableContent(x, { doc, ...(bodies ? { bodies } : {}), ...(bom ? { bom } : {}) })])), [settings.tables, doc, bodies, bom]);
   const tableContentOf = useCallback((x: DrawingTable) => sourced.get(x.id) ?? { error: 'its source was not run for this sheet' }, [sourced]);
   const hasSheet = (bodies ?? []).some(b => b.flat && b.flat.bends.length);
   const hasFrame = (bodies ?? []).some(b => b.cutPiece);
@@ -132,14 +144,14 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const kinds = new Set((bodies ?? []).flatMap(b => b.element ? [b.element.kind] : [])), hasBought = (bodies ?? []).some(b => b.ref && doc.nodes[b.ref.node]?.bought === true);
   // (FRd2, O119: the frame's weld joints for the symbols, when they are shown.)
   const weldJoints = useMemo(() => settings.weldSymbols && bodies ? weldList(doc, bodies).joints : undefined, [settings.weldSymbols, doc, bodies]);
-  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints }, cut), [views, layout, settings, title, cut, callout, threads, tableContentOf, weldJoints]);
+  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cut), [views, layout, settings, title, cut, callout, threads, tableContentOf, weldJoints, bom]);
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
   const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout, fitMiss: fitMissOf, followedChanged }) : [], [views, layout, settings, sheet, callout, fitMissOf, followedChanged]);
   // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.
   const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
   const acceptEvery = () => {
     if (!views) return;
-    const r = acceptAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(cut ? { section: cut } : {}) });
+    const r = acceptAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cut ? { section: cut } : {}) });
     onChange(r.settings);
     const est = r.accepted.filter(x => x.estimate).length;
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
@@ -147,7 +159,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const fixIssue = (x: DrawingIssue) => { if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout }, x.fix)); };
   const fixEvery = () => {
     if (!views) return;
-    const r = fixAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(cut ? { section: cut } : {}) });
+    const r = fixAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cut ? { section: cut } : {}) });
     onChange(r.settings);
     onToast({ title: `${r.applied.length} fix${r.applied.length === 1 ? '' : 'es'} applied`, hint: r.left.length ? `${r.left.length} issue${r.left.length === 1 ? '' : 's'} left: ${r.left[0].message}` : 'The drawing has no issues.', detail: r.left.slice(1).map(x => x.message).join('\n') });
   };
@@ -344,6 +356,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       issues: issues.map(x => ({ code: x.code, severity: x.severity, ...(x.fix ? { fix: x.fix.kind } : {}), ...(x.tables ? { tables: x.tables } : {}) })),
       tables: (sheet.tables ?? []).map(x => ({ id: x.id, box: x.box, ...(x.error ? { error: x.error } : {}) })),
       ...(sheet.welds ? { welds: { placed: sheet.welds.placed.map(p => ({ label: p.label, view: p.view })), unshown: sheet.welds.unshown } } : {}),
+      ...(sheet.balloons ? { balloons: { placed: sheet.balloons.placed.map(p => ({ no: p.no, item: p.item, view: p.view, edge: p.edge })), unclear: sheet.balloons.unclear, noEdge: sheet.balloons.noEdge } } : {}),
       suggestions: suggestions.map(x => ({ id: x.id, kind: x.kind, estimate: x.estimate })) };
     return () => { delete w.__studioDrawingAt; delete w.__studioDrawing; };
   }, [layout, sheet, views, section, issues, suggestions]);
@@ -370,7 +383,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, section: turned.settings.section && r.section?.ok ? r.section : undefined };
     }
-    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(base.section ? { section: base.section } : {}) });
+    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(base.section ? { section: base.section } : {}) });
     onChange(next);
     const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts + report.dimensions.keys;
     const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';
@@ -444,10 +457,10 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   // The dimension being dragged is drawn where it goes.
   const shownMarkup = useMemo(() => {
     if (!drag || 'pan' in drag || !views || !layout || !sheet) return sheetMarkup;
-    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints }, cut), selected);
+    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cut), selected);
     const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(views[d.view], d.a), pointIn(views[d.view], d.b), drag.place) } : { ...d, place: drag.place }) : d);
-    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints }, cut), selected);
-  }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, weldJoints]);
+    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cut), selected);
+  }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, weldJoints, bom]);
 
   const hint = message ?? (pending ? (pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
   const lost = sheet?.dimensions.filter(r => !r.ok) ?? [];
@@ -509,6 +522,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
         {(kinds.size > 0 || hasBought) && <label className="field"><span>Element list</span><input type="checkbox" className="check" aria-label="Element list table" checked={!!settings.tables?.some(x => x.from === 'elements')} onChange={e => onChange(withTable(settings, 'elements', e.target.checked))} /></label>}
         {kinds.has('spring') && <label className="field"><span>Spring data</span><input type="checkbox" className="check" aria-label="Spring data table" checked={!!settings.tables?.some(x => x.from === 'springs')} onChange={e => onChange(withTable(settings, 'springs', e.target.checked))} /></label>}
         {kinds.has('oring-gland') && <label className="field"><span>Gland table</span><input type="checkbox" className="check" aria-label="Gland table" checked={!!settings.tables?.some(x => x.from === 'glands')} onChange={e => onChange(withTable(settings, 'glands', e.target.checked))} /></label>}
+        {/* (O147 B2: the BOM as a table and its item balloons, for an assembly or a part with machine elements.) */}
+        {(!!doc.instances?.length || kinds.size > 0) && <label className="field"><span>BOM table</span><input type="checkbox" className="check" aria-label="BOM table" checked={!!settings.tables?.some(x => x.from === 'bom')} onChange={e => onChange(withTable(settings, 'bom', e.target.checked))} /></label>}
+        {(!!doc.instances?.length || kinds.size > 0) && <label className="field"><span>Balloons</span><input type="checkbox" className="check" aria-label="Balloons" checked={!!settings.balloons} onChange={e => { const { balloons: _b, ...base } = settings; void _b; onChange(e.target.checked ? { ...base, balloons: true } : base); }} /></label>}
         <label className="field"><span>Title</span><input aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}
           onBlur={() => { if (titleDraft !== null) { const rest = { ...settings }; delete rest.title; onChange(titleDraft.trim() && titleDraft.trim() !== fileName ? { ...rest, title: titleDraft.trim() } : rest); setTitleDraft(null); } }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>

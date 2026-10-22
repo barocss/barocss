@@ -5577,3 +5577,155 @@ The coordinator's note with integration cadfe4700, merged here as 26b88406b. The
   - the coupling's catalogue "TEST-1, a test supplier";
   - the BOM's belt and coupling lines;
   - every element's data structured-cloned.
+
+### O143 addendum 2 — D162's connectors in the element data (2026-10-22)
+
+With integration 36bfcb970 (merged here as 3f30f8dc1; D162's two UI edits, a section-table read in FrameSections and ConnectorRows in the Library panel, fight nothing in flight).
+- **`BodyElement`** gains `connector-opening` (the kernel's ConnectorReport, its row cited) and `connector-body` (its row, with source and estimate from `doc.connectors`).
+- **Bought by default**: the body is bought; the opening, cut in the panel, is made.
+- **Sizes**, in our words from the user's row. The row's name loses a trailing "opening", and the line says which part it is:
+  - "USB-C receptacle opening, stadium 8.34 × 2.56 × 6.2 deep; its body 0.045 / 0.08 clear across" (the declared fit's gaps);
+  - "USB-C receptacle envelope stadium 8.25 × 2.4 × 6.51".
+- **Test**: D139's U1 row (the kernel lane's test row):
+  - both lines exactly, with the row cited;
+  - the BOM's connector-body line;
+  - both elements' data structured-cloned.
+
+## O147 — S0: the BOM made visible and usable (2026-10-22)
+
+The coordinator approved this gap: S1's BOM data (O143) is shown to no one. Constraints: src/ui only; App.tsx call sites only; the viewport untouched. This S0 needs the coordinator's reply before building.
+
+**B1 — the BOM panel, the bought toggle, the CSV.**
+- **Panel** (`ui/BomPanel.tsx`, opened by a "BOM" tool in the top bar's tray):
+  - It shows `deriveBom(bomView(doc, evaluate))`, its evaluations through the engine worker (`engine.part`, the 'agent' slot), never the page.
+  - A part with no placed parts shows one line for the part itself and its bought elements; an assembly shows its parts' lines and the bought elements' lines.
+  - Columns: item no., item, qty, kind, size, row or catalogue, source or "estimate" (with its why on hover), bought or made ("set" when overridden).
+  - Totals under it: parts, bought elements, the mass (the parts' only, as S1).
+- **The bought/made toggle**, one per element line:
+  - It writes the `bought` override as one undoable edit: on the base part's node, or, for an element in placed parts, on that node in every instance document the line merges.
+  - A "default" choice clears the override.
+  - Undo restores all of it at once.
+- **CSV** ("Export purchase list"), the panel's button and a chat-free download:
+  - The bought lines only, as `item no., item, qty, kind, size, row, catalogue, source, estimate`.
+  - A checkbox "with made parts" adds the part lines and the made elements.
+  - Text cells are quoted; the numbers are the BOM's.
+- **Oracles**:
+  - S1's scene of 2 copies with a key, a ring and a pin: 4 lines (the part ×2, key ×2, ring ×2 on r20, pin ×2); the CSV has 3 rows (the bought ones), 4 with made parts.
+  - The key toggled to made: its line leaves the BOM and the CSV; one ⌘Z brings it back.
+  - A ring with no row: its line and CSV row read "estimate".
+- **Flow step**: the panel on a two-copy assembly, the toggle and its undo, the CSV download's rows.
+
+**B2 — the drawing's BOM table and balloons.**
+- **`from: 'bom'`** (BILL OF MATERIALS): the same lines and item numbers as the panel.
+  - The BOM is worked out by the caller (the studio: the panel's, through the worker; the chat: awaited before the sheet) and given to the table's context (`TableSourceContext.bom`). It is never evaluated on the page.
+- **Balloons** (a Drawing workspace checkbox, `settings.balloons`):
+  - One balloon a line on the assembly's iso view: a circle with the item number, and a leader to the middle of a visible edge of one instance of that item.
+  - For a part line, an edge of `<instance>/…`; for a bought element, an edge of that element's faces in that instance (`<instance>/<node>.…`, or `<node>.…` in the base part).
+  - Item numbers match the table's.
+  - Placement seeks clearance as the weld symbols do (O119): knees out past the view's sides in steps, clear of the views, the title, the tables and the balloons before. A balloon with no clear place keeps its nearest place and raises an issue, `BALLOON_NOT_CLEAR`.
+  - An item with no visible edge in the iso view gets no balloon, with an issue `BALLOON_NO_EDGE` (the table still lists it).
+- **Oracles**:
+  - The two-copy assembly: 4 table rows equal to the panel's lines, and 4 balloons numbered 1–4.
+  - Each leader's tip on a visible iso edge of its item (by the edge's name), and no balloon issue on the A3 sheet.
+  - The table's texts and the balloons' numbers in the SVG, the PDF and the DXF.
+- **Flow step**: Auto layout of the assembly with the BOM table and balloons, then the SVG.
+
+**Not in scope**: a BOM for a placed part's own sub-assembly (one level, as S1), costs, or suppliers' quantities.
+
+## O148 — S0: section views for what the standard views hide (2026-10-22)
+
+The coordinator approved this as the next gap, after O147. Today there is one section, A–A, square to the front view's depth at `y` and placed under the front view, with no dimension on it. O146 warns DIM_ON_HIDDEN where only hidden lines would carry a dimension. This S0 needs the coordinator's reply before building.
+
+**X1 — sections as a list, on any principal plane.**
+- **`settings.sections`**: `[{ id: 'A', view: 'front' | 'top' | 'right', at }]`.
+  - Each is the part cut by the plane square to that view's depth at `at`, seen as that view, with the material in front taken away.
+  - Its cut rings are hatched, as A–A's are. The engine worker's `sectionOf` takes the view and `at`.
+  - The old `section: { y }` reads as `[{ id: 'A', view: 'front', at: y }]`, so files and R14's section conformance stay as they are.
+- **Layout**: each section goes beside its view, on the side away from its neighbour: a front's below it as today, a top's to its side, a right's below it. It carries "SECTION A–A" under it, and a cutting-plane line with arrows and letters across its parent view. The layout's fit and Auto layout's scale count them all.
+- **Exports**: SVG, PDF and DXF draw them all. "Section alone as a 1:1 DXF" takes the one chosen.
+- **Oracles**:
+  - A–A unchanged (R14's section conformance);
+  - a second section B–B square to the top view through a shaft: its ring the step's circle (πr² hatched), its letters on the top view;
+  - the layout clean on A3.
+
+**X2 — dimensions on sections.**
+- `DrawingDimension.view` may name a section (`section:A`). Its snap points and edges come from the section's projection, and its marks are placed and checked like a view's.
+- Auto-dimension's key pass (O146) looks in the sections as well as the views, and prefers visible ends. So a measurement a section shows moves there, and DIM_ON_HIDDEN no longer fires for it.
+- **Oracle**: with a section through the keyseat, b 6 and d − t1 16.5 are placed on the section with visible ends, with no DIM_ON_HIDDEN; the hub's d + t2 22.8 is there too, where the section crosses the hub.
+
+**X3 — the section a dimension needs, as a fix.**
+- DIM_ON_HIDDEN gets a fix, `add-section`, applied like the issue list's other fixes (never on its own):
+  - the plane square to the axis of the feature the dimension measures (a keyseat's or a keyway's: the shaft's or the bore's axis), through the feature's centre;
+  - mapped to the principal plane it is (a shaft along Z gives a section square to the top view's depth, at the seat's middle);
+  - the next free letter.
+- A feature whose axis is no principal axis is said, with no fix.
+- Auto layout does not add sections itself: the person, or the agent through the drawing tools as a proposal, applies the fix.
+- **Oracles**:
+  - the shaft-and-hub scene: DIM_ON_HIDDEN on d − t1 carries `add-section` at the keyseat's middle (z 15);
+  - applied, auto-dimension moves b and d − t1 onto it, and the warnings are gone;
+  - a tilted shaft gives no fix, said.
+
+**Each stage gets a flow step and FLOW_ONLY on the section, R14 and DXF steps only.**
+
+## O147 B1 — the BOM panel, the bought/made choice, the purchase list (2026-10-22)
+
+The coordinator approved O147. B1 is built.
+
+- **The model** (`team/bom.ts`):
+  - `bomPanelData(doc, evaluate, name)` gives S1's BOM. A part with no placed parts is its own line. It also gives the **made** elements as lines, merged as the bought ones are, so that a person can mark one bought.
+  - `setBought(doc, parts, true | false | null)` writes the override on every `part:feature` a line merges (every copy's node) as one document change. Null clears it, back to the default for its kind.
+  - `purchaseCsv(data, withMade)` is the purchase list: item no., item, qty, kind, size, row, catalogue, source, estimate. It holds the bought lines: the bought elements, and the library parts as catalogue parts. "With made parts" adds the part lines and the made elements after them. Text cells are quoted where needed.
+- **The panel** (`ui/BomPanel.tsx`; a BOM tool in the top bar's tray; App.tsx has only the tool and the panel's call):
+  - lines numbered, with item, qty, row or catalogue, and source or "estimate" (its why on hover);
+  - a bought / made / default choice on each element line. Its tooltip says it "applies to all N copies" where a line merges several, and the change is one Undo;
+  - the made elements below, each with the same choice;
+  - the totals: the parts, the bought elements, and the parts' mass;
+  - "Export purchase list", with its "With made parts" tick.
+  The panel's evaluations go through the engine worker (`engine.part`, the 'read' slot).
+- **Tests** (`test/bom-panel.test.ts`):
+  - S1's two-copy part: lines part ×2, key, ring on r20 and pin ×2; the shaft a made element ×2;
+  - the CSV's 3 bought rows exactly, and the made rows with the tick;
+  - a ring with no row gives an estimate row;
+  - the key made: written on both copies, its line gone and a made element instead, out of the list; default clears both;
+  - a single part as its own line.
+  - Flow step "BOM panel (O147)…": a shaft and its key from the palette; the panel's lines and made elements; the key made and its line gone; one ⌘Z back; the CSV's header and the key's row.
+
+## O147 B2 — the BOM on the drawing: its table and the item balloons (2026-10-22)
+
+B2 is built as frozen. The BOM is worked out by the caller and passed in, so the drawing stays pure.
+
+- **The BOM's synchronous core** (`team/bomCore.ts`, split from `team/assembly.ts`, which re-exports it):
+  - `bomViewOf(doc, evaluate)`, `deriveBom(view)` and the Bom types;
+  - `bomPanelDataOf` (team/bom.ts) builds the panel's data from evaluations given at once.
+  - Why the split: chat/drawing.ts reading team/assembly.ts made an import cycle through chat/tools.ts (team/parts imports it). `DRAWING_CHANGES` was undefined when tools.ts's module body ran. bomCore imports nothing of the chat's tools; checked with an esbuild metafile.
+- **The 'bom' table source** (`drawing/tables.ts`, from `TableSourceContext.bom`):
+  - a row a BOM line: NO., ITEM, QTY, MATERIAL, ROW (with the catalogue), SOURCE ("estimate" where it is one), BOUGHT (made / bought / bought (set) / bought (library part)), MASS;
+  - its numbers are the panel's and the purchase list's;
+  - with no BOM given it says "the BOM was not worked out for this sheet" (TABLE_SOURCE).
+- **Balloons** (`drawing/balloons.ts`; `settings.balloons`, off by default; role `balloon`):
+  - one per BOM line on the iso view, or the front view when the iso is not shown.
+  - Each leads to the middle of the longest visible piece of an edge of an instance of its item, found by name:
+    - a placed part: `<inst>/…`;
+    - an element: its node's faces `<node>.…`, in a placed part `<inst>/<node>.…`;
+    - a part's balloon leaves out its bought elements' edges, so it points at its own made shape.
+  - Placement is as the weld symbols' (O119): along the side nearest the tip in 9 mm steps, then the other sides. A clear place is inside the frame and clear of the views, the title block, the texts so far and the balloons before it. Balloons sorted by side and along it, so neighbours' leaders don't cross.
+  - The glyph is our own: a circle with the number, and a thin leader to a filled arrow on the edge.
+  - Built after the weld symbols and before the tables; an auto-placed table keeps clear of each balloon's circle (takenOf).
+  - Issues (warnings):
+    - `BALLOON_NOT_CLEAR`: no clear room, so the balloon sits at its nearest place;
+    - `BALLOON_NO_EDGE`: a line none of whose items shows an edge in the view; the table holds it.
+  - Balloon texts are checked as the weld symbols' are (TEXT_OVER_LINES, overlaps, OFF_SHEET), and balloon leaders count as lines for dimension texts.
+- **Callers**:
+  - The studio (DrawingWorkspace) works out the BOM through the engine worker (`bomPanelData`, 'read' slot), only when the BOM table or the balloons are on.
+  - The chat's `drawingInputs` works it out synchronously (`bomPanelDataOf` with `evaluatePart(…, 'read')`), only then.
+  - Checkboxes "BOM table" and "Balloons" appear for an assembly or a part with machine elements.
+  - `__studioDrawing().balloons` gives the placed (no., item, view, edge), unclear and noEdge.
+- **Tests** (`test/bom-balloons.test.ts`):
+  - S1's two-copy assembly on A3: table rows 1–4 (shaft 0 ×2, key, ring, pin), made/bought.
+  - Balloons 1–4 on the iso view: each tip exactly on a visible piece of its named edge, the part's on the shaft's own edges, the elements' on their nodes'.
+  - Nothing clashes: the only issues are the four "missing dimensions" a bare sheet has.
+  - Circles, numbers and arrows are in the SVG (4 `balloon` groups), the PDF and the DXF; off by default (no BOM worked out).
+  - With the iso hidden, on the front view.
+  - A line with no edge gives BALLOON_NO_EDGE; no room gives BALLOON_NOT_CLEAR (all four); a missing BOM gives the table error.
+  - Flow step "BOM table and balloons (O147 B2)…": shaft and key on A3, both checkboxes; the table with no error; balloons 1–2 on the iso view, balloon 2 on the key's edge; no balloon or overlap issues; the SVG.
+- **Left open** (recorded, not built): balloons avoid only tables placed after them; a table pinned by `at` is not in their way yet. Leaders may cross another balloon's leader when the sides fill.

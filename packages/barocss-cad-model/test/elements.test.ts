@@ -105,3 +105,19 @@ test('D160/D161 in the element lines and the BOM: a cam and pulleys made, a belt
   const bom = deriveBom(await bomView({ ...emptyDoc(), instances: [{ id: 'i0', name: 'drive', doc, position: [0, 0, 0], rotation: [0, 0, 0] }] }, async d => evaluateDoc(d, 4)));
   assert.deepEqual(bom.lines.filter(l => l.kind).map(l => [l.kind, l.qty, l.row, l.catalogue ?? null, l.estimate]), [['belt', 1, 'flat-a', null, true], ['coupling', 1, 'sleeve-a', 'TEST-1, a test supplier', true]]);
 });
+
+test('D162 in the element lines and the BOM: a connector\'s opening made, its body bought — named from the user\'s row, the row cited', async () => {
+  const { editConnectorRows } = await import('../src/engine/connectors');
+  const { rectanglePart } = await import('../src/engine/doc');
+  const U1 = { id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, body: { shape: 'stadium', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 }, keepOut: { marginMM: 1, depthMM: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' };
+  const plate = (editConnectorRows(rectanglePart(40, 20, 10), [U1]) as { doc: StudioDoc }).doc, r0 = evaluated(plate);
+  const face = r0[0].mesh.faces.findIndex(f => f.name.endsWith('.top')), c = cmd('connector'), ctx: Ctx = { doc: plate, bodies: r0, selection: { faces: [{ body: 0, face }], edges: [], bodies: [] } };
+  const doc = c.build!(ctx, { ...c.defaults!(ctx) }), bodies = evaluated(doc);
+  for (const b of bodies) if (b.element) assert.deepEqual(structuredClone(b.element), b.element);
+  const lines = elementLines(doc, bodies);
+  assert.deepEqual(lines.map(l => [l.kind, l.bought, l.size, l.row]), [
+    ['connector-opening', false, 'USB-C receptacle opening, stadium 8.34 × 2.56 × 6.2 deep; its body 0.045 / 0.08 clear across', { id: 'usb-c', source: U1.source, estimate: false }],
+    ['connector-body', true, 'USB-C receptacle envelope stadium 8.25 × 2.4 × 6.51', { id: 'usb-c', source: U1.source, estimate: false }]]);
+  const bom = deriveBom(await bomView({ ...emptyDoc(), instances: [{ id: 'i0', name: 'panel', doc, position: [0, 0, 0], rotation: [0, 0, 0] }] }, async d => evaluateDoc(d, 4)));
+  assert.deepEqual(bom.lines.filter(l => l.kind).map(l => [l.kind, l.qty, l.row, l.source]), [['connector-body', 1, 'usb-c', U1.source]]);
+});
