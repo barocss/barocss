@@ -793,7 +793,7 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 | `cc452383b`, `4f93e826c` | A9-1: weld joints at ordered-trim nodes; `set_welds` re-evaluates | frame-welds, weld-beads, frame-plates and frame tests (37/37) and tsc only |
 | `65eeac483` | **wip** A9-5/6: contact, touching, designed in the clearance map | clearance tests 9/9, tsc and eslint only |
 
-What is not yet verified, all in one run: the full package and studio suites, and the flow with `FLOW_ONLY="chat|weld|FRd|frame|clearance|brief|printab"`.
+**Checks stopped before finishing: none.** The owner's stop ("백그라운드에서 돌고있는거 다 멈추고 인수인계에 적어줘") found nothing of this lane running: the one background verify (v169, of A9-3) had completed green, and no test, flow or build was left mid-run. What is not yet verified, all in one run: the full package and studio suites, and the flow with `FLOW_ONLY="chat|weld|FRd|frame|clearance|brief|printab"`.
 
 **The A9 queue** (the S0 is in `decisions-outer.md`, "A9 — S0"):
 - Done: A9-3 ✓, then A9-2 ✓, A9-1 ✓ and A9-5/6 (wip), the last three on their own tests.
