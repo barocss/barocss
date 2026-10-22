@@ -3,6 +3,7 @@
 // said as one. A joint is where a member's end meets another member:
 //   - mitre: two members cut on one plane at a corner (the kernel's `with`): one seam, the mitre face's loop; a butt weld.
 //   - butt:  a member ended on the face of one running through (the kernel's `with`): the end face's loop; a fillet.
+//            At a node of three or more trimmed in order (A9-1), each member but the one running through is a butt end.
 //   - on-face: a member's square end lying on other members' faces with no corner between them (a leg under a top), found
 //     by contact — the end face's plane on an opposite face of another member, their outlines overlapping: a fillet.
 // An end face's inner loop (a tube's bore) is welded only where the person says so: unset, it is not counted and said.
@@ -68,6 +69,12 @@ export function weldList(doc: StudioDoc, bodies: readonly BodyResult[]): WeldLis
       } else if (e.kind === 'butt' && partner) {
         const j = jointOn(b, e.end, 'butt', [partner.key], `${b.key}.${e.end}`);
         if (j) { seen.add(j.id); joints.push(j); }
+      } else if (e.kind === 'trim' && partner) {
+        // (A9-1: a node of three or more members trimmed in order — a table's top corner: the member running through
+        // has a square run-on end, no joint; each other ends on it, a butt joint meeting the members its end face lies
+        // on, else the one its trim names.)
+        const at = skeletonPoint(doc, piece.id, e.point), touched = touching(b, e.end, members, at), j = jointOn(b, e.end, 'butt', touched.length ? touched : [partner.key], `${b.key}.${e.end}`, at);
+        if (j) { seen.add(j.id); joints.push(j); }
       } else if (e.kind === 'square' && e.with === undefined) {
         const touched = touching(b, e.end, members);
         if (touched.length) { const j = jointOn(b, e.end, 'on-face', touched, `${b.key}.${e.end}`); if (j) { seen.add(j.id); joints.push(j); } }
@@ -94,17 +101,32 @@ export function weldList(doc: StudioDoc, bodies: readonly BodyResult[]): WeldLis
   return { joints: welded, totals: { count: welded.length, seamMM: r6(welded.reduce((t, j) => t + j.weldMM, 0)), innerUnset: welded.filter(j => j.innerLoop?.welded === null).length }, orphaned, notes: [...new Set(notes)] };
 }
 
-/** The end face of a member (its name ends `.start` / `.end`, a cut's kind after it) and its loops. */
-function endFace(b: BodyResult, end: 'start' | 'end'): { index: number; name: string } | null {
+/** The end face of a member (its name ends `.start` / `.end`, a cut's kind after it) and its loops; an end trimmed to a
+ * member running through (A9-1) is named for that member's envelope (`<frame>_env<k>`): the one nearest the end's skeleton point. */
+function endFace(b: BodyResult, end: 'start' | 'end', at?: readonly number[] | null): { index: number; name: string } | null {
   const faces = b.mesh.faces;
   for (let k = 0; k < faces.length; k++) { const n = faces[k].name; if (faces[k].kind === 'plane' && (n.endsWith(`.${end}`) || n.includes(`.${end}.`))) return { index: k, name: n }; }
-  return null;
+  if (!at) return null;
+  let best: { index: number; name: string } | null = null, d = Infinity;
+  for (let k = 0; k < faces.length; k++) {
+    if (faces[k].kind !== 'plane' || !ENVELOPE.test(faces[k].name)) continue;
+    const loop = outerLoop(b.mesh, k); if (!loop) continue;
+    let e = 0; for (const p of loop) e += Math.hypot(p[0] - at[0], p[1] - at[1], p[2] - at[2]);
+    if (e / loop.length < d) { d = e / loop.length; best = { index: k, name: faces[k].name }; }
+  }
+  return best;
+}
+const ENVELOPE = /_env\d+$/;
+/** A member's end's skeleton point (its frame's point by index), world mm; null for a member not of a frame. */
+function skeletonPoint(doc: StudioDoc, pieceId: string, point: number): readonly number[] | null {
+  const slash = pieceId.lastIndexOf('/'), node = slash < 0 ? undefined : doc.nodes[nodeIndexOf(doc.nodes, pieceId.slice(0, slash))];
+  return node?.kind === 'frame' ? node.points[point] ?? null : null;
 }
 const outerLoop = (mesh: DisplayMesh, face: number): Vec3[] | null => { const loops = faceBoundary(mesh, face); if (!loops.length) return null; let best = loops[0], len = perimeter(best); for (const l of loops) { const p = perimeter(l); if (p > len) { best = l; len = p; } } return best; };
 
 type Bare = Omit<WeldJoint, 'weld' | 'seamBasis' | 'innerLoop' | 'weldMM'> & { innerMM: number | null };
-function jointOn(b: BodyResult, end: 'start' | 'end', kind: WeldJoint['kind'], meets: string[], id: string): Bare | null {
-  const f = endFace(b, end); if (!f) return null;
+function jointOn(b: BodyResult, end: 'start' | 'end', kind: WeldJoint['kind'], meets: string[], id: string, at?: readonly number[] | null): Bare | null {
+  const f = endFace(b, end, at); if (!f) return null;
   const loops = faceBoundary(b.mesh, f.index); if (!loops.length) return null;
   const lengths = loops.map(perimeter), o = lengths.indexOf(Math.max(...lengths)), loop = loops[o];
   const innerMM = loops.length > 1 ? r6(lengths.reduce((t, l, k) => k === o ? t : t + l, 0)) : null;
@@ -119,8 +141,8 @@ function plateJoint(plate: BodyResult, kind: 'gusset' | 'cap', member: BodyResul
   return { id: `${plate.key}.${member.key}`, kind, body: plate.key, end, meets: [member.key], face, seamMM: r6(mm), innerMM: null, at: [r6(at[0]), r6(at[1]), r6(at[2])], centre: [r6(c[0]), r6(c[1]), r6(c[2])] };
 }
 /** The other members whose planar faces a member's square end lies on: the opposite normal, the same plane, the outlines' boxes overlapping. */
-function touching(b: BodyResult, end: 'start' | 'end', members: readonly BodyResult[]): string[] {
-  const f = endFace(b, end); if (!f) return [];
+function touching(b: BodyResult, end: 'start' | 'end', members: readonly BodyResult[], at?: readonly number[] | null): string[] {
+  const f = endFace(b, end, at); if (!f) return [];
   const n = b.mesh.faces[f.index].normal, loop = outerLoop(b.mesh, f.index); if (!loop) return [];
   const out: string[] = [];
   for (const o of members) {

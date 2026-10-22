@@ -1087,7 +1087,8 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       if (new Set(good.map(r => r.joint)).size !== good.length) return fail(state, '[WELD_FIELD] two welds for one joint.');
       const welds = [...was.filter(r => !remove.includes(r.joint) && !good.some(g => g.joint === r.joint)), ...good];
       const doc = { ...state.doc, frames: { version: 1 as const, ...state.doc.frames, welds } };
-      return { state: { ...state, doc }, content: json({ ok: true, set: good.map(r => r.joint), removed: remove.filter(id => was.some(r => r.joint === id)), welds: welds.length }), isError: false, changed: true, summary: `welds: ${good.length} set${remove.length ? `, ${remove.length} removed` : ''}` };
+      // (FRk2: a record is a bead — the part built again, so the bodies and the weld list show the beads, or why not.)
+      return accept(state, doc, evaluate, `welds: ${good.length} set${remove.length ? `, ${remove.length} removed` : ''}`, { set: good.map(r => r.joint), removed: remove.filter(id => was.some(r => r.joint === id)), welds: welds.length });
     }
     case 'weld_list': {
       // (FRd1, O118: read only — each joint, its seam from the geometry and its weld, the person's or the rule's.)
