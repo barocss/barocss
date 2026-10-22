@@ -311,7 +311,8 @@ fn hatchAcross(n0: vec3f, c: f32, s: f32) -> vec3f {
   let v = cross(n, u);
   return c * v - s * u;
 }
-@fragment fn fsCap(in: VOut) -> CapOut {
+/** A cap's colour (lit, hatched; rgb) and its depth (w) at a back face's fragment — discarded where it is no cap. */
+fn capShade(in: VOut) -> vec4f {
   let q = capPoint(in.world);
   // (The hatch's coordinate and its change per pixel — across the lines, so a line is 1 pixel wide at any angle —
   // before any fragment is discarded.)
@@ -330,10 +331,22 @@ fn hatchAcross(n0: vec3f, c: f32, s: f32) -> vec3f {
     let d = abs(fract(h + 0.5) - 0.5) / max(hw, 1e-12);
     c = c * (1.0 - 0.55 * clamp(0.5 * frame.viewport.z + 0.5 - d, 0.0, 1.0));
   }
+  return vec4f(c, z);
+}
+@fragment fn fsCap(in: VOut) -> CapOut {
+  let c = capShade(in);
   var o: CapOut;
-  o.color = vec4f(c, 1.0);
-  o.depth = z;
+  o.color = vec4f(c.rgb, 1.0);
+  o.depth = c.w;
   return o;
+}
+// A see-through mesh's cap (G19.4, a ghost's): into the order-independent pass at the mesh's opacity, at its depth.
+struct CapOit { @location(0) accum: vec4f, @location(1) reveal: f32, @builtin(frag_depth) depth: f32 }
+@fragment fn fsCapOit(in: VOut) -> CapOit {
+  let c = capShade(in);
+  let a = object.color.a;
+  let w = oitOf(vec4f(c.rgb * a, a), capPoint(in.world).xyz);
+  return CapOit(w.accum, w.reveal, c.w);
 }
 
 /**

@@ -515,6 +515,67 @@ test('G19.4 caps cast shadows: a box section\'s kept cube shadows the ground as 
   } finally { await s.close(); }
 });
 
+// G19.4: a see-through (ghosted) mesh's caps, in the order-independent pass at its opacity. Oracle: the same solid
+// clipped on the CPU — its kept half a plain mesh whose cut is a real face, the same see-through material — through the
+// same viewer: the frames the same but along their outlines. The overlap limit, measured and pinned: two see-through
+// solids overlapping where the plane cuts both — the probe keeps one surface a pixel, so there only one of the two caps
+// is drawn (the CPU's copies show two layers): the frames differ over the overlap's cap and nowhere else. GPU picks and
+// CPU rays agree over the ghost section (a see-through cap is drawn, not picked).
+test('G19.4 ghost caps: a see-through solid\'s cap as the CPU-clipped copy\'s face; the overlap limit pinned (one cap where two overlap); picks as the CPU\'s', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box } = window, canvas = document.getElementById('c');
+      canvas.style.width = '800px'; canvas.style.height = '400px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [3, -30, 2], target: [0, 0, 0], up: [0, 0, 1], projection: 'orthographic' }, lights: [] });
+      const ghost = c => ({ color: c, unlit: true, opacity: 0.35 });
+      const fit = () => viewer.camera.fit({ min: [-6, -3, -3], max: [6, 3, 3] }, viewer.aspect);
+      const diff = (a, b, pred) => { let n = 0; for (let y = 0; y < a.height; y++) for (let x = 0; x < a.width; x++) { const i = (y * a.width + x) * 4; if (pred && !pred(x, y)) continue; if (Math.abs(a.data[i] - b.data[i]) + Math.abs(a.data[i + 1] - b.data[i + 1]) + Math.abs(a.data[i + 2] - b.data[i + 2]) > 24) n++; } return n; };
+      const lit = img => { let n = 0; for (let i = 0; i < img.data.length; i += 4) if (img.data[i] + img.data[i + 1] + img.data[i + 2] > 0) n++; return n; };
+      // (The kept half y ≥ 0 of a w × 2d × 4 box at x0: a plain mesh, its y = 0 face the cut.)
+      const half = (w, x0, d = 2) => { const g = box(w, d, 4).surface; return { ...g, positions: g.positions.map((v, i) => i % 3 === 0 ? v + x0 : i % 3 === 1 ? v + d / 2 : v) }; };
+      const plane = { normal: [0, 1, 0], offset: 0, cap: '#ffffff' };
+      fit();
+      // A. One ghost box, GPU-capped, against its CPU-clipped half.
+      const a = viewer.add(box(4, 4, 4).surface, { name: 'ghost', material: ghost('#ff8000'), cap: true, capColor: '#ffffff' });
+      viewer.clipPlane = plane; const gpu = await viewer.capture();
+      a.visible = false; viewer.clipPlane = null;
+      const c = viewer.add(half(4, 0), { name: 'half', material: ghost('#ff8000') });
+      const cpu = await viewer.capture();
+      const unit = gpu.height / (2 * viewer.camera.halfHeight), out = { one: { differ: diff(gpu, cpu), lit: lit(gpu), outline: 4 * 4 * 2 * unit } };
+      c.visible = false;
+      // B. Two ghost boxes overlapping over x −1 … 1, q the shallower (y −1.5 … 1.5): past the plane its back face is the
+      // first surface over the overlap, so there only q's cap is drawn. (Equally deep, their back faces tie and both are.)
+      const p = viewer.add(box(4, 4, 4).surface, { name: 'p', material: ghost('#ff0000'), cap: true, capColor: '#ffffff', transform: api.translation([-1, 0, 0]) });
+      const q = viewer.add(box(4, 3, 4).surface, { name: 'q', material: ghost('#0000ff'), cap: true, capColor: '#ffffff', transform: api.translation([1, 0, 0]) });
+      viewer.clipPlane = plane; const gpu2 = await viewer.capture();
+      // (Picks over it: GPU against CPU.)
+      let differ = 0, n = 0; const [x0, x1, y0, y1] = [200, 600, 60, 340];
+      for (let k = 0; k < 120; k++) {
+        const x = x0 + ((k * 37) % (x1 - x0)) + 0.5, y = y0 + ((k * 53) % (y1 - y0)) + 0.5, cr = viewer.raycast(x, y), g = await viewer.pick(x, y);
+        n++; if ((cr?.mesh.name ?? null) !== (g?.mesh.name ?? null) || !!cr?.cap !== !!g?.cap) differ++;
+      }
+      p.visible = false; q.visible = false; viewer.clipPlane = null;
+      viewer.add(half(4, -1), { name: 'hp', material: ghost('#ff0000') }); viewer.add(half(4, 1, 1.5), { name: 'hq', material: ghost('#0000ff') });
+      const cpu2 = await viewer.capture();
+      // (The cap's overlap on screen: x −1 … 1, z −2 … 2 at y = 0; the rest of the frame.)
+      const at = w => window.screen(viewer, w), [ox0, oy0] = at([-1, 0, 2]), [ox1, oy1] = at([1, 0, -2]);
+      const inOverlap = (x, y) => x > ox0 + 2 && x < ox1 - 2 && y > oy0 + 2 && y < oy1 - 2;
+      out.two = { overlap: diff(gpu2, cpu2, inOverlap), area: (ox1 - ox0 - 4) * (oy1 - oy0 - 4), elsewhere: diff(gpu2, cpu2, (x, y) => !(x > ox0 - 3 && x < ox1 + 3 && y > oy0 - 3 && y < oy1 + 3)), outline: 4 * 8 * 2 * unit, picks: n, differ };
+      viewer.dispose();
+      return out;
+    });
+    t.diagnostic(JSON.stringify(r));
+    assert.ok(r.one.lit > 5000, `drawn: ${r.one.lit}`);
+    assert.ok(r.one.differ <= r.one.outline, `the ghost's cap against the CPU-clipped face: ${r.one.differ} pixels differ (± ${r.one.outline.toFixed(0)} along the outlines)`);
+    // The limit: over the overlap one cap, not two — nearly every pixel there differs; nowhere else but outlines.
+    assert.ok(r.two.overlap >= 0.9 * r.two.area, `the overlap: ${r.two.overlap} of ${r.two.area.toFixed(0)} differ (one cap of two, pinned)`);
+    assert.ok(r.two.elsewhere <= r.two.outline, `elsewhere ${r.two.elsewhere} (± ${r.two.outline.toFixed(0)})`);
+    assert.ok(r.two.differ <= 2, `picks: ${r.two.differ} of ${r.two.picks} differ`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
 // G3: a line pick passes over a segment a surface hides — the GPU's depth at its pixel is the oracle: nothing found lies
 // behind a surface, and every segment found through surfaces that the GPU shows is found (or a nearer one); the clip
 // plane's cut-away faces hide nothing, its cap does; another mesh hides too.

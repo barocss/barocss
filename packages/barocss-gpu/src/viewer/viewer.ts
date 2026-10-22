@@ -837,6 +837,14 @@ export class Viewer {
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater-equal' },
       multisample: ms,
     }));
+    // (A see-through mesh's caps, G19.4: in the order-independent pass, tested against the opaque depth, none written.)
+    jobs.push(make('oitCap', {
+      vertex: vertex(modules.surface),
+      fragment: { module: modules.surface, entryPoint: 'fsCapOit', targets: oitTargets },
+      primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal' },
+      multisample: ms,
+    }));
     // (The caps' probe, G19: the capped meshes' faces, both sides, unclipped.)
     jobs.push(make('capFront', {
       vertex: positionOnly(modules.pick),
@@ -1476,14 +1484,18 @@ export class Viewer {
 
   /** Whether a mesh's cut is capped this frame: a clip plane, an opaque closed triangle mesh it clips. */
   private capped(m: Mesh): boolean { return !!this.clip && m.cap && m.clipped && m.geometry.topology === 'triangles' && !m.transparent; }
+  /** A see-through mesh capped (G19.4, a ghost): its caps in the order-independent pass (none in the sorted one). */
+  private ghostCapped(m: Mesh): boolean { return !!this.clip && this.orderIndependent && m.cap && m.clipped && oitSurface(m); }
+  /** In the caps' probe: the opaque capped meshes and the see-through ones (whose entry it is inside decides either's cap). */
+  private probed(m: Mesh): boolean { return this.capped(m) || this.ghostCapped(m); }
   /**
    * The caps' probe (G19, in place of G2's front-depth prepass): the capped meshes' faces, unclipped, the nearest beyond
    * each pixel's entry into the kept region — its depth and whether a back face, read by the caps: the entry is inside a
    * solid where that first surface after it is the solid's back face. Only while the planes cap one; `scissor`: the
    * pick's pixel.
    */
-  private drawCapFront(enc: ReturnType<Device['createCommandEncoder']>, opaque: readonly Mesh[], scissor: [number, number] | null): void {
-    if (!this.clip || !opaque.some(m => this.capped(m))) return;
+  private drawCapFront(enc: ReturnType<Device['createCommandEncoder']>, opaque: readonly Mesh[], transparent: readonly Mesh[], scissor: [number, number] | null): void {
+    if (!this.clip || (!opaque.some(m => this.capped(m)) && !transparent.some(m => this.ghostCapped(m)))) return;
     const t = this.ensureTargets();
     const pass = enc.beginRenderPass({
       colorAttachments: [{ view: t.views.capFront, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
@@ -1492,8 +1504,8 @@ export class Viewer {
     if (scissor) pass.setScissorRect(scissor[0], scissor[1], 1, 1);
     pass.setBindGroup(0, this.frameGroupBare);
     pass.setPipeline(this.pipelines.get('capFront')!);
-    for (const m of opaque) {
-      if (!this.capped(m)) continue;
+    for (const list of [opaque, transparent]) for (const m of list) {
+      if (!this.probed(m) || !this.upload(m.geometry)) continue;
       { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
       this.drawTriangles(pass, m, false);
     }
@@ -1639,7 +1651,7 @@ export class Viewer {
       }
       sp.end();
     }
-    this.drawCapFront(enc, opaque, null);
+    this.drawCapFront(enc, opaque, transparent, null);
     // (G11: with a see-through surface in view, three passes — the opaque scene kept multisampled; the see-through
     // surfaces into the accumulation and revealage, in any order; their composite, then the see-through lines and points
     // over it. Without one, one pass as before.)
@@ -1678,6 +1690,15 @@ export class Viewer {
       const cur: { pipeline?: Pipeline } = {};
       this.oitDrawing = true;
       try { for (const m of transparent) if (oitSurface(m)) { this.drawMesh(op, m, cur, false); tris += (m.geometry.data.elementCount / 3) * m.instanceCount; } } finally { this.oitDrawing = false; }
+      // (G19.4: the see-through meshes' caps, weighted in with their surfaces.)
+      if (this.clip) for (const m of transparent) {
+        if (!this.ghostCapped(m) || !m.geometry.gpu) continue;
+        const p = this.pipelines.get('oitCap')!;
+        if (cur.pipeline !== p) { op.setPipeline(p); cur.pipeline = p; }
+        { dynamicOffset[0] = m.slot * OBJECT_STRIDE; op.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+        this.drawTriangles(op, m, true);
+        caps++;
+      }
       op.end();
       const cp = enc.beginRenderPass({
         colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa ? sceneView : undefined, loadOp: 'load', storeOp: targets.msaa ? 'discard' : 'store' }],
@@ -1791,7 +1812,7 @@ export class Viewer {
     const { opaque, transparent } = this.visibleMeshes(vp);
     this.writeUniforms(vp);
     const t = this.ensurePickTargets(), enc = this.device.createCommandEncoder();
-    this.drawCapFront(enc, opaque, [px, py]);
+    this.drawCapFront(enc, opaque, transparent, [px, py]);
     const pass = enc.beginRenderPass({
       colorAttachments: [
         { view: t.views.id, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
@@ -1843,7 +1864,7 @@ export class Viewer {
     if (!this.clip) return null;
     let first: { mesh: Mesh; instance: number | null; t: number; back: boolean; entry: number; plane: number } | null = null;
     for (const m of this.meshes) {
-      if (!m.visible || m.geometry.disposed || !this.capped(m)) continue;
+      if (!m.visible || m.geometry.disposed || !this.probed(m)) continue;
       for (let i = 0; i < m.instanceCount; i++) {
         const instance = m.instances ? i : null, r = clippedRayFull(m.geometry.data, this.instanceTransform(m, instance), origin, direction, this.clip, true, true);
         if (!r.beyond) continue;
@@ -1851,7 +1872,8 @@ export class Viewer {
         if (!first || (b.t < first.t && !tie) || (tie && b.back && !first.back)) first = { mesh: m, instance, t: b.t, back: b.back, entry: r.entry, plane: r.plane };
       }
     }
-    return first && first.back ? { mesh: first.mesh, instance: first.instance, t: first.entry, plane: first.plane } : null;
+    // (A see-through mesh's cap is drawn, not picked — as its surface in the order-independent pass.)
+    return first && first.back && !first.mesh.transparent ? { mesh: first.mesh, instance: first.instance, t: first.entry, plane: first.plane } : null;
   }
 
   /** A hit's scalar (G6): the field at the point in the mesh's own space, when it has one and a triangle was hit. */
