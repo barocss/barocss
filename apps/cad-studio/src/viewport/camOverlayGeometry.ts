@@ -92,6 +92,7 @@ export class CamOverlayGeometry {
   private world: Float64Array = new Float64Array(16);
   private removalSource?: object;
   private remaining?: CamDrawing;
+  private overcut?: CamDrawing;
   private progress = NaN;
   private done: CamDrawing[] = [];
   private activeIndex = -1;
@@ -103,7 +104,7 @@ export class CamOverlayGeometry {
 
   update(display: CamDisplay | null): CamDrawing[] {
     if (!display) {
-      this.key = ''; this.fixed = []; this.removalSource = undefined; this.remaining = undefined; this.progress = NaN; this.done = [];
+      this.key = ''; this.fixed = []; this.removalSource = undefined; this.remaining = undefined; this.overcut = undefined; this.progress = NaN; this.done = [];
       this.activeIndex = -1; this.active = undefined; this.toolKey = ''; this.toolLocal = null; this.pose = ''; this.tool = [];
       return [];
     }
@@ -126,6 +127,8 @@ export class CamOverlayGeometry {
     if (this.removalSource !== display.removal.geometry) {
       const g = display.removal.geometry;
       this.remaining = { name: 'remaining', positions: camToWorld(g.positions, this.world), normals: g.normals && directionsToWorld(g.normals, this.world), indices: g.indices, topology: 'triangles', color: [0.94, 0.57, 0.12], opacity: 0.58, lit: true };
+      const o = display.removal.overcut;
+      this.overcut = { name: 'overcut', positions: camToWorld(o.positions, this.world), normals: o.normals && directionsToWorld(o.normals, this.world), topology: 'triangles', color: [0.95, 0.12, 0.12], opacity: 0.9, lit: true };
       this.removalSource = g;
     }
     if (this.progress !== display.progress) { this.done = paths(display, this.world, display.progress); this.progress = display.progress; }
@@ -147,7 +150,7 @@ export class CamOverlayGeometry {
       ];
       this.pose = pose;
     }
-    const all = [...this.fixed, ...(this.remaining ? [this.remaining] : []), ...this.done, ...(this.active ? [this.active] : []), ...this.tool];
+    const all = [...this.fixed, ...(this.remaining ? [this.remaining] : []), ...(this.overcut ? [this.overcut] : []), ...this.done, ...(this.active ? [this.active] : []), ...this.tool];
     return all.filter(d => overlayCount(d) > 0);
   }
 }

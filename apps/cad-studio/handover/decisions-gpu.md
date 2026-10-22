@@ -1514,3 +1514,31 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - overcut colouring (where the swept tool enters the part, README §G23). It needs the part's mesh against the field
     and comes next.
   - the hook's and worker's lifecycle in a browser.
+
+## G-R4 — G23 CNC: overcut shown red, and a Model program defect it found (2026-10-23)
+
+- **What**: where the swept tool enters the part (README §G23: uncut and overcut coloured). Uncut is the amber stock
+  left.
+  - **The part's top.** The height field rasters the part's display meshes (world → machine frame) into its grid: each
+    triangle is written at the cell centres its plan covers, and the highest surface per column is kept. A wall seen
+    edge-on covers no centre.
+  - **What counts as overcut.** A cell cut more than 0.01 mm under that top (`CAM_OVERCUT_TOLERANCE_MM`; the part mesh's
+    own error is not known here). It is counted (`overcutCells`, `overcutMM3`) and its top drawn red, apart from the
+    amber stock.
+  - **Conservative both ways.** The field removes no more than the tool sweeps, so a correct program shows no false
+    overcut at walls.
+  - **Where it shows.** The panel says the overcut, or that there is none, to the field's resolution. The worker passes
+    the current bodies' meshes.
+- **The defect it found** (the outer lane's file, reported to the coordinator, not changed here):
+  - On CNC8's pocket, camPackage's feeds run at x 73–117, y 53–77 instead of the pocket's 38–82, 28–52.
+  - `pocketMoves`' `at()` adds the plane origin to loop points that `cam.ts` already gives as projections
+    (`[p·X, p·Y]`). The tool then mills the plate's top: 3142 cells and 10 618 mm³ into the part.
+  - The fix is `q0·X + q1·Y + ((o·n) + floor − depth)·n`.
+  - cad-model's test compares the swept area to the feeds' own bounds, so it cannot see an offset.
+  - The CNC8 "no overcut" check joins `cnc-preview.test.ts` once the fix lands.
+- **Tests**: one more in `cnc-preview.test.ts` (7):
+  - a slot through a part filling the stock is overcut by exactly what it removes;
+  - a part whose top is the slot's floor is not overcut (within the tolerance);
+  - a part beside the slot's end is overcut in part.
+- **Checks** (T1): cnc-preview 7/7; studio type-check 0; eslint (viewport/ and the test) 0.
+- **Not run**: the two-renderer flow (slot).

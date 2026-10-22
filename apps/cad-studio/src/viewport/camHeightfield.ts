@@ -9,6 +9,10 @@ import type { CamRemoval } from './camDisplay';
 type V3 = [number, number, number];
 type XY = [number, number];
 const EPS = 1e-8, GRID = 192, SAMPLES = 250000, CELL_VISITS = 25000000, CYLINDER_SEGMENTS = 64;
+/** How far under the part's surface a cell must be cut to count as overcut: the part mesh's own error is not known here. */
+export const CAM_OVERCUT_TOLERANCE_MM = 0.01;
+/** A part's display mesh in world coordinates (the target the program must not enter). */
+export interface CamPartMesh { positions: ArrayLike<number>; indices: ArrayLike<number> }
 const CUTS: ReadonlySet<string> = new Set(['feed', 'plunge', 'ramp']);
 const KINDS: ReadonlySet<string> = new Set(['rapid', 'feed', 'plunge', 'ramp', 'retract']);
 const refuse = (code: string, reason: string): never => { throw new Error(`[CAM_${code}] ${reason}`); };
@@ -120,8 +124,10 @@ export class CamHeightfield {
   private readonly area: Float64Array;
   /** Cells the cylinder's footprint cuts: their clipped polygons (whole cells are their rectangles). */
   private readonly clipped = new Map<number, XY[]>();
+  /** Per cell: the part's highest surface in the column through its centre (machine Z), −Infinity with no part there. */
+  private readonly partTop: Float64Array;
 
-  constructor(stock: StockSolid, setup: SetupProgram, tool: ToolShape, cellMM = 0.5) {
+  constructor(stock: StockSolid, setup: SetupProgram, tool: ToolShape, cellMM = 0.5, part: readonly CamPartMesh[] = []) {
     checkFrame(setup.frame); checkTool(tool);
     if (!finite3(setup.axis) || Math.hypot(setup.axis[0] - setup.frame[2], setup.axis[1] - setup.frame[6], setup.axis[2] - setup.frame[10]) > EPS) refuse('FRAME', 'The setup axis does not match the machine +Z direction.');
     if (!Number.isFinite(cellMM) || cellMM <= 0) refuse('GRID', 'Cell pitch must be finite and positive.');
@@ -166,6 +172,34 @@ export class CamHeightfield {
       this.inside[at] = 1; this.area[at] = size;
       if (Math.abs(size - this.dx * this.dy) > 1e-12 * this.dx * this.dy) this.clipped.set(at, polygon);
     }
+    this.partTop = new Float64Array(n).fill(-Infinity);
+    for (const mesh of part) this.rasterPart(mesh, setup.frame);
+  }
+
+  /** The part's triangles in the machine frame, each written into the cells whose centres its plan covers (the highest kept). */
+  private rasterPart(mesh: CamPartMesh, f: ArrayLike<number>): void {
+    const p = mesh.positions, idx = mesh.indices, m = new Float64Array(p.length);
+    for (let i = 0; i < p.length; i += 3) {
+      m[i] = f[0] * p[i] + f[4] * p[i + 1] + f[8] * p[i + 2] + f[12];
+      m[i + 1] = f[1] * p[i] + f[5] * p[i + 1] + f[9] * p[i + 2] + f[13];
+      m[i + 2] = f[2] * p[i] + f[6] * p[i + 1] + f[10] * p[i + 2] + f[14];
+    }
+    for (let t = 0; t + 2 < idx.length; t += 3) {
+      const a = idx[t] * 3, b = idx[t + 1] * 3, c = idx[t + 2] * 3;
+      const ax = m[a], ay = m[a + 1], bx = m[b], by = m[b + 1], cx = m[c], cy = m[c + 1];
+      const det = (bx - ax) * (cy - ay) - (cx - ax) * (by - ay);
+      // (A wall seen edge-on covers no cell centre.)
+      if (Math.abs(det) < 1e-12) continue;
+      const lx = Math.max(0, Math.ceil((Math.min(ax, bx, cx) - this.x0) / this.dx - 0.5)), hx = Math.min(this.nx - 1, Math.floor((Math.max(ax, bx, cx) - this.x0) / this.dx - 0.5));
+      const ly = Math.max(0, Math.ceil((Math.min(ay, by, cy) - this.y0) / this.dy - 0.5)), hy = Math.min(this.ny - 1, Math.floor((Math.max(ay, by, cy) - this.y0) / this.dy - 0.5));
+      for (let y = ly; y <= hy; y++) for (let x = lx; x <= hx; x++) {
+        const at = y * this.nx + x, px = this.cx[at], py = this.cy[at];
+        const u = ((bx - px) * (cy - py) - (cx - px) * (by - py)) / det, v = ((cx - px) * (ay - py) - (ax - px) * (cy - py)) / det, w = 1 - u - v;
+        if (u < -1e-12 || v < -1e-12 || w < -1e-12) continue;
+        const z = u * m[a + 2] + v * m[b + 2] + w * m[c + 2];
+        if (z > this.partTop[at]) this.partTop[at] = z;
+      }
+    }
   }
 
   /** The stock after the program up to `progress` (completed moves plus a fraction of the next), from pristine stock. */
@@ -209,17 +243,25 @@ export class CamHeightfield {
 
   /** Tops and bottoms per cell; walls only where a cell stands above its neighbour (or the footprint's edge). */
   private mesh(heights: Float64Array): CamRemoval {
-    const out = new MeshOut(), z0 = this.z0;
-    let removedMM3 = 0;
+    const out = new MeshOut(), over = new MeshOut(), z0 = this.z0;
+    let removedMM3 = 0, overcutMM3 = 0, overcutCells = 0;
     for (let y = 0; y < this.ny; y++) for (let x = 0; x < this.nx; x++) {
       const at = y * this.nx + x;
       if (!this.inside[at]) continue;
-      const top = Math.max(z0, heights[at]);
+      const top = Math.max(z0, heights[at]), part = this.partTop[at];
       removedMM3 += this.area[at] * (this.z1 - top);
-      if (top <= z0) continue;
+      // (Cut below the part's surface: the tool entered the part. Its top is drawn red, not with the stock left.)
+      const gouged = part - top > CAM_OVERCUT_TOLERANCE_MM;
+      if (gouged) { overcutMM3 += this.area[at] * (Math.min(part, this.z1) - top); overcutCells++; }
       const a = this.x0 + x * this.dx, b = this.y0 + y * this.dy, c = a + this.dx, d = b + this.dy, polygon = this.clipped.get(at);
+      const topOut = gouged ? over : out;
+      if (top <= z0) {
+        if (gouged && !polygon) { over.tri(a, b, z0, c, b, z0, c, d, z0, 0, 0, 1); over.tri(a, b, z0, c, d, z0, a, d, z0, 0, 0, 1); }
+        else if (gouged) for (let k = 1; k + 1 < polygon!.length; k++) over.tri(polygon![0][0], polygon![0][1], z0, polygon![k][0], polygon![k][1], z0, polygon![k + 1][0], polygon![k + 1][1], z0, 0, 0, 1);
+        continue;
+      }
       if (!polygon) {
-        out.tri(a, b, top, c, b, top, c, d, top, 0, 0, 1); out.tri(a, b, top, c, d, top, a, d, top, 0, 0, 1);
+        topOut.tri(a, b, top, c, b, top, c, d, top, 0, 0, 1); topOut.tri(a, b, top, c, d, top, a, d, top, 0, 0, 1);
         out.tri(a, b, z0, c, d, z0, c, b, z0, 0, 0, -1); out.tri(a, b, z0, a, d, z0, c, d, z0, 0, 0, -1);
         const south = this.topOf(heights, x, y - 1), east = this.topOf(heights, x + 1, y), north = this.topOf(heights, x, y + 1), west = this.topOf(heights, x - 1, y);
         if (top > south) out.quadWall(a, b, c, b, south, top);
@@ -230,7 +272,7 @@ export class CamHeightfield {
       }
       for (let k = 1; k + 1 < polygon.length; k++) {
         const p = polygon[0], q = polygon[k], r = polygon[k + 1];
-        out.tri(p[0], p[1], top, q[0], q[1], top, r[0], r[1], top, 0, 0, 1);
+        topOut.tri(p[0], p[1], top, q[0], q[1], top, r[0], r[1], top, 0, 0, 1);
         out.tri(p[0], p[1], z0, r[0], r[1], z0, q[0], q[1], z0, 0, 0, -1);
       }
       for (let k = 0; k < polygon.length; k++) {
@@ -248,6 +290,7 @@ export class CamHeightfield {
     // half their spacing of the path. Hence 2h + s/2 — the full diagonal, not half of it.)
     return {
       geometry: { positions: Float32Array.from(out.positions), normals: Float32Array.from(out.normals) },
+      overcut: { positions: Float32Array.from(over.positions), normals: Float32Array.from(over.normals) }, overcutMM3, overcutCells,
       cellMM: this.pitch, sampleMM: this.spacing, nx: this.nx, ny: this.ny, removedMM3, lateralUncertaintyMM: 2 * this.halfDiagonal + this.spacing / 2,
     };
   }
