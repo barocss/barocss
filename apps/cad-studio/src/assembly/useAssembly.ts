@@ -10,6 +10,10 @@ import { BASE, kindsFor, lockRel, mateRefusal, solveAssembly, type FaceTable, ty
 /** A face clicked while adding a mate: on the base part (a body and face to highlight) or on an instance. */
 export interface MatePick { ref: MateRef; body?: number; face?: number }
 export interface MateDraft { kind: MateKind | 'auto'; distance: number; angle: number; flip: boolean; picks: MatePick[]; error?: string }
+const EMPTY_TABLES = new Map<string, FaceTable>();
+const EMPTY_PROBLEMS: Problem[] = [];
+const EMPTY_FREEDOM: Record<string, Freedom> = {};
+const FACES_PENDING = 'The current parts’ faces are unavailable. Wait for their evaluation or fix the current part error.';
 type Hit = { face: { body: number; face: number } | null; instance?: string; instanceFace?: { body: number; face: number } };
 
 export interface Assembly {
@@ -38,17 +42,27 @@ export interface Assembly {
   highlight: { faces: { body: number; face: number }[]; instanceFaces: { id: string; body: number; face: number }[]; instances: string[] };
 }
 
-export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit }: {
+export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit, readFaces }: {
   doc: StudioDoc; evaluated: StudioDoc; bodies: BodyResult[];
   instanceBodies: Map<string, { bodies: BodyResult[] }>;
   setDoc: Dispatch<SetStateAction<StudioDoc>>;
+  /** Current-root linked evaluations, with exact immediate owner and local input; no flattening here. */
+  readFaces?(owner: string, input: StudioDoc): Promise<FaceTable | null>;
   /** One undoable change of the instances and the mates together. */
   commit(instances: PartInstance[], mates: Mate[]): void;
 }): Assembly {
   const client = useMemo(() => new FaceClient(), []);
   const instances = useMemo(() => doc.instances ?? [], [doc.instances]);
   const mates = useMemo(() => doc.mates ?? [], [doc.mates]);
-  const [tables, setTables] = useState<Map<string, FaceTable>>(new Map());
+  const sourceKey = useMemo(() => ({}), [readFaces, evaluated, instances]);
+  const currentSource = useRef(sourceKey); currentSource.current = sourceKey;
+  const [faceResult, setFaceResult] = useState<{ key: object; linked: boolean; tables: Map<string, FaceTable> | null } | null>(null);
+  const linkedScope = !!readFaces || !!faceResult?.linked;
+  const currentTables = faceResult?.key === sourceKey && faceResult.tables !== null;
+  const facesUnavailable = linkedScope && !currentTables;
+  // A linked result can never bleed into another root/setup or back into the legacy reader.
+  const tables = !instances.length || facesUnavailable ? EMPTY_TABLES : faceResult?.tables ?? EMPTY_TABLES;
+  const facesPending = useCallback(() => facesUnavailable || currentSource.current !== sourceKey, [facesUnavailable, sourceKey]);
   const [problems, setProblems] = useState<Problem[]>([]);
   const [freedom, setFreedom] = useState<Record<string, Freedom>>({});
   const [draft, setDraftView] = useState<MateDraft | null>(null);
@@ -57,23 +71,37 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   const setDraftState = useCallback((next: MateDraft | null) => { draftRef.current = next; setDraftView(next); }, []);
   const [selected, setSelected] = useState<string | null>(null);
 
-  // The faces of the base part (as evaluated) and of each instance's part, once there is an assembly.
+  // Linked inputs stay local and keep their explicit occurrence context in the host callback.
   useEffect(() => {
-    if (!instances.length) return;
+    if (!instances.length) { setFaceResult({ key: sourceKey, linked: false, tables: EMPTY_TABLES }); return; }
     let live = true;
-    Promise.all([client.table(evaluated), ...instances.map(i => client.table(flattenAssembly(i.doc)))]).then(ts => {
-      if (live) setTables(new Map([[BASE, ts[0]], ...instances.map((i, k) => [i.id, ts[k + 1]] as [string, FaceTable])]));
+    const current = () => live && currentSource.current === sourceKey;
+    const unavailable = () => {
+      if (current()) setFaceResult(previous => ({ key: sourceKey, linked: !!readFaces || !!previous?.linked, tables: null }));
+    };
+    // Wrap each call before starting the group: even mixed sync throws/rejections stay handled.
+    const take = (owner: string, input: StudioDoc) => Promise.resolve().then(() => {
+      if (!current()) return null;
+      return readFaces ? readFaces(owner, input) : client.table(owner === BASE ? input : flattenAssembly(input));
     });
+    void Promise.all([take(BASE, evaluated), ...instances.map(i => take(i.id, i.doc))]).then(ts => {
+      if (!current()) return;
+      if (ts.some(table => !table || typeof table !== 'object' || Array.isArray(table))) { unavailable(); return; }
+      setFaceResult({ key: sourceKey, linked: !!readFaces, tables: new Map([[BASE, ts[0]!], ...instances.map((i, k) => [i.id, ts[k + 1]!] as [string, FaceTable])]) });
+    }, unavailable);
     return () => { live = false; };
-  }, [client, evaluated, instances]);
+  }, [client, evaluated, instances, readFaces, sourceKey]);
 
-  const solve = useCallback((list: readonly PartInstance[], ms: readonly Mate[]) => solveAssembly(list, ms, p => tables.get(p)), [tables]);
+  const solve = useCallback((list: readonly PartInstance[], ms: readonly Mate[]) => facesPending()
+    ? { instances: [...list], problems: EMPTY_PROBLEMS, pending: true, freedom: EMPTY_FREEDOM }
+    : solveAssembly(list, ms, p => tables.get(p)), [tables, facesPending]);
 
   // Re-solve after every change (a typed placement, a mate, an edited part): a mated instance follows, and
   // one whose part moved is carried along with it. The result replaces the document in place (it is the
   // same state, solved), so undo skips it.
   const lastSolved = useRef<readonly PartInstance[] | undefined>(undefined);
   useEffect(() => {
+    if (facesPending()) { setProblems(EMPTY_PROBLEMS); setFreedom(EMPTY_FREEDOM); return; }
     if (!mates.length) { setProblems([]); setFreedom({}); lastSolved.current = instances; return; }
     const r = solveAssembly(instances, mates, p => tables.get(p), lastSolved.current);
     if (r.pending) return;
@@ -81,13 +109,14 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     setProblems(r.problems); setFreedom(r.freedom);
     const moved = r.instances.some((i, k) => i.position.some((v, j) => Math.abs(v - instances[k].position[j]) > 1e-9) || i.rotation.some((v, j) => Math.abs(v - instances[k].rotation[j]) > 1e-9));
     if (moved) setDoc(d => d.instances === doc.instances ? { ...d, instances: r.instances } : d);
-  }, [solve, instances, mates]);
+  }, [solve, instances, mates, facesPending]);
 
   const isFixed = useCallback((part: string) => part === BASE || !!instances.find(i => i.id === part)?.grounded, [instances]);
   const faceOf = (ref: MateRef) => tables.get(ref.part)?.[ref.face];
 
   /** Adds the mate the two picks make, or says why not (and keeps the first pick). */
   const finish = (d: MateDraft): MateDraft | null => {
+    if (facesPending()) return { ...d, picks: [d.picks[0]], error: FACES_PENDING };
     let [first, second] = d.picks;
     if (first.ref.part === second.ref.part) return { ...d, picks: [first], error: 'Both faces are on the same part. Pick the second face on another part.' };
     // The second pick moves, unless its part is fixed: then the first one does.
@@ -131,6 +160,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   const addPick = (p: MatePick) => {
     const draft = draftRef.current;
     if (!draft) return;
+    if (facesPending()) { setDraftState({ ...draft, error: FACES_PENDING }); return; }
     if (!tables.get(p.ref.part)?.[p.ref.face] && tables.has(p.ref.part)) { setDraftState({ ...draft, error: 'This face cannot be mated: pick a flat face or a round (cylindrical) one.' }); return; }
     const next = { ...draft, error: undefined, picks: draft.picks.length >= 2 ? [p] : [...draft.picks, p] };
     setDraftState(next.picks.length === 2 ? finish(next) : next);
@@ -151,6 +181,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   }, [instanceBodies]);
 
   const edit = (id: string, patch: Partial<Mate>): string | null => {
+    if (facesPending()) return FACES_PENDING;
     const next = mates.map(m => m.id === id ? { ...m, ...patch } : m), mate = next.find(m => m.id === id)!;
     const why = mateRefusal(mate, faceOf(mate.a), faceOf(mate.b));
     if (why) return why;
@@ -160,13 +191,14 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   };
 
   return {
-    mates, problems, tables, freedom, draft, selected,
+    mates, problems: facesUnavailable ? EMPTY_PROBLEMS : problems, tables, freedom: facesUnavailable ? EMPTY_FREEDOM : freedom, draft, selected,
     start: () => { setDraftState({ kind: 'auto', distance: 10, angle: 90, flip: false, picks: [] }); setSelected(null); },
     cancel: () => setDraftState(null),
     setDraft: patch => { if (draftRef.current) setDraftState({ ...draftRef.current, ...patch }); },
     select: setSelected,
     pick, edit, pickFace: ref => addPick({ ref }),
     lock: (part, to) => {
+      if (facesPending()) return FACES_PENDING;
       const b = instances.find(i => i.id === part), a = to === BASE ? null : instances.find(i => i.id === to);
       if (!b || (to !== BASE && !a)) return 'Pick the part to lock it to.';
       const used = new Set(mates.map(m => m.id));
@@ -178,6 +210,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     },
     remove: id => { commit(instances, mates.filter(m => m.id !== id)); if (selected === id) setSelected(null); },
     ground: (id, on) => {
+      if (facesPending()) return FACES_PENDING;
       const by = mates.filter(m => m.b.part === id);
       if (on && by.length) return `${by.length} mate${by.length > 1 ? 's' : ''} move${by.length > 1 ? '' : 's'} this part. Delete ${by.length > 1 ? 'them' : 'it'} first, or fix the other part instead.`;
       commit(instances.map(i => i.id === id ? { ...i, grounded: on || undefined } : i), mates); return null;
