@@ -1555,3 +1555,24 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - Before O157, the same check counted 3142 cells and 10 618 mm³ into the part.
 - **Checks** (T1): cnc-preview 8/8; studio type-check 0; eslint on the test 0.
 - **Not run**: the two-renderer flow (slot).
+
+## G-R6 — the previews take the made bodies only (O160 F1 in print layers and CNC; roadmap G4, 2026-10-23)
+
+- **What**: the outer lane's O160 (`madeBodies`, e46106870) in the GPU lane's two manufacturing previews.
+  - The Print workspace passed every shown body's mesh to `printLayers`, so a bought O-ring was sliced with its cover.
+    Now `printSourceMeshes(doc, bodies)` (viewport/printSettings.ts) feeds it: the made bodies, less those hidden.
+    The A9 cover should show 40 layers, no supports and 8 mm high. That number is the outer lane's (a9-acceptance); this
+    lane's flow step will read it, not hard-code it.
+  - The CNC preview's overcut judged every body as the part. Now `camPartMeshes(doc, bodies)` passes only the made
+    bodies, so a bought bearing's or O-ring's volume is not counted as gouged. `camPackage` already plans from the made
+    bodies since O160.
+- **Tests**: `test/made-bodies-previews.test.ts` (2).
+  - An O-ring and a bearing are left out of both previews.
+  - With the person's `bought: false` override, the O-ring is in both.
+  - A body with no node reference is the part's own.
+  - A hidden made body is not printed.
+- **Checks** (T1):
+  - made-bodies-previews 2 and cnc-preview 8 (10/10);
+  - Codex's print settings 4, hook 5 and worker 3 (packages/barocss-gpu/tests);
+  - studio type-check 0; eslint on the changed files 0.
+- **Not run**: the print flow step on both renderers (slot).

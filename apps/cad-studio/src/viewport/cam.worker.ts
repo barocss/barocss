@@ -1,7 +1,7 @@
 import { camPackage, type CamPackage } from '@barocss/cad-model/machining/camPackage';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { CamHeightfield } from './camHeightfield';
+import { CamHeightfield, camPartMeshes } from './camHeightfield';
 import type { CamDisplay, CamOptions } from './camDisplay';
 
 // G23 CNC (G-R3, from Codex's source 5c9f861f): the Model's CAM package for the current source, and the selected
@@ -44,7 +44,7 @@ function run(job: CamRequest): void {
     if (!setup) throw new Error(info.setups.length ? 'The selected CNC setup is unavailable; choose one of the setups given.' : 'The Model gave no CNC moves for this part. Read the skipped-feature reasons.');
     if (!setup.moves.length) throw new Error('The selected CNC setup has no moves.');
     const currentField = JSON.stringify([packageKey, job.setup, job.cellMM]);
-    if (!field || currentField !== fieldKey) { field = new CamHeightfield(info.stock, setup, info.tool, job.cellMM, held.bodies.map(b => b.mesh)); fieldKey = currentField; }
+    if (!field || currentField !== fieldKey) { field = new CamHeightfield(info.stock, setup, info.tool, job.cellMM, camPartMeshes(held.doc, held.bodies)); fieldKey = currentField; }
     const progress = Math.min(job.progress, setup.moves.length), removal = field.evaluate(progress);
     const index = Math.min(Math.floor(progress), setup.moves.length - 1), move = setup.moves[index], fraction = progress >= setup.moves.length ? 1 : progress - index;
     const position: [number, number, number] = [move.a[0] + (move.b[0] - move.a[0]) * fraction, move.a[1] + (move.b[1] - move.a[1]) * fraction, move.a[2] + (move.b[2] - move.a[2]) * fraction];

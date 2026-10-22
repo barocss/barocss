@@ -1,4 +1,7 @@
 import type { SetupProgram, StockSolid, ToolShape } from '@barocss/cad-model/machining/camPackage';
+import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { madeBodies } from '@barocss/cad-model/engine/elements';
 import type { CamRemoval } from './camDisplay';
 
 // G23 CNC (G-R3, from Codex's source 5c9f861f): the stock as a height field in one setup's machine frame, cut by the
@@ -13,6 +16,8 @@ const EPS = 1e-8, GRID = 192, SAMPLES = 250000, CELL_VISITS = 25000000, CYLINDER
 export const CAM_OVERCUT_TOLERANCE_MM = 0.01;
 /** A part's display mesh in world coordinates (the target the program must not enter). */
 export interface CamPartMesh { positions: ArrayLike<number>; indices: ArrayLike<number> }
+/** The part the program must not enter: the bodies its process makes (O160: a bought bearing or O-ring is not the part's own material). */
+export function camPartMeshes(doc: StudioDoc, bodies: readonly BodyResult[]): CamPartMesh[] { return madeBodies(doc.nodes, bodies).map(b => b.mesh); }
 const CUTS: ReadonlySet<string> = new Set(['feed', 'plunge', 'ramp']);
 const KINDS: ReadonlySet<string> = new Set(['rapid', 'feed', 'plunge', 'ramp', 'retract']);
 const refuse = (code: string, reason: string): never => { throw new Error(`[CAM_${code}] ${reason}`); };

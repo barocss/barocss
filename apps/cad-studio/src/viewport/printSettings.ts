@@ -1,6 +1,15 @@
 import type { PrintPreviewSettings, StudioDoc } from '@barocss/cad-model/engine/doc';
 import { documentPrintPreviewProblem, printPreviewProblem } from '@barocss/cad-model/engine/printPreview';
 import type { PrintOptions } from './usePrintLayers';
+import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
+import { madeBodies } from '@barocss/cad-model/engine/elements';
+import { lookOf } from '@barocss/cad-model/app/bodies';
+
+/** What print layers slice: the bodies the part's own process makes (O160: a bought element — an O-ring, a bearing — is not printed), less those hidden. */
+export function printSourceMeshes(doc: StudioDoc, bodies: readonly BodyResult[]): DisplayMesh[] {
+  return madeBodies(doc.nodes, bodies).filter(b => !lookOf(doc, b).hidden).map(b => b.mesh);
+}
 
 export type PrintPreviewPatch = Partial<Omit<PrintPreviewSettings, 'version'>>;
 

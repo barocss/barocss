@@ -30,7 +30,7 @@ import { CamPanel } from './viewport/CamPanel';
 import { useCamPreview } from './viewport/camPreview';
 import type { CamOptions } from './viewport/camDisplay';
 import { usePrintLayers, type PrintOptions } from './viewport/usePrintLayers';
-import { printOptionsOf, withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
+import { printOptionsOf, printSourceMeshes, withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
 import { documentPrintPreviewProblem } from '@barocss/cad-model/engine/printPreview';
 import { Icon, Kbd } from './ui/atoms';
 import { FlatPatternDialog } from './ui/FlatPatternDialog';
@@ -2096,7 +2096,7 @@ export function App() {
   }, [clearanceResult, clearanceClip, isolatedInstances, instancePreview]);
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioClearance: () => unknown }).__studioClearance = () => clearanceDisplay; }, [clearanceDisplay]);
 
-  const printMeshes = useMemo(() => bodies.filter(b => !lookOf(doc, b).hidden).map(b => b.mesh), [bodies, doc.bodies]);
+  const printMeshes = useMemo(() => printSourceMeshes(doc, bodies), [bodies, doc.bodies, doc.nodes]);
   const printInputProblem = useMemo(() => documentPrintPreviewProblem(doc), [doc]);
   const printOptions = useMemo<PrintOptions>(() => printInputProblem ? { layer: 0, supports: true, printed: true } : printOptionsOf(doc, printing?.thresholds.maxOverhangDeg.value), [printInputProblem, doc.printPreview, doc.print, printing]);
   const printReason = printInputProblem ?? (camEnabled ? 'Close the CNC preview to preview print layers.' : rendering || drawing ? 'Print layers are available in Model view.'
