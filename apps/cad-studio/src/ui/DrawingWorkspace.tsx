@@ -3,7 +3,7 @@
 // points, or one straight edge, then where the dimension line goes), Diameter and Radius (a circle
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
-import { changeDrawingScope } from '@barocss/cad-model/drawing/scope';
+import { changeDrawingScope, drawsMadeOnly } from '@barocss/cad-model/drawing/scope';
 
 
 
@@ -25,7 +25,7 @@ import { pdfMissing, sheetPdf } from '@barocss/cad-model/drawing/pdf';
 import { sectionDxfDocument, sheetDxf } from '@barocss/cad-model/drawing/dxf';
 import { MIN_HOLE_ON_PAPER_MM, autoLayout, frontByInformation } from '@barocss/cad-model/drawing/layout';
 import { reorient, turnSections } from '@barocss/cad-model/drawing/reorient';
-import { applyFix, drawingIssues, fixAll, type DrawingIssue } from '@barocss/cad-model/drawing/issues';
+import { applyFix, drawingIssues, fixRound, fixRoundsOutcome, fixRoundsStart, type DrawingFix, type DrawingIssue, type FixRoundStep, type FixRounds, type SheetInputs } from '@barocss/cad-model/drawing/issues';
 import { acceptAll, applySuggestion, toleranceSuggestions, type ToleranceSuggestion } from '@barocss/cad-model/drawing/tolerance';
 import { writeDxf, type DxfVersion } from '@barocss/cad';
 
@@ -115,12 +115,33 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
   };
   const fixIssue = (x: DrawingIssue) => { if (scope.kind === 'assembly' && x.fix?.kind === 'auto-dimension') return; if (views && layout && sheet && x.fix) onChange(applyFix({ views, layout, settings, sheet, callout, elements, ...(cuts.length ? { sections: cuts } : {}) }, x.fix)); };
-  const fixEvery = () => {
-    if (!views) return;
-    const r = fixAll({ views, settings, callout, elements, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) }, 40, fix => scope.kind !== 'assembly' || fix.kind !== 'auto-dimension');
-    onChange(r.settings);
-    onToast({ title: `${r.applied.length} fix${r.applied.length === 1 ? '' : 'es'} applied`, hint: r.left.length ? `${r.left.length} issue${r.left.length === 1 ? '' : 's'} left: ${r.left[0].message}` : 'The drawing has no issues.', detail: r.left.slice(1).map(x => x.message).join('\n') });
+  // (O175: Fix all runs the chat's rounds, fixRound: a round that adds a section waits for the worker to cut it, and the
+  // next round runs on the sheet with its view — one Fix, as the chat's fix_drawing, not a second click. The rounds stop
+  // when the settings change from elsewhere. Each round is its own undo step.)
+  const fixing = useRef<{ state: FixRounds; want: string } | null>(null);
+  const fixInputs = (): SheetInputs | null => views ? { views, settings, callout, elements, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) } : null;
+  const fixOnly = (fix: DrawingFix) => scope.kind !== 'assembly' || fix.kind !== 'auto-dimension';
+  const fixStep = (step: FixRoundStep) => {
+    if (step.next) {
+      fixing.current = { state: step.state, want: JSON.stringify({ ...step.next, scope: step.next.scope ?? scopeRead.scope }) };
+      onChange(step.next); return;
+    }
+    fixing.current = null;
+    if (JSON.stringify(step.settings) !== JSON.stringify(settings)) onChange(step.settings);
+    onToast({ title: `${step.applied.length} fix${step.applied.length === 1 ? '' : 'es'} applied`, hint: step.left.length ? `${step.left.length} issue${step.left.length === 1 ? '' : 's'} left: ${step.left[0].message}` : 'The drawing has no issues.', detail: step.left.slice(1).map(x => x.message).join('\n') });
   };
+  const fixEvery = () => {
+    const i = fixInputs(); if (!i) return;
+    fixStep(fixRound(fixRoundsStart(i), i, fixOnly));
+  };
+  useEffect(() => {
+    const f = fixing.current; if (!f) return;
+    if (JSON.stringify(settings) !== f.want) { fixing.current = null; return; }
+    if (error) { fixStep(fixRoundsOutcome(f.state)); return; }
+    // (Settled: every section the settings list cut for them, the views projected.)
+    if (busy || !views || !layout || !sheet || !sectionList.every(x => cutsMade?.some(c => c.id === x.id && c.view === x.view && c.at === x.at))) return;
+    const i = fixInputs(); if (i) fixStep(fixRound(f.state, i, fixOnly));
+  }, [settings, busy, views, layout, sheet, cutsMade, error]);
   const sheetMarkup = useMemo(() => sheet ? sheetGroupsSvg(sheet, selected) : '', [sheet, selected]);
   const [W, H] = layout?.size ?? [297, 210];
   const [box, setBox] = useState<[number, number, number, number] | null>(null);
@@ -343,9 +364,10 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     // The front's side by information (R14.3b), when nothing placed by hand ties it: the part projected for it first.
     let base = { views, settings, sections: cuts };
     const pick = frontByInformation(views, settings);
+    // (O174: the turned part projected as the sheet is, its bought elements out.)
     if (pick) {
       const ts = turnSections(settings, pick.orientation), list = Array.isArray(ts) ? ts : [];
-      const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(list.length ? { sections: list } : {}), ...(pick.orientation !== 'y-' ? { orientation: pick.orientation as 'x+' } : {}) });
+      const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(list.length ? { sections: list } : {}), ...(pick.orientation !== 'y-' ? { orientation: pick.orientation as 'x+' } : {}), made: drawsMadeOnly(settings) });
       if (currentModel.current !== model) return;
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, sections: sheetSections(r.sections ?? []) };
@@ -361,7 +383,8 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   /** Another front side (R14.3b, O7): the annotations re-mapped to the views showing their axes, or refused, typed. */
   const turnTo = async (o: Orientation) => {
     if (!views || o === (settings.orientation ?? 'y-')) return;
-    const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(o !== 'y-' ? { orientation: o as 'x+' } : {}) });
+    // (O174: projected as the sheet is — a part's without its bought elements.)
+    const r = await engine.drawing(model, { tangentEdges: !!settings.tangent, ...(o !== 'y-' ? { orientation: o as 'x+' } : {}), made: drawsMadeOnly(settings) });
     if (currentModel.current !== model) return;
     if (!r.ok) { onToast({ title: 'Could not turn the drawing', hint: r.error, detail: '' }); return; }
     const t = reorient(views, r.views, settings, o);

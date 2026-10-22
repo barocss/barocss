@@ -680,3 +680,35 @@ export function fixAll(i: SheetInputs, max = 40, only: (fix: DrawingFix, issue: 
   }
   return { settings, applied, left: issues };
 }
+
+/** How many times one Fix builds the sheet again and fixes what that shows (O170). */
+export const FIX_ROUNDS = 4;
+/** A sheet's issues as [errors, warnings], to tell a better one (O174). */
+export const fixScore = (issues: readonly DrawingIssue[]): [number, number] => [issues.filter(x => x.severity === 'error').length, issues.filter(x => x.severity !== 'error').length];
+const betterScore = (a: readonly [number, number], b: readonly [number, number]) => a[0] < b[0] || (a[0] === b[0] && a[1] < b[1]);
+/** One Fix's rounds so far (O170, O174, O175): the chat runs them in one call; the studio one per sheet, once the
+ *  sections the round before added are cut. */
+export type FixRounds = { round: number; sectioned: boolean; applied: DrawingFix[]; best: { score: [number, number]; settings: DrawingSettings; applied: number; left: DrawingIssue[] } };
+export type FixRoundStep = { state: FixRounds; next?: DrawingSettings; settings: DrawingSettings; applied: DrawingFix[]; left: DrawingIssue[] };
+export function fixRoundsStart(i: SheetInputs): FixRounds {
+  const left = drawingIssues(issueContext(i));
+  return { round: 0, sectioned: true, applied: [], best: { score: fixScore(left), settings: i.settings, applied: 0, left } };
+}
+/** What the rounds so far leave: the best sheet they reached — fewer errors, then fewer warnings — kept only when better
+ *  than the one the Fix started from (O174), with the fixes that led to it and its issues. */
+export const fixRoundsOutcome = (state: FixRounds): FixRoundStep => ({ state, settings: state.best.settings, applied: state.applied.slice(0, state.best.applied), left: state.best.left });
+/** The next round of a Fix, on the sheet built from the last round's settings (`i`). `next`: the settings to build the
+ *  sheet from and come back with; with none, the rounds are over and the step is their outcome. A round dimensions again
+ *  only when the round before added a section, its new view (O172). `only` narrows the fixes, as fixAll's. */
+export function fixRound(state: FixRounds, i: SheetInputs, only: (fix: DrawingFix, issue: DrawingIssue) => boolean = () => true): FixRoundStep {
+  let best = state.best;
+  if (state.round > 0) {
+    const left = drawingIssues(issueContext(i)), score = fixScore(left);
+    if (betterScore(score, best.score)) best = { score, settings: i.settings, applied: state.applied.length, left };
+  }
+  if (state.round >= FIX_ROUNDS) return fixRoundsOutcome({ ...state, best });
+  const again = state.sectioned, r = fixAll(i, 40, (fix, issue) => (again || fix.kind !== 'auto-dimension') && only(fix, issue));
+  if (!r.applied.length) return fixRoundsOutcome({ ...state, best });
+  const next: FixRounds = { round: state.round + 1, sectioned: r.applied.some(f => f.kind === 'add-section'), applied: [...state.applied, ...r.applied], best };
+  return { ...fixRoundsOutcome(next), next: r.settings };
+}

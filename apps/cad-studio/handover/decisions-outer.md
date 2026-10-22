@@ -7226,3 +7226,26 @@ No studio expectation relied on an overcut drill: cnc-cam tests the preview.
 - Not run: the flow (its slot is still pending, with the uncommitted rows-file steps).
 
 **F8 now:** the shaft and the cover drawings have no issue; the weldment's only issue is BALLOON_NO_EDGE (correct, O173).
+
+## O175 — the studio's Fix all runs the chat's rounds; a part's sheet with balloons draws its bought items (2026-10-23)
+
+**Fix all's rounds in the studio.** The chat's fix_drawing builds the sheet again after each round (O170), re-dimensions only after a section was added (O172) and keeps its best round (O174). The studio's Fix all ran one fixAll pass: on the default shaft and its key it added the keyseat's section B and stopped, and the section's view still had DIM_ON_HIDDEN, so it took a second click.
+- **The rounds are one function now,** `fixRound` in drawing/issues (with `fixRoundsStart`, `fixRoundsOutcome`, `fixScore` and `FIX_ROUNDS`). Each call scores the sheet the last round's settings built, keeps the best, and runs the next fixAll. It hands back `next`, the settings to build and come back with, or the outcome.
+- **The chat** runs the rounds in one call, building each `next` with drawingInputs (its behaviour unchanged).
+- **The studio** (DrawingWorkspace only; no hook change) commits each `next` and waits until the worker has cut every section the settings list. Then it runs the next round on the sheet with that view. The rounds stop if the settings change from elsewhere or the projection fails (the best so far kept). The toast comes at the end, with the best sheet's issues.
+- **Limit:** each round is its own undo step (App's `commitDrawing` pushes one per change). Undoing a Fix takes as many steps as it had rounds.
+
+**A part's sheet with balloons draws its bought items** (`drawsMadeOnly` in drawing/scope; the chat's drawingInputs and useDrawingSheet both use it). O174 left them out of every part-scope sheet. A balloon points at its BOM line's item, a bought key too, so on the flow's BOM-table-and-balloons sheet (a part scope since its first change) balloon 2 had no edge. With balloons on, the sheet is drawn from every body, as an assembly's is.
+
+**Tests:**
+- drawing-fix-rounds, new: Fix all driven round by round as the studio does reaches the chat's settings with no error. One pass alone adds the section and leaves more (the studio before).
+- drawing-made-views, new: a part sheet with balloons draws the bought key, balloons 1 and 2 on their items, none without an edge. Without balloons, the key is not drawn. It fails without `drawsMadeOnly`.
+- Flow, uncommitted until its slot:
+  - a new step `O175 Fix all rounds`: the shaft and its bought key, Auto-dimension, one Fix all; section B, no issue, no Fix all button left, no note on the key;
+  - O145's element-notes step sets the key made in the BOM first, since a bought key is not drawn (O174);
+  - CNC7b's `fs` import moved from CNC2, where the earlier edit had put it (lint).
+
+**Verified (T1):**
+- model: the drawing test files listed in the commit, a9-acceptance 3/3 among them, all passing;
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (its slot is pending with the rows-file steps and these).

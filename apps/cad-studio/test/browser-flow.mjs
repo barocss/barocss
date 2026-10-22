@@ -3842,14 +3842,18 @@ try {
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count();
-      const rows = [{ id: 'L6', length: 6000, source: 'a test value' }, { id: 'L4', length: 4000, source: 'a test value' }];
-      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'frame_stock', rows, kerf: 3 } }, { tool: 'query', args: { action: 'cutlist' } }] })}`);
+      // (Rows rule b: the shop's lengths are the person's file, attached in the chat; the agent loads it by its reference.)
+      const rows = [{ id: 'L6', length: 6000, source: 'a test value' }, { id: 'L4', length: 4000, source: 'a test value' }], list = join(out, 'frame-stock.json');
+      fs.writeFileSync(list, JSON.stringify(rows)); await page.setInputFiles('input[aria-label="Chat image file"]', list);
+      await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls: [{ tool: 'features', args: { action: 'frame_stock', file: '$file:frame-stock.json', kerf: 3 } }, { tool: 'query', args: { action: 'cutlist' } }] })}`);
       await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 120000 });
       const tools = await page.locator('.chat-tool').allInnerTexts();
       assert.ok(tools.some(t => t.includes('features.frame_stock')) && tools.at(-1).includes('query.cutlist'), tools.slice(-3).join(' | '));
       await page.click('[aria-label="Close chat"]');
       await page.waitForFunction(() => window.__studioDoc.frames?.stock?.length === 2 && window.__studioDoc.frames.kerfMM === 3, null, { timeout: 30000 }); await idle();
+      // (A member selected: its properties carry the cut list's button. FR4b, run before, leaves one selected; alone, this step picks it.)
+      if (!await page.locator('[aria-label="Show the cut list"]').count()) { await page.locator('.outliner .ol', { hasText: /^Frame/ }).first().click(); await page.waitForSelector('[aria-label="Show the cut list"]', { timeout: 15000 }); }
       await page.click('[aria-label="Show the cut list"]');
       await page.waitForSelector('[aria-label="Nesting"]');
       // (9320 mm of pieces: no sum of 4000s and 6000s lies in [9330, 10 000); one of each holds them — 10 000 − 9320 − 3 · 10.)
@@ -4149,6 +4153,39 @@ try {
       assert.equal(rows.length, 2, rows.join(' | ')); assert.match(rows[1], /^2,key [\d.]+ × [\d.]+ × [\d.]+,1,key,/);
     } finally { if (await page.locator('[aria-label="Close BOM"]').count()) await page.click('[aria-label="Close BOM"]'); }
   });
+  // ---- A9-11 (O2): the purchase list downloaded from the app keeps the key's estimate; Save, New, Open; the same bytes again --
+  await check('A9-11 purchase list from the app: a shaft and its key; the key line has no row or source and says estimate; saved, a new part, opened — the purchase list downloads byte for byte the same', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
+      if (pickShaft) { await page.locator('.outliner .ol', { hasText: /^Shaft/ }).first().click(); await page.waitForTimeout(300); }
+      await press(' '); await page.locator('.palette input').fill(label); await page.locator('.palette input').press('Enter');
+      await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key'), null, { timeout: 30000 });
+    const purchase = async () => {
+      await page.click('nav[aria-label="Tools"] [aria-label="BOM"]');
+      try {
+        await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 30000 });
+        // (The panel says what the file says: the key's source is the estimate, not a row.)
+        assert.match(await page.textContent('[aria-label="BOM line 2"]'), /key [\d.]+ × [\d.]+ × [\d.]+[\s\S]*estimate/);
+        const [file] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export purchase list"]')]);
+        assert.match(file.suggestedFilename(), /purchase list\.csv$/);
+        return fs.readFileSync(await file.path());
+      } finally { if (await page.locator('[aria-label="Close BOM"]').count()) await page.click('[aria-label="Close BOM"]'); }
+    };
+    const first = await purchase(), rows = first.toString('utf8').trim().split('\n');
+    assert.equal(rows[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');
+    assert.equal(rows.length, 2, rows.join(' | '));
+    assert.match(rows[1], /^2,key ([\d.]+ × [\d.]+ × [\d.]+),1,key,\1,,,,estimate$/, rows[1]);
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('[aria-label="Save"]')]);
+    const bcad = join(out, 'a9-11-key.bcad'); fs.writeFileSync(bcad, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', bcad);
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key'), null, { timeout: 30000 }); await idle();
+    const again = await purchase();
+    assert.ok(again.equals(first), `reopened: ${again.toString('utf8')} vs ${first.toString('utf8')}`);
+  });
   // ---- O147 B2: the BOM on the drawing — its table and the item balloons, numbered alike -----------------------------------
   await check('BOM table and balloons (O147 B2): a shaft and its key; on A3 the BOM table and 2 balloons numbered as its lines, on the iso view; in the SVG', async () => {
     const fs = await import('node:fs');
@@ -4188,6 +4225,13 @@ try {
       await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
     }
     await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+    // (O174: a part's drawing is what it makes — a bought key is not drawn and has no note; set made in the BOM, it is the part's.)
+    await page.click('nav[aria-label="Tools"] [aria-label="BOM"]');
+    try {
+      await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 30000 });
+      await page.locator('[aria-label="BOM line 2"] select').selectOption('made');
+      await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.kind === 'key')?.bought === false, null, { timeout: 30000 });
+    } finally { if (await page.locator('[aria-label="Close BOM"]').count()) await page.click('[aria-label="Close BOM"]'); }
     await page.click('.mode button:text-is("Drawing")');
     try {
       await page.selectOption('[aria-label="Sheet size"]', 'A3');
@@ -4243,6 +4287,29 @@ try {
     } finally { await page.click('[aria-label="Close library"]'); }
   });
 
+  // ---- O175: Fix all runs its rounds — the section it adds is cut, then the sheet with it fixed; one click ----------------
+  await check('O175 Fix all rounds: a shaft and its bought key; Auto-dimension, then one Fix all adds the keyseat\'s section and clears what its view brings; no issue left, no key drawn (O174)', async () => {
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
+      if (pickShaft) { await page.locator('.outliner .ol', { hasText: /^Shaft/ }).first().click(); await page.waitForTimeout(300); }
+      await press(' '); await page.locator('.palette input').fill(label); await page.locator('.palette input').press('Enter');
+      await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key') && /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForFunction(() => (window.__studioDrawing?.()?.issues ?? []).some(x => x.code === 'DIM_ON_HIDDEN'), null, { timeout: 60000 });
+      // (The bought key is not the part's: no note points at it.)
+      assert.deepEqual(await page.evaluate(() => (window.__studioDoc.drawing?.notes ?? []).filter(n => n.id.startsWith('el-')).map(n => n.text)), []);
+      await page.click('[aria-label="Fix all issues"]');
+      // (One click: the rounds wait for the worker to cut the section, then fix the sheet with its view.)
+      await page.waitForFunction(() => (window.__studioDoc.drawing?.sections ?? []).length === 1 && (window.__studioDrawing?.()?.issues ?? []).length === 0, null, { timeout: 90000 });
+      await page.waitForFunction(() => /fixes applied/.test(document.body.textContent ?? '') && /The drawing has no issues/.test(document.body.textContent ?? ''), null, { timeout: 30000 });
+      assert.equal(await page.locator('[aria-label="Fix all issues"]').count(), 0, 'nothing left to fix');
+      await snap('fix-all-rounds');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   // ---- O138: a key's width fit — classes on the key's, keyseat's and keyway's sides -----------------------------------
   await check('key width fit (O138): h9 on the key, N9 on its keyseat, JS9 on the keyway via the chat — both width fits in the key\'s notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
@@ -6290,7 +6357,7 @@ try {
 
   // ---- CNC7b (O102): stock from the shop's list, through the real chat and tool servers --------------------------
   await check('CNC7b: a milled aluminium plate, the shop\'s stock list set by the agent — the report picks the 122 × 82 × 22 block (1 mm a face, an estimate)', async () => {
-    const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
+    const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Close library"]');
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
@@ -6299,8 +6366,12 @@ try {
       await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [
         { tool: 'features', args: { action: 'command', command: 'box', values: { w: 120, d: 80, h: 20, x: 0, y: 0, z: 0 } } }, { tool: 'features', args: { action: 'material', material: 'al6061' } },
-        { tool: 'features', args: { action: 'stock', rows: [{ id: 'P20', kind: 'block', size: [150, 100, 20], source: 'the shop' }, { id: 'B22', kind: 'block', size: [122, 82, 22], source: 'the shop' }] } },
+        { tool: 'features', args: { action: 'stock', file: '$file:stock.json' } },
         { tool: 'query', args: { action: 'manufacturability' } }];
+      // (Rows rule b: the shop's stock list is the person's file, attached in the chat.)
+      const list = join(out, 'stock.json');
+      fs.writeFileSync(list, JSON.stringify([{ id: 'P20', kind: 'block', size: [150, 100, 20], source: 'the shop' }, { id: 'B22', kind: 'block', size: [122, 82, 22], source: 'the shop' }]));
+      await page.setInputFiles('input[aria-label="Chat image file"]', list);
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const report = (await page.locator('.chat-tool').allInnerTexts()).filter(x => /cnc-milling:/.test(x)).pop();
@@ -6309,7 +6380,11 @@ try {
       assert.deepEqual(m.stock.map(r => r.id), ['P20', 'B22']);
       await snap('cnc7b-stock');
       await page.click('[aria-label="Close chat"]');
-    } finally { chat.kill(); }
+    } finally {
+      chat.kill();
+      // (A failure here must not leave the chat open for the next step: its Chat click would close it, O174.)
+      if (await page.locator('[aria-label="Close chat"]').count()) await page.click('[aria-label="Close chat"]');
+    }
   });
 
   // ---- the shapes strip's overflow: a More menu, never a sideways page --------------------------------------------

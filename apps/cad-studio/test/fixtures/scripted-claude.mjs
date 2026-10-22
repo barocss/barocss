@@ -13,7 +13,12 @@ const cad = JSON.parse(args[args.indexOf('--mcp-config') + 1]).mcpServers.cad;
 let input = '';
 for await (const chunk of process.stdin) input += chunk;
 const text = JSON.parse(input).message.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
-const calls = JSON.parse(/script (\{[\s\S]*\})/.exec(text)?.[1] ?? '{"calls":[]}').calls;
+// (Rows rule b: a call names a file the person attached as "$file:<its name>"; the id is read off the chat server's note
+// of the turn's files — "rows-…: "name" (user turn …)" — as a model reads it there. An unknown name is left as it is,
+// and the tool refuses it.)
+const fileId = name => new RegExp(`(rows-[0-9a-f]+): ${JSON.stringify(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).exec(text)?.[1];
+const withFiles = v => typeof v === 'string' && v.startsWith('$file:') ? fileId(v.slice(6)) ?? v : Array.isArray(v) ? v.map(withFiles) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, withFiles(x)])) : v;
+const calls = withFiles(JSON.parse(/script (\{[\s\S]*\})/.exec(text)?.[1] ?? '{"calls":[]}').calls);
 
 const server = spawn(cad.command, cad.args, { env: { ...process.env, ...cad.env }, stdio: ['pipe', 'pipe', 'inherit'] });
 const waiting = new Map();
