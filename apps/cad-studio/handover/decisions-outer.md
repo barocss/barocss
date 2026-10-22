@@ -5857,3 +5857,8 @@ The coordinator's queue after O148, item 1: vary the hatch by part, as the GPU l
 - **The angles**: `hatchGroups` groups a section's rings by body. Body k is hatched at `HATCH_ANGLES[k mod 6]` = 45°, 135°, 30°, 120°, 60°, 150°, and past six with the spacing widened 40 % a round. A part of one body is hatched at 45°, 2.5 mm, exactly as before, so the DXF fixtures are unchanged.
 - **Drawing it**: `hatch(rings, spacing, angle)` scans at any angle, and at 45° keeps √½ both ways so its lines stay the same to the last digit. The sheet draws a hatch mark per body, the SVG and PDF draw their lines at the mark's angle, the sheet's DXF HATCH takes it (as before, `−angle` with y up), and the section-alone DXF writes a HATCH per body.
 - **Test** (section-dimensions.test.ts): the shaft, key and hub through B–B are three bodies with three angles (their HATCH_ANGLES). Every hatch line runs at its group's angle. The SVG and PDF draw them all, the sheet's DXF has the HATCHes, and the section-alone DXF has one per body at the same angles.
+
+## Queue 2 — balloons clear of a table pinned by `at` (2026-10-22)
+
+Balloons are placed before the tables, so a table pinned by `at` was not yet in their way. Now the pinned tables' boxes (laid out from their content and corner, as `tableGroups` lays them) are added to what a balloon keeps clear of. Auto-placed tables still go after and keep clear of the balloons.
+- Test (bom-balloons.test.ts): the BOM table pinned over where balloon 1 stood. Every balloon ends up off the table, none is unclear, and no issue names a balloon. The pinned table meeting the iso view's name is the person's placing, and the issue list says so as ever.

@@ -167,8 +167,10 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   // (FRd2, O119: the weld symbols, before the tables so an auto-placed one keeps clear of their texts.)
   const welds = settings.weldSymbols && meta.welds?.length ? weldSymbols(layout, views, meta.welds) : null;
   if (welds) groups.push(...welds.groups);
-  // (O147 B2: the item balloons, after the weld symbols and before the tables: clear of the texts so far.)
-  const balloons = settings.balloons && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, takenOf(layout, groups)) : null;
+  // (O147 B2: the item balloons, after the weld symbols and before the tables: clear of the texts so far and of the pinned tables.)
+  // (Clear of the tables pinned by `at` too: they are placed after, where they were set.)
+  const pinned = (settings.tables ?? []).filter(t => t.at).map(t => tableLayout(tableContentOf(t, meta.tableContent).content, t.at!, t.corner ?? 'top-left').box as Rect);
+  const balloons = settings.balloons && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, [...takenOf(layout, groups), ...pinned]) : null;
   if (balloons) groups.push(...balloons.groups);
   // (Tables last: an auto-placed one finds room clear of everything else on the sheet, O49.)
   const tables = tableGroups(layout, settings, groups, meta.tableContent);
