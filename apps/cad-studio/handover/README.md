@@ -822,9 +822,11 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 | commit | item | verified |
 |---|---|---|
 | `0d4ff6a4c` O149 | the import cycle Codex's `chat/outputs` closed, broken | sheet 8/8 (with O150), cageEdit 7/7, tsc (model, studio), eslint 0 errors |
-| O150 | rows rule (b) through the fixtures (8 test files, `test/person-file.ts`); stock and frame stock merge by id (P2) | those 8 files and person-rows 9/9, tsc (model, studio), eslint 0 errors |
+| `b85435208` O150 | rows rule (b) through the fixtures (8 test files, `test/person-file.ts`); stock and frame stock merge by id (P2) | those 8 files and person-rows 9/9, tsc (model, studio), eslint 0 errors |
+| O151 | the read-tool contract covers Codex's six output tools; O73's part result carries `shopRows` (A9-8) | tool-contract 3/3, enclosure 17/17, tsc, eslint |
+| O152 | an assembly with no cross-part housing link keeps its document and instance identity (A9-7 vs A9-10) | shop-rows 9/9, bearing-housing-context 8/8, 57 related model files, tsc, eslint |
 
-**Next:** the frozen v2 contract test (toolset), then tool-contract, enclosure O73 and shop-rows, then the studio suite's rows (b) fixtures (cad-cli). Open for the coordinator: a `remove` for stock and frame-stock rows (O150).
+**Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). Open for the coordinator: a `remove` for stock and frame-stock rows (O150).
 
 #### Outer lane: hand-over at A9-5/6 (account change, 2026-10-22) (history)
 

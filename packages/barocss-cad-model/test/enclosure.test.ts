@@ -374,7 +374,8 @@ test('O73: set_material — a body of the base part or of a placed part made of 
   assert.equal(hook.context.epsAllow, 0.025);
   // (A placed part: its own body, its BOM row.)
   await call('add_part', { name: 'Pin' }); await call('run_command', { part: 'p1', command: 'cylinder', values: { r: 2, h: 10, x: 0, y: 0, z: 0 } });
-  assert.deepEqual(await call('set_material', { material: 'steel', part: 'p1' }), { part: 'p1', ok: true, bodies: ['b1'], material: 'steel' });
+  // (A9-8: a part-scoped call reports the shop rows the part sees, with their origin; none here.)
+  assert.deepEqual(await call('set_material', { material: 'steel', part: 'p1' }), { part: 'p1', shopRows: [], ok: true, bodies: ['b1'], material: 'steel' });
   assert.equal((await bomView(s.doc, ev)).parts[0].material, 'steel');
   const bad = await dispatchTool(s, 'set_material', { material: 'unobtainium' }, ev);
   assert.ok(bad.isError); assert.match(JSON.parse(bad.content).error, /^\[MATERIAL_UNKNOWN\] "unobtainium" .*materials: al6061, /);
