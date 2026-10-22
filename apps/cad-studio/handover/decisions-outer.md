@@ -6766,3 +6766,33 @@ The A9-6 test of the old placement stays as it is: it is the record that the cla
 **Verified (T1):** a9-acceptance 1/1 (steps 1–7), tsc, eslint 0 errors. Not run: the full suites.
 
 **Next (the second half), after F1–F4 are decided:** steps 4 and 8–11 — welds, gussets and caps; the assembly and its clean clearance map; the drawings; the BOM and purchase CSV; the outputs; the bundle; reopened identical.
+
+## O160 — F1: a part's process judges what it makes; bought elements stay out of DFM, print layers and CAM (2026-10-23)
+
+**The defect** (A9's F1):
+- The shaft's cnc-turning report sized it at "Ø47 × 95": Ø47 is the bought 6204's outside.
+- The cover's print layers sliced its bought O-ring: 45 layers with support columns from z 5.352.
+
+The BOM already tells made from bought; manufacturing did not ask.
+
+**The coordinator's decision: one shared filter, by the BOM's rule.**
+- **`madeBodies(nodes, bodies)`** (engine/elements.ts) keeps every body except a bought element's. "Bought" is decided by `boughtOf`, the BOM's own rule: the person's override (`bought` on the node), else the kind's default (BOUGHT_BY_DEFAULT: bearing, ring, key, pin, O-ring, spring, belt or chain, a connector's body; a coupling as its row says).
+- **Applied at the entry points**, so every caller follows:
+  - `printability`, which covers FDM/SLA/SLS/MJF, moulding, casting and machining through it;
+  - `machinability`, also called directly by rb9;
+  - `camPreview` and `camPackage`, including their stock and safe height;
+  - `output_print_layers`. A part whose bodies are all bought is refused there, with `[OUTPUT_EVALUATION]`.
+- **The studio's Print workspace** (the GPU lane's viewport/print.worker) builds its own mesh list, so it does not follow by itself. It needs `madeBodies` on its input. The coordinator relays that, and I touched none of their files.
+
+**Oracles** (a9-acceptance, plus the new made-bodies.test):
+- the shaft's turning size: "Ø25 × 95 mm along its axis…";
+- the cover's print at 0.2: 40 layers, no support, 8 high, as the S0 froze it;
+- the shaft's CAM refusal: identical with and without the key and the 6204, and naming the part's 95 × 25 × 25 (milled stock from the block list holds no shaft, so both refuse);
+- `madeBodies` directly: the shaft in and its key out; the person setting the key made puts it back.
+
+**F5, found while timing (not this fix):** the A9 shaft's cnc-turning report takes about 50 s at load 40–50. It took 72 s before this change, with the bearing counted. It makes a9-acceptance about a minute long, and a profile is worth doing later.
+
+**Verified (T1):**
+- model: made-bodies 1/1, a9-acceptance 1/1, and every model test file using printability, machinability, CAM or print layers (21 files, all passing);
+- studio: cnc-preview, cnc-cam, chat, im7, cnc-stock, im8b, mould-undercut, all passing;
+- tsc of model and studio; eslint 0 errors.

@@ -11,6 +11,7 @@ import type { BodyResult } from '../engine/evaluate';
 import { camPreview, NOT_FOR_PRODUCTION, type DrillPoint, type PocketPass } from './cam';
 import { chooseStock } from './stock';
 import { DIRECTION_NAMES, DIRECTIONS } from './access';
+import { madeBodies } from '../engine/elements';
 
 export const CAM_PACKAGE_VERSION = 'cam-package-v1';
 type Vec3 = [number, number, number];
@@ -51,7 +52,8 @@ function axesOf(n: readonly number[]): [Vec3, Vec3, Vec3] {
 }
 
 /** The package: the tool's whole shape (`tool` given, else a flat end mill of CNC8's diameter, its flute 3 D and shank D, estimates). */
-export function camPackage(doc: StudioDoc, bodies: readonly BodyResult[], o: { toolMM?: number; tool?: Partial<Omit<ToolShape, 'basis'>> } = {}): CamPackage {
+export function camPackage(doc: StudioDoc, all: readonly BodyResult[], o: { toolMM?: number; tool?: Partial<Omit<ToolShape, 'basis'>> } = {}): CamPackage {
+  const bodies = madeBodies(doc.nodes, all); // (O160: the stock, the safe height and the cuts are the made part's.)
   const p = camPreview(doc, bodies, { ...(o.tool?.diameterMM ?? o.toolMM ? { toolMM: o.tool?.diameterMM ?? o.toolMM } : {}) });
   const D = p.tool.diameterMM, kind = o.tool?.kind ?? 'flat';
   const tool: ToolShape = { kind, diameterMM: D, cornerMM: kind === 'ball' ? D / 2 : kind === 'bull' ? o.tool?.cornerMM ?? D / 4 : 0, fluteMM: o.tool?.fluteMM ?? 3 * D, shankMM: o.tool?.shankMM ?? D, basis: { diameter: p.tool.basis, shape: o.tool ? 'given' : 'estimate' } };

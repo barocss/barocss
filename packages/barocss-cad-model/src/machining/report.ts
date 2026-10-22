@@ -20,12 +20,14 @@ import { featuresOf, type Feature } from './features';
 import { chooseStock, type StockResult } from './stock';
 import { holesOf, nearestDrills, onDrillTable, tappedHoles, type Hole, type TappedHole } from './holes';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
+import { madeBodies } from '../engine/elements';
 
 export type Family = 'metal' | 'plastic';
 const r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0;
 
 /** The machining report for a milling or turning profile. */
-export function machinability(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile): PrintabilityReport {
+export function machinability(doc: StudioDoc, all: readonly BodyResult[], profile: ProcessProfile): PrintabilityReport {
+  const bodies = madeBodies(doc.nodes, all); // (O160: a bought element is not machined.)
   const t = (k: string) => profile.thresholds[k], rules: PrintRule[] = [];
   // The material: one for the part, its family the library's (metal or polymer).
   const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))], id = ids.length === 1 ? ids[0] : null, m = id ? materialData(id) : undefined;

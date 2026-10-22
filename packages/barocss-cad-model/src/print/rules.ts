@@ -24,6 +24,7 @@ import type { Turning } from '../machining/turning';
 import type { Feature } from '../machining/features';
 import type { StockResult } from '../machining/stock';
 import { machinability } from '../machining/report';
+import { madeBodies } from '../engine/elements';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
 export interface PrintRule {
@@ -99,7 +100,9 @@ export function cavitiesOf(m: DisplayMesh): number {
 }
 
 /** The part's printability against its process, printer and orientation (given, else the document's chosen one). */
-export async function printability(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, options: { direction?: readonly number[]; finish?: string; sides?: Readonly<Record<string, Half>> } = {}): Promise<PrintabilityReport> {
+export async function printability(doc: StudioDoc, all: readonly BodyResult[], evaluate: Evaluate, options: { direction?: readonly number[]; finish?: string; sides?: Readonly<Record<string, Half>> } = {}): Promise<PrintabilityReport> {
+  // (O160: the process judges what it makes — a bought element is not printed, moulded, cast or machined.)
+  const bodies = madeBodies(doc.nodes, all);
   const profile = processProfile(doc.process), printer = printerProfile(doc.printer), dir = options.direction ?? doc.print?.direction;
   const b = dir ? unit(dir) : null, rules: PrintRule[] = [];
   // (A9-2: a brief that states a process with no rules here is not judged by another — the studio's Process left from before.)

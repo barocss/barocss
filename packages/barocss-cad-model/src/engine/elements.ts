@@ -71,6 +71,16 @@ export function boughtOf(node: ModelNode, e?: BodyElement | null): { bought: boo
   // (A coupling: bought as its kernel report's row says, D161.)
   return { bought: e?.kind === 'coupling' ? e.report.bought.bought : BOUGHT_BY_DEFAULT.has(node.kind), by: 'default' };
 }
+/**
+ * The bodies the part's own process makes (O160): every body but a bought element's, by the BOM's own rule (boughtOf:
+ * the person's override, else the kind's default). DFM, print layers and CAM judge and plan these only; a bearing on a
+ * turned shaft or an O-ring in a printed cover is bought, not machined or printed.
+ */
+export function madeBodies<B extends { ref?: { node: number }; element?: BodyElement }>(nodes: readonly ModelNode[], bodies: readonly B[]): B[] {
+  const out: B[] = [];
+  for (const b of bodies) { const node = b.ref ? nodes[b.ref.node] : undefined; if (!node || !boughtOf(node, b.element).bought) out.push(b); }
+  return out;
+}
 export interface ElementLine {
   /** The feature (its id) and its label. */
   item: string; label: string;

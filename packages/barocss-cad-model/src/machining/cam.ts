@@ -11,6 +11,7 @@ import type { DisplayMesh } from '../engine/mesh';
 import { featuresOf, type Feature } from './features';
 import { holesOf } from './holes';
 import { DIRECTION_NAMES, DIRECTIONS } from './access';
+import { madeBodies } from '../engine/elements';
 
 export const NOT_FOR_PRODUCTION = 'NOT FOR PRODUCTION — a 2.5D preview of outlines to look at, not a toolpath for a machine: no G-code, no feeds or speeds, no collision check';
 export const TOOL_ESTIMATE_MM = 6, STEPOVER_SHARE = 0.4, STEPDOWN_SHARE = 0.5;
@@ -93,7 +94,8 @@ export function inset(poly: readonly P2[], d: number): P2[] | null {
 }
 
 /** The preview: pockets' loops and holes' drill points for the part's features; `tool` the diameter (default an estimate). */
-export function camPreview(doc: StudioDoc, bodies: readonly BodyResult[], o: { toolMM?: number } = {}): CamPreview {
+export function camPreview(doc: StudioDoc, all: readonly BodyResult[], o: { toolMM?: number } = {}): CamPreview {
+  const bodies = madeBodies(doc.nodes, all); // (O160: a bought element is not machined.)
   const D = o.toolMM && o.toolMM > 0 ? o.toolMM : TOOL_ESTIMATE_MM, R = D / 2, so = STEPOVER_SHARE * D, sd = STEPDOWN_SHARE * D;
   const holes = holesOf(bodies), features = featuresOf(doc, bodies, holes), ops: (PocketPass | DrillPoint)[] = [], skipped: { feature: string; why: string }[] = [];
   for (const f of features) {

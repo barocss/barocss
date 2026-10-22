@@ -11,6 +11,7 @@ import { documentRevision, verifyBundle, writeBundle } from '../team/bundle';
 import { sha256Hex } from '../team/digest';
 import { camPackage } from '../machining/camPackage';
 import { printLayers } from '../print/layers';
+import { madeBodies } from '../engine/elements';
 
 const encoder = new TextEncoder();
 const json = (value: unknown): string => JSON.stringify(value, (_key, v: unknown) => ArrayBuffer.isView(v) && !(v instanceof DataView) ? Array.from(v as unknown as ArrayLike<number>) : v, 1) + '\n';
@@ -91,15 +92,18 @@ export async function runOutputTool(doc: StudioDoc, _bodies: readonly BodyResult
       return { content: { ...context, package: pack, files: [file('cam-package.json', 'application/json', json({ ...pack, ...context }))] }, summary: 'CAM preview package: NOT FOR PRODUCTION' };
     }
     const layerMM = args.layerMM === undefined ? 0.2 : args.layerMM as number;
+    // (O160: the layers of what the part's process makes — a bought O-ring or bearing is not printed.)
+    const made = madeBodies(resolved.doc.nodes, result.bodies);
+    if (!made.length) return { error: '[OUTPUT_EVALUATION] The selected part has no made bodies to print: every body is a bought element.' };
     // Bound layer indexing before the existing generator allocates its chunk index.
     const direction = args.direction as number[] | undefined, axis = direction ?? [0, 0, 1], length = Math.hypot(...axis);
     let lo = Infinity, hi = -Infinity;
-    for (const body of result.bodies) for (let i = 0; i < body.mesh.positions.length; i += 3) {
+    for (const body of made) for (let i = 0; i < body.mesh.positions.length; i += 3) {
       const p = body.mesh.positions, z = (p[i] * axis[0] + p[i + 1] * axis[1] + p[i + 2] * axis[2]) / length;
       lo = Math.min(lo, z); hi = Math.max(hi, z);
     }
     if (Math.ceil((hi - lo) / layerMM) > 100000) return bad('Print request exceeds 100000 layers; increase layerMM.');
-    const print = printLayers(result.bodies.map(b => b.mesh), { ...(args.layerMM === undefined ? {} : { layerMM }), ...(direction ? { direction } : {}), ...(args.limitDeg === undefined ? {} : { limitDeg: args.limitDeg as number }) });
+    const print = printLayers(made.map(b => b.mesh), { ...(args.layerMM === undefined ? {} : { layerMM }), ...(direction ? { direction } : {}), ...(args.limitDeg === undefined ? {} : { limitDeg: args.limitDeg as number }) });
     const indices = (args.layers ?? [0]) as number[];
     if (indices.some(k => k >= print.count)) return bad(`Layer index must be below ${print.count}.`);
     const { layer, ...summary } = print;
