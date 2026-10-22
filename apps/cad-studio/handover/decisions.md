@@ -9587,3 +9587,25 @@ The last R12c stage frozen in D139. Two assemblies are built by the agent's v2 t
 - the gear's mate;
 - a live model as the agent (the scripted one, L2; a live run needs the owner's OK);
 - loads, life and stresses (the bearings' and the shaft's: not for structural calculation).
+
+**Checks** (R12c's track boundary: T3, your parts, the coordinator's request) on 26265b0f8 (this change's code) and 2f43b4778 (two test fixes) in the detached worktree, the kernel suite at concurrency 4:
+
+Ran:
+- **Kernel:** lint and type-check clean. The full kernel suite, full conformance included: 1515/1522, 6 skipped, 546 s at a load of 30–45. It failed only the env-only "actual native Split source…".
+  - Conformance `r12c/`: 32/32.
+- **RB:** 409 cases, no new failures; the non-OK totals unchanged (4 refused, 3 invalid, 5 wrong: the 8 known TODOs); 91 s.
+- **Properties:** 11/11, 197 s.
+- **`@barocss/cad-model`:** type-check clean, 754/754 (on 2f43b4778).
+  - The first run, on 26265b0f8, did not compile: the acceptance test's renamed title held an unquoted apostrophe. Fixed in 2f43b4778.
+- **Studio:** type-check clean, 197/197.
+- **Test names against the saved lists:**
+  - kernel: +3; one renamed by this stage (the rod gland's test, now naming the fix);
+  - cad-model: none missing, +11;
+  - studio: unchanged.
+- **`FLOW_ONLY`** "R12c.8 acceptance", "O-ring gland (R12c" and "Connector opening (R12c" (the steps this stage's fixes touch): 4/4 with the starter step, on 2f43b4778.
+  - The first run, on 26265b0f8, stopped: the new step's long title made its screenshot's file name too long for the file system. Shortened in 2f43b4778.
+
+Not run:
+- The full browser flow (the coordinator's window flow).
+
+Asked of the coordinator: the outer lane's `chat/references.ts` `checkKeepouts` could skip a keep-out's own bodies (the connector's plug touching its keep-out reads "undecided" within the chord). It is their file.
