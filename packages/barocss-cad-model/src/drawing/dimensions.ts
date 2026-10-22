@@ -15,17 +15,24 @@ export interface SnapPoint { at: XY; ref: DimPoint }
 
 /** Edge ends and circle centres of a view (one per position). */
 export function snapPoints(pr: BrepProjection): SnapPoint[] {
-  const out: SnapPoint[] = [];
-  const add = (edge: ProjectedEdge, at: DimPoint['at'], p: readonly number[]) => {
-    const q = inView(pr, p);
-    if (out.some(s => Math.hypot(s.at[0] - q[0], s.at[1] - q[1]) < 1e-6)) return;
-    out.push({ at: q, ref: { edge: edge.name, at, near: [p[0], p[1], p[2]] } });
-  };
+  // (O172, F8: where edges coincide on the view — a shaft's two Ø25 shoulders seen end on, a key's top on the step's
+  // outline — the point is a visible edge's when one is: the first one found could be the hidden one, and a dimension to
+  // it measured to a hidden line though the same line shows.)
+  const out: SnapPoint[] = [], shown: boolean[] = [];
   for (const e of pr.edges) {
-    if (e.ends) for (const p of e.ends) add(e, 'end', p);
-    if (e.circle) add(e, 'center', e.circle.center);
+    const visible = !e.pieces.length || e.pieces.some(p => p.visible);
+    if (e.ends) for (const p of e.ends) addSnap(pr, out, shown, e, 'end', p, visible);
+    if (e.circle) addSnap(pr, out, shown, e, 'center', e.circle.center, visible);
   }
   return out;
+}
+function addSnap(pr: BrepProjection, out: SnapPoint[], shown: boolean[], edge: ProjectedEdge, at: DimPoint['at'], p: readonly number[], visible: boolean): void {
+  const q = inView(pr, p), ref: DimPoint = { edge: edge.name, at, near: [p[0], p[1], p[2]] };
+  for (let k = 0; k < out.length; k++) if (Math.hypot(out[k].at[0] - q[0], out[k].at[1] - q[1]) < 1e-6) {
+    if (visible && !shown[k]) { out[k] = { at: q, ref }; shown[k] = true; }
+    return;
+  }
+  out.push({ at: q, ref }); shown.push(visible);
 }
 
 /** Whether a circle shows true (round) in the view: its plane faces the viewer. */
