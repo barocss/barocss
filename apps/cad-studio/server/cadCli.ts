@@ -31,6 +31,8 @@ import { partCutList } from '@barocss/cad-model/app/cutList';
 import { camPreview, camSvg } from '@barocss/cad-model/machining/cam';
 import { turningOf } from '@barocss/cad-model/machining/turning';
 import { holesOf } from '@barocss/cad-model/machining/holes';
+import { receivePersonRowFiles, type PersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
+import { sha256Text } from '@barocss/cad-model/team/digest';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -38,6 +40,17 @@ import { quotePackage } from '@barocss/cad-model/mould/quote';
 import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
 
 /** A mould plan as mould.json shows it: without the loops' points (the lumps' classifier's). */
+/** A row list named on the person's own command line (rows rule b): the file they supplied, received as the chat receives
+ *  an attached one — its name, its bytes' SHA-256, turn 1 — and passed to the loader by its reference, never as rows. */
+function personListFile(path: string): { rowFiles: PersonRowFiles; file: string } | { error: string } {
+  const full = resolve(path);
+  let text: string;
+  try { text = readFileSync(full, 'utf8'); } catch (e) { return { error: `${path}: ${e instanceof Error ? e.message : String(e)}` }; }
+  try {
+    const rowFiles = receivePersonRowFiles(sha256Text(`cad-cli ${full}`).slice(0, 24), [{ name: basename(full), text, turn: 1 }], 1);
+    return { rowFiles, file: rowFiles.files[0].id };
+  } catch (e) { return { error: `${path}: ${e instanceof Error ? e.message : String(e)}` }; }
+}
 const withoutLoops = ({ loops: _, ...rest }: ToolingPlan) => rest;
 export const CLI_USAGE = `cad-cli run <script | -> [-o part.bcad] [--doc base.bcad] [--step part.step] [--stl part.stl] [--check] [--dry-run]
   Runs a run_script script (on base.bcad, else an empty part) and writes what is asked; prints a JSON summary.
@@ -231,9 +244,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in opened) return failed(opened.error);
     let s0 = await stateOf(opened.doc); if ('error' in s0) return failed(s0.error);
     if (li >= 0 || ai >= 0) {
-      let rows: unknown;
-      if (li >= 0) { try { rows = JSON.parse(readFileSync(resolve(rest[li + 1]), 'utf8')); } catch (e) { return failed(`${rest[li + 1]}: ${e instanceof Error ? e.message : String(e)}`); } }
-      const set = await dispatchTool(s0, 'set_stock', { ...(li >= 0 ? { rows } : {}), ...(ai >= 0 ? { allowance: Number(rest[ai + 1]) } : {}) }, evaluate);
+      const list = li >= 0 ? personListFile(rest[li + 1]) : undefined;
+      if (list && 'error' in list) return failed(list.error);
+      const set = await dispatchTool(list ? { ...s0, rowFiles: list.rowFiles } : s0, 'set_stock', { ...(list ? { file: list.file } : {}), ...(ai >= 0 ? { allowance: Number(rest[ai + 1]) } : {}) }, evaluate);
       if (set.isError) return failed(JSON.parse(set.content).error ?? set.content);
       s0 = set.state;
     }
@@ -256,9 +269,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in opened) return failed(opened.error);
     let s0 = await stateOf(opened.doc); if ('error' in s0) return failed(s0.error);
     if (li >= 0 || ki >= 0) {
-      let rows: unknown;
-      if (li >= 0) { try { rows = JSON.parse(readFileSync(resolve(rest[li + 1]), 'utf8')); } catch (e) { return failed(`${rest[li + 1]}: ${e instanceof Error ? e.message : String(e)}`); } }
-      const set = await dispatchTool(s0, 'set_frame_stock', { ...(li >= 0 ? { rows } : {}), ...(ki >= 0 ? { kerf: Number(rest[ki + 1]) } : {}) }, evaluate);
+      const list = li >= 0 ? personListFile(rest[li + 1]) : undefined;
+      if (list && 'error' in list) return failed(list.error);
+      const set = await dispatchTool(list ? { ...s0, rowFiles: list.rowFiles } : s0, 'set_frame_stock', { ...(list ? { file: list.file } : {}), ...(ki >= 0 ? { kerf: Number(rest[ki + 1]) } : {}) }, evaluate);
       if (set.isError) return failed(JSON.parse(set.content).error ?? set.content);
       s0 = set.state;
     }
