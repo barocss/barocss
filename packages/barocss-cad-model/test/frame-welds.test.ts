@@ -95,3 +95,26 @@ test('FRd1 a seam along curved sides: an RHS 20 × 20 × 2 with 3 mm outer corne
   assert.equal(j.kind, 'butt'); assert.equal(j.seamBasis, 'mesh'); assert.equal(j.weld.sizeMM, 2);
   assert.ok(j.seamMM <= exact + 1e-9 && j.seamMM > 0.995 * exact, `${j.seamMM} vs ${exact}`);
 });
+
+test('A9-1 a table frame\'s top corners, three members trimmed in order: the leg runs through (no joint at its run-on end); each rail end is a butt on its leg — 8 joints of 160, sizes 3 (estimate); the person\'s records taken; a bead there refused by the kernel, said, the part still built', async () => {
+  const RHS = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 };
+  let s: ChatState = { doc: emptyDoc(), bodies: [] };
+  const lib = await dispatchTool(s, 'features', { action: 'frame_sections', rows: [{ id: 'R40', name: 'RHS 40', section: RHS, source: 'a test value' }] }, evaluate); assert.ok(!lib.isError, lib.content); s = lib.state;
+  const f = await dispatchTool(s, 'features', { action: 'command', command: 'frame', values: { skeleton: 'table', W: 400, D: 300, H: 300, x: 0, y: 0, z: 0, section: 'library', row: 'R40', corners: 'butt' } }, evaluate);
+  assert.ok(!f.isError, f.content); s = f.state;
+  const w = weldList(s.doc, s.bodies), rails = ['b0_part4', 'b0_part5', 'b0_part6', 'b0_part7'], legs = ['b0_part0', 'b0_part1', 'b0_part2', 'b0_part3'];
+  assert.deepEqual(w.joints.map(j => j.id).sort(), rails.flatMap(r => [`${r}.end`, `${r}.start`]).sort());
+  for (const j of w.joints) {
+    assert.equal(j.kind, 'butt'); assert.equal(j.meets.length, 1); assert.ok(legs.includes(j.meets[0]), `${j.id} meets ${j.meets}`);
+    assert.ok(Math.abs(j.seamMM - SQUARE) < 1e-6 && j.seamBasis === 'exact', `${j.id}: ${j.seamMM}`);
+    assert.deepEqual([j.weld.kind, j.weld.sizeMM, j.weld.sizeBasis], ['fillet', 3, 'estimate']);
+  }
+  // (Each leg meets the two rails of its corner — one rail's trim names the other rail; its end face lies on the leg.)
+  for (const leg of legs) assert.equal(w.joints.filter(j => j.meets[0] === leg).length, 2, leg);
+  const r = await dispatchTool(s, 'features', { action: 'welds', welds: w.joints.map(j => ({ joint: j.id, size: 3 })) }, evaluate);
+  assert.ok(!r.isError, r.content); s = r.state;
+  const after = weldList(s.doc, s.bodies);
+  assert.equal(after.joints.length, 8);
+  for (const j of after.joints) assert.ok(j.bead && 'refused' in j.bead && /^\[BEAD_SEAM_NOT_PLANAR\]/.test(j.bead.refused), JSON.stringify(j.bead));
+  assert.equal(s.bodies.filter(b => b.cutPiece).length, 8, 'the frame still built');
+});

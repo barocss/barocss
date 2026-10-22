@@ -102,6 +102,12 @@ export function cavitiesOf(m: DisplayMesh): number {
 export async function printability(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, options: { direction?: readonly number[]; finish?: string; sides?: Readonly<Record<string, Half>> } = {}): Promise<PrintabilityReport> {
   const profile = processProfile(doc.process), printer = printerProfile(doc.printer), dir = options.direction ?? doc.print?.direction;
   const b = dir ? unit(dir) : null, rules: PrintRule[] = [];
+  // (A9-2: a brief that states a process with no rules here is not judged by another — the studio's Process left from before.)
+  const stated = doc.brief?.process, said = stated && stated.basis === 'stated' ? stated.value : null;
+  if (said && said !== doc.process && !processProfile(said)) {
+    const why = `the brief's process, ${said}, has no rules here yet: the studio's Process${doc.process ? ` (${doc.process})` : ''} is not judged in its place`;
+    return { process: said, direction: b, rules: ['wall', 'hole', 'horizontal-hole', 'gap', 'cavity', 'bed-fit', 'overhang', 'warp', 'tip'].map(id => ({ id, level: 'recommended' as const, status: 'unknown' as const, message: id, why })) };
+  }
   if (profile?.id === 'injection') return mouldability(doc, bodies, profile, options);
   if (profile?.id === 'cnc-milling' || profile?.id === 'cnc-turning') return machinability(doc, bodies, profile);
   if (profile?.id === 'die-casting' || profile?.id === 'sand-casting') return castability(doc, bodies, profile, options);
