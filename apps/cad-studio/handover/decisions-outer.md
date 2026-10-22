@@ -5577,3 +5577,16 @@ The coordinator's note with integration cadfe4700, merged here as 26b88406b. The
   - the coupling's catalogue "TEST-1, a test supplier";
   - the BOM's belt and coupling lines;
   - every element's data structured-cloned.
+
+### O143 addendum 2 — D162's connectors in the element data (2026-10-22)
+
+With integration 36bfcb970 (merged here as 3f30f8dc1; D162's two UI edits, a section-table read in FrameSections and ConnectorRows in the Library panel, fight nothing in flight).
+- **`BodyElement`** gains `connector-opening` (the kernel's ConnectorReport, its row cited) and `connector-body` (its row, with source and estimate from `doc.connectors`).
+- **Bought by default**: the body is bought; the opening, cut in the panel, is made.
+- **Sizes**, in our words from the user's row. The row's name loses a trailing "opening", and the line says which part it is:
+  - "USB-C receptacle opening, stadium 8.34 × 2.56 × 6.2 deep; its body 0.045 / 0.08 clear across" (the declared fit's gaps);
+  - "USB-C receptacle envelope stadium 8.25 × 2.4 × 6.51".
+- **Test**: D139's U1 row (the kernel lane's test row):
+  - both lines exactly, with the row cited;
+  - the BOM's connector-body line;
+  - both elements' data structured-cloned.
