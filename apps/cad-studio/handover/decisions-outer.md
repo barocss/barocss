@@ -6661,3 +6661,32 @@ This closes O150's open item. O150 made rows merge by id, so a smaller file no l
 - toolset 9/9 at 23,198 of 25,000 characters a turn; shop-context-tools 3/3, tool-contract 3/3, frame-nesting 5/5, batch-changes 6/6;
 - studio cnc-stock 6/6, frame-nest-cli 1/1, chat 18/18;
 - tsc of model and studio; eslint 0 errors.
+
+## O157 — the CAM package's pockets where they are: the floor plane's origin added once (2026-10-23)
+
+**The defect.** The GPU lane's G23 overcut check found it.
+- **Symptom:** CNC8's pocket is 50 × 30 at x 35–85, y 25–55, with its floor at z 12. Its packaged feeds ran at x 73–117, y 53–77, where they should be at 38–82, 28–52 (the pocket inset by R 3). The program was shifted by the floor plane origin's in-plane part (35, 25), so the tool would have milled the plate's top.
+- **Cause:** cam.ts's `outlineOf` gives the loops as absolute projections [p·X, p·Y]. camPackage's `pocketMoves` then added the whole origin again: `o + q0·X + q1·Y + (floor − depth)·n`. z came out right only because the origin's normal component is the floor's height.
+- **Why the test missed it:** the existing swept-volume test measured the cut against the feeds' own bounds.
+
+**The fix.**
+- A point at a depth is `q0·X + q1·Y + (o·n + floor − depth)·n`, then taken into the setup's frame. Only the origin's height along the normal counts.
+- It is a module-level `pocketPoint`, with the top height `o·n + floor` worked out once per pocket. The per-point `[0, 1, 2].map` closure is gone, as the hot-path rule requires.
+- Holes are unaffected, because `drillMoves` uses the world point `op.at`.
+
+**The oracle**, absolute (cam-package.test, "O157 the pocket where it is"). Each setup's feeds are taken back to world coordinates through its frame's transpose and must lie in the pocket inset by R = 3, at its levels:
+
+| Setup | Pocket | Feeds (x, y, depth) |
+|---|---|---|
+| +Z | CNC8's | [38, 82] × [28, 52], z [12, 17] |
+| −Z | the same, opening on the bottom | [38, 82] × [28, 52], z [3, 8] |
+| +X | a side pocket into x 120, y 25–55, z 4–16 | x [112, 117] × y [28, 52] × z [7, 13] |
+
+The test fails on the old code and passes on the fix.
+
+**Verified (T1):**
+- cam-package 4/4, chat-outputs 7/7, tool-contract 3/3;
+- studio cnc-cam 5/5 and chat 18/18;
+- tsc of model and studio; eslint 0 errors.
+
+**Not run:** the GPU lane's end-to-end "no overcut" check, which they add after this lands.
