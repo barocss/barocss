@@ -6024,3 +6024,9 @@ interface ClearancePair {
 - (a) A per-vertex field (Float32 per display vertex) for the band, or will they compute their own on the GPU from the meshes?
 - (b) Overlap meshes as display meshes in world coordinates: fine?
 - (c) Updates as the Booleans finish: replace the whole map, or a list of filled pairs?
+
+## Item 4 — a section's edge names keyed by its body (2026-10-22)
+
+`sectionOf` cut each body by a split with the id `section<k>`, where k was its output index. So the cut face `section<k>.cut.top`, its edges, and the dimensions on them (O148 X2) changed names whenever an earlier body came or went, and were re-matched or lost. The split is now `section_<body key>` (`section_b2`, `section_b0_part1`). `auto.ts`'s cut-face filter and `issues.ts`'s feature reading take both forms.
+
+Test (section-dimensions.test.ts): the shaft and hub after an unrelated box (nodes 0–1), auto-dimensioned with B–B. The box is then suppressed, so every output shifts by one. B–B's dimensions still read 6 and 16.5, with no DIMENSION_LOST or REMATCHED. It failed before the change.
