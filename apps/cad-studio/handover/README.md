@@ -849,7 +849,8 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 | `e21235d26` O164 | O5 second half begun: the weldment (gussets, caps, beads by their oracles) and the placed assembly, the 6204 housed in the plate (A9-7), the clearance map clean; F6, F7 | a9-acceptance 2/2, tsc, eslint |
 | `ad5c0e59f` O165 | O5 as an automated run: a drawing per made part, the BOM and CSV, the bundle on the person's approval, reopened the same; F8 (drawing issues), F9 (screws), F10 (members not in the BOM) open; owner acceptance pending | a9-acceptance 3/3 (about 185 s), tsc, eslint |
 | `1c30c7271` O166 | a hole narrower than the tool is refused by name, CAM_TOOL_TOO_LARGE (refusals and the setup's notes), the rest of the program kept | cam-package 6/6, a9 3/3, studio cnc-cam, tsc, eslint |
-| O167 | F6: the chat's edit_feature links an existing bearing to another part's housing (the draft's context and fit tables); the A9 run edits instead of re-adding | bearing-housing-context 9/9, a9 3/3, 28 edit files, studio A9-7 UI tests, tsc, eslint |
+| `3a7f351a1` O167 | F6: the chat's edit_feature links an existing bearing to another part's housing (the draft's context and fit tables); the A9 run edits instead of re-adding | bearing-housing-context 9/9, a9 3/3, 28 edit files, studio A9-7 UI tests, tsc, eslint |
+| O168 | F7: a refused bead is said on its joint with placed parts too (beadRefusal looks in the evaluated view) | frame-welds 6/6 (fails without), a9 3/3, 14 bead/weld files, tsc, eslint |
 
 **Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). 
 

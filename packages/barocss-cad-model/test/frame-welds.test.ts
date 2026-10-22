@@ -120,3 +120,22 @@ test('A9-1 a table frame\'s top corners, three members trimmed in order: the leg
   for (const j of after.joints) assert.ok(j.bead && 'refused' in j.bead && /^\[BEAD_SHARED_CONTEXT\]/.test(j.bead.refused) && j.bead.sharedComponent?.joints.length === 2, JSON.stringify(j.bead));
   assert.equal(s.bodies.filter(b => b.cutPiece).length, 8, 'the frame still built');
 });
+
+test('O168 (F7): with a placed part inheriting the base\'s rows, a fillet on a cap is still said on its joint — [BEAD_KIND], typed — not only counted refused', async () => {
+  const RHS = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 };
+  const sections = personFile('sections.json', [{ id: 'R40', name: 'RHS 40', section: RHS, source: 'a test value' }]);
+  let s: ChatState = { doc: emptyDoc(), bodies: [], rowFiles: sections.rowFiles };
+  const call = async (tool: string, args: Record<string, unknown>) => { const r = await dispatchTool(s, tool, args, evaluate); assert.ok(!r.isError, r.content); s = r.state; return JSON.parse(r.content); };
+  await call('features', { action: 'frame_sections', file: sections.file });
+  await call('features', { action: 'command', command: 'frame', values: { skeleton: 'table', W: 400, D: 300, H: 300, x: 0, y: 0, z: 0, section: 'library', row: 'R40', corners: 'butt' } });
+  await call('features', { action: 'command', command: 'end-cap', values: { end: 'start', fit: 'inset', t: 4 }, bodies: ['b0_part0'] });
+  // (A placed part: its view inherits the base's section row, so the evaluated document differs from the authored one.)
+  await call('assembly', { action: 'add_part', name: 'Plate', position: [0, 0, 320] });
+  await call('features', { action: 'command', part: 'p1', command: 'box', values: { w: 100, d: 100, h: 10, x: 0, y: 0, z: 0 } });
+  const joints = (await call('query', { action: 'welds' })).joints as { id: string; kind: string }[], cap = joints.find(j => j.kind === 'cap')!;
+  await call('features', { action: 'welds', welds: joints.map(j => ({ joint: j.id, kind: 'fillet', size: 3 })) });
+  await call('features', { action: 'welds', beadOwnership: { version: 1, policy: 'equal-length' } });
+  const after = await call('query', { action: 'welds' }) as { joints: { id: string; bead?: { refused?: string } }[]; totals: { beads: { refusedJointIds: string[] } } };
+  assert.deepEqual(after.totals.beads.refusedJointIds, [cap.id]);
+  assert.match(after.joints.find(j => j.id === cap.id)!.bead?.refused ?? '', /^\[BEAD_KIND\] a cap sits flush/);
+});

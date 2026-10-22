@@ -348,10 +348,23 @@ const refusedBeads = new Map<string, { reason: string; component?: BeadSharedCom
 /** A refusal kept quiet: BEAD_KIND on a record with no kind set — a mitre's groove weld or a cap's corner weld by default. */
 const quietOf = (b: BeadFeature, reason: string) => b.quiet && /\[BEAD_KIND\][^\n]*(is mitred|sits flush)/.test(reason);
 /** A joint's bead refusal in this document (null: none, or none refused). */
-export function beadRefusal(doc: StudioDoc, joint: string): { reason: string; quiet: boolean; component?: BeadSharedComponent } | null {
-  const id = beadIdOf(joint);
+/** The document as the evaluation keys its beads: shop rows resolved into the parts, skeletons solved (O168). */
+const evaluatedViews = new WeakMap<StudioDoc, StudioDoc>();
+function evaluatedView(doc: StudioDoc): StudioDoc {
+  const had = evaluatedViews.get(doc); if (had) return had;
+  const tree = resolveShopTree(doc), solved = resolveSkeletons(tree), view = 'error' in solved ? tree : solved.doc;
+  evaluatedViews.set(doc, view);
+  return view;
+}
+function refusalIn(doc: StudioDoc, id: string): { reason: string; quiet: boolean; component?: BeadSharedComponent } | null {
   for (const b of beadsOf(withIds(doc))) if (b.feature.id === id) { const refusal = refusedBeads.get(b.key); return refusal === undefined ? null : { ...refusal, quiet: quietOf(b, refusal.reason) }; }
   return null;
+}
+export function beadRefusal(doc: StudioDoc, joint: string): { reason: string; quiet: boolean; component?: BeadSharedComponent } | null {
+  // (O168, F7: the evaluation keys a refusal by the resolved document — with placed parts, their inherited rows make it
+  // differ from the authored one — so it is looked up there first, then as authored (the section and face readers).)
+  const id = beadIdOf(joint);
+  return refusalIn(evaluatedView(doc), id) ?? refusalIn(doc, id);
 }
 /**
  * Retry only a proved local refusal. Shared components are removed atomically; unbounded shared errors propagate.
