@@ -5977,3 +5977,50 @@ The kernel lane's FRk2 is in (integration 56e11f3ae, merged here as ba71497a6). 
   - the 60° brace: BEAD_ANGLE said;
   - no size: no bead.
 - `frame-plates.test.ts`: the cap's default kind is now butt.
+
+## G22 data side — S0: the assembly's interference and clearance map (2026-10-22)
+
+The coordinator approved the order: G22's data, then section edge names, then G23's data. This S0 needs the coordinator's and the GPU lane's reply before building. The style is G24's: pure, in cad-model (`team/clearanceMap.ts`), the exact values ours and the per-pixel field the GPU's.
+
+**Measured, on the 120-copy prototype** (the starter plate with its top edges filleted R2: 272 triangles; 12 × 10 copies pitched so x-neighbours overlap 2 mm and y-neighbours sit 1 mm apart, every other turned 180° about Z; load 35–45):
+
+| stage | time |
+|---|---|
+| placing the copies' meshes | 5.8 ms |
+| a K2 tree (`triangleBvh`) a copy | 47.9 ms |
+| pruning by boxes grown by the near band (sweep and prune along x, then y and z) | 2.7 ms → 416 candidate pairs of the 7140 |
+| exact clearance on the candidates (`meshClearance` with the trees) | 44.2 ms → 110 crossing, 306 near, 0 clear |
+| a per-vertex distance field for the amber band (`nearestDistance2` per vertex of each side, bounded by the band) | about 10 ms for 832 pair sides of a 92-vertex plate (scales with the vertices) |
+| **the exact overlap Booleans** (`booleanAnalytic` intersection + its volume + its mesh), 110 pairs | **56.4 s (about 0.5 s a pair, curved fillets)** |
+
+The K2 tree is a triangle hierarchy with ray and nearest-point queries, not a box-overlap one. Pairs are pruned by sorting the bodies' boxes, cheap at 120; the K2 trees serve the exact clearance and the distance field. Everything but the Booleans is about 0.1 s together. The Booleans are 500× that, so the S0 makes them progressive.
+
+**Shape** (`clearanceMap(doc, evaluate, { nearMM })`; everything from the evaluated placed parts, body keys with `<inst>/` kept):
+```ts
+interface ClearanceMap {
+  version: 'clearance-map-v1';
+  near: { mm: number; source: 'requirement' | 'input' };   // a stated clearance requirement, else the input, said
+  pairs: ClearancePair[];                                    // candidates only; every other pair is clear by its boxes
+  pending: number;                                           // overlap Booleans not done yet (they come in later updates)
+  timing: { pruneMS: number; clearanceMS: number; booleanMS: number };
+}
+interface ClearancePair {
+  a: string; b: string;                                      // body keys
+  state: 'overlap' | 'near' | 'clear';
+  minGapMM: number;                                          // 0 where they cross (the exact least distance of the display meshes, to their chord)
+  closest: { a: Vec3; b: Vec3; faceA: string; faceB: string };  // the closest points and their faces by persistent name
+  /** The exact overlap: its volume and its display mesh (volume = the mesh's B-rep's), or pending, or why the Boolean refused. */
+  overlap?: { volumeMM3: number; mesh: DisplayMesh } | { pending: true } | { refused: string };
+  /** For the amber band: each side's vertices' distance to the other body, clamped at the band (Float32, the body's display-mesh vertex order). */
+  field?: { a: Float32Array; b: Float32Array };
+}
+```
+- **Scale**: pruning first, then exact clearance only on candidates, both always. The overlap Booleans run in the engine worker, nearest pairs first and cached by the two bodies' content and poses. The map comes out at once with `overlap: { pending }` and fills in over later updates. `pending` says how many are left; a moved part re-queues only its own pairs. The GPU lane colours a pending overlap from the clearance (crossing = red) until its exact body arrives.
+- **Volume and mesh agree**: the overlap mesh is the tessellation of the very B-rep whose `volumeMM3` is given, as the coordinator asked.
+- **Second stage, not now**: joint play and motion study first contact (`robot/sweep`'s meshesMeet along a motion).
+- **Oracles (when built)**: two boxes overlapping by a known block (its volume exact, its mesh's volume equal); a gap of 1 mm (minGap 1, the closest faces by name, the field 1 at the facing vertices); the 120 copies (110 overlaps, 306 near, the timing in the result); a moved copy re-queues only its pairs.
+
+**Questions for the GPU lane**:
+- (a) A per-vertex field (Float32 per display vertex) for the band, or will they compute their own on the GPU from the meshes?
+- (b) Overlap meshes as display meshes in world coordinates: fine?
+- (c) Updates as the Booleans finish: replace the whole map, or a list of filled pairs?
