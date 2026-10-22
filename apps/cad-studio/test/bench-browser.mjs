@@ -40,17 +40,17 @@ await page.addInitScript(() => {
   if (w.GPUDevice) {
     const ce = GPUDevice.prototype.createCommandEncoder;
     GPUDevice.prototype.createCommandEncoder = function (d) {
-      const enc = ce.call(this, d), dev = this;
-      if (!dev.features.has('timestamp-query')) return enc;
-      const pool = dev.__ts ??= [], qs = pool.pop() ?? dev.createQuerySet({ type: 'timestamp', count: 32 });
+      const enc = ce.call(this, d);
+      if (!this.features.has('timestamp-query')) return enc;
+      const pool = this.__ts ??= [], qs = pool.pop() ?? this.createQuerySet({ type: 'timestamp', count: 32 });
       let n = 0;
       const begin = enc.beginRenderPass.bind(enc), finish = enc.finish.bind(enc);
       enc.beginRenderPass = desc => { if (desc.timestampWrites || n + 2 > 32) return begin(desc); const p = begin({ ...desc, timestampWrites: { querySet: qs, beginningOfPassWriteIndex: n, endOfPassWriteIndex: n + 1 } }); n += 2; return p; };
       enc.finish = fd => {
         if (n) {
-          const res = make.call(dev, { size: 256, usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC }), read = make.call(dev, { size: 256, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+          const res = make.call(this, { size: 256, usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC }), read = make.call(this, { size: 256, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
           enc.resolveQuerySet(qs, 0, n, res, 0); enc.copyBufferToBuffer(res, 0, read, 0, n * 8);
-          pending.push({ dev, qs, res, read, n });
+          pending.push({ dev: this, qs, res, read, n });
         } else pool.push(qs);
         return finish(fd);
       };
