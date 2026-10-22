@@ -854,7 +854,8 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 | `927638b51` O169 | F10: an assembly's base part's members are BOM lines by cut-list row, its mass in the total; BOM masses by the body's material (they were the default's) | bom-base 2/2, a9 3/3, BOM files, tsc, eslint |
 | `51977af6e` O170 | F8, first error: one Fix builds the sheet again after each round (a section it adds was invisible to the same pass) | drawing-fix-rounds 1/1, drawing files, a9 3/3, tsc, eslint |
 | `a4f3b8e24`, `91e4ccf54` O171 | F8, second error: a frame member's bore gives no levels; the weldment's drawing has no error, A9's four drawings none | weldment-drawing 1/1 (fails without), a9 3/3, drawing and frame files, tsc, eslint |
-| O172 | F8: Fix's Auto-dimension keeps the keyseat's dimension (it had no elements); a snap point is a visible edge's; Fix re-dimensions only after a section. The shaft's DIM_ON_HIDDEN and the cover's hole count are the bought elements in the views: a decision | drawing-fix-elements 2/2 (fails without), a9 3/3, drawing files, tsc, eslint |
+| `86328ec2a` O172 | F8: Fix's Auto-dimension keeps the keyseat's dimension (it had no elements); a snap point is a visible edge's; Fix re-dimensions only after a section. The shaft's DIM_ON_HIDDEN and the cover's hole count are the bought elements in the views: a decision | drawing-fix-elements 2/2 (fails without), a9 3/3, drawing files, tsc, eslint |
+| O173 | F8: every weld has its symbol (a pieced end face is the face's; an edge on visible ink is visible); BALLOON_NO_EDGE on inset caps is right | frame-weld-symbols 3/3 (FRd2's expectation changed), weldment-drawing 1/1, a9 3/3, drawing/weld files, tsc, eslint |
 
 **Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). 
 

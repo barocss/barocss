@@ -8,7 +8,7 @@ import { personFile } from './person-file';
 // O171 (A9's F8): a welded table frame's drawing — A3, four views asked, weld symbols, balloons, the BOM, cut-list and
 // weld-list tables — after Auto-dimension and one Fix has no error. Its members' bores give no levels (their walls are
 // their sections'): at every member end they had given a 3 and a 37, crowding the sheet into TEXT_OVER_LINES and leaving
-// no clean scale; the overall sizes stay.
+// no clean scale; the overall sizes stay. O173: every weld has its symbol.
 import { drawingInputs } from '../src/chat/drawing';
 import { issueContext } from '../src/drawing/issues';
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
@@ -33,4 +33,10 @@ test('O171: the welded table frame\'s drawing — after Auto-dimension and one F
   const dims = issueContext(i).sheet.dimensions.filter((d): d is Extract<typeof d, { ok: true }> => d.ok);
   assert.deepEqual(dims.filter(d => /n\d+\.m\d+\.bore/.test(JSON.stringify(d.dim))).map(d => d.text), []);
   for (const t of ['400', '300', '320']) assert.ok(dims.some(d => d.text === t), `the overall ${t}`);
+  // (O173: every weld has its symbol — a trimmed end face in pieces is the face's, an edge on visible ink is visible —
+  // and the one warning left is the end caps' balloon: an inset plug inside a leg's foot shows no edge, the BOM table
+  // holds it.)
+  const sheet = issueContext(i).sheet;
+  assert.deepEqual([sheet.welds?.unshown, sheet.welds?.placed.length], [[], 20]);
+  assert.deepEqual(fixed.issues.map(x => x.code), ['BALLOON_NO_EDGE']);
 });
