@@ -1403,3 +1403,42 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   encoder to it; what it measures is unchanged.
 - **Checks** (T1): studio eslint on the file, 0 errors (4 `no-console` warnings, as before); `node --check`. Not run:
   `bench:assembly` itself (a browser bench; it needs a heavy-run slot and low load).
+
+## G-R2 — A9-7: a placed part's bearing edited in place, against a linked housing (ported from Codex, 2026-10-23)
+
+- **What**: Codex's A9-7 UI connection, from `codex/a9-7-ui-connection`: `git diff c45c92f85 8789e468d --
+  apps/cad-studio/src` (the original `d46ddbd8` plus its correction `8789e468`), applied unchanged to integration
+  6bfd0ad97. Source only; Codex's evidence files are not ported.
+  - The Outliner lists a selected placed part's bearings. One opens a NodeEditor on that occurrence (`app/bearingEdit.ts`).
+    - The edit session keeps the explicit immediate occurrence as owner: two instances may share one authored child
+      document.
+    - Inherited bearing and fit rows reach the edit and its validation, never the saved child.
+    - Apply validates the edited occurrence in the worker, then commits through the root's undo path only if the root,
+      the selection and the occurrence are still the ones captured.
+  - `useAssembly` reads linked face tables per owner through a host callback with the current root (`bearingFaceInput`),
+    never from a bare child or a flattened document. The bare `faceKey(child)` read was what blanked the screen at d46.
+    A group is published only whole and only for the current source; otherwise no mate, lock, ground or solve runs.
+  - The BOM panel (`bomHasLinkedHousing`) never shows or exports a previous result once the document has a linked
+    housing. An evaluation failure shows its reason. Unlinked documents keep their partial data while loading, as before.
+  - App: the Bearing command builds against the current authored targets. Its preview and Apply are refused once the
+    assembly changed under it.
+- **Tests**: Codex's three tests (in packages/barocss-gpu/tests) moved to the studio, as agreed with the coordinator.
+  - `test/bearing-edit.test.ts`, 7 tests.
+  - `test/bom-linked-ui.test.ts`, 5 tests.
+  - `test/assembly-linked-faces.test.ts`, 5 tests.
+  - The two hook tests bundle BomPanel and useAssembly with recording stand-ins for React and the model calls. They
+    load esbuild from the studio's node_modules at run time.
+  - The fixture row is written into the test document. It is not agent-loaded rows; rule (b) governs those.
+- **Ownership**: BomPanel.tsx is the outer lane's file. The coordinator assigned this change to the GPU lane and told the
+  outer lane to hold off that file.
+- **Checks** (T1):
+  - the three test files, run one at a time: 17/17;
+  - studio `type-check`: 0 errors;
+  - eslint on the 4 source and 3 test files: 0 problems;
+  - `build:library` (cad, gpu): rebuilt for the run.
+- **Not run**:
+  - the full studio suite and a browser flow: they need a slot;
+  - linked-bearing success in the real UI: it needs an admissible person-supplied row/fit file from the owner, and none
+    is faked. Codex's no-row flow at 8789e468 passed in its own run; it is not repeated here.
+- **Branch**: `claude/gpu-lane-2026-10-23`, in this session's own worktree, which is isolated and cannot write
+  great-einstein-3ea69b. It was cut from 6bfd0ad97.
