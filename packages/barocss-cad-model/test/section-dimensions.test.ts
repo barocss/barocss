@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
-import { emptyDoc, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
 import { drawingInputs } from '../src/chat/drawing';
 import { autoLayout } from '../src/drawing/layout';
@@ -161,4 +161,22 @@ test('a section through the shaft, its key and its hub: each body hatched at its
   // (Alone as a 1:1 DXF: a HATCH a body, at the sheet's angles.)
   const alone = writeDxf(sectionDxfDocument(B)).text, aloneAngles = [...alone.matchAll(/\nHATCH\n[\s\S]*?\n 52\n([-\d.]+)\n/g)].map(m => Number(m[1]));
   assert.deepEqual(aloneAngles.sort((a, b) => a - b), hatches.map(h => h.angle).sort((a, b) => a - b));
+});
+
+// ——— Item 4 (after G22's S0): a section's edge names keyed by its body, not by the cut's output index
+test('item 4: an unrelated body before the shaft, suppressed — the outputs shift, B–B\'s dimensions read 6 and 16.5 as before, none lost or re-matched', () => {
+  let doc = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [200, 200], max: [230, 220] } as never), { kind: 'extrude', sketch: 0, height: 5 } as never);
+  doc = cmd('shaft').build!({ ...blank, doc }, cmd('shaft').defaults!(blank));
+  const tube = cmd('tube'); doc = tube.build!({ ...blank, doc }, { ...tube.defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 });
+  doc = run(doc, 'keyway', { face: `n${doc.nodes.length - 1}.hole0.side0` }, { b: 6, t2: 2.8 });
+  doc = run(doc, 'key', { bodies: [2] }, { h: 6 });
+  const i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), { settings } = autoLayout(i);
+  const on = (c: ReturnType<typeof issueContext>) => c.sheet.dimensions.filter(r => r.dim.view === 'section:B').map(r => r.ok ? +r.value.toFixed(6) : NaN).sort((a, b) => a - b);
+  const before = on(issueContext({ ...i, settings }));
+  assert.ok(before.includes(6) && before.includes(16.5), `${before}`);
+  const off: StudioDoc = { ...doc, nodes: doc.nodes.map((n, k) => k === 1 ? { ...n, suppressed: true } : n) };
+  const i2 = inputs(off, settings), ctx2 = issueContext({ ...i2, settings });
+  assert.deepEqual(on(ctx2), before);
+  const ids = new Set(settings.dimensions.filter(d => d.view === 'section:B').map(d => d.id));
+  assert.deepEqual(drawingIssues(ctx2).filter(x => (x.code === 'DIMENSION_LOST' || x.code === 'REMATCHED') && x.dims?.some(d => ids.has(d))).map(x => x.message), []);
 });

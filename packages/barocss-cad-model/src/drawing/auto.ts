@@ -65,7 +65,7 @@ const sameXY = (a: XY, b: XY) => Math.abs(a[0] - b[0]) <= SAME && Math.abs(a[1] 
 // view where both ends are on visible edges, else the first that has them (dashed). One not found is skipped, said.
 interface EndAt { at: XY; ref: DimPoint; visible: boolean; faces: string[] }
 // (O148 X2: in a section, the plane's own cut face — `section<k>.cut…` — is left out: an edge of the seat's floor and the cut is the seat's.)
-const SECTION_CUT = /^section\d+\.cut(\.|$)/;
+const SECTION_CUT = /^section(\d+|_[A-Za-z0-9_-]+)\.cut(\.|$)/;
 const facesOfEdge = (name: string) => name.split('|').map(f => f.replace(/~sil\d*$/, '').replace(/(#\d+)+$/, '')).filter(f => !SECTION_CUT.test(f));
 function endsOf(pr: BrepProjection): EndAt[] {
   const out: EndAt[] = [];
