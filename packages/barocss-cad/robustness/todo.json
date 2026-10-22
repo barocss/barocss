@@ -54,24 +54,6 @@
     "note": "K10 L4 fuzz finding (D188, seed 20261023 case 35), unfixed: a circular pattern (2 copies, 79.507° about z) of one shelled box turned 48.042° about X: the union's face loops cross (strict L0). Its expect is the ray oracle's volume and centroid."
   },
   {
-    "case": "corpus/fuzz/fuzz-20261023-191.json",
-    "stage": "validate",
-    "status": "INVALID",
-    "note": "K10 L4 fuzz finding (D188, seed 20261023 case 191), unfixed: the union of two cylinders at right angles (snapped: r 3 turned 270° about X, r 4 upright): a face's loops cross (strict L0) and the tessellation has 2 open edges. Its expect is the ray oracle's volume and centroid."
-  },
-  {
-    "case": "corpus/fuzz/fuzz-20261023-191.json",
-    "stage": "tessellate",
-    "status": "INVALID",
-    "note": "K10 L4 fuzz finding (D188, seed 20261023 case 191), unfixed: the union of two cylinders at right angles (snapped: r 3 turned 270° about X, r 4 upright): a face's loops cross (strict L0) and the tessellation has 2 open edges. Its expect is the ray oracle's volume and centroid."
-  },
-  {
-    "case": "corpus/fuzz/fuzz-20261023-191.json",
-    "stage": "expect",
-    "status": "WRONG",
-    "note": "K10 L4 fuzz finding (D188, seed 20261023 case 191), unfixed: the union of two cylinders at right angles (snapped: r 3 turned 270° about X, r 4 upright): a face's loops cross (strict L0) and the tessellation has 2 open edges. Its expect is the ray oracle's volume and centroid."
-  },
-  {
     "case": "corpus/fuzz/fuzz-20261023-56.json",
     "stage": "tessellate",
     "status": "INVALID",

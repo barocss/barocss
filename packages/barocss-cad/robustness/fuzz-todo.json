@@ -18,9 +18,5 @@
   {
     "case": "20261023:149",
     "note": "D188: the union of an upright cylinder r 2 and a shelled box 7 × 7 × 6, t 0.5 (snapped: the cylinder through the shell's walls): a face's loops cross (strict L0); replay robustness/corpus/fuzz/fuzz-20261023-149.json"
-  },
-  {
-    "case": "20261023:191",
-    "note": "D188: the union of two cylinders at right angles (snapped: r 3 turned 270° about X, r 4 upright): a face's loops cross (strict L0) and the tessellation has 2 open edges; replay robustness/corpus/fuzz/fuzz-20261023-191.json"
   }
 ]

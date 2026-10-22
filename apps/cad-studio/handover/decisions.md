@@ -11287,3 +11287,36 @@ ones.
 2. The open mesh edges (56, 118): display.
 3. The 61 empty-operand refusals, an over-refusal agents will hit.
 4. The 25 non-manifold refusals, triaged.
+
+## D189 — L4 fuzz 191: a plane tangent to a cylinder's wall cuts nothing (2026-10-23)
+
+**The finding** (`robustness/corpus/fuzz/fuzz-20261023-191`, agent-like). The union of a cylinder r 3 turned 270° about X
+and an upright cylinder r 4 whose top lies on the first one's top ruling (z = 3) was INVALID:
+- the upright one's top face had an inner loop of one line used twice (a slit), so its loops touched (strict);
+- the tessellation had 2 open edges.
+
+**Cause.** In `cutPair`, a plane parallel to a cylinder's axis at the radius (h ≤ tol) still cut along the one tangent
+ruling. That ruling divides neither face: on either side of it the wall lies to one side of the plane.
+
+**Fix (`src/analytic-boolean.ts`).** No cut where the plane only touches the wall, as for a circle where a profile
+only touches a plane (already the rule above it).
+
+**Results:**
+- Case 191 passes every RB stage: valid, watertight, roundtrip. Its volume 164.2981 lies within the oracle's bound of
+  164.2744 ± 0.18.
+- Its todo entries are removed.
+
+**Tried and taken back: the pinched faces of 35 and 149.**
+- What happens: a disc tangent to a face's boundary from inside leaves the face's loop through one vertex twice, or a
+  hole touching the outer loop there. Splitting such loops into faces, and bridging a touching hole into two planar
+  faces, built 149 valid.
+- Why it is taken back: it contradicts the prismatic convention pinned by `prismatic-solid.test.mjs` ("the tangent
+  hole opens into the boundary (one crescent ring)", and its tangent-cap tessellation), and it mistook a seam's
+  revisit for a pinch. 6 tests broke.
+- So this needs a decision first: the strict check refusing a loop through one vertex twice, against that convention.
+  Asked of the coordinator.
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- 121 kernel files plus the fuzz oracle test, in a scratch worktree: 972/973, 1 skipped, 0 failing.
+- RB on `corpus/fuzz`: case 191 OK at every stage.

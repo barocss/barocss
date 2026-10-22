@@ -837,7 +837,11 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
     const n = unit(sub(P.n, scale(C.a, along))), delta = dot(n, sub(C.c, P.o));
     if (Math.abs(delta) > C.r + tol) return;
     const foot = sub(C.c, scale(n, delta)), w = unit(cross(C.a, n)), h = Math.sqrt(Math.max(0, C.r * C.r - delta * delta));
-    for (const sgn of h > tol ? [-1, 1] : [0]) lineCuts(add(foot, scale(w, sgn * h)), C.a);
+    // (A plane tangent to the wall touches it along one ruling: on either side the wall lies to one side of the plane, so
+    // the ruling divides neither face — cut in, it left a slit in the plane, two uses of one line, its loops touching.
+    // L4 fuzz 191, D189. As a circle where a profile only touches a plane, above.)
+    if (h <= tol) return;
+    for (const sgn of [-1, 1]) lineCuts(add(foot, scale(w, sgn * h)), C.a);
     return;
   }
   // Square to the axis to within the tolerance across the cylinder: a cross-section circle.

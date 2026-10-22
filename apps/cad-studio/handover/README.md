@@ -52,6 +52,9 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K9b: the 10 µm and 1 µm grazes (x52, x27) built right — a plane face's edge crossed twice inside one chord, found by bisection | D187 | done (T1+) |
 | K9 stops (coordinator, option a): the 10 nm graze, the lens fold, helical × helical and the 1 nm refusal left open with their analyses | D187 notes | open |
 | K10: RB5 L4 fuzz built and run — 200 cases: 104 OK, 90 typed refusals, 0 WRONG, 6 INVALID findings shrunk into `robustness/corpus/fuzz/` | D188 | done (first run; findings open) |
+| Fuzz 191: a plane tangent to a cylinder's wall cut a slit — no cut now | D189 | done (T1+) |
+| Fuzz 35 / 149: pinched faces (a tangent disc) — strict check against the prismatic crescent convention | — | decision asked |
+| Fuzz 93 (cone ∪ cone loops cross), 56 / 118 (open mesh edges), the 61 empty-operand refusals | — | next |
 | K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
