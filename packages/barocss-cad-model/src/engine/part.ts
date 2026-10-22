@@ -4,10 +4,11 @@
 // `b5_positive` (keyed by the id too); the solids of a STEP file holding several are `n5/k`, `b5_part<k>`.
 import type { BearingRow, ChainRow, ConnectorRow, DriveRow, FitTable, ORingRow } from '@barocss/cad';
 import { getBlob } from './blobs';
+import { CadPartError } from '@barocss/cad';
 import { mirrorCage, sprocketPitchDiameter, timingPitchDiameter } from '@barocss/cad';
 import type { BendTable, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartSection } from '@barocss/cad';
 import { frameGeometry, holeCentres, bevelSpiral, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
-import { featureId, nodeIndexOf, serialOf, withIds } from './ids';
+import { bodyNodeOf, featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { keyClasses } from './fits';
 import type { StudioRingRow } from './rings';
 import { rotationSteps } from '../assembly/mates';
@@ -272,7 +273,81 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
     if (node.suppressed) { pass(i, parent); return; }
     features.push(...featuresOf(node, i));
   });
+  // (FRk2, D166: the person's fillet weld records as the kernel's weld beads, after every node; those it refused left out.)
+  for (const b of beadsOf(doc, gone)) if (!refusedBeads.has(b.key)) features.push(b.feature);
   return { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: doc.parameters, features };
+}
+
+// ——— FRk2 (D166), the outer lane's side: an O118 weld record → the kernel's `weld-bead` feature. A record whose kind is
+// a fillet (set, or unset: a butt's or a face's default) and whose size is set makes a bead of that leg:
+//   - `<member>.<end>` (a butt, an on-face end, a mitre set to fillet): `on: { member: k, end }` on its frame (the body
+//     key's side part<k>, or 'solid' for a frame of one member: k = 0); `inner` as the record says;
+//   - `<gusset>.<member>`: `on: { gusset }` (its frame the gusset's); `<cap>.<member>`: `on: { cap }`.
+// The kernel refuses what it does not model (BEAD_KIND, BEAD_SEAM_NOT_PLANAR, BEAD_ANGLE, BEAD_SIZE): such a bead is
+// left out and the part evaluated again (`withBeadRetry`), its reason kept for the joint (`beadRefusal`) — never a
+// failed evaluation. A record with no kind set on a mitre or a cap (a groove or a corner weld by default) is no bead:
+// the kernel's BEAD_KIND there is kept quiet.
+type WeldRecordLike = { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; inner?: boolean };
+export interface BeadFeature { key: string; joint: string; quiet: boolean; feature: CadPartFeature }
+/**
+ * A joint's bead feature id: `bead_` and, for a member's end, the joint id; for a plate's seam, the plate's key — the
+ * kernel welds all of a gusset's (or a cap's) seams in one bead, so its joints share it.
+ */
+export function beadIdOf(joint: string): string {
+  const plate = /\.(start|end)$/.test(joint) ? joint : joint.slice(0, Math.max(0, joint.indexOf('.'))) || joint;
+  return `bead_${plate.replace(/[^A-Za-z0-9_-]/g, '_')}`.slice(0, 64);
+}
+/** The bead each fillet record with a size makes (`gone`: nodes whose bodies are gone or suppressed). */
+export function beadsOf(doc: StudioDoc, gone: ReadonlySet<number> = new Set()): BeadFeature[] {
+  const out: BeadFeature[] = [], nodes = doc.nodes, records = (doc.frames?.welds ?? []) as readonly WeldRecordLike[];
+  for (const r of records) {
+    if (r.kind === 'butt' || r.sizeMM === undefined) continue;
+    let feature: Record<string, unknown> | null = null, owner = -1, plate = -1;
+    const end = /^(.+)\.(start|end)$/.exec(r.joint);
+    if (end) {
+      const at = bodyNodeOf(nodes, end[1]), k = at?.side === 'solid' ? 0 : Number(/^part(\d+)$/.exec(at?.side ?? '')?.[1] ?? NaN);
+      if (!at || nodes[at.node]?.kind !== 'frame' || !Number.isInteger(k)) continue;
+      owner = at.node;
+      feature = { frame: featureId(nodes, at.node), on: { member: k, end: end[2] }, ...(r.inner ? { inner: true } : {}) };
+    } else {
+      const dot = r.joint.indexOf('.'), at = dot > 0 ? bodyNodeOf(nodes, r.joint.slice(0, dot)) : null, n = at ? nodes[at.node] : undefined;
+      if (!at || (n?.kind !== 'gusset' && n?.kind !== 'end-cap')) continue;
+      plate = at.node; owner = n.frame;
+      feature = { frame: featureId(nodes, n.frame), on: n.kind === 'gusset' ? { gusset: featureId(nodes, at.node) } : { cap: featureId(nodes, at.node) } };
+    }
+    if (owner < 0 || gone.has(owner) || (plate >= 0 && gone.has(plate)) || nodes[owner]?.suppressed) continue;
+    const f = { id: beadIdOf(r.joint), kind: 'weld-bead', ...feature, leg: r.sizeMM } as unknown as CadPartFeature;
+    // (A plate's seams share one bead: its first record's.)
+    if (out.some(x => x.feature.id === f.id)) continue;
+    // (Keyed by what decides the kernel's answer: the bead, the frame (and the plate), the parameters.)
+    const key = JSON.stringify([f, nodes[owner], plate >= 0 ? nodes[plate] : null, doc.parameters, doc.frames?.sections ?? null]);
+    out.push({ key, joint: r.joint, quiet: r.kind === undefined, feature: f });
+  }
+  return out;
+}
+/** Beads the kernel refused, by key: the reason, and whether it is kept quiet (a mitre's or a cap's default). */
+const refusedBeads = new Map<string, string>();
+/** A refusal kept quiet: BEAD_KIND on a record with no kind set — a mitre's groove weld or a cap's corner weld by default. */
+const quietOf = (b: BeadFeature, reason: string) => b.quiet && /\[BEAD_KIND\][^\n]*(is mitred|sits flush)/.test(reason);
+/** A joint's bead refusal in this document (null: none, or none refused). */
+export function beadRefusal(doc: StudioDoc, joint: string): { reason: string; quiet: boolean } | null {
+  const id = beadIdOf(joint);
+  for (const b of beadsOf(withIds(doc))) if (b.feature.id === id) { const reason = refusedBeads.get(b.key); return reason === undefined ? null : { reason, quiet: quietOf(b, reason) }; }
+  return null;
+}
+/**
+ * Runs an evaluation of the part with its beads; a bead the kernel refuses is left out and the part built again, so a
+ * weld the kernel does not model never fails the part (its reason kept for the weld list).
+ */
+export function withBeadRetry<T>(doc: StudioDoc, build: (part: CadPartDocument) => T): T {
+  for (let tries = 0; ; tries++) {
+    const part = toPartDocument(doc);
+    try { return build(part); } catch (cause) {
+      const f = cause instanceof CadPartError ? cause.feature : null, b = f && f.startsWith('bead_') ? beadsOf(withIds(doc)).find(x => x.feature.id === f) : undefined;
+      if (!b || refusedBeads.has(b.key) || tries > 64) throw cause;
+      refusedBeads.set(b.key, String((cause as Error).message).replace(/^[^:]*: /, ''));
+    }
+  }
 }
 
 /** Studio body key of a kernel output id (`nodes`: to tell an imported file's solids from a split's halves). */

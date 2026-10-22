@@ -4,7 +4,7 @@
 // split cuts each body the plane crosses (the far side is kept); a body wholly behind the plane stays whole, one wholly
 // in front goes. The cut faces (planar faces on the plane) come back as rings in view coordinates, to hatch.
 import { evaluateCadPart, faceGeometry, projectBrepHiddenLines, tessellateBrep, type Brep, type BrepProjection, type CadPartFeature } from '@barocss/cad';
-import { toPartDocument } from '../engine/part';
+import { toPartDocument, withBeadRetry } from '../engine/part';
 import type { StudioDoc } from '../engine/doc';
 import { sectionDepth, viewsFor, type Orientation } from './views';
 export { sectionDepth } from './views';
@@ -19,7 +19,8 @@ export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 
   // The depth axis (k) and its sign: the plane is dot(p, d) = y, the far side (kept) dot(p, d) > y.
   const { k, sign } = sectionDepth(view, orientation), axis = (['x', 'y', 'z'] as const)[k], at = sign * y;
   try {
-    const part = toPartDocument(doc), outputs = evaluateCadPart(part).outputs;
+    // (The beads the kernel refused found first, so the cut's part leaves them out too.)
+    const outputs = withBeadRetry(doc, q => evaluateCadPart(q)).outputs, part = toPartDocument(doc);
     const cuts: CadPartFeature[] = [], keep: string[] = [], body: number[] = [];
     outputs.forEach((o, n) => {
       const X = tessellateBrep(o.brep, { segmentsPerQuarter: 4 }).positionsMM;
