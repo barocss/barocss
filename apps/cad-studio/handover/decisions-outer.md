@@ -6969,3 +6969,22 @@ The A9 run (`test/a9-acceptance.test.ts`) is three tests on one state: steps 1�
 **The owner's acceptance** with a real person-supplied row/fit file stays pending: the rows here are the fixture.
 
 **Verified (T1):** a9-acceptance 3/3 (about 185 s), tsc, eslint 0 errors. Not run: the full suites and any browser flow.
+
+## O166 — a hole narrower than the tool is refused by name, CAM_TOOL_TOO_LARGE, never an overcut drill (2026-10-23)
+
+**The rule**, the owner's ("a typed refusal over a wrong result"), relayed by the coordinator:
+- A plunge of the package's tool makes a hole of the tool's diameter. Since O163, a hole wider than the tool is a circular pocket.
+- A hole **narrower** than the tool was still a drill point, and it would come out too big without saying so.
+- camPackage now refuses that operation, not the package:
+  - `refusals: [{ feature, setup, code: 'CAM_TOOL_TOO_LARGE', message: 'Ø5 hole is narrower than the Ø6 tool: a plunge would overcut it' }]`, a new optional field, absent when there is nothing to refuse, so cam-package-v1 readers are unaffected;
+  - the setup that would have drilled it notes "hole1: [CAM_TOOL_TOO_LARGE] …";
+  - the rest of the program is kept.
+- **The preview** (`camPreview`) still lists the hole's drill point, as its access list. The package is what refuses.
+
+**Test** (cam-package, "O166"):
+- a Ø5 and a Ø6 blind hole with the Ø6 tool: the Ø5 is refused by its code and message, in +Z with its note, and the Ø6 is still drilled; the linking rule holds;
+- with a Ø5 tool there is no `refusals` key at all (the Ø5 is drilled, the Ø6 a pocket).
+
+No studio expectation relied on an overcut drill: cnc-cam tests the preview.
+
+**Verified (T1):** model cam-package 6/6, chat-outputs 7/7, a9-acceptance 3/3; studio cnc-cam 5/5, cnc-preview 8/8, made-bodies-previews 2/2; tsc of model and studio; eslint 0 errors.
