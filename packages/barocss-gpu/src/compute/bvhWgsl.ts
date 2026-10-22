@@ -10,7 +10,8 @@ struct Node { lo: vec3<f32>, link: i32, hi: vec3<f32>, count: i32 };
 struct Tri { a: vec3<f32>, id: u32, b: vec3<f32>, p0: u32, c: vec3<f32>, p1: u32 };
 @group(0) @binding(0) var<storage, read> nodes: array<Node>;
 @group(0) @binding(1) var<storage, read> tris: array<Tri>;
-const INF: f32 = 3.4028235e38;
+// (No hit: 1e38, below f32's largest — a literal over it does not compile — and read back as Infinity.)
+const INF: f32 = 1e38;
 const DET_TOL: f32 = 1e-14;
 
 fn rayHit(o: vec3<f32>, d: vec3<f32>, minT: f32, skip: u32) -> f32 {

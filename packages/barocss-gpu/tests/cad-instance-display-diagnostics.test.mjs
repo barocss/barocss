@@ -102,11 +102,13 @@ test('isolation snapshots only selected visible placed instances and survives la
   assert.equal(snapshotInstanceIsolation(['hidden', 'unevaluated', 'empty'], placed), undefined);
 });
 
-test('isolation stays session-only with one Views toggle, empty-selection restore and document replacement reset', async () => {
+test('isolation stays session-only with one Display toggle, empty-selection restore and document replacement reset', async () => {
   const app = await readFile(resolve(root, 'apps/cad-studio/src/App.tsx'), 'utf8');
   assert.match(app, /const \[isolatedInstances, setIsolatedInstances\] = useState<readonly string\[\] \| undefined>\(\)/);
   assert.match(app, /const isolationSelection = snapshotInstanceIsolation\(instanceSel, instancesPlaced\)/);
-  const views = app.slice(app.indexOf('aria-label="Views"'), app.indexOf('{displayModeNotice && <span'));
+  // (G-R13: the toggle lives in the Display popover's card, beside the display mode, the notice closing it.)
+  const views = app.slice(app.indexOf('aria-label="Display"'), app.indexOf('{displayModeNotice && <span'));
+  assert.ok(views.length > 0 && !app.slice(app.indexOf('aria-label="Views"')).includes("'Isolate selection'"), 'one toggle, in the Display card only');
   assert.equal((views.match(/aria-label=\{isolatedInstances \? 'Restore view' : 'Isolate selection'\}/g) ?? []).length, 1);
   assert.match(views, /disabled=\{!isolatedInstances && !!isolationReason\}/, 'restore remains enabled without selected visible instances or in an unsupported scope');
   assert.match(views, /setIsolatedInstances\(current => current \? undefined : isolationSelection\)/);

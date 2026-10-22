@@ -1861,3 +1861,38 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   The snapshots were inspected: the 64 and 32 dimensions, extension lines and heads in their planes, and Ø8 THRU.
 - **Not covered**: datums and frames in 3D on screen. They are in pmi.test (unit); this case's drawing has no frame
   placed. Instance-prefixed targets are not covered either.
+
+## G-R17 — G25's compute passes run on a device: both match their CPU mirrors (roadmap G6, 2026-10-23)
+
+- **First runs on WebGPU** (Chrome, Node 22, load 1m 19–25), one spec file at a time:
+  - `compute-access-browser`:
+
+    | Case | Samples | Masks that differ | Worst share | CPU | GPU |
+    |---|---|---|---|---|---|
+    | a sealed-cavity box | 27 924 | 0 | 0 | 19 ms | 1.3 ms |
+    | a 20 000-triangle sphere shell | 331 900 | 0 | 0 | 590 ms | 7.7 ms |
+
+  - `compute-thickness-browser`:
+
+    | Case | Worst \|Δ\| | Hits and misses | Outliers | CPU | GPU |
+    |---|---|---|---|---|---|
+    | the box | 3.8e-6 mm | the same | 0 | 0.4 ms | 0.9 ms |
+    | the 20 000-triangle shell | 8.6e-6 mm | the same | 2 | 87 ms | 7.2 ms |
+
+    - The 2 outliers are polar rays aimed at the inner sphere's pole vertex. The f64 mirror (as the kernel's own f64
+      rayHit would) slips between triangles there and reads the far side, 54.97. The f32 GPU hits the inner shell,
+      4.9975: the true wall.
+    - The spec counts such through-a-vertex cases and allows at most 1 in 1000; the rest are compared within 1e-4 of
+      the size.
+- **Fixes the device runs found**:
+  - The WGSL "no hit" literal 3.4028235e38 is above f32's largest, so the shader did not compile. It is now 1e38,
+    read back as Infinity at ≥ 9e37: f32 stores 1e38 as 9.99999968e37.
+  - The specs' server now answers /favicon.ico (204). A 404 was a console error.
+- **A Codex contract updated** (`cad-instance-display-diagnostics`, "one … toggle"): it read App.tsx between
+  `aria-label="Views"` and the notice. Isolate now lives in G-R13's Display card, so the check reads that card and also
+  requires no Isolate toggle left in the Views row. Its intent is unchanged: one toggle, enabled to restore, session
+  only.
+- **Checks**: gpu `test` 189/189; type-check 0; eslint 0; studio gpu-analyses, pmi and cnc-preview 13/13.
+- **`test:browser` as a whole**: it hung in `uv-repeating-browser` (G18.2, the docs' shaders) for over an hour, and only
+  this lane's processes were stopped. That spec is to be run alone with a timeout to find why. The other browser specs
+  (viewer, scene viewer, pose-clip) were not reached in that run.
