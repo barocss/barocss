@@ -432,6 +432,41 @@ test('G20 cut-outs: a quarter and an octant cut from a cube, the notch\'s caps a
   } finally { await s.close(); }
 });
 
+// G20.2: the caps' probe gave a back face a fixed lead in depth (4e-7) to win a tie; far from the eye in the reversed
+// depth that is more than the gap between a front face and the back face just behind it near an edge, so the back face
+// won there and a cap leaked over the front face along the part's far edges (the studio's cut-out flow: a band a pixel or
+// two wide). Now its lead is a share of the depth. The studio's view of a 40 × 20 × 10 plate under a cut-out with a
+// shadow catcher widening the depth range: every cap pixel a cap in the CPU's ray, but for pixels on an edge.
+test('G20.2 no cap leaks over a front face\'s far edges: a cut-out plate seen from near, its cap pixels the CPU\'s caps', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box } = window, canvas = document.getElementById('c');
+      canvas.style.width = '800px'; canvas.style.height = '400px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: true, background: '#000000', camera: { position: [61.44, -55.3, 61.19], target: [20, 10, 5], up: [0, 0, 1], projection: 'perspective', fovY: 32 }, lights: [{ kind: 'directional', direction: [0.3, 0.4, -1], castShadow: true }] });
+      const g = box(40, 20, 10).surface; g.positions = g.positions.map((v, i) => v + [20, 10, 5][i % 3]);
+      viewer.add(g, { name: 'plate', material: { color: '#404040', unlit: true }, cap: true });
+      viewer.add({ positions: [-60, -60, -0.02, 100, -60, -0.02, 100, 80, -0.02, -60, 80, -0.02], normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], indices: [0, 1, 2, 0, 2, 3] }, { material: { shadowOnly: true, opacity: 0.55 }, pickable: false, castShadow: false, clipped: false });
+      viewer.clipCutout = true;
+      viewer.clipPlanes = [{ normal: [-1, 0, 0], offset: -20, cap: '#ff00ff' }, { normal: [0, 1, 0], offset: 10 }];
+      const img = await viewer.capture();
+      let caps = 0, leaks = 0;
+      for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width; x++) {
+        const i = (y * img.width + x) * 4;
+        if (!(img.data[i] > 150 && img.data[i + 2] > 150 && img.data[i + 1] < 80)) continue;
+        caps++; const h = viewer.raycast(x + 0.5, y + 0.5); if (!(h && h.cap)) leaks++;
+      }
+      viewer.dispose();
+      return { caps, leaks };
+    });
+    t.diagnostic(JSON.stringify(r));
+    // (Before: 660 of 11 660.)
+    assert.ok(r.caps > 8000, `${r.caps} cap pixels`);
+    assert.ok(r.leaks <= 10, `${r.leaks} cap pixels where the CPU's ray meets no cap (pixel-edge rounding allowed 10)`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
 // G2b: a mesh's own cap colour, times its material colour; none: the plane's.
 test('G2b each mesh\'s cap in its own colour times its material colour; without one, the plane\'s', { timeout: 120000 }, async t => {
   const s = await open(t); if (!s) return;
