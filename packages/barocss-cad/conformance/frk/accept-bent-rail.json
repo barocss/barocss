@@ -1,0 +1,86 @@
+{
+  "id": "frk-accept-bent-rail",
+  "step": "FRk",
+  "decisions": [
+    "D183"
+  ],
+  "about": "FRk9 acceptance: the bent-tube handrail the agent builds (test/fixtures/frk-bent-rail.calls.json, cad-model): a Ø42.4 × 2.6 tube (test values), 1200 along X, a 90° tangent bend on R 150, 800 along Y.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n0",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              900
+            ],
+            [
+              1200,
+              0,
+              900
+            ],
+            [
+              1200,
+              800,
+              900
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "bends": [
+            {
+              "point": 1,
+              "radius": 150
+            }
+          ],
+          "section": {
+            "kind": "round-tube",
+            "diameter": 42.4,
+            "wall": 2.6
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 629254.4130057563,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            827.305838594249,
+            166.04197044813404,
+            900
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "Closed form: A(L₁ + L₂ − 2R) + A·πR/2 by Pappus, A = π(21.2² − 18.6²). Centroid and topology by this kernel."
+}

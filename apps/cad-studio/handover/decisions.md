@@ -10964,3 +10964,70 @@ stencils) are now plain loops. The stencils are module constants (`FIVE_POINT_*`
 order are the same: notch tests 12/12, notch and saddle cases 9/9.
 
 **Checks (T1):** lint 0 errors, type-check clean, build.
+
+## D183 — K6 (FRk9): the FRk track's acceptance by the agent (2026-10-23)
+
+As D164 froze it: in one turn each, a welded table frame with gussets at its corners, caps on its legs and beads on
+every butt; a portal of tapered I beams; a bent-tube handrail. FR4b's pattern (D128):
+- the scripted agent's v2 calls are in `packages/barocss-cad-model/test/fixtures/frk-*.calls.json`, sent through
+  `dispatchTool` as the chat sends them;
+- the test is `packages/barocss-cad-model/test/frk-acceptance.test.ts`, 3 tests. These are new files, the coordinator
+  agreed; no outer-lane file was changed;
+- the kernel cases `conformance/frk/accept-*.json` are written by the test (`WRITE_ACCEPTANCE=1`) and checked to hold
+  the part the agent built.
+
+Every volume is a closed form of the dimensions, none read from the build. Centroids and topology in the kernel cases
+are this kernel's (regression values, as in D128).
+
+**1. The weldment table (`frk-weldment-table`).** FR4b's welded table: a mitred 1000 × 600 top of sharp 40 × 40 × 3
+tubes, legs 730, lower rails 150 up butted on the legs. Then, with test sizes:
+- `features.command gusset`: a clipped gusset at each top corner (120 × 100, clip 15, 5 thick), 4 in all.
+- `features.command end-cap`: a 4 mm cap over each leg's foot, 4 in all.
+- `query.welds`, then `features.welds`: a 3 mm fillet on each of the 8 butt joints, with
+  `beadOwnership {version 1, equal-length}`.
+  - The first try without the ownership was refused, every bead with `[BEAD_SHARED_CONTEXT]`: two rails butt one leg
+    at one height. The ownership is the documented v2 path (D170/D171), so the agent gives it. No workaround.
+
+Oracles (A = 40² − 34²):
+
+| Item | Closed form | Value |
+|---|---|---|
+| Members | A·L, FR4b's lengths | |
+| A gusset | (120·100 − 15²)/2·5 | 29 437.5 |
+| A cap | 40²·4 | 6400 |
+| A bead, nominal | 3·40·z²/2, z = 3 | 540 |
+| A bead, owned | 2·40·z²/2 + ½·40·z²/2 | 450 |
+| All beads, owned | 4 legs × 5 fillets × 40·z²/2 | 3600 |
+
+- Why a bead is so: the rail's outer side is flush with the leg's (no fillet, flushMM 40). Its top and bottom runs
+  lie on the leg. Its inner side lies on the other rail's side face, coplanar with the leg's. That corner fillet is
+  the one the two beads share, owned by halves. Its outline's corners land on nothing.
+- The weld list's totals: complete, 8 bodies, 4 shared seams.
+- The cut list: FR4b's 5 rows, 12 pieces, 9160 mm.
+
+**2. The tapered-I portal (`frk-tapered-portal`).** Posts 2000 and a 3000 beam, butt corners.
+- The section is a TEST VALUE given in the call, not rows or a catalogue: D172's first case (I 200 × 90, web 7, flange
+  11 at the overhang's middle, root 9, toe 4.5, slope 0.14).
+- A_I = 3263.398247 by FRk3's kernel-independent triangle/sector oracle (`test/frk3-oracle.mjs`, now typed by
+  `frk3-oracle.d.mts`).
+- The butt rule's lengths:
+  - the first post runs through by half the beam's depth: 2100;
+  - the beam stands on its flange face and runs through the second post: 3000;
+  - the second post sits under it: 1900.
+- The cut list's rows give the same lengths and ends.
+
+**3. The bent-tube handrail (`frk-bent-rail`).** `features.command frame-member`, path tangentbend: Ø42.4 × 2.6 (test
+values), 1200 along X, 90° on R 150, 800 along Y.
+- V = A(L₁ + L₂ − 2R) + A·πR/2 (Pappus: the annulus's centroid on the centreline), with A = π(21.2² − 18.6²).
+- The cut list: one piece of 1935.619449 mm.
+
+**Checks (T1):**
+- `frk-acceptance` 3/3, in check mode and writing.
+- The three kernel cases through `conformance.test.mjs`: 3/3.
+- cad-model type-check (covers test/) and eslint on the new test file clean; barocss-cad lint 0 errors.
+- No product code changed; the v2 tool surface is unchanged.
+
+**The FRk track is done** with this stage, except K5 (FRk8b's second half, which D178 made unnecessary for speed)
+and the open items:
+- K2's flow and WebGPU, the GPU lane's;
+- the `r6/facet-cube-sphere-intersect` ȳ pin (D179).

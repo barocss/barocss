@@ -1,0 +1,71 @@
+{
+ "about": "FRk9 acceptance (D183): a portal of tapered I beams by the agent in one turn — two posts 2000 high and a 3000 beam on them, butted at the corners; the I section's dimensions are TEST VALUES given in the call (height 200, width 90, web 7, flange 11 at the overhang's middle, root 9, toe 4.5, slope 0.14 — D172's first case), not a catalogue's and not rows.",
+ "calls": [
+  {
+   "tool": "features",
+   "args": {
+    "action": "add",
+    "features": [
+     {
+      "kind": "frame",
+      "points": [
+       [
+        0,
+        0,
+        0
+       ],
+       [
+        0,
+        0,
+        2000
+       ],
+       [
+        3000,
+        0,
+        2000
+       ],
+       [
+        3000,
+        0,
+        0
+       ]
+      ],
+      "segments": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        3
+       ]
+      ],
+      "section": {
+       "kind": "i-beam",
+       "height": 200,
+       "width": 90,
+       "web": 7,
+       "flange": 11,
+       "rootRadius": 9,
+       "toeRadius": 4.5,
+       "flangeSlope": 0.14
+      },
+      "corners": {
+       "default": "butt"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "tool": "query",
+   "args": {
+    "action": "cutlist"
+   }
+  }
+ ]
+}
