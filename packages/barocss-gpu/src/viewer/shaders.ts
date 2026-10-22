@@ -8,7 +8,7 @@ export const MAX_DIRECTIONAL = 4, MAX_POINT = 8, MAX_SPOT = 4;
 /** Clip planes at most (G19: a box section's six). */
 export const MAX_CLIP_PLANES = 6;
 export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16;
-export const OBJECT_BYTES = 192, OBJECT_STRIDE = 256;
+export const OBJECT_BYTES = 208, OBJECT_STRIDE = 256;
 
 const common = /* wgsl */ `
 struct DirLight { direction: vec4f, color: vec4f }
@@ -49,6 +49,9 @@ struct Object {
   pick: vec4u,
   // Its cap's colour (linear; w 1 when set, else the frame's), times its material colour (G2b).
   cap: vec4f,
+  // Its cap's hatch (G19.3): the lines' angle (cos, sin) in the cap plane's axes (hatchAcross), their spacing in world
+  // units; w 1 when on.
+  hatch: vec4f,
 }
 @group(0) @binding(0) var<uniform> frame: Frame;
 @group(0) @binding(1) var shadowMap: texture_depth_2d;
@@ -292,15 +295,41 @@ fn shade(world: vec3f, n: vec3f, base: vec3f, metallicIn: f32, roughIn: f32, emi
 // The clip plane's cap (G2): a kept back face seen through the cut, drawn where the eye's ray crosses the plane, in the
 // cap colour, lit as a face on the plane facing the cut-away side (the mesh's metal and roughness; flat when unlit).
 struct CapOut { @location(0) color: vec4f, @builtin(frag_depth) depth: f32 }
+/**
+ * The direction across a cap's hatch lines (G19.3) on a plane of normal n0, its lines at (c, s) = (cos, sin) of their
+ * angle from the plane's u axis toward its v: the normal turned so its largest component is positive (a plane and its
+ * flip hatch alike); u the next world axis after that component's (x → y → z → x) into the plane, v = n × u. (As
+ * capHatchAxes in geometry.ts.)
+ */
+fn hatchAcross(n0: vec3f, c: f32, s: f32) -> vec3f {
+  let m = abs(n0);
+  var k = 2u;
+  if (m.x >= m.y && m.x >= m.z) { k = 0u; } else if (m.y >= m.z) { k = 1u; }
+  let n = select(n0, -n0, n0[k] < 0.0);
+  var a = vec3f(0.0); a[(k + 1u) % 3u] = 1.0;
+  let u = normalize(a - n * dot(n, a));
+  let v = cross(n, u);
+  return c * v - s * u;
+}
 @fragment fn fsCap(in: VOut) -> CapOut {
-  if (!capFirst(in.clip)) { discard; }
   let q = capPoint(in.world);
+  // (The hatch's coordinate and its change per pixel — across the lines, so a line is 1 pixel wide at any angle —
+  // before any fragment is discarded.)
+  let across = hatchAcross(frame.clips[u32(max(q.w - 0.5, 0.0))].xyz, object.hatch.x, object.hatch.y);
+  let h = dot(q.xyz, across) / max(object.hatch.z, 1e-12);
+  let hw = length(vec2f(dpdx(h), dpdy(h)));
+  if (!capFirst(in.clip)) { discard; }
   let z = capDepth(q);
   if (z < 0.0) { discard; }
   let n = -normalize(capPlane(q).xyz);
   let base = select(frame.clipColor.rgb, object.cap.rgb * object.color.rgb, object.cap.w > 0.5);
   var c = base;
   if (object.params.w < 0.5) { c = shade(q.xyz, n, base, object.params.x, object.params.y, 0.0, (object.pick.z & 1u) == 1u); }
+  // (Lines 1 CSS pixel wide, antialiased: the cap's colour × 0.45 on them.)
+  if (object.hatch.w > 0.5) {
+    let d = abs(fract(h + 0.5) - 0.5) / max(hw, 1e-12);
+    c = c * (1.0 - 0.55 * clamp(0.5 * frame.viewport.z + 0.5 - d, 0.0, 1.0));
+  }
   var o: CapOut;
   o.color = vec4f(c, 1.0);
   o.depth = z;

@@ -102,6 +102,8 @@ export interface AddMeshOptions {
   clipped?: boolean;
   /** Its cap's colour (sRGB, times the material colour); default the clip plane's. */
   capColor?: Color | null;
+  /** Hatch lines on its cap (G19.3; Mesh.capHatch); default none. */
+  capHatch?: CapHatch | null;
   /** Counted in the scene's bounds — what fit() frames and the shadow and ground are sized to (default true; false for overlays, G7). */
   bounded?: boolean;
   /**
@@ -238,6 +240,7 @@ export class Mesh {
   /** Filled where the clip plane cuts it (a closed solid; AddMeshOptions.cap). */
   cap: boolean;
   private _capColor: Vec3 | null = null;
+  private _capHatch: CapHatch | null = null;
   private _colorMap: (ColorMap & { packed: { ramp: Uint8Array; params: Float32Array } }) | null = null;
   /** @internal A colour map's bind group (its ramp and parameters), for the device and map it was made for. */
   mapState: { device: Device; map: object; texture: Texture; params: Buffer; group: BindGroup } | null = null;
@@ -261,6 +264,7 @@ export class Mesh {
     this._clipped = options.clipped ?? true;
     this.cap = options.cap ?? false;
     if (options.capColor) this._capColor = parseColor(options.capColor);
+    if (options.capHatch) this._capHatch = hatchOf(options.capHatch);
     this.name = options.name;
     if (options.transform) this.transform = options.transform;
     if (options.instances) this.setInstances(options.instances);
@@ -313,6 +317,17 @@ export class Mesh {
     this._capColor = next; this.touch();
   }
   /**
+   * Hatch lines on its cap (G19.3), or null: lines 1 CSS pixel wide in its cap's colour × 0.45, `spacing` world units
+   * apart, at `angle` degrees in the cap plane from its u axis toward its v (capHatchAxes) — fixed in the world, so a
+   * part's cap keeps its hatch as the camera moves and parts at different angles read apart.
+   */
+  get capHatch(): CapHatch | null { return this._capHatch; }
+  set capHatch(h: CapHatch | null) {
+    const next = h ? hatchOf(h) : null, had = this._capHatch;
+    if (next === had || (next && had && next.angle === had.angle && next.spacing === had.spacing)) return;
+    this._capHatch = next; this.touch();
+  }
+  /**
    * A colour map of its geometry's scalar field (G6; Geometry.setScalars) in place of its material's colour, lit as the
    * surface (flat when unlit), or null for the material again. Without a field the material shows.
    */
@@ -355,7 +370,15 @@ export class Mesh {
     // (A point's border colour where a surface's cap colour goes.)
     const capOrBorder = this.geometry.topology === 'points' ? m.pointBorder?.color ?? null : this._capColor;
     if (capOrBorder) { const c = linear(capOrBorder); f[o + 44] = c[0]; f[o + 45] = c[1]; f[o + 46] = c[2]; f[o + 47] = 1; } else f.fill(0, o + 44, o + 48);
+    const h = this._capHatch;
+    if (h) { const a = (h.angle * Math.PI) / 180; f[o + 48] = Math.cos(a); f[o + 49] = Math.sin(a); f[o + 50] = h.spacing; f[o + 51] = 1; } else f.fill(0, o + 48, o + 52);
   }
+}
+
+/** Hatch lines on a cap (G19.3): `angle` in degrees in the cap plane (capHatchAxes), `spacing` in world units (> 0). */
+export interface CapHatch { angle: number; spacing: number }
+function hatchOf(h: CapHatch): CapHatch | null {
+  return Number.isFinite(h.angle) && Number.isFinite(h.spacing) && h.spacing > 0 ? { angle: h.angle, spacing: h.spacing } : null;
 }
 
 function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash' | 'pointBorder'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null; pointBorder: { width: number; color: Vec3 } | null } {

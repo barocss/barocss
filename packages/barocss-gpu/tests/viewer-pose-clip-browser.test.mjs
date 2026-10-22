@@ -324,6 +324,37 @@ test('G19 several clip planes: a box section inside a solid capped on the kept c
   } finally { await s.close(); }
 });
 
+// G19's known limit, pinned (so a fix shows as a changed expectation): a solid wholly inside another and wholly kept. Past
+// the plane the first surface after the ray's entry is the inner solid's front face — not a back face — so the outer one's
+// cap is missing over the inner one's outline: its front face shows through the hole, on the GPU and in the CPU's ray; the
+// outer cap is drawn round it. (In a valid part or assembly that is an overlap, which an interference check flags.)
+test('G19 the known limit: a solid wholly inside another, wholly kept, shows through the outer one\'s cap (pinned)', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box, screen, pixel } = window, canvas = document.getElementById('c');
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [0, -30, 0], target: [0, 0, 0], up: [0, 0, 1], projection: 'orthographic' }, lights: [] });
+      viewer.add(box(10, 10, 10).surface, { name: 'outer', material: { color: '#ffffff', unlit: true }, cap: true, capColor: '#ff00ff' });
+      viewer.add(box(2, 2, 2).surface, { name: 'inner', material: { color: '#00ff00', unlit: true }, cap: true, capColor: '#0000ff', transform: api.translation([0, 2, 0]) });
+      viewer.camera.fit({ min: [-6, -6, -6], max: [6, 6, 6] }, viewer.aspect);
+      // (Kept y ≥ 0: the inner box, y 1 … 3, wholly kept.)
+      viewer.clipPlane = { normal: [0, 1, 0], offset: 0 };
+      const img = await viewer.capture(), at = p => screen(viewer, p);
+      const [cx, cy] = at([0, 0, 0]), [ox, oy] = at([3, 0, 3]);
+      const c = viewer.raycast(cx, cy), g = await viewer.pick(cx, cy), o = viewer.raycast(ox, oy);
+      const out = { centre: pixel(img, [cx, cy]).slice(0, 3), outside: pixel(img, [ox, oy]).slice(0, 3), cpu: c && { name: c.mesh.name, cap: !!c.cap }, gpu: g && { name: g.mesh.name, cap: !!g.cap }, beside: o && { name: o.mesh.name, cap: !!o.cap } };
+      viewer.dispose();
+      return out;
+    });
+    t.diagnostic(JSON.stringify(r));
+    // The limit: over the inner box its green front face, no cap (the outer's magenta cap would be right).
+    assert.deepEqual(r.centre, [0, 255, 0]); assert.deepEqual(r.cpu, { name: 'inner', cap: false }); assert.deepEqual(r.gpu, { name: 'inner', cap: false });
+    // Beside it the outer one's cap.
+    assert.deepEqual(r.outside, [255, 0, 255]); assert.deepEqual(r.beside, { name: 'outer', cap: true });
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
 // G2b: a mesh's own cap colour, times its material colour; none: the plane's.
 test('G2b each mesh\'s cap in its own colour times its material colour; without one, the plane\'s', { timeout: 120000 }, async t => {
   const s = await open(t); if (!s) return;
@@ -346,6 +377,96 @@ test('G2b each mesh\'s cap in its own colour times its material colour; without 
     t.diagnostic(JSON.stringify(r));
     assert.deepEqual(r.own, [0, 255, 0]); assert.deepEqual(r.timesMaterial, [255, 0, 0]); assert.deepEqual(r.plane, [0, 0, 255]);
     assert.deepEqual(r.changed, [255, 0, 255]); assert.deepEqual(r.back, [0, 0, 255]);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
+// G19.3: hatch lines on caps, fixed in the world. Two boxes cut by a plane, each cap hatched at its own angle; the lines'
+// darkening read back per pixel (α: how much of the cap colour × 0.45 a pixel is): its mean over a cap is 1 pixel over
+// the spacing in pixels (a line 1 pixel wide), and of the angles every 5°, the lines of the mesh's own angle and spacing
+// through the world's origin lie where α is (its own phase, the axes capHatchAxes gives); the same after the camera moves;
+// an oblique plane the same; off, no lines.
+test('G19.3 hatch on caps: a line a pixel wide over the spacing, at each mesh\'s angle in capHatchAxes\'s axes, fixed in the world as the camera moves; an oblique plane; off', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box } = window, canvas = document.getElementById('c');
+      canvas.style.width = '800px'; canvas.style.height = '400px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [0, -30, 0], target: [0, 0, 0], up: [0, 0, 1], projection: 'orthographic' }, lights: [] });
+      const white = { color: '#ffffff', unlit: true };
+      const a = viewer.add(box(6, 6, 6).surface, { name: 'a', material: white, cap: true, capColor: '#ffffff', capHatch: { angle: 45, spacing: 0.4 }, transform: api.translation([-4, 0, 0]) });
+      const b = viewer.add(box(6, 6, 6).surface, { name: 'b', material: white, cap: true, capColor: '#ffffff', capHatch: { angle: 120, spacing: 0.6 }, transform: api.translation([4, 0, 0]) });
+      viewer.camera.fit({ min: [-8, -4, -4], max: [8, 4, 4] }, viewer.aspect);
+      const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+      // Per pixel of the capture: its ray onto the plane, the point, and α; the pixels on a mesh's cap (from the pick).
+      const read = async (plane, meshes) => {
+        const img = await viewer.capture(), W = img.width, H = img.height, rows = Object.fromEntries(meshes.map(m => [m.name, []]));
+        for (let y = 2; y < H - 2; y++) for (let x = 2; x < W - 2; x++) {
+          const i = (y * W + x) * 4, g = img.data[i + 1];
+          if (img.data[i] !== g || img.data[i + 2] !== g || g === 0) continue;
+          const ray = viewer.camera.ray(((x + 0.5) / W) * 2 - 1, 1 - ((y + 0.5) / H) * 2, viewer.aspect);
+          const den = ray.direction.reduce((s, d, k) => s + d * plane.normal[k], 0), tt = (plane.offset - ray.origin.reduce((s, o, k) => s + o * plane.normal[k], 0)) / den;
+          const p = ray.origin.map((o, k) => o + ray.direction[k] * tt);
+          // (Inside a cap less a pixel's margin round its edge: which box by x along the boxes' row.)
+          const m = meshes.find(m => m.inside(p));
+          if (m) rows[m.name].push([p, (1 - lin(g)) / 0.55]);
+        }
+        return { rows, unit: H / (2 * viewer.camera.halfHeight) };
+      };
+      // The angle (of 0, 5, … 175°) whose lines, `spacing` apart through the origin in the plane's axes, lie where α is:
+      // the mean α of the pixels within 0.3 pixel of one.
+      const best = (rows, plane, spacing, unit) => {
+        const near = 0.3 / (spacing * unit);
+        const { u, v } = api.capHatchAxes(plane.normal);
+        let top = null;
+        for (let deg = 0; deg < 180; deg += 5) {
+          const c = Math.cos(deg * Math.PI / 180), s = Math.sin(deg * Math.PI / 180), across = u.map((uk, k) => c * v[k] - s * uk);
+          let on = 0, n = 0;
+          for (const [p, al] of rows) { const h = p.reduce((q, x, k) => q + x * across[k], 0) / spacing, d = Math.abs(h - Math.round(h)); if (d < near) { on += al; n++; } }
+          const score = n ? on / n : 0;
+          if (!top || score > top.score) top = { deg, score };
+        }
+        return top;
+      };
+      const mean = rows => rows.reduce((q, [, al]) => q + al, 0) / rows.length;
+      const y0 = { normal: [0, 1, 0], offset: 0 };
+      viewer.clipPlane = { ...y0, cap: '#ffffff' };
+      const inA = { name: 'a', inside: p => Math.abs(p[0] + 4) < 2.8 && Math.abs(p[2]) < 2.8 }, inB = { name: 'b', inside: p => Math.abs(p[0] - 4) < 2.8 && Math.abs(p[2]) < 2.8 };
+      const out = {};
+      const one = (R, name, plane, spacing) => ({ n: R.rows[name].length, mean: mean(R.rows[name]), want: 1 / (spacing * R.unit), best: best(R.rows[name], plane, spacing, R.unit) });
+      let R = await read(y0, [inA, inB]);
+      out.first = { a: one(R, 'a', y0, 0.4), b: one(R, 'b', y0, 0.6) };
+      // Moved: panned and zoomed — the lines where they were in the world.
+      Object.assign(viewer.camera, { position: [1.3, -30, 0.7], target: [1.3, 0, 0.7] });
+      viewer.camera.fit({ min: [-7, -3, -3], max: [9, 3, 3] }, viewer.aspect);
+      R = await read(y0, [inA, inB]);
+      out.moved = { a: one(R, 'a', y0, 0.4), b: one(R, 'b', y0, 0.6) };
+      // An oblique plane through both, seen along its normal.
+      const nq = [0.3, 0.9, -0.3], l = Math.hypot(...nq), ob = { normal: nq.map(x => x / l), offset: 0.2 };
+      viewer.clipPlane = { ...ob, cap: '#ffffff' };
+      Object.assign(viewer.camera, { position: ob.normal.map((x, k) => -30 * x), target: [0, 0, 0], up: [0, 0, 1] });
+      viewer.camera.fit({ min: [-8, -4, -4], max: [8, 4, 4] }, viewer.aspect);
+      const inside = c => p => Math.abs(p[0] - c) < 2.6 && Math.abs(p[1]) < 2.6 && Math.abs(p[2]) < 2.6;
+      R = await read(ob, [{ name: 'a', inside: inside(-4) }, { name: 'b', inside: inside(4) }]);
+      out.oblique = { a: one(R, 'a', ob, 0.4), b: one(R, 'b', ob, 0.6) };
+      // Off: the cap plain.
+      a.capHatch = null; b.capHatch = null;
+      R = await read(ob, [{ name: 'a', inside: inside(-4) }, { name: 'b', inside: inside(4) }]);
+      out.off = { a: mean(R.rows.a), b: mean(R.rows.b), n: R.rows.a.length };
+      out.hatch = [a.capHatch, b.capHatch];
+      viewer.dispose();
+      return out;
+    });
+    t.diagnostic(JSON.stringify(r));
+    for (const k of ['first', 'moved', 'oblique']) for (const [m, deg] of [['a', 45], ['b', 120]]) {
+      const x = r[k][m];
+      assert.ok(x.n > 2000, `${k} ${m}: ${x.n} cap pixels`);
+      assert.ok(Math.abs(x.mean - x.want) < 0.15 * x.want, `${k} ${m}: mean darkening ${x.mean.toFixed(4)} against a pixel over the spacing ${x.want.toFixed(4)}`);
+      assert.equal(x.best.deg, deg, `${k} ${m}: the lines at ${x.best.deg}° (score ${x.best.score.toFixed(3)}), set at ${deg}°`);
+      assert.ok(x.best.score > 0.6, `${k} ${m}: on the lines darkened ${x.best.score.toFixed(3)}`);
+    }
+    assert.ok(r.off.n > 2000 && r.off.a < 0.01 && r.off.b < 0.01, `off: ${JSON.stringify(r.off)}`);
+    assert.deepEqual(r.hatch, [null, null]);
     assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
 });

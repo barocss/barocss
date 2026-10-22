@@ -352,6 +352,21 @@ function rayTriangle(t: number): void {
   ray.bestT = d; ray.bestTri = t; ray.bestBack = det < 0;
 }
 
+/**
+ * A clip plane's hatch axes (G19.3; as hatchAcross in shaders.ts): the normal turned so its largest component is
+ * positive (a plane and its flip hatch alike), u the next world axis after that component's (x → y → z → x) into the
+ * plane, v = n × u. A hatch at angle θ runs along cos θ·u + sin θ·v.
+ */
+export function capHatchAxes(normal: readonly number[]): { u: [number, number, number]; v: [number, number, number] } {
+  const m = normal.map(Math.abs), k = m[0] >= m[1] && m[0] >= m[2] ? 0 : m[1] >= m[2] ? 1 : 2;
+  const l = Math.hypot(normal[0], normal[1], normal[2]) || 1, sg = normal[k] < 0 ? -1 / l : 1 / l;
+  const n = [normal[0] * sg, normal[1] * sg, normal[2] * sg], j = (k + 1) % 3, d = n[j];
+  const a = [-n[0] * d, -n[1] * d, -n[2] * d]; a[j] += 1;
+  const al = Math.hypot(a[0], a[1], a[2]);
+  const u: [number, number, number] = [a[0] / al, a[1] / al, a[2] / al];
+  return { u, v: [n[1] * u[2] - n[2] * u[1], n[2] * u[0] - n[0] * u[2], n[0] * u[1] - n[1] * u[0]] };
+}
+
 /** Whether a point is on every plane's kept side (planes packed: nx, ny, nz, d each). */
 export function keptBy(planes: ArrayLike<number>, x: number, y: number, z: number): boolean {
   for (let i = 0; i + 3 < planes.length; i += 4) if (planes[i] * x + planes[i + 1] * y + planes[i + 2] * z < planes[i + 3]) return false;
