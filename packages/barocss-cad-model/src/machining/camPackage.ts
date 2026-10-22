@@ -42,6 +42,8 @@ export interface CamPackage {
   stock: StockSolid | { refused: { code: string; message: string } };
   setups: SetupProgram[];
   skipped: readonly { feature: string; why: string }[];
+  /** Operations refused by name (O166): a hole narrower than the tool is not drilled — a plunge would overcut it. */
+  refusals?: { feature: string; setup: string; code: 'CAM_TOOL_TOO_LARGE'; message: string }[];
 }
 
 const SAFE_ABOVE_MM = 5, RAMP_DEG = 3;
@@ -86,16 +88,21 @@ export function camPackage(doc: StudioDoc, all: readonly BodyResult[], o: { tool
     if (had === undefined || order.indexOf(op.setup) < order.indexOf(had)) madeIn.set(op.feature, op.setup);
     const from = alsoFrom.get(op.feature) ?? []; if (!from.includes(op.setup)) from.push(op.setup); alsoFrom.set(op.feature, from);
   }
+  // (O166: a plunge of the tool makes a hole of the tool's diameter, so a narrower hole would come out too big: that
+  // operation is refused by name, typed, and the rest of the program kept.)
+  const refusals: NonNullable<CamPackage['refusals']> = [];
   for (const op of p.operations) {
     if (madeIn.get(op.feature) !== op.setup) continue;
+    if (op.kind === 'drill' && op.diameterMM < tool.diameterMM - 1e-9) { refusals.push({ feature: op.feature, setup: op.setup, code: 'CAM_TOOL_TOO_LARGE', message: `Ø${op.diameterMM} hole is narrower than the Ø${tool.diameterMM} tool: a plunge would overcut it` }); continue; }
     if (op.kind === 'pocket') pocketMoves(programOf(op.setup), op); else drillMoves(programOf(op.setup), op);
   }
+  for (const r of refusals) { const s = setups.get(r.setup); if (s) (s.notes ??= []).push(`${r.feature}: [${r.code}] ${r.message}`); }
   for (const [feature, from] of alsoFrom) {
     const by = madeIn.get(feature)!;
     for (const setup of from) { const s = setup === by ? undefined : setups.get(setup); if (s) (s.notes ??= []).push(`${feature}: ${p.operations.some(o => o.feature === feature && o.kind === 'drill') ? 'drilled' : 'milled'} in the ${by} setup, not again here`); }
   }
   for (const s of setups.values()) { const last = s.moves.at(-1); if (last && last.b[2] < s.safeZ.mm) s.moves.push({ kind: 'retract', a: last.b, b: [last.b[0], last.b[1], s.safeZ.mm] }); }
-  return { banner: NOT_FOR_PRODUCTION, notForProduction: true, version: CAM_PACKAGE_VERSION, tool, stepoverMM: p.stepoverMM, stepdownMM: p.stepdownMM, basis: p.basis, stock, setups: [...setups.values()], skipped: p.skipped };
+  return { banner: NOT_FOR_PRODUCTION, notForProduction: true, version: CAM_PACKAGE_VERSION, tool, stepoverMM: p.stepoverMM, stepdownMM: p.stepdownMM, basis: p.basis, stock, setups: [...setups.values()], skipped: p.skipped, ...(refusals.length ? { refusals } : {}) };
 }
 
 /** A world point in a setup's machine frame. */

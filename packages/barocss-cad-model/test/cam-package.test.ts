@@ -139,3 +139,17 @@ test('O161, F3: a Ø47 through bore with the Ø6 tool — never a plunge: one ci
   assert.deepEqual([Math.min(...feeds.map(m => m.b[2])), Math.max(...feeds.map(m => m.b[2]))].map(v => +v.toFixed(6)), [0, 11]);
   linkingHolds(top);
 });
+
+test('O166: a hole narrower than the tool is refused by name, CAM_TOOL_TOO_LARGE — never an overcut drill point; the rest of the program kept', async () => {
+  const s = await build([cmd('box', { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 }), cmd('hole', { type: 'blind', d: 5, depth: 10, x: 15, y: 20 }, { faces: ['n1.top'] }), cmd('hole', { type: 'blind', d: 6, depth: 10, x: 45, y: 20 }, { faces: ['n1.top'] })]);
+  const p = camPackage(s.doc, s.bodies), top = p.setups.find(x => x.setup === '+Z')!;
+  assert.equal(p.tool.diameterMM, 6);
+  assert.equal(p.refusals?.length, 1);
+  const [r] = p.refusals!, drilled = top.passes.filter(q => q.kind === 'drill').map(q => q.feature);
+  assert.deepEqual([r.code, r.setup, r.message], ['CAM_TOOL_TOO_LARGE', '+Z', 'Ø5 hole is narrower than the Ø6 tool: a plunge would overcut it']);
+  assert.equal(drilled.length, 1, 'the Ø6 hole, the tool\'s size, still drilled'); assert.ok(!drilled.includes(r.feature));
+  assert.deepEqual(top.notes, [`${r.feature}: [CAM_TOOL_TOO_LARGE] ${r.message}`]);
+  linkingHolds(top);
+  // (Without such a hole, no refusals key at all: cam-package-v1 readers see what they saw.)
+  assert.equal('refusals' in camPackage(s.doc, s.bodies, { toolMM: 5 }), false);
+});

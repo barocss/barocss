@@ -847,7 +847,8 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 | `2a2caf0e9` O162 | the bearing's housing line names its shoulder (D181) | bearing 5/5 (a Ø40 lip; a plain bore with the kernel's warning), tsc, eslint |
 | `10a2558e4` O163 | F3: a hole wider than the tool is a circular pocket, never a plunge; made once across setups | cam-package 5/5 (Ø47 bore in world coordinates), a9, studio cnc-cam, tsc, eslint; flow not run |
 | `e21235d26` O164 | O5 second half begun: the weldment (gussets, caps, beads by their oracles) and the placed assembly, the 6204 housed in the plate (A9-7), the clearance map clean; F6, F7 | a9-acceptance 2/2, tsc, eslint |
-| O165 | O5 as an automated run: a drawing per made part, the BOM and CSV, the bundle on the person's approval, reopened the same; F8 (drawing issues), F9 (screws), F10 (members not in the BOM) open; owner acceptance pending | a9-acceptance 3/3 (about 185 s), tsc, eslint |
+| `ad5c0e59f` O165 | O5 as an automated run: a drawing per made part, the BOM and CSV, the bundle on the person's approval, reopened the same; F8 (drawing issues), F9 (screws), F10 (members not in the BOM) open; owner acceptance pending | a9-acceptance 3/3 (about 185 s), tsc, eslint |
+| O166 | a hole narrower than the tool is refused by name, CAM_TOOL_TOO_LARGE (refusals and the setup's notes), the rest of the program kept | cam-package 6/6, a9 3/3, studio cnc-cam, tsc, eslint |
 
 **Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). 
 
