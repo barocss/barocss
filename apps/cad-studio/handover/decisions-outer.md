@@ -6820,3 +6820,50 @@ The BOM already tells made from bought; manufacturing did not ask.
 - model: cam-package 4/4, a9-acceptance 1/1, chat-outputs 7/7, cnc-holes 6/6, cnc-features 4/4, cnc-access 4/4;
 - studio: cnc-cam 5/5, cnc-preview 8/8;
 - tsc of model and studio; eslint 0 errors.
+
+## O162 — the bearing's housing line names its shoulder (the kernel's D181, FRk8a) (2026-10-23)
+
+The kernel lane's D181 (`ec4a4724c`) adds `report.housing.shoulder { at, diameterMM } | null` to `seatedBearing`: the planar annulus at a face of the bearing stepping in from the bore, its diameter the inner edge's. It also adds a warning when the housing has no shoulder at the located side, or at either face.
+
+- **The housing line** (engine/evaluate.ts `bearingNotes`) now reads "In the housing's Ø47 bore against its Ø40 shoulder at the bearing's end; no overlap" when there is a shoulder. With none, it reads as before.
+- **The warning** comes through as a warning note, unchanged: it was already in `report.warnings`, which the notes pass on.
+- **Tests** (bearing.test):
+  - a Ø47 bore over the bearing's 16–30 with a Ø40 lip over 30–34, unioned into one housing body: the line names the Ø40 shoulder at the end, and there is no warning;
+  - a plain Ø47 bore: the line without a shoulder, plus the kernel's "the housing has no shoulder at either face of the bearing" as a warning.
+- This worktree's `packages/barocss-cad` dist was rebuilt from integration (D181 included) before the tests ran.
+
+**Verified (T1):** bearing 5/5, bearing-housing 4/4, bearing-housing-context 8/8, clearance-designed 5/5; tsc of model and studio; eslint 0 errors.
+
+## O163 — F3: a hole wider than the tool is milled as a circular pocket, never plunged (2026-10-23)
+
+**The defect** (A9's F3): CAM planned the plate's Ø47 bore as a plunge with the Ø6 tool. The package carries one tool, and a plunge of it makes a hole of the tool's diameter. The GPU lane's heightfield cuts every move with that tool, so a "drill" pass already showed Ø6 holes for every hole.
+
+**The rule**, the coordinator's "never a plunge" with "the tool too small for a plunge of that size":
+- **A hole up to the tool's diameter** (within 1e-9) is a drill point, as before: plunge and retract.
+- **A wider hole** is a circular pocket (`boreAsPocket` in cam.ts, a module-level function), built with the pocket machinery:
+  - the floor at the hole's bottom, the plane square to its setup;
+  - the outline its circle, drawn as an inscribed polygon whose chord-to-arc gap is ≤ 1e-3 mm, so the cut stays inside;
+  - loops inset by R, then by the stepover; levels at the step-down to its depth;
+  - the note "Ø47 is wider than the Ø6 tool: milled as a circular pocket, not drilled".
+- **Through bores** are listed from both ends by the preview. O161's made-once rule now covers every operation by feature, not only drills, so a bore is milled once and the other setup notes "milled in the +Z setup, not again here".
+- **This also covers the Ø6.6 holes with the Ø6 tool:** each is a small circular pass, the loop at r 0.3. A plunge of the Ø6 tool would leave them Ø6. A hole narrower than the tool is still a drill point (it overcuts), as before. A refusal for it is not decided here.
+- **No refusal code was needed:** the pocket machinery takes the circle for any hole wider than the tool.
+
+**Tests:**
+- cam-package's hole test is now about drills: three Ø4 holes with the Ø4 tool, each plunged once, with F2's notes.
+- The new F3 test: a Ø47 through bore and a Ø6 hole with the Ø6 tool, checked in world coordinates:
+  - one +Z setup; the bore one circular pocket, never drilled, at levels 3, 6, 9, 12 and 14;
+  - every feed within 23.5 − R of the axis, the outermost there to the polygon's 2e-3;
+  - feeds from z 11 down to z 0; the Ø6 hole plunged.
+- The A9 plate: one +Z setup with six features (the 50 × 30 pocket, the Ø47 bore and the four Ø6.6 holes), each made once and none drilled. The pocket's own feeds are still at levels 11, 8 and 6.
+- The studio's cnc-cam CNC8 test, Ø4 tool:
+  - the Ø6.6 through hole is a circular pocket listed from +Z (floor z 0) and from −Z (floor z 20); the Ø5 blind one from +Z (floor z 10), each with its note;
+  - with a Ø5 tool, the Ø5 hole is a drill point again;
+  - the SVG draws the pockets' polygons, and a drill's circle.
+
+**Not run:** the browser flow. The GPU lane's CNC flow step on `cnc8-pocket.bcad` may count drill passes. Its Ø6.6 holes with the default Ø6 tool are now pocket passes, so that flow needs a run, theirs or the window's.
+
+**Verified (T1):**
+- model: cam-package 5/5, a9-acceptance 1/1, chat-outputs 7/7, tool-contract 3/3;
+- studio: cnc-cam 5/5, cnc-preview 8/8, made-bodies-previews 2/2, chat 18/18;
+- tsc of model and studio; eslint 0 errors.

@@ -676,7 +676,8 @@ function bearingNotes(b: NonNullable<CadPartSnapshot['outputs'][number]['bearing
   const mm = (x: number) => +x.toFixed(4), um = (x: number) => `${x > 0 ? '+' : ''}${+x.toFixed(3)}`, out: { text: string; warning?: boolean }[] = [];
   out.push({ text: `Bearing ${b.designation ?? b.row}: Ø${mm(b.boreMM)} × Ø${mm(b.outsideMM)} × ${mm(b.widthMM)}, corners r ${mm(b.chamferMM)} (${b.estimate ? 'an estimate' : `your row, ${b.source}`})`, ...(b.estimate ? { warning: true } : {}) });
   if (b.seat) out.push({ text: `On step ${b.seat.step} from ${mm(b.seat.fromMM)} to ${mm(b.seat.toMM)}, against the Ø${mm(b.seat.shoulderMM)} shoulder${b.seat.shoulderFilletMM ? ` (fillet r ${mm(b.seat.shoulderFilletMM)})` : ''}; ${b.seat.located ? `its other side by ${b.seat.located}` : 'its other side not located'}; no overlap with the shaft` });
-  if (b.housing) out.push({ text: `In the housing's Ø${mm(b.housing.boreMM)} bore${b.housing.covered ? '' : ' (not covering it)'}; no overlap` });
+  // (FRk8a, D181: the housing's shoulder from its faces, at the bearing's start or end; none is said by the kernel's warning.)
+  if (b.housing) { const sh = b.housing.shoulder; out.push({ text: `In the housing's Ø${mm(b.housing.boreMM)} bore${sh ? ` against its Ø${mm(sh.diameterMM)} shoulder at the bearing's ${sh.at}` : ''}${b.housing.covered ? '' : ' (not covering it)'}; no overlap` }); }
   const fit = (what: string, f: NonNullable<typeof b.shaftFit>) => ({ text: `${what} ${f.limit.class}: ${mm(f.limit.minMM)} to ${mm(f.limit.maxMM)}${f.kind ? ` — ${f.kind} ${um(f.clearanceMinUM!)} to ${um(f.clearanceMaxUM!)} µm with the ring` : ' (the ring\'s tolerance is not in its row)'}${f.limit.estimate ? ', an estimate' : ''}`, ...(f.limit.estimate ? { warning: true } : {}) });
   if (b.shaftFit) out.push(fit('Shaft seat', b.shaftFit));
   if (b.housingFit) out.push(fit('Housing seat', b.housingFit));

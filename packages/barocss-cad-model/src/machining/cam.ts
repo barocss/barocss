@@ -100,7 +100,8 @@ export function camPreview(doc: StudioDoc, all: readonly BodyResult[], o: { tool
   const holes = holesOf(bodies), features = featuresOf(doc, bodies, holes), ops: (PocketPass | DrillPoint)[] = [], skipped: { feature: string; why: string }[] = [];
   for (const f of features) {
     if (f.kind === 'pocket') { const p = pocketPass(f, bodies, R, so, sd); if (p) ops.push(p); else skipped.push({ feature: f.id, why: 'its floor\'s outline could not be read' }); }
-    else if (f.kind === 'hole') ops.push(...drillPoints(f, holes));
+    // (O161, F3: a plunge of the tool makes a hole of the tool's diameter, so a wider one is milled as a circular pocket.)
+    else if (f.kind === 'hole') for (const dp of drillPoints(f, holes)) ops.push(dp.diameterMM > D + 1e-9 ? boreAsPocket(dp, R, so, sd) : dp);
     else if (f.kind === 'slot' || f.kind === 'step') skipped.push({ feature: f.id, why: `a ${f.kind} is open on a side: not previewed` });
   }
   return { banner: NOT_FOR_PRODUCTION, notForProduction: true, tool: { diameterMM: D, basis: o.toolMM && o.toolMM > 0 ? 'given' : 'estimate' }, stepoverMM: r6(so), stepdownMM: r6(sd),
@@ -119,6 +120,26 @@ function pocketPass(f: Feature, bodies: readonly BodyResult[], R: number, so: nu
   const o = face.exact.o, origin = [0, 1, 2].map(k => o[k]);
   return { kind: 'pocket', feature: f.id, setup: f.setups[0], plane: { origin, x: Xu.map(r6), y: Yu.map(r6), normal: [...n] }, levels, loops, lengthMM: r6(loops.reduce((s, l) => s + perimeter(l), 0) * levels.length),
     ...(loops.length ? {} : { note: `the tool (Ø${2 * R}) does not fit the pocket (${f.widthMM} wide)` }) };
+}
+/** The largest chord-to-arc gap (mm) of the polygon a circular pocket's outline is drawn as: inscribed, so the cut stays inside. */
+const BORE_SAGITTA_MM = 1e-3;
+/**
+ * A hole wider than the tool as a circular pocket in its drill point's setup (O161, F3): the floor at its bottom, the
+ * outline its circle (an inscribed polygon, BORE_SAGITTA_MM), the loops and levels as a pocket's.
+ */
+function boreAsPocket(dp: DrillPoint, R: number, so: number, sd: number): PocketPass {
+  const n = [-dp.axis[0], -dp.axis[1], -dp.axis[2]];
+  const X = Math.abs(n[0]) < 0.9 ? [1 - n[0] * n[0], -n[0] * n[1], -n[0] * n[2]] : [-n[1] * n[0], 1 - n[1] * n[1], -n[1] * n[2]], xl = Math.hypot(X[0], X[1], X[2]);
+  const Xu = [X[0] / xl, X[1] / xl, X[2] / xl], Yu = [n[1] * Xu[2] - n[2] * Xu[1], n[2] * Xu[0] - n[0] * Xu[2], n[0] * Xu[1] - n[1] * Xu[0]];
+  const r = dp.diameterMM / 2, cx = dot(dp.at, Xu), cy = dot(dp.at, Yu), N = Math.max(16, Math.ceil(Math.PI / Math.acos(1 - BORE_SAGITTA_MM / r)));
+  const outline: P2[] = [];
+  for (let i = 0; i < N; i++) { const a = 2 * Math.PI * i / N; outline.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
+  const loops: P2[][] = [];
+  for (let k = 0, d = R; k < 10000; k++, d += so) { const l = inset(outline, d); if (!l) break; loops.push(l.map(p => [r6(p[0]), r6(p[1])] as P2)); }
+  const levels: number[] = []; for (let z = sd; z < dp.depthMM - 1e-9; z += sd) levels.push(r6(z)); levels.push(dp.depthMM);
+  const origin = [0, 1, 2].map(k => r6(dp.at[k] + dp.depthMM * dp.axis[k]));
+  return { kind: 'pocket', feature: dp.feature, setup: dp.setup, plane: { origin, x: Xu.map(r6), y: Yu.map(r6), normal: n.map(v => v + 0) }, levels, loops, lengthMM: r6(loops.reduce((s, l) => s + perimeter(l), 0) * levels.length),
+    note: `Ø${r6(dp.diameterMM)} is wider than the Ø${r6(2 * R)} tool: milled as a circular pocket, not drilled` };
 }
 function drillPoints(f: Feature, holes: ReturnType<typeof holesOf>): DrillPoint[] {
   const h = holes.find(x => x.steps.some(s => s.faces.some(n => f.faces.includes(n)))); if (!h) return [];
