@@ -6030,3 +6030,39 @@ interface ClearancePair {
 `sectionOf` cut each body by a split with the id `section<k>`, where k was its output index. So the cut face `section<k>.cut.top`, its edges, and the dimensions on them (O148 X2) changed names whenever an earlier body came or went, and were re-matched or lost. The split is now `section_<body key>` (`section_b2`, `section_b0_part1`). `auto.ts`'s cut-face filter and `issues.ts`'s feature reading take both forms.
 
 Test (section-dimensions.test.ts): the shaft and hub after an unrelated box (nodes 0–1), auto-dimensioned with B–B. The box is then suppressed, so every output shifts by one. B–B's dimensions still read 6 and 16.5, with no DIMENSION_LOST or REMATCHED. It failed before the change.
+
+## G23 data side — S0: print layers, and the CNC preview as the GPU lane reads it (2026-10-22)
+
+The coordinator's item 2 after G22. This S0 needs the coordinator's and the GPU lane's reply before building. Pure, in cad-model; display only (no slicer, no G-code: README §4).
+
+**A. Print layers** (`print/layers.ts`, `printLayers(doc, bodies, { layerMM, direction?, limitDeg? })`):
+- **The frame**: the chosen build direction (`direction`, else AM4's best orientation, said which). The part is turned so it is +Z, its lowest point on the bed (z 0). The turn and the offset are given, so the GPU lane maps layers back onto the model.
+- **Layers** at heights `(k + ½)·layerMM` from the bed, `layerMM` the person's (unset: 0.2, an estimate, said).
+- **Per layer**:
+  - `contours`: the closed loops of the plane through the display meshes (every body to be printed; lattices as AM7 has them), each a polyline in bed coordinates, outer loops anticlockwise and holes clockwise (by signed area, the even-odd rule over all loops).
+  - `overhang`: the overhanging triangles (AM2's rule, −n·b > sin θ, θ the process's limit) that the layer's band crosses, projected onto the layer as triangles, with their faces by persistent name.
+  - `support`: the footprints of AM4's support columns spanning the layer — from each overhanging triangle straight down (K2 rays) to the part or the bed — as projected triangles, the same columns AM4's support volume sums.
+- **Totals**: layer count, height, support volume (equal to AM4's for the same direction), and the chord error of the meshes the contours come from (said: contours are to the display mesh, not exact).
+- **Cost**: one pass bucketing the triangles by their z-range, then a segment a crossing triangle per layer, stitched by the mesh's shared edges into loops. O(triangles + segments), no per-layer scan of the whole mesh. Measured when built (the oracle sets include a 100 000-triangle case, as AM4's).
+- **Oracles**:
+  - a 20 mm cube at 0.2 mm: 100 layers, each one square loop of 400 mm²;
+  - a Ø10 bore through a plate: an outer loop and a clockwise hole of π·25 (to the chord);
+  - a 45° overhang at a 45° limit is none, at 40° all of it;
+  - AM4's support volume equal to the sum of the layers' support areas × layerMM (to the layer's discretisation, stated);
+  - the turn back maps every contour point onto the mesh's surface (1e-9 of the plane).
+
+**B. The CNC preview packaged** (`machining/camPackage.ts`, `camPackage(doc, bodies, { toolMM? })`): what CNC8's `camPreview` and CNC7b's `chooseStock` give, in one object in world coordinates for the GPU lane's material-removal preview.
+- `banner` and `notForProduction: true` come first, as every CNC8 output does.
+- `tool`: its diameter and basis (given or estimate); `stepoverMM`, `stepdownMM` and their basis.
+- `stock`: CNC7b's choice (a block's min/max, or a bar's start, axis, length and diameter), or its refusal (STOCK_NONE_LOADED, STOCK_NONE_FITS) said.
+- `passes`, in machining order:
+  - a pocket's per-level tool-centre loops lifted into world space (the floor plane's origin + x·u + y·v − level·normal), each with its setup's direction (the tool's axis) and its level;
+  - drill points with entry, axis, depth and diameter.
+- `skipped`: CNC8's list (slots and steps open on a side, with why).
+- The GPU lane sweeps the tool along `passes` through its height field or dexels, starting from `stock`. Uncut is what the stock keeps outside the part; overcut is where the swept tool enters the part, theirs to colour.
+- **Oracles**: CNC8's 50 × 30 pocket (loops (44 − 4.8k) × (24 − 4.8k), levels 3, 6, 8) lifted to its plane exactly; a hole's drill point; the block stock 122 × 82 × 30 about O100's plate; no stock loaded, said.
+
+**Questions for the GPU lane**:
+- (a) Layers in bed coordinates plus the turn, or already in model coordinates?
+- (b) Supports as projected triangles, or as merged polygons?
+- (c) Is an all-layers-at-once array fine, or do they want one layer by index (for a slider on a large part)?
