@@ -3593,6 +3593,46 @@ try {
     await snap('fr3a-mitred-rectangle');
   });
 
+  await check('FRk1 gusset and end cap (D165): a gusset in a mitred rectangle\'s corner (two members picked), a cap over a table leg\'s top', async () => {
+    const frameOf = async (skeleton, bodies) => {
+      await page.click('[aria-label="New part"]');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await press(' '); await page.locator('.palette input').fill('skeleton'); await press('Enter'); await hudReady();
+      await field('Skeleton').selectOption(skeleton); await hudReady();
+      await field('Outer corner radius (estimate)').fill('0'); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await page.waitForTimeout(300); await press('Enter');
+      await page.waitForFunction(n => new RegExp(`${n} bodies`).test(document.querySelector('.outliner')?.textContent ?? ''), bodies, { timeout: 60000 }); await idle();
+    };
+    const plate = async (word, kind, bodies) => {
+      await press(' '); await page.locator('.palette input').fill(word); await press('Enter'); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await page.waitForTimeout(300); await press('Enter');
+      await page.waitForFunction(k => window.__studioDoc.nodes.at(-1)?.kind === k, kind, { timeout: 30000 });
+      await page.waitForFunction(n => new RegExp(`${n} bodies`).test(document.querySelector('.outliner')?.textContent ?? ''), bodies, { timeout: 60000 }); await idle();
+      const row = await page.evaluate(k => [...document.querySelectorAll('.outliner .ol')].findIndex(e => new RegExp(k).test(e.textContent ?? '')), kind === 'gusset' ? 'Gusset' : 'End cap');
+      await page.locator('.outliner .ol').nth(row).click();
+      await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
+      return { volume: Number(/Volume\s*([\d,.]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, '')), notes: (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.trim()) };
+    };
+    await frameOf('rectangle', 4);
+    const rows = page.locator('.outliner .ol'); await rows.nth(0).click(); await rows.nth(1).click({ modifiers: ['Shift'] });
+    // The palette's gusset: legs 100 and 100, clip 10, 5 thick — (100² − 10²)/2·5 = 24 750 mm³.
+    const g = await plate('gusset', 'gusset', 5);
+    assert.ok(Math.abs(g.volume - 24750) <= 1, `${g.volume}`);
+    assert.ok(g.notes.some(t => /^Seams: 90 on member 1 .*, 90 on member 2/.test(t)), g.notes.join(' | '));
+    await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('frk1-gusset');
+    // A table's first leg runs through at its top (to 720): the cap over it, 40 × 40 × 4.
+    await frameOf('table', 8);
+    await page.locator('.outliner .ol').nth(0).click();
+    const c = await plate('end cap', 'end-cap', 9);
+    assert.ok(Math.abs(c.volume - 6400) <= 1, `${c.volume}`);
+    assert.ok(c.notes.some(t => /^Seam 160 mm round its outline \(exact\)$/.test(t)), c.notes.join(' | '));
+    await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
+    await snap('frk1-end-cap');
+  });
+
   await check('FR3b a table of sharp tubes from the palette, its corners trimmed in order: legs through (A·720), rails between them (A·560, A·360), the order in the notes (new in D126)', async () => {
     await page.click('[aria-label="New part"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });

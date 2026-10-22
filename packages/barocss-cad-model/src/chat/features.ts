@@ -287,6 +287,7 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   // (R12c.6b, D161: the wheels a belt or chain runs on.)
   if (n.kind === 'belt') (n as { wheels: [number, number] }).wheels = [map(n.wheels[0]), map(n.wheels[1])];
   if (n.kind === 'connector-body') (n as { opening: number }).opening = map(n.opening);
+  if (n.kind === 'gusset' || n.kind === 'end-cap') (n as { frame: number }).frame = map(n.frame);
   if (n.kind === 'bearing') { (n as { shaft: number }).shaft = map(n.shaft); if (n.housing !== undefined) (n as { housing: number }).housing = map(n.housing); }
   if (n.kind === 'key' || n.kind === 'retaining-ring' || n.kind === 'pin') { (n as { shaft: number }).shaft = map(n.shaft); if (n.kind === 'key' && n.hub !== undefined) (n as { hub: number }).hub = map(n.hub); }
   for (const key of ['parent', 'left', 'right', 'tool', 'addTo'] as const) if (isObj(n[key])) (n as Record<string, unknown>)[key] = ref(n[key] as unknown as BodyRef);

@@ -198,6 +198,10 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-shaft': <><path d="M2.5 9.5h6v-2h7v2h6v5h-6v2h-7v-2h-6z" style={tone(TONE.right)} />{ac('M10.2 7.5h3.6')}<path d="M8.5 7.5v9M15.5 7.5v9" strokeOpacity={0.55} /></>,
   // A fit (R12c.2): a shaft in its bore, the gap between them in the accent colour.
   'cad-fit': <><circle cx="12" cy="12" r="9" style={tone(TONE.right)} /><circle cx="12" cy="12" r="5.6" style={dark} /><circle cx="12" cy="12" r="4.6" style={tone(TONE.top)} />{ac('M17.6 12h3.4M3 12h3.4')}</>,
+  // A gusset (FRk1): an L of two members, the clipped plate in its corner in the accent colour.
+  'cad-gusset': <><path d="M3 3h4v14h14v4H3z" style={tone(TONE.right)} /><path d="M7 9.5v7.5h7.5z" style={dark} />{ac('M7 9.5v7.5h7.5z')}</>,
+  // An end cap (FRk1): a tube seen along its end, the cap over it in the accent colour.
+  'cad-end-cap': <><path d="M4 9h11v10H4z" style={tone(TONE.right)} /><path d="M6.5 11.5h6v5h-6z" style={dark} /><path d="M15 7.5h2.5v13H15z" style={tone(TONE.top)} />{ac('M15 7.5h2.5v13H15z')}</>,
   // A connector opening (R12c.7): a panel with a stadium opening, the opening in the accent colour.
   'cad-connector': <><path d="M3 5h18v14H3z" style={tone(TONE.right)} /><path d="M8.5 10.5h7a1.5 1.5 0 0 1 0 3h-7a1.5 1.5 0 0 1 0-3z" style={dark} />{ac('M8.5 10.5h7a1.5 1.5 0 0 1 0 3h-7a1.5 1.5 0 0 1 0-3z')}</>,
   // A sprocket (R12c.6b): its teeth round the seats, the bore; the seats' circle in the accent colour.

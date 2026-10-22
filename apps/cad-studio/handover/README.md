@@ -56,6 +56,10 @@ block is kept as history.
 - the SubD cap-boundary display folds (D79's TODO: 14–38°, 88.6° on the pipe clamp).
 - Also open from R12c: the housing's shoulder against the row's Da max (D158: found from its faces, not checked yet), and the trimmed-face mass quadrature (below).
 
+**FRk S0 done: D164** (2026-10-22; the kernel lane's track is named FRk). Probe `packages/barocss-cad/test/frk-s0.test.mjs`, 10 tests. Found: fillet beads, gussets and caps are exact by today's features (a bead is the end's loop offset by its leg, drafted 45°, less the envelope: P·z²/2 + c·z³); tapered-flange I sections are closed-form polygons with fillets at any angle; arc members build by revolve (one loop only yet) with Pappus exact; gaps build by today's plane trims and hole-saw and V notches by a cutter's Boolean; the round table's time is the analytic Boolean's general curves on trimmed envelopes (one corner 1.2–1.5 s, the table 5.7 s now); the SubD folds are slivers inside single faces (one over 30°, 88.6°), not at caps' boundaries; D158's housing shoulder is findable, unchecked; the bevel pair's kernel volume is 1.4 % above its converging mesh and D149's oracle (an accuracy defect). Stages frozen: FRk1 gussets and end caps → FRk2 weld beads → FRk3 tapered channels and I/H → FRk4 arc members and bends → FRk5 gaps and notches → FRk6 the ordered trim's speed → FRk7 the SubD slivers → FRk8a Da max, FRk8b the quadrature → FRk9 acceptance. The shape exposed for the outer lane's weld symbols and BOM (`gusset`, `endCap`, `bead` reports) and three owner defaults are in D164.
+
+**Order after review (coordinator, D165):** FRk1 → FRk2 → FRk8b (the bevel pair's wrong mass first) → FRk3 → FRk4 → FRk5 → FRk6 → FRk7 → FRk8a → FRk8b (exact domain-trim integration, if still needed) → FRk9. The three defaults stand. **FRk1 done: D165** (the `gusset` and `end-cap` kinds placed by the members as built, their `gusset` / `endCap` reports on the outputs; GUSSET_FIT, CAP_END; conformance `frk/` 4 cases; the Gusset and End cap v2 commands; per turn 22,347). Next: FRk2, weld beads.
+
 **Open, unscheduled:**
 - **The mass quadrature of trimmed general faces** (from the queue → R12c block): slow (it meshes twice) and 1–2 % off on bodies like the bevel pair's intersection (D149, D151, D152).
 - **A keep-out's own bodies** (D163): the outer lane's `checkKeepouts` counts the connector's plug against its own keep-out, where it touches: "undecided" within the chord. Asked of the coordinator (the outer lane's file).
@@ -679,6 +683,15 @@ Done:
    - Large assemblies: G9 scene-level pick acceleration (a top-level BVH); G10 copies turned about Z sharing one tessellation (P6).
    - Quality: G11 order-independent (or depth-peeled) transparency for ghosted bodies; G12 the proposal's added/removed two-colour overlay (D40); G13 hygiene (per-frame allocations, the outline mask pass, optional uv).
    - Then: G14 display LOD for 1M-triangle meshes (measure first with G4's benches); G15 3D text labels (SDF atlas); G16 WebGL2 parity (curves and surfaces, a dragged body's turn); G17 the 3D skeleton sketch tool (item 5); G18 the docs items deferred earlier (WebGPU shader demo hosts with repeating-UV materials lowered to WGSL, docs screenshots, gpu `test:consumer`, the gpu bundle's CAD externalisation), last, unless the owner keeps them deferred.
+   - **After G18** (owner, 2026-10-22: G19 "좋아 그렇게 진행해줘"; the rest "좋아 로드맵을 채워줘"; status: G1–G18 done):
+     - G19 section-view upgrades (S0 approved): G19.1 several clip planes in the viewer and CPU paths; G19.2 the section bar's plane / box / planes modes, a plane from a picked face, WebGL2 clipMeshPlane, the chained exact section; G19.3 world-space hatching on caps (both renderers); G19.4 caps on ghosted bodies; G19.5 the Render workspace keeps the section.
+     - G20 the quarter cut-out ("3/4 section": a union of two half-space removals).
+     - G21 CAD display: silhouette edges of curved faces (screen-space), display modes (shaded with edges, hidden lines removed, hidden lines dashed, wireframe, x-ray), isolate / hide with the rest faded.
+     - G22 assembly checks on screen: an interference and clearance colour map between parts (overlaps red, near gaps amber, from the exact checks where they exist), and collision highlights during joint play or a motion study.
+     - G23 manufacturing previews: CNC material removal along CNC8's 2.5D paths (stock as a height field or dexels on the GPU; uncut and overcut coloured), and a 3D-print layer preview (a layer slider, supports and overhangs). No mould-fill or other CAE simulation (owner, #2177).
+     - G24 3D annotations on the model (MBD/PMI): fit callouts, tolerances, GD&T frames and weld symbols drawn in 3D with G15's labels, from the outer lane's drawing data.
+     - G25 analyses on the GPU for interactive speed: wall thickness and tool access by GPU rays (display only; the exact values stay the kernel's), and a scan-versus-CAD deviation colour map.
+     - Later, when measured need appears: GPU occlusion culling for very large assemblies (G14's thresholds), progressive photoreal rendering and turntable / exploded-animation video export.
 
 Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Standard elements, manufacturing and robot tracks") and the coordination note.
 
@@ -970,6 +983,20 @@ acceleration → benches.
   segments point to point; points dragged and solved live (held at the pointer where the constraints let them go there,
   else as near as they let them); the selection's constraints, their marks and values; FRg's diagnosis on the points and
   marks (free blue, redundant amber, unmet red); applied as one skeleton feature, stored solved. Alike on both renderers.
+- **G18** (2026-10-22): done, the owner's three (G18.1–3). The packed `@barocss/gpu`: CAD external in its bundle
+  (1.24 → 0.73 MB, CAD's definitions gone), no source, `test:consumer` green. The repeating UV shader demos: lowered to
+  WGSL (as the GLSL path within 2/255 off fract's jumps), drawn by the WebGPU viewer in the docs (no app-owned WebGL2).
+  The docs' 41 example screenshots captured again from the built site with the current viewer (a capture script).
+- **gpu-scene Node harnesses after G18.1** (CAD external in the bundle): run them with the hook,
+  `node --import ./packages/barocss-gpu/tests/cad-dist.mjs examples/gpu-scene/<name>-flow.mjs …`. The four that need only
+  `--output` (`material-scalar-abs`, `material-scalar-extrema`, `material-smoothstep`, `native-reflection-cause`) load both
+  providers with it (source and packed, the same namespace) and then stop at their own pin of the package's export
+  count, written for the API of their commit (54 and 124 runtime exports; 174 now): historical receipts bound to their
+  revision, already failing so before G18 (172 at `858710053`), not edited. The other ten (`boolean-buffers`,
+  `shell-buffers`, `knot-aligned-loft-frame`, `knot-aligned-loft-raw-frame`, `mixed-workplane-arc-preview`,
+  `source-curve-edit-preview`, `source-native-surface-edit-mesh`, `source-surface-elevation-frame`,
+  `split-body-engine-scene`, `workplane-world-curve-preview`) need old native fixtures (`--fixtures`, `--native-dir`,
+  `--compiled-sdk`, `--request`, `--meshes`): not regenerated.
 - **WebGL2 support statement** (after G16): the WebGL2 fallback draws the bodies (moved and turned as dragged), their
   edges, ghosts, selection and hover, face/edge/direct picks with depth, direct curves and surfaces, and a proposal's
   overlay (chips in the SVG overlay). It stays **WebGPU-only** for placed instances (and their picks, poses and explode),

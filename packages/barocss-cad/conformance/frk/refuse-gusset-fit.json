@@ -1,0 +1,75 @@
+{
+  "id": "frk-refuse-gusset-fit",
+  "step": "FRk",
+  "decisions": [
+    "D165"
+  ],
+  "about": "FRk1: a gusset on round tubes is refused by name: no flat face under it.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              600,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              600
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "section": {
+            "kind": "round-tube",
+            "diameter": 40,
+            "wall": 3
+          },
+          "corners": {
+            "default": "mitre"
+          }
+        },
+        {
+          "id": "g",
+          "kind": "gusset",
+          "frame": "f",
+          "point": 1,
+          "legs": [
+            100,
+            100
+          ],
+          "thickness": 5
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "PARAMETER",
+      "messageIncludes": "[GUSSET_FIT] member 0 has no flat face under the gusset"
+    }
+  },
+  "oracle": "By construction: a round tube has no straight side."
+}

@@ -10,7 +10,7 @@
 // 35 280 buffers, with 49 of the explode's 60 steps drawn. G2 (2026-10-21): the section plane dragged across them, 15.6 ms
 // task, 2.3 KiB and no buffers a frame on the GPU's clip plane; the CPU's clipMesh (WebGL2's path, unbudgeted, for the
 // comparison) 19.3 ms, 190 KiB and 45 buffers a frame. Opt-in (needs a browser):
-//   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] node test/bench-browser.mjs
+//   PW_DIR=/path/to/node_modules/playwright [CHROME=/path/to/chrome] [BENCH_ONLY=pattern] node test/bench-browser.mjs
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 
@@ -118,7 +118,10 @@ let picks = null;
 // (The main thread's task time, from the DevTools protocol: everything that ran, not only animation-frame callbacks.)
 const cdp = await page.context().newCDPSession(page); await cdp.send('Performance.enable');
 const taskTime = async () => (await cdp.send('Performance.getMetrics')).metrics.find(m => m.name === 'TaskDuration').value * 1000;
+// (BENCH_ONLY: a pattern — only the rows whose names match it are measured; the others' setup still runs, G19.)
+const only = process.env.BENCH_ONLY ? new RegExp(process.env.BENCH_ONLY, 'i') : null;
 const measure = async (name, budget, act) => {
+  if (only && !only.test(name)) return;
   await page.waitForTimeout(500);
   await page.evaluate(() => { Object.assign(window.__bench, { submits: 0, frames: 0, frameMS: 0, gpuMS: 0, queueMS: 0, perFrame: {}, sameStamp: 0, bytes: 0, buffers: 0 }); });
   const task0 = await taskTime(), t0 = Date.now(); await act(); await page.waitForTimeout(400);
@@ -213,7 +216,8 @@ try {
     await measure('pattern: 120 turned brackets opened', BUDGET.pattern, async () => {
       await open('pattern.bcad', turned, () => window.__studioInstanceBounds?.().length === 120 && window.__studioInstanceBounds().every(b => b.id.startsWith('t')));
     });
-    rows[rows.length - 1].geometry = await page.evaluate(() => {
+    // (Not measured under BENCH_ONLY: no row to add it to.)
+    if (rows.at(-1)?.name.startsWith('pattern:')) rows[rows.length - 1].geometry = await page.evaluate(() => {
       const v = window.__studioViewer; if (!v) return null;
       const gs = new Set(v.meshList.filter(m => m.name?.startsWith('inst:')).map(m => m.geometry));
       let bytes = 0; for (const g of gs) { const d = g.data; bytes += d.positions.byteLength + d.normals.byteLength + d.colors.byteLength + (d.uvs?.byteLength ?? 0) + (d.indices?.byteLength ?? 0); }

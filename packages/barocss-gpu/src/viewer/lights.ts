@@ -1,7 +1,7 @@
 // Lights and the frame block they are packed into with the camera (see Frame in shaders.ts).
 import type { Camera } from './camera.js';
 import { invert, normalize, srgbToLinear, sub, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_DIRECTIONAL, MAX_OUTLINES, MAX_POINT, MAX_SPOT, OUTPUT_BYTES } from './shaders.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_OUTLINES, MAX_POINT, MAX_SPOT, OUTPUT_BYTES } from './shaders.js';
 
 /** sRGB colour, 0–1 per channel, or a CSS hex string. */
 export type Color = Vec3 | string;
@@ -62,8 +62,11 @@ export const directionalLights = (lights: readonly Light[]): DirectionalLight[] 
 /** The ground grid as drawn this frame: cell size, cells per major line, fade distance, height; colour (sRGB) and opacity. */
 export interface GridFrame { cell: number; major: number; fade: number; height: number; color: Vec3; opacity: number }
 
-/** The clip plane (G2): drawn where dot(normal, p) ≥ offset (normal of unit length), its cap in a colour (sRGB). */
-export interface ClipFrame { normal: Vec3; offset: number; cap: Vec3 }
+/**
+ * The clip planes (G2, G19): drawn where dot(normal, p) ≥ offset for every plane (normals of unit length) — the
+ * intersection of their kept sides — the caps in a colour (sRGB). `normal` and `offset`: the first plane's.
+ */
+export interface ClipFrame { normal: Vec3; offset: number; cap: Vec3; planes: readonly { normal: Vec3; offset: number }[] }
 export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly Light[], env: Environment, shadow: ShadowFrame | null = null, viewport: readonly number[] = [1, 1, 1, 0], grid: GridFrame | null = null, clip: ClipFrame | null = null, into: Float32Array | null = null): Float32Array {
   // (`into`: a block kept for it, cleared and written again — G13.)
   const f = into ? (into.fill(0), into) : new Float32Array(FRAME_BYTES / 4), u = new Uint32Array(f.buffer);
@@ -108,7 +111,11 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
     const c = linear(grid.color);
     put4(f, o + 40, grid.cell, grid.major, grid.fade, grid.height); put4(f, o + 44, c[0], c[1], c[2], grid.opacity);
   }
-  if (clip) { const c = linear(clip.cap); put4(f, o + 48, clip.normal[0], clip.normal[1], clip.normal[2], clip.offset); put4(f, o + 52, c[0], c[1], c[2], 1); }
+  if (clip) {
+    const c = linear(clip.cap), n = Math.min(MAX_CLIP_PLANES, clip.planes.length);
+    put4(f, o + 48, c[0], c[1], c[2], n);
+    for (let i = 0; i < n; i++) { const p = clip.planes[i]; put4(f, o + 52 + 4 * i, p.normal[0], p.normal[1], p.normal[2], p.offset); }
+  }
   return f;
 }
 

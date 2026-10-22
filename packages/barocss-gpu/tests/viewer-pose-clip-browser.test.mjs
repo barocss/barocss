@@ -232,6 +232,98 @@ test('G2 the clip plane: caps of a box, a cylinder, a holed tube and a turned co
   } finally { await s.close(); }
 });
 
+// G19: several clip planes, the kept region their intersection. A box section wholly inside a larger solid (each ray enters
+// the region through one plane and leaves it through another inside the solid — no surface between: G2's back-face cap
+// drew nothing there), seen obliquely in an orthographic view: the caps cover the kept cube's silhouette, whose area is
+// a²(|vx| + |vy| + |vz|); two planes on a box (a quarter kept), seen along one plane's normal: the cap at its closed form;
+// GPU picks and CPU rays the same mesh and cap over random pixels of both and of a cylinder under three oblique planes;
+// a line pick finds nothing cut away.
+test('G19 several clip planes: a box section inside a solid capped on the kept cube\'s faces; two planes at the closed form; GPU picks equal to CPU rays', { timeout: 180000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box, screen } = window, canvas = document.getElementById('c');
+      canvas.style.width = '800px'; canvas.style.height = '400px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [0, -30, 0], target: [0, 0, 0], up: [0, 0, 1], projection: 'orthographic' }, lights: [] });
+      const body = { color: '#404040', unlit: true }, isCap = (d, i) => d[i] > 200 && d[i + 1] < 60 && d[i + 2] > 200;
+      const capPixels = img => { let n = 0; for (let i = 0; i < img.data.length; i += 4) if (isCap(img.data, i)) n++; return n; };
+      // A. A 10 × 10 × 10 solid, a box section of side 3 in it (six planes).
+      const big = viewer.add(box(10, 10, 10).surface, { name: 'big', material: body, cap: true });
+      const edges = viewer.add(box(10, 10, 10).edges, { name: 'big edges', material: { color: '#00ff00', unlit: true } });
+      const h = 1.5, boxPlanes = [0, 1, 2].flatMap(k => [1, -1].map(sg => { const n = [0, 0, 0]; n[k] = sg; return { normal: n, offset: -h, cap: '#ff00ff' }; }));
+      const v = [0.62, -0.55, 0.56], l = Math.hypot(...v), vn = v.map(x => x / l);
+      Object.assign(viewer.camera, { projection: 'orthographic', position: vn.map(x => x * 40), target: [0, 0, 0], up: [0, 0, 1] });
+      viewer.camera.fit({ min: [-3, -3, -3], max: [3, 3, 3] }, viewer.aspect);
+      viewer.clipPlanes = boxPlanes;
+      const imgA = await viewer.capture(), unit = imgA.height / (2 * viewer.camera.halfHeight);
+      const cube = { pixels: capPixels(imgA), want: 9 * (Math.abs(vn[0]) + Math.abs(vn[1]) + Math.abs(vn[2])) * unit * unit, outline: 6 * 3 * unit };
+      // (Its line pick: the solid's edges all cut away — none found anywhere along its front edge.)
+      const [ex, ey] = screen(viewer, [5, -5, 0]), linePick = viewer.pickLine(ex, ey, 4);
+      // Picks over the section.
+      const picks = [];
+      let seed = 5; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      // (Pointers over the screen box of what is kept, so most land on it.)
+      const compare = async (n, scene, lo, hi) => {
+        const q = [0, 1, 2, 3, 4, 5, 6, 7].map(i => screen(viewer, [i & 1 ? hi[0] : lo[0], i & 2 ? hi[1] : lo[1], i & 4 ? hi[2] : lo[2]]));
+        const x0 = Math.min(...q.map(p => p[0])), x1 = Math.max(...q.map(p => p[0])), y0 = Math.min(...q.map(p => p[1])), y1 = Math.max(...q.map(p => p[1]));
+        for (let k = 0; k < n; k++) {
+          // (Pixel centres: the GPU reads a pixel, the CPU's ray goes through the point.)
+          const x = Math.floor(x0 + rand() * (x1 - x0)) + 0.5, y = Math.floor(y0 + rand() * (y1 - y0)) + 0.5, c = viewer.raycast(x, y), g = await viewer.pick(x, y);
+          picks.push({ scene, x, y, cpu: c && { name: c.mesh.name, cap: !!c.cap, plane: c.capPlane ?? null, point: c.point }, gpu: g && { name: g.mesh.name, cap: !!g.cap, plane: g.capPlane ?? null, point: g.point } });
+        }
+      };
+      await compare(100, 'box section', [-h, -h, -h], [h, h, h]);
+      // B. A 4 × 4 × 4 box, kept where y ≥ 0 and x ≥ 0, seen along +y: the cap on y = 0 for x 0…2, z −2…2 (8 units²).
+      big.visible = false; edges.visible = false;
+      const quarter = viewer.add(box(4, 4, 4).surface, { name: 'quarter', material: body, cap: true });
+      Object.assign(viewer.camera, { projection: 'orthographic', position: [0, -30, 0], target: [0, 0, 0], up: [0, 0, 1] });
+      viewer.camera.fit({ min: [-3, -3, -3], max: [3, 3, 3] }, viewer.aspect);
+      viewer.clipPlanes = [{ normal: [0, 1, 0], offset: 0, cap: '#ff00ff' }, { normal: [1, 0, 0], offset: 0 }];
+      const imgB = await viewer.capture(), unitB = imgB.height / (2 * viewer.camera.halfHeight);
+      const two = { pixels: capPixels(imgB), want: 8 * unitB * unitB, outline: 12 * unitB };
+      // (A 64-sided cylinder along y under the same two planes, seen the same way: half its 64-gon.)
+      quarter.visible = false;
+      const P = [], I = [], N = 64;
+      for (let i = 0; i < N; i++) { const a = 2 * Math.PI * i / N; P.push(2 * Math.cos(a), -3, 2 * Math.sin(a), 2 * Math.cos(a), 3, 2 * Math.sin(a)); }
+      P.push(0, -3, 0, 0, 3, 0);
+      for (let i = 0; i < N; i++) { const j = (i + 1) % N, a = 2 * i, b = 2 * i + 1, c = 2 * j, d = 2 * j + 1; I.push(a, d, c, a, b, d, 2 * N, a, c, 2 * N + 1, d, b); }
+      const cyl = viewer.add({ positions: P, indices: I }, { name: 'cylinder', material: body, cap: true });
+      const imgH = await viewer.capture();
+      const half = { pixels: capPixels(imgH), want: 0.5 * N * 4 * Math.sin(2 * Math.PI / N) / 2 * unitB * unitB, outline: (2 + Math.PI * 2 + 2) * unitB };
+      cyl.visible = false; quarter.visible = true;
+      Object.assign(viewer.camera, { position: [12, -20, 9] });
+      await compare(100, 'two planes', [0, 0, -2], [2, 2, 2]);
+      // C. The cylinder under three oblique planes.
+      quarter.visible = false; cyl.visible = true;
+      const unitV = w => { const q = Math.hypot(...w); return w.map(x => x / q); };
+      viewer.clipPlanes = [{ normal: unitV([0.3, 1, 0.2]), offset: -0.5, cap: '#ff00ff' }, { normal: unitV([1, -0.2, 0.5]), offset: -0.8 }, { normal: unitV([-0.4, 0.3, -1]), offset: -1.1 }];
+      viewer.camera.fit({ min: [-3, -4, -3], max: [3, 4, 3] }, viewer.aspect);
+      await compare(100, 'three oblique planes', [-2, -3, -2], [2, 3, 2]);
+      const planes = viewer.clipPlanes.length;
+      viewer.dispose();
+      return { cube, two, half, linePick: linePick && linePick.mesh.name, picks, planes };
+    });
+    t.diagnostic(JSON.stringify({ cube: r.cube, two: r.two, half: r.half, linePick: r.linePick }));
+    assert.ok(Math.abs(r.half.pixels - r.half.want) <= r.half.outline, `two planes on a cylinder: ${r.half.pixels} cap px against ${r.half.want.toFixed(0)} ± ${r.half.outline.toFixed(0)}`);
+    assert.ok(Math.abs(r.cube.pixels - r.cube.want) <= r.cube.outline, `box section inside a solid: ${r.cube.pixels} cap px against ${r.cube.want.toFixed(0)} ± ${r.cube.outline.toFixed(0)}`);
+    assert.ok(Math.abs(r.two.pixels - r.two.want) <= r.two.outline, `two planes: ${r.two.pixels} cap px against ${r.two.want.toFixed(0)} ± ${r.two.outline.toFixed(0)}`);
+    assert.equal(r.linePick, null, 'the solid\'s edges cut away: no line found');
+    assert.equal(r.planes, 3);
+    // GPU picks the CPU's: the same mesh and cap (and plane); points within a few hundredths, the GPU's from its depth.
+    let differ = 0, caps = 0, far = 0;
+    for (const k of r.picks) {
+      if ((k.cpu?.name ?? null) !== (k.gpu?.name ?? null) || (k.cpu?.cap ?? false) !== (k.gpu?.cap ?? false) || (k.cpu?.plane ?? null) !== (k.gpu?.plane ?? null)) { differ++; continue; }
+      if (k.cpu?.cap) caps++;
+      if (k.cpu && Math.hypot(...k.cpu.point.map((x, i) => x - k.gpu.point[i])) > 0.05) far++;
+    }
+    t.diagnostic(JSON.stringify({ picks: r.picks.length, differ, caps, far }));
+    assert.ok(differ <= 2, `GPU picks against CPU rays: ${differ} of ${r.picks.length} differ (pixel-edge rounding allowed 2) ${JSON.stringify(r.picks.filter(k => (k.cpu?.name ?? null) !== (k.gpu?.name ?? null) || (k.cpu?.cap ?? false) !== (k.gpu?.cap ?? false)).slice(0, 3))}`);
+    assert.ok(caps > 100, `${caps} picks on caps`);
+    assert.equal(far, 0);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
 // G2b: a mesh's own cap colour, times its material colour; none: the plane's.
 test('G2b each mesh\'s cap in its own colour times its material colour; without one, the plane\'s', { timeout: 120000 }, async t => {
   const s = await open(t); if (!s) return;
