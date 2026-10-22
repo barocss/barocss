@@ -1,0 +1,4 @@
+[
+ { "id": "B1", "kind": "block", "size": [310, 210, 16], "source": "conformance/a9: an illustrative shop list for the A9 run, not a real shop's" },
+ { "id": "R30", "kind": "bar", "diameter": 30, "maxLength": 1000, "source": "conformance/a9: an illustrative shop list for the A9 run, not a real shop's" }
+]

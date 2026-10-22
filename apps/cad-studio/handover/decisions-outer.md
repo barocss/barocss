@@ -6710,3 +6710,59 @@ The test fails on the old code and passes on the fix.
 The A9-6 test of the old placement stays as it is: it is the record that the clash is found.
 
 **Verified (T1):** clearance-designed 5/5, tsc, eslint 0 errors.
+
+## O159 — O5, the A9 acceptance run, first half: the rows fixture and steps 1–7 (2026-10-23)
+
+**The rows** (`packages/barocss-cad-model/conformance/a9/rows/*.json`, with its README). The coordinator's conditions:
+- **It is a test fixture standing in for the person's files.** Each file is received through the chat's person-file path, `receivePersonRowFiles` at turn 1 (rows rule b), then passed by `file` to `features.load_rows` or the stock tools.
+- **Every row cites a source or says it is an estimate:**
+  - 6204: NSK's page, D139's B1. It gives no `boreDeviationUM`, because the page gives no bore tolerance.
+  - 214: Global O-Ring's AS568 chart, D139's O1.
+  - The fit rows (H7 18–30 and 30–50, k5, k6, N9, JS9, h9): all `estimate: true`, since ISO 286's deviations are not public as text (D139).
+  - R40: `estimate: true`, with sharp corners.
+  - B1, R30 and S6: the stock loaders require a source text, so it names this fixture as "an illustrative shop list for the A9 run, not a real shop's".
+- There is no standards text and no copied table.
+- One file per kind, in place of the S0's single rows.json, because a loader takes one kind per file.
+- **The owner's own acceptance, with a real person-supplied row/fit file, stays pending.**
+
+**The run** (`test/a9-acceptance.test.ts`). It goes through the real v2 tools (`dispatchTool`), on the brief as O158 corrected it. Each step and its oracle, all passing:
+1. **Rows.**
+   - `frame_sections {rows}` with the fixture's own rows is refused (ROWS_NOT_FROM_PERSON); the file loads R40, an estimate.
+   - Frame stock S6 with kerf 2, and stock B1 and R30 with allowance 1.
+   - The bearing, fit and O-ring rows go on the base, and each load echoes its file: name, `suppliedBy: person`, turn 1. The parts inherit them (A9-8).
+2. **Briefs.** The frame states purpose and material, and its process stays a gap: there is no weldment process (A9-12). p1 is cnc-milling, al6061; p2 cnc-turning, steel; p3 fdm, petg. Each part's manufacturability report runs on its own process (A9-2).
+3. **Frame.** 8 members, steel.
+   - **Exact:** A · ΣL = 444 · 2520 = 1 118 880 mm³, with the top at z 320.
+   - Cut list: [4 × 320, 2 × 360, 2 × 260].
+   - Nested into one S6: used 2520, kerf 14, offcut 3466.
+4. *(Welds, gussets and caps: not in this half.)*
+5. **Plate.** 200 × 300 × 14, so its 300 bridges the two 360 rails; four Ø6.6 holes over the rails, the Ø47 bore and the 50 × 30 × 8 pocket.
+   - **Exact:** 840000 − 12000 − 4π·3.3²·14 − π·23.5²·14 = 801 794.9075 mm³, to 5e-7.
+   - CAM: NOT FOR PRODUCTION; the stock a 210 × 310 × 16 box from B1 with allowance 1; the pocket's feed levels 11, 8, 6 in the +Z setup.
+6. **Shaft.** The defaults, the key, and the 6204: refused before its rows ("Load your bearing rows first"), then on step 3 against the start at k5.
+   - **Exact:** the bearing's body is 19 800.6522 mm³.
+   - Seat note: "k5: 20.002 to 20.011 (the ring's tolerance is not in its row), an estimate". The row's source is cited in the bearing's note.
+   - `fit_clearance` H7/k6 at 20: transition, −15 to +19 µm, an estimate.
+7. **Cover.** Ø60 × 8, a face gland for 214.
+   - Prefills: depth 3.53 · 0.75 = 2.6475 (2.648) and width π · 1.765² / (0.8 h) = 4.6208 (4.621), to 3 decimals.
+
+**Where the S0 was wrong, corrected here (no product change):**
+- **The offcut** is 6000 − 2520 − **7** · 2 = 3466. FRb's rule is n − 1 kerfs a bar (nesting.ts), where the S0 had 8 · 2.
+- **The seat note** has no "interference −21 to −2 µm": the row has no bore deviation, since D139's NSK source gives none.
+- **No weldment process**, so the frame's brief has no process (A9-12).
+
+**Findings: oracles not met, and not asserted yet.**
+- **F1. Manufacturing reports include the part's bought elements.**
+  - The shaft's cnc-turning report sizes it at "Ø47 × 95 mm along its axis". Ø47 is the 6204's outside; the shaft's largest step is Ø25.
+  - The cover's print layers (`print.layers`, G23 A) slice the bought O-ring body too: 45 layers to 8.882 mm with support columns from z 5.352, where the S0 expects 40 layers and no support.
+  - The BOM already tells made from bought (`elementLines`, bomCore). DFM, print and CAM do not use it.
+  - Proposal: one `madeBodies(doc, bodies)` by the same rule, applied to the manufacturability report, print layers and CAM. It touches cad-model's print and machining modules (this lane) and maybe the GPU lane's Print workspace input.
+- **F2. CAM drills every through hole twice,** once in the +Z setup and once in the −Z setup: holes 1–5 in both. The S0 expects one +Z setup.
+- **F3. CAM drills the Ø47 bore** as a plunge with the Ø6 tool, which cannot make it. A bore wider than the tool needs a circular pocket, or a refusal that names it.
+- **F4. Step 8 needs a placement decision.**
+  - With the bearing in the plate's bore (z 320–334), the shaft's step 3 stands 11 mm above the plate (z 345). A cover "on the plate over the bore" would clash with it.
+  - Options: (a) the cover on the plate clear of the shaft; (b) a cover with a clearance hole for the shaft; (c) the shaft's step 3 shortened to the bearing's 14, with no groove.
+
+**Verified (T1):** a9-acceptance 1/1 (steps 1–7), tsc, eslint 0 errors. Not run: the full suites.
+
+**Next (the second half), after F1–F4 are decided:** steps 4 and 8–11 — welds, gussets and caps; the assembly and its clean clearance map; the drawings; the BOM and purchase CSV; the outputs; the bundle; reopened identical.
