@@ -49,6 +49,8 @@ import { keySolid, keywayCut, ringSolid, pinSolid, ShaftPartError, type KeyFitCl
 import type { FitTable } from './fits.js';
 import { shaftSolid, ShaftError, type ShaftDiagnosticCode, type ShaftReport, type ShaftSpec } from './shaft.js';
 import { sprocket, pulley, beltBand, couplingEnvelope, DriveError, type DriveCode, type DriveRow, type SprocketReport, type PulleyReport, type BeltReport, type CouplingReport } from './drive.js';
+import { lookupSection, sectionTableProblem, type SectionTable } from './section-table.js';
+import { connectorBody, connectorOpening, ConnectorError, type ConnectorCode, type ConnectorReport, type ConnectorRow } from './connector.js';
 import { discCam, CamError, type CamCode, type CamLaw, type CamReport, type CamSpec } from './cam.js';
 import { compressionSpring, hookedSpring, springDimensions, SpringError, type HookedSpringReport, type HookedSpringSpec, type SpringDiagnosticCode, type SpringReport, type SpringSpec } from './spring.js';
 import { throatedWormWheel, throatedWormPlacement, type ThroatedWheelReport, type ThroatedWheelSpec, type PlacedThroatedWheel } from './gear-worm-wheel.js';
@@ -346,6 +348,15 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'belt'; readonly row: DriveRow; readonly pitchRadii: readonly [CadPartDim, CadPartDim]; readonly centerDistance: CadPartDim; readonly rounding?: 'whole' | 'even'; readonly width?: CadPartDim; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'belt@0' }
   | { readonly kind: 'coupling'; readonly row: DriveRow; readonly center?: CadPartPoint2; readonly from?: CadPartDim; readonly rotation?: number; readonly generator?: 'coupling@0' }
   /**
+   * R12c.7 (D162): a connector's opening cut into a flat `face` of `target` at `center` (on the face), its width turned
+   * `rotation` degrees about the face's normal, from the user's `row` inline (opening, body?, keepOut?; source or
+   * estimate); the output's `connector` is the report (the frame, the body's gaps, the keep-out in A6.3's form). A
+   * `connector-body` is the row's body envelope seated in that opening (it refers to it), its overlap with the panel
+   * checked: touching at most (`CONNECTOR_FIT`).
+   */
+  | { readonly kind: 'connector-opening'; readonly target: string; readonly face: string; readonly row: ConnectorRow; readonly center: CadPartPoint3; readonly rotation?: number }
+  | { readonly kind: 'connector-body'; readonly opening: string }
+  /**
    * A shaft (R12c.3a, D156): `steps` [{ diameter, length, fillet? (at the shoulder after it), undercut? { width, depth },
    * grooves? [{ diameter, width, at }], keyseats? [{ width, depth, length, offset, ends? square | end-mill (default) |
    * disc, cutterRadius?, angle? }] }] along +Z from `from` through `center`, `chamfers` [start, end], cross `holes`
@@ -517,7 +528,9 @@ export type CadPartSection =
   | { readonly kind: 'angle'; readonly legX: CadPartDim; readonly legY: CadPartDim; readonly thickness: CadPartDim; readonly rootRadius: CadPartDim; readonly toeRadius: CadPartDim }
   | { readonly kind: 'channel'; readonly height: CadPartDim; readonly width: CadPartDim; readonly web: CadPartDim; readonly flange: CadPartDim; readonly rootRadius: CadPartDim }
   | { readonly kind: 'tslot'; readonly size: CadPartDim; readonly cells: 1 | 2; readonly openSlots?: number; readonly opening: CadPartDim; readonly lip: CadPartDim; readonly undercut: CadPartDim; readonly depth: CadPartDim; readonly bore: CadPartDim }
-  | { readonly kind: 'sketch'; readonly sketch: string };
+  | { readonly kind: 'sketch'; readonly sketch: string }
+  /** A size from a section table (R12c.7, D162): the user's rows of one kind, inline; checked whole, a size it lacks refused. */
+  | { readonly kind: 'table'; readonly table: SectionTable; readonly size: string };
 export type CadPartErrorCode = 'FORMAT' | 'INPUT' | 'PARAMETER' | 'REFERENCE' | 'SELECTION' | 'CAPABILITY' | 'GEOMETRY';
 export class CadPartError extends Error {
   constructor(readonly code: CadPartErrorCode, readonly feature: string | null, detail: string) { super(`${feature ? feature + ': ' : ''}${detail}`.slice(0, 1024)); this.name = 'CadPartError'; }
@@ -567,6 +580,8 @@ export interface CadPartOutput {
   readonly cam?: CamReport;
   /** A drive element's report (R12c.6b): a sprocket's, a pulley's, a belt's or chain's, a coupling's (a bought item). */
   readonly sprocket?: SprocketReport; readonly pulley?: PulleyReport; readonly belt?: BeltReport; readonly coupling?: CouplingReport;
+  /** A connector's opening report (R12c.7): its frame, the body's fit, the keep-out; on a body, its overlap with the panel. */
+  readonly connector?: ConnectorReport; readonly connectorBody?: { readonly row: string; readonly overlapMM3: number };
   /** A shaft's report: its steps, keyseats, grooves and holes (R12c.3a). */
   readonly shaft?: ShaftReport;
   /** A key's, a keyway's, a ring's or a pin's report and checks (R12c.3b). */
@@ -661,6 +676,7 @@ interface Part {
   readonly spring?: SpringReport | HookedSpringReport;
   readonly cam?: CamReport;
   readonly sprocket?: SprocketReport; readonly pulley?: PulleyReport; readonly belt?: BeltReport; readonly coupling?: CouplingReport;
+  readonly connector?: ConnectorReport; readonly connectorBody?: { readonly row: string; readonly overlapMM3: number };
   readonly shaft?: ShaftReport;
   readonly shaftPlace?: BrepAffine;
   readonly key?: KeyReport; readonly keyway?: KeywayReport; readonly ring?: RingReport; readonly pin?: PinReport;
@@ -697,6 +713,8 @@ const GLAND_CODES: Record<GlandCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT
 const BEARING_CODES: Record<BearingCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', SEAT_ABUTMENT: 'GEOMETRY', SEAT_FIT: 'GEOMETRY' };
 /** Shaft parts' diagnostics as the part model's codes. */
 const SHAFT_PART_CODES: Record<ShaftPartCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', KEY_FIT: 'GEOMETRY', RING_FIT: 'GEOMETRY', PIN_FIT: 'GEOMETRY' };
+/** Connector refusals as the part model's codes (R12c.7; the connector's own code kept in the message). */
+const CONNECTOR_CODES: Record<ConnectorCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', CONNECTOR_PLACEMENT: 'GEOMETRY', CONNECTOR_FIT: 'GEOMETRY' };
 /** Drive refusals as the part model's codes (R12c.6b; the element's own code kept in the message). */
 const DRIVE_CODES: Record<DriveCode, CadPartErrorCode> = { INVALID_INPUT: 'INPUT', UNSUPPORTED_TOOTH_FORM: 'CAPABILITY', TOOTH_FORM: 'GEOMETRY', BELT_GEOMETRY: 'GEOMETRY' };
 /** Cam refusals as the part model's codes (the cam's own code kept in the message). */
@@ -1877,6 +1895,28 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, wormWheel: made!.report, wormWheelPlace: place }] };
       };
     }
+    case 'connector-opening': {
+      const target = solids(f.target, 'target');
+      if (target.length !== 1) fail('SELECTION', 'an opening is cut into one body');
+      if (typeof f.face !== 'string') fail('INPUT', 'face must name the face the opening is cut into');
+      const spec = { row: f.row as ConnectorRow, face: f.face as string, centerMM: xyz(f.center as CadPartPoint3, 'center'), ...(f.rotation !== undefined ? { rotationDeg: f.rotation as number } : {}) };
+      return () => {
+        let made: ReturnType<typeof connectorOpening> | undefined;
+        try { made = connectorOpening(brepOf(target[0], at), spec, at); }
+        catch (cause) { if (cause instanceof ConnectorError) fail(CONNECTOR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^connector: /, '')}`); throw cause; }
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, connector: made!.report }] };
+      };
+    }
+    case 'connector-body': {
+      const g = ref(f.opening, 'opening').result, gp = g.kind === 'solid' && g.parts.length === 1 ? g.parts[0] : undefined;
+      if (!gp?.connector) fail('REFERENCE', `${String(f.opening)} is not a connector's opening`);
+      return () => {
+        let made: ReturnType<typeof connectorBody> | undefined;
+        try { made = connectorBody(brepOf(gp!, at), gp!.connector!, at); }
+        catch (cause) { if (cause instanceof ConnectorError) fail(CONNECTOR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^connector: /, '')}`); throw cause; }
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, connectorBody: { row: gp!.connector!.row, overlapMM3: made!.overlapMM3 } }] };
+      };
+    }
     case 'oring-gland': {
       const target = solids(f.target, 'target');
       if (target.length !== 1) fail('SELECTION', 'a gland is cut into one body');
@@ -2439,6 +2479,14 @@ function memberShape(sec: unknown, what: string, t: Pick<Tools, 'ref' | 'dim' | 
     const { outer, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
     if (regions?.length) t.fail('CAPABILITY', 'a member\'s sketch section takes one outer loop (holes allowed) yet');
     return { kind: 'sketch', label: `sketch ${String(section.sketch)}`, outer, holes: holes ?? [], ...(tags ? { tags } : {}) };
+  }
+  if (section.kind === 'table') {
+    const problem = sectionTableProblem(section.table);
+    if (problem) t.fail('PARAMETER', `[SECTION_TABLE] ${problem}`);
+    const r = lookupSection(section.table as SectionTable, section.size as string);
+    if ('miss' in r) return t.fail('PARAMETER', `[SECTION_TABLE_MISS] ${what}: ${r.miss}`);
+    const b = frameSection(r.spec), tag = `${(section.table as SectionTable).id} ${String(section.size)}${r.estimate ? ', an estimate' : r.source ? ` (${r.source})` : ''}`;
+    return { kind: r.spec.kind, label: `${tag}: ${b.label}`, outer: b.outer, holes: b.holes, outerNames: b.outerNames, holeNames: b.holeNames, areaMM2: b.areaMM2, centroid: b.centroid, box: b.box, ...(b.derived ? { derived: b.derived } : {}) };
   }
   try {
     const b = frameSection(sectionSpec(section, t.dim, t.integer, t.fail));
@@ -3420,7 +3468,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   let validated: BrepCheckReport | undefined, area: number | undefined;
   const flats = new Map<string, FlatPattern>();
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

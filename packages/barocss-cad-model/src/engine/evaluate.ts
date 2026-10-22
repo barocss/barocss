@@ -117,6 +117,8 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.spring ? springNotes(o.spring) : []),
     ...(o.cam ? camNotes(o.cam) : []),
     ...(o.sprocket || o.pulley || o.belt || o.coupling ? driveNotes(o) : []),
+    ...(o.connector ? connectorNotes(o.connector) : []),
+    ...(o.connectorBody ? [{ text: `Connector body for ${o.connectorBody.row}: seated in its opening, touching nothing of the panel (overlap ${+o.connectorBody.overlapMM3.toFixed(6)} mm³, by the Boolean); an envelope only` }] : []),
     ...(o.shaft ? shaftNotes(o.shaft) : []),
     ...(o.key || o.keyway || o.ring || o.pin ? shaftPartNotes(o) : []),
     ...(o.bearing ? bearingNotes(o.bearing) : []),
@@ -559,6 +561,14 @@ function springNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['spring']
     { text: 'Not validated for manufacturing: no buckling, fatigue or relaxation check', warning: true },
     ...s.diagnostics.map(x => ({ text: x.message.replace(/^spring: /, ''), warning: x.severity === 'warning' })),
   ];
+}
+/** A connector opening's report as lines (R12c.7, D162): the opening, the body's fit, the keep-out. */
+function connectorNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['connector']>): { text: string; warning?: boolean }[] {
+  const mm = (x: number) => +x.toFixed(4), shape = (s: { shape: string; widthMM: number; heightMM: number }) => s.shape === 'round' ? `round Ø${mm(s.widthMM)}` : `${s.shape} ${mm(s.widthMM)} × ${mm(s.heightMM)}`;
+  return [{ text: `Connector opening ${r.name ?? r.row} (${r.estimate ? 'an estimate' : `your row, ${r.source}`}): ${shape(r.opening)}, ${mm(r.opening.depthMM)} deep, ${mm(r.opening.areaMM2)} mm²` },
+    ...(r.body ? [{ text: `Its body ${shape(r.body)} × ${mm(r.body.lengthMM)}: gaps ${mm(r.body.gapWidthMM)} and ${mm(r.body.gapHeightMM)} each side, standing ${mm(r.body.standsOutMM)} out of the face` }] : []),
+    ...(r.keepOut ? [{ text: `Keep-out in front of it: ${mm(r.keepOut.size[0])} × ${mm(r.keepOut.size[1])}, ${mm(r.keepOut.size[2])} out (the part's keep-outs, when the command added it)` }] : []),
+    { text: 'Envelopes only: not the receptacle\'s housing, contacts or tongue', warning: true }];
 }
 /** A drive element's report as lines (R12c.6b, D161): a sprocket's, a pulley's, a belt's or chain's, a coupling's. */
 function driveNotes(o: CadPartSnapshot['outputs'][number]): { text: string; warning?: boolean }[] {

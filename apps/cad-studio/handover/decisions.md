@@ -9405,3 +9405,102 @@ Ran:
 Not run:
 - RB and properties: next at the 4th kernel checkpoint since D160.
 - The full browser flow (the coordinator's).
+
+## D162 — R12c.7: section tables and connector envelopes from the user's rows (2026-10-22)
+
+R12c.7 as D139 froze it: a section table loader for FR's kinds, and connector envelopes (the opening, the body, a keep-out) with their fit checked as a declared fit. USB-C comes from U1's values as the test row, not a built-in.
+- No section or connector table is built in.
+- The section rows in the tests are test rows flagged estimates.
+- The connector row cites D139's U1 (Wikipedia, "USB hardware", read for D139), the source of its values.
+
+**Section tables** (`section-table.ts`):
+- **A table** is `{ id, kind (rect-tube | round-tube | angle | channel | tslot), label?, source | estimate, rows: [{ size, …the kind's dimensions, source? | estimate? }] }`.
+  - A T-slot's own size dimension is `sizeMM` in a table, because `size` names the row.
+- **`sectionTableProblem` checks the table whole:**
+  - its kind, an id, at least one size;
+  - each size listed once;
+  - every dimension of the kind, numbers 0 or more;
+  - no unknown field;
+  - a source or the estimate flag per size, its own or the table's (never both on one, never neither);
+  - and each size builds by FR1's closed forms: a `FrameSectionError` is named with its size.
+- **`lookupSection`** returns the size's spec, whether it is an estimate and where it is from. A miss names the sizes held.
+- **The part model:**
+  - a member's, a frame's or an override's section may be `{ kind: 'table', table, size }`, with the table inline, as the bend tables (D120);
+  - `[SECTION_TABLE] …` and `[SECTION_TABLE_MISS] …` (PARAMETER);
+  - the member's section label names the table, the size, and the estimate or the source.
+- **In the studio:** the outer lane's section library (FRc, O117) already holds rows by their dimensions, so a table loads into it.
+  - `frames/sectionTables.ts` (`isSectionTable`, `sectionTableRows`) turns a table, checked whole by the kernel first, into one library row a size: `<table>:<size>`, named `<label> <size>`, with its source or the estimate flag.
+  - The library's sections file input (`ui/FrameSections.tsx`, a three-line change in the outer lane's file) takes either library rows or a table.
+
+**Connectors** (`connector.ts`; a composition of existing features):
+- **A row** is `{ id, name?, opening { shape stadium | rect | round, widthMM, heightMM, cornerRadiusMM? (rect), depthMM }, body? { the same, lengthMM }, keepOut? { marginMM, depthMM }, source | estimate }`.
+  - Checked: a stadium's width is at least its height, a round's sizes are equal, a rect's corner is under half its side, the body is no larger than its opening.
+- **Areas in closed form** (`connectorSectionArea`): a stadium (w − h)h + πh²/4, a rounded rectangle wh − (4 − π)r², a circle πw²/4.
+- **The frame** (`connectorFrame`) on a flat face:
+  - z is the face's outward normal;
+  - x is world X projected on the face (world Y when the face is square to X), turned `rotation` about z;
+  - y = z × x.
+- **The opening** (`connectorOpening`; the kind `connector-opening` { target, face, row, center, rotation? }):
+  - the section is extruded from the face down its depth (and a hair proud) and cut by the analytic Boolean; faces `<id>.opening<k>` and `<id>.opening.bottom`;
+  - CONNECTOR_PLACEMENT: a face that is not flat; a centre off the face's plane; an opening that takes less than its full A·depth (it runs off the face, or through a thinner panel), the two volumes named.
+- **The body** (`connectorBody`; the kind `connector-body` { opening }, which refers to its opening):
+  - the row's body section, from the opening's bottom out its length along the axis;
+  - its fit is a declared fit checked by exact overlap with the panel (the analytic intersection): touching at most, else CONNECTOR_FIT with the overlap;
+  - the report gives its gaps across, (W − w)/2 and (H − h)/2, and how far it stands out, L − depth.
+  - U1: gaps 0.045 and 0.080, 0.31 out (S0's figures).
+- **The keep-out** (`connectorKeepOut`): the body's section (or the opening's) grown by the margin, the row's depth out from the face, in A6.3's form: a box from its frame's origin along x, normal × x and normal, clearance 0.
+  - It is the space the mating plug and its cable need in front of the opening.
+- Codes: INVALID_INPUT → INPUT, CONNECTOR_PLACEMENT and CONNECTOR_FIT → GEOMETRY, each with its own code kept.
+
+**Oracles and tests** (`test/r12c-standards.test.mjs`, 5 tests, all failing on the previous HEAD: the modules did not exist). Oracles are written in the test:
+- **The table's refusals and lookups:** a size's own source over the table's estimate; a miss naming the sizes.
+- **Members on two sizes:** their volumes A·L by the rounded tube's closed form w·h − (4 − π)r_o² − ((w − 2t)(h − 2t) − (4 − π)r_i²) to 1e-6, their labels, [SECTION_TABLE] and [SECTION_TABLE_MISS].
+- **The connector rows' refusals.**
+- **U1's opening in a 40 × 20 × 10 panel's top:**
+  - the removal A·6.2 to 1e-7, the body A_b·6.51;
+  - the gaps, the 0.31, no overlap, the body from z 3.8 to 10.31;
+  - the keep-out's frame and size;
+  - turned 90°, x along world Y.
+- **A square-cornered body in the stadium:** its corners beyond the round ends, ∫ 2(1.2 − √(1.28² − (x − 2.89)²)) dx from 2.89 to 4.125 (Simpson), × 2 ends × 6.2. The kernel's CONNECTOR_FIT overlap matches it to 1e-5.
+- **Refusals:** off the face, off its plane, on a cylinder.
+- **Conformance `r12c/`** (from a script with no kernel geometry):
+  - `connector-usb-c-opening`: the panel and the body by the stadium's area, centroids by moments;
+  - `connector-square-body-refused`;
+  - `frame-member-section-table`: A·L;
+  - `frame-member-section-table-miss`.
+
+**Studio and model:**
+- **The document's `connectors`** { version 1, rows } is in STUDIO_DOC_FIELDS and crosses to the worker. `editConnectorRows` keeps a row in use.
+- **Nodes:**
+  - `connector-opening` { parent, face, row, center, rotation? }: it consumes its body;
+  - `connector-body` { opening }: it refers to its opening.
+  - `usesOf`, `renumber`, `renameNode` and the named faces, `flatten` and `migrate` know them.
+- **The Connector opening command** (modify, "connector port receptacle"):
+  - one flat face picked and a row, offsets along and across the face from its centroid, a rotation;
+  - it adds the opening, the body when the row has one, and the row's keep-out to the part's keep-outs (`doc.references.keepouts`, A6.3), where the outer lane's keep-out check takes it.
+  - The keep-out is placed with the opening, and kept if the opening moves (said in its note).
+- **Notes:**
+  - the opening: its row and source, section, depth and area;
+  - the body: its gaps and how far it stands out;
+  - the keep-out;
+  - "Envelopes only: not the receptacle's housing, contacts or tongue";
+  - the body's own note: touching nothing, overlap 0.
+- **Friendly errors** for [CONNECTOR_ROW_UNKNOWN], [CONNECTOR_PLACEMENT], [CONNECTOR_FIT], [SECTION_TABLE] and [SECTION_TABLE_MISS].
+- **Panels and icon:** the Library panel's CONNECTORS (`ui/ConnectorRows.tsx`), the icon `cad-connector`.
+- **Chat v2:** a features command, its values behind `describe`. The per-turn total is 22,330 (was 22,319; cap 25,000).
+- **Tests:** `test/connector.test.ts` (4):
+  - the opening at a plate's centre through the command, the volumes, notes, labels and the keep-out written;
+  - moved and turned;
+  - a square body's and an off-face opening's titles;
+  - a section table read into the library and a member on one of its sizes, A·L;
+  - describe.
+  - `fields.test` gained `connectors`; the studio `chat.test` a context; `palette.test` the word, its flow-word test the connector command.
+- **A flow step** "Connector opening (R12c.7, D162)": the row loaded in the Library panel, a box and the opening through the scripted chat, the keep-out in the document, the body's gaps in the notes.
+- **Fixed in passing:** the cad-model's patterned-hole copies are cast to a feature. The new kind with a target and a centre made the spread's type widen.
+
+**Not in this stage:**
+- receptacle housings, contacts and the tongue (envelopes only);
+- connectors on curved faces;
+- the keep-out following its opening when the opening is edited;
+- connectors as LIB manifests: the opening cuts a panel, which LIB parts (bodies added) do not;
+- table rows shared across parts.

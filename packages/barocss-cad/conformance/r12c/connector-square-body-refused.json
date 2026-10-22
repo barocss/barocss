@@ -1,0 +1,81 @@
+{
+  "id": "r12c-connector-square-body-refused",
+  "step": "R12c",
+  "decisions": [
+    "D162"
+  ],
+  "about": "R12c.7: the same opening with a square-cornered body 8.25 × 2.4: its corners beyond the stadium's round ends overlap the panel — the declared fit (touching at most) refused CONNECTOR_FIT.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "ps",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            40,
+            20
+          ]
+        },
+        {
+          "id": "p",
+          "kind": "extrude",
+          "sketch": "ps",
+          "height": 10
+        },
+        {
+          "id": "o",
+          "kind": "connector-opening",
+          "target": "p",
+          "face": "p.top",
+          "row": {
+            "id": "usb-c",
+            "name": "USB-C receptacle opening",
+            "opening": {
+              "shape": "stadium",
+              "widthMM": 8.34,
+              "heightMM": 2.56,
+              "depthMM": 6.2
+            },
+            "body": {
+              "shape": "rect",
+              "widthMM": 8.25,
+              "heightMM": 2.4,
+              "lengthMM": 6.51
+            },
+            "keepOut": {
+              "marginMM": 1,
+              "depthMM": 15
+            },
+            "source": "U1 (D139): Wikipedia, \"USB hardware\", the connector dimensions table"
+          },
+          "center": [
+            20,
+            10,
+            10
+          ]
+        },
+        {
+          "id": "b",
+          "kind": "connector-body",
+          "opening": "o"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "error": {
+      "code": "GEOMETRY",
+      "messageIncludes": "[CONNECTOR_FIT] the body overlaps the panel by"
+    }
+  },
+  "oracle": "Each end: the rectangle |y| ≤ 1.2 beyond x = 2.89 outside the end circle r 1.28 up to x 4.125 — a positive area, times the 6.2 inside the panel."
+}

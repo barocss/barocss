@@ -22,19 +22,19 @@ test('the palette: each command\'s label typed gives that command first (empty p
   }
   // The flow's own palette words.
   const ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
-  for (const [q, id] of [['fillet', 'fillet'], ['chamfer', 'chamfer'], ['hole', 'hole'], ['interference', 'interference'], ['spring', 'spring'], ['cam', 'cam'], ['sprocket', 'sprocket'], ['pulley', 'pulley'], ['coupling', 'coupling'], ['belt', 'belt-drive'], ['chain', 'belt-drive'], ['shaft', 'shaft'], ['worm gear pair', 'worm-pair'], ['meshing gear', 'gear-mesh']] as const)
+  for (const [q, id] of [['fillet', 'fillet'], ['chamfer', 'chamfer'], ['hole', 'hole'], ['interference', 'interference'], ['spring', 'spring'], ['cam', 'cam'], ['sprocket', 'sprocket'], ['pulley', 'pulley'], ['coupling', 'coupling'], ['belt', 'belt-drive'], ['chain', 'belt-drive'], ['connector', 'connector'], ['shaft', 'shaft'], ['worm gear pair', 'worm-pair'], ['meshing gear', 'gear-mesh']] as const)
     assert.equal(paletteList(q, ctx)[0]?.c.id, id, q);
 });
 
-test('the palette: no word the browser flow types opens a drive command it did not mean (R12c.6b, D161)', async () => {
+test('the palette: no word the browser flow types opens a drive or connector command it did not mean (R12c.6b, D161; R12c.7, D162)', async () => {
   // (Every `.palette input').fill('…')` in the flow, typed into an empty part and a plate: the first command found is never a
   // sprocket, pulley, belt or coupling unless the word names it.)
   const { readFileSync } = await import('node:fs'), { join } = await import('node:path');
   const flow = readFileSync(join(process.cwd(), 'test/browser-flow.mjs'), 'utf8'), words = [...new Set([...flow.matchAll(/\.palette input'\)\.fill\('([^']+)'\)/g)].map(m => m[1]))];
-  const drives = new Set(['sprocket', 'pulley', 'belt-drive', 'coupling']), wrong: string[] = [];
+  const drives = new Set(['sprocket', 'pulley', 'belt-drive', 'coupling', 'connector']), wrong: string[] = [];
   for (const doc of [emptyDoc(), rectanglePart(64, 32, 8)]) {
     const ctx = { doc, bodies: [], selection: { faces: [], edges: [], bodies: [] } };
-    for (const q of words) { const first = paletteList(q, ctx)[0]?.c; if (first && drives.has(first.id) && !/sprocket|pulley|belt|chain|coupling/.test(q)) wrong.push(`"${q}" opens ${first.label}`); }
+    for (const q of words) { const first = paletteList(q, ctx)[0]?.c; if (first && drives.has(first.id) && !/sprocket|pulley|belt|chain|coupling|connector/.test(q)) wrong.push(`"${q}" opens ${first.label}`); }
   }
   assert.ok(words.length > 30, String(words.length)); assert.deepEqual(wrong, []);
 });
