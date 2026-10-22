@@ -2,7 +2,7 @@ import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 're
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
-import { PROPOSAL_ADDED, PROPOSAL_REMOVED, Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import { PROPOSAL_ADDED, PROPOSAL_REMOVED, Renderer, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
@@ -128,6 +128,8 @@ interface Props {
   instanceTransforms?: ReadonlyMap<string, Float64Array>;
   /** The section's clip plane on the GPU (G2): kept where dot(normal, p) ≥ offset; the part's bodies cut too, or only the placed parts. */
   clip?: SectionClip | null;
+  /** The hatch on the cut as lines (G19.3): WebGL2's clipped caps, the exact section's cut faces. */
+  sectionHatch?: SectionHatch | null;
   /** Analysis maps on the bodies (G6), and the value under the pointer as it moves over them (null off them). */
   scalarMaps?: readonly ScalarMap[] | null;
   onHoverScalar?(value: number | null): void;
@@ -402,6 +404,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(prop
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
   useEffect(() => { renderer.current?.setInstanceTransforms?.(props.instanceTransforms ?? null); request(); }, [props.instanceTransforms, backend]);
   useEffect(() => { renderer.current?.setClip?.(props.clip ?? null); request(); }, [props.clip, backend]);
+  useEffect(() => { renderer.current?.setSectionHatch?.(props.sectionHatch ?? null); request(); }, [props.sectionHatch, backend]);
   useEffect(() => { renderer.current?.setScalarMaps?.(props.scalarMaps ?? null); request(); }, [props.scalarMaps, backend]);
   useEffect(() => { renderer.current?.setMould?.(props.mould ?? null); request(); }, [props.mould, backend]);
   useEffect(() => { renderer.current?.setIsoclines?.(props.isoclines ?? null); request(); }, [props.isoclines, backend]);

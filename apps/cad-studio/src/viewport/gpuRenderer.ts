@@ -16,7 +16,8 @@ import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED } from './renderer';
-import type { EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
+import type { EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, SectionHatch, ThemeName, ViewRenderer, ViewState } from './renderer';
+import { hatchAngle } from './sectionView';
 import type { ScalarMap } from './scalarMaps';
 import type { ProposalOverlay } from '../engine/client';
 
@@ -295,6 +296,24 @@ export class GpuRenderer implements ViewRenderer {
     }
     this.viewer.requestRender();
   }
+  /**
+   * The hatch on the exact section's cut faces (G19.3): a line mesh a body, 1 CSS pixel wide, the face's colour × 0.45
+   * under it, moved with it; made when the section changes.
+   */
+  setSectionHatch(hatch: SectionHatch | null): void {
+    for (const m of this.hatchLines) { m.remove(); m.geometry.dispose(); }
+    this.hatchLines = [];
+    for (const h of hatch ?? []) {
+      const b = this.bodies[h.body]; if (!b || h.segments.length < 6) continue;
+      // (Black at 0.55 over the face: its colour × 0.45 however it is lit, as the caps' hatch.)
+      const m = this.viewer.add({ positions: h.segments, topology: 'lines' }, { name: 'section hatch', pickable: false, castShadow: false, receiveShadow: false, clipped: false, bounded: false,
+        material: { color: '#000000', opacity: 0.55, unlit: true, lineWidth: 1 } });
+      m.transform = b.surface.transform;
+      this.hatchLines.push(m);
+    }
+    this.viewer.requestRender();
+  }
+  private hatchLines: Mesh[] = [];
   /** Overlay points by key (G8): one point mesh each, made when they change. */
   setOverlayPoints(key: string, points: OverlayPoints | null): void {
     const had = this.overlays.get(key);
@@ -379,10 +398,15 @@ export class GpuRenderer implements ViewRenderer {
    */
   private applyClip(): void {
     if (!this.clip) return;
-    const bodies = this.clip.bodies, cut = new Set<Mesh>();
+    const bodies = this.clip.bodies, cut = new Set<Mesh>(), spacing = this.clip.hatch ?? 0;
     for (const b of this.bodies) for (const m of [b.surface, b.edges, b.highlight]) if (m) { m.clipped = bodies; cut.add(m); }
-    for (const b of this.bodies) b.surface.cap = true;
-    for (const it of this.instances) { for (const m of [...it.surfaces, ...it.edges, ...(it.threads ? [it.threads] : [])]) { m.clipped = true; cut.add(m); } for (const m of it.surfaces) m.cap = true; }
+    // (G19.3: each surface's cap hatched at its angle by its turn — the bodies', then the placed parts'.)
+    let turn = 0;
+    for (const b of this.bodies) { b.surface.cap = true; b.surface.capHatch = spacing > 0 && bodies ? { angle: hatchAngle(turn), spacing } : null; turn++; }
+    for (const it of this.instances) {
+      for (const m of [...it.surfaces, ...it.edges, ...(it.threads ? [it.threads] : [])]) { m.clipped = true; cut.add(m); }
+      for (const m of it.surfaces) { m.cap = true; m.capHatch = spacing > 0 ? { angle: hatchAngle(turn), spacing } : null; turn++; }
+    }
     for (const m of this.viewer.meshList) if (!cut.has(m)) m.clipped = false;
   }
 

@@ -1089,3 +1089,60 @@ a union of two half-space removals, a corner taken out) — to be scheduled, not
 - **Limits**: the caps cast no shadow (G2) — a box section's kept part casts none; the exact section of several planes
   decides by the display mesh whether a plane crosses a piece (a plane within tessellation of a curved face's tangent
   may disagree with the kernel, which then refuses: the clipped view stays).
+
+## G19.3 — the hatch on the cut (2026-10-22)
+
+- **The rule, one for both renderers**: world-space lines on each plane, through the world's origin, in the plane's own
+  axes — `capHatchAxes(normal)` (gpu, exported; `hatchAcross` in WGSL): the normal turned so its largest component is
+  positive (a plane and its flip hatch alike), u the next world axis after that component's (x → y → z → x) projected
+  into the plane, v = n × u; a hatch at θ runs along cos θ·u + sin θ·v, `spacing` apart. A line is 1 CSS pixel wide and
+  the face under it × 0.45 (the coordinator's "cap colour × 0.45"; on lit caps, of the lit colour).
+- **Viewer** (gpu): `Mesh.capHatch` / `AddMeshOptions.capHatch` `{ angle (degrees), spacing (world) } | null`, default
+  none; the object block +16 bytes (`OBJECT_BYTES` 192 → 208, stride 256 unchanged). `fsCap`: the hatch coordinate
+  from the cap point C and C's plane, its change per pixel `length(dpdx, dpdy)` (not fwidth: a 45° line would be √2
+  wide), taken before any discard; coverage clamp(½·dpr + ½ − d) — a line one pixel wide at any angle.
+- **Studio**:
+  - Angles by body in turn — the bodies', then the placed parts' surfaces — 45°, 135°, 30°, 120°, 60°, 150°
+    (`hatchAngle`); spacing a sixtieth of the part's and placed parts' box diagonal, down to the step below of 0.5, 1, 2,
+    5, 10 mm (`hatchSpacing`). On by default; the section bar's "Hatch the cut" toggles it (its own state, not part of
+    `Section`, so the exact section is not computed again).
+  - WebGPU while the planes move: the caps' shader (`SectionClip.hatch` → each capped surface's `capHatch`).
+  - As lines (`hatchSegments`, `sectionHatch`; `ViewRenderer.setSectionHatch`): WebGL2's clipped caps, and the exact
+    section's cut faces on either renderer (they are ordinary faces there). The lines are cut against every triangle lying
+    on a section plane (within 1e-3 mm) and facing the side cut away — a clipped cap or an exact piece's cut face alike —
+    each line k crossing two edges (half open). Drawn black at 0.55 opacity, so the face under them is × 0.45 however it
+    is lit. The first try used the body's colour × 0.45, opaque: 1.58 × the shader's ink.
+- **Evidence**:
+  - `tests/viewer-pose-clip-browser.test.mjs` (real WebGPU), G19.3: two boxes under y = 0 at 45° / 0.4 and 120° / 0.6,
+    every pixel's darkening read back (α). The mean α over a cap equals a pixel over the spacing in pixels (0.1439 against
+    0.1434, 0.0956 against 0.0956). Of the angles every 5°, the lines of the mesh's own angle and spacing through the
+    origin lie where α is (0.85 mean α within 0.3 pixel of them). The same after the camera pans and zooms, and on an
+    oblique plane through both (seen along it, its axes from `capHatchAxes`). Off: α 0.
+  - G19's limit pinned (the coordinator's request): a 2 mm box wholly inside a 10 mm one and wholly kept. Over it the
+    GPU pixel, the GPU pick and the CPU ray all give the inner box's front face, no cap. Beside it, the outer cap. A fix
+    shows as a changed expectation.
+  - `test/section-hatch.test.ts` (3): the axes (axis planes, flips, orthonormal on three oblique planes), equal to the
+    WGSL rule by the browser test above. Segments on a clipped cap at 0° (x = 2 … 20, total 80 = 10 lines × 8, all on
+    y = 5 within the cap) and at 45° (length within a line of the area over the spacing; direction (x + z)/√2; whole
+    spacings through the origin). None on the body's own faces. An oblique cap within a line of 12√2·8/0.5. The exact
+    section's cut face the same as the clipped cap (80). Two bodies at 45° and 135°. The spacing steps.
+  - Flow step G19.3 (new, before the theme step), on both renderers, on a 40 × 20 × 10 plate, spacing 0.5:
+    - On by default, with lines on the exact section's cut face.
+    - Ink (the luminance the hatch takes away), WebGPU: the exact face's lines 673 389; held back, the caps' shader
+      670 253 against the CPU's lines 677 747 (1.1 %; the step allows 20 %).
+    - Ink, WebGL2: exact 1 327 609, the clipped caps 1 339 838.
+    - Off: no hatch, no lines, no shader hatch; then on again.
+    - `sectionAgainstCpu` (G2's and G19's GPU-against-CPU) compares with the hatch off, then turns it back on. Its
+      figures are as before: section 164, with instances 105, posed 153, box 963, two planes 938 strong pixels of
+      1 296 000.
+  - Bench (`BENCH_ONLY=section`, run alone, load 14–16): GPU section 2.38 → 2.04 ms GPU a submit, task 17.2 → 17.7 ms
+    a frame, upload 2.6 KiB unchanged. CPU path 20.7 → 21.5 ms a frame (the segments each step).
+- **Checks** (T1, gpu and studio), in the verify worktree on `3a90a9e2c` plus these changes:
+  - gpu: tsc and lint clean; unit 83/83, consumer 3/3, browser 16/16.
+  - studio: tsc and eslint clean; suite 210/210.
+  - `FLOW_ONLY` (G19.2, G19.3, step 73, the instance and RM2 steps): WebGPU 6/6 and WebGL2 6/6, load 36–50.
+  - Not run: the full flow, the cad-model suite (not touched), the other bench rows.
+- **Limits**:
+  - The exact section's hatch lines are made when the section changes. A body moved after that (an explode, a
+    drag) keeps its lines where it was, until the next change.
+  - A body face lying exactly on a section plane and facing the cut-away side is hatched although nothing was cut there.

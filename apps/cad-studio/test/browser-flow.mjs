@@ -217,10 +217,14 @@ try {
     const s = await page.evaluate(() => window.__studioSection());
     if (renderer === 'webgl2') { assert.equal(s.gpu, false, 'WebGL2 clips on the CPU'); assert.equal(s.clip, null); return null; }
     assert.equal(s.gpu, true, 'WebGPU clips on the GPU'); assert.ok(s.clip, 'the clip plane set');
+    // (G19.3: the caps compared unhatched — the hatch's own parity is G19.3's step.)
+    const hatched = await page.locator('[aria-label="Hatch the cut"][aria-pressed="true"]').count();
+    if (hatched) await page.click('[aria-label="Hatch the cut"]');
     const shot = async cpu => { await page.evaluate(c => window.__studioSectionDebug({ hold: true, cpu: c }), cpu); await page.waitForTimeout(500); return page.locator('canvas.vp-canvas').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-${name}-${cpu ? 'cpu' : 'gpu'}.png`) }); };
     const gpu = await shot(false), cpu = await shot(true);
     const held = await page.evaluate(() => window.__studioSection());
     await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false })); await page.waitForTimeout(300);
+    if (hatched) await page.click('[aria-label="Hatch the cut"]');
     assert.equal(held.clip, null, 'the CPU path: no clip plane');
     return page.evaluate(async ([a, b]) => {
       const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height); };
@@ -6536,6 +6540,61 @@ try {
     await page.click('[aria-label="Section mode"] button:text-is("Plane")');
     await exactAt(40 * 10 * 10, 'one plane');
     assert.equal(await page.locator('[aria-label="Section"] [aria-label="Sketch the section"]').isDisabled(), false);
+    await page.click('[aria-label="Section view"]');
+  });
+
+  // ---- G19.3: the hatch on the cut ----------------------------------------------------------------------------------------
+  await check('G19.3: the hatch on the cut — on by default at the scene\'s spacing; lines on the exact section\'s cut face; the GPU caps\' hatch and the CPU\'s lines the same ink; off and on — on either renderer', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const plate = join(out, 'g193-plate.bcad');
+    fs.writeFileSync(plate, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }] }));
+    await openModel(plate, 2); await idle(); await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(300);
+    const sec = () => page.evaluate(() => window.__studioSection());
+    if (await page.locator('[aria-label="Section mode"]').count()) await page.click('[aria-label="Section view"]');
+    await page.click('[aria-label="Section view"]'); await page.waitForSelector('[aria-label="Hatch the cut"]', { timeout: 5000 });
+    await page.waitForFunction(() => window.__studioSection()?.exact, null, { timeout: 30000 });
+    // On by default; the plate's diagonal (45.8 mm) over 60, down to 0.5 mm.
+    let s = await sec();
+    assert.equal(await page.locator('[aria-label="Hatch the cut"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(s.hatch?.spacing, 0.5, JSON.stringify(s.hatch));
+    // The exact section's cut face (40 × 10 on y = 10, the lines at 45° 0.5 apart): lines on it, on either renderer.
+    assert.equal(s.hatch.lines?.length, 1, JSON.stringify(s.hatch)); assert.ok(s.hatch.lines[0].segments > 40, JSON.stringify(s.hatch));
+    const shot = name => page.locator('canvas.vp-canvas').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g193-${name}.png`) });
+    // The ink of the hatch: how much darker the frame is with it than without (sum over pixels of the luminance lost).
+    const ink = (on, off) => page.evaluate(async ([a, b]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(a), B = await load(b); let sum = 0, px = 0;
+      for (let k = 0; k < A.length; k += 4) { const d = (B[k] + B[k + 1] + B[k + 2] - A[k] - A[k + 1] - A[k + 2]) / 3; if (d > 0) sum += d; if (Math.abs(d) > 8) px++; }
+      return { ink: Math.round(sum), pixels: px };
+    }, [on.toString('base64'), off.toString('base64')]);
+    const toggle = async want => { await page.click('[aria-label="Hatch the cut"]'); await page.waitForFunction(w => !!window.__studioSection().hatch === w, want, { timeout: 5000 }); await page.waitForTimeout(400); };
+    const pair = async name => { const on = await shot(name + '-on'); await toggle(false); const off = await shot(name + '-off'); await toggle(true); return ink(on, off); };
+    const exact = await pair('exact');
+    assert.ok(exact.ink > 0 && exact.pixels > 100, `the exact cut face's lines: ${JSON.stringify(exact)}`);
+    const out193 = { renderer, spacing: s.hatch.spacing, exact };
+    if (renderer === 'webgpu') {
+      // While the plane moves (the exact section held back): the caps' hatch on the GPU, and the CPU's lines — the same ink.
+      await page.evaluate(() => window.__studioSectionDebug({ hold: true, cpu: false })); await page.waitForTimeout(500);
+      s = await sec(); assert.equal(s.clip?.hatch, 0.5, JSON.stringify(s.clip)); assert.equal(s.hatch.lines, null, 'no lines: the shader hatches');
+      out193.gpu = await pair('gpu');
+      await page.evaluate(() => window.__studioSectionDebug({ hold: true, cpu: true })); await page.waitForTimeout(500);
+      s = await sec(); assert.equal(s.clip, null); assert.ok(s.hatch.lines?.[0]?.segments > 40, JSON.stringify(s.hatch));
+      out193.cpu = await pair('cpu');
+      await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false })); await page.waitForTimeout(300);
+      assert.ok(out193.gpu.ink > 0 && Math.abs(out193.gpu.ink - out193.cpu.ink) <= 0.2 * out193.cpu.ink, `GPU hatch against the CPU's lines: ${JSON.stringify(out193)}`);
+    } else {
+      // (WebGL2: the planes cut on the CPU; while they move the clipped caps' lines.)
+      await page.evaluate(() => window.__studioSectionDebug({ hold: true, cpu: false })); await page.waitForTimeout(500);
+      s = await sec(); assert.equal(s.clip, null); assert.ok(s.hatch.lines?.[0]?.segments > 40, JSON.stringify(s.hatch));
+      out193.cpu = await pair('cpu');
+      await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false })); await page.waitForTimeout(300);
+      assert.ok(out193.cpu.ink > 0, JSON.stringify(out193));
+    }
+    console.log(`  G19.3 hatch: ${JSON.stringify(out193)}`);
+    // Off: no hatch, no lines, no shader hatch; on again.
+    await toggle(false); s = await sec();
+    assert.equal(s.hatch, null); if (s.clip) assert.equal(s.clip.hatch, null);
+    await toggle(true); await snap('g193-hatch');
     await page.click('[aria-label="Section view"]');
   });
 

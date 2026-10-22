@@ -74,7 +74,10 @@ export interface OverlayLines {
   /** Its parts behind surfaces drawn too, at this share of its opacity (0 – 1; default 0: hidden). */
   hidden?: number;
 }
-export interface SectionClip { planes: { normal: Vec3; offset: number }[]; bodies: boolean }
+/** The section's planes on the GPU (G2, G19); `hatch`: the caps' hatch spacing (mm, G19.3), null for none. */
+export interface SectionClip { planes: { normal: Vec3; offset: number }[]; bodies: boolean; hatch?: number | null }
+/** The hatch on the cut drawn as lines (G19.3): each body's (by its index) segments, six numbers each. */
+export type SectionHatch = readonly { body: number; segments: Float32Array }[];
 /** What the viewport draws with: the WebGL2 Renderer here, or the WebGPU one (gpuRenderer.ts). */
 export interface ViewRenderer {
   /** Host-driven frames (GPU viewer): its own frame requests go here instead of to its own animation frame (PERF3 A2). */
@@ -109,6 +112,11 @@ export interface ViewRenderer {
   setInstanceTransforms?(transforms: ReadonlyMap<string, Float64Array> | null): void;
   /** The section's clip plane (WebGPU only, G2): the placed parts cut and capped, the part's bodies too when `bodies`. */
   setClip?(clip: SectionClip | null): void;
+  /**
+   * The hatch on the cut as lines (G19.3): on WebGL2 the clipped bodies' caps, on either the exact section's cut faces — a
+   * line 1 CSS pixel wide, the face's colour × 0.45 under it; null none.
+   */
+  setSectionHatch?(hatch: SectionHatch | null): void;
   /** Analysis maps on the bodies (WebGPU only, G6): each body's scalar field in its colour map; null: the bodies' own look. */
   setScalarMaps?(maps: readonly import('./scalarMaps').ScalarMap[] | null): void;
   /** The map's value under a point (WebGPU only, G6), or null off the mapped bodies. */
@@ -285,6 +293,7 @@ export class Renderer implements ViewRenderer {
   private bodies: GpuBody[] = [];
   private direct: DirectShown[] = []; private directExtras: { line: Plain; color: readonly number[]; width: number }[] = [];
   private proposal: ProposalShown[] = [];
+  private hatch: { body: number; line: Plain }[] = [];
   private gridVao: WebGLVertexArrayObject; private gridCount = 0;
   private quadVao: WebGLVertexArrayObject; private corner: WebGLBuffer; private emptyVao: WebGLVertexArrayObject;
   private pickFbo: WebGLFramebuffer | null = null; private pickTex: WebGLTexture | null = null; private pickDepthTex: WebGLTexture | null = null; private pickDepth: WebGLRenderbuffer | null = null;
@@ -441,6 +450,12 @@ export class Renderer implements ViewRenderer {
     }
   }
 
+  /** The hatch on the cut (G19.3): each body's segments, drawn with its edges (placed as it is), its face's colour × 0.45. */
+  setSectionHatch(hatch: import('./renderer').SectionHatch | null): void {
+    for (const h of this.hatch) this.free(h.line);
+    this.hatch = (hatch ?? []).filter(h => h.segments.length >= 6).map(h => ({ body: h.body, line: this.plainLines(h.segments) }));
+  }
+
   /**
    * A proposal's diff (G12 on WebGL2, G16): the material it adds (green) and takes away (red) see-through over the bodies,
    * drawn in front of the faces they lie on (a decal), with their edges (faint where hidden). The volume chips are drawn
@@ -570,6 +585,18 @@ export class Renderer implements ViewRenderer {
       this.place(this.line, view, bi, false);
       gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], view.ghostBodies.has(bi) ? 0.35 : 0.9);
       gl.bindVertexArray(b.lineVao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, b.segments);
+    }
+    if (this.hatch.length) {
+      // (A line 1 CSS pixel wide: the width is half of it.)
+      gl.uniform1f(this.u(this.line, 'uWidth'), 0.5 * dpr);
+      // (Black at 0.55 over the face: its colour × 0.45 however it is lit, as the GPU's caps.)
+      for (const h of this.hatch) {
+        if (h.body >= this.bodies.length || view.hiddenBodies?.has(h.body)) continue;
+        this.place(this.line, view, h.body, false);
+        gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, view.ghostBodies.has(h.body) ? 0.55 * 0.35 : 0.55);
+        gl.bindVertexArray(h.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, h.line.count);
+      }
+      gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);
     }
     if (this.direct.length || this.proposal.length) {
       this.unplaced(this.line, false);

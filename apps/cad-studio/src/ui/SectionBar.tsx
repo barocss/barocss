@@ -52,8 +52,8 @@ export function sectionHandles(section: Section, box: Box, set: (f: (s: Section 
  * The bar. `box`: the part's and its placed parts' box; `facePick`: the plane a face click sets (its index) or null;
  * `onSketch`: Sketch the section (one plane only).
  */
-export function SectionBar({ section, setSection, box, facePick, setFacePick, onSketch }: {
-  section: Section; setSection(f: (s: Section | null) => Section | null): void; box: Box; facePick: number | null; setFacePick(i: number | null): void; onSketch(): void;
+export function SectionBar({ section, setSection, hatch, setHatch, box, facePick, setFacePick, onSketch }: {
+  section: Section; setSection(f: (s: Section | null) => Section | null): void; hatch: boolean; setHatch(on: boolean): void; box: Box; facePick: number | null; setFacePick(i: number | null): void; onSketch(): void;
 }) {
   const set = (planes: SectionPlane[], mode = section.mode) => setSection(() => ({ mode, planes }));
   const mode = (m: Section['mode']) => {
@@ -83,6 +83,7 @@ export function SectionBar({ section, setSection, box, facePick, setFacePick, on
       <span className="mono small" aria-label={`Section plane ${i + 1} is`}>{label(p)}</span>{axisButtons(i)}{faceButton(i)}{flip(i)}
       {section.planes.length > 2 && <button aria-label={`Remove section plane ${i + 1}`} onClick={() => set(section.planes.filter((_, j) => j !== i))}><Icon name="close" small /></button>}</span>)}
       {section.planes.length < 3 && <button aria-label="Add a section plane" data-tip="Add a plane" onClick={() => set([...section.planes, middlePlane(AXES.find(a => !section.planes.some(p => planeAxis(p) && 'xyz'[planeAxis(p)!.k] === a)) ?? 'z', box)])}><Icon name="add" small /></button>}</>}
+    <button className={hatch ? 'on' : ''} aria-pressed={hatch} aria-label="Hatch the cut" data-tip="Hatch" data-tip-desc="Lines on the cut, each part's at its own angle" onClick={() => setHatch(!hatch)}><Icon name="texture" small /></button>
     {section.mode !== 'plane' && <button aria-label="Sketch the section" disabled data-tip="Sketch the section" data-tip-desc="One plane only: a sketch lies on one plane"><Icon name="cad-sketch" small /></button>}
     {facePick !== null && <span className="muted small" role="status">Click a flat face</span>}
   </div>;
