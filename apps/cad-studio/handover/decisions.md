@@ -11031,3 +11031,41 @@ values), 1200 along X, 90° on R 150, 800 along Y.
 and the open items:
 - K2's flow and WebGPU, the GPU lane's;
 - the `r6/facet-cube-sphere-intersect` ȳ pin (D179).
+
+## D184 — K7: the facet rims about an exact ball; the ribbon beside a pole; r6 sphere-intersect's ȳ to its closed form (2026-10-23)
+
+**D179's open item.** `r6/facet-cube-sphere-intersect` (the facet cube ∩ a ball R 6 about its corner (20, 20, 20), an
+eighth of the ball) pinned ȳ 17.74954826.
+- By symmetry, and the eighth ball's 3R/8, each coordinate is 20 − 3·6/8 = 17.75. x̄ and z̄ were 17.75; ȳ was off by
+  4.5e-4.
+- **Cause, the same gap as D177/D179:**
+  - The three facet faces meet the exact sphere face along 33-point polylines, sag 1.8e-3 mm.
+  - The sphere is revolved about z, its pole at (20, 20, 14) on its face, so the face is integrated on the pole route:
+    no strips, so no ribbons.
+  - The rims' gaps stay unclosed. Each gap lies in a coordinate plane and moves only that coordinate's moment, weighted
+    by (plane − centre)². The integrals' centre is (20, 17, 20), so only the y = 20 rim shows:
+    4.5 · 0.01135 mm² / 113.1 = 4.5e-4, as observed.
+  - The pin was the kernel's own output.
+- **Fix, `src/brep-mass-quadrature.ts`:**
+  - Beside a pole, the boundary chords now take their ribbon alone (`ribbonOnly`): P = S(C) to the edge's E at the
+    strip's 8 nodes, F(P + g/2)·(P′ × g).
+  - P′ comes from central differences of P itself, because the surface's tangents degenerate at the pole.
+  - The strips stay out, their chord error extrapolated as before. The ribbon is no step's error, so it goes into the
+    squared part unchanged by the extrapolation.
+  - A node that cannot be inverted leaves its chord without a ribbon (the gap as before).
+  - The chord map is built on pole faces too.
+- **Results:**
+
+  | Value | Before | After |
+  |---|---|---|
+  | Sphere-intersect ȳ | 17.749548 | 17.75000005 |
+  | Sphere-intersect volume, rel. to 36π | 5e-11 | 4e-11 |
+  | The other r6 cases, V notch, D126 table | — | unchanged |
+
+  The expectation 17.74954826 is corrected to 17.75 (the closed form); absTol 1e-6 is unchanged.
+
+**Checks (T1+):**
+- lint 0 errors, type-check clean, build.
+- Every test file that tessellates, builds SubD or takes mass (87 files), in a detached scratch worktree: 878/879,
+  1 skipped, 0 failing.
+- T2 (full suite, RB, properties) rides the coordinator's window.

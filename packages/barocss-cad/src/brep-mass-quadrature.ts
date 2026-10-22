@@ -207,7 +207,7 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     // (A pole counts where the face reaches it: a ball's patch away from both poles — a corner blend's, D93 — is a plain
     // trimmed face.)
     const span = Math.max(du, dv, 1e-300), pole = polesOf(surfaces.get(face.faceId)!).some(q => uv.some(x => Math.abs(x[q.along === 0 ? 1 : 0] - q.at) <= 1e-9 * span)), users = new Map<string, { t: number; e: number }[]>();
-    if (!pole) for (let t = 0; t < domain.length; t++) {
+    for (let t = 0; t < domain.length; t++) {
       const [i, j, k] = domain[t], qa = uv[i - off], qb = uv[j - off], qc = uv[k - off];
       // (A triangle with two corners at one point bounds nothing; one of three distinct points in a line — three samples
       // of a straight run of the boundary, left by the ear clipping — does: its two short chords are the edge's. D179.)
@@ -227,7 +227,10 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
         // (The segment's parameters in the direction a → b.)
         const pa = point(a), fromA = seg.from[0] === pa[0] && seg.from[1] === pa[1] && seg.from[2] === pa[2];
         sink.ev = curveEvaluator(seg.curve); sink.d1 = curveD1Evaluator(seg.curve);
-        strip(sink, uv[a - off], uv[b - off], fromA ? seg.tFrom : seg.tTo, fromA ? seg.tTo : seg.tFrom);
+        // (Beside a pole the strips stay out, their chord error extrapolated; the ribbon to the edge is no step's error,
+        // and goes in alone: the facet rims about an exact ball, D184.)
+        if (pole) ribbonOnly(sink, uv[a - off], uv[b - off], fromA ? seg.tFrom : seg.tTo, fromA ? seg.tTo : seg.tFrom);
+        else strip(sink, uv[a - off], uv[b - off], fromA ? seg.tFrom : seg.tTo, fromA ? seg.tTo : seg.tFrom);
       }
     }
     // Its vector area (∫ n dA) against the exact one, ½∮ x × dx along its edges: coverage or orientation gone
@@ -470,6 +473,40 @@ function strip(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
       stripVec[0] += ribbonN[0] * w; stripVec[1] += ribbonN[1] * w; stripVec[2] += ribbonN[2] * w; s.area += Math.hypot(ribbonN[0], ribbonN[1], ribbonN[2]) * Math.abs(w);
     }
   } catch { s.area = area; s.dropped++; return; }
+  for (let k = 0; k < 10; k++) s.curved[k] += stripI[k];
+  s.vec[0] += stripVec[0]; s.vec[1] += stripVec[1]; s.vec[2] += stripVec[2];
+}
+/**
+ * The ribbon alone (D184), for a chord beside a surface's pole, where the strip stays out: from the surface's point
+ * P = S(C) to the edge's own E at the strip's t nodes, F(P + g/2)·(P′ × g) as in `strip`, with P′ by central differences
+ * of P itself (the surface's tangents degenerate at the pole). An edge on the surface adds nothing; a node not to be
+ * inverted leaves the chord without its ribbon (its gap stays, as before D184).
+ */
+function ribbonOnly(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
+  const ex = q[0] - p[0], ey = q[1] - p[1];
+  if (!(ex * ex + ey * ey > 0)) return;
+  stripI.fill(0); stripVec[0] = stripVec[1] = stripVec[2] = 0;
+  const area = s.area, h = 1e-4;
+  let any = false;
+  try {
+    for (let i = 0; i < 8; i++) {
+      const t = ST.x[i], E = s.ev(tp + (tq - tp) * t), c = nearUV(s, E, [p[0] + ex * t, p[1] + ey * t]);
+      if (!c) throw new Error('ribbon projection failed');
+      const P = s.at(c[0], c[1]), gx = E[0] - P[0], gy = E[1] - P[1], gz = E[2] - P[2];
+      if (Math.hypot(gx, gy, gz) <= 1e-12 * (1 + Math.abs(E[0]) + Math.abs(E[1]) + Math.abs(E[2]))) continue;
+      const Ea = s.ev(tp + (tq - tp) * (t - h)), Eb = s.ev(tp + (tq - tp) * (t + h));
+      const ca = nearUV(s, Ea, [p[0] + ex * (t - h), p[1] + ey * (t - h)]), cb = nearUV(s, Eb, [p[0] + ex * (t + h), p[1] + ey * (t + h)]);
+      if (!ca || !cb) throw new Error('ribbon projection failed');
+      const Pa = s.at(ca[0], ca[1]), Pb = s.at(cb[0], cb[1]), tx = (Pb[0] - Pa[0]) / (2 * h), ty = (Pb[1] - Pa[1]) / (2 * h), tz = (Pb[2] - Pa[2]) / (2 * h);
+      ribbonN[0] = ty * gz - tz * gy; ribbonN[1] = tz * gx - tx * gz; ribbonN[2] = tx * gy - ty * gx;
+      ribbonM[0] = P[0] + gx / 2; ribbonM[1] = P[1] + gy / 2; ribbonM[2] = P[2] + gz / 2;
+      const w = -ST.w[i] * s.sigma;
+      accumulate(stripI, ribbonM, ribbonN, w);
+      stripVec[0] += ribbonN[0] * w; stripVec[1] += ribbonN[1] * w; stripVec[2] += ribbonN[2] * w; s.area += Math.hypot(ribbonN[0], ribbonN[1], ribbonN[2]) * Math.abs(w);
+      any = true;
+    }
+  } catch { s.area = area; return; }
+  if (!any) return;
   for (let k = 0; k < 10; k++) s.curved[k] += stripI[k];
   s.vec[0] += stripVec[0]; s.vec[1] += stripVec[1]; s.vec[2] += stripVec[2];
 }
