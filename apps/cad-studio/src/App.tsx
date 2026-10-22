@@ -31,7 +31,7 @@ import { ContextMenu } from './ui/ContextMenu';
 import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
 import { Timeline } from './ui/Timeline';
-import { clearRecovery, readRecovery, writeRecovery, type Recovery } from './app/recovery';
+import { clearRecovery, offerRecovery, settleRecovery, writeRecovery, type Recovery } from './app/recovery';
 import { blobStats, collectRecoveryBlobs, evictBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs, setBlobStore } from '@barocss/cad-model/engine/blobs';
 import { indexedDbBlobStore } from './ui/blobStore';
 // (The recovery copy's blobs kept in this browser's IndexedDB: the store set before the studio reads or writes one — PKG-g2.)
@@ -278,7 +278,8 @@ export function App() {
   const [fileName, setFileName] = useState('Bracket-01');
   const [dirty, setDirty] = useState(false);
   /** Unsaved work kept from an earlier visit, offered back once. */
-  const [recovery, setRecovery] = useState<Recovery | null>(() => readRecovery());
+  // (The copy offered is set aside until answered: this session's copies do not write over it, O-log flow-39 note.)
+  const [recovery, setRecovery] = useState<Recovery | null>(() => offerRecovery());
   // Keep a recovery copy a moment after each change while unsaved; none once saved. When the browser cannot keep it
   // (the document too large for its storage, or storage refused), the older copy is removed and that is said once for
   // the document (until a copy is written again).
@@ -1153,7 +1154,8 @@ export function App() {
     try { const bytes = encodeStudioFile(d); downloadBytes(bytes, name, bytes[0] === 0x7b ? 'application/json' : 'application/octet-stream'); return true; }
     catch (e) { setToast({ title: 'Could not save', hint: e instanceof Error ? e.message : String(e), detail: '' }); return false; }
   };
-  const save = () => { if (!writeFile(doc, `${fileName}.bcad`)) return; setDirty(false); clearRecovery(); void collectRecoveryBlobs(null); };
+  // (A copy still offered keeps its blobs: Restore can still bring it back.)
+  const save = () => { if (!writeFile(doc, `${fileName}.bcad`)) return; setDirty(false); clearRecovery(); void collectRecoveryBlobs(recovery?.doc ?? null); };
   /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */
   const saveShared = () => { writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
   // A mesh file waiting for its unit, and opening it as a part in that unit.
@@ -2516,9 +2518,9 @@ export function App() {
             <button className="primary" onClick={async () => {
               const missing = await loadRecoveryBlobs(recovery.doc);
               if (missing.length) { setToast({ title: 'Could not restore', hint: `The copy's mesh data is gone from this browser (${missing.length} array${missing.length > 1 ? 's' : ''}). Open the mesh file again.`, detail: '' }); clearRecovery(); setRecovery(null); return; }
-              commit(recovery.doc); setFileName(recovery.fileName); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300);
+              commit(recovery.doc); setFileName(recovery.fileName); settleRecovery(); setRecovery(null); setTimeout(() => viewport.current?.fit(), 300);
             }}>Restore</button>
-            <button className="ghost" onClick={() => { clearRecovery(); setRecovery(null); void collectRecoveryBlobs(null); }}>Discard</button>
+            <button className="ghost" onClick={() => { settleRecovery(); setRecovery(null); void collectRecoveryBlobs(dirty ? doc : null); }}>Discard</button>
           </div></div>
       </div>}
       {cascade && <div className="toast card recovery" role="dialog" aria-label="Delete with dependents">

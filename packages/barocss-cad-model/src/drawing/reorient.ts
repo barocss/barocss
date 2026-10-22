@@ -54,7 +54,7 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
   if (was === next) return { ok: true, settings, moved: [] };
   // (O148 X2: a dimension on a section is not turned yet — its section's view turns or mirrors with the front: refused, typed.)
   const onSection = settings.dimensions.filter(d => isSectionRef(d.view));
-  if (onSection.length) return { ok: false, code: 'SECTION_DIMENSIONS', message: `${onSection.length} dimension${onSection.length > 1 ? 's are' : ' is'} on a section (${[...new Set(onSection.map(d => d.view.slice(8)))].map(x => `${x}–${x}`).join(', ')}): those are not turned yet. Remove them first, then turn the drawing.` };
+  if (onSection.length) return { ok: false, code: 'SECTION_DIMENSIONS', message: `${onSection.length} dimension${onSection.length > 1 ? 's are' : ' is'} on a section (${[...new Set(onSection.map(d => d.view.slice(8)))].map(x => `${x}–${x}`).join(', ')}): those are not carried through a turn yet. Remove the section's dimensions, or turn the drawing and add them again after.` };
   // Sections (A–A, and O148 X1's on any principal view): each kept where its view's new depth runs along the old (its
   // position along it turned), refused across it.
   if (sectionsOf(settings).length) {

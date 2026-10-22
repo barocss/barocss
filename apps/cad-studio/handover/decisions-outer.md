@@ -5835,3 +5835,17 @@ The coordinator's window flow on f7d526c80 bisected a regression to the B1 merge
 - The fix: the BOM is an inspect tool on the left toolbar, after Interference and Measure, with its own generated icon (`cad-bom`: a sheet, its lines, the item marks in the accent). The top bar is as before B1.
 - The BOM panel's flow step clicks it there.
 - From now on, a top-bar change runs O90's shapes-strip step and O127's narrow-window step, the two layout guards (the coordinator).
+
+### Flow step 39's recovery prompt (the coordinator's flake, 2026-10-22)
+
+The coordinator saw step 39 ("draw a plate…") fail twice in full window flows on `locator.fill` timeouts, with "Unsaved work from … 'Untitled' was not saved" open at the bottom left. Steps 38–46 pass together.
+- **What blocks step 39 is not the prompt.** It is a `.toast` dialog with no modal layer and no focus taken, and the studio's keys do not check for it. But the studio offers recovery only when it starts: `useState(() => readRecovery())`, with no error boundary and no remount. So the prompt in step 39's screenshot means the page loaded again during the run.
+- **Why the page loads again.** The flow never reloads before step 39 (its only reloads are later recovery steps). vite.config has no React plugin, so any change to a file the dev server serves (src, or a package's dist that `build:library` writes) is a full page reload. A fresh Vite cache was tried with the Drawing workspace and the BOM opened, and there was no reload from dependency optimizing. The likeliest cause: files changed under that dev server during the run (a merge or a library build in the worktree the window flow serves).
+- **Flow side**: the flow now counts main-frame loads it did not ask for (its own `page.reload()` calls say `expectLoad()` first) and watches the dev server's files. A failing step's line then ends with "[the page reloaded during this step, not by the flow: <files> changed]", and the run ends with a note of both. The next such failure names its cause.
+- **App side: a real bug, though not the flake's cause.** While the prompt was open, the session's own recovery copies wrote over the copy offered (one key), and Discard removed the key, so it deleted the copy of the work done since. It also swept every recovery blob (`collectRecoveryBlobs(null)`), so the work since lost its mesh arrays.
+  - Now the copy offered is set aside under its own key (`offerRecovery`), and the session writes its own beside it. Restore and Discard settle only the offered one (`settleRecovery`).
+  - Discard keeps the current work's blobs; Save keeps a still-offered copy's.
+  - At start, of the last session's copy and one offered before and never answered, the newer is offered.
+  - Tested in recovery.test.ts.
+- **The kernel's suggestion (Keepout.fills)**, declined for now: the connector's keep-out lives only in the kernel's report, and none of it becomes a document keep-out that `checkKeepouts` reads. D163's fix (the keep-out from the plug's front) is where the "violated (±0.0058)" came from and went.
+- **SECTION_DIMENSIONS** now says what to do: "Remove the section's dimensions, or turn the drawing and add them again after." Carrying them through a reorient is queued (item 3).
