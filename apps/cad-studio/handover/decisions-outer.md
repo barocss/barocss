@@ -5773,3 +5773,33 @@ X1 is built as the S0 froze it, with one correction (below).
   - Reorient: a top section kept; a right section across x+ refused.
   - drawing.test and dxf.test read A–A's drawing group (`!view`); all R14 section and DXF fixtures pass unchanged.
   - Flow step "sections (O148 X1)…": a box on A3; Add section gives B–B on the top view, beside it, one cut face, clean, in the SVG; its view → right, still one; B–B alone as DXF with a hatch; removed.
+
+## O148 X2 — dimensions on sections (2026-10-22)
+
+X2 is built as frozen, with one oracle change (below).
+
+- **Where a dimension sits**: `DrawingDimension.view` is a `DimView`: a view, or a section by its letter (`section:B`). `readDrawing` keeps both kinds (`isDimView`).
+- **On the sheet** (buildSheet):
+  - Dimensions on views are resolved as before.
+  - One on a section is resolved after its section is placed (moved under its view's name), against the section's projection. It is drawn as a view's would be (boxed if basic, with its frames), and the section's name goes below its dimensions.
+  - One on a section the sheet lacks is kept unresolved: DIMENSION_LOST, "in section B–B is lost: Its section (B–B) is not on the sheet."
+  - `sheet.sections` carries each section's placement and projection.
+  - `placementOf` and `projectionOf` find a view's or a section's; the issue list, its fixes, tolerance suggestions, the DXF's DIMENSION entities and the studio all use them.
+- **Auto-dimension**:
+  - The O146 key pass looks in the placed sections after the views and moves a measurement to a section only where the section shows more of its ends visible. The section's cut face (`section<k>.cut…`) is left out of an edge's faces, so an edge of the seat's floor and the cut counts as the seat's.
+  - The sections take rows like a view's: room round their box, the same placing.
+  - `autoDimensions`, `autoLayout`, the chat's drawing tools and the issue list's auto-dimension fix pass the sections.
+- **Oracle change**: the S0 said the hub's d + t2 22.8 lands on the section too. Its keyway is seen whole from the top (both ends visible), so it stays on the top view. A section is taken only where it shows more, so measurements well shown in a standard view are not moved.
+- **DUPLICATE**: the same span on features with nothing in common is not "given twice" — a hub keyway's 6 on the top view and its shaft keyseat's b 6 on the section. Features are read from the ends' face names, a placed part's prefix kept, the cut face left out. All earlier duplicate cases still fire, since they share a feature.
+- **Reorient**: a drawing with dimensions on a section is refused, typed SECTION_DIMENSIONS ("… on a section (B–B): those are not turned yet. Remove them first …"). A section's view turns or mirrors with the front.
+- **Studio**:
+  - The dimension tools work on sections: hover picks a section's placed box too, snaps come from its projection, edges and circles from it, and placing and dragging use its placement.
+  - Note leaders stay on views.
+  - `__studioDrawingAt` takes `section:B`.
+- **Tests** (`test/section-dimensions.test.ts`; the fixture `test/fixtures/shaft-hub-keyseat.bcad` is checked byte for byte against the scene and written with UPDATE_SECTION_FIXTURE=1):
+  - O146's shaft and hub with B–B at Z 15: Auto layout adds the 4 key dimensions; b 6 and d − t1 16.5 land on section:B, every end on a visible edge of the section; 22.8 stays on the top view.
+  - No DIM_ON_HIDDEN for them; no DUPLICATE; no errors on them.
+  - Drawn there (groups on section:B), in the SVG and as DXF DIMENSIONs, and read back from the file.
+  - Without the section: both lost, said; reorient refused.
+  - Flow step "dimensions on sections (O148 X2)…": the file opened; Add section, B at −15; Auto-dimension; 6 and 16.5 on section:B, no DIM_ON_HIDDEN or DUPLICATE; the SVG; the dimension tool snaps at the shaft's centre on the section.
+- **Open** (README): the section's edge names carry the split's index (`section<k>`), so a dimension on a section is re-matched if the part's bodies are reordered. Adjacent parts in one section are hatched alike.

@@ -6,6 +6,13 @@ import type { Sig } from '../engine/references';
 
 export type ViewId = 'front' | 'top' | 'right' | 'iso';
 export const VIEW_IDS: readonly ViewId[] = ['front', 'top', 'right', 'iso'];
+/** O148 X2: where a dimension sits — a view, or a section by its letter (`section:A`). */
+export type SectionRef = `section:${string}`;
+export type DimView = ViewId | SectionRef;
+export const isSectionRef = (v: string): v is SectionRef => /^section:[A-Z]{1,2}$/.test(v);
+export const sectionLetter = (v: SectionRef) => v.slice(8);
+/** A dimension's view read from a file: a view, or a section's letter. */
+export const isDimView = (v: unknown): v is DimView => typeof v === 'string' && ((VIEW_IDS as readonly string[]).includes(v) || isSectionRef(v));
 export type Vec3 = [number, number, number];
 export type XY = [number, number];
 
@@ -29,12 +36,12 @@ export type Tolerance = { kind: 'symmetric'; value: number } | { kind: 'deviatio
  * `basic` (R14.4, O5): a theoretically exact dimension, its text boxed (a position tolerance's frame holds the tolerance).
  */
 export type DrawingDimension = ({ tol?: Tolerance; count?: number; auto?: true; basic?: true }) & (
-  | { id: string; view: ViewId; kind: 'linear'; a: DimPoint; b: DimPoint; orient: 'horizontal' | 'vertical' | 'aligned'; place: XY }
-  | { id: string; view: ViewId; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY; sig?: Sig; was?: string }
+  | { id: string; view: DimView; kind: 'linear'; a: DimPoint; b: DimPoint; orient: 'horizontal' | 'vertical' | 'aligned'; place: XY }
+  | { id: string; view: DimView; kind: 'diameter' | 'radius'; edge: string; near: Vec3; place: XY; sig?: Sig; was?: string }
   /** A pitch circle (R14.5, O6): the circle through the centres of three or more holes, its diameter as `Ø40 PCD`. */
-  | { id: string; view: ViewId; kind: 'pcd'; ring: CentreRef[]; place: XY }
+  | { id: string; view: DimView; kind: 'pcd'; ring: CentreRef[]; place: XY }
   /** Between two straight edges (each the one of its name nearest `near`), in the sector holding `place`. */
-  | { id: string; view: ViewId; kind: 'angle'; a: EdgeRef; b: EdgeRef; place: XY });
+  | { id: string; view: DimView; kind: 'angle'; a: EdgeRef; b: EdgeRef; place: XY });
 /**
  * A note: lines of text with their top left at `at` (sheet mm), and optionally a leader to a point
  * of a view (`leader.at` in the view's model coordinates, so it follows the view).
@@ -172,7 +179,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),
     ...(typeof r.revisedModel === 'string' ? { revisedModel: r.revisedModel } : {}),
-    dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && VIEW_IDS.includes(x.view) && (x.kind !== 'pcd' || ringOk(x.ring)) && (x.kind !== 'linear' || ((x.a?.at !== 'pcd' || ringOk(x.a.ring)) && (x.b?.at !== 'pcd' || ringOk(x.b.ring))))).map(x => {
+    dimensions: Array.isArray(r.dimensions) ? r.dimensions.filter(x => x && typeof x.id === 'string' && isDimView(x.view) && (x.kind !== 'pcd' || ringOk(x.ring)) && (x.kind !== 'linear' || ((x.a?.at !== 'pcd' || ringOk(x.a.ring)) && (x.b?.at !== 'pcd' || ringOk(x.b.ring))))).map(x => {
       const { tol, count, auto, basic, ...rest } = x; const t = readTolerance(tol);
       return { ...rest, ...(t ? { tol: t } : {}), ...(Number.isInteger(count) && count! >= 2 && count! <= 999 ? { count } : {}), ...(auto === true ? { auto: true } : {}), ...(basic === true ? { basic: true } : {}) } as DrawingDimension;
     }) : [],

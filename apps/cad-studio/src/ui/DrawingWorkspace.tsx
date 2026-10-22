@@ -16,7 +16,7 @@ import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
-import { buildSheet, curveMark, dimensionMarks, sectionExtents, sectionMiddle, sheetSections } from '@barocss/cad-model/drawing/sheet';
+import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sectionExtents, sectionMiddle, sheetSections } from '@barocss/cad-model/drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '@barocss/cad-model/drawing/svg';
 import { toleranceText } from '@barocss/cad-model/drawing/sheet';
 import { pdfMissing, sheetPdf } from '@barocss/cad-model/drawing/pdf';
@@ -30,7 +30,7 @@ import { holeCallout } from '@barocss/cad-model/drawing/callout';
 import { threadsOf } from '@barocss/cad-model/app/threads';
 import { ORIENTATIONS, SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '@barocss/cad-model/drawing/dimensions';
-import { SECTION_VIEWS, VIEW_IDS, modelPrint, nextRevision, nextSectionId, sectionsOf, withSections, type SectionViewId, type DimPoint, type DrawingNote, type DrawingTable, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
+import { SECTION_VIEWS, VIEW_IDS, isSectionRef, sectionLetter, type DimView, modelPrint, nextRevision, nextSectionId, sectionsOf, withSections, type SectionViewId, type DimPoint, type DrawingNote, type DrawingTable, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
 import { Icon, Kbd } from './atoms';
 import type { SectionCut } from '@barocss/cad-model/drawing/section';
@@ -48,12 +48,13 @@ const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: strin
   { tool: 'note', label: 'Note', icon: 'sticky_note_2', key: 'N', hint: 'Click on the paper for a note, or on a view for a leader and then where its text goes' },
 ];
 type Pending =
-  | { kind: 'linear'; view: ViewId; a: DimPoint; b?: DimPoint }
-  | { kind: 'diameter' | 'radius'; view: ViewId; edge: string; near: Vec3 }
-  | { kind: 'angle'; view: ViewId; a: EdgeRef; b?: EdgeRef }
+  | { kind: 'linear'; view: DimView; a: DimPoint; b?: DimPoint }
+  | { kind: 'diameter' | 'radius'; view: DimView; edge: string; near: Vec3 }
+  | { kind: 'angle'; view: DimView; a: EdgeRef; b?: EdgeRef }
   | { kind: 'note'; leader: { view: ViewId; at: XY } };
 /** `q`: the pointer on the sheet (mm); `at`: in the view under it (model mm). */
-interface Hover { q: XY; view: ViewId; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
+/** `view` (O148 X2): a view, or a section the sheet placed (`section:B`). */
+interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
 
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
@@ -180,26 +181,28 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     const p = new DOMPoint(clientX, clientY).matrixTransform(m.inverse()); return [p.x, p.y];
   }, []);
   const mmPerPx = () => { const m = svg.current?.getScreenCTM(); return m ? 1 / m.a : 0.3; };
-  const viewAt = useCallback((q: XY): ViewId | null => {
+  const viewAt = useCallback((q: XY): DimView | null => {
     if (!layout) return null;
-    let best: ViewId | null = null, bestD = 30;
-    for (const id of VIEW_IDS) {
-      if (layout.views[id].hidden) continue;
-      const [x0, y0, x1, y1] = layout.views[id].box, d = Math.max(x0 - q[0], q[0] - x1, y0 - q[1], q[1] - y1, 0);
-      if (d < bestD) { bestD = d; best = id; }
-    }
+    let best: DimView | null = null, bestD = 30;
+    const near = (id: DimView, [x0, y0, x1, y1]: readonly number[]) => { const d = Math.max(x0 - q[0], q[0] - x1, y0 - q[1], q[1] - y1, 0); if (d < bestD) { bestD = d; best = id; } };
+    for (const id of VIEW_IDS) if (!layout.views[id].hidden) near(id, layout.views[id].box);
+    // (O148 X2: the sections as placed, dimensioned as views are.)
+    for (const x of sheet?.sections ?? []) near(`section:${x.id}`, x.placement.box);
     return best;
-  }, [layout]);
-  const snaps = useMemo(() => views ? Object.fromEntries(VIEW_IDS.map(id => [id, snapPoints(views[id])])) as Record<ViewId, SnapPoint[]> : null, [views]);
+  }, [layout, sheet]);
+  const snaps = useMemo(() => views ? { ...Object.fromEntries(VIEW_IDS.map(id => [id, snapPoints(views[id])])), ...Object.fromEntries((sheet?.sections ?? []).map(x => [`section:${x.id}`, snapPoints(x.projection)])) } as Partial<Record<DimView, SnapPoint[]>> : null, [views, sheet?.sections]);
+  const placementAt = (v: DimView) => layout ? placementOf(layout, sheet ?? undefined, v) : undefined;
+  const projectionAt = (v: DimView) => views ? projectionOf(views, sheet ?? undefined, v) : undefined;
+  const viewLabel = (v: DimView) => isSectionRef(v) ? `section ${sectionLetter(v)}–${sectionLetter(v)}` : `${VIEWS[v].label.toLowerCase()} view`;
 
   const hoverAt = useCallback((clientX: number, clientY: number): Hover | null => {
     const q = sheetPoint(clientX, clientY); if (!q || !layout || !views || !snaps) return null;
-    const view = viewAt(q); if (!view) return null;
-    const v = layout.views[view], at = fromSheet(v, q), tol = 9 * mmPerPx() / v.scale;
+    const view = viewAt(q), v = view && placementOf(layout, sheet ?? undefined, view), pr = view && projectionOf(views, sheet ?? undefined, view); if (!view || !v || !pr) return null;
+    const at = fromSheet(v, q), tol = 9 * mmPerPx() / v.scale;
     let snap: SnapPoint | null = null, best = tol;
-    for (const s of snaps[view]) { const d = Math.hypot(s.at[0] - at[0], s.at[1] - at[1]); if (d < best) { best = d; snap = s; } }
-    return { q, view, at, snap, edge: snap ? null : edgeAt(views[view], at, 6 * mmPerPx() / v.scale) };
-  }, [sheetPoint, layout, views, snaps, viewAt]);
+    for (const s of snaps[view] ?? []) { const d = Math.hypot(s.at[0] - at[0], s.at[1] - at[1]); if (d < best) { best = d; snap = s; } }
+    return { q, view, at, snap, edge: snap ? null : edgeAt(pr, at, 6 * mmPerPx() / v.scale) };
+  }, [sheetPoint, layout, views, snaps, viewAt, sheet]);
 
   const commitDims = (dimensions: DrawingDimension[]) => onChange({ ...settings, dimensions });
   const cancel = () => { setPending(null); setMessage(null); };
@@ -210,9 +213,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     // Where a dimension goes is read in its own view, wherever the pointer is.
     if (pending?.kind === 'note') { addNote(h.q, pending.leader); return; }
     const placing = pending && ((pending.kind !== 'linear' && pending.kind !== 'angle') || pending.b);
-    const place = placing && layout ? fromSheet(layout.views[pending.view], h.q) : h.at;
+    const into = placing ? placementAt(pending.view) : null, place = placing && into ? fromSheet(into, h.q) : h.at;
     if (h.view === 'iso' && !placing) { setMessage('Dimensions go on the front, top and right views.'); return; }
-    const pr = views[placing ? pending.view : h.view];
+    const pr = projectionAt(placing ? pending.view : h.view); if (!pr) return;
     if (tool === 'linear') {
       if (pending?.kind === 'linear' && pending.b) {
         const a = pointIn(pr, pending.a), b = pointIn(pr, pending.b);
@@ -238,7 +241,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
         setPending(null); return;
       }
       // (A straight edge under the pointer, even near its ends.)
-      const e = h.edge ?? edgeAt(pr, h.at, 6 * mmPerPx() / (layout?.views[h.view].scale ?? 1));
+      const e = h.edge ?? edgeAt(pr, h.at, 6 * mmPerPx() / (placementAt(h.view)?.scale ?? 1));
       if (!e || !e.ends || e.circle || (e.kind !== 'line' && e.kind !== 'silhouette')) { setMessage('Click a straight edge.'); return; }
       const ref: EdgeRef = { edge: e.name, near: [0, 1, 2].map(k => (e.ends![0][k] + e.ends![1][k]) / 2) as Vec3 };
       if (!pending || pending.kind !== 'angle') { setPending({ kind: 'angle', view: h.view, a: ref }); return; }
@@ -254,7 +257,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       }
       const e = h.edge ?? (h.snap ? pr.edges.find(x => x.name === h.snap!.ref.edge && x.circle) ?? null : null);
       if (!e?.circle) { setMessage('Click a circle or an arc.'); return; }
-      if (!roundIn(pr, e)) { setMessage(`This circle is not round in the ${VIEWS[h.view].label.toLowerCase()} view — dimension it where it shows as a circle.`); return; }
+      if (!roundIn(pr, e)) { setMessage(`This circle is not round in the ${viewLabel(h.view)} — dimension it where it shows as a circle.`); return; }
       setPending({ kind: tool, view: h.view, edge: e.name, near: [...e.circle.center] as Vec3 }); return;
     }
   };
@@ -274,8 +277,8 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     if (tool === 'note' && !pending) {
       // On (or right by) a view: the leader's point first; elsewhere the note itself.
       const q = sheetPoint(e.clientX, e.clientY), h = hoverAt(e.clientX, e.clientY); if (!q || !layout) return;
-      const [x0, y0, x1, y1] = h ? layout.views[h.view].box : [0, 0, 0, 0], on = h && q[0] >= x0 - 3 && q[0] <= x1 + 3 && q[1] >= y0 - 3 && q[1] <= y1 + 3;
-      if (h && on) { setPending({ kind: 'note', leader: { view: h.view, at: h.snap?.at ?? h.at } }); setMessage(null); } else addNote(q);
+      const hv = h && !isSectionRef(h.view) ? h.view : null, [x0, y0, x1, y1] = hv ? layout.views[hv].box : [0, 0, 0, 0], on = hv && q[0] >= x0 - 3 && q[0] <= x1 + 3 && q[1] >= y0 - 3 && q[1] <= y1 + 3;
+      if (h && hv && on) { setPending({ kind: 'note', leader: { view: hv, at: h.snap?.at ?? h.at } }); setMessage(null); } else addNote(q);
       return;
     }
     if (tool === 'note' && pending?.kind === 'note') { const q = sheetPoint(e.clientX, e.clientY); if (q) addNote(q, pending.leader); return; }
@@ -303,7 +306,8 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     }
     if (drag && layout) {
       const q = sheetPoint(e.clientX, e.clientY), d = settings.dimensions.find(x => x.id === drag.id);
-      if (q && d) setDrag({ id: drag.id, place: fromSheet(layout.views[d.view], q) });
+      const at = d && placementOf(layout, sheet ?? undefined, d.view);
+      if (q && d && at) setDrag({ id: drag.id, place: fromSheet(at, q) });
       return;
     }
     setHover(hoverAt(e.clientX, e.clientY));
@@ -318,7 +322,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       const d = settings.dimensions.find(x => x.id === drag.id);
       if (d && (d.place[0] !== drag.place[0] || d.place[1] !== drag.place[1])) {
         commitDims(settings.dimensions.map(x => x.id !== d.id ? x : x.kind === 'linear' && views
-          ? { ...x, place: drag.place, orient: orientFor(pointIn(views[x.view], x.a), pointIn(views[x.view], x.b), drag.place) } : { ...x, place: drag.place }));
+          ? { ...x, place: drag.place, orient: orientFor(pointIn(projectionOf(views, sheet ?? undefined, x.view)!, x.a), pointIn(projectionOf(views, sheet ?? undefined, x.view)!, x.b), drag.place) } : { ...x, place: drag.place }));
       }
     }
     setDrag(null);
@@ -351,9 +355,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as Record<string, unknown>;
-    w.__studioDrawingAt = (view: ViewId, u: number, v: number) => {
-      const m = svg.current?.getScreenCTM(); if (!m || !layout) return null;
-      const q = toSheet(layout.views[view], [u, v]), p = new DOMPoint(q[0], q[1]).matrixTransform(m); return { x: p.x, y: p.y };
+    w.__studioDrawingAt = (view: DimView, u: number, v: number) => {
+      const m = svg.current?.getScreenCTM(), at = layout && placementOf(layout, sheet ?? undefined, view); if (!m || !at) return null;
+      const q = toSheet(at, [u, v]), p = new DOMPoint(q[0], q[1]).matrixTransform(m); return { x: p.x, y: p.y };
     };
     w.__studioDrawing = () => sheet && { scale: layout?.scale, dimensions: sheet.dimensions.map(r => r.ok ? { id: r.dim.id, text: r.text, value: r.value } : { id: r.dim.id, lost: r.reason }),
       hidden: Object.fromEntries(VIEW_IDS.map(id => [id, views![id].edges.reduce((n, e) => n + e.pieces.filter(p => !p.visible).length, 0)])),
@@ -432,7 +436,8 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const overlay = useMemo(() => {
     if (!layout || !views) return '';
     const parts: string[] = [];
-    const v = hover ? layout.views[hover.view] : null;
+    const P = (x: DimView) => placementOf(layout, sheet ?? undefined, x)!, R = (x: DimView) => projectionOf(views, sheet ?? undefined, x)!;
+    const v = hover ? P(hover.view) : null;
     if (pending?.kind === 'note' && hover) {
       const t = toSheet(layout.views[pending.leader.view], pending.leader.at);
       parts.push(`<g class="dw-preview"><line x1="${t[0]}" y1="${t[1]}" x2="${hover.q[0]}" y2="${hover.q[1]}" stroke-width="0.25"/></g><circle class="dw-pick" cx="${t[0]}" cy="${t[1]}" r="0.9"/>`);
@@ -440,24 +445,24 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
     }
     const placing = pending && hover && pending.kind !== 'note' && ((pending.kind !== 'linear' && pending.kind !== 'angle') || pending.b);
     if (pending?.kind === 'angle') for (const ref of [pending.a, ...(pending.b ? [pending.b] : [])]) {
-      const l = resolveLine(views[pending.view], ref);
-      if (l) parts.push(`<g class="dw-hover">${marksSvg([{ kind: 'line', a: toSheet(layout.views[pending.view], l[0]), b: toSheet(layout.views[pending.view], l[1]), pen: 'visible' }])}</g>`);
+      const l = resolveLine(R(pending.view), ref);
+      if (l) parts.push(`<g class="dw-hover">${marksSvg([{ kind: 'line', a: toSheet(P(pending.view), l[0]), b: toSheet(P(pending.view), l[1]), pen: 'visible' }])}</g>`);
     }
     if (pending?.kind === 'linear') for (const ref of [pending.a, ...(pending.b ? [pending.b] : [])]) {
-      const q = toSheet(layout.views[pending.view], pointIn(views[pending.view], ref)); parts.push(`<circle class="dw-pick" cx="${q[0]}" cy="${q[1]}" r="0.9"/>`);
+      const q = toSheet(P(pending.view), pointIn(R(pending.view), ref)); parts.push(`<circle class="dw-pick" cx="${q[0]}" cy="${q[1]}" r="0.9"/>`);
     }
     if (placing && hover) {
-      const at = fromSheet(layout.views[pending.view], hover.q);
+      const at = fromSheet(P(pending.view), hover.q);
       const d: DrawingDimension = pending.kind === 'linear'
-        ? { id: 'preview', view: pending.view, kind: 'linear', a: pending.a, b: pending.b!, orient: orientFor(pointIn(views[pending.view], pending.a), pointIn(views[pending.view], pending.b!), at), place: at }
+        ? { id: 'preview', view: pending.view, kind: 'linear', a: pending.a, b: pending.b!, orient: orientFor(pointIn(R(pending.view), pending.a), pointIn(R(pending.view), pending.b!), at), place: at }
         : pending.kind === 'angle' ? { id: 'preview', view: pending.view, kind: 'angle', a: pending.a, b: pending.b!, place: at }
         : { id: 'preview', view: pending.view, kind: pending.kind, edge: pending.edge, near: pending.near, place: at };
-      const r = resolveDimension(views, d);
-      if (r.ok) parts.push(`<g class="dw-preview">${marksSvg(dimensionMarks(layout.views[pending.view], r))}</g>`);
+      const r = resolveDimension({ ...views, [pending.view]: R(pending.view) }, d);
+      if (r.ok) parts.push(`<g class="dw-preview">${marksSvg(dimensionMarks(P(pending.view), r))}</g>`);
     } else if (hover && v && tool !== 'select') {
       if (hover.snap && tool === 'linear') { const q = toSheet(v, hover.snap.at); parts.push(`<circle class="dw-snap" cx="${q[0]}" cy="${q[1]}" r="1.4"/>`); }
       else if (hover.edge && (tool !== 'linear' || !pending)) {
-        const ok = tool === 'linear' || tool === 'angle' ? hover.edge.kind !== 'circle' && hover.edge.kind !== 'curve' : !!hover.edge.circle && roundIn(views[hover.view], hover.edge);
+        const ok = tool === 'linear' || tool === 'angle' ? hover.edge.kind !== 'circle' && hover.edge.kind !== 'curve' : !!hover.edge.circle && roundIn(R(hover.view), hover.edge);
         if (ok) parts.push(`<g class="dw-hover">${marksSvg(hover.edge.pieces.map(p => curveMark(v, p.curve, 'visible')))}</g>`);
       }
     }
@@ -468,7 +473,7 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const shownMarkup = useMemo(() => {
     if (!drag || 'pan' in drag || !views || !layout || !sheet) return sheetMarkup;
     if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), selected);
-    const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(views[d.view], d.a), pointIn(views[d.view], d.b), drag.place) } : { ...d, place: drag.place }) : d);
+    const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(projectionOf(views, sheet ?? undefined, d.view)!, d.a), pointIn(projectionOf(views, sheet ?? undefined, d.view)!, d.b), drag.place) } : { ...d, place: drag.place }) : d);
     return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), selected);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, weldJoints, bom]);
 

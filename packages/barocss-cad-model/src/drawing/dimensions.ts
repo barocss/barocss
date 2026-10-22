@@ -2,7 +2,7 @@
 // dimension's references resolve against the current projection, and the value it reads — always
 // from the model's 3D geometry in mm, so a dimension follows the part as it changes.
 import type { BrepProjection, ProjectedCurve, ProjectedEdge } from '@barocss/cad';
-import type { CentreRef, DimPoint, DrawingDimension, EdgeRef, Vec3, ViewId, XY } from './types';
+import type { CentreRef, DimPoint, DimView, DrawingDimension, EdgeRef, Vec3, XY } from './types';
 import { dot } from '../engine/vec3';
 
 const sub3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -141,8 +141,9 @@ export function angleBetween(a: [XY, XY], b: [XY, XY], place: XY): { vertex: XY;
   return { vertex: X, from: from.r, to: to.r, ends: [far(a), far(b)], degrees };
 }
 
-export function resolveDimension(views: Record<ViewId, BrepProjection>, dim: DrawingDimension): Resolved {
+export function resolveDimension(views: Partial<Record<DimView, BrepProjection>>, dim: DrawingDimension): Resolved {
   const pr = views[dim.view];
+  if (!pr) return { ok: false, dim, reason: `Its view (${dim.view}) is not on the sheet.` };
   if (dim.kind === 'angle') {
     const a = resolveLine(pr, dim.a), b = resolveLine(pr, dim.b);
     if (!a || !b) return { ok: false, dim, reason: 'An edge it measured is no longer in the part.' };

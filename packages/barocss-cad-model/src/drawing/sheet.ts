@@ -13,7 +13,7 @@ import { fitText, textCorners, textWidth } from './text';
 import { VIEWS, scaleLabel, sectionDepth, toSheet, type Orientation, type SectionExtent, type SectionPlacement, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
 import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSection, DrawingSettings, DrawingTable, DrawingViews, SectionViewId, Tolerance, ViewId, XY } from './types';
 import { tableLayout, tableSize, type TableContent, type TableLayout } from './table';
-import { VIEW_IDS, sectionsOf } from './types';
+import { VIEW_IDS, isSectionRef, sectionLetter, sectionsOf, type DimView, type SectionRef } from './types';
 
 /** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), centre 0.25 chain, frame 0.7. */
 export type Pen = 'visible' | 'hidden' | 'thin' | 'center' | 'frame';
@@ -50,15 +50,27 @@ export function sectionMiddle(views: DrawingViews, view: SectionViewId, orientat
   }
   return null;
 }
+/** O148 X2: where a view or a section is on the sheet (a section as the sheet placed it), or undefined. */
+export function placementOf(layout: SheetLayout, sheet: Pick<Sheet, 'sections'> | undefined, v: DimView): ViewPlacement | undefined {
+  if (!isSectionRef(v)) return layout.views[v];
+  const id = sectionLetter(v);
+  return sheet?.sections?.find(x => x.id === id)?.placement ?? layout.sections?.find(x => x.section === id);
+}
+/** O148 X2: a view's or a section's projection (a section's as the sheet drew it), or undefined. */
+export function projectionOf(views: DrawingViews, sheet: Pick<Sheet, 'sections'> | undefined, v: DimView): BrepProjection | undefined {
+  if (!isSectionRef(v)) return views[v];
+  const id = sectionLetter(v);
+  return sheet?.sections?.find(x => x.id === id)?.projection;
+}
 /** O148 X1: the extents of the sections the settings list and the caller cut (for the layout). */
 export function sectionExtents(settings: DrawingSettings, sections?: readonly SheetSection[]): SectionExtent[] {
   const out: SectionExtent[] = [];
   for (const x of sectionsOf(settings)) { const c = sections?.find(y => y.id === x.id && y.view === x.view && y.at === x.at); if (c) out.push({ id: x.id, view: x.view, min: c.projection.min, max: c.projection.max }); }
   return out;
 }
-export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table' | 'weld' | 'balloon'; id?: string; view?: ViewId; marks: Mark[] }
+export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table' | 'weld' | 'balloon'; id?: string; view?: DimView; marks: Mark[] }
 /** `tables`: each table placed (its box), or why its source gave nothing (drawn with the reason). */
-export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string; /** FRa (O115): a table in blocks, this one's place: [k, of n]. */ part?: [number, number] }[]; /** FRd2 (O119): the weld symbols placed (each joint's view, arrow tip, seam edge) and the joints seen in no view. */ welds?: { placed: readonly WeldPlaced[]; unshown: readonly string[] }; /** O147 B2: the item balloons placed, the item numbers with no clear room, and those with no visible edge. */ balloons?: { placed: readonly BalloonPlaced[]; unclear: readonly number[]; noEdge: readonly number[] } }
+export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string; /** FRa (O115): a table in blocks, this one's place: [k, of n]. */ part?: [number, number] }[]; /** FRd2 (O119): the weld symbols placed (each joint's view, arrow tip, seam edge) and the joints seen in no view. */ welds?: { placed: readonly WeldPlaced[]; unshown: readonly string[] }; /** O147 B2: the item balloons placed, the item numbers with no clear room, and those with no visible edge. */ balloons?: { placed: readonly BalloonPlaced[]; unclear: readonly number[]; noEdge: readonly number[] }; /** O148 X2: each section as placed (moved under its view's name) with its projection: where its dimensions are drawn. */ sections?: { id: string; view: SectionViewId; placement: SectionPlacement; projection: BrepProjection }[] }
 
 export const TEXT = 3.5;
 const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
@@ -84,10 +96,11 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     if (id !== 'iso' && meta.threads) marks.push(...threadMarks(v, pr, meta.threads, showHidden));
     groups.push({ role: 'view', view: id, marks });
   }
-  // (A dimension in a view not shown (R14.3) is kept, unresolved, so the issue list names it.)
-  const dimensions: Resolved[] = settings.dimensions.map((d): Resolved => layout.views[d.view].hidden ? { ok: false, dim: d, reason: `Its view (${d.view}) is not shown.` } : resolveDimension(views, d)).map((r): Resolved => r.ok ? { ...r, text: dimensionText(r, meta.callout) } : r);
-  for (const r of dimensions) if (r.ok) {
-    const marks = dimensionMarks(layout.views[r.dim.view], r);
+  // (A dimension in a view not shown (R14.3) is kept, unresolved, so the issue list names it. O148 X2: one on a section is
+  // resolved once the sections are placed, below.)
+  const inViews: Resolved[] = settings.dimensions.filter(d => !isSectionRef(d.view)).map((d): Resolved => layout.views[d.view as ViewId].hidden ? { ok: false, dim: d, reason: `Its view (${d.view}) is not shown.` } : resolveDimension(views, d)).map((r): Resolved => r.ok ? { ...r, text: dimensionText(r, meta.callout) } : r);
+  for (const r of inViews) if (r.ok) {
+    const marks = dimensionMarks(layout.views[r.dim.view as ViewId], r);
     if (r.dim.basic) marks.push(...basicBox(marks));
     groups.push({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks });
   }
@@ -111,6 +124,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     groups.push({ role: 'label', view: id, marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: VIEWS[id].label, size: 2.5, anchor: 'middle' }] });
   }
   // (O148 X1: each section placed, its name under it; a front's or a right's under its view's name, as A–A always was.)
+  const onSheet: NonNullable<Sheet['sections']> = [], inSections = new Map<string, Resolved>();
   for (const p of layout.sections ?? []) {
     const sec = sections?.find(x => x.id === p.section); if (!sec) continue;
     const parent = p.of !== 'top' ? groups.find(g => g.role === 'label' && g.view === p.of)?.marks[0] as Extract<Mark, { kind: 'text' }> | undefined : undefined;
@@ -118,9 +132,28 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     const placed: SectionPlacement = { ...p, origin: [p.origin[0], p.origin[1] + shift], box: [p.box[0], p.box[1] + shift, p.box[2], p.box[3] + shift] };
     groups.push({ role: 'section', id: sec.id, marks: sectionMarks(placed, sec) });
     const c = cutting.get(sec.id); if (c) groups.push(c);
+    onSheet.push({ id: sec.id, view: sec.view, placement: placed, projection: sec.projection });
+    // (O148 X2: its dimensions, drawn as a view's; its name under them.)
+    const ref: SectionRef = `section:${sec.id}`;
+    for (const d of settings.dimensions) if (d.view === ref) {
+      const r = resolveDimension({ [ref]: sec.projection }, d), shown = r.ok ? { ...r, text: dimensionText(r, meta.callout) } as Resolved : r;
+      inSections.set(d.id, shown);
+      if (!shown.ok) continue;
+      const marks = dimensionMarks(placed, shown); if (d.basic) marks.push(...basicBox(marks));
+      groups.push({ role: 'dimension', id: d.id, view: ref, marks });
+    }
     const [x0, , x1, y1] = placed.box;
-    groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, y1 + 7], text: `SECTION ${sec.id}–${sec.id}`, size: 2.5, anchor: 'middle' }] });
+    let below = y1;
+    for (const g of groups) if (g.role === 'dimension' && g.view === ref) for (const m of g.marks) for (const q of markPoints(m)) if (q[0] >= x0 - 2 && q[0] <= x1 + 2 && q[1] > below) below = q[1];
+    groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: `SECTION ${sec.id}–${sec.id}`, size: 2.5, anchor: 'middle' }] });
   }
+  // (A dimension on a section the sheet does not have, kept unresolved so the issue list names it; its frames, as a view's.)
+  for (const d of settings.dimensions) if (isSectionRef(d.view) && !inSections.has(d.id)) inSections.set(d.id, { ok: false, dim: d, reason: `Its section (${sectionLetter(d.view)}–${sectionLetter(d.view)}) is not on the sheet.` });
+  for (const f of settings.frames ?? []) {
+    const g = groups.find(x => x.role === 'dimension' && x.id === f.dim && x.view && isSectionRef(x.view)), main = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
+    if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f) });
+  }
+  const dimensions: Resolved[] = settings.dimensions.map(d => inSections.get(d.id) ?? inViews.find(r => r.dim === d)!);
   // (FRd2, O119: the weld symbols, before the tables so an auto-placed one keeps clear of their texts.)
   const welds = settings.weldSymbols && meta.welds?.length ? weldSymbols(layout, views, meta.welds) : null;
   if (welds) groups.push(...welds.groups);
@@ -130,7 +163,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   // (Tables last: an auto-placed one finds room clear of everything else on the sheet, O49.)
   const tables = tableGroups(layout, settings, groups, meta.tableContent);
   groups.push(...tables.groups);
-  return { size: [W, H], groups, dimensions, ...(tables.placed.length ? { tables: tables.placed } : {}), ...(welds ? { welds: { placed: welds.placed, unshown: welds.unshown } } : {}), ...(balloons ? { balloons: { placed: balloons.placed, unclear: balloons.unclear, noEdge: balloons.noEdge } } : {}) };
+  return { size: [W, H], groups, dimensions, ...(tables.placed.length ? { tables: tables.placed } : {}), ...(welds ? { welds: { placed: welds.placed, unshown: welds.unshown } } : {}), ...(balloons ? { balloons: { placed: balloons.placed, unclear: balloons.unclear, noEdge: balloons.noEdge } } : {}), ...(onSheet.length ? { sections: onSheet } : {}) };
 }
 
 type Rect = [number, number, number, number];
