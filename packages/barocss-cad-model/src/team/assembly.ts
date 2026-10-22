@@ -68,12 +68,12 @@ export function declaredContact(doc: StudioDoc, a: string, b: string): string | 
 export interface BomView {
   parts: { id: string; name: string; material: string | null; massG: number; library: string | null; shape: string }[];
   /** The bought machine elements (O142): in the base part (`part: 'base'`) and in each placed part, one a body. */
-  elements?: { part: string; item: string; kind: string; size: string; row: string | null; source: string | null; estimate: boolean; why: string[]; by: 'override' | 'default'; massG: number | null }[];
+  elements?: { part: string; item: string; kind: string; size: string; row: string | null; source: string | null; estimate: boolean; why: string[]; by: 'override' | 'default'; massG: number | null; catalogue?: string }[];
 }
 export interface BomLine {
   item: string; parts: string[]; qty: number; material: string | null; massG: number; source: string | null;
   /** A bought element's line (O142): its kind, sizes, the user's row, whether an estimate, and whether the person's override made it bought. `parts`: `part:feature` each. */
-  kind?: string; size?: string; row?: string | null; estimate?: boolean; override?: boolean;
+  kind?: string; size?: string; row?: string | null; estimate?: boolean; override?: boolean; /** Its catalogue number and supplier (a coupling's row). */ catalogue?: string;
 }
 export interface Bom { lines: BomLine[]; totalQty: number; totalMassG: number; /** The bought elements counted (their mass is their parts'). */ elementQty?: number }
 export interface BomRole { model: string; bom(view: BomView): Promise<Bom & RoleReport> }
@@ -89,7 +89,7 @@ export async function bomView(doc: StudioDoc, evaluate: Evaluate): Promise<BomVi
   // (O142: the bought elements — the base part's and each placed part's — as their own lines' material.)
   const elements: NonNullable<BomView['elements']> = [];
   const take = (part: string, d: StudioDoc, bodies: readonly BodyResult[]) => {
-    for (const l of elementLines(d, bodies)) if (l.bought) elements.push({ part, item: l.item, kind: l.kind, size: l.size, row: l.row?.id ?? null, source: l.row?.source ?? null, estimate: l.estimate, why: l.why, by: l.boughtBy, massG: l.massG === null ? null : r6(l.massG) });
+    for (const l of elementLines(d, bodies)) if (l.bought) elements.push({ part, item: l.item, kind: l.kind, size: l.size, row: l.row?.id ?? null, source: l.row?.source ?? null, estimate: l.estimate, why: l.why, by: l.boughtBy, massG: l.massG === null ? null : r6(l.massG), ...(l.catalogue ? { catalogue: l.catalogue } : {}) });
   };
   const base = await evaluate(doc); if (base?.ok) take('base', doc, base.bodies);
   for (const inst of doc.instances ?? []) { const e = await evaluate(inst.doc); if (e?.ok) take(inst.id, inst.doc, e.bodies); }
@@ -130,7 +130,7 @@ export function deriveBom(view: BomView): Bom {
   for (const e of view.elements ?? []) {
     const id = `${e.part}:${e.item}`, l = lines.find(x => x.kind === e.kind && x.size === e.size && (x.row ?? null) === e.row);
     if (l) { l.parts.push(id); l.qty++; l.massG = r6(l.massG + (e.massG ?? 0)); l.estimate = l.estimate || e.estimate; l.override = l.override || e.by === 'override'; }
-    else lines.push({ item: `${e.kind} ${e.size}`, parts: [id], qty: 1, material: null, massG: e.massG ?? 0, source: e.source, kind: e.kind, size: e.size, row: e.row, estimate: e.estimate, override: e.by === 'override' });
+    else lines.push({ item: `${e.kind} ${e.size}`, parts: [id], qty: 1, material: null, massG: e.massG ?? 0, source: e.source, kind: e.kind, size: e.size, row: e.row, estimate: e.estimate, override: e.by === 'override', ...(e.catalogue ? { catalogue: e.catalogue } : {}) });
   }
   return { lines, totalQty: view.parts.length, totalMassG: r6(view.parts.reduce((s, p) => s + p.massG, 0)), ...(view.elements?.length ? { elementQty: view.elements.length } : {}) };
 }

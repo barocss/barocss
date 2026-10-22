@@ -19,6 +19,7 @@ import type { BrepProjection, ProjectedEdge } from '@barocss/cad';
 import { fmtMM, pitchCircle, resolveDimension, roundIn, snapPoints, type SnapPoint } from './dimensions';
 import type { SheetLayout } from './views';
 import type { DimPoint, DrawingDimension, DrawingSettings, DrawingViews, ViewId, XY } from './types';
+import type { PartElement } from './elementCallouts';
 
 export const AUTO_DIMENSIONS_VERSION = 'cad-studio-auto-dimensions-v1';
 
@@ -37,6 +38,8 @@ const ORTHO: readonly ViewId[] = ['top', 'front', 'right'];
 export interface AutoDimensionReport {
   contract: typeof AUTO_DIMENSIONS_VERSION;
   added: { overall: number; levels: number; holePositions: number; pitches: number; callouts: number };
+  /** O146: the keyseats' and keyways' widths and depths added (apart from `added`, whose shape R14's conformance pins). */
+  keys: number;
   /** Kept as they were: dimensions placed by hand; and auto ones that a hand-placed one already gives. */
   kept: number;
   skipped: { view: ViewId; what: string; why: string }[];
@@ -49,10 +52,64 @@ export interface AutoDimensionReport {
 export interface Hole { view: ViewId; at: XY; radius: number; ref: DimPoint; edge: ProjectedEdge; callout: string | null }
 type Side = 'above' | 'below' | 'left' | 'right';
 type Unplaced = Omit<Extract<DrawingDimension, { kind: 'linear' }>, 'id' | 'place'> | Omit<Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>, 'id' | 'place'> | Omit<Extract<DrawingDimension, { kind: 'pcd' }>, 'id' | 'place'>;
-interface Planned { dim: Unplaced; row: number; kind: keyof AutoDimensionReport['added']; along: 'u' | 'v' | 'leader'; span: [XY, XY]; radius?: number }
+interface Planned { dim: Unplaced; row: number; kind: keyof AutoDimensionReport['added'] | 'keys'; along: 'u' | 'v' | 'leader'; span: [XY, XY]; radius?: number }
 
 const r6 = (v: number) => Math.round(v / SAME) * SAME;
 const sameXY = (a: XY, b: XY) => Math.abs(a[0] - b[0]) <= SAME && Math.abs(a[1] - b[1]) <= SAME;
+
+// ——— O146 (R12c on drawings, S3b): keyseats and keyways dimensioned — a keyseat's width b and the shaft's d − t1 (from the
+// far side of the shaft to the seat's floor), a hub keyway's width and d + t2 (from the far side of the bore to its
+// floor). Each is a pair of edge ends found by the faces' names (`<shaft>.keyseat<j>`, its step's silhouette
+// `<shaft>.seat<k>~sil`; `<keyway>.keyway`, the bore's face) at exactly the report's distance apart along a view axis — in the
+// view where both ends are on visible edges, else the first that has them (dashed). One not found is skipped, said.
+interface EndAt { at: XY; ref: DimPoint; visible: boolean; faces: string[] }
+const facesOfEdge = (name: string) => name.split('|').map(f => f.replace(/~sil\d*$/, '').replace(/(#\d+)+$/, ''));
+function endsOf(pr: BrepProjection): EndAt[] {
+  const out: EndAt[] = [];
+  for (const e of pr.edges) if (e.ends) { const faces = facesOfEdge(e.name), visible = e.pieces.some(p => p.visible); for (const p of e.ends) out.push({ at: inViewOf(pr, p), ref: { edge: e.name, at: 'end', near: [p[0], p[1], p[2]] }, visible, faces }); }
+  return out;
+}
+const inViewOf = (pr: BrepProjection, p: readonly number[]): XY => [p[0] * pr.right[0] + p[1] * pr.right[1] + p[2] * pr.right[2], p[0] * pr.up[0] + p[1] * pr.up[1] + p[2] * pr.up[2]];
+/** Two ends, one of each set, `want` apart along an axis (and level across it when `level`), the visible ones first. */
+function pairApart(as: readonly EndAt[], bs: readonly EndAt[], want: number, level: boolean): { a: EndAt; b: EndAt; k: 0 | 1 } | null {
+  let best: { a: EndAt; b: EndAt; k: 0 | 1; score: number } | null = null;
+  for (const k of [0, 1] as const) for (const a of as) for (const b of bs) {
+    if (Math.abs(Math.abs(a.at[k] - b.at[k]) - want) > 1e-6 * Math.max(1, want)) continue;
+    if (level && Math.abs(a.at[1 - k] - b.at[1 - k]) > SAME) continue;
+    const score = Number(a.visible) + Number(b.visible);
+    if (!best || score > best.score) best = { a, b, k, score };
+  }
+  return best && { a: best.a, b: best.b, k: best.k };
+}
+function keyPlans(views: DrawingViews, layout: SheetLayout, elements: readonly PartElement[], report: AutoDimensionReport): Planned[] {
+  const want: { what: string; a: (f: string[]) => boolean; b: (f: string[]) => boolean; mm: number; level: boolean }[] = [];
+  for (const { id, element: e } of elements) {
+    if (e.kind === 'shaft') for (const s of e.report.keyseats) {
+      const seat = `${id}.keyseat${s.index}`, step = e.report.steps[s.step - 1], d = step ? step.diameterMM : NaN;
+      want.push({ what: `keyseat ${s.index}'s width`, a: f => f.includes(seat), b: f => f.includes(seat), mm: s.widthMM, level: true });
+      // (Its floor: an edge between two of the seat's own faces; the far side: its step's silhouette.)
+      if (Number.isFinite(d)) want.push({ what: `d − t1 at keyseat ${s.index}`, a: f => f.every(x => x === seat), b: f => f.some(x => x === `${id}.seat${s.step}` || x.startsWith(`${id}.seat${s.step}.`)), mm: d - s.depthMM, level: false });
+    }
+    if (e.kind === 'keyway') {
+      const way = `${id}.keyway`, bore = e.report.face;
+      want.push({ what: `keyway ${id}'s width`, a: f => f.includes(way), b: f => f.includes(way), mm: e.report.widthMM, level: true });
+      want.push({ what: `d + t2 at keyway ${id}`, a: f => f.includes(way) && !f.includes(bore), b: f => f.includes(bore) && !f.includes(way), mm: 2 * e.report.boreRadiusMM + e.report.depthMM, level: false });
+    }
+  }
+  const out: Planned[] = [];
+  for (const w of want) {
+    let found: { view: ViewId; a: EndAt; b: EndAt; k: 0 | 1; visible: number } | null = null;
+    for (const v of ORTHO) {
+      if (layout.views[v].hidden) continue;
+      const ends = endsOf(views[v]), p = pairApart(ends.filter(x => w.a(x.faces)), ends.filter(x => w.b(x.faces)), w.mm, w.level);
+      if (p && (!found || Number(p.a.visible) + Number(p.b.visible) > found.visible)) found = { view: v, ...p, visible: Number(p.a.visible) + Number(p.b.visible) };
+    }
+    if (!found) { report.skipped.push({ view: 'front', what: w.what, why: 'no two edge ends at that distance in a shown view' }); continue; }
+    const [a, b] = found.a.at[found.k] <= found.b.at[found.k] ? [found.a, found.b] : [found.b, found.a];
+    out.push({ dim: linear(found.view, a.ref, b.ref, found.k), row: 0.5, kind: 'keys', along: found.k === 0 ? 'u' : 'v', span: [a.at, b.at] });
+  }
+  return out;
+}
 
 /** The edge end at a view's extreme along an axis (`k` 0: u, 1: v), the lowest along the other on ties. */
 function extreme(snaps: readonly SnapPoint[], k: 0 | 1, max: boolean): SnapPoint | null {
@@ -169,10 +226,12 @@ function pitchRuns(xs: readonly number[]): [number, number][] {
  * The dimensions Auto-dimension gives the part's views, with the hand-placed ones kept and its own earlier ones
  * replaced. `callout`: a hole's callout by an edge of it (null: not a hole feature).
  */
-export function autoDimensions(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null): { dimensions: DrawingDimension[]; report: AutoDimensionReport } {
+export function autoDimensions(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements: readonly PartElement[] = []): { dimensions: DrawingDimension[]; report: AutoDimensionReport } {
   const manual = settings.dimensions.filter(d => !d.auto);
-  const report: AutoDimensionReport = { contract: AUTO_DIMENSIONS_VERSION, added: { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 }, kept: manual.length, skipped: [], crowded: [], needs: {} };
+  const report: AutoDimensionReport = { contract: AUTO_DIMENSIONS_VERSION, added: { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 }, keys: 0, kept: manual.length, skipped: [], crowded: [], needs: {} };
   const holes = holesOf(views, callout), planned: Record<ViewId, Planned[]> = { front: [], top: [], right: [], iso: [] };
+  // (O146: the keyseats' and the keyways' sizes, each in the view that shows it best.)
+  for (const p of keyPlans(views, layout, elements, report)) planned[p.dim.view].push(p);
   for (const id of ORTHO) {
     // (A view not shown (R14.3) gets nothing; a hole that shows round only there is the issue list's VIEW_NEEDED.)
     if (layout.views[id].hidden) continue;
@@ -317,11 +376,11 @@ function spanKey(views: DrawingViews, d: DrawingDimension): string | null {
   return `${axisOf(d.view, k)}|${r6(lo)}|${r6(hi)}|${d.count ?? 1}`;
 }
 
-function add(out: DrawingDimension[], manual: readonly DrawingDimension[], d: DrawingDimension, nextId: () => string, report: AutoDimensionReport, kind: keyof AutoDimensionReport['added'], manualSpans: ReadonlySet<string>, views: DrawingViews): void {
+function add(out: DrawingDimension[], manual: readonly DrawingDimension[], d: DrawingDimension, nextId: () => string, report: AutoDimensionReport, kind: keyof AutoDimensionReport['added'] | 'keys', manualSpans: ReadonlySet<string>, views: DrawingViews): void {
   if (manual.some(m => sameAs(d, m))) return;
   // (One a hand-placed dimension gives already, in this view or one sharing the axis.)
   const key = spanKey(views, d);
   if (key && manualSpans.has(key)) return;
   out.push({ ...d, id: nextId() });
-  report.added[kind]++;
+  if (kind === 'keys') report.keys++; else report.added[kind]++;
 }

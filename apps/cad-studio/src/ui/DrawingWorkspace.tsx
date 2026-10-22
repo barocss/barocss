@@ -4,6 +4,7 @@
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
 import { followedStale, staleText } from '@barocss/cad-model/frames/skeleton';
+import { elementsOfBodies, withElements } from '@barocss/cad-model/drawing/elementCallouts';
 import { fitMiss, withFit } from '@barocss/cad-model/drawing/fits';
 import { weldList } from '@barocss/cad-model/frames/welds';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -115,7 +116,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const layout = useMemo(() => views && layoutSheet(views, settings, cut?.projection), [views, settings, cut]);
   // Diameter dimensions on a hole read as its callout (count, size or thread, depth, counterbore or countersink).
   // (D155: a diameter on a face with a fit class shows the class and its limits; a class with no row, an issue.)
-  const callout = useMemo(() => withFit(doc, (edge: string) => holeCallout(doc.nodes, edge)), [doc.nodes, doc.fits]);
+  // (O145: and the machine elements' callouts — a bearing's seat, a ring's groove.)
+  const elements = useMemo(() => elementsOfBodies(doc.nodes, bodies ?? []), [doc.nodes, bodies]);
+  const callout = useMemo(() => withElements(doc, withFit(doc, (edge: string) => holeCallout(doc.nodes, edge)), elements), [doc.nodes, doc.fits, elements]);
   const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
   // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
   const followedChanged = useMemo(() => followedStale(doc).map(staleText), [doc.nodes, doc.instances]);
@@ -125,6 +128,8 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
   const tableContentOf = useCallback((x: DrawingTable) => sourced.get(x.id) ?? { error: 'its source was not run for this sheet' }, [sourced]);
   const hasSheet = (bodies ?? []).some(b => b.flat && b.flat.bends.length);
   const hasFrame = (bodies ?? []).some(b => b.cutPiece);
+  // (O144: machine elements' tables, offered when the part has such an element.)
+  const kinds = new Set((bodies ?? []).flatMap(b => b.element ? [b.element.kind] : [])), hasBought = (bodies ?? []).some(b => b.ref && doc.nodes[b.ref.node]?.bought === true);
   // (FRd2, O119: the frame's weld joints for the symbols, when they are shown.)
   const weldJoints = useMemo(() => settings.weldSymbols && bodies ? weldList(doc, bodies).joints : undefined, [settings.weldSymbols, doc, bodies]);
   const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints }, cut), [views, layout, settings, title, cut, callout, threads, tableContentOf, weldJoints]);
@@ -365,9 +370,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, section: turned.settings.section && r.section?.ok ? r.section : undefined };
     }
-    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(base.section ? { section: base.section } : {}) });
+    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints }, ...(base.section ? { section: base.section } : {}) });
     onChange(next);
-    const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts;
+    const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts + report.dimensions.keys;
     const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';
     const where = `${report.sheet} at ${scaleLabel(report.scale)}${side}${report.dropped.length ? `, without the ${report.dropped.join(' and ')} view (it shows nothing the others do)` : ''}`;
     const notes = [...report.dimensions.skipped.map(x => `${x.what} (${x.view}): ${x.why}`), ...report.left.map(x => x.message), ...(report.readable ? [] : [`The smallest hole is under ${MIN_HOLE_ON_PAPER_MM} mm on paper at this scale: a larger sheet reads better.`])];
@@ -501,6 +506,9 @@ export function DrawingWorkspace({ engine, doc, bodies, settings, fileName, onCh
         {/* (FRd1, O118: the frame's welds as a table, W1… with the cut list's items.) */}
         {hasFrame && <label className="field"><span>Weld list</span><input type="checkbox" className="check" aria-label="Weld list table" checked={!!settings.tables?.some(x => x.from === 'weld-list')} onChange={e => onChange(withTable(settings, 'weld-list', e.target.checked))} /></label>}
         {hasFrame && <label className="field"><span>Weld symbols</span><input type="checkbox" className="check" aria-label="Weld symbols" checked={!!settings.weldSymbols} onChange={e => { const { weldSymbols: _w, ...base } = settings; void _w; onChange(e.target.checked ? { ...base, weldSymbols: true } : base); }} /></label>}
+        {(kinds.size > 0 || hasBought) && <label className="field"><span>Element list</span><input type="checkbox" className="check" aria-label="Element list table" checked={!!settings.tables?.some(x => x.from === 'elements')} onChange={e => onChange(withTable(settings, 'elements', e.target.checked))} /></label>}
+        {kinds.has('spring') && <label className="field"><span>Spring data</span><input type="checkbox" className="check" aria-label="Spring data table" checked={!!settings.tables?.some(x => x.from === 'springs')} onChange={e => onChange(withTable(settings, 'springs', e.target.checked))} /></label>}
+        {kinds.has('oring-gland') && <label className="field"><span>Gland table</span><input type="checkbox" className="check" aria-label="Gland table" checked={!!settings.tables?.some(x => x.from === 'glands')} onChange={e => onChange(withTable(settings, 'glands', e.target.checked))} /></label>}
         <label className="field"><span>Title</span><input aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}
           onBlur={() => { if (titleDraft !== null) { const rest = { ...settings }; delete rest.title; onChange(titleDraft.trim() && titleDraft.trim() !== fileName ? { ...rest, title: titleDraft.trim() } : rest); setTitleDraft(null); } }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>

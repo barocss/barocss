@@ -5490,3 +5490,90 @@ S1 is built.
   - the overrides: the key made (no line), the shaft bought (a line, `override`);
   - a ring with no row gives an estimate line.
 - **No flow step for S1**: the studio shows no BOM yet, and S2's element table is where the lines become visible. The browser side is covered by the verify's machine-element and library steps, which carry the new field over the worker's wire.
+
+## O144 — R12c on drawings and in the BOM, S2: the element, spring and gland tables (2026-10-22)
+
+S2 of O142, built on S1's data (`BodyResult.element`, `elementLines`). There are three new table sources (drawing/elementTables.ts) in `TABLE_SOURCES`. Column titles are our own words; every value is the model's (the user's rows, the kernel's report).
+
+- **`elements`** (MACHINE ELEMENTS): item, kind, size [mm], row, source, bought (made / bought, "(set)" when the person's override decided it), est., mass [g]. Under it, each estimate's why, and "Sizes and rows are yours (none built in)…".
+- **`springs`** (SPRING DATA): one row a spring, with type, wire Ø, mean Ø, outer Ø, active and total coils, free (or body) length, pitch, solid height, ends or hooks, hand, and rate (— with no G). Under it, each spring's G and E with "an estimate" where flagged, and a torsion spring's rate in N·mm/°.
+- **`glands`** (O-RING GLANDS): kind, ring, the ring's ID and section, groove Ø, width and depth, stretch, squeeze (free and stretched) and fill (of the stretched section, as it is judged). Under it, the ranges judged by with their source and "(an estimate)", an estimate row, and each warning.
+- A part without the kind: the source's error, drawn NOT AVAILABLE with why.
+- **The studio**: the Drawing workspace offers Element list, Spring data and Gland table checkboxes, each only when the part has that kind (the element list also when a node is marked bought).
+- **Tests** (`test/element-tables.test.ts`):
+  - the shaft-parts scene's element list exactly, and a spring's estimate marked and said;
+  - the default spring's data equal to D153's figures: wire 2, mean 20, outer 22, 6 active of 8, free length 34.00, pitch 5, solid 16.01, closed-ground, right hand, rate Gd⁴/(8D³n) = 3.304;
+  - the piston gland equal to D159's S0: 214, 24.99 × 3.53, groove Ø25.5 × 4.7 × 2.8, stretch 2.0, squeeze 20.7 (20.0 stretched), fill 73.1 % stretched, Fictiv's ranges an estimate, the fill warning;
+  - NOT AVAILABLE for each on a box;
+  - the tables' texts in the SVG, the PDF and the DXF.
+  `drawing-table.test`'s list of sources is updated.
+- **Flow step** "element tables (O144)…": a spring from the palette, its A3 drawing with both tables by their checkboxes, no gland table offered, the SVG holding them and the estimate line.
+
+## O145 — R12c on drawings and in the BOM, S3a: the elements on their dimensions, and leader notes (2026-10-22)
+
+The first part of O142's S3, as the coordinator answered: text after the dimension (as D155's fits), and a leader note only where an element has no dimension of its own.
+
+- **Callouts** (drawing/elementCallouts.ts `withElements`), built from the part's elements:
+  - the studio passes its evaluated bodies' (`elementsOfBodies`), since none are evaluated on the page;
+  - the chat's and the servers' drawings use `partElements(doc)`, the kernel's snapshot.
+  They wrap the hole and fit callouts in both places, DrawingWorkspace and chat/drawing.ts. What they add:
+  - **a bearing**: a diameter dimension on its seat (the shaft's `seat<step>` face, at the bearing's bore) or on its housing's bore (a face of the housing node, at its outside diameter) adds "bearing 6204 (B1 (D139))". That is its designation or row, with the row's source or "(est.)".
+  - **a retaining ring**: a diameter on its groove's bottom (`groove<g>`, at the groove's Ø) adds "× 1.3 · ring r20 (the maker's sheet)", the groove's width being the ring's thickness plus its play. Without a row it reads "· ring (est.)".
+  - Another diameter on the same face adds nothing.
+- **Leader notes** (`elementNotes`, `withElementNotes`): a key and a dowel pin have no dimension of their own.
+  - Auto layout (the studio's Auto-dimension, and the chat's `drawing.auto_dimension`) gives each a note `el-<feature>`, worded as the element list's ("key 6 × 6 × 18", "dowel pin Ø4 × 20").
+  - Its leader runs to the middle of a visible edge of its faces in the first view (front, top, right) that shows one; the note goes just outside that view's nearest side.
+  - The issue list's moves clear one that overlaps. Each pass makes them again, keeping the person's own notes.
+  - `SheetInputs.elements` carries the elements to Auto layout.
+- **Tests** (`test/element-callouts.test.ts`):
+  - the bearing's seat Ø20 and housing Ø47 callouts, and after a fit's text;
+  - the ring groove's with and without a row, and on a hand-placed diameter dimension on the sheet;
+  - Auto layout's two notes with their leaders, no issue about them, and made again without doubling.
+  - The flow step "element notes (O145)…": a shaft and its key from the palette, then Auto-dimension on A3. The key's note is there with its leader, there is no text overlap, and it is in the SVG.
+- **Still to do (S3b)**: the key and keyway dimensions in auto-dimension, i.e. the keyseat's width b and d − t1 on the shaft, and the keyway's width and d + t2 on the hub. They need references the auto-dimension does not make today: the far silhouette of the shaft and the far side of the bore, not edge ends. That is the next checkpoint.
+
+## O146 — R12c on drawings and in the BOM, S3b: keyseats and keyways dimensioned (2026-10-22)
+
+The rest of O142's S3. Auto-dimension (drawing/auto.ts `keyPlans`, given `SheetInputs.elements`) adds four dimensions:
+- for each shaft keyseat: its width **b**, and **d − t1**, from the step's far side to the seat's floor;
+- for each hub keyway: its width, and **d + t2**, from the bore's far side to the keyway's floor.
+
+- **How it finds them**: each is a pair of edge ends found by their faces' names, exactly the report's distance apart along a view axis. The width's two ends also sit level across it.
+  - keyseat: `<shaft>.keyseat<j>`; the floor is an edge between two of the seat's own faces; the far side is the step's silhouette `<shaft>.seat<k>~sil`;
+  - keyway: `<keyway>.keyway`, against the bore's face, whose circle has an end at its far side.
+  - The view chosen is the one where both ends lie on visible edges, else the first that has them (dashed: the keyseat is seen through the shaft in the front and side views). One not found is skipped, with why.
+- **Counting**: they are counted in `report.keys`, apart from `added`, whose exact shape R14's conformance cases pin. The studio's message adds them in.
+- **Tests**:
+  - in `test/element-callouts.test.ts`, the shaft-parts scene's Auto layout gives 4 key dimensions, with values 6 (b), 16.5 (20 − 3.5), 6 (the keyway) and 22.8 (20 + 2.8), and no error issue on them;
+  - R14's auto-dimension and layout conformance is unchanged;
+  - the O145 flow step now also checks b 6 and d − t1 16.5 on the sheet.
+- **R12c on drawings and in the BOM is done** (S1–S3b, O143–O146).
+
+### O146 addendum — dimensions on hidden lines said, not hidden (2026-10-22)
+
+The coordinator's drawing-practice point: avoid dimensioning to hidden lines.
+- **The view**: `keyPlans` already takes the view where both ends are visible; a seat facing a view shows there (the default shaft's keyseat, in the right view: b on visible lines).
+- **Hidden in every view** (a keyseat under its hub; d − t1, which only edge-on views show): the dimension is kept, and the issue list warns `DIM_ON_HIDDEN`. "Dimension … measures to a hidden line in the front view: a section through it would show it (none is added for it)."
+  - It covers any linear dimension, the person's too.
+  - A point is hidden only when no visible edge of the view ends there: a corner that a hidden edge also ends at is a seen point. With that rule, R14's conformance raises none (79/79 drawing tests).
+- **No section is added.** A section through the seat is R14's view logic, an open item (§0).
+- **Test**: the shaft-parts scene under its hub warns d − t1 (16.5) on a hidden line, and not the hub's keyway width, which the top view shows.
+
+### O143 addendum — D160's cam and D161's drives in the element data (2026-10-22)
+
+The coordinator's note with integration cadfe4700, merged here as 26b88406b. The kernel's cam and drive notes were already folded into the one notes list, after the spring's.
+- **`BodyElement`** gains `cam`, `sprocket`, `pulley`, `belt` (a belt or a chain) and `coupling`, each with its row: a sprocket's chain, a pulley's belt, a belt's row, a coupling's row, each with its source or estimate.
+- **Bought by default**: belts and chains are bought. A coupling is bought as its kernel report's `bought` says (from its row). Cams, sprockets and pulleys are made.
+- A coupling's part number and supplier are carried as the line's `catalogue`, into the BOM line and the element list's source cell.
+- **Sizes**, our words from the reports:
+  - cam: "translating roller, base R20, stroke 8 mm";
+  - sprocket: "17 teeth, p 12.7, Ø… pitch";
+  - pulley: "flat, Ø80 pitch × 50";
+  - belt: "flat-belt, L … at 150";
+  - coupling: "Ø12 / Ø14 bores, Ø30 × 40".
+  Why an estimate: a cam's pressure-angle limit, a belt's band section.
+- **Test**: two pulleys, their belt, a coupling and a cam (the kernel lane's test rows):
+  - lines with pulleys made, belt bought, coupling bought, cam made;
+  - the coupling's catalogue "TEST-1, a test supplier";
+  - the BOM's belt and coupling lines;
+  - every element's data structured-cloned.

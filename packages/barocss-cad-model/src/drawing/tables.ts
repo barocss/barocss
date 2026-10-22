@@ -9,6 +9,7 @@ import type { DrawingTable } from './types';
 import type { TableContent } from './table';
 import { cutListSource } from '../app/cutList';
 import { weldListSource } from '../frames/welds';
+import { elementsSource, glandsSource, springsSource } from './elementTables';
 
 export interface TableSourceContext { doc: StudioDoc; bodies?: readonly BodyResult[] }
 export type TableSource = (ctx: TableSourceContext) => TableContent | { error: string };
@@ -37,7 +38,7 @@ export function bendTable(ctx: TableSourceContext): TableContent | { error: stri
 }
 
 /** The sources by name. A cut list (FR4b, the kernel lane's) is registered here as 'cut-list'; the weld list (FRd1) as 'weld-list'. */
-export const TABLE_SOURCES: Record<string, TableSource> = { bends: bendTable, 'cut-list': cutListSource, 'weld-list': weldListSource };
+export const TABLE_SOURCES: Record<string, TableSource> = { bends: bendTable, 'cut-list': cutListSource, 'weld-list': weldListSource, elements: elementsSource, springs: springsSource, glands: glandsSource };
 
 /** A table's content: given, or its source's; an unknown or refusing source as its error. */
 export function tableContent(t: DrawingTable, ctx: TableSourceContext): TableContent | { error: string } {

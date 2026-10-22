@@ -432,6 +432,14 @@ export function stlFor(doc: StudioDoc, key: string): Uint8Array | null {
  * The part's visible bodies and its shown instances' as B-reps (for drawings), with a name prefix for
  * each (an instance's `<id>/`, so its edges are told apart), or the reason they cannot be evaluated.
  */
+/** The part's machine elements, by node (O144 S3: what the drawing's callouts read without the bodies). */
+export function partElements(doc: StudioDoc): { node: number; element: BodyElement }[] {
+  try {
+    const out: { node: number; element: BodyElement }[] = [];
+    for (const o of snapshotOf(skeletonsNow(doc)).outputs) { const at = keyed(o.id, doc.nodes), e = elementOf(o, at.ref ? doc.nodes[at.ref.node] : undefined); if (e && at.ref) out.push({ node: at.ref.node, element: e }); }
+    return out;
+  } catch { return []; }
+}
 export function brepsFor(doc: StudioDoc): { breps: Brep[]; prefixes: string[] } | { error: string } {
   try {
     const breps = snapshotOf(doc).outputs.map(o => o.brep), prefixes = breps.map(() => '');

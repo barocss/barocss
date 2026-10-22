@@ -2,7 +2,7 @@
 // keyway, a retaining ring, a dowel pin, a bearing, an O-ring gland, an O-ring — kept on its BodyResult as plain data
 // (`element`), with the user's row it was checked against, so the drawing's tables and callouts and the BOM read the
 // numbers, not the notes' text. Its shape is kept stable: the GPU lane's overlays and later analyses read it too.
-import type { BearingReport, CadPartSnapshot, GlandReport, HookedSpringReport, KeyReport, KeywayReport, PinReport, RingReport, ShaftReport, SpringReport } from '@barocss/cad';
+import type { BearingReport, BeltReport, CadPartSnapshot, CamReport, CouplingReport, GlandReport, HookedSpringReport, KeyReport, KeywayReport, PinReport, PulleyReport, RingReport, ShaftReport, SpringReport, SprocketReport } from '@barocss/cad';
 import { featureLabel as featureLabelOf, type ModelNode, type StudioDoc } from './doc';
 
 export type ElementReport =
@@ -14,7 +14,13 @@ export type ElementReport =
   | { kind: 'pin'; report: PinReport }
   | { kind: 'bearing'; report: BearingReport }
   | { kind: 'oring-gland'; report: GlandReport }
-  | { kind: 'oring'; report: { readonly ring: string; readonly overlapMM3: number; readonly stretchedCrossSectionMM: number } };
+  | { kind: 'oring'; report: { readonly ring: string; readonly overlapMM3: number; readonly stretchedCrossSectionMM: number } }
+  // (D160, D161: a cam; a sprocket, a pulley, a belt or chain, a coupling.)
+  | { kind: 'cam'; report: CamReport }
+  | { kind: 'sprocket'; report: SprocketReport }
+  | { kind: 'pulley'; report: PulleyReport }
+  | { kind: 'belt'; report: BeltReport }
+  | { kind: 'coupling'; report: CouplingReport };
 export type ElementKind = ElementReport['kind'];
 /** The user's row an element was checked against: its id, and its source or that it is an estimate. */
 export interface ElementRow { id: string; source?: string; estimate: boolean }
@@ -35,15 +41,22 @@ export function elementOf(o: Output, node: ModelNode | undefined): BodyElement |
   if (o.bearing) { const b = o.bearing; return { kind: 'bearing', report: b, row: { id: b.row, ...(b.source ? { source: b.source } : {}), estimate: b.estimate } }; }
   if (o.gland) { const g = o.gland; return { kind: 'oring-gland', report: g, row: { id: g.ring, ...(g.ringSource ? { source: g.ringSource } : {}), estimate: g.ringEstimate } }; }
   if (o.oring) return { kind: 'oring', report: o.oring };
+  if (o.cam) return { kind: 'cam', report: o.cam };
+  if (o.sprocket) { const r = o.sprocket; return { kind: 'sprocket', report: r, row: { id: r.chain, ...(r.chainSource ? { source: r.chainSource } : {}), estimate: r.chainEstimate } }; }
+  if (o.pulley) { const r = o.pulley; return { kind: 'pulley', report: r, row: { id: r.belt, ...(r.beltSource ? { source: r.beltSource } : {}), estimate: r.beltEstimate } }; }
+  if (o.belt) { const r = o.belt; return { kind: 'belt', report: r, row: { id: r.row, ...(r.rowSource ? { source: r.rowSource } : {}), estimate: r.rowEstimate } }; }
+  if (o.coupling) { const r = o.coupling; return { kind: 'coupling', report: r, row: { id: r.row, ...(r.source ? { source: r.source } : {}), estimate: r.estimate } }; }
   return null;
 }
 
 // ——— The element rows (O142, S1): what the BOM and the drawing's element list read.
-/** Bought by default (the coordinator's list): a bearing, a retaining ring, a key, a dowel pin, an O-ring, a spring; any other node made. */
-export const BOUGHT_BY_DEFAULT: ReadonlySet<string> = new Set(['bearing', 'retaining-ring', 'key', 'pin', 'oring', 'spring']);
+/** Bought by default (the coordinator's list): a bearing, a retaining ring, a key, a dowel pin, an O-ring, a spring, a belt or chain; a coupling as its row says; any other node made (gears, racks, worms, cams, sprockets, pulleys). */
+export const BOUGHT_BY_DEFAULT: ReadonlySet<string> = new Set(['bearing', 'retaining-ring', 'key', 'pin', 'oring', 'spring', 'belt']);
 /** Whether a node is bought, and what decided it: the person's override (`bought` on the node), or the default for its kind. */
-export function boughtOf(node: ModelNode): { bought: boolean; by: 'override' | 'default' } {
-  return node.bought !== undefined ? { bought: node.bought, by: 'override' } : { bought: BOUGHT_BY_DEFAULT.has(node.kind), by: 'default' };
+export function boughtOf(node: ModelNode, e?: BodyElement | null): { bought: boolean; by: 'override' | 'default' } {
+  if (node.bought !== undefined) return { bought: node.bought, by: 'override' };
+  // (A coupling: bought as its kernel report's row says, D161.)
+  return { bought: e?.kind === 'coupling' ? e.report.bought.bought : BOUGHT_BY_DEFAULT.has(node.kind), by: 'default' };
 }
 export interface ElementLine {
   /** The feature (its id) and its label. */
@@ -57,10 +70,12 @@ export interface ElementLine {
   estimate: boolean; why: string[];
   bought: boolean; boughtBy: 'override' | 'default';
   massG: number | null;
+  /** A bought item's catalogue number and supplier, where its row gives them (a coupling's, D161). */
+  catalogue?: string;
 }
 const n = (x: number) => `${+x.toFixed(3)}`;
 /** A report's sizes as one short line (our own words; the values the kernel's). */
-function sizeOf(e: BodyElement, oringRow?: { insideDiameterMM: number; crossSectionMM: number }): string {
+export function sizeOf(e: BodyElement, oringRow?: { insideDiameterMM: number; crossSectionMM: number }): string {
   switch (e.kind) {
     case 'spring': { const d = e.report.dimensions, type = e.report.type, L = 'freeLengthMM' in d ? `${n(d.freeLengthMM)} free` : `${n(d.bodyLengthMM)} body`; return `${type}, Ø${n(d.wireDiameterMM)} wire, Ø${n(d.meanDiameterMM)} mean × ${L}, ${n(d.activeCoils)} active`; }
     case 'shaft': { const ds = e.report.steps.map(s => s.diameterMM); return `${e.report.steps.length} steps Ø${n(Math.min(...ds))}–Ø${n(Math.max(...ds))} × ${n(e.report.lengthMM)}`; }
@@ -71,6 +86,11 @@ function sizeOf(e: BodyElement, oringRow?: { insideDiameterMM: number; crossSect
     case 'bearing': return `${n(e.report.boreMM)} × ${n(e.report.outsideMM)} × ${n(e.report.widthMM)}`;
     case 'oring-gland': return `groove Ø${n(e.report.grooveDiameterMM)} × ${n(e.report.widthMM)} × ${n(e.report.depthMM)}`;
     case 'oring': return oringRow ? `${n(oringRow.insideDiameterMM)} × ${n(oringRow.crossSectionMM)}` : e.report.ring;
+    case 'cam': return `${e.report.motion} ${e.report.follower}, base R${n(e.report.baseRadiusMM)}, stroke ${n(e.report.stroke)} ${e.report.units}`;
+    case 'sprocket': return `${e.report.teeth} teeth, p ${n(e.report.pitchMM)}, Ø${n(e.report.pitchDiameterMM)} pitch`;
+    case 'pulley': return `${e.report.type}${e.report.teeth ? ` ${e.report.teeth} teeth` : ''}, Ø${n(e.report.pitchDiameterMM)} pitch × ${n(e.report.widthMM)}`;
+    case 'belt': return `${e.report.kind}, L ${n(e.report.lengthMM)}${e.report.chain ? `, ${e.report.chain.links} links` : ''} at ${n(e.report.centerDistanceMM)}`;
+    case 'coupling': return `Ø${n(e.report.boreMM[0])} / Ø${n(e.report.boreMM[1])} bores, Ø${n(e.report.outsideMM)} × ${n(e.report.lengthMM)}`;
   }
 }
 /** Each machine element of a part (and each node the person marked bought), one line a body: what the BOM and the element list carry. */
@@ -79,7 +99,7 @@ export function elementLines(doc: Pick<StudioDoc, 'nodes' | 'orings'>, bodies: r
   for (const b of bodies) {
     const k = b.ref?.node; if (k === undefined || seen.has(k)) continue;
     const node = doc.nodes[k]; if (!node) continue;
-    const e = b.element, buy = boughtOf(node);
+    const e = b.element, buy = boughtOf(node, e);
     if (!e && !(buy.by === 'override' && buy.bought)) continue;
     seen.add(k);
     const label = featureLabelOf(node, k, doc.nodes), why: string[] = [];
@@ -91,7 +111,10 @@ export function elementLines(doc: Pick<StudioDoc, 'nodes' | 'orings'>, bodies: r
     if (e?.kind === 'spring' && e.report.dimensions.shearModulusEstimate) why.push('its shear modulus G is an estimate');
     if (e?.kind === 'spring' && 'youngsModulusEstimate' in e.report.dimensions && e.report.dimensions.youngsModulusEstimate) why.push('its Young\'s modulus E is an estimate');
     if (e?.kind === 'oring-gland' && e.report.ranges.estimate) why.push('its squeeze and fill ranges are an estimate');
-    out.push({ item: node.id ?? `n${k}`, label, kind: e?.kind ?? node.kind, size: e ? sizeOf(e, oring) : label, row, estimate: why.length > 0, why, bought: buy.bought, boughtBy: buy.by, massG: b.massG });
+    if (e?.kind === 'cam' && e.report.pressureAngle.limitEstimate) why.push('its pressure-angle limit is an estimate');
+    if (e?.kind === 'belt' && e.report.bandEstimate) why.push('its band\'s section is an estimate');
+    const catalogue = e?.kind === 'coupling' && (e.report.bought.partNumber || e.report.bought.supplier) ? [e.report.bought.partNumber, e.report.bought.supplier].filter(Boolean).join(', ') : undefined;
+    out.push({ item: node.id ?? `n${k}`, label, kind: e?.kind ?? node.kind, size: e ? sizeOf(e, oring) : label, row, estimate: why.length > 0, why, bought: buy.bought, boughtBy: buy.by, massG: b.massG, ...(catalogue ? { catalogue } : {}) });
   }
   return out;
 }

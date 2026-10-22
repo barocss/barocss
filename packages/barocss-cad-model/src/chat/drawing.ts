@@ -1,6 +1,7 @@
 // The agent's drawing tools (R14.5, O6): the same Auto layout, issue list and tolerance suggestions the Drawing
 // workspace offers, on the document's drawing. Reading tools change nothing; the others change the drawing, which an
 // agent can only propose (`propose` with them as ops; D41): the user accepts it in the studio.
+import { elementNotes, partElements, withElementNotes, withElements } from '../drawing/elementCallouts';
 import { followedStale, staleText } from '../frames/skeleton';
 import { fitMiss, withFit } from '../drawing/fits';
 import { weldList, type WeldJoint } from '../frames/welds';
@@ -63,8 +64,8 @@ export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDr
   if ('error' in b) return `The part could not be evaluated: ${b.error}`;
   const r = projectViews(b.breps, b.prefixes, { tangentEdges: !!settings.tangent, ...(settings.orientation ? { orientation: settings.orientation } : {}) });
   if (!r.ok) return r.empty ? 'There is no body to draw yet.' : `The views could not be projected: ${r.error}`;
-  const section = settings.section ? sectionOf(doc, settings.section.y, settings.orientation) : undefined;
-  return { views: r.views, settings, callout: withFit(doc, e => holeCallout(doc.nodes, e)), fitMiss: fitMiss(doc), followedChanged: followedStale(doc).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}) }, ...(section?.ok ? { section } : {}) };
+  const section = settings.section ? sectionOf(doc, settings.section.y, settings.orientation) : undefined, elements = partElements(doc);
+  return { views: r.views, settings, elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(doc).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}) }, ...(section?.ok ? { section } : {}) };
 }
 
 /** FRd2 (O119): the frame's weld joints for the symbols (the part evaluated for its members). */
@@ -96,8 +97,8 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
     }
     case 'auto_dimension': {
       if (args.layout === false) {
-        const ctx = issueContext(i), r = autoDimensions(i.views, ctx.layout, i.settings, i.callout);
-        return set({ ...i.settings, dimensions: r.dimensions }, 'drawing dimensioned', { added: r.report.added, kept: r.report.kept, skipped: r.report.skipped, crowded: r.report.crowded });
+        const ctx = issueContext(i), r = autoDimensions(i.views, ctx.layout, i.settings, i.callout, i.elements);
+        return set(withElementNotes({ ...i.settings, dimensions: r.dimensions }, i.elements ? elementNotes(i.views, ctx.layout, i.elements) : []), 'drawing dimensioned', { added: r.report.added, kept: r.report.kept, skipped: r.report.skipped, crowded: r.report.crowded });
       }
       // The front's side by information, when nothing placed by hand ties it (R14.3b): the part projected for it first.
       let base = i, front: string | undefined;
