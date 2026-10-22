@@ -5,6 +5,7 @@ import { profilePath } from '../src/app/sheetCommands';
 import { evaluateDoc, evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, featureLabel, withNode, type StudioDoc } from '../src/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
+import { personFile } from './person-file';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { editFields } from '../src/app/editFields';
 
@@ -188,9 +189,16 @@ test('D120 a sheet on a bend table: its notes name the table and each bend\'s ro
   const th = 105 * Math.PI / 180, [b2] = bodiesOf(withNode(emptyDoc(), { ...node, path: [[0, 0], [50, 0], [50 + 35 * Math.cos(th), 35 * Math.sin(th)]] }));
   const n2 = b2.notes!.find(n => /^bend1/.test(n.text))!;
   assert.ok(n2.warning && /from rows 0, 1 \(interpolated\), an estimate among them$/.test(n2.text), n2.text);
-  // The agent's raw node with its table: checked, built.
+  // The agent's raw node carrying its own table is refused (rows rule b); the same table loaded from the person's file
+  // onto a plain sheet (K 0.5 until then) replaces its K and builds the same flat.
   const evaluate = async (d: StudioDoc) => evaluatePart(d, 1);
-  const a = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [node] }, evaluate);
+  const raw = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [node] }, evaluate);
+  assert.ok(raw.isError && raw.content.includes('[ROWS_NOT_FROM_PERSON]'), raw.content);
+  const { bendTable: _t, ...plain } = node; void _t;
+  const shop = personFile('bends.json', table);
+  const a = await dispatchTool({ doc: emptyDoc(), bodies: [], rowFiles: shop.rowFiles }, 'add_features', { features: [{ ...plain, kFactor: 0.5 }] }, evaluate);
   assert.ok(!a.isError, a.content);
-  assert.ok(Math.abs(a.state.bodies[0].flat!.box.max[0] - 80.8) < 1e-9);
+  const l = await dispatchTool(a.state, 'load_rows', { kind: 'bend', file: shop.file, feature: 0 }, evaluate);
+  assert.ok(!l.isError, l.content);
+  assert.ok(Math.abs(l.state.bodies[0].flat!.box.max[0] - 80.8) < 1e-9 && l.state.bodies[0].sheet!.bendTable === 'shop-2mm');
 });

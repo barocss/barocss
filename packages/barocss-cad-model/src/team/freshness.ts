@@ -21,7 +21,7 @@ import { fromSig, markedReferences, toSig, verifyReferences, type Sig } from '..
 import { matchSignature, signaturesOf, type Signature } from '../engine/rematch';
 import { bomView, checkBom, deriveBom } from './assembly';
 import { digestOf } from './digest';
-import { readInterfaces } from './parts';
+import { readInterfaces } from './interfaces';
 import { modelContent } from './revision';
 import { beadAccounting, incompleteBeadReason } from '../frames/beadAccounting';
 

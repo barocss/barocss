@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import { personFile } from './person-file';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { editBearingRows } from '../src/engine/bearings';
 import { editFitTables } from '../src/engine/fits';
@@ -38,8 +39,9 @@ test('A9-5: two boxes side by side — in contact at once (pending, not an overl
 });
 
 test('A9-5: a welded table frame (R40, butt corners) — every pair of members at no distance is touching once filled, none overlapping', async () => {
-  s = { doc: emptyDoc(), bodies: [] };
-  await run('features', { action: 'frame_sections', rows: [{ id: 'R40', name: 'RHS 40', section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, source: 'a test value' }] });
+  const sections = personFile('sections.json', [{ id: 'R40', name: 'RHS 40', section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, source: 'a test value' }]);
+  s = { doc: emptyDoc(), bodies: [], rowFiles: sections.rowFiles };
+  await run('features', { action: 'frame_sections', file: sections.file });
   await run('features', { action: 'command', command: 'frame', values: { skeleton: 'table', W: 400, D: 300, H: 300, x: 0, y: 0, z: 0, section: 'library', row: 'R40', corners: 'butt' } });
   const map = filled(await assemblyPlacedBodies(s.doc, evaluate)), at0 = map.pairs.filter(p => p.minGapMM === 0);
   assert.equal(at0.length, 12, JSON.stringify(map.pairs.map(p => [p.a, p.b, p.state])));

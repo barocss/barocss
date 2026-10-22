@@ -12,18 +12,13 @@ import type { Op } from '../chat/proposals';
 import { rotationMatrix } from '../assembly/mates';
 import { massProperties } from '../chat/analysis';
 import { revisionOf, type Decision, type GateResult, type RoleReport } from './team';
+import { interfacesRevision, readInterfaces, type HolePattern, type Interfaces } from './interfaces';
 import { checkAssembly } from './assembly';
 import { beadAccounting, incompleteBeadReason } from '../frames/beadAccounting';
 
-export interface HolePattern { id: string; positions: [number, number, number][]; diameter: number; /** The direction the holes run (the assembly's frame). */ axis: [number, number, number]; parts: string[] }
-export interface Envelope { id: string; part: string; min: [number, number, number]; max: [number, number, number] }
-export interface Interfaces { version: 1; datums: string[]; keepouts: string[]; holePatterns: HolePattern[]; envelopes: Envelope[]; budgets: { massG?: number; parts?: Record<string, number> } }
-export const readInterfaces = (raw: unknown): Interfaces => {
-  const r = raw as Interfaces | undefined;
-  return r && r.version === 1 ? { version: 1, datums: r.datums ?? [], keepouts: r.keepouts ?? [], holePatterns: r.holePatterns ?? [], envelopes: r.envelopes ?? [], budgets: r.budgets ?? {} } : { version: 1, datums: [], keepouts: [], holePatterns: [], envelopes: [], budgets: {} };
-};
-/** The interfaces' own revision (A7.1's hash over them alone: a part's contract). */
-export const interfacesRevision = (doc: StudioDoc) => revisionOf({ nodes: [], parameters: {}, interfaces: readInterfaces(doc.interfaces) } as unknown as StudioDoc);
+// (The interfaces' reader and revision live in team/interfaces.ts — no runner imports — so the bundle, baseline, ECR and
+// freshness read them without importing the chat tools; re-exported here unchanged.)
+export { readInterfaces, interfacesRevision, type HolePattern, type Envelope, type Interfaces } from './interfaces';
 
 export interface Lease { part: string; holder: string; contract: string; until: number; /** The ECR whose approval left it on the old contract (A8.3): renewed by the Architect. */ expiredBy?: string }
 export interface PartPatch { id: string; by: string; part: string; contract: string; ops: Op[] }

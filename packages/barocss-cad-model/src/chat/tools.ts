@@ -12,7 +12,6 @@ import type { ToolDefinition } from './api';
 import { CAGE_MUTATORS, CAGE_TOOL_NAMES, CAGE_TOOLS, runCageTool } from './cageTools';
 import { DRAWING_CHANGES, DRAWING_TOOL_NAMES, DRAWING_TOOLS, runDrawingTool } from './drawing';
 import { OUTPUT_TOOLS, OUTPUT_TOOL_NAMES } from './outputDefinitions';
-import { runOutputTool } from './outputs';
 import { resolveShopRows, resolveShopTree, restoreAuthoredShopRows } from '../engine/shopRows';
 import { friendly } from '../engine/errors';
 import { loadPersonRows } from './rows';
@@ -54,6 +53,9 @@ import { followedStale, partEditRefusal, refreshFollowed, skeletonEditRefusal, s
 import { weldList, type WeldRecord } from '../frames/welds';
 import { beadOwnershipError, documentBeadOwnershipError, type BeadOwnership } from '../frames/beadOwnership';
 import { beadAccounting } from '../frames/beadAccounting';
+// ./outputs is loaded on first use: it reaches team/bundle → baseline → assembly → parts, which import this
+// module, so a static import closes a cycle that leaves `commands` undefined here at load.
+let outputsModule: Promise<typeof import('./outputs')> | undefined;
 export { resolveNames, type NameSelection };
 
 /** A selection by persistent names (stable across evaluations, unlike mesh indices). */
@@ -392,6 +394,7 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
   const unknown = unknownArguments(name, args);
   if (unknown) return fail(state, unknown);
   if (OUTPUT_TOOL_NAMES.has(name)) {
+    const { runOutputTool } = await (outputsModule ??= import('./outputs'));
     const output = await runOutputTool(state.doc, state.bodies, name, args, evaluate);
     return 'error' in output ? fail(state, output.error) : { state, content: json(output.content), isError: false, changed: false, summary: output.summary };
   }
@@ -1085,7 +1088,12 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       const loaded = args.file === undefined ? { doc: state.doc } : loadPersonRows(state.doc, 'sections', args.file, undefined, state.rowFiles);
       if ('error' in loaded) return fail(state, loaded.error);
       const result = editSections(loaded.doc, [], remove);
-      return 'error' in result ? fail(state, result.error) : accept(state, result.doc, evaluate, 'Section library');
+      if ('error' in result) return fail(state, result.error);
+      // (FRc, O117: the report names the rows the file added or replaced, and the ids removed.)
+      const was = new Map((state.doc.frames?.sections ?? []).map(r => [r.id, r])), now = result.doc.frames?.sections ?? [];
+      const added = now.filter(r => !was.has(r.id)).map(r => r.id), replaced = now.filter(r => was.has(r.id) && was.get(r.id) !== r).map(r => r.id);
+      return accept(state, result.doc, evaluate, `section library: ${[added.length ? `added ${added.join(', ')}` : '', replaced.length ? `changed ${replaced.join(', ')}` : '', result.removed.length ? `removed ${result.removed.join(', ')}` : ''].filter(Boolean).join('; ')}`,
+        { added, replaced, removed: result.removed, rows: now.map(x => ({ id: x.id, ...(x.name ? { name: x.name } : {}), section: x.section, ...(x.source ? { source: x.source } : { estimate: true }) })) });
     }
     case 'set_welds': {
       // (FRd1, O118: the person's welds by joint — kind, size, all round, notes — over the rule's; a joint the part does not have refused, listing them.)

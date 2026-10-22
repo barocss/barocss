@@ -2,7 +2,7 @@
 // 64-bit revision is for staleness only. Synchronous and our own (the decisions that pin digests are synchronous;
 // WebCrypto's digest is not); the tests check it against node:crypto.
 import type { StudioDoc } from '../engine/doc';
-import { canonical, revisionContent } from './team';
+import { canonical, revisionContent } from './revision';
 import { sha256Hex, sha256Text } from './sha256';
 export { sha256Hex, sha256Text };
 /** A value's content digest: the SHA-256 of its canonical JSON. */

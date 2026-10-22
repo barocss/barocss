@@ -815,7 +815,18 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 
 ### Outer lane (owner, 2026-10-19: a second implementation session; the coordinator merges it into this branch)
 
-#### Outer lane: hand-over at A9-5/6 (account change, 2026-10-22) — read this block first
+#### Outer lane: resumed after Codex (2026-10-23) — read this block first
+
+**State.** Branch `claude/cad-outer-lane-531d5a`, at integration `fc739afed` plus this lane's checkpoints. The brief is `notes/claude-resume-2026-10-23/outer.md`; the block below it is the 2026-10-22 hand-over, kept as history.
+
+| commit | item | verified |
+|---|---|---|
+| `0d4ff6a4c` O149 | the import cycle Codex's `chat/outputs` closed, broken | sheet 8/8 (with O150), cageEdit 7/7, tsc (model, studio), eslint 0 errors |
+| O150 | rows rule (b) through the fixtures (8 test files, `test/person-file.ts`); stock and frame stock merge by id (P2) | those 8 files and person-rows 9/9, tsc (model, studio), eslint 0 errors |
+
+**Next:** the frozen v2 contract test (toolset), then tool-contract, enclosure O73 and shop-rows, then the studio suite's rows (b) fixtures (cad-cli). Open for the coordinator: a `remove` for stock and frame-stock rows (O150).
+
+#### Outer lane: hand-over at A9-5/6 (account change, 2026-10-22) (history)
 
 **State.** Branch `claude/cad-outer-lane-531d5a` (worktree `.claude/worktrees/studio-mates-cbde0e`), local only. The last O-number is O148; later entries in `decisions-outer.md` are titled, not numbered (queue 3–5b, G22, G23, A9). The last work commit is `65eeac483`; this block's commit follows it.
 

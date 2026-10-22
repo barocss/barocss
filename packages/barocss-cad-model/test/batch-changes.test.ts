@@ -5,6 +5,7 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import { acceptProposal, dispatchTool, runTool, type ChatState } from '../src/chat/tools';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { canonical } from '../src/team/revision';
+import { receivePersonRowFiles } from '../src/chat/rowFiles';
 
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 async function stateOf(doc = emptyDoc()): Promise<ChatState> {
@@ -71,9 +72,16 @@ test('a person-approved assembly batch saves and reopens with its part kept', as
 });
 
 test('batch and script report document-only changes: brief, material and frame rows', async () => {
-  const s = await stateOf(rectanglePart(40, 20, 8));
+  // (Rows rule b: the section rows come from a file the person supplied in the conversation; agent-written rows are refused.)
+  const rows = [{ id: 'own', section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, estimate: true }];
+  const rowFiles = receivePersonRowFiles('0123456789abcdef01234567', [{ name: 'sections.json', text: JSON.stringify(rows), turn: 1 }], 1);
+  const s = { ...await stateOf(rectanglePart(40, 20, 8)), rowFiles };
+  for (const op of [{ tool: 'set_frame_sections', args: { rows } }, { tool: 'apply_ops', args: { ops: [{ tool: 'set_frame_sections', args: { rows } }] } }]) {
+    const out = await runTool(s, op.tool, op.args, evaluate);
+    assert.equal(out.isError, true, out.content); assert.match(out.content, /ROWS_NOT_FROM_PERSON/); assert.equal(out.state, s);
+  }
   for (const op of [briefOp, { tool: 'set_material', args: { material: 'steel' } },
-    { tool: 'set_frame_sections', args: { rows: [{ id: 'own', section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, estimate: true }] } }]) {
+    { tool: 'set_frame_sections', args: { file: rowFiles.files[0].id } }]) {
     const direct = await runTool(s, op.tool, op.args, evaluate);
     const batch = await runTool(s, 'apply_ops', { ops: [op] }, evaluate);
     assert.equal(direct.isError, false, direct.content);
