@@ -7,7 +7,82 @@ no npm publish.
 
 ## 0. Start here — hand-over of 2026-10-18 (read this section first)
 
-### Kernel lane: hand-over at the R12c → FR geometry boundary (2026-10-22) — read this block first
+### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
+
+The owner moved the work to another account mid-track. The kernel lane stops cleanly after FRk8b's defect half, and a fresh session picks it up from here. The R12c → FR geometry block below is kept as history; its FRk lines are brought up to date here.
+
+**State**
+- Branch `review/cad-gpu-engine-2026-10-14` (the integration branch, local only, never pushed).
+- The last kernel records: D167. The last kernel commits:
+  - `7c6be3324` (FRk8b's fix);
+  - `75647da69` (its RB and properties rows);
+  - this block's commit after them.
+- **FRk, the kernel half of FR completion** (roadmap item 5; D164 its S0):
+  - **FRk1, done: D165**: `gusset` and `end-cap` kinds placed by the members as built; `gusset` / `endCap` reports; GUSSET_FIT, CAP_END; the Gusset and End cap v2 commands.
+  - **FRk2, done: D166**:
+    - the `weld-bead` kind: an end's loop offset by the leg, drafted 45°, less the member, kept on the landing faces read off the B-reps as built; flush sides said; a gusset's seams;
+    - the `bead` report; BEAD_KIND, BEAD_SEAM_NOT_PLANAR, BEAD_ANGLE (every oblique end), BEAD_SIZE;
+    - no command: the outer lane maps the person's O118 weld records onto it (their queue 5b, merged).
+  - **FRk8b (the defect half), done: D167**:
+    - the trimmed faces' quadrature cut along each surface's knot lines where (u, v) is the surface's own (`FaceParameters.own`);
+    - the strips' inversion kept to the face's own domain;
+    - no strip dropped silently (a face that drops one is held to its vector area to 1e-9, or the B-rep takes the tessellation's route, said by `method`);
+    - the bevel pair 39.109 → 38.559407 against the oracles' 38.559184;
+    - a sphere-face Green oracle in `test/frk-8b.test.mjs`, since D149's Green does not converge on sphere patches;
+    - two conformance values corrected (`rb2/helical-rod-watertight` z̄, `rb3/helical-bolt-roundtrip` area).
+- **Checks at FRk8b (T2 with RB and properties):**
+
+  | Check | Result |
+  |---|---|
+  | Full kernel suite, concurrency 4 | 1545/1552, 6 skipped; only the env-only "actual native Split source…" fails |
+  | RB | 418 cases, 0 new (4 refused, 3 invalid, 5 wrong: the 8 known TODOs) |
+  | Properties | 11/11 |
+  | `@barocss/cad-model` / studio | 780/780 / 211/211; type-checks clean |
+
+**Next: the FRk queue left, in the coordinator's order (D165's reorder):**
+1. **FRk3**, tapered-flange channels and I/H beams. An `i-beam` kind; `channel` gains `flangeSlope` and `toeRadius` (both default 0). Closed form: the polygon ± r²(cot(α/2) − (π − α)/2) a fillet, proven in `test/frk-s0.test.mjs`.
+2. **FRk4**, members along arcs. Revolve with holes first; arc segments (`through` / `center`) and `bends: [{ point, radius }]`; Pappus. Sweep-based bends hold only 5.9e-8 (S0): build from pieces.
+3. **FRk5**, weld end gaps (`gap` on corners and tees) and saddle notches (`holesaw`, `v`), plus eccentric branches.
+4. **FRk6**, the round-cornered ordered trim's speed (one corner 1.2–1.5 s; the table 5.7 s), by S0's three candidates in order:
+   - a later envelope run on only to the joint;
+   - the curve map's cache keyed by sample, not a float `Map`;
+   - the rounds' sections as their planes' ellipses.
+5. **FRk7**, the SubD display folds: slivers inside single B-spline faces (`surfaceTriangles`), not at cap boundaries. The pipe clamp's worst is 88.6°; the target is under 25°.
+6. **FRk8a**, D158's housing shoulder against the row's Da max, found from the housing's faces.
+7. **FRk8b's second half** (integration over the exact trims in the domain), only if speed still calls for it: accuracy no longer needs it.
+8. **FRk9**, acceptance by the agent: a welded table with gussets, caps and beads; a tapered-I portal; a bent-tube rail. Conformance `frk/accept-*`.
+- Each stage gets a D-record (the next is **D168**), tests failing on the previous HEAD, `conformance/frk/` cases, the v2 checks, a §0 row, a commit, and a checkpoint to the coordinator. Then end the turn and wait.
+
+**Open items**
+- **For the owner:**
+  - fillet beads on oblique ends: D164 froze them for sharp convex outlines, and D166 refused every oblique end (BEAD_ANGLE) for want of an independent oracle;
+  - groove-weld preparations, corner welds on flush sides and caps, beads along a cope's saddle seam (D166 "Not in FRk2").
+- **FRk2's studio notes and error titles** (`beadNotes`, BEAD_*) are exercised once the outer lane's record → bead mapping runs. No kernel-lane studio test covers them yet.
+- **Carried from earlier blocks:** the keep-out's own bodies (`Keepout.fills`, the outer lane's file, relayed); sprocket and pulley standard forms (user rows or the derived form).
+
+**Standing rules** (all in memory too):
+- **Never amend, rebase or reset** on this branch: the coordinator merges into it while checks run. A correction is a new commit; a soft reset is told first.
+- **Another lane's file:** before changing one, name the file and the change to the coordinator first. The outer lane owns cad-model's elements, BOM, drawing and welds; the GPU lane owns the viewer and viewport. New kinds may touch cad-model's doc, part, evaluate, errors, migrate, features, tools and flatten, as R12c and FRk did.
+- **Load:** the kernel suite at `--test-concurrency=4`; check `sysctl -n vm.loadavg` before long runs (above about 40, wait); long runs in a detached scratch worktree. Kill only your own PIDs, never by script name.
+- **Verification v2/v3:**
+  - `FLOW_ONLY` only the steps the change runs, plus their prerequisites;
+  - the full kernel suite only when brep core changes;
+  - RB and properties at T3 or every 4th checkpoint;
+  - name the tier, and list what ran and what did not.
+- **Type-check after the last edit to a test file.** cad-model's `tsc` covers `test/`; its esbuild runner does not type-check. Name the commit the check ran on.
+- **Test names:** compare with the saved lists at each checkpoint. Save them in the session's scratchpad `names/`; a new session starts its own lists.
+- **A new command's keywords name itself only.** `apps/cad-studio/test/palette.test.ts` checks every word the flow types.
+- **Rows rule "b"** (the owner, 2026-10-22: "b 로 하자"): the agent loads rows only from a file the person supplied in the conversation, its source recorded; rows the agent writes are refused. The outer lane builds that (A9-9). The kernel's row checks stay as they are. Add no row-loading actions.
+- **Sizes and data:** no sizes are built in (D122). New kinds and commands go in as v2 actions, their values behind `describe`, under the 25,000-a-turn guard (22,347 at D165). Local only: no WASM, no new dependencies, no push.
+
+**How to resume**
+1. Read this block, then D164 (FRk's S0) and D165–D167 in `decisions.md`, then the coordinator's brief.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+3. A flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>` in `apps/cad-studio`, on its own, with short titles.
+4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`. The rows record the commit they ran on: run them on the committed code, or set the row's `commit` to the code's commit (as at 75647da69).
+5. Start FRk3 with D168.
+
+### Kernel lane: hand-over at the R12c → FR geometry boundary (2026-10-22) (history: FRk1, FRk2 and FRk8b are done, see the block above)
 
 The kernel lane goes on in a new session at each track boundary (the owner, 2026-10-19). This block is that hand-over. Since the
 queue → R12c block below, **R12c is done**: machine and power-transmission elements, D153–D163 (D139 its S0). **The next step is
