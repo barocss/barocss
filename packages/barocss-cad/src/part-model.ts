@@ -1675,7 +1675,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     case 'sweep': {
       const sketch = ref(f.sketch, 'sketch').result;
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
-      if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length) fail('CAPABILITY', 'revolve takes one outer loop with optional holes (no regions)');
+      if ((sketch as Extract<Result, { kind: 'sketch' }>).regions?.length || (sketch as Extract<Result, { kind: 'sketch' }>).holes?.length) fail('CAPABILITY', 'sweep takes a sketch of one loop (no regions or holes) yet');
       const path = f.path as unknown;
       if (!Array.isArray(path) || !path.length || path.length > CadPartLimits.copies) fail('INPUT', 'path must list 1 to 64 steps');
       const steps = (path as unknown[]).map((st, i): { kind: 'straight'; length: number } | { kind: 'bend'; radius: number; angle: number; toward: 'x' | '-x' | 'y' | '-y' } => {

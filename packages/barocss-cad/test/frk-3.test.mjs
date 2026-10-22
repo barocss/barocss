@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, lookupSection, sectionTableProblem, cutPiece, cutList } from '../dist/index.js';
-import { prismOracle, sectionOracle } from './receipts/frk3-oracle-moments.mjs';
+import { prismOracle, sectionOracle } from './frk3-oracle.mjs';
 
 const I = (height,width,web,flange,flangeSlope,rootRadius,toeRadius) => ({kind:'i-beam',height,width,web,flange,flangeSlope,rootRadius,toeRadius});
 const CASES = [I(200,90,7,11,.14,9,4.5),I(160,74,6.3,9.5,.08,6,3),I(120,64,4.4,6.3,0,7,0),I(100,100,8,12,0,6,0),I(100,100,10,10,0,0,0),{kind:'channel',height:200,width:45,web:3.5,flange:11,flangeSlope:.14,rootRadius:9,toeRadius:4.5},{kind:'channel',height:80,width:40,web:5,flange:8,rootRadius:7}];
