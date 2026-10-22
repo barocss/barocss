@@ -117,6 +117,7 @@ export class GpuRenderer implements ViewRenderer {
   private clearance?: { display: ClearanceDisplay; meshes: Mesh[] };
   private print?: { geometry: PrintOverlayGeometry; meshes: Map<OverlayDrawing, Mesh> };
   private cam?: { geometry: CamOverlayGeometry; meshes: Map<OverlayDrawing, Mesh> };
+  private pmi?: Map<OverlayDrawing, Mesh>;
   /** A surface analysis look (zebra, curvature) for the modelling view, or none. */
   private analysis: ShaderMaterial | null = null;
   private analysisKey: string | null = null;
@@ -281,6 +282,13 @@ export class GpuRenderer implements ViewRenderer {
     try { this.syncOverlay(cam.meshes, cam.geometry.update(display), 'cnc:'); }
     catch (error) { cam.geometry.update(null); throw error; }
     if (!display) this.cam = undefined;
+  }
+  /** G24: the drawing's annotation lines and heads on the model, beside the native bodies. */
+  setAnnotationDrawings(drawings: readonly OverlayDrawing[] | null): void {
+    if (!this.pmi && !drawings?.length) return;
+    const pmi = this.pmi ??= new Map<OverlayDrawing, Mesh>();
+    this.syncOverlay(pmi, drawings ?? [], 'pmi:');
+    if (!drawings?.length) this.pmi = undefined;
   }
   /** Display-only overlay meshes: new drawings added, missing ones released; never pickable, bounded or shadowed. */
   private syncOverlay(meshes: Map<OverlayDrawing, Mesh>, drawings: readonly OverlayDrawing[], prefix: string): void {
@@ -1056,7 +1064,7 @@ export class GpuRenderer implements ViewRenderer {
     return c.convertToBlob({ type: 'image/png' });
   }
 
-  dispose(): void { this.setPrintDisplay(null); this.setCamDisplay(null); this.viewer.dispose(); }
+  dispose(): void { this.setPrintDisplay(null); this.setCamDisplay(null); this.setAnnotationDrawings(null); this.viewer.dispose(); }
 }
 
 /** Texture coordinates by box projection: each vertex across the body's box on its face's two other axes. */

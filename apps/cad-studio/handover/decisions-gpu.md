@@ -1620,3 +1620,43 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - studio build ok.
 - **Not run**: the drawing flow steps. Their exports' bytes on the existing fixtures are the check the coordinator
   asked for, and need the browser slot. The code that builds the sheet and the exports is the same code, moved.
+
+## G-R9 — G24: the drawing's annotations on the model, picked to their targets (roadmap G5, 2026-10-23)
+
+- **What**: G24 on `useDrawingSheet` (G-R8) and the outer lane's model-annotations-v1, as the coordinator approved:
+  planar text, the edge-on fallback, and picking by persistent names.
+  - **The toggle.** "3D annotations" in the right corner, session only. Nothing new is stored: the annotations come from
+    the document's own drawing settings, so Save/Open gives them back.
+    - App builds the drawing's sheet only while it is on, with the Drawing workspace's own inputs (`useDrawingSheet` with
+      `active`).
+    - It is refused with a reason in Render/Drawing, during an edit, and with the print or CNC preview.
+    - When the hook is inactive, it no longer canonicalises the document each render. The Drawing workspace always
+      passes `active`, so it is unchanged.
+  - **The drawings.** `viewport/pmiGeometry.ts` holds `pmiDrawings`.
+    - The data's lines and arcs (chords of π/24) become one line drawing. Its heads become triangles (filled, a 12-sided
+      dot) or strokes (open, tick). The selected annotation is apart, in the accent colour.
+    - Both renderers draw them through the shared overlay path: `setAnnotationDrawings`, over OverlayGL and syncOverlay.
+  - **The texts.** `pmiLabels`, on WebGPU's labels: in each text's plane, at its height in mm, along its direction and
+    up.
+    - Seen within 10° of edge-on, a text faces the eye at 12 px. It is rebuilt only when that set changes
+      (`pmiFacingKey`).
+    - WebGL2 (no engine labels) draws the texts facing the eye in the SVG overlay.
+  - **The pick.** `pmiPick` finds the annotation nearest the pointer, within 8 px of its texts' spans or its lines on
+    screen. It takes the click before the model under it.
+    - App's `pickAnnotation` selects its targets' edges and faces by their persistent names on the evaluated bodies
+      (`pmiSelection`).
+    - The panel shows the count, how many are only on the sheet, and the picked one's text.
+    - Dev hook `__studioPmi`.
+- **Tests**: `test/pmi.test.ts` (3), on the outer lane's fixture (r14 tol-plate-geometric, auto-dimensioned, tolerances
+  accepted, a fit on the hole):
+  - every segment and head of the data is drawn once, the first line exactly; the selected one apart in the accent
+    colour;
+  - labels are planar at their height and direction, face the eye edge-on, and the facing key changes only then;
+  - a click on a text picks its annotation and a miss none; the targets are selected by their names on the evaluated
+    bodies.
+- **Checks** (T1):
+  - pmi 3/3; cnc-preview, made-bodies-previews and chat 28/28;
+  - Codex's print/display/silhouette/clearance/instance checks 44/44;
+  - studio type-check 0; eslint 0; build ok.
+- **Not run**: the flow on both renderers (shown, picked, the same after Save/New/Open), and instance-prefixed targets'
+  selection on placed parts. Both wait for the browser slot.
