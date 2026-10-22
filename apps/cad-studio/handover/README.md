@@ -1982,6 +1982,7 @@ one JSONL row per commit. Known failures carry OCCT-style TODO markers, so a fix
   - **Queue items 1–3 (O126–O128)**: a body's exact surface area (the mesh's only as a labelled fallback); the narrow-window top bar (tools fold into More tools; the bar above the panels, e07ed4c2e); hollowing's curved-body refusal asserted by structure.
   - **G12 S0 (O129), blob eviction S0 (O130)**: both approved; built after item 0.
   - **Chat turn merge (O133)**: a turn the person edited during is merged, not overwritten — each call applied unless it conflicts (TURN_SAME_NODE, TURN_NODE_GONE, TURN_PARAMETER_CHANGED, TURN_FIELD_CHANGED, TURN_NOT_REPLAYABLE, TURN_BUILDS_ON_DEFERRED, TURN_SHAPE_DIFFERS; TURN_STILL_EDITING after two reruns); the rest one proposal. A rebased proposal now moves its ops by what their indices named (the S0's probe found it editing the person's feature).
+  - **A9 S0 (2026-10-22)**: brief to buyable, manufacturable product (a welded table frame, a machined plate, a keyed shaft in a 6204, an O-ringed printed cover), eleven steps with their oracles; sent. Gaps A9-1 to A9-13 listed in decisions-outer.md, none fixed yet. A9-8, A9-9 and A9-12 are decisions for the coordinator.
 
 **AI collaboration track (A).** Owner, 2026-10-18: "AI 트랙 A1–A4는 RB1–RB4 바로 뒤에 넣고, A5–A8은 R14 뒤에 순서대로".
 The goal is AI that designs and makes products, with several agents. Research behind it (peer session):

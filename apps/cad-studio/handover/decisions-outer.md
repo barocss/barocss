@@ -6139,3 +6139,167 @@ The coordinator: bands at 1.97 s for 120 boxes must not hold up the first map. N
 - Bands come only on asking: `bandFor(map, bodies, pair)`, about 26 ms for one near pair of boxes, cached on the pair, and null for a stale pose. Each body's K2 trees and hash are prepared once per body object and reused. `bandPending(map)` lists the pairs still without one, nearest first. `bands: true` still gives them all at once.
 - Overlaps stream after them as before (`fillOverlap`, `applyFill`).
 - **The worker request** (the map first, then the bands nearest first for what is on screen, then the overlaps) **is the GPU lane's, at G22**, calling these.
+
+## A9 — S0: brief to buyable, manufacturable product (2026-10-22)
+
+The coordinator's end-to-end acceptance. One scripted agent run, through the real v2 chat tools (`dispatchTool`, no live model), goes from a written brief to what a shop needs. It finds the integration gaps between this week's pieces. **Nothing is fixed in this S0.** A dry run (a scratch probe, not committed) drove the steps below and found the gaps listed at the end; each gap names the probe outcome it rests on.
+
+### The brief (frozen)
+
+*A bench drive unit.* It has four parts:
+- **Frame (the base part).** A welded table frame 400 × 300 × 300 of RHS 40 × 40 × 3, steel, with butt corners.
+  - A fillet weld of 3 mm at every joint.
+  - A gusset 60 × 60 × 5, corner clipped 10, at each leg top.
+  - An inset end cap, 4 thick, in each leg's foot.
+- **Plate (part p1).** Machined from Al 6061 block stock 310 × 210 × 16, the finished size 300 × 200 × 14.
+  - Four Ø6.6 through holes fix it to the rails.
+  - A Ø47 H7 bore takes the bearing.
+  - A 50 × 30 × 8 pocket.
+- **Shaft (part p2).** A steel turned shaft, Ø20 × 30 / Ø25 × 40 / Ø20 × 25.
+  - A 6 × 6 × 18 key in its keyseat.
+  - A 6204 bearing on step 1 against the Ø25 shoulder, the seat k5.
+- **Cover (part p3).** A Ø60 × 8 cover, PETG, printed on FDM, with a face O-ring gland for a 2-214 O-ring. It sits on the plate over the bore.
+
+**What the shop gets**: per-part DFM reports, a drawing per made part, the BOM and the purchase CSV, a clean clearance map, and the export bundle.
+
+### The person's rows, loaded first
+
+They come from one fixture, `conformance/a9/rows.json`. The values are this lane's existing test rows, each citing its source as a test row. Nothing is built in and there is no standards text.
+- The section row R40.
+- Stock lengths S6, 6000 mm, kerf 2.
+- Block B1, 310 × 210 × 16, allowance 1.
+- Bar stock for the shaft, Ø30.
+- Fit tables H7, k5, k6, N9, h9 and JS9, over 18–30 mm and 6 mm, each flagged an estimate.
+- The bearing row 6204 (bearing.test's D139 values).
+- The O-ring row 214 (gland.test's).
+- A fastener row M6 for the screws (not yet probed).
+
+The section and stock rows go in by chat (`features.frame_sections`, `frame_stock`, `stock`). The fit, bearing and O-ring rows have no chat action; they are written into the part's document, as the Library panel does (gap A9-9).
+
+### Steps and their oracles (frozen)
+
+Each step is a chat call or a short run of them, with its expected outcome. "Exact" means a closed form or a kernel case. The probe's outcome is given where it reached the step.
+
+1. **Rows.**
+   - Before loading: the bearing and the O-ring gland are refused, typed: "Load your … rows first: none is built in" (probed).
+   - After loading: each row echoed with its source.
+2. **Briefs per part**: process, material and purpose. The frame is welded fabrication, the plate cnc-milling, the shaft cnc-turning, the cover fdm. Gap A9-2 blocks this today, and A9-12 for the frame.
+3. **Frame.** `features.command frame` with the table skeleton on R40 and butt corners: 8 members.
+   - **Exact**: A · ΣL = 444 · (4 · 320 + 2 · 360 + 2 · 260) = 1 118 880 mm³, where A = 40² − 34² (probed: 1118880).
+   - Cut list: 3 rows (legs 320 × 4, rails 360 × 2 and 260 × 2), nested into one S6 length.
+   - Offcut: 6000 − 2520 − 8 · 2 kerf, by FRb's rule (frozen from FRb's own test).
+4. **Welds, gussets and caps.**
+   - Expected joints: each rail end butting its leg. The `weld_list` finds none today, so no records, beads or symbols (gap A9-1).
+   - Bead oracle, once found: each rail end on its 40 leg is the kernel's frk `bead-tee-flush` case, 360 mm³ at leg 3 (8 ends, 2880 mm³).
+   - Gussets (4) and end caps (4), each by FRk1's oracle: a cap's plug is 34 · 34 · 4 = 4624 mm³; a gusset is (l1 · l2 − c²)/2 · t.
+   - Their seams are welds, and the cap's default kind is butt.
+   - Beads weigh but make no BOM line (5b).
+5. **Plate.**
+   - Box, four holes, the Ø47 bore and the pocket, the bore classed H7 (`fit-class`).
+   - **Exact** (B-rep): 840000 − 12000 − 4π · 3.3² · 14 − π · 23.5² · 14.
+   - DFM for cnc-milling, today the base part's (gap A9-2).
+   - CAM package (G23 B) from its own document:
+     - one +Z setup;
+     - pocket feed levels 11, 8 and 6 at stepdown 3;
+     - **the linking oracle and the swept-volume oracle** of cam-package.test: 12000 mm³ less at most 4(1 − π/4)R² · 8;
+     - the stock a box from B1.
+   - The probe got STOCK_NONE_LOADED until the stock was set on p1 itself (gap A9-8).
+6. **Shaft.**
+   - `shaft` (the defaults), then `key` (6 × 6 × 18, its height an estimate), then `bearing` 6204 on step 1, k5.
+   - **Exact**: the bearing's body is 19800.6522 mm³ (Pappus; the kernel's case).
+   - The seat note: "k5: 20.002 to 20.011, interference −21 to −2 µm".
+   - `query.fit_clearance` H7/k6 at 20: −15 to +19 µm, closed form (probed: −15, +19).
+   - DFM for cnc-turning, per part (gap A9-2).
+7. **Cover.** A Ø60 × 8 cylinder with an `oring-gland` on its top face for 214.
+   - Gland prefills (estimates), **closed form**:
+     - depth h = 3.53 · (1 − 0.25) = 2.6475;
+     - width w = π · 1.765² / (0.8 · h) = 4.6208 (probed: 2.648 and 4.621).
+   - Print layers (G23 A) at 0.2 along +Z:
+     - 40 layers;
+     - no overhang and no support (the groove opens upward);
+     - above z 5.3525 the groove shows as a hole and an island between the outer loop's inscribed-polygon area and π · 30².
+8. **Assembly.** Parts placed exactly (`place_part`):
+   - the plate on the rails' top (z 320);
+   - the shaft through the bore, the bearing's outer ring in the Ø47 bore;
+   - the cover on the plate over it.
+   - The clearance map (G22) is **clean** when no pair has an overlap volume > 0 except the designed ones (the O-ring's squeeze, the bearing's seat), and no near pair falls below the brief's least gap.
+   - Today, contact reads as overlap (A9-5) and designed interferences read as clashes (A9-6).
+   - The bearing's housing has to be in the plate, another part (A9-7).
+9. **Drawings**, one per made part (`drawing.auto` with `part` works: probed for p1, no issues).
+   - **Weldment**: weld symbols, the weld list, the cut list, the BOM table and balloons.
+   - **Plate**: section A–A through the bore and the pocket, the Ø47 H7 fit callout.
+   - **Shaft**: Ø20 k5, the keyseat.
+   - **Cover**: the gland's section.
+   - Oracles, after `drawing.fix`:
+     - no error in `drawing.issues`;
+     - balloon numbers are the BOM's item numbers;
+     - no WELD_NOT_SHOWN with symbols on;
+     - no FIT_ROW_MISSING.
+   - `drawing.set` cannot ask for any of these today (A9-4). The base's drawing draws every instance too (A9-13).
+10. **BOM and purchase CSV.**
+    - Made lines: the members (by cut-list rows), the plate, the shaft and the cover.
+    - Bought lines, **exact** counts: the key, the 6204 bearing (row, source), the 214 O-ring (row, source) and 4 M6 screws.
+    - The CSV holds exactly the bought lines (probed: key, bearing and O-ring).
+    - The key's line has no source and no estimate flag (A9-11).
+    - Mass: Σ volume · density by material, with no assumed mass left.
+    - No chat action for either (A9-10).
+11. **Export bundle (A8.6).**
+    - The person approves the BOM baseline: the script plays the person with a token. The agent's own approval is refused, APPROVAL_IS_THE_USERS.
+    - `writeBundle`: the manifest is complete.
+    - `verifyBundle` in a fresh process: intact, nothing missing, changed or stale.
+    - The probe got "incomplete: no approved baseline, materials defaulted" until both were set, which is the expected refusal path.
+    - No chat action (A9-10).
+
+The run lives in `test/a9-acceptance.test.ts` with `conformance/a9/` (the scenario JSON with its calls, the rows and the expected outcomes). It also runs from a fresh process by `cad-cli`, as A7.5's board does, with the same outcomes. A9 asserts each step's oracle and keeps every refusal's code.
+
+### Refused or estimated (frozen)
+
+**Refused, typed** (the run asserts these):
+- A bearing or gland before its rows.
+- `fit_clearance` with no class ([FIT_FACE]).
+- An unknown material ([MATERIAL_UNKNOWN]).
+- A frame-stock row without a length ([FRAME_STOCK_ROW]).
+- CAM with no stock (STOCK_NONE_LOADED) or none that fits (STOCK_NONE_FITS).
+- A fillet record on a mitre (BEAD_KIND, the part still evaluates).
+- The agent approving a baseline (APPROVAL_IS_THE_USERS).
+- The bundle while anything is missing or stale.
+
+**Estimated, said as such**:
+- The key's height and the keyseat's sizes.
+- The gland's width and depth (80 % fill, 25 % squeeze).
+- A weld size left unset (the thinner wall).
+- The CAM tool's Ø, the safe height and the 3° ramp. CAM is NOT FOR PRODUCTION: no G-code.
+- The 0.2 mm layer height when unset.
+- The fit rows (test rows flagged estimate).
+- A part's mass until its material is set.
+
+### Gaps found (items, before fixing anything)
+
+| # | Gap | Probe outcome | Where |
+|---|-----|---------------|-------|
+| A9-1 | No weld joints where three members meet (the ordered trim's `through` ends: a table's or a box's top corners), so a table frame has no welds, beads, symbols or weld table. | table/box frames: `weld_list` "no weld joints"; a rectangle (two-member corners): 4 joints | outer, `frames/welds.ts` |
+| A9-2 | `query.manufacturability` and `requirements.brief` take no `part`: they judge and write the base part. The studio's process set by one brief also outlived a later brief's sheet-metal. | p1's report named the frame's steel and `b0_part0`; the base's brief said sheet-metal, its report fdm | outer, chat |
+| A9-3 | Unknown arguments are dropped silently, and the call says ok: `part` on a tool without one, `weldSymbols`/`balloons` on `drawing.set`. An agent believes it acted. Needs a typed refusal. | `drawing.set {weldSymbols, balloons}` ok, nothing set | outer, chat dispatch |
+| A9-4 | `drawing.set` cannot ask for weld symbols, balloons, sections or tables (BOM, cut list, weld list): the shop drawing's parts are out of an agent's reach. | the schema has sheet, scale, projection, front, views, tolerancing and title only | outer, chat/drawing |
+| A9-5 | The clearance map reads contact (gap 0) as overlap; its fill is 0 mm³ and the pair stays an overlap. Welded members, the plate on its rails, a bearing in its bore can never be clean. Needs a contact state, and how members of one weldment count. | table frame: 12 overlaps, each filled 0.000 mm³ | outer, `team/clearanceMap.ts` |
+| A9-6 | Designed interference (a seat's press fit, an O-ring's squeeze, a key in its seat) reads as a clash: the map does not read the fit records or the gland/bearing notes. | p2: shaft~key, shaft~bearing overlaps; the cover's O-ring in its gland | outer, G22 |
+| A9-7 | A bearing's housing must be a feature of its own part: the plate's Ø47 bore cannot be the 6204's housing (no seat or housing-class check across parts). | `bearing` on p2: housing "none" | outer (the kernel's check takes the housing as given?) |
+| A9-8 | The person's shop rows live per part document: the base's stock does not reach p1. The same holds for fit tables and bearing and O-ring rows. Decide: load per part, or the parts read the document's. | p1's CAM STOCK_NONE_LOADED until `features.stock {part: p1}` | decision, then outer |
+| A9-9 | No chat action loads fit tables or bearing, O-ring, ring or drive rows (only the Library panel does), while section and stock rows load by chat. Decide: by design (the person loads them) or an action. | gland "Load your O-ring rows first" with no tool to do it | decision |
+| A9-10 | No chat action for the BOM, the purchase CSV, the clearance map (G22), the CAM package and print layers (G23) or the export bundle (A8.6): the shop's package is not an agent's to make. | called off the chat in the probe | outer, chat |
+| A9-11 | A key's purchase line has no row, no source and no estimate flag, though its sizes are estimates. | CSV `4,key 6 × 6 × 18,1,key,6 × 6 × 18,,,,` | outer, `team/bom.ts` |
+| A9-12 | No process for a weldment's DFM (none of the processes is welded fabrication). Decide: add one (cut list, weld access, the distortion rule as estimate), or the cut and weld lists stand in. | brief processes: fdm … sheet-metal | decision |
+| A9-13 | The base part's drawing, when the document has instances, draws and dimensions every part: the frame's drawing showed the cover's Ø60 and the shaft's Ø20. A part drawing should draw its own part; an assembly drawing wants balloons, not dimensions. | `drawing.auto` on the base: Ø60, Ø19, Ø20, Ø25, Ø6.6 among its dimensions | outer, drawing |
+
+**Proposed order once the S0 is accepted:**
+1. A9-3 (cheap, and it makes the rest safe to probe).
+2. A9-2.
+3. A9-1.
+4. A9-5, then A9-6.
+5. A9-13, then A9-4.
+6. A9-10.
+7. A9-11.
+8. A9-7.
+9. The decisions A9-8, A9-9 and A9-12 as the coordinator rules.
+
+After each item, the A9 run moves one step further. It is the acceptance once all eleven steps hold.
