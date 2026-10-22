@@ -61,6 +61,14 @@ for (const file of cases) {
           w.ends.forEach((e, i) => { if (e.angleDegrees !== undefined) close(r.ends[i].angleDegrees, e.angleDegrees, `end ${i} angle`); });
         }
       }
+      if (want.plate) {
+        // A weldment plate's report (FRk1, D165): a gusset's or an end cap's area, volume and seams.
+        const r = o[want.plate.kind], w = want.plate, close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `output ${k} ${w.kind} ${what}: ${x} vs ${y}`);
+        assert.ok(r, `output ${k} has no ${w.kind} report`);
+        close(r.areaMM2, w.areaMM2, 'area'); close(r.volumeMM3, m.volumeMM3, 'volume');
+        if (w.seams) { assert.equal(r.seams.length, w.seams.length); w.seams.forEach((x, i) => close(r.seams[i].lengthMM, x, `seam ${i}`)); }
+        if (w.seam !== undefined) close(r.seam.lengthMM, w.seam, 'seam');
+      }
       if (want.flat) {
         // A sheet's flat pattern (R12.2, D117): by the output's own rules, or with T and K given (`options.thicknessMM`).
         const w = want.flat, opts = w.options ?? {}, make = () => opts.thicknessMM !== undefined ? flatPattern(o.brep, opts) : o.flatPattern(opts);

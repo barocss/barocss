@@ -679,3 +679,5 @@ export { frameSection, anchorPoint, loopBox, FrameSectionError, FRAME_ANCHORS } 
 export type { FrameSection, FrameSectionSpec, FrameAnchor, FrameMemberReport, FrameEndReport } from './frame-section.js';
 export { cutPiece, cutList, cutListCsv, CutListError } from './frame-cutlist.js';
 export type { CutPiece, CutRow, CutList, CutEnd } from './frame-cutlist.js';
+export { loopArea, loopPerimeter } from './frame-weldment.js';
+export type { GussetReport, EndCapReport, WeldmentSeam } from './frame-weldment.js';

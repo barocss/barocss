@@ -9752,3 +9752,62 @@ Evidence: `packages/barocss-cad/test/frk-s0.test.mjs` (kept, 10 tests, 7 s alone
 - **Where beads come from:** from the person's weld records (O118's `doc.frames.welds`, one source; default, needing the outer lane's mapping or their leave), or their own nodes made by a Weld bead command.
 
 **Checks:** S0 changed no product code. The tier: T1 (the new test, lint of the new file). `pnpm build:library` in `packages/barocss-cad` before it. frk-s0 10/10, 7.1 s alone at a load of 9–15; with `FR_SURVEY=1` the bevel pair's survey too (10/10, 37 s). `eslint test/frk-s0.test.mjs` clean. Not run: the kernel suite, conformance, studio, flow, RB and properties (no source change, as at D115, D122, D129 and D139).
+
+## D165 — FRk1: gussets and end caps on a frame's members (2026-10-22)
+
+The first FRk stage frozen in D164. **The coordinator's review of D164** (accepted): the three owner defaults stand as taken (a groove weld at a mitre shows its seam only; a sharp outline's bead corners are mitred; beads come from the person's O118 weld records, the record → bead mapping in cad-model's evaluate, built by the outer lane at FRk2 on the kernel's `weld-bead` and `bead`), and one reorder: the bevel pair's wrong mass outranks speed, so FRk8b's first half moves up. **The order now:** FRk1, FRk2, FRk8b (the defect), FRk3, FRk4, FRk5, FRk6, FRk7, FRk8a, FRk8b (exact domain-trim integration, if still needed), FRk9.
+
+**Kernel** (`frame-weldment.ts` for the reports and the loops' closed forms; the planner in `part-model.ts`):
+- **A frame's members keep their placement as built** (`memberPlace` on the part, internal: the section on its line, its length, how far each end runs on, its faces' prefix), so a later feature places plates by them. A feature refers to the frame by id and does not consume it: the members stay outputs.
+- **`gusset`** `{ frame, point, members?: [a, b], along?: 1 | −1, legs: [l1, l2], thickness, clip?, offset? }`:
+  - the joint is a place: the members ending within 1e-6 mm of the point, and a member whose line passes through it inside its length (a T; `along` says which way its leg runs);
+  - in the two members' plane, normal a × b of their directions away from the joint; mid-plane through their lines, or moved `offset` along it;
+  - its corner where the two inner faces' lines meet: (h_b sin φ + s cos φ, h_a) with s = (h_a + h_b cos φ)/sin φ, h the distance of each member's box side from its line;
+  - legs along each, the corner clipped `clip` along both (`.clip`); faces `.on.m<a>`, `.on.m<b>`, `.free`, `.clip`, `.front`, `.back`;
+  - its mass is the prism's, moved: closed form.
+- **`end-cap`** `{ frame, member, end, fit: 'over' | 'inset', thickness }`: over the end's outline (outside it) or a plug in the bore (inside it, flush); on the end as built, so a through end where it runs on to. Faces `.seat` (over) or `.inner` (inset), `.face`, sides by the tag.
+- **Reports** (the shapes D164 froze for the outer lane): `gusset` — frame, point, members, legsMM, thicknessMM, clipMM, offsetMM, angleDegrees, plane, areaMM2 ((l₁l₂ − c²)·sin φ/2), volumeMM3, outline (mid-plane, anticlockwise about the normal), seams `[{ member, lengthMM: l − c, face }]` (the member's face by its role, `f.m0.top`); `endCap` — frame, member, end, fit, thicknessMM, areaMM2, volumeMM3, plane (the end, its normal out of the member), seam `{ lengthMM, exact: true }`. Reports write −0 as 0.
+- **`loopArea`, `loopPerimeter`** (exported): a loop of lines and arcs by Green's theorem and r·|sweep|, closed form.
+- **Refused by name:**
+  - `[GUSSET_FIT]`: no member ends at the point; not two members there (and `members` not given), or a named member not there; members in line; a member meeting it at an edge of its section (turned); no flat face under it across its thickness (a round tube, a round corner — the side's flat spans named); a leg past its member (the face left from the corner named); a clip not under the legs.
+  - `[CAP_END]`: an end cut by a mitre, a butt, a cope or a trim; a plug in a section with no bore, or several.
+  - INPUT: legs not two, `along` not ±1 or missing at a T, a fit or an end unknown; PARAMETER for a thickness or leg not positive; REFERENCE when the frame is not a frame.
+
+**Oracles** (`test/frk-1.test.mjs`, 4 tests; written there):
+- **A gusset in a mitred L** (sharp and round-cornered 40 × 40 × 3, legs 120 and 100, clip 15, 5 thick): (l₁l₂ − c²)/2·t to 1e-12; its box from the B-rep, x 20–140, y ±2.5, z 20–120 (on both inner faces); the report's fields, outline and seams (105 on `f.m0.top`, 85 on `f.m1.top`); its face names; welded with both members, one body of their sum (1e-9).
+- **At 120°:** (l₁l₂)·sin φ/2·t; its corner on the bisector, 20·cot(φ/2) along (the two inner faces 20 from their lines), to 1e-12; welded, their sum. **At a T:** two gussets, `along` 1 and −1, moved 8 off the plane: their boxes (x 20–120 from the post's face, z 420–520 and 280–380 on the rail's, |y| 6–10), the T and both welded to one body of their sum (1e-12).
+- **End caps:** over a round-cornered tube's end (A_env·t, centroid at 302) and a plug in its start (A_bore·t, flush, centroid at 3); the seams 8h − 8r + 2πr; a round tube's cap πr²t, seam πd; a table leg's through end at 720 (the cap's centroid 721.5); welded, their sum. `loopArea` and `loopPerimeter` on a clockwise circle and a triangle.
+- **Refusals:** 18 cases.
+- **Conformance** `conformance/frk/` (4 cases; generator `scripts/frk1-conformance.mjs`, closed forms only): `gusset-butt-l` (the rail through A·620, the post A·580, the gusset by the shoelace on its clipped triangle, its seams), `end-caps-over-inset`, `refuse-gusset-fit`, `refuse-cap-end`. The runner checks a new `plate` expectation (the report's area, volume and seams).
+
+**Studio:**
+- **Nodes** `gusset` and `end-cap` (cad-model `engine/doc.ts`): they refer to the frame node (`usesOf`, not `parentsOf`), each a body of its own; labels `Gusset 120 × 100 × 5 at point 1 of n0`, `End cap over member 1's end, 4 thick`; saved (`migrate.ts`), renumbered on delete (`chat/features.ts`), shifted when flattened into an assembly (`assembly/flatten.ts`); to the kernel in `engine/part.ts`.
+- **Commands** (`app/weldmentCommands.ts`, new; v2 features commands, their values behind `describe`):
+  - **Gusset**: two members of one frame picked; where they meet found from the frame's skeleton now (its own points, or the skeleton or sketch it follows); legs, thickness, clip, offset, and at a T the leg's way along the member passing through. Keyword: `gusset`.
+  - **End cap**: one member picked; its end, over or inset, thickness. Keywords: `cap plug`.
+  - The palette's values (legs 100, clip 10, 5 thick; caps 4) are a first try, not data: no flag.
+- **Notes** (`engine/evaluate.ts`'s list): a gusset's place, size and seams; an end cap's fit, size and seam.
+- **Errors** (`engine/errors.ts`): titles and hints for GUSSET_FIT and CAP_END.
+- **Icons** `cad-gusset`, `cad-end-cap`.
+- **Tests:** cad-model `test/weldment.test.ts` (4: the commands, their nodes, notes and labels, a T's `along`, the refusals' titles, the flatten, the agent's v2 commands on bodies by key and `describe`); the studio's `chat.test.ts` documents both commands' value keys against their HUD fields (the gusset at a T, so `along` shows).
+- **A flow step** "FRk1 gusset and end cap (D165)": the palette's mitred rectangle, two members picked, the Gusset (24 750 mm³, seams 90 and 90); a table's first leg, the End cap over its through top (6400 mm³, seam 160); a screenshot of each.
+- **The v2 tool surface:** two features commands; per turn **22,347** (+17, the two names; cap 25,000).
+
+**For the outer lane** (relayed by the coordinator at D164): `gusset` and `endCap` are on the outputs (`CadPartSnapshot.outputs[].gusset` / `.endCap`). `engine/elements.ts`'s `ElementReport` does not carry them yet (their file), nor the weld list's gusset and cap seams (`frames/welds.ts`). The BOM can read them from the outputs now.
+
+**Judgement calls:**
+- **Placed by the members as built**, not by the frame's input again: a member's run-on, mirror, offset and roll are already in its placement, and the gusset reads the same numbers the member was built from.
+- **A gusset needs flat faces under its whole thickness.** A round corner's flat spans are checked as the open-side butt's (D126) are: a gusset never rests on a round.
+- **No check that the gusset misses other members** (a third member at the joint): the gusset sits in the region between the two inner faces; a third member there would overlap it. Not seen in the tests; the weld of all members proves no overlap where it is used.
+- **End caps only on square and through ends.** A cap on a mitre or a cope would need its outline cut obliquely: refused, not approximated.
+
+**Checks** (T1 on the kernel, the cad-model and studio suites whole; RB and properties at T3 or the 4th checkpoint):
+
+Ran:
+- Kernel: lint (the changed files) and type-check clean; `pnpm build:library`; the FR and FRk tests and the whole conformance runner (it changed), `--test-concurrency=4`: 295/295, 184 s at a load of 11–28. Brep core unchanged, so not the full kernel suite.
+- `@barocss/cad-model`: type-check, lint clean; 763/763.
+- Studio: type-check clean, lint 0 errors (32 warnings in the two files, none new); 203/203.
+- `FLOW_ONLY` "FRk1" with the starter step: 2/2.
+- Test names: saved in the scratchpad (`names/*.D165.txt`) for the next comparisons; this session had no earlier lists, so none compared now.
+
+Not run: the full kernel suite (no brep core change), RB and properties (not T3, 2nd checkpoint), the full browser flow (the coordinator's window flow).

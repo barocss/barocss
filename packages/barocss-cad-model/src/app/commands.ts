@@ -9,6 +9,7 @@ import { shaftCommands } from './shaftCommands';
 import { glandCommands } from './glandCommands';
 import { driveCommands } from './driveCommands';
 import { connectorCommands } from './connectorCommands';
+import { weldmentCommands } from './weldmentCommands';
 import { alignCommand } from './alignCommand';
 import { FASTENER_SIZES, fastenerCommand } from './fasteners';
 import { duplicateBody } from '../chat/features';
@@ -309,6 +310,7 @@ const allCommands: Command[] = [
   ...glandCommands,
   ...driveCommands,
   ...connectorCommands,
+  ...weldmentCommands,
   {
     id: 'box', label: 'Box', icon: 'cad-box', hint: 'A block by width, depth and height', shortcut: 'B', group: 'create', keywords: 'cube block plate',
     available: () => ok,

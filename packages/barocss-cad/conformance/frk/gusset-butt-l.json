@@ -1,0 +1,151 @@
+{
+  "id": "frk-gusset-butt-l",
+  "step": "FRk",
+  "decisions": [
+    "D165"
+  ],
+  "about": "FRk1: a clipped gusset (legs 120 and 100, clip 15, 5 thick) in a butted L of sharp tubes — on the rail's top (z 20) and the post's face (x 20), centred on y 0: (l₁l₂ − c²)/2·t, its centroid the clipped triangle's; the rail through, run on 20 (A·620), the post butted on its top (A·580).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "f",
+          "kind": "frame",
+          "points": [
+            [
+              600,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              600
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "section": {
+            "kind": "rect-tube",
+            "width": 40,
+            "height": 40,
+            "wall": 3,
+            "outerRadius": 0
+          },
+          "corners": {
+            "default": "butt"
+          }
+        },
+        {
+          "id": "g",
+          "kind": "gusset",
+          "frame": "f",
+          "point": 1,
+          "legs": [
+            120,
+            100
+          ],
+          "thickness": 5,
+          "clip": 15
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 275280,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            290,
+            0,
+            0
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 257520,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            0,
+            0,
+            310
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 1
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 29437.5,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            60.6687898089172,
+            0,
+            53.874734607218684
+          ],
+          "absTol": 1e-9
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "plate": {
+          "kind": "gusset",
+          "areaMM2": 5887.5,
+          "seams": [
+            105,
+            85
+          ],
+          "absTol": 1e-9
+        }
+      }
+    ],
+    "stepRoundTrip": {
+      "relTol": 1e-9
+    }
+  },
+  "oracle": "Closed forms: the shoelace on the clipped triangle (35, 20), (140, 20), (20, 120), (20, 35) in (x, z); the tubes square-cut prisms."
+}

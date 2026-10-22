@@ -68,6 +68,7 @@ import { meshInnerOffset, type MeshShellReport } from './mesh-offset.js';
 import { bendAllowance, bendDeduction, bendTableProblem, contourFlangeSection, flangeSection, lookupBend, outsideSetback, SheetMetalError, type BendTable, type BendTableUse, type SheetReport } from './sheet-metal.js';
 import { flatPattern as flatPatternOf, FlatPatternError, type FlatPattern } from './sheet-flat.js';
 import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
+import { loopArea, loopPerimeter, type EndCapReport, type GussetReport, type WeldmentSeam } from './frame-weldment.js';
 import { FRAME_ANCHORS, FrameSectionError, anchorPoint, frameSection, loopBox, type FrameAnchor, type FrameEndReport, type FrameMemberReport, type FrameSectionSpec } from './frame-section.js';
 import type { Curve, FacetPatch, Point } from './types.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
@@ -357,6 +358,16 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'connector-opening'; readonly target: string; readonly face: string; readonly row: ConnectorRow; readonly center: CadPartPoint3; readonly rotation?: number }
   | { readonly kind: 'connector-body'; readonly opening: string }
   /**
+   * FRk1 (D165): a `gusset` — a plate in the plane of two members of `frame` meeting at its skeleton `point` (the two
+   * there, or `members` [a, b] where more meet; a member passing through takes `along` 1 or −1, its own direction or
+   * the other way), its legs `legs` [l1, l2] along their inner faces from the corner where those faces meet, the corner
+   * clipped `clip` along each leg, `thickness` thick, its mid-plane through the members' lines or moved `offset` along
+   * its normal. An `end-cap` — a plate `over` a member's square end (its section's outer loop) or `inset` in its bore,
+   * `thickness` thick. Each an output of its own; `gusset` / `endCap` its report. Refused GUSSET_FIT, CAP_END.
+   */
+  | { readonly kind: 'gusset'; readonly frame: string; readonly point: number; readonly members?: readonly [number, number]; readonly along?: number; readonly legs: readonly [CadPartDim, CadPartDim]; readonly thickness: CadPartDim; readonly clip?: CadPartDim; readonly offset?: CadPartDim }
+  | { readonly kind: 'end-cap'; readonly frame: string; readonly member: number; readonly end: 'start' | 'end'; readonly fit: 'over' | 'inset'; readonly thickness: CadPartDim }
+  /**
    * A shaft (R12c.3a, D156): `steps` [{ diameter, length, fillet? (at the shoulder after it), undercut? { width, depth },
    * grooves? [{ diameter, width, at }], keyseats? [{ width, depth, length, offset, ends? square | end-mill (default) |
    * disc, cutterRadius?, angle? }] }] along +Z from `from` through `center`, `chamfers` [start, end], cross `holes`
@@ -602,6 +613,8 @@ export interface CadPartOutput {
   readonly sheet?: SheetReport;
   /** A structural member's section, line and frame (FR1, D123). */
   readonly member?: FrameMemberReport;
+  /** A gusset's and an end cap's report (FRk1, D165): what the weld list and the BOM read. */
+  readonly gusset?: GussetReport; readonly endCap?: EndCapReport;
   /**
    * A sheet's flat pattern (R12.2, D117): its skin developed from `fixedFace` (default the sheet's own: a plate's top, a
    * profile's first leg on its path), bends at R + K·T (`kFactor`, default the sheet's). Refused (GEOMETRY, its code in
@@ -688,6 +701,9 @@ interface Part {
   readonly shell?: MeshShellReport;
   readonly sheet?: SheetReport;
   readonly member?: FrameMemberReport;
+  /** A frame member's placement as built (FRk1): its section on its line, its length and how far each end runs on, its face prefix. */
+  readonly memberPlace?: MemberPlaced;
+  readonly gusset?: GussetReport; readonly endCap?: EndCapReport;
 }
 /** A rack as placed: its pitch line from `origin` along `angle` (radians); the gear it meshes with, if any. */
 export interface RackPlacement { readonly spec: SpurRackSpec; readonly origin: XY; readonly angle: number; readonly from: number; readonly meshesWith?: string; readonly driver?: GearPlacement }
@@ -1449,6 +1465,32 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         }
         return { kind: 'solid', parts };
       };
+    }
+    case 'gusset': case 'end-cap': {
+      // FRk1 (D165): plates on a frame's members, placed by the members as built (referenced, not consumed).
+      const fr = ref(f.frame, 'frame'), built = fr.result.kind === 'solid' && fr.part === null ? fr.result.parts.filter(q => q.memberPlace && q.member?.frame) : [];
+      if (!built.length) fail('REFERENCE', `${String(f.frame)} is not a frame`);
+      const byMember = new Map(built.map(q => [q.member!.frame!.member, q])), last = Math.max(...byMember.keys()), frame = String(f.frame);
+      if (f.kind === 'end-cap') {
+        const k = integer(f.member, 'member', 0, last), end = f.end === 'end' ? 1 : f.end === 'start' ? 0 : fail('INPUT', 'end must be start or end');
+        if (f.fit !== 'over' && f.fit !== 'inset') fail('INPUT', 'fit must be over (the section\'s outline) or inset (in its bore)');
+        const t = dim(f.thickness, 'thickness', true), part = byMember.get(k);
+        if (!part) fail('REFERENCE', `${frame} has no member ${k}`);
+        return () => endCapOf(part!, frame, k, end as 0 | 1, f.fit, t, at, fail);
+      }
+      if (!Array.isArray(f.legs) || f.legs.length !== 2) fail('INPUT', 'legs must be [l1, l2]: along the first member and the second');
+      const legs: [number, number] = [dim(f.legs[0], 'legs[0]', true), dim(f.legs[1], 'legs[1]', true)];
+      const t = dim(f.thickness, 'thickness', true), clip = f.clip === undefined ? 0 : dim(f.clip, 'clip'), offset = f.offset === undefined ? 0 : dim(f.offset, 'offset');
+      if (clip < 0) fail('INPUT', 'clip must be 0 or more');
+      let pair: [number, number] | undefined;
+      if (f.members !== undefined) {
+        if (!Array.isArray(f.members) || f.members.length !== 2) fail('INPUT', 'members must be [a, b], two members of the frame');
+        pair = [integer(f.members[0], 'members[0]', 0, last), integer(f.members[1], 'members[1]', 0, last)];
+        if (pair[0] === pair[1]) fail('INPUT', 'members must be two different members');
+      }
+      if (f.along !== undefined && f.along !== 1 && f.along !== -1) fail('INPUT', 'along must be 1 (the member\'s own direction) or −1');
+      const point = integer(f.point, 'point', 0, CadPartLimits.points - 1);
+      return () => gussetOf(byMember, { frame, point, ...(pair ? { pair } : {}), ...(f.along !== undefined ? { along: f.along as 1 | -1 } : {}), legs, t, clip, offset }, at, fail);
     }
     case 'sheet-base': case 'sheet-contour': {
       const T = dim(f.thickness as CadPartDim, 'thickness', true), R = dim(f.bendRadius as CadPartDim, 'bendRadius', true), K = f.kFactor, table = f.bendTable as BendTable | undefined;
@@ -2909,7 +2951,8 @@ function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
     centroidLine: { start: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.start), end: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.end) },
     ...(o.ends ? { ends: o.ends.report } : {}) };
   const r = moveAll([{ solid: { kind: 'upright', solid } }], m, origin) as Extract<Result, { kind: 'solid' }>;
-  if (!o.ends?.cuts.length && !o.ends?.subtract.length) return { kind: 'solid', parts: r.parts.map(part => ({ ...part, member })) };
+  const memberPlace: MemberPlaced = { place: P, lengthMM: o.L, extend: [e0, e1], at: o.at };
+  if (!o.ends?.cuts.length && !o.ends?.subtract.length) return { kind: 'solid', parts: r.parts.map(part => ({ ...part, member, memberPlace })) };
   // Cut at its corners: each plane keeps the member's side (n·x < n·o); a half-space round it, R past every point of it.
   let cut = r.parts[0].solid;
   const R = o.L + e0 + e1 + 2 * Math.hypot(P.box.max[0] - P.box.min[0], P.box.max[1] - P.box.min[1]) + 1;
@@ -2927,7 +2970,102 @@ function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
     cut = pieces && pieces.length > 1 ? { kind: 'brep', brep: farthestPiece(pieces, t.keepFrom, t.toward) } : next;
     if (t.mustTouch && Math.abs(volumeOfSolid(cut) - before) <= 1e-9 * Math.max(1, before)) throw new CadPartError('PARAMETER', o.at, `[TRIM_MISSES] member ${o.frame?.member ?? ''} does not reach the body it is trimmed to`);
   }
-  return { kind: 'solid', parts: [{ solid: cut, member }] };
+  return { kind: 'solid', parts: [{ solid: cut, member, memberPlace }] };
+}
+/** A frame member as built (FRk1): its section placed on its line, its length, how far each end runs on, its faces' prefix. */
+type MemberPlaced = { readonly place: MemberPlace; readonly lengthMM: number; readonly extend: readonly [number, number]; readonly at: string };
+/** The matrix of a member's frame (the section's x, y and its line's direction as columns) and the part point of its section's origin at its start. */
+function memberAffine(P: MemberPlace, start: Point): { m: BrepAffine['matrix']; o: Point } {
+  return { m: [P.F.x[0], P.F.y[0], P.u[0], P.F.x[1], P.F.y[1], P.u[1], P.F.x[2], P.F.y[2], P.u[2]], o: sectionPoint(P.F, -P.q[0], -P.q[1], start) };
+}
+/**
+ * An end cap (FRk1, D165): a plate over a member's square end (its section's outer loop) or inset in its bore (the bore's
+ * loop), `t` thick, on the end as built (a through end where it runs on to). Refused `CAP_END` on an end a joint cuts
+ * (a mitre, a butt, a cope, a trim) and for a plug where the section has no bore or several.
+ */
+function endCapOf(part: Part, frame: string, k: number, end: 0 | 1, fit: 'over' | 'inset', t: number, at: string, fail: Tools['fail']): Result {
+  const { place: P, lengthMM: L, extend } = part.memberPlace!, report = part.member!, e = report.ends?.find(x => x.end === endName(end));
+  if (e && e.kind !== 'square' && e.kind !== 'through') fail('PARAMETER', `[CAP_END] member ${k}'s ${endName(end)} is cut by a ${e.kind}: a cap sits on a square end`);
+  if (fit === 'inset' && P.shape.holes.length !== 1) fail('PARAMETER', `[CAP_END] member ${k}'s section has ${P.shape.holes.length ? `${P.shape.holes.length} bores` : 'no bore'}: a plug goes into one bore (give fit over)`);
+  const loop = fit === 'over' ? P.shape.outer : P.shape.holes[0], z = end ? L + extend[1] : -extend[0];
+  // Over: outside the end; inset: inside the bore, flush with the end.
+  const from = (fit === 'over') === (end === 1) ? z : z - t, out = end ? 1 : -1;
+  const names = fit === 'over' ? { bottom: end ? `${at}.seat` : `${at}.face`, top: end ? `${at}.face` : `${at}.seat` } : { bottom: end ? `${at}.inner` : `${at}.face`, top: end ? `${at}.face` : `${at}.inner` };
+  const solid = prismaticFromProfile({ outer: loop, heightMM: t, fromMM: from, tag: at, names });
+  const start = report.start as unknown as Point, { m, o } = memberAffine(P, start), A = loopArea(loop);
+  const endCap: EndCapReport = { frame, member: k, end: endName(end), fit, thicknessMM: t, areaMM2: A, volumeMM3: A * t, plane: { origin: noNegativeZero(add(start, scale(P.u, z))), normal: noNegativeZero(scale(P.u, out)) }, seam: { lengthMM: loopPerimeter(loop), exact: true } };
+  const r = moveAll([{ solid: { kind: 'upright', solid } }], m, o) as Extract<Result, { kind: 'solid' }>;
+  return { kind: 'solid', parts: [{ ...r.parts[0], endCap }] };
+}
+/** A report's point with −0 written as 0. */
+const noNegativeZero = (v: Point): Point => [v[0] + 0, v[1] + 0, v[2] + 0];
+/** A member at a joint: its index, its direction away from the joint, how far it reaches that way, and where its line lies. */
+type GussetArm = { readonly k: number; readonly away: Point; readonly reach: number; readonly part: Part };
+/**
+ * Where a member's side facing `w` (square to its line) lies, and whether it is flat over a plate's span (`n`-ward from
+ * the line, lo to hi): its distance from the line, and the name of the straight face there. Refused `GUSSET_FIT` at an
+ * edge of its section (turned) and where the side has no flat material over the span (a round tube, a round corner).
+ */
+function gussetSide(arm: GussetArm, w: Point, n: Point, lo: number, hi: number, fail: Tools['fail']): { h: number; face?: string } {
+  const { place: P, at } = arm.part.memberPlace!, wx = dot(w, P.F.x), wy = dot(w, P.F.y);
+  const axis = Math.abs(Math.abs(wx) - 1) < 1e-9 ? 0 : Math.abs(Math.abs(wy) - 1) < 1e-9 ? 1 : -1;
+  if (axis < 0) fail('PARAMETER', `[GUSSET_FIT] member ${arm.k} meets the gusset at an edge of its section, not a face (turn the member a quarter, or leave the gusset out)`);
+  const ax = axis as 0 | 1, sign = (ax === 0 ? wx : wy) > 0 ? 1 : -1, boxAt = sign > 0 ? P.box.max[ax] : P.box.min[ax], other = 1 - ax;
+  const nd = dot(n, ax === 0 ? P.F.y : P.F.x), a = P.q[other] + nd * lo, b = P.q[other] + nd * hi, s0 = Math.min(a, b), s1 = Math.max(a, b);
+  const tol = 1e-9 * Math.max(1, P.box.max[0] - P.box.min[0], P.box.max[1] - P.box.min[1]), loop = P.shape.outer;
+  for (let i = 0; i < loop.length; i++) {
+    const g = loop[i], e = loop[(i + 1) % loop.length].start;
+    if (g.kind !== 'line' || Math.abs(g.start[ax] - boxAt) > tol || Math.abs(e[ax] - boxAt) > tol) continue;
+    if (Math.min(g.start[other], e[other]) <= s0 + tol && Math.max(g.start[other], e[other]) >= s1 - tol) return { h: sign * (boxAt - P.q[ax]), ...(P.shape.outerNames ? { face: `${at}.${P.shape.outerNames[i]}` } : {}) };
+  }
+  const spans = sideContact(P, ax, boxAt).map(([p, q]) => `${+p.toFixed(3)} to ${+q.toFixed(3)}`).join(', ') || 'none';
+  return fail('PARAMETER', `[GUSSET_FIT] member ${arm.k} has no flat face under the gusset: it spans ${+s0.toFixed(3)} to ${+s1.toFixed(3)} mm across that side, whose flat material is at ${spans} (a round tube or a round corner)`);
+}
+/**
+ * A gusset (FRk1, D165) in the corner of two members of a frame at a skeleton point: in their plane (its normal a × b of
+ * their directions away from the joint), its legs along their inner faces from where those faces meet, the corner
+ * clipped. Refused `GUSSET_FIT`: no two members there (or not those named), members in line, a member meeting it at an
+ * edge or a round, a leg past its member, a clip not under the legs.
+ */
+function gussetOf(byMember: ReadonlyMap<number, Part>, g: { frame: string; point: number; pair?: readonly [number, number]; along?: 1 | -1; legs: readonly [number, number]; t: number; clip: number; offset: number }, at: string, fail: Tools['fail']): Result {
+  let p: Point | undefined;
+  for (const q of byMember.values()) { const fm = q.member!.frame!; if (fm.from === g.point) p = q.member!.start as unknown as Point; else if (fm.to === g.point) p = q.member!.end as unknown as Point; if (p) break; }
+  if (!p) return fail('PARAMETER', `[GUSSET_FIT] no member of ${g.frame} ends at point ${g.point}`);
+  const arms: GussetArm[] = [];
+  for (const [k, q] of byMember) {
+    const r = q.member!, s = r.start as unknown as Point, u = q.memberPlace!.place.u, L = r.lengthMM, d = dot(sub(p, s), u);
+    if (samePoint(s, p)) arms.push({ k, away: u, reach: L, part: q });
+    else if (samePoint(r.end as unknown as Point, p)) arms.push({ k, away: scale(u, -1), reach: L, part: q });
+    else if (d > MEMBER_MIN_MM && d < L - MEMBER_MIN_MM && len(sub(p, add(s, scale(u, d)))) <= MEMBER_MIN_MM) {
+      // (A member passing through: its leg runs `along` its own direction or the other way.)
+      if ((g.pair ? g.pair.includes(k) : true) && g.along === undefined) fail('INPUT', `member ${k} runs through point ${g.point}: along (1 or −1) says which way the gusset's leg runs on it`);
+      arms.push({ k, away: scale(u, g.along ?? 1), reach: (g.along ?? 1) > 0 ? L - d : d, part: q });
+    }
+  }
+  const chosen = g.pair ? g.pair.map(k => arms.find(a => a.k === k)) : arms.length === 2 ? arms : null;
+  if (!chosen) return fail('PARAMETER', `[GUSSET_FIT] ${arms.length} members meet at point ${g.point}${arms.length > 2 ? ': say which two (members)' : ''}`);
+  const missing = g.pair?.find((k, i) => !chosen[i]);
+  if (missing !== undefined) return fail('PARAMETER', `[GUSSET_FIT] member ${missing} does not meet point ${g.point}`);
+  const [A, B] = chosen as GussetArm[], cos = dot(A.away, B.away), axb = cross(A.away, B.away), sin = len(axb);
+  if (sin < 1e-9) return fail('PARAMETER', `[GUSSET_FIT] members ${A.k} and ${B.k} are in line at point ${g.point}: no corner for a gusset`);
+  const n = scale(axb, 1 / sin), ey = unit(sub(B.away, scale(A.away, cos))), wb = unit(sub(A.away, scale(B.away, cos))), lo = g.offset - g.t / 2, hi = g.offset + g.t / 2;
+  const sa = gussetSide(A, ey, n, lo, hi, fail), sb = gussetSide(B, wb, n, lo, hi, fail);
+  // The inner faces' meeting in the plate's plane (x along A, y towards B): y = h_a, and h_b·w_b + s·u_b.
+  const s = (sa.h + sb.h * cos) / sin, xV = sb.h * sin + s * cos, yV = sa.h, [l1, l2] = g.legs, c = g.clip;
+  if (!(c < Math.min(l1, l2))) fail('PARAMETER', `[GUSSET_FIT] a clip of ${c} mm leaves nothing of legs ${l1} and ${l2}`);
+  if (xV + l1 > A.reach + MEMBER_MIN_MM) fail('PARAMETER', `[GUSSET_FIT] leg ${l1} runs past member ${A.k}: ${+(A.reach - xV).toFixed(3)} mm of its face from the corner`);
+  if (s + l2 > B.reach + MEMBER_MIN_MM) fail('PARAMETER', `[GUSSET_FIT] leg ${l2} runs past member ${B.k}: ${+(B.reach - s).toFixed(3)} mm of its face from the corner`);
+  const at2 = (d: number, along: 'a' | 'b'): XY => along === 'a' ? [xV + d, yV] : [xV + d * cos, yV + d * sin];
+  const corners: XY[] = c > 0 ? [at2(c, 'a'), at2(l1, 'a'), at2(l2, 'b'), at2(c, 'b')] : [[xV, yV], at2(l1, 'a'), at2(l2, 'b')];
+  const outer: ProfileSegmentInput[] = corners.map(start => ({ kind: 'line', start }));
+  const names = [`${at}.on.m${A.k}`, `${at}.free`, `${at}.on.m${B.k}`, ...(c > 0 ? [`${at}.clip`] : [])];
+  const solid = prismaticFromProfile({ outer, heightMM: g.t, fromMM: 0, tag: at, names: { outer: names, bottom: `${at}.back`, top: `${at}.front` } });
+  const m: BrepAffine['matrix'] = [A.away[0], ey[0], n[0], A.away[1], ey[1], n[1], A.away[2], ey[2], n[2]], mid = add(p, scale(n, g.offset));
+  const area = (l1 * l2 - c * c) * sin / 2, seams: WeldmentSeam[] = [{ member: A.k, lengthMM: l1 - c, ...(sa.face ? { face: sa.face } : {}) }, { member: B.k, lengthMM: l2 - c, ...(sb.face ? { face: sb.face } : {}) }];
+  const gusset: GussetReport = { frame: g.frame, point: g.point, members: [A.k, B.k], legsMM: [l1, l2], thicknessMM: g.t, clipMM: c, offsetMM: g.offset, angleDegrees: Math.atan2(sin, cos) * 180 / Math.PI,
+    plane: { origin: noNegativeZero(mid), normal: noNegativeZero(n) }, areaMM2: area, volumeMM3: area * g.t, outline: corners.map(([x, y]) => noNegativeZero(add(mid, add(scale(A.away, x), scale(ey, y))))), seams };
+  const r = moveAll([{ solid: { kind: 'upright', solid } }], m, add(p, scale(n, lo))) as Extract<Result, { kind: 'solid' }>;
+  return { kind: 'solid', parts: [{ ...r.parts[0], gusset }] };
 }
 function moveAll(parts: readonly Part[], m: BrepAffine['matrix'], o: Point): Result {
   return { kind: 'solid', parts: parts.map((p): Part => {
@@ -3468,7 +3606,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   let validated: BrepCheckReport | undefined, area: number | undefined;
   const flats = new Map<string, FlatPattern>();
   return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}),
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}), ...(part.gusset ? { gusset: part.gusset } : {}), ...(part.endCap ? { endCap: part.endCap } : {}),
     massProperties(density: number) {
       // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
       if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');

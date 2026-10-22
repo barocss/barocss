@@ -118,6 +118,8 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.cam ? camNotes(o.cam) : []),
     ...(o.sprocket || o.pulley || o.belt || o.coupling ? driveNotes(o) : []),
     ...(o.connector ? connectorNotes(o.connector) : []),
+    ...(o.gusset ? gussetNotes(o.gusset) : []),
+    ...(o.endCap ? endCapNotes(o.endCap) : []),
     ...(o.connectorBody ? [{ text: `Connector body for ${o.connectorBody.row}: seated in its opening, touching nothing of the panel (overlap ${+o.connectorBody.overlapMM3.toFixed(6)} mm³, by the Boolean); an envelope only` }] : []),
     ...(o.shaft ? shaftNotes(o.shaft) : []),
     ...(o.key || o.keyway || o.ring || o.pin ? shaftPartNotes(o) : []),
@@ -561,6 +563,19 @@ function springNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['spring']
     { text: 'Not validated for manufacturing: no buckling, fatigue or relaxation check', warning: true },
     ...s.diagnostics.map(x => ({ text: x.message.replace(/^spring: /, ''), warning: x.severity === 'warning' })),
   ];
+}
+/** A gusset's report as lines (FRk1, D165): where it sits, its size, its seams (the weld list's). */
+function gussetNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['gusset']>): { text: string }[] {
+  const mm = (x: number) => +x.toFixed(4);
+  return [{ text: `Gusset at point ${r.point}, between members ${r.members[0] + 1} and ${r.members[1] + 1} (${mm(r.angleDegrees)}°): legs ${mm(r.legsMM[0])} and ${mm(r.legsMM[1])}${r.clipMM ? `, corner clipped ${mm(r.clipMM)}` : ''}, ${mm(r.thicknessMM)} thick${r.offsetMM ? `, ${mm(r.offsetMM)} off the members' plane` : ''}` },
+    { text: `Plate ${mm(r.areaMM2)} mm² × ${mm(r.thicknessMM)}: ${mm(r.volumeMM3)} mm³` },
+    { text: `Seams: ${r.seams.map(s => `${mm(s.lengthMM)} on member ${s.member + 1}${s.face ? ` (${s.face})` : ''}`).join(', ')}` }];
+}
+/** An end cap's report as lines (FRk1, D165). */
+function endCapNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['endCap']>): { text: string }[] {
+  const mm = (x: number) => +x.toFixed(4);
+  return [{ text: `End cap ${r.fit === 'over' ? 'over' : 'inset in the bore of'} member ${r.member + 1}'s ${r.end}: ${mm(r.thicknessMM)} thick, ${mm(r.areaMM2)} mm², ${mm(r.volumeMM3)} mm³` },
+    { text: `Seam ${mm(r.seam.lengthMM)} mm round its ${r.fit === 'over' ? 'outline' : 'bore'} (exact)` }];
 }
 /** A connector opening's report as lines (R12c.7, D162): the opening, the body's fit, the keep-out. */
 function connectorNotes(r: NonNullable<CadPartSnapshot['outputs'][number]['connector']>): { text: string; warning?: boolean }[] {
