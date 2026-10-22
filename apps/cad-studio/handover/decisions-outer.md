@@ -5828,3 +5828,10 @@ X3 is built as the S0 froze it.
     - a keyway on a bore rotated 30° about X: the "no principal section" text, no fix.
   - `element-callouts.test.ts`: O146's message assertion now reads the fix text.
   - Flow step "the section a dimension needs (O148 X3)…": the file auto-dimensioned; the Fix button on 16.5 reads "Add B–B"; clicked, the sections are `[B, top, −15]`; Auto-dimension again; dimensions on section:B, no DIM_ON_HIDDEN.
+
+### O147 B1 correction — the BOM tool off the top bar (2026-10-22)
+
+The coordinator's window flow on f7d526c80 bisected a regression to the B1 merge (f1726b560). O90's shapes-strip step (242) failed at 1100 px: the bar was 1.375 px too wide and the strip showed no shapes. B1 had put a BOM tool in the top bar's tray. ToolsTray counts each tool as 30 px and keeps every tool before the shapes, so one more tool took the strip's room, and the estimate's slack ran out.
+- The fix: the BOM is an inspect tool on the left toolbar, after Interference and Measure, with its own generated icon (`cad-bom`: a sheet, its lines, the item marks in the accent). The top bar is as before B1.
+- The BOM panel's flow step clicks it there.
+- From now on, a top-bar change runs O90's shapes-strip step and O127's narrow-window step, the two layout guards (the coordinator).

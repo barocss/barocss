@@ -4016,7 +4016,8 @@ try {
       await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
     }
     await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key'), null, { timeout: 30000 });
-    if (await page.locator('[aria-label="BOM"]').isVisible()) await page.click('[aria-label="BOM"]'); else { await page.click('[aria-label="More tools"]'); await page.click('[role="menu"][aria-label="More tools"] [aria-label="BOM"]'); }
+    // (The BOM is an inspect tool on the left toolbar, not on the top bar: O90's shapes strip keeps its room.)
+    await page.click('nav[aria-label="Tools"] [aria-label="BOM"]');
     try {
       await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 30000 });
       assert.match(await page.textContent('[aria-label="BOM line 1"]'), /Untitled/);

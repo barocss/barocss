@@ -1970,7 +1970,6 @@ export function App() {
           </div>}</span>,
           <button key="tool5" className={'tool' + (libraryOpen ? ' on' : '')} aria-label="Library" data-tip="Library" data-tip-desc="Catalogue parts from libraries (built-in, team, yours): insert them, snap them by their interfaces" onClick={() => setLibraryOpen(v => !v)} hidden={rendering || drawing}><Icon name="menu_book" /></button>,
           <button key="tool6" className={'tool' + (paramsOpen ? ' on' : '')} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></button>,
-          <button key="tool6b" className={'tool' + (bomOpen ? ' on' : '')} aria-label="BOM" data-tip="Bill of materials" data-tip-desc="The parts and bought elements, bought or made, and the purchase list" onClick={() => setBomOpen(v => !v)} hidden={rendering || drawing}><Icon name="list_alt" /></button>,
           <button key="tool7" className="tool" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>,
           <button key="tool8" className="tool" aria-label="Save" data-tip="Save" data-tip-key="⌘S" onClick={save}><Icon name="save" /></button>,
           <button key="tool9" className="tool" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={exportStl}><Icon name="download" /></button>,
@@ -2002,6 +2001,8 @@ export function App() {
           <div key={g} className="tool-group">
             {gi > 0 && <div className="sep" />}
             {commands.filter(c => c.group === g && !c.place).map(toolButton)}
+            {/* (O147: the BOM with the inspect tools, not on the top bar — O90's shapes strip keeps its room.) */}
+            {g === 'inspect' && <button className={'tool' + (bomOpen ? ' on' : '')} aria-label="BOM" data-tip="Bill of materials" data-tip-desc="The parts and bought elements, bought or made, and the purchase list" onClick={() => setBomOpen(v => !v)}><Icon name="cad-bom" /></button>}
           </div>))}
       </nav>
 
