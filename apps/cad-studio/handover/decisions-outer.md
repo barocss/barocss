@@ -7195,3 +7195,34 @@ No studio expectation relied on an overcut drill: cnc-cam tests the preview.
 - tsc of model and studio; eslint 0 errors.
 
 **F8 now:** the weldment drawing has only BALLOON_NO_EDGE (correct). The shaft's DIM_ON_HIDDEN and the cover's hole count wait on the coordinator's decision (O172: a part's views without its bought elements). The A4/A3-only limit is recorded.
+
+## O174 — F8: a part's drawing is projected from what it makes (2026-10-23)
+
+**Decision (the coordinator's, on O172's question).** A part's drawing documents what the part makes. Its bought elements (the BOM's `boughtOf`: keys, pins, bearings, O-rings, unless the person sets `bought: false`) are left out of its views and its sections, as DFM, print and CAM leave them (O160). An assembly-scope drawing keeps its bought parts. No phantom display of bought elements for now; that stays a possible later option.
+
+**Where:**
+- `brepsFor(doc, { made })` (engine/evaluate) drops the outputs `boughtOutputIds` names, falling back to every output if none would remain; instances unchanged.
+- `sectionsCut(…, made)` (drawing/section) neither cuts nor draws them.
+- The chat's `drawingInputs` and the studio (`useDrawingSheet` → `engine.drawing({ made })` → the worker) both pass `made` when the scope is not `assembly`. useDrawingSheet's change was agreed with the coordinator (the GPU lane reads that hook).
+
+**Two follow-ons the change exposed:**
+- **A round outline locates what is on its centre** (drawing/issues `coverage`). A view whose extents equal a circle's diameter (a shaft or cover seen end on) locates every circle concentric with it: there is no edge to measure from. The extents are of the flattened curves, so the match is to `OUTLINE_REL` = 1e-4 of the diameter (24.9998 against 25). An off-centre hole is still HOLE_NOT_LOCATED until dimensioned.
+- **Fix keeps its best round.** With the bearing gone, a Fix round can make what the next one clears (a section's view), and a later round can undo an earlier one. The rounds run as before (O170, O172); the sheet with the fewest errors, then the fewest warnings, is kept only when better than the start. A second Fix applies nothing (idempotent).
+
+**Expectations changed, by class:**
+- **Bought elements' edges are no longer projected** in a part's views. The shaft's Ø25 shoulders had been hidden behind the bearing (DIM_ON_HIDDEN).
+- **Hole counts exclude bought bores and rings:** the bearing's bore and the O-ring's circles had counted as the part's holes.
+- **Leader notes to bought elements are dropped** (element-callouts): with the key and pin bought, no note; set made (`bought: false`), both notes as before.
+- **Bought keys are not cut in sections** (section-dimensions): 2 bodies cut with the key bought, 3 with it made, each hatched at its own angle as before.
+
+**Tests** (drawing-made-views, new):
+- the shaft with key and bearing: no edge of n1/n2 in front, top or right; after Auto-dimension and Fix, no issue; `brepsFor` gives 1 B-rep made, 3 for an assembly's drawing;
+- the cover: its Ø22 bore and gland concentric with the round outline are located by it, the O-ring not drawn, no issue; an off-centre Ø4 is still HOLE_NOT_LOCATED.
+
+**Verified (T1):**
+- model: drawing-made-views 2/2, and the 27 model test files on drawings, sections, welds or dimensions, a9-acceptance 3/3 among them, all passing;
+- studio: pmi 3/3, section-cutout 2/2, section-hatch 3/3, section-planes 4/4, section-view 5/5, bom-linked-ui 5/5;
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (its slot is still pending, with the uncommitted rows-file steps).
+
+**F8 now:** the shaft and the cover drawings have no issue; the weldment's only issue is BALLOON_NO_EDGE (correct, O173).

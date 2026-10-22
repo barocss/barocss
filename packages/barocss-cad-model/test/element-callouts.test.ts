@@ -66,6 +66,11 @@ test('Auto layout: a leader note for the key and the dowel pin (no dimension of 
   let doc = cmd('shaft').build!(blank, cmd('shaft').defaults!(blank));
   doc = { ...doc, nodes: doc.nodes.map((n, i) => i === 0 ? { ...(n as Extract<ModelNode, { kind: 'shaft' }>), holes: [{ diameter: 4, at: 80 }] } : n) };
   doc = run(doc, 'key', { bodies: [0] }, { h: 6 }); doc = run(doc, 'pin', { bodies: [0] });
+  // (O174: bought by default, the key and the pin are not the part's — not drawn, so no note points at them.)
+  const asBought = drawingInputs(doc, { ...readDrawing(doc.drawing), sheet: 'A3' }); assert.ok(typeof asBought !== 'string', String(asBought));
+  assert.deepEqual((autoLayout(asBought).settings.notes ?? []).filter(n => n.id.startsWith(ELEMENT_NOTE)).map(n => n.id), []);
+  // (Made by the person's override, they are bodies of the part: drawn, each with its leader note.)
+  doc = { ...doc, nodes: doc.nodes.map(n => n.kind === 'key' || n.kind === 'pin' ? { ...n, bought: false } : n) };
   const i = drawingInputs(doc, { ...readDrawing(doc.drawing), sheet: 'A3' }); assert.ok(typeof i !== 'string', String(i));
   const { settings } = autoLayout(i), notes = (settings.notes ?? []).filter(n => n.id.startsWith(ELEMENT_NOTE));
   assert.deepEqual(notes.map(n => [n.id, n.text, !!n.leader]).sort(), [['el-n1', 'key 6 × 6 × 18', true], ['el-n2', 'dowel pin Ø4 × 20', true]].sort());
