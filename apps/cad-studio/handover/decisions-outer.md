@@ -6547,3 +6547,97 @@ Rule (b) itself is unchanged.
 - eslint of cad-model's src and test: 0 errors.
 
 **Not run:** the full package and studio suites, which need a coordinator slot. The window's remaining model failures are separate checkpoints: enclosure O73, shop-rows (inherited-context identity), tool-contract (read-tool output schema) and toolset (the frozen v2 contract).
+
+## O151 — the read-tool contract covers Codex's output tools; a part-scoped result's shopRows (2026-10-23)
+
+**tool-contract.** "every read tool's result matches its output schema" failed at `99da385a1`. Codex had given six output tools an output schema in contract.ts but never ran them in the test: `output_bom`, `output_purchase_csv`, `output_clearance`, `output_print_layers`, `output_cam_package` and `output_bundle`.
+
+The test now runs each one through `dispatchTool`, which also exercises O149's lazy load, on a document where it succeeds:
+- a 20 × 15 × 4 plate for BOM, CSV, clearance and print layers;
+- for the CAM package, a placed plate on the document's test stock row (written into the document directly, not through a tool);
+- for the bundle, the plate approved through draft → review → approved with a user token.
+
+Each result conforms to its schema, reports `changed: false`, and leaves the document as it was.
+
+**enclosure O73.** A part-scoped `set_material` result now begins with `shopRows`, the provenance of the shop rows the part sees. That is the coordinator's A9-8 decision ("reports state the row's origin"), which Codex built. The part has no rows, so the expectation adds `shopRows: []`. Nothing else changes.
+
+**Verified (T1):** tool-contract 3/3, enclosure 17/17, chat-outputs 7/7, bom-panel 4/4.
+
+## O152 — an assembly without a cross-part housing link keeps its identity (2026-10-23)
+
+**The defect.**
+- Codex's A9-7 (`7e8dece38`, 10-23) made `resolveShopTree(root)` always return a new view of an assembly root: the root and every instance carried a bearing-context symbol.
+- That broke A9-10's guarantee from the day before (`1e00c2f52`, "empty inherited context preserves legacy document and instance identity").
+- Identity is what the resolved-tree caches and the studio's reference comparisons key on.
+
+**The fix.**
+- `bearingAssemblyView` builds the context only when a bearing of the root or of an immediate part has a raw `housingRef`. Otherwise it returns the root itself.
+- `bearingPartView`, a part draft in part dispatch or the feature editor, still always gets its context from the root, because the draft may be adding the first link.
+- Nothing else reads the context without a `housingRef` node: part.ts and wireDoc use it only for linked bearings, and the Housing choice falls back to `ctx.bearingAssembly` or the root's instances.
+- `linksHousing` is a module-level loop with no closures, as the hot-path rule requires.
+
+**Verified (T1):**
+- shop-rows 9/9; bearing-housing-context 8/8 (A9-7's own tests);
+- the 57 model test files that touch instances, bearings or the shop tree, all passing;
+- tsc of model and studio; eslint 0 errors.
+
+**Not run:** the full package and studio suites, and A9-7's studio UI. The GPU lane is porting `8789e468`, so it should check that the Housing path still gets its context from part dispatch.
+
+## O153 — the studio side of rows rule (b): cad-cli's `--list` is the person's file; the studio runner takes names (2026-10-23)
+
+**cad-cli `stock` and `nest`.**
+- **Before:** `--list file.json` read the file and handed its rows to `set_stock` / `set_frame_stock` as `rows`, which rule (b) refuses. So both commands failed with any list.
+- **Now:** the file is received the way the chat receives an attached one, through `personListFile` in server/cadCli.ts:
+  - `receivePersonRowFiles` with the file's name, its bytes' SHA-256 and turn 1, in a conversation id derived from the path;
+  - the loader then takes it by reference (`{file}`).
+- **Why this is a person's file:** the person names it on their own command line, and no agent is involved.
+- **What it does not do:** add a flag that marks rows as the person's without a file. A file that is not `*.json`, or not JSON at all, is refused with the receiver's message.
+
+**cnc-stock (CNC7b ×6).**
+- Lists arrive as person files (`stockList`, with `test/person-file.ts` on the studio side).
+- The by-name refusals now come from files: a missing source, a block of two sides, two rows of one id.
+- Two refusals stay on `set_stock`'s own arguments: a negative allowance, and rows the agent writes itself (ROWS_NOT_FROM_PERSON).
+- "One too short refused" now loads its single short bar onto the shaft afresh. With merge by id (O150), the earlier R22 would otherwise stay and be chosen. This shows O150's open item: there is still no chat call that removes a row.
+
+**chat.test.** The handler list adds Codex's `load_rows` and its six output tools.
+
+**The studio test runner** (scripts/test.mjs) takes names, as cad-model's runner does (the coordinator approved this):
+- `node scripts/test.mjs cnc-stock frame` runs only the files whose name contains one of them;
+- no names runs every file, exactly as before;
+- names that match nothing exit 1 rather than letting `node --test` pick its own files.
+
+**Verified (T1), per file:**
+- previously failing: cnc-stock 6/6, frame-nest-cli 1/1, chat 18/18;
+- failing in the window at `99da385a1`, now passing with O149: cad-external 6/6, candidates 5/5, cnc-cam 5/5, im7 7/7, im8b 8/8, robot-sizer 3/3, team-bundle 2/2, decimate 3/3, frame 10/10, palette-rank 2/2, palette 2/2;
+- tsc of studio; eslint of the changed files: 0 errors.
+
+**Not run:** the full studio suite and any browser flow.
+
+## O154 — S3: the frozen v2 contract, re-recorded; load_rows moves to `features` (2026-10-23)
+
+**The diff** between `src/chat/tools-v2.json` (last recorded at O124, `c176929f6`) and the live TOOLS_V2. Codex never re-recorded the file. Group inputs carry only the action enum.
+- assembly + `bundle`; print + `layers`; query + `bom`, `purchase_csv`, `clearance`, `cam` — additive.
+- library + `load_rows`, with library's `destructiveHint` false → true — flagged breaking ("library: now destructive"). load_rows is rightly in contract.ts's ALTERS (it replaces rows of the same id and a sheet's K), and a group is destructive if any action is.
+
+**The coordinator's choice: (a).**
+- load_rows moves into the `features` group, which is already destructive, so library stays non-destructive (toolset.test asserts that).
+- v2 was never released, and `library.load_rows` lived only in Codex's squashed work, so it is renamed outright with no alias.
+- The handler name stays `load_rows`.
+
+**Every use changed:**
+- `src/chat/groups.ts`: the action moves from library to features;
+- `src/chat/rows.ts`: the ROWS_KIND message, "describe features.load_rows";
+- `apps/cad-studio/server/chatServer.ts`: the row-file note the agent reads, "features.load_rows takes file by id";
+- `test/person-rows.test.ts`: four v2 calls and one proposal op, `library` → `features`.
+
+Checked with git grep:
+- the other `load_rows` uses call the handler name, and stay as they are (tools.ts's BATCHABLE, MUTATORS and case, drawing-table, sheet, studio chat.test);
+- no studio flow or fixture names `library.load_rows`;
+- the README §0 and decisions-outer A9-9 text that mentions it is history, kept.
+
+**Re-recorded** with `UPDATE_TOOL_CONTRACT=1`. That run first asserts there is no breaking change against the old file, and it passed. The file gains seven action names and nothing else.
+
+**Verified (T1):**
+- toolset 9/9: the frozen contract, `library` not destructive, the per-turn guard at 23,180 of 25,000 characters (13 tools, list 14,938, prompt 8,242);
+- shop-context-tools 3/3 (its own ≤ 25,000 guard), person-rows 9/9, tool-contract 3/3, sheet 8/8, drawing-table 5/5, studio chat 18/18;
+- tsc of model and studio; eslint 0 errors.

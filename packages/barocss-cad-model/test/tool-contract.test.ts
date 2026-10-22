@@ -1,7 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluatePart } from '../src/engine/evaluate';
-import { starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, rectanglePart, starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
+import { evaluateDoc } from '../src/engine/evaluate';
+import { withLook } from '../src/app/bodies';
+import { bomView, deriveBom } from '../src/team/assembly';
+import { draftBaseline, moveBaseline } from '../src/team/baseline';
+import { userToken } from '../src/team/ecr';
 import { boxCage } from '../src/app/primitives';
 import { dispatchTool, TOOLS, type ChatState } from '../src/chat/tools';
 import { annotationsOf, breakingChanges, outputSchemaOf, validate, type ContractEntry, type JsonSchema } from '../src/chat/contract';
@@ -73,6 +78,18 @@ test('every read tool’s result matches its output schema and changes nothing',
   assert.ok(!withK.isError, withK.content);
   const kc = await dispatchTool(withK.state, 'check_keepouts', {}, evaluate);
   assert.ok(!kc.isError && !kc.changed, kc.content); assert.deepEqual(validate(outputSchemaOf('check_keepouts')!, JSON.parse(kc.content)), [], 'check_keepouts'); seen.add('check_keepouts');
+  // (The output tools, through the dispatcher: a plate, a placed part on the document's stock, an approved baseline.)
+  const evalDoc = async (d: StudioDoc) => evaluateDoc(d, 1), plate = rectanglePart(20, 15, 4);
+  const stocked: StudioDoc = { ...emptyDoc(), machining: { version: 1, stock: [{ id: 'shop', kind: 'block', size: [30, 25, 10], source: 'a test stock' }] }, instances: [{ id: 'p1', name: 'plate', doc: plate, position: [0, 0, 0], rotation: [0, 0, 0], grounded: true }] };
+  const pe = await evalDoc(plate); assert.ok(pe.ok);
+  const looked = withLook(plate, pe.bodies[0], { material: 'al6061' }), view = await bomView(looked, evalDoc), draft = draftBaseline(looked, deriveBom(view), view);
+  const review = await moveBaseline(draft.doc, draft.baseline.id, 'review', userToken('test'));
+  const approved = (await moveBaseline(review.doc, draft.baseline.id, 'approved', userToken('test'), evalDoc)).doc;
+  for (const [name, d, args] of [['output_bom', plate, {}], ['output_purchase_csv', plate, { withMade: true }], ['output_clearance', plate, {}], ['output_print_layers', plate, { layerMM: 1 }], ['output_cam_package', stocked, { part: 'p1' }], ['output_bundle', approved, {}]] as [string, StudioDoc, object][]) {
+    const out = await dispatchTool({ doc: d, bodies: [] }, name, args, evalDoc);
+    assert.ok(!out.isError && !out.changed, `${name}: ${out.content.slice(0, 200)}`); assert.equal(out.state.doc, d, `${name}: the document as it was`);
+    assert.deepEqual(validate(outputSchemaOf(name)!, JSON.parse(out.content)), [], name); seen.add(name);
+  }
   assert.deepEqual(TOOLS.filter(t => outputSchemaOf(t.name) && !seen.has(t.name)).map(t => t.name), []);
 });
 

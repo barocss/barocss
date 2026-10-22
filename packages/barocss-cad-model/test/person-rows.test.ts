@@ -130,9 +130,9 @@ test('A9-9 equal parent and local rows retain their own files after ordinary edi
   check(names[0], names[1]);
   await call('features', { action: 'stock', allowance: 2 });
   check(names[0], names[1]);
-  await call('library', { action: 'load_rows', kind: 'sections', file: context.files[2].id });
+  await call('features', { action: 'load_rows', kind: 'sections', file: context.files[2].id });
   check(names[2], names[1]);
-  await call('library', { action: 'load_rows', kind: 'sections', file: context.files[3].id, part: 'local' });
+  await call('features', { action: 'load_rows', kind: 'sections', file: context.files[3].id, part: 'local' });
   check(names[2], names[3]);
   await call('features', { action: 'frame_stock', kerf: 2 });
   check(names[2], names[3]);
@@ -176,12 +176,12 @@ test('A9-9 absent or empty conversation authority never inherits another state f
   const args = { action: 'load_rows', kind: 'stock', file: a.files[0].id };
   const initial = loadPersonRows(doc, 'stock', a.files[0].id, undefined, a); assert.ok('doc' in initial);
   for (const rowFiles of [undefined, b]) {
-    const refused = await dispatchTool({ doc, bodies: [], ...(rowFiles ? { rowFiles } : {}) }, 'library', args, evaluate);
+    const refused = await dispatchTool({ doc, bodies: [], ...(rowFiles ? { rowFiles } : {}) }, 'features', args, evaluate);
     assert.equal(refused.isError, true); assert.match(refused.content, /ROWS_NOT_FROM_PERSON/); assert.equal(refused.state.doc, doc);
     const helper = loadPersonRows(doc, 'stock', a.files[0].id, undefined, rowFiles);
     assert.ok('error' in helper); assert.match(helper.error, /ROWS_NOT_FROM_PERSON/);
   }
-  const proposed = await runTool({ doc, bodies: [], rowFiles: a }, 'proposals', { action: 'propose', title: 'Load the person stock', ops: [{ tool: 'library', args }] }, evaluate);
+  const proposed = await runTool({ doc, bodies: [], rowFiles: a }, 'proposals', { action: 'propose', title: 'Load the person stock', ops: [{ tool: 'features', args }] }, evaluate);
   assert.equal(proposed.isError, false, proposed.content);
   const proposalDoc = proposed.state.doc, id = proposalDoc.proposals!.at(-1)!.id, saved = JSON.stringify(proposalDoc);
   for (const rowFiles of [undefined, b]) {
@@ -207,7 +207,7 @@ test('A9-9 a revoked conversation cannot complete an in-flight row load', async 
   const doc = emptyDoc(), before = JSON.stringify(doc);
   let release!: () => void, candidate: StudioDoc | undefined;
   const resumed = new Promise<void>(resolve => { release = resolve; });
-  const pending = dispatchTool({ doc, bodies: [], rowFiles: context }, 'library', { action: 'load_rows', kind: 'stock', file: context.files[0].id }, async next => {
+  const pending = dispatchTool({ doc, bodies: [], rowFiles: context }, 'features', { action: 'load_rows', kind: 'stock', file: context.files[0].id }, async next => {
     candidate = next; await resumed; return evaluateDoc(next, 1);
   });
   assert.ok(candidate, 'the actual row load reached evaluation before the conversation changed');

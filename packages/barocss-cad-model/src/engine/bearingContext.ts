@@ -37,8 +37,18 @@ export const withoutBearingContext = (doc: StudioDoc): StudioDoc => { const out:
 const withoutContext = withoutBearingContext;
 
 const trees = new WeakMap<StudioDoc, StudioDoc>();
-/** Called after the existing row tree resolves. Each occurrence gets its own context view. */
+/** Whether any node of the document or of its immediate parts links a housing in another part (raw field, no checks). */
+function linksHousing(root: StudioDoc): boolean {
+  for (const n of root.nodes) if (n.kind === 'bearing' && (n as ModelNode & { housingRef?: unknown }).housingRef !== undefined) return true;
+  for (const inst of root.instances ?? []) for (const n of inst.doc.nodes) if (n.kind === 'bearing' && (n as ModelNode & { housingRef?: unknown }).housingRef !== undefined) return true;
+  return false;
+}
+/** Called after the existing row tree resolves. Each occurrence gets its own context view, only when some bearing links a
+ *  housing in another part: an assembly with none keeps its document and instance identity (A9-10's resolved tree). */
 export function bearingAssemblyView(root: StudioDoc): StudioDoc {
+  return linksHousing(root) ? assemblyContextView(root) : root;
+}
+function assemblyContextView(root: StudioDoc): StudioDoc {
   if (!root.instances?.length || (bearingContextOf(root)?.owner ?? 'base') !== 'base') return root;
   const cached = trees.get(root); if (cached) return cached;
   const ids = new Set(['base']);
@@ -53,7 +63,8 @@ export function bearingAssemblyView(root: StudioDoc): StudioDoc {
 }
 /** An isolated child draft receives the current explicit occurrence; never infer it from shared nodes. */
 export function bearingPartView(child: StudioDoc, root: StudioDoc, owner: string): StudioDoc {
-  const context = bearingContextOf(bearingAssemblyView(root));
+  // (A part draft gets its context whether or not anything links a housing yet: the draft may add the first link.)
+  const context = bearingContextOf(assemblyContextView(root));
   if (!context) {
     if (!child.nodes.some(n => bearingHousingRef(n))) return child;
     bad(`part ${owner} has no current assembly context`);

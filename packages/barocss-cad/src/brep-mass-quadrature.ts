@@ -387,6 +387,8 @@ function surfacePoint(s: typeof sink, u: number, v: number, k: number, I: number
 }
 // (A strip's edge parameters and their derivatives at the t nodes, and its integrals before they are kept.)
 const ST = gauss(8), SS = gauss(4), PROBES = [0.5, 0.25, 0.75], stripC = new Float64Array(16), stripD = new Float64Array(16), stripI = Array(10).fill(0) as number[], stripVec: Point = [0, 0, 0];
+// (At each t node: the edge's point E and the surface curve's tangent P′ = Su C′u + Sv C′v, for the ribbon from P to E; D177.)
+const stripE = new Float64Array(24), stripT = new Float64Array(24), ribbonN: Point = [0, 0, 0], ribbonM: Point = [0, 0, 0];
 /**
  * The strip between the domain's boundary chord p → q (in the domain's orientation) and the edge it stands for
  * (parameters tp → tq), integrated at once: ruled from the chord L(t) to the edge's parameters C(t) on the
@@ -418,8 +420,10 @@ function strip(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
     if (off * off > 0.25 * chord2 * chord2) { s.dropped++; return; }
     if (s.analytic) {
       try {
-        const dc = s.analytic.projectDerivative(E, dE);
-        stripC[2 * i] = c[0]; stripC[2 * i + 1] = c[1]; stripD[2 * i] = dc[0] * (tq - tp); stripD[2 * i + 1] = dc[1] * (tq - tp);
+        const dc = s.analytic.projectDerivative(E, dE), [su, sv] = s.analytic.partials(c[0], c[1]), d0 = dc[0] * (tq - tp), d1 = dc[1] * (tq - tp);
+        stripC[2 * i] = c[0]; stripC[2 * i + 1] = c[1]; stripD[2 * i] = d0; stripD[2 * i + 1] = d1;
+        stripE[3 * i] = E[0]; stripE[3 * i + 1] = E[1]; stripE[3 * i + 2] = E[2];
+        stripT[3 * i] = su[0] * d0 + sv[0] * d1; stripT[3 * i + 1] = su[1] * d0 + sv[1] * d1; stripT[3 * i + 2] = su[2] * d0 + sv[2] * d1;
       } catch { s.dropped++; return; }
       continue;
     }
@@ -429,7 +433,10 @@ function strip(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
     Su = [Su[0] / (2 * s.hu), Su[1] / (2 * s.hu), Su[2] / (2 * s.hu)]; Sv = [Sv[0] / (2 * s.hv), Sv[1] / (2 * s.hv), Sv[2] / (2 * s.hv)];
     const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), det = g11 * g22 - g12 * g12, r1 = dot(Su, dE) * (tq - tp), r2 = dot(Sv, dE) * (tq - tp);
     if (!(Math.abs(det) > 0)) { s.dropped++; return; }
-    stripC[2 * i] = c[0]; stripC[2 * i + 1] = c[1]; stripD[2 * i] = (r1 * g22 - r2 * g12) / det; stripD[2 * i + 1] = (g11 * r2 - g12 * r1) / det;
+    const d0 = (r1 * g22 - r2 * g12) / det, d1 = (g11 * r2 - g12 * r1) / det;
+    stripC[2 * i] = c[0]; stripC[2 * i + 1] = c[1]; stripD[2 * i] = d0; stripD[2 * i + 1] = d1;
+    stripE[3 * i] = E[0]; stripE[3 * i + 1] = E[1]; stripE[3 * i + 2] = E[2];
+    stripT[3 * i] = Su[0] * d0 + Sv[0] * d1; stripT[3 * i + 1] = Su[1] * d0 + Sv[1] * d1; stripT[3 * i + 2] = Su[2] * d0 + Sv[2] * d1;
   }
   stripI.fill(0); stripVec[0] = stripVec[1] = stripVec[2] = 0;
   const area = s.area;
@@ -441,6 +448,16 @@ function strip(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
         const f = SS.x[j], at0 = ex + f * (d0 - ex), at1 = ey + f * (d1 - ey), as0 = c0 - l0, as1 = c1 - l1;
         surfacePoint(s, l0 + f * as0, l1 + f * as1, -(at0 * as1 - at1 * as0) * ST.w[i] * SS.w[j] * s.sigma, stripI, stripVec);
       }
+      // The ribbon from the surface's point P = S(C) out to the edge's own point E: the edge lies off the surface by
+      // its fit (a plane's cut through a cylinder, 2e-8 mm), and the neighbouring face is integrated up to E. The
+      // strip continued, Y(t, s) = P + s (E − P), to first order in E − P: F(P + g/2)·(P′ × g), oriented as the strip.
+      // (Without it the body's surface has that gap and its volume the flux through it: the V notch's 1.4e-11, D177.)
+      const P = s.at(c0, c1), gx = stripE[3 * i] - P[0], gy = stripE[3 * i + 1] - P[1], gz = stripE[3 * i + 2] - P[2], tx = stripT[3 * i], ty = stripT[3 * i + 1], tz = stripT[3 * i + 2];
+      ribbonN[0] = ty * gz - tz * gy; ribbonN[1] = tz * gx - tx * gz; ribbonN[2] = tx * gy - ty * gx;
+      ribbonM[0] = P[0] + gx / 2; ribbonM[1] = P[1] + gy / 2; ribbonM[2] = P[2] + gz / 2;
+      const w = -ST.w[i] * s.sigma;
+      accumulate(stripI, ribbonM, ribbonN, w);
+      stripVec[0] += ribbonN[0] * w; stripVec[1] += ribbonN[1] * w; stripVec[2] += ribbonN[2] * w; s.area += Math.hypot(ribbonN[0], ribbonN[1], ribbonN[2]) * Math.abs(w);
     }
   } catch { s.area = area; s.dropped++; return; }
   for (let k = 0; k < 10; k++) s.curved[k] += stripI[k];

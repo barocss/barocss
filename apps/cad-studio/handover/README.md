@@ -37,8 +37,8 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Checkpoint | Record | State |
 |---|---|---|
 | Window repairs: frk-3's oracle path; two refusal checks FRk4 made stale; sweep's silently dropped holes (a defect from the import) refused again | D176 | done (T1) |
-| V notch precision (rel 1.42e-11 against 1e-11) | D176 (c) | next |
-| FRk6 (Codex WIP `abb697f2`: hoist the closures, member5 at 1e-9, the fallback, ≤ 2 s) | D177 | queued |
+| V notch precision: trim strips close the gap to their fitted edge (the ribbon); V notch 9.2e-15, D126 table members 4–7 from ~1e-9 to ~1e-14 | D177 | done (T1); T2 pending |
+| FRk6: the capped ordered joint (12 Booleans; the table's build 5.7 s → 1.1 s, ≤ 2 s met); its accuracy half is D177 | D178 | done (T1); T2 pending |
 | FRk5 leftovers, FRk7, FRk8a, FRk8b second half, FRk9 | — | queued (`notes/claude-resume-2026-10-23/kernel.md`) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
@@ -822,9 +822,13 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 | commit | item | verified |
 |---|---|---|
 | `0d4ff6a4c` O149 | the import cycle Codex's `chat/outputs` closed, broken | sheet 8/8 (with O150), cageEdit 7/7, tsc (model, studio), eslint 0 errors |
-| O150 | rows rule (b) through the fixtures (8 test files, `test/person-file.ts`); stock and frame stock merge by id (P2) | those 8 files and person-rows 9/9, tsc (model, studio), eslint 0 errors |
+| `b85435208` O150 | rows rule (b) through the fixtures (8 test files, `test/person-file.ts`); stock and frame stock merge by id (P2) | those 8 files and person-rows 9/9, tsc (model, studio), eslint 0 errors |
+| `3b2fdbbfa` O151 | the read-tool contract covers Codex's six output tools; O73's part result carries `shopRows` (A9-8) | tool-contract 3/3, enclosure 17/17, tsc, eslint |
+| `959ecd34d` O152 | an assembly with no cross-part housing link keeps its document and instance identity (A9-7 vs A9-10) | shop-rows 9/9, bearing-housing-context 8/8, 57 related model files, tsc, eslint |
+| `d7e070e16` O153 | cad-cli `stock` and `nest`: `--list` received as the person's file; cnc-stock and chat fixtures; the studio runner takes names | the 14 studio files the window failed, each passing; tsc; eslint |
+| O154 | S3: the frozen v2 contract re-recorded (additive only); load_rows moves from `library` to `features` | toolset 9/9 (23,180 of 25,000 characters a turn), person-rows 9/9, tsc, eslint |
 
-**Next:** the frozen v2 contract test (toolset), then tool-contract, enclosure O73 and shop-rows, then the studio suite's rows (b) fixtures (cad-cli). Open for the coordinator: a `remove` for stock and frame-stock rows (O150).
+**Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). Open for the coordinator: a `remove` for stock and frame-stock rows (O150).
 
 #### Outer lane: hand-over at A9-5/6 (account change, 2026-10-22) (history)
 
