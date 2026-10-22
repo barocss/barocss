@@ -6109,3 +6109,25 @@ The coordinator's item 2 after G22. This S0 needs the coordinator's and the GPU 
   - the starter plate's Ø8: outer loop and clockwise hole, its area between the inscribed polygon's (its sides counted, the strips' diagonals' points on chords left out) and π·16;
   - the cube along (1, 0, 1): no overhang at a 45° limit, all at 40°, one merged region a layer; every contour point mapped back through the 4×4 lies on the model's mesh (1e-9);
   - a sphere along AM4's best direction: the support volume equals AM4's to 1e-9, and the columns' footprint × height sums to it.
+
+## G23 data side B — the CNC preview as a tool-tip program, built (2026-10-22)
+
+`machining/camPackage.ts` follows the S0 (90e62fc7f) with the GPU lane's additions, and is new CNC8 logic in machining/ with its own tests. It is NOT FOR PRODUCTION: the banner comes first and no G-code is written.
+- **The tool**: a whole shape — flat, ball (corner D/2) or bull (corner given, else D/4) — with its flute length (3 D unset) and shank Ø (D unset), basis said. The diameter is CNC8's.
+- **A setup**: one frame (world → machine, column-major 4×4; the setup's axes, the tool's axis machine +Z; −Z turned over) and a program of typed moves of the tool's tip in that frame.
+  - A rapid runs only at the safe height: the stock's top along the axis + 5 mm, or the part's box's with no stock — an estimate, said.
+  - A retract goes straight up to it.
+  - A pocket, level by level, outermost loop in:
+    - a plunge from the safe height through the air cleared so far;
+    - then a ramp at 3° along the level's first loop where it is long enough for the step down, else a plunge (the rule and angle stated as estimates);
+    - a feed back to the loop's start and round it;
+    - the inner loops reached by a feed at depth, inside the pocket;
+    - a retract before the next level.
+  - A hole is a plunge from the safe height to its bottom and a retract.
+  - `passes` names each pocket loop's (level, loop) and each hole's move range.
+- **Stock**: CNC7b's choice as a solid (a box's min/max, a bar's cylinder), or its refusal (STOCK_NONE_LOADED, STOCK_NONE_FITS) as given. The uncut/overcut target is the part's own mesh, which the GPU lane has.
+- **Tests** (`test/cam-package.test.ts`):
+  - CNC8's 50 × 30 pocket 8 deep, Ø6: the banner first; the tool flat 6/0/18/6, estimates; one +Z setup with the identity frame; safe = the block stock's top + 5.
+  - **The linking oracle**: every rapid at the safe height; retracts straight up; the program continuous; it ends at the safe height. Feeds at z 17, 14, 12; passes (3, 0…4) then (6, 0)…; no stock gives the refusal and the rule still holds.
+  - **The swept-volume oracle**: the feed and ramp moves' swept area a level (0.05 mm raster), times its thickness, is 12000 mm³ less at most the four corners a flat Ø6 tool cannot reach, 4(1 − π/4)R² a mm of depth, within the raster's bound.
+  - CNC8's holes (Ø6.6 through, Ø5 blind 10): +Z and −Z setups; each a plunge to its bottom (z 0 and z 10 from +Z) and a retract to the safe height; −Z's axis (0, 0, −1).
