@@ -1051,11 +1051,16 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
     }
     case 'set_stock': {
       if (args.rows !== undefined) return fail(state, ROWS_NOT_FROM_PERSON);
-      if (args.file === undefined && args.allowance === undefined) return fail(state, 'Give file, allowance or both.');
+      const remove = strings(args.remove);
+      if (args.file === undefined && args.allowance === undefined && !remove.length) return fail(state, 'Give file, remove, allowance or any of them.');
       if (args.allowance !== undefined && !(typeof args.allowance === 'number' && Number.isFinite(args.allowance) && args.allowance >= 0 && args.allowance < 100)) return fail(state, '[STOCK_ALLOWANCE] allowance is mm a face, 0 to 100.');
       const loaded = args.file === undefined ? { doc: state.doc } : loadPersonRows(state.doc, 'stock', args.file, undefined, state.rowFiles);
       if ('error' in loaded) return fail(state, loaded.error);
-      const doc = args.allowance === undefined ? loaded.doc : { ...loaded.doc, machining: { ...loaded.doc.machining, version: 1 as const, allowanceMM: args.allowance as number } };
+      // (O155: rows merge by id (O150), so a row leaves only by name; an id not on the list is refused, listing the list.)
+      const kept = removeRows(loaded.doc.machining?.stock, remove, 'STOCK_ROW_UNKNOWN');
+      if ('error' in kept) return fail(state, kept.error);
+      const machining = { ...loaded.doc.machining, version: 1 as const, ...(remove.length ? { stock: kept.rows } : {}), ...(args.allowance !== undefined ? { allowanceMM: args.allowance as number } : {}) };
+      const doc = args.allowance === undefined && !remove.length ? loaded.doc : { ...loaded.doc, machining };
       return accept(state, doc, evaluate, 'Stock and machining allowance');
     }
     case 'set_casting': {
@@ -1074,11 +1079,15 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
     }
     case 'set_frame_stock': {
       if (args.rows !== undefined) return fail(state, ROWS_NOT_FROM_PERSON);
-      if (args.file === undefined && args.kerf === undefined) return fail(state, 'Give file, kerf or both.');
+      const remove = strings(args.remove);
+      if (args.file === undefined && args.kerf === undefined && !remove.length) return fail(state, 'Give file, remove, kerf or any of them.');
       if (args.kerf !== undefined && !(typeof args.kerf === 'number' && Number.isFinite(args.kerf) && args.kerf >= 0 && args.kerf < 20)) return fail(state, '[FRAME_KERF] kerf is mm, 0 to 20.');
       const loaded = args.file === undefined ? { doc: state.doc } : loadPersonRows(state.doc, 'frame-stock', args.file, undefined, state.rowFiles);
       if ('error' in loaded) return fail(state, loaded.error);
-      const doc = args.kerf === undefined ? loaded.doc : { ...loaded.doc, frames: { ...loaded.doc.frames, version: 1 as const, kerfMM: args.kerf as number } };
+      const kept = removeRows(loaded.doc.frames?.stock, remove, 'FRAME_STOCK_UNKNOWN');
+      if ('error' in kept) return fail(state, kept.error);
+      const frames = { ...loaded.doc.frames, version: 1 as const, ...(remove.length ? { stock: kept.rows } : {}), ...(args.kerf !== undefined ? { kerfMM: args.kerf as number } : {}) };
+      const doc = args.kerf === undefined && !remove.length ? loaded.doc : { ...loaded.doc, frames };
       return accept(state, doc, evaluate, 'Frame stock and saw kerf');
     }
     case 'set_frame_sections': {
@@ -1483,8 +1492,8 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'set_stock',
-    description: 'Loads machining stock from a person-supplied conversation JSON file, and/or sets allowance per face in mm. file is the attachment reference. Raw rows are refused as ROWS_NOT_FROM_PERSON. File rows keep id, block size [a,b,c] or bar diameter/maxLength, and their original source.',
-    input_schema: { type: 'object', properties: { file: { type: 'string' }, rows: { type: 'array', description: 'Refused: use a person-supplied file.', items: { type: 'object' } }, allowance: { type: 'number' } }, additionalProperties: false },
+    description: 'Loads machining stock from a person-supplied conversation JSON file, and/or sets allowance per face in mm. file is the attachment reference. Raw rows are refused as ROWS_NOT_FROM_PERSON. File rows merge by id, keeping id, block size [a,b,c] or bar diameter/maxLength, and their original source; remove lists row ids to drop.',
+    input_schema: { type: 'object', properties: { file: { type: 'string' }, rows: { type: 'array', description: 'Refused: use a person-supplied file.', items: { type: 'object' } }, remove: { type: 'array', items: { type: 'string' } }, allowance: { type: 'number' } }, additionalProperties: false },
   },
   {
     name: 'set_casting',
@@ -1493,8 +1502,8 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'set_frame_stock',
-    description: 'Loads frame stock from a person-supplied conversation JSON file, and/or sets the saw kerf in mm. file is the attachment reference. Raw rows are refused as ROWS_NOT_FROM_PERSON. File rows keep id, length or lengthMM, count, section and source.',
-    input_schema: { type: 'object', properties: { file: { type: 'string' }, rows: { type: 'array', description: 'Refused: use a person-supplied file.', items: { type: 'object' } }, kerf: { type: 'number' } }, additionalProperties: false },
+    description: 'Loads frame stock from a person-supplied conversation JSON file, and/or sets the saw kerf in mm. file is the attachment reference. Raw rows are refused as ROWS_NOT_FROM_PERSON. File rows merge by id, keeping id, length or lengthMM, count, section and source; remove lists row ids to drop.',
+    input_schema: { type: 'object', properties: { file: { type: 'string' }, rows: { type: 'array', description: 'Refused: use a person-supplied file.', items: { type: 'object' } }, remove: { type: 'array', items: { type: 'string' } }, kerf: { type: 'number' } }, additionalProperties: false },
   },
   {
     name: 'set_frame_sections',
@@ -1635,6 +1644,13 @@ let argumentsOf: Map<string, ReadonlySet<string> | null> | null = null;
 /** Whether a tool takes an argument (a schema that takes any: yes). */
 export function takesArgument(name: string, key: string): boolean { return !unknownArguments(name, { [key]: true }); }
 /** Why a call's arguments are refused (UNKNOWN_ARGUMENT, naming each and what the tool takes), or null. */
+/** The rows less the named ids; an id the list does not have is refused with the list (O155). */
+function removeRows<T extends { id: string }>(rows: readonly T[] | undefined, remove: readonly string[], code: string): { rows: T[] } | { error: string } {
+  const was = rows ?? [], unknown = remove.filter(id => !was.some(r => r.id === id));
+  if (unknown.length) return { error: `[${code}] no row ${unknown.map(x => `"${x}"`).join(', ')} to remove (rows: ${was.map(r => r.id).join(', ') || 'none'}).` };
+  return { rows: was.filter(r => !remove.includes(r.id)) };
+}
+
 export function unknownArguments(name: string, args: Record<string, unknown>): string | null {
   argumentsOf ??= new Map(TOOLS.map(t => { const sc = t.input_schema as { properties?: Record<string, unknown>; additionalProperties?: unknown }; return [t.name, sc.additionalProperties === false ? new Set(Object.keys(sc.properties ?? {})) : null]; }));
   const takes = argumentsOf.get(name);

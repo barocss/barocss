@@ -826,9 +826,10 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 | `3b2fdbbfa` O151 | the read-tool contract covers Codex's six output tools; O73's part result carries `shopRows` (A9-8) | tool-contract 3/3, enclosure 17/17, tsc, eslint |
 | `959ecd34d` O152 | an assembly with no cross-part housing link keeps its document and instance identity (A9-7 vs A9-10) | shop-rows 9/9, bearing-housing-context 8/8, 57 related model files, tsc, eslint |
 | `d7e070e16` O153 | cad-cli `stock` and `nest`: `--list` received as the person's file; cnc-stock and chat fixtures; the studio runner takes names | the 14 studio files the window failed, each passing; tsc; eslint |
-| O154 | S3: the frozen v2 contract re-recorded (additive only); load_rows moves from `library` to `features` | toolset 9/9 (23,180 of 25,000 characters a turn), person-rows 9/9, tsc, eslint |
+| `d1bc7943e` O154 | S3: the frozen v2 contract re-recorded (additive only); load_rows moves from `library` to `features` | toolset 9/9 (23,180 of 25,000 characters a turn), person-rows 9/9, tsc, eslint |
+| O155 | `remove: [ids]` on set_stock and set_frame_stock (O150's open item, closed) | person-rows 10/10, cnc-stock 6/6, toolset 9/9, tsc, eslint |
 
-**Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). Open for the coordinator: a `remove` for stock and frame-stock rows (O150).
+**Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). 
 
 #### Outer lane: hand-over at A9-5/6 (account change, 2026-10-22) (history)
 

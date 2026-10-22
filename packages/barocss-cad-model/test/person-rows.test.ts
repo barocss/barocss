@@ -248,3 +248,38 @@ test('P2 stock and frame stock merge by id: a placed part keeps its inherited ro
   assert.deepEqual(doc.machining?.stock?.map(r => r.id), ['B1', 'R30'], 'the base keeps B1');
   assert.deepEqual(validRowSupplies(doc).map(r => r.file.filename).sort(), ['base-frame-stock.json', 'base-stock-more.json', 'base-stock.json']);
 });
+
+test('O155 stock and frame-stock rows leave by name: remove drops listed ids; an unknown id refused with the list; a placed part cannot drop an inherited row, only its own', async () => {
+  const names = ['stock.json', 'frame-stock.json', 'part-stock.json'];
+  const payloads = [
+    [{ id: 'B1', kind: 'block', size: [310, 210, 16], source: 'base list' }, { id: 'R30', kind: 'bar', diameter: 30, source: 'base list' }],
+    [{ id: 'S6', lengthMM: 6000, source: 'base list' }, { id: 'S4', lengthMM: 4000, source: 'base list' }],
+    [{ id: 'B2', kind: 'block', size: [125, 85, 25], source: 'part list' }],
+  ];
+  const context = receivePersonRowFiles(conversation, names.map((name, i) => ({ name, text: JSON.stringify(payloads[i]), turn: i + 1 })), names.length);
+  const evaluate = async (next: StudioDoc) => evaluateDoc(next, 1);
+  let doc: StudioDoc = { ...emptyDoc(), instances: [{ id: 'p1', name: 'Plate', doc: emptyDoc(), position: [0, 0, 0], rotation: [0, 0, 0] }] };
+  const call = async (tool: string, args: Record<string, unknown>) => {
+    const r = await dispatchTool({ doc, bodies: [], rowFiles: context }, tool, args, evaluate);
+    if (!r.isError) doc = r.state.doc;
+    return r;
+  };
+  for (const [tool, file] of [['set_stock', 0], ['set_frame_stock', 1]] as const) assert.equal((await call(tool, { file: context.files[file].id })).isError, false);
+  assert.equal((await call('set_stock', { remove: ['B1'] })).isError, false);
+  assert.deepEqual(doc.machining?.stock?.map(r => r.id), ['R30']);
+  assert.equal((await call('set_frame_stock', { remove: ['S6'], kerf: 3 })).isError, false);
+  assert.deepEqual([doc.frames?.stock?.map(r => r.id), doc.frames?.kerfMM], [['S4'], 3]);
+  const unknown = await call('set_stock', { remove: ['B9'] }), before = doc;
+  assert.equal(unknown.isError, true); assert.match(JSON.parse(unknown.content).error, /\[STOCK_ROW_UNKNOWN\] no row "B9" to remove \(rows: R30\)/); assert.equal(doc, before);
+  assert.match(JSON.parse((await call('set_frame_stock', { remove: ['S6'] })).content).error, /\[FRAME_STOCK_UNKNOWN\] no row "S6" to remove \(rows: S4\)/);
+  // (A file and a removal in one call: the file merged first, then the named rows dropped.)
+  assert.equal((await call('set_stock', { file: context.files[0].id, remove: ['R30'] })).isError, false);
+  assert.deepEqual(doc.machining?.stock?.map(r => r.id), ['B1']);
+  // The placed part: its own row goes; the inherited one is the base's, refused there.
+  assert.equal((await call('set_stock', { file: context.files[2].id, part: 'p1' })).isError, false);
+  const inherited = await call('set_stock', { remove: ['B1'], part: 'p1' });
+  assert.equal(inherited.isError, true, inherited.content); assert.match(inherited.content, /SHOP_ROW_INHERITED_REMOVE/);
+  assert.equal((await call('set_stock', { remove: ['B2'], part: 'p1' })).isError, false);
+  assert.deepEqual(doc.instances![0].doc.machining?.stock ?? [], []);
+  assert.deepEqual(doc.machining?.stock?.map(r => r.id), ['B1']);
+});
