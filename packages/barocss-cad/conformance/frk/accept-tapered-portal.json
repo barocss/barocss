@@ -1,0 +1,139 @@
+{
+  "id": "frk-accept-tapered-portal",
+  "step": "FRk",
+  "decisions": [
+    "D183"
+  ],
+  "about": "FRk9 acceptance: the portal of tapered I beams the agent builds (test/fixtures/frk-tapered-portal.calls.json, cad-model): posts 2000 and a 3000 beam, butt corners; the section's dimensions are test values (D172's first case).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n0",
+          "kind": "frame",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              2000
+            ],
+            [
+              3000,
+              0,
+              2000
+            ],
+            [
+              3000,
+              0,
+              0
+            ]
+          ],
+          "segments": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "section": {
+            "kind": "i-beam",
+            "height": 200,
+            "width": 90,
+            "web": 7,
+            "flange": 11,
+            "rootRadius": 9,
+            "toeRadius": 4.5,
+            "flangeSlope": 0.14
+          },
+          "corners": {
+            "default": "butt"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 6853136.319324572,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            -8.423737522965348e-15,
+            1.5676626969170755e-16,
+            1050.0000000000002
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 9790194.741892245,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            1600.0000000000016,
+            1.4992893786989438e-14,
+            2000.000000000003
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      },
+      {
+        "volumeMM3": {
+          "value": 6200456.669865089,
+          "relTol": 1e-9
+        },
+        "centroidMM": {
+          "value": [
+            3000,
+            -9.71906867521657e-14,
+            950.0000000000006
+          ],
+          "absTol": 0.000001
+        },
+        "bodies": 1,
+        "topology": [
+          {
+            "shells": 1,
+            "genus": 0
+          }
+        ]
+      }
+    ]
+  },
+  "oracle": "Closed forms: A_I by signed triangles and circular sectors (test/frk3-oracle.mjs, no kernel code) × the butt rule's lengths 2100, 3000, 1900. Centroids and topology by this kernel."
+}

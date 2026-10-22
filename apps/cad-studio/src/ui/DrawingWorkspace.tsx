@@ -3,23 +3,22 @@
 // points, or one straight edge, then where the dimension line goes), Diameter and Radius (a circle
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
-import { changeDrawingScope, drawingDocument, drawingSource, drawingScopeOf, type DrawingScope } from '@barocss/cad-model/drawing/scope';
-import { canonicalOf } from '@barocss/cad-model/team/revision';
-import { followedStale, staleText } from '@barocss/cad-model/frames/skeleton';
-import { elementsOfBodies, withElements } from '@barocss/cad-model/drawing/elementCallouts';
-import { fitMiss, withFit } from '@barocss/cad-model/drawing/fits';
-import { weldList } from '@barocss/cad-model/frames/welds';
+import { changeDrawingScope } from '@barocss/cad-model/drawing/scope';
+
+
+
+
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { tableContent } from '@barocss/cad-model/drawing/tables';
 import { modelAnnotations } from '@barocss/cad-model/drawing/annotations3d';
-import { bomPanelData } from '@barocss/cad-model/team/bom';
-import type { Bom } from '@barocss/cad-model/team/bomCore';
+
+
 import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
-import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sectionExtents, sectionMiddle, sheetSections } from '@barocss/cad-model/drawing/sheet';
+import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sectionMiddle, sheetSections } from '@barocss/cad-model/drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '@barocss/cad-model/drawing/svg';
 import { toleranceText } from '@barocss/cad-model/drawing/sheet';
 import { pdfMissing, sheetPdf } from '@barocss/cad-model/drawing/pdf';
@@ -29,14 +28,14 @@ import { reorient, turnSections } from '@barocss/cad-model/drawing/reorient';
 import { applyFix, drawingIssues, fixAll, type DrawingIssue } from '@barocss/cad-model/drawing/issues';
 import { acceptAll, applySuggestion, toleranceSuggestions, type ToleranceSuggestion } from '@barocss/cad-model/drawing/tolerance';
 import { writeDxf, type DxfVersion } from '@barocss/cad';
-import { holeCallout } from '@barocss/cad-model/drawing/callout';
-import { threadsOf } from '@barocss/cad-model/app/threads';
-import { ORIENTATIONS, SCALES, VIEWS, fromSheet, layoutSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
+
+
+import { ORIENTATIONS, SCALES, VIEWS, fromSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '@barocss/cad-model/drawing/dimensions';
-import { SECTION_VIEWS, VIEW_IDS, isSectionRef, sectionLetter, type DimView, modelPrint, nextRevision, nextSectionId, sectionsOf, withSections, type SectionViewId, type DimPoint, type DrawingNote, type DrawingTable, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
+import { SECTION_VIEWS, VIEW_IDS, isSectionRef, sectionLetter, type DimView, modelPrint, nextRevision, nextSectionId, withSections, type SectionViewId, type DimPoint, type DrawingNote, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
+import { today, useDrawingSheet } from './useDrawingSheet';
 import { Icon, Kbd } from './atoms';
-import type { SectionCut } from '@barocss/cad-model/drawing/section';
 import '../drawing/drawing.css';
 
 /** The front view's sides, as the SHEET card names them (R14.3b). */
@@ -59,7 +58,6 @@ type Pending =
 /** `view` (O148 X2): a view, or a section the sheet placed (`section:B`). */
 interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
 
-const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
 /** The settings with a source's table on or off (its id the source's name); no tables left, none kept. */
 function withTable(settings: DrawingSettings, from: string, on: boolean): DrawingSettings {
@@ -72,46 +70,15 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string;
   onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
 }) {
-  const scopeRead = (() => {
-    try { return { scope: drawingScopeOf(settings), error: null }; }
-    catch (cause) { return { scope: null, error: cause instanceof Error ? cause.message : String(cause) }; }
-  })();
-  // This placeholder is only for disabled controls; an invalid persisted scope never reaches the engine.
-  const scope: DrawingScope = scopeRead.scope ?? { kind: 'part' };
-  const scopeKey = JSON.stringify([scopeRead.scope, scopeRead.error]), sourceKey = canonicalOf(sourceDoc);
+  // (The sheet's pipeline, shared with the viewport's 3D annotations, G24: views, layout, sheet and what they are built from.)
+  const { scopeRead, scope, scopeKey, doc, model, currentModel, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName });
   const onChange = (next: DrawingSettings) => {
     if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return; }
     sourceOnChange({ ...next, scope: next.scope ?? scopeRead.scope });
   };
-  const scoped = useMemo(() => {
-    try { return { doc: drawingDocument(sourceDoc, settings), authored: drawingSource(sourceDoc, settings), error: null }; }
-    catch (cause) { return { doc: { ...sourceDoc, nodes: [], instances: [] } as StudioDoc, authored: null, error: cause instanceof Error ? cause.message : String(cause) }; }
-  }, [sourceKey, scopeKey]);
-  const doc = scoped.doc, model = doc;
-  const currentModel = useRef(model); currentModel.current = model;
-  const [bodyRead, setBodyRead] = useState<{ doc: StudioDoc; bodies: readonly BodyResult[] } | null>(null);
-  const bodyRevision = useRef(1);
-  const bodies = scope.kind === 'assembly' ? sourceBodies : bodyRead && bodyRead.doc === doc ? bodyRead.bodies : undefined;
-  useEffect(() => {
-    if (scope.kind !== 'part' || scoped.error) return;
-    let live = true;
-    engine.part(doc, bodyRevision.current++, 'read').then(r => { if (live) setBodyRead(r.ok ? { doc, bodies: r.bodies } : null); }, () => { if (live) setBodyRead(null); });
-    return () => { live = false; };
-  }, [engine, doc, scoped.error, scope.kind]);
-  // The views as projected, with the front side they were projected for (R14.3b): only those of the drawing's side are used.
-  const [projected, setProjected] = useState<{ views: DrawingViews; side: string; model: StudioDoc } | null>(null);
-  const views = projected && projected.model === model && projected.side === (settings.orientation ?? 'y-') ? projected.views : null;
-  /** The sections as last cut (O148 X1; each with why it could not be cut). */
-  const [rawCutsMade, setCutsMade] = useState<SectionCut[] | null>(null);
-  const cutsMade = projected?.model === model ? rawCutsMade : null;
   const [sectionY, setSectionY] = useState<string | null>(null);
   const [sectionAt, setSectionAt] = useState<{ id: string; text: string } | null>(null);
   const [dxfSection, setDxfSection] = useState<string | null>(null);
-  const sectionList = sectionsOf(settings), sectionKey = JSON.stringify(sectionList);
-  const [error, setError] = useState<string | null>(null);
-  /** The part has no body yet: the panel says so, and nothing is raised as an error. */
-  const [empty, setEmpty] = useState(false);
-  const [busy, setBusy] = useState(true);
   const [tool, setTool] = useState<Tool>('select');
   const [pending, setPending] = useState<Pending | null>(null);
   const [hover, setHover] = useState<Hover | null>(null);
@@ -136,55 +103,6 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     setPending(null); setSelected(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
   }, [scopeKey]);
 
-  // Project the part (and its shown instances) whenever they change; of the drawing settings only tangent edges change the views.
-  useEffect(() => {
-    if (scoped.error) { setBusy(false); setEmpty(false); setError(scoped.error); setProjected(null); setCutsMade(null); return; }
-    let live = true; setBusy(true);
-    const side = settings.orientation ?? 'y-';
-    engine.drawing(model, { tangentEdges: !!settings.tangent, ...(sectionList.length ? { sections: sectionList } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}) }).then(r => {
-      if (!live) return;
-      setBusy(false);
-      setEmpty(!r.ok && !!r.empty);
-      if (r.ok) { setProjected({ views: r.views, side, model }); setCutsMade(r.sections ?? null); setError(null); } else { setProjected(null); setCutsMade(null); setError(r.error); }
-    });
-    return () => { live = false; };
-  }, [engine, model, scoped.error, settings.tangent, sectionKey, settings.orientation]);
-
-  const title = settings.title ?? fileName;
-  // (The sections the settings list, as cut for them: one whose letter, view or place changed is cut again first.)
-  const cuts = useMemo(() => sheetSections((projected?.model === model ? cutsMade ?? [] : []).filter(c => sectionList.some(x => x.id === c.id && x.view === c.view && x.at === c.at))), [cutsMade, sectionKey, projected, model]);
-  const sectionA = sectionList.find(x => x.id === 'A' && x.view === 'front'), cutA = cutsMade?.find(c => c.id === 'A' && c.view === 'front');
-  const layout = useMemo(() => views && layoutSheet(views, settings, sectionExtents(settings, cuts)), [views, settings, cuts]);
-  // Diameter dimensions on a hole read as its callout (count, size or thread, depth, counterbore or countersink).
-  // (D155: a diameter on a face with a fit class shows the class and its limits; a class with no row, an issue.)
-  // (O145: and the machine elements' callouts — a bearing's seat, a ring's groove.)
-  const elements = useMemo(() => elementsOfBodies(doc.nodes, bodies ?? []), [doc.nodes, bodies]);
-  const callout = useMemo(() => withElements(doc, withFit(doc, (edge: string) => holeCallout(doc.nodes, edge)), elements), [doc.nodes, doc.fits, elements]);
-  const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
-  // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
-  const followedChanged = useMemo(() => scoped.authored ? followedStale(scoped.authored).map(staleText) : [], [scoped.authored]);
-  const threads = useMemo(() => threadsOf(doc.nodes), [doc.nodes]);
-  // (O147 B2: the BOM, when the BOM table or the balloons read it — every document evaluated in the engine worker.)
-  const wantsBom = !!settings.balloons || !!settings.tables?.some(x => x.from === 'bom');
-  const [bomRead, setBomRead] = useState<{ doc: StudioDoc; bom: Bom } | null>(null);
-  const bom = bomRead && bomRead.doc === doc ? bomRead.bom : null;
-  const bomRevision = useRef(1);
-  useEffect(() => {
-    if (!wantsBom || scoped.error) { setBomRead(null); return; }
-    let live = true;
-    const t = setTimeout(() => { bomPanelData(doc, d => engine.part(d, bomRevision.current++, 'read'), title).then(d => { if (live) setBomRead({ doc, bom: d.bom }); }, () => { if (live) setBomRead(null); }); }, 200);
-    return () => { live = false; clearTimeout(t); };
-  }, [wantsBom, doc, title, scoped.error]);
-  // (Each sourced table's content once a document (O49): the bend table from the bodies' flat patterns.)
-  const sourced = useMemo(() => new Map((settings.tables ?? []).filter(x => x.from).map(x => [x.id, tableContent(x, { doc, ...(bodies ? { bodies } : {}), ...(bom ? { bom } : {}) })])), [settings.tables, doc, bodies, bom]);
-  const tableContentOf = useCallback((x: DrawingTable) => sourced.get(x.id) ?? { error: 'its source was not run for this sheet' }, [sourced]);
-  const hasSheet = (bodies ?? []).some(b => b.flat && b.flat.bends.length);
-  const hasFrame = (bodies ?? []).some(b => b.cutPiece);
-  // (O144: machine elements' tables, offered when the part has such an element.)
-  const kinds = new Set((bodies ?? []).flatMap(b => b.element ? [b.element.kind] : [])), hasBought = (bodies ?? []).some(b => b.ref && doc.nodes[b.ref.node]?.bought === true);
-  // (FRd2, O119: the frame's weld joints for the symbols, when they are shown.)
-  const weldJoints = useMemo(() => settings.weldSymbols && bodies ? weldList(doc, bodies).joints : undefined, [settings.weldSymbols, doc, bodies]);
-  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bom]);
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
   const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout, fitMiss: fitMissOf, followedChanged, elements, ...(cuts.length ? { sections: cuts } : {}) }) : [], [views, layout, settings, sheet, callout, fitMissOf, followedChanged, elements, cuts]);
   // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.

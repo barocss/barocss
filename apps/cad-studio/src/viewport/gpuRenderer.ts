@@ -117,6 +117,7 @@ export class GpuRenderer implements ViewRenderer {
   private clearance?: { display: ClearanceDisplay; meshes: Mesh[] };
   private print?: { geometry: PrintOverlayGeometry; meshes: Map<OverlayDrawing, Mesh> };
   private cam?: { geometry: CamOverlayGeometry; meshes: Map<OverlayDrawing, Mesh> };
+  private pmi?: Map<OverlayDrawing, Mesh>;
   /** A surface analysis look (zebra, curvature) for the modelling view, or none. */
   private analysis: ShaderMaterial | null = null;
   private analysisKey: string | null = null;
@@ -281,6 +282,13 @@ export class GpuRenderer implements ViewRenderer {
     try { this.syncOverlay(cam.meshes, cam.geometry.update(display), 'cnc:'); }
     catch (error) { cam.geometry.update(null); throw error; }
     if (!display) this.cam = undefined;
+  }
+  /** G24: the drawing's annotation lines and heads on the model, beside the native bodies. */
+  setAnnotationDrawings(drawings: readonly OverlayDrawing[] | null): void {
+    if (!this.pmi && !drawings?.length) return;
+    const pmi = this.pmi ??= new Map<OverlayDrawing, Mesh>();
+    this.syncOverlay(pmi, drawings ?? [], 'pmi:');
+    if (!drawings?.length) this.pmi = undefined;
   }
   /** Display-only overlay meshes: new drawings added, missing ones released; never pickable, bounded or shadowed. */
   private syncOverlay(meshes: Map<OverlayDrawing, Mesh>, drawings: readonly OverlayDrawing[], prefix: string): void {
@@ -680,29 +688,35 @@ export class GpuRenderer implements ViewRenderer {
   /** Curved-face screen silhouettes are display lines, with no native pick identity. */
   private updateSilhouettes(camera: OrbitCamera): void {
     const cache = this.silhouettes ??= new Map(), seen = new Set<Mesh>();
-    const mode = this.displayMode.effective;
-    const update = (surface: Mesh, source: DisplayMesh, opacity: number, shown = surface.visible) => {
-      if (!shown || this.settings || this.analysis || this.mould || !source.faces?.some(f => f.kind === 'curved' && !f.facet)) return;
-      seen.add(surface);
-      const key = JSON.stringify([camera.eye(), camera.target, camera.ortho, Array.from(surface.transform)]);
-      let entry = cache.get(surface);
-      if (!entry || entry.source !== source || entry.key !== key) {
-        if (entry?.line) { entry.line.remove(); entry.line.geometry.dispose(); }
-        const segments = silhouetteLines(source, surface.transform, camera.eye(), camera.target, camera.ortho);
-        const line = segments.length ? this.viewer.add({ positions: segments, topology: 'lines' }, { material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, pickable: false, castShadow: false }) : null;
-        if (line) line.transform = surface.transform;
-        entry = { source, key, style: '', line }; cache.set(surface, entry);
-      }
-      const style = JSON.stringify([mode, opacity, this.theme.edge, surface.clipped]);
-      if (entry.line && entry.style !== style) {
-        entry.line.material = { color: this.theme.edge, opacity, lineOver: mode === 'wireframe', lineHidden: mode === 'hidden-lines-dashed' ? 0.55 : 0, lineHiddenDash: mode === 'hidden-lines-dashed' ? [6, 4] : null };
-        entry.style = style;
-      }
-      if (entry.line && entry.line.clipped !== surface.clipped) entry.line.clipped = surface.clipped;
-    };
-    this.bodies.forEach((b, bi) => update(b.surface, b.result.mesh, b.edges?.material.opacity ?? (b.surface.pickable ? 0.9 : 0.15), !this.view?.hiddenBodies?.has(bi)));
-    for (const it of this.instances) it.surfaces.forEach((surface, bi) => update(surface, it.sharing[bi] ? it.shapes[bi]!.ref : it.bodies[bi].mesh, this.fadedInstance(it.id) ? 0.15 : 1, true));
+    for (let bi = 0; bi < this.bodies.length; bi++) {
+      const b = this.bodies[bi];
+      this.updateSilhouette(cache, seen, camera, b.surface, b.result.mesh, b.edges?.material.opacity ?? (b.surface.pickable ? 0.9 : 0.15), !this.view?.hiddenBodies?.has(bi));
+    }
+    for (const it of this.instances) {
+      const opacity = this.fadedInstance(it.id) ? 0.15 : 1;
+      for (let bi = 0; bi < it.surfaces.length; bi++) this.updateSilhouette(cache, seen, camera, it.surfaces[bi], it.sharing[bi] ? it.shapes[bi]!.ref : it.bodies[bi].mesh, opacity, true);
+    }
     for (const [surface, entry] of cache) if (!seen.has(surface)) { if (entry.line) { entry.line.remove(); entry.line.geometry.dispose(); } cache.delete(surface); }
+  }
+  /** One surface's silhouette: recomputed when its mesh, the eye or its placement moved; restyled when the mode or look did. */
+  private updateSilhouette(cache: NonNullable<GpuRenderer['silhouettes']>, seen: Set<Mesh>, camera: OrbitCamera, surface: Mesh, source: DisplayMesh, opacity: number, shown: boolean): void {
+    if (!shown || this.settings || this.analysis || this.mould || !source.faces?.some(f => f.kind === 'curved' && !f.facet)) return;
+    seen.add(surface);
+    const mode = this.displayMode.effective, key = JSON.stringify([camera.eye(), camera.target, camera.ortho, Array.from(surface.transform)]);
+    let entry = cache.get(surface);
+    if (!entry || entry.source !== source || entry.key !== key) {
+      if (entry?.line) { entry.line.remove(); entry.line.geometry.dispose(); }
+      const segments = silhouetteLines(source, surface.transform, camera.eye(), camera.target, camera.ortho);
+      const line = segments.length ? this.viewer.add({ positions: segments, topology: 'lines' }, { material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, pickable: false, castShadow: false }) : null;
+      if (line) line.transform = surface.transform;
+      entry = { source, key, style: '', line }; cache.set(surface, entry);
+    }
+    const style = JSON.stringify([mode, opacity, this.theme.edge, surface.clipped]);
+    if (entry.line && entry.style !== style) {
+      entry.line.material = { color: this.theme.edge, opacity, lineOver: mode === 'wireframe', lineHidden: mode === 'hidden-lines-dashed' ? 0.55 : 0, lineHiddenDash: mode === 'hidden-lines-dashed' ? [6, 4] : null };
+      entry.style = style;
+    }
+    if (entry.line && entry.line.clipped !== surface.clipped) entry.line.clipped = surface.clipped;
   }
 
   pickFace(x: number, y: number, camera: OrbitCamera, _view: ViewState): FaceRef | null {
@@ -1050,7 +1064,7 @@ export class GpuRenderer implements ViewRenderer {
     return c.convertToBlob({ type: 'image/png' });
   }
 
-  dispose(): void { this.setPrintDisplay(null); this.setCamDisplay(null); this.viewer.dispose(); }
+  dispose(): void { this.setPrintDisplay(null); this.setCamDisplay(null); this.setAnnotationDrawings(null); this.viewer.dispose(); }
 }
 
 /** Texture coordinates by box projection: each vertex across the body's box on its face's two other axes. */

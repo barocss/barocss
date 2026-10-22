@@ -10964,3 +10964,187 @@ stencils) are now plain loops. The stencils are module constants (`FIVE_POINT_*`
 order are the same: notch tests 12/12, notch and saddle cases 9/9.
 
 **Checks (T1):** lint 0 errors, type-check clean, build.
+
+## D183 — K6 (FRk9): the FRk track's acceptance by the agent (2026-10-23)
+
+As D164 froze it: in one turn each, a welded table frame with gussets at its corners, caps on its legs and beads on
+every butt; a portal of tapered I beams; a bent-tube handrail. FR4b's pattern (D128):
+- the scripted agent's v2 calls are in `packages/barocss-cad-model/test/fixtures/frk-*.calls.json`, sent through
+  `dispatchTool` as the chat sends them;
+- the test is `packages/barocss-cad-model/test/frk-acceptance.test.ts`, 3 tests. These are new files, the coordinator
+  agreed; no outer-lane file was changed;
+- the kernel cases `conformance/frk/accept-*.json` are written by the test (`WRITE_ACCEPTANCE=1`) and checked to hold
+  the part the agent built.
+
+Every volume is a closed form of the dimensions, none read from the build. Centroids and topology in the kernel cases
+are this kernel's (regression values, as in D128).
+
+**1. The weldment table (`frk-weldment-table`).** FR4b's welded table: a mitred 1000 × 600 top of sharp 40 × 40 × 3
+tubes, legs 730, lower rails 150 up butted on the legs. Then, with test sizes:
+- `features.command gusset`: a clipped gusset at each top corner (120 × 100, clip 15, 5 thick), 4 in all.
+- `features.command end-cap`: a 4 mm cap over each leg's foot, 4 in all.
+- `query.welds`, then `features.welds`: a 3 mm fillet on each of the 8 butt joints, with
+  `beadOwnership {version 1, equal-length}`.
+  - The first try without the ownership was refused, every bead with `[BEAD_SHARED_CONTEXT]`: two rails butt one leg
+    at one height. The ownership is the documented v2 path (D170/D171), so the agent gives it. No workaround.
+
+Oracles (A = 40² − 34²):
+
+| Item | Closed form | Value |
+|---|---|---|
+| Members | A·L, FR4b's lengths | |
+| A gusset | (120·100 − 15²)/2·5 | 29 437.5 |
+| A cap | 40²·4 | 6400 |
+| A bead, nominal | 3·40·z²/2, z = 3 | 540 |
+| A bead, owned | 2·40·z²/2 + ½·40·z²/2 | 450 |
+| All beads, owned | 4 legs × 5 fillets × 40·z²/2 | 3600 |
+
+- Why a bead is so: the rail's outer side is flush with the leg's (no fillet, flushMM 40). Its top and bottom runs
+  lie on the leg. Its inner side lies on the other rail's side face, coplanar with the leg's. That corner fillet is
+  the one the two beads share, owned by halves. Its outline's corners land on nothing.
+- The weld list's totals: complete, 8 bodies, 4 shared seams.
+- The cut list: FR4b's 5 rows, 12 pieces, 9160 mm.
+
+**2. The tapered-I portal (`frk-tapered-portal`).** Posts 2000 and a 3000 beam, butt corners.
+- The section is a TEST VALUE given in the call, not rows or a catalogue: D172's first case (I 200 × 90, web 7, flange
+  11 at the overhang's middle, root 9, toe 4.5, slope 0.14).
+- A_I = 3263.398247 by FRk3's kernel-independent triangle/sector oracle (`test/frk3-oracle.mjs`, now typed by
+  `frk3-oracle.d.mts`).
+- The butt rule's lengths:
+  - the first post runs through by half the beam's depth: 2100;
+  - the beam stands on its flange face and runs through the second post: 3000;
+  - the second post sits under it: 1900.
+- The cut list's rows give the same lengths and ends.
+
+**3. The bent-tube handrail (`frk-bent-rail`).** `features.command frame-member`, path tangentbend: Ø42.4 × 2.6 (test
+values), 1200 along X, 90° on R 150, 800 along Y.
+- V = A(L₁ + L₂ − 2R) + A·πR/2 (Pappus: the annulus's centroid on the centreline), with A = π(21.2² − 18.6²).
+- The cut list: one piece of 1935.619449 mm.
+
+**Checks (T1):**
+- `frk-acceptance` 3/3, in check mode and writing.
+- The three kernel cases through `conformance.test.mjs`: 3/3.
+- cad-model type-check (covers test/) and eslint on the new test file clean; barocss-cad lint 0 errors.
+- No product code changed; the v2 tool surface is unchanged.
+
+**The FRk track is done** with this stage, except K5 (FRk8b's second half, which D178 made unnecessary for speed)
+and the open items:
+- K2's flow and WebGPU, the GPU lane's;
+- the `r6/facet-cube-sphere-intersect` ȳ pin (D179).
+
+## D184 — K7: the facet rims about an exact ball; the ribbon beside a pole; r6 sphere-intersect's ȳ to its closed form (2026-10-23)
+
+**D179's open item.** `r6/facet-cube-sphere-intersect` (the facet cube ∩ a ball R 6 about its corner (20, 20, 20), an
+eighth of the ball) pinned ȳ 17.74954826.
+- By symmetry, and the eighth ball's 3R/8, each coordinate is 20 − 3·6/8 = 17.75. x̄ and z̄ were 17.75; ȳ was off by
+  4.5e-4.
+- **Cause, the same gap as D177/D179:**
+  - The three facet faces meet the exact sphere face along 33-point polylines, sag 1.8e-3 mm.
+  - The sphere is revolved about z, its pole at (20, 20, 14) on its face, so the face is integrated on the pole route:
+    no strips, so no ribbons.
+  - The rims' gaps stay unclosed. Each gap lies in a coordinate plane and moves only that coordinate's moment, weighted
+    by (plane − centre)². The integrals' centre is (20, 17, 20), so only the y = 20 rim shows:
+    4.5 · 0.01135 mm² / 113.1 = 4.5e-4, as observed.
+  - The pin was the kernel's own output.
+- **Fix, `src/brep-mass-quadrature.ts`:**
+  - Beside a pole, the boundary chords now take their ribbon alone (`ribbonOnly`): P = S(C) to the edge's E at the
+    strip's 8 nodes, F(P + g/2)·(P′ × g).
+  - P′ comes from central differences of P itself, because the surface's tangents degenerate at the pole.
+  - The strips stay out, their chord error extrapolated as before. The ribbon is no step's error, so it goes into the
+    squared part unchanged by the extrapolation.
+  - A node that cannot be inverted leaves its chord without a ribbon (the gap as before).
+  - The chord map is built on pole faces too.
+- **Results:**
+
+  | Value | Before | After |
+  |---|---|---|
+  | Sphere-intersect ȳ | 17.749548 | 17.75000005 |
+  | Sphere-intersect volume, rel. to 36π | 5e-11 | 4e-11 |
+  | The other r6 cases, V notch, D126 table | — | unchanged |
+
+  The expectation 17.74954826 is corrected to 17.75 (the closed form); absTol 1e-6 is unchanged.
+
+**Checks (T1+):**
+- lint 0 errors, type-check clean, build.
+- Every test file that tessellates, builds SubD or takes mass (87 files), in a detached scratch worktree: 878/879,
+  1 skipped, 0 failing.
+- T2 (full suite, RB, properties) rides the coordinator's window.
+
+## D185 — K8 (the outer lane's F5): the cnc-turning report's time was the kernel's per-call surface admission (2026-10-23)
+
+**The finding.** The A9 shaft's cnc-turning manufacturability report took about 50 s, so `a9-acceptance` took about a
+minute.
+
+**The profile** (`node --cpu-prof` on the bundled `a9-acceptance` in a detached scratch worktree, load 22): 55.0 s in
+all, 46.2 s of it under `turningOf`.
+- The path: cad-model's `turningOf` → `mould/draft.ts`'s `foot` → the kernel's `closestPointOnSurface`.
+- The kernel part:
+  - 40.6 s in `evaluateSurfaceD2`;
+  - 31.5 s of that in `admittedSurface`'s snapshot copy (`second-derivatives.ts` copies and validates the surface on
+    every call, a public entry's defence);
+  - plus `validateSurface` on every `evaluateSurfaceD1`.
+- Counts: 72 914 foot queries, 887 602 second-derivative calls (about 12 a query, the slow, linearly converging case)
+  and 4 220 974 first-derivative calls.
+- So the time is the kernel's. No cad-model file changed.
+
+**The fix: the same arithmetic, with the admission done once per surface.**
+- `derivatives.ts`: `surfaceD1Evaluator(surface)` validates once, as `curveD1Evaluator` does for curves.
+  `evaluateSurfaceD1` calls the same internal `surfaceD1`.
+- `second-derivatives.ts`: `surfaceD2Evaluator(surface)` admits once (snapshot and validation) and keeps its
+  coefficient cache. Each call admits only its parameters. `evaluateSurfaceD2` is that evaluator, used once.
+- `surface-closest.ts`:
+  - a `SurfaceSeedGrid` now carries the surface it was built for and its evaluators (additive fields), so a query
+    passing that grid for that surface uses them; the second derivatives are admitted on first use;
+  - without a grid, a query builds its own once;
+  - `surfaceD1Near` keeps its signature.
+- Every result is bit for bit as before, because the admitted copy holds the same numbers and the arithmetic is unchanged.
+
+**Results:**
+
+| Measure | Before | After |
+|---|---|---|
+| `a9-acceptance` | 55 s | 15 s |
+| `turningOf` | 46.2 s | 7.5 s |
+| The rest of the report | — | its 4.2 M first derivatives, the queries' own iterations (left as they are) |
+
+**Checks:**
+- Kernel: lint 0 errors, type-check clean, build. In a scratch worktree, 121 files that tessellate, take mass, project
+  or differentiate: 970/971, 1 skipped, 0 failing.
+- cad-model's mould, draft, cnc and A9 files: 69/69.
+
+## D186 — K9 (RB TODOs), the 1 nm graze: a wrong body becomes a typed refusal (2026-10-23)
+
+**RB's first TODO item.** `corpus/oracle/cylinder-box-graze-x45-in0_000001-difference`: a box turned 45° about X, its
+outermost edge 1 nm (the tolerance) into an upright cylinder's wall. The analytic Boolean returned a wrong body:
+- it measured 534.22 mm³ against the oracle's 253.12070406;
+- its side face's loops crossed (strict L0);
+- RB marked it validate INVALID, tessellate INVALID and expect WRONG.
+
+**Cause.** The lens the graze cuts in the wall is two traced curves, 5.7e-3 mm long, within 1 nm of each other.
+- `stitch`'s edge matching (midpoints within 10 to 100 tolerances) took the second curve for the first, so the wall's
+  face used one edge both ways where its lens hole was.
+- The non-strict check passes such a face: each edge has two uses, in opposite senses.
+
+**Fix, `src/analytic-boolean.ts`, `stitch`.** A traced curve met again by the piece that registered it is counted (a
+seam met twice is counted too, and costs only the check below).
+- When any are counted, the result is checked strictly before it is returned.
+- If it fails, the Boolean refuses: GEOMETRY "the inputs graze within <20·tol> mm (the merge radius) and the sliver
+  between them cannot be built: <the first issue>".
+- Other Booleans are not checked strictly, and their time is unchanged: the 121-file batch took 319 s against 310 s,
+  at a load 5 higher.
+- **Not done:** building the touching result (the lens dropped), the oracle's 253.12. The item stays in `todo.json` as
+  evaluate WRONG (a refusal where an output is expected), its three INVALID/WRONG rows replaced by that one.
+
+**Also caught: an existing test pinned a wrong body.** `gear-internal.test.mjs` ("placed …"): the pinion turned to
+where the sweep crosses by 0.0118 mm, intersected with the ring.
+- The old result was strict-invalid: a face 2e-19 mm wide with crossing loops, and a volume (0.00168) 5 % off its mesh's
+  at 32 segments (0.00177).
+- The test asserted only volume > 1e-4. It now accepts either a body valid under the strict check with that volume, or
+  the typed graze refusal. The overlap itself is asserted by the sweep (minimum clearance < −0.01 mm), unchanged.
+
+**Checks (T1+):**
+- Kernel lint 0 errors, type-check clean.
+- 121 kernel files (tessellation, mass, Booleans, gears, properties) in a scratch worktree: 970/971, 1 skipped,
+  0 failing.
+- RB on `robustness/corpus/oracle` alone: the known graze and helical items only. That run names them as NEW, because
+  a single folder's case ids lack the `corpus/` prefix `todo.json` keys on; the full RB rides the coordinator's window.

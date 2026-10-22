@@ -119,6 +119,19 @@ function curveD1(curve: Curve, parameter: number, constant: readonly boolean[]):
 /** Original U/V partials, without normalization or a surface regularity claim. */
 export function evaluateSurfaceD1(surface: Surface, u: number, v: number): SurfaceD1Result {
   validateSurface(surface);
+  return surfaceD1(surface, u, v, surfaceConstantAxes(surface));
+}
+/** `evaluateSurfaceD1` for one surface, validated once: the same arithmetic, bit for bit (K8, D185). */
+export function surfaceD1Evaluator(surface: Surface): (u: number, v: number) => SurfaceD1Result {
+  validateSurface(surface);
+  const constant = surfaceConstantAxes(surface);
+  return (u, v) => surfaceD1(surface, u, v, constant);
+}
+/** Which coordinates every pole shares (restored exactly, with no derivative). */
+function surfaceConstantAxes(surface: Surface): boolean[] {
+  return [0, 1, 2].map(axis => { const coordinate = surface.controlPoints[0][0][axis]; return surface.controlPoints.every(row => row.every(pole => Object.is(pole[axis], coordinate))); });
+}
+function surfaceD1(surface: Surface, u: number, v: number, constant: readonly boolean[]): SurfaceD1Result {
   const bu = basisD1(surface.knotsU, surface.degreeU, surface.controlPoints.length, u);
   const bv = basisD1(surface.knotsV, surface.degreeV, surface.controlPoints[0].length, v);
   const sum: Point = [0, 0, 0], su: Point = [0, 0, 0], sv: Point = [0, 0, 0];
@@ -133,9 +146,6 @@ export function evaluateSurfaceD1(surface: Surface, u: number, v: number): Surfa
     add(sum, pole, f); add(su, pole, fu); add(sv, pole, fv);
   }
   const point = project(sum, weight), du = quotient(su, wu, point, weight), dv = quotient(sv, wv, point, weight);
-  for (let axis = 0; axis < 3; axis++) {
-    const coordinate = surface.controlPoints[0][0][axis];
-    if (surface.controlPoints.every(row => row.every(pole => Object.is(pole[axis], coordinate)))) { point[axis] = coordinate; du[axis] = 0; dv[axis] = 0; }
-  }
+  for (let axis = 0; axis < 3; axis++) if (constant[axis]) { const coordinate = surface.controlPoints[0][0][axis]; point[axis] = coordinate; du[axis] = 0; dv[axis] = 0; }
   return { point, du, dv };
 }

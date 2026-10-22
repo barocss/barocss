@@ -44,7 +44,13 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Open: `r6/facet-cube-sphere-intersect` pins ȳ 17.74954826 against the symmetric 17.75 (4.5e-4) | — | found (D179) |
 | FRk8a: the housing's shoulder from its faces against Da max (SEAT_ABUTMENT above it; a warning when none at the located side) | D181 | done (T1) |
 | K2 (FRk5 leftovers), kernel half: the notch cases for the flow (V and hole saw on a tee, closed form / Gauss oracles; a NOTCH_CUTTER refusal). The flow step and the WebGPU failure are the GPU lane's | D182 | done (T1) |
-| K5 FRk8b second half (only if needed), K6 FRk9 | — | next: K6 |
+| K6 FRk9: acceptance by the agent — the weldment table (gussets, caps, beads with shared-seam ownership), the tapered-I portal, the bent-tube rail; `conformance/frk/accept-*` | D183 | done (T1) |
+| K5 FRk8b second half | — | not needed (D178 met the speed) |
+| K7: r6 sphere-intersect ȳ — the facet rims' gap beside a pole closed by the ribbon alone; the pin (the kernel's output) to 17.75 | D184 | done (T1+) |
+| K8: F5, the cnc-turning report — the kernel admitted the surface per derivative call; once per surface now (a9-acceptance 55 → 15 s) | D185 | done (T1+) |
+| K9a: the 1 nm graze returned a wrong body (534 against 253 mm³, loops crossing) — now checked strictly and refused, typed; gear-internal's test pinned a strict-invalid body, relaxed to valid-or-refused | D186 | done (T1+) |
+| K9b: the other graze items (non-manifold refusals at 10 nm–10 µm), the 10 µm lens tessellation, helical × helical | — | next |
+| Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

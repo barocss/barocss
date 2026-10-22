@@ -27,6 +27,8 @@ import { ClearancePanel } from './viewport/ClearancePanel';
 import { useClearanceAnalysis } from './viewport/useClearanceAnalysis';
 import { PrintPanel } from './viewport/PrintPanel';
 import { CamPanel } from './viewport/CamPanel';
+import { useDrawingSheet } from './ui/useDrawingSheet';
+import { pmiSelection } from './viewport/pmiGeometry';
 import { useCamPreview } from './viewport/camPreview';
 import type { CamOptions } from './viewport/camDisplay';
 import { usePrintLayers, type PrintOptions } from './viewport/usePrintLayers';
@@ -346,6 +348,9 @@ export function App() {
   // (G23 CNC: the material-removal preview, session only.)
   const [camEnabled, setCamEnabled] = useState(false);
   const [camOptions, setCamOptions] = useState<CamOptions>({ setup: 0, progress: 0, cellMM: 0.5 });
+  // (G24: the drawing's annotations on the model, session only, and the one picked.)
+  const [pmiEnabled, setPmiEnabled] = useState(false);
+  const [pmiSelected, setPmiSelected] = useState<string | null>(null);
   const [isolatedInstances, setIsolatedInstances] = useState<readonly string[] | undefined>();
   const displayModeContext = useRef('');
   const [displayModeFailure, setDisplayModeFailure] = useState<{ requested: DisplayMode; reason: string; context: string } | null>(null);
@@ -2123,6 +2128,20 @@ export function App() {
   const camState = useCamPreview(camEnabled && !camReason, doc, bodies, camOptions);
   const camDisplay = camEnabled && !camReason ? camState.display : null;
   const patchCam = useCallback((patch: Partial<CamOptions>) => setCamOptions(o => ({ ...o, ...patch })), []);
+  // (G24: the drawing's own sheet, built as the Drawing workspace builds it, its annotations lifted onto the model.)
+  const pmiReason = rendering || drawing ? '3D annotations are shown in Model view (the Drawing workspace shows the sheet).'
+    : sketch || active || cageEd.overlay || skel.tool ? 'Finish the current edit to show the 3D annotations.'
+    : printEnabled || camEnabled ? 'Close the print or CNC preview to show the 3D annotations.' : undefined;
+  const pmiDoc = useMemo(() => ({ ...evaluated, instances: doc.instances }), [evaluated, doc.instances]);
+  const pmiSheet = useDrawingSheet(pmiEnabled && !pmiReason, { engine, doc: pmiDoc, bodies, settings: doc.drawing ?? defaultDrawing(), fileName, annotations: true });
+  const pmiItems = pmiEnabled && !pmiReason ? pmiSheet.annotations?.items ?? null : null;
+  const pickAnnotation = useCallback((id: string) => {
+    const a = pmiItems?.find(x => x.id === id); if (!a) return;
+    setPmiSelected(id); const sel = pmiSelection(a, bodies);
+    setInstanceSel([]); setDirectSel([]); setSelection({ faces: sel.faces, edges: sel.edges, bodies: [] });
+  }, [pmiItems, bodies]);
+  useEffect(() => { if (!pmiEnabled) setPmiSelected(null); }, [pmiEnabled]);
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioPmi: () => unknown }).__studioPmi = () => ({ reason: pmiReason, busy: pmiSheet.busy, error: pmiSheet.error, items: pmiItems?.map(a => ({ id: a.id, kind: a.kind, text: a.text, anchor: a.anchor, targets: a.targets })) ?? null, left: pmiSheet.annotations?.left ?? null, selected: pmiSelected }); }, [pmiReason, pmiSheet.busy, pmiSheet.error, pmiItems, pmiSheet.annotations, pmiSelected]);
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioCam: () => unknown }).__studioCam = () => ({ reason: camReason, stage: camState.stage, error: camState.error, display: camDisplay }); }, [camReason, camState.stage, camState.error, camDisplay]);
 
   const displayScopeReason = instancePreview ? 'CAD display modes are not available while an instance is dragged.'
@@ -2144,7 +2163,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason}
+      <Viewport ref={viewport} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} instanceTransforms={instanceTransforms} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
@@ -2647,6 +2666,12 @@ export function App() {
   {(mapKind === 'parting' || mapKind === 'halves') && <MouldLegend kind={mapKind} result={mouldResult} pull={!!doc.mould?.pull} spread={mouldSpread} onSpread={setMouldSpread} />}
   {section && <SectionBar section={section} setSection={setSection} hatch={sectionHatchOn} setHatch={setSectionHatchOn} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} eye={cameraEye} />}
         <PrintPanel enabled={printEnabled} onEnabled={setPrintEnabled} options={printOptions} onOptions={commitPrintPreview} onDirection={commitPrintDirection} state={printState} reason={printReason} />
+        <div className="card" aria-label="3D annotations" style={{ padding: '6px 10px', maxWidth: 420 }}>
+          <label><input type="checkbox" checked={pmiEnabled} aria-label="3D annotations" onChange={e => setPmiEnabled(e.target.checked)} /> 3D annotations</label>
+          {pmiEnabled && <div role="status">{pmiReason ?? pmiSheet.error ?? (pmiSheet.busy || !pmiSheet.annotations ? 'Pending · building the drawing\'s sheet'
+            : !pmiItems?.length ? 'No annotations on the model yet: dimension the part in the Drawing workspace.'
+            : `${pmiItems.length} annotation${pmiItems.length === 1 ? '' : 's'} from the drawing${pmiSheet.annotations.left.length ? ` · ${pmiSheet.annotations.left.length} only on the sheet` : ''}${pmiSelected ? ` · ${pmiItems.find(a => a.id === pmiSelected)?.text.join(' ') ?? ''}` : ''}`)}</div>}
+        </div>
         <CamPanel enabled={camEnabled} onEnabled={setCamEnabled} options={camOptions} onOptions={patchCam} state={camState} reason={camReason} />
         <ClearancePanel enabled={clearanceEnabled} onEnabled={setClearanceEnabled} nearMM={clearanceNearMM} onNear={setClearanceNearMM} display={clearanceDisplay} reason={clearanceReason} labels={clearanceLabels} />
         <div className="card views" role="group" aria-label="Views">

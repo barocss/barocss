@@ -1576,3 +1576,186 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - Codex's print settings 4, hook 5 and worker 3 (packages/barocss-gpu/tests);
   - studio type-check 0; eslint on the changed files 0.
 - **Not run**: the print flow step on both renderers (slot).
+
+## G-R7 — G21 rest, a static pass: WebGPU silhouettes without a per-frame closure (roadmap G3, 2026-10-23)
+
+- **What**: a read of both renderers' display-mode, silhouette and isolate/hide paths for what G21 still lacks without a
+  browser. Most of it is in place:
+  - both renderers draw every mode;
+  - curved-face silhouettes for bodies and instances, hidden bodies skipped, isolated instances faded to 0.15;
+  - instance surfaces keep their depth in line-only modes.
+- **The one defect**: WebGPU's `updateSilhouettes` defined an `update` closure on every frame, the owner's no-nested-
+  functions rule for per-frame paths. It is now a method, `updateSilhouette`, with the same arguments and behaviour:
+  - bodies are shown unless hidden; instances always;
+  - a recompute when the mesh, the eye or the placement moved;
+  - a restyle when the mode, opacity, theme or clip did.
+- **Looked at and left**: WebGL2's silhouette cache is per GpuBody. Each placed instance uploads its own GpuBody (only
+  the geometry is shared), so instances sharing a tessellation do not thrash it. No change.
+- **Checks** (T1): Codex's studio-code checks, one file each:
+  - silhouette 5 and display contracts 9 + 13;
+  - instance bridge 7, print overlay 6, clearance gpu 4;
+  - studio type-check 0; eslint 0.
+- **Left for the browser slot**: G3's acceptance. Each mode, isolate and hide on both renderers, with picks unchanged.
+
+## G-R8 — the drawing's sheet pipeline as a hook, no behaviour change (G24 step 1; roadmap G5, 2026-10-23)
+
+- **What**: the coordinator's decision. The GPU lane extracts the pipeline, since the outer lane is on A9's acceptance
+  path. DrawingWorkspace.tsx is the outer lane's file, borrowed for this commit; the coordinator asked them to leave it
+  until this lands.
+  - **What moved.** DrawingWorkspace's sheet pipeline went to `src/ui/useDrawingSheet.ts`, next to it:
+    - the scope and its document, and the bodies read;
+    - the views projected with their sections, and the layout;
+    - elements, callouts, fits, the followed-stale notes and threads;
+    - the BOM read, the sourced tables, the weld joints, and the sheet.
+  - **Its signature.** `useDrawingSheet(active, { engine, doc, bodies, settings, fileName, annotations? })` returns
+    those values, plus `annotations` (model-annotations-v1) when asked.
+    - With `active` false, no engine call is made and nothing is built.
+    - DrawingWorkspace calls it with `active` true. `today()` moved with it.
+  - **Proof of no change.** The moved code was diffed against HEAD's DrawingWorkspace. The only differences are the
+    three `active` guards (bodies read, projection, BOM read) and `active` in their dependencies, and DrawingWorkspace
+    passes true. React's hook order is the same on every render. Unused imports were removed.
+- **Checks** (T1):
+  - studio type-check 0; eslint on both files 0;
+  - chat.test (the studio test that reads drawing outputs) 18/18;
+  - studio build ok.
+- **Not run**: the drawing flow steps. Their exports' bytes on the existing fixtures are the check the coordinator
+  asked for, and need the browser slot. The code that builds the sheet and the exports is the same code, moved.
+
+## G-R9 — G24: the drawing's annotations on the model, picked to their targets (roadmap G5, 2026-10-23)
+
+- **What**: G24 on `useDrawingSheet` (G-R8) and the outer lane's model-annotations-v1, as the coordinator approved:
+  planar text, the edge-on fallback, and picking by persistent names.
+  - **The toggle.** "3D annotations" in the right corner, session only. Nothing new is stored: the annotations come from
+    the document's own drawing settings, so Save/Open gives them back.
+    - App builds the drawing's sheet only while it is on, with the Drawing workspace's own inputs (`useDrawingSheet` with
+      `active`).
+    - It is refused with a reason in Render/Drawing, during an edit, and with the print or CNC preview.
+    - When the hook is inactive, it no longer canonicalises the document each render. The Drawing workspace always
+      passes `active`, so it is unchanged.
+  - **The drawings.** `viewport/pmiGeometry.ts` holds `pmiDrawings`.
+    - The data's lines and arcs (chords of π/24) become one line drawing. Its heads become triangles (filled, a 12-sided
+      dot) or strokes (open, tick). The selected annotation is apart, in the accent colour.
+    - Both renderers draw them through the shared overlay path: `setAnnotationDrawings`, over OverlayGL and syncOverlay.
+  - **The texts.** `pmiLabels`, on WebGPU's labels: in each text's plane, at its height in mm, along its direction and
+    up.
+    - Seen within 10° of edge-on, a text faces the eye at 12 px. It is rebuilt only when that set changes
+      (`pmiFacingKey`).
+    - WebGL2 (no engine labels) draws the texts facing the eye in the SVG overlay.
+  - **The pick.** `pmiPick` finds the annotation nearest the pointer, within 8 px of its texts' spans or its lines on
+    screen. It takes the click before the model under it.
+    - App's `pickAnnotation` selects its targets' edges and faces by their persistent names on the evaluated bodies
+      (`pmiSelection`).
+    - The panel shows the count, how many are only on the sheet, and the picked one's text.
+    - Dev hook `__studioPmi`.
+- **Tests**: `test/pmi.test.ts` (3), on the outer lane's fixture (r14 tol-plate-geometric, auto-dimensioned, tolerances
+  accepted, a fit on the hole):
+  - every segment and head of the data is drawn once, the first line exactly; the selected one apart in the accent
+    colour;
+  - labels are planar at their height and direction, face the eye edge-on, and the facing key changes only then;
+  - a click on a text picks its annotation and a miss none; the targets are selected by their names on the evaluated
+    bodies.
+- **Checks** (T1):
+  - pmi 3/3; cnc-preview, made-bodies-previews and chat 28/28;
+  - Codex's print/display/silhouette/clearance/instance checks 44/44;
+  - studio type-check 0; eslint 0; build ok.
+- **Not run**: the flow on both renderers (shown, picked, the same after Save/New/Open), and instance-prefixed targets'
+  selection on placed parts. Both wait for the browser slot.
+
+## G-R10 — G25 step 1: the triangle hierarchy packed for WGSL, with a CPU mirror (roadmap G6, 2026-10-23)
+
+- **Approved S0** (coordinator):
+  - (a) `compute/` in @barocss/gpu, exported as **experimental**: `computeExperimental` from the package. It may change
+    without a version bump, and has no docs page yet.
+  - (b) **G25c, the scan-to-CAD deviation, is deferred** until a scan input is decided. The robot workspace cloud is not
+    a scan.
+  - (c) G25a thickness, then G25b access, each its own checkpoint. The CPU values stay authoritative in the panels; the
+    GPU map is labelled "GPU estimate".
+- **What** (`packages/barocss-gpu/src/compute/bvhPack.ts`): `packBvh` packs the kernel's `triangleBvh` (K2) into two
+  storage buffers.
+  - **Nodes**, 8 words each:
+    - the box low and high as f32, rounded outward from f64 (`f32Down`, `f32Up`);
+    - a link: an inner node's first child, or −1 − start for a leaf;
+    - a leaf's count.
+  - **Triangles**, 12 words each: in leaf order, f32 vertices, and the source triangle's index for `skip`.
+  - **Depth refusal**: a hierarchy deeper than the WGSL traversal's fixed 64-entry stack is refused (`[GPU_BVH_DEPTH]`).
+    A DFS that pushes both children holds at most depth + 1 entries; the median split keeps the depth near
+    log2(triangles / 4).
+  - **The CPU mirror**: `packedRayHit` and `packedNearestDistance2` run the kernel's algorithms (slab test, Möller–Trumbore,
+    Ericson's regions, nearer child first) on the packed words, as the shaders will. No allocation per query, and no
+    per-element closure.
+- **Tests** (`tests/compute-bvh-pack.test.mjs`, 5, in gpu `test`). Meshes: a box off the origin, a sphere of 2400
+  triangles, and a sphere of 10 000 triangles at r 0.9.
+  - The outward rounding is exact.
+  - Every triangle appears once in leaf order with its source index, each f32 vertex inside its leaf's f32 box.
+  - The mirror's ray hit equals the kernel's within 1e-5 of the mesh's size: 400 rays a mesh, hits and misses, plus an
+    inward ray skipping its own triangle.
+  - The nearest distance does too, bounded queries included.
+  - A 69-deep chain is refused.
+- **Checks** (T1): gpu `test` 184/184; gpu type-check 0; eslint (compute, index) 0; `build:library` ok.
+- **Next**: G25a, the WGSL kernels (thickness) and their browser spec against the CPU map. The spec waits for the slot.
+
+## G-R11 — G25a: wall thickness as a WGSL compute pass, with its CPU mirror (roadmap G6, 2026-10-23)
+
+- **What** (`packages/barocss-gpu/src/compute/thickness.ts`, experimental): the studio's IM4 rule, one to one.
+  - `wallRays` gives each display triangle's centre and its normal reversed. A degenerate triangle gets a zero direction,
+    meaning no ray: WGSL may optimise a NaN test away, so none is used.
+  - `WALL_THICKNESS_WGSL` runs one invocation per triangle:
+    - the depth is the nearest hit inward, skipping the triangle itself;
+    - the local thickness is twice the nearest-surface distance from the ray's midpoint, bounded by half the depth;
+    - both traversals use a fixed 64-entry stack, the same slab test, Möller–Trumbore and Ericson's regions as the kernel.
+  - `gpuWallThickness(device, packed, rays)`:
+    - one pass and two read-backs;
+    - its buffers are released after;
+    - the pipeline is compiled once per device;
+    - the WebGPU types are structural, as the viewer's are.
+  - `cpuWallThickness` is its mirror on the same packed words.
+- **Tests**:
+  - `tests/compute-thickness.test.mjs` (3, in gpu `test`):
+    - a 40 × 30 × 8 box's top and bottom triangles read 8 deep and 8 thick;
+    - a Ø60/Ø50 tube 40 high with 96 sides reads 5 across its wall;
+    - every triangle equals the kernel's rayHit + nearestDistance2 composed the same way (1e-5 of the size);
+    - a degenerate triangle reads Infinity.
+  - `tests/compute-thickness-browser.test.mjs` (in gpu `test:browser`): the GPU pass against the CPU mirror per
+    triangle, within 1e-4 of the size, with hits and misses the same. Cases: the box and a 20 000-triangle sphere shell
+    (R 30, r 25). GPU and CPU times are printed with the load.
+- **Checks** (T1): gpu `test` 187/187; type-check 0; eslint 0; `build:library` ok; the browser spec passes `node --check`.
+- **Not run**: the browser spec, which needs the slot; so the WGSL has not yet been compiled by a device. Also next:
+  the studio's thickness map on WebGPU ("GPU estimate", with the CPU's numbers in the panel), checked against
+  `thicknessMap` on the CNC8 plate (its 8 mm floor), the r14 plate and a curved part.
+
+## G-R12 — G25b: tool access as a WGSL compute pass; both analyses checked against the studio's CPU maps (roadmap G6, 2026-10-23)
+
+- **What** (`packages/barocss-gpu/src/compute/`, experimental):
+  - **`access.ts`**, CNC4's rule one to one:
+    - `accessSampleSet` lays out the samples on the CPU, as accessOf does: n² parts a triangle (n from its longest edge
+      over the step, at most 48), each part's centre 0.01 mm off the face, and the 6-bit set of directions on the face's
+      side;
+    - `ACCESS_WGSL` runs one invocation a sample: its six axis rays (minT 1e-6, no skip) give a mask of the directions
+      that leave the part;
+    - `accessByTriangle` folds the masks back per triangle into the unreached share and the OR mask;
+    - `cpuAccessMasks` is the pass's mirror.
+  - **Shared pieces.** `bvhWgsl.ts` holds the hierarchy's structs, bindings 0–1, `rayHit` and `nearest2`, now shared by
+    both passes. `dispatch.ts`'s `runCompute` handles inputs, outputs, a 16-byte uniform, workgroups of 64 and read-back,
+    with every buffer released and one pipeline a device and shader.
+  - The thickness pass now uses both, with unchanged WGSL.
+- **Tests**:
+  - `tests/compute-access.test.mjs` (2, in gpu `test`):
+    - a box: every face reached by its own direction, and the samples' areas sum to each triangle's;
+    - a box with a sealed cavity: the cavity's faces at share 1, the outside at 0, and every mask equal to the kernel's
+      rayHit along the same directions.
+  - **`apps/cad-studio/test/gpu-analyses.test.ts` (2), the acceptance's CPU half**, on the CNC8 pocket plate and the r14
+    geometric plate:
+    - cad-model's own `accessSamples` (share and mask per triangle) equals the experimental samples folded back:
+      shares within 1e-5, masks all equal;
+    - cad-model's `wallSamples` (depth and local) equals the thickness mirror within 1e-4 of the size, hits and misses
+      the same.
+    - So the GPU passes, once they match their mirrors in the browser, compute what the panels compute.
+  - `tests/compute-access-browser.test.mjs` (in gpu `test:browser`): GPU masks against the mirror, on a sealed-cavity box
+    and a 20 000-triangle shell. At most 1 sample in 10 000 may differ, a ray grazing within f32; shares within 1e-3.
+    Times are printed with the load.
+- **Checks** (T1): gpu `test` 189/189; gpu type-check 0; eslint (src) 0; gpu-analyses 2/2; studio type-check 0.
+- **Not run**:
+  - both browser specs (slot);
+  - the studio map wiring on WebGPU ("GPU estimate"), which follows the specs;
+  - the acceptance cases still to add in the browser: a box (its wall), the CNC8 plate (its 8 mm floor), the r14
+    plate and a curved part, with timings at the stated load.

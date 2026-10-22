@@ -248,3 +248,5 @@ export { showScene, SceneViewError } from './scene-viewer.js';
 export type { SceneView, SceneViewOptions } from './scene-viewer.js';
 export { materialShader, bindingShader, uv01Shader, uvRepeatingShader } from './material-viewer.js';
 export type { MaterialShaderResult, MaterialUniform } from './material-viewer.js';
+// EXPERIMENTAL (G25): GPU compute for analyses; may change without a version bump.
+export * as computeExperimental from './compute/index.js';

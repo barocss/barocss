@@ -16,6 +16,7 @@ import { PrintOverlayGL } from './printOverlayGL';
 import type { CamDisplay } from './camDisplay';
 import { CamOverlayGeometry } from './camOverlayGeometry';
 import { OverlayGL } from './overlayGL';
+import type { OverlayDrawing } from './overlayDrawing';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 
 export interface FaceRef { body: number; face: number }
@@ -127,6 +128,8 @@ export interface ViewRenderer {
   setPrintDisplay?(display: PrintDisplay | null): void;
   /** G23 CNC: the stock, paths, remaining stock and tool in world coordinates, independent of native geometry and IDs. */
   setCamDisplay?(display: CamDisplay | null): void;
+  /** G24: the drawing's annotation lines and heads on the model (world), display only; null clears them. */
+  setAnnotationDrawings?(drawings: readonly OverlayDrawing[] | null): void;
   getDisplayModeStatus?(): DisplayModeStatus;
   render(camera: OrbitCamera, view: ViewState): void;
   pickFace(x: number, y: number, camera: OrbitCamera, view: ViewState): FaceRef | null;
@@ -368,6 +371,7 @@ export class Renderer implements ViewRenderer {
   private clearance: ClearanceOverlayGL | null = null;
   private print: PrintOverlayGL | null = null;
   private cam: { geometry: CamOverlayGeometry; overlay: OverlayGL } | null = null;
+  private pmi: OverlayGL | null = null;
   private gridVao: WebGLVertexArrayObject; private gridCount = 0;
   private quadVao: WebGLVertexArrayObject; private corner: WebGLBuffer; private emptyVao: WebGLVertexArrayObject;
   private pickFbo: WebGLFramebuffer | null = null; private pickTex: WebGLTexture | null = null; private pickDepthTex: WebGLTexture | null = null; private pickDepth: WebGLRenderbuffer | null = null;
@@ -418,7 +422,15 @@ export class Renderer implements ViewRenderer {
     if (!display) { cam.overlay.dispose(); this.cam = null; }
   }
 
+  setAnnotationDrawings(drawings: readonly OverlayDrawing[] | null): void {
+    if (!this.pmi && !drawings?.length) return;
+    const pmi = this.pmi ??= new OverlayGL(this.gl, 'PMI');
+    pmi.setDrawings(drawings ?? []);
+    if (!drawings?.length) { pmi.dispose(); this.pmi = null; }
+  }
+
   dispose(): void {
+    this.pmi?.dispose(); this.pmi = null;
     this.clearance?.dispose(); this.clearance = null;
     this.print?.dispose(); this.print = null;
     this.cam?.overlay.dispose(); this.cam = null;
@@ -885,6 +897,7 @@ export class Renderer implements ViewRenderer {
     this.clearance?.render(vp);
     this.print?.render(vp, w, h, dpr);
     if (this.cam) { const f = camera.basis().forward; this.cam.overlay.render(vp, w, h, dpr, [-f[0], -f[1], -f[2]]); }
+    this.pmi?.render(vp, w, h, dpr);
     gl.disable(gl.BLEND);
     // Resolve MSAA colour + depth, then composite with ambient occlusion.
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.msFbo); gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.rsFbo);

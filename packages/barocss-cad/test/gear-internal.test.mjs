@@ -220,8 +220,14 @@ test('placed: the part model\'s ring (z 40) and a pinion (z 24) inside it (spur-
   const pose = (x2, red, turnDeg) => [{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 3, rim: 100, profileShift: x2, thicknessReduction: red, rotation: turnDeg * 24 / 40 }, { id: 'p', kind: 'spur-gear', module: 2, teeth: 24, faceWidth: 3, thicknessReduction: red, mesh: { gear: 'r' }, generator: 'spur-gear@1' }];
   const z0 = evaluateCadPart(D(pose(0.25, 0, 0))), zc = checkPlacedInternalGears(z0.output('r').internalGearPlacement, z0.output('p').gearPlacement);
   assert.ok(zc.sweep.minimumClearanceMM < -0.01, String(zc.sweep.minimumClearanceMM));
-  const hit = evaluateCadPart(D([...pose(0.25, 0, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i');
-  assert.ok(brepMassProperties(hit.brep, 1).volumeMM3 > 1e-4, 'the solids overlap where the sweep says');
+  // (Their exact intersection there is flank slivers 0.0118 mm thin: before D186 it came back as a body with a face of
+  // width 2e-19 mm, its loops crossing (strict L0) and its volume 5 % off its mesh's — a wrong body. Now either a body
+  // valid under the strict check, or the typed graze refusal; the sweep above says they overlap.)
+  try {
+    const hit = evaluateCadPart(D([...pose(0.25, 0, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i');
+    assert.ok(checkBrep(hit.brep, { strict: true }).valid, 'a body is valid under the strict check');
+    assert.ok(brepMassProperties(hit.brep, 1).volumeMM3 > 1e-4, 'the solids overlap where the sweep says');
+  } catch (e) { if (!(e.code === 'GEOMETRY' && /graze within .* the sliver between them cannot be built/.test(e.message))) throw e; }
   for (const [x2, red] of SURVEY ? [[0.25, 0.05], [0.5, 0]] : []) assert.throws(() => evaluateCadPart(D([...pose(x2, red, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
   const offCheck = checkPlacedInternalGears(evaluateCadPart(D(feats(0, 0, 9))).output('r').internalGearPlacement, evaluateCadPart(D(feats(0, 0, 9))).output('p').gearPlacement, { mode: 'verdict' });
   assert.equal(offCheck.sweep.interference, true);
