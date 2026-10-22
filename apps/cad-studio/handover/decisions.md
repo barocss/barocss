@@ -10944,3 +10944,23 @@ cause would come back here.
 
 **Checks (T1):** the three cases pass through `test/conformance.test.mjs` (with the other notch-named cases, 6/6). No
 product code changed. RB picks up three more cases at the next window.
+
+### D182 (continued) — K2: the native notch builds at integration; the strict-tangent candidate is in and hoisted (2026-10-23)
+
+**The triage the GPU lane sent:** "both native notch cases refuse at fit depth 10". That is D175's record at
+`1f041da01`, and it was superseded within D175 itself.
+- The strict-tangent follow-up (five-point tangents on the 16-span grid) became `98c671129`.
+- Codex executed it ("D175 98c671 native pass"). The hole saw ×4 and the V at 90° and 120° met their unchanged
+  independent 1e-12 oracles, and the final boundary lay on the tube and the cutter.
+- `98c671129` is an ancestor of `0eabecf7f`, so it is in integration since `99da385a1`: its `analytic-boolean.ts` is
+  the same as integration's.
+- At integration now:
+  - all 11 tests of `frk-5-gaps-notches` and `frk-5-notch-boundary` pass;
+  - D182's three conformance cases pass.
+- So no notch refuses. The remaining open part of K2 is the browser flow (the GPU lane's).
+
+**The review: hoisted, not changed.** The strict path's per-edge callbacks (`Array.from`, `map`, `reduce` over the
+stencils) are now plain loops. The stencils are module constants (`FIVE_POINT_*`; owner rule). The arithmetic and its
+order are the same: notch tests 12/12, notch and saddle cases 9/9.
+
+**Checks (T1):** lint 0 errors, type-check clean, build.

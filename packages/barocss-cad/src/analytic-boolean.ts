@@ -1616,22 +1616,28 @@ function fitCubic(k: Extract<Curve3, { kind: 'param' }>, id: string, p: P3, q: P
   if (strict && !(fit.error <= tol)) throw new BrepError('GEOMETRY', `analytic Boolean: stitched parametric edge fit exceeds requested accuracy (t0=${k.t0}, t1=${k.t1}, achievedMM=${fit.error}, requestedMM=${tol})`);
   return fit.curve;
 }
+/** Five-point first-derivative stencils (×12h) at a grid's two ends, next to them, and inside: the strict edge fit's tangents (D175, D182). */
+const FIVE_POINT_START = [-25, 48, -36, 16, -3], FIVE_POINT_SECOND = [-3, -10, 18, -6, 1], FIVE_POINT_PENULTIMATE = [-1, 6, -18, 10, 3], FIVE_POINT_END = [3, -16, 36, -48, 25], FIVE_POINT_CENTRAL = [1, -8, 0, 8, -1];
 function fitWith(k: Extract<Curve3, { kind: 'param' }>, id: string, p: P3, q: P3, n: number, strict = false): { curve: Curve; error: number } {
   const at = (u: number) => u <= 0 ? p : u >= 1 ? q : paramAt(k, u), h = 1e-6;
   const d = (u: number) => { const a = paramAt(k, Math.max(0, u - h)), b = paramAt(k, Math.min(1, u + h)); return scale(sub(b, a), 1 / (Math.min(1, u + h) - Math.max(0, u - h))); };
   let handles: P3[] | undefined;
   if (strict) {
-    const samples = Array.from({ length: n + 1 }, (_, i) => paramAt(k, i / n));
+    const samples: P3[] = [];
+    for (let i = 0; i <= n; i++) samples.push(paramAt(k, i / n));
     // Fourth-order five-point tangents on the actual Bezier grid. A handle is
     // (span / 3) * derivative: the grid spacing cancels to 1/36. Subtract the
     // local point before weighting, without dividing coordinate noise by 1e-6.
     // Reuse each handle on both sides of a node to retain the C1 chain.
-    handles = samples.map((p0, i) => {
-      const start = Math.max(0, Math.min(n - 4, i - 2));
-      const coefficients = i === 0 ? [-25, 48, -36, 16, -3] : i === 1 ? [-3, -10, 18, -6, 1]
-        : i === n - 1 ? [-1, 6, -18, 10, 3] : i === n ? [3, -16, 36, -48, 25] : [1, -8, 0, 8, -1];
-      return coefficients.reduce((sum, c, j) => add(sum, scale(sub(samples[start + j], p0), c / 36)), [0, 0, 0] as P3);
-    });
+    // (Plain loops, the stencils at module level: this runs per fitted edge, D182.)
+    handles = [];
+    for (let i = 0; i <= n; i++) {
+      const p0 = samples[i], start = Math.max(0, Math.min(n - 4, i - 2));
+      const coefficients = i === 0 ? FIVE_POINT_START : i === 1 ? FIVE_POINT_SECOND : i === n - 1 ? FIVE_POINT_PENULTIMATE : i === n ? FIVE_POINT_END : FIVE_POINT_CENTRAL;
+      let hx = 0, hy = 0, hz = 0;
+      for (let j = 0; j < 5; j++) { const q = samples[start + j], w = coefficients[j] / 36; hx += (q[0] - p0[0]) * w; hy += (q[1] - p0[1]) * w; hz += (q[2] - p0[2]) * w; }
+      handles.push([hx, hy, hz]);
+    }
   }
   {
     const cp: P3[] = [at(0)], knots = [0, 0, 0, 0];
